@@ -1,114 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:59461 "EHLO
-        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752311AbcL2NyD (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:47812 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751991AbcLSFLM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Dec 2016 08:54:03 -0500
-Subject: Re: [PATCH 0/4] video/exynos/cec: add HDMI state notifier & use in
- s5p-cec
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: Russell King <linux@armlinux.org.uk>, linux-fbdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        linux-arm-kernel@lists.infradead.org,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        =?UTF-8?B?64yA7J246riw?= <inki.dae@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <0b71ac14-a97a-1eba-26dc-6cf85bab7aa2@samsung.com>
-Date: Thu, 29 Dec 2016 14:53:57 +0100
-MIME-version: 1.0
-In-reply-to: <20161213150813.37966-1-hverkuil@xs4all.nl>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-transfer-encoding: 7bit
-References: <CGME20161213150827epcas1p3155035a3c8affb78fb7a3c5b4b60007b@epcas1p3.samsung.com>
- <20161213150813.37966-1-hverkuil@xs4all.nl>
+        Mon, 19 Dec 2016 00:11:12 -0500
+Message-ID: <dce9104bfcc9d470de724ff4c25f6f86@smtp-cloud6.xs4all.net>
+Date: Mon, 19 Dec 2016 06:11:09 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-On 2016-12-13 16:08, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> This patch series adds the HDMI notifier code, based on Russell's code:
->
-> https://patchwork.kernel.org/patch/9277043/
->
-> It adds support for it to the exynos_hdmi drm driver, adds support for
-> it to the CEC framework and finally adds support to the s5p-cec driver,
-> which now can be moved out of staging.
->
-> Tested with my Odroid U3 exynos4 devboard.
->
-> Comments are welcome. I'd like to get this in for the 4.11 kernel as
-> this is a missing piece needed to integrate CEC drivers.
->
-> Benjamin, can you look at doing the same notifier integration for your
-> st-cec driver as is done for s5p-cec? It would be good to be able to
-> move st-cec out of staging at the same time.
+date:			Mon Dec 19 05:00:20 CET 2016
+media-tree git hash:	d183e4efcae8d88a2f252e546978658ca6d273cc
+media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
+v4l-utils git hash:	6da6dcaa3de67be6ddeec2245bab0afa1c772afd
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
-Thanks for working on this and taking it from by TODO list! :)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.12.67-x86_64: OK
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+linux-4.9-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-Please add:
-Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Detailed results are available here:
 
-If you plan to send an updated version, please send it also to
-linux-samsung-soc@vger.kernel.org, Krzysztof and Inki to get their acks
-for the bindings, dtsi and drm parts.
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-This HDMI notifier framework will probably be also useful for integrating
-HDMI audio support for Samsung ASoC driver.
+Full logs are available here:
 
-> Regards,
->
-> 	Hans
->
-> Hans Verkuil (4):
->    video: add HDMI state notifier support
->    exynos_hdmi: add HDMI notifier support
->    cec: integrate HDMI notifier support
->    s5p-cec: add hdmi-notifier support, move out of staging
->
->   .../devicetree/bindings/media/s5p-cec.txt          |   2 +
->   arch/arm/boot/dts/exynos4.dtsi                     |   1 +
->   drivers/gpu/drm/exynos/Kconfig                     |   1 +
->   drivers/gpu/drm/exynos/exynos_hdmi.c               |  24 +++-
->   drivers/media/cec/cec-core.c                       |  50 ++++++++
->   drivers/media/platform/Kconfig                     |  18 +++
->   drivers/media/platform/Makefile                    |   1 +
->   .../media => media/platform}/s5p-cec/Makefile      |   0
->   .../platform}/s5p-cec/exynos_hdmi_cec.h            |   0
->   .../platform}/s5p-cec/exynos_hdmi_cecctrl.c        |   0
->   .../media => media/platform}/s5p-cec/regs-cec.h    |   0
->   .../media => media/platform}/s5p-cec/s5p_cec.c     |  35 +++++-
->   .../media => media/platform}/s5p-cec/s5p_cec.h     |   3 +
->   drivers/staging/media/Kconfig                      |   2 -
->   drivers/staging/media/Makefile                     |   1 -
->   drivers/staging/media/s5p-cec/Kconfig              |   9 --
->   drivers/staging/media/s5p-cec/TODO                 |   7 --
->   drivers/video/Kconfig                              |   3 +
->   drivers/video/Makefile                             |   1 +
->   drivers/video/hdmi-notifier.c                      | 134 +++++++++++++++++++++
->   include/linux/hdmi-notifier.h                      | 109 +++++++++++++++++
->   include/media/cec.h                                |  15 +++
->   22 files changed, 389 insertions(+), 27 deletions(-)
->   rename drivers/{staging/media => media/platform}/s5p-cec/Makefile (100%)
->   rename drivers/{staging/media => media/platform}/s5p-cec/exynos_hdmi_cec.h (100%)
->   rename drivers/{staging/media => media/platform}/s5p-cec/exynos_hdmi_cecctrl.c (100%)
->   rename drivers/{staging/media => media/platform}/s5p-cec/regs-cec.h (100%)
->   rename drivers/{staging/media => media/platform}/s5p-cec/s5p_cec.c (89%)
->   rename drivers/{staging/media => media/platform}/s5p-cec/s5p_cec.h (97%)
->   delete mode 100644 drivers/staging/media/s5p-cec/Kconfig
->   delete mode 100644 drivers/staging/media/s5p-cec/TODO
->   create mode 100644 drivers/video/hdmi-notifier.c
->   create mode 100644 include/linux/hdmi-notifier.h
->
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-Best regards
--- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+The Media Infrastructure API from this daily build is here:
 
+http://www.xs4all.nl/~hverkuil/spec/index.html
