@@ -1,57 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shell.v3.sk ([92.60.52.57]:35845 "EHLO shell.v3.sk"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750951AbcLEL5B (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Dec 2016 06:57:01 -0500
-Message-ID: <1480938555.16064.3.camel@v3.sk>
-Subject: Re: [PATCH] [media] usbtv: add a new usbid
-From: Lubomir Rintel <lkundrak@v3.sk>
-To: Icenowy Zheng <icenowy@aosc.xyz>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Federico Simoncelli <fsimonce@redhat.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Date: Mon, 05 Dec 2016 12:49:15 +0100
-In-Reply-To: <14085351480863591@web18g.yandex.ru>
-References: <20161204135943.34465-1-icenowy@aosc.xyz>
-         <14085351480863591@web18g.yandex.ru>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:35259 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751644AbcLTMh7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Dec 2016 07:37:59 -0500
+Date: Tue, 20 Dec 2016 13:37:56 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>,
+        ivo.g.dimitrov.75@gmail.com, sre@kernel.org,
+        linux-media@vger.kernel.org, galak@codeaurora.org,
+        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v5] media: Driver for Toshiba et8ek8 5MP sensor
+Message-ID: <20161220123756.GA23035@amd>
+References: <20161023200355.GA5391@amd>
+ <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
+ <20161214122451.GB27011@amd>
+ <20161214130310.GA15405@pali>
+ <20161214201202.GB28424@amd>
+ <20161218220105.GS16630@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="KsGdsel6WgEHnImy"
+Content-Disposition: inline
+In-Reply-To: <20161218220105.GS16630@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2016-12-04 at 22:59 +0800, Icenowy Zheng wrote:
-> 
-> 04.12.2016, 22:00, "Icenowy Zheng" <icenowy@aosc.xyz>:
-> > A new usbid of UTV007 is found in a newly bought device.
-> > 
-> > The usbid is 1f71:3301.
-> > 
-> > The ID on the chip is:
-> > UTV007
-> > A89029.1
-> > 1520L18K1
-> > 
-> 
-> Seems that my device come with more capabilities.
-> 
-> I tested it under Windows, and I got wireless Analog TV
-> and FM radio functions. (An antenna is shipped with my device)
-> 
-> Maybe a new radio function is be added, combined with the
-> new USB ID.
-> 
-> But at least Composite AV function works well with current usbtv
-> driver and XawTV.
 
-Well, someone with the hardware would need to capture the traffic from
-the Windows driver (and ideally also extend the driver). Would you mind
-giving it a try?
+--KsGdsel6WgEHnImy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Do you have a link to some further details about the device you got?
-Perhaps if it's available cheaply from dealextreme or somewhere I could
-take a look too.
+Hi!
 
-Lubo
+> I think WARN() is good. It's a driver bug and it deserves to be notified.
+=2E..
+> I guess it's been like this since 2008 or so. I guess the comment could be
+> simply removed, it's not a real problem.
+=2E..
+> AFAIR the module is called Stingray.
+
+Ok, so it seems we are pretty good? Can you take the patch now? Device
+tree documentation is in
+
+Subject: [PATCH v6] media: et8ek8: add device tree binding documentation
+
+and we have
+
+Acked-by: Rob Herring <robh@kernel.org>
+
+on that.
+
+Thanks and best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--KsGdsel6WgEHnImy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEUEARECAAYFAlhZJiQACgkQMOfwapXb+vLuGQCY0pn8gEwCqJE9M+riJ1L9h8Og
+5gCfeUj6LRLjSvl5Dj66RNPiU84YzSU=
+=6tQj
+-----END PGP SIGNATURE-----
+
+--KsGdsel6WgEHnImy--
