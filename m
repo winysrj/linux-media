@@ -1,164 +1,847 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:54858 "EHLO mail.kernel.org"
+Received: from gofer.mess.org ([80.229.237.210]:57231 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S941212AbcLMSDp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Dec 2016 13:03:45 -0500
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCHv3 2/4] v4l: vsp1: Refactor video pipeline configuration
-Date: Tue, 13 Dec 2016 17:59:42 +0000
-Message-Id: <1481651984-7687-3-git-send-email-kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <1481651984-7687-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
-References: <1481651984-7687-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+        id S1755266AbcLTRud (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Dec 2016 12:50:33 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>,
+        Christoph Bartelmus <lirc@bartelmus.de>
+Subject: [PATCH 3/5] [media] staging: lirc_parallel: remove
+Date: Tue, 20 Dec 2016 17:50:26 +0000
+Message-Id: <c973c9ec3936d79c83099319cd0109ef1bcc89cf.1482255894.git.sean@mess.org>
+In-Reply-To: <cover.1482255894.git.sean@mess.org>
+References: <cover.1482255894.git.sean@mess.org>
+In-Reply-To: <cover.1482255894.git.sean@mess.org>
+References: <cover.1482255894.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With multiple inputs through the BRU it is feasible for the streams to
-race each other at stream-on. In the case of the video pipelines, this
-can present two serious issues.
+The lirc_parallel driver was merged in 2010 and noone has attempted
+to do the work necessary to get it out of staging (i.e. port it to
+rc-core). I have not been able to find one of these devices, and
+a machine with a parallel port is pretty rare too.
 
- 1) A null-dereference if the pipe->dl is committed at the same time as
-    the vsp1_video_setup_pipeline() is processing
-
- 2) A hardware hang, where a display list is committed without having
-    called vsp1_video_setup_pipeline() first
-
-Along side these race conditions, the work done by
-vsp1_video_setup_pipeline() is undone by the re-initialisation during a
-suspend resume cycle, and an active pipeline does not attempt to
-reconfigure the correct routing and init parameters for the entities.
-
-To repair all of these issues, we can move the call to a conditional
-inside vsp1_video_pipeline_run() and ensure that this can only be called
-on the last stream which calls into vsp1_video_start_streaming()
-
-As a convenient side effect of this, by specifying that the
-configuration has been lost during suspend/resume actions - the
-vsp1_video_pipeline_run() call can re-initialise pipelines when
-necessary thus repairing resume actions for active m2m pipelines.
-
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
+Signed-off-by: Sean Young <sean@mess.org>
+Cc: Jarod Wilson <jarod@redhat.com>
+Cc: Christoph Bartelmus <lirc@bartelmus.de>
 ---
-v3:
- - Move 'flag reset' to be inside the vsp1_reset_wpf() function call
- - Tidy up the wpf->pipe reference for the configured flag
+ drivers/staging/media/lirc/Kconfig         |   6 -
+ drivers/staging/media/lirc/Makefile        |   1 -
+ drivers/staging/media/lirc/lirc_parallel.c | 741 -----------------------------
+ drivers/staging/media/lirc/lirc_parallel.h |  26 -
+ 4 files changed, 774 deletions(-)
+ delete mode 100644 drivers/staging/media/lirc/lirc_parallel.c
+ delete mode 100644 drivers/staging/media/lirc/lirc_parallel.h
 
- drivers/media/platform/vsp1/vsp1_drv.c   |  4 ++++
- drivers/media/platform/vsp1/vsp1_pipe.c  |  1 +
- drivers/media/platform/vsp1/vsp1_pipe.h  |  2 ++
- drivers/media/platform/vsp1/vsp1_video.c | 20 +++++++++-----------
- 4 files changed, 16 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 57c713a4e1df..1dc3726c4e83 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -413,6 +413,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+diff --git a/drivers/staging/media/lirc/Kconfig b/drivers/staging/media/lirc/Kconfig
+index 56e5fd7..7923d3f 100644
+--- a/drivers/staging/media/lirc/Kconfig
++++ b/drivers/staging/media/lirc/Kconfig
+@@ -26,12 +26,6 @@ config LIRC_IMON
  
- int vsp1_reset_wpf(struct vsp1_device *vsp1, unsigned int index)
- {
-+	struct vsp1_rwpf *wpf = vsp1->wpf[index];
- 	unsigned int timeout;
- 	u32 status;
+ 	  Current generation iMON devices use the input layer imon driver.
  
-@@ -429,6 +430,9 @@ int vsp1_reset_wpf(struct vsp1_device *vsp1, unsigned int index)
- 		usleep_range(1000, 2000);
- 	}
- 
-+	if (wpf->pipe)
-+		wpf->pipe->configured = false;
-+
- 	if (!timeout) {
- 		dev_err(vsp1->dev, "failed to reset wpf.%u\n", index);
- 		return -ETIMEDOUT;
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
-index 756ca4ea7668..7ddf862ee403 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.c
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-@@ -208,6 +208,7 @@ void vsp1_pipeline_init(struct vsp1_pipeline *pipe)
- 
- 	INIT_LIST_HEAD(&pipe->entities);
- 	pipe->state = VSP1_PIPELINE_STOPPED;
-+	pipe->configured = false;
- }
- 
- /* Must be called with the pipe irqlock held. */
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-index ac4ad2655551..0743b9fcb655 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.h
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -61,6 +61,7 @@ enum vsp1_pipeline_state {
-  * @pipe: the media pipeline
-  * @irqlock: protects the pipeline state
-  * @state: current state
-+ * @configured: determines routing configuration active on cell.
-  * @wq: wait queue to wait for state change completion
-  * @frame_end: frame end interrupt handler
-  * @lock: protects the pipeline use count and stream count
-@@ -86,6 +87,7 @@ struct vsp1_pipeline {
- 
- 	spinlock_t irqlock;
- 	enum vsp1_pipeline_state state;
-+	bool configured;
- 	wait_queue_head_t wq;
- 
- 	void (*frame_end)(struct vsp1_pipeline *pipe);
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 44b687c0b8df..7ff9f4c19ff0 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -388,6 +388,8 @@ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
- 					       VSP1_ENTITY_PARAMS_INIT);
- 	}
- 
-+	pipe->configured = true;
-+
- 	return 0;
- }
- 
-@@ -411,6 +413,9 @@ static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
- 	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
- 	struct vsp1_entity *entity;
- 
-+	if (!pipe->configured)
-+		vsp1_video_setup_pipeline(pipe);
-+
- 	if (!pipe->dl)
- 		pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
- 
-@@ -793,25 +798,18 @@ static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	struct vsp1_video *video = vb2_get_drv_priv(vq);
- 	struct vsp1_pipeline *pipe = video->rwpf->pipe;
- 	unsigned long flags;
--	int ret;
- 
- 	mutex_lock(&pipe->lock);
- 	if (pipe->stream_count == pipe->num_inputs) {
--		ret = vsp1_video_setup_pipeline(pipe);
--		if (ret < 0) {
--			mutex_unlock(&pipe->lock);
--			return ret;
--		}
-+		spin_lock_irqsave(&pipe->irqlock, flags);
-+		if (vsp1_pipeline_ready(pipe))
-+			vsp1_video_pipeline_run(pipe);
-+		spin_unlock_irqrestore(&pipe->irqlock, flags);
- 	}
- 
- 	pipe->stream_count++;
- 	mutex_unlock(&pipe->lock);
- 
--	spin_lock_irqsave(&pipe->irqlock, flags);
--	if (vsp1_pipeline_ready(pipe))
--		vsp1_video_pipeline_run(pipe);
--	spin_unlock_irqrestore(&pipe->irqlock, flags);
+-config LIRC_PARALLEL
+-	tristate "Homebrew Parallel Port Receiver"
+-	depends on LIRC && PARPORT
+-	help
+-	  Driver for Homebrew Parallel Port Receivers
 -
- 	return 0;
- }
+ config LIRC_SASEM
+ 	tristate "Sasem USB IR Remote"
+ 	depends on LIRC && USB
+diff --git a/drivers/staging/media/lirc/Makefile b/drivers/staging/media/lirc/Makefile
+index 7f919ea..ed3091e 100644
+--- a/drivers/staging/media/lirc/Makefile
++++ b/drivers/staging/media/lirc/Makefile
+@@ -5,7 +5,6 @@
  
+ obj-$(CONFIG_LIRC_BT829)	+= lirc_bt829.o
+ obj-$(CONFIG_LIRC_IMON)		+= lirc_imon.o
+-obj-$(CONFIG_LIRC_PARALLEL)	+= lirc_parallel.o
+ obj-$(CONFIG_LIRC_SASEM)	+= lirc_sasem.o
+ obj-$(CONFIG_LIRC_SIR)		+= lirc_sir.o
+ obj-$(CONFIG_LIRC_ZILOG)	+= lirc_zilog.o
+diff --git a/drivers/staging/media/lirc/lirc_parallel.c b/drivers/staging/media/lirc/lirc_parallel.c
+deleted file mode 100644
+index bfb76a4..0000000
+--- a/drivers/staging/media/lirc/lirc_parallel.c
++++ /dev/null
+@@ -1,741 +0,0 @@
+-/*
+- * lirc_parallel.c
+- *
+- * lirc_parallel - device driver for infra-red signal receiving and
+- *                 transmitting unit built by the author
+- *
+- * Copyright (C) 1998 Christoph Bartelmus <lirc@bartelmus.de>
+- *
+- *  This program is free software; you can redistribute it and/or modify
+- *  it under the terms of the GNU General Public License as published by
+- *  the Free Software Foundation; either version 2 of the License, or
+- *  (at your option) any later version.
+- *
+- *  This program is distributed in the hope that it will be useful,
+- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+- *
+- */
+-
+-#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+-
+-/*** Includes ***/
+-
+-#include <linux/module.h>
+-#include <linux/sched.h>
+-#include <linux/errno.h>
+-#include <linux/signal.h>
+-#include <linux/fs.h>
+-#include <linux/kernel.h>
+-#include <linux/ioport.h>
+-#include <linux/ktime.h>
+-#include <linux/mm.h>
+-#include <linux/delay.h>
+-
+-#include <linux/io.h>
+-#include <linux/irq.h>
+-#include <linux/uaccess.h>
+-#include <asm/div64.h>
+-
+-#include <linux/poll.h>
+-#include <linux/parport.h>
+-#include <linux/platform_device.h>
+-
+-#include <media/lirc.h>
+-#include <media/lirc_dev.h>
+-
+-#include "lirc_parallel.h"
+-
+-#define LIRC_DRIVER_NAME "lirc_parallel"
+-
+-#ifndef LIRC_IRQ
+-#define LIRC_IRQ 7
+-#endif
+-#ifndef LIRC_PORT
+-#define LIRC_PORT 0x378
+-#endif
+-#ifndef LIRC_TIMER
+-#define LIRC_TIMER 65536
+-#endif
+-
+-/*** Global Variables ***/
+-
+-static bool debug;
+-static bool check_pselecd;
+-
+-static unsigned int irq = LIRC_IRQ;
+-static unsigned int io = LIRC_PORT;
+-#ifdef LIRC_TIMER
+-static unsigned int timer;
+-static unsigned int default_timer = LIRC_TIMER;
+-#endif
+-
+-#define RBUF_SIZE (256) /* this must be a power of 2 larger than 1 */
+-
+-static int rbuf[RBUF_SIZE];
+-
+-static DECLARE_WAIT_QUEUE_HEAD(lirc_wait);
+-
+-static unsigned int rptr;
+-static unsigned int wptr;
+-static unsigned int lost_irqs;
+-static int is_open;
+-
+-static struct parport *pport;
+-static struct pardevice *ppdevice;
+-static int is_claimed;
+-
+-static unsigned int tx_mask = 1;
+-
+-/*** Internal Functions ***/
+-
+-static unsigned int in(int offset)
+-{
+-	switch (offset) {
+-	case LIRC_LP_BASE:
+-		return parport_read_data(pport);
+-	case LIRC_LP_STATUS:
+-		return parport_read_status(pport);
+-	case LIRC_LP_CONTROL:
+-		return parport_read_control(pport);
+-	}
+-	return 0; /* make compiler happy */
+-}
+-
+-static void out(int offset, int value)
+-{
+-	switch (offset) {
+-	case LIRC_LP_BASE:
+-		parport_write_data(pport, value);
+-		break;
+-	case LIRC_LP_CONTROL:
+-		parport_write_control(pport, value);
+-		break;
+-	case LIRC_LP_STATUS:
+-		pr_info("attempt to write to status register\n");
+-		break;
+-	}
+-}
+-
+-static unsigned int lirc_get_timer(void)
+-{
+-	return in(LIRC_PORT_TIMER) & LIRC_PORT_TIMER_BIT;
+-}
+-
+-static unsigned int lirc_get_signal(void)
+-{
+-	return in(LIRC_PORT_SIGNAL) & LIRC_PORT_SIGNAL_BIT;
+-}
+-
+-static void lirc_on(void)
+-{
+-	out(LIRC_PORT_DATA, tx_mask);
+-}
+-
+-static void lirc_off(void)
+-{
+-	out(LIRC_PORT_DATA, 0);
+-}
+-
+-static unsigned int init_lirc_timer(void)
+-{
+-	ktime_t kt, now, timeout;
+-	unsigned int level, newlevel, timeelapsed, newtimer;
+-	int count = 0;
+-
+-	kt = ktime_get();
+-	/* wait max. 1 sec. */
+-	timeout = ktime_add_ns(kt, NSEC_PER_SEC);
+-	level = lirc_get_timer();
+-	do {
+-		newlevel = lirc_get_timer();
+-		if (level == 0 && newlevel != 0)
+-			count++;
+-		level = newlevel;
+-		now = ktime_get();
+-	} while (count < 1000 && (ktime_before(now, timeout)));
+-	timeelapsed = ktime_us_delta(now, kt);
+-	if (count >= 1000 && timeelapsed > 0) {
+-		if (default_timer == 0) {
+-			/* autodetect timer */
+-			newtimer = (1000000 * count) / timeelapsed;
+-			pr_info("%u Hz timer detected\n", newtimer);
+-			return newtimer;
+-		}
+-		newtimer = (1000000 * count) / timeelapsed;
+-		if (abs(newtimer - default_timer) > default_timer / 10) {
+-			/* bad timer */
+-			pr_notice("bad timer: %u Hz\n", newtimer);
+-			pr_notice("using default timer: %u Hz\n",
+-				  default_timer);
+-			return default_timer;
+-		}
+-		pr_info("%u Hz timer detected\n", newtimer);
+-		return newtimer; /* use detected value */
+-	}
+-
+-	pr_notice("no timer detected\n");
+-	return 0;
+-}
+-
+-static int lirc_claim(void)
+-{
+-	if (parport_claim(ppdevice) != 0) {
+-		pr_warn("could not claim port\n");
+-		pr_warn("waiting for port becoming available\n");
+-		if (parport_claim_or_block(ppdevice) < 0) {
+-			pr_notice("could not claim port, giving up\n");
+-			return 0;
+-		}
+-	}
+-	out(LIRC_LP_CONTROL, LP_PSELECP | LP_PINITP);
+-	is_claimed = 1;
+-	return 1;
+-}
+-
+-/*** interrupt handler ***/
+-
+-static void rbuf_write(int signal)
+-{
+-	unsigned int nwptr;
+-
+-	nwptr = (wptr + 1) & (RBUF_SIZE - 1);
+-	if (nwptr == rptr) {
+-		/* no new signals will be accepted */
+-		lost_irqs++;
+-		pr_notice("buffer overrun\n");
+-		return;
+-	}
+-	rbuf[wptr] = signal;
+-	wptr = nwptr;
+-}
+-
+-static void lirc_lirc_irq_handler(void *blah)
+-{
+-	ktime_t kt, delkt;
+-	static ktime_t lastkt;
+-	static int init;
+-	long signal;
+-	int data;
+-	unsigned int level, newlevel;
+-	unsigned int timeout;
+-
+-	if (!is_open)
+-		return;
+-
+-	if (!is_claimed)
+-		return;
+-
+-#if 0
+-	/* disable interrupt */
+-	  disable_irq(irq);
+-	  out(LIRC_PORT_IRQ, in(LIRC_PORT_IRQ) & (~LP_PINTEN));
+-#endif
+-	if (check_pselecd && (in(1) & LP_PSELECD))
+-		return;
+-
+-#ifdef LIRC_TIMER
+-	if (init) {
+-		kt = ktime_get();
+-
+-		delkt = ktime_sub(kt, lastkt);
+-		if (ktime_compare(delkt, ktime_set(15, 0)) > 0)
+-			/* really long time */
+-			data = PULSE_MASK;
+-		else
+-			data = (int)(ktime_to_us(delkt) + LIRC_SFH506_DELAY);
+-
+-		rbuf_write(data); /* space */
+-	} else {
+-		if (timer == 0) {
+-			/*
+-			 * wake up; we'll lose this signal, but it will be
+-			 * garbage if the device is turned on anyway
+-			 */
+-			timer = init_lirc_timer();
+-			/* enable_irq(irq); */
+-			return;
+-		}
+-		init = 1;
+-	}
+-
+-	timeout = timer / 10;	/* timeout after 1/10 sec. */
+-	signal = 1;
+-	level = lirc_get_timer();
+-	do {
+-		newlevel = lirc_get_timer();
+-		if (level == 0 && newlevel != 0)
+-			signal++;
+-		level = newlevel;
+-
+-		/* giving up */
+-		if (signal > timeout
+-		    || (check_pselecd && (in(1) & LP_PSELECD))) {
+-			signal = 0;
+-			pr_notice("timeout\n");
+-			break;
+-		}
+-	} while (lirc_get_signal());
+-
+-	if (signal != 0) {
+-		/* adjust value to usecs */
+-		__u64 helper;
+-
+-		helper = ((__u64)signal) * 1000000;
+-		do_div(helper, timer);
+-		signal = (long)helper;
+-
+-		if (signal > LIRC_SFH506_DELAY)
+-			data = signal - LIRC_SFH506_DELAY;
+-		else
+-			data = 1;
+-		rbuf_write(PULSE_BIT | data); /* pulse */
+-	}
+-	lastkt = ktime_get();
+-#else
+-	/* add your code here */
+-#endif
+-
+-	wake_up_interruptible(&lirc_wait);
+-
+-	/* enable interrupt */
+-	/*
+-	 * enable_irq(irq);
+-	 * out(LIRC_PORT_IRQ, in(LIRC_PORT_IRQ)|LP_PINTEN);
+-	 */
+-}
+-
+-/*** file operations ***/
+-
+-static loff_t lirc_lseek(struct file *filep, loff_t offset, int orig)
+-{
+-	return -ESPIPE;
+-}
+-
+-static ssize_t lirc_read(struct file *filep, char __user *buf, size_t n,
+-			 loff_t *ppos)
+-{
+-	int result = 0;
+-	int count = 0;
+-	DECLARE_WAITQUEUE(wait, current);
+-
+-	if (n % sizeof(int))
+-		return -EINVAL;
+-
+-	add_wait_queue(&lirc_wait, &wait);
+-	set_current_state(TASK_INTERRUPTIBLE);
+-	while (count < n) {
+-		if (rptr != wptr) {
+-			if (copy_to_user(buf + count, &rbuf[rptr],
+-					 sizeof(int))) {
+-				result = -EFAULT;
+-				break;
+-			}
+-			rptr = (rptr + 1) & (RBUF_SIZE - 1);
+-			count += sizeof(int);
+-		} else {
+-			if (filep->f_flags & O_NONBLOCK) {
+-				result = -EAGAIN;
+-				break;
+-			}
+-			if (signal_pending(current)) {
+-				result = -ERESTARTSYS;
+-				break;
+-			}
+-			schedule();
+-			set_current_state(TASK_INTERRUPTIBLE);
+-		}
+-	}
+-	remove_wait_queue(&lirc_wait, &wait);
+-	set_current_state(TASK_RUNNING);
+-	return count ? count : result;
+-}
+-
+-static ssize_t lirc_write(struct file *filep, const char __user *buf, size_t n,
+-			  loff_t *ppos)
+-{
+-	int count;
+-	unsigned int i;
+-	unsigned int level, newlevel;
+-	unsigned long flags;
+-	int counttimer;
+-	int *wbuf;
+-	ssize_t ret;
+-
+-	if (!is_claimed)
+-		return -EBUSY;
+-
+-	count = n / sizeof(int);
+-
+-	if (n % sizeof(int) || count % 2 == 0)
+-		return -EINVAL;
+-
+-	wbuf = memdup_user(buf, n);
+-	if (IS_ERR(wbuf))
+-		return PTR_ERR(wbuf);
+-
+-#ifdef LIRC_TIMER
+-	if (timer == 0) {
+-		/* try again if device is ready */
+-		timer = init_lirc_timer();
+-		if (timer == 0) {
+-			ret = -EIO;
+-			goto out;
+-		}
+-	}
+-
+-	/* adjust values from usecs */
+-	for (i = 0; i < count; i++) {
+-		__u64 helper;
+-
+-		helper = ((__u64)wbuf[i]) * timer;
+-		do_div(helper, 1000000);
+-		wbuf[i] = (int)helper;
+-	}
+-
+-	local_irq_save(flags);
+-	i = 0;
+-	while (i < count) {
+-		level = lirc_get_timer();
+-		counttimer = 0;
+-		lirc_on();
+-		do {
+-			newlevel = lirc_get_timer();
+-			if (level == 0 && newlevel != 0)
+-				counttimer++;
+-			level = newlevel;
+-			if (check_pselecd && (in(1) & LP_PSELECD)) {
+-				lirc_off();
+-				local_irq_restore(flags);
+-				ret = -EIO;
+-				goto out;
+-			}
+-		} while (counttimer < wbuf[i]);
+-		i++;
+-
+-		lirc_off();
+-		if (i == count)
+-			break;
+-		counttimer = 0;
+-		do {
+-			newlevel = lirc_get_timer();
+-			if (level == 0 && newlevel != 0)
+-				counttimer++;
+-			level = newlevel;
+-			if (check_pselecd && (in(1) & LP_PSELECD)) {
+-				local_irq_restore(flags);
+-				ret = -EIO;
+-				goto out;
+-			}
+-		} while (counttimer < wbuf[i]);
+-		i++;
+-	}
+-	local_irq_restore(flags);
+-#else
+-	/* place code that handles write without external timer here */
+-#endif
+-	ret = n;
+-out:
+-	kfree(wbuf);
+-
+-	return ret;
+-}
+-
+-static unsigned int lirc_poll(struct file *file, poll_table *wait)
+-{
+-	poll_wait(file, &lirc_wait, wait);
+-	if (rptr != wptr)
+-		return POLLIN | POLLRDNORM;
+-	return 0;
+-}
+-
+-static long lirc_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
+-{
+-	int result;
+-	u32 __user *uptr = (u32 __user *)arg;
+-	u32 features = LIRC_CAN_SET_TRANSMITTER_MASK |
+-		       LIRC_CAN_SEND_PULSE | LIRC_CAN_REC_MODE2;
+-	u32 mode;
+-	u32 value;
+-
+-	switch (cmd) {
+-	case LIRC_GET_FEATURES:
+-		result = put_user(features, uptr);
+-		if (result)
+-			return result;
+-		break;
+-	case LIRC_GET_SEND_MODE:
+-		result = put_user(LIRC_MODE_PULSE, uptr);
+-		if (result)
+-			return result;
+-		break;
+-	case LIRC_GET_REC_MODE:
+-		result = put_user(LIRC_MODE_MODE2, uptr);
+-		if (result)
+-			return result;
+-		break;
+-	case LIRC_SET_SEND_MODE:
+-		result = get_user(mode, uptr);
+-		if (result)
+-			return result;
+-		if (mode != LIRC_MODE_PULSE)
+-			return -EINVAL;
+-		break;
+-	case LIRC_SET_REC_MODE:
+-		result = get_user(mode, uptr);
+-		if (result)
+-			return result;
+-		if (mode != LIRC_MODE_MODE2)
+-			return -ENOSYS;
+-		break;
+-	case LIRC_SET_TRANSMITTER_MASK:
+-		result = get_user(value, uptr);
+-		if (result)
+-			return result;
+-		if ((value & LIRC_PARALLEL_TRANSMITTER_MASK) != value)
+-			return LIRC_PARALLEL_MAX_TRANSMITTERS;
+-		tx_mask = value;
+-		break;
+-	default:
+-		return -ENOIOCTLCMD;
+-	}
+-	return 0;
+-}
+-
+-static int lirc_open(struct inode *node, struct file *filep)
+-{
+-	if (is_open || !lirc_claim())
+-		return -EBUSY;
+-
+-	parport_enable_irq(pport);
+-
+-	/* init read ptr */
+-	rptr = 0;
+-	wptr = 0;
+-	lost_irqs = 0;
+-
+-	is_open = 1;
+-	return 0;
+-}
+-
+-static int lirc_close(struct inode *node, struct file *filep)
+-{
+-	if (is_claimed) {
+-		is_claimed = 0;
+-		parport_release(ppdevice);
+-	}
+-	is_open = 0;
+-	return 0;
+-}
+-
+-static const struct file_operations lirc_fops = {
+-	.owner		= THIS_MODULE,
+-	.llseek		= lirc_lseek,
+-	.read		= lirc_read,
+-	.write		= lirc_write,
+-	.poll		= lirc_poll,
+-	.unlocked_ioctl	= lirc_ioctl,
+-#ifdef CONFIG_COMPAT
+-	.compat_ioctl	= lirc_ioctl,
+-#endif
+-	.open		= lirc_open,
+-	.release	= lirc_close
+-};
+-
+-static int set_use_inc(void *data)
+-{
+-	return 0;
+-}
+-
+-static void set_use_dec(void *data)
+-{
+-}
+-
+-static struct lirc_driver driver = {
+-	.name		= LIRC_DRIVER_NAME,
+-	.minor		= -1,
+-	.code_length	= 1,
+-	.sample_rate	= 0,
+-	.data		= NULL,
+-	.add_to_buf	= NULL,
+-	.set_use_inc	= set_use_inc,
+-	.set_use_dec	= set_use_dec,
+-	.fops		= &lirc_fops,
+-	.dev		= NULL,
+-	.owner		= THIS_MODULE,
+-};
+-
+-static struct platform_device *lirc_parallel_dev;
+-
+-static int lirc_parallel_probe(struct platform_device *dev)
+-{
+-	return 0;
+-}
+-
+-static int lirc_parallel_remove(struct platform_device *dev)
+-{
+-	return 0;
+-}
+-
+-static int lirc_parallel_suspend(struct platform_device *dev,
+-					pm_message_t state)
+-{
+-	return 0;
+-}
+-
+-static int lirc_parallel_resume(struct platform_device *dev)
+-{
+-	return 0;
+-}
+-
+-static struct platform_driver lirc_parallel_driver = {
+-	.probe	= lirc_parallel_probe,
+-	.remove	= lirc_parallel_remove,
+-	.suspend	= lirc_parallel_suspend,
+-	.resume	= lirc_parallel_resume,
+-	.driver	= {
+-		.name	= LIRC_DRIVER_NAME,
+-	},
+-};
+-
+-static int pf(void *handle)
+-{
+-	parport_disable_irq(pport);
+-	is_claimed = 0;
+-	return 0;
+-}
+-
+-static void kf(void *handle)
+-{
+-	if (!is_open)
+-		return;
+-	if (!lirc_claim())
+-		return;
+-	parport_enable_irq(pport);
+-	lirc_off();
+-	/* this is a bit annoying when you actually print...*/
+-	/*
+-	 * printk(KERN_INFO "%s: reclaimed port\n", LIRC_DRIVER_NAME);
+-	*/
+-}
+-
+-/*** module initialization and cleanup ***/
+-
+-static int __init lirc_parallel_init(void)
+-{
+-	int result;
+-
+-	result = platform_driver_register(&lirc_parallel_driver);
+-	if (result) {
+-		pr_notice("platform_driver_register returned %d\n", result);
+-		return result;
+-	}
+-
+-	lirc_parallel_dev = platform_device_alloc(LIRC_DRIVER_NAME, 0);
+-	if (!lirc_parallel_dev) {
+-		result = -ENOMEM;
+-		goto exit_driver_unregister;
+-	}
+-
+-	result = platform_device_add(lirc_parallel_dev);
+-	if (result)
+-		goto exit_device_put;
+-
+-	pport = parport_find_base(io);
+-	if (!pport) {
+-		pr_notice("no port at %x found\n", io);
+-		result = -ENXIO;
+-		goto exit_device_del;
+-	}
+-	ppdevice = parport_register_device(pport, LIRC_DRIVER_NAME,
+-					   pf, kf, lirc_lirc_irq_handler, 0,
+-					   NULL);
+-	parport_put_port(pport);
+-	if (!ppdevice) {
+-		pr_notice("parport_register_device() failed\n");
+-		result = -ENXIO;
+-		goto exit_device_del;
+-	}
+-	if (parport_claim(ppdevice) != 0)
+-		goto skip_init;
+-	is_claimed = 1;
+-	out(LIRC_LP_CONTROL, LP_PSELECP | LP_PINITP);
+-
+-#ifdef LIRC_TIMER
+-	if (debug)
+-		out(LIRC_PORT_DATA, tx_mask);
+-
+-	timer = init_lirc_timer();
+-
+-#if 0	/* continue even if device is offline */
+-	if (timer == 0) {
+-		is_claimed = 0;
+-		parport_release(pport);
+-		parport_unregister_device(ppdevice);
+-		result = -EIO;
+-		goto exit_device_del;
+-	}
+-
+-#endif
+-	if (debug)
+-		out(LIRC_PORT_DATA, 0);
+-#endif
+-
+-	is_claimed = 0;
+-	parport_release(ppdevice);
+- skip_init:
+-	driver.dev = &lirc_parallel_dev->dev;
+-	driver.minor = lirc_register_driver(&driver);
+-	if (driver.minor < 0) {
+-		pr_notice("register_chrdev() failed\n");
+-		parport_unregister_device(ppdevice);
+-		result = -EIO;
+-		goto exit_device_del;
+-	}
+-	pr_info("installed using port 0x%04x irq %d\n", io, irq);
+-	return 0;
+-
+-exit_device_del:
+-	platform_device_del(lirc_parallel_dev);
+-exit_device_put:
+-	platform_device_put(lirc_parallel_dev);
+-exit_driver_unregister:
+-	platform_driver_unregister(&lirc_parallel_driver);
+-	return result;
+-}
+-
+-static void __exit lirc_parallel_exit(void)
+-{
+-	parport_unregister_device(ppdevice);
+-	lirc_unregister_driver(driver.minor);
+-
+-	platform_device_unregister(lirc_parallel_dev);
+-	platform_driver_unregister(&lirc_parallel_driver);
+-}
+-
+-module_init(lirc_parallel_init);
+-module_exit(lirc_parallel_exit);
+-
+-MODULE_DESCRIPTION("Infrared receiver driver for parallel ports.");
+-MODULE_AUTHOR("Christoph Bartelmus");
+-MODULE_LICENSE("GPL");
+-
+-module_param(io, int, S_IRUGO);
+-MODULE_PARM_DESC(io, "I/O address base (0x3bc, 0x378 or 0x278)");
+-
+-module_param(irq, int, S_IRUGO);
+-MODULE_PARM_DESC(irq, "Interrupt (7 or 5)");
+-
+-module_param(tx_mask, int, S_IRUGO);
+-MODULE_PARM_DESC(tx_mask, "Transmitter mask (default: 0x01)");
+-
+-module_param(debug, bool, S_IRUGO | S_IWUSR);
+-MODULE_PARM_DESC(debug, "Enable debugging messages");
+-
+-module_param(check_pselecd, bool, S_IRUGO | S_IWUSR);
+-MODULE_PARM_DESC(check_pselecd, "Check for printer (default: 0)");
+diff --git a/drivers/staging/media/lirc/lirc_parallel.h b/drivers/staging/media/lirc/lirc_parallel.h
+deleted file mode 100644
+index 4bed6af..0000000
+--- a/drivers/staging/media/lirc/lirc_parallel.h
++++ /dev/null
+@@ -1,26 +0,0 @@
+-/* lirc_parallel.h */
+-
+-#ifndef _LIRC_PARALLEL_H
+-#define _LIRC_PARALLEL_H
+-
+-#include <linux/lp.h>
+-
+-#define LIRC_PORT_LEN 3
+-
+-#define LIRC_LP_BASE    0
+-#define LIRC_LP_STATUS  1
+-#define LIRC_LP_CONTROL 2
+-
+-#define LIRC_PORT_DATA           LIRC_LP_BASE    /* base */
+-#define LIRC_PORT_TIMER        LIRC_LP_STATUS    /* status port */
+-#define LIRC_PORT_TIMER_BIT          LP_PBUSY    /* busy signal */
+-#define LIRC_PORT_SIGNAL       LIRC_LP_STATUS    /* status port */
+-#define LIRC_PORT_SIGNAL_BIT          LP_PACK    /* ack signal */
+-#define LIRC_PORT_IRQ         LIRC_LP_CONTROL    /* control port */
+-
+-#define LIRC_SFH506_DELAY 0             /* delay t_phl in usecs */
+-
+-#define LIRC_PARALLEL_MAX_TRANSMITTERS 8
+-#define LIRC_PARALLEL_TRANSMITTER_MASK ((1<<LIRC_PARALLEL_MAX_TRANSMITTERS) - 1)
+-
+-#endif
 -- 
-2.7.4
+2.9.3
 
