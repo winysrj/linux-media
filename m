@@ -1,45 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:35021 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752752AbcLNKiw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Dec 2016 05:38:52 -0500
-Subject: Re: [PATCH 6/6] media/cobalt: use pci_irq_allocate_vectors
-To: Christoph Hellwig <hch@lst.de>
-References: <1473600688-24043-1-git-send-email-hch@lst.de>
- <1473600688-24043-7-git-send-email-hch@lst.de>
- <1c24ae65-067f-52fc-edfa-af2d0e222a19@xs4all.nl>
- <20161214102913.GA30236@lst.de>
-Cc: hans.verkuil@cisco.com, brking@us.ibm.com,
-        haver@linux.vnet.ibm.com, ching2048@areca.com.tw, axboe@fb.com,
-        alex.williamson@redhat.com, kvm@vger.kernel.org,
-        linux-scsi@vger.kernel.org, linux-block@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-pci@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <c5453c65-1256-338f-0ff1-6499d11987af@xs4all.nl>
-Date: Wed, 14 Dec 2016 11:37:17 +0100
-MIME-Version: 1.0
-In-Reply-To: <20161214102913.GA30236@lst.de>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from gofer.mess.org ([80.229.237.210]:48611 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752104AbcLTRub (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Dec 2016 12:50:31 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 0/5] Lirc staging drivers
+Date: Tue, 20 Dec 2016 17:50:23 +0000
+Message-Id: <cover.1482255894.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 14/12/16 11:29, Christoph Hellwig wrote:
-> Hi Hans,
->
-> just checked the current Linux tree and cobalt still uses the old
-> pci_enable_msi_range call.  Did you queue this patch up for 4.10?
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+This patch series tries to make some headway with dealing with the
+lirc staging drivers. Over the last couple of years, I have ported
+lirc_serial, lirc_ttusbir and lirc_igorplugusb. I have not been able
+to track down the hardware for the remaining drivers.
 
-Completely forgot this. Is it OK to queue it for 4.11? Or is it blocking
-other follow-up work you want to do for 4.10?
+Note that the remaining lirc staging drivers were merged in 2010, and
+other than trival patches, they have not made any progress towards
+mainline.
 
-Regards,
+ir-rx51 is not a staging driver, but it should not rely on the lirc
+in-kernel API like the staging drivers do.
 
-	Hans
+
+Sean Young (5):
+  [media] ir-rx51: port to rc-core
+  [media] staging: lirc_sir: port to rc-core
+  [media] staging: lirc_parallel: remove
+  [media] staging: lirc_bt829: remove
+  [media] staging: lirc_imon: port remaining usb ids to imon and remove
+
+ arch/arm/mach-omap2/pdata-quirks.c          |   8 +-
+ drivers/media/rc/Kconfig                    |   2 +-
+ drivers/media/rc/imon.c                     | 133 +++-
+ drivers/media/rc/ir-rx51.c                  | 332 ++++------
+ drivers/staging/media/lirc/Kconfig          |  22 +-
+ drivers/staging/media/lirc/Makefile         |   3 -
+ drivers/staging/media/lirc/lirc_bt829.c     | 401 ------------
+ drivers/staging/media/lirc/lirc_imon.c      | 979 ----------------------------
+ drivers/staging/media/lirc/lirc_parallel.c  | 741 ---------------------
+ drivers/staging/media/lirc/lirc_parallel.h  |  26 -
+ drivers/staging/media/lirc/lirc_sir.c       | 296 ++-------
+ include/linux/platform_data/media/ir-rx51.h |   6 +-
+ 12 files changed, 322 insertions(+), 2627 deletions(-)
+ delete mode 100644 drivers/staging/media/lirc/lirc_bt829.c
+ delete mode 100644 drivers/staging/media/lirc/lirc_imon.c
+ delete mode 100644 drivers/staging/media/lirc/lirc_parallel.c
+ delete mode 100644 drivers/staging/media/lirc/lirc_parallel.h
+
+-- 
+2.9.3
+
