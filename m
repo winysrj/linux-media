@@ -1,216 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from forward8m.cmail.yandex.net ([5.255.216.201]:40669 "EHLO
-        forward8m.cmail.yandex.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752207AbcLIAap (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49124 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932357AbcLTOB1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Dec 2016 19:30:45 -0500
-Received: from smtp1m.mail.yandex.net (smtp1m.mail.yandex.net [IPv6:2a02:6b8:0:2519::121])
-        by forward8m.cmail.yandex.net (Yandex) with ESMTP id 9317A221A7
-        for <linux-media@vger.kernel.org>; Fri,  9 Dec 2016 03:21:26 +0300 (MSK)
-Received: from smtp1m.mail.yandex.net (localhost.localdomain [127.0.0.1])
-        by smtp1m.mail.yandex.net (Yandex) with ESMTP id 74E5E63C0C15
-        for <linux-media@vger.kernel.org>; Fri,  9 Dec 2016 03:21:25 +0300 (MSK)
-From: CrazyCat <crazycat69@narod.ru>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 4/4] dvb-usb-cxusb: Geniatech Mygica T230C support.
-Date: Fri, 09 Dec 2016 02:21:20 +0200
-Message-ID: <1534970.1pLvRSzKZX@computer>
+        Tue, 20 Dec 2016 09:01:27 -0500
+Date: Tue, 20 Dec 2016 16:01:19 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>,
+        ivo.g.dimitrov.75@gmail.com, sre@kernel.org,
+        linux-media@vger.kernel.org, galak@codeaurora.org,
+        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v5] media: Driver for Toshiba et8ek8 5MP sensor
+Message-ID: <20161220140119.GE16630@valkosipuli.retiisi.org.uk>
+References: <20161023200355.GA5391@amd>
+ <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
+ <20161214122451.GB27011@amd>
+ <20161214130310.GA15405@pali>
+ <20161214201202.GB28424@amd>
+ <20161218220105.GS16630@valkosipuli.retiisi.org.uk>
+ <20161220123756.GA23035@amd>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161220123756.GA23035@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Updated Geniatech DVB-T/T2 stick support.
+Hi Pavel,
 
-Signed-off-by: CrazyCat <crazycat69@narod.ru>
----
- drivers/media/usb/dvb-usb/cxusb.c | 136 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 136 insertions(+)
+On Tue, Dec 20, 2016 at 01:37:56PM +0100, Pavel Machek wrote:
+> Hi!
+> 
+> > I think WARN() is good. It's a driver bug and it deserves to be notified.
+> ...
+> > I guess it's been like this since 2008 or so. I guess the comment could be
+> > simply removed, it's not a real problem.
+> ...
+> > AFAIR the module is called Stingray.
+> 
+> Ok, so it seems we are pretty good? Can you take the patch now? Device
 
-diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
-index 3edc30d..4bf4c68 100644
---- a/drivers/media/usb/dvb-usb/cxusb.c
-+++ b/drivers/media/usb/dvb-usb/cxusb.c
-@@ -1439,6 +1439,82 @@ static int cxusb_mygica_t230_frontend_attach(struct dvb_usb_adapter *adap)
- 	return 0;
- }
- 
-+static int cxusb_mygica_t230c_frontend_attach(struct dvb_usb_adapter *adap)
-+{
-+	struct dvb_usb_device *d = adap->dev;
-+	struct cxusb_state *st = d->priv;
-+	struct i2c_adapter *adapter;
-+	struct i2c_client *client_demod;
-+	struct i2c_client *client_tuner;
-+	struct i2c_board_info info;
-+	struct si2168_config si2168_config;
-+	struct si2157_config si2157_config;
-+
-+	/* Select required USB configuration */
-+	if (usb_set_interface(d->udev, 0, 0) < 0)
-+		err("set interface failed");
-+
-+	/* Unblock all USB pipes */
-+	usb_clear_halt(d->udev,
-+		usb_sndbulkpipe(d->udev, d->props.generic_bulk_ctrl_endpoint));
-+	usb_clear_halt(d->udev,
-+		usb_rcvbulkpipe(d->udev, d->props.generic_bulk_ctrl_endpoint));
-+	usb_clear_halt(d->udev,
-+		usb_rcvbulkpipe(d->udev, d->props.adapter[0].fe[0].stream.endpoint));
-+
-+	/* attach frontend */
-+	memset(&si2168_config, 0, sizeof(si2168_config));
-+	si2168_config.i2c_adapter = &adapter;
-+	si2168_config.fe = &adap->fe_adap[0].fe;
-+	si2168_config.ts_mode = SI2168_TS_PARALLEL;
-+	si2168_config.ts_clock_inv = 1;
-+	memset(&info, 0, sizeof(struct i2c_board_info));
-+	strlcpy(info.type, "si2168", I2C_NAME_SIZE);
-+	info.addr = 0x64;
-+	info.platform_data = &si2168_config;
-+	request_module(info.type);
-+	client_demod = i2c_new_device(&d->i2c_adap, &info);
-+	if (client_demod == NULL || client_demod->dev.driver == NULL)
-+		return -ENODEV;
-+
-+	if (!try_module_get(client_demod->dev.driver->owner)) {
-+		i2c_unregister_device(client_demod);
-+		return -ENODEV;
-+	}
-+
-+	/* attach tuner */
-+	memset(&si2157_config, 0, sizeof(si2157_config));
-+	si2157_config.fe = adap->fe_adap[0].fe;
-+	memset(&info, 0, sizeof(struct i2c_board_info));
-+	strlcpy(info.type, "si2141", I2C_NAME_SIZE);
-+	info.addr = 0x60;
-+	info.platform_data = &si2157_config;
-+	request_module("si2157");
-+	client_tuner = i2c_new_device(adapter, &info);
-+	if (client_tuner == NULL || client_tuner->dev.driver == NULL) {
-+		module_put(client_demod->dev.driver->owner);
-+		i2c_unregister_device(client_demod);
-+		return -ENODEV;
-+	}
-+	if (!try_module_get(client_tuner->dev.driver->owner)) {
-+		i2c_unregister_device(client_tuner);
-+		module_put(client_demod->dev.driver->owner);
-+		i2c_unregister_device(client_demod);
-+		return -ENODEV;
-+	}
-+
-+	st->i2c_client_demod = client_demod;
-+	st->i2c_client_tuner = client_tuner;
-+
-+	/* hook fe: need to resync the slave fifo when signal locks. */
-+	mutex_init(&st->stream_mutex);
-+	st->last_lock = 0;
-+	st->fe_read_status = adap->fe_adap[0].fe->ops.read_status;
-+	adap->fe_adap[0].fe->ops.read_status = cxusb_read_status;
-+
-+	return 0;
-+}
-+
- /*
-  * DViCO has shipped two devices with the same USB ID, but only one of them
-  * needs a firmware download.  Check the device class details to see if they
-@@ -1521,6 +1597,7 @@ static int bluebird_patch_dvico_firmware_download(struct usb_device *udev,
- static struct dvb_usb_device_properties cxusb_d680_dmb_properties;
- static struct dvb_usb_device_properties cxusb_mygica_d689_properties;
- static struct dvb_usb_device_properties cxusb_mygica_t230_properties;
-+static struct dvb_usb_device_properties cxusb_mygica_t230c_properties;
- 
- static int cxusb_probe(struct usb_interface *intf,
- 		       const struct usb_device_id *id)
-@@ -1553,6 +1630,8 @@ static int cxusb_probe(struct usb_interface *intf,
- 				     THIS_MODULE, NULL, adapter_nr) ||
- 	    0 == dvb_usb_device_init(intf, &cxusb_mygica_t230_properties,
- 				     THIS_MODULE, NULL, adapter_nr) ||
-+	    0 == dvb_usb_device_init(intf, &cxusb_mygica_t230c_properties,
-+				     THIS_MODULE, NULL, adapter_nr) ||
- 	    0)
- 		return 0;
- 
-@@ -1604,6 +1683,7 @@ enum cxusb_table_index {
- 	CONEXANT_D680_DMB,
- 	MYGICA_D689,
- 	MYGICA_T230,
-+	MYGICA_T230C,
- 	NR__cxusb_table_index
- };
- 
-@@ -1671,6 +1751,9 @@ enum cxusb_table_index {
- 	[MYGICA_T230] = {
- 		USB_DEVICE(USB_VID_CONEXANT, USB_PID_MYGICA_T230)
- 	},
-+	[MYGICA_T230C] = {
-+		USB_DEVICE(USB_VID_CONEXANT, USB_PID_MYGICA_T230+1)
-+	},
- 	{}		/* Terminating entry */
- };
- MODULE_DEVICE_TABLE (usb, cxusb_table);
-@@ -2370,6 +2453,59 @@ struct dvb_usb_device_properties cxusb_bluebird_dualdig4_rev2_properties = {
- 	}
- };
- 
-+static struct dvb_usb_device_properties cxusb_mygica_t230c_properties = {
-+	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
-+
-+	.usb_ctrl         = CYPRESS_FX2,
-+
-+	.size_of_priv     = sizeof(struct cxusb_state),
-+
-+	.num_adapters = 1,
-+	.adapter = {
-+		{
-+		.num_frontends = 1,
-+		.fe = {{
-+			.streaming_ctrl   = cxusb_streaming_ctrl,
-+			.frontend_attach  = cxusb_mygica_t230c_frontend_attach,
-+
-+			/* parameter for the MPEG2-data transfer */
-+			.stream = {
-+				.type = USB_BULK,
-+				.count = 5,
-+				.endpoint = 0x02,
-+				.u = {
-+					.bulk = {
-+						.buffersize = 8192,
-+					}
-+				}
-+			},
-+		} },
-+		},
-+	},
-+
-+	.power_ctrl       = cxusb_d680_dmb_power_ctrl,
-+
-+	.i2c_algo         = &cxusb_i2c_algo,
-+
-+	.generic_bulk_ctrl_endpoint = 0x01,
-+
-+	.rc.legacy = {
-+		.rc_interval      = 100,
-+		.rc_map_table     = rc_map_t230_table,
-+		.rc_map_size      = ARRAY_SIZE(rc_map_t230_table),
-+		.rc_query         = cxusb_d680_dmb_rc_query,
-+	},
-+
-+	.num_device_descs = 1,
-+	.devices = {
-+		{
-+			"Mygica T230C DVB-T/T2/C",
-+			{ NULL },
-+			{ &cxusb_table[MYGICA_T230C], NULL },
-+		},
-+	}
-+};
-+
- static struct usb_driver cxusb_driver = {
- 	.name		= "dvb_usb_cxusb",
- 	.probe		= cxusb_probe,
+Did you see this:
+
+<URL:http://www.spinics.net/lists/linux-media/msg109426.html>
+
+> tree documentation is in
+> 
+> Subject: [PATCH v6] media: et8ek8: add device tree binding documentation
+> 
+> and we have
+> 
+> Acked-by: Rob Herring <robh@kernel.org>
+
 -- 
-1.9.1
-
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
