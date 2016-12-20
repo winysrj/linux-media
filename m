@@ -1,76 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from a-painless.mh.aa.net.uk ([81.187.30.51]:60368 "EHLO
-        a-painless.mh.aa.net.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932745AbcLMQGZ (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:48032 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750723AbcLTFLq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Dec 2016 11:06:25 -0500
-Subject: Re: Sony imx219 driver?
-To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-References: <09ab897e-79a9-ae44-4caa-93d8d1fa1c51@synopsys.com>
-Cc: linux-media@vger.kernel.org
-From: Dave Stevenson <linux-media@destevenson.freeserve.co.uk>
-Message-ID: <dcf92a8f-1e3c-4c9f-3694-95cff9998456@destevenson.freeserve.co.uk>
-Date: Tue, 13 Dec 2016 16:06:11 +0000
-MIME-Version: 1.0
-In-Reply-To: <09ab897e-79a9-ae44-4caa-93d8d1fa1c51@synopsys.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+        Tue, 20 Dec 2016 00:11:46 -0500
+Message-ID: <cc76e2156b4dd78d295f3a236e3bef92@smtp-cloud2.xs4all.net>
+Date: Tue, 20 Dec 2016 06:11:42 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ramiro
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 13/12/16 13:47, Ramiro Oliveira wrote:
-> Hi Dave
->
-> On 07/21/2016 08:19 PM, Dave Stevenson wrote:
->> Just a quick query to avoid duplicating effort. Has anyone worked on a
->> Sony IMX219 (or other Sony sensor) subdevice driver as yet?
->>
->> With the new Raspberry Pi camera being IMX219, and as Broadcom have
->> released an soc_camera based driver for the sensor already
->> (https://android.googlesource.com/kernel/bcm/+/android-bcm-tetra-3.10-lollipop-wear-release/drivers/media/video/imx219.c)
->> I was going to investigate converting that to a subdevice. I just wanted
->> to check this wasn't already in someone else's work queue.
->>
->> A further Google shows that there's also an soc_camera IMX219 driver in
->> ChromiumOS, copyright Andrew Chew @ Nvidia, but author Guennadi
->> Liakhovetski who I know posts on here.
->> https://chromium.googlesource.com/chromiumos/third_party/kernel/+/factory-ryu-6486.14.B-chromeos-3.14/drivers/media/i2c/soc_camera/imx219.c.
->> The Broadcom one supports 8MPix and 1080P, the Chromium one only 8MP.
->> Perhaps a hybrid of the feature set? Throw in
->> https://github.com/ZenfoneArea/android_kernel_asus_zenfone5/blob/master/linux/modules/camera/drivers/media/i2c/imx219/imx219.h
->> as well, and we have register sets for numerous readout modes, plus
->> there are the ones in the Pi firmware which can be extracted if necessary.
->>
->> On a related note, if putting together a system with IMX219 or similar
->> producing Bayer raw 10, the data on the CSI2 bus is one of the
->> V4L2_PIX_FMT_SRGGB10P formats. What's the correct way to reflect that
->> from the sensor subdevice in an MEDIA_BUS_FMT_ enum?
->> The closest is MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE (or LE), but the data
->> isn't padded (the Pi CSI2 receiver can do the unpacking and padding, but
->> that just takes up more memory).|||| Or is it MEDIA_BUS_FMT_SBGGR10_1X10
->> to describe the data on the bus correctly as 10bpp Bayer, and the odd
->> packing is ignored. Or do we need new enums?
->
-> Do you still plan on submitting this driver? If so, do you plan on submitting it
-> soon?
->
-> If you're not planning on submitting it any time soon, do you mind if submit it
-> myself? I'm planning on having something ready for kernel submission by January.
+Results of the daily build of media_tree:
 
-I've got bogged down in other things and not got anywhere as yet, so go 
-for it.
-When I've got the CSI2 receiver subdevice working (hopefully soon) then 
-I'll happily test your driver with it. For the time being I've been 
-working against the TC358743 driver.
+date:			Tue Dec 20 05:00:18 CET 2016
+media-tree git hash:	d183e4efcae8d88a2f252e546978658ca6d273cc
+media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
+v4l-utils git hash:	416bb9fb637f1fae70208f1cb191cb9d82a4df63
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
-   Dave
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.12.67-x86_64: OK
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+linux-4.9-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-> Thanks,
-> Ramiro Oliveira
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
