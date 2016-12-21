@@ -1,44 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:40889 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753902AbcL3OrJ (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:42012 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933692AbcLUNUx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Dec 2016 09:47:09 -0500
-From: Colin King <colin.king@canonical.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Subject: [PATCH][V3] [media] gp8psk: fix spelling mistake: "firmare" -> "firmware"
-Date: Fri, 30 Dec 2016 14:46:19 +0000
-Message-Id: <20161230144619.13954-1-colin.king@canonical.com>
+        Wed, 21 Dec 2016 08:20:53 -0500
+Date: Wed, 21 Dec 2016 14:20:49 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Rob Herring <robh@kernel.org>, ivo.g.dimitrov.75@gmail.com,
+        sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        pawel.moll@arm.com, mark.rutland@arm.com,
+        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+        mchehab@osg.samsung.com, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v6] media: et8ek8: add device tree binding documentation
+Message-ID: <20161221132049.GB13449@amd>
+References: <20161023191706.GA25754@amd>
+ <20161030204134.hpmfrnqhd4mg563o@rob-hp-laptop>
+ <20161107104648.GB5326@amd>
+ <20161114183040.GB28778@amd>
+ <20161220130538.GD16630@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="wq9mPyueHGvFACwf"
+Content-Disposition: inline
+In-Reply-To: <20161220130538.GD16630@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
 
-trivial fix to spelling mistake in err message
+--wq9mPyueHGvFACwf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/media/usb/dvb-usb/gp8psk.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Tue 2016-12-20 15:05:39, Sakari Ailus wrote:
+> Hi Pavel,
+>=20
+> > +Endpoint node mandatory properties
+> > +----------------------------------
+> > +
+> > +- remote-endpoint: A phandle to the bus receiver's endpoint node.
+> > +
+> > +Endpoint node optional properties
+> > +----------------------------------
+> > +
+> > +- clock-lanes: <0>
+> > +- data-lanes: <1..n>
+>=20
+> The driver makes no use of them and CCP2 only supports a single lane. I'll
+> just remove these and apply it to my tree. Let's continue discussing the
+> driver patch in the other thread.
 
-diff --git a/drivers/media/usb/dvb-usb/gp8psk.c b/drivers/media/usb/dvb-usb/gp8psk.c
-index 2360e7e..26461f2 100644
---- a/drivers/media/usb/dvb-usb/gp8psk.c
-+++ b/drivers/media/usb/dvb-usb/gp8psk.c
-@@ -161,7 +161,7 @@ static int gp8psk_load_bcm4500fw(struct dvb_usb_device *d)
- 			goto out_free;
- 		}
- 		if (buflen > 64) {
--			err("firmare chunk size bigger than 64 bytes.");
-+			err("firmware chunk size bigger than 64 bytes.");
- 			goto out_free;
- 		}
- 
--- 
-2.10.2
+Ok, thanks!
 
+								Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--wq9mPyueHGvFACwf
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlhagbEACgkQMOfwapXb+vKWTgCfRILgBRcYTm/bCz2FfQPJY8+X
+/r4AnjDZM1xrC1opcDAxBDRfr9YtSQZD
+=isP0
+-----END PGP SIGNATURE-----
+
+--wq9mPyueHGvFACwf--
