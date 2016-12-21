@@ -1,77 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51721 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1761927AbcLPQGA (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40653 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932967AbcLUXaJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Dec 2016 11:06:00 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Greg KH <greg@kroah.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH RFC] omap3isp: prevent releasing MC too early
-Date: Fri, 16 Dec 2016 18:06:37 +0200
-Message-ID: <2184723.57DbA5Qh8A@avalon>
-In-Reply-To: <20161216091850.688dd863@vento.lan>
-References: <20161214151406.20380-1-mchehab@s-opensource.com> <2965200.xcWXyJedNO@avalon> <20161216091850.688dd863@vento.lan>
+        Wed, 21 Dec 2016 18:30:09 -0500
+Date: Thu, 22 Dec 2016 01:29:31 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org, galak@codeaurora.org,
+        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v5] media: Driver for Toshiba et8ek8 5MP sensor
+Message-ID: <20161221232930.GI16630@valkosipuli.retiisi.org.uk>
+References: <20161023200355.GA5391@amd>
+ <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
+ <20161214122451.GB27011@amd>
+ <20161221134235.GH16630@valkosipuli.retiisi.org.uk>
+ <20161221224216.GA4681@amd>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161221224216.GA4681@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Wed, Dec 21, 2016 at 11:42:16PM +0100, Pavel Machek wrote:
+> Hi!
+> 
+> > Thanks for the update.
+> > 
+> > On Wed, Dec 14, 2016 at 01:24:51PM +0100, Pavel Machek wrote:
+> > ...
+> > > +static int et8ek8_set_ctrl(struct v4l2_ctrl *ctrl)
+> > > +{
+> > > +	struct et8ek8_sensor *sensor =
+> > > +		container_of(ctrl->handler, struct et8ek8_sensor, ctrl_handler);
+> > > +
+> > > +	switch (ctrl->id) {
+> > > +	case V4L2_CID_GAIN:
+> > > +		return et8ek8_set_gain(sensor, ctrl->val);
+> > > +
+> > > +	case V4L2_CID_EXPOSURE:
+> > > +	{
+> > > +		int rows;
+> > > +		struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+> > > +		rows = ctrl->val;
+> > > +		return et8ek8_i2c_write_reg(client, ET8EK8_REG_16BIT, 0x1243,
+> > > +					    swab16(rows));
+> > 
+> > Why swab16()? Doesn't the et8ek8_i2c_write_reg() already do the right thing?
+> > 
+> > 16-bit writes aren't used elsewhere... and the register address and value
+> > seem to have different endianness there, it looks like a bug to me in that
+> > function.
+> 
+> I'm pretty sure I did not invent that swab16(). I checked, and
+> exposure seems to work properly. I tried swapping the bytes, but then
+> exposure did not seem to work. So this one seems to be correct.
 
-On Friday 16 Dec 2016 09:18:50 Mauro Carvalho Chehab wrote:
-> Em Thu, 15 Dec 2016 16:04:51 +0200 Laurent Pinchart escreveu:
-> 
-> We have now two threads discussing the same subject, which is bad, as
-> we'll end repeating the same arguments on different threads...
-> 
-> Let's use the "[PATCH RFC 00/21]" for those discussions, as it seems we're
-> reaching to somewhere there.
-> 
-> > Even if you're not entirely convinced by the reasons
-> > explained in this mail thread, remember that we will need sooner or later
-> > to implement support for media graph update at runtime. Refcounting will
-> > be needed, let's design it in the cleanest possible way.
-> 
-> As I said, I'm not against using some other approach and even
-> adding refcounting to each graph object.
-> 
-> What I am against is on a patchset that starts by breaking
-> the USB drivers that use the media controller.
-
-So, what you're essentially saying, is that you noticed we have a problem in 
-the core when trying to add MC support to a bunch of USB driver. Instead of 
-fixing the problem properly, you've merged 3 patches that work around part of 
-the issue, despite negative comments received by the original authors of the 
-code, and then added a bunch of code to the USB drivers that make them subject 
-to the race condition. And you're then claiming that we can't revert the 
-patches that we know from the start were broken because you piled additional 
-patches on top of them, making the end result worse ? Sorry, I can't buy that. 
-If you really insist we can also revert the series that add MC support to the 
-USB drivers, but there's no way that your decision to ignore known issues can 
-ever be considered as an excuse to not revert broken changes.
-
-This discussion is over as far as I'm concerned. The 3 patches in question are 
-wrong. I want the proper fixes to be merged, and we thus all need to work in 
-that direction, which means reviewing them. Once we agree on what the end 
-result should be we'll see whether we could possibly rework the code in a way 
-that doesn't require a revert. If that's not possible, we'll revert what is 
-broken. It's as simple as that. Now, let's get technical and fix this crap. If 
-I had wanted a show I would have bought tickets to the circus.
-
-> Btw, I'm starting to suspect that getting rid of devm_*alloc()
-> on OMAP3, as proposed by the 00/21 thread is addressing a symptom of
-> the problem and not a cause, and that using get_device()/put_device()
-> may help fixing such issues. See Hans comments on that thread.
+I can fix that too, but I have no device to test. In terms of how the
+hardware is controlled there should be no difference anyway.
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
