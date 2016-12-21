@@ -1,122 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:53061 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1760593AbcLPKLf (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:59241
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1754430AbcLUKln (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Dec 2016 05:11:35 -0500
-Subject: Re: [RFC v3 00/21] Make use of kref in media device, grab references
- as needed
-To: Shuah Khan <shuahkh@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <20161109154608.1e578f9e@vento.lan>
- <20161213102447.60990b1c@vento.lan>
- <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
- <7529355.zfqFdROYdM@avalon> <896ef36c-435e-6899-5ae8-533da7731ec1@xs4all.nl>
- <fa996ec5-0650-9774-7baf-5eaca60d76c7@osg.samsung.com>
- <47bf7ca7-2375-3dfa-775c-a56d6bd9dabd@xs4all.nl>
- <ea29010f-ffdc-f10f-8b4f-fb1337320863@osg.samsung.com>
- <2f5a7ca0-70d1-c6a9-9966-2a169a62e405@xs4all.nl>
- <b83be9ed-5ce3-3667-08c8-2b4d4cd047a0@osg.samsung.com>
- <20161215152501.11ce2b2a@vento.lan>
- <3023f381-1141-df8f-c1ae-2bff36d688ca@osg.samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <150c057f-7ef8-30cb-07ca-885d4c2a4dcd@xs4all.nl>
-Date: Fri, 16 Dec 2016 11:11:25 +0100
+        Wed, 21 Dec 2016 05:41:43 -0500
+Date: Wed, 21 Dec 2016 08:41:36 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+        linux-media@vger.kernel.org,
+        Prabhakar Lad <prabhakar.csengg@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [PATCH v2 0/6] Fix tvp5150 regression with em28xx
+Message-ID: <20161221084136.0438edc3@vento.lan>
+In-Reply-To: <2038446.MEtJKT2hJE@avalon>
+References: <1481284039-7960-1-git-send-email-laurent.pinchart@ideasonboard.com>
+        <20161212075124.4e1ba840@vento.lan>
+        <618f2d04-e17e-54a1-5540-b897155d7318@osg.samsung.com>
+        <2038446.MEtJKT2hJE@avalon>
 MIME-Version: 1.0
-In-Reply-To: <3023f381-1141-df8f-c1ae-2bff36d688ca@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15/12/16 18:51, Shuah Khan wrote:
-> On 12/15/2016 10:25 AM, Mauro Carvalho Chehab wrote:
->> Em Thu, 15 Dec 2016 10:09:53 -0700
->> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
->>
->>> On 12/15/2016 09:28 AM, Hans Verkuil wrote:
->>>> On 15/12/16 17:06, Shuah Khan wrote:
->>
->>>>
->>>> I think this will work for interface entities, but for subdev entities this
->>>> certainly won't work. Unbinding subdevs should be blocked (just set
->>>> suppress_bind_attrs to true in all subdev drivers). Most top-level drivers
->>>> have pointers to subdev data, so unbinding them will just fail horribly.
->>>>
->>>
->>> Yes that is an option. I did something similar for au0828 and snd_usb_audio
->>> case, so the module that registers the media_device can't unbound until the
->>> other driver. If au0828 registers media_device, it becomes the owner and if
->>> it gets unbound ioctls will start to see problems.
->
-> Sorry I meant to say rmmod'ed not unbound. Unbound will work just fine. If the
-> modules that owns the media_devnode goes away, there will be problems with
-> cdev trying to load module when application closes the device file and exits.
-> In this case, Media Device Allocator API takes module reference, so its use
-> count goes up.
->
->>>
->>> What this means though is that drivers can't be unbound easily. But that is
->>> a small price to pay compared to the problems we will see if a driver is
->>> unbound when its entities are still in use. Also, unsetting bind_attrs has
->>> to be done as well, otherwise we can never unbind any driver.
->>
->> I don't think suppress_bind_attrs will work on USB drivers, as the
->> device can be physically removed.
->>
->
-> Yeah setting suppress_bind_attrs would cause problems. On one hand keeping
-> all entities until all references are gone sound like a good option, however
-> this would cause problems coordinating removal especially in the case of
-> embedded entities. Can this be done in a simpler way? The way I see it, we
-> have /dev/video, /dev/dvb, /dev/snd/* etc. that depend on /dev/media for
-> graph nodes. Any one of these devices could be open when any of the drivers
-> is unbound (physical removal is a simpler case).
->
-> Would it make sense to enforce that dependency. Can we tie /dev/media usecount
-> to /dev/video etc. usecount? In other words:
->
-> /dev/video is opened, then open /dev/media.
+Em Mon, 12 Dec 2016 18:37:01 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-When a device node is registered it should increase the refcount on the media_device
-(as I proposed, that would be mdev->dev). When a device node is unregistered and the
-last user disappeared, then it can decrease the media_device refcount.
+> Hello,
+> 
+> On Monday 12 Dec 2016 13:22:50 Javier Martinez Canillas wrote:
+> > On 12/12/2016 06:51 AM, Mauro Carvalho Chehab wrote:  
+> > > Em Fri,  9 Dec 2016 13:47:13 +0200 Laurent Pinchart escreveu:  
+> > >> Hello,
+> > >> 
+> > >> This patch series fixes a regression reported by Devin Heitmueller that
+> > >> affects a large number of em28xx. The problem was introduced by
+> > >> 
+> > >> commit 13d52fe40f1f7bbad49128e8ee6a2fe5e13dd18d
+> > >> Author: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > >> Date:   Tue Jan 26 06:59:39 2016 -0200
+> > >> 
+> > >>     [media] em28xx: fix implementation of s_stream
+> > >> 
+> > >> that started calling s_stream(1) in the em28xx driver when enabling the
+> > >> stream, resulting in the tvp5150 s_stream() operation writing several
+> > >> registers with values fit for other platforms (namely OMAP3, possibly
+> > >> others) but not for em28xx.
+> > >> 
+> > >> The series starts with two unrelated drive-by cleanups and an unrelated
+> > >> bug fix. It then continues with a patch to remove an unneeded and armful
+> > >> call to tvp5150_reset() when getting the format from the subdevice (4/6),
+> > >> an update of an invalid comment and the addition of macros for register
+> > >> bits in order to make the code more readable (5/6) and actually allow
+> > >> following the incorrect code flow, and finally a rework of the
+> > >> s_stream() operation to fix the problem.
+> > >> 
+> > >> Compared to v1,
+> > >> 
+> > >> - Patch 4/5 now calls tvp5150_reset() at probe time
+> > >> - Patch 5/6 is fixed with an extra ~ removed
+> > >> 
+> > >> I haven't been able to test this with an em28xx device as I don't own any
+> > >> that contains a tvp5150, but Mauro reported that the series fixes the
+> > >> issue with his device.
+> > >> 
+> > >> I also haven't been able to test anything on an OMAP3 platform, as the
+> > >> tvp5150 driver go broken on DT-based systems by  
+> > > 
+> > > I applied today patches 1 to 3, as I don't see any risk of regressions
+> > > there. Stable was c/c on patch 3.
+> > > 
+> > > I want to do more tests on patches 4-6, with both progressive video and
+> > > RF. It would also be nice if someone could test it on OMAP3, to be sure
+> > > that no regressions happened there.  
+> > 
+> > I've tested patches 4-6 on a IGEPv2 and video capture is still working for
+> > both composite input AIP1A (after changing the hardcoded selected input)
+> > and AIP1B.
+> > 
+> > The patches also look good to me, so please feel free to add my Reviewed-by
+> > and Tested-by tags on these.
+> > 
+> > I wasn't able to test S-Video since my S-Video source broke (an old DVD
+> > player) but this never worked for me anyways with this board.  
+> 
+> I've tested the patches too, in composite mode only as my hardware has a 
+> single input. The image quality isn't very good, but I believe that's due to 
+> my source. It shouldn't be related to this patch series at least.
 
-So as long as anyone is using a device node, the media_device will stick around as
-well.
+Yesterday, I was able to make my device that generates 480p to work again,
+and bought a RF modulator.
 
-No need to take refcounts on open/close.
+I used HVR-350 and Hauppauge MediaMVP as image sources producing NTSC output,
+and Kernel 4.9 + media patches for 4.10 + tvp5150 v2 patch series.
 
-One note: as I mentioned, the video_device does not set the cdev parent correctly,
-so that bug needs to be fixed first for this to work.
+With that, I completed the tests on HVR-950. My tests covered:
+- S-Video, Composite, TV
+- 480i and 480p
+- Closed Captions (with HVR-350 - it seems that MediaMVP doesn't
+  produce NTSC CC).
 
-> prevent entities being removed if /dev/media is open.
->
-> Would that help. The above could be done in a generic way possibly. Would it
-> help if /dev/media is kept open when streaming is active? That is just one
+PS.: I did some tests with PAL output too, with HVR-350.
 
-Again, it's not about the device nodes, it's about the media_device.
+> I tried both BT.656 and parallel bus modes. The latter didn't work properly, 
+> but it wasn't supported when I worked on TVP5151 + OMAP3 support in the first 
+> place anyway, so it's not a regression, just something to eventually fix (if I 
+> have too much free time).
 
-Regards,
+With that, it seems that BT.656 is working fine. So, I'm merging the
+patches and will send them on the next pull request.
 
-	Hans
-
-> use-case, there might be others.
->
-> thanks,
-> -- Shuah
->
->
-> thanks,
-> -- Shuah
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
+Thanks,
+Mauro
