@@ -1,153 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:42325 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933547AbcLIQ71 (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:50961 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S934619AbcLUOES (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Dec 2016 11:59:27 -0500
-From: Michael Tretter <m.tretter@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Philipp Zabel <p.zabel@pengutronix.de>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michael Tretter <m.tretter@pengutronix.de>
-Subject: [PATCH v2 7/7] [media] coda: support YUYV output if VDOA is used
-Date: Fri,  9 Dec 2016 17:59:03 +0100
-Message-Id: <20161209165903.1293-8-m.tretter@pengutronix.de>
-In-Reply-To: <20161209165903.1293-1-m.tretter@pengutronix.de>
-References: <20161209165903.1293-1-m.tretter@pengutronix.de>
+        Wed, 21 Dec 2016 09:04:18 -0500
+Subject: Re: 3A / auto-exposure Region of Interest setting
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <Pine.LNX.4.64.1611281449520.6665@axis700.grange>
+ <3544629.8KCDMPoHBf@avalon> <Pine.LNX.4.64.1612211142410.5430@axis700.grange>
+ <Pine.LNX.4.64.1612211453150.5430@axis700.grange>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <14f51756-782a-cc8f-fe57-455e85b22a2c@xs4all.nl>
+Date: Wed, 21 Dec 2016 15:04:14 +0100
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.1612211453150.5430@axis700.grange>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The VDOA is able to transform the NV12 custom macroblock tiled format of
-the CODA to YUYV format. If and only if the VDOA is available, the
-driver can also provide YUYV support.
+On 21/12/16 14:56, Guennadi Liakhovetski wrote:
+> ...one more issue to clarify - how to report compound controls with
+> control events, which also until now only support 32- and 64-bit integers.
 
-While the driver is configured to produce YUYV output, the CODA must be
-configured to produce NV12 macroblock tiled frames and the VDOA must
-transform the intermediate result into the final YUYV output.
+For compound controls you can only get an event, not what the new values
+are. So you would have to call VIDIOC_G_EXT_CTRLS to obtain the new value.
 
-Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
-Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-bit.c    |  7 +++++--
- drivers/media/platform/coda/coda-common.c | 30 ++++++++++++++++++++++++++++++
- 2 files changed, 35 insertions(+), 2 deletions(-)
+Regards,
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index f608de4..466a44e 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -759,7 +759,7 @@ static void coda9_set_frame_cache(struct coda_ctx *ctx, u32 fourcc)
- 		cache_config = 1 << CODA9_CACHE_PAGEMERGE_OFFSET;
- 	}
- 	coda_write(ctx->dev, cache_size, CODA9_CMD_SET_FRAME_CACHE_SIZE);
--	if (fourcc == V4L2_PIX_FMT_NV12) {
-+	if (fourcc == V4L2_PIX_FMT_NV12 || fourcc == V4L2_PIX_FMT_YUYV) {
- 		cache_config |= 32 << CODA9_CACHE_LUMA_BUFFER_SIZE_OFFSET |
- 				16 << CODA9_CACHE_CR_BUFFER_SIZE_OFFSET |
- 				0 << CODA9_CACHE_CB_BUFFER_SIZE_OFFSET;
-@@ -1537,7 +1537,7 @@ static int __coda_start_decoding(struct coda_ctx *ctx)
- 
- 	ctx->frame_mem_ctrl &= ~(CODA_FRAME_CHROMA_INTERLEAVE | (0x3 << 9) |
- 				 CODA9_FRAME_TILED2LINEAR);
--	if (dst_fourcc == V4L2_PIX_FMT_NV12)
-+	if (dst_fourcc == V4L2_PIX_FMT_NV12 || dst_fourcc == V4L2_PIX_FMT_YUYV)
- 		ctx->frame_mem_ctrl |= CODA_FRAME_CHROMA_INTERLEAVE;
- 	if (ctx->tiled_map_type == GDI_TILED_FRAME_MB_RASTER_MAP)
- 		ctx->frame_mem_ctrl |= (0x3 << 9) |
-@@ -2079,6 +2079,9 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 		trace_coda_dec_rot_done(ctx, dst_buf, meta);
- 
- 		switch (q_data_dst->fourcc) {
-+		case V4L2_PIX_FMT_YUYV:
-+			payload = width * height * 2;
-+			break;
- 		case V4L2_PIX_FMT_YUV420:
- 		case V4L2_PIX_FMT_YVU420:
- 		case V4L2_PIX_FMT_NV12:
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index c09cafd..43af428 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -95,6 +95,8 @@ void coda_write_base(struct coda_ctx *ctx, struct coda_q_data *q_data,
- 	u32 base_cb, base_cr;
- 
- 	switch (q_data->fourcc) {
-+	case V4L2_PIX_FMT_YUYV:
-+		/* Fallthrough: IN -H264-> CODA -NV12 MB-> VDOA -YUYV-> OUT */
- 	case V4L2_PIX_FMT_NV12:
- 	case V4L2_PIX_FMT_YUV420:
- 	default:
-@@ -201,6 +203,11 @@ static const struct coda_video_device coda_bit_decoder = {
- 		V4L2_PIX_FMT_NV12,
- 		V4L2_PIX_FMT_YUV420,
- 		V4L2_PIX_FMT_YVU420,
-+		/*
-+		 * If V4L2_PIX_FMT_YUYV should be default,
-+		 * set_default_params() must be adjusted.
-+		 */
-+		V4L2_PIX_FMT_YUYV,
- 	},
- };
- 
-@@ -246,6 +253,7 @@ static u32 coda_format_normalize_yuv(u32 fourcc)
- 	case V4L2_PIX_FMT_YUV420:
- 	case V4L2_PIX_FMT_YVU420:
- 	case V4L2_PIX_FMT_YUV422P:
-+	case V4L2_PIX_FMT_YUYV:
- 		return V4L2_PIX_FMT_YUV420;
- 	default:
- 		return fourcc;
-@@ -434,6 +442,11 @@ static int coda_try_pixelformat(struct coda_ctx *ctx, struct v4l2_format *f)
- 		return -EINVAL;
- 
- 	for (i = 0; i < CODA_MAX_FORMATS; i++) {
-+		/* Skip YUYV if the vdoa is not available */
-+		if (!ctx->vdoa && f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE &&
-+		    formats[i] == V4L2_PIX_FMT_YUYV)
-+			continue;
-+
- 		if (formats[i] == f->fmt.pix.pixelformat) {
- 			f->fmt.pix.pixelformat = formats[i];
- 			return 0;
-@@ -520,6 +533,11 @@ static int coda_try_fmt(struct coda_ctx *ctx, const struct coda_codec *codec,
- 		f->fmt.pix.sizeimage = f->fmt.pix.bytesperline *
- 					f->fmt.pix.height * 3 / 2;
- 		break;
-+	case V4L2_PIX_FMT_YUYV:
-+		f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 16) * 2;
-+		f->fmt.pix.sizeimage = f->fmt.pix.bytesperline *
-+					f->fmt.pix.height;
-+		break;
- 	case V4L2_PIX_FMT_YUV422P:
- 		f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 16);
- 		f->fmt.pix.sizeimage = f->fmt.pix.bytesperline *
-@@ -593,6 +611,15 @@ static int coda_try_fmt_vid_cap(struct file *file, void *priv,
- 		ret = coda_try_fmt_vdoa(ctx, f, &use_vdoa);
- 		if (ret < 0)
- 			return ret;
-+
-+		if (f->fmt.pix.pixelformat == V4L2_PIX_FMT_YUYV) {
-+			if (!use_vdoa)
-+				return -EINVAL;
-+
-+			f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 16) * 2;
-+			f->fmt.pix.sizeimage = f->fmt.pix.bytesperline *
-+				f->fmt.pix.height;
-+		}
- 	}
- 
- 	return 0;
-@@ -662,6 +689,9 @@ static int coda_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f,
- 	}
- 
- 	switch (f->fmt.pix.pixelformat) {
-+	case V4L2_PIX_FMT_YUYV:
-+		ctx->tiled_map_type = GDI_TILED_FRAME_MB_RASTER_MAP;
-+		break;
- 	case V4L2_PIX_FMT_NV12:
- 		ctx->tiled_map_type = GDI_TILED_FRAME_MB_RASTER_MAP;
- 		if (!disable_tiling)
--- 
-2.10.2
+	Hans
+
+>
+> Thanks
+> Guennadi
+>
+> On Wed, 21 Dec 2016, Guennadi Liakhovetski wrote:
+>
+>> Hi Laurent,
+>>
+>> On Tue, 29 Nov 2016, Laurent Pinchart wrote:
+>>
+>>> Hi Guennadi,
+>>>
+>>> (CC'ing Sakari)
+>>>
+>>> On Monday 28 Nov 2016 15:18:03 Guennadi Liakhovetski wrote:
+>>>> Hi,
+>>>>
+>>>> Has anyone already considered supporting 3A (e.g. auto-exposure) Region of
+>>>> Interest selection? In UVC this is the "Digital Region of Interest (ROI)
+>>>> Control." Android defines ANDROID_CONTROL_AE_REGIONS,
+>>>> ANDROID_CONTROL_AWB_REGIONS, ANDROID_CONTROL_AF_REGIONS. The UVC control
+>>>> defines just a single rectangle for all (supported) 3A functions. That
+>>>> could be implemented, defining a new selection target. However, Android
+>>>> allows arbitrary numbers of ROI rectangles with associated weights. Any
+>>>> ideas?
+>>>
+>>> Selections could be used, possibly with an update to the API to allow indexing
+>>> selections for a given target. We'd be missing weights though. Another option
+>>> would be to use compound controls.
+>>
+>> I talked to Hans online and he is in favour of a compound control for ROI
+>> as well, which is also fine with me. Working on an implementation I
+>> realised, that struct v4l2_query_ext_ctrl has min, max, step and default
+>> values as 64-bit fields, which isn't enough for ROI. Shall they all be
+>> replaced with unions of original values and pointers? As long as pointers
+>> don't exceed 64 bits, we'll stay binary compatible. Or do we use those
+>> fields similar to the STRING type to specify min, max, default number of
+>> ROIs and a size of one ROI in step? I guess we should go with the latter.
+>>
+>> Thanks
+>> Guennadi
+>>
+>>> --
+>>> Regards,
+>>>
+>>> Laurent Pinchart
+>>>
+>>
 
