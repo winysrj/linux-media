@@ -1,398 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:55899 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932371AbcLLVNt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Dec 2016 16:13:49 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Subject: [PATCH v5 04/18] [media] winbond-cir: use sysfs wakeup filter
-Date: Mon, 12 Dec 2016 21:13:45 +0000
-Message-Id: <7d3050236078a62b9f4e5fff636579847dda1730.1481575826.git.sean@mess.org>
-In-Reply-To: <cover.1481575826.git.sean@mess.org>
-References: <cover.1481575826.git.sean@mess.org>
-In-Reply-To: <cover.1481575826.git.sean@mess.org>
-References: <cover.1481575826.git.sean@mess.org>
+Received: from relmlor3.renesas.com ([210.160.252.173]:61436 "EHLO
+        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754403AbcLUIUf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Dec 2016 03:20:35 -0500
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
+Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert+renesas@glider.be, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [PATCH v2 2/7] dt-bindings: media: Add MAX2175 binding description
+Date: Wed, 21 Dec 2016 08:10:33 +0000
+Message-Id: <1482307838-47415-3-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+In-Reply-To: <1482307838-47415-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+References: <1478706284-59134-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+ <1482307838-47415-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that we can select the exact variant of the protocol for wakeup
-filter, the winbond-cir can use the wakeup filter rather than module
-parameters.
+Add device tree binding documentation for MAX2175 Rf to bits tuner
+device.
 
-Signed-off-by: Sean Young <sean@mess.org>
-Cc: David Härdeman <david@hardeman.nu>
+Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
 ---
- drivers/media/rc/winbond-cir.c | 257 +++++++++++++++++++++--------------------
- 1 file changed, 131 insertions(+), 126 deletions(-)
+ .../devicetree/bindings/media/i2c/max2175.txt      | 61 ++++++++++++++++++++++
+ .../devicetree/bindings/property-units.txt         |  1 +
+ 2 files changed, 62 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/max2175.txt
 
-diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
-index 78491ed..08971df 100644
---- a/drivers/media/rc/winbond-cir.c
-+++ b/drivers/media/rc/winbond-cir.c
-@@ -194,7 +194,6 @@ enum wbcir_txstate {
- #define WBCIR_NAME	"Winbond CIR"
- #define WBCIR_ID_FAMILY          0xF1 /* Family ID for the WPCD376I	*/
- #define	WBCIR_ID_CHIP            0x04 /* Chip ID for the WPCD376I	*/
--#define INVALID_SCANCODE   0x7FFFFFFF /* Invalid with all protos	*/
- #define WAKEUP_IOMEM_LEN         0x10 /* Wake-Up I/O Reg Len		*/
- #define EHFUNC_IOMEM_LEN         0x10 /* Enhanced Func I/O Reg Len	*/
- #define SP_IOMEM_LEN             0x08 /* Serial Port 3 (IR) Reg Len	*/
-@@ -225,10 +224,6 @@ struct wbcir_data {
- 	u32 txcarrier;
- };
- 
--static enum wbcir_protocol protocol = IR_PROTOCOL_RC6;
--module_param(protocol, uint, 0444);
--MODULE_PARM_DESC(protocol, "IR protocol to use for the power-on command (0 = RC5, 1 = NEC, 2 = RC6A, default)");
--
- static bool invert; /* default = 0 */
- module_param(invert, bool, 0444);
- MODULE_PARM_DESC(invert, "Invert the signal from the IR receiver");
-@@ -237,15 +232,6 @@ static bool txandrx; /* default = 0 */
- module_param(txandrx, bool, 0444);
- MODULE_PARM_DESC(txandrx, "Allow simultaneous TX and RX");
- 
--static unsigned int wake_sc = 0x800F040C;
--module_param(wake_sc, uint, 0644);
--MODULE_PARM_DESC(wake_sc, "Scancode of the power-on IR command");
--
--static unsigned int wake_rc6mode = 6;
--module_param(wake_rc6mode, uint, 0644);
--MODULE_PARM_DESC(wake_rc6mode, "RC6 mode for the power-on command (0 = 0, 6 = 6A, default)");
--
--
- 
- /*****************************************************************************
-  *
-@@ -696,138 +682,153 @@ wbcir_shutdown(struct pnp_dev *device)
- {
- 	struct device *dev = &device->dev;
- 	struct wbcir_data *data = pnp_get_drvdata(device);
-+	struct rc_dev *rc = data->dev;
- 	bool do_wake = true;
- 	u8 match[11];
- 	u8 mask[11];
- 	u8 rc6_csl = 0;
-+	u8 proto;
-+	u32 wake_sc = rc->scancode_wakeup_filter.data;
-+	u32 mask_sc = rc->scancode_wakeup_filter.mask;
- 	int i;
- 
- 	memset(match, 0, sizeof(match));
- 	memset(mask, 0, sizeof(mask));
- 
--	if (wake_sc == INVALID_SCANCODE || !device_may_wakeup(dev)) {
-+	if (!mask_sc || !device_may_wakeup(dev)) {
- 		do_wake = false;
- 		goto finish;
- 	}
- 
--	switch (protocol) {
--	case IR_PROTOCOL_RC5:
--		if (wake_sc > 0xFFF) {
--			do_wake = false;
--			dev_err(dev, "RC5 - Invalid wake scancode\n");
--			break;
--		}
--
-+	switch (rc->wakeup_protocol) {
-+	case RC_TYPE_RC5:
- 		/* Mask = 13 bits, ex toggle */
--		mask[0] = 0xFF;
--		mask[1] = 0x17;
-+		mask[0]  = (mask_sc & 0x003f);
-+		mask[0] |= (mask_sc & 0x0300) >> 2;
-+		mask[1]  = (mask_sc & 0x1c00) >> 10;
-+		if (mask_sc & 0x0040)		      /* 2nd start bit  */
-+			match[1] |= 0x10;
- 
--		match[0]  = (wake_sc & 0x003F);      /* 6 command bits */
--		match[0] |= (wake_sc & 0x0180) >> 1; /* 2 address bits */
--		match[1]  = (wake_sc & 0x0E00) >> 9; /* 3 address bits */
--		if (!(wake_sc & 0x0040))             /* 2nd start bit  */
-+		match[0]  = (wake_sc & 0x003F);       /* 6 command bits */
-+		match[0] |= (wake_sc & 0x0300) >> 2;  /* 2 address bits */
-+		match[1]  = (wake_sc & 0x1c00) >> 10; /* 3 address bits */
-+		if (!(wake_sc & 0x0040))	      /* 2nd start bit  */
- 			match[1] |= 0x10;
- 
-+		proto = IR_PROTOCOL_RC5;
- 		break;
- 
--	case IR_PROTOCOL_NEC:
--		if (wake_sc > 0xFFFFFF) {
--			do_wake = false;
--			dev_err(dev, "NEC - Invalid wake scancode\n");
--			break;
--		}
--
--		mask[0] = mask[1] = mask[2] = mask[3] = 0xFF;
-+	case RC_TYPE_NEC:
-+		mask[1] = bitrev8(mask_sc);
-+		mask[0] = mask[1];
-+		mask[3] = bitrev8(mask_sc >> 8);
-+		mask[2] = mask[3];
- 
--		match[1] = bitrev8((wake_sc & 0xFF));
-+		match[1] = bitrev8(wake_sc);
- 		match[0] = ~match[1];
-+		match[3] = bitrev8(wake_sc >> 8);
-+		match[2] = ~match[3];
- 
--		match[3] = bitrev8((wake_sc & 0xFF00) >> 8);
--		if (wake_sc > 0xFFFF)
--			match[2] = bitrev8((wake_sc & 0xFF0000) >> 16);
--		else
--			match[2] = ~match[3];
-+		proto = IR_PROTOCOL_NEC;
-+		break;
- 
-+	case RC_TYPE_NECX:
-+		mask[1] = bitrev8(mask_sc);
-+		mask[0] = mask[1];
-+		mask[2] = bitrev8(mask_sc >> 8);
-+		mask[3] = bitrev8(mask_sc >> 16);
+diff --git a/Documentation/devicetree/bindings/media/i2c/max2175.txt b/Documentation/devicetree/bindings/media/i2c/max2175.txt
+new file mode 100644
+index 0000000..f591ab4
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/max2175.txt
+@@ -0,0 +1,61 @@
++Maxim Integrated MAX2175 RF to Bits tuner
++-----------------------------------------
 +
-+		match[1] = bitrev8(wake_sc);
-+		match[0] = ~match[1];
-+		match[2] = bitrev8(wake_sc >> 8);
-+		match[3] = bitrev8(wake_sc >> 16);
++The MAX2175 IC is an advanced analog/digital hybrid-radio receiver with
++RF to Bits® front-end designed for software-defined radio solutions.
 +
-+		proto = IR_PROTOCOL_NEC;
- 		break;
- 
--	case IR_PROTOCOL_RC6:
-+	case RC_TYPE_NEC32:
-+		mask[0] = bitrev8(mask_sc);
-+		mask[1] = bitrev8(mask_sc >> 8);
-+		mask[2] = bitrev8(mask_sc >> 16);
-+		mask[3] = bitrev8(mask_sc >> 24);
- 
--		if (wake_rc6mode == 0) {
--			if (wake_sc > 0xFFFF) {
--				do_wake = false;
--				dev_err(dev, "RC6 - Invalid wake scancode\n");
--				break;
--			}
-+		match[0] = bitrev8(wake_sc);
-+		match[1] = bitrev8(wake_sc >> 8);
-+		match[2] = bitrev8(wake_sc >> 16);
-+		match[3] = bitrev8(wake_sc >> 24);
++Required properties:
++--------------------
++- compatible: "maxim,max2175" for MAX2175 RF-to-bits tuner.
++- clocks: phandle to the fixed xtal clock.
++- clock-names: name of the fixed xtal clock.
++- port: child port node of a tuner that defines the local and remote
++  endpoints. The remote endpoint is assumed to be an SDR device
++  that is capable of receiving the digital samples from the tuner.
 +
-+		proto = IR_PROTOCOL_NEC;
-+		break;
++Optional properties:
++--------------------
++- maxim,slave	      : phandle to the master tuner if it is a slave. This
++			is used to define two tuners in diversity mode
++			(1 master, 1 slave). By default each tuner is an
++			individual master.
++- maxim,refout-load-pF: load capacitance value (in pF) on reference
++			output drive level. The possible load values are
++			 0 (default - refout disabled)
++			10
++			20
++			30
++			40
++			60
++			70
++- maxim,am-hiz	      : empty property indicates AM Hi-Z filter path is
++			selected for AM antenna input. By default this
++			filter path is not used.
 +
-+	case RC_TYPE_RC6_0:
-+		/* Command */
-+		match[0] = wbcir_to_rc6cells(wake_sc >> 0);
-+		mask[0]  = wbcir_to_rc6cells(mask_sc >> 0);
-+		match[1] = wbcir_to_rc6cells(wake_sc >> 4);
-+		mask[1]  = wbcir_to_rc6cells(mask_sc >> 4);
++Example:
++--------
 +
-+		/* Address */
-+		match[2] = wbcir_to_rc6cells(wake_sc >>  8);
-+		mask[2]  = wbcir_to_rc6cells(mask_sc >>  8);
-+		match[3] = wbcir_to_rc6cells(wake_sc >> 12);
-+		mask[3]  = wbcir_to_rc6cells(mask_sc >> 12);
++Board specific DTS file
 +
-+		/* Header */
-+		match[4] = 0x50; /* mode1 = mode0 = 0, ignore toggle */
-+		mask[4]  = 0xF0;
-+		match[5] = 0x09; /* start bit = 1, mode2 = 0 */
-+		mask[5]  = 0x0F;
++/* Fixed XTAL clock node */
++maxim_xtal: clock {
++	compatible = "fixed-clock";
++	#clock-cells = <0>;
++	clock-frequency = <36864000>;
++};
 +
-+		rc6_csl = 44;
-+		proto = IR_PROTOCOL_RC6;
-+		break;
- 
--			/* Command */
--			match[0] = wbcir_to_rc6cells(wake_sc >>  0);
--			mask[0]  = 0xFF;
--			match[1] = wbcir_to_rc6cells(wake_sc >>  4);
--			mask[1]  = 0xFF;
--
--			/* Address */
--			match[2] = wbcir_to_rc6cells(wake_sc >>  8);
--			mask[2]  = 0xFF;
--			match[3] = wbcir_to_rc6cells(wake_sc >> 12);
--			mask[3]  = 0xFF;
--
--			/* Header */
--			match[4] = 0x50; /* mode1 = mode0 = 0, ignore toggle */
--			mask[4]  = 0xF0;
--			match[5] = 0x09; /* start bit = 1, mode2 = 0 */
--			mask[5]  = 0x0F;
--
--			rc6_csl = 44;
--
--		} else if (wake_rc6mode == 6) {
--			i = 0;
--
--			/* Command */
--			match[i]  = wbcir_to_rc6cells(wake_sc >>  0);
--			mask[i++] = 0xFF;
--			match[i]  = wbcir_to_rc6cells(wake_sc >>  4);
--			mask[i++] = 0xFF;
--
--			/* Address + Toggle */
--			match[i]  = wbcir_to_rc6cells(wake_sc >>  8);
--			mask[i++] = 0xFF;
--			match[i]  = wbcir_to_rc6cells(wake_sc >> 12);
--			mask[i++] = 0x3F;
--
--			/* Customer bits 7 - 0 */
--			match[i]  = wbcir_to_rc6cells(wake_sc >> 16);
--			mask[i++] = 0xFF;
-+	case RC_TYPE_RC6_6A_24:
-+	case RC_TYPE_RC6_6A_32:
-+	case RC_TYPE_RC6_MCE:
-+		i = 0;
++/* A tuner device instance under i2c bus */
++max2175_0: tuner@60 {
++	compatible = "maxim,max2175";
++	reg = <0x60>;
++	clocks = <&maxim_xtal>;
++	clock-names = "xtal";
++	maxim,refout-load-pF = <10>;
 +
-+		/* Command */
-+		match[i]  = wbcir_to_rc6cells(wake_sc >>  0);
-+		mask[i++] = wbcir_to_rc6cells(mask_sc >>  0);
-+		match[i]  = wbcir_to_rc6cells(wake_sc >>  4);
-+		mask[i++] = wbcir_to_rc6cells(mask_sc >>  4);
++	port {
++		max2175_0_ep: endpoint {
++			remote-endpoint = <&slave_rx_device>;
++		};
++	};
 +
-+		/* Address + Toggle */
-+		match[i]  = wbcir_to_rc6cells(wake_sc >>  8);
-+		mask[i++] = wbcir_to_rc6cells(mask_sc >>  8);
-+		match[i]  = wbcir_to_rc6cells(wake_sc >> 12);
-+		mask[i++] = wbcir_to_rc6cells(mask_sc >> 12);
-+
-+		/* Customer bits 7 - 0 */
-+		match[i]  = wbcir_to_rc6cells(wake_sc >> 16);
-+		mask[i++] = wbcir_to_rc6cells(mask_sc >> 16);
-+
-+		if (rc->wakeup_protocol == RC_TYPE_RC6_6A_20) {
-+			rc6_csl = 52;
-+		} else {
- 			match[i]  = wbcir_to_rc6cells(wake_sc >> 20);
--			mask[i++] = 0xFF;
-+			mask[i++] = wbcir_to_rc6cells(mask_sc >> 20);
++};
+diff --git a/Documentation/devicetree/bindings/property-units.txt b/Documentation/devicetree/bindings/property-units.txt
+index 12278d7..f1f1c22 100644
+--- a/Documentation/devicetree/bindings/property-units.txt
++++ b/Documentation/devicetree/bindings/property-units.txt
+@@ -28,6 +28,7 @@ Electricity
+ -ohms		: Ohms
+ -micro-ohms	: micro Ohms
+ -microvolt	: micro volts
++-pF		: pico farads
  
--			if (wake_sc & 0x80000000) {
-+			if (rc->wakeup_protocol == RC_TYPE_RC6_6A_24) {
-+				rc6_csl = 60;
-+			} else {
- 				/* Customer range bit and bits 15 - 8 */
- 				match[i]  = wbcir_to_rc6cells(wake_sc >> 24);
--				mask[i++] = 0xFF;
-+				mask[i++] = wbcir_to_rc6cells(mask_sc >> 24);
- 				match[i]  = wbcir_to_rc6cells(wake_sc >> 28);
--				mask[i++] = 0xFF;
-+				mask[i++] = wbcir_to_rc6cells(mask_sc >> 28);
- 				rc6_csl = 76;
--			} else if (wake_sc <= 0x007FFFFF) {
--				rc6_csl = 60;
--			} else {
--				do_wake = false;
--				dev_err(dev, "RC6 - Invalid wake scancode\n");
--				break;
- 			}
--
--			/* Header */
--			match[i]  = 0x93; /* mode1 = mode0 = 1, submode = 0 */
--			mask[i++] = 0xFF;
--			match[i]  = 0x0A; /* start bit = 1, mode2 = 1 */
--			mask[i++] = 0x0F;
--
--		} else {
--			do_wake = false;
--			dev_err(dev, "RC6 - Invalid wake mode\n");
- 		}
- 
-+		/* Header */
-+		match[i]  = 0x93; /* mode1 = mode0 = 1, submode = 0 */
-+		mask[i++] = 0xFF;
-+		match[i]  = 0x0A; /* start bit = 1, mode2 = 1 */
-+		mask[i++] = 0x0F;
-+		proto = IR_PROTOCOL_RC6;
- 		break;
--
- 	default:
- 		do_wake = false;
- 		break;
-@@ -855,7 +856,8 @@ wbcir_shutdown(struct pnp_dev *device)
- 		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_EV_EN, 0x01, 0x07);
- 
- 		/* Set CEIR_EN */
--		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CTL, 0x01, 0x01);
-+		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CTL,
-+			       (proto << 4) | 0x01, 0x31);
- 
- 	} else {
- 		/* Clear BUFF_EN, Clear END_EN, Clear MATCH_EN */
-@@ -875,6 +877,15 @@ wbcir_shutdown(struct pnp_dev *device)
- 	disable_irq(data->irq);
- }
- 
-+/*
-+ * Wakeup handling is done on shutdown.
-+ */
-+static int
-+wbcir_set_wakeup_filter(struct rc_dev *rc, struct rc_scancode_filter *filter)
-+{
-+	return 0;
-+}
-+
- static int
- wbcir_suspend(struct pnp_dev *device, pm_message_t state)
- {
-@@ -887,16 +898,11 @@ wbcir_suspend(struct pnp_dev *device, pm_message_t state)
- static void
- wbcir_init_hw(struct wbcir_data *data)
- {
--	u8 tmp;
--
- 	/* Disable interrupts */
- 	wbcir_set_irqmask(data, WBCIR_IRQ_NONE);
- 
--	/* Set PROT_SEL, RX_INV, Clear CEIR_EN (needed for the led) */
--	tmp = protocol << 4;
--	if (invert)
--		tmp |= 0x08;
--	outb(tmp, data->wbase + WBCIR_REG_WCEIR_CTL);
-+	/* Set RX_INV, Clear CEIR_EN (needed for the led) */
-+	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CTL, invert ? 8 : 0, 0x09);
- 
- 	/* Clear status bits NEC_REP, BUFF, MSG_END, MATCH */
- 	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_STS, 0x17, 0x17);
-@@ -1084,6 +1090,14 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
- 	data->dev->timeout = MS_TO_NS(100);
- 	data->dev->rx_resolution = US_TO_NS(2);
- 	data->dev->allowed_protocols = RC_BIT_ALL;
-+	data->dev->allowed_wakeup_protocols = RC_BIT_NEC | RC_BIT_NECX |
-+			RC_BIT_NEC32 | RC_BIT_RC5 | RC_BIT_RC6_0 |
-+			RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 |
-+			RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE;
-+	data->dev->wakeup_protocol = RC_TYPE_RC6_MCE;
-+	data->dev->scancode_wakeup_filter.data = 0x800F040C;
-+	data->dev->scancode_wakeup_filter.mask = ~0;
-+	data->dev->s_wakeup_filter = wbcir_set_wakeup_filter;
- 
- 	err = rc_register_device(data->dev);
- 	if (err)
-@@ -1199,15 +1213,6 @@ wbcir_init(void)
- {
- 	int ret;
- 
--	switch (protocol) {
--	case IR_PROTOCOL_RC5:
--	case IR_PROTOCOL_NEC:
--	case IR_PROTOCOL_RC6:
--		break;
--	default:
--		pr_err("Invalid power-on protocol\n");
--	}
--
- 	ret = pnp_register_driver(&wbcir_driver);
- 	if (ret)
- 		pr_err("Unable to register driver\n");
+ Temperature
+ ----------------------------------------
 -- 
-2.9.3
+1.9.1
 
