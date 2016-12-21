@@ -1,80 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:49325
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750712AbcLLJEl (ORCPT
+Received: from relmlor1.renesas.com ([210.160.252.171]:43763 "EHLO
+        relmlie4.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750762AbcLUIZs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Dec 2016 04:04:41 -0500
-Date: Mon, 12 Dec 2016 07:04:34 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Omap3-isp isp_remove() access subdev.entity after
- media_device_cleanup()
-Message-ID: <20161212070434.7a73b454@vento.lan>
-In-Reply-To: <20161212080315.GQ16630@valkosipuli.retiisi.org.uk>
-References: <180f9a48-5bb5-d23c-fcdd-b1d0edf35e85@osg.samsung.com>
-        <20161212080315.GQ16630@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Wed, 21 Dec 2016 03:25:48 -0500
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
+Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert+renesas@glider.be, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [PATCH v2 6/7] dt-bindings: media: Add Renesas R-Car DRIF binding
+Date: Wed, 21 Dec 2016 08:10:37 +0000
+Message-Id: <1482307838-47415-7-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+In-Reply-To: <1482307838-47415-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+References: <1478706284-59134-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+ <1482307838-47415-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 12 Dec 2016 10:03:16 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+Add binding documentation for Renesas R-Car Digital Radio Interface
+(DRIF) controller.
 
-> Hi Shuah,
-> 
-> On Fri, Dec 09, 2016 at 09:52:44AM -0700, Shuah Khan wrote:
-> > Hi Sakari,
-> > 
-> > I am looking at omap3 isp_remove() closely and I think there are a few
-> > issues there that could cause problems during unbind.
-> > 
-> > isp_remove() tries to do media_entity_cleanup() after it unregisters
-> > media_device
-> > 
-> > isp_remove() calls isp_unregister_entities() followed by
-> > isp_cleanup_modules() - cleanup routines call media_entity_cleanup()
-> > 
-> > media_entity_cleanup() accesses csi2a->subdev.entity which should be gone
-> > by now after media_device_unregister(). This is just one example. I think
-> > all of these cleanup routines isp_cleanup_modules() call access subdev.entity.
-> > 
-> > static void isp_cleanup_modules(struct isp_device *isp)
-> > {
-> >         omap3isp_h3a_aewb_cleanup(isp);
-> >         omap3isp_h3a_af_cleanup(isp);
-> >         omap3isp_hist_cleanup(isp);
-> >         omap3isp_resizer_cleanup(isp);
-> >         omap3isp_preview_cleanup(isp);
-> >         omap3isp_ccdc_cleanup(isp);
-> >         omap3isp_ccp2_cleanup(isp);
-> >         omap3isp_csi2_cleanup(isp);
-> > }
-> > 
-> > This is all done after media_device_cleanup() which does
-> > ida_destroy(&mdev->entity_internal_idx); and mutex_destroy(&mdev->graph_mutex);  
-> 
-> Calling media_entity_cleanup() is not a source of the current problems in
-> any way. The function is defined in media-entity.h and it does nothing:
-> 
-> static inline void media_entity_cleanup(struct media_entity *entity) {};
+Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+---
+ .../devicetree/bindings/media/renesas,drif.txt     | 202 +++++++++++++++++++++
+ 1 file changed, 202 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/renesas,drif.txt
 
-> 
-> We could later discuss when media_entity_cleanup() should be called though.
-> The existing drivers do call it in their remove() handler.
+diff --git a/Documentation/devicetree/bindings/media/renesas,drif.txt b/Documentation/devicetree/bindings/media/renesas,drif.txt
+new file mode 100644
+index 0000000..1f3feaf
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/renesas,drif.txt
+@@ -0,0 +1,202 @@
++Renesas R-Car Gen3 Digital Radio Interface controller (DRIF)
++------------------------------------------------------------
++
++R-Car Gen3 DRIF is a SPI like receive only slave device. A general
++representation of DRIF interfacing with a master device is shown below.
++
+++---------------------+                +---------------------+
++|                     |-----SCK------->|CLK                  |
++|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
++|                     |-----SD0------->|D0                   |
++|                     |-----SD1------->|D1                   |
+++---------------------+                +---------------------+
++
++As per datasheet, each DRIF channel (drifn) is made up of two internal
++channels (drifn0 & drifn1). These two internal channels share the common
++CLK & SYNC. Each internal channel has its own dedicated resources like
++irq, dma channels, address space & clock. This internal split is not
++visible to the external master device.
++
++The device tree model represents each internal channel as a separate node.
++The internal channels sharing the CLK & SYNC are tied together by their
++phandles using a new property called "renesas,bonding". For the rest of
++the documentation, unless explicitly stated, the word channel implies an
++internal channel.
++
++When both internal channels are enabled they need to be managed together
++as one (i.e.) they cannot operate alone as independent devices. Out of the
++two, one of them needs to act as a primary device that accepts common
++properties of both the internal channels. This channel is identified by a
++new property called "renesas,primary-bond".
++
++To summarize,
++   - When both the internal channels that are bonded together are enabled,
++     the zeroth channel is selected as primary-bond. This channels accepts
++     properties common to all the members of the bond.
++   - When only one of the bonded channels need to be enabled, the property
++     "renesas,bonding" or "renesas,primary-bond" will have no effect. That
++     enabled channel can act alone as any other independent device.
++
++Required properties of an internal channel:
++-------------------------------------------
++- compatible: "renesas,r8a7795-drif" if DRIF controller is a part of R8A7795 SoC.
++	      "renesas,rcar-gen3-drif" for a generic R-Car Gen3 compatible device.
++	      When compatible with the generic version, nodes must list the
++	      SoC-specific version corresponding to the platform first
++	      followed by the generic version.
++- reg: offset and length of that channel.
++- interrupts: associated with that channel.
++- clocks: phandle and clock specifier of that channel.
++- clock-names: clock input name string: "fck".
++- dmas: phandles to the DMA channels.
++- dma-names: names of the DMA channel: "rx".
++- renesas,bonding: phandle to the other channel.
++
++Optional properties of an internal channel:
++-------------------------------------------
++- power-domains: phandle to the respective power domain.
++
++Required properties of an internal channel when:
++	- It is the only enabled channel of the bond (or)
++	- If it acts as primary among enabled bonds
++--------------------------------------------------------
++- pinctrl-0: pin control group to be used for this channel.
++- pinctrl-names: must be "default".
++- renesas,primary-bond: empty property indicating the channel acts as primary
++			among the bonded channels.
++- port: child port node of a channel that defines the local and remote
++	endpoints. The remote endpoint is assumed to be a third party tuner
++	device endpoint.
++
++Optional properties of an internal channel when:
++	- It is the only enabled channel of the bond (or)
++	- If it acts as primary among enabled bonds
++--------------------------------------------------------
++- renesas,syncmd       : sync mode
++			 0 (Frame start sync pulse mode. 1-bit width pulse
++			    indicates start of a frame)
++			 1 (L/R sync or I2S mode) (default)
++- renesas,lsb-first    : empty property indicates lsb bit is received first.
++			 When not defined msb bit is received first (default)
++- renesas,syncac-active: Indicates sync signal polarity, 0/1 for low/high
++			 respectively. The default is 1 (active high)
++- renesas,dtdl         : delay between sync signal and start of reception.
++			 The possible values are represented in 0.5 clock
++			 cycle units and the range is 0 to 4. The default
++			 value is 2 (i.e.) 1 clock cycle delay.
++- renesas,syncdl       : delay between end of reception and sync signal edge.
++			 The possible values are represented in 0.5 clock
++			 cycle units and the range is 0 to 4 & 6. The default
++			 value is 0 (i.e.) no delay.
++
++Example
++--------
++
++SoC common dtsi file
++
++		drif00: rif@e6f40000 {
++			compatible = "renesas,r8a7795-drif",
++				     "renesas,rcar-gen3-drif";
++			reg = <0 0xe6f40000 0 0x64>;
++			interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>;
++			clocks = <&cpg CPG_MOD 515>;
++			clock-names = "fck";
++			dmas = <&dmac1 0x20>, <&dmac2 0x20>;
++			dma-names = "rx", "rx";
++			power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
++			renesas,bonding = <&drif01>;
++			status = "disabled";
++		};
++
++		drif01: rif@e6f50000 {
++			compatible = "renesas,r8a7795-drif",
++				     "renesas,rcar-gen3-drif";
++			reg = <0 0xe6f50000 0 0x64>;
++			interrupts = <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>;
++			clocks = <&cpg CPG_MOD 514>;
++			clock-names = "fck";
++			dmas = <&dmac1 0x22>, <&dmac2 0x22>;
++			dma-names = "rx", "rx";
++			power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
++			renesas,bonding = <&drif00>;
++			status = "disabled";
++		};
++
++
++Board specific dts file
++
++(1) Both internal channels enabled, primary-bond = 0
++-----------------------------------------------------
++
++When interfacing with a third party tuner device with two data pins as shown
++below.
++
+++---------------------+                +---------------------+
++|                     |-----SCK------->|CLK                  |
++|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
++|                     |-----SD0------->|D0                   |
++|                     |-----SD1------->|D1                   |
+++---------------------+                +---------------------+
++
++pfc {
++	...
++
++	drif0_pins: drif0 {
++		groups = "drif0_ctrl_a", "drif0_data0_a",
++				 "drif0_data1_a";
++		function = "drif0";
++	};
++	...
++}
++
++&drif00 {
++	pinctrl-0 = <&drif0_pins>;
++	pinctrl-names = "default";
++	renesas,syncac-active = <1>;
++	renesas,primary-bond;
++	status = "okay";
++	port {
++		drif0_ep: endpoint {
++		     remote-endpoint = <&tuner_ep>;
++		};
++	};
++};
++
++&drif01 {
++	status = "okay";
++};
++
++(2) Internal channel 1 alone is enabled:
++----------------------------------------
++
++When interfacing with a third party tuner device with one data pin as shown
++below.
++
+++---------------------+                +---------------------+
++|                     |-----SCK------->|CLK                  |
++|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
++|                     |                |D0 (unused)          |
++|                     |-----SD-------->|D1                   |
+++---------------------+                +---------------------+
++
++pfc {
++	...
++
++	drif0_pins: drif0 {
++		groups = "drif0_ctrl_a", "drif0_data1_a";
++		function = "drif0";
++	};
++	...
++}
++
++&drif01 {
++	pinctrl-0 = <&drif0_pins>;
++	pinctrl-names = "default";
++	renesas,syncac-active = <0>;
++	status = "okay";
++	port {
++		drif0_ep: endpoint {
++		     remote-endpoint = <&tuner_ep>;
++		};
++	};
++};
+-- 
+1.9.1
 
-I kept it per Laurent's request, because he believed that we might
-need it on some future, and keeping it would make easier to add usage
-for it again, provided that it is called at the right place.
-
-Well, as it is not been called at the right place anyway and, whatever we do
-to fix the issues with data lifetime media_entity_cleanup() logic will
-be affected, I suggest to just get rid of it.
-
-Regards,
-Mauro
