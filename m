@@ -1,61 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:33829 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753630AbcLXWev (ORCPT
+Received: from relmlor4.renesas.com ([210.160.252.174]:64726 "EHLO
+        relmlie3.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754403AbcLUIUZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Dec 2016 17:34:51 -0500
-Received: by mail-pg0-f67.google.com with SMTP id b1so4792063pgc.1
-        for <linux-media@vger.kernel.org>; Sat, 24 Dec 2016 14:34:16 -0800 (PST)
-From: Shyam Saini <mayhs11saini@gmail.com>
-To: mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, Shyam Saini <mayhs11saini@gmail.com>
-Subject: [PATCH 2/4] media: pci: saa7164: Replace BUG() with BUG_ON()
-Date: Sun, 25 Dec 2016 04:04:01 +0530
-Message-Id: <1482618843-13877-1-git-send-email-mayhs11saini@gmail.com>
+        Wed, 21 Dec 2016 03:20:25 -0500
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
+Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert+renesas@glider.be, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [PATCH v2 0/7] Add V4L2 SDR (DRIF & MAX2175) driver
+Date: Wed, 21 Dec 2016 08:10:31 +0000
+Message-Id: <1482307838-47415-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+In-Reply-To: <1478706284-59134-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+References: <1478706284-59134-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace BUG() with BUG_ON() using coccinelle
+This patch set contains two drivers
+ - Renesas R-Car Digital Radio Interface (DRIF) driver
+ - Maxim's MAX2175 RF to Bits tuner driver
 
-Signed-off-by: Shyam Saini <mayhs11saini@gmail.com>
----
- drivers/media/pci/saa7164/saa7164-core.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+These patches were based on top of media-next repo
+commit: 65390ea01ce678379da32b01f39fcfac4903f256
 
-diff --git a/drivers/media/pci/saa7164/saa7164-core.c b/drivers/media/pci/saa7164/saa7164-core.c
-index 03a1511..4c32649 100644
---- a/drivers/media/pci/saa7164/saa7164-core.c
-+++ b/drivers/media/pci/saa7164/saa7164-core.c
-@@ -591,8 +591,7 @@ static irqreturn_t saa7164_irq_ts(struct saa7164_port *port)
- 
- 	/* Find the current write point from the hardware */
- 	wp = saa7164_readl(port->bufcounter);
--	if (wp > (port->hwcfg.buffercount - 1))
--		BUG();
-+	BUG_ON(wp > (port->hwcfg.buffercount - 1));
- 
- 	/* Find the previous buffer to the current write point */
- 	if (wp == 0)
-@@ -604,8 +603,7 @@ static irqreturn_t saa7164_irq_ts(struct saa7164_port *port)
- 	/* TODO: turn this into a worker thread */
- 	list_for_each_safe(c, n, &port->dmaqueue.list) {
- 		buf = list_entry(c, struct saa7164_buffer, list);
--		if (i++ > port->hwcfg.buffercount)
--			BUG();
-+		BUG_ON(i++ > port->hwcfg.buffercount);
- 
- 		if (buf->idx == rp) {
- 			/* Found the buffer, deal with it */
-@@ -910,8 +908,7 @@ static int saa7164_port_init(struct saa7164_dev *dev, int portnr)
- {
- 	struct saa7164_port *port = NULL;
- 
--	if ((portnr < 0) || (portnr >= SAA7164_MAX_PORTS))
--		BUG();
-+	BUG_ON((portnr < 0) || (portnr >= SAA7164_MAX_PORTS));
- 
- 	port = &dev->ports[portnr];
- 
+These two drivers combined together expose a V4L2 SDR device that is compliant
+with the V4L2 framework [1]. Agreed review comments are incorporated in this
+series.
+
+The rcar_drif device is modelled using "renesas,bonding" property. The
+discussion on this property is available here [2].
+
+Change history:
+
+v1 -> v2:
+ - SDR formats renamed as "planar" instead of sliced (Hans)
+ - Documentation formatting correction (Laurent)
+
+ rcar_drif:
+ - DT model using "bonding" property
+ - Addressed Laurent's coments on bindings - DT optional parameters rename & rework
+ - Addressed Han's comments on driver
+ - Addressed Geert's comments on DT
+
+ max2175:
+ - Avoided scaling using method proposed by Antti. Thanks
+ - Bindings is a separate patch (Rob)
+ - Addressed Rob's comment on bindings
+ - Added Custom controls documentation (Laurent)
+
+Ramesh Shanmugasundaram (7):
+  media: v4l2-ctrls: Reserve controls for MAX217X
+  dt-bindings: media: Add MAX2175 binding description
+  media: i2c: max2175: Add MAX2175 support
+  media: Add new SDR formats PC16, PC18 & PC20
+  doc_rst: media: New SDR formats PC16, PC18 & PC20
+  dt-bindings: media: Add Renesas R-Car DRIF binding
+  media: platform: rcar_drif: Add DRIF support
+
+[1] v4l2-compliance report:
+
+root@salvator-x:~# v4l2-compliance -S /dev/swradio0
+v4l2-compliance SHA   : 188e604d57bec065078ff772c802b93ddb6def4b
+
+Driver Info:
+        Driver name   : rcar_drif
+        Card type     : R-Car DRIF
+        Bus info      : platform:R-Car DRIF
+        Driver version: 4.9.0
+        Capabilities  : 0x85310000
+                SDR Capture
+                Tuner
+                Read/Write
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x05310000
+                SDR Capture
+                Tuner
+                Read/Write
+                Streaming
+                Extended Pix Format
+
+Compliance test for device /dev/swradio0 (not using libv4l2):
+
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+        test second sdr open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+        test for unlimited opens: OK
+
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK
+        test VIDIOC_LOG_STATUS: OK
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK
+        test VIDIOC_G/S_FREQUENCY: OK
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 1
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+                test VIDIOC_QUERYCTRL: OK
+                test VIDIOC_G/S_CTRL: OK
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 5 Private Controls: 3
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK (Not Supported)
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                test VIDIOC_TRY_FMT: OK
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK (Not Supported)
+                test Composing: OK (Not Supported)
+                test Scaling: OK (Not Supported)
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK (Not Supported)
+
+Test input 0:
+
+
+Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
+root@salvator-x:~#
+
+[2] "bonding" DT property discussion (https://www.mail-archive.com/linux-renesas-soc@vger.kernel.org/msg09415.html)
+
+ .../devicetree/bindings/media/i2c/max2175.txt      |   61 +
+ .../devicetree/bindings/media/renesas,drif.txt     |  202 +++
+ .../devicetree/bindings/property-units.txt         |    1 +
+ .../media/uapi/v4l/pixfmt-sdr-pcu16be.rst          |   55 +
+ .../media/uapi/v4l/pixfmt-sdr-pcu18be.rst          |   55 +
+ .../media/uapi/v4l/pixfmt-sdr-pcu20be.rst          |   55 +
+ Documentation/media/uapi/v4l/sdr-formats.rst       |    3 +
+ Documentation/media/v4l-drivers/index.rst          |    1 +
+ Documentation/media/v4l-drivers/max2175.rst        |   60 +
+ drivers/media/i2c/Kconfig                          |    4 +
+ drivers/media/i2c/Makefile                         |    2 +
+ drivers/media/i2c/max2175/Kconfig                  |    8 +
+ drivers/media/i2c/max2175/Makefile                 |    4 +
+ drivers/media/i2c/max2175/max2175.c                | 1438 ++++++++++++++++++
+ drivers/media/i2c/max2175/max2175.h                |  108 ++
+ drivers/media/platform/Kconfig                     |   25 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/rcar_drif.c                 | 1593 ++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-ioctl.c               |    3 +
+ include/uapi/linux/v4l2-controls.h                 |    5 +
+ include/uapi/linux/videodev2.h                     |    3 +
+ 21 files changed, 3687 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/max2175.txt
+ create mode 100644 Documentation/devicetree/bindings/media/renesas,drif.txt
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst
+ create mode 100644 Documentation/media/v4l-drivers/max2175.rst
+ create mode 100644 drivers/media/i2c/max2175/Kconfig
+ create mode 100644 drivers/media/i2c/max2175/Makefile
+ create mode 100644 drivers/media/i2c/max2175/max2175.c
+ create mode 100644 drivers/media/i2c/max2175/max2175.h
+ create mode 100644 drivers/media/platform/rcar_drif.c
+
 -- 
-2.7.4
+1.9.1
 
