@@ -1,145 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50169 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756817AbcLPBX6 (ORCPT
+Received: from relmlor3.renesas.com ([210.160.252.173]:61436 "EHLO
+        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1759061AbcLUIUi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 20:23:58 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Rob Clark <robdclark@gmail.com>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Laura Abbott <labbott@redhat.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [RFC v2 04/11] v4l: Unify cache management hint buffer flags
-Date: Fri, 16 Dec 2016 03:24:18 +0200
-Message-Id: <20161216012425.11179-5-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20161216012425.11179-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20161216012425.11179-1-laurent.pinchart+renesas@ideasonboard.com>
+        Wed, 21 Dec 2016 03:20:38 -0500
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
+Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert+renesas@glider.be, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [PATCH v2 4/7] media: Add new SDR formats PC16, PC18 & PC20
+Date: Wed, 21 Dec 2016 08:10:35 +0000
+Message-Id: <1482307838-47415-5-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+In-Reply-To: <1482307838-47415-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+References: <1478706284-59134-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+ <1482307838-47415-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+This patch adds support for the three new SDR formats. These formats
+were prefixed with "planar" indicating I & Q data are not interleaved
+as in other formats. Here, I & Q data constitutes the top half and bottom
+half of the received buffer.
 
-The V4L2_BUF_FLAG_NO_CACHE_INVALIDATE and V4L2_BUF_FLAG_NO_CACHE_CLEAN
-buffer flags are currently not used by the kernel. Replace the definitions
-by a single V4L2_BUF_FLAG_NO_CACHE_SYNC flag to be used by further
-patches.
+V4L2_SDR_FMT_PCU16BE - 14-bit complex (I & Q) unsigned big-endian sample
+inside 16-bit. V4L2 FourCC: PC16
 
-Different cache architectures should not be visible to the user space
-which can make no meaningful use of the differences anyway. In case a
-device can make use of non-coherent memory accesses, the necessary cache
-operations depend on the CPU architecture and the buffer type, not the
-requests of the user. The cache operation itself may be skipped on the
-user's request which was the purpose of the two flags.
+V4L2_SDR_FMT_PCU18BE - 16-bit complex (I & Q) unsigned big-endian sample
+inside 18-bit. V4L2 FourCC: PC18
 
-On ARM the invalidate and clean are separate operations whereas on
-x86(-64) the two are a single operation (flush). Whether the hardware uses
-the buffer for reading (V4L2_BUF_TYPE_*_OUTPUT*) or writing
-(V4L2_BUF_TYPE_*CAPTURE*) already defines the required cache operation
-(clean and invalidate, respectively). No user input is required.
+V4L2_SDR_FMT_PCU20BE - 18-bit complex (I & Q) unsigned big-endian sample
+inside 20-bit. V4L2 FourCC: PC20
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
 ---
- Documentation/media/uapi/v4l/buffer.rst            | 24 ++++++++--------------
- .../media/uapi/v4l/vidioc-prepare-buf.rst          |  5 ++---
- include/trace/events/v4l2.h                        |  3 +--
- include/uapi/linux/videodev2.h                     |  7 +++++--
- 4 files changed, 17 insertions(+), 22 deletions(-)
+ drivers/media/v4l2-core/v4l2-ioctl.c | 3 +++
+ include/uapi/linux/videodev2.h       | 3 +++
+ 2 files changed, 6 insertions(+)
 
-diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
-index ac58966ccb9b..601c3e96464a 100644
---- a/Documentation/media/uapi/v4l/buffer.rst
-+++ b/Documentation/media/uapi/v4l/buffer.rst
-@@ -437,23 +437,17 @@ Buffer Flags
- 	:ref:`VIDIOC_PREPARE_BUF <VIDIOC_QBUF>`,
- 	:ref:`VIDIOC_QBUF` or
- 	:ref:`VIDIOC_DQBUF <VIDIOC_QBUF>` ioctl is called.
--    * .. _`V4L2-BUF-FLAG-NO-CACHE-INVALIDATE`:
-+    * .. _`V4L2-BUF-FLAG-NO-CACHE-SYNC`:
- 
--      - ``V4L2_BUF_FLAG_NO_CACHE_INVALIDATE``
-+      - ``V4L2_BUF_FLAG_NO_CACHE_SYNC``
-       - 0x00000800
--      - Caches do not have to be invalidated for this buffer. Typically
--	applications shall use this flag if the data captured in the
--	buffer is not going to be touched by the CPU, instead the buffer
--	will, probably, be passed on to a DMA-capable hardware unit for
--	further processing or output.
--    * .. _`V4L2-BUF-FLAG-NO-CACHE-CLEAN`:
--
--      - ``V4L2_BUF_FLAG_NO_CACHE_CLEAN``
--      - 0x00001000
--      - Caches do not have to be cleaned for this buffer. Typically
--	applications shall use this flag for output buffers if the data in
--	this buffer has not been created by the CPU but by some
--	DMA-capable unit, in which case caches have not been used.
-+      - Do not perform CPU cache synchronisation operations when the buffer is
-+	queued or dequeued. The user is responsible for the correct use of
-+	this flag. It should be only used when the buffer is not accessed
-+	using the CPU, e.g. the buffer is written to by a hardware block and
-+	then read by another one, in which case the flag should be set in both
-+	:ref:`VIDIOC_QBUF` and :ref:`VIDIOC_DQBUF` ioctls. The flag has no
-+	effect on some devices / architectures.
-     * .. _`V4L2-BUF-FLAG-LAST`:
- 
-       - ``V4L2_BUF_FLAG_LAST``
-diff --git a/Documentation/media/uapi/v4l/vidioc-prepare-buf.rst b/Documentation/media/uapi/v4l/vidioc-prepare-buf.rst
-index bdcfd9fe550d..80aeb7e403f3 100644
---- a/Documentation/media/uapi/v4l/vidioc-prepare-buf.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-prepare-buf.rst
-@@ -36,9 +36,8 @@ pass ownership of the buffer to the driver before actually enqueuing it,
- using the :ref:`VIDIOC_QBUF` ioctl, and to prepare it for future I/O. Such
- preparations may include cache invalidation or cleaning. Performing them
- in advance saves time during the actual I/O. In case such cache
--operations are not required, the application can use one of
--``V4L2_BUF_FLAG_NO_CACHE_INVALIDATE`` and
--``V4L2_BUF_FLAG_NO_CACHE_CLEAN`` flags to skip the respective step.
-+operations are not required, the application can use the
-+``V4L2_BUF_FLAG_NO_CACHE_SYNC`` flag to skip the cache synchronization step.
- 
- The struct :c:type:`v4l2_buffer` structure is specified in
- :ref:`buffer`.
-diff --git a/include/trace/events/v4l2.h b/include/trace/events/v4l2.h
-index ee7754c6e4a1..fb9ad7b0dddd 100644
---- a/include/trace/events/v4l2.h
-+++ b/include/trace/events/v4l2.h
-@@ -80,8 +80,7 @@ SHOW_FIELD
- 		{ V4L2_BUF_FLAG_ERROR,		     "ERROR" },		      \
- 		{ V4L2_BUF_FLAG_TIMECODE,	     "TIMECODE" },	      \
- 		{ V4L2_BUF_FLAG_PREPARED,	     "PREPARED" },	      \
--		{ V4L2_BUF_FLAG_NO_CACHE_INVALIDATE, "NO_CACHE_INVALIDATE" }, \
--		{ V4L2_BUF_FLAG_NO_CACHE_CLEAN,	     "NO_CACHE_CLEAN" },      \
-+		{ V4L2_BUF_FLAG_NO_CACHE_SYNC,	     "NO_CACHE_SYNC" },	      \
- 		{ V4L2_BUF_FLAG_TIMESTAMP_MASK,	     "TIMESTAMP_MASK" },      \
- 		{ V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN,   "TIMESTAMP_UNKNOWN" },   \
- 		{ V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC, "TIMESTAMP_MONOTONIC" }, \
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 0c3f238..fdf6c913 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1213,6 +1213,9 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_SDR_FMT_CS8:		descr = "Complex S8"; break;
+ 	case V4L2_SDR_FMT_CS14LE:	descr = "Complex S14LE"; break;
+ 	case V4L2_SDR_FMT_RU12LE:	descr = "Real U12LE"; break;
++	case V4L2_SDR_FMT_PCU16BE:	descr = "Planar Complex U16BE"; break;
++	case V4L2_SDR_FMT_PCU18BE:	descr = "Planar Complex U18BE"; break;
++	case V4L2_SDR_FMT_PCU20BE:	descr = "Planar Complex U20BE"; break;
+ 	case V4L2_TCH_FMT_DELTA_TD16:	descr = "16-bit signed deltas"; break;
+ 	case V4L2_TCH_FMT_DELTA_TD08:	descr = "8-bit signed deltas"; break;
+ 	case V4L2_TCH_FMT_TU16:		descr = "16-bit unsigned touch data"; break;
 diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 46e8a2e369f9..3516dd638009 100644
+index 46e8a2e3..26a31c8 100644
 --- a/include/uapi/linux/videodev2.h
 +++ b/include/uapi/linux/videodev2.h
-@@ -935,8 +935,11 @@ struct v4l2_buffer {
- #define V4L2_BUF_FLAG_TIMECODE			0x00000100
- /* Buffer is prepared for queuing */
- #define V4L2_BUF_FLAG_PREPARED			0x00000400
--/* Cache handling flags */
--#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x00000800
-+/* Cache sync hint */
-+#define V4L2_BUF_FLAG_NO_CACHE_SYNC		0x00000800
-+/* DEPRECATED. THIS WILL BE REMOVED IN THE FUTURE! */
-+#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	V4L2_BUF_FLAG_NO_CACHE_SYNC
-+/* DEPRECATED. THIS WILL BE REMOVED IN THE FUTURE! */
- #define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x00001000
- /* Timestamp type */
- #define V4L2_BUF_FLAG_TIMESTAMP_MASK		0x0000e000
+@@ -669,6 +669,9 @@ struct v4l2_pix_format {
+ #define V4L2_SDR_FMT_CS8          v4l2_fourcc('C', 'S', '0', '8') /* complex s8 */
+ #define V4L2_SDR_FMT_CS14LE       v4l2_fourcc('C', 'S', '1', '4') /* complex s14le */
+ #define V4L2_SDR_FMT_RU12LE       v4l2_fourcc('R', 'U', '1', '2') /* real u12le */
++#define V4L2_SDR_FMT_PCU16BE	  v4l2_fourcc('P', 'C', '1', '6') /* planar complex u16be */
++#define V4L2_SDR_FMT_PCU18BE	  v4l2_fourcc('P', 'C', '1', '8') /* planar complex u18be */
++#define V4L2_SDR_FMT_PCU20BE	  v4l2_fourcc('P', 'C', '2', '0') /* planar complex u20be */
+ 
+ /* Touch formats - used for Touch devices */
+ #define V4L2_TCH_FMT_DELTA_TD16	v4l2_fourcc('T', 'D', '1', '6') /* 16-bit signed deltas */
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
