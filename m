@@ -1,83 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f179.google.com ([209.85.192.179]:35534 "EHLO
-        mail-pf0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932192AbcLGSa2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2016 13:30:28 -0500
-Received: by mail-pf0-f179.google.com with SMTP id i88so78254811pfk.2
-        for <linux-media@vger.kernel.org>; Wed, 07 Dec 2016 10:30:28 -0800 (PST)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-Cc: Sekhar Nori <nsekhar@ti.com>, Axel Haslam <ahaslam@baylibre.com>,
-        =?UTF-8?q?Bartosz=20Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        linux-arm-kernel@lists.infradead.org
-Subject: [PATCH v6 0/5] davinci: VPIF: add DT support
-Date: Wed,  7 Dec 2016 10:30:20 -0800
-Message-Id: <20161207183025.20684-1-khilman@baylibre.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:40673 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753440AbcLVE5D (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Dec 2016 23:57:03 -0500
+Message-ID: <be854d211d68cbfd57be11e361dd6a25@smtp-cloud6.xs4all.net>
+Date: Thu, 22 Dec 2016 05:57:00 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Prepare the groundwork for adding DT support for davinci VPIF drivers.
-This series does some fixups/cleanups and then adds the DT binding and
-DT compatible string matching for DT probing.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-The controversial part from previous versions around async subdev
-parsing, and specifically hard-coding the input/output routing of
-subdevs, has been left out of this series.  That part can be done as a
-follow-on step after agreement has been reached on the path forward.
-With this version, platforms can still use the VPIF capture/display
-drivers, but must provide platform_data for the subdevs and subdev
-routing.
+Results of the daily build of media_tree:
 
-Tested video capture to memory on da850-lcdk board using composite
-input.
+date:			Thu Dec 22 05:00:17 CET 2016
+media-tree git hash:	c739c0a7c3c2472d7562b8f802cdce44d2597c8b
+media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
+v4l-utils git hash:	c9aacef24d152007c7344b691da0cc90788395a7
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
-Changes since v5:
-- locking fix: updated comment around lock variable
-- binding doc: added example for 
-- added reviewed-by tags from Laurent (thanks!)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.12.67-x86_64: OK
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: OK
+linux-4.9-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-Changes since v4:
-- dropped controversial async subdev parsing support.  That can be
-  done as a follow-up step after the discussions have finalized on the
-    right approach.
-    - DT binding Acked by DT maintainer (Rob H.)
-    - reworked locking fix (suggested by Laurent)
+Detailed results are available here:
 
-Changes since v3:
-- move to a single VPIF node, DT binding updated accordingly
-- misc fixes/updates based on reviews from Sakari
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-Changes since v2:
-- DT binding doc: fix example to use correct compatible
+Full logs are available here:
 
-Changes since v1:
-- more specific compatible strings, based on SoC: ti,da850-vpif*
-- fix locking bug when unlocking over subdev s_stream
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
+The Media Infrastructure API from this daily build is here:
 
-Kevin Hilman (5):
-  [media] davinci: VPIF: fix module loading, init errors
-  [media] davinci: vpif_capture: remove hard-coded I2C adapter id
-  [media] davinci: vpif_capture: fix start/stop streaming locking
-  [media] dt-bindings: add TI VPIF documentation
-  [media] davinci: VPIF: add basic support for DT init
-
- .../devicetree/bindings/media/ti,da850-vpif.txt    | 83 ++++++++++++++++++++++
- drivers/media/platform/davinci/vpif.c              | 14 +++-
- drivers/media/platform/davinci/vpif_capture.c      | 26 +++++--
- drivers/media/platform/davinci/vpif_capture.h      |  2 +-
- drivers/media/platform/davinci/vpif_display.c      |  6 ++
- include/media/davinci/vpif_types.h                 |  1 +
- 6 files changed, 125 insertions(+), 7 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/ti,da850-vpif.txt
-
--- 
-2.9.3
-
+http://www.xs4all.nl/~hverkuil/spec/index.html
