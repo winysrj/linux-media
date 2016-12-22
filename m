@@ -1,48 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:33372 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754052AbcLSRVb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Dec 2016 12:21:31 -0500
-From: Santosh Kumar Singh <kumar.san1093@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+Received: from mout.web.de ([212.227.15.14]:65375 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S938615AbcLVT50 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Dec 2016 14:57:26 -0500
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 0/2] [media] pvrusb2-io: Fine-tuning for some function
+ implementations
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
         Mike Isely <isely@pobox.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Santosh Kumar Singh <kumar.san1093@gmail.com>
-Subject: [PATCH] pvrusb2: Clean up file handle in open() error path.
-Date: Mon, 19 Dec 2016 22:50:37 +0530
-Message-Id: <1482168037-4995-1-git-send-email-kumar.san1093@gmail.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+Message-ID: <e08ae52b-3db5-4f9a-bc8b-c5abf7700856@users.sourceforge.net>
+Date: Thu, 22 Dec 2016 20:57:02 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix to avoid possible exit file handle in error paths.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Thu, 22 Dec 2016 20:48:04 +0100
 
-Signed-off-by: Santosh Kumar Singh <kumar.san1093@gmail.com>
----
- drivers/media/usb/pvrusb2/pvrusb2-v4l2.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+A few update suggestions were taken into account
+from static source code analysis.
 
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-index 2cc4d2b..2683373 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-@@ -1054,7 +1054,7 @@ static int pvr2_v4l2_open(struct file *file)
- 		pvr2_trace(PVR2_TRACE_STRUCT,
- 			   "Destroying pvr_v4l2_fh id=%p (input mask error)",
- 			   fhp);
--
-+		v4l2_fh_exit(&fhp->fh);
- 		kfree(fhp);
- 		return ret;
- 	}
-@@ -1071,6 +1071,7 @@ static int pvr2_v4l2_open(struct file *file)
- 		pvr2_trace(PVR2_TRACE_STRUCT,
- 			   "Destroying pvr_v4l2_fh id=%p (input map failure)",
- 			   fhp);
-+		v4l2_fh_exit(&fhp->fh);
- 		kfree(fhp);
- 		return -ENOMEM;
- 	}
+Markus Elfring (2):
+  Use kmalloc_array()
+  Add some spaces for better code readability
+
+ drivers/media/usb/pvrusb2/pvrusb2-io.c | 123 +++++++++++++++++----------------
+ 1 file changed, 62 insertions(+), 61 deletions(-)
+
 -- 
-1.9.1
+2.11.0
 
