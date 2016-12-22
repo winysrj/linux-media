@@ -1,124 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:37151 "EHLO
-        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752711AbcLHFLQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Dec 2016 00:11:16 -0500
-Message-ID: <25993f782002a35edc6295e720faa228@smtp-cloud6.xs4all.net>
-Date: Thu, 08 Dec 2016 06:10:58 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mail.kernel.org ([198.145.29.136]:56224 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1764222AbcLVXkg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Dec 2016 18:40:36 -0500
+Date: Fri, 23 Dec 2016 00:40:28 +0100
+From: Sebastian Reichel <sre@kernel.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, ivo.g.dimitrov.75@gmail.com,
+        pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        galak@codeaurora.org, mchehab@osg.samsung.com,
+        linux-kernel@vger.kernel.org
+Subject: Re: [RFC/PATCH] media: Add video bus switch
+Message-ID: <20161222234028.oxntlek2oy62cjnh@earth>
+References: <20161023200355.GA5391@amd>
+ <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
+ <20161214122451.GB27011@amd>
+ <20161222100104.GA30917@amd>
+ <20161222133938.GA30259@amd>
+ <20161222143244.ykza4wdxmop2t7bg@earth>
+ <20161222224226.GB31151@amd>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="ygqd7rfv63aec7my"
+Content-Disposition: inline
+In-Reply-To: <20161222224226.GB31151@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+--ygqd7rfv63aec7my
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-date:			Thu Dec  8 05:00:16 CET 2016
-media-tree git hash:	365fe4e0ce218dc5ad10df17b150a366b6015499
-media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
-v4l-utils git hash:	188e604d57bec065078ff772c802b93ddb6def4b
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.8.0-164
+Hi,
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.67-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-rc5-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.12.67-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-rc5-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-sparse: WARNINGS
+On Thu, Dec 22, 2016 at 11:42:26PM +0100, Pavel Machek wrote:
+> On Thu 2016-12-22 15:32:44, Sebastian Reichel wrote:
+> > Hi Pavel,
+> >=20
+> > On Thu, Dec 22, 2016 at 02:39:38PM +0100, Pavel Machek wrote:
+> > > N900 contains front and back camera, with a switch between the
+> > > two. This adds support for the swich component.
+> > >=20
+> > > Signed-off-by: Sebastian Reichel <sre@kernel.org>
+> > > Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+> > > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> > >=20
+> > > --
+> > >=20
+> > > I see this needs dts documentation, anything else than needs to be
+> > > done?
+> >=20
+> > Yes. This driver takes care of the switch gpio, but the cameras also
+> > use different bus settings. Currently omap3isp gets the bus-settings
+> > from the link connected to the CCP2 port in DT at probe time (*).
+> >=20
+> > So there are two general problems:
+> >=20
+> > 1. Settings must be applied before the streaming starts instead of
+> > at probe time, since the settings may change (based one the selected
+> > camera). That should be fairly easy to implement by just moving the
+> > code to the s_stream callback as far as I can see.
+> >=20
+> > 2. omap3isp should try to get the bus settings from using a callback
+> > in the connected driver instead of loading it from DT. Then the
+> > video-bus-switch can load the bus-settings from its downstream links
+> > in DT and propagate the correct ones to omap3isp based on the
+> > selected port. The DT loading part should actually remain in omap3isp
+> > as fallback, in case it does not find a callback in the connected drive=
+r.
+> > That way everything is backward compatible and the DT variant is
+> > nice for 1-on-1 scenarios.
+>=20
+> So... did I understood it correctly? (Needs some work to be done...)
 
-Detailed results are available here:
+I had a quick look and yes, that's basically what I had in mind to
+solve the issue. If callback is not available the old system should
+be used of course.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+> [...]
+>
+>  static int isp_subdev_notifier_bound(struct v4l2_async_notifier *async,
+> diff --git a/drivers/media/platform/video-bus-switch.c b/drivers/media/pl=
+atform/video-bus-switch.c
+> index 1a5d944..3a2d442 100644
+> --- a/drivers/media/platform/video-bus-switch.c
+> +++ b/drivers/media/platform/video-bus-switch.c
+> @@ -247,12 +247,21 @@ static int vbs_s_stream(struct v4l2_subdev *sd, int=
+ enable)
+>  {
+>  	struct v4l2_subdev *subdev =3D vbs_get_remote_subdev(sd);
+> =20
+> +	/* FIXME: we need to set the GPIO here */
+> +
 
-Full logs are available here:
+The gpio is set when the pad is selected, so no need to do it again.
+The gpio selection actually works with your branch (assuming its
+based on Ivo's).
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+>  	if (IS_ERR(subdev))
+>  		return PTR_ERR(subdev);
+> =20
+>  	return v4l2_subdev_call(subdev, video, s_stream, enable);
+>  }
+> =20
+> +static int vbs_g_endpoint_config(struct v4l2_subdev *sd, struct isp_bus_=
+cfg *cfg)
+> +{
+> +	printk("vbs_g_endpoint_config...\n");
+> +	return 0;
+> +}
 
-The Media Infrastructure API from this daily build is here:
+Would be nice to find something more abstract than isp_bus_cfg,
+which is specific to omap3isp.
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+-- Sebastian
+
+--ygqd7rfv63aec7my
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlhcZGkACgkQ2O7X88g7
++prwSRAAmtUDpDT98p/Vja0Oo81k9lTeli+Gzow+jOW1yGc4MsInGH0+m6dbLGy/
+6crPQ4MlKrS6FNr2oSlfH1BkuOq3uOgsZd/BfYJQ5X6h1eoyv1C9NwRcZSk7DkOS
+eXnucXI9NZAeS0PXd3H3xH9BDZLV56UIIuPyqfV73WiB3Ciq2561s/1m0TXEXXTa
+WCEBc5g+8zG/7GKTk89EttRu41DT49kpFpTtIzVM0xd5V9ZO7iiQ1ZELS3W09rJ3
+WDNOBIcAEb7FT+ZEqzC8dSvNi9u/0ECTleS3C0uFbqQG/Y9EtnT/JTHZ56FS5pAY
+InMixZagOJl88HRsG0TR0bj34un4Yo3wfrEtCsSQ5vIYD3ETXt5YUp+AjcSvoJ7s
+GKHMLnKE6D6ef+ipYmnz/LG1XA5grcQ3iYAtuVjTKPduEUhTlemfhevMV7J/8PPA
+6Pw3q0qObeVlTAp4LOEwzkThxsmfKnK3s2UUoPFLq5X9qZFtCtpCNnTSl/dJlmSr
+jFlB8kYLL0qZgJ/Ibbf7XmjS/OHBi5VOURZPXGNCRariR2gWTa+q0u9lae1+l5Ij
+vo/X3lGTF3SRjEyBIN2wIag1MuSPFC4rZoyjN6tEeDcykoU7fKq9KobBvBI5fS0V
+JKDBeRbmmmfaAs77kT4nWZLEo2b3RjRUjiedLHiU4CMEkZAc7vQ=
+=FUGn
+-----END PGP SIGNATURE-----
+
+--ygqd7rfv63aec7my--
