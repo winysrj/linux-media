@@ -1,59 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:33170 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756216AbcLPSAJ (ORCPT
+Received: from mail-io0-f193.google.com ([209.85.223.193]:34065 "EHLO
+        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965015AbcLVTFH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Dec 2016 13:00:09 -0500
-Received: by mail-lf0-f66.google.com with SMTP id y21so1917830lfa.0
-        for <linux-media@vger.kernel.org>; Fri, 16 Dec 2016 10:00:08 -0800 (PST)
-From: henrik@austad.us
-To: linux-kernel@vger.kernel.org
-Cc: Richard Cochran <richardcochran@gmail.com>, henrik@austad.us,
-        Henrik Austad <haustad@cisco.com>, linux-media@vger.kernel.org,
-        alsa-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: [TSN RFC v2 9/9] MAINTAINERS: add TSN/AVB-entries
-Date: Fri, 16 Dec 2016 18:59:13 +0100
-Message-Id: <1481911153-549-10-git-send-email-henrik@austad.us>
-In-Reply-To: <1481911153-549-1-git-send-email-henrik@austad.us>
-References: <1481911153-549-1-git-send-email-henrik@austad.us>
+        Thu, 22 Dec 2016 14:05:07 -0500
+MIME-Version: 1.0
+In-Reply-To: <11494368.ZdobxT7gGY@avalon>
+References: <1478706284-59134-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+ <1482307838-47415-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+ <1482307838-47415-7-git-send-email-ramesh.shanmugasundaram@bp.renesas.com> <11494368.ZdobxT7gGY@avalon>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Thu, 22 Dec 2016 20:05:05 +0100
+Message-ID: <CAMuHMdXj-xBrnBXfYu6BeXr7Gfv4wogH4z610Ddq-BSyVS=-8Q@mail.gmail.com>
+Subject: Re: [PATCH v2 6/7] dt-bindings: media: Add Renesas R-Car DRIF binding
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Antti Palosaari <crope@iki.fi>,
+        Chris Paterson <chris.paterson2@renesas.com>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Henrik Austad <haustad@cisco.com>
+Hi Laurent,
 
-Not sure how relevant this is other than making a point about
-maintaining it.
+On Thu, Dec 22, 2016 at 6:05 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> On Wednesday 21 Dec 2016 08:10:37 Ramesh Shanmugasundaram wrote:
+>> Add binding documentation for Renesas R-Car Digital Radio Interface
+>> (DRIF) controller.
+>>
+>> Signed-off-by: Ramesh Shanmugasundaram
+>> <ramesh.shanmugasundaram@bp.renesas.com> ---
+>>  .../devicetree/bindings/media/renesas,drif.txt     | 202 ++++++++++++++++++
+>>  1 file changed, 202 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/renesas,drif.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/renesas,drif.txt
+>> b/Documentation/devicetree/bindings/media/renesas,drif.txt new file mode
+>> 100644
+>> index 0000000..1f3feaf
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/renesas,drif.txt
 
-Signed-off-by: Henrik Austad <haustad@cisco.com>
----
- MAINTAINERS | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+>> +Optional properties of an internal channel when:
+>> +     - It is the only enabled channel of the bond (or)
+>> +     - If it acts as primary among enabled bonds
+>> +--------------------------------------------------------
+>> +- renesas,syncmd       : sync mode
+>> +                      0 (Frame start sync pulse mode. 1-bit width pulse
+>> +                         indicates start of a frame)
+>> +                      1 (L/R sync or I2S mode) (default)
+>> +- renesas,lsb-first    : empty property indicates lsb bit is received
+>> first.
+>> +                      When not defined msb bit is received first (default)
+>> +- renesas,syncac-active: Indicates sync signal polarity, 0/1 for low/high
+>> +                      respectively. The default is 1 (active high)
+>> +- renesas,dtdl         : delay between sync signal and start of reception.
+>> +                      The possible values are represented in 0.5 clock
+>> +                      cycle units and the range is 0 to 4. The default
+>> +                      value is 2 (i.e.) 1 clock cycle delay.
+>> +- renesas,syncdl       : delay between end of reception and sync signal
+>> edge.
+>> +                      The possible values are represented in 0.5 clock
+>> +                      cycle units and the range is 0 to 4 & 6. The default
+>> +                      value is 0 (i.e.) no delay.
+>
+> Most of these properties are pretty similar to the video bus properties
+> defined at the endpoint level in
+> Documentation/devicetree/bindings/media/video-interfaces.txt. I believe it
+> would make sense to use OF graph and try to standardize these properties
+> similarly.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 63cefa6..7c5afd2 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -12295,6 +12295,20 @@ T:	git git://linuxtv.org/anttip/media_tree.git
- S:	Maintained
- F:	drivers/media/tuners/tua9001*
- 
-+TSN CORE DRIVER
-+M:	Henrik Austad <haustad@cisco.com>
-+L:	linux-kernel@vger.kernel.org
-+S:	Supported
-+F:	drivers/net/tsn/
-+F:	include/linux/tsn.h
-+F:	include/trace/events/tsn.h
-+
-+TSN_AVB_DRIVER
-+M:	Henrik Austad <haustad@cisco.com>
-+L:	alsa-devel@alsa-project.org (moderated for non-subscribers)
-+S:	Supported
-+F:	drivers/media/avb/
-+
- TULIP NETWORK DRIVERS
- L:	netdev@vger.kernel.org
- L:	linux-parisc@vger.kernel.org
--- 
-2.7.4
+Note that the last two properties match the those in
+Documentation/devicetree/bindings/spi/sh-msiof.txt.
+We may want to use one DRIF channel as a plain SPI slave with the
+(modified) MSIOF driver in the future.
 
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
