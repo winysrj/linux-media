@@ -1,75 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zed.grinta.net ([109.74.203.128]:49034 "EHLO zed.grinta.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752223AbcLJVjV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Dec 2016 16:39:21 -0500
-Subject: Re: [PATCH 1/4] [media] bt8xx: One function call less in
- bttv_input_init() after error detection
-To: SF Markus Elfring <elfring@users.sourceforge.net>,
-        linux-media@vger.kernel.org,
-        Alexey Khoroshilov <khoroshilov@ispras.ru>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <d9a0777b-8ea7-3f7d-4fa2-b16468c4a1a4@users.sourceforge.net>
- <e20a6835-a404-e894-d0d0-a408bfcd7fb6@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: Daniele Nicolodi <daniele@grinta.net>
-Message-ID: <ecf01283-e2eb-ecef-313f-123ba41c0336@grinta.net>
-Date: Sat, 10 Dec 2016 14:29:55 -0700
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:42428 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S941611AbcLVUxV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Dec 2016 15:53:21 -0500
+Date: Thu, 22 Dec 2016 21:53:17 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, ivo.g.dimitrov.75@gmail.com,
+        pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        galak@codeaurora.org, mchehab@osg.samsung.com,
+        linux-kernel@vger.kernel.org
+Subject: Re: [RFC/PATCH] media: Add video bus switch
+Message-ID: <20161222205317.GA31151@amd>
+References: <20161023200355.GA5391@amd>
+ <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
+ <20161214122451.GB27011@amd>
+ <20161222100104.GA30917@amd>
+ <20161222133938.GA30259@amd>
+ <20161222143244.ykza4wdxmop2t7bg@earth>
 MIME-Version: 1.0
-In-Reply-To: <e20a6835-a404-e894-d0d0-a408bfcd7fb6@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="3MwIy2ne0vdjdPXF"
+Content-Disposition: inline
+In-Reply-To: <20161222143244.ykza4wdxmop2t7bg@earth>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/12/16 13:48, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Sat, 10 Dec 2016 09:29:24 +0100
-> 
-> The kfree() function was called in one case by the
-> bttv_input_init() function during error handling
-> even if the passed variable contained a null pointer.
 
-kfree() is safe to call on a NULL pointer.
+--3MwIy2ne0vdjdPXF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Despite that, you have found several instances of similar constructs:
+Hi!
 
-{
-	a = kmalloc(...)
-	b = kmalloc(...)
+> > I see this needs dts documentation, anything else than needs to be
+> > done?
+>=20
+> Yes. This driver takes care of the switch gpio, but the cameras also
+> use different bus settings. Currently omap3isp gets the bus-settings
+> from the link connected to the CCP2 port in DT at probe time (*).
+>=20
+> So there are two general problems:
+>=20
+> 1. Settings must be applied before the streaming starts instead of
+> at probe time, since the settings may change (based one the selected
+> camera). That should be fairly easy to implement by just moving the
+> code to the s_stream callback as far as I can see.
 
-	if (!a || !b)
-		goto out;
+Ok, I see, where "the code" is basically in vbs_link_setup, right?
 
-	...
+> 2. omap3isp should try to get the bus settings from using a callback
+> in the connected driver instead of loading it from DT. Then the
+> video-bus-switch can load the bus-settings from its downstream links
+> in DT and propagate the correct ones to omap3isp based on the
+> selected port. The DT loading part should actually remain in omap3isp
+> as fallback, in case it does not find a callback in the connected driver.
+> That way everything is backward compatible and the DT variant is
+> nice for 1-on-1 scenarios.
 
-out:
-	kfree(a);
-	kfree(b);
-}
+So basically... (struct isp_bus_cfg *) isd->bus would change in
+isp_pipeline_enable()...?=20
 
-and similar patches you submitted to change those construct to something
-different have been rejected because they are seen as unnecessary
-changes that make the code harder to read.
+> Apart from that Sakari told me at ELCE, that the port numbers
+> should be reversed to match the order of other drivers. That's
+> obviously very easy to do :)
 
-Didn't it occur to you that maybe those constructs are fine the way they
-are and this is the idiomatic way to write that kind of code? Why are
-you submitting patches implementing changes that have already been rejected?
+Ok, I guess that can come later :-).
 
-Submitting mechanical patches that fix trivial style issues (existing
-and widely acknowledged ones) is a fine way to learn how to work on
-kernel development. They constitute additional work load on the
-maintainers that need to review and merge them. Thus, hopefully, they
-are only a way for new developers to familiarize themselves with the
-process and then move to some more constructive contributions.
+> Regarding the binding document. I actually did write one:
+> https://git.kernel.org/cgit/linux/kernel/git/sre/linux-n900.git/commit/?h=
+=3Dn900-camera&id=3D81e74af53fe6d180616b05792f78badc615e871f
 
-Judging from your recent submissions, it seems that this process is not
-working well for you. I'm probably not the only one that is wonderign
-what are you trying to obtain with your patch submissions, other than
-having your name in the git log.
+Thanks, got it.
 
-Cheers,
-Daniele
+> So all in all it shouldn't be that hard to implement the remaining
+> bits.
 
+:-).
+
+> (*) Actually it does not for CCP2, but there are some old patches
+> from Sakari adding it for CCP2. It is implemented for parallel port
+> and CSI in this way.
+
+I think I got the patches in my tree. Camera currently works for me.
+
+Thanks,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--3MwIy2ne0vdjdPXF
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlhcPT0ACgkQMOfwapXb+vKdLACaAo+1MADdCpuo1Ve5cPqB/9h0
+FisAn10qk3OJeERbP4V7VXsilfws77rt
+=c8ff
+-----END PGP SIGNATURE-----
+
+--3MwIy2ne0vdjdPXF--
