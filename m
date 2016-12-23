@@ -1,145 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:52903 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751962AbcLHI4M (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 03:56:12 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Wei Yongjun <weiyongjun1@huawei.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH RFC] tvp5150: don't touch register TVP5150_CONF_SHARED_PIN if not needed
-Date: Thu,  8 Dec 2016 06:55:58 -0200
-Message-Id: <d29a265da6e7d8d3a637f189b1cfc2736ec14757.1481186696.git.mchehab@s-opensource.com>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:44726 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S936243AbcLWEwX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Dec 2016 23:52:23 -0500
+Message-ID: <b6cb19f7f3c9cd465f71771712de69e7@smtp-cloud3.xs4all.net>
+Date: Fri, 23 Dec 2016 05:52:20 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-changeset 460b6c0831cb ("[media] tvp5150: Add s_stream subdev operation
-support") added a logic that overrides TVP5150_CONF_SHARED_PIN setting,
-depending on the type of bus set via the .set_fmt() subdev callback.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This is known to cause trobules on devices that don't use a V4L2
-subdev devnode, and a fix for it was made by changeset 47de9bf8931e
-("[media] tvp5150: Fix breakage for serial usage"). Unfortunately,
-such fix doesn't consider the case of progressive video inputs,
-causing chroma decoding issues on such videos, as it overrides not
-only the type of video output, but also other unrelated bits.
+Results of the daily build of media_tree:
 
-So, instead of trying to guess, let's detect if the device is set
-via a V4L2 subdev node or not. If not, just ignore the bogus logic.
+date:			Fri Dec 23 05:00:18 CET 2016
+media-tree git hash:	c739c0a7c3c2472d7562b8f802cdce44d2597c8b
+media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
+v4l-utils git hash:	c9aacef24d152007c7344b691da0cc90788395a7
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
-Fixes: 460b6c0831cb ("[media] tvp5150: Add s_stream subdev operation support")
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.12.67-x86_64: OK
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: OK
+linux-4.9-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-Devin,
+Detailed results are available here:
 
-I didn't test this patch. As I explained on my previous e-mail, my current test
-scenario for analog TV inputs is not  ideal, as I lack progressive video
-and RF output testcases.
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-Could you please test if this will fix for you? 
+Full logs are available here:
 
-Laurent/Javier,
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-With regards to OMAP3, it would be good to try to reproduce the issues
-Devin noticed on your hardware, testing with both progressive and interlaced
-sources and checking if the chroma is being decoded properly or not with a
-NTSC signal. 
+The Media Infrastructure API from this daily build is here:
 
- drivers/media/i2c/tvp5150.c                      | 7 ++++++-
- drivers/media/platform/pxa_camera.c              | 1 +
- drivers/media/platform/soc_camera/soc_mediabus.c | 1 +
- include/media/v4l2-mediabus.h                    | 3 +++
- 4 files changed, 11 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 6737685d5be5..c8d701291a54 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -795,7 +795,8 @@ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
- 
- 	tvp5150_set_std(sd, decoder->norm);
- 
--	if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
-+	if (decoder->mbus_type == V4L2_MBUS_PARALLEL ||
-+	    decoder->mbus_type == V4L2_MBUS_UNKNOWN)
- 		tvp5150_write(sd, TVP5150_DATA_RATE_SEL, 0x40);
- 
- 	return 0;
-@@ -1053,6 +1054,9 @@ static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
- 	/* Output format: 8-bit ITU-R BT.656 with embedded syncs */
- 	int val = 0x09;
- 
-+	if (decoder->mbus_type == V4L2_MBUS_UNKNOWN)
-+		return 0;
-+
- 	/* Output format: 8-bit 4:2:2 YUV with discrete sync */
- 	if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
- 		val = 0x0d;
-@@ -1501,6 +1505,7 @@ static int tvp5150_probe(struct i2c_client *c,
- 	core->norm = V4L2_STD_ALL;	/* Default is autodetect */
- 	core->input = TVP5150_COMPOSITE1;
- 	core->enable = true;
-+	core->mbus_type = V4L2_MBUS_UNKNOWN;
- 
- 	v4l2_ctrl_handler_init(&core->hdl, 5);
- 	v4l2_ctrl_new_std(&core->hdl, &tvp5150_ctrl_ops,
-diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
-index 929006f65cc7..86b60b85d20e 100644
---- a/drivers/media/platform/pxa_camera.c
-+++ b/drivers/media/platform/pxa_camera.c
-@@ -593,6 +593,7 @@ static unsigned int pxa_mbus_config_compatible(const struct v4l2_mbus_config *cf
- 	common_flags = cfg->flags & flags;
- 
- 	switch (cfg->type) {
-+	case V4L2_MBUS_UNKNOWN:
- 	case V4L2_MBUS_PARALLEL:
- 		hsync = common_flags & (V4L2_MBUS_HSYNC_ACTIVE_HIGH |
- 					V4L2_MBUS_HSYNC_ACTIVE_LOW);
-diff --git a/drivers/media/platform/soc_camera/soc_mediabus.c b/drivers/media/platform/soc_camera/soc_mediabus.c
-index e3e665e1c503..37c49a10fbe0 100644
---- a/drivers/media/platform/soc_camera/soc_mediabus.c
-+++ b/drivers/media/platform/soc_camera/soc_mediabus.c
-@@ -490,6 +490,7 @@ unsigned int soc_mbus_config_compatible(const struct v4l2_mbus_config *cfg,
- 
- 	switch (cfg->type) {
- 	case V4L2_MBUS_PARALLEL:
-+	case V4L2_MBUS_UNKNOWN:
- 		hsync = common_flags & (V4L2_MBUS_HSYNC_ACTIVE_HIGH |
- 					V4L2_MBUS_HSYNC_ACTIVE_LOW);
- 		vsync = common_flags & (V4L2_MBUS_VSYNC_ACTIVE_HIGH |
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-index 34cc99e093ef..8af6b96d628b 100644
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -70,11 +70,14 @@
-  * @V4L2_MBUS_BT656:	parallel interface with embedded synchronisation, can
-  *			also be used for BT.1120
-  * @V4L2_MBUS_CSI2:	MIPI CSI-2 serial interface
-+ * @V4L2_MBUS_UNKNOWN:	used to indicate that the device is not controlled
-+ *			via a V4L2 subdev devnode interface
-  */
- enum v4l2_mbus_type {
- 	V4L2_MBUS_PARALLEL,
- 	V4L2_MBUS_BT656,
- 	V4L2_MBUS_CSI2,
-+	V4L2_MBUS_UNKNOWN,
- };
- 
- /**
--- 
-2.9.3
-
-
+http://www.xs4all.nl/~hverkuil/spec/index.html
