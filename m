@@ -1,462 +1,357 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:46047 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752810AbcLHPl7 (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:57578 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753353AbcLWLmk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Dec 2016 10:41:59 -0500
-From: Michael Tretter <m.tretter@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: p.zabel@pengutronix.de, Philipp Zabel <philipp.zabel@gmail.com>,
-        Michael Tretter <m.tretter@pengutronix.de>
-Subject: [PATCH 2/9] [media] coda: add i.MX6 VDOA driver
-Date: Thu,  8 Dec 2016 16:24:09 +0100
-Message-Id: <20161208152416.16031-2-m.tretter@pengutronix.de>
-In-Reply-To: <20161208152416.16031-1-m.tretter@pengutronix.de>
-References: <20161208152416.16031-1-m.tretter@pengutronix.de>
+        Fri, 23 Dec 2016 06:42:40 -0500
+Date: Fri, 23 Dec 2016 12:42:37 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, ivo.g.dimitrov.75@gmail.com,
+        pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        galak@codeaurora.org, mchehab@osg.samsung.com,
+        linux-kernel@vger.kernel.org
+Subject: Re: [RFC/PATCH] media: Add video bus switch
+Message-ID: <20161223114237.GA5879@amd>
+References: <20161023200355.GA5391@amd>
+ <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
+ <20161214122451.GB27011@amd>
+ <20161222100104.GA30917@amd>
+ <20161222133938.GA30259@amd>
+ <20161222143244.ykza4wdxmop2t7bg@earth>
+ <20161222224226.GB31151@amd>
+ <20161222234028.oxntlek2oy62cjnh@earth>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="OXfL5xGRrasGEqWY"
+Content-Disposition: inline
+In-Reply-To: <20161222234028.oxntlek2oy62cjnh@earth>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <philipp.zabel@gmail.com>
 
-The i.MX6 Video Data Order Adapter's (VDOA) sole purpose is to convert
-from a custom macroblock tiled format produced by the CODA960 decoder
-into linear formats that can be used for scanout.
+--OXfL5xGRrasGEqWY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
-Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
----
- drivers/media/platform/Kconfig         |   3 +
- drivers/media/platform/coda/Makefile   |   1 +
- drivers/media/platform/coda/imx-vdoa.c | 331 +++++++++++++++++++++++++++++++++
- drivers/media/platform/coda/imx-vdoa.h |  58 ++++++
- 4 files changed, 393 insertions(+)
- create mode 100644 drivers/media/platform/coda/imx-vdoa.c
- create mode 100644 drivers/media/platform/coda/imx-vdoa.h
+Hi!
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index ce4a96f..41e007f 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -162,6 +162,9 @@ config VIDEO_CODA
- 	   Coda is a range of video codec IPs that supports
- 	   H.264, MPEG-4, and other video formats.
- 
-+config VIDEO_IMX_VDOA
-+	def_tristate VIDEO_CODA if SOC_IMX6Q || COMPILE_TEST
-+
- config VIDEO_MEDIATEK_VPU
- 	tristate "Mediatek Video Processor Unit"
- 	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
-diff --git a/drivers/media/platform/coda/Makefile b/drivers/media/platform/coda/Makefile
-index 9342ac5..8582843 100644
---- a/drivers/media/platform/coda/Makefile
-+++ b/drivers/media/platform/coda/Makefile
-@@ -3,3 +3,4 @@ ccflags-y += -I$(src)
- coda-objs := coda-common.o coda-bit.o coda-gdi.o coda-h264.o coda-jpeg.o
- 
- obj-$(CONFIG_VIDEO_CODA) += coda.o
-+obj-$(CONFIG_VIDEO_IMX_VDOA) += imx-vdoa.o
-diff --git a/drivers/media/platform/coda/imx-vdoa.c b/drivers/media/platform/coda/imx-vdoa.c
-new file mode 100644
-index 0000000..9b4ae07
---- /dev/null
-+++ b/drivers/media/platform/coda/imx-vdoa.c
-@@ -0,0 +1,331 @@
-+/*
-+ * i.MX6 Video Data Order Adapter (VDOA)
-+ *
-+ * Copyright (C) 2014 Philipp Zabel
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version 2
-+ * of the License, or (at your option) any later version.
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/clk.h>
-+#include <linux/device.h>
-+#include <linux/interrupt.h>
-+#include <linux/module.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/platform_device.h>
-+#include <linux/videodev2.h>
-+#include <linux/slab.h>
-+
-+#include "imx-vdoa.h"
-+
-+#define VDOA_NAME "imx-vdoa"
-+
-+#define VDOAC		0x00
-+#define VDOASRR		0x04
-+#define VDOAIE		0x08
-+#define VDOAIST		0x0c
-+#define VDOAFP		0x10
-+#define VDOAIEBA00	0x14
-+#define VDOAIEBA01	0x18
-+#define VDOAIEBA02	0x1c
-+#define VDOAIEBA10	0x20
-+#define VDOAIEBA11	0x24
-+#define VDOAIEBA12	0x28
-+#define VDOASL		0x2c
-+#define VDOAIUBO	0x30
-+#define VDOAVEBA0	0x34
-+#define VDOAVEBA1	0x38
-+#define VDOAVEBA2	0x3c
-+#define VDOAVUBO	0x40
-+#define VDOASR		0x44
-+
-+#define VDOAC_ISEL		BIT(6)
-+#define VDOAC_PFS		BIT(5)
-+#define VDOAC_SO		BIT(4)
-+#define VDOAC_SYNC		BIT(3)
-+#define VDOAC_NF		BIT(2)
-+#define VDOAC_BNDM_MASK		0x3
-+#define VDOAC_BAND_HEIGHT_8	0x0
-+#define VDOAC_BAND_HEIGHT_16	0x1
-+#define VDOAC_BAND_HEIGHT_32	0x2
-+
-+#define VDOASRR_START		BIT(1)
-+#define VDOASRR_SWRST		BIT(0)
-+
-+#define VDOAIE_EITERR		BIT(1)
-+#define VDOAIE_EIEOT		BIT(0)
-+
-+#define VDOAIST_TERR		BIT(1)
-+#define VDOAIST_EOT		BIT(0)
-+
-+#define VDOAFP_FH_MASK		(0x1fff << 16)
-+#define VDOAFP_FW_MASK		(0x3fff)
-+
-+#define VDOASL_VSLY_MASK	(0x3fff << 16)
-+#define VDOASL_ISLY_MASK	(0x7fff)
-+
-+#define VDOASR_ERRW		BIT(4)
-+#define VDOASR_EOB		BIT(3)
-+#define VDOASR_CURRENT_FRAME	(0x3 << 1)
-+#define VDOASR_CURRENT_BUFFER	BIT(1)
-+
-+enum {
-+	V4L2_M2M_SRC = 0,
-+	V4L2_M2M_DST = 1,
-+};
-+
-+struct vdoa_data {
-+	struct vdoa_ctx		*curr_ctx;
-+	struct device		*dev;
-+	struct clk		*vdoa_clk;
-+	void __iomem		*regs;
-+	int			irq;
-+};
-+
-+struct vdoa_q_data {
-+	unsigned int	width;
-+	unsigned int	height;
-+	unsigned int	bytesperline;
-+	unsigned int	sizeimage;
-+	u32		pixelformat;
-+};
-+
-+struct vdoa_ctx {
-+	struct vdoa_data	*vdoa;
-+	struct completion	completion;
-+	struct vdoa_q_data	q_data[2];
-+};
-+
-+static irqreturn_t vdoa_irq_handler(int irq, void *data)
-+{
-+	struct vdoa_data *vdoa = data;
-+	struct vdoa_ctx *curr_ctx;
-+	u32 val;
-+
-+	/* Disable interrupts */
-+	writel(0, vdoa->regs + VDOAIE);
-+
-+	curr_ctx = vdoa->curr_ctx;
-+	if (!curr_ctx) {
-+		dev_dbg(vdoa->dev,
-+			"Instance released before the end of transaction\n");
-+		return IRQ_HANDLED;
-+	}
-+
-+	val = readl(vdoa->regs + VDOAIST);
-+	writel(val, vdoa->regs + VDOAIST);
-+	if (val & VDOAIST_TERR) {
-+		val = readl(vdoa->regs + VDOASR) & VDOASR_ERRW;
-+		dev_err(vdoa->dev, "AXI %s error\n", val ? "write" : "read");
-+	} else if (!(val & VDOAIST_EOT)) {
-+		dev_warn(vdoa->dev, "Spurious interrupt\n");
-+	}
-+	complete(&curr_ctx->completion);
-+
-+	return IRQ_HANDLED;
+> > [...]
+> >
+> >  static int isp_subdev_notifier_bound(struct v4l2_async_notifier *async,
+> > diff --git a/drivers/media/platform/video-bus-switch.c b/drivers/media/=
+platform/video-bus-switch.c
+> > index 1a5d944..3a2d442 100644
+> > --- a/drivers/media/platform/video-bus-switch.c
+> > +++ b/drivers/media/platform/video-bus-switch.c
+> > @@ -247,12 +247,21 @@ static int vbs_s_stream(struct v4l2_subdev *sd, i=
+nt enable)
+> >  {
+> >  	struct v4l2_subdev *subdev =3D vbs_get_remote_subdev(sd);
+> > =20
+> > +	/* FIXME: we need to set the GPIO here */
+> > +
+>=20
+> The gpio is set when the pad is selected, so no need to do it again.
+> The gpio selection actually works with your branch (assuming its
+> based on Ivo's).
+
+Yes. I did not notice... is there actually some interface to select
+the camera from userland?
+
+> >  	if (IS_ERR(subdev))
+> >  		return PTR_ERR(subdev);
+> > =20
+> >  	return v4l2_subdev_call(subdev, video, s_stream, enable);
+> >  }
+> > =20
+> > +static int vbs_g_endpoint_config(struct v4l2_subdev *sd, struct isp_bu=
+s_cfg *cfg)
+> > +{
+> > +	printk("vbs_g_endpoint_config...\n");
+> > +	return 0;
+> > +}
+>=20
+> Would be nice to find something more abstract than isp_bus_cfg,
+> which is specific to omap3isp.
+
+Yes, that should be doable.
+
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform=
+/omap3isp/isp.c
+index 45c69ed..f0aa8cd 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2024,44 +2054,51 @@ enum isp_of_phy {
+ 	ISP_OF_PHY_CSIPHY2,
+ };
+=20
+-static void isp_of_parse_node_csi1(struct device *dev,
+-				   struct isp_bus_cfg *buscfg,
++void __isp_of_parse_node_csi1(struct device *dev,
++				   struct isp_ccp2_cfg *buscfg,
+ 				   struct v4l2_of_endpoint *vep)
+ {
+-	if (vep->base.port =3D=3D ISP_OF_PHY_CSIPHY1)
+-		buscfg->interface =3D ISP_INTERFACE_CCP2B_PHY1;
+-	else
+-		buscfg->interface =3D ISP_INTERFACE_CCP2B_PHY2;
+-	buscfg->bus.ccp2.lanecfg.clk.pos =3D vep->bus.mipi_csi1.clock_lane;
+-	buscfg->bus.ccp2.lanecfg.clk.pol =3D
++	buscfg->lanecfg.clk.pos =3D vep->bus.mipi_csi1.clock_lane;
++	buscfg->lanecfg.clk.pol =3D
+ 		vep->bus.mipi_csi1.lane_polarity[0];
+ 	dev_dbg(dev, "clock lane polarity %u, pos %u\n",
+-		buscfg->bus.ccp2.lanecfg.clk.pol,
+-		buscfg->bus.ccp2.lanecfg.clk.pos);
++		buscfg->lanecfg.clk.pol,
++		buscfg->lanecfg.clk.pos);
+=20
+-	buscfg->bus.ccp2.lanecfg.data[0].pos =3D vep->bus.mipi_csi2.data_lanes[0];
+-	buscfg->bus.ccp2.lanecfg.data[0].pol =3D
++	buscfg->lanecfg.data[0].pos =3D vep->bus.mipi_csi2.data_lanes[0];
++	buscfg->lanecfg.data[0].pol =3D
+ 		vep->bus.mipi_csi2.lane_polarities[1];
+ 	dev_dbg(dev, "data lane polarity %u, pos %u\n",
+-		buscfg->bus.ccp2.lanecfg.data[0].pol,
+-		buscfg->bus.ccp2.lanecfg.data[0].pos);
++		buscfg->lanecfg.data[0].pol,
++		buscfg->lanecfg.data[0].pos);
+=20
+-	buscfg->bus.ccp2.strobe_clk_pol =3D vep->bus.mipi_csi1.clock_inv;
+-	buscfg->bus.ccp2.phy_layer =3D vep->bus.mipi_csi1.strobe;
+-	buscfg->bus.ccp2.ccp2_mode =3D vep->bus_type =3D=3D V4L2_MBUS_CCP2;
++	buscfg->strobe_clk_pol =3D vep->bus.mipi_csi1.clock_inv;
++	buscfg->phy_layer =3D vep->bus.mipi_csi1.strobe;
++	buscfg->ccp2_mode =3D vep->bus_type =3D=3D V4L2_MBUS_CCP2;
+=20
+ 	dev_dbg(dev, "clock_inv %u strobe %u ccp2 %u\n",
+-		buscfg->bus.ccp2.strobe_clk_pol,
+-		buscfg->bus.ccp2.phy_layer,
+-		buscfg->bus.ccp2.ccp2_mode);
++		buscfg->strobe_clk_pol,
++		buscfg->phy_layer,
++		buscfg->ccp2_mode);
+ 	/*
+ 	 * FIXME: now we assume the CRC is always there.
+ 	 * Implement a way to obtain this information from the
+ 	 * sensor. Frame descriptors, perhaps?
+ 	 */
+-	buscfg->bus.ccp2.crc =3D 1;
++	buscfg->crc =3D 1;
+=20
+-	buscfg->bus.ccp2.vp_clk_pol =3D 1;
++	buscfg->vp_clk_pol =3D 1;
 +}
-+
-+void vdoa_device_run(struct vdoa_ctx *ctx, dma_addr_t dst, dma_addr_t src)
++=09
++static void isp_of_parse_node_csi1(struct device *dev,
++				   struct isp_bus_cfg *buscfg,
++				   struct v4l2_of_endpoint *vep)
 +{
-+	struct vdoa_q_data *src_q_data, *dst_q_data;
-+	struct vdoa_data *vdoa = ctx->vdoa;
-+	u32 val;
-+
-+	vdoa->curr_ctx = ctx;
-+
-+	src_q_data = &ctx->q_data[V4L2_M2M_SRC];
-+	dst_q_data = &ctx->q_data[V4L2_M2M_DST];
-+
-+	/* Progressive, no sync, 1 frame per run */
-+	if (dst_q_data->pixelformat == V4L2_PIX_FMT_YUYV)
-+		val = VDOAC_PFS;
++	if (vep->base.port =3D=3D ISP_OF_PHY_CSIPHY1)
++		buscfg->interface =3D ISP_INTERFACE_CCP2B_PHY1;
 +	else
-+		val = 0;
-+	writel(val, vdoa->regs + VDOAC);
-+
-+	writel(dst_q_data->height << 16 | dst_q_data->width,
-+	       vdoa->regs + VDOAFP);
-+
-+	val = dst;
-+	writel(val, vdoa->regs + VDOAIEBA00);
-+
-+	writel(src_q_data->bytesperline << 16 | dst_q_data->bytesperline,
-+	       vdoa->regs + VDOASL);
-+
-+	if (dst_q_data->pixelformat == V4L2_PIX_FMT_NV12 ||
-+	    dst_q_data->pixelformat == V4L2_PIX_FMT_NV21)
-+		val = dst_q_data->bytesperline * dst_q_data->height;
-+	else
-+		val = 0;
-+	writel(val, vdoa->regs + VDOAIUBO);
-+
-+	val = src;
-+	writel(val, vdoa->regs + VDOAVEBA0);
-+	val = src_q_data->bytesperline * src_q_data->height;
-+	writel(val, vdoa->regs + VDOAVUBO);
-+
-+	/* Enable interrupts and start transfer */
-+	writel(VDOAIE_EITERR | VDOAIE_EIEOT, vdoa->regs + VDOAIE);
-+	writel(VDOASRR_START, vdoa->regs + VDOASRR);
-+}
-+EXPORT_SYMBOL(vdoa_device_run);
-+
-+int vdoa_wait_for_completion(struct vdoa_ctx *ctx)
-+{
-+	struct vdoa_data *vdoa = ctx->vdoa;
-+
-+	if (!wait_for_completion_timeout(&ctx->completion,
-+					 msecs_to_jiffies(300))) {
-+		dev_err(vdoa->dev,
-+			"Timeout waiting for transfer result\n");
-+		return -ETIMEDOUT;
++		buscfg->interface =3D ISP_INTERFACE_CCP2B_PHY2;
++	__isp_of_parse_node_csi1(dev, &buscfg->bus.ccp2, vep);
+ }
+=20
+ static void isp_of_parse_node_csi2(struct device *dev,
+@@ -2099,27 +2136,8 @@ static void isp_of_parse_node_csi2(struct device *de=
+v,
+ 	buscfg->bus.csi2.crc =3D 1;
+ }
+=20
+-static int isp_of_parse_node_endpoint(struct device *dev,
+-				      struct device_node *node,
+-				      struct isp_async_subdev *isd)
++static int isp_endpoint_to_buscfg(struct device *dev, struct v4l2_of_endpo=
+int vep, struct isp_bus_cfg *buscfg)
+ {
+-	struct isp_bus_cfg *buscfg;
+-	struct v4l2_of_endpoint vep;
+-	int ret;
+-
+-	isd->bus =3D devm_kzalloc(dev, sizeof(*isd->bus), GFP_KERNEL);
+-	if (!isd->bus)
+-		return -ENOMEM;
+-
+-	buscfg =3D isd->bus;
+-
+-	ret =3D v4l2_of_parse_endpoint(node, &vep);
+-	if (ret)
+-		return ret;
+-
+-	dev_dbg(dev, "parsing endpoint %s, interface %u\n", node->full_name,
+-		vep.base.port);
+-
+ 	switch (vep.base.port) {
+ 	case ISP_OF_PHY_PARALLEL:
+ 		buscfg->interface =3D ISP_INTERFACE_PARALLEL;
+@@ -2147,10 +2165,35 @@ static int isp_of_parse_node_endpoint(struct device=
+ *dev,
+ 		break;
+=20
+ 	default:
++		return -1;
 +	}
-+
 +	return 0;
 +}
-+EXPORT_SYMBOL(vdoa_wait_for_completion);
 +
-+struct vdoa_ctx *vdoa_context_create(struct vdoa_data *vdoa)
++static int isp_of_parse_node_endpoint(struct device *dev,
++				      struct device_node *node,
++				      struct isp_async_subdev *isd)
 +{
-+	struct vdoa_ctx *ctx;
-+	int err;
++	struct isp_bus_cfg *buscfg;
++	struct v4l2_of_endpoint vep;
++	int ret;
 +
-+	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
-+	if (!ctx)
-+		return NULL;
-+
-+	err = clk_prepare_enable(vdoa->vdoa_clk);
-+	if (err) {
-+		kfree(ctx);
-+		return NULL;
-+	}
-+
-+	init_completion(&ctx->completion);
-+	ctx->vdoa = vdoa;
-+
-+	return ctx;
-+}
-+EXPORT_SYMBOL(vdoa_context_create);
-+
-+void vdoa_context_destroy(struct vdoa_ctx *ctx)
-+{
-+	struct vdoa_data *vdoa = ctx->vdoa;
-+
-+	clk_disable_unprepare(vdoa->vdoa_clk);
-+	kfree(ctx);
-+}
-+EXPORT_SYMBOL(vdoa_context_destroy);
-+
-+int vdoa_context_configure(struct vdoa_ctx *ctx,
-+			   unsigned int width, unsigned int height,
-+			   u32 pixelformat)
-+{
-+	struct vdoa_q_data *src_q_data;
-+	struct vdoa_q_data *dst_q_data;
-+
-+	src_q_data = &ctx->q_data[V4L2_M2M_SRC];
-+	dst_q_data = &ctx->q_data[V4L2_M2M_DST];
-+
-+	if (width < 16 || width  > 8192 || width % 16 != 0 ||
-+	    height < 16 || height > 4096 || height % 16 != 0)
-+		return -EINVAL;
-+
-+	if (pixelformat != V4L2_PIX_FMT_YUYV &&
-+	    pixelformat != V4L2_PIX_FMT_NV12)
-+		return -EINVAL;
-+
-+	src_q_data->width = width;
-+	src_q_data->height = height;
-+	src_q_data->bytesperline = width;
-+	src_q_data->sizeimage = src_q_data->bytesperline * height * 3 / 2;
-+
-+	dst_q_data->width = width;
-+	dst_q_data->height = height;
-+	dst_q_data->pixelformat = pixelformat;
-+	switch (pixelformat) {
-+	case V4L2_PIX_FMT_YUYV:
-+		dst_q_data->bytesperline = width * 2;
-+		dst_q_data->sizeimage = dst_q_data->bytesperline * height;
-+		break;
-+	case V4L2_PIX_FMT_NV12:
-+	default:
-+		dst_q_data->bytesperline = width;
-+		dst_q_data->sizeimage =
-+			dst_q_data->bytesperline * height * 3 / 2;
-+		break;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(vdoa_context_configure);
-+
-+static int vdoa_probe(struct platform_device *pdev)
-+{
-+	struct vdoa_data *vdoa;
-+	struct resource *res;
-+
-+	dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(32));
-+
-+	vdoa = devm_kzalloc(&pdev->dev, sizeof(*vdoa), GFP_KERNEL);
-+	if (!vdoa)
++	isd->bus =3D devm_kzalloc(dev, sizeof(*isd->bus), GFP_KERNEL);
++	if (!isd->bus)
 +		return -ENOMEM;
 +
-+	vdoa->dev = &pdev->dev;
++	buscfg =3D isd->bus;
 +
-+	vdoa->vdoa_clk = devm_clk_get(vdoa->dev, NULL);
-+	if (IS_ERR(vdoa->vdoa_clk)) {
-+		dev_err(vdoa->dev, "Failed to get clock\n");
-+		return PTR_ERR(vdoa->vdoa_clk);
++	ret =3D v4l2_of_parse_endpoint(node, &vep);
++	if (ret)
++		return ret;
++
++	dev_dbg(dev, "parsing endpoint %s, interface %u\n", node->full_name,
++		vep.base.port);
++
++	if (isp_endpoint_to_buscfg(dev, vep, buscfg))
+ 		dev_warn(dev, "%s: invalid interface %u\n", node->full_name,
+ 			 vep.base.port);
+-		break;
+-	}
+=20
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/plat=
+form/omap3isp/ispccp2.c
+index 2d1463a..a6763b3 100644
+--- a/drivers/media/platform/omap3isp/ispccp2.c
++++ b/drivers/media/platform/omap3isp/ispccp2.c
+@@ -23,6 +23,8 @@
+ #include <linux/regulator/consumer.h>
+ #include <linux/regmap.h>
+=20
++#include <media/v4l2-of.h>
++
+ #include "isp.h"
+ #include "ispreg.h"
+ #include "ispccp2.h"
+@@ -169,6 +171,7 @@ static int ccp2_if_enable(struct isp_ccp2_device *ccp2,=
+ u8 enable)
+=20
+ 		pad =3D media_entity_remote_pad(&ccp2->pads[CCP2_PAD_SINK]);
+ 		sensor =3D media_entity_to_v4l2_subdev(pad->entity);
++		/* Struct isp_bus_cfg has union inside */=20
+ 		buscfg =3D &((struct isp_bus_cfg *)sensor->host_priv)->bus.ccp2;
+=20
+=20
+@@ -369,6 +372,9 @@ static void ccp2_lcx_config(struct isp_ccp2_device *ccp=
+2,
+ 	isp_reg_set(isp, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_LC01_IRQENABLE, val);
+ }
+=20
++void __isp_of_parse_node_csi1(struct device *dev,
++			      struct isp_ccp2_cfg *buscfg,
++			      struct v4l2_of_endpoint *vep);
+ /*
+  * ccp2_if_configure - Configure ccp2 with data from sensor
+  * @ccp2: Pointer to ISP CCP2 device
+@@ -390,6 +396,21 @@ static int ccp2_if_configure(struct isp_ccp2_device *c=
+cp2)
+ 	sensor =3D media_entity_to_v4l2_subdev(pad->entity);
+ 	buscfg =3D sensor->host_priv;
+=20
++	{
++		struct v4l2_subdev *subdev2;
++		subdev2 =3D media_entity_to_v4l2_subdev(pad->entity);
++		struct v4l2_of_endpoint vep;
++
++		printk("if_configure...\n");
++		printk("2: %p\n", subdev2);
++		ret =3D v4l2_subdev_call(subdev2, video, g_endpoint_config, &vep);
++		if (ret =3D=3D 0) {
++			printk("Success: have configuration\n");
++			__isp_of_parse_node_csi1(NULL, &buscfg->bus.ccp2, &vep);
++			printk("Configured ok?\n");
++		}
 +	}
 +
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	vdoa->regs = devm_ioremap_resource(vdoa->dev, res);
-+	if (IS_ERR(vdoa->regs))
-+		return PTR_ERR(vdoa->regs);
+ 	ret =3D ccp2_phyif_config(ccp2, &buscfg->bus.ccp2);
+ 	if (ret < 0)
+ 		return ret;
+diff --git a/drivers/media/platform/video-bus-switch.c b/drivers/media/plat=
+form/video-bus-switch.c
+index 1a5d944..3a2d442 100644
+--- a/drivers/media/platform/video-bus-switch.c
++++ b/drivers/media/platform/video-bus-switch.c
+@@ -247,12 +247,21 @@ static int vbs_s_stream(struct v4l2_subdev *sd, int e=
+nable)
+ {
+ 	struct v4l2_subdev *subdev =3D vbs_get_remote_subdev(sd);
+=20
 +
-+	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-+	vdoa->irq = devm_request_threaded_irq(&pdev->dev, res->start, NULL,
-+					vdoa_irq_handler, IRQF_ONESHOT,
-+					"vdoa", vdoa);
-+	if (vdoa->irq < 0) {
-+		dev_err(vdoa->dev, "Failed to get irq\n");
-+		return vdoa->irq;
-+	}
 +
-+	platform_set_drvdata(pdev, vdoa);
-+
+ 	if (IS_ERR(subdev))
+ 		return PTR_ERR(subdev);
+=20
+ 	return v4l2_subdev_call(subdev, video, s_stream, enable);
+ }
+=20
++static int vbs_g_endpoint_config(struct v4l2_subdev *sd, struct isp_bus_cf=
+g *cfg)
++{
++	printk("vbs_g_endpoint_config...\n");
 +	return 0;
 +}
 +
-+static int vdoa_remove(struct platform_device *pdev)
-+{
-+	return 0;
-+}
 +
-+static struct of_device_id vdoa_dt_ids[] = {
-+	{ .compatible = "fsl,imx6q-vdoa" },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(of, vdoa_dt_ids);
-+
-+static struct platform_driver vdoa_driver = {
-+	.probe		= vdoa_probe,
-+	.remove		= vdoa_remove,
-+	.driver		= {
-+		.name	= VDOA_NAME,
-+		.of_match_table = vdoa_dt_ids,
-+	},
-+};
-+
-+module_platform_driver(vdoa_driver);
-+
-+MODULE_DESCRIPTION("Video Data Order Adapter");
-+MODULE_AUTHOR("Philipp Zabel <philipp.zabel@gmail.com>");
-+MODULE_ALIAS("platform:imx-vdoa");
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/platform/coda/imx-vdoa.h b/drivers/media/platform/coda/imx-vdoa.h
-new file mode 100644
-index 0000000..967576b
---- /dev/null
-+++ b/drivers/media/platform/coda/imx-vdoa.h
-@@ -0,0 +1,58 @@
-+/*
-+ * Copyright (C) 2016 Pengutronix
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version 2
-+ * of the License, or (at your option) any later version.
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef IMX_VDOA_H
-+#define IMX_VDOA_H
-+
-+struct vdoa_data;
-+struct vdoa_ctx;
-+
-+#if (defined CONFIG_VIDEO_IMX_VDOA || defined CONFIG_VIDEO_IMX_VDOA_MODULE)
-+
-+struct vdoa_ctx *vdoa_context_create(struct vdoa_data *vdoa);
-+int vdoa_context_configure(struct vdoa_ctx *ctx,
-+			   unsigned int width, unsigned int height,
-+			   u32 pixelformat);
-+void vdoa_context_destroy(struct vdoa_ctx *ctx);
-+
-+void vdoa_device_run(struct vdoa_ctx *ctx, dma_addr_t dst, dma_addr_t src);
-+int vdoa_wait_for_completion(struct vdoa_ctx *ctx);
-+
-+#else
-+
-+static inline struct vdoa_ctx *vdoa_context_create(struct vdoa_data *vdoa)
-+{
-+	return NULL;
-+}
-+
-+static inline int vdoa_context_configure(struct vdoa_ctx *ctx,
-+					 unsigned int width,
-+					 unsigned int height,
-+					 u32 pixelformat)
-+{
-+	return 0;
-+}
-+
-+static inline void vdoa_context_destroy(struct vdoa_ctx *ctx) { };
-+
-+static inline void vdoa_device_run(struct vdoa_ctx *ctx,
-+				   dma_addr_t dst, dma_addr_t src) { };
-+
-+static inline int vdoa_wait_for_completion(struct vdoa_ctx *ctx)
-+{
-+	return 0;
-+};
-+
-+#endif
-+
-+#endif /* IMX_VDOA_H */
--- 
-2.10.2
+ static const struct v4l2_subdev_internal_ops vbs_internal_ops =3D {
+ 	.registered =3D &vbs_registered,
+ };
+@@ -265,6 +274,7 @@ static const struct media_entity_operations vbs_media_o=
+ps =3D {
+ /* subdev video operations */
+ static const struct v4l2_subdev_video_ops vbs_video_ops =3D {
+ 	.s_stream =3D vbs_s_stream,
++	.g_endpoint_config =3D vbs_g_endpoint_config,
+ };
+=20
+ static const struct v4l2_subdev_ops vbs_ops =3D {
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index cf778c5..30457b0 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -415,6 +415,8 @@ struct v4l2_subdev_video_ops {
+ 			     const struct v4l2_mbus_config *cfg);
+ 	int (*s_rx_buffer)(struct v4l2_subdev *sd, void *buf,
+ 			   unsigned int *size);
++	int (*g_endpoint_config)(struct v4l2_subdev *sd,
++			    struct v4l2_of_endpoint *cfg);
+ };
+=20
+ /**
 
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--OXfL5xGRrasGEqWY
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlhdDa0ACgkQMOfwapXb+vL8BACePT7RJ3+tHH3mShxpIIVacEUB
+uKcAnR6pMbgpWrFsJISMzLHrUk8i2B2z
+=UQR3
+-----END PGP SIGNATURE-----
+
+--OXfL5xGRrasGEqWY--
