@@ -1,76 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f48.google.com ([74.125.83.48]:36571 "EHLO
-        mail-pg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752652AbcLGFId (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2016 00:08:33 -0500
-Received: by mail-pg0-f48.google.com with SMTP id f188so157033807pgc.3
-        for <linux-media@vger.kernel.org>; Tue, 06 Dec 2016 21:08:33 -0800 (PST)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-Cc: Sekhar Nori <nsekhar@ti.com>, Axel Haslam <ahaslam@baylibre.com>,
-        =?UTF-8?q?Bartosz=20Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        linux-arm-kernel@lists.infradead.org
-Subject: [PATCH v5 0/5] davinci: VPIF: add DT support
-Date: Tue,  6 Dec 2016 21:08:21 -0800
-Message-Id: <20161207050826.23174-1-khilman@baylibre.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:34933 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751673AbcLXWb4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 24 Dec 2016 17:31:56 -0500
+Received: by mail-pg0-f66.google.com with SMTP id i5so4794036pgh.2
+        for <linux-media@vger.kernel.org>; Sat, 24 Dec 2016 14:31:56 -0800 (PST)
+From: Shyam Saini <mayhs11saini@gmail.com>
+To: mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, Shyam Saini <mayhs11saini@gmail.com>
+Subject: [PATCH 1/4] media: pci: saa7164: Replace BUG() with BUG_ON()
+Date: Sun, 25 Dec 2016 04:01:39 +0530
+Message-Id: <1482618702-13755-1-git-send-email-mayhs11saini@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Prepare the groundwork for adding DT support for davinci VPIF drivers.
-This series does some fixups/cleanups and then adds the DT binding and
-DT compatible string matching for DT probing.
+Replace BUG() with BUG_ON() using coccinelle
 
-The controversial part from previous versions around async subdev
-parsing, and specifically hard-coding the input/output routing of
-subdevs, has been left out of this series.  That part can be done as a
-follow-on step after agreement has been reached on the path forward.
-With this version, platforms can still use the VPIF capture/display
-drivers, but must provide platform_data for the subdevs and subdev
-routing.
+Signed-off-by: Shyam Saini <mayhs11saini@gmail.com>
+---
+ drivers/media/pci/saa7164/saa7164-buffer.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-Tested video capture to memory on da850-lcdk board using composite
-input.
-
-Changes since v4:
-- dropped controversial async subdev parsing support.  That can be
-  done as a follow-up step after the discussions have finalized on the
-  right approach.
-- DT binding Acked by DT maintainer (Rob H.)
-- reworked locking fix (suggested by Laurent)
-
-Changes since v3:
-- move to a single VPIF node, DT binding updated accordingly
-- misc fixes/updates based on reviews from Sakari
-
-Changes since v2:
-- DT binding doc: fix example to use correct compatible
-
-Changes since v1:
-- more specific compatible strings, based on SoC: ti,da850-vpif*
-- fix locking bug when unlocking over subdev s_stream
-
-Kevin Hilman (5):
-  [media] davinci: VPIF: fix module loading, init errors
-  [media] davinci: vpif_capture: remove hard-coded I2C adapter id
-  [media] davinci: vpif_capture: fix start/stop streaming locking
-  [media] dt-bindings: add TI VPIF documentation
-  [media] davinci: VPIF: add basic support for DT init
-
- .../devicetree/bindings/media/ti,da850-vpif.txt    | 67 ++++++++++++++++++++++
- drivers/media/platform/davinci/vpif.c              | 14 ++++-
- drivers/media/platform/davinci/vpif_capture.c      | 26 +++++++--
- drivers/media/platform/davinci/vpif_display.c      |  6 ++
- include/media/davinci/vpif_types.h                 |  1 +
- 5 files changed, 108 insertions(+), 6 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/ti,da850-vpif.txt
-
+diff --git a/drivers/media/pci/saa7164/saa7164-buffer.c b/drivers/media/pci/saa7164/saa7164-buffer.c
+index 62c3450..7d28d46 100644
+--- a/drivers/media/pci/saa7164/saa7164-buffer.c
++++ b/drivers/media/pci/saa7164/saa7164-buffer.c
+@@ -266,15 +266,13 @@ int saa7164_buffer_cfg_port(struct saa7164_port *port)
+ 	list_for_each_safe(c, n, &port->dmaqueue.list) {
+ 		buf = list_entry(c, struct saa7164_buffer, list);
+ 
+-		if (buf->flags != SAA7164_BUFFER_FREE)
+-			BUG();
++		BUG_ON(buf->flags != SAA7164_BUFFER_FREE);
+ 
+ 		/* Place the buffer in the h/w queue */
+ 		saa7164_buffer_activate(buf, i);
+ 
+ 		/* Don't exceed the device maximum # bufs */
+-		if (i++ > port->hwcfg.buffercount)
+-			BUG();
++		BUG_ON(i++ > port->hwcfg.buffercount);
+ 
+ 	}
+ 	mutex_unlock(&port->dmaqueue_lock);
 -- 
-2.9.3
+2.7.4
 
