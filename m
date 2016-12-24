@@ -1,42 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51361 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759600AbcLPMeX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Dec 2016 07:34:23 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: santosh kumar singh <kumar.san1093@gmail.com>
-Cc: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] vim2m: Clean up file handle in open() error path.
-Date: Fri, 16 Dec 2016 14:34:58 +0200
-Message-ID: <4174460.Sln5anlS9u@avalon>
-In-Reply-To: <CAJte=rNoyROJ=JQzUHRAMrREV9cHbWdpEXYthPv8hrGDhD943Q@mail.gmail.com>
-References: <1481595874-2528-1-git-send-email-kumar.san1093@gmail.com> <CAJte=rNoyROJ=JQzUHRAMrREV9cHbWdpEXYthPv8hrGDhD943Q@mail.gmail.com>
+Received: from mout.web.de ([212.227.15.14]:52413 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752054AbcLXLCf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 24 Dec 2016 06:02:35 -0500
+To: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: =?UTF-8?Q?[media]_tm6000:_Addition_of_an_asterisk_to_the_data_type_?=
+ =?UTF-8?B?Zm9yIOKAnHVyYl9kbWHigJ0/?=
+Message-ID: <b0c2e4b7-5c04-afd8-dc0f-a66c1bd47308@users.sourceforge.net>
+Date: Sat, 24 Dec 2016 12:02:11 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 16 Dec 2016 14:31:15 santosh kumar singh wrote:
-> Dear Mr. laurent,
-> 
-> Can you please check the patch submitted by me.
+Hello,
 
-No, because I haven't received it :-) You've sent it as an HTML message it it 
-thus got dropped by the mailing list. Please don't send HTML e-mails.
+I have looked at the implementation of the function “tm6000_alloc_urb_buffers”
+once more.
+https://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/tree/drivers/media/usb/tm6000/tm6000-video.c?id=84ede50b623fb45c4c026c80d0abf8cc5193f041#n469
 
-While at it, when submitting a new version of a patch, please indicate that in 
-the subject line. It should have been [PATCH v2]. Otherwise it's difficult for 
-us to figure out if the patch is a duplicate or a new version, or to find the 
-latest version.
+A pointer for an array is also assigned to the member “urb_dma” of the data
+structure “tm6000_core” there. I would interpret the corresponding data type
+specification in the way that only a single element should be managed by
+this field so far.
+http://lxr.free-electrons.com/source/drivers/media/usb/tm6000/tm6000.h?v=4.9#L271
 
--- 
+How do you think about to add another asterisk to this data type specification
+so that the desired array management would become bit clearer for such a field
+(similar to the member “urb_buffer”)?
+
 Regards,
-
-Laurent Pinchart
-
+Markus
