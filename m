@@ -1,202 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:58561 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751995AbcLLInd (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:59744 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751636AbcLXEvo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Dec 2016 03:43:33 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Bhumika Goyal <bhumirks@gmail.com>
-Cc: julia.lawall@lip6.fr, mchehab@kernel.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] drivers: media: i2c: constify v4l2_subdev_* structures
-Date: Mon, 12 Dec 2016 10:44:02 +0200
-Message-ID: <5415962.NnTQRlbICJ@avalon>
-In-Reply-To: <1481528732-15565-1-git-send-email-bhumirks@gmail.com>
-References: <1481528732-15565-1-git-send-email-bhumirks@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Fri, 23 Dec 2016 23:51:44 -0500
+Message-ID: <560f4136aadf96d5543ef730b5fd1cf6@smtp-cloud3.xs4all.net>
+Date: Sat, 24 Dec 2016 05:51:41 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bhumika,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thank you for the patch.
+Results of the daily build of media_tree:
 
-On Monday 12 Dec 2016 13:15:32 Bhumika Goyal wrote:
-> v4l2_subdev_{core/pad/video}_ops structures are stored in the
-> fields of the v4l2_subdev_ops structure which are of type const.
-> Also, v4l2_subdev_ops structure is passed to a function
-> having its argument of type const. As these structures are never
-> modified, so declare them as const.
-> Done using Coccinelle: (One of the scripts used)
-> 
-> @r1 disable optional_qualifier @
-> identifier i;
-> position p;
-> @@
-> static struct v4l2_subdev_video_ops i@p = {...};
-> 
-> @ok1@
-> identifier r1.i;
-> position p;
-> struct v4l2_subdev_ops obj;
-> @@
-> obj.video=&i@p;
-> 
-> @bad@
-> position p!={r1.p,ok1.p};
-> identifier r1.i;
-> @@
-> i@p
-> 
-> @depends on !bad disable optional_qualifier@
-> identifier r1.i;
-> @@
-> +const
-> struct v4l2_subdev_video_ops i;
-> 
-> File sizes before:
->   text	   data	    bss	    dec	    hex	filename
->    7810	    736	     16	   8562	   2172	drivers/media/i2c/mt9p031.o
->    9652	    736	     24	  10412	   28ac	drivers/media/i2c/mt9v032.o
->    4613	    552	     20	   5185	   1441	
-drivers/media/i2c/noon010pc30.o
->    2615	    552	      8	   3175	    c67	drivers/media/i2c/s5k6a3.o
-> 
-> File sizes after:
->   text	   data	    bss	    dec	    hex	filename
->    8322	    232	     16	   8570	   217a	drivers/media/i2c/mt9p031.o
->   10164	    232	     24	  10420	   28b4	drivers/media/i2c/mt9v032.o
->    4933	    232	     20	   5185	   1441	
-drivers/media/i2c/noon010pc30.o
->    2935	    232	      8	   3175	    c67	drivers/media/i2c/s5k6a3.o
-> 
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+date:			Sat Dec 24 05:00:17 CET 2016
+media-tree git hash:	c739c0a7c3c2472d7562b8f802cdce44d2597c8b
+media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
+v4l-utils git hash:	c9aacef24d152007c7344b691da0cc90788395a7
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.12.67-x86_64: OK
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: OK
+linux-4.9-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-> ---
->  drivers/media/i2c/mt9p031.c     | 8 ++++----
->  drivers/media/i2c/mt9v032.c     | 8 ++++----
->  drivers/media/i2c/noon010pc30.c | 4 ++--
->  drivers/media/i2c/s5k6a3.c      | 6 +++---
->  4 files changed, 13 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-> index 237737f..91d822f 100644
-> --- a/drivers/media/i2c/mt9p031.c
-> +++ b/drivers/media/i2c/mt9p031.c
-> @@ -972,15 +972,15 @@ static int mt9p031_close(struct v4l2_subdev *subdev,
-> struct v4l2_subdev_fh *fh) return mt9p031_set_power(subdev, 0);
->  }
-> 
-> -static struct v4l2_subdev_core_ops mt9p031_subdev_core_ops = {
-> +static const struct v4l2_subdev_core_ops mt9p031_subdev_core_ops = {
->  	.s_power        = mt9p031_set_power,
->  };
-> 
-> -static struct v4l2_subdev_video_ops mt9p031_subdev_video_ops = {
-> +static const struct v4l2_subdev_video_ops mt9p031_subdev_video_ops = {
->  	.s_stream       = mt9p031_s_stream,
->  };
-> 
-> -static struct v4l2_subdev_pad_ops mt9p031_subdev_pad_ops = {
-> +static const struct v4l2_subdev_pad_ops mt9p031_subdev_pad_ops = {
->  	.enum_mbus_code = mt9p031_enum_mbus_code,
->  	.enum_frame_size = mt9p031_enum_frame_size,
->  	.get_fmt = mt9p031_get_format,
-> @@ -989,7 +989,7 @@ static int mt9p031_close(struct v4l2_subdev *subdev,
-> struct v4l2_subdev_fh *fh) .set_selection = mt9p031_set_selection,
->  };
-> 
-> -static struct v4l2_subdev_ops mt9p031_subdev_ops = {
-> +static const struct v4l2_subdev_ops mt9p031_subdev_ops = {
->  	.core   = &mt9p031_subdev_core_ops,
->  	.video  = &mt9p031_subdev_video_ops,
->  	.pad    = &mt9p031_subdev_pad_ops,
-> diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
-> index 58eb62f..88b7890 100644
-> --- a/drivers/media/i2c/mt9v032.c
-> +++ b/drivers/media/i2c/mt9v032.c
-> @@ -936,15 +936,15 @@ static int mt9v032_close(struct v4l2_subdev *subdev,
-> struct v4l2_subdev_fh *fh) return mt9v032_set_power(subdev, 0);
->  }
-> 
-> -static struct v4l2_subdev_core_ops mt9v032_subdev_core_ops = {
-> +static const struct v4l2_subdev_core_ops mt9v032_subdev_core_ops = {
->  	.s_power	= mt9v032_set_power,
->  };
-> 
-> -static struct v4l2_subdev_video_ops mt9v032_subdev_video_ops = {
-> +static const struct v4l2_subdev_video_ops mt9v032_subdev_video_ops = {
->  	.s_stream	= mt9v032_s_stream,
->  };
-> 
-> -static struct v4l2_subdev_pad_ops mt9v032_subdev_pad_ops = {
-> +static const struct v4l2_subdev_pad_ops mt9v032_subdev_pad_ops = {
->  	.enum_mbus_code = mt9v032_enum_mbus_code,
->  	.enum_frame_size = mt9v032_enum_frame_size,
->  	.get_fmt = mt9v032_get_format,
-> @@ -953,7 +953,7 @@ static int mt9v032_close(struct v4l2_subdev *subdev,
-> struct v4l2_subdev_fh *fh) .set_selection = mt9v032_set_selection,
->  };
-> 
-> -static struct v4l2_subdev_ops mt9v032_subdev_ops = {
-> +static const struct v4l2_subdev_ops mt9v032_subdev_ops = {
->  	.core	= &mt9v032_subdev_core_ops,
->  	.video	= &mt9v032_subdev_video_ops,
->  	.pad	= &mt9v032_subdev_pad_ops,
-> diff --git a/drivers/media/i2c/noon010pc30.c
-> b/drivers/media/i2c/noon010pc30.c index 30cb90b..88c498a 100644
-> --- a/drivers/media/i2c/noon010pc30.c
-> +++ b/drivers/media/i2c/noon010pc30.c
-> @@ -664,13 +664,13 @@ static int noon010_open(struct v4l2_subdev *sd, struct
-> v4l2_subdev_fh *fh) .log_status	= noon010_log_status,
->  };
-> 
-> -static struct v4l2_subdev_pad_ops noon010_pad_ops = {
-> +static const struct v4l2_subdev_pad_ops noon010_pad_ops = {
->  	.enum_mbus_code	= noon010_enum_mbus_code,
->  	.get_fmt	= noon010_get_fmt,
->  	.set_fmt	= noon010_set_fmt,
->  };
-> 
-> -static struct v4l2_subdev_video_ops noon010_video_ops = {
-> +static const struct v4l2_subdev_video_ops noon010_video_ops = {
->  	.s_stream	= noon010_s_stream,
->  };
-> 
-> diff --git a/drivers/media/i2c/s5k6a3.c b/drivers/media/i2c/s5k6a3.c
-> index 7699640..67dcca7 100644
-> --- a/drivers/media/i2c/s5k6a3.c
-> +++ b/drivers/media/i2c/s5k6a3.c
-> @@ -165,7 +165,7 @@ static int s5k6a3_get_fmt(struct v4l2_subdev *sd,
->  	return 0;
->  }
-> 
-> -static struct v4l2_subdev_pad_ops s5k6a3_pad_ops = {
-> +static const struct v4l2_subdev_pad_ops s5k6a3_pad_ops = {
->  	.enum_mbus_code	= s5k6a3_enum_mbus_code,
->  	.get_fmt	= s5k6a3_get_fmt,
->  	.set_fmt	= s5k6a3_set_fmt,
-> @@ -266,11 +266,11 @@ static int s5k6a3_s_power(struct v4l2_subdev *sd, int
-> on) return ret;
->  }
-> 
-> -static struct v4l2_subdev_core_ops s5k6a3_core_ops = {
-> +static const struct v4l2_subdev_core_ops s5k6a3_core_ops = {
->  	.s_power = s5k6a3_s_power,
->  };
-> 
-> -static struct v4l2_subdev_ops s5k6a3_subdev_ops = {
-> +static const struct v4l2_subdev_ops s5k6a3_subdev_ops = {
->  	.core = &s5k6a3_core_ops,
->  	.pad = &s5k6a3_pad_ops,
->  };
+Detailed results are available here:
 
--- 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-Laurent Pinchart
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
