@@ -1,423 +1,662 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:58281 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751803AbcLFKTY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Dec 2016 05:19:24 -0500
-From: Sean Young <sean@mess.org>
+Received: from mail-pg0-f44.google.com ([74.125.83.44]:33470 "EHLO
+        mail-pg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752804AbcLXDEa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Dec 2016 22:04:30 -0500
+Received: by mail-pg0-f44.google.com with SMTP id g1so75779105pgn.0
+        for <linux-media@vger.kernel.org>; Fri, 23 Dec 2016 19:04:29 -0800 (PST)
+From: Matt Ranostay <matt@ranostay.consulting>
 To: linux-media@vger.kernel.org
-Subject: [PATCH v4 04/13] [media] rc: raw IR drivers cannot handle cec, unknown or other
-Date: Tue,  6 Dec 2016 10:19:12 +0000
-Message-Id: <b6ab0fd52e5b9ae9916af740be49fe26cf3ebc8a.1481019109.git.sean@mess.org>
-In-Reply-To: <cover.1481019109.git.sean@mess.org>
-References: <cover.1481019109.git.sean@mess.org>
-In-Reply-To: <cover.1481019109.git.sean@mess.org>
-References: <cover.1481019109.git.sean@mess.org>
+Cc: Matt Ranostay <matt@ranostay.consulting>,
+        Attila Kinali <attila@kinali.ch>, Marek Vasut <marex@denx.de>,
+        Luca Barbato <lu_zero@gentoo.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v5] media: video-i2c: add video-i2c driver
+Date: Fri, 23 Dec 2016 19:04:26 -0800
+Message-Id: <1482548666-25272-1-git-send-email-matt@ranostay.consulting>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-unknown and other are for IR protocols for which we have no decoder,
-so the raw IR drivers have no chance of generating them. cec is not
-an IR protocol.
+There are several thermal sensors that only have a low-speed bus
+interface but output valid video data. This patchset enables support
+for the AMG88xx "Grid-Eye" sensor family.
 
-Signed-off-by: Sean Young <sean@mess.org>
+Cc: Attila Kinali <attila@kinali.ch>
+Cc: Marek Vasut <marex@denx.de>
+Cc: Luca Barbato <lu_zero@gentoo.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Matt Ranostay <matt@ranostay.consulting>
 ---
- drivers/hid/hid-picolcd_cir.c              |  2 +-
- drivers/media/common/siano/smsir.c         |  2 +-
- drivers/media/pci/cx23885/cx23885-input.c  | 14 +++++++-------
- drivers/media/rc/ene_ir.c                  |  2 +-
- drivers/media/rc/fintek-cir.c              |  2 +-
- drivers/media/rc/gpio-ir-recv.c            |  2 +-
- drivers/media/rc/igorplugusb.c             |  4 ++--
- drivers/media/rc/iguanair.c                |  2 +-
- drivers/media/rc/ir-hix5hd2.c              |  2 +-
- drivers/media/rc/ite-cir.c                 |  2 +-
- drivers/media/rc/mceusb.c                  |  2 +-
- drivers/media/rc/meson-ir.c                |  2 +-
- drivers/media/rc/nuvoton-cir.c             |  2 +-
- drivers/media/rc/rc-loopback.c             |  2 +-
- drivers/media/rc/redrat3.c                 |  2 +-
- drivers/media/rc/serial_ir.c               |  2 +-
- drivers/media/rc/st_rc.c                   |  2 +-
- drivers/media/rc/streamzap.c               |  2 +-
- drivers/media/rc/sunxi-cir.c               |  2 +-
- drivers/media/rc/ttusbir.c                 |  2 +-
- drivers/media/rc/winbond-cir.c             |  2 +-
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c    |  2 +-
- drivers/media/usb/dvb-usb/technisat-usb2.c |  2 +-
- include/media/rc-map.h                     | 10 ++++++++++
- 24 files changed, 40 insertions(+), 30 deletions(-)
+Changes from v1:
+* correct i2c_polling_remove() operations
+* fixed delay calcuation in buffer_queue()
+* add include linux/slab.h
 
-diff --git a/drivers/hid/hid-picolcd_cir.c b/drivers/hid/hid-picolcd_cir.c
-index 9628651..90add97 100644
---- a/drivers/hid/hid-picolcd_cir.c
-+++ b/drivers/hid/hid-picolcd_cir.c
-@@ -114,7 +114,7 @@ int picolcd_init_cir(struct picolcd_data *data, struct hid_report *report)
+Changes from v2:
+* fix build error due to typo in include of slab.h
+
+Changes from v3:
+* switch data transport to a kthread to avoid to .buf_queue that can't sleep
+* change naming from i2c-polling to video-i2c
+* make the driver for single chipset under another uses the driver
+
+Changes from v4:
+* fix wraparound issue with jiffies and schedule_timeout_interruptible() 
+
+ drivers/media/i2c/Kconfig     |   9 +
+ drivers/media/i2c/Makefile    |   1 +
+ drivers/media/i2c/video-i2c.c | 569 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 579 insertions(+)
+ create mode 100644 drivers/media/i2c/video-i2c.c
+
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index b31fa6fae009..ef84715293a9 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -768,6 +768,15 @@ config VIDEO_M52790
  
- 	rdev->priv             = data;
- 	rdev->driver_type      = RC_DRIVER_IR_RAW;
--	rdev->allowed_protocols = RC_BIT_ALL;
-+	rdev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
- 	rdev->open             = picolcd_cir_open;
- 	rdev->close            = picolcd_cir_close;
- 	rdev->input_name       = data->hdev->name;
-diff --git a/drivers/media/common/siano/smsir.c b/drivers/media/common/siano/smsir.c
-index 41f2a39..480d8bf 100644
---- a/drivers/media/common/siano/smsir.c
-+++ b/drivers/media/common/siano/smsir.c
-@@ -87,7 +87,7 @@ int sms_ir_init(struct smscore_device_t *coredev)
+ 	 To compile this driver as a module, choose M here: the
+ 	 module will be called m52790.
++
++config VIDEO_I2C
++	tristate "I2C transport video support"
++	depends on VIDEO_V4L2 && I2C
++	select VIDEOBUF2_VMALLOC
++	---help---
++	  Enable the I2C transport video support which supports the
++	  following:
++	   * Panasonic AMG88xx Grid-Eye Sensors
+ endmenu
  
- 	dev->priv = coredev;
- 	dev->driver_type = RC_DRIVER_IR_RAW;
--	dev->allowed_protocols = RC_BIT_ALL;
-+	dev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
- 	dev->map_name = sms_get_board(board_id)->rc_codes;
- 	dev->driver_name = MODULE_NAME;
- 
-diff --git a/drivers/media/pci/cx23885/cx23885-input.c b/drivers/media/pci/cx23885/cx23885-input.c
-index 1f092fe..2d4e703 100644
---- a/drivers/media/pci/cx23885/cx23885-input.c
-+++ b/drivers/media/pci/cx23885/cx23885-input.c
-@@ -286,28 +286,28 @@ int cx23885_input_init(struct cx23885_dev *dev)
- 	case CX23885_BOARD_HAUPPAUGE_HVR1250:
- 		/* Integrated CX2388[58] IR controller */
- 		driver_type = RC_DRIVER_IR_RAW;
--		allowed_protos = RC_BIT_ALL;
-+		allowed_protos = RC_BIT_ALL_IR_DECODER;
- 		/* The grey Hauppauge RC-5 remote */
- 		rc_map = RC_MAP_HAUPPAUGE;
- 		break;
- 	case CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL:
- 		/* Integrated CX23885 IR controller */
- 		driver_type = RC_DRIVER_IR_RAW;
--		allowed_protos = RC_BIT_ALL;
-+		allowed_protos = RC_BIT_ALL_IR_DECODER;
- 		/* The grey Terratec remote with orange buttons */
- 		rc_map = RC_MAP_NEC_TERRATEC_CINERGY_XS;
- 		break;
- 	case CX23885_BOARD_TEVII_S470:
- 		/* Integrated CX23885 IR controller */
- 		driver_type = RC_DRIVER_IR_RAW;
--		allowed_protos = RC_BIT_ALL;
-+		allowed_protos = RC_BIT_ALL_IR_DECODER;
- 		/* A guess at the remote */
- 		rc_map = RC_MAP_TEVII_NEC;
- 		break;
- 	case CX23885_BOARD_MYGICA_X8507:
- 		/* Integrated CX23885 IR controller */
- 		driver_type = RC_DRIVER_IR_RAW;
--		allowed_protos = RC_BIT_ALL;
-+		allowed_protos = RC_BIT_ALL_IR_DECODER;
- 		/* A guess at the remote */
- 		rc_map = RC_MAP_TOTAL_MEDIA_IN_HAND_02;
- 		break;
-@@ -315,7 +315,7 @@ int cx23885_input_init(struct cx23885_dev *dev)
- 	case CX23885_BOARD_TBS_6981:
- 		/* Integrated CX23885 IR controller */
- 		driver_type = RC_DRIVER_IR_RAW;
--		allowed_protos = RC_BIT_ALL;
-+		allowed_protos = RC_BIT_ALL_IR_DECODER;
- 		/* A guess at the remote */
- 		rc_map = RC_MAP_TBS_NEC;
- 		break;
-@@ -327,13 +327,13 @@ int cx23885_input_init(struct cx23885_dev *dev)
- 	case CX23885_BOARD_DVBSKY_T982:
- 		/* Integrated CX23885 IR controller */
- 		driver_type = RC_DRIVER_IR_RAW;
--		allowed_protos = RC_BIT_ALL;
-+		allowed_protos = RC_BIT_ALL_IR_DECODER;
- 		rc_map = RC_MAP_DVBSKY;
- 		break;
- 	case CX23885_BOARD_TT_CT2_4500_CI:
- 		/* Integrated CX23885 IR controller */
- 		driver_type = RC_DRIVER_IR_RAW;
--		allowed_protos = RC_BIT_ALL;
-+		allowed_protos = RC_BIT_ALL_IR_DECODER;
- 		rc_map = RC_MAP_TT_1500;
- 		break;
- 	default:
-diff --git a/drivers/media/rc/ene_ir.c b/drivers/media/rc/ene_ir.c
-index bd5512e..b7ce051 100644
---- a/drivers/media/rc/ene_ir.c
-+++ b/drivers/media/rc/ene_ir.c
-@@ -1059,7 +1059,7 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
- 		learning_mode_force = false;
- 
- 	rdev->driver_type = RC_DRIVER_IR_RAW;
--	rdev->allowed_protocols = RC_BIT_ALL;
-+	rdev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
- 	rdev->priv = dev;
- 	rdev->open = ene_open;
- 	rdev->close = ene_close;
-diff --git a/drivers/media/rc/fintek-cir.c b/drivers/media/rc/fintek-cir.c
-index ecab69e..3de5e82 100644
---- a/drivers/media/rc/fintek-cir.c
-+++ b/drivers/media/rc/fintek-cir.c
-@@ -535,7 +535,7 @@ static int fintek_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id
- 	/* Set up the rc device */
- 	rdev->priv = fintek;
- 	rdev->driver_type = RC_DRIVER_IR_RAW;
--	rdev->allowed_protocols = RC_BIT_ALL;
-+	rdev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
- 	rdev->open = fintek_open;
- 	rdev->close = fintek_close;
- 	rdev->input_name = FINTEK_DESCRIPTION;
-diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
-index 5b63b1f..0b5aec4 100644
---- a/drivers/media/rc/gpio-ir-recv.c
-+++ b/drivers/media/rc/gpio-ir-recv.c
-@@ -165,7 +165,7 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
- 	if (pdata->allowed_protos)
- 		rcdev->allowed_protocols = pdata->allowed_protos;
- 	else
--		rcdev->allowed_protocols = RC_BIT_ALL;
-+		rcdev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
- 	rcdev->map_name = pdata->map_name ?: RC_MAP_EMPTY;
- 
- 	gpio_dev->rcdev = rcdev;
-diff --git a/drivers/media/rc/igorplugusb.c b/drivers/media/rc/igorplugusb.c
-index 5cf983b..4c4827c 100644
---- a/drivers/media/rc/igorplugusb.c
-+++ b/drivers/media/rc/igorplugusb.c
-@@ -203,8 +203,8 @@ static int igorplugusb_probe(struct usb_interface *intf,
- 	 * This device can only store 36 pulses + spaces, which is not enough
- 	 * for the NEC protocol and many others.
- 	 */
--	rc->allowed_protocols = RC_BIT_ALL & ~(RC_BIT_NEC | RC_BIT_NECX |
--			RC_BIT_NEC32 | RC_BIT_RC6_6A_20 |
-+	rc->allowed_protocols = RC_BIT_ALL_IR_DECODER & ~(RC_BIT_NEC |
-+			RC_BIT_NECX | RC_BIT_NEC32 | RC_BIT_RC6_6A_20 |
- 			RC_BIT_RC6_6A_24 | RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE |
- 			RC_BIT_SONY20 | RC_BIT_MCE_KBD | RC_BIT_SANYO);
- 
-diff --git a/drivers/media/rc/iguanair.c b/drivers/media/rc/iguanair.c
-index 5f63454..e2fff1f 100644
---- a/drivers/media/rc/iguanair.c
-+++ b/drivers/media/rc/iguanair.c
-@@ -495,7 +495,7 @@ static int iguanair_probe(struct usb_interface *intf,
- 	usb_to_input_id(ir->udev, &rc->input_id);
- 	rc->dev.parent = &intf->dev;
- 	rc->driver_type = RC_DRIVER_IR_RAW;
--	rc->allowed_protocols = RC_BIT_ALL;
-+	rc->allowed_protocols = RC_BIT_ALL_IR_DECODER;
- 	rc->priv = ir;
- 	rc->open = iguanair_open;
- 	rc->close = iguanair_close;
-diff --git a/drivers/media/rc/ir-hix5hd2.c b/drivers/media/rc/ir-hix5hd2.c
-index d26907e..d95056a 100644
---- a/drivers/media/rc/ir-hix5hd2.c
-+++ b/drivers/media/rc/ir-hix5hd2.c
-@@ -243,7 +243,7 @@ static int hix5hd2_ir_probe(struct platform_device *pdev)
- 	priv->rate = clk_get_rate(priv->clock);
- 
- 	rdev->driver_type = RC_DRIVER_IR_RAW;
--	rdev->allowed_protocols = RC_BIT_ALL;
-+	rdev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
- 	rdev->priv = priv;
- 	rdev->open = hix5hd2_ir_open;
- 	rdev->close = hix5hd2_ir_close;
-diff --git a/drivers/media/rc/ite-cir.c b/drivers/media/rc/ite-cir.c
-index 367b28b..01f6929 100644
---- a/drivers/media/rc/ite-cir.c
-+++ b/drivers/media/rc/ite-cir.c
-@@ -1562,7 +1562,7 @@ static int ite_probe(struct pnp_dev *pdev, const struct pnp_device_id
- 	/* set up ir-core props */
- 	rdev->priv = itdev;
- 	rdev->driver_type = RC_DRIVER_IR_RAW;
--	rdev->allowed_protocols = RC_BIT_ALL;
-+	rdev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
- 	rdev->open = ite_open;
- 	rdev->close = ite_close;
- 	rdev->s_idle = ite_s_idle;
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index 9bf6917..9fd8d44 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -1202,7 +1202,7 @@ static struct rc_dev *mceusb_init_rc_dev(struct mceusb_dev *ir)
- 	rc->dev.parent = dev;
- 	rc->priv = ir;
- 	rc->driver_type = RC_DRIVER_IR_RAW;
--	rc->allowed_protocols = RC_BIT_ALL;
-+	rc->allowed_protocols = RC_BIT_ALL_IR_DECODER;
- 	rc->timeout = MS_TO_NS(100);
- 	if (!ir->flags.no_tx) {
- 		rc->s_tx_mask = mceusb_set_tx_mask;
-diff --git a/drivers/media/rc/meson-ir.c b/drivers/media/rc/meson-ir.c
-index 7eb3f4f..3e96e6f 100644
---- a/drivers/media/rc/meson-ir.c
-+++ b/drivers/media/rc/meson-ir.c
-@@ -145,7 +145,7 @@ static int meson_ir_probe(struct platform_device *pdev)
- 	ir->rc->map_name = map_name ? map_name : RC_MAP_EMPTY;
- 	ir->rc->dev.parent = dev;
- 	ir->rc->driver_type = RC_DRIVER_IR_RAW;
--	ir->rc->allowed_protocols = RC_BIT_ALL;
-+	ir->rc->allowed_protocols = RC_BIT_ALL_IR_DECODER;
- 	ir->rc->rx_resolution = US_TO_NS(MESON_TRATE);
- 	ir->rc->timeout = MS_TO_NS(200);
- 	ir->rc->driver_name = DRIVER_NAME;
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index 4b78c89..9e04f41 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -1062,7 +1062,7 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
- 	/* Set up the rc device */
- 	rdev->priv = nvt;
- 	rdev->driver_type = RC_DRIVER_IR_RAW;
--	rdev->allowed_protocols = RC_BIT_ALL;
-+	rdev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
- 	rdev->open = nvt_open;
- 	rdev->close = nvt_close;
- 	rdev->tx_ir = nvt_tx_ir;
-diff --git a/drivers/media/rc/rc-loopback.c b/drivers/media/rc/rc-loopback.c
-index 63dace8..4bc3f01 100644
---- a/drivers/media/rc/rc-loopback.c
-+++ b/drivers/media/rc/rc-loopback.c
-@@ -195,7 +195,7 @@ static int __init loop_init(void)
- 	rc->map_name		= RC_MAP_EMPTY;
- 	rc->priv		= &loopdev;
- 	rc->driver_type		= RC_DRIVER_IR_RAW;
--	rc->allowed_protocols	= RC_BIT_ALL;
-+	rc->allowed_protocols	= RC_BIT_ALL_IR_DECODER;
- 	rc->timeout		= 100 * 1000 * 1000; /* 100 ms */
- 	rc->min_timeout		= 1;
- 	rc->max_timeout		= UINT_MAX;
-diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
-index 2784f5d..ca878ac 100644
---- a/drivers/media/rc/redrat3.c
-+++ b/drivers/media/rc/redrat3.c
-@@ -961,7 +961,7 @@ static struct rc_dev *redrat3_init_rc_dev(struct redrat3_dev *rr3)
- 	rc->dev.parent = dev;
- 	rc->priv = rr3;
- 	rc->driver_type = RC_DRIVER_IR_RAW;
--	rc->allowed_protocols = RC_BIT_ALL;
-+	rc->allowed_protocols = RC_BIT_ALL_IR_DECODER;
- 	rc->min_timeout = MS_TO_NS(RR3_RX_MIN_TIMEOUT);
- 	rc->max_timeout = MS_TO_NS(RR3_RX_MAX_TIMEOUT);
- 	rc->timeout = US_TO_NS(redrat3_get_timeout(rr3));
-diff --git a/drivers/media/rc/serial_ir.c b/drivers/media/rc/serial_ir.c
-index 436bd58..1faa1ae 100644
---- a/drivers/media/rc/serial_ir.c
-+++ b/drivers/media/rc/serial_ir.c
-@@ -778,7 +778,7 @@ static int __init serial_ir_init_module(void)
- 	rcdev->close = serial_ir_close;
- 	rcdev->dev.parent = &serial_ir.pdev->dev;
- 	rcdev->driver_type = RC_DRIVER_IR_RAW;
--	rcdev->allowed_protocols = RC_BIT_ALL;
-+	rcdev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
- 	rcdev->driver_name = KBUILD_MODNAME;
- 	rcdev->map_name = RC_MAP_RC6_MCE;
- 	rcdev->timeout = IR_DEFAULT_TIMEOUT;
-diff --git a/drivers/media/rc/st_rc.c b/drivers/media/rc/st_rc.c
-index 1fa0c9d..80a46e7 100644
---- a/drivers/media/rc/st_rc.c
-+++ b/drivers/media/rc/st_rc.c
-@@ -291,7 +291,7 @@ static int st_rc_probe(struct platform_device *pdev)
- 	st_rc_hardware_init(rc_dev);
- 
- 	rdev->driver_type = RC_DRIVER_IR_RAW;
--	rdev->allowed_protocols = RC_BIT_ALL;
-+	rdev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
- 	/* rx sampling rate is 10Mhz */
- 	rdev->rx_resolution = 100;
- 	rdev->timeout = US_TO_NS(MAX_SYMB_TIME);
-diff --git a/drivers/media/rc/streamzap.c b/drivers/media/rc/streamzap.c
-index 53f9b0a..359f928 100644
---- a/drivers/media/rc/streamzap.c
-+++ b/drivers/media/rc/streamzap.c
-@@ -309,7 +309,7 @@ static struct rc_dev *streamzap_init_rc_dev(struct streamzap_ir *sz)
- 	rdev->dev.parent = dev;
- 	rdev->priv = sz;
- 	rdev->driver_type = RC_DRIVER_IR_RAW;
--	rdev->allowed_protocols = RC_BIT_ALL;
-+	rdev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
- 	rdev->driver_name = DRIVER_NAME;
- 	rdev->map_name = RC_MAP_STREAMZAP;
- 
-diff --git a/drivers/media/rc/sunxi-cir.c b/drivers/media/rc/sunxi-cir.c
-index eaadc08..42bca8d 100644
---- a/drivers/media/rc/sunxi-cir.c
-+++ b/drivers/media/rc/sunxi-cir.c
-@@ -230,7 +230,7 @@ static int sunxi_ir_probe(struct platform_device *pdev)
- 	ir->rc->map_name = ir->map_name ?: RC_MAP_EMPTY;
- 	ir->rc->dev.parent = dev;
- 	ir->rc->driver_type = RC_DRIVER_IR_RAW;
--	ir->rc->allowed_protocols = RC_BIT_ALL;
-+	ir->rc->allowed_protocols = RC_BIT_ALL_IR_DECODER;
- 	ir->rc->rx_resolution = SUNXI_IR_SAMPLE;
- 	ir->rc->timeout = MS_TO_NS(SUNXI_IR_TIMEOUT);
- 	ir->rc->driver_name = SUNXI_IR_DEV;
-diff --git a/drivers/media/rc/ttusbir.c b/drivers/media/rc/ttusbir.c
-index bc214e2..322e947 100644
---- a/drivers/media/rc/ttusbir.c
-+++ b/drivers/media/rc/ttusbir.c
-@@ -318,7 +318,7 @@ static int ttusbir_probe(struct usb_interface *intf,
- 	usb_to_input_id(tt->udev, &rc->input_id);
- 	rc->dev.parent = &intf->dev;
- 	rc->driver_type = RC_DRIVER_IR_RAW;
--	rc->allowed_protocols = RC_BIT_ALL;
-+	rc->allowed_protocols = RC_BIT_ALL_IR_DECODER;
- 	rc->priv = tt;
- 	rc->driver_name = DRIVER_NAME;
- 	rc->map_name = RC_MAP_TT_1500;
-diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
-index ce1e8c2..0fcaf04 100644
---- a/drivers/media/rc/winbond-cir.c
-+++ b/drivers/media/rc/winbond-cir.c
-@@ -1082,7 +1082,7 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
- 	data->dev->dev.parent = &device->dev;
- 	data->dev->timeout = MS_TO_NS(100);
- 	data->dev->rx_resolution = US_TO_NS(2);
--	data->dev->allowed_protocols = RC_BIT_ALL;
-+	data->dev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
- 	data->dev->allowed_wakeup_protocols = RC_BIT_NEC | RC_BIT_NECX |
- 			RC_BIT_RC5 | RC_BIT_RC6_0 | RC_BIT_RC6_6A_24 |
- 			RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE;
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index c583c63..e16ca07 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -1778,7 +1778,7 @@ static int rtl2832u_get_rc_config(struct dvb_usb_device *d,
- 	/* load empty to enable rc */
- 	if (!rc->map_name)
- 		rc->map_name = RC_MAP_EMPTY;
--	rc->allowed_protos = RC_BIT_ALL;
-+	rc->allowed_protos = RC_BIT_ALL_IR_DECODER;
- 	rc->driver_type = RC_DRIVER_IR_RAW;
- 	rc->query = rtl2832u_rc_query;
- 	rc->interval = 200;
-diff --git a/drivers/media/usb/dvb-usb/technisat-usb2.c b/drivers/media/usb/dvb-usb/technisat-usb2.c
-index 02c3bee..1b21f1b 100644
---- a/drivers/media/usb/dvb-usb/technisat-usb2.c
-+++ b/drivers/media/usb/dvb-usb/technisat-usb2.c
-@@ -753,7 +753,7 @@ static struct dvb_usb_device_properties technisat_usb2_devices = {
- 		.rc_codes    = RC_MAP_TECHNISAT_USB2,
- 		.module_name = "technisat-usb2",
- 		.rc_query    = technisat_usb2_rc_query,
--		.allowed_protos = RC_BIT_ALL,
-+		.allowed_protos = RC_BIT_ALL_IR_DECODER,
- 		.driver_type    = RC_DRIVER_IR_RAW,
- 	}
- };
-diff --git a/include/media/rc-map.h b/include/media/rc-map.h
-index e1cc14c..b2af45d 100644
---- a/include/media/rc-map.h
-+++ b/include/media/rc-map.h
-@@ -95,6 +95,16 @@ enum rc_type {
- 			 RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 | \
- 			 RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE | RC_BIT_SHARP | \
- 			 RC_BIT_XMP | RC_BIT_CEC)
-+/* All rc protocols for which we have decoders */
-+#define RC_BIT_ALL_IR_DECODER \
-+			(RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ | \
-+			 RC_BIT_JVC | \
-+			 RC_BIT_SONY12 | RC_BIT_SONY15 | RC_BIT_SONY20 | \
-+			 RC_BIT_NEC | RC_BIT_NECX | RC_BIT_NEC32 | \
-+			 RC_BIT_SANYO | RC_BIT_MCE_KBD | RC_BIT_RC6_0 | \
-+			 RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 | \
-+			 RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE | RC_BIT_SHARP | \
-+			 RC_BIT_XMP)
- 
- 
- #define RC_SCANCODE_UNKNOWN(x)			(x)
+ menu "Sensors used on soc_camera driver"
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index 92773b2e6225..7c8eeb213c3b 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -79,6 +79,7 @@ obj-$(CONFIG_VIDEO_LM3646)	+= lm3646.o
+ obj-$(CONFIG_VIDEO_SMIAPP_PLL)	+= smiapp-pll.o
+ obj-$(CONFIG_VIDEO_AK881X)		+= ak881x.o
+ obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
++obj-$(CONFIG_VIDEO_I2C)		+= video-i2c.o
+ obj-$(CONFIG_VIDEO_ML86V7667)	+= ml86v7667.o
+ obj-$(CONFIG_VIDEO_OV2659)	+= ov2659.o
+ obj-$(CONFIG_VIDEO_TC358743)	+= tc358743.o
+diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2c.c
+new file mode 100644
+index 000000000000..9390560bd117
+--- /dev/null
++++ b/drivers/media/i2c/video-i2c.c
+@@ -0,0 +1,569 @@
++/*
++ * video-i2c.c - Support for I2C transport video devices
++ *
++ * Copyright (C) 2016 Matt Ranostay <mranostay@ranostay.consulting>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * Supported:
++ * - Panasonic AMG88xx Grid-Eye Sensors
++ */
++
++#include <linux/delay.h>
++#include <linux/freezer.h>
++#include <linux/i2c.h>
++#include <linux/list.h>
++#include <linux/module.h>
++#include <linux/mutex.h>
++#include <linux/sched.h>
++#include <linux/slab.h>
++#include <linux/videodev2.h>
++#include <media/v4l2-common.h>
++#include <media/v4l2-ioctl.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-fh.h>
++#include <media/v4l2-event.h>
++#include <media/videobuf2-v4l2.h>
++#include <media/videobuf2-vmalloc.h>
++
++#define VIDEO_I2C_DRIVER	"video-i2c"
++#define MAX_BUFFER_SIZE		128
++
++struct video_i2c_chip;
++
++struct video_i2c_buffer {
++	struct vb2_v4l2_buffer vb;
++	struct list_head list;
++};
++
++struct video_i2c_data {
++	struct i2c_client *client;
++	const struct video_i2c_chip *chip;
++	struct mutex lock;
++	spinlock_t slock;
++	struct mutex queue_lock;
++
++	struct v4l2_device v4l2_dev;
++	struct video_device vdev;
++	struct vb2_queue vb_vidq;
++
++	struct task_struct *kthread_vid_cap;
++	struct list_head vid_cap_active;
++};
++
++static struct v4l2_fmtdesc amg88xx_format = {
++	.description = "12-bit Greyscale",
++	.pixelformat = V4L2_PIX_FMT_Y12,
++};
++
++static struct v4l2_frmsize_discrete amg88xx_size = {
++	.width = 8,
++	.height = 8,
++};
++
++struct video_i2c_chip {
++	/* video dimensions */
++	struct v4l2_fmtdesc *format;
++	struct v4l2_frmsize_discrete *size;
++
++	/* max frames per second */
++	unsigned int max_fps;
++
++	/* pixel buffer size */
++	unsigned int buffer_size;
++
++	/* pixel size in bits */
++	unsigned int bpp;
++
++	/* xfer function */
++	int (*xfer)(struct video_i2c_data *data, char *buf);
++};
++
++static int amg88xx_xfer(struct video_i2c_data *data, char *buf)
++{
++	struct i2c_client *client = data->client;
++	struct i2c_msg msg[2];
++	u8 reg = 0x80;
++	int ret;
++
++	msg[0].addr = client->addr;
++	msg[0].flags = 0;
++	msg[0].len = 1;
++	msg[0].buf  = (char *) &reg;
++
++	msg[1].addr = client->addr;
++	msg[1].flags = I2C_M_RD;
++	msg[1].len = data->chip->buffer_size;
++	msg[1].buf = (char *) buf;
++
++	ret = i2c_transfer(client->adapter, msg, 2);
++
++	return (ret == 2) ? 0 : -EIO;
++}
++
++static const struct video_i2c_chip video_i2c_chip = {
++	.size		= &amg88xx_size,
++	.format		= &amg88xx_format,
++	.max_fps	= 10,
++	.buffer_size	= 128,
++	.bpp		= 16,
++	.xfer		= &amg88xx_xfer,
++};
++
++static const struct v4l2_file_operations video_i2c_fops = {
++	.owner		= THIS_MODULE,
++	.open		= v4l2_fh_open,
++	.release	= vb2_fop_release,
++	.poll		= vb2_fop_poll,
++	.read		= vb2_fop_read,
++	.mmap		= vb2_fop_mmap,
++	.unlocked_ioctl = video_ioctl2,
++};
++
++static int queue_setup(struct vb2_queue *vq,
++		       unsigned int *nbuffers, unsigned int *nplanes,
++		       unsigned int sizes[], struct device *alloc_devs[])
++{
++	struct video_i2c_data *data = vb2_get_drv_priv(vq);
++	unsigned int size = data->chip->buffer_size;
++
++	if (vq->num_buffers + *nbuffers < 2)
++		*nbuffers = 2;
++
++	if (*nplanes)
++		return sizes[0] < size ? -EINVAL : 0;
++
++	*nplanes = 1;
++	sizes[0] = size;
++
++	return 0;
++}
++
++static int buffer_prepare(struct vb2_buffer *vb)
++{
++	struct video_i2c_data *data = vb2_get_drv_priv(vb->vb2_queue);
++	unsigned int size = data->chip->buffer_size;
++
++	if (vb2_plane_size(vb, 0) < size)
++		return -EINVAL;
++
++	vb2_set_plane_payload(vb, 0, size);
++
++	return 0;
++}
++
++static void buffer_queue(struct vb2_buffer *vb)
++{
++	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
++	struct video_i2c_data *data = vb2_get_drv_priv(vb->vb2_queue);
++	struct video_i2c_buffer *buf =
++			container_of(vbuf, struct video_i2c_buffer, vb);
++
++	spin_lock(&data->slock);
++	list_add_tail(&buf->list, &data->vid_cap_active);
++	spin_unlock(&data->slock);
++}
++
++static int video_i2c_thread_vid_cap(void *priv)
++{
++	struct video_i2c_data *data = priv;
++	struct video_i2c_buffer *vid_cap_buf = NULL;
++
++	set_freezable();
++
++	do {
++		unsigned int start_jiffies = jiffies;
++		unsigned int delay = msecs_to_jiffies(1000 / data->chip->max_fps);
++		int schedule_delay;
++
++		try_to_freeze();
++
++		mutex_lock(&data->lock);
++		spin_lock(&data->slock);
++
++		if (!list_empty(&data->vid_cap_active)) {
++			vid_cap_buf = list_entry(data->vid_cap_active.next,
++						 struct video_i2c_buffer, list);
++			list_del(&vid_cap_buf->list);
++		}
++
++		if (vid_cap_buf) {
++			struct vb2_buffer *vb2_buf = &vid_cap_buf->vb.vb2_buf;
++			void *vbuf = vb2_plane_vaddr(vb2_buf, 0);
++			int ret = data->chip->xfer(data, vbuf);
++
++			vb2_buf->timestamp = ktime_get_ns();
++			vb2_buffer_done(vb2_buf, ret ?
++					VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
++		}
++
++		spin_unlock(&data->slock);
++		mutex_unlock(&data->lock);
++
++		schedule_delay = delay - (jiffies - start_jiffies);
++
++		if (schedule_delay < 0)
++			schedule_delay = delay;
++
++		schedule_timeout_interruptible(schedule_delay);
++	} while (!kthread_should_stop());
++
++	return 0;
++}
++
++static int start_streaming(struct vb2_queue *vq, unsigned int count)
++{
++	struct video_i2c_data *data = vb2_get_drv_priv(vq);
++
++	if (data->kthread_vid_cap)
++		return 0;
++
++	data->kthread_vid_cap = kthread_run(video_i2c_thread_vid_cap, data,
++					    "%s-vid-cap", data->v4l2_dev.name);
++
++	if (IS_ERR(data->kthread_vid_cap)) {
++		struct video_i2c_buffer *buf, *tmp;
++
++		list_for_each_entry_safe(buf, tmp, &data->vid_cap_active, list) {
++			list_del(&buf->list);
++			vb2_buffer_done(&buf->vb.vb2_buf,
++					VB2_BUF_STATE_QUEUED);
++		}
++
++		return PTR_ERR(data->kthread_vid_cap);
++	}
++
++	return 0;
++}
++
++static void stop_streaming(struct vb2_queue *vq)
++{
++	struct video_i2c_data *data = vb2_get_drv_priv(vq);
++
++	if (data->kthread_vid_cap == NULL)
++		return;
++
++	mutex_lock(&data->lock);
++	spin_lock(&data->slock);
++
++	while (!list_empty(&data->vid_cap_active)) {
++		struct video_i2c_buffer *buf;
++
++		buf = list_entry(data->vid_cap_active.next,
++				 struct video_i2c_buffer, list);
++		list_del(&buf->list);
++		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
++	}
++	spin_unlock(&data->slock);
++	mutex_unlock(&data->lock);
++
++	kthread_stop(data->kthread_vid_cap);
++
++	data->kthread_vid_cap = NULL;
++}
++
++static struct vb2_ops video_i2c_video_qops = {
++	.queue_setup		= queue_setup,
++	.buf_prepare		= buffer_prepare,
++	.buf_queue		= buffer_queue,
++	.start_streaming	= start_streaming,
++	.stop_streaming		= stop_streaming,
++	.wait_prepare		= vb2_ops_wait_prepare,
++	.wait_finish		= vb2_ops_wait_finish,
++};
++
++static int video_i2c_querycap(struct file *file, void  *priv,
++				struct v4l2_capability *vcap)
++{
++	struct video_i2c_data *data = video_drvdata(file);
++	struct i2c_client *client = data->client;
++
++	strlcpy(vcap->driver, data->v4l2_dev.name, sizeof(vcap->driver));
++	strlcpy(vcap->card, "I2C Transport Video", sizeof(vcap->card));
++
++	sprintf(vcap->bus_info, "I2C:%d-%d", client->adapter->nr, client->addr);
++	return 0;
++}
++
++static int video_i2c_g_input(struct file *file, void *fh, unsigned int *inp)
++{
++	*inp = 0;
++
++	return 0;
++}
++
++static int video_i2c_s_input(struct file *file, void *fh, unsigned int inp)
++{
++	return (inp > 0) ? -EINVAL : 0;
++}
++
++static int video_i2c_enum_input(struct file *file, void *fh,
++				  struct v4l2_input *vin)
++{
++	if (vin->index > 0)
++		return -EINVAL;
++
++	strlcpy(vin->name, "Camera", sizeof(vin->name));
++
++	vin->type = V4L2_INPUT_TYPE_CAMERA;
++	vin->audioset = 0;
++	vin->tuner = 0;
++	vin->std = 0;
++	vin->status = 0;
++
++	return 0;
++}
++
++static int video_i2c_enum_fmt_vid_cap(struct file *file, void *fh,
++					struct v4l2_fmtdesc *fmt)
++{
++	struct video_i2c_data *data = video_drvdata(file);
++	enum v4l2_buf_type type = fmt->type;
++
++	if (fmt->index > 0)
++		return -EINVAL;
++
++	*fmt = *data->chip->format;
++	fmt->type = type;
++
++	return 0;
++}
++
++static int video_i2c_enum_framesizes(struct file *file, void *fh,
++				       struct v4l2_frmsizeenum *fsize)
++{
++	struct video_i2c_data *data = video_drvdata(file);
++	struct v4l2_frmsize_discrete *size = data->chip->size;
++
++	/* currently only one frame size is allowed */
++	if (fsize->index > 0)
++		return -EINVAL;
++
++	if (fsize->pixel_format != data->chip->format->pixelformat)
++		return -EINVAL;
++
++	fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
++	fsize->discrete.width = size->width;
++	fsize->discrete.height = size->height;
++
++	return 0;
++}
++
++static int video_i2c_enum_frameintervals(struct file *file, void *priv,
++					   struct v4l2_frmivalenum *fe)
++{
++	struct video_i2c_data *data = video_drvdata(file);
++	struct v4l2_frmsize_discrete *size = data->chip->size;
++
++	if (fe->index > 0)
++		return -EINVAL;
++
++	if ((fe->width != size->width) || (fe->height != size->height))
++		return -EINVAL;
++
++	fe->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++	fe->discrete.numerator = 1;
++	fe->discrete.denominator = data->chip->max_fps;
++
++	return 0;
++}
++
++static int video_i2c_try_fmt_vid_cap(struct file *file, void *fh,
++				       struct v4l2_format *fmt)
++{
++	struct video_i2c_data *data = video_drvdata(file);
++	struct v4l2_pix_format *pix = &fmt->fmt.pix;
++	struct v4l2_frmsize_discrete *size = data->chip->size;
++	unsigned int bpp = data->chip->bpp / 8;
++
++	pix->width = size->width;
++	pix->height = size->height;
++	pix->pixelformat = data->chip->format->pixelformat;
++	pix->field = V4L2_FIELD_NONE;
++	pix->bytesperline = pix->width * bpp;
++	pix->sizeimage = pix->width * pix->height * bpp;
++	pix->colorspace = V4L2_COLORSPACE_SRGB;
++	pix->priv = 0;
++
++	return 0;
++}
++
++static int video_i2c_fmt_vid_cap(struct file *file, void *fh,
++				     struct v4l2_format *fmt)
++{
++	struct video_i2c_data *data = video_drvdata(file);
++	int ret = video_i2c_try_fmt_vid_cap(file, fh, fmt);
++
++	if (ret < 0)
++		return ret;
++
++	if (vb2_is_busy(&data->vb_vidq))
++		return -EBUSY;
++
++	return 0;
++}
++
++static int video_i2c_g_parm(struct file *filp, void *priv,
++			      struct v4l2_streamparm *parm)
++{
++	struct video_i2c_data *data = video_drvdata(filp);
++
++	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	parm->parm.capture.readbuffers = 1;
++	parm->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
++	parm->parm.capture.timeperframe.numerator = 1;
++	parm->parm.capture.timeperframe.denominator = data->chip->max_fps;
++
++	return 0;
++}
++
++static int video_i2c_s_parm(struct file *filp, void *priv,
++			      struct v4l2_streamparm *parm)
++{
++	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	return video_i2c_g_parm(filp, priv, parm);
++}
++
++static const struct v4l2_ioctl_ops video_i2c_ioctl_ops = {
++	.vidioc_querycap		= video_i2c_querycap,
++	.vidioc_g_input			= video_i2c_g_input,
++	.vidioc_s_input			= video_i2c_s_input,
++	.vidioc_enum_input		= video_i2c_enum_input,
++	.vidioc_enum_fmt_vid_cap	= video_i2c_enum_fmt_vid_cap,
++	.vidioc_enum_framesizes		= video_i2c_enum_framesizes,
++	.vidioc_enum_frameintervals	= video_i2c_enum_frameintervals,
++	.vidioc_g_fmt_vid_cap		= video_i2c_try_fmt_vid_cap,
++	.vidioc_s_fmt_vid_cap		= video_i2c_fmt_vid_cap,
++	.vidioc_g_parm			= video_i2c_g_parm,
++	.vidioc_s_parm			= video_i2c_s_parm,
++	.vidioc_try_fmt_vid_cap		= video_i2c_try_fmt_vid_cap,
++	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
++	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
++	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
++	.vidioc_querybuf		= vb2_ioctl_querybuf,
++	.vidioc_qbuf			= vb2_ioctl_qbuf,
++	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
++	.vidioc_streamon		= vb2_ioctl_streamon,
++	.vidioc_streamoff		= vb2_ioctl_streamoff,
++};
++
++static void video_i2c_release(struct video_device *vdev)
++{
++	kfree(video_get_drvdata(vdev));
++}
++
++static int video_i2c_probe(struct i2c_client *client,
++			     const struct i2c_device_id *id)
++{
++	struct video_i2c_data *data;
++	struct v4l2_device *v4l2_dev;
++	struct vb2_queue *queue;
++	int ret;
++
++	data = kzalloc(sizeof(*data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	data->chip = &video_i2c_chip;
++	data->client = client;
++	v4l2_dev = &data->v4l2_dev;
++	strlcpy(v4l2_dev->name, VIDEO_I2C_DRIVER, sizeof(v4l2_dev->name));
++
++	ret = v4l2_device_register(&client->dev, v4l2_dev);
++	if (ret < 0)
++		goto error_free_device;
++
++	mutex_init(&data->lock);
++	mutex_init(&data->queue_lock);
++
++	queue = &data->vb_vidq;
++	queue->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	queue->io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
++	queue->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC |
++				 V4L2_BUF_FLAG_TSTAMP_SRC_EOF;
++	queue->drv_priv = data;
++	queue->buf_struct_size = sizeof(struct video_i2c_buffer);
++	queue->min_buffers_needed = 1;
++	queue->ops = &video_i2c_video_qops;
++	queue->mem_ops = &vb2_vmalloc_memops;
++
++	ret = vb2_queue_init(queue);
++	if (ret < 0)
++		goto error_free_device;
++
++	data->vdev.queue = queue;
++	data->vdev.queue->lock = &data->queue_lock;
++
++	strlcpy(data->vdev.name, "I2C Transport Video", sizeof(data->vdev.name));
++
++	data->vdev.v4l2_dev = v4l2_dev;
++	data->vdev.fops = &video_i2c_fops;
++	data->vdev.lock = &data->lock;
++	data->vdev.ioctl_ops = &video_i2c_ioctl_ops;
++	data->vdev.release = video_i2c_release;
++	data->vdev.device_caps = V4L2_CAP_VIDEO_CAPTURE |
++				 V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
++
++	spin_lock_init(&data->slock);
++	INIT_LIST_HEAD(&data->vid_cap_active);
++
++	video_set_drvdata(&data->vdev, data);
++	i2c_set_clientdata(client, data);
++
++	ret = video_register_device(&data->vdev, VFL_TYPE_GRABBER, -1);
++	if (ret < 0)
++		goto error_unregister_device;
++
++	return 0;
++
++error_unregister_device:
++	v4l2_device_unregister(v4l2_dev);
++
++error_free_device:
++	kfree(data);
++
++	return ret;
++}
++
++static int video_i2c_remove(struct i2c_client *client)
++{
++	struct video_i2c_data *data = i2c_get_clientdata(client);
++
++	v4l2_device_unregister(&data->v4l2_dev);
++	video_unregister_device(&data->vdev);
++
++	return 0;
++}
++
++static const struct i2c_device_id video_i2c_id_table[] = {
++	{ "amg88xx", 0 },
++	{}
++};
++MODULE_DEVICE_TABLE(i2c, video_i2c_id_table);
++
++static struct i2c_driver video_i2c_driver = {
++	.driver = {
++		.name	= VIDEO_I2C_DRIVER,
++	},
++	.probe		= video_i2c_probe,
++	.remove		= video_i2c_remove,
++	.id_table	= video_i2c_id_table,
++};
++
++module_i2c_driver(video_i2c_driver);
++
++MODULE_AUTHOR("Matt Ranostay <mranostay@ranostay.consulting>");
++MODULE_DESCRIPTION("I2C transport video support");
++MODULE_LICENSE("GPL");
 -- 
-2.9.3
+2.7.4
 
