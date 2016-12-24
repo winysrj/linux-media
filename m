@@ -1,51 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:35368 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932908AbcLSQNe (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:33958 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753669AbcLXWev (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Dec 2016 11:13:34 -0500
-From: Santosh Kumar Singh <kumar.san1093@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Santosh Kumar Singh <kumar.san1093@gmail.com>
-Subject: [PATCH v2] vim2m: Clean up file handle in open() error path.
-Date: Mon, 19 Dec 2016 21:42:46 +0530
-Message-Id: <1482163966-2692-1-git-send-email-kumar.san1093@gmail.com>
+        Sat, 24 Dec 2016 17:34:51 -0500
+Received: by mail-pg0-f67.google.com with SMTP id b1so4792467pgc.1
+        for <linux-media@vger.kernel.org>; Sat, 24 Dec 2016 14:34:32 -0800 (PST)
+From: Shyam Saini <mayhs11saini@gmail.com>
+To: mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, Shyam Saini <mayhs11saini@gmail.com>
+Subject: [PATCH 4/4] media: pci: saa7164: Replace BUG() with BUG_ON()
+Date: Sun, 25 Dec 2016 04:04:03 +0530
+Message-Id: <1482618843-13877-3-git-send-email-mayhs11saini@gmail.com>
+In-Reply-To: <1482618843-13877-1-git-send-email-mayhs11saini@gmail.com>
+References: <1482618843-13877-1-git-send-email-mayhs11saini@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix to avoid possible memory leak and exit file handle
-in error paths.
+Replace BUG() with BUG_ON() using coccinelle
 
-Signed-off-by: Santosh Kumar Singh <kumar.san1093@gmail.com>
+Signed-off-by: Shyam Saini <mayhs11saini@gmail.com>
 ---
- drivers/media/platform/vim2m.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/pci/saa7164/saa7164-vbi.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index a98f679..9fd24b8 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -907,6 +907,7 @@ static int vim2m_open(struct file *file)
- 	if (hdl->error) {
- 		rc = hdl->error;
- 		v4l2_ctrl_handler_free(hdl);
-+		kfree(ctx);
- 		goto open_unlock;
- 	}
- 	ctx->fh.ctrl_handler = hdl;
-@@ -929,6 +930,7 @@ static int vim2m_open(struct file *file)
+diff --git a/drivers/media/pci/saa7164/saa7164-vbi.c b/drivers/media/pci/saa7164/saa7164-vbi.c
+index e5dcb81..73e42c9 100644
+--- a/drivers/media/pci/saa7164/saa7164-vbi.c
++++ b/drivers/media/pci/saa7164/saa7164-vbi.c
+@@ -722,8 +722,7 @@ int saa7164_vbi_register(struct saa7164_port *port)
  
- 		v4l2_ctrl_handler_free(hdl);
-+		v4l2_fh_exit(&ctx->fh);
- 		kfree(ctx);
- 		goto open_unlock;
- 	}
+ 	dprintk(DBGLVL_VBI, "%s()\n", __func__);
  
+-	if (port->type != SAA7164_MPEG_VBI)
+-		BUG();
++	BUG_ON(port->type != SAA7164_MPEG_VBI);
+ 
+ 	/* Sanity check that the PCI configuration space is active */
+ 	if (port->hwcfg.BARLocation == 0) {
+@@ -775,8 +774,7 @@ void saa7164_vbi_unregister(struct saa7164_port *port)
+ 
+ 	dprintk(DBGLVL_VBI, "%s(port=%d)\n", __func__, port->nr);
+ 
+-	if (port->type != SAA7164_MPEG_VBI)
+-		BUG();
++	BUG_ON(port->type != SAA7164_MPEG_VBI);
+ 
+ 	if (port->v4l_device) {
+ 		if (port->v4l_device->minor != -1)
 -- 
-1.9.1
+2.7.4
 
