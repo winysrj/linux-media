@@ -1,146 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:44279 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753821AbcLNOA4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Dec 2016 09:00:56 -0500
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Richard Purdie <rpurdie@rpsys.net>,
-        Jacek Anaszewski <j.anaszewski@samsung.com>,
-        Heiner Kallweit <hkallweit1@gmail.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Andi Shyti <andi.shyti@samsung.com>,
-        Andi Shyti <andi@etezian.org>
-Subject: [PATCH v4 3/6] [media] rc-core: add support for IR raw transmitters
-Date: Wed, 14 Dec 2016 23:00:27 +0900
-Message-id: <20161214140030.28537-4-andi.shyti@samsung.com>
-In-reply-to: <20161214140030.28537-1-andi.shyti@samsung.com>
-References: <20161214140030.28537-1-andi.shyti@samsung.com>
+Received: from mout.web.de ([212.227.17.12]:53259 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753678AbcLYSlu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 25 Dec 2016 13:41:50 -0500
+Subject: [PATCH 10/19] [media] uvc_driver: Return -ENOMEM after a failed
+ kzalloc() call in uvc_parse_streaming()
+To: linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <47aa4314-74ec-b2bf-ee3b-aad4d6e9f0a2@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <cca09ee1-dc30-b3e6-41fb-63c1443bf91b@users.sourceforge.net>
+Date: Sun, 25 Dec 2016 19:41:41 +0100
+MIME-Version: 1.0
+In-Reply-To: <47aa4314-74ec-b2bf-ee3b-aad4d6e9f0a2@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-IR raw transmitter driver type is specified in the enum
-rc_driver_type as RC_DRIVER_IR_RAW_TX which includes all those
-devices that transmit raw stream of bit to a receiver.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sun, 25 Dec 2016 16:00:17 +0100
 
-The data are provided by userspace applications, therefore they
-don't need any input device allocation, but still they need to be
-registered as raw devices.
+Use the return code "-ENOMEM" (instead of "-EINVAL") after a call of
+the function "kzalloc" failed here.
 
-Suggested-by: Sean Young <sean@mess.org>
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
-Reviewed-by: Sean Young <sean@mess.org>
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/rc/rc-main.c | 42 +++++++++++++++++++++++++-----------------
- include/media/rc-core.h    |  9 ++++++---
- 2 files changed, 31 insertions(+), 20 deletions(-)
+ drivers/media/usb/uvc/uvc_driver.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 59fac96..1ddecca 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1365,20 +1365,24 @@ struct rc_dev *rc_allocate_device(enum rc_driver_type type)
- 	if (!dev)
- 		return NULL;
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index b0833902fde2..5736f8b26f92 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -663,7 +663,7 @@ static int uvc_parse_streaming(struct uvc_device *dev,
+ 	streaming = kzalloc(sizeof(*streaming), GFP_KERNEL);
+ 	if (!streaming) {
+ 		usb_driver_release_interface(&uvc_driver.driver, intf);
+-		return -EINVAL;
++		return -ENOMEM;
+ 	}
  
--	dev->input_dev = input_allocate_device();
--	if (!dev->input_dev) {
--		kfree(dev);
--		return NULL;
--	}
-+	if (type != RC_DRIVER_IR_RAW_TX) {
-+		dev->input_dev = input_allocate_device();
-+		if (!dev->input_dev) {
-+			kfree(dev);
-+			return NULL;
-+		}
-+
-+		dev->input_dev->getkeycode = ir_getkeycode;
-+		dev->input_dev->setkeycode = ir_setkeycode;
-+		input_set_drvdata(dev->input_dev, dev);
- 
--	dev->input_dev->getkeycode = ir_getkeycode;
--	dev->input_dev->setkeycode = ir_setkeycode;
--	input_set_drvdata(dev->input_dev, dev);
-+		setup_timer(&dev->timer_keyup, ir_timer_keyup,
-+						(unsigned long)dev);
- 
--	spin_lock_init(&dev->rc_map.lock);
--	spin_lock_init(&dev->keylock);
-+		spin_lock_init(&dev->rc_map.lock);
-+		spin_lock_init(&dev->keylock);
-+	}
- 	mutex_init(&dev->lock);
--	setup_timer(&dev->timer_keyup, ir_timer_keyup, (unsigned long)dev);
- 
- 	dev->dev.type = &rc_dev_type;
- 	dev->dev.class = &rc_class;
-@@ -1507,7 +1511,7 @@ static int rc_setup_rx_device(struct rc_dev *dev)
- 
- static void rc_free_rx_device(struct rc_dev *dev)
- {
--	if (!dev)
-+	if (!dev || dev->driver_type == RC_DRIVER_IR_RAW_TX)
- 		return;
- 
- 	ir_free_table(&dev->rc_map);
-@@ -1537,7 +1541,8 @@ int rc_register_device(struct rc_dev *dev)
- 	atomic_set(&dev->initialized, 0);
- 
- 	dev->dev.groups = dev->sysfs_groups;
--	dev->sysfs_groups[attr++] = &rc_dev_protocol_attr_grp;
-+	if (dev->driver_type != RC_DRIVER_IR_RAW_TX)
-+		dev->sysfs_groups[attr++] = &rc_dev_protocol_attr_grp;
- 	if (dev->s_filter)
- 		dev->sysfs_groups[attr++] = &rc_dev_filter_attr_grp;
- 	if (dev->s_wakeup_filter)
-@@ -1555,11 +1560,14 @@ int rc_register_device(struct rc_dev *dev)
- 		dev->input_name ?: "Unspecified device", path ?: "N/A");
- 	kfree(path);
- 
--	rc = rc_setup_rx_device(dev);
--	if (rc)
--		goto out_dev;
-+	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
-+		rc = rc_setup_rx_device(dev);
-+		if (rc)
-+			goto out_dev;
-+	}
- 
--	if (dev->driver_type == RC_DRIVER_IR_RAW) {
-+	if (dev->driver_type == RC_DRIVER_IR_RAW ||
-+				dev->driver_type == RC_DRIVER_IR_RAW_TX) {
- 		if (!raw_init) {
- 			request_module_nowait("ir-lirc-codec");
- 			raw_init = true;
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index ba92c86..e6cb336 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -32,13 +32,16 @@ do {								\
- /**
-  * enum rc_driver_type - type of the RC output
-  *
-- * @RC_DRIVER_SCANCODE:	Driver or hardware generates a scancode
-- * @RC_DRIVER_IR_RAW:	Driver or hardware generates pulse/space sequences.
-- *			It needs a Infra-Red pulse/space decoder
-+ * @RC_DRIVER_SCANCODE:	 Driver or hardware generates a scancode
-+ * @RC_DRIVER_IR_RAW:	 Driver or hardware generates pulse/space sequences.
-+ *			 It needs a Infra-Red pulse/space decoder
-+ * @RC_DRIVER_IR_RAW_TX: Device transmitter only,
-+ *			 driver requires pulse/space data sequence.
-  */
- enum rc_driver_type {
- 	RC_DRIVER_SCANCODE = 0,
- 	RC_DRIVER_IR_RAW,
-+	RC_DRIVER_IR_RAW_TX,
- };
- 
- /**
+ 	mutex_init(&streaming->mutex);
 -- 
-2.10.2
+2.11.0
 
