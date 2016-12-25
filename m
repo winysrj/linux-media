@@ -1,56 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wj0-f194.google.com ([209.85.210.194]:33040 "EHLO
-        mail-wj0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756119AbcLPWFf (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:33111 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750899AbcLYEuk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Dec 2016 17:05:35 -0500
-Date: Fri, 16 Dec 2016 23:05:30 +0100
-From: Richard Cochran <richardcochran@gmail.com>
-To: henrik@austad.us
-Cc: linux-kernel@vger.kernel.org, Henrik Austad <haustad@cisco.com>,
-        linux-media@vger.kernel.org, alsa-devel@vger.kernel.org,
-        netdev@vger.kernel.org
-Subject: Re: [TSN RFC v2 0/9] TSN driver for the kernel
-Message-ID: <20161216220530.GA25258@netboy>
-References: <1481911153-549-1-git-send-email-henrik@austad.us>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1481911153-549-1-git-send-email-henrik@austad.us>
+        Sat, 24 Dec 2016 23:50:40 -0500
+Message-ID: <95af5c1de41da91d375fb9873b12e7e0@smtp-cloud3.xs4all.net>
+Date: Sun, 25 Dec 2016 05:50:37 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Dec 16, 2016 at 06:59:04PM +0100, henrik@austad.us wrote:
-> The driver is directed via ConfigFS as we need userspace to handle
-> stream-reservation (MSRP), discovery and enumeration (IEEE 1722.1) and
-> whatever other management is needed.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I complained about configfs before, but you didn't listen.
+Results of the daily build of media_tree:
 
-> 2 new fields in netdev_ops have been introduced, and the Intel
-> igb-driver has been updated (as this an AVB-capable NIC which is
-> available as a PCI-e card).
+date:			Sun Dec 25 05:00:22 CET 2016
+media-tree git hash:	c739c0a7c3c2472d7562b8f802cdce44d2597c8b
+media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
+v4l-utils git hash:	c9aacef24d152007c7344b691da0cc90788395a7
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
-The igb hacks show that you are on the wrong track.  We can and should
-be able to support TSN without resorting to driver specific hacks and
-module parameters.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.12.67-x86_64: OK
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: OK
+linux-4.9-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-> Before reading on - this is not even beta, but I'd really appreciate if
-> people would comment on the overall architecture and perhaps provide
-> some pointers to where I should improve/fix/update
+Detailed results are available here:
 
-As I said before about V1, this architecture stinks.  You appear to
-have continued hacking along and posted the same design again.  Did
-you even address any of the points I raised back then?
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-You are trying to put tons of code into the kernel that really belongs
-in user space, and at the same time, you omit critical functions that
-only the kernel can provide.
+Full logs are available here:
 
-> There are at least one AVB-driver (the AV-part of TSN) in the kernel
-> already.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-And which driver is that?
+The Media Infrastructure API from this daily build is here:
 
-Thanks,
-Richard
+http://www.xs4all.nl/~hverkuil/spec/index.html
