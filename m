@@ -1,81 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50175 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757087AbcLPBX6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 20:23:58 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Rob Clark <robdclark@gmail.com>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Laura Abbott <labbott@redhat.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [RFC v2 03/11] vb2: Move cache synchronisation from buffer done to dqbuf handler
-Date: Fri, 16 Dec 2016 03:24:17 +0200
-Message-Id: <20161216012425.11179-4-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20161216012425.11179-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20161216012425.11179-1-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mout.web.de ([217.72.192.78]:55972 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753678AbcLYSka (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 25 Dec 2016 13:40:30 -0500
+Subject: [PATCH 09/19] [media] uvc_driver: Less function calls in
+ uvc_parse_streaming() after error detection
+To: linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <47aa4314-74ec-b2bf-ee3b-aad4d6e9f0a2@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <b417f723-d79b-dc46-0a2e-275c9f700a84@users.sourceforge.net>
+Date: Sun, 25 Dec 2016 19:40:21 +0100
+MIME-Version: 1.0
+In-Reply-To: <47aa4314-74ec-b2bf-ee3b-aad4d6e9f0a2@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sun, 25 Dec 2016 15:45:31 +0100
 
-The cache synchronisation may be a time consuming operation and thus not
-best performed in an interrupt which is a typical context for
-vb2_buffer_done() calls. This may consume up to tens of ms on some
-machines, depending on the buffer size.
+The kfree() function was called in a few cases by the uvc_parse_streaming()
+function during error handling even if the passed data structure member
+contained a null pointer.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Adjust jump targets according to the Linux coding style convention.
+
+Fixes: c0efd232929c2cd87238de2cccdaf4e845be5b0c ("V4L/DVB (8145a): USB Video Class driver")
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
-Changes since v1:
+ drivers/media/usb/uvc/uvc_driver.c | 23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
 
-- Don't rename the 'i' loop counter to 'plane'
----
- drivers/media/v4l2-core/videobuf2-core.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 8ba48703b189..15a83f338072 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -889,7 +889,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
- 	unsigned long flags;
--	unsigned int plane;
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index c4e954aecdd5..b0833902fde2 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -702,7 +702,7 @@ static int uvc_parse_streaming(struct uvc_device *dev,
+ 	if (buflen <= 2) {
+ 		uvc_trace(UVC_TRACE_DESCR,
+ 			  "no class-specific streaming interface descriptors found.\n");
+-		goto error;
++		goto release_interface;
+ 	}
  
- 	if (WARN_ON(vb->state != VB2_BUF_STATE_ACTIVE))
- 		return;
-@@ -910,10 +909,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 	dprintk(4, "done processing on buffer %d, state: %d\n",
- 			vb->index, state);
+ 	/* Parse the header descriptor. */
+@@ -721,7 +721,7 @@ static int uvc_parse_streaming(struct uvc_device *dev,
+ 		uvc_trace(UVC_TRACE_DESCR,
+ 			  "device %d videostreaming interface %d HEADER descriptor not found.\n",
+ 			  dev->udev->devnum, alts->desc.bInterfaceNumber);
+-		goto error;
++		goto release_interface;
+ 	}
  
--	/* sync buffers */
--	for (plane = 0; plane < vb->num_planes; ++plane)
--		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+ 	p = buflen >= 4 ? buffer[3] : 0;
+@@ -731,7 +731,7 @@ static int uvc_parse_streaming(struct uvc_device *dev,
+ 		uvc_trace(UVC_TRACE_DESCR,
+ 			  "device %d videostreaming interface %d HEADER descriptor is invalid.\n",
+ 			  dev->udev->devnum, alts->desc.bInterfaceNumber);
+-		goto error;
++		goto release_interface;
+ 	}
+ 
+ 	streaming->header.bNumFormats = p;
+@@ -751,7 +751,7 @@ static int uvc_parse_streaming(struct uvc_device *dev,
+ 						GFP_KERNEL);
+ 	if (!streaming->header.bmaControls) {
+ 		ret = -ENOMEM;
+-		goto error;
++		goto release_interface;
+ 	}
+ 
+ 	buflen -= buffer[0];
+@@ -809,7 +809,7 @@ static int uvc_parse_streaming(struct uvc_device *dev,
+ 		uvc_trace(UVC_TRACE_DESCR,
+ 			  "device %d videostreaming interface %d has no supported formats defined.\n",
+ 			  dev->udev->devnum, alts->desc.bInterfaceNumber);
+-		goto error;
++		goto release_interface;
+ 	}
+ 
+ 	size = nformats * sizeof(*format) + nframes * sizeof(*frame)
+@@ -817,7 +817,7 @@ static int uvc_parse_streaming(struct uvc_device *dev,
+ 	format = kzalloc(size, GFP_KERNEL);
+ 	if (!format) {
+ 		ret = -ENOMEM;
+-		goto error;
++		goto free_controls;
+ 	}
+ 
+ 	frame = (struct uvc_frame *)&format[nformats];
+@@ -837,7 +837,7 @@ static int uvc_parse_streaming(struct uvc_device *dev,
+ 			ret = uvc_parse_format(dev, streaming, format,
+ 				&interval, buffer, buflen);
+ 			if (ret < 0)
+-				goto error;
++				goto free_format;
+ 
+ 			frame += format->nframes;
+ 			format++;
+@@ -878,12 +878,13 @@ static int uvc_parse_streaming(struct uvc_device *dev,
+ 
+ 	list_add_tail(&streaming->list, &dev->streams);
+ 	return 0;
 -
- 	spin_lock_irqsave(&q->done_lock, flags);
- 	if (state == VB2_BUF_STATE_QUEUED ||
- 	    state == VB2_BUF_STATE_REQUEUEING) {
-@@ -1571,6 +1566,10 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
- 
- 	vb->state = VB2_BUF_STATE_DEQUEUED;
- 
-+	/* sync buffers */
-+	for (i = 0; i < vb->num_planes; ++i)
-+		call_void_memop(vb, finish, vb->planes[i].mem_priv);
-+
- 	/* unmap DMABUF buffer */
- 	if (q->memory == VB2_MEMORY_DMABUF)
- 		for (i = 0; i < vb->num_planes; ++i) {
+-error:
+-	usb_driver_release_interface(&uvc_driver.driver, intf);
+-	usb_put_intf(intf);
++free_format:
+ 	kfree(streaming->format);
++free_controls:
+ 	kfree(streaming->header.bmaControls);
++release_interface:
++	usb_driver_release_interface(&uvc_driver.driver, intf);
++	usb_put_intf(intf);
+ 	kfree(streaming);
+ 	return ret;
+ }
 -- 
-Regards,
-
-Laurent Pinchart
+2.11.0
 
