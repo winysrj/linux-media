@@ -1,110 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:35817 "EHLO gofer.mess.org"
+Received: from mout.web.de ([217.72.192.78]:59128 "EHLO mout.web.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751779AbcLFKTa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Dec 2016 05:19:30 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Cc: James Hogan <james@albanarts.com>,
-        =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
-        =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Subject: [PATCH v4 12/13] [media] rc: rc-loopback: Add loopback of filter scancodes
-Date: Tue,  6 Dec 2016 10:19:20 +0000
-Message-Id: <1486dfe13e8060734ca96655d53f405e85c81675.1481019109.git.sean@mess.org>
-In-Reply-To: <cover.1481019109.git.sean@mess.org>
-References: <cover.1481019109.git.sean@mess.org>
-In-Reply-To: <cover.1481019109.git.sean@mess.org>
-References: <cover.1481019109.git.sean@mess.org>
+        id S1751937AbcLYScW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 25 Dec 2016 13:32:22 -0500
+Subject: [PATCH 03/19] [media] uvc_driver: Adjust three function calls
+ together with a variable assignment
+To: linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <47aa4314-74ec-b2bf-ee3b-aad4d6e9f0a2@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <5d6e7fac-d464-687b-ef87-d813d707911f@users.sourceforge.net>
+Date: Sun, 25 Dec 2016 19:32:12 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <47aa4314-74ec-b2bf-ee3b-aad4d6e9f0a2@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: James Hogan <james@albanarts.com>
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sun, 25 Dec 2016 08:05:58 +0100
 
-Add the s_wakeup_filter callback to the rc-loopback driver, which instead
-of setting the filter just feeds the scancode back through the input
-device so that it can be verified.
+The script "checkpatch.pl" pointed information out like the following.
 
-Signed-off-by: James Hogan <james@albanarts.com>
-Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
-Signed-off-by: Sean Young <sean@mess.org>
-Cc: David Härdeman <david@hardeman.nu>
+ERROR: do not use assignment in if condition
+
+Thus fix the affected source code places.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/rc/rc-loopback.c | 38 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+ drivers/media/usb/uvc/uvc_driver.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/rc/rc-loopback.c b/drivers/media/rc/rc-loopback.c
-index 4bc3f01..487214e 100644
---- a/drivers/media/rc/rc-loopback.c
-+++ b/drivers/media/rc/rc-loopback.c
-@@ -26,6 +26,7 @@
- #include <linux/device.h>
- #include <linux/module.h>
- #include <linux/sched.h>
-+#include <linux/slab.h>
- #include <media/rc-core.h>
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 7c42be2414ea..bddaf98ef828 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -1275,7 +1275,8 @@ static int uvc_parse_control(struct uvc_device *dev)
+ 		    buffer[1] != USB_DT_CS_INTERFACE)
+ 			goto next_descriptor;
  
- #define DRIVER_NAME	"rc-loopback"
-@@ -176,6 +177,41 @@ static int loop_set_carrier_report(struct rc_dev *dev, int enable)
- 	return 0;
- }
+-		if ((ret = uvc_parse_standard_control(dev, buffer, buflen)) < 0)
++		ret = uvc_parse_standard_control(dev, buffer, buflen);
++		if (ret < 0)
+ 			return ret;
  
-+static int loop_set_wakeup_filter(struct rc_dev *dev,
-+				  struct rc_scancode_filter *sc_filter)
-+{
-+	static const unsigned int max = 512;
-+	struct ir_raw_event *raw;
-+	int ret;
-+	int i;
-+
-+	/* fine to disable filter */
-+	if (!sc_filter->mask)
-+		return 0;
-+
-+	/* encode the specified filter and loop it back */
-+	raw = kmalloc_array(max, sizeof(*raw), GFP_KERNEL);
-+	if (!raw)
-+		return -ENOMEM;
-+
-+	ret = ir_raw_encode_scancode(dev->wakeup_protocol, sc_filter, raw, max);
-+	/* still loop back the partial raw IR even if it's incomplete */
-+	if (ret == -ENOBUFS)
-+		ret = max;
-+	if (ret >= 0) {
-+		/* do the loopback */
-+		for (i = 0; i < ret; ++i)
-+			ir_raw_event_store(dev, &raw[i]);
-+		ir_raw_event_handle(dev);
-+
-+		ret = 0;
-+	}
-+
-+	kfree(raw);
-+
-+	return ret;
-+}
-+
- static int __init loop_init(void)
- {
- 	struct rc_dev *rc;
-@@ -195,6 +231,7 @@ static int __init loop_init(void)
- 	rc->map_name		= RC_MAP_EMPTY;
- 	rc->priv		= &loopdev;
- 	rc->driver_type		= RC_DRIVER_IR_RAW;
-+	rc->encode_wakeup	= true;
- 	rc->allowed_protocols	= RC_BIT_ALL_IR_DECODER;
- 	rc->timeout		= 100 * 1000 * 1000; /* 100 ms */
- 	rc->min_timeout		= 1;
-@@ -209,6 +246,7 @@ static int __init loop_init(void)
- 	rc->s_idle		= loop_set_idle;
- 	rc->s_learning_mode	= loop_set_learning_mode;
- 	rc->s_carrier_report	= loop_set_carrier_report;
-+	rc->s_wakeup_filter	= loop_set_wakeup_filter;
+ next_descriptor:
+@@ -2030,7 +2031,8 @@ static int uvc_probe(struct usb_interface *intf,
+ 				udev->devpath);
  
- 	loopdev.txmask		= RXMASK_REGULAR;
- 	loopdev.txcarrier	= 36000;
+ 	/* Allocate memory for the device and initialize it. */
+-	if ((dev = kzalloc(sizeof *dev, GFP_KERNEL)) == NULL)
++	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
++	if (!dev)
+ 		return -ENOMEM;
+ 
+ 	INIT_LIST_HEAD(&dev->entities);
+@@ -2113,11 +2115,11 @@ static int uvc_probe(struct usb_interface *intf,
+ 	usb_set_intfdata(intf, dev);
+ 
+ 	/* Initialize the interrupt URB. */
+-	if ((ret = uvc_status_init(dev)) < 0) {
++	ret = uvc_status_init(dev);
++	if (ret < 0)
+ 		uvc_printk(KERN_INFO,
+ 			   "Unable to initialize the status endpoint (%d), status interrupt will not be supported.\n",
+ 			   ret);
+-	}
+ 
+ 	uvc_trace(UVC_TRACE_PROBE, "UVC device initialized.\n");
+ 	usb_enable_autosuspend(udev);
 -- 
-2.9.3
+2.11.0
 
