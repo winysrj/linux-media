@@ -1,81 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49773 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753632AbcLILq5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2016 06:46:57 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Prabhakar Lad <prabhakar.csengg@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH v2 0/6] Fix tvp5150 regression with em28xx
-Date: Fri,  9 Dec 2016 13:47:13 +0200
-Message-Id: <1481284039-7960-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mout.web.de ([212.227.15.4]:59004 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751674AbcLYS2a (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 25 Dec 2016 13:28:30 -0500
+To: linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 00/19] [media] USB Video Class driver: Fine-tuning for several
+ function implementations
+Message-ID: <47aa4314-74ec-b2bf-ee3b-aad4d6e9f0a2@users.sourceforge.net>
+Date: Sun, 25 Dec 2016 19:28:12 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sun, 25 Dec 2016 19:23:32 +0100
 
-This patch series fixes a regression reported by Devin Heitmueller that
-affects a large number of em28xx. The problem was introduced by
+Several update suggestions were taken into account
+from static source code analysis.
 
-commit 13d52fe40f1f7bbad49128e8ee6a2fe5e13dd18d
-Author: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Date:   Tue Jan 26 06:59:39 2016 -0200
+Markus Elfring (19):
+  uvc_driver: Use kmalloc_array() in uvc_simplify_fraction()
+  uvc_driver: Combine substrings for 48 messages
+  uvc_driver: Adjust three function calls together with a variable assignment
+  uvc_driver: Adjust 28 checks for null pointers
+  uvc_driver: Enclose 24 expressions for the sizeof operator by parentheses
+  uvc_driver: Add some spaces for better code readability
+  uvc_driver: Rename a jump label in uvc_probe()
+  uvc_driver: Rename a jump label in uvc_scan_fallback()
+  uvc_driver: Less function calls in uvc_parse_streaming() after error detection
+  uvc_driver: Return -ENOMEM after a failed kzalloc() call in uvc_parse_streaming()
+  uvc_driver: Delete an unnecessary variable initialisation in uvc_parse_streaming()
+  uvc_driver: Move six assignments in uvc_parse_streaming()
+  uvc_video: Use kmalloc_array() in uvc_video_clock_init()
+  uvc_video: Combine substrings for 22 messages
+  uvc_video: Adjust one function call together with a variable assignment
+  uvc_video: Adjust 18 checks for null pointers
+  uvc_video: Fix a typo in a comment line
+  uvc_video: Enclose an expression for the sizeof operator by parentheses
+  uvc_video: Add some spaces for better code readability
 
-    [media] em28xx: fix implementation of s_stream
-
-that started calling s_stream(1) in the em28xx driver when enabling the
-stream, resulting in the tvp5150 s_stream() operation writing several
-registers with values fit for other platforms (namely OMAP3, possibly others)
-but not for em28xx.
-
-The series starts with two unrelated drive-by cleanups and an unrelated bug
-fix. It then continues with a patch to remove an unneeded and armful call to
-tvp5150_reset() when getting the format from the subdevice (4/6), an update of
-an invalid comment and the addition of macros for register bits in order to
-make the code more readable (5/6) and actually allow following the incorrect
-code flow, and finally a rework of the s_stream() operation to fix the
-problem.
-
-Compared to v1,
-
-- Patch 4/5 now calls tvp5150_reset() at probe time
-- Patch 5/6 is fixed with an extra ~ removed
-
-I haven't been able to test this with an em28xx device as I don't own any that
-contains a tvp5150, but Mauro reported that the series fixes the issue with
-his device.
-
-I also haven't been able to test anything on an OMAP3 platform, as the tvp5150
-driver go broken on DT-based systems by
-
-commit f7b4b54e63643b740c598e044874c4bffa0f04f2
-Author: Javier Martinez Canillas <javier@osg.samsung.com>
-Date:   Fri Feb 5 17:09:58 2016 -0200
-
-    [media] tvp5150: add HW input connectors support
-
-Fixing it will be the topic of another patch series.
-
-Laurent Pinchart (6):
-  v4l: tvp5150: Compile tvp5150_link_setup out if
-    !CONFIG_MEDIA_CONTROLLER
-  v4l: tvp5150: Don't inline the tvp5150_selmux() function
-  v4l: tvp5150: Add missing break in set control handler
-  v4l: tvp5150: Reset device at probe time, not in get/set format
-    handlers
-  v4l: tvp5150: Fix comment regarding output pin muxing
-  v4l: tvp5150: Don't override output pinmuxing at stream on/off time
-
- drivers/media/i2c/tvp5150.c     | 63 +++++++++++++++++++++++++----------------
- drivers/media/i2c/tvp5150_reg.h |  9 ++++++
- 2 files changed, 48 insertions(+), 24 deletions(-)
+ drivers/media/usb/uvc/uvc_driver.c | 532 +++++++++++++++++++------------------
+ drivers/media/usb/uvc/uvc_video.c  | 162 +++++------
+ 2 files changed, 363 insertions(+), 331 deletions(-)
 
 -- 
-Regards,
-
-Laurent Pinchart
+2.11.0
 
