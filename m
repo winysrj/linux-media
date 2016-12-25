@@ -1,143 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:43013 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752009AbcLERLt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Dec 2016 12:11:49 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v4 06/10] [media] st-delta: add memory allocator helper functions
-Date: Mon, 5 Dec 2016 18:11:29 +0100
-Message-ID: <1480957893-25636-7-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1480957893-25636-1-git-send-email-hugues.fruchet@st.com>
-References: <1480957893-25636-1-git-send-email-hugues.fruchet@st.com>
+Received: from mout.web.de ([217.72.192.78]:62510 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932088AbcLYSph (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 25 Dec 2016 13:45:37 -0500
+Subject: [PATCH 13/19] [media] uvc_video: Use kmalloc_array() in
+ uvc_video_clock_init()
+To: linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <47aa4314-74ec-b2bf-ee3b-aad4d6e9f0a2@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <47b935d9-e063-503a-47e5-2aee2ffe149c@users.sourceforge.net>
+Date: Sun, 25 Dec 2016 19:45:29 +0100
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <47aa4314-74ec-b2bf-ee3b-aad4d6e9f0a2@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Helper functions used by decoder back-ends to allocate
-physically contiguous memory required by hardware video
-decoder.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sun, 25 Dec 2016 16:45:21 +0100
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+A multiplication for the size determination of a memory allocation
+indicated that an array data structure should be processed.
+Thus use the corresponding function "kmalloc_array".
+
+This issue was detected by using the Coccinelle software.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/platform/sti/delta/Makefile    |  2 +-
- drivers/media/platform/sti/delta/delta-mem.c | 51 ++++++++++++++++++++++++++++
- drivers/media/platform/sti/delta/delta-mem.h | 14 ++++++++
- drivers/media/platform/sti/delta/delta.h     |  8 +++++
- 4 files changed, 74 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/platform/sti/delta/delta-mem.c
- create mode 100644 drivers/media/platform/sti/delta/delta-mem.h
+ drivers/media/usb/uvc/uvc_video.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/sti/delta/Makefile b/drivers/media/platform/sti/delta/Makefile
-index 07ba7ad..cbfb1b5 100644
---- a/drivers/media/platform/sti/delta/Makefile
-+++ b/drivers/media/platform/sti/delta/Makefile
-@@ -1,2 +1,2 @@
- obj-$(CONFIG_VIDEO_STI_DELTA) := st-delta.o
--st-delta-y := delta-v4l2.o
-+st-delta-y := delta-v4l2.o delta-mem.o
-diff --git a/drivers/media/platform/sti/delta/delta-mem.c b/drivers/media/platform/sti/delta/delta-mem.c
-new file mode 100644
-index 0000000..d7b53d3
---- /dev/null
-+++ b/drivers/media/platform/sti/delta/delta-mem.c
-@@ -0,0 +1,51 @@
-+/*
-+ * Copyright (C) STMicroelectronics SA 2015
-+ * Author: Hugues Fruchet <hugues.fruchet@st.com> for STMicroelectronics.
-+ * License terms:  GNU General Public License (GPL), version 2
-+ */
-+
-+#include "delta.h"
-+#include "delta-mem.h"
-+
-+int hw_alloc(struct delta_ctx *ctx, u32 size, const char *name,
-+	     struct delta_buf *buf)
-+{
-+	struct delta_dev *delta = ctx->dev;
-+	dma_addr_t dma_addr;
-+	void *addr;
-+	unsigned long attrs = DMA_ATTR_WRITE_COMBINE;
-+
-+	addr = dma_alloc_attrs(delta->dev, size, &dma_addr,
-+			       GFP_KERNEL | __GFP_NOWARN, attrs);
-+	if (!addr) {
-+		dev_err(delta->dev,
-+			"%s hw_alloc:dma_alloc_coherent failed for %s (size=%d)\n",
-+			ctx->name, name, size);
-+		ctx->sys_errors++;
-+		return -ENOMEM;
-+	}
-+
-+	buf->size = size;
-+	buf->paddr = dma_addr;
-+	buf->vaddr = addr;
-+	buf->name = name;
-+	buf->attrs = attrs;
-+
-+	dev_dbg(delta->dev,
-+		"%s allocate %d bytes of HW memory @(virt=0x%p, phy=0x%pad): %s\n",
-+		ctx->name, size, buf->vaddr, &buf->paddr, buf->name);
-+
-+	return 0;
-+}
-+
-+void hw_free(struct delta_ctx *ctx, struct delta_buf *buf)
-+{
-+	struct delta_dev *delta = ctx->dev;
-+
-+	dev_dbg(delta->dev,
-+		"%s     free %d bytes of HW memory @(virt=0x%p, phy=0x%pad): %s\n",
-+		ctx->name, buf->size, buf->vaddr, &buf->paddr, buf->name);
-+
-+	dma_free_attrs(delta->dev, buf->size,
-+		       buf->vaddr, buf->paddr, buf->attrs);
-+}
-diff --git a/drivers/media/platform/sti/delta/delta-mem.h b/drivers/media/platform/sti/delta/delta-mem.h
-new file mode 100644
-index 0000000..f8ca109
---- /dev/null
-+++ b/drivers/media/platform/sti/delta/delta-mem.h
-@@ -0,0 +1,14 @@
-+/*
-+ * Copyright (C) STMicroelectronics SA 2015
-+ * Author: Hugues Fruchet <hugues.fruchet@st.com> for STMicroelectronics.
-+ * License terms:  GNU General Public License (GPL), version 2
-+ */
-+
-+#ifndef DELTA_MEM_H
-+#define DELTA_MEM_H
-+
-+int hw_alloc(struct delta_ctx *ctx, u32 size, const char *name,
-+	     struct delta_buf *buf);
-+void hw_free(struct delta_ctx *ctx, struct delta_buf *buf);
-+
-+#endif /* DELTA_MEM_H */
-diff --git a/drivers/media/platform/sti/delta/delta.h b/drivers/media/platform/sti/delta/delta.h
-index 74a4240..9e26525 100644
---- a/drivers/media/platform/sti/delta/delta.h
-+++ b/drivers/media/platform/sti/delta/delta.h
-@@ -191,6 +191,14 @@ struct delta_dts {
- 	u64 val;
- };
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index f3c1c852e401..05b396f033ca 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -500,9 +500,9 @@ static int uvc_video_clock_init(struct uvc_streaming *stream)
  
-+struct delta_buf {
-+	u32 size;
-+	void *vaddr;
-+	dma_addr_t paddr;
-+	const char *name;
-+	unsigned long attrs;
-+};
-+
- struct delta_ctx;
+ 	spin_lock_init(&clock->lock);
+ 	clock->size = 32;
+-
+-	clock->samples = kmalloc(clock->size * sizeof(*clock->samples),
+-				 GFP_KERNEL);
++	clock->samples = kmalloc_array(clock->size,
++				       sizeof(*clock->samples),
++				       GFP_KERNEL);
+ 	if (clock->samples == NULL)
+ 		return -ENOMEM;
  
- /*
 -- 
-1.9.1
+2.11.0
 
