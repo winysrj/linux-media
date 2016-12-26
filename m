@@ -1,123 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:52067 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933378AbcLIQ7X (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Dec 2016 11:59:23 -0500
-From: Michael Tretter <m.tretter@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Philipp Zabel <p.zabel@pengutronix.de>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
+Received: from mout.web.de ([212.227.15.4]:63138 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755835AbcLZU4A (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Dec 2016 15:56:00 -0500
+Subject: [PATCH 3/8] [media] videobuf-dma-sg: Use kmalloc_array() in
+ videobuf_dma_init_user_locked()
+To: linux-media@vger.kernel.org,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Jan Kara <jack@suse.cz>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Lorenzo Stoakes <lstoakes@gmail.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michael Tretter <m.tretter@pengutronix.de>
-Subject: [PATCH v2 3/7] [media] coda: correctly set capture compose rectangle
-Date: Fri,  9 Dec 2016 17:58:59 +0100
-Message-Id: <20161209165903.1293-4-m.tretter@pengutronix.de>
-In-Reply-To: <20161209165903.1293-1-m.tretter@pengutronix.de>
-References: <20161209165903.1293-1-m.tretter@pengutronix.de>
+        Michal Hocko <mhocko@suse.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+References: <9268b60d-08ba-c64e-1848-f84679d64f80@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <f02ed3c0-60f5-300c-c767-b3d96816b5ad@users.sourceforge.net>
+Date: Mon, 26 Dec 2016 21:47:17 +0100
+MIME-Version: 1.0
+In-Reply-To: <9268b60d-08ba-c64e-1848-f84679d64f80@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Mon, 26 Dec 2016 19:46:56 +0100
 
-Correctly store the rectangle of valid video data in the destination
-q_data before rounding up to macroblock size. This fixes the output
-of VIDIOC_G_SELECTION for the capture side compose rectangle.
+* A multiplication for the size determination of a memory allocation
+  indicated that an array data structure should be processed.
+  Thus use the corresponding function "kmalloc_array".
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
+  This issue was detected by using the Coccinelle software.
+
+* Replace the specification of a data type by a pointer dereference
+  to make the corresponding size determination a bit safer according to
+  the Linux coding style convention.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/platform/coda/coda-common.c | 37 ++++++++++++++++++++++++-------
- 1 file changed, 29 insertions(+), 8 deletions(-)
+ drivers/media/v4l2-core/videobuf-dma-sg.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index c39718a..e0184194 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -566,7 +566,8 @@ static int coda_try_fmt_vid_out(struct file *file, void *priv,
- 	return coda_try_fmt(ctx, codec, f);
- }
+diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
+index ba63ca57ed7e..ab3c1f6a2ca1 100644
+--- a/drivers/media/v4l2-core/videobuf-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
+@@ -175,7 +175,9 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
+ 	dma->offset = data & ~PAGE_MASK;
+ 	dma->size = size;
+ 	dma->nr_pages = last-first+1;
+-	dma->pages = kmalloc(dma->nr_pages * sizeof(struct page *), GFP_KERNEL);
++	dma->pages = kmalloc_array(dma->nr_pages,
++				   sizeof(*dma->pages),
++				   GFP_KERNEL);
+ 	if (NULL == dma->pages)
+ 		return -ENOMEM;
  
--static int coda_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f)
-+static int coda_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f,
-+		      struct v4l2_rect *r)
- {
- 	struct coda_q_data *q_data;
- 	struct vb2_queue *vq;
-@@ -589,10 +590,14 @@ static int coda_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f)
- 	q_data->height = f->fmt.pix.height;
- 	q_data->bytesperline = f->fmt.pix.bytesperline;
- 	q_data->sizeimage = f->fmt.pix.sizeimage;
--	q_data->rect.left = 0;
--	q_data->rect.top = 0;
--	q_data->rect.width = f->fmt.pix.width;
--	q_data->rect.height = f->fmt.pix.height;
-+	if (r) {
-+		q_data->rect = *r;
-+	} else {
-+		q_data->rect.left = 0;
-+		q_data->rect.top = 0;
-+		q_data->rect.width = f->fmt.pix.width;
-+		q_data->rect.height = f->fmt.pix.height;
-+	}
- 
- 	switch (f->fmt.pix.pixelformat) {
- 	case V4L2_PIX_FMT_NV12:
-@@ -621,27 +626,37 @@ static int coda_s_fmt_vid_cap(struct file *file, void *priv,
- 			      struct v4l2_format *f)
- {
- 	struct coda_ctx *ctx = fh_to_ctx(priv);
-+	struct coda_q_data *q_data_src;
-+	struct v4l2_rect r;
- 	int ret;
- 
- 	ret = coda_try_fmt_vid_cap(file, priv, f);
- 	if (ret)
- 		return ret;
- 
--	return coda_s_fmt(ctx, f);
-+	q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
-+	r.left = 0;
-+	r.top = 0;
-+	r.width = q_data_src->width;
-+	r.height = q_data_src->height;
-+
-+	return coda_s_fmt(ctx, f, &r);
- }
- 
- static int coda_s_fmt_vid_out(struct file *file, void *priv,
- 			      struct v4l2_format *f)
- {
- 	struct coda_ctx *ctx = fh_to_ctx(priv);
-+	struct coda_q_data *q_data_src;
- 	struct v4l2_format f_cap;
-+	struct v4l2_rect r;
- 	int ret;
- 
- 	ret = coda_try_fmt_vid_out(file, priv, f);
- 	if (ret)
- 		return ret;
- 
--	ret = coda_s_fmt(ctx, f);
-+	ret = coda_s_fmt(ctx, f, NULL);
- 	if (ret)
- 		return ret;
- 
-@@ -657,7 +672,13 @@ static int coda_s_fmt_vid_out(struct file *file, void *priv,
- 	if (ret)
- 		return ret;
- 
--	return coda_s_fmt(ctx, &f_cap);
-+	q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
-+	r.left = 0;
-+	r.top = 0;
-+	r.width = q_data_src->width;
-+	r.height = q_data_src->height;
-+
-+	return coda_s_fmt(ctx, &f_cap, &r);
- }
- 
- static int coda_reqbufs(struct file *file, void *priv,
 -- 
-2.10.2
+2.11.0
 
