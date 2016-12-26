@@ -1,53 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.polytechnique.org ([129.104.30.34]:39042 "EHLO
+Received: from mx1.polytechnique.org ([129.104.30.34]:54721 "EHLO
         mx1.polytechnique.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932916AbcL0SDO (ORCPT
+        with ESMTP id S1751199AbcLZNcT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Dec 2016 13:03:14 -0500
+        Mon, 26 Dec 2016 08:32:19 -0500
 From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
+To: Kieran Bingham <kieran@ksquared.org.uk>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org,
-        Nicolas Iooss <nicolas.iooss_linux@m4x.org>,
-        stable@vger.kernel.org
-Subject: [PATCH] [media] am437x-vpfe: always assign bpp variable
-Date: Tue, 27 Dec 2016 19:02:36 +0100
-Message-Id: <20161227180236.11150-1-nicolas.iooss_linux@m4x.org>
+        Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Subject: [PATCH 1/1] [media] v4l: rcar_fdp1: use %4.4s to format a 4-byte string
+Date: Mon, 26 Dec 2016 14:31:39 +0100
+Message-Id: <20161226133139.3775-1-nicolas.iooss_linux@m4x.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In vpfe_s_fmt(), when the sensor format and the requested format were
-the same, bpp was assigned to vpfe->bpp without being initialized first.
+Using %4s to format f->fmt.pix_mp.pixelformat in fdp1_try_fmt() and
+fdp1_s_fmt() may lead to more characters being printed (when the byte
+following field pixelformat is not zero).
 
-Grab the bpp value that is currently used by using __vpfe_get_format()
-instead of its wrapper, vpfe_try_fmt().
+Add ".4" to the format specifier to limit the number of printed
+characters to four. The resulting format specifier "%4.4s" is also used
+by other media drivers to print pixelformat value.
 
-This use of uninitialized variable has been found by compiling the
-kernel with clang.
-
-Fixes: 417d2e507edc ("[media] media: platform: add VPFE capture driver
-support for AM437X")
-Cc: stable@vger.kernel.org
 Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
 ---
- drivers/media/platform/am437x/am437x-vpfe.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/rcar_fdp1.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
-index b33b9e35e60e..05489a401c5c 100644
---- a/drivers/media/platform/am437x/am437x-vpfe.c
-+++ b/drivers/media/platform/am437x/am437x-vpfe.c
-@@ -1576,7 +1576,7 @@ static int vpfe_s_fmt(struct file *file, void *priv,
- 		return -EBUSY;
- 	}
+diff --git a/drivers/media/platform/rcar_fdp1.c b/drivers/media/platform/rcar_fdp1.c
+index 674cc1309b43..42f25d241edd 100644
+--- a/drivers/media/platform/rcar_fdp1.c
++++ b/drivers/media/platform/rcar_fdp1.c
+@@ -1596,7 +1596,7 @@ static int fdp1_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 	else
+ 		fdp1_try_fmt_capture(ctx, NULL, &f->fmt.pix_mp);
  
--	ret = vpfe_try_fmt(file, priv, &format);
-+	ret = __vpfe_get_format(vpfe, &format, &bpp);
- 	if (ret)
- 		return ret;
+-	dprintk(ctx->fdp1, "Try %s format: %4s (0x%08x) %ux%u field %u\n",
++	dprintk(ctx->fdp1, "Try %s format: %4.4s (0x%08x) %ux%u field %u\n",
+ 		V4L2_TYPE_IS_OUTPUT(f->type) ? "output" : "capture",
+ 		(char *)&f->fmt.pix_mp.pixelformat, f->fmt.pix_mp.pixelformat,
+ 		f->fmt.pix_mp.width, f->fmt.pix_mp.height, f->fmt.pix_mp.field);
+@@ -1671,7 +1671,7 @@ static int fdp1_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
  
+ 	fdp1_set_format(ctx, &f->fmt.pix_mp, f->type);
+ 
+-	dprintk(ctx->fdp1, "Set %s format: %4s (0x%08x) %ux%u field %u\n",
++	dprintk(ctx->fdp1, "Set %s format: %4.4s (0x%08x) %ux%u field %u\n",
+ 		V4L2_TYPE_IS_OUTPUT(f->type) ? "output" : "capture",
+ 		(char *)&f->fmt.pix_mp.pixelformat, f->fmt.pix_mp.pixelformat,
+ 		f->fmt.pix_mp.width, f->fmt.pix_mp.height, f->fmt.pix_mp.field);
 -- 
 2.11.0
 
