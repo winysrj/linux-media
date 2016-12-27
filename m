@@ -1,43 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:58901 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932196AbcLLKhP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Dec 2016 05:37:15 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: jacopo@jmondi.org
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH] v4l: vsp1: Add VIDIOC_EXPBUF support
-Date: Mon, 12 Dec 2016 12:37:42 +0200
-Message-Id: <1481539062-23179-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from gofer.mess.org ([80.229.237.210]:44255 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752810AbcL0LRd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Dec 2016 06:17:33 -0500
+Date: Tue, 27 Dec 2016 11:17:30 +0000
+From: Sean Young <sean@mess.org>
+To: Heiner Kallweit <hkallweit1@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH] media: rc: refactor raw handler kthread
+Message-ID: <20161227111729.GA3374@gofer.mess.org>
+References: <f1b01f8c-934a-3bfe-ca1f-880b9c1ad233@gmail.com>
+ <727717c2-8529-691f-282a-cb57c997c922@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <727717c2-8529-691f-282a-cb57c997c922@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the vb2 ioctl handler directly.
+On Mon, Dec 26, 2016 at 02:01:31PM +0100, Heiner Kallweit wrote:
+> Am 02.08.2016 um 07:44 schrieb Heiner Kallweit:
+> > I think we can get rid of the spinlock protecting the kthread from being
+> > interrupted by a wakeup in certain parts.
+> > Even with the current implementation of the kthread the only lost wakeup
+> > scenario could happen if the wakeup occurs between the kfifo_len check
+> > and setting the state to TASK_INTERRUPTIBLE.
+> > 
+> > In the changed version we could lose a wakeup if it occurs between
+> > processing the fifo content and setting the state to TASK_INTERRUPTIBLE.
+> > This scenario is covered by an additional check for available events in
+> > the fifo and setting the state to TASK_RUNNING in this case.
+> > 
+> > In addition the changed version flushes the kfifo before ending
+> > when the kthread is stopped.
+> > 
+> > With this patch we gain:
+> > - Get rid of the spinlock
+> > - Simplify code
+> > - Don't grep / release the mutex for each individual event but just once
+> >   for the complete fifo content. This reduces overhead if a driver e.g.
+> >   triggers processing after writing the content of a hw fifo to the kfifo.
+> > 
+> > Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+> 
+> Sean added a review comment and his "Tested-by" a month ago.
+> Anything else missing before it can be applied?
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_video.c | 1 +
- 1 file changed, 1 insertion(+)
+I have it applied here:
 
-Jacopo,
+https://git.linuxtv.org/syoung/media_tree.git/log/?h=for-v4.11a
 
-Does this fix your issue ?
+I'll ask Mauro to pull that tree soon, now that 4.10-rc1 has been
+merged. I need to do some testing.
 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index fd3acf1a98a6..0113a55b19c9 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -1021,6 +1021,7 @@ static const struct v4l2_ioctl_ops vsp1_video_ioctl_ops = {
- 	.vidioc_querybuf		= vb2_ioctl_querybuf,
- 	.vidioc_qbuf			= vb2_ioctl_qbuf,
- 	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
-+	.vidioc_expbuf			= vb2_ioctl_expbuf,
- 	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
- 	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
- 	.vidioc_streamon		= vsp1_video_streamon,
--- 
-Regards,
 
-Laurent Pinchart
-
+Sean
