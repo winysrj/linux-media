@@ -1,180 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50175 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757087AbcLPBYF (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45744 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752694AbcL0LvR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 20:24:05 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Rob Clark <robdclark@gmail.com>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Laura Abbott <labbott@redhat.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [RFC v2 10/11] vb2: dma-contig: Let drivers decide DMA attrs of MMAP and USERPTR bufs
-Date: Fri, 16 Dec 2016 03:24:24 +0200
-Message-Id: <20161216012425.11179-11-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20161216012425.11179-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20161216012425.11179-1-laurent.pinchart+renesas@ideasonboard.com>
+        Tue, 27 Dec 2016 06:51:17 -0500
+Date: Tue, 27 Dec 2016 13:51:11 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-media@vger.kernel.org,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Jan Kara <jack@suse.cz>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Lorenzo Stoakes <lstoakes@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michal Hocko <mhocko@suse.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org, hverkuil@xs4all.nl
+Subject: Re: [PATCH 0/8] [media] v4l2-core: Fine-tuning for some function
+ implementations
+Message-ID: <20161227115111.GN16630@valkosipuli.retiisi.org.uk>
+References: <9268b60d-08ba-c64e-1848-f84679d64f80@users.sourceforge.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <9268b60d-08ba-c64e-1848-f84679d64f80@users.sourceforge.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Hi Markus,
 
-The desirable DMA attributes are not generic for all devices using
-Videobuf2 contiguous DMA ops. Let the drivers decide.
+On Mon, Dec 26, 2016 at 09:41:19PM +0100, SF Markus Elfring wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Mon, 26 Dec 2016 21:30:12 +0100
+> 
+> Some update suggestions were taken into account
+> from static source code analysis.
+> 
+> Markus Elfring (8):
+>   v4l2-async: Use kmalloc_array() in v4l2_async_notifier_unregister()
+>   v4l2-async: Delete an error message for a failed memory allocation in v4l2_async_notifier_unregister()
+>   videobuf-dma-sg: Use kmalloc_array() in videobuf_dma_init_user_locked()
+>   videobuf-dma-sg: Adjust 24 checks for null values
+>   videobuf-dma-sg: Move two assignments for error codes in __videobuf_mmap_mapper()
+>   videobuf-dma-sg: Improve a size determination in __videobuf_mmap_mapper()
+>   videobuf-dma-sg: Delete an unnecessary return statement in videobuf_vm_close()
+>   videobuf-dma-sg: Add some spaces for better code readability in videobuf_dma_init_user_locked()
 
-This change also results in MMAP buffers always having an sg_table
-(dma_sgt field).
+I don't really disagree with the videobuf changes as such --- the original
+code sure seems quite odd, but I wonder whether we want to do this kind of
+cleanups in videobuf. Videobuf will be removed likely in not too distant
+future; when exactly, Hans can guesstimate better than me. Cc him.
 
-Also arrange the header files alphabetically.
-
-As a result, also the DMA-BUF exporter must provide ops for synchronising
-the cache. This adds begin_cpu_access and end_cpu_access ops to
-vb2_dc_dmabuf_ops.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 66 ++++++++++++++++++++++----
- 1 file changed, 56 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index d503647ea522..a0e88ad93f07 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -11,11 +11,11 @@
-  */
- 
- #include <linux/dma-buf.h>
-+#include <linux/dma-mapping.h>
- #include <linux/module.h>
- #include <linux/scatterlist.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
--#include <linux/dma-mapping.h>
- 
- #include <media/videobuf2-v4l2.h>
- #include <media/videobuf2-dma-contig.h>
-@@ -115,8 +115,11 @@ static void vb2_dc_prepare(void *buf_priv)
- 	struct vb2_dc_buf *buf = buf_priv;
- 	struct sg_table *sgt = buf->dma_sgt;
- 
--	/* DMABUF exporter will flush the cache for us */
--	if (!buf->vec)
-+	/*
-+	 * DMABUF exporter will flush the cache for us; only USERPTR
-+	 * and MMAP buffers with non-coherent memory will be flushed.
-+	 */
-+	if (!(buf->attrs & DMA_ATTR_NON_CONSISTENT))
- 		return;
- 
- 	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->orig_nents,
-@@ -128,8 +131,11 @@ static void vb2_dc_finish(void *buf_priv)
- 	struct vb2_dc_buf *buf = buf_priv;
- 	struct sg_table *sgt = buf->dma_sgt;
- 
--	/* DMABUF exporter will flush the cache for us */
--	if (!buf->vec)
-+	/*
-+	 * DMABUF exporter will flush the cache for us; only USERPTR
-+	 * and MMAP buffers with non-coherent memory will be flushed.
-+	 */
-+	if (!(buf->attrs & DMA_ATTR_NON_CONSISTENT))
- 		return;
- 
- 	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
-@@ -172,13 +178,22 @@ static void *vb2_dc_alloc(struct device *dev, unsigned long attrs,
- 	if (attrs)
- 		buf->attrs = attrs;
- 	buf->cookie = dma_alloc_attrs(dev, size, &buf->dma_addr,
--					GFP_KERNEL | gfp_flags, buf->attrs);
-+				     GFP_KERNEL | gfp_flags, buf->attrs);
- 	if (!buf->cookie) {
--		dev_err(dev, "dma_alloc_coherent of size %ld failed\n", size);
-+		dev_err(dev, "dma_alloc_attrs of size %ld failed\n", size);
- 		kfree(buf);
- 		return ERR_PTR(-ENOMEM);
- 	}
- 
-+	if (buf->attrs & DMA_ATTR_NON_CONSISTENT) {
-+		buf->dma_sgt = vb2_dc_get_base_sgt(buf);
-+		if (!buf->dma_sgt) {
-+			dma_free_attrs(dev, size, buf->cookie, buf->dma_addr,
-+				       buf->attrs);
-+			return ERR_PTR(-ENOMEM);
-+		}
-+	}
-+
- 	if ((buf->attrs & DMA_ATTR_NO_KERNEL_MAPPING) == 0)
- 		buf->vaddr = buf->cookie;
- 
-@@ -359,6 +374,34 @@ static void *vb2_dc_dmabuf_ops_kmap(struct dma_buf *dbuf, unsigned long pgnum)
- 	return buf->vaddr ? buf->vaddr + pgnum * PAGE_SIZE : NULL;
- }
- 
-+static int vb2_dc_dmabuf_ops_begin_cpu_access(struct dma_buf *dbuf,
-+					      enum dma_data_direction direction)
-+{
-+	struct vb2_dc_buf *buf = dbuf->priv;
-+	struct sg_table *sgt = buf->dma_sgt;
-+
-+	if (!(buf->attrs & DMA_ATTR_NON_CONSISTENT))
-+		return 0;
-+
-+	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-+
-+	return 0;
-+}
-+
-+static int vb2_dc_dmabuf_ops_end_cpu_access(struct dma_buf *dbuf,
-+					    enum dma_data_direction direction)
-+{
-+	struct vb2_dc_buf *buf = dbuf->priv;
-+	struct sg_table *sgt = buf->dma_sgt;
-+
-+	if (!(buf->attrs & DMA_ATTR_NON_CONSISTENT))
-+		return 0;
-+
-+	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-+
-+	return 0;
-+}
-+
- static void *vb2_dc_dmabuf_ops_vmap(struct dma_buf *dbuf)
- {
- 	struct vb2_dc_buf *buf = dbuf->priv;
-@@ -379,6 +422,8 @@ static struct dma_buf_ops vb2_dc_dmabuf_ops = {
- 	.unmap_dma_buf = vb2_dc_dmabuf_ops_unmap,
- 	.kmap = vb2_dc_dmabuf_ops_kmap,
- 	.kmap_atomic = vb2_dc_dmabuf_ops_kmap,
-+	.begin_cpu_access = vb2_dc_dmabuf_ops_begin_cpu_access,
-+	.end_cpu_access = vb2_dc_dmabuf_ops_end_cpu_access,
- 	.vmap = vb2_dc_dmabuf_ops_vmap,
- 	.mmap = vb2_dc_dmabuf_ops_mmap,
- 	.release = vb2_dc_dmabuf_ops_release,
-@@ -424,11 +469,12 @@ static void vb2_dc_put_userptr(void *buf_priv)
- 
- 	if (sgt) {
- 		/*
--		 * No need to sync to CPU, it's already synced to the CPU
--		 * since the finish() memop will have been called before this.
-+		 * Don't ask to skip cache sync in case if the user
-+		 * did ask to skip cache flush the last time the
-+		 * buffer was dequeued.
- 		 */
- 		dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
--				   buf->dma_dir, DMA_ATTR_SKIP_CPU_SYNC);
-+				   buf->dma_dir, 0);
- 		pages = frame_vector_pages(buf->vec);
- 		/* sgt should exist only if vector contains pages... */
- 		BUG_ON(IS_ERR(pages));
 -- 
-Regards,
+Kind regards,
 
-Laurent Pinchart
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
