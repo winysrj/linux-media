@@ -1,90 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48066 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751520AbcLOMNG (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:54829 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752294AbcL0U70 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 07:13:06 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, javier@osg.samsung.com,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Greg KH <greg@kroah.com>
-Subject: Re: [PATCH RFC] omap3isp: prevent releasing MC too early
-Date: Thu, 15 Dec 2016 14:13:42 +0200
-Message-ID: <3043978.ViByGAdkJL@avalon>
-In-Reply-To: <20161214151406.20380-1-mchehab@s-opensource.com>
-References: <20161214151406.20380-1-mchehab@s-opensource.com>
+        Tue, 27 Dec 2016 15:59:26 -0500
+Date: Tue, 27 Dec 2016 21:59:23 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org, galak@codeaurora.org,
+        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
+Subject: [PATCH] mark myself as mainainer for camera on N900
+Message-ID: <20161227205923.GA7859@amd>
+References: <20161023200355.GA5391@amd>
+ <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
+ <20161214122451.GB27011@amd>
+ <20161222100104.GA30917@amd>
+ <20161227092634.GK16630@valkosipuli.retiisi.org.uk>
+ <20161227204558.GA23676@amd>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="82I3+IH0IqGh5yIs"
+Content-Disposition: inline
+In-Reply-To: <20161227204558.GA23676@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
 
-(CC'ing Greg)
+--82I3+IH0IqGh5yIs
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Wednesday 14 Dec 2016 13:14:06 Mauro Carvalho Chehab wrote:
-> Avoid calling streamoff without having the media structs allocated.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Mark and Sakari as maintainers for Nokia N900 camera pieces.
 
-The driver has a maintainer listed in MAINTAINERS, and you know that Sakari is 
-also actively involved here. You could have CC'ed us.
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-> ---
-> 
-> Javier,
-> 
-> Could you please test this patch?
-> 
-> Thanks!
-> Mauro
-> 
->  drivers/media/platform/omap3isp/ispvideo.c | 10 ++++++++--
->  1 file changed, 8 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/ispvideo.c
-> b/drivers/media/platform/omap3isp/ispvideo.c index
-> 7354469670b7..f60995ed0a1f 100644
-> --- a/drivers/media/platform/omap3isp/ispvideo.c
-> +++ b/drivers/media/platform/omap3isp/ispvideo.c
-> @@ -1488,11 +1488,17 @@ int omap3isp_video_register(struct isp_video *video,
-> struct v4l2_device *vdev) "%s: could not register video device (%d)\n",
->  			__func__, ret);
-> 
-> +	/* Prevent destroying MC before unregistering */
-> +	kobject_get(vdev->v4l2_dev->mdev->devnode->dev.parent);
+---
 
-This doesn't even compile. Please make sure to at least compile-test patches 
-you send for review, otherwise you end up wasting time for all reviewers and 
-testers. I assume you meant
+Hi!
 
-	kobject_get(&vdev->mdev->devnode->dev.parent->kobj);
+> Yeah, there was big flamewar about the permissions. In the end Linus
+> decided that everyone knows the octal numbers, but the constants are
+> tricky. It began with patch series with 1000 patches...
+>=20
+> > Btw. should we update maintainers as well? Would you like to put yourse=
+lf
+> > there? Feel free to add me, too...
+>=20
+> Ok, will do.
 
-and similarly below.
+Something like this? Actually, I guess we could merge ADP1653 entry
+there. Yes, it is random collection of devices, but are usually tested
+"together", so I believe one entry makes sense.
 
-That's a long list of pointer dereferences, going deep down the device core. 
-Greg, are drivers allowed to do this by the driver model ?
+(But I have no problem with having multiple entries, too.)
 
-> +
->  	return ret;
->  }
-> 
->  void omap3isp_video_unregister(struct isp_video *video)
->  {
-> -	if (video_is_registered(&video->video))
-> -		video_unregister_device(&video->video);
-> +	if (!video_is_registered(&video->video))
-> +		return;
-> +
-> +	video_unregister_device(&video->video);
-> +	kobject_put(vdev->v4l2_dev->mdev->devnode->dev.parent);
->  }
+Thanks,
+								Pavel
 
--- 
-Regards,
 
-Laurent Pinchart
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 63cefa6..1cb1d97 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8613,6 +8613,14 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git=
+/lftan/nios2.git
+ S:	Maintained
+ F:	arch/nios2/
+=20
++NOKIA N900 CAMERA SUPPORT (ET8EK8 SENSOR, AD5820 FOCUS)
++M:	Pavel Machek <pavel@ucw.cz>
++M:	Sakari Ailus <sakari.ailus@iki.fi>
++L:	linux-media@vger.kernel.org
++S:	Maintained
++F:	drivers/media/i2c/et8ek8
++F:	drivers/media/i2c/ad5820.c
++
+ NOKIA N900 POWER SUPPLY DRIVERS
+ R:	Pali Roh=E1r <pali.rohar@gmail.com>
+ F:	include/linux/power/bq2415x_charger.h
 
+
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--82I3+IH0IqGh5yIs
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlhi1isACgkQMOfwapXb+vJQ6ACfT+9U0uAJNcOJQTj2SFd/W8J3
+nAcAnA4Ux50PEHs0gNoFbNivHs/NOG3S
+=19H3
+-----END PGP SIGNATURE-----
+
+--82I3+IH0IqGh5yIs--
