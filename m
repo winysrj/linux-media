@@ -1,68 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45245 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751827AbcLHNjc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 08:39:32 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v2 3/3] uvcvideo: add a metadata device node
-Date: Thu, 08 Dec 2016 15:39:57 +0200
-Message-ID: <15282460.lOulU7IMKd@avalon>
-In-Reply-To: <Pine.LNX.4.64.1612081432320.4140@axis700.grange>
-References: <Pine.LNX.4.64.1606241312130.23461@axis700.grange> <6827808.RfcVLAN17o@avalon> <Pine.LNX.4.64.1612081432320.4140@axis700.grange>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45676 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754507AbcL0Lr4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Dec 2016 06:47:56 -0500
+Date: Tue, 27 Dec 2016 13:47:18 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-media@vger.kernel.org,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Jan Kara <jack@suse.cz>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Lorenzo Stoakes <lstoakes@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michal Hocko <mhocko@suse.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH 2/8] [media] v4l2-async: Delete an error message for a
+ failed memory allocation in v4l2_async_notifier_unregister()
+Message-ID: <20161227114718.GM16630@valkosipuli.retiisi.org.uk>
+References: <9268b60d-08ba-c64e-1848-f84679d64f80@users.sourceforge.net>
+ <a00be613-169b-4992-dc29-c4b9e82d5501@users.sourceforge.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <a00be613-169b-4992-dc29-c4b9e82d5501@users.sourceforge.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
-
-On Thursday 08 Dec 2016 14:34:46 Guennadi Liakhovetski wrote:
-> On Tue, 6 Dec 2016, Laurent Pinchart wrote:
-> > On Tuesday 06 Dec 2016 11:39:22 Guennadi Liakhovetski wrote:
-> >> On Tue, 6 Dec 2016, Laurent Pinchart wrote:
-> >>> On Monday 05 Dec 2016 23:13:53 Guennadi Liakhovetski wrote:
-> >>>> On Tue, 6 Dec 2016, Laurent Pinchart wrote:
-> >>>>>>>> +	/*
-> >>>>>>>> +	 * Register a metadata node. TODO: shall this only be enabled
-> >>>>>>>> for some
-> >>>>>>>> +	 * cameras?
-> >>>>>>>> +	 */
-> >>>>>>>> +	if (!(dev->quirks & UVC_QUIRK_BUILTIN_ISIGHT))
-> >>>>>>>> +		uvc_meta_register(stream);
-> >>>>>>>> +
-> >>>>>>> 
-> >>>>>>> I think so, only for the cameras that can produce metadata.
-> >>>>>> 
-> >>>>>> Every UVC camera produces metadata, but most cameras only have
-> >>>>>> standard fields there. Whether we should stream standard header
-> >>>>>> fields from the metadata node will be discussed later. If we do
-> >>>>>> decide to stream standard header fields, then every USB camera gets
-> >>>>>> metadata nodes. If we decide not to include standard fields, how do
-> >>>>>> we know whether the camera has any private fields in headers
-> >>>>>> without streaming from it? Do you want a quirk for such cameras?
-> >>>>> 
-> >>>>> Unless they can be detected in a standard way that's probably the
-> >>>>> best solution.
+On Mon, Dec 26, 2016 at 09:45:50PM +0100, SF Markus Elfring wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Mon, 26 Dec 2016 19:19:49 +0100
 > 
-> How about a module parameter with a list of VID:PID pairs?
+> The script "checkpatch.pl" pointed information out like the following.
+> 
+> WARNING: Possible unnecessary 'out of memory' message
+> 
+> Thus fix the affected source code place.
+> 
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 5 -----
+>  1 file changed, 5 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index 277183f2d514..812d0b2a2f73 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -203,11 +203,6 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+>  		return;
+>  
+>  	dev = kmalloc_array(n_subdev, sizeof(*dev), GFP_KERNEL);
+> -	if (!dev) {
+> -		dev_err(notifier->v4l2_dev->dev,
+> -			"Failed to allocate device cache!\n");
+> -	}
+> -
 
-I'd like something that works out of the box for end-users, at least in most 
-cases. There's already a way to set quirks through a module parameter, and I 
-think I'd accept a patch extending that it make it VID:PID dependent. That's 
-an acceptable solution for testing, but should not be considered as the way to 
-go for production.
+I'd leave the empty line where it is.
 
-> The problem with the quirk is, that as vendors produce multiple cameras with
-> different PIDs they will have to push patches for each such camera.
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-How many such devices do you expect ?
+>  	mutex_lock(&list_lock);
+>  
+>  	list_del(&notifier->list);
+> -- 
+> 2.11.0
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
