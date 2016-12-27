@@ -1,70 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36396
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752126AbcLHSuG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 13:50:06 -0500
-Date: Thu, 8 Dec 2016 16:49:57 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH] tvp5150: don't touch register TVP5150_CONF_SHARED_PIN
- if not needed
-Message-ID: <20161208164957.489a79f2@vento.lan>
-In-Reply-To: <CAGoCfiz3MNnt=8zZ5jHMQzZOyfNW_biSNU2iju4wROxQ4X=NBQ@mail.gmail.com>
-References: <b47a9d956d740d63334bf0f07e6cfddd7f60e98b.1481204310.git.mchehab@s-opensource.com>
-        <3555863.PStTa0BX6X@avalon>
-        <20161208121608.1a95d3b6@vento.lan>
-        <3810287.F7IvM3IBCA@avalon>
-        <CAGoCfiz3MNnt=8zZ5jHMQzZOyfNW_biSNU2iju4wROxQ4X=NBQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtprelay.synopsys.com ([198.182.60.111]:53882 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932627AbcL0N7a (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Dec 2016 08:59:30 -0500
+From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+To: mchehab@kernel.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, robh+dt@kernel.org,
+        devicetree@vger.kernel.org
+Cc: davem@davemloft.net, gregkh@linuxfoundation.org,
+        geert+renesas@glider.be, akpm@linux-foundation.org,
+        linux@roeck-us.net, hverkuil@xs4all.nl,
+        dheitmueller@kernellabs.com, slongerbeam@gmail.com,
+        lars@metafoo.de, robert.jarzmik@free.fr, pavel@ucw.cz,
+        pali.rohar@gmail.com, sakari.ailus@linux.intel.com,
+        mark.rutland@arm.com, Ramiro.Oliveira@synopsys.com,
+        CARLOS.PALMINHA@synopsys.com
+Subject: [PATCH v7 1/2] Add OV5647 device tree documentation
+Date: Tue, 27 Dec 2016 13:59:02 +0000
+Message-Id: <2df6779f915edc7eb48ef215235d480f62f165b0.1482846784.git.roliveir@synopsys.com>
+In-Reply-To: <cover.1482846784.git.roliveir@synopsys.com>
+References: <cover.1482846784.git.roliveir@synopsys.com>
+In-Reply-To: <cover.1482846784.git.roliveir@synopsys.com>
+References: <cover.1482846784.git.roliveir@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Devin,
+Create device tree bindings documentation.
 
-Em Thu, 8 Dec 2016 12:50:19 -0500
-Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
+Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
+---
+ .../devicetree/bindings/media/i2c/ov5647.txt       | 35 ++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
 
-> Hi Mauro, Laurent,
-> 
-> I tried out Mauro's latest patch (9:46am EST), and it appears to at
-> least partially address the issue, but still doesn't work.  In fact,
-> whereas before I was getting stable video with a chroma issue, with
-> the patch applied I'm now getting no video at all (i.e. tvtime is
-> completely blocked waiting for frames to arrive).
-> 
-> First off, a register dump does show that register 0x03 is now 0x6F,
-> so at least that part is working.  However, TVP5150_DATA_RATE_SEL,
-> (register 0x0D) is now being set to 0x40, whereas it needs to be set
-> to 0x47 to work properly.  Just to confirm, I started up tvtime and
-> fed the device the following command, at which point video started
-> rendering properly:
-> 
-> sudo v4l2-dbg --chip=subdev0 --set-register=0x0d 0x47
-> 
-> I'm not sitting in front of the datasheet right now so I cannot
-> suggest what the correct fix is, but at first glance it looks like the
-> first hunk of Mauro's patch isn't correct for em28xx devices.
-> 
-> Also worth noting for the moment I'm testing exclusively with
-> composite on the HVR-850.  Once we've got that working, I'll dig out
-> an s-video cable and make sure that is working too.
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov5647.txt b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
+new file mode 100644
+index 000000000000..57fd40036c26
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
+@@ -0,0 +1,35 @@
++Omnivision OV5647 raw image sensor
++---------------------------------
++
++OV5647 is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
++and CCI (I2C compatible) control bus.
++
++Required properties:
++
++- compatible		: "ovti,ov5647".
++- reg			: I2C slave address of the sensor.
++- clocks		: Reference to the xclk clock.
++- clock-names		: Should be "xclk".
++- clock-frequency	: Frequency of the xclk clock.
++
++The common video interfaces bindings (see video-interfaces.txt) should be
++used to specify link to the image data receiver. The OV5647 device
++node should contain one 'port' child node with an 'endpoint' subnode.
++
++Example:
++
++	i2c@2000 {
++		...
++		ov: camera@36 {
++			compatible = "ovti,ov5647";
++			reg = <0x36>;
++			clocks = <&camera_clk>;
++			clock-names = "xclk";
++			clock-frequency = <30000000>;
++			port {
++				camera_1: endpoint {
++					remote-endpoint = <&csi1_ep1>;
++				};
++			};
++		};
++	};
+-- 
+2.11.0
 
-Thanks for testing! Just tested here with S-Video, with WinTV USB2
-(with interlaced video, generated with vivid + HVR-350).
 
-I was able to reproduce the same issue as you: changing register 0x0d
-to 0x47 indeed made it work.
-
-I'm working on a followup patch.
-
-Thanks,
-Mauro
