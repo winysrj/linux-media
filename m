@@ -1,124 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:59605 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750730AbcLEFLI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Dec 2016 00:11:08 -0500
-Message-ID: <b36205dcf5ae6f9b14eb2cbdffa6633f@smtp-cloud6.xs4all.net>
-Date: Mon, 05 Dec 2016 06:11:05 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mail.kernel.org ([198.145.29.136]:35032 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751539AbcL0X52 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Dec 2016 18:57:28 -0500
+Date: Wed, 28 Dec 2016 00:57:21 +0100
+From: Sebastian Reichel <sre@kernel.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, ivo.g.dimitrov.75@gmail.com,
+        pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        galak@codeaurora.org, mchehab@osg.samsung.com,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] mark myself as mainainer for camera on N900
+Message-ID: <20161227235721.xulzxdrwnb7feepn@earth>
+References: <20161023200355.GA5391@amd>
+ <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
+ <20161214122451.GB27011@amd>
+ <20161222100104.GA30917@amd>
+ <20161227092634.GK16630@valkosipuli.retiisi.org.uk>
+ <20161227204558.GA23676@amd>
+ <20161227205923.GA7859@amd>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="gcpm4ervip3yvwos"
+Content-Disposition: inline
+In-Reply-To: <20161227205923.GA7859@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+--gcpm4ervip3yvwos
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-date:			Mon Dec  5 05:00:16 CET 2016
-media-tree git hash:	365fe4e0ce218dc5ad10df17b150a366b6015499
-media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
-v4l-utils git hash:	063d1f5d5e60783002d781e8a23911acbda65e99
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.8.0-164
+Hi,
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.67-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-rc5-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.12.67-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-rc5-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-sparse: WARNINGS
+On Tue, Dec 27, 2016 at 09:59:23PM +0100, Pavel Machek wrote:
+> Mark and Sakari as maintainers for Nokia N900 camera pieces.
 
-Detailed results are available here:
+^^^ missing me after Mark. Otherwise Mark looks like a name :)
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+>=20
+> ---
+>=20
+> Hi!
+>=20
+> > Yeah, there was big flamewar about the permissions. In the end Linus
+> > decided that everyone knows the octal numbers, but the constants are
+> > tricky. It began with patch series with 1000 patches...
+> >=20
+> > > Btw. should we update maintainers as well? Would you like to put your=
+self
+> > > there? Feel free to add me, too...
+> >=20
+> > Ok, will do.
+>=20
+> Something like this? Actually, I guess we could merge ADP1653 entry
+> there. Yes, it is random collection of devices, but are usually tested
+> "together", so I believe one entry makes sense.
+>=20
+> (But I have no problem with having multiple entries, too.)
+>=20
+> Thanks,
+> 								Pavel
+>=20
+>=20
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 63cefa6..1cb1d97 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -8613,6 +8613,14 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/g=
+it/lftan/nios2.git
+>  S:	Maintained
+>  F:	arch/nios2/
+> =20
+> +NOKIA N900 CAMERA SUPPORT (ET8EK8 SENSOR, AD5820 FOCUS)
+> +M:	Pavel Machek <pavel@ucw.cz>
+> +M:	Sakari Ailus <sakari.ailus@iki.fi>
+> +L:	linux-media@vger.kernel.org
+> +S:	Maintained
+> +F:	drivers/media/i2c/et8ek8
+> +F:	drivers/media/i2c/ad5820.c
 
-Full logs are available here:
+Not sure if this is useful information, but I solved it like this
+for N900 power supply drivers:
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+NOKIA N900 POWER SUPPLY DRIVERS
+R:	Pali Roh=E1r <pali.rohar@gmail.com>
+F:	include/linux/power/bq2415x_charger.h
+F:	include/linux/power/bq27xxx_battery.h
+F:	include/linux/power/isp1704_charger.h
+F:	drivers/power/supply/bq2415x_charger.c
+F:	drivers/power/supply/bq27xxx_battery.c
+F:	drivers/power/supply/bq27xxx_battery_i2c.c
+F:	drivers/power/supply/isp1704_charger.c
+F:	drivers/power/supply/rx51_battery.c
 
-The Media Infrastructure API from this daily build is here:
+TI BQ27XXX POWER SUPPLY DRIVER
+R:	Andrew F. Davis <afd@ti.com>
+F:	include/linux/power/bq27xxx_battery.h
+F:	drivers/power/supply/bq27xxx_battery.c
+F:	drivers/power/supply/bq27xxx_battery_i2c.c
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+POWER SUPPLY CLASS/SUBSYSTEM and DRIVERS
+M:	Sebastian Reichel <sre@kernel.org>
+L:	linux-pm@vger.kernel.org
+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/sre/linux-power-supply=
+=2Egit
+S:	Maintained
+F:	Documentation/devicetree/bindings/power/supply/
+F:	include/linux/power_supply.h
+F:	drivers/power/supply/
+
+This makes it quite easy to see who applies patches and who should
+be Cc'd for what reason:
+
+$ ./scripts/get_maintainer.pl -f drivers/power/supply/bq27xxx_battery.c=20
+"Pali Roh=E1r" <pali.rohar@gmail.com> (reviewer:NOKIA N900 POWER SUPPLY DRI=
+VERS)
+"Andrew F. Davis" <afd@ti.com> (reviewer:TI BQ27XXX POWER SUPPLY DRIVER)
+Sebastian Reichel <sre@kernel.org> (maintainer:POWER SUPPLY CLASS/SUBSYSTEM=
+ and DRIVERS)
+linux-pm@vger.kernel.org (open list:POWER SUPPLY CLASS/SUBSYSTEM and DRIVER=
+S)
+linux-kernel@vger.kernel.org (open list)
+
+-- Sebastian
+
+--gcpm4ervip3yvwos
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlhi/98ACgkQ2O7X88g7
++pp7ohAAiHYDxwVufbuBRsZVfzUfNaUPqvycFMf2mOYIOJsBO3oFnedj49hiOb0G
+nS3WUHpMvQNLsNs7GcdNxRrV+u9Ia9ecKWEYEwGHLoCGGyBaywjjIq0s9cPFeuB+
+Zlfl/y0Jz7dRB7pxv6dLwZWDKDojNCaoP/USTO/lLD2rYfpbDdA94QY1zAJ+adkm
+PdQ61jCDyrJVqYkjZfCA9+BvrOtI20FYZuY+jjhdfnPeBtkZstZ2DuCbB2wG4vD6
+RsZLgq0CLXlLdIflx0YU+3zGiY0B1++kNtSYlRystFlL+2btAzGm7QeebNVASbqy
+JXJaEHfVhvwro8Qt3bswlIHkaDQ2KwIQGvfR5dtSCoZebGP1B+Su31BE4koRMaPs
+vaYros/wpczyIO5vSqjzOmO2xFtk8BcMULGYEy4G09PN3JkGNgM39KITKNdKgZE9
+D/2K/AMhdt7v82bSy39E4o2jFYBQ+ydgRLs3joenMhufzWrBgXAb/arQ+h8iHs/N
+qlKku6Mf9FEKojIJRFwUc5gAa2ncLpKnBZr+BJEGdbWPQskzp1GXb4KqcwuvXvQx
+ZuohBP3dJqieROLo1tJrbURr5x+vC402WQAdndyrkyUvtiLyIbb8in2Qinj9uyzp
+4pfAYNwbJz8J4vTMgKCCFhRWnvS17Ovr4zhE17/NpkTdvaFCMTA=
+=qlIZ
+-----END PGP SIGNATURE-----
+
+--gcpm4ervip3yvwos--
