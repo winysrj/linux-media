@@ -1,53 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:37235 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933291AbcLIQ7Y (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:49407 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751317AbcL1Saj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Dec 2016 11:59:24 -0500
-From: Michael Tretter <m.tretter@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Philipp Zabel <p.zabel@pengutronix.de>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michael Tretter <m.tretter@pengutronix.de>
-Subject: [PATCH v2 4/7] [media] coda: add debug output about tiling
-Date: Fri,  9 Dec 2016 17:59:00 +0100
-Message-Id: <20161209165903.1293-5-m.tretter@pengutronix.de>
-In-Reply-To: <20161209165903.1293-1-m.tretter@pengutronix.de>
-References: <20161209165903.1293-1-m.tretter@pengutronix.de>
+        Wed, 28 Dec 2016 13:30:39 -0500
+Date: Wed, 28 Dec 2016 19:30:36 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: robh+dt@kernel.org, devicetree@vger.kernel.org,
+        ivo.g.dimitrov.75@gmail.com, sakari.ailus@iki.fi, sre@kernel.org,
+        pali.rohar@gmail.com, pavel@ucw.cz, linux-media@vger.kernel.org
+Subject: [PATCH] dt: bindings: Add support for CSI1 bus
+Message-ID: <20161228183036.GA13139@amd>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="ZPt4rx8FFjLCG7dd"
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
 
-In order to make the VDOA work correctly, the CODA must produce frames
-in tiled format. Print this information in the debug output.
+--ZPt4rx8FFjLCG7dd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Also print the color format in fourcc instead of the numeric value.
+=46rom: Sakari Ailus <sakari.ailus@iki.fi>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
----
- drivers/media/platform/coda/coda-common.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+In the vast majority of cases the bus type is known to the driver(s)
+since a receiver or transmitter can only support a single one. There
+are cases however where different options are possible.
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index e0184194..f739873 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -616,8 +616,10 @@ static int coda_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f,
- 	}
- 
- 	v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
--		"Setting format for type %d, wxh: %dx%d, fmt: %d\n",
--		f->type, q_data->width, q_data->height, q_data->fourcc);
-+		"Setting format for type %d, wxh: %dx%d, fmt: %4.4s %c\n",
-+		f->type, q_data->width, q_data->height,
-+		(char *)&q_data->fourcc,
-+		(ctx->tiled_map_type == GDI_LINEAR_FRAME_MAP) ? 'L' : 'T');
- 
- 	return 0;
- }
--- 
-2.10.2
+Document the CSI1/CCP2 properties strobe_clk_inv and strobe_clock
+properties. The former tells whether the strobe/clock signal is
+inverted, while the latter signifies the clock or strobe mode.
 
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+
+diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b=
+/Documentation/devicetree/bindings/media/video-interfaces.txt
+index 9cd2a36..f0523f7 100644
+--- a/Documentation/devicetree/bindings/media/video-interfaces.txt
++++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+@@ -76,6 +76,10 @@ Optional endpoint properties
+   mode horizontal and vertical synchronization signals are provided to the
+   slave device (data source) by the master device (data sink). In the mast=
+er
+   mode the data source device is also the source of the synchronization si=
+gnals.
++- bus-type: data bus type. Possible values are:
++  0 - CSI2
++  1 - parallel / Bt656
++  2 - CCP2
+ - bus-width: number of data lines actively used, valid for the parallel bu=
+sses.
+ - data-shift: on the parallel data busses, if bus-width is used to specify=
+ the
+   number of data lines, data-shift can be used to specify which data lines=
+ are
+@@ -110,9 +114,10 @@ Optional endpoint properties
+   lane and followed by the data lanes in the same order as in data-lanes.
+   Valid values are 0 (normal) and 1 (inverted). The length of the array
+   should be the combined length of data-lanes and clock-lanes properties.
+-  If the lane-polarities property is omitted, the value must be interpreted
+-  as 0 (normal). This property is valid for serial busses only.
+-
++- clock-inv: Clock or strobe signal inversion.
++  Possible values: 0 -- not inverted; 1 -- inverted
++- strobe: Whether the clock signal is used as clock or strobe. Used
++  with CCP2, for instance.
+=20
+ Example
+ -------
+
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--ZPt4rx8FFjLCG7dd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlhkBMwACgkQMOfwapXb+vIeugCcDQbShBzmWUEpckTMNxoGKCqc
+pY0AoJalxbLyE/pMuLZG/PTDl6OVxj5g
+=+RWz
+-----END PGP SIGNATURE-----
+
+--ZPt4rx8FFjLCG7dd--
