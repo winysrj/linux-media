@@ -1,75 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shell.v3.sk ([92.60.52.57]:36940 "EHLO shell.v3.sk"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751546AbcLEPuR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Dec 2016 10:50:17 -0500
-Message-ID: <1480953002.16064.7.camel@v3.sk>
-Subject: Re: [PATCH] [media] usbtv: add a new usbid
-From: Lubomir Rintel <lkundrak@v3.sk>
-To: Icenowy Zheng <icenowy@aosc.xyz>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Federico Simoncelli <fsimonce@redhat.com>
-Date: Mon, 05 Dec 2016 16:50:02 +0100
-In-Reply-To: <20161205184757.lrn0cE4H@smtp3p.mail.yandex.net>
-References: <20161205184757.lrn0cE4H@smtp3p.mail.yandex.net>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8BIT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:36401 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751181AbcL1JrS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Dec 2016 04:47:18 -0500
+Received: by mail-wm0-f65.google.com with SMTP id m203so61092206wma.3
+        for <linux-media@vger.kernel.org>; Wed, 28 Dec 2016 01:47:17 -0800 (PST)
+Subject: Re: [PATCH 1/1] [media] v4l: rcar_fdp1: use %4.4s to format a 4-byte
+ string
+To: Nicolas Iooss <nicolas.iooss_linux@m4x.org>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+References: <20161226133139.3775-1-nicolas.iooss_linux@m4x.org>
+Cc: linux-kernel@vger.kernel.org
+From: Kieran Bingham <kieran@ksquared.org.uk>
+Message-ID: <63afb58e-e588-c3f0-7950-2e2b5dfa453e@bingham.xyz>
+Date: Wed, 28 Dec 2016 09:47:15 +0000
+MIME-Version: 1.0
+In-Reply-To: <20161226133139.3775-1-nicolas.iooss_linux@m4x.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2016-12-05 at 23:47 +0800, Icenowy Zheng wrote:
-> 2016年12月5日 19:49于 Lubomir Rintel <lkundrak@v3.sk>写道：
-> > 
-> > On Sun, 2016-12-04 at 22:59 +0800, Icenowy Zheng wrote: 
-> > > 
-> > > 04.12.2016, 22:00, "Icenowy Zheng" <icenowy@aosc.xyz>: 
-> > > > A new usbid of UTV007 is found in a newly bought device. 
-> > > > 
-> > > > The usbid is 1f71:3301. 
-> > > > 
-> > > > The ID on the chip is: 
-> > > > UTV007 
-> > > > A89029.1 
-> > > > 1520L18K1 
-> > > > 
-> > > 
-> > > Seems that my device come with more capabilities. 
-> > > 
-> > > I tested it under Windows, and I got wireless Analog TV 
-> > > and FM radio functions. (An antenna is shipped with my device) 
-> > > 
-> > > Maybe a new radio function is be added, combined with the 
-> > > new USB ID. 
-> > > 
-> > > But at least Composite AV function works well with current usbtv 
-> > > driver and XawTV. 
-> > 
-> > Well, someone with the hardware would need to capture the traffic
-> > from 
-> > the Windows driver (and ideally also extend the driver). Would you
-> > mind 
-> > giving it a try? 
+Hi Nicolas,
+
+Thankyou for the patch
+
+This looks like a good catch,
+
+On 26/12/16 13:31, Nicolas Iooss wrote:
+> Using %4s to format f->fmt.pix_mp.pixelformat in fdp1_try_fmt() and
+> fdp1_s_fmt() may lead to more characters being printed (when the byte
+> following field pixelformat is not zero).
 > 
-> How to do it?
+> Add ".4" to the format specifier to limit the number of printed
+> characters to four. The resulting format specifier "%4.4s" is also used
+> by other media drivers to print pixelformat value.
 > 
-> Use wireshark?
+> Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
 
-Yes, wireshark is okay. I've been using that one.
+Reviewed-by: Kieran Bingham <kieran@bingham.xyz>
 
-Another good option I discovered recently is usb_capture from usbsniff
-package.
-
-> > Do you have a link to some further details about the device you
-> > got? 
-> > Perhaps if it's available cheaply from dealextreme or somewhere I
-> > could 
-> > take a look too. 
+> ---
+>  drivers/media/platform/rcar_fdp1.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> I bought directly from Taobao (I'm in China).
+> diff --git a/drivers/media/platform/rcar_fdp1.c b/drivers/media/platform/rcar_fdp1.c
+> index 674cc1309b43..42f25d241edd 100644
+> --- a/drivers/media/platform/rcar_fdp1.c
+> +++ b/drivers/media/platform/rcar_fdp1.c
+> @@ -1596,7 +1596,7 @@ static int fdp1_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+>  	else
+>  		fdp1_try_fmt_capture(ctx, NULL, &f->fmt.pix_mp);
+>  
+> -	dprintk(ctx->fdp1, "Try %s format: %4s (0x%08x) %ux%u field %u\n",
+> +	dprintk(ctx->fdp1, "Try %s format: %4.4s (0x%08x) %ux%u field %u\n",
+>  		V4L2_TYPE_IS_OUTPUT(f->type) ? "output" : "capture",
+>  		(char *)&f->fmt.pix_mp.pixelformat, f->fmt.pix_mp.pixelformat,
+>  		f->fmt.pix_mp.width, f->fmt.pix_mp.height, f->fmt.pix_mp.field);
+> @@ -1671,7 +1671,7 @@ static int fdp1_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+>  
+>  	fdp1_set_format(ctx, &f->fmt.pix_mp, f->type);
+>  
+> -	dprintk(ctx->fdp1, "Set %s format: %4s (0x%08x) %ux%u field %u\n",
+> +	dprintk(ctx->fdp1, "Set %s format: %4.4s (0x%08x) %ux%u field %u\n",
+>  		V4L2_TYPE_IS_OUTPUT(f->type) ? "output" : "capture",
+>  		(char *)&f->fmt.pix_mp.pixelformat, f->fmt.pix_mp.pixelformat,
+>  		f->fmt.pix_mp.width, f->fmt.pix_mp.height, f->fmt.pix_mp.field);
+> 
 
-Do you happen to have a link?
+-- 
+Regards
 
-Lubo
+Kieran Bingham
