@@ -1,61 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:63736 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753198AbcLHNeo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Dec 2016 08:34:44 -0500
-Date: Thu, 8 Dec 2016 14:34:46 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v2 3/3] uvcvideo: add a metadata device node
-In-Reply-To: <6827808.RfcVLAN17o@avalon>
-Message-ID: <Pine.LNX.4.64.1612081432320.4140@axis700.grange>
-References: <Pine.LNX.4.64.1606241312130.23461@axis700.grange>
- <1934036.5jNzJsjeMl@avalon> <Pine.LNX.4.64.1612061127550.17179@axis700.grange>
- <6827808.RfcVLAN17o@avalon>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:49255 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750728AbcL1EZn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Dec 2016 23:25:43 -0500
+Message-ID: <222cc7e10bbfea46b23f9e1fcfede04c@smtp-cloud6.xs4all.net>
+Date: Wed, 28 Dec 2016 05:25:40 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-One more question:
+Results of the daily build of media_tree:
 
-On Tue, 6 Dec 2016, Laurent Pinchart wrote:
+date:			Wed Dec 28 05:00:19 CET 2016
+media-tree git hash:	40eca140c404505c09773d1c6685d818cb55ab1a
+media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
+v4l-utils git hash:	8288fb4dac6cfeffdfdfbfbc1106aa4d7ecfb80b
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
-> Hi Guennadi,
-> 
-> On Tuesday 06 Dec 2016 11:39:22 Guennadi Liakhovetski wrote:
-> > On Tue, 6 Dec 2016, Laurent Pinchart wrote:
-> > > On Monday 05 Dec 2016 23:13:53 Guennadi Liakhovetski wrote:
-> > >> On Tue, 6 Dec 2016, Laurent Pinchart wrote:
-> > >>>>>> +	/*
-> > >>>>>> +	 * Register a metadata node. TODO: shall this only be enabled
-> > >>>>>> for some
-> > >>>>>> +	 * cameras?
-> > >>>>>> +	 */
-> > >>>>>> +	if (!(dev->quirks & UVC_QUIRK_BUILTIN_ISIGHT))
-> > >>>>>> +		uvc_meta_register(stream);
-> > >>>>>> +
-> > >>>>> 
-> > >>>>> I think so, only for the cameras that can produce metadata.
-> > >>>> 
-> > >>>> Every UVC camera produces metadata, but most cameras only have standard
-> > >>>> fields there. Whether we should stream standard header fields from the
-> > >>>> metadata node will be discussed later. If we do decide to stream
-> > >>>> standard header fields, then every USB camera gets metadata nodes. If
-> > >>>> we decide not to include standard fields, how do we know whether the
-> > >>>> camera has any private fields in headers without streaming from it? Do
-> > >>>> you want a quirk for such cameras?
-> > >>> 
-> > >>> Unless they can be detected in a standard way that's probably the best
-> > >>> solution.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9-x86_64: ERRORS
+apps: WARNINGS
+spec-git: ERRORS
+sparse: WARNINGS
 
-How about a module parameter with a list of VID:PID pairs? The problem 
-with the quirk is, that as vendors produce multiple cameras with different 
-PIDs they will have to push patches for each such camera.
+Detailed results are available here:
 
-Thanks
-Guennadi
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
