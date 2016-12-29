@@ -1,43 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43402 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755775AbcLNNSq (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:56472 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752196AbcL2EZe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Dec 2016 08:18:46 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+        Wed, 28 Dec 2016 23:25:34 -0500
+Message-ID: <c986092a836402863c3bca2aecd4e12c@smtp-cloud2.xs4all.net>
+Date: Thu, 29 Dec 2016 05:25:26 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Gregor Jasny <gjasny@googlemail.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [v4l-utils PATCH 0/3] Add support for LNBfs with more than 2 LO
-Date: Wed, 14 Dec 2016 11:18:32 -0200
-Message-Id: <20161214131835.11259-1-mchehab@s-opensource.com>
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When dvb-sat was written, it assumed that the LNBf entries would have
-only 2 local oscilators, as this is what other tools did.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-However, there are some widely LNBf models used in Brazil more local
-oscilators, meant to be used on multipoint arrangements.
+Results of the daily build of media_tree:
 
-Add support for them.
+date:			Thu Dec 29 05:00:06 CET 2016
+media-tree git hash:	40eca140c404505c09773d1c6685d818cb55ab1a
+media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
+v4l-utils git hash:	a710e1bb7c6803a9347d3899b9129d887221985f
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
-Please notice that this change breaks the libdvbv5 API. Not sure how
-to handle this incompatibility. That's basically why I'm not commiting
-it directly.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9-x86_64: ERRORS
+apps: WARNINGS
+spec-git: ERRORS
+sparse: WARNINGS
 
-Suggestions?
+Detailed results are available here:
 
-Mauro Carvalho Chehab (3):
-  dvb-sat: embeed most stuff internally at struct LNBf
-  dvb-sat: change the LNBf logic to make it more generic
-  dvb-sat: add support for several BrasilSat LNBf models
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
- lib/include/libdvbv5/dvb-sat.h |  39 ++---
- lib/libdvbv5/dvb-fe.c          |   5 +-
- lib/libdvbv5/dvb-sat.c         | 340 +++++++++++++++++++++++++++--------------
- 3 files changed, 244 insertions(+), 140 deletions(-)
+Full logs are available here:
 
--- 
-2.9.3
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
