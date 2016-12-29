@@ -1,103 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:54829 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752294AbcL0U70 (ORCPT
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:34668 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753278AbcL2W2G (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Dec 2016 15:59:26 -0500
-Date: Tue, 27 Dec 2016 21:59:23 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org, galak@codeaurora.org,
-        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
-Subject: [PATCH] mark myself as mainainer for camera on N900
-Message-ID: <20161227205923.GA7859@amd>
-References: <20161023200355.GA5391@amd>
- <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
- <20161214122451.GB27011@amd>
- <20161222100104.GA30917@amd>
- <20161227092634.GK16630@valkosipuli.retiisi.org.uk>
- <20161227204558.GA23676@amd>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="82I3+IH0IqGh5yIs"
-Content-Disposition: inline
-In-Reply-To: <20161227204558.GA23676@amd>
+        Thu, 29 Dec 2016 17:28:06 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: shawnguo@kernel.org, kernel@pengutronix.de, fabio.estevam@nxp.com,
+        robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk,
+        linus.walleij@linaro.org, gnurou@gmail.com, mchehab@kernel.org,
+        gregkh@linuxfoundation.org, p.zabel@pengutronix.de
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 06/20] ARM: dts: imx6-sabreauto: create i2cmux for i2c3
+Date: Thu, 29 Dec 2016 14:27:21 -0800
+Message-Id: <1483050455-10683-7-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1483050455-10683-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1483050455-10683-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The sabreauto uses a steering pin to select between the SDA signal on
+i2c3 bus, and a data-in pin for an SPI NOR chip. Use i2cmux to control
+this steering pin. Idle state of the i2cmux selects SPI NOR. This is not
+a classic way to use i2cmux, since one side of the mux selects something
+other than an i2c bus, but it works and is probably the cleanest
+solution. Note that if one thread is attempting to access SPI NOR while
+another thread is accessing i2c3, the SPI NOR access will fail since the
+i2cmux has selected the SDA pin rather than SPI NOR data-in. This couldn't
+be avoided in any case, the board is not designed to allow concurrent
+i2c3 and SPI NOR functions (and the default device-tree does not enable
+SPI NOR anyway).
 
---82I3+IH0IqGh5yIs
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Devices hanging off i2c3 should now be defined under i2cmux, so
+that the steering pin can be properly controlled to access those
+devices. The port expanders (MAX7310) are thus moved into i2cmux.
 
-Mark and Sakari as maintainers for Nokia N900 camera pieces.
-
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
+ arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 65 +++++++++++++++++++++-----------
+ 1 file changed, 44 insertions(+), 21 deletions(-)
 
-Hi!
-
-> Yeah, there was big flamewar about the permissions. In the end Linus
-> decided that everyone knows the octal numbers, but the constants are
-> tricky. It began with patch series with 1000 patches...
->=20
-> > Btw. should we update maintainers as well? Would you like to put yourse=
-lf
-> > there? Feel free to add me, too...
->=20
-> Ok, will do.
-
-Something like this? Actually, I guess we could merge ADP1653 entry
-there. Yes, it is random collection of devices, but are usually tested
-"together", so I believe one entry makes sense.
-
-(But I have no problem with having multiple entries, too.)
-
-Thanks,
-								Pavel
-
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 63cefa6..1cb1d97 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8613,6 +8613,14 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git=
-/lftan/nios2.git
- S:	Maintained
- F:	arch/nios2/
-=20
-+NOKIA N900 CAMERA SUPPORT (ET8EK8 SENSOR, AD5820 FOCUS)
-+M:	Pavel Machek <pavel@ucw.cz>
-+M:	Sakari Ailus <sakari.ailus@iki.fi>
-+L:	linux-media@vger.kernel.org
-+S:	Maintained
-+F:	drivers/media/i2c/et8ek8
-+F:	drivers/media/i2c/ad5820.c
+diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+index 52390ba..4a6d038 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+@@ -108,6 +108,44 @@
+ 		default-brightness-level = <7>;
+ 		status = "okay";
+ 	};
 +
- NOKIA N900 POWER SUPPLY DRIVERS
- R:	Pali Roh=E1r <pali.rohar@gmail.com>
- F:	include/linux/power/bq2415x_charger.h
++	i2cmux {
++		compatible = "i2c-mux-gpio";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_i2c3mux>;
++		mux-gpios = <&gpio5 4 0>;
++		i2c-parent = <&i2c3>;
++		idle-state = <0>;
++
++		i2c@1 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <1>;
++
++			max7310_a: gpio@30 {
++				compatible = "maxim,max7310";
++				reg = <0x30>;
++				gpio-controller;
++				#gpio-cells = <2>;
++			};
++
++			max7310_b: gpio@32 {
++				compatible = "maxim,max7310";
++				reg = <0x32>;
++				gpio-controller;
++				#gpio-cells = <2>;
++			};
++
++			max7310_c: gpio@34 {
++				compatible = "maxim,max7310";
++				reg = <0x34>;
++				gpio-controller;
++				#gpio-cells = <2>;
++			};
++		};
++	};
+ };
+ 
+ &clks {
+@@ -291,27 +329,6 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_i2c3>;
+ 	status = "okay";
+-
+-	max7310_a: gpio@30 {
+-		compatible = "maxim,max7310";
+-		reg = <0x30>;
+-		gpio-controller;
+-		#gpio-cells = <2>;
+-	};
+-
+-	max7310_b: gpio@32 {
+-		compatible = "maxim,max7310";
+-		reg = <0x32>;
+-		gpio-controller;
+-		#gpio-cells = <2>;
+-	};
+-
+-	max7310_c: gpio@34 {
+-		compatible = "maxim,max7310";
+-		reg = <0x34>;
+-		gpio-controller;
+-		#gpio-cells = <2>;
+-	};
+ };
+ 
+ &iomuxc {
+@@ -419,6 +436,12 @@
+ 			>;
+ 		};
+ 
++		pinctrl_i2c3mux: i2c3muxgrp {
++			fsl,pins = <
++				MX6QDL_PAD_EIM_A24__GPIO5_IO04 0x80000000
++			>;
++		};
++
+ 		pinctrl_pwm3: pwm1grp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_SD4_DAT1__PWM3_OUT		0x1b0b1
+-- 
+2.7.4
 
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---82I3+IH0IqGh5yIs
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlhi1isACgkQMOfwapXb+vJQ6ACfT+9U0uAJNcOJQTj2SFd/W8J3
-nAcAnA4Ux50PEHs0gNoFbNivHs/NOG3S
-=19H3
------END PGP SIGNATURE-----
-
---82I3+IH0IqGh5yIs--
