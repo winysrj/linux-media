@@ -1,73 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wj0-f194.google.com ([209.85.210.194]:36048 "EHLO
-        mail-wj0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933396AbcLIMfY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2016 07:35:24 -0500
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: linux-renesas-soc@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, magnus.damm@gmail.com,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [PATCH v1.5 2/6] v4l: rcar-fcp: Add an API to retrieve the FCP device
-Date: Fri,  9 Dec 2016 13:35:08 +0100
-Message-Id: <1481286912-16555-3-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1481286912-16555-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1481286912-16555-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:35609 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753379AbcL2W2O (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Dec 2016 17:28:14 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: shawnguo@kernel.org, kernel@pengutronix.de, fabio.estevam@nxp.com,
+        robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk,
+        linus.walleij@linaro.org, gnurou@gmail.com, mchehab@kernel.org,
+        gregkh@linuxfoundation.org, p.zabel@pengutronix.de
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 08/20] ARM: dts: imx6-sabreauto: add pinctrl for gpt input capture
+Date: Thu, 29 Dec 2016 14:27:23 -0800
+Message-Id: <1483050455-10683-9-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1483050455-10683-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1483050455-10683-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Add pinctrl groups for both GPT input capture channels.
 
-The new rcar_fcp_get_device() function retrieves the struct device
-related to the FCP device. This is useful to handle DMA mapping through
-the right device.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/platform/rcar-fcp.c | 6 ++++++
- include/media/rcar-fcp.h          | 5 +++++
- 2 files changed, 11 insertions(+)
+ arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/drivers/media/platform/rcar-fcp.c b/drivers/media/platform/rcar-fcp.c
-index e9f609e..2988031 100644
---- a/drivers/media/platform/rcar-fcp.c
-+++ b/drivers/media/platform/rcar-fcp.c
-@@ -78,6 +78,12 @@ void rcar_fcp_put(struct rcar_fcp_device *fcp)
- }
- EXPORT_SYMBOL_GPL(rcar_fcp_put);
+diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+index 516bac6..83ac2ff 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+@@ -457,6 +457,18 @@
+ 			>;
+ 		};
  
-+struct device *rcar_fcp_get_device(struct rcar_fcp_device *fcp)
-+{
-+	return fcp->dev;
-+}
-+EXPORT_SYMBOL_GPL(rcar_fcp_get_device);
++		pinctrl_gpt_input_capture0: gptinputcapture0grp {
++			fsl,pins = <
++				MX6QDL_PAD_SD1_DAT0__GPT_CAPTURE1	0x80000000
++			>;
++		};
 +
- /**
-  * rcar_fcp_enable - Enable an FCP
-  * @fcp: The FCP instance
-diff --git a/include/media/rcar-fcp.h b/include/media/rcar-fcp.h
-index 8723f05..b60a7b1 100644
---- a/include/media/rcar-fcp.h
-+++ b/include/media/rcar-fcp.h
-@@ -19,6 +19,7 @@ struct rcar_fcp_device;
- #if IS_ENABLED(CONFIG_VIDEO_RENESAS_FCP)
- struct rcar_fcp_device *rcar_fcp_get(const struct device_node *np);
- void rcar_fcp_put(struct rcar_fcp_device *fcp);
-+struct device *rcar_fcp_get_device(struct rcar_fcp_device *fcp);
- int rcar_fcp_enable(struct rcar_fcp_device *fcp);
- void rcar_fcp_disable(struct rcar_fcp_device *fcp);
- #else
-@@ -27,6 +28,10 @@ static inline struct rcar_fcp_device *rcar_fcp_get(const struct device_node *np)
- 	return ERR_PTR(-ENOENT);
- }
- static inline void rcar_fcp_put(struct rcar_fcp_device *fcp) { }
-+static inline struct device *rcar_fcp_get_device(struct rcar_fcp_device *fcp)
-+{
-+	return NULL;
-+}
- static inline int rcar_fcp_enable(struct rcar_fcp_device *fcp)
- {
- 	return 0;
++		pinctrl_gpt_input_capture1: gptinputcapture1grp {
++			fsl,pins = <
++				MX6QDL_PAD_SD1_DAT1__GPT_CAPTURE2	0x80000000
++			>;
++		};
++
+ 		pinctrl_spdif: spdifgrp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_KEY_COL3__SPDIF_IN 0x1b0b0
 -- 
 2.7.4
 
