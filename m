@@ -1,83 +1,256 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:36688 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753617AbcLRNxK (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:35708 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753039AbcL2W2D (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Dec 2016 08:53:10 -0500
-From: devendra sharma <devendra.sharma9091@gmail.com>
-To: mchehab@kernel.org
-Cc: hans.verkuil@cisco.com, arnd@arndb.de, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        devendra sharma <devendra.sharma9091@gmail.com>
-Subject: [PATCH] media: dvb: dmx: fixed coding style issues of spacing
-Date: Sun, 18 Dec 2016 19:22:55 +0530
-Message-Id: <1482069175-2535-1-git-send-email-devendra.sharma9091@gmail.com>
+        Thu, 29 Dec 2016 17:28:03 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: shawnguo@kernel.org, kernel@pengutronix.de, fabio.estevam@nxp.com,
+        robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk,
+        linus.walleij@linaro.org, gnurou@gmail.com, mchehab@kernel.org,
+        gregkh@linuxfoundation.org, p.zabel@pengutronix.de
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 04/20] ARM: dts: imx6-sabrelite: add OV5642 and OV5640 camera sensors
+Date: Thu, 29 Dec 2016 14:27:19 -0800
+Message-Id: <1483050455-10683-5-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1483050455-10683-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1483050455-10683-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixed coding style issues of spacing
+Enables the OV5642 parallel-bus sensor, and the OV5640 MIPI CSI-2 sensor.
+Both hang off the same i2c2 bus, so they require different (and non-
+default) i2c slave addresses.
 
-Signed-off-by: Devendra Sharma <devendra.sharma9091@gmail.com>
+The OV5642 connects to the parallel-bus mux input port on ipu1_csi0_mux.
+
+The OV5640 connects to the input port on the MIPI CSI-2 receiver on
+mipi_csi. It is set to transmit over MIPI virtual channel 1.
+
+Note there is a pin conflict with GPIO6. This pin functions as a power
+input pin to the OV5642, but ENET uses it as the h/w workaround for
+erratum ERR006687, to wake-up the ARM cores on normal RX and TX packet
+done events (see 6261c4c8). So workaround 6261c4c8 is reverted here to
+support the OV5642, and the "fsl,err006687-workaround-present" boolean
+also must be removed. The result is that the CPUidle driver will no longer
+allow entering the deep idle states on the sabrelite.
+
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/dvb-core/dmxdev.c | 12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ arch/arm/boot/dts/imx6dl-sabrelite.dts   |   5 ++
+ arch/arm/boot/dts/imx6q-sabrelite.dts    |   6 ++
+ arch/arm/boot/dts/imx6qdl-sabrelite.dtsi | 122 ++++++++++++++++++++++++++++++-
+ 3 files changed, 129 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
-index efe55a3..cd240a2 100644
---- a/drivers/media/dvb-core/dmxdev.c
-+++ b/drivers/media/dvb-core/dmxdev.c
-@@ -151,6 +151,7 @@ static int dvb_dvr_open(struct inode *inode, struct file *file)
- 
- 	if ((file->f_flags & O_ACCMODE) == O_RDONLY) {
- 		void *mem;
+diff --git a/arch/arm/boot/dts/imx6dl-sabrelite.dts b/arch/arm/boot/dts/imx6dl-sabrelite.dts
+index 0f06ca5..fec2524 100644
+--- a/arch/arm/boot/dts/imx6dl-sabrelite.dts
++++ b/arch/arm/boot/dts/imx6dl-sabrelite.dts
+@@ -48,3 +48,8 @@
+ 	model = "Freescale i.MX6 DualLite SABRE Lite Board";
+ 	compatible = "fsl,imx6dl-sabrelite", "fsl,imx6dl";
+ };
 +
- 		if (!dvbdev->readers) {
- 			mutex_unlock(&dmxdev->mutex);
- 			return -EBUSY;
-@@ -202,6 +203,7 @@ static int dvb_dvr_release(struct inode *inode, struct file *file)
- 		dvbdev->readers++;
- 		if (dmxdev->dvr_buffer.data) {
- 			void *mem = dmxdev->dvr_buffer.data;
-+			/*memory barrier*/
- 			mb();
- 			spin_lock_irq(&dmxdev->lock);
- 			dmxdev->dvr_buffer.data = NULL;
-@@ -876,7 +878,7 @@ static int dvb_dmxdev_pes_filter_set(struct dmxdev *dmxdev,
- 	dvb_dmxdev_filter_stop(dmxdevfilter);
- 	dvb_dmxdev_filter_reset(dmxdevfilter);
++&ipu1_csi1_from_ipu1_csi1_mux {
++	data-lanes = <0 1>;
++	clock-lanes = <2>;
++};
+diff --git a/arch/arm/boot/dts/imx6q-sabrelite.dts b/arch/arm/boot/dts/imx6q-sabrelite.dts
+index 66d10d8..9e2d26d 100644
+--- a/arch/arm/boot/dts/imx6q-sabrelite.dts
++++ b/arch/arm/boot/dts/imx6q-sabrelite.dts
+@@ -52,3 +52,9 @@
+ &sata {
+ 	status = "okay";
+ };
++
++&ipu1_csi1_from_mipi_vc1 {
++	data-lanes = <0 1>;
++	clock-lanes = <2>;
++};
++
+diff --git a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+index 1f9076e..4a50bb1 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+@@ -39,6 +39,8 @@
+  *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  *     OTHER DEALINGS IN THE SOFTWARE.
+  */
++
++#include <dt-bindings/clock/imx6qdl-clock.h>
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/input/input.h>
  
--	if ((unsigned)params->pes_type > DMX_PES_OTHER)
-+	if ((unsigned int)params->pes_type > DMX_PES_OTHER)
- 		return -EINVAL;
+@@ -96,6 +98,15 @@
+ 		};
+ 	};
  
- 	dmxdevfilter->type = DMXDEV_TYPE_PES;
-@@ -1125,7 +1127,7 @@ static int dvb_demux_release(struct inode *inode, struct file *file)
++	mipi_xclk: mipi_xclk {
++		compatible = "pwm-clock";
++		#clock-cells = <0>;
++		clock-frequency = <22000000>;
++		clock-output-names = "mipi_pwm3";
++		pwms = <&pwm3 0 45>; /* 1 / 45 ns = 22 MHz */
++		status = "okay";
++	};
++
+ 	gpio-keys {
+ 		compatible = "gpio-keys";
+ 		pinctrl-names = "default";
+@@ -220,6 +231,22 @@
+ 	};
+ };
  
- 	mutex_lock(&dmxdev->mutex);
- 	dmxdev->dvbdev->users--;
--	if(dmxdev->dvbdev->users==1 && dmxdev->exit==1) {
-+	if (dmxdev->dvbdev->users == 1 && dmxdev->exit == 1) {
- 		mutex_unlock(&dmxdev->mutex);
- 		wake_up(&dmxdev->dvbdev->wait_queue);
- 	} else
-@@ -1263,14 +1265,14 @@ EXPORT_SYMBOL(dvb_dmxdev_init);
++&ipu1_csi0_from_ipu1_csi0_mux {
++	bus-width = <8>;
++	data-shift = <12>; /* Lines 19:12 used */
++	hsync-active = <1>;
++	vync-active = <1>;
++};
++
++&ipu1_csi0_mux_from_parallel_sensor {
++	remote-endpoint = <&ov5642_to_ipu1_csi0_mux>;
++};
++
++&ipu1_csi0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_ipu1_csi0>;
++};
++
+ &audmux {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_audmux>;
+@@ -271,9 +298,6 @@
+ 	txd1-skew-ps = <0>;
+ 	txd2-skew-ps = <0>;
+ 	txd3-skew-ps = <0>;
+-	interrupts-extended = <&gpio1 6 IRQ_TYPE_LEVEL_HIGH>,
+-			      <&intc 0 119 IRQ_TYPE_LEVEL_HIGH>;
+-	fsl,err006687-workaround-present;
+ 	status = "okay";
+ };
  
- void dvb_dmxdev_release(struct dmxdev *dmxdev)
- {
--	dmxdev->exit=1;
-+	dmxdev->exit = 1;
- 	if (dmxdev->dvbdev->users > 1) {
- 		wait_event(dmxdev->dvbdev->wait_queue,
--				dmxdev->dvbdev->users==1);
-+				dmxdev->dvbdev->users == 1);
- 	}
- 	if (dmxdev->dvr_dvbdev->users > 1) {
- 		wait_event(dmxdev->dvr_dvbdev->wait_queue,
--				dmxdev->dvr_dvbdev->users==1);
-+				dmxdev->dvr_dvbdev->users == 1);
- 	}
+@@ -302,6 +326,52 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_i2c2>;
+ 	status = "okay";
++
++	camera: ov5642@42 {
++		compatible = "ovti,ov5642";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_ov5642>;
++		clocks = <&clks IMX6QDL_CLK_CKO2>;
++		clock-names = "xclk";
++		reg = <0x42>;
++		xclk = <24000000>;
++		reset-gpios = <&gpio1 8 GPIO_ACTIVE_LOW>;
++		pwdn-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
++		gp-gpios = <&gpio1 16 GPIO_ACTIVE_HIGH>;
++
++		port {
++			ov5642_to_ipu1_csi0_mux: endpoint {
++				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
++				bus-width = <8>;
++				hsync-active = <1>;
++				vsync-active = <1>;
++			};
++		};
++	};
++
++	mipi_camera: ov5640@40 {
++		compatible = "ovti,ov5640_mipi";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_ov5640>;
++		clocks = <&mipi_xclk>;
++		clock-names = "xclk";
++		reg = <0x40>;
++		xclk = <22000000>;
++		reset-gpios = <&gpio2 5 GPIO_ACTIVE_LOW>; /* NANDF_D5 */
++		pwdn-gpios = <&gpio6 9 GPIO_ACTIVE_HIGH>; /* NANDF_WP_B */
++
++		port {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			ov5640_to_mipi_csi: endpoint@1 {
++				reg = <1>;
++				remote-endpoint = <&mipi_csi_from_mipi_sensor>;
++				data-lanes = <0 1>;
++				clock-lanes = <2>;
++			};
++		};
++	};
+ };
  
- 	dvb_unregister_device(dmxdev->dvbdev);
+ &i2c3 {
+@@ -374,7 +444,6 @@
+ 				MX6QDL_PAD_RGMII_RX_CTL__RGMII_RX_CTL	0x1b030
+ 				/* Phy reset */
+ 				MX6QDL_PAD_EIM_D23__GPIO3_IO23		0x000b0
+-				MX6QDL_PAD_GPIO_6__ENET_IRQ		0x000b1
+ 			>;
+ 		};
+ 
+@@ -449,6 +518,39 @@
+ 			>;
+ 		};
+ 
++		pinctrl_ov5642: ov5642grp {
++			fsl,pins = <
++				MX6QDL_PAD_SD1_DAT0__GPIO1_IO16 0x80000000
++				MX6QDL_PAD_GPIO_6__GPIO1_IO06   0x80000000
++				MX6QDL_PAD_GPIO_8__GPIO1_IO08   0x80000000
++				MX6QDL_PAD_GPIO_3__CCM_CLKO2    0x80000000
++			>;
++		};
++
++		pinctrl_ipu1_csi0: ipu1grp-csi0 {
++			fsl,pins = <
++				MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12    0x80000000
++				MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13    0x80000000
++				MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14    0x80000000
++				MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15    0x80000000
++				MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16    0x80000000
++				MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17    0x80000000
++				MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18    0x80000000
++				MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19    0x80000000
++				MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK   0x80000000
++				MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC      0x80000000
++				MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC     0x80000000
++				MX6QDL_PAD_CSI0_DATA_EN__IPU1_CSI0_DATA_EN 0x80000000
++			>;
++		};
++
++                pinctrl_ov5640: ov5640grp {
++                        fsl,pins = <
++				MX6QDL_PAD_NANDF_D5__GPIO2_IO05 0x000b0
++				MX6QDL_PAD_NANDF_WP_B__GPIO6_IO09 0x0b0b0
++                        >;
++                };
++
+ 		pinctrl_pwm1: pwm1grp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_SD1_DAT3__PWM1_OUT 0x1b0b1
+@@ -605,3 +707,15 @@
+ 	vmmc-supply = <&reg_3p3v>;
+ 	status = "okay";
+ };
++
++&mipi_csi {
++        status = "okay";
++};
++
++/* Incoming port from sensor */
++&mipi_csi_from_mipi_sensor {
++        remote-endpoint = <&ov5640_to_mipi_csi>;
++        data-lanes = <0 1>;
++        clock-lanes = <2>;
++};
++
 -- 
 2.7.4
 
