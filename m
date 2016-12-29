@@ -1,49 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:34143 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753384AbcL0L0R (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:56137 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751188AbcL2Uap (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Dec 2016 06:26:17 -0500
-Received: by mail-oi0-f65.google.com with SMTP id 3so18922935oih.1
-        for <linux-media@vger.kernel.org>; Tue, 27 Dec 2016 03:26:17 -0800 (PST)
+        Thu, 29 Dec 2016 15:30:45 -0500
+From: Colin King <colin.king@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Larry Finger <Larry.Finger@lwfinger.net>,
+        Chaoming Li <chaoming_li@realsil.com.cn>,
+        Kalle Valo <kvalo@codeaurora.org>, linux-media@vger.kernel.org,
+        linux-wireless@vger.kernel.org, netdev@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] gp8psk: fix spelling mistake: "firmare" -> "firmware"
+Date: Thu, 29 Dec 2016 20:29:52 +0000
+Message-Id: <20161229202952.27448-1-colin.king@canonical.com>
 MIME-Version: 1.0
-In-Reply-To: <628638bcda35ffe92f931f67560ed01cba970067.1482833176.git.baruch@tkos.co.il>
-References: <628638bcda35ffe92f931f67560ed01cba970067.1482833176.git.baruch@tkos.co.il>
-From: Fabio Estevam <festevam@gmail.com>
-Date: Tue, 27 Dec 2016 09:26:16 -0200
-Message-ID: <CAOMZO5CvmbVmfS8LOYc1J3MDm5dxQmD=aQYr+h6wM2A9d4SPBA@mail.gmail.com>
-Subject: Re: [PATCH] [media] coda: fix Freescale firmware location
-To: Baruch Siach <baruch@tkos.co.il>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-        linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Baruch,
+From: Colin Ian King <colin.king@canonical.com>
 
-2016-12-27 8:06 GMT-02:00 Baruch Siach <baruch@tkos.co.il>:
-> The Freescale provided imx-vpu looks for firmware files under /lib/firmware/vpu
-> by default. Make coda conform with that to ease the update path.
->
-> Signed-off-by: Baruch Siach <baruch@tkos.co.il>
-> ---
->  drivers/media/platform/coda/coda-common.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-> index 9e6bdafa16f5..140c02715855 100644
-> --- a/drivers/media/platform/coda/coda-common.c
-> +++ b/drivers/media/platform/coda/coda-common.c
-> @@ -2078,7 +2078,7 @@ enum coda_platform {
->  static const struct coda_devtype coda_devdata[] = {
->         [CODA_IMX27] = {
->                 .firmware     = {
-> -                       "vpu_fw_imx27_TO2.bin",
-> +                       "vpu/vpu_fw_imx27_TO2.bin",
->                         "v4l-codadx6-imx27.bin"
->                 },
+trivial fix to spelling mistake in err message
 
-What about just adding the new path without removing the original one?
-This way we avoid breakage for the users that use
-"vpu_fw_imx27_TO2.bin" path.
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/media/usb/dvb-usb/gp8psk.c          | 2 +-
+ drivers/net/wireless/realtek/rtlwifi/core.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/usb/dvb-usb/gp8psk.c b/drivers/media/usb/dvb-usb/gp8psk.c
+index 2360e7e..26461f2 100644
+--- a/drivers/media/usb/dvb-usb/gp8psk.c
++++ b/drivers/media/usb/dvb-usb/gp8psk.c
+@@ -161,7 +161,7 @@ static int gp8psk_load_bcm4500fw(struct dvb_usb_device *d)
+ 			goto out_free;
+ 		}
+ 		if (buflen > 64) {
+-			err("firmare chunk size bigger than 64 bytes.");
++			err("firmware chunk size bigger than 64 bytes.");
+ 			goto out_free;
+ 		}
+ 
+diff --git a/drivers/net/wireless/realtek/rtlwifi/core.c b/drivers/net/wireless/realtek/rtlwifi/core.c
+index ded1493..732de0a 100644
+--- a/drivers/net/wireless/realtek/rtlwifi/core.c
++++ b/drivers/net/wireless/realtek/rtlwifi/core.c
+@@ -1532,7 +1532,7 @@ static int rtl_op_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
+ 		key_type = AESCMAC_ENCRYPTION;
+ 		RT_TRACE(rtlpriv, COMP_SEC, DBG_DMESG, "alg:CMAC\n");
+ 		RT_TRACE(rtlpriv, COMP_SEC, DBG_DMESG,
+-			 "HW don't support CMAC encrypiton, use software CMAC encrypiton\n");
++			 "HW don't support CMAC encryption, use software CMAC encryption\n");
+ 		err = -EOPNOTSUPP;
+ 		goto out_unlock;
+ 	default:
+-- 
+2.10.2
+
