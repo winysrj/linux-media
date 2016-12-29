@@ -1,58 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay.synopsys.com ([198.182.60.111]:43540 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750703AbcLMNrs (ORCPT
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:33560 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751492AbcL2W15 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Dec 2016 08:47:48 -0500
-To: <57911245.1010500@destevenson.freeserve.co.uk>
-From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-Subject: Re: Sony imx219 driver?
-CC: <linux-media@vger.kernel.org>
-Message-ID: <09ab897e-79a9-ae44-4caa-93d8d1fa1c51@synopsys.com>
-Date: Tue, 13 Dec 2016 13:47:40 +0000
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+        Thu, 29 Dec 2016 17:27:57 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: shawnguo@kernel.org, kernel@pengutronix.de, fabio.estevam@nxp.com,
+        robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk,
+        linus.walleij@linaro.org, gnurou@gmail.com, mchehab@kernel.org,
+        gregkh@linuxfoundation.org, p.zabel@pengutronix.de
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH 01/20] ARM: dts: imx6qdl: Add compatible, clocks, irqs to MIPI CSI-2 node
+Date: Thu, 29 Dec 2016 14:27:16 -0800
+Message-Id: <1483050455-10683-2-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1483050455-10683-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1483050455-10683-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dave
+Add to the MIPI CSI2 receiver node: compatible string, interrupt sources,
+clocks.
 
-On 07/21/2016 08:19 PM, Dave Stevenson wrote:
-> Just a quick query to avoid duplicating effort. Has anyone worked on a
-> Sony IMX219 (or other Sony sensor) subdevice driver as yet?
-> 
-> With the new Raspberry Pi camera being IMX219, and as Broadcom have
-> released an soc_camera based driver for the sensor already
-> (https://android.googlesource.com/kernel/bcm/+/android-bcm-tetra-3.10-lollipop-wear-release/drivers/media/video/imx219.c) 
-> I was going to investigate converting that to a subdevice. I just wanted
-> to check this wasn't already in someone else's work queue.
-> 
-> A further Google shows that there's also an soc_camera IMX219 driver in
-> ChromiumOS, copyright Andrew Chew @ Nvidia, but author Guennadi
-> Liakhovetski who I know posts on here.
-> https://chromium.googlesource.com/chromiumos/third_party/kernel/+/factory-ryu-6486.14.B-chromeos-3.14/drivers/media/i2c/soc_camera/imx219.c. 
-> The Broadcom one supports 8MPix and 1080P, the Chromium one only 8MP. 
-> Perhaps a hybrid of the feature set? Throw in
-> https://github.com/ZenfoneArea/android_kernel_asus_zenfone5/blob/master/linux/modules/camera/drivers/media/i2c/imx219/imx219.h 
-> as well, and we have register sets for numerous readout modes, plus 
-> there are the ones in the Pi firmware which can be extracted if necessary.
-> 
-> On a related note, if putting together a system with IMX219 or similar 
-> producing Bayer raw 10, the data on the CSI2 bus is one of the 
-> V4L2_PIX_FMT_SRGGB10P formats. What's the correct way to reflect that 
-> from the sensor subdevice in an MEDIA_BUS_FMT_ enum?
-> The closest is MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE (or LE), but the data 
-> isn't padded (the Pi CSI2 receiver can do the unpacking and padding, but 
-> that just takes up more memory).|||| Or is it MEDIA_BUS_FMT_SBGGR10_1X10 
-> to describe the data on the bus correctly as 10bpp Bayer, and the odd 
-> packing is ignored. Or do we need new enums?
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ arch/arm/boot/dts/imx6qdl.dtsi | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-Do you still plan on submitting this driver? If so, do you plan on submitting it
-soon?
+diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
+index 53e6e63..7b546e3 100644
+--- a/arch/arm/boot/dts/imx6qdl.dtsi
++++ b/arch/arm/boot/dts/imx6qdl.dtsi
+@@ -1125,7 +1125,14 @@
+ 			};
+ 
+ 			mipi_csi: mipi@021dc000 {
++				compatible = "fsl,imx-mipi-csi2";
+ 				reg = <0x021dc000 0x4000>;
++				interrupts = <0 100 0x04>, <0 101 0x04>;
++				clocks = <&clks IMX6QDL_CLK_HSI_TX>,
++					 <&clks IMX6QDL_CLK_VIDEO_27M>,
++					 <&clks IMX6QDL_CLK_EIM_SEL>;
++				clock-names = "dphy_clk", "cfg_clk", "pix_clk";
++				status = "disabled";
+ 			};
+ 
+ 			mipi_dsi: mipi@021e0000 {
+-- 
+2.7.4
 
-If you're not planning on submitting it any time soon, do you mind if submit it
-myself? I'm planning on having something ready for kernel submission by January.
-
-Thanks,
-Ramiro Oliveira
