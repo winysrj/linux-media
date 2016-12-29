@@ -1,99 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50169 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757064AbcLPBYF (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:56708 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751843AbcL2Vg0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 20:24:05 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Rob Clark <robdclark@gmail.com>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Laura Abbott <labbott@redhat.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [RFC v2 09/11] vb2: dma-contig: Move vb2_dc_get_base_sgt() up
-Date: Fri, 16 Dec 2016 03:24:23 +0200
-Message-Id: <20161216012425.11179-10-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20161216012425.11179-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20161216012425.11179-1-laurent.pinchart+renesas@ideasonboard.com>
+        Thu, 29 Dec 2016 16:36:26 -0500
+Subject: Re: [PATCH] [media] gp8psk: fix spelling mistake: "firmare" ->
+ "firmware"
+To: VDR User <user.vdr@gmail.com>
+References: <20161229202952.27448-1-colin.king@canonical.com>
+ <CAA7C2qjAk6LqTru2zimRr4_JUYXK+4d8VENpyYXjyE0-eJ+RKQ@mail.gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Larry Finger <Larry.Finger@lwfinger.net>,
+        Chaoming Li <chaoming_li@realsil.com.cn>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        "mailing list: linux-media" <linux-media@vger.kernel.org>,
+        linux-wireless@vger.kernel.org, netdev@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+From: Colin Ian King <colin.king@canonical.com>
+Message-ID: <4ebb4c2e-2adc-d54c-69ce-fee427f0cb48@canonical.com>
+Date: Thu, 29 Dec 2016 21:35:37 +0000
+MIME-Version: 1.0
+In-Reply-To: <CAA7C2qjAk6LqTru2zimRr4_JUYXK+4d8VENpyYXjyE0-eJ+RKQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+On 29/12/16 21:23, VDR User wrote:
+>> -                       err("firmare chunk size bigger than 64 bytes.");
+>> +                       err("firmware chunk size bigger than 64 bytes.");
+> 
+> Yup.
+> 
+>> -                        "HW don't support CMAC encrypiton, use software CMAC encrypiton\n");
+>> +                        "HW don't support CMAC encryption, use software CMAC encryption\n");
+> 
+> Should be: "HW doesn't support CMAC encryption, use software CMAC
+> encryption\n");
+> 
+Very true, I was so focused on the spelling I overlooked the grammar.
+I'll re-send with that fixed.
 
-Just move the function up. It'll be soon needed earlier than previously.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 40 +++++++++++++-------------
- 1 file changed, 20 insertions(+), 20 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index d59f107f0457..d503647ea522 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -62,6 +62,26 @@ static unsigned long vb2_dc_get_contiguous_size(struct sg_table *sgt)
- 	return size;
- }
- 
-+static struct sg_table *vb2_dc_get_base_sgt(struct vb2_dc_buf *buf)
-+{
-+	int ret;
-+	struct sg_table *sgt;
-+
-+	sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
-+	if (!sgt)
-+		return NULL;
-+
-+	ret = dma_get_sgtable_attrs(buf->dev, sgt, buf->cookie, buf->dma_addr,
-+		buf->size, buf->attrs);
-+	if (ret < 0) {
-+		dev_err(buf->dev, "failed to get scatterlist from DMA API\n");
-+		kfree(sgt);
-+		return NULL;
-+	}
-+
-+	return sgt;
-+}
-+
- /*********************************************/
- /*         callbacks for all buffers         */
- /*********************************************/
-@@ -364,26 +384,6 @@ static struct dma_buf_ops vb2_dc_dmabuf_ops = {
- 	.release = vb2_dc_dmabuf_ops_release,
- };
- 
--static struct sg_table *vb2_dc_get_base_sgt(struct vb2_dc_buf *buf)
--{
--	int ret;
--	struct sg_table *sgt;
--
--	sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
--	if (!sgt)
--		return NULL;
--
--	ret = dma_get_sgtable_attrs(buf->dev, sgt, buf->cookie, buf->dma_addr,
--		buf->size, buf->attrs);
--	if (ret < 0) {
--		dev_err(buf->dev, "failed to get scatterlist from DMA API\n");
--		kfree(sgt);
--		return NULL;
--	}
--
--	return sgt;
--}
--
- static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv, unsigned long flags)
- {
- 	struct vb2_dc_buf *buf = buf_priv;
--- 
-Regards,
-
-Laurent Pinchart
-
+Colin
