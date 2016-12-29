@@ -1,124 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:59091 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752377AbcLIFLL (ORCPT
+Received: from mail-yw0-f174.google.com ([209.85.161.174]:35984 "EHLO
+        mail-yw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752311AbcL2PKr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Dec 2016 00:11:11 -0500
-Message-ID: <d544c1509f1c437e0bc0efa8d44765bf@smtp-cloud6.xs4all.net>
-Date: Fri, 09 Dec 2016 06:11:07 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Thu, 29 Dec 2016 10:10:47 -0500
+Received: by mail-yw0-f174.google.com with SMTP id a10so208531489ywa.3
+        for <linux-media@vger.kernel.org>; Thu, 29 Dec 2016 07:10:47 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAH-u=807nRYzza0kTfOMv1AiWazk6FGJyz6W5_bYw7v9nOrccA@mail.gmail.com>
+References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
+ <20161019213026.GU9460@valkosipuli.retiisi.org.uk> <CAH-u=807nRYzza0kTfOMv1AiWazk6FGJyz6W5_bYw7v9nOrccA@mail.gmail.com>
+From: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
+Date: Thu, 29 Dec 2016 16:10:26 +0100
+Message-ID: <CAH-u=83snOXVS1iSk1=xhkq7-iDUJXutnR_jhyN+qpGxE_zejQ@mail.gmail.com>
+Subject: Re: [PATCH v2 00/21] Basic i.MX IPUv3 capture support
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
+        Gary Bisson <gary.bisson@boundarydevices.com>,
+        Sascha Hauer <kernel@pengutronix.de>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+I am so sorry... This mail wasn't send to the mailing list as this
+****** gmail switched back to HTML...
 
-Results of the daily build of media_tree:
-
-date:			Fri Dec  9 05:00:17 CET 2016
-media-tree git hash:	365fe4e0ce218dc5ad10df17b150a366b6015499
-media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
-v4l-utils git hash:	188e604d57bec065078ff772c802b93ddb6def4b
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.8.0-164
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.67-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-rc5-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.12.67-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-rc5-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+2016-12-29 16:08 GMT+01:00 Jean-Michel Hautbois
+<jean-michel.hautbois@veo-labs.com>:
+> Hi Philipp and al.,
+>
+>
+> 2016-10-19 23:30 GMT+02:00 Sakari Ailus <sakari.ailus@iki.fi>:
+>>
+>> On Fri, Oct 14, 2016 at 07:34:20PM +0200, Philipp Zabel wrote:
+>> > Hi,
+>> >
+>> > the second round removes the prepare_stream callback and instead lets
+>> > the
+>> > intermediate subdevices propagate s_stream calls to their sources rather
+>> > than individually calling s_stream on each subdevice from the bridge
+>> > driver.
+>> > This is similar to how drm bridges recursively call into their next
+>> > neighbor.
+>> > It makes it easier to do bringup ordering on a per-link level, as long
+>> > as the
+>> > source preparation can be done at s_power, and the sink can just
+>> > prepare, call
+>> > s_stream on its source, and then enable itself inside s_stream.
+>> > Obviously this
+>> > would only work in a generic fashion if all asynchronous subdevices with
+>> > both
+>> > inputs and outputs would propagate s_stream to their source subdevices.
+>
+>
+> What is the status of this work ? I saw Steve's patches before yours, so
+> both are implementing pretty much the same functionnality but differently.
+> Which one will be finally merged ?
+> I wanted to upgrade my kernel, in order to give it a try on a board with
+> adv7604 and adv7611 devices.
+> Is there a git tree somewhere integrating it too ?
+>
+> Thanks,
+> JM
+>
+>
