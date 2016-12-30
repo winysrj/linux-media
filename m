@@ -1,53 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wj0-f194.google.com ([209.85.210.194]:32933 "EHLO
-        mail-wj0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752053AbcL2Lpm (ORCPT
+Received: from mail-wj0-f193.google.com ([209.85.210.193]:33899 "EHLO
+        mail-wj0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751961AbcL3LaE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Dec 2016 06:45:42 -0500
-From: Augusto Mecking Caringi <augustocaringi@gmail.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Augusto Mecking Caringi <augustocaringi@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] smiapp: Fix build warnings when !CONFIG_PM_SLEEP
-Date: Thu, 29 Dec 2016 11:45:07 +0000
-Message-Id: <1483011924-10787-1-git-send-email-augustocaringi@gmail.com>
+        Fri, 30 Dec 2016 06:30:04 -0500
+Subject: Re: [PATCH 1/5] [media] ir-rx51: port to rc-core
+To: Sean Young <sean@mess.org>
+References: <cover.1482255894.git.sean@mess.org>
+ <f5262cc638a494f238ef96a80d8f45265ca2fd02.1482255894.git.sean@mess.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Timo Kokkonen <timo.t.kokkonen@iki.fi>,
+        Pavel Machek <pavel@ucw.cz>,
+        =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Message-ID: <5878d916-6a60-d5c3-b912-948b5b970661@gmail.com>
+Date: Fri, 30 Dec 2016 13:30:01 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <f5262cc638a494f238ef96a80d8f45265ca2fd02.1482255894.git.sean@mess.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix the following build warnings when CONFIG_PM is set but
-CONFIG_PM_SLEEP is not:
+Hi,
 
-drivers/media/i2c/smiapp/smiapp-core.c:2746:12: warning:
-‘smiapp_suspend’ defined but not used [-Wunused-function]
-static int smiapp_suspend(struct device *dev)
-            ^
-drivers/media/i2c/smiapp/smiapp-core.c:2771:12: warning: ‘smiapp_resume’
-defined but not used [-Wunused-function]
-static int smiapp_resume(struct device *dev)
-            ^
+On 20.12.2016 19:50, Sean Young wrote:
+> This driver was written using lirc since rc-core did not support
+> transmitter-only hardware at that time. Now that it does, port
+> this driver.
+>
+> Compile tested only.
+>
 
-Signed-off-by: Augusto Mecking Caringi <augustocaringi@gmail.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I guess after that change, there will be no more /dev/lircN device, 
+right? Neither will LIRC_XXX IOCTL codes be supported?
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 59872b3..a08465e 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2741,7 +2741,7 @@ static const struct v4l2_subdev_internal_ops smiapp_internal_ops = {
-  * I2C Driver
-  */
- 
--#ifdef CONFIG_PM
-+#ifdef CONFIG_PM_SLEEP
- 
- static int smiapp_suspend(struct device *dev)
- {
--- 
-2.7.4
+That looks to me as a completely new driver, not a port to new API.
 
+Right now there are applications using the current behaviour (pierogi 
+for example), which will be broken by the change.
+
+Ivo
