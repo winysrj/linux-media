@@ -1,68 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:59045 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753820AbcLXOgU (ORCPT
+Received: from mail-qt0-f182.google.com ([209.85.216.182]:33298 "EHLO
+        mail-qt0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751493AbcL3NRj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Dec 2016 09:36:20 -0500
-Date: Sat, 24 Dec 2016 15:26:57 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, ivo.g.dimitrov.75@gmail.com,
-        pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        galak@codeaurora.org, mchehab@osg.samsung.com,
-        linux-kernel@vger.kernel.org
-Subject: Re: [RFC/PATCH] media: Add video bus switch
-Message-ID: <20161224142657.GA28257@amd>
-References: <20161023200355.GA5391@amd>
- <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
- <20161214122451.GB27011@amd>
- <20161222100104.GA30917@amd>
- <20161222133938.GA30259@amd>
- <20161222143244.ykza4wdxmop2t7bg@earth>
- <20161222224226.GB31151@amd>
- <20161222234028.oxntlek2oy62cjnh@earth>
+        Fri, 30 Dec 2016 08:17:39 -0500
+Received: by mail-qt0-f182.google.com with SMTP id p16so391552328qta.0
+        for <linux-media@vger.kernel.org>; Fri, 30 Dec 2016 05:17:38 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="9jxsPFA5p3P2qPhR"
-Content-Disposition: inline
-In-Reply-To: <20161222234028.oxntlek2oy62cjnh@earth>
+In-Reply-To: <1483050455-10683-11-git-send-email-steve_longerbeam@mentor.com>
+References: <1483050455-10683-1-git-send-email-steve_longerbeam@mentor.com> <1483050455-10683-11-git-send-email-steve_longerbeam@mentor.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Date: Fri, 30 Dec 2016 14:17:38 +0100
+Message-ID: <CACRpkdZG2j4_LwP8KUVBTOtXma75YvYtC6CW1QqYwOm-MOZgHg@mail.gmail.com>
+Subject: Re: [PATCH 10/20] gpio: pca953x: Add optional reset gpio control
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <kernel@pengutronix.de>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Alexandre Courbot <gnurou@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg KH <gregkh@linuxfoundation.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, Dec 29, 2016 at 11:27 PM, Steve Longerbeam
+<slongerbeam@gmail.com> wrote:
 
---9jxsPFA5p3P2qPhR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Add optional reset-gpios pin control. If present, de-assert the
+> specified reset gpio pin to bring the chip out of reset.
+>
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> Cc: Linus Walleij <linus.walleij@linaro.org>
+> Cc: Alexandre Courbot <gnurou@gmail.com>
+> Cc: linux-gpio@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
 
-Hi!
+This seems like a separate patch from the other 19 patches so please send it
+separately so I can handle logistics easier in the future.
 
-> > So... did I understood it correctly? (Needs some work to be done...)
->=20
-> I had a quick look and yes, that's basically what I had in mind to
-> solve the issue. If callback is not available the old system should
-> be used of course.
 
-Ok, got it to work, thanks for all the help. I'll clean it up now.
+> @@ -133,6 +134,7 @@ struct pca953x_chip {
+>         const char *const *names;
+>         unsigned long driver_data;
+>         struct regulator *regulator;
+> +       struct gpio_desc *reset_gpio;
 
-Best regards,
-									Pavel
+Why do you even keep this around in the device state container?
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+As you only use it in the probe() function, use a local variable.
 
---9jxsPFA5p3P2qPhR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+The descriptor will be free():ed by the devm infrastructure anyways.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+> +               /* see if we need to de-assert a reset pin */
+> +               chip->reset_gpio = devm_gpiod_get_optional(&client->dev,
+> +                                                          "reset",
+> +                                                          GPIOD_OUT_LOW);
+> +               if (IS_ERR(chip->reset_gpio)) {
+> +                       dev_err(&client->dev, "request for reset pin failed\n");
+> +                       return PTR_ERR(chip->reset_gpio);
+> +               }
 
-iEYEARECAAYFAlhehbEACgkQMOfwapXb+vIoVgCfXjQfgPrxWkze1bfOaZpnJrQL
-moYAnR3t+9rFsodqigq4/ADIl+nTX6dH
-=YPWF
------END PGP SIGNATURE-----
+Nice.
 
---9jxsPFA5p3P2qPhR--
+> +               if (chip->reset_gpio) {
+> +                       /* bring chip out of reset */
+> +                       dev_info(&client->dev, "releasing reset\n");
+> +                       gpiod_set_value(chip->reset_gpio, 0);
+> +               }
+
+Is this really needed given that you set it low in the
+devm_gpiod_get_optional()?
+
+Yours,
+Linus Walleij
