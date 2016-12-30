@@ -1,123 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:46704 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750715AbcLRFL3 (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:33005 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750962AbcL3SD4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Dec 2016 00:11:29 -0500
-Message-ID: <b22dd2f6689fc1f3c4c0ca9ed1d34ba4@smtp-cloud3.xs4all.net>
-Date: Sun, 18 Dec 2016 06:11:26 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Fri, 30 Dec 2016 13:03:56 -0500
+Subject: Re: [PATCH 10/20] gpio: pca953x: Add optional reset gpio control
+To: Linus Walleij <linus.walleij@linaro.org>, LW@KARO-electronics.de
+References: <1483050455-10683-1-git-send-email-steve_longerbeam@mentor.com>
+ <1483050455-10683-11-git-send-email-steve_longerbeam@mentor.com>
+ <CACRpkdZG2j4_LwP8KUVBTOtXma75YvYtC6CW1QqYwOm-MOZgHg@mail.gmail.com>
+Cc: Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <kernel@pengutronix.de>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Alexandre Courbot <gnurou@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg KH <gregkh@linuxfoundation.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <9fa1db80-b0ea-68af-c122-49ea0b4315ec@gmail.com>
+Date: Fri, 30 Dec 2016 10:03:53 -0800
+MIME-Version: 1.0
+In-Reply-To: <CACRpkdZG2j4_LwP8KUVBTOtXma75YvYtC6CW1QqYwOm-MOZgHg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Linus, Lothar,
 
-Results of the daily build of media_tree:
 
-date:			Sun Dec 18 05:00:17 CET 2016
-media-tree git hash:	d183e4efcae8d88a2f252e546978658ca6d273cc
-media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
-v4l-utils git hash:	6da6dcaa3de67be6ddeec2245bab0afa1c772afd
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.8.0-164
+On 12/30/2016 05:17 AM, Linus Walleij wrote:
+> On Thu, Dec 29, 2016 at 11:27 PM, Steve Longerbeam
+> <slongerbeam@gmail.com> wrote:
+>
+>> Add optional reset-gpios pin control. If present, de-assert the
+>> specified reset gpio pin to bring the chip out of reset.
+>>
+>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+>> Cc: Linus Walleij <linus.walleij@linaro.org>
+>> Cc: Alexandre Courbot <gnurou@gmail.com>
+>> Cc: linux-gpio@vger.kernel.org
+>> Cc: linux-kernel@vger.kernel.org
+> This seems like a separate patch from the other 19 patches so please send it
+> separately so I can handle logistics easier in the future.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.67-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.12.67-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+Ok, I'll send the next version separately.
 
-Detailed results are available here:
+>
+>
+>> @@ -133,6 +134,7 @@ struct pca953x_chip {
+>>          const char *const *names;
+>>          unsigned long driver_data;
+>>          struct regulator *regulator;
+>> +       struct gpio_desc *reset_gpio;
+> Why do you even keep this around in the device state container?
+>
+> As you only use it in the probe() function, use a local variable.
+>
+> The descriptor will be free():ed by the devm infrastructure anyways.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+I think my reasoning for putting the gpio handle into the device
+struct was for possibly using it for run-time reset control at some
+point. But that could be done later if needed, so I'll go ahead and
+make it local.
 
-Full logs are available here:
+>> +               /* see if we need to de-assert a reset pin */
+>> +               chip->reset_gpio = devm_gpiod_get_optional(&client->dev,
+>> +                                                          "reset",
+>> +                                                          GPIOD_OUT_LOW);
+>> +               if (IS_ERR(chip->reset_gpio)) {
+>> +                       dev_err(&client->dev, "request for reset pin failed\n");
+>> +                       return PTR_ERR(chip->reset_gpio);
+>> +               }
+> Nice.
+>
+>> +               if (chip->reset_gpio) {
+>> +                       /* bring chip out of reset */
+>> +                       dev_info(&client->dev, "releasing reset\n");
+>> +                       gpiod_set_value(chip->reset_gpio, 0);
+>> +               }
+> Is this really needed given that you set it low in the
+> devm_gpiod_get_optional()?
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+Yep, this is left over from a previous iteration, but it isn't needed now.
+I'll remove it.
 
-The Media Infrastructure API from this daily build is here:
+Steve
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
