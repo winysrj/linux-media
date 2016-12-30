@@ -1,68 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f54.google.com ([74.125.82.54]:38722 "EHLO
-        mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753453AbcLST4p (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Dec 2016 14:56:45 -0500
-Received: by mail-wm0-f54.google.com with SMTP id f82so111232359wmf.1
-        for <linux-media@vger.kernel.org>; Mon, 19 Dec 2016 11:56:45 -0800 (PST)
-Date: Mon, 19 Dec 2016 19:56:37 +0000
-From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-To: Kees Cook <keescook@chromium.org>
-Cc: linux-kernel@vger.kernel.org,
-        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
-        Ismael Luceno <ismael@iodev.co.uk>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, andrey_utkin@fastmail.com
-Subject: Re: [PATCH] solo6x10: use designated initializers
-Message-ID: <20161219195637.GA15652@dell-m4800>
-References: <20161217010536.GA140725@beast>
+Received: from gofer.mess.org ([80.229.237.210]:39997 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753916AbcL3NH4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 30 Dec 2016 08:07:56 -0500
+Date: Fri, 30 Dec 2016 13:07:52 +0000
+From: Sean Young <sean@mess.org>
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Timo Kokkonen <timo.t.kokkonen@iki.fi>,
+        Pavel Machek <pavel@ucw.cz>,
+        Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH 1/5] [media] ir-rx51: port to rc-core
+Message-ID: <20161230130752.GA7377@gofer.mess.org>
+References: <cover.1482255894.git.sean@mess.org>
+ <f5262cc638a494f238ef96a80d8f45265ca2fd02.1482255894.git.sean@mess.org>
+ <5878d916-6a60-d5c3-b912-948b5b970661@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20161217010536.GA140725@beast>
+In-Reply-To: <5878d916-6a60-d5c3-b912-948b5b970661@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Dec 16, 2016 at 05:05:36PM -0800, Kees Cook wrote:
-> Prepare to mark sensitive kernel structures for randomization by making
-> sure they're using designated initializers. These were identified during
-> allyesconfig builds of x86, arm, and arm64, with most initializer fixes
-> extracted from grsecurity.
+Hi Ivo,,
 
-Ok I've reviewed all the patchset, googled a bit and now I see what's
-going on.
-
+On Fri, Dec 30, 2016 at 01:30:01PM +0200, Ivaylo Dimitrov wrote:
+> On 20.12.2016 19:50, Sean Young wrote:
+> >This driver was written using lirc since rc-core did not support
+> >transmitter-only hardware at that time. Now that it does, port
+> >this driver.
+> >
+> >Compile tested only.
+> >
 > 
-> Signed-off-by: Kees Cook <keescook@chromium.org>
-> ---
->  drivers/media/pci/solo6x10/solo6x10-g723.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> I guess after that change, there will be no more /dev/lircN device, right?
+> Neither will LIRC_XXX IOCTL codes be supported?
+
+Quite the opposite, /dev/lircN and all the LIRC_XXX ioctls will still be
+supported through ir-lirc-codec.c.
+
+By using rc-core, the driver will be more succinct, and some latent bugs
+will be fixed. For example, at the moment it is possible to write hours
+of IR data and keep the n900 from suspending.
+
+I'm working on lirc scancode sending and receiving using the IR encoders,
+and when that is in place, any rc-core driver will get it for free.
+
+> That looks to me as a completely new driver, not a port to new API.
 > 
-> diff --git a/drivers/media/pci/solo6x10/solo6x10-g723.c b/drivers/media/pci/solo6x10/solo6x10-g723.c
-> index 6a35107aca25..36e93540bb49 100644
-> --- a/drivers/media/pci/solo6x10/solo6x10-g723.c
-> +++ b/drivers/media/pci/solo6x10/solo6x10-g723.c
-> @@ -350,7 +350,7 @@ static int solo_snd_pcm_init(struct solo_dev *solo_dev)
->  
->  int solo_g723_init(struct solo_dev *solo_dev)
->  {
-> -	static struct snd_device_ops ops = { NULL };
-> +	static struct snd_device_ops ops = { };
+> Right now there are applications using the current behaviour (pierogi for
+> example), which will be broken by the change.
 
-I'm not that keen on syntax subtleties, but...
- * Empty initializer is not quite "designated" as I can judge.
- * From brief googling I see that empty initializer is not valid in
-   some C standards.
+Nothing should break.
 
-Since `ops` is static, what about this?
-For the variant given below, you have my signoff.
+Thanks,
 
-> --- a/drivers/media/pci/solo6x10/solo6x10-g723.c
-> +++ b/drivers/media/pci/solo6x10/solo6x10-g723.c
-> @@ -350,7 +350,7 @@ static int solo_snd_pcm_init(struct solo_dev *solo_dev)
->  
->  int solo_g723_init(struct solo_dev *solo_dev)
->  {
-> -	static struct snd_device_ops ops = { NULL };
-> +	static struct snd_device_ops ops;
+Sean
