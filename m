@@ -1,153 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:42142
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1761082AbcLPK5t (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38826 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753938AbcL3N2Y (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Dec 2016 05:57:49 -0500
-Date: Fri, 16 Dec 2016 08:57:41 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [RFC v3 00/21] Make use of kref in media device, grab
- references as needed
-Message-ID: <20161216085741.38bb2e18@vento.lan>
-In-Reply-To: <150c057f-7ef8-30cb-07ca-885d4c2a4dcd@xs4all.nl>
-References: <20161109154608.1e578f9e@vento.lan>
-        <20161213102447.60990b1c@vento.lan>
-        <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
-        <7529355.zfqFdROYdM@avalon>
-        <896ef36c-435e-6899-5ae8-533da7731ec1@xs4all.nl>
-        <fa996ec5-0650-9774-7baf-5eaca60d76c7@osg.samsung.com>
-        <47bf7ca7-2375-3dfa-775c-a56d6bd9dabd@xs4all.nl>
-        <ea29010f-ffdc-f10f-8b4f-fb1337320863@osg.samsung.com>
-        <2f5a7ca0-70d1-c6a9-9966-2a169a62e405@xs4all.nl>
-        <b83be9ed-5ce3-3667-08c8-2b4d4cd047a0@osg.samsung.com>
-        <20161215152501.11ce2b2a@vento.lan>
-        <3023f381-1141-df8f-c1ae-2bff36d688ca@osg.samsung.com>
-        <150c057f-7ef8-30cb-07ca-885d4c2a4dcd@xs4all.nl>
+        Fri, 30 Dec 2016 08:28:24 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v3 1/4] uvcvideo: (cosmetic) add and use an inline function
+Date: Fri, 30 Dec 2016 15:28:37 +0200
+Message-ID: <1556654.51pUyBztm0@avalon>
+In-Reply-To: <1481541412-1186-2-git-send-email-guennadi.liakhovetski@intel.com>
+References: <1481541412-1186-1-git-send-email-guennadi.liakhovetski@intel.com> <1481541412-1186-2-git-send-email-guennadi.liakhovetski@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 16 Dec 2016 11:11:25 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi Guennadi,
 
-> > Would it make sense to enforce that dependency. Can we tie /dev/media usecount
-> > to /dev/video etc. usecount? In other words:
-> >
-> > /dev/video is opened, then open /dev/media.  
+Thank you for the patch.
+
+On Monday 12 Dec 2016 12:16:49 Guennadi Liakhovetski wrote:
+> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 > 
-> When a device node is registered it should increase the refcount on the media_device
-> (as I proposed, that would be mdev->dev). When a device node is unregistered and the
-> last user disappeared, then it can decrease the media_device refcount.
+> Add an inline function to obtain a struct uvc_buffer pointer from a
+> struct vb2_v4l2_buffer one.
 > 
-> So as long as anyone is using a device node, the media_device will stick around as
-> well.
+> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+> ---
+>  drivers/media/usb/uvc/uvc_queue.c | 6 +++---
+>  drivers/media/usb/uvc/uvcvideo.h  | 4 ++++
+>  2 files changed, 7 insertions(+), 3 deletions(-)
 > 
-> No need to take refcounts on open/close.
+> diff --git a/drivers/media/usb/uvc/uvc_queue.c
+> b/drivers/media/usb/uvc/uvc_queue.c index 77edd20..c119551 100644
+> --- a/drivers/media/usb/uvc/uvc_queue.c
+> +++ b/drivers/media/usb/uvc/uvc_queue.c
+> @@ -89,7 +89,7 @@ static int uvc_buffer_prepare(struct vb2_buffer *vb)
+>  {
+>  	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+>  	struct uvc_video_queue *queue = vb2_get_drv_priv(vb->vb2_queue);
+> -	struct uvc_buffer *buf = container_of(vbuf, struct uvc_buffer, buf);
+> +	struct uvc_buffer *buf = uvc_vbuf_to_buffer(vbuf);
+> 
+>  	if (vb->type == V4L2_BUF_TYPE_VIDEO_OUTPUT &&
+>  	    vb2_get_plane_payload(vb, 0) > vb2_plane_size(vb, 0)) {
+> @@ -116,7 +116,7 @@ static void uvc_buffer_queue(struct vb2_buffer *vb)
+>  {
+>  	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+>  	struct uvc_video_queue *queue = vb2_get_drv_priv(vb->vb2_queue);
+> -	struct uvc_buffer *buf = container_of(vbuf, struct uvc_buffer, buf);
+> +	struct uvc_buffer *buf = uvc_vbuf_to_buffer(vbuf);
+>  	unsigned long flags;
+> 
+>  	spin_lock_irqsave(&queue->irqlock, flags);
+> @@ -138,7 +138,7 @@ static void uvc_buffer_finish(struct vb2_buffer *vb)
+>  	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+>  	struct uvc_video_queue *queue = vb2_get_drv_priv(vb->vb2_queue);
+>  	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
+> -	struct uvc_buffer *buf = container_of(vbuf, struct uvc_buffer, buf);
+> +	struct uvc_buffer *buf = uvc_vbuf_to_buffer(vbuf);
+> 
+>  	if (vb->state == VB2_BUF_STATE_DONE)
+>  		uvc_video_clock_update(stream, vbuf, buf);
+> diff --git a/drivers/media/usb/uvc/uvcvideo.h
+> b/drivers/media/usb/uvc/uvcvideo.h index 3d6cc62..a1e6a19 100644
+> --- a/drivers/media/usb/uvc/uvcvideo.h
+> +++ b/drivers/media/usb/uvc/uvcvideo.h
+> @@ -679,6 +679,10 @@ static inline int uvc_queue_streaming(struct
+> uvc_video_queue *queue) {
+>  	return vb2_is_streaming(&queue->queue);
+>  }
+> +static inline struct uvc_buffer *uvc_vbuf_to_buffer(struct vb2_v4l2_buffer
+> *vbuf)
 
-That makes sense. You're meaning something like the enclosed (untested)
-patch?
+If you rename vbuf to buf you'll fit within the 80 columns limit.
 
-> One note: as I mentioned, the video_device does not set the cdev parent correctly,
-> so that bug needs to be fixed first for this to work.
+I also propose moving the function to uvc_queue.c as it's only used there, 
+like the uvc_queue_to_stream() function.
 
-Actually, __video_register_device() seems to be setting the parent
-properly:
+Apart from that,
 
-	if (vdev->dev_parent == NULL)
-		vdev->dev_parent = vdev->v4l2_dev->dev;
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Thanks,
-Mauro
+If you're fine with those changes there's no need to resubmit, I'll fix when 
+applying (for v4.11).
 
-[PATCH] Be sure that the media_device won't be freed too early
+> +{
+> +	return container_of(vbuf, struct uvc_buffer, buf);
+> +}
+> 
+>  /* V4L2 interface */
+>  extern const struct v4l2_ioctl_ops uvc_ioctl_ops;
 
-This code snippet is untested.
+-- 
+Regards,
 
-Signed-off-by: Mauro Carvalho chehab <mchehab@s-opensource.com>
-
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 8756275e9fc4..5fdeab382069 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -706,7 +706,7 @@ int __must_check __media_device_register(struct media_device *mdev,
- 	struct media_devnode *devnode;
- 	int ret;
- 
--	devnode = kzalloc(sizeof(*devnode), GFP_KERNEL);
-+	devnode = devm_kzalloc(mdev->dev, sizeof(*devnode), GFP_KERNEL);
- 	if (!devnode)
- 		return -ENOMEM;
- 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 8be561ab2615..14a3c56dbcac 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -196,6 +196,7 @@ static void v4l2_device_release(struct device *cd)
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	if (v4l2_dev->mdev) {
- 		/* Remove interfaces and interface links */
-+		put_device(v4l2_dev->mdev->dev);
- 		media_devnode_remove(vdev->intf_devnode);
- 		if (vdev->entity.function != MEDIA_ENT_F_UNKNOWN)
- 			media_device_unregister_entity(&vdev->entity);
-@@ -810,6 +811,7 @@ static int video_register_media_controller(struct video_device *vdev, int type)
- 			return -ENOMEM;
- 		}
- 	}
-+	get_device(vdev->v4l2_dev->dev);
- 
- 	/* FIXME: how to create the other interface links? */
- 
-@@ -1015,6 +1017,11 @@ void video_unregister_device(struct video_device *vdev)
- 	if (!vdev || !video_is_registered(vdev))
- 		return;
- 
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	if (vdev->v4l2_dev->dev)
-+		put_device(vdev->v4l2_dev->dev);
-+#endif
-+
- 	mutex_lock(&videodev_lock);
- 	/* This must be in a critical section to prevent a race with v4l2_open.
- 	 * Once this bit has been cleared video_get may never be called again.
-diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
-index 62bbed76dbbc..53f42090c762 100644
---- a/drivers/media/v4l2-core/v4l2-device.c
-+++ b/drivers/media/v4l2-core/v4l2-device.c
-@@ -188,6 +188,7 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
- 		err = media_device_register_entity(v4l2_dev->mdev, entity);
- 		if (err < 0)
- 			goto error_module;
-+		get_device(v4l2_dev->mdev->dev);
- 	}
- #endif
- 
-@@ -205,6 +206,8 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
- 
- error_unregister:
- #if defined(CONFIG_MEDIA_CONTROLLER)
-+	if (v4l2_dev->mdev)
-+		put_device(v4l2_dev->mdev->dev);
- 	media_device_unregister_entity(entity);
- #endif
- error_module:
-@@ -310,6 +313,7 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
- 		 * links are removed by the function below, in the right order
- 		 */
- 		media_device_unregister_entity(&sd->entity);
-+		put_device(v4l2_dev->mdev->dev);
- 	}
- #endif
- 	video_unregister_device(sd->devnode);
-
-
-
+Laurent Pinchart
 
