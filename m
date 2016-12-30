@@ -1,42 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([184.105.139.130]:53274 "EHLO
-        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758490AbcLPSU7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Dec 2016 13:20:59 -0500
-Date: Fri, 16 Dec 2016 13:20:57 -0500 (EST)
-Message-Id: <20161216.132057.1771215556712298530.davem@davemloft.net>
-To: gvrose8192@gmail.com
-Cc: henrik@austad.us, linux-kernel@vger.kernel.org,
-        richardcochran@gmail.com, haustad@cisco.com,
-        linux-media@vger.kernel.org, alsa-devel@vger.kernel.org,
-        netdev@vger.kernel.org
-Subject: Re: [TSN RFC v2 0/9] TSN driver for the kernel
-From: David Miller <davem@davemloft.net>
-In-Reply-To: <1481911964.3572.1.camel@gmail.com>
-References: <1481911153-549-1-git-send-email-henrik@austad.us>
-        <1481911964.3572.1.camel@gmail.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from gofer.mess.org ([80.229.237.210]:53445 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752421AbcL3Pq2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 30 Dec 2016 10:46:28 -0500
+Date: Fri, 30 Dec 2016 15:46:25 +0000
+From: Sean Young <sean@mess.org>
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Timo Kokkonen <timo.t.kokkonen@iki.fi>,
+        Pavel Machek <pavel@ucw.cz>,
+        Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH 1/5] [media] ir-rx51: port to rc-core
+Message-ID: <20161230154625.GA9115@gofer.mess.org>
+References: <cover.1482255894.git.sean@mess.org>
+ <f5262cc638a494f238ef96a80d8f45265ca2fd02.1482255894.git.sean@mess.org>
+ <5878d916-6a60-d5c3-b912-948b5b970661@gmail.com>
+ <20161230130752.GA7377@gofer.mess.org>
+ <20161230133030.GA7861@gofer.mess.org>
+ <1e4fa726-5dec-028e-9f0f-1c53d58df981@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1e4fa726-5dec-028e-9f0f-1c53d58df981@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Greg <gvrose8192@gmail.com>
-Date: Fri, 16 Dec 2016 10:12:44 -0800
+Hi Ivo,
 
-> On Fri, 2016-12-16 at 18:59 +0100, henrik@austad.us wrote:
->> From: Henrik Austad <haustad@cisco.com>
->> 
->> 
->> The driver is directed via ConfigFS as we need userspace to handle
->> stream-reservation (MSRP), discovery and enumeration (IEEE 1722.1) and
->> whatever other management is needed. This also includes running an
->> appropriate PTP daemon (TSN favors gPTP).
+On Fri, Dec 30, 2016 at 03:50:42PM +0200, Ivaylo Dimitrov wrote:
+> On 30.12.2016 15:30, Sean Young wrote:
+> >On Fri, Dec 30, 2016 at 01:07:52PM +0000, Sean Young wrote:
+> >Speaking of which, if you would please test this, that would be great. My
+> >N900 died many years ago.
 > 
-> I suggest using a generic netlink interface to communicate with the
-> driver to set up and/or configure your drivers.
-> 
-> I think configfs is frowned upon for network drivers.  YMMV.
+> Will do, but next year :) .
 
-Agreed.
+Great, thanks!
+
+Sean
