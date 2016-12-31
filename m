@@ -1,114 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:33833 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932328AbcLLVNz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Dec 2016 16:13:55 -0500
-From: Sean Young <sean@mess.org>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:36174 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754554AbcLaEZ2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 30 Dec 2016 23:25:28 -0500
+Message-ID: <edf0c0d4d250c2deb122468644239119@smtp-cloud6.xs4all.net>
+Date: Sat, 31 Dec 2016 05:25:25 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: James Hogan <james@albanarts.com>,
-        =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
-        =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Subject: [PATCH v5 06/18] [media] rc: rc-ir-raw: Add scancode encoder callback
-Date: Mon, 12 Dec 2016 21:13:42 +0000
-Message-Id: <1669f6c54c34e5a78ce114c633c98b331e58e8c7.1481575826.git.sean@mess.org>
-In-Reply-To: <cover.1481575826.git.sean@mess.org>
-References: <cover.1481575826.git.sean@mess.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: James Hogan <james@albanarts.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Add a callback to raw ir handlers for encoding and modulating a scancode
-to a set of raw events. This could be used for transmit, or for
-converting a wakeup scancode to a form that is more suitable for raw
-hardware wake up filters.
+Results of the daily build of media_tree:
 
-Signed-off-by: James Hogan <james@albanarts.com>
-Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
-Signed-off-by: Sean Young <sean@mess.org>
-Cc: David Härdeman <david@hardeman.nu>
----
- drivers/media/rc/rc-core-priv.h |  2 ++
- drivers/media/rc/rc-ir-raw.c    | 36 ++++++++++++++++++++++++++++++++++++
- include/media/rc-core.h         |  2 ++
- 3 files changed, 40 insertions(+)
+date:			Sat Dec 31 05:00:08 CET 2016
+media-tree git hash:	40eca140c404505c09773d1c6685d818cb55ab1a
+media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
+v4l-utils git hash:	a710e1bb7c6803a9347d3899b9129d887221985f
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index 585d5e5..d8be011 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -28,6 +28,8 @@ struct ir_raw_handler {
- 
- 	u64 protocols; /* which are handled by this handler */
- 	int (*decode)(struct rc_dev *dev, struct ir_raw_event event);
-+	int (*encode)(enum rc_type protocol, u32 scancode,
-+		      struct ir_raw_event *events, unsigned int max);
- 
- 	/* These two should only be used by the lirc decoder */
- 	int (*raw_register)(struct rc_dev *dev);
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index 171bdba..c23c877 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -249,6 +249,42 @@ static void ir_raw_disable_protocols(struct rc_dev *dev, u64 protocols)
- 	mutex_unlock(&dev->lock);
- }
- 
-+/**
-+ * ir_raw_encode_scancode() - Encode a scancode as raw events
-+ *
-+ * @protocol:		protocol
-+ * @scancode:		scancode filter describing a single scancode
-+ * @events:		array of raw events to write into
-+ * @max:		max number of raw events
-+ *
-+ * Attempts to encode the scancode as raw events.
-+ *
-+ * Returns:	The number of events written.
-+ *		-ENOBUFS if there isn't enough space in the array to fit the
-+ *		encoding. In this case all @max events will have been written.
-+ *		-EINVAL if the scancode is ambiguous or invalid, or if no
-+ *		compatible encoder was found.
-+ */
-+int ir_raw_encode_scancode(enum rc_type protocol, u32 scancode,
-+			   struct ir_raw_event *events, unsigned int max)
-+{
-+	struct ir_raw_handler *handler;
-+	int ret = -EINVAL;
-+
-+	mutex_lock(&ir_raw_handler_lock);
-+	list_for_each_entry(handler, &ir_raw_handler_list, list) {
-+		if (handler->protocols & (1 << protocol) && handler->encode) {
-+			ret = handler->encode(protocol, scancode, events, max);
-+			if (ret >= 0 || ret == -ENOBUFS)
-+				break;
-+		}
-+	}
-+	mutex_unlock(&ir_raw_handler_lock);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(ir_raw_encode_scancode);
-+
- /*
-  * Used to (un)register raw event clients
-  */
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 19a0ad2..bdf3ff0 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -304,6 +304,8 @@ int ir_raw_event_store_edge(struct rc_dev *dev, enum raw_event_type type);
- int ir_raw_event_store_with_filter(struct rc_dev *dev,
- 				struct ir_raw_event *ev);
- void ir_raw_event_set_idle(struct rc_dev *dev, bool idle);
-+int ir_raw_encode_scancode(enum rc_type protocol, u32 scancode,
-+			   struct ir_raw_event *events, unsigned int max);
- 
- static inline void ir_raw_event_reset(struct rc_dev *dev)
- {
--- 
-2.9.3
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9-x86_64: ERRORS
+apps: WARNINGS
+spec-git: ERRORS
+sparse: WARNINGS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
