@@ -1,74 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:34800 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936099AbdAIMAn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2017 07:00:43 -0500
-Date: Mon, 9 Jan 2017 12:00:04 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linuxppc-dev@lists.ozlabs.org, linux-kbuild@vger.kernel.org,
-        linux-mips@linux-mips.org, alsa-devel@alsa-project.org,
-        linux-ia64@vger.kernel.org, linux-doc@vger.kernel.org,
-        airlied@linux.ie, linux-fbdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-mtd@lists.infradead.org,
-        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-am33-list@redhat.com,
-        linux-c6x-dev@linux-c6x.org, linux-rdma@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, linux-sh@vger.kernel.org,
-        coreteam@netfilter.org, fcoe-devel@open-fcoe.org,
-        xen-devel@lists.xenproject.org, linux-snps-arc@lists.infradead.org,
-        linux-media@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp,
-        adi-buildroot-devel@lists.sourceforge.net,
-        linux-raid@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        openrisc@lists.librecores.org,
-        Nicolas Dichtel <nicolas.dichtel@6wind.com>,
-        linux-metag@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-nfs@vger.kernel.org, linux-cris-kernel@axis.com,
-        linux-parisc@vger.kernel.org, netdev@vger.kernel.org,
-        linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-spi@vger.kernel.org, mmarek@suse.com,
-        netfilter-devel@vger.kernel.org, linux-alpha@vger.kernel.org,
-        nios2-dev@lists.rocketboards.org, davem@davemloft.net
-Subject: Re: [PATCH v2 1/7] arm: put types.h in uapi
-Message-ID: <20170109120004.GV14217@n2100.armlinux.org.uk>
-References: <bf83da6b-01ef-bf44-b3e1-ca6fc5636818@6wind.com>
- <1483695839-18660-1-git-send-email-nicolas.dichtel@6wind.com>
- <1483695839-18660-2-git-send-email-nicolas.dichtel@6wind.com>
- <1990589.0aJHWbJK4F@wuerfel>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1990589.0aJHWbJK4F@wuerfel>
+Received: from smtp.220.in.ua ([89.184.67.205]:49478 "EHLO smtp.220.in.ua"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932171AbdAARfG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 1 Jan 2017 12:35:06 -0500
+From: Oleh Kravchenko <oleg@kaa.org.ua>
+To: linux-media@vger.kernel.org
+Cc: Oleh Kravchenko <oleg@kaa.org.ua>
+Subject: [PATCH] [media] cx231xx: Initial support for Evromedia USB Full Hybrid Full HD
+Date: Sun,  1 Jan 2017 19:28:23 +0200
+Message-Id: <20170101172823.7654-1-oleg@kaa.org.ua>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 09, 2017 at 12:33:02PM +0100, Arnd Bergmann wrote:
-> On Friday, January 6, 2017 10:43:53 AM CET Nicolas Dichtel wrote:
-> > 
-> > diff --git a/arch/arm/include/asm/types.h b/arch/arm/include/asm/types.h
-> > index a53cdb8f068c..c48fee3d7b3b 100644
-> > --- a/arch/arm/include/asm/types.h
-> > +++ b/arch/arm/include/asm/types.h
-> > @@ -1,40 +1,6 @@
-> >  #ifndef _ASM_TYPES_H
-> >  #define _ASM_TYPES_H
-> >  
-> > -#include <asm-generic/int-ll64.h>
-> ...
-> > -#define __UINTPTR_TYPE__       unsigned long
-> > -#endif
-> > +#include <uapi/asm/types.h>
-> >  
-> >  #endif /* _ASM_TYPES_H */
-> > 
-> 
-> Moving the file is correct as far as I can tell, but the extra
-> #include is not necessary here, as the kernel will automatically
-> search both arch/arm/include/ and arch/arm/include/uapi/.
+Add initial support for the Evromedia USB Full Hybrid Full HD
+with USB ID 1b80:d3b2.
 
-Indeed, I'd like to see the include/asm file gone.
+Status:
+- DVB-T2 works fine;
+- Analog not implemented.
 
+Signed-off-by: Oleh Kravchenko <oleg@kaa.org.ua>
+---
+ drivers/media/usb/cx231xx/Kconfig         |  1 +
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 16 +++++++
+ drivers/media/usb/cx231xx/cx231xx-dvb.c   | 74 +++++++++++++++++++++++++++++++
+ drivers/media/usb/cx231xx/cx231xx-i2c.c   | 37 ++++++++++++++++
+ drivers/media/usb/cx231xx/cx231xx.h       |  1 +
+ 5 files changed, 129 insertions(+)
+
+diff --git a/drivers/media/usb/cx231xx/Kconfig b/drivers/media/usb/cx231xx/Kconfig
+index 0cced3e..58de80b 100644
+--- a/drivers/media/usb/cx231xx/Kconfig
++++ b/drivers/media/usb/cx231xx/Kconfig
+@@ -50,6 +50,7 @@ config VIDEO_CX231XX_DVB
+ 	select DVB_LGDT3306A if MEDIA_SUBDRV_AUTOSELECT
+ 	select DVB_TDA18271C2DD if MEDIA_SUBDRV_AUTOSELECT
+ 	select DVB_SI2165 if MEDIA_SUBDRV_AUTOSELECT
++	select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
+ 
+ 	---help---
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index 36bc254..380aff7 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -841,6 +841,20 @@ struct cx231xx_board cx231xx_boards[] = {
+ 			.gpio = NULL,
+ 		} },
+ 	},
++	[CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD] = {
++		.name = "Evromedia USB Full Hybrid Full HD",
++		.tuner_type = TUNER_ABSENT,
++		.has_dvb = 1,
++		.demod_i2c_master = I2C_1_MUX_3,
++		.demod_addr = 0xc8 >> 1,
++		.tuner_i2c_master = I2C_2,
++		.tuner_addr = 0xc0 >> 1,
++		.input = {{
++			.type = CX231XX_VMUX_TELEVISION,
++			.vmux = 0,
++			.amux = CX231XX_AMUX_VIDEO,
++		} },
++	},
+ };
+ const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
+ 
+@@ -908,6 +922,8 @@ struct usb_device_id cx231xx_id_table[] = {
+ 	 .driver_info = CX231XX_BOARD_OTG102},
+ 	{USB_DEVICE(USB_VID_TERRATEC, 0x00a6),
+ 	 .driver_info = CX231XX_BOARD_TERRATEC_GRABBY},
++	{USB_DEVICE(0x1b80, 0xd3b2),
++	.driver_info = CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD},
+ 	{},
+ };
+ 
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index 1417515..131c1e2 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -33,6 +33,7 @@
+ #include "s5h1411.h"
+ #include "lgdt3305.h"
+ #include "si2165.h"
++#include "si2168.h"
+ #include "mb86a20s.h"
+ #include "si2157.h"
+ #include "lgdt3306a.h"
+@@ -949,6 +950,79 @@ static int dvb_init(struct cx231xx *dev)
+ 			   &pv_tda18271_config);
+ 		break;
+ 
++	case CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD:
++	{
++		struct si2157_config si2157_config;
++		struct si2168_config si2168_config;
++		struct i2c_board_info info;
++		struct i2c_client *client;
++		struct i2c_adapter *adapter;
++
++		/* attach demodulator chip */
++		memset(&si2168_config, 0, sizeof(si2168_config));
++		si2168_config.ts_mode = SI2168_TS_SERIAL; /* from *.inf file */
++		si2168_config.fe = &dev->dvb->frontend;
++		si2168_config.i2c_adapter = &adapter;
++		si2168_config.ts_clock_inv = true;
++
++		memset(&info, 0, sizeof(info));
++		strlcpy(info.type, "si2168", I2C_NAME_SIZE);
++		info.addr = dev->board.demod_addr;
++		info.platform_data = &si2168_config;
++
++		request_module(info.type);
++		client = i2c_new_device(demod_i2c, &info);
++
++		if (client == NULL || client->dev.driver == NULL || dev->dvb->frontend == NULL) {
++			dev_err(dev->dev, "Failed to attach Si2168 front end\n");
++			result = -EINVAL;
++			goto out_free;
++		}
++
++		if (!try_module_get(client->dev.driver->owner)) {
++			i2c_unregister_device(client);
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		dvb->i2c_client_demod = client;
++		dev->dvb->frontend->ops.i2c_gate_ctrl = NULL;
++		dvb->frontend->callback = cx231xx_tuner_callback;
++
++		/* attach tuner chip */
++		memset(&si2157_config, 0, sizeof(si2157_config));
++		si2157_config.fe = dev->dvb->frontend;
++#ifdef CONFIG_MEDIA_CONTROLLER_DVB
++		si2157_config.mdev = dev->media_dev;
++#endif
++		si2157_config.if_port = 1;
++		si2157_config.inversion = false;
++
++		memset(&info, 0, sizeof(info));
++		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
++		info.addr = dev->board.tuner_addr;
++		info.platform_data = &si2157_config;
++
++		request_module("si2157");
++		client = i2c_new_device(tuner_i2c, &info);
++
++		if (client == NULL || client->dev.driver == NULL) {
++			dvb_frontend_detach(dev->dvb->frontend);
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		if (!try_module_get(client->dev.driver->owner)) {
++			i2c_unregister_device(client);
++			dvb_frontend_detach(dev->dvb->frontend);
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		dev->cx231xx_reset_analog_tuner = NULL;
++		dev->dvb->i2c_client_tuner = client;
++		break;
++	}
+ 	default:
+ 		dev_err(dev->dev,
+ 			"%s/2: The frontend of your DVB/ATSC card isn't supported yet\n",
+diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+index 35e9acf..6860c91 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
++++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+@@ -171,6 +171,43 @@ static int cx231xx_i2c_send_bytes(struct i2c_adapter *i2c_adap,
+ 		bus->i2c_nostop = 0;
+ 		bus->i2c_reserve = 0;
+ 
++	} else if (dev->model == CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD
++		&& msg->addr == dev->tuner_addr
++		&& msg->len > 4) {
++		/* special case for Evromedia USB Full Hybrid Full HD tuner chip */
++		size = msg->len;
++		saddr_len = 1;
++
++		/* adjust the length to correct length */
++		size -= saddr_len;
++
++		buf_ptr = (u8*)(msg->buf + 1);
++
++		do {
++			/* prepare xfer_data struct */
++			req_data.dev_addr = msg->addr;
++			req_data.direction = msg->flags;
++			req_data.saddr_len = saddr_len;
++			req_data.saddr_dat = msg->buf[0];
++			req_data.buf_size = size > 4 ? 4 : size;
++			req_data.p_buffer = (u8*)(buf_ptr + loop * 4);
++
++			bus->i2c_nostop = (size > 4) ? 1 : 0;
++			bus->i2c_reserve = (loop == 0) ? 0 : 1;
++
++			/* usb send command */
++			status = dev->cx231xx_send_usb_command(bus, &req_data);
++			++ loop;
++
++			if (size >= 4) {
++				size -= 4;
++			} else {
++				size = 0;
++			}
++		} while (size > 0);
++
++		bus->i2c_nostop = 0;
++		bus->i2c_reserve = 0;
+ 	} else {		/* regular case */
+ 
+ 		/* prepare xfer_data struct */
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index 90c8676..d9792ea 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -78,6 +78,7 @@
+ #define CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx 20
+ #define CX231XX_BOARD_HAUPPAUGE_955Q 21
+ #define CX231XX_BOARD_TERRATEC_GRABBY 22
++#define CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD 23
+ 
+ /* Limits minimum and default number of buffers */
+ #define CX231XX_MIN_BUF                 4
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+2.10.2
+
