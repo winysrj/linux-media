@@ -1,68 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f193.google.com ([209.85.223.193]:36276 "EHLO
-        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750796AbdBAB2z (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jan 2017 20:28:55 -0500
-Received: by mail-io0-f193.google.com with SMTP id q20so19584807ioi.3
-        for <linux-media@vger.kernel.org>; Tue, 31 Jan 2017 17:28:55 -0800 (PST)
-Message-ID: <1485912532.27233.4.camel@ndufresne.ca>
-Subject: Re: rtl2832_sdr and /dev/swradio0
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-To: Russel Winder <russel@winder.org.uk>,
-        DVB_Linux_Media <linux-media@vger.kernel.org>
-Date: Tue, 31 Jan 2017 20:28:52 -0500
-In-Reply-To: <1485885027.10632.13.camel@winder.org.uk>
-References: <1485885027.10632.13.camel@winder.org.uk>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-        boundary="=-oOs8WcsmaZneLerDjLSv"
-Mime-Version: 1.0
+Received: from kozue.soulik.info ([108.61.200.231]:48008 "EHLO
+        kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755400AbdABIu1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jan 2017 03:50:27 -0500
+From: Randy Li <ayaka@soulik.info>
+To: dri-devel@lists.freedesktop.org
+Cc: daniel.vetter@intel.com, jani.nikula@linux.intel.com,
+        seanpaul@chromium.org, airlied@linux.ie,
+        linux-kernel@vger.kernel.org, randy.li@rock-chips.com,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        Randy Li <ayaka@soulik.info>
+Subject: [PATCH 2/2] [media] v4l: Add 10-bits per channel YUV pixel formats
+Date: Mon,  2 Jan 2017 16:50:04 +0800
+Message-Id: <1483347004-32593-3-git-send-email-ayaka@soulik.info>
+In-Reply-To: <1483347004-32593-1-git-send-email-ayaka@soulik.info>
+References: <1483347004-32593-1-git-send-email-ayaka@soulik.info>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The formats added by this patch are:
+	V4L2_PIX_FMT_P010
+	V4L2_PIX_FMT_P010M
+Currently, none of driver uses those format, but some video device
+has been confirmed with could as those format for video output.
+The Rockchip's new decoder has supported those format for profile_10
+HEVC/AVC video.
 
---=-oOs8WcsmaZneLerDjLSv
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Randy Li <ayaka@soulik.info>
+---
+ include/uapi/linux/videodev2.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Le mardi 31 janvier 2017 =C3=A0 17:50 +0000, Russel Winder a =C3=A9crit=C2=
-=A0:
-> Hi,
->=20
-> Is anyone actively working on the rtl2832_sdr driver?
->=20
-> I am particularly interested in anyone who has code for turning the
-> byte stream from /dev/swradio0 into an ETI stream. Or failing that
-> getting enough data about the API for using /dev/swradio0 so as to
-> write a byte sequence to ETI driver based on the dab2eti program in
-> DABtool (which uses the librtlsdr mechanism instead of the
-> /dev/swradio0 one).
-
-This device works like any V4L2 driver, with the differences explained
-here:
-
-https://linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/dev-sdr.html
-
-For the rest I'm no expert. You can probably port dab2eti to use this
-interface instead of librtlsdr and keep the rest. You may be able to
-skip an fft if your driver supports it, otherwise you'll get RU12, that
-you'll probably have to convert to floats before passing to the rest of
-the processing code.
-
-regards,
-Nicolas
---=-oOs8WcsmaZneLerDjLSv
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iEYEABECAAYFAliROdQACgkQcVMCLawGqBxTUwCfRi/PAFqykdd0HmXGqJ+8Sghd
-vo8An1fnZnZHH28wN5kfFoMsHFiw6XdY
-=KgoO
------END PGP SIGNATURE-----
-
---=-oOs8WcsmaZneLerDjLSv--
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 46e8a2e3..9e03f20 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -551,6 +551,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_NV61    v4l2_fourcc('N', 'V', '6', '1') /* 16  Y/CrCb 4:2:2  */
+ #define V4L2_PIX_FMT_NV24    v4l2_fourcc('N', 'V', '2', '4') /* 24  Y/CbCr 4:4:4  */
+ #define V4L2_PIX_FMT_NV42    v4l2_fourcc('N', 'V', '4', '2') /* 24  Y/CrCb 4:4:4  */
++#define V4L2_PIX_FMT_P010    v4l2_fourcc('P', '0', '1', '0') /* 15  Y/CbCr 4:2:0, 10 bits per channel */
+ 
+ /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
+ #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
+@@ -559,6 +560,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_NV61M   v4l2_fourcc('N', 'M', '6', '1') /* 16  Y/CrCb 4:2:2  */
+ #define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 64x32 macroblocks */
+ #define V4L2_PIX_FMT_NV12MT_16X16 v4l2_fourcc('V', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 16x16 macroblocks */
++#define V4L2_PIX_FMT_P010M   v4l2_fourcc('P', 'M', '1', '0') /* 15  Y/CbCr 4:2:0, 10 bits per channel */
+ 
+ /* three planes - Y Cb, Cr */
+ #define V4L2_PIX_FMT_YUV410  v4l2_fourcc('Y', 'U', 'V', '9') /*  9  YUV 4:1:0     */
+-- 
+2.7.4
 
