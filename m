@@ -1,68 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:34146 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753557AbdA3OJE (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:55831 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751491AbdABMT0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Jan 2017 09:09:04 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+        Mon, 2 Jan 2017 07:19:26 -0500
+Subject: Re: [PATCH 0/2] Add support for the RainShadow Tech HDMI CEC adapter
 To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 14/16] em28xx: drop last soc_camera link
-Date: Mon, 30 Jan 2017 15:06:26 +0100
-Message-Id: <20170130140628.18088-15-hverkuil@xs4all.nl>
-In-Reply-To: <20170130140628.18088-1-hverkuil@xs4all.nl>
-References: <20170130140628.18088-1-hverkuil@xs4all.nl>
+References: <20161215130207.12913-1-hverkuil@xs4all.nl>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        linux-input <linux-input@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <9a66b5fe-c436-04ef-094e-77362a743f85@xs4all.nl>
+Date: Mon, 2 Jan 2017 13:19:21 +0100
+MIME-Version: 1.0
+In-Reply-To: <20161215130207.12913-1-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Dmitry: ping!
 
-The em28xx driver still used the soc_camera.h header for the ov2640
-driver. Since this driver no longer uses soc_camera, that include can
-be removed.
+And of course a happy New Year to you as well!
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/em28xx/em28xx-camera.c | 9 ---------
- 1 file changed, 9 deletions(-)
+Regards,
 
-diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
-index 89c890b..63aaa57 100644
---- a/drivers/media/usb/em28xx/em28xx-camera.c
-+++ b/drivers/media/usb/em28xx/em28xx-camera.c
-@@ -23,7 +23,6 @@
- 
- #include <linux/i2c.h>
- #include <linux/usb.h>
--#include <media/soc_camera.h>
- #include <media/i2c/mt9v011.h>
- #include <media/v4l2-clk.h>
- #include <media/v4l2-common.h>
-@@ -43,13 +42,6 @@ static unsigned short omnivision_sensor_addrs[] = {
- 	I2C_CLIENT_END
- };
- 
--static struct soc_camera_link camlink = {
--	.bus_id = 0,
--	.flags = 0,
--	.module_name = "em28xx",
--	.unbalanced_power = true,
--};
--
- /* FIXME: Should be replaced by a proper mt9m111 driver */
- static int em28xx_initialize_mt9m111(struct em28xx *dev)
- {
-@@ -421,7 +413,6 @@ int em28xx_init_camera(struct em28xx *dev)
- 			.type = "ov2640",
- 			.flags = I2C_CLIENT_SCCB,
- 			.addr = client->addr,
--			.platform_data = &camlink,
- 		};
- 		struct v4l2_subdev_format format = {
- 			.which = V4L2_SUBDEV_FORMAT_ACTIVE,
--- 
-2.10.2
+	Hans
+
+On 12/15/16 14:02, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> This patch series adds support to the RainShadow Tech HDMI CEC adapter
+> (http://rainshadowtech.com/HdmiCecUsb.html).
+>
+> The first patch adds the needed serio ID, the second adds the driver itself.
+>
+> Dmitry, will you take the first patch, or can we take it together with the
+> second patch?
+>
+> This is of course for 4.11.
+>
+> Regards,
+>
+> 	Hans
+>
+> Hans Verkuil (2):
+>   serio.h: add SERIO_RAINSHADOW_CEC ID
+>   rainshadow-cec: new RainShadow Tech HDMI CEC driver
+>
+>  MAINTAINERS                                       |   7 +
+>  drivers/media/usb/Kconfig                         |   1 +
+>  drivers/media/usb/Makefile                        |   1 +
+>  drivers/media/usb/rainshadow-cec/Kconfig          |  10 +
+>  drivers/media/usb/rainshadow-cec/Makefile         |   1 +
+>  drivers/media/usb/rainshadow-cec/rainshadow-cec.c | 344 ++++++++++++++++++++++
+>  include/uapi/linux/serio.h                        |   1 +
+>  7 files changed, 365 insertions(+)
+>  create mode 100644 drivers/media/usb/rainshadow-cec/Kconfig
+>  create mode 100644 drivers/media/usb/rainshadow-cec/Makefile
+>  create mode 100644 drivers/media/usb/rainshadow-cec/rainshadow-cec.c
+>
 
