@@ -1,96 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from anholt.net ([50.246.234.109]:52084 "EHLO anholt.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751870AbdA0Vzy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Jan 2017 16:55:54 -0500
-From: Eric Anholt <eric@anholt.net>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: devel@driverdev.osuosl.org, linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-rpi-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        Eric Anholt <eric@anholt.net>
-Subject: [PATCH 3/6] staging: bcm2835-v4l2: Add a build system for the module.
-Date: Fri, 27 Jan 2017 13:55:00 -0800
-Message-Id: <20170127215503.13208-4-eric@anholt.net>
-In-Reply-To: <20170127215503.13208-1-eric@anholt.net>
-References: <20170127215503.13208-1-eric@anholt.net>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:36798 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933072AbdABOTX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 2 Jan 2017 09:19:23 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Russell King <linux@armlinux.org.uk>,
+        dri-devel@lists.freedesktop.org,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 3/4] cec: integrate HPD notifier support
+Date: Mon,  2 Jan 2017 15:19:06 +0100
+Message-Id: <1483366747-34288-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1483366747-34288-1-git-send-email-hverkuil@xs4all.nl>
+References: <1483366747-34288-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is derived from the downstream tree's build system, but with just
-a single Kconfig option.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-For now the driver only builds on 32-bit arm -- the aarch64 build
-breaks due to the driver using arm-specific cache flushing functions.
+Support the HPD notifier framework, simplifying drivers that
+depend on this.
 
-Signed-off-by: Eric Anholt <eric@anholt.net>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/staging/media/Kconfig                   |  2 ++
- drivers/staging/media/Makefile                  |  1 +
- drivers/staging/media/platform/bcm2835/Kconfig  | 10 ++++++++++
- drivers/staging/media/platform/bcm2835/Makefile | 11 +++++++++++
- 4 files changed, 24 insertions(+)
- create mode 100644 drivers/staging/media/platform/bcm2835/Kconfig
- create mode 100644 drivers/staging/media/platform/bcm2835/Makefile
+ drivers/media/cec/cec-core.c | 50 ++++++++++++++++++++++++++++++++++++++++++++
+ include/media/cec.h          | 15 +++++++++++++
+ 2 files changed, 65 insertions(+)
 
-diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
-index ffb8fa72c3da..abd0e2d57c20 100644
---- a/drivers/staging/media/Kconfig
-+++ b/drivers/staging/media/Kconfig
-@@ -27,6 +27,8 @@ source "drivers/staging/media/davinci_vpfe/Kconfig"
+diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
+index aca3ab8..a466dbe 100644
+--- a/drivers/media/cec/cec-core.c
++++ b/drivers/media/cec/cec-core.c
+@@ -195,6 +195,52 @@ static void cec_devnode_unregister(struct cec_devnode *devnode)
+ 	put_device(&devnode->dev);
+ }
  
- source "drivers/staging/media/omap4iss/Kconfig"
++#ifdef CONFIG_HPD_NOTIFIERS
++static u16 parse_hdmi_addr(const struct edid *edid)
++{
++	if (!edid || edid->extensions == 0)
++		return CEC_PHYS_ADDR_INVALID;
++
++	return cec_get_edid_phys_addr((u8 *)edid,
++				EDID_LENGTH * (edid->extensions + 1), NULL);
++}
++
++static int cec_hpd_notify(struct notifier_block *nb, unsigned long event,
++			   void *data)
++{
++	struct cec_adapter *adap = container_of(nb, struct cec_adapter, nb);
++	struct hpd_notifier *n = data;
++	unsigned int phys;
++
++	dprintk(1, "event %lu\n", event);
++
++	switch (event) {
++	case HPD_DISCONNECTED:
++		cec_s_phys_addr(adap, CEC_PHYS_ADDR_INVALID, false);
++		break;
++
++	case HPD_NEW_EDID:
++		phys = parse_hdmi_addr(n->edid);
++		cec_s_phys_addr(adap, phys, false);
++		break;
++	}
++
++	return NOTIFY_OK;
++}
++
++void cec_register_hpd_notifier(struct cec_adapter *adap,
++				struct hpd_notifier *notifier)
++{
++	if (WARN_ON(!adap->devnode.registered))
++		return;
++
++	adap->nb.notifier_call = cec_hpd_notify;
++	adap->notifier = notifier;
++	hpd_notifier_register(adap->notifier, &adap->nb);
++}
++EXPORT_SYMBOL_GPL(cec_register_hpd_notifier);
++#endif
++
+ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
+ 					 void *priv, const char *name, u32 caps,
+ 					 u8 available_las)
+@@ -344,6 +390,10 @@ void cec_unregister_adapter(struct cec_adapter *adap)
+ 	adap->rc = NULL;
+ #endif
+ 	debugfs_remove_recursive(adap->cec_dir);
++#ifdef CONFIG_HPD_NOTIFIERS
++	if (adap->notifier)
++		hpd_notifier_unregister(adap->notifier, &adap->nb);
++#endif
+ 	cec_devnode_unregister(&adap->devnode);
+ }
+ EXPORT_SYMBOL_GPL(cec_unregister_adapter);
+diff --git a/include/media/cec.h b/include/media/cec.h
+index 96a0aa7..d6c7b20 100644
+--- a/include/media/cec.h
++++ b/include/media/cec.h
+@@ -28,6 +28,11 @@
+ #include <linux/kthread.h>
+ #include <linux/timer.h>
+ #include <linux/cec-funcs.h>
++#ifdef CONFIG_HPD_NOTIFIERS
++#include <linux/notifier.h>
++#include <linux/hpd-notifier.h>
++#include <drm/drm_edid.h>
++#endif
+ #include <media/rc-core.h>
+ #include <media/cec-edid.h>
  
-+source "drivers/staging/media/platform/bcm2835/Kconfig"
-+
- source "drivers/staging/media/s5p-cec/Kconfig"
+@@ -173,6 +178,11 @@ struct cec_adapter {
+ 	bool passthrough;
+ 	struct cec_log_addrs log_addrs;
  
- # Keep LIRC at the end, as it has sub-menus
-diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
-index a28e82cf6447..dc89325c463d 100644
---- a/drivers/staging/media/Makefile
-+++ b/drivers/staging/media/Makefile
-@@ -2,6 +2,7 @@ obj-$(CONFIG_I2C_BCM2048)	+= bcm2048/
- obj-$(CONFIG_VIDEO_SAMSUNG_S5P_CEC) += s5p-cec/
- obj-$(CONFIG_DVB_CXD2099)	+= cxd2099/
- obj-$(CONFIG_LIRC_STAGING)	+= lirc/
-+obj-$(CONFIG_VIDEO_BCM2835)	+= platform/bcm2835/
- obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
- obj-$(CONFIG_VIDEO_OMAP4)	+= omap4iss/
- obj-$(CONFIG_VIDEO_STI_HDMI_CEC) += st-cec/
-diff --git a/drivers/staging/media/platform/bcm2835/Kconfig b/drivers/staging/media/platform/bcm2835/Kconfig
-new file mode 100644
-index 000000000000..7c5245dc3225
---- /dev/null
-+++ b/drivers/staging/media/platform/bcm2835/Kconfig
-@@ -0,0 +1,10 @@
-+config VIDEO_BCM2835
-+	tristate "Broadcom BCM2835 camera driver"
-+	depends on VIDEO_V4L2 && (ARCH_BCM2835 || COMPILE_TEST)
-+	depends on BCM2835_VCHIQ
-+	depends on ARM
-+	select VIDEOBUF2_VMALLOC
-+	help
-+	  Say Y here to enable camera host interface devices for
-+	  Broadcom BCM2835 SoC. This operates over the VCHIQ interface
-+	  to a service running on VideoCore.
-diff --git a/drivers/staging/media/platform/bcm2835/Makefile b/drivers/staging/media/platform/bcm2835/Makefile
-new file mode 100644
-index 000000000000..d7900a5951a8
---- /dev/null
-+++ b/drivers/staging/media/platform/bcm2835/Makefile
-@@ -0,0 +1,11 @@
-+bcm2835-v4l2-$(CONFIG_VIDEO_BCM2835) := \
-+	bcm2835-camera.o \
-+	controls.o \
-+	mmal-vchiq.o
++#ifdef CONFIG_HPD_NOTIFIERS
++	struct hpd_notifier	*notifier;
++	struct notifier_block	nb;
++#endif
 +
-+obj-$(CONFIG_VIDEO_BCM2835) += bcm2835-v4l2.o
+ 	struct dentry *cec_dir;
+ 	struct dentry *status_file;
+ 
+@@ -213,6 +223,11 @@ void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
+ 		       u8 nack_cnt, u8 low_drive_cnt, u8 error_cnt);
+ void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg);
+ 
++#ifdef CONFIG_HPD_NOTIFIERS
++void cec_register_hpd_notifier(struct cec_adapter *adap,
++				struct hpd_notifier *notifier);
++#endif
 +
-+ccflags-y += \
-+	-Idrivers/staging/vc04_services \
-+	-Idrivers/staging/vc04_services/interface/vcos/linuxkernel \
-+	-D__VCCOREVER__=0x04000000
+ #else
+ 
+ static inline int cec_register_adapter(struct cec_adapter *adap,
 -- 
-2.11.0
+2.8.1
 
