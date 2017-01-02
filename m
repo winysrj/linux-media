@@ -1,231 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.220.in.ua ([89.184.67.205]:49478 "EHLO smtp.220.in.ua"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932171AbdAARfG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 1 Jan 2017 12:35:06 -0500
-From: Oleh Kravchenko <oleg@kaa.org.ua>
-To: linux-media@vger.kernel.org
-Cc: Oleh Kravchenko <oleg@kaa.org.ua>
-Subject: [PATCH] [media] cx231xx: Initial support for Evromedia USB Full Hybrid Full HD
-Date: Sun,  1 Jan 2017 19:28:23 +0200
-Message-Id: <20170101172823.7654-1-oleg@kaa.org.ua>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52678 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750834AbdABHxz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 2 Jan 2017 02:53:55 -0500
+Date: Mon, 2 Jan 2017 09:53:49 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org,
+        Helen Koike <helen.koike@collabora.co.uk>
+Subject: Re: [RFC v3 00/21] Make use of kref in media device, grab references
+ as needed
+Message-ID: <20170102075348.GF3958@valkosipuli.retiisi.org.uk>
+References: <20161109154608.1e578f9e@vento.lan>
+ <20161213102447.60990b1c@vento.lan>
+ <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
+ <7529355.zfqFdROYdM@avalon>
+ <896ef36c-435e-6899-5ae8-533da7731ec1@xs4all.nl>
+ <20161216150723.GL16630@valkosipuli.retiisi.org.uk>
+ <20161219074655.3238113b@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161219074655.3238113b@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add initial support for the Evromedia USB Full Hybrid Full HD
-with USB ID 1b80:d3b2.
+Hi Mauro,
 
-Status:
-- DVB-T2 works fine;
-- Analog not implemented.
+On Mon, Dec 19, 2016 at 07:46:55AM -0200, Mauro Carvalho Chehab wrote:
+> Em Fri, 16 Dec 2016 17:07:23 +0200
+> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> 
+> > Hi Hans,
+> 
+> > > chrdev_open in fs/char_dev.c increases the refcount on open() and decreases it
+> > > on release(). Thus ensuring that the cdev can never be removed while in an
+> > > ioctl.  
+> > 
+> > It does, but it does not affect memory which is allocated separately of that.
+> > 
+> > See this:
+> > 
+> > <URL:https://www.mail-archive.com/linux-media@vger.kernel.org/msg106390.html>
+> 
+> That sounds promising. If this bug issues other drivers than OMAP3,
+> then indeed the core has a bug.
+> 
+> I'll see if I can reproduce it here with some USB drivers later this week.
 
-Signed-off-by: Oleh Kravchenko <oleg@kaa.org.ua>
----
- drivers/media/usb/cx231xx/Kconfig         |  1 +
- drivers/media/usb/cx231xx/cx231xx-cards.c | 16 +++++++
- drivers/media/usb/cx231xx/cx231xx-dvb.c   | 74 +++++++++++++++++++++++++++++++
- drivers/media/usb/cx231xx/cx231xx-i2c.c   | 37 ++++++++++++++++
- drivers/media/usb/cx231xx/cx231xx.h       |  1 +
- 5 files changed, 129 insertions(+)
+It's not a driver problem so yes, it is reproducible on other hardware.
 
-diff --git a/drivers/media/usb/cx231xx/Kconfig b/drivers/media/usb/cx231xx/Kconfig
-index 0cced3e..58de80b 100644
---- a/drivers/media/usb/cx231xx/Kconfig
-+++ b/drivers/media/usb/cx231xx/Kconfig
-@@ -50,6 +50,7 @@ config VIDEO_CX231XX_DVB
- 	select DVB_LGDT3306A if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_TDA18271C2DD if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_SI2165 if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
- 
- 	---help---
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index 36bc254..380aff7 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -841,6 +841,20 @@ struct cx231xx_board cx231xx_boards[] = {
- 			.gpio = NULL,
- 		} },
- 	},
-+	[CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD] = {
-+		.name = "Evromedia USB Full Hybrid Full HD",
-+		.tuner_type = TUNER_ABSENT,
-+		.has_dvb = 1,
-+		.demod_i2c_master = I2C_1_MUX_3,
-+		.demod_addr = 0xc8 >> 1,
-+		.tuner_i2c_master = I2C_2,
-+		.tuner_addr = 0xc0 >> 1,
-+		.input = {{
-+			.type = CX231XX_VMUX_TELEVISION,
-+			.vmux = 0,
-+			.amux = CX231XX_AMUX_VIDEO,
-+		} },
-+	},
- };
- const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
- 
-@@ -908,6 +922,8 @@ struct usb_device_id cx231xx_id_table[] = {
- 	 .driver_info = CX231XX_BOARD_OTG102},
- 	{USB_DEVICE(USB_VID_TERRATEC, 0x00a6),
- 	 .driver_info = CX231XX_BOARD_TERRATEC_GRABBY},
-+	{USB_DEVICE(0x1b80, 0xd3b2),
-+	.driver_info = CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD},
- 	{},
- };
- 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-index 1417515..131c1e2 100644
---- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-@@ -33,6 +33,7 @@
- #include "s5h1411.h"
- #include "lgdt3305.h"
- #include "si2165.h"
-+#include "si2168.h"
- #include "mb86a20s.h"
- #include "si2157.h"
- #include "lgdt3306a.h"
-@@ -949,6 +950,79 @@ static int dvb_init(struct cx231xx *dev)
- 			   &pv_tda18271_config);
- 		break;
- 
-+	case CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD:
-+	{
-+		struct si2157_config si2157_config;
-+		struct si2168_config si2168_config;
-+		struct i2c_board_info info;
-+		struct i2c_client *client;
-+		struct i2c_adapter *adapter;
-+
-+		/* attach demodulator chip */
-+		memset(&si2168_config, 0, sizeof(si2168_config));
-+		si2168_config.ts_mode = SI2168_TS_SERIAL; /* from *.inf file */
-+		si2168_config.fe = &dev->dvb->frontend;
-+		si2168_config.i2c_adapter = &adapter;
-+		si2168_config.ts_clock_inv = true;
-+
-+		memset(&info, 0, sizeof(info));
-+		strlcpy(info.type, "si2168", I2C_NAME_SIZE);
-+		info.addr = dev->board.demod_addr;
-+		info.platform_data = &si2168_config;
-+
-+		request_module(info.type);
-+		client = i2c_new_device(demod_i2c, &info);
-+
-+		if (client == NULL || client->dev.driver == NULL || dev->dvb->frontend == NULL) {
-+			dev_err(dev->dev, "Failed to attach Si2168 front end\n");
-+			result = -EINVAL;
-+			goto out_free;
-+		}
-+
-+		if (!try_module_get(client->dev.driver->owner)) {
-+			i2c_unregister_device(client);
-+			result = -ENODEV;
-+			goto out_free;
-+		}
-+
-+		dvb->i2c_client_demod = client;
-+		dev->dvb->frontend->ops.i2c_gate_ctrl = NULL;
-+		dvb->frontend->callback = cx231xx_tuner_callback;
-+
-+		/* attach tuner chip */
-+		memset(&si2157_config, 0, sizeof(si2157_config));
-+		si2157_config.fe = dev->dvb->frontend;
-+#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-+		si2157_config.mdev = dev->media_dev;
-+#endif
-+		si2157_config.if_port = 1;
-+		si2157_config.inversion = false;
-+
-+		memset(&info, 0, sizeof(info));
-+		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
-+		info.addr = dev->board.tuner_addr;
-+		info.platform_data = &si2157_config;
-+
-+		request_module("si2157");
-+		client = i2c_new_device(tuner_i2c, &info);
-+
-+		if (client == NULL || client->dev.driver == NULL) {
-+			dvb_frontend_detach(dev->dvb->frontend);
-+			result = -ENODEV;
-+			goto out_free;
-+		}
-+
-+		if (!try_module_get(client->dev.driver->owner)) {
-+			i2c_unregister_device(client);
-+			dvb_frontend_detach(dev->dvb->frontend);
-+			result = -ENODEV;
-+			goto out_free;
-+		}
-+
-+		dev->cx231xx_reset_analog_tuner = NULL;
-+		dev->dvb->i2c_client_tuner = client;
-+		break;
-+	}
- 	default:
- 		dev_err(dev->dev,
- 			"%s/2: The frontend of your DVB/ATSC card isn't supported yet\n",
-diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-index 35e9acf..6860c91 100644
---- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-@@ -171,6 +171,43 @@ static int cx231xx_i2c_send_bytes(struct i2c_adapter *i2c_adap,
- 		bus->i2c_nostop = 0;
- 		bus->i2c_reserve = 0;
- 
-+	} else if (dev->model == CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD
-+		&& msg->addr == dev->tuner_addr
-+		&& msg->len > 4) {
-+		/* special case for Evromedia USB Full Hybrid Full HD tuner chip */
-+		size = msg->len;
-+		saddr_len = 1;
-+
-+		/* adjust the length to correct length */
-+		size -= saddr_len;
-+
-+		buf_ptr = (u8*)(msg->buf + 1);
-+
-+		do {
-+			/* prepare xfer_data struct */
-+			req_data.dev_addr = msg->addr;
-+			req_data.direction = msg->flags;
-+			req_data.saddr_len = saddr_len;
-+			req_data.saddr_dat = msg->buf[0];
-+			req_data.buf_size = size > 4 ? 4 : size;
-+			req_data.p_buffer = (u8*)(buf_ptr + loop * 4);
-+
-+			bus->i2c_nostop = (size > 4) ? 1 : 0;
-+			bus->i2c_reserve = (loop == 0) ? 0 : 1;
-+
-+			/* usb send command */
-+			status = dev->cx231xx_send_usb_command(bus, &req_data);
-+			++ loop;
-+
-+			if (size >= 4) {
-+				size -= 4;
-+			} else {
-+				size = 0;
-+			}
-+		} while (size > 0);
-+
-+		bus->i2c_nostop = 0;
-+		bus->i2c_reserve = 0;
- 	} else {		/* regular case */
- 
- 		/* prepare xfer_data struct */
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index 90c8676..d9792ea 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -78,6 +78,7 @@
- #define CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx 20
- #define CX231XX_BOARD_HAUPPAUGE_955Q 21
- #define CX231XX_BOARD_TERRATEC_GRABBY 22
-+#define CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD 23
- 
- /* Limits minimum and default number of buffers */
- #define CX231XX_MIN_BUF                 4
+> 
+> > > If the omap3 is used as a testbed, then that's fine by me, but even then I
+> > > probably wouldn't want the omap3 code that makes this possible in the kernel.
+> > > It's just additional code for no purpose.  
+> > 
+> > The same problems exist on other devices, whether platform, pci or USB, as
+> > the problems are in the core frameworks rather than (only) in the drivers.
+> > 
+> > On platform devices, this happens also when removing the module.
+> > 
+> > I've used omap3isp as an example since it demonstrates well the problems and
+> > a lot of people have the hardware as well. Also, Mauro has requested all
+> > drivers to be converted to the new API. I'm fine doing that for the actually
+> > hot-pluggable hardware.
+> 
+> While IMHO it is overkill trying to support hot plug on omap3, I won't
+> mind if you do that, provided that your patch series can be applied in
+> a way that it won't cause regressions for real hot-pluggable hardware.
+
+This is not really about the OMAP3 ISP driver hotplug support; it is indeed
+about the framework's ability to support hotpluggable hardware. The current
+painpoint is removing hardware; the current frameworks aren't quite up to
+that at the moment.
+
+I haven't checked how many plain V4L2 drivers do this correctly but the
+problem domain becomes a lot more complex when you add V4L2 sub-device and
+Media controller nodes. Having a driver that does implement this correctly
+is important for writing new drivers, hence the changes to the OMAP3 ISP
+driver.
+
+> 
+> I still think that keeping cdev embedded in a structure that it is
+> created dynamically when registering the device node, instead of
+> embedding it at struct media_device. Yet, if you prove that this does
+> more harm than good, I'm ok on re-embeeding it. However, on such case,
+> you need to put the patches re-embeeding it at the end of the patch
+> series (and not at the beginning), as otherwise you'll be causing
+> regressions.
+> 
+> > One additional reason is that as the omap3isp driver has been used as an
+> > example to write a number of other drivers, people do see what's the right
+> > way to do these things, instead of copying code from a driver doing it
+> > wrong.
+> 
+> Interesting argument. Yet, IMHO, the best would be to do the proper
+> review on the first platform driver that would support hot-plug,
+> and use this as an example. It is a shame that project Aurora was
+> discontinued, as media drivers for such kind of hardware would be an
+> interesting example.
+> 
+> On that matter, just like we use vivid as a testbench and as an
+> example for other drivers, it would be great if we could merge
+> the vimc driver. What's the status of Helen's patchset?
+
+That's a good point. I wasn't reviewing that driver back then when the
+patches were posted, but should it go in, it should make a good example for
+writing other drivers as well.
+
 -- 
-2.10.2
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
