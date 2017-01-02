@@ -1,196 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:47813 "EHLO
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:57185 "EHLO
         metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750968AbdAWLNz (ORCPT
+        by vger.kernel.org with ESMTP id S932870AbdABNYJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Jan 2017 06:13:55 -0500
-Message-ID: <1485170006.2874.63.camel@pengutronix.de>
-Subject: Re: [PATCH v3 16/24] media: Add i.MX media core driver
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Mon, 23 Jan 2017 12:13:26 +0100
-In-Reply-To: <e38feca9-ed6f-8288-e006-768d6ba2fe5a@gmail.com>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
-         <1483755102-24785-17-git-send-email-steve_longerbeam@mentor.com>
-         <1484320822.31475.96.camel@pengutronix.de>
-         <a94025b4-c4dd-de51-572e-d2615a7246e4@gmail.com>
-         <1484574468.8415.136.camel@pengutronix.de>
-         <e38feca9-ed6f-8288-e006-768d6ba2fe5a@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Mon, 2 Jan 2017 08:24:09 -0500
+From: Michael Tretter <m.tretter@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Philipp Zabel <p.zabel@pengutronix.de>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        kernel@pengutronix.de, Michael Tretter <m.tretter@pengutronix.de>
+Subject: [PATCH v3 0/7] Add support for Video Data Order Adapter
+Date: Mon,  2 Jan 2017 14:23:45 +0100
+Message-Id: <20170102132352.23669-1-m.tretter@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
+Hello,
 
-On Sun, 2017-01-22 at 18:31 -0800, Steve Longerbeam wrote:
-> 
-> On 01/16/2017 05:47 AM, Philipp Zabel wrote:
-> > On Sat, 2017-01-14 at 14:46 -0800, Steve Longerbeam wrote:
-> > [...]
-> >>>> +Unprocessed Video Capture:
-> >>>> +--------------------------
-> >>>> +
-> >>>> +Send frames directly from sensor to camera interface, with no
-> >>>> +conversions:
-> >>>> +
-> >>>> +-> ipu_smfc -> camif
-> >>> I'd call this capture interface, this is not just for cameras. Or maybe
-> >>> idmac if you want to mirror hardware names?
-> >> Camif is so named because it is the V4L2 user interface for video
-> >> capture. I suppose it could be named "capif", but that doesn't role
-> >> off the tongue quite as well.
-> > Agreed, capif sounds weird. I find camif a bit confusing though, because
-> > Samsung S3C has a camera interface that is actually called "CAMIF".
-> 
-> how about simply "capture" ?
+This is v3 of a patch series that adds support for the Video Data Order
+Adapter (VDOA) that can be found on Freescale i.MX6. It converts the
+macroblock tiled format produced by the CODA 960 video decoder to a
+raster-ordered format for scanout.
 
-That sounds good to me.
+Changes since v2:
 
-[...]
-> > Chapter 37.4.2.3 "FCW & FCR - Format converter write and read" in the
-> > IDMAC chapter states that all internal submodules only work on 8-bit per
-> > component formats with four components: YUVA or RGBA.
-> 
-> Right, the "direct" IPU internal (that do not transfer buffers to/from
-> memory via IDMAC channels) should only allow the IPU internal
-> formats YUVA and RGBA. I get you now.
-> 
-> The "direct" pads now only accept MEDIA_BUS_FMT_AYUV8_1X32 and
-> MEDIA_BUS_FMT_ARGB8888_1X32.
-> 
-> Those pads are:
-> 
-> ipu_csi:1
-> ipu_vdic:1
-> ipu_ic_prp:0
-> ipu_ic_prp:1
-> ipu_ic_prpenc:0
-> ipu_ic_prpenc:1
-> ipu_ic_prpvf:0
-> ipu_ic_prpvf:1
+- Patch 1/7: Update commit message to include binding change; fix
+  spelling/style in binding documentation
 
-Yes, that is what I meant. The csi:1 can then be extended to support
-additional expanded/packed/raw formats for the SMFC->memory path.
+Changes since v1:
 
-> >> There does not appear to be support in the FSU for linking a write channel
-> >> to the VDIC read channels (8, 9, 10) according to VDI_SRC_SEL field. There
-> >> is support for the direct link from CSI (which I am using), but that's
-> >> not an
-> >> IDMAC channel link.
-> >>
-> >> There is a PRP_SRC_SEL field, with linking from IDMAC (SMFC) channels
-> >> 0..2 (and 3? it's not clear, and not clear whether this includes channel 1).
-> > As I read it, that is 0 and 2 only, no idea why. But since there are
-> > only 2 CSIs, that shouldn't be a problem.
-> 
-> ipu_csi1 is now transferring on IDMAC/SMFC channel 2 (ipu_csi0 still
-> at channel 0).
+- Dropped patch 8/9 of v1
+- Patch 1/7: Add devicetree binding documentation for fsl-vdoa
+- Patch 6/7: I merged patch 5/9 and patch 8/9 of v1 into a single patch
+- Patch 6/7: Use dt compatible instead of a phandle to find VDOA device
+- Patch 6/7: Always check VDOA availability even if disabled via module
+  parameter and do not print a message if VDOA cannot be found
+- Patch 6/7: Do not change the CODA context in coda_try_fmt()
+- Patch 6/7: Allocate an additional internal frame if the VDOA is in use
 
-Ok.
 
-> >>>> +static const u32 power_off_seq[] = {
-> >>>> +	IMX_MEDIA_GRP_ID_IC_PP,
-> >>>> +	IMX_MEDIA_GRP_ID_IC_PRPVF,
-> >>>> +	IMX_MEDIA_GRP_ID_IC_PRPENC,
-> >>>> +	IMX_MEDIA_GRP_ID_SMFC,
-> >>>> +	IMX_MEDIA_GRP_ID_CSI,
-> >>>> +	IMX_MEDIA_GRP_ID_VIDMUX,
-> >>>> +	IMX_MEDIA_GRP_ID_SENSOR,
-> >>>> +	IMX_MEDIA_GRP_ID_CSI2,
-> >>>> +};
-> >>> This seems somewhat arbitrary. Why is a power sequence needed?
-> >> The CSI-2 receiver must be powered up before the sensor, that's the
-> >> only requirement IIRC. The others have no s_power requirement. So I
-> >> can probably change this to power up in the frontend -> backend order
-> >> (IC_PP to sensor). And vice-versa for power off.
-> > Yes, I think that should work (see below).
-> 
-> Actually there are problems using this, see below.
-[...]
-> >>>> +EXPORT_SYMBOL_GPL(imx_media_pipeline_set_power);
-> >>> This should really be handled by v4l2_pipeline_pm_use.
-> >> I thought about this earlier, but v4l2_pipeline_pm_use() seems to be
-> >> doing some other stuff that bothered me, at least that's what I remember.
-> >> I will revisit this.
-> > I have used it with a tc358743 -> mipi-csi2 pipeline, it didn't cause
-> > any problems. It would be better to reuse and, if necessary, fix the
-> > existing infrastructure where available.
-> 
-> I tried this API, by switching to v4l2_pipeline_pm_use() in camif 
-> open/release,
-> and switched to v4l2_pipeline_link_notify() instead of 
-> imx_media_link_notify()
-> in the media driver's media_device_ops.
-> 
-> This API assumes the video device has an open file handle while the media
-> links are being established. This doesn't work for me, I want to be able to
-> establish the links using 'media-ctl -l', and that won't work unless 
-> there is an
-> open file handle on the video capture device node.
-> 
-> Also, I looked into calling v4l2_pipeline_pm_use() during 
-> imx_media_link_notify(),
-> instead of imx_media_pipeline_set_power(). Again there are problems with 
-> that.
-> 
-> First, v4l2_pipeline_pm_use() acquires the graph mutex, so it can't be 
-> called inside
-> link_notify which already acquires that lock. The header for this 
-> function also
-> clearly states it should only be called in open/release.
+Michael Tretter (3):
+  [media] coda: fix frame index to returned error
+  [media] coda: use VDOA for un-tiling custom macroblock format
+  [media] coda: support YUYV output if VDOA is used
 
-So why not call it in open/release then?
+Philipp Zabel (4):
+  [media] dt-bindings: Add a binding for Video Data Order Adapter
+  [media] coda: add i.MX6 VDOA driver
+  [media] coda: correctly set capture compose rectangle
+  [media] coda: add debug output about tiling
 
-> Second, ignoring the above locking issue for a moment, 
-> v4l2_pipeline_pm_use()
-> will call s_power on the sensor _first_, then the mipi csi-2 s_power, 
-> when executing
-> media-ctl -l '"ov5640 1-003c":0 -> "imx6-mipi-csi2":0[1]'. Which is the 
-> wrong order.
-> In my version which enforces the correct power on order, the mipi csi-2 
-> s_power
-> is called first in that link setup, followed by the sensor.
+ .../devicetree/bindings/media/fsl-vdoa.txt         |  21 ++
+ arch/arm/boot/dts/imx6qdl.dtsi                     |   2 +
+ drivers/media/platform/Kconfig                     |   3 +
+ drivers/media/platform/coda/Makefile               |   1 +
+ drivers/media/platform/coda/coda-bit.c             |  93 ++++--
+ drivers/media/platform/coda/coda-common.c          | 175 ++++++++++-
+ drivers/media/platform/coda/coda.h                 |   3 +
+ drivers/media/platform/coda/imx-vdoa.c             | 335 +++++++++++++++++++++
+ drivers/media/platform/coda/imx-vdoa.h             |  58 ++++
+ 9 files changed, 649 insertions(+), 42 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/fsl-vdoa.txt
+ create mode 100644 drivers/media/platform/coda/imx-vdoa.c
+ create mode 100644 drivers/media/platform/coda/imx-vdoa.h
 
-I don't understand why you want to power up subdevs as soon as the links
-are established. Shouldn't that rather be done for all subdevices in the
-pipeline when the corresponding capture device is opened?
-It seems to me that powering up the pipeline should be the last step
-before userspace actually starts the capture.
-
-[...]
-> >>>> +	/* there must be at least one CSI in first IPU */
-> >>> Why?
-> >> Well yeah, imx-media doesn't necessarily need a CSI if things
-> >> like the VDIC or post-processor are being used by an output
-> >> overlay pipeline, for example. I'll fix this.
-> > I haven't even thought that far, but there could be boards with only a
-> > parallel sensor connected to IPU2 CSI1 and IPU1 disabled for power
-> > saving reasons.
-> 
-> done! A very simple change to imx_media_add_internal_subdevs(),
-> and now no CSI's are necessary, but the remaining IPU internal entities
-> are loaded and linked just fine without them, so for example with no
-> CSI's in IPU2, the VDIC entity in IPU2 is still present in the graph and
-> could still be used in the future by a mem2mem device for instance.
-
-Excellent, thanks.
-
-regards
-Philipp
+-- 
+2.11.0
 
