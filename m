@@ -1,74 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:36566 "EHLO
-        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964971AbdACOzI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2017 09:55:08 -0500
-Received: by mail-wm0-f48.google.com with SMTP id c85so201194678wmi.1
-        for <linux-media@vger.kernel.org>; Tue, 03 Jan 2017 06:55:07 -0800 (PST)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: linux@armlinux.org.uk, linux-fbdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        linux-arm-kernel@lists.infradead.org,
-        linaro-kernel@lists.linaro.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v2 0/3] video/sti/cec: add HPD notifier support
-Date: Tue,  3 Jan 2017 15:54:54 +0100
-Message-Id: <1483455297-2286-1-git-send-email-benjamin.gaignard@linaro.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55866 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932407AbdABLH4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 2 Jan 2017 06:07:56 -0500
+Date: Mon, 2 Jan 2017 13:07:15 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: ayaka <ayaka@soulik.info>
+Cc: dri-devel@lists.freedesktop.org, daniel.vetter@intel.com,
+        jani.nikula@linux.intel.com, seanpaul@chromium.org,
+        airlied@linux.ie, linux-kernel@vger.kernel.org,
+        randy.li@rock-chips.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH 2/2] [media] v4l: Add 10-bits per channel YUV pixel
+ formats
+Message-ID: <20170102110715.GH3958@valkosipuli.retiisi.org.uk>
+References: <1483347004-32593-1-git-send-email-ayaka@soulik.info>
+ <1483347004-32593-3-git-send-email-ayaka@soulik.info>
+ <20170102091013.GG3958@valkosipuli.retiisi.org.uk>
+ <70da89ca-c184-aee5-e133-c13b3bbf6be9@soulik.info>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <70da89ca-c184-aee5-e133-c13b3bbf6be9@soulik.info>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series following what Hans is doing on exynos to support
-hotplug detect notifier code.
+Hi,
 
-It add support of HPD in sti_hdmi drm driver and stih-cec driver which
-move out of staging.
+On Mon, Jan 02, 2017 at 06:53:16PM +0800, ayaka wrote:
+> 
+> 
+> On 01/02/2017 05:10 PM, Sakari Ailus wrote:
+> >Hi Randy,
+> >
+> >Thanks for the patch.
+> >
+> >On Mon, Jan 02, 2017 at 04:50:04PM +0800, Randy Li wrote:
+> >>The formats added by this patch are:
+> >>	V4L2_PIX_FMT_P010
+> >>	V4L2_PIX_FMT_P010M
+> >>Currently, none of driver uses those format, but some video device
+> >>has been confirmed with could as those format for video output.
+> >>The Rockchip's new decoder has supported those format for profile_10
+> >>HEVC/AVC video.
+> >>
+> >>Signed-off-by: Randy Li <ayaka@soulik.info>
+> >If the format resembles the existing formats but on a different bit depth,
+> >it should be named in similar fashion.
+> Do you mean it would be better if it is called as NV12_10?
 
-Those patches should be applied on top of Hans branch exynos4-cec.
+If it otherwise resembles NV12 but just has 10 bits per pixel, I think
+NV12_10 is a good name for it.
 
-I have tested hdmi notifier by pluging/unpluging HDMI cable and check
-the value of the physical address with "cec-ctl --tuner".
-"cec-compliance -A" is also functional.
+> >
+> >Could you also add ReST documentation for the format, please?
+> I will.
+> >
+> >The common requirement for merging patches that change interfaces has been
+> >that there's a user for that change. It'll still help you to get this
+> The kernel used in rockchip has supported that format in drm driver, but
+> just we don't have a agreement about the pixel format. As the Gstreamer and
+> some others would call it with a P010_ prefix, but Mark(rockchip's drm
+> author) prefer the something like NV12_10, that is why I sent out those
+> patches, I want the upstream decided its final name.
 
-version 2:
-- use HPD notifier instead of HDMI notifier
-- move stih-cec out of staging
-- rebase code on top of git://linuxtv.org/hverkuil/media_tree.git exynos4-cec
-  branch
-- split DT modifications in a separate patch
+Ack.
 
-Regards,
-Benjamin
+I think we haven't really tried to unify the format naming in the past
+between the two subsystems. If existing conventions exist on both regarding
+this format, then it's probably better to follow those.
 
-Benjamin Gaignard (3):
-  sti: hdmi: add HPD notifier support
-  stih-cec: add HPD notifier support
-  arm: sti: update sti-cec for HPD notifier support
+Cc Laurent as well.
 
- .../devicetree/bindings/media/stih-cec.txt         |   2 +
- arch/arm/boot/dts/stih407-family.dtsi              |  12 -
- arch/arm/boot/dts/stih410.dtsi                     |  13 +
- drivers/gpu/drm/sti/Kconfig                        |   1 +
- drivers/gpu/drm/sti/sti_hdmi.c                     |  14 +
- drivers/gpu/drm/sti/sti_hdmi.h                     |   3 +
- drivers/media/platform/Kconfig                     |  10 +
- drivers/media/platform/Makefile                    |   1 +
- drivers/media/platform/sti/cec/Makefile            |   1 +
- drivers/media/platform/sti/cec/stih-cec.c          | 404 +++++++++++++++++++++
- drivers/staging/media/Kconfig                      |   2 -
- drivers/staging/media/Makefile                     |   1 -
- drivers/staging/media/st-cec/Kconfig               |   8 -
- drivers/staging/media/st-cec/Makefile              |   1 -
- drivers/staging/media/st-cec/TODO                  |   7 -
- drivers/staging/media/st-cec/stih-cec.c            | 379 -------------------
- 16 files changed, 449 insertions(+), 410 deletions(-)
- create mode 100644 drivers/media/platform/sti/cec/Makefile
- create mode 100644 drivers/media/platform/sti/cec/stih-cec.c
- delete mode 100644 drivers/staging/media/st-cec/Kconfig
- delete mode 100644 drivers/staging/media/st-cec/Makefile
- delete mode 100644 drivers/staging/media/st-cec/TODO
- delete mode 100644 drivers/staging/media/st-cec/stih-cec.c
+> >reviewed now so the interface that the future hopefully-in-mainline driver
+> >provides will not change.
+> >
+> >>---
+> >>  include/uapi/linux/videodev2.h | 2 ++
+> >>  1 file changed, 2 insertions(+)
+> >>
+> >>diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> >>index 46e8a2e3..9e03f20 100644
+> >>--- a/include/uapi/linux/videodev2.h
+> >>+++ b/include/uapi/linux/videodev2.h
+> >>@@ -551,6 +551,7 @@ struct v4l2_pix_format {
+> >>  #define V4L2_PIX_FMT_NV61    v4l2_fourcc('N', 'V', '6', '1') /* 16  Y/CrCb 4:2:2  */
+> >>  #define V4L2_PIX_FMT_NV24    v4l2_fourcc('N', 'V', '2', '4') /* 24  Y/CbCr 4:4:4  */
+> >>  #define V4L2_PIX_FMT_NV42    v4l2_fourcc('N', 'V', '4', '2') /* 24  Y/CrCb 4:4:4  */
+> >>+#define V4L2_PIX_FMT_P010    v4l2_fourcc('P', '0', '1', '0') /* 15  Y/CbCr 4:2:0, 10 bits per channel */
+> >>  /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
+> >>  #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
+> >>@@ -559,6 +560,7 @@ struct v4l2_pix_format {
+> >>  #define V4L2_PIX_FMT_NV61M   v4l2_fourcc('N', 'M', '6', '1') /* 16  Y/CrCb 4:2:2  */
+> >>  #define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 64x32 macroblocks */
+> >>  #define V4L2_PIX_FMT_NV12MT_16X16 v4l2_fourcc('V', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 16x16 macroblocks */
+> >>+#define V4L2_PIX_FMT_P010M   v4l2_fourcc('P', 'M', '1', '0') /* 15  Y/CbCr 4:2:0, 10 bits per channel */
+> >>  /* three planes - Y Cb, Cr */
+> >>  #define V4L2_PIX_FMT_YUV410  v4l2_fourcc('Y', 'U', 'V', '9') /*  9  YUV 4:1:0     */
+> 
 
 -- 
-1.9.1
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
