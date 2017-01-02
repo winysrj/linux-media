@@ -1,123 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:51431 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1757465AbdACEZb (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:60929 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932906AbdABNYJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 2 Jan 2017 23:25:31 -0500
-Message-ID: <1b234c08f3d60e134aa8c55893bc50eb@smtp-cloud6.xs4all.net>
-Date: Tue, 03 Jan 2017 05:25:28 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+        Mon, 2 Jan 2017 08:24:09 -0500
+From: Michael Tretter <m.tretter@pengutronix.de>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Cc: Philipp Zabel <p.zabel@pengutronix.de>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        kernel@pengutronix.de, Philipp Zabel <philipp.zabel@gmail.com>,
+        Michael Tretter <m.tretter@pengutronix.de>
+Subject: [PATCH v3 1/7] [media] dt-bindings: Add a binding for Video Data Order Adapter
+Date: Mon,  2 Jan 2017 14:23:46 +0100
+Message-Id: <20170102132352.23669-2-m.tretter@pengutronix.de>
+In-Reply-To: <20170102132352.23669-1-m.tretter@pengutronix.de>
+References: <20170102132352.23669-1-m.tretter@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Philipp Zabel <philipp.zabel@gmail.com>
 
-Results of the daily build of media_tree:
+Add a DT binding documentation for the Video Data Order Adapter (VDOA)
+of the Freescale i.MX6 SoC.
 
-date:			Tue Jan  3 05:00:10 CET 2017
-media-tree git hash:	40eca140c404505c09773d1c6685d818cb55ab1a
-media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
-v4l-utils git hash:	951c4878a93f4722146f8bc6515a47fba6470bb3
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.8.0-164
+Also, add the compatible property and correct clock to the device tree
+to match the documentation.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9-x86_64: ERRORS
-apps: WARNINGS
-spec-git: ERRORS
-sparse: WARNINGS
+Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
+Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
+---
+ .../devicetree/bindings/media/fsl-vdoa.txt          | 21 +++++++++++++++++++++
+ arch/arm/boot/dts/imx6qdl.dtsi                      |  2 ++
+ 2 files changed, 23 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/fsl-vdoa.txt
 
-Detailed results are available here:
+diff --git a/Documentation/devicetree/bindings/media/fsl-vdoa.txt b/Documentation/devicetree/bindings/media/fsl-vdoa.txt
+new file mode 100644
+index 000000000000..6c5628530bb7
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/fsl-vdoa.txt
+@@ -0,0 +1,21 @@
++Freescale Video Data Order Adapter
++==================================
++
++The Video Data Order Adapter (VDOA) is present on the i.MX6q. Its sole purpose
++is to reorder video data from the macroblock tiled order produced by the CODA
++960 VPU to the conventional raster-scan order for scanout.
++
++Required properties:
++- compatible: must be "fsl,imx6q-vdoa"
++- reg: the register base and size for the device registers
++- interrupts: the VDOA interrupt
++- clocks: the vdoa clock
++
++Example:
++
++vdoa@21e4000 {
++        compatible = "fsl,imx6q-vdoa";
++        reg = <0x021e4000 0x4000>;
++        interrupts = <0 18 IRQ_TYPE_LEVEL_HIGH>;
++        clocks = <&clks IMX6QDL_CLK_VDOA>;
++};
+diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
+index 53e6e63cbb02..61569c86d28e 100644
+--- a/arch/arm/boot/dts/imx6qdl.dtsi
++++ b/arch/arm/boot/dts/imx6qdl.dtsi
+@@ -1157,8 +1157,10 @@
+ 			};
+ 
+ 			vdoa@021e4000 {
++				compatible = "fsl,imx6q-vdoa";
+ 				reg = <0x021e4000 0x4000>;
+ 				interrupts = <0 18 IRQ_TYPE_LEVEL_HIGH>;
++				clocks = <&clks IMX6QDL_CLK_VDOA>;
+ 			};
+ 
+ 			uart2: serial@021e8000 {
+-- 
+2.11.0
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
