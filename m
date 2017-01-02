@@ -1,51 +1,22 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:44257 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751091AbdAaPt5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jan 2017 10:49:57 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com, Wolfram Sang <wsa@the-dreams.de>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 01/11] media: rcar-vin: reset bytesperline and sizeimage when resetting format
-Date: Tue, 31 Jan 2017 16:40:06 +0100
-Message-Id: <20170131154016.15526-2-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170131154016.15526-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170131154016.15526-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mbkd0234.ocn.ad.jp ([153.149.233.35]:39732 "EHLO
+        mbkd0234.ocn.ad.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932719AbdABRwU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jan 2017 12:52:20 -0500
+Date: Tue, 3 Jan 2017 02:34:38 +0900 (JST)
+From: "Dr. David White" <"wd."@eagle.ocn.ne.jp>
+Reply-To: "Dr. David White" <david_white34@mynet.com>
+Message-ID: <603429211.116392312.1483378478267.JavaMail.root@eagle.ocn.ne.jp>
+Subject: Urgent Please;;
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These two fields where forgotten when refactoring the format reset code
-path. If they are not also reset at the same time as width and hight the
-format read using G_FMT will not match reality.
+Dear,
+With due respect to your person and much sincerity of purpose. I have a business proposal which I will like to handle with you and $14.5 Million USD is involve. But be rest assured that everything is legal and risk free as I have concluded all the arrangements and the legal papers that will back the transaction up. Kindly indicate your interest as to enable me tell you more detail of the proposal. Waiting for your urgent response.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 2bbe6d495fa634da..69bc4cfea6a8aeb5 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -151,6 +151,9 @@ static int rvin_reset_format(struct rvin_dev *vin)
- 
- 	rvin_reset_crop_compose(vin);
- 
-+	vin->format.bytesperline = rvin_format_bytesperline(&vin->format);
-+	vin->format.sizeimage = rvin_format_sizeimage(&vin->format);
-+
- 	return 0;
- }
- 
--- 
-2.11.0
-
+Yours Faithfully,
+Dr. David White
