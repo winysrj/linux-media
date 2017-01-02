@@ -1,136 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-From: "Deucher, Alexander" <Alexander.Deucher@amd.com>
-To: 'Jason Gunthorpe' <jgunthorpe@obsidianresearch.com>,
-        Jerome Glisse <jglisse@redhat.com>
-CC: "Sagalovitch, Serguei" <Serguei.Sagalovitch@amd.com>,
-        Jerome Glisse <j.glisse@gmail.com>,
-        "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>,
-        "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>,
-        "'linux-nvdimm@lists.01.org'" <linux-nvdimm@ml01.01.org>,
-        "'Linux-media@vger.kernel.org'" <Linux-media@vger.kernel.org>,
-        "'dri-devel@lists.freedesktop.org'" <dri-devel@lists.freedesktop.org>,
-        "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>,
-        "hch@infradead.org" <hch@infradead.org>,
-        "Zhou, David(ChunMing)" <David1.Zhou@amd.com>,
-        "Yu, Qiang" <Qiang.Yu@amd.com>
-Subject: RE: Enabling peer to peer device transactions for PCIe devices
-Date: Fri, 6 Jan 2017 19:12:32 +0000
-Message-ID: <BN6PR12MB1652CC50C4FB1CC17E14BD7DF7630@BN6PR12MB1652.namprd12.prod.outlook.com>
-References: <20170105190113.GA12587@obsidianresearch.com>
- <20170105195424.GB2166@redhat.com>
- <20170105200719.GB31047@obsidianresearch.com>
- <20170105201935.GC2166@redhat.com>
- <20170105224215.GA3855@obsidianresearch.com>
- <20170105232352.GB6426@redhat.com>
- <20170106003034.GB4670@obsidianresearch.com>
- <20170106015831.GA2226@gmail.com>
- <f07700d5-211f-d091-2b0b-fbaf03c4a959@amd.com>
- <20170106173722.GB3804@redhat.com>
- <20170106182625.GB5724@obsidianresearch.com>
-In-Reply-To: <20170106182625.GB5724@obsidianresearch.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:41832 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755498AbdABOqF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 2 Jan 2017 09:46:05 -0500
+Subject: Re: [PATCH v2 00/21] Basic i.MX IPUv3 capture support
+To: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
+ <20161019213026.GU9460@valkosipuli.retiisi.org.uk>
+ <CAH-u=807nRYzza0kTfOMv1AiWazk6FGJyz6W5_bYw7v9nOrccA@mail.gmail.com>
+ <20161229205113.j6wn7kmhkfrtuayu@pengutronix.de>
+ <7350daac-14ee-74cc-4b01-470a375613a3@denx.de>
+ <c38d80aa-5464-1e9d-e11a-f54716fdb565@mentor.com>
+ <CAH-u=83LDyfcErrxaDNN2+w7ZK56v9cJkvBL864ofxiBWrmBSg@mail.gmail.com>
+Cc: Marek Vasut <marex@denx.de>,
+        Robert Schwebel <r.schwebel@pengutronix.de>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Gary Bisson <gary.bisson@boundarydevices.com>,
+        Sascha Hauer <kernel@pengutronix.de>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <3b8ed13c-a23e-dc2b-0e31-1288ea3f562a@xs4all.nl>
+Date: Mon, 2 Jan 2017 15:45:58 +0100
 MIME-Version: 1.0
+In-Reply-To: <CAH-u=83LDyfcErrxaDNN2+w7ZK56v9cJkvBL864ofxiBWrmBSg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> -----Original Message-----
-> From: Jason Gunthorpe [mailto:jgunthorpe@obsidianresearch.com]
-> Sent: Friday, January 06, 2017 1:26 PM
-> To: Jerome Glisse
-> Cc: Sagalovitch, Serguei; Jerome Glisse; Deucher, Alexander; 'linux-
-> kernel@vger.kernel.org'; 'linux-rdma@vger.kernel.org'; 'linux-
-> nvdimm@lists.01.org'; 'Linux-media@vger.kernel.org'; 'dri-
-> devel@lists.freedesktop.org'; 'linux-pci@vger.kernel.org'; Kuehling, Feli=
-x;
-> Blinzer, Paul; Koenig, Christian; Suthikulpanit, Suravee; Sander, Ben;
-> hch@infradead.org; Zhou, David(ChunMing); Yu, Qiang
-> Subject: Re: Enabling peer to peer device transactions for PCIe devices
->=20
-> On Fri, Jan 06, 2017 at 12:37:22PM -0500, Jerome Glisse wrote:
-> > On Fri, Jan 06, 2017 at 11:56:30AM -0500, Serguei Sagalovitch wrote:
-> > > On 2017-01-05 08:58 PM, Jerome Glisse wrote:
-> > > > On Thu, Jan 05, 2017 at 05:30:34PM -0700, Jason Gunthorpe wrote:
-> > > > > On Thu, Jan 05, 2017 at 06:23:52PM -0500, Jerome Glisse wrote:
-> > > > >
-> > > > > > > I still don't understand what you driving at - you've said in=
- both
-> > > > > > > cases a user VMA exists.
-> > > > > > In the former case no, there is no VMA directly but if you want=
- one
-> than
-> > > > > > a device can provide one. But such VMA is useless as CPU access=
- is
-> not
-> > > > > > expected.
-> > > > > I disagree it is useless, the VMA is going to be necessary to sup=
-port
-> > > > > upcoming things like CAPI, you need it to support O_DIRECT from t=
-he
-> > > > > filesystem, DPDK, etc. This is why I am opposed to any model that=
- is
-> > > > > not VMA based for setting up RDMA - that is shorted sighted and
-> does
-> > > > > not seem to reflect where the industry is going.
-> > > > >
-> > > > > So focus on having VMA backed by actual physical memory that
-> covers
-> > > > > your GPU objects and ask how do we wire up the '__user *' to the
-> DMA
-> > > > > API in the best way so the DMA API still has enough information t=
-o
-> > > > > setup IOMMUs and whatnot.
-> > > > I am talking about 2 different thing. Existing hardware and API whe=
-re
-> you
-> > > > _do not_ have a vma and you do not need one. This is just
-> > > > > existing stuff.
->=20
-> > > I do not understand why you assume that existing API doesn't  need on=
-e.
-> > > I would say that a lot of __existing__ user level API and their suppo=
-rt in
-> > > kernel (especially outside of graphics domain) assumes that we have v=
-ma
-> and
-> > > deal with __user * pointers.
->=20
-> +1
->=20
-> > Well i am thinking to GPUDirect here. Some of GPUDirect use case do not
-> have
-> > vma (struct vm_area_struct) associated with them they directly apply to
-> GPU
-> > object that aren't expose to CPU. Yes some use case have vma for share
-> buffer.
->=20
-> Lets stop talkind about GPU direct. Today we can't even make VMA
-> pointing at a PCI bar work properly in the kernel - lets start there
-> please. People can argue over other options once that is done.
->=20
-> > For HMM plan is to restrict to ODP and either to replace ODP with HMM o=
-r
-> change
-> > ODP to not use get_user_pages_remote() but directly fetch informations
-> from
-> > CPU page table. Everything else stay as it is. I posted patchset to rep=
-lace
-> > ODP with HMM in the past.
->=20
-> Make a generic API for all of this and you'd have my vote..
->=20
-> IMHO, you must support basic pinning semantics - that is necessary to
-> support generic short lived DMA (eg filesystem, etc). That hardware
-> can clearly do that if it can support ODP.
+On 01/02/17 14:51, Jean-Michel Hautbois wrote:
+> Hi,
+>
+> 2016-12-30 21:26 GMT+01:00 Steve Longerbeam <steve_longerbeam@mentor.com>:
+>>
+>>
+>> On 12/30/2016 11:06 AM, Marek Vasut wrote:
+>>>
+>>> On 12/29/2016 09:51 PM, Robert Schwebel wrote:
+>>>>
+>>>> Hi Jean-Michel,
+>>>
+>>> Hi,
+>>>
+>>>> On Thu, Dec 29, 2016 at 04:08:33PM +0100, Jean-Michel Hautbois wrote:
+>>>>>
+>>>>> What is the status of this work?
+>>>>
+>>>> Philipp's patches have been reworked with the review feedback from the
+>>>> last round and a new version will be posted when he is back from
+>>>> holidays.
+>>>
+>>> IMO Philipp's patches are better integrated and well structured, so I'd
+>>> rather like to see his work in at some point.
+>>
+>>
+>> Granted I am biased, but I will state my case. "Better integrated" - my
+>> patches
+>> are also well integrated with the media core infrastructure. Philipp's
+>> patches
+>> in fact require modification to media core, whereas mine require none.
+>> Some changes are needed of course (more subdev type definitions for
+>> one).
+>>
+>> As for "well structured", I don't really understand what is meant by that,
+>> but my driver is also well structured.
+>>
+>> Philipp's driver only supports unconverted image capture from the SMFC. In
+>> addition
+>> to that, mine allows for all the hardware links supported by the IPU,
+>> including routing
+>> frames from the CSI directly to the Image converter for scaling up to
+>> 4096x4096,
+>> colorspace conversion, rotation, and motion compensated de-interlace. Yes
+>> all these
+>> conversion can be carried out post-capture via a mem2mem device, but
+>> conversion
+>> directly from CSI capture has advantages, including minimized CPU
+>> utilization and
+>> lower AXI bus traffic. In any case, Freescale added these hardware paths,
+>> and my
+>> driver supports them.
+>
+> I had a deeper look to both drivers, and I must say the features of
+> Steve's one are really interesting.
+> I don't think any of those has been tested with digital inputs (I have
+> ADV76xx chips on my board, which I hope will be available one day for
+> those interested) and so, I can test and help adding some of the
+> missing parts.
+> And for at least a week or two, I have all of my time for it, so it
+> would be of great help to know which one has the bigger chance to be
+> integrated... :)
 
-We would definitely like to have support for hardware that can't handle pag=
-e faults gracefully.
+Steve's series is definitely preferred from my point of view. The feature
+set is clearly superior to Philipp's driver.
 
-Alex
+I plan on reviewing Steve's series soonish but a quick scan didn't see anything
+suspicious. The code looks clean, and I am leaning towards getting this in sooner
+rather than later, so if you have the time to work on this, then go for it!
 
+Steve, I have a SabreLite and a ov5642 sensor, so I should be able to test
+that driver.
+
+There is also an ov5642 sensor driver in drivers/media/i2/soc_camera/ov5642.c.
+But nobody AFAIK is using it, so I would be inclined to take your code and
+remove the soc_camera driver.
+
+Regards,
+
+	Hans
