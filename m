@@ -1,58 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:40563 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750977AbdAXL2e (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:45252 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751353AbdABMPy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Jan 2017 06:28:34 -0500
-Message-ID: <1485257289.3600.97.camel@pengutronix.de>
-Subject: Re: [PATCH v3 00/24] i.MX Media Driver
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Tue, 24 Jan 2017 12:28:09 +0100
-In-Reply-To: <2b6ae556-df48-6b6b-87f1-d092eba586b9@xs4all.nl>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
-         <c6e98327-7e2c-f34a-2d23-af7b236de441@xs4all.nl>
-         <1484929911.2897.70.camel@pengutronix.de>
-         <3fb68686-9447-2d8a-e2d2-005e4138cd43@gmail.com>
-         <5d23d244-aa0e-401c-24a9-07f28acf1563@xs4all.nl>
-         <1485169204.2874.57.camel@pengutronix.de>
-         <2b6ae556-df48-6b6b-87f1-d092eba586b9@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Mon, 2 Jan 2017 07:15:54 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCH for v4.10 1/2] cec rst: remove "This API is not yet finalized" notice
+Date: Mon,  2 Jan 2017 13:15:44 +0100
+Message-Id: <1483359345-24652-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1483359345-24652-1-git-send-email-hverkuil@xs4all.nl>
+References: <1483359345-24652-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2017-01-23 at 12:08 +0100, Hans Verkuil wrote:
-> On 01/23/2017 12:00 PM, Philipp Zabel wrote:
-> > On Fri, 2017-01-20 at 21:39 +0100, Hans Verkuil wrote:
-[...]
-> As long as it is mentioned in the TODO, and ideally in the Kconfig as well,
-> then I'm fine with it.
->
-> The big advantage of being in the kernel is that it is much easier to start
-> providing fixes, improvements, etc. If you use a staging driver you know
-> that there is no guarantee whatsoever with respect to stable ABI/APIs.
+From: Hans Verkuil <hansverk@cisco.com>
 
-Of course, but there should be a clear way how to progress on those
-issues that are documented as blockers, otherwise the driver will linger
-in staging.
-Worse, currently we are not even in agreement what to put into the TODO.
+The API is now finalized, so this notice should be dropped.
 
-regards
-Philipp
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+---
+ Documentation/media/uapi/cec/cec-func-close.rst           | 5 -----
+ Documentation/media/uapi/cec/cec-func-ioctl.rst           | 5 -----
+ Documentation/media/uapi/cec/cec-func-open.rst            | 5 -----
+ Documentation/media/uapi/cec/cec-func-poll.rst            | 5 -----
+ Documentation/media/uapi/cec/cec-intro.rst                | 5 -----
+ Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst      | 5 -----
+ Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst | 5 -----
+ Documentation/media/uapi/cec/cec-ioc-adap-g-phys-addr.rst | 5 -----
+ Documentation/media/uapi/cec/cec-ioc-dqevent.rst          | 5 -----
+ Documentation/media/uapi/cec/cec-ioc-g-mode.rst           | 5 -----
+ Documentation/media/uapi/cec/cec-ioc-receive.rst          | 5 -----
+ 11 files changed, 55 deletions(-)
+
+diff --git a/Documentation/media/uapi/cec/cec-func-close.rst b/Documentation/media/uapi/cec/cec-func-close.rst
+index 8267c31..895d9c2 100644
+--- a/Documentation/media/uapi/cec/cec-func-close.rst
++++ b/Documentation/media/uapi/cec/cec-func-close.rst
+@@ -33,11 +33,6 @@ Arguments
+ Description
+ ===========
+ 
+-.. note::
+-
+-   This documents the proposed CEC API. This API is not yet finalized
+-   and is currently only available as a staging kernel module.
+-
+ Closes the cec device. Resources associated with the file descriptor are
+ freed. The device configuration remain unchanged.
+ 
+diff --git a/Documentation/media/uapi/cec/cec-func-ioctl.rst b/Documentation/media/uapi/cec/cec-func-ioctl.rst
+index 9e8dbb1..7dcfd17 100644
+--- a/Documentation/media/uapi/cec/cec-func-ioctl.rst
++++ b/Documentation/media/uapi/cec/cec-func-ioctl.rst
+@@ -39,11 +39,6 @@ Arguments
+ Description
+ ===========
+ 
+-.. note::
+-
+-   This documents the proposed CEC API. This API is not yet finalized
+-   and is currently only available as a staging kernel module.
+-
+ The :c:func:`ioctl()` function manipulates cec device parameters. The
+ argument ``fd`` must be an open file descriptor.
+ 
+diff --git a/Documentation/media/uapi/cec/cec-func-open.rst b/Documentation/media/uapi/cec/cec-func-open.rst
+index af3f5b5..0304388 100644
+--- a/Documentation/media/uapi/cec/cec-func-open.rst
++++ b/Documentation/media/uapi/cec/cec-func-open.rst
+@@ -46,11 +46,6 @@ Arguments
+ Description
+ ===========
+ 
+-.. note::
+-
+-   This documents the proposed CEC API. This API is not yet finalized
+-   and is currently only available as a staging kernel module.
+-
+ To open a cec device applications call :c:func:`open()` with the
+ desired device name. The function has no side effects; the device
+ configuration remain unchanged.
+diff --git a/Documentation/media/uapi/cec/cec-func-poll.rst b/Documentation/media/uapi/cec/cec-func-poll.rst
+index cfb73e6..6a863cf 100644
+--- a/Documentation/media/uapi/cec/cec-func-poll.rst
++++ b/Documentation/media/uapi/cec/cec-func-poll.rst
+@@ -39,11 +39,6 @@ Arguments
+ Description
+ ===========
+ 
+-.. note::
+-
+-   This documents the proposed CEC API. This API is not yet finalized
+-   and is currently only available as a staging kernel module.
+-
+ With the :c:func:`poll()` function applications can wait for CEC
+ events.
+ 
+diff --git a/Documentation/media/uapi/cec/cec-intro.rst b/Documentation/media/uapi/cec/cec-intro.rst
+index 4a19ea5..7d31d37 100644
+--- a/Documentation/media/uapi/cec/cec-intro.rst
++++ b/Documentation/media/uapi/cec/cec-intro.rst
+@@ -3,11 +3,6 @@
+ Introduction
+ ============
+ 
+-.. note::
+-
+-   This documents the proposed CEC API. This API is not yet finalized
+-   and is currently only available as a staging kernel module.
+-
+ HDMI connectors provide a single pin for use by the Consumer Electronics
+ Control protocol. This protocol allows different devices connected by an
+ HDMI cable to communicate. The protocol for CEC version 1.4 is defined
+diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
+index 2b0ddb1..a0e961f 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst
+@@ -29,11 +29,6 @@ Arguments
+ Description
+ ===========
+ 
+-.. note::
+-
+-   This documents the proposed CEC API. This API is not yet finalized
+-   and is currently only available as a staging kernel module.
+-
+ All cec devices must support :ref:`ioctl CEC_ADAP_G_CAPS <CEC_ADAP_G_CAPS>`. To query
+ device information, applications call the ioctl with a pointer to a
+ struct :c:type:`cec_caps`. The driver fills the structure and
+diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
+index b878637..09f09bb 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
+@@ -35,11 +35,6 @@ Arguments
+ Description
+ ===========
+ 
+-.. note::
+-
+-   This documents the proposed CEC API. This API is not yet finalized
+-   and is currently only available as a staging kernel module.
+-
+ To query the current CEC logical addresses, applications call
+ :ref:`ioctl CEC_ADAP_G_LOG_ADDRS <CEC_ADAP_G_LOG_ADDRS>` with a pointer to a
+ struct :c:type:`cec_log_addrs` where the driver stores the logical addresses.
+diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-phys-addr.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-phys-addr.rst
+index 3357deb..a3cdc75 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-adap-g-phys-addr.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-phys-addr.rst
+@@ -35,11 +35,6 @@ Arguments
+ Description
+ ===========
+ 
+-.. note::
+-
+-   This documents the proposed CEC API. This API is not yet finalized
+-   and is currently only available as a staging kernel module.
+-
+ To query the current physical address applications call
+ :ref:`ioctl CEC_ADAP_G_PHYS_ADDR <CEC_ADAP_G_PHYS_ADDR>` with a pointer to a __u16 where the
+ driver stores the physical address.
+diff --git a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
+index e256c66..6e589a1 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
+@@ -30,11 +30,6 @@ Arguments
+ Description
+ ===========
+ 
+-.. note::
+-
+-   This documents the proposed CEC API. This API is not yet finalized
+-   and is currently only available as a staging kernel module.
+-
+ CEC devices can send asynchronous events. These can be retrieved by
+ calling :c:func:`CEC_DQEVENT`. If the file descriptor is in
+ non-blocking mode and no event is pending, then it will return -1 and
+diff --git a/Documentation/media/uapi/cec/cec-ioc-g-mode.rst b/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
+index 4f5818b..e4ded9d 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-g-mode.rst
+@@ -31,11 +31,6 @@ Arguments
+ Description
+ ===========
+ 
+-.. note::
+-
+-   This documents the proposed CEC API. This API is not yet finalized
+-   and is currently only available as a staging kernel module.
+-
+ By default any filehandle can use :ref:`CEC_TRANSMIT`, but in order to prevent
+ applications from stepping on each others toes it must be possible to
+ obtain exclusive access to the CEC adapter. This ioctl sets the
+diff --git a/Documentation/media/uapi/cec/cec-ioc-receive.rst b/Documentation/media/uapi/cec/cec-ioc-receive.rst
+index bdf015b..dc2adb3 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-receive.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-receive.rst
+@@ -34,11 +34,6 @@ Arguments
+ Description
+ ===========
+ 
+-.. note::
+-
+-   This documents the proposed CEC API. This API is not yet finalized
+-   and is currently only available as a staging kernel module.
+-
+ To receive a CEC message the application has to fill in the
+ ``timeout`` field of struct :c:type:`cec_msg` and pass it to
+ :ref:`ioctl CEC_RECEIVE <CEC_RECEIVE>`.
+-- 
+2.8.1
 
