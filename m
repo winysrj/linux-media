@@ -1,44 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45673 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751279AbdARXcG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Jan 2017 18:32:06 -0500
-Received: from avalon.bb.dnainternet.fi (dfj-tpyj40kccf8214dxy-3.rev.dnainternet.fi [IPv6:2001:14ba:21ff:600:f8f2:422:72d5:c0e6])
-        by galahad.ideasonboard.com (Postfix) with ESMTPSA id 0DD8420097
-        for <linux-media@vger.kernel.org>; Thu, 19 Jan 2017 00:31:31 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] v4l: mt9v032: Remove unneeded gpiod NULL check
-Date: Thu, 19 Jan 2017 01:32:20 +0200
-Message-Id: <20170118233220.20879-1-laurent.pinchart@ideasonboard.com>
+Received: from relay1.mentorg.com ([192.94.38.131]:39121 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755663AbdABTUe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jan 2017 14:20:34 -0500
+Subject: Re: [PATCH v2 00/21] Basic i.MX IPUv3 capture support
+To: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
+ <20161019213026.GU9460@valkosipuli.retiisi.org.uk>
+ <CAH-u=807nRYzza0kTfOMv1AiWazk6FGJyz6W5_bYw7v9nOrccA@mail.gmail.com>
+ <20161229205113.j6wn7kmhkfrtuayu@pengutronix.de>
+ <7350daac-14ee-74cc-4b01-470a375613a3@denx.de>
+ <c38d80aa-5464-1e9d-e11a-f54716fdb565@mentor.com>
+ <CAH-u=83LDyfcErrxaDNN2+w7ZK56v9cJkvBL864ofxiBWrmBSg@mail.gmail.com>
+ <3b8ed13c-a23e-dc2b-0e31-1288ea3f562a@xs4all.nl>
+ <CAH-u=834h2T5s6wY44nqo9bb6DR=z1TDynGeWp0B1wMX6bK13w@mail.gmail.com>
+CC: Marek Vasut <marex@denx.de>,
+        Robert Schwebel <r.schwebel@pengutronix.de>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Gary Bisson <gary.bisson@boundarydevices.com>,
+        Sascha Hauer <kernel@pengutronix.de>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Steve Longerbeam <steve_longerbeam@mentor.com>
+Message-ID: <c14a63f6-c3d0-e546-c62d-87dd47353a9b@mentor.com>
+Date: Mon, 2 Jan 2017 11:20:29 -0800
+MIME-Version: 1.0
+In-Reply-To: <CAH-u=834h2T5s6wY44nqo9bb6DR=z1TDynGeWp0B1wMX6bK13w@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The gpiod API checks for NULL descriptors, there's no need to duplicate
-the check in the driver.
+Hi JM,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/i2c/mt9v032.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
-index 58eb62f1ba21..107eb3baa11f 100644
---- a/drivers/media/i2c/mt9v032.c
-+++ b/drivers/media/i2c/mt9v032.c
-@@ -266,8 +266,7 @@ static int mt9v032_power_on(struct mt9v032 *mt9v032)
- 	struct regmap *map = mt9v032->regmap;
- 	int ret;
- 
--	if (mt9v032->reset_gpio)
--		gpiod_set_value_cansleep(mt9v032->reset_gpio, 1);
-+	gpiod_set_value_cansleep(mt9v032->reset_gpio, 1);
- 
- 	ret = clk_set_rate(mt9v032->clk, mt9v032->sysclk);
- 	if (ret < 0)
--- 
-Regards,
+On 01/02/2017 06:59 AM, Jean-Michel Hautbois wrote:
+>
+> Steve: which branch is the correct one on your github ?
 
-Laurent Pinchart
+branch imx-media-staging-md-v4 on
+git@github.com:slongerbeam/mediatree.git
+
+Steve
 
