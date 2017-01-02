@@ -1,51 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kozue.soulik.info ([108.61.200.231]:35294 "EHLO
-        kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934605AbdAECHL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2017 21:07:11 -0500
-Content-Type: text/plain;
-        charset=big5
-Mime-Version: 1.0 (1.0)
-Subject: Re: [PATCH v2 1/2] drm_fourcc: Add new P010, P016 video format
-From: Ayaka <ayaka@soulik.info>
-In-Reply-To: <CAPj87rPbM2Qm0v8S5++5Qpgv51AWxgTpRoAXaY8-CL2_hCSC6g@mail.gmail.com>
-Date: Thu, 5 Jan 2017 10:00:30 +0800
-Cc: dri-devel <dri-devel@lists.freedesktop.org>,
-        =?utf-8?Q?Ville_Syrj=C3=A4l=C3=A4?= <ville.syrjala@linux.intel.com>,
-        Li Randy <randy.li@rock-chips.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "Vetter, Daniel" <daniel.vetter@intel.com>, mchehab@kernel.org,
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51702 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754754AbdABHAV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 2 Jan 2017 02:00:21 -0500
+Date: Mon, 2 Jan 2017 09:00:10 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: robh+dt@kernel.org, devicetree@vger.kernel.org,
+        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
         linux-media@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <B0C67CFD-E707-4C17-9313-4E013BA3CF38@soulik.info>
-References: <1483547351-5792-1-git-send-email-ayaka@soulik.info> <1483547351-5792-2-git-send-email-ayaka@soulik.info> <CAPj87rPbM2Qm0v8S5++5Qpgv51AWxgTpRoAXaY8-CL2_hCSC6g@mail.gmail.com>
-To: Daniel Stone <daniel@fooishbar.org>
+Subject: Re: [PATCH] dt: bindings: Add support for CSI1 bus
+Message-ID: <20170102070010.GD3958@valkosipuli.retiisi.org.uk>
+References: <20161228183036.GA13139@amd>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161228183036.GA13139@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Pavel,
+
+On Wed, Dec 28, 2016 at 07:30:36PM +0100, Pavel Machek wrote:
+> From: Sakari Ailus <sakari.ailus@iki.fi>
+> 
+> In the vast majority of cases the bus type is known to the driver(s)
+> since a receiver or transmitter can only support a single one. There
+> are cases however where different options are possible.
+> 
+> Document the CSI1/CCP2 properties strobe_clk_inv and strobe_clock
+> properties. The former tells whether the strobe/clock signal is
+> inverted, while the latter signifies the clock or strobe mode.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> 
+> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> index 9cd2a36..f0523f7 100644
+> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> @@ -76,6 +76,10 @@ Optional endpoint properties
+>    mode horizontal and vertical synchronization signals are provided to the
+>    slave device (data source) by the master device (data sink). In the master
+>    mode the data source device is also the source of the synchronization signals.
+> +- bus-type: data bus type. Possible values are:
+> +  0 - CSI2
+> +  1 - parallel / Bt656
+> +  2 - CCP2
+
+I wonder if we should make a difference between CCP2 and CSI-1 here, as it
+may make a difference in hardware configuration. The next patch does
+recognise that difference, so it should be present here as well.
+
+Perhaps 2 - CSI1; 3 - CCP2. What do you think?
+
+>  - bus-width: number of data lines actively used, valid for the parallel busses.
+>  - data-shift: on the parallel data busses, if bus-width is used to specify the
+>    number of data lines, data-shift can be used to specify which data lines are
+> @@ -110,9 +114,10 @@ Optional endpoint properties
+>    lane and followed by the data lanes in the same order as in data-lanes.
+>    Valid values are 0 (normal) and 1 (inverted). The length of the array
+>    should be the combined length of data-lanes and clock-lanes properties.
+> -  If the lane-polarities property is omitted, the value must be interpreted
+> -  as 0 (normal). This property is valid for serial busses only.
+> -
+> +- clock-inv: Clock or strobe signal inversion.
+> +  Possible values: 0 -- not inverted; 1 -- inverted
+> +- strobe: Whether the clock signal is used as clock or strobe. Used
+> +  with CCP2, for instance.
+>  
+>  Example
+>  -------
+> 
+> 
 
 
-從我的 iPad 傳送
 
-> Daniel Stone <daniel@fooishbar.org> 於 2017年1月5日 上午1:02 寫道：
-> 
-> Hi Randy,
-> 
->> On 4 January 2017 at 16:29, Randy Li <ayaka@soulik.info> wrote:
->> index 90d2cc8..23c8e99 100644
->> --- a/drivers/gpu/drm/drm_fourcc.c
->> +++ b/drivers/gpu/drm/drm_fourcc.c
->> @@ -165,6 +165,9 @@ const struct drm_format_info *__drm_format_info(u32 format)
->>                { .format = DRM_FORMAT_UYVY,            .depth = 0,  .num_planes = 1, .cpp = { 2, 0, 0 }, .hsub = 2, .vsub = 1 },
->>                { .format = DRM_FORMAT_VYUY,            .depth = 0,  .num_planes = 1, .cpp = { 2, 0, 0 }, .hsub = 2, .vsub = 1 },
->>                { .format = DRM_FORMAT_AYUV,            .depth = 0,  .num_planes = 1, .cpp = { 4, 0, 0 }, .hsub = 1, .vsub = 1 },
->> +               /* FIXME a pixel in Y for P010 is 10 bits */
->> +               { .format = DRM_FORMAT_P010,            .depth = 0,  .num_planes = 2, .cpp = { 1, 2, 0 }, .hsub = 2, .vsub = 2 },
-> 
-> It seems like P010 stores each Y component in a 16-bit value, with the
-> bottom 6 bits ignored. So I think cpp here should be 2.
-No, the rest bits are used to store the next pixel. The P010 is just a 10 bits color depth pixel format.
-> 
-> Cheers,
-> Daniel
+-- 
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
