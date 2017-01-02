@@ -1,173 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor4.renesas.com ([210.160.252.174]:46670 "EHLO
-        relmlie3.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1759167AbdAJJbL (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38272 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1756845AbdABVJn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Jan 2017 04:31:11 -0500
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-CC: Geert Uytterhoeven <geert@linux-m68k.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Antti Palosaari <crope@iki.fi>,
-        Chris Paterson <Chris.Paterson2@renesas.com>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
-Subject: RE: [PATCH v2 6/7] dt-bindings: media: Add Renesas R-Car DRIF binding
-Date: Tue, 10 Jan 2017 09:31:05 +0000
-Message-ID: <HK2PR06MB0545BF36C3DD2D4D1B951C3FC3670@HK2PR06MB0545.apcprd06.prod.outlook.com>
-References: <1478706284-59134-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
- <HK2PR06MB05453E11C8931F881E106939C36E0@HK2PR06MB0545.apcprd06.prod.outlook.com>
- <cca1ade8-01ef-8eab-f4b1-7dd7f204fdea@xs4all.nl> <4506041.7mPt4W6j0m@avalon>
-In-Reply-To: <4506041.7mPt4W6j0m@avalon>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+        Mon, 2 Jan 2017 16:09:43 -0500
+Date: Mon, 2 Jan 2017 23:09:34 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>
+Subject: Re: [PATCH 00/15] atmel-isi/ov7670/ov2640: convert to standalone
+ drivers
+Message-ID: <20170102210934.GJ3958@valkosipuli.retiisi.org.uk>
+References: <20161212155520.41375-1-hverkuil@xs4all.nl>
+ <20161218221055.GW16630@valkosipuli.retiisi.org.uk>
+ <0983edff-25ef-fc9b-3c13-7fad442dac70@xs4all.nl>
+ <e4683b1b-7b4f-debe-41c9-9e8a18115824@xs4all.nl>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <e4683b1b-7b4f-debe-41c9-9e8a18115824@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-> > >>> On Wednesday 21 Dec 2016 08:10:37 Ramesh Shanmugasundaram wrote:
-> > >>>> Add binding documentation for Renesas R-Car Digital Radio
-> > >>>> Interface
-> > >>>> (DRIF) controller.
-> > >>>>
-> > >>>> Signed-off-by: Ramesh Shanmugasundaram
-> > >>>> <ramesh.shanmugasundaram@bp.renesas.com> ---
-> > >>>>
-> > >>>>  .../devicetree/bindings/media/renesas,drif.txt     | 202
-> +++++++++++++
-> > >>>>  1 file changed, 202 insertions(+)  create mode 100644
-> > >>>>
-> > >>>> Documentation/devicetree/bindings/media/renesas,drif.txt
-> > >>>>
-> > >>>> diff --git
-> > >>>> a/Documentation/devicetree/bindings/media/renesas,drif.txt
-> > >>>> b/Documentation/devicetree/bindings/media/renesas,drif.txt new
-> > >>>> file mode 100644 index 0000000..1f3feaf
-> > >>>> --- /dev/null
-> > >>>> +++ b/Documentation/devicetree/bindings/media/renesas,drif.txt
-> > >>>>
-> > >>>> +Optional properties of an internal channel when:
-> > >>>> +     - It is the only enabled channel of the bond (or)
-> > >>>> +     - If it acts as primary among enabled bonds
-> > >>>> +--------------------------------------------------------
-> > >>>> +- renesas,syncmd       : sync mode
-> > >>>> +                      0 (Frame start sync pulse mode. 1-bit
-> > >>>> +width
-> > >>>> pulse
-> > >>>> +                         indicates start of a frame)
-> > >>>> +                      1 (L/R sync or I2S mode) (default)
-> > >>>> +- renesas,lsb-first    : empty property indicates lsb bit is
-> received
-> > >>>> first.
-> > >>>> +                      When not defined msb bit is received first
-> > >>>> +(default)
-> > >>>> +- renesas,syncac-active: Indicates sync signal polarity, 0/1 for
-> > >>>> low/high
+On Mon, Jan 02, 2017 at 02:41:47PM +0100, Hans Verkuil wrote:
+> On 01/02/17 14:37, Hans Verkuil wrote:
+> >On 12/18/16 23:10, Sakari Ailus wrote:
+> >>On Mon, Dec 12, 2016 at 04:55:05PM +0100, Hans Verkuil wrote:
+> >>>From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>>
+> >>>This patch series converts the soc-camera atmel-isi to a standalone V4L2
+> >>>driver.
+> >>>
+> >>>The same is done for the ov7670 and ov2640 sensor drivers: the ov7670 was
+> >>>used to test the atmel-isi driver. The ov2640 is needed because the em28xx
+> >>>driver has a soc_camera include dependency. Both ov7670 and ov2640 sensors
+> >>>have been tested with the atmel-isi driver.
+> >>>
+> >>>The first 6 patches improve the ov7670 sensor driver, mostly adding modern
+> >>>features such as MC and DT support.
+> >>>
+> >>>The next three convert the atmel-isi and move it out of soc_camera.
+> >>
+> >>You're adding Media controller support but without device nodes. Does that
+> >>make sense? You'll have an entity but the user won't be able to do anything
+> >>with it.
+> >>
 > >
-> > Shouldn't this be 'renesas,sync-active' instead of syncac-active?
+> >Well, without the MC support the sensor driver wouldn't load since the atmel
+> >driver expects that the subdev is MC-enabled. However, the atmel-isi doesn't
+> >need the user to configure the pipeline, it's just a simple standard v4l driver.
 > >
-> > I'm not sure if syncac is intended or if it is a typo.
+> >So just filling in the entity information is sufficient in this case.
 > >
-> > >>>> +                      respectively. The default is 1 (active high=
-)
-> > >>>> +- renesas,dtdl         : delay between sync signal and start of
-> > >>>> reception.
-> > >>>> +                      The possible values are represented in 0.5
-> clock
-> > >>>> +                      cycle units and the range is 0 to 4. The
-> default
-> > >>>> +                      value is 2 (i.e.) 1 clock cycle delay.
-> > >>>> +- renesas,syncdl       : delay between end of reception and sync
-> > >>>> signal edge.
-> > >>>> +                      The possible values are represented in 0.5
-> clock
-> > >>>> +                      cycle units and the range is 0 to 4 & 6.
-> > >>>> + The
-> > >>>> default
-> > >>>> +                      value is 0 (i.e.) no delay.
-> > >>>
-> > >>> Most of these properties are pretty similar to the video bus
-> > >>> properties defined at the endpoint level in
-> > >>> Documentation/devicetree/bindings/media/video-interfaces.txt. I
-> > >>> believe it would make sense to use OF graph and try to standardize
-> > >>> these properties similarly.
+> >That said, I see that the atmel-isi driver calls v4l2_device_register_subdev_nodes().
+> >Since this is a simple V4L driver, that call should probably be dropped, since
+> >we really don't want or need subdev nodes.
 > >
-> > Other than sync-active, is there really anything else that is similar?
-> > And even the sync-active isn't a good fit since here there is only one
-> > sync signal instead of two for video (h and vsync).
->=20
-> That's why I said similar, not identical :-) My point is that, if we
-> consider that we could connect multiple sources to the DRIF, using OF
-> graph would make sense, and the above properties should then be defined
-> per endpoint.
+> >I will also need to take another look at the atmel-isi code to see if this MC
+> >dependency is really needed: I think I copied some of that code from the rcar
+> >driver, and it may not be relevant for the atmel driver.
+> 
+> In fact, I don't think it is needed at all.
+> 
+> But does it hurt to add MC support to these ov drivers?
 
-Thanks for the clarifications. I have some questions.
+Certainly not, as long as it doesn't cause issues with non-MC aware bridge
+drivers. If the sensor drivers have MC support as well they can be used with
+MC aware bridge / ISP drivers.
 
-- Assuming two devices are interfaced with DRIF and they are represented us=
-ing two endpoints, the control signal related properties of DRIF might stil=
-l need to be same for both endpoints? For e.g. syncac-active cannot be diff=
-erent in both endpoints?
+If there are issues we definitely have to fix them, otherwise there'll be
+two different kinds of sensor drivers again. I guess it's again been that
+the group of sensors that have MC-aware ISPs connected to them is distinct
+from the other group using non-MC-aware bridges? :-)
 
-- I suppose "lsb-first", "dtdl" & "syncdl" may be defined per endpoint. How=
-ever, h/w manual says same register values needs to be programmed for both =
-the internal channels of a channel. Same with "syncmd" property.
+-- 
+Regards,
 
-We could still define them as per endpoint property with a note that they n=
-eed to be same. But I am not sure if that is what you intended?
-
- If we define them per endpoint we should then also try
-> standardize the ones that are not really Renesas-specific (that's at leas=
-t
-> syncac-active).
-
-OK. I will call it "sync-active".
-
- For the syncmd and lsb-first properties, it could also
-> make sense to query them from the connected subdev at runtime, as they're
-> similar in purpose to formats and media bus configuration (struct
-> v4l2_mbus_config).
-
-May I know in bit more detail about what you had in mind? Please correct me=
- if my understanding is wrong here but when I looked at the code
-
-1) mbus_config is part of subdev_video_ops only. I assume we don't want to =
-support this as part of tuner subdev. The next closest is pad_ops with "str=
-uct v4l2_mbus_framefmt" but it is fully video specific config unless I come=
- up with new MEDIA_BUS_FMT_xxxx in media-bus-format.h and use the code fiel=
-d? For e.g.
-=09
-#define MEDIA_BUS_FMT_SDR_I2S_PADHI_BE       0x7001
-#define MEDIA_BUS_FMT_SDR_I2S_PADHI_LE       0x7002
-
-2) The framework does not seem to mandate pad ops for all subdev. As the tu=
-ner can be any third party subdev, is it fair to assume that these properti=
-es can be queried from subdev?
-
-3) Assuming pad ops is not available on the subdev shouldn't we still need =
-a way to define these properties on DRIF DT?
-
->=20
-> I'm not an SDR expert, so I'd like to have your opinion on this.
->=20
-> > >> Note that the last two properties match the those in
-> > >> Documentation/devicetree/bindings/spi/sh-msiof.txt.
-> > >> We may want to use one DRIF channel as a plain SPI slave with the
-> > >> (modified) MSIOF driver in the future.
-> > >
-> > > Should I leave it as it is or modify these as in video-interfaces.txt=
-?
-> > > Shall we conclude on this please?
->=20
-
-Thanks,
-Ramesh
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
