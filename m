@@ -1,141 +1,221 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wj0-f182.google.com ([209.85.210.182]:35045 "EHLO
-        mail-wj0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964977AbdACOzK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2017 09:55:10 -0500
-Received: by mail-wj0-f182.google.com with SMTP id v7so447011645wjy.2
-        for <linux-media@vger.kernel.org>; Tue, 03 Jan 2017 06:55:09 -0800 (PST)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: linux@armlinux.org.uk, linux-fbdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        linux-arm-kernel@lists.infradead.org,
-        linaro-kernel@lists.linaro.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v2 1/3] sti: hdmi: add HPD notifier support
-Date: Tue,  3 Jan 2017 15:54:55 +0100
-Message-Id: <1483455297-2286-2-git-send-email-benjamin.gaignard@linaro.org>
-In-Reply-To: <1483455297-2286-1-git-send-email-benjamin.gaignard@linaro.org>
-References: <1483455297-2286-1-git-send-email-benjamin.gaignard@linaro.org>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:33355 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933379AbdACU5q (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2017 15:57:46 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: shawnguo@kernel.org, kernel@pengutronix.de, fabio.estevam@nxp.com,
+        robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk,
+        mchehab@kernel.org, gregkh@linuxfoundation.org,
+        p.zabel@pengutronix.de
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2 05/19] ARM: dts: imx6-sabresd: add OV5642 and OV5640 camera sensors
+Date: Tue,  3 Jan 2017 12:57:15 -0800
+Message-Id: <1483477049-19056-6-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement the HPD notifier support to allow CEC drivers to
-be informed when there is a new EDID and when a connect or
-disconnect happens.
+Enables the OV5642 parallel-bus sensor, and the OV5640 MIPI CSI-2 sensor.
 
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+The OV5642 connects to the parallel-bus mux input port on ipu1_csi0_mux.
 
+The OV5640 connects to the input port on the MIPI CSI-2 receiver on
+mipi_csi. It is set to transmit over MIPI virtual channel 1.
+
+Until the OV5652 sensor module compatible with the SabreSD becomes
+available for testing, the ov5642 node is currently disabled.
+
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
-version 2:
-- use HPD notifier instead of HDMI notifier
----
- drivers/gpu/drm/sti/Kconfig    |  1 +
- drivers/gpu/drm/sti/sti_hdmi.c | 14 ++++++++++++++
- drivers/gpu/drm/sti/sti_hdmi.h |  3 +++
- 3 files changed, 18 insertions(+)
+ arch/arm/boot/dts/imx6dl-sabresd.dts   |   5 ++
+ arch/arm/boot/dts/imx6q-sabresd.dts    |   5 ++
+ arch/arm/boot/dts/imx6qdl-sabresd.dtsi | 114 ++++++++++++++++++++++++++++++++-
+ 3 files changed, 123 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/gpu/drm/sti/Kconfig b/drivers/gpu/drm/sti/Kconfig
-index acd7286..f5c9572 100644
---- a/drivers/gpu/drm/sti/Kconfig
-+++ b/drivers/gpu/drm/sti/Kconfig
-@@ -8,5 +8,6 @@ config DRM_STI
- 	select DRM_PANEL
- 	select FW_LOADER
- 	select SND_SOC_HDMI_CODEC if SND_SOC
-+	select HPD_NOTIFIER
- 	help
- 	  Choose this option to enable DRM on STM stiH4xx chipset
-diff --git a/drivers/gpu/drm/sti/sti_hdmi.c b/drivers/gpu/drm/sti/sti_hdmi.c
-index 376b076..d32a383 100644
---- a/drivers/gpu/drm/sti/sti_hdmi.c
-+++ b/drivers/gpu/drm/sti/sti_hdmi.c
-@@ -786,6 +786,8 @@ static void sti_hdmi_disable(struct drm_bridge *bridge)
- 	clk_disable_unprepare(hdmi->clk_pix);
- 
- 	hdmi->enabled = false;
+diff --git a/arch/arm/boot/dts/imx6dl-sabresd.dts b/arch/arm/boot/dts/imx6dl-sabresd.dts
+index 1e45f2f..6cf7a50 100644
+--- a/arch/arm/boot/dts/imx6dl-sabresd.dts
++++ b/arch/arm/boot/dts/imx6dl-sabresd.dts
+@@ -15,3 +15,8 @@
+ 	model = "Freescale i.MX6 DualLite SABRE Smart Device Board";
+ 	compatible = "fsl,imx6dl-sabresd", "fsl,imx6dl";
+ };
 +
-+	hpd_event_disconnect(hdmi->notifier);
- }
- 
- static void sti_hdmi_pre_enable(struct drm_bridge *bridge)
-@@ -892,6 +894,9 @@ static int sti_hdmi_connector_get_modes(struct drm_connector *connector)
- 	if (!edid)
- 		goto fail;
- 
-+	hpd_event_new_edid(hdmi->notifier, edid,
-+			   EDID_LENGTH * (edid->extensions + 1));
++&ipu1_csi1_from_ipu1_csi1_mux {
++	data-lanes = <0 1>;
++	clock-lanes = <2>;
++};
+diff --git a/arch/arm/boot/dts/imx6q-sabresd.dts b/arch/arm/boot/dts/imx6q-sabresd.dts
+index 9cbdfe7..8c1d7ad 100644
+--- a/arch/arm/boot/dts/imx6q-sabresd.dts
++++ b/arch/arm/boot/dts/imx6q-sabresd.dts
+@@ -23,3 +23,8 @@
+ &sata {
+ 	status = "okay";
+ };
 +
- 	count = drm_add_edid_modes(connector, edid);
- 	drm_mode_connector_update_edid_property(connector, edid);
- 	drm_edid_to_eld(connector, edid);
-@@ -949,10 +954,12 @@ struct drm_connector_helper_funcs sti_hdmi_connector_helper_funcs = {
- 
- 	if (hdmi->hpd) {
- 		DRM_DEBUG_DRIVER("hdmi cable connected\n");
-+		hpd_event_connect(hdmi->notifier);
- 		return connector_status_connected;
- 	}
- 
- 	DRM_DEBUG_DRIVER("hdmi cable disconnected\n");
-+	hpd_event_disconnect(hdmi->notifier);
- 	return connector_status_disconnected;
- }
- 
-@@ -1464,6 +1471,10 @@ static int sti_hdmi_probe(struct platform_device *pdev)
- 		goto release_adapter;
- 	}
- 
-+	hdmi->notifier = hpd_notifier_get(&pdev->dev);
-+	if (!hdmi->notifier)
-+		goto release_adapter;
-+
- 	hdmi->reset = devm_reset_control_get(dev, "hdmi");
- 	/* Take hdmi out of reset */
- 	if (!IS_ERR(hdmi->reset))
-@@ -1483,11 +1494,14 @@ static int sti_hdmi_remove(struct platform_device *pdev)
- {
- 	struct sti_hdmi *hdmi = dev_get_drvdata(&pdev->dev);
- 
-+	hpd_event_disconnect(hdmi->notifier);
-+
- 	i2c_put_adapter(hdmi->ddc_adapt);
- 	if (hdmi->audio_pdev)
- 		platform_device_unregister(hdmi->audio_pdev);
- 	component_del(&pdev->dev, &sti_hdmi_ops);
- 
-+	hpd_notifier_put(hdmi->notifier);
- 	return 0;
- }
- 
-diff --git a/drivers/gpu/drm/sti/sti_hdmi.h b/drivers/gpu/drm/sti/sti_hdmi.h
-index 119bc35..2109c97 100644
---- a/drivers/gpu/drm/sti/sti_hdmi.h
-+++ b/drivers/gpu/drm/sti/sti_hdmi.h
-@@ -8,6 +8,7 @@
- #define _STI_HDMI_H_
- 
- #include <linux/hdmi.h>
-+#include <linux/hpd-notifier.h>
- #include <linux/platform_device.h>
- 
- #include <drm/drmP.h>
-@@ -77,6 +78,7 @@ enum sti_hdmi_modes {
-  * @audio_pdev: ASoC hdmi-codec platform device
-  * @audio: hdmi audio parameters.
-  * @drm_connector: hdmi connector
-+ * @notifier: hotplug detect notifier
++&ipu1_csi1_from_mipi_vc1 {
++	data-lanes = <0 1>;
++	clock-lanes = <2>;
++};
+diff --git a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
+index 55ef535..39b4228 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
+@@ -10,6 +10,7 @@
+  * http://www.gnu.org/copyleft/gpl.html
   */
- struct sti_hdmi {
- 	struct device dev;
-@@ -102,6 +104,7 @@ struct sti_hdmi {
- 	struct platform_device *audio_pdev;
- 	struct hdmi_audio_params audio;
- 	struct drm_connector *drm_connector;
-+	struct hpd_notifier *notifier;
+ 
++#include <dt-bindings/clock/imx6qdl-clock.h>
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/input/input.h>
+ 
+@@ -146,6 +147,33 @@
+ 	};
  };
  
- u32 hdmi_read(struct sti_hdmi *hdmi, int offset);
++&ipu1_csi0_from_ipu1_csi0_mux {
++	bus-width = <8>;
++	data-shift = <12>; /* Lines 19:12 used */
++	hsync-active = <1>;
++	vsync-active = <1>;
++};
++
++&ipu1_csi0_mux_from_parallel_sensor {
++	remote-endpoint = <&ov5642_to_ipu1_csi0_mux>;
++};
++
++&ipu1_csi0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_ipu1_csi0>;
++};
++
++&mipi_csi {
++	status = "okay";
++};
++
++/* Incoming port from sensor */
++&mipi_csi_from_mipi_sensor {
++	remote-endpoint = <&ov5640_to_mipi_csi>;
++	data-lanes = <0 1>;
++	clock-lanes = <2>;
++};
++
+ &audmux {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_audmux>;
+@@ -214,7 +242,33 @@
+ 			0x8014 /* 4:FN_DMICCDAT */
+ 			0x0000 /* 5:Default */
+ 		>;
+-       };
++	};
++
++	camera: ov5642@3c {
++		compatible = "ovti,ov5642";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_ov5642>;
++		clocks = <&clks IMX6QDL_CLK_CKO>;
++		clock-names = "xclk";
++		reg = <0x3c>;
++		xclk = <24000000>;
++		DOVDD-supply = <&vgen4_reg>; /* 1.8v */
++		AVDD-supply = <&vgen5_reg>;  /* 2.8v, rev C board is VGEN3
++						rev B board is VGEN5 */
++		DVDD-supply = <&vgen2_reg>;  /* 1.5v*/
++		pwdn-gpios = <&gpio1 16 GPIO_ACTIVE_HIGH>; /* SD1_DAT0 */
++		reset-gpios = <&gpio1 17 GPIO_ACTIVE_LOW>; /* SD1_DAT1 */
++		status = "disabled";
++
++		port {
++			ov5642_to_ipu1_csi0_mux: endpoint {
++				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
++				bus-width = <8>;
++				hsync-active = <1>;
++				vsync-active = <1>;
++			};
++		};
++	};
+ };
+ 
+ &i2c2 {
+@@ -322,6 +376,34 @@
+ 			};
+ 		};
+ 	};
++
++	mipi_camera: ov5640@3c {
++		compatible = "ovti,ov5640_mipi";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_ov5640>;
++		reg = <0x3c>;
++		clocks = <&clks IMX6QDL_CLK_CKO>;
++		clock-names = "xclk";
++		xclk = <24000000>;
++		DOVDD-supply = <&vgen4_reg>; /* 1.8v */
++		AVDD-supply = <&vgen5_reg>;  /* 2.8v, rev C board is VGEN3
++						rev B board is VGEN5 */
++		DVDD-supply = <&vgen2_reg>;  /* 1.5v*/
++		pwdn-gpios = <&gpio1 19 GPIO_ACTIVE_HIGH>; /* SD1_DAT2 */
++		reset-gpios = <&gpio1 20 GPIO_ACTIVE_LOW>; /* SD1_CLK */
++
++		port {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			ov5640_to_mipi_csi: endpoint@1 {
++				reg = <1>;
++				remote-endpoint = <&mipi_csi_from_mipi_sensor>;
++				data-lanes = <0 1>;
++				clock-lanes = <2>;
++			};
++		};
++	};
+ };
+ 
+ &i2c3 {
+@@ -426,6 +508,36 @@
+ 			>;
+ 		};
+ 
++		pinctrl_ov5640: ov5640grp {
++			fsl,pins = <
++				MX6QDL_PAD_SD1_DAT2__GPIO1_IO19 0x80000000
++				MX6QDL_PAD_SD1_CLK__GPIO1_IO20  0x80000000
++			>;
++		};
++
++		pinctrl_ov5642: ov5642grp {
++			fsl,pins = <
++				MX6QDL_PAD_SD1_DAT0__GPIO1_IO16 0x80000000
++				MX6QDL_PAD_SD1_DAT1__GPIO1_IO17 0x80000000
++			>;
++		};
++
++		pinctrl_ipu1_csi0: ipu1grp-csi0 {
++			fsl,pins = <
++				MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12    0x80000000
++				MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13    0x80000000
++				MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14    0x80000000
++				MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15    0x80000000
++				MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16    0x80000000
++				MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17    0x80000000
++				MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18    0x80000000
++				MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19    0x80000000
++				MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK   0x80000000
++				MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC      0x80000000
++				MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC     0x80000000
++			>;
++		};
++
+ 		pinctrl_pcie: pciegrp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_GPIO_17__GPIO7_IO12	0x1b0b0
 -- 
-1.9.1
+2.7.4
 
