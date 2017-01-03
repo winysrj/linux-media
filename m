@@ -1,41 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41868 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750880AbdAPKgh (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:20051 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932210AbdACJM2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Jan 2017 05:36:37 -0500
-Date: Mon, 16 Jan 2017 11:36:50 +0100
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Derek Robson <robsonde@gmail.com>
-Cc: Scott Matheina <scott@matheina.com>, mchehab@kernel.org,
-        jb@abbadie.fr, aquannie@gmail.com, bankarsandhya512@gmail.com,
-        bhumirks@gmail.com, claudiu.beznea@gmail.com,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] Staging: media: bcm2048: style fix - bare use of unsigned
-Message-ID: <20170116103650.GA2037@kroah.com>
-References: <20170116043030.29366-1-robsonde@gmail.com>
- <6FFD25BD-70E3-4BE5-896E-793F4A47F30E@matheina.com>
- <20170116050625.GA26815@bigbird>
+        Tue, 3 Jan 2017 04:12:28 -0500
+From: Jean Christophe TROTIN <jean-christophe.trotin@st.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "kernel@stlinux.com" <kernel@stlinux.com>,
+        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>,
+        Yannick FERTRE <yannick.fertre@st.com>,
+        Hugues FRUCHET <hugues.fruchet@st.com>
+Subject: Re: [PATCH v1] [media] v4l2-common: fix aligned value calculation
+Date: Tue, 3 Jan 2017 09:12:20 +0000
+Message-ID: <43f5ee50-f737-c454-3034-f153fa6f799a@st.com>
+References: <1481895135-11055-1-git-send-email-jean-christophe.trotin@st.com>
+ <20161216135626.GK16630@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20161216135626.GK16630@valkosipuli.retiisi.org.uk>
+Content-Language: en-US
+Content-Type: text/plain; charset="Windows-1252"
+Content-ID: <DDF395F4D6C0E64C8D1AC4B7DDA8DE6F@st.com>
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170116050625.GA26815@bigbird>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 16, 2017 at 06:06:25PM +1300, Derek Robson wrote:
-> On Sun, Jan 15, 2017 at 10:40:02PM -0600, Scott Matheina wrote:
-> > 
-> > 
-> > > On Jan 15, 2017, at 10:30 PM, Derek Robson <robsonde@gmail.com> wrote:
-> > > 
-> > > Changed bare use of 'unsigned' to the prefered us of 'unsigned int'
-> > > found using checkpatch
-> > 
-> > Just wondering if you compiled? This patch looks exactly like a patch I tried, but it didn't compile. 
-> > 
-> 
-> It complied for me, I am on an X86 system.
+Hi Sakari,
 
-I don't believe you, and kbuild backs that up  :)
+Thank you for your answer.
+You're right: the modification that I proposed, is not correct (I misunderstood 
+the aim of the function); the current clamp_align() is correct and doesn't need 
+any modification.
+Thus, the patch that I sent, must be ignored.
+Sorry for the disruption.
+
+Regards,
+Jean-Christophe.
+
+
+On 12/16/2016 02:56 PM, Sakari Ailus wrote:
+> Hi Jean-Christophe,
+>
+> On Fri, Dec 16, 2016 at 02:32:15PM +0100, Jean-Christophe Trotin wrote:
+>> Correct the calculation of the rounding to nearest aligned value in
+>> the clamp_align() function. For example, clamp_align(1277, 1, 9600, 2)
+>> returns 1276, while it should return 1280.
+>
+> Why should the function return 1280 instead of 1276, which is closer to
+> 1277?
+>
+>>
+>> Signed-off-by: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+>> ---
+>>  drivers/media/v4l2-core/v4l2-common.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+>> index 57cfe26a..2970ce7 100644
+>> --- a/drivers/media/v4l2-core/v4l2-common.c
+>> +++ b/drivers/media/v4l2-core/v4l2-common.c
+>> @@ -315,7 +315,7 @@ static unsigned int clamp_align(unsigned int x, unsigned int min,
+>>
+>>  	/* Round to nearest aligned value */
+>>  	if (align)
+>> -		x = (x + (1 << (align - 1))) & mask;
+>> +		x = (x + ((1 << align) - 1)) & mask;
+>>
+>>  	return x;
+>>  }
+>
