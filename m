@@ -1,45 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.220.in.ua ([89.184.67.205]:33613 "EHLO smtp.220.in.ua"
+Received: from mail.kernel.org ([198.145.29.136]:36626 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751367AbdA2SHe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 29 Jan 2017 13:07:34 -0500
-From: Oleh Kravchenko <oleg@kaa.org.ua>
-To: Steven Toth <stoth@kernellabs.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jacob Johan Verkuil <hverkuil@xs4all.nl>,
-        Antti Palosaari <crope@iki.fi>
-Cc: Oleh Kravchenko <oleg@kaa.org.ua>
-Subject: [PATCH] [media] cx231xx: Fix I2C on Internal Master 3 Bus
-Date: Sun, 29 Jan 2017 20:07:31 +0200
-Message-Id: <20170129180731.8708-1-oleg@kaa.org.ua>
+        id S1757376AbdACNMf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 3 Jan 2017 08:12:35 -0500
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: sakari.ailus@iki.fi, laurent.pinchart@ideasonboard.com,
+        mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH] media: entity: Catch unbalanced media_pipeline_stop calls
+Date: Tue,  3 Jan 2017 13:12:11 +0000
+Message-Id: <1483449131-18075-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Internal Master 3 Bus can send and receive only 4 bytes per time.
+Drivers must not perform unbalanced calls to stop the entity pipeline,
+however if they do they will fault in the core media code, as the
+entity->pipe will be set as NULL. We handle this gracefully in the core
+with a WARN for the developer.
 
-Signed-off-by: Oleh Kravchenko <oleg@kaa.org.ua>
+Replace the erroneous check on zero streaming counts, with a check on
+NULL pipe elements instead, as this is the symptom of unbalanced
+media_pipeline_stop calls.
+
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 ---
- drivers/media/usb/cx231xx/cx231xx-core.c | 7 ++++++-
+ drivers/media/media-entity.c | 7 ++++++-
  1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
-index 550ec93..46646ec 100644
---- a/drivers/media/usb/cx231xx/cx231xx-core.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-core.c
-@@ -355,7 +355,12 @@ int cx231xx_send_vendor_cmd(struct cx231xx *dev,
- 	 */
- 	if ((ven_req->wLength > 4) && ((ven_req->bRequest == 0x4) ||
- 					(ven_req->bRequest == 0x5) ||
--					(ven_req->bRequest == 0x6))) {
-+					(ven_req->bRequest == 0x6) ||
-+
-+					/* Internal Master 3 Bus can send
-+					 * and receive only 4 bytes per time
-+					 */
-+					(ven_req->bRequest == 0x2))) {
- 		unsend_size = 0;
- 		pdata = ven_req->pBuff;
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index caa13e6f09f5..cb1fb2c17f85 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -534,8 +534,13 @@ void __media_pipeline_stop(struct media_entity *entity)
+ 	struct media_graph *graph = &entity->pipe->graph;
+ 	struct media_pipeline *pipe = entity->pipe;
  
++	/*
++	 * If the following check fails, the driver has performed an
++	 * unbalanced call to media_pipeline_stop()
++	 */
++	if (WARN_ON(!pipe))
++		return;
+ 
+-	WARN_ON(!pipe->streaming_count);
+ 	media_graph_walk_start(graph, entity);
+ 
+ 	while ((entity = media_graph_walk_next(graph))) {
 -- 
-2.10.2
+2.7.4
 
