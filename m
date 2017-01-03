@@ -1,125 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:35203 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752734AbdAZFPv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Jan 2017 00:15:51 -0500
-Message-ID: <1988b4332eb642b633a499960104969b@smtp-cloud2.xs4all.net>
-Date: Thu, 26 Jan 2017 06:15:48 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+Received: from mail-wj0-f182.google.com ([209.85.210.182]:35045 "EHLO
+        mail-wj0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964977AbdACOzK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2017 09:55:10 -0500
+Received: by mail-wj0-f182.google.com with SMTP id v7so447011645wjy.2
+        for <linux-media@vger.kernel.org>; Tue, 03 Jan 2017 06:55:09 -0800 (PST)
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: linux@armlinux.org.uk, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org,
+        linaro-kernel@lists.linaro.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v2 1/3] sti: hdmi: add HPD notifier support
+Date: Tue,  3 Jan 2017 15:54:55 +0100
+Message-Id: <1483455297-2286-2-git-send-email-benjamin.gaignard@linaro.org>
+In-Reply-To: <1483455297-2286-1-git-send-email-benjamin.gaignard@linaro.org>
+References: <1483455297-2286-1-git-send-email-benjamin.gaignard@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Implement the HPD notifier support to allow CEC drivers to
+be informed when there is a new EDID and when a connect or
+disconnect happens.
 
-Results of the daily build of media_tree:
+Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
 
-date:			Thu Jan 26 05:00:19 CET 2017
-media-tree git hash:	40eca140c404505c09773d1c6685d818cb55ab1a
-media_build git hash:	3c6ce4ff75f19adf45869e34b376c5b9dee4d50a
-v4l-utils git hash:	9df320dd3d1a498fcd6cdeef7d783da609b526e0
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.8.0-164
+---
+version 2:
+- use HPD notifier instead of HDMI notifier
+---
+ drivers/gpu/drm/sti/Kconfig    |  1 +
+ drivers/gpu/drm/sti/sti_hdmi.c | 14 ++++++++++++++
+ drivers/gpu/drm/sti/sti_hdmi.h |  3 +++
+ 3 files changed, 18 insertions(+)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.67-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10-rc3-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.12.67-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-x86_64: OK
-linux-4.10-rc3-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+diff --git a/drivers/gpu/drm/sti/Kconfig b/drivers/gpu/drm/sti/Kconfig
+index acd7286..f5c9572 100644
+--- a/drivers/gpu/drm/sti/Kconfig
++++ b/drivers/gpu/drm/sti/Kconfig
+@@ -8,5 +8,6 @@ config DRM_STI
+ 	select DRM_PANEL
+ 	select FW_LOADER
+ 	select SND_SOC_HDMI_CODEC if SND_SOC
++	select HPD_NOTIFIER
+ 	help
+ 	  Choose this option to enable DRM on STM stiH4xx chipset
+diff --git a/drivers/gpu/drm/sti/sti_hdmi.c b/drivers/gpu/drm/sti/sti_hdmi.c
+index 376b076..d32a383 100644
+--- a/drivers/gpu/drm/sti/sti_hdmi.c
++++ b/drivers/gpu/drm/sti/sti_hdmi.c
+@@ -786,6 +786,8 @@ static void sti_hdmi_disable(struct drm_bridge *bridge)
+ 	clk_disable_unprepare(hdmi->clk_pix);
+ 
+ 	hdmi->enabled = false;
++
++	hpd_event_disconnect(hdmi->notifier);
+ }
+ 
+ static void sti_hdmi_pre_enable(struct drm_bridge *bridge)
+@@ -892,6 +894,9 @@ static int sti_hdmi_connector_get_modes(struct drm_connector *connector)
+ 	if (!edid)
+ 		goto fail;
+ 
++	hpd_event_new_edid(hdmi->notifier, edid,
++			   EDID_LENGTH * (edid->extensions + 1));
++
+ 	count = drm_add_edid_modes(connector, edid);
+ 	drm_mode_connector_update_edid_property(connector, edid);
+ 	drm_edid_to_eld(connector, edid);
+@@ -949,10 +954,12 @@ struct drm_connector_helper_funcs sti_hdmi_connector_helper_funcs = {
+ 
+ 	if (hdmi->hpd) {
+ 		DRM_DEBUG_DRIVER("hdmi cable connected\n");
++		hpd_event_connect(hdmi->notifier);
+ 		return connector_status_connected;
+ 	}
+ 
+ 	DRM_DEBUG_DRIVER("hdmi cable disconnected\n");
++	hpd_event_disconnect(hdmi->notifier);
+ 	return connector_status_disconnected;
+ }
+ 
+@@ -1464,6 +1471,10 @@ static int sti_hdmi_probe(struct platform_device *pdev)
+ 		goto release_adapter;
+ 	}
+ 
++	hdmi->notifier = hpd_notifier_get(&pdev->dev);
++	if (!hdmi->notifier)
++		goto release_adapter;
++
+ 	hdmi->reset = devm_reset_control_get(dev, "hdmi");
+ 	/* Take hdmi out of reset */
+ 	if (!IS_ERR(hdmi->reset))
+@@ -1483,11 +1494,14 @@ static int sti_hdmi_remove(struct platform_device *pdev)
+ {
+ 	struct sti_hdmi *hdmi = dev_get_drvdata(&pdev->dev);
+ 
++	hpd_event_disconnect(hdmi->notifier);
++
+ 	i2c_put_adapter(hdmi->ddc_adapt);
+ 	if (hdmi->audio_pdev)
+ 		platform_device_unregister(hdmi->audio_pdev);
+ 	component_del(&pdev->dev, &sti_hdmi_ops);
+ 
++	hpd_notifier_put(hdmi->notifier);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/gpu/drm/sti/sti_hdmi.h b/drivers/gpu/drm/sti/sti_hdmi.h
+index 119bc35..2109c97 100644
+--- a/drivers/gpu/drm/sti/sti_hdmi.h
++++ b/drivers/gpu/drm/sti/sti_hdmi.h
+@@ -8,6 +8,7 @@
+ #define _STI_HDMI_H_
+ 
+ #include <linux/hdmi.h>
++#include <linux/hpd-notifier.h>
+ #include <linux/platform_device.h>
+ 
+ #include <drm/drmP.h>
+@@ -77,6 +78,7 @@ enum sti_hdmi_modes {
+  * @audio_pdev: ASoC hdmi-codec platform device
+  * @audio: hdmi audio parameters.
+  * @drm_connector: hdmi connector
++ * @notifier: hotplug detect notifier
+  */
+ struct sti_hdmi {
+ 	struct device dev;
+@@ -102,6 +104,7 @@ struct sti_hdmi {
+ 	struct platform_device *audio_pdev;
+ 	struct hdmi_audio_params audio;
+ 	struct drm_connector *drm_connector;
++	struct hpd_notifier *notifier;
+ };
+ 
+ u32 hdmi_read(struct sti_hdmi *hdmi, int offset);
+-- 
+1.9.1
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
