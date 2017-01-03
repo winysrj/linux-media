@@ -1,538 +1,3109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:52784 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751125AbdATX35 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Jan 2017 18:29:57 -0500
-Date: Sat, 21 Jan 2017 07:29:05 +0800
-From: kbuild test robot <lkp@intel.com>
-To: Sean Young <sean@mess.org>
-Cc: kbuild-all@01.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/4] [media] lirc: fix transmit-only read features
-Message-ID: <201701210720.8iXsBT0F%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="EVF5PPMfhYS0aIcm"
-Content-Disposition: inline
-In-Reply-To: <1e51c10c4c458aa0a31f614e46570e881fa655c5.1484916689.git.sean@mess.org>
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:35800 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935250AbdACU6C (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2017 15:58:02 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: shawnguo@kernel.org, kernel@pengutronix.de, fabio.estevam@nxp.com,
+        robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk,
+        mchehab@kernel.org, gregkh@linuxfoundation.org,
+        p.zabel@pengutronix.de
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2 13/19] media: imx: Add IC subdev drivers
+Date: Tue,  3 Jan 2017 12:57:23 -0800
+Message-Id: <1483477049-19056-14-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This is a set of three media entity subdevice drivers for the i.MX
+Image Converter. The i.MX IC module contains three independent
+"tasks":
 
---EVF5PPMfhYS0aIcm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+- Pre-processing Encode task: video frames are routed directly from
+  the CSI and can be scaled, color-space converted, and rotated.
+  Scaled output is limited to 1024x1024 resolution. Output frames
+  are routed to the camera interface entities (camif).
 
-Hi Sean,
+- Pre-processing Viewfinder task: this task can perform the same
+  conversions as the pre-process encode task, but in addition can
+  be used for hardware motion compensated deinterlacing. Frames can
+  come either directly from the CSI or from the SMFC entities (memory
+  buffers via IDMAC channels). Scaled output is limited to 1024x1024
+  resolution. Output frames can be routed to various sinks including
+  the post-processing task entities.
 
-[auto build test WARNING on linuxtv-media/master]
-[also build test WARNING on v4.10-rc4 next-20170120]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+- Post-processing task: same conversions as pre-process encode. However
+  this entity sends frames to the i.MX IPU image converter which supports
+  image tiling, which allows scaled output up to 4096x4096 resolution.
+  Output frames can be routed to the camera interfaces.
 
-url:    https://github.com/0day-ci/linux/commits/Sean-Young/IR-fixes-for-v4-11/20170121-051556
-base:   git://linuxtv.org/media_tree.git master
-config: x86_64-randconfig-x016-201703 (attached as .config)
-compiler: gcc-6 (Debian 6.2.0-3) 6.2.0 20160901
-reproduce:
-        # save the attached .config to linux build tree
-        make ARCH=x86_64 
-
-All warnings (new ones prefixed by >>):
-
-   In file included from include/uapi/linux/stddef.h:1:0,
-                    from include/linux/stddef.h:4,
-                    from include/uapi/linux/posix_types.h:4,
-                    from include/uapi/linux/types.h:13,
-                    from include/linux/types.h:5,
-                    from include/uapi/linux/capability.h:16,
-                    from include/linux/capability.h:15,
-                    from include/linux/sched.h:15,
-                    from drivers/media/rc/ir-lirc-codec.c:15:
-   drivers/media/rc/ir-lirc-codec.c: In function 'ir_lirc_register':
-   drivers/media/rc/ir-lirc-codec.c:358:26: error: 'RC_DRIVER_IR_RAW_TX' undeclared (first use in this function)
-     if (dev->driver_type != RC_DRIVER_IR_RAW_TX)
-                             ^
-   include/linux/compiler.h:149:30: note: in definition of macro '__trace_if'
-     if (__builtin_constant_p(!!(cond)) ? !!(cond) :   \
-                                 ^~~~
->> drivers/media/rc/ir-lirc-codec.c:358:2: note: in expansion of macro 'if'
-     if (dev->driver_type != RC_DRIVER_IR_RAW_TX)
-     ^~
-   drivers/media/rc/ir-lirc-codec.c:358:26: note: each undeclared identifier is reported only once for each function it appears in
-     if (dev->driver_type != RC_DRIVER_IR_RAW_TX)
-                             ^
-   include/linux/compiler.h:149:30: note: in definition of macro '__trace_if'
-     if (__builtin_constant_p(!!(cond)) ? !!(cond) :   \
-                                 ^~~~
->> drivers/media/rc/ir-lirc-codec.c:358:2: note: in expansion of macro 'if'
-     if (dev->driver_type != RC_DRIVER_IR_RAW_TX)
-     ^~
-
-vim +/if +358 drivers/media/rc/ir-lirc-codec.c
-
-   342		struct lirc_buffer *rbuf;
-   343		int rc = -ENOMEM;
-   344		unsigned long features = 0;
-   345	
-   346		drv = kzalloc(sizeof(struct lirc_driver), GFP_KERNEL);
-   347		if (!drv)
-   348			return rc;
-   349	
-   350		rbuf = kzalloc(sizeof(struct lirc_buffer), GFP_KERNEL);
-   351		if (!rbuf)
-   352			goto rbuf_alloc_failed;
-   353	
-   354		rc = lirc_buffer_init(rbuf, sizeof(int), LIRCBUF_SIZE);
-   355		if (rc)
-   356			goto rbuf_init_failed;
-   357	
- > 358		if (dev->driver_type != RC_DRIVER_IR_RAW_TX)
-   359			features |= LIRC_CAN_REC_MODE2;
-   360		if (dev->tx_ir) {
-   361			features |= LIRC_CAN_SEND_PULSE;
-   362			if (dev->s_tx_mask)
-   363				features |= LIRC_CAN_SET_TRANSMITTER_MASK;
-   364			if (dev->s_tx_carrier)
-   365				features |= LIRC_CAN_SET_SEND_CARRIER;
-   366			if (dev->s_tx_duty_cycle)
-
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+ drivers/staging/media/imx/Makefile        |    2 +
+ drivers/staging/media/imx/imx-ic-common.c |  113 +++
+ drivers/staging/media/imx/imx-ic-pp.c     |  636 ++++++++++++++++
+ drivers/staging/media/imx/imx-ic-prpenc.c | 1037 +++++++++++++++++++++++++
+ drivers/staging/media/imx/imx-ic-prpvf.c  | 1180 +++++++++++++++++++++++++++++
+ drivers/staging/media/imx/imx-ic.h        |   36 +
+ 6 files changed, 3004 insertions(+)
+ create mode 100644 drivers/staging/media/imx/imx-ic-common.c
+ create mode 100644 drivers/staging/media/imx/imx-ic-pp.c
+ create mode 100644 drivers/staging/media/imx/imx-ic-prpenc.c
+ create mode 100644 drivers/staging/media/imx/imx-ic-prpvf.c
+ create mode 100644 drivers/staging/media/imx/imx-ic.h
 
---EVF5PPMfhYS0aIcm
-Content-Type: application/gzip
-Content-Disposition: attachment; filename=".config.gz"
-Content-Transfer-Encoding: base64
+diff --git a/drivers/staging/media/imx/Makefile b/drivers/staging/media/imx/Makefile
+index 3559d7b..d2a962c 100644
+--- a/drivers/staging/media/imx/Makefile
++++ b/drivers/staging/media/imx/Makefile
+@@ -1,8 +1,10 @@
+ imx-media-objs := imx-media-dev.o imx-media-fim.o imx-media-internal-sd.o \
+ 	imx-media-of.o
++imx-ic-objs := imx-ic-common.o imx-ic-prpenc.o imx-ic-prpvf.o imx-ic-pp.o
+ 
+ obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-media.o
+ obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-media-common.o
++obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-ic.o
+ 
+ obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-csi.o
+ obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-smfc.o
+diff --git a/drivers/staging/media/imx/imx-ic-common.c b/drivers/staging/media/imx/imx-ic-common.c
+new file mode 100644
+index 0000000..1b40558
+--- /dev/null
++++ b/drivers/staging/media/imx/imx-ic-common.c
+@@ -0,0 +1,113 @@
++/*
++ * V4L2 Image Converter Subdev for Freescale i.MX5/6 SOC
++ *
++ * Copyright (c) 2014-2016 Mentor Graphics Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-subdev.h>
++#include "imx-media.h"
++#include "imx-ic.h"
++
++static struct imx_ic_ops *ic_ops[IC_NUM_TASKS] = {
++	[IC_TASK_ENCODER]        = &imx_ic_prpenc_ops,
++	[IC_TASK_VIEWFINDER]     = &imx_ic_prpvf_ops,
++	[IC_TASK_POST_PROCESSOR] = &imx_ic_pp_ops,
++};
++
++static int imx_ic_probe(struct platform_device *pdev)
++{
++	struct imx_media_internal_sd_platformdata *pdata;
++	struct imx_ic_priv *priv;
++	int ret;
++
++	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
++	if (!priv)
++		return -ENOMEM;
++
++	platform_set_drvdata(pdev, &priv->sd);
++	priv->dev = &pdev->dev;
++
++	/* get our ipu_id, grp_id and IC task id */
++	pdata = priv->dev->platform_data;
++	priv->ipu_id = pdata->ipu_id;
++	switch (pdata->grp_id) {
++	case IMX_MEDIA_GRP_ID_IC_PRPENC:
++		priv->task_id = IC_TASK_ENCODER;
++		break;
++	case IMX_MEDIA_GRP_ID_IC_PRPVF:
++		priv->task_id = IC_TASK_VIEWFINDER;
++		break;
++	case IMX_MEDIA_GRP_ID_IC_PP0...IMX_MEDIA_GRP_ID_IC_PP3:
++		priv->task_id = IC_TASK_POST_PROCESSOR;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	v4l2_subdev_init(&priv->sd, ic_ops[priv->task_id]->subdev_ops);
++	v4l2_set_subdevdata(&priv->sd, priv);
++	priv->sd.internal_ops = ic_ops[priv->task_id]->internal_ops;
++	priv->sd.entity.ops = ic_ops[priv->task_id]->entity_ops;
++	priv->sd.entity.function = MEDIA_ENT_F_PROC_VIDEO_SCALER;
++	priv->sd.dev = &pdev->dev;
++	priv->sd.owner = THIS_MODULE;
++	priv->sd.flags = V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
++	priv->sd.grp_id = pdata->grp_id;
++	strncpy(priv->sd.name, pdata->sd_name, sizeof(priv->sd.name));
++
++	ret = ic_ops[priv->task_id]->init(priv);
++	if (ret)
++		return ret;
++
++	ret = v4l2_async_register_subdev(&priv->sd);
++	if (ret)
++		goto remove;
++
++	return 0;
++remove:
++	ic_ops[priv->task_id]->remove(priv);
++	return ret;
++}
++
++static int imx_ic_remove(struct platform_device *pdev)
++{
++	struct v4l2_subdev *sd = platform_get_drvdata(pdev);
++	struct imx_ic_priv *priv = container_of(sd, struct imx_ic_priv, sd);
++
++	ic_ops[priv->task_id]->remove(priv);
++
++	v4l2_async_unregister_subdev(&priv->sd);
++	media_entity_cleanup(&priv->sd.entity);
++	v4l2_device_unregister_subdev(sd);
++
++	return 0;
++}
++
++static const struct platform_device_id imx_ic_ids[] = {
++	{ .name = "imx-ipuv3-ic" },
++	{ },
++};
++MODULE_DEVICE_TABLE(platform, imx_ic_ids);
++
++static struct platform_driver imx_ic_driver = {
++	.probe = imx_ic_probe,
++	.remove = imx_ic_remove,
++	.id_table = imx_ic_ids,
++	.driver = {
++		.name = "imx-ipuv3-ic",
++		.owner = THIS_MODULE,
++	},
++};
++module_platform_driver(imx_ic_driver);
++
++MODULE_DESCRIPTION("i.MX IC subdev driver");
++MODULE_AUTHOR("Steve Longerbeam <steve_longerbeam@mentor.com>");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:imx-ipuv3-ic");
+diff --git a/drivers/staging/media/imx/imx-ic-pp.c b/drivers/staging/media/imx/imx-ic-pp.c
+new file mode 100644
+index 0000000..5ef0581
+--- /dev/null
++++ b/drivers/staging/media/imx/imx-ic-pp.c
+@@ -0,0 +1,636 @@
++/*
++ * V4L2 IC Post-Processor Subdev for Freescale i.MX5/6 SOC
++ *
++ * Copyright (c) 2014-2016 Mentor Graphics Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++#include <linux/module.h>
++#include <linux/delay.h>
++#include <linux/fs.h>
++#include <linux/timer.h>
++#include <linux/sched.h>
++#include <linux/slab.h>
++#include <linux/interrupt.h>
++#include <linux/platform_device.h>
++#include <linux/pinctrl/consumer.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-ioctl.h>
++#include <media/videobuf2-dma-contig.h>
++#include <media/v4l2-subdev.h>
++#include <media/v4l2-of.h>
++#include <media/v4l2-ctrls.h>
++#include <media/imx.h>
++#include <video/imx-ipu-image-convert.h>
++#include "imx-media.h"
++#include "imx-ic.h"
++
++#define PP_NUM_PADS 2
++
++struct pp_priv {
++	struct imx_media_dev *md;
++	struct imx_ic_priv *ic_priv;
++	int pp_id;
++
++	struct ipu_soc *ipu;
++	struct ipu_image_convert_ctx *ic_ctx;
++
++	struct media_pad pad[PP_NUM_PADS];
++	int input_pad;
++	int output_pad;
++
++	/* our dma buffer sink ring */
++	struct imx_media_dma_buf_ring *in_ring;
++	/* the dma buffer ring we send to sink */
++	struct imx_media_dma_buf_ring *out_ring;
++	struct ipu_image_convert_run *out_run;
++
++	struct imx_media_dma_buf *inbuf; /* last input buffer */
++
++	bool stream_on;    /* streaming is on */
++	bool stop;         /* streaming is stopping */
++	spinlock_t irqlock;
++
++	struct v4l2_subdev *src_sd;
++	struct v4l2_subdev *sink_sd;
++
++	struct v4l2_mbus_framefmt format_mbus[PP_NUM_PADS];
++	const struct imx_media_pixfmt *cc[PP_NUM_PADS];
++
++	/* motion select control */
++	struct v4l2_ctrl_handler ctrl_hdlr;
++	int  rotation; /* degrees */
++	bool hflip;
++	bool vflip;
++
++	/* derived from rotation, hflip, vflip controls */
++	enum ipu_rotate_mode rot_mode;
++};
++
++static inline struct pp_priv *sd_to_priv(struct v4l2_subdev *sd)
++{
++	struct imx_ic_priv *ic_priv = v4l2_get_subdevdata(sd);
++
++	return ic_priv->task_priv;
++}
++
++static void pp_convert_complete(struct ipu_image_convert_run *run,
++				void *data)
++{
++	struct pp_priv *priv = data;
++	struct imx_media_dma_buf *done;
++	unsigned long flags;
++
++	spin_lock_irqsave(&priv->irqlock, flags);
++
++	done = imx_media_dma_buf_get_active(priv->out_ring);
++	/* give the completed buffer to the sink */
++	if (!WARN_ON(!done))
++		imx_media_dma_buf_done(done, run->status ?
++				       IMX_MEDIA_BUF_STATUS_ERROR :
++				       IMX_MEDIA_BUF_STATUS_DONE);
++
++	/* we're done with the inbuf, queue it back */
++	imx_media_dma_buf_queue(priv->in_ring, priv->inbuf->index);
++
++	spin_unlock_irqrestore(&priv->irqlock, flags);
++}
++
++static void pp_queue_conversion(struct pp_priv *priv,
++				struct imx_media_dma_buf *inbuf)
++{
++	struct ipu_image_convert_run *run;
++	struct imx_media_dma_buf *outbuf;
++
++	/* get next queued buffer and make it active */
++	outbuf = imx_media_dma_buf_get_next_queued(priv->out_ring);
++	imx_media_dma_buf_set_active(outbuf);
++	priv->inbuf = inbuf;
++
++	run = &priv->out_run[outbuf->index];
++	run->ctx = priv->ic_ctx;
++	run->in_phys = inbuf->phys;
++	run->out_phys = outbuf->phys;
++	ipu_image_convert_queue(run);
++}
++
++static long pp_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
++{
++	struct pp_priv *priv = sd_to_priv(sd);
++	struct imx_media_dma_buf_ring **ring;
++	struct imx_media_dma_buf *buf;
++	unsigned long flags;
++
++	switch (cmd) {
++	case IMX_MEDIA_REQ_DMA_BUF_SINK_RING:
++		/* src asks for a buffer ring */
++		if (!priv->in_ring)
++			return -EINVAL;
++		ring = (struct imx_media_dma_buf_ring **)arg;
++		*ring = priv->in_ring;
++		break;
++	case IMX_MEDIA_NEW_DMA_BUF:
++		/* src hands us a new buffer */
++		spin_lock_irqsave(&priv->irqlock, flags);
++		if (!priv->stop &&
++		    !imx_media_dma_buf_get_active(priv->out_ring)) {
++			buf = imx_media_dma_buf_dequeue(priv->in_ring);
++			if (buf)
++				pp_queue_conversion(priv, buf);
++		}
++		spin_unlock_irqrestore(&priv->irqlock, flags);
++		break;
++	case IMX_MEDIA_REL_DMA_BUF_SINK_RING:
++		/* src indicates sink buffer ring can be freed */
++		if (!priv->in_ring)
++			return 0;
++		v4l2_info(sd, "%s: freeing sink ring\n", __func__);
++		imx_media_free_dma_buf_ring(priv->in_ring);
++		priv->in_ring = NULL;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static int pp_start(struct pp_priv *priv)
++{
++	struct imx_ic_priv *ic_priv = priv->ic_priv;
++	struct ipu_image image_in, image_out;
++	const struct imx_media_pixfmt *incc;
++	struct v4l2_mbus_framefmt *infmt;
++	int i, in_size, ret;
++
++	/* ask the sink for the buffer ring */
++	ret = v4l2_subdev_call(priv->sink_sd, core, ioctl,
++			       IMX_MEDIA_REQ_DMA_BUF_SINK_RING,
++			       &priv->out_ring);
++	if (ret)
++		return ret;
++
++	imx_media_mbus_fmt_to_ipu_image(&image_in,
++					&priv->format_mbus[priv->input_pad]);
++	imx_media_mbus_fmt_to_ipu_image(&image_out,
++					&priv->format_mbus[priv->output_pad]);
++
++	priv->ipu = priv->md->ipu[ic_priv->ipu_id];
++	priv->ic_ctx = ipu_image_convert_prepare(priv->ipu,
++						 IC_TASK_POST_PROCESSOR,
++						 &image_in, &image_out,
++						 priv->rot_mode,
++						 pp_convert_complete, priv);
++	if (IS_ERR(priv->ic_ctx))
++		return PTR_ERR(priv->ic_ctx);
++
++	infmt = &priv->format_mbus[priv->input_pad];
++	incc = priv->cc[priv->input_pad];
++	in_size = (infmt->width * incc->bpp * infmt->height) >> 3;
++
++	if (priv->in_ring) {
++		v4l2_warn(&ic_priv->sd, "%s: dma-buf ring was not freed\n",
++			  __func__);
++		imx_media_free_dma_buf_ring(priv->in_ring);
++	}
++
++	priv->in_ring = imx_media_alloc_dma_buf_ring(priv->md,
++						     &priv->src_sd->entity,
++						     &ic_priv->sd.entity,
++						     in_size,
++						     IMX_MEDIA_MIN_RING_BUFS,
++						     true);
++	if (IS_ERR(priv->in_ring)) {
++		v4l2_err(&ic_priv->sd,
++			 "failed to alloc dma-buf ring\n");
++		ret = PTR_ERR(priv->in_ring);
++		priv->in_ring = NULL;
++		goto out_unprep;
++	}
++
++	for (i = 0; i < IMX_MEDIA_MIN_RING_BUFS; i++)
++		imx_media_dma_buf_queue(priv->in_ring, i);
++
++	priv->out_run = kzalloc(IMX_MEDIA_MAX_RING_BUFS *
++				sizeof(*priv->out_run), GFP_KERNEL);
++	if (!priv->out_run) {
++		v4l2_err(&ic_priv->sd, "failed to alloc src ring runs\n");
++		ret = -ENOMEM;
++		goto out_free_ring;
++	}
++
++	priv->stop = false;
++
++	return 0;
++
++out_free_ring:
++	imx_media_free_dma_buf_ring(priv->in_ring);
++	priv->in_ring = NULL;
++out_unprep:
++	ipu_image_convert_unprepare(priv->ic_ctx);
++	return ret;
++}
++
++static void pp_stop(struct pp_priv *priv)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&priv->irqlock, flags);
++	priv->stop = true;
++	spin_unlock_irqrestore(&priv->irqlock, flags);
++
++	ipu_image_convert_unprepare(priv->ic_ctx);
++	kfree(priv->out_run);
++
++	priv->out_ring = NULL;
++
++	/* inform sink that its sink buffer ring can now be freed */
++	v4l2_subdev_call(priv->sink_sd, core, ioctl,
++			 IMX_MEDIA_REL_DMA_BUF_SINK_RING, 0);
++}
++
++static int pp_s_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct pp_priv *priv = sd_to_priv(sd);
++	int ret = 0;
++
++	if (!priv->src_sd || !priv->sink_sd)
++		return -EPIPE;
++
++	v4l2_info(sd, "stream %s\n", enable ? "ON" : "OFF");
++
++	if (enable && !priv->stream_on)
++		ret = pp_start(priv);
++	else if (!enable && priv->stream_on)
++		pp_stop(priv);
++
++	if (!ret)
++		priv->stream_on = enable;
++	return ret;
++}
++
++static int pp_enum_mbus_code(struct v4l2_subdev *sd,
++			     struct v4l2_subdev_pad_config *cfg,
++			     struct v4l2_subdev_mbus_code_enum *code)
++{
++	const struct imx_media_pixfmt *cc;
++	u32 fourcc;
++	int ret;
++
++	if (code->pad >= PP_NUM_PADS)
++		return -EINVAL;
++
++	ret = ipu_image_convert_enum_format(code->index, &fourcc);
++	if (ret)
++		return ret;
++
++	/* convert returned fourcc to mbus code */
++	cc = imx_media_find_format(fourcc, 0, true, true);
++	if (WARN_ON(!cc))
++		return -EINVAL;
++
++	code->code = cc->codes[0];
++	return 0;
++}
++
++static int pp_get_fmt(struct v4l2_subdev *sd,
++		      struct v4l2_subdev_pad_config *cfg,
++		      struct v4l2_subdev_format *sdformat)
++{
++	struct pp_priv *priv = sd_to_priv(sd);
++
++	if (sdformat->pad >= PP_NUM_PADS)
++		return -EINVAL;
++
++	sdformat->format = priv->format_mbus[sdformat->pad];
++
++	return 0;
++}
++
++static int pp_set_fmt(struct v4l2_subdev *sd,
++		      struct v4l2_subdev_pad_config *cfg,
++		      struct v4l2_subdev_format *sdformat)
++{
++	struct pp_priv *priv = sd_to_priv(sd);
++	struct v4l2_mbus_framefmt *infmt, *outfmt;
++	const struct imx_media_pixfmt *cc;
++	struct ipu_image test_in, test_out;
++	u32 code;
++
++	if (sdformat->pad >= PP_NUM_PADS)
++		return -EINVAL;
++
++	if (priv->stream_on)
++		return -EBUSY;
++
++	infmt = &priv->format_mbus[priv->input_pad];
++	outfmt = &priv->format_mbus[priv->output_pad];
++
++	cc = imx_media_find_format(0, sdformat->format.code, true, true);
++	if (!cc) {
++		imx_media_enum_format(&code, 0, true, true);
++		cc = imx_media_find_format(0, code, true, true);
++		sdformat->format.code = cc->codes[0];
++	}
++
++	if (sdformat->pad == priv->output_pad) {
++		imx_media_mbus_fmt_to_ipu_image(&test_out, &sdformat->format);
++		imx_media_mbus_fmt_to_ipu_image(&test_in, infmt);
++		ipu_image_convert_adjust(&test_in, &test_out, priv->rot_mode);
++		imx_media_ipu_image_to_mbus_fmt(&sdformat->format, &test_out);
++	} else {
++		imx_media_mbus_fmt_to_ipu_image(&test_in, &sdformat->format);
++		imx_media_mbus_fmt_to_ipu_image(&test_out, outfmt);
++		ipu_image_convert_adjust(&test_in, &test_out, priv->rot_mode);
++		imx_media_ipu_image_to_mbus_fmt(&sdformat->format, &test_in);
++	}
++
++	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY) {
++		cfg->try_fmt = sdformat->format;
++	} else {
++		if (sdformat->pad == priv->output_pad) {
++			*outfmt = sdformat->format;
++			imx_media_ipu_image_to_mbus_fmt(infmt, &test_in);
++		} else {
++			*infmt = sdformat->format;
++			imx_media_ipu_image_to_mbus_fmt(outfmt, &test_out);
++		}
++		priv->cc[sdformat->pad] = cc;
++	}
++
++	return 0;
++}
++
++static int pp_link_setup(struct media_entity *entity,
++			 const struct media_pad *local,
++			 const struct media_pad *remote, u32 flags)
++{
++	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
++	struct imx_ic_priv *ic_priv = v4l2_get_subdevdata(sd);
++	struct pp_priv *priv = ic_priv->task_priv;
++	struct v4l2_subdev *remote_sd;
++
++	dev_dbg(ic_priv->dev, "link setup %s -> %s", remote->entity->name,
++		local->entity->name);
++
++	remote_sd = media_entity_to_v4l2_subdev(remote->entity);
++
++	if (local->flags & MEDIA_PAD_FL_SOURCE) {
++		if (flags & MEDIA_LNK_FL_ENABLED) {
++			if (priv->sink_sd)
++				return -EBUSY;
++			priv->sink_sd = remote_sd;
++		} else {
++			priv->sink_sd = NULL;
++		}
++	} else {
++		if (flags & MEDIA_LNK_FL_ENABLED) {
++			if (priv->src_sd)
++				return -EBUSY;
++			priv->src_sd = remote_sd;
++		} else {
++			priv->src_sd = NULL;
++		}
++	}
++
++	return 0;
++}
++
++static int pp_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct pp_priv *priv = container_of(ctrl->handler,
++					       struct pp_priv, ctrl_hdlr);
++	struct imx_ic_priv *ic_priv = priv->ic_priv;
++	enum ipu_rotate_mode rot_mode;
++	bool hflip, vflip;
++	int rotation, ret;
++
++	rotation = priv->rotation;
++	hflip = priv->hflip;
++	vflip = priv->vflip;
++
++	switch (ctrl->id) {
++	case V4L2_CID_HFLIP:
++		hflip = (ctrl->val == 1);
++		break;
++	case V4L2_CID_VFLIP:
++		vflip = (ctrl->val == 1);
++		break;
++	case V4L2_CID_ROTATE:
++		rotation = ctrl->val;
++		break;
++	default:
++		v4l2_err(&ic_priv->sd, "Invalid control\n");
++		return -EINVAL;
++	}
++
++	ret = ipu_degrees_to_rot_mode(&rot_mode, rotation, hflip, vflip);
++	if (ret)
++		return ret;
++
++	if (rot_mode != priv->rot_mode) {
++		struct v4l2_mbus_framefmt *infmt, *outfmt;
++		struct ipu_image test_in, test_out;
++
++		/* can't change rotation mid-streaming */
++		if (priv->stream_on)
++			return -EBUSY;
++
++		/*
++		 * make sure this rotation will work with current input/output
++		 * formats before setting
++		 */
++		infmt = &priv->format_mbus[priv->input_pad];
++		outfmt = &priv->format_mbus[priv->output_pad];
++		imx_media_mbus_fmt_to_ipu_image(&test_in, infmt);
++		imx_media_mbus_fmt_to_ipu_image(&test_out, outfmt);
++
++		ret = ipu_image_convert_verify(&test_in, &test_out, rot_mode);
++		if (ret)
++			return ret;
++
++		priv->rot_mode = rot_mode;
++		priv->rotation = rotation;
++		priv->hflip = hflip;
++		priv->vflip = vflip;
++	}
++
++	return 0;
++}
++
++static const struct v4l2_ctrl_ops pp_ctrl_ops = {
++	.s_ctrl = pp_s_ctrl,
++};
++
++static const struct v4l2_ctrl_config pp_std_ctrl[] = {
++	{
++		.id = V4L2_CID_HFLIP,
++		.name = "Horizontal Flip",
++		.type = V4L2_CTRL_TYPE_BOOLEAN,
++		.def =  0,
++		.min =  0,
++		.max =  1,
++		.step = 1,
++	}, {
++		.id = V4L2_CID_VFLIP,
++		.name = "Vertical Flip",
++		.type = V4L2_CTRL_TYPE_BOOLEAN,
++		.def =  0,
++		.min =  0,
++		.max =  1,
++		.step = 1,
++	}, {
++		.id = V4L2_CID_ROTATE,
++		.name = "Rotation",
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.def =   0,
++		.min =   0,
++		.max = 270,
++		.step = 90,
++	},
++};
++
++#define PP_NUM_CONTROLS ARRAY_SIZE(pp_std_ctrl)
++
++static int pp_init_controls(struct pp_priv *priv)
++{
++	struct imx_ic_priv *ic_priv = priv->ic_priv;
++	struct v4l2_ctrl_handler *hdlr = &priv->ctrl_hdlr;
++	const struct v4l2_ctrl_config *c;
++	int i, ret;
++
++	v4l2_ctrl_handler_init(hdlr, PP_NUM_CONTROLS);
++
++	for (i = 0; i < PP_NUM_CONTROLS; i++) {
++		c = &pp_std_ctrl[i];
++		v4l2_ctrl_new_std(hdlr, &pp_ctrl_ops,
++				  c->id, c->min, c->max, c->step, c->def);
++	}
++
++	ic_priv->sd.ctrl_handler = hdlr;
++
++	if (hdlr->error) {
++		ret = hdlr->error;
++		v4l2_ctrl_handler_free(hdlr);
++		return ret;
++	}
++
++	v4l2_ctrl_handler_setup(hdlr);
++
++	return 0;
++}
++
++/*
++ * retrieve our pads parsed from the OF graph by the media device
++ */
++static int pp_registered(struct v4l2_subdev *sd)
++{
++	struct pp_priv *priv = sd_to_priv(sd);
++	struct imx_media_subdev *imxsd;
++	struct imx_media_pad *pad;
++	int i, ret;
++
++	/* get media device */
++	priv->md = dev_get_drvdata(sd->v4l2_dev->dev);
++
++	imxsd = imx_media_find_subdev_by_sd(priv->md, sd);
++	if (IS_ERR(imxsd))
++		return PTR_ERR(imxsd);
++
++	if (imxsd->num_sink_pads != 1 || imxsd->num_src_pads != 1)
++		return -EINVAL;
++
++	for (i = 0; i < PP_NUM_PADS; i++) {
++		pad = &imxsd->pad[i];
++		priv->pad[i] = pad->pad;
++		if (priv->pad[i].flags & MEDIA_PAD_FL_SINK)
++			priv->input_pad = i;
++		else
++			priv->output_pad = i;
++
++		/* set a default mbus format  */
++		ret = imx_media_init_mbus_fmt(&priv->format_mbus[i],
++					      640, 480, 0, V4L2_FIELD_NONE,
++					      &priv->cc[i]);
++		if (ret)
++			return ret;
++	}
++
++	ret = pp_init_controls(priv);
++	if (ret)
++		return ret;
++
++	ret = media_entity_pads_init(&sd->entity, PP_NUM_PADS, priv->pad);
++	if (ret)
++		goto free_ctrls;
++
++	return 0;
++free_ctrls:
++	v4l2_ctrl_handler_free(&priv->ctrl_hdlr);
++	return ret;
++}
++
++static struct v4l2_subdev_pad_ops pp_pad_ops = {
++	.enum_mbus_code = pp_enum_mbus_code,
++	.get_fmt = pp_get_fmt,
++	.set_fmt = pp_set_fmt,
++};
++
++static struct v4l2_subdev_video_ops pp_video_ops = {
++	.s_stream = pp_s_stream,
++};
++
++static struct v4l2_subdev_core_ops pp_core_ops = {
++	.ioctl = pp_ioctl,
++};
++
++static struct media_entity_operations pp_entity_ops = {
++	.link_setup = pp_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
++};
++
++static struct v4l2_subdev_ops pp_subdev_ops = {
++	.video = &pp_video_ops,
++	.pad = &pp_pad_ops,
++	.core = &pp_core_ops,
++};
++
++static struct v4l2_subdev_internal_ops pp_internal_ops = {
++	.registered = pp_registered,
++};
++
++static int pp_init(struct imx_ic_priv *ic_priv)
++{
++	struct pp_priv *priv;
++
++	priv = devm_kzalloc(ic_priv->dev, sizeof(*priv), GFP_KERNEL);
++	if (!priv)
++		return -ENOMEM;
++
++	ic_priv->task_priv = priv;
++	priv->ic_priv = ic_priv;
++	spin_lock_init(&priv->irqlock);
++
++	/* get our PP id */
++	priv->pp_id = (ic_priv->sd.grp_id >> IMX_MEDIA_GRP_ID_IC_PP_BIT) - 1;
++
++	return 0;
++}
++
++static void pp_remove(struct imx_ic_priv *ic_priv)
++{
++	struct pp_priv *priv = ic_priv->task_priv;
++
++	v4l2_ctrl_handler_free(&priv->ctrl_hdlr);
++}
++
++struct imx_ic_ops imx_ic_pp_ops = {
++	.subdev_ops = &pp_subdev_ops,
++	.internal_ops = &pp_internal_ops,
++	.entity_ops = &pp_entity_ops,
++	.init = pp_init,
++	.remove = pp_remove,
++};
+diff --git a/drivers/staging/media/imx/imx-ic-prpenc.c b/drivers/staging/media/imx/imx-ic-prpenc.c
+new file mode 100644
+index 0000000..e17216b
+--- /dev/null
++++ b/drivers/staging/media/imx/imx-ic-prpenc.c
+@@ -0,0 +1,1037 @@
++/*
++ * V4L2 Capture IC Encoder Subdev for Freescale i.MX5/6 SOC
++ *
++ * This subdevice handles capture of video frames from the CSI, which
++ * are routed directly to the Image Converter preprocess encode task,
++ * for resizing, colorspace conversion, and rotation.
++ *
++ * Copyright (c) 2012-2016 Mentor Graphics Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++#include <linux/module.h>
++#include <linux/delay.h>
++#include <linux/fs.h>
++#include <linux/timer.h>
++#include <linux/sched.h>
++#include <linux/slab.h>
++#include <linux/interrupt.h>
++#include <linux/spinlock.h>
++#include <linux/platform_device.h>
++#include <linux/pinctrl/consumer.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-ioctl.h>
++#include <media/videobuf2-dma-contig.h>
++#include <media/v4l2-subdev.h>
++#include <media/v4l2-of.h>
++#include <media/v4l2-ctrls.h>
++#include <media/imx.h>
++#include "imx-media.h"
++#include "imx-ic.h"
++
++#define PRPENC_NUM_PADS 2
++
++#define MAX_W_IC   1024
++#define MAX_H_IC   1024
++#define MAX_W_SINK 4096
++#define MAX_H_SINK 4096
++
++struct prpenc_priv {
++	struct imx_media_dev *md;
++	struct imx_ic_priv *ic_priv;
++
++	/* IPU units we require */
++	struct ipu_soc *ipu;
++	struct ipu_ic *ic_enc;
++
++	struct media_pad pad[PRPENC_NUM_PADS];
++	int input_pad;
++	int output_pad;
++
++	struct ipuv3_channel *enc_ch;
++	struct ipuv3_channel *enc_rot_in_ch;
++	struct ipuv3_channel *enc_rot_out_ch;
++
++	/* the dma buffer ring to send to sink */
++	struct imx_media_dma_buf_ring *out_ring;
++	struct imx_media_dma_buf *next;
++
++	int ipu_buf_num;  /* ipu double buffer index: 0-1 */
++
++	struct v4l2_subdev *src_sd;
++	struct v4l2_subdev *sink_sd;
++
++	/* the CSI id at link validate */
++	int csi_id;
++
++	/* the attached sensor at stream on */
++	struct imx_media_subdev *sensor;
++
++	struct v4l2_mbus_framefmt format_mbus[PRPENC_NUM_PADS];
++	const struct imx_media_pixfmt *cc[PRPENC_NUM_PADS];
++
++	struct imx_media_dma_buf rot_buf[2];
++
++	/* controls */
++	struct v4l2_ctrl_handler ctrl_hdlr;
++	int  rotation; /* degrees */
++	bool hflip;
++	bool vflip;
++
++	/* derived from rotation, hflip, vflip controls */
++	enum ipu_rotate_mode rot_mode;
++
++	spinlock_t irqlock;
++
++	struct timer_list eof_timeout_timer;
++	int eof_irq;
++	int nfb4eof_irq;
++
++	bool stream_on; /* streaming is on */
++	bool last_eof;  /* waiting for last EOF at stream off */
++	struct completion last_eof_comp;
++};
++
++static inline struct prpenc_priv *sd_to_priv(struct v4l2_subdev *sd)
++{
++	struct imx_ic_priv *ic_priv = v4l2_get_subdevdata(sd);
++
++	return ic_priv->task_priv;
++}
++
++static void prpenc_put_ipu_resources(struct prpenc_priv *priv)
++{
++	if (!IS_ERR_OR_NULL(priv->ic_enc))
++		ipu_ic_put(priv->ic_enc);
++	priv->ic_enc = NULL;
++
++	if (!IS_ERR_OR_NULL(priv->enc_ch))
++		ipu_idmac_put(priv->enc_ch);
++	priv->enc_ch = NULL;
++
++	if (!IS_ERR_OR_NULL(priv->enc_rot_in_ch))
++		ipu_idmac_put(priv->enc_rot_in_ch);
++	priv->enc_rot_in_ch = NULL;
++
++	if (!IS_ERR_OR_NULL(priv->enc_rot_out_ch))
++		ipu_idmac_put(priv->enc_rot_out_ch);
++	priv->enc_rot_out_ch = NULL;
++}
++
++static int prpenc_get_ipu_resources(struct prpenc_priv *priv)
++{
++	struct imx_ic_priv *ic_priv = priv->ic_priv;
++	int ret;
++
++	priv->ipu = priv->md->ipu[ic_priv->ipu_id];
++
++	priv->ic_enc = ipu_ic_get(priv->ipu, IC_TASK_ENCODER);
++	if (IS_ERR(priv->ic_enc)) {
++		v4l2_err(&ic_priv->sd, "failed to get IC ENC\n");
++		ret = PTR_ERR(priv->ic_enc);
++		goto out;
++	}
++
++	priv->enc_ch = ipu_idmac_get(priv->ipu,
++				     IPUV3_CHANNEL_IC_PRP_ENC_MEM);
++	if (IS_ERR(priv->enc_ch)) {
++		v4l2_err(&ic_priv->sd, "could not get IDMAC channel %u\n",
++			 IPUV3_CHANNEL_IC_PRP_ENC_MEM);
++		ret = PTR_ERR(priv->enc_ch);
++		goto out;
++	}
++
++	priv->enc_rot_in_ch = ipu_idmac_get(priv->ipu,
++					    IPUV3_CHANNEL_MEM_ROT_ENC);
++	if (IS_ERR(priv->enc_rot_in_ch)) {
++		v4l2_err(&ic_priv->sd, "could not get IDMAC channel %u\n",
++			 IPUV3_CHANNEL_MEM_ROT_ENC);
++		ret = PTR_ERR(priv->enc_rot_in_ch);
++		goto out;
++	}
++
++	priv->enc_rot_out_ch = ipu_idmac_get(priv->ipu,
++					     IPUV3_CHANNEL_ROT_ENC_MEM);
++	if (IS_ERR(priv->enc_rot_out_ch)) {
++		v4l2_err(&ic_priv->sd, "could not get IDMAC channel %u\n",
++			 IPUV3_CHANNEL_ROT_ENC_MEM);
++		ret = PTR_ERR(priv->enc_rot_out_ch);
++		goto out;
++	}
++
++	return 0;
++out:
++	prpenc_put_ipu_resources(priv);
++	return ret;
++}
++
++static irqreturn_t prpenc_eof_interrupt(int irq, void *dev_id)
++{
++	struct prpenc_priv *priv = dev_id;
++	struct imx_media_dma_buf *done, *next;
++	struct ipuv3_channel *channel;
++	unsigned long flags;
++
++	spin_lock_irqsave(&priv->irqlock, flags);
++
++	if (priv->last_eof) {
++		complete(&priv->last_eof_comp);
++		priv->last_eof = false;
++		goto unlock;
++	}
++
++	/* inform CSI of this EOF so it can monitor frame intervals */
++	v4l2_subdev_call(priv->src_sd, core, interrupt_service_routine,
++			 0, NULL);
++
++	channel = (ipu_rot_mode_is_irt(priv->rot_mode)) ?
++		priv->enc_rot_out_ch : priv->enc_ch;
++
++	done = imx_media_dma_buf_get_active(priv->out_ring);
++	/* give the completed buffer to the sink  */
++	if (!WARN_ON(!done))
++		imx_media_dma_buf_done(done, IMX_MEDIA_BUF_STATUS_DONE);
++
++	/* priv->next buffer is now the active one */
++	imx_media_dma_buf_set_active(priv->next);
++
++	/* bump the EOF timeout timer */
++	mod_timer(&priv->eof_timeout_timer,
++		  jiffies + msecs_to_jiffies(IMX_MEDIA_EOF_TIMEOUT));
++
++	if (ipu_idmac_buffer_is_ready(channel, priv->ipu_buf_num))
++		ipu_idmac_clear_buffer(channel, priv->ipu_buf_num);
++
++	/* get next queued buffer */
++	next = imx_media_dma_buf_get_next_queued(priv->out_ring);
++
++	ipu_cpmem_set_buffer(channel, priv->ipu_buf_num, next->phys);
++	ipu_idmac_select_buffer(channel, priv->ipu_buf_num);
++
++	/* toggle IPU double-buffer index */
++	priv->ipu_buf_num ^= 1;
++	priv->next = next;
++
++unlock:
++	spin_unlock_irqrestore(&priv->irqlock, flags);
++	return IRQ_HANDLED;
++}
++
++static irqreturn_t prpenc_nfb4eof_interrupt(int irq, void *dev_id)
++{
++	struct prpenc_priv *priv = dev_id;
++	struct imx_ic_priv *ic_priv = priv->ic_priv;
++	static const struct v4l2_event ev = {
++		.type = V4L2_EVENT_IMX_NFB4EOF,
++	};
++
++	v4l2_err(&ic_priv->sd, "NFB4EOF\n");
++
++	v4l2_subdev_notify_event(&ic_priv->sd, &ev);
++
++	return IRQ_HANDLED;
++}
++
++/*
++ * EOF timeout timer function.
++ */
++static void prpenc_eof_timeout(unsigned long data)
++{
++	struct prpenc_priv *priv = (struct prpenc_priv *)data;
++	struct imx_ic_priv *ic_priv = priv->ic_priv;
++	static const struct v4l2_event ev = {
++		.type = V4L2_EVENT_IMX_EOF_TIMEOUT,
++	};
++
++	v4l2_err(&ic_priv->sd, "EOF timeout\n");
++
++	v4l2_subdev_notify_event(&ic_priv->sd, &ev);
++}
++
++static void prpenc_setup_channel(struct prpenc_priv *priv,
++				 struct ipuv3_channel *channel,
++				 enum ipu_rotate_mode rot_mode,
++				 dma_addr_t addr0, dma_addr_t addr1,
++				 bool rot_swap_width_height)
++{
++	struct v4l2_mbus_framefmt *infmt, *outfmt;
++	unsigned int burst_size;
++	struct ipu_image image;
++
++	infmt = &priv->format_mbus[priv->input_pad];
++	outfmt = &priv->format_mbus[priv->output_pad];
++
++	if (rot_swap_width_height)
++		swap(outfmt->width, outfmt->height);
++
++	ipu_cpmem_zero(channel);
++
++	imx_media_mbus_fmt_to_ipu_image(&image, outfmt);
++
++	image.phys0 = addr0;
++	image.phys1 = addr1;
++	ipu_cpmem_set_image(channel, &image);
++
++	if (channel == priv->enc_rot_in_ch ||
++	    channel == priv->enc_rot_out_ch) {
++		burst_size = 8;
++		ipu_cpmem_set_block_mode(channel);
++	} else {
++		burst_size = (outfmt->width & 0xf) ? 8 : 16;
++	}
++
++	ipu_cpmem_set_burstsize(channel, burst_size);
++
++	if (rot_mode)
++		ipu_cpmem_set_rotation(channel, rot_mode);
++
++	if (outfmt->field == V4L2_FIELD_NONE &&
++	    (V4L2_FIELD_HAS_BOTH(infmt->field) ||
++	     infmt->field == V4L2_FIELD_ALTERNATE) &&
++	    channel == priv->enc_ch)
++		ipu_cpmem_interlaced_scan(channel, image.pix.bytesperline);
++
++	ipu_ic_task_idma_init(priv->ic_enc, channel,
++			      outfmt->width, outfmt->height,
++			      burst_size, rot_mode);
++	ipu_cpmem_set_axi_id(channel, 1);
++
++	ipu_idmac_set_double_buffer(channel, true);
++
++	if (rot_swap_width_height)
++		swap(outfmt->width, outfmt->height);
++}
++
++static int prpenc_setup_rotation(struct prpenc_priv *priv)
++{
++	struct imx_ic_priv *ic_priv = priv->ic_priv;
++	struct v4l2_mbus_framefmt *infmt, *outfmt;
++	const struct imx_media_pixfmt *outcc, *incc;
++	struct imx_media_dma_buf *buf0, *buf1;
++	int out_size, ret;
++
++	infmt = &priv->format_mbus[priv->input_pad];
++	outfmt = &priv->format_mbus[priv->output_pad];
++	incc = priv->cc[priv->input_pad];
++	outcc = priv->cc[priv->output_pad];
++
++	out_size = (outfmt->width * outcc->bpp * outfmt->height) >> 3;
++
++	ret = imx_media_alloc_dma_buf(priv->md, &priv->rot_buf[0], out_size);
++	if (ret) {
++		v4l2_err(&ic_priv->sd, "failed to alloc rot_buf[0], %d\n", ret);
++		return ret;
++	}
++	ret = imx_media_alloc_dma_buf(priv->md, &priv->rot_buf[1], out_size);
++	if (ret) {
++		v4l2_err(&ic_priv->sd, "failed to alloc rot_buf[1], %d\n", ret);
++		goto free_rot0;
++	}
++
++	ret = ipu_ic_task_init(priv->ic_enc,
++			       infmt->width, infmt->height,
++			       outfmt->height, outfmt->width,
++			       incc->cs, outcc->cs);
++	if (ret) {
++		v4l2_err(&ic_priv->sd, "ipu_ic_task_init failed, %d\n", ret);
++		goto free_rot1;
++	}
++
++	/* init the IC ENC-->MEM IDMAC channel */
++	prpenc_setup_channel(priv, priv->enc_ch,
++			     IPU_ROTATE_NONE,
++			     priv->rot_buf[0].phys,
++			     priv->rot_buf[1].phys,
++			     true);
++
++	/* init the MEM-->IC ENC ROT IDMAC channel */
++	prpenc_setup_channel(priv, priv->enc_rot_in_ch,
++			     priv->rot_mode,
++			     priv->rot_buf[0].phys,
++			     priv->rot_buf[1].phys,
++			     true);
++
++	buf0 = imx_media_dma_buf_get_next_queued(priv->out_ring);
++	imx_media_dma_buf_set_active(buf0);
++	buf1 = imx_media_dma_buf_get_next_queued(priv->out_ring);
++	priv->next = buf1;
++
++	/* init the destination IC ENC ROT-->MEM IDMAC channel */
++	prpenc_setup_channel(priv, priv->enc_rot_out_ch,
++			     IPU_ROTATE_NONE,
++			     buf0->phys, buf1->phys,
++			     false);
++
++	/* now link IC ENC-->MEM to MEM-->IC ENC ROT */
++	ipu_idmac_link(priv->enc_ch, priv->enc_rot_in_ch);
++
++	/* enable the IC */
++	ipu_ic_enable(priv->ic_enc);
++
++	/* set buffers ready */
++	ipu_idmac_select_buffer(priv->enc_ch, 0);
++	ipu_idmac_select_buffer(priv->enc_ch, 1);
++	ipu_idmac_select_buffer(priv->enc_rot_out_ch, 0);
++	ipu_idmac_select_buffer(priv->enc_rot_out_ch, 1);
++
++	/* enable the channels */
++	ipu_idmac_enable_channel(priv->enc_ch);
++	ipu_idmac_enable_channel(priv->enc_rot_in_ch);
++	ipu_idmac_enable_channel(priv->enc_rot_out_ch);
++
++	/* and finally enable the IC PRPENC task */
++	ipu_ic_task_enable(priv->ic_enc);
++
++	return 0;
++
++free_rot1:
++	imx_media_free_dma_buf(priv->md, &priv->rot_buf[1]);
++free_rot0:
++	imx_media_free_dma_buf(priv->md, &priv->rot_buf[0]);
++	return ret;
++}
++
++static void prpenc_unsetup_rotation(struct prpenc_priv *priv)
++{
++	ipu_ic_task_disable(priv->ic_enc);
++
++	ipu_idmac_disable_channel(priv->enc_ch);
++	ipu_idmac_disable_channel(priv->enc_rot_in_ch);
++	ipu_idmac_disable_channel(priv->enc_rot_out_ch);
++
++	ipu_idmac_unlink(priv->enc_ch, priv->enc_rot_in_ch);
++
++	ipu_ic_disable(priv->ic_enc);
++
++	imx_media_free_dma_buf(priv->md, &priv->rot_buf[0]);
++	imx_media_free_dma_buf(priv->md, &priv->rot_buf[1]);
++}
++
++static int prpenc_setup_norotation(struct prpenc_priv *priv)
++{
++	struct imx_ic_priv *ic_priv = priv->ic_priv;
++	struct v4l2_mbus_framefmt *infmt, *outfmt;
++	const struct imx_media_pixfmt *outcc, *incc;
++	struct imx_media_dma_buf *buf0, *buf1;
++	int ret;
++
++	infmt = &priv->format_mbus[priv->input_pad];
++	outfmt = &priv->format_mbus[priv->output_pad];
++	incc = priv->cc[priv->input_pad];
++	outcc = priv->cc[priv->output_pad];
++
++	ret = ipu_ic_task_init(priv->ic_enc,
++			       infmt->width, infmt->height,
++			       outfmt->width, outfmt->height,
++			       incc->cs, outcc->cs);
++	if (ret) {
++		v4l2_err(&ic_priv->sd, "ipu_ic_task_init failed, %d\n", ret);
++		return ret;
++	}
++
++	buf0 = imx_media_dma_buf_get_next_queued(priv->out_ring);
++	imx_media_dma_buf_set_active(buf0);
++	buf1 = imx_media_dma_buf_get_next_queued(priv->out_ring);
++	priv->next = buf1;
++
++	/* init the IC PRP-->MEM IDMAC channel */
++	prpenc_setup_channel(priv, priv->enc_ch, priv->rot_mode,
++			     buf0->phys, buf1->phys,
++			     false);
++
++	ipu_cpmem_dump(priv->enc_ch);
++	ipu_ic_dump(priv->ic_enc);
++	ipu_dump(priv->ipu);
++
++	ipu_ic_enable(priv->ic_enc);
++
++	/* set buffers ready */
++	ipu_idmac_select_buffer(priv->enc_ch, 0);
++	ipu_idmac_select_buffer(priv->enc_ch, 1);
++
++	/* enable the channels */
++	ipu_idmac_enable_channel(priv->enc_ch);
++
++	/* enable the IC ENCODE task */
++	ipu_ic_task_enable(priv->ic_enc);
++
++	return 0;
++}
++
++static void prpenc_unsetup_norotation(struct prpenc_priv *priv)
++{
++	ipu_ic_task_disable(priv->ic_enc);
++	ipu_idmac_disable_channel(priv->enc_ch);
++	ipu_ic_disable(priv->ic_enc);
++}
++
++static int prpenc_start(struct prpenc_priv *priv)
++{
++	struct imx_ic_priv *ic_priv = priv->ic_priv;
++	int ret;
++
++	if (!priv->sensor) {
++		v4l2_err(&ic_priv->sd, "no sensor attached\n");
++		return -EINVAL;
++	}
++
++	ret = prpenc_get_ipu_resources(priv);
++	if (ret)
++		return ret;
++
++	/* set IC to receive from CSI */
++	ipu_set_ic_src_mux(priv->ipu, priv->csi_id, false);
++
++	/* ask the sink for the buffer ring */
++	ret = v4l2_subdev_call(priv->sink_sd, core, ioctl,
++			       IMX_MEDIA_REQ_DMA_BUF_SINK_RING,
++			       &priv->out_ring);
++	if (ret)
++		goto out_put_ipu;
++
++	priv->ipu_buf_num = 0;
++
++	/* init EOF completion waitq */
++	init_completion(&priv->last_eof_comp);
++	priv->last_eof = false;
++
++	if (ipu_rot_mode_is_irt(priv->rot_mode))
++		ret = prpenc_setup_rotation(priv);
++	else
++		ret = prpenc_setup_norotation(priv);
++	if (ret)
++		goto out_put_ipu;
++
++	priv->nfb4eof_irq = ipu_idmac_channel_irq(priv->ipu,
++						  priv->enc_ch,
++						  IPU_IRQ_NFB4EOF);
++	ret = devm_request_irq(ic_priv->dev, priv->nfb4eof_irq,
++			       prpenc_nfb4eof_interrupt, 0,
++			       "imx-ic-prpenc-nfb4eof", priv);
++	if (ret) {
++		v4l2_err(&ic_priv->sd,
++			 "Error registering NFB4EOF irq: %d\n", ret);
++		goto out_unsetup;
++	}
++
++	if (ipu_rot_mode_is_irt(priv->rot_mode))
++		priv->eof_irq = ipu_idmac_channel_irq(
++			priv->ipu, priv->enc_rot_out_ch, IPU_IRQ_EOF);
++	else
++		priv->eof_irq = ipu_idmac_channel_irq(
++			priv->ipu, priv->enc_ch, IPU_IRQ_EOF);
++
++	ret = devm_request_irq(ic_priv->dev, priv->eof_irq,
++			       prpenc_eof_interrupt, 0,
++			       "imx-ic-prpenc-eof", priv);
++	if (ret) {
++		v4l2_err(&ic_priv->sd,
++			 "Error registering eof irq: %d\n", ret);
++		goto out_free_nfb4eof_irq;
++	}
++
++	/* start the EOF timeout timer */
++	mod_timer(&priv->eof_timeout_timer,
++		  jiffies + msecs_to_jiffies(IMX_MEDIA_EOF_TIMEOUT));
++
++	return 0;
++
++out_free_nfb4eof_irq:
++	devm_free_irq(ic_priv->dev, priv->nfb4eof_irq, priv);
++out_unsetup:
++	if (ipu_rot_mode_is_irt(priv->rot_mode))
++		prpenc_unsetup_rotation(priv);
++	else
++		prpenc_unsetup_norotation(priv);
++out_put_ipu:
++	prpenc_put_ipu_resources(priv);
++	return ret;
++}
++
++static void prpenc_stop(struct prpenc_priv *priv)
++{
++	struct imx_ic_priv *ic_priv = priv->ic_priv;
++	unsigned long flags;
++	int ret;
++
++	/* mark next EOF interrupt as the last before stream off */
++	spin_lock_irqsave(&priv->irqlock, flags);
++	priv->last_eof = true;
++	spin_unlock_irqrestore(&priv->irqlock, flags);
++
++	/*
++	 * and then wait for interrupt handler to mark completion.
++	 */
++	ret = wait_for_completion_timeout(
++		&priv->last_eof_comp,
++		msecs_to_jiffies(IMX_MEDIA_EOF_TIMEOUT));
++	if (ret == 0)
++		v4l2_warn(&ic_priv->sd, "wait last EOF timeout\n");
++
++	devm_free_irq(ic_priv->dev, priv->eof_irq, priv);
++	devm_free_irq(ic_priv->dev, priv->nfb4eof_irq, priv);
++
++	if (ipu_rot_mode_is_irt(priv->rot_mode))
++		prpenc_unsetup_rotation(priv);
++	else
++		prpenc_unsetup_norotation(priv);
++
++	prpenc_put_ipu_resources(priv);
++
++	/* cancel the EOF timeout timer */
++	del_timer_sync(&priv->eof_timeout_timer);
++
++	priv->out_ring = NULL;
++
++	/* inform sink that the buffer ring can now be freed */
++	v4l2_subdev_call(priv->sink_sd, core, ioctl,
++			 IMX_MEDIA_REL_DMA_BUF_SINK_RING, 0);
++}
++
++static int prpenc_enum_mbus_code(struct v4l2_subdev *sd,
++				 struct v4l2_subdev_pad_config *cfg,
++				 struct v4l2_subdev_mbus_code_enum *code)
++{
++	struct prpenc_priv *priv = sd_to_priv(sd);
++	bool allow_planar;
++
++	if (code->pad >= PRPENC_NUM_PADS)
++		return -EINVAL;
++
++	allow_planar = (code->pad == priv->output_pad);
++
++	return imx_media_enum_format(&code->code, code->index,
++				     true, allow_planar);
++}
++
++static int prpenc_get_fmt(struct v4l2_subdev *sd,
++			  struct v4l2_subdev_pad_config *cfg,
++			  struct v4l2_subdev_format *sdformat)
++{
++	struct prpenc_priv *priv = sd_to_priv(sd);
++
++	if (sdformat->pad >= PRPENC_NUM_PADS)
++		return -EINVAL;
++
++	sdformat->format = priv->format_mbus[sdformat->pad];
++
++	return 0;
++}
++
++static int prpenc_set_fmt(struct v4l2_subdev *sd,
++			  struct v4l2_subdev_pad_config *cfg,
++			  struct v4l2_subdev_format *sdformat)
++{
++	struct prpenc_priv *priv = sd_to_priv(sd);
++	struct v4l2_mbus_framefmt *infmt, *outfmt;
++	const struct imx_media_pixfmt *cc;
++	bool allow_planar;
++	u32 code;
++
++	if (sdformat->pad >= PRPENC_NUM_PADS)
++		return -EINVAL;
++
++	if (priv->stream_on)
++		return -EBUSY;
++
++	infmt = &priv->format_mbus[priv->input_pad];
++	outfmt = &priv->format_mbus[priv->output_pad];
++	allow_planar = (sdformat->pad == priv->output_pad);
++
++	cc = imx_media_find_format(0, sdformat->format.code,
++				   true, allow_planar);
++	if (!cc) {
++		imx_media_enum_format(&code, 0, true, false);
++		cc = imx_media_find_format(0, code, true, false);
++		sdformat->format.code = cc->codes[0];
++	}
++
++	if (sdformat->pad == priv->output_pad) {
++		sdformat->format.width = min_t(__u32,
++					       sdformat->format.width,
++					       MAX_W_IC);
++		sdformat->format.height = min_t(__u32,
++						sdformat->format.height,
++						MAX_H_IC);
++
++		if (sdformat->format.field != V4L2_FIELD_NONE)
++			sdformat->format.field = infmt->field;
++
++		/* IC resizer cannot downsize more than 4:1 */
++		if (ipu_rot_mode_is_irt(priv->rot_mode)) {
++			sdformat->format.width = max_t(__u32,
++						       sdformat->format.width,
++						       infmt->height / 4);
++			sdformat->format.height = max_t(__u32,
++							sdformat->format.height,
++							infmt->width / 4);
++		} else {
++			sdformat->format.width = max_t(__u32,
++						       sdformat->format.width,
++						       infmt->width / 4);
++			sdformat->format.height = max_t(__u32,
++							sdformat->format.height,
++							infmt->height / 4);
++		}
++	} else {
++		sdformat->format.width = min_t(__u32,
++					       sdformat->format.width,
++					       MAX_W_SINK);
++		sdformat->format.height = min_t(__u32,
++						sdformat->format.height,
++						MAX_H_SINK);
++	}
++
++	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY) {
++		cfg->try_fmt = sdformat->format;
++	} else {
++		priv->format_mbus[sdformat->pad] = sdformat->format;
++		priv->cc[sdformat->pad] = cc;
++	}
++
++	return 0;
++}
++
++static int prpenc_link_setup(struct media_entity *entity,
++			     const struct media_pad *local,
++			     const struct media_pad *remote, u32 flags)
++{
++	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
++	struct imx_ic_priv *ic_priv = v4l2_get_subdevdata(sd);
++	struct prpenc_priv *priv = ic_priv->task_priv;
++	struct v4l2_subdev *remote_sd;
++
++	dev_dbg(ic_priv->dev, "link setup %s -> %s", remote->entity->name,
++		local->entity->name);
++
++	remote_sd = media_entity_to_v4l2_subdev(remote->entity);
++
++	if (local->flags & MEDIA_PAD_FL_SOURCE) {
++		if (flags & MEDIA_LNK_FL_ENABLED) {
++			if (priv->sink_sd)
++				return -EBUSY;
++			priv->sink_sd = remote_sd;
++		} else {
++			priv->sink_sd = NULL;
++		}
++
++		return 0;
++	}
++
++	/* this is sink pad */
++	if (flags & MEDIA_LNK_FL_ENABLED) {
++		if (priv->src_sd)
++			return -EBUSY;
++		priv->src_sd = remote_sd;
++	} else {
++		priv->src_sd = NULL;
++		return 0;
++	}
++
++	switch (remote_sd->grp_id) {
++	case IMX_MEDIA_GRP_ID_CSI0:
++		priv->csi_id = 0;
++		break;
++	case IMX_MEDIA_GRP_ID_CSI1:
++		priv->csi_id = 1;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static int prpenc_link_validate(struct v4l2_subdev *sd,
++				struct media_link *link,
++				struct v4l2_subdev_format *source_fmt,
++				struct v4l2_subdev_format *sink_fmt)
++{
++	struct imx_ic_priv *ic_priv = v4l2_get_subdevdata(sd);
++	struct prpenc_priv *priv = ic_priv->task_priv;
++	struct v4l2_mbus_config sensor_mbus_cfg;
++	int ret;
++
++	ret = v4l2_subdev_link_validate_default(sd, link,
++						source_fmt, sink_fmt);
++	if (ret)
++		return ret;
++
++	priv->sensor = __imx_media_find_sensor(priv->md, &ic_priv->sd.entity);
++	if (IS_ERR(priv->sensor)) {
++		v4l2_err(&ic_priv->sd, "no sensor attached\n");
++		ret = PTR_ERR(priv->sensor);
++		priv->sensor = NULL;
++		return ret;
++	}
++
++	ret = v4l2_subdev_call(priv->sensor->sd, video, g_mbus_config,
++			       &sensor_mbus_cfg);
++	if (ret)
++		return ret;
++
++	if (sensor_mbus_cfg.type == V4L2_MBUS_CSI2) {
++		int vc_num = 0;
++		/* see NOTE in imx-csi.c */
++#if 0
++		vc_num = imx_media_find_mipi_csi2_channel(
++			priv->md, &ic_priv->sd.entity);
++		if (vc_num < 0)
++			return vc_num;
++#endif
++		/* only virtual channel 0 can be sent to IC */
++		if (vc_num != 0)
++			return -EINVAL;
++	} else {
++		/*
++		 * only 8-bit pixels can be sent to IC for parallel
++		 * busses
++		 */
++		if (priv->sensor->sensor_ep.bus.parallel.bus_width >= 16)
++			return -EINVAL;
++	}
++
++	return 0;
++}
++
++static int prpenc_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct prpenc_priv *priv = container_of(ctrl->handler,
++					       struct prpenc_priv, ctrl_hdlr);
++	struct imx_ic_priv *ic_priv = priv->ic_priv;
++	enum ipu_rotate_mode rot_mode;
++	bool hflip, vflip;
++	int rotation, ret;
++
++	rotation = priv->rotation;
++	hflip = priv->hflip;
++	vflip = priv->vflip;
++
++	switch (ctrl->id) {
++	case V4L2_CID_HFLIP:
++		hflip = (ctrl->val == 1);
++		break;
++	case V4L2_CID_VFLIP:
++		vflip = (ctrl->val == 1);
++		break;
++	case V4L2_CID_ROTATE:
++		rotation = ctrl->val;
++		break;
++	default:
++		v4l2_err(&ic_priv->sd, "Invalid control\n");
++		return -EINVAL;
++	}
++
++	ret = ipu_degrees_to_rot_mode(&rot_mode, rotation, hflip, vflip);
++	if (ret)
++		return ret;
++
++	if (rot_mode != priv->rot_mode) {
++		/* can't change rotation mid-streaming */
++		if (priv->stream_on)
++			return -EBUSY;
++
++		priv->rot_mode = rot_mode;
++		priv->rotation = rotation;
++		priv->hflip = hflip;
++		priv->vflip = vflip;
++	}
++
++	return 0;
++}
++
++static const struct v4l2_ctrl_ops prpenc_ctrl_ops = {
++	.s_ctrl = prpenc_s_ctrl,
++};
++
++static const struct v4l2_ctrl_config prpenc_std_ctrl[] = {
++	{
++		.id = V4L2_CID_HFLIP,
++		.name = "Horizontal Flip",
++		.type = V4L2_CTRL_TYPE_BOOLEAN,
++		.def =  0,
++		.min =  0,
++		.max =  1,
++		.step = 1,
++	}, {
++		.id = V4L2_CID_VFLIP,
++		.name = "Vertical Flip",
++		.type = V4L2_CTRL_TYPE_BOOLEAN,
++		.def =  0,
++		.min =  0,
++		.max =  1,
++		.step = 1,
++	}, {
++		.id = V4L2_CID_ROTATE,
++		.name = "Rotation",
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.def =   0,
++		.min =   0,
++		.max = 270,
++		.step = 90,
++	},
++};
++
++#define PRPENC_NUM_CONTROLS ARRAY_SIZE(prpenc_std_ctrl)
++
++static int prpenc_init_controls(struct prpenc_priv *priv)
++{
++	struct imx_ic_priv *ic_priv = priv->ic_priv;
++	struct v4l2_ctrl_handler *hdlr = &priv->ctrl_hdlr;
++	const struct v4l2_ctrl_config *c;
++	int i, ret;
++
++	v4l2_ctrl_handler_init(hdlr, PRPENC_NUM_CONTROLS);
++
++	for (i = 0; i < PRPENC_NUM_CONTROLS; i++) {
++		c = &prpenc_std_ctrl[i];
++		v4l2_ctrl_new_std(hdlr, &prpenc_ctrl_ops,
++				  c->id, c->min, c->max, c->step, c->def);
++	}
++
++	ic_priv->sd.ctrl_handler = hdlr;
++
++	if (hdlr->error) {
++		ret = hdlr->error;
++		goto out_free;
++	}
++
++	v4l2_ctrl_handler_setup(hdlr);
++	return 0;
++
++out_free:
++	v4l2_ctrl_handler_free(hdlr);
++	return ret;
++}
++
++static int prpenc_s_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct prpenc_priv *priv = sd_to_priv(sd);
++	int ret = 0;
++
++	if (!priv->src_sd || !priv->sink_sd)
++		return -EPIPE;
++
++	v4l2_info(sd, "stream %s\n", enable ? "ON" : "OFF");
++
++	if (enable && !priv->stream_on)
++		ret = prpenc_start(priv);
++	else if (!enable && priv->stream_on)
++		prpenc_stop(priv);
++
++	if (!ret)
++		priv->stream_on = enable;
++	return ret;
++}
++
++/*
++ * retrieve our pads parsed from the OF graph by the media device
++ */
++static int prpenc_registered(struct v4l2_subdev *sd)
++{
++	struct prpenc_priv *priv = sd_to_priv(sd);
++	struct imx_media_subdev *imxsd;
++	struct imx_media_pad *pad;
++	int i, ret;
++
++	/* get media device */
++	priv->md = dev_get_drvdata(sd->v4l2_dev->dev);
++
++	imxsd = imx_media_find_subdev_by_sd(priv->md, sd);
++	if (IS_ERR(imxsd))
++		return PTR_ERR(imxsd);
++
++	if (imxsd->num_sink_pads != 1 || imxsd->num_src_pads != 1)
++		return -EINVAL;
++
++	for (i = 0; i < PRPENC_NUM_PADS; i++) {
++		pad = &imxsd->pad[i];
++		priv->pad[i] = pad->pad;
++		if (priv->pad[i].flags & MEDIA_PAD_FL_SINK)
++			priv->input_pad = i;
++		else
++			priv->output_pad = i;
++
++		/* set a default mbus format  */
++		ret = imx_media_init_mbus_fmt(&priv->format_mbus[i],
++					      640, 480, 0, V4L2_FIELD_NONE,
++					      &priv->cc[i]);
++		if (ret)
++			return ret;
++	}
++
++	ret = prpenc_init_controls(priv);
++	if (ret)
++		return ret;
++
++	ret = media_entity_pads_init(&sd->entity, PRPENC_NUM_PADS, priv->pad);
++	if (ret)
++		goto free_ctrls;
++
++	return 0;
++free_ctrls:
++	v4l2_ctrl_handler_free(&priv->ctrl_hdlr);
++	return ret;
++}
++
++static struct v4l2_subdev_pad_ops prpenc_pad_ops = {
++	.enum_mbus_code = prpenc_enum_mbus_code,
++	.get_fmt = prpenc_get_fmt,
++	.set_fmt = prpenc_set_fmt,
++	.link_validate = prpenc_link_validate,
++};
++
++static struct v4l2_subdev_video_ops prpenc_video_ops = {
++	.s_stream = prpenc_s_stream,
++};
++
++static struct media_entity_operations prpenc_entity_ops = {
++	.link_setup = prpenc_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
++};
++
++static struct v4l2_subdev_ops prpenc_subdev_ops = {
++	.video = &prpenc_video_ops,
++	.pad = &prpenc_pad_ops,
++};
++
++static struct v4l2_subdev_internal_ops prpenc_internal_ops = {
++	.registered = prpenc_registered,
++};
++
++static int prpenc_init(struct imx_ic_priv *ic_priv)
++{
++	struct prpenc_priv *priv;
++
++	priv = devm_kzalloc(ic_priv->dev, sizeof(*priv), GFP_KERNEL);
++	if (!priv)
++		return -ENOMEM;
++
++	ic_priv->task_priv = priv;
++	priv->ic_priv = ic_priv;
++
++	spin_lock_init(&priv->irqlock);
++	init_timer(&priv->eof_timeout_timer);
++	priv->eof_timeout_timer.data = (unsigned long)priv;
++	priv->eof_timeout_timer.function = prpenc_eof_timeout;
++
++	return 0;
++}
++
++static void prpenc_remove(struct imx_ic_priv *ic_priv)
++{
++	struct prpenc_priv *priv = ic_priv->task_priv;
++
++	v4l2_ctrl_handler_free(&priv->ctrl_hdlr);
++}
++
++struct imx_ic_ops imx_ic_prpenc_ops = {
++	.subdev_ops = &prpenc_subdev_ops,
++	.internal_ops = &prpenc_internal_ops,
++	.entity_ops = &prpenc_entity_ops,
++	.init = prpenc_init,
++	.remove = prpenc_remove,
++};
+diff --git a/drivers/staging/media/imx/imx-ic-prpvf.c b/drivers/staging/media/imx/imx-ic-prpvf.c
+new file mode 100644
+index 0000000..53ce006
+--- /dev/null
++++ b/drivers/staging/media/imx/imx-ic-prpvf.c
+@@ -0,0 +1,1180 @@
++/*
++ * V4L2 IC Deinterlacer Subdev for Freescale i.MX5/6 SOC
++ *
++ * Copyright (c) 2014-2016 Mentor Graphics Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++#include <linux/module.h>
++#include <linux/delay.h>
++#include <linux/fs.h>
++#include <linux/timer.h>
++#include <linux/sched.h>
++#include <linux/slab.h>
++#include <linux/interrupt.h>
++#include <linux/platform_device.h>
++#include <linux/pinctrl/consumer.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-ioctl.h>
++#include <media/videobuf2-dma-contig.h>
++#include <media/v4l2-subdev.h>
++#include <media/v4l2-of.h>
++#include <media/v4l2-ctrls.h>
++#include <media/imx.h>
++#include "imx-media.h"
++#include "imx-ic.h"
++
++/*
++ * This subdev implements two different video pipelines:
++ *
++ * CSI -> VDIC -> IC -> CH21 -> MEM
++ *
++ * In this pipeline, the CSI sends a single interlaced field F(n-1)
++ * directly to the VDIC (and optionally the following field F(n)
++ * can be sent to memory via IDMAC channel 13). So only two fields
++ * can be processed by the VDIC. This pipeline only works in VDIC's
++ * high motion mode, which only requires a single field for processing.
++ * The other motion modes (low and medium) require three fields, so this
++ * pipeline does not work in those modes. Also, it is not clear how this
++ * pipeline can deal with the various field orders (sequential BT/TB,
++ * interlaced BT/TB).
++ *
++ * CSI -> CH[0-3] -> MEM -> CH8,9,10 -> VDIC -> IC -> CH21 -> MEM
++ *
++ * In this pipeline, the CSI sends raw and full frames to memory buffers
++ * via the SMFC channels 0-3. Fields from these frames are then
++ * transferred to the VDIC via IDMAC channels 8,9,10. The VDIC requires
++ * three fields: previous field F(n-1), current field F(n), and next
++ * field F(n+1), so we need three raw frames in memory: two completed frames
++ * to send F(n-1), F(n), F(n+1) to the VDIC, and a third frame for active
++ * CSI capture while the completed fields are sent through the VDIC->IC for
++ * processing.
++ *
++ * The "direct" CSI->VDIC pipeline requires less memory bus bandwidth
++ * (just 1 channel vs. 5 channels for indirect pipeline), but it can
++ * only be used in high motion mode, and it only processes a single
++ * field (so half the original image resolution is lost).
++ */
++
++struct prpvf_priv;
++
++struct prpvf_pipeline_ops {
++	int (*setup)(struct prpvf_priv *priv);
++	void (*start)(struct prpvf_priv *priv);
++	void (*stop)(struct prpvf_priv *priv);
++	void (*disable)(struct prpvf_priv *priv);
++};
++
++#define PRPVF_NUM_PADS 2
++
++#define MAX_W_IC   1024
++#define MAX_H_IC   1024
++#define MAX_W_VDIC  968
++#define MAX_H_VDIC 2048
++
++struct prpvf_priv {
++	struct imx_media_dev *md;
++	struct imx_ic_priv *ic_priv;
++
++	/* IPU units we require */
++	struct ipu_soc *ipu;
++	struct ipu_ic *ic_vf;
++	struct ipu_vdi *vdi;
++
++	struct media_pad pad[PRPVF_NUM_PADS];
++	int input_pad;
++	int output_pad;
++
++	struct ipuv3_channel *vdi_in_ch_p; /* F(n-1) transfer channel */
++	struct ipuv3_channel *vdi_in_ch;   /* F(n) transfer channel */
++	struct ipuv3_channel *vdi_in_ch_n; /* F(n+1) transfer channel */
++	struct ipuv3_channel *prpvf_out_ch;/* final progressive frame channel */
++
++	/* pipeline operations */
++	struct prpvf_pipeline_ops *ops;
++
++	/* our dma buffer sink ring */
++	struct imx_media_dma_buf_ring *in_ring;
++	/* the dma buffer ring to send to sink */
++	struct imx_media_dma_buf_ring *out_ring;
++
++	/* ipu buf num for double-buffering (csi-direct path only) */
++	int ipu_buf_num;
++	struct imx_media_dma_buf *next_out_buf;
++
++	/* current and last input buffers indirect path */
++	struct imx_media_dma_buf *curr_in_buf;
++	struct imx_media_dma_buf *last_in_buf;
++
++	/*
++	 * translated field type, input line stride, and field size
++	 * for indirect path
++	 */
++	u32 fieldtype;
++	u32 in_stride;
++	u32 field_size;
++
++	struct v4l2_subdev *src_sd;
++	/* the sink that will receive the progressive out buffers */
++	struct v4l2_subdev *sink_sd;
++
++	/* the attached CSI at stream on */
++	struct v4l2_subdev *csi_sd;
++
++	/* the attached sensor at stream on */
++	struct imx_media_subdev *sensor;
++
++	/* the video standard from sensor at time of streamon */
++	v4l2_std_id std;
++
++	struct v4l2_mbus_framefmt format_mbus[PRPVF_NUM_PADS];
++	const struct imx_media_pixfmt *cc[PRPVF_NUM_PADS];
++
++	bool csi_direct;  /* using direct CSI->VDIC->IC pipeline */
++
++	/* motion select control */
++	struct v4l2_ctrl_handler ctrl_hdlr;
++	enum ipu_motion_sel motion;
++
++	struct timer_list eof_timeout_timer;
++
++	int nfb4eof_irq; /* CSI or PRPVF channel NFB4EOF IRQ */
++	int out_eof_irq; /* PRPVF channel EOF IRQ */
++	spinlock_t irqlock;
++
++	bool stream_on; /* streaming is on */
++	bool last_eof;  /* waiting for last EOF at stream off */
++	struct completion last_eof_comp;
++};
++
++static inline struct prpvf_priv *sd_to_priv(struct v4l2_subdev *sd)
++{
++	struct imx_ic_priv *ic_priv = v4l2_get_subdevdata(sd);
++
++	return ic_priv->task_priv;
++}
++
++static void prpvf_put_ipu_resources(struct prpvf_priv *priv)
++{
++	if (!IS_ERR_OR_NULL(priv->ic_vf))
++		ipu_ic_put(priv->ic_vf);
++	priv->ic_vf = NULL;
++
++	if (!IS_ERR_OR_NULL(priv->vdi_in_ch_p))
++		ipu_idmac_put(priv->vdi_in_ch_p);
++	priv->vdi_in_ch_p = NULL;
++
++	if (!IS_ERR_OR_NULL(priv->vdi_in_ch))
++		ipu_idmac_put(priv->vdi_in_ch);
++	priv->vdi_in_ch = NULL;
++
++	if (!IS_ERR_OR_NULL(priv->vdi_in_ch_n))
++		ipu_idmac_put(priv->vdi_in_ch_n);
++	priv->vdi_in_ch_n = NULL;
++
++	if (!IS_ERR_OR_NULL(priv->prpvf_out_ch))
++		ipu_idmac_put(priv->prpvf_out_ch);
++	priv->prpvf_out_ch = NULL;
++
++	if (!IS_ERR_OR_NULL(priv->vdi))
++		ipu_vdi_put(priv->vdi);
++	priv->vdi = NULL;
++}
++
++static int prpvf_get_ipu_resources(struct prpvf_priv *priv)
++{
++	struct imx_ic_priv *ic_priv = priv->ic_priv;
++	int ret, err_chan;
++
++	priv->ipu = priv->md->ipu[ic_priv->ipu_id];
++
++	priv->ic_vf = ipu_ic_get(priv->ipu, IC_TASK_VIEWFINDER);
++	if (IS_ERR(priv->ic_vf)) {
++		v4l2_err(&ic_priv->sd, "failed to get IC VF\n");
++		ret = PTR_ERR(priv->ic_vf);
++		goto out;
++	}
++
++	priv->vdi = ipu_vdi_get(priv->ipu);
++	if (IS_ERR(priv->vdi)) {
++		v4l2_err(&ic_priv->sd, "failed to get VDIC\n");
++		ret = PTR_ERR(priv->vdi);
++		goto out;
++	}
++
++	priv->prpvf_out_ch = ipu_idmac_get(priv->ipu,
++					   IPUV3_CHANNEL_IC_PRP_VF_MEM);
++	if (IS_ERR(priv->prpvf_out_ch)) {
++		err_chan = IPUV3_CHANNEL_IC_PRP_VF_MEM;
++		ret = PTR_ERR(priv->prpvf_out_ch);
++		goto out_err_chan;
++	}
++
++	if (!priv->csi_direct) {
++		priv->vdi_in_ch_p = ipu_idmac_get(priv->ipu,
++						  IPUV3_CHANNEL_MEM_VDI_PREV);
++		if (IS_ERR(priv->vdi_in_ch_p)) {
++			err_chan = IPUV3_CHANNEL_MEM_VDI_PREV;
++			ret = PTR_ERR(priv->vdi_in_ch_p);
++			goto out_err_chan;
++		}
++
++		priv->vdi_in_ch = ipu_idmac_get(priv->ipu,
++						IPUV3_CHANNEL_MEM_VDI_CUR);
++		if (IS_ERR(priv->vdi_in_ch)) {
++			err_chan = IPUV3_CHANNEL_MEM_VDI_CUR;
++			ret = PTR_ERR(priv->vdi_in_ch);
++			goto out_err_chan;
++		}
++
++		priv->vdi_in_ch_n = ipu_idmac_get(priv->ipu,
++						  IPUV3_CHANNEL_MEM_VDI_NEXT);
++		if (IS_ERR(priv->vdi_in_ch_n)) {
++			err_chan = IPUV3_CHANNEL_MEM_VDI_NEXT;
++			ret = PTR_ERR(priv->vdi_in_ch_n);
++			goto out_err_chan;
++		}
++	}
++
++	return 0;
++
++out_err_chan:
++	v4l2_err(&ic_priv->sd, "could not get IDMAC channel %u\n", err_chan);
++out:
++	prpvf_put_ipu_resources(priv);
++	return ret;
++}
++
++static void prepare_vdi_in_buffers(struct prpvf_priv *priv,
++				   struct imx_media_dma_buf *curr)
++{
++	dma_addr_t prev_phys, curr_phys, next_phys;
++	struct imx_media_dma_buf *last;
++
++	last = priv->last_in_buf ? priv->last_in_buf : curr;
++	priv->curr_in_buf = curr;
++
++	switch (priv->fieldtype) {
++	case V4L2_FIELD_SEQ_TB:
++		prev_phys = last->phys;
++		curr_phys = curr->phys + priv->field_size;
++		next_phys = curr->phys;
++		break;
++	case V4L2_FIELD_SEQ_BT:
++		prev_phys = last->phys + priv->field_size;
++		curr_phys = curr->phys;
++		next_phys = curr->phys + priv->field_size;
++		break;
++	case V4L2_FIELD_INTERLACED_BT:
++		prev_phys = last->phys + priv->in_stride;
++		curr_phys = curr->phys;
++		next_phys = curr->phys + priv->in_stride;
++		break;
++	default:
++		/* assume V4L2_FIELD_INTERLACED_TB */
++		prev_phys = last->phys;
++		curr_phys = curr->phys + priv->in_stride;
++		next_phys = curr->phys;
++		break;
++	}
++
++	ipu_cpmem_set_buffer(priv->vdi_in_ch_p, 0, prev_phys);
++	ipu_cpmem_set_buffer(priv->vdi_in_ch,   0, curr_phys);
++	ipu_cpmem_set_buffer(priv->vdi_in_ch_n, 0, next_phys);
++
++	ipu_idmac_select_buffer(priv->vdi_in_ch_p, 0);
++	ipu_idmac_select_buffer(priv->vdi_in_ch, 0);
++	ipu_idmac_select_buffer(priv->vdi_in_ch_n, 0);
++}
++
++static void prepare_prpvf_out_buffer(struct prpvf_priv *priv)
++{
++	struct imx_media_dma_buf *buf;
++
++	/* get next buffer to prepare */
++	buf = imx_media_dma_buf_get_next_queued(priv->out_ring);
++	if (!priv->csi_direct) {
++		/*
++		 * indirect does not use double-buffering, so this
++		 * buffer is now the active one
++		 */
++		imx_media_dma_buf_set_active(buf);
++	} else {
++		priv->next_out_buf = buf;
++	}
++
++	ipu_cpmem_set_buffer(priv->prpvf_out_ch, priv->ipu_buf_num, buf->phys);
++	ipu_idmac_select_buffer(priv->prpvf_out_ch, priv->ipu_buf_num);
++}
++
++/* prpvf_out_ch EOF interrupt (progressive frame ready) */
++static irqreturn_t prpvf_out_eof_interrupt(int irq, void *dev_id)
++{
++	struct prpvf_priv *priv = dev_id;
++	struct imx_media_dma_buf *done;
++	unsigned long flags;
++
++	spin_lock_irqsave(&priv->irqlock, flags);
++
++	if (priv->last_eof) {
++		complete(&priv->last_eof_comp);
++		priv->last_eof = false;
++		goto unlock;
++	}
++
++	if (priv->csi_direct) {
++		/* inform CSI of this EOF so it can monitor frame intervals */
++		/* FIXME: frames are coming in twice as fast in direct path! */
++		v4l2_subdev_call(priv->src_sd, core, interrupt_service_routine,
++				 0, NULL);
++	}
++
++	done = imx_media_dma_buf_get_active(priv->out_ring);
++	/* give the completed buffer to the sink  */
++	if (!WARN_ON(!done))
++		imx_media_dma_buf_done(done, IMX_MEDIA_BUF_STATUS_DONE);
++
++	if (!priv->csi_direct) {
++		/* we're done with the input buffer, queue it back */
++		imx_media_dma_buf_queue(priv->in_ring,
++					priv->curr_in_buf->index);
++
++		/* current input buffer is now last */
++		priv->last_in_buf = priv->curr_in_buf;
++	} else {
++		/*
++		 * priv->next buffer is now the active one due
++		 * to IPU double-buffering
++		 */
++		imx_media_dma_buf_set_active(priv->next_out_buf);
++	}
++
++	/* bump the EOF timeout timer */
++	mod_timer(&priv->eof_timeout_timer,
++		  jiffies + msecs_to_jiffies(IMX_MEDIA_EOF_TIMEOUT));
++
++	if (priv->csi_direct) {
++		prepare_prpvf_out_buffer(priv);
++		/* toggle IPU double-buffer index */
++		priv->ipu_buf_num ^= 1;
++	}
++
++unlock:
++	spin_unlock_irqrestore(&priv->irqlock, flags);
++	return IRQ_HANDLED;
++}
++
++static long prpvf_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
++{
++	struct prpvf_priv *priv = sd_to_priv(sd);
++	struct imx_media_dma_buf_ring **ring;
++	struct imx_media_dma_buf *buf;
++	unsigned long flags;
++
++	switch (cmd) {
++	case IMX_MEDIA_REQ_DMA_BUF_SINK_RING:
++		if (!priv->in_ring)
++			return -EINVAL;
++		ring = (struct imx_media_dma_buf_ring **)arg;
++		*ring = priv->in_ring;
++		break;
++	case IMX_MEDIA_NEW_DMA_BUF:
++		spin_lock_irqsave(&priv->irqlock, flags);
++		if (!imx_media_dma_buf_get_active(priv->out_ring)) {
++			buf = imx_media_dma_buf_dequeue(priv->in_ring);
++			if (buf) {
++				prepare_vdi_in_buffers(priv, buf);
++				prepare_prpvf_out_buffer(priv);
++			}
++		}
++		spin_unlock_irqrestore(&priv->irqlock, flags);
++		break;
++	case IMX_MEDIA_REL_DMA_BUF_SINK_RING:
++		/* src indicates sink buffer ring can be freed */
++		if (!priv->in_ring)
++			return 0;
++		v4l2_info(sd, "%s: freeing sink ring\n", __func__);
++		imx_media_free_dma_buf_ring(priv->in_ring);
++		priv->in_ring = NULL;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static irqreturn_t nfb4eof_interrupt(int irq, void *dev_id)
++{
++	struct prpvf_priv *priv = dev_id;
++	struct imx_ic_priv *ic_priv = priv->ic_priv;
++	static const struct v4l2_event ev = {
++		.type = V4L2_EVENT_IMX_NFB4EOF,
++	};
++
++	v4l2_err(&ic_priv->sd, "NFB4EOF\n");
++
++	v4l2_subdev_notify_event(&ic_priv->sd, &ev);
++
++	return IRQ_HANDLED;
++}
++
++/*
++ * EOF timeout timer function.
++ */
++static void prpvf_eof_timeout(unsigned long data)
++{
++	struct prpvf_priv *priv = (struct prpvf_priv *)data;
++	struct imx_ic_priv *ic_priv = priv->ic_priv;
++	static const struct v4l2_event ev = {
++		.type = V4L2_EVENT_IMX_EOF_TIMEOUT,
++	};
++
++	v4l2_err(&ic_priv->sd, "EOF timeout\n");
++
++	v4l2_subdev_notify_event(&ic_priv->sd, &ev);
++}
++
++static void setup_vdi_channel(struct prpvf_priv *priv,
++			      struct ipuv3_channel *channel,
++			      dma_addr_t phys0, dma_addr_t phys1,
++			      bool out_chan)
++{
++	struct v4l2_mbus_framefmt *infmt, *outfmt;
++	unsigned int burst_size;
++	struct ipu_image image;
++
++	infmt = &priv->format_mbus[priv->input_pad];
++	outfmt = &priv->format_mbus[priv->output_pad];
++
++	if (out_chan) {
++		imx_media_mbus_fmt_to_ipu_image(&image, outfmt);
++	} else {
++		/* one field to VDIC channels */
++		infmt->height /= 2;
++		imx_media_mbus_fmt_to_ipu_image(&image, infmt);
++		infmt->height *= 2;
++	}
++	image.phys0 = phys0;
++	image.phys1 = phys1;
++
++	ipu_cpmem_zero(channel);
++	ipu_cpmem_set_image(channel, &image);
++
++	if (out_chan) {
++		burst_size = (outfmt->width & 0xf) ? 8 : 16;
++		ipu_cpmem_set_burstsize(channel, burst_size);
++		ipu_ic_task_idma_init(priv->ic_vf, channel,
++				      outfmt->width, outfmt->height,
++				      burst_size, IPU_ROTATE_NONE);
++	} else {
++		burst_size = (infmt->width & 0xf) ? 8 : 16;
++		ipu_cpmem_set_burstsize(channel, burst_size);
++	}
++
++	ipu_cpmem_set_axi_id(channel, 1);
++
++	ipu_idmac_set_double_buffer(channel, priv->csi_direct && out_chan);
++}
++
++static int prpvf_setup_direct(struct prpvf_priv *priv)
++{
++	struct imx_media_dma_buf *buf0, *buf1;
++
++	/* set VDIC to receive from CSI for direct path */
++	ipu_fsu_link(priv->ipu, IPUV3_CHANNEL_CSI_DIRECT,
++		     IPUV3_CHANNEL_CSI_VDI_PREV);
++
++	priv->ipu_buf_num = 0;
++
++	buf0 = imx_media_dma_buf_get_next_queued(priv->out_ring);
++	imx_media_dma_buf_set_active(buf0);
++	buf1 = imx_media_dma_buf_get_next_queued(priv->out_ring);
++	priv->next_out_buf = buf1;
++
++	/* init the prpvf out channel */
++	setup_vdi_channel(priv, priv->prpvf_out_ch,
++			  buf0->phys, buf1->phys, true);
++
++	return 0;
++}
++
++static void prpvf_start_direct(struct prpvf_priv *priv)
++{
++	/* set buffers ready */
++	ipu_idmac_select_buffer(priv->prpvf_out_ch, 0);
++	ipu_idmac_select_buffer(priv->prpvf_out_ch, 1);
++
++	/* enable the channels */
++	ipu_idmac_enable_channel(priv->prpvf_out_ch);
++}
++
++static void prpvf_stop_direct(struct prpvf_priv *priv)
++{
++	ipu_idmac_disable_channel(priv->prpvf_out_ch);
++}
++
++static void prpvf_disable_direct(struct prpvf_priv *priv)
++{
++	ipu_fsu_unlink(priv->ipu, IPUV3_CHANNEL_CSI_DIRECT,
++		       IPUV3_CHANNEL_CSI_VDI_PREV);
++}
++
++static int prpvf_setup_indirect(struct prpvf_priv *priv)
++{
++	struct imx_ic_priv *ic_priv = priv->ic_priv;
++	struct v4l2_mbus_framefmt *infmt;
++	const struct imx_media_pixfmt *incc;
++	int in_size, i, ret;
++
++	infmt = &priv->format_mbus[priv->input_pad];
++	incc = priv->cc[priv->input_pad];
++
++	in_size = (infmt->width * incc->bpp * infmt->height) >> 3;
++
++	/* 1/2 full image size */
++	priv->field_size = in_size / 2;
++	priv->in_stride = incc->planar ?
++		infmt->width : (infmt->width * incc->bpp) >> 3;
++
++	priv->ipu_buf_num = 0;
++
++	if (priv->in_ring) {
++		v4l2_warn(&ic_priv->sd, "%s: dma-buf ring was not freed\n",
++			  __func__);
++		imx_media_free_dma_buf_ring(priv->in_ring);
++	}
++
++	priv->in_ring = imx_media_alloc_dma_buf_ring(
++		priv->md, &priv->src_sd->entity,
++		&ic_priv->sd.entity,
++		in_size, IMX_MEDIA_MIN_RING_BUFS_PRPVF, true);
++	if (IS_ERR(priv->in_ring)) {
++		v4l2_err(&ic_priv->sd, "failed to alloc dma-buf ring\n");
++		ret = PTR_ERR(priv->in_ring);
++		priv->in_ring = NULL;
++		return ret;
++	}
++
++	for (i = 0; i < IMX_MEDIA_MIN_RING_BUFS_PRPVF; i++)
++		imx_media_dma_buf_queue(priv->in_ring, i);
++
++	priv->last_in_buf = NULL;
++	priv->curr_in_buf = NULL;
++
++	/* translate V4L2_FIELD_ALTERNATE to SEQ_TB or SEQ_BT */
++	priv->fieldtype = infmt->field;
++	if (infmt->field == V4L2_FIELD_ALTERNATE)
++		priv->fieldtype = (priv->std & V4L2_STD_525_60) ?
++			V4L2_FIELD_SEQ_TB : V4L2_FIELD_SEQ_BT;
++
++	/* init the vdi-in channels */
++	setup_vdi_channel(priv, priv->vdi_in_ch_p, 0, 0, false);
++	setup_vdi_channel(priv, priv->vdi_in_ch, 0, 0, false);
++	setup_vdi_channel(priv, priv->vdi_in_ch_n, 0, 0, false);
++
++	/* init the prpvf out channel */
++	setup_vdi_channel(priv, priv->prpvf_out_ch, 0, 0, true);
++
++	return 0;
++}
++
++static void prpvf_start_indirect(struct prpvf_priv *priv)
++{
++	/* enable the channels */
++	ipu_idmac_enable_channel(priv->prpvf_out_ch);
++	ipu_idmac_enable_channel(priv->vdi_in_ch_p);
++	ipu_idmac_enable_channel(priv->vdi_in_ch);
++	ipu_idmac_enable_channel(priv->vdi_in_ch_n);
++}
++
++static void prpvf_stop_indirect(struct prpvf_priv *priv)
++{
++	/* disable channels */
++	ipu_idmac_disable_channel(priv->prpvf_out_ch);
++	ipu_idmac_disable_channel(priv->vdi_in_ch_p);
++	ipu_idmac_disable_channel(priv->vdi_in_ch);
++	ipu_idmac_disable_channel(priv->vdi_in_ch_n);
++}
++
++static void prpvf_disable_indirect(struct prpvf_priv *priv)
++{
++}
++
++static struct prpvf_pipeline_ops direct_ops = {
++	.setup = prpvf_setup_direct,
++	.start = prpvf_start_direct,
++	.stop = prpvf_stop_direct,
++	.disable = prpvf_disable_direct,
++};
++
++static struct prpvf_pipeline_ops indirect_ops = {
++	.setup = prpvf_setup_indirect,
++	.start = prpvf_start_indirect,
++	.stop = prpvf_stop_indirect,
++	.disable = prpvf_disable_indirect,
++};
++
++static int prpvf_start(struct prpvf_priv *priv)
++{
++	struct imx_ic_priv *ic_priv = priv->ic_priv;
++	struct v4l2_mbus_framefmt *infmt, *outfmt;
++	const struct imx_media_pixfmt *outcc, *incc;
++	int ret;
++
++	if (!priv->sensor) {
++		v4l2_err(&ic_priv->sd, "no sensor attached\n");
++		return -EINVAL;
++	}
++
++	infmt = &priv->format_mbus[priv->input_pad];
++	outfmt = &priv->format_mbus[priv->output_pad];
++	incc = priv->cc[priv->input_pad];
++	outcc = priv->cc[priv->output_pad];
++
++	priv->ops = priv->csi_direct ? &direct_ops : &indirect_ops;
++
++	ret = prpvf_get_ipu_resources(priv);
++	if (ret)
++		return ret;
++
++	/* set IC to receive from VDIC */
++	ipu_set_ic_src_mux(priv->ipu, 0, true);
++
++	/* ask the sink for the buffer ring */
++	ret = v4l2_subdev_call(priv->sink_sd, core, ioctl,
++			       IMX_MEDIA_REQ_DMA_BUF_SINK_RING,
++			       &priv->out_ring);
++	if (ret)
++		goto out_put_ipu;
++
++	/* init EOF completion waitq */
++	init_completion(&priv->last_eof_comp);
++	priv->last_eof = false;
++
++	/* request EOF irq for prpvf out channel */
++	priv->out_eof_irq = ipu_idmac_channel_irq(priv->ipu,
++						  priv->prpvf_out_ch,
++						  IPU_IRQ_EOF);
++	ret = devm_request_irq(ic_priv->dev, priv->out_eof_irq,
++			       prpvf_out_eof_interrupt, 0,
++			       "imx-ic-prpvf-out-eof", priv);
++	if (ret) {
++		v4l2_err(&ic_priv->sd,
++			 "Error registering out eof irq: %d\n", ret);
++		goto out_put_ipu;
++	}
++
++	/* request NFB4EOF irq */
++	priv->nfb4eof_irq = ipu_idmac_channel_irq(priv->ipu,
++						  priv->prpvf_out_ch,
++						  IPU_IRQ_NFB4EOF);
++	ret = devm_request_irq(ic_priv->dev, priv->nfb4eof_irq,
++			       nfb4eof_interrupt, 0,
++			       "imx-ic-prpvf-nfb4eof", priv);
++	if (ret) {
++		v4l2_err(&ic_priv->sd,
++			 "Error registering NFB4EOF irq: %d\n", ret);
++		goto out_free_eof_irq;
++	}
++
++	ret = v4l2_subdev_call(priv->sensor->sd, video, g_std, &priv->std);
++	if (ret)
++		goto out_free_nfb4eof_irq;
++
++	/* init the VDIC */
++	ipu_vdi_setup(priv->vdi, infmt->code,
++		      infmt->width, infmt->height);
++	ipu_vdi_set_field_order(priv->vdi, priv->std, infmt->field);
++	ipu_vdi_set_motion(priv->vdi, priv->motion);
++
++	ret = ipu_ic_task_init(priv->ic_vf,
++			       infmt->width, infmt->height,
++			       outfmt->width, outfmt->height,
++			       incc->cs, outcc->cs);
++	if (ret) {
++		v4l2_err(&ic_priv->sd, "ipu_ic_task_init failed, %d\n", ret);
++		goto out_free_nfb4eof_irq;
++	}
++
++	ret = priv->ops->setup(priv);
++	if (ret)
++		goto out_free_nfb4eof_irq;
++
++	ipu_vdi_enable(priv->vdi);
++	ipu_ic_enable(priv->ic_vf);
++
++	priv->ops->start(priv);
++
++	/* enable the IC VF task */
++	ipu_ic_task_enable(priv->ic_vf);
++
++	/* start the EOF timeout timer */
++	mod_timer(&priv->eof_timeout_timer,
++		  jiffies + msecs_to_jiffies(IMX_MEDIA_EOF_TIMEOUT));
++
++	return 0;
++
++out_free_nfb4eof_irq:
++	devm_free_irq(ic_priv->dev, priv->nfb4eof_irq, priv);
++out_free_eof_irq:
++	devm_free_irq(ic_priv->dev, priv->out_eof_irq, priv);
++out_put_ipu:
++	prpvf_put_ipu_resources(priv);
++	return ret;
++}
++
++static void prpvf_stop(struct prpvf_priv *priv)
++{
++	struct imx_ic_priv *ic_priv = priv->ic_priv;
++	unsigned long flags;
++	int ret;
++
++	/* mark next EOF interrupt as the last before stream off */
++	spin_lock_irqsave(&priv->irqlock, flags);
++	priv->last_eof = true;
++	spin_unlock_irqrestore(&priv->irqlock, flags);
++
++	/*
++	 * and then wait for interrupt handler to mark completion.
++	 */
++	ret = wait_for_completion_timeout(
++		&priv->last_eof_comp, msecs_to_jiffies(IMX_MEDIA_EOF_TIMEOUT));
++	if (ret == 0)
++		v4l2_warn(&ic_priv->sd, "wait last EOF timeout\n");
++
++	ipu_ic_task_disable(priv->ic_vf);
++	priv->ops->stop(priv);
++	ipu_ic_disable(priv->ic_vf);
++	ipu_vdi_disable(priv->vdi);
++	priv->ops->disable(priv);
++
++	devm_free_irq(ic_priv->dev, priv->nfb4eof_irq, priv);
++	devm_free_irq(ic_priv->dev, priv->out_eof_irq, priv);
++	prpvf_put_ipu_resources(priv);
++
++	/* cancel the EOF timeout timer */
++	del_timer_sync(&priv->eof_timeout_timer);
++
++	priv->out_ring = NULL;
++
++	/* inform sink that the buffer ring can now be freed */
++	v4l2_subdev_call(priv->sink_sd, core, ioctl,
++			 IMX_MEDIA_REL_DMA_BUF_SINK_RING, 0);
++}
++
++static int prpvf_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct prpvf_priv *priv = container_of(ctrl->handler,
++					       struct prpvf_priv, ctrl_hdlr);
++	struct imx_ic_priv *ic_priv = priv->ic_priv;
++	enum ipu_motion_sel motion;
++
++	switch (ctrl->id) {
++	case V4L2_CID_IMX_MOTION:
++		motion = ctrl->val;
++		if (motion != priv->motion) {
++			/* can't change motion control mid-streaming */
++			if (priv->stream_on)
++				return -EBUSY;
++			priv->motion = motion;
++		}
++		break;
++	default:
++		v4l2_err(&ic_priv->sd, "Invalid control\n");
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static const struct v4l2_ctrl_ops prpvf_ctrl_ops = {
++	.s_ctrl = prpvf_s_ctrl,
++};
++
++static const struct v4l2_ctrl_config prpvf_custom_ctrl[] = {
++	{
++		.ops = &prpvf_ctrl_ops,
++		.id = V4L2_CID_IMX_MOTION,
++		.name = "Motion Compensation",
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.def = MOTION_NONE,
++		.min = MOTION_NONE,
++		.max = HIGH_MOTION,
++		.step = 1,
++	},
++};
++
++#define PRPVF_NUM_CONTROLS ARRAY_SIZE(prpvf_custom_ctrl)
++
++static int prpvf_init_controls(struct prpvf_priv *priv)
++{
++	struct imx_ic_priv *ic_priv = priv->ic_priv;
++	struct v4l2_ctrl_handler *hdlr = &priv->ctrl_hdlr;
++	const struct v4l2_ctrl_config *c;
++	int i, ret;
++
++	v4l2_ctrl_handler_free(hdlr);
++	v4l2_ctrl_handler_init(hdlr, PRPVF_NUM_CONTROLS);
++
++	for (i = 0; i < PRPVF_NUM_CONTROLS; i++) {
++		c = &prpvf_custom_ctrl[i];
++		v4l2_ctrl_new_custom(hdlr, c, NULL);
++	}
++
++	ic_priv->sd.ctrl_handler = hdlr;
++
++	if (hdlr->error) {
++		ret = hdlr->error;
++		goto out_free;
++	}
++
++	v4l2_ctrl_handler_setup(hdlr);
++	return 0;
++
++out_free:
++	v4l2_ctrl_handler_free(hdlr);
++	return ret;
++}
++
++static int prpvf_s_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct prpvf_priv *priv = sd_to_priv(sd);
++	int ret = 0;
++
++	if (!priv->src_sd || !priv->sink_sd)
++		return -EPIPE;
++
++	v4l2_info(sd, "stream %s\n", enable ? "ON" : "OFF");
++
++	if (enable && !priv->stream_on)
++		ret = prpvf_start(priv);
++	else if (!enable && priv->stream_on)
++		prpvf_stop(priv);
++
++	if (!ret)
++		priv->stream_on = enable;
++	return ret;
++}
++
++static int prpvf_enum_mbus_code(struct v4l2_subdev *sd,
++				struct v4l2_subdev_pad_config *cfg,
++				struct v4l2_subdev_mbus_code_enum *code)
++{
++	struct prpvf_priv *priv = sd_to_priv(sd);
++	bool allow_planar, allow_rgb;
++
++	if (code->pad >= PRPVF_NUM_PADS)
++		return -EINVAL;
++
++	allow_planar = (code->pad == priv->output_pad);
++	allow_rgb = allow_planar;
++
++	return imx_media_enum_format(&code->code, code->index,
++				     allow_rgb, allow_planar);
++}
++
++static int prpvf_get_fmt(struct v4l2_subdev *sd,
++			 struct v4l2_subdev_pad_config *cfg,
++			 struct v4l2_subdev_format *sdformat)
++{
++	struct prpvf_priv *priv = sd_to_priv(sd);
++
++	if (sdformat->pad >= PRPVF_NUM_PADS)
++		return -EINVAL;
++
++	sdformat->format = priv->format_mbus[sdformat->pad];
++
++	return 0;
++}
++
++static int prpvf_set_fmt(struct v4l2_subdev *sd,
++			 struct v4l2_subdev_pad_config *cfg,
++			 struct v4l2_subdev_format *sdformat)
++{
++	struct prpvf_priv *priv = sd_to_priv(sd);
++	struct v4l2_mbus_framefmt *infmt, *outfmt;
++	const struct imx_media_pixfmt *cc;
++	bool allow_planar, allow_rgb;
++	u32 code;
++
++	if (sdformat->pad >= PRPVF_NUM_PADS)
++		return -EINVAL;
++
++	if (priv->stream_on)
++		return -EBUSY;
++
++	infmt = &priv->format_mbus[priv->input_pad];
++	outfmt = &priv->format_mbus[priv->output_pad];
++	allow_planar = (sdformat->pad == priv->output_pad);
++	allow_rgb = allow_planar;
++
++	cc = imx_media_find_format(0, sdformat->format.code,
++				   allow_rgb, allow_planar);
++	if (!cc) {
++		imx_media_enum_format(&code, 0, false, false);
++		cc = imx_media_find_format(0, code, false, false);
++		sdformat->format.code = cc->codes[0];
++	}
++
++	if (sdformat->pad == priv->output_pad) {
++		sdformat->format.width = min_t(__u32,
++					       sdformat->format.width,
++					       MAX_W_IC);
++		sdformat->format.height = min_t(__u32,
++						sdformat->format.height,
++						MAX_H_IC);
++		/* IC resizer cannot downsize more than 4:1 */
++		sdformat->format.width = max_t(__u32, sdformat->format.width,
++					       infmt->width / 4);
++		sdformat->format.height = max_t(__u32, sdformat->format.height,
++						infmt->height / 4);
++
++		/* output is always progressive! */
++		sdformat->format.field = V4L2_FIELD_NONE;
++	} else {
++		sdformat->format.width = min_t(__u32,
++					       sdformat->format.width,
++					       MAX_W_VDIC);
++		sdformat->format.height = min_t(__u32,
++						sdformat->format.height,
++						MAX_H_VDIC);
++
++		/* input must be interlaced! Choose alternate if not */
++		if (!V4L2_FIELD_HAS_BOTH(sdformat->format.field))
++			sdformat->format.field = V4L2_FIELD_ALTERNATE;
++	}
++
++	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY) {
++		cfg->try_fmt = sdformat->format;
++	} else {
++		priv->format_mbus[sdformat->pad] = sdformat->format;
++		priv->cc[sdformat->pad] = cc;
++	}
++
++	return 0;
++}
++
++static int prpvf_link_setup(struct media_entity *entity,
++			    const struct media_pad *local,
++			    const struct media_pad *remote, u32 flags)
++{
++	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
++	struct imx_ic_priv *ic_priv = v4l2_get_subdevdata(sd);
++	struct prpvf_priv *priv = ic_priv->task_priv;
++	struct v4l2_subdev *remote_sd;
++	int ret;
++
++	dev_dbg(ic_priv->dev, "link setup %s -> %s", remote->entity->name,
++		local->entity->name);
++
++	remote_sd = media_entity_to_v4l2_subdev(remote->entity);
++
++	if (local->flags & MEDIA_PAD_FL_SOURCE) {
++		if (flags & MEDIA_LNK_FL_ENABLED) {
++			if (priv->sink_sd)
++				return -EBUSY;
++			priv->sink_sd = remote_sd;
++		} else {
++			priv->sink_sd = NULL;
++		}
++
++		return 0;
++	}
++
++	/* this is sink pad */
++	if (flags & MEDIA_LNK_FL_ENABLED) {
++		if (priv->src_sd)
++			return -EBUSY;
++		priv->src_sd = remote_sd;
++
++		priv->csi_direct = ((priv->src_sd->grp_id &
++				     IMX_MEDIA_GRP_ID_CSI) != 0);
++
++		ret = prpvf_init_controls(priv);
++		if (ret)
++			return ret;
++	} else {
++		v4l2_ctrl_handler_free(&priv->ctrl_hdlr);
++		priv->src_sd = NULL;
++	}
++
++	return 0;
++}
++
++static int prpvf_link_validate(struct v4l2_subdev *sd,
++			       struct media_link *link,
++			       struct v4l2_subdev_format *source_fmt,
++			       struct v4l2_subdev_format *sink_fmt)
++{
++	struct imx_ic_priv *ic_priv = v4l2_get_subdevdata(sd);
++	struct prpvf_priv *priv = ic_priv->task_priv;
++	struct v4l2_mbus_config sensor_mbus_cfg;
++	struct imx_media_subdev *csi;
++	int ret;
++
++	ret = v4l2_subdev_link_validate_default(sd, link,
++						source_fmt, sink_fmt);
++	if (ret)
++		return ret;
++
++	priv->sensor = __imx_media_find_sensor(priv->md, &ic_priv->sd.entity);
++	if (IS_ERR(priv->sensor)) {
++		v4l2_err(&ic_priv->sd, "no sensor attached\n");
++		ret = PTR_ERR(priv->sensor);
++		priv->sensor = NULL;
++		return ret;
++	}
++
++	if (!priv->csi_direct) {
++		csi = imx_media_find_pipeline_subdev(
++			priv->md, &ic_priv->sd.entity, IMX_MEDIA_GRP_ID_CSI);
++		if (IS_ERR(csi)) {
++			v4l2_err(&ic_priv->sd, "no CSI attached\n");
++			ret = PTR_ERR(csi);
++			return ret;
++		}
++
++		priv->csi_sd = csi->sd;
++		return 0;
++	}
++
++	priv->csi_sd = priv->src_sd;
++
++	if (priv->motion != HIGH_MOTION) {
++		v4l2_err(&ic_priv->sd,
++			 "direct CSI pipeline requires HIGH_MOTION\n");
++		return -EINVAL;
++	}
++
++	ret = v4l2_subdev_call(priv->sensor->sd, video, g_mbus_config,
++			       &sensor_mbus_cfg);
++	if (ret)
++		return ret;
++
++	if (sensor_mbus_cfg.type == V4L2_MBUS_CSI2) {
++		int vc_num = 0;
++		/* see NOTE in imx-csi.c */
++#if 0
++		vc_num = imx_media_find_mipi_csi2_channel(
++			priv->md, &ic_priv->sd.entity);
++		if (vc_num < 0)
++			return vc_num;
++#endif
++		/* only virtual channel 0 can be sent to IC */
++		if (vc_num != 0)
++			return -EINVAL;
++	} else {
++		/* only 8-bit pixels can be sent to IC for parallel busses */
++		if (priv->sensor->sensor_ep.bus.parallel.bus_width >= 16)
++			return -EINVAL;
++	}
++
++	return 0;
++}
++
++/*
++ * retrieve our pads parsed from the OF graph by the media device
++ */
++static int prpvf_registered(struct v4l2_subdev *sd)
++{
++	struct prpvf_priv *priv = sd_to_priv(sd);
++	struct imx_media_subdev *imxsd;
++	struct imx_media_pad *pad;
++	int i, ret;
++
++	/* get media device */
++	priv->md = dev_get_drvdata(sd->v4l2_dev->dev);
++
++	imxsd = imx_media_find_subdev_by_sd(priv->md, sd);
++	if (IS_ERR(imxsd))
++		return PTR_ERR(imxsd);
++
++	if (imxsd->num_sink_pads != 1 || imxsd->num_src_pads != 1)
++		return -EINVAL;
++
++	for (i = 0; i < PRPVF_NUM_PADS; i++) {
++		pad = &imxsd->pad[i];
++		priv->pad[i] = pad->pad;
++		if (priv->pad[i].flags & MEDIA_PAD_FL_SINK)
++			priv->input_pad = i;
++		else
++			priv->output_pad = i;
++
++		/* set a default mbus format  */
++		ret = imx_media_init_mbus_fmt(&priv->format_mbus[i],
++					      640, 480, 0, V4L2_FIELD_NONE,
++					      &priv->cc[i]);
++		if (ret)
++			return ret;
++	}
++
++	return media_entity_pads_init(&sd->entity, PRPVF_NUM_PADS, priv->pad);
++}
++
++static struct v4l2_subdev_pad_ops prpvf_pad_ops = {
++	.enum_mbus_code = prpvf_enum_mbus_code,
++	.get_fmt = prpvf_get_fmt,
++	.set_fmt = prpvf_set_fmt,
++	.link_validate = prpvf_link_validate,
++};
++
++static struct v4l2_subdev_video_ops prpvf_video_ops = {
++	.s_stream = prpvf_s_stream,
++};
++
++static struct v4l2_subdev_core_ops prpvf_core_ops = {
++	.ioctl = prpvf_ioctl,
++};
++
++static struct media_entity_operations prpvf_entity_ops = {
++	.link_setup = prpvf_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
++};
++
++static struct v4l2_subdev_ops prpvf_subdev_ops = {
++	.video = &prpvf_video_ops,
++	.pad = &prpvf_pad_ops,
++	.core = &prpvf_core_ops,
++};
++
++static struct v4l2_subdev_internal_ops prpvf_internal_ops = {
++	.registered = prpvf_registered,
++};
++
++static int prpvf_init(struct imx_ic_priv *ic_priv)
++{
++	struct prpvf_priv *priv;
++
++	priv = devm_kzalloc(ic_priv->dev, sizeof(*priv), GFP_KERNEL);
++	if (!priv)
++		return -ENOMEM;
++
++	ic_priv->task_priv = priv;
++	priv->ic_priv = ic_priv;
++
++	spin_lock_init(&priv->irqlock);
++	init_timer(&priv->eof_timeout_timer);
++	priv->eof_timeout_timer.data = (unsigned long)priv;
++	priv->eof_timeout_timer.function = prpvf_eof_timeout;
++
++	return 0;
++}
++
++static void prpvf_remove(struct imx_ic_priv *ic_priv)
++{
++	struct prpvf_priv *priv = ic_priv->task_priv;
++
++	v4l2_ctrl_handler_free(&priv->ctrl_hdlr);
++}
++
++struct imx_ic_ops imx_ic_prpvf_ops = {
++	.subdev_ops = &prpvf_subdev_ops,
++	.internal_ops = &prpvf_internal_ops,
++	.entity_ops = &prpvf_entity_ops,
++	.init = prpvf_init,
++	.remove = prpvf_remove,
++};
+diff --git a/drivers/staging/media/imx/imx-ic.h b/drivers/staging/media/imx/imx-ic.h
+new file mode 100644
+index 0000000..9aed5f5
+--- /dev/null
++++ b/drivers/staging/media/imx/imx-ic.h
+@@ -0,0 +1,36 @@
++/*
++ * V4L2 Image Converter Subdev for Freescale i.MX5/6 SOC
++ *
++ * Copyright (c) 2016 Mentor Graphics Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++#ifndef _IMX_IC_H
++#define _IMX_IC_H
++
++struct imx_ic_priv {
++	struct device *dev;
++	struct v4l2_subdev sd;
++	int    ipu_id;
++	int    task_id;
++	void   *task_priv;
++};
++
++struct imx_ic_ops {
++	struct v4l2_subdev_ops *subdev_ops;
++	struct v4l2_subdev_internal_ops *internal_ops;
++	struct media_entity_operations *entity_ops;
++
++	int (*init)(struct imx_ic_priv *ic_priv);
++	void (*remove)(struct imx_ic_priv *ic_priv);
++};
++
++extern struct imx_ic_ops imx_ic_prpenc_ops;
++extern struct imx_ic_ops imx_ic_prpvf_ops;
++extern struct imx_ic_ops imx_ic_pp_ops;
++
++#endif
++
+-- 
+2.7.4
 
-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
-ydH+/9wOavTFYgEA
-
---EVF5PPMfhYS0aIcm--
