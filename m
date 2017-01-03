@@ -1,63 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from regular1.263xmail.com ([211.150.99.139]:39472 "EHLO
-        regular1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750893AbdAQDE7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Jan 2017 22:04:59 -0500
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>, pawel@osciak.com,
-        "ayaka@soulik.info" <ayaka@soulik.info>,
-        "nicolas.dufresne@collabora.co.uk" <nicolas.dufresne@collabora.co.uk>,
-        florent.revest@free-electrons.com, hugues.fruchet@st.com,
-        "herman.chen@rock-chips.com" <herman.chen@rock-chips.com>
-From: Randy Li <randy.li@rock-chips.com>
-Subject: Request API: stateless VPU: the buffer mechanism and DPB management
-Message-ID: <c09c78e4-d825-8af4-4309-8ef051043ed8@rock-chips.com>
-Date: Tue, 17 Jan 2017 11:04:40 +0800
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:34832 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966142AbdACU6S (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2017 15:58:18 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: shawnguo@kernel.org, kernel@pengutronix.de, fabio.estevam@nxp.com,
+        robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk,
+        mchehab@kernel.org, gregkh@linuxfoundation.org,
+        p.zabel@pengutronix.de
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2 19/19] ARM: imx_v6_v7_defconfig: Enable staging video4linux drivers
+Date: Tue,  3 Jan 2017 12:57:29 -0800
+Message-Id: <1483477049-19056-20-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello all:
-   I have recently finish the learning of the H.264 codec and ready to 
-write the driver. Although I have not get deep in syntax of H.264 but I 
-think I just need to reuse and extended the VA-API H264 Parser from 
-gstreamer. The whole plan in userspace is just injecting a parsing 
-operation and set those v4l2 control in kernel before enqueue a buffer 
-into OUTPUT, which would keep the most compatible with those stateful 
-video IP(those with a firmware).
-   But in order to do that, I can't avoid the management of DPB. I 
-decided to moving the DPB management job from userspace in kernel. Also 
-the video IP(On2 on rk3288 and the transition video IP on those future 
-SoC than rk3288, rkv don't have this problem) would a special way to 
-manage the DPB, which requests the same reference frame is storing in 
-the same reference index in the runtime(actually it is its Motion Vector 
-data appended in decoded YUV data would not be moved). I would suggest 
-to keep those job in kernel, the userspace just to need update the list0 
-and list1 of DPB. DPB is self managed in kernel the userspace don't need 
-to even dequeue the buffer from CAPTURE until the re-order is done.
-   The kernel driver would also re-order the CAPTURE buffer into display 
-order, and blocking the operation on CAPTURE until a buffer is ready to 
-place in the very display order. If I don't do that, I have to get the 
-buffer once it is decoded, and marking its result with the poc, I could 
-only begin the processing of the next frame only after those thing are 
-done. Which would effect the performance badly. That is what chromebook 
-did(I hear that from the other staff, I didn't get invoke in chromium 
-project yet). So I would suggest that doing the re-order job in kernel, 
-and inform the the userspace the buffers are ready when the new I 
-frame(key frame) is pushed into the video IP.
-   Although moving those job into kernel would increase the loading, but 
-I think it is worth to do that, but I don't know whether all those 
-thought are correct and high performance(It is more important than API 
-compatible especially for those 4K video). And I want to know more ideas 
-about this topic.
-   I would begin the writing the new driver after the coming culture new 
-year vacation(I would go to the Europe), I wish we can decide the final 
-mechanism before I begin this job.
+Enable imx v4l2 staging drivers. For video capture on
+the SabreAuto, the ADV7180 video decoder also requires the
+i2c-mux-gpio and the max7310 port expander. The Sabrelite
+requires PWM clocks for the OV5640.
+
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ arch/arm/configs/imx_v6_v7_defconfig | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/configs/imx_v6_v7_defconfig b/arch/arm/configs/imx_v6_v7_defconfig
+index cbe7faf..5da4d8e 100644
+--- a/arch/arm/configs/imx_v6_v7_defconfig
++++ b/arch/arm/configs/imx_v6_v7_defconfig
+@@ -51,6 +51,7 @@ CONFIG_PREEMPT_VOLUNTARY=y
+ CONFIG_AEABI=y
+ CONFIG_HIGHMEM=y
+ CONFIG_CMA=y
++CONFIG_FORCE_MAX_ZONEORDER=14
+ CONFIG_CMDLINE="noinitrd console=ttymxc0,115200"
+ CONFIG_KEXEC=y
+ CONFIG_CPU_FREQ=y
+@@ -181,6 +182,7 @@ CONFIG_SERIAL_FSL_LPUART=y
+ CONFIG_SERIAL_FSL_LPUART_CONSOLE=y
+ # CONFIG_I2C_COMPAT is not set
+ CONFIG_I2C_CHARDEV=y
++CONFIG_I2C_MUX=y
+ CONFIG_I2C_MUX_GPIO=y
+ # CONFIG_I2C_HELPER_AUTO is not set
+ CONFIG_I2C_ALGOPCF=m
+@@ -194,11 +196,11 @@ CONFIG_GPIO_SYSFS=y
+ CONFIG_GPIO_MC9S08DZ60=y
+ CONFIG_GPIO_PCA953X=y
+ CONFIG_GPIO_STMPE=y
+-CONFIG_POWER_SUPPLY=y
+ CONFIG_POWER_RESET=y
+ CONFIG_POWER_RESET_IMX=y
+ CONFIG_POWER_RESET_SYSCON=y
+ CONFIG_POWER_RESET_SYSCON_POWEROFF=y
++CONFIG_POWER_SUPPLY=y
+ CONFIG_SENSORS_GPIO_FAN=y
+ CONFIG_SENSORS_IIO_HWMON=y
+ CONFIG_THERMAL=y
+@@ -221,6 +223,8 @@ CONFIG_REGULATOR_PFUZE100=y
+ CONFIG_MEDIA_SUPPORT=y
+ CONFIG_MEDIA_CAMERA_SUPPORT=y
+ CONFIG_MEDIA_RC_SUPPORT=y
++CONFIG_MEDIA_CONTROLLER=y
++CONFIG_VIDEO_V4L2_SUBDEV_API=y
+ CONFIG_RC_DEVICES=y
+ CONFIG_IR_GPIO_CIR=y
+ CONFIG_MEDIA_USB_SUPPORT=y
+@@ -229,6 +233,8 @@ CONFIG_V4L_PLATFORM_DRIVERS=y
+ CONFIG_SOC_CAMERA=y
+ CONFIG_V4L_MEM2MEM_DRIVERS=y
+ CONFIG_VIDEO_CODA=y
++# CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
++CONFIG_VIDEO_ADV7180=m
+ CONFIG_SOC_CAMERA_OV2640=y
+ CONFIG_IMX_IPUV3_CORE=y
+ CONFIG_DRM=y
+@@ -338,6 +344,8 @@ CONFIG_FSL_EDMA=y
+ CONFIG_IMX_SDMA=y
+ CONFIG_MXS_DMA=y
+ CONFIG_STAGING=y
++CONFIG_STAGING_MEDIA=y
++CONFIG_COMMON_CLK_PWM=y
+ CONFIG_IIO=y
+ CONFIG_VF610_ADC=y
+ CONFIG_MPL3115=y
 -- 
-Randy Li
-The third produce department
+2.7.4
 
