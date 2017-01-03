@@ -1,180 +1,255 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:58265 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753169AbdAKMLp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Jan 2017 07:11:45 -0500
-Message-ID: <1484136644.2934.89.camel@pengutronix.de>
-Subject: Re: [PATCH v2 00/21] Basic i.MX IPUv3 capture support
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <steve_longerbeam@mentor.com>
-Cc: Marek Vasut <marex@denx.de>,
-        Robert Schwebel <r.schwebel@pengutronix.de>,
-        Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Gary Bisson <gary.bisson@boundarydevices.com>,
-        Sascha Hauer <kernel@pengutronix.de>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Wed, 11 Jan 2017 13:10:44 +0100
-In-Reply-To: <5b4bb7bd-83ae-c1f3-6b24-989dd6b0aa48@mentor.com>
-References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
-         <20161019213026.GU9460@valkosipuli.retiisi.org.uk>
-         <CAH-u=807nRYzza0kTfOMv1AiWazk6FGJyz6W5_bYw7v9nOrccA@mail.gmail.com>
-         <20161229205113.j6wn7kmhkfrtuayu@pengutronix.de>
-         <7350daac-14ee-74cc-4b01-470a375613a3@denx.de>
-         <c38d80aa-5464-1e9d-e11a-f54716fdb565@mentor.com>
-         <1483990983.13625.58.camel@pengutronix.de>
-         <43564c16-f7aa-2d35-a41f-991465faaf8b@mentor.com>
-         <5b4bb7bd-83ae-c1f3-6b24-989dd6b0aa48@mentor.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:35774 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935262AbdACU5p (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2017 15:57:45 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: shawnguo@kernel.org, kernel@pengutronix.de, fabio.estevam@nxp.com,
+        robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk,
+        mchehab@kernel.org, gregkh@linuxfoundation.org,
+        p.zabel@pengutronix.de
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2 04/19] ARM: dts: imx6-sabrelite: add OV5642 and OV5640 camera sensors
+Date: Tue,  3 Jan 2017 12:57:14 -0800
+Message-Id: <1483477049-19056-5-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
+Enables the OV5642 parallel-bus sensor, and the OV5640 MIPI CSI-2 sensor.
+Both hang off the same i2c2 bus, so they require different (and non-
+default) i2c slave addresses.
 
-Am Dienstag, den 10.01.2017, 15:52 -0800 schrieb Steve Longerbeam:
-> 
-> On 01/09/2017 04:15 PM, Steve Longerbeam wrote:
-> > Hi Philipp,
-> >
-> >
-> > On 01/09/2017 11:43 AM, Philipp Zabel wrote:
-> >
-> >
-> > <snip>
-> >> One is the amount and organization of subdevices/media entities visible
-> >> to userspace. The SMFCs should not be user controllable subdevices, but
-> >> can be implicitly enabled when a CSI is directly linked to a camif.
-> >
-> > I agree the SMFC could be folded into the CSI, but I see at least one
-> > issue.
+The OV5642 connects to the parallel-bus mux input port on ipu1_csi0_mux.
 
-I don't suggest to fold it into the CSI.
-The CSI should have one output pad that that can be connected either to
-the IC PRP input (CSIx_DATA_DEST=1) or to the IDMAC via SMFC
-(CSIx_DATA_DEST=2). The SMFC should be considered part of the link
-between CSI and IDMAC.
-The IC PRP input pad should be connected to either the CSI0 output pad
-(CSI_SEL=0,IC_INPUT=0), the CSI1 output pad (CSI_SEL=1,IC_INPUT=0), or
-to the VDIC (IC_INPUT=1).
+The OV5640 connects to the input port on the MIPI CSI-2 receiver on
+mipi_csi. It is set to transmit over MIPI virtual channel 1.
 
-> > From the dot graph you'll see that the PRPVF entity can receive directly
-> > from the CSI, or indirectly via the SMFC.
+Note there is a pin conflict with GPIO6. This pin functions as a power
+input pin to the OV5642, but ENET uses it as the h/w workaround for
+erratum ERR006687, to wake-up the ARM cores on normal RX and TX packet
+done events (see 6261c4c8). So workaround 6261c4c8 is reverted here to
+support the OV5642, and the "fsl,err006687-workaround-present" boolean
+also must be removed. The result is that the CPUidle driver will no longer
+allow entering the deep idle states on the sabrelite.
 
-And that's one reason why I think representing the mem2mem paths as
-links in the media controller interface is questionable. The path "via
-SMFC" is not really a hardware connection between CSI -> SMFC -> IC PRP,
-but two completely separate paths:
-CSI -> SMFC -> IDMAC -> mem and mem -> IDMAC -> IC PRP with different
-IDMAC read/write channels. The only real connection is that one DMA the
-IC DMA transfers are triggered automatically by the frame
-synchronisation unit on every CSI frame.
-There is no way to convey to the user which links are real connections
-and which are just linked DMA write and read channels somewhere else.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ arch/arm/boot/dts/imx6dl-sabrelite.dts   |   5 ++
+ arch/arm/boot/dts/imx6q-sabrelite.dts    |   6 ++
+ arch/arm/boot/dts/imx6qdl-sabrelite.dtsi | 122 ++++++++++++++++++++++++++++++-
+ 3 files changed, 129 insertions(+), 4 deletions(-)
 
-Is there even a reason for the user to switch between direct and via
-memory paths manually, or could this be inferred from other state
-(formats, active links)?
-
->  If the SMFC entity were folded
-> > into the CSI entity, there would have to be a "direct to PRPVF" output 
-> > pad
-> > and a "indirect via SMFC" output pad and I'm not sure how that info would
-> > be conveyed to the user. With a SMFC entity those pipelines are explicit.
->
-> In summary here, unless you have strong objection I'd prefer to keep a
-> distinct SMFC entity.
-
-I do, I still think you could both describe the hardware better and
-reduce unnecessary interface complexity by removing the SMFC entities
-and their imagined links to the IC.
-
-> It makes the pipelines more clear to the user, and it
-> better models the IPU internals.
-
-I disagree. The IPU has a single SMFC that acts as FIFO to both CSIs in
-the CSI -> SMFC -> IDMAC path, not two. The "channel linking" (automatic
-DMA triggers between channels in the IDMAC via FSU) has nothing to do
-with the SMFC.
-
-> >> Also I'm not convinced the 1:1 mapping of IC task to subdevices is the
-> >> best choice. It is true that the three tasks can be enabled separately,
-> >> but to my understanding, the PRP ENC and PRP VF tasks share a single
-> >> input channel. Shouldn't this be a single PRP subdevice with one input
-> >> and two (VF, ENC) outputs?
-> >
-> > Since the VDIC sends its motion compensated frames to the PRP VF task,
-> > I've created the PRPVF entity solely for motion compensated de-interlace
-> > support. I don't really see any other use for the PRPVF task except for
-> > motion compensated de-interlace.
-
-I suppose simultaneous scaling to two different resolutions without
-going through memory could be one interesting use case:
-
-           ,--> VF --> IDMAC -> mem -> to display
-CSI -> IC PRP 
-           `--> ENC -> IDMAC -> mem -> to VPU
-
-> > So really, the PRPVF entity is a combination of the VDIC and PRPVF 
-> > subunits.
-
-I'd prefer to keep them separate, we could then use a deactivated VDIC
--> IC PRP link to mark the VDIC as available to be used for its
-combining functionality by another driver.
-
-Also logically, the VDIC subdev would be the right user interface to
-switch from interlaced to non-interlaced pad modes, whereas the IC
-subdev(s) should just allow changing color space and size between its
-inputs and outputs.
-
-> > So looking at link_setup() in imx-csi.c, you'll see that when the CSI 
-> > is linked
-> > to PRPVF entity, it is actually sending to IPU_CSI_DEST_VDIC.
-> >
-> > But if we were to create a VDIC entity, I can see how we could then
-> > have a single PRP entity. Then if the PRP entity is receiving from the 
-> > VDIC,
-> > the PRP VF task would be activated.
-> >
-> > Another advantage of creating a distinct VDIC entity is that frames could
-> > potentially be routed directly from the VDIC to camif, for 
-> > motion-compensated
-> > frame capture only with no scaling/CSC. I think that would be IDMAC 
-> > channel
-> > 5, we've tried to get that pipeline to work in the past without 
-> > success. That's
-> > mainly why I decided not to attempt it and instead fold VDIC into 
-> > PRPVF entity.
-
-There's also channel 13, but that's described as "Recent field form
-CSI", so I think that might be for CSI only mode.
-
-> Here also, I'd prefer to keep distinct PRPENC and PRPVF entities. You 
-> are correct that PRPENC and PRPVF do share an input channel (the CSIs).
-> But the PRPVF has an additional input channel from the VDIC, 
-
-Wait, that is a VDIC -> PRP connection, not a VDIC -> PRPVF connection,
-or am I mistaken?
-The VDIC direct input is enabled with ipu_set_ic_src_mux(vdi=true)
-(IC_INPUT=1), and that is the same for both PRP->ENC and PRP->VF.
-
-> and since my PRPVF entity roles
-> up the VDIC internally, it is actually receiving from the VDIC channel.
-> So unless you think we should have a distinct VDIC entity, I would like 
-> to keep this
-> the way it is.
-
-Yes, I think VDIC should be separated out of PRPVF. What do you think
-about splitting the IC PRP into three parts?
-
-PRP could have one input pad connected to either CSI0, CSI1, or VDIC,
-and two output pads connected to PRPVF and PRPENC, respectively. This
-would even allow to have the PRP describe the downscale and PRPVF and
-PRPENC describe the bilinear upscale part of the IC.
-
-regards
-Philipp
+diff --git a/arch/arm/boot/dts/imx6dl-sabrelite.dts b/arch/arm/boot/dts/imx6dl-sabrelite.dts
+index 0f06ca5..fec2524 100644
+--- a/arch/arm/boot/dts/imx6dl-sabrelite.dts
++++ b/arch/arm/boot/dts/imx6dl-sabrelite.dts
+@@ -48,3 +48,8 @@
+ 	model = "Freescale i.MX6 DualLite SABRE Lite Board";
+ 	compatible = "fsl,imx6dl-sabrelite", "fsl,imx6dl";
+ };
++
++&ipu1_csi1_from_ipu1_csi1_mux {
++	data-lanes = <0 1>;
++	clock-lanes = <2>;
++};
+diff --git a/arch/arm/boot/dts/imx6q-sabrelite.dts b/arch/arm/boot/dts/imx6q-sabrelite.dts
+index 66d10d8..9e2d26d 100644
+--- a/arch/arm/boot/dts/imx6q-sabrelite.dts
++++ b/arch/arm/boot/dts/imx6q-sabrelite.dts
+@@ -52,3 +52,9 @@
+ &sata {
+ 	status = "okay";
+ };
++
++&ipu1_csi1_from_mipi_vc1 {
++	data-lanes = <0 1>;
++	clock-lanes = <2>;
++};
++
+diff --git a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+index 1f9076e..4a50bb1 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+@@ -39,6 +39,8 @@
+  *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  *     OTHER DEALINGS IN THE SOFTWARE.
+  */
++
++#include <dt-bindings/clock/imx6qdl-clock.h>
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/input/input.h>
+ 
+@@ -96,6 +98,15 @@
+ 		};
+ 	};
+ 
++	mipi_xclk: mipi_xclk {
++		compatible = "pwm-clock";
++		#clock-cells = <0>;
++		clock-frequency = <22000000>;
++		clock-output-names = "mipi_pwm3";
++		pwms = <&pwm3 0 45>; /* 1 / 45 ns = 22 MHz */
++		status = "okay";
++	};
++
+ 	gpio-keys {
+ 		compatible = "gpio-keys";
+ 		pinctrl-names = "default";
+@@ -220,6 +231,22 @@
+ 	};
+ };
+ 
++&ipu1_csi0_from_ipu1_csi0_mux {
++	bus-width = <8>;
++	data-shift = <12>; /* Lines 19:12 used */
++	hsync-active = <1>;
++	vync-active = <1>;
++};
++
++&ipu1_csi0_mux_from_parallel_sensor {
++	remote-endpoint = <&ov5642_to_ipu1_csi0_mux>;
++};
++
++&ipu1_csi0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_ipu1_csi0>;
++};
++
+ &audmux {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_audmux>;
+@@ -271,9 +298,6 @@
+ 	txd1-skew-ps = <0>;
+ 	txd2-skew-ps = <0>;
+ 	txd3-skew-ps = <0>;
+-	interrupts-extended = <&gpio1 6 IRQ_TYPE_LEVEL_HIGH>,
+-			      <&intc 0 119 IRQ_TYPE_LEVEL_HIGH>;
+-	fsl,err006687-workaround-present;
+ 	status = "okay";
+ };
+ 
+@@ -302,6 +326,52 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_i2c2>;
+ 	status = "okay";
++
++	camera: ov5642@42 {
++		compatible = "ovti,ov5642";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_ov5642>;
++		clocks = <&clks IMX6QDL_CLK_CKO2>;
++		clock-names = "xclk";
++		reg = <0x42>;
++		xclk = <24000000>;
++		reset-gpios = <&gpio1 8 GPIO_ACTIVE_LOW>;
++		pwdn-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
++		gp-gpios = <&gpio1 16 GPIO_ACTIVE_HIGH>;
++
++		port {
++			ov5642_to_ipu1_csi0_mux: endpoint {
++				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
++				bus-width = <8>;
++				hsync-active = <1>;
++				vsync-active = <1>;
++			};
++		};
++	};
++
++	mipi_camera: ov5640@40 {
++		compatible = "ovti,ov5640_mipi";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_ov5640>;
++		clocks = <&mipi_xclk>;
++		clock-names = "xclk";
++		reg = <0x40>;
++		xclk = <22000000>;
++		reset-gpios = <&gpio2 5 GPIO_ACTIVE_LOW>; /* NANDF_D5 */
++		pwdn-gpios = <&gpio6 9 GPIO_ACTIVE_HIGH>; /* NANDF_WP_B */
++
++		port {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			ov5640_to_mipi_csi: endpoint@1 {
++				reg = <1>;
++				remote-endpoint = <&mipi_csi_from_mipi_sensor>;
++				data-lanes = <0 1>;
++				clock-lanes = <2>;
++			};
++		};
++	};
+ };
+ 
+ &i2c3 {
+@@ -374,7 +444,6 @@
+ 				MX6QDL_PAD_RGMII_RX_CTL__RGMII_RX_CTL	0x1b030
+ 				/* Phy reset */
+ 				MX6QDL_PAD_EIM_D23__GPIO3_IO23		0x000b0
+-				MX6QDL_PAD_GPIO_6__ENET_IRQ		0x000b1
+ 			>;
+ 		};
+ 
+@@ -449,6 +518,39 @@
+ 			>;
+ 		};
+ 
++		pinctrl_ov5642: ov5642grp {
++			fsl,pins = <
++				MX6QDL_PAD_SD1_DAT0__GPIO1_IO16 0x80000000
++				MX6QDL_PAD_GPIO_6__GPIO1_IO06   0x80000000
++				MX6QDL_PAD_GPIO_8__GPIO1_IO08   0x80000000
++				MX6QDL_PAD_GPIO_3__CCM_CLKO2    0x80000000
++			>;
++		};
++
++		pinctrl_ipu1_csi0: ipu1grp-csi0 {
++			fsl,pins = <
++				MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12    0x80000000
++				MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13    0x80000000
++				MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14    0x80000000
++				MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15    0x80000000
++				MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16    0x80000000
++				MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17    0x80000000
++				MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18    0x80000000
++				MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19    0x80000000
++				MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK   0x80000000
++				MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC      0x80000000
++				MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC     0x80000000
++				MX6QDL_PAD_CSI0_DATA_EN__IPU1_CSI0_DATA_EN 0x80000000
++			>;
++		};
++
++                pinctrl_ov5640: ov5640grp {
++                        fsl,pins = <
++				MX6QDL_PAD_NANDF_D5__GPIO2_IO05 0x000b0
++				MX6QDL_PAD_NANDF_WP_B__GPIO6_IO09 0x0b0b0
++                        >;
++                };
++
+ 		pinctrl_pwm1: pwm1grp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_SD1_DAT3__PWM1_OUT 0x1b0b1
+@@ -605,3 +707,15 @@
+ 	vmmc-supply = <&reg_3p3v>;
+ 	status = "okay";
+ };
++
++&mipi_csi {
++        status = "okay";
++};
++
++/* Incoming port from sensor */
++&mipi_csi_from_mipi_sensor {
++        remote-endpoint = <&ov5640_to_mipi_csi>;
++        data-lanes = <0 1>;
++        clock-lanes = <2>;
++};
++
+-- 
+2.7.4
 
