@@ -1,43 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from verein.lst.de ([213.95.11.211]:34370 "EHLO newverein.lst.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751641AbdAKJD7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Jan 2017 04:03:59 -0500
-Date: Wed, 11 Jan 2017 10:03:57 +0100
-From: Christoph Hellwig <hch@lst.de>
-To: Tom Lendacky <thomas.lendacky@amd.com>
-Cc: Christoph Hellwig <hch@lst.de>, linux-pci@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        netdev@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/3] xgbe: switch to pci_irq_alloc_vectors
-Message-ID: <20170111090357.GB7350@lst.de>
-References: <1483994260-19797-1-git-send-email-hch@lst.de> <1483994260-19797-3-git-send-email-hch@lst.de> <11ed330c-84e9-79e9-7945-ca17a497359c@amd.com>
+Received: from mail-yw0-f169.google.com ([209.85.161.169]:34763 "EHLO
+        mail-yw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757921AbdACK5U (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2017 05:57:20 -0500
+Received: by mail-yw0-f169.google.com with SMTP id t125so285133420ywc.1
+        for <linux-media@vger.kernel.org>; Tue, 03 Jan 2017 02:57:20 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <11ed330c-84e9-79e9-7945-ca17a497359c@amd.com>
+In-Reply-To: <1483347004-32593-2-git-send-email-ayaka@soulik.info>
+References: <1483347004-32593-1-git-send-email-ayaka@soulik.info> <1483347004-32593-2-git-send-email-ayaka@soulik.info>
+From: Daniel Stone <daniel@fooishbar.org>
+Date: Tue, 3 Jan 2017 10:57:19 +0000
+Message-ID: <CAPj87rPJh03i3qtNSTn_JRomusoq1CVYjpjsG+85QcRCL2sX9Q@mail.gmail.com>
+Subject: Re: [PATCH 1/2] drm_fourcc: Add new P010 video format
+To: Randy Li <ayaka@soulik.info>
+Cc: dri-devel <dri-devel@lists.freedesktop.org>,
+        "Vetter, Daniel" <daniel.vetter@intel.com>,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Sean Paul <seanpaul@chromium.org>,
+        David Airlie <airlied@linux.ie>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        randy.li@rock-chips.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 10, 2017 at 12:40:10PM -0600, Tom Lendacky wrote:
-> On 1/9/2017 2:37 PM, Christoph Hellwig wrote:
-> > The newly added xgbe drivers uses the deprecated pci_enable_msi_exact
-> > and pci_enable_msix_range interfaces.  Switch it to use
-> > pci_irq_alloc_vectors instead.
-> 
-> I was just working on switching over to this API with some additional
-> changes / simplification.  I'm ok with using this patch so that you get
-> the API removal accomplished.  Going through the PCI tree just means
-> it will probably be easier for me to hold off on the additional changes
-> I wanted to make until later.
+Hi Randy,
 
-Hi Tom,
+On 2 January 2017 at 09:50, Randy Li <ayaka@soulik.info> wrote:
+> P010 is a planar 4:2:0 YUV with interleaved UV plane, 10 bits
+> per channel video format. Rockchip's vop support this
+> video format(little endian only) as the input video format.
+>
+> Signed-off-by: Randy Li <ayaka@soulik.info>
+> ---
+>  include/uapi/drm/drm_fourcc.h | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/include/uapi/drm/drm_fourcc.h b/include/uapi/drm/drm_fourcc.h
+> index 9e1bb7f..d2721da 100644
+> --- a/include/uapi/drm/drm_fourcc.h
+> +++ b/include/uapi/drm/drm_fourcc.h
+> @@ -119,6 +119,7 @@ extern "C" {
+>  #define DRM_FORMAT_NV61                fourcc_code('N', 'V', '6', '1') /* 2x1 subsampled Cb:Cr plane */
+>  #define DRM_FORMAT_NV24                fourcc_code('N', 'V', '2', '4') /* non-subsampled Cr:Cb plane */
+>  #define DRM_FORMAT_NV42                fourcc_code('N', 'V', '4', '2') /* non-subsampled Cb:Cr plane */
+> +#define DRM_FORMAT_P010                fourcc_code('P', '0', '1', '0') /* 2x2 subsampled Cr:Cb plane 10 bits per channel */
 
-if you have a better patch I'd be more than happy to use that one instead,
-this one was intended as a stupid search and replace.  The important
-part for me is to get the two conversions and the interface removal
-in together.
+Thanks, this looks good, but I have two requests. Firstly, the
+Microsoft page here also mentions that P016 is a preferred format
+along P010, so please add P016 as well:
+https://msdn.microsoft.com/en-us/library/windows/desktop/bb970578(v=vs.85).aspx
 
-E.g. I've alreayd wondered why the driver requires the exact vector
-number for MSI and a variable one for MSI-X, and there certainly is
-all kinds of opportunity for cosmetic cleanup.
+I don't see much use of the other (P21x/P41x/Yxxx) formats defined
+there, so there's probably no use going wild and adding them just yet.
+
+Secondly, please update the format_info table in drm_fourcc.c for
+these two formats, to avoid throwing a WARN_ON every time they are
+used.
+
+Cheers,
+Daniel
