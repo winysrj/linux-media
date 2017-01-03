@@ -1,155 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:35576 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752274AbdATSko (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Jan 2017 13:40:44 -0500
-Subject: Re: [PATCH v3 00/24] i.MX Media Driver
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
- <c6e98327-7e2c-f34a-2d23-af7b236de441@xs4all.nl>
- <1484929911.2897.70.camel@pengutronix.de>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <3fb68686-9447-2d8a-e2d2-005e4138cd43@gmail.com>
-Date: Fri, 20 Jan 2017 10:40:40 -0800
-MIME-Version: 1.0
-In-Reply-To: <1484929911.2897.70.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f48.google.com ([74.125.82.48]:36566 "EHLO
+        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964971AbdACOzI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2017 09:55:08 -0500
+Received: by mail-wm0-f48.google.com with SMTP id c85so201194678wmi.1
+        for <linux-media@vger.kernel.org>; Tue, 03 Jan 2017 06:55:07 -0800 (PST)
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: linux@armlinux.org.uk, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org,
+        linaro-kernel@lists.linaro.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v2 0/3] video/sti/cec: add HPD notifier support
+Date: Tue,  3 Jan 2017 15:54:54 +0100
+Message-Id: <1483455297-2286-1-git-send-email-benjamin.gaignard@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans, Philipp,
+This patch series following what Hans is doing on exynos to support
+hotplug detect notifier code.
 
+It add support of HPD in sti_hdmi drm driver and stih-cec driver which
+move out of staging.
 
-On 01/20/2017 08:31 AM, Philipp Zabel wrote:
-> Hi Hans,
->
-> On Fri, 2017-01-20 at 14:52 +0100, Hans Verkuil wrote:
->> Hi Steve, Philipp,
->>
->> On 01/07/2017 03:11 AM, Steve Longerbeam wrote:
->>> In version 3:
->>>
->>> Changes suggested by Rob Herring <robh@kernel.org>:
->>>
->>>    - prepended FIM node properties with vendor prefix "fsl,".
->>>
->>>    - make mipi csi-2 receiver compatible string SoC specific:
->>>      "fsl,imx6-mipi-csi2" instead of "fsl,imx-mipi-csi2".
->>>
->>>    - redundant "_clk" removed from mipi csi-2 receiver clock-names property.
->>>
->>>    - removed board-specific info from the media driver binding doc. These
->>>      were all related to sensor bindings, which already are (adv7180)
->>>      or will be (ov564x) covered in separate binding docs. All reference
->>>      board info not related to DT bindings has been moved to
->>>      Documentation/media/v4l-drivers/imx.rst.
->>>
->>>    - removed "_mipi" from the OV5640 compatible string.
->>>
->>> Changes suggested by Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>:
->>>
->>>    Mostly cosmetic/non-functional changes which I won't list here, except
->>>    for the following:
->>>
->>>    - spin_lock_irqsave() changed to spin_lock() in a couple interrupt handlers.
->>>
->>>    - fixed some unnecessary of_node_put()'s in for_each_child_of_node() loops.
->>>
->>>    - check/handle return code from required reg property of CSI port nodes.
->>>
->>>    - check/handle return code from clk_prepare_enable().
->>>
->>> Changes suggested by Fabio Estevam <festevam@gmail.com>:
->>>
->>>    - switch to VGEN3 Analog Vdd supply assuming rev. C SabreSD boards.
->>>
->>>    - finally got around to passing valid IOMUX pin config values to the
->>>      pin groups.
->>>
->>> Other changes:
->>>
->>>    - removed the FIM properties that overrided the v4l2 FIM control defaults
->>>      values. This was left-over from a requirement of a customer and is not
->>>      necessary here.
->>>
->>>    - The FIM must be explicitly enabled in the fim child node under the CSI
->>>      port nodes, using the status property. If not enabled, FIM v4l2 controls
->>>      will not appear in the video capture driver.
->>>
->>>    - brought in additional media types patch from Philipp Zabel. Use new
->>>      MEDIA_ENT_F_VID_IF_BRIDGE in mipi csi-2 receiver subdev.
->>>
->>>    - brought in latest platform generic video multiplexer subdevice driver
->>>      from Philipp Zabel (squashed with patch that uses new MEDIA_ENT_F_MUX).
->>>
->>>    - removed imx-media-of.h, moved those prototypes into imx-media.h.
->> Based on the discussion on the mailinglist it seems everyone agrees that this
->> is the preferred driver, correct?
-> No. I have some major reservations against the custom mem2mem framework
-> embedded in Steve's driver.
-> I think it is a misuse of the media entity links (which should describe
-> hardware connections) for something that should be done at the vb2 level
-> (letting one device's capture EOF interrupt trigger the next device's
-> m2m device_run without going through userspace).
-> Steve and I disagree on that point, so we'd appreciate if we could get
-> some more eyes on the above issue.
+Those patches should be applied on top of Hans branch exynos4-cec.
 
-This needs some background first, so let me first describe one example
-pipeline in this driver.
+I have tested hdmi notifier by pluging/unpluging HDMI cable and check
+the value of the physical address with "cec-ctl --tuner".
+"cec-compliance -A" is also functional.
 
-There is a VDIC entity in the i.MX IPU that performs de-interlacing with
-hardware filters for motion compensation. Some of the motion compensation
-modes ("low" and "medium" motion) require that the VDIC receive video
-frame fields from memory buffers (dedicated dma channels in the
-IPU are used to transfer those buffers into the VDIC).
+version 2:
+- use HPD notifier instead of HDMI notifier
+- move stih-cec out of staging
+- rebase code on top of git://linuxtv.org/hverkuil/media_tree.git exynos4-cec
+  branch
+- split DT modifications in a separate patch
 
-So one option to support those modes would be to pass the raw buffers
-from a camera sensor up to userspace to a capture device, and then pass
-them back to the VDIC for de-interlacing using a mem2mem device.
+Regards,
+Benjamin
 
-Philipp and I are both in agreement that, since userland is not interested
-in the intermediate interlaced buffers in this case, but only the final
-result (motion compensated, de-interlaced frames), it is more efficient
-to provide a media link that allows passing those intermediate frames
-directly from a camera source pad to VDIC sink pad, without having
-to route them through userspace.
+Benjamin Gaignard (3):
+  sti: hdmi: add HPD notifier support
+  stih-cec: add HPD notifier support
+  arm: sti: update sti-cec for HPD notifier support
 
-So in order to support that, I've implemented a simple FIFO dma buffer
-queue in the driver to allow passing video buffers directly from a source
-to a sink. It is modeled loosely off the vb2 state machine and API, but
-simpler (for instance it only allows contiguous, cache-coherent buffers).
+ .../devicetree/bindings/media/stih-cec.txt         |   2 +
+ arch/arm/boot/dts/stih407-family.dtsi              |  12 -
+ arch/arm/boot/dts/stih410.dtsi                     |  13 +
+ drivers/gpu/drm/sti/Kconfig                        |   1 +
+ drivers/gpu/drm/sti/sti_hdmi.c                     |  14 +
+ drivers/gpu/drm/sti/sti_hdmi.h                     |   3 +
+ drivers/media/platform/Kconfig                     |  10 +
+ drivers/media/platform/Makefile                    |   1 +
+ drivers/media/platform/sti/cec/Makefile            |   1 +
+ drivers/media/platform/sti/cec/stih-cec.c          | 404 +++++++++++++++++++++
+ drivers/staging/media/Kconfig                      |   2 -
+ drivers/staging/media/Makefile                     |   1 -
+ drivers/staging/media/st-cec/Kconfig               |   8 -
+ drivers/staging/media/st-cec/Makefile              |   1 -
+ drivers/staging/media/st-cec/TODO                  |   7 -
+ drivers/staging/media/st-cec/stih-cec.c            | 379 -------------------
+ 16 files changed, 449 insertions(+), 410 deletions(-)
+ create mode 100644 drivers/media/platform/sti/cec/Makefile
+ create mode 100644 drivers/media/platform/sti/cec/stih-cec.c
+ delete mode 100644 drivers/staging/media/st-cec/Kconfig
+ delete mode 100644 drivers/staging/media/st-cec/Makefile
+ delete mode 100644 drivers/staging/media/st-cec/TODO
+ delete mode 100644 drivers/staging/media/st-cec/stih-cec.c
 
-This is where Philipp has an argument, that this should be done with a
-new API in videobuf2.
-
-And I'm actually in total agreement with that. I definitely agree that there
-should be a mechanism in the media framework that allows passing video
-buffers from a source pad to a sink pad using a software queue, with no
-involvement from userland.
-
-My only disagreement is when this should be implemented. I think it is
-fine to keep my custom implementation of this in the driver for now. Once
-an extension of vb2 is ready to support this feature, it would be fairly
-straightforward to strip out my custom implementation and go with the
-new API.
-
-Steve
-
+-- 
+1.9.1
 
