@@ -1,148 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:36798 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933072AbdABOTX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 2 Jan 2017 09:19:23 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Russell King <linux@armlinux.org.uk>,
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:16759 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751850AbdACHvB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2017 02:51:01 -0500
+Subject: Re: [PATCHv2 1/4] video: add hotplug detect notifier support
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org,
+        Russell King <linux@armlinux.org.uk>,
         dri-devel@lists.freedesktop.org,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
         Javier Martinez Canillas <javier@osg.samsung.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-samsung-soc@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
         Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 3/4] cec: integrate HPD notifier support
-Date: Mon,  2 Jan 2017 15:19:06 +0100
-Message-Id: <1483366747-34288-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1483366747-34288-1-git-send-email-hverkuil@xs4all.nl>
+        Marek Szyprowski <m.szyprowski@samsung.com>
+From: Andrzej Hajda <a.hajda@samsung.com>
+Message-id: <ddb0ba80-c2a4-1024-8e9c-4ba74882a282@samsung.com>
+Date: Tue, 03 Jan 2017 08:50:54 +0100
+MIME-version: 1.0
+In-reply-to: <1483366747-34288-2-git-send-email-hverkuil@xs4all.nl>
+Content-type: text/plain; charset=utf-8
+Content-transfer-encoding: 7bit
 References: <1483366747-34288-1-git-send-email-hverkuil@xs4all.nl>
+ <CGME20170102141939epcas2p4a53acf3b27264f0b95e60eac75133885@epcas2p4.samsung.com>
+ <1483366747-34288-2-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Hans,
 
-Support the HPD notifier framework, simplifying drivers that
-depend on this.
+On 02.01.2017 15:19, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Add support for video hotplug detect and EDID/ELD notifiers, which is used
+> to convey information from video drivers to their CEC and audio counterparts.
+>
+> Based on an earlier version from Russell King:
+>
+> https://patchwork.kernel.org/patch/9277043/
+>
+> The hpd_notifier is a reference counted object containing the HPD/EDID/ELD state
+> of a video device.
+>
+> When a new notifier is registered the current state will be reported to
+> that notifier at registration time.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
+>  drivers/video/Kconfig        |   3 +
+>  drivers/video/Makefile       |   1 +
+>  drivers/video/hpd-notifier.c | 134 +++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/hpd-notifier.h | 109 +++++++++++++++++++++++++++++++++++
+>  4 files changed, 247 insertions(+)
+>  create mode 100644 drivers/video/hpd-notifier.c
+>  create mode 100644 include/linux/hpd-notifier.h
+>
+> diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
+> index 3c20af9..cddc860 100644
+> --- a/drivers/video/Kconfig
+> +++ b/drivers/video/Kconfig
+> @@ -36,6 +36,9 @@ config VIDEOMODE_HELPERS
+>  config HDMI
+>  	bool
+>  
+> +config HPD_NOTIFIERS
+> +	bool
+> +
+>  if VT
+>  	source "drivers/video/console/Kconfig"
+>  endif
+> diff --git a/drivers/video/Makefile b/drivers/video/Makefile
+> index 9ad3c17..424698b 100644
+> --- a/drivers/video/Makefile
+> +++ b/drivers/video/Makefile
+> @@ -1,5 +1,6 @@
+>  obj-$(CONFIG_VGASTATE)            += vgastate.o
+>  obj-$(CONFIG_HDMI)                += hdmi.o
+> +obj-$(CONFIG_HPD_NOTIFIERS)       += hpd-notifier.o
+>  
+>  obj-$(CONFIG_VT)		  += console/
+>  obj-$(CONFIG_LOGO)		  += logo/
+> diff --git a/drivers/video/hpd-notifier.c b/drivers/video/hpd-notifier.c
+> new file mode 100644
+> index 0000000..54f7a6b
+> --- /dev/null
+> +++ b/drivers/video/hpd-notifier.c
+> @@ -0,0 +1,134 @@
+> +#include <linux/export.h>
+> +#include <linux/hpd-notifier.h>
+> +#include <linux/string.h>
+> +#include <linux/slab.h>
+> +#include <linux/list.h>
+> +
+> +static LIST_HEAD(hpd_notifiers);
+> +static DEFINE_MUTEX(hpd_notifiers_lock);
+> +
+> +struct hpd_notifier *hpd_notifier_get(struct device *dev)
+> +{
+> +	struct hpd_notifier *n;
+> +
+> +	mutex_lock(&hpd_notifiers_lock);
+> +	list_for_each_entry(n, &hpd_notifiers, head) {
+> +		if (n->dev == dev) {
+> +			mutex_unlock(&hpd_notifiers_lock);
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/cec/cec-core.c | 50 ++++++++++++++++++++++++++++++++++++++++++++
- include/media/cec.h          | 15 +++++++++++++
- 2 files changed, 65 insertions(+)
+I think this place is racy, we have pointer to unprotected area
+(n->kref), so if concurrent thread calls hpd_notifier_put in this moment
+&n->kref could be freed and kref_get in the next line will operate on
+dangling pointer. Am I right?
 
-diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
-index aca3ab8..a466dbe 100644
---- a/drivers/media/cec/cec-core.c
-+++ b/drivers/media/cec/cec-core.c
-@@ -195,6 +195,52 @@ static void cec_devnode_unregister(struct cec_devnode *devnode)
- 	put_device(&devnode->dev);
- }
- 
-+#ifdef CONFIG_HPD_NOTIFIERS
-+static u16 parse_hdmi_addr(const struct edid *edid)
-+{
-+	if (!edid || edid->extensions == 0)
-+		return CEC_PHYS_ADDR_INVALID;
-+
-+	return cec_get_edid_phys_addr((u8 *)edid,
-+				EDID_LENGTH * (edid->extensions + 1), NULL);
-+}
-+
-+static int cec_hpd_notify(struct notifier_block *nb, unsigned long event,
-+			   void *data)
-+{
-+	struct cec_adapter *adap = container_of(nb, struct cec_adapter, nb);
-+	struct hpd_notifier *n = data;
-+	unsigned int phys;
-+
-+	dprintk(1, "event %lu\n", event);
-+
-+	switch (event) {
-+	case HPD_DISCONNECTED:
-+		cec_s_phys_addr(adap, CEC_PHYS_ADDR_INVALID, false);
-+		break;
-+
-+	case HPD_NEW_EDID:
-+		phys = parse_hdmi_addr(n->edid);
-+		cec_s_phys_addr(adap, phys, false);
-+		break;
-+	}
-+
-+	return NOTIFY_OK;
-+}
-+
-+void cec_register_hpd_notifier(struct cec_adapter *adap,
-+				struct hpd_notifier *notifier)
-+{
-+	if (WARN_ON(!adap->devnode.registered))
-+		return;
-+
-+	adap->nb.notifier_call = cec_hpd_notify;
-+	adap->notifier = notifier;
-+	hpd_notifier_register(adap->notifier, &adap->nb);
-+}
-+EXPORT_SYMBOL_GPL(cec_register_hpd_notifier);
-+#endif
-+
- struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
- 					 void *priv, const char *name, u32 caps,
- 					 u8 available_las)
-@@ -344,6 +390,10 @@ void cec_unregister_adapter(struct cec_adapter *adap)
- 	adap->rc = NULL;
- #endif
- 	debugfs_remove_recursive(adap->cec_dir);
-+#ifdef CONFIG_HPD_NOTIFIERS
-+	if (adap->notifier)
-+		hpd_notifier_unregister(adap->notifier, &adap->nb);
-+#endif
- 	cec_devnode_unregister(&adap->devnode);
- }
- EXPORT_SYMBOL_GPL(cec_unregister_adapter);
-diff --git a/include/media/cec.h b/include/media/cec.h
-index 96a0aa7..d6c7b20 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -28,6 +28,11 @@
- #include <linux/kthread.h>
- #include <linux/timer.h>
- #include <linux/cec-funcs.h>
-+#ifdef CONFIG_HPD_NOTIFIERS
-+#include <linux/notifier.h>
-+#include <linux/hpd-notifier.h>
-+#include <drm/drm_edid.h>
-+#endif
- #include <media/rc-core.h>
- #include <media/cec-edid.h>
- 
-@@ -173,6 +178,11 @@ struct cec_adapter {
- 	bool passthrough;
- 	struct cec_log_addrs log_addrs;
- 
-+#ifdef CONFIG_HPD_NOTIFIERS
-+	struct hpd_notifier	*notifier;
-+	struct notifier_block	nb;
-+#endif
-+
- 	struct dentry *cec_dir;
- 	struct dentry *status_file;
- 
-@@ -213,6 +223,11 @@ void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
- 		       u8 nack_cnt, u8 low_drive_cnt, u8 error_cnt);
- void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg);
- 
-+#ifdef CONFIG_HPD_NOTIFIERS
-+void cec_register_hpd_notifier(struct cec_adapter *adap,
-+				struct hpd_notifier *notifier);
-+#endif
-+
- #else
- 
- static inline int cec_register_adapter(struct cec_adapter *adap,
--- 
-2.8.1
+Regards
+Andrzej
+
+> +			kref_get(&n->kref);
+> +			return n;
+> +		}
+> +	}
+> +	n = kzalloc(sizeof(*n), GFP_KERNEL);
+> +	if (!n)
+> +		goto unlock;
+> +	n->dev = dev;
+> +	mutex_init(&n->lock);
+> +	BLOCKING_INIT_NOTIFIER_HEAD(&n->notifiers);
+> +	kref_init(&n->kref);
+> +	list_add_tail(&n->head, &hpd_notifiers);
+> +unlock:
+> +	mutex_unlock(&hpd_notifiers_lock);
+> +	return n;
+> +}
+> +EXPORT_SYMBOL_GPL(hpd_notifier_get);
+> +
+> +static void hpd_notifier_release(struct kref *kref)
+> +{
+> +	struct hpd_notifier *n =
+> +		container_of(kref, struct hpd_notifier, kref);
+> +
+> +	mutex_lock(&hpd_notifiers_lock);
+> +	list_del(&n->head);
+> +	mutex_unlock(&hpd_notifiers_lock);
+> +	kfree(n->edid);
+> +	kfree(n);
+> +}
+> +
+> +void hpd_notifier_put(struct hpd_notifier *n)
+> +{
+> +	kref_put(&n->kref, hpd_notifier_release);
+> +}
+> +EXPORT_SYMBOL_GPL(hpd_notifier_put);
+> +
+> +int hpd_notifier_register(struct hpd_notifier *n, struct notifier_block *nb)
+> +{
+> +	int ret = blocking_notifier_chain_register(&n->notifiers, nb);
+> +
+> +	if (ret)
+> +		return ret;
+> +	kref_get(&n->kref);
+> +	mutex_lock(&n->lock);
+> +	if (n->connected) {
+> +		blocking_notifier_call_chain(&n->notifiers, HPD_CONNECTED, n);
+> +		if (n->edid_size)
+> +			blocking_notifier_call_chain(&n->notifiers, HPD_NEW_EDID, n);
+> +		if (n->has_eld)
+> +			blocking_notifier_call_chain(&n->notifiers, HPD_NEW_ELD, n);
+> +	}
+> +	mutex_unlock(&n->lock);
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(hpd_notifier_register);
+> +
+> +int hpd_notifier_unregister(struct hpd_notifier *n, struct notifier_block *nb)
+> +{
+> +	int ret = blocking_notifier_chain_unregister(&n->notifiers, nb);
+> +
+> +	if (ret == 0)
+> +		hpd_notifier_put(n);
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(hpd_notifier_unregister);
+(...)
 
