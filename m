@@ -1,69 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:45880 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752659AbdA3WcM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Jan 2017 17:32:12 -0500
-Date: Mon, 30 Jan 2017 22:29:59 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v3 19/24] media: imx: Add IC subdev drivers
-Message-ID: <20170130222959.GD27898@n2100.armlinux.org.uk>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
- <1483755102-24785-20-git-send-email-steve_longerbeam@mentor.com>
+Received: from mout.gmx.net ([212.227.15.18]:62616 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S964989AbdACOzY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 3 Jan 2017 09:55:24 -0500
+Date: Tue, 3 Jan 2017 15:55:06 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v3 4/4] uvcvideo: add a metadata device node
+In-Reply-To: <1790537.KNrosOxaFV@avalon>
+Message-ID: <Pine.LNX.4.64.1701031545310.18497@axis700.grange>
+References: <1481541412-1186-1-git-send-email-guennadi.liakhovetski@intel.com>
+ <3119423.ZqlLJHYUgu@avalon> <Pine.LNX.4.64.1612301401360.9905@axis700.grange>
+ <1790537.KNrosOxaFV@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1483755102-24785-20-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 06, 2017 at 06:11:37PM -0800, Steve Longerbeam wrote:
-> This is a set of three media entity subdevice drivers for the i.MX
-> Image Converter. The i.MX IC module contains three independent
-> "tasks":
-> 
-> - Pre-processing Encode task: video frames are routed directly from
->   the CSI and can be scaled, color-space converted, and rotated.
->   Scaled output is limited to 1024x1024 resolution. Output frames
->   are routed to the camera interface entities (camif).
-> 
-> - Pre-processing Viewfinder task: this task can perform the same
->   conversions as the pre-process encode task, but in addition can
->   be used for hardware motion compensated deinterlacing. Frames can
->   come either directly from the CSI or from the SMFC entities (memory
->   buffers via IDMAC channels). Scaled output is limited to 1024x1024
->   resolution. Output frames can be routed to various sinks including
->   the post-processing task entities.
-> 
-> - Post-processing task: same conversions as pre-process encode. However
->   this entity sends frames to the i.MX IPU image converter which supports
->   image tiling, which allows scaled output up to 4096x4096 resolution.
->   Output frames can be routed to the camera interfaces.
-> 
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Hi Laurent,
 
-Applying: media: imx: Add IC subdev drivers
-.git/rebase-apply/patch:3054: new blank line at EOF.
-+
-warning: 1 line adds whitespace errors.
+On Fri, 30 Dec 2016, Laurent Pinchart wrote:
 
+> Hi Guennadi,
+> 
+> On Friday 30 Dec 2016 14:04:34 Guennadi Liakhovetski wrote:
+> > On Fri, 30 Dec 2016, Laurent Pinchart wrote:
+> > > On Friday 30 Dec 2016 11:43:02 Guennadi Liakhovetski wrote:
+> > >> Hi Laurent,
+> > >> 
+> > >> I'd like to discuss extending this patch a bit, preferably as an
+> > >> incremental patch.
+> > >> 
+> > >> First let me confirm my current understanding of the way the UVC driver
+> > >> creates its media device topology. Do I understand it correctly, that
+> > >> the driver allocates UVC entities (not media controller entities) for all
+> > >> UVC units and terminals, but then uses subdevices for all such UVC
+> > >> entities, except terminals, i.e. only for UVC units? struct uvc_entity
+> > >> has an embedded struct v4l2_subdev object, but it's unused for UVC
+> > >> terminals. Instead terminals are associated to video devices, which are
+> > >> then linked into the MC topology? Is this my understanding correct?
+> > > 
+> > > That's correct, but looking at the code now, I think the driver should use
+> > > a struct media_entity directly instead of a struct v4l2_subdev as it
+> > > doesn't need any of the infrastructure provided by subdevs.
+> > > 
+> > >> I have a problem with the current version of this patch, that there is
+> > >> no way to associate video device nodes with respepctive metadata nodes.
+> > >> Would it be acceptable to use an MC link for this association?
+> > > 
+> > > No, links describe data connections.
+> > 
+> > Well, it is data - it's metadata, extracted from USB buffers.
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+A further argument to this cause: currently the metadata node isn't 
+connected to anything, it's "floating freely," which is wrong too. It does 
+stream data and we have to bind it somewhere. I see 2 possibilities: 
+either link them to the same entity, as the actual video data, adding more 
+endpoints to it, or link them to video nodes. The latter way would allow 
+for easy matching. If we use the former approach, we could still agree to 
+have pad #2*n and #2*n+1 to be matching video and metadata pads, but that 
+would be less straight-forward.
+
+Thanks
+Guennadi
+
+> > >> Is it allowed for video device MC entities to have source pads
+> > >> additionally to their (usually single) sink pad(s) (in case of input
+> > >> video devices)? If that would be acceptable, I could create an additional
+> > >> patch to add a source pad to output terminal video nodes to link it to
+> > >> metadata nodes.
+> > > 
+> > > That's a hack, I don't think it's a good idea.
+> > 
+> > Ok, would a completely specialised one-off sysfs solution be better? Maybe
+> > a link under the metadata node to the main node?
+> 
+> Come on, I know you're better than that. Stop thinking short term about the 
+> quickest hack that can provide the feature you need.
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
