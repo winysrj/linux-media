@@ -1,51 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56254 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752057AbdAaMqI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jan 2017 07:46:08 -0500
-Date: Tue, 31 Jan 2017 14:45:34 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Tuukka Toivonen <tuukkat76@gmail.com>, Pavel Machek <pavel@ucw.cz>,
-        linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR v4.11] Add et8ek8 driver
-Message-ID: <20170131124534.GW7139@valkosipuli.retiisi.org.uk>
-References: <20170125140745.GH7139@valkosipuli.retiisi.org.uk>
- <20170131104248.4e0f0bd8@vento.lan>
+Received: from lelnx193.ext.ti.com ([198.47.27.77]:34483 "EHLO
+        lelnx193.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754863AbdACJEc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2017 04:04:32 -0500
+Subject: Re: [PATCH v6 0/5] davinci: VPIF: add DT support
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Kevin Hilman <khilman@baylibre.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        <linux-media@vger.kernel.org>
+References: <20161207183025.20684-1-khilman@baylibre.com>
+ <d4b0501a-f83a-c8b1-e460-1ba50f68cca7@xs4all.nl>
+CC: Axel Haslam <ahaslam@baylibre.com>,
+        =?UTF-8?Q?Bartosz_Go=c5=82aszewski?= <bgolaszewski@baylibre.com>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>,
+        Patrick Titiano <ptitiano@baylibre.com>,
+        <linux-arm-kernel@lists.infradead.org>
+From: Sekhar Nori <nsekhar@ti.com>
+Message-ID: <4a03b56e-1e01-8b2c-c2a1-1b72d30f103a@ti.com>
+Date: Tue, 3 Jan 2017 14:33:00 +0530
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170131104248.4e0f0bd8@vento.lan>
+In-Reply-To: <d4b0501a-f83a-c8b1-e460-1ba50f68cca7@xs4all.nl>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Hans,
 
-On Tue, Jan 31, 2017 at 10:42:48AM -0200, Mauro Carvalho Chehab wrote:
-> That added a new warning:
+On Friday 16 December 2016 03:17 PM, Hans Verkuil wrote:
+> On 07/12/16 19:30, Kevin Hilman wrote:
+>> Prepare the groundwork for adding DT support for davinci VPIF drivers.
+>> This series does some fixups/cleanups and then adds the DT binding and
+>> DT compatible string matching for DT probing.
+>>
+>> The controversial part from previous versions around async subdev
+>> parsing, and specifically hard-coding the input/output routing of
+>> subdevs, has been left out of this series.  That part can be done as a
+>> follow-on step after agreement has been reached on the path forward.
+>> With this version, platforms can still use the VPIF capture/display
+>> drivers, but must provide platform_data for the subdevs and subdev
+>> routing.
+>>
+>> Tested video capture to memory on da850-lcdk board using composite
+>> input.
 > 
-> drivers/media/i2c/et8ek8/et8ek8_driver.c: In function 'et8ek8_registered':
-> drivers/media/i2c/et8ek8/et8ek8_driver.c:1262:29: warning: variable 'format' set but not used [-Wunused-but-set-variable]
->   struct v4l2_mbus_framefmt *format;
->                              ^~~~~~
-> compilation succeeded
+> Other than the comment for the first patch this series looks good.
 > 
-> 
-> The driver is calling this function and storing it on a var
-> that is not used:
-> 
->         format = __et8ek8_get_pad_format(sensor, NULL, 0,
->                                          V4L2_SUBDEV_FORMAT_ACTIVE);
->         return 0;
-> 
-> Please send a fixup patch.
+> So once that's addressed I'll queue it up for 4.11.
 
-I compiled it, too, but I guess I had a GCC version that didn't complain
-about this particular matter. I'll send you a fix.
+Can you provide an immutable commit (as it will reach v4.11) with with
+this series applied? I have some platform changes to queue for v4.11
+that depend on the driver updates.
 
--- 
-Cheers,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Thanks,
+Sekhar
