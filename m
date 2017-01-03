@@ -1,81 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:43097 "EHLO
-        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752747AbdASOPT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Jan 2017 09:15:19 -0500
-Subject: Re: [PATCH 1/2] [media] exynos-gsc: Fix unbalanced pm_runtime_enable()
- error
-To: Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-kernel@vger.kernel.org
-Cc: Inki Dae <inki.dae@samsung.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Kukjin Kim <kgene@kernel.org>,
-        linux-samsung-soc@vger.kernel.org,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        linux-media@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        Ulf Hansson <ulf.hansson@linaro.org>
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <74767acf-052e-80ec-7172-67306b73b691@samsung.com>
-Date: Thu, 19 Jan 2017 15:12:29 +0100
-MIME-version: 1.0
-In-reply-to: <1484699402-28738-1-git-send-email-javier@osg.samsung.com>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-transfer-encoding: 7bit
-References: <CGME20170118003024epcas5p34baff888a902351d9168d74f5ecbf293@epcas5p3.samsung.com>
- <1484699402-28738-1-git-send-email-javier@osg.samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56393 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932210AbdACJMJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2017 04:12:09 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Kevin Hilman <khilman@baylibre.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        linux-media@vger.kernel.org, Axel Haslam <ahaslam@baylibre.com>,
+        Bartosz =?utf-8?B?R2/FgmFzemV3c2tp?= <bgolaszewski@baylibre.com>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>,
+        Patrick Titiano <ptitiano@baylibre.com>,
+        linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v6 0/5] davinci: VPIF: add DT support
+Date: Tue, 03 Jan 2017 11:12:10 +0200
+Message-ID: <57057847.C5XnZnHN9E@avalon>
+In-Reply-To: <4a03b56e-1e01-8b2c-c2a1-1b72d30f103a@ti.com>
+References: <20161207183025.20684-1-khilman@baylibre.com> <d4b0501a-f83a-c8b1-e460-1ba50f68cca7@xs4all.nl> <4a03b56e-1e01-8b2c-c2a1-1b72d30f103a@ti.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+Hi Sekhar,
 
-On 2017-01-18 01:30, Javier Martinez Canillas wrote:
-> Commit a006c04e6218 ("[media] exynos-gsc: Fixup clock management at
-> ->remove()") changed the driver's .remove function logic to fist do
-> a pm_runtime_get_sync() to make sure the device is powered before
-> attempting to gate the gsc clock.
->
-> But the commit also removed a pm_runtime_disable() call that leads
-> to an unbalanced pm_runtime_enable() error if the driver is removed
-> and re-probed:
->
-> exynos-gsc 13e00000.video-scaler: Unbalanced pm_runtime_enable!
-> exynos-gsc 13e10000.video-scaler: Unbalanced pm_runtime_enable!
->
-> Fixes: a006c04e6218 ("[media] exynos-gsc: Fixup clock management at ->remove()")
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+On Tuesday 03 Jan 2017 14:33:00 Sekhar Nori wrote:
+> On Friday 16 December 2016 03:17 PM, Hans Verkuil wrote:
+> > On 07/12/16 19:30, Kevin Hilman wrote:
+> >> Prepare the groundwork for adding DT support for davinci VPIF drivers.
+> >> This series does some fixups/cleanups and then adds the DT binding and
+> >> DT compatible string matching for DT probing.
+> >> 
+> >> The controversial part from previous versions around async subdev
+> >> parsing, and specifically hard-coding the input/output routing of
+> >> subdevs, has been left out of this series.  That part can be done as a
+> >> follow-on step after agreement has been reached on the path forward.
+> >> With this version, platforms can still use the VPIF capture/display
+> >> drivers, but must provide platform_data for the subdevs and subdev
+> >> routing.
+> >> 
+> >> Tested video capture to memory on da850-lcdk board using composite
+> >> input.
+> > 
+> > Other than the comment for the first patch this series looks good.
+> > 
+> > So once that's addressed I'll queue it up for 4.11.
+> 
+> Can you provide an immutable commit (as it will reach v4.11) with with
+> this series applied? I have some platform changes to queue for v4.11
+> that depend on the driver updates.
 
-I must have mixed something during the rebase of the Ulf's patch, because
-the original one kept pm_runtime_disable in the right place:
-http://lists.infradead.org/pipermail/linux-arm-kernel/2015-January/317678.html
+I don't think that's possible, given that Mauro rewrites all patches when 
+handling pull requests to prepend [media] to the subject line and to add his 
+SoB. Only Mauro can thus provide a stable branch, Hans can't.
 
-I'm really sorry.
-
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-
-> ---
->
->   drivers/media/platform/exynos-gsc/gsc-core.c | 1 +
->   1 file changed, 1 insertion(+)
->
-> diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-> index cbf75b6194b4..83272f10722d 100644
-> --- a/drivers/media/platform/exynos-gsc/gsc-core.c
-> +++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-> @@ -1118,6 +1118,7 @@ static int gsc_remove(struct platform_device *pdev)
->   		clk_disable_unprepare(gsc->clock[i]);
->   
->   	pm_runtime_put_noidle(&pdev->dev);
-> +	pm_runtime_disable(&pdev->dev);
->   
->   	dev_dbg(&pdev->dev, "%s driver unloaded\n", pdev->name);
->   	return 0;
-
-Best regards
 -- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+Regards,
+
+Laurent Pinchart
 
