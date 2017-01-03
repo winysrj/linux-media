@@ -1,78 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:33535 "EHLO
-        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1761718AbdAIScb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2017 13:32:31 -0500
-Date: Mon, 9 Jan 2017 12:32:14 -0600
-From: Rob Herring <robh@kernel.org>
-To: sean.wang@mediatek.com
-Cc: mchehab@osg.samsung.com, hdegoede@redhat.com, hkallweit1@gmail.com,
-        mark.rutland@arm.com, matthias.bgg@gmail.com,
-        andi.shyti@samsung.com, hverkuil@xs4all.nl, sean@mess.org,
-        ivo.g.dimitrov.75@gmail.com, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-mediatek@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        keyhaede@gmail.com
-Subject: Re: [PATCH 1/2] Documentation: devicetree: Add document bindings for
- mtk-cir
-Message-ID: <20170109183214.xonv52sn3fo4exqp@rob-hp-laptop>
-References: <1483632384-8107-1-git-send-email-sean.wang@mediatek.com>
- <1483632384-8107-2-git-send-email-sean.wang@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1483632384-8107-2-git-send-email-sean.wang@mediatek.com>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:33973 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1759337AbdACU5x (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2017 15:57:53 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: shawnguo@kernel.org, kernel@pengutronix.de, fabio.estevam@nxp.com,
+        robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk,
+        mchehab@kernel.org, gregkh@linuxfoundation.org,
+        p.zabel@pengutronix.de
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2 09/19] ARM: dts: imx6-sabreauto: add the ADV7180 video decoder
+Date: Tue,  3 Jan 2017 12:57:19 -0800
+Message-Id: <1483477049-19056-10-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 06, 2017 at 12:06:23AM +0800, sean.wang@mediatek.com wrote:
-> From: Sean Wang <sean.wang@mediatek.com>
-> 
-> This patch adds documentation for devicetree bindings for
-> Mediatek IR controller.
-> 
-> Signed-off-by: Sean Wang <sean.wang@mediatek.com>
-> ---
->  .../devicetree/bindings/media/mtk-cir.txt          | 23 ++++++++++++++++++++++
->  1 file changed, 23 insertions(+)
->  create mode 100644 linux-4.8.rc1_p0/Documentation/devicetree/bindings/media/mtk-cir.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/mtk-cir.txt b/Documentation/devicetree/bindings/media/mtk-cir.txt
-> new file mode 100644
-> index 0000000..bbedd71
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/mtk-cir.txt
-> @@ -0,0 +1,23 @@
-> +Device-Tree bindings for Mediatek IR controller found in Mediatek SoC family
-> +
-> +Required properties:
-> +- compatible	    : "mediatek,mt7623-ir"
-> +- clocks	    : list of clock specifiers, corresponding to
-> +		      entries in clock-names property;
-> +- clock-names	    : should contain "clk" entries;
-> +- interrupts	    : should contain IR IRQ number;
-> +- reg		    : should contain IO map address for IR.
-> +
-> +Optional properties:
-> +- linux,rc-map-name : Remote control map name.
+Enables the ADV7180 decoder sensor. The ADV7180 connects to the
+parallel-bus mux input on ipu1_csi0_mux.
 
-Would 'label' be appropriate here instead? If not, this needs to be 
-documented in a common location and explained better.
+On the sabreauto, two analog video inputs are routed to the ADV7180,
+composite on Ain1, and composite on Ain3. Those inputs are defined
+via inputs and input-names under the ADV7180 node. The ADV7180 power
+pin is via max7310_b port expander.
 
-> +
-> +Example:
-> +
-> +cir: cir@0x10013000 {
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 56 ++++++++++++++++++++++++++++++++
+ 1 file changed, 56 insertions(+)
 
-Drop the '0x'.
+diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+index 83ac2ff..30ee378 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+@@ -147,10 +147,42 @@
+ 				gpio-controller;
+ 				#gpio-cells = <2>;
+ 			};
++
++			camera: adv7180@21 {
++				compatible = "adi,adv7180";
++				reg = <0x21>;
++				powerdown-gpios = <&max7310_b 2 GPIO_ACTIVE_LOW>;
++				interrupt-parent = <&gpio1>;
++				interrupts = <27 0x8>;
++				inputs = <0x00 0x02>;
++				input-names = "ADV7180 Composite on Ain1",
++						"ADV7180 Composite on Ain3";
++
++				port {
++					adv7180_to_ipu1_csi0_mux: endpoint {
++						remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
++						bus-width = <8>;
++					};
++				};
++			};
+ 		};
+ 	};
+ };
+ 
++&ipu1_csi0_from_ipu1_csi0_mux {
++	bus-width = <8>;
++};
++
++&ipu1_csi0_mux_from_parallel_sensor {
++	remote-endpoint = <&adv7180_to_ipu1_csi0_mux>;
++	bus-width = <8>;
++};
++
++&ipu1_csi0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_ipu1_csi0>;
++};
++
+ &clks {
+ 	assigned-clocks = <&clks IMX6QDL_PLL4_BYPASS_SRC>,
+ 			  <&clks IMX6QDL_PLL4_BYPASS>,
+@@ -451,6 +483,30 @@
+ 			>;
+ 		};
+ 
++		pinctrl_ipu1_csi0: ipu1grp-csi0 {
++			fsl,pins = <
++				MX6QDL_PAD_CSI0_DAT4__IPU1_CSI0_DATA04   0x80000000
++				MX6QDL_PAD_CSI0_DAT5__IPU1_CSI0_DATA05   0x80000000
++				MX6QDL_PAD_CSI0_DAT6__IPU1_CSI0_DATA06   0x80000000
++				MX6QDL_PAD_CSI0_DAT7__IPU1_CSI0_DATA07   0x80000000
++				MX6QDL_PAD_CSI0_DAT8__IPU1_CSI0_DATA08   0x80000000
++				MX6QDL_PAD_CSI0_DAT9__IPU1_CSI0_DATA09   0x80000000
++				MX6QDL_PAD_CSI0_DAT10__IPU1_CSI0_DATA10  0x80000000
++				MX6QDL_PAD_CSI0_DAT11__IPU1_CSI0_DATA11  0x80000000
++				MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12  0x80000000
++				MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13  0x80000000
++				MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14  0x80000000
++				MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15  0x80000000
++				MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16  0x80000000
++				MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17  0x80000000
++				MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18  0x80000000
++				MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19  0x80000000
++				MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK 0x80000000
++				MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC    0x80000000
++				MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC   0x80000000
++			>;
++		};
++
+ 		pinctrl_pwm3: pwm1grp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_SD4_DAT1__PWM3_OUT		0x1b0b1
+-- 
+2.7.4
 
-> +	compatible = "mediatek,mt7623-ir";
-> +	reg = <0 0x10013000 0 0x1000>;
-> +	interrupts = <GIC_SPI 87 IRQ_TYPE_LEVEL_LOW>;
-> +	clocks = <&infracfg CLK_INFRA_IRRX>;
-> +	clock-names = "clk";
-> +	linux,rc-map-name = "rc-rc6-mce";
-> +};
-> -- 
-> 1.9.1
-> 
