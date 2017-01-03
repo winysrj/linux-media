@@ -1,41 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:34874 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751193AbdAGCsw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2017 21:48:52 -0500
-Received: by mail-pg0-f66.google.com with SMTP id i5so45660557pgh.2
-        for <linux-media@vger.kernel.org>; Fri, 06 Jan 2017 18:48:52 -0800 (PST)
-From: Derek Robson <robsonde@gmail.com>
-To: mchehab@kernel.org, gregkh@linuxfoundation.org
-Cc: thaissa.falbo@gmail.com, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, Derek Robson <robsonde@gmail.com>
-Subject: [PATCH] Staging: media: style fix, octal file permissions
-Date: Sat,  7 Jan 2017 15:48:41 +1300
-Message-Id: <20170107024841.18838-1-robsonde@gmail.com>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:51431 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1757465AbdACEZb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 2 Jan 2017 23:25:31 -0500
+Message-ID: <1b234c08f3d60e134aa8c55893bc50eb@smtp-cloud6.xs4all.net>
+Date: Tue, 03 Jan 2017 05:25:28 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changed file permissions to octal.
-Found with checkpatch
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Derek Robson <robsonde@gmail.com>
----
- drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
-index bf077f8342f6..32109cdd73a6 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
-@@ -74,7 +74,7 @@
- static bool debug;
- static bool interface;
- 
--module_param(interface, bool, S_IRUGO);
-+module_param(interface, bool, 0444);
- module_param(debug, bool, 0644);
- 
- /**
--- 
-2.11.0
+date:			Tue Jan  3 05:00:10 CET 2017
+media-tree git hash:	40eca140c404505c09773d1c6685d818cb55ab1a
+media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
+v4l-utils git hash:	951c4878a93f4722146f8bc6515a47fba6470bb3
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9-x86_64: ERRORS
+apps: WARNINGS
+spec-git: ERRORS
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
