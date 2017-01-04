@@ -1,143 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:47319 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751054AbdAPMLM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Jan 2017 07:11:12 -0500
-Message-ID: <1484568579.8415.91.camel@pengutronix.de>
-Subject: Re: [PATCH v3 01/24] [media] dt-bindings: Add bindings for i.MX
- media driver
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+Received: from relay1.mentorg.com ([192.94.38.131]:52308 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1031021AbdADOXy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2017 09:23:54 -0500
+Subject: Re: [PATCH v2 12/19] media: imx: Add SMFC subdev driver
+To: Steve Longerbeam <slongerbeam@gmail.com>, <shawnguo@kernel.org>,
+        <kernel@pengutronix.de>, <fabio.estevam@nxp.com>,
+        <robh+dt@kernel.org>, <mark.rutland@arm.com>,
+        <linux@armlinux.org.uk>, <mchehab@kernel.org>,
+        <gregkh@linuxfoundation.org>, <p.zabel@pengutronix.de>
+References: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
+ <1483477049-19056-13-git-send-email-steve_longerbeam@mentor.com>
+CC: <linux-arm-kernel@lists.infradead.org>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-media@vger.kernel.org>, <devel@driverdev.osuosl.org>,
         Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Mon, 16 Jan 2017 13:09:39 +0100
-In-Reply-To: <e609fd03-a546-330c-ec89-de1844d1b46f@gmail.com>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
-         <1483755102-24785-2-git-send-email-steve_longerbeam@mentor.com>
-         <1484308551.31475.23.camel@pengutronix.de>
-         <e609fd03-a546-330c-ec89-de1844d1b46f@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Message-ID: <13ff9579-ce8e-9272-ee44-9b597631f6b5@mentor.com>
+Date: Wed, 4 Jan 2017 16:23:47 +0200
+MIME-Version: 1.0
+In-Reply-To: <1483477049-19056-13-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2017-01-13 at 11:03 -0800, Steve Longerbeam wrote:
+On 01/03/2017 10:57 PM, Steve Longerbeam wrote:
+> This is a media entity subdevice driver for the i.MX Sensor Multi-FIFO
+> Controller module. Video frames are received from the CSI and can
+> be routed to various sinks including the i.MX Image Converter for
+> scaling, color-space conversion, motion compensated deinterlacing,
+> and image rotation.
 > 
-> On 01/13/2017 03:55 AM, Philipp Zabel wrote:
-> > Am Freitag, den 06.01.2017, 18:11 -0800 schrieb Steve Longerbeam:
-> >> Add bindings documentation for the i.MX media driver.
-> >>
-> >> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> >> ---
-> >>   Documentation/devicetree/bindings/media/imx.txt | 57 +++++++++++++++++++++++++
-> >>   1 file changed, 57 insertions(+)
-> >>   create mode 100644 Documentation/devicetree/bindings/media/imx.txt
-> >>
-> >> diff --git a/Documentation/devicetree/bindings/media/imx.txt b/Documentation/devicetree/bindings/media/imx.txt
-> >> new file mode 100644
-> >> index 0000000..254b64a
-> >> --- /dev/null
-> >> +++ b/Documentation/devicetree/bindings/media/imx.txt
-> >> @@ -0,0 +1,57 @@
-> >> +Freescale i.MX Media Video Devices
-> >> +
-> >> +Video Media Controller node
-> >> +---------------------------
-> >> +
-> >> +This is the parent media controller node for video capture support.
-> >> +
-> >> +Required properties:
-> >> +- compatible : "fsl,imx-media";
-> > Would you be opposed to calling this "capture-subsystem" instead of
-> > "imx-media"? We already use "fsl,imx-display-subsystem" and
-> > "fsl,imx-gpu-subsystem" for the display and GPU compound devices.
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> ---
+>  drivers/staging/media/imx/Makefile   |   1 +
+>  drivers/staging/media/imx/imx-smfc.c | 739 +++++++++++++++++++++++++++++++++++
+>  2 files changed, 740 insertions(+)
+>  create mode 100644 drivers/staging/media/imx/imx-smfc.c
 > 
-> sure. Some pie-in-the-sky day when DRM and media are unified,
-> there could be a single device that handles them all,
+> diff --git a/drivers/staging/media/imx/Makefile b/drivers/staging/media/imx/Makefile
+> index 133672a..3559d7b 100644
+> --- a/drivers/staging/media/imx/Makefile
+> +++ b/drivers/staging/media/imx/Makefile
+> @@ -5,4 +5,5 @@ obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-media.o
+>  obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-media-common.o
+>  
+>  obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-csi.o
+> +obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-smfc.o
 
-Indeed :)
+May be
 
->  but for now
-> I'm fine with "fsl,capture-subsystem".
+obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-csi.o imx-smfc.o
 
-Actually, I meant fsl,imx-capture-subsystem. fsl,imx-media-subsystem
-would be fine, too. Either way, I'll be happy if it looks similar to the
-other two.
+>  
+> diff --git a/drivers/staging/media/imx/imx-smfc.c b/drivers/staging/media/imx/imx-smfc.c
+> new file mode 100644
+> index 0000000..565048c
+> --- /dev/null
+> +++ b/drivers/staging/media/imx/imx-smfc.c
+> @@ -0,0 +1,739 @@
+> +/*
+> + * V4L2 Capture SMFC Subdev for Freescale i.MX5/6 SOC
+> + *
+> + * This subdevice handles capture of raw/unconverted video frames
+> + * from the CSI, directly to memory via the Sensor Multi-FIFO Controller.
+> + *
+> + * Copyright (c) 2012-2016 Mentor Graphics Inc.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + */
+> +#include <linux/module.h>
+> +#include <linux/delay.h>
+> +#include <linux/fs.h>
+> +#include <linux/timer.h>
+> +#include <linux/sched.h>
+> +#include <linux/slab.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/spinlock.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/pinctrl/consumer.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-ioctl.h>
+> +#include <media/videobuf2-dma-contig.h>
+> +#include <media/v4l2-subdev.h>
+> +#include <media/v4l2-of.h>
+> +#include <media/v4l2-ctrls.h>
 
-[...]
-> > This is a clever method to get better frame timestamps. Too bad about
-> > the routing requirements. Can this be used on Nitrogen6X?
+Please sort the list of headers alphabetically.
+
+> +#include <media/imx.h>
+> +#include "imx-media.h"
+> +
+
+[snip]
+
+> +static irqreturn_t imx_smfc_eof_interrupt(int irq, void *dev_id)
+> +{
+> +	struct imx_smfc_priv *priv = dev_id;
+> +	struct imx_media_dma_buf *done, *next;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&priv->irqlock, flags);
+
+spin_lock(&priv->irqlock) should be sufficient.
+
+> +
+> +	if (priv->last_eof) {
+> +		complete(&priv->last_eof_comp);
+> +		priv->last_eof = false;
+> +		goto unlock;
+> +	}
+> +
+> +	/* inform CSI of this EOF so it can monitor frame intervals */
+> +	v4l2_subdev_call(priv->src_sd, core, interrupt_service_routine,
+> +			 0, NULL);
+> +
+> +	done = imx_media_dma_buf_get_active(priv->out_ring);
+> +	/* give the completed buffer to the sink  */
+> +	if (!WARN_ON(!done))
+> +		imx_media_dma_buf_done(done, IMX_MEDIA_BUF_STATUS_DONE);
+> +
+> +	/* priv->next buffer is now the active one */
+> +	imx_media_dma_buf_set_active(priv->next);
+> +
+> +	/* bump the EOF timeout timer */
+> +	mod_timer(&priv->eof_timeout_timer,
+> +		  jiffies + msecs_to_jiffies(IMX_MEDIA_EOF_TIMEOUT));
+> +
+> +	if (ipu_idmac_buffer_is_ready(priv->smfc_ch, priv->ipu_buf_num))
+> +		ipu_idmac_clear_buffer(priv->smfc_ch, priv->ipu_buf_num);
+> +
+> +	/* get next queued buffer */
+> +	next = imx_media_dma_buf_get_next_queued(priv->out_ring);
+> +
+> +	ipu_cpmem_set_buffer(priv->smfc_ch, priv->ipu_buf_num, next->phys);
+> +	ipu_idmac_select_buffer(priv->smfc_ch, priv->ipu_buf_num);
+> +
+> +	/* toggle IPU double-buffer index */
+> +	priv->ipu_buf_num ^= 1;
+> +	priv->next = next;
+> +
+> +unlock:
+> +	spin_unlock_irqrestore(&priv->irqlock, flags);
+> +	return IRQ_HANDLED;
+> +}
+> +
+
+[snip]
+
+> +
+> +static const struct platform_device_id imx_smfc_ids[] = {
+> +	{ .name = "imx-ipuv3-smfc" },
+> +	{ },
+> +};
+> +MODULE_DEVICE_TABLE(platform, imx_smfc_ids);
+> +
+> +static struct platform_driver imx_smfc_driver = {
+> +	.probe = imx_smfc_probe,
+> +	.remove = imx_smfc_remove,
+> +	.id_table = imx_smfc_ids,
+> +	.driver = {
+> +		.name = "imx-ipuv3-smfc",
+> +		.owner = THIS_MODULE,
+
+You can drop owner assignment.
+
+> +	},
+> +};
+> +module_platform_driver(imx_smfc_driver);
+> +
+> +MODULE_DESCRIPTION("i.MX SMFC subdev driver");
+> +MODULE_AUTHOR("Steve Longerbeam <steve_longerbeam@mentor.com>");
+> +MODULE_LICENSE("GPL");
+> +MODULE_ALIAS("platform:imx-ipuv3-smfc");
 > 
-> Absolutely, this support just needs use of the input-capture channels in the
-> imx GPT. I still need to submit the patch to the imx-gpt driver that adds an
-> input capture API, so at this point fsl,input-capture-channel has no effect,
-> but it does work (tested on SabreAuto).
 
-Nice.
-
-[...]
-> >> +Required properties:
-> >> +- compatible	: "fsl,imx6-mipi-csi2";
-> > I think this should get an additional "snps,dw-mipi-csi2" compatible,
-> > since the only i.MX6 specific part is the bolted-on IPU2CSI gasket.
-> 
-> right, minus the gasket it's a Synopsys core. I'll add that compatible flag.
-> Or should wait until the day this subdev is exported for general use, after
-> pulling out the gasket specifics?
-
-It can be added right away.
-
-> >> +- reg           : physical base address and length of the register set;
-> >> +- clocks	: the MIPI CSI-2 receiver requires three clocks: hsi_tx
-> >> +                  (the DPHY clock), video_27m, and eim_sel;
-> > Note that hsi_tx is incorrectly named. CCGR3[CG8] just happens to be the
-> > shared gate bit that gates the HSI clocks as well as the MIPI
-> > "ac_clk_125m", "cfg_clk", "ips_clk", and "pll_refclk" inputs to the mipi
-> > csi-2 core, but we are missing shared gate clocks in the clock tree for
-> > these.
-> 
-> Yes, so many clocks for the MIPI core. Why so many? I would think
-> there would need to be at most three: a clock for the MIPI CSI-2 core
-> and HSI core, and a clock for the D-PHY (oh and maybe a clock for an
-> M-PHY if there is one). I have no clue what all these other clocks are.
-> But anyway, a single gating bit, CCGR3[CG8], seems to enable them all.
-
-I would imagine the CSI-2 core has a high-speed clock input from the
-D-PHY for serial input, an APB clock for register access (ips_clk), and
-a pixel clock input for the parallel output (pixel_clk), at least.
-The D-PHY will have a PLL reference input (pll_refclk?) and probably its
-own register clock (cfg_clk?).
-
-I've looked at the MIPI DSI chapter, and it looks like ac_clk_125m is
-used for DSI only.
-
-> > Both cfg_clk and pll_refclk are sourced from video_27m, so "cfg" ->
-> > video_27m seems fine.
-> > But I don't get "dphy".
-> 
-> I presume it's the clock for the D-PHY.
->
-> >   Which input clock would that correspond to?
-> > "pll_refclk?"
-> 
-> the mux at CDCDR says it comes from PLL3_120M, or PLL2_PFD2.
-
-I think that makes sense.
-
-regards
-Philipp
-
+--
+With best wishes,
+Vladimir
