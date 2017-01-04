@@ -1,52 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:36013 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756846AbdABVJn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jan 2017 16:09:43 -0500
-MIME-Version: 1.0
-In-Reply-To: <1483050455-10683-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1483050455-10683-1-git-send-email-steve_longerbeam@mentor.com>
-From: Fabio Estevam <festevam@gmail.com>
-Date: Mon, 2 Jan 2017 19:09:41 -0200
-Message-ID: <CAOMZO5DM4aRwzCWkRoZLmbCxn155YL+CUR_gJyDh+FjzSKD3PQ@mail.gmail.com>
-Subject: Re: [PATCH 00/20] i.MX Media Driver
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <kernel@pengutronix.de>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        "robh+dt@kernel.org" <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Alexandre Courbot <gnurou@gmail.com>, mchehab@kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        devel@driverdev.osuosl.org,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from kozue.soulik.info ([108.61.200.231]:57314 "EHLO
+        kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751012AbdADQ3i (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2017 11:29:38 -0500
+From: Randy Li <ayaka@soulik.info>
+To: dri-devel@lists.freedesktop.org
+Cc: ville.syrjala@linux.intel.com, randy.li@rock-chips.com,
+        linux-kernel@vger.kernel.org, daniel.vetter@intel.com,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        Randy Li <ayaka@soulik.info>
+Subject: [PATCH v2 0/2] Add pixel formats for 10/16 bits YUV video
+Date: Thu,  5 Jan 2017 00:29:09 +0800
+Message-Id: <1483547351-5792-1-git-send-email-ayaka@soulik.info>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
+Those pixel formats mainly comes from Gstreamer and ffmpeg. Currently,
+the VOP(video output mixer) found on RK3288 and future support
+those 10 bits pixel formats are input. Also the decoder on RK3288
+could use them as output.
 
-On Thu, Dec 29, 2016 at 8:27 PM, Steve Longerbeam <slongerbeam@gmail.com> wrote:
-> This is a media driver for video capture on i.MX.
->
-> Refer to Documentation/media/v4l-drivers/imx.rst for example capture
-> pipelines on SabreSD, SabreAuto, and SabreLite reference platforms.
->
-> This patchset includes the OF graph layout as proposed by Philipp Zabel,
-> with only minor changes which are enumerated in the patch header.
+The fourcc is not enough to store the endian information for those
+pixel formats in v4l2, as it doesn't have a flag like drm does.
 
-Patches 13, 14 and 19 miss your Signed-off-by tag.
+I have not met the usage of those 16 bits per-channel format,
+it is a very large color range, even the DSLR only use 12 bits.
 
-Tested the whole series on a mx6qsabresd:
+Randy Li (2):
+  drm_fourcc: Add new P010, P016 video format
+  [media] v4l: Add 10/16-bits per channel YUV pixel formats
 
-Tested-by: Fabio Estevam <fabio.estevam@nxp.com>
+ Documentation/media/uapi/v4l/pixfmt-p010.rst  |  86 ++++++++++++++++
+ Documentation/media/uapi/v4l/pixfmt-p010m.rst |  94 ++++++++++++++++++
+ Documentation/media/uapi/v4l/pixfmt-p016.rst  | 126 ++++++++++++++++++++++++
+ Documentation/media/uapi/v4l/pixfmt-p016m.rst | 136 ++++++++++++++++++++++++++
+ drivers/gpu/drm/drm_fourcc.c                  |   3 +
+ include/uapi/drm/drm_fourcc.h                 |   2 +
+ include/uapi/linux/videodev2.h                |   4 +
+ 7 files changed, 451 insertions(+)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-p010.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-p010m.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-p016.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-p016m.rst
+
+-- 
+2.7.4
+
