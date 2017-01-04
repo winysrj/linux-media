@@ -1,50 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59688 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753178AbdA3LIN (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47060 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S935717AbdADI5u (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Jan 2017 06:08:13 -0500
-Received: from avalon.localnet (unknown [91.179.29.12])
-        by galahad.ideasonboard.com (Postfix) with ESMTPSA id 9EBD320098
-        for <linux-media@vger.kernel.org>; Mon, 30 Jan 2017 11:57:19 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.11] Sensors changes
-Date: Mon, 30 Jan 2017 12:58:21 +0200
-Message-ID: <1545226.9Z0Ll854RB@avalon>
+        Wed, 4 Jan 2017 03:57:50 -0500
+Date: Wed, 4 Jan 2017 10:57:47 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] media: entity: Catch unbalanced media_pipeline_stop calls
+Message-ID: <20170104085746.GO3958@valkosipuli.retiisi.org.uk>
+References: <1483449131-18075-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+ <2426604.oXt7iAeI8O@avalon>
+ <f2029382-de41-3267-d1f2-6b1366bcae27@ideasonboard.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <f2029382-de41-3267-d1f2-6b1366bcae27@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Kieran,
 
-The following changes since commit 40eca140c404505c09773d1c6685d818cb55ab1a:
+Thanks for the patch!
 
-  [media] mn88473: add DVB-T2 PLP support (2016-12-27 14:00:15 -0200)
+On Tue, Jan 03, 2017 at 05:05:58PM +0000, Kieran Bingham wrote:
+> On 03/01/17 13:36, Laurent Pinchart wrote:
+> > Hi Kieran,
+> > 
+> > Thank you for the patch.
+> > 
+> > On Tuesday 03 Jan 2017 13:12:11 Kieran Bingham wrote:
+> >> Drivers must not perform unbalanced calls to stop the entity pipeline,
+> >> however if they do they will fault in the core media code, as the
+> >> entity->pipe will be set as NULL. We handle this gracefully in the core
+> >> with a WARN for the developer.
+> >>
+> >> Replace the erroneous check on zero streaming counts, with a check on
+> >> NULL pipe elements instead, as this is the symptom of unbalanced
+> >> media_pipeline_stop calls.
+> >>
+> >> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> > 
+> > This looks good to me,
+> > 
+> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > 
+> > I'll let Sakari review and merge the patch.
+> 
+> Ahh, yes - I forgot to mention, although perhaps it will be obvious for
+> Sakari - but this patch is based on top of Sakari's pending media
+> pipeline and graph walk cleanup series :D
 
-are available in the git repository at:
+I've applied this on top of the other patches.
 
-  git://linuxtv.org/pinchartl/media.git sensors/next
-
-for you to fetch changes up to ab21fe9d7e3748e42445a43d24c67e8b42abff01:
-
-  ov9650: use msleep() for uncritical long delay (2017-01-30 12:57:14 +0200)
-
-----------------------------------------------------------------
-Laurent Pinchart (1):
-      v4l: mt9v032: Remove unneeded gpiod NULL check
-
-Nicholas Mc Guire (1):
-      ov9650: use msleep() for uncritical long delay
-
- drivers/media/i2c/mt9v032.c | 3 +--
- drivers/media/i2c/ov9650.c  | 4 ++--
- 2 files changed, 3 insertions(+), 4 deletions(-)
+It's always good to mention dependencies to other patches, that's very
+relevant for reviewers.
 
 -- 
 Regards,
 
-Laurent Pinchart
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
