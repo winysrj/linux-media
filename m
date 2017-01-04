@@ -1,76 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:34217 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750984AbdAYCjd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Jan 2017 21:39:33 -0500
-Subject: Re: [PATCH v3 19/24] media: imx: Add IC subdev drivers
-To: Hans Verkuil <hverkuil@xs4all.nl>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
- <1483755102-24785-20-git-send-email-steve_longerbeam@mentor.com>
- <07f4bc9e-22ef-a925-f4ee-c14df65e4f0d@xs4all.nl>
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <aa230b31-39f0-524d-3ce5-05827360ea95@gmail.com>
-Date: Tue, 24 Jan 2017 18:39:30 -0800
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:33035 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966991AbdADP0T (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2017 10:26:19 -0500
 MIME-Version: 1.0
-In-Reply-To: <07f4bc9e-22ef-a925-f4ee-c14df65e4f0d@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1483477049-19056-6-git-send-email-steve_longerbeam@mentor.com>
+References: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com> <1483477049-19056-6-git-send-email-steve_longerbeam@mentor.com>
+From: Fabio Estevam <festevam@gmail.com>
+Date: Wed, 4 Jan 2017 13:26:18 -0200
+Message-ID: <CAOMZO5CibSU45Cw1d8ZipiGSVfhCQ4uP4XiNuWTGLa5eHmC6Qg@mail.gmail.com>
+Subject: Re: [PATCH v2 05/19] ARM: dts: imx6-sabresd: add OV5642 and OV5640
+ camera sensors
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <kernel@pengutronix.de>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        "robh+dt@kernel.org" <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        mchehab@kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        devel@driverdev.osuosl.org,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue, Jan 3, 2017 at 6:57 PM, Steve Longerbeam <slongerbeam@gmail.com> wrote:
 
+> +       camera: ov5642@3c {
+> +               compatible = "ovti,ov5642";
+> +               pinctrl-names = "default";
+> +               pinctrl-0 = <&pinctrl_ov5642>;
+> +               clocks = <&clks IMX6QDL_CLK_CKO>;
+> +               clock-names = "xclk";
+> +               reg = <0x3c>;
+> +               xclk = <24000000>;
+> +               DOVDD-supply = <&vgen4_reg>; /* 1.8v */
+> +               AVDD-supply = <&vgen5_reg>;  /* 2.8v, rev C board is VGEN3
+> +                                               rev B board is VGEN5 */
 
-On 01/20/2017 06:29 AM, Hans Verkuil wrote:
-> On 01/07/2017 03:11 AM, Steve Longerbeam wrote:
->> +
->> +static const struct v4l2_ctrl_config prpenc_std_ctrl[] = {
->> +	{
->> +		.id = V4L2_CID_HFLIP,
->> +		.name = "Horizontal Flip",
->> +		.type = V4L2_CTRL_TYPE_BOOLEAN,
->> +		.def =  0,
->> +		.min =  0,
->> +		.max =  1,
->> +		.step = 1,
->> +	}, {
->> +		.id = V4L2_CID_VFLIP,
->> +		.name = "Vertical Flip",
->> +		.type = V4L2_CTRL_TYPE_BOOLEAN,
->> +		.def =  0,
->> +		.min =  0,
->> +		.max =  1,
->> +		.step = 1,
->> +	}, {
->> +		.id = V4L2_CID_ROTATE,
->> +		.name = "Rotation",
->> +		.type = V4L2_CTRL_TYPE_INTEGER,
->> +		.def =   0,
->> +		.min =   0,
->> +		.max = 270,
->> +		.step = 90,
->> +	},
->> +};
-> Use v4l2_ctrl_new_std() instead of this array: this avoids duplicating information
-> like the name and type.
->
-> If this is also done elsewhere, then it should be changed there as well.
+Please use vgen3 so that by default we have the valid AVDD-supply for
+revC boards which is more recent and more the users have access to.
 
-done.
+> +       mipi_camera: ov5640@3c {
+> +               compatible = "ovti,ov5640_mipi";
+> +               pinctrl-names = "default";
+> +               pinctrl-0 = <&pinctrl_ov5640>;
+> +               reg = <0x3c>;
+> +               clocks = <&clks IMX6QDL_CLK_CKO>;
+> +               clock-names = "xclk";
+> +               xclk = <24000000>;
+> +               DOVDD-supply = <&vgen4_reg>; /* 1.8v */
+> +               AVDD-supply = <&vgen5_reg>;  /* 2.8v, rev C board is VGEN3
+> +                                               rev B board is VGEN5 */
 
-Steve
+Same here.
 
+> +               pinctrl_ov5640: ov5640grp {
+> +                       fsl,pins = <
+> +                               MX6QDL_PAD_SD1_DAT2__GPIO1_IO19 0x80000000
+> +                               MX6QDL_PAD_SD1_CLK__GPIO1_IO20  0x80000000
+
+Please avoid all the 0x80000000 IOMUX settings and replace them by
+their real values.
