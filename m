@@ -1,312 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.220.in.ua ([89.184.67.205]:45969 "EHLO smtp.220.in.ua"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932601AbdAKH2v (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Jan 2017 02:28:51 -0500
-Subject: Re: [PATCH] [media] cx231xx: Initial support Evromedia USB Full
- Hybrid Full HD
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
-        hverkuil@xs4all.nl
-References: <20170110214106.5349-1-oleg@kaa.org.ua>
- <53f10643-5437-e102-856c-fa3a22abcd18@iki.fi>
-From: Oleh Kravchenko <oleg@kaa.org.ua>
-Message-ID: <580ee3ee-1d8c-10c8-a654-6e804fe869c2@kaa.org.ua>
-Date: Wed, 11 Jan 2017 09:28:46 +0200
+Received: from relay1.mentorg.com ([192.94.38.131]:38394 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751701AbdADMls (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2017 07:41:48 -0500
+Subject: Re: [PATCH v2 09/19] ARM: dts: imx6-sabreauto: add the ADV7180 video
+ decoder
+To: Steve Longerbeam <slongerbeam@gmail.com>, <shawnguo@kernel.org>,
+        <kernel@pengutronix.de>, <fabio.estevam@nxp.com>,
+        <robh+dt@kernel.org>, <mark.rutland@arm.com>,
+        <linux@armlinux.org.uk>, <mchehab@kernel.org>,
+        <gregkh@linuxfoundation.org>, <p.zabel@pengutronix.de>
+References: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
+ <1483477049-19056-10-git-send-email-steve_longerbeam@mentor.com>
+CC: <linux-arm-kernel@lists.infradead.org>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-media@vger.kernel.org>, <devel@driverdev.osuosl.org>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Message-ID: <acbdc873-3166-f56d-e6d1-948becb1a57c@mentor.com>
+Date: Wed, 4 Jan 2017 14:41:37 +0200
 MIME-Version: 1.0
-In-Reply-To: <53f10643-5437-e102-856c-fa3a22abcd18@iki.fi>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1483477049-19056-10-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 01/03/2017 10:57 PM, Steve Longerbeam wrote:
+> Enables the ADV7180 decoder sensor. The ADV7180 connects to the
+> parallel-bus mux input on ipu1_csi0_mux.
+> 
+> On the sabreauto, two analog video inputs are routed to the ADV7180,
+> composite on Ain1, and composite on Ain3. Those inputs are defined
+> via inputs and input-names under the ADV7180 node. The ADV7180 power
+> pin is via max7310_b port expander.
+> 
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> ---
+>  arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 56 ++++++++++++++++++++++++++++++++
+>  1 file changed, 56 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+> index 83ac2ff..30ee378 100644
+> --- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+> +++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+> @@ -147,10 +147,42 @@
+>  				gpio-controller;
+>  				#gpio-cells = <2>;
+>  			};
+> +
+> +			camera: adv7180@21 {
 
+adv7180: camera@21
 
-On 11.01.17 02:16, Antti Palosaari wrote:
-> On 01/10/2017 11:41 PM, Oleh Kravchenko wrote:
->> This patch provide only digital support.
->>
->> The device is based on Si2168 30-demodulator,
->> Si2158-20 tuner and CX23102-11Z chipset;
->> USB id: 1b80:d3b2.
->>
->> Status:
->> - DVB-T2 works fine;
->> - Composite and SVideo works fine;
->> - Analog not implemented.
->>
->> Signed-off-by: Oleh Kravchenko <oleg@kaa.org.ua>
->> Tested-by: Oleh Kravchenko <oleg@kaa.org.ua>
->> ---
->>  drivers/media/usb/cx231xx/Kconfig         |  1 +
->>  drivers/media/usb/cx231xx/cx231xx-cards.c | 29 +++++++++++++
->>  drivers/media/usb/cx231xx/cx231xx-dvb.c   | 71 +++++++++++++++++++++++++++++++
->>  drivers/media/usb/cx231xx/cx231xx-i2c.c   | 37 ++++++++++++++++
->>  drivers/media/usb/cx231xx/cx231xx.h       |  1 +
->>  5 files changed, 139 insertions(+)
->>
->> diff --git a/drivers/media/usb/cx231xx/Kconfig b/drivers/media/usb/cx231xx/Kconfig
->> index 0cced3e..58de80b 100644
->> --- a/drivers/media/usb/cx231xx/Kconfig
->> +++ b/drivers/media/usb/cx231xx/Kconfig
->> @@ -50,6 +50,7 @@ config VIDEO_CX231XX_DVB
->>      select DVB_LGDT3306A if MEDIA_SUBDRV_AUTOSELECT
->>      select DVB_TDA18271C2DD if MEDIA_SUBDRV_AUTOSELECT
->>      select DVB_SI2165 if MEDIA_SUBDRV_AUTOSELECT
->> +    select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
->>      select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
->>
->>      ---help---
->> diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
->> index 36bc254..f730fdb 100644
->> --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
->> +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
->> @@ -841,6 +841,33 @@ struct cx231xx_board cx231xx_boards[] = {
->>              .gpio = NULL,
->>          } },
->>      },
->> +    [CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD] = {
->> +        .name = "Evromedia USB Full Hybrid Full HD",
->> +        .tuner_type = TUNER_ABSENT,
->> +        .demod_addr = 0x64, /* 0xc8 >> 1 */
->> +        .demod_i2c_master = I2C_1_MUX_3,
->> +        .has_dvb = 1,
->> +        .ir_i2c_master = I2C_0,
->> +        .norm = V4L2_STD_PAL,
->> +        .output_mode = OUT_MODE_VIP11,
->> +        .tuner_addr = 0x60, /* 0xc0 >> 1 */
-> 
-> Looks good. I looked the existing file and all the other entries were also using correct 7-bit addresses.
-> 
->> +        .tuner_i2c_master = I2C_2,
->> +        .input = {{
->> +            .type = CX231XX_VMUX_TELEVISION,
->> +            .vmux = 0,
->> +            .amux = CX231XX_AMUX_VIDEO,
->> +        }, {
->> +            .type = CX231XX_VMUX_COMPOSITE1,
->> +            .vmux = CX231XX_VIN_2_1,
->> +            .amux = CX231XX_AMUX_LINE_IN,
->> +        }, {
->> +            .type = CX231XX_VMUX_SVIDEO,
->> +            .vmux = CX231XX_VIN_1_1 |
->> +                (CX231XX_VIN_1_2 << 8) |
->> +                CX25840_SVIDEO_ON,
->> +            .amux = CX231XX_AMUX_LINE_IN,
->> +        } },
->> +    },
->>  };
->>  const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
->>
->> @@ -908,6 +935,8 @@ struct usb_device_id cx231xx_id_table[] = {
->>       .driver_info = CX231XX_BOARD_OTG102},
->>      {USB_DEVICE(USB_VID_TERRATEC, 0x00a6),
->>       .driver_info = CX231XX_BOARD_TERRATEC_GRABBY},
->> +    {USB_DEVICE(0x1b80, 0xd3b2),
->> +    .driver_info = CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD},
->>      {},
->>  };
->>
->> diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
->> index 1417515..ecd3528 100644
->> --- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
->> +++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
->> @@ -33,6 +33,7 @@
->>  #include "s5h1411.h"
->>  #include "lgdt3305.h"
->>  #include "si2165.h"
->> +#include "si2168.h"
->>  #include "mb86a20s.h"
->>  #include "si2157.h"
->>  #include "lgdt3306a.h"
->> @@ -949,6 +950,76 @@ static int dvb_init(struct cx231xx *dev)
->>                 &pv_tda18271_config);
->>          break;
->>
->> +    case CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD:
->> +    {
->> +        struct si2157_config si2157_config = {};
->> +        struct si2168_config si2168_config = {};
->> +        struct i2c_board_info info = {};
-> 
-> Personally I don't like initializing variables to zero at the declaration, but it was Hans who asked to do it.
-> 
->> +        struct i2c_client *client;
->> +        struct i2c_adapter *adapter;
->> +
->> +        /* attach demodulator chip */
->> +        si2168_config.ts_mode = SI2168_TS_SERIAL; /* from *.inf file */
->> +        si2168_config.fe = &dev->dvb->frontend;
->> +        si2168_config.i2c_adapter = &adapter;
->> +        si2168_config.ts_clock_inv = true;
->> +
->> +        strlcpy(info.type, "si2168", sizeof(info.type));
->> +        info.addr = dev->board.demod_addr;
->> +        info.platform_data = &si2168_config;
->> +
->> +        request_module(info.type);
->> +        client = i2c_new_device(demod_i2c, &info);
->> +
->> +        if (client == NULL || client->dev.driver == NULL) {
->> +            result = -ENODEV;
->> +            goto out_free;
->> +        }
->> +
->> +        if (!try_module_get(client->dev.driver->owner)) {
->> +            i2c_unregister_device(client);
->> +            result = -ENODEV;
->> +            goto out_free;
->> +        }
->> +
->> +        dvb->i2c_client_demod = client;
->> +        dvb->frontend->callback = cx231xx_tuner_callback;
-> 
-> Drop that callback assignment. It is not needed. It is used only for TDA18271 and XC5000 tuners. (History: whole callback is used only(?) for gpios which could be implemented via kernel gpio api).
+> +				compatible = "adi,adv7180";
+> +				reg = <0x21>;
+> +				powerdown-gpios = <&max7310_b 2 GPIO_ACTIVE_LOW>;
+> +				interrupt-parent = <&gpio1>;
+> +				interrupts = <27 0x8>;
+> +				inputs = <0x00 0x02>;
+> +				input-names = "ADV7180 Composite on Ain1",
+> +						"ADV7180 Composite on Ain3";
+> +
+> +				port {
+> +					adv7180_to_ipu1_csi0_mux: endpoint {
+> +						remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
+> +						bus-width = <8>;
+> +					};
+> +				};
+> +			};
+>  		};
+>  	};
+>  };
+>  
+> +&ipu1_csi0_from_ipu1_csi0_mux {
+> +	bus-width = <8>;
+> +};
+> +
+> +&ipu1_csi0_mux_from_parallel_sensor {
+> +	remote-endpoint = <&adv7180_to_ipu1_csi0_mux>;
+> +	bus-width = <8>;
+> +};
+> +
+> +&ipu1_csi0 {
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&pinctrl_ipu1_csi0>;
+> +};
+> +
+>  &clks {
+>  	assigned-clocks = <&clks IMX6QDL_PLL4_BYPASS_SRC>,
+>  			  <&clks IMX6QDL_PLL4_BYPASS>,
+> @@ -451,6 +483,30 @@
+>  			>;
+>  		};
+>  
+> +		pinctrl_ipu1_csi0: ipu1grp-csi0 {
 
-Done
- 
->> +
->> +        /* attach tuner chip */
->> +        si2157_config.fe = dev->dvb->frontend;
->> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
->> +        si2157_config.mdev = dev->media_dev;
->> +#endif
->> +        si2157_config.if_port = 1;
->> +        si2157_config.inversion = false;
->> +
->> +        memset(&info, 0, sizeof(info));
->> +        strlcpy(info.type, "si2157", sizeof(info.type));
->> +        info.addr = dev->board.tuner_addr;
->> +        info.platform_data = &si2157_config;
->> +
->> +        request_module(info.type);
->> +        client = i2c_new_device(tuner_i2c, &info);
->> +
->> +        if (client == NULL || client->dev.driver == NULL) {
->> +            module_put(dvb->i2c_client_demod->dev.driver->owner);
->> +            i2c_unregister_device(dvb->i2c_client_demod);
->> +            result = -ENODEV;
->> +            goto out_free;
->> +        }
->> +
->> +        if (!try_module_get(client->dev.driver->owner)) {
->> +            i2c_unregister_device(client);
->> +            module_put(dvb->i2c_client_demod->dev.driver->owner);
->> +            i2c_unregister_device(dvb->i2c_client_demod);
->> +            result = -ENODEV;
->> +            goto out_free;
->> +        }
->> +
->> +        dev->cx231xx_reset_analog_tuner = NULL;
-> 
-> A bit weird that this function is only for XC5000 tuner and the rest should disable it that way. But it is not problem with that patch.
-> 
-> 
->> +        dev->dvb->i2c_client_tuner = client;
->> +        break;
->> +    }
->>      default:
->>          dev_err(dev->dev,
->>              "%s/2: The frontend of your DVB/ATSC card isn't supported yet\n",
->> diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
->> index 35e9acf..60412ec 100644
->> --- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
->> +++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
->> @@ -171,6 +171,43 @@ static int cx231xx_i2c_send_bytes(struct i2c_adapter *i2c_adap,
->>          bus->i2c_nostop = 0;
->>          bus->i2c_reserve = 0;
->>
->> +    } else if (dev->model == CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD
->> +        && msg->addr == dev->tuner_addr
->> +        && msg->len > 4) {
->> +        /* special case for Evromedia USB Full Hybrid Full HD tuner chip */
->> +        size = msg->len;
->> +        saddr_len = 1;
->> +
->> +        /* adjust the length to correct length */
->> +        size -= saddr_len;
->> +
->> +        buf_ptr = (u8*)(msg->buf + 1);
->> +
->> +        do {
->> +            /* prepare xfer_data struct */
->> +            req_data.dev_addr = msg->addr;
->> +            req_data.direction = msg->flags;
->> +            req_data.saddr_len = saddr_len;
->> +            req_data.saddr_dat = msg->buf[0];
->> +            req_data.buf_size = size > 4 ? 4 : size;
->> +            req_data.p_buffer = (u8*)(buf_ptr + loop * 4);
->> +
->> +            bus->i2c_nostop = (size > 4) ? 1 : 0;
->> +            bus->i2c_reserve = (loop == 0) ? 0 : 1;
->> +
->> +            /* usb send command */
->> +            status = dev->cx231xx_send_usb_command(bus, &req_data);
->> +            loop++;
->> +
->> +            if (size >= 4) {
->> +                size -= 4;
->> +            } else {
->> +                size = 0;
->> +            }
->> +        } while (size > 0);
->> +
->> +        bus->i2c_nostop = 0;
->> +        bus->i2c_reserve = 0;
-> 
-> 
-> I looked that cx231xx_i2c_send_bytes() function more carefully. Currently it is implemented like:
-> if "tuner is XC5000"
->   * do some special hacks
->   * send 16 byte i2c messages
-> else
->   * send i2c message (~unlimited size)
-> 
-> Now this adds special case for this device too. For my eyes it looks like you just try to split i2c message to multiple 4 byte messages. I wonder if there is really 4 byte limit on that chip as XC5000 branch still sends 16 bytes as one go. Are you really sure?
-> 
-> Could you test what is maximum limit of one usb i2c message and use that value to split messages? It does not sound correct on XC5000 case you could send 16 bytes as a one go, but with si2158 only 4 bytes. si2168/si2157 are sending maximum ~15 byte messages as one go and I wonder if that i2c adapter could handle it without even splitting.
-> 
-> All-in-all: if XC5000 could send 16 bytes and all the rest has no limitation, it does not sound correct you have to split long messages to only 4 byte len.
+Please rename node name to ipu1csi0grp.
 
-I tested with 5, 8, 16 bytes, and get this error:
-[ 2757.119866] si2168 9-0064: downloading firmware from file 'dvb-demod-si2168-a30-01.fw'
-[ 2761.109662] si2168 9-0064: firmware version: A 3.0.19
-# si2158 firmware uploading..
-[ 2761.113098] cx231xx 3-1:1.1: cx231xx_send_usb_command: failed with status --32
-
-[ 2985.263378] si2168 9-0064: downloading firmware from file 'dvb-demod-si2168-a30-01.fw'
-[ 2989.230173] si2168 9-0064: firmware version: A 3.0.19
-# si2158 firmware uploading..
-[ 2989.233141] cx231xx 3-1:1.1: cx231xx_send_usb_command: failed with status --32
-[ 2989.233513] cx231xx 3-1:1.1: cx231xx_send_usb_command: failed with status --32
-[ 2989.233876] cx231xx 3-1:1.1: cx231xx_send_usb_command: failed with status --32
-
-And when I split messages to 4 bytes, it succeeds:
-[ 3037.816936] si2168 9-0064: downloading firmware from file 'dvb-demod-si2168-a30-01.fw'
-[ 3041.806845] si2168 9-0064: firmware version: A 3.0.19
-[ 3041.814467] si2157 7-0060: found a 'Silicon Labs Si2158-A20'
-[ 3041.814513] si2157 7-0060: downloading firmware from file 'dvb-tuner-si2158-a20-01.fw'
-[ 3042.408588] si2157 7-0060: firmware version: 2.1.9
-
- 
->>      } else {        /* regular case */
->>
->>          /* prepare xfer_data struct */
->> diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
->> index 90c8676..d9792ea 100644
->> --- a/drivers/media/usb/cx231xx/cx231xx.h
->> +++ b/drivers/media/usb/cx231xx/cx231xx.h
->> @@ -78,6 +78,7 @@
->>  #define CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx 20
->>  #define CX231XX_BOARD_HAUPPAUGE_955Q 21
->>  #define CX231XX_BOARD_TERRATEC_GRABBY 22
->> +#define CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD 23
->>
->>  /* Limits minimum and default number of buffers */
->>  #define CX231XX_MIN_BUF                 4
->>
+> +			fsl,pins = <
+> +				MX6QDL_PAD_CSI0_DAT4__IPU1_CSI0_DATA04   0x80000000
+> +				MX6QDL_PAD_CSI0_DAT5__IPU1_CSI0_DATA05   0x80000000
+> +				MX6QDL_PAD_CSI0_DAT6__IPU1_CSI0_DATA06   0x80000000
+> +				MX6QDL_PAD_CSI0_DAT7__IPU1_CSI0_DATA07   0x80000000
+> +				MX6QDL_PAD_CSI0_DAT8__IPU1_CSI0_DATA08   0x80000000
+> +				MX6QDL_PAD_CSI0_DAT9__IPU1_CSI0_DATA09   0x80000000
+> +				MX6QDL_PAD_CSI0_DAT10__IPU1_CSI0_DATA10  0x80000000
+> +				MX6QDL_PAD_CSI0_DAT11__IPU1_CSI0_DATA11  0x80000000
+> +				MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12  0x80000000
+> +				MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13  0x80000000
+> +				MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14  0x80000000
+> +				MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15  0x80000000
+> +				MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16  0x80000000
+> +				MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17  0x80000000
+> +				MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18  0x80000000
+> +				MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19  0x80000000
+> +				MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK 0x80000000
+> +				MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC    0x80000000
+> +				MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC   0x80000000
+> +			>;
+> +		};
+> +
+>  		pinctrl_pwm3: pwm1grp {
+>  			fsl,pins = <
+>  				MX6QDL_PAD_SD4_DAT1__PWM3_OUT		0x1b0b1
 > 
-> Otherwise than I2C send it looks good for my eyes. I am waiting your explanation for need of i2c message splitting.
-> 
-> regards
-> Antti
-> 
+
+--
+With best wishes,
+Vladimir
