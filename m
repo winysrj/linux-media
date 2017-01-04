@@ -1,138 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:38134 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935945AbdAIUhz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2017 15:37:55 -0500
-From: Christoph Hellwig <hch@lst.de>
-To: linux-pci@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        netdev@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH 2/3] xgbe: switch to pci_irq_alloc_vectors
-Date: Mon,  9 Jan 2017 21:37:39 +0100
-Message-Id: <1483994260-19797-3-git-send-email-hch@lst.de>
-In-Reply-To: <1483994260-19797-1-git-send-email-hch@lst.de>
-References: <1483994260-19797-1-git-send-email-hch@lst.de>
+Received: from mga06.intel.com ([134.134.136.31]:26758 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1761063AbdADQq6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 4 Jan 2017 11:46:58 -0500
+Date: Wed, 4 Jan 2017 18:46:49 +0200
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
+To: ayaka <ayaka@soulik.info>
+Cc: dri-devel@lists.freedesktop.org, randy.li@rock-chips.com,
+        linux-kernel@vger.kernel.org, daniel.vetter@intel.com,
+        mchehab@kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2] drm_fourcc: Add new P010 video format
+Message-ID: <20170104164649.GL31595@intel.com>
+References: <1483347004-32593-1-git-send-email-ayaka@soulik.info>
+ <1483347004-32593-2-git-send-email-ayaka@soulik.info>
+ <20170104155632.GI31595@intel.com>
+ <1f0969b0-31b3-f9ee-653e-3689fe27932d@soulik.info>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1f0969b0-31b3-f9ee-653e-3689fe27932d@soulik.info>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The newly added xgbe drivers uses the deprecated pci_enable_msi_exact
-and pci_enable_msix_range interfaces.  Switch it to use
-pci_irq_alloc_vectors instead.
+On Thu, Jan 05, 2017 at 12:31:27AM +0800, ayaka wrote:
+>
+>
+> On 01/04/2017 11:56 PM, Ville Syrjälä wrote:
+> > On Mon, Jan 02, 2017 at 04:50:03PM +0800, Randy Li wrote:
+> >> P010 is a planar 4:2:0 YUV with interleaved UV plane, 10 bits
+> >> per channel video format. Rockchip's vop support this
+> >> video format(little endian only) as the input video format.
+> >>
+> >> Signed-off-by: Randy Li <ayaka@soulik.info>
+> >> ---
+> >>   include/uapi/drm/drm_fourcc.h | 1 +
+> >>   1 file changed, 1 insertion(+)
+> >>
+> >> diff --git a/include/uapi/drm/drm_fourcc.h b/include/uapi/drm/drm_fourcc.h
+> >> index 9e1bb7f..d2721da 100644
+> >> --- a/include/uapi/drm/drm_fourcc.h
+> >> +++ b/include/uapi/drm/drm_fourcc.h
+> >> @@ -119,6 +119,7 @@ extern "C" {
+> >>   #define DRM_FORMAT_NV61		fourcc_code('N', 'V', '6', '1') /* 2x1 subsampled Cb:Cr plane */
+> >>   #define DRM_FORMAT_NV24		fourcc_code('N', 'V', '2', '4') /* non-subsampled Cr:Cb plane */
+> >>   #define DRM_FORMAT_NV42		fourcc_code('N', 'V', '4', '2') /* non-subsampled Cb:Cr plane */
+> >> +#define DRM_FORMAT_P010		fourcc_code('P', '0', '1', '0') /* 2x2 subsampled Cr:Cb plane 10 bits per channel */
+> > We could use a better description of the format here. IIRC there is
+> > 10bits of actual data contained in each 16bits. So there should be a
+> > proper comment explaning in which way the bits are stored.
+> It is a little hard to describe P010,
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- drivers/net/ethernet/amd/xgbe/xgbe-pci.c | 47 +++++++++++++-------------------
- drivers/net/ethernet/amd/xgbe/xgbe.h     |  1 -
- 2 files changed, 19 insertions(+), 29 deletions(-)
+/*
+ * 2 plane YCbCr
+ * index 0 = Y plane, [15:0] Y:X 10:6 little-endian
+ * index 1 = Cr:Cb plane, [31:0] Cr:X:Cb:X 10:6:10:6 little-endian
+ */
 
-diff --git a/drivers/net/ethernet/amd/xgbe/xgbe-pci.c b/drivers/net/ethernet/amd/xgbe/xgbe-pci.c
-index e76b7f6..be2690e 100644
---- a/drivers/net/ethernet/amd/xgbe/xgbe-pci.c
-+++ b/drivers/net/ethernet/amd/xgbe/xgbe-pci.c
-@@ -133,12 +133,13 @@ static int xgbe_config_msi(struct xgbe_prv_data *pdata)
- 			 pdata->tx_ring_count);
- 	msi_count = roundup_pow_of_two(msi_count);
- 
--	ret = pci_enable_msi_exact(pdata->pcidev, msi_count);
-+	ret = pci_alloc_irq_vectors(pdata->pcidev, msi_count, msi_count,
-+			PCI_IRQ_MSI);
- 	if (ret < 0) {
- 		dev_info(pdata->dev, "MSI request for %u interrupts failed\n",
- 			 msi_count);
- 
--		ret = pci_enable_msi(pdata->pcidev);
-+		ret = pci_alloc_irq_vectors(pdata->pcidev, 1, 1, PCI_IRQ_MSI);
- 		if (ret < 0) {
- 			dev_info(pdata->dev, "MSI enablement failed\n");
- 			return ret;
-@@ -149,25 +150,26 @@ static int xgbe_config_msi(struct xgbe_prv_data *pdata)
- 
- 	pdata->irq_count = msi_count;
- 
--	pdata->dev_irq = pdata->pcidev->irq;
-+	pdata->dev_irq = pci_irq_vector(pdata->pcidev, 0);
- 
- 	if (msi_count > 1) {
--		pdata->ecc_irq = pdata->pcidev->irq + 1;
--		pdata->i2c_irq = pdata->pcidev->irq + 2;
--		pdata->an_irq = pdata->pcidev->irq + 3;
-+		pdata->ecc_irq = pci_irq_vector(pdata->pcidev, 1);
-+		pdata->i2c_irq = pci_irq_vector(pdata->pcidev, 2);
-+		pdata->an_irq = pci_irq_vector(pdata->pcidev, 3);
- 
- 		for (i = XGBE_MSIX_BASE_COUNT, j = 0;
- 		     (i < msi_count) && (j < XGBE_MAX_DMA_CHANNELS);
- 		     i++, j++)
--			pdata->channel_irq[j] = pdata->pcidev->irq + i;
-+			pdata->channel_irq[j] =
-+				pci_irq_vector(pdata->pcidev, i);
- 		pdata->channel_irq_count = j;
- 
- 		pdata->per_channel_irq = 1;
- 		pdata->channel_irq_mode = XGBE_IRQ_MODE_LEVEL;
- 	} else {
--		pdata->ecc_irq = pdata->pcidev->irq;
--		pdata->i2c_irq = pdata->pcidev->irq;
--		pdata->an_irq = pdata->pcidev->irq;
-+		pdata->ecc_irq = pci_irq_vector(pdata->pcidev, 0);
-+		pdata->i2c_irq = pci_irq_vector(pdata->pcidev, 0);
-+		pdata->an_irq = pci_irq_vector(pdata->pcidev, 0);
- 	}
- 
- 	if (netif_msg_probe(pdata))
-@@ -186,33 +188,22 @@ static int xgbe_config_msix(struct xgbe_prv_data *pdata)
- 	msix_count += max(pdata->rx_ring_count,
- 			  pdata->tx_ring_count);
- 
--	pdata->msix_entries = devm_kcalloc(pdata->dev, msix_count,
--					   sizeof(struct msix_entry),
--					   GFP_KERNEL);
--	if (!pdata->msix_entries)
--		return -ENOMEM;
--
--	for (i = 0; i < msix_count; i++)
--		pdata->msix_entries[i].entry = i;
--
--	ret = pci_enable_msix_range(pdata->pcidev, pdata->msix_entries,
--				    XGBE_MSIX_MIN_COUNT, msix_count);
-+	ret = pci_alloc_irq_vectors(pdata->pcidev, XGBE_MSIX_MIN_COUNT,
-+			msix_count, PCI_IRQ_MSIX);
- 	if (ret < 0) {
- 		dev_info(pdata->dev, "MSI-X enablement failed\n");
--		devm_kfree(pdata->dev, pdata->msix_entries);
--		pdata->msix_entries = NULL;
- 		return ret;
- 	}
- 
- 	pdata->irq_count = ret;
- 
--	pdata->dev_irq = pdata->msix_entries[0].vector;
--	pdata->ecc_irq = pdata->msix_entries[1].vector;
--	pdata->i2c_irq = pdata->msix_entries[2].vector;
--	pdata->an_irq = pdata->msix_entries[3].vector;
-+	pdata->dev_irq = pci_irq_vector(pdata->pcidev, 0);
-+	pdata->ecc_irq = pci_irq_vector(pdata->pcidev, 1);
-+	pdata->i2c_irq = pci_irq_vector(pdata->pcidev, 2);
-+	pdata->an_irq = pci_irq_vector(pdata->pcidev, 3);
- 
- 	for (i = XGBE_MSIX_BASE_COUNT, j = 0; i < ret; i++, j++)
--		pdata->channel_irq[j] = pdata->msix_entries[i].vector;
-+		pdata->channel_irq[j] = pci_irq_vector(pdata->pcidev, i);
- 	pdata->channel_irq_count = j;
- 
- 	pdata->per_channel_irq = 1;
-diff --git a/drivers/net/ethernet/amd/xgbe/xgbe.h b/drivers/net/ethernet/amd/xgbe/xgbe.h
-index f52a9bd..3bcb6f5 100644
---- a/drivers/net/ethernet/amd/xgbe/xgbe.h
-+++ b/drivers/net/ethernet/amd/xgbe/xgbe.h
-@@ -980,7 +980,6 @@ struct xgbe_prv_data {
- 	unsigned int desc_ded_count;
- 	unsigned int desc_sec_count;
- 
--	struct msix_entry *msix_entries;
- 	int dev_irq;
- 	int ecc_irq;
- 	int i2c_irq;
+/*
+ * 2 plane YCbCr
+ * index 0 = Y plane, [15:0] Y 16 little-endian
+ * index 1 = Cr:Cb plane, [31:0] Cr:Cb 16:16 little-endian
+ */
+
+or something like that (not 100% sure I got the order of bits and
+whatnot correct).
+
 -- 
-2.1.4
-
+Ville Syrjälä
+Intel OTC
