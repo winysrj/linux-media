@@ -1,90 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:35201 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750708AbdAXCQA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Jan 2017 21:16:00 -0500
-Subject: Re: [PATCH v3 20/24] media: imx: Add Camera Interface subdev driver
-To: Hans Verkuil <hverkuil@xs4all.nl>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
- <1483755102-24785-21-git-send-email-steve_longerbeam@mentor.com>
- <b7456d40-040d-41b7-45bc-ef6709ab7933@xs4all.nl>
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <30a80568-6da0-2502-3346-a4b900c7f1ce@gmail.com>
-Date: Mon, 23 Jan 2017 18:15:56 -0800
+Date: Thu, 5 Jan 2017 15:42:15 -0700
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+To: Jerome Glisse <jglisse@redhat.com>
+Cc: Jerome Glisse <j.glisse@gmail.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>,
+        "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>,
+        "'linux-nvdimm@lists.01.org'" <linux-nvdimm@ml01.01.org>,
+        "'Linux-media@vger.kernel.org'" <Linux-media@vger.kernel.org>,
+        "'dri-devel@lists.freedesktop.org'" <dri-devel@lists.freedesktop.org>,
+        "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "Sagalovitch, Serguei" <Serguei.Sagalovitch@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Koenig, Christian" <Christian.Koenig@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Sander, Ben" <ben.sander@amd.com>, hch@infradead.org,
+        david1.zhou@amd.com, qiang.yu@amd.com
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Message-ID: <20170105224215.GA3855@obsidianresearch.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <20170105183927.GA5324@gmail.com>
+ <20170105190113.GA12587@obsidianresearch.com>
+ <20170105195424.GB2166@redhat.com>
+ <20170105200719.GB31047@obsidianresearch.com>
+ <20170105201935.GC2166@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <b7456d40-040d-41b7-45bc-ef6709ab7933@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170105201935.GC2166@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, Jan 05, 2017 at 03:19:36PM -0500, Jerome Glisse wrote:
 
+> > Always having a VMA changes the discussion - the question is how to
+> > create a VMA that reprensents IO device memory, and how do DMA
+> > consumers extract the correct information from that VMA to pass to the
+> > kernel DMA API so it can setup peer-peer DMA.
+> 
+> Well my point is that it can't be. In HMM case inside a single VMA
+> you
+[..]
 
-On 01/20/2017 06:38 AM, Hans Verkuil wrote:
-> On 01/07/2017 03:11 AM, Steve Longerbeam wrote:
->> +static int vidioc_querycap(struct file *file, void *fh,
->> +			   struct v4l2_capability *cap)
->> +{
->> +	strncpy(cap->driver, "imx-media-camif", sizeof(cap->driver) - 1);
->> +	strncpy(cap->card, "imx-media-camif", sizeof(cap->card) - 1);
->> +	cap->bus_info[0] = 0;
-> Should be set to something like 'platform:imx-media-camif'. v4l2-compliance should
-> complain about this.
+> In the GPUDirect case the idea is that you have a specific device vma
+> that you map for peer to peer.
 
-Right, I've fixed this already as part of v4l2-compliance testing.
+[..]
 
->
->> +	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
->> +	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-> Set device_caps in struct video_device, then drop these two lines since
-> the core will set these up based on the device_caps field in struct video_device.
+I still don't understand what you driving at - you've said in both
+cases a user VMA exists.
 
-done.
+>From my perspective in RDMA, all I want is a core kernel flow to
+convert a '__user *' into a scatter list of DMA addresses, that works no
+matter what is backing that VMA, be it HMM, a 'hidden' GPU object, or
+struct page memory.
 
->
->> +
->> +static int camif_enum_input(struct file *file, void *fh,
->> +			    struct v4l2_input *input)
->> +{
->> +	struct camif_priv *priv = video_drvdata(file);
->> +	struct imx_media_subdev *sensor;
->> +	int index = input->index;
->> +
->> +	sensor = imx_media_find_sensor(priv->md, &priv->sd.entity);
->> +	if (IS_ERR(sensor)) {
->> +		v4l2_err(&priv->sd, "no sensor attached\n");
->> +		return PTR_ERR(sensor);
->> +	}
->> +
->> +	if (index >= sensor->input.num)
->> +		return -EINVAL;
->> +
->> +	input->type = V4L2_INPUT_TYPE_CAMERA;
->> +	strncpy(input->name, sensor->input.name[index], sizeof(input->name));
->> +
->> +	if (index == priv->current_input) {
->> +		v4l2_subdev_call(sensor->sd, video, g_input_status,
->> +				 &input->status);
->> +		v4l2_subdev_call(sensor->sd, video, querystd, &input->std);
-> Wrong op, use g_tvnorms instead.
+A '__user *' pointer is the only way to setup a RDMA MR, and I see no
+reason to have another API at this time.
 
-done.
+The details of how to translate to a scatter list are a MM subject,
+and the MM folks need to get 
 
+I just don't care if that routine works at a page level, or a whole
+VMA level, or some combination of both, that is up to the MM team to
+figure out :)
 
-Steve
+> a page level. Expectation here is that the GPU userspace expose a special
+> API to allow RDMA to directly happen on GPU object allocated through
+> GPU specific API (ie it is not regular memory and it is not accessible
+> by CPU).
 
+So, how do you identify these GPU objects? How do you expect RDMA
+convert them to scatter lists? How will ODP work?
+
+> > We have MMU notifiers to handle this today in RDMA. Async RDMA MR
+> > Invalidate like you see in the above out of tree patches is totally
+> > crazy and shouldn't be in mainline. Use ODP capable RDMA hardware.
+> 
+> Well there is still a large base of hardware that do not have such
+> feature and some people would like to be able to keep using those.
+
+Hopefully someone will figure out how to do that without the crazy
+async MR invalidation.
+
+Jason
