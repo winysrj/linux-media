@@ -1,42 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:58207 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750889AbdA3Rbe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Jan 2017 12:31:34 -0500
-Date: Mon, 30 Jan 2017 17:31:31 +0000
-From: Sean Young <sean@mess.org>
-To: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Cc: Jarod Wilson <jarod@wilsonet.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:33217 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1763521AbdAEWav (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2017 17:30:51 -0500
+Subject: Re: [PATCH v2 05/19] ARM: dts: imx6-sabresd: add OV5642 and OV5640
+ camera sensors
+To: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
+        shawnguo@kernel.org, kernel@pengutronix.de, fabio.estevam@nxp.com,
+        robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk,
+        mchehab@kernel.org, gregkh@linuxfoundation.org,
+        p.zabel@pengutronix.de
+References: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
+ <1483477049-19056-6-git-send-email-steve_longerbeam@mentor.com>
+ <c8c09060-dd6b-f495-da7d-b1f9fad79b89@mentor.com>
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Subject: Re: [PATCH RESEND] staging: media: lirc: use new parport device model
-Message-ID: <20170130173131.GA16811@gofer.mess.org>
-References: <1484960154-6355-1-git-send-email-sudipm.mukherjee@gmail.com>
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <eadcb725-476b-5e4f-a17f-207b9dedb358@gmail.com>
+Date: Thu, 5 Jan 2017 14:30:49 -0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1484960154-6355-1-git-send-email-sudipm.mukherjee@gmail.com>
+In-Reply-To: <c8c09060-dd6b-f495-da7d-b1f9fad79b89@mentor.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jan 21, 2017 at 12:55:54AM +0000, Sudip Mukherjee wrote:
-> From: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
-> 
-> Modify lirc_parallel driver to use the new parallel port device model.
-> 
-> Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
-> ---
-> 
-> Resending after more than one year.
-> Prevoius patch is at https://patchwork.kernel.org/patch/7883591/
-
-Since noone ported lirc_parallel to rc-core, the lirc_parallel staging
-driver has been droppped from the current media tree.
-
-I have ported a few other lirc drivers to rc-core but I never found
-anyone using lirc_parallel or the hardware itself.
 
 
-Sean
+On 01/04/2017 04:33 AM, Vladimir Zapolskiy wrote:
+>
+>> +
+>> +	camera: ov5642@3c {
+> ov5642: camera@3c
+
+done.
+
+>> +		pwdn-gpios = <&gpio1 16 GPIO_ACTIVE_HIGH>; /* SD1_DAT0 */
+>> +		reset-gpios = <&gpio1 17 GPIO_ACTIVE_LOW>; /* SD1_DAT1 */
+> Comments about SD1_* pad names are redundant.
+
+sure, removed.
+
+>> +		status = "disabled";
+> Why is it disabled here?
+
+It's explained in the header. I don't yet have the OV5642 module for
+the sabresd for testing, so it is disabled for now.
+
+>> +
+>> +	mipi_camera: ov5640@3c {
+> ov5640: camera@3c
+
+done.
+
+>
+>> +		pwdn-gpios = <&gpio1 19 GPIO_ACTIVE_HIGH>; /* SD1_DAT2 */
+>> +		reset-gpios = <&gpio1 20 GPIO_ACTIVE_LOW>; /* SD1_CLK */
+> Comments about SD1_* pad names are redundant.
+
+removed.
+
+>> +
+>> +		pinctrl_ipu1_csi0: ipu1grp-csi0 {
+> Please rename the node name to ipu1csi0grp.
+>
+> Please add new pin control groups preserving the alphanimerical order.
+
+done and done.
+
+
+Steve
+
