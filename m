@@ -1,91 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:35543 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750865AbdAPEao (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 15 Jan 2017 23:30:44 -0500
-From: Derek Robson <robsonde@gmail.com>
-To: mchehab@kernel.org, gregkh@linuxfoundation.org, jb@abbadie.fr,
-        robsonde@gmail.com, aquannie@gmail.com, bankarsandhya512@gmail.com,
-        bhumirks@gmail.com, claudiu.beznea@gmail.com
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] Staging: media: bcm2048: style fix - bare use of unsigned
-Date: Mon, 16 Jan 2017 17:30:30 +1300
-Message-Id: <20170116043030.29366-1-robsonde@gmail.com>
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:35552 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936498AbdAETVi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2017 14:21:38 -0500
+Subject: Re: [PATCH v2 04/19] ARM: dts: imx6-sabrelite: add OV5642 and OV5640
+ camera sensors
+To: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
+        shawnguo@kernel.org, kernel@pengutronix.de, fabio.estevam@nxp.com,
+        robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk,
+        mchehab@kernel.org, gregkh@linuxfoundation.org,
+        p.zabel@pengutronix.de
+References: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
+ <1483477049-19056-5-git-send-email-steve_longerbeam@mentor.com>
+ <0a343705-1d38-9fe2-6419-56ab9bdfb0c2@mentor.com>
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <d9f31e15-39b7-3c31-e45f-b19c0dd1e791@gmail.com>
+Date: Thu, 5 Jan 2017 11:20:57 -0800
+MIME-Version: 1.0
+In-Reply-To: <0a343705-1d38-9fe2-6419-56ab9bdfb0c2@mentor.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changed bare use of 'unsigned' to the prefered us of 'unsigned int'
-found using checkpatch
+Hi Vladimir,
 
-Signed-off-by: Derek Robson <robsonde@gmail.com>
----
- drivers/staging/media/bcm2048/radio-bcm2048.c | 44 +++++++++++++--------------
- 1 file changed, 22 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-index 37bd439ee08b..b1923a3e4483 100644
---- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-+++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-@@ -2020,27 +2020,27 @@ static ssize_t bcm2048_##prop##_read(struct device *dev,		\
- 	return count;							\
- }
- 
--DEFINE_SYSFS_PROPERTY(power_state, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(mute, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(audio_route, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(dac_output, unsigned, int, "%u", 0)
--
--DEFINE_SYSFS_PROPERTY(fm_hi_lo_injection, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_frequency, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_af_frequency, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_deemphasis, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_rds_mask, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_best_tune_mode, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_search_rssi_threshold, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_search_mode_direction, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_search_tune_mode, unsigned, int, "%u", value > 3)
--
--DEFINE_SYSFS_PROPERTY(rds, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(rds_b_block_mask, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(rds_b_block_match, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(rds_pi_mask, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(rds_pi_match, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(rds_wline, unsigned, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(power_state, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(mute, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(audio_route, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(dac_output, unsigned int, int, "%u", 0)
-+
-+DEFINE_SYSFS_PROPERTY(fm_hi_lo_injection, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_frequency, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_af_frequency, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_deemphasis, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_rds_mask, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_best_tune_mode, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_search_rssi_threshold, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_search_mode_direction, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_search_tune_mode, unsigned int, int, "%u", value > 3)
-+
-+DEFINE_SYSFS_PROPERTY(rds, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(rds_b_block_mask, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(rds_b_block_match, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(rds_pi_mask, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(rds_pi_match, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(rds_wline, unsigned int, int, "%u", 0)
- property_read(rds_pi, unsigned int, "%x")
- property_str_read(rds_rt, (BCM2048_MAX_RDS_RT + 1))
- property_str_read(rds_ps, (BCM2048_MAX_RDS_PS + 1))
-@@ -2052,7 +2052,7 @@ property_read(region_bottom_frequency, unsigned int, "%u")
- property_read(region_top_frequency, unsigned int, "%u")
- property_signed_read(fm_carrier_error, int, "%d")
- property_signed_read(fm_rssi, int, "%d")
--DEFINE_SYSFS_PROPERTY(region, unsigned, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(region, unsigned int, int, "%u", 0)
- 
- static struct device_attribute attrs[] = {
- 	__ATTR(power_state, 0644, bcm2048_power_state_read,
--- 
-2.11.0
+On 01/04/2017 04:25 AM, Vladimir Zapolskiy wrote:
+> Hi Steve,
+>
+> On 01/03/2017 10:57 PM, Steve Longerbeam wrote:
+>> Enables the OV5642 parallel-bus sensor, and the OV5640 MIPI CSI-2 sensor.
+>> Both hang off the same i2c2 bus, so they require different (and non-
+>> default) i2c slave addresses.
+>>
+>> The OV5642 connects to the parallel-bus mux input port on ipu1_csi0_mux.
+>>
+>> The OV5640 connects to the input port on the MIPI CSI-2 receiver on
+>> mipi_csi. It is set to transmit over MIPI virtual channel 1.
+>>
+>> Note there is a pin conflict with GPIO6. This pin functions as a power
+>> input pin to the OV5642, but ENET uses it as the h/w workaround for
+>> erratum ERR006687, to wake-up the ARM cores on normal RX and TX packet
+>> done events (see 6261c4c8). So workaround 6261c4c8 is reverted here to
+>> support the OV5642, and the "fsl,err006687-workaround-present" boolean
+>> also must be removed. The result is that the CPUidle driver will no longer
+>> allow entering the deep idle states on the sabrelite.
+> For me it sounds like a candidate of its own separate change.
+
+Yes, I split out the two partial reverts into a separate commit
+("ARM: dts: imx6qdl-sabrelite: remove erratum ERR006687
+  workaround").
+
+>
+>
+>
+>> +
+>> +	mipi_camera: ov5640@40 {
+> Please reorder device nodes by address value,
+
+done.
+
+>   also according to ePAPR
+> node names should be generic, labels can be specific:
+>
+> 	ov5640: camera@40 {
+> 		...
+> 	};
+>
+> 	ov5642: camera@42 {
+> 		...
+> 	};
+
+fixed.
+
+>
+>> +		pinctrl_ipu1_csi0: ipu1grp-csi0 {
+> Please rename node name to ipu1csi0grp.
+
+done.
+
+>
+>> +
+>> +                pinctrl_ov5640: ov5640grp {
+>> +                        fsl,pins = <
+>> +				MX6QDL_PAD_NANDF_D5__GPIO2_IO05 0x000b0
+>> +				MX6QDL_PAD_NANDF_WP_B__GPIO6_IO09 0x0b0b0
+>> +                        >;
+>> +                };
+>> +
+> Indentation issues above, please use tabs instead of spaces.
+
+fixed.
+
+>
+> Also please add new pin control groups preserving the alphanimerical order.
+
+done.
+
+Steve
 
