@@ -1,78 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f47.google.com ([209.85.218.47]:34897 "EHLO
-        mail-oi0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750796AbdA0Si6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Jan 2017 13:38:58 -0500
-Received: by mail-oi0-f47.google.com with SMTP id j15so162029035oih.2
-        for <linux-media@vger.kernel.org>; Fri, 27 Jan 2017 10:38:28 -0800 (PST)
+Date: Thu, 5 Jan 2017 14:54:24 -0500
+From: Jerome Glisse <jglisse@redhat.com>
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Jerome Glisse <j.glisse@gmail.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>,
+        "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>,
+        "'linux-nvdimm@lists.01.org'" <linux-nvdimm@ml01.01.org>,
+        "'Linux-media@vger.kernel.org'" <Linux-media@vger.kernel.org>,
+        "'dri-devel@lists.freedesktop.org'" <dri-devel@lists.freedesktop.org>,
+        "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "Sagalovitch, Serguei" <Serguei.Sagalovitch@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Koenig, Christian" <Christian.Koenig@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Sander, Ben" <ben.sander@amd.com>, hch@infradead.org,
+        david1.zhou@amd.com, qiang.yu@amd.com
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Message-ID: <20170105195424.GB2166@redhat.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <20170105183927.GA5324@gmail.com>
+ <20170105190113.GA12587@obsidianresearch.com>
 MIME-Version: 1.0
-From: Hamidreza Jafari <hamidrjafari@gmail.com>
-Date: Fri, 27 Jan 2017 22:08:07 +0330
-Message-ID: <CAGS+X6PHC+f2kgtgxKQi6Z5wrFh-LbBDp_in54jR3jh=T++eWA@mail.gmail.com>
-Subject: Upside down webcam
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170105190113.GA12587@obsidianresearch.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Thu, Jan 05, 2017 at 12:01:13PM -0700, Jason Gunthorpe wrote:
+> On Thu, Jan 05, 2017 at 01:39:29PM -0500, Jerome Glisse wrote:
+> 
+> >   1) peer-to-peer because of userspace specific API like NVidia GPU
+> >     direct (AMD is pushing its own similar API i just can't remember
+> >     marketing name). This does not happen through a vma, this happens
+> >     through specific device driver call going through device specific
+> >     ioctl on both side (GPU and RDMA). So both kernel driver are aware
+> >     of each others.
+> 
+> Today you can only do user-initiated RDMA operations in conjection
+> with a VMA.
+> 
+> We'd need a really big and strong reason to create an entirely new
+> non-VMA based memory handle scheme for RDMA.
+> 
+> So my inclination is to just completely push back on this idea. You
+> need a VMA to do RMA.
+> 
+> GPUs need to create VMAs for the memory they want to RDMA from, even
+> if the VMA handle just causes SIGBUS for any CPU access.
 
-https://linuxtv.org/wiki/index.php/Libv4l_Upside_Down_Webcams
+Mellanox and NVidia support peer to peer with what they market a
+GPUDirect. It only works without IOMMU. It is probably not upstream :
 
-The webcam is upside down and the solution does not work (as it did in
-a previous Ubuntu version). On Kubuntu 16.10 with 4.8.0-34 kernel I
-installed an app called Webcamoid to test and ran the following
-commands:
+https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg21402.html
 
-$export LIBV4LCONTROL_FLAGS=3D3 &&
-LD_PRELOAD=3D/usr/lib/x86_64-linux-gnu/libv4l/v4l1compat.so webcamoid &
-file:///usr/lib/x86_64-linux-gnu/qt5/qml/QtQuick/Controls/TextField.qml:635=
-:5:
-QML TextInputWithHandles: Binding loop detected for property "text"
-file:///usr/lib/x86_64-linux-gnu/qt5/qml/QtQuick/Controls/TextField.qml:635=
-:5:
-QML TextInputWithHandles: Binding loop detected for property "text"
-libv4l2: error setting pixformat: Device or resource busy
-libv4l2: error setting pixformat: Device or resource busy
-VideoCapture: No streams available.
+I thought it was but it seems it require an out of tree driver to work.
 
-$ v4l2-ctl -d /dev/video0 --list-formats-ext
-ioctl: VIDIOC_ENUM_FMT
-Index : 0
-Type : Video Capture
-Pixel Format: 'YUYV'
-Name : YUYV 4:2:2
-Size: Discrete 640x480
-Interval: Discrete 0.033s (30.000 fps)
-Interval: Discrete 0.067s (15.000 fps)
-Size: Discrete 352x288
-Interval: Discrete 0.033s (30.000 fps)
-Interval: Discrete 0.067s (15.000 fps)
-Size: Discrete 320x240
-Interval: Discrete 0.033s (30.000 fps)
-Interval: Discrete 0.067s (15.000 fps)
-Size: Discrete 176x144
-Interval: Discrete 0.033s (30.000 fps)
-Interval: Discrete 0.067s (15.000 fps)
-Size: Discrete 160x120
-Interval: Discrete 0.033s (30.000 fps)
-Interval: Discrete 0.067s (15.000 fps)
+Wether there is a vma or not isn't important to the issue anyway. If
+you want to enforce VMA rule for RDMA it is an RDMA specific discussion
+in which i don't want to be involve, it is not my turf :)
 
-$v4l2-ctl --device=3D/dev/video0 --list-inputs
-ioctl: VIDIOC_ENUMINPUT
-Input : 0
-Name : Camera 1
-Type : 0x00000002
-Audioset : 0x00000000
-Tuner : 0x00000000
-Standard : 0x0000000000000000 ()
-Status : 0x00000000 (ok)
-Capabilities: 0x00000000 (not defined)
+What matter is the back channel API between peer-to-peer device. Like
+the above patchset points out for GPU we need to be able to invalidate
+a mapping at any point in time. Pining is not something we want to
+live with.
 
-How to fix the problem?
+So the VMA consideration does not change what i was saying there is
+2 cases:
+  1) device vma (might be restricted to specific userspace API)
+  2) regular vma (!VM_MIXED and no special pte entry)
 
-Hamid
-=D8=A8=D8=A7 =D8=B3=D9=BE=D8=A7=D8=B3=D8=8C
-=D8=AD=D9=85=DB=8C=D8=AF=D8=B1=D8=B6=D8=A7 =D8=AC=D8=B9=D9=81=D8=B1=DB=8C
+For 1) you need back channel it can be per device driver or we can agree
+to some common API that can add to vm_operations_struct.
+
+For 2) expectation is that you will have valid struct page but you still
+need special handling at the dma API level.
+
+In 1) the peer-to-peer mapping is track at vma level and mediated there.
+For 2) it is per page and it is mediated at that level.
+
+In both case on you have setup mapping you need to handle the IOMMU and
+the PCI bridge restriction that might apply and i believe that the DMA
+API is the place where we want to solve that second side of the problem.
+
+Cheers,
+Jérôme
