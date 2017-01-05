@@ -1,153 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:46189 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752380AbdATOAl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Jan 2017 09:00:41 -0500
-From: Michael Tretter <m.tretter@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Philipp Zabel <p.zabel@pengutronix.de>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        kernel@pengutronix.de, Michael Tretter <m.tretter@pengutronix.de>
-Subject: [PATCH v4 7/7] [media] coda: support YUYV output if VDOA is used
-Date: Fri, 20 Jan 2017 15:00:25 +0100
-Message-Id: <20170120140025.3338-8-m.tretter@pengutronix.de>
-In-Reply-To: <20170120140025.3338-1-m.tretter@pengutronix.de>
-References: <20170120140025.3338-1-m.tretter@pengutronix.de>
+Date: Thu, 5 Jan 2017 13:39:29 -0500
+From: Jerome Glisse <j.glisse@gmail.com>
+To: "Deucher, Alexander" <Alexander.Deucher@amd.com>
+Cc: "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>,
+        "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>,
+        "'linux-nvdimm@lists.01.org'" <linux-nvdimm@lists.01.org>,
+        "'Linux-media@vger.kernel.org'" <Linux-media@vger.kernel.org>,
+        "'dri-devel@lists.freedesktop.org'" <dri-devel@lists.freedesktop.org>,
+        "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "Sagalovitch, Serguei" <Serguei.Sagalovitch@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Koenig, Christian" <Christian.Koenig@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Sander, Ben" <ben.sander@amd.com>, hch@infradead.org,
+        jgunthorpe@obsidianresearch.com, david1.zhou@amd.com,
+        qiang.yu@amd.com
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Message-ID: <20170105183927.GA5324@gmail.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The VDOA is able to transform the NV12 custom macroblock tiled format of
-the CODA to YUYV format. If and only if the VDOA is available, the
-driver can also provide YUYV support.
+Sorry to revive this thread but it fells through my filters and i
+miss it. I have been going through it and i think the discussion
+has been hinder by the fact that distinct problems were merge while
+they should be address separately.
 
-While the driver is configured to produce YUYV output, the CODA must be
-configured to produce NV12 macroblock tiled frames and the VDOA must
-transform the intermediate result into the final YUYV output.
+First for peer-to-peer we need to be clear on how this happens. Two
+cases here :
+  1) peer-to-peer because of userspace specific API like NVidia GPU
+    direct (AMD is pushing its own similar API i just can't remember
+    marketing name). This does not happen through a vma, this happens
+    through specific device driver call going through device specific
+    ioctl on both side (GPU and RDMA). So both kernel driver are aware
+    of each others.
+  2) peer-to-peer because RDMA/device is trying to access a regular
+    vma (ie non special either private anonymous or share memory or
+    mmap of a regular file not a device file).
 
-Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
-Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-bit.c    |  7 +++++--
- drivers/media/platform/coda/coda-common.c | 30 ++++++++++++++++++++++++++++++
- 2 files changed, 35 insertions(+), 2 deletions(-)
+For 1) there is no need to over complicate thing. Device driver must
+have a back-channel between them and must be able to invalidate their
+respective mapping (ie GPU must be able to ask RDMA device to kill/
+stop its MR).
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index f608de4c52ac..466a44e4549e 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -759,7 +759,7 @@ static void coda9_set_frame_cache(struct coda_ctx *ctx, u32 fourcc)
- 		cache_config = 1 << CODA9_CACHE_PAGEMERGE_OFFSET;
- 	}
- 	coda_write(ctx->dev, cache_size, CODA9_CMD_SET_FRAME_CACHE_SIZE);
--	if (fourcc == V4L2_PIX_FMT_NV12) {
-+	if (fourcc == V4L2_PIX_FMT_NV12 || fourcc == V4L2_PIX_FMT_YUYV) {
- 		cache_config |= 32 << CODA9_CACHE_LUMA_BUFFER_SIZE_OFFSET |
- 				16 << CODA9_CACHE_CR_BUFFER_SIZE_OFFSET |
- 				0 << CODA9_CACHE_CB_BUFFER_SIZE_OFFSET;
-@@ -1537,7 +1537,7 @@ static int __coda_start_decoding(struct coda_ctx *ctx)
- 
- 	ctx->frame_mem_ctrl &= ~(CODA_FRAME_CHROMA_INTERLEAVE | (0x3 << 9) |
- 				 CODA9_FRAME_TILED2LINEAR);
--	if (dst_fourcc == V4L2_PIX_FMT_NV12)
-+	if (dst_fourcc == V4L2_PIX_FMT_NV12 || dst_fourcc == V4L2_PIX_FMT_YUYV)
- 		ctx->frame_mem_ctrl |= CODA_FRAME_CHROMA_INTERLEAVE;
- 	if (ctx->tiled_map_type == GDI_TILED_FRAME_MB_RASTER_MAP)
- 		ctx->frame_mem_ctrl |= (0x3 << 9) |
-@@ -2079,6 +2079,9 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 		trace_coda_dec_rot_done(ctx, dst_buf, meta);
- 
- 		switch (q_data_dst->fourcc) {
-+		case V4L2_PIX_FMT_YUYV:
-+			payload = width * height * 2;
-+			break;
- 		case V4L2_PIX_FMT_YUV420:
- 		case V4L2_PIX_FMT_YVU420:
- 		case V4L2_PIX_FMT_NV12:
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 13ee6cba6847..a918b294adef 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -95,6 +95,8 @@ void coda_write_base(struct coda_ctx *ctx, struct coda_q_data *q_data,
- 	u32 base_cb, base_cr;
- 
- 	switch (q_data->fourcc) {
-+	case V4L2_PIX_FMT_YUYV:
-+		/* Fallthrough: IN -H264-> CODA -NV12 MB-> VDOA -YUYV-> OUT */
- 	case V4L2_PIX_FMT_NV12:
- 	case V4L2_PIX_FMT_YUV420:
- 	default:
-@@ -201,6 +203,11 @@ static const struct coda_video_device coda_bit_decoder = {
- 		V4L2_PIX_FMT_NV12,
- 		V4L2_PIX_FMT_YUV420,
- 		V4L2_PIX_FMT_YVU420,
-+		/*
-+		 * If V4L2_PIX_FMT_YUYV should be default,
-+		 * set_default_params() must be adjusted.
-+		 */
-+		V4L2_PIX_FMT_YUYV,
- 	},
- };
- 
-@@ -246,6 +253,7 @@ static u32 coda_format_normalize_yuv(u32 fourcc)
- 	case V4L2_PIX_FMT_YUV420:
- 	case V4L2_PIX_FMT_YVU420:
- 	case V4L2_PIX_FMT_YUV422P:
-+	case V4L2_PIX_FMT_YUYV:
- 		return V4L2_PIX_FMT_YUV420;
- 	default:
- 		return fourcc;
-@@ -434,6 +442,11 @@ static int coda_try_pixelformat(struct coda_ctx *ctx, struct v4l2_format *f)
- 		return -EINVAL;
- 
- 	for (i = 0; i < CODA_MAX_FORMATS; i++) {
-+		/* Skip YUYV if the vdoa is not available */
-+		if (!ctx->vdoa && f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE &&
-+		    formats[i] == V4L2_PIX_FMT_YUYV)
-+			continue;
-+
- 		if (formats[i] == f->fmt.pix.pixelformat) {
- 			f->fmt.pix.pixelformat = formats[i];
- 			return 0;
-@@ -520,6 +533,11 @@ static int coda_try_fmt(struct coda_ctx *ctx, const struct coda_codec *codec,
- 		f->fmt.pix.sizeimage = f->fmt.pix.bytesperline *
- 					f->fmt.pix.height * 3 / 2;
- 		break;
-+	case V4L2_PIX_FMT_YUYV:
-+		f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 16) * 2;
-+		f->fmt.pix.sizeimage = f->fmt.pix.bytesperline *
-+					f->fmt.pix.height;
-+		break;
- 	case V4L2_PIX_FMT_YUV422P:
- 		f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 16);
- 		f->fmt.pix.sizeimage = f->fmt.pix.bytesperline *
-@@ -593,6 +611,15 @@ static int coda_try_fmt_vid_cap(struct file *file, void *priv,
- 		ret = coda_try_fmt_vdoa(ctx, f, &use_vdoa);
- 		if (ret < 0)
- 			return ret;
-+
-+		if (f->fmt.pix.pixelformat == V4L2_PIX_FMT_YUYV) {
-+			if (!use_vdoa)
-+				return -EINVAL;
-+
-+			f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 16) * 2;
-+			f->fmt.pix.sizeimage = f->fmt.pix.bytesperline *
-+				f->fmt.pix.height;
-+		}
- 	}
- 
- 	return 0;
-@@ -662,6 +689,9 @@ static int coda_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f,
- 	}
- 
- 	switch (f->fmt.pix.pixelformat) {
-+	case V4L2_PIX_FMT_YUYV:
-+		ctx->tiled_map_type = GDI_TILED_FRAME_MB_RASTER_MAP;
-+		break;
- 	case V4L2_PIX_FMT_NV12:
- 		ctx->tiled_map_type = GDI_TILED_FRAME_MB_RASTER_MAP;
- 		if (!disable_tiling)
--- 
-2.11.0
+So remaining issue for 1) is how to enable effective peer-to-peer
+mapping given that it might not work reliably on all platform. Here
+Alex was listing existing proposal:
+  A P2P DMA DMA-API/PCI map_peer_resource support for peer-to-peer
+    http://www.spinics.net/lists/linux-pci/msg44560.html
+  B ZONE_DEVICE IO irect I/O and DMA for persistent memory
+    https://lwn.net/Articles/672457/
+  C DMA-BUF RDMA subsystem DMA-BUF support
+    http://www.spinics.net/lists/linux-rdma/msg38748.html
+  D iopmem iopmem : A block device for PCIe memory
+    https://lwn.net/Articles/703895/
+  E HMM (not interesting for case 1)
+  F Something new
 
+Of the above D is ill suited for for GPU as we do not want to pin
+GPU memory and D is design with long live object that do not move.
+Also i do not think that exposing device PCIe bar through a new
+/dev/somefilename is a good idea for GPU. So i think this should
+be discarded.
+
+HMM should be discard in respect of case 1 too. It is useful for
+case 2. I don't think dma-buf is the right path either.
+
+So we i think there is only A and B that make sense. Now for use
+case 1 i think A is the best solution. No need to have struct page
+and it require explicit knowlegde for device driver that it is
+mapping another device memory which is a given in usecase 1.
+
+
+If we look at case 2 the situation is bit more complex. Here RDMA
+is just trying to access a regular VMA but it might happens that
+some memory inside that VMA reside inside a device memory. When
+that happens we would like to avoid to move that memory back to
+system memory assuming that a peer mapping is doable.
+
+Usecase 2 assume that the GPU is either on platform with CAPI or
+CCTX (or something similar) in which case it is easy as device
+memory will have struct page and is always accessible by CPU and
+transparent from device to device access (AFAICT).
+
+So we left with platform that do not have proper support for
+device memory (ie CPU can not access it the same as DDR or as
+limited access). Which apply to x86 for the foreseeable future.
+
+This is the problem HMM address, allowing to transparently use
+device memory inside a process even if direct CPU access are not
+permited. I have plan to support peer-to-peer with HMM because
+it is an important usecase. The idea is to have the device driver
+fault against ZONE_DEVICE page and communicate through common API
+to establish mapping. HMM will only handle keeping track of device
+to device mapping and allowing to invalidate such mapping at any
+time to allow memory to be migrated.
+
+I do not intend to solve the IOMMU side of the problem or even
+the PCI hierarchy issue where you can't peer-to-peer between device
+accross some PCI bridge. I believe this is an orthogonal problem
+and that it is best solve inside the DMA API ie with solution A.
+
+
+I do not think we should try to solve all the problems with a
+common solutions. They are too disparate from capabilities (what
+the hardware can and can't do).
+
+>From my point of view there is few take aways:
+  - device should only access regular vma
+  - device should never try to access vma that point to another
+    device (mmap of any file in /dev)
+  - peer to peer access through dedicated userspace API must
+    involve dedicated API between kernel driver taking part into
+    the peer to peer access
+  - peer to peer of regular vma must involve a common API for
+    drivers to interact so no driver can block the other
+
+
+So i think the DMA-API proposal is the one to pursue and others
+problem relating to handling GPU memory and how to use it is a
+different kind of problem. One with either an hardware solution
+(CAPI, CCTX, ...) or a software solution (HMM so far).
+
+I don't think we should conflict the 2 problems into one. Anyway
+i think this should be something worth discussing face to face
+with interested party to flesh out a solution (can be at LSF/MM
+or in another forum).
+
+Cheers,
+Jérôme
