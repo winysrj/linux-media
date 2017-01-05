@@ -1,59 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:34867 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750765AbdAXSLM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Jan 2017 13:11:12 -0500
-Message-ID: <1485281461.3600.138.camel@pengutronix.de>
-Subject: Re: [PATCH v2 00/21] Basic i.MX IPUv3 capture support
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <steve_longerbeam@mentor.com>
-Cc: Marek Vasut <marex@denx.de>,
-        Robert Schwebel <r.schwebel@pengutronix.de>,
-        Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Gary Bisson <gary.bisson@boundarydevices.com>,
-        Sascha Hauer <kernel@pengutronix.de>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Tue, 24 Jan 2017 19:11:01 +0100
-In-Reply-To: <1483990983.13625.58.camel@pengutronix.de>
-References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
-         <20161019213026.GU9460@valkosipuli.retiisi.org.uk>
-         <CAH-u=807nRYzza0kTfOMv1AiWazk6FGJyz6W5_bYw7v9nOrccA@mail.gmail.com>
-         <20161229205113.j6wn7kmhkfrtuayu@pengutronix.de>
-         <7350daac-14ee-74cc-4b01-470a375613a3@denx.de>
-         <c38d80aa-5464-1e9d-e11a-f54716fdb565@mentor.com>
-         <1483990983.13625.58.camel@pengutronix.de>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Mime-Version: 1.0
+Received: from mailgw02.mediatek.com ([210.61.82.184]:5925 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S969445AbdAEQIL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2017 11:08:11 -0500
+From: <sean.wang@mediatek.com>
+To: <mchehab@osg.samsung.com>, <hdegoede@redhat.com>,
+        <hkallweit1@gmail.com>, <robh+dt@kernel.org>,
+        <mark.rutland@arm.com>, <matthias.bgg@gmail.com>
+CC: <andi.shyti@samsung.com>, <hverkuil@xs4all.nl>, <sean@mess.org>,
+        <ivo.g.dimitrov.75@gmail.com>, <linux-media@vger.kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-mediatek@lists.infradead.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <keyhaede@gmail.com>,
+        Sean Wang <sean.wang@mediatek.com>
+Subject: [PATCH 1/2] Documentation: devicetree: Add document bindings for mtk-cir
+Date: Fri, 6 Jan 2017 00:06:23 +0800
+Message-ID: <1483632384-8107-2-git-send-email-sean.wang@mediatek.com>
+In-Reply-To: <1483632384-8107-1-git-send-email-sean.wang@mediatek.com>
+References: <1483632384-8107-1-git-send-email-sean.wang@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
+From: Sean Wang <sean.wang@mediatek.com>
 
-On Mon, 2017-01-09 at 20:43 +0100, Philipp Zabel wrote:
-> On the other hand, there is currently no way to communicate to userspace
-> that the IC can't downscale bilinearly, but only to 1/2 or 1/4 of the
-> input resolution, and then scale up bilinearly for there.
+This patch adds documentation for devicetree bindings for
+Mediatek IR controller.
 
-This is completely wrong.
+Signed-off-by: Sean Wang <sean.wang@mediatek.com>
+---
+ .../devicetree/bindings/media/mtk-cir.txt          | 23 ++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
+ create mode 100644 linux-4.8.rc1_p0/Documentation/devicetree/bindings/media/mtk-cir.txt
 
-For some reason I that I can't reconstruct anymore, I didn't realize
-that the PRPENC/VF_RS_R_V/H coefficient fields for the resizing section
-are 14 bits wide, so the bilinear scaling factor can in fact be reduced
-down to 8192/16383 ~= 0.50003 before the /2 downsizing section needs to
-be engaged.
+diff --git a/Documentation/devicetree/bindings/media/mtk-cir.txt b/Documentation/devicetree/bindings/media/mtk-cir.txt
+new file mode 100644
+index 0000000..bbedd71
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/mtk-cir.txt
+@@ -0,0 +1,23 @@
++Device-Tree bindings for Mediatek IR controller found in Mediatek SoC family
++
++Required properties:
++- compatible	    : "mediatek,mt7623-ir"
++- clocks	    : list of clock specifiers, corresponding to
++		      entries in clock-names property;
++- clock-names	    : should contain "clk" entries;
++- interrupts	    : should contain IR IRQ number;
++- reg		    : should contain IO map address for IR.
++
++Optional properties:
++- linux,rc-map-name : Remote control map name.
++
++Example:
++
++cir: cir@0x10013000 {
++	compatible = "mediatek,mt7623-ir";
++	reg = <0 0x10013000 0 0x1000>;
++	interrupts = <GIC_SPI 87 IRQ_TYPE_LEVEL_LOW>;
++	clocks = <&infracfg CLK_INFRA_IRRX>;
++	clock-names = "clk";
++	linux,rc-map-name = "rc-rc6-mce";
++};
+-- 
+1.9.1
 
->  So instead of
-> pretending to be able to downscale to any resolution, it would be better
-> to split each IC task into two subdevs, one for the
-> 1/2-or-1/4-downscaler, and one for the bilinear upscaler.
-
-So this point is moot. I still like the unified PRP subdev because of
-the single input pad, but splitting the scaling over two subdevs is not
-useful after all.
-
-regards
-Philipp
