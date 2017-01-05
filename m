@@ -1,71 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57088 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758961AbdACNgm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2017 08:36:42 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc: sakari.ailus@iki.fi, mchehab@kernel.org,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH] media: entity: Catch unbalanced media_pipeline_stop calls
-Date: Tue, 03 Jan 2017 15:36:43 +0200
-Message-ID: <2426604.oXt7iAeI8O@avalon>
-In-Reply-To: <1483449131-18075-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
-References: <1483449131-18075-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:50654 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1031968AbdAEMeW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2017 07:34:22 -0500
+Received: from eucas1p1.samsung.com (unknown [182.198.249.206])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0OJB00II4498O240@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 05 Jan 2017 12:34:20 +0000 (GMT)
+From: Andrzej Hajda <a.hajda@samsung.com>
+To: linux-media@vger.kernel.org, s.nawrocki@samsung.com
+Cc: Andrzej Hajda <a.hajda@samsung.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        David Binderman <dcb314@hotmail.com>
+Subject: [PATCH] v4l: s5c73m3: fix negation operator
+Date: Thu, 05 Jan 2017 13:34:07 +0100
+Message-id: <1483619647-11753-1-git-send-email-a.hajda@samsung.com>
+In-reply-to: <VI1PR08MB1022D94ED6D0C8252129B96F9C600@VI1PR08MB1022.eurprd08.prod.outlook.com>
+References: <VI1PR08MB1022D94ED6D0C8252129B96F9C600@VI1PR08MB1022.eurprd08.prod.outlook.com>
+ <CGME20170105123418eucas1p1a71a62cac9e538fa2997a8db8772d249@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Bool values should be negated using logical operators. Using bitwise operators
+results in unexpected and possibly incorrect results.
 
-Thank you for the patch.
+Reported-by: David Binderman <dcb314@hotmail.com>
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+---
+ drivers/media/i2c/s5c73m3/s5c73m3-ctrls.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On Tuesday 03 Jan 2017 13:12:11 Kieran Bingham wrote:
-> Drivers must not perform unbalanced calls to stop the entity pipeline,
-> however if they do they will fault in the core media code, as the
-> entity->pipe will be set as NULL. We handle this gracefully in the core
-> with a WARN for the developer.
-> 
-> Replace the erroneous check on zero streaming counts, with a check on
-> NULL pipe elements instead, as this is the symptom of unbalanced
-> media_pipeline_stop calls.
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
-This looks good to me,
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-I'll let Sakari review and merge the patch.
-
-> ---
->  drivers/media/media-entity.c | 7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index caa13e6f09f5..cb1fb2c17f85 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -534,8 +534,13 @@ void __media_pipeline_stop(struct media_entity *entity)
-> struct media_graph *graph = &entity->pipe->graph;
->  	struct media_pipeline *pipe = entity->pipe;
-> 
-> +	/*
-> +	 * If the following check fails, the driver has performed an
-> +	 * unbalanced call to media_pipeline_stop()
-> +	 */
-> +	if (WARN_ON(!pipe))
-> +		return;
-> 
-> -	WARN_ON(!pipe->streaming_count);
->  	media_graph_walk_start(graph, entity);
-> 
->  	while ((entity = media_graph_walk_next(graph))) {
-
+diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-ctrls.c b/drivers/media/i2c/s5c73m3/s5c73m3-ctrls.c
+index 0a06033..2e71850 100644
+--- a/drivers/media/i2c/s5c73m3/s5c73m3-ctrls.c
++++ b/drivers/media/i2c/s5c73m3/s5c73m3-ctrls.c
+@@ -211,7 +211,7 @@ static int s5c73m3_3a_lock(struct s5c73m3 *state, struct v4l2_ctrl *ctrl)
+ 	}
+ 
+ 	if ((ctrl->val ^ ctrl->cur.val) & V4L2_LOCK_FOCUS)
+-		ret = s5c73m3_af_run(state, ~af_lock);
++		ret = s5c73m3_af_run(state, !af_lock);
+ 
+ 	return ret;
+ }
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
 
