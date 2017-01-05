@@ -1,323 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60788 "EHLO mail.kapsi.fi"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753271AbdAIWfp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Jan 2017 17:35:45 -0500
-Subject: Re: [PATCH] [media] cx231xx: Initial support Evromedia USB Full
- Hybrid Full HD
-To: Oleh Kravchenko <oleg@kaa.org.ua>, linux-media@vger.kernel.org,
-        hverkuil@xs4all.nl
-References: <20170109152310.22161-1-oleg@kaa.org.ua>
- <135491db-a8e8-802d-d533-57b18d7725d4@iki.fi>
- <741106f9-1866-60d9-2eab-6b7b620e37fa@kaa.org.ua>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <ca644c03-0e28-78a4-89c3-863e0aafbbbb@iki.fi>
-Date: Tue, 10 Jan 2017 00:35:42 +0200
-MIME-Version: 1.0
-In-Reply-To: <741106f9-1866-60d9-2eab-6b7b620e37fa@kaa.org.ua>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:54672 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1758392AbdAEEZ2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 4 Jan 2017 23:25:28 -0500
+Message-ID: <2359b2a758a04db344967506eb70a872@smtp-cloud2.xs4all.net>
+Date: Thu, 05 Jan 2017 05:25:25 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-On 01/09/2017 11:49 PM, Oleh Kravchenko wrote:
-> Hello!
->
-> On 09.01.17 18:59, Antti Palosaari wrote:
->>
->>
->> On 01/09/2017 05:23 PM, Oleh Kravchenko wrote:
->>> This patch provide only digital support.
->>>
->>> The device is based on Si2168 30-demodulator,
->>> Si2158-20 tuner and CX23102-11Z chipset;
->>> USB id: 1b80:d3b2.
->>>
->>> Status:
->>> - DVB-T2 works fine;
->>> - Composite and SVideo works fine;
->>> - Analog not implemented.
->>>
->>> Signed-off-by: Oleh Kravchenko <oleg@kaa.org.ua>
->>> Tested-by: Oleh Kravchenko <oleg@kaa.org.ua>
->>> ---
->>>  drivers/media/usb/cx231xx/Kconfig         |  1 +
->>>  drivers/media/usb/cx231xx/cx231xx-cards.c | 29 +++++++++++++
->>>  drivers/media/usb/cx231xx/cx231xx-dvb.c   | 71 +++++++++++++++++++++++++++++++
->>>  drivers/media/usb/cx231xx/cx231xx-i2c.c   | 37 ++++++++++++++++
->>>  drivers/media/usb/cx231xx/cx231xx.h       |  1 +
->>>  5 files changed, 139 insertions(+)
->>>
->>> diff --git a/drivers/media/usb/cx231xx/Kconfig b/drivers/media/usb/cx231xx/Kconfig
->>> index 0cced3e..58de80b 100644
->>> --- a/drivers/media/usb/cx231xx/Kconfig
->>> +++ b/drivers/media/usb/cx231xx/Kconfig
->>> @@ -50,6 +50,7 @@ config VIDEO_CX231XX_DVB
->>>      select DVB_LGDT3306A if MEDIA_SUBDRV_AUTOSELECT
->>>      select DVB_TDA18271C2DD if MEDIA_SUBDRV_AUTOSELECT
->>>      select DVB_SI2165 if MEDIA_SUBDRV_AUTOSELECT
->>> +    select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
->>>      select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
->>>
->>>      ---help---
->>> diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
->>> index 36bc254..9b1df5a 100644
->>> --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
->>> +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
->>> @@ -841,6 +841,33 @@ struct cx231xx_board cx231xx_boards[] = {
->>>              .gpio = NULL,
->>>          } },
->>>      },
->>> +    [CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD] = {
->>> +        .name = "Evromedia USB Full Hybrid Full HD",
->>> +        .tuner_type = TUNER_ABSENT,
->>> +        .demod_addr = 0xc8 >> 1,
->>> +        .demod_i2c_master = I2C_1_MUX_3,
->>> +        .has_dvb = 1,
->>> +        .ir_i2c_master = I2C_0,
->>> +        .norm = V4L2_STD_PAL,
->>> +        .output_mode = OUT_MODE_VIP11,
->>> +        .tuner_addr = 0xc0 >> 1,
->>
->> These "8-bit" I2C addresses looks funny, but if that's used by cx231xx driver then leave...
->
-> To avoid misunderstanding, Windows driver use shifted i2c addresses.
+date:			Thu Jan  5 05:00:10 CET 2017
+media-tree git hash:	40eca140c404505c09773d1c6685d818cb55ab1a
+media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
+v4l-utils git hash:	951c4878a93f4722146f8bc6515a47fba6470bb3
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
-eh, I2C addresses are 7-bit + lsb which is bit read/write. Just use 
-correct addresses. I assume you saw "8-bit" addresses on usb sniffs - 
-that is very commonly used for usb hardware api...
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9-x86_64: ERRORS
+apps: WARNINGS
+spec-git: ERRORS
+sparse: WARNINGS
 
->
->>> +        .tuner_i2c_master = I2C_2,
->>> +        .input = {{
->>> +            .type = CX231XX_VMUX_TELEVISION,
->>> +            .vmux = 0,
->>> +            .amux = CX231XX_AMUX_VIDEO,
->>> +        }, {
->>> +            .type = CX231XX_VMUX_COMPOSITE1,
->>> +            .vmux = CX231XX_VIN_2_1,
->>> +            .amux = CX231XX_AMUX_LINE_IN,
->>> +        }, {
->>> +            .type = CX231XX_VMUX_SVIDEO,
->>> +            .vmux = CX231XX_VIN_1_1 |
->>> +                (CX231XX_VIN_1_2 << 8) |
->>> +                CX25840_SVIDEO_ON,
->>> +            .amux = CX231XX_AMUX_LINE_IN,
->>> +        } },
->>> +    },
->>>  };
->>>  const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
->>>
->>> @@ -908,6 +935,8 @@ struct usb_device_id cx231xx_id_table[] = {
->>>       .driver_info = CX231XX_BOARD_OTG102},
->>>      {USB_DEVICE(USB_VID_TERRATEC, 0x00a6),
->>>       .driver_info = CX231XX_BOARD_TERRATEC_GRABBY},
->>> +    {USB_DEVICE(0x1b80, 0xd3b2),
->>> +    .driver_info = CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD},
->>>      {},
->>>  };
->>>
->>> diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
->>> index 1417515..08472a3 100644
->>> --- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
->>> +++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
->>> @@ -33,6 +33,7 @@
->>>  #include "s5h1411.h"
->>>  #include "lgdt3305.h"
->>>  #include "si2165.h"
->>> +#include "si2168.h"
->>>  #include "mb86a20s.h"
->>>  #include "si2157.h"
->>>  #include "lgdt3306a.h"
->>> @@ -949,6 +950,76 @@ static int dvb_init(struct cx231xx *dev)
->>>                 &pv_tda18271_config);
->>>          break;
->>>
->>> +    case CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD:
->>> +    {
->>> +        struct si2157_config si2157_config = {};
->>> +        struct si2168_config si2168_config = {};
->>> +        struct i2c_board_info info = {};
->>> +        struct i2c_client *client;
->>> +        struct i2c_adapter *adapter;
->>> +
->>> +        /* attach demodulator chip */
->>> +        si2168_config.ts_mode = SI2168_TS_SERIAL; /* from *.inf file */
->>> +        si2168_config.fe = &dev->dvb->frontend;
->>> +        si2168_config.i2c_adapter = &adapter;
->>> +        si2168_config.ts_clock_inv = true;
->>> +
->>> +        strlcpy(info.type, "si2168", info.type);
->>> +        info.addr = dev->board.demod_addr;
->>> +        info.platform_data = &si2168_config;
->>> +
->>> +        request_module(info.type);
->>> +        client = i2c_new_device(demod_i2c, &info);
->>> +
->>> +        if (client == NULL || client->dev.driver == NULL || dev->dvb->frontend == NULL) {
->>
->> No need to check frontend here, or at least I cannot see why it should? Does the cx231xx initialize with some special value before calling si2168 probe - which will set it? client and driver will be null in case si2168 probe fails. Also, frontend pointer is not set if si2168 probe fails.
->>
->
-> I just copy code from CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx case, are you sure about it?
+Detailed results are available here:
 
-I am pretty sure. But I am not any familiar with cx231xx driver. It is 
-your work to explain why it is needed. No idea why it is used for 
-hauppauge card, but it simply looks wrong for my eyes.
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
->
->>> +            dev_err(dev->dev, "Failed to attach Si2168 front end\n");
->>> +            result = -EINVAL;
->>> +            goto out_free;
->>> +        }
->>> +
->>> +        if (!try_module_get(client->dev.driver->owner)) {
->>> +            i2c_unregister_device(client);
->>> +            result = -ENODEV;
->>> +            goto out_free;
->>> +        }
->>> +
->>> +        dvb->i2c_client_demod = client;
->>> +        dev->dvb->frontend->ops.i2c_gate_ctrl = NULL;
->>
->> si2168 does not use nor set i2c_gate_ctrl callback. No need to nullify it in any case.
->
-> Done!
->
->>> +        dvb->frontend->callback = cx231xx_tuner_callback;
->>> +
->>> +        /* attach tuner chip */
->>> +        si2157_config.fe = dev->dvb->frontend;
->>> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
->>> +        si2157_config.mdev = dev->media_dev;
->>> +#endif
->>> +        si2157_config.if_port = 1;
->>> +        si2157_config.inversion = false;
->>> +
->>> +        memset(&info, 0, sizeof(info));
->>> +        strlcpy(info.type, "si2157", info.type);
->>> +        info.addr = dev->board.tuner_addr;
->>> +        info.platform_data = &si2157_config;
->>> +
->>> +        request_module("si2157");
->>> +        client = i2c_new_device(tuner_i2c, &info);
->>> +
->>> +        if (client == NULL || client->dev.driver == NULL) {
->>> +            dvb_frontend_detach(dev->dvb->frontend);
->>> +            result = -ENODEV;
->>> +            goto out_free;
->>> +        }
->>
->> Does this error handling work? Have you tested it? I suspect it will not. You should likely decrease si2168 module reference counter and then unregister si2168 driver.
->>
->
-> The same error handling for CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx, why it bad?
+Full logs are available here:
 
-Because frontend or tuner is not attached and you call 
-dvb_frontend_detach() which will likely do nothing. You are only 
-registered si2168 driver and increased module reference count.
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-Test error handling by hacking si2168 and si2157 driver returning some 
-error code from the probe. What I think what happens when for example 
-si2157 driver probe fails it leaves si2168 driver there registered and 
-module use count increased => you cannot remove si2168 driver from 
-memory (rmmod).
+The Media Infrastructure API from this daily build is here:
 
->
->>> +
->>> +        if (!try_module_get(client->dev.driver->owner)) {
->>> +            i2c_unregister_device(client);
->>> +            dvb_frontend_detach(dev->dvb->frontend);
->>> +            result = -ENODEV;
->>> +            goto out_free;
->>> +        }
->>> +
->>> +        dev->cx231xx_reset_analog_tuner = NULL;
->>> +        dev->dvb->i2c_client_tuner = client;
->>> +        break;
->>> +    }
->>>      default:
->>>          dev_err(dev->dev,
->>>              "%s/2: The frontend of your DVB/ATSC card isn't supported yet\n",
->>> diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
->>> index 35e9acf..60412ec 100644
->>> --- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
->>> +++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
->>> @@ -171,6 +171,43 @@ static int cx231xx_i2c_send_bytes(struct i2c_adapter *i2c_adap,
->>>          bus->i2c_nostop = 0;
->>>          bus->i2c_reserve = 0;
->>>
->>> +    } else if (dev->model == CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD
->>> +        && msg->addr == dev->tuner_addr
->>> +        && msg->len > 4) {
->>> +        /* special case for Evromedia USB Full Hybrid Full HD tuner chip */
->>> +        size = msg->len;
->>> +        saddr_len = 1;
->>> +
->>> +        /* adjust the length to correct length */
->>> +        size -= saddr_len;
->>> +
->>> +        buf_ptr = (u8*)(msg->buf + 1);
->>> +
->>> +        do {
->>> +            /* prepare xfer_data struct */
->>> +            req_data.dev_addr = msg->addr;
->>> +            req_data.direction = msg->flags;
->>> +            req_data.saddr_len = saddr_len;
->>> +            req_data.saddr_dat = msg->buf[0];
->>> +            req_data.buf_size = size > 4 ? 4 : size;
->>> +            req_data.p_buffer = (u8*)(buf_ptr + loop * 4);
->>> +
->>> +            bus->i2c_nostop = (size > 4) ? 1 : 0;
->>> +            bus->i2c_reserve = (loop == 0) ? 0 : 1;
->>> +
->>> +            /* usb send command */
->>> +            status = dev->cx231xx_send_usb_command(bus, &req_data);
->>> +            loop++;
->>> +
->>> +            if (size >= 4) {
->>> +                size -= 4;
->>> +            } else {
->>> +                size = 0;
->>> +            }
->>> +        } while (size > 0);
->>> +
->>> +        bus->i2c_nostop = 0;
->>> +        bus->i2c_reserve = 0;
->>
->> I don't follow (and I looked only that patch, not whole cx231xx driver) why this I2C adapter logic is limited to that device only. si2168 and si2157 drivers applies just standard multibyte I2C read and write operations - no write+read op used at all.
->>
->> These I2C adapter routines should be same for every device. Maybe original logic is somehow wrong and it should be fixed instead of adding new device specific logic.
->
-> I can rewrite it, but who will test it? :)
-
-gah, there seems to be a lot of existing hacks on that I2C adapter 
-implementation :/ Now it is very hard to fix properly... dunno what to do.
-
-
->
->>>      } else {        /* regular case */
->>>
->>>          /* prepare xfer_data struct */
->>> diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
->>> index 90c8676..d9792ea 100644
->>> --- a/drivers/media/usb/cx231xx/cx231xx.h
->>> +++ b/drivers/media/usb/cx231xx/cx231xx.h
->>> @@ -78,6 +78,7 @@
->>>  #define CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx 20
->>>  #define CX231XX_BOARD_HAUPPAUGE_955Q 21
->>>  #define CX231XX_BOARD_TERRATEC_GRABBY 22
->>> +#define CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD 23
->>>
->>>  /* Limits minimum and default number of buffers */
->>>  #define CX231XX_MIN_BUF                 4
->>>
->>
->> regards
->> Antti
->>
-
--- 
-http://palosaari.fi/
+http://www.xs4all.nl/~hverkuil/spec/index.html
