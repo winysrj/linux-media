@@ -1,27 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from verein.lst.de ([213.95.11.211]:58035 "EHLO newverein.lst.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750862AbdAMRPc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Jan 2017 12:15:32 -0500
-Date: Fri, 13 Jan 2017 18:15:19 +0100
-From: Christoph Hellwig <hch@lst.de>
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>, linux-pci@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        netdev@vger.kernel.org, linux-media@vger.kernel.org,
-        Tom Lendacky <thomas.lendacky@amd.com>
-Subject: Re: kill off pci_enable_msi_{exact,range}
-Message-ID: <20170113171519.GA5857@lst.de>
-References: <1483994260-19797-1-git-send-email-hch@lst.de> <20170112212900.GE8312@bhelgaas-glaptop.roam.corp.google.com> <20170113075503.GA26014@lst.de> <20170113080553.GA26280@lst.de> <20170113171321.GA22776@bhelgaas-glaptop.roam.corp.google.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170113171321.GA22776@bhelgaas-glaptop.roam.corp.google.com>
+Received: from mailout3.samsung.com ([203.254.224.33]:34102 "EHLO
+        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1162364AbdAFDn4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2017 22:43:56 -0500
+Date: Fri, 06 Jan 2017 12:43:46 +0900
+From: Andi Shyti <andi.shyti@samsung.com>
+To: sean.wang@mediatek.com
+Cc: mchehab@osg.samsung.com, hdegoede@redhat.com, hkallweit1@gmail.com,
+        robh+dt@kernel.org, mark.rutland@arm.com, matthias.bgg@gmail.com,
+        hverkuil@xs4all.nl, sean@mess.org, ivo.g.dimitrov.75@gmail.com,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-mediatek@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        keyhaede@gmail.com
+Subject: Re: [PATCH 2/2] media: rc: add driver for IR remote receiver on MT7623
+ SoC
+Message-id: <20170106034346.7njhyhtsc4yado5c@gangnam.samsung>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-disposition: inline
+In-reply-to: <1483632384-8107-3-git-send-email-sean.wang@mediatek.com>
+References: <1483632384-8107-1-git-send-email-sean.wang@mediatek.com>
+ <CGME20170105160810epcas3p1b7a85197c15fbbe87e08c736259935d6@epcas3p1.samsung.com>
+ <1483632384-8107-3-git-send-email-sean.wang@mediatek.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 13, 2017 at 11:13:21AM -0600, Bjorn Helgaas wrote:
-> I dropped the empty commit and replaced the xgbe patch with the one below.
-> Can you take a look at [1] and make sure it's what you expected?
+Hi Sean,
 
-This looks great, thanks!
+> +	ir->rc = rc_allocate_device();
+
+Yes, you should use devm_rc_allocate_device(...)
+
+Besides, standing to this patch which is not in yet:
+
+https://lkml.org/lkml/2016/12/18/39
+
+rc_allocate_device should provide the driver type during
+allocation, so it should be:
+
+	ir->rc = rc_allocate_device(RC_DRIVER_IR_RAW);
+
+and this line can be removed:
+
+> +	ir->rc->driver_type = RC_DRIVER_IR_RAW;
+
+I don't know when Mauro will take the patch above.
+
+Andi
