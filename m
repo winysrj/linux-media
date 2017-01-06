@@ -1,93 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:58705 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S935724AbdAIMmH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Jan 2017 07:42:07 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.11] More fixes/enhancements
-Message-ID: <39f400b1-0658-fc51-194b-d6b854b99e18@xs4all.nl>
-Date: Mon, 9 Jan 2017 13:41:59 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from host.76.145.23.62.rev.coltfrance.com ([62.23.145.76]:42186 "EHLO
+        proxy.6wind.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933971AbdAFJox (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2017 04:44:53 -0500
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+To: arnd@arndb.de
+Cc: mmarek@suse.com, linux-kbuild@vger.kernel.org,
+        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org,
+        adi-buildroot-devel@lists.sourceforge.net,
+        linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com,
+        uclinux-h8-devel@lists.sourceforge.jp,
+        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org,
+        linux-mips@linux-mips.org, linux-am33-list@redhat.com,
+        nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+        linux-arch@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        netdev@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-mmc@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, linux-nfs@vger.kernel.org,
+        linux-raid@vger.kernel.org, linux-spi@vger.kernel.org,
+        linux-mtd@lists.infradead.org, linux-rdma@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, alsa-devel@alsa-project.org,
+        linux-fbdev@vger.kernel.org, xen-devel@lists.xenproject.org,
+        airlied@linux.ie, davem@davemloft.net,
+        Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: [PATCH v2 6/7] Makefile.headersinst: remove destination-y option
+Date: Fri,  6 Jan 2017 10:43:58 +0100
+Message-Id: <1483695839-18660-7-git-send-email-nicolas.dichtel@6wind.com>
+In-Reply-To: <1483695839-18660-1-git-send-email-nicolas.dichtel@6wind.com>
+References: <bf83da6b-01ef-bf44-b3e1-ca6fc5636818@6wind.com>
+ <1483695839-18660-1-git-send-email-nicolas.dichtel@6wind.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 40eca140c404505c09773d1c6685d818cb55ab1a:
+This option was added in commit c7bb349e7c25 ("kbuild: introduce destination-y
+for exported headers") but never used in-tree.
 
-  [media] mn88473: add DVB-T2 PLP support (2016-12-27 14:00:15 -0200)
+Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+---
+ Documentation/kbuild/makefiles.txt | 23 ++++-------------------
+ scripts/Makefile.headersinst       |  2 +-
+ 2 files changed, 5 insertions(+), 20 deletions(-)
 
-are available in the git repository at:
+diff --git a/Documentation/kbuild/makefiles.txt b/Documentation/kbuild/makefiles.txt
+index 9b9c4797fc55..37b525d329ae 100644
+--- a/Documentation/kbuild/makefiles.txt
++++ b/Documentation/kbuild/makefiles.txt
+@@ -46,9 +46,8 @@ This document describes the Linux kernel Makefiles.
+ 	=== 7 Kbuild syntax for exported headers
+ 		--- 7.1 header-y
+ 		--- 7.2 genhdr-y
+-		--- 7.3 destination-y
+-		--- 7.4 generic-y
+-		--- 7.5 generated-y
++		--- 7.3 generic-y
++		--- 7.4 generated-y
+ 
+ 	=== 8 Kbuild Variables
+ 	=== 9 Makefile language
+@@ -1295,21 +1294,7 @@ See subsequent chapter for the syntax of the Kbuild file.
+ 			#include/linux/Kbuild
+ 			genhdr-y += version.h
+ 
+-	--- 7.3 destination-y
+-
+-	When an architecture has a set of exported headers that needs to be
+-	exported to a different directory destination-y is used.
+-	destination-y specifies the destination directory for all exported
+-	headers in the file where it is present.
+-
+-		Example:
+-			#arch/xtensa/platforms/s6105/include/platform/Kbuild
+-			destination-y := include/linux
+-
+-	In the example above all exported headers in the Kbuild file
+-	will be located in the directory "include/linux" when exported.
+-
+-	--- 7.4 generic-y
++	--- 7.3 generic-y
+ 
+ 	If an architecture uses a verbatim copy of a header from
+ 	include/asm-generic then this is listed in the file
+@@ -1336,7 +1321,7 @@ See subsequent chapter for the syntax of the Kbuild file.
+ 		Example: termios.h
+ 			#include <asm-generic/termios.h>
+ 
+-	--- 7.5 generated-y
++	--- 7.4 generated-y
+ 
+ 	If an architecture generates other header files alongside generic-y
+ 	wrappers, and not included in genhdr-y, then generated-y specifies
+diff --git a/scripts/Makefile.headersinst b/scripts/Makefile.headersinst
+index 3e20d03432d2..876b42cfede4 100644
+--- a/scripts/Makefile.headersinst
++++ b/scripts/Makefile.headersinst
+@@ -14,7 +14,7 @@ kbuild-file := $(srctree)/$(obj)/Kbuild
+ include $(kbuild-file)
+ 
+ # called may set destination dir (when installing to asm/)
+-_dst := $(if $(destination-y),$(destination-y),$(if $(dst),$(dst),$(obj)))
++_dst := $(if $(dst),$(dst),$(obj))
+ 
+ old-kbuild-file := $(srctree)/$(subst uapi/,,$(obj))/Kbuild
+ ifneq ($(wildcard $(old-kbuild-file)),)
+-- 
+2.8.1
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.11b
-
-for you to fetch changes up to 62c53755afc004b9979a0790e762f711f12ceb03:
-
-  davinci: VPIF: add basic support for DT init (2017-01-09 13:19:03 +0100)
-
-----------------------------------------------------------------
-Andrzej Hajda (1):
-      v4l: s5c73m3: fix negation operator
-
-Jean-Christophe Trotin (1):
-      v4l2-common: fix aligned value calculation
-
-Kees Cook (2):
-      mtk-vcodec: use designated initializers
-      solo6x10: use designated initializers
-
-Kevin Hilman (5):
-      davinci: VPIF: fix module loading, init errors
-      davinci: vpif_capture: remove hard-coded I2C adapter id
-      davinci: vpif_capture: fix start/stop streaming locking
-      dt-bindings: add TI VPIF documentation
-      davinci: VPIF: add basic support for DT init
-
-Markus Elfring (2):
-      v4l2-async: Use kmalloc_array() in v4l2_async_notifier_unregister()
-      v4l2-async: Delete an error message for a failed memory allocation in v4l2_async_notifier_unregister()
-
-Pavel Machek (1):
-      mark myself as mainainer for camera on N900
-
-Randy Dunlap (1):
-      media: fix dm1105.c build error
-
-Santosh Kumar Singh (5):
-      vim2m: Clean up file handle in open() error path.
-      zoran: Clean up file handle in open() error path.
-      tm6000: Clean up file handle in open() error path.
-      ivtv: Clean up file handle in open() error path.
-      pvrusb2: Clean up file handle in open() error path.
-
-Shyam Saini (1):
-      media: usb: cpia2: Use kmemdup instead of kmalloc and memcpy
-
-Sudip Mukherjee (1):
-      bt8xx: fix memory leak
-
- Documentation/devicetree/bindings/media/ti,da850-vpif.txt | 83 +++++++++++++++++++++++++++++++++++++++++++
- MAINTAINERS                                               |  8 +++++
- drivers/media/i2c/s5c73m3/s5c73m3-ctrls.c                 |  2 +-
- drivers/media/pci/bt8xx/dvb-bt8xx.c                       |  1 +
- drivers/media/pci/dm1105/Kconfig                          |  2 +-
- drivers/media/pci/ivtv/ivtv-alsa-pcm.c                    |  1 +
- drivers/media/pci/solo6x10/solo6x10-g723.c                |  2 +-
- drivers/media/pci/zoran/zoran_driver.c                    |  1 +
- drivers/media/platform/davinci/vpif.c                     | 14 +++++++-
- drivers/media/platform/davinci/vpif_capture.c             | 24 ++++++++++---
- drivers/media/platform/davinci/vpif_capture.h             |  2 +-
- drivers/media/platform/davinci/vpif_display.c             |  6 ++++
- drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c     |  8 ++---
- drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c      |  8 ++---
- drivers/media/platform/vim2m.c                            |  2 ++
- drivers/media/usb/cpia2/cpia2_usb.c                       |  4 +--
- drivers/media/usb/pvrusb2/pvrusb2-v4l2.c                  |  3 +-
- drivers/media/usb/tm6000/tm6000-video.c                   |  5 ++-
- drivers/media/v4l2-core/v4l2-async.c                      |  7 +---
- drivers/media/v4l2-core/v4l2-common.c                     |  2 +-
- include/media/davinci/vpif_types.h                        |  1 +
- 21 files changed, 157 insertions(+), 29 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/ti,da850-vpif.txt
