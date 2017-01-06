@@ -1,146 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:35486 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751113AbdAYCIA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Jan 2017 21:08:00 -0500
-Subject: Re: [PATCH v3 13/24] platform: add video-multiplexer subdevice driver
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
- <1483755102-24785-14-git-send-email-steve_longerbeam@mentor.com>
- <b7695d77-4078-f171-d592-ff679e28b8e0@xs4all.nl>
- <1485259368.3600.126.camel@pengutronix.de>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <651d7b40-e87d-05ce-ae4d-256b0c1b28f7@gmail.com>
-Date: Tue, 24 Jan 2017 18:07:55 -0800
+Date: Fri, 6 Jan 2017 12:37:22 -0500
+From: Jerome Glisse <jglisse@redhat.com>
+To: Serguei Sagalovitch <serguei.sagalovitch@amd.com>
+Cc: Jerome Glisse <j.glisse@gmail.com>,
+        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>,
+        "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>,
+        "'linux-nvdimm@lists.01.org'" <linux-nvdimm@ml01.01.org>,
+        "'Linux-media@vger.kernel.org'" <Linux-media@vger.kernel.org>,
+        "'dri-devel@lists.freedesktop.org'" <dri-devel@lists.freedesktop.org>,
+        "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Koenig, Christian" <Christian.Koenig@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Sander, Ben" <ben.sander@amd.com>, hch@infradead.org,
+        david1.zhou@amd.com, qiang.yu@amd.com
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Message-ID: <20170106173722.GB3804@redhat.com>
+References: <20170105183927.GA5324@gmail.com>
+ <20170105190113.GA12587@obsidianresearch.com>
+ <20170105195424.GB2166@redhat.com>
+ <20170105200719.GB31047@obsidianresearch.com>
+ <20170105201935.GC2166@redhat.com>
+ <20170105224215.GA3855@obsidianresearch.com>
+ <20170105232352.GB6426@redhat.com>
+ <20170106003034.GB4670@obsidianresearch.com>
+ <20170106015831.GA2226@gmail.com>
+ <f07700d5-211f-d091-2b0b-fbaf03c4a959@amd.com>
 MIME-Version: 1.0
-In-Reply-To: <1485259368.3600.126.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <f07700d5-211f-d091-2b0b-fbaf03c4a959@amd.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri, Jan 06, 2017 at 11:56:30AM -0500, Serguei Sagalovitch wrote:
+> On 2017-01-05 08:58 PM, Jerome Glisse wrote:
+> > On Thu, Jan 05, 2017 at 05:30:34PM -0700, Jason Gunthorpe wrote:
+> > > On Thu, Jan 05, 2017 at 06:23:52PM -0500, Jerome Glisse wrote:
+> > > 
+> > > > > I still don't understand what you driving at - you've said in both
+> > > > > cases a user VMA exists.
+> > > > In the former case no, there is no VMA directly but if you want one than
+> > > > a device can provide one. But such VMA is useless as CPU access is not
+> > > > expected.
+> > > I disagree it is useless, the VMA is going to be necessary to support
+> > > upcoming things like CAPI, you need it to support O_DIRECT from the
+> > > filesystem, DPDK, etc. This is why I am opposed to any model that is
+> > > not VMA based for setting up RDMA - that is shorted sighted and does
+> > > not seem to reflect where the industry is going.
+> > > 
+> > > So focus on having VMA backed by actual physical memory that covers
+> > > your GPU objects and ask how do we wire up the '__user *' to the DMA
+> > > API in the best way so the DMA API still has enough information to
+> > > setup IOMMUs and whatnot.
+> > I am talking about 2 different thing. Existing hardware and API where you
+> > _do not_ have a vma and you do not need one. This is just existing stuff.
+> I do not understand why you assume that existing API doesn't  need one.
+> I would say that a lot of __existing__ user level API and their support in
+> kernel (especially outside of graphics domain) assumes that we have vma and
+> deal with __user * pointers.
 
+Well i am thinking to GPUDirect here. Some of GPUDirect use case do not have
+vma (struct vm_area_struct) associated with them they directly apply to GPU
+object that aren't expose to CPU. Yes some use case have vma for share buffer.
 
-On 01/24/2017 04:02 AM, Philipp Zabel wrote:
-> Hi Hans,
+In the open source driver it is true that we have vma most often than not.
+
+> > Some close driver provide a functionality on top of this design. Question
+> > is do we want to do the same ? If yes and you insist on having a vma we
+> > could provide one but this is does not apply and is useless for where we
+> > are going with new hardware.
+> > 
+> > With new hardware you just use malloc or mmap to allocate memory and then
+> > you use it directly with the device. Device driver can migrate any part of
+> > the process address space to device memory. In this scheme you have your
+> > usual VMAs but there is nothing special about them.
 >
-> On Fri, 2017-01-20 at 15:03 +0100, Hans Verkuil wrote:
->> <snip>
->>> +
->>> +int vidsw_g_mbus_config(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg)
->>> +{
->>> +	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
->>> +	struct media_pad *pad;
->>> +	int ret;
->>> +
->>> +	if (vidsw->active == -1) {
->>> +		dev_err(sd->dev, "no configuration for inactive mux\n");
->>> +		return -EINVAL;
->>> +	}
->>> +
->>> +	/*
->>> +	 * Retrieve media bus configuration from the entity connected to the
->>> +	 * active input
->>> +	 */
->>> +	pad = media_entity_remote_pad(&vidsw->pads[vidsw->active]);
->>> +	if (pad) {
->>> +		sd = media_entity_to_v4l2_subdev(pad->entity);
->>> +		ret = v4l2_subdev_call(sd, video, g_mbus_config, cfg);
->>> +		if (ret == -ENOIOCTLCMD)
->>> +			pad = NULL;
->>> +		else if (ret < 0) {
->>> +			dev_err(sd->dev, "failed to get source configuration\n");
->>> +			return ret;
->>> +		}
->>> +	}
->>> +	if (!pad) {
->>> +		/* Mirror the input side on the output side */
->>> +		cfg->type = vidsw->endpoint[vidsw->active].bus_type;
->>> +		if (cfg->type == V4L2_MBUS_PARALLEL ||
->>> +		    cfg->type == V4L2_MBUS_BT656)
->>> +			cfg->flags = vidsw->endpoint[vidsw->active].bus.parallel.flags;
->>> +	}
->>> +
->>> +	return 0;
->>> +}
->> I am not certain this op is needed at all. In the current kernel this op is only
->> used by soc_camera, pxa_camera and omap3isp (somewhat dubious). Normally this
->> information should come from the device tree and there should be no need for this op.
->>
->> My (tentative) long-term plan was to get rid of this op.
->>
->> If you don't need it, then I recommend it is removed.
+> Assuming that the whole device memory is CPU accessible and it looks
+> like the direction where we are going:
+> - You forgot about use case when we want or need to allocate memory
+> directly on device (why we need to migrate anything if not needed?).
+> - We may want to use CPU to access such memory on device to avoid
+> any unnecessary migration back.
+> - We may have more device memory than the system one.
+> E.g. if you have 12 GPUs w/64GB each it will already give us ~0.7 TB
+> not mentioning NVDIMM cards which could also be used as memory
+> storage for other device access.
+> - We also may want/need to share GPU memory between different
+> processes.
 
-Hi Hans, the imx-media driver was only calling g_mbus_config to the camera
-sensor, and it was doing that to determine the sensor's bus type. This info
-was already available from parsing a v4l2_of_endpoint from the sensor node.
-So it was simple to remove the g_mbus_config calls, and instead rely on the
-parsed sensor v4l2_of_endpoint.
+Here i am talking about platform where GPU memory is not accessible at
+all by the CPU (because of PCIe restriction, think CPU atomic operation
+on IO memory).
 
-> We currently use this to make the CSI capture interface understand
-> whether its source from the MIPI CSI-2 or from the parallel bus. That is
-> probably something that should be fixed, but I'm not quite sure how.
->
-> The Synopsys DesignWare MIPI CSI-2 reciever turns the incoming MIPI
-> CSI-2 signal into a 32-bit parallel pixel bus plus some signals for the
-> MIPI specific metadata (virtual channel, data type).
->
-> Then the CSI2IPU gasket turns this input bus into four separate parallel
-> 16-bit pixel buses plus an 8-bit "mct_di" bus for each of them, that
-> carries the MIPI metadata. The incoming data is split into the four
-> outputs according to the MIPI virtual channel.
->
-> Two of these 16-bit + 8-bit parallel buses are routed through a
-> multiplexer before finally arriving at the CSI on the other side.
->
-> We need to configure the CSI to either use or ignore the data from the
-> 8-bit mct_di bus depending on whether the source of the mux is
-> configured to the MIPI CSI-2 receiver / CSI2IPU gasket, or to a parallel
-> input.
+So i really distinguish between CAPI/CCIX and PCIe. Some platform will
+have CAPI/CCIX other wont. HMM apply mostly to the latter. Some of HMM
+functionalities are still usefull with CAPI/CCIX.
 
-Philipp, from my experience, the CSI_MIPI_DI register (configured
-by ipu_csi_set_mipi_datatype()) can only be given a virtual channel 0,
-otherwise no data is received from the MIPI CSI-2 sensor, regardless
-of the virtual channel the sensor is transmitting over.
+Note that HMM do support allocation on GPU first. In current design this
+can happen when GPU is the first to access an unpopulated virtual address.
 
-So it seems the info on the 8-bit mct_di buses generated by the CSI2IPU
-gasket are ignored by the CSI's, at least the virtual channel number is
-ignored.
 
-For example, if the sensor is transmitting on vc 1, the gasket routes
-the sensor data to the parallel bus to CSI1. But if CSI_MIPI_DI on CSI1
-is written with vc 1, no data is received.
+For platform where GPU memory is accessible plan is either something
+like CDM (Coherent Device Memory) or rely on ZONE_DEVICE. So all GPU
+memory have struct page and those are like ordinary pages. CDM still
+wants some restrictions like avoiding CPU allocation to happen on GPU
+when there is memory pressure ... For all intent and purposes this
+will work transparently in respect to RDMA because we assume on those
+system that the RDMA is CAPI/CCIX and that it can peer to other device.
 
-Steve
 
->
-> Currently we let g_mbus_config pretend that even the internal 32-bit +
-> metadata and 16-bit + 8-bit metadata parallel buses are of type
-> V4L2_MBUS_CSI so that the CSI can ask the mux, which propagates to the
-> CSI-2 receiver, if connected.
->
-> Without g_mbus_config we'd need to get that information from somewhere
-> else. One possibility would be to extend MEDIA_BUS formats to describe
-> these "parallelized MIPI data" buses separately.
->
-> regards
-> Philipp
->
+> > Now when you try to do get_user_page() on any page that is inside the
+> > device it will fails because we do not allow any device memory to be pin.
+> > There is various reasons for that and they are not going away in any hw
+> > in the planing (so for next few years).
+> > 
+> > Still we do want to support peer to peer mapping. Plan is to only do so
+> > with ODP capable hardware. Still we need to solve the IOMMU issue and
+> > it needs special handling inside the RDMA device. The way it works is
+> > that RDMA ask for a GPU page, GPU check if it has place inside its PCI
+> > bar to map this page for the device, this can fail. If it succeed then
+> > you need the IOMMU to let the RDMA device access the GPU PCI bar.
+> > 
+> > So here we have 2 orthogonal problem. First one is how to make 2 drivers
+> > talks to each other to setup mapping to allow peer to peer But I would assume  and second is
+> > about IOMMU.
+> > 
+> I think that there is the third problem:  A lot of existing user level API
+> (MPI, IB Verbs, file i/o, etc.) deal with pointers to the buffers.
+> Potentially it would be ideally to support use cases when those buffers are
+> located in device memory avoiding any unnecessary migration /
+> double-buffering.
+> Currently a lot of infrastructure in kernel assumes that this is the user
+> pointer and call "get_user_pages"  to get s/g.   What is your opinion
+> how it should be changed to deal with cases when "buffer" is in
+> device memory?
 
+For HMM plan is to restrict to ODP and either to replace ODP with HMM or change
+ODP to not use get_user_pages_remote() but directly fetch informations from
+CPU page table. Everything else stay as it is. I posted patchset to replace
+ODP with HMM in the past.
+
+For the older kind of API (GPUDirect on yesterday hardware) it uses special
+userspace API. If we don't care about supporting those i don't mind much but
+some people see benefit in not having to deal with vma (struct vm_area_struct).
+
+Cheers,
+Jérôme
