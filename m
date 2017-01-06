@@ -1,542 +1,827 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:33141 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750794AbdALWdp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Jan 2017 17:33:45 -0500
-Received: by mail-pf0-f195.google.com with SMTP id 127so5216904pfg.0
-        for <linux-media@vger.kernel.org>; Thu, 12 Jan 2017 14:32:39 -0800 (PST)
-Subject: Re: [PATCH v3 00/24] i.MX Media Driver
-To: Tim Harvey <tharvey@gateworks.com>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
- <CAJ+vNU2zU++Xam_UpDPfmSQhauhhS3_z8L-+ww6o-D9brWhiwA@mail.gmail.com>
- <afe51f5f-03dd-4092-9ec0-297afb1453c7@mentor.com>
- <CAJ+vNU3ymeA9d+cJ44Wm_zX17EMkd__w6vB_xyagxzBAYNJbZQ@mail.gmail.com>
-Cc: Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <kernel@pengutronix.de>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        laurent.pinchart+renesas@ideasonboard.com,
-        linux-media <linux-media@vger.kernel.org>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <f956170a-38d9-ce97-51df-e88f59e4ac17@gmail.com>
-Date: Thu, 12 Jan 2017 14:32:36 -0800
-MIME-Version: 1.0
-In-Reply-To: <CAJ+vNU3ymeA9d+cJ44Wm_zX17EMkd__w6vB_xyagxzBAYNJbZQ@mail.gmail.com>
-Content-Type: multipart/mixed;
- boundary="------------42312C2DD4B6AF4712276A9D"
+Received: from gofer.mess.org ([80.229.237.210]:40725 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1032322AbdAFMtP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 6 Jan 2017 07:49:15 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 2/9] [media] lirc: exorcise struct irctl
+Date: Fri,  6 Jan 2017 12:49:05 +0000
+Message-Id: <ffd26215658ff2566ecf04242eeec012073497a5.1483706563.git.sean@mess.org>
+In-Reply-To: <cover.1483706563.git.sean@mess.org>
+References: <cover.1483706563.git.sean@mess.org>
+In-Reply-To: <cover.1483706563.git.sean@mess.org>
+References: <cover.1483706563.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------42312C2DD4B6AF4712276A9D
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+lirc_register_driver() takes a struct lirc_driver argument, it then
+allocates a new struct irctl which contains another struct lirc_driver
+and then copies it over.
 
-Hi Tim,
+By moving the members of struct irctl to struct lirc_driver, we avoid the
+extra allocation and we can remove struct irctl completely. We also
+remove the duplicate chunk_size member.
 
+In addition, the members of irctl are now visible elsewhere.
 
-On 01/12/2017 01:13 PM, Tim Harvey wrote:
->
->>> Now that your driver is hooking into the current media framework, I'm
->>> not at all clear on how to link and configure the media entities.
->>
->> It's all documented at Documentation/media/v4l-drivers/imx.rst.
->> Follow the SabreAuto pipeline setup example.
->>
-> ah yes... it helps to read your patches! You did a great job on the
-> documentation.
->
-> Regarding the The ipu1_csi0_mux/ipu2_csi1_mux entities which have 1
-> source and 2 sinks (which makes sense for a mux) how do you know which
-> sink pad you should use (in your adv7180 example you use the 2nd sink
-> pad vs the first)?
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/ir-lirc-codec.c        |   1 -
+ drivers/media/rc/lirc_dev.c             | 317 ++++++++++++++------------------
+ drivers/staging/media/lirc/lirc_sasem.c |   1 -
+ include/media/lirc_dev.h                |  25 +++
+ 4 files changed, 168 insertions(+), 176 deletions(-)
 
-The adv7180 can only go to the parallel input pad (ipu1_csi0_mux:1
-on quad). The other input pads select from the mipi csi-2 receiver virtual
-channels.
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index c3a2a6d..b78a402 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -424,7 +424,6 @@ int ir_lirc_unregister(struct rc_dev *dev)
+ 	lirc_unregister_driver(lirc->drv->minor);
+ 	lirc_buffer_free(lirc->drv->rbuf);
+ 	kfree(lirc->drv->rbuf);
+-	kfree(lirc->drv);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 5884f0e..379e9d4 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -47,24 +47,9 @@
+ 
+ static dev_t lirc_base_dev;
+ 
+-struct irctl {
+-	struct lirc_driver d;
+-	int attached;
+-	int open;
+-
+-	struct mutex irctl_lock;
+-	struct lirc_buffer *buf;
+-	unsigned int chunk_size;
+-
+-	struct cdev *cdev;
+-
+-	struct task_struct *task;
+-	long jiffies_to_wait;
+-};
+-
+ static DEFINE_MUTEX(lirc_dev_lock);
+ 
+-static struct irctl *irctls[MAX_IRCTL_DEVICES];
++static struct lirc_driver *irctls[MAX_IRCTL_DEVICES];
+ 
+ /* Only used for sysfs but defined to void otherwise */
+ static struct class *lirc_class;
+@@ -72,33 +57,27 @@ static struct class *lirc_class;
+ /*  helper function
+  *  initializes the irctl structure
+  */
+-static void lirc_irctl_init(struct irctl *ir)
+-{
+-	mutex_init(&ir->irctl_lock);
+-	ir->d.minor = NOPLUG;
+-}
+-
+-static void lirc_irctl_cleanup(struct irctl *ir)
++static void lirc_irctl_cleanup(struct lirc_driver *d)
+ {
+-	device_destroy(lirc_class, MKDEV(MAJOR(lirc_base_dev), ir->d.minor));
++	device_destroy(lirc_class, MKDEV(MAJOR(lirc_base_dev), d->minor));
+ 
+-	if (ir->buf != ir->d.rbuf) {
+-		lirc_buffer_free(ir->buf);
+-		kfree(ir->buf);
++	if (d->buf != d->rbuf) {
++		lirc_buffer_free(d->buf);
++		kfree(d->buf);
+ 	}
+-	ir->buf = NULL;
++	d->buf = NULL;
+ }
+ 
+ /*  helper function
+  *  reads key codes from driver and puts them into buffer
+  *  returns 0 on success
+  */
+-static int lirc_add_to_buf(struct irctl *ir)
++static int lirc_add_to_buf(struct lirc_driver *d)
+ {
+ 	int res;
+ 	int got_data = -1;
+ 
+-	if (!ir->d.add_to_buf)
++	if (!d->add_to_buf)
+ 		return 0;
+ 
+ 	/*
+@@ -107,31 +86,31 @@ static int lirc_add_to_buf(struct irctl *ir)
+ 	 */
+ 	do {
+ 		got_data++;
+-		res = ir->d.add_to_buf(ir->d.data, ir->buf);
++		res = d->add_to_buf(d->data, d->buf);
+ 	} while (!res);
+ 
+ 	if (res == -ENODEV)
+-		kthread_stop(ir->task);
++		kthread_stop(d->task);
+ 
+ 	return got_data ? 0 : res;
+ }
+ 
+ /* main function of the polling thread
+  */
+-static int lirc_thread(void *irctl)
++static int lirc_thread(void *lirc_driver)
+ {
+-	struct irctl *ir = irctl;
++	struct lirc_driver *d = lirc_driver;
+ 
+ 	do {
+-		if (ir->open) {
+-			if (ir->jiffies_to_wait) {
++		if (d->open) {
++			if (d->jiffies_to_wait) {
+ 				set_current_state(TASK_INTERRUPTIBLE);
+-				schedule_timeout(ir->jiffies_to_wait);
++				schedule_timeout(d->jiffies_to_wait);
+ 			}
+ 			if (kthread_should_stop())
+ 				break;
+-			if (!lirc_add_to_buf(ir))
+-				wake_up_interruptible(&ir->buf->wait_poll);
++			if (!lirc_add_to_buf(d))
++				wake_up_interruptible(&d->buf->wait_poll);
+ 		} else {
+ 			set_current_state(TASK_INTERRUPTIBLE);
+ 			schedule();
+@@ -141,7 +120,6 @@ static int lirc_thread(void *irctl)
+ 	return 0;
+ }
+ 
+-
+ static const struct file_operations lirc_dev_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.read		= lirc_dev_fop_read,
+@@ -153,9 +131,8 @@ static const struct file_operations lirc_dev_fops = {
+ 	.llseek		= noop_llseek,
+ };
+ 
+-static int lirc_cdev_add(struct irctl *ir)
++static int lirc_cdev_add(struct lirc_driver *d)
+ {
+-	struct lirc_driver *d = &ir->d;
+ 	struct cdev *cdev;
+ 	int retval;
+ 
+@@ -178,7 +155,7 @@ static int lirc_cdev_add(struct irctl *ir)
+ 	if (retval)
+ 		goto err_out;
+ 
+-	ir->cdev = cdev;
++	d->cdev = cdev;
+ 
+ 	return 0;
+ 
+@@ -187,13 +164,12 @@ static int lirc_cdev_add(struct irctl *ir)
+ 	return retval;
+ }
+ 
+-static int lirc_allocate_buffer(struct irctl *ir)
++static int lirc_allocate_buffer(struct lirc_driver *d)
+ {
+ 	int err = 0;
+ 	int bytes_in_key;
+ 	unsigned int chunk_size;
+ 	unsigned int buffer_size;
+-	struct lirc_driver *d = &ir->d;
+ 
+ 	mutex_lock(&lirc_dev_lock);
+ 
+@@ -203,21 +179,21 @@ static int lirc_allocate_buffer(struct irctl *ir)
+ 	chunk_size  = d->chunk_size  ? d->chunk_size  : bytes_in_key;
+ 
+ 	if (d->rbuf) {
+-		ir->buf = d->rbuf;
++		d->buf = d->rbuf;
+ 	} else {
+-		ir->buf = kmalloc(sizeof(struct lirc_buffer), GFP_KERNEL);
+-		if (!ir->buf) {
++		d->buf = kmalloc(sizeof(*d->buf), GFP_KERNEL);
++		if (!d->buf) {
+ 			err = -ENOMEM;
+ 			goto out;
+ 		}
+ 
+-		err = lirc_buffer_init(ir->buf, chunk_size, buffer_size);
++		err = lirc_buffer_init(d->buf, chunk_size, buffer_size);
+ 		if (err) {
+-			kfree(ir->buf);
++			kfree(d->buf);
+ 			goto out;
+ 		}
+ 	}
+-	ir->chunk_size = ir->buf->chunk_size;
++	d->chunk_size = d->buf->chunk_size;
+ 
+ out:
+ 	mutex_unlock(&lirc_dev_lock);
+@@ -227,7 +203,6 @@ static int lirc_allocate_buffer(struct irctl *ir)
+ 
+ static int lirc_allocate_driver(struct lirc_driver *d)
+ {
+-	struct irctl *ir;
+ 	int minor;
+ 	int err;
+ 
+@@ -289,13 +264,8 @@ static int lirc_allocate_driver(struct lirc_driver *d)
+ 		goto out_lock;
+ 	}
+ 
+-	ir = kzalloc(sizeof(struct irctl), GFP_KERNEL);
+-	if (!ir) {
+-		err = -ENOMEM;
+-		goto out_lock;
+-	}
+-	lirc_irctl_init(ir);
+-	irctls[minor] = ir;
++	mutex_init(&d->irctl_lock);
++	irctls[minor] = d;
+ 	d->minor = minor;
+ 
+ 	/* some safety check 8-) */
+@@ -304,18 +274,16 @@ static int lirc_allocate_driver(struct lirc_driver *d)
+ 	if (d->features == 0)
+ 		d->features = LIRC_CAN_REC_LIRCCODE;
+ 
+-	ir->d = *d;
+-
+-	device_create(lirc_class, ir->d.dev,
+-		      MKDEV(MAJOR(lirc_base_dev), ir->d.minor), NULL,
+-		      "lirc%u", ir->d.minor);
++	device_create(lirc_class, d->dev,
++		      MKDEV(MAJOR(lirc_base_dev), d->minor), NULL,
++		      "lirc%u", d->minor);
+ 
+ 	if (d->sample_rate) {
+-		ir->jiffies_to_wait = HZ / d->sample_rate;
++		d->jiffies_to_wait = HZ / d->sample_rate;
+ 
+ 		/* try to fire up polling thread */
+-		ir->task = kthread_run(lirc_thread, (void *)ir, "lirc_dev");
+-		if (IS_ERR(ir->task)) {
++		d->task = kthread_run(lirc_thread, d, "lirc_dev");
++		if (IS_ERR(d->task)) {
+ 			dev_err(d->dev, "cannot run thread for minor = %d\n",
+ 								d->minor);
+ 			err = -ECHILD;
+@@ -323,22 +291,22 @@ static int lirc_allocate_driver(struct lirc_driver *d)
+ 		}
+ 	} else {
+ 		/* it means - wait for external event in task queue */
+-		ir->jiffies_to_wait = 0;
++		d->jiffies_to_wait = 0;
+ 	}
+ 
+-	err = lirc_cdev_add(ir);
++	err = lirc_cdev_add(d);
+ 	if (err)
+ 		goto out_sysfs;
+ 
+-	ir->attached = 1;
++	d->attached = 1;
+ 	mutex_unlock(&lirc_dev_lock);
+ 
+-	dev_info(ir->d.dev, "lirc_dev: driver %s registered at minor = %d\n",
+-		 ir->d.name, ir->d.minor);
++	dev_info(d->dev, "lirc_dev: driver %s registered at minor = %d\n",
++		 d->name, d->minor);
+ 	return minor;
+ 
+ out_sysfs:
+-	device_destroy(lirc_class, MKDEV(MAJOR(lirc_base_dev), ir->d.minor));
++	device_destroy(lirc_class, MKDEV(MAJOR(lirc_base_dev), d->minor));
+ out_lock:
+ 	mutex_unlock(&lirc_dev_lock);
+ 
+@@ -365,7 +333,7 @@ EXPORT_SYMBOL(lirc_register_driver);
+ 
+ int lirc_unregister_driver(int minor)
+ {
+-	struct irctl *ir;
++	struct lirc_driver *d;
+ 	struct cdev *cdev;
+ 
+ 	if (minor < 0 || minor >= MAX_IRCTL_DEVICES) {
+@@ -374,46 +342,46 @@ int lirc_unregister_driver(int minor)
+ 		return -EBADRQC;
+ 	}
+ 
+-	ir = irctls[minor];
+-	if (!ir) {
++	d = irctls[minor];
++	if (!d) {
+ 		pr_err("failed to get irctl\n");
+ 		return -ENOENT;
+ 	}
+ 
+-	cdev = ir->cdev;
++	cdev = d->cdev;
+ 
+ 	mutex_lock(&lirc_dev_lock);
+ 
+-	if (ir->d.minor != minor) {
+-		dev_err(ir->d.dev, "lirc_dev: minor %d device not registered\n",
+-									minor);
++	if (d->minor != minor) {
++		dev_err(d->dev, "lirc_dev: minor %d device not registered\n",
++			minor);
+ 		mutex_unlock(&lirc_dev_lock);
+ 		return -ENOENT;
+ 	}
+ 
+ 	/* end up polling thread */
+-	if (ir->task)
+-		kthread_stop(ir->task);
++	if (d->task)
++		kthread_stop(d->task);
+ 
+-	dev_dbg(ir->d.dev, "lirc_dev: driver %s unregistered from minor = %d\n",
+-		ir->d.name, ir->d.minor);
++	dev_dbg(d->dev, "lirc_dev: driver %s unregistered from minor = %d\n",
++		d->name, d->minor);
+ 
+-	ir->attached = 0;
+-	if (ir->open) {
+-		dev_dbg(ir->d.dev, LOGHEAD "releasing opened driver\n",
+-			ir->d.name, ir->d.minor);
+-		wake_up_interruptible(&ir->buf->wait_poll);
+-		mutex_lock(&ir->irctl_lock);
++	d->attached = 0;
++	if (d->open) {
++		dev_dbg(d->dev, LOGHEAD "releasing opened driver\n",
++			d->name, d->minor);
++		wake_up_interruptible(&d->buf->wait_poll);
++		mutex_lock(&d->irctl_lock);
+ 
+-		if (ir->d.set_use_dec)
+-			ir->d.set_use_dec(ir->d.data);
++		if (d->set_use_dec)
++			d->set_use_dec(d->data);
+ 
+ 		module_put(cdev->owner);
+-		mutex_unlock(&ir->irctl_lock);
++		mutex_unlock(&d->irctl_lock);
+ 	} else {
+-		lirc_irctl_cleanup(ir);
++		lirc_irctl_cleanup(d);
+ 		cdev_del(cdev);
+-		kfree(ir);
++		kfree(d);
+ 		irctls[minor] = NULL;
+ 	}
+ 
+@@ -425,7 +393,7 @@ EXPORT_SYMBOL(lirc_unregister_driver);
+ 
+ int lirc_dev_fop_open(struct inode *inode, struct file *file)
+ {
+-	struct irctl *ir;
++	struct lirc_driver *d;
+ 	struct cdev *cdev;
+ 	int retval = 0;
+ 
+@@ -437,44 +405,44 @@ int lirc_dev_fop_open(struct inode *inode, struct file *file)
+ 	if (mutex_lock_interruptible(&lirc_dev_lock))
+ 		return -ERESTARTSYS;
+ 
+-	ir = irctls[iminor(inode)];
+-	if (!ir) {
++	d = irctls[iminor(inode)];
++	if (!d) {
+ 		retval = -ENODEV;
+ 		goto error;
+ 	}
+ 
+-	dev_dbg(ir->d.dev, LOGHEAD "open called\n", ir->d.name, ir->d.minor);
++	dev_dbg(d->dev, LOGHEAD "open called\n", d->name, d->minor);
+ 
+-	if (ir->d.minor == NOPLUG) {
++	if (d->minor == NOPLUG) {
+ 		retval = -ENODEV;
+ 		goto error;
+ 	}
+ 
+-	if (ir->open) {
++	if (d->open) {
+ 		retval = -EBUSY;
+ 		goto error;
+ 	}
+ 
+-	if (ir->d.rdev) {
+-		retval = rc_open(ir->d.rdev);
++	if (d->rdev) {
++		retval = rc_open(d->rdev);
+ 		if (retval)
+ 			goto error;
+ 	}
+ 
+-	cdev = ir->cdev;
++	cdev = d->cdev;
+ 	if (try_module_get(cdev->owner)) {
+-		ir->open++;
+-		if (ir->d.set_use_inc)
+-			retval = ir->d.set_use_inc(ir->d.data);
++		d->open++;
++		if (d->set_use_inc)
++			retval = d->set_use_inc(d->data);
+ 
+ 		if (retval) {
+ 			module_put(cdev->owner);
+-			ir->open--;
++			d->open--;
+ 		} else {
+-			lirc_buffer_clear(ir->buf);
++			lirc_buffer_clear(d->buf);
+ 		}
+-		if (ir->task)
+-			wake_up_process(ir->task);
++		if (d->task)
++			wake_up_process(d->task);
+ 	}
+ 
+ error:
+@@ -488,32 +456,32 @@ EXPORT_SYMBOL(lirc_dev_fop_open);
+ 
+ int lirc_dev_fop_close(struct inode *inode, struct file *file)
+ {
+-	struct irctl *ir = irctls[iminor(inode)];
++	struct lirc_driver *d = irctls[iminor(inode)];
+ 	struct cdev *cdev;
+ 	int ret;
+ 
+-	if (!ir) {
++	if (!d) {
+ 		pr_err("called with invalid irctl\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	cdev = ir->cdev;
++	cdev = d->cdev;
+ 
+ 	ret = mutex_lock_killable(&lirc_dev_lock);
+ 	WARN_ON(ret);
+ 
+-	rc_close(ir->d.rdev);
++	rc_close(d->rdev);
+ 
+-	ir->open--;
+-	if (ir->attached) {
+-		if (ir->d.set_use_dec)
+-			ir->d.set_use_dec(ir->d.data);
++	d->open--;
++	if (d->attached) {
++		if (d->set_use_dec)
++			d->set_use_dec(d->data);
+ 		module_put(cdev->owner);
+ 	} else {
+-		lirc_irctl_cleanup(ir);
++		lirc_irctl_cleanup(d);
+ 		cdev_del(cdev);
+-		irctls[ir->d.minor] = NULL;
+-		kfree(ir);
++		irctls[d->minor] = NULL;
++		kfree(d);
+ 	}
+ 
+ 	if (!ret)
+@@ -525,29 +493,30 @@ EXPORT_SYMBOL(lirc_dev_fop_close);
+ 
+ unsigned int lirc_dev_fop_poll(struct file *file, poll_table *wait)
+ {
+-	struct irctl *ir = irctls[iminor(file_inode(file))];
++	struct lirc_driver *d = irctls[iminor(file_inode(file))];
+ 	unsigned int ret;
+ 
+-	if (!ir) {
++	if (!d) {
+ 		pr_err("called with invalid irctl\n");
+ 		return POLLERR;
+ 	}
+ 
+-	if (!ir->attached)
++	if (!d->attached)
+ 		return POLLERR;
+ 
+-	if (ir->buf) {
+-		poll_wait(file, &ir->buf->wait_poll, wait);
++	if (d->buf) {
++		poll_wait(file, &d->buf->wait_poll, wait);
+ 
+-		if (lirc_buffer_empty(ir->buf))
++		if (lirc_buffer_empty(d->buf))
+ 			ret = 0;
+ 		else
+ 			ret = POLLIN | POLLRDNORM;
+-	} else
++	} else {
+ 		ret = POLLERR;
++	}
+ 
+-	dev_dbg(ir->d.dev, LOGHEAD "poll result = %d\n",
+-		ir->d.name, ir->d.minor, ret);
++	dev_dbg(d->dev, LOGHEAD "poll result = %d\n",
++		d->name, d->minor, ret);
+ 
+ 	return ret;
+ }
+@@ -557,46 +526,46 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+ 	__u32 mode;
+ 	int result = 0;
+-	struct irctl *ir = irctls[iminor(file_inode(file))];
++	struct lirc_driver *d = irctls[iminor(file_inode(file))];
+ 
+-	if (!ir) {
++	if (!d) {
+ 		pr_err("no irctl found!\n");
+ 		return -ENODEV;
+ 	}
+ 
+-	dev_dbg(ir->d.dev, LOGHEAD "ioctl called (0x%x)\n",
+-		ir->d.name, ir->d.minor, cmd);
++	dev_dbg(d->dev, LOGHEAD "ioctl called (0x%x)\n",
++		d->name, d->minor, cmd);
+ 
+-	if (ir->d.minor == NOPLUG || !ir->attached) {
+-		dev_err(ir->d.dev, LOGHEAD "ioctl result = -ENODEV\n",
+-			ir->d.name, ir->d.minor);
++	if (d->minor == NOPLUG || !d->attached) {
++		dev_err(d->dev, LOGHEAD "ioctl result = -ENODEV\n",
++			d->name, d->minor);
+ 		return -ENODEV;
+ 	}
+ 
+-	mutex_lock(&ir->irctl_lock);
++	mutex_lock(&d->irctl_lock);
+ 
+ 	switch (cmd) {
+ 	case LIRC_GET_FEATURES:
+-		result = put_user(ir->d.features, (__u32 __user *)arg);
++		result = put_user(d->features, (__u32 __user *)arg);
+ 		break;
+ 	case LIRC_GET_REC_MODE:
+-		if (!LIRC_CAN_REC(ir->d.features)) {
++		if (!LIRC_CAN_REC(d->features)) {
+ 			result = -ENOTTY;
+ 			break;
+ 		}
+ 
+ 		result = put_user(LIRC_REC2MODE
+-				  (ir->d.features & LIRC_CAN_REC_MASK),
++				  (d->features & LIRC_CAN_REC_MASK),
+ 				  (__u32 __user *)arg);
+ 		break;
+ 	case LIRC_SET_REC_MODE:
+-		if (!LIRC_CAN_REC(ir->d.features)) {
++		if (!LIRC_CAN_REC(d->features)) {
+ 			result = -ENOTTY;
+ 			break;
+ 		}
+ 
+ 		result = get_user(mode, (__u32 __user *)arg);
+-		if (!result && !(LIRC_MODE2REC(mode) & ir->d.features))
++		if (!result && !(LIRC_MODE2REC(mode) & d->features))
+ 			result = -EINVAL;
+ 		/*
+ 		 * FIXME: We should actually set the mode somehow but
+@@ -604,31 +573,31 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 		 */
+ 		break;
+ 	case LIRC_GET_LENGTH:
+-		result = put_user(ir->d.code_length, (__u32 __user *)arg);
++		result = put_user(d->code_length, (__u32 __user *)arg);
+ 		break;
+ 	case LIRC_GET_MIN_TIMEOUT:
+-		if (!(ir->d.features & LIRC_CAN_SET_REC_TIMEOUT) ||
+-		    ir->d.min_timeout == 0) {
++		if (!(d->features & LIRC_CAN_SET_REC_TIMEOUT) ||
++		    d->min_timeout == 0) {
+ 			result = -ENOTTY;
+ 			break;
+ 		}
+ 
+-		result = put_user(ir->d.min_timeout, (__u32 __user *)arg);
++		result = put_user(d->min_timeout, (__u32 __user *)arg);
+ 		break;
+ 	case LIRC_GET_MAX_TIMEOUT:
+-		if (!(ir->d.features & LIRC_CAN_SET_REC_TIMEOUT) ||
+-		    ir->d.max_timeout == 0) {
++		if (!(d->features & LIRC_CAN_SET_REC_TIMEOUT) ||
++		    d->max_timeout == 0) {
+ 			result = -ENOTTY;
+ 			break;
+ 		}
+ 
+-		result = put_user(ir->d.max_timeout, (__u32 __user *)arg);
++		result = put_user(d->max_timeout, (__u32 __user *)arg);
+ 		break;
+ 	default:
+ 		result = -EINVAL;
+ 	}
+ 
+-	mutex_unlock(&ir->irctl_lock);
++	mutex_unlock(&d->irctl_lock);
+ 
+ 	return result;
+ }
+@@ -639,32 +608,32 @@ ssize_t lirc_dev_fop_read(struct file *file,
+ 			  size_t length,
+ 			  loff_t *ppos)
+ {
+-	struct irctl *ir = irctls[iminor(file_inode(file))];
++	struct lirc_driver *d = irctls[iminor(file_inode(file))];
+ 	unsigned char *buf;
+ 	int ret = 0, written = 0;
+ 	DECLARE_WAITQUEUE(wait, current);
+ 
+-	if (!ir) {
++	if (!d) {
+ 		pr_err("called with invalid irctl\n");
+ 		return -ENODEV;
+ 	}
+ 
+-	dev_dbg(ir->d.dev, LOGHEAD "read called\n", ir->d.name, ir->d.minor);
++	dev_dbg(d->dev, LOGHEAD "read called\n", d->name, d->minor);
+ 
+-	buf = kzalloc(ir->chunk_size, GFP_KERNEL);
++	buf = kzalloc(d->chunk_size, GFP_KERNEL);
+ 	if (!buf)
+ 		return -ENOMEM;
+ 
+-	if (mutex_lock_interruptible(&ir->irctl_lock)) {
++	if (mutex_lock_interruptible(&d->irctl_lock)) {
+ 		ret = -ERESTARTSYS;
+ 		goto out_unlocked;
+ 	}
+-	if (!ir->attached) {
++	if (!d->attached) {
+ 		ret = -ENODEV;
+ 		goto out_locked;
+ 	}
+ 
+-	if (length % ir->chunk_size) {
++	if (length % d->chunk_size) {
+ 		ret = -EINVAL;
+ 		goto out_locked;
+ 	}
+@@ -674,14 +643,14 @@ ssize_t lirc_dev_fop_read(struct file *file,
+ 	 * to avoid losing scan code (in case when queue is awaken somewhere
+ 	 * between while condition checking and scheduling)
+ 	 */
+-	add_wait_queue(&ir->buf->wait_poll, &wait);
++	add_wait_queue(&d->buf->wait_poll, &wait);
+ 
+ 	/*
+ 	 * while we didn't provide 'length' bytes, device is opened in blocking
+ 	 * mode and 'copy_to_user' is happy, wait for data.
+ 	 */
+ 	while (written < length && ret == 0) {
+-		if (lirc_buffer_empty(ir->buf)) {
++		if (lirc_buffer_empty(d->buf)) {
+ 			/* According to the read(2) man page, 'written' can be
+ 			 * returned as less than 'length', instead of blocking
+ 			 * again, returning -EWOULDBLOCK, or returning
+@@ -698,36 +667,36 @@ ssize_t lirc_dev_fop_read(struct file *file,
+ 				break;
+ 			}
+ 
+-			mutex_unlock(&ir->irctl_lock);
++			mutex_unlock(&d->irctl_lock);
+ 			set_current_state(TASK_INTERRUPTIBLE);
+ 			schedule();
+ 			set_current_state(TASK_RUNNING);
+ 
+-			if (mutex_lock_interruptible(&ir->irctl_lock)) {
++			if (mutex_lock_interruptible(&d->irctl_lock)) {
+ 				ret = -ERESTARTSYS;
+-				remove_wait_queue(&ir->buf->wait_poll, &wait);
++				remove_wait_queue(&d->buf->wait_poll, &wait);
+ 				goto out_unlocked;
+ 			}
+ 
+-			if (!ir->attached) {
++			if (!d->attached) {
+ 				ret = -ENODEV;
+ 				goto out_locked;
+ 			}
+ 		} else {
+-			lirc_buffer_read(ir->buf, buf);
++			lirc_buffer_read(d->buf, buf);
+ 			ret = copy_to_user((void __user *)buffer+written, buf,
+-					   ir->buf->chunk_size);
++					   d->buf->chunk_size);
+ 			if (!ret)
+-				written += ir->buf->chunk_size;
++				written += d->buf->chunk_size;
+ 			else
+ 				ret = -EFAULT;
+ 		}
+ 	}
+ 
+-	remove_wait_queue(&ir->buf->wait_poll, &wait);
++	remove_wait_queue(&d->buf->wait_poll, &wait);
+ 
+ out_locked:
+-	mutex_unlock(&ir->irctl_lock);
++	mutex_unlock(&d->irctl_lock);
+ 
+ out_unlocked:
+ 	kfree(buf);
+@@ -738,7 +707,7 @@ EXPORT_SYMBOL(lirc_dev_fop_read);
+ 
+ void *lirc_get_pdata(struct file *file)
+ {
+-	return irctls[iminor(file_inode(file))]->d.data;
++	return irctls[iminor(file_inode(file))]->data;
+ }
+ EXPORT_SYMBOL(lirc_get_pdata);
+ 
+@@ -746,14 +715,14 @@ EXPORT_SYMBOL(lirc_get_pdata);
+ ssize_t lirc_dev_fop_write(struct file *file, const char __user *buffer,
+ 			   size_t length, loff_t *ppos)
+ {
+-	struct irctl *ir = irctls[iminor(file_inode(file))];
++	struct lirc_driver *d = irctls[iminor(file_inode(file))];
+ 
+-	if (!ir) {
++	if (!d) {
+ 		pr_err("called with invalid irctl\n");
+ 		return -ENODEV;
+ 	}
+ 
+-	if (!ir->attached)
++	if (!d->attached)
+ 		return -ENODEV;
+ 
+ 	return -EINVAL;
+diff --git a/drivers/staging/media/lirc/lirc_sasem.c b/drivers/staging/media/lirc/lirc_sasem.c
+index b0c176e..dd9c877 100644
+--- a/drivers/staging/media/lirc/lirc_sasem.c
++++ b/drivers/staging/media/lirc/lirc_sasem.c
+@@ -167,7 +167,6 @@ static void delete_context(struct sasem_context *context)
+ 	usb_free_urb(context->rx_urb);  /* IR */
+ 	lirc_buffer_free(context->driver->rbuf);
+ 	kfree(context->driver->rbuf);
+-	kfree(context->driver);
+ 	kfree(context);
+ }
+ 
+diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
+index cec7d35..aa4ec34 100644
+--- a/include/media/lirc_dev.h
++++ b/include/media/lirc_dev.h
+@@ -182,6 +182,20 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
+  *			device.
+  *
+  * @owner:		the module owning this struct
++ *
++ * @attached:		1 if the device is still attached, 0 otherwise
++ *
++ * @open:		1 if the lirc char device has been opened
++ *
++ * @irctl_lock:		mutex for the structure
++ *
++ * @buf:		read buffer used if rbuf is not set
++ *
++ * @cdev:		the char device structure
++ *
++ * @task:		thread performing read polling, if present
++ *
++ * @jiffies_to_wait:	jiffies to sleep in read polling thread
+  */
+ struct lirc_driver {
+ 	char name[40];
+@@ -204,6 +218,17 @@ struct lirc_driver {
+ 	const struct file_operations *fops;
+ 	struct device *dev;
+ 	struct module *owner;
++
++	int attached;
++	int open;
++
++	struct mutex irctl_lock;
++	struct lirc_buffer *buf;
++
++	struct cdev *cdev;
++
++	struct task_struct *task;
++	long jiffies_to_wait;
+ };
+ 
+ /* following functions can be called ONLY from user context
+-- 
+2.9.3
 
-Have you generated a dot graph? It makes it much easier to
-visualize:
-
-# media-ctl --print-dot > graph.dot
-
-then on your host:
-
-% dot -Tpng graph.dot > graph.png
-
-
->
-> As my hardware is the same as the SabreAuto except that my adv7180 is
-> on i2c-2@0x20 I follow your example from
-> Documentation/media/v4l-drivers/imx.rst:
->
-> # Setup links
-> media-ctl -l '"adv7180 2-0020":0 -> "ipu1_csi0_mux":1[1]'
-> media-ctl -l '"ipu1_csi0_mux":2 -> "ipu1_csi0":0[1]'
-> media-ctl -l '"ipu1_csi0":1 -> "ipu1_smfc0":0[1]'
-> media-ctl -l '"ipu1_smfc0":1 -> "ipu1_ic_prpvf":0[1]'
-> media-ctl -l '"ipu1_ic_prpvf":1 -> "camif0":0[1]'
-> media-ctl -l '"camif0":1 -> "camif0 devnode":0[1]'
->
-> # Configure pads
-> media-ctl -V "\"adv7180 2-0020\":0 [fmt:UYVY2X8/720x480]"
-> media-ctl -V "\"ipu1_csi0_mux\":1 [fmt:UYVY2X8/720x480]"
-> media-ctl -V "\"ipu1_csi0_mux\":2 [fmt:UYVY2X8/720x480]"
-> media-ctl -V "\"ipu1_csi0\":0 [fmt:UYVY2X8/720x480]"
-> media-ctl -V "\"ipu1_csi0\":1 [fmt:UYVY2X8/720x480]"
-> media-ctl -V "\"ipu1_smfc0\":0 [fmt:UYVY2X8/720x480]"
-> media-ctl -V "\"ipu1_smfc0\":1 [fmt:UYVY2X8/720x480]"
-> media-ctl -V "\"ipu1_ic_prpvf\":0 [fmt:UYVY2X8/720x480]"
-> # pad field types for camif can be any format prpvf supports
-> export outputfmt="UYVY2X8/720x480"
-> media-ctl -V "\"ipu1_ic_prpvf\":1 [fmt:$outputfmt]"
-> media-ctl -V "\"camif0\":0 [fmt:$outputfmt]"
-> media-ctl -V "\"camif0\":1 [fmt:$outputfmt]"
->
-> # select AIN1
-> v4l2-ctl -d0 -i0
-> Video input set to 0 (ADV7180 Composite on Ain1: ok)
-> v4l2-ctl -d0 --set-fmt-video=width=720,height=480,pixelformat=UYVY
-> # capture a single raw frame
-> v4l2-ctl -d0 --stream-mmap --stream-to=/x.raw --stream-count=1
-> [ 2092.056394] camif0: pipeline_set_stream failed with -32
-> VIDIOC_STREAMON: failed: Broken pipe
->
-> Enabling debug in drivers/media/media-entity.c I see:
-> [   38.870087] imx-media soc:media@0: link validation failed for
-> "ipu1_smfc0":1 -> "ipu1_ic_prpvf":0, error -32
->
-> Looking at ipu1_smfc0 and ipu1_ic_prpvf with media-ctl I see:
-> - entity 12: ipu1_ic_prpvf (2 pads, 8 links)
->               type V4L2 subdev subtype Unknown flags 0
->               device node name /dev/v4l-subdev3
->          pad0: Sink
->                  [fmt:UYVY2X8/720x480 field:alternate]
->                  <- "ipu1_csi0":1 []
->                  <- "ipu1_csi1":1 []
->                  <- "ipu1_smfc0":1 [ENABLED]
->                  <- "ipu1_smfc1":1 []
->          pad1: Source
->                  [fmt:UYVY2X8/720x480 field:none]
->                  -> "camif0":0 [ENABLED]
->                  -> "camif1":0 []
->                  -> "ipu1_ic_pp0":0 []
->                  -> "ipu1_ic_pp1":0 []
->
-> - entity 45: ipu1_smfc0 (2 pads, 5 links)
->               type V4L2 subdev subtype Unknown flags 0
->               device node name /dev/v4l-subdev14
->          pad0: Sink
->                  [fmt:UYVY2X8/720x480]
->                  <- "ipu1_csi0":1 [ENABLED]
->          pad1: Source
->                  [fmt:UYVY2X8/720x480]
->                  -> "ipu1_ic_prpvf":0 [ENABLED]
->                  -> "ipu1_ic_pp0":0 []
->                  -> "camif0":0 []
->                  -> "camif1":0 []
->
-> Any ideas what is going wrong here? Seems like its perhaps a field
-> type mismatch.
-
-Yes, exactly, you'll need to set the field types on every pad in your
-pipeline.
-
->   Is my outputfmt incorrect perhaps? I likely have
-> misunderstood the pad type comments in your documentation.
-
-Attached is an update doc (from branch imx-media-staging-md-v7 on my fork).
-I recently upgraded my v4l-utils package and media-ctl now supports 
-specifying
-the field type in the pad format strings. If you don't have the latest 
-v4l-utils, it's
-fairly straightforward to cross-build.
-
->
->>
->>> <snip>
->>>
->>>
->>>
->>> Additionally I've found that on an IMX6S/IMX6DL we crash while
->>> registering the media-ic subdev's:
-> <snip>
->> Yep, I only have quad boards here so I haven't gotten around to
->> testing on S/DL.
->>
->> But it looks like I forgot to clear out the csi subdev pointer array before
->> passing it to imx_media_of_parse(). I think that might explain the OOPS
->> above. Try this patch:
->>
->> diff --git a/drivers/staging/media/imx/imx-media-dev.c
->> b/drivers/staging/media/imx/imx-media-dev.c
->> index 357654d..0cf2d61 100644
->> --- a/drivers/staging/media/imx/imx-media-dev.c
->> +++ b/drivers/staging/media/imx/imx-media-dev.c
->> @@ -379,7 +379,7 @@ static int imx_media_probe(struct platform_device *pdev)
->>   {
->>          struct device *dev = &pdev->dev;
->>          struct device_node *node = dev->of_node;
->> -       struct imx_media_subdev *csi[4];
->> +       struct imx_media_subdev *csi[4] = {0};
->>          struct imx_media_dev *imxmd;
->>          int ret;
->>
-> This does resolves the crash on S/DL.
-
-Cool thanks for verifying, I've applied this to the imx-media-staging-md-v7
-branch.
-
->
-> I do notice that the ipu1_csi*_mux entities on the S/DL have 3 more
-> sink pads compared to the D/Q which is from the additional ports
-> defined in the GPR nodes you add for mipi_vc1/vc2/vc3. Are there
-> really 3 more MIPI virtual channels on the S/DL vs the D/Q?
-
-Well, same number of virtual channels on quad vs S/DL. It's
-just that the video mux on S/DL can select from all 4 virtual
-channels, whereas quad's mux'es only select either vc0 or vc3.
-
->
-> I get the same results on the S/DL as I do on D/Q as long as I adjust
-> the links to compensate for these additional sinks:
-> media-ctl -l '"adv7180 2-0020":0 -> "ipu1_csi0_mux":4[1]'  # pad4
-> media-ctl -l '"ipu1_csi0_mux":5 -> "ipu1_csi0":0[1]' # pad5
-> ...
->
-> This means link configuration must differ depending on S/DL vs D/Q
-> which is a bummer but I suppose this is the harsh reality as for
-> boards that use the EIM pads for IPU's they also will be using IPU2
-> for IMX6D/Q and IPU1 for IMX6S/DL.
-
-yeah, the links necessarily must be different between quad and S/DL.
-
-Steve
-
-
---------------42312C2DD4B6AF4712276A9D
-Content-Type: text/plain; charset=UTF-8;
- name="imx.rst"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="imx.rst"
-
-aS5NWCBWaWRlbyBDYXB0dXJlIERyaXZlcgo9PT09PT09PT09PT09PT09PT09PT09PT09CgpJ
-bnRyb2R1Y3Rpb24KLS0tLS0tLS0tLS0tCgpUaGUgRnJlZXNjYWxlIGkuTVg1LzYgY29udGFp
-bnMgYW4gSW1hZ2UgUHJvY2Vzc2luZyBVbml0IChJUFUpLCB3aGljaApoYW5kbGVzIHRoZSBm
-bG93IG9mIGltYWdlIGZyYW1lcyB0byBhbmQgZnJvbSBjYXB0dXJlIGRldmljZXMgYW5kCmRp
-c3BsYXkgZGV2aWNlcy4KCkZvciBpbWFnZSBjYXB0dXJlLCB0aGUgSVBVIGNvbnRhaW5zIHRo
-ZSBmb2xsb3dpbmcgaW50ZXJuYWwgc3VidW5pdHM6CgotIEltYWdlIERNQSBDb250cm9sbGVy
-IChJRE1BQykKLSBDYW1lcmEgU2VyaWFsIEludGVyZmFjZSAoQ1NJKQotIEltYWdlIENvbnZl
-cnRlciAoSUMpCi0gU2Vuc29yIE11bHRpLUZJRk8gQ29udHJvbGxlciAoU01GQykKLSBJbWFn
-ZSBSb3RhdG9yIChJUlQpCi0gVmlkZW8gRGUtSW50ZXJsYWNlIENvbnRyb2xsZXIgKFZESUMp
-CgpUaGUgSURNQUMgaXMgdGhlIERNQSBjb250cm9sbGVyIGZvciB0cmFuc2ZlciBvZiBpbWFn
-ZSBmcmFtZXMgdG8gYW5kIGZyb20KbWVtb3J5LiBWYXJpb3VzIGRlZGljYXRlZCBETUEgY2hh
-bm5lbHMgZXhpc3QgZm9yIGJvdGggdmlkZW8gY2FwdHVyZSBhbmQKZGlzcGxheSBwYXRocy4K
-ClRoZSBDU0kgaXMgdGhlIGZyb250ZW5kIGNhcHR1cmUgdW5pdCB0aGF0IGludGVyZmFjZXMg
-ZGlyZWN0bHkgd2l0aApjYXB0dXJlIHNlbnNvcnMgb3ZlciBQYXJhbGxlbCwgQlQuNjU2LzEx
-MjAsIGFuZCBNSVBJIENTSS0yIGJ1c3Nlcy4KClRoZSBJQyBoYW5kbGVzIGNvbG9yLXNwYWNl
-IGNvbnZlcnNpb24sIHJlc2l6aW5nLCBhbmQgcm90YXRpb24Kb3BlcmF0aW9ucy4gVGhlcmUg
-YXJlIHRocmVlIGluZGVwZW5kZW50ICJ0YXNrcyIgd2l0aGluIHRoZSBJQyB0aGF0IGNhbgpj
-YXJyeSBvdXQgY29udmVyc2lvbnMgY29uY3VycmVudGx5OiBwcmUtcHJvY2Vzc2luZyBlbmNv
-ZGluZywKcHJlLXByb2Nlc3NpbmcgcHJldmlldywgYW5kIHBvc3QtcHJvY2Vzc2luZy4KClRo
-ZSBTTUZDIGlzIGNvbXBvc2VkIG9mIGZvdXIgaW5kZXBlbmRlbnQgY2hhbm5lbHMgdGhhdCBl
-YWNoIGNhbiB0cmFuc2ZlcgpjYXB0dXJlZCBmcmFtZXMgZnJvbSBzZW5zb3JzIGRpcmVjdGx5
-IHRvIG1lbW9yeSBjb25jdXJyZW50bHkuCgpUaGUgSVJUIGNhcnJpZXMgb3V0IDkwIGFuZCAy
-NzAgZGVncmVlIGltYWdlIHJvdGF0aW9uIG9wZXJhdGlvbnMuCgpUaGUgVkRJQyBoYW5kbGVz
-IHRoZSBjb252ZXJzaW9uIG9mIGludGVybGFjZWQgdmlkZW8gdG8gcHJvZ3Jlc3NpdmUsIHdp
-dGgKc3VwcG9ydCBmb3IgZGlmZmVyZW50IG1vdGlvbiBjb21wZW5zYXRpb24gbW9kZXMgKGxv
-dywgbWVkaXVtLCBhbmQgaGlnaAptb3Rpb24pLiBUaGUgZGVpbnRlcmxhY2VkIG91dHB1dCBm
-cmFtZXMgZnJvbSB0aGUgVkRJQyBjYW4gYmUgc2VudCB0byB0aGUKSUMgcHJlLXByb2Nlc3Mg
-cHJldmlldyB0YXNrIGZvciBmdXJ0aGVyIGNvbnZlcnNpb25zLgoKSW4gYWRkaXRpb24gdG8g
-dGhlIElQVSBpbnRlcm5hbCBzdWJ1bml0cywgdGhlcmUgYXJlIGFsc28gdHdvIHVuaXRzCm91
-dHNpZGUgdGhlIElQVSB0aGF0IGFyZSBhbHNvIGludm9sdmVkIGluIHZpZGVvIGNhcHR1cmUg
-b24gaS5NWDoKCi0gTUlQSSBDU0ktMiBSZWNlaXZlciBmb3IgY2FtZXJhIHNlbnNvcnMgd2l0
-aCB0aGUgTUlQSSBDU0ktMiBidXMKICBpbnRlcmZhY2UuIFRoaXMgaXMgYSBTeW5vcHN5cyBE
-ZXNpZ25XYXJlIGNvcmUuCi0gQSB2aWRlbyBtdWx0aXBsZXhlciBmb3Igc2VsZWN0aW5nIGFt
-b25nIG11bHRpcGxlIHNlbnNvciBpbnB1dHMgdG8KICBzZW5kIHRvIGEgQ1NJLgoKRm9yIG1v
-cmUgaW5mbywgcmVmZXIgdG8gdGhlIGxhdGVzdCB2ZXJzaW9ucyBvZiB0aGUgaS5NWDUvNiBy
-ZWZlcmVuY2UKbWFudWFscyBsaXN0ZWQgdW5kZXIgUmVmZXJlbmNlcy4KCgpGZWF0dXJlcwot
-LS0tLS0tLQoKU29tZSBvZiB0aGUgZmVhdHVyZXMgb2YgdGhpcyBkcml2ZXIgaW5jbHVkZToK
-Ci0gTWFueSBkaWZmZXJlbnQgcGlwZWxpbmVzIGNhbiBiZSBjb25maWd1cmVkIHZpYSBtZWRp
-YSBjb250cm9sbGVyIEFQSSwKICB0aGF0IGNvcnJlc3BvbmQgdG8gdGhlIGhhcmR3YXJlIHZp
-ZGVvIGNhcHR1cmUgcGlwZWxpbmVzIHN1cHBvcnRlZCBpbgogIHRoZSBpLk1YLgoKLSBTdXBw
-b3J0cyBwYXJhbGxlbCwgQlQuNTY1LCBhbmQgTUlQSSBDU0ktMiBpbnRlcmZhY2VzLgoKLSBV
-cCB0byBmb3VyIGNvbmN1cnJlbnQgc2Vuc29yIGFjcXVpc2l0aW9ucywgYnkgY29uZmlndXJp
-bmcgZWFjaAogIHNlbnNvcidzIHBpcGVsaW5lIHVzaW5nIGluZGVwZW5kZW50IGVudGl0aWVz
-LiBUaGlzIGlzIGN1cnJlbnRseQogIGRlbW9uc3RyYXRlZCB3aXRoIHRoZSBTYWJyZVNEIGFu
-ZCBTYWJyZUxpdGUgcmVmZXJlbmNlIGJvYXJkcyB3aXRoCiAgaW5kZXBlbmRlbnQgT1Y1NjQy
-IGFuZCBNSVBJIENTSS0yIE9WNTY0MCBzZW5zb3IgbW9kdWxlcy4KCi0gU2NhbGluZywgY29s
-b3Itc3BhY2UgY29udmVyc2lvbiwgYW5kIGltYWdlIHJvdGF0aW9uIHZpYSBJQyB0YXNrCiAg
-c3ViZGV2cy4KCi0gTWFueSBwaXhlbCBmb3JtYXRzIHN1cHBvcnRlZCAoUkdCLCBwYWNrZWQg
-YW5kIHBsYW5hciBZVVYsIHBhcnRpYWwKICBwbGFuYXIgWVVWKS4KCi0gVGhlIElDIHByZS1w
-cm9jZXNzIHByZXZpZXcgc3ViZGV2IHN1cHBvcnRzIG1vdGlvbiBjb21wZW5zYXRlZAogIGRl
-LWludGVybGFjaW5nIHVzaW5nIHRoZSBWRElDLCB3aXRoIHRocmVlIG1vdGlvbiBjb21wZW5z
-YXRpb24gbW9kZXM6CiAgbG93LCBtZWRpdW0sIGFuZCBoaWdoIG1vdGlvbi4gVGhlIG1vZGUg
-aXMgc3BlY2lmaWVkIHdpdGggYSBjdXN0b20KICBjb250cm9sLiBQaXBlbGluZXMgYXJlIGRl
-ZmluZWQgdGhhdCBhbGxvdyBzZW5kaW5nIGZyYW1lcyB0byB0aGUKICBwcmV2aWV3IHN1YmRl
-diBkaXJlY3RseSBmcm9tIHRoZSBDU0kgb3IgZnJvbSB0aGUgU01GQy4KCi0gSW5jbHVkZXMg
-YSBGcmFtZSBJbnRlcnZhbCBNb25pdG9yIChGSU0pIHRoYXQgY2FuIGNvcnJlY3QgdmVydGlj
-YWwgc3luYwogIHByb2JsZW1zIHdpdGggdGhlIEFEVjcxOHggdmlkZW8gZGVjb2RlcnMuIFNl
-ZSBiZWxvdyBmb3IgYSBkZXNjcmlwdGlvbgogIG9mIHRoZSBGSU0uCgoKQ2FwdHVyZSBQaXBl
-bGluZXMKLS0tLS0tLS0tLS0tLS0tLS0KClRoZSBmb2xsb3dpbmcgZGVzY3JpYmUgdGhlIHZh
-cmlvdXMgdXNlLWNhc2VzIHN1cHBvcnRlZCBieSB0aGUgcGlwZWxpbmVzLgoKVGhlIGxpbmtz
-IHNob3duIGRvIG5vdCBpbmNsdWRlIHRoZSBmcm9udGVuZCBzZW5zb3IsIHZpZGVvIG11eCwg
-b3IgbWlwaQpjc2ktMiByZWNlaXZlciBsaW5rcy4gVGhpcyBkZXBlbmRzIG9uIHRoZSB0eXBl
-IG9mIHNlbnNvciBpbnRlcmZhY2UKKHBhcmFsbGVsIG9yIG1pcGkgY3NpLTIpLiBTbyBpbiBh
-bGwgY2FzZXMsIHRoZXNlIHBpcGVsaW5lcyBiZWdpbiB3aXRoOgoKc2Vuc29yIC0+IGlwdV9j
-c2lfbXV4IC0+IGlwdV9jc2kgLT4gLi4uCgpmb3IgcGFyYWxsZWwgc2Vuc29ycywgb3I6Cgpz
-ZW5zb3IgLT4gaW14LW1pcGktY3NpMiAtPiAoaXB1X2NzaV9tdXgpIC0+IGlwdV9jc2kgLT4g
-Li4uCgpmb3IgbWlwaSBjc2ktMiBzZW5zb3JzLiBUaGUgaW14LW1pcGktY3NpMiByZWNlaXZl
-ciBtYXkgbmVlZCB0byByb3V0ZQp0byB0aGUgdmlkZW8gbXV4IChpcHVfY3NpX211eCkgYmVm
-b3JlIHNlbmRpbmcgdG8gdGhlIENTSSwgZGVwZW5kaW5nCm9uIHRoZSBtaXBpIGNzaS0yIHZp
-cnR1YWwgY2hhbm5lbCwgaGVuY2UgaXB1X2NzaV9tdXggaXMgc2hvd24gaW4KcGFyZW50aGVz
-aXMuCgpVbnByb2Nlc3NlZCBWaWRlbyBDYXB0dXJlOgotLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLQoKU2VuZCBmcmFtZXMgZGlyZWN0bHkgZnJvbSBzZW5zb3IgdG8gY2FtZXJhIGludGVy
-ZmFjZSwgd2l0aCBubwpjb252ZXJzaW9uczoKCi0+IGlwdV9zbWZjIC0+IGNhbWlmCgpOb3Rl
-IHRoZSBpcHVfc21mYyBjYW4gZG8gcGl4ZWwgcmVvcmRlcmluZyB3aXRoaW4gdGhlIHNhbWUg
-Y29sb3JzcGFjZS4KRm9yIGV4YW1wbGUsIGl0cyBzaW5rIHBhZCBjYW4gdGFrZSBVWVZZMlg4
-LCBidXQgaXRzIHNvdXJjZSBwYWQgY2FuCm91dHB1dCBZVVlWMlg4LgoKSUMgRGlyZWN0IENv
-bnZlcnNpb25zOgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tCgpUaGlzIHBpcGVsaW5lIHVzZXMg
-dGhlIHByZXByb2Nlc3MgZW5jb2RlIGVudGl0eSB0byByb3V0ZSBmcmFtZXMgZGlyZWN0bHkK
-ZnJvbSB0aGUgQ1NJIHRvIHRoZSBJQyAoYnlwYXNzaW5nIHRoZSBTTUZDKSwgdG8gY2Fycnkg
-b3V0IHNjYWxpbmcgdXAgdG8KMTAyNHgxMDI0IHJlc29sdXRpb24sIENTQywgYW5kIGltYWdl
-IHJvdGF0aW9uOgoKLT4gaXB1X2ljX3BycGVuYyAtPiBjYW1pZgoKVGhpcyBjYW4gYmUgYSB1
-c2VmdWwgY2FwdHVyZSBwaXBlbGluZSBmb3IgaGVhdmlseSBsb2FkZWQgbWVtb3J5IGJ1cwp0
-cmFmZmljIGVudmlyb25tZW50cywgc2luY2UgaXQgaGFzIG1pbmltYWwgSURNQUMgY2hhbm5l
-bCB1c2FnZS4KClBvc3QtUHJvY2Vzc2luZyBDb252ZXJzaW9uczoKLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLQoKVGhpcyBwaXBlbGluZSByb3V0ZXMgZnJhbWVzIGZyb20gdGhlIFNN
-RkMgdG8gdGhlIHBvc3QtcHJvY2Vzc2luZwplbnRpdHkuIEluIGFkZGl0aW9uIHRvIENTQyBh
-bmQgcm90YXRpb24sIHRoaXMgZW50aXR5IHN1cHBvcnRzIHRpbGluZwp3aGljaCBhbGxvd3Mg
-c2NhbGVkIG91dHB1dCBiZXlvbmQgdGhlIDEwMjR4MTAyNCBsaW1pdGF0aW9uIG9mIHRoZSBJ
-QwoodXAgdG8gNDA5Nng0MDk2IHNjYWxpbmcgb3V0cHV0IGlzIHN1cHBvcnRlZCk6CgotPiBp
-cHVfc21mYyAtPiBpcHVfaWNfcHAgLT4gY2FtaWYKCk1vdGlvbiBDb21wZW5zYXRlZCBEZS1p
-bnRlcmxhY2U6Ci0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCgpUaGlzIHBpcGVs
-aW5lIHJvdXRlcyBmcmFtZXMgZnJvbSB0aGUgU01GQyB0byB0aGUgcHJlcHJvY2VzcyBwcmV2
-aWV3CmVudGl0eSB0byBzdXBwb3J0IG1vdGlvbi1jb21wZW5zYXRlZCBkZS1pbnRlcmxhY2lu
-ZyB1c2luZyB0aGUgVkRJQywKc2NhbGluZyB1cCB0byAxMDI0eDEwMjQsIGFuZCBDU0M6Cgot
-PiBpcHVfc21mYyAtPiBpcHVfaWNfcHJwdmYgLT4gY2FtaWYKClRoaXMgcGlwZWxpbmUgYWxz
-byBjYXJyaWVzIG91dCB0aGUgc2FtZSBjb252ZXJzaW9ucyBhcyBhYm92ZSwgYnV0IHJvdXRl
-cwpmcmFtZXMgZGlyZWN0bHkgZnJvbSB0aGUgQ1NJIHRvIHRoZSBJQyBwcmVwcm9jZXNzIHBy
-ZXZpZXcgZW50aXR5IGZvcgptaW5pbWFsIG1lbW9yeSBiYW5kd2lkdGggdXNhZ2UgKG5vdGU6
-IHRoaXMgcGlwZWxpbmUgb25seSB3b3JrcyBpbgoiaGlnaCBtb3Rpb24iIG1vZGUpOgoKLT4g
-aXB1X2ljX3BycHZmIC0+IGNhbWlmCgpUaGlzIHBpcGVsaW5lIHRha2VzIHRoZSBtb3Rpb24t
-Y29tcGVuc2F0ZWQgZGUtaW50ZXJsYWNlZCBmcmFtZXMgYW5kCnNlbmRzIHRoZW0gdG8gdGhl
-IHBvc3QtcHJvY2Vzc29yLCB0byBzdXBwb3J0IG1vdGlvbi1jb21wZW5zYXRlZApkZS1pbnRl
-cmxhY2luZywgc2NhbGluZyB1cCB0byA0MDk2eDQwOTYsIENTQywgYW5kIHJvdGF0aW9uOgoK
-LT4gKGlwdV9zbWZjKSAtPiBpcHVfaWNfcHJwdmYgLT4gaXB1X2ljX3BwIC0+IGNhbWlmCgoK
-VXNhZ2UgTm90ZXMKLS0tLS0tLS0tLS0KCk1hbnkgb2YgdGhlIHN1YmRldnMgcmVxdWlyZSBp
-bmZvcm1hdGlvbiBmcm9tIHRoZSBhY3RpdmUgc2Vuc29yIGluIHRoZQpjdXJyZW50IHBpcGVs
-aW5lIHdoZW4gY29uZmlndXJpbmcgcGFkIGZvcm1hdHMuIFRoZXJlZm9yZSB0aGUgbWVkaWEg
-bGlua3MKc2hvdWxkIGJlIGVzdGFibGlzaGVkIGJlZm9yZSBjb25maWd1cmluZyB0aGUgbWVk
-aWEgcGFkIGZvcm1hdHMuCgpTaW1pbGFybHksIHRoZSBjYXB0dXJlIHY0bDIgaW50ZXJmYWNl
-IHN1YmRldiBpbmhlcml0cyBjb250cm9scyBmcm9tIHRoZQphY3RpdmUgc3ViZGV2cyBpbiB0
-aGUgY3VycmVudCBwaXBlbGluZSBhdCBsaW5rLXNldHVwIHRpbWUuIFRoZXJlZm9yZSB0aGUK
-Y2FwdHVyZSBsaW5rcyBzaG91bGQgYmUgdGhlIGxhc3QgbGlua3MgZXN0YWJsaXNoZWQgaW4g
-b3JkZXIgZm9yIGNhcHR1cmUKdG8gInNlZSIgYW5kIGluaGVyaXQgYWxsIHBvc3NpYmxlIGNv
-bnRyb2xzLgoKVGhlIGZvbGxvd2luZyBhcmUgdXNhZ2Ugbm90ZXMgZm9yIFNhYnJlLSByZWZl
-cmVuY2UgcGxhdGZvcm1zOgoKClNhYnJlTGl0ZSB3aXRoIE9WNTY0MiBhbmQgT1Y1NjQwCi0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCgpUaGlzIHBsYXRmb3JtIHJlcXVpcmVz
-IHRoZSBPbW5pVmlzaW9uIE9WNTY0MiBtb2R1bGUgd2l0aCBhIHBhcmFsbGVsCmNhbWVyYSBp
-bnRlcmZhY2UsIGFuZCB0aGUgT1Y1NjQwIG1vZHVsZSB3aXRoIGEgTUlQSSBDU0ktMgppbnRl
-cmZhY2UuIEJvdGggbW9kdWxlcyBhcmUgYXZhaWxhYmxlIGZyb20gQm91bmRhcnkgRGV2aWNl
-czoKCmh0dHBzOi8vYm91bmRhcnlkZXZpY2VzLmNvbS9wcm9kdWN0cy9uaXQ2eF81bXAKaHR0
-cHM6Ly9ib3VuZGFyeWRldmljZXMuY29tL3Byb2R1Y3Qvbml0NnhfNW1wX21pcGkKCk5vdGUg
-dGhhdCBpZiBvbmx5IG9uZSBjYW1lcmEgbW9kdWxlIGlzIGF2YWlsYWJsZSwgdGhlIG90aGVy
-IHNlbnNvcgpub2RlIGNhbiBiZSBkaXNhYmxlZCBpbiB0aGUgZGV2aWNlIHRyZWUuCgpUaGUg
-T1Y1NjQyIG1vZHVsZSBpcyBjb25uZWN0ZWQgdG8gdGhlIHBhcmFsbGVsIGJ1cyBpbnB1dCBv
-biB0aGUgaS5NWAppbnRlcm5hbCB2aWRlbyBtdXggdG8gSVBVMSBDU0kwLiBJdCdzIGkyYyBi
-dXMgY29ubmVjdHMgdG8gaTJjIGJ1cyAyLgoKVGhlIE1JUEkgQ1NJLTIgT1Y1NjQwIG1vZHVs
-ZSBpcyBjb25uZWN0ZWQgdG8gdGhlIGkuTVggaW50ZXJuYWwgTUlQSSBDU0ktMgpyZWNlaXZl
-ciwgYW5kIHRoZSBmb3VyIHZpcnR1YWwgY2hhbm5lbCBvdXRwdXRzIGZyb20gdGhlIHJlY2Vp
-dmVyIGFyZQpyb3V0ZWQgYXMgZm9sbG93czogdmMwIHRvIHRoZSBJUFUxIENTSTAgbXV4LCB2
-YzEgZGlyZWN0bHkgdG8gSVBVMSBDU0kxLAp2YzIgZGlyZWN0bHkgdG8gSVBVMiBDU0kwLCBh
-bmQgdmMzIHRvIHRoZSBJUFUyIENTSTEgbXV4LiBUaGUgT1Y1NjQwIGlzCmFsc28gY29ubmVj
-dGVkIHRvIGkyYyBidXMgMiBvbiB0aGUgU2FicmVMaXRlLCB0aGVyZWZvcmUgdGhlIE9WNTY0
-MiBhbmQKT1Y1NjQwIG11c3Qgbm90IHNoYXJlIHRoZSBzYW1lIGkyYyBzbGF2ZSBhZGRyZXNz
-LgoKVGhlIGZvbGxvd2luZyBiYXNpYyBleGFtcGxlIGNvbmZpZ3VyZXMgdW5wcm9jZXNzZWQg
-dmlkZW8gY2FwdHVyZQpwaXBlbGluZXMgZm9yIGJvdGggc2Vuc29ycy4gVGhlIE9WNTY0MiBp
-cyByb3V0ZWQgdG8gY2FtaWYwCih1c3VhbGx5IC9kZXYvdmlkZW8wKSwgYW5kIHRoZSBPVjU2
-NDAgKHRyYW5zbWl0dGluZyBvbiBtaXBpIGNzaS0yCnZpcnR1YWwgY2hhbm5lbCAxKSBpcyBy
-b3V0ZWQgdG8gY2FtaWYxICh1c3VhbGx5IC9kZXYvdmlkZW8xKS4gQm90aApzZW5zb3JzIGFy
-ZSBjb25maWd1cmVkIHRvIG91dHB1dCA2NDB4NDgwLCB0aGUgT1Y1NjQyIG91dHB1dHMgWVVZ
-VjJYOCwKdGhlIE9WNTY0MCBVWVZZMlg4OgoKLi4gY29kZS1ibG9jazo6IG5vbmUKCiAgICMg
-U2V0dXAgbGlua3MgZm9yIE9WNTY0MgogICBtZWRpYS1jdGwgLWwgJyJvdjU2NDIgMS0wMDQy
-IjowIC0+ICJpcHUxX2NzaTBfbXV4IjoxWzFdJwogICBtZWRpYS1jdGwgLWwgJyJpcHUxX2Nz
-aTBfbXV4IjoyIC0+ICJpcHUxX2NzaTAiOjBbMV0nCiAgIG1lZGlhLWN0bCAtbCAnImlwdTFf
-Y3NpMCI6MSAtPiAiaXB1MV9zbWZjMCI6MFsxXScKICAgbWVkaWEtY3RsIC1sICciaXB1MV9z
-bWZjMCI6MSAtPiAiY2FtaWYwIjowWzFdJwogICBtZWRpYS1jdGwgLWwgJyJjYW1pZjAiOjEg
-LT4gImNhbWlmMCBkZXZub2RlIjowWzFdJwogICAjIFNldHVwIGxpbmtzIGZvciBPVjU2NDAK
-ICAgbWVkaWEtY3RsIC1sICcib3Y1NjQwX21pcGkgMS0wMDQwIjowIC0+ICJpbXgtbWlwaS1j
-c2kyIjowWzFdJwogICBtZWRpYS1jdGwgLWwgJyJpbXgtbWlwaS1jc2kyIjoyIC0+ICJpcHUx
-X2NzaTEiOjBbMV0nCiAgIG1lZGlhLWN0bCAtbCAnImlwdTFfY3NpMSI6MSAtPiAiaXB1MV9z
-bWZjMSI6MFsxXScKICAgbWVkaWEtY3RsIC1sICciaXB1MV9zbWZjMSI6MSAtPiAiY2FtaWYx
-IjowWzFdJwogICBtZWRpYS1jdGwgLWwgJyJjYW1pZjEiOjEgLT4gImNhbWlmMSBkZXZub2Rl
-IjowWzFdJwogICAjIENvbmZpZ3VyZSBwYWRzIGZvciBPVjU2NDIgcGlwZWxpbmUKICAgbWVk
-aWEtY3RsIC1WICJcIm92NTY0MiAxLTAwNDJcIjowIFtmbXQ6WVVZVjJYOC82NDB4NDgwIGZp
-ZWxkOm5vbmVdIgogICBtZWRpYS1jdGwgLVYgIlwiaXB1MV9jc2kwX211eFwiOjEgW2ZtdDpZ
-VVlWMlg4LzY0MHg0ODAgZmllbGQ6bm9uZV0iCiAgIG1lZGlhLWN0bCAtViAiXCJpcHUxX2Nz
-aTBfbXV4XCI6MiBbZm10OllVWVYyWDgvNjQweDQ4MCBmaWVsZDpub25lXSIKICAgbWVkaWEt
-Y3RsIC1WICJcImlwdTFfY3NpMFwiOjAgW2ZtdDpZVVlWMlg4LzY0MHg0ODAgZmllbGQ6bm9u
-ZV0iCiAgIG1lZGlhLWN0bCAtViAiXCJpcHUxX2NzaTBcIjoxIFtmbXQ6WVVZVjJYOC82NDB4
-NDgwIGZpZWxkOm5vbmVdIgogICBtZWRpYS1jdGwgLVYgIlwiaXB1MV9zbWZjMFwiOjAgW2Zt
-dDpZVVlWMlg4LzY0MHg0ODAgZmllbGQ6bm9uZV0iCiAgIG1lZGlhLWN0bCAtViAiXCJpcHUx
-X3NtZmMwXCI6MSBbZm10OlVZVlkyWDgvNjQweDQ4MCBmaWVsZDpub25lXSIKICAgbWVkaWEt
-Y3RsIC1WICJcImNhbWlmMFwiOjAgW2ZtdDpVWVZZMlg4LzY0MHg0ODAgZmllbGQ6bm9uZV0i
-CiAgIG1lZGlhLWN0bCAtViAiXCJjYW1pZjBcIjoxIFtmbXQ6VVlWWTJYOC82NDB4NDgwIGZp
-ZWxkOm5vbmVdIgogICAjIENvbmZpZ3VyZSBwYWRzIGZvciBPVjU2NDAgcGlwZWxpbmUKICAg
-bWVkaWEtY3RsIC1WICJcIm92NTY0MF9taXBpIDEtMDA0MFwiOjAgW2ZtdDpVWVZZMlg4LzY0
-MHg0ODAgZmllbGQ6bm9uZV0iCiAgIG1lZGlhLWN0bCAtViAiXCJpbXgtbWlwaS1jc2kyXCI6
-MCBbZm10OlVZVlkyWDgvNjQweDQ4MCBmaWVsZDpub25lXSIKICAgbWVkaWEtY3RsIC1WICJc
-ImlteC1taXBpLWNzaTJcIjoyIFtmbXQ6VVlWWTJYOC82NDB4NDgwIGZpZWxkOm5vbmVdIgog
-ICBtZWRpYS1jdGwgLVYgIlwiaXB1MV9jc2kxXCI6MCBbZm10OlVZVlkyWDgvNjQweDQ4MCBm
-aWVsZDpub25lXSIKICAgbWVkaWEtY3RsIC1WICJcImlwdTFfY3NpMVwiOjEgW2ZtdDpVWVZZ
-Mlg4LzY0MHg0ODAgZmllbGQ6bm9uZV0iCiAgIG1lZGlhLWN0bCAtViAiXCJpcHUxX3NtZmMx
-XCI6MCBbZm10OlVZVlkyWDgvNjQweDQ4MCBmaWVsZDpub25lXSIKICAgbWVkaWEtY3RsIC1W
-ICJcImlwdTFfc21mYzFcIjoxIFtmbXQ6VVlWWTJYOC82NDB4NDgwIGZpZWxkOm5vbmVdIgog
-ICBtZWRpYS1jdGwgLVYgIlwiY2FtaWYxXCI6MCBbZm10OlVZVlkyWDgvNjQweDQ4MCBmaWVs
-ZDpub25lXSIKICAgbWVkaWEtY3RsIC1WICJcImNhbWlmMVwiOjEgW2ZtdDpVWVZZMlg4LzY0
-MHg0ODAgZmllbGQ6bm9uZV0iCgpTdHJlYW1pbmcgY2FuIHRoZW4gYmVnaW4gaW5kZXBlbmRl
-bnRseSBvbiBkZXZpY2Ugbm9kZXMgL2Rldi92aWRlbzAKYW5kIC9kZXYvdmlkZW8xLgoKU2Fi
-cmVBdXRvIHdpdGggQURWNzE4MCBkZWNvZGVyCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLQoKT24gdGhlIFNhYnJlQXV0bywgYW4gb24tYm9hcmQgQURWNzE4MCBTRCBkZWNvZGVy
-IGlzIGNvbm5lY3RlZCB0byB0aGUKcGFyYWxsZWwgYnVzIGlucHV0IG9uIHRoZSBpbnRlcm5h
-bCB2aWRlbyBtdXggdG8gSVBVMSBDU0kwLgoKVGhlIGZvbGxvd2luZyBleGFtcGxlIGNvbmZp
-Z3VyZXMgYSBwaXBlbGluZSB0byBjYXB0dXJlIGZyb20gdGhlIEFEVjcxODAKdmlkZW8gZGVj
-b2RlciwgYXNzdW1pbmcgTlRTQyA3MjB4NDgwIGlucHV0IHNpZ25hbHMsIHdpdGggTW90aW9u
-CkNvbXBlbnNhdGVkIGRlLWludGVybGFjaW5nLiBQYWQgZmllbGQgdHlwZXMgYXNzdW1lIHRo
-ZSBhZHY3MTgwIG91dHB1dHMKImFsdGVybmF0ZSIuICRvdXRwdXRmbXQgY2FuIGJlIGFueSBm
-b3JtYXQgc3VwcG9ydGVkIGJ5IHRoZQppcHUxX2ljX3BycHZmIGVudGl0eSBhdCBpdHMgb3V0
-cHV0IHBhZDoKCi4uIGNvZGUtYmxvY2s6OiBub25lCgogICAjIFNldHVwIGxpbmtzCiAgIG1l
-ZGlhLWN0bCAtbCAnImFkdjcxODAgNC0wMDIxIjowIC0+ICJpcHUxX2NzaTBfbXV4IjoxWzFd
-JwogICBtZWRpYS1jdGwgLWwgJyJpcHUxX2NzaTBfbXV4IjoyIC0+ICJpcHUxX2NzaTAiOjBb
-MV0nCiAgIG1lZGlhLWN0bCAtbCAnImlwdTFfY3NpMCI6MSAtPiAiaXB1MV9zbWZjMCI6MFsx
-XScKICAgbWVkaWEtY3RsIC1sICciaXB1MV9zbWZjMCI6MSAtPiAiaXB1MV9pY19wcnB2ZiI6
-MFsxXScKICAgbWVkaWEtY3RsIC1sICciaXB1MV9pY19wcnB2ZiI6MSAtPiAiY2FtaWYwIjow
-WzFdJwogICBtZWRpYS1jdGwgLWwgJyJjYW1pZjAiOjEgLT4gImNhbWlmMCBkZXZub2RlIjow
-WzFdJwogICAjIENvbmZpZ3VyZSBwYWRzCiAgIG1lZGlhLWN0bCAtViAiXCJhZHY3MTgwIDQt
-MDAyMVwiOjAgW2ZtdDpVWVZZMlg4LzcyMHg0ODBdIgogICBtZWRpYS1jdGwgLVYgIlwiaXB1
-MV9jc2kwX211eFwiOjEgW2ZtdDpVWVZZMlg4LzcyMHg0ODAgZmllbGQ6YWx0ZXJuYXRlXSIK
-ICAgbWVkaWEtY3RsIC1WICJcImlwdTFfY3NpMF9tdXhcIjoyIFtmbXQ6VVlWWTJYOC83MjB4
-NDgwIGZpZWxkOmFsdGVybmF0ZV0iCiAgIG1lZGlhLWN0bCAtViAiXCJpcHUxX2NzaTBcIjow
-IFtmbXQ6VVlWWTJYOC83MjB4NDgwIGZpZWxkOmFsdGVybmF0ZV0iCiAgIG1lZGlhLWN0bCAt
-ViAiXCJpcHUxX2NzaTBcIjoxIFtmbXQ6VVlWWTJYOC83MjB4NDgwIGZpZWxkOmFsdGVybmF0
-ZV0iCiAgIG1lZGlhLWN0bCAtViAiXCJpcHUxX3NtZmMwXCI6MCBbZm10OlVZVlkyWDgvNzIw
-eDQ4MCBmaWVsZDphbHRlcm5hdGVdIgogICBtZWRpYS1jdGwgLVYgIlwiaXB1MV9zbWZjMFwi
-OjEgW2ZtdDpVWVZZMlg4LzcyMHg0ODAgZmllbGQ6YWx0ZXJuYXRlXSIKICAgbWVkaWEtY3Rs
-IC1WICJcImlwdTFfaWNfcHJwdmZcIjowIFtmbXQ6VVlWWTJYOC83MjB4NDgwIGZpZWxkOmFs
-dGVybmF0ZV0iCiAgIG1lZGlhLWN0bCAtViAiXCJpcHUxX2ljX3BycHZmXCI6MSBbZm10OiRv
-dXRwdXRmbXQgZmllbGQ6bm9uZV0iCiAgIG1lZGlhLWN0bCAtViAiXCJjYW1pZjBcIjowIFtm
-bXQ6JG91dHB1dGZtdCBmaWVsZDpub25lXSIKICAgbWVkaWEtY3RsIC1WICJcImNhbWlmMFwi
-OjEgW2ZtdDokb3V0cHV0Zm10IGZpZWxkOm5vbmVdIgoKU3RyZWFtaW5nIGNhbiB0aGVuIGJl
-Z2luIG9uIC9kZXYvdmlkZW8wLgoKVGhpcyBwbGF0Zm9ybSBhY2NlcHRzIENvbXBvc2l0ZSBW
-aWRlbyBhbmFsb2cgaW5wdXRzIHRvIHRoZSBBRFY3MTgwIG9uCkFpbjEgKGNvbm5lY3RvciBK
-NDIpIGFuZCBBaW4zIChjb25uZWN0b3IgSjQzKS4KClRvIHN3aXRjaCB0byBBaW4xOgoKLi4g
-Y29kZS1ibG9jazo6IG5vbmUKCiAgICMgdjRsMi1jdGwgLWkwCgpUbyBzd2l0Y2ggdG8gQWlu
-MzoKCi4uIGNvZGUtYmxvY2s6OiBub25lCgogICAjIHY0bDItY3RsIC1pMQoKCkZyYW1lIElu
-dGVydmFsIE1vbml0b3IKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQoKVGhlIGFkdjcxOHggZGVj
-b2RlcnMgY2FuIG9jY2FzaW9uYWxseSBzZW5kIGNvcnJ1cHQgZmllbGRzIGR1cmluZwpOVFND
-L1BBTCBzaWduYWwgcmUtc3luYyAodG9vIGxpdHRsZSBvciB0b28gbWFueSB2aWRlbyBsaW5l
-cykuIFdoZW4KdGhpcyBoYXBwZW5zLCB0aGUgSVBVIHRyaWdnZXJzIGEgbWVjaGFuaXNtIHRv
-IHJlLWVzdGFibGlzaCB2ZXJ0aWNhbApzeW5jIGJ5IGFkZGluZyAxIGR1bW15IGxpbmUgZXZl
-cnkgZnJhbWUsIHdoaWNoIGNhdXNlcyBhIHJvbGxpbmcgZWZmZWN0CmZyb20gaW1hZ2UgdG8g
-aW1hZ2UsIGFuZCBjYW4gbGFzdCBhIGxvbmcgdGltZSBiZWZvcmUgYSBzdGFibGUgaW1hZ2Ug
-aXMKcmVjb3ZlcmVkLiBPciBzb21ldGltZXMgdGhlIG1lY2hhbmlzbSBkb2Vzbid0IHdvcmsg
-YXQgYWxsLCBjYXVzaW5nIGEKcGVybWFuZW50IHNwbGl0IGltYWdlIChvbmUgZnJhbWUgY29u
-dGFpbnMgbGluZXMgZnJvbSB0d28gY29uc2VjdXRpdmUKY2FwdHVyZWQgaW1hZ2VzKS4KCkZy
-b20gZXhwZXJpbWVudCBpdCB3YXMgZm91bmQgdGhhdCBkdXJpbmcgaW1hZ2Ugcm9sbGluZywg
-dGhlIGZyYW1lCmludGVydmFscyAoZWxhcHNlZCB0aW1lIGJldHdlZW4gdHdvIEVPRidzKSBk
-cm9wIGJlbG93IHRoZSBub21pbmFsCnZhbHVlIGZvciB0aGUgY3VycmVudCBzdGFuZGFyZCwg
-YnkgYWJvdXQgb25lIGZyYW1lIHRpbWUgKDYwIHVzZWMpLAphbmQgcmVtYWluIGF0IHRoYXQg
-dmFsdWUgdW50aWwgcm9sbGluZyBzdG9wcy4KCldoaWxlIHRoZSByZWFzb24gZm9yIHRoaXMg
-b2JzZXJ2YXRpb24gaXNuJ3Qga25vd24gKHRoZSBJUFUgZHVtbXkKbGluZSBtZWNoYW5pc20g
-c2hvdWxkIHNob3cgYW4gaW5jcmVhc2UgaW4gdGhlIGludGVydmFscyBieSAxIGxpbmUKdGlt
-ZSBldmVyeSBmcmFtZSwgbm90IGEgZml4ZWQgdmFsdWUpLCB3ZSBjYW4gdXNlIGl0IHRvIGRl
-dGVjdCB0aGUKY29ycnVwdCBmaWVsZHMgdXNpbmcgYSBmcmFtZSBpbnRlcnZhbCBtb25pdG9y
-LiBJZiB0aGUgRklNIGRldGVjdHMgYQpiYWQgZnJhbWUgaW50ZXJ2YWwsIGEgc3ViZGV2IGV2
-ZW50IGlzIHNlbnQuIEluIHJlc3BvbnNlLCB1c2VybGFuZCBjYW4KaXNzdWUgYSBzdHJlYW1p
-bmcgcmVzdGFydCB0byBjb3JyZWN0IHRoZSByb2xsaW5nL3NwbGl0IGltYWdlLgoKVGhlIEZJ
-TSBpcyBpbXBsZW1lbnRlZCBpbiB0aGUgaW14LWNzaSBlbnRpdHksIGFuZCB0aGUgZW50aXRp
-ZXMgdGhhdCBoYXZlCmRpcmVjdCBjb25uZWN0aW9ucyB0byB0aGUgQ1NJIGNhbGwgaW50byB0
-aGUgRklNIHRvIG1vbml0b3IgdGhlIGZyYW1lCmludGVydmFsczogaXB1X3NtZmMsIGlwdV9p
-Y19wcnBlbmMsIGFuZCBpcHVfcHJwdmYgKHdoZW4gY29uZmlndXJlZCB3aXRoCmEgZGlyZWN0
-IGxpbmsgZnJvbSBpcHVfY3NpKS4gVXNlcmxhbmQgY2FuIHJlZ2lzdGVyIHdpdGggdGhlIEZJ
-TSBldmVudApub3RpZmljYXRpb25zIG9uIHRoZSBpbXgtY3NpIHN1YmRldiBkZXZpY2Ugbm9k
-ZQooVjRMMl9FVkVOVF9JTVhfRlJBTUVfSU5URVJWQUwpLgoKVGhlIGlteC1jc2kgZW50aXR5
-IGluY2x1ZGVzIGN1c3RvbSBjb250cm9scyB0byB0d2VhayBzb21lIGRpYWxzIGZvciBGSU0u
-CklmIG9uZSBvZiB0aGVzZSBjb250cm9scyBpcyBjaGFuZ2VkIGR1cmluZyBzdHJlYW1pbmcs
-IHRoZSBGSU0gd2lsbCBiZQpyZXNldCBhbmQgd2lsbCBjb250aW51ZSBhdCB0aGUgbmV3IHNl
-dHRpbmdzLgoKLSBWNEwyX0NJRF9JTVhfRklNX0VOQUJMRQoKRW5hYmxlL2Rpc2FibGUgdGhl
-IEZJTS4KCi0gVjRMMl9DSURfSU1YX0ZJTV9OVU0KCkhvdyBtYW55IGZyYW1lIGludGVydmFs
-IGVycm9ycyB0byBhdmVyYWdlIGJlZm9yZSBjb21wYXJpbmcgYWdhaW5zdCB0aGUKbm9taW5h
-bCBmcmFtZSBpbnRlcnZhbCByZXBvcnRlZCBieSB0aGUgc2Vuc29yLiBUaGlzIGNhbiByZWR1
-Y2Ugbm9pc2UKZnJvbSBpbnRlcnJ1cHQgbGF0ZW5jeS4KCi0gVjRMMl9DSURfSU1YX0ZJTV9U
-T0xFUkFOQ0VfTUlOCgpJZiB0aGUgYXZlcmFnZWQgaW50ZXJ2YWxzIGZhbGwgb3V0c2lkZSBu
-b21pbmFsIGJ5IHRoaXMgYW1vdW50LCBpbgptaWNyb3NlY29uZHMsIHN0cmVhbWluZyB3aWxs
-IGJlIHJlc3RhcnRlZC4KCi0gVjRMMl9DSURfSU1YX0ZJTV9UT0xFUkFOQ0VfTUFYCgpJZiBh
-bnkgaW50ZXJ2YWwgZXJyb3JzIGFyZSBoaWdoZXIgdGhhbiB0aGlzIHZhbHVlLCB0aG9zZSBl
-cnJvciBzYW1wbGVzCmFyZSBkaXNjYXJkZWQgYW5kIGRvIG5vdCBlbnRlciBpbnRvIHRoZSBh
-dmVyYWdlLiBUaGlzIGNhbiBiZSB1c2VkIHRvCmRpc2NhcmQgcmVhbGx5IGhpZ2ggaW50ZXJ2
-YWwgZXJyb3JzIHRoYXQgbWlnaHQgYmUgZHVlIHRvIHZlcnkgaGlnaApzeXN0ZW0gbG9hZCwg
-Y2F1c2luZyBleGNlc3NpdmUgaW50ZXJydXB0IGxhdGVuY2llcy4KCi0gVjRMMl9DSURfSU1Y
-X0ZJTV9OVU1fU0tJUAoKSG93IG1hbnkgZnJhbWVzIHRvIHNraXAgYWZ0ZXIgYSBGSU0gcmVz
-ZXQgb3Igc3RyZWFtIHJlc3RhcnQgYmVmb3JlCkZJTSBiZWdpbnMgdG8gYXZlcmFnZSBpbnRl
-cnZhbHMuIEl0IGhhcyBiZWVuIGZvdW5kIHRoYXQgdGhlcmUgY2FuCmJlIGEgZmV3IGJhZCBm
-cmFtZSBpbnRlcnZhbHMgYWZ0ZXIgc3RyZWFtIHJlc3RhcnQgd2hpY2ggYXJlIG5vdAphdHRy
-aWJ1dGVkIHRvIGFkdjcxOHggc2VuZGluZyBhIGNvcnJ1cHQgZmllbGQsIHNvIHRoaXMgaXMg
-dXNlZCB0bwpza2lwIHRob3NlIGZyYW1lcyB0byBwcmV2ZW50IHVubmVjZXNzYXJ5IHJlc3Rh
-cnRzLgoKClNhYnJlU0Qgd2l0aCBNSVBJIENTSS0yIE9WNTY0MAotLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0KClNpbWlsYXJseSB0byBTYWJyZUxpdGUsIHRoZSBTYWJyZVNEIHN1
-cHBvcnRzIGEgcGFyYWxsZWwgaW50ZXJmYWNlCk9WNTY0MiBtb2R1bGUgb24gSVBVMSBDU0kw
-LCBhbmQgYSBNSVBJIENTSS0yIE9WNTY0MCBtb2R1bGUuIFRoZSBPVjU2NDIKY29ubmVjdHMg
-dG8gaTJjIGJ1cyAxIGFuZCB0aGUgT1Y1NjQwIHRvIGkyYyBidXMgMi4KClRoZSBkZXZpY2Ug
-dHJlZSBmb3IgU2FicmVTRCBpbmNsdWRlcyBPRiBncmFwaHMgZm9yIGJvdGggdGhlIHBhcmFs
-bGVsCk9WNTY0MiBhbmQgdGhlIE1JUEkgQ1NJLTIgT1Y1NjQwLCBidXQgYXMgb2YgdGhpcyB3
-cml0aW5nIG9ubHkgdGhlIE1JUEkKQ1NJLTIgT1Y1NjQwIGhhcyBiZWVuIHRlc3RlZCwgc28g
-dGhlIE9WNTY0MiBub2RlIGlzIGN1cnJlbnRseSBkaXNhYmxlZC4KVGhlIE9WNTY0MCBtb2R1
-bGUgY29ubmVjdHMgdG8gTUlQSSBjb25uZWN0b3IgSjUgKHNvcnJ5IEkgZG9uJ3QgaGF2ZSB0
-aGUKY29tcGF0aWJsZSBtb2R1bGUgcGFydCBudW1iZXIgb3IgVVJMKS4KClRoZSBmb2xsb3dp
-bmcgZXhhbXBsZSBjb25maWd1cmVzIGEgcG9zdC1wcm9jZXNzaW5nIHBpcGVsaW5lIHRvIGNh
-cHR1cmUKZnJvbSB0aGUgT1Y1NjQwLiAkc2Vuc29yZm10IGNhbiBiZSBhbnkgZm9ybWF0IHN1
-cHBvcnRlZCBieSB0aGUgT1Y1NjQwLgokb3V0cHV0Zm10IGNhbiBiZSBhbnkgZm9ybWF0IHN1
-cHBvcnRlZCBieSB0aGUgaXB1MV9pY19wcDEgZW50aXR5IGF0IGl0cwpvdXRwdXQgcGFkOgoK
-Li4gY29kZS1ibG9jazo6IG5vbmUKCiAgICMgU2V0dXAgbGlua3MKICAgbWVkaWEtY3RsIC1s
-ICcib3Y1NjQwX21pcGkgMS0wMDNjIjowIC0+ICJpbXgtbWlwaS1jc2kyIjowWzFdJwogICBt
-ZWRpYS1jdGwgLWwgJyJpbXgtbWlwaS1jc2kyIjoyIC0+ICJpcHUxX2NzaTEiOjBbMV0nCiAg
-IG1lZGlhLWN0bCAtbCAnImlwdTFfY3NpMSI6MSAtPiAiaXB1MV9zbWZjMSI6MFsxXScKICAg
-bWVkaWEtY3RsIC1sICciaXB1MV9zbWZjMSI6MSAtPiAiaXB1MV9pY19wcDEiOjBbMV0nCiAg
-IG1lZGlhLWN0bCAtbCAnImlwdTFfaWNfcHAxIjoxIC0+ICJjYW1pZjAiOjBbMV0nCiAgIG1l
-ZGlhLWN0bCAtbCAnImNhbWlmMCI6MSAtPiAiY2FtaWYwIGRldm5vZGUiOjBbMV0nCiAgICMg
-Q29uZmlndXJlIHBhZHMKICAgbWVkaWEtY3RsIC1WICJcIm92NTY0MF9taXBpIDEtMDAzY1wi
-OjAgW2ZtdDokc2Vuc29yZm10IGZpZWxkOm5vbmVdIgogICBtZWRpYS1jdGwgLVYgIlwiaW14
-LW1pcGktY3NpMlwiOjAgW2ZtdDokc2Vuc29yZm10IGZpZWxkOm5vbmVdIgogICBtZWRpYS1j
-dGwgLVYgIlwiaW14LW1pcGktY3NpMlwiOjIgW2ZtdDokc2Vuc29yZm10IGZpZWxkOm5vbmVd
-IgogICBtZWRpYS1jdGwgLVYgIlwiaXB1MV9jc2kxXCI6MCBbZm10OiRzZW5zb3JmbXQgZmll
-bGQ6bm9uZV0iCiAgIG1lZGlhLWN0bCAtViAiXCJpcHUxX2NzaTFcIjoxIFtmbXQ6JHNlbnNv
-cmZtdCBmaWVsZDpub25lXSIKICAgbWVkaWEtY3RsIC1WICJcImlwdTFfc21mYzFcIjowIFtm
-bXQ6JHNlbnNvcmZtdCBmaWVsZDpub25lXSIKICAgbWVkaWEtY3RsIC1WICJcImlwdTFfc21m
-YzFcIjoxIFtmbXQ6JHNlbnNvcmZtdCBmaWVsZDpub25lXSIKICAgbWVkaWEtY3RsIC1WICJc
-ImlwdTFfaWNfcHAxXCI6MCBbZm10OiRzZW5zb3JmbXQgZmllbGQ6bm9uZV0iCiAgIG1lZGlh
-LWN0bCAtViAiXCJpcHUxX2ljX3BwMVwiOjEgW2ZtdDokb3V0cHV0Zm10IGZpZWxkOm5vbmVd
-IgogICBtZWRpYS1jdGwgLVYgIlwiY2FtaWYwXCI6MCBbZm10OiRvdXRwdXRmbXQgZmllbGQ6
-bm9uZV0iCiAgIG1lZGlhLWN0bCAtViAiXCJjYW1pZjBcIjoxIFtmbXQ6JG91dHB1dGZtdCBm
-aWVsZDpub25lXSIKClN0cmVhbWluZyBjYW4gdGhlbiBiZWdpbiBvbiAvZGV2L3ZpZGVvMC4K
-CgoKS25vd24gSXNzdWVzCi0tLS0tLS0tLS0tLQoKMS4gV2hlbiB1c2luZyA5MCBvciAyNzAg
-ZGVncmVlIHJvdGF0aW9uIGNvbnRyb2wgYXQgY2FwdHVyZSByZXNvbHV0aW9ucwogICBuZWFy
-IHRoZSBJQyByZXNpemVyIGxpbWl0IG9mIDEwMjR4MTAyNCwgYW5kIGNvbWJpbmVkIHdpdGgg
-cGxhbmFyCiAgIHBpeGVsIGZvcm1hdHMgKFlVVjQyMCwgWVVWNDIycCksIGZyYW1lIGNhcHR1
-cmUgd2lsbCBvZnRlbiBmYWlsIHdpdGgKICAgbm8gZW5kLW9mLWZyYW1lIGludGVycnVwdHMg
-ZnJvbSB0aGUgSURNQUMgY2hhbm5lbC4gVG8gd29yayBhcm91bmQKICAgdGhpcywgdXNlIGxv
-d2VyIHJlc29sdXRpb24gYW5kL29yIHBhY2tlZCBmb3JtYXRzIChZVVlWLCBSR0IzLCBldGMu
-KQogICB3aGVuIDkwIG9yIDI3MCByb3RhdGlvbnMgYXJlIG5lZWRlZC4KCgpGaWxlIGxpc3QK
-LS0tLS0tLS0tCgpkcml2ZXJzL3N0YWdpbmcvbWVkaWEvaW14LwppbmNsdWRlL21lZGlhL2lt
-eC5oCmluY2x1ZGUvdWFwaS9tZWRpYS9pbXguaAoKUmVmZXJlbmNlcwotLS0tLS0tLS0tCgpb
-MV0gImkuTVggNkR1YWwvNlF1YWQgQXBwbGljYXRpb25zIFByb2Nlc3NvciBSZWZlcmVuY2Ug
-TWFudWFsIgpbMl0gImkuTVggNlNvbG8vNkR1YWxMaXRlIEFwcGxpY2F0aW9ucyBQcm9jZXNz
-b3IgUmVmZXJlbmNlIE1hbnVhbCIKCgpBdXRob3IKLS0tLS0tClN0ZXZlIExvbmdlcmJlYW0g
-PHN0ZXZlX2xvbmdlcmJlYW1AbWVudG9yLmNvbT4KCkNvcHlyaWdodCAoQykgMjAxMi0yMDE2
-IE1lbnRvciBHcmFwaGljcyBJbmMuCg==
---------------42312C2DD4B6AF4712276A9D--
