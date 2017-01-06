@@ -1,120 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from anholt.net ([50.246.234.109]:52098 "EHLO anholt.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752027AbdA0Vzy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Jan 2017 16:55:54 -0500
-From: Eric Anholt <eric@anholt.net>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: devel@driverdev.osuosl.org, linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-rpi-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        Eric Anholt <eric@anholt.net>
-Subject: [PATCH 6/6] staging: bcm2835-v4l2: Apply spelling fixes from checkpatch.
-Date: Fri, 27 Jan 2017 13:55:03 -0800
-Message-Id: <20170127215503.13208-7-eric@anholt.net>
-In-Reply-To: <20170127215503.13208-1-eric@anholt.net>
-References: <20170127215503.13208-1-eric@anholt.net>
+MIME-Version: 1.0
+In-Reply-To: <20170105190113.GA12587@obsidianresearch.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <20170105183927.GA5324@gmail.com> <20170105190113.GA12587@obsidianresearch.com>
+From: Henrique Almeida <hdante.lnls@gmail.com>
+Date: Fri, 6 Jan 2017 12:08:22 -0300
+Message-ID: <CAP_Z8cn=O5-6A=udgOj6Rd_9_phR1K+aJ0ELXG7pZ5QEyhS3TQ@mail.gmail.com>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Jerome Glisse <j.glisse@gmail.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
+        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "Sagalovitch, Serguei" <Serguei.Sagalovitch@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Koenig, Christian" <Christian.Koenig@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Sander, Ben" <ben.sander@amd.com>, hch@infradead.org,
+        david1.zhou@amd.com, qiang.yu@amd.com
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Generated with checkpatch.pl --fix-inplace and git add -p out of the
-results.
+ Hello, I've been watching this thread not as a kernel developer, but
+as an user interested in doing peer-to-peer access between network
+card and GPU. I believe that merging raw direct access with vma
+overcomplicates things for our use case. We'll have a very large
+camera streaming data at high throughput (up to 100 Gbps) to the GPU,
+which will operate in soft real time mode and write back the results
+to a RDMA enabled network storage. The CPU will only arrange the
+connection between GPU and network card. Having things like paging or
+memory overcommit is possible, but they are not required and they
+might consistently decrease the quality of the data acquisition.
 
-Signed-off-by: Eric Anholt <eric@anholt.net>
----
- drivers/staging/media/platform/bcm2835/bcm2835-camera.c |  6 +++---
- drivers/staging/media/platform/bcm2835/mmal-vchiq.c     | 12 ++++++------
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ I see my use case something likely to exist for others and a strong
+reason to split the implementation in two.
 
-diff --git a/drivers/staging/media/platform/bcm2835/bcm2835-camera.c b/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
-index 4541a363905c..105d88102cd9 100644
---- a/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
-+++ b/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
-@@ -1027,7 +1027,7 @@ static int mmal_setup_components(struct bm2835_mmal_dev *dev,
- 
- 		dev->capture.encode_component = NULL;
- 	}
--	/* format dependant port setup */
-+	/* format dependent port setup */
- 	switch (mfmt->mmal_component) {
- 	case MMAL_COMPONENT_CAMERA:
- 		/* Make a further decision on port based on resolution */
-@@ -1336,7 +1336,7 @@ int vidioc_enum_framesizes(struct file *file, void *fh,
- 	return 0;
- }
- 
--/* timeperframe is arbitrary and continous */
-+/* timeperframe is arbitrary and continuous */
- static int vidioc_enum_frameintervals(struct file *file, void *priv,
- 				      struct v4l2_frmivalenum *fival)
- {
-@@ -1359,7 +1359,7 @@ static int vidioc_enum_frameintervals(struct file *file, void *priv,
- 
- 	fival->type = V4L2_FRMIVAL_TYPE_CONTINUOUS;
- 
--	/* fill in stepwise (step=1.0 is requred by V4L2 spec) */
-+	/* fill in stepwise (step=1.0 is required by V4L2 spec) */
- 	fival->stepwise.min  = tpf_min;
- 	fival->stepwise.max  = tpf_max;
- 	fival->stepwise.step = (struct v4l2_fract) {1, 1};
-diff --git a/drivers/staging/media/platform/bcm2835/mmal-vchiq.c b/drivers/staging/media/platform/bcm2835/mmal-vchiq.c
-index cc968442adc4..f71dc3e9c3ae 100644
---- a/drivers/staging/media/platform/bcm2835/mmal-vchiq.c
-+++ b/drivers/staging/media/platform/bcm2835/mmal-vchiq.c
-@@ -239,7 +239,7 @@ static int bulk_receive(struct vchiq_mmal_instance *instance,
- 		pr_err("buffer list empty trying to submit bulk receive\n");
- 
- 		/* todo: this is a serious error, we should never have
--		 * commited a buffer_to_host operation to the mmal
-+		 * committed a buffer_to_host operation to the mmal
- 		 * port without the buffer to back it up (underflow
- 		 * handling) and there is no obvious way to deal with
- 		 * this - how is the mmal servie going to react when
-@@ -352,7 +352,7 @@ static int inline_receive(struct vchiq_mmal_instance *instance,
- 		pr_err("buffer list empty trying to receive inline\n");
- 
- 		/* todo: this is a serious error, we should never have
--		 * commited a buffer_to_host operation to the mmal
-+		 * committed a buffer_to_host operation to the mmal
- 		 * port without the buffer to back it up (with
- 		 * underflow handling) and there is no obvious way to
- 		 * deal with this. Less bad than the bulk case as we
-@@ -653,7 +653,7 @@ static void service_callback(void *param,
- 			break;
- 
- 		default:
--			/* messages dependant on header context to complete */
-+			/* messages dependent on header context to complete */
- 
- 			/* todo: the msg.context really ought to be sanity
- 			 * checked before we just use it, afaict it comes back
-@@ -780,7 +780,7 @@ static void dump_port_info(struct vchiq_mmal_port *port)
- 		 port->current_buffer.num,
- 		 port->current_buffer.size, port->current_buffer.alignment);
- 
--	pr_debug("elementry stream: type:%d encoding:0x%x varient:0x%x\n",
-+	pr_debug("elementry stream: type:%d encoding:0x%x variant:0x%x\n",
- 		 port->format.type,
- 		 port->format.encoding, port->format.encoding_variant);
- 
-@@ -883,7 +883,7 @@ static int port_info_set(struct vchiq_mmal_instance *instance,
- 	return ret;
- }
- 
--/* use port info get message to retrive port information */
-+/* use port info get message to retrieve port information */
- static int port_info_get(struct vchiq_mmal_instance *instance,
- 			 struct vchiq_mmal_port *port)
- {
-@@ -923,7 +923,7 @@ static int port_info_get(struct vchiq_mmal_instance *instance,
- 	/* copy the values out of the message */
- 	port->handle = rmsg->u.port_info_get_reply.port_handle;
- 
--	/* port type and index cached to use on port info set becuase
-+	/* port type and index cached to use on port info set because
- 	 * it does not use a port handle
- 	 */
- 	port->type = rmsg->u.port_info_get_reply.port_type;
--- 
-2.11.0
 
+2017-01-05 16:01 GMT-03:00 Jason Gunthorpe <jgunthorpe@obsidianresearch.com>:
+> On Thu, Jan 05, 2017 at 01:39:29PM -0500, Jerome Glisse wrote:
+>
+>>   1) peer-to-peer because of userspace specific API like NVidia GPU
+>>     direct (AMD is pushing its own similar API i just can't remember
+>>     marketing name). This does not happen through a vma, this happens
+>>     through specific device driver call going through device specific
+>>     ioctl on both side (GPU and RDMA). So both kernel driver are aware
+>>     of each others.
+>
+> Today you can only do user-initiated RDMA operations in conjection
+> with a VMA.
+>
+> We'd need a really big and strong reason to create an entirely new
+> non-VMA based memory handle scheme for RDMA.
+>
+> So my inclination is to just completely push back on this idea. You
+> need a VMA to do RMA.
+>
+> GPUs need to create VMAs for the memory they want to RDMA from, even
+> if the VMA handle just causes SIGBUS for any CPU access.
+>
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
