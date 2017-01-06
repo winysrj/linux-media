@@ -1,44 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from guitar.tcltek.co.il ([192.115.133.116]:55516 "EHLO
-        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934046AbdADNsX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Jan 2017 08:48:23 -0500
-From: Baruch Siach <baruch@tkos.co.il>
-To: linux-media@vger.kernel.org
-Cc: Baruch Siach <baruch@tkos.co.il>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH] [media] v4l2-subdev.h: fix v4l2_subdev_pad_config documentation
-Date: Wed,  4 Jan 2017 15:47:17 +0200
-Message-Id: <f9ba2532c3b3e9c7b437b2306098243be91f4ce1.1483537637.git.baruch@tkos.co.il>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+To: Jerome Glisse <j.glisse@gmail.com>,
+        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <20170105183927.GA5324@gmail.com>
+ <20170105190113.GA12587@obsidianresearch.com>
+ <20170105195424.GB2166@redhat.com>
+ <20170105200719.GB31047@obsidianresearch.com>
+ <20170105201935.GC2166@redhat.com>
+ <20170105224215.GA3855@obsidianresearch.com>
+ <20170105232352.GB6426@redhat.com>
+ <20170106003034.GB4670@obsidianresearch.com>
+ <20170106015831.GA2226@gmail.com>
+CC: Jerome Glisse <jglisse@redhat.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>,
+        "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>,
+        "'linux-nvdimm@lists.01.org'" <linux-nvdimm@ml01.01.org>,
+        "'Linux-media@vger.kernel.org'" <Linux-media@vger.kernel.org>,
+        "'dri-devel@lists.freedesktop.org'" <dri-devel@lists.freedesktop.org>,
+        "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Koenig, Christian" <Christian.Koenig@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Sander, Ben" <ben.sander@amd.com>, <hch@infradead.org>,
+        <david1.zhou@amd.com>, <qiang.yu@amd.com>
+From: Serguei Sagalovitch <serguei.sagalovitch@amd.com>
+Message-ID: <f07700d5-211f-d091-2b0b-fbaf03c4a959@amd.com>
+Date: Fri, 6 Jan 2017 11:56:30 -0500
+MIME-Version: 1.0
+In-Reply-To: <20170106015831.GA2226@gmail.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The fields of v4l2_subdev_pad_config are not pointers.
+On 2017-01-05 08:58 PM, Jerome Glisse wrote:
+> On Thu, Jan 05, 2017 at 05:30:34PM -0700, Jason Gunthorpe wrote:
+>> On Thu, Jan 05, 2017 at 06:23:52PM -0500, Jerome Glisse wrote:
+>>
+>>>> I still don't understand what you driving at - you've said in both
+>>>> cases a user VMA exists.
+>>> In the former case no, there is no VMA directly but if you want one than
+>>> a device can provide one. But such VMA is useless as CPU access is not
+>>> expected.
+>> I disagree it is useless, the VMA is going to be necessary to support
+>> upcoming things like CAPI, you need it to support O_DIRECT from the
+>> filesystem, DPDK, etc. This is why I am opposed to any model that is
+>> not VMA based for setting up RDMA - that is shorted sighted and does
+>> not seem to reflect where the industry is going.
+>>
+>> So focus on having VMA backed by actual physical memory that covers
+>> your GPU objects and ask how do we wire up the '__user *' to the DMA
+>> API in the best way so the DMA API still has enough information to
+>> setup IOMMUs and whatnot.
+> I am talking about 2 different thing. Existing hardware and API where you
+> _do not_ have a vma and you do not need one. This is just existing stuff.
+I do not understand why you assume that existing API doesn't  need one.
+I would say that a lot of __existing__ user level API and their support 
+in kernel
+(especially outside of graphics domain) assumes that we have vma and
+deal with __user * pointers.
+> Some close driver provide a functionality on top of this design. Question
+> is do we want to do the same ? If yes and you insist on having a vma we
+> could provide one but this is does not apply and is useless for where we
+> are going with new hardware.
+>
+> With new hardware you just use malloc or mmap to allocate memory and then
+> you use it directly with the device. Device driver can migrate any part of
+> the process address space to device memory. In this scheme you have your
+> usual VMAs but there is nothing special about them.
+Assuming that the whole device memory is CPU accessible and it looks
+like the direction where we are going:
+- You forgot about use case when we want or need to allocate memory
+directly on device (why we need to migrate anything if not needed?).
+- We may want to use CPU to access such memory on device to avoid
+any unnecessary migration back.
+- We may have more device memory than the system one.
+E.g. if you have 12 GPUs w/64GB each it will already give us ~0.7 TB
+not mentioning NVDIMM cards which could also be used as memory
+storage for other device access.
+- We also may want/need to share GPU memory between different
+processes.
+> Now when you try to do get_user_page() on any page that is inside the
+> device it will fails because we do not allow any device memory to be pin.
+> There is various reasons for that and they are not going away in any hw
+> in the planing (so for next few years).
+>
+> Still we do want to support peer to peer mapping. Plan is to only do so
+> with ODP capable hardware. Still we need to solve the IOMMU issue and
+> it needs special handling inside the RDMA device. The way it works is
+> that RDMA ask for a GPU page, GPU check if it has place inside its PCI
+> bar to map this page for the device, this can fail. If it succeed then
+> you need the IOMMU to let the RDMA device access the GPU PCI bar.
+>
+> So here we have 2 orthogonal problem. First one is how to make 2 drivers
+> talks to each other to setup mapping to allow peer to peer But I would assume  and second is
+> about IOMMU.
+>
+I think that there is the third problem:  A lot of existing user level API
+(MPI, IB Verbs, file i/o, etc.) deal with pointers to the buffers.
+Potentially it would be ideally to support use cases when those buffers are
+located in device memory avoiding any unnecessary migration / 
+double-buffering.
+Currently a lot of infrastructure in kernel assumes that this is the user
+pointer and call "get_user_pages"  to get s/g.   What is your opinion
+how it should be changed to deal with cases when "buffer" is in
+device memory?
 
-Fixes: 21c29de1d09 ("[media] v4l2-subdev.h: Improve documentation")
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Baruch Siach <baruch@tkos.co.il>
----
- include/media/v4l2-subdev.h | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index cf778c5dca18..0ab1c5df6fac 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -592,9 +592,9 @@ struct v4l2_subdev_ir_ops {
- /**
-  * struct v4l2_subdev_pad_config - Used for storing subdev pad information.
-  *
-- * @try_fmt: pointer to &struct v4l2_mbus_framefmt
-- * @try_crop: pointer to &struct v4l2_rect to be used for crop
-- * @try_compose: pointer to &struct v4l2_rect to be used for compose
-+ * @try_fmt: &struct v4l2_mbus_framefmt
-+ * @try_crop: &struct v4l2_rect to be used for crop
-+ * @try_compose: &struct v4l2_rect to be used for compose
-  *
-  * This structure only needs to be passed to the pad op if the 'which' field
-  * of the main argument is set to %V4L2_SUBDEV_FORMAT_TRY. For
--- 
-2.11.0
 
