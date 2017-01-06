@@ -1,213 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:33632 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750707AbdAXRgD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Jan 2017 12:36:03 -0500
-Date: Tue, 24 Jan 2017 19:35:56 +0200
-From: "Michael S. Tsirkin" <mst@redhat.com>
-To: linux-kernel@vger.kernel.org
-Cc: Linas Vepstas <linasvepstas@gmail.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        Dennis Dalessandro <dennis.dalessandro@intel.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Sean Hefty <sean.hefty@intel.com>,
-        Hal Rosenstock <hal.rosenstock@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Frank Haverkamp <haver@linux.vnet.ibm.com>,
-        Gabriel Krisman Bertazi <krisman@linux.vnet.ibm.com>,
-        linux-pci@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH v2] pci: drop link_reset
-Message-ID: <1485279206-27729-1-git-send-email-mst@redhat.com>
+Date: Fri, 6 Jan 2017 11:26:25 -0700
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+To: Jerome Glisse <jglisse@redhat.com>
+Cc: Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
+        Jerome Glisse <j.glisse@gmail.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>,
+        "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>,
+        "'linux-nvdimm@lists.01.org'" <linux-nvdimm@ml01.01.org>,
+        "'Linux-media@vger.kernel.org'" <Linux-media@vger.kernel.org>,
+        "'dri-devel@lists.freedesktop.org'" <dri-devel@lists.freedesktop.org>,
+        "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Koenig, Christian" <Christian.Koenig@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Sander, Ben" <ben.sander@amd.com>, hch@infradead.org,
+        david1.zhou@amd.com, qiang.yu@amd.com
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Message-ID: <20170106182625.GB5724@obsidianresearch.com>
+References: <20170105190113.GA12587@obsidianresearch.com>
+ <20170105195424.GB2166@redhat.com>
+ <20170105200719.GB31047@obsidianresearch.com>
+ <20170105201935.GC2166@redhat.com>
+ <20170105224215.GA3855@obsidianresearch.com>
+ <20170105232352.GB6426@redhat.com>
+ <20170106003034.GB4670@obsidianresearch.com>
+ <20170106015831.GA2226@gmail.com>
+ <f07700d5-211f-d091-2b0b-fbaf03c4a959@amd.com>
+ <20170106173722.GB3804@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <20170106173722.GB3804@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No hardware seems to actually call link_reset, and
-no driver implements it as more than a nop stub.
+On Fri, Jan 06, 2017 at 12:37:22PM -0500, Jerome Glisse wrote:
+> On Fri, Jan 06, 2017 at 11:56:30AM -0500, Serguei Sagalovitch wrote:
+> > On 2017-01-05 08:58 PM, Jerome Glisse wrote:
+> > > On Thu, Jan 05, 2017 at 05:30:34PM -0700, Jason Gunthorpe wrote:
+> > > > On Thu, Jan 05, 2017 at 06:23:52PM -0500, Jerome Glisse wrote:
+> > > > 
+> > > > > > I still don't understand what you driving at - you've said in both
+> > > > > > cases a user VMA exists.
+> > > > > In the former case no, there is no VMA directly but if you want one than
+> > > > > a device can provide one. But such VMA is useless as CPU access is not
+> > > > > expected.
+> > > > I disagree it is useless, the VMA is going to be necessary to support
+> > > > upcoming things like CAPI, you need it to support O_DIRECT from the
+> > > > filesystem, DPDK, etc. This is why I am opposed to any model that is
+> > > > not VMA based for setting up RDMA - that is shorted sighted and does
+> > > > not seem to reflect where the industry is going.
+> > > > 
+> > > > So focus on having VMA backed by actual physical memory that covers
+> > > > your GPU objects and ask how do we wire up the '__user *' to the DMA
+> > > > API in the best way so the DMA API still has enough information to
+> > > > setup IOMMUs and whatnot.
+> > > I am talking about 2 different thing. Existing hardware and API where you
+> > > _do not_ have a vma and you do not need one. This is just
+> > > > existing stuff.
 
-This drops the mentions of the callback from everywhere.
-It's dropped from the documentation as well, but
-the doc really needs to be updated to reflect
-reality better (e.g. on pcie slot reset is the link reset).
+> > I do not understand why you assume that existing API doesn't  need one.
+> > I would say that a lot of __existing__ user level API and their support in
+> > kernel (especially outside of graphics domain) assumes that we have vma and
+> > deal with __user * pointers.
 
-This will be done in a later patch.
++1
 
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
----
+> Well i am thinking to GPUDirect here. Some of GPUDirect use case do not have
+> vma (struct vm_area_struct) associated with them they directly apply to GPU
+> object that aren't expose to CPU. Yes some use case have vma for share buffer.
 
-changes from v2:
-	- drop from genwqe as well
+Lets stop talkind about GPU direct. Today we can't even make VMA
+pointing at a PCI bar work properly in the kernel - lets start there
+please. People can argue over other options once that is done.
 
-Note: Doug has patches dropping the implementation from infiniband card
-drivers in his tree already. This is unlikely to cause conflicts though.
+> For HMM plan is to restrict to ODP and either to replace ODP with HMM or change
+> ODP to not use get_user_pages_remote() but directly fetch informations from
+> CPU page table. Everything else stay as it is. I posted patchset to replace
+> ODP with HMM in the past.
 
- Documentation/PCI/pci-error-recovery.txt | 24 +++---------------------
- drivers/infiniband/hw/hfi1/pcie.c        | 10 ----------
- drivers/infiniband/hw/qib/qib_pcie.c     |  8 --------
- drivers/media/pci/ngene/ngene-cards.c    |  7 -------
- drivers/misc/genwqe/card_base.c          |  1 -
- include/linux/pci.h                      |  3 ---
- 6 files changed, 3 insertions(+), 50 deletions(-)
+Make a generic API for all of this and you'd have my vote..
 
-diff --git a/Documentation/PCI/pci-error-recovery.txt b/Documentation/PCI/pci-error-recovery.txt
-index ac26869..da3b217 100644
---- a/Documentation/PCI/pci-error-recovery.txt
-+++ b/Documentation/PCI/pci-error-recovery.txt
-@@ -78,7 +78,6 @@ struct pci_error_handlers
- {
- 	int (*error_detected)(struct pci_dev *dev, enum pci_channel_state);
- 	int (*mmio_enabled)(struct pci_dev *dev);
--	int (*link_reset)(struct pci_dev *dev);
- 	int (*slot_reset)(struct pci_dev *dev);
- 	void (*resume)(struct pci_dev *dev);
- };
-@@ -104,8 +103,7 @@ if it implements any, it must implement error_detected(). If a callback
- is not implemented, the corresponding feature is considered unsupported.
- For example, if mmio_enabled() and resume() aren't there, then it
- is assumed that the driver is not doing any direct recovery and requires
--a slot reset. If link_reset() is not implemented, the card is assumed to
--not care about link resets. Typically a driver will want to know about
-+a slot reset.  Typically a driver will want to know about
- a slot_reset().
- 
- The actual steps taken by a platform to recover from a PCI error
-@@ -232,25 +230,9 @@ proceeds to STEP 4 (Slot Reset)
- 
- STEP 3: Link Reset
- ------------------
--The platform resets the link, and then calls the link_reset() callback
--on all affected device drivers.  This is a PCI-Express specific state
-+The platform resets the link.  This is a PCI-Express specific step
- and is done whenever a non-fatal error has been detected that can be
--"solved" by resetting the link. This call informs the driver of the
--reset and the driver should check to see if the device appears to be
--in working condition.
--
--The driver is not supposed to restart normal driver I/O operations
--at this point.  It should limit itself to "probing" the device to
--check its recoverability status. If all is right, then the platform
--will call resume() once all drivers have ack'd link_reset().
--
--	Result codes:
--		(identical to STEP 3 (MMIO Enabled)
--
--The platform then proceeds to either STEP 4 (Slot Reset) or STEP 5
--(Resume Operations).
--
-->>> The current powerpc implementation does not implement this callback.
-+"solved" by resetting the link.
- 
- STEP 4: Slot Reset
- ------------------
-diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
-index 4ac8f33..ebd941f 100644
---- a/drivers/infiniband/hw/hfi1/pcie.c
-+++ b/drivers/infiniband/hw/hfi1/pcie.c
-@@ -598,15 +598,6 @@ pci_slot_reset(struct pci_dev *pdev)
- 	return PCI_ERS_RESULT_CAN_RECOVER;
- }
- 
--static pci_ers_result_t
--pci_link_reset(struct pci_dev *pdev)
--{
--	struct hfi1_devdata *dd = pci_get_drvdata(pdev);
--
--	dd_dev_info(dd, "HFI1 link_reset function called, ignored\n");
--	return PCI_ERS_RESULT_CAN_RECOVER;
--}
--
- static void
- pci_resume(struct pci_dev *pdev)
- {
-@@ -625,7 +616,6 @@ pci_resume(struct pci_dev *pdev)
- const struct pci_error_handlers hfi1_pci_err_handler = {
- 	.error_detected = pci_error_detected,
- 	.mmio_enabled = pci_mmio_enabled,
--	.link_reset = pci_link_reset,
- 	.slot_reset = pci_slot_reset,
- 	.resume = pci_resume,
- };
-diff --git a/drivers/infiniband/hw/qib/qib_pcie.c b/drivers/infiniband/hw/qib/qib_pcie.c
-index 6abe1c6..c379b83 100644
---- a/drivers/infiniband/hw/qib/qib_pcie.c
-+++ b/drivers/infiniband/hw/qib/qib_pcie.c
-@@ -682,13 +682,6 @@ qib_pci_slot_reset(struct pci_dev *pdev)
- 	return PCI_ERS_RESULT_CAN_RECOVER;
- }
- 
--static pci_ers_result_t
--qib_pci_link_reset(struct pci_dev *pdev)
--{
--	qib_devinfo(pdev, "QIB link_reset function called, ignored\n");
--	return PCI_ERS_RESULT_CAN_RECOVER;
--}
--
- static void
- qib_pci_resume(struct pci_dev *pdev)
- {
-@@ -707,7 +700,6 @@ qib_pci_resume(struct pci_dev *pdev)
- const struct pci_error_handlers qib_pci_err_handler = {
- 	.error_detected = qib_pci_error_detected,
- 	.mmio_enabled = qib_pci_mmio_enabled,
--	.link_reset = qib_pci_link_reset,
- 	.slot_reset = qib_pci_slot_reset,
- 	.resume = qib_pci_resume,
- };
-diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
-index 423e8c8..8438c1c 100644
---- a/drivers/media/pci/ngene/ngene-cards.c
-+++ b/drivers/media/pci/ngene/ngene-cards.c
-@@ -781,12 +781,6 @@ static pci_ers_result_t ngene_error_detected(struct pci_dev *dev,
- 	return PCI_ERS_RESULT_CAN_RECOVER;
- }
- 
--static pci_ers_result_t ngene_link_reset(struct pci_dev *dev)
--{
--	printk(KERN_INFO DEVICE_NAME ": link reset\n");
--	return 0;
--}
--
- static pci_ers_result_t ngene_slot_reset(struct pci_dev *dev)
- {
- 	printk(KERN_INFO DEVICE_NAME ": slot reset\n");
-@@ -800,7 +794,6 @@ static void ngene_resume(struct pci_dev *dev)
- 
- static const struct pci_error_handlers ngene_errors = {
- 	.error_detected = ngene_error_detected,
--	.link_reset = ngene_link_reset,
- 	.slot_reset = ngene_slot_reset,
- 	.resume = ngene_resume,
- };
-diff --git a/drivers/misc/genwqe/card_base.c b/drivers/misc/genwqe/card_base.c
-index 6c1f49a..4fd21e8 100644
---- a/drivers/misc/genwqe/card_base.c
-+++ b/drivers/misc/genwqe/card_base.c
-@@ -1336,7 +1336,6 @@ static int genwqe_sriov_configure(struct pci_dev *dev, int numvfs)
- static struct pci_error_handlers genwqe_err_handler = {
- 	.error_detected = genwqe_err_error_detected,
- 	.mmio_enabled	= genwqe_err_result_none,
--	.link_reset	= genwqe_err_result_none,
- 	.slot_reset	= genwqe_err_slot_reset,
- 	.resume		= genwqe_err_resume,
- };
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index e2d1a12..2c0158b 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -678,9 +678,6 @@ struct pci_error_handlers {
- 	/* MMIO has been re-enabled, but not DMA */
- 	pci_ers_result_t (*mmio_enabled)(struct pci_dev *dev);
- 
--	/* PCI Express link has been reset */
--	pci_ers_result_t (*link_reset)(struct pci_dev *dev);
--
- 	/* PCI slot has been reset */
- 	pci_ers_result_t (*slot_reset)(struct pci_dev *dev);
- 
--- 
-MST
+IMHO, you must support basic pinning semantics - that is necessary to
+support generic short lived DMA (eg filesystem, etc). That hardware
+can clearly do that if it can support ODP.
+
+Jason
