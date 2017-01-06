@@ -1,164 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41932 "EHLO mail.kapsi.fi"
+Received: from mail.kernel.org ([198.145.29.136]:43224 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751354AbdA0UzH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Jan 2017 15:55:07 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH v3 1/7] mt2060: add i2c bindings
-Date: Fri, 27 Jan 2017 22:54:38 +0200
-Message-Id: <20170127205444.3242-1-crope@iki.fi>
+        id S1753277AbdAFMQY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 6 Jan 2017 07:16:24 -0500
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: laurent.pinchart@ideasonboard.com
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v4 1/4] v4l: vsp1: Prevent multiple streamon race commencing pipeline early
+Date: Fri,  6 Jan 2017 12:15:28 +0000
+Message-Id: <d510ad628ee135c12e7b5050ddd5606e573cf01a.1483704413.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.4df11e0fa078e5cc8bc8f668951249cca0fd3d7f.1483704413.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.4df11e0fa078e5cc8bc8f668951249cca0fd3d7f.1483704413.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.4df11e0fa078e5cc8bc8f668951249cca0fd3d7f.1483704413.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.4df11e0fa078e5cc8bc8f668951249cca0fd3d7f.1483704413.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add proper i2c driver model bindings.
+With multiple inputs through the BRU it is feasible for the streams to
+race each other at stream-on.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Multiple VIDIOC_STREAMON calls racing each other could have process
+N-1 skipping over the pipeline setup section and then start the pipeline
+early, if videobuf2 has already enqueued buffers to the driver for
+process N but not called the .start_streaming() operation yet
+
+In the case of the video pipelines, this
+can present two serious issues.
+
+ 1) A null-dereference if the pipe->dl is committed at the same time as
+    the vsp1_video_setup_pipeline() is processing
+
+ 2) A hardware hang, where a display list is committed without having
+    called vsp1_video_setup_pipeline() first
+
+Repair this issue, by ensuring that only the stream which configures the
+pipeline is able to start it.
+
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
 ---
- drivers/media/tuners/mt2060.c      | 83 ++++++++++++++++++++++++++++++++++++++
- drivers/media/tuners/mt2060.h      | 20 +++++++++
- drivers/media/tuners/mt2060_priv.h |  2 +
- 3 files changed, 105 insertions(+)
 
-diff --git a/drivers/media/tuners/mt2060.c b/drivers/media/tuners/mt2060.c
-index 94077ea..dc4f9a9 100644
---- a/drivers/media/tuners/mt2060.c
-+++ b/drivers/media/tuners/mt2060.c
-@@ -396,6 +396,89 @@ struct dvb_frontend * mt2060_attach(struct dvb_frontend *fe, struct i2c_adapter
- }
- EXPORT_SYMBOL(mt2060_attach);
+v4:
+ - Revert and rework back to v1 implementation style
+ - Provide detailed comments on the race
+
+v3:
+ - Move 'flag reset' to be inside the vsp1_reset_wpf() function call
+ - Tidy up the wpf->pipe reference for the configured flag
+
+To test this race, I have used the vsp-unit-test-0007.sh from Laurent's
+VSP-Tests [0] in iteration. Without this patch, failures can be seen be
+seen anywhere up to the 150 iterations mark.
+
+With this patch in place, tests have successfully iterated over 1500
+loops.
+
+The function affected by this change appears to have been around since
+v4.6-rc2-105-g351bbf99f245 and thus could be included in stable trees
+from that point forward. The issue may have been prevalent before that
+but the solution would need reworking for earlier version.
+
+[0] http://git.ideasonboard.com/renesas/vsp-tests.git
+---
+ drivers/media/platform/vsp1/vsp1_video.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index e6592b576ca3..f7dc249eb398 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -797,6 +797,7 @@ static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct vsp1_video *video = vb2_get_drv_priv(vq);
+ 	struct vsp1_pipeline *pipe = video->rwpf->pipe;
++	bool start_pipeline = false;
+ 	unsigned long flags;
+ 	int ret;
  
-+static int mt2060_probe(struct i2c_client *client,
-+			const struct i2c_device_id *id)
-+{
-+	struct mt2060_platform_data *pdata = client->dev.platform_data;
-+	struct dvb_frontend *fe;
-+	struct mt2060_priv *dev;
-+	int ret;
-+	u8 chip_id;
+@@ -807,11 +808,23 @@ static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 			mutex_unlock(&pipe->lock);
+ 			return ret;
+ 		}
 +
-+	dev_dbg(&client->dev, "\n");
-+
-+	if (!pdata) {
-+		dev_err(&client->dev, "Cannot proceed without platform data\n");
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+
-+	dev = devm_kzalloc(&client->dev, sizeof(*dev), GFP_KERNEL);
-+	if (!dev) {
-+		ret = -ENOMEM;
-+		goto err;
-+	}
-+
-+	fe = pdata->dvb_frontend;
-+	dev->config.i2c_address = client->addr;
-+	dev->config.clock_out = pdata->clock_out;
-+	dev->cfg = &dev->config;
-+	dev->i2c = client->adapter;
-+	dev->if1_freq = pdata->if1 ? pdata->if1 : 1220;
-+	dev->client = client;
-+
-+	ret = mt2060_readreg(dev, REG_PART_REV, &chip_id);
-+	if (ret) {
-+		ret = -ENODEV;
-+		goto err;
-+	}
-+
-+	dev_dbg(&client->dev, "chip id=%02x\n", chip_id);
-+
-+	if (chip_id != PART_REV) {
-+		ret = -ENODEV;
-+		goto err;
-+	}
-+
-+	dev_info(&client->dev, "Microtune MT2060 successfully identified\n");
-+	memcpy(&fe->ops.tuner_ops, &mt2060_tuner_ops, sizeof(fe->ops.tuner_ops));
-+	fe->ops.tuner_ops.release = NULL;
-+	fe->tuner_priv = dev;
-+	i2c_set_clientdata(client, dev);
-+
-+	mt2060_calibrate(dev);
-+
-+	return 0;
-+err:
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
-+	return ret;
-+}
-+
-+static int mt2060_remove(struct i2c_client *client)
-+{
-+	dev_dbg(&client->dev, "\n");
-+
-+	return 0;
-+}
-+
-+static const struct i2c_device_id mt2060_id_table[] = {
-+	{"mt2060", 0},
-+	{}
-+};
-+MODULE_DEVICE_TABLE(i2c, mt2060_id_table);
-+
-+static struct i2c_driver mt2060_driver = {
-+	.driver = {
-+		.name = "mt2060",
-+		.suppress_bind_attrs = true,
-+	},
-+	.probe		= mt2060_probe,
-+	.remove		= mt2060_remove,
-+	.id_table	= mt2060_id_table,
-+};
-+
-+module_i2c_driver(mt2060_driver);
-+
- MODULE_AUTHOR("Olivier DANET");
- MODULE_DESCRIPTION("Microtune MT2060 silicon tuner driver");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/media/tuners/mt2060.h b/drivers/media/tuners/mt2060.h
-index 6efed35..05c0d55 100644
---- a/drivers/media/tuners/mt2060.h
-+++ b/drivers/media/tuners/mt2060.h
-@@ -25,6 +25,26 @@
- struct dvb_frontend;
- struct i2c_adapter;
++		start_pipeline = true;
+ 	}
  
-+/*
-+ * I2C address
-+ * 0x60, ...
-+ */
-+
-+/**
-+ * struct mt2060_platform_data - Platform data for the mt2060 driver
-+ * @clock_out: Clock output setting. 0 = off, 1 = CLK/4, 2 = CLK/2, 3 = CLK/1.
-+ * @if1: First IF used [MHz]. 0 defaults to 1220.
-+ * @dvb_frontend: DVB frontend.
-+ */
-+
-+struct mt2060_platform_data {
-+	u8 clock_out;
-+	u16 if1;
-+	struct dvb_frontend *dvb_frontend;
-+};
-+
-+
-+/* configuration struct for mt2060_attach() */
- struct mt2060_config {
- 	u8 i2c_address;
- 	u8 clock_out; /* 0 = off, 1 = CLK/4, 2 = CLK/2, 3 = CLK/1 */
-diff --git a/drivers/media/tuners/mt2060_priv.h b/drivers/media/tuners/mt2060_priv.h
-index 2b60de6..dfc4a06 100644
---- a/drivers/media/tuners/mt2060_priv.h
-+++ b/drivers/media/tuners/mt2060_priv.h
-@@ -95,6 +95,8 @@
- struct mt2060_priv {
- 	struct mt2060_config *cfg;
- 	struct i2c_adapter   *i2c;
-+	struct i2c_client *client;
-+	struct mt2060_config config;
+ 	pipe->stream_count++;
+ 	mutex_unlock(&pipe->lock);
  
- 	u32 frequency;
- 	u16 if1_freq;
++	/*
++	 * vsp1_pipeline_ready() is not sufficient to establish that all streams
++	 * are prepared and the pipeline is configured, as multiple streams
++	 * can race through streamon with buffers already queued; Therefore we
++	 * don't even attempt to start the pipeline until the last stream has
++	 * called through here.
++	 */
++	if (!start_pipeline)
++		return 0;
++
+ 	spin_lock_irqsave(&pipe->irqlock, flags);
+ 	if (vsp1_pipeline_ready(pipe))
+ 		vsp1_video_pipeline_run(pipe);
 -- 
-http://palosaari.fi/
-
+git-series 0.9.1
