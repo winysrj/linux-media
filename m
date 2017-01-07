@@ -1,70 +1,243 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:54386 "EHLO
-        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752215AbdADIo0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2017 03:44:26 -0500
-Subject: Re: [PATCHv2 4/4] s5p-cec: add hpd-notifier support,
- move out of staging
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: Russell King <linux@armlinux.org.uk>,
-        dri-devel@lists.freedesktop.org,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-From: Andrzej Hajda <a.hajda@samsung.com>
-Message-id: <ac040a2a-f6f4-cd6d-05a7-54bc2a8b7e86@samsung.com>
-Date: Wed, 04 Jan 2017 09:44:20 +0100
-MIME-version: 1.0
-In-reply-to: <9652e8a9-1f5e-eadd-e588-b3051b0a8eb3@xs4all.nl>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
-References: <1483366747-34288-1-git-send-email-hverkuil@xs4all.nl>
- <CGME20170102141935epcas1p3b093bcf648e1fa5873683cea60803f60@epcas1p3.samsung.com>
- <1483366747-34288-5-git-send-email-hverkuil@xs4all.nl>
- <4dd103b4-6f9b-8ef5-540e-6c5673b82c98@samsung.com>
- <9652e8a9-1f5e-eadd-e588-b3051b0a8eb3@xs4all.nl>
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:36813 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S940193AbdAGCMH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2017 21:12:07 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v3 06/24] ARM: dts: imx6-sabrelite: add OV5642 and OV5640 camera sensors
+Date: Fri,  6 Jan 2017 18:11:24 -0800
+Message-Id: <1483755102-24785-7-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03.01.2017 09:11, Hans Verkuil wrote:
-> On 01/03/2017 09:00 AM, Andrzej Hajda wrote:
->> Is there a reason to split registration into two steps?
->> Wouldn't be better to integrate hpd_notifier_get into
->> cec_register_hpd_notifier.
-> One problem is that hpd_notifier_get can fail, whereas cec_register_hpd_notifier can't.
-> And I rather not have to register a CEC device only to unregister it again if the
-> hpd_notifier_get would fail.
+Enables the OV5642 parallel-bus sensor, and the OV5640 MIPI CSI-2 sensor.
+Both hang off the same i2c2 bus, so they require different (and non-
+default) i2c slave addresses.
 
-hpd_notifier_get can fail only due to lack of memory for about 150 bytes
-so if it happens whole system will probably fail anyway :)
+The OV5642 connects to the parallel-bus mux input port on ipu1_csi0_mux.
 
+The OV5640 connects to the input port on the MIPI CSI-2 receiver on
+mipi_csi. It is set to transmit over MIPI virtual channel 1.
 
->
-> Another reason is that this keeps the responsibility of the hpd_notifier life-time
-> handling in the driver instead of hiding it in the CEC framework, which is IMHO
-> unexpected.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ arch/arm/boot/dts/imx6dl-sabrelite.dts   |   5 ++
+ arch/arm/boot/dts/imx6q-sabrelite.dts    |   6 ++
+ arch/arm/boot/dts/imx6qdl-sabrelite.dtsi | 118 +++++++++++++++++++++++++++++++
+ 3 files changed, 129 insertions(+)
 
-Notifier is used only by CEC framework, so IMHO it would be desirable to
-put CEC specific things into CEC framework.
-Drivers duty is just to find notifier device.
-Leaving it as is will just put little more burden on drivers, so this is
-not big deal, do as you wish :)
-
-Regards
-Andrzej
-
->
-> I think I want to keep this as-is, at least for now.
->
-> Regards,
->
-> 	Hans
->
->
->
->
+diff --git a/arch/arm/boot/dts/imx6dl-sabrelite.dts b/arch/arm/boot/dts/imx6dl-sabrelite.dts
+index 0f06ca5..fec2524 100644
+--- a/arch/arm/boot/dts/imx6dl-sabrelite.dts
++++ b/arch/arm/boot/dts/imx6dl-sabrelite.dts
+@@ -48,3 +48,8 @@
+ 	model = "Freescale i.MX6 DualLite SABRE Lite Board";
+ 	compatible = "fsl,imx6dl-sabrelite", "fsl,imx6dl";
+ };
++
++&ipu1_csi1_from_ipu1_csi1_mux {
++	data-lanes = <0 1>;
++	clock-lanes = <2>;
++};
+diff --git a/arch/arm/boot/dts/imx6q-sabrelite.dts b/arch/arm/boot/dts/imx6q-sabrelite.dts
+index 66d10d8..9e2d26d 100644
+--- a/arch/arm/boot/dts/imx6q-sabrelite.dts
++++ b/arch/arm/boot/dts/imx6q-sabrelite.dts
+@@ -52,3 +52,9 @@
+ &sata {
+ 	status = "okay";
+ };
++
++&ipu1_csi1_from_mipi_vc1 {
++	data-lanes = <0 1>;
++	clock-lanes = <2>;
++};
++
+diff --git a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+index 795b5a5..bca9fed 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+@@ -39,6 +39,8 @@
+  *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  *     OTHER DEALINGS IN THE SOFTWARE.
+  */
++
++#include <dt-bindings/clock/imx6qdl-clock.h>
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/input/input.h>
+ 
+@@ -96,6 +98,15 @@
+ 		};
+ 	};
+ 
++	mipi_xclk: mipi_xclk {
++		compatible = "pwm-clock";
++		#clock-cells = <0>;
++		clock-frequency = <22000000>;
++		clock-output-names = "mipi_pwm3";
++		pwms = <&pwm3 0 45>; /* 1 / 45 ns = 22 MHz */
++		status = "okay";
++	};
++
+ 	gpio-keys {
+ 		compatible = "gpio-keys";
+ 		pinctrl-names = "default";
+@@ -220,6 +231,22 @@
+ 	};
+ };
+ 
++&ipu1_csi0_from_ipu1_csi0_mux {
++	bus-width = <8>;
++	data-shift = <12>; /* Lines 19:12 used */
++	hsync-active = <1>;
++	vync-active = <1>;
++};
++
++&ipu1_csi0_mux_from_parallel_sensor {
++	remote-endpoint = <&ov5642_to_ipu1_csi0_mux>;
++};
++
++&ipu1_csi0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_ipu1_csi0>;
++};
++
+ &audmux {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_audmux>;
+@@ -299,6 +326,52 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_i2c2>;
+ 	status = "okay";
++
++	ov5640: camera@40 {
++		compatible = "ovti,ov5640";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_ov5640>;
++		clocks = <&mipi_xclk>;
++		clock-names = "xclk";
++		reg = <0x40>;
++		xclk = <22000000>;
++		reset-gpios = <&gpio2 5 GPIO_ACTIVE_LOW>; /* NANDF_D5 */
++		pwdn-gpios = <&gpio6 9 GPIO_ACTIVE_HIGH>; /* NANDF_WP_B */
++
++		port {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			ov5640_to_mipi_csi: endpoint@1 {
++				reg = <1>;
++				remote-endpoint = <&mipi_csi_from_mipi_sensor>;
++				data-lanes = <0 1>;
++				clock-lanes = <2>;
++			};
++		};
++	};
++
++	ov5642: camera@42 {
++		compatible = "ovti,ov5642";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_ov5642>;
++		clocks = <&clks IMX6QDL_CLK_CKO2>;
++		clock-names = "xclk";
++		reg = <0x42>;
++		xclk = <24000000>;
++		reset-gpios = <&gpio1 8 GPIO_ACTIVE_LOW>;
++		pwdn-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
++		gp-gpios = <&gpio1 16 GPIO_ACTIVE_HIGH>;
++
++		port {
++			ov5642_to_ipu1_csi0_mux: endpoint {
++				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
++				bus-width = <8>;
++				hsync-active = <1>;
++				vsync-active = <1>;
++			};
++		};
++	};
+ };
+ 
+ &i2c3 {
+@@ -412,6 +485,23 @@
+ 			>;
+ 		};
+ 
++		pinctrl_ipu1_csi0: ipu1csi0grp {
++			fsl,pins = <
++				MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12    0x1b0b0
++				MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13    0x1b0b0
++				MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14    0x1b0b0
++				MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15    0x1b0b0
++				MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16    0x1b0b0
++				MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17    0x1b0b0
++				MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18    0x1b0b0
++				MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19    0x1b0b0
++				MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK   0x1b0b0
++				MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC      0x1b0b0
++				MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC     0x1b0b0
++				MX6QDL_PAD_CSI0_DATA_EN__IPU1_CSI0_DATA_EN 0x1b0b0
++			>;
++		};
++
+ 		pinctrl_j15: j15grp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_DI0_DISP_CLK__IPU1_DI0_DISP_CLK 0x10
+@@ -445,6 +535,22 @@
+ 			>;
+ 		};
+ 
++		pinctrl_ov5640: ov5640grp {
++			fsl,pins = <
++				MX6QDL_PAD_NANDF_D5__GPIO2_IO05   0x000b0
++				MX6QDL_PAD_NANDF_WP_B__GPIO6_IO09 0x0b0b0
++			>;
++		};
++
++		pinctrl_ov5642: ov5642grp {
++			fsl,pins = <
++				MX6QDL_PAD_SD1_DAT0__GPIO1_IO16 0x1b0b0
++				MX6QDL_PAD_GPIO_6__GPIO1_IO06   0x1b0b0
++				MX6QDL_PAD_GPIO_8__GPIO1_IO08   0x130b0
++				MX6QDL_PAD_GPIO_3__CCM_CLKO2    0x000b0
++			>;
++		};
++
+ 		pinctrl_pwm1: pwm1grp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_SD1_DAT3__PWM1_OUT 0x1b0b1
+@@ -601,3 +707,15 @@
+ 	vmmc-supply = <&reg_3p3v>;
+ 	status = "okay";
+ };
++
++&mipi_csi {
++        status = "okay";
++};
++
++/* Incoming port from sensor */
++&mipi_csi_from_mipi_sensor {
++        remote-endpoint = <&ov5640_to_mipi_csi>;
++        data-lanes = <0 1>;
++        clock-lanes = <2>;
++};
++
+-- 
+2.7.4
 
