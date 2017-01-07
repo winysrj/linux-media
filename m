@@ -1,66 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:36618 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932093AbdAISpm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2017 13:45:42 -0500
-Subject: Re: [PATCH v6 3/3] arm: dts: mt2701: Add node for Mediatek JPEG
- Decoder
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Rick Chang <rick.chang@mediatek.com>
-References: <1479353915-5043-1-git-send-email-rick.chang@mediatek.com>
- <1479353915-5043-4-git-send-email-rick.chang@mediatek.com>
- <d602365a-e87b-5bae-8698-bd43063ef079@xs4all.nl>
- <1479784905.8964.15.camel@mtksdaap41>
- <badf8125-27ed-9c5b-fbc0-75716ffdfb0e@xs4all.nl>
- <1479866054.8964.21.camel@mtksdaap41> <1479894203.8964.29.camel@mtksdaap41>
- <1483670099.18931.5.camel@mtksdaap41>
- <974d20f3-5133-0869-2a35-c1617bec5d6e@xs4all.nl>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, srv_heupstream@mediatek.com,
-        linux-mediatek@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        James Liao <jamesjj.liao@mediatek.com>
-From: Matthias Brugger <matthias.bgg@gmail.com>
-Message-ID: <c35bd06d-f012-1289-e765-02dc26b87e27@gmail.com>
-Date: Mon, 9 Jan 2017 19:45:36 +0100
-MIME-Version: 1.0
-In-Reply-To: <974d20f3-5133-0869-2a35-c1617bec5d6e@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:35844 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S940572AbdAGCMQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2017 21:12:16 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Subject: [PATCH v3 12/24] add mux and video interface bridge entity functions
+Date: Fri,  6 Jan 2017 18:11:30 -0800
+Message-Id: <1483755102-24785-13-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ Documentation/media/uapi/mediactl/media-types.rst | 22 ++++++++++++++++++++++
+ include/uapi/linux/media.h                        |  6 ++++++
+ 2 files changed, 28 insertions(+)
 
-On 09/01/17 12:29, Hans Verkuil wrote:
-> Hi Rick,
->
-> On 01/06/2017 03:34 AM, Rick Chang wrote:
->> Hi Hans,
->>
->> The dependence on [1] has been merged in 4.10, but [2] has not.Do you have
->> any idea about this patch series? Should we wait for [2] or we could merge
->> the source code and dt-binding first?
->
-> Looking at [2] I noticed that the last comment was July 4th. What is the reason
-> it hasn't been merged yet?
->
-> If I know [2] will be merged for 4.11, then I am fine with merging this media
-> patch series. The dependency of this patch on [2] is something Mauro can handle.
->
-> If [2] is not merged for 4.11, then I think it is better to wait until it is
-> merged.
->
+diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
+index 3e03dc2..023be29 100644
+--- a/Documentation/media/uapi/mediactl/media-types.rst
++++ b/Documentation/media/uapi/mediactl/media-types.rst
+@@ -298,6 +298,28 @@ Types and flags used to represent the media graph elements
+ 	  received on its sink pad and outputs the statistics data on
+ 	  its source pad.
+ 
++    -  ..  row 29
++
++       ..  _MEDIA-ENT-F-MUX:
++
++       -  ``MEDIA_ENT_F_MUX``
++
++       - Video multiplexer. An entity capable of multiplexing must have at
++         least two sink pads and one source pad, and must pass the video
++         frame(s) received from the active sink pad to the source pad. Video
++         frame(s) from the inactive sink pads are discarded.
++
++    -  ..  row 30
++
++       ..  _MEDIA-ENT-F-VID-IF-BRIDGE:
++
++       -  ``MEDIA_ENT_F_VID_IF_BRIDGE``
++
++       - Video interface bridge. A video interface bridge entity must have at
++         least one sink pad and one source pad. It receives video frame(s) on
++         its sink pad in one bus format (HDMI, eDP, MIPI CSI-2, ...) and
++         converts them and outputs them on its source pad in another bus format
++         (eDP, MIPI CSI-2, parallel, ...).
+ 
+ ..  tabularcolumns:: |p{5.5cm}|p{12.0cm}|
+ 
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 4890787..08a8bfa 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -105,6 +105,12 @@ struct media_device_info {
+ #define MEDIA_ENT_F_PROC_VIDEO_STATISTICS	(MEDIA_ENT_F_BASE + 0x4006)
+ 
+ /*
++ * Switch and bridge entitites
++ */
++#define MEDIA_ENT_F_MUX				(MEDIA_ENT_F_BASE + 0x5001)
++#define MEDIA_ENT_F_VID_IF_BRIDGE		(MEDIA_ENT_F_BASE + 0x5002)
++
++/*
+  * Connectors
+  */
+ /* It is a responsibility of the entity drivers to add connectors and links */
+-- 
+2.7.4
 
-I can't take [2] because there is no scpsys in the dts present. It seems 
-that it got never posted.
-
-Rick can you please follow-up with James and provide a patch which adds 
-a scpsys node to the mt2701.dtsi?
-
-Thanks,
-Matthias
