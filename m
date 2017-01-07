@@ -1,99 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:33905 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751972AbdAMPCd (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:43343 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S938487AbdAGEZa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Jan 2017 10:02:33 -0500
-Subject: Re: [PATCH v6 3/3] arm: dts: mt2701: Add node for Mediatek JPEG
- Decoder
-To: Eddie Huang <eddie.huang@mediatek.com>
-References: <1479353915-5043-1-git-send-email-rick.chang@mediatek.com>
- <1479353915-5043-4-git-send-email-rick.chang@mediatek.com>
- <d602365a-e87b-5bae-8698-bd43063ef079@xs4all.nl>
- <1479784905.8964.15.camel@mtksdaap41>
- <badf8125-27ed-9c5b-fbc0-75716ffdfb0e@xs4all.nl>
- <1479866054.8964.21.camel@mtksdaap41> <1479894203.8964.29.camel@mtksdaap41>
- <1483670099.18931.5.camel@mtksdaap41>
- <974d20f3-5133-0869-2a35-c1617bec5d6e@xs4all.nl>
- <c35bd06d-f012-1289-e765-02dc26b87e27@gmail.com>
- <1484011718.10361.7.camel@mtksdaap41>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Rick Chang <rick.chang@mediatek.com>,
-        devicetree@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        srv_heupstream@mediatek.com,
-        James Liao <jamesjj.liao@mediatek.com>,
-        linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-mediatek@lists.infradead.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-From: Matthias Brugger <matthias.bgg@gmail.com>
-Message-ID: <267403e5-18ac-0c74-10ca-cc36b909dfb4@gmail.com>
-Date: Fri, 13 Jan 2017 16:02:27 +0100
-MIME-Version: 1.0
-In-Reply-To: <1484011718.10361.7.camel@mtksdaap41>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+        Fri, 6 Jan 2017 23:25:30 -0500
+Message-ID: <e1041f91840ea704c72200a794ffcf84@smtp-cloud3.xs4all.net>
+Date: Sat, 07 Jan 2017 05:25:27 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi James,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 10/01/17 02:28, Eddie Huang wrote:
-> Hi Matthias,
->
-> On Mon, 2017-01-09 at 19:45 +0100, Matthias Brugger wrote:
->>
->> On 09/01/17 12:29, Hans Verkuil wrote:
->>> Hi Rick,
->>>
->>> On 01/06/2017 03:34 AM, Rick Chang wrote:
->>>> Hi Hans,
->>>>
->>>> The dependence on [1] has been merged in 4.10, but [2] has not.Do you have
->>>> any idea about this patch series? Should we wait for [2] or we could merge
->>>> the source code and dt-binding first?
->>>
->>> Looking at [2] I noticed that the last comment was July 4th. What is the reason
->>> it hasn't been merged yet?
->>>
->>> If I know [2] will be merged for 4.11, then I am fine with merging this media
->>> patch series. The dependency of this patch on [2] is something Mauro can handle.
->>>
->>> If [2] is not merged for 4.11, then I think it is better to wait until it is
->>> merged.
->>>
->>
->> I can't take [2] because there is no scpsys in the dts present. It seems
->> that it got never posted.
->>
->> Rick can you please follow-up with James and provide a patch which adds
->> a scpsys node to the mt2701.dtsi?
->>
->
-> James sent three MT2701 dts patches [1] two weeks ago, these three
-> patches include scpsys node. Please take a reference. And We will send
-> new MT2701 ionmmu/smi dtsi node patch base on [1] later, thus you can
-> accept and merge to 4.11.
->
+Results of the daily build of media_tree:
 
-Thanks for the clarification. I pulled all this patches into 
-v4.10-next/dts32
+date:			Sat Jan  7 05:00:09 CET 2017
+media-tree git hash:	40eca140c404505c09773d1c6685d818cb55ab1a
+media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
+v4l-utils git hash:	951c4878a93f4722146f8bc6515a47fba6470bb3
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
-Hans will you take v9 of this patch set?
-Then I'll take the dts patch.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9-x86_64: ERRORS
+apps: WARNINGS
+spec-git: ERRORS
+sparse: WARNINGS
 
-Regards,
-Matthias
+Detailed results are available here:
 
-> [1]
-> https://patchwork.kernel.org/patch/9489991/
-> https://patchwork.kernel.org/patch/9489985/
-> https://patchwork.kernel.org/patch/9489989/
->
-> Thanks,
-> Eddie
->
->
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
