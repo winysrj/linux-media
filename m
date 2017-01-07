@@ -1,261 +1,449 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:47163 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1760246AbdAIMQV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Jan 2017 07:16:21 -0500
-Subject: Re: [PATCH] [media] cx231xx: Initial support for Evromedia USB Full
- Hybrid Full HD
-To: Oleh Kravchenko <oleg@kaa.org.ua>, linux-media@vger.kernel.org
-References: <20170101172823.7654-1-oleg@kaa.org.ua>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <e9f356c8-5d1a-2801-9ed4-13cd1b517b32@xs4all.nl>
-Date: Mon, 9 Jan 2017 13:16:12 +0100
-MIME-Version: 1.0
-In-Reply-To: <20170101172823.7654-1-oleg@kaa.org.ua>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:33165 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S938439AbdAGCMC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2017 21:12:02 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v3 03/24] ARM: dts: imx6qdl: Add mipi_ipu1/2 multiplexers, mipi_csi, and their connections
+Date: Fri,  6 Jan 2017 18:11:21 -0800
+Message-Id: <1483755102-24785-4-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/01/2017 06:28 PM, Oleh Kravchenko wrote:
-> Add initial support for the Evromedia USB Full Hybrid Full HD
-> with USB ID 1b80:d3b2.
-> 
-> Status:
-> - DVB-T2 works fine;
-> - Analog not implemented.
-> 
-> Signed-off-by: Oleh Kravchenko <oleg@kaa.org.ua>
-> ---
->  drivers/media/usb/cx231xx/Kconfig         |  1 +
->  drivers/media/usb/cx231xx/cx231xx-cards.c | 16 +++++++
->  drivers/media/usb/cx231xx/cx231xx-dvb.c   | 74 +++++++++++++++++++++++++++++++
->  drivers/media/usb/cx231xx/cx231xx-i2c.c   | 37 ++++++++++++++++
->  drivers/media/usb/cx231xx/cx231xx.h       |  1 +
->  5 files changed, 129 insertions(+)
-> 
-> diff --git a/drivers/media/usb/cx231xx/Kconfig b/drivers/media/usb/cx231xx/Kconfig
-> index 0cced3e..58de80b 100644
-> --- a/drivers/media/usb/cx231xx/Kconfig
-> +++ b/drivers/media/usb/cx231xx/Kconfig
-> @@ -50,6 +50,7 @@ config VIDEO_CX231XX_DVB
->  	select DVB_LGDT3306A if MEDIA_SUBDRV_AUTOSELECT
->  	select DVB_TDA18271C2DD if MEDIA_SUBDRV_AUTOSELECT
->  	select DVB_SI2165 if MEDIA_SUBDRV_AUTOSELECT
-> +	select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
->  	select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
->  
->  	---help---
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-> index 36bc254..380aff7 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-> @@ -841,6 +841,20 @@ struct cx231xx_board cx231xx_boards[] = {
->  			.gpio = NULL,
->  		} },
->  	},
-> +	[CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD] = {
-> +		.name = "Evromedia USB Full Hybrid Full HD",
-> +		.tuner_type = TUNER_ABSENT,
-> +		.has_dvb = 1,
-> +		.demod_i2c_master = I2C_1_MUX_3,
-> +		.demod_addr = 0xc8 >> 1,
-> +		.tuner_i2c_master = I2C_2,
-> +		.tuner_addr = 0xc0 >> 1,
-> +		.input = {{
-> +			.type = CX231XX_VMUX_TELEVISION,
-> +			.vmux = 0,
-> +			.amux = CX231XX_AMUX_VIDEO,
-> +		} },
-> +	},
->  };
->  const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
->  
-> @@ -908,6 +922,8 @@ struct usb_device_id cx231xx_id_table[] = {
->  	 .driver_info = CX231XX_BOARD_OTG102},
->  	{USB_DEVICE(USB_VID_TERRATEC, 0x00a6),
->  	 .driver_info = CX231XX_BOARD_TERRATEC_GRABBY},
-> +	{USB_DEVICE(0x1b80, 0xd3b2),
-> +	.driver_info = CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD},
->  	{},
->  };
->  
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-> index 1417515..131c1e2 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-> @@ -33,6 +33,7 @@
->  #include "s5h1411.h"
->  #include "lgdt3305.h"
->  #include "si2165.h"
-> +#include "si2168.h"
->  #include "mb86a20s.h"
->  #include "si2157.h"
->  #include "lgdt3306a.h"
-> @@ -949,6 +950,79 @@ static int dvb_init(struct cx231xx *dev)
->  			   &pv_tda18271_config);
->  		break;
->  
-> +	case CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD:
-> +	{
-> +		struct si2157_config si2157_config;
-> +		struct si2168_config si2168_config;
-> +		struct i2c_board_info info;
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-Zero these explicitly:
+This patch adds the device tree graph connecting the input multiplexers
+to the IPU CSIs and the MIPI-CSI2 gasket on i.MX6. The MIPI_IPU
+multiplexers are added as children of the iomuxc-gpr syscon device node.
+On i.MX6Q/D two two-input multiplexers in front of IPU1 CSI0 and IPU2
+CSI1 allow to select between CSI0/1 parallel input pads and the MIPI
+CSI-2 virtual channels 0/3.
+On i.MX6DL/S two five-input multiplexers in front of IPU1 CSI0 and IPU1
+CSI1 allow to select between CSI0/1 parallel input pads and any of the
+four MIPI CSI-2 virtual channels.
 
-		struct si2157_config si2157_config = { };
-		struct si2168_config si2168_config = { };
-		struct i2c_board_info info = { };
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-And drop the corresponding memsets below.
+--
 
-> +		struct i2c_client *client;
-> +		struct i2c_adapter *adapter;
-> +
-> +		/* attach demodulator chip */
-> +		memset(&si2168_config, 0, sizeof(si2168_config));
-> +		si2168_config.ts_mode = SI2168_TS_SERIAL; /* from *.inf file */
-> +		si2168_config.fe = &dev->dvb->frontend;
-> +		si2168_config.i2c_adapter = &adapter;
-> +		si2168_config.ts_clock_inv = true;
-> +
-> +		memset(&info, 0, sizeof(info));
-> +		strlcpy(info.type, "si2168", I2C_NAME_SIZE);
+- Removed some dangling/unused endpoints (ipu2_csi0_from_csi2ipu)
+- Renamed the mipi virtual channel endpoint labels, from "mipi_csiX_..."
+  to "mipi_vcX...".
+- Added input endpoint anchors to the video muxes for the connections
+  from parallel sensors.
+- Added input endpoint anchors to the mipi_csi for the connections from
+  mipi csi-2 sensors.
 
-use sizeof(info.type).
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ arch/arm/boot/dts/imx6dl.dtsi  | 187 +++++++++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/imx6q.dtsi   | 123 +++++++++++++++++++++++++++
+ arch/arm/boot/dts/imx6qdl.dtsi |  10 ++-
+ 3 files changed, 319 insertions(+), 1 deletion(-)
 
-> +		info.addr = dev->board.demod_addr;
-> +		info.platform_data = &si2168_config;
-> +
-> +		request_module(info.type);
-> +		client = i2c_new_device(demod_i2c, &info);
-> +
-> +		if (client == NULL || client->dev.driver == NULL || dev->dvb->frontend == NULL) {
-> +			dev_err(dev->dev, "Failed to attach Si2168 front end\n");
-> +			result = -EINVAL;
-> +			goto out_free;
-> +		}
-> +
-> +		if (!try_module_get(client->dev.driver->owner)) {
-> +			i2c_unregister_device(client);
-> +			result = -ENODEV;
-> +			goto out_free;
-> +		}
-> +
-> +		dvb->i2c_client_demod = client;
-> +		dev->dvb->frontend->ops.i2c_gate_ctrl = NULL;
-> +		dvb->frontend->callback = cx231xx_tuner_callback;
-> +
-> +		/* attach tuner chip */
-> +		memset(&si2157_config, 0, sizeof(si2157_config));
-> +		si2157_config.fe = dev->dvb->frontend;
-> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> +		si2157_config.mdev = dev->media_dev;
-> +#endif
-> +		si2157_config.if_port = 1;
-> +		si2157_config.inversion = false;
-> +
-> +		memset(&info, 0, sizeof(info));
+diff --git a/arch/arm/boot/dts/imx6dl.dtsi b/arch/arm/boot/dts/imx6dl.dtsi
+index 1ade195..0849e85 100644
+--- a/arch/arm/boot/dts/imx6dl.dtsi
++++ b/arch/arm/boot/dts/imx6dl.dtsi
+@@ -181,6 +181,193 @@
+ 		      "di0", "di1";
+ };
+ 
++&gpr {
++	ipu1_csi0_mux: ipu1_csi0_mux@34 {
++		compatible = "video-multiplexer";
++		reg = <0x34>;
++		bit-mask = <0x7>;
++		bit-shift = <0>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++		status = "okay";
++
++		port@0 {
++			reg = <0>;
++
++			ipu1_csi0_mux_from_mipi_vc0: endpoint {
++				remote-endpoint = <&mipi_vc0_to_ipu1_csi0_mux>;
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			ipu1_csi0_mux_from_mipi_vc1: endpoint {
++				remote-endpoint = <&mipi_vc1_to_ipu1_csi0_mux>;
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			ipu1_csi0_mux_from_mipi_vc2: endpoint {
++				remote-endpoint = <&mipi_vc2_to_ipu1_csi0_mux>;
++			};
++		};
++
++		port@3 {
++			reg = <3>;
++
++			ipu1_csi0_mux_from_mipi_vc3: endpoint {
++				remote-endpoint = <&mipi_vc3_to_ipu1_csi0_mux>;
++			};
++		};
++
++		port@4 {
++			reg = <4>;
++
++			ipu1_csi0_mux_from_parallel_sensor: endpoint {
++			};
++		};
++
++		port@5 {
++			reg = <5>;
++
++			ipu1_csi0_mux_to_ipu1_csi0: endpoint {
++				remote-endpoint = <&ipu1_csi0_from_ipu1_csi0_mux>;
++			};
++		};
++	};
++
++	ipu1_csi1_mux: ipu1_csi1_mux@34 {
++		compatible = "video-multiplexer";
++		reg = <0x34>;
++		bit-mask = <0x7>;
++		bit-shift = <3>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++		status = "okay";
++
++		port@0 {
++			reg = <0>;
++
++			ipu1_csi1_mux_from_mipi_vc0: endpoint {
++				remote-endpoint = <&mipi_vc0_to_ipu1_csi1_mux>;
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			ipu1_csi1_mux_from_mipi_vc1: endpoint {
++				remote-endpoint = <&mipi_vc1_to_ipu1_csi1_mux>;
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			ipu1_csi1_mux_from_mipi_vc2: endpoint {
++				remote-endpoint = <&mipi_vc2_to_ipu1_csi1_mux>;
++			};
++		};
++
++		port@3 {
++			reg = <3>;
++
++			ipu1_csi1_mux_from_mipi_vc3: endpoint {
++				remote-endpoint = <&mipi_vc3_to_ipu1_csi1_mux>;
++			};
++		};
++
++		port@4 {
++			reg = <4>;
++
++			ipu1_csi1_mux_from_parallel_sensor: endpoint {
++			};
++		};
++
++		port@5 {
++			reg = <5>;
++
++			ipu1_csi1_mux_to_ipu1_csi1: endpoint {
++				remote-endpoint = <&ipu1_csi1_from_ipu1_csi1_mux>;
++			};
++		};
++	};
++};
++
++&ipu1_csi1 {
++	ipu1_csi1_from_ipu1_csi1_mux: endpoint {
++		remote-endpoint = <&ipu1_csi1_mux_to_ipu1_csi1>;
++	};
++};
++
++&mipi_csi {
++	port@0 {
++		reg = <0>;
++
++		mipi_csi_from_mipi_sensor: endpoint {
++		};
++	};
++
++	port@1 {
++		reg = <1>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		mipi_vc0_to_ipu1_csi0_mux: endpoint@0 {
++			remote-endpoint = <&ipu1_csi0_mux_from_mipi_vc0>;
++		};
++
++		mipi_vc0_to_ipu1_csi1_mux: endpoint@1 {
++			remote-endpoint = <&ipu1_csi1_mux_from_mipi_vc0>;
++		};
++	};
++
++	port@2 {
++		reg = <2>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		mipi_vc1_to_ipu1_csi0_mux: endpoint@0 {
++			remote-endpoint = <&ipu1_csi0_mux_from_mipi_vc1>;
++		};
++
++		mipi_vc1_to_ipu1_csi1_mux: endpoint@1 {
++			remote-endpoint = <&ipu1_csi1_mux_from_mipi_vc1>;
++		};
++	};
++
++	port@3 {
++		reg = <3>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		mipi_vc2_to_ipu1_csi0_mux: endpoint@0 {
++			remote-endpoint = <&ipu1_csi0_mux_from_mipi_vc2>;
++		};
++
++		mipi_vc2_to_ipu1_csi1_mux: endpoint@1 {
++			remote-endpoint = <&ipu1_csi1_mux_from_mipi_vc2>;
++		};
++	};
++
++	port@4 {
++		reg = <4>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		mipi_vc3_to_ipu1_csi0_mux: endpoint@0 {
++			remote-endpoint = <&ipu1_csi0_mux_from_mipi_vc3>;
++		};
++
++		mipi_vc3_to_ipu1_csi1_mux: endpoint@1 {
++			remote-endpoint = <&ipu1_csi1_mux_from_mipi_vc3>;
++		};
++	};
++};
++
+ &vpu {
+ 	compatible = "fsl,imx6dl-vpu", "cnm,coda960";
+ };
+diff --git a/arch/arm/boot/dts/imx6q.dtsi b/arch/arm/boot/dts/imx6q.dtsi
+index e9a5d0b..9b2ca32 100644
+--- a/arch/arm/boot/dts/imx6q.dtsi
++++ b/arch/arm/boot/dts/imx6q.dtsi
+@@ -143,10 +143,18 @@
+ 
+ 			ipu2_csi0: port@0 {
+ 				reg = <0>;
++
++				ipu2_csi0_from_mipi_vc2: endpoint {
++					remote-endpoint = <&mipi_vc2_to_ipu2_csi0>;
++				};
+ 			};
+ 
+ 			ipu2_csi1: port@1 {
+ 				reg = <1>;
++
++				ipu2_csi1_from_ipu2_csi1_mux: endpoint {
++					remote-endpoint = <&ipu2_csi1_mux_to_ipu2_csi1>;
++				};
+ 			};
+ 
+ 			ipu2_di0: port@2 {
+@@ -266,6 +274,80 @@
+ 	};
+ };
+ 
++&gpr {
++	ipu1_csi0_mux: ipu1_csi0_mux@4 {
++		compatible = "video-multiplexer";
++		reg = <0x04>;
++		bit-mask = <1>;
++		bit-shift = <19>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++		status = "okay";
++
++		port@0 {
++			reg = <0>;
++
++			ipu1_csi0_mux_from_mipi_vc0: endpoint {
++				remote-endpoint = <&mipi_vc0_to_ipu1_csi0_mux>;
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			ipu1_csi0_mux_from_parallel_sensor: endpoint {
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			ipu1_csi0_mux_to_ipu1_csi0: endpoint {
++				remote-endpoint = <&ipu1_csi0_from_ipu1_csi0_mux>;
++			};
++		};
++	};
++
++	ipu2_csi1_mux: ipu2_csi1_mux@4 {
++		compatible = "video-multiplexer";
++		reg = <0x04>;
++		bit-mask = <1>;
++		bit-shift = <20>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++		status = "okay";
++
++		port@0 {
++			reg = <0>;
++
++			ipu2_csi1_mux_from_mipi_vc3: endpoint {
++				remote-endpoint = <&mipi_vc3_to_ipu2_csi1_mux>;
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			ipu2_csi1_mux_from_parallel_sensor: endpoint {
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			ipu2_csi1_mux_to_ipu2_csi1: endpoint {
++				remote-endpoint = <&ipu2_csi1_from_ipu2_csi1_mux>;
++			};
++		};
++	};
++};
++
++&ipu1_csi1 {
++	ipu1_csi1_from_mipi_vc1: endpoint {
++		remote-endpoint = <&mipi_vc1_to_ipu1_csi1>;
++	};
++};
++
+ &ldb {
+ 	clocks = <&clks IMX6QDL_CLK_LDB_DI0_SEL>, <&clks IMX6QDL_CLK_LDB_DI1_SEL>,
+ 		 <&clks IMX6QDL_CLK_IPU1_DI0_SEL>, <&clks IMX6QDL_CLK_IPU1_DI1_SEL>,
+@@ -312,6 +394,47 @@
+ 	};
+ };
+ 
++&mipi_csi {
++	port@0 {
++		reg = <0>;
++
++		mipi_csi_from_mipi_sensor: endpoint {
++		};
++	};
++
++	port@1 {
++		reg = <1>;
++
++		mipi_vc0_to_ipu1_csi0_mux: endpoint {
++			remote-endpoint = <&ipu1_csi0_mux_from_mipi_vc0>;
++		};
++	};
++
++	port@2 {
++		reg = <2>;
++
++		mipi_vc1_to_ipu1_csi1: endpoint {
++			remote-endpoint = <&ipu1_csi1_from_mipi_vc1>;
++		};
++	};
++
++	port@3 {
++		reg = <3>;
++
++		mipi_vc2_to_ipu2_csi0: endpoint {
++			remote-endpoint = <&ipu2_csi0_from_mipi_vc2>;
++		};
++	};
++
++	port@4 {
++		reg = <4>;
++
++		mipi_vc3_to_ipu2_csi1_mux: endpoint {
++			remote-endpoint = <&ipu2_csi1_mux_from_mipi_vc3>;
++		};
++	};
++};
++
+ &mipi_dsi {
+ 	ports {
+ 		port@2 {
+diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
+index 42926e9..010388c 100644
+--- a/arch/arm/boot/dts/imx6qdl.dtsi
++++ b/arch/arm/boot/dts/imx6qdl.dtsi
+@@ -799,8 +799,10 @@
+ 			};
+ 
+ 			gpr: iomuxc-gpr@020e0000 {
+-				compatible = "fsl,imx6q-iomuxc-gpr", "syscon";
++				compatible = "fsl,imx6q-iomuxc-gpr", "syscon", "simple-mfd";
+ 				reg = <0x020e0000 0x38>;
++				#address-cells = <1>;
++				#size-cells = <0>;
+ 			};
+ 
+ 			iomuxc: iomuxc@020e0000 {
+@@ -1127,6 +1129,8 @@
+ 			mipi_csi: mipi@021dc000 {
+ 				compatible = "fsl,imx6-mipi-csi2";
+ 				reg = <0x021dc000 0x4000>;
++				#address-cells = <1>;
++				#size-cells = <0>;
+ 				interrupts = <0 100 0x04>, <0 101 0x04>;
+ 				clocks = <&clks IMX6QDL_CLK_HSI_TX>,
+ 					 <&clks IMX6QDL_CLK_VIDEO_27M>,
+@@ -1232,6 +1236,10 @@
+ 
+ 			ipu1_csi0: port@0 {
+ 				reg = <0>;
++
++				ipu1_csi0_from_ipu1_csi0_mux: endpoint {
++					remote-endpoint = <&ipu1_csi0_mux_to_ipu1_csi0>;
++				};
+ 			};
+ 
+ 			ipu1_csi1: port@1 {
+-- 
+2.7.4
 
-except for this memset :-)
-
-> +		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
-
-Use sizeof(info.type).
-
-> +		info.addr = dev->board.tuner_addr;
-> +		info.platform_data = &si2157_config;
-> +
-> +		request_module("si2157");
-> +		client = i2c_new_device(tuner_i2c, &info);
-> +
-> +		if (client == NULL || client->dev.driver == NULL) {
-> +			dvb_frontend_detach(dev->dvb->frontend);
-> +			result = -ENODEV;
-> +			goto out_free;
-> +		}
-> +
-> +		if (!try_module_get(client->dev.driver->owner)) {
-> +			i2c_unregister_device(client);
-> +			dvb_frontend_detach(dev->dvb->frontend);
-> +			result = -ENODEV;
-> +			goto out_free;
-> +		}
-> +
-> +		dev->cx231xx_reset_analog_tuner = NULL;
-> +		dev->dvb->i2c_client_tuner = client;
-> +		break;
-> +	}
->  	default:
->  		dev_err(dev->dev,
->  			"%s/2: The frontend of your DVB/ATSC card isn't supported yet\n",
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> index 35e9acf..6860c91 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> @@ -171,6 +171,43 @@ static int cx231xx_i2c_send_bytes(struct i2c_adapter *i2c_adap,
->  		bus->i2c_nostop = 0;
->  		bus->i2c_reserve = 0;
->  
-> +	} else if (dev->model == CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD
-> +		&& msg->addr == dev->tuner_addr
-> +		&& msg->len > 4) {
-> +		/* special case for Evromedia USB Full Hybrid Full HD tuner chip */
-> +		size = msg->len;
-> +		saddr_len = 1;
-> +
-> +		/* adjust the length to correct length */
-> +		size -= saddr_len;
-> +
-> +		buf_ptr = (u8*)(msg->buf + 1);
-> +
-> +		do {
-> +			/* prepare xfer_data struct */
-> +			req_data.dev_addr = msg->addr;
-> +			req_data.direction = msg->flags;
-> +			req_data.saddr_len = saddr_len;
-> +			req_data.saddr_dat = msg->buf[0];
-> +			req_data.buf_size = size > 4 ? 4 : size;
-> +			req_data.p_buffer = (u8*)(buf_ptr + loop * 4);
-> +
-> +			bus->i2c_nostop = (size > 4) ? 1 : 0;
-> +			bus->i2c_reserve = (loop == 0) ? 0 : 1;
-> +
-> +			/* usb send command */
-> +			status = dev->cx231xx_send_usb_command(bus, &req_data);
-> +			++ loop;
-
-loop++ is the preferred style.
-
-> +
-> +			if (size >= 4) {
-> +				size -= 4;
-> +			} else {
-> +				size = 0;
-> +			}
-> +		} while (size > 0);
-> +
-> +		bus->i2c_nostop = 0;
-> +		bus->i2c_reserve = 0;
->  	} else {		/* regular case */
->  
->  		/* prepare xfer_data struct */
-> diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-> index 90c8676..d9792ea 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx.h
-> +++ b/drivers/media/usb/cx231xx/cx231xx.h
-> @@ -78,6 +78,7 @@
->  #define CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx 20
->  #define CX231XX_BOARD_HAUPPAUGE_955Q 21
->  #define CX231XX_BOARD_TERRATEC_GRABBY 22
-> +#define CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD 23
->  
->  /* Limits minimum and default number of buffers */
->  #define CX231XX_MIN_BUF                 4
-> 
-
-Regards,
-
-	Hans
