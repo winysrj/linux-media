@@ -1,72 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:33035 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966991AbdADP0T (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2017 10:26:19 -0500
-MIME-Version: 1.0
-In-Reply-To: <1483477049-19056-6-git-send-email-steve_longerbeam@mentor.com>
-References: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com> <1483477049-19056-6-git-send-email-steve_longerbeam@mentor.com>
-From: Fabio Estevam <festevam@gmail.com>
-Date: Wed, 4 Jan 2017 13:26:18 -0200
-Message-ID: <CAOMZO5CibSU45Cw1d8ZipiGSVfhCQ4uP4XiNuWTGLa5eHmC6Qg@mail.gmail.com>
-Subject: Re: [PATCH v2 05/19] ARM: dts: imx6-sabresd: add OV5642 and OV5640
- camera sensors
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <kernel@pengutronix.de>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        "robh+dt@kernel.org" <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        mchehab@kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:33245 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S940570AbdAGCMO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2017 21:12:14 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
         devel@driverdev.osuosl.org,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v3 10/24] ARM: dts: imx6-sabreauto: add pinctrl for gpt input capture
+Date: Fri,  6 Jan 2017 18:11:28 -0800
+Message-Id: <1483755102-24785-11-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 3, 2017 at 6:57 PM, Steve Longerbeam <slongerbeam@gmail.com> wrote:
+Add pinctrl groups for both GPT input capture channels.
 
-> +       camera: ov5642@3c {
-> +               compatible = "ovti,ov5642";
-> +               pinctrl-names = "default";
-> +               pinctrl-0 = <&pinctrl_ov5642>;
-> +               clocks = <&clks IMX6QDL_CLK_CKO>;
-> +               clock-names = "xclk";
-> +               reg = <0x3c>;
-> +               xclk = <24000000>;
-> +               DOVDD-supply = <&vgen4_reg>; /* 1.8v */
-> +               AVDD-supply = <&vgen5_reg>;  /* 2.8v, rev C board is VGEN3
-> +                                               rev B board is VGEN5 */
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-Please use vgen3 so that by default we have the valid AVDD-supply for
-revC boards which is more recent and more the users have access to.
+diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+index 967c3b8..495709f 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+@@ -457,6 +457,18 @@
+ 			>;
+ 		};
+ 
++		pinctrl_gpt_input_capture0: gptinputcapture0grp {
++			fsl,pins = <
++				MX6QDL_PAD_SD1_DAT0__GPT_CAPTURE1	0x1b0b0
++			>;
++		};
++
++		pinctrl_gpt_input_capture1: gptinputcapture1grp {
++			fsl,pins = <
++				MX6QDL_PAD_SD1_DAT1__GPT_CAPTURE2	0x1b0b0
++			>;
++		};
++
+ 		pinctrl_spdif: spdifgrp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_KEY_COL3__SPDIF_IN 0x1b0b0
+-- 
+2.7.4
 
-> +       mipi_camera: ov5640@3c {
-> +               compatible = "ovti,ov5640_mipi";
-> +               pinctrl-names = "default";
-> +               pinctrl-0 = <&pinctrl_ov5640>;
-> +               reg = <0x3c>;
-> +               clocks = <&clks IMX6QDL_CLK_CKO>;
-> +               clock-names = "xclk";
-> +               xclk = <24000000>;
-> +               DOVDD-supply = <&vgen4_reg>; /* 1.8v */
-> +               AVDD-supply = <&vgen5_reg>;  /* 2.8v, rev C board is VGEN3
-> +                                               rev B board is VGEN5 */
-
-Same here.
-
-> +               pinctrl_ov5640: ov5640grp {
-> +                       fsl,pins = <
-> +                               MX6QDL_PAD_SD1_DAT2__GPIO1_IO19 0x80000000
-> +                               MX6QDL_PAD_SD1_CLK__GPIO1_IO20  0x80000000
-
-Please avoid all the 0x80000000 IOMUX settings and replace them by
-their real values.
