@@ -1,269 +1,558 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:35846 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750858AbdAPVXc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Jan 2017 16:23:32 -0500
-Received: by mail-pg0-f66.google.com with SMTP id 75so6142498pgf.3
-        for <linux-media@vger.kernel.org>; Mon, 16 Jan 2017 13:23:32 -0800 (PST)
-Subject: Re: [PATCH v3 17/24] media: imx: Add CSI subdev driver
-To: Philipp Zabel <p.zabel@pengutronix.de>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
- <1483755102-24785-18-git-send-email-steve_longerbeam@mentor.com>
- <1484578988.8415.160.camel@pengutronix.de>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:35910 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S940697AbdAGCMd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2017 21:12:33 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
         kernel@pengutronix.de, fabio.estevam@nxp.com,
         linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
         nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
         Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <fa368f78-42f6-6f2f-0761-1f775eb5d707@gmail.com>
-Date: Mon, 16 Jan 2017 13:15:27 -0800
-MIME-Version: 1.0
-In-Reply-To: <1484578988.8415.160.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH v3 21/24] media: imx: Add MIPI CSI-2 Receiver subdev driver
+Date: Fri,  6 Jan 2017 18:11:39 -0800
+Message-Id: <1483755102-24785-22-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Adds MIPI CSI-2 Receiver subdev driver. This subdev is required
+for sensors with a MIPI CSI2 interface.
 
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/media/imx/Makefile        |   1 +
+ drivers/staging/media/imx/imx-mipi-csi2.c | 501 ++++++++++++++++++++++++++++++
+ 2 files changed, 502 insertions(+)
+ create mode 100644 drivers/staging/media/imx/imx-mipi-csi2.c
 
-On 01/16/2017 07:03 AM, Philipp Zabel wrote:
-> On Fri, 2017-01-06 at 18:11 -0800, Steve Longerbeam wrote:
->> This is a media entity subdevice for the i.MX Camera
->> Serial Interface module.
-> s/Serial/Sensor/
-
-done.
-
->> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
->> ---
->>   drivers/staging/media/imx/Kconfig   |  13 +
->>   drivers/staging/media/imx/Makefile  |   2 +
->>   drivers/staging/media/imx/imx-csi.c | 644 ++++++++++++++++++++++++++++++++++++
->>   3 files changed, 659 insertions(+)
->>   create mode 100644 drivers/staging/media/imx/imx-csi.c
->>
->> diff --git a/drivers/staging/media/imx/Kconfig b/drivers/staging/media/imx/Kconfig
->> index bfde58d..ce2d2c8 100644
->> --- a/drivers/staging/media/imx/Kconfig
->> +++ b/drivers/staging/media/imx/Kconfig
->> @@ -6,3 +6,16 @@ config VIDEO_IMX_MEDIA
->>   	  Say yes here to enable support for video4linux media controller
->>   	  driver for the i.MX5/6 SOC.
->>   
->> +if VIDEO_IMX_MEDIA
->> +menu "i.MX5/6 Media Sub devices"
->> +
->> +config VIDEO_IMX_CAMERA
-> s/CAMERA/CSI/ ?
-
-done.
-
->> +	tristate "i.MX5/6 Camera driver"
-> i.MX5/6 Camera Sensor Interface driver
-
-done.
-
->
->> +
->> +struct csi_priv {
->> +	struct device *dev;
->> +	struct ipu_soc *ipu;
->> +	struct imx_media_dev *md;
->> +	struct v4l2_subdev sd;
->> +	struct media_pad pad[CSI_NUM_PADS];
->> +	struct v4l2_mbus_framefmt format_mbus[CSI_NUM_PADS];
->> +	struct v4l2_mbus_config sensor_mbus_cfg;
->> +	struct v4l2_rect crop;
->> +	struct ipu_csi *csi;
->> +	int csi_id;
->> +	int input_pad;
->> +	int output_pad;
->> +	bool power_on;  /* power is on */
->> +	bool stream_on; /* streaming is on */
->> +
->> +	/* the sink for the captured frames */
->> +	struct v4l2_subdev *sink_sd;
->> +	enum ipu_csi_dest dest;
->> +	struct v4l2_subdev *src_sd;
-> src_sd is not used except that its presence marks an enabled input link.
-> -> could be changed to bool.
-
-For now I prefer to keep it a pointer to the src/sink subdevs.
-At some point the CSI may have some reason to know the
-identity of the source.
-
->
->> +	struct v4l2_ctrl_handler ctrl_hdlr;
->> +	struct imx_media_fim *fim;
->> +
->> +	/* the attached sensor at stream on */
->> +	struct imx_media_subdev *sensor;
->> +};
->> +
->> +static inline struct csi_priv *sd_to_dev(struct v4l2_subdev *sdev)
->> +{
->> +	return container_of(sdev, struct csi_priv, sd);
->> +}
->> +
->> +/* Update the CSI whole sensor and active windows */
->> +static int csi_setup(struct csi_priv *priv)
->> +{
->> +	struct v4l2_mbus_framefmt infmt;
->> +
->> +	ipu_csi_set_window(priv->csi, &priv->crop);
->> +
->> +	/*
->> +	 * the ipu-csi doesn't understand ALTERNATE, but it only
->> +	 * needs to know whether the stream is interlaced, so set
->> +	 * to INTERLACED if infmt field is ALTERNATE.
->> +	 */
->> +	infmt = priv->format_mbus[priv->input_pad];
->> +	if (infmt.field == V4L2_FIELD_ALTERNATE)
->> +		infmt.field = V4L2_FIELD_INTERLACED;
-> That should be SEQ_TB/BT depending on video standard.
-
-fixed.
-
->> +
->> +static int csi_s_stream(struct v4l2_subdev *sd, int enable)
->> +{
->> +	struct csi_priv *priv = v4l2_get_subdevdata(sd);
->> +	int ret = 0;
->> +
->> +	if (!priv->src_sd || !priv->sink_sd)
->> +		return -EPIPE;
->> +
->> +	v4l2_info(sd, "stream %s\n", enable ? "ON" : "OFF");
-> These could be silenced a bit.
-
-yeah, I think it is time for that. I've silenced all the
-v4l2_info()'s for stream on/off, power on/off, as well
-as some others.
-
->
->> +static int csi_s_power(struct v4l2_subdev *sd, int on)
->> +{
->> +	struct csi_priv *priv = v4l2_get_subdevdata(sd);
->> +	int ret = 0;
->> +
->> +	v4l2_info(sd, "power %s\n", on ? "ON" : "OFF");
->> +
->> +	if (priv->fim && on != priv->power_on)
->> +		ret = imx_media_fim_set_power(priv->fim, on);
->> +
->> +	if (!ret)
->> +		priv->power_on = on;
->> +	return ret;
->> +}
-> Is this called multiple times? I'd expect a poweron during open and a
-> poweroff during close, so no need for priv->power_on.
-
-It is actually called multiple times. The s_power subdev callbacks are
-made every time there is a new link established, in the imx-media core's
-link_notify(), in order to re-establish power to the active subdevs in the
-new pipeline.
-
-This might change after I look into using v4l2_pipeline_pm_use().
-
->
->> +static int csi_link_setup(struct media_entity *entity,
->> +			  const struct media_pad *local,
->> +			  const struct media_pad *remote, u32 flags)
->> +{
->> +	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
->> +	struct csi_priv *priv = v4l2_get_subdevdata(sd);
->> +	struct v4l2_subdev *remote_sd;
->> +
->> +	dev_dbg(priv->dev, "link setup %s -> %s", remote->entity->name,
->> +		local->entity->name);
->> +
->> +	remote_sd = media_entity_to_v4l2_subdev(remote->entity);
->> +
->> +	if (local->flags & MEDIA_PAD_FL_SINK) {
->> +		if (flags & MEDIA_LNK_FL_ENABLED) {
->> +			if (priv->src_sd)
->> +				return -EBUSY;
->> +			priv->src_sd = remote_sd;
->> +		} else {
->> +			priv->src_sd = NULL;
->> +		}
->> +
->> +		return 0;
->> +	}
->> +
->> +	if (flags & MEDIA_LNK_FL_ENABLED) {
->> +		if (priv->sink_sd)
->> +			return -EBUSY;
->> +		priv->sink_sd = remote_sd;
->> +	} else {
->> +		priv->sink_sd = NULL;
->> +		return 0;
->> +	}
->> +
->> +	/* set CSI destination */
->> +	switch (remote_sd->grp_id) {
->> +	case IMX_MEDIA_GRP_ID_SMFC0:
->> +	case IMX_MEDIA_GRP_ID_SMFC1:
->> +	case IMX_MEDIA_GRP_ID_SMFC2:
->> +	case IMX_MEDIA_GRP_ID_SMFC3:
-> With removal of the SMFC entities, CSI0 could be fixed to SMFC0 and CSI1
-> to the SMFC2 channel.
-
-right, I'll do that.
-
->
-> [...]
->> +static int csi_set_fmt(struct v4l2_subdev *sd,
->> +		       struct v4l2_subdev_pad_config *cfg,
->> +		       struct v4l2_subdev_format *sdformat)
->> +{
->> +	struct csi_priv *priv = v4l2_get_subdevdata(sd);
->> +	struct v4l2_mbus_framefmt *infmt, *outfmt;
->> +	struct v4l2_rect crop;
->> +	int ret;
->> +
->> +	if (sdformat->pad >= CSI_NUM_PADS)
->> +		return -EINVAL;
->> +
->> +	if (priv->stream_on)
->> +		return -EBUSY;
->> +
->> +	infmt = &priv->format_mbus[priv->input_pad];
->> +	outfmt = &priv->format_mbus[priv->output_pad];
->> +
->> +	if (sdformat->pad == priv->output_pad) {
->> +		sdformat->format.code = infmt->code;
->> +		sdformat->format.field = infmt->field;
->> +		crop.left = priv->crop.left;
->> +		crop.top = priv->crop.top;
->> +		crop.width = sdformat->format.width;
->> +		crop.height = sdformat->format.height;
->> +		ret = csi_try_crop(priv, &crop);
->> +		if (ret)
->> +			return ret;
->> +		sdformat->format.width = crop.width;
->> +		sdformat->format.height = crop.height;
->> +	}
->> +
->> +	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY) {
-> Should there be some limitations on the format here?
-
-done, I've added call to v4l_bound_align_image(), passing
-it the min/max frame sizes. CSI's sensor/active frame size
-register fields are 12 bits, so max is 4096 for both width and
-height.
-
-
-Steve
+diff --git a/drivers/staging/media/imx/Makefile b/drivers/staging/media/imx/Makefile
+index fe9e992..0decef7 100644
+--- a/drivers/staging/media/imx/Makefile
++++ b/drivers/staging/media/imx/Makefile
+@@ -9,3 +9,4 @@ obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-ic.o
+ obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-csi.o
+ obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-smfc.o
+ obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-camif.o
++obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-mipi-csi2.o
+diff --git a/drivers/staging/media/imx/imx-mipi-csi2.c b/drivers/staging/media/imx/imx-mipi-csi2.c
+new file mode 100644
+index 0000000..daa6e1d
+--- /dev/null
++++ b/drivers/staging/media/imx/imx-mipi-csi2.c
+@@ -0,0 +1,501 @@
++/*
++ * MIPI CSI-2 Receiver Subdev for Freescale i.MX5/6 SOC.
++ *
++ * Copyright (c) 2012-2014 Mentor Graphics Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++#include <linux/clk.h>
++#include <linux/delay.h>
++#include <linux/interrupt.h>
++#include <linux/io.h>
++#include <linux/irq.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-of.h>
++#include <media/v4l2-subdev.h>
++#include <video/imx-ipu-v3.h>
++#include "imx-media.h"
++
++/*
++ * there must be 5 pads: 1 input pad from sensor, and
++ * the 4 virtual channel output pads
++ */
++#define CSI2_NUM_SINK_PADS  1
++#define CSI2_NUM_SRC_PADS   4
++#define CSI2_NUM_PADS       5
++
++struct imxcsi2_dev {
++	struct device          *dev;
++	struct imx_media_dev   *md;
++	struct v4l2_subdev      sd;
++	struct media_pad       pad[CSI2_NUM_PADS];
++	struct v4l2_mbus_framefmt format_mbus;
++	struct v4l2_subdev     *src_sd;
++	struct v4l2_subdev     *sink_sd[CSI2_NUM_SRC_PADS];
++	int                    input_pad;
++	struct clk             *dphy_clk;
++	struct clk             *cfg_clk;
++	struct clk             *pix_clk; /* what is this? */
++	void __iomem           *base;
++	int                     intr1;
++	int                     intr2;
++	struct v4l2_of_bus_mipi_csi2 bus;
++	bool                    on;
++	bool                    stream_on;
++};
++
++#define DEVICE_NAME "imx6-mipi-csi2"
++
++/* Register offsets */
++#define CSI2_VERSION            0x000
++#define CSI2_N_LANES            0x004
++#define CSI2_PHY_SHUTDOWNZ      0x008
++#define CSI2_DPHY_RSTZ          0x00c
++#define CSI2_RESETN             0x010
++#define CSI2_PHY_STATE          0x014
++#define CSI2_DATA_IDS_1         0x018
++#define CSI2_DATA_IDS_2         0x01c
++#define CSI2_ERR1               0x020
++#define CSI2_ERR2               0x024
++#define CSI2_MSK1               0x028
++#define CSI2_MSK2               0x02c
++#define CSI2_PHY_TST_CTRL0      0x030
++#define CSI2_PHY_TST_CTRL1      0x034
++#define CSI2_SFT_RESET          0xf00
++
++static inline struct imxcsi2_dev *sd_to_dev(struct v4l2_subdev *sdev)
++{
++	return container_of(sdev, struct imxcsi2_dev, sd);
++}
++
++static inline u32 imxcsi2_read(struct imxcsi2_dev *csi2, unsigned int regoff)
++{
++	return readl(csi2->base + regoff);
++}
++
++static inline void imxcsi2_write(struct imxcsi2_dev *csi2, u32 val,
++				 unsigned int regoff)
++{
++	writel(val, csi2->base + regoff);
++}
++
++static void imxcsi2_set_lanes(struct imxcsi2_dev *csi2)
++{
++	int lanes = csi2->bus.num_data_lanes;
++
++	imxcsi2_write(csi2, lanes - 1, CSI2_N_LANES);
++}
++
++static void imxcsi2_enable(struct imxcsi2_dev *csi2, bool enable)
++{
++	if (enable) {
++		imxcsi2_write(csi2, 0xffffffff, CSI2_PHY_SHUTDOWNZ);
++		imxcsi2_write(csi2, 0xffffffff, CSI2_DPHY_RSTZ);
++		imxcsi2_write(csi2, 0xffffffff, CSI2_RESETN);
++	} else {
++		imxcsi2_write(csi2, 0x0, CSI2_PHY_SHUTDOWNZ);
++		imxcsi2_write(csi2, 0x0, CSI2_DPHY_RSTZ);
++		imxcsi2_write(csi2, 0x0, CSI2_RESETN);
++	}
++}
++
++static void imxcsi2_reset(struct imxcsi2_dev *csi2)
++{
++	imxcsi2_enable(csi2, false);
++
++	imxcsi2_write(csi2, 0x00000001, CSI2_PHY_TST_CTRL0);
++	imxcsi2_write(csi2, 0x00000000, CSI2_PHY_TST_CTRL1);
++	imxcsi2_write(csi2, 0x00000000, CSI2_PHY_TST_CTRL0);
++	imxcsi2_write(csi2, 0x00000002, CSI2_PHY_TST_CTRL0);
++	imxcsi2_write(csi2, 0x00010044, CSI2_PHY_TST_CTRL1);
++	imxcsi2_write(csi2, 0x00000000, CSI2_PHY_TST_CTRL0);
++	imxcsi2_write(csi2, 0x00000014, CSI2_PHY_TST_CTRL1);
++	imxcsi2_write(csi2, 0x00000002, CSI2_PHY_TST_CTRL0);
++	imxcsi2_write(csi2, 0x00000000, CSI2_PHY_TST_CTRL0);
++
++	imxcsi2_enable(csi2, true);
++}
++
++static int imxcsi2_dphy_wait(struct imxcsi2_dev *csi2)
++{
++	u32 reg;
++	int i;
++
++	/* wait for mipi sensor ready */
++	for (i = 0; i < 50; i++) {
++		reg = imxcsi2_read(csi2, CSI2_PHY_STATE);
++		if (reg != 0x200)
++			break;
++		usleep_range(10000, 20000);
++	}
++
++	if (i >= 50) {
++		v4l2_err(&csi2->sd,
++			 "wait for clock lane timeout, phy_state = 0x%08x\n",
++			 reg);
++		return -ETIME;
++	}
++
++	/* wait for mipi stable */
++	for (i = 0; i < 50; i++) {
++		reg = imxcsi2_read(csi2, CSI2_ERR1);
++		if (reg == 0x0)
++			break;
++		usleep_range(10000, 20000);
++	}
++
++	if (i >= 50) {
++		v4l2_err(&csi2->sd,
++			 "wait for controller timeout, err1 = 0x%08x\n",
++			 reg);
++		return -ETIME;
++	}
++
++	/* finally let's wait for active clock on the clock lane */
++	for (i = 0; i < 50; i++) {
++		reg = imxcsi2_read(csi2, CSI2_PHY_STATE);
++		if (reg & (1 << 8))
++			break;
++		usleep_range(10000, 20000);
++	}
++
++	if (i >= 50) {
++		v4l2_err(&csi2->sd,
++			 "wait for active clock timeout, phy_state = 0x%08x\n",
++			 reg);
++		return -ETIME;
++	}
++
++	v4l2_info(&csi2->sd, "ready, dphy version 0x%x\n",
++		  imxcsi2_read(csi2, CSI2_VERSION));
++
++	return 0;
++}
++
++/*
++ * V4L2 subdev operations
++ */
++
++static int imxcsi2_link_setup(struct media_entity *entity,
++			      const struct media_pad *local,
++			      const struct media_pad *remote, u32 flags)
++{
++	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
++	struct imxcsi2_dev *csi2 = sd_to_dev(sd);
++	struct v4l2_subdev *remote_sd;
++
++	dev_dbg(csi2->dev, "link setup %s -> %s", remote->entity->name,
++		local->entity->name);
++
++	remote_sd = media_entity_to_v4l2_subdev(remote->entity);
++
++	if (local->flags & MEDIA_PAD_FL_SOURCE) {
++		if (flags & MEDIA_LNK_FL_ENABLED) {
++			if (csi2->sink_sd[local->index])
++				return -EBUSY;
++			csi2->sink_sd[local->index] = remote_sd;
++		} else {
++			csi2->sink_sd[local->index] = NULL;
++		}
++	} else {
++		if (flags & MEDIA_LNK_FL_ENABLED) {
++			if (csi2->src_sd)
++				return -EBUSY;
++			csi2->src_sd = remote_sd;
++		} else {
++			csi2->src_sd = NULL;
++		}
++	}
++
++	return 0;
++}
++
++static int imxcsi2_s_power(struct v4l2_subdev *sd, int on)
++{
++	struct imxcsi2_dev *csi2 = sd_to_dev(sd);
++
++	if (on && !csi2->on) {
++		v4l2_info(&csi2->sd, "power ON\n");
++		clk_prepare_enable(csi2->cfg_clk);
++		clk_prepare_enable(csi2->dphy_clk);
++		imxcsi2_set_lanes(csi2);
++		imxcsi2_reset(csi2);
++	} else if (!on && csi2->on) {
++		v4l2_info(&csi2->sd, "power OFF\n");
++		imxcsi2_enable(csi2, false);
++		clk_disable_unprepare(csi2->dphy_clk);
++		clk_disable_unprepare(csi2->cfg_clk);
++	}
++
++	csi2->on = on;
++	return 0;
++}
++
++static int imxcsi2_s_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct imxcsi2_dev *csi2 = sd_to_dev(sd);
++	int i, ret = 0;
++
++	if (!csi2->src_sd)
++		return -EPIPE;
++	for (i = 0; i < CSI2_NUM_SRC_PADS; i++) {
++		if (csi2->sink_sd[i])
++			break;
++	}
++	if (i >= CSI2_NUM_SRC_PADS)
++		return -EPIPE;
++
++	v4l2_info(sd, "stream %s\n", enable ? "ON" : "OFF");
++
++	if (enable && !csi2->stream_on) {
++		ret = clk_prepare_enable(csi2->pix_clk);
++		if (ret)
++			return ret;
++
++		ret = imxcsi2_dphy_wait(csi2);
++		if (ret) {
++			clk_disable_unprepare(csi2->pix_clk);
++			return ret;
++		}
++	} else if (!enable && csi2->stream_on) {
++		clk_disable_unprepare(csi2->pix_clk);
++	}
++
++	csi2->stream_on = enable;
++	return 0;
++}
++
++static int imxcsi2_get_fmt(struct v4l2_subdev *sd,
++			   struct v4l2_subdev_pad_config *cfg,
++			   struct v4l2_subdev_format *sdformat)
++{
++	struct imxcsi2_dev *csi2 = sd_to_dev(sd);
++
++	sdformat->format = csi2->format_mbus;
++
++	return 0;
++}
++
++static int imxcsi2_set_fmt(struct v4l2_subdev *sd,
++			   struct v4l2_subdev_pad_config *cfg,
++			   struct v4l2_subdev_format *sdformat)
++{
++	struct imxcsi2_dev *csi2 = sd_to_dev(sd);
++
++	if (sdformat->pad >= CSI2_NUM_PADS)
++		return -EINVAL;
++
++	if (csi2->stream_on)
++		return -EBUSY;
++
++	/* Output pads mirror active input pad, no limits on input pads */
++	if (sdformat->pad != csi2->input_pad)
++		sdformat->format = csi2->format_mbus;
++
++	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY)
++		cfg->try_fmt = sdformat->format;
++	else
++		csi2->format_mbus = sdformat->format;
++
++	return 0;
++}
++
++/*
++ * retrieve our pads parsed from the OF graph by the media device
++ */
++static int imxcsi2_registered(struct v4l2_subdev *sd)
++{
++	struct imxcsi2_dev *csi2 = sd_to_dev(sd);
++	struct imx_media_subdev *imxsd;
++	struct imx_media_pad *pad;
++	int i, ret;
++
++	/* get media device */
++	csi2->md = dev_get_drvdata(sd->v4l2_dev->dev);
++
++	imxsd = imx_media_find_subdev_by_sd(csi2->md, sd);
++	if (IS_ERR(imxsd))
++		return PTR_ERR(imxsd);
++
++	if (imxsd->num_sink_pads != 1 || imxsd->num_src_pads != 4)
++		return -EINVAL;
++
++	for (i = 0; i < CSI2_NUM_PADS; i++) {
++		pad = &imxsd->pad[i];
++		csi2->pad[i] = pad->pad;
++		if (csi2->pad[i].flags & MEDIA_PAD_FL_SINK)
++			csi2->input_pad = i;
++	}
++
++	/* set a default mbus format  */
++	ret = imx_media_init_mbus_fmt(&csi2->format_mbus,
++				      640, 480, 0, V4L2_FIELD_NONE, NULL);
++	if (ret)
++		return ret;
++
++	return media_entity_pads_init(&sd->entity, CSI2_NUM_PADS, csi2->pad);
++}
++
++static struct media_entity_operations imxcsi2_entity_ops = {
++	.link_setup = imxcsi2_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
++};
++
++static struct v4l2_subdev_core_ops imxcsi2_core_ops = {
++	.s_power = imxcsi2_s_power,
++};
++
++static struct v4l2_subdev_video_ops imxcsi2_video_ops = {
++	.s_stream = imxcsi2_s_stream,
++};
++
++static struct v4l2_subdev_pad_ops imxcsi2_pad_ops = {
++	.get_fmt = imxcsi2_get_fmt,
++	.set_fmt = imxcsi2_set_fmt,
++};
++
++static struct v4l2_subdev_ops imxcsi2_subdev_ops = {
++	.core = &imxcsi2_core_ops,
++	.video = &imxcsi2_video_ops,
++	.pad = &imxcsi2_pad_ops,
++};
++
++static struct v4l2_subdev_internal_ops imxcsi2_internal_ops = {
++	.registered = imxcsi2_registered,
++};
++
++static int imxcsi2_parse_endpoints(struct imxcsi2_dev *csi2)
++{
++	struct device_node *node = csi2->dev->of_node;
++	struct device_node *epnode;
++	struct v4l2_of_endpoint ep;
++
++	epnode = of_graph_get_next_endpoint(node, NULL);
++	if (!epnode) {
++		v4l2_err(&csi2->sd, "failed to get endpoint node\n");
++		return -EINVAL;
++	}
++
++	v4l2_of_parse_endpoint(epnode, &ep);
++	of_node_put(epnode);
++
++	if (ep.bus_type != V4L2_MBUS_CSI2) {
++		v4l2_err(&csi2->sd, "invalid bus type, must be MIPI CSI2\n");
++		return -EINVAL;
++	}
++
++	csi2->bus = ep.bus.mipi_csi2;
++
++	v4l2_info(&csi2->sd, "data lanes: %d\n", csi2->bus.num_data_lanes);
++	v4l2_info(&csi2->sd, "flags: 0x%08x\n", csi2->bus.flags);
++	return 0;
++}
++
++static int imxcsi2_probe(struct platform_device *pdev)
++{
++	struct imxcsi2_dev *csi2;
++	struct resource *res;
++	int ret;
++
++	csi2 = devm_kzalloc(&pdev->dev, sizeof(*csi2), GFP_KERNEL);
++	if (!csi2)
++		return -ENOMEM;
++
++	csi2->dev = &pdev->dev;
++
++	v4l2_subdev_init(&csi2->sd, &imxcsi2_subdev_ops);
++	v4l2_set_subdevdata(&csi2->sd, &pdev->dev);
++	csi2->sd.internal_ops = &imxcsi2_internal_ops;
++	csi2->sd.entity.ops = &imxcsi2_entity_ops;
++	csi2->sd.dev = &pdev->dev;
++	csi2->sd.owner = THIS_MODULE;
++	csi2->sd.flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
++	strcpy(csi2->sd.name, DEVICE_NAME);
++	csi2->sd.entity.function = MEDIA_ENT_F_VID_IF_BRIDGE;
++	csi2->sd.grp_id = IMX_MEDIA_GRP_ID_CSI2;
++
++	ret = imxcsi2_parse_endpoints(csi2);
++	if (ret)
++		return ret;
++
++	csi2->cfg_clk = devm_clk_get(&pdev->dev, "cfg");
++	if (IS_ERR(csi2->cfg_clk)) {
++		v4l2_err(&csi2->sd, "failed to get cfg clock\n");
++		ret = PTR_ERR(csi2->cfg_clk);
++		return ret;
++	}
++
++	csi2->dphy_clk = devm_clk_get(&pdev->dev, "dphy");
++	if (IS_ERR(csi2->dphy_clk)) {
++		v4l2_err(&csi2->sd, "failed to get dphy clock\n");
++		ret = PTR_ERR(csi2->dphy_clk);
++		return ret;
++	}
++
++	csi2->pix_clk = devm_clk_get(&pdev->dev, "pix");
++	if (IS_ERR(csi2->pix_clk)) {
++		v4l2_err(&csi2->sd, "failed to get pixel clock\n");
++		ret = PTR_ERR(csi2->pix_clk);
++		return ret;
++	}
++
++	csi2->intr1 = platform_get_irq(pdev, 0);
++	csi2->intr2 = platform_get_irq(pdev, 1);
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++
++	if (!res || csi2->intr1 < 0 || csi2->intr2 < 0) {
++		v4l2_err(&csi2->sd, "failed to get platform resources\n");
++		return -ENODEV;
++	}
++
++	csi2->base = devm_ioremap(&pdev->dev, res->start, PAGE_SIZE);
++	if (!csi2->base) {
++		v4l2_err(&csi2->sd, "failed to map CSI-2 registers\n");
++		return -ENOMEM;
++	}
++
++	platform_set_drvdata(pdev, &csi2->sd);
++
++	return v4l2_async_register_subdev(&csi2->sd);
++}
++
++static int imxcsi2_remove(struct platform_device *pdev)
++{
++	struct v4l2_subdev *sd = platform_get_drvdata(pdev);
++	struct imxcsi2_dev *csi2 = sd_to_dev(sd);
++
++	imxcsi2_s_power(sd, 0);
++
++	v4l2_async_unregister_subdev(&csi2->sd);
++	media_entity_cleanup(&csi2->sd.entity);
++	v4l2_device_unregister_subdev(sd);
++
++	return 0;
++}
++
++static const struct of_device_id imxcsi2_dt_ids[] = {
++	{ .compatible = "fsl,imx6-mipi-csi2", },
++	{ /* sentinel */ }
++};
++MODULE_DEVICE_TABLE(of, imxcsi2_dt_ids);
++
++static struct platform_driver imxcsi2_driver = {
++	.driver = {
++		.name = DEVICE_NAME,
++		.of_match_table = imxcsi2_dt_ids,
++	},
++	.probe = imxcsi2_probe,
++	.remove = imxcsi2_remove,
++};
++
++module_platform_driver(imxcsi2_driver);
++
++MODULE_DESCRIPTION("i.MX5/6 MIPI CSI-2 Receiver driver");
++MODULE_AUTHOR("Steve Longerbeam <steve_longerbeam@mentor.com>");
++MODULE_LICENSE("GPL");
++
+-- 
+2.7.4
 
