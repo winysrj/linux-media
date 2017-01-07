@@ -1,113 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:41832 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755498AbdABOqF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 2 Jan 2017 09:46:05 -0500
-Subject: Re: [PATCH v2 00/21] Basic i.MX IPUv3 capture support
-To: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>,
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:36859 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933292AbdAGCMP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2017 21:12:15 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
         Steve Longerbeam <steve_longerbeam@mentor.com>
-References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
- <20161019213026.GU9460@valkosipuli.retiisi.org.uk>
- <CAH-u=807nRYzza0kTfOMv1AiWazk6FGJyz6W5_bYw7v9nOrccA@mail.gmail.com>
- <20161229205113.j6wn7kmhkfrtuayu@pengutronix.de>
- <7350daac-14ee-74cc-4b01-470a375613a3@denx.de>
- <c38d80aa-5464-1e9d-e11a-f54716fdb565@mentor.com>
- <CAH-u=83LDyfcErrxaDNN2+w7ZK56v9cJkvBL864ofxiBWrmBSg@mail.gmail.com>
-Cc: Marek Vasut <marex@denx.de>,
-        Robert Schwebel <r.schwebel@pengutronix.de>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Gary Bisson <gary.bisson@boundarydevices.com>,
-        Sascha Hauer <kernel@pengutronix.de>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <3b8ed13c-a23e-dc2b-0e31-1288ea3f562a@xs4all.nl>
-Date: Mon, 2 Jan 2017 15:45:58 +0100
-MIME-Version: 1.0
-In-Reply-To: <CAH-u=83LDyfcErrxaDNN2+w7ZK56v9cJkvBL864ofxiBWrmBSg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH v3 11/24] ARM: dts: imx6-sabreauto: add the ADV7180 video decoder
+Date: Fri,  6 Jan 2017 18:11:29 -0800
+Message-Id: <1483755102-24785-12-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/02/17 14:51, Jean-Michel Hautbois wrote:
-> Hi,
->
-> 2016-12-30 21:26 GMT+01:00 Steve Longerbeam <steve_longerbeam@mentor.com>:
->>
->>
->> On 12/30/2016 11:06 AM, Marek Vasut wrote:
->>>
->>> On 12/29/2016 09:51 PM, Robert Schwebel wrote:
->>>>
->>>> Hi Jean-Michel,
->>>
->>> Hi,
->>>
->>>> On Thu, Dec 29, 2016 at 04:08:33PM +0100, Jean-Michel Hautbois wrote:
->>>>>
->>>>> What is the status of this work?
->>>>
->>>> Philipp's patches have been reworked with the review feedback from the
->>>> last round and a new version will be posted when he is back from
->>>> holidays.
->>>
->>> IMO Philipp's patches are better integrated and well structured, so I'd
->>> rather like to see his work in at some point.
->>
->>
->> Granted I am biased, but I will state my case. "Better integrated" - my
->> patches
->> are also well integrated with the media core infrastructure. Philipp's
->> patches
->> in fact require modification to media core, whereas mine require none.
->> Some changes are needed of course (more subdev type definitions for
->> one).
->>
->> As for "well structured", I don't really understand what is meant by that,
->> but my driver is also well structured.
->>
->> Philipp's driver only supports unconverted image capture from the SMFC. In
->> addition
->> to that, mine allows for all the hardware links supported by the IPU,
->> including routing
->> frames from the CSI directly to the Image converter for scaling up to
->> 4096x4096,
->> colorspace conversion, rotation, and motion compensated de-interlace. Yes
->> all these
->> conversion can be carried out post-capture via a mem2mem device, but
->> conversion
->> directly from CSI capture has advantages, including minimized CPU
->> utilization and
->> lower AXI bus traffic. In any case, Freescale added these hardware paths,
->> and my
->> driver supports them.
->
-> I had a deeper look to both drivers, and I must say the features of
-> Steve's one are really interesting.
-> I don't think any of those has been tested with digital inputs (I have
-> ADV76xx chips on my board, which I hope will be available one day for
-> those interested) and so, I can test and help adding some of the
-> missing parts.
-> And for at least a week or two, I have all of my time for it, so it
-> would be of great help to know which one has the bigger chance to be
-> integrated... :)
+Enables the ADV7180 decoder sensor. The ADV7180 connects to the
+parallel-bus mux input on ipu1_csi0_mux.
 
-Steve's series is definitely preferred from my point of view. The feature
-set is clearly superior to Philipp's driver.
+On the sabreauto, two analog video inputs are routed to the ADV7180,
+composite on Ain1, and composite on Ain3. Those inputs are defined
+via inputs and input-names under the ADV7180 node. The ADV7180 power
+pin is via max7310_b port expander.
 
-I plan on reviewing Steve's series soonish but a quick scan didn't see anything
-suspicious. The code looks clean, and I am leaning towards getting this in sooner
-rather than later, so if you have the time to work on this, then go for it!
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 61 ++++++++++++++++++++++++++++++++
+ 1 file changed, 61 insertions(+)
 
-Steve, I have a SabreLite and a ov5642 sensor, so I should be able to test
-that driver.
+diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+index 495709f..7999857 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+@@ -124,6 +124,24 @@
+ 			#size-cells = <0>;
+ 			reg = <1>;
+ 
++			adv7180: camera@21 {
++				compatible = "adi,adv7180";
++				reg = <0x21>;
++				powerdown-gpios = <&max7310_b 2 GPIO_ACTIVE_LOW>;
++				interrupt-parent = <&gpio1>;
++				interrupts = <27 0x8>;
++				inputs = <0x00 0x02>;
++				input-names = "ADV7180 Composite on Ain1",
++						"ADV7180 Composite on Ain3";
++
++				port {
++					adv7180_to_ipu1_csi0_mux: endpoint {
++						remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
++						bus-width = <8>;
++					};
++				};
++			};
++
+ 			max7310_a: gpio@30 {
+ 				compatible = "maxim,max7310";
+ 				reg = <0x30>;
+@@ -151,6 +169,25 @@
+ 	};
+ };
+ 
++&ipu1_csi0_from_ipu1_csi0_mux {
++	bus-width = <8>;
++};
++
++&ipu1_csi0_mux_from_parallel_sensor {
++	remote-endpoint = <&adv7180_to_ipu1_csi0_mux>;
++	bus-width = <8>;
++};
++
++&ipu1_csi0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_ipu1_csi0>;
++
++	/* enable frame interval monitor on this port */
++	fim {
++		status = "okay";
++	};
++};
++
+ &clks {
+ 	assigned-clocks = <&clks IMX6QDL_PLL4_BYPASS_SRC>,
+ 			  <&clks IMX6QDL_PLL4_BYPASS>,
+@@ -445,6 +482,30 @@
+ 			>;
+ 		};
+ 
++		pinctrl_ipu1_csi0: ipu1csi0grp {
++			fsl,pins = <
++				MX6QDL_PAD_CSI0_DAT4__IPU1_CSI0_DATA04   0x1b0b0
++				MX6QDL_PAD_CSI0_DAT5__IPU1_CSI0_DATA05   0x1b0b0
++				MX6QDL_PAD_CSI0_DAT6__IPU1_CSI0_DATA06   0x1b0b0
++				MX6QDL_PAD_CSI0_DAT7__IPU1_CSI0_DATA07   0x1b0b0
++				MX6QDL_PAD_CSI0_DAT8__IPU1_CSI0_DATA08   0x1b0b0
++				MX6QDL_PAD_CSI0_DAT9__IPU1_CSI0_DATA09   0x1b0b0
++				MX6QDL_PAD_CSI0_DAT10__IPU1_CSI0_DATA10  0x1b0b0
++				MX6QDL_PAD_CSI0_DAT11__IPU1_CSI0_DATA11  0x1b0b0
++				MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12  0x1b0b0
++				MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13  0x1b0b0
++				MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14  0x1b0b0
++				MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15  0x1b0b0
++				MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16  0x1b0b0
++				MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17  0x1b0b0
++				MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18  0x1b0b0
++				MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19  0x1b0b0
++				MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK 0x1b0b0
++				MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC    0x1b0b0
++				MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC   0x1b0b0
++			>;
++		};
++
+ 		pinctrl_max7310: max7310grp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_SD2_DAT0__GPIO1_IO15 0x1b0b0
+-- 
+2.7.4
 
-There is also an ov5642 sensor driver in drivers/media/i2/soc_camera/ov5642.c.
-But nobody AFAIK is using it, so I would be inclined to take your code and
-remove the soc_camera driver.
-
-Regards,
-
-	Hans
