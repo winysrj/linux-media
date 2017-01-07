@@ -1,64 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56393 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932210AbdACJMJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2017 04:12:09 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Kevin Hilman <khilman@baylibre.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        linux-media@vger.kernel.org, Axel Haslam <ahaslam@baylibre.com>,
-        Bartosz =?utf-8?B?R2/FgmFzemV3c2tp?= <bgolaszewski@baylibre.com>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v6 0/5] davinci: VPIF: add DT support
-Date: Tue, 03 Jan 2017 11:12:10 +0200
-Message-ID: <57057847.C5XnZnHN9E@avalon>
-In-Reply-To: <4a03b56e-1e01-8b2c-c2a1-1b72d30f103a@ti.com>
-References: <20161207183025.20684-1-khilman@baylibre.com> <d4b0501a-f83a-c8b1-e460-1ba50f68cca7@xs4all.nl> <4a03b56e-1e01-8b2c-c2a1-1b72d30f103a@ti.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:34774 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S940551AbdAGCMK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2017 21:12:10 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v3 08/24] ARM: dts: imx6-sabreauto: create i2cmux for i2c3
+Date: Fri,  6 Jan 2017 18:11:26 -0800
+Message-Id: <1483755102-24785-9-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sekhar,
+The sabreauto uses a steering pin to select between the SDA signal on
+i2c3 bus, and a data-in pin for an SPI NOR chip. Use i2cmux to control
+this steering pin. Idle state of the i2cmux selects SPI NOR. This is not
+a classic way to use i2cmux, since one side of the mux selects something
+other than an i2c bus, but it works and is probably the cleanest
+solution. Note that if one thread is attempting to access SPI NOR while
+another thread is accessing i2c3, the SPI NOR access will fail since the
+i2cmux has selected the SDA pin rather than SPI NOR data-in. This couldn't
+be avoided in any case, the board is not designed to allow concurrent
+i2c3 and SPI NOR functions (and the default device-tree does not enable
+SPI NOR anyway).
 
-On Tuesday 03 Jan 2017 14:33:00 Sekhar Nori wrote:
-> On Friday 16 December 2016 03:17 PM, Hans Verkuil wrote:
-> > On 07/12/16 19:30, Kevin Hilman wrote:
-> >> Prepare the groundwork for adding DT support for davinci VPIF drivers.
-> >> This series does some fixups/cleanups and then adds the DT binding and
-> >> DT compatible string matching for DT probing.
-> >> 
-> >> The controversial part from previous versions around async subdev
-> >> parsing, and specifically hard-coding the input/output routing of
-> >> subdevs, has been left out of this series.  That part can be done as a
-> >> follow-on step after agreement has been reached on the path forward.
-> >> With this version, platforms can still use the VPIF capture/display
-> >> drivers, but must provide platform_data for the subdevs and subdev
-> >> routing.
-> >> 
-> >> Tested video capture to memory on da850-lcdk board using composite
-> >> input.
-> > 
-> > Other than the comment for the first patch this series looks good.
-> > 
-> > So once that's addressed I'll queue it up for 4.11.
-> 
-> Can you provide an immutable commit (as it will reach v4.11) with with
-> this series applied? I have some platform changes to queue for v4.11
-> that depend on the driver updates.
+Devices hanging off i2c3 should now be defined under i2cmux, so
+that the steering pin can be properly controlled to access those
+devices. The port expanders (MAX7310) are thus moved into i2cmux.
 
-I don't think that's possible, given that Mauro rewrites all patches when 
-handling pull requests to prepend [media] to the subject line and to add his 
-SoB. Only Mauro can thus provide a stable branch, Hans can't.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 65 +++++++++++++++++++++-----------
+ 1 file changed, 44 insertions(+), 21 deletions(-)
 
+diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+index 52390ba..cace88c 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+@@ -108,6 +108,44 @@
+ 		default-brightness-level = <7>;
+ 		status = "okay";
+ 	};
++
++	i2cmux {
++		compatible = "i2c-mux-gpio";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_i2c3mux>;
++		mux-gpios = <&gpio5 4 0>;
++		i2c-parent = <&i2c3>;
++		idle-state = <0>;
++
++		i2c@1 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <1>;
++
++			max7310_a: gpio@30 {
++				compatible = "maxim,max7310";
++				reg = <0x30>;
++				gpio-controller;
++				#gpio-cells = <2>;
++			};
++
++			max7310_b: gpio@32 {
++				compatible = "maxim,max7310";
++				reg = <0x32>;
++				gpio-controller;
++				#gpio-cells = <2>;
++			};
++
++			max7310_c: gpio@34 {
++				compatible = "maxim,max7310";
++				reg = <0x34>;
++				gpio-controller;
++				#gpio-cells = <2>;
++			};
++		};
++	};
+ };
+ 
+ &clks {
+@@ -291,27 +329,6 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_i2c3>;
+ 	status = "okay";
+-
+-	max7310_a: gpio@30 {
+-		compatible = "maxim,max7310";
+-		reg = <0x30>;
+-		gpio-controller;
+-		#gpio-cells = <2>;
+-	};
+-
+-	max7310_b: gpio@32 {
+-		compatible = "maxim,max7310";
+-		reg = <0x32>;
+-		gpio-controller;
+-		#gpio-cells = <2>;
+-	};
+-
+-	max7310_c: gpio@34 {
+-		compatible = "maxim,max7310";
+-		reg = <0x34>;
+-		gpio-controller;
+-		#gpio-cells = <2>;
+-	};
+ };
+ 
+ &iomuxc {
+@@ -419,6 +436,12 @@
+ 			>;
+ 		};
+ 
++		pinctrl_i2c3mux: i2c3muxgrp {
++			fsl,pins = <
++				MX6QDL_PAD_EIM_A24__GPIO5_IO04 0x0b0b1
++			>;
++		};
++
+ 		pinctrl_pwm3: pwm1grp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_SD4_DAT1__PWM3_OUT		0x1b0b1
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
 
