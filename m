@@ -1,65 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:53553 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752028AbdAaOZ7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jan 2017 09:25:59 -0500
-Message-ID: <1485872710.2932.65.camel@pengutronix.de>
-Subject: Re: [PATCH v3 00/24] i.MX Media Driver
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+Received: from box.matheina.com ([104.236.11.237]:37747 "EHLO box.matheina.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934072AbdAHXKV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 8 Jan 2017 18:10:21 -0500
+From: Scott Matheina <scott@matheina.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Kamil Debski <kamil@wypas.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
         linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Tue, 31 Jan 2017 15:25:10 +0100
-In-Reply-To: <1485870854.2932.63.camel@pengutronix.de>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
-         <1485870854.2932.63.camel@pengutronix.de>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Mime-Version: 1.0
+        linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org
+Subject: [PATCH 1/2] staging:media:s5p-cec:exynos_hdmi_cecctrl.c Fixed Alignment should match open parenthesis
+Date: Sun,  8 Jan 2017 17:00:38 -0600
+Message-Id: <1483916446-6418-1-git-send-email-scott@matheina.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2017-01-31 at 14:54 +0100, Philipp Zabel wrote:
-> Hi Steve,
-> 
-> I have just tested the imx-media-staging-md-wip branch on a Nitrogen6X
-> with a tc358743 (BD_HDMI_MIPI HDMI to MIPI CSI-2 receiver board). Some
-> observations:
-> 
-> # Link pipeline
-> media-ctl -l "'tc358743 1-000f':0->'imx6-mipi-csi2':0[1]"
-> media-ctl -l "'imx6-mipi-csi2':1->'ipu1_csi0_mux':0[1]"
-> media-ctl -l "'ipu1_csi0_mux':2->'ipu1_csi0':0[1]"
-> media-ctl -l "'ipu1_csi0':2->'ipu1_csi0 capture':0[1]"
-> 
-> # Provide an EDID to the HDMI source
-> v4l2-ctl -d /dev/v4l-subdev2 --set-edid=file=edid-1080p.hex
-> # At this point the HDMI source is enabled and sends a 1080p60 signal
-> # Configure detected DV timings
-> media-ctl --set-dv "'tc358743 1-000f':0"
-> 
-> # Set pad formats
-> media-ctl --set-v4l2 "'tc358743 1-000f':0[fmt:UYVY/1920x1080]"
-> media-ctl --set-v4l2 "'imx6-mipi-csi2':1[fmt:UYVY2X8/1920x1080]"
-> media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY2X8/1920x1080]"
+Fixed Checkpatch check "Alignment should match open parenthesis"
 
-I noticed this seems to get ignored. The format is incorrectly set to
-UYVY even though I request UYVY2X8 (see CSI2IPU chapter, Figure 19-10.
-YUV422-8 data reception in the reference manual), but it seems to work
-anyway.
+Signed-off-by: Scott Matheina <scott@matheina.com>
+---
+ drivers/staging/media/s5p-cec/exynos_hdmi_cecctrl.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-regards
-Philipp
+diff --git a/drivers/staging/media/s5p-cec/exynos_hdmi_cecctrl.c b/drivers/staging/media/s5p-cec/exynos_hdmi_cecctrl.c
+index ce95e0f..f2b24a4 100644
+--- a/drivers/staging/media/s5p-cec/exynos_hdmi_cecctrl.c
++++ b/drivers/staging/media/s5p-cec/exynos_hdmi_cecctrl.c
+@@ -186,13 +186,13 @@ u32 s5p_cec_get_status(struct s5p_cec_dev *cec)
+ void s5p_clr_pending_tx(struct s5p_cec_dev *cec)
+ {
+ 	writeb(S5P_CEC_IRQ_TX_DONE | S5P_CEC_IRQ_TX_ERROR,
+-					cec->reg + S5P_CEC_IRQ_CLEAR);
++	       cec->reg + S5P_CEC_IRQ_CLEAR);
+ }
+ 
+ void s5p_clr_pending_rx(struct s5p_cec_dev *cec)
+ {
+ 	writeb(S5P_CEC_IRQ_RX_DONE | S5P_CEC_IRQ_RX_ERROR,
+-					cec->reg + S5P_CEC_IRQ_CLEAR);
++	       cec->reg + S5P_CEC_IRQ_CLEAR);
+ }
+ 
+ void s5p_cec_get_rx_buf(struct s5p_cec_dev *cec, u32 size, u8 *buffer)
+-- 
+2.7.4
+
