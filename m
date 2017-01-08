@@ -1,95 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:34832 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966142AbdACU6S (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2017 15:58:18 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: shawnguo@kernel.org, kernel@pengutronix.de, fabio.estevam@nxp.com,
-        robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk,
-        mchehab@kernel.org, gregkh@linuxfoundation.org,
-        p.zabel@pengutronix.de
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v2 19/19] ARM: imx_v6_v7_defconfig: Enable staging video4linux drivers
-Date: Tue,  3 Jan 2017 12:57:29 -0800
-Message-Id: <1483477049-19056-20-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from box.matheina.com ([104.236.11.237]:44883 "EHLO box.matheina.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933009AbdAHXKV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 8 Jan 2017 18:10:21 -0500
+From: Scott Matheina <scott@matheina.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Kamil Debski <kamil@wypas.org>, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org
+Subject: [PATCH 2/2] staging/media/s5p-cec/exynos_hdmi_cecctrl.c Fixed blank line before closing brace '}'
+Date: Sun,  8 Jan 2017 17:00:39 -0600
+Message-Id: <1483916446-6418-2-git-send-email-scott@matheina.com>
+In-Reply-To: <1483916446-6418-1-git-send-email-scott@matheina.com>
+References: <1483916446-6418-1-git-send-email-scott@matheina.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enable imx v4l2 staging drivers. For video capture on
-the SabreAuto, the ADV7180 video decoder also requires the
-i2c-mux-gpio and the max7310 port expander. The Sabrelite
-requires PWM clocks for the OV5640.
+Fixed checkpatch check blank line before closing brace '}'
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Scott Matheina <scott@matheina.com>
 ---
- arch/arm/configs/imx_v6_v7_defconfig | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ drivers/staging/media/s5p-cec/exynos_hdmi_cecctrl.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/arch/arm/configs/imx_v6_v7_defconfig b/arch/arm/configs/imx_v6_v7_defconfig
-index cbe7faf..5da4d8e 100644
---- a/arch/arm/configs/imx_v6_v7_defconfig
-+++ b/arch/arm/configs/imx_v6_v7_defconfig
-@@ -51,6 +51,7 @@ CONFIG_PREEMPT_VOLUNTARY=y
- CONFIG_AEABI=y
- CONFIG_HIGHMEM=y
- CONFIG_CMA=y
-+CONFIG_FORCE_MAX_ZONEORDER=14
- CONFIG_CMDLINE="noinitrd console=ttymxc0,115200"
- CONFIG_KEXEC=y
- CONFIG_CPU_FREQ=y
-@@ -181,6 +182,7 @@ CONFIG_SERIAL_FSL_LPUART=y
- CONFIG_SERIAL_FSL_LPUART_CONSOLE=y
- # CONFIG_I2C_COMPAT is not set
- CONFIG_I2C_CHARDEV=y
-+CONFIG_I2C_MUX=y
- CONFIG_I2C_MUX_GPIO=y
- # CONFIG_I2C_HELPER_AUTO is not set
- CONFIG_I2C_ALGOPCF=m
-@@ -194,11 +196,11 @@ CONFIG_GPIO_SYSFS=y
- CONFIG_GPIO_MC9S08DZ60=y
- CONFIG_GPIO_PCA953X=y
- CONFIG_GPIO_STMPE=y
--CONFIG_POWER_SUPPLY=y
- CONFIG_POWER_RESET=y
- CONFIG_POWER_RESET_IMX=y
- CONFIG_POWER_RESET_SYSCON=y
- CONFIG_POWER_RESET_SYSCON_POWEROFF=y
-+CONFIG_POWER_SUPPLY=y
- CONFIG_SENSORS_GPIO_FAN=y
- CONFIG_SENSORS_IIO_HWMON=y
- CONFIG_THERMAL=y
-@@ -221,6 +223,8 @@ CONFIG_REGULATOR_PFUZE100=y
- CONFIG_MEDIA_SUPPORT=y
- CONFIG_MEDIA_CAMERA_SUPPORT=y
- CONFIG_MEDIA_RC_SUPPORT=y
-+CONFIG_MEDIA_CONTROLLER=y
-+CONFIG_VIDEO_V4L2_SUBDEV_API=y
- CONFIG_RC_DEVICES=y
- CONFIG_IR_GPIO_CIR=y
- CONFIG_MEDIA_USB_SUPPORT=y
-@@ -229,6 +233,8 @@ CONFIG_V4L_PLATFORM_DRIVERS=y
- CONFIG_SOC_CAMERA=y
- CONFIG_V4L_MEM2MEM_DRIVERS=y
- CONFIG_VIDEO_CODA=y
-+# CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
-+CONFIG_VIDEO_ADV7180=m
- CONFIG_SOC_CAMERA_OV2640=y
- CONFIG_IMX_IPUV3_CORE=y
- CONFIG_DRM=y
-@@ -338,6 +344,8 @@ CONFIG_FSL_EDMA=y
- CONFIG_IMX_SDMA=y
- CONFIG_MXS_DMA=y
- CONFIG_STAGING=y
-+CONFIG_STAGING_MEDIA=y
-+CONFIG_COMMON_CLK_PWM=y
- CONFIG_IIO=y
- CONFIG_VF610_ADC=y
- CONFIG_MPL3115=y
+diff --git a/drivers/staging/media/s5p-cec/exynos_hdmi_cecctrl.c b/drivers/staging/media/s5p-cec/exynos_hdmi_cecctrl.c
+index f2b24a4..1edf667 100644
+--- a/drivers/staging/media/s5p-cec/exynos_hdmi_cecctrl.c
++++ b/drivers/staging/media/s5p-cec/exynos_hdmi_cecctrl.c
+@@ -87,7 +87,6 @@ void s5p_cec_mask_tx_interrupts(struct s5p_cec_dev *cec)
+ 	reg |= S5P_CEC_IRQ_TX_DONE;
+ 	reg |= S5P_CEC_IRQ_TX_ERROR;
+ 	writeb(reg, cec->reg + S5P_CEC_IRQ_MASK);
+-
+ }
+ 
+ void s5p_cec_unmask_tx_interrupts(struct s5p_cec_dev *cec)
 -- 
 2.7.4
 
