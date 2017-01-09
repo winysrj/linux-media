@@ -1,50 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
-        Jerome Glisse <jglisse@redhat.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <20170105183927.GA5324@gmail.com>
- <20170105190113.GA12587@obsidianresearch.com>
- <20170105195424.GB2166@redhat.com>
- <20170105200719.GB31047@obsidianresearch.com>
- <20170105201935.GC2166@redhat.com>
- <20170105224215.GA3855@obsidianresearch.com>
- <20170105232352.GB6426@redhat.com>
- <20170106003034.GB4670@obsidianresearch.com>
-CC: Jerome Glisse <j.glisse@gmail.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>,
-        "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>,
-        "'linux-nvdimm@lists.01.org'" <linux-nvdimm@ml01.01.org>,
-        "'Linux-media@vger.kernel.org'" <Linux-media@vger.kernel.org>,
-        "'dri-devel@lists.freedesktop.org'" <dri-devel@lists.freedesktop.org>,
-        "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>, <hch@infradead.org>,
-        <david1.zhou@amd.com>, <qiang.yu@amd.com>
-From: Serguei Sagalovitch <serguei.sagalovitch@amd.com>
-Message-ID: <26f86650-5302-0df2-9b51-dd967f3e5a7b@amd.com>
-Date: Thu, 5 Jan 2017 19:41:26 -0500
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:34862 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936099AbdAIMBh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2017 07:01:37 -0500
+Date: Mon, 9 Jan 2017 12:01:08 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Cc: arnd@arndb.de, linux-mips@linux-mips.org,
+        alsa-devel@alsa-project.org, linux-ia64@vger.kernel.org,
+        linux-doc@vger.kernel.org, airlied@linux.ie,
+        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-mtd@lists.infradead.org, sparclinux@vger.kernel.org,
+        linux-arch@vger.kernel.org, linux-s390@vger.kernel.org,
+        linux-am33-list@redhat.com, linux-c6x-dev@linux-c6x.org,
+        linux-rdma@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-sh@vger.kernel.org, coreteam@netfilter.org,
+        fcoe-devel@open-fcoe.org, xen-devel@lists.xenproject.org,
+        linux-snps-arc@lists.infradead.org, linux-media@vger.kernel.org,
+        uclinux-h8-devel@lists.sourceforge.jp,
+        linux-xtensa@linux-xtensa.org, linux-kbuild@vger.kernel.org,
+        adi-buildroot-devel@lists.sourceforge.net,
+        linux-raid@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        openrisc@lists.librecores.org, linux-metag@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-nfs@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linux-cris-kernel@axis.com,
+        netdev@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org,
+        mmarek@suse.com, netfilter-devel@vger.kernel.org,
+        linux-alpha@vger.kernel.org, nios2-dev@lists.rocketboards.org,
+        linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
+Subject: Re: [PATCH v2 7/7] uapi: export all headers under uapi directories
+Message-ID: <20170109120107.GW14217@n2100.armlinux.org.uk>
+References: <bf83da6b-01ef-bf44-b3e1-ca6fc5636818@6wind.com>
+ <1483695839-18660-1-git-send-email-nicolas.dichtel@6wind.com>
+ <1483695839-18660-8-git-send-email-nicolas.dichtel@6wind.com>
 MIME-Version: 1.0
-In-Reply-To: <20170106003034.GB4670@obsidianresearch.com>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1483695839-18660-8-git-send-email-nicolas.dichtel@6wind.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2017-01-05 07:30 PM, Jason Gunthorpe wrote:
-> ........ but I am opposed to
-> the idea we need two API paths that the *driver* has to figure out.
-> That is fundamentally not what I want as a driver developer.
->
-> Give me a common API to convert '__user *' to a scatter list and pin
-> the pages.
-Completely agreed. IMHO there is no sense to duplicate the same logic
-everywhere as well as  trying to find places where it is missing.
+On Fri, Jan 06, 2017 at 10:43:59AM +0100, Nicolas Dichtel wrote:
+> diff --git a/arch/arm/include/uapi/asm/Kbuild b/arch/arm/include/uapi/asm/Kbuild
+> index 46a76cd6acb6..607f702c2d62 100644
+> --- a/arch/arm/include/uapi/asm/Kbuild
+> +++ b/arch/arm/include/uapi/asm/Kbuild
+> @@ -1,23 +1,6 @@
+>  # UAPI Header export list
+>  include include/uapi/asm-generic/Kbuild.asm
+>  
+> -header-y += auxvec.h
+> -header-y += byteorder.h
+> -header-y += fcntl.h
+> -header-y += hwcap.h
+> -header-y += ioctls.h
+> -header-y += kvm_para.h
+> -header-y += mman.h
+> -header-y += perf_regs.h
+> -header-y += posix_types.h
+> -header-y += ptrace.h
+> -header-y += setup.h
+> -header-y += sigcontext.h
+> -header-y += signal.h
+> -header-y += stat.h
+> -header-y += statfs.h
+> -header-y += swab.h
+> -header-y += unistd.h
+>  genhdr-y += unistd-common.h
+>  genhdr-y += unistd-oabi.h
+>  genhdr-y += unistd-eabi.h
 
-Sincerely yours,
-Serguei Sagalovitch
+Acked-by: Russell King <rmk+kernel@armlinux.org.uk>
 
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
