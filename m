@@ -1,180 +1,323 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:35857 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752718AbdARKWP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Jan 2017 05:22:15 -0500
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>
-Subject: [PATCH 08/11] [media] s5p-mfc: Add VP9 decoder support
-Date: Wed, 18 Jan 2017 15:32:06 +0530
-Message-id: <1484733729-25371-9-git-send-email-smitha.t@samsung.com>
-In-reply-to: <1484733729-25371-1-git-send-email-smitha.t@samsung.com>
-References: <1484733729-25371-1-git-send-email-smitha.t@samsung.com>
- <CGME20170118100756epcas1p2c8a93b383a4c85648b5e9efac8cea9c7@epcas1p2.samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:60788 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753271AbdAIWfp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Jan 2017 17:35:45 -0500
+Subject: Re: [PATCH] [media] cx231xx: Initial support Evromedia USB Full
+ Hybrid Full HD
+To: Oleh Kravchenko <oleg@kaa.org.ua>, linux-media@vger.kernel.org,
+        hverkuil@xs4all.nl
+References: <20170109152310.22161-1-oleg@kaa.org.ua>
+ <135491db-a8e8-802d-d533-57b18d7725d4@iki.fi>
+ <741106f9-1866-60d9-2eab-6b7b620e37fa@kaa.org.ua>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <ca644c03-0e28-78a4-89c3-863e0aafbbbb@iki.fi>
+Date: Tue, 10 Jan 2017 00:35:42 +0200
+MIME-Version: 1.0
+In-Reply-To: <741106f9-1866-60d9-2eab-6b7b620e37fa@kaa.org.ua>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for codec definition and corresponding buffer
-requirements for VP9 decoder.
 
-Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
----
- drivers/media/platform/s5p-mfc/regs-mfc-v10.h   |    6 +++++
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c |    3 ++
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |    8 ++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |    2 +
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   28 +++++++++++++++++++++++
- 6 files changed, 48 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-index a57009a..81a0a96 100644
---- a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-@@ -18,6 +18,8 @@
- /* MFCv10 register definitions*/
- #define S5P_FIMV_MFC_CLOCK_OFF_V10			0x7120
- #define S5P_FIMV_MFC_STATE_V10				0x7124
-+#define S5P_FIMV_D_STATIC_BUFFER_ADDR_V10		0xF570
-+#define S5P_FIMV_D_STATIC_BUFFER_SIZE_V10		0xF574
- 
- /* MFCv10 Context buffer sizes */
- #define MFC_CTX_BUF_SIZE_V10		(30 * SZ_1K)	/* 30KB */
-@@ -34,6 +36,10 @@
- 
- /* MFCv10 codec defines*/
- #define S5P_FIMV_CODEC_HEVC_DEC		17
-+#define S5P_FIMV_CODEC_VP9_DEC		18
-+
-+/* Decoder buffer size for MFC v10 */
-+#define DEC_VP9_STATIC_BUFFER_SIZE	20480
- 
- /* Encoder buffer size for MFC v10.0 */
- #define ENC_V100_H264_ME_SIZE(x, y)	\
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-index 76eca67..102b47e 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-@@ -104,6 +104,9 @@ static int s5p_mfc_open_inst_cmd_v6(struct s5p_mfc_ctx *ctx)
- 	case S5P_MFC_CODEC_HEVC_DEC:
- 		codec_type = S5P_FIMV_CODEC_HEVC_DEC;
- 		break;
-+	case S5P_MFC_CODEC_VP9_DEC:
-+		codec_type = S5P_FIMV_CODEC_VP9_DEC;
-+		break;
- 	case S5P_MFC_CODEC_H264_ENC:
- 		codec_type = S5P_FIMV_CODEC_H264_ENC_V6;
- 		break;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index 5c46060..e720ce6 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -80,6 +80,7 @@ static inline dma_addr_t s5p_mfc_mem_cookie(void *a, void *b)
- #define S5P_MFC_CODEC_VC1RCV_DEC	6
- #define S5P_MFC_CODEC_VP8_DEC		7
- #define S5P_MFC_CODEC_HEVC_DEC		17
-+#define S5P_MFC_CODEC_VP9_DEC		18
- 
- #define S5P_MFC_CODEC_H264_ENC		20
- #define S5P_MFC_CODEC_H264_MVC_ENC	21
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 9f459b3..93626ed 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -164,6 +164,14 @@
- 		.num_planes	= 1,
- 		.versions	= MFC_V10_BIT,
- 	},
-+	{
-+		.name		= "VP9 Encoded Stream",
-+		.fourcc		= V4L2_PIX_FMT_VP9,
-+		.codec_mode	= S5P_FIMV_CODEC_VP9_DEC,
-+		.type		= MFC_FMT_DEC,
-+		.num_planes	= 1,
-+		.versions	= MFC_V10_BIT,
-+	},
- };
- 
- #define NUM_FORMATS ARRAY_SIZE(formats)
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
-index 6478f70..565decf 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
-@@ -170,6 +170,8 @@ struct s5p_mfc_regs {
- 	void __iomem *d_used_dpb_flag_upper;/* v7 and v8 */
- 	void __iomem *d_used_dpb_flag_lower;/* v7 and v8 */
- 	void __iomem *d_min_scratch_buffer_size; /* v10 */
-+	void __iomem *d_static_buffer_addr; /* v10 */
-+	void __iomem *d_static_buffer_size; /* v10 */
- 
- 	/* encoder registers */
- 	void __iomem *e_frame_width;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index b6cb280..da4202f 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -227,6 +227,13 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 			ctx->scratch_buf_size +
- 			(ctx->mv_count * ctx->mv_size);
- 		break;
-+	case S5P_MFC_CODEC_VP9_DEC:
-+		mfc_debug(2, "Use min scratch buffer size\n");
-+		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size, 256);
-+		ctx->bank1.size =
-+			ctx->scratch_buf_size +
-+			DEC_VP9_STATIC_BUFFER_SIZE;
-+		break;
- 	case S5P_MFC_CODEC_H264_ENC:
- 		if (IS_MFCV10(dev)) {
- 			mfc_debug(2, "Use min scratch buffer size\n");
-@@ -338,6 +345,7 @@ static int s5p_mfc_alloc_instance_buffer_v6(struct s5p_mfc_ctx *ctx)
- 	case S5P_MFC_CODEC_VC1_DEC:
- 	case S5P_MFC_CODEC_MPEG2_DEC:
- 	case S5P_MFC_CODEC_VP8_DEC:
-+	case S5P_MFC_CODEC_VP9_DEC:
- 		ctx->ctx.size = buf_size->other_dec_ctx;
- 		break;
- 	case S5P_MFC_CODEC_H264_ENC:
-@@ -579,6 +587,14 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
- 		}
- 	}
- 
-+	if (ctx->codec_mode == S5P_FIMV_CODEC_VP9_DEC) {
-+		writel(buf_addr1, mfc_regs->d_static_buffer_addr);
-+		writel(DEC_VP9_STATIC_BUFFER_SIZE,
-+				mfc_regs->d_static_buffer_size);
-+		buf_addr1 += DEC_VP9_STATIC_BUFFER_SIZE;
-+		buf_size1 -= DEC_VP9_STATIC_BUFFER_SIZE;
-+	}
-+
- 	mfc_debug(2, "Buf1: %zu, buf_size1: %d (frames %d)\n",
- 			buf_addr1, buf_size1, ctx->total_dpb_count);
- 	if (buf_size1 < 0) {
-@@ -2286,6 +2302,18 @@ static unsigned int s5p_mfc_get_crop_info_v_v6(struct s5p_mfc_ctx *ctx)
- 	R(e_h264_options, S5P_FIMV_E_H264_OPTIONS_V8);
- 	R(e_min_scratch_buffer_size, S5P_FIMV_E_MIN_SCRATCH_BUFFER_SIZE_V8);
- 
-+	if (!IS_MFCV10(dev))
-+		goto done;
-+
-+	/* Initialize registers used in MFC v10 only.
-+	 * Also, over-write the registers which have
-+	 * a different offset for MFC v10.
-+	 */
-+
-+	/* decoder registers */
-+	R(d_static_buffer_addr, S5P_FIMV_D_STATIC_BUFFER_ADDR_V10);
-+	R(d_static_buffer_size, S5P_FIMV_D_STATIC_BUFFER_SIZE_V10);
-+
- done:
- 	return &mfc_regs;
- #undef S5P_MFC_REG_ADDR
+On 01/09/2017 11:49 PM, Oleh Kravchenko wrote:
+> Hello!
+>
+> On 09.01.17 18:59, Antti Palosaari wrote:
+>>
+>>
+>> On 01/09/2017 05:23 PM, Oleh Kravchenko wrote:
+>>> This patch provide only digital support.
+>>>
+>>> The device is based on Si2168 30-demodulator,
+>>> Si2158-20 tuner and CX23102-11Z chipset;
+>>> USB id: 1b80:d3b2.
+>>>
+>>> Status:
+>>> - DVB-T2 works fine;
+>>> - Composite and SVideo works fine;
+>>> - Analog not implemented.
+>>>
+>>> Signed-off-by: Oleh Kravchenko <oleg@kaa.org.ua>
+>>> Tested-by: Oleh Kravchenko <oleg@kaa.org.ua>
+>>> ---
+>>>  drivers/media/usb/cx231xx/Kconfig         |  1 +
+>>>  drivers/media/usb/cx231xx/cx231xx-cards.c | 29 +++++++++++++
+>>>  drivers/media/usb/cx231xx/cx231xx-dvb.c   | 71 +++++++++++++++++++++++++++++++
+>>>  drivers/media/usb/cx231xx/cx231xx-i2c.c   | 37 ++++++++++++++++
+>>>  drivers/media/usb/cx231xx/cx231xx.h       |  1 +
+>>>  5 files changed, 139 insertions(+)
+>>>
+>>> diff --git a/drivers/media/usb/cx231xx/Kconfig b/drivers/media/usb/cx231xx/Kconfig
+>>> index 0cced3e..58de80b 100644
+>>> --- a/drivers/media/usb/cx231xx/Kconfig
+>>> +++ b/drivers/media/usb/cx231xx/Kconfig
+>>> @@ -50,6 +50,7 @@ config VIDEO_CX231XX_DVB
+>>>      select DVB_LGDT3306A if MEDIA_SUBDRV_AUTOSELECT
+>>>      select DVB_TDA18271C2DD if MEDIA_SUBDRV_AUTOSELECT
+>>>      select DVB_SI2165 if MEDIA_SUBDRV_AUTOSELECT
+>>> +    select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
+>>>      select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
+>>>
+>>>      ---help---
+>>> diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+>>> index 36bc254..9b1df5a 100644
+>>> --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
+>>> +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+>>> @@ -841,6 +841,33 @@ struct cx231xx_board cx231xx_boards[] = {
+>>>              .gpio = NULL,
+>>>          } },
+>>>      },
+>>> +    [CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD] = {
+>>> +        .name = "Evromedia USB Full Hybrid Full HD",
+>>> +        .tuner_type = TUNER_ABSENT,
+>>> +        .demod_addr = 0xc8 >> 1,
+>>> +        .demod_i2c_master = I2C_1_MUX_3,
+>>> +        .has_dvb = 1,
+>>> +        .ir_i2c_master = I2C_0,
+>>> +        .norm = V4L2_STD_PAL,
+>>> +        .output_mode = OUT_MODE_VIP11,
+>>> +        .tuner_addr = 0xc0 >> 1,
+>>
+>> These "8-bit" I2C addresses looks funny, but if that's used by cx231xx driver then leave...
+>
+> To avoid misunderstanding, Windows driver use shifted i2c addresses.
+
+eh, I2C addresses are 7-bit + lsb which is bit read/write. Just use 
+correct addresses. I assume you saw "8-bit" addresses on usb sniffs - 
+that is very commonly used for usb hardware api...
+
+>
+>>> +        .tuner_i2c_master = I2C_2,
+>>> +        .input = {{
+>>> +            .type = CX231XX_VMUX_TELEVISION,
+>>> +            .vmux = 0,
+>>> +            .amux = CX231XX_AMUX_VIDEO,
+>>> +        }, {
+>>> +            .type = CX231XX_VMUX_COMPOSITE1,
+>>> +            .vmux = CX231XX_VIN_2_1,
+>>> +            .amux = CX231XX_AMUX_LINE_IN,
+>>> +        }, {
+>>> +            .type = CX231XX_VMUX_SVIDEO,
+>>> +            .vmux = CX231XX_VIN_1_1 |
+>>> +                (CX231XX_VIN_1_2 << 8) |
+>>> +                CX25840_SVIDEO_ON,
+>>> +            .amux = CX231XX_AMUX_LINE_IN,
+>>> +        } },
+>>> +    },
+>>>  };
+>>>  const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
+>>>
+>>> @@ -908,6 +935,8 @@ struct usb_device_id cx231xx_id_table[] = {
+>>>       .driver_info = CX231XX_BOARD_OTG102},
+>>>      {USB_DEVICE(USB_VID_TERRATEC, 0x00a6),
+>>>       .driver_info = CX231XX_BOARD_TERRATEC_GRABBY},
+>>> +    {USB_DEVICE(0x1b80, 0xd3b2),
+>>> +    .driver_info = CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD},
+>>>      {},
+>>>  };
+>>>
+>>> diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+>>> index 1417515..08472a3 100644
+>>> --- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
+>>> +++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+>>> @@ -33,6 +33,7 @@
+>>>  #include "s5h1411.h"
+>>>  #include "lgdt3305.h"
+>>>  #include "si2165.h"
+>>> +#include "si2168.h"
+>>>  #include "mb86a20s.h"
+>>>  #include "si2157.h"
+>>>  #include "lgdt3306a.h"
+>>> @@ -949,6 +950,76 @@ static int dvb_init(struct cx231xx *dev)
+>>>                 &pv_tda18271_config);
+>>>          break;
+>>>
+>>> +    case CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD:
+>>> +    {
+>>> +        struct si2157_config si2157_config = {};
+>>> +        struct si2168_config si2168_config = {};
+>>> +        struct i2c_board_info info = {};
+>>> +        struct i2c_client *client;
+>>> +        struct i2c_adapter *adapter;
+>>> +
+>>> +        /* attach demodulator chip */
+>>> +        si2168_config.ts_mode = SI2168_TS_SERIAL; /* from *.inf file */
+>>> +        si2168_config.fe = &dev->dvb->frontend;
+>>> +        si2168_config.i2c_adapter = &adapter;
+>>> +        si2168_config.ts_clock_inv = true;
+>>> +
+>>> +        strlcpy(info.type, "si2168", info.type);
+>>> +        info.addr = dev->board.demod_addr;
+>>> +        info.platform_data = &si2168_config;
+>>> +
+>>> +        request_module(info.type);
+>>> +        client = i2c_new_device(demod_i2c, &info);
+>>> +
+>>> +        if (client == NULL || client->dev.driver == NULL || dev->dvb->frontend == NULL) {
+>>
+>> No need to check frontend here, or at least I cannot see why it should? Does the cx231xx initialize with some special value before calling si2168 probe - which will set it? client and driver will be null in case si2168 probe fails. Also, frontend pointer is not set if si2168 probe fails.
+>>
+>
+> I just copy code from CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx case, are you sure about it?
+
+I am pretty sure. But I am not any familiar with cx231xx driver. It is 
+your work to explain why it is needed. No idea why it is used for 
+hauppauge card, but it simply looks wrong for my eyes.
+
+>
+>>> +            dev_err(dev->dev, "Failed to attach Si2168 front end\n");
+>>> +            result = -EINVAL;
+>>> +            goto out_free;
+>>> +        }
+>>> +
+>>> +        if (!try_module_get(client->dev.driver->owner)) {
+>>> +            i2c_unregister_device(client);
+>>> +            result = -ENODEV;
+>>> +            goto out_free;
+>>> +        }
+>>> +
+>>> +        dvb->i2c_client_demod = client;
+>>> +        dev->dvb->frontend->ops.i2c_gate_ctrl = NULL;
+>>
+>> si2168 does not use nor set i2c_gate_ctrl callback. No need to nullify it in any case.
+>
+> Done!
+>
+>>> +        dvb->frontend->callback = cx231xx_tuner_callback;
+>>> +
+>>> +        /* attach tuner chip */
+>>> +        si2157_config.fe = dev->dvb->frontend;
+>>> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+>>> +        si2157_config.mdev = dev->media_dev;
+>>> +#endif
+>>> +        si2157_config.if_port = 1;
+>>> +        si2157_config.inversion = false;
+>>> +
+>>> +        memset(&info, 0, sizeof(info));
+>>> +        strlcpy(info.type, "si2157", info.type);
+>>> +        info.addr = dev->board.tuner_addr;
+>>> +        info.platform_data = &si2157_config;
+>>> +
+>>> +        request_module("si2157");
+>>> +        client = i2c_new_device(tuner_i2c, &info);
+>>> +
+>>> +        if (client == NULL || client->dev.driver == NULL) {
+>>> +            dvb_frontend_detach(dev->dvb->frontend);
+>>> +            result = -ENODEV;
+>>> +            goto out_free;
+>>> +        }
+>>
+>> Does this error handling work? Have you tested it? I suspect it will not. You should likely decrease si2168 module reference counter and then unregister si2168 driver.
+>>
+>
+> The same error handling for CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx, why it bad?
+
+Because frontend or tuner is not attached and you call 
+dvb_frontend_detach() which will likely do nothing. You are only 
+registered si2168 driver and increased module reference count.
+
+Test error handling by hacking si2168 and si2157 driver returning some 
+error code from the probe. What I think what happens when for example 
+si2157 driver probe fails it leaves si2168 driver there registered and 
+module use count increased => you cannot remove si2168 driver from 
+memory (rmmod).
+
+>
+>>> +
+>>> +        if (!try_module_get(client->dev.driver->owner)) {
+>>> +            i2c_unregister_device(client);
+>>> +            dvb_frontend_detach(dev->dvb->frontend);
+>>> +            result = -ENODEV;
+>>> +            goto out_free;
+>>> +        }
+>>> +
+>>> +        dev->cx231xx_reset_analog_tuner = NULL;
+>>> +        dev->dvb->i2c_client_tuner = client;
+>>> +        break;
+>>> +    }
+>>>      default:
+>>>          dev_err(dev->dev,
+>>>              "%s/2: The frontend of your DVB/ATSC card isn't supported yet\n",
+>>> diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+>>> index 35e9acf..60412ec 100644
+>>> --- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
+>>> +++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+>>> @@ -171,6 +171,43 @@ static int cx231xx_i2c_send_bytes(struct i2c_adapter *i2c_adap,
+>>>          bus->i2c_nostop = 0;
+>>>          bus->i2c_reserve = 0;
+>>>
+>>> +    } else if (dev->model == CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD
+>>> +        && msg->addr == dev->tuner_addr
+>>> +        && msg->len > 4) {
+>>> +        /* special case for Evromedia USB Full Hybrid Full HD tuner chip */
+>>> +        size = msg->len;
+>>> +        saddr_len = 1;
+>>> +
+>>> +        /* adjust the length to correct length */
+>>> +        size -= saddr_len;
+>>> +
+>>> +        buf_ptr = (u8*)(msg->buf + 1);
+>>> +
+>>> +        do {
+>>> +            /* prepare xfer_data struct */
+>>> +            req_data.dev_addr = msg->addr;
+>>> +            req_data.direction = msg->flags;
+>>> +            req_data.saddr_len = saddr_len;
+>>> +            req_data.saddr_dat = msg->buf[0];
+>>> +            req_data.buf_size = size > 4 ? 4 : size;
+>>> +            req_data.p_buffer = (u8*)(buf_ptr + loop * 4);
+>>> +
+>>> +            bus->i2c_nostop = (size > 4) ? 1 : 0;
+>>> +            bus->i2c_reserve = (loop == 0) ? 0 : 1;
+>>> +
+>>> +            /* usb send command */
+>>> +            status = dev->cx231xx_send_usb_command(bus, &req_data);
+>>> +            loop++;
+>>> +
+>>> +            if (size >= 4) {
+>>> +                size -= 4;
+>>> +            } else {
+>>> +                size = 0;
+>>> +            }
+>>> +        } while (size > 0);
+>>> +
+>>> +        bus->i2c_nostop = 0;
+>>> +        bus->i2c_reserve = 0;
+>>
+>> I don't follow (and I looked only that patch, not whole cx231xx driver) why this I2C adapter logic is limited to that device only. si2168 and si2157 drivers applies just standard multibyte I2C read and write operations - no write+read op used at all.
+>>
+>> These I2C adapter routines should be same for every device. Maybe original logic is somehow wrong and it should be fixed instead of adding new device specific logic.
+>
+> I can rewrite it, but who will test it? :)
+
+gah, there seems to be a lot of existing hacks on that I2C adapter 
+implementation :/ Now it is very hard to fix properly... dunno what to do.
+
+
+>
+>>>      } else {        /* regular case */
+>>>
+>>>          /* prepare xfer_data struct */
+>>> diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+>>> index 90c8676..d9792ea 100644
+>>> --- a/drivers/media/usb/cx231xx/cx231xx.h
+>>> +++ b/drivers/media/usb/cx231xx/cx231xx.h
+>>> @@ -78,6 +78,7 @@
+>>>  #define CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx 20
+>>>  #define CX231XX_BOARD_HAUPPAUGE_955Q 21
+>>>  #define CX231XX_BOARD_TERRATEC_GRABBY 22
+>>> +#define CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD 23
+>>>
+>>>  /* Limits minimum and default number of buffers */
+>>>  #define CX231XX_MIN_BUF                 4
+>>>
+>>
+>> regards
+>> Antti
+>>
+
 -- 
-1.7.2.3
-
+http://palosaari.fi/
