@@ -1,81 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from guitar.tcltek.co.il ([192.115.133.116]:55700 "EHLO
-        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750815AbdALMGT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Jan 2017 07:06:19 -0500
-Date: Thu, 12 Jan 2017 14:06:03 +0200
-From: Baruch Siach <baruch@tkos.co.il>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: robh+dt@kernel.org, devicetree@vger.kernel.org,
-        ivo.g.dimitrov.75@gmail.com, sakari.ailus@iki.fi, sre@kernel.org,
-        pali.rohar@gmail.com, linux-media@vger.kernel.org
-Subject: Re: [PATCHv2] dt: bindings: Add support for CSI1 bus
-Message-ID: <20170112120603.6gwtpwhyuaynvlj3@tarshish>
-References: <20161228183036.GA13139@amd>
- <20170111225335.GA21553@amd>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:38433 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1760806AbdAINXi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Jan 2017 08:23:38 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.11] New st-delta driver
+Message-ID: <b5f8fb46-6507-417c-8f1e-3b3f1410a64d@xs4all.nl>
+Date: Mon, 9 Jan 2017 14:23:33 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170111225335.GA21553@amd>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+See the v4 series for details:
 
-On Wed, Jan 11, 2017 at 11:53:35PM +0100, Pavel Machek wrote:
-> From: Sakari Ailus <sakari.ailus@iki.fi>
-> 
-> In the vast majority of cases the bus type is known to the driver(s)
-> since a receiver or transmitter can only support a single one. There
-> are cases however where different options are possible.
-> 
-> The existing V4L2 OF support tries to figure out the bus type and
-> parse the bus parameters based on that. This does not scale too well
-> as there are multiple serial busses that share common properties.
-> 
-> Some hardware also supports multiple types of busses on the same
-> interfaces.
-> 
-> Document the CSI1/CCP2 property strobe. It signifies the clock or
-> strobe mode.
->  
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> 
-> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> index 9cd2a36..08c4498 100644
-> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> @@ -76,6 +76,11 @@ Optional endpoint properties
->    mode horizontal and vertical synchronization signals are provided to the
->    slave device (data source) by the master device (data sink). In the master
->    mode the data source device is also the source of the synchronization signals.
-> +- bus-type: data bus type. Possible values are:
-> +  0 - MIPI CSI2
-> +  1 - parallel / Bt656
+https://www.spinics.net/lists/linux-media/msg108737.html
 
-Why not have separate values for parallel and BT.656?
+Regards,
 
-baruch
+	Hans
 
-> +  2 - MIPI CSI1
-> +  3 - CCP2
->  - bus-width: number of data lines actively used, valid for the parallel busses.
->  - data-shift: on the parallel data busses, if bus-width is used to specify the
->    number of data lines, data-shift can be used to specify which data lines are
-> @@ -112,7 +117,8 @@ Optional endpoint properties
->    should be the combined length of data-lanes and clock-lanes properties.
->    If the lane-polarities property is omitted, the value must be interpreted
->    as 0 (normal). This property is valid for serial busses only.
-> -
-> +- strobe: Whether the clock signal is used as clock or strobe. Used
-> +  with CCP2, for instance.
->  
->  Example
->  -------
+The following changes since commit 40eca140c404505c09773d1c6685d818cb55ab1a:
 
--- 
-     http://baruch.siach.name/blog/                  ~. .~   Tk Open Systems
-=}------------------------------------------------ooO--U--Ooo------------{=
-   - baruch@tkos.co.il - tel: +972.52.368.4656, http://www.tkos.co.il -
+  [media] mn88473: add DVB-T2 PLP support (2016-12-27 14:00:15 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git delta
+
+for you to fetch changes up to e6f199d01e7b8bc4436738b6c666fda31b9f3340:
+
+  st-delta: debug: trace stream/frame information & summary (2017-01-09 14:16:45 +0100)
+
+----------------------------------------------------------------
+Hugues Fruchet (10):
+      Documentation: DT: add bindings for ST DELTA
+      ARM: dts: STiH410: add DELTA dt node
+      ARM: multi_v7_defconfig: enable STMicroelectronics DELTA Support
+      MAINTAINERS: add st-delta driver
+      st-delta: STiH4xx multi-format video decoder v4l2 driver
+      st-delta: add memory allocator helper functions
+      st-delta: rpmsg ipc support
+      st-delta: EOS (End Of Stream) support
+      st-delta: add mjpeg support
+      st-delta: debug: trace stream/frame information & summary
+
+ Documentation/devicetree/bindings/media/st,st-delta.txt |   17 +
+ MAINTAINERS                                             |    8 +
+ arch/arm/boot/dts/stih410.dtsi                          |   10 +
+ arch/arm/configs/multi_v7_defconfig                     |    1 +
+ drivers/media/platform/Kconfig                          |   27 +
+ drivers/media/platform/Makefile                         |    2 +
+ drivers/media/platform/sti/delta/Makefile               |    6 +
+ drivers/media/platform/sti/delta/delta-cfg.h            |   63 ++
+ drivers/media/platform/sti/delta/delta-debug.c          |   72 ++
+ drivers/media/platform/sti/delta/delta-debug.h          |   18 +
+ drivers/media/platform/sti/delta/delta-ipc.c            |  591 +++++++++++++
+ drivers/media/platform/sti/delta/delta-ipc.h            |   76 ++
+ drivers/media/platform/sti/delta/delta-mem.c            |   51 ++
+ drivers/media/platform/sti/delta/delta-mem.h            |   14 +
+ drivers/media/platform/sti/delta/delta-mjpeg-dec.c      |  454 ++++++++++
+ drivers/media/platform/sti/delta/delta-mjpeg-fw.h       |  221 +++++
+ drivers/media/platform/sti/delta/delta-mjpeg-hdr.c      |  150 ++++
+ drivers/media/platform/sti/delta/delta-mjpeg.h          |   35 +
+ drivers/media/platform/sti/delta/delta-v4l2.c           | 1977 +++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/platform/sti/delta/delta.h                |  566 +++++++++++++
+ 20 files changed, 4359 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/st,st-delta.txt
+ create mode 100644 drivers/media/platform/sti/delta/Makefile
+ create mode 100644 drivers/media/platform/sti/delta/delta-cfg.h
+ create mode 100644 drivers/media/platform/sti/delta/delta-debug.c
+ create mode 100644 drivers/media/platform/sti/delta/delta-debug.h
+ create mode 100644 drivers/media/platform/sti/delta/delta-ipc.c
+ create mode 100644 drivers/media/platform/sti/delta/delta-ipc.h
+ create mode 100644 drivers/media/platform/sti/delta/delta-mem.c
+ create mode 100644 drivers/media/platform/sti/delta/delta-mem.h
+ create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg-dec.c
+ create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg-fw.h
+ create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg-hdr.c
+ create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg.h
+ create mode 100644 drivers/media/platform/sti/delta/delta-v4l2.c
+ create mode 100644 drivers/media/platform/sti/delta/delta.h
