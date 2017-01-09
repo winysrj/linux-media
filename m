@@ -1,91 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:43510 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1754197AbdAFCfy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2017 21:35:54 -0500
-Message-ID: <1483670099.18931.5.camel@mtksdaap41>
-Subject: Re: [PATCH v6 3/3] arm: dts: mt2701: Add node for Mediatek JPEG
- Decoder
-From: Rick Chang <rick.chang@mediatek.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        "Rob Herring" <robh+dt@kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-media@vger.kernel.org>, <srv_heupstream@mediatek.com>,
-        <linux-mediatek@lists.infradead.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <devicetree@vger.kernel.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Date: Fri, 6 Jan 2017 10:34:59 +0800
-In-Reply-To: <1479894203.8964.29.camel@mtksdaap41>
-References: <1479353915-5043-1-git-send-email-rick.chang@mediatek.com>
-         <1479353915-5043-4-git-send-email-rick.chang@mediatek.com>
-         <d602365a-e87b-5bae-8698-bd43063ef079@xs4all.nl>
-         <1479784905.8964.15.camel@mtksdaap41>
-         <badf8125-27ed-9c5b-fbc0-75716ffdfb0e@xs4all.nl>
-         <1479866054.8964.21.camel@mtksdaap41> <1479894203.8964.29.camel@mtksdaap41>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:34614 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S939776AbdAINIk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Jan 2017 08:08:40 -0500
+Subject: Re: [PATCH 00/10] Qualcomm 8x16 Camera Subsystem driver
+To: Todor Tomov <todor.tomov@linaro.org>, mchehab@kernel.org,
+        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
+        javier@osg.samsung.com, s.nawrocki@samsung.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <1480085793-28193-1-git-send-email-todor.tomov@linaro.org>
+Cc: bjorn.andersson@linaro.org, srinivas.kandagatla@linaro.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <1a19217d-74b4-e3f5-4ab6-dc15360b1fe1@xs4all.nl>
+Date: Mon, 9 Jan 2017 14:08:29 +0100
 MIME-Version: 1.0
+In-Reply-To: <1480085793-28193-1-git-send-email-todor.tomov@linaro.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Todor,
 
-The dependence on [1] has been merged in 4.10, but [2] has not.Do you have 
-any idea about this patch series? Should we wait for [2] or we could merge
-the source code and dt-binding first?
+What is the status of this patch series? There were comments for patch 1/10 and 8/10,
+and I haven't seen a v2 of this patch series.
 
-Best Regards,
-Rick
+Regards,
 
-On Wed, 2016-11-23 at 17:43 +0800, Rick Chang wrote:
-> On Wed, 2016-11-23 at 09:54 +0800, Rick Chang wrote:
-> > Hi Hans,
-> > 
-> > On Tue, 2016-11-22 at 13:43 +0100, Hans Verkuil wrote:
-> > > On 22/11/16 04:21, Rick Chang wrote:
-> > > > Hi Hans,
-> > > >
-> > > > On Mon, 2016-11-21 at 15:51 +0100, Hans Verkuil wrote:
-> > > >> On 17/11/16 04:38, Rick Chang wrote:
-> > > >>> Signed-off-by: Rick Chang <rick.chang@mediatek.com>
-> > > >>> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-> > > >>> ---
-> > > >>> This patch depends on:
-> > > >>>   CCF "Add clock support for Mediatek MT2701"[1]
-> > > >>>   iommu and smi "Add the dtsi node of iommu and smi for mt2701"[2]
-> > > >>>
-> > > >>> [1] http://lists.infradead.org/pipermail/linux-mediatek/2016-October/007271.html
-> > > >>> [2] https://patchwork.kernel.org/patch/9164013/
-> > > >>
-> > > >> I assume that 1 & 2 will appear in 4.10? So this patch needs to go in
-> > > >> after the
-> > > >> other two are merged in 4.10?
-> > > >>
-> > > >> Regards,
-> > > >>
-> > > >> 	Hans
-> > > >
-> > > > [1] will appear in 4.10, but [2] will appear latter than 4.10.So this
-> > > > patch needs to go in after [1] & [2] will be merged in 4.11.
-> > > 
-> > > So what should I do? Merge the driver for 4.11 and wait with this patch
-> > > until [2] is merged in 4.11? Does that sound reasonable?
-> > > 
-> > > Regards,
-> > > 
-> > > 	Hans
-> > 
-> > What do you think about this? You merge the driver first and I send this
-> > patch again after [1] & [2] is merged.
+	Hans
+
+On 11/25/2016 03:56 PM, Todor Tomov wrote:
+> This patchset adds basic support for the Qualcomm Camera Subsystem found
+> on Qualcomm MSM8916 and APQ8016 processors.
 > 
-> BTW, to prevent merging conflict, the dtsi should be merged by mediatek
-> SoC maintainer, Matthias.I think we can only take care on the driver
-> part at this moment.
+> The driver implements V4L2, Media controller and V4L2 subdev interfaces.
+> Camera sensor using V4L2 subdev interface in the kernel is supported.
 > 
-
-
+> The driver is implemented using as a reference the Qualcomm Camera
+> Subsystem driver for Android as found in Code Aurora [1].
+> 
+> The driver supports raw dump of the input data to memory. ISP processing
+> is not supported.
+> 
+> The driver is tested on Dragonboard 410C (APQ8016) with one and two
+> OV5645 camera sensors. media-ctl [2] and yavta [3] applications were
+> used for testing. Also Gstreamer 1.4.4 with v4l2src plugin is supported.
+> 
+> More information is present in the document added by the third patch.
+> 
+> 
+> The patchset depends on:
+> v4l: Add packed Bayer raw12 pixel formats [4]
+> media: venus: enable building of Venus video codec driver [5]
+> 
+> 
+> V4L2 compliance test result:
+> 
+> root@linaro-alip:~/v4l-utils/utils/v4l2-compliance# ./v4l2-compliance -s -d /dev/video0
+> v4l2-compliance SHA   : 6a760145f1a6809591a1cb17ee1b06913e4fddd1
+> 
+> Driver Info:
+>         Driver name   : qcom-camss
+>         Card type     : Qualcomm Camera Subsystem
+>         Bus info      : platform:qcom-camss
+>         Driver version: 4.9.0
+>         Capabilities  : 0x84200001
+>                 Video Capture
+>                 Streaming
+>                 Extended Pix Format
+>                 Device Capabilities
+>         Device Caps   : 0x04200001
+>                 Video Capture
+>                 Streaming
+>                 Extended Pix Format
+> 
+> Compliance test for device /dev/video0 (not using libv4l2):
+> 
+> Required ioctls:
+>         test VIDIOC_QUERYCAP: OK
+> 
+> Allow for multiple opens:
+>         test second video open: OK
+>         test VIDIOC_QUERYCAP: OK
+>         test VIDIOC_G/S_PRIORITY: OK
+>         test for unlimited opens: OK
+> 
+> Debug ioctls:
+>         test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+>         test VIDIOC_LOG_STATUS: OK (Not Supported)
+> 
+> Input ioctls:
+>         test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+>         test VIDIOC_ENUMAUDIO: OK (Not Supported)
+>         test VIDIOC_G/S/ENUMINPUT: OK
+>         test VIDIOC_G/S_AUDIO: OK (Not Supported)
+>         Inputs: 1 Audio Inputs: 0 Tuners: 0
+> 
+> Output ioctls:
+>         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+>         test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+>         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+>         Outputs: 0 Audio Outputs: 0 Modulators: 0
+> 
+> Input/Output configuration ioctls:
+>         test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+>         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+>         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+>         test VIDIOC_G/S_EDID: OK (Not Supported)
+> 
+> Test input 0:
+> 
+>         Control ioctls:
+>                 test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+>                 test VIDIOC_QUERYCTRL: OK (Not Supported)
+>                 test VIDIOC_G/S_CTRL: OK (Not Supported)
+>                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+>                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+>                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+>                 Standard Controls: 0 Private Controls: 0
+> 
+>         Format ioctls:
+>                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+>                 test VIDIOC_G/S_PARM: OK (Not Supported)
+>                 test VIDIOC_G_FBUF: OK (Not Supported)
+>                 test VIDIOC_G_FMT: OK
+>                 test VIDIOC_TRY_FMT: OK
+>                 test VIDIOC_S_FMT: OK
+>                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+>                 test Cropping: OK (Not Supported)
+>                 test Composing: OK (Not Supported)
+>                 test Scaling: OK (Not Supported)
+> 
+>         Codec ioctls:
+>                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+> 
+>         Buffer ioctls:
+>                 test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>                 test VIDIOC_EXPBUF: OK (Not Supported)
+> 
+> Test input 0:
+> 
+> Streaming ioctls:
+>         test read/write: OK (Not Supported)
+>         test MMAP: OK                                     
+>         test USERPTR: OK (Not Supported)
+>         test DMABUF: OK (Not Supported)
+> 
+> 
+> Total: 47, Succeeded: 47, Failed: 0, Warnings: 0
+> 
+> 
+> [1] https://source.codeaurora.org/quic/la/kernel/msm-3.10/
+> [2] https://git.linuxtv.org//v4l-utils.git
+> [3] http://git.ideasonboard.org/yavta.git
+> [4] http://www.spinics.net/lists/linux-media/msg107494.html
+> [5] http://www.spinics.net/lists/linux-media/msg104013.html
+> 
+> 
+> Todor Tomov (10):
+>   doc: DT: camss: Binding document for Qualcomm Camera subsystem driver
+>   MAINTAINERS: Add Qualcomm Camera subsystem driver
+>   doc: media/v4l-drivers: Add Qualcomm Camera Subsystem driver document
+>   media: camss: Add CSIPHY files
+>   media: camss: Add CSID files
+>   media: camss: Add ISPIF files
+>   media: camss: Add VFE files
+>   media: camss: Add files which handle the video device nodes
+>   media: camms: Add core files
+>   media: camss: Add Makefiles and Kconfig files
+> 
+>  .../devicetree/bindings/media/qcom,camss.txt       |  196 ++
+>  Documentation/media/v4l-drivers/index.rst          |    1 +
+>  Documentation/media/v4l-drivers/qcom_camss.rst     |  124 ++
+>  MAINTAINERS                                        |    8 +
+>  drivers/media/platform/qcom/Kconfig                |    5 +
+>  drivers/media/platform/qcom/Makefile               |    1 +
+>  drivers/media/platform/qcom/camss-8x16/Makefile    |   12 +
+>  drivers/media/platform/qcom/camss-8x16/camss.c     |  603 +++++++
+>  drivers/media/platform/qcom/camss-8x16/camss.h     |   93 +
+>  drivers/media/platform/qcom/camss-8x16/csid.c      | 1071 +++++++++++
+>  drivers/media/platform/qcom/camss-8x16/csid.h      |   82 +
+>  drivers/media/platform/qcom/camss-8x16/csiphy.c    |  685 +++++++
+>  drivers/media/platform/qcom/camss-8x16/csiphy.h    |   77 +
+>  drivers/media/platform/qcom/camss-8x16/ispif.c     | 1105 ++++++++++++
+>  drivers/media/platform/qcom/camss-8x16/ispif.h     |   85 +
+>  drivers/media/platform/qcom/camss-8x16/vfe.c       | 1877 ++++++++++++++++++++
+>  drivers/media/platform/qcom/camss-8x16/vfe.h       |  112 ++
+>  drivers/media/platform/qcom/camss-8x16/video.c     |  597 +++++++
+>  drivers/media/platform/qcom/camss-8x16/video.h     |   67 +
+>  19 files changed, 6801 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/qcom,camss.txt
+>  create mode 100644 Documentation/media/v4l-drivers/qcom_camss.rst
+>  create mode 100644 drivers/media/platform/qcom/Kconfig
+>  create mode 100644 drivers/media/platform/qcom/Makefile
+>  create mode 100644 drivers/media/platform/qcom/camss-8x16/Makefile
+>  create mode 100644 drivers/media/platform/qcom/camss-8x16/camss.c
+>  create mode 100644 drivers/media/platform/qcom/camss-8x16/camss.h
+>  create mode 100644 drivers/media/platform/qcom/camss-8x16/csid.c
+>  create mode 100644 drivers/media/platform/qcom/camss-8x16/csid.h
+>  create mode 100644 drivers/media/platform/qcom/camss-8x16/csiphy.c
+>  create mode 100644 drivers/media/platform/qcom/camss-8x16/csiphy.h
+>  create mode 100644 drivers/media/platform/qcom/camss-8x16/ispif.c
+>  create mode 100644 drivers/media/platform/qcom/camss-8x16/ispif.h
+>  create mode 100644 drivers/media/platform/qcom/camss-8x16/vfe.c
+>  create mode 100644 drivers/media/platform/qcom/camss-8x16/vfe.h
+>  create mode 100644 drivers/media/platform/qcom/camss-8x16/video.c
+>  create mode 100644 drivers/media/platform/qcom/camss-8x16/video.h
+> 
 
