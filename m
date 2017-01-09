@@ -1,107 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f68.google.com ([209.85.214.68]:32785 "EHLO
-        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750745AbdAaBWG (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:58705 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S935724AbdAIMmH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Jan 2017 20:22:06 -0500
-Subject: Re: [PATCH v3 00/24] i.MX Media Driver
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
- <20170131004510.GQ27312@n2100.armlinux.org.uk>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <951c1a08-c0f2-4333-b4bf-410de8dd863f@gmail.com>
-Date: Mon, 30 Jan 2017 17:22:01 -0800
+        Mon, 9 Jan 2017 07:42:07 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.11] More fixes/enhancements
+Message-ID: <39f400b1-0658-fc51-194b-d6b854b99e18@xs4all.nl>
+Date: Mon, 9 Jan 2017 13:41:59 +0100
 MIME-Version: 1.0
-In-Reply-To: <20170131004510.GQ27312@n2100.armlinux.org.uk>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The following changes since commit 40eca140c404505c09773d1c6685d818cb55ab1a:
 
+  [media] mn88473: add DVB-T2 PLP support (2016-12-27 14:00:15 -0200)
 
-On 01/30/2017 04:45 PM, Russell King - ARM Linux wrote:
->
-> Hi,
->
-> Trying this driver with an imx219 camera (which works with Philipp's
-> driver) results in not much happening... no /dev/media* node for it,
-> no subdevs, no nothing.  No clues as to what's missing either.  Only
-> messages from imx-media are from registering the various subdevs.
->
-> [   37.444877] imx-media: Registered subdev imx6-mipi-csi2
-> [   37.444973] imx-media: Registered subdev imx219 0-0010
-> [   38.868740] imx-media: Registered subdev ipu1_ic_prpenc
-> [   38.869265] imx-media: Registered subdev ipu1_ic_prpvf
-> [   38.869425] imx-media: Registered subdev ipu1_ic_pp0
-> [   38.870086] imx-media: Registered subdev ipu1_ic_pp1
-> [   38.871510] imx-media: Registered subdev ipu2_ic_prpenc
-> [   38.871743] imx-media: Registered subdev ipu1_smfc0
-> [   38.873043] imx-media: Registered subdev ipu1_smfc1
-> [   38.873225] imx-media: Registered subdev ipu2_ic_prpvf
-> [   38.875027] imx-media: Registered subdev ipu2_smfc0
-> [   38.875320] imx-media: Registered subdev ipu2_ic_pp0
-> [   38.877148] imx-media: Registered subdev ipu2_smfc1
-> [   38.877436] imx-media: Registered subdev ipu2_ic_pp1
-> [   38.932089] imx-media: Registered subdev camif0
-> [   38.956538] imx-media: Registered subdev camif1
-> [   38.959148] imx-media: Registered subdev camif2
-> [   38.964353] imx-media: Registered subdev camif3
-> [  206.502077] imx-media: Registered subdev ipu1_csi0
-> [  206.503304] imx-media: Registered subdev ipu1_csi1
-> [  206.503814] imx-media: Registered subdev ipu2_csi0
-> [  206.504281] imx-media: Registered subdev ipu2_csi1
->
-> I also get:
->
-> [   37.200072] imx6-mipi-csi2: data lanes: 2
-> [   37.200077] imx6-mipi-csi2: flags: 0x00000200
->
-> and from what I can see, all modules from drivers/staging/media/imx/ are
-> loaded (had to load imx-csi by hand because of the brokenness in the
-> drivers/gpu/ipu code attaching an device_node pointer after registering
-> the platform device, which changes what userspace sees in the modalias
-> file.)
->
-> Any clues at what to look at?
+are available in the git repository at:
 
-Hi Russell,
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.11b
 
-I'm not familiar with IMX219, can you send me the source for the
-imx219 subdev? I don't see it in 4.10-rc1.
+for you to fetch changes up to 62c53755afc004b9979a0790e762f711f12ceb03:
 
-I'm also having trouble finding a datasheet for it, but from what
-I've read, it has a MIPI CSI-2 interface. It should work fine as long
-as it presents a single source pad, registers asynchronously, and
-sets its entity function to MEDIA_ENT_F_CAM_SENSOR.
+  davinci: VPIF: add basic support for DT init (2017-01-09 13:19:03 +0100)
 
-Since I see it was registered asynchronously from the above, it
-must have been added to the device tree. But given that there
-is no /dev/media? node, the media driver is probably waiting for
-another subdev to register, I don't know what that would be.
+----------------------------------------------------------------
+Andrzej Hajda (1):
+      v4l: s5c73m3: fix negation operator
 
-Can you send me the full patch on top of the v3 driver and I'll
-try to find what's missing.
+Jean-Christophe Trotin (1):
+      v4l2-common: fix aligned value calculation
 
-Edit: I see a subdev that is missing: the video mux. Did you enable
-CONFIG_VIDEO_MULTIPLEXER?
+Kees Cook (2):
+      mtk-vcodec: use designated initializers
+      solo6x10: use designated initializers
 
-Finally, what platform does this IMX219 sensor module plug into?
+Kevin Hilman (5):
+      davinci: VPIF: fix module loading, init errors
+      davinci: vpif_capture: remove hard-coded I2C adapter id
+      davinci: vpif_capture: fix start/stop streaming locking
+      dt-bindings: add TI VPIF documentation
+      davinci: VPIF: add basic support for DT init
 
+Markus Elfring (2):
+      v4l2-async: Use kmalloc_array() in v4l2_async_notifier_unregister()
+      v4l2-async: Delete an error message for a failed memory allocation in v4l2_async_notifier_unregister()
 
-Steve
+Pavel Machek (1):
+      mark myself as mainainer for camera on N900
 
+Randy Dunlap (1):
+      media: fix dm1105.c build error
+
+Santosh Kumar Singh (5):
+      vim2m: Clean up file handle in open() error path.
+      zoran: Clean up file handle in open() error path.
+      tm6000: Clean up file handle in open() error path.
+      ivtv: Clean up file handle in open() error path.
+      pvrusb2: Clean up file handle in open() error path.
+
+Shyam Saini (1):
+      media: usb: cpia2: Use kmemdup instead of kmalloc and memcpy
+
+Sudip Mukherjee (1):
+      bt8xx: fix memory leak
+
+ Documentation/devicetree/bindings/media/ti,da850-vpif.txt | 83 +++++++++++++++++++++++++++++++++++++++++++
+ MAINTAINERS                                               |  8 +++++
+ drivers/media/i2c/s5c73m3/s5c73m3-ctrls.c                 |  2 +-
+ drivers/media/pci/bt8xx/dvb-bt8xx.c                       |  1 +
+ drivers/media/pci/dm1105/Kconfig                          |  2 +-
+ drivers/media/pci/ivtv/ivtv-alsa-pcm.c                    |  1 +
+ drivers/media/pci/solo6x10/solo6x10-g723.c                |  2 +-
+ drivers/media/pci/zoran/zoran_driver.c                    |  1 +
+ drivers/media/platform/davinci/vpif.c                     | 14 +++++++-
+ drivers/media/platform/davinci/vpif_capture.c             | 24 ++++++++++---
+ drivers/media/platform/davinci/vpif_capture.h             |  2 +-
+ drivers/media/platform/davinci/vpif_display.c             |  6 ++++
+ drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c     |  8 ++---
+ drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c      |  8 ++---
+ drivers/media/platform/vim2m.c                            |  2 ++
+ drivers/media/usb/cpia2/cpia2_usb.c                       |  4 +--
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c                  |  3 +-
+ drivers/media/usb/tm6000/tm6000-video.c                   |  5 ++-
+ drivers/media/v4l2-core/v4l2-async.c                      |  7 +---
+ drivers/media/v4l2-core/v4l2-common.c                     |  2 +-
+ include/media/davinci/vpif_types.h                        |  1 +
+ 21 files changed, 157 insertions(+), 29 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/ti,da850-vpif.txt
