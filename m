@@ -1,100 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay-1.mailobj.net ([213.182.54.6]:34538 "EHLO
-        relay-1.mailobj.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966737AbdAKNvq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Jan 2017 08:51:46 -0500
-From: leny@netcourrier.com
-To: linux-media@vger.kernel.org
-Cc: oliver@schinagl.nl
-Date: Wed, 11 Jan 2017 14:51:38 +0100 (CET)
-Subject: [PATCH] dtv-scan-tables - dvb-t - add file for France Paris
- Eiffel Tower DVB-T transmitters
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:33535 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1761718AbdAIScb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2017 13:32:31 -0500
+Date: Mon, 9 Jan 2017 12:32:14 -0600
+From: Rob Herring <robh@kernel.org>
+To: sean.wang@mediatek.com
+Cc: mchehab@osg.samsung.com, hdegoede@redhat.com, hkallweit1@gmail.com,
+        mark.rutland@arm.com, matthias.bgg@gmail.com,
+        andi.shyti@samsung.com, hverkuil@xs4all.nl, sean@mess.org,
+        ivo.g.dimitrov.75@gmail.com, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-mediatek@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        keyhaede@gmail.com
+Subject: Re: [PATCH 1/2] Documentation: devicetree: Add document bindings for
+ mtk-cir
+Message-ID: <20170109183214.xonv52sn3fo4exqp@rob-hp-laptop>
+References: <1483632384-8107-1-git-send-email-sean.wang@mediatek.com>
+ <1483632384-8107-2-git-send-email-sean.wang@mediatek.com>
 MIME-Version: 1.0
-Message-ID: <ea-mime-5876386a-5061-378a0151@www-5.netcourrier.com>
-In-Reply-To: <ea-mime-587630bd-467d-5cdb2d32@www-5.netcourrier.com>
-Content-Type: multipart/mixed;
- boundary="----=_NextPart_000_5876386a_5061_3f1df30a"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1483632384-8107-2-git-send-email-sean.wang@mediatek.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-------=_NextPart_000_5876386a_5061_3f1df30a
-Content-Type: text/plain;
- charset="ISO-8859-1"
-Content-Transfer-Encoding: quoted-printable
+On Fri, Jan 06, 2017 at 12:06:23AM +0800, sean.wang@mediatek.com wrote:
+> From: Sean Wang <sean.wang@mediatek.com>
+> 
+> This patch adds documentation for devicetree bindings for
+> Mediatek IR controller.
+> 
+> Signed-off-by: Sean Wang <sean.wang@mediatek.com>
+> ---
+>  .../devicetree/bindings/media/mtk-cir.txt          | 23 ++++++++++++++++++++++
+>  1 file changed, 23 insertions(+)
+>  create mode 100644 linux-4.8.rc1_p0/Documentation/devicetree/bindings/media/mtk-cir.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/mtk-cir.txt b/Documentation/devicetree/bindings/media/mtk-cir.txt
+> new file mode 100644
+> index 0000000..bbedd71
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/mtk-cir.txt
+> @@ -0,0 +1,23 @@
+> +Device-Tree bindings for Mediatek IR controller found in Mediatek SoC family
+> +
+> +Required properties:
+> +- compatible	    : "mediatek,mt7623-ir"
+> +- clocks	    : list of clock specifiers, corresponding to
+> +		      entries in clock-names property;
+> +- clock-names	    : should contain "clk" entries;
+> +- interrupts	    : should contain IR IRQ number;
+> +- reg		    : should contain IO map address for IR.
+> +
+> +Optional properties:
+> +- linux,rc-map-name : Remote control map name.
 
-Hello,
+Would 'label' be appropriate here instead? If not, this needs to be 
+documented in a common location and explained better.
 
-There is no file for Paris Eiffel Tower DVB-T transmitters at https://git.=
-linuxtv.org/dtv-scan-tables.git/tree/dvb-t/ .
-Attached is a config scan file for Paris Eiffel Tower transmitters in dvbv=
-5 format.
-Could you please ensure that this new file is committed into the DVB sourc=
-e code tree repositery ?
+> +
+> +Example:
+> +
+> +cir: cir@0x10013000 {
 
-Thank you
+Drop the '0x'.
 
-Best regards
-
-
-
-------=_NextPart_000_5876386a_5061_3f1df30a
-Content-Type: application/octet-stream;
- name="fr-Paris"
-Content-Disposition: attachment;
- filename="fr-Paris"
-Content-Transfer-Encoding: base64
-
-IyBlbiA6IFBhcmlzIC0gRnJhbmNlIC0gdmFyaW91cyBEVkItVCB0cmFuc21pdHRlcnMKIyBmciA6
-IFBhcmlzIC0gRnJhbmNlIC0gZGlmZmVyZW50cyBlbWV0dGV1cnMgRFZCLVQgZGUgbGEgVG91ciBF
-aWZmZWwgIAojIExhdGVzdCB1cGRhdGUgZm9yIHRoZSBkYXRhIC8gZGVybmllcmUgbWlzZSBhIGpv
-dXIgZGVzIGRvbm5lZXMgOiAyMDE3LTAxLTAxCiMKIyBDaXR5ICAgICAgICAgICAgICAgICAgIE11
-bHRpcGxleCBudW1iZXIgOiBSMSBSMiBSMyBSNCBSNiBSNyBSMTUgCiMgUGFyaXMgLSBFaWZmZWwg
-VG93ZXIgLSBDaGFubmVsIG51bWJlciAgIDogMzUgMjUgMjIgMzAgMzIgNDIgMjggCiMgCiMgTm90
-ZSA6CiMgUjggLSBJcyBubyBsb25nZXIgdXNlZCBzaW5jZSB0aGUgMDUvMDQvMjAxNiAtIENoYW5u
-ZWwgNTggaXMgbm8gbG9uZ2VyIHVzZWQKIyBSNSAtIElzIG5vIGxvbmdlciB1c2VkIHNpbmNlIHRo
-ZSAwNS8wNC8yMDE2IC0gQ2hhbm5lbCAyOCBSZS1hc3NpZ25lZCBmb3IgUjE1CiMKCiMKIyBSMSAt
-IENoYW5uZWwvQ2FuYWwgMzUgLSAgR3JvdXBlIEdSMSBBIChGcmFuY2UgMiBIRCwgRnJhbmNlIDQg
-SEQsIEZyYW5jZSDDlCBTRCwgZnJhbmNlaW5mbzogU0QpLCBHcm91cGUgR1IgMSAoRnJhbmNlIDMt
-UGFyaXMgSWxlIGRlIEZyYW5jZSksIEdyb3VwZSBSMSBURkwgKEJGTSBCdXNpbmVzcyBQYXJpcyBI
-RCkKW0NIQU5ORUwgMzVdCglERUxJVkVSWV9TWVNURU0gPSBEVkJUCglGUkVRVUVOQ1kgPSA1ODYx
-NjYwMDAKCUJBTkRXSURUSF9IWiA9IDgwMDAwMDAKCUNPREVfUkFURV9IUCA9IDMvNAoJQ09ERV9S
-QVRFX0xQID0gTk9ORQoJTU9EVUxBVElPTiA9IFFBTS82NAoJVFJBTlNNSVNTSU9OX01PREUgPSA4
-SwoJR1VBUkRfSU5URVJWQUwgPSAxLzgKCUhJRVJBUkNIWSA9IE5PTkUKCUlOVkVSU0lPTiA9IEFV
-VE8KCiMKIyBSMiAtIENoYW5uZWwvQ2FuYWwgMjUgLSBHcm91cGUgTlROIChDOCwgQkZNIFRWLCBJ
-LVRlbGUsIENTdGFyLCBHdWxsaSkKW0NIQU5ORUwgMjVdCglERUxJVkVSWV9TWVNURU0gPSBEVkJU
-CglGUkVRVUVOQ1kgPSA1MDYxNjYwMDAKCUJBTkRXSURUSF9IWiA9IDgwMDAwMDAKCUNPREVfUkFU
-RV9IUCA9IDIvMwoJQ09ERV9SQVRFX0xQID0gTk9ORQoJTU9EVUxBVElPTiA9IFFBTS82NAoJVFJB
-TlNNSVNTSU9OX01PREUgPSA4SwoJR1VBUkRfSU5URVJWQUwgPSAxLzMyCglISUVSQVJDSFkgPSBO
-T05FCglJTlZFUlNJT04gPSBBVVRPCgkKIwojIFIzIC0gQ2hhbm5lbC9DYW5hbCAyMiAtIEdyb3Vw
-ZSBDTkggKENhbmFsKywgQ2FuYWwrIENpbmVtYSwgQ2FuYWwrIFNwb3J0LCBQbGFuZXRlKywgTENJ
-LCBQYXJpcyBQcmVtaWVyZSwgPywgPywgPywgREFUQVNZU1RFTSBSNywgPykKW0NIQU5ORUwgMjJd
-CglERUxJVkVSWV9TWVNURU0gPSBEVkJUCglGUkVRVUVOQ1kgPSA0ODIxNjYwMDAKCUJBTkRXSURU
-SF9IWiA9IDgwMDAwMDAKCUNPREVfUkFURV9IUCA9IDIvMwoJQ09ERV9SQVRFX0xQID0gTk9ORQoJ
-TU9EVUxBVElPTiA9IFFBTS82NAoJVFJBTlNNSVNTSU9OX01PREUgPSA4SwoJR1VBUkRfSU5URVJW
-QUwgPSAxLzMyCglISUVSQVJDSFkgPSBOT05FCglJTlZFUlNJT04gPSBBVVRPCgkKIwojIFI0IC0g
-Q2hhbm5lbC9DYW5hbCAzMCAtIEdyb3VwZSBNdWx0aTQgKE02LCBXOSwgQXJ0ZSwgRnJhbmNlNSwg
-NnRlcikKW0NIQU5ORUwgMzBdCglERUxJVkVSWV9TWVNURU0gPSBEVkJUCglGUkVRVUVOQ1kgPSA1
-NDYxNjYwMDAKCUJBTkRXSURUSF9IWiA9IDgwMDAwMDAKCUNPREVfUkFURV9IUCA9IDIvMwoJQ09E
-RV9SQVRFX0xQID0gTk9ORQoJTU9EVUxBVElPTiA9IFFBTS82NAoJVFJBTlNNSVNTSU9OX01PREUg
-PSA4SwoJR1VBUkRfSU5URVJWQUwgPSAxLzMyCglISUVSQVJDSFkgPSBOT05FCglJTlZFUlNJT04g
-PSBBVVRPCgkKIyBSNiAtIENoYW5uZWwvQ2FuYWwgMzIgLSBHcm91cGUgU01SNiAoVEYxLCBOUkox
-MiwgVE1DLCBOVDEsIExDUC1QdWJsaWMgU2VuYXQpCltDSEFOTkVMIDMyXQoJREVMSVZFUllfU1lT
-VEVNID0gRFZCVAoJRlJFUVVFTkNZID0gNTYyMTY2MDAwCglCQU5EV0lEVEhfSFogPSA4MDAwMDAw
-CglDT0RFX1JBVEVfSFAgPSAyLzMKCUNPREVfUkFURV9MUCA9IE5PTkUKCU1PRFVMQVRJT04gPSBR
-QU0vNjQKCVRSQU5TTUlTU0lPTl9NT0RFID0gOEsKCUdVQVJEX0lOVEVSVkFMID0gMS8zMgoJSElF
-UkFSQ0hZID0gTk9ORQoJSU5WRVJTSU9OID0gQVVUTwoKIwojIFI3IC0gQ2hhbm5lbC9DYW5hbCA0
-MiAtIEdyb3VwZSBNSEQ3IChIRDEsIENoZXJpZSAyNSwgTCBlcXVpcGUgMjEsIFJNQyBEZWNvdXZl
-cnRlLCBOdW1lcm8gMjMpIApbQ0hBTk5FTCA0Ml0KCURFTElWRVJZX1NZU1RFTSA9IERWQlQKCUZS
-RVFVRU5DWSA9IDY0MjE2NjAwMAoJQkFORFdJRFRIX0haID0gODAwMDAwMAoJQ09ERV9SQVRFX0hQ
-ID0gMy80CglDT0RFX1JBVEVfTFAgPSBOT05FCglNT0RVTEFUSU9OID0gUUFNLzY0CglUUkFOU01J
-U1NJT05fTU9ERSA9IDhLCglHVUFSRF9JTlRFUlZBTCA9IDEvMzIKCUhJRVJBUkNIWSA9IE5PTkUK
-CUlOVkVSU0lPTiA9IEFVVE8KCiMgUjE1IC0gQ2hhbm5lbCAyOCAtIGxvY2FsIGNoYW5uZWxzIG9u
-bHkgb24gUGFyaXMgLSBFaWZmZWwgdG93ZXIgdHJhbnNtaXR0ZXIgCiMgR3JvdXAgTXVsdGktNyAo
-Q2FuYWwgMzEsIElERjEsIEZyYW5jZSAyNCwgQ2FuYWwgMzQpICAKW0NIQU5ORUwgMjhdCglERUxJ
-VkVSWV9TWVNURU0gPSBEVkJUCglGUkVRVUVOQ1kgPSA1MzAxNjYwMDAKCUJBTkRXSURUSF9IWiA9
-IDgwMDAwMDAKCUNPREVfUkFURV9IUCA9IDIvMwoJQ09ERV9SQVRFX0xQID0gTk9ORQoJTU9EVUxB
-VElPTiA9IFFBTS82NAoJVFJBTlNNSVNTSU9OX01PREUgPSA4SwoJR1VBUkRfSU5URVJWQUwgPSAx
-LzMyCglISUVSQVJDSFkgPSBOT05FCglJTlZFUlNJT04gPSBBVVRPCiMK
-------=_NextPart_000_5876386a_5061_3f1df30a--
-
+> +	compatible = "mediatek,mt7623-ir";
+> +	reg = <0 0x10013000 0 0x1000>;
+> +	interrupts = <GIC_SPI 87 IRQ_TYPE_LEVEL_LOW>;
+> +	clocks = <&infracfg CLK_INFRA_IRRX>;
+> +	clock-names = "clk";
+> +	linux,rc-map-name = "rc-rc6-mce";
+> +};
+> -- 
+> 1.9.1
+> 
