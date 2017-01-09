@@ -1,303 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59798 "EHLO mail.kapsi.fi"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754250AbdAKAQU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Jan 2017 19:16:20 -0500
-Subject: Re: [PATCH] [media] cx231xx: Initial support Evromedia USB Full
- Hybrid Full HD
-To: Oleh Kravchenko <oleg@kaa.org.ua>, linux-media@vger.kernel.org,
-        hverkuil@xs4all.nl
-References: <20170110214106.5349-1-oleg@kaa.org.ua>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <53f10643-5437-e102-856c-fa3a22abcd18@iki.fi>
-Date: Wed, 11 Jan 2017 02:16:17 +0200
+Received: from mail-wj0-f195.google.com ([209.85.210.195]:34260 "EHLO
+        mail-wj0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756374AbdAHXxb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 8 Jan 2017 18:53:31 -0500
+Received: by mail-wj0-f195.google.com with SMTP id qs7so45805948wjc.1
+        for <linux-media@vger.kernel.org>; Sun, 08 Jan 2017 15:53:30 -0800 (PST)
+Reply-To: dmiosga6200@gmail.com
+Subject: Re: astrometa device driver
+To: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Cc: crope@iki.fi, mchehab@s-opensource.com,
+        linux-media <linux-media@vger.kernel.org>
+References: <5c13f750-52d1-e8bd-d8f1-f00b8ca6c794@gmail.com>
+ <CAFBinCAmdCz5UhjY148EmKAwKo=RKwz3G+J=Wme4g3HO70mCpQ@mail.gmail.com>
+From: Dieter Miosga <dmiosga6200@gmail.com>
+Message-ID: <b6ddf229-38ac-3c2b-cab4-3d8650e4a0ea@gmail.com>
+Date: Mon, 9 Jan 2017 00:54:28 +0000
 MIME-Version: 1.0
-In-Reply-To: <20170110214106.5349-1-oleg@kaa.org.ua>
-Content-Type: text/plain; charset=utf-8; format=flowed
+In-Reply-To: <CAFBinCAmdCz5UhjY148EmKAwKo=RKwz3G+J=Wme4g3HO70mCpQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/10/2017 11:41 PM, Oleh Kravchenko wrote:
-> This patch provide only digital support.
+I already tried to load the appropriate drivers.
+The device is _not_ recognized with the cx231xx, r820t, mn88473 drivers 
+as well
+
+Many thanks ahead
+Dieter
+
+On 01/08/17 18:03, Martin Blumenstingl wrote:
+> Hello Dieter,
 >
-> The device is based on Si2168 30-demodulator,
-> Si2158-20 tuner and CX23102-11Z chipset;
-> USB id: 1b80:d3b2.
+> (I CC'ed the linux-media mailing list so other users can look this up
+> when they run into the same problem)
 >
-> Status:
-> - DVB-T2 works fine;
-> - Composite and SVideo works fine;
-> - Analog not implemented.
+> On Sun, Jan 8, 2017 at 7:27 PM, Dieter Miosga <dmiosga6200@gmail.com> wrote:
+>> Happy 2017!
+>>
+>> One of the parts that were placed under my imaginary Christmas tree was an
+>> Astrometa Hybrid TV DVB-T/T2/C/FM/AV USB 2.0 stick with
+>> Conexant CX23102
+> that should be supported through the cx231xx driver
 >
-> Signed-off-by: Oleh Kravchenko <oleg@kaa.org.ua>
-> Tested-by: Oleh Kravchenko <oleg@kaa.org.ua>
-> ---
->  drivers/media/usb/cx231xx/Kconfig         |  1 +
->  drivers/media/usb/cx231xx/cx231xx-cards.c | 29 +++++++++++++
->  drivers/media/usb/cx231xx/cx231xx-dvb.c   | 71 +++++++++++++++++++++++++++++++
->  drivers/media/usb/cx231xx/cx231xx-i2c.c   | 37 ++++++++++++++++
->  drivers/media/usb/cx231xx/cx231xx.h       |  1 +
->  5 files changed, 139 insertions(+)
+>> Rafael Micro R828D
+> supported by the r820t driver
 >
-> diff --git a/drivers/media/usb/cx231xx/Kconfig b/drivers/media/usb/cx231xx/Kconfig
-> index 0cced3e..58de80b 100644
-> --- a/drivers/media/usb/cx231xx/Kconfig
-> +++ b/drivers/media/usb/cx231xx/Kconfig
-> @@ -50,6 +50,7 @@ config VIDEO_CX231XX_DVB
->  	select DVB_LGDT3306A if MEDIA_SUBDRV_AUTOSELECT
->  	select DVB_TDA18271C2DD if MEDIA_SUBDRV_AUTOSELECT
->  	select DVB_SI2165 if MEDIA_SUBDRV_AUTOSELECT
-> +	select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
->  	select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
+>> Panasonic MN88473
+> supported by the mn88473 driver
 >
->  	---help---
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-> index 36bc254..f730fdb 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-> @@ -841,6 +841,33 @@ struct cx231xx_board cx231xx_boards[] = {
->  			.gpio = NULL,
->  		} },
->  	},
-> +	[CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD] = {
-> +		.name = "Evromedia USB Full Hybrid Full HD",
-> +		.tuner_type = TUNER_ABSENT,
-> +		.demod_addr = 0x64, /* 0xc8 >> 1 */
-> +		.demod_i2c_master = I2C_1_MUX_3,
-> +		.has_dvb = 1,
-> +		.ir_i2c_master = I2C_0,
-> +		.norm = V4L2_STD_PAL,
-> +		.output_mode = OUT_MODE_VIP11,
-> +		.tuner_addr = 0x60, /* 0xc0 >> 1 */
-
-Looks good. I looked the existing file and all the other entries were 
-also using correct 7-bit addresses.
-
-> +		.tuner_i2c_master = I2C_2,
-> +		.input = {{
-> +			.type = CX231XX_VMUX_TELEVISION,
-> +			.vmux = 0,
-> +			.amux = CX231XX_AMUX_VIDEO,
-> +		}, {
-> +			.type = CX231XX_VMUX_COMPOSITE1,
-> +			.vmux = CX231XX_VIN_2_1,
-> +			.amux = CX231XX_AMUX_LINE_IN,
-> +		}, {
-> +			.type = CX231XX_VMUX_SVIDEO,
-> +			.vmux = CX231XX_VIN_1_1 |
-> +				(CX231XX_VIN_1_2 << 8) |
-> +				CX25840_SVIDEO_ON,
-> +			.amux = CX231XX_AMUX_LINE_IN,
-> +		} },
-> +	},
->  };
->  const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
+>> It was not recognized by the latest kernel versions 4.8-4.10.
+>> If I can ever help you to integrate this device in your work,
+>> I would be happy!
+> can you show us the USB vendor/device ID of this device (please run
+> "lsusb -vv" and paste the whole block which belongs to your device)?
 >
-> @@ -908,6 +935,8 @@ struct usb_device_id cx231xx_id_table[] = {
->  	 .driver_info = CX231XX_BOARD_OTG102},
->  	{USB_DEVICE(USB_VID_TERRATEC, 0x00a6),
->  	 .driver_info = CX231XX_BOARD_TERRATEC_GRABBY},
-> +	{USB_DEVICE(0x1b80, 0xd3b2),
-> +	.driver_info = CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD},
->  	{},
->  };
+> it seems that the required card definition is missing in
+> drivers/media/usb/cx231xx/cx231xx-cards.c along with some code that
+> connects the tuner and demodulator in
+> drivers/media/usb/cx231xx/cx231xx-dvb.c (there may be more TODOs: for
+> example fiddling with GPIOs, but if you're lucky this is not required)
 >
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-> index 1417515..ecd3528 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-> @@ -33,6 +33,7 @@
->  #include "s5h1411.h"
->  #include "lgdt3305.h"
->  #include "si2165.h"
-> +#include "si2168.h"
->  #include "mb86a20s.h"
->  #include "si2157.h"
->  #include "lgdt3306a.h"
-> @@ -949,6 +950,76 @@ static int dvb_init(struct cx231xx *dev)
->  			   &pv_tda18271_config);
->  		break;
 >
-> +	case CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD:
-> +	{
-> +		struct si2157_config si2157_config = {};
-> +		struct si2168_config si2168_config = {};
-> +		struct i2c_board_info info = {};
-
-Personally I don't like initializing variables to zero at the 
-declaration, but it was Hans who asked to do it.
-
-> +		struct i2c_client *client;
-> +		struct i2c_adapter *adapter;
-> +
-> +		/* attach demodulator chip */
-> +		si2168_config.ts_mode = SI2168_TS_SERIAL; /* from *.inf file */
-> +		si2168_config.fe = &dev->dvb->frontend;
-> +		si2168_config.i2c_adapter = &adapter;
-> +		si2168_config.ts_clock_inv = true;
-> +
-> +		strlcpy(info.type, "si2168", sizeof(info.type));
-> +		info.addr = dev->board.demod_addr;
-> +		info.platform_data = &si2168_config;
-> +
-> +		request_module(info.type);
-> +		client = i2c_new_device(demod_i2c, &info);
-> +
-> +		if (client == NULL || client->dev.driver == NULL) {
-> +			result = -ENODEV;
-> +			goto out_free;
-> +		}
-> +
-> +		if (!try_module_get(client->dev.driver->owner)) {
-> +			i2c_unregister_device(client);
-> +			result = -ENODEV;
-> +			goto out_free;
-> +		}
-> +
-> +		dvb->i2c_client_demod = client;
-> +		dvb->frontend->callback = cx231xx_tuner_callback;
-
-Drop that callback assignment. It is not needed. It is used only for 
-TDA18271 and XC5000 tuners. (History: whole callback is used only(?) for 
-gpios which could be implemented via kernel gpio api).
-
-> +
-> +		/* attach tuner chip */
-> +		si2157_config.fe = dev->dvb->frontend;
-> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> +		si2157_config.mdev = dev->media_dev;
-> +#endif
-> +		si2157_config.if_port = 1;
-> +		si2157_config.inversion = false;
-> +
-> +		memset(&info, 0, sizeof(info));
-> +		strlcpy(info.type, "si2157", sizeof(info.type));
-> +		info.addr = dev->board.tuner_addr;
-> +		info.platform_data = &si2157_config;
-> +
-> +		request_module(info.type);
-> +		client = i2c_new_device(tuner_i2c, &info);
-> +
-> +		if (client == NULL || client->dev.driver == NULL) {
-> +			module_put(dvb->i2c_client_demod->dev.driver->owner);
-> +			i2c_unregister_device(dvb->i2c_client_demod);
-> +			result = -ENODEV;
-> +			goto out_free;
-> +		}
-> +
-> +		if (!try_module_get(client->dev.driver->owner)) {
-> +			i2c_unregister_device(client);
-> +			module_put(dvb->i2c_client_demod->dev.driver->owner);
-> +			i2c_unregister_device(dvb->i2c_client_demod);
-> +			result = -ENODEV;
-> +			goto out_free;
-> +		}
-> +
-> +		dev->cx231xx_reset_analog_tuner = NULL;
-
-A bit weird that this function is only for XC5000 tuner and the rest 
-should disable it that way. But it is not problem with that patch.
-
-
-> +		dev->dvb->i2c_client_tuner = client;
-> +		break;
-> +	}
->  	default:
->  		dev_err(dev->dev,
->  			"%s/2: The frontend of your DVB/ATSC card isn't supported yet\n",
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> index 35e9acf..60412ec 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-> @@ -171,6 +171,43 @@ static int cx231xx_i2c_send_bytes(struct i2c_adapter *i2c_adap,
->  		bus->i2c_nostop = 0;
->  		bus->i2c_reserve = 0;
->
-> +	} else if (dev->model == CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD
-> +		&& msg->addr == dev->tuner_addr
-> +		&& msg->len > 4) {
-> +		/* special case for Evromedia USB Full Hybrid Full HD tuner chip */
-> +		size = msg->len;
-> +		saddr_len = 1;
-> +
-> +		/* adjust the length to correct length */
-> +		size -= saddr_len;
-> +
-> +		buf_ptr = (u8*)(msg->buf + 1);
-> +
-> +		do {
-> +			/* prepare xfer_data struct */
-> +			req_data.dev_addr = msg->addr;
-> +			req_data.direction = msg->flags;
-> +			req_data.saddr_len = saddr_len;
-> +			req_data.saddr_dat = msg->buf[0];
-> +			req_data.buf_size = size > 4 ? 4 : size;
-> +			req_data.p_buffer = (u8*)(buf_ptr + loop * 4);
-> +
-> +			bus->i2c_nostop = (size > 4) ? 1 : 0;
-> +			bus->i2c_reserve = (loop == 0) ? 0 : 1;
-> +
-> +			/* usb send command */
-> +			status = dev->cx231xx_send_usb_command(bus, &req_data);
-> +			loop++;
-> +
-> +			if (size >= 4) {
-> +				size -= 4;
-> +			} else {
-> +				size = 0;
-> +			}
-> +		} while (size > 0);
-> +
-> +		bus->i2c_nostop = 0;
-> +		bus->i2c_reserve = 0;
-
-
-I looked that cx231xx_i2c_send_bytes() function more carefully. 
-Currently it is implemented like:
-if "tuner is XC5000"
-   * do some special hacks
-   * send 16 byte i2c messages
-else
-   * send i2c message (~unlimited size)
-
-Now this adds special case for this device too. For my eyes it looks 
-like you just try to split i2c message to multiple 4 byte messages. I 
-wonder if there is really 4 byte limit on that chip as XC5000 branch 
-still sends 16 bytes as one go. Are you really sure?
-
-Could you test what is maximum limit of one usb i2c message and use that 
-value to split messages? It does not sound correct on XC5000 case you 
-could send 16 bytes as a one go, but with si2158 only 4 bytes. 
-si2168/si2157 are sending maximum ~15 byte messages as one go and I 
-wonder if that i2c adapter could handle it without even splitting.
-
-All-in-all: if XC5000 could send 16 bytes and all the rest has no 
-limitation, it does not sound correct you have to split long messages to 
-only 4 byte len.
-
->  	} else {		/* regular case */
->
->  		/* prepare xfer_data struct */
-> diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-> index 90c8676..d9792ea 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx.h
-> +++ b/drivers/media/usb/cx231xx/cx231xx.h
-> @@ -78,6 +78,7 @@
->  #define CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx 20
->  #define CX231XX_BOARD_HAUPPAUGE_955Q 21
->  #define CX231XX_BOARD_TERRATEC_GRABBY 22
-> +#define CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD 23
->
->  /* Limits minimum and default number of buffers */
->  #define CX231XX_MIN_BUF                 4
+> Regards,
+> Martin
 >
 
-Otherwise than I2C send it looks good for my eyes. I am waiting your 
-explanation for need of i2c message splitting.
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
