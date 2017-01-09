@@ -1,82 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:33917 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750851AbdAaVzf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jan 2017 16:55:35 -0500
-Subject: Re: [PATCH v3 20/24] media: imx: Add Camera Interface subdev driver
-To: Russell King - ARM Linux <linux@armlinux.org.uk>,
-        Steve Longerbeam <slongerbeam@gmail.com>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
- <1483755102-24785-21-git-send-email-steve_longerbeam@mentor.com>
- <b7456d40-040d-41b7-45bc-ef6709ab7933@xs4all.nl>
- <20170131134252.GX27312@n2100.armlinux.org.uk>
- <b0517394-7717-3e1d-b850-e2b69a9c19e9@gmail.com>
- <20170131203340.GC27312@n2100.armlinux.org.uk>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Ian Arkver <ian.arkver.dev@gmail.com>
-Message-ID: <2297c62c-ae9b-3942-4700-ce268a61a6d5@gmail.com>
-Date: Tue, 31 Jan 2017 21:55:29 +0000
-MIME-Version: 1.0
-In-Reply-To: <20170131203340.GC27312@n2100.armlinux.org.uk>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Received: from mailgw02.mediatek.com ([210.61.82.184]:59675 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S933873AbdAIDN2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 8 Jan 2017 22:13:28 -0500
+Message-ID: <1483931601.16976.48.camel@mtkswgap22>
+Subject: Re: [PATCH 2/2] media: rc: add driver for IR remote receiver on
+ MT7623 SoC
+From: Sean Wang <sean.wang@mediatek.com>
+To: Sean Young <sean@mess.org>
+CC: <mchehab@osg.samsung.com>, <hdegoede@redhat.com>,
+        <hkallweit1@gmail.com>, <robh+dt@kernel.org>,
+        <mark.rutland@arm.com>, <matthias.bgg@gmail.com>,
+        <andi.shyti@samsung.com>, <hverkuil@xs4all.nl>,
+        <ivo.g.dimitrov.75@gmail.com>, <linux-media@vger.kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-mediatek@lists.infradead.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <keyhaede@gmail.com>
+Date: Mon, 9 Jan 2017 11:13:21 +0800
+In-Reply-To: <20170108211624.GB7866@gofer.mess.org>
+References: <1483632384-8107-1-git-send-email-sean.wang@mediatek.com>
+         <1483632384-8107-3-git-send-email-sean.wang@mediatek.com>
+         <20170105171240.GA9136@gofer.mess.org>
+         <1483687885.16976.19.camel@mtkswgap22>
+         <20170108211624.GB7866@gofer.mess.org>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 31/01/17 20:33, Russell King - ARM Linux wrote:
-> On Tue, Jan 31, 2017 at 10:21:26AM -0800, Steve Longerbeam wrote:
->> On 01/31/2017 05:42 AM, Russell King - ARM Linux wrote:
->>> On Fri, Jan 20, 2017 at 03:38:28PM +0100, Hans Verkuil wrote:
->>>> Should be set to something like 'platform:imx-media-camif'. v4l2-compliance
->>>> should complain about this.
->>> ... and more.
->>
->> Right, in version 3 that you are working with, no v4l2-compliance fixes were
->> in yet. A lot of the compliance errors are fixed, please look in latest
->> branch
->> imx-media-staging-md-wip at git@github.com:slongerbeam/mediatree.git.
->
-> Sorry, I'm not prepared to pull random trees from github as there's
-> no easy way to see what's in the branch.
->
-> I've always disliked github because its web interface makes it soo
-> difficult to navigate around git trees hosted there.  You can see
-> a commit, you can see a diff of the commit.  You can get a list of
-> branches.  But there seems to be no way to get a list of commits
-> similar to "git log" or even a one-line summary of each commit on
-> a branch.  If there is, it's completely non-obvious (which I think is
-> much of the problem with github, it's web interface is horrendous.)
->
-> Or you can clone/pull the tree without knowing what you're fetching
-> (eg, what the tree is based upon.)
->
-> Or you can waste time clicking repeatedly on the "parent" commit link
-> on each patch working your way back through the history...
->
-> Well, it looks like it's bsaed on 4.10-rc1 with who-knows-what work
-> from the linux-media tree (I didn't try and go back any further.)
-> As I don't want to take a whole pile of other changes into my tree,
-> I'm certainly not going to pull from your github tree.  Sorry.
->
+On Sun, 2017-01-08 at 21:16 +0000, Sean Young wrote:
+> Hi Sean,
+> 
+> On Fri, Jan 06, 2017 at 03:31:25PM +0800, Sean Wang wrote:
+> > On Thu, 2017-01-05 at 17:12 +0000, Sean Young wrote:
+> > > On Fri, Jan 06, 2017 at 12:06:24AM +0800, sean.wang@mediatek.com wrote:
+> > > > +	/* Handle pulse and space until end of message */
+> > > > +	for (i = 0 ; i < MTK_CHKDATA_SZ ; i++) {
+> > > > +		val = mtk_r32(ir, MTK_CHKDATA_REG(i));
+> > > > +		dev_dbg(ir->dev, "@reg%d=0x%08x\n", i, val);
+> > > > +
+> > > > +		for (j = 0 ; j < 4 ; j++) {
+> > > > +			wid = (val & (0xff << j * 8)) >> j * 8;
+> > > > +			rawir.pulse = !rawir.pulse;
+> > > > +			rawir.duration = wid * (MTK_IR_SAMPLE + 1);
+> > > > +			ir_raw_event_store_with_filter(ir->rc, &rawir);
+> > > > +
+> > > > +			if (MTK_IR_END(wid))
+> > > > +				goto end_msg;
+> > > > +		}
+> > > > +	}
+> > > 
+> > > If I read this correctly, there is a maximum of 17 * 4 = 68 edges per
+> > > IR message. The rc6 mce key 0 (scancode 0x800f0400) is 69 edges, so that
+> > > won't work.
+> > > 
+> > Uh, this is related to hardware limitation. Maximum number hardware
+> > holds indeed is only 68 edges as you said :( 
+> > 
+> > For the case, I will try change the logic into that the whole message 
+> > is dropped if no end of message is seen within 68 counts to avoid
+> > wasting CPU for decoding. 
+> 
+> I'm not sure it is worthwhile dropping the IR in that case. The processing
+> is minimal and it might be possible that we have just enough IR to decode
+> a scancode even if the trailing end of message is missing. Note that
+> the call to ir_raw_event_set_idle() will generate an timeout IR event, so
+> there will always be an end of message marker.
 
-https://github.com/slongerbeam/mediatree/compare/master...imx-media-staging-md-wip
 
-It's under the "Compare" button from the main view. It would be nice 
-though if the first commit's parent was some clearly tagged start point.
+1)
+I agree with you :) The original logic I made already as you pointed out
+is sent incomplete IR message to let ir-raw try to decode as possible.
 
-Regards,
-Ian
+2)
+I had another question. I found multiple and same IR messages being
+received when using SONY remote controller. Should driver needs to
+report each message or only one of these to the upper layer ?
+
+
+> All I wanted to do was point out a limitation in case there is a
+> workaround; if there is not then we might as well make do with the IR
+> we do have.
+
+I also will leave some words about limitation we had in the comments.
+
+> Thanks
+> Sean
+
+
