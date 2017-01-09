@@ -1,72 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:53026 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753561AbdA3OJE (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:51440 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S936339AbdAIOTT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Jan 2017 09:09:04 -0500
+        Mon, 9 Jan 2017 09:19:19 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 16/16] at91-sama5d3_xplained.dts: select ov2640
-Date: Mon, 30 Jan 2017 15:06:28 +0100
-Message-Id: <20170130140628.18088-17-hverkuil@xs4all.nl>
-In-Reply-To: <20170130140628.18088-1-hverkuil@xs4all.nl>
-References: <20170130140628.18088-1-hverkuil@xs4all.nl>
+Subject: [GIT PULL v2 FOR v4.11] More fixes/enhancements
+Message-ID: <a71b717d-9803-ba89-d248-4c8deb255583@xs4all.nl>
+Date: Mon, 9 Jan 2017 15:19:13 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Changes since v1:
 
-This patch replaces the ov7670 with the ov2640. This patch is not
-meant to be merged but is for demonstration purposes only.
+- removed the "v4l2-common: fix aligned value calculation": it was withdrawn and I
+  missed that.
+- added pvrusb2-io cleanup patches.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- arch/arm/boot/dts/at91-sama5d3_xplained.dts | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+Regards,
 
-diff --git a/arch/arm/boot/dts/at91-sama5d3_xplained.dts b/arch/arm/boot/dts/at91-sama5d3_xplained.dts
-index 2af24f7..d5f7e82 100644
---- a/arch/arm/boot/dts/at91-sama5d3_xplained.dts
-+++ b/arch/arm/boot/dts/at91-sama5d3_xplained.dts
-@@ -72,7 +72,7 @@
- 					#size-cells = <0>;
- 					isi_0: endpoint {
- 						reg = <0>;
--						remote-endpoint = <&ov7670_0>;
-+						remote-endpoint = <&ov2640_0>;
- 						bus-width = <8>;
- 						vsync-active = <1>;
- 						hsync-active = <1>;
-@@ -88,20 +88,20 @@
- 			i2c1: i2c@f0018000 {
- 				status = "okay";
- 
--				ov7670: camera@0x21 {
--					compatible = "ovti,ov7670";
--					reg = <0x21>;
-+				ov2640: camera@0x30 {
-+					compatible = "ovti,ov2640";
-+					reg = <0x30>;
- 					pinctrl-names = "default";
- 					pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
- 					resetb-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
- 					pwdn-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
- 					clocks = <&pck0>;
--					clock-names = "xclk";
-+					clock-names = "xvclk";
- 					assigned-clocks = <&pck0>;
- 					assigned-clock-rates = <25000000>;
- 
- 					port {
--						ov7670_0: endpoint {
-+						ov2640_0: endpoint {
- 							remote-endpoint = <&isi_0>;
- 							bus-width = <8>;
- 						};
--- 
-2.10.2
+	Hans
 
+The following changes since commit 40eca140c404505c09773d1c6685d818cb55ab1a:
+
+  [media] mn88473: add DVB-T2 PLP support (2016-12-27 14:00:15 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.11b
+
+for you to fetch changes up to e8338cdfa3ccef452c3a521d447d8f6dce231d03:
+
+  pvrusb2-io: Add some spaces for better code readability (2017-01-09 15:13:11 +0100)
+
+----------------------------------------------------------------
+Andrzej Hajda (1):
+      v4l: s5c73m3: fix negation operator
+
+Kees Cook (2):
+      mtk-vcodec: use designated initializers
+      solo6x10: use designated initializers
+
+Kevin Hilman (5):
+      davinci: VPIF: fix module loading, init errors
+      davinci: vpif_capture: remove hard-coded I2C adapter id
+      davinci: vpif_capture: fix start/stop streaming locking
+      dt-bindings: add TI VPIF documentation
+      davinci: VPIF: add basic support for DT init
+
+Markus Elfring (4):
+      v4l2-async: Use kmalloc_array() in v4l2_async_notifier_unregister()
+      v4l2-async: Delete an error message for a failed memory allocation in v4l2_async_notifier_unregister()
+      pvrusb2-io: Use kmalloc_array() in pvr2_stream_buffer_count()
+      pvrusb2-io: Add some spaces for better code readability
+
+Pavel Machek (1):
+      mark myself as mainainer for camera on N900
+
+Randy Dunlap (1):
+      media: fix dm1105.c build error
+
+Santosh Kumar Singh (5):
+      vim2m: Clean up file handle in open() error path.
+      zoran: Clean up file handle in open() error path.
+      tm6000: Clean up file handle in open() error path.
+      ivtv: Clean up file handle in open() error path.
+      pvrusb2: Clean up file handle in open() error path.
+
+Shyam Saini (1):
+      media: usb: cpia2: Use kmemdup instead of kmalloc and memcpy
+
+Sudip Mukherjee (1):
+      bt8xx: fix memory leak
+
+ Documentation/devicetree/bindings/media/ti,da850-vpif.txt |  83 ++++++++++++++++++++++++++++
+ MAINTAINERS                                               |   8 +++
+ drivers/media/i2c/s5c73m3/s5c73m3-ctrls.c                 |   2 +-
+ drivers/media/pci/bt8xx/dvb-bt8xx.c                       |   1 +
+ drivers/media/pci/dm1105/Kconfig                          |   2 +-
+ drivers/media/pci/ivtv/ivtv-alsa-pcm.c                    |   1 +
+ drivers/media/pci/solo6x10/solo6x10-g723.c                |   2 +-
+ drivers/media/pci/zoran/zoran_driver.c                    |   1 +
+ drivers/media/platform/davinci/vpif.c                     |  14 ++++-
+ drivers/media/platform/davinci/vpif_capture.c             |  24 +++++++--
+ drivers/media/platform/davinci/vpif_capture.h             |   2 +-
+ drivers/media/platform/davinci/vpif_display.c             |   6 +++
+ drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c     |   8 +--
+ drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c      |   8 +--
+ drivers/media/platform/vim2m.c                            |   2 +
+ drivers/media/usb/cpia2/cpia2_usb.c                       |   4 +-
+ drivers/media/usb/pvrusb2/pvrusb2-io.c                    | 123 +++++++++++++++++++++---------------------
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c                  |   3 +-
+ drivers/media/usb/tm6000/tm6000-video.c                   |   5 +-
+ drivers/media/v4l2-core/v4l2-async.c                      |   7 +--
+ include/media/davinci/vpif_types.h                        |   1 +
+ 21 files changed, 218 insertions(+), 89 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/ti,da850-vpif.txt
