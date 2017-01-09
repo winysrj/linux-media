@@ -1,111 +1,270 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from host.76.145.23.62.rev.coltfrance.com ([62.23.145.76]:42182 "EHLO
-        proxy.6wind.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754932AbdAFJom (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2017 04:44:42 -0500
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-To: arnd@arndb.de
-Cc: mmarek@suse.com, linux-kbuild@vger.kernel.org,
-        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org,
-        adi-buildroot-devel@lists.sourceforge.net,
-        linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com,
-        uclinux-h8-devel@lists.sourceforge.jp,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org,
-        linux-mips@linux-mips.org, linux-am33-list@redhat.com,
-        nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-        linux-arch@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        netdev@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mmc@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-nfs@vger.kernel.org,
-        linux-raid@vger.kernel.org, linux-spi@vger.kernel.org,
-        linux-mtd@lists.infradead.org, linux-rdma@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, alsa-devel@alsa-project.org,
-        linux-fbdev@vger.kernel.org, xen-devel@lists.xenproject.org,
-        airlied@linux.ie, davem@davemloft.net,
-        Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: [PATCH v2 5/7] Makefile.headersinst: cleanup input files
-Date: Fri,  6 Jan 2017 10:43:57 +0100
-Message-Id: <1483695839-18660-6-git-send-email-nicolas.dichtel@6wind.com>
-In-Reply-To: <1483695839-18660-1-git-send-email-nicolas.dichtel@6wind.com>
-References: <bf83da6b-01ef-bf44-b3e1-ca6fc5636818@6wind.com>
- <1483695839-18660-1-git-send-email-nicolas.dichtel@6wind.com>
+Received: from mail-wj0-f180.google.com ([209.85.210.180]:35990 "EHLO
+        mail-wj0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1032673AbdAIOdX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2017 09:33:23 -0500
+Received: by mail-wj0-f180.google.com with SMTP id ew7so52463544wjc.3
+        for <linux-media@vger.kernel.org>; Mon, 09 Jan 2017 06:33:22 -0800 (PST)
+Subject: Re: [PATCH 01/10] doc: DT: camss: Binding document for Qualcomm
+ Camera subsystem driver
+To: Rob Herring <robh@kernel.org>
+References: <1480085813-28235-1-git-send-email-todor.tomov@linaro.org>
+ <20161130220350.q37rbo2biaeg2sad@rob-hp-laptop>
+Cc: mchehab@kernel.org, laurent.pinchart+renesas@ideasonboard.com,
+        hans.verkuil@cisco.com, javier@osg.samsung.com,
+        s.nawrocki@samsung.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, mark.rutland@arm.com,
+        devicetree@vger.kernel.org, bjorn.andersson@linaro.org,
+        srinivas.kandagatla@linaro.org
+From: Todor Tomov <todor.tomov@linaro.org>
+Message-ID: <58739F2D.5020607@linaro.org>
+Date: Mon, 9 Jan 2017 16:33:17 +0200
+MIME-Version: 1.0
+In-Reply-To: <20161130220350.q37rbo2biaeg2sad@rob-hp-laptop>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After the last four patches, all exported headers are under uapi/, thus
-input-files2 are not needed anymore.
-The side effect is that input-files1-name is exactly header-y.
+Hi Rob,
 
-Note also that unput-files3-name is genhdr-y.
+Happy new year,
+And thank you for the review.
 
-Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
----
- scripts/Makefile.headersinst | 34 +++++++++++-----------------------
- 1 file changed, 11 insertions(+), 23 deletions(-)
+On 12/01/2016 12:03 AM, Rob Herring wrote:
+> On Fri, Nov 25, 2016 at 04:56:53PM +0200, Todor Tomov wrote:
+>> Add DT binding document for Qualcomm Camera subsystem driver.
+>>
+>> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+>> ---
+>>  .../devicetree/bindings/media/qcom,camss.txt       | 196 +++++++++++++++++++++
+>>  1 file changed, 196 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/qcom,camss.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/qcom,camss.txt b/Documentation/devicetree/bindings/media/qcom,camss.txt
+>> new file mode 100644
+>> index 0000000..76ad89a
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/qcom,camss.txt
+>> @@ -0,0 +1,196 @@
+>> +Qualcomm Camera Subsystem
+>> +
+>> +* Properties
+>> +
+>> +- compatible:
+>> +	Usage: required
+>> +	Value type: <stringlist>
+>> +	Definition: Should contain:
+>> +		- "qcom,8x16-camss"
+> 
+> Don't use wildcards in compatible strings. One string per SoC.
 
-diff --git a/scripts/Makefile.headersinst b/scripts/Makefile.headersinst
-index 1106d6ca3a38..3e20d03432d2 100644
---- a/scripts/Makefile.headersinst
-+++ b/scripts/Makefile.headersinst
-@@ -40,31 +40,20 @@ wrapper-files := $(filter $(header-y), $(generic-y))
- srcdir        := $(srctree)/$(obj)
- gendir        := $(objtree)/$(gen)
- 
--oldsrcdir     := $(srctree)/$(subst /uapi,,$(obj))
--
- # all headers files for this dir
- header-y      := $(filter-out $(generic-y), $(header-y))
- all-files     := $(header-y) $(genhdr-y) $(wrapper-files)
- output-files  := $(addprefix $(installdir)/, $(all-files))
- 
--input-files1  := $(foreach hdr, $(header-y), \
--		   $(if $(wildcard $(srcdir)/$(hdr)), \
--			$(wildcard $(srcdir)/$(hdr))) \
--		   )
--input-files1-name := $(notdir $(input-files1))
--input-files2  := $(foreach hdr, $(header-y), \
--		   $(if  $(wildcard $(srcdir)/$(hdr)),, \
--			$(if $(wildcard $(oldsrcdir)/$(hdr)), \
--				$(wildcard $(oldsrcdir)/$(hdr)), \
--				$(error Missing UAPI file $(srcdir)/$(hdr))) \
--		   ))
--input-files2-name := $(notdir $(input-files2))
--input-files3  := $(foreach hdr, $(genhdr-y), \
--		   $(if	$(wildcard $(gendir)/$(hdr)), \
--			$(wildcard $(gendir)/$(hdr)), \
--			$(error Missing generated UAPI file $(gendir)/$(hdr)) \
--		   ))
--input-files3-name := $(notdir $(input-files3))
-+# Check that all expected files exist
-+$(foreach hdr, $(header-y), \
-+  $(if $(wildcard $(srcdir)/$(hdr)),, \
-+       $(error Missing UAPI file $(srcdir)/$(hdr)) \
-+   ))
-+$(foreach hdr, $(genhdr-y), \
-+  $(if	$(wildcard $(gendir)/$(hdr)),, \
-+       $(error Missing generated UAPI file $(gendir)/$(hdr)) \
-+  ))
- 
- # Work out what needs to be removed
- oldheaders    := $(patsubst $(installdir)/%,%,$(wildcard $(installdir)/*.h))
-@@ -78,9 +67,8 @@ printdir = $(patsubst $(INSTALL_HDR_PATH)/%/,%,$(dir $@))
- quiet_cmd_install = INSTALL $(printdir) ($(words $(all-files))\
-                             file$(if $(word 2, $(all-files)),s))
-       cmd_install = \
--        $(CONFIG_SHELL) $< $(installdir) $(srcdir) $(input-files1-name); \
--        $(CONFIG_SHELL) $< $(installdir) $(oldsrcdir) $(input-files2-name); \
--        $(CONFIG_SHELL) $< $(installdir) $(gendir) $(input-files3-name); \
-+        $(CONFIG_SHELL) $< $(installdir) $(srcdir) $(header-y); \
-+        $(CONFIG_SHELL) $< $(installdir) $(gendir) $(genhdr-y); \
-         for F in $(wrapper-files); do                                   \
-                 echo "\#include <asm-generic/$$F>" > $(installdir)/$$F;    \
-         done;                                                           \
+Ok, I'll fix this.
+
+> 
+>> +- reg:
+>> +	Usage: required
+>> +	Value type: <prop-encoded-array>
+>> +	Definition: Register ranges as listed in the reg-names property.
+>> +- reg-names:
+>> +	Usage: required
+>> +	Value type: <stringlist>
+>> +	Definition: Should contain the following entries:
+>> +		- "csiphy0"
+>> +		- "csiphy0_clk_mux"
+>> +		- "csiphy1"
+>> +		- "csiphy1_clk_mux"
+>> +		- "csid0"
+>> +		- "csid1"
+>> +		- "ispif"
+>> +		- "csi_clk_mux"
+>> +		- "vfe0"
+> 
+> Kind of looks like the phy's should be separate nodes since each phy has 
+> its own register range, irq, clocks, etc.
+
+Yes, there are a lot of hardware resources here.
+I have decided to keep everything into a single platform device as this
+represents it better from system point of view.
+
+> 
+>> +- interrupts:
+>> +	Usage: required
+>> +	Value type: <prop-encoded-array>
+>> +	Definition: Interrupts as listed in the interrupt-names property.
+>> +- interrupt-names:
+>> +	Usage: required
+>> +	Value type: <stringlist>
+>> +	Definition: Should contain the following entries:
+>> +		- "csiphy0"
+>> +		- "csiphy1"
+>> +		- "csid0"
+>> +		- "csid1"
+>> +		- "ispif"
+>> +		- "vfe0"
+>> +- power-domains:
+>> +	Usage: required
+>> +	Value type: <prop-encoded-array>
+>> +	Definition: A phandle and power domain specifier pairs to the
+>> +		    power domain which is responsible for collapsing
+>> +		    and restoring power to the peripheral.
+>> +- clocks:
+>> +	Usage: required
+>> +	Value type: <prop-encoded-array>
+>> +	Definition: A list of phandle and clock specifier pairs as listed
+>> +		    in clock-names property.
+>> +- clock-names:
+>> +	Usage: required
+>> +	Value type: <stringlist>
+>> +	Definition: Should contain the following entries:
+>> +		- "camss_top_ahb_clk"
+>> +		- "ispif_ahb_clk"
+>> +		- "csiphy0_timer_clk"
+>> +		- "csiphy1_timer_clk"
+>> +		- "csi0_ahb_clk"
+>> +		- "csi0_clk"
+>> +		- "csi0_phy_clk"
+>> +		- "csi0_pix_clk"
+>> +		- "csi0_rdi_clk"
+>> +		- "csi1_ahb_clk"
+>> +		- "csi1_clk"
+>> +		- "csi1_phy_clk"
+>> +		- "csi1_pix_clk"
+>> +		- "csi1_rdi_clk"
+>> +		- "camss_ahb_clk"
+>> +		- "camss_vfe_vfe_clk"
+>> +		- "camss_csi_vfe_clk"
+>> +		- "iface_clk"
+>> +		- "bus_clk"
+>> +- vdda-supply:
+>> +	Usage: required
+>> +	Value type: <phandle>
+>> +	Definition: A phandle to voltage supply for CSI2.
+>> +- iommus:
+>> +	Usage: required
+>> +	Value type: <prop-encoded-array>
+>> +	Definition: A list of phandle and IOMMU specifier pairs.
+>> +
+>> +* Nodes
+>> +
+>> +- ports:
+>> +	Usage: required
+>> +	Definition: As described in video-interfaces.txt in same directory.
+>> +	Properties:
+>> +		- reg:
+>> +			Usage: required
+>> +			Value type: <u32>
+>> +			Definition: Selects CSI2 PHY interface - PHY0 or PHY1.
+>> +	Endpoint node properties:
+>> +		- clock-lanes:
+>> +			Usage: required
+>> +			Value type: <u32>
+>> +			Definition: The clock lane.
+>> +		- data-lanes:
+>> +			Usage: required
+>> +			Value type: <prop-encoded-array>
+>> +			Definition: An array of data lanes.
+>> +		- qcom,settle-cnt:
+> 
+> This should go in phy node ideally.
+> 
+>> +			Usage: required
+>> +			Value type: <u32>
+>> +			Definition: The settle count parameter for CSI PHY.
+>> +
+>> +* An Example
+>> +
+>> +	camss: camss@1b00000 {
+>> +		compatible = "qcom,8x16-camss";
+>> +		reg = <0x1b0ac00 0x200>,
+>> +			<0x1b00030 0x4>,
+>> +			<0x1b0b000 0x200>,
+>> +			<0x1b00038 0x4>,
+>> +			<0x1b08000 0x100>,
+>> +			<0x1b08400 0x100>,
+>> +			<0x1b0a000 0x500>,
+>> +			<0x1b00020 0x10>,
+>> +			<0x1b10000 0x1000>;
+>> +		reg-names = "csiphy0",
+>> +			"csiphy0_clk_mux",
+>> +			"csiphy1",
+>> +			"csiphy1_clk_mux",
+>> +			"csid0",
+>> +			"csid1",
+>> +			"ispif",
+>> +			"csi_clk_mux",
+>> +			"vfe0";
+>> +		interrupts = <GIC_SPI 78 0>,
+>> +			<GIC_SPI 79 0>,
+>> +			<GIC_SPI 51 0>,
+>> +			<GIC_SPI 52 0>,
+>> +			<GIC_SPI 55 0>,
+>> +			<GIC_SPI 57 0>;
+>> +		interrupt-names = "csiphy0",
+>> +			"csiphy1",
+>> +			"csid0",
+>> +			"csid1",
+>> +			"ispif",
+>> +			"vfe0";
+>> +		power-domains = <&gcc VFE_GDSC>;
+>> +		clocks = <&gcc GCC_CAMSS_TOP_AHB_CLK>,
+>> +			<&gcc GCC_CAMSS_ISPIF_AHB_CLK>,
+>> +			<&gcc GCC_CAMSS_CSI0PHYTIMER_CLK>,
+>> +			<&gcc GCC_CAMSS_CSI1PHYTIMER_CLK>,
+>> +			<&gcc GCC_CAMSS_CSI0_AHB_CLK>,
+>> +			<&gcc GCC_CAMSS_CSI0_CLK>,
+>> +			<&gcc GCC_CAMSS_CSI0PHY_CLK>,
+>> +			<&gcc GCC_CAMSS_CSI0PIX_CLK>,
+>> +			<&gcc GCC_CAMSS_CSI0RDI_CLK>,
+>> +			<&gcc GCC_CAMSS_CSI1_AHB_CLK>,
+>> +			<&gcc GCC_CAMSS_CSI1_CLK>,
+>> +			<&gcc GCC_CAMSS_CSI1PHY_CLK>,
+>> +			<&gcc GCC_CAMSS_CSI1PIX_CLK>,
+>> +			<&gcc GCC_CAMSS_CSI1RDI_CLK>,
+>> +			<&gcc GCC_CAMSS_AHB_CLK>,
+>> +			<&gcc GCC_CAMSS_VFE0_CLK>,
+>> +			<&gcc GCC_CAMSS_CSI_VFE0_CLK>,
+>> +			<&gcc GCC_CAMSS_VFE_AHB_CLK>,
+>> +			<&gcc GCC_CAMSS_VFE_AXI_CLK>;
+>> +		clock-names = "camss_top_ahb_clk",
+>> +			"ispif_ahb_clk",
+>> +			"csiphy0_timer_clk",
+>> +			"csiphy1_timer_clk",
+>> +			"csi0_ahb_clk",
+>> +			"csi0_clk",
+>> +			"csi0_phy_clk",
+>> +			"csi0_pix_clk",
+>> +			"csi0_rdi_clk",
+>> +			"csi1_ahb_clk",
+>> +			"csi1_clk",
+>> +			"csi1_phy_clk",
+>> +			"csi1_pix_clk",
+>> +			"csi1_rdi_clk",
+>> +			"camss_ahb_clk",
+>> +			"camss_vfe_vfe_clk",
+>> +			"camss_csi_vfe_clk",
+>> +			"iface_clk",
+>> +			"bus_clk";
+>> +		vdda-supply = <&pm8916_l2>;
+>> +		iommus = <&apps_iommu 3>;
+>> +		ports {
+>> +			#address-cells = <1>;
+>> +			#size-cells = <0>;
+>> +			port@0 {
+>> +				reg = <0>;
+>> +				csiphy0_ep: endpoint {
+>> +					clock-lanes = <1>;
+>> +					data-lanes = <0 2>;
+>> +					qcom,settle-cnt = <0xe>;
+>> +					remote-endpoint = <&ov5645_ep>;
+>> +				};
+>> +			};
+>> +		};
+>> +	};
+>> -- 
+>> 1.9.1
+>>
+
 -- 
-2.8.1
-
+Best regards,
+Todor Tomov
