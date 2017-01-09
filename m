@@ -1,81 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53896 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754829AbdABJKw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 2 Jan 2017 04:10:52 -0500
-Date: Mon, 2 Jan 2017 11:10:13 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Randy Li <ayaka@soulik.info>
-Cc: dri-devel@lists.freedesktop.org, daniel.vetter@intel.com,
-        jani.nikula@linux.intel.com, seanpaul@chromium.org,
-        airlied@linux.ie, linux-kernel@vger.kernel.org,
-        randy.li@rock-chips.com, mchehab@kernel.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] [media] v4l: Add 10-bits per channel YUV pixel
- formats
-Message-ID: <20170102091013.GG3958@valkosipuli.retiisi.org.uk>
-References: <1483347004-32593-1-git-send-email-ayaka@soulik.info>
- <1483347004-32593-3-git-send-email-ayaka@soulik.info>
+Received: from mout.kundenserver.de ([212.227.126.135]:61637 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966542AbdAILev (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2017 06:34:51 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: linuxppc-dev@lists.ozlabs.org, linux-kbuild@vger.kernel.org
+Cc: Nicolas Dichtel <nicolas.dichtel@6wind.com>,
+        linux-mips@linux-mips.org, alsa-devel@alsa-project.org,
+        linux-ia64@vger.kernel.org, linux-doc@vger.kernel.org,
+        airlied@linux.ie, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-mtd@lists.infradead.org,
+        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-am33-list@redhat.com,
+        linux-c6x-dev@linux-c6x.org, linux-rdma@vger.kernel.org,
+        linux-hexagon@vger.kernel.org, linux-sh@vger.kernel.org,
+        coreteam@netfilter.org, fcoe-devel@open-fcoe.org,
+        xen-devel@lists.xenproject.org, linux-snps-arc@lists.infradead.org,
+        linux-media@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp,
+        adi-buildroot-devel@lists.sourceforge.net,
+        linux-raid@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        openrisc@lists.librecores.org, linux-metag@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-nfs@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linux-cris-kernel@axis.com,
+        netdev@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org,
+        mmarek@suse.com, netfilter-devel@vger.kernel.org,
+        linux-alpha@vger.kernel.org, nios2-dev@lists.rocketboards.org,
+        davem@davemloft.net
+Subject: Re: [PATCH v2 3/7] nios2: put setup.h in uapi
+Date: Mon, 09 Jan 2017 12:33:46 +0100
+Message-ID: <3162962.COsNxdSb45@wuerfel>
+In-Reply-To: <1483695839-18660-4-git-send-email-nicolas.dichtel@6wind.com>
+References: <bf83da6b-01ef-bf44-b3e1-ca6fc5636818@6wind.com> <1483695839-18660-1-git-send-email-nicolas.dichtel@6wind.com> <1483695839-18660-4-git-send-email-nicolas.dichtel@6wind.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1483347004-32593-3-git-send-email-ayaka@soulik.info>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Randy,
+On Friday, January 6, 2017 10:43:55 AM CET Nicolas Dichtel wrote:
 
-Thanks for the patch.
-
-On Mon, Jan 02, 2017 at 04:50:04PM +0800, Randy Li wrote:
-> The formats added by this patch are:
-> 	V4L2_PIX_FMT_P010
-> 	V4L2_PIX_FMT_P010M
-> Currently, none of driver uses those format, but some video device
-> has been confirmed with could as those format for video output.
-> The Rockchip's new decoder has supported those format for profile_10
-> HEVC/AVC video.
+> diff --git a/arch/nios2/include/uapi/asm/setup.h b/arch/nios2/include/uapi/asm/setup.h
+> new file mode 100644
+> index 000000000000..8d8285997ba8
+> --- /dev/null
+> +++ b/arch/nios2/include/uapi/asm/setup.h
+> @@ -0,0 +1,6 @@
+> +#ifndef _UAPI_ASM_NIOS2_SETUP_H
+> +#define _UAPI_ASM_NIOS2_SETUP_H
+> +
+> +#include <asm-generic/setup.h>
+> +
+> +#endif /* _UAPI_ASM_NIOS2_SETUP_H */
 > 
-> Signed-off-by: Randy Li <ayaka@soulik.info>
 
-If the format resembles the existing formats but on a different bit depth,
-it should be named in similar fashion.
+This one is only a redirect to an asm-generic header, so it can be
+removed completely and replaced with a line in the 
+arch/nios2/include/uapi/asm/ file:
 
-Could you also add ReST documentation for the format, please?
+generic-y += setup.h
 
-The common requirement for merging patches that change interfaces has been
-that there's a user for that change. It'll still help you to get this
-reviewed now so the interface that the future hopefully-in-mainline driver
-provides will not change.
-
-> ---
->  include/uapi/linux/videodev2.h | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 46e8a2e3..9e03f20 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -551,6 +551,7 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_NV61    v4l2_fourcc('N', 'V', '6', '1') /* 16  Y/CrCb 4:2:2  */
->  #define V4L2_PIX_FMT_NV24    v4l2_fourcc('N', 'V', '2', '4') /* 24  Y/CbCr 4:4:4  */
->  #define V4L2_PIX_FMT_NV42    v4l2_fourcc('N', 'V', '4', '2') /* 24  Y/CrCb 4:4:4  */
-> +#define V4L2_PIX_FMT_P010    v4l2_fourcc('P', '0', '1', '0') /* 15  Y/CbCr 4:2:0, 10 bits per channel */
->  
->  /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
->  #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
-> @@ -559,6 +560,7 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_NV61M   v4l2_fourcc('N', 'M', '6', '1') /* 16  Y/CrCb 4:2:2  */
->  #define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 64x32 macroblocks */
->  #define V4L2_PIX_FMT_NV12MT_16X16 v4l2_fourcc('V', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 16x16 macroblocks */
-> +#define V4L2_PIX_FMT_P010M   v4l2_fourcc('P', 'M', '1', '0') /* 15  Y/CbCr 4:2:0, 10 bits per channel */
->  
->  /* three planes - Y Cb, Cr */
->  #define V4L2_PIX_FMT_YUV410  v4l2_fourcc('Y', 'U', 'V', '9') /*  9  YUV 4:1:0     */
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+	Arnd
