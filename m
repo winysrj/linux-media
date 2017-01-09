@@ -1,87 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:62616 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S964989AbdACOzY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 3 Jan 2017 09:55:24 -0500
-Date: Tue, 3 Jan 2017 15:55:06 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v3 4/4] uvcvideo: add a metadata device node
-In-Reply-To: <1790537.KNrosOxaFV@avalon>
-Message-ID: <Pine.LNX.4.64.1701031545310.18497@axis700.grange>
-References: <1481541412-1186-1-git-send-email-guennadi.liakhovetski@intel.com>
- <3119423.ZqlLJHYUgu@avalon> <Pine.LNX.4.64.1612301401360.9905@axis700.grange>
- <1790537.KNrosOxaFV@avalon>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:45542 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751599AbdAIO5O (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 9 Jan 2017 09:57:14 -0500
+Subject: Re: [RFC] [sur40] mapping of sensor parameters to V4L2?
+To: Florian Echtler <floe@butterbrot.org>, linux-media@vger.kernel.org
+References: <alpine.DEB.2.10.1701031346040.18874@butterbrot>
+Cc: modin@yuri.at, benjamin.tissoires@redhat.com,
+        hans.verkuil@cisco.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <93af6f64-0cb0-bed7-8ff2-9c82b171b6b9@xs4all.nl>
+Date: Mon, 9 Jan 2017 15:57:01 +0100
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <alpine.DEB.2.10.1701031346040.18874@butterbrot>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-On Fri, 30 Dec 2016, Laurent Pinchart wrote:
-
-> Hi Guennadi,
+On 01/03/2017 01:57 PM, Florian Echtler wrote:
+> Hi everyone,
 > 
-> On Friday 30 Dec 2016 14:04:34 Guennadi Liakhovetski wrote:
-> > On Fri, 30 Dec 2016, Laurent Pinchart wrote:
-> > > On Friday 30 Dec 2016 11:43:02 Guennadi Liakhovetski wrote:
-> > >> Hi Laurent,
-> > >> 
-> > >> I'd like to discuss extending this patch a bit, preferably as an
-> > >> incremental patch.
-> > >> 
-> > >> First let me confirm my current understanding of the way the UVC driver
-> > >> creates its media device topology. Do I understand it correctly, that
-> > >> the driver allocates UVC entities (not media controller entities) for all
-> > >> UVC units and terminals, but then uses subdevices for all such UVC
-> > >> entities, except terminals, i.e. only for UVC units? struct uvc_entity
-> > >> has an embedded struct v4l2_subdev object, but it's unused for UVC
-> > >> terminals. Instead terminals are associated to video devices, which are
-> > >> then linked into the MC topology? Is this my understanding correct?
-> > > 
-> > > That's correct, but looking at the code now, I think the driver should use
-> > > a struct media_entity directly instead of a struct v4l2_subdev as it
-> > > doesn't need any of the infrastructure provided by subdevs.
-> > > 
-> > >> I have a problem with the current version of this patch, that there is
-> > >> no way to associate video device nodes with respepctive metadata nodes.
-> > >> Would it be acceptable to use an MC link for this association?
-> > > 
-> > > No, links describe data connections.
-> > 
-> > Well, it is data - it's metadata, extracted from USB buffers.
+> next chapter in the neverending story of reverse-engineering the SUR40:
+> 
+> I've identified a couple of internal LCD panel registers which control 
+> some aspects of the built-in image sensor. In particular, these are called 
+> "Video Voltage", "Video Bias", and "IR Illumination Level".
+> 
+> Now, I have two questions:
+> 
+> - Video Voltage & Bias seem to affect the sensor gain. Does anyone with 
+> extensive background knowledge of image sensors want to venture a guess 
+> what the exact relation is? My own interpretation would be that Video 
+> Voltage is the actual amplifier gain and Video Bias is the black level...
+> 
+> - Is there a sensible mapping of these values to V4L2 controls? Should I 
+> pick something from the USER class, or from CAMERA, or FLASH, or ...
 
-A further argument to this cause: currently the metadata node isn't 
-connected to anything, it's "floating freely," which is wrong too. It does 
-stream data and we have to bind it somewhere. I see 2 possibilities: 
-either link them to the same entity, as the actual video data, adding more 
-endpoints to it, or link them to video nodes. The latter way would allow 
-for easy matching. If we use the former approach, we could still agree to 
-have pad #2*n and #2*n+1 to be matching video and metadata pads, but that 
-would be less straight-forward.
+I think it would be best to add a control class for touch device and add
+these controls there.
 
-Thanks
-Guennadi
+It's pretty specific to such devices, so that would make sense.
 
-> > >> Is it allowed for video device MC entities to have source pads
-> > >> additionally to their (usually single) sink pad(s) (in case of input
-> > >> video devices)? If that would be acceptable, I could create an additional
-> > >> patch to add a source pad to output terminal video nodes to link it to
-> > >> metadata nodes.
-> > > 
-> > > That's a hack, I don't think it's a good idea.
-> > 
-> > Ok, would a completely specialised one-off sysfs solution be better? Maybe
-> > a link under the metadata node to the main node?
-> 
-> Come on, I know you're better than that. Stop thinking short term about the 
-> quickest hack that can provide the feature you need.
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
+Regards,
+
+	Hans
+
