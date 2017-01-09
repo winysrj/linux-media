@@ -1,112 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:59391 "EHLO
-        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751975AbdAROiE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Jan 2017 09:38:04 -0500
-Subject: Re: [PATCH] [media] s5p-mfc: Align stream buffer and CPB buffer to 512
-To: Smitha T Murthy <smitha.t@samsung.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
-        m.szyprowski@samsung.com
-From: Andrzej Hajda <a.hajda@samsung.com>
-Message-id: <de7bbdbf-35cc-a575-79d1-2ec5764469a5@samsung.com>
-Date: Wed, 18 Jan 2017 15:37:09 +0100
-MIME-version: 1.0
-In-reply-to: <1484732223-24670-1-git-send-email-smitha.t@samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
-References: <CGME20170118094212epcas5p22e588016d2b330dcd0b99b6e1012c744@epcas5p2.samsung.com>
- <1484732223-24670-1-git-send-email-smitha.t@samsung.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:38242 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S940640AbdAIUh6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2017 15:37:58 -0500
+From: Christoph Hellwig <hch@lst.de>
+To: linux-pci@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        netdev@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH 3/3] PCI/msi: remove pci_enable_msi_{exact,range}
+Date: Mon,  9 Jan 2017 21:37:40 +0100
+Message-Id: <1483994260-19797-4-git-send-email-hch@lst.de>
+In-Reply-To: <1483994260-19797-1-git-send-email-hch@lst.de>
+References: <1483994260-19797-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Smitha,
+All multi-MSI allocations are now done through pci_irq_alloc_vectors,
+so remove the old interface.
 
-On 18.01.2017 10:37, Smitha T Murthy wrote:
-> >From MFCv6 onwards encoder stream buffer and decoder CPB buffer
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ Documentation/PCI/MSI-HOWTO.txt |  6 ++----
+ drivers/pci/msi.c               | 26 +++++++++-----------------
+ include/linux/pci.h             | 16 ++--------------
+ 3 files changed, 13 insertions(+), 35 deletions(-)
 
-Unexpected char at the beginning.
-
-> need to be aligned with 512.
-
-Patch below adds checks only if buffer size is multiple of 512, am I right?
-If yes, please precise the subject, for example "...CPB buffer size need
-to be...".
-
-
->
-> Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    9 +++++++++
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h |    3 +++
->  2 files changed, 12 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> index d6f207e..57da798 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> @@ -408,8 +408,15 @@ static int s5p_mfc_set_dec_stream_buffer_v6(struct s5p_mfc_ctx *ctx,
->  	struct s5p_mfc_dev *dev = ctx->dev;
->  	const struct s5p_mfc_regs *mfc_regs = dev->mfc_regs;
->  	struct s5p_mfc_buf_size *buf_size = dev->variant->buf_size;
-> +	size_t cpb_buf_size;
->  
->  	mfc_debug_enter();
-> +	cpb_buf_size = ALIGN(buf_size->cpb, CPB_ALIGN);
-
-Since buf_size->cpb is constant of know size there is no need to align
-it here.
-
-> +	if (strm_size >= set_strm_size_max(cpb_buf_size)) {
-> +		mfc_debug(2, "Decrease strm_size : %u -> %zu, gap : %d\n",
-> +			strm_size, set_strm_size_max(cpb_buf_size), CPB_ALIGN);
-> +		strm_size = set_strm_size_max(cpb_buf_size);
-> +	}
-
-As I understand strm_size here is a size of buffer to be decoded, why it
-cannot be equal to buf_size->cpb? Commit message says nothing about it.
-
->  	mfc_debug(2, "inst_no: %d, buf_addr: 0x%08x,\n"
->  		"buf_size: 0x%08x (%d)\n",
->  		ctx->inst_no, buf_addr, strm_size, strm_size);
-> @@ -519,6 +526,8 @@ static int s5p_mfc_set_enc_stream_buffer_v6(struct s5p_mfc_ctx *ctx,
->  	struct s5p_mfc_dev *dev = ctx->dev;
->  	const struct s5p_mfc_regs *mfc_regs = dev->mfc_regs;
->  
-> +	size = ALIGN(size, 512);
-> +
-
-Shouldn't be CPB_ALIGN instead of 512? And more importantly size is a
-length of buffer for encoded stream,
-by up-aligning you tell MFC that it can write beyond the buffer, it
-could potentially overwrite random memory? Am I right?
-
-
->  	writel(addr, mfc_regs->e_stream_buffer_addr); /* 16B align */
->  	writel(size, mfc_regs->e_stream_buffer_size);
->  
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-> index 8055848..16a7b1d 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-> @@ -40,6 +40,9 @@
->  #define FRAME_DELTA_H264_H263		1
->  #define TIGHT_CBR_MAX			10
->  
-> +#define CPB_ALIGN			512
-> +#define set_strm_size_max(cpb_max)	((cpb_max) - CPB_ALIGN)
-
-Name of the macro is misleading.
-
-Regards
-Andrzej
-
-> +
->  struct s5p_mfc_hw_ops *s5p_mfc_init_hw_ops_v6(void);
->  const struct s5p_mfc_regs *s5p_mfc_init_regs_v6_plus(struct s5p_mfc_dev *dev);
->  #endif /* S5P_MFC_OPR_V6_H_ */
-
+diff --git a/Documentation/PCI/MSI-HOWTO.txt b/Documentation/PCI/MSI-HOWTO.txt
+index cd9c9f6..b570a92 100644
+--- a/Documentation/PCI/MSI-HOWTO.txt
++++ b/Documentation/PCI/MSI-HOWTO.txt
+@@ -162,8 +162,6 @@ The following old APIs to enable and disable MSI or MSI-X interrupts should
+ not be used in new code:
+ 
+   pci_enable_msi()		/* deprecated */
+-  pci_enable_msi_range()	/* deprecated */
+-  pci_enable_msi_exact()	/* deprecated */
+   pci_disable_msi()		/* deprecated */
+   pci_enable_msix_range()	/* deprecated */
+   pci_enable_msix_exact()	/* deprecated */
+@@ -268,5 +266,5 @@ or disabled (0).  If 0 is found in any of the msi_bus files belonging
+ to bridges between the PCI root and the device, MSIs are disabled.
+ 
+ It is also worth checking the device driver to see whether it supports MSIs.
+-For example, it may contain calls to pci_enable_msi_range() or
+-pci_enable_msix_range().
++For example, it may contain calls to pci_irq_alloc_vectors with the
++PCI_IRQ_MSI or PCI_IRQ_MSIX flags.
+diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
+index 50c5003..16dda43 100644
+--- a/drivers/pci/msi.c
++++ b/drivers/pci/msi.c
+@@ -1109,23 +1109,15 @@ static int __pci_enable_msi_range(struct pci_dev *dev, int minvec, int maxvec,
+ 	}
+ }
+ 
+-/**
+- * pci_enable_msi_range - configure device's MSI capability structure
+- * @dev: device to configure
+- * @minvec: minimal number of interrupts to configure
+- * @maxvec: maximum number of interrupts to configure
+- *
+- * This function tries to allocate a maximum possible number of interrupts in a
+- * range between @minvec and @maxvec. It returns a negative errno if an error
+- * occurs. If it succeeds, it returns the actual number of interrupts allocated
+- * and updates the @dev's irq member to the lowest new interrupt number;
+- * the other interrupt numbers allocated to this device are consecutive.
+- **/
+-int pci_enable_msi_range(struct pci_dev *dev, int minvec, int maxvec)
++/* deprecated, don't use */
++int pci_enable_msi(struct pci_dev *dev)
+ {
+-	return __pci_enable_msi_range(dev, minvec, maxvec, NULL);
++	int rc = __pci_enable_msi_range(dev, 1, 1, NULL);
++	if (rc < 0)
++		return rc;
++	return 0;
+ }
+-EXPORT_SYMBOL(pci_enable_msi_range);
++EXPORT_SYMBOL(pci_enable_msi);
+ 
+ static int __pci_enable_msix_range(struct pci_dev *dev,
+ 				   struct msix_entry *entries, int minvec,
+@@ -1381,7 +1373,7 @@ int pci_msi_domain_check_cap(struct irq_domain *domain,
+ {
+ 	struct msi_desc *desc = first_pci_msi_entry(to_pci_dev(dev));
+ 
+-	/* Special handling to support pci_enable_msi_range() */
++	/* Special handling to support __pci_enable_msi_range() */
+ 	if (pci_msi_desc_is_multi_msi(desc) &&
+ 	    !(info->flags & MSI_FLAG_MULTI_PCI_MSI))
+ 		return 1;
+@@ -1394,7 +1386,7 @@ int pci_msi_domain_check_cap(struct irq_domain *domain,
+ static int pci_msi_domain_handle_error(struct irq_domain *domain,
+ 				       struct msi_desc *desc, int error)
+ {
+-	/* Special handling to support pci_enable_msi_range() */
++	/* Special handling to support __pci_enable_msi_range() */
+ 	if (pci_msi_desc_is_multi_msi(desc) && error == -ENOSPC)
+ 		return 1;
+ 
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index e2d1a12..2159376 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -1309,14 +1309,7 @@ void pci_msix_shutdown(struct pci_dev *dev);
+ void pci_disable_msix(struct pci_dev *dev);
+ void pci_restore_msi_state(struct pci_dev *dev);
+ int pci_msi_enabled(void);
+-int pci_enable_msi_range(struct pci_dev *dev, int minvec, int maxvec);
+-static inline int pci_enable_msi_exact(struct pci_dev *dev, int nvec)
+-{
+-	int rc = pci_enable_msi_range(dev, nvec, nvec);
+-	if (rc < 0)
+-		return rc;
+-	return 0;
+-}
++int pci_enable_msi(struct pci_dev *dev);
+ int pci_enable_msix_range(struct pci_dev *dev, struct msix_entry *entries,
+ 			  int minvec, int maxvec);
+ static inline int pci_enable_msix_exact(struct pci_dev *dev,
+@@ -1347,10 +1340,7 @@ static inline void pci_msix_shutdown(struct pci_dev *dev) { }
+ static inline void pci_disable_msix(struct pci_dev *dev) { }
+ static inline void pci_restore_msi_state(struct pci_dev *dev) { }
+ static inline int pci_msi_enabled(void) { return 0; }
+-static inline int pci_enable_msi_range(struct pci_dev *dev, int minvec,
+-				       int maxvec)
+-{ return -ENOSYS; }
+-static inline int pci_enable_msi_exact(struct pci_dev *dev, int nvec)
++static inline int pci_enable_msi(struct pci_dev *dev)
+ { return -ENOSYS; }
+ static inline int pci_enable_msix_range(struct pci_dev *dev,
+ 		      struct msix_entry *entries, int minvec, int maxvec)
+@@ -1426,8 +1416,6 @@ static inline void pcie_set_ecrc_checking(struct pci_dev *dev) { }
+ static inline void pcie_ecrc_get_policy(char *str) { }
+ #endif
+ 
+-#define pci_enable_msi(pdev)	pci_enable_msi_exact(pdev, 1)
+-
+ #ifdef CONFIG_HT_IRQ
+ /* The functions a driver should call */
+ int  ht_create_irq(struct pci_dev *dev, int idx);
+-- 
+2.1.4
 
