@@ -1,143 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:4175 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751274AbdAaQcX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jan 2017 11:32:23 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v5 06/10] [media] st-delta: add memory allocator helper functions
-Date: Tue, 31 Jan 2017 17:30:29 +0100
-Message-ID: <1485880233-666-7-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1485880233-666-1-git-send-email-hugues.fruchet@st.com>
-References: <1485880233-666-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from bombadil.infradead.org ([198.137.202.9]:37994 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932306AbdAIUhr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2017 15:37:47 -0500
+From: Christoph Hellwig <hch@lst.de>
+To: linux-pci@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        netdev@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH 1/3] media/cobalt: use pci_irq_allocate_vectors
+Date: Mon,  9 Jan 2017 21:37:38 +0100
+Message-Id: <1483994260-19797-2-git-send-email-hch@lst.de>
+In-Reply-To: <1483994260-19797-1-git-send-email-hch@lst.de>
+References: <1483994260-19797-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Helper functions used by decoder back-ends to allocate
-physically contiguous memory required by hardware video
-decoder.
+Simply the interrupt setup by using the new PCI layer helpers.
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+Despite using pci_enable_msi_range, this driver was only requesting a
+single MSI vector anyway.
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/media/platform/sti/delta/Makefile    |  2 +-
- drivers/media/platform/sti/delta/delta-mem.c | 51 ++++++++++++++++++++++++++++
- drivers/media/platform/sti/delta/delta-mem.h | 14 ++++++++
- drivers/media/platform/sti/delta/delta.h     |  8 +++++
- 4 files changed, 74 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/platform/sti/delta/delta-mem.c
- create mode 100644 drivers/media/platform/sti/delta/delta-mem.h
+ drivers/media/pci/cobalt/cobalt-driver.c | 8 ++------
+ drivers/media/pci/cobalt/cobalt-driver.h | 2 --
+ 2 files changed, 2 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/platform/sti/delta/Makefile b/drivers/media/platform/sti/delta/Makefile
-index 07ba7ad..cbfb1b5 100644
---- a/drivers/media/platform/sti/delta/Makefile
-+++ b/drivers/media/platform/sti/delta/Makefile
-@@ -1,2 +1,2 @@
- obj-$(CONFIG_VIDEO_STI_DELTA) := st-delta.o
--st-delta-y := delta-v4l2.o
-+st-delta-y := delta-v4l2.o delta-mem.o
-diff --git a/drivers/media/platform/sti/delta/delta-mem.c b/drivers/media/platform/sti/delta/delta-mem.c
-new file mode 100644
-index 0000000..d7b53d3
---- /dev/null
-+++ b/drivers/media/platform/sti/delta/delta-mem.c
-@@ -0,0 +1,51 @@
-+/*
-+ * Copyright (C) STMicroelectronics SA 2015
-+ * Author: Hugues Fruchet <hugues.fruchet@st.com> for STMicroelectronics.
-+ * License terms:  GNU General Public License (GPL), version 2
-+ */
-+
-+#include "delta.h"
-+#include "delta-mem.h"
-+
-+int hw_alloc(struct delta_ctx *ctx, u32 size, const char *name,
-+	     struct delta_buf *buf)
-+{
-+	struct delta_dev *delta = ctx->dev;
-+	dma_addr_t dma_addr;
-+	void *addr;
-+	unsigned long attrs = DMA_ATTR_WRITE_COMBINE;
-+
-+	addr = dma_alloc_attrs(delta->dev, size, &dma_addr,
-+			       GFP_KERNEL | __GFP_NOWARN, attrs);
-+	if (!addr) {
-+		dev_err(delta->dev,
-+			"%s hw_alloc:dma_alloc_coherent failed for %s (size=%d)\n",
-+			ctx->name, name, size);
-+		ctx->sys_errors++;
-+		return -ENOMEM;
-+	}
-+
-+	buf->size = size;
-+	buf->paddr = dma_addr;
-+	buf->vaddr = addr;
-+	buf->name = name;
-+	buf->attrs = attrs;
-+
-+	dev_dbg(delta->dev,
-+		"%s allocate %d bytes of HW memory @(virt=0x%p, phy=0x%pad): %s\n",
-+		ctx->name, size, buf->vaddr, &buf->paddr, buf->name);
-+
-+	return 0;
-+}
-+
-+void hw_free(struct delta_ctx *ctx, struct delta_buf *buf)
-+{
-+	struct delta_dev *delta = ctx->dev;
-+
-+	dev_dbg(delta->dev,
-+		"%s     free %d bytes of HW memory @(virt=0x%p, phy=0x%pad): %s\n",
-+		ctx->name, buf->size, buf->vaddr, &buf->paddr, buf->name);
-+
-+	dma_free_attrs(delta->dev, buf->size,
-+		       buf->vaddr, buf->paddr, buf->attrs);
-+}
-diff --git a/drivers/media/platform/sti/delta/delta-mem.h b/drivers/media/platform/sti/delta/delta-mem.h
-new file mode 100644
-index 0000000..f8ca109
---- /dev/null
-+++ b/drivers/media/platform/sti/delta/delta-mem.h
-@@ -0,0 +1,14 @@
-+/*
-+ * Copyright (C) STMicroelectronics SA 2015
-+ * Author: Hugues Fruchet <hugues.fruchet@st.com> for STMicroelectronics.
-+ * License terms:  GNU General Public License (GPL), version 2
-+ */
-+
-+#ifndef DELTA_MEM_H
-+#define DELTA_MEM_H
-+
-+int hw_alloc(struct delta_ctx *ctx, u32 size, const char *name,
-+	     struct delta_buf *buf);
-+void hw_free(struct delta_ctx *ctx, struct delta_buf *buf);
-+
-+#endif /* DELTA_MEM_H */
-diff --git a/drivers/media/platform/sti/delta/delta.h b/drivers/media/platform/sti/delta/delta.h
-index 74a4240..9e26525 100644
---- a/drivers/media/platform/sti/delta/delta.h
-+++ b/drivers/media/platform/sti/delta/delta.h
-@@ -191,6 +191,14 @@ struct delta_dts {
- 	u64 val;
- };
+diff --git a/drivers/media/pci/cobalt/cobalt-driver.c b/drivers/media/pci/cobalt/cobalt-driver.c
+index 9796340..d5c911c 100644
+--- a/drivers/media/pci/cobalt/cobalt-driver.c
++++ b/drivers/media/pci/cobalt/cobalt-driver.c
+@@ -308,9 +308,7 @@ static void cobalt_pci_iounmap(struct cobalt *cobalt, struct pci_dev *pci_dev)
+ static void cobalt_free_msi(struct cobalt *cobalt, struct pci_dev *pci_dev)
+ {
+ 	free_irq(pci_dev->irq, (void *)cobalt);
+-
+-	if (cobalt->msi_enabled)
+-		pci_disable_msi(pci_dev);
++	pci_free_irq_vectors(pci_dev);
+ }
  
-+struct delta_buf {
-+	u32 size;
-+	void *vaddr;
-+	dma_addr_t paddr;
-+	const char *name;
-+	unsigned long attrs;
-+};
-+
- struct delta_ctx;
+ static int cobalt_setup_pci(struct cobalt *cobalt, struct pci_dev *pci_dev,
+@@ -387,14 +385,12 @@ static int cobalt_setup_pci(struct cobalt *cobalt, struct pci_dev *pci_dev,
+ 	   from being generated. */
+ 	cobalt_set_interrupt(cobalt, false);
  
- /*
+-	if (pci_enable_msi_range(pci_dev, 1, 1) < 1) {
++	if (pci_alloc_irq_vectors(pci_dev, 1, 1, PCI_IRQ_MSI) < 1) {
+ 		cobalt_err("Could not enable MSI\n");
+-		cobalt->msi_enabled = false;
+ 		ret = -EIO;
+ 		goto err_release;
+ 	}
+ 	msi_config_show(cobalt, pci_dev);
+-	cobalt->msi_enabled = true;
+ 
+ 	/* Register IRQ */
+ 	if (request_irq(pci_dev->irq, cobalt_irq_handler, IRQF_SHARED,
+diff --git a/drivers/media/pci/cobalt/cobalt-driver.h b/drivers/media/pci/cobalt/cobalt-driver.h
+index ed00dc9..00f773e 100644
+--- a/drivers/media/pci/cobalt/cobalt-driver.h
++++ b/drivers/media/pci/cobalt/cobalt-driver.h
+@@ -287,8 +287,6 @@ struct cobalt {
+ 	u32 irq_none;
+ 	u32 irq_full_fifo;
+ 
+-	bool msi_enabled;
+-
+ 	/* omnitek dma */
+ 	int dma_channels;
+ 	int first_fifo_channel;
 -- 
-1.9.1
+2.1.4
 
