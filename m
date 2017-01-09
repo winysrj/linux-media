@@ -1,118 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:60957
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1754037AbdA3T1z (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:39298 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S965883AbdAIL32 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Jan 2017 14:27:55 -0500
-Date: Mon, 30 Jan 2017 17:18:21 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: Re: [GIT PULL FOR v4.11] New st-delta driver
-Message-ID: <20170130171821.1ff63f52@vento.lan>
-In-Reply-To: <20170130171536.07f4996d@vento.lan>
-References: <b5f8fb46-6507-417c-8f1e-3b3f1410a64d@xs4all.nl>
-        <20170130171536.07f4996d@vento.lan>
+        Mon, 9 Jan 2017 06:29:28 -0500
+Subject: Re: [PATCH v6 3/3] arm: dts: mt2701: Add node for Mediatek JPEG
+ Decoder
+To: Rick Chang <rick.chang@mediatek.com>
+References: <1479353915-5043-1-git-send-email-rick.chang@mediatek.com>
+ <1479353915-5043-4-git-send-email-rick.chang@mediatek.com>
+ <d602365a-e87b-5bae-8698-bd43063ef079@xs4all.nl>
+ <1479784905.8964.15.camel@mtksdaap41>
+ <badf8125-27ed-9c5b-fbc0-75716ffdfb0e@xs4all.nl>
+ <1479866054.8964.21.camel@mtksdaap41> <1479894203.8964.29.camel@mtksdaap41>
+ <1483670099.18931.5.camel@mtksdaap41>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Rob Herring <robh+dt@kernel.org>, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, srv_heupstream@mediatek.com,
+        linux-mediatek@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <974d20f3-5133-0869-2a35-c1617bec5d6e@xs4all.nl>
+Date: Mon, 9 Jan 2017 12:29:17 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <1483670099.18931.5.camel@mtksdaap41>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 30 Jan 2017 17:15:36 -0200
-Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+Hi Rick,
 
-> Em Mon, 9 Jan 2017 14:23:33 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On 01/06/2017 03:34 AM, Rick Chang wrote:
+> Hi Hans,
 > 
-> > See the v4 series for details:
-> > 
-> > https://www.spinics.net/lists/linux-media/msg108737.html
-> > 
-> > Regards,
-> > 
-> > 	Hans
-> > 
-> > The following changes since commit 40eca140c404505c09773d1c6685d818cb55ab1a:
-> > 
-> >   [media] mn88473: add DVB-T2 PLP support (2016-12-27 14:00:15 -0200)
-> > 
-> > are available in the git repository at:
-> > 
-> >   git://linuxtv.org/hverkuil/media_tree.git delta
-> > 
-> > for you to fetch changes up to e6f199d01e7b8bc4436738b6c666fda31b9f3340:
-> > 
-> >   st-delta: debug: trace stream/frame information & summary (2017-01-09 14:16:45 +0100)
-> > 
-> > ----------------------------------------------------------------
-> > Hugues Fruchet (10):
-> >       Documentation: DT: add bindings for ST DELTA
-> >       ARM: dts: STiH410: add DELTA dt node
-> >       ARM: multi_v7_defconfig: enable STMicroelectronics DELTA Support
-> >       MAINTAINERS: add st-delta driver
-> >       st-delta: STiH4xx multi-format video decoder v4l2 driver
-> >       st-delta: add memory allocator helper functions
-> >       st-delta: rpmsg ipc support
-> >       st-delta: EOS (End Of Stream) support
-> >       st-delta: add mjpeg support
-> >       st-delta: debug: trace stream/frame information & summary
-> 
-> There is something wrong on this driver... even after applying all
-> patches, it complains that there's a for there that does nothing:
-> 
-> drivers/media/platform/sti/delta/delta-v4l2.c:322 register_decoders() warn: we never enter this loop
-> drivers/media/platform/sti/delta/delta-v4l2.c: In function 'register_decoders':
-> drivers/media/platform/sti/delta/delta-v4l2.c:322:16: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
->   for (i = 0; i < ARRAY_SIZE(delta_decoders); i++) {
->                 ^
-> 
-> On a first glance, it seems that the register_decoders() function is
-> reponsible to register the format decoders that the hardware
-> recognizes. If so, I suspect that this driver is deadly broken.
-> 
-> Please be sure that the upstream driver works properly before
-> submitting it upstream.
-> 
-> Also, please fix the comments to match the Kernel standard. E. g.
-> instead of:
-> 
-> /* guard output frame count:
->  * - at least 1 frame needed for display
->  * - at worst 21
->  *   ( max h264 dpb (16) +
->  *     decoding peak smoothing (2) +
->  *     user display pipeline (3) )
->  */
-> 
-> It should be:
-> 
-> /*
->  * guard output frame count:
->  * - at least 1 frame needed for display
->  * - at worst 21
->  *   ( max h264 dpb (16) +
->  *     decoding peak smoothing (2) +
->  *     user display pipeline (3) )
->  */
-> 
-> There are several similar occurrences among this patch series.
+> The dependence on [1] has been merged in 4.10, but [2] has not.Do you have 
+> any idea about this patch series? Should we wait for [2] or we could merge
+> the source code and dt-binding first?
 
-Ah, forgot to comment, but it mentions a firmware. Does such firmware
-reside on some RAM memory? If so, how such firmware is loaded? 
+Looking at [2] I noticed that the last comment was July 4th. What is the reason
+it hasn't been merged yet?
+
+If I know [2] will be merged for 4.11, then I am fine with merging this media
+patch series. The dependency of this patch on [2] is something Mauro can handle.
+
+If [2] is not merged for 4.11, then I think it is better to wait until it is
+merged.
+
+Regards,
+
+	Hans
 
 > 
-> Thanks,
-> Mauro
+> Best Regards,
+> Rick
 > 
-> Thanks,
-> Mauro
+> On Wed, 2016-11-23 at 17:43 +0800, Rick Chang wrote:
+>> On Wed, 2016-11-23 at 09:54 +0800, Rick Chang wrote:
+>>> Hi Hans,
+>>>
+>>> On Tue, 2016-11-22 at 13:43 +0100, Hans Verkuil wrote:
+>>>> On 22/11/16 04:21, Rick Chang wrote:
+>>>>> Hi Hans,
+>>>>>
+>>>>> On Mon, 2016-11-21 at 15:51 +0100, Hans Verkuil wrote:
+>>>>>> On 17/11/16 04:38, Rick Chang wrote:
+>>>>>>> Signed-off-by: Rick Chang <rick.chang@mediatek.com>
+>>>>>>> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+>>>>>>> ---
+>>>>>>> This patch depends on:
+>>>>>>>   CCF "Add clock support for Mediatek MT2701"[1]
+>>>>>>>   iommu and smi "Add the dtsi node of iommu and smi for mt2701"[2]
+>>>>>>>
+>>>>>>> [1] http://lists.infradead.org/pipermail/linux-mediatek/2016-October/007271.html
+>>>>>>> [2] https://patchwork.kernel.org/patch/9164013/
+>>>>>>
+>>>>>> I assume that 1 & 2 will appear in 4.10? So this patch needs to go in
+>>>>>> after the
+>>>>>> other two are merged in 4.10?
+>>>>>>
+>>>>>> Regards,
+>>>>>>
+>>>>>> 	Hans
+>>>>>
+>>>>> [1] will appear in 4.10, but [2] will appear latter than 4.10.So this
+>>>>> patch needs to go in after [1] & [2] will be merged in 4.11.
+>>>>
+>>>> So what should I do? Merge the driver for 4.11 and wait with this patch
+>>>> until [2] is merged in 4.11? Does that sound reasonable?
+>>>>
+>>>> Regards,
+>>>>
+>>>> 	Hans
+>>>
+>>> What do you think about this? You merge the driver first and I send this
+>>> patch again after [1] & [2] is merged.
+>>
+>> BTW, to prevent merging conflict, the dtsi should be merged by mediatek
+>> SoC maintainer, Matthias.I think we can only take care on the driver
+>> part at this moment.
+>>
+> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-
-
-Thanks,
-Mauro
