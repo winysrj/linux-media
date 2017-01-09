@@ -1,183 +1,227 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:47941 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751454AbdAMLFl (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:48450 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S966422AbdAILxv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Jan 2017 06:05:41 -0500
-Message-ID: <1484305536.31475.0.camel@pengutronix.de>
-Subject: Re: [PATCH v2 00/21] Basic i.MX IPUv3 capture support
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <steve_longerbeam@mentor.com>
-Cc: Marek Vasut <marex@denx.de>,
-        Robert Schwebel <r.schwebel@pengutronix.de>,
-        Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Gary Bisson <gary.bisson@boundarydevices.com>,
-        Sascha Hauer <kernel@pengutronix.de>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Fri, 13 Jan 2017 12:05:36 +0100
-In-Reply-To: <8e6092a3-d80b-fe01-11b4-fbebe1de3102@mentor.com>
-References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
-         <20161019213026.GU9460@valkosipuli.retiisi.org.uk>
-         <CAH-u=807nRYzza0kTfOMv1AiWazk6FGJyz6W5_bYw7v9nOrccA@mail.gmail.com>
-         <20161229205113.j6wn7kmhkfrtuayu@pengutronix.de>
-         <7350daac-14ee-74cc-4b01-470a375613a3@denx.de>
-         <c38d80aa-5464-1e9d-e11a-f54716fdb565@mentor.com>
-         <1483990983.13625.58.camel@pengutronix.de>
-         <43564c16-f7aa-2d35-a41f-991465faaf8b@mentor.com>
-         <5b4bb7bd-83ae-c1f3-6b24-989dd6b0aa48@mentor.com>
-         <1484136644.2934.89.camel@pengutronix.de>
-         <8e6092a3-d80b-fe01-11b4-fbebe1de3102@mentor.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+        Mon, 9 Jan 2017 06:53:51 -0500
+Subject: Re: [PATCH v2 2/2] [media] em28xx: support for Hauppauge WinTV-dualHD
+ 01595 ATSC/QAM
+To: Kevin Cheng <kcheng@gmail.com>, linux-media@vger.kernel.org
+References: <20161218025523.zt3hhagvaidxz7sh@whisper>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <9833820b-7846-b444-ca0c-d814ffcd8b7e@xs4all.nl>
+Date: Mon, 9 Jan 2017 12:53:46 +0100
+MIME-Version: 1.0
+In-Reply-To: <20161218025523.zt3hhagvaidxz7sh@whisper>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
-
-Am Donnerstag, den 12.01.2017, 15:22 -0800 schrieb Steve Longerbeam:
-> Hi Philipp, JM,
->
-> First, let me say that you both have convinced me that we need a VDIC
-> entity. I've implemented that in the branch imx-media-staging-md-vdic.
-> At this point it only implements the M/C de-interlacing function, not the
-> plane Combiner. So it has only one input and one output pad.
-
-Excellent.
-
->  I would
-> imagine it will need two additional inputs and another output to support
-> the Combiner (two pads for each plane to be combined, and a combiner
-> output pad).
-
-If I accept for a moment that IDMAC/FSU channel links are described as
-media entity links, that would be right, I guess. The input pads would
-represent the VDI1/3_SRC_SEL FSU muxes and the IDMAC read channels 25
-and 26.
-
-> More below...
-[...]
-> > I don't suggest to fold it into the CSI.
-> > The CSI should have one output pad that that can be connected either to
-> > the IC PRP input (CSIx_DATA_DEST=1) or to the IDMAC via SMFC
-> > (CSIx_DATA_DEST=2).
+On 12/18/2016 03:55 AM, Kevin Cheng wrote:
+> Hauppauge WinTV-dualHD model 01595 is a USB 2.0 dual ATSC/QAM tuner with
+> the following components:
 > 
-> Right, and CSI can connect to VDIC. I don't know if it is documented,
-> but to route to VDIC, set CSIx_DATA_DEST=1, as if to IC PRP. Confusing,
-> but it's as if the VDIC is somehow part of the IC.
-
-Agreed. I get the feeling that the VDIC FIFOs (especially FIFO1) and the
-"FIFO[s] located in the Input Buffer Memory" that are mentioned in the
-IC chapter might be partially referring to the same thing, or at least
-are somehow tightly interconnected. At least VDIC FIFO1 described in
-Figure 37-47 "VDIC Block Diagram" has the direct CSI input into FIFO1,
-and it is mentioned that the IDMAC can read back from FIFO1 directly.
-
-[...]
-> > Is there even a reason for the user to switch between direct and via
-> > memory paths manually, or could this be inferred from other state
-> > (formats, active links)?
+> USB bridge: Empia em28274
+> Demodulator: 2x LG LGDT3306a at addresses 0xb2 and 0x1c
+> Tuner: 2x Silicon Labs si2157 at addresses 0xc0 and 0xc4
 > 
-> a CSI -> VDIC link doesn't convey whether that is a direct link using
-> the FSU, or whether it is via SMFC and memory buffers.
+> This patch enables only the first tuner.
 > 
-> If you'll recall, the VDIC has three motion modes: low, medium, and
-> high.
+> Signed-off-by: Kevin Cheng <kcheng@gmail.com>
+> ---
+>  drivers/media/usb/em28xx/em28xx-cards.c | 19 ++++++++
+>  drivers/media/usb/em28xx/em28xx-dvb.c   | 78 +++++++++++++++++++++++++++++++++
+>  drivers/media/usb/em28xx/em28xx.h       |  1 +
+>  3 files changed, 98 insertions(+)
 > 
-> When VDIC receives directly from CSI, it can only operate in
-> high motion mode (it processes a single field F(n-1) sent directly
-> from the CSI using the FSU). The reference manual refers to this
-> as "real time mode".
+> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+> index 23c6749..5f90d08 100644
+> --- a/drivers/media/usb/em28xx/em28xx-cards.c
+> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
+> @@ -509,6 +509,7 @@ static struct em28xx_reg_seq plex_px_bcud[] = {
+>  
+>  /*
+>   * 2040:0265 Hauppauge WinTV-dualHD DVB
+> + * 2040:026d Hauppauge WinTV-dualHD ATSC/QAM
+>   * reg 0x80/0x84:
+>   * GPIO_0: Yellow LED tuner 1, 0=on, 1=off
+>   * GPIO_1: Green LED tuner 1, 0=on, 1=off
+> @@ -2389,6 +2390,21 @@ struct em28xx_board em28xx_boards[] = {
+>  		.ir_codes      = RC_MAP_HAUPPAUGE,
+>  		.leds          = hauppauge_dualhd_leds,
+>  	},
+> +	/*
+> +	 * 2040:026d Hauppauge WinTV-dualHD (model 01595 - ATSC/QAM).
+> +	 * Empia EM28274, 2x LG LGDT3306A, 2x Silicon Labs Si2157
+> +	 */
+> +	[EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595] = {
+> +		.name          = "Hauppauge WinTV-dualHD 01595 ATSC/QAM",
+> +		.def_i2c_bus   = 1,
+> +		.i2c_speed     = EM28XX_I2C_CLK_WAIT_ENABLE |
+> +				 EM28XX_I2C_FREQ_400_KHZ,
+> +		.tuner_type    = TUNER_ABSENT,
+> +		.tuner_gpio    = hauppauge_dualhd_dvb,
+> +		.has_dvb       = 1,
+> +		.ir_codes      = RC_MAP_HAUPPAUGE,
+> +		.leds          = hauppauge_dualhd_leds,
+> +	},
+>  };
+>  EXPORT_SYMBOL_GPL(em28xx_boards);
+>  
+> @@ -2514,6 +2530,8 @@ struct usb_device_id em28xx_id_table[] = {
+>  			.driver_info = EM2883_BOARD_HAUPPAUGE_WINTV_HVR_850 },
+>  	{ USB_DEVICE(0x2040, 0x0265),
+>  			.driver_info = EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB },
+> +	{ USB_DEVICE(0x2040, 0x026d),
+> +			.driver_info = EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595 },
+>  	{ USB_DEVICE(0x0438, 0xb002),
+>  			.driver_info = EM2880_BOARD_AMD_ATI_TV_WONDER_HD_600 },
+>  	{ USB_DEVICE(0x2001, 0xf112),
+> @@ -2945,6 +2963,7 @@ static void em28xx_card_setup(struct em28xx *dev)
+>  	case EM2883_BOARD_HAUPPAUGE_WINTV_HVR_950:
+>  	case EM2884_BOARD_HAUPPAUGE_WINTV_HVR_930C:
+>  	case EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB:
+> +	case EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595:
+>  	{
+>  		struct tveeprom tv;
+>  
+> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+> index 75a75da..35c186e 100644
+> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
+> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+> @@ -37,6 +37,7 @@
+>  
+>  #include "lgdt330x.h"
+>  #include "lgdt3305.h"
+> +#include "lgdt3306a.h"
+>  #include "zl10353.h"
+>  #include "s5h1409.h"
+>  #include "mt2060.h"
+> @@ -920,6 +921,17 @@ static struct tda18271_config pinnacle_80e_dvb_config = {
+>  	.role    = TDA18271_MASTER,
+>  };
+>  
+> +static struct lgdt3306a_config hauppauge_01595_lgdt3306a_config = {
+> +	.qam_if_khz         = 4000,
+> +	.vsb_if_khz         = 3250,
+> +	.spectral_inversion = 0,
+> +	.deny_i2c_rptr      = 0,
+> +	.mpeg_mode          = LGDT3306A_MPEG_SERIAL,
+> +	.tpclk_edge         = LGDT3306A_TPCLK_RISING_EDGE,
+> +	.tpvalid_polarity   = LGDT3306A_TP_VALID_HIGH,
+> +	.xtalMHz            = 25,
+> +};
+> +
+>  /* ------------------------------------------------------------------ */
+>  
+>  static int em28xx_attach_xc3028(u8 addr, struct em28xx *dev)
+> @@ -1950,6 +1962,72 @@ static int em28xx_dvb_init(struct em28xx *dev)
+>  
+>  		}
+>  		break;
+> +	case EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595:
+> +		{
+> +			struct i2c_adapter *adapter;
+> +			struct i2c_client *client;
+> +			struct i2c_board_info info;
 
-In my opinion this is the only mode that should be supported in the
-capture driver. But that may be wishful thinking to a certain degree -
-see below.
+Init to zero to avoid the memset below:
 
-> The low and medium motion modes require processing all three
-> fields F(n-1), F(n), and F(n+1). These fields must come from IDMAC
-> channels 8, 9, and 10 respectively.
+			struct i2c_board_info info = { };
+
+> +			struct lgdt3306a_config lgdt3306a_config;
+> +			struct si2157_config si2157_config;
+> +
+> +			/* attach demod */
+> +			memcpy(&lgdt3306a_config,
+> +					&hauppauge_01595_lgdt3306a_config,
+> +					sizeof(struct lgdt3306a_config));
+
+Use this instead of the memcpy:
+
+			lgdt3306a_config = hauppauge_01595_lgdt3306a_config;
+
+> +			lgdt3306a_config.fe = &dvb->fe[0];
+> +			lgdt3306a_config.i2c_adapter = &adapter;
+> +			memset(&info, 0, sizeof(struct i2c_board_info));
+
+Can be dropped.
+
+> +			strlcpy(info.type, "lgdt3306a", I2C_NAME_SIZE);
+
+I prefer 'sizeof(info.type)' over I2C_NAME_SIZE.
+
+> +			info.addr = 0x59;
+> +			info.platform_data = &lgdt3306a_config;
+> +			request_module(info.type);
+> +			client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus],
+> +					&info);
+> +			if (client == NULL || client->dev.driver == NULL) {
+> +				result = -ENODEV;
+> +				goto out_free;
+> +			}
+> +
+> +			if (!try_module_get(client->dev.driver->owner)) {
+> +				i2c_unregister_device(client);
+> +				result = -ENODEV;
+> +				goto out_free;
+> +			}
+> +
+> +			dvb->i2c_client_demod = client;
+> +
+> +			/* attach tuner */
+> +			memset(&si2157_config, 0, sizeof(si2157_config));
+> +			si2157_config.fe = dvb->fe[0];
+> +			si2157_config.if_port = 1;
+> +			si2157_config.inversion = 1;
+> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> +			si2157_config.mdev = dev->media_dev;
+> +#endif
+> +			memset(&info, 0, sizeof(struct i2c_board_info));
+> +			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+
+Ditto.
+
+> +			info.addr = 0x60;
+> +			info.platform_data = &si2157_config;
+> +			request_module(info.type);
+> +
+> +			client = i2c_new_device(adapter, &info);
+> +			if (client == NULL || client->dev.driver == NULL) {
+> +				module_put(dvb->i2c_client_demod->dev.driver->owner);
+> +				i2c_unregister_device(dvb->i2c_client_demod);
+> +				result = -ENODEV;
+> +				goto out_free;
+> +			}
+> +			if (!try_module_get(client->dev.driver->owner)) {
+> +				i2c_unregister_device(client);
+> +				module_put(dvb->i2c_client_demod->dev.driver->owner);
+> +				i2c_unregister_device(dvb->i2c_client_demod);
+> +				result = -ENODEV;
+> +				goto out_free;
+> +			}
+> +
+> +			dvb->i2c_client_tuner = client;
+> +		}
+> +		break;
+>  	default:
+>  		dev_err(&dev->intf->dev,
+>  			"The frontend of your DVB/ATSC card isn't supported yet\n");
+> diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+> index ca59e2d..e9f3799 100644
+> --- a/drivers/media/usb/em28xx/em28xx.h
+> +++ b/drivers/media/usb/em28xx/em28xx.h
+> @@ -147,6 +147,7 @@
+>  #define EM2884_BOARD_ELGATO_EYETV_HYBRID_2008     97
+>  #define EM28178_BOARD_PLEX_PX_BCUD                98
+>  #define EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB  99
+> +#define EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595 100
+>  
+>  /* Limits minimum and default number of buffers */
+>  #define EM28XX_MIN_BUF 4
 > 
-> So in order to support low and medium motion modes, there needs to
-> be a pipeline where the VDIC receives F(n-1), F(n), and F(n+1) from
-> memory buffers.
 
-In the cases where the VDIC reads all three fields from memory, I'd
-prefer that to be implemented as a separate mem2mem device. While useful
-on its own, there could be an API to link together the capture and
-output of different video4linux devices, and that could get a backend to
-implement IDMAC/FSU channel linking where supported.
+Regards,
 
-> How about this: we can do away with SMFC entities by having two
-> output pads from the CSI: a "direct" output pad that can link to PRP and
-> VDIC, and a "IDMAC via SMFC" output pad that links to the entities that
-> require memory buffers (VDIC in low/medium motion mode, camif, and
-> PP). Only one of those output pads can be active at a time. I'm not sure if
-> that allowed by the media framework, do two source pads imply that the
-> entity can activate both of those pads simultaneously, or is allowed that
-> only one source pad of two or more can be activated at a time? It's not
-> clear to me.
-> 
-> Let me know if you agree with this proposal.
-
-In my opinion that is better than having the SMFC as a separate entity,
-even better would be not to have to describe the memory paths as media
-links.
-
-[...]
-> >> Here also, I'd prefer to keep distinct PRPENC and PRPVF entities. You
-> >> are correct that PRPENC and PRPVF do share an input channel (the CSIs).
-> >> But the PRPVF has an additional input channel from the VDIC,
-> > Wait, that is a VDIC -> PRP connection, not a VDIC -> PRPVF connection,
-> > or am I mistaken?
-> 
-> The FSU only sends VDIC output to PRPVF, not PRPENC. It's not
-> well documented, but see "IPU main flows" section in the manual.
-> All listed pipelines that route VDIC to IC go to IC (PRP VF).
-
-Sorry to be a bit pedantic, the FSU does not send output. It just
-triggers a DMA read channel (IDMAC or DMAIC) whenever signalled by
-another write channel's EOF.
-
-Since the read channel of PRPVF and PRPENC is the same (IC direct, cb7),
-I don't yet understand how the VDIC output can be sent to one but not
-the other. As you said, the documentation is a bit confusing in this
-regard.
-
-> Which suggests that when IC receives from VDIC, PRPENC can
-> receive no data and is effectively unusable.
-> 
-> > The VDIC direct input is enabled with ipu_set_ic_src_mux(vdi=true)
-> > (IC_INPUT=1), and that is the same for both PRP->ENC and PRP->VF.
-> 
-> true, but in fact the FSU only sends to PRP VF.
-
-Ok. Still, I think in that case we can describe the link as VDIC -> PRP
-and just prohibit the PRPENC links to be enabled when that is set.
-
-> >> and since my PRPVF entity roles
-> >> up the VDIC internally, it is actually receiving from the VDIC channel.
-> >> So unless you think we should have a distinct VDIC entity, I would like
-> >> to keep this
-> >> the way it is.
-> > Yes, I think VDIC should be separated out of PRPVF. What do you think
-> > about splitting the IC PRP into three parts?
-> >
-> > PRP could have one input pad connected to either CSI0, CSI1, or VDIC,
-> > and two output pads connected to PRPVF and PRPENC, respectively. This
-> > would even allow to have the PRP describe the downscale and PRPVF and
-> > PRPENC describe the bilinear upscale part of the IC.
-> 
-> Sure sounds good to me. PRPENC and PRPVF are independent,
-> but they cannot process different data streams, they both have to
-> work with CSI0 or CSI1, so this makes sense.
-> 
-> I'll start looking into it.
-
-Thanks!
-
-regards
-Philipp
-
-
+	Hans
