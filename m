@@ -1,58 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-co1nam03on0088.outbound.protection.outlook.com ([104.47.40.88]:55952
-        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753168AbdAKQqw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Jan 2017 11:46:52 -0500
-Subject: Re: [PATCH 2/3] xgbe: switch to pci_irq_alloc_vectors
-To: Christoph Hellwig <hch@lst.de>
-References: <1483994260-19797-1-git-send-email-hch@lst.de>
- <1483994260-19797-3-git-send-email-hch@lst.de>
- <11ed330c-84e9-79e9-7945-ca17a497359c@amd.com> <20170111090357.GB7350@lst.de>
-CC: <linux-pci@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        <netdev@vger.kernel.org>, <linux-media@vger.kernel.org>
-From: Tom Lendacky <thomas.lendacky@amd.com>
-Message-ID: <c3f96e57-0a22-99dd-ca48-b0b84913e4df@amd.com>
-Date: Wed, 11 Jan 2017 10:46:45 -0600
-MIME-Version: 1.0
-In-Reply-To: <20170111090357.GB7350@lst.de>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:51720 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750796AbdAIEZ0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 8 Jan 2017 23:25:26 -0500
+Message-ID: <04f62430f0ee1b461191677fffcdc006@smtp-cloud2.xs4all.net>
+Date: Mon, 09 Jan 2017 05:25:23 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 1/11/2017 3:03 AM, Christoph Hellwig wrote:
-> On Tue, Jan 10, 2017 at 12:40:10PM -0600, Tom Lendacky wrote:
->> On 1/9/2017 2:37 PM, Christoph Hellwig wrote:
->>> The newly added xgbe drivers uses the deprecated pci_enable_msi_exact
->>> and pci_enable_msix_range interfaces.  Switch it to use
->>> pci_irq_alloc_vectors instead.
->>
->> I was just working on switching over to this API with some additional
->> changes / simplification.  I'm ok with using this patch so that you get
->> the API removal accomplished.  Going through the PCI tree just means
->> it will probably be easier for me to hold off on the additional changes
->> I wanted to make until later.
-> 
-> Hi Tom,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Hi Christoph,
+Results of the daily build of media_tree:
 
-> 
-> if you have a better patch I'd be more than happy to use that one instead,
-> this one was intended as a stupid search and replace.  The important
-> part for me is to get the two conversions and the interface removal
-> in together.
+date:			Mon Jan  9 05:00:10 CET 2017
+media-tree git hash:	40eca140c404505c09773d1c6685d818cb55ab1a
+media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
+v4l-utils git hash:	951c4878a93f4722146f8bc6515a47fba6470bb3
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
-That sounds good, I'll send the patch to you in a separate email for use
-in your series.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9-x86_64: ERRORS
+apps: WARNINGS
+spec-git: ERRORS
+sparse: WARNINGS
 
-Thanks,
-Tom
+Detailed results are available here:
 
-> 
-> E.g. I've alreayd wondered why the driver requires the exact vector
-> number for MSI and a variable one for MSI-X, and there certainly is
-> all kinds of opportunity for cosmetic cleanup.
-> 
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
