@@ -1,76 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:64796 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752995AbdAKMgd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Jan 2017 07:36:33 -0500
-From: Vincent ABRIOU <vincent.abriou@st.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>,
-        Hugues FRUCHET <hugues.fruchet@st.com>,
-        Jean Christophe TROTIN <jean-christophe.trotin@st.com>
-Subject: Re: [media] uvcvideo: support for contiguous DMA buffers
-Date: Wed, 11 Jan 2017 12:36:24 +0000
-Message-ID: <45eec54c-059e-86c1-bedb-78a6400328a4@st.com>
-References: <1475494036-18208-1-git-send-email-vincent.abriou@st.com>
- <5308977.1AOWxa0Moe@avalon> <c86650e5-7106-d36b-b716-6247fb2fa8ed@st.com>
- <20170111110350.GE10831@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20170111110350.GE10831@valkosipuli.retiisi.org.uk>
-Content-Language: en-US
-Content-Type: text/plain; charset="Windows-1252"
-Content-ID: <90F0841DFC9CB1468CEF592CF26F04BA@st.com>
-Content-Transfer-Encoding: 8BIT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:32885 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932627AbdAIJ2x (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2017 04:28:53 -0500
+Received: by mail-wm0-f66.google.com with SMTP id r144so11769676wme.0
+        for <linux-media@vger.kernel.org>; Mon, 09 Jan 2017 01:28:52 -0800 (PST)
+Reply-To: dmiosga6200@gmail.com
+Subject: Re: astrometa device driver
+To: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Cc: crope@iki.fi, mchehab@s-opensource.com,
+        linux-media <linux-media@vger.kernel.org>
+References: <5c13f750-52d1-e8bd-d8f1-f00b8ca6c794@gmail.com>
+ <CAFBinCAmdCz5UhjY148EmKAwKo=RKwz3G+J=Wme4g3HO70mCpQ@mail.gmail.com>
+ <3322ca41-8b4a-e0a1-95d7-79891b2899ce@gmail.com>
+ <CAFBinCDXg3irVYk=g3LZHixdfmjciZetDozV=CvndVG6KfJ3rQ@mail.gmail.com>
+From: Dieter Miosga <dmiosga6200@gmail.com>
+Message-ID: <44ca0477-fd0f-cf62-53a8-71558375072a@gmail.com>
+Date: Mon, 9 Jan 2017 10:29:50 +0000
 MIME-Version: 1.0
+In-Reply-To: <CAFBinCDXg3irVYk=g3LZHixdfmjciZetDozV=CvndVG6KfJ3rQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+That's a clear instruction and it seems that
+not much more efforts above the code-cook level are required.
+I already took a look at the cx231xx, umt-10  and other drivers
+related to the predecessor HanfTek 15f4:0131, but from the first view
+I could not derive such a procedure!
 
-On 01/11/2017 12:03 PM, Sakari Ailus wrote:
-> Hi Vincent,
->
-> On Mon, Jan 09, 2017 at 03:49:00PM +0000, Vincent ABRIOU wrote:
->>
->>
->> On 01/09/2017 04:37 PM, Laurent Pinchart wrote:
->>> Hi Vincent,
->>>
->>> Thank you for the patch.
->>>
->>> On Monday 03 Oct 2016 13:27:16 Vincent Abriou wrote:
->>>> Allow uvcvideo compatible devices to allocate their output buffers using
->>>> contiguous DMA buffers.
->>>
->>> Why do you need this ? If it's for buffer sharing with a device that requires
->>> dma-contig, can't you allocate the buffers on the other device and import them
->>> on the UVC side ?
->>>
->>
->> Hi Laurent,
->>
->> I need this using Gstreamer simple pipeline to connect an usb webcam
->> (v4l2src) with a display (waylandsink) activating the zero copy path.
->>
->> The waylandsink plugin does not have any contiguous memory pool to
->> allocate contiguous buffer. So it is up to the upstream element, here
->> v4l2src, to provide such contiguous buffers.
->
-> Do you need (physically) contiguous memory?
->
+Will report back to you on any remarkable progress
+Dieter
 
-Yes, drm driver that does not have mmu needs to have contiguous buffers.
-
-> The DMA-BUF API does help sharing the buffers but it, at least currently,
-> does not help allocating memory or specifying a common format so that all
-> the devices the buffer needs to be accessible can actually make use of it.
+On 01/09/17 00:44, Martin Blumenstingl wrote:
+> On Mon, Jan 9, 2017 at 1:45 AM, Dieter Miosga <dmiosga6200@gmail.com> wrote:
+>> Here's the result of the lsusb on the HanfTek 15f4:0135
+> This USB ID is not registered with the cx231xx driver yet - thus the
+> driver simply ignores your device.
+> The basics steps for adding support for your card would be:
+> 1. add new "#define CX231XX_BOARD_..." in cx231xx.h
+> 2. add new entry to cx231xx_boards[] in cx231xx-cards.c with the
+> correct values (NOTE: has to figure out the correct values, maybe
+> Antti can give a hint which of the existing boards could be used as
+> staring point)
+> 3. add a new entry to cx231xx_id_table (with USB vendor/device IDs) in
+> cx231xx-cards.c
+> 4. add r820t_config to cx231xx-dvb.c (maybe you can even copy the one
+> from rtl28xxu.c)
+> 5. add mn88473_config to cx231xx-dvb.c (again, copying the one from
+> rtl28xxu.c may work)
+> 6. add a new case statement to dvb_init in cx231xx-dvb.c and connect
+> the rt820t_config and mn88473_config (you can probably use the code of
+> another board and adapt it accordingly)
+> 7. test + bugfix :)
 >
-> Instead of hacking drivers to make use of different memory allocation
-> strategies required by unrelated devices, we should instead fix these
-> problems in a proper, scalable way.
+>
+> Regards,
+> Martin
 >
 
-Scalable way? Like central allocator?
-
-Vincent
