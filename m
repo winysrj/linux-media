@@ -1,269 +1,235 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wj0-f180.google.com ([209.85.210.180]:35990 "EHLO
-        mail-wj0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1032673AbdAIOdX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2017 09:33:23 -0500
-Received: by mail-wj0-f180.google.com with SMTP id ew7so52463544wjc.3
-        for <linux-media@vger.kernel.org>; Mon, 09 Jan 2017 06:33:22 -0800 (PST)
-Subject: Re: [PATCH 01/10] doc: DT: camss: Binding document for Qualcomm
- Camera subsystem driver
-To: Rob Herring <robh@kernel.org>
-References: <1480085813-28235-1-git-send-email-todor.tomov@linaro.org>
- <20161130220350.q37rbo2biaeg2sad@rob-hp-laptop>
-Cc: mchehab@kernel.org, laurent.pinchart+renesas@ideasonboard.com,
-        hans.verkuil@cisco.com, javier@osg.samsung.com,
-        s.nawrocki@samsung.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, mark.rutland@arm.com,
-        devicetree@vger.kernel.org, bjorn.andersson@linaro.org,
-        srinivas.kandagatla@linaro.org
+Received: from mail-wm0-f42.google.com ([74.125.82.42]:34971 "EHLO
+        mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S938904AbdAINSd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2017 08:18:33 -0500
+Received: by mail-wm0-f42.google.com with SMTP id a197so97852482wmd.0
+        for <linux-media@vger.kernel.org>; Mon, 09 Jan 2017 05:18:32 -0800 (PST)
+Subject: Re: [PATCH 00/10] Qualcomm 8x16 Camera Subsystem driver
+To: Hans Verkuil <hverkuil@xs4all.nl>, mchehab@kernel.org,
+        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
+        javier@osg.samsung.com, s.nawrocki@samsung.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <1480085793-28193-1-git-send-email-todor.tomov@linaro.org>
+ <1a19217d-74b4-e3f5-4ab6-dc15360b1fe1@xs4all.nl>
+Cc: bjorn.andersson@linaro.org, srinivas.kandagatla@linaro.org
 From: Todor Tomov <todor.tomov@linaro.org>
-Message-ID: <58739F2D.5020607@linaro.org>
-Date: Mon, 9 Jan 2017 16:33:17 +0200
+Message-ID: <58738DA4.8050209@linaro.org>
+Date: Mon, 9 Jan 2017 15:18:28 +0200
 MIME-Version: 1.0
-In-Reply-To: <20161130220350.q37rbo2biaeg2sad@rob-hp-laptop>
+In-Reply-To: <1a19217d-74b4-e3f5-4ab6-dc15360b1fe1@xs4all.nl>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
+Hi Hans,
 
-Happy new year,
-And thank you for the review.
+On 01/09/2017 03:08 PM, Hans Verkuil wrote:
+> Hi Todor,
+> 
+> What is the status of this patch series? There were comments for patch 1/10 and 8/10,
+> and I haven't seen a v2 of this patch series.
 
-On 12/01/2016 12:03 AM, Rob Herring wrote:
-> On Fri, Nov 25, 2016 at 04:56:53PM +0200, Todor Tomov wrote:
->> Add DT binding document for Qualcomm Camera subsystem driver.
+And Happy new year!
+
+I'm just starting today for the new year and this is the first thing to do - go over the comments received.
+I'll reply for each of them.
+Thank you for your notification and the also for the review done!
+
+Best regards,
+Todor
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> On 11/25/2016 03:56 PM, Todor Tomov wrote:
+>> This patchset adds basic support for the Qualcomm Camera Subsystem found
+>> on Qualcomm MSM8916 and APQ8016 processors.
 >>
->> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
->> ---
->>  .../devicetree/bindings/media/qcom,camss.txt       | 196 +++++++++++++++++++++
->>  1 file changed, 196 insertions(+)
+>> The driver implements V4L2, Media controller and V4L2 subdev interfaces.
+>> Camera sensor using V4L2 subdev interface in the kernel is supported.
+>>
+>> The driver is implemented using as a reference the Qualcomm Camera
+>> Subsystem driver for Android as found in Code Aurora [1].
+>>
+>> The driver supports raw dump of the input data to memory. ISP processing
+>> is not supported.
+>>
+>> The driver is tested on Dragonboard 410C (APQ8016) with one and two
+>> OV5645 camera sensors. media-ctl [2] and yavta [3] applications were
+>> used for testing. Also Gstreamer 1.4.4 with v4l2src plugin is supported.
+>>
+>> More information is present in the document added by the third patch.
+>>
+>>
+>> The patchset depends on:
+>> v4l: Add packed Bayer raw12 pixel formats [4]
+>> media: venus: enable building of Venus video codec driver [5]
+>>
+>>
+>> V4L2 compliance test result:
+>>
+>> root@linaro-alip:~/v4l-utils/utils/v4l2-compliance# ./v4l2-compliance -s -d /dev/video0
+>> v4l2-compliance SHA   : 6a760145f1a6809591a1cb17ee1b06913e4fddd1
+>>
+>> Driver Info:
+>>         Driver name   : qcom-camss
+>>         Card type     : Qualcomm Camera Subsystem
+>>         Bus info      : platform:qcom-camss
+>>         Driver version: 4.9.0
+>>         Capabilities  : 0x84200001
+>>                 Video Capture
+>>                 Streaming
+>>                 Extended Pix Format
+>>                 Device Capabilities
+>>         Device Caps   : 0x04200001
+>>                 Video Capture
+>>                 Streaming
+>>                 Extended Pix Format
+>>
+>> Compliance test for device /dev/video0 (not using libv4l2):
+>>
+>> Required ioctls:
+>>         test VIDIOC_QUERYCAP: OK
+>>
+>> Allow for multiple opens:
+>>         test second video open: OK
+>>         test VIDIOC_QUERYCAP: OK
+>>         test VIDIOC_G/S_PRIORITY: OK
+>>         test for unlimited opens: OK
+>>
+>> Debug ioctls:
+>>         test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+>>         test VIDIOC_LOG_STATUS: OK (Not Supported)
+>>
+>> Input ioctls:
+>>         test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+>>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>>         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+>>         test VIDIOC_ENUMAUDIO: OK (Not Supported)
+>>         test VIDIOC_G/S/ENUMINPUT: OK
+>>         test VIDIOC_G/S_AUDIO: OK (Not Supported)
+>>         Inputs: 1 Audio Inputs: 0 Tuners: 0
+>>
+>> Output ioctls:
+>>         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+>>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>>         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+>>         test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+>>         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+>>         Outputs: 0 Audio Outputs: 0 Modulators: 0
+>>
+>> Input/Output configuration ioctls:
+>>         test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+>>         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+>>         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+>>         test VIDIOC_G/S_EDID: OK (Not Supported)
+>>
+>> Test input 0:
+>>
+>>         Control ioctls:
+>>                 test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+>>                 test VIDIOC_QUERYCTRL: OK (Not Supported)
+>>                 test VIDIOC_G/S_CTRL: OK (Not Supported)
+>>                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+>>                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+>>                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+>>                 Standard Controls: 0 Private Controls: 0
+>>
+>>         Format ioctls:
+>>                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+>>                 test VIDIOC_G/S_PARM: OK (Not Supported)
+>>                 test VIDIOC_G_FBUF: OK (Not Supported)
+>>                 test VIDIOC_G_FMT: OK
+>>                 test VIDIOC_TRY_FMT: OK
+>>                 test VIDIOC_S_FMT: OK
+>>                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+>>                 test Cropping: OK (Not Supported)
+>>                 test Composing: OK (Not Supported)
+>>                 test Scaling: OK (Not Supported)
+>>
+>>         Codec ioctls:
+>>                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>>                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>>                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+>>
+>>         Buffer ioctls:
+>>                 test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>>                 test VIDIOC_EXPBUF: OK (Not Supported)
+>>
+>> Test input 0:
+>>
+>> Streaming ioctls:
+>>         test read/write: OK (Not Supported)
+>>         test MMAP: OK                                     
+>>         test USERPTR: OK (Not Supported)
+>>         test DMABUF: OK (Not Supported)
+>>
+>>
+>> Total: 47, Succeeded: 47, Failed: 0, Warnings: 0
+>>
+>>
+>> [1] https://source.codeaurora.org/quic/la/kernel/msm-3.10/
+>> [2] https://git.linuxtv.org//v4l-utils.git
+>> [3] http://git.ideasonboard.org/yavta.git
+>> [4] http://www.spinics.net/lists/linux-media/msg107494.html
+>> [5] http://www.spinics.net/lists/linux-media/msg104013.html
+>>
+>>
+>> Todor Tomov (10):
+>>   doc: DT: camss: Binding document for Qualcomm Camera subsystem driver
+>>   MAINTAINERS: Add Qualcomm Camera subsystem driver
+>>   doc: media/v4l-drivers: Add Qualcomm Camera Subsystem driver document
+>>   media: camss: Add CSIPHY files
+>>   media: camss: Add CSID files
+>>   media: camss: Add ISPIF files
+>>   media: camss: Add VFE files
+>>   media: camss: Add files which handle the video device nodes
+>>   media: camms: Add core files
+>>   media: camss: Add Makefiles and Kconfig files
+>>
+>>  .../devicetree/bindings/media/qcom,camss.txt       |  196 ++
+>>  Documentation/media/v4l-drivers/index.rst          |    1 +
+>>  Documentation/media/v4l-drivers/qcom_camss.rst     |  124 ++
+>>  MAINTAINERS                                        |    8 +
+>>  drivers/media/platform/qcom/Kconfig                |    5 +
+>>  drivers/media/platform/qcom/Makefile               |    1 +
+>>  drivers/media/platform/qcom/camss-8x16/Makefile    |   12 +
+>>  drivers/media/platform/qcom/camss-8x16/camss.c     |  603 +++++++
+>>  drivers/media/platform/qcom/camss-8x16/camss.h     |   93 +
+>>  drivers/media/platform/qcom/camss-8x16/csid.c      | 1071 +++++++++++
+>>  drivers/media/platform/qcom/camss-8x16/csid.h      |   82 +
+>>  drivers/media/platform/qcom/camss-8x16/csiphy.c    |  685 +++++++
+>>  drivers/media/platform/qcom/camss-8x16/csiphy.h    |   77 +
+>>  drivers/media/platform/qcom/camss-8x16/ispif.c     | 1105 ++++++++++++
+>>  drivers/media/platform/qcom/camss-8x16/ispif.h     |   85 +
+>>  drivers/media/platform/qcom/camss-8x16/vfe.c       | 1877 ++++++++++++++++++++
+>>  drivers/media/platform/qcom/camss-8x16/vfe.h       |  112 ++
+>>  drivers/media/platform/qcom/camss-8x16/video.c     |  597 +++++++
+>>  drivers/media/platform/qcom/camss-8x16/video.h     |   67 +
+>>  19 files changed, 6801 insertions(+)
 >>  create mode 100644 Documentation/devicetree/bindings/media/qcom,camss.txt
+>>  create mode 100644 Documentation/media/v4l-drivers/qcom_camss.rst
+>>  create mode 100644 drivers/media/platform/qcom/Kconfig
+>>  create mode 100644 drivers/media/platform/qcom/Makefile
+>>  create mode 100644 drivers/media/platform/qcom/camss-8x16/Makefile
+>>  create mode 100644 drivers/media/platform/qcom/camss-8x16/camss.c
+>>  create mode 100644 drivers/media/platform/qcom/camss-8x16/camss.h
+>>  create mode 100644 drivers/media/platform/qcom/camss-8x16/csid.c
+>>  create mode 100644 drivers/media/platform/qcom/camss-8x16/csid.h
+>>  create mode 100644 drivers/media/platform/qcom/camss-8x16/csiphy.c
+>>  create mode 100644 drivers/media/platform/qcom/camss-8x16/csiphy.h
+>>  create mode 100644 drivers/media/platform/qcom/camss-8x16/ispif.c
+>>  create mode 100644 drivers/media/platform/qcom/camss-8x16/ispif.h
+>>  create mode 100644 drivers/media/platform/qcom/camss-8x16/vfe.c
+>>  create mode 100644 drivers/media/platform/qcom/camss-8x16/vfe.h
+>>  create mode 100644 drivers/media/platform/qcom/camss-8x16/video.c
+>>  create mode 100644 drivers/media/platform/qcom/camss-8x16/video.h
 >>
->> diff --git a/Documentation/devicetree/bindings/media/qcom,camss.txt b/Documentation/devicetree/bindings/media/qcom,camss.txt
->> new file mode 100644
->> index 0000000..76ad89a
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/qcom,camss.txt
->> @@ -0,0 +1,196 @@
->> +Qualcomm Camera Subsystem
->> +
->> +* Properties
->> +
->> +- compatible:
->> +	Usage: required
->> +	Value type: <stringlist>
->> +	Definition: Should contain:
->> +		- "qcom,8x16-camss"
 > 
-> Don't use wildcards in compatible strings. One string per SoC.
-
-Ok, I'll fix this.
-
-> 
->> +- reg:
->> +	Usage: required
->> +	Value type: <prop-encoded-array>
->> +	Definition: Register ranges as listed in the reg-names property.
->> +- reg-names:
->> +	Usage: required
->> +	Value type: <stringlist>
->> +	Definition: Should contain the following entries:
->> +		- "csiphy0"
->> +		- "csiphy0_clk_mux"
->> +		- "csiphy1"
->> +		- "csiphy1_clk_mux"
->> +		- "csid0"
->> +		- "csid1"
->> +		- "ispif"
->> +		- "csi_clk_mux"
->> +		- "vfe0"
-> 
-> Kind of looks like the phy's should be separate nodes since each phy has 
-> its own register range, irq, clocks, etc.
-
-Yes, there are a lot of hardware resources here.
-I have decided to keep everything into a single platform device as this
-represents it better from system point of view.
-
-> 
->> +- interrupts:
->> +	Usage: required
->> +	Value type: <prop-encoded-array>
->> +	Definition: Interrupts as listed in the interrupt-names property.
->> +- interrupt-names:
->> +	Usage: required
->> +	Value type: <stringlist>
->> +	Definition: Should contain the following entries:
->> +		- "csiphy0"
->> +		- "csiphy1"
->> +		- "csid0"
->> +		- "csid1"
->> +		- "ispif"
->> +		- "vfe0"
->> +- power-domains:
->> +	Usage: required
->> +	Value type: <prop-encoded-array>
->> +	Definition: A phandle and power domain specifier pairs to the
->> +		    power domain which is responsible for collapsing
->> +		    and restoring power to the peripheral.
->> +- clocks:
->> +	Usage: required
->> +	Value type: <prop-encoded-array>
->> +	Definition: A list of phandle and clock specifier pairs as listed
->> +		    in clock-names property.
->> +- clock-names:
->> +	Usage: required
->> +	Value type: <stringlist>
->> +	Definition: Should contain the following entries:
->> +		- "camss_top_ahb_clk"
->> +		- "ispif_ahb_clk"
->> +		- "csiphy0_timer_clk"
->> +		- "csiphy1_timer_clk"
->> +		- "csi0_ahb_clk"
->> +		- "csi0_clk"
->> +		- "csi0_phy_clk"
->> +		- "csi0_pix_clk"
->> +		- "csi0_rdi_clk"
->> +		- "csi1_ahb_clk"
->> +		- "csi1_clk"
->> +		- "csi1_phy_clk"
->> +		- "csi1_pix_clk"
->> +		- "csi1_rdi_clk"
->> +		- "camss_ahb_clk"
->> +		- "camss_vfe_vfe_clk"
->> +		- "camss_csi_vfe_clk"
->> +		- "iface_clk"
->> +		- "bus_clk"
->> +- vdda-supply:
->> +	Usage: required
->> +	Value type: <phandle>
->> +	Definition: A phandle to voltage supply for CSI2.
->> +- iommus:
->> +	Usage: required
->> +	Value type: <prop-encoded-array>
->> +	Definition: A list of phandle and IOMMU specifier pairs.
->> +
->> +* Nodes
->> +
->> +- ports:
->> +	Usage: required
->> +	Definition: As described in video-interfaces.txt in same directory.
->> +	Properties:
->> +		- reg:
->> +			Usage: required
->> +			Value type: <u32>
->> +			Definition: Selects CSI2 PHY interface - PHY0 or PHY1.
->> +	Endpoint node properties:
->> +		- clock-lanes:
->> +			Usage: required
->> +			Value type: <u32>
->> +			Definition: The clock lane.
->> +		- data-lanes:
->> +			Usage: required
->> +			Value type: <prop-encoded-array>
->> +			Definition: An array of data lanes.
->> +		- qcom,settle-cnt:
-> 
-> This should go in phy node ideally.
-> 
->> +			Usage: required
->> +			Value type: <u32>
->> +			Definition: The settle count parameter for CSI PHY.
->> +
->> +* An Example
->> +
->> +	camss: camss@1b00000 {
->> +		compatible = "qcom,8x16-camss";
->> +		reg = <0x1b0ac00 0x200>,
->> +			<0x1b00030 0x4>,
->> +			<0x1b0b000 0x200>,
->> +			<0x1b00038 0x4>,
->> +			<0x1b08000 0x100>,
->> +			<0x1b08400 0x100>,
->> +			<0x1b0a000 0x500>,
->> +			<0x1b00020 0x10>,
->> +			<0x1b10000 0x1000>;
->> +		reg-names = "csiphy0",
->> +			"csiphy0_clk_mux",
->> +			"csiphy1",
->> +			"csiphy1_clk_mux",
->> +			"csid0",
->> +			"csid1",
->> +			"ispif",
->> +			"csi_clk_mux",
->> +			"vfe0";
->> +		interrupts = <GIC_SPI 78 0>,
->> +			<GIC_SPI 79 0>,
->> +			<GIC_SPI 51 0>,
->> +			<GIC_SPI 52 0>,
->> +			<GIC_SPI 55 0>,
->> +			<GIC_SPI 57 0>;
->> +		interrupt-names = "csiphy0",
->> +			"csiphy1",
->> +			"csid0",
->> +			"csid1",
->> +			"ispif",
->> +			"vfe0";
->> +		power-domains = <&gcc VFE_GDSC>;
->> +		clocks = <&gcc GCC_CAMSS_TOP_AHB_CLK>,
->> +			<&gcc GCC_CAMSS_ISPIF_AHB_CLK>,
->> +			<&gcc GCC_CAMSS_CSI0PHYTIMER_CLK>,
->> +			<&gcc GCC_CAMSS_CSI1PHYTIMER_CLK>,
->> +			<&gcc GCC_CAMSS_CSI0_AHB_CLK>,
->> +			<&gcc GCC_CAMSS_CSI0_CLK>,
->> +			<&gcc GCC_CAMSS_CSI0PHY_CLK>,
->> +			<&gcc GCC_CAMSS_CSI0PIX_CLK>,
->> +			<&gcc GCC_CAMSS_CSI0RDI_CLK>,
->> +			<&gcc GCC_CAMSS_CSI1_AHB_CLK>,
->> +			<&gcc GCC_CAMSS_CSI1_CLK>,
->> +			<&gcc GCC_CAMSS_CSI1PHY_CLK>,
->> +			<&gcc GCC_CAMSS_CSI1PIX_CLK>,
->> +			<&gcc GCC_CAMSS_CSI1RDI_CLK>,
->> +			<&gcc GCC_CAMSS_AHB_CLK>,
->> +			<&gcc GCC_CAMSS_VFE0_CLK>,
->> +			<&gcc GCC_CAMSS_CSI_VFE0_CLK>,
->> +			<&gcc GCC_CAMSS_VFE_AHB_CLK>,
->> +			<&gcc GCC_CAMSS_VFE_AXI_CLK>;
->> +		clock-names = "camss_top_ahb_clk",
->> +			"ispif_ahb_clk",
->> +			"csiphy0_timer_clk",
->> +			"csiphy1_timer_clk",
->> +			"csi0_ahb_clk",
->> +			"csi0_clk",
->> +			"csi0_phy_clk",
->> +			"csi0_pix_clk",
->> +			"csi0_rdi_clk",
->> +			"csi1_ahb_clk",
->> +			"csi1_clk",
->> +			"csi1_phy_clk",
->> +			"csi1_pix_clk",
->> +			"csi1_rdi_clk",
->> +			"camss_ahb_clk",
->> +			"camss_vfe_vfe_clk",
->> +			"camss_csi_vfe_clk",
->> +			"iface_clk",
->> +			"bus_clk";
->> +		vdda-supply = <&pm8916_l2>;
->> +		iommus = <&apps_iommu 3>;
->> +		ports {
->> +			#address-cells = <1>;
->> +			#size-cells = <0>;
->> +			port@0 {
->> +				reg = <0>;
->> +				csiphy0_ep: endpoint {
->> +					clock-lanes = <1>;
->> +					data-lanes = <0 2>;
->> +					qcom,settle-cnt = <0xe>;
->> +					remote-endpoint = <&ov5645_ep>;
->> +				};
->> +			};
->> +		};
->> +	};
->> -- 
->> 1.9.1
->>
 
 -- 
 Best regards,
