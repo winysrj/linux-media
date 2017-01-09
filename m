@@ -1,170 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:37388 "EHLO
-        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753396AbdADMeL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2017 07:34:11 -0500
-Subject: Re: [PATCH v2 05/19] ARM: dts: imx6-sabresd: add OV5642 and OV5640
- camera sensors
-To: Steve Longerbeam <slongerbeam@gmail.com>, <shawnguo@kernel.org>,
-        <kernel@pengutronix.de>, <fabio.estevam@nxp.com>,
-        <robh+dt@kernel.org>, <mark.rutland@arm.com>,
-        <linux@armlinux.org.uk>, <mchehab@kernel.org>,
-        <gregkh@linuxfoundation.org>, <p.zabel@pengutronix.de>
-References: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
- <1483477049-19056-6-git-send-email-steve_longerbeam@mentor.com>
-CC: <linux-arm-kernel@lists.infradead.org>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-media@vger.kernel.org>, <devel@driverdev.osuosl.org>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Message-ID: <c8c09060-dd6b-f495-da7d-b1f9fad79b89@mentor.com>
-Date: Wed, 4 Jan 2017 14:33:07 +0200
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:34800 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932422AbdAISrf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2017 13:47:35 -0500
+Subject: Re: [PATCH v6 3/3] arm: dts: mt2701: Add node for Mediatek JPEG
+ Decoder
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Rick Chang <rick.chang@mediatek.com>
+References: <1479353915-5043-1-git-send-email-rick.chang@mediatek.com>
+ <1479353915-5043-4-git-send-email-rick.chang@mediatek.com>
+ <d602365a-e87b-5bae-8698-bd43063ef079@xs4all.nl>
+ <1479784905.8964.15.camel@mtksdaap41>
+ <badf8125-27ed-9c5b-fbc0-75716ffdfb0e@xs4all.nl>
+ <1479866054.8964.21.camel@mtksdaap41> <1479894203.8964.29.camel@mtksdaap41>
+ <1483670099.18931.5.camel@mtksdaap41>
+ <974d20f3-5133-0869-2a35-c1617bec5d6e@xs4all.nl>
+ <c35bd06d-f012-1289-e765-02dc26b87e27@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, srv_heupstream@mediatek.com,
+        linux-mediatek@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        James Liao <jamesjj.liao@mediatek.com>
+From: Matthias Brugger <matthias.bgg@gmail.com>
+Message-ID: <8eefb7b1-94a9-feb5-3d69-51563b2e9d5e@gmail.com>
+Date: Mon, 9 Jan 2017 19:47:32 +0100
 MIME-Version: 1.0
-In-Reply-To: <1483477049-19056-6-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset="windows-1252"
+In-Reply-To: <c35bd06d-f012-1289-e765-02dc26b87e27@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/03/2017 10:57 PM, Steve Longerbeam wrote:
-> Enables the OV5642 parallel-bus sensor, and the OV5640 MIPI CSI-2 sensor.
-> 
-> The OV5642 connects to the parallel-bus mux input port on ipu1_csi0_mux.
-> 
-> The OV5640 connects to the input port on the MIPI CSI-2 receiver on
-> mipi_csi. It is set to transmit over MIPI virtual channel 1.
-> 
-> Until the OV5652 sensor module compatible with the SabreSD becomes
-> available for testing, the ov5642 node is currently disabled.
-> 
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> ---
 
-[snip]
 
-> +
-> +	camera: ov5642@3c {
+On 09/01/17 19:45, Matthias Brugger wrote:
+>
+>
+> On 09/01/17 12:29, Hans Verkuil wrote:
+>> Hi Rick,
+>>
+>> On 01/06/2017 03:34 AM, Rick Chang wrote:
+>>> Hi Hans,
+>>>
+>>> The dependence on [1] has been merged in 4.10, but [2] has not.Do you
+>>> have
+>>> any idea about this patch series? Should we wait for [2] or we could
+>>> merge
+>>> the source code and dt-binding first?
+>>
+>> Looking at [2] I noticed that the last comment was July 4th. What is
+>> the reason
+>> it hasn't been merged yet?
+>>
+>> If I know [2] will be merged for 4.11, then I am fine with merging
+>> this media
+>> patch series. The dependency of this patch on [2] is something Mauro
+>> can handle.
+>>
+>> If [2] is not merged for 4.11, then I think it is better to wait until
+>> it is
+>> merged.
+>>
+>
+> I can't take [2] because there is no scpsys in the dts present. It seems
+> that it got never posted.
+>
+> Rick can you please follow-up with James and provide a patch which adds
+> a scpsys node to the mt2701.dtsi?
+>
 
-ov5642: camera@3c
+Ah I forgot, dts patches should go through my tree, so Hans please don't 
+merge this patch. Bindings should go through your branch though.
 
-> +		compatible = "ovti,ov5642";
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&pinctrl_ov5642>;
-> +		clocks = <&clks IMX6QDL_CLK_CKO>;
-> +		clock-names = "xclk";
-> +		reg = <0x3c>;
-> +		xclk = <24000000>;
-> +		DOVDD-supply = <&vgen4_reg>; /* 1.8v */
-> +		AVDD-supply = <&vgen5_reg>;  /* 2.8v, rev C board is VGEN3
-> +						rev B board is VGEN5 */
-> +		DVDD-supply = <&vgen2_reg>;  /* 1.5v*/
-> +		pwdn-gpios = <&gpio1 16 GPIO_ACTIVE_HIGH>; /* SD1_DAT0 */
-> +		reset-gpios = <&gpio1 17 GPIO_ACTIVE_LOW>; /* SD1_DAT1 */
-
-Comments about SD1_* pad names are redundant.
-
-> +		status = "disabled";
-
-Why is it disabled here?
-
-> +
-> +		port {
-> +			ov5642_to_ipu1_csi0_mux: endpoint {
-> +				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
-> +				bus-width = <8>;
-> +				hsync-active = <1>;
-> +				vsync-active = <1>;
-> +			};
-> +		};
-> +	};
->  };
->  
->  &i2c2 {
-> @@ -322,6 +376,34 @@
->  			};
->  		};
->  	};
-> +
-> +	mipi_camera: ov5640@3c {
-
-ov5640: camera@3c
-
-> +		compatible = "ovti,ov5640_mipi";
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&pinctrl_ov5640>;
-> +		reg = <0x3c>;
-> +		clocks = <&clks IMX6QDL_CLK_CKO>;
-> +		clock-names = "xclk";
-> +		xclk = <24000000>;
-> +		DOVDD-supply = <&vgen4_reg>; /* 1.8v */
-> +		AVDD-supply = <&vgen5_reg>;  /* 2.8v, rev C board is VGEN3
-> +						rev B board is VGEN5 */
-> +		DVDD-supply = <&vgen2_reg>;  /* 1.5v*/
-> +		pwdn-gpios = <&gpio1 19 GPIO_ACTIVE_HIGH>; /* SD1_DAT2 */
-> +		reset-gpios = <&gpio1 20 GPIO_ACTIVE_LOW>; /* SD1_CLK */
-
-Comments about SD1_* pad names are redundant.
-
-> +
-> +		port {
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-> +
-> +			ov5640_to_mipi_csi: endpoint@1 {
-> +				reg = <1>;
-> +				remote-endpoint = <&mipi_csi_from_mipi_sensor>;
-> +				data-lanes = <0 1>;
-> +				clock-lanes = <2>;
-> +			};
-> +		};
-> +	};
->  };
->  
->  &i2c3 {
-> @@ -426,6 +508,36 @@
->  			>;
->  		};
->  
-> +		pinctrl_ov5640: ov5640grp {
-> +			fsl,pins = <
-> +				MX6QDL_PAD_SD1_DAT2__GPIO1_IO19 0x80000000
-> +				MX6QDL_PAD_SD1_CLK__GPIO1_IO20  0x80000000
-> +			>;
-> +		};
-> +
-> +		pinctrl_ov5642: ov5642grp {
-> +			fsl,pins = <
-> +				MX6QDL_PAD_SD1_DAT0__GPIO1_IO16 0x80000000
-> +				MX6QDL_PAD_SD1_DAT1__GPIO1_IO17 0x80000000
-> +			>;
-> +		};
-> +
-> +		pinctrl_ipu1_csi0: ipu1grp-csi0 {
-
-Please rename the node name to ipu1csi0grp.
-
-Please add new pin control groups preserving the alphanimerical order.
-
-> +			fsl,pins = <
-> +				MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12    0x80000000
-> +				MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13    0x80000000
-> +				MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14    0x80000000
-> +				MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15    0x80000000
-> +				MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16    0x80000000
-> +				MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17    0x80000000
-> +				MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18    0x80000000
-> +				MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19    0x80000000
-> +				MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK   0x80000000
-> +				MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC      0x80000000
-> +				MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC     0x80000000
-> +			>;
-> +		};
-> +
->  		pinctrl_pcie: pciegrp {
->  			fsl,pins = <
->  				MX6QDL_PAD_GPIO_17__GPIO7_IO12	0x1b0b0
-> 
-
---
-With best wishes,
-Vladimir
+Thanks,
+Matthias
