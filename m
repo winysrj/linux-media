@@ -1,196 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:36416 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932557AbdAJDOV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2017 22:14:21 -0500
-Received: by mail-qt0-f195.google.com with SMTP id l7so14567312qtd.3
-        for <linux-media@vger.kernel.org>; Mon, 09 Jan 2017 19:14:21 -0800 (PST)
-Date: Mon, 9 Jan 2017 22:14:18 -0500
-From: Kevin Cheng <kcheng@gmail.com>
-To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v3 1/2] [media] lgdt3306a: support i2c mux for use by em28xx
-Message-ID: <20170110031416.fjed4nmjxib46zlt@whisper>
-References: <693918b2-bfbe-9827-a11a-e1f73f4ac019@xs4all.nl>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:35921 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932123AbdAJB2q (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2017 20:28:46 -0500
+Message-ID: <1484011718.10361.7.camel@mtksdaap41>
+Subject: Re: [PATCH v6 3/3] arm: dts: mt2701: Add node for Mediatek JPEG
+ Decoder
+From: Eddie Huang <eddie.huang@mediatek.com>
+To: Matthias Brugger <matthias.bgg@gmail.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+        Rick Chang <rick.chang@mediatek.com>,
+        <devicetree@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        <srv_heupstream@mediatek.com>,
+        James Liao <jamesjj.liao@mediatek.com>,
+        <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        <linux-mediatek@lists.infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>
+Date: Tue, 10 Jan 2017 09:28:38 +0800
+In-Reply-To: <c35bd06d-f012-1289-e765-02dc26b87e27@gmail.com>
+References: <1479353915-5043-1-git-send-email-rick.chang@mediatek.com>
+         <1479353915-5043-4-git-send-email-rick.chang@mediatek.com>
+         <d602365a-e87b-5bae-8698-bd43063ef079@xs4all.nl>
+         <1479784905.8964.15.camel@mtksdaap41>
+         <badf8125-27ed-9c5b-fbc0-75716ffdfb0e@xs4all.nl>
+         <1479866054.8964.21.camel@mtksdaap41> <1479894203.8964.29.camel@mtksdaap41>
+         <1483670099.18931.5.camel@mtksdaap41>
+         <974d20f3-5133-0869-2a35-c1617bec5d6e@xs4all.nl>
+         <c35bd06d-f012-1289-e765-02dc26b87e27@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <693918b2-bfbe-9827-a11a-e1f73f4ac019@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds an i2c mux to the lgdt3306a demodulator.  This was done to support
-the Hauppauge WinTV-dualHD 01595 USB TV tuner (em28xx), which utilizes two
-si2157 tuners behind gate control.
+Hi Matthias,
 
-Signed-off-by: Kevin Cheng <kcheng@gmail.com>
----
- drivers/media/dvb-frontends/Kconfig     |   2 +-
- drivers/media/dvb-frontends/lgdt3306a.c | 108 ++++++++++++++++++++++++++++++++
- drivers/media/dvb-frontends/lgdt3306a.h |   4 ++
- 3 files changed, 113 insertions(+), 1 deletion(-)
+On Mon, 2017-01-09 at 19:45 +0100, Matthias Brugger wrote:
+> 
+> On 09/01/17 12:29, Hans Verkuil wrote:
+> > Hi Rick,
+> >
+> > On 01/06/2017 03:34 AM, Rick Chang wrote:
+> >> Hi Hans,
+> >>
+> >> The dependence on [1] has been merged in 4.10, but [2] has not.Do you have
+> >> any idea about this patch series? Should we wait for [2] or we could merge
+> >> the source code and dt-binding first?
+> >
+> > Looking at [2] I noticed that the last comment was July 4th. What is the reason
+> > it hasn't been merged yet?
+> >
+> > If I know [2] will be merged for 4.11, then I am fine with merging this media
+> > patch series. The dependency of this patch on [2] is something Mauro can handle.
+> >
+> > If [2] is not merged for 4.11, then I think it is better to wait until it is
+> > merged.
+> >
+> 
+> I can't take [2] because there is no scpsys in the dts present. It seems 
+> that it got never posted.
+> 
+> Rick can you please follow-up with James and provide a patch which adds 
+> a scpsys node to the mt2701.dtsi?
+> 
 
-diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-index c841fa1..16f9afa 100644
---- a/drivers/media/dvb-frontends/Kconfig
-+++ b/drivers/media/dvb-frontends/Kconfig
-@@ -619,7 +619,7 @@ config DVB_LGDT3305
- 
- config DVB_LGDT3306A
- 	tristate "LG Electronics LGDT3306A based"
--	depends on DVB_CORE && I2C
-+	depends on DVB_CORE && I2C && I2C_MUX
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
- 	help
- 	  An ATSC 8VSB and QAM-B 64/256 demodulator module. Say Y when you want
-diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
-index 19dca46..c9b1eb3 100644
---- a/drivers/media/dvb-frontends/lgdt3306a.c
-+++ b/drivers/media/dvb-frontends/lgdt3306a.c
-@@ -22,6 +22,7 @@
- #include <linux/dvb/frontend.h>
- #include "dvb_math.h"
- #include "lgdt3306a.h"
-+#include <linux/i2c-mux.h>
- 
- 
- static int debug;
-@@ -65,6 +66,8 @@ struct lgdt3306a_state {
- 	enum fe_modulation current_modulation;
- 	u32 current_frequency;
- 	u32 snr;
-+
-+	struct i2c_mux_core *muxc;
- };
- 
- /*
-@@ -2131,6 +2134,111 @@ static const struct dvb_frontend_ops lgdt3306a_ops = {
- 	.search               = lgdt3306a_search,
- };
- 
-+static int lgdt3306a_select(struct i2c_mux_core *muxc, u32 chan)
-+{
-+	struct i2c_client *client = i2c_mux_priv(muxc);
-+	struct lgdt3306a_state *state = i2c_get_clientdata(client);
-+
-+	return lgdt3306a_i2c_gate_ctrl(&state->frontend, 1);
-+}
-+
-+static int lgdt3306a_deselect(struct i2c_mux_core *muxc, u32 chan)
-+{
-+	struct i2c_client *client = i2c_mux_priv(muxc);
-+	struct lgdt3306a_state *state = i2c_get_clientdata(client);
-+
-+	return lgdt3306a_i2c_gate_ctrl(&state->frontend, 0);
-+}
-+
-+static int lgdt3306a_probe(struct i2c_client *client,
-+		const struct i2c_device_id *id)
-+{
-+	struct lgdt3306a_config *config;
-+	struct lgdt3306a_state *state;
-+	struct dvb_frontend *fe;
-+	int ret;
-+
-+	config = kzalloc(sizeof(struct lgdt3306a_config), GFP_KERNEL);
-+	if (config == NULL) {
-+		ret = -ENOMEM;
-+		goto fail;
-+	}
-+
-+	memcpy(config, client->dev.platform_data,
-+			sizeof(struct lgdt3306a_config));
-+
-+	config->i2c_addr = client->addr;
-+	fe = lgdt3306a_attach(config, client->adapter);
-+	if (fe == NULL) {
-+		ret = -ENODEV;
-+		goto err_fe;
-+	}
-+
-+	i2c_set_clientdata(client, fe->demodulator_priv);
-+	state = fe->demodulator_priv;
-+
-+	/* create mux i2c adapter for tuner */
-+	state->muxc = i2c_mux_alloc(client->adapter, &client->dev,
-+				  1, 0, I2C_MUX_LOCKED,
-+				  lgdt3306a_select, lgdt3306a_deselect);
-+	if (!state->muxc) {
-+		ret = -ENOMEM;
-+		goto err_kfree;
-+	}
-+	state->muxc->priv = client;
-+	ret = i2c_mux_add_adapter(state->muxc, 0, 0, 0);
-+	if (ret)
-+		goto err_kfree;
-+
-+	/* create dvb_frontend */
-+	fe->ops.i2c_gate_ctrl = NULL;
-+	*config->i2c_adapter = state->muxc->adapter[0];
-+	*config->fe = fe;
-+
-+	return 0;
-+
-+err_kfree:
-+	kfree(state);
-+err_fe:
-+	kfree(config);
-+fail:
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
-+	return ret;
-+}
-+
-+static int lgdt3306a_remove(struct i2c_client *client)
-+{
-+	struct lgdt3306a_state *state = i2c_get_clientdata(client);
-+
-+	i2c_mux_del_adapters(state->muxc);
-+
-+	state->frontend.ops.release = NULL;
-+	state->frontend.demodulator_priv = NULL;
-+
-+	kfree(state->cfg);
-+	kfree(state);
-+
-+	return 0;
-+}
-+
-+static const struct i2c_device_id lgdt3306a_id_table[] = {
-+	{"lgdt3306a", 0},
-+	{}
-+};
-+MODULE_DEVICE_TABLE(i2c, lgdt3306a_id_table);
-+
-+static struct i2c_driver lgdt3306a_driver = {
-+	.driver = {
-+		.name                = "lgdt3306a",
-+		.suppress_bind_attrs = true,
-+	},
-+	.probe		= lgdt3306a_probe,
-+	.remove		= lgdt3306a_remove,
-+	.id_table	= lgdt3306a_id_table,
-+};
-+
-+module_i2c_driver(lgdt3306a_driver);
-+
- MODULE_DESCRIPTION("LG Electronics LGDT3306A ATSC/QAM-B Demodulator Driver");
- MODULE_AUTHOR("Fred Richter <frichter@hauppauge.com>");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/media/dvb-frontends/lgdt3306a.h b/drivers/media/dvb-frontends/lgdt3306a.h
-index 9dbb2dc..6ce337e 100644
---- a/drivers/media/dvb-frontends/lgdt3306a.h
-+++ b/drivers/media/dvb-frontends/lgdt3306a.h
-@@ -56,6 +56,10 @@ struct lgdt3306a_config {
- 
- 	/* demod clock freq in MHz; 24 or 25 supported */
- 	int  xtalMHz;
-+
-+	/* returned by driver if using i2c bus multiplexing */
-+	struct dvb_frontend **fe;
-+	struct i2c_adapter **i2c_adapter;
- };
- 
- #if IS_REACHABLE(CONFIG_DVB_LGDT3306A)
--- 
-2.9.3
+James sent three MT2701 dts patches [1] two weeks ago, these three
+patches include scpsys node. Please take a reference. And We will send
+new MT2701 ionmmu/smi dtsi node patch base on [1] later, thus you can
+accept and merge to 4.11.
+
+[1]
+https://patchwork.kernel.org/patch/9489991/
+https://patchwork.kernel.org/patch/9489985/
+https://patchwork.kernel.org/patch/9489989/
+
+Thanks,
+Eddie
+
 
