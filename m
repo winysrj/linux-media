@@ -1,120 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:34990 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750879AbdBAB0s (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:43739 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752158AbdAJXww (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jan 2017 20:26:48 -0500
-Subject: Re: [PATCH v3 00/24] i.MX Media Driver
+        Tue, 10 Jan 2017 18:52:52 -0500
+Subject: Re: [PATCH v2 00/21] Basic i.MX IPUv3 capture support
 To: Philipp Zabel <p.zabel@pengutronix.de>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
- <1485870854.2932.63.camel@pengutronix.de>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <5586b893-bf5c-6133-0789-ccce60626b86@gmail.com>
-Date: Tue, 31 Jan 2017 17:26:45 -0800
+References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
+ <20161019213026.GU9460@valkosipuli.retiisi.org.uk>
+ <CAH-u=807nRYzza0kTfOMv1AiWazk6FGJyz6W5_bYw7v9nOrccA@mail.gmail.com>
+ <20161229205113.j6wn7kmhkfrtuayu@pengutronix.de>
+ <7350daac-14ee-74cc-4b01-470a375613a3@denx.de>
+ <c38d80aa-5464-1e9d-e11a-f54716fdb565@mentor.com>
+ <1483990983.13625.58.camel@pengutronix.de>
+ <43564c16-f7aa-2d35-a41f-991465faaf8b@mentor.com>
+CC: Marek Vasut <marex@denx.de>,
+        Robert Schwebel <r.schwebel@pengutronix.de>,
+        Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Gary Bisson <gary.bisson@boundarydevices.com>,
+        Sascha Hauer <kernel@pengutronix.de>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Steve Longerbeam <steve_longerbeam@mentor.com>
+Message-ID: <5b4bb7bd-83ae-c1f3-6b24-989dd6b0aa48@mentor.com>
+Date: Tue, 10 Jan 2017 15:52:38 -0800
 MIME-Version: 1.0
-In-Reply-To: <1485870854.2932.63.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
+In-Reply-To: <43564c16-f7aa-2d35-a41f-991465faaf8b@mentor.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
 
-On 01/31/2017 05:54 AM, Philipp Zabel wrote:
-> Hi Steve,
+On 01/09/2017 04:15 PM, Steve Longerbeam wrote:
+> Hi Philipp,
 >
-> I have just tested the imx-media-staging-md-wip branch on a Nitrogen6X
-> with a tc358743 (BD_HDMI_MIPI HDMI to MIPI CSI-2 receiver board). Some
-> observations:
 >
-> # Link pipeline
-> media-ctl -l "'tc358743 1-000f':0->'imx6-mipi-csi2':0[1]"
-> media-ctl -l "'imx6-mipi-csi2':1->'ipu1_csi0_mux':0[1]"
-> media-ctl -l "'ipu1_csi0_mux':2->'ipu1_csi0':0[1]"
-> media-ctl -l "'ipu1_csi0':2->'ipu1_csi0 capture':0[1]"
+> On 01/09/2017 11:43 AM, Philipp Zabel wrote:
 >
-> # Provide an EDID to the HDMI source
-> v4l2-ctl -d /dev/v4l-subdev2 --set-edid=file=edid-1080p.hex
-> # At this point the HDMI source is enabled and sends a 1080p60 signal
-> # Configure detected DV timings
-> media-ctl --set-dv "'tc358743 1-000f':0"
 >
-> # Set pad formats
-> media-ctl --set-v4l2 "'tc358743 1-000f':0[fmt:UYVY/1920x1080]"
-> media-ctl --set-v4l2 "'imx6-mipi-csi2':1[fmt:UYVY2X8/1920x1080]"
-> media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY2X8/1920x1080]"
-> media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/1920x1080]"
+> <snip>
+>> One is the amount and organization of subdevices/media entities visible
+>> to userspace. The SMFCs should not be user controllable subdevices, but
+>> can be implicitly enabled when a CSI is directly linked to a camif.
 >
-> v4l2-ctl -d /dev/video4 -V
-> # This still is configured to 640x480, which is inconsistent with
-> # the 'ipu1_csi0':2 pad format. The pad set_fmt above should
-> # have set this, too.
+> I agree the SMFC could be folded into the CSI, but I see at least one
+> issue.
+>
+> From the dot graph you'll see that the PRPVF entity can receive directly
+> from the CSI, or indirectly via the SMFC. If the SMFC entity were folded
+> into the CSI entity, there would have to be a "direct to PRPVF" output 
+> pad
+> and a "indirect via SMFC" output pad and I'm not sure how that info would
+> be conveyed to the user. With a SMFC entity those pipelines are explicit.
 
-Because you've only configured the source pads,
-and not the sink pads. The ipu_csi source format is
-dependent on the sink format - output crop window is
-limited by max input sensor frame, and since sink pad is
-still at 640x480, output is reduced to that.
-
-Maybe I'm missing something, is it expected behavior that
-a source format should be automatically propagated to
-the sink?
+In summary here, unless you have strong objection I'd prefer to keep a
+distinct SMFC entity. It makes the pipelines more clear to the user, and it
+better models the IPU internals.
 
 >
-> v4l2-ctl --list-formats -d /dev/video4
-> # This lists all the RGB formats, which it shouldn't. There is
-> # no CSC in this pipeline, so we should be limited to YUV formats
-> # only.
-
-right, need to fix that. Probably by poking the attached
-source subdev (csi or prpenc/vf) for its supported formats.
-
-
+>> Also I'm not convinced the 1:1 mapping of IC task to subdevices is the
+>> best choice. It is true that the three tasks can be enabled separately,
+>> but to my understanding, the PRP ENC and PRP VF tasks share a single
+>> input channel. Shouldn't this be a single PRP subdevice with one input
+>> and two (VF, ENC) outputs?
 >
-> # Set capture format
-> v4l2-ctl -d /dev/video4 -v width=1920,height=1080,pixelformat=UYVY
+> Since the VDIC sends its motion compensated frames to the PRP VF task,
+> I've created the PRPVF entity solely for motion compensated de-interlace
+> support. I don't really see any other use for the PRPVF task except for
+> motion compensated de-interlace.
 >
-> v4l2-ctl -d /dev/video4 -V
-> # Now the capture format is correctly configured to 1920x1080.
+> So really, the PRPVF entity is a combination of the VDIC and PRPVF 
+> subunits.
 >
-> v4l2-ctl -d 4 --list-frameintervals=width=1920,height=1080,pixelformat=UYVY
-> # This lists nothing. We should at least provide the 'ipu1_csi0':2 pad
-> # frame interval. In the future this should list fractions achievable
-> # via frame skipping.
+> So looking at link_setup() in imx-csi.c, you'll see that when the CSI 
+> is linked
+> to PRPVF entity, it is actually sending to IPU_CSI_DEST_VDIC.
+>
+> But if we were to create a VDIC entity, I can see how we could then
+> have a single PRP entity. Then if the PRP entity is receiving from the 
+> VDIC,
+> the PRP VF task would be activated.
+>
+> Another advantage of creating a distinct VDIC entity is that frames could
+> potentially be routed directly from the VDIC to camif, for 
+> motion-compensated
+> frame capture only with no scaling/CSC. I think that would be IDMAC 
+> channel
+> 5, we've tried to get that pipeline to work in the past without 
+> success. That's
+> mainly why I decided not to attempt it and instead fold VDIC into 
+> PRPVF entity.
+>
+>
 
-yes, need to implement g_frame_interval.
+Here also, I'd prefer to keep distinct PRPENC and PRPVF entities. You 
+are correct
+that PRPENC and PRPVF do share an input channel (the CSIs). But the PRPVF
+has an additional input channel from the VDIC, and since my PRPVF entity 
+roles
+up the VDIC internally, it is actually receiving from the VDIC channel.
 
-> v4l2-compliance -d /dev/video4
-> # This fails two tests:
-> # fail: v4l2-test-input-output.cpp(383): std == 0
-> # fail: v4l2-test-input-output.cpp(449): invalid attributes for input 0
-> # test VIDIOC_G/S/ENUMINPUT: FAIL
-> # and
-> # fail: v4l2-test-controls.cpp(782): subscribe event for control 'User Controls' failed
-> # test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
->
-> # (Slowly) stream JPEG images to a display host:
-> gst-launch-1.0 -v v4l2src device=/dev/video4 ! jpegenc ! rtpjpegpay ! udpsink
->
-> I've done this a few times, and sometimes I only get a "ipu1_csi0: EOF
-> timeout" message when starting streaming.
-
-It's hard to say what is going on there, it would be great if I could get my
-hands on a Nitrogen6X with the tc35874 to help you debug.
+So unless you think we should have a distinct VDIC entity, I would like 
+to keep this
+the way it is.
 
 Steve
 
