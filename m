@@ -1,53 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.75]:53507 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934597AbdAEVnA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2017 16:43:00 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: linuxppc-dev@lists.ozlabs.org
-Cc: "Andrew F. Davis" <afd@ti.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Miguel Ojeda Sandonis <miguel.ojeda.sandonis@gmail.com>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Richard Purdie <rpurdie@rpsys.net>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Lauro Ramos Venancio <lauro.venancio@openbossa.org>,
-        Aloisio Almeida Jr <aloisio.almeida@openbossa.org>,
-        Samuel Ortiz <sameo@linux.intel.com>,
-        Ingo Molnar <mingo@kernel.org>, linux-pwm@vger.kernel.org,
-        linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 6/6] [media] Only descend into directory when CONFIG_MEDIA_SUPPORT is set
-Date: Thu, 05 Jan 2017 22:42:16 +0100
-Message-ID: <4225650.R96pl5clWf@wuerfel>
-In-Reply-To: <20170105210158.14204-7-afd@ti.com>
-References: <20170105210158.14204-1-afd@ti.com> <20170105210158.14204-7-afd@ti.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45359 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754580AbdAJOl2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 10 Jan 2017 09:41:28 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Vincent ABRIOU <vincent.abriou@st.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues FRUCHET <hugues.fruchet@st.com>,
+        Jean Christophe TROTIN <jean-christophe.trotin@st.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Subject: Re: [media] uvcvideo: support for contiguous DMA buffers
+Date: Tue, 10 Jan 2017 16:41:39 +0200
+Message-ID: <2642368.koo1zFQjyt@avalon>
+In-Reply-To: <93a7f73c-0c0f-64cb-5918-e86add84b006@st.com>
+References: <1475494036-18208-1-git-send-email-vincent.abriou@st.com> <3193570.QBsjjzBjh2@avalon> <93a7f73c-0c0f-64cb-5918-e86add84b006@st.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday, January 5, 2017 3:01:58 PM CET Andrew F. Davis wrote:
-> @@ -109,7 +109,8 @@ obj-$(CONFIG_SERIO)         += input/serio/
->  obj-$(CONFIG_GAMEPORT)         += input/gameport/
->  obj-$(CONFIG_INPUT)            += input/
->  obj-$(CONFIG_RTC_LIB)          += rtc/
-> -obj-y                          += i2c/ media/
-> +obj-y                          += i2c/
-> +obj-$(CONFIG_MEDIA_SUPPORT)    += media/
->  obj-$(CONFIG_PPS)              += pps/
->  obj-y                          += ptp/
->  obj-$(CONFIG_W1)               += w1/
+On Tuesday 10 Jan 2017 08:55:16 Vincent ABRIOU wrote:
+> On 01/09/2017 05:59 PM, Laurent Pinchart wrote:
+> > On Monday 09 Jan 2017 15:49:00 Vincent ABRIOU wrote:
+> >> On 01/09/2017 04:37 PM, Laurent Pinchart wrote:
+> >>> Hi Vincent,
+> >>> 
+> >>> Thank you for the patch.
+> >>> 
+> >>> On Monday 03 Oct 2016 13:27:16 Vincent Abriou wrote:
+> >>>> Allow uvcvideo compatible devices to allocate their output buffers
+> >>>> using contiguous DMA buffers.
+> >>> 
+> >>> Why do you need this ? If it's for buffer sharing with a device that
+> >>> requires dma-contig, can't you allocate the buffers on the other device
+> >>> and import them on the UVC side ?
+> >> 
+> >> Hi Laurent,
+> >> 
+> >> I need this using Gstreamer simple pipeline to connect an usb webcam
+> >> (v4l2src) with a display (waylandsink) activating the zero copy path.
+> >> 
+> >> The waylandsink plugin does not have any contiguous memory pool to
+> >> allocate contiguous buffer. So it is up to the upstream element, here
+> >> v4l2src, to provide such contiguous buffers.
+> > 
+> > Isn't that a gstreamer issue ?
 > 
+> It is not a gstreamer issue. It is the way it has been decided to work.
+> Waylandsink accept DMABUF contiguous buffer but it does not have its own
+> buffer pool.
 
-This one seems wrong: if CONFIG_MEDIA_SUPPORT=m, but some I2C drivers
-inside of drivers/media/ are built-in, we will fail to enter the directory,
-see drivers/media/Makefile.
+But why do you put the blame on the kernel when you decide to take the wrong 
+decision in userspace ? :-)
 
-I checked the other five patches in the series as well, they all look
-ok to me.
+> >>>> Add the "allocators" module parameter option to let uvcvideo use the
+> >>>> dma-contig instead of vmalloc.
+> >>>> 
+> >>>> Signed-off-by: Vincent Abriou <vincent.abriou@st.com>
+> >>>> ---
+> >>>> 
+> >>>>  Documentation/media/v4l-drivers/uvcvideo.rst | 12 ++++++++++++
+> >>>>  drivers/media/usb/uvc/Kconfig                |  2 ++
+> >>>>  drivers/media/usb/uvc/uvc_driver.c           |  3 ++-
+> >>>>  drivers/media/usb/uvc/uvc_queue.c            | 23 ++++++++++++++++---
+> >>>>  drivers/media/usb/uvc/uvcvideo.h             |  4 ++--
+> >>>>  5 files changed, 38 insertions(+), 6 deletions(-)
 
-	Arnd
+-- 
+Regards,
+
+Laurent Pinchart
+
