@@ -1,76 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45359 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754580AbdAJOl2 (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:49437 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1762285AbdAJLpD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Jan 2017 09:41:28 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Vincent ABRIOU <vincent.abriou@st.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues FRUCHET <hugues.fruchet@st.com>,
-        Jean Christophe TROTIN <jean-christophe.trotin@st.com>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Subject: Re: [media] uvcvideo: support for contiguous DMA buffers
-Date: Tue, 10 Jan 2017 16:41:39 +0200
-Message-ID: <2642368.koo1zFQjyt@avalon>
-In-Reply-To: <93a7f73c-0c0f-64cb-5918-e86add84b006@st.com>
-References: <1475494036-18208-1-git-send-email-vincent.abriou@st.com> <3193570.QBsjjzBjh2@avalon> <93a7f73c-0c0f-64cb-5918-e86add84b006@st.com>
+        Tue, 10 Jan 2017 06:45:03 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH for v4.10] cec: fix wrong last_la determination
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Message-ID: <5d795644-ba26-4b9b-67c6-13c78ea145ea@xs4all.nl>
+Date: Tue, 10 Jan 2017 12:44:54 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 10 Jan 2017 08:55:16 Vincent ABRIOU wrote:
-> On 01/09/2017 05:59 PM, Laurent Pinchart wrote:
-> > On Monday 09 Jan 2017 15:49:00 Vincent ABRIOU wrote:
-> >> On 01/09/2017 04:37 PM, Laurent Pinchart wrote:
-> >>> Hi Vincent,
-> >>> 
-> >>> Thank you for the patch.
-> >>> 
-> >>> On Monday 03 Oct 2016 13:27:16 Vincent Abriou wrote:
-> >>>> Allow uvcvideo compatible devices to allocate their output buffers
-> >>>> using contiguous DMA buffers.
-> >>> 
-> >>> Why do you need this ? If it's for buffer sharing with a device that
-> >>> requires dma-contig, can't you allocate the buffers on the other device
-> >>> and import them on the UVC side ?
-> >> 
-> >> Hi Laurent,
-> >> 
-> >> I need this using Gstreamer simple pipeline to connect an usb webcam
-> >> (v4l2src) with a display (waylandsink) activating the zero copy path.
-> >> 
-> >> The waylandsink plugin does not have any contiguous memory pool to
-> >> allocate contiguous buffer. So it is up to the upstream element, here
-> >> v4l2src, to provide such contiguous buffers.
-> > 
-> > Isn't that a gstreamer issue ?
-> 
-> It is not a gstreamer issue. It is the way it has been decided to work.
-> Waylandsink accept DMABUF contiguous buffer but it does not have its own
-> buffer pool.
+Due to an incorrect condition the last_la used for the initial attempt at
+claiming a logical address could be wrong.
 
-But why do you put the blame on the kernel when you decide to take the wrong 
-decision in userspace ? :-)
+The last_la wasn't converted to a mask when ANDing with type2mask, so that
+test was broken.
 
-> >>>> Add the "allocators" module parameter option to let uvcvideo use the
-> >>>> dma-contig instead of vmalloc.
-> >>>> 
-> >>>> Signed-off-by: Vincent Abriou <vincent.abriou@st.com>
-> >>>> ---
-> >>>> 
-> >>>>  Documentation/media/v4l-drivers/uvcvideo.rst | 12 ++++++++++++
-> >>>>  drivers/media/usb/uvc/Kconfig                |  2 ++
-> >>>>  drivers/media/usb/uvc/uvc_driver.c           |  3 ++-
-> >>>>  drivers/media/usb/uvc/uvc_queue.c            | 23 ++++++++++++++++---
-> >>>>  drivers/media/usb/uvc/uvcvideo.h             |  4 ++--
-> >>>>  5 files changed, 38 insertions(+), 6 deletions(-)
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
+index ebb5e391b800..87a6b65ed3af 100644
+--- a/drivers/media/cec/cec-adap.c
++++ b/drivers/media/cec/cec-adap.c
+@@ -1206,7 +1206,7 @@ static int cec_config_thread_func(void *arg)
+  		las->log_addr[i] = CEC_LOG_ADDR_INVALID;
+  		if (last_la == CEC_LOG_ADDR_INVALID ||
+  		    last_la == CEC_LOG_ADDR_UNREGISTERED ||
+-		    !(last_la & type2mask[type]))
++		    !((1 << last_la) & type2mask[type]))
+  			last_la = la_list[0];
 
--- 
-Regards,
-
-Laurent Pinchart
-
+  		err = cec_config_log_addr(adap, i, last_la);
