@@ -1,82 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38272 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1756845AbdABVJn (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:44074 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1760633AbdAJL5J (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 2 Jan 2017 16:09:43 -0500
-Date: Mon, 2 Jan 2017 23:09:34 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>
-Subject: Re: [PATCH 00/15] atmel-isi/ov7670/ov2640: convert to standalone
- drivers
-Message-ID: <20170102210934.GJ3958@valkosipuli.retiisi.org.uk>
-References: <20161212155520.41375-1-hverkuil@xs4all.nl>
- <20161218221055.GW16630@valkosipuli.retiisi.org.uk>
- <0983edff-25ef-fc9b-3c13-7fad442dac70@xs4all.nl>
- <e4683b1b-7b4f-debe-41c9-9e8a18115824@xs4all.nl>
+        Tue, 10 Jan 2017 06:57:09 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL v2 FOR v4.10] CEC fix and update cec documentation
+Message-ID: <2027f14e-1bd1-6fde-086d-ffacfe22b71a@xs4all.nl>
+Date: Tue, 10 Jan 2017 12:57:04 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <e4683b1b-7b4f-debe-41c9-9e8a18115824@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 02, 2017 at 02:41:47PM +0100, Hans Verkuil wrote:
-> On 01/02/17 14:37, Hans Verkuil wrote:
-> >On 12/18/16 23:10, Sakari Ailus wrote:
-> >>On Mon, Dec 12, 2016 at 04:55:05PM +0100, Hans Verkuil wrote:
-> >>>From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>
-> >>>This patch series converts the soc-camera atmel-isi to a standalone V4L2
-> >>>driver.
-> >>>
-> >>>The same is done for the ov7670 and ov2640 sensor drivers: the ov7670 was
-> >>>used to test the atmel-isi driver. The ov2640 is needed because the em28xx
-> >>>driver has a soc_camera include dependency. Both ov7670 and ov2640 sensors
-> >>>have been tested with the atmel-isi driver.
-> >>>
-> >>>The first 6 patches improve the ov7670 sensor driver, mostly adding modern
-> >>>features such as MC and DT support.
-> >>>
-> >>>The next three convert the atmel-isi and move it out of soc_camera.
-> >>
-> >>You're adding Media controller support but without device nodes. Does that
-> >>make sense? You'll have an entity but the user won't be able to do anything
-> >>with it.
-> >>
-> >
-> >Well, without the MC support the sensor driver wouldn't load since the atmel
-> >driver expects that the subdev is MC-enabled. However, the atmel-isi doesn't
-> >need the user to configure the pipeline, it's just a simple standard v4l driver.
-> >
-> >So just filling in the entity information is sufficient in this case.
-> >
-> >That said, I see that the atmel-isi driver calls v4l2_device_register_subdev_nodes().
-> >Since this is a simple V4L driver, that call should probably be dropped, since
-> >we really don't want or need subdev nodes.
-> >
-> >I will also need to take another look at the atmel-isi code to see if this MC
-> >dependency is really needed: I think I copied some of that code from the rcar
-> >driver, and it may not be relevant for the atmel driver.
-> 
-> In fact, I don't think it is needed at all.
-> 
-> But does it hurt to add MC support to these ov drivers?
+Two cec documentation updates and one CEC framework fix.
 
-Certainly not, as long as it doesn't cause issues with non-MC aware bridge
-drivers. If the sensor drivers have MC support as well they can be used with
-MC aware bridge / ISP drivers.
-
-If there are issues we definitely have to fix them, otherwise there'll be
-two different kinds of sensor drivers again. I guess it's again been that
-the group of sensors that have MC-aware ISPs connected to them is distinct
-from the other group using non-MC-aware bridges? :-)
-
--- 
 Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+	Hans
+
+The following changes since commit 40eca140c404505c09773d1c6685d818cb55ab1a:
+
+   [media] mn88473: add DVB-T2 PLP support (2016-12-27 14:00:15 -0200)
+
+are available in the git repository at:
+
+   git://linuxtv.org/hverkuil/media_tree.git for-v4.10f
+
+for you to fetch changes up to 65d3b33b9adcc96f48246f6bb1d9ab14ccca70bf:
+
+   cec: fix wrong last_la determination (2017-01-10 12:54:15 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (3):
+       cec rst: remove "This API is not yet finalized" notice
+       cec-intro.rst: mention the v4l-utils package and CEC utilities
+       cec: fix wrong last_la determination
+
+  Documentation/media/uapi/cec/cec-func-close.rst           |  5 -----
+  Documentation/media/uapi/cec/cec-func-ioctl.rst           |  5 -----
+  Documentation/media/uapi/cec/cec-func-open.rst            |  5 -----
+  Documentation/media/uapi/cec/cec-func-poll.rst            |  5 -----
+  Documentation/media/uapi/cec/cec-intro.rst                | 17 ++++++++++++-----
+  Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst      |  5 -----
+  Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst |  5 -----
+  Documentation/media/uapi/cec/cec-ioc-adap-g-phys-addr.rst |  5 -----
+  Documentation/media/uapi/cec/cec-ioc-dqevent.rst          |  5 -----
+  Documentation/media/uapi/cec/cec-ioc-g-mode.rst           |  5 -----
+  Documentation/media/uapi/cec/cec-ioc-receive.rst          |  5 -----
+  drivers/media/cec/cec-adap.c                              |  2 +-
+  12 files changed, 13 insertions(+), 56 deletions(-)
