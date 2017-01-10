@@ -1,217 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:34614 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S939776AbdAINIk (ORCPT
+Received: from relmlor4.renesas.com ([210.160.252.174]:46670 "EHLO
+        relmlie3.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1759167AbdAJJbL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Jan 2017 08:08:40 -0500
-Subject: Re: [PATCH 00/10] Qualcomm 8x16 Camera Subsystem driver
-To: Todor Tomov <todor.tomov@linaro.org>, mchehab@kernel.org,
-        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
-        javier@osg.samsung.com, s.nawrocki@samsung.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <1480085793-28193-1-git-send-email-todor.tomov@linaro.org>
-Cc: bjorn.andersson@linaro.org, srinivas.kandagatla@linaro.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <1a19217d-74b4-e3f5-4ab6-dc15360b1fe1@xs4all.nl>
-Date: Mon, 9 Jan 2017 14:08:29 +0100
+        Tue, 10 Jan 2017 04:31:11 -0500
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+CC: Geert Uytterhoeven <geert@linux-m68k.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Antti Palosaari <crope@iki.fi>,
+        Chris Paterson <Chris.Paterson2@renesas.com>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+Subject: RE: [PATCH v2 6/7] dt-bindings: media: Add Renesas R-Car DRIF binding
+Date: Tue, 10 Jan 2017 09:31:05 +0000
+Message-ID: <HK2PR06MB0545BF36C3DD2D4D1B951C3FC3670@HK2PR06MB0545.apcprd06.prod.outlook.com>
+References: <1478706284-59134-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+ <HK2PR06MB05453E11C8931F881E106939C36E0@HK2PR06MB0545.apcprd06.prod.outlook.com>
+ <cca1ade8-01ef-8eab-f4b1-7dd7f204fdea@xs4all.nl> <4506041.7mPt4W6j0m@avalon>
+In-Reply-To: <4506041.7mPt4W6j0m@avalon>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-In-Reply-To: <1480085793-28193-1-git-send-email-todor.tomov@linaro.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Todor,
+Hi Laurent,
 
-What is the status of this patch series? There were comments for patch 1/10 and 8/10,
-and I haven't seen a v2 of this patch series.
+> > >>> On Wednesday 21 Dec 2016 08:10:37 Ramesh Shanmugasundaram wrote:
+> > >>>> Add binding documentation for Renesas R-Car Digital Radio
+> > >>>> Interface
+> > >>>> (DRIF) controller.
+> > >>>>
+> > >>>> Signed-off-by: Ramesh Shanmugasundaram
+> > >>>> <ramesh.shanmugasundaram@bp.renesas.com> ---
+> > >>>>
+> > >>>>  .../devicetree/bindings/media/renesas,drif.txt     | 202
+> +++++++++++++
+> > >>>>  1 file changed, 202 insertions(+)  create mode 100644
+> > >>>>
+> > >>>> Documentation/devicetree/bindings/media/renesas,drif.txt
+> > >>>>
+> > >>>> diff --git
+> > >>>> a/Documentation/devicetree/bindings/media/renesas,drif.txt
+> > >>>> b/Documentation/devicetree/bindings/media/renesas,drif.txt new
+> > >>>> file mode 100644 index 0000000..1f3feaf
+> > >>>> --- /dev/null
+> > >>>> +++ b/Documentation/devicetree/bindings/media/renesas,drif.txt
+> > >>>>
+> > >>>> +Optional properties of an internal channel when:
+> > >>>> +     - It is the only enabled channel of the bond (or)
+> > >>>> +     - If it acts as primary among enabled bonds
+> > >>>> +--------------------------------------------------------
+> > >>>> +- renesas,syncmd       : sync mode
+> > >>>> +                      0 (Frame start sync pulse mode. 1-bit
+> > >>>> +width
+> > >>>> pulse
+> > >>>> +                         indicates start of a frame)
+> > >>>> +                      1 (L/R sync or I2S mode) (default)
+> > >>>> +- renesas,lsb-first    : empty property indicates lsb bit is
+> received
+> > >>>> first.
+> > >>>> +                      When not defined msb bit is received first
+> > >>>> +(default)
+> > >>>> +- renesas,syncac-active: Indicates sync signal polarity, 0/1 for
+> > >>>> low/high
+> >
+> > Shouldn't this be 'renesas,sync-active' instead of syncac-active?
+> >
+> > I'm not sure if syncac is intended or if it is a typo.
+> >
+> > >>>> +                      respectively. The default is 1 (active high=
+)
+> > >>>> +- renesas,dtdl         : delay between sync signal and start of
+> > >>>> reception.
+> > >>>> +                      The possible values are represented in 0.5
+> clock
+> > >>>> +                      cycle units and the range is 0 to 4. The
+> default
+> > >>>> +                      value is 2 (i.e.) 1 clock cycle delay.
+> > >>>> +- renesas,syncdl       : delay between end of reception and sync
+> > >>>> signal edge.
+> > >>>> +                      The possible values are represented in 0.5
+> clock
+> > >>>> +                      cycle units and the range is 0 to 4 & 6.
+> > >>>> + The
+> > >>>> default
+> > >>>> +                      value is 0 (i.e.) no delay.
+> > >>>
+> > >>> Most of these properties are pretty similar to the video bus
+> > >>> properties defined at the endpoint level in
+> > >>> Documentation/devicetree/bindings/media/video-interfaces.txt. I
+> > >>> believe it would make sense to use OF graph and try to standardize
+> > >>> these properties similarly.
+> >
+> > Other than sync-active, is there really anything else that is similar?
+> > And even the sync-active isn't a good fit since here there is only one
+> > sync signal instead of two for video (h and vsync).
+>=20
+> That's why I said similar, not identical :-) My point is that, if we
+> consider that we could connect multiple sources to the DRIF, using OF
+> graph would make sense, and the above properties should then be defined
+> per endpoint.
 
-Regards,
+Thanks for the clarifications. I have some questions.
 
-	Hans
+- Assuming two devices are interfaced with DRIF and they are represented us=
+ing two endpoints, the control signal related properties of DRIF might stil=
+l need to be same for both endpoints? For e.g. syncac-active cannot be diff=
+erent in both endpoints?
 
-On 11/25/2016 03:56 PM, Todor Tomov wrote:
-> This patchset adds basic support for the Qualcomm Camera Subsystem found
-> on Qualcomm MSM8916 and APQ8016 processors.
-> 
-> The driver implements V4L2, Media controller and V4L2 subdev interfaces.
-> Camera sensor using V4L2 subdev interface in the kernel is supported.
-> 
-> The driver is implemented using as a reference the Qualcomm Camera
-> Subsystem driver for Android as found in Code Aurora [1].
-> 
-> The driver supports raw dump of the input data to memory. ISP processing
-> is not supported.
-> 
-> The driver is tested on Dragonboard 410C (APQ8016) with one and two
-> OV5645 camera sensors. media-ctl [2] and yavta [3] applications were
-> used for testing. Also Gstreamer 1.4.4 with v4l2src plugin is supported.
-> 
-> More information is present in the document added by the third patch.
-> 
-> 
-> The patchset depends on:
-> v4l: Add packed Bayer raw12 pixel formats [4]
-> media: venus: enable building of Venus video codec driver [5]
-> 
-> 
-> V4L2 compliance test result:
-> 
-> root@linaro-alip:~/v4l-utils/utils/v4l2-compliance# ./v4l2-compliance -s -d /dev/video0
-> v4l2-compliance SHA   : 6a760145f1a6809591a1cb17ee1b06913e4fddd1
-> 
-> Driver Info:
->         Driver name   : qcom-camss
->         Card type     : Qualcomm Camera Subsystem
->         Bus info      : platform:qcom-camss
->         Driver version: 4.9.0
->         Capabilities  : 0x84200001
->                 Video Capture
->                 Streaming
->                 Extended Pix Format
->                 Device Capabilities
->         Device Caps   : 0x04200001
->                 Video Capture
->                 Streaming
->                 Extended Pix Format
-> 
-> Compliance test for device /dev/video0 (not using libv4l2):
-> 
-> Required ioctls:
->         test VIDIOC_QUERYCAP: OK
-> 
-> Allow for multiple opens:
->         test second video open: OK
->         test VIDIOC_QUERYCAP: OK
->         test VIDIOC_G/S_PRIORITY: OK
->         test for unlimited opens: OK
-> 
-> Debug ioctls:
->         test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
->         test VIDIOC_LOG_STATUS: OK (Not Supported)
-> 
-> Input ioctls:
->         test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
->         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
->         test VIDIOC_ENUMAUDIO: OK (Not Supported)
->         test VIDIOC_G/S/ENUMINPUT: OK
->         test VIDIOC_G/S_AUDIO: OK (Not Supported)
->         Inputs: 1 Audio Inputs: 0 Tuners: 0
-> 
-> Output ioctls:
->         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
->         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
->         test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
->         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
->         Outputs: 0 Audio Outputs: 0 Modulators: 0
-> 
-> Input/Output configuration ioctls:
->         test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
->         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
->         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
->         test VIDIOC_G/S_EDID: OK (Not Supported)
-> 
-> Test input 0:
-> 
->         Control ioctls:
->                 test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
->                 test VIDIOC_QUERYCTRL: OK (Not Supported)
->                 test VIDIOC_G/S_CTRL: OK (Not Supported)
->                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
->                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
->                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
->                 Standard Controls: 0 Private Controls: 0
-> 
->         Format ioctls:
->                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
->                 test VIDIOC_G/S_PARM: OK (Not Supported)
->                 test VIDIOC_G_FBUF: OK (Not Supported)
->                 test VIDIOC_G_FMT: OK
->                 test VIDIOC_TRY_FMT: OK
->                 test VIDIOC_S_FMT: OK
->                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
->                 test Cropping: OK (Not Supported)
->                 test Composing: OK (Not Supported)
->                 test Scaling: OK (Not Supported)
-> 
->         Codec ioctls:
->                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
->                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
->                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-> 
->         Buffer ioctls:
->                 test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
->                 test VIDIOC_EXPBUF: OK (Not Supported)
-> 
-> Test input 0:
-> 
-> Streaming ioctls:
->         test read/write: OK (Not Supported)
->         test MMAP: OK                                     
->         test USERPTR: OK (Not Supported)
->         test DMABUF: OK (Not Supported)
-> 
-> 
-> Total: 47, Succeeded: 47, Failed: 0, Warnings: 0
-> 
-> 
-> [1] https://source.codeaurora.org/quic/la/kernel/msm-3.10/
-> [2] https://git.linuxtv.org//v4l-utils.git
-> [3] http://git.ideasonboard.org/yavta.git
-> [4] http://www.spinics.net/lists/linux-media/msg107494.html
-> [5] http://www.spinics.net/lists/linux-media/msg104013.html
-> 
-> 
-> Todor Tomov (10):
->   doc: DT: camss: Binding document for Qualcomm Camera subsystem driver
->   MAINTAINERS: Add Qualcomm Camera subsystem driver
->   doc: media/v4l-drivers: Add Qualcomm Camera Subsystem driver document
->   media: camss: Add CSIPHY files
->   media: camss: Add CSID files
->   media: camss: Add ISPIF files
->   media: camss: Add VFE files
->   media: camss: Add files which handle the video device nodes
->   media: camms: Add core files
->   media: camss: Add Makefiles and Kconfig files
-> 
->  .../devicetree/bindings/media/qcom,camss.txt       |  196 ++
->  Documentation/media/v4l-drivers/index.rst          |    1 +
->  Documentation/media/v4l-drivers/qcom_camss.rst     |  124 ++
->  MAINTAINERS                                        |    8 +
->  drivers/media/platform/qcom/Kconfig                |    5 +
->  drivers/media/platform/qcom/Makefile               |    1 +
->  drivers/media/platform/qcom/camss-8x16/Makefile    |   12 +
->  drivers/media/platform/qcom/camss-8x16/camss.c     |  603 +++++++
->  drivers/media/platform/qcom/camss-8x16/camss.h     |   93 +
->  drivers/media/platform/qcom/camss-8x16/csid.c      | 1071 +++++++++++
->  drivers/media/platform/qcom/camss-8x16/csid.h      |   82 +
->  drivers/media/platform/qcom/camss-8x16/csiphy.c    |  685 +++++++
->  drivers/media/platform/qcom/camss-8x16/csiphy.h    |   77 +
->  drivers/media/platform/qcom/camss-8x16/ispif.c     | 1105 ++++++++++++
->  drivers/media/platform/qcom/camss-8x16/ispif.h     |   85 +
->  drivers/media/platform/qcom/camss-8x16/vfe.c       | 1877 ++++++++++++++++++++
->  drivers/media/platform/qcom/camss-8x16/vfe.h       |  112 ++
->  drivers/media/platform/qcom/camss-8x16/video.c     |  597 +++++++
->  drivers/media/platform/qcom/camss-8x16/video.h     |   67 +
->  19 files changed, 6801 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/qcom,camss.txt
->  create mode 100644 Documentation/media/v4l-drivers/qcom_camss.rst
->  create mode 100644 drivers/media/platform/qcom/Kconfig
->  create mode 100644 drivers/media/platform/qcom/Makefile
->  create mode 100644 drivers/media/platform/qcom/camss-8x16/Makefile
->  create mode 100644 drivers/media/platform/qcom/camss-8x16/camss.c
->  create mode 100644 drivers/media/platform/qcom/camss-8x16/camss.h
->  create mode 100644 drivers/media/platform/qcom/camss-8x16/csid.c
->  create mode 100644 drivers/media/platform/qcom/camss-8x16/csid.h
->  create mode 100644 drivers/media/platform/qcom/camss-8x16/csiphy.c
->  create mode 100644 drivers/media/platform/qcom/camss-8x16/csiphy.h
->  create mode 100644 drivers/media/platform/qcom/camss-8x16/ispif.c
->  create mode 100644 drivers/media/platform/qcom/camss-8x16/ispif.h
->  create mode 100644 drivers/media/platform/qcom/camss-8x16/vfe.c
->  create mode 100644 drivers/media/platform/qcom/camss-8x16/vfe.h
->  create mode 100644 drivers/media/platform/qcom/camss-8x16/video.c
->  create mode 100644 drivers/media/platform/qcom/camss-8x16/video.h
-> 
+- I suppose "lsb-first", "dtdl" & "syncdl" may be defined per endpoint. How=
+ever, h/w manual says same register values needs to be programmed for both =
+the internal channels of a channel. Same with "syncmd" property.
+
+We could still define them as per endpoint property with a note that they n=
+eed to be same. But I am not sure if that is what you intended?
+
+ If we define them per endpoint we should then also try
+> standardize the ones that are not really Renesas-specific (that's at leas=
+t
+> syncac-active).
+
+OK. I will call it "sync-active".
+
+ For the syncmd and lsb-first properties, it could also
+> make sense to query them from the connected subdev at runtime, as they're
+> similar in purpose to formats and media bus configuration (struct
+> v4l2_mbus_config).
+
+May I know in bit more detail about what you had in mind? Please correct me=
+ if my understanding is wrong here but when I looked at the code
+
+1) mbus_config is part of subdev_video_ops only. I assume we don't want to =
+support this as part of tuner subdev. The next closest is pad_ops with "str=
+uct v4l2_mbus_framefmt" but it is fully video specific config unless I come=
+ up with new MEDIA_BUS_FMT_xxxx in media-bus-format.h and use the code fiel=
+d? For e.g.
+=09
+#define MEDIA_BUS_FMT_SDR_I2S_PADHI_BE       0x7001
+#define MEDIA_BUS_FMT_SDR_I2S_PADHI_LE       0x7002
+
+2) The framework does not seem to mandate pad ops for all subdev. As the tu=
+ner can be any third party subdev, is it fair to assume that these properti=
+es can be queried from subdev?
+
+3) Assuming pad ops is not available on the subdev shouldn't we still need =
+a way to define these properties on DRIF DT?
+
+>=20
+> I'm not an SDR expert, so I'd like to have your opinion on this.
+>=20
+> > >> Note that the last two properties match the those in
+> > >> Documentation/devicetree/bindings/spi/sh-msiof.txt.
+> > >> We may want to use one DRIF channel as a plain SPI slave with the
+> > >> (modified) MSIOF driver in the future.
+> > >
+> > > Should I leave it as it is or modify these as in video-interfaces.txt=
+?
+> > > Shall we conclude on this please?
+>=20
+
+Thanks,
+Ramesh
 
