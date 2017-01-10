@@ -1,11 +1,11 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:54044 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750830AbdARFO1 (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:46129 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752220AbdAJFLj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Jan 2017 00:14:27 -0500
-Message-ID: <560b058ab16e023b5c055cfc7be65f1d@smtp-cloud3.xs4all.net>
-Date: Wed, 18 Jan 2017 06:14:24 +0100
+        Tue, 10 Jan 2017 00:11:39 -0500
+Message-ID: <3f9b255aae7c63e4a9b4826ddc29fbf4@smtp-cloud2.xs4all.net>
+Date: Tue, 10 Jan 2017 06:11:36 +0100
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Subject: cron job: media_tree daily build: ERRORS
@@ -17,10 +17,10 @@ the kernels and architectures in the list below.
 
 Results of the daily build of media_tree:
 
-date:			Wed Jan 18 05:00:18 CET 2017
+date:			Tue Jan 10 05:00:18 CET 2017
 media-tree git hash:	40eca140c404505c09773d1c6685d818cb55ab1a
 media_build git hash:	3c6ce4ff75f19adf45869e34b376c5b9dee4d50a
-v4l-utils git hash:	bc29784e7a3d27f996f7134ad1117985adf103d7
+v4l-utils git hash:	7715d870ab8da6436ac97eeb11f0780fbb99fade
 gcc version:		i686-linux-gcc (GCC) 6.2.0
 sparse version:		v0.5.0-3553-g78b2ea6
 smatch version:		v0.5.0-3553-g78b2ea6
@@ -114,11 +114,11 @@ sparse: WARNINGS
 
 Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
 Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
 The Media Infrastructure API from this daily build is here:
 
