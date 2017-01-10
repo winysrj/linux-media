@@ -1,46 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:60833 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752375AbdATOAk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Jan 2017 09:00:40 -0500
-From: Michael Tretter <m.tretter@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Philipp Zabel <p.zabel@pengutronix.de>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        kernel@pengutronix.de, Michael Tretter <m.tretter@pengutronix.de>
-Subject: [PATCH v4 5/7] [media] coda: fix frame index to returned error
-Date: Fri, 20 Jan 2017 15:00:23 +0100
-Message-Id: <20170120140025.3338-6-m.tretter@pengutronix.de>
-In-Reply-To: <20170120140025.3338-1-m.tretter@pengutronix.de>
-References: <20170120140025.3338-1-m.tretter@pengutronix.de>
+Received: from mail-qk0-f194.google.com ([209.85.220.194]:34874 "EHLO
+        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932557AbdAJDOH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2017 22:14:07 -0500
+Received: by mail-qk0-f194.google.com with SMTP id u25so74294766qki.2
+        for <linux-media@vger.kernel.org>; Mon, 09 Jan 2017 19:14:06 -0800 (PST)
+Date: Mon, 9 Jan 2017 22:14:04 -0500
+From: Kevin Cheng <kcheng@gmail.com>
+To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v3 0/2] Support for Hauppauge WinTV-dualHD 01595 ATSC/QAM
+Message-ID: <20170110031402.42eexemy57ge3rch@whisper>
+References: <693918b2-bfbe-9827-a11a-e1f73f4ac019@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <693918b2-bfbe-9827-a11a-e1f73f4ac019@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-display_idx refers to the frame that will be returned in the next round.
-The currently processed frame is ctx->display_idx and errors should be
-reported for this frame.
+Adds support for the Hauppauge WinTV-dualHD TV tuner USB stick.
 
-Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
-Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-bit.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index b6625047250d..309eb4eb5ad1 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -2057,7 +2057,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 		}
- 		vb2_set_plane_payload(&dst_buf->vb2_buf, 0, payload);
- 
--		coda_m2m_buf_done(ctx, dst_buf, ctx->frame_errors[display_idx] ?
-+		coda_m2m_buf_done(ctx, dst_buf, ctx->frame_errors[ctx->display_idx] ?
- 				  VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
- 
- 		v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
+Changes in response to review comments:
+* Removed extra struct initialization in lgdt3306a.c
+* Simplified initialization in em28xx-dvb.c
+
+
+Kevin Cheng (2):
+  [media] lgdt3306a: support i2c mux for use by em28xx
+  [media] em28xx: support for Hauppauge WinTV-dualHD 01595 ATSC/QAM
+
+ drivers/media/dvb-frontends/Kconfig     |   2 +-
+ drivers/media/dvb-frontends/lgdt3306a.c | 108 ++++++++++++++++++++++++++++++++
+ drivers/media/dvb-frontends/lgdt3306a.h |   4 ++
+ drivers/media/usb/em28xx/em28xx-cards.c |  19 ++++++
+ drivers/media/usb/em28xx/em28xx-dvb.c   |  78 +++++++++++++++++++++++
+ drivers/media/usb/em28xx/em28xx.h       |   1 +
+ 6 files changed, 211 insertions(+), 1 deletion(-)
+
 -- 
-2.11.0
+2.9.3
 
