@@ -1,63 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.osadl.org ([62.245.132.105]:53726 "EHLO www.osadl.org"
+Received: from verein.lst.de ([213.95.11.211]:34370 "EHLO newverein.lst.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751212AbdAPN5m (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Jan 2017 08:57:42 -0500
-From: Nicholas Mc Guire <hofrat@osadl.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Nicholas Mc Guire <hofrat@osadl.org>
-Subject: [PATCH] [media] ov9650: use msleep() for uncritical long delay
-Date: Mon, 16 Jan 2017 14:58:33 +0100
-Message-Id: <1484575113-24098-1-git-send-email-hofrat@osadl.org>
+        id S1751641AbdAKJD7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 11 Jan 2017 04:03:59 -0500
+Date: Wed, 11 Jan 2017 10:03:57 +0100
+From: Christoph Hellwig <hch@lst.de>
+To: Tom Lendacky <thomas.lendacky@amd.com>
+Cc: Christoph Hellwig <hch@lst.de>, linux-pci@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        netdev@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/3] xgbe: switch to pci_irq_alloc_vectors
+Message-ID: <20170111090357.GB7350@lst.de>
+References: <1483994260-19797-1-git-send-email-hch@lst.de> <1483994260-19797-3-git-send-email-hch@lst.de> <11ed330c-84e9-79e9-7945-ca17a497359c@amd.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <11ed330c-84e9-79e9-7945-ca17a497359c@amd.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ulseep_range() uses hrtimers and provides no advantage over msleep()
-for larger delays. Fix up the 25ms delays here to use msleep() and
-reduce the load on the hrtimer subsystem.
+On Tue, Jan 10, 2017 at 12:40:10PM -0600, Tom Lendacky wrote:
+> On 1/9/2017 2:37 PM, Christoph Hellwig wrote:
+> > The newly added xgbe drivers uses the deprecated pci_enable_msi_exact
+> > and pci_enable_msix_range interfaces.  Switch it to use
+> > pci_irq_alloc_vectors instead.
+> 
+> I was just working on switching over to this API with some additional
+> changes / simplification.  I'm ok with using this patch so that you get
+> the API removal accomplished.  Going through the PCI tree just means
+> it will probably be easier for me to hold off on the additional changes
+> I wanted to make until later.
 
-Link: http://lkml.org/lkml/2017/1/11/377
-Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
----
-Problem found by coccinelle script
+Hi Tom,
 
-Patch was compile tested with: x86_64_defconfig + CONFIG_MEDIA_SUPPORT=m
-CONFIG_MEDIA_ANALOG_TV_SUPPORT=y, CONFIG_MEDIA_CONTROLLER=y
-CONFIG_VIDEO_V4L2_SUBDEV_API=y, CONFIG_MEDIA_SUBDRV_AUTOSELECT=n
-CONFIG_VIDEO_OV9650=m
+if you have a better patch I'd be more than happy to use that one instead,
+this one was intended as a stupid search and replace.  The important
+part for me is to get the two conversions and the interface removal
+in together.
 
-Patch is aginast 4.10-rc3 (localversion-next is next-20170116)
-
- drivers/media/i2c/ov9650.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
-index 502c722..2de2fbb 100644
---- a/drivers/media/i2c/ov9650.c
-+++ b/drivers/media/i2c/ov9650.c
-@@ -522,7 +522,7 @@ static void __ov965x_set_power(struct ov965x *ov965x, int on)
- 	if (on) {
- 		ov965x_gpio_set(ov965x->gpios[GPIO_PWDN], 0);
- 		ov965x_gpio_set(ov965x->gpios[GPIO_RST], 0);
--		usleep_range(25000, 26000);
-+		msleep(25);
- 	} else {
- 		ov965x_gpio_set(ov965x->gpios[GPIO_RST], 1);
- 		ov965x_gpio_set(ov965x->gpios[GPIO_PWDN], 1);
-@@ -1438,7 +1438,7 @@ static int ov965x_detect_sensor(struct v4l2_subdev *sd)
- 
- 	mutex_lock(&ov965x->lock);
- 	__ov965x_set_power(ov965x, 1);
--	usleep_range(25000, 26000);
-+	msleep(25);
- 
- 	/* Check sensor revision */
- 	ret = ov965x_read(client, REG_PID, &pid);
--- 
-2.1.4
-
+E.g. I've alreayd wondered why the driver requires the exact vector
+number for MSI and a variable one for MSI-X, and there certainly is
+all kinds of opportunity for cosmetic cleanup.
