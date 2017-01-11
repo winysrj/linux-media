@@ -1,53 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:41248 "EHLO
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:64796 "EHLO
         mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751209AbdAaQcX (ORCPT
+        by vger.kernel.org with ESMTP id S1752995AbdAKMgd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jan 2017 11:32:23 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v5 02/10] ARM: dts: STiH410: add DELTA dt node
-Date: Tue, 31 Jan 2017 17:30:25 +0100
-Message-ID: <1485880233-666-3-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1485880233-666-1-git-send-email-hugues.fruchet@st.com>
-References: <1485880233-666-1-git-send-email-hugues.fruchet@st.com>
+        Wed, 11 Jan 2017 07:36:33 -0500
+From: Vincent ABRIOU <vincent.abriou@st.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>,
+        Hugues FRUCHET <hugues.fruchet@st.com>,
+        Jean Christophe TROTIN <jean-christophe.trotin@st.com>
+Subject: Re: [media] uvcvideo: support for contiguous DMA buffers
+Date: Wed, 11 Jan 2017 12:36:24 +0000
+Message-ID: <45eec54c-059e-86c1-bedb-78a6400328a4@st.com>
+References: <1475494036-18208-1-git-send-email-vincent.abriou@st.com>
+ <5308977.1AOWxa0Moe@avalon> <c86650e5-7106-d36b-b716-6247fb2fa8ed@st.com>
+ <20170111110350.GE10831@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20170111110350.GE10831@valkosipuli.retiisi.org.uk>
+Content-Language: en-US
+Content-Type: text/plain; charset="Windows-1252"
+Content-ID: <90F0841DFC9CB1468CEF592CF26F04BA@st.com>
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds DT node for STMicroelectronics
-DELTA V4L2 video decoder
+Hi Sakari,
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- arch/arm/boot/dts/stih410.dtsi | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+On 01/11/2017 12:03 PM, Sakari Ailus wrote:
+> Hi Vincent,
+>
+> On Mon, Jan 09, 2017 at 03:49:00PM +0000, Vincent ABRIOU wrote:
+>>
+>>
+>> On 01/09/2017 04:37 PM, Laurent Pinchart wrote:
+>>> Hi Vincent,
+>>>
+>>> Thank you for the patch.
+>>>
+>>> On Monday 03 Oct 2016 13:27:16 Vincent Abriou wrote:
+>>>> Allow uvcvideo compatible devices to allocate their output buffers using
+>>>> contiguous DMA buffers.
+>>>
+>>> Why do you need this ? If it's for buffer sharing with a device that requires
+>>> dma-contig, can't you allocate the buffers on the other device and import them
+>>> on the UVC side ?
+>>>
+>>
+>> Hi Laurent,
+>>
+>> I need this using Gstreamer simple pipeline to connect an usb webcam
+>> (v4l2src) with a display (waylandsink) activating the zero copy path.
+>>
+>> The waylandsink plugin does not have any contiguous memory pool to
+>> allocate contiguous buffer. So it is up to the upstream element, here
+>> v4l2src, to provide such contiguous buffers.
+>
+> Do you need (physically) contiguous memory?
+>
 
-diff --git a/arch/arm/boot/dts/stih410.dtsi b/arch/arm/boot/dts/stih410.dtsi
-index 281a124..42e070c 100644
---- a/arch/arm/boot/dts/stih410.dtsi
-+++ b/arch/arm/boot/dts/stih410.dtsi
-@@ -259,5 +259,15 @@
- 			clocks = <&clk_sysin>;
- 			interrupts = <GIC_SPI 205 IRQ_TYPE_EDGE_RISING>;
- 		};
-+		delta0 {
-+			compatible = "st,st-delta";
-+			clock-names = "delta",
-+				      "delta-st231",
-+				      "delta-flash-promip";
-+			clocks = <&clk_s_c0_flexgen CLK_VID_DMU>,
-+				 <&clk_s_c0_flexgen CLK_ST231_DMU>,
-+				 <&clk_s_c0_flexgen CLK_FLASH_PROMIP>;
-+		};
-+
- 	};
- };
--- 
-1.9.1
+Yes, drm driver that does not have mmu needs to have contiguous buffers.
 
+> The DMA-BUF API does help sharing the buffers but it, at least currently,
+> does not help allocating memory or specifying a common format so that all
+> the devices the buffer needs to be accessible can actually make use of it.
+>
+> Instead of hacking drivers to make use of different memory allocation
+> strategies required by unrelated devices, we should instead fix these
+> problems in a proper, scalable way.
+>
+
+Scalable way? Like central allocator?
+
+Vincent
