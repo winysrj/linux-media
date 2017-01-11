@@ -1,91 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:59675 "EHLO
-        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S933873AbdAIDN2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 8 Jan 2017 22:13:28 -0500
-Message-ID: <1483931601.16976.48.camel@mtkswgap22>
-Subject: Re: [PATCH 2/2] media: rc: add driver for IR remote receiver on
- MT7623 SoC
-From: Sean Wang <sean.wang@mediatek.com>
-To: Sean Young <sean@mess.org>
-CC: <mchehab@osg.samsung.com>, <hdegoede@redhat.com>,
-        <hkallweit1@gmail.com>, <robh+dt@kernel.org>,
-        <mark.rutland@arm.com>, <matthias.bgg@gmail.com>,
-        <andi.shyti@samsung.com>, <hverkuil@xs4all.nl>,
-        <ivo.g.dimitrov.75@gmail.com>, <linux-media@vger.kernel.org>,
-        <devicetree@vger.kernel.org>, <linux-mediatek@lists.infradead.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <keyhaede@gmail.com>
-Date: Mon, 9 Jan 2017 11:13:21 +0800
-In-Reply-To: <20170108211624.GB7866@gofer.mess.org>
-References: <1483632384-8107-1-git-send-email-sean.wang@mediatek.com>
-         <1483632384-8107-3-git-send-email-sean.wang@mediatek.com>
-         <20170105171240.GA9136@gofer.mess.org>
-         <1483687885.16976.19.camel@mtkswgap22>
-         <20170108211624.GB7866@gofer.mess.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Received: from mail-ua0-f182.google.com ([209.85.217.182]:33470 "EHLO
+        mail-ua0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756022AbdAKROP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 11 Jan 2017 12:14:15 -0500
+Received: by mail-ua0-f182.google.com with SMTP id i68so411136222uad.0
+        for <linux-media@vger.kernel.org>; Wed, 11 Jan 2017 09:14:15 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <8aa6b3c4-5fcb-d67c-040e-4220e30658f2@kaa.org.ua>
+References: <20170111100819.2190-1-oleg@kaa.org.ua> <CALzAhNXJYtg+wpmq48DKzznyO2NvmrQYONxK_-Ajb_UESEXrCg@mail.gmail.com>
+ <8e391d70-1b4c-3bb9-08d9-409bb139ef7e@kaa.org.ua> <CALzAhNWdJRvVLRcv05eZugSR3bYZ9Tmrd+tfMGab=VadTOngJA@mail.gmail.com>
+ <8aa6b3c4-5fcb-d67c-040e-4220e30658f2@kaa.org.ua>
+From: Steven Toth <stoth@kernellabs.com>
+Date: Wed, 11 Jan 2017 12:14:14 -0500
+Message-ID: <CALzAhNXsLx42+1F+4URfhPoLO+ncjCYnjAWZyyLibL0-FQnPug@mail.gmail.com>
+Subject: Re: Broken cx231xx-i2c.c
+To: Oleh Kravchenko <oleg@kaa.org.ua>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "Jacob Johan (Hans) Verkuil" <hverkuil@xs4all.nl>,
+        Antti Palosaari <crope@iki.fi>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2017-01-08 at 21:16 +0000, Sean Young wrote:
-> Hi Sean,
-> 
-> On Fri, Jan 06, 2017 at 03:31:25PM +0800, Sean Wang wrote:
-> > On Thu, 2017-01-05 at 17:12 +0000, Sean Young wrote:
-> > > On Fri, Jan 06, 2017 at 12:06:24AM +0800, sean.wang@mediatek.com wrote:
-> > > > +	/* Handle pulse and space until end of message */
-> > > > +	for (i = 0 ; i < MTK_CHKDATA_SZ ; i++) {
-> > > > +		val = mtk_r32(ir, MTK_CHKDATA_REG(i));
-> > > > +		dev_dbg(ir->dev, "@reg%d=0x%08x\n", i, val);
-> > > > +
-> > > > +		for (j = 0 ; j < 4 ; j++) {
-> > > > +			wid = (val & (0xff << j * 8)) >> j * 8;
-> > > > +			rawir.pulse = !rawir.pulse;
-> > > > +			rawir.duration = wid * (MTK_IR_SAMPLE + 1);
-> > > > +			ir_raw_event_store_with_filter(ir->rc, &rawir);
-> > > > +
-> > > > +			if (MTK_IR_END(wid))
-> > > > +				goto end_msg;
-> > > > +		}
-> > > > +	}
-> > > 
-> > > If I read this correctly, there is a maximum of 17 * 4 = 68 edges per
-> > > IR message. The rc6 mce key 0 (scancode 0x800f0400) is 69 edges, so that
-> > > won't work.
-> > > 
-> > Uh, this is related to hardware limitation. Maximum number hardware
-> > holds indeed is only 68 edges as you said :( 
-> > 
-> > For the case, I will try change the logic into that the whole message 
-> > is dropped if no end of message is seen within 68 counts to avoid
-> > wasting CPU for decoding. 
-> 
-> I'm not sure it is worthwhile dropping the IR in that case. The processing
-> is minimal and it might be possible that we have just enough IR to decode
-> a scancode even if the trailing end of message is missing. Note that
-> the call to ir_raw_event_set_idle() will generate an timeout IR event, so
-> there will always be an end of message marker.
+On Wed, Jan 11, 2017 at 9:39 AM, Oleh Kravchenko <oleg@kaa.org.ua> wrote:
+> Hello!
+>
+> So, I tried to split i2c send messages to 5, 8, 16 bytes - that cause error:
+>     cx231xx 3-1:1.1: cx231xx_send_usb_command: failed with status --32
+>
+> This problem occurred only with Si2158 tuner,
+> demodulator Si2168 eats up to 15 bytes per i2c message.
+>
+> I think problem in cx231xx_send_vendor_cmd() function.
+> It's split reading, but not writing.
+>
+> PS: I use USB sniffer to capture traffic, please find it in attachment.
 
+Do you have a logic analyzer so you can inspect the I2C bus state? I'm
+speaking as someone who's done significant reverse engineering
+projects on many pieces of hardware, you'll get a much better
+understanding of platform specific I2C problems if you can see the bus
+directly.
 
-1)
-I agree with you :) The original logic I made already as you pointed out
-is sent incomplete IR message to let ir-raw try to decode as possible.
+Any such issues tend to propagate upwards through micro-controller
+interfaces (cx231xx) and its much more obvious to deal with the
+controller problem when the state of the bus is absolutely known.
 
-2)
-I had another question. I found multiple and same IR messages being
-received when using SONY remote controller. Should driver needs to
-report each message or only one of these to the upper layer ?
+I have no objections to a I2C bus controller implementation splitting
+reads and writes in a uniform and generic way, assuming windows is
+doing the same thing, providing that approach applies to all attached
+devices. We don't want board specific hacks infecting the various
+drivers......... unless we're absolutely clear as to why...... and we
+don't want to see I2C controller limitations infecting I2C demod/tuner
+drivers where at all possible.
 
+If its true that send_vendor_cmd() splits reads but not writes, fix
+the function to be uniform for all boards. Don't do boards specific
+overrides.
 
-> All I wanted to do was point out a limitation in case there is a
-> workaround; if there is not then we might as well make do with the IR
-> we do have.
-
-I also will leave some words about limitation we had in the comments.
-
-> Thanks
-> Sean
-
-
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
