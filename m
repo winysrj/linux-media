@@ -1,192 +1,312 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:34855 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933065AbdAGCL5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2017 21:11:57 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v3 00/24] i.MX Media Driver
-Date: Fri,  6 Jan 2017 18:11:18 -0800
-Message-Id: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from smtp.220.in.ua ([89.184.67.205]:45969 "EHLO smtp.220.in.ua"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932601AbdAKH2v (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 11 Jan 2017 02:28:51 -0500
+Subject: Re: [PATCH] [media] cx231xx: Initial support Evromedia USB Full
+ Hybrid Full HD
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
+        hverkuil@xs4all.nl
+References: <20170110214106.5349-1-oleg@kaa.org.ua>
+ <53f10643-5437-e102-856c-fa3a22abcd18@iki.fi>
+From: Oleh Kravchenko <oleg@kaa.org.ua>
+Message-ID: <580ee3ee-1d8c-10c8-a654-6e804fe869c2@kaa.org.ua>
+Date: Wed, 11 Jan 2017 09:28:46 +0200
+MIME-Version: 1.0
+In-Reply-To: <53f10643-5437-e102-856c-fa3a22abcd18@iki.fi>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In version 3:
-
-Changes suggested by Rob Herring <robh@kernel.org>:
-
-  - prepended FIM node properties with vendor prefix "fsl,".
-
-  - make mipi csi-2 receiver compatible string SoC specific:
-    "fsl,imx6-mipi-csi2" instead of "fsl,imx-mipi-csi2".
-
-  - redundant "_clk" removed from mipi csi-2 receiver clock-names property.
-
-  - removed board-specific info from the media driver binding doc. These
-    were all related to sensor bindings, which already are (adv7180)
-    or will be (ov564x) covered in separate binding docs. All reference
-    board info not related to DT bindings has been moved to
-    Documentation/media/v4l-drivers/imx.rst.
-
-  - removed "_mipi" from the OV5640 compatible string.
-
-Changes suggested by Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>:
-
-  Mostly cosmetic/non-functional changes which I won't list here, except
-  for the following:
-
-  - spin_lock_irqsave() changed to spin_lock() in a couple interrupt handlers.
-
-  - fixed some unnecessary of_node_put()'s in for_each_child_of_node() loops.
-
-  - check/handle return code from required reg property of CSI port nodes.
-
-  - check/handle return code from clk_prepare_enable().
-
-Changes suggested by Fabio Estevam <festevam@gmail.com>:
-
-  - switch to VGEN3 Analog Vdd supply assuming rev. C SabreSD boards.
-
-  - finally got around to passing valid IOMUX pin config values to the
-    pin groups.
-
-Other changes:
-
-  - removed the FIM properties that overrided the v4l2 FIM control defaults
-    values. This was left-over from a requirement of a customer and is not
-    necessary here.
-
-  - The FIM must be explicitly enabled in the fim child node under the CSI
-    port nodes, using the status property. If not enabled, FIM v4l2 controls
-    will not appear in the video capture driver.
-
-  - brought in additional media types patch from Philipp Zabel. Use new
-    MEDIA_ENT_F_VID_IF_BRIDGE in mipi csi-2 receiver subdev.
-
-  - brought in latest platform generic video multiplexer subdevice driver
-    from Philipp Zabel (squashed with patch that uses new MEDIA_ENT_F_MUX).
-
-  - removed imx-media-of.h, moved those prototypes into imx-media.h.
 
 
-Philipp Zabel (3):
-  ARM: dts: imx6qdl: Add mipi_ipu1/2 multiplexers, mipi_csi, and their
-    connections
-  add mux and video interface bridge entity functions
-  platform: add video-multiplexer subdevice driver
+On 11.01.17 02:16, Antti Palosaari wrote:
+> On 01/10/2017 11:41 PM, Oleh Kravchenko wrote:
+>> This patch provide only digital support.
+>>
+>> The device is based on Si2168 30-demodulator,
+>> Si2158-20 tuner and CX23102-11Z chipset;
+>> USB id: 1b80:d3b2.
+>>
+>> Status:
+>> - DVB-T2 works fine;
+>> - Composite and SVideo works fine;
+>> - Analog not implemented.
+>>
+>> Signed-off-by: Oleh Kravchenko <oleg@kaa.org.ua>
+>> Tested-by: Oleh Kravchenko <oleg@kaa.org.ua>
+>> ---
+>>  drivers/media/usb/cx231xx/Kconfig         |  1 +
+>>  drivers/media/usb/cx231xx/cx231xx-cards.c | 29 +++++++++++++
+>>  drivers/media/usb/cx231xx/cx231xx-dvb.c   | 71 +++++++++++++++++++++++++++++++
+>>  drivers/media/usb/cx231xx/cx231xx-i2c.c   | 37 ++++++++++++++++
+>>  drivers/media/usb/cx231xx/cx231xx.h       |  1 +
+>>  5 files changed, 139 insertions(+)
+>>
+>> diff --git a/drivers/media/usb/cx231xx/Kconfig b/drivers/media/usb/cx231xx/Kconfig
+>> index 0cced3e..58de80b 100644
+>> --- a/drivers/media/usb/cx231xx/Kconfig
+>> +++ b/drivers/media/usb/cx231xx/Kconfig
+>> @@ -50,6 +50,7 @@ config VIDEO_CX231XX_DVB
+>>      select DVB_LGDT3306A if MEDIA_SUBDRV_AUTOSELECT
+>>      select DVB_TDA18271C2DD if MEDIA_SUBDRV_AUTOSELECT
+>>      select DVB_SI2165 if MEDIA_SUBDRV_AUTOSELECT
+>> +    select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
+>>      select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
+>>
+>>      ---help---
+>> diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+>> index 36bc254..f730fdb 100644
+>> --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
+>> +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+>> @@ -841,6 +841,33 @@ struct cx231xx_board cx231xx_boards[] = {
+>>              .gpio = NULL,
+>>          } },
+>>      },
+>> +    [CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD] = {
+>> +        .name = "Evromedia USB Full Hybrid Full HD",
+>> +        .tuner_type = TUNER_ABSENT,
+>> +        .demod_addr = 0x64, /* 0xc8 >> 1 */
+>> +        .demod_i2c_master = I2C_1_MUX_3,
+>> +        .has_dvb = 1,
+>> +        .ir_i2c_master = I2C_0,
+>> +        .norm = V4L2_STD_PAL,
+>> +        .output_mode = OUT_MODE_VIP11,
+>> +        .tuner_addr = 0x60, /* 0xc0 >> 1 */
+> 
+> Looks good. I looked the existing file and all the other entries were also using correct 7-bit addresses.
+> 
+>> +        .tuner_i2c_master = I2C_2,
+>> +        .input = {{
+>> +            .type = CX231XX_VMUX_TELEVISION,
+>> +            .vmux = 0,
+>> +            .amux = CX231XX_AMUX_VIDEO,
+>> +        }, {
+>> +            .type = CX231XX_VMUX_COMPOSITE1,
+>> +            .vmux = CX231XX_VIN_2_1,
+>> +            .amux = CX231XX_AMUX_LINE_IN,
+>> +        }, {
+>> +            .type = CX231XX_VMUX_SVIDEO,
+>> +            .vmux = CX231XX_VIN_1_1 |
+>> +                (CX231XX_VIN_1_2 << 8) |
+>> +                CX25840_SVIDEO_ON,
+>> +            .amux = CX231XX_AMUX_LINE_IN,
+>> +        } },
+>> +    },
+>>  };
+>>  const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
+>>
+>> @@ -908,6 +935,8 @@ struct usb_device_id cx231xx_id_table[] = {
+>>       .driver_info = CX231XX_BOARD_OTG102},
+>>      {USB_DEVICE(USB_VID_TERRATEC, 0x00a6),
+>>       .driver_info = CX231XX_BOARD_TERRATEC_GRABBY},
+>> +    {USB_DEVICE(0x1b80, 0xd3b2),
+>> +    .driver_info = CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD},
+>>      {},
+>>  };
+>>
+>> diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+>> index 1417515..ecd3528 100644
+>> --- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
+>> +++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+>> @@ -33,6 +33,7 @@
+>>  #include "s5h1411.h"
+>>  #include "lgdt3305.h"
+>>  #include "si2165.h"
+>> +#include "si2168.h"
+>>  #include "mb86a20s.h"
+>>  #include "si2157.h"
+>>  #include "lgdt3306a.h"
+>> @@ -949,6 +950,76 @@ static int dvb_init(struct cx231xx *dev)
+>>                 &pv_tda18271_config);
+>>          break;
+>>
+>> +    case CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD:
+>> +    {
+>> +        struct si2157_config si2157_config = {};
+>> +        struct si2168_config si2168_config = {};
+>> +        struct i2c_board_info info = {};
+> 
+> Personally I don't like initializing variables to zero at the declaration, but it was Hans who asked to do it.
+> 
+>> +        struct i2c_client *client;
+>> +        struct i2c_adapter *adapter;
+>> +
+>> +        /* attach demodulator chip */
+>> +        si2168_config.ts_mode = SI2168_TS_SERIAL; /* from *.inf file */
+>> +        si2168_config.fe = &dev->dvb->frontend;
+>> +        si2168_config.i2c_adapter = &adapter;
+>> +        si2168_config.ts_clock_inv = true;
+>> +
+>> +        strlcpy(info.type, "si2168", sizeof(info.type));
+>> +        info.addr = dev->board.demod_addr;
+>> +        info.platform_data = &si2168_config;
+>> +
+>> +        request_module(info.type);
+>> +        client = i2c_new_device(demod_i2c, &info);
+>> +
+>> +        if (client == NULL || client->dev.driver == NULL) {
+>> +            result = -ENODEV;
+>> +            goto out_free;
+>> +        }
+>> +
+>> +        if (!try_module_get(client->dev.driver->owner)) {
+>> +            i2c_unregister_device(client);
+>> +            result = -ENODEV;
+>> +            goto out_free;
+>> +        }
+>> +
+>> +        dvb->i2c_client_demod = client;
+>> +        dvb->frontend->callback = cx231xx_tuner_callback;
+> 
+> Drop that callback assignment. It is not needed. It is used only for TDA18271 and XC5000 tuners. (History: whole callback is used only(?) for gpios which could be implemented via kernel gpio api).
 
-Steve Longerbeam (21):
-  [media] dt-bindings: Add bindings for i.MX media driver
-  ARM: dts: imx6qdl: Add compatible, clocks, irqs to MIPI CSI-2 node
-  ARM: dts: imx6qdl: add media device
-  ARM: dts: imx6qdl-sabrelite: remove erratum ERR006687 workaround
-  ARM: dts: imx6-sabrelite: add OV5642 and OV5640 camera sensors
-  ARM: dts: imx6-sabresd: add OV5642 and OV5640 camera sensors
-  ARM: dts: imx6-sabreauto: create i2cmux for i2c3
-  ARM: dts: imx6-sabreauto: add reset-gpios property for max7310_b
-  ARM: dts: imx6-sabreauto: add pinctrl for gpt input capture
-  ARM: dts: imx6-sabreauto: add the ADV7180 video decoder
-  UAPI: Add media UAPI Kbuild file
-  media: Add userspace header file for i.MX
-  media: Add i.MX media core driver
-  media: imx: Add CSI subdev driver
-  media: imx: Add SMFC subdev driver
-  media: imx: Add IC subdev drivers
-  media: imx: Add Camera Interface subdev driver
-  media: imx: Add MIPI CSI-2 Receiver subdev driver
-  media: imx: Add MIPI CSI-2 OV5640 sensor subdev driver
-  media: imx: Add Parallel OV5642 sensor subdev driver
-  ARM: imx_v6_v7_defconfig: Enable staging video4linux drivers
+Done
+ 
+>> +
+>> +        /* attach tuner chip */
+>> +        si2157_config.fe = dev->dvb->frontend;
+>> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+>> +        si2157_config.mdev = dev->media_dev;
+>> +#endif
+>> +        si2157_config.if_port = 1;
+>> +        si2157_config.inversion = false;
+>> +
+>> +        memset(&info, 0, sizeof(info));
+>> +        strlcpy(info.type, "si2157", sizeof(info.type));
+>> +        info.addr = dev->board.tuner_addr;
+>> +        info.platform_data = &si2157_config;
+>> +
+>> +        request_module(info.type);
+>> +        client = i2c_new_device(tuner_i2c, &info);
+>> +
+>> +        if (client == NULL || client->dev.driver == NULL) {
+>> +            module_put(dvb->i2c_client_demod->dev.driver->owner);
+>> +            i2c_unregister_device(dvb->i2c_client_demod);
+>> +            result = -ENODEV;
+>> +            goto out_free;
+>> +        }
+>> +
+>> +        if (!try_module_get(client->dev.driver->owner)) {
+>> +            i2c_unregister_device(client);
+>> +            module_put(dvb->i2c_client_demod->dev.driver->owner);
+>> +            i2c_unregister_device(dvb->i2c_client_demod);
+>> +            result = -ENODEV;
+>> +            goto out_free;
+>> +        }
+>> +
+>> +        dev->cx231xx_reset_analog_tuner = NULL;
+> 
+> A bit weird that this function is only for XC5000 tuner and the rest should disable it that way. But it is not problem with that patch.
+> 
+> 
+>> +        dev->dvb->i2c_client_tuner = client;
+>> +        break;
+>> +    }
+>>      default:
+>>          dev_err(dev->dev,
+>>              "%s/2: The frontend of your DVB/ATSC card isn't supported yet\n",
+>> diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+>> index 35e9acf..60412ec 100644
+>> --- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
+>> +++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+>> @@ -171,6 +171,43 @@ static int cx231xx_i2c_send_bytes(struct i2c_adapter *i2c_adap,
+>>          bus->i2c_nostop = 0;
+>>          bus->i2c_reserve = 0;
+>>
+>> +    } else if (dev->model == CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD
+>> +        && msg->addr == dev->tuner_addr
+>> +        && msg->len > 4) {
+>> +        /* special case for Evromedia USB Full Hybrid Full HD tuner chip */
+>> +        size = msg->len;
+>> +        saddr_len = 1;
+>> +
+>> +        /* adjust the length to correct length */
+>> +        size -= saddr_len;
+>> +
+>> +        buf_ptr = (u8*)(msg->buf + 1);
+>> +
+>> +        do {
+>> +            /* prepare xfer_data struct */
+>> +            req_data.dev_addr = msg->addr;
+>> +            req_data.direction = msg->flags;
+>> +            req_data.saddr_len = saddr_len;
+>> +            req_data.saddr_dat = msg->buf[0];
+>> +            req_data.buf_size = size > 4 ? 4 : size;
+>> +            req_data.p_buffer = (u8*)(buf_ptr + loop * 4);
+>> +
+>> +            bus->i2c_nostop = (size > 4) ? 1 : 0;
+>> +            bus->i2c_reserve = (loop == 0) ? 0 : 1;
+>> +
+>> +            /* usb send command */
+>> +            status = dev->cx231xx_send_usb_command(bus, &req_data);
+>> +            loop++;
+>> +
+>> +            if (size >= 4) {
+>> +                size -= 4;
+>> +            } else {
+>> +                size = 0;
+>> +            }
+>> +        } while (size > 0);
+>> +
+>> +        bus->i2c_nostop = 0;
+>> +        bus->i2c_reserve = 0;
+> 
+> 
+> I looked that cx231xx_i2c_send_bytes() function more carefully. Currently it is implemented like:
+> if "tuner is XC5000"
+>   * do some special hacks
+>   * send 16 byte i2c messages
+> else
+>   * send i2c message (~unlimited size)
+> 
+> Now this adds special case for this device too. For my eyes it looks like you just try to split i2c message to multiple 4 byte messages. I wonder if there is really 4 byte limit on that chip as XC5000 branch still sends 16 bytes as one go. Are you really sure?
+> 
+> Could you test what is maximum limit of one usb i2c message and use that value to split messages? It does not sound correct on XC5000 case you could send 16 bytes as a one go, but with si2158 only 4 bytes. si2168/si2157 are sending maximum ~15 byte messages as one go and I wonder if that i2c adapter could handle it without even splitting.
+> 
+> All-in-all: if XC5000 could send 16 bytes and all the rest has no limitation, it does not sound correct you have to split long messages to only 4 byte len.
 
- Documentation/devicetree/bindings/media/imx.txt    |   57 +
- .../bindings/media/video-multiplexer.txt           |   59 +
- Documentation/media/uapi/mediactl/media-types.rst  |   22 +
- Documentation/media/v4l-drivers/imx.rst            |  443 ++
- arch/arm/boot/dts/imx6dl-sabrelite.dts             |    5 +
- arch/arm/boot/dts/imx6dl-sabresd.dts               |    5 +
- arch/arm/boot/dts/imx6dl.dtsi                      |  187 +
- arch/arm/boot/dts/imx6q-sabrelite.dts              |    6 +
- arch/arm/boot/dts/imx6q-sabresd.dts                |    5 +
- arch/arm/boot/dts/imx6q.dtsi                       |  127 +
- arch/arm/boot/dts/imx6qdl-sabreauto.dtsi           |  147 +-
- arch/arm/boot/dts/imx6qdl-sabrelite.dtsi           |  122 +-
- arch/arm/boot/dts/imx6qdl-sabresd.dtsi             |  114 +-
- arch/arm/boot/dts/imx6qdl.dtsi                     |   25 +-
- arch/arm/configs/imx_v6_v7_defconfig               |   12 +-
- drivers/media/platform/Kconfig                     |    8 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/video-multiplexer.c         |  472 +++
- drivers/staging/media/Kconfig                      |    2 +
- drivers/staging/media/Makefile                     |    1 +
- drivers/staging/media/imx/Kconfig                  |   36 +
- drivers/staging/media/imx/Makefile                 |   15 +
- drivers/staging/media/imx/TODO                     |   22 +
- drivers/staging/media/imx/imx-camif.c              | 1000 +++++
- drivers/staging/media/imx/imx-csi.c                |  644 +++
- drivers/staging/media/imx/imx-ic-common.c          |  109 +
- drivers/staging/media/imx/imx-ic-pp.c              |  636 +++
- drivers/staging/media/imx/imx-ic-prpenc.c          | 1033 +++++
- drivers/staging/media/imx/imx-ic-prpvf.c           | 1179 ++++++
- drivers/staging/media/imx/imx-ic.h                 |   38 +
- drivers/staging/media/imx/imx-media-common.c       |  981 +++++
- drivers/staging/media/imx/imx-media-dev.c          |  486 +++
- drivers/staging/media/imx/imx-media-fim.c          |  471 +++
- drivers/staging/media/imx/imx-media-internal-sd.c  |  457 ++
- drivers/staging/media/imx/imx-media-of.c           |  289 ++
- drivers/staging/media/imx/imx-media.h              |  310 ++
- drivers/staging/media/imx/imx-mipi-csi2.c          |  501 +++
- drivers/staging/media/imx/imx-smfc.c               |  737 ++++
- drivers/staging/media/imx/ov5640-mipi.c            | 2348 +++++++++++
- drivers/staging/media/imx/ov5642.c                 | 4363 ++++++++++++++++++++
- include/media/imx.h                                |   15 +
- include/uapi/Kbuild                                |    1 +
- include/uapi/linux/media.h                         |    6 +
- include/uapi/linux/v4l2-controls.h                 |    4 +
- include/uapi/media/Kbuild                          |    2 +
- include/uapi/media/imx.h                           |   30 +
- 46 files changed, 17505 insertions(+), 29 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/imx.txt
- create mode 100644 Documentation/devicetree/bindings/media/video-multiplexer.txt
- create mode 100644 Documentation/media/v4l-drivers/imx.rst
- create mode 100644 drivers/media/platform/video-multiplexer.c
- create mode 100644 drivers/staging/media/imx/Kconfig
- create mode 100644 drivers/staging/media/imx/Makefile
- create mode 100644 drivers/staging/media/imx/TODO
- create mode 100644 drivers/staging/media/imx/imx-camif.c
- create mode 100644 drivers/staging/media/imx/imx-csi.c
- create mode 100644 drivers/staging/media/imx/imx-ic-common.c
- create mode 100644 drivers/staging/media/imx/imx-ic-pp.c
- create mode 100644 drivers/staging/media/imx/imx-ic-prpenc.c
- create mode 100644 drivers/staging/media/imx/imx-ic-prpvf.c
- create mode 100644 drivers/staging/media/imx/imx-ic.h
- create mode 100644 drivers/staging/media/imx/imx-media-common.c
- create mode 100644 drivers/staging/media/imx/imx-media-dev.c
- create mode 100644 drivers/staging/media/imx/imx-media-fim.c
- create mode 100644 drivers/staging/media/imx/imx-media-internal-sd.c
- create mode 100644 drivers/staging/media/imx/imx-media-of.c
- create mode 100644 drivers/staging/media/imx/imx-media.h
- create mode 100644 drivers/staging/media/imx/imx-mipi-csi2.c
- create mode 100644 drivers/staging/media/imx/imx-smfc.c
- create mode 100644 drivers/staging/media/imx/ov5640-mipi.c
- create mode 100644 drivers/staging/media/imx/ov5642.c
- create mode 100644 include/media/imx.h
- create mode 100644 include/uapi/media/Kbuild
- create mode 100644 include/uapi/media/imx.h
+I tested with 5, 8, 16 bytes, and get this error:
+[ 2757.119866] si2168 9-0064: downloading firmware from file 'dvb-demod-si2168-a30-01.fw'
+[ 2761.109662] si2168 9-0064: firmware version: A 3.0.19
+# si2158 firmware uploading..
+[ 2761.113098] cx231xx 3-1:1.1: cx231xx_send_usb_command: failed with status --32
 
--- 
-2.7.4
+[ 2985.263378] si2168 9-0064: downloading firmware from file 'dvb-demod-si2168-a30-01.fw'
+[ 2989.230173] si2168 9-0064: firmware version: A 3.0.19
+# si2158 firmware uploading..
+[ 2989.233141] cx231xx 3-1:1.1: cx231xx_send_usb_command: failed with status --32
+[ 2989.233513] cx231xx 3-1:1.1: cx231xx_send_usb_command: failed with status --32
+[ 2989.233876] cx231xx 3-1:1.1: cx231xx_send_usb_command: failed with status --32
 
+And when I split messages to 4 bytes, it succeeds:
+[ 3037.816936] si2168 9-0064: downloading firmware from file 'dvb-demod-si2168-a30-01.fw'
+[ 3041.806845] si2168 9-0064: firmware version: A 3.0.19
+[ 3041.814467] si2157 7-0060: found a 'Silicon Labs Si2158-A20'
+[ 3041.814513] si2157 7-0060: downloading firmware from file 'dvb-tuner-si2158-a20-01.fw'
+[ 3042.408588] si2157 7-0060: firmware version: 2.1.9
+
+ 
+>>      } else {        /* regular case */
+>>
+>>          /* prepare xfer_data struct */
+>> diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+>> index 90c8676..d9792ea 100644
+>> --- a/drivers/media/usb/cx231xx/cx231xx.h
+>> +++ b/drivers/media/usb/cx231xx/cx231xx.h
+>> @@ -78,6 +78,7 @@
+>>  #define CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx 20
+>>  #define CX231XX_BOARD_HAUPPAUGE_955Q 21
+>>  #define CX231XX_BOARD_TERRATEC_GRABBY 22
+>> +#define CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD 23
+>>
+>>  /* Limits minimum and default number of buffers */
+>>  #define CX231XX_MIN_BUF                 4
+>>
+> 
+> Otherwise than I2C send it looks good for my eyes. I am waiting your explanation for need of i2c message splitting.
+> 
+> regards
+> Antti
+> 
