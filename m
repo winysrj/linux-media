@@ -1,41 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:36139 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750977AbdARWX2 (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:42370 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750827AbdAKWxj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Jan 2017 17:23:28 -0500
-Date: Wed, 18 Jan 2017 16:23:21 -0600
-From: Rob Herring <robh@kernel.org>
-To: sean.wang@mediatek.com
-Cc: mchehab@osg.samsung.com, hdegoede@redhat.com, hkallweit1@gmail.com,
-        mark.rutland@arm.com, matthias.bgg@gmail.com,
-        andi.shyti@samsung.com, hverkuil@xs4all.nl, sean@mess.org,
-        ivo.g.dimitrov.75@gmail.com, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-mediatek@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        keyhaede@gmail.com
-Subject: Re: [PATCH v3 2/3] Documentation: devicetree: Add document bindings
- for mtk-cir
-Message-ID: <20170118222321.ec6p7oqwwqfiofhp@rob-hp-laptop>
-References: <1484292939-9454-1-git-send-email-sean.wang@mediatek.com>
- <1484292939-9454-3-git-send-email-sean.wang@mediatek.com>
+        Wed, 11 Jan 2017 17:53:39 -0500
+Date: Wed, 11 Jan 2017 23:53:35 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: robh+dt@kernel.org, devicetree@vger.kernel.org,
+        ivo.g.dimitrov.75@gmail.com, sakari.ailus@iki.fi, sre@kernel.org,
+        pali.rohar@gmail.com, linux-media@vger.kernel.org
+Subject: [PATCHv2] dt: bindings: Add support for CSI1 bus
+Message-ID: <20170111225335.GA21553@amd>
+References: <20161228183036.GA13139@amd>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="OgqxwSJOaUobr8KG"
 Content-Disposition: inline
-In-Reply-To: <1484292939-9454-3-git-send-email-sean.wang@mediatek.com>
+In-Reply-To: <20161228183036.GA13139@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 13, 2017 at 03:35:38PM +0800, sean.wang@mediatek.com wrote:
-> From: Sean Wang <sean.wang@mediatek.com>
-> 
-> This patch adds documentation for devicetree bindings for
-> consumer Mediatek IR controller.
-> 
-> Signed-off-by: Sean Wang <sean.wang@mediatek.com>
-> ---
->  .../devicetree/bindings/media/mtk-cir.txt          | 24 ++++++++++++++++++++++
->  1 file changed, 24 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/mtk-cir.txt
 
-Acked-by: Rob Herring <robh@kernel.org>
+--OgqxwSJOaUobr8KG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+=46rom: Sakari Ailus <sakari.ailus@iki.fi>
+
+In the vast majority of cases the bus type is known to the driver(s)
+since a receiver or transmitter can only support a single one. There
+are cases however where different options are possible.
+
+The existing V4L2 OF support tries to figure out the bus type and
+parse the bus parameters based on that. This does not scale too well
+as there are multiple serial busses that share common properties.
+
+Some hardware also supports multiple types of busses on the same
+interfaces.
+
+Document the CSI1/CCP2 property strobe. It signifies the clock or
+strobe mode.
+=20
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+
+diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b=
+/Documentation/devicetree/bindings/media/video-interfaces.txt
+index 9cd2a36..08c4498 100644
+--- a/Documentation/devicetree/bindings/media/video-interfaces.txt
++++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+@@ -76,6 +76,11 @@ Optional endpoint properties
+   mode horizontal and vertical synchronization signals are provided to the
+   slave device (data source) by the master device (data sink). In the mast=
+er
+   mode the data source device is also the source of the synchronization si=
+gnals.
++- bus-type: data bus type. Possible values are:
++  0 - MIPI CSI2
++  1 - parallel / Bt656
++  2 - MIPI CSI1
++  3 - CCP2
+ - bus-width: number of data lines actively used, valid for the parallel bu=
+sses.
+ - data-shift: on the parallel data busses, if bus-width is used to specify=
+ the
+   number of data lines, data-shift can be used to specify which data lines=
+ are
+@@ -112,7 +117,8 @@ Optional endpoint properties
+   should be the combined length of data-lanes and clock-lanes properties.
+   If the lane-polarities property is omitted, the value must be interpreted
+   as 0 (normal). This property is valid for serial busses only.
+-
++- strobe: Whether the clock signal is used as clock or strobe. Used
++  with CCP2, for instance.
+=20
+ Example
+ -------
+
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--OgqxwSJOaUobr8KG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlh2t28ACgkQMOfwapXb+vIINgCgueEw4j3V6VYxvch0HxpyBvq7
+d8IAn3flrg3hAddXCR4AnmIYIwa49pRm
+=Nhjo
+-----END PGP SIGNATURE-----
+
+--OgqxwSJOaUobr8KG--
