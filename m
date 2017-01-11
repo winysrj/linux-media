@@ -1,136 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:44340 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751284AbdAaPuJ (ORCPT
+Received: from bastet.se.axis.com ([195.60.68.11]:40599 "EHLO
+        bastet.se.axis.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966065AbdAKMmM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jan 2017 10:50:09 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com, Wolfram Sang <wsa@the-dreams.de>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 00/11] media: rcar-vin: fix OPS and format/pad index issues
-Date: Tue, 31 Jan 2017 16:40:05 +0100
-Message-Id: <20170131154016.15526-1-niklas.soderlund+renesas@ragnatech.se>
+        Wed, 11 Jan 2017 07:42:12 -0500
+Date: Wed, 11 Jan 2017 13:42:02 +0100
+From: Jesper Nilsson <jesper.nilsson@axis.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linuxppc-dev@lists.ozlabs.org, linux-kbuild@vger.kernel.org,
+        Nicolas Dichtel <nicolas.dichtel@6wind.com>,
+        linux-mips@linux-mips.org, alsa-devel@alsa-project.org,
+        linux-ia64@vger.kernel.org, linux-doc@vger.kernel.org,
+        airlied@linux.ie, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-mtd@lists.infradead.org,
+        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-am33-list@redhat.com,
+        linux-c6x-dev@linux-c6x.org, linux-rdma@vger.kernel.org,
+        linux-hexagon@vger.kernel.org, linux-sh@vger.kernel.org,
+        coreteam@netfilter.org, fcoe-devel@open-fcoe.org,
+        xen-devel@lists.xenproject.org, linux-snps-arc@lists.infradead.org,
+        linux-media@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp,
+        adi-buildroot-devel@lists.sourceforge.net,
+        linux-raid@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        openrisc@lists.librecores.org, linux-metag@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-nfs@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linux-cris-kernel@axis.com,
+        netdev@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org,
+        mmarek@suse.com, netfilter-devel@vger.kernel.org,
+        linux-alpha@vger.kernel.org, nios2-dev@lists.rocketboards.org,
+        davem@davemloft.net
+Subject: Re: [PATCH v2 0/7] uapi: export all headers under uapi directories
+Message-ID: <20170111124202.GD7275@axis.com>
+References: <bf83da6b-01ef-bf44-b3e1-ca6fc5636818@6wind.com>
+ <1483695839-18660-1-git-send-email-nicolas.dichtel@6wind.com>
+ <3131144.4Ej3KFWRbz@wuerfel>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3131144.4Ej3KFWRbz@wuerfel>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Mon, Jan 09, 2017 at 12:33:58PM +0100, Arnd Bergmann wrote:
+> On Friday, January 6, 2017 10:43:52 AM CET Nicolas Dichtel wrote:
+> > Here is the v2 of this series. The first 5 patches are just cleanup: some
+> > exported headers were still under a non-uapi directory.
+> 
+> Since this is meant as a cleanup, I commented on this to point out a cleaner
+> way to do the same.
+> 
+> > The patch 6 was spotted by code review: there is no in-tree user of this
+> > functionality.
+> > The last patch remove the use of header-y. Now all files under an uapi
+> > directory are exported.
+> 
+> Very nice!
+> 
+> > asm is a bit special, most of architectures export asm/<arch>/include/uapi/asm
+> > only, but there is two exceptions:
+> >  - cris which exports arch/cris/include/uapi/arch-v[10|32];
+> 
+> This is interesting, though not your problem. Maybe someone who understands
+> cris better can comment on this: How is the decision made about which of
+> the arch/user.h headers gets used? I couldn't find that in the sources,
+> but it appears to be based on kernel compile-time settings, which is
+> wrong for user space header files that should be independent of the kernel
+> config.
 
-This series address issues with the R-Car Gen2 VIN driver. The most 
-serious issue is the OPS when unbind and rebinding the i2c driver for 
-the video source subdevice which have popped up as a blocker for other 
-work.
+I believe it's since the CRISv10 and CRISv32 are very different beasts,
+and that is selected via kernel config...
 
-This series is broken out of my much larger R-Car Gen3 enablement series 
-'[PATCHv2 00/32] rcar-vin: Add Gen3 with media controller support'. I 
-plan to remove that series form patchwork and focus on these fixes first 
-as they are blocking other development. Once the blocking issues are 
-removed I will rebase and repost the larger Gen3 series.
+This part of the CRIS port has been transformed a couple of times from
+the original layout without uapi, and there's still some legacy silliness,
+where some files might have been exported but never used from userspace
+except for some corner cases.
 
-Patch 1-4 fix simple problems found while testing
-    1-2 Fix format problems when the format is (re)set.
-    3   Fix media pad errors
-    4   Fix standard enumeration problem
+> >  - tile which exports arch/tile/include/uapi/arch.
+> > Because I don't know if the output of 'make headers_install_all' can be changed,
+> > I introduce subdir-y in Kbuild file. The headers_install_all target copies all
+> > asm/<arch>/include/uapi/asm to usr/include/asm-<arch> but
+> > arch/cris/include/uapi/arch-v[10|32] and arch/tile/include/uapi/arch are not
+> > prefixed (they are put asis in usr/include/). If it's acceptable to modify the
+> > output of 'make headers_install_all' to export asm headers in
+> > usr/include/asm-<arch>/asm, then I could remove this new subdir-y and exports
+> > everything under arch/<arch>/include/uapi/.
+> 
+> I don't know if anyone still uses "make headers_install_all", I suspect
+> distros these days all use "make headers_install", so it probably
+> doesn't matter much.
+> 
+> In case of cris, it should be easy enough to move all the contents of the
+> uapi/arch-*/*.h headers into the respective uapi/asm/*.h headers, they
+> only seem to be referenced from there.
 
-Patch 5 adds a wrapper function to retrieve the active video source 
-subdevice. This is strictly not needed on Gen2 which only have one 
-possible video source per VIN instance (This will change on Gen3). But 
-patch 6-8,11 which fixes real issues on Gen2 make use of this wrapper, as 
-not risk breaking things by removing this wrapper in this series and 
-then readding it in a later Gen3 series I have chosen to keep the patch.  
-Please let me know if I should drop it and rewrite patch 6-11 (if 
-possible I would like to avoid that).
+This would seem to be a reasonable change.
 
-Patch 6-8 deals with video source subdevice pad index handling by moving 
-the information from struct rvin_dev to struct rvin_graph_entity and 
-moving the pad index probing to the struct v4l2_async_notifier complete 
-callback. This is needed to allow the bind/unbind fix in patch 10-11.
+> For tile, I suspect that would not work as the arch/*.h headers are
+> apparently defined as interfaces for both user space and kernel.
+> 
+> > Note also that exported files for asm are a mix of files listed by:
+> >  - include/uapi/asm-generic/Kbuild.asm;
+> >  - arch/x86/include/uapi/asm/Kbuild;
+> >  - arch/x86/include/asm/Kbuild.
+> > This complicates a lot the processing (arch/x86/include/asm/Kbuild is also
+> > used by scripts/Makefile.asm-generic).
+> > 
+> > This series has been tested with a 'make headers_install' on x86 and a
+> > 'make headers_install_all'. I've checked the result of both commands.
+> > 
+> > This patch is built against linus tree. I don't know if it should be
+> > made against antoher tree.
+> 
+> The series should probably get merged through the kbuild tree, but testing
+> it on mainline is fine here.
+> 
+> 	Arnd
 
-Patch 9 use the pad information when calling enum_mbus_code.
-
-Patch 10-11 fix a OPS when unbinding/binding the video source subdevice.
-
-# echo 2-0020 > /sys/bus/i2c/drivers/adv7180/unbind
-# echo 2-0020 > /sys/bus/i2c/drivers/adv7180/bind
-
- adv7180 2-0020: chip found @ 0x20 (e6530000.i2c)
- kobject (eaaab118): tried to init an initialized object, something is seriously wrong.
- CPU: 0 PID: 1640 Comm: bash Not tainted 4.10.0-rc4-00029-g19b80f8913cad837 #1
- Hardware name: Generic R8A7791 (Flattened Device Tree)
- Backtrace: 
- [<c010a858>] (dump_backtrace) from [<c010aaa4>] (show_stack+0x18/0x1c)
-  r7:00000016 r6:60070013 r5:00000000 r4:c0a14dd8
- [<c010aa8c>] (show_stack) from [<c02de09c>] (dump_stack+0x84/0xa0)
- [<c02de018>] (dump_stack) from [<c02dfee4>] (kobject_init+0x3c/0x98)
-  r7:00000016 r6:eaaab2e4 r5:c0a1f4dc r4:eaaab118
- [<c02dfea8>] (kobject_init) from [<c03b9244>] (device_initialize+0x28/0xb0)
-  r5:c0a70be8 r4:eaaab110
- [<c03b921c>] (device_initialize) from [<c03baa34>] (device_register+0x14/0x20)
-  r5:eaaab110 r4:eaaab110
- [<c03baa20>] (device_register) from [<c04a02c0>] (__video_register_device+0xb38/0x11cc)
-  r5:eaaab110 r4:eaaab020
- [<c049f788>] (__video_register_device) from [<c04c91a0>] (rvin_v4l2_probe+0x17c/0x1e8)
-  r10:00000000 r9:eaa3c050 r8:c0a270a8 r7:eaaab3a0 r6:eaaab020 r5:c0790068
-  r4:eaaab010
- [<c04c9024>] (rvin_v4l2_probe) from [<c04c6da0>] (rvin_digital_notify_complete+0x174/0x184)
-  r7:00002006 r6:eaaab010 r5:00000000 r4:eaaab3e0
- [<c04c6c2c>] (rvin_digital_notify_complete) from [<c04af180>] (v4l2_async_test_notify+0xe8/0xf0)
-  r7:eaaab410 r6:eaa3c050 r5:c04c6c2c r4:eaaab3e0
- [<c04af098>] (v4l2_async_test_notify) from [<c04af560>] (v4l2_async_register_subdev+0xa4/0xcc)
-  r7:eaa3c0fc r6:c0a27094 r5:eaaab3e0 r4:eaa3c050
- [<c04af4bc>] (v4l2_async_register_subdev) from [<c0497740>] (adv7180_probe+0x350/0x3e0)
-  r9:eaa3c050 r8:00000000 r7:00000000 r6:00000000 r5:eb2cbe00 r4:eaa3c010
- [<c04973f0>] (adv7180_probe) from [<c048e9f4>] (i2c_device_probe+0x238/0x250)
-  r9:0000000e r8:c0a264dc r7:eb2cbe20 r6:c0a264dc r5:c04973f0 r4:eb2cbe00
- [<c048e7bc>] (i2c_device_probe) from [<c03bd4f4>] (driver_probe_device+0x1f8/0x2c0)
-  r9:0000000e r8:c0a264dc r7:00000000 r6:c0a70c18 r5:c0a70c0c r4:eb2cbe20
- [<c03bd2fc>] (driver_probe_device) from [<c03bbcd0>] (bind_store+0x94/0xe8)
-  r10:00000000 r9:00000051 r8:00000007 r7:c0a26058 r6:eb2cbe54 r5:c0a264dc
-  r4:eb2cbe20 r3:ea60b000
- [<c03bbc3c>] (bind_store) from [<c03bb710>] (drv_attr_store+0x2c/0x38)
-  r9:00000051 r8:eb2daa0c r7:ea58ff80 r6:eb2daa00 r5:ea87a4c0 r4:c03bbc3c
- [<c03bb6e4>] (drv_attr_store) from [<c023e5e4>] (sysfs_kf_write+0x40/0x4c)
-  r5:ea87a4c0 r4:c03bb6e4
- [<c023e5a4>] (sysfs_kf_write) from [<c023dc50>] (kernfs_fop_write+0x13c/0x1ac)
-  r5:ea87a4c0 r4:00000007
- [<c023db14>] (kernfs_fop_write) from [<c01e0c78>] (__vfs_write+0x34/0x114)
-  r9:ea58e000 r8:00000000 r7:00000007 r6:ea58ff80 r5:ea52a480 r4:c023db14
- [<c01e0c44>] (__vfs_write) from [<c01e0ee4>] (vfs_write+0xc4/0x150)
-  r7:ea58ff80 r6:00167028 r5:00000007 r4:ea52a480
- [<c01e0e20>] (vfs_write) from [<c01e1038>] (SyS_write+0x48/0x80)
-  r9:ea58e000 r8:c0106ee4 r7:00000007 r6:00167028 r5:ea52a480 r4:ea52a480
- [<c01e0ff0>] (SyS_write) from [<c0106d20>] (ret_fast_syscall+0x0/0x3c)
-  r7:00000004 r6:b6dfed50 r5:00167028 r4:00000007
-
-Niklas Söderlund (11):
-  media: rcar-vin: reset bytesperline and sizeimage when resetting
-    format
-  media: rcar-vin: use rvin_reset_format() in S_DV_TIMINGS
-  media: rcar-vin: fix how pads are handled for v4l2 subdeivce
-    operations
-  media: rcar-vin: fix standard in input enumeration
-  media: rcar-vin: add wrapper to get rvin_graph_entity
-  media: rcar-vin: move subdev source and sink pad index to
-    rvin_graph_entity
-  media: rcar-vin: move pad index discovery to async complete handler
-  media: rcar-vin: refactor pad lookup code
-  media: rcar-vin: use pad information when verifying media bus format
-  media: rcar-vin: split rvin_s_fmt_vid_cap()
-  media: rcar-vin: register the video device early
-
- drivers/media/platform/rcar-vin/rcar-core.c |  40 +++-
- drivers/media/platform/rcar-vin/rcar-dma.c  |  15 +-
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 346 +++++++++++++++-------------
- drivers/media/platform/rcar-vin/rcar-vin.h  |  20 +-
- 4 files changed, 244 insertions(+), 177 deletions(-)
-
+/^JN - Jesper Nilsson
 -- 
-2.11.0
-
+               Jesper Nilsson -- jesper.nilsson@axis.com
