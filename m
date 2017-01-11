@@ -1,210 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:45811 "EHLO
-        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751073AbdAaJi0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jan 2017 04:38:26 -0500
-Subject: Re: [PATCH 02/11] [media] s5p-mfc: Adding initial support for MFC
- v10.10
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-        kamil@wypas.org, jtp.park@samsung.com, mchehab@kernel.org,
-        pankaj.dubey@samsung.com, krzk@kernel.org,
-        m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
-In-reply-to: <ec5c2602-627e-7a42-eda2-6a68b846fff8@samsung.com>
-Content-type: text/plain; charset=UTF-8
-Date: Tue, 31 Jan 2017 14:42:15 +0530
-Message-id: <1485853935.16927.22.camel@smitha-fedora>
-MIME-version: 1.0
-Content-transfer-encoding: 7bit
-References: <1484733729-25371-1-git-send-email-smitha.t@samsung.com>
- <CGME20170118100723epcas5p132e0ebfad38261bed95cffc47334f9dc@epcas5p1.samsung.com>
- <1484733729-25371-3-git-send-email-smitha.t@samsung.com>
- <ec5c2602-627e-7a42-eda2-6a68b846fff8@samsung.com>
+Received: from mail.kernel.org ([198.145.29.136]:50516 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932692AbdAKXzl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 11 Jan 2017 18:55:41 -0500
+Date: Thu, 12 Jan 2017 00:55:35 +0100
+From: Sebastian Reichel <sre@kernel.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: robh+dt@kernel.org, devicetree@vger.kernel.org,
+        ivo.g.dimitrov.75@gmail.com, sakari.ailus@iki.fi,
+        pali.rohar@gmail.com, linux-media@vger.kernel.org
+Subject: Re: [PATCHv2] dt: bindings: Add support for CSI1 bus
+Message-ID: <20170111235535.nfvr6vzorm5unyjr@earth>
+References: <20161228183036.GA13139@amd>
+ <20170111225335.GA21553@amd>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="uzj3uac3twnfssco"
+Content-Disposition: inline
+In-Reply-To: <20170111225335.GA21553@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2017-01-18 at 16:10 +0100, Andrzej Hajda wrote:
-> On 18.01.2017 11:02, Smitha T Murthy wrote:
-> > Adding the support for MFC v10.10, with new register file and
-> > necessary hw control, decoder, encoder and structural changes.
-> >
-> > CC: Rob Herring <robh+dt@kernel.org>
-> > CC: devicetree@vger.kernel.org 
-> > Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-> > ---
-> >  .../devicetree/bindings/media/s5p-mfc.txt          |    1 +
-> >  drivers/media/platform/s5p-mfc/regs-mfc-v10.h      |   36 ++++++++++++++++
-> >  drivers/media/platform/s5p-mfc/s5p_mfc.c           |   30 +++++++++++++
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |    4 +-
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c      |    4 ++
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |   44 +++++++++++---------
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |   21 +++++----
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |    9 +++-
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h    |    2 +
-> >  9 files changed, 118 insertions(+), 33 deletions(-)
-> >  create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-> >
-> > diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt b/Documentation/devicetree/bindings/media/s5p-mfc.txt
-> > index 2c90128..b70c613 100644
-> > --- a/Documentation/devicetree/bindings/media/s5p-mfc.txt
-> > +++ b/Documentation/devicetree/bindings/media/s5p-mfc.txt
-> > @@ -13,6 +13,7 @@ Required properties:
-> >  	(c) "samsung,mfc-v7" for MFC v7 present in Exynos5420 SoC
-> >  	(d) "samsung,mfc-v8" for MFC v8 present in Exynos5800 SoC
-> >  	(e) "samsung,exynos5433-mfc" for MFC v8 present in Exynos5433 SoC
-> > +	(f) "samsung,mfc-v10" for MFC v10 present in a variant of Exynos7 SoC
-> 
-> Could you specify explicitly SoC version(s), Exynos7 is misleading.
-> Btw are there plans to upstream platforms using this MFC?
 
-MFCv10.10 is used in Exynos7880. There are other variants of MFCv10 used
-in Exynos8890 and Exynos7870. I have no plans to upstream the platform
-support for this SoC, may be other members of Samsung may take it up.
-But I will mention the SoCs in the next version.
+--uzj3uac3twnfssco
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> 
-> >  
-> >    - reg : Physical base address of the IP registers and length of memory
-> >  	  mapped region.
-> > diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-> > new file mode 100644
-> > index 0000000..bd671a5
-> > --- /dev/null
-> > +++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-> > @@ -0,0 +1,36 @@
-> > +/*
-> > + * Register definition file for Samsung MFC V10.x Interface (FIMV) driver
-> > + *
-> > + * Copyright (c) 2017 Samsung Electronics Co., Ltd.
-> > + *     http://www.samsung.com/
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License version 2 as
-> > + * published by the Free Software Foundation.
-> > + */
-> > +
-> > +#ifndef _REGS_MFC_V10_H
-> > +#define _REGS_MFC_V10_H
-> > +
-> > +#include <linux/sizes.h>
-> > +#include "regs-mfc-v8.h"
-> > +
-> > +/* MFCv10 register definitions*/
-> > +#define S5P_FIMV_MFC_CLOCK_OFF_V10			0x7120
-> > +#define S5P_FIMV_MFC_STATE_V10				0x7124
-> > +
-> > +/* MFCv10 Context buffer sizes */
-> > +#define MFC_CTX_BUF_SIZE_V10		(30 * SZ_1K)	/* 30KB */
-> > +#define MFC_H264_DEC_CTX_BUF_SIZE_V10	(2 * SZ_1M)	/* 2MB */
-> > +#define MFC_OTHER_DEC_CTX_BUF_SIZE_V10	(20 * SZ_1K)	/* 20KB */
-> > +#define MFC_H264_ENC_CTX_BUF_SIZE_V10	(100 * SZ_1K)	/* 100KB */
-> > +#define MFC_OTHER_ENC_CTX_BUF_SIZE_V10	(15 * SZ_1K)	/* 15KB */
-> > +
-> > +/* MFCv10 variant defines */
-> > +#define MAX_FW_SIZE_V10		(SZ_1M)		/* 1MB */
-> > +#define MAX_CPB_SIZE_V10	(3 * SZ_1M)	/* 3MB */
-> > +#define MFC_VERSION_V10		0xA0
-> > +#define MFC_NUM_PORTS_V10	1
-> > +
-> > +#endif /*_REGS_MFC_V10_H*/
-> > +
-> > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> > index bb0a588..a043cce 100644
-> > --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> > +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> > @@ -1542,6 +1542,33 @@ static int s5p_mfc_resume(struct device *dev)
-> >  	.num_clocks	= 3,
-> >  };
-> >  
-> > +static struct s5p_mfc_buf_size_v6 mfc_buf_size_v10 = {
-> > +	.dev_ctx        = MFC_CTX_BUF_SIZE_V10,
-> > +	.h264_dec_ctx   = MFC_H264_DEC_CTX_BUF_SIZE_V10,
-> > +	.other_dec_ctx  = MFC_OTHER_DEC_CTX_BUF_SIZE_V10,
-> > +	.h264_enc_ctx   = MFC_H264_ENC_CTX_BUF_SIZE_V10,
-> > +	.other_enc_ctx  = MFC_OTHER_ENC_CTX_BUF_SIZE_V10,
-> > +};
-> > +
-> > +static struct s5p_mfc_buf_size buf_size_v10 = {
-> > +	.fw     = MAX_FW_SIZE_V10,
-> > +	.cpb    = MAX_CPB_SIZE_V10,
-> > +	.priv   = &mfc_buf_size_v10,
-> > +};
-> > +
-> > +static struct s5p_mfc_buf_align mfc_buf_align_v10 = {
-> > +	.base = 0,
-> > +};
-> > +
-> > +static struct s5p_mfc_variant mfc_drvdata_v10 = {
-> > +	.version        = MFC_VERSION_V10,
-> > +	.version_bit    = MFC_V10_BIT,
-> > +	.port_num       = MFC_NUM_PORTS_V10,
-> > +	.buf_size       = &buf_size_v10,
-> > +	.buf_align      = &mfc_buf_align_v10,
-> > +	.fw_name[0]     = "s5p-mfc-v10.fw",
-> 
-> Is firmware file publicly available? Sent to firmware repository?
+Hi,
 
-Firmware binary is not available publicly. I will check on sending it to
-firmware repository.
+On Wed, Jan 11, 2017 at 11:53:35PM +0100, Pavel Machek wrote:
+> From: Sakari Ailus <sakari.ailus@iki.fi>
+>=20
+> In the vast majority of cases the bus type is known to the driver(s)
+> since a receiver or transmitter can only support a single one. There
+> are cases however where different options are possible.
+>=20
+> The existing V4L2 OF support tries to figure out the bus type and
+> parse the bus parameters based on that. This does not scale too well
+> as there are multiple serial busses that share common properties.
+>=20
+> Some hardware also supports multiple types of busses on the same
+> interfaces.
+>=20
+> Document the CSI1/CCP2 property strobe. It signifies the clock or
+> strobe mode.
+> =20
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+>=20
+> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt=
+ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> index 9cd2a36..08c4498 100644
+> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> @@ -76,6 +76,11 @@ Optional endpoint properties
+>    mode horizontal and vertical synchronization signals are provided to t=
+he
+>    slave device (data source) by the master device (data sink). In the ma=
+ster
+>    mode the data source device is also the source of the synchronization =
+signals.
+> +- bus-type: data bus type. Possible values are:
+> +  0 - MIPI CSI2
+> +  1 - parallel / Bt656
+> +  2 - MIPI CSI1
+> +  3 - CCP2
+>  - bus-width: number of data lines actively used, valid for the parallel =
+busses.
+>  - data-shift: on the parallel data busses, if bus-width is used to speci=
+fy the
+>    number of data lines, data-shift can be used to specify which data lin=
+es are
+> @@ -112,7 +117,8 @@ Optional endpoint properties
+>    should be the combined length of data-lanes and clock-lanes properties.
+>    If the lane-polarities property is omitted, the value must be interpre=
+ted
+>    as 0 (normal). This property is valid for serial busses only.
+> -
+> +- strobe: Whether the clock signal is used as clock or strobe. Used
+> +  with CCP2, for instance.
+> =20
+>  Example
+>  -------
+>=20
+>=20
 
-> 
-> > +};
-> > +
-> >  static const struct of_device_id exynos_mfc_match[] = {
-> >  	{
-> >  		.compatible = "samsung,mfc-v5",
-> > @@ -1558,6 +1585,9 @@ static int s5p_mfc_resume(struct device *dev)
-> >  	}, {
-> >  		.compatible = "samsung,exynos5433-mfc",
-> >  		.data = &mfc_drvdata_v8_5433,
-> > +	}, {
-> > +		.compatible = "samsung,mfc-v10",
-> > +		.data = &mfc_drvdata_v10,
-> >  	},
-> >  	{},
-> >  };
-> > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> > index b45d18c..1941c63 100644
-> > --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> > +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> > @@ -23,7 +23,7 @@
-> >  #include <media/v4l2-ioctl.h>
-> >  #include <media/videobuf2-v4l2.h>
-> >  #include "regs-mfc.h"
-> > -#include "regs-mfc-v8.h"
-> > +#include "regs-mfc-v10.h"
-> >  
-> >  #define S5P_MFC_NAME		"s5p-mfc"
-> >  
-> > @@ -723,11 +723,13 @@ struct mfc_control {
-> >  #define IS_MFCV6_PLUS(dev)	(dev->variant->version >= 0x60 ? 1 : 0)
-> >  #define IS_MFCV7_PLUS(dev)	(dev->variant->version >= 0x70 ? 1 : 0)
-> >  #define IS_MFCV8_PLUS(dev)	(dev->variant->version >= 0x80 ? 1 : 0)
-> > +#define IS_MFCV10(dev)		(dev->variant->version >= 0xA0 ? 1 : 0)
-> >  
-> >  #define MFC_V5_BIT	BIT(0)
-> >  #define MFC_V6_BIT	BIT(1)
-> >  #define MFC_V7_BIT	BIT(2)
-> >  #define MFC_V8_BIT	BIT(3)
-> > +#define MFC_V10_BIT	BIT(5)
-> 
-> I think you can use BIT(4) here.
+Reviewed-By: Sebastian Reichel <sre@kernel.org>
 
-I used BIT(5) in case someone upstreams MFCv9 they can use BIT(4) in
-order to maintain the sequence order as before.
+-- Sebastian
 
-Thank you for the review.
+--uzj3uac3twnfssco
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Regards,
-Smitha
-> 
-> Regards
-> Andrzej
-> 
-> 
+-----BEGIN PGP SIGNATURE-----
 
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlh2xfQACgkQ2O7X88g7
++pqUcRAAohcSG0pZG3VUvbB+aSuTXNbICPuoMQkCbkoFcQwwebLjYwYw0Tg6ZRXw
+7TIxh4E9UQrmvdX3hGqskd4tYbeZNTyKOzk4Ck2C3s2MTc/7+bfarx2B32lepa3Y
+Ss54vVO+GKKduzF2eV6SbcthInyMgYmT2XN/YhzQZ7gEtwpuIEc5mfDPBMrLJlxP
+u5tJW0x5lOhp44z63HPibqU4Cj0z1LtkuZB7HxdHEsYX6trcUqqZTclaWbVIvq7Y
+6r5STNDXLJFWWAcfaOaZdIUMtcM3z4YwwEHuBsK1SzYKqr2IQL8Qy36aN9HCbdzo
+KZ1aEkiDJS1Sy7NMqCqV3HgUKFg6siS20606py8W40gHfc0VMYcc+60WLYRrj9C2
+82UTU6MsW9/xsyPDpr3nD2l2lMzbkYBdkPgxDq6UliXUD6+jnwD4QHmCei3eBXMM
+lPfhtoBmUXZ37NK5niQMBny5WtfBhI78l+ihIvSID/+i9iqjkfkS9kgYaana6cLX
+mkzvu8Mo45qA4dzsLUqy0JTvuBXzouZ/1b1ObJQlOEoCpCIuoeaCmOSVk02oKB5e
+deGBFMn9pk2X7atf8jL3LrpN8N4eGp9y2w4lUO5rAkH1hfGmXME+tLGnm4LBtJfS
+QxrNogH+SffqDvXVdAujEoMpFroPYnqvjn+wovdFfKQOlviJpto=
+=/s8l
+-----END PGP SIGNATURE-----
 
+--uzj3uac3twnfssco--
