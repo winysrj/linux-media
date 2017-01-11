@@ -1,77 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from host.76.145.23.62.rev.coltfrance.com ([62.23.145.76]:42111 "EHLO
-        proxy.6wind.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1762468AbdAFJof (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2017 04:44:35 -0500
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-To: arnd@arndb.de
-Cc: mmarek@suse.com, linux-kbuild@vger.kernel.org,
-        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org,
-        adi-buildroot-devel@lists.sourceforge.net,
-        linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com,
-        uclinux-h8-devel@lists.sourceforge.jp,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org,
-        linux-mips@linux-mips.org, linux-am33-list@redhat.com,
-        nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-        linux-arch@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        netdev@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mmc@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-nfs@vger.kernel.org,
-        linux-raid@vger.kernel.org, linux-spi@vger.kernel.org,
-        linux-mtd@lists.infradead.org, linux-rdma@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, alsa-devel@alsa-project.org,
-        linux-fbdev@vger.kernel.org, xen-devel@lists.xenproject.org,
-        airlied@linux.ie, davem@davemloft.net,
-        Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: [PATCH v2 3/7] nios2: put setup.h in uapi
-Date: Fri,  6 Jan 2017 10:43:55 +0100
-Message-Id: <1483695839-18660-4-git-send-email-nicolas.dichtel@6wind.com>
-In-Reply-To: <1483695839-18660-1-git-send-email-nicolas.dichtel@6wind.com>
-References: <bf83da6b-01ef-bf44-b3e1-ca6fc5636818@6wind.com>
- <1483695839-18660-1-git-send-email-nicolas.dichtel@6wind.com>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:60912 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1763131AbdAKJ1Z (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 11 Jan 2017 04:27:25 -0500
+Message-ID: <1484126839.4057.32.camel@mtkswgap22>
+Subject: Re: [PATCH v2 2/2] media: rc: add driver for IR remote receiver on
+ MT7623 SoC
+From: Sean Wang <sean.wang@mediatek.com>
+To: Andi Shyti <andi.shyti@samsung.com>
+CC: kbuild test robot <lkp@intel.com>, <kbuild-all@01.org>,
+        <mchehab@osg.samsung.com>, <hdegoede@redhat.com>,
+        <hkallweit1@gmail.com>, <robh+dt@kernel.org>,
+        <mark.rutland@arm.com>, <matthias.bgg@gmail.com>,
+        <hverkuil@xs4all.nl>, <sean@mess.org>,
+        <ivo.g.dimitrov.75@gmail.com>, <linux-media@vger.kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-mediatek@lists.infradead.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <keyhaede@gmail.com>
+Date: Wed, 11 Jan 2017 17:27:19 +0800
+In-Reply-To: <20170110224543.uuoa7ofkvolz6inp@gangnam.samsung>
+References: <CGME20170110120828epcas4p42482b7920c7a7dabd4c7794959f6d264@epcas4p4.samsung.com>
+         <201701102015.fSM15CvI%fengguang.wu@intel.com>
+         <20170110224543.uuoa7ofkvolz6inp@gangnam.samsung>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This header file is exported, thus move it to uapi.
+okay, I will continue to work based on your changes unless someone else
+has concerns
 
-Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
----
- arch/nios2/include/asm/setup.h      | 2 +-
- arch/nios2/include/uapi/asm/setup.h | 6 ++++++
- 2 files changed, 7 insertions(+), 1 deletion(-)
- create mode 100644 arch/nios2/include/uapi/asm/setup.h
+On Wed, 2017-01-11 at 07:45 +0900, Andi Shyti wrote:
+> Hi Sean,
+> 
+> >    include/linux/compiler.h:253:8: sparse: attribute 'no_sanitize_address': unknown attribute
+> > >> drivers/media/rc/mtk-cir.c:215:41: sparse: too many arguments for function devm_rc_allocate_device
+> >    drivers/media/rc/mtk-cir.c: In function 'mtk_ir_probe':
+> >    drivers/media/rc/mtk-cir.c:215:11: error: too many arguments to function 'devm_rc_allocate_device'
+> >      ir->rc = devm_rc_allocate_device(dev, RC_DRIVER_IR_RAW);
+> >               ^~~~~~~~~~~~~~~~~~~~~~~
+> >    In file included from drivers/media/rc/mtk-cir.c:22:0:
+> >    include/media/rc-core.h:213:16: note: declared here
+> >     struct rc_dev *devm_rc_allocate_device(struct device *dev);
+> >                    ^~~~~~~~~~~~~~~~~~~~~~~
+> > 
+> > vim +/devm_rc_allocate_device +215 drivers/media/rc/mtk-cir.c
+> > 
+> >    209		ir->base = devm_ioremap_resource(dev, res);
+> >    210		if (IS_ERR(ir->base)) {
+> >    211			dev_err(dev, "failed to map registers\n");
+> >    212			return PTR_ERR(ir->base);
+> >    213		}
+> >    214	
+> >  > 215		ir->rc = devm_rc_allocate_device(dev, RC_DRIVER_IR_RAW);
+> 
+> this error comes because the patches I pointed out have not been
+> applied yet. I guess you can ignore them as long as you tested
+> yours on top those patches.
+> 
+> Andi
 
-diff --git a/arch/nios2/include/asm/setup.h b/arch/nios2/include/asm/setup.h
-index dcbf8cf1a344..d49e9e91bf55 100644
---- a/arch/nios2/include/asm/setup.h
-+++ b/arch/nios2/include/asm/setup.h
-@@ -19,7 +19,7 @@
- #ifndef _ASM_NIOS2_SETUP_H
- #define _ASM_NIOS2_SETUP_H
- 
--#include <asm-generic/setup.h>
-+#include <uapi/asm/setup.h>
- 
- #ifndef __ASSEMBLY__
- #ifdef __KERNEL__
-diff --git a/arch/nios2/include/uapi/asm/setup.h b/arch/nios2/include/uapi/asm/setup.h
-new file mode 100644
-index 000000000000..8d8285997ba8
---- /dev/null
-+++ b/arch/nios2/include/uapi/asm/setup.h
-@@ -0,0 +1,6 @@
-+#ifndef _UAPI_ASM_NIOS2_SETUP_H
-+#define _UAPI_ASM_NIOS2_SETUP_H
-+
-+#include <asm-generic/setup.h>
-+
-+#endif /* _UAPI_ASM_NIOS2_SETUP_H */
--- 
-2.8.1
 
