@@ -1,90 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Date: Thu, 5 Jan 2017 14:54:24 -0500
-From: Jerome Glisse <jglisse@redhat.com>
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Jerome Glisse <j.glisse@gmail.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>,
-        "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>,
-        "'linux-nvdimm@lists.01.org'" <linux-nvdimm@ml01.01.org>,
-        "'Linux-media@vger.kernel.org'" <Linux-media@vger.kernel.org>,
-        "'dri-devel@lists.freedesktop.org'" <dri-devel@lists.freedesktop.org>,
-        "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "Sagalovitch, Serguei" <Serguei.Sagalovitch@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>, hch@infradead.org,
-        david1.zhou@amd.com, qiang.yu@amd.com
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Message-ID: <20170105195424.GB2166@redhat.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <20170105183927.GA5324@gmail.com>
- <20170105190113.GA12587@obsidianresearch.com>
+Received: from ares41.inai.de ([46.4.122.207]:57754 "EHLO ares41.inai.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751004AbdALQg5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Jan 2017 11:36:57 -0500
+Date: Thu, 12 Jan 2017 17:28:13 +0100 (CET)
+From: Jan Engelhardt <jengelh@inai.de>
+To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+cc: Christoph Hellwig <hch@infradead.org>, arnd@arndb.de,
+        mmarek@suse.com, linux-kbuild@vger.kernel.org,
+        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org,
+        adi-buildroot-devel@lists.sourceforge.net,
+        linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com,
+        uclinux-h8-devel@lists.sourceforge.jp,
+        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org,
+        linux-mips@linux-mips.org, linux-am33-list@redhat.com,
+        nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+        linux-arch@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        netdev@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-mmc@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, linux-nfs@vger.kernel.org,
+        linux-raid@vger.kernel.org, linux-spi@vger.kernel.org,
+        linux-mtd@lists.infradead.org, linux-rdma@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, alsa-devel@alsa-project.org,
+        linux-fbdev@vger.kernel.org, xen-devel@lists.xenproject.org,
+        airlied@linux.ie, davem@davemloft.net
+Subject: Re: [PATCH v2 7/7] uapi: export all headers under uapi directories
+In-Reply-To: <464a1323-4450-e563-ff59-9e6d57b75959@6wind.com>
+Message-ID: <alpine.LSU.2.20.1701121727180.19188@erq.vanv.qr>
+References: <bf83da6b-01ef-bf44-b3e1-ca6fc5636818@6wind.com> <1483695839-18660-1-git-send-email-nicolas.dichtel@6wind.com> <1483695839-18660-8-git-send-email-nicolas.dichtel@6wind.com> <20170109125638.GA15506@infradead.org>
+ <464a1323-4450-e563-ff59-9e6d57b75959@6wind.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170105190113.GA12587@obsidianresearch.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 05, 2017 at 12:01:13PM -0700, Jason Gunthorpe wrote:
-> On Thu, Jan 05, 2017 at 01:39:29PM -0500, Jerome Glisse wrote:
-> 
-> >   1) peer-to-peer because of userspace specific API like NVidia GPU
-> >     direct (AMD is pushing its own similar API i just can't remember
-> >     marketing name). This does not happen through a vma, this happens
-> >     through specific device driver call going through device specific
-> >     ioctl on both side (GPU and RDMA). So both kernel driver are aware
-> >     of each others.
-> 
-> Today you can only do user-initiated RDMA operations in conjection
-> with a VMA.
-> 
-> We'd need a really big and strong reason to create an entirely new
-> non-VMA based memory handle scheme for RDMA.
-> 
-> So my inclination is to just completely push back on this idea. You
-> need a VMA to do RMA.
-> 
-> GPUs need to create VMAs for the memory they want to RDMA from, even
-> if the VMA handle just causes SIGBUS for any CPU access.
+On Thursday 2017-01-12 16:52, Nicolas Dichtel wrote:
 
-Mellanox and NVidia support peer to peer with what they market a
-GPUDirect. It only works without IOMMU. It is probably not upstream :
+>Le 09/01/2017 Ã  13:56, Christoph Hellwig a Ã©crit :
+>> On Fri, Jan 06, 2017 at 10:43:59AM +0100, Nicolas Dichtel wrote:
+>>> Regularly, when a new header is created in include/uapi/, the developer
+>>> forgets to add it in the corresponding Kbuild file. This error is usually
+>>> detected after the release is out.
+>>>
+>>> In fact, all headers under uapi directories should be exported, thus it's
+>>> useless to have an exhaustive list.
+>>>
+>>> After this patch, the following files, which were not exported, are now
+>>> exported (with make headers_install_all):
+>> 
+>> ... snip ...
+>> 
+>>> linux/genwqe/.install
+>>> linux/genwqe/..install.cmd
+>>> linux/cifs/.install
+>>> linux/cifs/..install.cmd
+>> 
+>> I'm pretty sure these should not be exported!
+>> 
+>Those files are created in every directory:
+>$ find usr/include/ -name '\.\.install.cmd' | wc -l
+>71
 
-https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg21402.html
+That still does not mean they should be exported.
 
-I thought it was but it seems it require an out of tree driver to work.
-
-Wether there is a vma or not isn't important to the issue anyway. If
-you want to enforce VMA rule for RDMA it is an RDMA specific discussion
-in which i don't want to be involve, it is not my turf :)
-
-What matter is the back channel API between peer-to-peer device. Like
-the above patchset points out for GPU we need to be able to invalidate
-a mapping at any point in time. Pining is not something we want to
-live with.
-
-So the VMA consideration does not change what i was saying there is
-2 cases:
-  1) device vma (might be restricted to specific userspace API)
-  2) regular vma (!VM_MIXED and no special pte entry)
-
-For 1) you need back channel it can be per device driver or we can agree
-to some common API that can add to vm_operations_struct.
-
-For 2) expectation is that you will have valid struct page but you still
-need special handling at the dma API level.
-
-In 1) the peer-to-peer mapping is track at vma level and mediated there.
-For 2) it is per page and it is mediated at that level.
-
-In both case on you have setup mapping you need to handle the IOMMU and
-the PCI bridge restriction that might apply and i believe that the DMA
-API is the place where we want to solve that second side of the problem.
-
-Cheers,
-Jérôme
+Anything but headers (and directories as a skeleton structure) is maximally suspicious.
