@@ -1,80 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yb0-f180.google.com ([209.85.213.180]:36246 "EHLO
-        mail-yb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751360AbdAYJNK (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:46028 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750791AbdALSIo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Jan 2017 04:13:10 -0500
-Received: by mail-yb0-f180.google.com with SMTP id 123so4368318ybe.3
-        for <linux-media@vger.kernel.org>; Wed, 25 Jan 2017 01:13:10 -0800 (PST)
-Subject: Re: [RFC simple allocator v1 0/2] Simple allocator
-To: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linaro-kernel@lists.linaro.org, arnd@arndb.de,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        robdclark@gmail.com, broonie@kernel.org,
-        Sumit Semwal <sumit.semwal@linaro.org>
-References: <1484926351-30185-1-git-send-email-benjamin.gaignard@linaro.org>
- <20170123083545.6l2jxlkdtmebxy5b@phenom.ffwll.local>
-From: Laura Abbott <labbott@redhat.com>
-Message-ID: <87889ec2-e005-9071-e45f-049503c866ef@redhat.com>
-Date: Wed, 25 Jan 2017 10:13:05 +0100
+        Thu, 12 Jan 2017 13:08:44 -0500
+Subject: Re: [PATCH v2 2/2] Support for DW CSI-2 Host IPK
+To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, mchehab@kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+References: <cover.1481548484.git.roliveir@synopsys.com>
+ <bf2f0a6730e4a74d64e04575859d6b195f65b368.1481554324.git.roliveir@synopsys.com>
+ <eb89af79-f868-ceba-ac69-558bac77613d@xs4all.nl>
+ <8823670a-8456-87d0-3265-cb427e3445eb@synopsys.com>
+Cc: davem@davemloft.net, gregkh@linuxfoundation.org,
+        geert+renesas@glider.be, akpm@linux-foundation.org,
+        linux@roeck-us.net, laurent.pinchart+renesas@ideasonboard.com,
+        arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        tiffany.lin@mediatek.com, minghsiu.tsai@mediatek.com,
+        jean-christophe.trotin@st.com, andrew-ct.chen@mediatek.com,
+        simon.horman@netronome.com, songjun.wu@microchip.com,
+        bparrot@ti.com, CARLOS.PALMINHA@synopsys.com,
+        Sakari Ailus <sakari.ailus@iki.fi>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <f1ea65b3-dbad-fd6c-d2c4-33abc3a66890@xs4all.nl>
+Date: Thu, 12 Jan 2017 19:06:41 +0100
 MIME-Version: 1.0
-In-Reply-To: <20170123083545.6l2jxlkdtmebxy5b@phenom.ffwll.local>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+In-Reply-To: <8823670a-8456-87d0-3265-cb427e3445eb@synopsys.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/23/2017 09:35 AM, Daniel Vetter wrote:
-> On Fri, Jan 20, 2017 at 04:32:29PM +0100, Benjamin Gaignard wrote:
->> The goal of this RFC is to understand if a common ioctl for specific memory
->> regions allocations is needed/welcome.
+On 01/12/2017 06:43 PM, Ramiro Oliveira wrote:
+> Hi Hans,
+> 
+> Thank you for your feedback.
+> 
+> On 1/11/2017 11:54 AM, Hans Verkuil wrote:
+>> Hi Ramiro,
 >>
->> Obviously it will not replace allocation done in linux kernel frameworks like
->> v4l2, drm/kms or others, but offer an alternative when you don't want/need to
->> use them for buffer allocation.
->> To keep a compatibility with what already exist allocated buffers are exported
->> in userland as dmabuf file descriptor (like ION is doing).
+>> See my review comments below:
 >>
->> "Unix Device Memory Allocator" project [1] wants to create a userland library
->> which may allow to select, depending of the devices constraint, the best
->> back-end for allocation. With this RFC I would to propose to have common ioctl
->> for a maximum of allocators to avoid to duplicated back-ends for this library.
+>> On 12/12/16 16:00, Ramiro Oliveira wrote:
+>>> Add support for the DesignWare CSI-2 Host IP Prototyping Kit
+>>>
+>>> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
+> 
+> [snip]
+
+>>> +
+>>> +static int vid_dev_subdev_s_power(struct v4l2_subdev *sd, int on)
+>>> +{
+>>> +    return 0;
+>>> +}
 >>
->> One of the issues that lead me to propose this RFC it is that since the beginning
->> it is a problem to allocate contiguous memory (CMA) without using v4l2 or
->> drm/kms so the first allocator available in this RFC use CMA memory.
+>> Just drop this empty function, shouldn't be needed.
 >>
->> An other question is: do we have others memory regions that could be interested
->> by this new framework ? I have in mind that some title memory regions could use
->> it or replace ION heaps (system, carveout, etc...).
->> Maybe it only solve CMA allocation issue, in this case there is no need to create
->> a new framework but only a dedicated ioctl.
+> 
+> When I start my system I'm hoping all the subdevs have s_power registered. If it
+> doesn't exist should I change the way I handle it, or will the core handle it
+> for me?
+
+If it isn't provided, then it is just skipped. The general rule is that
+you only provide these ops if they do something useful.
+
+> 
+>>> +
+>>> +static int vid_dev_subdev_registered(struct v4l2_subdev *sd)
+>>> +{
+>>> +    struct video_device_dev *vid_dev = v4l2_get_subdevdata(sd);
+>>> +    struct vb2_queue *q = &vid_dev->vb_queue;
+>>> +    struct video_device *vfd = &vid_dev->ve.vdev;
+>>> +    int ret;
+>>> +
+>>> +    memset(vfd, 0, sizeof(*vfd));
+>>> +
+>>> +    strlcpy(vfd->name, VIDEO_DEVICE_NAME, sizeof(vfd->name));
+>>> +
+>>> +    vfd->fops = &vid_dev_fops;
+>>> +    vfd->ioctl_ops = &vid_dev_ioctl_ops;
+>>> +    vfd->v4l2_dev = sd->v4l2_dev;
+>>> +    vfd->minor = -1;
+>>> +    vfd->release = video_device_release_empty;
+>>> +    vfd->queue = q;
+>>> +
+>>> +    INIT_LIST_HEAD(&vid_dev->vidq.active);
+>>> +    init_waitqueue_head(&vid_dev->vidq.wq);
+>>> +    memset(q, 0, sizeof(*q));
+>>> +    q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+>>> +    q->io_modes = VB2_MMAP | VB2_USERPTR;
 >>
->> Maybe the first thing to do is to change the name and the location of this
->> module, suggestions are welcome.
+>> Add VB2_DMABUF and VB2_READ.
 >>
->> I have testing this code with the following program:
->
-> I'm still maintaining that we should just destage ION (with the todo items
-> fixed), since that is already an uabi to do this (afaiui at least), and
-> it's used on a few devices ... Please chat with Laura Abott.
-> -Daniel
->
+> 
+> I'll add them, but I'm not using them, is it standard procedure to add them all
+> even if they aren't used?
 
-(I thought I sent this before but apparently it didn't go through.
-Apologies if this ends up as a repeat for anyone)
+You may not use them, but others might. And it doesn't cost anything to add them.
 
-I've been reviewing this as well. Even if Ion is used on a number of
-devices, the model is still a bit clunky. I was hoping to see if it
-could be re-written from scratch in a framework like this and then
-either add a shim layer or just coax all devices out there to actually
-convert to the new framework.
+> 
+>>> +    q->ops = &vb2_video_qops;
+>>> +    q->mem_ops = &vb2_vmalloc_memops;
+>>
+>> Why is vmalloc used? Can't you use dma_contig or dma_sg and avoid having to copy
+>> the image data? That's a really bad design given the amount of video data that
+>> you have to copy.
+>>
+> 
+> When I started development, the arch I was using (ARC) didn't support
+> dma_contig, so I was forced to use vmalloc.
+> 
+> Since then things have changed and I'm already using dma_contig, however it
+> wasn't included in this patch. I'll add it to the next patch.
 
-I supposed another option is to destage as you suggested and work on
-an improved version in parallel.
+Ah, good. If you are switching to dma_contig, then remove VB2_USERPTR.
+VB2_DMABUF should be used instead.
 
-Thanks,
-Laura
+Regards,
 
-
+	Hans
