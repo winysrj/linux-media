@@ -1,194 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:41240 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750887AbdAaP4U (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jan 2017 10:56:20 -0500
-Date: Tue, 31 Jan 2017 15:55:41 +0000
-From: Brian Starkey <brian.starkey@arm.com>
-To: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
-Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, mihail.atanassov@arm.com,
-        liviu.dudau@arm.com
-Subject: Re: DRM Atomic property for color-space conversion
-Message-ID: <20170131155541.GF11506@e106950-lin.cambridge.arm.com>
-References: <20170127172324.GB12018@e106950-lin.cambridge.arm.com>
- <20170130133513.GO31595@intel.com>
- <20170131123329.GB24500@e106950-lin.cambridge.arm.com>
- <20170131151546.GT31595@intel.com>
+Received: from relay1.mentorg.com ([192.94.38.131]:61951 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750781AbdALXXL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Jan 2017 18:23:11 -0500
+Subject: Re: [PATCH v2 00/21] Basic i.MX IPUv3 capture support
+To: Philipp Zabel <p.zabel@pengutronix.de>
+References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
+ <20161019213026.GU9460@valkosipuli.retiisi.org.uk>
+ <CAH-u=807nRYzza0kTfOMv1AiWazk6FGJyz6W5_bYw7v9nOrccA@mail.gmail.com>
+ <20161229205113.j6wn7kmhkfrtuayu@pengutronix.de>
+ <7350daac-14ee-74cc-4b01-470a375613a3@denx.de>
+ <c38d80aa-5464-1e9d-e11a-f54716fdb565@mentor.com>
+ <1483990983.13625.58.camel@pengutronix.de>
+ <43564c16-f7aa-2d35-a41f-991465faaf8b@mentor.com>
+ <5b4bb7bd-83ae-c1f3-6b24-989dd6b0aa48@mentor.com>
+ <1484136644.2934.89.camel@pengutronix.de>
+CC: Marek Vasut <marex@denx.de>,
+        Robert Schwebel <r.schwebel@pengutronix.de>,
+        Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Gary Bisson <gary.bisson@boundarydevices.com>,
+        Sascha Hauer <kernel@pengutronix.de>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Steve Longerbeam <steve_longerbeam@mentor.com>
+Message-ID: <8e6092a3-d80b-fe01-11b4-fbebe1de3102@mentor.com>
+Date: Thu, 12 Jan 2017 15:22:16 -0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170131151546.GT31595@intel.com>
+In-Reply-To: <1484136644.2934.89.camel@pengutronix.de>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 31, 2017 at 05:15:46PM +0200, Ville Syrjälä wrote:
->On Tue, Jan 31, 2017 at 12:33:29PM +0000, Brian Starkey wrote:
->> Hi,
->>
->> On Mon, Jan 30, 2017 at 03:35:13PM +0200, Ville Syrjälä wrote:
->> >On Fri, Jan 27, 2017 at 05:23:24PM +0000, Brian Starkey wrote:
->> >> Hi,
->> >>
->> >> We're looking to enable the per-plane color management hardware in
->> >> Mali-DP with atomic properties, which has sparked some conversation
->> >> around how to handle YCbCr formats.
->> >>
->> >> As it stands today, it's assumed that a driver will implicitly "do the
->> >> right thing" to display a YCbCr buffer.
->> >>
->> >> YCbCr data often uses different gamma curves and signal ranges (e.g.
->> >> BT.609, BT.701, BT.2020, studio range, full-range), so its desirable
->> >> to be able to explicitly control the YCbCr to RGB conversion process
->> >> from userspace.
->> >>
->> >> We're proposing adding a "CSC" (color-space conversion) property to
->> >> control this - primarily per-plane for framebuffer->pipeline CSC, but
->> >> perhaps one per CRTC too for devices which have an RGB pipeline and
->> >> want to output in YUV to the display:
->> >>
->> >> Name: "CSC"
->> >> Type: ENUM | ATOMIC;
->> >> Enum values (representative):
->> >> "default":
->> >> 	Same behaviour as now. "Some kind" of YCbCr->RGB conversion
->> >> 	for YCbCr buffers, bypass for RGB buffers
->> >> "disable":
->> >> 	Explicitly disable all colorspace conversion (i.e. use an
->> >> 	identity matrix).
->> >> "YCbCr to RGB: BT.709":
->> >> 	Only valid for YCbCr formats. CSC in accordance with BT.709
->> >> 	using [16..235] for (8-bit) luma values, and [16..240] for
->> >> 	8-bit chroma values. For 10-bit formats, the range limits are
->> >> 	multiplied by 4.
->> >> "YCbCr to RGB: BT.709 full-swing":
->> >> 	Only valid for YCbCr formats. CSC in accordance with BT.709,
->> >> 	but using the full range of each channel.
->> >> "YCbCr to RGB: Use CTM":*
->> >> 	Only valid for YCbCr formats. Use the matrix applied via the
->> >> 	plane's CTM property
->> >> "RGB to RGB: Use CTM":*
->> >> 	Only valid for RGB formats. Use the matrix applied via the
->> >> 	plane's CTM property
->> >> "Use CTM":*
->> >> 	Valid for any format. Use the matrix applied via the plane's
->> >> 	CTM property
->> >> ... any other values for BT.601, BT.2020, RGB to YCbCr etc. etc. as
->> >> they are required.
->> >
->> >Having some RGB2RGB and YCBCR2RGB things in the same property seems
->> >weird. I would just go with something very simple like:
->> >
->> >YCBCR_TO_RGB_CSC:
->> >* BT.601
->> >* BT.709
->> >* custom matrix
->> >
->>
->> I think we've agreed in #dri-devel that this CSC property
->> can't/shouldn't be mapped on-to the existing (hardware implementing
->> the) CTM property - even in the case of per-plane color management -
->> because CSC needs to be done before DEGAMMA.
->>
->> So, I'm in favour of going with what you suggested in the first place:
->>
->> A new YCBCR_TO_RGB_CSC property, enum type, with a list of fixed
->> conversions. I'd drop the custom matrix for now, as we'd need to add
->> another property to attach the custom matrix blob too.
->>
->> I still think we need a way to specify whether the source data range
->> is broadcast/full-range, so perhaps the enum list should be expanded
->> to all combinations of BT.601/BT.709 + broadcast/full-range.
+Hi Philipp, JM,
+
+
+First, let me say that you both have convinced me that we need a VDIC
+entity. I've implemented that in the branch imx-media-staging-md-vdic.
+At this point it only implements the M/C de-interlacing function, not the
+plane Combiner. So it has only one input and one output pad. I would
+imagine it will need two additional inputs and another output to support
+the Combiner (two pads for each plane to be combined, and a combiner
+output pad).
+
+More below...
+
+On 01/11/2017 04:10 AM, Philipp Zabel wrote:
+> Hi Steve,
 >
->Sounds reasonable. Not that much full range YCbCr stuff out there
->perhaps. Well, apart from jpegs I suppose. But no harm in being able
->to deal with it.
->
->>
->> (I'm not sure what the canonical naming for broadcast/full-range is,
->> we call them narrow and wide)
->
->We tend to call them full vs. limited range. That's how our
->"Broadcast RGB" property is defined as well.
->
+> Am Dienstag, den 10.01.2017, 15:52 -0800 schrieb Steve Longerbeam:
+>> On 01/09/2017 04:15 PM, Steve Longerbeam wrote:
+>>> Hi Philipp,
+>>>
+>>>
+>>> On 01/09/2017 11:43 AM, Philipp Zabel wrote:
+>>>
+>>>
+>>> <snip>
+>>>> One is the amount and organization of subdevices/media entities visible
+>>>> to userspace. The SMFCs should not be user controllable subdevices, but
+>>>> can be implicitly enabled when a CSI is directly linked to a camif.
+>>> I agree the SMFC could be folded into the CSI, but I see at least one
+>>> issue.
+> I don't suggest to fold it into the CSI.
+> The CSI should have one output pad that that can be connected either to
+> the IC PRP input (CSIx_DATA_DEST=1) or to the IDMAC via SMFC
+> (CSIx_DATA_DEST=2).
 
-OK, using the same ones sounds sensible.
+Right, and CSI can connect to VDIC. I don't know if it is documented,
+but to route to VDIC, set CSIx_DATA_DEST=1, as if to IC PRP. Confusing,
+but it's as if the VDIC is somehow part of the IC.
 
->>
->> >And trying to use the same thing for the crtc stuff is probably not
->> >going to end well. Like Daniel said we already have the
->> >'Broadcast RGB' property muddying the waters there, and that stuff
->> >also ties in with what colorspace we signal to the sink via
->> >infoframes/whatever the DP thing was called. So my gut feeling is
->> >that trying to use the same property everywhere will just end up
->> >messy.
->>
->> Yeah, agreed. If/when someone wants to add CSC on the output of a CRTC
->> (after GAMMA), we can add a new property.
->>
->> That makes me wonder about calling this one SOURCE_YCBCR_TO_RGB_CSC to
->> be explicit that it describes the source data. Then we can later add
->> SINK_RGB_TO_YCBCR_CSC, and it will be reasonably obvious that its
->> value describes the output data rather than the input data.
->
->Source and sink have a slight connotation in my mind wrt. the box that
->produces the display signal and the box that eats the signal. So trying
->to use the same terms to describe the internals of the pipeline inside
->the "source box" migth lead to some confusion. But we do probably need
->some decent names for these to make the layout of the pipeline clear.
->Input/output are the other names that popped to my mind but those aren't
->necessarily any better. But in the end I think I could live with whatever
->names we happen to pick, as long as we document the pipeline clearly.
->
->Long ago I did wonder if we should just start indexing these things
->somehow, and then just looking at the index should tell you the order
->of the operations. But we already have the ctm/gamma w/o any indexes so
->that idea probably isn't so great anymore.
->
->>
->> I want to avoid confusion caused by ending up with two
->> {CS}_TO_{CS}_CSC properties, where one is describing the data to the
->> left of it, and the other describing the data to the right of it, with
->> no real way of telling which way around it is.
->
->Not really sure what you mean. It should always be
-><left>_to_<right>_csc.
+>   The SMFC should be considered part of the link
+> between CSI and IDMAC.
 
-Agreed, left-to-right. But for instance on a CSC property representing
-a CRTC output CSC (just before hitting the connector), which happens
-to be converting RGB to YCbCr:
+sure, I can agree with that.
 
-CRTC -> GAMMA -> RGB_TO_YCBCR_CSC
+> The IC PRP input pad should be connected to either the CSI0 output pad
+> (CSI_SEL=0,IC_INPUT=0), the CSI1 output pad (CSI_SEL=1,IC_INPUT=0), or
+> to the VDIC (IC_INPUT=1).
 
-...the enum value "BT.601 Limited" means that the data on the *right*
-of RGB_TO_YCBCR_CSC is "BT.601 Limited"
-
-On the other hand for a CSC on the input of a plane, which happens to
-be converting YCbCr to RGB:
-
-RAM -> YCBCR_TO_RGB_CSC -> DEGAMMA
-
-...the enum value "BT.601 Limited" means that the data on the *left*
-of YCBCR_TO_RGB_CSC is "BT.601 Limited".
-
-Indicating in the property name whether its value is describing the
-data on the left or the right is needed (and I don't think inferring
-that "it's always the YCBCR one" is the correct approach).
-
-In my example above, "SOURCE_xxx" would mean the enum value is
-describing the "source" data (i.e. the data on the left) and
-"SINK_xxx" would mean the enum value is describing the "sink" data
-(i.e. the data on the right). This doesn't necessarily need to infer a
-particular point in the pipeline.
-
--Brian
+correct.
 
 >
->-- 
->Ville Syrjälä
->Intel OTC
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>  From the dot graph you'll see that the PRPVF entity can receive directly
+>>> from the CSI, or indirectly via the SMFC.
+> And that's one reason why I think representing the mem2mem paths as
+> links in the media controller interface is questionable. The path "via
+> SMFC" is not really a hardware connection between CSI -> SMFC -> IC PRP,
+> but two completely separate paths:
+> CSI -> SMFC -> IDMAC -> mem and mem -> IDMAC -> IC PRP with different
+> IDMAC read/write channels. The only real connection is that one DMA the
+> IC DMA transfers are triggered automatically by the frame
+> synchronisation unit on every CSI frame.
+> There is no way to convey to the user which links are real connections
+> and which are just linked DMA write and read channels somewhere else.
+>
+> Is there even a reason for the user to switch between direct and via
+> memory paths manually, or could this be inferred from other state
+> (formats, active links)?
+
+a CSI -> VDIC link doesn't convey whether that is a direct link using
+the FSU, or whether it is via SMFC and memory buffers.
+
+If you'll recall, the VDIC has three motion modes: low, medium, and
+high.
+
+When VDIC receives directly from CSI, it can only operate in
+high motion mode (it processes a single field F(n-1) sent directly
+from the CSI using the FSU). The reference manual refers to this
+as "real time mode".
+
+The low and medium motion modes require processing all three
+fields F(n-1), F(n), and F(n+1). These fields must come from IDMAC
+channels 8, 9, and 10 respectively.
+
+So in order to support low and medium motion modes, there needs to
+be a pipeline where the VDIC receives F(n-1), F(n), and F(n+1) from
+memory buffers.
+
+How about this: we can do away with SMFC entities by having two
+output pads from the CSI: a "direct" output pad that can link to PRP and
+VDIC, and a "IDMAC via SMFC" output pad that links to the entities that
+require memory buffers (VDIC in low/medium motion mode, camif, and
+PP). Only one of those output pads can be active at a time. I'm not sure if
+that allowed by the media framework, do two source pads imply that the
+entity can activate both of those pads simultaneously, or is allowed that
+only one source pad of two or more can be activated at a time? It's not
+clear to me.
+
+Let me know if you agree with this proposal.
+
+> <snip>
+>>>> Also I'm not convinced the 1:1 mapping of IC task to subdevices is the
+>>>> best choice. It is true that the three tasks can be enabled separately,
+>>>> but to my understanding, the PRP ENC and PRP VF tasks share a single
+>>>> input channel. Shouldn't this be a single PRP subdevice with one input
+>>>> and two (VF, ENC) outputs?
+>>> Since the VDIC sends its motion compensated frames to the PRP VF task,
+>>> I've created the PRPVF entity solely for motion compensated de-interlace
+>>> support. I don't really see any other use for the PRPVF task except for
+>>> motion compensated de-interlace.
+> I suppose simultaneous scaling to two different resolutions without
+> going through memory could be one interesting use case:
+>
+>             ,--> VF --> IDMAC -> mem -> to display
+> CSI -> IC PRP
+>             `--> ENC -> IDMAC -> mem -> to VPU
+
+Yes, that is one possibility.
+
+>>> So really, the PRPVF entity is a combination of the VDIC and PRPVF
+>>> subunits.
+> I'd prefer to keep them separate, we could then use a deactivated VDIC
+> -> IC PRP link to mark the VDIC as available to be used for its
+> combining functionality by another driver.
+>
+> Also logically, the VDIC subdev would be the right user interface to
+> switch from interlaced to non-interlaced pad modes, whereas the IC
+> subdev(s) should just allow changing color space and size between its
+> inputs and outputs.
+
+right, that has been implemented in branch imx-media-staging-md-vdic.
+
+> <snip>
+>> Here also, I'd prefer to keep distinct PRPENC and PRPVF entities. You
+>> are correct that PRPENC and PRPVF do share an input channel (the CSIs).
+>> But the PRPVF has an additional input channel from the VDIC,
+> Wait, that is a VDIC -> PRP connection, not a VDIC -> PRPVF connection,
+> or am I mistaken?
+
+The FSU only sends VDIC output to PRPVF, not PRPENC. It's not
+well documented, but see "IPU main flows" section in the manual.
+All listed pipelines that route VDIC to IC go to IC (PRP VF).
+
+Which suggests that when IC receives from VDIC, PRPENC can
+receive no data and is effectively unusable.
+
+> The VDIC direct input is enabled with ipu_set_ic_src_mux(vdi=true)
+> (IC_INPUT=1), and that is the same for both PRP->ENC and PRP->VF.
+
+true, but in fact the FSU only sends to PRP VF.
+
+>> and since my PRPVF entity roles
+>> up the VDIC internally, it is actually receiving from the VDIC channel.
+>> So unless you think we should have a distinct VDIC entity, I would like
+>> to keep this
+>> the way it is.
+> Yes, I think VDIC should be separated out of PRPVF. What do you think
+> about splitting the IC PRP into three parts?
+>
+> PRP could have one input pad connected to either CSI0, CSI1, or VDIC,
+> and two output pads connected to PRPVF and PRPENC, respectively. This
+> would even allow to have the PRP describe the downscale and PRPVF and
+> PRPENC describe the bilinear upscale part of the IC.
+
+Sure sounds good to me. PRPENC and PRPVF are independent,
+but they cannot process different data streams, they both have to
+work with CSI0 or CSI1, so this makes sense.
+
+I'll start looking into it.
+
+Steve
+
