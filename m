@@ -1,80 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wj0-f170.google.com ([209.85.210.170]:33217 "EHLO
-        mail-wj0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964971AbdACOzR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2017 09:55:17 -0500
-Received: by mail-wj0-f170.google.com with SMTP id tq7so209771828wjb.0
-        for <linux-media@vger.kernel.org>; Tue, 03 Jan 2017 06:55:17 -0800 (PST)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: linux@armlinux.org.uk, linux-fbdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        linux-arm-kernel@lists.infradead.org,
-        linaro-kernel@lists.linaro.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v2 3/3] arm: sti: update sti-cec for HPD notifier support
-Date: Tue,  3 Jan 2017 15:54:57 +0100
-Message-Id: <1483455297-2286-4-git-send-email-benjamin.gaignard@linaro.org>
-In-Reply-To: <1483455297-2286-1-git-send-email-benjamin.gaignard@linaro.org>
-References: <1483455297-2286-1-git-send-email-benjamin.gaignard@linaro.org>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:55338 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750700AbdALFOO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Jan 2017 00:14:14 -0500
+Message-ID: <a799de34d06a29b6c51db88e1ef3d0f5@smtp-cloud3.xs4all.net>
+Date: Thu, 12 Jan 2017 06:14:11 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To use HPD notifier sti CEC driver needs to get phandle
-of the hdmi device.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
----
- arch/arm/boot/dts/stih407-family.dtsi | 12 ------------
- arch/arm/boot/dts/stih410.dtsi        | 13 +++++++++++++
- 2 files changed, 13 insertions(+), 12 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/arch/arm/boot/dts/stih407-family.dtsi b/arch/arm/boot/dts/stih407-family.dtsi
-index c8b2944..592d235 100644
---- a/arch/arm/boot/dts/stih407-family.dtsi
-+++ b/arch/arm/boot/dts/stih407-family.dtsi
-@@ -756,18 +756,6 @@
- 				 <&clk_s_c0_flexgen CLK_ETH_PHY>;
- 		};
- 
--		cec: sti-cec@094a087c {
--			compatible = "st,stih-cec";
--			reg = <0x94a087c 0x64>;
--			clocks = <&clk_sysin>;
--			clock-names = "cec-clk";
--			interrupts = <GIC_SPI 140 IRQ_TYPE_NONE>;
--			interrupt-names = "cec-irq";
--			pinctrl-names = "default";
--			pinctrl-0 = <&pinctrl_cec0_default>;
--			resets = <&softreset STIH407_LPM_SOFTRESET>;
--		};
--
- 		rng10: rng@08a89000 {
- 			compatible      = "st,rng";
- 			reg		= <0x08a89000 0x1000>;
-diff --git a/arch/arm/boot/dts/stih410.dtsi b/arch/arm/boot/dts/stih410.dtsi
-index 281a124..e8c01f7 100644
---- a/arch/arm/boot/dts/stih410.dtsi
-+++ b/arch/arm/boot/dts/stih410.dtsi
-@@ -259,5 +259,18 @@
- 			clocks = <&clk_sysin>;
- 			interrupts = <GIC_SPI 205 IRQ_TYPE_EDGE_RISING>;
- 		};
-+
-+		sti-cec@094a087c {
-+			compatible = "st,stih-cec";
-+			reg = <0x94a087c 0x64>;
-+			clocks = <&clk_sysin>;
-+			clock-names = "cec-clk";
-+			interrupts = <GIC_SPI 140 IRQ_TYPE_NONE>;
-+			interrupt-names = "cec-irq";
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&pinctrl_cec0_default>;
-+			resets = <&softreset STIH407_LPM_SOFTRESET>;
-+			st,hdmi-handle = <&sti_hdmi>;
-+		};
- 	};
- };
--- 
-1.9.1
+date:			Thu Jan 12 05:00:17 CET 2017
+media-tree git hash:	40eca140c404505c09773d1c6685d818cb55ab1a
+media_build git hash:	3c6ce4ff75f19adf45869e34b376c5b9dee4d50a
+v4l-utils git hash:	8770ca14b8a9cb6b56b98a9d1246a272699c8474
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-4.10-rc3-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.12.67-x86_64: OK
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+linux-4.9-x86_64: OK
+linux-4.10-rc3-x86_64: OK
+apps: WARNINGS
+spec-git: ERRORS
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
