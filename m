@@ -1,285 +1,221 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:36423 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753588AbdA3OIH (ORCPT
+Received: from mail-it0-f53.google.com ([209.85.214.53]:33124 "EHLO
+        mail-it0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750760AbdALVNO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Jan 2017 09:08:07 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 09/16] ov2640: convert from soc-camera to a standard subdev sensor driver.
-Date: Mon, 30 Jan 2017 15:06:21 +0100
-Message-Id: <20170130140628.18088-10-hverkuil@xs4all.nl>
-In-Reply-To: <20170130140628.18088-1-hverkuil@xs4all.nl>
-References: <20170130140628.18088-1-hverkuil@xs4all.nl>
+        Thu, 12 Jan 2017 16:13:14 -0500
+Received: by mail-it0-f53.google.com with SMTP id d9so5602442itc.0
+        for <linux-media@vger.kernel.org>; Thu, 12 Jan 2017 13:13:14 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <afe51f5f-03dd-4092-9ec0-297afb1453c7@mentor.com>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <CAJ+vNU2zU++Xam_UpDPfmSQhauhhS3_z8L-+ww6o-D9brWhiwA@mail.gmail.com> <afe51f5f-03dd-4092-9ec0-297afb1453c7@mentor.com>
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Thu, 12 Jan 2017 13:13:12 -0800
+Message-ID: <CAJ+vNU3ymeA9d+cJ44Wm_zX17EMkd__w6vB_xyagxzBAYNJbZQ@mail.gmail.com>
+Subject: Re: [PATCH v3 00/24] i.MX Media Driver
+To: Steve Longerbeam <steve_longerbeam@mentor.com>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <kernel@pengutronix.de>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        laurent.pinchart+renesas@ideasonboard.com,
+        linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Jan 11, 2017 at 7:22 PM, Steve Longerbeam
+<steve_longerbeam@mentor.com> wrote:
+> Hi Tim,
+>
+>
+> On 01/11/2017 03:14 PM, Tim Harvey wrote:
+>>
+>>
+>> <snip>
+>>
+>> Hi Steve,
+>>
+>> I took a stab at testing this today on a gw51xx which has an adv7180
+>> hooked up as follows:
+>> - i2c3@0x20
+>> - 8bit data bus from DAT12 to DAT19, HSYNC, VSYNC, PIXCLK on CSI0 pads
+>> (CSI0_IPU1)
+>> - PWRDWN# on MX6QDL_PAD_CSI0_DATA_EN__GPIO5_IO20
+>> - IRQ# on MX6QDL_PAD_CSI0_DAT5__GPIO5_IO23
+>> - all three analog inputs available to off-board connector
+>>
+>> My patch to the imx6qdl-gw51xx dtsi is:
+>
+>
+> As long as you used the patch to imx6qdl-sabreauto.dtsti that adds
+> the adv7180 support as a guide, you should be ok here.
 
-Convert ov2640 to a standard subdev driver. The soc-camera driver no longer
-uses this driver, so it can safely be converted.
+yes - fairly straightforward
 
-Note: the s_power op has been dropped: this never worked. When the last open()
-is closed, then the power is turned off, and when it is opened again the power
-is turned on again, but the old state isn't restored.
+>
+>> <snip>
+>>
+>>
+>>
+>> On an IMX6Q I'm getting the following when the adv7180 module loads:
+>> [   12.862477] adv7180 2-0020: chip found @ 0x20 (21a8000.i2c)
+>> [   12.907767] imx-media: Registered subdev adv7180 2-0020
+>> [   12.907793] imx-media soc:media@0: Entity type for entity adv7180
+>> 2-0020 was not initialized!
+>> [   12.907867] imx-media: imx_media_create_link: adv7180 2-0020:0 ->
+>> ipu1_csi0_mux:1
+>>
+>> Is the warning that adv7180 was not initialized expected and or an issue?
+>
+>
+> Yeah it's still a bug in the adv7180 driver, needs fixing.
+>
 
-Someone else can figure out in the future how to get this working correctly,
-but I don't want to spend more time on this.
+ok - ignoring
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/Kconfig                   | 11 ++++
- drivers/media/i2c/Makefile                  |  1 +
- drivers/media/i2c/{soc_camera => }/ov2640.c | 89 +++++------------------------
- drivers/media/i2c/soc_camera/Kconfig        |  6 --
- drivers/media/i2c/soc_camera/Makefile       |  1 -
- 5 files changed, 27 insertions(+), 81 deletions(-)
- rename drivers/media/i2c/{soc_camera => }/ov2640.c (94%)
+>>
+>> Now that your driver is hooking into the current media framework, I'm
+>> not at all clear on how to link and configure the media entities.
+>
+>
+> It's all documented at Documentation/media/v4l-drivers/imx.rst.
+> Follow the SabreAuto pipeline setup example.
+>
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index b979ea1..159ef64 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -520,6 +520,17 @@ config VIDEO_APTINA_PLL
- config VIDEO_SMIAPP_PLL
- 	tristate
- 
-+config VIDEO_OV2640
-+	tristate "OmniVision OV2640 sensor support"
-+	depends on VIDEO_V4L2 && I2C
-+	depends on MEDIA_CAMERA_SUPPORT
-+	help
-+	  This is a Video4Linux2 sensor-level driver for the OmniVision
-+	  OV2640 camera.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called ov2640.
-+
- config VIDEO_OV2659
- 	tristate "OmniVision OV2659 sensor support"
- 	depends on VIDEO_V4L2 && I2C
-diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-index 92773b2..6388ec9a9 100644
---- a/drivers/media/i2c/Makefile
-+++ b/drivers/media/i2c/Makefile
-@@ -56,6 +56,7 @@ obj-$(CONFIG_VIDEO_VP27SMPX) += vp27smpx.o
- obj-$(CONFIG_VIDEO_SONY_BTF_MPX) += sony-btf-mpx.o
- obj-$(CONFIG_VIDEO_UPD64031A) += upd64031a.o
- obj-$(CONFIG_VIDEO_UPD64083) += upd64083.o
-+obj-$(CONFIG_VIDEO_OV2640) += ov2640.o
- obj-$(CONFIG_VIDEO_OV7640) += ov7640.o
- obj-$(CONFIG_VIDEO_OV7670) += ov7670.o
- obj-$(CONFIG_VIDEO_OV9650) += ov9650.o
-diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/ov2640.c
-similarity index 94%
-rename from drivers/media/i2c/soc_camera/ov2640.c
-rename to drivers/media/i2c/ov2640.c
-index b9a0069..83f88ef 100644
---- a/drivers/media/i2c/soc_camera/ov2640.c
-+++ b/drivers/media/i2c/ov2640.c
-@@ -24,8 +24,8 @@
- #include <linux/v4l2-mediabus.h>
- #include <linux/videodev2.h>
- 
--#include <media/soc_camera.h>
- #include <media/v4l2-clk.h>
-+#include <media/v4l2-device.h>
- #include <media/v4l2-subdev.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-image-sizes.h>
-@@ -287,7 +287,6 @@ struct ov2640_priv {
- 	struct v4l2_clk			*clk;
- 	const struct ov2640_win_size	*win;
- 
--	struct soc_camera_subdev_desc	ssdd_dt;
- 	struct gpio_desc *resetb_gpio;
- 	struct gpio_desc *pwdn_gpio;
- };
-@@ -677,13 +676,8 @@ static int ov2640_reset(struct i2c_client *client)
- }
- 
- /*
-- * soc_camera_ops functions
-+ * functions
-  */
--static int ov2640_s_stream(struct v4l2_subdev *sd, int enable)
--{
--	return 0;
--}
--
- static int ov2640_s_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	struct v4l2_subdev *sd =
-@@ -744,10 +738,16 @@ static int ov2640_s_register(struct v4l2_subdev *sd,
- static int ov2640_s_power(struct v4l2_subdev *sd, int on)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
- 	struct ov2640_priv *priv = to_ov2640(client);
- 
--	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
-+	gpiod_direction_output(priv->pwdn_gpio, !on);
-+	if (on && priv->resetb_gpio) {
-+		/* Active the resetb pin to perform a reset pulse */
-+		gpiod_direction_output(priv->resetb_gpio, 1);
-+		usleep_range(3000, 5000);
-+		gpiod_direction_output(priv->resetb_gpio, 0);
-+	}
-+	return 0;
- }
- 
- /* Select the nearest higher resolution for capture */
-@@ -994,26 +994,6 @@ static struct v4l2_subdev_core_ops ov2640_subdev_core_ops = {
- 	.s_power	= ov2640_s_power,
- };
- 
--static int ov2640_g_mbus_config(struct v4l2_subdev *sd,
--				struct v4l2_mbus_config *cfg)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
--
--	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_MASTER |
--		V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_HSYNC_ACTIVE_HIGH |
--		V4L2_MBUS_DATA_ACTIVE_HIGH;
--	cfg->type = V4L2_MBUS_PARALLEL;
--	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
--
--	return 0;
--}
--
--static struct v4l2_subdev_video_ops ov2640_subdev_video_ops = {
--	.s_stream	= ov2640_s_stream,
--	.g_mbus_config	= ov2640_g_mbus_config,
--};
--
- static const struct v4l2_subdev_pad_ops ov2640_subdev_pad_ops = {
- 	.enum_mbus_code = ov2640_enum_mbus_code,
- 	.get_selection	= ov2640_get_selection,
-@@ -1023,40 +1003,9 @@ static const struct v4l2_subdev_pad_ops ov2640_subdev_pad_ops = {
- 
- static struct v4l2_subdev_ops ov2640_subdev_ops = {
- 	.core	= &ov2640_subdev_core_ops,
--	.video	= &ov2640_subdev_video_ops,
- 	.pad	= &ov2640_subdev_pad_ops,
- };
- 
--/* OF probe functions */
--static int ov2640_hw_power(struct device *dev, int on)
--{
--	struct i2c_client *client = to_i2c_client(dev);
--	struct ov2640_priv *priv = to_ov2640(client);
--
--	dev_dbg(&client->dev, "%s: %s the camera\n",
--			__func__, on ? "ENABLE" : "DISABLE");
--
--	if (priv->pwdn_gpio)
--		gpiod_direction_output(priv->pwdn_gpio, !on);
--
--	return 0;
--}
--
--static int ov2640_hw_reset(struct device *dev)
--{
--	struct i2c_client *client = to_i2c_client(dev);
--	struct ov2640_priv *priv = to_ov2640(client);
--
--	if (priv->resetb_gpio) {
--		/* Active the resetb pin to perform a reset pulse */
--		gpiod_direction_output(priv->resetb_gpio, 1);
--		usleep_range(3000, 5000);
--		gpiod_direction_output(priv->resetb_gpio, 0);
--	}
--
--	return 0;
--}
--
- static int ov2640_probe_dt(struct i2c_client *client,
- 		struct ov2640_priv *priv)
- {
-@@ -1076,11 +1025,6 @@ static int ov2640_probe_dt(struct i2c_client *client,
- 	else if (IS_ERR(priv->pwdn_gpio))
- 		return PTR_ERR(priv->pwdn_gpio);
- 
--	/* Initialize the soc_camera_subdev_desc */
--	priv->ssdd_dt.power = ov2640_hw_power;
--	priv->ssdd_dt.reset = ov2640_hw_reset;
--	client->dev.platform_data = &priv->ssdd_dt;
--
- 	return 0;
- }
- 
-@@ -1091,7 +1035,6 @@ static int ov2640_probe(struct i2c_client *client,
- 			const struct i2c_device_id *did)
- {
- 	struct ov2640_priv	*priv;
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
- 	struct i2c_adapter	*adapter = to_i2c_adapter(client->dev.parent);
- 	int			ret;
- 
-@@ -1112,17 +1055,15 @@ static int ov2640_probe(struct i2c_client *client,
- 	if (IS_ERR(priv->clk))
- 		return -EPROBE_DEFER;
- 
--	if (!ssdd && !client->dev.of_node) {
-+	if (!client->dev.of_node) {
- 		dev_err(&client->dev, "Missing platform_data for driver\n");
- 		ret = -EINVAL;
- 		goto err_clk;
- 	}
- 
--	if (!ssdd) {
--		ret = ov2640_probe_dt(client, priv);
--		if (ret)
--			goto err_clk;
--	}
-+	ret = ov2640_probe_dt(client, priv);
-+	if (ret)
-+		goto err_clk;
- 
- 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov2640_subdev_ops);
- 	v4l2_ctrl_handler_init(&priv->hdl, 2);
-@@ -1190,6 +1131,6 @@ static struct i2c_driver ov2640_i2c_driver = {
- 
- module_i2c_driver(ov2640_i2c_driver);
- 
--MODULE_DESCRIPTION("SoC Camera driver for Omni Vision 2640 sensor");
-+MODULE_DESCRIPTION("Driver for Omni Vision 2640 sensor");
- MODULE_AUTHOR("Alberto Panizzo");
- MODULE_LICENSE("GPL v2");
-diff --git a/drivers/media/i2c/soc_camera/Kconfig b/drivers/media/i2c/soc_camera/Kconfig
-index 7704bcf..96859f3 100644
---- a/drivers/media/i2c/soc_camera/Kconfig
-+++ b/drivers/media/i2c/soc_camera/Kconfig
-@@ -41,12 +41,6 @@ config SOC_CAMERA_MT9V022
- 	help
- 	  This driver supports MT9V022 cameras from Micron
- 
--config SOC_CAMERA_OV2640
--	tristate "ov2640 camera support"
--	depends on SOC_CAMERA && I2C
--	help
--	  This is a ov2640 camera driver
--
- config SOC_CAMERA_OV5642
- 	tristate "ov5642 camera support"
- 	depends on SOC_CAMERA && I2C
-diff --git a/drivers/media/i2c/soc_camera/Makefile b/drivers/media/i2c/soc_camera/Makefile
-index 6f994f9..974bdb7 100644
---- a/drivers/media/i2c/soc_camera/Makefile
-+++ b/drivers/media/i2c/soc_camera/Makefile
-@@ -3,7 +3,6 @@ obj-$(CONFIG_SOC_CAMERA_MT9M001)	+= mt9m001.o
- obj-$(CONFIG_SOC_CAMERA_MT9T031)	+= mt9t031.o
- obj-$(CONFIG_SOC_CAMERA_MT9T112)	+= mt9t112.o
- obj-$(CONFIG_SOC_CAMERA_MT9V022)	+= mt9v022.o
--obj-$(CONFIG_SOC_CAMERA_OV2640)		+= ov2640.o
- obj-$(CONFIG_SOC_CAMERA_OV5642)		+= ov5642.o
- obj-$(CONFIG_SOC_CAMERA_OV6650)		+= ov6650.o
- obj-$(CONFIG_SOC_CAMERA_OV772X)		+= ov772x.o
--- 
-2.10.2
+ah yes... it helps to read your patches! You did a great job on the
+documentation.
 
+Regarding the The ipu1_csi0_mux/ipu2_csi1_mux entities which have 1
+source and 2 sinks (which makes sense for a mux) how do you know which
+sink pad you should use (in your adv7180 example you use the 2nd sink
+pad vs the first)?
+
+As my hardware is the same as the SabreAuto except that my adv7180 is
+on i2c-2@0x20 I follow your example from
+Documentation/media/v4l-drivers/imx.rst:
+
+# Setup links
+media-ctl -l '"adv7180 2-0020":0 -> "ipu1_csi0_mux":1[1]'
+media-ctl -l '"ipu1_csi0_mux":2 -> "ipu1_csi0":0[1]'
+media-ctl -l '"ipu1_csi0":1 -> "ipu1_smfc0":0[1]'
+media-ctl -l '"ipu1_smfc0":1 -> "ipu1_ic_prpvf":0[1]'
+media-ctl -l '"ipu1_ic_prpvf":1 -> "camif0":0[1]'
+media-ctl -l '"camif0":1 -> "camif0 devnode":0[1]'
+
+# Configure pads
+media-ctl -V "\"adv7180 2-0020\":0 [fmt:UYVY2X8/720x480]"
+media-ctl -V "\"ipu1_csi0_mux\":1 [fmt:UYVY2X8/720x480]"
+media-ctl -V "\"ipu1_csi0_mux\":2 [fmt:UYVY2X8/720x480]"
+media-ctl -V "\"ipu1_csi0\":0 [fmt:UYVY2X8/720x480]"
+media-ctl -V "\"ipu1_csi0\":1 [fmt:UYVY2X8/720x480]"
+media-ctl -V "\"ipu1_smfc0\":0 [fmt:UYVY2X8/720x480]"
+media-ctl -V "\"ipu1_smfc0\":1 [fmt:UYVY2X8/720x480]"
+media-ctl -V "\"ipu1_ic_prpvf\":0 [fmt:UYVY2X8/720x480]"
+# pad field types for camif can be any format prpvf supports
+export outputfmt="UYVY2X8/720x480"
+media-ctl -V "\"ipu1_ic_prpvf\":1 [fmt:$outputfmt]"
+media-ctl -V "\"camif0\":0 [fmt:$outputfmt]"
+media-ctl -V "\"camif0\":1 [fmt:$outputfmt]"
+
+# select AIN1
+v4l2-ctl -d0 -i0
+Video input set to 0 (ADV7180 Composite on Ain1: ok)
+v4l2-ctl -d0 --set-fmt-video=width=720,height=480,pixelformat=UYVY
+# capture a single raw frame
+v4l2-ctl -d0 --stream-mmap --stream-to=/x.raw --stream-count=1
+[ 2092.056394] camif0: pipeline_set_stream failed with -32
+VIDIOC_STREAMON: failed: Broken pipe
+
+Enabling debug in drivers/media/media-entity.c I see:
+[   38.870087] imx-media soc:media@0: link validation failed for
+"ipu1_smfc0":1 -> "ipu1_ic_prpvf":0, error -32
+
+Looking at ipu1_smfc0 and ipu1_ic_prpvf with media-ctl I see:
+- entity 12: ipu1_ic_prpvf (2 pads, 8 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev3
+        pad0: Sink
+                [fmt:UYVY2X8/720x480 field:alternate]
+                <- "ipu1_csi0":1 []
+                <- "ipu1_csi1":1 []
+                <- "ipu1_smfc0":1 [ENABLED]
+                <- "ipu1_smfc1":1 []
+        pad1: Source
+                [fmt:UYVY2X8/720x480 field:none]
+                -> "camif0":0 [ENABLED]
+                -> "camif1":0 []
+                -> "ipu1_ic_pp0":0 []
+                -> "ipu1_ic_pp1":0 []
+
+- entity 45: ipu1_smfc0 (2 pads, 5 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev14
+        pad0: Sink
+                [fmt:UYVY2X8/720x480]
+                <- "ipu1_csi0":1 [ENABLED]
+        pad1: Source
+                [fmt:UYVY2X8/720x480]
+                -> "ipu1_ic_prpvf":0 [ENABLED]
+                -> "ipu1_ic_pp0":0 []
+                -> "camif0":0 []
+                -> "camif1":0 []
+
+Any ideas what is going wrong here? Seems like its perhaps a field
+type mismatch. Is my outputfmt incorrect perhaps? I likely have
+misunderstood the pad type comments in your documentation.
+
+>
+>
+>> <snip>
+>>
+>>
+>>
+>> Additionally I've found that on an IMX6S/IMX6DL we crash while
+>> registering the media-ic subdev's:
+<snip>
+>
+> Yep, I only have quad boards here so I haven't gotten around to
+> testing on S/DL.
+>
+> But it looks like I forgot to clear out the csi subdev pointer array before
+> passing it to imx_media_of_parse(). I think that might explain the OOPS
+> above. Try this patch:
+>
+> diff --git a/drivers/staging/media/imx/imx-media-dev.c
+> b/drivers/staging/media/imx/imx-media-dev.c
+> index 357654d..0cf2d61 100644
+> --- a/drivers/staging/media/imx/imx-media-dev.c
+> +++ b/drivers/staging/media/imx/imx-media-dev.c
+> @@ -379,7 +379,7 @@ static int imx_media_probe(struct platform_device *pdev)
+>  {
+>         struct device *dev = &pdev->dev;
+>         struct device_node *node = dev->of_node;
+> -       struct imx_media_subdev *csi[4];
+> +       struct imx_media_subdev *csi[4] = {0};
+>         struct imx_media_dev *imxmd;
+>         int ret;
+>
+
+This does resolves the crash on S/DL.
+
+I do notice that the ipu1_csi*_mux entities on the S/DL have 3 more
+sink pads compared to the D/Q which is from the additional ports
+defined in the GPR nodes you add for mipi_vc1/vc2/vc3. Are there
+really 3 more MIPI virtual channels on the S/DL vs the D/Q?
+
+I get the same results on the S/DL as I do on D/Q as long as I adjust
+the links to compensate for these additional sinks:
+media-ctl -l '"adv7180 2-0020":0 -> "ipu1_csi0_mux":4[1]'  # pad4
+media-ctl -l '"ipu1_csi0_mux":5 -> "ipu1_csi0":0[1]' # pad5
+...
+
+This means link configuration must differ depending on S/DL vs D/Q
+which is a bummer but I suppose this is the harsh reality as for
+boards that use the EIM pads for IPU's they also will be using IPU2
+for IMX6D/Q and IPU1 for IMX6S/DL.
+
+Tim
