@@ -1,123 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:53735 "EHLO
-        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751097AbdADEZ3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 3 Jan 2017 23:25:29 -0500
-Message-ID: <c08a9a769ae80c724ace43b4a117a7b8@smtp-cloud6.xs4all.net>
-Date: Wed, 04 Jan 2017 05:25:25 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from quartz.orcorp.ca ([184.70.90.242]:42177 "EHLO quartz.orcorp.ca"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750819AbdALRRp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Jan 2017 12:17:45 -0500
+Date: Thu, 12 Jan 2017 10:17:20 -0700
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+To: Jerome Glisse <jglisse@redhat.com>
+Cc: Stephen Bates <sbates@raithlin.com>,
+        Logan Gunthorpe <logang@deltatee.com>, david1.zhou@amd.com,
+        qiang.yu@amd.com,
+        "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>,
+        "'linux-nvdimm@lists.01.org'" <linux-nvdimm@ml01.01.org>,
+        "Kuehling, Felix" <felix.kuehling@amd.com>,
+        Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
+        "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>,
+        "'dri-devel@lists.freedesktop.org'" <dri-devel@lists.freedesktop.org>,
+        "Koenig, Christian" <christian.koenig@amd.com>, hch@infradead.org,
+        "Deucher, Alexander" <alexander.deucher@amd.com>,
+        "Sander, Ben" <ben.sander@amd.com>,
+        "Suthikulpanit, Suravee" <suravee.suthikulpanit@amd.com>,
+        "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>,
+        Jerome Glisse <j.glisse@gmail.com>,
+        "Blinzer, Paul" <paul.blinzer@amd.com>,
+        "'Linux-media@vger.kernel.org'" <linux-media@vger.kernel.org>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Message-ID: <20170112171720.GA12257@obsidianresearch.com>
+References: <20170105224215.GA3855@obsidianresearch.com>
+ <20170105232352.GB6426@redhat.com>
+ <20170106003034.GB4670@obsidianresearch.com>
+ <20170106015831.GA2226@gmail.com>
+ <f07700d5-211f-d091-2b0b-fbaf03c4a959@amd.com>
+ <20170106173722.GB3804@redhat.com>
+ <20170106182625.GB5724@obsidianresearch.com>
+ <2a148b6e-86bc-4c4d-2f22-d733e2cc94cc@deltatee.com>
+ <d5a72e1e5f6d606697dc0027f073fd87.squirrel@webmail.raithlin.com>
+ <20170112151129.GA10942@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170112151129.GA10942@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Thu, Jan 12, 2017 at 10:11:29AM -0500, Jerome Glisse wrote:
+> On Wed, Jan 11, 2017 at 10:54:39PM -0600, Stephen Bates wrote:
+> > > What we want is for RDMA, O_DIRECT, etc to just work with special VMAs
+> > > (ie. at least those backed with ZONE_DEVICE memory). Then
+> > > GPU/NVME/DAX/whatever drivers can just hand these VMAs to userspace
+> > > (using whatever interface is most appropriate) and userspace can do what
+> > > it pleases with them. This makes _so_ much sense and actually largely
+> > > already works today (as demonstrated by iopmem).
 
-Results of the daily build of media_tree:
+> So i say let solve the IOMMU issue first and let everyone use it in their
+> own way with their device. I do not think we can share much more than
+> that.
 
-date:			Wed Jan  4 05:00:10 CET 2017
-media-tree git hash:	40eca140c404505c09773d1c6685d818cb55ab1a
-media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
-v4l-utils git hash:	951c4878a93f4722146f8bc6515a47fba6470bb3
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.8.0-164
+Solve it for the easy ZONE_DIRECT/etc case then.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9-x86_64: ERRORS
-apps: WARNINGS
-spec-git: ERRORS
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Jason
