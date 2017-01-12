@@ -1,118 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47008 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1758488AbdADIy1 (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:54869 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751243AbdALKYP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 4 Jan 2017 03:54:27 -0500
-Date: Wed, 4 Jan 2017 10:54:20 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Rob Herring <robh@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>, devicetree@vger.kernel.org,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH] dt: bindings: Add support for CSI1 bus
-Message-ID: <20170104085420.GN3958@valkosipuli.retiisi.org.uk>
-References: <20161228183036.GA13139@amd>
- <20170103203854.gyyfzxbnnxl3flov@rob-hp-laptop>
+        Thu, 12 Jan 2017 05:24:15 -0500
+Date: Thu, 12 Jan 2017 11:24:06 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>
+Subject: [PATCHv2] v4l: split lane parsing code
+Message-ID: <20170112102405.GF29366@amd>
+References: <20161228183116.GA13407@amd>
+ <20170102070425.GE3958@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="TeJTyD9hb8KJN2Jy"
 Content-Disposition: inline
-In-Reply-To: <20170103203854.gyyfzxbnnxl3flov@rob-hp-laptop>
+In-Reply-To: <20170102070425.GE3958@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
 
-Thanks for the review.
+--TeJTyD9hb8KJN2Jy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jan 03, 2017 at 02:38:54PM -0600, Rob Herring wrote:
-> On Wed, Dec 28, 2016 at 07:30:36PM +0100, Pavel Machek wrote:
-> > From: Sakari Ailus <sakari.ailus@iki.fi>
-> > 
-> > In the vast majority of cases the bus type is known to the driver(s)
-> > since a receiver or transmitter can only support a single one. There
-> > are cases however where different options are possible.
-> 
-> What cases specifically?
 
-The existing V4L2 OF support tries to figure out the bus type and parse the
-bus parameters based on that. This does not scale too well as there are
-multiple serial busses that share common properties.
+=46rom: Sakari Ailus <sakari.ailus@iki.fi>
 
-Some hardware also supports multiple types of busses on the same interfaces.
+The function to parse CSI2 bus parameters was called
+v4l2_of_parse_csi_bus(), rename it as v4l2_of_parse_csi2_bus() in
+anticipation of CSI1/CCP2 support.
 
-> 
-> > Document the CSI1/CCP2 properties strobe_clk_inv and strobe_clock
-> > properties. The former tells whether the strobe/clock signal is
-> > inverted, while the latter signifies the clock or strobe mode.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> > 
-> > diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > index 9cd2a36..f0523f7 100644
-> > --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > @@ -76,6 +76,10 @@ Optional endpoint properties
-> >    mode horizontal and vertical synchronization signals are provided to the
-> >    slave device (data source) by the master device (data sink). In the master
-> >    mode the data source device is also the source of the synchronization signals.
-> > +- bus-type: data bus type. Possible values are:
-> > +  0 - CSI2
-> 
-> As in MIPI CSI2?
+Obtain data bus type from bus-type property. Only try parsing bus
+specific properties in this case.
 
-Yeah, I guess it'd make sense to make this explicit.
+Separate lane parsing from CSI-2 bus parameter parsing. The CSI-1 will
+need these as well, separate them into a different
+function. have_clk_lane and num_data_lanes arguments may be NULL; the
+CSI-1 bus will have no use for them.
 
-> 
-> > +  1 - parallel / Bt656
-> > +  2 - CCP2
-> >  - bus-width: number of data lines actively used, valid for the parallel busses.
-> >  - data-shift: on the parallel data busses, if bus-width is used to specify the
-> >    number of data lines, data-shift can be used to specify which data lines are
-> > @@ -110,9 +114,10 @@ Optional endpoint properties
-> >    lane and followed by the data lanes in the same order as in data-lanes.
-> >    Valid values are 0 (normal) and 1 (inverted). The length of the array
-> >    should be the combined length of data-lanes and clock-lanes properties.
-> > -  If the lane-polarities property is omitted, the value must be interpreted
-> > -  as 0 (normal). This property is valid for serial busses only.
-> 
-> Why is this removed?
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-Must have been by mistake. :-)
+diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4=
+l2-of.c
+index 93b3368..60bbc5f 100644
+--- a/drivers/media/v4l2-core/v4l2-of.c
++++ b/drivers/media/v4l2-core/v4l2-of.c
+@@ -20,53 +20,88 @@
+=20
+ #include <media/v4l2-of.h>
+=20
+-static int v4l2_of_parse_csi_bus(const struct device_node *node,
+-				 struct v4l2_of_endpoint *endpoint)
++enum v4l2_of_bus_type {
++	V4L2_OF_BUS_TYPE_CSI2 =3D 0,
++	V4L2_OF_BUS_TYPE_PARALLEL,
++};
++
++static int v4l2_of_parse_lanes(const struct device_node *node,
++			       unsigned char *clock_lane,
++			       bool *have_clk_lane,
++			       unsigned char *data_lanes,
++			       bool *lane_polarities,
++			       unsigned short *__num_data_lanes,
++			       unsigned int max_data_lanes)
+ {
+-	struct v4l2_of_bus_mipi_csi2 *bus =3D &endpoint->bus.mipi_csi2;
+ 	struct property *prop;
+-	bool have_clk_lane =3D false;
+-	unsigned int flags =3D 0;
++	unsigned short num_data_lanes =3D 0;
+ 	u32 v;
+=20
+ 	prop =3D of_find_property(node, "data-lanes", NULL);
+ 	if (prop) {
+ 		const __be32 *lane =3D NULL;
+-		unsigned int i;
+=20
+-		for (i =3D 0; i < ARRAY_SIZE(bus->data_lanes); i++) {
++		for (num_data_lanes =3D 0; num_data_lanes < max_data_lanes;
++		     num_data_lanes++) {
+ 			lane =3D of_prop_next_u32(prop, lane, &v);
+ 			if (!lane)
+ 				break;
+-			bus->data_lanes[i] =3D v;
++			data_lanes[num_data_lanes] =3D v;
+ 		}
+-		bus->num_data_lanes =3D i;
+ 	}
++	if (__num_data_lanes)
++		*__num_data_lanes =3D num_data_lanes;
+=20
+ 	prop =3D of_find_property(node, "lane-polarities", NULL);
+ 	if (prop) {
+ 		const __be32 *polarity =3D NULL;
+ 		unsigned int i;
+=20
+-		for (i =3D 0; i < ARRAY_SIZE(bus->lane_polarities); i++) {
++		for (i =3D 0; i < 1 + max_data_lanes; i++) {
+ 			polarity =3D of_prop_next_u32(prop, polarity, &v);
+ 			if (!polarity)
+ 				break;
+-			bus->lane_polarities[i] =3D v;
++			lane_polarities[i] =3D v;
+ 		}
+=20
+-		if (i < 1 + bus->num_data_lanes /* clock + data */) {
++		if (i < 1 + num_data_lanes /* clock + data */) {
+ 			pr_warn("%s: too few lane-polarities entries (need %u, got %u)\n",
+-				node->full_name, 1 + bus->num_data_lanes, i);
++				node->full_name, 1 + num_data_lanes, i);
+ 			return -EINVAL;
+ 		}
+ 	}
+=20
++	if (have_clk_lane)
++		*have_clk_lane =3D false;
++
+ 	if (!of_property_read_u32(node, "clock-lanes", &v)) {
+-		bus->clock_lane =3D v;
+-		have_clk_lane =3D true;
++		*clock_lane =3D v;
++		if (have_clk_lane)
++			*have_clk_lane =3D true;
+ 	}
+=20
++	return 0;
++}
++
++static int v4l2_of_parse_csi2_bus(const struct device_node *node,
++				 struct v4l2_of_endpoint *endpoint)
++{
++	struct v4l2_of_bus_mipi_csi2 *bus =3D &endpoint->bus.mipi_csi2;
++	bool have_clk_lane =3D false;
++	unsigned int flags =3D 0;
++	int rval;
++	u32 v;
++
++	rval =3D v4l2_of_parse_lanes(node, &bus->clock_lane, &have_clk_lane,
++				   bus->data_lanes, bus->lane_polarities,
++				   &bus->num_data_lanes,
++				   ARRAY_SIZE(bus->data_lanes));
++	if (rval)
++		return rval;
++
++	BUILD_BUG_ON(1 + ARRAY_SIZE(bus->data_lanes)
++		       !=3D ARRAY_SIZE(bus->lane_polarities));
++
+ 	if (of_get_property(node, "clock-noncontinuous", &v))
+ 		flags |=3D V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK;
+ 	else if (have_clk_lane || bus->num_data_lanes > 0)
+@@ -151,6 +186,7 @@ static void v4l2_of_parse_parallel_bus(const struct dev=
+ice_node *node,
+ int v4l2_of_parse_endpoint(const struct device_node *node,
+ 			   struct v4l2_of_endpoint *endpoint)
+ {
++	u32 bus_type;
+ 	int rval;
+=20
+ 	of_graph_parse_endpoint(node, &endpoint->base);
+@@ -158,17 +194,33 @@ int v4l2_of_parse_endpoint(const struct device_node *=
+node,
+ 	memset(&endpoint->bus_type, 0, sizeof(*endpoint) -
+ 	       offsetof(typeof(*endpoint), bus_type));
+=20
+-	rval =3D v4l2_of_parse_csi_bus(node, endpoint);
+-	if (rval)
+-		return rval;
+-	/*
+-	 * Parse the parallel video bus properties only if none
+-	 * of the MIPI CSI-2 specific properties were found.
+-	 */
+-	if (endpoint->bus.mipi_csi2.flags =3D=3D 0)
+-		v4l2_of_parse_parallel_bus(node, endpoint);
++	rval =3D of_property_read_u32(node, "bus-type", &bus_type);
++	if (rval < 0) {
++		endpoint->bus_type =3D 0;
++		rval =3D v4l2_of_parse_csi2_bus(node, endpoint);
++		if (rval)
++			return rval;
++		/*
++		 * Parse the parallel video bus properties only if none
++		 * of the MIPI CSI-2 specific properties were found.
++		 */
++		if (endpoint->bus.mipi_csi2.flags =3D=3D 0)
++			v4l2_of_parse_parallel_bus(node, endpoint);
++
++		return 0;
++	}
+=20
+-	return 0;
++	switch (bus_type) {
++	case V4L2_OF_BUS_TYPE_CSI2:
++		return v4l2_of_parse_csi2_bus(node, endpoint);
++	case V4L2_OF_BUS_TYPE_PARALLEL:
++		v4l2_of_parse_parallel_bus(node, endpoint);
++		return 0;
++	default:
++		pr_warn("bad bus-type %u, device_node \"%s\"\n",
++			bus_type, node->full_name);
++		return -EINVAL;
++	}
+ }
+ EXPORT_SYMBOL(v4l2_of_parse_endpoint);
+=20
 
-> 
-> > -
-> > +- clock-inv: Clock or strobe signal inversion.
-> > +  Possible values: 0 -- not inverted; 1 -- inverted
-> 
-> "invert" assumes I know what is normal and I do not. Define what is 
-> "normal" and name the property the opposite of that. If normal is data 
-> shifted on clock rising edge, then call the the property 
-> "clock-shift-falling-edge" for example..
 
-The hardware documentation says this is the "strobe/clock inversion control
-signal". I'm not entirely sure whether this is just signal polarity (it's a
-differential signal) or inversion of an internal signal of the CCP2 block.
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-It might make sense to make this a private property for the OMAP 3 ISP
-instead. If it's seen elsewhere, then think about it again. I doubt it
-would, as CCP2 is an old bus that's used on Nokia N9, N950 and N900.
+--TeJTyD9hb8KJN2Jy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-As strobe is included, I'd add that to the name. Say, "ti,clock-strobe-inv".
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-> 
-> > +- strobe: Whether the clock signal is used as clock or strobe. Used
-> > +  with CCP2, for instance.
-> >  
-> >  Example
-> >  -------
-> > 
-> > 
+iEYEARECAAYFAlh3WUUACgkQMOfwapXb+vIj1QCfSjiwSjLKfnqwzUGBZgqpXvrm
+1v0AnjONz1cJP8+5llz64bE8mRcjH0Tt
+=MQoc
+-----END PGP SIGNATURE-----
 
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+--TeJTyD9hb8KJN2Jy--
