@@ -1,67 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48248 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750884AbdAaGxU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jan 2017 01:53:20 -0500
-Date: Tue, 31 Jan 2017 08:53:08 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        devicetree@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv2 04/16] ov7670: add devicetree support
-Message-ID: <20170131065308.GP7139@valkosipuli.retiisi.org.uk>
-References: <20170130140628.18088-1-hverkuil@xs4all.nl>
- <20170130140628.18088-5-hverkuil@xs4all.nl>
+Received: from mail.kernel.org ([198.145.29.136]:59192 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750733AbdALV3E (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 12 Jan 2017 16:29:04 -0500
+Date: Thu, 12 Jan 2017 15:29:00 -0600
+From: Bjorn Helgaas <helgaas@kernel.org>
+To: Christoph Hellwig <hch@lst.de>
+Cc: linux-pci@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        netdev@vger.kernel.org, linux-media@vger.kernel.org,
+        Tom Lendacky <thomas.lendacky@amd.com>
+Subject: Re: kill off pci_enable_msi_{exact,range}
+Message-ID: <20170112212900.GE8312@bhelgaas-glaptop.roam.corp.google.com>
+References: <1483994260-19797-1-git-send-email-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170130140628.18088-5-hverkuil@xs4all.nl>
+In-Reply-To: <1483994260-19797-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Mon, Jan 09, 2017 at 09:37:37PM +0100, Christoph Hellwig wrote:
+> I had hope that we could kill these old interfaces of for 4.10-rc,
+> but as of today Linus tree still has two users:
+> 
+>  (1) the cobalt media driver, for which I sent a patch long time ago,
+>      it got missed in the merge window.
+>  (2) the new xgbe driver was merged in 4.10-rc but used the old interfaces
+>      anyway
+> 
+> This series resend the patch for (1) and adds a new one for (2), as well
+> as having the final removal patch behind it.  Maybe we should just queue
+> up all three together in the PCI tree for 4.11?
 
-On Mon, Jan 30, 2017 at 03:06:16PM +0100, Hans Verkuil wrote:
-> @@ -1549,6 +1551,29 @@ static const struct ov7670_devtype ov7670_devdata[] = {
->  	},
->  };
->  
-> +static int ov7670_init_gpio(struct i2c_client *client, struct ov7670_info *info)
-> +{
-> +	/* Request the power down GPIO asserted */
-
-You're setting both GPIOs to low state. How about just removing the
-comments? I think they're just confusing.
-
-> +	info->pwdn_gpio = devm_gpiod_get_optional(&client->dev, "pwdn",
-> +			GPIOD_OUT_LOW);
-> +	if (IS_ERR(info->pwdn_gpio)) {
-> +		dev_info(&client->dev, "can't get %s GPIO\n", "pwdn");
-> +		return PTR_ERR(info->pwdn_gpio);
-> +	}
-> +
-> +	/* Request the reset GPIO deasserted */
-> +	info->resetb_gpio = devm_gpiod_get_optional(&client->dev, "resetb",
-> +			GPIOD_OUT_LOW);
-> +	if (IS_ERR(info->resetb_gpio)) {
-> +		dev_info(&client->dev, "can't get %s GPIO\n", "resetb");
-> +		return PTR_ERR(info->resetb_gpio);
-> +	}
-> +
-> +	usleep_range(3000, 5000);
-> +
-> +	return 0;
-> +}
-> +
->  static int ov7670_probe(struct i2c_client *client,
->  			const struct i2c_device_id *id)
->  {
-
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Applied all three (with Tom's ack on the amd-xgbe patch) to pci/msi for
+v4.11, thanks!
