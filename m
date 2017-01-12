@@ -1,613 +1,607 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f171.google.com ([209.85.223.171]:34868 "EHLO
-        mail-io0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1760775AbdAKXOp (ORCPT
+Received: from smtprelay.synopsys.com ([198.182.60.111]:54458 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751382AbdALRns (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Jan 2017 18:14:45 -0500
-Received: by mail-io0-f171.google.com with SMTP id j18so5598356ioe.2
-        for <linux-media@vger.kernel.org>; Wed, 11 Jan 2017 15:14:44 -0800 (PST)
+        Thu, 12 Jan 2017 12:43:48 -0500
+Subject: Re: [PATCH v2 2/2] Support for DW CSI-2 Host IPK
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>,
+        <robh+dt@kernel.org>, <mark.rutland@arm.com>, <mchehab@kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-media@vger.kernel.org>
+References: <cover.1481548484.git.roliveir@synopsys.com>
+ <bf2f0a6730e4a74d64e04575859d6b195f65b368.1481554324.git.roliveir@synopsys.com>
+ <eb89af79-f868-ceba-ac69-558bac77613d@xs4all.nl>
+CC: <davem@davemloft.net>, <gregkh@linuxfoundation.org>,
+        <geert+renesas@glider.be>, <akpm@linux-foundation.org>,
+        <linux@roeck-us.net>, <laurent.pinchart+renesas@ideasonboard.com>,
+        <arnd@arndb.de>, <sudipm.mukherjee@gmail.com>,
+        <tiffany.lin@mediatek.com>, <minghsiu.tsai@mediatek.com>,
+        <jean-christophe.trotin@st.com>, <andrew-ct.chen@mediatek.com>,
+        <simon.horman@netronome.com>, <songjun.wu@microchip.com>,
+        <bparrot@ti.com>, <CARLOS.PALMINHA@synopsys.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+Message-ID: <8823670a-8456-87d0-3265-cb427e3445eb@synopsys.com>
+Date: Thu, 12 Jan 2017 17:43:23 +0000
 MIME-Version: 1.0
-In-Reply-To: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
-From: Tim Harvey <tharvey@gateworks.com>
-Date: Wed, 11 Jan 2017 15:14:43 -0800
-Message-ID: <CAJ+vNU2zU++Xam_UpDPfmSQhauhhS3_z8L-+ww6o-D9brWhiwA@mail.gmail.com>
-Subject: Re: [PATCH v3 00/24] i.MX Media Driver
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <kernel@pengutronix.de>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        mchehab@kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        nick@shmanahar.org, markus.heiser@darmarit.de,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, Arnd Bergmann <arnd@arndb.de>,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        Simon Horman <horms+renesas@verge.net.au>,
-        =?UTF-8?Q?Niklas_S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <eb89af79-f868-ceba-ac69-558bac77613d@xs4all.nl>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 6, 2017 at 6:11 PM, Steve Longerbeam <slongerbeam@gmail.com> wrote:
-> In version 3:
->
-> Changes suggested by Rob Herring <robh@kernel.org>:
->
->   - prepended FIM node properties with vendor prefix "fsl,".
->
->   - make mipi csi-2 receiver compatible string SoC specific:
->     "fsl,imx6-mipi-csi2" instead of "fsl,imx-mipi-csi2".
->
->   - redundant "_clk" removed from mipi csi-2 receiver clock-names property.
->
->   - removed board-specific info from the media driver binding doc. These
->     were all related to sensor bindings, which already are (adv7180)
->     or will be (ov564x) covered in separate binding docs. All reference
->     board info not related to DT bindings has been moved to
->     Documentation/media/v4l-drivers/imx.rst.
->
->   - removed "_mipi" from the OV5640 compatible string.
->
-> Changes suggested by Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>:
->
->   Mostly cosmetic/non-functional changes which I won't list here, except
->   for the following:
->
->   - spin_lock_irqsave() changed to spin_lock() in a couple interrupt handlers.
->
->   - fixed some unnecessary of_node_put()'s in for_each_child_of_node() loops.
->
->   - check/handle return code from required reg property of CSI port nodes.
->
->   - check/handle return code from clk_prepare_enable().
->
-> Changes suggested by Fabio Estevam <festevam@gmail.com>:
->
->   - switch to VGEN3 Analog Vdd supply assuming rev. C SabreSD boards.
->
->   - finally got around to passing valid IOMUX pin config values to the
->     pin groups.
->
-> Other changes:
->
->   - removed the FIM properties that overrided the v4l2 FIM control defaults
->     values. This was left-over from a requirement of a customer and is not
->     necessary here.
->
->   - The FIM must be explicitly enabled in the fim child node under the CSI
->     port nodes, using the status property. If not enabled, FIM v4l2 controls
->     will not appear in the video capture driver.
->
->   - brought in additional media types patch from Philipp Zabel. Use new
->     MEDIA_ENT_F_VID_IF_BRIDGE in mipi csi-2 receiver subdev.
->
->   - brought in latest platform generic video multiplexer subdevice driver
->     from Philipp Zabel (squashed with patch that uses new MEDIA_ENT_F_MUX).
->
->   - removed imx-media-of.h, moved those prototypes into imx-media.h.
->
->
-<snip>
+Hi Hans,
 
-Hi Steve,
+Thank you for your feedback.
 
-I took a stab at testing this today on a gw51xx which has an adv7180
-hooked up as follows:
-- i2c3@0x20
-- 8bit data bus from DAT12 to DAT19, HSYNC, VSYNC, PIXCLK on CSI0 pads
-(CSI0_IPU1)
-- PWRDWN# on MX6QDL_PAD_CSI0_DATA_EN__GPIO5_IO20
-- IRQ# on MX6QDL_PAD_CSI0_DAT5__GPIO5_IO23
-- all three analog inputs available to off-board connector
+On 1/11/2017 11:54 AM, Hans Verkuil wrote:
+> Hi Ramiro,
+> 
+> See my review comments below:
+> 
+> On 12/12/16 16:00, Ramiro Oliveira wrote:
+>> Add support for the DesignWare CSI-2 Host IP Prototyping Kit
+>>
+>> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
 
-My patch to the imx6qdl-gw51xx dtsi is:
-diff --git a/arch/arm/boot/dts/imx6qdl-gw51xx.dtsi
-b/arch/arm/boot/dts/imx6qdl-gw51xx.dtsi
-index afec2c7..2583d72 100644
---- a/arch/arm/boot/dts/imx6qdl-gw51xx.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-gw51xx.dtsi
-@@ -165,6 +174,52 @@
-        pinctrl-names = "default";
-        pinctrl-0 = <&pinctrl_i2c3>;
-        status = "okay";
-+
-+       camera: adv7180@20 {
-+               compatible = "adi,adv7180";
-+               pinctrl-names = "default";
-+               pinctrl-0 = <&pinctrl_adv7180>;
-+               reg = <0x20>;
-+               powerdown-gpio = <&gpio5 20 GPIO_ACTIVE_LOW>;
-+               interrupt-parent = <&gpio5>;
-+               interrupts = <23 GPIO_ACTIVE_LOW>;
-+               inputs = <0x00 0x01 0x02>;
-+               input-names = "ADV7180 Composite on Ain1",
-+                             "ADV7180 Composite on Ain2",
-+                             "ADV7180 Composite on Ain3";
-+
-+               port {
-+                       adv7180_to_ipu1_csi0_mux: endpoint {
-+                               remote-endpoint =
-<&ipu1_csi0_mux_from_parallel_sensor>;
-+                               bus-width = <8>;
-+                       };
-+               };
-+       };
-+};
-+
-+&ipu1_csi0_from_ipu1_csi0_mux {
-+       bus-width = <8>;
-+};
-+
-+&ipu1_csi0_mux_from_parallel_sensor {
-+       remote-endpoint = <&adv7180_to_ipu1_csi0_mux>;
-+       bus-width = <8>;
-+};
-+
-+&ipu1_csi0 {
-+       pinctrl-names = "default";
-+       pinctrl-0 = <&pinctrl_ipu1_csi0>;
-+
-+       /* enable frame interval monitor on this port */
-+       fim {
-+               status = "okay";
-+       };
- };
+[snip]
 
- &pcie {
-@@ -236,6 +291,13 @@
+>> +static int
+>> +dw_mipi_csi_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
+>> +            struct v4l2_subdev_format *fmt)
+>> +{
+>> +    struct mipi_csi_dev *dev = sd_to_mipi_csi_dev(sd);
+>> +    struct mipi_fmt const *dev_fmt;
+>> +    struct v4l2_mbus_framefmt *mf;
+>> +    unsigned int i = 0;
+>> +    const struct v4l2_bt_timings *bt_r = &v4l2_dv_timings_presets[0].bt;
+>> +
+>> +    mf = __dw_mipi_csi_get_format(dev, cfg, fmt->which);
+>> +
+>> +    dev_fmt = dw_mipi_csi_try_format(&fmt->format);
+>> +    if (dev_fmt) {
+>> +        *mf = fmt->format;
+>> +        if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+>> +            dev->fmt = dev_fmt;
+>> +        dw_mipi_csi_set_ipi_fmt(dev);
+>> +    }
+>> +    while (v4l2_dv_timings_presets[i].bt.width) {
+>> +        const struct v4l2_bt_timings *bt =
+>> +            &v4l2_dv_timings_presets[i].bt;
+>> +        if (mf->width == bt->width && mf->height == bt->width) {
+>> +            __dw_mipi_csi_fill_timings(dev, bt);
+>> +            return 0;
+>> +        }
+>> +        i++;
+>> +    }
+>> +
+>> +    __dw_mipi_csi_fill_timings(dev, bt_r);
+> 
+> This code is weird. The video source can be either from a sensor or from an
+> HDMI input, right?
+> 
+> But if it is from a sensor, then using v4l2_dv_timings_presets since that's for
+> an HDMI input. Sensors will typically not follow these preset timings.
+> 
+> For HDMI input I expect that this driver supports the s_dv_timings op and will
+> just use the timings set there and override the width/height in v4l2_subdev_format.
+> 
+> For sensors I am actually not quite certain how this is done. I've CC-ed Sakari
+> since he'll know. But let us know first whether it is indeed the intention that
+> this should also work with a sensor.
+> 
 
- &iomuxc {
-        imx6qdl-gw51xx {
-+               pinctrl_adv7180: adv7180grp {
-+                       fsl,pins = <
-+                               MX6QDL_PAD_CSI0_DAT5__GPIO5_IO23
- 0x0001b0b0 /* VIDDEC_IRQ# */
-+                               MX6QDL_PAD_CSI0_DATA_EN__GPIO5_IO20
- 0x4001b0b0 /* VIDDEC_EN */
-+                       >;
-+               };
-+
-                pinctrl_enet: enetgrp {
-                        fsl,pins = <
-                                MX6QDL_PAD_RGMII_RXC__RGMII_RXC         0x1b030
-@@ -306,6 +368,22 @@
-                        >;
-                };
+Actually the video source, at the moment, can only be from a sensor. I'm using
+v4l2_dv_timings_presets as a reference since we usually use this setup with a
+Test Equipment in which we can configure every parameter.
 
-+               pinctrl_ipu1_csi0: ipu1csi0grp { /* IPU1_CSI0: 8-bit input */
-+                       fsl,pins = <
-+
-MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12    0x1b0b0
-+
-MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13    0x1b0b0
-+
-MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14    0x1b0b0
-+
-MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15    0x1b0b0
-+
-MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16    0x1b0b0
-+
-MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17    0x1b0b0
-+
-MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18    0x1b0b0
-+
-MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19    0x1b0b0
-+                               MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC
-    0x1b0b0
-+                               MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC
-    0x1b0b0
-+
-MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK   0x1b0b0
-+                       >;
-+               };
-+
-                pinctrl_pcie: pciegrp {
-                        fsl,pins = <
-                                MX6QDL_PAD_GPIO_0__GPIO1_IO00           0x1b0b0
+I'll wait for Sakari to answer, and change it to what he recommends.
 
-On an IMX6Q I'm getting the following when the adv7180 module loads:
-[   12.862477] adv7180 2-0020: chip found @ 0x20 (21a8000.i2c)
-[   12.907767] imx-media: Registered subdev adv7180 2-0020
-[   12.907793] imx-media soc:media@0: Entity type for entity adv7180
-2-0020 was not initialized!
-[   12.907867] imx-media: imx_media_create_link: adv7180 2-0020:0 ->
-ipu1_csi0_mux:1
+>> +    return 0;
+>> +
+>> +}
+>> +
+>> +static int
+>> +dw_mipi_csi_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
+>> +            struct v4l2_subdev_format *fmt)
+>> +{
+>> +    struct mipi_csi_dev *dev = sd_to_mipi_csi_dev(sd);
+>> +    struct v4l2_mbus_framefmt *mf;
+>> +
+>> +    mf = __dw_mipi_csi_get_format(dev, cfg, fmt->which);
+>> +    if (!mf)
+>> +        return -EINVAL;
+>> +
+>> +    mutex_lock(&dev->lock);
+>> +    fmt->format = *mf;
+>> +    mutex_unlock(&dev->lock);
+>> +    return 0;
+>> +}
+>> +
+>> +static int
+>> +dw_mipi_csi_s_power(struct v4l2_subdev *sd, int on)
+>> +{
+>> +    struct mipi_csi_dev *dev = sd_to_mipi_csi_dev(sd);
+>> +
+>> +    if (on) {
+>> +        dw_mipi_csi_hw_stdby(dev);
+>> +        dw_mipi_csi_start(dev);
+>> +    } else {
+>> +        dw_mipi_csi_mask_irq_power_off(dev);
+>> +    }
+>> +
+>> +    return 0;
+>> +}
+>> +
+>> +static int
+>> +dw_mipi_csi_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+>> +{
+>> +    struct v4l2_mbus_framefmt *format =
+>> +        v4l2_subdev_get_try_format(sd, fh->pad, 0);
+>> +
+>> +    format->colorspace = V4L2_COLORSPACE_SRGB;
+>> +    format->code = dw_mipi_csi_formats[0].code;
+>> +    format->width = MIN_WIDTH;
+>> +    format->height = MIN_HEIGHT;
+>> +    format->field = V4L2_FIELD_NONE;
+> 
+> Don't do this. Instead implement the init_cfg pad op and initialize this there.
+> 
+> You can then drop this function.
+> 
 
-Is the warning that adv7180 was not initialized expected and or an issue?
+I'll do that.
 
-Now that your driver is hooking into the current media framework, I'm
-not at all clear on how to link and configure the media entities.
-Using 'media-ctl -p' to list the entities I see:
-Media controller API version 0.1.0
+>> +
+>> +    return 0;
+>> +}
+>> +
+>> +static const struct v4l2_subdev_internal_ops dw_mipi_csi_sd_internal_ops = {
+>> +    .open = dw_mipi_csi_open,
+>> +};
+>> +
+>> +static struct v4l2_subdev_core_ops dw_mipi_csi_core_ops = {
+>> +    .s_power = dw_mipi_csi_s_power,
+>> +};
+>> +
+>> +static struct v4l2_subdev_pad_ops dw_mipi_csi_pad_ops = {
+>> +    .enum_mbus_code = dw_mipi_csi_enum_mbus_code,
+>> +    .get_fmt = dw_mipi_csi_get_fmt,
+>> +    .set_fmt = dw_mipi_csi_set_fmt,
+>> +};
+>> +
+>> +static struct v4l2_subdev_ops dw_mipi_csi_subdev_ops = {
+>> +    .core = &dw_mipi_csi_core_ops,
+>> +    .pad = &dw_mipi_csi_pad_ops,
+>> +};
+>> +
+>> +static irqreturn_t
+>> +dw_mipi_csi_irq1(int irq, void *dev_id)
+>> +{
+>> +    struct mipi_csi_dev *csi_dev = dev_id;
+>> +    u32 global_int_status, i_sts;
+>> +    unsigned long flags;
+>> +    struct device *dev = &csi_dev->pdev->dev;
+>> +
+>> +    global_int_status = dw_mipi_csi_read(csi_dev, R_CSI2_INTERRUPT);
+>> +    spin_lock_irqsave(&csi_dev->slock, flags);
+>> +
+>> +    if (global_int_status & CSI2_INT_PHY_FATAL) {
+>> +        i_sts = dw_mipi_csi_read(csi_dev, R_CSI2_INT_PHY_FATAL);
+>> +        dev_dbg_ratelimited(dev, "CSI INT PHY FATAL: %08X\n", i_sts);
+>> +    }
+>> +
+>> +    if (global_int_status & CSI2_INT_PKT_FATAL) {
+>> +        i_sts = dw_mipi_csi_read(csi_dev, R_CSI2_INT_PKT_FATAL);
+>> +        dev_dbg_ratelimited(dev, "CSI INT PKT FATAL: %08X\n", i_sts);
+>> +    }
+>> +
+>> +    if (global_int_status & CSI2_INT_FRAME_FATAL) {
+>> +        i_sts = dw_mipi_csi_read(csi_dev, R_CSI2_INT_FRAME_FATAL);
+>> +        dev_dbg_ratelimited(dev, "CSI INT FRAME FATAL: %08X\n", i_sts);
+>> +    }
+>> +
+>> +    if (global_int_status & CSI2_INT_PHY) {
+>> +        i_sts = dw_mipi_csi_read(csi_dev, R_CSI2_INT_PHY);
+>> +        dev_dbg_ratelimited(dev, "CSI INT PHY: %08X\n", i_sts);
+>> +    }
+>> +
+>> +    if (global_int_status & CSI2_INT_PKT) {
+>> +        i_sts = dw_mipi_csi_read(csi_dev, R_CSI2_INT_PKT);
+>> +        dev_dbg_ratelimited(dev, "CSI INT PKT: %08X\n", i_sts);
+>> +    }
+>> +
+>> +    if (global_int_status & CSI2_INT_LINE) {
+>> +        i_sts = dw_mipi_csi_read(csi_dev, R_CSI2_INT_LINE);
+>> +        dev_dbg_ratelimited(dev, "CSI INT LINE: %08X\n", i_sts);
+>> +    }
+>> +
+>> +    if (global_int_status & CSI2_INT_IPI) {
+>> +        i_sts = dw_mipi_csi_read(csi_dev, R_CSI2_INT_IPI);
+>> +        dev_dbg_ratelimited(dev, "CSI INT IPI: %08X\n", i_sts);
+>> +    }
+>> +    spin_unlock_irqrestore(&csi_dev->slock, flags);
+>> +    return IRQ_HANDLED;
+>> +}
+>> +
+>> +static int
+>> +dw_mipi_csi_parse_dt(struct platform_device *pdev, struct mipi_csi_dev *dev)
+>> +{
+>> +    struct device_node *node = pdev->dev.of_node;
+>> +    int reg;
+>> +    int ret = 0;
+>> +
+>> +    /* Device tree information */
+> 
+> I would expect to see a call to v4l2_of_parse_endpoint here.
+> 
 
-Media device information
-------------------------
-driver          imx-media
-model           imx-media
-serial
-bus info
-hw revision     0x0
-driver version  0.0.0
+You're right. I'll add it.
 
-Device topology
-- entity 1: ipu2_csi1_mux (3 pads, 1 link)
-            type V4L2 subdev subtype Unknown flags 0
-            device node name /dev/v4l-subdev0
-        pad0: Sink
-                [fmt:unknown/0x0]
-        pad1: Sink
-                [fmt:unknown/0x0]
-        pad2: Source
-                [fmt:unknown/0x0]
-                -> "ipu2_csi1":0 []
+>> +    ret = of_property_read_u32(node, "data-lanes", &dev->hw.num_lanes);
+>> +    if (ret) {
+>> +        dev_err(&pdev->dev, "Couldn't read data-lanes\n");
+>> +        return ret;
+>> +    }
+>> +
+>> +    ret = of_property_read_u32(node, "output-type", &dev->hw.output_type);
+>> +    if (ret) {
+>> +        dev_err(&pdev->dev, "Couldn't read output-type\n");
+>> +        return ret;
+>> +    }
+>> +
+>> +    ret = of_property_read_u32(node, "ipi-mode", &dev->hw.ipi_mode);
+>> +    if (ret) {
+>> +        dev_err(&pdev->dev, "Couldn't read ipi-mode\n");
+>> +        return ret;
+>> +    }
+>> +
+>> +    ret =
+>> +        of_property_read_u32(node, "ipi-auto-flush",
+>> +                 &dev->hw.ipi_auto_flush);
+>> +    if (ret) {
+>> +        dev_err(&pdev->dev, "Couldn't read ipi-auto-flush\n");
+>> +        return ret;
+>> +    }
+>> +
+>> +    ret =
+>> +        of_property_read_u32(node, "ipi-color-mode",
+>> +                 &dev->hw.ipi_color_mode);
+>> +    if (ret) {
+>> +        dev_err(&pdev->dev, "Couldn't read ipi-color-mode\n");
+>> +        return ret;
+>> +    }
+>> +
+>> +    ret =
+>> +        of_property_read_u32(node, "virtual-channel", &dev->hw.virtual_ch);
+>> +    if (ret) {
+>> +        dev_err(&pdev->dev, "Couldn't read virtual-channel\n");
+>> +        return ret;
+>> +    }
+>> +
+>> +    node = of_get_child_by_name(node, "port");
+>> +    if (!node)
+>> +        return -EINVAL;
+>> +
+>> +    ret = of_property_read_u32(node, "reg", &reg);
+>> +    if (ret) {
+>> +        dev_err(&pdev->dev, "Couldn't read reg value\n");
+>> +        return ret;
+>> +    }
+>> +    dev->index = reg - 1;
+>> +
+>> +    if (dev->index >= CSI_MAX_ENTITIES)
+>> +        return -ENXIO;
+>> +
+>> +    return 0;
+>> +}
+>> +
 
-- entity 5: ipu1_csi0_mux (3 pads, 2 links)
-            type V4L2 subdev subtype Unknown flags 0
-            device node name /dev/v4l-subdev1
-        pad0: Sink
-                [fmt:unknown/0x0]
-        pad1: Sink
-                [fmt:unknown/0x0]
-                <- "adv7180 2-0020":0 []
-        pad2: Source
-                [fmt:unknown/0x0]
-                -> "ipu1_csi0":0 []
+[snip]
 
-- entity 9: ipu1_ic_prpenc (2 pads, 4 links)
-            type V4L2 subdev subtype Unknown flags 0
-            device node name /dev/v4l-subdev2
-        pad0: Sink
-                [fmt:UYVY2X8/640x480 field:none]
-                <- "ipu1_csi0":1 []
-                <- "ipu1_csi1":1 []
-        pad1: Source
-                [fmt:UYVY2X8/640x480 field:none]
-                -> "camif0":0 []
-                -> "camif1":0 []
+>> diff --git a/drivers/media/platform/dwc/plat_ipk.c
+>> b/drivers/media/platform/dwc/plat_ipk.c
+>> new file mode 100644
+>> index 0000000..02dcf36
+>> --- /dev/null
+>> +++ b/drivers/media/platform/dwc/plat_ipk.c
+>> @@ -0,0 +1,818 @@
+>> +/**
+>> + * DWC MIPI CSI-2 Host IPK platform device driver
+> 
+> What does IPK stand for?
+> 
 
-- entity 12: ipu1_ic_prpvf (2 pads, 8 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev3
-        pad0: Sink
-                [fmt:UYVY2X8/640x480 field:none]
-                <- "ipu1_csi0":1 []
-                <- "ipu1_csi1":1 []
-                <- "ipu1_smfc0":1 []
-                <- "ipu1_smfc1":1 []
-        pad1: Source
-                [fmt:UYVY2X8/640x480 field:none]
-                -> "camif0":0 []
-                -> "camif1":0 []
-                -> "ipu1_ic_pp0":0 []
-                -> "ipu1_ic_pp1":0 []
+IPK stands for IP Prototyping Kit. However any reference to this will probably
+disappear in the next patchset.
 
-- entity 15: ipu1_ic_pp0 (2 pads, 4 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev4
-        pad0: Sink
-                [fmt:UYVY2X8/640x480 field:none]
-                <- "ipu1_ic_prpvf":1 []
-                <- "ipu1_smfc0":1 []
-        pad1: Source
-                [fmt:UYVY2X8/640x480 field:none]
-                -> "camif0":0 []
-                -> "camif1":0 []
+[snip]
 
-- entity 18: ipu1_ic_pp1 (2 pads, 4 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev5
-        pad0: Sink
-                [fmt:UYVY2X8/640x480 field:none]
-                <- "ipu1_ic_prpvf":1 []
-                <- "ipu1_smfc1":1 []
-        pad1: Source
-                [fmt:UYVY2X8/640x480 field:none]
-                -> "camif0":0 []
-                -> "camif1":0 []
 
-- entity 21: ipu2_ic_prpenc (2 pads, 4 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev6
-        pad0: Sink
-                [fmt:UYVY2X8/640x480 field:none]
-                <- "ipu2_csi0":1 []
-                <- "ipu2_csi1":1 []
-        pad1: Source
-                [fmt:UYVY2X8/640x480 field:none]
-                -> "camif2":0 []
-                -> "camif3":0 []
+>> +
+>> +static const struct plat_ipk_fmt *
+>> +vid_dev_find_format(struct v4l2_format *f, int index)
+>> +{
+>> +    const struct plat_ipk_fmt *fmt = NULL;
+>> +    unsigned int i;
+>> +
+>> +    if (index >= (int) ARRAY_SIZE(vid_dev_formats))
+>> +        return NULL;
+> 
+> ???
+> 
+> What's the purpose of the index argument? I get the feeling it is
+> a left-over from older code.
+> 
 
-- entity 24: ipu2_ic_prpvf (2 pads, 8 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev7
-        pad0: Sink
-                [fmt:UYVY2X8/640x480 field:none]
-                <- "ipu2_csi0":1 []
-                <- "ipu2_csi1":1 []
-                <- "ipu2_smfc0":1 []
-                <- "ipu2_smfc1":1 []
-        pad1: Source
-                [fmt:UYVY2X8/640x480 field:none]
-                -> "camif2":0 []
-                -> "camif3":0 []
-                -> "ipu2_ic_pp0":0 []
-                -> "ipu2_ic_pp1":0 []
+Yes. It's a left-over. I'll remove it.
 
-- entity 27: ipu2_ic_pp0 (2 pads, 4 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev8
-        pad0: Sink
-                [fmt:UYVY2X8/640x480 field:none]
-                <- "ipu2_ic_prpvf":1 []
-                <- "ipu2_smfc0":1 []
-        pad1: Source
-                [fmt:UYVY2X8/640x480 field:none]
-                -> "camif2":0 []
-                -> "camif3":0 []
+>> +
+>> +    for (i = 0; i < ARRAY_SIZE(vid_dev_formats); ++i) {
+>> +        fmt = &vid_dev_formats[i];
+>> +        if (fmt->fourcc == f->fmt.pix.pixelformat)
+>> +            return fmt;
+>> +    }
+>> +    return NULL;
+>> +}
+>> +
+>> +/*
+>> + * Video node ioctl operations
+>> + */
+>> +static int
+>> +vidioc_querycap(struct file *file, void *priv, struct v4l2_capability *cap)
+>> +{
+>> +    struct video_device_dev *vid_dev = video_drvdata(file);
+>> +
+>> +    strlcpy(cap->driver, VIDEO_DEVICE_NAME, sizeof(cap->driver));
+>> +    strlcpy(cap->card, VIDEO_DEVICE_NAME, sizeof(cap->card));
+>> +    snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
+>> +         dev_name(&vid_dev->pdev->dev));
+>> +
+>> +    cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+>> +    cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+> 
+> Set the device_caps in struct video_device and drop these two lines.
+> The core will fill those in for you.
+> 
 
-- entity 30: ipu2_ic_pp1 (2 pads, 4 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev9
-        pad0: Sink
-                [fmt:UYVY2X8/640x480 field:none]
-                <- "ipu2_ic_prpvf":1 []
-                <- "ipu2_smfc1":1 []
-        pad1: Source
-                [fmt:UYVY2X8/640x480 field:none]
-                -> "camif2":0 []
-                -> "camif3":0 []
+I'll change them to where I configure the struct video_device.
 
-- entity 33: ipu1_csi0 (2 pads, 4 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev10
-        pad0: Sink
-                [fmt:UYVY2X8/640x480 field:none]
-                <- "ipu1_csi0_mux":2 []
-        pad1: Source
-                [fmt:UYVY2X8/640x480 field:none
-                 crop.bounds:(0,0)/640x480
-                 crop:(0,0)/0x0]
-                -> "ipu1_ic_prpenc":0 []
-                -> "ipu1_ic_prpvf":0 []
-                -> "ipu1_smfc0":0 []
+>> +    return 0;
+>> +}
+>> +
+>> +static int
+>> +vidioc_enum_fmt_vid_cap(struct file *file, void *priv, struct v4l2_fmtdesc *f)
+>> +{
+>> +    const struct plat_ipk_fmt *p_fmt;
+>> +
+>> +    if (f->index >= ARRAY_SIZE(vid_dev_formats))
+>> +        return -EINVAL;
+>> +
+>> +    p_fmt = &vid_dev_formats[f->index];
+>> +
+>> +    strlcpy(f->description, p_fmt->name, sizeof(f->description));
+> 
+> Don't set the description, the core will do that for you.
+> 
 
-- entity 36: ipu1_csi1 (2 pads, 3 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev11
-        pad0: Sink
-                [fmt:UYVY2X8/640x480 field:none]
-        pad1: Source
-                [fmt:UYVY2X8/640x480 field:none
-                 crop.bounds:(0,0)/640x480
-                 crop:(0,0)/0x0]
-                -> "ipu1_ic_prpenc":0 []
-                -> "ipu1_ic_prpvf":0 []
-                -> "ipu1_smfc1":0 []
+OK.
 
-- entity 39: ipu2_csi0 (2 pads, 3 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev12
-        pad0: Sink
-                [fmt:UYVY2X8/640x480 field:none]
-        pad1: Source
-                [fmt:UYVY2X8/640x480 field:none
-                 crop.bounds:(0,0)/640x480
-                 crop:(0,0)/0x0]
-                -> "ipu2_ic_prpenc":0 []
-                -> "ipu2_ic_prpvf":0 []
-                -> "ipu2_smfc0":0 []
+>> +    f->pixelformat = p_fmt->fourcc;
+>> +
+>> +    return 0;
+>> +}
+>> +
+>> +static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+>> +                    struct v4l2_format *f)
+>> +{
+>> +    struct video_device_dev *dev = video_drvdata(file);
+>> +
+>> +    memcpy(&f->fmt.pix, &dev->format.fmt.pix,
+>> +           sizeof(struct v4l2_pix_format));
+> 
+> Use f->fmt.pix = dev->format.fmt.pix;
+> 
 
-- entity 42: ipu2_csi1 (2 pads, 4 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev13
-        pad0: Sink
-                [fmt:UYVY2X8/640x480 field:none]
-                <- "ipu2_csi1_mux":2 []
-        pad1: Source
-                [fmt:UYVY2X8/640x480 field:none
-                 crop.bounds:(0,0)/640x480
-                 crop:(0,0)/0x0]
-                -> "ipu2_ic_prpenc":0 []
-                -> "ipu2_ic_prpvf":0 []
-                -> "ipu2_smfc1":0 []
+I'll do that
 
-- entity 45: ipu1_smfc0 (2 pads, 5 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev14
-        pad0: Sink
-                [fmt:UYVY2X8/640x480 field:none]
-                <- "ipu1_csi0":1 []
-        pad1: Source
-                [fmt:UYVY2X8/640x480 field:none]
-                -> "ipu1_ic_prpvf":0 []
-                -> "ipu1_ic_pp0":0 []
-                -> "camif0":0 []
-                -> "camif1":0 []
+>> +
+>> +    return 0;
+>> +}
+>> +
+>> +static int
+>> +vidioc_try_fmt_vid_cap(struct file *file, void *priv, struct v4l2_format *f)
+>> +{
+>> +    const struct plat_ipk_fmt *fmt;
+>> +
+>> +    fmt = vid_dev_find_format(f, -1);
+>> +    if (!fmt) {
+>> +        f->fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565;
+>> +        fmt = vid_dev_find_format(f, -1);
+>> +    }
+>> +
+>> +    f->fmt.pix.field = V4L2_FIELD_NONE;
+>> +    v4l_bound_align_image(&f->fmt.pix.width, 48, MAX_WIDTH, 2,
+>> +                  &f->fmt.pix.height, 32, MAX_HEIGHT, 0, 0);
+>> +
+>> +    f->fmt.pix.bytesperline = (f->fmt.pix.width * fmt->depth) >> 3;
+>> +    f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
+>> +    f->fmt.pix.colorspace = V4L2_COLORSPACE_SRGB;
+>> +    return 0;
+>> +}
+>> +
+>> +static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+>> +                    struct v4l2_format *f)
+>> +{
+>> +    struct video_device_dev *dev = video_drvdata(file);
+>> +    int ret;
+>> +    struct v4l2_subdev_format fmt;
+>> +    struct v4l2_pix_format *dev_fmt_pix = &dev->format.fmt.pix;
+>> +
+>> +    if (vb2_is_busy(&dev->vb_queue))
+>> +        return -EBUSY;
+>> +
+>> +    ret = vidioc_try_fmt_vid_cap(file, dev, f);
+>> +    if (ret)
+>> +        return ret;
+>> +
+>> +    dev->fmt = vid_dev_find_format(f, -1);
+>> +    dev_fmt_pix->pixelformat = f->fmt.pix.pixelformat;
+>> +    dev_fmt_pix->width = f->fmt.pix.width;
+>> +    dev_fmt_pix->height  = f->fmt.pix.height;
+>> +    dev_fmt_pix->bytesperline = dev_fmt_pix->width * (dev->fmt->depth / 8);
+>> +    dev_fmt_pix->sizeimage =
+>> +            dev_fmt_pix->height * dev_fmt_pix->bytesperline;
+>> +
+>> +    fmt.format.colorspace = V4L2_COLORSPACE_SRGB;
+>> +    fmt.format.code = dev->fmt->mbus_code;
+>> +
+>> +    fmt.format.width = dev_fmt_pix->width;
+>> +    fmt.format.height = dev_fmt_pix->height;
+>> +
+>> +    ret = plat_ipk_pipeline_call(&dev->ve, set_format, &fmt);
+>> +
+>> +    return 0;
+>> +}
+>> +
+>> +static int vidioc_enum_framesizes(struct file *file, void *fh,
+>> +               struct v4l2_frmsizeenum *fsize)
+>> +{
+>> +    static const struct v4l2_frmsize_stepwise sizes = {
+>> +        48, MAX_WIDTH, 4,
+>> +        32, MAX_HEIGHT, 1
+>> +    };
+>> +    int i;
+>> +
+>> +    if (fsize->index)
+>> +        return -EINVAL;
+>> +    for (i = 0; i < ARRAY_SIZE(vid_dev_formats); i++)
+>> +        if (vid_dev_formats[i].fourcc == fsize->pixel_format)
+>> +            break;
+>> +    if (i == ARRAY_SIZE(vid_dev_formats))
+>> +        return -EINVAL;
+>> +    fsize->type = V4L2_FRMSIZE_TYPE_STEPWISE;
+>> +    fsize->stepwise = sizes;
+>> +    return 0;
+>> +}
+>> +
+>> +static int vidioc_enum_input(struct file *file, void *priv,
+>> +            struct v4l2_input *input)
+>> +{
+>> +    if (input->index != 0)
+>> +        return -EINVAL;
+>> +
+>> +    input->type = V4L2_INPUT_TYPE_CAMERA;
+>> +    input->std = V4L2_STD_ALL;    /* Not sure what should go here */
+> 
+> Set this to 0, or just drop the line.
+> 
 
-- entity 48: ipu1_smfc1 (2 pads, 5 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev15
-        pad0: Sink
-                [fmt:UYVY2X8/640x480 field:none]
-                <- "ipu1_csi1":1 []
-        pad1: Source
-                [fmt:UYVY2X8/640x480 field:none]
-                -> "ipu1_ic_prpvf":0 []
-                -> "ipu1_ic_pp1":0 []
-                -> "camif0":0 []
-                -> "camif1":0 []
+Thanks.
 
-- entity 51: ipu2_smfc0 (2 pads, 5 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev16
-        pad0: Sink
-                [fmt:UYVY2X8/640x480 field:none]
-                <- "ipu2_csi0":1 []
-        pad1: Source
-                [fmt:UYVY2X8/640x480 field:none]
-                -> "ipu2_ic_prpvf":0 []
-                -> "ipu2_ic_pp0":0 []
-                -> "camif2":0 []
-                -> "camif3":0 []
+>> +    strcpy(input->name, "Camera");
+>> +    return 0;
+>> +}
+>> +
 
-- entity 54: ipu2_smfc1 (2 pads, 5 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev17
-        pad0: Sink
-                [fmt:UYVY2X8/640x480 field:none]
-                <- "ipu2_csi1":1 []
-        pad1: Source
-                [fmt:UYVY2X8/640x480 field:none]
-                -> "ipu2_ic_prpvf":0 []
-                -> "ipu2_ic_pp1":0 []
-                -> "camif2":0 []
-                -> "camif3":0 []
+[snip]
 
-- entity 57: camif0 (2 pads, 7 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev18
-        pad0: Sink
-                [fmt:UYVY2X8/640x480 field:none]
-                <- "ipu1_ic_prpenc":1 []
-                <- "ipu1_ic_prpvf":1 []
-                <- "ipu1_ic_pp0":1 []
-                <- "ipu1_ic_pp1":1 []
-                <- "ipu1_smfc0":1 []
-                <- "ipu1_smfc1":1 []
-        pad1: Source
-                [fmt:UYVY2X8/640x480 field:none]
-                -> "camif0 devnode":0 [ENABLED,IMMUTABLE]
+>> +
+>> +static int vid_dev_subdev_s_power(struct v4l2_subdev *sd, int on)
+>> +{
+>> +    return 0;
+>> +}
+> 
+> Just drop this empty function, shouldn't be needed.
+> 
 
-- entity 58: camif0 devnode (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video0
-        pad0: Sink
-                <- "camif0":1 [ENABLED,IMMUTABLE]
+When I start my system I'm hoping all the subdevs have s_power registered. If it
+doesn't exist should I change the way I handle it, or will the core handle it
+for me?
 
-- entity 66: camif1 (2 pads, 7 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev19
-        pad0: Sink
-                [fmt:UYVY2X8/640x480 field:none]
-                <- "ipu1_ic_prpenc":1 []
-                <- "ipu1_ic_prpvf":1 []
-                <- "ipu1_ic_pp0":1 []
-                <- "ipu1_ic_pp1":1 []
-                <- "ipu1_smfc0":1 []
-                <- "ipu1_smfc1":1 []
-        pad1: Source
-                [fmt:UYVY2X8/640x480 field:none]
-                -> "camif1 devnode":0 [ENABLED,IMMUTABLE]
+>> +
+>> +static int vid_dev_subdev_registered(struct v4l2_subdev *sd)
+>> +{
+>> +    struct video_device_dev *vid_dev = v4l2_get_subdevdata(sd);
+>> +    struct vb2_queue *q = &vid_dev->vb_queue;
+>> +    struct video_device *vfd = &vid_dev->ve.vdev;
+>> +    int ret;
+>> +
+>> +    memset(vfd, 0, sizeof(*vfd));
+>> +
+>> +    strlcpy(vfd->name, VIDEO_DEVICE_NAME, sizeof(vfd->name));
+>> +
+>> +    vfd->fops = &vid_dev_fops;
+>> +    vfd->ioctl_ops = &vid_dev_ioctl_ops;
+>> +    vfd->v4l2_dev = sd->v4l2_dev;
+>> +    vfd->minor = -1;
+>> +    vfd->release = video_device_release_empty;
+>> +    vfd->queue = q;
+>> +
+>> +    INIT_LIST_HEAD(&vid_dev->vidq.active);
+>> +    init_waitqueue_head(&vid_dev->vidq.wq);
+>> +    memset(q, 0, sizeof(*q));
+>> +    q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+>> +    q->io_modes = VB2_MMAP | VB2_USERPTR;
+> 
+> Add VB2_DMABUF and VB2_READ.
+> 
 
-- entity 67: camif1 devnode (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video1
-        pad0: Sink
-                <- "camif1":1 [ENABLED,IMMUTABLE]
+I'll add them, but I'm not using them, is it standard procedure to add them all
+even if they aren't used?
 
-- entity 75: camif2 (2 pads, 7 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev20
-        pad0: Sink
-                [fmt:UYVY2X8/640x480 field:none]
-                <- "ipu2_ic_prpenc":1 []
-                <- "ipu2_ic_prpvf":1 []
-                <- "ipu2_ic_pp0":1 []
-                <- "ipu2_ic_pp1":1 []
-                <- "ipu2_smfc0":1 []
-                <- "ipu2_smfc1":1 []
-        pad1: Source
-                [fmt:UYVY2X8/640x480 field:none]
-                -> "camif2 devnode":0 [ENABLED,IMMUTABLE]
+>> +    q->ops = &vb2_video_qops;
+>> +    q->mem_ops = &vb2_vmalloc_memops;
+> 
+> Why is vmalloc used? Can't you use dma_contig or dma_sg and avoid having to copy
+> the image data? That's a really bad design given the amount of video data that
+> you have to copy.
+> 
 
-- entity 76: camif2 devnode (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video2
-        pad0: Sink
-                <- "camif2":1 [ENABLED,IMMUTABLE]
+When I started development, the arch I was using (ARC) didn't support
+dma_contig, so I was forced to use vmalloc.
 
-- entity 84: camif3 (2 pads, 7 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev21
-        pad0: Sink
-                [fmt:UYVY2X8/640x480 field:none]
-                <- "ipu2_ic_prpenc":1 []
-                <- "ipu2_ic_prpvf":1 []
-                <- "ipu2_ic_pp0":1 []
-                <- "ipu2_ic_pp1":1 []
-                <- "ipu2_smfc0":1 []
-                <- "ipu2_smfc1":1 []
-        pad1: Source
-                [fmt:UYVY2X8/640x480 field:none]
-                -> "camif3 devnode":0 [ENABLED,IMMUTABLE]
+Since then things have changed and I'm already using dma_contig, however it
+wasn't included in this patch. I'll add it to the next patch.
 
-- entity 85: camif3 devnode (1 pad, 1 link)
-             type Node subtype V4L flags 0
-             device node name /dev/video3
-        pad0: Sink
-                <- "camif3":1 [ENABLED,IMMUTABLE]
+>> +    q->buf_struct_size = sizeof(struct rx_buffer);
+>> +    q->drv_priv = vid_dev;
+>> +    q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+>> +    q->lock = &vid_dev->lock;
+>> +
+>> +    ret = vb2_queue_init(q);
+>> +    if (ret < 0)
+>> +        return ret;
+>> +
+>> +    vid_dev->vd_pad.flags = MEDIA_PAD_FL_SINK;
+>> +    ret = media_entity_pads_init(&vfd->entity, 1, &vid_dev->vd_pad);
+>> +    if (ret < 0)
+>> +        return ret;
+>> +
+>> +    video_set_drvdata(vfd, vid_dev);
+>> +    vid_dev->ve.pipe = v4l2_get_subdev_hostdata(sd);
+>> +
+>> +    ret = video_register_device(vfd, VFL_TYPE_GRABBER, -1);
+>> +    if (ret < 0) {
+>> +        media_entity_cleanup(&vfd->entity);
+>> +        vid_dev->ve.pipe = NULL;
+>> +        return ret;
+>> +    }
+>> +
+>> +    v4l2_info(sd->v4l2_dev, "Registered %s as /dev/%s\n",
+>> +          vfd->name, video_device_node_name(vfd));
+>> +    return 0;
+>> +}
+>> +
 
-- entity 93: adv7180 2-0020 (1 pad, 1 link)
-             type V4L2 subdev subtype Unknown flags 20004
-             device node name /dev/v4l-subdev22
-        pad0: Source
-                [fmt:UYVY2X8/720x480 field:interlaced]
-                -> "ipu1_csi0_mux":1 []
+[snip]
 
-How do I link the entities here to be able to capture frames with
-v4l2-ctl or gstreamer?
+> 
+> Regards,
+> 
+>     Hans
 
-Additionally I've found that on an IMX6S/IMX6DL we crash while
-registering the media-ic subdev's:
-[    3.975473] imx-media: Registered subdev ipu1_csi1_mux
-[    3.980921] imx-media: Registered subdev ipu1_csi0_mux
-[    4.003205] imx-media: Registered subdev ipu1_ic_prpenc
-[    4.025373] imx-media: Registered subdev ipu1_ic_prpvf
-[    4.037944] ------------[ cut here ]------------
-[    4.042571] Kernel BUG at c06717dc [verbose debug info unavailable]
-[    4.048845] Internal error: Oops - BUG: 0 [#1] SMP ARM
-[    4.053990] Modules linked in:
-[    4.057076] CPU: 1 PID: 1 Comm: swapper/0 Not tainted
-4.9.0-rc6-00524-g84dad6e-dirty #446
-[    4.065260] Hardware name: Freescale i.MX6 Quad/DualLite (Device Tree)
-...
-[    4.296250] [<c0671780>] (v4l2_subdev_init) from [<c06fb02c>]
-(imx_ic_probe+0x94/0x1ac)
-[    4.304271] [<c06faf98>] (imx_ic_probe) from [<c05173d8>]
-(platform_drv_probe+0x54/0xb8)
-[    4.312373]  r9:c0d5e858 r8:00000000 r7:fffffdfb r6:c0e5dbf8
-r5:da603810 r4:c16738d8
-[    4.320129] [<c0517384>] (platform_drv_probe) from [<c0515978>]
-(driver_probe_device+0x20c/0x2c0)
-[    4.329010]  r7:c0e5dbf8 r6:00000000 r5:da603810 r4:c16738d8
-[    4.334681] [<c051576c>] (driver_probe_device) from [<c0515af4>]
-(__driver_attach+0xc8/0xcc)
-[    4.343129]  r9:c0d5e858 r8:00000000 r7:00000000 r6:da603844
-r5:c0e5dbf8 r4:da603810
-[    4.350889] [<c0515a2c>] (__driver_attach) from [<c0513adc>]
-(bus_for_each_dev+0x74/0xa8)
-[    4.359078]  r7:00000000 r6:c0515a2c r5:c0e5dbf8 r4:00000000
-[    4.364753] [<c0513a68>] (bus_for_each_dev) from [<c05151d4>]
-(driver_attach+0x20/0x28)
-
-I assume there is an iteration that needs a test on a missing pointer
-only available on chips with both IPU's or PRP
-
-Regards,
-
-Tim
+BRs,
+Ramiro
