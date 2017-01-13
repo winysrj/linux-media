@@ -1,127 +1,241 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:36447 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755341AbdAKJAr (ORCPT
+Received: from mail-it0-f47.google.com ([209.85.214.47]:36492 "EHLO
+        mail-it0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750952AbdAMVEz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Jan 2017 04:00:47 -0500
-Received: by mail-wm0-f68.google.com with SMTP id r126so15124282wmr.3
-        for <linux-media@vger.kernel.org>; Wed, 11 Jan 2017 01:00:46 -0800 (PST)
-From: Tvrtko Ursulin <tursulin@ursulin.net>
-To: Intel-gfx@lists.freedesktop.org
-Cc: tursulin@ursulin.net, Tvrtko Ursulin <tvrtko.ursulin@intel.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Tomasz Stanislawski <t.stanislaws@samsung.com>,
-        Matt Porter <mporter@kernel.crashing.org>,
-        Alexandre Bounine <alexandre.bounine@idt.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 1/4] lib/scatterlist: Fix offset type in sg_alloc_table_from_pages
-Date: Wed, 11 Jan 2017 09:00:35 +0000
-Message-Id: <1484125238-2539-1-git-send-email-tvrtko.ursulin@linux.intel.com>
+        Fri, 13 Jan 2017 16:04:55 -0500
+Received: by mail-it0-f47.google.com with SMTP id c7so40767556itd.1
+        for <linux-media@vger.kernel.org>; Fri, 13 Jan 2017 13:04:55 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <f956170a-38d9-ce97-51df-e88f59e4ac17@gmail.com>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <CAJ+vNU2zU++Xam_UpDPfmSQhauhhS3_z8L-+ww6o-D9brWhiwA@mail.gmail.com>
+ <afe51f5f-03dd-4092-9ec0-297afb1453c7@mentor.com> <CAJ+vNU3ymeA9d+cJ44Wm_zX17EMkd__w6vB_xyagxzBAYNJbZQ@mail.gmail.com>
+ <f956170a-38d9-ce97-51df-e88f59e4ac17@gmail.com>
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Fri, 13 Jan 2017 13:04:53 -0800
+Message-ID: <CAJ+vNU1=UusZD0WQvrfXxfND0w2gEn+-QO1zN+apyYPc0+nOwA@mail.gmail.com>
+Subject: Re: [PATCH v3 00/24] i.MX Media Driver
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <kernel@pengutronix.de>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        laurent.pinchart+renesas@ideasonboard.com,
+        linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
+On Thu, Jan 12, 2017 at 2:32 PM, Steve Longerbeam <slongerbeam@gmail.com> wrote:
+> Hi Tim,
+>
+>
+> On 01/12/2017 01:13 PM, Tim Harvey wrote:
+>>
+>>
+>>>> Now that your driver is hooking into the current media framework, I'm
+>>>> not at all clear on how to link and configure the media entities.
+>>>
+>>>
+>>> It's all documented at Documentation/media/v4l-drivers/imx.rst.
+>>> Follow the SabreAuto pipeline setup example.
+>>>
+>> ah yes... it helps to read your patches! You did a great job on the
+>> documentation.
+>>
+>> Regarding the The ipu1_csi0_mux/ipu2_csi1_mux entities which have 1
+>> source and 2 sinks (which makes sense for a mux) how do you know which
+>> sink pad you should use (in your adv7180 example you use the 2nd sink
+>> pad vs the first)?
+>
+>
+> The adv7180 can only go to the parallel input pad (ipu1_csi0_mux:1
+> on quad). The other input pads select from the mipi csi-2 receiver virtual
+> channels.
 
-Scatterlist entries have an unsigned int for the offset so
-correct the sg_alloc_table_from_pages function accordingly.
+right - my question was how does the user know which pad is which. I
+see that the imx6q.dtsi makes it clear that port0 (sink1) is the mipi
+port and port1 is the parallel port (sink2). Do you know how a user
+would determine this from runtime information (maybe something via
+media-ctl or /sys/class/media that I haven't yet found) or perhaps
+this is to be taken care of by documentation or referring to the dts?
 
-Since these are offsets withing a page, unsigned int is
-wide enough.
+>
+> Have you generated a dot graph? It makes it much easier to
+> visualize:
+>
+> # media-ctl --print-dot > graph.dot
+>
+> then on your host:
+>
+> % dot -Tpng graph.dot > graph.png
+>
 
-Also converts callers which were using unsigned long locally
-with the lower_32_bits annotation to make it explicitly
-clear what is happening.
+Yes - that makes it much easier to understand the possible links.
 
-v2: Use offset_in_page. (Chris Wilson)
+I notice 'media-ctl --print-topology' shows link and pad type fields,
+but 'media-ctl --print-dot' does not include the pad type field (maybe
+newer versions do or will in the future)
 
-Signed-off-by: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Pawel Osciak <pawel@osciak.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com> (v1)
-Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
-Reviewed-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 4 ++--
- drivers/rapidio/devices/rio_mport_cdev.c       | 4 ++--
- include/linux/scatterlist.h                    | 2 +-
- lib/scatterlist.c                              | 2 +-
- 4 files changed, 6 insertions(+), 6 deletions(-)
+Do you know how one goes about determining the possible format types
+possible for each pad?
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index fb6a177be461..51e8765bc3c6 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -478,7 +478,7 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
- {
- 	struct vb2_dc_buf *buf;
- 	struct frame_vector *vec;
--	unsigned long offset;
-+	unsigned int offset;
- 	int n_pages, i;
- 	int ret = 0;
- 	struct sg_table *sgt;
-@@ -506,7 +506,7 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
- 	buf->dev = dev;
- 	buf->dma_dir = dma_dir;
- 
--	offset = vaddr & ~PAGE_MASK;
-+	offset = lower_32_bits(offset_in_page(vaddr));
- 	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
- 	if (IS_ERR(vec)) {
- 		ret = PTR_ERR(vec);
-diff --git a/drivers/rapidio/devices/rio_mport_cdev.c b/drivers/rapidio/devices/rio_mport_cdev.c
-index 9013a585507e..0fae29ff47ba 100644
---- a/drivers/rapidio/devices/rio_mport_cdev.c
-+++ b/drivers/rapidio/devices/rio_mport_cdev.c
-@@ -876,10 +876,10 @@ rio_dma_transfer(struct file *filp, u32 transfer_mode,
- 	 * offset within the internal buffer specified by handle parameter.
- 	 */
- 	if (xfer->loc_addr) {
--		unsigned long offset;
-+		unsigned int offset;
- 		long pinned;
- 
--		offset = (unsigned long)(uintptr_t)xfer->loc_addr & ~PAGE_MASK;
-+		offset = lower_32_bits(offset_in_page(xfer->loc_addr));
- 		nr_pages = PAGE_ALIGN(xfer->length + offset) >> PAGE_SHIFT;
- 
- 		page_list = kmalloc_array(nr_pages,
-diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
-index cb3c8fe6acd7..c981bee1a3ae 100644
---- a/include/linux/scatterlist.h
-+++ b/include/linux/scatterlist.h
-@@ -263,7 +263,7 @@ int __sg_alloc_table(struct sg_table *, unsigned int, unsigned int,
- int sg_alloc_table(struct sg_table *, unsigned int, gfp_t);
- int sg_alloc_table_from_pages(struct sg_table *sgt,
- 	struct page **pages, unsigned int n_pages,
--	unsigned long offset, unsigned long size,
-+	unsigned int offset, unsigned long size,
- 	gfp_t gfp_mask);
- 
- size_t sg_copy_buffer(struct scatterlist *sgl, unsigned int nents, void *buf,
-diff --git a/lib/scatterlist.c b/lib/scatterlist.c
-index 004fc70fc56a..e05e7fc98892 100644
---- a/lib/scatterlist.c
-+++ b/lib/scatterlist.c
-@@ -391,7 +391,7 @@ EXPORT_SYMBOL(sg_alloc_table);
-  */
- int sg_alloc_table_from_pages(struct sg_table *sgt,
- 	struct page **pages, unsigned int n_pages,
--	unsigned long offset, unsigned long size,
-+	unsigned int offset, unsigned long size,
- 	gfp_t gfp_mask)
- {
- 	unsigned int chunks;
--- 
-2.7.4
+>
+>
+>>
+>> As my hardware is the same as the SabreAuto except that my adv7180 is
+>> on i2c-2@0x20 I follow your example from
+>> Documentation/media/v4l-drivers/imx.rst:
+>>
+>> # Setup links
+>> media-ctl -l '"adv7180 2-0020":0 -> "ipu1_csi0_mux":1[1]'
+>> media-ctl -l '"ipu1_csi0_mux":2 -> "ipu1_csi0":0[1]'
+>> media-ctl -l '"ipu1_csi0":1 -> "ipu1_smfc0":0[1]'
+>> media-ctl -l '"ipu1_smfc0":1 -> "ipu1_ic_prpvf":0[1]'
+>> media-ctl -l '"ipu1_ic_prpvf":1 -> "camif0":0[1]'
+>> media-ctl -l '"camif0":1 -> "camif0 devnode":0[1]'
+>>
+>> # Configure pads
+>> media-ctl -V "\"adv7180 2-0020\":0 [fmt:UYVY2X8/720x480]"
+>> media-ctl -V "\"ipu1_csi0_mux\":1 [fmt:UYVY2X8/720x480]"
+>> media-ctl -V "\"ipu1_csi0_mux\":2 [fmt:UYVY2X8/720x480]"
+>> media-ctl -V "\"ipu1_csi0\":0 [fmt:UYVY2X8/720x480]"
+>> media-ctl -V "\"ipu1_csi0\":1 [fmt:UYVY2X8/720x480]"
+>> media-ctl -V "\"ipu1_smfc0\":0 [fmt:UYVY2X8/720x480]"
+>> media-ctl -V "\"ipu1_smfc0\":1 [fmt:UYVY2X8/720x480]"
+>> media-ctl -V "\"ipu1_ic_prpvf\":0 [fmt:UYVY2X8/720x480]"
+>> # pad field types for camif can be any format prpvf supports
+>> export outputfmt="UYVY2X8/720x480"
+>> media-ctl -V "\"ipu1_ic_prpvf\":1 [fmt:$outputfmt]"
+>> media-ctl -V "\"camif0\":0 [fmt:$outputfmt]"
+>> media-ctl -V "\"camif0\":1 [fmt:$outputfmt]"
+>>
+>> # select AIN1
+>> v4l2-ctl -d0 -i0
+>> Video input set to 0 (ADV7180 Composite on Ain1: ok)
+>> v4l2-ctl -d0 --set-fmt-video=width=720,height=480,pixelformat=UYVY
+>> # capture a single raw frame
+>> v4l2-ctl -d0 --stream-mmap --stream-to=/x.raw --stream-count=1
+>> [ 2092.056394] camif0: pipeline_set_stream failed with -32
+>> VIDIOC_STREAMON: failed: Broken pipe
+>>
+>> Enabling debug in drivers/media/media-entity.c I see:
+>> [   38.870087] imx-media soc:media@0: link validation failed for
+>> "ipu1_smfc0":1 -> "ipu1_ic_prpvf":0, error -32
+>>
+>> Looking at ipu1_smfc0 and ipu1_ic_prpvf with media-ctl I see:
+>> - entity 12: ipu1_ic_prpvf (2 pads, 8 links)
+>>               type V4L2 subdev subtype Unknown flags 0
+>>               device node name /dev/v4l-subdev3
+>>          pad0: Sink
+>>                  [fmt:UYVY2X8/720x480 field:alternate]
+>>                  <- "ipu1_csi0":1 []
+>>                  <- "ipu1_csi1":1 []
+>>                  <- "ipu1_smfc0":1 [ENABLED]
+>>                  <- "ipu1_smfc1":1 []
+>>          pad1: Source
+>>                  [fmt:UYVY2X8/720x480 field:none]
+>>                  -> "camif0":0 [ENABLED]
+>>                  -> "camif1":0 []
+>>                  -> "ipu1_ic_pp0":0 []
+>>                  -> "ipu1_ic_pp1":0 []
+>>
+>> - entity 45: ipu1_smfc0 (2 pads, 5 links)
+>>               type V4L2 subdev subtype Unknown flags 0
+>>               device node name /dev/v4l-subdev14
+>>          pad0: Sink
+>>                  [fmt:UYVY2X8/720x480]
+>>                  <- "ipu1_csi0":1 [ENABLED]
+>>          pad1: Source
+>>                  [fmt:UYVY2X8/720x480]
+>>                  -> "ipu1_ic_prpvf":0 [ENABLED]
+>>                  -> "ipu1_ic_pp0":0 []
+>>                  -> "camif0":0 []
+>>                  -> "camif1":0 []
+>>
+>> Any ideas what is going wrong here? Seems like its perhaps a field
+>> type mismatch.
+>
+>
+> Yes, exactly, you'll need to set the field types on every pad in your
+> pipeline.
+>
+>>   Is my outputfmt incorrect perhaps? I likely have
+>> misunderstood the pad type comments in your documentation.
+>
+>
+> Attached is an update doc (from branch imx-media-staging-md-v7 on my fork).
+> I recently upgraded my v4l-utils package and media-ctl now supports
+> specifying
+> the field type in the pad format strings. If you don't have the latest
+> v4l-utils, it's
+> fairly straightforward to cross-build.
+>
 
+Your updated imx.rst makes it very clear - I was misunderstanding the
+pervious version and comments as it skipped setting the pad field
+types.
+
+The v4l-utils-1.10 from Ubuntu 16.04 allows setting field types with
+the links so I didn't need to build a newer one and this did resolve
+my issue.
+
+>>
+>>>
+>>>> <snip>
+>>>>
+>>>>
+>>>>
+>>>> Additionally I've found that on an IMX6S/IMX6DL we crash while
+>>>> registering the media-ic subdev's:
+>>
+>> <snip>
+>>>
+>>> Yep, I only have quad boards here so I haven't gotten around to
+>>> testing on S/DL.
+>>>
+>>> But it looks like I forgot to clear out the csi subdev pointer array
+>>> before
+>>> passing it to imx_media_of_parse(). I think that might explain the OOPS
+>>> above. Try this patch:
+>>>
+>>> diff --git a/drivers/staging/media/imx/imx-media-dev.c
+>>> b/drivers/staging/media/imx/imx-media-dev.c
+>>> index 357654d..0cf2d61 100644
+>>> --- a/drivers/staging/media/imx/imx-media-dev.c
+>>> +++ b/drivers/staging/media/imx/imx-media-dev.c
+>>> @@ -379,7 +379,7 @@ static int imx_media_probe(struct platform_device
+>>> *pdev)
+>>>   {
+>>>          struct device *dev = &pdev->dev;
+>>>          struct device_node *node = dev->of_node;
+>>> -       struct imx_media_subdev *csi[4];
+>>> +       struct imx_media_subdev *csi[4] = {0};
+>>>          struct imx_media_dev *imxmd;
+>>>          int ret;
+>>>
+>> This does resolves the crash on S/DL.
+>
+>
+
+I now have dts patches ready for the following which have an on-board
+ADV7180 SD capture on:
+arch/arm/boot/dts/imx6dl-gw52xx.dts
+arch/arm/boot/dts/imx6dl-gw53xx.dts
+arch/arm/boot/dts/imx6dl-gw54xx.dts
+arch/arm/boot/dts/imx6q-gw52xx.dts
+arch/arm/boot/dts/imx6q-gw53xx.dts
+arch/arm/boot/dts/imx6q-gw54xx.dts
+arch/arm/boot/dts/imx6qdl-gw51xx.dtsi
+arch/arm/boot/dts/imx6qdl-gw553x.dtsi
+
+So for the above which I've tested with the 'sensor -> ipu_csi_mux ->
+ipu_csi -> ipu_smfc -> ipu_ic_prpvf -> camif' pipeline
+Tested-by: Tim Harvey <tharvey@gateworks.com>
+
+Thanks for all your continued effort on these drivers!
+
+Tim
