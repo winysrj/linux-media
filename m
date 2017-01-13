@@ -1,607 +1,278 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay.synopsys.com ([198.182.60.111]:54458 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751382AbdALRns (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Jan 2017 12:43:48 -0500
-Subject: Re: [PATCH v2 2/2] Support for DW CSI-2 Host IPK
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>,
-        <robh+dt@kernel.org>, <mark.rutland@arm.com>, <mchehab@kernel.org>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-media@vger.kernel.org>
-References: <cover.1481548484.git.roliveir@synopsys.com>
- <bf2f0a6730e4a74d64e04575859d6b195f65b368.1481554324.git.roliveir@synopsys.com>
- <eb89af79-f868-ceba-ac69-558bac77613d@xs4all.nl>
-CC: <davem@davemloft.net>, <gregkh@linuxfoundation.org>,
-        <geert+renesas@glider.be>, <akpm@linux-foundation.org>,
-        <linux@roeck-us.net>, <laurent.pinchart+renesas@ideasonboard.com>,
-        <arnd@arndb.de>, <sudipm.mukherjee@gmail.com>,
-        <tiffany.lin@mediatek.com>, <minghsiu.tsai@mediatek.com>,
-        <jean-christophe.trotin@st.com>, <andrew-ct.chen@mediatek.com>,
-        <simon.horman@netronome.com>, <songjun.wu@microchip.com>,
-        <bparrot@ti.com>, <CARLOS.PALMINHA@synopsys.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-Message-ID: <8823670a-8456-87d0-3265-cb427e3445eb@synopsys.com>
-Date: Thu, 12 Jan 2017 17:43:23 +0000
+Received: from verein.lst.de ([213.95.11.211]:53761 "EHLO newverein.lst.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751167AbdAMIFz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Jan 2017 03:05:55 -0500
+Date: Fri, 13 Jan 2017 09:05:53 +0100
+From: Christoph Hellwig <hch@lst.de>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>, linux-pci@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        netdev@vger.kernel.org, linux-media@vger.kernel.org,
+        Tom Lendacky <thomas.lendacky@amd.com>
+Subject: Re: kill off pci_enable_msi_{exact,range}
+Message-ID: <20170113080553.GA26280@lst.de>
+References: <1483994260-19797-1-git-send-email-hch@lst.de> <20170112212900.GE8312@bhelgaas-glaptop.roam.corp.google.com> <20170113075503.GA26014@lst.de>
 MIME-Version: 1.0
-In-Reply-To: <eb89af79-f868-ceba-ac69-558bac77613d@xs4all.nl>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170113075503.GA26014@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-Thank you for your feedback.
-
-On 1/11/2017 11:54 AM, Hans Verkuil wrote:
-> Hi Ramiro,
+On Fri, Jan 13, 2017 at 08:55:03AM +0100, Christoph Hellwig wrote:
+> On Thu, Jan 12, 2017 at 03:29:00PM -0600, Bjorn Helgaas wrote:
+> > Applied all three (with Tom's ack on the amd-xgbe patch) to pci/msi for
+> > v4.11, thanks!
 > 
-> See my review comments below:
-> 
-> On 12/12/16 16:00, Ramiro Oliveira wrote:
->> Add support for the DesignWare CSI-2 Host IP Prototyping Kit
->>
->> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
+> Tom had just send me an event better version of the xgbe patch.  Tom,
+> maybe you can resend that relative to the PCI tree [1], so that we don't
+> lose it for next merge window?
 
-[snip]
+Actually - Bjorn, your msi branch contains an empty commit from this
+thread:
 
->> +static int
->> +dw_mipi_csi_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
->> +            struct v4l2_subdev_format *fmt)
->> +{
->> +    struct mipi_csi_dev *dev = sd_to_mipi_csi_dev(sd);
->> +    struct mipi_fmt const *dev_fmt;
->> +    struct v4l2_mbus_framefmt *mf;
->> +    unsigned int i = 0;
->> +    const struct v4l2_bt_timings *bt_r = &v4l2_dv_timings_presets[0].bt;
->> +
->> +    mf = __dw_mipi_csi_get_format(dev, cfg, fmt->which);
->> +
->> +    dev_fmt = dw_mipi_csi_try_format(&fmt->format);
->> +    if (dev_fmt) {
->> +        *mf = fmt->format;
->> +        if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
->> +            dev->fmt = dev_fmt;
->> +        dw_mipi_csi_set_ipi_fmt(dev);
->> +    }
->> +    while (v4l2_dv_timings_presets[i].bt.width) {
->> +        const struct v4l2_bt_timings *bt =
->> +            &v4l2_dv_timings_presets[i].bt;
->> +        if (mf->width == bt->width && mf->height == bt->width) {
->> +            __dw_mipi_csi_fill_timings(dev, bt);
->> +            return 0;
->> +        }
->> +        i++;
->> +    }
->> +
->> +    __dw_mipi_csi_fill_timings(dev, bt_r);
-> 
-> This code is weird. The video source can be either from a sensor or from an
-> HDMI input, right?
-> 
-> But if it is from a sensor, then using v4l2_dv_timings_presets since that's for
-> an HDMI input. Sensors will typically not follow these preset timings.
-> 
-> For HDMI input I expect that this driver supports the s_dv_timings op and will
-> just use the timings set there and override the width/height in v4l2_subdev_format.
-> 
-> For sensors I am actually not quite certain how this is done. I've CC-ed Sakari
-> since he'll know. But let us know first whether it is indeed the intention that
-> this should also work with a sensor.
-> 
+	https://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/commit/?h=pci/msi&id=7a8191de43faa9869b421a1b06075d8126ce7c0b
 
-Actually the video source, at the moment, can only be from a sensor. I'm using
-v4l2_dv_timings_presets as a reference since we usually use this setup with a
-Test Equipment in which we can configure every parameter.
+Maybe we should rebase it after all to avoid that?  In that case please
+pick up the xgbe patch from Tom below:
 
-I'll wait for Sakari to answer, and change it to what he recommends.
+---
+From: Tom Lendacky <thomas.lendacky@amd.com>
+Subject: [PATCH] amd-xgbe: Update PCI support to use new IRQ functions
 
->> +    return 0;
->> +
->> +}
->> +
->> +static int
->> +dw_mipi_csi_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
->> +            struct v4l2_subdev_format *fmt)
->> +{
->> +    struct mipi_csi_dev *dev = sd_to_mipi_csi_dev(sd);
->> +    struct v4l2_mbus_framefmt *mf;
->> +
->> +    mf = __dw_mipi_csi_get_format(dev, cfg, fmt->which);
->> +    if (!mf)
->> +        return -EINVAL;
->> +
->> +    mutex_lock(&dev->lock);
->> +    fmt->format = *mf;
->> +    mutex_unlock(&dev->lock);
->> +    return 0;
->> +}
->> +
->> +static int
->> +dw_mipi_csi_s_power(struct v4l2_subdev *sd, int on)
->> +{
->> +    struct mipi_csi_dev *dev = sd_to_mipi_csi_dev(sd);
->> +
->> +    if (on) {
->> +        dw_mipi_csi_hw_stdby(dev);
->> +        dw_mipi_csi_start(dev);
->> +    } else {
->> +        dw_mipi_csi_mask_irq_power_off(dev);
->> +    }
->> +
->> +    return 0;
->> +}
->> +
->> +static int
->> +dw_mipi_csi_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
->> +{
->> +    struct v4l2_mbus_framefmt *format =
->> +        v4l2_subdev_get_try_format(sd, fh->pad, 0);
->> +
->> +    format->colorspace = V4L2_COLORSPACE_SRGB;
->> +    format->code = dw_mipi_csi_formats[0].code;
->> +    format->width = MIN_WIDTH;
->> +    format->height = MIN_HEIGHT;
->> +    format->field = V4L2_FIELD_NONE;
-> 
-> Don't do this. Instead implement the init_cfg pad op and initialize this there.
-> 
-> You can then drop this function.
-> 
+Some of the PCI MSI/MSI-X functions have been deprecated and it is
+recommended to use the new pci_alloc_irq_vectors() function. Convert
+the code over to use the new function. Also, modify the way in which
+the IRQs are requested - try for multiple MSI-X/MSI first, then a
+single MSI/legacy interrupt.
 
-I'll do that.
+Signed-off-by: Tom Lendacky <thomas.lendacky@amd.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ drivers/net/ethernet/amd/xgbe/xgbe-pci.c |  128 +++++++++---------------------
+ drivers/net/ethernet/amd/xgbe/xgbe.h     |    8 +-
+ 2 files changed, 41 insertions(+), 95 deletions(-)
 
->> +
->> +    return 0;
->> +}
->> +
->> +static const struct v4l2_subdev_internal_ops dw_mipi_csi_sd_internal_ops = {
->> +    .open = dw_mipi_csi_open,
->> +};
->> +
->> +static struct v4l2_subdev_core_ops dw_mipi_csi_core_ops = {
->> +    .s_power = dw_mipi_csi_s_power,
->> +};
->> +
->> +static struct v4l2_subdev_pad_ops dw_mipi_csi_pad_ops = {
->> +    .enum_mbus_code = dw_mipi_csi_enum_mbus_code,
->> +    .get_fmt = dw_mipi_csi_get_fmt,
->> +    .set_fmt = dw_mipi_csi_set_fmt,
->> +};
->> +
->> +static struct v4l2_subdev_ops dw_mipi_csi_subdev_ops = {
->> +    .core = &dw_mipi_csi_core_ops,
->> +    .pad = &dw_mipi_csi_pad_ops,
->> +};
->> +
->> +static irqreturn_t
->> +dw_mipi_csi_irq1(int irq, void *dev_id)
->> +{
->> +    struct mipi_csi_dev *csi_dev = dev_id;
->> +    u32 global_int_status, i_sts;
->> +    unsigned long flags;
->> +    struct device *dev = &csi_dev->pdev->dev;
->> +
->> +    global_int_status = dw_mipi_csi_read(csi_dev, R_CSI2_INTERRUPT);
->> +    spin_lock_irqsave(&csi_dev->slock, flags);
->> +
->> +    if (global_int_status & CSI2_INT_PHY_FATAL) {
->> +        i_sts = dw_mipi_csi_read(csi_dev, R_CSI2_INT_PHY_FATAL);
->> +        dev_dbg_ratelimited(dev, "CSI INT PHY FATAL: %08X\n", i_sts);
->> +    }
->> +
->> +    if (global_int_status & CSI2_INT_PKT_FATAL) {
->> +        i_sts = dw_mipi_csi_read(csi_dev, R_CSI2_INT_PKT_FATAL);
->> +        dev_dbg_ratelimited(dev, "CSI INT PKT FATAL: %08X\n", i_sts);
->> +    }
->> +
->> +    if (global_int_status & CSI2_INT_FRAME_FATAL) {
->> +        i_sts = dw_mipi_csi_read(csi_dev, R_CSI2_INT_FRAME_FATAL);
->> +        dev_dbg_ratelimited(dev, "CSI INT FRAME FATAL: %08X\n", i_sts);
->> +    }
->> +
->> +    if (global_int_status & CSI2_INT_PHY) {
->> +        i_sts = dw_mipi_csi_read(csi_dev, R_CSI2_INT_PHY);
->> +        dev_dbg_ratelimited(dev, "CSI INT PHY: %08X\n", i_sts);
->> +    }
->> +
->> +    if (global_int_status & CSI2_INT_PKT) {
->> +        i_sts = dw_mipi_csi_read(csi_dev, R_CSI2_INT_PKT);
->> +        dev_dbg_ratelimited(dev, "CSI INT PKT: %08X\n", i_sts);
->> +    }
->> +
->> +    if (global_int_status & CSI2_INT_LINE) {
->> +        i_sts = dw_mipi_csi_read(csi_dev, R_CSI2_INT_LINE);
->> +        dev_dbg_ratelimited(dev, "CSI INT LINE: %08X\n", i_sts);
->> +    }
->> +
->> +    if (global_int_status & CSI2_INT_IPI) {
->> +        i_sts = dw_mipi_csi_read(csi_dev, R_CSI2_INT_IPI);
->> +        dev_dbg_ratelimited(dev, "CSI INT IPI: %08X\n", i_sts);
->> +    }
->> +    spin_unlock_irqrestore(&csi_dev->slock, flags);
->> +    return IRQ_HANDLED;
->> +}
->> +
->> +static int
->> +dw_mipi_csi_parse_dt(struct platform_device *pdev, struct mipi_csi_dev *dev)
->> +{
->> +    struct device_node *node = pdev->dev.of_node;
->> +    int reg;
->> +    int ret = 0;
->> +
->> +    /* Device tree information */
-> 
-> I would expect to see a call to v4l2_of_parse_endpoint here.
-> 
+diff --git a/drivers/net/ethernet/amd/xgbe/xgbe-pci.c b/drivers/net/ethernet/amd/xgbe/xgbe-pci.c
+index e76b7f6..e436902 100644
+--- a/drivers/net/ethernet/amd/xgbe/xgbe-pci.c
++++ b/drivers/net/ethernet/amd/xgbe/xgbe-pci.c
+@@ -122,104 +122,40 @@
+ #include "xgbe.h"
+ #include "xgbe-common.h"
+ 
+-static int xgbe_config_msi(struct xgbe_prv_data *pdata)
++static int xgbe_config_multi_msi(struct xgbe_prv_data *pdata)
+ {
+-	unsigned int msi_count;
++	unsigned int vector_count;
+ 	unsigned int i, j;
+ 	int ret;
+ 
+-	msi_count = XGBE_MSIX_BASE_COUNT;
+-	msi_count += max(pdata->rx_ring_count,
+-			 pdata->tx_ring_count);
+-	msi_count = roundup_pow_of_two(msi_count);
++	vector_count = XGBE_MSI_BASE_COUNT;
++	vector_count += max(pdata->rx_ring_count,
++			    pdata->tx_ring_count);
+ 
+-	ret = pci_enable_msi_exact(pdata->pcidev, msi_count);
++	ret = pci_alloc_irq_vectors(pdata->pcidev, XGBE_MSI_MIN_COUNT,
++				    vector_count, PCI_IRQ_MSI | PCI_IRQ_MSIX);
+ 	if (ret < 0) {
+-		dev_info(pdata->dev, "MSI request for %u interrupts failed\n",
+-			 msi_count);
+-
+-		ret = pci_enable_msi(pdata->pcidev);
+-		if (ret < 0) {
+-			dev_info(pdata->dev, "MSI enablement failed\n");
+-			return ret;
+-		}
+-
+-		msi_count = 1;
+-	}
+-
+-	pdata->irq_count = msi_count;
+-
+-	pdata->dev_irq = pdata->pcidev->irq;
+-
+-	if (msi_count > 1) {
+-		pdata->ecc_irq = pdata->pcidev->irq + 1;
+-		pdata->i2c_irq = pdata->pcidev->irq + 2;
+-		pdata->an_irq = pdata->pcidev->irq + 3;
+-
+-		for (i = XGBE_MSIX_BASE_COUNT, j = 0;
+-		     (i < msi_count) && (j < XGBE_MAX_DMA_CHANNELS);
+-		     i++, j++)
+-			pdata->channel_irq[j] = pdata->pcidev->irq + i;
+-		pdata->channel_irq_count = j;
+-
+-		pdata->per_channel_irq = 1;
+-		pdata->channel_irq_mode = XGBE_IRQ_MODE_LEVEL;
+-	} else {
+-		pdata->ecc_irq = pdata->pcidev->irq;
+-		pdata->i2c_irq = pdata->pcidev->irq;
+-		pdata->an_irq = pdata->pcidev->irq;
+-	}
+-
+-	if (netif_msg_probe(pdata))
+-		dev_dbg(pdata->dev, "MSI interrupts enabled\n");
+-
+-	return 0;
+-}
+-
+-static int xgbe_config_msix(struct xgbe_prv_data *pdata)
+-{
+-	unsigned int msix_count;
+-	unsigned int i, j;
+-	int ret;
+-
+-	msix_count = XGBE_MSIX_BASE_COUNT;
+-	msix_count += max(pdata->rx_ring_count,
+-			  pdata->tx_ring_count);
+-
+-	pdata->msix_entries = devm_kcalloc(pdata->dev, msix_count,
+-					   sizeof(struct msix_entry),
+-					   GFP_KERNEL);
+-	if (!pdata->msix_entries)
+-		return -ENOMEM;
+-
+-	for (i = 0; i < msix_count; i++)
+-		pdata->msix_entries[i].entry = i;
+-
+-	ret = pci_enable_msix_range(pdata->pcidev, pdata->msix_entries,
+-				    XGBE_MSIX_MIN_COUNT, msix_count);
+-	if (ret < 0) {
+-		dev_info(pdata->dev, "MSI-X enablement failed\n");
+-		devm_kfree(pdata->dev, pdata->msix_entries);
+-		pdata->msix_entries = NULL;
++		dev_info(pdata->dev, "multi MSI/MSI-X enablement failed\n");
+ 		return ret;
+ 	}
+ 
+ 	pdata->irq_count = ret;
+ 
+-	pdata->dev_irq = pdata->msix_entries[0].vector;
+-	pdata->ecc_irq = pdata->msix_entries[1].vector;
+-	pdata->i2c_irq = pdata->msix_entries[2].vector;
+-	pdata->an_irq = pdata->msix_entries[3].vector;
++	pdata->dev_irq = pci_irq_vector(pdata->pcidev, 0);
++	pdata->ecc_irq = pci_irq_vector(pdata->pcidev, 1);
++	pdata->i2c_irq = pci_irq_vector(pdata->pcidev, 2);
++	pdata->an_irq = pci_irq_vector(pdata->pcidev, 3);
+ 
+-	for (i = XGBE_MSIX_BASE_COUNT, j = 0; i < ret; i++, j++)
+-		pdata->channel_irq[j] = pdata->msix_entries[i].vector;
++	for (i = XGBE_MSI_BASE_COUNT, j = 0; i < ret; i++, j++)
++		pdata->channel_irq[j] = pci_irq_vector(pdata->pcidev, i);
+ 	pdata->channel_irq_count = j;
+ 
+ 	pdata->per_channel_irq = 1;
+ 	pdata->channel_irq_mode = XGBE_IRQ_MODE_LEVEL;
+ 
+ 	if (netif_msg_probe(pdata))
+-		dev_dbg(pdata->dev, "MSI-X interrupts enabled\n");
++		dev_dbg(pdata->dev, "multi %s interrupts enabled\n",
++			pdata->pcidev->msix_enabled ? "MSI-X" : "MSI");
+ 
+ 	return 0;
+ }
+@@ -228,21 +164,28 @@ static int xgbe_config_irqs(struct xgbe_prv_data *pdata)
+ {
+ 	int ret;
+ 
+-	ret = xgbe_config_msix(pdata);
++	ret = xgbe_config_multi_msi(pdata);
+ 	if (!ret)
+ 		goto out;
+ 
+-	ret = xgbe_config_msi(pdata);
+-	if (!ret)
+-		goto out;
++	ret = pci_alloc_irq_vectors(pdata->pcidev, 1, 1,
++				    PCI_IRQ_LEGACY | PCI_IRQ_MSI);
++	if (ret < 0) {
++		dev_info(pdata->dev, "single IRQ enablement failed\n");
++		return ret;
++	}
+ 
+ 	pdata->irq_count = 1;
+-	pdata->irq_shared = 1;
++	pdata->channel_irq_count = 1;
++
++	pdata->dev_irq = pci_irq_vector(pdata->pcidev, 0);
++	pdata->ecc_irq = pci_irq_vector(pdata->pcidev, 0);
++	pdata->i2c_irq = pci_irq_vector(pdata->pcidev, 0);
++	pdata->an_irq = pci_irq_vector(pdata->pcidev, 0);
+ 
+-	pdata->dev_irq = pdata->pcidev->irq;
+-	pdata->ecc_irq = pdata->pcidev->irq;
+-	pdata->i2c_irq = pdata->pcidev->irq;
+-	pdata->an_irq = pdata->pcidev->irq;
++	if (netif_msg_probe(pdata))
++		dev_dbg(pdata->dev, "single %s interrupt enabled\n",
++			pdata->pcidev->msi_enabled ?  "MSI" : "legacy");
+ 
+ out:
+ 	if (netif_msg_probe(pdata)) {
+@@ -412,12 +355,15 @@ static int xgbe_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ 	/* Configure the netdev resource */
+ 	ret = xgbe_config_netdev(pdata);
+ 	if (ret)
+-		goto err_pci_enable;
++		goto err_irq_vectors;
+ 
+ 	netdev_notice(pdata->netdev, "net device enabled\n");
+ 
+ 	return 0;
+ 
++err_irq_vectors:
++	pci_free_irq_vectors(pdata->pcidev);
++
+ err_pci_enable:
+ 	xgbe_free_pdata(pdata);
+ 
+@@ -433,6 +379,8 @@ static void xgbe_pci_remove(struct pci_dev *pdev)
+ 
+ 	xgbe_deconfig_netdev(pdata);
+ 
++	pci_free_irq_vectors(pdata->pcidev);
++
+ 	xgbe_free_pdata(pdata);
+ }
+ 
+diff --git a/drivers/net/ethernet/amd/xgbe/xgbe.h b/drivers/net/ethernet/amd/xgbe/xgbe.h
+index f52a9bd..99f1c87 100644
+--- a/drivers/net/ethernet/amd/xgbe/xgbe.h
++++ b/drivers/net/ethernet/amd/xgbe/xgbe.h
+@@ -211,9 +211,9 @@
+ #define XGBE_MAC_PROP_OFFSET	0x1d000
+ #define XGBE_I2C_CTRL_OFFSET	0x1e000
+ 
+-/* PCI MSIx support */
+-#define XGBE_MSIX_BASE_COUNT	4
+-#define XGBE_MSIX_MIN_COUNT	(XGBE_MSIX_BASE_COUNT + 1)
++/* PCI MSI/MSIx support */
++#define XGBE_MSI_BASE_COUNT	4
++#define XGBE_MSI_MIN_COUNT	(XGBE_MSI_BASE_COUNT + 1)
+ 
+ /* PCI clock frequencies */
+ #define XGBE_V2_DMA_CLOCK_FREQ	500000000	/* 500 MHz */
+@@ -980,14 +980,12 @@ struct xgbe_prv_data {
+ 	unsigned int desc_ded_count;
+ 	unsigned int desc_sec_count;
+ 
+-	struct msix_entry *msix_entries;
+ 	int dev_irq;
+ 	int ecc_irq;
+ 	int i2c_irq;
+ 	int channel_irq[XGBE_MAX_DMA_CHANNELS];
+ 
+ 	unsigned int per_channel_irq;
+-	unsigned int irq_shared;
+ 	unsigned int irq_count;
+ 	unsigned int channel_irq_count;
+ 	unsigned int channel_irq_mode;
 
-You're right. I'll add it.
-
->> +    ret = of_property_read_u32(node, "data-lanes", &dev->hw.num_lanes);
->> +    if (ret) {
->> +        dev_err(&pdev->dev, "Couldn't read data-lanes\n");
->> +        return ret;
->> +    }
->> +
->> +    ret = of_property_read_u32(node, "output-type", &dev->hw.output_type);
->> +    if (ret) {
->> +        dev_err(&pdev->dev, "Couldn't read output-type\n");
->> +        return ret;
->> +    }
->> +
->> +    ret = of_property_read_u32(node, "ipi-mode", &dev->hw.ipi_mode);
->> +    if (ret) {
->> +        dev_err(&pdev->dev, "Couldn't read ipi-mode\n");
->> +        return ret;
->> +    }
->> +
->> +    ret =
->> +        of_property_read_u32(node, "ipi-auto-flush",
->> +                 &dev->hw.ipi_auto_flush);
->> +    if (ret) {
->> +        dev_err(&pdev->dev, "Couldn't read ipi-auto-flush\n");
->> +        return ret;
->> +    }
->> +
->> +    ret =
->> +        of_property_read_u32(node, "ipi-color-mode",
->> +                 &dev->hw.ipi_color_mode);
->> +    if (ret) {
->> +        dev_err(&pdev->dev, "Couldn't read ipi-color-mode\n");
->> +        return ret;
->> +    }
->> +
->> +    ret =
->> +        of_property_read_u32(node, "virtual-channel", &dev->hw.virtual_ch);
->> +    if (ret) {
->> +        dev_err(&pdev->dev, "Couldn't read virtual-channel\n");
->> +        return ret;
->> +    }
->> +
->> +    node = of_get_child_by_name(node, "port");
->> +    if (!node)
->> +        return -EINVAL;
->> +
->> +    ret = of_property_read_u32(node, "reg", &reg);
->> +    if (ret) {
->> +        dev_err(&pdev->dev, "Couldn't read reg value\n");
->> +        return ret;
->> +    }
->> +    dev->index = reg - 1;
->> +
->> +    if (dev->index >= CSI_MAX_ENTITIES)
->> +        return -ENXIO;
->> +
->> +    return 0;
->> +}
->> +
-
-[snip]
-
->> diff --git a/drivers/media/platform/dwc/plat_ipk.c
->> b/drivers/media/platform/dwc/plat_ipk.c
->> new file mode 100644
->> index 0000000..02dcf36
->> --- /dev/null
->> +++ b/drivers/media/platform/dwc/plat_ipk.c
->> @@ -0,0 +1,818 @@
->> +/**
->> + * DWC MIPI CSI-2 Host IPK platform device driver
-> 
-> What does IPK stand for?
-> 
-
-IPK stands for IP Prototyping Kit. However any reference to this will probably
-disappear in the next patchset.
-
-[snip]
-
-
->> +
->> +static const struct plat_ipk_fmt *
->> +vid_dev_find_format(struct v4l2_format *f, int index)
->> +{
->> +    const struct plat_ipk_fmt *fmt = NULL;
->> +    unsigned int i;
->> +
->> +    if (index >= (int) ARRAY_SIZE(vid_dev_formats))
->> +        return NULL;
-> 
-> ???
-> 
-> What's the purpose of the index argument? I get the feeling it is
-> a left-over from older code.
-> 
-
-Yes. It's a left-over. I'll remove it.
-
->> +
->> +    for (i = 0; i < ARRAY_SIZE(vid_dev_formats); ++i) {
->> +        fmt = &vid_dev_formats[i];
->> +        if (fmt->fourcc == f->fmt.pix.pixelformat)
->> +            return fmt;
->> +    }
->> +    return NULL;
->> +}
->> +
->> +/*
->> + * Video node ioctl operations
->> + */
->> +static int
->> +vidioc_querycap(struct file *file, void *priv, struct v4l2_capability *cap)
->> +{
->> +    struct video_device_dev *vid_dev = video_drvdata(file);
->> +
->> +    strlcpy(cap->driver, VIDEO_DEVICE_NAME, sizeof(cap->driver));
->> +    strlcpy(cap->card, VIDEO_DEVICE_NAME, sizeof(cap->card));
->> +    snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
->> +         dev_name(&vid_dev->pdev->dev));
->> +
->> +    cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
->> +    cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-> 
-> Set the device_caps in struct video_device and drop these two lines.
-> The core will fill those in for you.
-> 
-
-I'll change them to where I configure the struct video_device.
-
->> +    return 0;
->> +}
->> +
->> +static int
->> +vidioc_enum_fmt_vid_cap(struct file *file, void *priv, struct v4l2_fmtdesc *f)
->> +{
->> +    const struct plat_ipk_fmt *p_fmt;
->> +
->> +    if (f->index >= ARRAY_SIZE(vid_dev_formats))
->> +        return -EINVAL;
->> +
->> +    p_fmt = &vid_dev_formats[f->index];
->> +
->> +    strlcpy(f->description, p_fmt->name, sizeof(f->description));
-> 
-> Don't set the description, the core will do that for you.
-> 
-
-OK.
-
->> +    f->pixelformat = p_fmt->fourcc;
->> +
->> +    return 0;
->> +}
->> +
->> +static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
->> +                    struct v4l2_format *f)
->> +{
->> +    struct video_device_dev *dev = video_drvdata(file);
->> +
->> +    memcpy(&f->fmt.pix, &dev->format.fmt.pix,
->> +           sizeof(struct v4l2_pix_format));
-> 
-> Use f->fmt.pix = dev->format.fmt.pix;
-> 
-
-I'll do that
-
->> +
->> +    return 0;
->> +}
->> +
->> +static int
->> +vidioc_try_fmt_vid_cap(struct file *file, void *priv, struct v4l2_format *f)
->> +{
->> +    const struct plat_ipk_fmt *fmt;
->> +
->> +    fmt = vid_dev_find_format(f, -1);
->> +    if (!fmt) {
->> +        f->fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565;
->> +        fmt = vid_dev_find_format(f, -1);
->> +    }
->> +
->> +    f->fmt.pix.field = V4L2_FIELD_NONE;
->> +    v4l_bound_align_image(&f->fmt.pix.width, 48, MAX_WIDTH, 2,
->> +                  &f->fmt.pix.height, 32, MAX_HEIGHT, 0, 0);
->> +
->> +    f->fmt.pix.bytesperline = (f->fmt.pix.width * fmt->depth) >> 3;
->> +    f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
->> +    f->fmt.pix.colorspace = V4L2_COLORSPACE_SRGB;
->> +    return 0;
->> +}
->> +
->> +static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
->> +                    struct v4l2_format *f)
->> +{
->> +    struct video_device_dev *dev = video_drvdata(file);
->> +    int ret;
->> +    struct v4l2_subdev_format fmt;
->> +    struct v4l2_pix_format *dev_fmt_pix = &dev->format.fmt.pix;
->> +
->> +    if (vb2_is_busy(&dev->vb_queue))
->> +        return -EBUSY;
->> +
->> +    ret = vidioc_try_fmt_vid_cap(file, dev, f);
->> +    if (ret)
->> +        return ret;
->> +
->> +    dev->fmt = vid_dev_find_format(f, -1);
->> +    dev_fmt_pix->pixelformat = f->fmt.pix.pixelformat;
->> +    dev_fmt_pix->width = f->fmt.pix.width;
->> +    dev_fmt_pix->height  = f->fmt.pix.height;
->> +    dev_fmt_pix->bytesperline = dev_fmt_pix->width * (dev->fmt->depth / 8);
->> +    dev_fmt_pix->sizeimage =
->> +            dev_fmt_pix->height * dev_fmt_pix->bytesperline;
->> +
->> +    fmt.format.colorspace = V4L2_COLORSPACE_SRGB;
->> +    fmt.format.code = dev->fmt->mbus_code;
->> +
->> +    fmt.format.width = dev_fmt_pix->width;
->> +    fmt.format.height = dev_fmt_pix->height;
->> +
->> +    ret = plat_ipk_pipeline_call(&dev->ve, set_format, &fmt);
->> +
->> +    return 0;
->> +}
->> +
->> +static int vidioc_enum_framesizes(struct file *file, void *fh,
->> +               struct v4l2_frmsizeenum *fsize)
->> +{
->> +    static const struct v4l2_frmsize_stepwise sizes = {
->> +        48, MAX_WIDTH, 4,
->> +        32, MAX_HEIGHT, 1
->> +    };
->> +    int i;
->> +
->> +    if (fsize->index)
->> +        return -EINVAL;
->> +    for (i = 0; i < ARRAY_SIZE(vid_dev_formats); i++)
->> +        if (vid_dev_formats[i].fourcc == fsize->pixel_format)
->> +            break;
->> +    if (i == ARRAY_SIZE(vid_dev_formats))
->> +        return -EINVAL;
->> +    fsize->type = V4L2_FRMSIZE_TYPE_STEPWISE;
->> +    fsize->stepwise = sizes;
->> +    return 0;
->> +}
->> +
->> +static int vidioc_enum_input(struct file *file, void *priv,
->> +            struct v4l2_input *input)
->> +{
->> +    if (input->index != 0)
->> +        return -EINVAL;
->> +
->> +    input->type = V4L2_INPUT_TYPE_CAMERA;
->> +    input->std = V4L2_STD_ALL;    /* Not sure what should go here */
-> 
-> Set this to 0, or just drop the line.
-> 
-
-Thanks.
-
->> +    strcpy(input->name, "Camera");
->> +    return 0;
->> +}
->> +
-
-[snip]
-
->> +
->> +static int vid_dev_subdev_s_power(struct v4l2_subdev *sd, int on)
->> +{
->> +    return 0;
->> +}
-> 
-> Just drop this empty function, shouldn't be needed.
-> 
-
-When I start my system I'm hoping all the subdevs have s_power registered. If it
-doesn't exist should I change the way I handle it, or will the core handle it
-for me?
-
->> +
->> +static int vid_dev_subdev_registered(struct v4l2_subdev *sd)
->> +{
->> +    struct video_device_dev *vid_dev = v4l2_get_subdevdata(sd);
->> +    struct vb2_queue *q = &vid_dev->vb_queue;
->> +    struct video_device *vfd = &vid_dev->ve.vdev;
->> +    int ret;
->> +
->> +    memset(vfd, 0, sizeof(*vfd));
->> +
->> +    strlcpy(vfd->name, VIDEO_DEVICE_NAME, sizeof(vfd->name));
->> +
->> +    vfd->fops = &vid_dev_fops;
->> +    vfd->ioctl_ops = &vid_dev_ioctl_ops;
->> +    vfd->v4l2_dev = sd->v4l2_dev;
->> +    vfd->minor = -1;
->> +    vfd->release = video_device_release_empty;
->> +    vfd->queue = q;
->> +
->> +    INIT_LIST_HEAD(&vid_dev->vidq.active);
->> +    init_waitqueue_head(&vid_dev->vidq.wq);
->> +    memset(q, 0, sizeof(*q));
->> +    q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
->> +    q->io_modes = VB2_MMAP | VB2_USERPTR;
-> 
-> Add VB2_DMABUF and VB2_READ.
-> 
-
-I'll add them, but I'm not using them, is it standard procedure to add them all
-even if they aren't used?
-
->> +    q->ops = &vb2_video_qops;
->> +    q->mem_ops = &vb2_vmalloc_memops;
-> 
-> Why is vmalloc used? Can't you use dma_contig or dma_sg and avoid having to copy
-> the image data? That's a really bad design given the amount of video data that
-> you have to copy.
-> 
-
-When I started development, the arch I was using (ARC) didn't support
-dma_contig, so I was forced to use vmalloc.
-
-Since then things have changed and I'm already using dma_contig, however it
-wasn't included in this patch. I'll add it to the next patch.
-
->> +    q->buf_struct_size = sizeof(struct rx_buffer);
->> +    q->drv_priv = vid_dev;
->> +    q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->> +    q->lock = &vid_dev->lock;
->> +
->> +    ret = vb2_queue_init(q);
->> +    if (ret < 0)
->> +        return ret;
->> +
->> +    vid_dev->vd_pad.flags = MEDIA_PAD_FL_SINK;
->> +    ret = media_entity_pads_init(&vfd->entity, 1, &vid_dev->vd_pad);
->> +    if (ret < 0)
->> +        return ret;
->> +
->> +    video_set_drvdata(vfd, vid_dev);
->> +    vid_dev->ve.pipe = v4l2_get_subdev_hostdata(sd);
->> +
->> +    ret = video_register_device(vfd, VFL_TYPE_GRABBER, -1);
->> +    if (ret < 0) {
->> +        media_entity_cleanup(&vfd->entity);
->> +        vid_dev->ve.pipe = NULL;
->> +        return ret;
->> +    }
->> +
->> +    v4l2_info(sd->v4l2_dev, "Registered %s as /dev/%s\n",
->> +          vfd->name, video_device_node_name(vfd));
->> +    return 0;
->> +}
->> +
-
-[snip]
-
-> 
-> Regards,
-> 
->     Hans
-
-BRs,
-Ramiro
