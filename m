@@ -1,96 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:55194 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750822AbdAaLVZ (ORCPT
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:33905 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751972AbdAMPCd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jan 2017 06:21:25 -0500
-Date: Tue, 31 Jan 2017 11:20:01 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v3 17/24] media: imx: Add CSI subdev driver
-Message-ID: <20170131112001.GV27312@n2100.armlinux.org.uk>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
- <1483755102-24785-18-git-send-email-steve_longerbeam@mentor.com>
+        Fri, 13 Jan 2017 10:02:33 -0500
+Subject: Re: [PATCH v6 3/3] arm: dts: mt2701: Add node for Mediatek JPEG
+ Decoder
+To: Eddie Huang <eddie.huang@mediatek.com>
+References: <1479353915-5043-1-git-send-email-rick.chang@mediatek.com>
+ <1479353915-5043-4-git-send-email-rick.chang@mediatek.com>
+ <d602365a-e87b-5bae-8698-bd43063ef079@xs4all.nl>
+ <1479784905.8964.15.camel@mtksdaap41>
+ <badf8125-27ed-9c5b-fbc0-75716ffdfb0e@xs4all.nl>
+ <1479866054.8964.21.camel@mtksdaap41> <1479894203.8964.29.camel@mtksdaap41>
+ <1483670099.18931.5.camel@mtksdaap41>
+ <974d20f3-5133-0869-2a35-c1617bec5d6e@xs4all.nl>
+ <c35bd06d-f012-1289-e765-02dc26b87e27@gmail.com>
+ <1484011718.10361.7.camel@mtksdaap41>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Rick Chang <rick.chang@mediatek.com>,
+        devicetree@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        srv_heupstream@mediatek.com,
+        James Liao <jamesjj.liao@mediatek.com>,
+        linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-mediatek@lists.infradead.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+From: Matthias Brugger <matthias.bgg@gmail.com>
+Message-ID: <267403e5-18ac-0c74-10ca-cc36b909dfb4@gmail.com>
+Date: Fri, 13 Jan 2017 16:02:27 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1483755102-24785-18-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1484011718.10361.7.camel@mtksdaap41>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 06, 2017 at 06:11:35PM -0800, Steve Longerbeam wrote:
-> +static int csi_link_validate(struct v4l2_subdev *sd,
-> +			     struct media_link *link,
-> +			     struct v4l2_subdev_format *source_fmt,
-> +			     struct v4l2_subdev_format *sink_fmt)
-> +{
-> +	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-> +	bool is_csi2;
-> +	int ret;
-> +
-> +	ret = v4l2_subdev_link_validate_default(sd, link, source_fmt, sink_fmt);
-> +	if (ret)
-> +		return ret;
-> +
-> +	priv->sensor = __imx_media_find_sensor(priv->md, &priv->sd.entity);
-> +	if (IS_ERR(priv->sensor)) {
-> +		v4l2_err(&priv->sd, "no sensor attached\n");
-> +		ret = PTR_ERR(priv->sensor);
-> +		priv->sensor = NULL;
-> +		return ret;
-> +	}
-> +
-> +	ret = v4l2_subdev_call(priv->sensor->sd, video, g_mbus_config,
-> +			       &priv->sensor_mbus_cfg);
-> +	if (ret)
-> +		return ret;
-> +
-> +	is_csi2 = (priv->sensor_mbus_cfg.type == V4L2_MBUS_CSI2);
-> +
-> +	if (is_csi2) {
-> +		int vc_num = 0;
-> +		/*
-> +		 * NOTE! It seems the virtual channels from the mipi csi-2
-> +		 * receiver are used only for routing by the video mux's,
-> +		 * or for hard-wired routing to the CSI's. Once the stream
-> +		 * enters the CSI's however, they are treated internally
-> +		 * in the IPU as virtual channel 0.
-> +		 */
-> +#if 0
-> +		vc_num = imx_media_find_mipi_csi2_channel(priv->md,
-> +							  &priv->sd.entity);
-> +		if (vc_num < 0)
-> +			return vc_num;
-> +#endif
-> +		ipu_csi_set_mipi_datatype(priv->csi, vc_num,
-> +					  &priv->format_mbus[priv->input_pad]);
+Hi James,
 
-This seems (at least to me) to go against the spirit of the subdev
-negotiation.  Here, you seem to bypass the negotiation performed
-between the CSI and the attached device, wanting to grab the
-format from the CSI2 sensor directly.  That bypasses negotiation
-performed at the CSI2 subdev and video muxes.
+On 10/01/17 02:28, Eddie Huang wrote:
+> Hi Matthias,
+>
+> On Mon, 2017-01-09 at 19:45 +0100, Matthias Brugger wrote:
+>>
+>> On 09/01/17 12:29, Hans Verkuil wrote:
+>>> Hi Rick,
+>>>
+>>> On 01/06/2017 03:34 AM, Rick Chang wrote:
+>>>> Hi Hans,
+>>>>
+>>>> The dependence on [1] has been merged in 4.10, but [2] has not.Do you have
+>>>> any idea about this patch series? Should we wait for [2] or we could merge
+>>>> the source code and dt-binding first?
+>>>
+>>> Looking at [2] I noticed that the last comment was July 4th. What is the reason
+>>> it hasn't been merged yet?
+>>>
+>>> If I know [2] will be merged for 4.11, then I am fine with merging this media
+>>> patch series. The dependency of this patch on [2] is something Mauro can handle.
+>>>
+>>> If [2] is not merged for 4.11, then I think it is better to wait until it is
+>>> merged.
+>>>
+>>
+>> I can't take [2] because there is no scpsys in the dts present. It seems
+>> that it got never posted.
+>>
+>> Rick can you please follow-up with James and provide a patch which adds
+>> a scpsys node to the mt2701.dtsi?
+>>
+>
+> James sent three MT2701 dts patches [1] two weeks ago, these three
+> patches include scpsys node. Please take a reference. And We will send
+> new MT2701 ionmmu/smi dtsi node patch base on [1] later, thus you can
+> accept and merge to 4.11.
+>
 
-The same goes for the frame rate monitoring code - imho, the frame
-rate should be something that results from negotiation with the
-neighbouring element, not by poking at some entity that is several
-entities away.
+Thanks for the clarification. I pulled all this patches into 
+v4.10-next/dts32
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Hans will you take v9 of this patch set?
+Then I'll take the dts patch.
+
+Regards,
+Matthias
+
+> [1]
+> https://patchwork.kernel.org/patch/9489991/
+> https://patchwork.kernel.org/patch/9489985/
+> https://patchwork.kernel.org/patch/9489989/
+>
+> Thanks,
+> Eddie
+>
+>
