@@ -1,78 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:40181 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754473AbdA3V63 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Jan 2017 16:58:29 -0500
-Date: Mon, 30 Jan 2017 21:58:26 +0000
-From: Sean Young <sean@mess.org>
-To: kbuild test robot <fengguang.wu@intel.com>
-Cc: kbuild-all@01.org, linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [linuxtv-media:master 1071/1091]
- arch/arm/mach-omap2/pdata-quirks.c:536:49: error: 'rx51_lirc_data'
- undeclared here (not in a function)
-Message-ID: <20170130215826.GA20904@gofer.mess.org>
-References: <201701310347.zJE5nRX4%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201701310347.zJE5nRX4%fengguang.wu@intel.com>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:32851 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751528AbdAML4s (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Jan 2017 06:56:48 -0500
+Message-ID: <1484308551.31475.23.camel@pengutronix.de>
+Subject: Re: [PATCH v3 01/24] [media] dt-bindings: Add bindings for i.MX
+ media driver
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Fri, 13 Jan 2017 12:55:51 +0100
+In-Reply-To: <1483755102-24785-2-git-send-email-steve_longerbeam@mentor.com>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+         <1483755102-24785-2-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 31, 2017 at 03:53:54AM +0800, kbuild test robot wrote:
-> tree:   git://linuxtv.org/media_tree.git master
-> head:   a052af2a548decf1da5cccf9e777aa02321e3ffb
-> commit: a92def1becf33e91fc460c7ae575aa9210ba8f40 [1071/1091] [media] ir-rx51: port to rc-core
-> config: arm-multi_v7_defconfig (attached as .config)
-> compiler: arm-linux-gnueabi-gcc (Debian 6.1.1-9) 6.1.1 20160705
-> reproduce:
->         wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
->         chmod +x ~/bin/make.cross
->         git checkout a92def1becf33e91fc460c7ae575aa9210ba8f40
->         # save the attached .config to linux build tree
->         make.cross ARCH=arm 
+Am Freitag, den 06.01.2017, 18:11 -0800 schrieb Steve Longerbeam:
+> Add bindings documentation for the i.MX media driver.
 > 
-> All errors (new ones prefixed by >>):
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> ---
+>  Documentation/devicetree/bindings/media/imx.txt | 57 +++++++++++++++++++++++++
+>  1 file changed, 57 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/imx.txt
 > 
->    In file included from arch/arm/mach-omap2/pdata-quirks.c:15:0:
-> >> arch/arm/mach-omap2/pdata-quirks.c:536:49: error: 'rx51_lirc_data' undeclared here (not in a function)
->      OF_DEV_AUXDATA("nokia,n900-ir", 0, "n900-ir", &rx51_lirc_data),
->                                                     ^
->    include/linux/of_platform.h:52:21: note: in definition of macro 'OF_DEV_AUXDATA'
->        .platform_data = _pdata }
+> diff --git a/Documentation/devicetree/bindings/media/imx.txt b/Documentation/devicetree/bindings/media/imx.txt
+> new file mode 100644
+> index 0000000..254b64a
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/imx.txt
+> @@ -0,0 +1,57 @@
+> +Freescale i.MX Media Video Devices
+> +
+> +Video Media Controller node
+> +---------------------------
+> +
+> +This is the parent media controller node for video capture support.
+> +
+> +Required properties:
+> +- compatible : "fsl,imx-media";
 
-Oh dear, that should have been rx51_ir_data. The patch below fixes it.
+Would you be opposed to calling this "capture-subsystem" instead of
+"imx-media"? We already use "fsl,imx-display-subsystem" and
+"fsl,imx-gpu-subsystem" for the display and GPU compound devices.
 
+> +- ports      : Should contain a list of phandles pointing to camera
+> +  	       sensor interface ports of IPU devices
+> +
+> +
+> +fim child node
+> +--------------
+> +
+> +This is an optional child node of the ipu_csi port nodes. If present and
+> +available, it enables the Frame Interval Monitor. Its properties can be
+> +used to modify the method in which the FIM measures frame intervals.
+> +Refer to Documentation/media/v4l-drivers/imx.rst for more info on the
+> +Frame Interval Monitor.
+> +
+> +Optional properties:
+> +- fsl,input-capture-channel: an input capture channel and channel flags,
+> +			     specified as <chan flags>. The channel number
+> +			     must be 0 or 1. The flags can be
+> +			     IRQ_TYPE_EDGE_RISING, IRQ_TYPE_EDGE_FALLING, or
+> +			     IRQ_TYPE_EDGE_BOTH, and specify which input
+> +			     capture signal edge will trigger the input
+> +			     capture event. If an input capture channel is
+> +			     specified, the FIM will use this method to
+> +			     measure frame intervals instead of via the EOF
+> +			     interrupt. The input capture method is much
+> +			     preferred over EOF as it is not subject to
+> +			     interrupt latency errors. However it requires
+> +			     routing the VSYNC or FIELD output signals of
+> +			     the camera sensor to one of the i.MX input
+> +			     capture pads (SD1_DAT0, SD1_DAT1), which also
+> +			     gives up support for SD1.
 
-Sean
+This is a clever method to get better frame timestamps. Too bad about
+the routing requirements. Can this be used on Nitrogen6X?
 
->From 7813bce59dca0eb7f9af1626fc9cd6ef1ddea9a5 Mon Sep 17 00:00:00 2001
-From: Sean Young <sean@mess.org>
-Date: Mon, 30 Jan 2017 19:58:19 +0000
-Subject: [PATCH] [media] rx51: broken build
+> +
+> +mipi_csi2 node
+> +--------------
+> +
+> +This is the device node for the MIPI CSI-2 Receiver, required for MIPI
+> +CSI-2 sensors.
+> +
+> +Required properties:
+> +- compatible	: "fsl,imx6-mipi-csi2";
 
-Since "a92def1 [media] ir-rx51: port to rc-core" the build fails on
-some arm configurations.
+I think this should get an additional "snps,dw-mipi-csi2" compatible,
+since the only i.MX6 specific part is the bolted-on IPU2CSI gasket.
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- arch/arm/mach-omap2/pdata-quirks.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> +- reg           : physical base address and length of the register set;
+> +- clocks	: the MIPI CSI-2 receiver requires three clocks: hsi_tx
+> +                  (the DPHY clock), video_27m, and eim_sel;
 
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index 9f06074..dc3b6c8 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -533,7 +533,7 @@ static struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
- 		       &omap3_iommu_pdata),
- 	OF_DEV_AUXDATA("ti,omap3-hsmmc", 0x4809c000, "4809c000.mmc", &mmc_pdata[0]),
- 	OF_DEV_AUXDATA("ti,omap3-hsmmc", 0x480b4000, "480b4000.mmc", &mmc_pdata[1]),
--	OF_DEV_AUXDATA("nokia,n900-ir", 0, "n900-ir", &rx51_lirc_data),
-+	OF_DEV_AUXDATA("nokia,n900-ir", 0, "n900-ir", &rx51_ir_data),
- 	/* Only on am3517 */
- 	OF_DEV_AUXDATA("ti,davinci_mdio", 0x5c030000, "davinci_mdio.0", NULL),
- 	OF_DEV_AUXDATA("ti,am3517-emac", 0x5c000000, "davinci_emac.0",
--- 
-2.9.3
+Note that hsi_tx is incorrectly named. CCGR3[CG8] just happens to be the
+shared gate bit that gates the HSI clocks as well as the MIPI
+"ac_clk_125m", "cfg_clk", "ips_clk", and "pll_refclk" inputs to the mipi
+csi-2 core, but we are missing shared gate clocks in the clock tree for
+these.
+Both cfg_clk and pll_refclk are sourced from video_27m, so "cfg" ->
+video_27m seems fine.
+But I don't get "dphy". Which input clock would that correspond to?
+"pll_refclk?"
+Also the pixel clock input is a gate after aclk_podf (which we call
+eim_podf), not aclk_sel (eim_sel).
+
+> +- clock-names	: must contain "dphy", "cfg", "pix";
+> +
+> +Optional properties:
+> +- interrupts	: must contain two level-triggered interrupts,
+> +                  in order: 100 and 101;
+
+regards
+Philipp
 
