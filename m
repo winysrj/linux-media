@@ -1,155 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:34187 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S937738AbdAFS62 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2017 13:58:28 -0500
-Subject: Re: [PATCH v2 15/19] media: imx: Add MIPI CSI-2 Receiver subdev
- driver
-To: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
-        shawnguo@kernel.org, kernel@pengutronix.de, fabio.estevam@nxp.com,
-        robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk,
-        mchehab@kernel.org, gregkh@linuxfoundation.org,
-        p.zabel@pengutronix.de
-References: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
- <1483477049-19056-16-git-send-email-steve_longerbeam@mentor.com>
- <ecfcd8e5-01bd-b9a4-8653-7bbbdece4231@mentor.com>
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <e326764e-629e-3d1d-8671-0d902a54b9bf@gmail.com>
-Date: Fri, 6 Jan 2017 10:58:26 -0800
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51668 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751350AbdAMKVr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Jan 2017 05:21:47 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Matt Ranostay <matt@ranostay.consulting>
+Cc: Marek Vasut <marex@denx.de>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Attila Kinali <attila@kinali.ch>,
+        Luca Barbato <lu_zero@gentoo.org>
+Subject: Re: [PATCH v5] media: video-i2c: add video-i2c driver
+Date: Fri, 13 Jan 2017 12:22 +0200
+Message-ID: <5567693.ylOOACtACV@avalon>
+In-Reply-To: <CAJ_EiSQEQYiCcivdUysB_=xR2HFbK6NhoziMeGKUKGq-GiF0Fg@mail.gmail.com>
+References: <1482548666-25272-1-git-send-email-matt@ranostay.consulting> <2f86a894-817f-6834-fad6-8ed2294ba2e4@denx.de> <CAJ_EiSQEQYiCcivdUysB_=xR2HFbK6NhoziMeGKUKGq-GiF0Fg@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <ecfcd8e5-01bd-b9a4-8653-7bbbdece4231@mentor.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Matt,
 
+On Thursday 12 Jan 2017 20:45:21 Matt Ranostay wrote:
+> On Sun, Jan 8, 2017 at 9:33 PM, Marek Vasut <marex@denx.de> wrote:
+> > On 01/09/2017 06:17 AM, Matt Ranostay wrote:
+> >> Gentle ping on this! :)
+> > 
+> > Just some high-level feedback ... You should use regmap instead. Also,
+> > calling a driver which is specific to a particular sensor (amg88x) by
+> > generic name (video_i2c) is probably not a good idea.
+> 
+> There are likely going to variants, and other vendors that will have
+> parts as well. One example to note is the FLIR Lepton, and that may be
+> a good reason to use regmap in the future.   Also Laurent suggested
+> the generic naming :)
 
-On 01/04/2017 07:05 AM, Vladimir Zapolskiy wrote:
-> On 01/03/2017 10:57 PM, Steve Longerbeam wrote:
->> Adds MIPI CSI-2 Receiver subdev driver. This subdev is required
->> for sensors with a MIPI CSI2 interface.
->>
->> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
->> ---
->>   drivers/staging/media/imx/Makefile        |   1 +
->>   drivers/staging/media/imx/imx-mipi-csi2.c | 509 ++++++++++++++++++++++++++++++
->>   2 files changed, 510 insertions(+)
->>   create mode 100644 drivers/staging/media/imx/imx-mipi-csi2.c
->>
->> diff --git a/drivers/staging/media/imx/Makefile b/drivers/staging/media/imx/Makefile
->> index fe9e992..0decef7 100644
->> --- a/drivers/staging/media/imx/Makefile
->> +++ b/drivers/staging/media/imx/Makefile
->> @@ -9,3 +9,4 @@ obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-ic.o
->>   obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-csi.o
->>   obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-smfc.o
->>   obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-camif.o
->> +obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-mipi-csi2.o
->> diff --git a/drivers/staging/media/imx/imx-mipi-csi2.c b/drivers/staging/media/imx/imx-mipi-csi2.c
->> new file mode 100644
->> index 0000000..84df16e
->> --- /dev/null
->> +++ b/drivers/staging/media/imx/imx-mipi-csi2.c
->> @@ -0,0 +1,509 @@
->> +/*
->> + * MIPI CSI-2 Receiver Subdev for Freescale i.MX5/6 SOC.
->> + *
->> + * Copyright (c) 2012-2014 Mentor Graphics Inc.
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License as published by
->> + * the Free Software Foundation; either version 2 of the License, or
->> + * (at your option) any later version.
->> + */
->> +#include <linux/module.h>
->> +#include <linux/export.h>
->> +#include <linux/types.h>
->> +#include <linux/init.h>
->> +#include <linux/platform_device.h>
->> +#include <linux/err.h>
->> +#include <linux/delay.h>
->> +#include <linux/interrupt.h>
->> +#include <linux/io.h>
->> +#include <linux/clk.h>
->> +#include <linux/list.h>
->> +#include <linux/irq.h>
->> +#include <linux/of_device.h>
->> +#include <media/v4l2-device.h>
->> +#include <media/v4l2-of.h>
->> +#include <media/v4l2-subdev.h>
->> +#include <media/v4l2-async.h>
-> Please sort the list of headers alphabetically.
+I actually suggested video-i2c instead of i2c-polling to make the name *less* 
+generic :-)
 
-done.
+> >>> On Dec 23, 2016, at 19:04, Matt Ranostay <matt@ranostay.consulting>
+> >>> wrote:
+> >>> 
+> >>> There are several thermal sensors that only have a low-speed bus
+> >>> interface but output valid video data. This patchset enables support
+> >>> for the AMG88xx "Grid-Eye" sensor family.
+> >>> 
+> >>> Cc: Attila Kinali <attila@kinali.ch>
+> >>> Cc: Marek Vasut <marex@denx.de>
+> >>> Cc: Luca Barbato <lu_zero@gentoo.org>
+> >>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >>> Signed-off-by: Matt Ranostay <matt@ranostay.consulting>
+> >>> ---
+> >>> Changes from v1:
+> >>> * correct i2c_polling_remove() operations
+> >>> * fixed delay calcuation in buffer_queue()
+> >>> * add include linux/slab.h
+> >>> 
+> >>> Changes from v2:
+> >>> * fix build error due to typo in include of slab.h
+> >>> 
+> >>> Changes from v3:
+> >>> * switch data transport to a kthread to avoid to .buf_queue that can't
+> >>> sleep * change naming from i2c-polling to video-i2c
+> >>> * make the driver for single chipset under another uses the driver
+> >>> 
+> >>> Changes from v4:
+> >>> * fix wraparound issue with jiffies and schedule_timeout_interruptible()
+> >>> 
+> >>> drivers/media/i2c/Kconfig     |   9 +
+> >>> drivers/media/i2c/Makefile    |   1 +
+> >>> drivers/media/i2c/video-i2c.c | 569 ++++++++++++++++++++++++++++++++++++
+> >>> 3 files changed, 579 insertions(+)
+> >>> create mode 100644 drivers/media/i2c/video-i2c.c
 
->
->> +#include <asm/mach/irq.h>
-> Why do you need to include this header?
+-- 
+Regards,
 
-good question. In fact this include list was in need of a lot of pruning,
-so I paired it down to the essentials.
-
->> +static int imxcsi2_s_stream(struct v4l2_subdev *sd, int enable)
->> +{
->> +	struct imxcsi2_dev *csi2 = sd_to_dev(sd);
->> +	int i, ret = 0;
->> +
->> +	if (!csi2->src_sd)
->> +		return -EPIPE;
->> +	for (i = 0; i < CSI2_NUM_SRC_PADS; i++) {
->> +		if (csi2->sink_sd[i])
->> +			break;
->> +	}
->> +	if (i >= CSI2_NUM_SRC_PADS)
->> +		return -EPIPE;
->> +
->> +	v4l2_info(sd, "stream %s\n", enable ? "ON" : "OFF");
->> +
->> +	if (enable && !csi2->stream_on) {
->> +		clk_prepare_enable(csi2->pix_clk);
-> It can complicate the design for you, but in general clk_prepare_enable()
-> can return an error.
-
-I added an error check and reorganized a little.
-
->> +
->> +static int imxcsi2_parse_endpoints(struct imxcsi2_dev *csi2)
->> +{
->> +	struct device_node *node = csi2->dev->of_node;
->> +	struct device_node *epnode;
->> +	struct v4l2_of_endpoint ep;
->> +	int ret = 0;
->> +
->> +	epnode = of_graph_get_next_endpoint(node, NULL);
->> +	if (!epnode) {
->> +		v4l2_err(&csi2->sd, "failed to get endpoint node\n");
->> +		return -EINVAL;
->> +	}
->> +
->> +	v4l2_of_parse_endpoint(epnode, &ep);
-> Do of_node_put(epnode) here and remove 'out' goto label.
-
-done.
-
->> +static const struct of_device_id imxcsi2_dt_ids[] = {
->> +	{ .compatible = "fsl,imx-mipi-csi2", },
->> +	{ /* sentinel */ }
->> +};
->> +MODULE_DEVICE_TABLE(of, imxcsi2_dt_ids);
->> +
->> +static struct platform_driver imxcsi2_driver = {
->> +	.driver = {
->> +		.name = DEVICE_NAME,
->> +		.owner = THIS_MODULE,
-> Please drop .owner assignment.
-
-done.
-
-
-Steve
+Laurent Pinchart
 
