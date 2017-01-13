@@ -1,45 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.helmutauer.de ([185.170.112.187]:40268 "EHLO
-        v2201612530341454.powersrv.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754838AbdA0Naj (ORCPT
+Received: from mailgw01.mediatek.com ([69.46.227.141]:58104 "EHLO
+        mailgw01.mediatek.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751146AbdAMHr6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Jan 2017 08:30:39 -0500
-Message-ID: <33044ec5031546f79ae9d37565240ed3.squirrel@helmutauer.de>
-In-Reply-To: <ae72e45aeea9d3cbead7c50e1cbe4c5b.squirrel@helmutauer.de>
-References: <20170127080622.GA4153@mwanda>
-    <ae72e45aeea9d3cbead7c50e1cbe4c5b.squirrel@helmutauer.de>
-Date: Fri, 27 Jan 2017 14:20:46 +0100
-Subject: [PATCH] [MEDIA] add device IDs to ngene
-From: vdr@helmutauer.de
-To: "Mauro Carvalho Chehab" <mchehab@kernel.org>
-Cc: "Linux Media Mailing List" <linux-media@vger.kernel.org>
+        Fri, 13 Jan 2017 02:47:58 -0500
+From: <sean.wang@mediatek.com>
+To: <mchehab@osg.samsung.com>, <hdegoede@redhat.com>,
+        <hkallweit1@gmail.com>, <robh+dt@kernel.org>,
+        <mark.rutland@arm.com>, <matthias.bgg@gmail.com>
+CC: <andi.shyti@samsung.com>, <hverkuil@xs4all.nl>, <sean@mess.org>,
+        <ivo.g.dimitrov.75@gmail.com>, <linux-media@vger.kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-mediatek@lists.infradead.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <keyhaede@gmail.com>,
+        Sean Wang <sean.wang@mediatek.com>
+Subject: [PATCH v3 2/3] Documentation: devicetree: Add document bindings for mtk-cir
+Date: Fri, 13 Jan 2017 15:35:38 +0800
+Message-ID: <1484292939-9454-3-git-send-email-sean.wang@mediatek.com>
+In-Reply-To: <1484292939-9454-1-git-send-email-sean.wang@mediatek.com>
+References: <1484292939-9454-1-git-send-email-sean.wang@mediatek.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Sean Wang <sean.wang@mediatek.com>
 
-Author: Helmut Auer <vdr@xxx.de>
-Date:   Fri Jan 27 09:09:35 2017 +0100
+This patch adds documentation for devicetree bindings for
+consumer Mediatek IR controller.
 
-    Adding 2 device ID's to ngene driver.
+Signed-off-by: Sean Wang <sean.wang@mediatek.com>
+---
+ .../devicetree/bindings/media/mtk-cir.txt          | 24 ++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/mtk-cir.txt
 
-    Signed-off-by: Helmut Auer <vdr@xxx.de>
-
-diff --git a/drivers/media/pci/ngene/ngene-cards.c
-b/drivers/media/pci/ngene/ngene-cards.c
-index 423e8c8..88815bd 100644
---- a/drivers/media/pci/ngene/ngene-cards.c
-+++ b/drivers/media/pci/ngene/ngene-cards.c
-@@ -753,6 +753,8 @@ static const struct ngene_info ngene_info_terratec = {
- /****************************************************************************/
-
- static const struct pci_device_id ngene_id_tbl[] = {
-+       NGENE_ID(0x18c3, 0xab04, ngene_info_cineS2),
-+       NGENE_ID(0x18c3, 0xab05, ngene_info_cineS2v5),
-        NGENE_ID(0x18c3, 0xabc3, ngene_info_cineS2),
-        NGENE_ID(0x18c3, 0xabc4, ngene_info_cineS2),
-        NGENE_ID(0x18c3, 0xdb01, ngene_info_satixS2),
-
+diff --git a/Documentation/devicetree/bindings/media/mtk-cir.txt b/Documentation/devicetree/bindings/media/mtk-cir.txt
+new file mode 100644
+index 0000000..2be2005
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/mtk-cir.txt
+@@ -0,0 +1,24 @@
++Device-Tree bindings for Mediatek consumer IR controller
++found in Mediatek SoC family
++
++Required properties:
++- compatible	    : "mediatek,mt7623-cir"
++- clocks	    : list of clock specifiers, corresponding to
++		      entries in clock-names property;
++- clock-names	    : should contain "clk" entries;
++- interrupts	    : should contain IR IRQ number;
++- reg		    : should contain IO map address for IR.
++
++Optional properties:
++- linux,rc-map-name : see rc.txt file in the same directory.
++
++Example:
++
++cir: cir@10013000 {
++	compatible = "mediatek,mt7623-cir";
++	reg = <0 0x10013000 0 0x1000>;
++	interrupts = <GIC_SPI 87 IRQ_TYPE_LEVEL_LOW>;
++	clocks = <&infracfg CLK_INFRA_IRRX>;
++	clock-names = "clk";
++	linux,rc-map-name = "rc-rc6-mce";
++};
+-- 
+1.9.1
 
