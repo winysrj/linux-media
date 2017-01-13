@@ -1,235 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:42197 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752119AbdARKMm (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:36854 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751389AbdAMXNg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Jan 2017 05:12:42 -0500
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [PATCH 11/11] Documention: v4l: Documentation for HEVC CIDs
-Date: Wed, 18 Jan 2017 15:32:09 +0530
-Message-id: <1484733729-25371-12-git-send-email-smitha.t@samsung.com>
-In-reply-to: <1484733729-25371-1-git-send-email-smitha.t@samsung.com>
-References: <1484733729-25371-1-git-send-email-smitha.t@samsung.com>
- <CGME20170118100827epcas5p16023525ba778b58b8e9a31b8a764b382@epcas5p1.samsung.com>
+        Fri, 13 Jan 2017 18:13:36 -0500
+Subject: Re: [PATCH v3 15/24] media: Add userspace header file for i.MX
+To: Philipp Zabel <p.zabel@pengutronix.de>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <1483755102-24785-16-git-send-email-steve_longerbeam@mentor.com>
+ <1484309143.31475.31.camel@pengutronix.de>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <89185c49-3928-33fc-988d-9f25ca3c038a@gmail.com>
+Date: Fri, 13 Jan 2017 15:13:33 -0800
+MIME-Version: 1.0
+In-Reply-To: <1484309143.31475.31.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Added V4l2 controls for HEVC encoder
 
-CC: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
----
- Documentation/media/uapi/v4l/extended-controls.rst |  190 ++++++++++++++++++++
- 1 files changed, 190 insertions(+), 0 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
-index abb1057..fe23919 100644
---- a/Documentation/media/uapi/v4l/extended-controls.rst
-+++ b/Documentation/media/uapi/v4l/extended-controls.rst
-@@ -1960,6 +1960,196 @@ enum v4l2_vp8_golden_frame_sel -
-     1, 2 and 3 corresponding to encoder profiles 0, 1, 2 and 3.
- 
- 
-+HEVC Control Reference
-+---------------------
-+
-+The HEVC controls include controls for encoding parameters of HEVC video
-+codec.
-+
-+
-+.. _hevc-control-id:
-+
-+HEVC Control IDs
-+^^^^^^^^^^^^^^^
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP``
-+    Minimum quantization parameter for HEVC.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP``
-+    Maximum quantization parameter for HEVC.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP``
-+    Quantization parameter for an I frame for HEVC.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP``
-+    Quantization parameter for a P frame for HEVC.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP``
-+    Quantization parameter for a B frame for HEVC.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_QP_ENABLE``
-+    Enable the QP values for temporal layer.
-+
-+.. _v4l2-mpeg-video-hevc-hier-coding-type:
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_TYPE``
-+    (enum)
-+
-+enum v4l2_mpeg_video_hevc_hier_coding_type -
-+    Selects the hierarchical coding type for encoding. Possible values are:
-+
-+.. raw:: latex
-+
-+    \begin{adjustbox}{width=\columnwidth}
-+
-+.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-+
-+.. flat-table::
-+    :header-rows:  0
-+    :stub-columns: 0
-+
-+    * - ``V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_B``
-+      - Use the B frame for hierarchical coding.
-+    * - ``V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_P``
-+      - Use the P frame for hierarchical coding.
-+
-+.. raw:: latex
-+
-+    \end{adjustbox}
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER``
-+    Indicates the hierarchical coding layer.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_QP``
-+    Indicates the hierarchical coding layer quantization parameter.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_PROFILE``
-+    Select the desired profile for HEVC encoder.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_LEVEL``
-+    Selects the desired level for HEVC encoder.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_RC_FRAME_RATE``
-+    Selects the RC filter frame rate for HEVC encoder.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG``
-+    By default selects HEVC tier_flag as Main.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH``
-+    Selects HEVC Maximum coding unit depth.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_REF_NUMBER_FOR_PFRAMES``
-+    Selects number of P reference picture required for HEVC encoder.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_LF_DISABLE``
-+    Disables HEVC filter.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_LF_SLICE_BOUNDARY``
-+    Selects across or not slice boundary for HEVC encoder.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2``
-+    Selects HEVC loop filter beta offset.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2``
-+    Selects HEVC loop filter tc offset.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE``
-+    Selects refresh type for HEVC encoder.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD``
-+    Selects the refresh period for HEVC encoder.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU_ENABLE``
-+    Selects HEVC lossless encoding.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED_ENABLE``
-+    Enables constant intra prediction for HEVC encoder.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT_ENABLE``
-+    Enables wavefront for HEVC encoder.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_LTR_ENABLE``
-+    Enables long term reference for HEVC encoder.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_USER_REF``
-+    Selects user long term reference frame.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_STORE_REF``
-+    Stores long term reference frame.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_SIGN_DATA_HIDING``
-+    Enable sign data hiding for HEVC encoder.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB_ENABLE``
-+    Enable general picture buffers for HEVC encoder.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID_ENABLE``
-+    Enable temporal ID for HEVC encoder.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOTHING_FLAG``
-+    Enable HEVC Strong intra smoothing.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1``
-+    Indicates max number of candidate motion vectors.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_DARK``
-+    Indicates HEVC dark region adaptive.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_SMOOTH``
-+    Indicates HEVC smooth region adaptive.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_STATIC``
-+    Indicates HEVC static region adaptive.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_ACTIVITY``
-+    Indicates HEVC activity adaptive.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_DISABLE_INTRA_PU_SPLIT``
-+    Disables intra pu split for HEVC Encoder.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_DISABLE_TMV_PREDICTION``
-+    Disables tmv prediction for HEVC encoder.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE_ENABLE``
-+    Enabling HEVC encoding without a startcode.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_QP_INDEX_CR``
-+    Indicates the quantization parameter CR index.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_QP_INDEX_CB``
-+    Indicates the quantization parameter CB index.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD``
-+    Indicates size of length field for HEVC encoder.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_PREPEND_SPSPPS_TO_IDR``
-+    Indicates prepend SPS/PPS to every IDR.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_CH``
-+    Indicates hierarchical coding layer change for HEVC encoder.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT0``
-+    Indicates hierarchical coding layer BIT0 for HEVC encoder.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT1``
-+    Indicates hierarchical coding layer BIT1 for HEVC encoder.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT2``
-+    Indicates hierarchical coding layer BIT2 for HEVC encoder.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT3``
-+    Indicates hierarchical coding layer BIT3 for HEVC encoder.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT4``
-+    Indicates hierarchical coding layer BIT4 for HEVC encoder.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT5``
-+    Indicates hierarchical coding layer BIT5 for HEVC encoder.
-+
-+``V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT6``
-+    Indicates hierarchical coding layer BIT6 for HEVC encoder.
-+
-+
- .. _camera-controls:
- 
- Camera Control Reference
--- 
-1.7.2.3
+On 01/13/2017 04:05 AM, Philipp Zabel wrote:
+> Am Freitag, den 06.01.2017, 18:11 -0800 schrieb Steve Longerbeam:
+>> This adds a header file for use by userspace programs wanting to interact
+>> with the i.MX media driver. It defines custom v4l2 controls and events
+>> generated by the i.MX v4l2 subdevices.
+>>
+>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+>> ---
+>>   include/uapi/media/Kbuild |  1 +
+>>   include/uapi/media/imx.h  | 30 ++++++++++++++++++++++++++++++
+>>   2 files changed, 31 insertions(+)
+>>   create mode 100644 include/uapi/media/imx.h
+>>
+>> diff --git a/include/uapi/media/Kbuild b/include/uapi/media/Kbuild
+>> index aafaa5a..fa78958 100644
+>> --- a/include/uapi/media/Kbuild
+>> +++ b/include/uapi/media/Kbuild
+>> @@ -1 +1,2 @@
+>>   # UAPI Header export list
+>> +header-y += imx.h
+>> diff --git a/include/uapi/media/imx.h b/include/uapi/media/imx.h
+>> new file mode 100644
+>> index 0000000..2421d9c
+>> --- /dev/null
+>> +++ b/include/uapi/media/imx.h
+>> @@ -0,0 +1,30 @@
+>> +/*
+>> + * Copyright (c) 2014-2015 Mentor Graphics Inc.
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License as published by the
+>> + * Free Software Foundation; either version 2 of the
+>> + * License, or (at your option) any later version
+>> + */
+>> +
+>> +#ifndef __UAPI_MEDIA_IMX_H__
+>> +#define __UAPI_MEDIA_IMX_H__
+>> +
+>> +/*
+>> + * events from the subdevs
+>> + */
+>> +#define V4L2_EVENT_IMX_CLASS          V4L2_EVENT_PRIVATE_START
+>> +#define V4L2_EVENT_IMX_NFB4EOF        (V4L2_EVENT_IMX_CLASS + 1)
+>> +#define V4L2_EVENT_IMX_EOF_TIMEOUT    (V4L2_EVENT_IMX_CLASS + 2)
+>> +#define V4L2_EVENT_IMX_FRAME_INTERVAL (V4L2_EVENT_IMX_CLASS + 3)
+> Aren't these generic enough to warrant common events? I would think
+> there have to be other capture IP cores that can signal aborted frames
+> or frame timeouts.
+
+Yes, agreed. A frame capture timeout, or frame interval error, are
+both generic concepts. At some point it would be great to make the
+Frame Interval Monitor generally available under v4l2-core. As for the
+EOF timeout event, I'll look into moving that into a generic V4L2 event.
+
+Steve
+
 
