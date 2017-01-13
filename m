@@ -1,72 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from anholt.net ([50.246.234.109]:43020 "EHLO anholt.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751002AbdA3UGf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Jan 2017 15:06:35 -0500
-From: Eric Anholt <eric@anholt.net>
-To: Joe Perches <joe@perches.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: devel@driverdev.osuosl.org, linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-rpi-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 6/6] staging: bcm2835-v4l2: Apply spelling fixes from checkpatch.
-In-Reply-To: <1485556233.12563.142.camel@perches.com>
-References: <20170127215503.13208-1-eric@anholt.net> <20170127215503.13208-7-eric@anholt.net> <1485556233.12563.142.camel@perches.com>
-Date: Mon, 30 Jan 2017 12:05:10 -0800
-Message-ID: <87inowfh55.fsf@eliezer.anholt.net>
+Received: from mail-dm3nam03on0040.outbound.protection.outlook.com ([104.47.41.40]:44773
+        "EHLO NAM03-DM3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751475AbdAMNEy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 13 Jan 2017 08:04:54 -0500
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+To: Jerome Glisse <jglisse@redhat.com>,
+        Stephen Bates <sbates@raithlin.com>
+References: <20170105201935.GC2166@redhat.com>
+ <20170105224215.GA3855@obsidianresearch.com>
+ <20170105232352.GB6426@redhat.com>
+ <20170106003034.GB4670@obsidianresearch.com>
+ <20170106015831.GA2226@gmail.com>
+ <f07700d5-211f-d091-2b0b-fbaf03c4a959@amd.com>
+ <20170106173722.GB3804@redhat.com>
+ <20170106182625.GB5724@obsidianresearch.com>
+ <2a148b6e-86bc-4c4d-2f22-d733e2cc94cc@deltatee.com>
+ <d5a72e1e5f6d606697dc0027f073fd87.squirrel@webmail.raithlin.com>
+ <20170112151129.GA10942@redhat.com>
+CC: Logan Gunthorpe <logang@deltatee.com>,
+        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+        <david1.zhou@amd.com>, <qiang.yu@amd.com>,
+        "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>,
+        "'linux-nvdimm@lists.01.org'" <linux-nvdimm@ml01.01.org>,
+        "Kuehling, Felix" <felix.kuehling@amd.com>,
+        Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
+        "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>,
+        "'dri-devel@lists.freedesktop.org'" <dri-devel@lists.freedesktop.org>,
+        <hch@infradead.org>,
+        "Deucher, Alexander" <alexander.deucher@amd.com>,
+        "Sander, Ben" <ben.sander@amd.com>,
+        "Suthikulpanit, Suravee" <suravee.suthikulpanit@amd.com>,
+        "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>,
+        Jerome Glisse <j.glisse@gmail.com>,
+        "Blinzer, Paul" <paul.blinzer@amd.com>,
+        "'Linux-media@vger.kernel.org'" <linux-media@vger.kernel.org>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+Message-ID: <0733efde-1a6e-5237-0868-e9fb31f237c7@amd.com>
+Date: Fri, 13 Jan 2017 14:04:30 +0100
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-        micalg=pgp-sha512; protocol="application/pgp-signature"
+In-Reply-To: <20170112151129.GA10942@redhat.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
-Joe Perches <joe@perches.com> writes:
-
-> On Fri, 2017-01-27 at 13:55 -0800, Eric Anholt wrote:
->> Generated with checkpatch.pl --fix-inplace and git add -p out of the
->> results.
+Am 12.01.2017 um 16:11 schrieb Jerome Glisse:
+> On Wed, Jan 11, 2017 at 10:54:39PM -0600, Stephen Bates wrote:
+>> On Fri, January 6, 2017 4:10 pm, Logan Gunthorpe wrote:
+>>>
+>>> On 06/01/17 11:26 AM, Jason Gunthorpe wrote:
+>>>
+>>>
+>>>> Make a generic API for all of this and you'd have my vote..
+>>>>
+>>>>
+>>>> IMHO, you must support basic pinning semantics - that is necessary to
+>>>> support generic short lived DMA (eg filesystem, etc). That hardware can
+>>>> clearly do that if it can support ODP.
+>>> I agree completely.
+>>>
+>>>
+>>> What we want is for RDMA, O_DIRECT, etc to just work with special VMAs
+>>> (ie. at least those backed with ZONE_DEVICE memory). Then
+>>> GPU/NVME/DAX/whatever drivers can just hand these VMAs to userspace
+>>> (using whatever interface is most appropriate) and userspace can do what
+>>> it pleases with them. This makes _so_ much sense and actually largely
+>>> already works today (as demonstrated by iopmem).
+>> +1 for iopmem ;-)
+>>
+>> I feel like we are going around and around on this topic. I would like to
+>> see something that is upstream that enables P2P even if it is only the
+>> minimum viable useful functionality to begin. I think aiming for the moon
+>> (which is what HMM and things like it are) are simply going to take more
+>> time if they ever get there.
+>>
+>> There is a use case for in-kernel P2P PCIe transfers between two NVMe
+>> devices and between an NVMe device and an RDMA NIC (using NVMe CMBs or
+>> BARs on the NIC). I am even seeing users who now want to move data P2P
+>> between FPGAs and NVMe SSDs and the upstream kernel should be able to
+>> support these users or they will look elsewhere.
+>>
+>> The iopmem patchset addressed all the use cases above and while it is not
+>> an in kernel API it could have been modified to be one reasonably easily.
+>> As Logan states the driver can then choose to pass the VMAs to user-space
+>> in a manner that makes sense.
+>>
+>> Earlier in the thread someone mentioned LSF/MM. There is already a
+>> proposal to discuss this topic so if you are interested please respond to
+>> the email letting the committee know this topic is of interest to you [1].
+>>
+>> Also earlier in the thread someone discussed the issues around the IOMMU.
+>> Given the known issues around P2P transfers in certain CPU root complexes
+>> [2] it might just be a case of only allowing P2P when a PCIe switch
+>> connects the two EPs. Another option is just to use CONFIG_EXPERT and make
+>> sure people are aware of the pitfalls if they invoke the P2P option.
 >
-> Maybe another.
+> iopmem is not applicable to GPU what i propose is to split the issue in 2
+> so that everyone can reuse the part that needs to be common namely the DMA
+> API part where you have to create IOMMU mapping for one device to point
+> to the other device memory.
 >
->> diff --git a/drivers/staging/media/platform/bcm2835/mmal-vchiq.c b/drive=
-rs/staging/media/platform/bcm2835/mmal-vchiq.c
-> []
->> @@ -239,7 +239,7 @@ static int bulk_receive(struct vchiq_mmal_instance *=
-instance,
->>  		pr_err("buffer list empty trying to submit bulk receive\n");
->>=20=20
->>  		/* todo: this is a serious error, we should never have
->> -		 * commited a buffer_to_host operation to the mmal
->> +		 * committed a buffer_to_host operation to the mmal
->>  		 * port without the buffer to back it up (underflow
->>  		 * handling) and there is no obvious way to deal with
->>  		 * this - how is the mmal servie going to react when
+> We can have a DMA API that is agnostic to how the device memory is manage
+> (so does not matter if device memory have struct page or not). This what
+> i have been arguing in this thread. To make progress on this issue we need
+> to stop conflicting different use case.
 >
-> Perhaps s/servie/service/ ?
+> So i say let solve the IOMMU issue first and let everyone use it in their
+> own way with their device. I do not think we can share much more than
+> that.
 
-I was trying to restrict this patch to just the fixes from checkpatch.
+Yeah, exactly what I said from the very beginning as well. Just hacking 
+together quick solutions doesn't really solve the problem in the long term.
 
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
+What we need is proper adjusting of the DMA API towards handling of P2P 
+and then build solutions for the different use cases on top of that.
 
------BEGIN PGP SIGNATURE-----
+We should also avoid falling into the trap of trying to just handle the 
+existing get_user_pages and co interfaces so that the existing code 
+doesn't need to change. P2P needs to be validated for each use case 
+individually and not implemented in workarounds with fingers crossed and 
+hoped for the best.
 
-iQIzBAEBCgAdFiEE/JuuFDWp9/ZkuCBXtdYpNtH8nugFAliPnHYACgkQtdYpNtH8
-nugD9A/8C5h8ysOew54cNBUcnAuXlBduGV45FglBjGPaP1IexSUjmMb71TdqxmxO
-cspigZYe4EUIu5hGX954alN8is7Zk9L5K4WfuK8yxqHO+N56OPu89eOehECjf9Lr
-1L+LDRTfM/32j05hOi+Hf4Awd3vzNiRljDVieFnDqZh5TrBvu+HUho7MtRs+NeQz
-2ZAo0XU4UqFY8QMQokQ5Xrc9Gmwx57OzImjo4W0sTfnscotI4g5v/na3coLUMLW3
-IO1c632Le40TF9GhksDJdw57iyAOOanWjVN3/mVUq4u2ytfhCRSveSaV5p4TF4/c
-nhb+vcHPC7mz7cAv168xAYuSLkehC/bmMzbnK2Xl4x61E3/n03NzgWIwfdYhK0nD
-GKOC/PrTlwFeMv60mXyJYD5SkwK8cTzKJeE1TZLfNJ2StFiitTEEWGkJ0fiA6swQ
-ewqq/D9I5GkqKRmo09zzsN3zK9Q/c4t/1CIT0WKCHFZrqR6wt0Szb1q/V9zsd+d+
-rblewveQ8u+UjsYfoWdSkXtjNJpoG+zt8KSuSkoqV1roKOEGTvlLbYq7Y/k6e4uQ
-f4m/tkLsbbUD4kv4WlAXcsDtlix26sBz8GRiJyO4NEgoMa0nzNqCEFIfF89HMjJa
-e/AxzNieYEgIE9BBEQfX4qgFfcg1BYWrmHppur/lpYKVWr3BGFI=
-=kSxd
------END PGP SIGNATURE-----
---=-=-=--
+Regards,
+Christian.
+
+>
+> Cheers,
+> Jérôme
+
+
