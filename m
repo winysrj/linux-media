@@ -1,665 +1,632 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:54445 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752001AbdATOGa (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:35516 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750721AbdANWqs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Jan 2017 09:06:30 -0500
-Subject: Re: [PATCH v3 13/24] platform: add video-multiplexer subdevice driver
-To: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org
+        Sat, 14 Jan 2017 17:46:48 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Subject: Re: [PATCH v3 16/24] media: Add i.MX media core driver
+To: Philipp Zabel <p.zabel@pengutronix.de>
 References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
- <1483755102-24785-14-git-send-email-steve_longerbeam@mentor.com>
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, Sascha Hauer <s.hauer@pengutronix.de>,
+ <1483755102-24785-17-git-send-email-steve_longerbeam@mentor.com>
+ <1484320822.31475.96.camel@pengutronix.de>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
         Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b7695d77-4078-f171-d592-ff679e28b8e0@xs4all.nl>
-Date: Fri, 20 Jan 2017 15:03:16 +0100
+Message-ID: <a94025b4-c4dd-de51-572e-d2615a7246e4@gmail.com>
+Date: Sat, 14 Jan 2017 14:46:45 -0800
 MIME-Version: 1.0
-In-Reply-To: <1483755102-24785-14-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset=windows-1252
+In-Reply-To: <1484320822.31475.96.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/07/2017 03:11 AM, Steve Longerbeam wrote:
-> From: Philipp Zabel <p.zabel@pengutronix.de>
-> 
-> This driver can handle SoC internal and external video bus multiplexers,
-> controlled either by register bit fields or by a GPIO. The subdevice
-> passes through frame interval and mbus configuration of the active input
-> to the output side.
-> 
-> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> 
-> --
-> 
-> - fixed a cut&paste error in vidsw_remove(): v4l2_async_register_subdev()
->   should be unregister.
-> 
-> - added media_entity_cleanup() and v4l2_device_unregister_subdev()
->   to vidsw_remove().
-> 
-> - there was a line left over from a previous iteration that negated
->   the new way of determining the pad count just before it which
->   has been removed (num_pads = of_get_child_count(np)).
-> 
-> - Philipp Zabel has developed a set of patches that allow adding
->   to the subdev async notifier waiting list using a chaining method
->   from the async registered callbacks (v4l2_of_subdev_registered()
->   and the prep patches for that). For now, I've removed the use of
->   v4l2_of_subdev_registered() for the vidmux driver's registered
->   callback. This doesn't affect the functionality of this driver,
->   but allows for it to be merged now, before adding the chaining
->   support.
-> 
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> ---
->  .../bindings/media/video-multiplexer.txt           |  59 +++
->  drivers/media/platform/Kconfig                     |   8 +
->  drivers/media/platform/Makefile                    |   2 +
->  drivers/media/platform/video-multiplexer.c         | 472 +++++++++++++++++++++
->  4 files changed, 541 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/video-multiplexer.txt
->  create mode 100644 drivers/media/platform/video-multiplexer.c
-> 
-> diff --git a/Documentation/devicetree/bindings/media/video-multiplexer.txt b/Documentation/devicetree/bindings/media/video-multiplexer.txt
-> new file mode 100644
-> index 0000000..9d133d9
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/video-multiplexer.txt
-> @@ -0,0 +1,59 @@
-> +Video Multiplexer
-> +=================
-> +
-> +Video multiplexers allow to select between multiple input ports. Video received
-> +on the active input port is passed through to the output port. Muxes described
-> +by this binding may be controlled by a syscon register bitfield or by a GPIO.
-> +
-> +Required properties:
-> +- compatible : should be "video-multiplexer"
-> +- reg: should be register base of the register containing the control bitfield
-> +- bit-mask: bitmask of the control bitfield in the control register
-> +- bit-shift: bit offset of the control bitfield in the control register
-> +- gpios: alternatively to reg, bit-mask, and bit-shift, a single GPIO phandle
-> +  may be given to switch between two inputs
-> +- #address-cells: should be <1>
-> +- #size-cells: should be <0>
-> +- port@*: at least three port nodes containing endpoints connecting to the
-> +  source and sink devices according to of_graph bindings. The last port is
-> +  the output port, all others are inputs.
-> +
-> +Example:
-> +
-> +syscon {
-> +	compatible = "syscon", "simple-mfd";
-> +
-> +	mux {
-> +		compatible = "video-multiplexer";
-> +		/* Single bit (1 << 19) in syscon register 0x04: */
-> +		reg = <0x04>;
-> +		bit-mask = <1>;
-> +		bit-shift = <19>;
-> +		#address-cells = <1>;
-> +		#size-cells = <0>;
-> +
-> +		port@0 {
-> +			reg = <0>;
-> +
-> +			mux_in0: endpoint {
-> +				remote-endpoint = <&video_source0_out>;
-> +			};
-> +		};
-> +
-> +		port@1 {
-> +			reg = <1>;
-> +
-> +			mux_in1: endpoint {
-> +				remote-endpoint = <&video_source1_out>;
-> +			};
-> +		};
-> +
-> +		port@2 {
-> +			reg = <2>;
-> +
-> +			mux_out: endpoint {
-> +				remote-endpoint = <&capture_interface_in>;
-> +			};
-> +		};
-> +	};
-> +};
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index d944421..65614b5 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -74,6 +74,14 @@ config VIDEO_M32R_AR_M64278
->  	  To compile this driver as a module, choose M here: the
->  	  module will be called arv.
->  
-> +config VIDEO_MULTIPLEXER
-> +	tristate "Video Multiplexer"
-> +	depends on VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER
-> +	help
-> +	  This driver provides support for SoC internal N:1 video bus
-> +	  multiplexers controlled by register bitfields as well as external
-> +	  2:1 video multiplexers controlled by a single GPIO.
-> +
->  config VIDEO_OMAP3
->  	tristate "OMAP 3 Camera support"
->  	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
-> diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-> index 5b3cb27..7cf0ee5 100644
-> --- a/drivers/media/platform/Makefile
-> +++ b/drivers/media/platform/Makefile
-> @@ -27,6 +27,8 @@ obj-$(CONFIG_VIDEO_SH_VEU)		+= sh_veu.o
->  
->  obj-$(CONFIG_VIDEO_MEM2MEM_DEINTERLACE)	+= m2m-deinterlace.o
->  
-> +obj-$(CONFIG_VIDEO_MULTIPLEXER)		+= video-multiplexer.o
-> +
->  obj-$(CONFIG_VIDEO_S3C_CAMIF) 		+= s3c-camif/
->  obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS4_IS) 	+= exynos4-is/
->  obj-$(CONFIG_VIDEO_SAMSUNG_S5P_JPEG)	+= s5p-jpeg/
-> diff --git a/drivers/media/platform/video-multiplexer.c b/drivers/media/platform/video-multiplexer.c
-> new file mode 100644
-> index 0000000..48980c4
-> --- /dev/null
-> +++ b/drivers/media/platform/video-multiplexer.c
-> @@ -0,0 +1,472 @@
-> +/*
-> + * video stream multiplexer controlled via gpio or syscon
-> + *
-> + * Copyright (C) 2013 Pengutronix, Sascha Hauer <kernel@pengutronix.de>
-> + * Copyright (C) 2016 Pengutronix, Philipp Zabel <kernel@pengutronix.de>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * as published by the Free Software Foundation; either version 2
-> + * of the License, or (at your option) any later version.
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#include <linux/err.h>
-> +#include <linux/gpio/consumer.h>
-> +#include <linux/mfd/syscon.h>
-> +#include <linux/module.h>
-> +#include <linux/of.h>
-> +#include <linux/of_graph.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/regmap.h>
-> +#include <media/v4l2-async.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-subdev.h>
-> +#include <media/v4l2-of.h>
-> +
-> +struct vidsw {
-> +	struct v4l2_subdev subdev;
-> +	unsigned int num_pads;
-> +	struct media_pad *pads;
-> +	struct v4l2_mbus_framefmt *format_mbus;
-> +	struct v4l2_fract timeperframe;
-> +	struct v4l2_of_endpoint *endpoint;
-> +	struct regmap_field *field;
-> +	struct gpio_desc *gpio;
-> +	int active;
-> +};
-> +
-> +static inline struct vidsw *v4l2_subdev_to_vidsw(struct v4l2_subdev *sd)
-> +{
-> +	return container_of(sd, struct vidsw, subdev);
-> +}
-> +
-> +static void vidsw_set_active(struct vidsw *vidsw, int active)
-> +{
-> +	vidsw->active = active;
-> +	if (active < 0)
-> +		return;
-> +
-> +	dev_dbg(vidsw->subdev.dev, "setting %d active\n", active);
-> +
-> +	if (vidsw->field)
-> +		regmap_field_write(vidsw->field, active);
-> +	else if (vidsw->gpio)
-> +		gpiod_set_value(vidsw->gpio, active);
-> +}
-> +
-> +static int vidsw_link_setup(struct media_entity *entity,
-> +			    const struct media_pad *local,
-> +			    const struct media_pad *remote, u32 flags)
-> +{
-> +	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
-> +	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
-> +
-> +	/* We have no limitations on enabling or disabling our output link */
-> +	if (local->index == vidsw->num_pads - 1)
-> +		return 0;
-> +
-> +	dev_dbg(sd->dev, "link setup %s -> %s", remote->entity->name,
-> +		local->entity->name);
-> +
-> +	if (!(flags & MEDIA_LNK_FL_ENABLED)) {
-> +		if (local->index == vidsw->active) {
-> +			dev_dbg(sd->dev, "going inactive\n");
-> +			vidsw->active = -1;
-> +		}
-> +		return 0;
-> +	}
-> +
-> +	if (vidsw->active >= 0) {
-> +		struct media_pad *pad;
-> +
-> +		if (vidsw->active == local->index)
-> +			return 0;
-> +
-> +		pad = media_entity_remote_pad(&vidsw->pads[vidsw->active]);
-> +		if (pad) {
-> +			struct media_link *link;
-> +			int ret;
-> +
-> +			link = media_entity_find_link(pad,
-> +						&vidsw->pads[vidsw->active]);
-> +			if (link) {
-> +				ret = __media_entity_setup_link(link, 0);
-> +				if (ret)
-> +					return ret;
-> +			}
-> +		}
-> +	}
-> +
-> +	vidsw_set_active(vidsw, local->index);
-> +
-> +	return 0;
-> +}
-> +
-> +static struct media_entity_operations vidsw_ops = {
-> +	.link_setup = vidsw_link_setup,
-> +};
-> +
-> +static bool vidsw_endpoint_disabled(struct device_node *ep)
-> +{
-> +	struct device_node *rpp;
-> +
-> +	if (!of_device_is_available(ep))
-> +		return true;
-> +
-> +	rpp = of_graph_get_remote_port_parent(ep);
-> +	if (!rpp)
-> +		return true;
-> +
-> +	return !of_device_is_available(rpp);
-> +}
-> +
-> +static int vidsw_async_init(struct vidsw *vidsw, struct device_node *node)
-> +{
-> +	struct device_node *ep;
-> +	u32 portno;
-> +	int numports;
-> +	int ret;
-> +	int i;
-> +	bool active_link = false;
-> +
-> +	numports = vidsw->num_pads;
-> +
-> +	for (i = 0; i < numports - 1; i++)
-> +		vidsw->pads[i].flags = MEDIA_PAD_FL_SINK;
-> +	vidsw->pads[numports - 1].flags = MEDIA_PAD_FL_SOURCE;
-> +
-> +	vidsw->subdev.entity.function = MEDIA_ENT_F_MUX;
-> +	ret = media_entity_pads_init(&vidsw->subdev.entity, numports,
-> +				     vidsw->pads);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	vidsw->subdev.entity.ops = &vidsw_ops;
-> +
-> +	for_each_endpoint_of_node(node, ep) {
-> +		struct v4l2_of_endpoint endpoint;
-> +
-> +		v4l2_of_parse_endpoint(ep, &endpoint);
-> +
-> +		portno = endpoint.base.port;
-> +		if (portno >= numports - 1)
-> +			continue;
-> +
-> +		if (vidsw_endpoint_disabled(ep)) {
-> +			dev_dbg(vidsw->subdev.dev, "port %d disabled\n", portno);
-> +			continue;
-> +		}
-> +
-> +		vidsw->endpoint[portno] = endpoint;
-> +
-> +		if (portno == vidsw->active)
-> +			active_link = true;
-> +	}
-> +
-> +	for (portno = 0; portno < numports - 1; portno++) {
-> +		if (!vidsw->endpoint[portno].base.local_node)
-> +			continue;
-> +
-> +		/* If the active input is not connected, use another */
-> +		if (!active_link) {
-> +			vidsw_set_active(vidsw, portno);
-> +			active_link = true;
-> +		}
-> +	}
-> +
-> +	return v4l2_async_register_subdev(&vidsw->subdev);
-> +}
-> +
-> +int vidsw_g_mbus_config(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg)
-> +{
-> +	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
-> +	struct media_pad *pad;
-> +	int ret;
-> +
-> +	if (vidsw->active == -1) {
-> +		dev_err(sd->dev, "no configuration for inactive mux\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	/*
-> +	 * Retrieve media bus configuration from the entity connected to the
-> +	 * active input
-> +	 */
-> +	pad = media_entity_remote_pad(&vidsw->pads[vidsw->active]);
-> +	if (pad) {
-> +		sd = media_entity_to_v4l2_subdev(pad->entity);
-> +		ret = v4l2_subdev_call(sd, video, g_mbus_config, cfg);
-> +		if (ret == -ENOIOCTLCMD)
-> +			pad = NULL;
-> +		else if (ret < 0) {
-> +			dev_err(sd->dev, "failed to get source configuration\n");
-> +			return ret;
-> +		}
-> +	}
-> +	if (!pad) {
-> +		/* Mirror the input side on the output side */
-> +		cfg->type = vidsw->endpoint[vidsw->active].bus_type;
-> +		if (cfg->type == V4L2_MBUS_PARALLEL ||
-> +		    cfg->type == V4L2_MBUS_BT656)
-> +			cfg->flags = vidsw->endpoint[vidsw->active].bus.parallel.flags;
-> +	}
-> +
-> +	return 0;
-> +}
+(sorry sending again w/o html)
 
-I am not certain this op is needed at all. In the current kernel this op is only
-used by soc_camera, pxa_camera and omap3isp (somewhat dubious). Normally this
-information should come from the device tree and there should be no need for this op.
 
-My (tentative) long-term plan was to get rid of this op.
+On 01/13/2017 07:20 AM, Philipp Zabel wrote:
+> Am Freitag, den 06.01.2017, 18:11 -0800 schrieb Steve Longerbeam:
+>> +For image capture, the IPU contains the following internal subunits:
+>> +
+>> +- Image DMA Controller (IDMAC)
+>> +- Camera Serial Interface (CSI)
+>> +- Image Converter (IC)
+>> +- Sensor Multi-FIFO Controller (SMFC)
+>> +- Image Rotator (IRT)
+>> +- Video De-Interlace Controller (VDIC)
+> Nitpick: Video De-Interlacing or Combining Block (VDIC)
 
-If you don't need it, then I recommend it is removed.
+done.
 
-> +
-> +static int vidsw_s_stream(struct v4l2_subdev *sd, int enable)
-> +{
-> +	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
-> +	struct v4l2_subdev *upstream_sd;
-> +	struct media_pad *pad;
-> +
-> +	if (vidsw->active == -1) {
-> +		dev_err(sd->dev, "Can not start streaming on inactive mux\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	pad = media_entity_remote_pad(&sd->entity.pads[vidsw->active]);
-> +	if (!pad) {
-> +		dev_err(sd->dev, "Failed to find remote source pad\n");
-> +		return -ENOLINK;
-> +	}
-> +
-> +	if (!is_media_entity_v4l2_subdev(pad->entity)) {
-> +		dev_err(sd->dev, "Upstream entity is not a v4l2 subdev\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	upstream_sd = media_entity_to_v4l2_subdev(pad->entity);
-> +
-> +	return v4l2_subdev_call(upstream_sd, video, s_stream, enable);
-> +}
-> +
-> +static int vidsw_g_frame_interval(struct v4l2_subdev *sd,
-> +				  struct v4l2_subdev_frame_interval *fi)
-> +{
-> +	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
-> +
-> +	fi->interval = vidsw->timeperframe;
-> +
-> +	return 0;
-> +}
-> +
-> +static int vidsw_s_frame_interval(struct v4l2_subdev *sd,
-> +				  struct v4l2_subdev_frame_interval *fi)
-> +{
-> +	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
-> +
-> +	vidsw->timeperframe = fi->interval;
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_subdev_video_ops vidsw_subdev_video_ops = {
-> +	.g_mbus_config = vidsw_g_mbus_config,
-> +	.s_stream = vidsw_s_stream,
-> +	.g_frame_interval = vidsw_g_frame_interval,
-> +	.s_frame_interval = vidsw_s_frame_interval,
-> +};
-> +
-> +static struct v4l2_mbus_framefmt *
-> +__vidsw_get_pad_format(struct v4l2_subdev *sd,
-> +		       struct v4l2_subdev_pad_config *cfg,
-> +		       unsigned int pad, u32 which)
-> +{
-> +	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
-> +
-> +	switch (which) {
-> +	case V4L2_SUBDEV_FORMAT_TRY:
-> +		return v4l2_subdev_get_try_format(sd, cfg, pad);
-> +	case V4L2_SUBDEV_FORMAT_ACTIVE:
-> +		return &vidsw->format_mbus[pad];
-> +	default:
-> +		return NULL;
-> +	}
-> +}
-> +
-> +static int vidsw_get_format(struct v4l2_subdev *sd,
-> +			    struct v4l2_subdev_pad_config *cfg,
-> +			    struct v4l2_subdev_format *sdformat)
-> +{
-> +	sdformat->format = *__vidsw_get_pad_format(sd, cfg, sdformat->pad,
-> +						   sdformat->which);
-> +	return 0;
-> +}
-> +
-> +static int vidsw_set_format(struct v4l2_subdev *sd,
-> +			    struct v4l2_subdev_pad_config *cfg,
-> +			    struct v4l2_subdev_format *sdformat)
-> +{
-> +	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
-> +	struct v4l2_mbus_framefmt *mbusformat;
-> +
-> +	if (sdformat->pad >= vidsw->num_pads)
-> +		return -EINVAL;
-> +
-> +	mbusformat = __vidsw_get_pad_format(sd, cfg, sdformat->pad,
-> +					    sdformat->which);
-> +	if (!mbusformat)
-> +		return -EINVAL;
-> +
-> +	/* Output pad mirrors active input pad, no limitations on input pads */
-> +	if (sdformat->pad == (vidsw->num_pads - 1) && vidsw->active >= 0)
-> +		sdformat->format = vidsw->format_mbus[vidsw->active];
-> +
-> +	*mbusformat = sdformat->format;
-> +
-> +	return 0;
-> +}
-> +
-> +static struct v4l2_subdev_pad_ops vidsw_pad_ops = {
-> +	.get_fmt = vidsw_get_format,
-> +	.set_fmt = vidsw_set_format,
-> +};
-> +
-> +static struct v4l2_subdev_ops vidsw_subdev_ops = {
-> +	.pad = &vidsw_pad_ops,
-> +	.video = &vidsw_subdev_video_ops,
-> +};
-> +
-> +static int of_get_reg_field(struct device_node *node, struct reg_field *field)
-> +{
-> +	u32 bit_mask;
-> +	int ret;
-> +
-> +	ret = of_property_read_u32(node, "reg", &field->reg);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	ret = of_property_read_u32(node, "bit-mask", &bit_mask);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	ret = of_property_read_u32(node, "bit-shift", &field->lsb);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	field->msb = field->lsb + fls(bit_mask) - 1;
-> +
-> +	return 0;
-> +}
-> +
-> +static int vidsw_probe(struct platform_device *pdev)
-> +{
-> +	struct device_node *np = pdev->dev.of_node;
-> +	struct of_endpoint endpoint;
-> +	struct device_node *ep;
-> +	struct reg_field field;
-> +	struct vidsw *vidsw;
-> +	struct regmap *map;
-> +	unsigned int num_pads;
-> +	int ret;
-> +
-> +	vidsw = devm_kzalloc(&pdev->dev, sizeof(*vidsw), GFP_KERNEL);
-> +	if (!vidsw)
-> +		return -ENOMEM;
-> +
-> +	platform_set_drvdata(pdev, vidsw);
-> +
-> +	v4l2_subdev_init(&vidsw->subdev, &vidsw_subdev_ops);
-> +	snprintf(vidsw->subdev.name, sizeof(vidsw->subdev.name), "%s",
-> +			np->name);
-> +	vidsw->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-> +	vidsw->subdev.dev = &pdev->dev;
-> +
-> +	/*
-> +	 * The largest numbered port is the output port. It determines
-> +	 * total number of pads
-> +	 */
-> +	num_pads = 0;
-> +	for_each_endpoint_of_node(np, ep) {
-> +		of_graph_parse_endpoint(ep, &endpoint);
-> +		num_pads = max(num_pads, endpoint.port + 1);
-> +	}
-> +
-> +	if (num_pads < 2) {
-> +		dev_err(&pdev->dev, "Not enough ports %d\n", num_pads);
-> +		return -EINVAL;
-> +	}
-> +
-> +	ret = of_get_reg_field(np, &field);
-> +	if (ret == 0) {
-> +		map = syscon_node_to_regmap(np->parent);
-> +		if (!map) {
-> +			dev_err(&pdev->dev, "Failed to get syscon register map\n");
-> +			return PTR_ERR(map);
-> +		}
-> +
-> +		vidsw->field = devm_regmap_field_alloc(&pdev->dev, map, field);
-> +		if (IS_ERR(vidsw->field)) {
-> +			dev_err(&pdev->dev, "Failed to allocate regmap field\n");
-> +			return PTR_ERR(vidsw->field);
-> +		}
-> +
-> +		regmap_field_read(vidsw->field, &vidsw->active);
-> +	} else {
-> +		if (num_pads > 3) {
-> +			dev_err(&pdev->dev, "Too many ports %d\n", num_pads);
-> +			return -EINVAL;
-> +		}
-> +
-> +		vidsw->gpio = devm_gpiod_get(&pdev->dev, NULL, GPIOD_OUT_LOW);
-> +		if (IS_ERR(vidsw->gpio)) {
-> +			dev_warn(&pdev->dev,
-> +				 "could not request control gpio: %d\n", ret);
-> +			vidsw->gpio = NULL;
-> +		}
-> +
-> +		vidsw->active = gpiod_get_value(vidsw->gpio) ? 1 : 0;
-> +	}
-> +
-> +	vidsw->num_pads = num_pads;
-> +	vidsw->pads = devm_kzalloc(&pdev->dev, sizeof(*vidsw->pads) * num_pads,
-> +			GFP_KERNEL);
-> +	vidsw->format_mbus = devm_kzalloc(&pdev->dev,
-> +			sizeof(*vidsw->format_mbus) * num_pads, GFP_KERNEL);
-> +	vidsw->endpoint = devm_kzalloc(&pdev->dev,
-> +			sizeof(*vidsw->endpoint) * (num_pads - 1), GFP_KERNEL);
-> +
-> +	ret = vidsw_async_init(vidsw, np);
-> +	if (ret)
-> +		return ret;
-> +
-> +	return 0;
-> +}
-> +
-> +static int vidsw_remove(struct platform_device *pdev)
-> +{
-> +	struct vidsw *vidsw = platform_get_drvdata(pdev);
-> +	struct v4l2_subdev *sd = &vidsw->subdev;
-> +
-> +	v4l2_async_unregister_subdev(sd);
-> +	media_entity_cleanup(&sd->entity);
-> +	v4l2_device_unregister_subdev(sd);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct of_device_id vidsw_dt_ids[] = {
-> +	{ .compatible = "video-multiplexer", },
-> +	{ /* sentinel */ }
-> +};
-> +
-> +static struct platform_driver vidsw_driver = {
-> +	.probe		= vidsw_probe,
-> +	.remove		= vidsw_remove,
-> +	.driver		= {
-> +		.of_match_table = vidsw_dt_ids,
-> +		.name = "video-multiplexer",
-> +	},
-> +};
-> +
-> +module_platform_driver(vidsw_driver);
-> +
-> +MODULE_DESCRIPTION("video stream multiplexer");
-> +MODULE_AUTHOR("Sascha Hauer, Pengutronix");
-> +MODULE_AUTHOR("Philipp Zabel, Pengutronix");
-> +MODULE_LICENSE("GPL");
-> 
+>> +
+>> +The IDMAC is the DMA controller for transfer of image frames to and from
+>> +memory. Various dedicated DMA channels exist for both video capture and
+>> +display paths.
+>> +
+>> +The CSI is the frontend capture unit that interfaces directly with
+>> +capture sensors over Parallel, BT.656/1120, and MIPI CSI-2 busses.
+>> +
+>> +The IC handles color-space conversion, resizing, and rotation
+>> +operations.
+> And horizontal flipping.
 
-Regards,
+done.
 
-	Hans
+
+>> There are three independent "tasks" within the IC that can
+>> +carry out conversions concurrently: pre-processing encoding,
+>> +pre-processing preview, and post-processing.
+> s/preview/viewfinder/ seems to be the commonly used name.
+
+replaced everywhere in the doc.
+
+> This paragraph could mention that a single hardware unit is used
+> transparently time multiplexed by the three tasks at different
+> granularity for the downsizing, main processing, and rotation sections.
+> The downscale unit switches between tasks at 8-pixel burst granularity,
+> the main processing unit at line granularity. The rotation units switch
+> only at frame granularity.
+
+I've added that info.
+
+>> +The SMFC is composed of four independent channels that each can transfer
+>> +captured frames from sensors directly to memory concurrently.
+>> +
+>> +The IRT carries out 90 and 270 degree image rotation operations.
+> ... on 8x8 pixel blocks, supported by the IDMAC which handles block
+> transfers, block reordering, and vertical flipping.
+
+done.
+
+>> +The VDIC handles the conversion of interlaced video to progressive, with
+>> +support for different motion compensation modes (low, medium, and high
+>> +motion). The deinterlaced output frames from the VDIC can be sent to the
+>> +IC pre-process preview task for further conversions.
+>> +
+>> +In addition to the IPU internal subunits, there are also two units
+>> +outside the IPU that are also involved in video capture on i.MX:
+>> +
+>> +- MIPI CSI-2 Receiver for camera sensors with the MIPI CSI-2 bus
+>> +  interface. This is a Synopsys DesignWare core.
+>> +- A video multiplexer for selecting among multiple sensor inputs to
+>> +  send to a CSI.
+> Two of them, actually.
+
+done.
+
+>> +
+>> +- Includes a Frame Interval Monitor (FIM) that can correct vertical sync
+>> +  problems with the ADV718x video decoders. See below for a description
+>> +  of the FIM.
+> Could this also be used to calculate more precise capture timestamps?
+
+An input capture function could do that, triggered off a VSYNC or FIELD
+signal such as on the ADV718x. The FIM is only used to calculate
+frame intervals at this point, but its input capture method could be
+used to also record more accurate timestamps.
+
+
+>> +Capture Pipelines
+>> +-----------------
+>> +
+>> +The following describe the various use-cases supported by the pipelines.
+>> +
+>> +The links shown do not include the frontend sensor, video mux, or mipi
+>> +csi-2 receiver links. This depends on the type of sensor interface
+>> +(parallel or mipi csi-2). So in all cases, these pipelines begin with:
+>> +
+>> +sensor -> ipu_csi_mux -> ipu_csi -> ...
+>> +
+>> +for parallel sensors, or:
+>> +
+>> +sensor -> imx-mipi-csi2 -> (ipu_csi_mux) -> ipu_csi -> ...
+>> +
+>> +for mipi csi-2 sensors. The imx-mipi-csi2 receiver may need to route
+>> +to the video mux (ipu_csi_mux) before sending to the CSI, depending
+>> +on the mipi csi-2 virtual channel, hence ipu_csi_mux is shown in
+>> +parenthesis.
+>> +
+>> +Unprocessed Video Capture:
+>> +--------------------------
+>> +
+>> +Send frames directly from sensor to camera interface, with no
+>> +conversions:
+>> +
+>> +-> ipu_smfc -> camif
+> I'd call this capture interface, this is not just for cameras. Or maybe
+> idmac if you want to mirror hardware names?
+
+Camif is so named because it is the V4L2 user interface for video
+capture. I suppose it could be named "capif", but that doesn't role
+off the tongue quite as well.
+
+>> +Note the ipu_smfc can do pixel reordering within the same colorspace.
+> That isn't a feature of the SMFC, but of the IDMAC (FCW & FCR).
+
+yes, the doc is re-worded to make that more clear.
+
+>> +For example, its sink pad can take UYVY2X8, but its source pad can
+>> +output YUYV2X8.
+> I don't think this is correct. Re-reading "37.4.3.7 Packing to memory"
+> in the CSI chapter, for 8-bit per component data, the internal format
+> between CSI, SMFC, and IDMAC is always some 32-bit RGBx/YUVx variant
+> (or "bayer/generic data"). In either case, the internal format does not
+> change along the way.
+
+these are pixels in memory buffers, not the IPU internal formats.
+
+
+>> +IC Direct Conversions:
+>> +----------------------
+>> +
+>> +This pipeline uses the preprocess encode entity to route frames directly
+>> +from the CSI to the IC (bypassing the SMFC), to carry out scaling up to
+>> +1024x1024 resolution, CSC, and image rotation:
+>> +
+>> +-> ipu_ic_prpenc -> camif
+>> +
+>> +This can be a useful capture pipeline for heavily loaded memory bus
+>> +traffic environments, since it has minimal IDMAC channel usage.
+> Note that if rotation is enabled, transfers between IC processing and
+> rotation still have to go through memory once.
+
+yep.
+
+>> +Post-Processing Conversions:
+>> +----------------------------
+>> +
+>> +This pipeline routes frames from the SMFC to the post-processing
+>> +entity.
+> No, frames written by the CSI -> SMFC -> IDMAC path are read back into
+> the post-processing entity.
+
+that's true. The post-processing entity kicks off its read channels
+to transfer those frames into the post-processor. Anyway this wording
+will change after doing away with the SMFC entity.
+
+
+>> +   media-ctl -V "\"ipu1_csi0\":1 [fmt:YUYV2X8/640x480]"
+>> +   media-ctl -V "\"ipu1_smfc0\":0 [fmt:YUYV2X8/640x480]"
+>> +   media-ctl -V "\"ipu1_smfc0\":1 [fmt:UYVY2X8/640x480]"
+> I think the smfc entities should be dropped.
+
+yes working on that.
+
+>> +   media-ctl -V "\"camif0\":0 [fmt:UYVY2X8/640x480]"
+>> +   media-ctl -V "\"camif0\":1 [fmt:UYVY2X8/640x480]"
+>> +   # Configure pads for OV5640 pipeline
+>> +   media-ctl -V "\"ov5640_mipi 1-0040\":0 [fmt:UYVY2X8/640x480]"
+>> +   media-ctl -V "\"imx-mipi-csi2\":0 [fmt:UYVY2X8/640x480]"
+>> +   media-ctl -V "\"imx-mipi-csi2\":2 [fmt:UYVY2X8/640x480]"
+>> +   media-ctl -V "\"ipu1_csi1\":0 [fmt:UYVY2X8/640x480]"
+>> +   media-ctl -V "\"ipu1_csi1\":1 [fmt:UYVY2X8/640x480]"
+> [...]
+>> +   media-ctl -V "\"camif1\":0 [fmt:UYVY2X8/640x480]"
+> I agree this looks very intuitive, but technically correct for the
+> csi1:1 and camif1:0 pads would be a 32-bit YUV format.
+> (MEDIA_BUS_FMT_YUV8_1X32_PADLO doesn't exist yet).
+>
+> I think it would be better to use the correct format
+
+I'm not sure I follow you here.
+
+>   as that will allow
+> to chose the regular vs. companded packings in the future for formats
+> with more than 8 bits per component.
+>
+>> +   media-ctl -V "\"camif1\":1 [fmt:UYVY2X8/640x480]"
+>> +
+>> +Streaming can then begin independently on device nodes /dev/video0
+>> +and /dev/video1.
+>> +
+>> +SabreAuto with ADV7180 decoder
+>> +------------------------------
+>> +
+>> +On the SabreAuto, an on-board ADV7180 SD decoder is connected to the
+>> +parallel bus input on the internal video mux to IPU1 CSI0.
+>> +
+>> +The following example configures a pipeline to capture from the ADV7180
+>> +video decoder, assuming NTSC 720x480 input signals, with Motion
+>> +Compensated de-interlacing (not shown: all pad field types should be set
+>> +as indicated). $outputfmt can be any format supported by the
+>> +ipu1_ic_prpvf entity at its output pad:
+>> +
+>> +.. code-block:: none
+>> +
+>> +   # Setup links
+>> +   media-ctl -l '"adv7180 3-0021":0 -> "ipu1_csi0_mux":1[1]'
+>> +   media-ctl -l '"ipu1_csi0_mux":2 -> "ipu1_csi0":0[1]'
+>> +   media-ctl -l '"ipu1_csi0":1 -> "ipu1_smfc0":0[1]'
+>> +   media-ctl -l '"ipu1_smfc0":1 -> "ipu1_ic_prpvf":0[1]'
+>> +   media-ctl -l '"ipu1_ic_prpvf":1 -> "camif0":0[1]'
+>> +   media-ctl -l '"camif0":1 -> "camif0 devnode":0[1]'
+>> +   # Configure pads
+>> +   # pad field types for below pads must be an interlaced type
+>> +   # such as "ALTERNATE"
+> I think alternate should only extend as far as the CSI, since the CSI
+> can only capture NTSC/PAL fields in a fixed order.
+
+Agreed, I'm doing the translation from alternate to seq_bt/seq_tb depending
+on sensor std in imx-vdic.c, but it should move upstream. Will fix.
+
+>> +   media-ctl -V "\"adv7180 3-0021\":0 [fmt:UYVY2X8/720x480]"
+>> +   media-ctl -V "\"ipu1_csi0_mux\":1 [fmt:UYVY2X8/720x480]"
+>  From here the interlaced field type should be sequential in the correct
+> order depending on NTSC/PAL.
+
+right.
+
+>> +
+>> +Frame Interval Monitor
+>> +----------------------
+>> +
+>> +The adv718x decoders can occasionally send corrupt fields during
+>> +NTSC/PAL signal re-sync (too little or too many video lines). When
+>> +this happens, the IPU triggers a mechanism to re-establish vertical
+>> +sync by adding 1 dummy line every frame, which causes a rolling effect
+>> +from image to image, and can last a long time before a stable image is
+>> +recovered. Or sometimes the mechanism doesn't work at all, causing a
+>> +permanent split image (one frame contains lines from two consecutive
+>> +captured images).
+> Is it only SabreAuto on which the FIM mechanism can be used due to the
+> pad routing?
+
+No, FIM can be used on any target, the fim child node of ipu_csi just
+needs to be enabled via status property.
+
+> [...]
+>> +/*
+>> + * DMA buffer ring handling
+>> + */
+>> +struct imx_media_dma_buf_ring {
+>> +	struct imx_media_dev *imxmd;
+>> +
+>> +	/* the ring */
+>> +	struct imx_media_dma_buf buf[IMX_MEDIA_MAX_RING_BUFS];
+>> +	/* the scratch buffer for underruns */
+>> +	struct imx_media_dma_buf scratch;
+>> +
+>> +	/* buffer generator */
+>> +	struct media_entity *src;
+>> +	/* buffer receiver */
+>> +	struct media_entity *sink;
+>> +
+>> +	spinlock_t lock;
+>> +
+>> +	int num_bufs;
+>> +	unsigned long last_seq;
+>> +};
+> I don't think this belongs in the capture driver at all.
+> Memory-to-memory transfers should be handled at the videobuf2 level.
+
+see below.
+
+> [...]
+>> +static struct imx_media_dma_buf *
+>> +__dma_buf_queue(struct imx_media_dma_buf_ring *ring, int index)
+>> +{
+>> +	struct imx_media_dma_buf *buf;
+>> +
+>> +	if (index >= ring->num_bufs)
+>> +		return ERR_PTR(-EINVAL);
+>> +
+>> +	buf = &ring->buf[index];
+>> +	if (WARN_ON(buf->state != IMX_MEDIA_BUF_STATUS_PREPARED))
+>> +		return ERR_PTR(-EINVAL);
+>> +
+>> +	buf->state = IMX_MEDIA_BUF_STATUS_QUEUED;
+>> +	buf->seq = ring->last_seq++;
+>> +
+>> +	return buf;
+>> +}
+> Is this a whole software buffer queue implementation? I thought the
+> whole point of putting the custom mem2mem framework into the capture
+> driver was to use the hardware FSU channel linking?
+
+  see below.
+
+> What is the purpose of this if the sink should be triggered by the FSU?
+
+Ok, here is where I need to make an admission.
+
+The only FSU links I have attempted (and which currently have entries
+in the fsu_link_info[] table), are the enc/vf/pp --> IRT links for rotation.
+
+There does not appear to be support in the FSU for linking a write channel
+to the VDIC read channels (8, 9, 10) according to VDI_SRC_SEL field. There
+is support for the direct link from CSI (which I am using), but that's 
+not an
+IDMAC channel link.
+
+There is a PRP_SRC_SEL field, with linking from IDMAC (SMFC) channels
+0..2 (and 3? it's not clear, and not clear whether this includes channel 1).
+But I think this links to channel 12, and not to channels 8,9,10 to the 
+VDIC.
+Or will it? It's worth experimenting. It would have helped if FSL listed 
+which
+IDMAC channels these FSU links correspond to, instead of making us guess
+at it.
+
+In any event, the docs are not clear enough to implement a real FSU
+link to the VDIC read channels, if it's even possible. And trying to get
+programming help from FSL can be difficult, and no coding examples
+for this link AFAIK.
+
+So I ended resorted to linking to VDIC channels 8,9,10 with a software
+approach, instead of attempting a hardware FSU link.
+
+The EOF interrupt handler for the SMFC channels informs the VDIC
+entity via a v4l2_subdev_ioctl() call that a buffer is available. The
+VDIC then manually kicks off its read channels to bring that buffer
+(and a previous buffer for F(n-1) field) into the VDIC.
+
+There is a small amount of extra overhead going this route compared
+to a FSU hardware link: there is the EOF irq latency (a few usec), and
+the CPU overhead for the VDIC to manually start the read channels,
+which is also a few usec at most (see prepare_vdi_in_buffers() in
+imx-vdic.c). So in total at most ~10 usec of extra overhead (CPU
+use plus irq latency) under normal system load.
+
+Of course, in order to implement this software link, I had to implement
+a straightforward FIFO dma buffer ring. The sink (VDIC) allocates the ring
+at stream on, and the source requests a pointer to this ring in its own
+stream on. Passing buffers from source to sink then follows a 
+straightforward
+FIFO queue/done/dequeue/queue model: sink queues buffers to src, src
+grabs queued buffers and makes them active, src signals completed
+buffers to sink, sink dequeues buffers in response, and sink queues
+buffers back when it is finished with them.
+
+
+> [...]
+>> +/*
+>> + * The subdevs have to be powered on/off, and streaming
+>> + * enabled/disabled, in a specific sequence.
+>> + */
+>> +static const u32 stream_on_seq[] = {
+>> +	IMX_MEDIA_GRP_ID_IC_PP,
+>> +	IMX_MEDIA_GRP_ID_IC_PRPVF,
+>> +	IMX_MEDIA_GRP_ID_IC_PRPENC,
+>> +	IMX_MEDIA_GRP_ID_SMFC,
+>> +	IMX_MEDIA_GRP_ID_SENSOR,
+>> +	IMX_MEDIA_GRP_ID_CSI2,
+>> +	IMX_MEDIA_GRP_ID_VIDMUX,
+>> +	IMX_MEDIA_GRP_ID_CSI,
+>> +};
+>> +
+>> +static const u32 stream_off_seq[] = {
+>> +	IMX_MEDIA_GRP_ID_IC_PP,
+>> +	IMX_MEDIA_GRP_ID_IC_PRPVF,
+>> +	IMX_MEDIA_GRP_ID_IC_PRPENC,
+>> +	IMX_MEDIA_GRP_ID_SMFC,
+>> +	IMX_MEDIA_GRP_ID_CSI,
+>> +	IMX_MEDIA_GRP_ID_VIDMUX,
+>> +	IMX_MEDIA_GRP_ID_CSI2,
+>> +	IMX_MEDIA_GRP_ID_SENSOR,
+>> +};
+>> +
+>> +#define NUM_STREAM_ENTITIES ARRAY_SIZE(stream_on_seq)
+>> +
+>> +static const u32 power_on_seq[] = {
+>> +	IMX_MEDIA_GRP_ID_CSI2,
+>> +	IMX_MEDIA_GRP_ID_SENSOR,
+>> +	IMX_MEDIA_GRP_ID_VIDMUX,
+>> +	IMX_MEDIA_GRP_ID_CSI,
+>> +	IMX_MEDIA_GRP_ID_SMFC,
+>> +	IMX_MEDIA_GRP_ID_IC_PRPENC,
+>> +	IMX_MEDIA_GRP_ID_IC_PRPVF,
+>> +	IMX_MEDIA_GRP_ID_IC_PP,
+>> +};
+>> +
+>> +static const u32 power_off_seq[] = {
+>> +	IMX_MEDIA_GRP_ID_IC_PP,
+>> +	IMX_MEDIA_GRP_ID_IC_PRPVF,
+>> +	IMX_MEDIA_GRP_ID_IC_PRPENC,
+>> +	IMX_MEDIA_GRP_ID_SMFC,
+>> +	IMX_MEDIA_GRP_ID_CSI,
+>> +	IMX_MEDIA_GRP_ID_VIDMUX,
+>> +	IMX_MEDIA_GRP_ID_SENSOR,
+>> +	IMX_MEDIA_GRP_ID_CSI2,
+>> +};
+> This seems somewhat arbitrary. Why is a power sequence needed?
+
+The CSI-2 receiver must be powered up before the sensor, that's the
+only requirement IIRC. The others have no s_power requirement. So I
+can probably change this to power up in the frontend -> backend order
+(IC_PP to sensor). And vice-versa for power off.
+
+
+> [...]
+>> +/*
+>> + * Turn current pipeline power on/off starting from start_entity.
+>> + * Must be called with mdev->graph_mutex held.
+>> + */
+>> +int imx_media_pipeline_set_power(struct imx_media_dev *imxmd,
+>> +				 struct media_entity_graph *graph,
+>> +				 struct media_entity *start_entity, bool on)
+>> +{
+>> +	struct media_entity *entity;
+>> +	struct v4l2_subdev *sd;
+>> +	int i, ret = 0;
+>> +	u32 id;
+>> +
+>> +	for (i = 0; i < NUM_POWER_ENTITIES; i++) {
+>> +		id = on ? power_on_seq[i] : power_off_seq[i];
+>> +		entity = find_pipeline_entity(imxmd, graph, start_entity, id);
+>> +		if (!entity)
+>> +			continue;
+>> +
+>> +		sd = media_entity_to_v4l2_subdev(entity);
+>> +
+>> +		ret = v4l2_subdev_call(sd, core, s_power, on);
+>> +		if (ret && ret != -ENOIOCTLCMD)
+>> +			break;
+>> +	}
+>> +
+>> +	return (ret && ret != -ENOIOCTLCMD) ? ret : 0;
+>> +}
+>> +EXPORT_SYMBOL_GPL(imx_media_pipeline_set_power);
+> This should really be handled by v4l2_pipeline_pm_use.
+
+I thought about this earlier, but v4l2_pipeline_pm_use() seems to be
+doing some other stuff that bothered me, at least that's what I remember.
+I will revisit this.
+
+>> +/*
+>> + * Inherit the v4l2 controls from all entities in a pipeline
+>> + * to the given video device.
+>> + * Must be called with mdev->graph_mutex held.
+>> + */
+>> +int imx_media_inherit_controls(struct imx_media_dev *imxmd,
+>> +			       struct video_device *vfd,
+>> +			       struct media_entity *start_entity)
+>> +{
+>> +	struct media_entity_graph graph;
+>> +	struct media_entity *entity;
+>> +	struct v4l2_subdev *sd;
+>> +	int ret;
+>> +
+>> +	ret = media_entity_graph_walk_init(&graph, &imxmd->md);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	media_entity_graph_walk_start(&graph, start_entity);
+>> +
+>> +	while ((entity = media_entity_graph_walk_next(&graph))) {
+>> +		if (is_media_entity_v4l2_video_device(entity))
+>> +			continue;
+>> +
+>> +		sd = media_entity_to_v4l2_subdev(entity);
+>> +
+>> +		dev_dbg(imxmd->dev, "%s: adding controls from %s\n",
+>> +			__func__, sd->name);
+>> +
+>> +		ret = v4l2_ctrl_add_handler(vfd->ctrl_handler,
+>> +					    sd->ctrl_handler,
+>> +					    NULL);
+>> +		if (ret)
+>> +			break;
+>> +	}
+>> +
+>> +	media_entity_graph_walk_cleanup(&graph);
+>> +	return ret;
+>> +}
+>> +EXPORT_SYMBOL_GPL(imx_media_inherit_controls);
+>> +
+>> +MODULE_DESCRIPTION("i.MX5/6 v4l2 media controller driver");
+>> +MODULE_AUTHOR("Steve Longerbeam<steve_longerbeam@mentor.com>");
+>> +MODULE_LICENSE("GPL");
+>> diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+>> new file mode 100644
+>> index 0000000..357654d
+>> --- /dev/null
+>> +++ b/drivers/staging/media/imx/imx-media-dev.c
+> This file is full of code that should live in the v4l2 core.
+
+Agreed. Stuff like imx_media_inherit_controls() really should be widely
+available.
+
+>> +int imx_media_add_internal_subdevs(struct imx_media_dev *imxmd,
+>> +				   struct imx_media_subdev *csi[4])
+>> +{
+>> +	int ret;
+>> +
+>> +	/* there must be at least one CSI in first IPU */
+> Why?
+
+Well yeah, imx-media doesn't necessarily need a CSI if things
+like the VDIC or post-processor are being used by an output
+overlay pipeline, for example. I'll fix this.
+
+>> +
+>> +/* parse inputs property from a sensor node */
+>> +static void of_parse_sensor_inputs(struct imx_media_dev *imxmd,
+>> +				   struct imx_media_subdev *sensor,
+>> +				   struct device_node *sensor_np)
+>> +{
+>> +	struct imx_media_sensor_input *sinput = &sensor->input;
+>> +	int ret, i;
+>> +
+>> +	for (i = 0; i < IMX_MEDIA_MAX_SENSOR_INPUTS; i++) {
+>> +		const char *input_name;
+>> +		u32 val;
+>> +
+>> +		ret = of_property_read_u32_index(sensor_np, "inputs", i, &val);
+>> +		if (ret)
+>> +			break;
+>> +
+>> +		sinput->value[i] = val;
+>> +
+>> +		ret = of_property_read_string_index(sensor_np, "input-names",
+>> +						    i, &input_name);
+>> +		/*
+>> +		 * if input-names not provided, they will be set using
+>> +		 * the subdev name once the sensor is known during
+>> +		 * async bind
+>> +		 */
+>> +		if (!ret)
+>> +			strncpy(sinput->name[i], input_name,
+>> +				sizeof(sinput->name[i]));
+>> +	}
+>> +
+>> +	sinput->num = i;
+>> +
+>> +	/* if no inputs provided just assume a single input */
+>> +	if (sinput->num == 0)
+>> +		sinput->num = 1;
+>> +}
+> This should be parsed by the sensor driver, not imx-media.
+
+you're probably right. I'll submit a patch for adv7180.c.
+
+
+>> +static void of_parse_sensor(struct imx_media_dev *imxmd,
+>> +			    struct imx_media_subdev *sensor,
+>> +			    struct device_node *sensor_np)
+>> +{
+>> +	struct device_node *endpoint;
+>> +
+>> +	of_parse_sensor_inputs(imxmd, sensor, sensor_np);
+>> +
+>> +	endpoint = of_graph_get_next_endpoint(sensor_np, NULL);
+>> +	if (endpoint) {
+>> +		v4l2_of_parse_endpoint(endpoint, &sensor->sensor_ep);
+>> +		of_node_put(endpoint);
+>> +	}
+>> +}
+>> +
+>> +static int of_get_port_count(const struct device_node *np)
+>> +{
+>> +	struct device_node *child;
+>> +	int num = 0;
+>> +
+>> +	/* if this node is itself a port, return 1 */
+>> +	if (of_node_cmp(np->name, "port") == 0)
+>> +		return 1;
+>> +
+>> +	for_each_child_of_node(np, child)
+>> +		if (of_node_cmp(child->name, "port") == 0)
+>> +			num++;
+>> +
+>> +	return num;
+>> +}
+> If this is extended to handle the ports subnode properly, it could be
+> moved into drivers/of/base.c.
+
+More that eventually needs exporting, agreed.
+
+
+Steve
+
