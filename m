@@ -1,96 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:37947 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752060AbdAaN4u (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:35289 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750812AbdAOFOZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jan 2017 08:56:50 -0500
-Message-ID: <1485870854.2932.63.camel@pengutronix.de>
-Subject: Re: [PATCH v3 00/24] i.MX Media Driver
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Tue, 31 Jan 2017 14:54:14 +0100
-In-Reply-To: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Sun, 15 Jan 2017 00:14:25 -0500
+Message-ID: <e317dad6c89caf45a3e2a0636c617128@smtp-cloud2.xs4all.net>
+Date: Sun, 15 Jan 2017 06:14:22 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I have just tested the imx-media-staging-md-wip branch on a Nitrogen6X
-with a tc358743 (BD_HDMI_MIPI HDMI to MIPI CSI-2 receiver board). Some
-observations:
+Results of the daily build of media_tree:
 
-# Link pipeline
-media-ctl -l "'tc358743 1-000f':0->'imx6-mipi-csi2':0[1]"
-media-ctl -l "'imx6-mipi-csi2':1->'ipu1_csi0_mux':0[1]"
-media-ctl -l "'ipu1_csi0_mux':2->'ipu1_csi0':0[1]"
-media-ctl -l "'ipu1_csi0':2->'ipu1_csi0 capture':0[1]"
+date:			Sun Jan 15 05:00:16 CET 2017
+media-tree git hash:	40eca140c404505c09773d1c6685d818cb55ab1a
+media_build git hash:	3c6ce4ff75f19adf45869e34b376c5b9dee4d50a
+v4l-utils git hash:	aded25f433113e022adc375629c8e17eb3a5c64f
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
-# Provide an EDID to the HDMI source
-v4l2-ctl -d /dev/v4l-subdev2 --set-edid=file=edid-1080p.hex
-# At this point the HDMI source is enabled and sends a 1080p60 signal
-# Configure detected DV timings
-media-ctl --set-dv "'tc358743 1-000f':0"
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-4.10-rc3-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.12.67-x86_64: OK
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+linux-4.9-x86_64: OK
+linux-4.10-rc3-x86_64: OK
+apps: WARNINGS
+spec-git: ERRORS
+sparse: WARNINGS
 
-# Set pad formats
-media-ctl --set-v4l2 "'tc358743 1-000f':0[fmt:UYVY/1920x1080]"
-media-ctl --set-v4l2 "'imx6-mipi-csi2':1[fmt:UYVY2X8/1920x1080]"
-media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY2X8/1920x1080]"
-media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/1920x1080]"
+Detailed results are available here:
 
-v4l2-ctl -d /dev/video4 -V
-# This still is configured to 640x480, which is inconsistent with
-# the 'ipu1_csi0':2 pad format. The pad set_fmt above should
-# have set this, too.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-v4l2-ctl --list-formats -d /dev/video4
-# This lists all the RGB formats, which it shouldn't. There is
-# no CSC in this pipeline, so we should be limited to YUV formats
-# only.
+Full logs are available here:
 
-# Set capture format
-v4l2-ctl -d /dev/video4 -v width=1920,height=1080,pixelformat=UYVY
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-v4l2-ctl -d /dev/video4 -V
-# Now the capture format is correctly configured to 1920x1080.
+The Media Infrastructure API from this daily build is here:
 
-v4l2-ctl -d 4 --list-frameintervals=width=1920,height=1080,pixelformat=UYVY
-# This lists nothing. We should at least provide the 'ipu1_csi0':2 pad
-# frame interval. In the future this should list fractions achievable
-# via frame skipping.
-
-v4l2-compliance -d /dev/video4
-# This fails two tests:
-# fail: v4l2-test-input-output.cpp(383): std == 0
-# fail: v4l2-test-input-output.cpp(449): invalid attributes for input 0
-# test VIDIOC_G/S/ENUMINPUT: FAIL
-# and
-# fail: v4l2-test-controls.cpp(782): subscribe event for control 'User Controls' failed
-# test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
-
-# (Slowly) stream JPEG images to a display host:
-gst-launch-1.0 -v v4l2src device=/dev/video4 ! jpegenc ! rtpjpegpay ! udpsink
-
-I've done this a few times, and sometimes I only get a "ipu1_csi0: EOF
-timeout" message when starting streaming.
-
-regards
-Philipp
-
+http://www.xs4all.nl/~hverkuil/spec/index.html
