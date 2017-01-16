@@ -1,60 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f179.google.com ([209.85.161.179]:36520 "EHLO
-        mail-yw0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757622AbdACKtd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2017 05:49:33 -0500
-Received: by mail-yw0-f179.google.com with SMTP id a10so285300238ywa.3
-        for <linux-media@vger.kernel.org>; Tue, 03 Jan 2017 02:49:33 -0800 (PST)
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:49844 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751003AbdAPUO2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Jan 2017 15:14:28 -0500
+Date: Mon, 16 Jan 2017 21:13:58 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: Sean Young <sean@mess.org>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Timo Kokkonen <timo.t.kokkonen@iki.fi>,
+        Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH 1/5] [media] ir-rx51: port to rc-core
+Message-ID: <20170116201358.GA29381@amd>
+References: <cover.1482255894.git.sean@mess.org>
+ <f5262cc638a494f238ef96a80d8f45265ca2fd02.1482255894.git.sean@mess.org>
+ <5878d916-6a60-d5c3-b912-948b5b970661@gmail.com>
+ <20161230130752.GA7377@gofer.mess.org>
+ <20161230133030.GA7861@gofer.mess.org>
+ <1e4fa726-5dec-028e-9f0f-1c53d58df981@gmail.com>
+ <20170116101053.GA24265@gofer.mess.org>
+ <750f3570-8acb-1707-c929-421518a38516@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <443aa078-e93d-6374-a6c6-811c862fb679@soulik.info>
-References: <1483347004-32593-1-git-send-email-ayaka@soulik.info>
- <1483347004-32593-3-git-send-email-ayaka@soulik.info> <20170102091013.GG3958@valkosipuli.retiisi.org.uk>
- <70da89ca-c184-aee5-e133-c13b3bbf6be9@soulik.info> <20170102110715.GH3958@valkosipuli.retiisi.org.uk>
- <443aa078-e93d-6374-a6c6-811c862fb679@soulik.info>
-From: Daniel Stone <daniel@fooishbar.org>
-Date: Tue, 3 Jan 2017 10:49:32 +0000
-Message-ID: <CAPj87rPKo1OHnRK=fhU9Se3itbrySr=fQOOtgyYth2ciQ__CGQ@mail.gmail.com>
-Subject: Re: [PATCH 2/2] [media] v4l: Add 10-bits per channel YUV pixel formats
-To: ayaka <ayaka@soulik.info>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        "Vetter, Daniel" <daniel.vetter@intel.com>,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Sean Paul <seanpaul@chromium.org>,
-        David Airlie <airlied@linux.ie>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        randy.li@rock-chips.com, mchehab@kernel.org,
-        linux-media@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="mP3DRpeJDSE+ciuQ"
+Content-Disposition: inline
+In-Reply-To: <750f3570-8acb-1707-c929-421518a38516@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
 
-On 2 January 2017 at 13:03, ayaka <ayaka@soulik.info> wrote:
-> On 01/02/2017 07:07 PM, Sakari Ailus wrote:
->> On Mon, Jan 02, 2017 at 06:53:16PM +0800, ayaka wrote:
->>> On 01/02/2017 05:10 PM, Sakari Ailus wrote:
->>>> If the format resembles the existing formats but on a different bit
->>>> depth,
->>>> it should be named in similar fashion.
->>>
->>> Do you mean it would be better if it is called as NV12_10?
->>
->> If it otherwise resembles NV12 but just has 10 bits per pixel, I think
->> NV12_10 is a good name for it.
->
-> The main reason I don't like it is that there is a various of software
-> having used the P010 for this kind of pixel format. It would leadi a
-> conflict between them(and I never saw it is used as NV12_10), as the P010 is
-> more common to be used.
+--mP3DRpeJDSE+ciuQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Indeed; GStreamer, FFmpeg and Microsoft all call this P010:
-https://msdn.microsoft.com/en-us/library/windows/desktop/bb970578(v=vs.85).aspx
+Hi!
 
-fourcc.org is supposed to reflect Microsoft's registry, but seems to
-not be actively maintained anymore.
+> On 16.01.2017 12:10, Sean Young wrote:
+> >
+> >Have you had a chance to test the ir-rx51 changes?
+> >
+> >Thanks
+> >Sean
+> >
+>=20
+> Still no, and afaik there are issues booting n900 with current kernel. Wi=
+ll
+> try to find time over the weekend.
 
-Cheers,
-Daniel
+v4.10-rc3 (?) works for me on n900. Do you want a working .config?
+
+Best regards,
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--mP3DRpeJDSE+ciuQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlh9KYYACgkQMOfwapXb+vK4jQCfeI1Yb8EzwHHS77S+ScDolZWU
+JEoAn0DK30OfjTWqgWxGFq+mG1OT//Zc
+=3RRi
+-----END PGP SIGNATURE-----
+
+--mP3DRpeJDSE+ciuQ--
