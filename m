@@ -1,101 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50270
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751693AbdATKB5 (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:47319 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751054AbdAPMLM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Jan 2017 05:01:57 -0500
-Subject: Re: [PATCH 2/2] [media] exynos-gsc: Fix imprecise external abort due
- disabled power domain
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-        linux-kernel@vger.kernel.org
-References: <1484699402-28738-1-git-send-email-javier@osg.samsung.com>
- <CGME20170118003022epcas3p34cf03bb6feb830c4fa231497f2536d0e@epcas3p3.samsung.com>
- <1484699402-28738-2-git-send-email-javier@osg.samsung.com>
- <cc9c6837-7141-b63c-ddf6-68252493df11@samsung.com>
- <842737f2-3faf-7b22-c480-93e183bbb670@osg.samsung.com>
- <20ecbcee-0dfd-04f6-a855-e117ba05732f@samsung.com>
-Cc: Inki Dae <inki.dae@samsung.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Kukjin Kim <kgene@kernel.org>,
-        linux-samsung-soc@vger.kernel.org,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        linux-media@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        Ulf Hansson <ulf.hansson@linaro.org>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <37760cac-7a46-9f40-8b4e-5414627c7fcf@osg.samsung.com>
-Date: Fri, 20 Jan 2017 07:01:46 -0300
-MIME-Version: 1.0
-In-Reply-To: <20ecbcee-0dfd-04f6-a855-e117ba05732f@samsung.com>
-Content-Type: text/plain; charset=utf-8
+        Mon, 16 Jan 2017 07:11:12 -0500
+Message-ID: <1484568579.8415.91.camel@pengutronix.de>
+Subject: Re: [PATCH v3 01/24] [media] dt-bindings: Add bindings for i.MX
+ media driver
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Mon, 16 Jan 2017 13:09:39 +0100
+In-Reply-To: <e609fd03-a546-330c-ec89-de1844d1b46f@gmail.com>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+         <1483755102-24785-2-git-send-email-steve_longerbeam@mentor.com>
+         <1484308551.31475.23.camel@pengutronix.de>
+         <e609fd03-a546-330c-ec89-de1844d1b46f@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Marek,
-
-On 01/20/2017 05:08 AM, Marek Szyprowski wrote:
-> Hi Javier,
+On Fri, 2017-01-13 at 11:03 -0800, Steve Longerbeam wrote:
 > 
-
-[snip]
-
->> Ok, I misunderstood the relationship between runtime PM and the power domains
->> then. I thought the power domains were only powered on when the runtime PM
->> framework resumed an associated device (i.e: pm_runtime_get_sync() is called).
+> On 01/13/2017 03:55 AM, Philipp Zabel wrote:
+> > Am Freitag, den 06.01.2017, 18:11 -0800 schrieb Steve Longerbeam:
+> >> Add bindings documentation for the i.MX media driver.
+> >>
+> >> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> >> ---
+> >>   Documentation/devicetree/bindings/media/imx.txt | 57 +++++++++++++++++++++++++
+> >>   1 file changed, 57 insertions(+)
+> >>   create mode 100644 Documentation/devicetree/bindings/media/imx.txt
+> >>
+> >> diff --git a/Documentation/devicetree/bindings/media/imx.txt b/Documentation/devicetree/bindings/media/imx.txt
+> >> new file mode 100644
+> >> index 0000000..254b64a
+> >> --- /dev/null
+> >> +++ b/Documentation/devicetree/bindings/media/imx.txt
+> >> @@ -0,0 +1,57 @@
+> >> +Freescale i.MX Media Video Devices
+> >> +
+> >> +Video Media Controller node
+> >> +---------------------------
+> >> +
+> >> +This is the parent media controller node for video capture support.
+> >> +
+> >> +Required properties:
+> >> +- compatible : "fsl,imx-media";
+> > Would you be opposed to calling this "capture-subsystem" instead of
+> > "imx-media"? We already use "fsl,imx-display-subsystem" and
+> > "fsl,imx-gpu-subsystem" for the display and GPU compound devices.
 > 
-> Power domains are implemented transparently for the drivers. Even when driver
-> doesn't support runtime pm, but its device is in the power domain, the core will
-> ensure that the domain will be turned on all the time the driver is bound to the
-> device.
->
+> sure. Some pie-in-the-sky day when DRM and media are unified,
+> there could be a single device that handles them all,
 
-I got it now, thank a lot for your explanation.
- 
->> But even if this isn't the case, shouldn't the reset in probe only be needed
->> if CONFIG_PM isn't enabled? (IOW, $SUBJECT but with another commit message).
+Indeed :)
+
+>  but for now
+> I'm fine with "fsl,capture-subsystem".
+
+Actually, I meant fsl,imx-capture-subsystem. fsl,imx-media-subsystem
+would be fine, too. Either way, I'll be happy if it looks similar to the
+other two.
+
+[...]
+> > This is a clever method to get better frame timestamps. Too bad about
+> > the routing requirements. Can this be used on Nitrogen6X?
 > 
-> This looks like an over-engineering. I don't like polluting driver code with
-> conditional statements like IS_ENABLED(CONFIG_*). It should not hurt to reset
-> the device in driver probe, especially just in case the device was left in
-> some partially configured/working state by bootloader or previous kernel run
-> (if started from kexec). Adding this conditional code to avoid some issues
-> with power domain or clocks configuration also suggests that one should
-> instead solve the problem elsewhere. Driver should be able to access device
-> registers in its probe() in any case without the additional hacks.
->
+> Absolutely, this support just needs use of the input-capture channels in the
+> imx GPT. I still need to submit the patch to the imx-gpt driver that adds an
+> input capture API, so at this point fsl,input-capture-channel has no effect,
+> but it does work (tested on SabreAuto).
 
-Fair enough, I already posted the patch but I'll ask it to be dropped.
+Nice.
 
-[snip]
-
->>
->> This seems to be caused by some needed clocks to access the power domains
->> to be gated, since I don't get these erros when passing clk_ignore_unused
->> as parameter in the kernel command line.
+[...]
+> >> +Required properties:
+> >> +- compatible	: "fsl,imx6-mipi-csi2";
+> > I think this should get an additional "snps,dw-mipi-csi2" compatible,
+> > since the only i.MX6 specific part is the bolted-on IPU2CSI gasket.
 > 
-> I think that those issues were fixes by the following patch:
-> https://patchwork.kernel.org/patch/9484607/
-> It still didn't reach mainline, but I hope it will go as a fix to v4.10.
+> right, minus the gasket it's a Synopsys core. I'll add that compatible flag.
+> Or should wait until the day this subdev is exported for general use, after
+> pulling out the gasket specifics?
+
+It can be added right away.
+
+> >> +- reg           : physical base address and length of the register set;
+> >> +- clocks	: the MIPI CSI-2 receiver requires three clocks: hsi_tx
+> >> +                  (the DPHY clock), video_27m, and eim_sel;
+> > Note that hsi_tx is incorrectly named. CCGR3[CG8] just happens to be the
+> > shared gate bit that gates the HSI clocks as well as the MIPI
+> > "ac_clk_125m", "cfg_clk", "ips_clk", and "pll_refclk" inputs to the mipi
+> > csi-2 core, but we are missing shared gate clocks in the clock tree for
+> > these.
+> 
+> Yes, so many clocks for the MIPI core. Why so many? I would think
+> there would need to be at most three: a clock for the MIPI CSI-2 core
+> and HSI core, and a clock for the D-PHY (oh and maybe a clock for an
+> M-PHY if there is one). I have no clue what all these other clocks are.
+> But anyway, a single gating bit, CCGR3[CG8], seems to enable them all.
+
+I would imagine the CSI-2 core has a high-speed clock input from the
+D-PHY for serial input, an APB clock for register access (ips_clk), and
+a pixel clock input for the parallel output (pixel_clk), at least.
+The D-PHY will have a PLL reference input (pll_refclk?) and probably its
+own register clock (cfg_clk?).
+
+I've looked at the MIPI DSI chapter, and it looks like ac_clk_125m is
+used for DSI only.
+
+> > Both cfg_clk and pll_refclk are sourced from video_27m, so "cfg" ->
+> > video_27m seems fine.
+> > But I don't get "dphy".
+> 
+> I presume it's the clock for the D-PHY.
 >
+> >   Which input clock would that correspond to?
+> > "pll_refclk?"
+> 
+> the mux at CDCDR says it comes from PLL3_120M, or PLL2_PFD2.
 
-That won't be enough since the CLK_ACLK432_SCALER needs to be ungated for
-Exynos5422/5800 as mentioned on another mail in this thread.
+I think that makes sense.
 
-> Please test if this solves your issue. Please not that adding more clocks
-> to the power domain drivers will solve only the problem with turning domain
-> on/off, but the are more cases where those clocks should be turned on (like
-> IOMMU integration), so marking them as critical solves that problem too.
->
+regards
+Philipp
 
-Ok, I understand your point.
- 
-> Best regards
-
-Best regards,
--- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
