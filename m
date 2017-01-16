@@ -1,112 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:39015 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751294AbdATQyn (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:34988 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750826AbdAPFHa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Jan 2017 11:54:43 -0500
-Message-ID: <1484929911.2897.70.camel@pengutronix.de>
-Subject: Re: [PATCH v3 00/24] i.MX Media Driver
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Fri, 20 Jan 2017 17:31:51 +0100
-In-Reply-To: <c6e98327-7e2c-f34a-2d23-af7b236de441@xs4all.nl>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
-         <c6e98327-7e2c-f34a-2d23-af7b236de441@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Mon, 16 Jan 2017 00:07:30 -0500
+Date: Mon, 16 Jan 2017 18:06:25 +1300
+From: Derek Robson <robsonde@gmail.com>
+To: Scott Matheina <scott@matheina.com>
+Cc: mchehab@kernel.org, gregkh@linuxfoundation.org, jb@abbadie.fr,
+        aquannie@gmail.com, bankarsandhya512@gmail.com, bhumirks@gmail.com,
+        claudiu.beznea@gmail.com, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] Staging: media: bcm2048: style fix - bare use of unsigned
+Message-ID: <20170116050625.GA26815@bigbird>
+References: <20170116043030.29366-1-robsonde@gmail.com>
+ <6FFD25BD-70E3-4BE5-896E-793F4A47F30E@matheina.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6FFD25BD-70E3-4BE5-896E-793F4A47F30E@matheina.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Fri, 2017-01-20 at 14:52 +0100, Hans Verkuil wrote:
-> Hi Steve, Philipp,
+On Sun, Jan 15, 2017 at 10:40:02PM -0600, Scott Matheina wrote:
 > 
-> On 01/07/2017 03:11 AM, Steve Longerbeam wrote:
-> > In version 3:
-> > 
-> > Changes suggested by Rob Herring <robh@kernel.org>:
-> > 
-> >   - prepended FIM node properties with vendor prefix "fsl,".
-> > 
-> >   - make mipi csi-2 receiver compatible string SoC specific:
-> >     "fsl,imx6-mipi-csi2" instead of "fsl,imx-mipi-csi2".
-> > 
-> >   - redundant "_clk" removed from mipi csi-2 receiver clock-names property.
-> > 
-> >   - removed board-specific info from the media driver binding doc. These
-> >     were all related to sensor bindings, which already are (adv7180)
-> >     or will be (ov564x) covered in separate binding docs. All reference
-> >     board info not related to DT bindings has been moved to
-> >     Documentation/media/v4l-drivers/imx.rst.
-> > 
-> >   - removed "_mipi" from the OV5640 compatible string.
-> > 
-> > Changes suggested by Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>:
-> > 
-> >   Mostly cosmetic/non-functional changes which I won't list here, except
-> >   for the following:
-> > 
-> >   - spin_lock_irqsave() changed to spin_lock() in a couple interrupt handlers.
-> > 
-> >   - fixed some unnecessary of_node_put()'s in for_each_child_of_node() loops.
-> > 
-> >   - check/handle return code from required reg property of CSI port nodes.
-> > 
-> >   - check/handle return code from clk_prepare_enable().
-> > 
-> > Changes suggested by Fabio Estevam <festevam@gmail.com>:
-> > 
-> >   - switch to VGEN3 Analog Vdd supply assuming rev. C SabreSD boards.
-> > 
-> >   - finally got around to passing valid IOMUX pin config values to the
-> >     pin groups.
-> > 
-> > Other changes:
-> > 
-> >   - removed the FIM properties that overrided the v4l2 FIM control defaults
-> >     values. This was left-over from a requirement of a customer and is not
-> >     necessary here.
-> > 
-> >   - The FIM must be explicitly enabled in the fim child node under the CSI
-> >     port nodes, using the status property. If not enabled, FIM v4l2 controls
-> >     will not appear in the video capture driver.
-> > 
-> >   - brought in additional media types patch from Philipp Zabel. Use new
-> >     MEDIA_ENT_F_VID_IF_BRIDGE in mipi csi-2 receiver subdev.
-> > 
-> >   - brought in latest platform generic video multiplexer subdevice driver
-> >     from Philipp Zabel (squashed with patch that uses new MEDIA_ENT_F_MUX).
-> > 
-> >   - removed imx-media-of.h, moved those prototypes into imx-media.h.
 > 
-> Based on the discussion on the mailinglist it seems everyone agrees that this
-> is the preferred driver, correct?
+> > On Jan 15, 2017, at 10:30 PM, Derek Robson <robsonde@gmail.com> wrote:
+> > 
+> > Changed bare use of 'unsigned' to the prefered us of 'unsigned int'
+> > found using checkpatch
+> 
+> Just wondering if you compiled? This patch looks exactly like a patch I tried, but it didn't compile. 
+> 
 
-No. I have some major reservations against the custom mem2mem framework
-embedded in Steve's driver.
-I think it is a misuse of the media entity links (which should describe
-hardware connections) for something that should be done at the vb2 level
-(letting one device's capture EOF interrupt trigger the next device's
-m2m device_run without going through userspace).
-Steve and I disagree on that point, so we'd appreciate if we could get
-some more eyes on the above issue.
+It complied for me, I am on an X86 system.
 
-regards
-Philipp
-
+> > Signed-off-by: Derek Robson <robsonde@gmail.com>
+> > ---
+> > drivers/staging/media/bcm2048/radio-bcm2048.c | 44 +++++++++++++--------------
+> > 1 file changed, 22 insertions(+), 22 deletions(-)
+> > 
+> > diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
+> > index 37bd439ee08b..b1923a3e4483 100644
+> > --- a/drivers/staging/media/bcm2048/radio-bcm2048.c
+> > +++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
+> > @@ -2020,27 +2020,27 @@ static ssize_t bcm2048_##prop##_read(struct device *dev,        \
+> >    return count;                            \
+> > }
+> > 
+> > -DEFINE_SYSFS_PROPERTY(power_state, unsigned, int, "%u", 0)
+> > -DEFINE_SYSFS_PROPERTY(mute, unsigned, int, "%u", 0)
+> > -DEFINE_SYSFS_PROPERTY(audio_route, unsigned, int, "%u", 0)
+> > -DEFINE_SYSFS_PROPERTY(dac_output, unsigned, int, "%u", 0)
+> > -
+> > -DEFINE_SYSFS_PROPERTY(fm_hi_lo_injection, unsigned, int, "%u", 0)
+> > -DEFINE_SYSFS_PROPERTY(fm_frequency, unsigned, int, "%u", 0)
+> > -DEFINE_SYSFS_PROPERTY(fm_af_frequency, unsigned, int, "%u", 0)
+> > -DEFINE_SYSFS_PROPERTY(fm_deemphasis, unsigned, int, "%u", 0)
+> > -DEFINE_SYSFS_PROPERTY(fm_rds_mask, unsigned, int, "%u", 0)
+> > -DEFINE_SYSFS_PROPERTY(fm_best_tune_mode, unsigned, int, "%u", 0)
+> > -DEFINE_SYSFS_PROPERTY(fm_search_rssi_threshold, unsigned, int, "%u", 0)
+> > -DEFINE_SYSFS_PROPERTY(fm_search_mode_direction, unsigned, int, "%u", 0)
+> > -DEFINE_SYSFS_PROPERTY(fm_search_tune_mode, unsigned, int, "%u", value > 3)
+> > -
+> > -DEFINE_SYSFS_PROPERTY(rds, unsigned, int, "%u", 0)
+> > -DEFINE_SYSFS_PROPERTY(rds_b_block_mask, unsigned, int, "%u", 0)
+> > -DEFINE_SYSFS_PROPERTY(rds_b_block_match, unsigned, int, "%u", 0)
+> > -DEFINE_SYSFS_PROPERTY(rds_pi_mask, unsigned, int, "%u", 0)
+> > -DEFINE_SYSFS_PROPERTY(rds_pi_match, unsigned, int, "%u", 0)
+> > -DEFINE_SYSFS_PROPERTY(rds_wline, unsigned, int, "%u", 0)
+> > +DEFINE_SYSFS_PROPERTY(power_state, unsigned int, int, "%u", 0)
+> > +DEFINE_SYSFS_PROPERTY(mute, unsigned int, int, "%u", 0)
+> > +DEFINE_SYSFS_PROPERTY(audio_route, unsigned int, int, "%u", 0)
+> > +DEFINE_SYSFS_PROPERTY(dac_output, unsigned int, int, "%u", 0)
+> > +
+> > +DEFINE_SYSFS_PROPERTY(fm_hi_lo_injection, unsigned int, int, "%u", 0)
+> > +DEFINE_SYSFS_PROPERTY(fm_frequency, unsigned int, int, "%u", 0)
+> > +DEFINE_SYSFS_PROPERTY(fm_af_frequency, unsigned int, int, "%u", 0)
+> > +DEFINE_SYSFS_PROPERTY(fm_deemphasis, unsigned int, int, "%u", 0)
+> > +DEFINE_SYSFS_PROPERTY(fm_rds_mask, unsigned int, int, "%u", 0)
+> > +DEFINE_SYSFS_PROPERTY(fm_best_tune_mode, unsigned int, int, "%u", 0)
+> > +DEFINE_SYSFS_PROPERTY(fm_search_rssi_threshold, unsigned int, int, "%u", 0)
+> > +DEFINE_SYSFS_PROPERTY(fm_search_mode_direction, unsigned int, int, "%u", 0)
+> > +DEFINE_SYSFS_PROPERTY(fm_search_tune_mode, unsigned int, int, "%u", value > 3)
+> > +
+> > +DEFINE_SYSFS_PROPERTY(rds, unsigned int, int, "%u", 0)
+> > +DEFINE_SYSFS_PROPERTY(rds_b_block_mask, unsigned int, int, "%u", 0)
+> > +DEFINE_SYSFS_PROPERTY(rds_b_block_match, unsigned int, int, "%u", 0)
+> > +DEFINE_SYSFS_PROPERTY(rds_pi_mask, unsigned int, int, "%u", 0)
+> > +DEFINE_SYSFS_PROPERTY(rds_pi_match, unsigned int, int, "%u", 0)
+> > +DEFINE_SYSFS_PROPERTY(rds_wline, unsigned int, int, "%u", 0)
+> > property_read(rds_pi, unsigned int, "%x")
+> > property_str_read(rds_rt, (BCM2048_MAX_RDS_RT + 1))
+> > property_str_read(rds_ps, (BCM2048_MAX_RDS_PS + 1))
+> > @@ -2052,7 +2052,7 @@ property_read(region_bottom_frequency, unsigned int, "%u")
+> > property_read(region_top_frequency, unsigned int, "%u")
+> > property_signed_read(fm_carrier_error, int, "%d")
+> > property_signed_read(fm_rssi, int, "%d")
+> > -DEFINE_SYSFS_PROPERTY(region, unsigned, int, "%u", 0)
+> > +DEFINE_SYSFS_PROPERTY(region, unsigned int, int, "%u", 0)
+> > 
+> > static struct device_attribute attrs[] = {
+> >    __ATTR(power_state, 0644, bcm2048_power_state_read,
+> > -- 
+> > 2.11.0
+> 
