@@ -1,106 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:35552 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936498AbdAETVi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2017 14:21:38 -0500
-Subject: Re: [PATCH v2 04/19] ARM: dts: imx6-sabrelite: add OV5642 and OV5640
- camera sensors
-To: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
-        shawnguo@kernel.org, kernel@pengutronix.de, fabio.estevam@nxp.com,
-        robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk,
-        mchehab@kernel.org, gregkh@linuxfoundation.org,
-        p.zabel@pengutronix.de
-References: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
- <1483477049-19056-5-git-send-email-steve_longerbeam@mentor.com>
- <0a343705-1d38-9fe2-6419-56ab9bdfb0c2@mentor.com>
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <d9f31e15-39b7-3c31-e45f-b19c0dd1e791@gmail.com>
-Date: Thu, 5 Jan 2017 11:20:57 -0800
-MIME-Version: 1.0
-In-Reply-To: <0a343705-1d38-9fe2-6419-56ab9bdfb0c2@mentor.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:35006 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751081AbdAPOMV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 16 Jan 2017 09:12:21 -0500
+Received: by mail-wm0-f67.google.com with SMTP id d140so14702411wmd.2
+        for <linux-media@vger.kernel.org>; Mon, 16 Jan 2017 06:12:20 -0800 (PST)
+From: Tvrtko Ursulin <tursulin@ursulin.net>
+To: Intel-gfx@lists.freedesktop.org
+Cc: tursulin@ursulin.net, Tvrtko Ursulin <tvrtko.ursulin@intel.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Tomasz Stanislawski <t.stanislaws@samsung.com>,
+        Matt Porter <mporter@kernel.crashing.org>,
+        Alexandre Bounine <alexandre.bounine@idt.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 1/4] lib/scatterlist: Fix offset type in sg_alloc_table_from_pages
+Date: Mon, 16 Jan 2017 14:12:07 +0000
+Message-Id: <1484575930-6810-1-git-send-email-tvrtko.ursulin@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vladimir,
+From: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
 
+Scatterlist entries have an unsigned int for the offset so
+correct the sg_alloc_table_from_pages function accordingly.
 
-On 01/04/2017 04:25 AM, Vladimir Zapolskiy wrote:
-> Hi Steve,
->
-> On 01/03/2017 10:57 PM, Steve Longerbeam wrote:
->> Enables the OV5642 parallel-bus sensor, and the OV5640 MIPI CSI-2 sensor.
->> Both hang off the same i2c2 bus, so they require different (and non-
->> default) i2c slave addresses.
->>
->> The OV5642 connects to the parallel-bus mux input port on ipu1_csi0_mux.
->>
->> The OV5640 connects to the input port on the MIPI CSI-2 receiver on
->> mipi_csi. It is set to transmit over MIPI virtual channel 1.
->>
->> Note there is a pin conflict with GPIO6. This pin functions as a power
->> input pin to the OV5642, but ENET uses it as the h/w workaround for
->> erratum ERR006687, to wake-up the ARM cores on normal RX and TX packet
->> done events (see 6261c4c8). So workaround 6261c4c8 is reverted here to
->> support the OV5642, and the "fsl,err006687-workaround-present" boolean
->> also must be removed. The result is that the CPUidle driver will no longer
->> allow entering the deep idle states on the sabrelite.
-> For me it sounds like a candidate of its own separate change.
+Since these are offsets withing a page, unsigned int is
+wide enough.
 
-Yes, I split out the two partial reverts into a separate commit
-("ARM: dts: imx6qdl-sabrelite: remove erratum ERR006687
-  workaround").
+Also converts callers which were using unsigned long locally
+with the lower_32_bits annotation to make it explicitly
+clear what is happening.
 
->
->
->
->> +
->> +	mipi_camera: ov5640@40 {
-> Please reorder device nodes by address value,
+v2: Use offset_in_page. (Chris Wilson)
 
-done.
+Signed-off-by: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Pawel Osciak <pawel@osciak.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com> (v1)
+Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
+Reviewed-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 4 ++--
+ drivers/rapidio/devices/rio_mport_cdev.c       | 4 ++--
+ include/linux/scatterlist.h                    | 2 +-
+ lib/scatterlist.c                              | 2 +-
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
->   also according to ePAPR
-> node names should be generic, labels can be specific:
->
-> 	ov5640: camera@40 {
-> 		...
-> 	};
->
-> 	ov5642: camera@42 {
-> 		...
-> 	};
-
-fixed.
-
->
->> +		pinctrl_ipu1_csi0: ipu1grp-csi0 {
-> Please rename node name to ipu1csi0grp.
-
-done.
-
->
->> +
->> +                pinctrl_ov5640: ov5640grp {
->> +                        fsl,pins = <
->> +				MX6QDL_PAD_NANDF_D5__GPIO2_IO05 0x000b0
->> +				MX6QDL_PAD_NANDF_WP_B__GPIO6_IO09 0x0b0b0
->> +                        >;
->> +                };
->> +
-> Indentation issues above, please use tabs instead of spaces.
-
-fixed.
-
->
-> Also please add new pin control groups preserving the alphanimerical order.
-
-done.
-
-Steve
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index fb6a177be461..51e8765bc3c6 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -478,7 +478,7 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
+ {
+ 	struct vb2_dc_buf *buf;
+ 	struct frame_vector *vec;
+-	unsigned long offset;
++	unsigned int offset;
+ 	int n_pages, i;
+ 	int ret = 0;
+ 	struct sg_table *sgt;
+@@ -506,7 +506,7 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
+ 	buf->dev = dev;
+ 	buf->dma_dir = dma_dir;
+ 
+-	offset = vaddr & ~PAGE_MASK;
++	offset = lower_32_bits(offset_in_page(vaddr));
+ 	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
+ 	if (IS_ERR(vec)) {
+ 		ret = PTR_ERR(vec);
+diff --git a/drivers/rapidio/devices/rio_mport_cdev.c b/drivers/rapidio/devices/rio_mport_cdev.c
+index 9013a585507e..0fae29ff47ba 100644
+--- a/drivers/rapidio/devices/rio_mport_cdev.c
++++ b/drivers/rapidio/devices/rio_mport_cdev.c
+@@ -876,10 +876,10 @@ rio_dma_transfer(struct file *filp, u32 transfer_mode,
+ 	 * offset within the internal buffer specified by handle parameter.
+ 	 */
+ 	if (xfer->loc_addr) {
+-		unsigned long offset;
++		unsigned int offset;
+ 		long pinned;
+ 
+-		offset = (unsigned long)(uintptr_t)xfer->loc_addr & ~PAGE_MASK;
++		offset = lower_32_bits(offset_in_page(xfer->loc_addr));
+ 		nr_pages = PAGE_ALIGN(xfer->length + offset) >> PAGE_SHIFT;
+ 
+ 		page_list = kmalloc_array(nr_pages,
+diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
+index cb3c8fe6acd7..c981bee1a3ae 100644
+--- a/include/linux/scatterlist.h
++++ b/include/linux/scatterlist.h
+@@ -263,7 +263,7 @@ int __sg_alloc_table(struct sg_table *, unsigned int, unsigned int,
+ int sg_alloc_table(struct sg_table *, unsigned int, gfp_t);
+ int sg_alloc_table_from_pages(struct sg_table *sgt,
+ 	struct page **pages, unsigned int n_pages,
+-	unsigned long offset, unsigned long size,
++	unsigned int offset, unsigned long size,
+ 	gfp_t gfp_mask);
+ 
+ size_t sg_copy_buffer(struct scatterlist *sgl, unsigned int nents, void *buf,
+diff --git a/lib/scatterlist.c b/lib/scatterlist.c
+index 004fc70fc56a..e05e7fc98892 100644
+--- a/lib/scatterlist.c
++++ b/lib/scatterlist.c
+@@ -391,7 +391,7 @@ EXPORT_SYMBOL(sg_alloc_table);
+  */
+ int sg_alloc_table_from_pages(struct sg_table *sgt,
+ 	struct page **pages, unsigned int n_pages,
+-	unsigned long offset, unsigned long size,
++	unsigned int offset, unsigned long size,
+ 	gfp_t gfp_mask)
+ {
+ 	unsigned int chunks;
+-- 
+2.7.4
 
