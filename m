@@ -1,82 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:60929 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932906AbdABNYJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 2 Jan 2017 08:24:09 -0500
-From: Michael Tretter <m.tretter@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Philipp Zabel <p.zabel@pengutronix.de>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        kernel@pengutronix.de, Philipp Zabel <philipp.zabel@gmail.com>,
-        Michael Tretter <m.tretter@pengutronix.de>
-Subject: [PATCH v3 1/7] [media] dt-bindings: Add a binding for Video Data Order Adapter
-Date: Mon,  2 Jan 2017 14:23:46 +0100
-Message-Id: <20170102132352.23669-2-m.tretter@pengutronix.de>
-In-Reply-To: <20170102132352.23669-1-m.tretter@pengutronix.de>
-References: <20170102132352.23669-1-m.tretter@pengutronix.de>
+Received: from box.matheina.com ([104.236.11.237]:34679 "EHLO box.matheina.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750843AbdAPEkG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 15 Jan 2017 23:40:06 -0500
+Content-Type: text/plain;
+        charset=us-ascii
+Mime-Version: 1.0
+Subject: Re: [PATCH] Staging: media: bcm2048: style fix - bare use of unsigned
+From: Scott Matheina <scott@matheina.com>
+In-Reply-To: <20170116043030.29366-1-robsonde@gmail.com>
+Date: Sun, 15 Jan 2017 22:40:02 -0600
+Cc: mchehab@kernel.org, gregkh@linuxfoundation.org, jb@abbadie.fr,
+        aquannie@gmail.com, bankarsandhya512@gmail.com, bhumirks@gmail.com,
+        claudiu.beznea@gmail.com, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <6FFD25BD-70E3-4BE5-896E-793F4A47F30E@matheina.com>
+References: <20170116043030.29366-1-robsonde@gmail.com>
+To: Derek Robson <robsonde@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <philipp.zabel@gmail.com>
 
-Add a DT binding documentation for the Video Data Order Adapter (VDOA)
-of the Freescale i.MX6 SoC.
 
-Also, add the compatible property and correct clock to the device tree
-to match the documentation.
+> On Jan 15, 2017, at 10:30 PM, Derek Robson <robsonde@gmail.com> wrote:
+>=20
+> Changed bare use of 'unsigned' to the prefered us of 'unsigned int'
+> found using checkpatch
 
-Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
-Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
----
- .../devicetree/bindings/media/fsl-vdoa.txt          | 21 +++++++++++++++++++++
- arch/arm/boot/dts/imx6qdl.dtsi                      |  2 ++
- 2 files changed, 23 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/fsl-vdoa.txt
+Just wondering if you compiled? This patch looks exactly like a patch I trie=
+d, but it didn't compile.=20
 
-diff --git a/Documentation/devicetree/bindings/media/fsl-vdoa.txt b/Documentation/devicetree/bindings/media/fsl-vdoa.txt
-new file mode 100644
-index 000000000000..6c5628530bb7
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/fsl-vdoa.txt
-@@ -0,0 +1,21 @@
-+Freescale Video Data Order Adapter
-+==================================
-+
-+The Video Data Order Adapter (VDOA) is present on the i.MX6q. Its sole purpose
-+is to reorder video data from the macroblock tiled order produced by the CODA
-+960 VPU to the conventional raster-scan order for scanout.
-+
-+Required properties:
-+- compatible: must be "fsl,imx6q-vdoa"
-+- reg: the register base and size for the device registers
-+- interrupts: the VDOA interrupt
-+- clocks: the vdoa clock
-+
-+Example:
-+
-+vdoa@21e4000 {
-+        compatible = "fsl,imx6q-vdoa";
-+        reg = <0x021e4000 0x4000>;
-+        interrupts = <0 18 IRQ_TYPE_LEVEL_HIGH>;
-+        clocks = <&clks IMX6QDL_CLK_VDOA>;
-+};
-diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
-index 53e6e63cbb02..61569c86d28e 100644
---- a/arch/arm/boot/dts/imx6qdl.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl.dtsi
-@@ -1157,8 +1157,10 @@
- 			};
- 
- 			vdoa@021e4000 {
-+				compatible = "fsl,imx6q-vdoa";
- 				reg = <0x021e4000 0x4000>;
- 				interrupts = <0 18 IRQ_TYPE_LEVEL_HIGH>;
-+				clocks = <&clks IMX6QDL_CLK_VDOA>;
- 			};
- 
- 			uart2: serial@021e8000 {
--- 
-2.11.0
+> Signed-off-by: Derek Robson <robsonde@gmail.com>
+> ---
+> drivers/staging/media/bcm2048/radio-bcm2048.c | 44 +++++++++++++----------=
+----
+> 1 file changed, 22 insertions(+), 22 deletions(-)
+>=20
+> diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/stagi=
+ng/media/bcm2048/radio-bcm2048.c
+> index 37bd439ee08b..b1923a3e4483 100644
+> --- a/drivers/staging/media/bcm2048/radio-bcm2048.c
+> +++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
+> @@ -2020,27 +2020,27 @@ static ssize_t bcm2048_##prop##_read(struct device=
+ *dev,        \
+>    return count;                            \
+> }
+>=20
+> -DEFINE_SYSFS_PROPERTY(power_state, unsigned, int, "%u", 0)
+> -DEFINE_SYSFS_PROPERTY(mute, unsigned, int, "%u", 0)
+> -DEFINE_SYSFS_PROPERTY(audio_route, unsigned, int, "%u", 0)
+> -DEFINE_SYSFS_PROPERTY(dac_output, unsigned, int, "%u", 0)
+> -
+> -DEFINE_SYSFS_PROPERTY(fm_hi_lo_injection, unsigned, int, "%u", 0)
+> -DEFINE_SYSFS_PROPERTY(fm_frequency, unsigned, int, "%u", 0)
+> -DEFINE_SYSFS_PROPERTY(fm_af_frequency, unsigned, int, "%u", 0)
+> -DEFINE_SYSFS_PROPERTY(fm_deemphasis, unsigned, int, "%u", 0)
+> -DEFINE_SYSFS_PROPERTY(fm_rds_mask, unsigned, int, "%u", 0)
+> -DEFINE_SYSFS_PROPERTY(fm_best_tune_mode, unsigned, int, "%u", 0)
+> -DEFINE_SYSFS_PROPERTY(fm_search_rssi_threshold, unsigned, int, "%u", 0)
+> -DEFINE_SYSFS_PROPERTY(fm_search_mode_direction, unsigned, int, "%u", 0)
+> -DEFINE_SYSFS_PROPERTY(fm_search_tune_mode, unsigned, int, "%u", value > 3=
+)
+> -
+> -DEFINE_SYSFS_PROPERTY(rds, unsigned, int, "%u", 0)
+> -DEFINE_SYSFS_PROPERTY(rds_b_block_mask, unsigned, int, "%u", 0)
+> -DEFINE_SYSFS_PROPERTY(rds_b_block_match, unsigned, int, "%u", 0)
+> -DEFINE_SYSFS_PROPERTY(rds_pi_mask, unsigned, int, "%u", 0)
+> -DEFINE_SYSFS_PROPERTY(rds_pi_match, unsigned, int, "%u", 0)
+> -DEFINE_SYSFS_PROPERTY(rds_wline, unsigned, int, "%u", 0)
+> +DEFINE_SYSFS_PROPERTY(power_state, unsigned int, int, "%u", 0)
+> +DEFINE_SYSFS_PROPERTY(mute, unsigned int, int, "%u", 0)
+> +DEFINE_SYSFS_PROPERTY(audio_route, unsigned int, int, "%u", 0)
+> +DEFINE_SYSFS_PROPERTY(dac_output, unsigned int, int, "%u", 0)
+> +
+> +DEFINE_SYSFS_PROPERTY(fm_hi_lo_injection, unsigned int, int, "%u", 0)
+> +DEFINE_SYSFS_PROPERTY(fm_frequency, unsigned int, int, "%u", 0)
+> +DEFINE_SYSFS_PROPERTY(fm_af_frequency, unsigned int, int, "%u", 0)
+> +DEFINE_SYSFS_PROPERTY(fm_deemphasis, unsigned int, int, "%u", 0)
+> +DEFINE_SYSFS_PROPERTY(fm_rds_mask, unsigned int, int, "%u", 0)
+> +DEFINE_SYSFS_PROPERTY(fm_best_tune_mode, unsigned int, int, "%u", 0)
+> +DEFINE_SYSFS_PROPERTY(fm_search_rssi_threshold, unsigned int, int, "%u", 0=
+)
+> +DEFINE_SYSFS_PROPERTY(fm_search_mode_direction, unsigned int, int, "%u", 0=
+)
+> +DEFINE_SYSFS_PROPERTY(fm_search_tune_mode, unsigned int, int, "%u", value=
+ > 3)
+> +
+> +DEFINE_SYSFS_PROPERTY(rds, unsigned int, int, "%u", 0)
+> +DEFINE_SYSFS_PROPERTY(rds_b_block_mask, unsigned int, int, "%u", 0)
+> +DEFINE_SYSFS_PROPERTY(rds_b_block_match, unsigned int, int, "%u", 0)
+> +DEFINE_SYSFS_PROPERTY(rds_pi_mask, unsigned int, int, "%u", 0)
+> +DEFINE_SYSFS_PROPERTY(rds_pi_match, unsigned int, int, "%u", 0)
+> +DEFINE_SYSFS_PROPERTY(rds_wline, unsigned int, int, "%u", 0)
+> property_read(rds_pi, unsigned int, "%x")
+> property_str_read(rds_rt, (BCM2048_MAX_RDS_RT + 1))
+> property_str_read(rds_ps, (BCM2048_MAX_RDS_PS + 1))
+> @@ -2052,7 +2052,7 @@ property_read(region_bottom_frequency, unsigned int,=
+ "%u")
+> property_read(region_top_frequency, unsigned int, "%u")
+> property_signed_read(fm_carrier_error, int, "%d")
+> property_signed_read(fm_rssi, int, "%d")
+> -DEFINE_SYSFS_PROPERTY(region, unsigned, int, "%u", 0)
+> +DEFINE_SYSFS_PROPERTY(region, unsigned int, int, "%u", 0)
+>=20
+> static struct device_attribute attrs[] =3D {
+>    __ATTR(power_state, 0644, bcm2048_power_state_read,
+> --=20
+> 2.11.0
 
