@@ -1,57 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:41246 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751180AbdAaQcX (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:33949 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750884AbdAQHdC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jan 2017 11:32:23 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v5 01/10] Documentation: DT: add bindings for ST DELTA
-Date: Tue, 31 Jan 2017 17:30:24 +0100
-Message-ID: <1485880233-666-2-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1485880233-666-1-git-send-email-hugues.fruchet@st.com>
-References: <1485880233-666-1-git-send-email-hugues.fruchet@st.com>
+        Tue, 17 Jan 2017 02:33:02 -0500
+Date: Tue, 17 Jan 2017 08:31:35 +0100
+In-Reply-To: <a4af25de-5b5a-aa70-40dd-515e6726ed4a@googlemail.com>
+References: <d7d9d081-5fb5-3d1c-0cbb-e69b0920fee0@googlemail.com> <a4af25de-5b5a-aa70-40dd-515e6726ed4a@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+ charset=utf-8
+Content-Transfer-Encoding: 8BIT
+Subject: Re: Time for a v4l-utils 1.12 release
+To: Gregor Jasny <gjasny@googlemail.com>, linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <54265DC5-EA4B-463B-AB4A-4775B950469E@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds DT binding documentation for STMicroelectronics
-DELTA V4L2 video decoder.
+On January 16, 2017 8:42:59 PM GMT+01:00, Gregor Jasny <gjasny@googlemail.com> wrote:
+>On 16/01/2017 09:10, Gregor Jasny wrote:
+>> I'd like to do a new v4l-utils release before the Debian freeze. Is
+>> master in a releasable state? Or should I wait for some more patches
+>to
+>> land?
+>
+>Mauro, could you please check the pot files? It looks like they need a
+>re-build and translation of some strings.
+>
+>Thanks,
+>Gregor
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media"
+>in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- Documentation/devicetree/bindings/media/st,st-delta.txt | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/st,st-delta.txt
+Mauro is on vacation until January 21st.
 
-diff --git a/Documentation/devicetree/bindings/media/st,st-delta.txt b/Documentation/devicetree/bindings/media/st,st-delta.txt
-new file mode 100644
-index 0000000..a538ab3
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/st,st-delta.txt
-@@ -0,0 +1,17 @@
-+* STMicroelectronics DELTA multi-format video decoder
-+
-+Required properties:
-+- compatible: should be "st,st-delta".
-+- clocks: from common clock binding: handle hardware IP needed clocks, the
-+  number of clocks may depend on the SoC type.
-+  See ../clock/clock-bindings.txt for details.
-+- clock-names: names of the clocks listed in clocks property in the same order.
-+
-+Example:
-+	delta0 {
-+		compatible = "st,st-delta";
-+		clock-names = "delta", "delta-st231", "delta-flash-promip";
-+		clocks = <&clk_s_c0_flexgen CLK_VID_DMU>,
-+			 <&clk_s_c0_flexgen CLK_ST231_DMU>,
-+			 <&clk_s_c0_flexgen CLK_FLASH_PROMIP>;
-+	};
--- 
-1.9.1
+Regards, 
 
+Hans 
