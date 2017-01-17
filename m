@@ -1,74 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:38330 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751707AbdAZNNY (ORCPT
+Received: from regular1.263xmail.com ([211.150.99.133]:52085 "EHLO
+        regular1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751038AbdAQDEl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Jan 2017 08:13:24 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH] v4l: of: check for unique lanes in data-lanes and clock-lanes
-Date: Thu, 26 Jan 2017 14:12:59 +0100
-Message-Id: <20170126131259.5621-1-niklas.soderlund+renesas@ragnatech.se>
+        Mon, 16 Jan 2017 22:04:41 -0500
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>, pawel@osciak.com,
+        "ayaka@soulik.info" <ayaka@soulik.info>,
+        "nicolas.dufresne@collabora.co.uk" <nicolas.dufresne@collabora.co.uk>,
+        florent.revest@free-electrons.com, hugues.fruchet@st.com,
+        "herman.chen@rock-chips.com" <herman.chen@rock-chips.com>
+From: Randy Li <randy.li@rock-chips.com>
+Subject: Request API: stateless VPU: the buffer mechanism and DPB management
+Message-ID: <db8b3e3f-7087-0b7b-0980-3a78a10cff93@rock-chips.com>
+Date: Tue, 17 Jan 2017 11:04:05 +0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All lines in data-lanes and clock-lanes properties must be unique.
-Instead of drivers checking for this add it to the generic parser.
-
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/v4l2-core/v4l2-of.c | 18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-index 93b33681776c..1042db6bb996 100644
---- a/drivers/media/v4l2-core/v4l2-of.c
-+++ b/drivers/media/v4l2-core/v4l2-of.c
-@@ -32,12 +32,19 @@ static int v4l2_of_parse_csi_bus(const struct device_node *node,
- 	prop = of_find_property(node, "data-lanes", NULL);
- 	if (prop) {
- 		const __be32 *lane = NULL;
--		unsigned int i;
-+		unsigned int i, n;
- 
- 		for (i = 0; i < ARRAY_SIZE(bus->data_lanes); i++) {
- 			lane = of_prop_next_u32(prop, lane, &v);
- 			if (!lane)
- 				break;
-+			for (n = 0; n < i; n++) {
-+				if (bus->data_lanes[n] == v) {
-+					pr_warn("%s: duplicated lane %u in data-lanes\n",
-+						node->full_name, v);
-+					return -EINVAL;
-+				}
-+			}
- 			bus->data_lanes[i] = v;
- 		}
- 		bus->num_data_lanes = i;
-@@ -63,6 +70,15 @@ static int v4l2_of_parse_csi_bus(const struct device_node *node,
- 	}
- 
- 	if (!of_property_read_u32(node, "clock-lanes", &v)) {
-+		unsigned int n;
-+
-+		for (n = 0; n < bus->num_data_lanes; n++) {
-+			if (bus->data_lanes[n] == v) {
-+				pr_warn("%s: duplicated lane %u in clock-lanes\n",
-+					node->full_name, v);
-+				return -EINVAL;
-+			}
-+		}
- 		bus->clock_lane = v;
- 		have_clk_lane = true;
- 	}
--- 
-2.11.0
+Hello all:
+   I have recently finish the learning of the H.264 codec and ready to 
+write the driver. Although I have not get deep in syntax of H.264 but I 
+think I just need to reuse and extended the VA-API H264 Parser from 
+gstreamer. The whole plan in userspace is just injecting a parsing 
+operation and set those v4l2 control in kernel before enqueue a buffer 
+into OUTPUT, which would keep the most compatible with those stateful 
+video IP(those with a firmware).
+   But in order to do that, I can't avoid the management of DPB. I 
+decided to moving the DPB management job from userspace in kernel. Also 
+the video IP(On2 on rk3288 and the transition video IP on those future 
+SoC than rk3288, rkv don't have this problem) would a special way to 
+manage the DPB, which requests the same reference frame is storing in 
+the same reference index in the runtime(actually it is its Motion Vector 
+data appended in decoded YUV data would not be moved). I would suggest 
+to keep those job in kernel, the userspace just to need update the list0 
+and list1 of DPB. DPB is self managed in kernel the userspace don't need 
+to even dequeue the buffer from CAPTURE until the re-order is done.
+   The kernel driver would also re-order the CAPTURE buffer into display 
+order, and blocking the operation on CAPTURE until a buffer is ready to 
+place in the very display order. If I don't do that, I have to get the 
+buffer once it is decoded, and marking its result with the poc, I could 
+only begin the processing of the next frame only after those thing are 
+done. Which would effect the performance badly. That is what chromebook 
+did(I hear that from the other staff, I didn't get invoke in chromium 
+project yet). So I would suggest that doing the re-order job in kernel, 
+and inform the the userspace the buffers are ready when the new I 
+frame(key frame) is pushed into the video IP.
+   Although moving those job into kernel would increase the loading, but 
+I think it is worth to do that, but I don't know whether all those 
+thought are correct and high performance(It is more important than API 
+compatible especially for those 4K video). And I want to know more ideas 
+about this topic.
+   I would begin the writing the new driver after the coming culture new 
+year vacation(I would go to the Europe), I wish we can decide the final 
+mechanism before I begin this job.
 
