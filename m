@@ -1,163 +1,225 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f182.google.com ([209.85.217.182]:33990 "EHLO
-        mail-ua0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751911AbdANMQK (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:49485 "EHLO
+        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752044AbdARKMR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 14 Jan 2017 07:16:10 -0500
-Received: by mail-ua0-f182.google.com with SMTP id 35so54131546uak.1
-        for <linux-media@vger.kernel.org>; Sat, 14 Jan 2017 04:16:09 -0800 (PST)
-MIME-Version: 1.0
-From: Chris Rankin <rankincj@gmail.com>
-Date: Sat, 14 Jan 2017 12:16:08 +0000
-Message-ID: <CAK2bqVLHb8LvQcoPbPVQ4+=C2yzKWW-fxYHpet2BqK=Myu4Yqg@mail.gmail.com>
-Subject: Oops with 4.9.x kernel and em28xx DVB device
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+        Wed, 18 Jan 2017 05:12:17 -0500
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+        Smitha T Murthy <smitha.t@samsung.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Wu-Cheng Li <wuchengli@chromium.org>,
+        Kieran Bingham <kieran@ksquared.org.uk>,
+        Vladimir Zapolskiy <vz@mleia.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCH 10/11] [media] v4l2: Add v4l2 control IDs for HEVC encoder
+Date: Wed, 18 Jan 2017 15:32:08 +0530
+Message-id: <1484733729-25371-11-git-send-email-smitha.t@samsung.com>
+In-reply-to: <1484733729-25371-1-git-send-email-smitha.t@samsung.com>
+References: <1484733729-25371-1-git-send-email-smitha.t@samsung.com>
+ <CGME20170118100818epcas5p1c7153a6fe9d93f96269008f42f736b90@epcas5p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Add v4l2 controls for HEVC encoder
 
-This oops has appeared for my PCTV T2 290e adapter when I switched to
-the 4.9.x kernel. It does not happen with the 4.8.x kernel.
+CC: Hans Verkuil <hans.verkuil@cisco.com>
+CC: Wu-Cheng Li <wuchengli@chromium.org>
+CC: Kieran Bingham <kieran@bingham.xyz>
+CC: Vladimir Zapolskiy <vz@mleia.com>
+CC: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c |   51 ++++++++++++++++
+ include/uapi/linux/v4l2-controls.h   |  109 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 160 insertions(+), 0 deletions(-)
 
-Jan 13 11:19:45 endgame kernel: em28174 #0: EEPROM ID = 26 00 01 00,
-EEPROM hash = 0x1eb936d2
-Jan 13 11:19:45 endgame kernel: em28174 #0: EEPROM info:
-Jan 13 11:19:45 endgame kernel: em28174 #0: #011microcode start
-address = 0x0004, boot configuration = 0x01
-Jan 13 11:19:45 endgame kernel: em28174 #0: #011No audio on board.
-Jan 13 11:19:45 endgame kernel: em28174 #0: #011500mA max power
-Jan 13 11:19:45 endgame kernel: em28174 #0: #011Table at offset 0x39,
-strings=0x1aa0, 0x14ba, 0x1ace
-Jan 13 11:19:45 endgame kernel: em28174 #0: Identified as PCTV
-nanoStick T2 290e (card=78)
-Jan 13 11:19:45 endgame kernel: em28174 #0: dvb set to isoc mode.
-Jan 13 11:19:45 endgame kernel: usbcore: registered new interface driver em28xx
-Jan 13 11:19:45 endgame kernel: em28174 #0: Binding DVB extension
-Jan 13 11:19:45 endgame kernel: BUG: unable to handle kernel NULL
-pointer dereference at 0000000000000549
-Jan 13 11:19:45 endgame kernel: IP: [<ffffffff811b9a28>] memcmp+0xb/0x1d
-Jan 13 11:19:47 endgame kernel: PGD 0
-Jan 13 11:19:47 endgame kernel:
-Jan 13 11:19:47 endgame kernel: Oops: 0000 [#1] PREEMPT SMP
-Jan 13 11:19:47 endgame kernel: Modules linked in: cxd2820r
-em28xx_dvb(+) dvb_core btbcm snd_rawmidi snd_hda_core joydev coretemp
-btintel snd_seq kvm_intel snd_seq_device bluetooth kvm snd_pcm rfkill
-snd_hrtimer em28xx tveeprom snd_timer v4l2_common videodev irqbypass
-iTCO_wdt psmouse mxm_wmi pcspkr lpc_ich snd r8169 i7core_edac i2c_i801
-i2c_smbus button wmi mfd_core mii edac_core acpi_cpufreq soundcore
-processor binfmt_misc nfsd auth_rpcgss oid_registry nfs_acl lockd
-grace sunrpc ip_tables x_tables ext4 crc16 jbd2 mbcache sr_mod cdrom
-sd_mod usbhid radeon i2c_algo_bit uhci_hcd crc32c_intel ehci_pci
-drm_kms_helper serio_raw ehci_hcd ahci xhci_pci cfbfillrect
-syscopyarea cfbimgblt sysfillrect sysimgblt fb_sys_fops pata_jmicron
-libahci cfbcopyarea libata firewire_ohci ttm scsi_mod xhci_hcd
-firewire_core crc_itu_t drm
-Jan 13 11:19:47 endgame kernel: usbcore usb_common ipv6
-Jan 13 11:19:47 endgame kernel: CPU: 5 PID: 639 Comm: modprobe
-Tainted: G          I    4.9.2 #2
-Jan 13 11:19:47 endgame kernel: Hardware name: Gigabyte Technology
-Co., Ltd. EX58-UD3R/EX58-UD3R, BIOS FB  05/04/2009
-Jan 13 11:19:47 endgame kernel: task: ffff8801c34acec0 task.stack:
-ffffc900004f8000
-Jan 13 11:19:47 endgame kernel: RIP: 0010:[<ffffffff811b9a28>]
-[<ffffffff811b9a28>] memcmp+0xb/0x1d
-Jan 13 11:19:47 endgame kernel: RSP: 0018:ffffc900004fb888  EFLAGS: 00010206
-Jan 13 11:19:47 endgame kernel: RAX: 0000000000000001 RBX:
-ffff8801c1ef2800 RCX: 0000000000000000
-Jan 13 11:19:47 endgame kernel: RDX: 0000000000000003 RSI:
-0000000000000549 RDI: ffffc900004fb8b9
-Jan 13 11:19:47 endgame kernel: RBP: 0000000000000000 R08:
-ffff8801c80fc8c0 R09: 0000000000000000
-Jan 13 11:19:47 endgame kernel: R10: ffffc900004fb708 R11:
-0000000000018ca0 R12: 0000000000000549
-Jan 13 11:19:47 endgame kernel: R13: ffffc900004fb8b9 R14:
-ffff8801c1ef2828 R15: ffffc900004fba68
-Jan 13 11:19:47 endgame kernel: FS:  00007f3c74c195c0(0000)
-GS:ffff8801cfd40000(0000) knlGS:0000000000000000
-Jan 13 11:19:47 endgame kernel: CS:  0010 DS: 0000 ES: 0000 CR0:
-0000000080050033
-Jan 13 11:19:47 endgame kernel: CR2: 0000000000000549 CR3:
-00000001c35a7000 CR4: 00000000000006e0
-Jan 13 11:19:47 endgame kernel: Stack:
-Jan 13 11:19:47 endgame kernel: ffffffffa04f344c ffff8801c1ef2800
-ffff8801c4bef000 0000000000000000
-Jan 13 11:19:47 endgame kernel: ffff8801c324bd64 ffffffffa04f3662
-000000e1000001ed ffffffffa04f5280
-Jan 13 11:19:47 endgame kernel: ffff8801c4bef020 ffff8801c4bef000
-ffff8801c4bef004 ffffffffa04f3514
-Jan 13 11:19:47 endgame kernel: Call Trace:
-Jan 13 11:19:47 endgame kernel: [<ffffffffa04f344c>] ?
-cxd2820r_gpio+0x27/0xef [cxd2820r]
-Jan 13 11:19:47 endgame kernel: [<ffffffffa04f3662>] ?
-cxd2820r_probe+0x14e/0x1df [cxd2820r]
-Jan 13 11:19:47 endgame kernel: [<ffffffffa04f3514>] ?
-cxd2820r_gpio+0xef/0xef [cxd2820r]
-Jan 13 11:19:47 endgame kernel: [<ffffffff8128ebda>] ?
-i2c_device_probe+0xc6/0xfa
-Jan 13 11:19:47 endgame kernel: [<ffffffff8126946e>] ?
-driver_probe_device+0x10b/0x249
-Jan 13 11:19:47 endgame kernel: [<ffffffff81269655>] ?
-driver_allows_async_probing+0x24/0x24
-Jan 13 11:19:47 endgame kernel: [<ffffffff81267e19>] ?
-bus_for_each_drv+0x6c/0x7b
-Jan 13 11:19:47 endgame kernel: [<ffffffff812692ec>] ? __device_attach+0x96/0xf5
-Jan 13 11:19:47 endgame kernel: [<ffffffff81268a04>] ?
-bus_probe_device+0x28/0x84
-Jan 13 11:19:47 endgame kernel: [<ffffffff8126709a>] ? device_add+0x2ad/0x51e
-Jan 13 11:19:47 endgame kernel: [<ffffffff813618dd>] ?
-_raw_spin_unlock_irqrestore+0xf/0x20
-Jan 13 11:19:47 endgame kernel: [<ffffffff81290b49>] ?
-i2c_new_device+0x172/0x1c9
-Jan 13 11:19:47 endgame kernel: [<ffffffffa04f313e>] ?
-cxd2820r_attach+0x8a/0xc0 [cxd2820r]
-Jan 13 11:19:47 endgame kernel: [<ffffffffa058d461>] ?
-em28xx_dvb_init.part.3+0xa01/0x2d20 [em28xx_dvb]
-Jan 13 11:19:47 endgame kernel: [<ffffffff8105761d>] ?
-check_preempt_curr+0x41/0x5e
-Jan 13 11:19:47 endgame kernel: [<ffffffff81057647>] ? ttwu_do_wakeup+0xd/0x81
-Jan 13 11:19:47 endgame kernel: [<ffffffff813618dd>] ?
-_raw_spin_unlock_irqrestore+0xf/0x20
-Jan 13 11:19:47 endgame kernel: [<ffffffff8105831c>] ?
-try_to_wake_up+0x1f7/0x208
-Jan 13 11:19:47 endgame kernel: [<ffffffff81069b2e>] ?
-__wake_up_common+0x47/0x73
-Jan 13 11:19:47 endgame kernel: [<ffffffff813618dd>] ?
-_raw_spin_unlock_irqrestore+0xf/0x20
-Jan 13 11:19:47 endgame kernel: [<ffffffff811424cb>] ?
-ep_poll_callback+0x151/0x17a
-Jan 13 11:19:47 endgame kernel: [<ffffffff81069b2e>] ?
-__wake_up_common+0x47/0x73
-Jan 13 11:19:47 endgame kernel: [<ffffffff81056343>] ?
-preempt_count_add+0x72/0x91
-Jan 13 11:19:47 endgame kernel: [<ffffffff8135fdc5>] ?
-__mutex_lock_slowpath+0x277/0x29c
-Jan 13 11:19:47 endgame kernel: [<ffffffffa052007a>] ?
-em28xx_register_extension+0x51/0x82 [em28xx]
-Jan 13 11:19:47 endgame kernel: [<ffffffffa007d000>] ? 0xffffffffa007d000
-Jan 13 11:19:47 endgame kernel: [<ffffffff81000440>] ?
-do_one_initcall+0x93/0x124
-Jan 13 11:19:47 endgame kernel: [<ffffffff810c0b36>] ? do_init_module+0x51/0x1d3
-Jan 13 11:19:47 endgame kernel: [<ffffffff81096b5a>] ? load_module+0x19ef/0x1f1d
-Jan 13 11:19:47 endgame kernel: [<ffffffff8110dd2c>] ? __vfs_read+0xc6/0xe9
-Jan 13 11:19:47 endgame kernel: [<ffffffff81093db5>] ? show_coresize+0x1c/0x1c
-Jan 13 11:19:47 endgame kernel: [<ffffffff810971e2>] ?
-SyS_finit_module+0x78/0x83
-Jan 13 11:19:47 endgame kernel: [<ffffffff810971e2>] ?
-SyS_finit_module+0x78/0x83
-Jan 13 11:19:47 endgame kernel: [<ffffffff810011ae>] ? do_syscall_64+0x49/0x98
-Jan 13 11:19:47 endgame kernel: [<ffffffff81361d86>] ?
-entry_SYSCALL64_slow_path+0x25/0x25
-Jan 13 11:19:47 endgame kernel: Code: 8b 3c c1 48 85 ff 74 10 4c 89 d6
-e8 03 fe ff ff 85 c0 74 09 ff c1 eb df b9 ea ff ff ff 89 c8 c3 31 c9
-48 39 ca 74 13 0f b6 04 0f <44> 0f b6 04 0e 48 ff c1 44 29 c0 74 ea eb
-02 31 c0 c3 48 01 fa
-Jan 13 11:19:47 endgame kernel: RIP  [<ffffffff811b9a28>] memcmp+0xb/0x1d
-Jan 13 11:19:47 endgame kernel: RSP <ffffc900004fb888>
-Jan 13 11:19:48 endgame kernel: CR2: 0000000000000549
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 47001e2..387439d 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -775,6 +775,57 @@ static bool is_new_manual(const struct v4l2_ctrl *master)
+ 	case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:		return "VPX P-Frame QP Value";
+ 	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:			return "VPX Profile";
+ 
++	/* HEVC controls */
++	case V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP:		return "HEVC Frame QP value";
++	case V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP:		return "HEVC P frame QP value";
++	case V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP:		return "HEVC B frame QP value";
++	case V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP:			return "HEVC Minimum QP value";
++	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP:			return "HEVC Maximum QP value";
++	case V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_DARK:		return "HEVC dark region adaptive";
++	case V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_SMOOTH:	return "HEVC smooth region adaptive";
++	case V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_STATIC:	return "HEVC static region adaptive";
++	case V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_ACTIVITY:	return "HEVC activity adaptive";
++	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:			return "HEVC Profile";
++	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:			return "HEVC level";
++	case V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG:		return "HEVC tier_flag default is Main";
++	case V4L2_CID_MPEG_VIDEO_HEVC_RC_FRAME_RATE:		return "HEVC Frame rate";
++	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH:	return "HEVC Maximum coding unit depth";
++	case V4L2_CID_MPEG_VIDEO_HEVC_REF_NUMBER_FOR_PFRAMES:	return "HEVC Number of reference picture";
++	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE:		return "HEVC refresh type";
++	case V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED_ENABLE:	return "HEVC constant intra prediction enabled";
++	case V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU_ENABLE:	return "HEVC lossless encoding select";
++	case V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT_ENABLE:		return "HEVC Wavefront enable";
++	case V4L2_CID_MPEG_VIDEO_HEVC_LF_DISABLE:		return "HEVC Filter disable";
++	case V4L2_CID_MPEG_VIDEO_HEVC_LF_SLICE_BOUNDARY:	return "across or not slice boundary";
++	case V4L2_CID_MPEG_VIDEO_HEVC_LTR_ENABLE:		return "long term reference enable";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_QP_ENABLE:	return "QP values for temporal layer";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_TYPE:	return "Hierarchical Coding Type";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER:return "Hierarchical Coding Layer";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_QP:return "Hierarchical Coding Layer QP";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT0:return "Hierarchical Coding Layer BIT0";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT1:return "Hierarchical Coding Layer BIT1";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT2:return "Hierarchical Coding Layer BIT2";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT3:return "Hierarchical Coding Layer BIT3";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT4:return "Hierarchical Coding Layer BIT4";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT5:return "Hierarchical Coding Layer BIT5";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT6:return "Hierarchical Coding Layer BIT6";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_CH:return "Hierarchical Coding Layer Change";
++	case V4L2_CID_MPEG_VIDEO_HEVC_SIGN_DATA_HIDING:		return "HEVC Sign data hiding";
++	case V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB_ENABLE:	return "HEVC General pb enable";
++	case V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID_ENABLE:	return "HEVC Temporal id enable";
++	case V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOTHING_FLAG:	return "HEVC Strong intra smoothing flag";
++	case V4L2_CID_MPEG_VIDEO_HEVC_DISABLE_INTRA_PU_SPLIT:	return "HEVC disable intra pu split";
++	case V4L2_CID_MPEG_VIDEO_HEVC_DISABLE_TMV_PREDICTION:	return "HEVC disable tmv prediction";
++	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1:	return "max number of candidate MVs";
++	case V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE_ENABLE:	return "ENC without startcode enable";
++	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD:		return "HEVC Number of reference picture";
++	case V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2:	return "HEVC loop filter beta offset";
++	case V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2:	return "HEVC loop filter tc offset";
++	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:	return "HEVC size of length field";
++	case V4L2_CID_MPEG_VIDEO_HEVC_USER_REF:			return "user long term reference frame";
++	case V4L2_CID_MPEG_VIDEO_HEVC_STORE_REF:		return "store long term reference frame";
++	case V4L2_CID_MPEG_VIDEO_HEVC_PREPEND_SPSPPS_TO_IDR:	return "Prepend SPS/PPS to every IDR";
++
+ 	/* CAMERA controls */
+ 	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+ 	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 0d2e1e0..a2a1c5d 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -579,6 +579,115 @@ enum v4l2_vp8_golden_frame_sel {
+ #define V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP		(V4L2_CID_MPEG_BASE+510)
+ #define V4L2_CID_MPEG_VIDEO_VPX_PROFILE			(V4L2_CID_MPEG_BASE+511)
+ 
++/* CIDs for HEVC encoding. Number gaps are for compatibility */
++
++#define V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP                         \
++					(V4L2_CID_MPEG_BASE + 512)
++#define V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP                         \
++					(V4L2_CID_MPEG_BASE + 513)
++#define V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP                     \
++					(V4L2_CID_MPEG_BASE + 514)
++#define V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP                     \
++					(V4L2_CID_MPEG_BASE + 515)
++#define V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP                     \
++					(V4L2_CID_MPEG_BASE + 516)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_QP_ENABLE \
++					(V4L2_CID_MPEG_BASE + 517)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_TYPE       \
++					(V4L2_CID_MPEG_BASE + 518)
++enum v4l2_mpeg_video_hevc_hier_coding_type {
++	V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_B	= 0,
++	V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_P	= 1,
++};
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER      \
++					(V4L2_CID_MPEG_BASE + 519)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_QP   \
++					(V4L2_CID_MPEG_BASE + 520)
++#define V4L2_CID_MPEG_VIDEO_HEVC_PROFILE                        \
++					(V4L2_CID_MPEG_BASE + 521)
++#define V4L2_CID_MPEG_VIDEO_HEVC_LEVEL                          \
++					(V4L2_CID_MPEG_BASE + 522)
++#define V4L2_CID_MPEG_VIDEO_HEVC_RC_FRAME_RATE            \
++					(V4L2_CID_MPEG_BASE + 523)
++#define V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG                \
++					(V4L2_CID_MPEG_BASE + 524)
++#define V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH      \
++					(V4L2_CID_MPEG_BASE + 525)
++#define V4L2_CID_MPEG_VIDEO_HEVC_REF_NUMBER_FOR_PFRAMES   \
++					(V4L2_CID_MPEG_BASE + 526)
++#define V4L2_CID_MPEG_VIDEO_HEVC_LF_DISABLE               \
++					(V4L2_CID_MPEG_BASE + 527)
++#define V4L2_CID_MPEG_VIDEO_HEVC_LF_SLICE_BOUNDARY        \
++					(V4L2_CID_MPEG_BASE + 528)
++#define V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2      \
++					(V4L2_CID_MPEG_BASE + 529)
++#define V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2        \
++					(V4L2_CID_MPEG_BASE + 530)
++#define V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE             \
++					(V4L2_CID_MPEG_BASE + 531)
++#define V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD           \
++					(V4L2_CID_MPEG_BASE + 532)
++#define V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU_ENABLE       \
++					(V4L2_CID_MPEG_BASE + 533)
++#define V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED_ENABLE  \
++					(V4L2_CID_MPEG_BASE + 534)
++#define V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT_ENABLE         \
++					(V4L2_CID_MPEG_BASE + 535)
++#define V4L2_CID_MPEG_VIDEO_HEVC_LTR_ENABLE               \
++					(V4L2_CID_MPEG_BASE + 536)
++#define V4L2_CID_MPEG_VIDEO_HEVC_USER_REF                 \
++					(V4L2_CID_MPEG_BASE + 537)
++#define V4L2_CID_MPEG_VIDEO_HEVC_STORE_REF                \
++					(V4L2_CID_MPEG_BASE + 538)
++#define V4L2_CID_MPEG_VIDEO_HEVC_SIGN_DATA_HIDING         \
++					(V4L2_CID_MPEG_BASE + 539)
++#define V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB_ENABLE        \
++					(V4L2_CID_MPEG_BASE + 540)
++#define V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID_ENABLE       \
++					(V4L2_CID_MPEG_BASE + 541)
++#define V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOTHING_FLAG     \
++					(V4L2_CID_MPEG_BASE + 542)
++#define V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1  \
++					(V4L2_CID_MPEG_BASE + 543)
++#define V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_DARK         \
++					(V4L2_CID_MPEG_BASE + 544)
++#define V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_SMOOTH       \
++					(V4L2_CID_MPEG_BASE + 545)
++#define V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_STATIC       \
++					(V4L2_CID_MPEG_BASE + 546)
++#define V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_ACTIVITY     \
++					(V4L2_CID_MPEG_BASE + 547)
++#define V4L2_CID_MPEG_VIDEO_HEVC_DISABLE_INTRA_PU_SPLIT   \
++					(V4L2_CID_MPEG_BASE + 548)
++#define V4L2_CID_MPEG_VIDEO_HEVC_DISABLE_TMV_PREDICTION   \
++					(V4L2_CID_MPEG_BASE + 549)
++#define V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE_ENABLE \
++					(V4L2_CID_MPEG_BASE + 550)
++#define V4L2_CID_MPEG_VIDEO_HEVC_QP_INDEX_CR              \
++					(V4L2_CID_MPEG_BASE + 551)
++#define V4L2_CID_MPEG_VIDEO_HEVC_QP_INDEX_CB              \
++					(V4L2_CID_MPEG_BASE + 552)
++#define V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD     \
++					(V4L2_CID_MPEG_BASE + 553)
++#define V4L2_CID_MPEG_VIDEO_HEVC_PREPEND_SPSPPS_TO_IDR          \
++					(V4L2_CID_MPEG_BASE + 554)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_CH   \
++					(V4L2_CID_MPEG_BASE + 555)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT0 \
++					(V4L2_CID_MPEG_BASE + 556)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT1 \
++					(V4L2_CID_MPEG_BASE + 557)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT2 \
++					(V4L2_CID_MPEG_BASE + 558)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT3 \
++					(V4L2_CID_MPEG_BASE + 559)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT4 \
++					(V4L2_CID_MPEG_BASE + 560)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT5 \
++					(V4L2_CID_MPEG_BASE + 561)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT6 \
++					(V4L2_CID_MPEG_BASE + 562)
++
+ /*  MPEG-class control IDs specific to the CX2341x driver as defined by V4L2 */
+ #define V4L2_CID_MPEG_CX2341X_BASE 				(V4L2_CTRL_CLASS_MPEG | 0x1000)
+ #define V4L2_CID_MPEG_CX2341X_VIDEO_SPATIAL_FILTER_MODE 	(V4L2_CID_MPEG_CX2341X_BASE+0)
+-- 
+1.7.2.3
 
-Jan 13 11:19:48 endgame kernel: ---[ end trace 2104ca820a3ff414 ]---
-
-Cheers,
-Chris
