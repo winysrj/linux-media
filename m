@@ -1,77 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f193.google.com ([209.85.161.193]:36301 "EHLO
-        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932750AbdA0RQl (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:35857 "EHLO
+        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752718AbdARKWP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Jan 2017 12:16:41 -0500
-MIME-Version: 1.0
-In-Reply-To: <20161101203346.GE30087@uda0271908>
-References: <CAJs94EYkgXtr7P+HLsBnu6=j==g=wWRVFy91vofcdDziSfw60w@mail.gmail.com>
- <20160830183039.GA20056@uda0271908> <CAJs94EZbTT7TyEyc5QjKvybDdR1hORd-z1sD=yyYNj=kzPQ6tw@mail.gmail.com>
- <20160912032826.GB18340@uda0271908> <CAJs94EbNjkjN4eMY03eH3o=xVe+CGB95GQ+a5PsmsNUrDzi8mQ@mail.gmail.com>
- <20160912185709.GL18340@uda0271908> <CAJs94EaNwOiqTASzr2LQDWeCHnzoQQWndDsSg75YUuHLQhcuUw@mail.gmail.com>
- <CAJs94EZXjETQGj44hphs61g9W1r-o9vJc+yy+9CeaxBy7Sa0Tg@mail.gmail.com> <20161101203346.GE30087@uda0271908>
-From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
-Date: Fri, 27 Jan 2017 20:13:23 +0300
-Message-ID: <CAJs94EY==ZYQ38w1L8OUhDt2jdV-JACX5MDCN2s8S_4ZfikSdw@mail.gmail.com>
-Subject: Re: musb: isoc pkt loss with pwc
-To: Bin Liu <b-liu@ti.com>, "Matwey V. Kornilov" <matwey@sai.msu.ru>,
-        Alan Stern <stern@rowland.harvard.edu>, hdegoede@redhat.com,
-        linux-media@vger.kernel.org, linux-usb@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+        Wed, 18 Jan 2017 05:22:15 -0500
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+        Smitha T Murthy <smitha.t@samsung.com>
+Subject: [PATCH 08/11] [media] s5p-mfc: Add VP9 decoder support
+Date: Wed, 18 Jan 2017 15:32:06 +0530
+Message-id: <1484733729-25371-9-git-send-email-smitha.t@samsung.com>
+In-reply-to: <1484733729-25371-1-git-send-email-smitha.t@samsung.com>
+References: <1484733729-25371-1-git-send-email-smitha.t@samsung.com>
+ <CGME20170118100756epcas1p2c8a93b383a4c85648b5e9efac8cea9c7@epcas1p2.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2016-11-01 23:33 GMT+03:00 Bin Liu <b-liu@ti.com>:
-> On Sat, Oct 15, 2016 at 10:25:42PM +0300, Matwey V. Kornilov wrote:
->
-> [snip]
->
->> >>> > Which means without this commit your camera has been working without
->> >>> > issues, and this is a regression with this commit, right?
->> >>> >
->> >>>
->> >>> Right
->> >>
->> >> Okay, thanks for confirming.
->> >>
->> >> But we cannot just simply add this flag, as it breaks many other use
->> >> cases. I will continue work on this to find a solution which works on
->> >> all use cases.
->> >>
->> >
->> > Ok, thank you.
->> >
->>
->> Excuse me. Any news?
->
-> Not solved yet. I used uvc class to exam the issue. uvc_video driver
-> takes longer time to execute urb complete() on my platform. Using HCD_BH
-> flag doesn't help, because urb->complete() was running with irq disabled
-> because of the local_irq. Removing the local_irq as in [1] causes the
-> system to lockup - uart and network stop responsing, so hard to debug
-> for now.
->
-> Right now, I added a workqueue in musb_host to handle urb->complete()
-> with local_irq removed. It seems working fine in my test, but it is
-> still a long way find the proper fix for upstream. I didn't have much
-> time on this issue.
->
-> Once I have a proper solution, I will post it to the mailing list.
->
+Add support for codec definition and corresponding buffer
+requirements for VP9 decoder.
 
-Maybe I could help somehow?
+Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/regs-mfc-v10.h   |    6 +++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c |    3 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |    8 ++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |    2 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   28 +++++++++++++++++++++++
+ 6 files changed, 48 insertions(+), 0 deletions(-)
 
-> [1] http://marc.info/?l=linux-usb&m=147560701431267&w=2
->
-> Regards,
-> -Bin.
->
-
-
-
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+index a57009a..81a0a96 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+@@ -18,6 +18,8 @@
+ /* MFCv10 register definitions*/
+ #define S5P_FIMV_MFC_CLOCK_OFF_V10			0x7120
+ #define S5P_FIMV_MFC_STATE_V10				0x7124
++#define S5P_FIMV_D_STATIC_BUFFER_ADDR_V10		0xF570
++#define S5P_FIMV_D_STATIC_BUFFER_SIZE_V10		0xF574
+ 
+ /* MFCv10 Context buffer sizes */
+ #define MFC_CTX_BUF_SIZE_V10		(30 * SZ_1K)	/* 30KB */
+@@ -34,6 +36,10 @@
+ 
+ /* MFCv10 codec defines*/
+ #define S5P_FIMV_CODEC_HEVC_DEC		17
++#define S5P_FIMV_CODEC_VP9_DEC		18
++
++/* Decoder buffer size for MFC v10 */
++#define DEC_VP9_STATIC_BUFFER_SIZE	20480
+ 
+ /* Encoder buffer size for MFC v10.0 */
+ #define ENC_V100_H264_ME_SIZE(x, y)	\
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
+index 76eca67..102b47e 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
+@@ -104,6 +104,9 @@ static int s5p_mfc_open_inst_cmd_v6(struct s5p_mfc_ctx *ctx)
+ 	case S5P_MFC_CODEC_HEVC_DEC:
+ 		codec_type = S5P_FIMV_CODEC_HEVC_DEC;
+ 		break;
++	case S5P_MFC_CODEC_VP9_DEC:
++		codec_type = S5P_FIMV_CODEC_VP9_DEC;
++		break;
+ 	case S5P_MFC_CODEC_H264_ENC:
+ 		codec_type = S5P_FIMV_CODEC_H264_ENC_V6;
+ 		break;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 5c46060..e720ce6 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -80,6 +80,7 @@ static inline dma_addr_t s5p_mfc_mem_cookie(void *a, void *b)
+ #define S5P_MFC_CODEC_VC1RCV_DEC	6
+ #define S5P_MFC_CODEC_VP8_DEC		7
+ #define S5P_MFC_CODEC_HEVC_DEC		17
++#define S5P_MFC_CODEC_VP9_DEC		18
+ 
+ #define S5P_MFC_CODEC_H264_ENC		20
+ #define S5P_MFC_CODEC_H264_MVC_ENC	21
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 9f459b3..93626ed 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -164,6 +164,14 @@
+ 		.num_planes	= 1,
+ 		.versions	= MFC_V10_BIT,
+ 	},
++	{
++		.name		= "VP9 Encoded Stream",
++		.fourcc		= V4L2_PIX_FMT_VP9,
++		.codec_mode	= S5P_FIMV_CODEC_VP9_DEC,
++		.type		= MFC_FMT_DEC,
++		.num_planes	= 1,
++		.versions	= MFC_V10_BIT,
++	},
+ };
+ 
+ #define NUM_FORMATS ARRAY_SIZE(formats)
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+index 6478f70..565decf 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+@@ -170,6 +170,8 @@ struct s5p_mfc_regs {
+ 	void __iomem *d_used_dpb_flag_upper;/* v7 and v8 */
+ 	void __iomem *d_used_dpb_flag_lower;/* v7 and v8 */
+ 	void __iomem *d_min_scratch_buffer_size; /* v10 */
++	void __iomem *d_static_buffer_addr; /* v10 */
++	void __iomem *d_static_buffer_size; /* v10 */
+ 
+ 	/* encoder registers */
+ 	void __iomem *e_frame_width;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index b6cb280..da4202f 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -227,6 +227,13 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 			ctx->scratch_buf_size +
+ 			(ctx->mv_count * ctx->mv_size);
+ 		break;
++	case S5P_MFC_CODEC_VP9_DEC:
++		mfc_debug(2, "Use min scratch buffer size\n");
++		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size, 256);
++		ctx->bank1.size =
++			ctx->scratch_buf_size +
++			DEC_VP9_STATIC_BUFFER_SIZE;
++		break;
+ 	case S5P_MFC_CODEC_H264_ENC:
+ 		if (IS_MFCV10(dev)) {
+ 			mfc_debug(2, "Use min scratch buffer size\n");
+@@ -338,6 +345,7 @@ static int s5p_mfc_alloc_instance_buffer_v6(struct s5p_mfc_ctx *ctx)
+ 	case S5P_MFC_CODEC_VC1_DEC:
+ 	case S5P_MFC_CODEC_MPEG2_DEC:
+ 	case S5P_MFC_CODEC_VP8_DEC:
++	case S5P_MFC_CODEC_VP9_DEC:
+ 		ctx->ctx.size = buf_size->other_dec_ctx;
+ 		break;
+ 	case S5P_MFC_CODEC_H264_ENC:
+@@ -579,6 +587,14 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
+ 		}
+ 	}
+ 
++	if (ctx->codec_mode == S5P_FIMV_CODEC_VP9_DEC) {
++		writel(buf_addr1, mfc_regs->d_static_buffer_addr);
++		writel(DEC_VP9_STATIC_BUFFER_SIZE,
++				mfc_regs->d_static_buffer_size);
++		buf_addr1 += DEC_VP9_STATIC_BUFFER_SIZE;
++		buf_size1 -= DEC_VP9_STATIC_BUFFER_SIZE;
++	}
++
+ 	mfc_debug(2, "Buf1: %zu, buf_size1: %d (frames %d)\n",
+ 			buf_addr1, buf_size1, ctx->total_dpb_count);
+ 	if (buf_size1 < 0) {
+@@ -2286,6 +2302,18 @@ static unsigned int s5p_mfc_get_crop_info_v_v6(struct s5p_mfc_ctx *ctx)
+ 	R(e_h264_options, S5P_FIMV_E_H264_OPTIONS_V8);
+ 	R(e_min_scratch_buffer_size, S5P_FIMV_E_MIN_SCRATCH_BUFFER_SIZE_V8);
+ 
++	if (!IS_MFCV10(dev))
++		goto done;
++
++	/* Initialize registers used in MFC v10 only.
++	 * Also, over-write the registers which have
++	 * a different offset for MFC v10.
++	 */
++
++	/* decoder registers */
++	R(d_static_buffer_addr, S5P_FIMV_D_STATIC_BUFFER_ADDR_V10);
++	R(d_static_buffer_size, S5P_FIMV_D_STATIC_BUFFER_SIZE_V10);
++
+ done:
+ 	return &mfc_regs;
+ #undef S5P_MFC_REG_ADDR
 -- 
-With best regards,
-Matwey V. Kornilov.
-Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
-119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+1.7.2.3
+
