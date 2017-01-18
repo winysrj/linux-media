@@ -1,81 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from guitar.tcltek.co.il ([192.115.133.116]:55861 "EHLO
-        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750860AbdAOKec (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 15 Jan 2017 05:34:32 -0500
-From: Baruch Siach <baruch@tkos.co.il>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org, Baruch Siach <baruch@tkos.co.il>,
-        Fabio Estevam <festevam@gmail.com>
-Subject: [PATCH v3] [media] coda: add Freescale firmware compatibility location
-Date: Sun, 15 Jan 2017 12:33:53 +0200
-Message-Id: <9828a30b479e1d96698402a38db2fb63e73374f0.1484476433.git.baruch@tkos.co.il>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:54044 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750830AbdARFO1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 18 Jan 2017 00:14:27 -0500
+Message-ID: <560b058ab16e023b5c055cfc7be65f1d@smtp-cloud3.xs4all.net>
+Date: Wed, 18 Jan 2017 06:14:24 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Freescale provided imx-vpu looks for firmware files under /lib/firmware/vpu
-by default. Make coda look there for firmware files to ease the update path.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Cc: Fabio Estevam <festevam@gmail.com>
-Signed-off-by: Baruch Siach <baruch@tkos.co.il>
----
-v3: adjust the number of firmware locations in coda_devtype (kbuild test robot)
+Results of the daily build of media_tree:
 
-v2: add compatibility path; don't change existing path (Fabio)
----
- drivers/media/platform/coda/coda-common.c | 4 ++++
- drivers/media/platform/coda/coda.h        | 2 +-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+date:			Wed Jan 18 05:00:18 CET 2017
+media-tree git hash:	40eca140c404505c09773d1c6685d818cb55ab1a
+media_build git hash:	3c6ce4ff75f19adf45869e34b376c5b9dee4d50a
+v4l-utils git hash:	bc29784e7a3d27f996f7134ad1117985adf103d7
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 9e6bdafa16f5..ce0d00f3f3ba 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -2079,6 +2079,7 @@ static const struct coda_devtype coda_devdata[] = {
- 	[CODA_IMX27] = {
- 		.firmware     = {
- 			"vpu_fw_imx27_TO2.bin",
-+			"vpu/vpu_fw_imx27_TO2.bin",
- 			"v4l-codadx6-imx27.bin"
- 		},
- 		.product      = CODA_DX6,
-@@ -2092,6 +2093,7 @@ static const struct coda_devtype coda_devdata[] = {
- 	[CODA_IMX53] = {
- 		.firmware     = {
- 			"vpu_fw_imx53.bin",
-+			"vpu/vpu_fw_imx53.bin",
- 			"v4l-coda7541-imx53.bin"
- 		},
- 		.product      = CODA_7541,
-@@ -2106,6 +2108,7 @@ static const struct coda_devtype coda_devdata[] = {
- 	[CODA_IMX6Q] = {
- 		.firmware     = {
- 			"vpu_fw_imx6q.bin",
-+			"vpu/vpu_fw_imx6q.bin",
- 			"v4l-coda960-imx6q.bin"
- 		},
- 		.product      = CODA_960,
-@@ -2120,6 +2123,7 @@ static const struct coda_devtype coda_devdata[] = {
- 	[CODA_IMX6DL] = {
- 		.firmware     = {
- 			"vpu_fw_imx6d.bin",
-+			"vpu/vpu_fw_imx6d.bin",
- 			"v4l-coda960-imx6dl.bin"
- 		},
- 		.product      = CODA_960,
-diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
-index 53f96661683c..8490bcb1fde2 100644
---- a/drivers/media/platform/coda/coda.h
-+++ b/drivers/media/platform/coda/coda.h
-@@ -50,7 +50,7 @@ enum coda_product {
- struct coda_video_device;
- 
- struct coda_devtype {
--	char			*firmware[2];
-+	char			*firmware[3];
- 	enum coda_product	product;
- 	const struct coda_codec	*codecs;
- 	unsigned int		num_codecs;
--- 
-2.11.0
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-4.10-rc3-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.12.67-x86_64: OK
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+linux-4.9-x86_64: OK
+linux-4.10-rc3-x86_64: OK
+apps: WARNINGS
+spec-git: ERRORS
+sparse: WARNINGS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
