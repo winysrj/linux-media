@@ -1,37 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from guitar.tcltek.co.il ([192.115.133.116]:55465 "EHLO
-        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757814AbdACUHG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 3 Jan 2017 15:07:06 -0500
-From: Baruch Siach <baruch@tkos.co.il>
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Cc: linux-media@vger.kernel.org, Baruch Siach <baruch@tkos.co.il>
-Subject: [PATCH] [media] ov2659: remove NOP assignment
-Date: Tue,  3 Jan 2017 22:06:56 +0200
-Message-Id: <482780de49218de0cb275cad11a83aff3d556db2.1483474016.git.baruch@tkos.co.il>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45661 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751064AbdARX0E (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 18 Jan 2017 18:26:04 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Nicholas Mc Guire <hofrat@osadl.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] ov9650: use msleep() for uncritical long delay
+Date: Thu, 19 Jan 2017 01:25:26 +0200
+Message-ID: <2045244.iMhNKFpdEc@avalon>
+In-Reply-To: <1484575113-24098-1-git-send-email-hofrat@osadl.org>
+References: <1484575113-24098-1-git-send-email-hofrat@osadl.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The loop over the ov2659_formats[] array just a few line above verifies that
-mf->code matches the selected array entry.
+Hi Nicholas,
 
-Signed-off-by: Baruch Siach <baruch@tkos.co.il>
----
- drivers/media/i2c/ov2659.c | 1 -
- 1 file changed, 1 deletion(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/i2c/ov2659.c b/drivers/media/i2c/ov2659.c
-index 1f999e9c0118..6e6367214d40 100644
---- a/drivers/media/i2c/ov2659.c
-+++ b/drivers/media/i2c/ov2659.c
-@@ -1121,7 +1121,6 @@ static int ov2659_set_fmt(struct v4l2_subdev *sd,
- 		return -EINVAL;
- 
- 	mf->colorspace = V4L2_COLORSPACE_SRGB;
--	mf->code = ov2659_formats[index].code;
- 	mf->field = V4L2_FIELD_NONE;
- 
- 	mutex_lock(&ov2659->lock);
+On Monday 16 Jan 2017 14:58:33 Nicholas Mc Guire wrote:
+> ulseep_range() uses hrtimers and provides no advantage over msleep()
+> for larger delays. Fix up the 25ms delays here to use msleep() and
+> reduce the load on the hrtimer subsystem.
+> 
+> Link: http://lkml.org/lkml/2017/1/11/377
+> Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+and applied to my tree. I'll send a pull request for v4.11.
+
+> ---
+> Problem found by coccinelle script
+> 
+> Patch was compile tested with: x86_64_defconfig + CONFIG_MEDIA_SUPPORT=m
+> CONFIG_MEDIA_ANALOG_TV_SUPPORT=y, CONFIG_MEDIA_CONTROLLER=y
+> CONFIG_VIDEO_V4L2_SUBDEV_API=y, CONFIG_MEDIA_SUBDRV_AUTOSELECT=n
+> CONFIG_VIDEO_OV9650=m
+> 
+> Patch is aginast 4.10-rc3 (localversion-next is next-20170116)
+> 
+>  drivers/media/i2c/ov9650.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
+> index 502c722..2de2fbb 100644
+> --- a/drivers/media/i2c/ov9650.c
+> +++ b/drivers/media/i2c/ov9650.c
+> @@ -522,7 +522,7 @@ static void __ov965x_set_power(struct ov965x *ov965x,
+> int on) if (on) {
+>  		ov965x_gpio_set(ov965x->gpios[GPIO_PWDN], 0);
+>  		ov965x_gpio_set(ov965x->gpios[GPIO_RST], 0);
+> -		usleep_range(25000, 26000);
+> +		msleep(25);
+>  	} else {
+>  		ov965x_gpio_set(ov965x->gpios[GPIO_RST], 1);
+>  		ov965x_gpio_set(ov965x->gpios[GPIO_PWDN], 1);
+> @@ -1438,7 +1438,7 @@ static int ov965x_detect_sensor(struct v4l2_subdev
+> *sd)
+> 
+>  	mutex_lock(&ov965x->lock);
+>  	__ov965x_set_power(ov965x, 1);
+> -	usleep_range(25000, 26000);
+> +	msleep(25);
+> 
+>  	/* Check sensor revision */
+>  	ret = ov965x_read(client, REG_PID, &pid);
+
 -- 
-2.11.0
+Regards,
+
+Laurent Pinchart
 
