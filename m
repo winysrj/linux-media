@@ -1,114 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:38438 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753477AbdA3NIN (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:38582
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751078AbdARAa5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Jan 2017 08:08:13 -0500
-Date: Mon, 30 Jan 2017 13:06:57 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v3 00/24] i.MX Media Driver
-Message-ID: <20170130130657.GR27312@n2100.armlinux.org.uk>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
- <c6e98327-7e2c-f34a-2d23-af7b236de441@xs4all.nl>
- <1484929911.2897.70.camel@pengutronix.de>
- <3fb68686-9447-2d8a-e2d2-005e4138cd43@gmail.com>
- <5d23d244-aa0e-401c-24a9-07f28acf1563@xs4all.nl>
- <1485169204.2874.57.camel@pengutronix.de>
- <ce2d1851-8a2e-ea0b-25b8-be6649b1ebaf@gmail.com>
- <1485257269.3600.96.camel@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1485257269.3600.96.camel@pengutronix.de>
+        Tue, 17 Jan 2017 19:30:57 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Inki Dae <inki.dae@samsung.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        linux-samsung-soc@vger.kernel.org,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        linux-media@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        Ulf Hansson <ulf.hansson@linaro.org>
+Subject: [PATCH 2/2] [media] exynos-gsc: Fix imprecise external abort due disabled power domain
+Date: Tue, 17 Jan 2017 21:30:01 -0300
+Message-Id: <1484699402-28738-2-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1484699402-28738-1-git-send-email-javier@osg.samsung.com>
+References: <1484699402-28738-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> The central issue seems to be that I think media pad links / media bus
-> formats should describe physical links, such as parallel or serial
-> buses, and the formats of pixels flowing through them, whereas Steve
-> would like to extend them to describe software transports and in-memory
-> formats.
+Commit 15f90ab57acc ("[media] exynos-gsc: Make driver functional when
+CONFIG_PM is unset") removed the implicit dependency that the driver
+had with CONFIG_PM, since it relied on the config option to be enabled.
 
-This probably isn't the right place to attach this comment in this
-thread, but... the issue of media bus formats matching physical buses
-is an argument that I think is already lost.
+In order to work with !CONFIG_PM, the GSC reset logic that happens in
+the runtime resume callback had to be executed on the probe function.
 
-For example, take the 10-bit bayer formats:
+The problem is that if CONFIG_PM is enabled, the power domain for the
+GSC could be disabled and so an attempt to write to the GSC_SW_RESET
+register leads to an unhandled fault / imprecise external abort error:
 
-#define MEDIA_BUS_FMT_SBGGR10_1X10              0x3007
-#define MEDIA_BUS_FMT_SGBRG10_1X10              0x300e
-#define MEDIA_BUS_FMT_SGRBG10_1X10              0x300a
-#define MEDIA_BUS_FMT_SRGGB10_1X10              0x300f
+[   10.178825] Unhandled fault: imprecise external abort (0x1406) at 0x00000000
+[   10.186982] pgd = ed728000
+[   10.190847] [00000000] *pgd=00000000
+[   10.195553] Internal error: : 1406 [#1] PREEMPT SMP ARM
+[   10.229761] Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
+[   10.237134] task: ed49e400 task.stack: ed724000
+[   10.242934] PC is at gsc_wait_reset+0x5c/0x6c [exynos_gsc]
+[   10.249710] LR is at gsc_probe+0x300/0x33c [exynos_gsc]
+[   10.256139] pc : [<bf2429e0>]    lr : [<bf240734>]    psr: 60070013
+[   10.256139] sp : ed725d30  ip : 00000000  fp : 00000001
+[   10.271492] r10: eea74800  r9 : ecd6a2c0  r8 : ed7d8854
+[   10.277912] r7 : ed7d8c08  r6 : ed7d8810  r5 : ffff8ecd  r4 : c0c03900
+[   10.285664] r3 : 00000000  r2 : 00000001  r1 : ed7d8b98  r0 : ed7d8810
 
-These are commonly used on CSI serial buses (see the smiapp driver for
-example).  From the description at the top of the file, it says the
-1X10 means that one pixel is transferred as one 10-bit sample.
+So only do a GSC reset if CONFIG_PM is disabled, since if is enabled the
+runtime PM resume callback will be called by the VIDIOC_STREAMON ioctl,
+making the reset in probe unneeded.
 
-However, the format on wire is somewhat different - four pixels are
-transmitted over five bytes:
+Fixes: 15f90ab57acc ("[media] exynos-gsc: Make driver functional when CONFIG_PM is unset")
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-	P0	P1	P2	P3	P0	P1	P2	P3
-	8-bit	8-bit	8-bit	8-bit	2-bit	2-bit	2-bit	2-bit
+---
 
-This gives two problems:
-1) it doesn't fit in any sensible kind of "one pixel transferred as
-   N M-bit samples" description because the pixel/sample values
-   (depending how you look at them) are broken up.
+I-ve only tested with CONFIG_PM enabled since my Exynos5422 Odroid
+XU4 board fails to boot when the config option is disabled.
 
-2) changing this will probably be a user visible change, as things
-   like smiapp are already in use.
+Best regards,
+Javier
 
-So, I think what we actually have is the media bus formats describing
-the _logical_ bus format.  Yes, one pixel is transferred as one 10-bit
-sample in this case.
+ drivers/media/platform/exynos-gsc/gsc-core.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-To help illustrate my point, consider the difference between
-MEDIA_BUS_FMT_RGB565_1X16 and MEDIA_BUS_FMT_RGB565_2X8_BE or
-MEDIA_BUS_FMT_RGB565_2X8_LE.  RGB565_1X16 means 1 pixel over an effective
-16-bit wide bus (if it's not 16-bit, then it has to be broken up into
-separate "samples".)  RGB565_2X8 means 1 pixel as two 8-bit samples.
-
-So, the 10-bit bayer is 1 pixel as 1.25 bytes.  Or is it, over a serial
-bus.  Using the RGB565 case, 10-bit bayer over a 4 lane CSI bus becomes
-interesting:
-
-	first byte	2nd	3rd
-lane 1	P0 9:2		S0	P7 9:2
-lane 2	P1 9:2		P4 9:2	S1
-lane 3	P2 9:2		P5 9:2	P8 9:2
-lane 4	P3 9:2		P6 9:2	P9 9:2
-
-S0 = P0/P1/P2/P3 least significant two bits
-S1 = P4/P5/P6/P7 least significant two bits
-
-or 2 lane CSI:
-	first byte	2nd	3rd	4th	5th
-lane 1	P0 9:2		P2	S0	P5	P7
-lane 2	P1 9:2		P3	P4	P6	S1
-
-or 1 lane CSI:
-lane 1	P0 P1 P2 P3 S0 P4 P5 P6 P7 S1 P8 P9 ...
-
-etc.
-
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index 83272f10722d..42e1e09ea915 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -1083,8 +1083,10 @@ static int gsc_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, gsc);
+ 
+-	gsc_hw_set_sw_reset(gsc);
+-	gsc_wait_reset(gsc);
++	if (!IS_ENABLED(CONFIG_PM)) {
++		gsc_hw_set_sw_reset(gsc);
++		gsc_wait_reset(gsc);
++	}
+ 
+ 	vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
+ 
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+2.7.4
+
