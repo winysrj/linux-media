@@ -1,99 +1,428 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:47667 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751042AbdAXLii (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:50657 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752366AbdARKWQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Jan 2017 06:38:38 -0500
-Message-ID: <1485257846.3600.106.camel@pengutronix.de>
-Subject: Re: [PATCH v3 16/24] media: Add i.MX media core driver
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <steve_longerbeam@mentor.com>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Date: Tue, 24 Jan 2017 12:37:26 +0100
-In-Reply-To: <c6087342-f61f-0b4c-f67e-4239f861e974@mentor.com>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
-         <1483755102-24785-17-git-send-email-steve_longerbeam@mentor.com>
-         <1484320822.31475.96.camel@pengutronix.de>
-         <a94025b4-c4dd-de51-572e-d2615a7246e4@gmail.com>
-         <1484574468.8415.136.camel@pengutronix.de>
-         <e38feca9-ed6f-8288-e006-768d6ba2fe5a@gmail.com>
-         <1485170006.2874.63.camel@pengutronix.de>
-         <481289bb-424f-4ac4-66f1-7e1b4a0b7065@gmail.com>
-         <c6087342-f61f-0b4c-f67e-4239f861e974@mentor.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Wed, 18 Jan 2017 05:22:16 -0500
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+        Smitha T Murthy <smitha.t@samsung.com>,
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+Subject: [PATCH 02/11] [media] s5p-mfc: Adding initial support for MFC v10.10
+Date: Wed, 18 Jan 2017 15:32:00 +0530
+Message-id: <1484733729-25371-3-git-send-email-smitha.t@samsung.com>
+In-reply-to: <1484733729-25371-1-git-send-email-smitha.t@samsung.com>
+References: <1484733729-25371-1-git-send-email-smitha.t@samsung.com>
+ <CGME20170118100723epcas5p132e0ebfad38261bed95cffc47334f9dc@epcas5p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
+Adding the support for MFC v10.10, with new register file and
+necessary hw control, decoder, encoder and structural changes.
 
-On Mon, 2017-01-23 at 17:45 -0800, Steve Longerbeam wrote:
-> 
-> On 01/23/2017 05:38 PM, Steve Longerbeam wrote:
-> >
-> >>
-> >>> Second, ignoring the above locking issue for a moment,
-> >>> v4l2_pipeline_pm_use()
-> >>> will call s_power on the sensor _first_, then the mipi csi-2 s_power,
-> >>> when executing
-> >>> media-ctl -l '"ov5640 1-003c":0 -> "imx6-mipi-csi2":0[1]'. Which is the
-> >>> wrong order.
-> >>> In my version which enforces the correct power on order, the mipi csi-2
-> >>> s_power
-> >>> is called first in that link setup, followed by the sensor.
-> >> I don't understand why you want to power up subdevs as soon as the links
-> >> are established.
-> >
-> > Because that is the precedence, all other media drivers do pipeline
-> > power on/off at link_notify. And v4l2_pipeline_link_notify() was written
-> > as a link_notify method.
-> >
-> >>   Shouldn't that rather be done for all subdevices in the
-> >> pipeline when the corresponding capture device is opened?
-> >
-> > that won't work. There's no guarantee the links will be established
-> > at capture device open time.
+CC: Rob Herring <robh+dt@kernel.org>
+CC: devicetree@vger.kernel.org 
+Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+---
+ .../devicetree/bindings/media/s5p-mfc.txt          |    1 +
+ drivers/media/platform/s5p-mfc/regs-mfc-v10.h      |   36 ++++++++++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           |   30 +++++++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |    4 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c      |    4 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |   44 +++++++++++---------
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |   21 +++++----
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |    9 +++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h    |    2 +
+ 9 files changed, 118 insertions(+), 33 deletions(-)
+ create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v10.h
 
-If the device is opened before the links are established, it won't be
-usable anyway. And I think the connected pipeline should be locked in
-place while the video device is opened. Is there any reason to ever open
-the video device and only then start linking entities?
-
-> ugh, maybe v4l2_pipeline_pm_use() would work at open/release. If there are
-> no links yet, it would basically be a no-op. And stream on requires 
-> opening the
-> device, and the pipeline links should be established by then, so this 
-> might be
-> fine, looking into this too.
-
-Thanks for looking into it, at least I had that working for the
-TC358743->MIPI-CSI2 link in my driver.
-
-> >> It seems to me that powering up the pipeline should be the last step
-> >> before userspace actually starts the capture.
-> >
-> > Well, I'm ok with moving pipeline power on/off to start/stop streaming.
-> > I would actually prefer to do it then, I only chose at link_notify 
-> > because of precedence. I'll look into it.
-
-That might be too late, though. I would expect STREAMON/STREAMOFF to be
-a rather fast operation as all the slow preparation could be at open /
-REQBUFS time. Also, there might be sensors that need to be powered on to
-handle the v4l2_ctrl passthrough?
-
-regards
-Philipp
+diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+index 2c90128..b70c613 100644
+--- a/Documentation/devicetree/bindings/media/s5p-mfc.txt
++++ b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+@@ -13,6 +13,7 @@ Required properties:
+ 	(c) "samsung,mfc-v7" for MFC v7 present in Exynos5420 SoC
+ 	(d) "samsung,mfc-v8" for MFC v8 present in Exynos5800 SoC
+ 	(e) "samsung,exynos5433-mfc" for MFC v8 present in Exynos5433 SoC
++	(f) "samsung,mfc-v10" for MFC v10 present in a variant of Exynos7 SoC
+ 
+   - reg : Physical base address of the IP registers and length of memory
+ 	  mapped region.
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+new file mode 100644
+index 0000000..bd671a5
+--- /dev/null
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+@@ -0,0 +1,36 @@
++/*
++ * Register definition file for Samsung MFC V10.x Interface (FIMV) driver
++ *
++ * Copyright (c) 2017 Samsung Electronics Co., Ltd.
++ *     http://www.samsung.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef _REGS_MFC_V10_H
++#define _REGS_MFC_V10_H
++
++#include <linux/sizes.h>
++#include "regs-mfc-v8.h"
++
++/* MFCv10 register definitions*/
++#define S5P_FIMV_MFC_CLOCK_OFF_V10			0x7120
++#define S5P_FIMV_MFC_STATE_V10				0x7124
++
++/* MFCv10 Context buffer sizes */
++#define MFC_CTX_BUF_SIZE_V10		(30 * SZ_1K)	/* 30KB */
++#define MFC_H264_DEC_CTX_BUF_SIZE_V10	(2 * SZ_1M)	/* 2MB */
++#define MFC_OTHER_DEC_CTX_BUF_SIZE_V10	(20 * SZ_1K)	/* 20KB */
++#define MFC_H264_ENC_CTX_BUF_SIZE_V10	(100 * SZ_1K)	/* 100KB */
++#define MFC_OTHER_ENC_CTX_BUF_SIZE_V10	(15 * SZ_1K)	/* 15KB */
++
++/* MFCv10 variant defines */
++#define MAX_FW_SIZE_V10		(SZ_1M)		/* 1MB */
++#define MAX_CPB_SIZE_V10	(3 * SZ_1M)	/* 3MB */
++#define MFC_VERSION_V10		0xA0
++#define MFC_NUM_PORTS_V10	1
++
++#endif /*_REGS_MFC_V10_H*/
++
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index bb0a588..a043cce 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1542,6 +1542,33 @@ static int s5p_mfc_resume(struct device *dev)
+ 	.num_clocks	= 3,
+ };
+ 
++static struct s5p_mfc_buf_size_v6 mfc_buf_size_v10 = {
++	.dev_ctx        = MFC_CTX_BUF_SIZE_V10,
++	.h264_dec_ctx   = MFC_H264_DEC_CTX_BUF_SIZE_V10,
++	.other_dec_ctx  = MFC_OTHER_DEC_CTX_BUF_SIZE_V10,
++	.h264_enc_ctx   = MFC_H264_ENC_CTX_BUF_SIZE_V10,
++	.other_enc_ctx  = MFC_OTHER_ENC_CTX_BUF_SIZE_V10,
++};
++
++static struct s5p_mfc_buf_size buf_size_v10 = {
++	.fw     = MAX_FW_SIZE_V10,
++	.cpb    = MAX_CPB_SIZE_V10,
++	.priv   = &mfc_buf_size_v10,
++};
++
++static struct s5p_mfc_buf_align mfc_buf_align_v10 = {
++	.base = 0,
++};
++
++static struct s5p_mfc_variant mfc_drvdata_v10 = {
++	.version        = MFC_VERSION_V10,
++	.version_bit    = MFC_V10_BIT,
++	.port_num       = MFC_NUM_PORTS_V10,
++	.buf_size       = &buf_size_v10,
++	.buf_align      = &mfc_buf_align_v10,
++	.fw_name[0]     = "s5p-mfc-v10.fw",
++};
++
+ static const struct of_device_id exynos_mfc_match[] = {
+ 	{
+ 		.compatible = "samsung,mfc-v5",
+@@ -1558,6 +1585,9 @@ static int s5p_mfc_resume(struct device *dev)
+ 	}, {
+ 		.compatible = "samsung,exynos5433-mfc",
+ 		.data = &mfc_drvdata_v8_5433,
++	}, {
++		.compatible = "samsung,mfc-v10",
++		.data = &mfc_drvdata_v10,
+ 	},
+ 	{},
+ };
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index b45d18c..1941c63 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -23,7 +23,7 @@
+ #include <media/v4l2-ioctl.h>
+ #include <media/videobuf2-v4l2.h>
+ #include "regs-mfc.h"
+-#include "regs-mfc-v8.h"
++#include "regs-mfc-v10.h"
+ 
+ #define S5P_MFC_NAME		"s5p-mfc"
+ 
+@@ -723,11 +723,13 @@ struct mfc_control {
+ #define IS_MFCV6_PLUS(dev)	(dev->variant->version >= 0x60 ? 1 : 0)
+ #define IS_MFCV7_PLUS(dev)	(dev->variant->version >= 0x70 ? 1 : 0)
+ #define IS_MFCV8_PLUS(dev)	(dev->variant->version >= 0x80 ? 1 : 0)
++#define IS_MFCV10(dev)		(dev->variant->version >= 0xA0 ? 1 : 0)
+ 
+ #define MFC_V5_BIT	BIT(0)
+ #define MFC_V6_BIT	BIT(1)
+ #define MFC_V7_BIT	BIT(2)
+ #define MFC_V8_BIT	BIT(3)
++#define MFC_V10_BIT	BIT(5)
+ 
+ 
+ #endif /* S5P_MFC_COMMON_H_ */
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+index 484af6b..0ded23c 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+@@ -267,6 +267,10 @@ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
+ 	}
+ 	else
+ 		mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
++
++	if (IS_MFCV10(dev))
++		mfc_write(dev, 0x0, S5P_FIMV_MFC_CLOCK_OFF_V10);
++
+ 	mfc_debug(2, "Will now wait for completion of firmware transfer\n");
+ 	if (s5p_mfc_wait_for_done_dev(dev, S5P_MFC_R2H_CMD_FW_STATUS_RET)) {
+ 		mfc_err("Failed to load firmware\n");
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 0ec2928..784b28e 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -54,7 +54,8 @@
+ 		.codec_mode	= S5P_MFC_CODEC_NONE,
+ 		.type		= MFC_FMT_RAW,
+ 		.num_planes	= 2,
+-		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
++		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT |
++								MFC_V10_BIT,
+ 	},
+ 	{
+ 		.name		= "4:2:0 2 Planes Y/CrCb",
+@@ -62,7 +63,8 @@
+ 		.codec_mode	= S5P_MFC_CODEC_NONE,
+ 		.type		= MFC_FMT_RAW,
+ 		.num_planes	= 2,
+-		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
++		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT |
++								MFC_V10_BIT,
+ 	},
+ 	{
+ 		.name		= "H264 Encoded Stream",
+@@ -70,8 +72,8 @@
+ 		.codec_mode	= S5P_MFC_CODEC_H264_DEC,
+ 		.type		= MFC_FMT_DEC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+-								MFC_V8_BIT,
++		.versions	= MFC_V5_BIT | MFC_V6_BIT |
++					MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+ 	},
+ 	{
+ 		.name		= "H264/MVC Encoded Stream",
+@@ -79,7 +81,8 @@
+ 		.codec_mode	= S5P_MFC_CODEC_H264_MVC_DEC,
+ 		.type		= MFC_FMT_DEC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
++		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT |
++								MFC_V10_BIT,
+ 	},
+ 	{
+ 		.name		= "H263 Encoded Stream",
+@@ -87,8 +90,8 @@
+ 		.codec_mode	= S5P_MFC_CODEC_H263_DEC,
+ 		.type		= MFC_FMT_DEC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+-								MFC_V8_BIT,
++		.versions	= MFC_V5_BIT | MFC_V6_BIT |
++					MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+ 	},
+ 	{
+ 		.name		= "MPEG1 Encoded Stream",
+@@ -96,8 +99,8 @@
+ 		.codec_mode	= S5P_MFC_CODEC_MPEG2_DEC,
+ 		.type		= MFC_FMT_DEC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+-								MFC_V8_BIT,
++		.versions	= MFC_V5_BIT | MFC_V6_BIT |
++					MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+ 	},
+ 	{
+ 		.name		= "MPEG2 Encoded Stream",
+@@ -105,8 +108,8 @@
+ 		.codec_mode	= S5P_MFC_CODEC_MPEG2_DEC,
+ 		.type		= MFC_FMT_DEC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+-								MFC_V8_BIT,
++		.versions	= MFC_V5_BIT | MFC_V6_BIT |
++					MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+ 	},
+ 	{
+ 		.name		= "MPEG4 Encoded Stream",
+@@ -114,8 +117,8 @@
+ 		.codec_mode	= S5P_MFC_CODEC_MPEG4_DEC,
+ 		.type		= MFC_FMT_DEC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+-								MFC_V8_BIT,
++		.versions	= MFC_V5_BIT | MFC_V6_BIT |
++					MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+ 	},
+ 	{
+ 		.name		= "XviD Encoded Stream",
+@@ -123,8 +126,8 @@
+ 		.codec_mode	= S5P_MFC_CODEC_MPEG4_DEC,
+ 		.type		= MFC_FMT_DEC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+-								MFC_V8_BIT,
++		.versions	= MFC_V5_BIT | MFC_V6_BIT |
++					MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+ 	},
+ 	{
+ 		.name		= "VC1 Encoded Stream",
+@@ -132,8 +135,8 @@
+ 		.codec_mode	= S5P_MFC_CODEC_VC1_DEC,
+ 		.type		= MFC_FMT_DEC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+-								MFC_V8_BIT,
++		.versions	= MFC_V5_BIT | MFC_V6_BIT |
++					MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+ 	},
+ 	{
+ 		.name		= "VC1 RCV Encoded Stream",
+@@ -141,8 +144,8 @@
+ 		.codec_mode	= S5P_MFC_CODEC_VC1RCV_DEC,
+ 		.type		= MFC_FMT_DEC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+-								MFC_V8_BIT,
++		.versions	= MFC_V5_BIT | MFC_V6_BIT |
++					MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+ 	},
+ 	{
+ 		.name		= "VP8 Encoded Stream",
+@@ -150,7 +153,8 @@
+ 		.codec_mode	= S5P_MFC_CODEC_VP8_DEC,
+ 		.type		= MFC_FMT_DEC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
++		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT |
++								MFC_V10_BIT,
+ 	},
+ };
+ 
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index e39d9e0..9042378 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -57,8 +57,8 @@
+ 		.codec_mode	= S5P_MFC_CODEC_NONE,
+ 		.type		= MFC_FMT_RAW,
+ 		.num_planes	= 2,
+-		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+-								MFC_V8_BIT,
++		.versions	= MFC_V5_BIT | MFC_V6_BIT |
++					MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+ 	},
+ 	{
+ 		.name		= "4:2:0 2 Planes Y/CrCb",
+@@ -66,7 +66,8 @@
+ 		.codec_mode	= S5P_MFC_CODEC_NONE,
+ 		.type		= MFC_FMT_RAW,
+ 		.num_planes	= 2,
+-		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
++		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT |
++								MFC_V10_BIT,
+ 	},
+ 	{
+ 		.name		= "H264 Encoded Stream",
+@@ -74,8 +75,8 @@
+ 		.codec_mode	= S5P_MFC_CODEC_H264_ENC,
+ 		.type		= MFC_FMT_ENC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+-								MFC_V8_BIT,
++		.versions	= MFC_V5_BIT | MFC_V6_BIT |
++					MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+ 	},
+ 	{
+ 		.name		= "MPEG4 Encoded Stream",
+@@ -83,8 +84,8 @@
+ 		.codec_mode	= S5P_MFC_CODEC_MPEG4_ENC,
+ 		.type		= MFC_FMT_ENC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+-								MFC_V8_BIT,
++		.versions	= MFC_V5_BIT | MFC_V6_BIT |
++					MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+ 	},
+ 	{
+ 		.name		= "H263 Encoded Stream",
+@@ -92,8 +93,8 @@
+ 		.codec_mode	= S5P_MFC_CODEC_H263_ENC,
+ 		.type		= MFC_FMT_ENC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+-								MFC_V8_BIT,
++		.versions	= MFC_V5_BIT | MFC_V6_BIT |
++					MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+ 	},
+ 	{
+ 		.name		= "VP8 Encoded Stream",
+@@ -101,7 +102,7 @@
+ 		.codec_mode	= S5P_MFC_CODEC_VP8_ENC,
+ 		.type		= MFC_FMT_ENC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V7_BIT | MFC_V8_BIT,
++		.versions	= MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+ 	},
+ };
+ 
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index 0572521..63dce5a 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -358,6 +358,7 @@ static int calc_plane(int width, int height)
+ 
+ static void s5p_mfc_dec_calc_dpb_size_v6(struct s5p_mfc_ctx *ctx)
+ {
++	struct s5p_mfc_dev *dev = ctx->dev;
+ 	ctx->buf_width = ALIGN(ctx->img_width, S5P_FIMV_NV12MT_HALIGN_V6);
+ 	ctx->buf_height = ALIGN(ctx->img_height, S5P_FIMV_NV12MT_VALIGN_V6);
+ 	mfc_debug(2, "SEQ Done: Movie dimensions %dx%d,\n"
+@@ -374,8 +375,12 @@ static void s5p_mfc_dec_calc_dpb_size_v6(struct s5p_mfc_ctx *ctx)
+ 
+ 	if (ctx->codec_mode == S5P_MFC_CODEC_H264_DEC ||
+ 			ctx->codec_mode == S5P_MFC_CODEC_H264_MVC_DEC) {
+-		ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V6(ctx->img_width,
+-				ctx->img_height);
++		if (IS_MFCV10(dev))
++			ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V10(ctx->img_width,
++					ctx->img_height);
++		else
++			ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V6(ctx->img_width,
++					ctx->img_height);
+ 		ctx->mv_size = ALIGN(ctx->mv_size, 16);
+ 	} else {
+ 		ctx->mv_size = 0;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
+index 16a7b1d..fcc2368 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
+@@ -24,6 +24,8 @@
+ #define MB_HEIGHT(y_size)		DIV_ROUND_UP(y_size, 16)
+ #define S5P_MFC_DEC_MV_SIZE_V6(x, y)	(MB_WIDTH(x) * \
+ 					(((MB_HEIGHT(y)+1)/2)*2) * 64 + 128)
++#define S5P_MFC_DEC_MV_SIZE_V10(x, y)	(MB_WIDTH(x) * \
++					(((MB_HEIGHT(y)+1)/2)*2) * 64 + 512)
+ 
+ /* Definition */
+ #define ENC_MULTI_SLICE_MB_MAX		((1 << 30) - 1)
+-- 
+1.7.2.3
 
