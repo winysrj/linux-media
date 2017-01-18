@@ -1,54 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:51956 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751357AbdAaKQB (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:60674 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752128AbdARJmP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jan 2017 05:16:01 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH] [media] coda/imx-vdoa: constify structs
-Date: Tue, 31 Jan 2017 08:14:56 -0200
-Message-Id: <4ece2d056d96ae6fd40cb9d6c58dd1510d448ed1.1485857690.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+        Wed, 18 Jan 2017 04:42:15 -0500
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com,
+        Smitha T Murthy <smitha.t@samsung.com>
+Subject: [PATCH] [media] s5p-mfc: Align stream buffer and CPB buffer to 512
+Date: Wed, 18 Jan 2017 15:07:03 +0530
+Message-id: <1484732223-24670-1-git-send-email-smitha.t@samsung.com>
+References: <CGME20170118094212epcas5p22e588016d2b330dcd0b99b6e1012c744@epcas5p2.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As warned by checkpatch:
+>From MFCv6 onwards encoder stream buffer and decoder CPB buffer
+need to be aligned with 512.
 
-	WARNING: struct of_device_id should normally be const
-	#318: FILE: drivers/media/platform/coda/imx-vdoa.c:318:
-	+static struct of_device_id vdoa_dt_ids[] = {
-
-So, constify structs.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
 ---
- drivers/media/platform/coda/imx-vdoa.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    9 +++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h |    3 +++
+ 2 files changed, 12 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/platform/coda/imx-vdoa.c b/drivers/media/platform/coda/imx-vdoa.c
-index f61baf7dcbc1..67fd8ffa60a4 100644
---- a/drivers/media/platform/coda/imx-vdoa.c
-+++ b/drivers/media/platform/coda/imx-vdoa.c
-@@ -315,13 +315,13 @@ static int vdoa_remove(struct platform_device *pdev)
- 	return 0;
- }
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index d6f207e..57da798 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -408,8 +408,15 @@ static int s5p_mfc_set_dec_stream_buffer_v6(struct s5p_mfc_ctx *ctx,
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+ 	const struct s5p_mfc_regs *mfc_regs = dev->mfc_regs;
+ 	struct s5p_mfc_buf_size *buf_size = dev->variant->buf_size;
++	size_t cpb_buf_size;
  
--static struct of_device_id vdoa_dt_ids[] = {
-+static const struct of_device_id vdoa_dt_ids[] = {
- 	{ .compatible = "fsl,imx6q-vdoa" },
- 	{}
- };
- MODULE_DEVICE_TABLE(of, vdoa_dt_ids);
+ 	mfc_debug_enter();
++	cpb_buf_size = ALIGN(buf_size->cpb, CPB_ALIGN);
++	if (strm_size >= set_strm_size_max(cpb_buf_size)) {
++		mfc_debug(2, "Decrease strm_size : %u -> %zu, gap : %d\n",
++			strm_size, set_strm_size_max(cpb_buf_size), CPB_ALIGN);
++		strm_size = set_strm_size_max(cpb_buf_size);
++	}
+ 	mfc_debug(2, "inst_no: %d, buf_addr: 0x%08x,\n"
+ 		"buf_size: 0x%08x (%d)\n",
+ 		ctx->inst_no, buf_addr, strm_size, strm_size);
+@@ -519,6 +526,8 @@ static int s5p_mfc_set_enc_stream_buffer_v6(struct s5p_mfc_ctx *ctx,
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+ 	const struct s5p_mfc_regs *mfc_regs = dev->mfc_regs;
  
--static struct platform_driver vdoa_driver = {
-+static const struct platform_driver vdoa_driver = {
- 	.probe		= vdoa_probe,
- 	.remove		= vdoa_remove,
- 	.driver		= {
++	size = ALIGN(size, 512);
++
+ 	writel(addr, mfc_regs->e_stream_buffer_addr); /* 16B align */
+ 	writel(size, mfc_regs->e_stream_buffer_size);
+ 
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
+index 8055848..16a7b1d 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
+@@ -40,6 +40,9 @@
+ #define FRAME_DELTA_H264_H263		1
+ #define TIGHT_CBR_MAX			10
+ 
++#define CPB_ALIGN			512
++#define set_strm_size_max(cpb_max)	((cpb_max) - CPB_ALIGN)
++
+ struct s5p_mfc_hw_ops *s5p_mfc_init_hw_ops_v6(void);
+ const struct s5p_mfc_regs *s5p_mfc_init_regs_v6_plus(struct s5p_mfc_dev *dev);
+ #endif /* S5P_MFC_OPR_V6_H_ */
 -- 
-2.9.3
+1.7.2.3
 
