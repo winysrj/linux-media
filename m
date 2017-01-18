@@ -1,206 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:44230 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S967306AbdAILq5 (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:20960 "EHLO
+        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752126AbdAROyZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Jan 2017 06:46:57 -0500
-Subject: Re: [PATCH v2 1/2] [media] lgdt3306a: support i2c mux for use by
- em28xx
-To: Kevin Cheng <kcheng@gmail.com>, linux-media@vger.kernel.org
-References: <20161218025513.nuay4ix2s66xfnul@whisper>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <693918b2-bfbe-9827-a11a-e1f73f4ac019@xs4all.nl>
-Date: Mon, 9 Jan 2017 12:46:51 +0100
-MIME-Version: 1.0
-In-Reply-To: <20161218025513.nuay4ix2s66xfnul@whisper>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Wed, 18 Jan 2017 09:54:25 -0500
+Subject: Re: [PATCH 01/11] [media] s5p-mfc: Rename IS_MFCV8 macro
+To: Smitha T Murthy <smitha.t@samsung.com>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
+        m.szyprowski@samsung.com, s.nawrocki@samsung.com
+From: Andrzej Hajda <a.hajda@samsung.com>
+Message-id: <35fef778-fa21-5f40-d399-96acd64c8511@samsung.com>
+Date: Wed, 18 Jan 2017 15:51:59 +0100
+MIME-version: 1.0
+In-reply-to: <1484733729-25371-2-git-send-email-smitha.t@samsung.com>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
+References: <1484733729-25371-1-git-send-email-smitha.t@samsung.com>
+ <CGME20170118100718epcas5p1f9aebb16fc61d41a13d09054fa96a14d@epcas5p1.samsung.com>
+ <1484733729-25371-2-git-send-email-smitha.t@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/18/2016 03:55 AM, Kevin Cheng wrote:
-> Adds an i2c mux to the lgdt3306a demodulator.  This was done to support
-> the Hauppauge WinTV-dualHD 01595 USB TV tuner (em28xx), which utilizes two
-> si2157 tuners behind gate control.
-> 
-> Signed-off-by: Kevin Cheng <kcheng@gmail.com>
+On 18.01.2017 11:01, Smitha T Murthy wrote:
+> This patch renames macro IS_MFCV8 to IS_MFCV8_PLUS so that the MFCv8
+> code can be resued for MFCv10.10 support. Since the MFCv8 specific code
+> holds good for MFC v10.10 also.
+>
+> Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+
+Acked-by: Andrzej Hajda <a.hajda@samsung.com>
+--
+Regards
+Andrzej
+
 > ---
->  drivers/media/dvb-frontends/Kconfig     |   2 +-
->  drivers/media/dvb-frontends/lgdt3306a.c | 108 ++++++++++++++++++++++++++++++++
->  drivers/media/dvb-frontends/lgdt3306a.h |   4 ++
->  3 files changed, 113 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-> index c841fa1..16f9afa 100644
-> --- a/drivers/media/dvb-frontends/Kconfig
-> +++ b/drivers/media/dvb-frontends/Kconfig
-> @@ -619,7 +619,7 @@ config DVB_LGDT3305
+>  drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    2 +-
+>  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   |    2 +-
+>  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |    2 +-
+>  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   18 +++++++++---------
+>  4 files changed, 12 insertions(+), 12 deletions(-)
+>
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> index ab23236..b45d18c 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> @@ -722,7 +722,7 @@ struct mfc_control {
+>  #define IS_TWOPORT(dev)		(dev->variant->port_num == 2 ? 1 : 0)
+>  #define IS_MFCV6_PLUS(dev)	(dev->variant->version >= 0x60 ? 1 : 0)
+>  #define IS_MFCV7_PLUS(dev)	(dev->variant->version >= 0x70 ? 1 : 0)
+> -#define IS_MFCV8(dev)		(dev->variant->version >= 0x80 ? 1 : 0)
+> +#define IS_MFCV8_PLUS(dev)	(dev->variant->version >= 0x80 ? 1 : 0)
 >  
->  config DVB_LGDT3306A
->  	tristate "LG Electronics LGDT3306A based"
-> -	depends on DVB_CORE && I2C
-> +	depends on DVB_CORE && I2C && I2C_MUX
->  	default m if !MEDIA_SUBDRV_AUTOSELECT
->  	help
->  	  An ATSC 8VSB and QAM-B 64/256 demodulator module. Say Y when you want
-> diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
-> index 19dca46..b191e01 100644
-> --- a/drivers/media/dvb-frontends/lgdt3306a.c
-> +++ b/drivers/media/dvb-frontends/lgdt3306a.c
-> @@ -22,6 +22,7 @@
->  #include <linux/dvb/frontend.h>
->  #include "dvb_math.h"
->  #include "lgdt3306a.h"
-> +#include <linux/i2c-mux.h>
+>  #define MFC_V5_BIT	BIT(0)
+>  #define MFC_V6_BIT	BIT(1)
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> index cc88871..484af6b 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> @@ -427,7 +427,7 @@ int s5p_mfc_wakeup(struct s5p_mfc_dev *dev)
+>  	s5p_mfc_clear_cmds(dev);
+>  	s5p_mfc_clean_dev_int_flags(dev);
+>  	/* 3. Send MFC wakeup command and wait for completion*/
+> -	if (IS_MFCV8(dev))
+> +	if (IS_MFCV8_PLUS(dev))
+>  		ret = s5p_mfc_v8_wait_wakeup(dev);
+>  	else
+>  		ret = s5p_mfc_wait_wakeup(dev);
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> index 367ef8e..0ec2928 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> @@ -1177,7 +1177,7 @@ void s5p_mfc_dec_init(struct s5p_mfc_ctx *ctx)
+>  	struct v4l2_format f;
+>  	f.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_H264;
+>  	ctx->src_fmt = find_format(&f, MFC_FMT_DEC);
+> -	if (IS_MFCV8(ctx->dev))
+> +	if (IS_MFCV8_PLUS(ctx->dev))
+>  		f.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_NV12M;
+>  	else if (IS_MFCV6_PLUS(ctx->dev))
+>  		f.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_NV12MT_16X16;
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> index 57da798..0572521 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> @@ -74,7 +74,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+>  			  ctx->luma_size, ctx->chroma_size, ctx->mv_size);
+>  		mfc_debug(2, "Totals bufs: %d\n", ctx->total_dpb_count);
+>  	} else if (ctx->type == MFCINST_ENCODER) {
+> -		if (IS_MFCV8(dev))
+> +		if (IS_MFCV8_PLUS(dev))
+>  			ctx->tmv_buffer_size = S5P_FIMV_NUM_TMV_BUFFERS_V6 *
+>  			ALIGN(S5P_FIMV_TMV_BUFFER_SIZE_V8(mb_width, mb_height),
+>  			S5P_FIMV_TMV_BUFFER_ALIGN_V6);
+> @@ -89,7 +89,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+>  		ctx->chroma_dpb_size = ALIGN((mb_width * mb_height) *
+>  				S5P_FIMV_CHROMA_MB_TO_PIXEL_V6,
+>  				S5P_FIMV_CHROMA_DPB_BUFFER_ALIGN_V6);
+> -		if (IS_MFCV8(dev))
+> +		if (IS_MFCV8_PLUS(dev))
+>  			ctx->me_buffer_size = ALIGN(S5P_FIMV_ME_BUFFER_SIZE_V8(
+>  						ctx->img_width, ctx->img_height,
+>  						mb_width, mb_height),
+> @@ -110,7 +110,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+>  	switch (ctx->codec_mode) {
+>  	case S5P_MFC_CODEC_H264_DEC:
+>  	case S5P_MFC_CODEC_H264_MVC_DEC:
+> -		if (IS_MFCV8(dev))
+> +		if (IS_MFCV8_PLUS(dev))
+>  			ctx->scratch_buf_size =
+>  				S5P_FIMV_SCRATCH_BUF_SIZE_H264_DEC_V8(
+>  					mb_width,
+> @@ -167,7 +167,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+>  		ctx->bank1.size = ctx->scratch_buf_size;
+>  		break;
+>  	case S5P_MFC_CODEC_VP8_DEC:
+> -		if (IS_MFCV8(dev))
+> +		if (IS_MFCV8_PLUS(dev))
+>  			ctx->scratch_buf_size =
+>  				S5P_FIMV_SCRATCH_BUF_SIZE_VP8_DEC_V8(
+>  						mb_width,
+> @@ -182,7 +182,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+>  		ctx->bank1.size = ctx->scratch_buf_size;
+>  		break;
+>  	case S5P_MFC_CODEC_H264_ENC:
+> -		if (IS_MFCV8(dev))
+> +		if (IS_MFCV8_PLUS(dev))
+>  			ctx->scratch_buf_size =
+>  				S5P_FIMV_SCRATCH_BUF_SIZE_H264_ENC_V8(
+>  					mb_width,
+> @@ -215,7 +215,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+>  		ctx->bank2.size = 0;
+>  		break;
+>  	case S5P_MFC_CODEC_VP8_ENC:
+> -		if (IS_MFCV8(dev))
+> +		if (IS_MFCV8_PLUS(dev))
+>  			ctx->scratch_buf_size =
+>  				S5P_FIMV_SCRATCH_BUF_SIZE_VP8_ENC_V8(
+>  					mb_width,
+> @@ -366,7 +366,7 @@ static void s5p_mfc_dec_calc_dpb_size_v6(struct s5p_mfc_ctx *ctx)
 >  
+>  	ctx->luma_size = calc_plane(ctx->img_width, ctx->img_height);
+>  	ctx->chroma_size = calc_plane(ctx->img_width, (ctx->img_height >> 1));
+> -	if (IS_MFCV8(ctx->dev)) {
+> +	if (IS_MFCV8_PLUS(ctx->dev)) {
+>  		/* MFCv8 needs additional 64 bytes for luma,chroma dpb*/
+>  		ctx->luma_size += S5P_FIMV_D_ALIGN_PLANE_SIZE_V8;
+>  		ctx->chroma_size += S5P_FIMV_D_ALIGN_PLANE_SIZE_V8;
+> @@ -454,7 +454,7 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
+>  	writel(buf_addr1, mfc_regs->d_scratch_buffer_addr);
+>  	writel(ctx->scratch_buf_size, mfc_regs->d_scratch_buffer_size);
 >  
->  static int debug;
-> @@ -65,6 +66,8 @@ struct lgdt3306a_state {
->  	enum fe_modulation current_modulation;
->  	u32 current_frequency;
->  	u32 snr;
-> +
-> +	struct i2c_mux_core *muxc;
->  };
+> -	if (IS_MFCV8(dev)) {
+> +	if (IS_MFCV8_PLUS(dev)) {
+>  		writel(ctx->img_width,
+>  			mfc_regs->d_first_plane_dpb_stride_size);
+>  		writel(ctx->img_width,
+> @@ -2120,7 +2120,7 @@ static unsigned int s5p_mfc_get_crop_info_v_v6(struct s5p_mfc_ctx *ctx)
+>  			S5P_FIMV_E_ENCODED_SOURCE_SECOND_ADDR_V7);
+>  	R(e_vp8_options, S5P_FIMV_E_VP8_OPTIONS_V7);
 >  
->  /*
-> @@ -2131,6 +2134,111 @@ static const struct dvb_frontend_ops lgdt3306a_ops = {
->  	.search               = lgdt3306a_search,
->  };
+> -	if (!IS_MFCV8(dev))
+> +	if (!IS_MFCV8_PLUS(dev))
+>  		goto done;
 >  
-> +static int lgdt3306a_select(struct i2c_mux_core *muxc, u32 chan)
-> +{
-> +	struct i2c_client *client = i2c_mux_priv(muxc);
-> +	struct lgdt3306a_state *state = i2c_get_clientdata(client);
-> +
-> +	return lgdt3306a_i2c_gate_ctrl(&state->frontend, 1);
-> +}
-> +
-> +static int lgdt3306a_deselect(struct i2c_mux_core *muxc, u32 chan)
-> +{
-> +	struct i2c_client *client = i2c_mux_priv(muxc);
-> +	struct lgdt3306a_state *state = i2c_get_clientdata(client);
-> +
-> +	return lgdt3306a_i2c_gate_ctrl(&state->frontend, 0);
-> +}
-> +
-> +static int lgdt3306a_probe(struct i2c_client *client,
-> +		const struct i2c_device_id *id)
-> +{
-> +	struct lgdt3306a_config *config = client->dev.platform_data;
+>  	/* Initialize registers used in MFC v8 only.
 
-You assign config here...
 
-> +	struct lgdt3306a_state *state;
-> +	struct dvb_frontend *fe;
-> +	int ret;
-> +
-> +	config = kzalloc(sizeof(struct lgdt3306a_config), GFP_KERNEL);
-
-...and then overwrite it here.
-
-Don't assign config the first time, it's confusing.
-
-> +	if (config == NULL) {
-> +		ret = -ENOMEM;
-> +		goto fail;
-> +	}
-> +
-> +	memcpy(config, client->dev.platform_data,
-> +			sizeof(struct lgdt3306a_config));
-> +
-> +	config->i2c_addr = client->addr;
-> +	fe = lgdt3306a_attach(config, client->adapter);
-> +	if (fe == NULL) {
-> +		ret = -ENODEV;
-> +		goto err_fe;
-> +	}
-> +
-> +	i2c_set_clientdata(client, fe->demodulator_priv);
-> +	state = fe->demodulator_priv;
-> +
-> +	/* create mux i2c adapter for tuner */
-> +	state->muxc = i2c_mux_alloc(client->adapter, &client->dev,
-> +				  1, 0, I2C_MUX_LOCKED,
-> +				  lgdt3306a_select, lgdt3306a_deselect);
-> +	if (!state->muxc) {
-> +		ret = -ENOMEM;
-> +		goto err_kfree;
-> +	}
-> +	state->muxc->priv = client;
-> +	ret = i2c_mux_add_adapter(state->muxc, 0, 0, 0);
-> +	if (ret)
-> +		goto err_kfree;
-> +
-> +	/* create dvb_frontend */
-> +	fe->ops.i2c_gate_ctrl = NULL;
-> +	*config->i2c_adapter = state->muxc->adapter[0];
-> +	*config->fe = fe;
-> +
-> +	return 0;
-> +
-> +err_kfree:
-> +	kfree(state);
-> +err_fe:
-> +	kfree(config);
-> +fail:
-> +	dev_dbg(&client->dev, "failed=%d\n", ret);
-> +	return ret;
-> +}
-> +
-> +static int lgdt3306a_remove(struct i2c_client *client)
-> +{
-> +	struct lgdt3306a_state *state = i2c_get_clientdata(client);
-> +
-> +	i2c_mux_del_adapters(state->muxc);
-> +
-> +	state->frontend.ops.release = NULL;
-> +	state->frontend.demodulator_priv = NULL;
-> +
-> +	kfree(state->cfg);
-> +	kfree(state);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct i2c_device_id lgdt3306a_id_table[] = {
-> +	{"lgdt3306a", 0},
-> +	{}
-> +};
-> +MODULE_DEVICE_TABLE(i2c, lgdt3306a_id_table);
-> +
-> +static struct i2c_driver lgdt3306a_driver = {
-> +	.driver = {
-> +		.name                = "lgdt3306a",
-> +		.suppress_bind_attrs = true,
-> +	},
-> +	.probe		= lgdt3306a_probe,
-> +	.remove		= lgdt3306a_remove,
-> +	.id_table	= lgdt3306a_id_table,
-> +};
-> +
-> +module_i2c_driver(lgdt3306a_driver);
-> +
->  MODULE_DESCRIPTION("LG Electronics LGDT3306A ATSC/QAM-B Demodulator Driver");
->  MODULE_AUTHOR("Fred Richter <frichter@hauppauge.com>");
->  MODULE_LICENSE("GPL");
-> diff --git a/drivers/media/dvb-frontends/lgdt3306a.h b/drivers/media/dvb-frontends/lgdt3306a.h
-> index 9dbb2dc..6ce337e 100644
-> --- a/drivers/media/dvb-frontends/lgdt3306a.h
-> +++ b/drivers/media/dvb-frontends/lgdt3306a.h
-> @@ -56,6 +56,10 @@ struct lgdt3306a_config {
->  
->  	/* demod clock freq in MHz; 24 or 25 supported */
->  	int  xtalMHz;
-> +
-> +	/* returned by driver if using i2c bus multiplexing */
-> +	struct dvb_frontend **fe;
-> +	struct i2c_adapter **i2c_adapter;
->  };
->  
->  #if IS_REACHABLE(CONFIG_DVB_LGDT3306A)
-> 
-
-Regards,
-
-	Hans
