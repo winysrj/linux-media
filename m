@@ -1,45 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1050.oracle.com ([156.151.31.82]:37851 "EHLO
-        userp1050.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754214AbdA0IHt (ORCPT
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:33535 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751358AbdASBp6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Jan 2017 03:07:49 -0500
-Date: Fri, 27 Jan 2017 11:06:22 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch] [media] mantis_dvb: fix some error codes in mantis_dvb_init()
-Message-ID: <20170127080622.GA4153@mwanda>
+        Wed, 18 Jan 2017 20:45:58 -0500
+Subject: Re: [PATCH v3 16/24] media: Add i.MX media core driver
+To: Philipp Zabel <p.zabel@pengutronix.de>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <1483755102-24785-17-git-send-email-steve_longerbeam@mentor.com>
+ <1484320822.31475.96.camel@pengutronix.de>
+ <2b1d2418-1ad4-6373-cb07-c3aeab48187f@gmail.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <aaefdb64-5d45-a225-f764-b06ebda73264@gmail.com>
+Date: Wed, 18 Jan 2017 17:44:53 -0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <2b1d2418-1ad4-6373-cb07-c3aeab48187f@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We should be returning negative error codes here or it leads to a crash.
-This also silences a static checker warning.
 
-	drivers/media/pci/mantis/mantis_cards.c:250 mantis_pci_probe()
-	warn: 'mantis->dmxdev.dvbdev->fops' double freed
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+On 01/14/2017 02:42 PM, Steve Longerbeam wrote:
+>
+>>> +/* parse inputs property from a sensor node */
+>>> +static void of_parse_sensor_inputs(struct imx_media_dev *imxmd,
+>>> +				   struct imx_media_subdev *sensor,
+>>> +				   struct device_node *sensor_np)
+>>> +{
+>>> +	struct imx_media_sensor_input *sinput = &sensor->input;
+>>> +	int ret, i;
+>>> +
+>>> +	for (i = 0; i < IMX_MEDIA_MAX_SENSOR_INPUTS; i++) {
+>>> +		const char *input_name;
+>>> +		u32 val;
+>>> +
+>>> +		ret = of_property_read_u32_index(sensor_np, "inputs", i, &val);
+>>> +		if (ret)
+>>> +			break;
+>>> +
+>>> +		sinput->value[i] = val;
+>>> +
+>>> +		ret = of_property_read_string_index(sensor_np, "input-names",
+>>> +						    i, &input_name);
+>>> +		/*
+>>> +		 * if input-names not provided, they will be set using
+>>> +		 * the subdev name once the sensor is known during
+>>> +		 * async bind
+>>> +		 */
+>>> +		if (!ret)
+>>> +			strncpy(sinput->name[i], input_name,
+>>> +				sizeof(sinput->name[i]));
+>>> +	}
+>>> +
+>>> +	sinput->num = i;
+>>> +
+>>> +	/* if no inputs provided just assume a single input */
+>>> +	if (sinput->num == 0)
+>>> +		sinput->num = 1;
+>>> +}
+>> This should be parsed by the sensor driver, not imx-media.
+>
+> you're probably right. I'll submit a patch for adv7180.c.
 
-diff --git a/drivers/media/pci/mantis/mantis_dvb.c b/drivers/media/pci/mantis/mantis_dvb.c
-index 5a71e1791cf5..0db4de3a2285 100644
---- a/drivers/media/pci/mantis/mantis_dvb.c
-+++ b/drivers/media/pci/mantis/mantis_dvb.c
-@@ -226,11 +226,12 @@ int mantis_dvb_init(struct mantis_pci *mantis)
- 			goto err5;
- 		} else {
- 			if (mantis->fe == NULL) {
-+				result = -ENOMEM;
- 				dprintk(MANTIS_ERROR, 1, "FE <NULL>");
- 				goto err5;
- 			}
--
--			if (dvb_register_frontend(&mantis->dvb_adapter, mantis->fe)) {
-+			result = dvb_register_frontend(&mantis->dvb_adapter, mantis->fe);
-+			if (result) {
- 				dprintk(MANTIS_ERROR, 1, "ERROR: Frontend registration failed");
- 
- 				if (mantis->fe->ops.release)
+Actually, the problem here is that this parses an input routing value to
+pass to s_routing, and an input name string. There would need to be
+another subdev callback, maybe enum_imput, that would return this
+information for the bridge driver, if this info were to be parsed and
+maintained by the sensor.
+
+But this info should really be known and parsed by the bridge anyway,
+because as the header for s_routing states,
+
+"An i2c device shouldn't know about whether an input pin is connected
+  to a Composite connector, because on another board or platform it
+  might be connected to something else entirely. The calling driver is
+  responsible for mapping a user-level input to the right pins on the i2c
+  device."
+
+Steve
+
+
