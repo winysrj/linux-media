@@ -1,114 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from host.76.145.23.62.rev.coltfrance.com ([62.23.145.76]:48660 "EHLO
-        proxy.6wind.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751517AbdAMKrX (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46454
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752783AbdASO5j (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Jan 2017 05:47:23 -0500
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-To: arnd@arndb.de
-Cc: mmarek@suse.com, linux-kbuild@vger.kernel.org,
-        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+        Thu, 19 Jan 2017 09:57:39 -0500
+Subject: Re: [PATCH 2/2] [media] exynos-gsc: Fix imprecise external abort due
+ disabled power domain
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+        linux-kernel@vger.kernel.org
+References: <1484699402-28738-1-git-send-email-javier@osg.samsung.com>
+ <CGME20170118003022epcas3p34cf03bb6feb830c4fa231497f2536d0e@epcas3p3.samsung.com>
+ <1484699402-28738-2-git-send-email-javier@osg.samsung.com>
+ <cc9c6837-7141-b63c-ddf6-68252493df11@samsung.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Inki Dae <inki.dae@samsung.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Kukjin Kim <kgene@kernel.org>,
+        linux-samsung-soc@vger.kernel.org,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        linux-media@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
         linux-arm-kernel@lists.infradead.org,
-        adi-buildroot-devel@lists.sourceforge.net,
-        linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com,
-        uclinux-h8-devel@lists.sourceforge.jp,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org,
-        linux-mips@linux-mips.org, linux-am33-list@redhat.com,
-        nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-        linux-arch@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        netdev@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mmc@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-nfs@vger.kernel.org,
-        linux-raid@vger.kernel.org, linux-spi@vger.kernel.org,
-        linux-mtd@lists.infradead.org, linux-rdma@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, alsa-devel@alsa-project.org,
-        linux-fbdev@vger.kernel.org, xen-devel@lists.xenproject.org,
-        airlied@linux.ie, davem@davemloft.net, linux@armlinux.org.uk,
-        bp@alien8.de, slash.tmp@free.fr, daniel.vetter@ffwll.ch,
-        rmk+kernel@armlinux.org.uk, msalter@redhat.com, jengelh@inai.de,
-        hch@infradead.org, Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: [PATCH v3 5/8] Makefile.headersinst: cleanup input files
-Date: Fri, 13 Jan 2017 11:46:43 +0100
-Message-Id: <1484304406-10820-6-git-send-email-nicolas.dichtel@6wind.com>
-In-Reply-To: <1484304406-10820-1-git-send-email-nicolas.dichtel@6wind.com>
-References: <3131144.4Ej3KFWRbz@wuerfel>
- <1484304406-10820-1-git-send-email-nicolas.dichtel@6wind.com>
+        Ulf Hansson <ulf.hansson@linaro.org>
+Message-ID: <842737f2-3faf-7b22-c480-93e183bbb670@osg.samsung.com>
+Date: Thu, 19 Jan 2017 11:56:02 -0300
+MIME-Version: 1.0
+In-Reply-To: <cc9c6837-7141-b63c-ddf6-68252493df11@samsung.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After the last four patches, all exported headers are under uapi/, thus
-input-files2 are not needed anymore.
-The side effect is that input-files1-name is exactly header-y.
+Hello Marek,
 
-Note also that input-files3-name is genhdr-y.
+Thanks a lot for your feedback.
 
-Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
----
- scripts/Makefile.headersinst | 34 +++++++++++-----------------------
- 1 file changed, 11 insertions(+), 23 deletions(-)
+On 01/19/2017 11:17 AM, Marek Szyprowski wrote:
+> Hi Javier,
+> 
+> On 2017-01-18 01:30, Javier Martinez Canillas wrote:
+>> Commit 15f90ab57acc ("[media] exynos-gsc: Make driver functional when
+>> CONFIG_PM is unset") removed the implicit dependency that the driver
+>> had with CONFIG_PM, since it relied on the config option to be enabled.
+>>
+>> In order to work with !CONFIG_PM, the GSC reset logic that happens in
+>> the runtime resume callback had to be executed on the probe function.
+>>
+>> The problem is that if CONFIG_PM is enabled, the power domain for the
+>> GSC could be disabled and so an attempt to write to the GSC_SW_RESET
+>> register leads to an unhandled fault / imprecise external abort error:
+> 
+> Driver core ensures that driver's probe() is called with respective power
+> domain turned on, so this is not the right reason for the proposed change.
+>
 
-diff --git a/scripts/Makefile.headersinst b/scripts/Makefile.headersinst
-index 1106d6ca3a38..3e20d03432d2 100644
---- a/scripts/Makefile.headersinst
-+++ b/scripts/Makefile.headersinst
-@@ -40,31 +40,20 @@ wrapper-files := $(filter $(header-y), $(generic-y))
- srcdir        := $(srctree)/$(obj)
- gendir        := $(objtree)/$(gen)
- 
--oldsrcdir     := $(srctree)/$(subst /uapi,,$(obj))
--
- # all headers files for this dir
- header-y      := $(filter-out $(generic-y), $(header-y))
- all-files     := $(header-y) $(genhdr-y) $(wrapper-files)
- output-files  := $(addprefix $(installdir)/, $(all-files))
- 
--input-files1  := $(foreach hdr, $(header-y), \
--		   $(if $(wildcard $(srcdir)/$(hdr)), \
--			$(wildcard $(srcdir)/$(hdr))) \
--		   )
--input-files1-name := $(notdir $(input-files1))
--input-files2  := $(foreach hdr, $(header-y), \
--		   $(if  $(wildcard $(srcdir)/$(hdr)),, \
--			$(if $(wildcard $(oldsrcdir)/$(hdr)), \
--				$(wildcard $(oldsrcdir)/$(hdr)), \
--				$(error Missing UAPI file $(srcdir)/$(hdr))) \
--		   ))
--input-files2-name := $(notdir $(input-files2))
--input-files3  := $(foreach hdr, $(genhdr-y), \
--		   $(if	$(wildcard $(gendir)/$(hdr)), \
--			$(wildcard $(gendir)/$(hdr)), \
--			$(error Missing generated UAPI file $(gendir)/$(hdr)) \
--		   ))
--input-files3-name := $(notdir $(input-files3))
-+# Check that all expected files exist
-+$(foreach hdr, $(header-y), \
-+  $(if $(wildcard $(srcdir)/$(hdr)),, \
-+       $(error Missing UAPI file $(srcdir)/$(hdr)) \
-+   ))
-+$(foreach hdr, $(genhdr-y), \
-+  $(if	$(wildcard $(gendir)/$(hdr)),, \
-+       $(error Missing generated UAPI file $(gendir)/$(hdr)) \
-+  ))
- 
- # Work out what needs to be removed
- oldheaders    := $(patsubst $(installdir)/%,%,$(wildcard $(installdir)/*.h))
-@@ -78,9 +67,8 @@ printdir = $(patsubst $(INSTALL_HDR_PATH)/%/,%,$(dir $@))
- quiet_cmd_install = INSTALL $(printdir) ($(words $(all-files))\
-                             file$(if $(word 2, $(all-files)),s))
-       cmd_install = \
--        $(CONFIG_SHELL) $< $(installdir) $(srcdir) $(input-files1-name); \
--        $(CONFIG_SHELL) $< $(installdir) $(oldsrcdir) $(input-files2-name); \
--        $(CONFIG_SHELL) $< $(installdir) $(gendir) $(input-files3-name); \
-+        $(CONFIG_SHELL) $< $(installdir) $(srcdir) $(header-y); \
-+        $(CONFIG_SHELL) $< $(installdir) $(gendir) $(genhdr-y); \
-         for F in $(wrapper-files); do                                   \
-                 echo "\#include <asm-generic/$$F>" > $(installdir)/$$F;    \
-         done;                                                           \
+Ok, I misunderstood the relationship between runtime PM and the power domains
+then. I thought the power domains were only powered on when the runtime PM
+framework resumed an associated device (i.e: pm_runtime_get_sync() is called).
+
+But even if this isn't the case, shouldn't the reset in probe only be needed
+if CONFIG_PM isn't enabled? (IOW, $SUBJECT but with another commit message).
+
+>> [   10.178825] Unhandled fault: imprecise external abort (0x1406) at 0x00000000
+>> [   10.186982] pgd = ed728000
+>> [   10.190847] [00000000] *pgd=00000000
+>> [   10.195553] Internal error: : 1406 [#1] PREEMPT SMP ARM
+>> [   10.229761] Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
+>> [   10.237134] task: ed49e400 task.stack: ed724000
+>> [   10.242934] PC is at gsc_wait_reset+0x5c/0x6c [exynos_gsc]
+>> [   10.249710] LR is at gsc_probe+0x300/0x33c [exynos_gsc]
+>> [   10.256139] pc : [<bf2429e0>]    lr : [<bf240734>]    psr: 60070013
+>> [   10.256139] sp : ed725d30  ip : 00000000  fp : 00000001
+>> [   10.271492] r10: eea74800  r9 : ecd6a2c0  r8 : ed7d8854
+>> [   10.277912] r7 : ed7d8c08  r6 : ed7d8810  r5 : ffff8ecd  r4 : c0c03900
+>> [   10.285664] r3 : 00000000  r2 : 00000001  r1 : ed7d8b98  r0 : ed7d8810
+>>
+>> So only do a GSC reset if CONFIG_PM is disabled, since if is enabled the
+>> runtime PM resume callback will be called by the VIDIOC_STREAMON ioctl,
+>> making the reset in probe unneeded.
+>>
+>> Fixes: 15f90ab57acc ("[media] exynos-gsc: Make driver functional when CONFIG_PM is unset")
+>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> 
+> Frankly, I don't get why this change is needed.
+>
+
+Yes, it seems $SUBJECT is just papering over the real issue. There's
+something really wrong with the Exynos power domains, I see that PDs
+can't be disabled by the genpd framework, exynos_pd_power_off() fail:
+
+# dmesg | grep power-domain
+[    4.893318] Power domain power-domain@10044020 disable failed
+[    4.893342] Power domain power-domain@10044120 disable failed
+[    4.893711] Power domain power-domain@10044000 disable failed
+[   12.690052] Power domain power-domain@10044000 disable failed
+[   12.703963] Power domain power-domain@10044000 disable failed
+
+So PD are kept on even when unused / attached devices are suspended.
+Only the mfc_pd (power-domain@10044060) is correctly turned off.
+
+# cat /sys/kernel/debug/pm_genpd/pm_genpd_summary
+domain                          status          slaves
+    /device                                             runtime status
+----------------------------------------------------------------------
+power-domain@100440C0           on              
+    /devices/platform/soc/14450000.mixer                active
+    /devices/platform/soc/14530000.hdmi                 active
+power-domain@10044120           on              
+power-domain@10044060           off-0           
+    /devices/platform/soc/11000000.codec                suspended
+power-domain@10044020           on              
+power-domain@10044000           on              
+    /devices/platform/soc/13e00000.video-scaler         suspended
+    /devices/platform/soc/13e10000.video-scaler         suspended
+
+Also when removing the exynos_gsc driver, I get the same error:
+
+# rmmod s5p_mfc
+[  106.405972] s5p-mfc 11000000.codec: Removing 11000000.codec
+# rmmod exynos_gsc
+[  227.008559] Unhandled fault: imprecise external abort (0x1c06) at 0x00048e14
+[  227.015116] pgd = ed5dc000
+[  227.017213] [00048e14] *pgd=b17c6835
+[  227.020889] Internal error: : 1c06 [#1] PREEMPT SMP ARM
+...
+[  227.241585] [<bf2429bc>] (gsc_wait_reset [exynos_gsc]) from [<bf24009c>] (gsc_runtime_resume+0x9c/0xec [exynos_gsc])
+[  227.252331] [<bf24009c>] (gsc_runtime_resume [exynos_gsc]) from [<c042e488>] (genpd_runtime_resume+0x120/0x1d4)
+[  227.262294] [<c042e488>] (genpd_runtime_resume) from [<c04241c0>] (__rpm_callback+0xc8/0x218)
+
+# cat /sys/kernel/debug/pm_genpd/pm_genpd_summary
+domain                          status          slaves
+    /device                                             runtime status
+----------------------------------------------------------------------
+power-domain@100440C0           on              
+    /devices/platform/soc/14450000.mixer                active
+    /devices/platform/soc/14530000.hdmi                 active
+power-domain@10044120           on              
+power-domain@10044060           off-0           
+power-domain@10044020           on              
+power-domain@10044000           on              
+    /devices/platform/soc/13e00000.video-scaler         suspended
+    /devices/platform/soc/13e10000.video-scaler         resuming
+
+This seems to be caused by some needed clocks to access the power domains
+to be gated, since I don't get these erros when passing clk_ignore_unused
+as parameter in the kernel command line.
+
+Best regards,
 -- 
-2.8.1
-
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
