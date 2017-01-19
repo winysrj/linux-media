@@ -1,191 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:53314 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752886AbdARVjx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Jan 2017 16:39:53 -0500
-Date: Wed, 18 Jan 2017 23:39:11 +0200
-From: "Michael S. Tsirkin" <mst@redhat.com>
-To: linux-kernel@vger.kernel.org
-Cc: Linas Vepstas <linasvepstas@gmail.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        Dennis Dalessandro <dennis.dalessandro@intel.com>,
-        Doug Ledford <dledford@redhat.com>,
-        Sean Hefty <sean.hefty@intel.com>,
-        Hal Rosenstock <hal.rosenstock@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-pci@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH] pci: drop link_reset
-Message-ID: <1484775540-8405-1-git-send-email-mst@redhat.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36188 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751864AbdASVtK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 19 Jan 2017 16:49:10 -0500
+Date: Thu, 19 Jan 2017 23:49:06 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: robh+dt@kernel.org, devicetree@vger.kernel.org,
+        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCHv2] dt: bindings: Add support for CSI1 bus
+Message-ID: <20170119214905.GD3205@valkosipuli.retiisi.org.uk>
+References: <20161228183036.GA13139@amd>
+ <20170111225335.GA21553@amd>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <20170111225335.GA21553@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No hardware seems to actually call link_reset, and
-no driver implements it as more than a nop stub.
+Hi Pavel,
 
-This drops the mentions of the callback from everywhere.
-It's dropped from the documentation as well, but
-the doc really needs to be updated to reflect
-reality better (e.g. on pcie slot reset is the link reset).
+On Wed, Jan 11, 2017 at 11:53:35PM +0100, Pavel Machek wrote:
+> From: Sakari Ailus <sakari.ailus@iki.fi>
+> 
+> In the vast majority of cases the bus type is known to the driver(s)
+> since a receiver or transmitter can only support a single one. There
+> are cases however where different options are possible.
+> 
+> The existing V4L2 OF support tries to figure out the bus type and
+> parse the bus parameters based on that. This does not scale too well
+> as there are multiple serial busses that share common properties.
+> 
+> Some hardware also supports multiple types of busses on the same
+> interfaces.
+> 
+> Document the CSI1/CCP2 property strobe. It signifies the clock or
+> strobe mode.
+>  
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> 
+> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> index 9cd2a36..08c4498 100644
+> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> @@ -76,6 +76,11 @@ Optional endpoint properties
+>    mode horizontal and vertical synchronization signals are provided to the
+>    slave device (data source) by the master device (data sink). In the master
+>    mode the data source device is also the source of the synchronization signals.
+> +- bus-type: data bus type. Possible values are:
+> +  0 - MIPI CSI2
+> +  1 - parallel / Bt656
+> +  2 - MIPI CSI1
+> +  3 - CCP2
 
-This will be done in a later patch.
+Actually, thinking about this again --- we only need to explictly specify
+busses if we're dealing with either CCP2 or CSI-1. The vast majority of the
+actual busses are and continue to be CSI-2 or either parallel or Bt.656. As
+they can be implicitly detected, we would have an option to just drop values
+0 and 1 from above, i.e. only leave CSI-1 and CCP2. For now, specifying
+CSI-2 or parallel / Bt.656 adds no value as the old DT binaries without
+bus-type will need to be supported anyway.
 
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
----
- Documentation/PCI/pci-error-recovery.txt | 24 +++---------------------
- drivers/infiniband/hw/hfi1/pcie.c        | 10 ----------
- drivers/infiniband/hw/qib/qib_pcie.c     |  8 --------
- drivers/media/pci/ngene/ngene-cards.c    |  7 -------
- include/linux/pci.h                      |  3 ---
- 5 files changed, 3 insertions(+), 49 deletions(-)
+>  - bus-width: number of data lines actively used, valid for the parallel busses.
+>  - data-shift: on the parallel data busses, if bus-width is used to specify the
+>    number of data lines, data-shift can be used to specify which data lines are
+> @@ -112,7 +117,8 @@ Optional endpoint properties
+>    should be the combined length of data-lanes and clock-lanes properties.
+>    If the lane-polarities property is omitted, the value must be interpreted
+>    as 0 (normal). This property is valid for serial busses only.
+> -
+> +- strobe: Whether the clock signal is used as clock or strobe. Used
+> +  with CCP2, for instance.
 
-diff --git a/Documentation/PCI/pci-error-recovery.txt b/Documentation/PCI/pci-error-recovery.txt
-index ac26869..da3b217 100644
---- a/Documentation/PCI/pci-error-recovery.txt
-+++ b/Documentation/PCI/pci-error-recovery.txt
-@@ -78,7 +78,6 @@ struct pci_error_handlers
- {
- 	int (*error_detected)(struct pci_dev *dev, enum pci_channel_state);
- 	int (*mmio_enabled)(struct pci_dev *dev);
--	int (*link_reset)(struct pci_dev *dev);
- 	int (*slot_reset)(struct pci_dev *dev);
- 	void (*resume)(struct pci_dev *dev);
- };
-@@ -104,8 +103,7 @@ if it implements any, it must implement error_detected(). If a callback
- is not implemented, the corresponding feature is considered unsupported.
- For example, if mmio_enabled() and resume() aren't there, then it
- is assumed that the driver is not doing any direct recovery and requires
--a slot reset. If link_reset() is not implemented, the card is assumed to
--not care about link resets. Typically a driver will want to know about
-+a slot reset.  Typically a driver will want to know about
- a slot_reset().
- 
- The actual steps taken by a platform to recover from a PCI error
-@@ -232,25 +230,9 @@ proceeds to STEP 4 (Slot Reset)
- 
- STEP 3: Link Reset
- ------------------
--The platform resets the link, and then calls the link_reset() callback
--on all affected device drivers.  This is a PCI-Express specific state
-+The platform resets the link.  This is a PCI-Express specific step
- and is done whenever a non-fatal error has been detected that can be
--"solved" by resetting the link. This call informs the driver of the
--reset and the driver should check to see if the device appears to be
--in working condition.
--
--The driver is not supposed to restart normal driver I/O operations
--at this point.  It should limit itself to "probing" the device to
--check its recoverability status. If all is right, then the platform
--will call resume() once all drivers have ack'd link_reset().
--
--	Result codes:
--		(identical to STEP 3 (MMIO Enabled)
--
--The platform then proceeds to either STEP 4 (Slot Reset) or STEP 5
--(Resume Operations).
--
-->>> The current powerpc implementation does not implement this callback.
-+"solved" by resetting the link.
- 
- STEP 4: Slot Reset
- ------------------
-diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
-index 4ac8f33..ebd941f 100644
---- a/drivers/infiniband/hw/hfi1/pcie.c
-+++ b/drivers/infiniband/hw/hfi1/pcie.c
-@@ -598,15 +598,6 @@ pci_slot_reset(struct pci_dev *pdev)
- 	return PCI_ERS_RESULT_CAN_RECOVER;
- }
- 
--static pci_ers_result_t
--pci_link_reset(struct pci_dev *pdev)
--{
--	struct hfi1_devdata *dd = pci_get_drvdata(pdev);
--
--	dd_dev_info(dd, "HFI1 link_reset function called, ignored\n");
--	return PCI_ERS_RESULT_CAN_RECOVER;
--}
--
- static void
- pci_resume(struct pci_dev *pdev)
- {
-@@ -625,7 +616,6 @@ pci_resume(struct pci_dev *pdev)
- const struct pci_error_handlers hfi1_pci_err_handler = {
- 	.error_detected = pci_error_detected,
- 	.mmio_enabled = pci_mmio_enabled,
--	.link_reset = pci_link_reset,
- 	.slot_reset = pci_slot_reset,
- 	.resume = pci_resume,
- };
-diff --git a/drivers/infiniband/hw/qib/qib_pcie.c b/drivers/infiniband/hw/qib/qib_pcie.c
-index 6abe1c6..c379b83 100644
---- a/drivers/infiniband/hw/qib/qib_pcie.c
-+++ b/drivers/infiniband/hw/qib/qib_pcie.c
-@@ -682,13 +682,6 @@ qib_pci_slot_reset(struct pci_dev *pdev)
- 	return PCI_ERS_RESULT_CAN_RECOVER;
- }
- 
--static pci_ers_result_t
--qib_pci_link_reset(struct pci_dev *pdev)
--{
--	qib_devinfo(pdev, "QIB link_reset function called, ignored\n");
--	return PCI_ERS_RESULT_CAN_RECOVER;
--}
--
- static void
- qib_pci_resume(struct pci_dev *pdev)
- {
-@@ -707,7 +700,6 @@ qib_pci_resume(struct pci_dev *pdev)
- const struct pci_error_handlers qib_pci_err_handler = {
- 	.error_detected = qib_pci_error_detected,
- 	.mmio_enabled = qib_pci_mmio_enabled,
--	.link_reset = qib_pci_link_reset,
- 	.slot_reset = qib_pci_slot_reset,
- 	.resume = qib_pci_resume,
- };
-diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
-index 423e8c8..8438c1c 100644
---- a/drivers/media/pci/ngene/ngene-cards.c
-+++ b/drivers/media/pci/ngene/ngene-cards.c
-@@ -781,12 +781,6 @@ static pci_ers_result_t ngene_error_detected(struct pci_dev *dev,
- 	return PCI_ERS_RESULT_CAN_RECOVER;
- }
- 
--static pci_ers_result_t ngene_link_reset(struct pci_dev *dev)
--{
--	printk(KERN_INFO DEVICE_NAME ": link reset\n");
--	return 0;
--}
--
- static pci_ers_result_t ngene_slot_reset(struct pci_dev *dev)
- {
- 	printk(KERN_INFO DEVICE_NAME ": slot reset\n");
-@@ -800,7 +794,6 @@ static void ngene_resume(struct pci_dev *dev)
- 
- static const struct pci_error_handlers ngene_errors = {
- 	.error_detected = ngene_error_detected,
--	.link_reset = ngene_link_reset,
- 	.slot_reset = ngene_slot_reset,
- 	.resume = ngene_resume,
- };
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index 30d6c16..316379c 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -661,9 +661,6 @@ struct pci_error_handlers {
- 	/* MMIO has been re-enabled, but not DMA */
- 	pci_ers_result_t (*mmio_enabled)(struct pci_dev *dev);
- 
--	/* PCI Express link has been reset */
--	pci_ers_result_t (*link_reset)(struct pci_dev *dev);
--
- 	/* PCI slot has been reset */
- 	pci_ers_result_t (*slot_reset)(struct pci_dev *dev);
- 
+How about the "ti,strobe-clock-inv" I proposed? No-one seems to know what
+this really truly means... or just drop it if it's not really needed.
+
 -- 
-MST
+Cheers,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
