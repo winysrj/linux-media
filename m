@@ -1,60 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:38570
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750997AbdARAa5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 17 Jan 2017 19:30:57 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Inki Dae <inki.dae@samsung.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        linux-samsung-soc@vger.kernel.org,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        linux-media@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH 1/2] [media] exynos-gsc: Fix unbalanced pm_runtime_enable() error
-Date: Tue, 17 Jan 2017 21:30:00 -0300
-Message-Id: <1484699402-28738-1-git-send-email-javier@osg.samsung.com>
+Received: from gofer.mess.org ([80.229.237.210]:39661 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753661AbdASRxN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 19 Jan 2017 12:53:13 -0500
+Date: Thu, 19 Jan 2017 17:16:36 +0000
+From: Sean Young <sean@mess.org>
+To: Gregor Jasny <gjasny@googlemail.com>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: Time for a v4l-utils 1.12 release
+Message-ID: <20170119171636.GA26157@gofer.mess.org>
+References: <d7d9d081-5fb5-3d1c-0cbb-e69b0920fee0@googlemail.com>
+ <20170116100656.GA23993@gofer.mess.org>
+ <2e009306-bb2b-1c43-fa99-dc0974696e19@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2e009306-bb2b-1c43-fa99-dc0974696e19@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit a006c04e6218 ("[media] exynos-gsc: Fixup clock management at
-->remove()") changed the driver's .remove function logic to fist do
-a pm_runtime_get_sync() to make sure the device is powered before
-attempting to gate the gsc clock.
+Hi Gregor,
 
-But the commit also removed a pm_runtime_disable() call that leads
-to an unbalanced pm_runtime_enable() error if the driver is removed
-and re-probed:
+On Mon, Jan 16, 2017 at 09:00:40PM +0100, Gregor Jasny wrote:
+> On 16/01/2017 11:06, Sean Young wrote:
+> > On Mon, Jan 16, 2017 at 09:10:36AM +0100, Gregor Jasny wrote:
+> >> Hello,
+> >>
+> >> I'd like to do a new v4l-utils release before the Debian freeze. Is master
+> >> in a releasable state? Or should I wait for some more patches to land?
+> > 
+> > This pull request is still waiting to be merged.
+> > 
+> > https://patchwork.linuxtv.org/patch/38830/
+> 
+> As far as I can tell this looks good. Merged.
 
-exynos-gsc 13e00000.video-scaler: Unbalanced pm_runtime_enable!
-exynos-gsc 13e10000.video-scaler: Unbalanced pm_runtime_enable!
+I've been testing the ir-ctl tool and there are two futher commits I'd like
+to be merged before release. One is reading uninitialised memory and the
+other make sure we set the right lirc mode, in case we add a lirc scancode
+mode.
 
-Fixes: a006c04e6218 ("[media] exynos-gsc: Fixup clock management at ->remove()")
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
----
+Many thanks,
+Sean
 
- drivers/media/platform/exynos-gsc/gsc-core.c | 1 +
- 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index cbf75b6194b4..83272f10722d 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -1118,6 +1118,7 @@ static int gsc_remove(struct platform_device *pdev)
- 		clk_disable_unprepare(gsc->clock[i]);
- 
- 	pm_runtime_put_noidle(&pdev->dev);
-+	pm_runtime_disable(&pdev->dev);
- 
- 	dev_dbg(&pdev->dev, "%s driver unloaded\n", pdev->name);
- 	return 0;
--- 
-2.7.4
+The following changes since commit 42ac437b3493615d5571f5f76f73979145fef1b2:
 
+  v4l2-ctl: add --stream-sleep option (2017-01-18 17:22:23 +0100)
+
+are available in the git repository at:
+
+  git://git.linuxtv.org/syoung/v4l-utils.git ir-fixes2
+
+for you to fetch changes up to c6b8f8da12ee914def59ecc0de80f4755298d053:
+
+  ir-ctl: ensure that device can record and that correct mode is set (2017-01-19 14:18:04 +0000)
+
+----------------------------------------------------------------
+Sean Young (2):
+      ir-ctl: uninitialised memory used
+      ir-ctl: ensure that device can record and that correct mode is set
+
+ utils/ir-ctl/ir-ctl.c    | 21 ++++++++++++++++++++-
+ utils/ir-ctl/ir-encode.c |  1 +
+ 2 files changed, 21 insertions(+), 1 deletion(-)
