@@ -1,50 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:45856 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752156AbdA3Wbq (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48061
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751137AbdASWgj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Jan 2017 17:31:46 -0500
-Date: Mon, 30 Jan 2017 22:29:41 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v3 17/24] media: imx: Add CSI subdev driver
-Message-ID: <20170130222941.GC27898@n2100.armlinux.org.uk>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
- <1483755102-24785-18-git-send-email-steve_longerbeam@mentor.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1483755102-24785-18-git-send-email-steve_longerbeam@mentor.com>
+        Thu, 19 Jan 2017 17:36:39 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Inki Dae <inki.dae@samsung.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Kukjin Kim <kgene@kernel.org>,
+        linux-samsung-soc@vger.kernel.org,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        linux-media@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        Ulf Hansson <ulf.hansson@linaro.org>
+Subject: [PATCH v2 2/2] [media] exynos-gsc: Only reset the GSC HW on probe() if !CONFIG_PM
+Date: Thu, 19 Jan 2017 19:36:20 -0300
+Message-Id: <1484865380-12651-2-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1484865380-12651-1-git-send-email-javier@osg.samsung.com>
+References: <1484865380-12651-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 06, 2017 at 06:11:35PM -0800, Steve Longerbeam wrote:
-> This is a media entity subdevice for the i.MX Camera
-> Serial Interface module.
-> 
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Commit 15f90ab57acc ("[media] exynos-gsc: Make driver functional when
+CONFIG_PM is unset") removed the implicit dependency that the driver
+had with CONFIG_PM, since it relied on the config option to be enabled.
 
-warning: 3 lines add whitespace errors.
-Applying: media: imx: Add CSI subdev driver
-.git/rebase-apply/patch:38: new blank line at EOF.
-+
-warning: 1 line adds whitespace errors.
+In order to work with !CONFIG_PM, the GSC reset logic that happens in
+the runtime resume callback had to be executed on the probe function.
 
+But there's no need to do this if CONFIG_PM is enabled, since in this
+case the runtime PM resume callback will be called by VIDIOC_STREAMON
+ioctl, so the resume handler will call the GSC HW reset function.
+
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
+---
+
+I-ve only tested with CONFIG_PM enabled since my Exynos5422 Odroid
+XU4 board fails to boot when the config option is disabled.
+
+Best regards,
+Javier
+
+Changes in v2:
+ - Remove the Fixes tag and reword the commit message after feedback
+   from Marek Szyprowski.
+
+ drivers/media/platform/exynos-gsc/gsc-core.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index 83272f10722d..42e1e09ea915 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -1083,8 +1083,10 @@ static int gsc_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, gsc);
+ 
+-	gsc_hw_set_sw_reset(gsc);
+-	gsc_wait_reset(gsc);
++	if (!IS_ENABLED(CONFIG_PM)) {
++		gsc_hw_set_sw_reset(gsc);
++		gsc_wait_reset(gsc);
++	}
+ 
+ 	vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
+ 
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+2.7.4
+
