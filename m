@@ -1,53 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:32933 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751401AbdA1SKQ (ORCPT
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:38118 "EHLO
+        mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751276AbdATPcm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 28 Jan 2017 13:10:16 -0500
-From: Avraham Shukron <avraham.shukron@gmail.com>
-To: laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
-        gregkh@linuxfoundation.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] Staging: omap4iss: fix coding style issues
-Date: Sat, 28 Jan 2017 20:00:08 +0200
-Message-Id: <1485626408-9768-1-git-send-email-avraham.shukron@gmail.com>
+        Fri, 20 Jan 2017 10:32:42 -0500
+Received: by mail-wm0-f54.google.com with SMTP id r144so49089124wme.1
+        for <linux-media@vger.kernel.org>; Fri, 20 Jan 2017 07:32:41 -0800 (PST)
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+To: linaro-kernel@lists.linaro.org, arnd@arndb.de, labbott@redhat.com,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, daniel.vetter@ffwll.ch,
+        laurent.pinchart@ideasonboard.com, robdclark@gmail.com
+Cc: broonie@kernel.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [RFC simple allocator v1 0/2] Simple allocator
+Date: Fri, 20 Jan 2017 16:32:29 +0100
+Message-Id: <1484926351-30185-1-git-send-email-benjamin.gaignard@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a patch that fixes checkpatch.pl issues in omap4iss/iss_video.c
-Specifically, it fixes "line over 80 characters" issues
+The goal of this RFC is to understand if a common ioctl for specific memory
+regions allocations is needed/welcome.
 
-Signed-off-by: Avraham Shukron <avraham.shukron@gmail.com>
+Obviously it will not replace allocation done in linux kernel frameworks like
+v4l2, drm/kms or others, but offer an alternative when you don't want/need to
+use them for buffer allocation.
+To keep a compatibility with what already exist allocated buffers are exported
+in userland as dmabuf file descriptor (like ION is doing).
 
----
- drivers/staging/media/omap4iss/iss_video.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+"Unix Device Memory Allocator" project [1] wants to create a userland library
+which may allow to select, depending of the devices constraint, the best
+back-end for allocation. With this RFC I would to propose to have common ioctl
+for a maximum of allocators to avoid to duplicated back-ends for this library.
 
-diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
-index c16927a..cdab053 100644
---- a/drivers/staging/media/omap4iss/iss_video.c
-+++ b/drivers/staging/media/omap4iss/iss_video.c
-@@ -298,7 +298,8 @@ iss_video_check_format(struct iss_video *video, struct iss_video_fh *vfh)
- 
- static int iss_video_queue_setup(struct vb2_queue *vq,
- 				 unsigned int *count, unsigned int *num_planes,
--				 unsigned int sizes[], struct device *alloc_devs[])
-+				 unsigned int sizes[],
-+				 struct device *alloc_devs[])
- {
- 	struct iss_video_fh *vfh = vb2_get_drv_priv(vq);
- 	struct iss_video *video = vfh->video;
-@@ -678,8 +679,8 @@ iss_video_get_selection(struct file *file, void *fh, struct v4l2_selection *sel)
- 	if (subdev == NULL)
- 		return -EINVAL;
- 
--	/* Try the get selection operation first and fallback to get format if not
--	 * implemented.
-+	/* Try the get selection operation first and fallback to get format if
-+	 * not implemented.
- 	 */
- 	sdsel.pad = pad;
- 	ret = v4l2_subdev_call(subdev, pad, get_selection, NULL, &sdsel);
+One of the issues that lead me to propose this RFC it is that since the beginning
+it is a problem to allocate contiguous memory (CMA) without using v4l2 or
+drm/kms so the first allocator available in this RFC use CMA memory.
+
+An other question is: do we have others memory regions that could be interested
+by this new framework ? I have in mind that some title memory regions could use
+it or replace ION heaps (system, carveout, etc...).
+Maybe it only solve CMA allocation issue, in this case there is no need to create
+a new framework but only a dedicated ioctl.
+
+Maybe the first thing to do is to change the name and the location of this 
+module, suggestions are welcome.
+
+I have testing this code with the following program:
+
+#include <errno.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
+#include "simple-allocator.h"
+
+#define LENGTH 1024*16
+
+void main (void)
+{
+	struct simple_allocate_data data;
+	int fd = open("/dev/cma0", O_RDWR, 0);
+	int ret;
+	void *mem;
+
+	if (fd < 0) {
+		printf("Can't open /dev/cma0\n");
+		return;
+	}
+
+	memset(&data, 0, sizeof(data));
+
+	data.length = LENGTH;
+	data.flags = O_RDWR | O_CLOEXEC;
+
+	ret = ioctl(fd, SA_IOC_ALLOC, &data);
+	if (ret) {
+		printf("Buffer allocation failed\n");
+		goto end;
+	}
+
+	mem = mmap(0, LENGTH, PROT_READ | PROT_WRITE, MAP_SHARED, data.fd, 0);
+	if (mem == MAP_FAILED) {
+		printf("mmap failed\n");
+	}
+
+	memset(mem, 0xFF, LENGTH);
+	munmap(mem, LENGTH);
+
+	printf("test simple allocator CMA OK\n");
+end:
+	close(fd);
+}
+
+[1] https://github.com/cubanismo/allocator
+
+Benjamin Gaignard (2):
+  Create Simple Allocator module
+  add CMA simple allocator module
+
+ Documentation/simple-allocator.txt              |  81 ++++++++++
+ drivers/Kconfig                                 |   2 +
+ drivers/Makefile                                |   1 +
+ drivers/simpleallocator/Kconfig                 |  17 +++
+ drivers/simpleallocator/Makefile                |   2 +
+ drivers/simpleallocator/simple-allocator-cma.c  | 187 ++++++++++++++++++++++++
+ drivers/simpleallocator/simple-allocator-priv.h |  33 +++++
+ drivers/simpleallocator/simple-allocator.c      | 180 +++++++++++++++++++++++
+ include/uapi/linux/simple-allocator.h           |  35 +++++
+ 9 files changed, 538 insertions(+)
+ create mode 100644 Documentation/simple-allocator.txt
+ create mode 100644 drivers/simpleallocator/Kconfig
+ create mode 100644 drivers/simpleallocator/Makefile
+ create mode 100644 drivers/simpleallocator/simple-allocator-cma.c
+ create mode 100644 drivers/simpleallocator/simple-allocator-priv.h
+ create mode 100644 drivers/simpleallocator/simple-allocator.c
+ create mode 100644 include/uapi/linux/simple-allocator.h
+
 -- 
-2.7.4
+1.9.1
 
