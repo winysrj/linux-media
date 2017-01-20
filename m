@@ -1,89 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:32842 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750958AbdAKV1j (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Jan 2017 16:27:39 -0500
-MIME-Version: 1.0
-In-Reply-To: <1484015754.4057.4.camel@mtkswgap22>
-References: <1483632384-8107-1-git-send-email-sean.wang@mediatek.com>
- <1483632384-8107-2-git-send-email-sean.wang@mediatek.com> <20170109183214.xonv52sn3fo4exqp@rob-hp-laptop>
- <1484015754.4057.4.camel@mtkswgap22>
-From: Rob Herring <robh@kernel.org>
-Date: Wed, 11 Jan 2017 15:27:14 -0600
-Message-ID: <CAL_JsqLruJnURULQx1PvemY0dHR62kV6rL-YyAp32vf26FTotw@mail.gmail.com>
-Subject: Re: [PATCH 1/2] Documentation: devicetree: Add document bindings for mtk-cir
-To: Sean Wang <sean.wang@mediatek.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:63312 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751517AbdATIhx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 20 Jan 2017 03:37:53 -0500
+Subject: Re: [PATCH 2/2] [media] exynos-gsc: Fix imprecise external abort due
+ disabled power domain
+To: Javier Martinez Canillas <javier@osg.samsung.com>,
+        linux-kernel@vger.kernel.org
+Cc: Inki Dae <inki.dae@samsung.com>,
         Andi Shyti <andi.shyti@samsung.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, Sean Young <sean@mess.org>,
-        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        linux-mediatek@lists.infradead.org,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        sean wang <keyhaede@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Kukjin Kim <kgene@kernel.org>,
+        linux-samsung-soc@vger.kernel.org,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        linux-media@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        Ulf Hansson <ulf.hansson@linaro.org>
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <c1d00b28-0252-0fb1-eb7c-5fc69035f12f@samsung.com>
+Date: Fri, 20 Jan 2017 09:37:47 +0100
+MIME-version: 1.0
+In-reply-to: <d727576a-fbce-eb54-3b74-270c689b7fa3@osg.samsung.com>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-transfer-encoding: 7bit
+References: <1484699402-28738-1-git-send-email-javier@osg.samsung.com>
+ <CGME20170118003022epcas3p34cf03bb6feb830c4fa231497f2536d0e@epcas3p3.samsung.com>
+ <1484699402-28738-2-git-send-email-javier@osg.samsung.com>
+ <cc9c6837-7141-b63c-ddf6-68252493df11@samsung.com>
+ <842737f2-3faf-7b22-c480-93e183bbb670@osg.samsung.com>
+ <d727576a-fbce-eb54-3b74-270c689b7fa3@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 9, 2017 at 8:35 PM, Sean Wang <sean.wang@mediatek.com> wrote:
-> Hi Rob,
->
-> thanks for your effort for reviewing. I added comments inline.
->
-> On Mon, 2017-01-09 at 12:32 -0600, Rob Herring wrote:
->> On Fri, Jan 06, 2017 at 12:06:23AM +0800, sean.wang@mediatek.com wrote:
->> > From: Sean Wang <sean.wang@mediatek.com>
->> >
->> > This patch adds documentation for devicetree bindings for
->> > Mediatek IR controller.
->> >
->> > Signed-off-by: Sean Wang <sean.wang@mediatek.com>
->> > ---
->> >  .../devicetree/bindings/media/mtk-cir.txt          | 23 ++++++++++++++++++++++
->> >  1 file changed, 23 insertions(+)
->> >  create mode 100644 linux-4.8.rc1_p0/Documentation/devicetree/bindings/media/mtk-cir.txt
->> >
->> > diff --git a/Documentation/devicetree/bindings/media/mtk-cir.txt b/Documentation/devicetree/bindings/media/mtk-cir.txt
->> > new file mode 100644
->> > index 0000000..bbedd71
->> > --- /dev/null
->> > +++ b/Documentation/devicetree/bindings/media/mtk-cir.txt
->> > @@ -0,0 +1,23 @@
->> > +Device-Tree bindings for Mediatek IR controller found in Mediatek SoC family
->> > +
->> > +Required properties:
->> > +- compatible           : "mediatek,mt7623-ir"
->> > +- clocks       : list of clock specifiers, corresponding to
->> > +                 entries in clock-names property;
->> > +- clock-names          : should contain "clk" entries;
->> > +- interrupts           : should contain IR IRQ number;
->> > +- reg                  : should contain IO map address for IR.
->> > +
->> > +Optional properties:
->> > +- linux,rc-map-name : Remote control map name.
->>
->> Would 'label' be appropriate here instead? If not, this needs to be
->> documented in a common location and explained better.
->>
-> I checked with how the way applied in other IR drivers is and found that
-> most IR driver also use the same label to identify the scan/key table
-> they prefer to use such as gpio-ir-recv, ir-hix5hd2, meson-ir and
-> sunxi-cir or use hard coding inside the driver. So I thought it should
-> be appropriate here currently.
+Hi Javier,
 
-Maybe so, but anything with linux prefix gets extra scrutiny and I'm
-not sure that happened on the previous cases. If label has the same
-meaning, then we should start using that and deprecate this property.
-In any case, a property used by multiple bindings needs to be
-documented in a common place. The explanation of the property is bad
-too. It just spells out RC with no explanation. I'm sure you just
-copy-n-pasted it from the others, but that doesn't make it okay.
+On 2017-01-19 18:51, Javier Martinez Canillas wrote:
+> On 01/19/2017 11:56 AM, Javier Martinez Canillas wrote:
+>> On 01/19/2017 11:17 AM, Marek Szyprowski wrote:
+> [snip]
+>
+>> Also when removing the exynos_gsc driver, I get the same error:
+>>
+>> # rmmod s5p_mfc
+>> [  106.405972] s5p-mfc 11000000.codec: Removing 11000000.codec
+>> # rmmod exynos_gsc
+>> [  227.008559] Unhandled fault: imprecise external abort (0x1c06) at 0x00048e14
+>> [  227.015116] pgd = ed5dc000
+>> [  227.017213] [00048e14] *pgd=b17c6835
+>> [  227.020889] Internal error: : 1c06 [#1] PREEMPT SMP ARM
+>> ...
+>> [  227.241585] [<bf2429bc>] (gsc_wait_reset [exynos_gsc]) from [<bf24009c>] (gsc_runtime_resume+0x9c/0xec [exynos_gsc])
+>> [  227.252331] [<bf24009c>] (gsc_runtime_resume [exynos_gsc]) from [<c042e488>] (genpd_runtime_resume+0x120/0x1d4)
+>> [  227.262294] [<c042e488>] (genpd_runtime_resume) from [<c04241c0>] (__rpm_callback+0xc8/0x218)
+>>
+>> # cat /sys/kernel/debug/pm_genpd/pm_genpd_summary
+>> domain                          status          slaves
+>>      /device                                             runtime status
+>> ----------------------------------------------------------------------
+>> power-domain@100440C0           on
+>>      /devices/platform/soc/14450000.mixer                active
+>>      /devices/platform/soc/14530000.hdmi                 active
+>> power-domain@10044120           on
+>> power-domain@10044060           off-0
+>> power-domain@10044020           on
+>> power-domain@10044000           on
+>>      /devices/platform/soc/13e00000.video-scaler         suspended
+>>      /devices/platform/soc/13e10000.video-scaler         resuming
+>>
+>> This seems to be caused by some needed clocks to access the power domains
+>> to be gated, since I don't get these erros when passing clk_ignore_unused
+>> as parameter in the kernel command line.
+>>
+> I found the issue. The problem was that Exynos5422 needs not only the
+> CLK_ACLK_ 300_GSCL but also CLK_ACLK432_SCALER to be ungated in order
+> to access the GSCL IP block.
+>
+> The Exynos5422 manual shows in Figure 7-14 that ACLK_432_SCLAER is needed
+> for the internal buses.
+>
+> Exynos5420 only needs CLK_ACLK_ 300_GSCL to be ungated.
+>
+> With following hack, the issue goes away for the gsc_pd in the Odroid XU4:
+>
+> diff --git a/drivers/clk/samsung/clk-exynos5420.c b/drivers/clk/samsung/clk-exynos5420.c
+> index 8c8b495cbf0d..9876ec28b94c 100644
+> --- a/drivers/clk/samsung/clk-exynos5420.c
+> +++ b/drivers/clk/samsung/clk-exynos5420.c
+> @@ -586,7 +586,7 @@ static const struct samsung_gate_clock exynos5800_gate_clks[] __initconst = {
+>   	GATE(CLK_ACLK550_CAM, "aclk550_cam", "mout_user_aclk550_cam",
+>   				GATE_BUS_TOP, 24, 0, 0),
+>   	GATE(CLK_ACLK432_SCALER, "aclk432_scaler", "mout_user_aclk432_scaler",
+> -				GATE_BUS_TOP, 27, 0, 0),
+> +				GATE_BUS_TOP, 27, CLK_IS_CRITICAL, 0),
+>   };
+>
+> # cat /sys/kernel/debug/pm_genpd/pm_genpd_summary
+> domain                          status          slaves
+>      /device                                             runtime status
+> ----------------------------------------------------------------------
+> power-domain@100440C0           on
+>      /devices/platform/soc/14450000.mixer                active
+>      /devices/platform/soc/14530000.hdmi                 active
+> power-domain@10044120           on
+> power-domain@10044060           off-0
+>      /devices/platform/soc/11000000.codec                suspended
+> power-domain@10044020           on
+> power-domain@10044000           off-0
+>      /devices/platform/soc/13e00000.video-scaler         suspended
+>      /devices/platform/soc/13e10000.video-scaler         suspended
+>
+> # rmmod s5p_mfc
+> [   82.885227] s5p-mfc 11000000.codec: Removing 11000000.codec
+> # rmmod exynos_gsc
+>
+> # cat /sys/kernel/debug/pm_genpd/pm_genpd_summary
+> domain                          status          slaves
+>      /device                                             runtime status
+> ----------------------------------------------------------------------
+> power-domain@100440C0           on
+>      /devices/platform/soc/14450000.mixer                active
+>      /devices/platform/soc/14530000.hdmi                 active
+> power-domain@10044120           on
+> power-domain@10044060           off-0
+> power-domain@10044020           on
+> power-domain@10044000           off-0
+>   
+> I'll post a proper patch for the exynos5800.dtsi, to override the
+> clocks in the gsc_pd device node.
+>
+> I also see that the two power domains that fail to be disabled msc_pd
+> (power-domain@10044120) and isp_pd (power-domain@10044020) don't have
+> clocks defined in the exynos54xx.dtsi. I'll add clocks for those too.
 
-Rob
+Please send this patch instead of adding more clocks to the power domains.
+This way we will avoid adding more dependencies to userspace (DT ABI).
+Likely those clocks are also needed to access any device in that power
+domains.
+
+Later, once the runtime PM for clocks get merged, a patch for exynos542x
+clocks driver can be made to replace IS_CRITICAL with proper runtime
+handling.
+
+Best regards
+-- 
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
+
