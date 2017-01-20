@@ -1,243 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:36813 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S940193AbdAGCMH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2017 21:12:07 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v3 06/24] ARM: dts: imx6-sabrelite: add OV5642 and OV5640 camera sensors
-Date: Fri,  6 Jan 2017 18:11:24 -0800
-Message-Id: <1483755102-24785-7-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:35576 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752274AbdATSko (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 20 Jan 2017 13:40:44 -0500
+Subject: Re: [PATCH v3 00/24] i.MX Media Driver
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hverkuil@xs4all.nl>
 References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <c6e98327-7e2c-f34a-2d23-af7b236de441@xs4all.nl>
+ <1484929911.2897.70.camel@pengutronix.de>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, nick@shmanahar.org,
+        markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <3fb68686-9447-2d8a-e2d2-005e4138cd43@gmail.com>
+Date: Fri, 20 Jan 2017 10:40:40 -0800
+MIME-Version: 1.0
+In-Reply-To: <1484929911.2897.70.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enables the OV5642 parallel-bus sensor, and the OV5640 MIPI CSI-2 sensor.
-Both hang off the same i2c2 bus, so they require different (and non-
-default) i2c slave addresses.
+Hi Hans, Philipp,
 
-The OV5642 connects to the parallel-bus mux input port on ipu1_csi0_mux.
 
-The OV5640 connects to the input port on the MIPI CSI-2 receiver on
-mipi_csi. It is set to transmit over MIPI virtual channel 1.
+On 01/20/2017 08:31 AM, Philipp Zabel wrote:
+> Hi Hans,
+>
+> On Fri, 2017-01-20 at 14:52 +0100, Hans Verkuil wrote:
+>> Hi Steve, Philipp,
+>>
+>> On 01/07/2017 03:11 AM, Steve Longerbeam wrote:
+>>> In version 3:
+>>>
+>>> Changes suggested by Rob Herring <robh@kernel.org>:
+>>>
+>>>    - prepended FIM node properties with vendor prefix "fsl,".
+>>>
+>>>    - make mipi csi-2 receiver compatible string SoC specific:
+>>>      "fsl,imx6-mipi-csi2" instead of "fsl,imx-mipi-csi2".
+>>>
+>>>    - redundant "_clk" removed from mipi csi-2 receiver clock-names property.
+>>>
+>>>    - removed board-specific info from the media driver binding doc. These
+>>>      were all related to sensor bindings, which already are (adv7180)
+>>>      or will be (ov564x) covered in separate binding docs. All reference
+>>>      board info not related to DT bindings has been moved to
+>>>      Documentation/media/v4l-drivers/imx.rst.
+>>>
+>>>    - removed "_mipi" from the OV5640 compatible string.
+>>>
+>>> Changes suggested by Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>:
+>>>
+>>>    Mostly cosmetic/non-functional changes which I won't list here, except
+>>>    for the following:
+>>>
+>>>    - spin_lock_irqsave() changed to spin_lock() in a couple interrupt handlers.
+>>>
+>>>    - fixed some unnecessary of_node_put()'s in for_each_child_of_node() loops.
+>>>
+>>>    - check/handle return code from required reg property of CSI port nodes.
+>>>
+>>>    - check/handle return code from clk_prepare_enable().
+>>>
+>>> Changes suggested by Fabio Estevam <festevam@gmail.com>:
+>>>
+>>>    - switch to VGEN3 Analog Vdd supply assuming rev. C SabreSD boards.
+>>>
+>>>    - finally got around to passing valid IOMUX pin config values to the
+>>>      pin groups.
+>>>
+>>> Other changes:
+>>>
+>>>    - removed the FIM properties that overrided the v4l2 FIM control defaults
+>>>      values. This was left-over from a requirement of a customer and is not
+>>>      necessary here.
+>>>
+>>>    - The FIM must be explicitly enabled in the fim child node under the CSI
+>>>      port nodes, using the status property. If not enabled, FIM v4l2 controls
+>>>      will not appear in the video capture driver.
+>>>
+>>>    - brought in additional media types patch from Philipp Zabel. Use new
+>>>      MEDIA_ENT_F_VID_IF_BRIDGE in mipi csi-2 receiver subdev.
+>>>
+>>>    - brought in latest platform generic video multiplexer subdevice driver
+>>>      from Philipp Zabel (squashed with patch that uses new MEDIA_ENT_F_MUX).
+>>>
+>>>    - removed imx-media-of.h, moved those prototypes into imx-media.h.
+>> Based on the discussion on the mailinglist it seems everyone agrees that this
+>> is the preferred driver, correct?
+> No. I have some major reservations against the custom mem2mem framework
+> embedded in Steve's driver.
+> I think it is a misuse of the media entity links (which should describe
+> hardware connections) for something that should be done at the vb2 level
+> (letting one device's capture EOF interrupt trigger the next device's
+> m2m device_run without going through userspace).
+> Steve and I disagree on that point, so we'd appreciate if we could get
+> some more eyes on the above issue.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- arch/arm/boot/dts/imx6dl-sabrelite.dts   |   5 ++
- arch/arm/boot/dts/imx6q-sabrelite.dts    |   6 ++
- arch/arm/boot/dts/imx6qdl-sabrelite.dtsi | 118 +++++++++++++++++++++++++++++++
- 3 files changed, 129 insertions(+)
+This needs some background first, so let me first describe one example
+pipeline in this driver.
 
-diff --git a/arch/arm/boot/dts/imx6dl-sabrelite.dts b/arch/arm/boot/dts/imx6dl-sabrelite.dts
-index 0f06ca5..fec2524 100644
---- a/arch/arm/boot/dts/imx6dl-sabrelite.dts
-+++ b/arch/arm/boot/dts/imx6dl-sabrelite.dts
-@@ -48,3 +48,8 @@
- 	model = "Freescale i.MX6 DualLite SABRE Lite Board";
- 	compatible = "fsl,imx6dl-sabrelite", "fsl,imx6dl";
- };
-+
-+&ipu1_csi1_from_ipu1_csi1_mux {
-+	data-lanes = <0 1>;
-+	clock-lanes = <2>;
-+};
-diff --git a/arch/arm/boot/dts/imx6q-sabrelite.dts b/arch/arm/boot/dts/imx6q-sabrelite.dts
-index 66d10d8..9e2d26d 100644
---- a/arch/arm/boot/dts/imx6q-sabrelite.dts
-+++ b/arch/arm/boot/dts/imx6q-sabrelite.dts
-@@ -52,3 +52,9 @@
- &sata {
- 	status = "okay";
- };
-+
-+&ipu1_csi1_from_mipi_vc1 {
-+	data-lanes = <0 1>;
-+	clock-lanes = <2>;
-+};
-+
-diff --git a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
-index 795b5a5..bca9fed 100644
---- a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
-@@ -39,6 +39,8 @@
-  *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-  *     OTHER DEALINGS IN THE SOFTWARE.
-  */
-+
-+#include <dt-bindings/clock/imx6qdl-clock.h>
- #include <dt-bindings/gpio/gpio.h>
- #include <dt-bindings/input/input.h>
- 
-@@ -96,6 +98,15 @@
- 		};
- 	};
- 
-+	mipi_xclk: mipi_xclk {
-+		compatible = "pwm-clock";
-+		#clock-cells = <0>;
-+		clock-frequency = <22000000>;
-+		clock-output-names = "mipi_pwm3";
-+		pwms = <&pwm3 0 45>; /* 1 / 45 ns = 22 MHz */
-+		status = "okay";
-+	};
-+
- 	gpio-keys {
- 		compatible = "gpio-keys";
- 		pinctrl-names = "default";
-@@ -220,6 +231,22 @@
- 	};
- };
- 
-+&ipu1_csi0_from_ipu1_csi0_mux {
-+	bus-width = <8>;
-+	data-shift = <12>; /* Lines 19:12 used */
-+	hsync-active = <1>;
-+	vync-active = <1>;
-+};
-+
-+&ipu1_csi0_mux_from_parallel_sensor {
-+	remote-endpoint = <&ov5642_to_ipu1_csi0_mux>;
-+};
-+
-+&ipu1_csi0 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_ipu1_csi0>;
-+};
-+
- &audmux {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&pinctrl_audmux>;
-@@ -299,6 +326,52 @@
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&pinctrl_i2c2>;
- 	status = "okay";
-+
-+	ov5640: camera@40 {
-+		compatible = "ovti,ov5640";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_ov5640>;
-+		clocks = <&mipi_xclk>;
-+		clock-names = "xclk";
-+		reg = <0x40>;
-+		xclk = <22000000>;
-+		reset-gpios = <&gpio2 5 GPIO_ACTIVE_LOW>; /* NANDF_D5 */
-+		pwdn-gpios = <&gpio6 9 GPIO_ACTIVE_HIGH>; /* NANDF_WP_B */
-+
-+		port {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			ov5640_to_mipi_csi: endpoint@1 {
-+				reg = <1>;
-+				remote-endpoint = <&mipi_csi_from_mipi_sensor>;
-+				data-lanes = <0 1>;
-+				clock-lanes = <2>;
-+			};
-+		};
-+	};
-+
-+	ov5642: camera@42 {
-+		compatible = "ovti,ov5642";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_ov5642>;
-+		clocks = <&clks IMX6QDL_CLK_CKO2>;
-+		clock-names = "xclk";
-+		reg = <0x42>;
-+		xclk = <24000000>;
-+		reset-gpios = <&gpio1 8 GPIO_ACTIVE_LOW>;
-+		pwdn-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
-+		gp-gpios = <&gpio1 16 GPIO_ACTIVE_HIGH>;
-+
-+		port {
-+			ov5642_to_ipu1_csi0_mux: endpoint {
-+				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
-+				bus-width = <8>;
-+				hsync-active = <1>;
-+				vsync-active = <1>;
-+			};
-+		};
-+	};
- };
- 
- &i2c3 {
-@@ -412,6 +485,23 @@
- 			>;
- 		};
- 
-+		pinctrl_ipu1_csi0: ipu1csi0grp {
-+			fsl,pins = <
-+				MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12    0x1b0b0
-+				MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13    0x1b0b0
-+				MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14    0x1b0b0
-+				MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15    0x1b0b0
-+				MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16    0x1b0b0
-+				MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17    0x1b0b0
-+				MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18    0x1b0b0
-+				MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19    0x1b0b0
-+				MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK   0x1b0b0
-+				MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC      0x1b0b0
-+				MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC     0x1b0b0
-+				MX6QDL_PAD_CSI0_DATA_EN__IPU1_CSI0_DATA_EN 0x1b0b0
-+			>;
-+		};
-+
- 		pinctrl_j15: j15grp {
- 			fsl,pins = <
- 				MX6QDL_PAD_DI0_DISP_CLK__IPU1_DI0_DISP_CLK 0x10
-@@ -445,6 +535,22 @@
- 			>;
- 		};
- 
-+		pinctrl_ov5640: ov5640grp {
-+			fsl,pins = <
-+				MX6QDL_PAD_NANDF_D5__GPIO2_IO05   0x000b0
-+				MX6QDL_PAD_NANDF_WP_B__GPIO6_IO09 0x0b0b0
-+			>;
-+		};
-+
-+		pinctrl_ov5642: ov5642grp {
-+			fsl,pins = <
-+				MX6QDL_PAD_SD1_DAT0__GPIO1_IO16 0x1b0b0
-+				MX6QDL_PAD_GPIO_6__GPIO1_IO06   0x1b0b0
-+				MX6QDL_PAD_GPIO_8__GPIO1_IO08   0x130b0
-+				MX6QDL_PAD_GPIO_3__CCM_CLKO2    0x000b0
-+			>;
-+		};
-+
- 		pinctrl_pwm1: pwm1grp {
- 			fsl,pins = <
- 				MX6QDL_PAD_SD1_DAT3__PWM1_OUT 0x1b0b1
-@@ -601,3 +707,15 @@
- 	vmmc-supply = <&reg_3p3v>;
- 	status = "okay";
- };
-+
-+&mipi_csi {
-+        status = "okay";
-+};
-+
-+/* Incoming port from sensor */
-+&mipi_csi_from_mipi_sensor {
-+        remote-endpoint = <&ov5640_to_mipi_csi>;
-+        data-lanes = <0 1>;
-+        clock-lanes = <2>;
-+};
-+
--- 
-2.7.4
+There is a VDIC entity in the i.MX IPU that performs de-interlacing with
+hardware filters for motion compensation. Some of the motion compensation
+modes ("low" and "medium" motion) require that the VDIC receive video
+frame fields from memory buffers (dedicated dma channels in the
+IPU are used to transfer those buffers into the VDIC).
+
+So one option to support those modes would be to pass the raw buffers
+from a camera sensor up to userspace to a capture device, and then pass
+them back to the VDIC for de-interlacing using a mem2mem device.
+
+Philipp and I are both in agreement that, since userland is not interested
+in the intermediate interlaced buffers in this case, but only the final
+result (motion compensated, de-interlaced frames), it is more efficient
+to provide a media link that allows passing those intermediate frames
+directly from a camera source pad to VDIC sink pad, without having
+to route them through userspace.
+
+So in order to support that, I've implemented a simple FIFO dma buffer
+queue in the driver to allow passing video buffers directly from a source
+to a sink. It is modeled loosely off the vb2 state machine and API, but
+simpler (for instance it only allows contiguous, cache-coherent buffers).
+
+This is where Philipp has an argument, that this should be done with a
+new API in videobuf2.
+
+And I'm actually in total agreement with that. I definitely agree that there
+should be a mechanism in the media framework that allows passing video
+buffers from a source pad to a sink pad using a software queue, with no
+involvement from userland.
+
+My only disagreement is when this should be implemented. I think it is
+fine to keep my custom implementation of this in the driver for now. Once
+an extension of vb2 is ready to support this feature, it would be fairly
+straightforward to strip out my custom implementation and go with the
+new API.
+
+Steve
+
 
