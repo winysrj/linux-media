@@ -1,65 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48049
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751240AbdASWge (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:52187 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752355AbdATOAk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Jan 2017 17:36:34 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Inki Dae <inki.dae@samsung.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Fri, 20 Jan 2017 09:00:40 -0500
+From: Michael Tretter <m.tretter@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Philipp Zabel <p.zabel@pengutronix.de>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Kukjin Kim <kgene@kernel.org>,
-        linux-samsung-soc@vger.kernel.org,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        linux-media@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH v2 1/2] [media] exynos-gsc: Fix unbalanced pm_runtime_enable() error
-Date: Thu, 19 Jan 2017 19:36:19 -0300
-Message-Id: <1484865380-12651-1-git-send-email-javier@osg.samsung.com>
+        kernel@pengutronix.de, Philipp Zabel <philipp.zabel@gmail.com>,
+        Michael Tretter <m.tretter@pengutronix.de>
+Subject: [PATCH v4 1/7] [media] dt-bindings: Add a binding for Video Data Order Adapter
+Date: Fri, 20 Jan 2017 15:00:19 +0100
+Message-Id: <20170120140025.3338-2-m.tretter@pengutronix.de>
+In-Reply-To: <20170120140025.3338-1-m.tretter@pengutronix.de>
+References: <20170120140025.3338-1-m.tretter@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit a006c04e6218 ("[media] exynos-gsc: Fixup clock management at
-->remove()") changed the driver's .remove function logic to fist do
-a pm_runtime_get_sync() to make sure the device is powered before
-attempting to gate the gsc clock.
+From: Philipp Zabel <philipp.zabel@gmail.com>
 
-But the commit also removed a pm_runtime_disable() call that leads
-to an unbalanced pm_runtime_enable() error if the driver is removed
-and re-probed:
+Add a DT binding documentation for the Video Data Order Adapter (VDOA)
+of the Freescale i.MX6 SoC.
 
-exynos-gsc 13e00000.video-scaler: Unbalanced pm_runtime_enable!
-exynos-gsc 13e10000.video-scaler: Unbalanced pm_runtime_enable!
+Also, add the compatible property and correct clock to the device tree
+to match the documentation.
 
-Fixes: a006c04e6218 ("[media] exynos-gsc: Fixup clock management at ->remove()")
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-
+Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
+Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
+Acked-by: Rob Herring <robh@kernel.org>
 ---
+ .../devicetree/bindings/media/fsl-vdoa.txt          | 21 +++++++++++++++++++++
+ arch/arm/boot/dts/imx6qdl.dtsi                      |  2 ++
+ 2 files changed, 23 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/fsl-vdoa.txt
 
-Changes in v2:
-  - Added Marek Szyprowski's Acked-by tag.
-
- drivers/media/platform/exynos-gsc/gsc-core.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index cbf75b6194b4..83272f10722d 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -1118,6 +1118,7 @@ static int gsc_remove(struct platform_device *pdev)
- 		clk_disable_unprepare(gsc->clock[i]);
+diff --git a/Documentation/devicetree/bindings/media/fsl-vdoa.txt b/Documentation/devicetree/bindings/media/fsl-vdoa.txt
+new file mode 100644
+index 000000000000..6c5628530bb7
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/fsl-vdoa.txt
+@@ -0,0 +1,21 @@
++Freescale Video Data Order Adapter
++==================================
++
++The Video Data Order Adapter (VDOA) is present on the i.MX6q. Its sole purpose
++is to reorder video data from the macroblock tiled order produced by the CODA
++960 VPU to the conventional raster-scan order for scanout.
++
++Required properties:
++- compatible: must be "fsl,imx6q-vdoa"
++- reg: the register base and size for the device registers
++- interrupts: the VDOA interrupt
++- clocks: the vdoa clock
++
++Example:
++
++vdoa@21e4000 {
++        compatible = "fsl,imx6q-vdoa";
++        reg = <0x021e4000 0x4000>;
++        interrupts = <0 18 IRQ_TYPE_LEVEL_HIGH>;
++        clocks = <&clks IMX6QDL_CLK_VDOA>;
++};
+diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
+index 89b834f3fa17..a227e8be5378 100644
+--- a/arch/arm/boot/dts/imx6qdl.dtsi
++++ b/arch/arm/boot/dts/imx6qdl.dtsi
+@@ -1158,8 +1158,10 @@
+ 			};
  
- 	pm_runtime_put_noidle(&pdev->dev);
-+	pm_runtime_disable(&pdev->dev);
+ 			vdoa@021e4000 {
++				compatible = "fsl,imx6q-vdoa";
+ 				reg = <0x021e4000 0x4000>;
+ 				interrupts = <0 18 IRQ_TYPE_LEVEL_HIGH>;
++				clocks = <&clks IMX6QDL_CLK_VDOA>;
+ 			};
  
- 	dev_dbg(&pdev->dev, "%s driver unloaded\n", pdev->name);
- 	return 0;
+ 			uart2: serial@021e8000 {
 -- 
-2.7.4
+2.11.0
 
