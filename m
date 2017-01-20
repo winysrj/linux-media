@@ -1,38 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:49437 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1762285AbdAJLpD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Jan 2017 06:45:03 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH for v4.10] cec: fix wrong last_la determination
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-ID: <5d795644-ba26-4b9b-67c6-13c78ea145ea@xs4all.nl>
-Date: Tue, 10 Jan 2017 12:44:54 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from gofer.mess.org ([80.229.237.210]:45033 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750893AbdATNIk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 20 Jan 2017 08:08:40 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 0/4] IR fixes for v4.11
+Date: Fri, 20 Jan 2017 13:08:34 +0000
+Message-Id: <cover.1484916689.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to an incorrect condition the last_la used for the initial attempt at
-claiming a logical address could be wrong.
+Testing of lirc uncovered some issue with tx-only devices, and some
+other minor issues.
 
-The last_la wasn't converted to a mask when ANDing with type2mask, so that
-test was broken.
+Sean Young (4):
+  [media] lirc: fix transmit-only read features
+  [media] rc: remove excessive spaces from error message
+  [media] lirc: LIRC_GET_MIN_TIMEOUT should be in range
+  [media] lirc: fix null dereference for tx-only devices
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
-index ebb5e391b800..87a6b65ed3af 100644
---- a/drivers/media/cec/cec-adap.c
-+++ b/drivers/media/cec/cec-adap.c
-@@ -1206,7 +1206,7 @@ static int cec_config_thread_func(void *arg)
-  		las->log_addr[i] = CEC_LOG_ADDR_INVALID;
-  		if (last_la == CEC_LOG_ADDR_INVALID ||
-  		    last_la == CEC_LOG_ADDR_UNREGISTERED ||
--		    !(last_la & type2mask[type]))
-+		    !((1 << last_la) & type2mask[type]))
-  			last_la = la_list[0];
+ drivers/media/rc/ir-lirc-codec.c | 7 ++++---
+ drivers/media/rc/lirc_dev.c      | 2 +-
+ drivers/media/rc/rc-main.c       | 3 +--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-  		err = cec_config_log_addr(adap, i, last_la);
+-- 
+2.9.3
+
