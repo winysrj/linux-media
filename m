@@ -1,125 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:47767 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750703AbdAXFOz (ORCPT
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:36748 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751400AbdATH75 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Jan 2017 00:14:55 -0500
-Message-ID: <ac3fcccf9f5099131e178d077d5ceb08@smtp-cloud2.xs4all.net>
-Date: Tue, 24 Jan 2017 06:14:52 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Fri, 20 Jan 2017 02:59:57 -0500
+Subject: Re: [PATCHv2] dt: bindings: Add support for CSI1 bus
+To: Sakari Ailus <sakari.ailus@iki.fi>, Pavel Machek <pavel@ucw.cz>
+References: <20161228183036.GA13139@amd> <20170111225335.GA21553@amd>
+ <20170119214905.GD3205@valkosipuli.retiisi.org.uk>
+Cc: robh+dt@kernel.org, devicetree@vger.kernel.org, sre@kernel.org,
+        pali.rohar@gmail.com, linux-media@vger.kernel.org
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Message-ID: <cf372233-f047-6e2c-01eb-02e30e6b2de5@gmail.com>
+Date: Fri, 20 Jan 2017 09:59:13 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170119214905.GD3205@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of media_tree:
+On 19.01.2017 23:49, Sakari Ailus wrote:
+> Hi Pavel,
+>
+> On Wed, Jan 11, 2017 at 11:53:35PM +0100, Pavel Machek wrote:
+>> From: Sakari Ailus <sakari.ailus@iki.fi>
+>>
+>> In the vast majority of cases the bus type is known to the driver(s)
+>> since a receiver or transmitter can only support a single one. There
+>> are cases however where different options are possible.
+>>
+>> The existing V4L2 OF support tries to figure out the bus type and
+>> parse the bus parameters based on that. This does not scale too well
+>> as there are multiple serial busses that share common properties.
+>>
+>> Some hardware also supports multiple types of busses on the same
+>> interfaces.
+>>
+>> Document the CSI1/CCP2 property strobe. It signifies the clock or
+>> strobe mode.
+>>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+>> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+>> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+>> index 9cd2a36..08c4498 100644
+>> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+>> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+>> @@ -76,6 +76,11 @@ Optional endpoint properties
+>>    mode horizontal and vertical synchronization signals are provided to the
+>>    slave device (data source) by the master device (data sink). In the master
+>>    mode the data source device is also the source of the synchronization signals.
+>> +- bus-type: data bus type. Possible values are:
+>> +  0 - MIPI CSI2
+>> +  1 - parallel / Bt656
+>> +  2 - MIPI CSI1
+>> +  3 - CCP2
+>
+> Actually, thinking about this again --- we only need to explictly specify
+> busses if we're dealing with either CCP2 or CSI-1. The vast majority of the
+> actual busses are and continue to be CSI-2 or either parallel or Bt.656. As
+> they can be implicitly detected, we would have an option to just drop values
+> 0 and 1 from above, i.e. only leave CSI-1 and CCP2. For now, specifying
+> CSI-2 or parallel / Bt.656 adds no value as the old DT binaries without
+> bus-type will need to be supported anyway.
+>
+>>  - bus-width: number of data lines actively used, valid for the parallel busses.
+>>  - data-shift: on the parallel data busses, if bus-width is used to specify the
+>>    number of data lines, data-shift can be used to specify which data lines are
+>> @@ -112,7 +117,8 @@ Optional endpoint properties
+>>    should be the combined length of data-lanes and clock-lanes properties.
+>>    If the lane-polarities property is omitted, the value must be interpreted
+>>    as 0 (normal). This property is valid for serial busses only.
+>> -
+>> +- strobe: Whether the clock signal is used as clock or strobe. Used
+>> +  with CCP2, for instance.
+>
+> How about the "ti,strobe-clock-inv" I proposed? No-one seems to know what
+> this really truly means... or just drop it if it's not really needed.
+>
 
-date:			Tue Jan 24 05:00:22 CET 2017
-media-tree git hash:	40eca140c404505c09773d1c6685d818cb55ab1a
-media_build git hash:	3c6ce4ff75f19adf45869e34b376c5b9dee4d50a
-v4l-utils git hash:	9df320dd3d1a498fcd6cdeef7d783da609b526e0
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.8.0-164
+Not really :), see 
+https://www.spinics.net/lists/linux-media/msg99802.html and 
+https://www.spinics.net/lists/linux-media/msg99800.html
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.67-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10-rc3-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.12.67-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-x86_64: OK
-linux-4.10-rc3-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+"clock/strobe", and "strobe-inv" are two distinct properties, see 
+CSI1B_CTRL description in OMAP TRM. BTW there is another property that 
+is needed for both n900 cameras to operate correctly (VP_CLK_POL, bit 12 
+from the same reg), but that can be added later on when we have the 
+other bits in place.
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Ivo
