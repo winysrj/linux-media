@@ -1,231 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:50565 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751122AbdAJLKe (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:54787 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752193AbdATO4N (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Jan 2017 06:10:34 -0500
-From: Vincent ABRIOU <vincent.abriou@st.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues FRUCHET <hugues.fruchet@st.com>,
-        Jean Christophe TROTIN <jean-christophe.trotin@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        "Hans Verkuil" <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v2] [media] vivid: support for contiguous DMA buffers
-Date: Tue, 10 Jan 2017 11:10:24 +0000
-Message-ID: <642a56d2-1a0b-ad39-70b4-68e01a12b71f@st.com>
-References: <1473670047-24670-1-git-send-email-vincent.abriou@st.com>
- <2996e55c-b014-ac75-5cb0-c4706a7b5f37@xs4all.nl>
-In-Reply-To: <2996e55c-b014-ac75-5cb0-c4706a7b5f37@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="Windows-1252"
-Content-ID: <3DF8E07604995C42BB1894F865F2D131@st.com>
-Content-Transfer-Encoding: 8BIT
+        Fri, 20 Jan 2017 09:56:13 -0500
+Subject: Re: [PATCH v4 0/7] Add support for Video Data Order Adapter
+To: Michael Tretter <m.tretter@pengutronix.de>,
+        linux-media@vger.kernel.org
+References: <20170120140025.3338-1-m.tretter@pengutronix.de>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        kernel@pengutronix.de
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <ff15e17c-fd62-f00e-e0f9-c141263868ea@xs4all.nl>
+Date: Fri, 20 Jan 2017 15:54:58 +0100
 MIME-Version: 1.0
+In-Reply-To: <20170120140025.3338-1-m.tretter@pengutronix.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Looks good to me.
 
+Philipp, just let me know if this is ready for merging, or you can make a pull
+request for Mauro yourself if you prefer.
 
-On 01/09/2017 04:10 PM, Hans Verkuil wrote:
-> On 09/12/2016 10:47 AM, Vincent Abriou wrote:
->> It allows to simulate the behavior of hardware with such limitations or
->> to connect vivid to real hardware with such limitations.
->>
->> Add the "allocators" module parameter option to let vivid use the
->> dma-contig instead of vmalloc.
->>
->> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> Signed-off-by: Vincent Abriou <vincent.abriou@st.com>
->>
->> Cc: Philipp Zabel <p.zabel@pengutronix.de>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  Documentation/media/v4l-drivers/vivid.rst |  8 ++++++++
->>  drivers/media/platform/vivid/Kconfig      |  2 ++
->>  drivers/media/platform/vivid/vivid-core.c | 32 ++++++++++++++++++++++++++-----
->>  3 files changed, 37 insertions(+), 5 deletions(-)
->>
->> diff --git a/Documentation/media/v4l-drivers/vivid.rst b/Documentation/media/v4l-drivers/vivid.rst
->> index c8cf371..3e44b22 100644
->> --- a/Documentation/media/v4l-drivers/vivid.rst
->> +++ b/Documentation/media/v4l-drivers/vivid.rst
->> @@ -263,6 +263,14 @@ all configurable using the following module options:
->>  	removed. Unless overridden by ccs_cap_mode and/or ccs_out_mode the
->>  	will default to enabling crop, compose and scaling.
->>
->> +- allocators:
->> +
->> +	memory allocator selection, default is 0. It specifies the way buffers
->> +	will be allocated.
->> +
->> +		- 0: vmalloc
->> +		- 1: dma-contig
->
-> Could you add support for dma-sg as well? I think that would be fairly trivial (unless
-> I missed something).
->
-> Once that's added (or it's clear dma-sg won't work for some reason), then I'll merge this.
->
-> Regards,
->
-> 	Hans
->
+Regards,
 
-Hi Hans,
+	Hans
 
-What is the difference between a vmalloc allocation exported in DMABUF 
-that will populate the sg and dma-sg allocation?
+On 01/20/2017 03:00 PM, Michael Tretter wrote:
+> Hello,
+> 
+> This is v4 of a patch series that adds support for the Video Data Order
+> Adapter (VDOA) that can be found on Freescale i.MX6. It converts the
+> macroblock tiled format produced by the CODA 960 video decoder to a
+> raster-ordered format for scanout.
+> 
+> Changes since v3:
+> 
+> - Patch 2/7: Add my copyright to vdoa copyright header
+> - Patch 2/7: Fix offset of chroma plane to be page-aligned
+> - Patch 6/7: Fix oops when releasing the coda driver by destroying vdoa
+>   context after removing all buffers
+> - Patch 6/7: Fix missing vdoa disable when switching from tiled to linear
+>   format
+> 
+> Changes since v2:
+> 
+> - Patch 1/7: Update commit message to include binding change; fix
+>   spelling/style in binding documentation
+> 
+> Changes since v1:
+> 
+> - Dropped patch 8/9 of v1
+> - Patch 1/7: Add devicetree binding documentation for fsl-vdoa
+> - Patch 6/7: I merged patch 5/9 and patch 8/9 of v1 into a single patch
+> - Patch 6/7: Use dt compatible instead of a phandle to find VDOA device
+> - Patch 6/7: Always check VDOA availability even if disabled via module
+>   parameter and do not print a message if VDOA cannot be found
+> - Patch 6/7: Do not change the CODA context in coda_try_fmt()
+> - Patch 6/7: Allocate an additional internal frame if the VDOA is in use
+> 
+> Michael Tretter (3):
+>   [media] coda: fix frame index to returned error
+>   [media] coda: use VDOA for un-tiling custom macroblock format
+>   [media] coda: support YUYV output if VDOA is used
+> 
+> Philipp Zabel (4):
+>   [media] dt-bindings: Add a binding for Video Data Order Adapter
+>   [media] coda: add i.MX6 VDOA driver
+>   [media] coda: correctly set capture compose rectangle
+>   [media] coda: add debug output about tiling
+> 
+>  .../devicetree/bindings/media/fsl-vdoa.txt         |  21 ++
+>  arch/arm/boot/dts/imx6qdl.dtsi                     |   2 +
+>  drivers/media/platform/Kconfig                     |   3 +
+>  drivers/media/platform/coda/Makefile               |   1 +
+>  drivers/media/platform/coda/coda-bit.c             |  93 ++++--
+>  drivers/media/platform/coda/coda-common.c          | 175 ++++++++++-
+>  drivers/media/platform/coda/coda.h                 |   3 +
+>  drivers/media/platform/coda/imx-vdoa.c             | 338 +++++++++++++++++++++
+>  drivers/media/platform/coda/imx-vdoa.h             |  58 ++++
+>  9 files changed, 652 insertions(+), 42 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/media/fsl-vdoa.txt
+>  create mode 100644 drivers/media/platform/coda/imx-vdoa.c
+>  create mode 100644 drivers/media/platform/coda/imx-vdoa.h
+> 
 
-BR
-Vincent
-
->> +
->>  Taken together, all these module options allow you to precisely customize
->>  the driver behavior and test your application with all sorts of permutations.
->>  It is also very suitable to emulate hardware that is not yet available, e.g.
->> diff --git a/drivers/media/platform/vivid/Kconfig b/drivers/media/platform/vivid/Kconfig
->> index 8e6918c..2e238a1 100644
->> --- a/drivers/media/platform/vivid/Kconfig
->> +++ b/drivers/media/platform/vivid/Kconfig
->> @@ -1,6 +1,7 @@
->>  config VIDEO_VIVID
->>  	tristate "Virtual Video Test Driver"
->>  	depends on VIDEO_DEV && VIDEO_V4L2 && !SPARC32 && !SPARC64 && FB
->> +	depends on HAS_DMA
->>  	select FONT_SUPPORT
->>  	select FONT_8x16
->>  	select FB_CFB_FILLRECT
->> @@ -8,6 +9,7 @@ config VIDEO_VIVID
->>  	select FB_CFB_IMAGEBLIT
->>  	select MEDIA_CEC_EDID
->>  	select VIDEOBUF2_VMALLOC
->> +	select VIDEOBUF2_DMA_CONTIG
->>  	select VIDEO_V4L2_TPG
->>  	default n
->>  	---help---
->> diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
->> index 741460a..02e1909 100644
->> --- a/drivers/media/platform/vivid/vivid-core.c
->> +++ b/drivers/media/platform/vivid/vivid-core.c
->> @@ -30,6 +30,7 @@
->>  #include <linux/videodev2.h>
->>  #include <linux/v4l2-dv-timings.h>
->>  #include <media/videobuf2-vmalloc.h>
->> +#include <media/videobuf2-dma-contig.h>
->>  #include <media/v4l2-dv-timings.h>
->>  #include <media/v4l2-ioctl.h>
->>  #include <media/v4l2-fh.h>
->> @@ -151,6 +152,12 @@ static bool no_error_inj;
->>  module_param(no_error_inj, bool, 0444);
->>  MODULE_PARM_DESC(no_error_inj, " if set disable the error injecting controls");
->>
->> +static unsigned int allocators[VIVID_MAX_DEVS] = { [0 ... (VIVID_MAX_DEVS - 1)] = 0 };
->> +module_param_array(allocators, uint, NULL, 0444);
->> +MODULE_PARM_DESC(allocators, " memory allocator selection, default is 0.\n"
->> +			     "\t\t    0 == vmalloc\n"
->> +			     "\t\t    1 == dma-contig");
->> +
->>  static struct vivid_dev *vivid_devs[VIVID_MAX_DEVS];
->>
->>  const struct v4l2_rect vivid_min_rect = {
->> @@ -636,6 +643,10 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
->>  {
->>  	static const struct v4l2_dv_timings def_dv_timings =
->>  					V4L2_DV_BT_CEA_1280X720P60;
->> +	static const struct vb2_mem_ops * const vivid_mem_ops[2] = {
->> +		&vb2_vmalloc_memops,
->> +		&vb2_dma_contig_memops,
->> +	};
->>  	unsigned in_type_counter[4] = { 0, 0, 0, 0 };
->>  	unsigned out_type_counter[4] = { 0, 0, 0, 0 };
->>  	int ccs_cap = ccs_cap_mode[inst];
->> @@ -646,6 +657,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
->>  	struct video_device *vfd;
->>  	struct vb2_queue *q;
->>  	unsigned node_type = node_types[inst];
->> +	unsigned int allocator = allocators[inst];
->>  	v4l2_std_id tvnorms_cap = 0, tvnorms_out = 0;
->>  	int ret;
->>  	int i;
->> @@ -1036,6 +1048,11 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
->>  	if (!dev->cec_workqueue)
->>  		goto unreg_dev;
->>
->> +	if (allocator == 1)
->> +		dma_coerce_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
->> +	else if (allocator >= ARRAY_SIZE(vivid_mem_ops))
->> +		allocator = 0;
->> +
->>  	/* start creating the vb2 queues */
->>  	if (dev->has_vid_cap) {
->>  		/* initialize vid_cap queue */
->> @@ -1046,10 +1063,11 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
->>  		q->drv_priv = dev;
->>  		q->buf_struct_size = sizeof(struct vivid_buffer);
->>  		q->ops = &vivid_vid_cap_qops;
->> -		q->mem_ops = &vb2_vmalloc_memops;
->> +		q->mem_ops = vivid_mem_ops[allocator];
->>  		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->>  		q->min_buffers_needed = 2;
->>  		q->lock = &dev->mutex;
->> +		q->dev = dev->v4l2_dev.dev;
->>
->>  		ret = vb2_queue_init(q);
->>  		if (ret)
->> @@ -1065,10 +1083,11 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
->>  		q->drv_priv = dev;
->>  		q->buf_struct_size = sizeof(struct vivid_buffer);
->>  		q->ops = &vivid_vid_out_qops;
->> -		q->mem_ops = &vb2_vmalloc_memops;
->> +		q->mem_ops = vivid_mem_ops[allocator];
->>  		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->>  		q->min_buffers_needed = 2;
->>  		q->lock = &dev->mutex;
->> +		q->dev = dev->v4l2_dev.dev;
->>
->>  		ret = vb2_queue_init(q);
->>  		if (ret)
->> @@ -1084,10 +1103,11 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
->>  		q->drv_priv = dev;
->>  		q->buf_struct_size = sizeof(struct vivid_buffer);
->>  		q->ops = &vivid_vbi_cap_qops;
->> -		q->mem_ops = &vb2_vmalloc_memops;
->> +		q->mem_ops = vivid_mem_ops[allocator];
->>  		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->>  		q->min_buffers_needed = 2;
->>  		q->lock = &dev->mutex;
->> +		q->dev = dev->v4l2_dev.dev;
->>
->>  		ret = vb2_queue_init(q);
->>  		if (ret)
->> @@ -1103,10 +1123,11 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
->>  		q->drv_priv = dev;
->>  		q->buf_struct_size = sizeof(struct vivid_buffer);
->>  		q->ops = &vivid_vbi_out_qops;
->> -		q->mem_ops = &vb2_vmalloc_memops;
->> +		q->mem_ops = vivid_mem_ops[allocator];
->>  		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->>  		q->min_buffers_needed = 2;
->>  		q->lock = &dev->mutex;
->> +		q->dev = dev->v4l2_dev.dev;
->>
->>  		ret = vb2_queue_init(q);
->>  		if (ret)
->> @@ -1121,10 +1142,11 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
->>  		q->drv_priv = dev;
->>  		q->buf_struct_size = sizeof(struct vivid_buffer);
->>  		q->ops = &vivid_sdr_cap_qops;
->> -		q->mem_ops = &vb2_vmalloc_memops;
->> +		q->mem_ops = vivid_mem_ops[allocator];
->>  		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->>  		q->min_buffers_needed = 8;
->>  		q->lock = &dev->mutex;
->> +		q->dev = dev->v4l2_dev.dev;
->>
->>  		ret = vb2_queue_init(q);
->>  		if (ret)
->>
->
