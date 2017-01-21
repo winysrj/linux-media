@@ -1,79 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wj0-f169.google.com ([209.85.210.169]:36558 "EHLO
-        mail-wj0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1761513AbdAJMHh (ORCPT
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:34658 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750886AbdAUJhh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 10 Jan 2017 07:07:37 -0500
-Received: by mail-wj0-f169.google.com with SMTP id ew7so67804715wjc.3
-        for <linux-media@vger.kernel.org>; Tue, 10 Jan 2017 04:07:37 -0800 (PST)
-Subject: Re: [PATCH v4 8/9] media: venus: hfi: add Venus HFI files
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1480583001-32236-1-git-send-email-stanimir.varbanov@linaro.org>
- <1480583001-32236-9-git-send-email-stanimir.varbanov@linaro.org>
- <c5a89070-1c24-6cdd-5116-83a15f480285@xs4all.nl>
- <9a2cf9a6-ad80-0c50-3897-6e48fbb9073c@linaro.org>
- <41490c02-d87d-5ae1-9004-328e511a5656@xs4all.nl>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <ed66022a-892c-ea49-0546-d8f4d07684bf@linaro.org>
-Date: Tue, 10 Jan 2017 14:07:33 +0200
-MIME-Version: 1.0
-In-Reply-To: <41490c02-d87d-5ae1-9004-328e511a5656@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Sat, 21 Jan 2017 04:37:37 -0500
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH] media: pci: constify vb2_ops structure
+Date: Sat, 21 Jan 2017 15:07:25 +0530
+Message-Id: <1484991445-17253-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Declare vb2_ops structure as const as it is only stored in
+the ops field of a vb2_queue structure. This field is of type
+const, so vb2_ops structures having same properties can be made
+const too.
+Done using Coccinelle:
 
-On 01/09/2017 03:04 PM, Hans Verkuil wrote:
-> On 12/05/2016 01:20 PM, Stanimir Varbanov wrote:
->> Hi Hans,
->>
->> On 12/05/2016 02:05 PM, Hans Verkuil wrote:
->>> On 12/01/2016 10:03 AM, Stanimir Varbanov wrote:
->>>> Here is the implementation of Venus video accelerator low-level
->>>> functionality. It contanins code which setup the registers and
->>>> startup uthe processor, allocate and manipulates with the shared
->>>> memory used for sending commands and receiving messages.
->>>>
->>>> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
->>>> ---
->>>>  drivers/media/platform/qcom/venus/hfi_venus.c    | 1508 ++++++++++++++++++++++
->>>>  drivers/media/platform/qcom/venus/hfi_venus.h    |   23 +
->>>>  drivers/media/platform/qcom/venus/hfi_venus_io.h |   98 ++
->>>>  3 files changed, 1629 insertions(+)
->>>>  create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.c
->>>>  create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.h
->>>>  create mode 100644 drivers/media/platform/qcom/venus/hfi_venus_io.h
->>>>
->>>> diff --git a/drivers/media/platform/qcom/venus/hfi_venus.c b/drivers/media/platform/qcom/venus/hfi_venus.c
->>>> new file mode 100644
->>>> index 000000000000..f004a9a80d85
->>>> --- /dev/null
->>>> +++ b/drivers/media/platform/qcom/venus/hfi_venus.c
->>>> @@ -0,0 +1,1508 @@
->>>> +static int venus_tzbsp_set_video_state(enum tzbsp_video_state state)
->>>> +{
->>>> +	return qcom_scm_video_set_state(state, 0);
->>>
->>> This functions doesn't seem to exist. Is there a prerequisite patch series that
->>> introduces this function?
->>
->> yes, the patchset [1] is under review.
->>
-> 
-> What is the status of this patchset?
+@r1 disable optional_qualifier@
+identifier i;
+position p;
+@@
+static struct vb2_ops i@p={...};
 
-It is under discussion, still. I will send a new version of patches soon.
+@ok1@
+identifier r1.i;
+position p;
+struct sta2x11_vip vip;
+struct vb2_queue q;
+@@
+(
+vip.vb_vidq.ops=&i@p
+|
+q.ops=&i@p
+)
 
+@bad@
+position p!={r1.p,ok1.p};
+identifier r1.i;
+@@
+i@p
+
+@depends on !bad disable optional_qualifier@
+identifier r1.i;
+@@
++const
+struct vb2_ops i;
+
+File size before:
+   text	   data	    bss	    dec	    hex	filename
+   8448	    440	      0	   8888	   22b8	media/pci/sta2x11/sta2x11_vip.o
+
+File size after:
+   text	   data	    bss	    dec	    hex	filename
+   8552	    352	      0	   8904	   22c8	media/pci/sta2x11/sta2x11_vip.o
+
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+ drivers/media/pci/sta2x11/sta2x11_vip.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c b/drivers/media/pci/sta2x11/sta2x11_vip.c
+index aeb2b4e..6343d24 100644
+--- a/drivers/media/pci/sta2x11/sta2x11_vip.c
++++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
+@@ -377,7 +377,7 @@ static void stop_streaming(struct vb2_queue *vq)
+ 	spin_unlock(&vip->lock);
+ }
+ 
+-static struct vb2_ops vip_video_qops = {
++static const struct vb2_ops vip_video_qops = {
+ 	.queue_setup		= queue_setup,
+ 	.buf_init		= buffer_init,
+ 	.buf_prepare		= buffer_prepare,
 -- 
-regards,
-Stan
+1.9.1
+
