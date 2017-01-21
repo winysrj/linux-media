@@ -1,47 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44863 "EHLO mail.kapsi.fi"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751315AbdA0U7K (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Jan 2017 15:59:10 -0500
-Received: from [82.128.187.92] (helo=c-46-246-87-105.ip4.frootvpn.com)
-        by mail.kapsi.fi with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        (Exim 4.84_2)
-        (envelope-from <crope@iki.fi>)
-        id 1cXDbx-0006XQ-4A
-        for linux-media@vger.kernel.org; Fri, 27 Jan 2017 22:59:09 +0200
-To: LMML <linux-media@vger.kernel.org>
-From: Antti Palosaari <crope@iki.fi>
-Subject: [GIT PULL 4.11] si2168 ber and ucb statistics
-Message-ID: <24add81b-8c80-779a-4ecf-addb0e112c18@iki.fi>
-Date: Fri, 27 Jan 2017 22:59:08 +0200
+Received: from pegasos-out.vodafone.de ([80.84.1.38]:39323 "EHLO
+        pegasos-out.vodafone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750874AbdAUKZ4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 21 Jan 2017 05:25:56 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+        by pegasos-out.vodafone.de (Rohrpostix2  Daemon) with ESMTP id 4852C660169
+        for <linux-media@vger.kernel.org>; Sat, 21 Jan 2017 11:06:07 +0100 (CET)
+Received: from pegasos-out.vodafone.de ([127.0.0.1])
+        by localhost (rohrpostix2.prod.vfnet.de [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id GSQNB+KwuACy for <linux-media@vger.kernel.org>;
+        Sat, 21 Jan 2017 11:06:05 +0100 (CET)
+Received: from smtp-02.vodafone.de (smtp-02.vodafone.de [10.215.254.37])
+        by pegasos-out.vodafone.de (Rohrpostix2  Daemon) with ESMTP id 7D1ED660160
+        for <linux-media@vger.kernel.org>; Sat, 21 Jan 2017 11:06:05 +0100 (CET)
+Received: from smtp-02.vodafone.de ([127.0.0.1])
+        by localhost (xsmail-dmz6.prod.vfnet.de [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id lAlzJzzzKeZe for <linux-media@vger.kernel.org>;
+        Sat, 21 Jan 2017 11:06:01 +0100 (CET)
+Received: from [192.168.43.185] (x2f7f610.dyn.telefonica.de [2.247.246.16])
+        by smtp-02.vodafone.de (Postfix) with ESMTPSA id EDCB5E55B2
+        for <linux-media@vger.kernel.org>; Sat, 21 Jan 2017 11:05:49 +0100 (CET)
+To: linux-media@vger.kernel.org
+From: Edith und Rainer Locke <R.E.L@vodafone.de>
+Subject: man page dvbv5_scan
+Message-ID: <ec4ed1c0-45d0-b5dc-a319-6a08ef3c45f5@vodafone.de>
+Date: Sat, 21 Jan 2017 11:05:41 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit d183e4efcae8d88a2f252e546978658ca6d273cc:
+To whom it may concern,
 
-   [media] v4l: tvp5150: Add missing break in set control handler 
-(2016-12-12 07:49:58 -0200)
+at those man page is written:
 
-are available in the git repository at:
+SYNOPSIS
+       dvbv5-scan [OPTION]... initial-file
 
-   git://linuxtv.org/anttip/media_tree.git si2168
+nowhere I find an explaination of the initial file.
 
-for you to fetch changes up to 7a6d7b07e36a8161b56924d7e18a00f1b7e2436a:
+It would be nice to have a description of the initial-file.
 
-   si2168: implement ucb statistics (2016-12-19 19:55:15 +0200)
+Many thanks in advance and regards Rainer
 
-----------------------------------------------------------------
-Antti Palosaari (2):
-       si2168: implement ber statistics
-       si2168: implement ucb statistics
-
-  drivers/media/dvb-frontends/si2168.c      | 70 
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--
-  drivers/media/dvb-frontends/si2168_priv.h |  1 +
-  2 files changed, 69 insertions(+), 2 deletions(-)
-
--- 
-http://palosaari.fi/
