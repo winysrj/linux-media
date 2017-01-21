@@ -1,99 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f49.google.com ([209.85.218.49]:34724 "EHLO
-        mail-oi0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750724AbdA0XPV (ORCPT
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:34090 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750999AbdAUJaB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Jan 2017 18:15:21 -0500
-Received: by mail-oi0-f49.google.com with SMTP id s203so34007763oie.1
-        for <linux-media@vger.kernel.org>; Fri, 27 Jan 2017 15:15:19 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAGS+X6PHC+f2kgtgxKQi6Z5wrFh-LbBDp_in54jR3jh=T++eWA@mail.gmail.com>
-References: <CAGS+X6PHC+f2kgtgxKQi6Z5wrFh-LbBDp_in54jR3jh=T++eWA@mail.gmail.com>
-From: Hamidreza Jafari <hamidrjafari@gmail.com>
-Date: Sat, 28 Jan 2017 02:14:11 +0330
-Message-ID: <CAGS+X6NE-U50jtp6=9=hPDUQm1v71SNCWstOUspRMgsBs8Y=jg@mail.gmail.com>
-Subject: Fwd: Upside down webcam
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+        Sat, 21 Jan 2017 04:30:01 -0500
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, prabhakar.csengg@gmail.com,
+        mchehab@kernel.org, minghsiu.tsai@mediatek.com,
+        houlong.wei@mediatek.com, andrew-ct.chen@mediatek.com,
+        matthias.bgg@gmail.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-mediatek@lists.infradead.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH] media: platform: constify vb2_ops structures
+Date: Sat, 21 Jan 2017 14:59:44 +0530
+Message-Id: <1484990984-16136-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-There is a problem with the webcam that uses v4l code. If anyone has a
-hint, contact me on hamidrjafari@gmail.com since I am going off the
-mailing list since
-The mailing list is sending numerous notifications
+Declare vb2_ops structures as const as they are only stored in
+the ops field of a vb2_queue structure. This field is of type
+const, so vb2_ops structures having same properties can be made
+const too.
+Done using Coccinelle:
 
-Hamid
-=D8=A8=D8=A7 =D8=B3=D9=BE=D8=A7=D8=B3=D8=8C
-=D8=AD=D9=85=DB=8C=D8=AF=D8=B1=D8=B6=D8=A7 =D8=AC=D8=B9=D9=81=D8=B1=DB=8C
+@r1 disable optional_qualifier@
+identifier i;
+position p;
+@@
+static struct vb2_ops i@p={...};
 
+@ok1@
+identifier r1.i;
+position p;
+struct sta2x11_vip vip;
+struct vb2_queue q;
+@@
+(
+vip.vb_vidq.ops=&i@p
+|
+q.ops=&i@p
+)
 
+@bad@
+position p!={r1.p,ok1.p};
+identifier r1.i;
+@@
+i@p
 
-=E2=80=8E---------- Forwarded message ----------=E2=80=8E
-From: Hamidreza Jafari =E2=80=8E<hamidrjafari@gmail.com>=E2=80=8E
-Date: 2017-01-27 22:08 GMT+03:30
-Subject: Upside down webcam
-To:  =E2=80=ABlinux-media@vger.kernel.org=E2=80=AC
+@depends on !bad disable optional_qualifier@
+identifier r1.i;
+@@
++const
+struct vb2_ops i;
 
+Cross compiled the media/platform/blackfin/bfin_capture.o file for
+blackfin architecture.
 
-Hello,
+File size before:
+  text	   data	    bss	    dec	    hex	filename
+  6776	    176	      0	   6952	   1b28 platform/blackfin/bfin_capture.o
 
-https://linuxtv.org/wiki/index.php/Libv4l_Upside_Down_Webcams
+File size after:
+   text	   data	    bss	    dec	    hex	filename
+   6816	    136	      0	   6952	   1b28 platform/blackfin/bfin_capture.o
 
-The webcam is upside down and the solution does not work (as it did in
-a previous Ubuntu version). On Kubuntu 16.10 with 4.8.0-34 kernel I
-installed an app called Webcamoid to test and ran the following
-commands:
+File size before:
+   text	   data	    bss	    dec	    hex	filename
+  12852	    456	    272	  13580	   350c platform/davinci/vpif_capture.o
 
-$export LIBV4LCONTROL_FLAGS=3D3 &&
-LD_PRELOAD=3D/usr/lib/x86_64-linux-gnu/libv4l/v4l1compat.so webcamoid &
-file:///usr/lib/x86_64-linux-gnu/qt5/qml/QtQuick/Controls/TextField.qml:635=
-:5:
-QML TextInputWithHandles: Binding loop detected for property "text"
-file:///usr/lib/x86_64-linux-gnu/qt5/qml/QtQuick/Controls/TextField.qml:635=
-:5:
-QML TextInputWithHandles: Binding loop detected for property "text"
-libv4l2: error setting pixformat: Device or resource busy
-libv4l2: error setting pixformat: Device or resource busy
-VideoCapture: No streams available.
+File size after:
+   text	   data	    bss	    dec	    hex	filename
+  12932	    360	    272	  13564	   34fc platform/davinci/vpif_capture.o
 
-$ v4l2-ctl -d /dev/video0 --list-formats-ext
-ioctl: VIDIOC_ENUM_FMT
-Index : 0
-Type : Video Capture
-Pixel Format: 'YUYV'
-Name : YUYV 4:2:2
-Size: Discrete 640x480
-Interval: Discrete 0.033s (30.000 fps)
-Interval: Discrete 0.067s (15.000 fps)
-Size: Discrete 352x288
-Interval: Discrete 0.033s (30.000 fps)
-Interval: Discrete 0.067s (15.000 fps)
-Size: Discrete 320x240
-Interval: Discrete 0.033s (30.000 fps)
-Interval: Discrete 0.067s (15.000 fps)
-Size: Discrete 176x144
-Interval: Discrete 0.033s (30.000 fps)
-Interval: Discrete 0.067s (15.000 fps)
-Size: Discrete 160x120
-Interval: Discrete 0.033s (30.000 fps)
-Interval: Discrete 0.067s (15.000 fps)
+File size before:
+   text	   data	    bss	    dec	    hex	filename
+  12285	    360	    276	  12921	   3279 platform/davinci/vpif_display.o
 
-$v4l2-ctl --device=3D/dev/video0 --list-inputs
-ioctl: VIDIOC_ENUMINPUT
-Input : 0
-Name : Camera 1
-Type : 0x00000002
-Audioset : 0x00000000
-Tuner : 0x00000000
-Standard : 0x0000000000000000 ()
-Status : 0x00000000 (ok)
-Capabilities: 0x00000000 (not defined)
+File size after:
+   text	   data	    bss	    dec	    hex	filename
+  12365	    296	    276	  12937	   3289 platform/davinci/vpif_display.o
 
-How to fix the problem?
+File size details before and after applying the patch remains the same for
+drivers/media/platform/pxa_camera.o
 
-Hamid
-=D8=A8=D8=A7 =D8=B3=D9=BE=D8=A7=D8=B3=D8=8C
-=D8=AD=D9=85=DB=8C=D8=AF=D8=B1=D8=B6=D8=A7 =D8=AC=D8=B9=D9=81=D8=B1=DB=8C
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+ drivers/media/platform/davinci/vpif_capture.c | 2 +-
+ drivers/media/platform/davinci/vpif_display.c | 2 +-
+ drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c  | 2 +-
+ drivers/media/platform/pxa_camera.c           | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index f791f5c..54c54d9 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -309,7 +309,7 @@ static void vpif_stop_streaming(struct vb2_queue *vq)
+ 	spin_unlock_irqrestore(&common->irqlock, flags);
+ }
+ 
+-static struct vb2_ops video_qops = {
++static const struct vb2_ops video_qops = {
+ 	.queue_setup		= vpif_buffer_queue_setup,
+ 	.buf_prepare		= vpif_buffer_prepare,
+ 	.start_streaming	= vpif_start_streaming,
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index e5f1844..9604afd 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -289,7 +289,7 @@ static void vpif_stop_streaming(struct vb2_queue *vq)
+ 	spin_unlock_irqrestore(&common->irqlock, flags);
+ }
+ 
+-static struct vb2_ops video_qops = {
++static const struct vb2_ops video_qops = {
+ 	.queue_setup		= vpif_buffer_queue_setup,
+ 	.wait_prepare		= vb2_ops_wait_prepare,
+ 	.wait_finish		= vb2_ops_wait_finish,
+diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+index 13afe48..3038d62 100644
+--- a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
++++ b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+@@ -621,7 +621,7 @@ static void mtk_mdp_m2m_buf_queue(struct vb2_buffer *vb)
+ 	v4l2_m2m_buf_queue(ctx->m2m_ctx, to_vb2_v4l2_buffer(vb));
+ }
+ 
+-static struct vb2_ops mtk_mdp_m2m_qops = {
++static const struct vb2_ops mtk_mdp_m2m_qops = {
+ 	.queue_setup	 = mtk_mdp_m2m_queue_setup,
+ 	.buf_prepare	 = mtk_mdp_m2m_buf_prepare,
+ 	.buf_queue	 = mtk_mdp_m2m_buf_queue,
+diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
+index 929006f..17167d1 100644
+--- a/drivers/media/platform/pxa_camera.c
++++ b/drivers/media/platform/pxa_camera.c
+@@ -1530,7 +1530,7 @@ static void pxac_vb2_stop_streaming(struct vb2_queue *vq)
+ 		pxa_camera_wakeup(pcdev, buf, VB2_BUF_STATE_ERROR);
+ }
+ 
+-static struct vb2_ops pxac_vb2_ops = {
++static const struct vb2_ops pxac_vb2_ops = {
+ 	.queue_setup		= pxac_vb2_queue_setup,
+ 	.buf_init		= pxac_vb2_init,
+ 	.buf_prepare		= pxac_vb2_prepare,
+-- 
+1.9.1
+
