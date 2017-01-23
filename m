@@ -1,85 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kozue.soulik.info ([108.61.200.231]:48262 "EHLO
-        kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755406AbdABKxa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jan 2017 05:53:30 -0500
-Subject: Re: [PATCH 2/2] [media] v4l: Add 10-bits per channel YUV pixel
- formats
-To: Sakari Ailus <sakari.ailus@iki.fi>
-References: <1483347004-32593-1-git-send-email-ayaka@soulik.info>
- <1483347004-32593-3-git-send-email-ayaka@soulik.info>
- <20170102091013.GG3958@valkosipuli.retiisi.org.uk>
-Cc: dri-devel@lists.freedesktop.org, daniel.vetter@intel.com,
-        jani.nikula@linux.intel.com, seanpaul@chromium.org,
-        airlied@linux.ie, linux-kernel@vger.kernel.org,
-        randy.li@rock-chips.com, mchehab@kernel.org,
-        linux-media@vger.kernel.org
-From: ayaka <ayaka@soulik.info>
-Message-ID: <70da89ca-c184-aee5-e133-c13b3bbf6be9@soulik.info>
-Date: Mon, 2 Jan 2017 18:53:16 +0800
-MIME-Version: 1.0
-In-Reply-To: <20170102091013.GG3958@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.samsung.com ([203.254.224.34]:58838 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751325AbdAWQBH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Jan 2017 11:01:07 -0500
+Received: from epcas1p1.samsung.com (unknown [182.195.41.45])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0OK800W0BPD5OU20@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 24 Jan 2017 00:51:05 +0900 (KST)
+To: LMML <linux-media@vger.kernel.org>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [GIT PULL FOR v4.11] Samsung SoC related updates
+Message-id: <2eec1713-342b-f1b8-7d36-9455ec95004b@samsung.com>
+Date: Mon, 23 Jan 2017 16:51:00 +0100
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Content-transfer-encoding: 7bit
+References: <CGME20170123155103epcas1p404f5c648b21e0a7120ef5e0b6b0ec003@epcas1p4.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
 
+It's just a few clean up and one fix patch this time.
 
-On 01/02/2017 05:10 PM, Sakari Ailus wrote:
-> Hi Randy,
->
-> Thanks for the patch.
->
-> On Mon, Jan 02, 2017 at 04:50:04PM +0800, Randy Li wrote:
->> The formats added by this patch are:
->> 	V4L2_PIX_FMT_P010
->> 	V4L2_PIX_FMT_P010M
->> Currently, none of driver uses those format, but some video device
->> has been confirmed with could as those format for video output.
->> The Rockchip's new decoder has supported those format for profile_10
->> HEVC/AVC video.
->>
->> Signed-off-by: Randy Li <ayaka@soulik.info>
-> If the format resembles the existing formats but on a different bit depth,
-> it should be named in similar fashion.
-Do you mean it would be better if it is called as NV12_10?
->
-> Could you also add ReST documentation for the format, please?
-I will.
->
-> The common requirement for merging patches that change interfaces has been
-> that there's a user for that change. It'll still help you to get this
-The kernel used in rockchip has supported that format in drm driver, but 
-just we don't have a agreement about the pixel format. As the Gstreamer 
-and some others would call it with a P010_ prefix, but Mark(rockchip's 
-drm author) prefer the something like NV12_10, that is why I sent out 
-those patches, I want the upstream decided its final name.
-> reviewed now so the interface that the future hopefully-in-mainline driver
-> provides will not change.
->
->> ---
->>   include/uapi/linux/videodev2.h | 2 ++
->>   1 file changed, 2 insertions(+)
->>
->> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
->> index 46e8a2e3..9e03f20 100644
->> --- a/include/uapi/linux/videodev2.h
->> +++ b/include/uapi/linux/videodev2.h
->> @@ -551,6 +551,7 @@ struct v4l2_pix_format {
->>   #define V4L2_PIX_FMT_NV61    v4l2_fourcc('N', 'V', '6', '1') /* 16  Y/CrCb 4:2:2  */
->>   #define V4L2_PIX_FMT_NV24    v4l2_fourcc('N', 'V', '2', '4') /* 24  Y/CbCr 4:4:4  */
->>   #define V4L2_PIX_FMT_NV42    v4l2_fourcc('N', 'V', '4', '2') /* 24  Y/CrCb 4:4:4  */
->> +#define V4L2_PIX_FMT_P010    v4l2_fourcc('P', '0', '1', '0') /* 15  Y/CbCr 4:2:0, 10 bits per channel */
->>   
->>   /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
->>   #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
->> @@ -559,6 +560,7 @@ struct v4l2_pix_format {
->>   #define V4L2_PIX_FMT_NV61M   v4l2_fourcc('N', 'M', '6', '1') /* 16  Y/CrCb 4:2:2  */
->>   #define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 64x32 macroblocks */
->>   #define V4L2_PIX_FMT_NV12MT_16X16 v4l2_fourcc('V', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 16x16 macroblocks */
->> +#define V4L2_PIX_FMT_P010M   v4l2_fourcc('P', 'M', '1', '0') /* 15  Y/CbCr 4:2:0, 10 bits per channel */
->>   
->>   /* three planes - Y Cb, Cr */
->>   #define V4L2_PIX_FMT_YUV410  v4l2_fourcc('Y', 'U', 'V', '9') /*  9  YUV 4:1:0     */
+The following changes since commit 40eca140c404505c09773d1c6685d818cb55ab1a:
 
+  [media] mn88473: add DVB-T2 PLP support (2016-12-27 14:00:15 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/snawrocki/samsung.git for-v4.11/media/next
+
+for you to fetch changes up to d922b4028d8176cb8072a391a2f623a51ded52cd:
+
+  exynos4-is: constify v4l2_subdev_* structures (2017-01-23 13:51:50 +0100)
+
+----------------------------------------------------------------
+Arvind Yadav (1):
+      exynos4-is: fimc-is: Unmap region obtained by of_iomap()
+
+Bhumika Goyal (1):
+      exynos4-is: constify v4l2_subdev_* structures
+
+Javier Martinez Canillas (1):
+      exynos-gsc: Fix unbalanced pm_runtime_enable() error
+
+Shailendra Verma (2):
+      exynos4-is: Clean up file handle in open() error path
+      exynos-gsc: Clean up file handle in open() error path
+
+ drivers/media/platform/exynos-gsc/gsc-core.c     | 1 +
+ drivers/media/platform/exynos-gsc/gsc-m2m.c      | 2 +-
+ drivers/media/platform/exynos4-is/fimc-capture.c | 4 ++--
+ drivers/media/platform/exynos4-is/fimc-is.c      | 8 ++++++--
+ drivers/media/platform/exynos4-is/fimc-m2m.c     | 2 +-
+ drivers/media/platform/exynos4-is/mipi-csis.c    | 8 ++++----
+ 6 files changed, 15 insertions(+), 10 deletions(-)
+
+-- 
+Thanks,
+Sylwester
