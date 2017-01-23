@@ -1,69 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:44333 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751247AbdAaPuE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jan 2017 10:50:04 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com, Wolfram Sang <wsa@the-dreams.de>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 10/11] media: rcar-vin: split rvin_s_fmt_vid_cap()
-Date: Tue, 31 Jan 2017 16:40:15 +0100
-Message-Id: <20170131154016.15526-11-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170131154016.15526-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170131154016.15526-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail.kapsi.fi ([217.30.184.167]:47104 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750721AbdAWJDZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Jan 2017 04:03:25 -0500
+To: LMML <linux-media@vger.kernel.org>
+Cc: Chris Rankin <rankincj@gmail.com>,
+        =?UTF-8?B?SMOla2FuIExlbm5lc3TDpWw=?= <hakan.lennestal@gmail.com>
+From: Antti Palosaari <crope@iki.fi>
+Subject: [GIT PULL 4.10] fix cxd2820r 4.9 regression
+Message-ID: <019fdc86-10a5-037a-1683-26b949757c21@iki.fi>
+Date: Mon, 23 Jan 2017 11:03:23 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To support unbind and rebinding of subdevices rvin_s_fmt_vid_cap() needs
-to be called from with in the driver itself. Rename the function
-__rvin_s_fmt_vid_cap() and create a wrapper which can be used by
-vidioc_s_fmt_vid_cap.
+The following changes since commit d183e4efcae8d88a2f252e546978658ca6d273cc:
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+   [media] v4l: tvp5150: Add missing break in set control handler 
+(2016-12-12 07:49:58 -0200)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 51324c6d826f76ea..929f58b49b06154d 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -313,10 +313,8 @@ static int rvin_try_fmt_vid_cap(struct file *file, void *priv,
- 				 &source);
- }
- 
--static int rvin_s_fmt_vid_cap(struct file *file, void *priv,
--			      struct v4l2_format *f)
-+static int __rvin_s_fmt_vid_cap(struct rvin_dev *vin, struct v4l2_format *f)
- {
--	struct rvin_dev *vin = video_drvdata(file);
- 	struct rvin_source_fmt source;
- 	int ret;
- 
-@@ -338,6 +336,14 @@ static int rvin_s_fmt_vid_cap(struct file *file, void *priv,
- 	return 0;
- }
- 
-+static int rvin_s_fmt_vid_cap(struct file *file, void *priv,
-+			      struct v4l2_format *f)
-+{
-+	struct rvin_dev *vin = video_drvdata(file);
-+
-+	return __rvin_s_fmt_vid_cap(vin, f);
-+}
-+
- static int rvin_g_fmt_vid_cap(struct file *file, void *priv,
- 			      struct v4l2_format *f)
- {
+are available in the git repository at:
+
+   git://linuxtv.org/anttip/media_tree.git cxd2820r
+
+for you to fetch changes up to 783d933cf02e970b49e0dcb586a76207aa6fa331:
+
+   cxd2820r: fix gpio null pointer dereference (2017-01-23 10:40:17 +0200)
+
+----------------------------------------------------------------
+Antti Palosaari (1):
+       cxd2820r: fix gpio null pointer dereference
+
+  drivers/media/dvb-frontends/cxd2820r_core.c | 2 +-
+  1 file changed, 1 insertion(+), 1 deletion(-)
+
 -- 
-2.11.0
-
+http://palosaari.fi/
