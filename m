@@ -1,75 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:33343 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751343AbdAWWOC (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:35347 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750724AbdAWKXt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Jan 2017 17:14:02 -0500
-Received: by mail-pg0-f67.google.com with SMTP id 194so14736061pgd.0
-        for <linux-media@vger.kernel.org>; Mon, 23 Jan 2017 14:14:01 -0800 (PST)
-Date: Tue, 24 Jan 2017 09:13:50 +1100
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: Dreamcat4 <dreamcat4@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Mysterious regression in dvb driver
-Message-ID: <20170123221335.GA10945@Belindas-MacBook-Pro.local>
-References: <CAN39uTpT1W9m+_OQvP_4pbPiOPKjdTGA6tyJ9VJeGq+AZQXfuw@mail.gmail.com>
- <CAN39uTpwe0CjqmC=ajamfN8UrsarwaDZb5YRCMfTNQ2Edyph4g@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAN39uTpwe0CjqmC=ajamfN8UrsarwaDZb5YRCMfTNQ2Edyph4g@mail.gmail.com>
+        Mon, 23 Jan 2017 05:23:49 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Russell King <linux@armlinux.org.uk>,
+        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv3 2/5] exynos_hdmi: add HPD notifier support
+Date: Mon, 23 Jan 2017 11:23:34 +0100
+Message-Id: <20170123102337.20947-3-hverkuil@xs4all.nl>
+In-Reply-To: <20170123102337.20947-1-hverkuil@xs4all.nl>
+References: <20170123102337.20947-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 23, 2017 at 12:21:35PM +0000, Dreamcat4 wrote:
-> Hi again,
-> 
-> Installed Antergos (arch) linux today, and its still same issues. That
-> is with an even newer 4.8 kernel. No HD channels, I2C error in dmesg,
-> CRC error during w_scan tuning. (when its tuning the HD channels).
-> 
-> So I'm hesitant to report it as a bug under ubuntu bug reporter. Since
-> its not just limited to debian-based distros.
-> 
-> My main question is whats actually all the files on the disk /
-> filesystem that are involved? If not in the kernel. Then I could go
-> back and grab them all from ubuntu 14.04 (works), to try in 14.10
-> (time of first breakage). Replacing one file at a time.
-> 
-> Wheras... if it is in the kernel then what else was added later on
-> that broke this? And why is the newer 4.2 updated kernel in the old
-> 14.04 (+.3) still working then? Just doesn't add up / make sense to
-> me.
-> 
-> I would be very grateful if anyone here could please shed some more
-> light on the matter.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-If it is a cross-distro breakage then probably the kernel bugzilla
-might be the right place to file an issue. However you should first
-spend a little time to clarify exactly where the issue is occurring.
+Implement the HPD notifier support to allow CEC drivers to
+be informed when there is a new EDID and when a connect or
+disconnect happens.
 
-First, can you find the usb-id or pci-id for the device, as well as
-the marketing name. It's important for others to be able to identify
-the device unambiguously. dmesg from a working kernel should show this.
-Once you have that, run lspci -vvv or lsusb -v for that device and
-save the output.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/gpu/drm/exynos/Kconfig       |  1 +
+ drivers/gpu/drm/exynos/exynos_hdmi.c | 23 ++++++++++++++++++++---
+ 2 files changed, 21 insertions(+), 3 deletions(-)
 
-Next I suggest making a list of the kernels you have tried and whether
-the device is working or not with that kernel. You want the most detailed
-version number you can find, from the kernel package name or changelog.
-The release date for the packages would probably be helpful too.
+diff --git a/drivers/gpu/drm/exynos/Kconfig b/drivers/gpu/drm/exynos/Kconfig
+index d706ca4e2f02..50309409d450 100644
+--- a/drivers/gpu/drm/exynos/Kconfig
++++ b/drivers/gpu/drm/exynos/Kconfig
+@@ -77,6 +77,7 @@ config DRM_EXYNOS_DP
+ config DRM_EXYNOS_HDMI
+ 	bool "HDMI"
+ 	depends on DRM_EXYNOS_MIXER || DRM_EXYNOS5433_DECON
++	select HPD_NOTIFIER
+ 	help
+ 	  Choose this option if you want to use Exynos HDMI for DRM.
+ 
+diff --git a/drivers/gpu/drm/exynos/exynos_hdmi.c b/drivers/gpu/drm/exynos/exynos_hdmi.c
+index 5ed8b1effe71..8d48a0a21565 100644
+--- a/drivers/gpu/drm/exynos/exynos_hdmi.c
++++ b/drivers/gpu/drm/exynos/exynos_hdmi.c
+@@ -31,6 +31,7 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/clk.h>
+ #include <linux/gpio/consumer.h>
++#include <linux/hpd-notifier.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/io.h>
+ #include <linux/of_address.h>
+@@ -118,6 +119,7 @@ struct hdmi_context {
+ 	bool				dvi_mode;
+ 	struct delayed_work		hotplug_work;
+ 	struct drm_display_mode		current_mode;
++	struct hpd_notifier		*notifier;
+ 	const struct hdmi_driver_data	*drv_data;
+ 
+ 	void __iomem			*regs;
+@@ -807,9 +809,12 @@ static enum drm_connector_status hdmi_detect(struct drm_connector *connector,
+ {
+ 	struct hdmi_context *hdata = connector_to_hdmi(connector);
+ 
+-	if (gpiod_get_value(hdata->hpd_gpio))
++	if (gpiod_get_value(hdata->hpd_gpio)) {
++		hpd_event_connect(hdata->notifier);
+ 		return connector_status_connected;
++	}
+ 
++	hpd_event_disconnect(hdata->notifier);
+ 	return connector_status_disconnected;
+ }
+ 
+@@ -848,6 +853,8 @@ static int hdmi_get_modes(struct drm_connector *connector)
+ 		edid->width_cm, edid->height_cm);
+ 
+ 	drm_mode_connector_update_edid_property(connector, edid);
++	hpd_event_new_edid(hdata->notifier, edid,
++			    EDID_LENGTH * (1 + edid->extensions));
+ 
+ 	ret = drm_add_edid_modes(connector, edid);
+ 
+@@ -1483,6 +1490,7 @@ static void hdmi_disable(struct drm_encoder *encoder)
+ 	if (funcs && funcs->disable)
+ 		(*funcs->disable)(crtc);
+ 
++	hpd_event_disconnect(hdata->notifier);
+ 	cancel_delayed_work(&hdata->hotplug_work);
+ 
+ 	hdmiphy_disable(hdata);
+@@ -1832,15 +1840,22 @@ static int hdmi_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
++	hdata->notifier = hpd_notifier_get(&pdev->dev);
++	if (hdata->notifier == NULL) {
++		ret = -ENOMEM;
++		goto err_hdmiphy;
++	}
++
+ 	pm_runtime_enable(dev);
+ 
+ 	ret = component_add(&pdev->dev, &hdmi_component_ops);
+ 	if (ret)
+-		goto err_disable_pm_runtime;
++		goto err_notifier_put;
+ 
+ 	return ret;
+ 
+-err_disable_pm_runtime:
++err_notifier_put:
++	hpd_notifier_put(hdata->notifier);
+ 	pm_runtime_disable(dev);
+ 
+ err_hdmiphy:
+@@ -1859,9 +1874,11 @@ static int hdmi_remove(struct platform_device *pdev)
+ 	struct hdmi_context *hdata = platform_get_drvdata(pdev);
+ 
+ 	cancel_delayed_work_sync(&hdata->hotplug_work);
++	hpd_event_disconnect(hdata->notifier);
+ 
+ 	component_del(&pdev->dev, &hdmi_component_ops);
+ 
++	hpd_notifier_put(hdata->notifier);
+ 	pm_runtime_disable(&pdev->dev);
+ 
+ 	if (!IS_ERR(hdata->reg_hdmi_en))
+-- 
+2.11.0
 
-Then you should look for the latest working and earliest non-working
-version. Since you are using distro kernels, which will have many
-differences from the one published by kernel.org, it may be worth trying
-to find the git repository and the git tag that matches the kernels on
-either side of the break. This will allow easy diffing of the code.
-The changelog for the kernel package should have dates and perhaps even
-git commit ids that will help with that quest. If you get stuck on this
-just post your results so far, someone may be able to help.
-
-It might also be useful to capture dmesg logs for those two (working/
-nonworking) versions so you can look for the place where things go awry.
-
-HTH
-Vince
