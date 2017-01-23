@@ -1,79 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:49613 "EHLO
-        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751072AbdAMCWW (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:47813 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750968AbdAWLNz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Jan 2017 21:22:22 -0500
-Subject: Re: [PATCH v2 00/21] Basic i.MX IPUv3 capture support
-To: Philipp Zabel <p.zabel@pengutronix.de>
-References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
- <20161019213026.GU9460@valkosipuli.retiisi.org.uk>
- <CAH-u=807nRYzza0kTfOMv1AiWazk6FGJyz6W5_bYw7v9nOrccA@mail.gmail.com>
- <20161229205113.j6wn7kmhkfrtuayu@pengutronix.de>
- <7350daac-14ee-74cc-4b01-470a375613a3@denx.de>
- <c38d80aa-5464-1e9d-e11a-f54716fdb565@mentor.com>
- <1483990983.13625.58.camel@pengutronix.de>
- <43564c16-f7aa-2d35-a41f-991465faaf8b@mentor.com>
- <5b4bb7bd-83ae-c1f3-6b24-989dd6b0aa48@mentor.com>
- <1484136644.2934.89.camel@pengutronix.de>
- <8e6092a3-d80b-fe01-11b4-fbebe1de3102@mentor.com>
- <d8001f56-7e5b-7b23-1dc2-0c3cef5b6ceb@mentor.com>
-CC: Marek Vasut <marex@denx.de>,
-        Robert Schwebel <r.schwebel@pengutronix.de>,
-        Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Gary Bisson <gary.bisson@boundarydevices.com>,
-        Sascha Hauer <kernel@pengutronix.de>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Steve Longerbeam <steve_longerbeam@mentor.com>
-Message-ID: <9cb9acd3-09fe-1478-9ab4-de6da8866993@mentor.com>
-Date: Thu, 12 Jan 2017 18:22:15 -0800
-MIME-Version: 1.0
-In-Reply-To: <d8001f56-7e5b-7b23-1dc2-0c3cef5b6ceb@mentor.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
+        Mon, 23 Jan 2017 06:13:55 -0500
+Message-ID: <1485170006.2874.63.camel@pengutronix.de>
+Subject: Re: [PATCH v3 16/24] media: Add i.MX media core driver
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Mon, 23 Jan 2017 12:13:26 +0100
+In-Reply-To: <e38feca9-ed6f-8288-e006-768d6ba2fe5a@gmail.com>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+         <1483755102-24785-17-git-send-email-steve_longerbeam@mentor.com>
+         <1484320822.31475.96.camel@pengutronix.de>
+         <a94025b4-c4dd-de51-572e-d2615a7246e4@gmail.com>
+         <1484574468.8415.136.camel@pengutronix.de>
+         <e38feca9-ed6f-8288-e006-768d6ba2fe5a@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Steve,
 
+On Sun, 2017-01-22 at 18:31 -0800, Steve Longerbeam wrote:
+> 
+> On 01/16/2017 05:47 AM, Philipp Zabel wrote:
+> > On Sat, 2017-01-14 at 14:46 -0800, Steve Longerbeam wrote:
+> > [...]
+> >>>> +Unprocessed Video Capture:
+> >>>> +--------------------------
+> >>>> +
+> >>>> +Send frames directly from sensor to camera interface, with no
+> >>>> +conversions:
+> >>>> +
+> >>>> +-> ipu_smfc -> camif
+> >>> I'd call this capture interface, this is not just for cameras. Or maybe
+> >>> idmac if you want to mirror hardware names?
+> >> Camif is so named because it is the V4L2 user interface for video
+> >> capture. I suppose it could be named "capif", but that doesn't role
+> >> off the tongue quite as well.
+> > Agreed, capif sounds weird. I find camif a bit confusing though, because
+> > Samsung S3C has a camera interface that is actually called "CAMIF".
+> 
+> how about simply "capture" ?
 
-On 01/12/2017 03:43 PM, Steve Longerbeam wrote:
->
->
-> On 01/12/2017 03:22 PM, Steve Longerbeam wrote:
->>
->>
->>>> and since my PRPVF entity roles
->>>> up the VDIC internally, it is actually receiving from the VDIC 
->>>> channel.
->>>> So unless you think we should have a distinct VDIC entity, I would 
->>>> like
->>>> to keep this
->>>> the way it is.
->>> Yes, I think VDIC should be separated out of PRPVF. What do you think
->>> about splitting the IC PRP into three parts?
->>>
->>> PRP could have one input pad connected to either CSI0, CSI1, or VDIC,
->>> and two output pads connected to PRPVF and PRPENC, respectively. This
->>> would even allow to have the PRP describe the downscale and PRPVF and
->>> PRPENC describe the bilinear upscale part of the IC.
->
-> Actually, how about the following:
->
-> PRP would have one input pad coming from CSI0, CSI1, or VDIC. But
-> instead of another level of indirection with two more PRPENC and PRPVF
-> entities, PRP would instead have two output pads, one for PRPVF output
-> and one for PRPENC output.
->
-> Both output pads could be activated if the input is connected to CSI0 
-> or CSI1.
-> And only the PRPVF output can be activated if the input is from VDIC.
+That sounds good to me.
 
-Actually that proved too difficult. I went with your original idea. 
-Branch that
-implements this is imx-media-staging-md-prp. The media dot graph looks good
-but I have not tested yet. I'll start testing it tomorrow.
+[...]
+> > Chapter 37.4.2.3 "FCW & FCR - Format converter write and read" in the
+> > IDMAC chapter states that all internal submodules only work on 8-bit per
+> > component formats with four components: YUVA or RGBA.
+> 
+> Right, the "direct" IPU internal (that do not transfer buffers to/from
+> memory via IDMAC channels) should only allow the IPU internal
+> formats YUVA and RGBA. I get you now.
+> 
+> The "direct" pads now only accept MEDIA_BUS_FMT_AYUV8_1X32 and
+> MEDIA_BUS_FMT_ARGB8888_1X32.
+> 
+> Those pads are:
+> 
+> ipu_csi:1
+> ipu_vdic:1
+> ipu_ic_prp:0
+> ipu_ic_prp:1
+> ipu_ic_prpenc:0
+> ipu_ic_prpenc:1
+> ipu_ic_prpvf:0
+> ipu_ic_prpvf:1
 
-Steve
+Yes, that is what I meant. The csi:1 can then be extended to support
+additional expanded/packed/raw formats for the SMFC->memory path.
+
+> >> There does not appear to be support in the FSU for linking a write channel
+> >> to the VDIC read channels (8, 9, 10) according to VDI_SRC_SEL field. There
+> >> is support for the direct link from CSI (which I am using), but that's
+> >> not an
+> >> IDMAC channel link.
+> >>
+> >> There is a PRP_SRC_SEL field, with linking from IDMAC (SMFC) channels
+> >> 0..2 (and 3? it's not clear, and not clear whether this includes channel 1).
+> > As I read it, that is 0 and 2 only, no idea why. But since there are
+> > only 2 CSIs, that shouldn't be a problem.
+> 
+> ipu_csi1 is now transferring on IDMAC/SMFC channel 2 (ipu_csi0 still
+> at channel 0).
+
+Ok.
+
+> >>>> +static const u32 power_off_seq[] = {
+> >>>> +	IMX_MEDIA_GRP_ID_IC_PP,
+> >>>> +	IMX_MEDIA_GRP_ID_IC_PRPVF,
+> >>>> +	IMX_MEDIA_GRP_ID_IC_PRPENC,
+> >>>> +	IMX_MEDIA_GRP_ID_SMFC,
+> >>>> +	IMX_MEDIA_GRP_ID_CSI,
+> >>>> +	IMX_MEDIA_GRP_ID_VIDMUX,
+> >>>> +	IMX_MEDIA_GRP_ID_SENSOR,
+> >>>> +	IMX_MEDIA_GRP_ID_CSI2,
+> >>>> +};
+> >>> This seems somewhat arbitrary. Why is a power sequence needed?
+> >> The CSI-2 receiver must be powered up before the sensor, that's the
+> >> only requirement IIRC. The others have no s_power requirement. So I
+> >> can probably change this to power up in the frontend -> backend order
+> >> (IC_PP to sensor). And vice-versa for power off.
+> > Yes, I think that should work (see below).
+> 
+> Actually there are problems using this, see below.
+[...]
+> >>>> +EXPORT_SYMBOL_GPL(imx_media_pipeline_set_power);
+> >>> This should really be handled by v4l2_pipeline_pm_use.
+> >> I thought about this earlier, but v4l2_pipeline_pm_use() seems to be
+> >> doing some other stuff that bothered me, at least that's what I remember.
+> >> I will revisit this.
+> > I have used it with a tc358743 -> mipi-csi2 pipeline, it didn't cause
+> > any problems. It would be better to reuse and, if necessary, fix the
+> > existing infrastructure where available.
+> 
+> I tried this API, by switching to v4l2_pipeline_pm_use() in camif 
+> open/release,
+> and switched to v4l2_pipeline_link_notify() instead of 
+> imx_media_link_notify()
+> in the media driver's media_device_ops.
+> 
+> This API assumes the video device has an open file handle while the media
+> links are being established. This doesn't work for me, I want to be able to
+> establish the links using 'media-ctl -l', and that won't work unless 
+> there is an
+> open file handle on the video capture device node.
+> 
+> Also, I looked into calling v4l2_pipeline_pm_use() during 
+> imx_media_link_notify(),
+> instead of imx_media_pipeline_set_power(). Again there are problems with 
+> that.
+> 
+> First, v4l2_pipeline_pm_use() acquires the graph mutex, so it can't be 
+> called inside
+> link_notify which already acquires that lock. The header for this 
+> function also
+> clearly states it should only be called in open/release.
+
+So why not call it in open/release then?
+
+> Second, ignoring the above locking issue for a moment, 
+> v4l2_pipeline_pm_use()
+> will call s_power on the sensor _first_, then the mipi csi-2 s_power, 
+> when executing
+> media-ctl -l '"ov5640 1-003c":0 -> "imx6-mipi-csi2":0[1]'. Which is the 
+> wrong order.
+> In my version which enforces the correct power on order, the mipi csi-2 
+> s_power
+> is called first in that link setup, followed by the sensor.
+
+I don't understand why you want to power up subdevs as soon as the links
+are established. Shouldn't that rather be done for all subdevices in the
+pipeline when the corresponding capture device is opened?
+It seems to me that powering up the pipeline should be the last step
+before userspace actually starts the capture.
+
+[...]
+> >>>> +	/* there must be at least one CSI in first IPU */
+> >>> Why?
+> >> Well yeah, imx-media doesn't necessarily need a CSI if things
+> >> like the VDIC or post-processor are being used by an output
+> >> overlay pipeline, for example. I'll fix this.
+> > I haven't even thought that far, but there could be boards with only a
+> > parallel sensor connected to IPU2 CSI1 and IPU1 disabled for power
+> > saving reasons.
+> 
+> done! A very simple change to imx_media_add_internal_subdevs(),
+> and now no CSI's are necessary, but the remaining IPU internal entities
+> are loaded and linked just fine without them, so for example with no
+> CSI's in IPU2, the VDIC entity in IPU2 is still present in the graph and
+> could still be used in the future by a mem2mem device for instance.
+
+Excellent, thanks.
+
+regards
+Philipp
 
