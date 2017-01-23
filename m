@@ -1,80 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57963 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759745AbdACRQn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2017 12:16:43 -0500
-Subject: Re: [PATCH] media: entity: Catch unbalanced media_pipeline_stop calls
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        sakari.ailus@iki.fi
-References: <1483449131-18075-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
- <2426604.oXt7iAeI8O@avalon>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <f2029382-de41-3267-d1f2-6b1366bcae27@ideasonboard.com>
-Date: Tue, 3 Jan 2017 17:05:58 +0000
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35800 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750703AbdAWIft (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Jan 2017 03:35:49 -0500
+Received: by mail-wm0-f68.google.com with SMTP id d140so24670511wmd.2
+        for <linux-media@vger.kernel.org>; Mon, 23 Jan 2017 00:35:48 -0800 (PST)
+Date: Mon, 23 Jan 2017 09:35:45 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Cc: linaro-kernel@lists.linaro.org, arnd@arndb.de, labbott@redhat.com,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, daniel.vetter@ffwll.ch,
+        laurent.pinchart@ideasonboard.com, robdclark@gmail.com,
+        broonie@kernel.org, Sumit Semwal <sumit.semwal@linaro.org>
+Subject: Re: [RFC simple allocator v1 0/2] Simple allocator
+Message-ID: <20170123083545.6l2jxlkdtmebxy5b@phenom.ffwll.local>
+References: <1484926351-30185-1-git-send-email-benjamin.gaignard@linaro.org>
 MIME-Version: 1.0
-In-Reply-To: <2426604.oXt7iAeI8O@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1484926351-30185-1-git-send-email-benjamin.gaignard@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/01/17 13:36, Laurent Pinchart wrote:
-> Hi Kieran,
+On Fri, Jan 20, 2017 at 04:32:29PM +0100, Benjamin Gaignard wrote:
+> The goal of this RFC is to understand if a common ioctl for specific memory
+> regions allocations is needed/welcome.
 > 
-> Thank you for the patch.
+> Obviously it will not replace allocation done in linux kernel frameworks like
+> v4l2, drm/kms or others, but offer an alternative when you don't want/need to
+> use them for buffer allocation.
+> To keep a compatibility with what already exist allocated buffers are exported
+> in userland as dmabuf file descriptor (like ION is doing).
 > 
-> On Tuesday 03 Jan 2017 13:12:11 Kieran Bingham wrote:
->> Drivers must not perform unbalanced calls to stop the entity pipeline,
->> however if they do they will fault in the core media code, as the
->> entity->pipe will be set as NULL. We handle this gracefully in the core
->> with a WARN for the developer.
->>
->> Replace the erroneous check on zero streaming counts, with a check on
->> NULL pipe elements instead, as this is the symptom of unbalanced
->> media_pipeline_stop calls.
->>
->> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> "Unix Device Memory Allocator" project [1] wants to create a userland library
+> which may allow to select, depending of the devices constraint, the best
+> back-end for allocation. With this RFC I would to propose to have common ioctl
+> for a maximum of allocators to avoid to duplicated back-ends for this library.
 > 
-> This looks good to me,
+> One of the issues that lead me to propose this RFC it is that since the beginning
+> it is a problem to allocate contiguous memory (CMA) without using v4l2 or
+> drm/kms so the first allocator available in this RFC use CMA memory.
 > 
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> An other question is: do we have others memory regions that could be interested
+> by this new framework ? I have in mind that some title memory regions could use
+> it or replace ION heaps (system, carveout, etc...).
+> Maybe it only solve CMA allocation issue, in this case there is no need to create
+> a new framework but only a dedicated ioctl.
 > 
-> I'll let Sakari review and merge the patch.
+> Maybe the first thing to do is to change the name and the location of this 
+> module, suggestions are welcome.
+> 
+> I have testing this code with the following program:
 
-Ahh, yes - I forgot to mention, although perhaps it will be obvious for
-Sakari - but this patch is based on top of Sakari's pending media
-pipeline and graph walk cleanup series :D
-
---
-Regards
-
-Kieran
+I'm still maintaining that we should just destage ION (with the todo items
+fixed), since that is already an uabi to do this (afaiui at least), and
+it's used on a few devices ... Please chat with Laura Abott.
+-Daniel
 
 > 
->> ---
->>  drivers/media/media-entity.c | 7 ++++++-
->>  1 file changed, 6 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
->> index caa13e6f09f5..cb1fb2c17f85 100644
->> --- a/drivers/media/media-entity.c
->> +++ b/drivers/media/media-entity.c
->> @@ -534,8 +534,13 @@ void __media_pipeline_stop(struct media_entity *entity)
->> struct media_graph *graph = &entity->pipe->graph;
->>  	struct media_pipeline *pipe = entity->pipe;
->>
->> +	/*
->> +	 * If the following check fails, the driver has performed an
->> +	 * unbalanced call to media_pipeline_stop()
->> +	 */
->> +	if (WARN_ON(!pipe))
->> +		return;
->>
->> -	WARN_ON(!pipe->streaming_count);
->>  	media_graph_walk_start(graph, entity);
->>
->>  	while ((entity = media_graph_walk_next(graph))) {
+> #include <errno.h>
+> #include <fcntl.h>
+> #include <stdio.h>
+> #include <stdlib.h>
+> #include <string.h>
+> #include <unistd.h>
+> #include <sys/ioctl.h>
+> #include <sys/mman.h>
+> #include <sys/stat.h>
+> #include <sys/types.h>
 > 
+> #include "simple-allocator.h"
+> 
+> #define LENGTH 1024*16
+> 
+> void main (void)
+> {
+> 	struct simple_allocate_data data;
+> 	int fd = open("/dev/cma0", O_RDWR, 0);
+> 	int ret;
+> 	void *mem;
+> 
+> 	if (fd < 0) {
+> 		printf("Can't open /dev/cma0\n");
+> 		return;
+> 	}
+> 
+> 	memset(&data, 0, sizeof(data));
+> 
+> 	data.length = LENGTH;
+> 	data.flags = O_RDWR | O_CLOEXEC;
+> 
+> 	ret = ioctl(fd, SA_IOC_ALLOC, &data);
+> 	if (ret) {
+> 		printf("Buffer allocation failed\n");
+> 		goto end;
+> 	}
+> 
+> 	mem = mmap(0, LENGTH, PROT_READ | PROT_WRITE, MAP_SHARED, data.fd, 0);
+> 	if (mem == MAP_FAILED) {
+> 		printf("mmap failed\n");
+> 	}
+> 
+> 	memset(mem, 0xFF, LENGTH);
+> 	munmap(mem, LENGTH);
+> 
+> 	printf("test simple allocator CMA OK\n");
+> end:
+> 	close(fd);
+> }
+> 
+> [1] https://github.com/cubanismo/allocator
+> 
+> Benjamin Gaignard (2):
+>   Create Simple Allocator module
+>   add CMA simple allocator module
+> 
+>  Documentation/simple-allocator.txt              |  81 ++++++++++
+>  drivers/Kconfig                                 |   2 +
+>  drivers/Makefile                                |   1 +
+>  drivers/simpleallocator/Kconfig                 |  17 +++
+>  drivers/simpleallocator/Makefile                |   2 +
+>  drivers/simpleallocator/simple-allocator-cma.c  | 187 ++++++++++++++++++++++++
+>  drivers/simpleallocator/simple-allocator-priv.h |  33 +++++
+>  drivers/simpleallocator/simple-allocator.c      | 180 +++++++++++++++++++++++
+>  include/uapi/linux/simple-allocator.h           |  35 +++++
+>  9 files changed, 538 insertions(+)
+>  create mode 100644 Documentation/simple-allocator.txt
+>  create mode 100644 drivers/simpleallocator/Kconfig
+>  create mode 100644 drivers/simpleallocator/Makefile
+>  create mode 100644 drivers/simpleallocator/simple-allocator-cma.c
+>  create mode 100644 drivers/simpleallocator/simple-allocator-priv.h
+>  create mode 100644 drivers/simpleallocator/simple-allocator.c
+>  create mode 100644 include/uapi/linux/simple-allocator.h
+> 
+> -- 
+> 1.9.1
+> 
+
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
