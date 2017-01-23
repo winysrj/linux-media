@@ -1,136 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:36812 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756668AbdAFSL5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2017 13:11:57 -0500
-Subject: Re: [PATCH v2 12/19] media: imx: Add SMFC subdev driver
-To: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
-        shawnguo@kernel.org, kernel@pengutronix.de, fabio.estevam@nxp.com,
-        robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk,
-        mchehab@kernel.org, gregkh@linuxfoundation.org,
-        p.zabel@pengutronix.de
-References: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
- <1483477049-19056-13-git-send-email-steve_longerbeam@mentor.com>
- <13ff9579-ce8e-9272-ee44-9b597631f6b5@mentor.com>
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <7814d422-0782-9e5a-bcd9-29e747ba2858@gmail.com>
-Date: Fri, 6 Jan 2017 10:11:54 -0800
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:40439 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750708AbdAWJBV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Jan 2017 04:01:21 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.11] coda: add support for Video Data Order Adapter
+Message-ID: <74c99f5d-30f2-f5a8-1208-44e47eefd9ed@xs4all.nl>
+Date: Mon, 23 Jan 2017 10:01:16 +0100
 MIME-Version: 1.0
-In-Reply-To: <13ff9579-ce8e-9272-ee44-9b597631f6b5@mentor.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The following changes since commit 40eca140c404505c09773d1c6685d818cb55ab1a:
 
+  [media] mn88473: add DVB-T2 PLP support (2016-12-27 14:00:15 -0200)
 
-On 01/04/2017 06:23 AM, Vladimir Zapolskiy wrote:
-> On 01/03/2017 10:57 PM, Steve Longerbeam wrote:
->> This is a media entity subdevice driver for the i.MX Sensor Multi-FIFO
->> Controller module. Video frames are received from the CSI and can
->> be routed to various sinks including the i.MX Image Converter for
->> scaling, color-space conversion, motion compensated deinterlacing,
->> and image rotation.
->>
->> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
->> ---
->>   drivers/staging/media/imx/Makefile   |   1 +
->>   drivers/staging/media/imx/imx-smfc.c | 739 +++++++++++++++++++++++++++++++++++
->>   2 files changed, 740 insertions(+)
->>   create mode 100644 drivers/staging/media/imx/imx-smfc.c
->>
->> diff --git a/drivers/staging/media/imx/Makefile b/drivers/staging/media/imx/Makefile
->> index 133672a..3559d7b 100644
->> --- a/drivers/staging/media/imx/Makefile
->> +++ b/drivers/staging/media/imx/Makefile
->> @@ -5,4 +5,5 @@ obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-media.o
->>   obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-media-common.o
->>   
->>   obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-csi.o
->> +obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-smfc.o
-> May be
->
-> obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-csi.o imx-smfc.o
+are available in the git repository at:
 
-I'd prefer to keep them on separate lines, to indicate they
-are all built as separate modules.
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.11c
 
->
->>   
->> diff --git a/drivers/staging/media/imx/imx-smfc.c b/drivers/staging/media/imx/imx-smfc.c
->> new file mode 100644
->> index 0000000..565048c
->> --- /dev/null
->> +++ b/drivers/staging/media/imx/imx-smfc.c
->> @@ -0,0 +1,739 @@
->> +/*
->> + * V4L2 Capture SMFC Subdev for Freescale i.MX5/6 SOC
->> + *
->> + * This subdevice handles capture of raw/unconverted video frames
->> + * from the CSI, directly to memory via the Sensor Multi-FIFO Controller.
->> + *
->> + * Copyright (c) 2012-2016 Mentor Graphics Inc.
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License as published by
->> + * the Free Software Foundation; either version 2 of the License, or
->> + * (at your option) any later version.
->> + */
->> +#include <linux/module.h>
->> +#include <linux/delay.h>
->> +#include <linux/fs.h>
->> +#include <linux/timer.h>
->> +#include <linux/sched.h>
->> +#include <linux/slab.h>
->> +#include <linux/interrupt.h>
->> +#include <linux/spinlock.h>
->> +#include <linux/platform_device.h>
->> +#include <linux/pinctrl/consumer.h>
->> +#include <media/v4l2-device.h>
->> +#include <media/v4l2-ioctl.h>
->> +#include <media/videobuf2-dma-contig.h>
->> +#include <media/v4l2-subdev.h>
->> +#include <media/v4l2-of.h>
->> +#include <media/v4l2-ctrls.h>
-> Please sort the list of headers alphabetically.
+for you to fetch changes up to 7da44db4d65786332a797aa08b7932e2fb4d421f:
 
-done.
+  coda: support YUYV output if VDOA is used (2017-01-23 09:43:46 +0100)
 
->
->> +static irqreturn_t imx_smfc_eof_interrupt(int irq, void *dev_id)
->> +{
->> +	struct imx_smfc_priv *priv = dev_id;
->> +	struct imx_media_dma_buf *done, *next;
->> +	unsigned long flags;
->> +
->> +	spin_lock_irqsave(&priv->irqlock, flags);
-> spin_lock(&priv->irqlock) should be sufficient.
+----------------------------------------------------------------
+Michael Tretter (3):
+      coda: fix frame index to returned error
+      coda: use VDOA for un-tiling custom macroblock format
+      coda: support YUYV output if VDOA is used
 
-yes thanks.
+Philipp Zabel (4):
+      dt-bindings: Add a binding for Video Data Order Adapter
+      coda: add i.MX6 VDOA driver
+      coda: correctly set capture compose rectangle
+      coda: add debug output about tiling
 
->
->> +
->> +static const struct platform_device_id imx_smfc_ids[] = {
->> +	{ .name = "imx-ipuv3-smfc" },
->> +	{ },
->> +};
->> +MODULE_DEVICE_TABLE(platform, imx_smfc_ids);
->> +
->> +static struct platform_driver imx_smfc_driver = {
->> +	.probe = imx_smfc_probe,
->> +	.remove = imx_smfc_remove,
->> +	.id_table = imx_smfc_ids,
->> +	.driver = {
->> +		.name = "imx-ipuv3-smfc",
->> +		.owner = THIS_MODULE,
-> You can drop owner assignment.
-
-done.
-
-
-Steve
-
+ Documentation/devicetree/bindings/media/fsl-vdoa.txt |  21 +++
+ arch/arm/boot/dts/imx6qdl.dtsi                       |   2 +
+ drivers/media/platform/Kconfig                       |   3 +
+ drivers/media/platform/coda/Makefile                 |   1 +
+ drivers/media/platform/coda/coda-bit.c               |  93 +++++++++----
+ drivers/media/platform/coda/coda-common.c            | 177 ++++++++++++++++++++++---
+ drivers/media/platform/coda/coda.h                   |   3 +
+ drivers/media/platform/coda/imx-vdoa.c               | 338 +++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/platform/coda/imx-vdoa.h               |  58 ++++++++
+ 9 files changed, 654 insertions(+), 42 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/fsl-vdoa.txt
+ create mode 100644 drivers/media/platform/coda/imx-vdoa.c
+ create mode 100644 drivers/media/platform/coda/imx-vdoa.h
