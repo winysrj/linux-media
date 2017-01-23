@@ -1,73 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ares41.inai.de ([46.4.122.207]:57754 "EHLO ares41.inai.de"
+Received: from mx2.suse.de ([195.135.220.15]:48164 "EHLO mx2.suse.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751004AbdALQg5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 12 Jan 2017 11:36:57 -0500
-Date: Thu, 12 Jan 2017 17:28:13 +0100 (CET)
-From: Jan Engelhardt <jengelh@inai.de>
-To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-cc: Christoph Hellwig <hch@infradead.org>, arnd@arndb.de,
-        mmarek@suse.com, linux-kbuild@vger.kernel.org,
-        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org,
-        adi-buildroot-devel@lists.sourceforge.net,
-        linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com,
-        uclinux-h8-devel@lists.sourceforge.jp,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org,
-        linux-mips@linux-mips.org, linux-am33-list@redhat.com,
-        nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-        linux-arch@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        netdev@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mmc@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-nfs@vger.kernel.org,
-        linux-raid@vger.kernel.org, linux-spi@vger.kernel.org,
-        linux-mtd@lists.infradead.org, linux-rdma@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, alsa-devel@alsa-project.org,
-        linux-fbdev@vger.kernel.org, xen-devel@lists.xenproject.org,
-        airlied@linux.ie, davem@davemloft.net
-Subject: Re: [PATCH v2 7/7] uapi: export all headers under uapi directories
-In-Reply-To: <464a1323-4450-e563-ff59-9e6d57b75959@6wind.com>
-Message-ID: <alpine.LSU.2.20.1701121727180.19188@erq.vanv.qr>
-References: <bf83da6b-01ef-bf44-b3e1-ca6fc5636818@6wind.com> <1483695839-18660-1-git-send-email-nicolas.dichtel@6wind.com> <1483695839-18660-8-git-send-email-nicolas.dichtel@6wind.com> <20170109125638.GA15506@infradead.org>
- <464a1323-4450-e563-ff59-9e6d57b75959@6wind.com>
+        id S1750960AbdAWJMf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Jan 2017 04:12:35 -0500
+From: Jiri Slaby <jslaby@suse.cz>
+To: hverkuil@xs4all.nl
+Cc: linux-kernel@vger.kernel.org,
+        =?UTF-8?q?Matej=20Hul=C3=ADn?= <mito.hulin@gmail.com>,
+        Jiri Slaby <jslaby@suse.cz>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Subject: [PATCH] media: radio-cadet, initialize timer with setup_timer
+Date: Mon, 23 Jan 2017 10:12:30 +0100
+Message-Id: <20170123091230.16248-1-jslaby@suse.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 2017-01-12 16:52, Nicolas Dichtel wrote:
+From: Matej Hulín <mito.hulin@gmail.com>
 
->Le 09/01/2017 à 13:56, Christoph Hellwig a écrit :
->> On Fri, Jan 06, 2017 at 10:43:59AM +0100, Nicolas Dichtel wrote:
->>> Regularly, when a new header is created in include/uapi/, the developer
->>> forgets to add it in the corresponding Kbuild file. This error is usually
->>> detected after the release is out.
->>>
->>> In fact, all headers under uapi directories should be exported, thus it's
->>> useless to have an exhaustive list.
->>>
->>> After this patch, the following files, which were not exported, are now
->>> exported (with make headers_install_all):
->> 
->> ... snip ...
->> 
->>> linux/genwqe/.install
->>> linux/genwqe/..install.cmd
->>> linux/cifs/.install
->>> linux/cifs/..install.cmd
->> 
->> I'm pretty sure these should not be exported!
->> 
->Those files are created in every directory:
->$ find usr/include/ -name '\.\.install.cmd' | wc -l
->71
+Stop accessing timer struct members directly and use the setup_timer
+helper intended for that use. It makes the code cleaner and will allow
+for easier change of the timer struct internals.
 
-That still does not mean they should be exported.
+Signed-off-by: Matej Hulín <mito.hulin@gmail.com>
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: <linux-media@vger.kernel.org>
+---
+ drivers/media/radio/radio-cadet.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-Anything but headers (and directories as a skeleton structure) is maximally suspicious.
+diff --git a/drivers/media/radio/radio-cadet.c b/drivers/media/radio/radio-cadet.c
+index 82affaedf067..cbaf850f4791 100644
+--- a/drivers/media/radio/radio-cadet.c
++++ b/drivers/media/radio/radio-cadet.c
+@@ -309,9 +309,7 @@ static void cadet_handler(unsigned long data)
+ 	/*
+ 	 * Clean up and exit
+ 	 */
+-	init_timer(&dev->readtimer);
+-	dev->readtimer.function = cadet_handler;
+-	dev->readtimer.data = data;
++	setup_timer(&dev->readtimer, cadet_handler, data);
+ 	dev->readtimer.expires = jiffies + msecs_to_jiffies(50);
+ 	add_timer(&dev->readtimer);
+ }
+@@ -320,9 +318,7 @@ static void cadet_start_rds(struct cadet *dev)
+ {
+ 	dev->rdsstat = 1;
+ 	outb(0x80, dev->io);        /* Select RDS fifo */
+-	init_timer(&dev->readtimer);
+-	dev->readtimer.function = cadet_handler;
+-	dev->readtimer.data = (unsigned long)dev;
++	setup_timer(&dev->readtimer, cadet_handler, (unsigned long)dev);
+ 	dev->readtimer.expires = jiffies + msecs_to_jiffies(50);
+ 	add_timer(&dev->readtimer);
+ }
+-- 
+2.11.0
+
