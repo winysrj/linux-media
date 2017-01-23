@@ -1,142 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:34426 "EHLO
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:33343 "EHLO
         mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751030AbdAFSmh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2017 13:42:37 -0500
-Subject: Re: [PATCH v2 14/19] media: imx: Add Camera Interface subdev driver
-To: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
-        shawnguo@kernel.org, kernel@pengutronix.de, fabio.estevam@nxp.com,
-        robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk,
-        mchehab@kernel.org, gregkh@linuxfoundation.org,
-        p.zabel@pengutronix.de
-References: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
- <1483477049-19056-15-git-send-email-steve_longerbeam@mentor.com>
- <4a893d70-f34a-9fb1-401f-bcb954e3a2cb@mentor.com>
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <119f0a16-ff23-e62b-5e90-3d56df7be894@gmail.com>
-Date: Fri, 6 Jan 2017 10:42:34 -0800
+        with ESMTP id S1751343AbdAWWOC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Jan 2017 17:14:02 -0500
+Received: by mail-pg0-f67.google.com with SMTP id 194so14736061pgd.0
+        for <linux-media@vger.kernel.org>; Mon, 23 Jan 2017 14:14:01 -0800 (PST)
+Date: Tue, 24 Jan 2017 09:13:50 +1100
+From: Vincent McIntyre <vincent.mcintyre@gmail.com>
+To: Dreamcat4 <dreamcat4@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Mysterious regression in dvb driver
+Message-ID: <20170123221335.GA10945@Belindas-MacBook-Pro.local>
+References: <CAN39uTpT1W9m+_OQvP_4pbPiOPKjdTGA6tyJ9VJeGq+AZQXfuw@mail.gmail.com>
+ <CAN39uTpwe0CjqmC=ajamfN8UrsarwaDZb5YRCMfTNQ2Edyph4g@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4a893d70-f34a-9fb1-401f-bcb954e3a2cb@mentor.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAN39uTpwe0CjqmC=ajamfN8UrsarwaDZb5YRCMfTNQ2Edyph4g@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, Jan 23, 2017 at 12:21:35PM +0000, Dreamcat4 wrote:
+> Hi again,
+> 
+> Installed Antergos (arch) linux today, and its still same issues. That
+> is with an even newer 4.8 kernel. No HD channels, I2C error in dmesg,
+> CRC error during w_scan tuning. (when its tuning the HD channels).
+> 
+> So I'm hesitant to report it as a bug under ubuntu bug reporter. Since
+> its not just limited to debian-based distros.
+> 
+> My main question is whats actually all the files on the disk /
+> filesystem that are involved? If not in the kernel. Then I could go
+> back and grab them all from ubuntu 14.04 (works), to try in 14.10
+> (time of first breakage). Replacing one file at a time.
+> 
+> Wheras... if it is in the kernel then what else was added later on
+> that broke this? And why is the newer 4.2 updated kernel in the old
+> 14.04 (+.3) still working then? Just doesn't add up / make sense to
+> me.
+> 
+> I would be very grateful if anyone here could please shed some more
+> light on the matter.
 
+If it is a cross-distro breakage then probably the kernel bugzilla
+might be the right place to file an issue. However you should first
+spend a little time to clarify exactly where the issue is occurring.
 
-On 01/04/2017 06:55 AM, Vladimir Zapolskiy wrote:
-> On 01/03/2017 10:57 PM, Steve Longerbeam wrote:
->>
->> diff --git a/drivers/staging/media/imx/Makefile b/drivers/staging/media/imx/Makefile
->> index d2a962c..fe9e992 100644
->> --- a/drivers/staging/media/imx/Makefile
->> +++ b/drivers/staging/media/imx/Makefile
->> @@ -8,4 +8,4 @@ obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-ic.o
->>   
->>   obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-csi.o
->>   obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-smfc.o
->> -
->> +obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-camif.o
-> obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-camif.o imx-csi.o imx-smfc.o
->
-> as an option.
+First, can you find the usb-id or pci-id for the device, as well as
+the marketing name. It's important for others to be able to identify
+the device unambiguously. dmesg from a working kernel should show this.
+Once you have that, run lspci -vvv or lsusb -v for that device and
+save the output.
 
-I prefer to keep on separate lines as explained earlier.
+Next I suggest making a list of the kernels you have tried and whether
+the device is working or not with that kernel. You want the most detailed
+version number you can find, from the kernel package name or changelog.
+The release date for the packages would probably be helpful too.
 
->
->> diff --git a/drivers/staging/media/imx/imx-camif.c b/drivers/staging/media/imx/imx-camif.c
->> new file mode 100644
->> index 0000000..3cf167e
->> --- /dev/null
->> +++ b/drivers/staging/media/imx/imx-camif.c
->> @@ -0,0 +1,1010 @@
->> +/*
->> + * Video Camera Capture Subdev for Freescale i.MX5/6 SOC
->> + *
->> + * Copyright (c) 2012-2016 Mentor Graphics Inc.
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License as published by
->> + * the Free Software Foundation; either version 2 of the License, or
->> + * (at your option) any later version.
->> + */
->> +#include <linux/module.h>
->> +#include <linux/delay.h>
->> +#include <linux/fs.h>
->> +#include <linux/timer.h>
->> +#include <linux/sched.h>
->> +#include <linux/slab.h>
->> +#include <linux/spinlock.h>
->> +#include <linux/platform_device.h>
->> +#include <linux/pinctrl/consumer.h>
->> +#include <linux/of_platform.h>
->> +#include <media/v4l2-device.h>
->> +#include <media/v4l2-ioctl.h>
->> +#include <media/videobuf2-dma-contig.h>
->> +#include <media/v4l2-subdev.h>
->> +#include <media/v4l2-of.h>
->> +#include <media/v4l2-ctrls.h>
->> +#include <media/v4l2-event.h>
-> Please sort the list of headers alphabetically.
+Then you should look for the latest working and earliest non-working
+version. Since you are using distro kernels, which will have many
+differences from the one published by kernel.org, it may be worth trying
+to find the git repository and the git tag that matches the kernels on
+either side of the break. This will allow easy diffing of the code.
+The changelog for the kernel package should have dates and perhaps even
+git commit ids that will help with that quest. If you get stuck on this
+just post your results so far, someone may be able to help.
 
-done.
+It might also be useful to capture dmesg logs for those two (working/
+nonworking) versions so you can look for the place where things go awry.
 
->> +#include <video/imx-ipu-v3.h>
->> +#include <media/imx.h>
->> +#include "imx-media.h"
->> +
->> +#define DEVICE_NAME "imx-media-camif"
-> I would propose to drop this macro.
-
-done.
-
->> +
->> +#define CAMIF_DQ_TIMEOUT        5000
-> Add a comment about time unit?
-
-actually that was ancient and no longer used, removed.
-
->
->> +
->> +struct camif_priv;
->> +
-> This is a leftover apparently.
-
-ditto, removed.
-
->> +
->> +	ret = v4l2_async_register_subdev(&priv->sd);
->> +	if (ret)
->> +		goto free_ctrls;
->> +
->> +	return 0;
->> +free_ctrls:
->> +	v4l2_ctrl_handler_free(&priv->ctrl_hdlr);
->> +	return ret;
-> A shorter version:
->
-> if (ret)
-> 	v4l2_ctrl_handler_free(&priv->ctrl_hdlr);
->
-> return ret;
-
-done.
-
->> +
->> +static struct platform_driver imx_camif_driver = {
->> +	.probe		= camif_probe,
->> +	.remove		= camif_remove,
->> +	.driver		= {
->> +		.name	= DEVICE_NAME,
->> +		.owner	= THIS_MODULE,
-> Please drop the owner assignment.
-
-done.
-
-
-Steve
-
+HTH
+Vince
