@@ -1,143 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:34774 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S940551AbdAGCMK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2017 21:12:10 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v3 08/24] ARM: dts: imx6-sabreauto: create i2cmux for i2c3
-Date: Fri,  6 Jan 2017 18:11:26 -0800
-Message-Id: <1483755102-24785-9-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:35347 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750724AbdAWKXz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Jan 2017 05:23:55 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Russell King <linux@armlinux.org.uk>,
+        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv3 3/5] cec: integrate HPD notifier support
+Date: Mon, 23 Jan 2017 11:23:35 +0100
+Message-Id: <20170123102337.20947-4-hverkuil@xs4all.nl>
+In-Reply-To: <20170123102337.20947-1-hverkuil@xs4all.nl>
+References: <20170123102337.20947-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The sabreauto uses a steering pin to select between the SDA signal on
-i2c3 bus, and a data-in pin for an SPI NOR chip. Use i2cmux to control
-this steering pin. Idle state of the i2cmux selects SPI NOR. This is not
-a classic way to use i2cmux, since one side of the mux selects something
-other than an i2c bus, but it works and is probably the cleanest
-solution. Note that if one thread is attempting to access SPI NOR while
-another thread is accessing i2c3, the SPI NOR access will fail since the
-i2cmux has selected the SDA pin rather than SPI NOR data-in. This couldn't
-be avoided in any case, the board is not designed to allow concurrent
-i2c3 and SPI NOR functions (and the default device-tree does not enable
-SPI NOR anyway).
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Devices hanging off i2c3 should now be defined under i2cmux, so
-that the steering pin can be properly controlled to access those
-devices. The port expanders (MAX7310) are thus moved into i2cmux.
+Support the HPD notifier framework, simplifying drivers that
+depend on this.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 65 +++++++++++++++++++++-----------
- 1 file changed, 44 insertions(+), 21 deletions(-)
+ drivers/media/cec/cec-core.c | 50 ++++++++++++++++++++++++++++++++++++++++++++
+ include/media/cec.h          | 15 +++++++++++++
+ 2 files changed, 65 insertions(+)
 
-diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-index 52390ba..cace88c 100644
---- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-@@ -108,6 +108,44 @@
- 		default-brightness-level = <7>;
- 		status = "okay";
- 	};
-+
-+	i2cmux {
-+		compatible = "i2c-mux-gpio";
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_i2c3mux>;
-+		mux-gpios = <&gpio5 4 0>;
-+		i2c-parent = <&i2c3>;
-+		idle-state = <0>;
-+
-+		i2c@1 {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			reg = <1>;
-+
-+			max7310_a: gpio@30 {
-+				compatible = "maxim,max7310";
-+				reg = <0x30>;
-+				gpio-controller;
-+				#gpio-cells = <2>;
-+			};
-+
-+			max7310_b: gpio@32 {
-+				compatible = "maxim,max7310";
-+				reg = <0x32>;
-+				gpio-controller;
-+				#gpio-cells = <2>;
-+			};
-+
-+			max7310_c: gpio@34 {
-+				compatible = "maxim,max7310";
-+				reg = <0x34>;
-+				gpio-controller;
-+				#gpio-cells = <2>;
-+			};
-+		};
-+	};
- };
+diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
+index aca3ab83a8a1..dd2c4a17aff5 100644
+--- a/drivers/media/cec/cec-core.c
++++ b/drivers/media/cec/cec-core.c
+@@ -195,6 +195,52 @@ static void cec_devnode_unregister(struct cec_devnode *devnode)
+ 	put_device(&devnode->dev);
+ }
  
- &clks {
-@@ -291,27 +329,6 @@
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&pinctrl_i2c3>;
- 	status = "okay";
--
--	max7310_a: gpio@30 {
--		compatible = "maxim,max7310";
--		reg = <0x30>;
--		gpio-controller;
--		#gpio-cells = <2>;
--	};
--
--	max7310_b: gpio@32 {
--		compatible = "maxim,max7310";
--		reg = <0x32>;
--		gpio-controller;
--		#gpio-cells = <2>;
--	};
--
--	max7310_c: gpio@34 {
--		compatible = "maxim,max7310";
--		reg = <0x34>;
--		gpio-controller;
--		#gpio-cells = <2>;
--	};
- };
- 
- &iomuxc {
-@@ -419,6 +436,12 @@
- 			>;
- 		};
- 
-+		pinctrl_i2c3mux: i2c3muxgrp {
-+			fsl,pins = <
-+				MX6QDL_PAD_EIM_A24__GPIO5_IO04 0x0b0b1
-+			>;
-+		};
++#ifdef CONFIG_HPD_NOTIFIER
++static u16 parse_hdmi_addr(const struct edid *edid)
++{
++	if (!edid || edid->extensions == 0)
++		return CEC_PHYS_ADDR_INVALID;
 +
- 		pinctrl_pwm3: pwm1grp {
- 			fsl,pins = <
- 				MX6QDL_PAD_SD4_DAT1__PWM3_OUT		0x1b0b1
++	return cec_get_edid_phys_addr((u8 *)edid,
++				EDID_LENGTH * (edid->extensions + 1), NULL);
++}
++
++static int cec_hpd_notify(struct notifier_block *nb, unsigned long event,
++			   void *data)
++{
++	struct cec_adapter *adap = container_of(nb, struct cec_adapter, nb);
++	struct hpd_notifier *n = data;
++	unsigned int phys;
++
++	dprintk(1, "event %lu\n", event);
++
++	switch (event) {
++	case HPD_DISCONNECTED:
++		cec_s_phys_addr(adap, CEC_PHYS_ADDR_INVALID, false);
++		break;
++
++	case HPD_NEW_EDID:
++		phys = parse_hdmi_addr(n->edid);
++		cec_s_phys_addr(adap, phys, false);
++		break;
++	}
++
++	return NOTIFY_OK;
++}
++
++void cec_register_hpd_notifier(struct cec_adapter *adap,
++				struct hpd_notifier *notifier)
++{
++	if (WARN_ON(!adap->devnode.registered))
++		return;
++
++	adap->nb.notifier_call = cec_hpd_notify;
++	adap->notifier = notifier;
++	hpd_notifier_register(adap->notifier, &adap->nb);
++}
++EXPORT_SYMBOL_GPL(cec_register_hpd_notifier);
++#endif
++
+ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
+ 					 void *priv, const char *name, u32 caps,
+ 					 u8 available_las)
+@@ -344,6 +390,10 @@ void cec_unregister_adapter(struct cec_adapter *adap)
+ 	adap->rc = NULL;
+ #endif
+ 	debugfs_remove_recursive(adap->cec_dir);
++#ifdef CONFIG_HPD_NOTIFIER
++	if (adap->notifier)
++		hpd_notifier_unregister(adap->notifier, &adap->nb);
++#endif
+ 	cec_devnode_unregister(&adap->devnode);
+ }
+ EXPORT_SYMBOL_GPL(cec_unregister_adapter);
+diff --git a/include/media/cec.h b/include/media/cec.h
+index 96a0aa770d61..f87a07ee36b3 100644
+--- a/include/media/cec.h
++++ b/include/media/cec.h
+@@ -28,6 +28,11 @@
+ #include <linux/kthread.h>
+ #include <linux/timer.h>
+ #include <linux/cec-funcs.h>
++#ifdef CONFIG_HPD_NOTIFIER
++#include <linux/notifier.h>
++#include <linux/hpd-notifier.h>
++#include <drm/drm_edid.h>
++#endif
+ #include <media/rc-core.h>
+ #include <media/cec-edid.h>
+ 
+@@ -173,6 +178,11 @@ struct cec_adapter {
+ 	bool passthrough;
+ 	struct cec_log_addrs log_addrs;
+ 
++#ifdef CONFIG_HPD_NOTIFIER
++	struct hpd_notifier	*notifier;
++	struct notifier_block	nb;
++#endif
++
+ 	struct dentry *cec_dir;
+ 	struct dentry *status_file;
+ 
+@@ -213,6 +223,11 @@ void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
+ 		       u8 nack_cnt, u8 low_drive_cnt, u8 error_cnt);
+ void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg);
+ 
++#ifdef CONFIG_HPD_NOTIFIER
++void cec_register_hpd_notifier(struct cec_adapter *adap,
++				struct hpd_notifier *notifier);
++#endif
++
+ #else
+ 
+ static inline int cec_register_adapter(struct cec_adapter *adap,
 -- 
-2.7.4
+2.11.0
 
