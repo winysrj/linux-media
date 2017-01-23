@@ -1,472 +1,292 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:56131 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1033668AbdAFMtZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 6 Jan 2017 07:49:25 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 8/9] [media] lirc: scancode rc devices should have a lirc device too
-Date: Fri,  6 Jan 2017 12:49:11 +0000
-Message-Id: <82e144a977ecad8ed1f9b0b90b4246147c0e95a1.1483706563.git.sean@mess.org>
-In-Reply-To: <cover.1483706563.git.sean@mess.org>
-References: <cover.1483706563.git.sean@mess.org>
-In-Reply-To: <cover.1483706563.git.sean@mess.org>
-References: <cover.1483706563.git.sean@mess.org>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:43789 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750803AbdAWKX6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 23 Jan 2017 05:23:58 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Russell King <linux@armlinux.org.uk>,
+        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv3 5/5] s5p-cec: add hpd-notifier support, move out of staging
+Date: Mon, 23 Jan 2017 11:23:37 +0100
+Message-Id: <20170123102337.20947-6-hverkuil@xs4all.nl>
+In-Reply-To: <20170123102337.20947-1-hverkuil@xs4all.nl>
+References: <20170123102337.20947-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that the lirc interface supports scancodes, RC scancode devices
-can also have a lirc device.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Note that this means that every rc device has a lirc device, including
-cec.
+By using the HPD notifier framework there is no longer any reason
+to manually set the physical address. This was the one blocking
+issue that prevented this driver from going out of staging, so do
+this move as well.
 
-Signed-off-by: Sean Young <sean@mess.org>
+Update the bindings documenting the new hdmi phandle and
+update exynos4.dtsi accordingly.
+
+Tested with my Odroid U3.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+CC: linux-samsung-soc@vger.kernel.org
 ---
- drivers/media/rc/ir-lirc-codec.c | 125 ++++++++++++++++++---------------------
- drivers/media/rc/rc-core-priv.h  |  15 -----
- drivers/media/rc/rc-main.c       |  16 +++--
- include/media/rc-core.h          |   4 ++
- 4 files changed, 69 insertions(+), 91 deletions(-)
+ drivers/media/platform/Kconfig                     | 18 +++++++++++
+ drivers/media/platform/Makefile                    |  1 +
+ .../media => media/platform}/s5p-cec/Makefile      |  0
+ .../platform}/s5p-cec/exynos_hdmi_cec.h            |  0
+ .../platform}/s5p-cec/exynos_hdmi_cecctrl.c        |  0
+ .../media => media/platform}/s5p-cec/regs-cec.h    |  0
+ .../media => media/platform}/s5p-cec/s5p_cec.c     | 35 ++++++++++++++++++----
+ .../media => media/platform}/s5p-cec/s5p_cec.h     |  3 ++
+ drivers/staging/media/Kconfig                      |  2 --
+ drivers/staging/media/Makefile                     |  1 -
+ drivers/staging/media/s5p-cec/Kconfig              |  9 ------
+ drivers/staging/media/s5p-cec/TODO                 |  7 -----
+ 12 files changed, 52 insertions(+), 24 deletions(-)
+ rename drivers/{staging/media => media/platform}/s5p-cec/Makefile (100%)
+ rename drivers/{staging/media => media/platform}/s5p-cec/exynos_hdmi_cec.h (100%)
+ rename drivers/{staging/media => media/platform}/s5p-cec/exynos_hdmi_cecctrl.c (100%)
+ rename drivers/{staging/media => media/platform}/s5p-cec/regs-cec.h (100%)
+ rename drivers/{staging/media => media/platform}/s5p-cec/s5p_cec.c (89%)
+ rename drivers/{staging/media => media/platform}/s5p-cec/s5p_cec.h (97%)
+ delete mode 100644 drivers/staging/media/s5p-cec/Kconfig
+ delete mode 100644 drivers/staging/media/s5p-cec/TODO
 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index 6a15192..ea0896a 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -85,7 +85,7 @@ int ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev)
- 	}
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index d944421e392d..0d7acf10b32a 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -392,6 +392,24 @@ config VIDEO_TI_SC
+ config VIDEO_TI_CSC
+ 	tristate
  
- 	kfifo_put(&lirc->kfifo, sample);
--	wake_up_poll(&lirc->wait_poll, POLLIN);
-+	wake_up_poll(&dev->wait_poll, POLLIN);
- 
- 	return 0;
- }
-@@ -93,8 +93,7 @@ int ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev)
- static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 				   size_t n, loff_t *ppos)
- {
--	struct lirc_codec *lirc;
--	struct rc_dev *dev;
-+	struct rc_dev *dev = lirc_get_pdata(file);
- 	unsigned int *txbuf = NULL; /* buffer with values to transmit */
- 	struct ir_raw_event *raw = NULL;
- 	ssize_t ret = -EINVAL;
-@@ -106,18 +105,10 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 
- 	start = ktime_get();
- 
--	lirc = lirc_get_pdata(file);
--	if (!lirc)
--		return -EFAULT;
--
--	dev = lirc->dev;
--	if (!dev)
--		return -EFAULT;
--
- 	if (!dev->tx_ir)
- 		return -ENOTTY;
- 
--	if (lirc->send_mode == LIRC_MODE_SCANCODE) {
-+	if (dev->send_mode == LIRC_MODE_SCANCODE) {
- 		struct lirc_scancode scan;
- 
- 		if (n != sizeof(scan))
-@@ -185,7 +176,7 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 	for (duration = i = 0; i < ret; i++)
- 		duration += txbuf[i];
- 
--	if (lirc->send_mode == LIRC_MODE_SCANCODE)
-+	if (dev->send_mode == LIRC_MODE_SCANCODE)
- 		ret = n;
- 	else
- 		ret *= sizeof(unsigned int);
-@@ -210,20 +201,11 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
- 			unsigned long arg)
- {
--	struct lirc_codec *lirc;
--	struct rc_dev *dev;
-+	struct rc_dev *dev = lirc_get_pdata(filep);
- 	u32 __user *argp = (u32 __user *)(arg);
- 	int ret = 0;
- 	__u32 val = 0, tmp;
- 
--	lirc = lirc_get_pdata(filep);
--	if (!lirc)
--		return -EFAULT;
--
--	dev = lirc->dev;
--	if (!dev)
--		return -EFAULT;
--
- 	if (_IOC_DIR(cmd) & _IOC_WRITE) {
- 		ret = get_user(val, argp);
- 		if (ret)
-@@ -235,7 +217,7 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
- 		if (dev->driver_type == RC_DRIVER_IR_RAW_TX)
- 			return -ENOTTY;
- 
--		val = lirc->rec_mode;
-+		val = dev->rec_mode;
- 		break;
- 
- 	case LIRC_SET_REC_MODE:
-@@ -253,14 +235,14 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
- 			break;
- 		}
- 
--		lirc->rec_mode = val;
-+		dev->rec_mode = val;
- 		return 0;
- 
- 	case LIRC_GET_SEND_MODE:
- 		if (!dev->tx_ir)
- 			return -ENOTTY;
- 
--		val = lirc->send_mode;
-+		val = dev->send_mode;
- 		break;
- 
- 	case LIRC_SET_SEND_MODE:
-@@ -270,7 +252,7 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
- 		if (!(val == LIRC_MODE_PULSE || val == LIRC_MODE_SCANCODE))
- 			return -EINVAL;
- 
--		lirc->send_mode = val;
-+		dev->send_mode = val;
- 		return 0;
- 
- 	/* TX settings */
-@@ -297,8 +279,8 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
- 
- 	/* RX settings */
- 	case LIRC_SET_REC_CARRIER:
--		if (!dev->s_rx_carrier_range)
--			return -ENOSYS;
-+		if (!dev->s_rx_carrier_range || !dev->raw)
-+			return -ENOTTY;
- 
- 		if (val <= 0)
- 			return -EINVAL;
-@@ -308,6 +290,9 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
- 					       val);
- 
- 	case LIRC_SET_REC_CARRIER_RANGE:
-+		if (!dev->raw)
-+			return -ENOTTY;
++menuconfig V4L_CEC_DRIVERS
++	bool "Platform HDMI CEC drivers"
++	depends on MEDIA_CEC_SUPPORT
 +
- 		if (val <= 0)
- 			return -EINVAL;
- 
-@@ -360,7 +345,10 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
- 		break;
- 
- 	case LIRC_SET_REC_TIMEOUT_REPORTS:
--		lirc->send_timeout_reports = !!val;
-+		if (!dev->raw)
-+			return -ENOTTY;
++if V4L_CEC_DRIVERS
 +
-+		dev->raw->lirc.send_timeout_reports = !!val;
- 		break;
++config VIDEO_SAMSUNG_S5P_CEC
++       tristate "Samsung S5P CEC driver"
++       depends on VIDEO_DEV && MEDIA_CEC_SUPPORT && (PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST)
++       select HPD_NOTIFIER
++       ---help---
++         This is a driver for Samsung S5P HDMI CEC interface. It uses the
++         generic CEC framework interface.
++         CEC bus is present in the HDMI connector and enables communication
++         between compatible devices.
++
++endif #V4L_CEC_DRIVERS
++
+ menuconfig V4L_TEST_DRIVERS
+ 	bool "Media test drivers"
+ 	depends on MEDIA_CAMERA_SUPPORT
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 5b3cb271d2b8..ad3bf22bfeae 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -33,6 +33,7 @@ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_JPEG)	+= s5p-jpeg/
+ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_MFC)	+= s5p-mfc/
  
- 	default:
-@@ -376,17 +364,19 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
- static unsigned int ir_lirc_poll_ir(struct file *filep,
- 				    struct poll_table_struct *wait)
+ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_G2D)	+= s5p-g2d/
++obj-$(CONFIG_VIDEO_SAMSUNG_S5P_CEC)	+= s5p-cec/
+ obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC)	+= exynos-gsc/
+ 
+ obj-$(CONFIG_VIDEO_STI_BDISP)		+= sti/bdisp/
+diff --git a/drivers/staging/media/s5p-cec/Makefile b/drivers/media/platform/s5p-cec/Makefile
+similarity index 100%
+rename from drivers/staging/media/s5p-cec/Makefile
+rename to drivers/media/platform/s5p-cec/Makefile
+diff --git a/drivers/staging/media/s5p-cec/exynos_hdmi_cec.h b/drivers/media/platform/s5p-cec/exynos_hdmi_cec.h
+similarity index 100%
+rename from drivers/staging/media/s5p-cec/exynos_hdmi_cec.h
+rename to drivers/media/platform/s5p-cec/exynos_hdmi_cec.h
+diff --git a/drivers/staging/media/s5p-cec/exynos_hdmi_cecctrl.c b/drivers/media/platform/s5p-cec/exynos_hdmi_cecctrl.c
+similarity index 100%
+rename from drivers/staging/media/s5p-cec/exynos_hdmi_cecctrl.c
+rename to drivers/media/platform/s5p-cec/exynos_hdmi_cecctrl.c
+diff --git a/drivers/staging/media/s5p-cec/regs-cec.h b/drivers/media/platform/s5p-cec/regs-cec.h
+similarity index 100%
+rename from drivers/staging/media/s5p-cec/regs-cec.h
+rename to drivers/media/platform/s5p-cec/regs-cec.h
+diff --git a/drivers/staging/media/s5p-cec/s5p_cec.c b/drivers/media/platform/s5p-cec/s5p_cec.c
+similarity index 89%
+rename from drivers/staging/media/s5p-cec/s5p_cec.c
+rename to drivers/media/platform/s5p-cec/s5p_cec.c
+index 2a07968b5ac6..2014f792eceb 100644
+--- a/drivers/staging/media/s5p-cec/s5p_cec.c
++++ b/drivers/media/platform/s5p-cec/s5p_cec.c
+@@ -14,15 +14,18 @@
+  */
+ 
+ #include <linux/clk.h>
++#include <linux/hpd-notifier.h>
+ #include <linux/interrupt.h>
+ #include <linux/kernel.h>
+ #include <linux/mfd/syscon.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
++#include <linux/of_platform.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/timer.h>
+ #include <linux/workqueue.h>
++#include <media/cec-edid.h>
+ #include <media/cec.h>
+ 
+ #include "exynos_hdmi_cec.h"
+@@ -167,10 +170,22 @@ static const struct cec_adap_ops s5p_cec_adap_ops = {
+ static int s5p_cec_probe(struct platform_device *pdev)
  {
--	struct lirc_codec *lirc = lirc_get_pdata(filep);
-+	struct rc_dev *dev = lirc_get_pdata(filep);
-+	struct lirc_driver *drv = dev->lirc_drv;
- 	unsigned int events = 0;
- 
--	if (!lirc->drv->attached)
-+	if (!drv->attached)
- 		return POLLERR;
- 
--	poll_wait(filep, &lirc->wait_poll, wait);
-+	poll_wait(filep, &dev->wait_poll, wait);
- 
--	if (!lirc->drv->attached)
-+	if (!drv->attached)
- 		events = POLLERR;
--	else if (!kfifo_is_empty(&lirc->kfifo))
-+	else if (!kfifo_is_empty(&dev->kfifo) ||
-+		 (dev->raw && !kfifo_is_empty(&dev->raw->lirc.kfifo)))
- 		events = POLLIN | POLLRDNORM;
- 
- 	return events;
-@@ -395,35 +385,35 @@ static unsigned int ir_lirc_poll_ir(struct file *filep,
- static ssize_t ir_lirc_read_ir(struct file *filep, char __user *buffer,
- 			       size_t length, loff_t *ppos)
- {
--	struct lirc_codec *lirc = lirc_get_pdata(filep);
-+	struct rc_dev *dev = lirc_get_pdata(filep);
-+	struct lirc_driver *drv = dev->lirc_drv;
-+	struct lirc_codec *lirc = &dev->raw->lirc;
- 	unsigned int copied;
+ 	struct device *dev = &pdev->dev;
++	struct device_node *np;
++	struct platform_device *hdmi_dev;
+ 	struct resource *res;
+ 	struct s5p_cec_dev *cec;
  	int ret;
  
--	if (!lirc->drv->attached)
-+	if (!drv->attached)
- 		return -ENODEV;
- 
--	if (lirc->rec_mode == LIRC_MODE_SCANCODE) {
--		struct rc_dev *rcdev = lirc->dev;
--
-+	if (dev->rec_mode == LIRC_MODE_SCANCODE) {
- 		if (length % sizeof(struct lirc_scancode))
- 			return -EINVAL;
- 
- 		do {
--			if (kfifo_is_empty(&rcdev->kfifo)) {
-+			if (kfifo_is_empty(&dev->kfifo)) {
- 				if (filep->f_flags & O_NONBLOCK)
- 					return -EAGAIN;
- 
--				ret = wait_event_interruptible(lirc->wait_poll,
--					!kfifo_is_empty(&rcdev->kfifo) ||
--					!lirc->drv->attached);
-+				ret = wait_event_interruptible(dev->wait_poll,
-+					!kfifo_is_empty(&dev->kfifo) ||
-+					!drv->attached);
- 				if (ret)
- 					return ret;
- 			}
- 
--			if (!lirc->drv->attached)
-+			if (!drv->attached)
- 				return -ENODEV;
- 
--			ret = kfifo_to_user(&rcdev->kfifo, buffer, length,
-+			ret = kfifo_to_user(&dev->kfifo, buffer, length,
- 					    &copied);
- 			if (ret)
- 				return ret;
-@@ -437,14 +427,14 @@ static ssize_t ir_lirc_read_ir(struct file *filep, char __user *buffer,
- 				if (filep->f_flags & O_NONBLOCK)
- 					return -EAGAIN;
- 
--				ret = wait_event_interruptible(lirc->wait_poll,
-+				ret = wait_event_interruptible(dev->wait_poll,
- 						!kfifo_is_empty(&lirc->kfifo) ||
--						!lirc->drv->attached);
-+						!drv->attached);
- 				if (ret)
- 					return ret;
- 			}
- 
--			if (!lirc->drv->attached)
-+			if (!drv->attached)
- 				return -ENODEV;
- 
- 			ret = kfifo_to_user(&lirc->kfifo, buffer, length,
-@@ -459,10 +449,11 @@ static ssize_t ir_lirc_read_ir(struct file *filep, char __user *buffer,
- 
- static int ir_lirc_open(void *data)
- {
--	struct lirc_codec *lirc = data;
-+	struct rc_dev *dev = data;
- 
--	kfifo_reset_out(&lirc->kfifo);
--	kfifo_reset_out(&lirc->dev->kfifo);
-+	kfifo_reset_out(&dev->kfifo);
-+	if (dev->raw)
-+		kfifo_reset_out(&dev->raw->kfifo);
- 
- 	return 0;
- }
-@@ -490,20 +481,22 @@ int ir_lirc_register(struct rc_dev *dev)
- {
- 	struct lirc_driver *drv;
- 	int rc = -ENOMEM;
--	unsigned long features;
-+	unsigned long features = 0;
- 
- 	drv = kzalloc(sizeof(*drv), GFP_KERNEL);
- 	if (!drv)
- 		return -ENOMEM;
- 
--	features = LIRC_CAN_REC_SCANCODE;
--	dev->raw->lirc.rec_mode = LIRC_MODE_SCANCODE;
-+	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
-+		features = LIRC_CAN_REC_SCANCODE;
-+		dev->rec_mode = LIRC_MODE_SCANCODE;
-+	}
- 	if (dev->driver_type == RC_DRIVER_IR_RAW) {
- 		features |= LIRC_CAN_REC_MODE2;
--		dev->raw->lirc.rec_mode = LIRC_MODE_MODE2;
-+		dev->rec_mode = LIRC_MODE_MODE2;
- 	}
- 	if (dev->tx_ir) {
--		dev->raw->lirc.send_mode = LIRC_MODE_PULSE;
-+		dev->send_mode = LIRC_MODE_PULSE;
- 		features |= LIRC_CAN_SEND_PULSE | LIRC_CAN_SEND_SCANCODE;
- 		if (dev->s_tx_mask)
- 			features |= LIRC_CAN_SET_TRANSMITTER_MASK;
-@@ -530,16 +523,17 @@ int ir_lirc_register(struct rc_dev *dev)
- 		 dev->driver_name);
- 	drv->minor = -1;
- 	drv->features = features;
--	drv->data = &dev->raw->lirc;
- 	drv->set_use_inc = &ir_lirc_open;
- 	drv->set_use_dec = &ir_lirc_close;
- 	drv->code_length = sizeof(struct ir_raw_event) * 8;
- 	drv->fops = &lirc_fops;
- 	drv->dev = &dev->dev;
-+	drv->data = dev;
- 	drv->rdev = dev;
- 	drv->owner = THIS_MODULE;
--	INIT_KFIFO(dev->raw->lirc.kfifo);
--	init_waitqueue_head(&dev->raw->lirc.wait_poll);
-+	init_waitqueue_head(&dev->wait_poll);
-+	if (dev->raw)
-+		INIT_KFIFO(dev->raw->lirc.kfifo);
- 
- 	drv->minor = lirc_register_driver(drv);
- 	if (drv->minor < 0) {
-@@ -547,8 +541,8 @@ int ir_lirc_register(struct rc_dev *dev)
- 		goto lirc_register_failed;
- 	}
- 
--	dev->raw->lirc.drv = drv;
--	dev->raw->lirc.dev = dev;
-+	dev->lirc_drv = drv;
++	np = of_parse_phandle(pdev->dev.of_node, "samsung,hdmi-phandle", 0);
 +
++	if (!np) {
++		dev_err(&pdev->dev, "Failed to find hdmi node in device tree\n");
++		return -ENODEV;
++	}
++	hdmi_dev = of_find_device_by_node(np);
++	if (hdmi_dev == NULL)
++		return -EPROBE_DEFER;
++
+ 	cec = devm_kzalloc(&pdev->dev, sizeof(*cec), GFP_KERNEL);
+ 	if (!cec)
+ 		return -ENOMEM;
+@@ -200,24 +215,33 @@ static int s5p_cec_probe(struct platform_device *pdev)
+ 	if (IS_ERR(cec->reg))
+ 		return PTR_ERR(cec->reg);
+ 
++	cec->notifier = hpd_notifier_get(&hdmi_dev->dev);
++	if (cec->notifier == NULL)
++		return -ENOMEM;
++
+ 	cec->adap = cec_allocate_adapter(&s5p_cec_adap_ops, cec,
+ 		CEC_NAME,
+-		CEC_CAP_PHYS_ADDR | CEC_CAP_LOG_ADDRS | CEC_CAP_TRANSMIT |
++		CEC_CAP_LOG_ADDRS | CEC_CAP_TRANSMIT |
+ 		CEC_CAP_PASSTHROUGH | CEC_CAP_RC, 1);
+ 	ret = PTR_ERR_OR_ZERO(cec->adap);
+ 	if (ret)
+ 		return ret;
++
+ 	ret = cec_register_adapter(cec->adap, &pdev->dev);
+-	if (ret) {
+-		cec_delete_adapter(cec->adap);
+-		return ret;
+-	}
++	if (ret)
++		goto err_delete_adapter;
++
++	cec_register_hpd_notifier(cec->adap, cec->notifier);
+ 
+ 	platform_set_drvdata(pdev, cec);
+ 	pm_runtime_enable(dev);
+ 
+ 	dev_dbg(dev, "successfuly probed\n");
  	return 0;
++
++err_delete_adapter:
++	cec_delete_adapter(cec->adap);
++	return ret;
+ }
  
- lirc_register_failed:
-@@ -558,11 +552,8 @@ int ir_lirc_register(struct rc_dev *dev)
+ static int s5p_cec_remove(struct platform_device *pdev)
+@@ -225,6 +249,7 @@ static int s5p_cec_remove(struct platform_device *pdev)
+ 	struct s5p_cec_dev *cec = platform_get_drvdata(pdev);
  
- int ir_lirc_unregister(struct rc_dev *dev)
- {
--	struct lirc_codec *lirc = &dev->raw->lirc;
--
--	wake_up_poll(&lirc->wait_poll, POLLERR);
--	lirc_unregister_driver(lirc->drv->minor);
-+	wake_up_poll(&dev->wait_poll, POLLERR);
-+	lirc_unregister_driver(dev->lirc_drv->minor);
- 
+ 	cec_unregister_adapter(cec->adap);
++	hpd_notifier_put(cec->notifier);
+ 	pm_runtime_disable(&pdev->dev);
  	return 0;
  }
--
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index daf2429..fe7452f 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -126,18 +126,13 @@ struct ir_raw_event_ctrl {
- #endif
- #if IS_ENABLED(CONFIG_IR_LIRC_CODEC)
- 	struct lirc_codec {
--		struct rc_dev *dev;
--		struct lirc_driver *drv;
- 		DECLARE_KFIFO(kfifo, unsigned int, LIRCBUF_SIZE);
--		wait_queue_head_t wait_poll;
- 		int carrier_low;
- 
- 		ktime_t gap_start;
- 		u64 gap_duration;
- 		bool gap;
- 		bool send_timeout_reports;
--		int send_mode;
--		int rec_mode;
- 	} lirc;
- #endif
- #if IS_ENABLED(CONFIG_IR_XMP_DECODER)
-@@ -149,16 +144,6 @@ struct ir_raw_event_ctrl {
- #endif
+diff --git a/drivers/staging/media/s5p-cec/s5p_cec.h b/drivers/media/platform/s5p-cec/s5p_cec.h
+similarity index 97%
+rename from drivers/staging/media/s5p-cec/s5p_cec.h
+rename to drivers/media/platform/s5p-cec/s5p_cec.h
+index 03732c13d19f..a6f5af6619a4 100644
+--- a/drivers/staging/media/s5p-cec/s5p_cec.h
++++ b/drivers/media/platform/s5p-cec/s5p_cec.h
+@@ -59,12 +59,15 @@ enum cec_state {
+ 	STATE_ERROR
  };
  
--#if IS_ENABLED(CONFIG_IR_LIRC_CODEC)
--static inline void ir_wakeup_poll(struct ir_raw_event_ctrl *ctrl)
--{
--	if (ctrl)
--		wake_up_poll(&ctrl->lirc.wait_poll, POLLIN);
--}
--#else
--static inline void ir_wakeup_poll(struct ir_raw_event_ctrl *ctrl) {}
--#endif
++struct hpd_notifier;
++
+ struct s5p_cec_dev {
+ 	struct cec_adapter	*adap;
+ 	struct clk		*clk;
+ 	struct device		*dev;
+ 	struct mutex		lock;
+ 	struct regmap           *pmu;
++	struct hpd_notifier	*notifier;
+ 	int			irq;
+ 	void __iomem		*reg;
+ 
+diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
+index ffb8fa72c3da..1b7804cf4c51 100644
+--- a/drivers/staging/media/Kconfig
++++ b/drivers/staging/media/Kconfig
+@@ -27,8 +27,6 @@ source "drivers/staging/media/davinci_vpfe/Kconfig"
+ 
+ source "drivers/staging/media/omap4iss/Kconfig"
+ 
+-source "drivers/staging/media/s5p-cec/Kconfig"
 -
- /* macros for IR decoders */
- static inline bool geq_margin(unsigned d1, unsigned d2, unsigned margin)
- {
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 037ea45..19b8a4e 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -622,7 +622,7 @@ void rc_repeat(struct rc_dev *dev)
- 	};
+ # Keep LIRC at the end, as it has sub-menus
+ source "drivers/staging/media/lirc/Kconfig"
  
- 	if (kfifo_put(&dev->kfifo, sc))
--		ir_wakeup_poll(dev->raw);
-+		wake_up_poll(&dev->wait_poll, POLLIN);
- 
- 	spin_lock_irqsave(&dev->keylock, flags);
- 
-@@ -664,7 +664,7 @@ static void ir_do_keydown(struct rc_dev *dev, enum rc_type protocol,
- 	};
- 
- 	if (kfifo_put(&dev->kfifo, sc))
--		ir_wakeup_poll(dev->raw);
-+		wake_up_poll(&dev->wait_poll, POLLIN);
- 
- 	if (new_event && dev->keypressed)
- 		ir_do_keyup(dev, false);
-@@ -1603,6 +1603,7 @@ struct rc_dev *rc_allocate_device(enum rc_driver_type type)
- 		spin_lock_init(&dev->rc_map.lock);
- 		spin_lock_init(&dev->keylock);
- 		INIT_KFIFO(dev->kfifo);
-+		init_waitqueue_head(&dev->wait_poll);
- 	}
- 	mutex_init(&dev->lock);
- 
-@@ -1791,11 +1792,9 @@ int rc_register_device(struct rc_dev *dev)
- 			goto out_rx;
- 	}
- 
--	if (dev->driver_type != RC_DRIVER_SCANCODE) {
--		rc = ir_lirc_register(dev);
--		if (rc < 0)
--			goto out_raw;
--	}
-+	rc = ir_lirc_register(dev);
-+	if (rc)
-+		goto out_raw;
- 
- 	/* Allow the RC sysfs nodes to be accessible */
- 	atomic_set(&dev->initialized, 1);
-@@ -1856,8 +1855,7 @@ void rc_unregister_device(struct rc_dev *dev)
- 	if (dev->driver_type == RC_DRIVER_IR_RAW)
- 		ir_raw_event_unregister(dev);
- 
--	if (dev->driver_type != RC_DRIVER_SCANCODE)
--		ir_lirc_unregister(dev);
-+	ir_lirc_unregister(dev);
- 
- 	rc_free_rx_device(dev);
- 
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 5d7093d..071a50aad 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -161,6 +161,7 @@ struct rc_dev {
- 	struct rc_scancode_filter	scancode_wakeup_filter;
- 	u32				scancode_mask;
- 	DECLARE_KFIFO(kfifo, struct lirc_scancode, 32);
-+	wait_queue_head_t		wait_poll;
- 	u32				users;
- 	void				*priv;
- 	spinlock_t			keylock;
-@@ -171,6 +172,9 @@ struct rc_dev {
- 	enum rc_type			last_protocol;
- 	u32				last_scancode;
- 	u8				last_toggle;
-+	struct lirc_driver		*lirc_drv;
-+	u8				rec_mode;
-+	u8				send_mode;
- 	u32				timeout;
- 	u32				min_timeout;
- 	u32				max_timeout;
+diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
+index a28e82cf6447..e11afbf99452 100644
+--- a/drivers/staging/media/Makefile
++++ b/drivers/staging/media/Makefile
+@@ -1,5 +1,4 @@
+ obj-$(CONFIG_I2C_BCM2048)	+= bcm2048/
+-obj-$(CONFIG_VIDEO_SAMSUNG_S5P_CEC) += s5p-cec/
+ obj-$(CONFIG_DVB_CXD2099)	+= cxd2099/
+ obj-$(CONFIG_LIRC_STAGING)	+= lirc/
+ obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
+diff --git a/drivers/staging/media/s5p-cec/Kconfig b/drivers/staging/media/s5p-cec/Kconfig
+deleted file mode 100644
+index ddfd955da0d4..000000000000
+--- a/drivers/staging/media/s5p-cec/Kconfig
++++ /dev/null
+@@ -1,9 +0,0 @@
+-config VIDEO_SAMSUNG_S5P_CEC
+-       tristate "Samsung S5P CEC driver"
+-       depends on VIDEO_DEV && MEDIA_CEC_SUPPORT && (PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST)
+-       ---help---
+-         This is a driver for Samsung S5P HDMI CEC interface. It uses the
+-         generic CEC framework interface.
+-         CEC bus is present in the HDMI connector and enables communication
+-         between compatible devices.
+-
+diff --git a/drivers/staging/media/s5p-cec/TODO b/drivers/staging/media/s5p-cec/TODO
+deleted file mode 100644
+index 64f21bab38f5..000000000000
+--- a/drivers/staging/media/s5p-cec/TODO
++++ /dev/null
+@@ -1,7 +0,0 @@
+-This driver requires that userspace sets the physical address.
+-However, this should be passed on from the corresponding
+-Samsung HDMI driver.
+-
+-We have to wait until the HDMI notifier framework has been merged
+-in order to handle this gracefully, until that time this driver
+-has to remain in staging.
 -- 
-2.9.3
+2.11.0
 
