@@ -1,171 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35414 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751028AbdAUBCM (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:39133 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751113AbdAXBqS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Jan 2017 20:02:12 -0500
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-To: Jarod Wilson <jarod@wilsonet.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Subject: [PATCH RESEND] staging: media: lirc: use new parport device model
-Date: Sat, 21 Jan 2017 00:55:54 +0000
-Message-Id: <1484960154-6355-1-git-send-email-sudipm.mukherjee@gmail.com>
+        Mon, 23 Jan 2017 20:46:18 -0500
+Subject: Re: [PATCH v3 16/24] media: Add i.MX media core driver
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <1483755102-24785-17-git-send-email-steve_longerbeam@mentor.com>
+ <1484320822.31475.96.camel@pengutronix.de>
+ <a94025b4-c4dd-de51-572e-d2615a7246e4@gmail.com>
+ <1484574468.8415.136.camel@pengutronix.de>
+ <e38feca9-ed6f-8288-e006-768d6ba2fe5a@gmail.com>
+ <1485170006.2874.63.camel@pengutronix.de>
+ <481289bb-424f-4ac4-66f1-7e1b4a0b7065@gmail.com>
+CC: <robh+dt@kernel.org>, <mark.rutland@arm.com>,
+        <shawnguo@kernel.org>, <kernel@pengutronix.de>,
+        <fabio.estevam@nxp.com>, <linux@armlinux.org.uk>,
+        <mchehab@kernel.org>, <hverkuil@xs4all.nl>, <nick@shmanahar.org>,
+        <markus.heiser@darmarIT.de>,
+        <laurent.pinchart+renesas@ideasonboard.com>, <bparrot@ti.com>,
+        <geert@linux-m68k.org>, <arnd@arndb.de>,
+        <sudipm.mukherjee@gmail.com>, <minghsiu.tsai@mediatek.com>,
+        <tiffany.lin@mediatek.com>, <jean-christophe.trotin@st.com>,
+        <horms+renesas@verge.net.au>,
+        <niklas.soderlund+renesas@ragnatech.se>, <robert.jarzmik@free.fr>,
+        <songjun.wu@microchip.com>, <andrew-ct.chen@mediatek.com>,
+        <gregkh@linuxfoundation.org>, <devicetree@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>, <devel@driverdev.osuosl.org>
+From: Steve Longerbeam <steve_longerbeam@mentor.com>
+Message-ID: <c6087342-f61f-0b4c-f67e-4239f861e974@mentor.com>
+Date: Mon, 23 Jan 2017 17:45:59 -0800
+MIME-Version: 1.0
+In-Reply-To: <481289bb-424f-4ac4-66f1-7e1b4a0b7065@gmail.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
 
-Modify lirc_parallel driver to use the new parallel port device model.
 
-Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
----
+On 01/23/2017 05:38 PM, Steve Longerbeam wrote:
+>
+>>
+>>> Second, ignoring the above locking issue for a moment,
+>>> v4l2_pipeline_pm_use()
+>>> will call s_power on the sensor _first_, then the mipi csi-2 s_power,
+>>> when executing
+>>> media-ctl -l '"ov5640 1-003c":0 -> "imx6-mipi-csi2":0[1]'. Which is the
+>>> wrong order.
+>>> In my version which enforces the correct power on order, the mipi csi-2
+>>> s_power
+>>> is called first in that link setup, followed by the sensor.
+>> I don't understand why you want to power up subdevs as soon as the links
+>> are established.
+>
+> Because that is the precedence, all other media drivers do pipeline
+> power on/off at link_notify. And v4l2_pipeline_link_notify() was written
+> as a link_notify method.
+>
+>>   Shouldn't that rather be done for all subdevices in the
+>> pipeline when the corresponding capture device is opened?
+>
+> that won't work. There's no guarantee the links will be established
+> at capture device open time.
 
-Resending after more than one year.
-Prevoius patch is at https://patchwork.kernel.org/patch/7883591/
+ugh, maybe v4l2_pipeline_pm_use() would work at open/release. If there are
+no links yet, it would basically be a no-op. And stream on requires 
+opening the
+device, and the pipeline links should be established by then, so this 
+might be
+fine, looking into this too.
 
- drivers/staging/media/lirc/lirc_parallel.c | 93 ++++++++++++++++++++----------
- 1 file changed, 62 insertions(+), 31 deletions(-)
+Steve
 
-diff --git a/drivers/staging/media/lirc/lirc_parallel.c b/drivers/staging/media/lirc/lirc_parallel.c
-index bfb76a4..0a43bac2b 100644
---- a/drivers/staging/media/lirc/lirc_parallel.c
-+++ b/drivers/staging/media/lirc/lirc_parallel.c
-@@ -626,41 +626,26 @@ static void kf(void *handle)
- 
- /*** module initialization and cleanup ***/
- 
--static int __init lirc_parallel_init(void)
-+static void lirc_parallel_attach(struct parport *port)
- {
--	int result;
--
--	result = platform_driver_register(&lirc_parallel_driver);
--	if (result) {
--		pr_notice("platform_driver_register returned %d\n", result);
--		return result;
--	}
-+	struct pardev_cb lirc_parallel_cb;
- 
--	lirc_parallel_dev = platform_device_alloc(LIRC_DRIVER_NAME, 0);
--	if (!lirc_parallel_dev) {
--		result = -ENOMEM;
--		goto exit_driver_unregister;
--	}
-+	if (port->base != io)
-+		return;
- 
--	result = platform_device_add(lirc_parallel_dev);
--	if (result)
--		goto exit_device_put;
-+	pport = port;
-+	memset(&lirc_parallel_cb, 0, sizeof(lirc_parallel_cb));
-+	lirc_parallel_cb.preempt = pf;
-+	lirc_parallel_cb.wakeup = kf;
-+	lirc_parallel_cb.irq_func = lirc_lirc_irq_handler;
- 
--	pport = parport_find_base(io);
--	if (!pport) {
--		pr_notice("no port at %x found\n", io);
--		result = -ENXIO;
--		goto exit_device_del;
--	}
--	ppdevice = parport_register_device(pport, LIRC_DRIVER_NAME,
--					   pf, kf, lirc_lirc_irq_handler, 0,
--					   NULL);
--	parport_put_port(pport);
-+	ppdevice = parport_register_dev_model(port, LIRC_DRIVER_NAME,
-+					      &lirc_parallel_cb, 0);
- 	if (!ppdevice) {
- 		pr_notice("parport_register_device() failed\n");
--		result = -ENXIO;
--		goto exit_device_del;
-+		return;
- 	}
-+
- 	if (parport_claim(ppdevice) != 0)
- 		goto skip_init;
- 	is_claimed = 1;
-@@ -688,18 +673,64 @@ static int __init lirc_parallel_init(void)
- 
- 	is_claimed = 0;
- 	parport_release(ppdevice);
-+
-  skip_init:
-+	return;
-+}
-+
-+static void lirc_parallel_detach(struct parport *port)
-+{
-+	if (port->base != io)
-+		return;
-+
-+	parport_unregister_device(ppdevice);
-+}
-+
-+static struct parport_driver lirc_parport_driver = {
-+	.name = LIRC_DRIVER_NAME,
-+	.match_port = lirc_parallel_attach,
-+	.detach = lirc_parallel_detach,
-+	.devmodel = true,
-+};
-+
-+static int __init lirc_parallel_init(void)
-+{
-+	int result;
-+
-+	result = platform_driver_register(&lirc_parallel_driver);
-+	if (result) {
-+		pr_notice("platform_driver_register returned %d\n", result);
-+		return result;
-+	}
-+
-+	lirc_parallel_dev = platform_device_alloc(LIRC_DRIVER_NAME, 0);
-+	if (!lirc_parallel_dev) {
-+		result = -ENOMEM;
-+		goto exit_driver_unregister;
-+	}
-+
-+	result = platform_device_add(lirc_parallel_dev);
-+	if (result)
-+		goto exit_device_put;
-+
-+	result = parport_register_driver(&lirc_parport_driver);
-+	if (result) {
-+		pr_notice("parport_register_driver returned %d\n", result);
-+		goto exit_device_del;
-+	}
-+
- 	driver.dev = &lirc_parallel_dev->dev;
- 	driver.minor = lirc_register_driver(&driver);
- 	if (driver.minor < 0) {
- 		pr_notice("register_chrdev() failed\n");
--		parport_unregister_device(ppdevice);
- 		result = -EIO;
--		goto exit_device_del;
-+		goto exit_unregister;
- 	}
- 	pr_info("installed using port 0x%04x irq %d\n", io, irq);
- 	return 0;
- 
-+exit_unregister:
-+	parport_unregister_driver(&lirc_parport_driver);
- exit_device_del:
- 	platform_device_del(lirc_parallel_dev);
- exit_device_put:
-@@ -711,9 +742,9 @@ static int __init lirc_parallel_init(void)
- 
- static void __exit lirc_parallel_exit(void)
- {
--	parport_unregister_device(ppdevice);
- 	lirc_unregister_driver(driver.minor);
- 
-+	parport_unregister_driver(&lirc_parport_driver);
- 	platform_device_unregister(lirc_parallel_dev);
- 	platform_driver_unregister(&lirc_parallel_driver);
- }
--- 
-1.9.1
+>
+>> It seems to me that powering up the pipeline should be the last step
+>> before userspace actually starts the capture.
+>
+> Well, I'm ok with moving pipeline power on/off to start/stop streaming.
+> I would actually prefer to do it then, I only chose at link_notify 
+> because
+> of precedence. I'll look into it.
 
