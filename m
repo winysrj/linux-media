@@ -1,188 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:53686 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S934038AbdA0LWJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 27 Jan 2017 06:22:09 -0500
-Subject: Re: [PATCH v2 6/7] dt-bindings: media: Add Renesas R-Car DRIF binding
-To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1478706284-59134-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
- <HK2PR06MB05453E11C8931F881E106939C36E0@HK2PR06MB0545.apcprd06.prod.outlook.com>
- <cca1ade8-01ef-8eab-f4b1-7dd7f204fdea@xs4all.nl> <4506041.7mPt4W6j0m@avalon>
- <HK2PR06MB0545BF36C3DD2D4D1B951C3FC3670@HK2PR06MB0545.apcprd06.prod.outlook.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
+Received: from mail.kernel.org ([198.145.29.136]:33632 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750707AbdAXRgD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Jan 2017 12:36:03 -0500
+Date: Tue, 24 Jan 2017 19:35:56 +0200
+From: "Michael S. Tsirkin" <mst@redhat.com>
+To: linux-kernel@vger.kernel.org
+Cc: Linas Vepstas <linasvepstas@gmail.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mike Marciniszyn <mike.marciniszyn@intel.com>,
+        Dennis Dalessandro <dennis.dalessandro@intel.com>,
+        Doug Ledford <dledford@redhat.com>,
+        Sean Hefty <sean.hefty@intel.com>,
+        Hal Rosenstock <hal.rosenstock@gmail.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Antti Palosaari <crope@iki.fi>,
-        Chris Paterson <Chris.Paterson2@renesas.com>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <e96cb1cd-cd4a-60f2-cf46-dc837638d115@xs4all.nl>
-Date: Fri, 27 Jan 2017 12:20:43 +0100
+        Frank Haverkamp <haver@linux.vnet.ibm.com>,
+        Gabriel Krisman Bertazi <krisman@linux.vnet.ibm.com>,
+        linux-pci@vger.kernel.org, linux-doc@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH v2] pci: drop link_reset
+Message-ID: <1485279206-27729-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <HK2PR06MB0545BF36C3DD2D4D1B951C3FC3670@HK2PR06MB0545.apcprd06.prod.outlook.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/10/2017 10:31 AM, Ramesh Shanmugasundaram wrote:
-> Hi Laurent,
-> 
->>>>>> On Wednesday 21 Dec 2016 08:10:37 Ramesh Shanmugasundaram wrote:
->>>>>>> Add binding documentation for Renesas R-Car Digital Radio
->>>>>>> Interface
->>>>>>> (DRIF) controller.
->>>>>>>
->>>>>>> Signed-off-by: Ramesh Shanmugasundaram
->>>>>>> <ramesh.shanmugasundaram@bp.renesas.com> ---
->>>>>>>
->>>>>>>  .../devicetree/bindings/media/renesas,drif.txt     | 202
->> +++++++++++++
->>>>>>>  1 file changed, 202 insertions(+)  create mode 100644
->>>>>>>
->>>>>>> Documentation/devicetree/bindings/media/renesas,drif.txt
->>>>>>>
->>>>>>> diff --git
->>>>>>> a/Documentation/devicetree/bindings/media/renesas,drif.txt
->>>>>>> b/Documentation/devicetree/bindings/media/renesas,drif.txt new
->>>>>>> file mode 100644 index 0000000..1f3feaf
->>>>>>> --- /dev/null
->>>>>>> +++ b/Documentation/devicetree/bindings/media/renesas,drif.txt
->>>>>>>
->>>>>>> +Optional properties of an internal channel when:
->>>>>>> +     - It is the only enabled channel of the bond (or)
->>>>>>> +     - If it acts as primary among enabled bonds
->>>>>>> +--------------------------------------------------------
->>>>>>> +- renesas,syncmd       : sync mode
->>>>>>> +                      0 (Frame start sync pulse mode. 1-bit
->>>>>>> +width
->>>>>>> pulse
->>>>>>> +                         indicates start of a frame)
->>>>>>> +                      1 (L/R sync or I2S mode) (default)
->>>>>>> +- renesas,lsb-first    : empty property indicates lsb bit is
->> received
->>>>>>> first.
->>>>>>> +                      When not defined msb bit is received first
->>>>>>> +(default)
->>>>>>> +- renesas,syncac-active: Indicates sync signal polarity, 0/1 for
->>>>>>> low/high
->>>
->>> Shouldn't this be 'renesas,sync-active' instead of syncac-active?
->>>
->>> I'm not sure if syncac is intended or if it is a typo.
->>>
->>>>>>> +                      respectively. The default is 1 (active high)
->>>>>>> +- renesas,dtdl         : delay between sync signal and start of
->>>>>>> reception.
->>>>>>> +                      The possible values are represented in 0.5
->> clock
->>>>>>> +                      cycle units and the range is 0 to 4. The
->> default
->>>>>>> +                      value is 2 (i.e.) 1 clock cycle delay.
->>>>>>> +- renesas,syncdl       : delay between end of reception and sync
->>>>>>> signal edge.
->>>>>>> +                      The possible values are represented in 0.5
->> clock
->>>>>>> +                      cycle units and the range is 0 to 4 & 6.
->>>>>>> + The
->>>>>>> default
->>>>>>> +                      value is 0 (i.e.) no delay.
+No hardware seems to actually call link_reset, and
+no driver implements it as more than a nop stub.
 
-Are these properties actually going to be used by anyone? Just curious.
+This drops the mentions of the callback from everywhere.
+It's dropped from the documentation as well, but
+the doc really needs to be updated to reflect
+reality better (e.g. on pcie slot reset is the link reset).
 
->>>>>>
->>>>>> Most of these properties are pretty similar to the video bus
->>>>>> properties defined at the endpoint level in
->>>>>> Documentation/devicetree/bindings/media/video-interfaces.txt. I
->>>>>> believe it would make sense to use OF graph and try to standardize
->>>>>> these properties similarly.
->>>
->>> Other than sync-active, is there really anything else that is similar?
->>> And even the sync-active isn't a good fit since here there is only one
->>> sync signal instead of two for video (h and vsync).
->>
->> That's why I said similar, not identical :-) My point is that, if we
->> consider that we could connect multiple sources to the DRIF, using OF
->> graph would make sense, and the above properties should then be defined
->> per endpoint.
-> 
-> Thanks for the clarifications. I have some questions.
-> 
-> - Assuming two devices are interfaced with DRIF and they are represented using two endpoints, the control signal related properties of DRIF might still need to be same for both endpoints? For e.g. syncac-active cannot be different in both endpoints?
+This will be done in a later patch.
 
-Usually that's the case, but HW designers are weird :-)
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+---
 
-> 
-> - I suppose "lsb-first", "dtdl" & "syncdl" may be defined per endpoint. However, h/w manual says same register values needs to be programmed for both the internal channels of a channel. Same with "syncmd" property.
-> 
-> We could still define them as per endpoint property with a note that they need to be same. But I am not sure if that is what you intended?
-> 
->  If we define them per endpoint we should then also try
->> standardize the ones that are not really Renesas-specific (that's at least
->> syncac-active).
-> 
-> OK. I will call it "sync-active".
+changes from v2:
+	- drop from genwqe as well
 
-That's better, yes.
+Note: Doug has patches dropping the implementation from infiniband card
+drivers in his tree already. This is unlikely to cause conflicts though.
 
-> 
->  For the syncmd and lsb-first properties, it could also
->> make sense to query them from the connected subdev at runtime, as they're
->> similar in purpose to formats and media bus configuration (struct
->> v4l2_mbus_config).
+ Documentation/PCI/pci-error-recovery.txt | 24 +++---------------------
+ drivers/infiniband/hw/hfi1/pcie.c        | 10 ----------
+ drivers/infiniband/hw/qib/qib_pcie.c     |  8 --------
+ drivers/media/pci/ngene/ngene-cards.c    |  7 -------
+ drivers/misc/genwqe/card_base.c          |  1 -
+ include/linux/pci.h                      |  3 ---
+ 6 files changed, 3 insertions(+), 50 deletions(-)
 
-I consider this unlikely. I wouldn't spend time on that as this can always be
-done later.
-
-> May I know in bit more detail about what you had in mind? Please correct me if my understanding is wrong here but when I looked at the code
-> 
-> 1) mbus_config is part of subdev_video_ops only. I assume we don't want to support this as part of tuner subdev. The next closest is pad_ops with "struct v4l2_mbus_framefmt" but it is fully video specific config unless I come up with new MEDIA_BUS_FMT_xxxx in media-bus-format.h and use the code field? For e.g.
-> 	
-> #define MEDIA_BUS_FMT_SDR_I2S_PADHI_BE       0x7001
-> #define MEDIA_BUS_FMT_SDR_I2S_PADHI_LE       0x7002
-> 
-> 2) The framework does not seem to mandate pad ops for all subdev. As the tuner can be any third party subdev, is it fair to assume that these properties can be queried from subdev?
-> 
-> 3) Assuming pad ops is not available on the subdev shouldn't we still need a way to define these properties on DRIF DT?
-> 
->>
->> I'm not an SDR expert, so I'd like to have your opinion on this.
-
-Neither am I :-)
-
-I think using the endpoint idea does make sense since this helps in describing the
-routing. I am not sure what properties to put in there, though.
-
-Can you describe a bit more which properties belong to which syncmd mode? That will
-help me make a decision.
-
-Regards,
-
-	Hans
-
->>
->>>>> Note that the last two properties match the those in
->>>>> Documentation/devicetree/bindings/spi/sh-msiof.txt.
->>>>> We may want to use one DRIF channel as a plain SPI slave with the
->>>>> (modified) MSIOF driver in the future.
->>>>
->>>> Should I leave it as it is or modify these as in video-interfaces.txt?
->>>> Shall we conclude on this please?
->>
-> 
-> Thanks,
-> Ramesh
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+diff --git a/Documentation/PCI/pci-error-recovery.txt b/Documentation/PCI/pci-error-recovery.txt
+index ac26869..da3b217 100644
+--- a/Documentation/PCI/pci-error-recovery.txt
++++ b/Documentation/PCI/pci-error-recovery.txt
+@@ -78,7 +78,6 @@ struct pci_error_handlers
+ {
+ 	int (*error_detected)(struct pci_dev *dev, enum pci_channel_state);
+ 	int (*mmio_enabled)(struct pci_dev *dev);
+-	int (*link_reset)(struct pci_dev *dev);
+ 	int (*slot_reset)(struct pci_dev *dev);
+ 	void (*resume)(struct pci_dev *dev);
+ };
+@@ -104,8 +103,7 @@ if it implements any, it must implement error_detected(). If a callback
+ is not implemented, the corresponding feature is considered unsupported.
+ For example, if mmio_enabled() and resume() aren't there, then it
+ is assumed that the driver is not doing any direct recovery and requires
+-a slot reset. If link_reset() is not implemented, the card is assumed to
+-not care about link resets. Typically a driver will want to know about
++a slot reset.  Typically a driver will want to know about
+ a slot_reset().
+ 
+ The actual steps taken by a platform to recover from a PCI error
+@@ -232,25 +230,9 @@ proceeds to STEP 4 (Slot Reset)
+ 
+ STEP 3: Link Reset
+ ------------------
+-The platform resets the link, and then calls the link_reset() callback
+-on all affected device drivers.  This is a PCI-Express specific state
++The platform resets the link.  This is a PCI-Express specific step
+ and is done whenever a non-fatal error has been detected that can be
+-"solved" by resetting the link. This call informs the driver of the
+-reset and the driver should check to see if the device appears to be
+-in working condition.
+-
+-The driver is not supposed to restart normal driver I/O operations
+-at this point.  It should limit itself to "probing" the device to
+-check its recoverability status. If all is right, then the platform
+-will call resume() once all drivers have ack'd link_reset().
+-
+-	Result codes:
+-		(identical to STEP 3 (MMIO Enabled)
+-
+-The platform then proceeds to either STEP 4 (Slot Reset) or STEP 5
+-(Resume Operations).
+-
+->>> The current powerpc implementation does not implement this callback.
++"solved" by resetting the link.
+ 
+ STEP 4: Slot Reset
+ ------------------
+diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
+index 4ac8f33..ebd941f 100644
+--- a/drivers/infiniband/hw/hfi1/pcie.c
++++ b/drivers/infiniband/hw/hfi1/pcie.c
+@@ -598,15 +598,6 @@ pci_slot_reset(struct pci_dev *pdev)
+ 	return PCI_ERS_RESULT_CAN_RECOVER;
+ }
+ 
+-static pci_ers_result_t
+-pci_link_reset(struct pci_dev *pdev)
+-{
+-	struct hfi1_devdata *dd = pci_get_drvdata(pdev);
+-
+-	dd_dev_info(dd, "HFI1 link_reset function called, ignored\n");
+-	return PCI_ERS_RESULT_CAN_RECOVER;
+-}
+-
+ static void
+ pci_resume(struct pci_dev *pdev)
+ {
+@@ -625,7 +616,6 @@ pci_resume(struct pci_dev *pdev)
+ const struct pci_error_handlers hfi1_pci_err_handler = {
+ 	.error_detected = pci_error_detected,
+ 	.mmio_enabled = pci_mmio_enabled,
+-	.link_reset = pci_link_reset,
+ 	.slot_reset = pci_slot_reset,
+ 	.resume = pci_resume,
+ };
+diff --git a/drivers/infiniband/hw/qib/qib_pcie.c b/drivers/infiniband/hw/qib/qib_pcie.c
+index 6abe1c6..c379b83 100644
+--- a/drivers/infiniband/hw/qib/qib_pcie.c
++++ b/drivers/infiniband/hw/qib/qib_pcie.c
+@@ -682,13 +682,6 @@ qib_pci_slot_reset(struct pci_dev *pdev)
+ 	return PCI_ERS_RESULT_CAN_RECOVER;
+ }
+ 
+-static pci_ers_result_t
+-qib_pci_link_reset(struct pci_dev *pdev)
+-{
+-	qib_devinfo(pdev, "QIB link_reset function called, ignored\n");
+-	return PCI_ERS_RESULT_CAN_RECOVER;
+-}
+-
+ static void
+ qib_pci_resume(struct pci_dev *pdev)
+ {
+@@ -707,7 +700,6 @@ qib_pci_resume(struct pci_dev *pdev)
+ const struct pci_error_handlers qib_pci_err_handler = {
+ 	.error_detected = qib_pci_error_detected,
+ 	.mmio_enabled = qib_pci_mmio_enabled,
+-	.link_reset = qib_pci_link_reset,
+ 	.slot_reset = qib_pci_slot_reset,
+ 	.resume = qib_pci_resume,
+ };
+diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
+index 423e8c8..8438c1c 100644
+--- a/drivers/media/pci/ngene/ngene-cards.c
++++ b/drivers/media/pci/ngene/ngene-cards.c
+@@ -781,12 +781,6 @@ static pci_ers_result_t ngene_error_detected(struct pci_dev *dev,
+ 	return PCI_ERS_RESULT_CAN_RECOVER;
+ }
+ 
+-static pci_ers_result_t ngene_link_reset(struct pci_dev *dev)
+-{
+-	printk(KERN_INFO DEVICE_NAME ": link reset\n");
+-	return 0;
+-}
+-
+ static pci_ers_result_t ngene_slot_reset(struct pci_dev *dev)
+ {
+ 	printk(KERN_INFO DEVICE_NAME ": slot reset\n");
+@@ -800,7 +794,6 @@ static void ngene_resume(struct pci_dev *dev)
+ 
+ static const struct pci_error_handlers ngene_errors = {
+ 	.error_detected = ngene_error_detected,
+-	.link_reset = ngene_link_reset,
+ 	.slot_reset = ngene_slot_reset,
+ 	.resume = ngene_resume,
+ };
+diff --git a/drivers/misc/genwqe/card_base.c b/drivers/misc/genwqe/card_base.c
+index 6c1f49a..4fd21e8 100644
+--- a/drivers/misc/genwqe/card_base.c
++++ b/drivers/misc/genwqe/card_base.c
+@@ -1336,7 +1336,6 @@ static int genwqe_sriov_configure(struct pci_dev *dev, int numvfs)
+ static struct pci_error_handlers genwqe_err_handler = {
+ 	.error_detected = genwqe_err_error_detected,
+ 	.mmio_enabled	= genwqe_err_result_none,
+-	.link_reset	= genwqe_err_result_none,
+ 	.slot_reset	= genwqe_err_slot_reset,
+ 	.resume		= genwqe_err_resume,
+ };
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index e2d1a12..2c0158b 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -678,9 +678,6 @@ struct pci_error_handlers {
+ 	/* MMIO has been re-enabled, but not DMA */
+ 	pci_ers_result_t (*mmio_enabled)(struct pci_dev *dev);
+ 
+-	/* PCI Express link has been reset */
+-	pci_ers_result_t (*link_reset)(struct pci_dev *dev);
+-
+ 	/* PCI slot has been reset */
+ 	pci_ers_result_t (*slot_reset)(struct pci_dev *dev);
+ 
+-- 
+MST
