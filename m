@@ -1,113 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-To: Jerome Glisse <j.glisse@gmail.com>,
-        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <20170105183927.GA5324@gmail.com>
- <20170105190113.GA12587@obsidianresearch.com>
- <20170105195424.GB2166@redhat.com>
- <20170105200719.GB31047@obsidianresearch.com>
- <20170105201935.GC2166@redhat.com>
- <20170105224215.GA3855@obsidianresearch.com>
- <20170105232352.GB6426@redhat.com>
- <20170106003034.GB4670@obsidianresearch.com>
- <20170106015831.GA2226@gmail.com>
-CC: Jerome Glisse <jglisse@redhat.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>,
-        "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>,
-        "'linux-nvdimm@lists.01.org'" <linux-nvdimm@ml01.01.org>,
-        "'Linux-media@vger.kernel.org'" <Linux-media@vger.kernel.org>,
-        "'dri-devel@lists.freedesktop.org'" <dri-devel@lists.freedesktop.org>,
-        "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>, <hch@infradead.org>,
-        <david1.zhou@amd.com>, <qiang.yu@amd.com>
-From: Serguei Sagalovitch <serguei.sagalovitch@amd.com>
-Message-ID: <f07700d5-211f-d091-2b0b-fbaf03c4a959@amd.com>
-Date: Fri, 6 Jan 2017 11:56:30 -0500
-MIME-Version: 1.0
-In-Reply-To: <20170106015831.GA2226@gmail.com>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:47667 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751042AbdAXLii (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 24 Jan 2017 06:38:38 -0500
+Message-ID: <1485257846.3600.106.camel@pengutronix.de>
+Subject: Re: [PATCH v3 16/24] media: Add i.MX media core driver
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <steve_longerbeam@mentor.com>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Date: Tue, 24 Jan 2017 12:37:26 +0100
+In-Reply-To: <c6087342-f61f-0b4c-f67e-4239f861e974@mentor.com>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+         <1483755102-24785-17-git-send-email-steve_longerbeam@mentor.com>
+         <1484320822.31475.96.camel@pengutronix.de>
+         <a94025b4-c4dd-de51-572e-d2615a7246e4@gmail.com>
+         <1484574468.8415.136.camel@pengutronix.de>
+         <e38feca9-ed6f-8288-e006-768d6ba2fe5a@gmail.com>
+         <1485170006.2874.63.camel@pengutronix.de>
+         <481289bb-424f-4ac4-66f1-7e1b4a0b7065@gmail.com>
+         <c6087342-f61f-0b4c-f67e-4239f861e974@mentor.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2017-01-05 08:58 PM, Jerome Glisse wrote:
-> On Thu, Jan 05, 2017 at 05:30:34PM -0700, Jason Gunthorpe wrote:
->> On Thu, Jan 05, 2017 at 06:23:52PM -0500, Jerome Glisse wrote:
->>
->>>> I still don't understand what you driving at - you've said in both
->>>> cases a user VMA exists.
->>> In the former case no, there is no VMA directly but if you want one than
->>> a device can provide one. But such VMA is useless as CPU access is not
->>> expected.
->> I disagree it is useless, the VMA is going to be necessary to support
->> upcoming things like CAPI, you need it to support O_DIRECT from the
->> filesystem, DPDK, etc. This is why I am opposed to any model that is
->> not VMA based for setting up RDMA - that is shorted sighted and does
->> not seem to reflect where the industry is going.
->>
->> So focus on having VMA backed by actual physical memory that covers
->> your GPU objects and ask how do we wire up the '__user *' to the DMA
->> API in the best way so the DMA API still has enough information to
->> setup IOMMUs and whatnot.
-> I am talking about 2 different thing. Existing hardware and API where you
-> _do not_ have a vma and you do not need one. This is just existing stuff.
-I do not understand why you assume that existing API doesn't  need one.
-I would say that a lot of __existing__ user level API and their support 
-in kernel
-(especially outside of graphics domain) assumes that we have vma and
-deal with __user * pointers.
-> Some close driver provide a functionality on top of this design. Question
-> is do we want to do the same ? If yes and you insist on having a vma we
-> could provide one but this is does not apply and is useless for where we
-> are going with new hardware.
->
-> With new hardware you just use malloc or mmap to allocate memory and then
-> you use it directly with the device. Device driver can migrate any part of
-> the process address space to device memory. In this scheme you have your
-> usual VMAs but there is nothing special about them.
-Assuming that the whole device memory is CPU accessible and it looks
-like the direction where we are going:
-- You forgot about use case when we want or need to allocate memory
-directly on device (why we need to migrate anything if not needed?).
-- We may want to use CPU to access such memory on device to avoid
-any unnecessary migration back.
-- We may have more device memory than the system one.
-E.g. if you have 12 GPUs w/64GB each it will already give us ~0.7 TB
-not mentioning NVDIMM cards which could also be used as memory
-storage for other device access.
-- We also may want/need to share GPU memory between different
-processes.
-> Now when you try to do get_user_page() on any page that is inside the
-> device it will fails because we do not allow any device memory to be pin.
-> There is various reasons for that and they are not going away in any hw
-> in the planing (so for next few years).
->
-> Still we do want to support peer to peer mapping. Plan is to only do so
-> with ODP capable hardware. Still we need to solve the IOMMU issue and
-> it needs special handling inside the RDMA device. The way it works is
-> that RDMA ask for a GPU page, GPU check if it has place inside its PCI
-> bar to map this page for the device, this can fail. If it succeed then
-> you need the IOMMU to let the RDMA device access the GPU PCI bar.
->
-> So here we have 2 orthogonal problem. First one is how to make 2 drivers
-> talks to each other to setup mapping to allow peer to peer But I would assume  and second is
-> about IOMMU.
->
-I think that there is the third problem:  A lot of existing user level API
-(MPI, IB Verbs, file i/o, etc.) deal with pointers to the buffers.
-Potentially it would be ideally to support use cases when those buffers are
-located in device memory avoiding any unnecessary migration / 
-double-buffering.
-Currently a lot of infrastructure in kernel assumes that this is the user
-pointer and call "get_user_pages"  to get s/g.   What is your opinion
-how it should be changed to deal with cases when "buffer" is in
-device memory?
+Hi Steve,
 
+On Mon, 2017-01-23 at 17:45 -0800, Steve Longerbeam wrote:
+> 
+> On 01/23/2017 05:38 PM, Steve Longerbeam wrote:
+> >
+> >>
+> >>> Second, ignoring the above locking issue for a moment,
+> >>> v4l2_pipeline_pm_use()
+> >>> will call s_power on the sensor _first_, then the mipi csi-2 s_power,
+> >>> when executing
+> >>> media-ctl -l '"ov5640 1-003c":0 -> "imx6-mipi-csi2":0[1]'. Which is the
+> >>> wrong order.
+> >>> In my version which enforces the correct power on order, the mipi csi-2
+> >>> s_power
+> >>> is called first in that link setup, followed by the sensor.
+> >> I don't understand why you want to power up subdevs as soon as the links
+> >> are established.
+> >
+> > Because that is the precedence, all other media drivers do pipeline
+> > power on/off at link_notify. And v4l2_pipeline_link_notify() was written
+> > as a link_notify method.
+> >
+> >>   Shouldn't that rather be done for all subdevices in the
+> >> pipeline when the corresponding capture device is opened?
+> >
+> > that won't work. There's no guarantee the links will be established
+> > at capture device open time.
 
+If the device is opened before the links are established, it won't be
+usable anyway. And I think the connected pipeline should be locked in
+place while the video device is opened. Is there any reason to ever open
+the video device and only then start linking entities?
+
+> ugh, maybe v4l2_pipeline_pm_use() would work at open/release. If there are
+> no links yet, it would basically be a no-op. And stream on requires 
+> opening the
+> device, and the pipeline links should be established by then, so this 
+> might be
+> fine, looking into this too.
+
+Thanks for looking into it, at least I had that working for the
+TC358743->MIPI-CSI2 link in my driver.
+
+> >> It seems to me that powering up the pipeline should be the last step
+> >> before userspace actually starts the capture.
+> >
+> > Well, I'm ok with moving pipeline power on/off to start/stop streaming.
+> > I would actually prefer to do it then, I only chose at link_notify 
+> > because of precedence. I'll look into it.
+
+That might be too late, though. I would expect STREAMON/STREAMOFF to be
+a rather fast operation as all the slow preparation could be at open /
+REQBUFS time. Also, there might be sensors that need to be powered on to
+handle the v4l2_ctrl passthrough?
+
+regards
+Philipp
 
