@@ -1,120 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52678 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750834AbdABHxz (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:34217 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750984AbdAYCjd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 2 Jan 2017 02:53:55 -0500
-Date: Mon, 2 Jan 2017 09:53:49 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org,
-        Helen Koike <helen.koike@collabora.co.uk>
-Subject: Re: [RFC v3 00/21] Make use of kref in media device, grab references
- as needed
-Message-ID: <20170102075348.GF3958@valkosipuli.retiisi.org.uk>
-References: <20161109154608.1e578f9e@vento.lan>
- <20161213102447.60990b1c@vento.lan>
- <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
- <7529355.zfqFdROYdM@avalon>
- <896ef36c-435e-6899-5ae8-533da7731ec1@xs4all.nl>
- <20161216150723.GL16630@valkosipuli.retiisi.org.uk>
- <20161219074655.3238113b@vento.lan>
+        Tue, 24 Jan 2017 21:39:33 -0500
+Subject: Re: [PATCH v3 19/24] media: imx: Add IC subdev drivers
+To: Hans Verkuil <hverkuil@xs4all.nl>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <1483755102-24785-20-git-send-email-steve_longerbeam@mentor.com>
+ <07f4bc9e-22ef-a925-f4ee-c14df65e4f0d@xs4all.nl>
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <aa230b31-39f0-524d-3ce5-05827360ea95@gmail.com>
+Date: Tue, 24 Jan 2017 18:39:30 -0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161219074655.3238113b@vento.lan>
+In-Reply-To: <07f4bc9e-22ef-a925-f4ee-c14df65e4f0d@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
 
-On Mon, Dec 19, 2016 at 07:46:55AM -0200, Mauro Carvalho Chehab wrote:
-> Em Fri, 16 Dec 2016 17:07:23 +0200
-> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> 
-> > Hi Hans,
-> 
-> > > chrdev_open in fs/char_dev.c increases the refcount on open() and decreases it
-> > > on release(). Thus ensuring that the cdev can never be removed while in an
-> > > ioctl.  
-> > 
-> > It does, but it does not affect memory which is allocated separately of that.
-> > 
-> > See this:
-> > 
-> > <URL:https://www.mail-archive.com/linux-media@vger.kernel.org/msg106390.html>
-> 
-> That sounds promising. If this bug issues other drivers than OMAP3,
-> then indeed the core has a bug.
-> 
-> I'll see if I can reproduce it here with some USB drivers later this week.
 
-It's not a driver problem so yes, it is reproducible on other hardware.
+On 01/20/2017 06:29 AM, Hans Verkuil wrote:
+> On 01/07/2017 03:11 AM, Steve Longerbeam wrote:
+>> +
+>> +static const struct v4l2_ctrl_config prpenc_std_ctrl[] = {
+>> +	{
+>> +		.id = V4L2_CID_HFLIP,
+>> +		.name = "Horizontal Flip",
+>> +		.type = V4L2_CTRL_TYPE_BOOLEAN,
+>> +		.def =  0,
+>> +		.min =  0,
+>> +		.max =  1,
+>> +		.step = 1,
+>> +	}, {
+>> +		.id = V4L2_CID_VFLIP,
+>> +		.name = "Vertical Flip",
+>> +		.type = V4L2_CTRL_TYPE_BOOLEAN,
+>> +		.def =  0,
+>> +		.min =  0,
+>> +		.max =  1,
+>> +		.step = 1,
+>> +	}, {
+>> +		.id = V4L2_CID_ROTATE,
+>> +		.name = "Rotation",
+>> +		.type = V4L2_CTRL_TYPE_INTEGER,
+>> +		.def =   0,
+>> +		.min =   0,
+>> +		.max = 270,
+>> +		.step = 90,
+>> +	},
+>> +};
+> Use v4l2_ctrl_new_std() instead of this array: this avoids duplicating information
+> like the name and type.
+>
+> If this is also done elsewhere, then it should be changed there as well.
 
-> 
-> > > If the omap3 is used as a testbed, then that's fine by me, but even then I
-> > > probably wouldn't want the omap3 code that makes this possible in the kernel.
-> > > It's just additional code for no purpose.  
-> > 
-> > The same problems exist on other devices, whether platform, pci or USB, as
-> > the problems are in the core frameworks rather than (only) in the drivers.
-> > 
-> > On platform devices, this happens also when removing the module.
-> > 
-> > I've used omap3isp as an example since it demonstrates well the problems and
-> > a lot of people have the hardware as well. Also, Mauro has requested all
-> > drivers to be converted to the new API. I'm fine doing that for the actually
-> > hot-pluggable hardware.
-> 
-> While IMHO it is overkill trying to support hot plug on omap3, I won't
-> mind if you do that, provided that your patch series can be applied in
-> a way that it won't cause regressions for real hot-pluggable hardware.
+done.
 
-This is not really about the OMAP3 ISP driver hotplug support; it is indeed
-about the framework's ability to support hotpluggable hardware. The current
-painpoint is removing hardware; the current frameworks aren't quite up to
-that at the moment.
+Steve
 
-I haven't checked how many plain V4L2 drivers do this correctly but the
-problem domain becomes a lot more complex when you add V4L2 sub-device and
-Media controller nodes. Having a driver that does implement this correctly
-is important for writing new drivers, hence the changes to the OMAP3 ISP
-driver.
-
-> 
-> I still think that keeping cdev embedded in a structure that it is
-> created dynamically when registering the device node, instead of
-> embedding it at struct media_device. Yet, if you prove that this does
-> more harm than good, I'm ok on re-embeeding it. However, on such case,
-> you need to put the patches re-embeeding it at the end of the patch
-> series (and not at the beginning), as otherwise you'll be causing
-> regressions.
-> 
-> > One additional reason is that as the omap3isp driver has been used as an
-> > example to write a number of other drivers, people do see what's the right
-> > way to do these things, instead of copying code from a driver doing it
-> > wrong.
-> 
-> Interesting argument. Yet, IMHO, the best would be to do the proper
-> review on the first platform driver that would support hot-plug,
-> and use this as an example. It is a shame that project Aurora was
-> discontinued, as media drivers for such kind of hardware would be an
-> interesting example.
-> 
-> On that matter, just like we use vivid as a testbench and as an
-> example for other drivers, it would be great if we could merge
-> the vimc driver. What's the status of Helen's patchset?
-
-That's a good point. I wasn't reviewing that driver back then when the
-patches were posted, but should it go in, it should make a good example for
-writing other drivers as well.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
