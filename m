@@ -1,116 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from host.76.145.23.62.rev.coltfrance.com ([62.23.145.76]:48700 "EHLO
-        proxy.6wind.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751512AbdAMKrS (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40918 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751355AbdAYLqK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Jan 2017 05:47:18 -0500
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-To: arnd@arndb.de
-Cc: mmarek@suse.com, linux-kbuild@vger.kernel.org,
-        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org,
-        adi-buildroot-devel@lists.sourceforge.net,
-        linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com,
-        uclinux-h8-devel@lists.sourceforge.jp,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org,
-        linux-mips@linux-mips.org, linux-am33-list@redhat.com,
-        nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-        linux-arch@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        netdev@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mmc@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-nfs@vger.kernel.org,
-        linux-raid@vger.kernel.org, linux-spi@vger.kernel.org,
-        linux-mtd@lists.infradead.org, linux-rdma@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, alsa-devel@alsa-project.org,
-        linux-fbdev@vger.kernel.org, xen-devel@lists.xenproject.org,
-        airlied@linux.ie, davem@davemloft.net, linux@armlinux.org.uk,
-        bp@alien8.de, slash.tmp@free.fr, daniel.vetter@ffwll.ch,
-        rmk+kernel@armlinux.org.uk, msalter@redhat.com, jengelh@inai.de,
-        hch@infradead.org, Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: [PATCH v3 6/8] Makefile.headersinst: remove destination-y option
-Date: Fri, 13 Jan 2017 11:46:44 +0100
-Message-Id: <1484304406-10820-7-git-send-email-nicolas.dichtel@6wind.com>
-In-Reply-To: <1484304406-10820-1-git-send-email-nicolas.dichtel@6wind.com>
-References: <3131144.4Ej3KFWRbz@wuerfel>
- <1484304406-10820-1-git-send-email-nicolas.dichtel@6wind.com>
+        Wed, 25 Jan 2017 06:46:10 -0500
+Date: Wed, 25 Jan 2017 13:46:06 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Vincent ABRIOU <vincent.abriou@st.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues FRUCHET <hugues.fruchet@st.com>,
+        Jean Christophe TROTIN <jean-christophe.trotin@st.com>
+Subject: Re: [media] uvcvideo: support for contiguous DMA buffers
+Message-ID: <20170125114605.GC7139@valkosipuli.retiisi.org.uk>
+References: <1475494036-18208-1-git-send-email-vincent.abriou@st.com>
+ <5308977.1AOWxa0Moe@avalon>
+ <c86650e5-7106-d36b-b716-6247fb2fa8ed@st.com>
+ <20170111110350.GE10831@valkosipuli.retiisi.org.uk>
+ <45eec54c-059e-86c1-bedb-78a6400328a4@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <45eec54c-059e-86c1-bedb-78a6400328a4@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This option was added in commit c7bb349e7c25 ("kbuild: introduce destination-y
-for exported headers") but never used in-tree.
+Hi Vincent,
 
-Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
----
- Documentation/kbuild/makefiles.txt | 23 ++++-------------------
- scripts/Makefile.headersinst       |  2 +-
- 2 files changed, 5 insertions(+), 20 deletions(-)
+On Wed, Jan 11, 2017 at 12:36:24PM +0000, Vincent ABRIOU wrote:
+> Hi Sakari,
+> 
+> On 01/11/2017 12:03 PM, Sakari Ailus wrote:
+> > Hi Vincent,
+> >
+> > On Mon, Jan 09, 2017 at 03:49:00PM +0000, Vincent ABRIOU wrote:
+> >>
+> >>
+> >> On 01/09/2017 04:37 PM, Laurent Pinchart wrote:
+> >>> Hi Vincent,
+> >>>
+> >>> Thank you for the patch.
+> >>>
+> >>> On Monday 03 Oct 2016 13:27:16 Vincent Abriou wrote:
+> >>>> Allow uvcvideo compatible devices to allocate their output buffers using
+> >>>> contiguous DMA buffers.
+> >>>
+> >>> Why do you need this ? If it's for buffer sharing with a device that requires
+> >>> dma-contig, can't you allocate the buffers on the other device and import them
+> >>> on the UVC side ?
+> >>>
+> >>
+> >> Hi Laurent,
+> >>
+> >> I need this using Gstreamer simple pipeline to connect an usb webcam
+> >> (v4l2src) with a display (waylandsink) activating the zero copy path.
+> >>
+> >> The waylandsink plugin does not have any contiguous memory pool to
+> >> allocate contiguous buffer. So it is up to the upstream element, here
+> >> v4l2src, to provide such contiguous buffers.
+> >
+> > Do you need (physically) contiguous memory?
+> >
+> 
+> Yes, drm driver that does not have mmu needs to have contiguous buffers.
 
-diff --git a/Documentation/kbuild/makefiles.txt b/Documentation/kbuild/makefiles.txt
-index 9b9c4797fc55..37b525d329ae 100644
---- a/Documentation/kbuild/makefiles.txt
-+++ b/Documentation/kbuild/makefiles.txt
-@@ -46,9 +46,8 @@ This document describes the Linux kernel Makefiles.
- 	=== 7 Kbuild syntax for exported headers
- 		--- 7.1 header-y
- 		--- 7.2 genhdr-y
--		--- 7.3 destination-y
--		--- 7.4 generic-y
--		--- 7.5 generated-y
-+		--- 7.3 generic-y
-+		--- 7.4 generated-y
- 
- 	=== 8 Kbuild Variables
- 	=== 9 Makefile language
-@@ -1295,21 +1294,7 @@ See subsequent chapter for the syntax of the Kbuild file.
- 			#include/linux/Kbuild
- 			genhdr-y += version.h
- 
--	--- 7.3 destination-y
--
--	When an architecture has a set of exported headers that needs to be
--	exported to a different directory destination-y is used.
--	destination-y specifies the destination directory for all exported
--	headers in the file where it is present.
--
--		Example:
--			#arch/xtensa/platforms/s6105/include/platform/Kbuild
--			destination-y := include/linux
--
--	In the example above all exported headers in the Kbuild file
--	will be located in the directory "include/linux" when exported.
--
--	--- 7.4 generic-y
-+	--- 7.3 generic-y
- 
- 	If an architecture uses a verbatim copy of a header from
- 	include/asm-generic then this is listed in the file
-@@ -1336,7 +1321,7 @@ See subsequent chapter for the syntax of the Kbuild file.
- 		Example: termios.h
- 			#include <asm-generic/termios.h>
- 
--	--- 7.5 generated-y
-+	--- 7.4 generated-y
- 
- 	If an architecture generates other header files alongside generic-y
- 	wrappers, and not included in genhdr-y, then generated-y specifies
-diff --git a/scripts/Makefile.headersinst b/scripts/Makefile.headersinst
-index 3e20d03432d2..876b42cfede4 100644
---- a/scripts/Makefile.headersinst
-+++ b/scripts/Makefile.headersinst
-@@ -14,7 +14,7 @@ kbuild-file := $(srctree)/$(obj)/Kbuild
- include $(kbuild-file)
- 
- # called may set destination dir (when installing to asm/)
--_dst := $(if $(destination-y),$(destination-y),$(if $(dst),$(dst),$(obj)))
-+_dst := $(if $(dst),$(dst),$(obj))
- 
- old-kbuild-file := $(srctree)/$(subst uapi/,,$(obj))/Kbuild
- ifneq ($(wildcard $(old-kbuild-file)),)
+One option would be to have that driver to allocate the memory. I admit it's
+not a great solution as you need special arrangements because you allocate
+memory where the hardware has strictest memory allocation requirements.
+
+> 
+> > The DMA-BUF API does help sharing the buffers but it, at least currently,
+> > does not help allocating memory or specifying a common format so that all
+> > the devices the buffer needs to be accessible can actually make use of it.
+> >
+> > Instead of hacking drivers to make use of different memory allocation
+> > strategies required by unrelated devices, we should instead fix these
+> > problems in a proper, scalable way.
+> >
+> 
+> Scalable way? Like central allocator?
+
+Yeah. You seem to be working on this already. :-)
+
+Some devices have the weirdest memory requirements, but most (those with
+MMU) can manage with any pages in the system memory. Either physically or
+virtually (i.e. a buffer consisting of any page in system memory) contiguous
+memory can be supported by the vast majority of devices.
+
+It'd be nice, API-wise, to be able to tell in the user space which device
+the buffer is used with and only then perform the actual allocation. An
+alternative would be to re-allocate if a device's memory requirements do not
+match with a buffer what the user is passing to to a device, but this may be
+problematic from performance point of view (as you need to reallocate).
+
+An allocator or a couple will be needed, too.
+
 -- 
-2.8.1
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
