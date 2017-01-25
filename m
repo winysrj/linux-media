@@ -1,117 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:54705 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S969056AbdAITnJ (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:42063 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751324AbdAYUiK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Jan 2017 14:43:09 -0500
-Message-ID: <1483990983.13625.58.camel@pengutronix.de>
-Subject: Re: [PATCH v2 00/21] Basic i.MX IPUv3 capture support
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <steve_longerbeam@mentor.com>
-Cc: Marek Vasut <marex@denx.de>,
-        Robert Schwebel <r.schwebel@pengutronix.de>,
-        Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Gary Bisson <gary.bisson@boundarydevices.com>,
-        Sascha Hauer <kernel@pengutronix.de>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Mon, 09 Jan 2017 20:43:03 +0100
-In-Reply-To: <c38d80aa-5464-1e9d-e11a-f54716fdb565@mentor.com>
-References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
-         <20161019213026.GU9460@valkosipuli.retiisi.org.uk>
-         <CAH-u=807nRYzza0kTfOMv1AiWazk6FGJyz6W5_bYw7v9nOrccA@mail.gmail.com>
-         <20161229205113.j6wn7kmhkfrtuayu@pengutronix.de>
-         <7350daac-14ee-74cc-4b01-470a375613a3@denx.de>
-         <c38d80aa-5464-1e9d-e11a-f54716fdb565@mentor.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Wed, 25 Jan 2017 15:38:10 -0500
+Subject: Re: odd kernel messages when running v4l2-compliance
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
+References: <20170125191540.GC20610@bigcity.dyn.berto.se>
+Cc: linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <b7898c02-9ac3-eaf9-9b17-35e86bd0ef5f@xs4all.nl>
+Date: Wed, 25 Jan 2017 21:38:05 +0100
+MIME-Version: 1.0
+In-Reply-To: <20170125191540.GC20610@bigcity.dyn.berto.se>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
-
-Am Freitag, den 30.12.2016, 12:26 -0800 schrieb Steve Longerbeam:
+On 01/25/2017 08:15 PM, Niklas Söderlund wrote:
+> Hi Hans,
 > 
-> On 12/30/2016 11:06 AM, Marek Vasut wrote:
-> > On 12/29/2016 09:51 PM, Robert Schwebel wrote:
-> >> Hi Jean-Michel,
-> > Hi,
-> >
-> >> On Thu, Dec 29, 2016 at 04:08:33PM +0100, Jean-Michel Hautbois wrote:
-> >>> What is the status of this work?
-> >> Philipp's patches have been reworked with the review feedback from the
-> >> last round and a new version will be posted when he is back from
-> >> holidays.
-> > IMO Philipp's patches are better integrated and well structured, so I'd
-> > rather like to see his work in at some point.
+> I have noticed an odd printout when running v4l2-compliance while 
+> testing the rcar-vin driver. When testing (v4l2-compliance -d 0) on 
+> ARM64 I see the following messages:
 > 
-> Granted I am biased, but I will state my case. "Better integrated" - my 
-> patches
-> are also well integrated with the media core infrastructure. Philipp's 
-> patches
-> in fact require modification to media core, whereas mine require none.
-> Some changes are needed of course (more subdev type definitions for
-> one).
+> [ 1411.016069] compat_ioctl32: unexpected VIDIOC_FMT1 type 0
+> [ 1411.022981] compat_ioctl32: unexpected VIDIOC_FMT1 type 128
+> [ 1411.033152] compat_ioctl32: unexpected VIDIOC_FMT1 type 128
+> [ 1411.043283] compat_ioctl32: unexpected VIDIOC_FMT1 type 128
 > 
-> As for "well structured", I don't really understand what is meant by that,
-> but my driver is also well structured.
+> Running the same rcar-vin driver on ARM and I see no such messages.  
+> There can of course be problems with my driver but after digging around
+> a bit I'm a bit confused, maybe you can help me understand where the 
+> true problem is.
+> 
+> In the kernel the messages originate from __get_v4l2_format32() in
+> drivers/media/v4l2-core/v4l2-compat-ioctl32.c and they are printed if 
+> the format type is unknown, that is is not one of the specified ones in 
+> a switch statement. That is all entries of enum v4l2_buf_type except 
+> V4L2_BUF_TYPE_PRIVATE.
+> 
+>     enum v4l2_buf_type {
+>             V4L2_BUF_TYPE_VIDEO_CAPTURE        = 1,
+>             V4L2_BUF_TYPE_VIDEO_OUTPUT         = 2,
+>             V4L2_BUF_TYPE_VIDEO_OVERLAY        = 3,
+>             V4L2_BUF_TYPE_VBI_CAPTURE          = 4,
+>             V4L2_BUF_TYPE_VBI_OUTPUT           = 5,
+>             V4L2_BUF_TYPE_SLICED_VBI_CAPTURE   = 6,
+>             V4L2_BUF_TYPE_SLICED_VBI_OUTPUT    = 7,
+>             V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY = 8,
+>             V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
+>             V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
+>             V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
+>             V4L2_BUF_TYPE_SDR_OUTPUT           = 12,
+>             /* Deprecated, do not use */
+>             V4L2_BUF_TYPE_PRIVATE              = 0x80,
+>     };
+> 
+> 
+> In v4l2-compliance the message is trigged inside testGetFormats() from 
+> utils/v4l2-compliance/v4l2-test-formats.cpp by:
+> 
+>     for (type = 0; type <= V4L2_BUF_TYPE_LAST; type++) {
+>             createInvalidFmt(fmt, clip, type);
+>             ret = doioctl(node, VIDIOC_G_FMT, &fmt);
+> 
+>             ....
+>     }
+> 
+> Here V4L2_BUF_TYPE_LAST is defined to V4L2_BUF_TYPE_SDR_OUTPUT and the 
+> enum struct is the same as in the kernel since it's included from 
+> include/linux/videodev2.h. One format is created with type = 0 and one 
+> with type = 128 which is why the messages gets printed by the kernel.
+> 
+> Is this something I should somehow handle in my driver (I can't see how 
+> I could even do that)? Or is it expected that v4l2-compliance
+> should provoke this messages in order to test the API and I should not 
+> worry about the messages when using v4l2-compliance?
+> 
 
-I agree that this driver is well structured and well documented. Many of
-my earlier concerns regarding the device tree bindings and media
-controller interface have been addressed. But there are still a few
-design choices that I don't agree with, and some are userspace visible,
-which makes me worry about not being able to change them later.
+Those messages really should be pr_debug instead of pr_info. The idea is
+that when a new format type is added, then that should also be supported
+in the 32-bit compat code. The warning helps identifying this.
 
-One is the amount and organization of subdevices/media entities visible
-to userspace. The SMFCs should not be user controllable subdevices, but
-can be implicitly enabled when a CSI is directly linked to a camif.
-Also I'm not convinced the 1:1 mapping of IC task to subdevices is the
-best choice. It is true that the three tasks can be enabled separately,
-but to my understanding, the PRP ENC and PRP VF tasks share a single
-input channel. Shouldn't this be a single PRP subdevice with one input
-and two (VF, ENC) outputs?
-On the other hand, there is currently no way to communicate to userspace
-that the IC can't downscale bilinearly, but only to 1/2 or 1/4 of the
-input resolution, and then scale up bilinearly for there. So instead of
-pretending to be able to downscale to any resolution, it would be better
-to split each IC task into two subdevs, one for the
-1/2-or-1/4-downscaler, and one for the bilinear upscaler.
-Next there is the issue of the custom mem2mem infrastructure inside the
-IPU driver. I think this should be ultimately implemented at a higher
-level, but I see no way this will ever move out of the IPU driver once
-the userspace inferface gets established.
+However, the compliance test has a few tests with incorrect type values to
+check that the driver handle those correctly (returns EINVAL), so those
+tests trigger the compat code messages.
 
-Then there are a few issues that are not userspace visible, so less
-pressing. For example modelling the internal subdevs as separate
-platform devices with async subdevices seems unnecessarily indirect. Why
-not drop the platform devices and create the subdevs directly instead of
-asynchronously?
-I'll try to give the driver a proper review in the next days.
+It's harmless, and you only get them when running a 32-bit v4l2-compliance
+on a 64-bit system.
 
-> Philipp's driver only supports unconverted image capture from the SMFC. 
-> In addition
-> to that, mine allows for all the hardware links supported by the IPU, 
-> including routing
-> frames from the CSI directly to the Image converter for scaling up to 
-> 4096x4096,
+Regards,
 
-Note that tiled scaling (anything > 1024x1024) currently doesn't produce
-correct results due to the fractional reset at the seam. This is not a
-property of this driver, but still needs to be fixed in the ipu-v3 core.
-
-> colorspace conversion, rotation, and motion compensated de-interlace. 
-> Yes all these
-> conversion can be carried out post-capture via a mem2mem device, but 
-> conversion
-> directly from CSI capture has advantages, including minimized CPU 
-> utilization and
-> lower AXI bus traffic.
-
-These benefits are limited by the hardware to non-rotated frames <
-1024x1024 pixels.
-
-regards
-Philipp
-
+	Hans
