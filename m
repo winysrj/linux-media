@@ -1,126 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45708 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751302AbdASAEU (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43284 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751639AbdAYNtG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Jan 2017 19:04:20 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Jaejoong Kim <climbbb.kim@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] uvcvideo: change result code of debugfs_init to void
-Date: Thu, 19 Jan 2017 02:04:37 +0200
-Message-ID: <1781087.7gDRW24Af0@avalon>
-In-Reply-To: <1484184681-27384-1-git-send-email-climbbb.kim@gmail.com>
-References: <1484184681-27384-1-git-send-email-climbbb.kim@gmail.com>
+        Wed, 25 Jan 2017 08:49:06 -0500
+Date: Wed, 25 Jan 2017 15:48:32 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Pavel Machek <pavel@ucw.cz>, ivo.g.dimitrov.75@gmail.com,
+        pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        galak@codeaurora.org, mchehab@osg.samsung.com,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] mark myself as mainainer for camera on N900
+Message-ID: <20170125134831.GG7139@valkosipuli.retiisi.org.uk>
+References: <20161023200355.GA5391@amd>
+ <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
+ <20161214122451.GB27011@amd>
+ <20161222100104.GA30917@amd>
+ <20161227092634.GK16630@valkosipuli.retiisi.org.uk>
+ <20161227204558.GA23676@amd>
+ <20161227205923.GA7859@amd>
+ <20161227235721.xulzxdrwnb7feepn@earth>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20161227235721.xulzxdrwnb7feepn@earth>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jaejoong,
+Hi Sebastian and Pavel,
 
-Thank you for the patch.
+On Wed, Dec 28, 2016 at 12:57:21AM +0100, Sebastian Reichel wrote:
+> Hi,
+> 
+> On Tue, Dec 27, 2016 at 09:59:23PM +0100, Pavel Machek wrote:
+> > Mark and Sakari as maintainers for Nokia N900 camera pieces.
+> 
+> ^^^ missing me after Mark. Otherwise Mark looks like a name :)
+> 
+> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> > 
+> > ---
+> > 
+> > Hi!
+> > 
+> > > Yeah, there was big flamewar about the permissions. In the end Linus
+> > > decided that everyone knows the octal numbers, but the constants are
+> > > tricky. It began with patch series with 1000 patches...
+> > > 
+> > > > Btw. should we update maintainers as well? Would you like to put yourself
+> > > > there? Feel free to add me, too...
+> > > 
+> > > Ok, will do.
+> > 
+> > Something like this? Actually, I guess we could merge ADP1653 entry
+> > there. Yes, it is random collection of devices, but are usually tested
+> > "together", so I believe one entry makes sense.
+> > 
+> > (But I have no problem with having multiple entries, too.)
+> > 
+> > Thanks,
+> > 								Pavel
+> > 
+> > 
+> > diff --git a/MAINTAINERS b/MAINTAINERS
+> > index 63cefa6..1cb1d97 100644
+> > --- a/MAINTAINERS
+> > +++ b/MAINTAINERS
+> > @@ -8613,6 +8613,14 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/lftan/nios2.git
+> >  S:	Maintained
+> >  F:	arch/nios2/
+> >  
+> > +NOKIA N900 CAMERA SUPPORT (ET8EK8 SENSOR, AD5820 FOCUS)
+> > +M:	Pavel Machek <pavel@ucw.cz>
+> > +M:	Sakari Ailus <sakari.ailus@iki.fi>
+> > +L:	linux-media@vger.kernel.org
+> > +S:	Maintained
+> > +F:	drivers/media/i2c/et8ek8
+> > +F:	drivers/media/i2c/ad5820.c
+> 
+> Not sure if this is useful information, but I solved it like this
+> for N900 power supply drivers:
+> 
+> NOKIA N900 POWER SUPPLY DRIVERS
+> R:	Pali Rohár <pali.rohar@gmail.com>
+> F:	include/linux/power/bq2415x_charger.h
+> F:	include/linux/power/bq27xxx_battery.h
+> F:	include/linux/power/isp1704_charger.h
+> F:	drivers/power/supply/bq2415x_charger.c
+> F:	drivers/power/supply/bq27xxx_battery.c
+> F:	drivers/power/supply/bq27xxx_battery_i2c.c
+> F:	drivers/power/supply/isp1704_charger.c
+> F:	drivers/power/supply/rx51_battery.c
+> 
+> TI BQ27XXX POWER SUPPLY DRIVER
+> R:	Andrew F. Davis <afd@ti.com>
+> F:	include/linux/power/bq27xxx_battery.h
+> F:	drivers/power/supply/bq27xxx_battery.c
+> F:	drivers/power/supply/bq27xxx_battery_i2c.c
+> 
+> POWER SUPPLY CLASS/SUBSYSTEM and DRIVERS
+> M:	Sebastian Reichel <sre@kernel.org>
+> L:	linux-pm@vger.kernel.org
+> T:	git git://git.kernel.org/pub/scm/linux/kernel/git/sre/linux-power-supply.git
+> S:	Maintained
+> F:	Documentation/devicetree/bindings/power/supply/
+> F:	include/linux/power_supply.h
+> F:	drivers/power/supply/
+> 
+> This makes it quite easy to see who applies patches and who should
+> be Cc'd for what reason:
+> 
+> $ ./scripts/get_maintainer.pl -f drivers/power/supply/bq27xxx_battery.c 
+> "Pali Rohár" <pali.rohar@gmail.com> (reviewer:NOKIA N900 POWER SUPPLY DRIVERS)
+> "Andrew F. Davis" <afd@ti.com> (reviewer:TI BQ27XXX POWER SUPPLY DRIVER)
+> Sebastian Reichel <sre@kernel.org> (maintainer:POWER SUPPLY CLASS/SUBSYSTEM and DRIVERS)
+> linux-pm@vger.kernel.org (open list:POWER SUPPLY CLASS/SUBSYSTEM and DRIVERS)
+> linux-kernel@vger.kernel.org (open list)
 
-On Thursday 12 Jan 2017 10:31:21 Jaejoong Kim wrote:
-> The device driver should keep going even if debugfs initialization fails.
-> So, change the return type to void.
-> 
-> Signed-off-by: Jaejoong Kim <climbbb.kim@gmail.com>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-and applied to my tree. I'll send a pull request for v4.11.
-
-> ---
->  drivers/media/usb/uvc/uvc_debugfs.c | 15 ++++++---------
->  drivers/media/usb/uvc/uvcvideo.h    |  4 ++--
->  2 files changed, 8 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_debugfs.c
-> b/drivers/media/usb/uvc/uvc_debugfs.c index 14561a5..368f8f8 100644
-> --- a/drivers/media/usb/uvc/uvc_debugfs.c
-> +++ b/drivers/media/usb/uvc/uvc_debugfs.c
-> @@ -75,14 +75,14 @@ static const struct file_operations
-> uvc_debugfs_stats_fops = {
-> 
->  static struct dentry *uvc_debugfs_root_dir;
-> 
-> -int uvc_debugfs_init_stream(struct uvc_streaming *stream)
-> +void uvc_debugfs_init_stream(struct uvc_streaming *stream)
->  {
->  	struct usb_device *udev = stream->dev->udev;
->  	struct dentry *dent;
->  	char dir_name[32];
-> 
->  	if (uvc_debugfs_root_dir == NULL)
-> -		return -ENODEV;
-> +		return;
-> 
->  	sprintf(dir_name, "%u-%u", udev->bus->busnum, udev->devnum);
-> 
-> @@ -90,7 +90,7 @@ int uvc_debugfs_init_stream(struct uvc_streaming *stream)
->  	if (IS_ERR_OR_NULL(dent)) {
->  		uvc_printk(KERN_INFO, "Unable to create debugfs %s "
->  			   "directory.\n", dir_name);
-> -		return -ENODEV;
-> +		return;
->  	}
-> 
->  	stream->debugfs_dir = dent;
-> @@ -100,10 +100,8 @@ int uvc_debugfs_init_stream(struct uvc_streaming
-> *stream) if (IS_ERR_OR_NULL(dent)) {
->  		uvc_printk(KERN_INFO, "Unable to create debugfs stats file.
-\n");
->  		uvc_debugfs_cleanup_stream(stream);
-> -		return -ENODEV;
-> +		return;
->  	}
-> -
-> -	return 0;
->  }
-> 
->  void uvc_debugfs_cleanup_stream(struct uvc_streaming *stream)
-> @@ -115,18 +113,17 @@ void uvc_debugfs_cleanup_stream(struct uvc_streaming
-> *stream) stream->debugfs_dir = NULL;
->  }
-> 
-> -int uvc_debugfs_init(void)
-> +void uvc_debugfs_init(void)
->  {
->  	struct dentry *dir;
-> 
->  	dir = debugfs_create_dir("uvcvideo", usb_debug_root);
->  	if (IS_ERR_OR_NULL(dir)) {
->  		uvc_printk(KERN_INFO, "Unable to create debugfs directory\n");
-> -		return -ENODATA;
-> +		return;
->  	}
-> 
->  	uvc_debugfs_root_dir = dir;
-> -	return 0;
->  }
-> 
->  void uvc_debugfs_cleanup(void)
-> diff --git a/drivers/media/usb/uvc/uvcvideo.h
-> b/drivers/media/usb/uvc/uvcvideo.h index 7e4d3ee..1d1b992 100644
-> --- a/drivers/media/usb/uvc/uvcvideo.h
-> +++ b/drivers/media/usb/uvc/uvcvideo.h
-> @@ -745,9 +745,9 @@ void uvc_video_decode_isight(struct urb *urb, struct
-> uvc_streaming *stream, struct uvc_buffer *buf);
-> 
->  /* debugfs and statistics */
-> -int uvc_debugfs_init(void);
-> +void uvc_debugfs_init(void);
->  void uvc_debugfs_cleanup(void);
-> -int uvc_debugfs_init_stream(struct uvc_streaming *stream);
-> +void uvc_debugfs_init_stream(struct uvc_streaming *stream);
->  void uvc_debugfs_cleanup_stream(struct uvc_streaming *stream);
-> 
->  size_t uvc_video_stats_dump(struct uvc_streaming *stream, char *buf,
+I'm adding Pavel's patch to my tree and then send a pull req to Mauro. If
+further changes are needed then let's write more patches.
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
