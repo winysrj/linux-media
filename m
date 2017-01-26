@@ -1,73 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46338
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753001AbdASOT2 (ORCPT
+Received: from mail-lf0-f42.google.com ([209.85.215.42]:33348 "EHLO
+        mail-lf0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751787AbdAZHQY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Jan 2017 09:19:28 -0500
-Subject: Re: [PATCH 1/2] [media] exynos-gsc: Fix unbalanced
- pm_runtime_enable() error
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-        linux-kernel@vger.kernel.org
-References: <CGME20170118003024epcas5p34baff888a902351d9168d74f5ecbf293@epcas5p3.samsung.com>
- <1484699402-28738-1-git-send-email-javier@osg.samsung.com>
- <74767acf-052e-80ec-7172-67306b73b691@samsung.com>
-Cc: Inki Dae <inki.dae@samsung.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Kukjin Kim <kgene@kernel.org>,
-        linux-samsung-soc@vger.kernel.org,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        linux-media@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        Ulf Hansson <ulf.hansson@linaro.org>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <2722f760-d1ef-d842-ed3e-aff144ccc72c@osg.samsung.com>
-Date: Thu, 19 Jan 2017 11:19:05 -0300
+        Thu, 26 Jan 2017 02:16:24 -0500
+Received: by mail-lf0-f42.google.com with SMTP id x1so54336041lff.0
+        for <linux-media@vger.kernel.org>; Wed, 25 Jan 2017 23:16:23 -0800 (PST)
+Date: Thu, 26 Jan 2017 08:16:20 +0100
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: odd kernel messages when running v4l2-compliance
+Message-ID: <20170126071620.GD20610@bigcity.dyn.berto.se>
+References: <20170125191540.GC20610@bigcity.dyn.berto.se>
+ <b7898c02-9ac3-eaf9-9b17-35e86bd0ef5f@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <74767acf-052e-80ec-7172-67306b73b691@samsung.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <b7898c02-9ac3-eaf9-9b17-35e86bd0ef5f@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Marek,
-
-On 01/19/2017 11:12 AM, Marek Szyprowski wrote:
-> Hi Javier,
+On 2017-01-25 21:38:05 +0100, Hans Verkuil wrote:
+> On 01/25/2017 08:15 PM, Niklas Söderlund wrote:
+> > Hi Hans,
+> > 
+> > I have noticed an odd printout when running v4l2-compliance while 
+> > testing the rcar-vin driver. When testing (v4l2-compliance -d 0) on 
+> > ARM64 I see the following messages:
+> > 
+> > [ 1411.016069] compat_ioctl32: unexpected VIDIOC_FMT1 type 0
+> > [ 1411.022981] compat_ioctl32: unexpected VIDIOC_FMT1 type 128
+> > [ 1411.033152] compat_ioctl32: unexpected VIDIOC_FMT1 type 128
+> > [ 1411.043283] compat_ioctl32: unexpected VIDIOC_FMT1 type 128
+> > 
+> > Running the same rcar-vin driver on ARM and I see no such messages.  
+> > There can of course be problems with my driver but after digging around
+> > a bit I'm a bit confused, maybe you can help me understand where the 
+> > true problem is.
+> > 
+> > In the kernel the messages originate from __get_v4l2_format32() in
+> > drivers/media/v4l2-core/v4l2-compat-ioctl32.c and they are printed if 
+> > the format type is unknown, that is is not one of the specified ones in 
+> > a switch statement. That is all entries of enum v4l2_buf_type except 
+> > V4L2_BUF_TYPE_PRIVATE.
+> > 
+> >     enum v4l2_buf_type {
+> >             V4L2_BUF_TYPE_VIDEO_CAPTURE        = 1,
+> >             V4L2_BUF_TYPE_VIDEO_OUTPUT         = 2,
+> >             V4L2_BUF_TYPE_VIDEO_OVERLAY        = 3,
+> >             V4L2_BUF_TYPE_VBI_CAPTURE          = 4,
+> >             V4L2_BUF_TYPE_VBI_OUTPUT           = 5,
+> >             V4L2_BUF_TYPE_SLICED_VBI_CAPTURE   = 6,
+> >             V4L2_BUF_TYPE_SLICED_VBI_OUTPUT    = 7,
+> >             V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY = 8,
+> >             V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
+> >             V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
+> >             V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
+> >             V4L2_BUF_TYPE_SDR_OUTPUT           = 12,
+> >             /* Deprecated, do not use */
+> >             V4L2_BUF_TYPE_PRIVATE              = 0x80,
+> >     };
+> > 
+> > 
+> > In v4l2-compliance the message is trigged inside testGetFormats() from 
+> > utils/v4l2-compliance/v4l2-test-formats.cpp by:
+> > 
+> >     for (type = 0; type <= V4L2_BUF_TYPE_LAST; type++) {
+> >             createInvalidFmt(fmt, clip, type);
+> >             ret = doioctl(node, VIDIOC_G_FMT, &fmt);
+> > 
+> >             ....
+> >     }
+> > 
+> > Here V4L2_BUF_TYPE_LAST is defined to V4L2_BUF_TYPE_SDR_OUTPUT and the 
+> > enum struct is the same as in the kernel since it's included from 
+> > include/linux/videodev2.h. One format is created with type = 0 and one 
+> > with type = 128 which is why the messages gets printed by the kernel.
+> > 
+> > Is this something I should somehow handle in my driver (I can't see how 
+> > I could even do that)? Or is it expected that v4l2-compliance
+> > should provoke this messages in order to test the API and I should not 
+> > worry about the messages when using v4l2-compliance?
+> > 
 > 
-> On 2017-01-18 01:30, Javier Martinez Canillas wrote:
->> Commit a006c04e6218 ("[media] exynos-gsc: Fixup clock management at
->> ->remove()") changed the driver's .remove function logic to fist do
->> a pm_runtime_get_sync() to make sure the device is powered before
->> attempting to gate the gsc clock.
->>
->> But the commit also removed a pm_runtime_disable() call that leads
->> to an unbalanced pm_runtime_enable() error if the driver is removed
->> and re-probed:
->>
->> exynos-gsc 13e00000.video-scaler: Unbalanced pm_runtime_enable!
->> exynos-gsc 13e10000.video-scaler: Unbalanced pm_runtime_enable!
->>
->> Fixes: a006c04e6218 ("[media] exynos-gsc: Fixup clock management at ->remove()")
->> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> Those messages really should be pr_debug instead of pr_info. The idea is
+> that when a new format type is added, then that should also be supported
+> in the 32-bit compat code. The warning helps identifying this.
 > 
-> I must have mixed something during the rebase of the Ulf's patch, because
-> the original one kept pm_runtime_disable in the right place:
-> http://lists.infradead.org/pipermail/linux-arm-kernel/2015-January/317678.html
+> However, the compliance test has a few tests with incorrect type values to
+> check that the driver handle those correctly (returns EINVAL), so those
+> tests trigger the compat code messages.
 > 
-> I'm really sorry.
+> It's harmless, and you only get them when running a 32-bit v4l2-compliance
+> on a 64-bit system.
+
+I see, thanks for the explanation. I guess this is what I get for being 
+lazy and reusing my 32-bit NFS root on my 64-bit systems :-)
+
 > 
-
-Ah, I see. No worries.
-
-> Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Regards,
 > 
+> 	Hans
 
-Thanks a lot for your review.
-
-Best regards,
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+Regards,
+Niklas Söderlund
