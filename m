@@ -1,87 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from anholt.net ([50.246.234.109]:51354 "EHLO anholt.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751313AbdAaSai (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jan 2017 13:30:38 -0500
-From: Eric Anholt <eric@anholt.net>
-To: Joe Perches <joe@perches.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: devel@driverdev.osuosl.org, linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-rpi-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 6/6] staging: bcm2835-v4l2: Apply spelling fixes from checkpatch.
-In-Reply-To: <1485826718.20550.14.camel@perches.com>
-References: <20170127215503.13208-1-eric@anholt.net> <20170127215503.13208-7-eric@anholt.net> <1485556233.12563.142.camel@perches.com> <87inowfh55.fsf@eliezer.anholt.net> <1485826718.20550.14.camel@perches.com>
-Date: Tue, 31 Jan 2017 10:30:12 -0800
-Message-ID: <87k29b84ln.fsf@eliezer.anholt.net>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:53767 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753270AbdAZPZx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 26 Jan 2017 10:25:53 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv5 0/2] media: rcar-csi2: add Renesas R-Car MIPI CSI-2 support
+Date: Thu, 26 Jan 2017 16:25:31 +0100
+Message-Id: <20170126152533.28434-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-        micalg=pgp-sha512; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-Joe Perches <joe@perches.com> writes:
+This is the latest incarnation of R-Car MIPI CSI-2 receiver driver. It's 
+based on top of v4.10-rc1 and are tested on Renesas Salvator-X together 
+with the out of tree patches for rcar-vin to add support for Gen3 VIN 
+and a prototype driver for ADV7482. If anyone is interested to test 
+video grabbing using these out of tree patches please see [1].
 
-> On Mon, 2017-01-30 at 12:05 -0800, Eric Anholt wrote:
->> Joe Perches <joe@perches.com> writes:
->>=20
->> > On Fri, 2017-01-27 at 13:55 -0800, Eric Anholt wrote:
->> > > Generated with checkpatch.pl --fix-inplace and git add -p out of the
->> > > results.
->> >=20
->> > Maybe another.
->> >=20
->> > > diff --git a/drivers/staging/media/platform/bcm2835/mmal-vchiq.c b/d=
-rivers/staging/media/platform/bcm2835/mmal-vchiq.c
->> >=20
->> > []
->> > > @@ -239,7 +239,7 @@ static int bulk_receive(struct vchiq_mmal_instan=
-ce *instance,
->> > >  		pr_err("buffer list empty trying to submit bulk receive\n");
->> > >=20=20
->> > >  		/* todo: this is a serious error, we should never have
->> > > -		 * commited a buffer_to_host operation to the mmal
->> > > +		 * committed a buffer_to_host operation to the mmal
->> > >  		 * port without the buffer to back it up (underflow
->> > >  		 * handling) and there is no obvious way to deal with
->> > >  		 * this - how is the mmal servie going to react when
->> >=20
->> > Perhaps s/servie/service/ ?
->>=20
->> I was trying to restrict this patch to just the fixes from checkpatch.
->
-> That's the wrong thing to do if you're fixing
-> spelling defects.  checkpatch is just one mechanism
-> to identify some, and definitely not all, typos and
-> spelling defects.
->
-> If you fixing, fix.  Don't just rely on the brainless
-> tools, use your decidedly non-mechanical brain.
+Changes since v4:
+- Match SoC part numbers and drop trailing space in documentation, 
+  thanks Geert for pointing this out.
+- Clarify that the driver is a CSI-2 receiver by supervised 
+  s/interface/receiver/, thanks Laurent.
+- Add entries in Kconfig and Makefile alphabetically instead of append.
+- Rename struct rcar_csi2 member swap to lane_swap.
+- Remove macros to wrap calls to dev_{dbg,info,warn,err}.
+- Add wrappers for ioread32 and iowrite32.
+- Remove unused interrupt handler, but keep checking in probe that there 
+  are a interrupt define in DT.
+- Rework how to wait for LP-11 state, thanks Laurent for the great idea!
+- Remove unneeded delay in rcar_csi2_reset()
+- Remove check for duplicated lane id:s from DT parsing. Broken out to a 
+  separate patch adding this check directly to v4l2_of_parse_endpoint().
+- Fixed rcar_csi2_start() to ask it's source subdevice for information 
+  about pixel rate and frame format. With this change having 
+  {set,get}_fmt operations became redundant, it was only used for 
+  figuring out this out so dropped them.
+- Tabulated frequency settings map.
+- Dropped V4L2_SUBDEV_FL_HAS_DEVNODE it should never have been set.
+- Switched from MEDIA_ENT_F_ATV_DECODER to 
+  MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER as entity function. I can't 
+  find a more suitable function, and what the hardware do is to fetch 
+  video from an external chip and passes it on to a another SoC internal 
+  IP it's sort of a formatter.
+- Break out DT documentation and code in two patches.
 
-"if you touch anything, you must fix everything."  If that's how things
-work, I would just retract the patch.
+Changes since v3:
+- Update DT binding documentation with input from Geert Uytterhoeven,
+  thanks!
 
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
+Changes since v2:
+- Added media control pads as this is needed by the new rcar-vin driver.
+- Update DT bindings after review comments and to add r8a7796 support.
+- Add get_fmt handler.
+- Fix media bus format error s/YUYV8/UYVY8/
 
------BEGIN PGP SIGNATURE-----
+Changes since v1:
+- Drop dependency on a pad aware s_stream operation.
+- Use the DT bindings format "renesas,<soctype>-<device>", thanks Geert
+  for pointing this out.
 
-iQIzBAEBCgAdFiEE/JuuFDWp9/ZkuCBXtdYpNtH8nugFAliQ17QACgkQtdYpNtH8
-nugnbQ//TKK6m8Py5H3om5vv5EQMSc9Yt07t8Q3BI2TAtzrpfzFu8Z2uxv2ugV/t
-nfm3M+VhYRgYmH335I0R/LlDhjbYoKldL604ywuLazgCsmRvWckHz7slr8cKEryv
-R4GkNC6jOjO9p7oG9U9Zz914qn2nM2gKNgEUqUcZmfP8T9RcqcbvwYpS6vtwCP3L
-Kb4Ji/4OJO0AV4WQenFyhc8iyizY2/6nB+bkqHq6Isc4P7W3w6Y/NuZwc9JBTgbj
-pjglj12a9axEIsmJSx1qiyk27J96QH0SRQsm9NHqSSXqPgmbkOIKgYFcSeG0uBdC
-rdMQikHOThFSO4/eh3vEwth5fphaM24WPHo3tV73jfsMJtqYMwpEhhQN4UUZywe3
-zWWTztk/LObWwnVDqiB2cdYZSSzx8Qqu6ghsB2kWwum95y/yhabMITiLTF3cnlov
-/pjIpdsfPEi7ec6xr5eyNZSXTl0wEu8IkohYsSEVPEgB6G4ekWV9tB135ZNQ7ZvI
-ri6NRLXORa8Q148G+Zz2LjejHR/WY5zGCzAAiKVh4vaxxMgnF1ZAbv/RwxXVSz9u
-b5THE+8CilWuyMV2zayNghituNR3I7oZ0ifUQiKyAZdnwswatEu6UDLkGnu6ITNH
-UvRB4dDVjVRNjZ8B8E/3v+1/iA1J46NyCqAezoRuBltQ09aM0xU=
-=mPEB
------END PGP SIGNATURE-----
---=-=-=--
+1. http://elinux.org/R-Car/Tests:rcar-vin
+
+Niklas Söderlund (2):
+  media: rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver documentation
+  media: rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver driver
+
+ .../devicetree/bindings/media/rcar-csi2.txt        | 116 ++++
+ drivers/media/platform/rcar-vin/Kconfig            |  11 +
+ drivers/media/platform/rcar-vin/Makefile           |   1 +
+ drivers/media/platform/rcar-vin/rcar-csi2.c        | 616 +++++++++++++++++++++
+ 4 files changed, 744 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/rcar-csi2.txt
+ create mode 100644 drivers/media/platform/rcar-vin/rcar-csi2.c
+
+-- 
+2.11.0
+
