@@ -1,113 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from host.76.145.23.62.rev.coltfrance.com ([62.23.145.76]:42186 "EHLO
-        proxy.6wind.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933971AbdAFJox (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2017 04:44:53 -0500
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-To: arnd@arndb.de
-Cc: mmarek@suse.com, linux-kbuild@vger.kernel.org,
-        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org,
-        adi-buildroot-devel@lists.sourceforge.net,
-        linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com,
-        uclinux-h8-devel@lists.sourceforge.jp,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org,
-        linux-mips@linux-mips.org, linux-am33-list@redhat.com,
-        nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-        linux-arch@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        netdev@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mmc@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-nfs@vger.kernel.org,
-        linux-raid@vger.kernel.org, linux-spi@vger.kernel.org,
-        linux-mtd@lists.infradead.org, linux-rdma@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, alsa-devel@alsa-project.org,
-        linux-fbdev@vger.kernel.org, xen-devel@lists.xenproject.org,
-        airlied@linux.ie, davem@davemloft.net,
-        Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: [PATCH v2 6/7] Makefile.headersinst: remove destination-y option
-Date: Fri,  6 Jan 2017 10:43:58 +0100
-Message-Id: <1483695839-18660-7-git-send-email-nicolas.dichtel@6wind.com>
-In-Reply-To: <1483695839-18660-1-git-send-email-nicolas.dichtel@6wind.com>
-References: <bf83da6b-01ef-bf44-b3e1-ca6fc5636818@6wind.com>
- <1483695839-18660-1-git-send-email-nicolas.dichtel@6wind.com>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:53750 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753114AbdAZPZv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 26 Jan 2017 10:25:51 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv5 1/2] media: rcar-csi2: add Renesas R-Car MIPI CSI-2 receiver documentation
+Date: Thu, 26 Jan 2017 16:25:32 +0100
+Message-Id: <20170126152533.28434-2-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170126152533.28434-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170126152533.28434-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This option was added in commit c7bb349e7c25 ("kbuild: introduce destination-y
-for exported headers") but never used in-tree.
+Documentation for Renesas R-Car MIPI CSI-2 receiver. The CSI-2 receivers
+are located between the video sources (CSI-2 transmitters) and the video
+grabbers (VIN) on Gen3 of Renesas R-Car SoC.
 
-Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Each CSI-2 device is connected to more then one VIN device which
+simultaneously can receive video from the same CSI-2 device. Each VIN
+device can also be connected to more then one CSI-2 device. The routing
+of which link are used are controlled by the VIN devices. There are only
+a few possible routes which are set by hardware limitations, which are
+different for each SoC in the Gen3 family.
+
+To work with the limitations of routing possibilities it is necessary
+for the DT bindings to describe which VIN device is connected to which
+CSI-2 device. This is why port 1 needs to to assign reg numbers for each
+VIN device that be connected to it. To setup and to know which links are
+valid for each SoC is the responsibility of the VIN driver since the
+register to configure it belongs to the VIN hardware.
+
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- Documentation/kbuild/makefiles.txt | 23 ++++-------------------
- scripts/Makefile.headersinst       |  2 +-
- 2 files changed, 5 insertions(+), 20 deletions(-)
+ .../devicetree/bindings/media/rcar-csi2.txt        | 116 +++++++++++++++++++++
+ 1 file changed, 116 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/rcar-csi2.txt
 
-diff --git a/Documentation/kbuild/makefiles.txt b/Documentation/kbuild/makefiles.txt
-index 9b9c4797fc55..37b525d329ae 100644
---- a/Documentation/kbuild/makefiles.txt
-+++ b/Documentation/kbuild/makefiles.txt
-@@ -46,9 +46,8 @@ This document describes the Linux kernel Makefiles.
- 	=== 7 Kbuild syntax for exported headers
- 		--- 7.1 header-y
- 		--- 7.2 genhdr-y
--		--- 7.3 destination-y
--		--- 7.4 generic-y
--		--- 7.5 generated-y
-+		--- 7.3 generic-y
-+		--- 7.4 generated-y
- 
- 	=== 8 Kbuild Variables
- 	=== 9 Makefile language
-@@ -1295,21 +1294,7 @@ See subsequent chapter for the syntax of the Kbuild file.
- 			#include/linux/Kbuild
- 			genhdr-y += version.h
- 
--	--- 7.3 destination-y
--
--	When an architecture has a set of exported headers that needs to be
--	exported to a different directory destination-y is used.
--	destination-y specifies the destination directory for all exported
--	headers in the file where it is present.
--
--		Example:
--			#arch/xtensa/platforms/s6105/include/platform/Kbuild
--			destination-y := include/linux
--
--	In the example above all exported headers in the Kbuild file
--	will be located in the directory "include/linux" when exported.
--
--	--- 7.4 generic-y
-+	--- 7.3 generic-y
- 
- 	If an architecture uses a verbatim copy of a header from
- 	include/asm-generic then this is listed in the file
-@@ -1336,7 +1321,7 @@ See subsequent chapter for the syntax of the Kbuild file.
- 		Example: termios.h
- 			#include <asm-generic/termios.h>
- 
--	--- 7.5 generated-y
-+	--- 7.4 generated-y
- 
- 	If an architecture generates other header files alongside generic-y
- 	wrappers, and not included in genhdr-y, then generated-y specifies
-diff --git a/scripts/Makefile.headersinst b/scripts/Makefile.headersinst
-index 3e20d03432d2..876b42cfede4 100644
---- a/scripts/Makefile.headersinst
-+++ b/scripts/Makefile.headersinst
-@@ -14,7 +14,7 @@ kbuild-file := $(srctree)/$(obj)/Kbuild
- include $(kbuild-file)
- 
- # called may set destination dir (when installing to asm/)
--_dst := $(if $(destination-y),$(destination-y),$(if $(dst),$(dst),$(obj)))
-+_dst := $(if $(dst),$(dst),$(obj))
- 
- old-kbuild-file := $(srctree)/$(subst uapi/,,$(obj))/Kbuild
- ifneq ($(wildcard $(old-kbuild-file)),)
+diff --git a/Documentation/devicetree/bindings/media/rcar-csi2.txt b/Documentation/devicetree/bindings/media/rcar-csi2.txt
+new file mode 100644
+index 0000000000000000..f6e2027ee92b171a
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/rcar-csi2.txt
+@@ -0,0 +1,116 @@
++Renesas R-Car MIPI CSI-2
++------------------------
++
++The rcar-csi2 device provides MIPI CSI-2 capabilities for the Renesas R-Car
++family of devices. It is to be used in conjunction with the R-Car VIN module,
++which provides the video capture capabilities.
++
++ - compatible: Must be one or more of the following
++   - "renesas,r8a7795-csi2" for the R8A7795 device.
++   - "renesas,r8a7796-csi2" for the R8A7796 device.
++   - "renesas,rcar-gen3-csi2" for a generic R-Car Gen3 compatible device.
++
++   When compatible with a generic version nodes must list the
++   SoC-specific version corresponding to the platform first
++   followed by the generic version.
++
++ - reg: the register base and size for the device registers
++ - interrupts: the interrupt for the device
++ - clocks: Reference to the parent clock
++
++The device node should contain two 'port' child nodes according to the
++bindings defined in Documentation/devicetree/bindings/media/
++video-interfaces.txt. Port 0 should connect the node that is the video
++source for to the CSI-2. Port 1 should connect all the R-Car VIN
++modules, which can make use of the CSI-2 module.
++
++- Port 0 - Video source
++	- Reg 0 - sub-node describing the endpoint that is the video source
++
++- Port 1 - VIN instances
++	- Reg 0 - sub-node describing the endpoint that is VIN0
++	- Reg 1 - sub-node describing the endpoint that is VIN1
++	- Reg 2 - sub-node describing the endpoint that is VIN2
++	- Reg 3 - sub-node describing the endpoint that is VIN3
++	- Reg 4 - sub-node describing the endpoint that is VIN4
++	- Reg 5 - sub-node describing the endpoint that is VIN5
++	- Reg 6 - sub-node describing the endpoint that is VIN6
++	- Reg 7 - sub-node describing the endpoint that is VIN7
++
++Example:
++
++/* SoC properties */
++
++	 csi20: csi2@fea80000 {
++		 compatible = "renesas,r8a7796-csi2";
++		 reg = <0 0xfea80000 0 0x10000>;
++		 interrupts = <0 184 IRQ_TYPE_LEVEL_HIGH>;
++		 clocks = <&cpg CPG_MOD 714>;
++		 power-domains = <&sysc R8A7796_PD_ALWAYS_ON>;
++		 status = "disabled";
++
++		 ports {
++			 #address-cells = <1>;
++			 #size-cells = <0>;
++
++			 port@1 {
++				 #address-cells = <1>;
++				 #size-cells = <0>;
++
++				 reg = <1>;
++
++				 csi20vin0: endpoint@0 {
++					 reg = <0>;
++					 remote-endpoint = <&vin0csi20>;
++				 };
++				 csi20vin1: endpoint@1 {
++					 reg = <1>;
++					 remote-endpoint = <&vin1csi20>;
++				 };
++				 csi20vin2: endpoint@2 {
++					 reg = <2>;
++					 remote-endpoint = <&vin2csi20>;
++				 };
++				 csi20vin3: endpoint@3 {
++					 reg = <3>;
++					 remote-endpoint = <&vin3csi20>;
++				 };
++				 csi20vin4: endpoint@4 {
++					 reg = <4>;
++					 remote-endpoint = <&vin4csi20>;
++				 };
++				 csi20vin5: endpoint@5 {
++					 reg = <5>;
++					 remote-endpoint = <&vin5csi20>;
++				 };
++				 csi20vin6: endpoint@6 {
++					 reg = <6>;
++					 remote-endpoint = <&vin6csi20>;
++				 };
++				 csi20vin7: endpoint@7 {
++					 reg = <7>;
++					 remote-endpoint = <&vin7csi20>;
++				 };
++			 };
++		 };
++	 };
++
++/* Board properties */
++
++	&csi20 {
++		status = "okay";
++
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			port@0 {
++				reg = <0>;
++				csi20_in: endpoint@0 {
++					clock-lanes = <0>;
++					data-lanes = <1>;
++					remote-endpoint = <&adv7482_txb>;
++				};
++			};
++		};
++	};
 -- 
-2.8.1
+2.11.0
 
