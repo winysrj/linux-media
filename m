@@ -1,54 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:40439 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750708AbdAWJBV (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:38330 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751707AbdAZNNY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Jan 2017 04:01:21 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.11] coda: add support for Video Data Order Adapter
-Message-ID: <74c99f5d-30f2-f5a8-1208-44e47eefd9ed@xs4all.nl>
-Date: Mon, 23 Jan 2017 10:01:16 +0100
+        Thu, 26 Jan 2017 08:13:24 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH] v4l: of: check for unique lanes in data-lanes and clock-lanes
+Date: Thu, 26 Jan 2017 14:12:59 +0100
+Message-Id: <20170126131259.5621-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 40eca140c404505c09773d1c6685d818cb55ab1a:
+All lines in data-lanes and clock-lanes properties must be unique.
+Instead of drivers checking for this add it to the generic parser.
 
-  [media] mn88473: add DVB-T2 PLP support (2016-12-27 14:00:15 -0200)
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/v4l2-core/v4l2-of.c | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
-are available in the git repository at:
+diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
+index 93b33681776c..1042db6bb996 100644
+--- a/drivers/media/v4l2-core/v4l2-of.c
++++ b/drivers/media/v4l2-core/v4l2-of.c
+@@ -32,12 +32,19 @@ static int v4l2_of_parse_csi_bus(const struct device_node *node,
+ 	prop = of_find_property(node, "data-lanes", NULL);
+ 	if (prop) {
+ 		const __be32 *lane = NULL;
+-		unsigned int i;
++		unsigned int i, n;
+ 
+ 		for (i = 0; i < ARRAY_SIZE(bus->data_lanes); i++) {
+ 			lane = of_prop_next_u32(prop, lane, &v);
+ 			if (!lane)
+ 				break;
++			for (n = 0; n < i; n++) {
++				if (bus->data_lanes[n] == v) {
++					pr_warn("%s: duplicated lane %u in data-lanes\n",
++						node->full_name, v);
++					return -EINVAL;
++				}
++			}
+ 			bus->data_lanes[i] = v;
+ 		}
+ 		bus->num_data_lanes = i;
+@@ -63,6 +70,15 @@ static int v4l2_of_parse_csi_bus(const struct device_node *node,
+ 	}
+ 
+ 	if (!of_property_read_u32(node, "clock-lanes", &v)) {
++		unsigned int n;
++
++		for (n = 0; n < bus->num_data_lanes; n++) {
++			if (bus->data_lanes[n] == v) {
++				pr_warn("%s: duplicated lane %u in clock-lanes\n",
++					node->full_name, v);
++				return -EINVAL;
++			}
++		}
+ 		bus->clock_lane = v;
+ 		have_clk_lane = true;
+ 	}
+-- 
+2.11.0
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.11c
-
-for you to fetch changes up to 7da44db4d65786332a797aa08b7932e2fb4d421f:
-
-  coda: support YUYV output if VDOA is used (2017-01-23 09:43:46 +0100)
-
-----------------------------------------------------------------
-Michael Tretter (3):
-      coda: fix frame index to returned error
-      coda: use VDOA for un-tiling custom macroblock format
-      coda: support YUYV output if VDOA is used
-
-Philipp Zabel (4):
-      dt-bindings: Add a binding for Video Data Order Adapter
-      coda: add i.MX6 VDOA driver
-      coda: correctly set capture compose rectangle
-      coda: add debug output about tiling
-
- Documentation/devicetree/bindings/media/fsl-vdoa.txt |  21 +++
- arch/arm/boot/dts/imx6qdl.dtsi                       |   2 +
- drivers/media/platform/Kconfig                       |   3 +
- drivers/media/platform/coda/Makefile                 |   1 +
- drivers/media/platform/coda/coda-bit.c               |  93 +++++++++----
- drivers/media/platform/coda/coda-common.c            | 177 ++++++++++++++++++++++---
- drivers/media/platform/coda/coda.h                   |   3 +
- drivers/media/platform/coda/imx-vdoa.c               | 338 +++++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/platform/coda/imx-vdoa.h               |  58 ++++++++
- 9 files changed, 654 insertions(+), 42 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/fsl-vdoa.txt
- create mode 100644 drivers/media/platform/coda/imx-vdoa.c
- create mode 100644 drivers/media/platform/coda/imx-vdoa.h
