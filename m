@@ -1,167 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:39514 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932462AbdABNSO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 2 Jan 2017 08:18:14 -0500
-Subject: Re: [PATCH 04/15] ov7670: get xclk
-To: Sakari Ailus <sakari.ailus@iki.fi>
-References: <20161212155520.41375-1-hverkuil@xs4all.nl>
- <20161212155520.41375-5-hverkuil@xs4all.nl>
- <20161218221520.GX16630@valkosipuli.retiisi.org.uk>
-Cc: linux-media@vger.kernel.org,
-        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <023d8199-395c-c646-7dc2-a789e6009679@xs4all.nl>
-Date: Mon, 2 Jan 2017 14:18:08 +0100
-MIME-Version: 1.0
-In-Reply-To: <20161218221520.GX16630@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:47244 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751357AbdA0UzH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Jan 2017 15:55:07 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH v3 2/7] mt2060: add param to split long i2c writes
+Date: Fri, 27 Jan 2017 22:54:39 +0200
+Message-Id: <20170127205444.3242-2-crope@iki.fi>
+In-Reply-To: <20170127205444.3242-1-crope@iki.fi>
+References: <20170127205444.3242-1-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/18/16 23:15, Sakari Ailus wrote:
-> Hi Hans,
->
-> On Mon, Dec 12, 2016 at 04:55:09PM +0100, Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Get the clock for this sensor.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  drivers/media/i2c/ov7670.c | 35 ++++++++++++++++++++++++++++-------
->>  1 file changed, 28 insertions(+), 7 deletions(-)
->>
->> diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
->> index 35b09d2..d2c0e23 100644
->> --- a/drivers/media/i2c/ov7670.c
->> +++ b/drivers/media/i2c/ov7670.c
->> @@ -10,6 +10,7 @@
->>   * This file may be distributed under the terms of the GNU General
->>   * Public License, version 2.
->>   */
->> +#include <linux/clk.h>
->>  #include <linux/init.h>
->>  #include <linux/module.h>
->>  #include <linux/slab.h>
->> @@ -230,6 +231,7 @@ struct ov7670_info {
->>  		struct v4l2_ctrl *hue;
->>  	};
->>  	struct ov7670_format_struct *fmt;  /* Current format */
->> +	struct clk *clk;
->>  	int min_width;			/* Filter out smaller sizes */
->>  	int min_height;			/* Filter out smaller sizes */
->>  	int clock_speed;		/* External clock speed (MHz) */
->> @@ -1590,13 +1592,28 @@ static int ov7670_probe(struct i2c_client *client,
->>  			info->pclk_hb_disable = true;
->>  	}
->>
->> +	info->clk = clk_get(&client->dev, "xclk");
->> +	if (IS_ERR(info->clk))
->> +		return -EPROBE_DEFER;
->
-> How about devm_clk_get() instead? I think there's nothing wrong in using
-> devm.*() here as it's not memory.
+Add configuration parameter to split long i2c writes as some I2C
+adapters cannot write 10 bytes used as a one go.
 
-True. Changed to devm_clk_get.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/mt2060.c      | 21 +++++++++++++++++----
+ drivers/media/tuners/mt2060.h      |  3 +++
+ drivers/media/tuners/mt2060_priv.h |  1 +
+ 3 files changed, 21 insertions(+), 4 deletions(-)
 
->
->> +	clk_prepare_enable(info->clk);
->> +
->> +	ret = ov7670_probe_dt(client, info);
->> +	if (ret)
->> +		goto clk_put;
->> +
->> +	info->clock_speed = clk_get_rate(info->clk) / 1000000;
->> +	if (info->clock_speed < 12 || info->clock_speed > 48) {
->
-> What's the clock expected to be? I don't know the sensor but all sensors
-> I've seen do derive their internal clocks from the one provided to the
-> sensor, meaning that any frequency would be directly related to this one. As
-> the sensor driver makes no effort in programming the PLL according to the
-> input clock, I bet the register lists used assume a certain frequency
-> instead. Shouldn't you check instead you're getting exactly that frequency?
-
-All the datasheet says is that the clock is expected to be between 10 and 48 MHz
-with 24 MHz as the recommended frequency. So the < 12 should be < 10.
-
-Of course, if the given clock is slower, then the framerate will be correspondingly
-slower as well.
-
-All this test does is to check that the given clock is within the spec.
-
-Regards,
-
-	Hans
-
->
->> +		ret = -EINVAL;
->> +		goto clk_put;
->> +	}
->> +
->>  	/* Make sure it's an ov7670 */
->>  	ret = ov7670_detect(sd);
->>  	if (ret) {
->>  		v4l_dbg(1, debug, client,
->>  			"chip found @ 0x%x (%s) is not an ov7670 chip.\n",
->>  			client->addr << 1, client->adapter->name);
->> -		return ret;
->> +		goto clk_put;
->>  	}
->>  	v4l_info(client, "chip found @ 0x%02x (%s)\n",
->>  			client->addr << 1, client->adapter->name);
->> @@ -1637,9 +1654,8 @@ static int ov7670_probe(struct i2c_client *client,
->>  			V4L2_EXPOSURE_AUTO);
->>  	sd->ctrl_handler = &info->hdl;
->>  	if (info->hdl.error) {
->> -		int err = info->hdl.error;
->> -
->> -		goto fail;
->> +		ret = info->hdl.error;
->> +		goto hdl_free;
->>  	}
->>
->>  #if defined(CONFIG_MEDIA_CONTROLLER)
->> @@ -1647,7 +1663,7 @@ static int ov7670_probe(struct i2c_client *client,
->>  	info->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
->>  	ret = media_entity_pads_init(&info->sd.entity, 1, &info->pad);
->>  	if (ret < 0)
->> -		goto fail;
->> +		goto hdl_free;
->>  #endif
->>  	/*
->>  	 * We have checked empirically that hw allows to read back the gain
->> @@ -1664,13 +1680,16 @@ static int ov7670_probe(struct i2c_client *client,
->>  #if defined(CONFIG_MEDIA_CONTROLLER)
->>  		media_entity_cleanup(&info->sd.entity);
->>  #endif
->> -		goto fail;
->> +		goto hdl_free;
->>  	}
->>
->>  	return 0;
->>
->> -fail:
->> +hdl_free:
->>  	v4l2_ctrl_handler_free(&info->hdl);
->> +clk_put:
->> +	clk_disable_unprepare(info->clk);
->> +	clk_put(info->clk);
->>  	return ret;
->>  }
->>
->> @@ -1685,6 +1704,8 @@ static int ov7670_remove(struct i2c_client *client)
->>  #if defined(CONFIG_MEDIA_CONTROLLER)
->>  	media_entity_cleanup(&sd->entity);
->>  #endif
->> +	clk_disable_unprepare(info->clk);
->> +	clk_put(info->clk);
->>  	return 0;
->>  }
->>
->
+diff --git a/drivers/media/tuners/mt2060.c b/drivers/media/tuners/mt2060.c
+index dc4f9a9..9775ded 100644
+--- a/drivers/media/tuners/mt2060.c
++++ b/drivers/media/tuners/mt2060.c
+@@ -71,13 +71,24 @@ static int mt2060_writereg(struct mt2060_priv *priv, u8 reg, u8 val)
+ // Writes a set of consecutive registers
+ static int mt2060_writeregs(struct mt2060_priv *priv,u8 *buf, u8 len)
+ {
++	int rem, val_len;
++	u8 xfer_buf[16];
+ 	struct i2c_msg msg = {
+-		.addr = priv->cfg->i2c_address, .flags = 0, .buf = buf, .len = len
++		.addr = priv->cfg->i2c_address, .flags = 0, .buf = xfer_buf
+ 	};
+-	if (i2c_transfer(priv->i2c, &msg, 1) != 1) {
+-		printk(KERN_WARNING "mt2060 I2C write failed (len=%i)\n",(int)len);
+-		return -EREMOTEIO;
++
++	for (rem = len - 1; rem > 0; rem -= priv->i2c_max_regs) {
++		val_len = min_t(int, rem, priv->i2c_max_regs);
++		msg.len = 1 + val_len;
++		xfer_buf[0] = buf[0] + len - 1 - rem;
++		memcpy(&xfer_buf[1], &buf[1 + len - 1 - rem], val_len);
++
++		if (i2c_transfer(priv->i2c, &msg, 1) != 1) {
++			printk(KERN_WARNING "mt2060 I2C write failed (len=%i)\n", val_len);
++			return -EREMOTEIO;
++		}
+ 	}
++
+ 	return 0;
+ }
+ 
+@@ -369,6 +380,7 @@ struct dvb_frontend * mt2060_attach(struct dvb_frontend *fe, struct i2c_adapter
+ 	priv->cfg      = cfg;
+ 	priv->i2c      = i2c;
+ 	priv->if1_freq = if1;
++	priv->i2c_max_regs = ~0;
+ 
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 1); /* open i2c_gate */
+@@ -426,6 +438,7 @@ static int mt2060_probe(struct i2c_client *client,
+ 	dev->i2c = client->adapter;
+ 	dev->if1_freq = pdata->if1 ? pdata->if1 : 1220;
+ 	dev->client = client;
++	dev->i2c_max_regs = pdata->i2c_write_max ? pdata->i2c_write_max - 1 : ~0;
+ 
+ 	ret = mt2060_readreg(dev, REG_PART_REV, &chip_id);
+ 	if (ret) {
+diff --git a/drivers/media/tuners/mt2060.h b/drivers/media/tuners/mt2060.h
+index 05c0d55..f0572ac 100644
+--- a/drivers/media/tuners/mt2060.h
++++ b/drivers/media/tuners/mt2060.h
+@@ -34,12 +34,15 @@ struct i2c_adapter;
+  * struct mt2060_platform_data - Platform data for the mt2060 driver
+  * @clock_out: Clock output setting. 0 = off, 1 = CLK/4, 2 = CLK/2, 3 = CLK/1.
+  * @if1: First IF used [MHz]. 0 defaults to 1220.
++ * @i2c_write_max: Maximum number of bytes I2C adapter can write at once.
++ *  0 defaults to maximum.
+  * @dvb_frontend: DVB frontend.
+  */
+ 
+ struct mt2060_platform_data {
+ 	u8 clock_out;
+ 	u16 if1;
++	unsigned int i2c_write_max:5;
+ 	struct dvb_frontend *dvb_frontend;
+ };
+ 
+diff --git a/drivers/media/tuners/mt2060_priv.h b/drivers/media/tuners/mt2060_priv.h
+index dfc4a06..f0fdb83 100644
+--- a/drivers/media/tuners/mt2060_priv.h
++++ b/drivers/media/tuners/mt2060_priv.h
+@@ -98,6 +98,7 @@ struct mt2060_priv {
+ 	struct i2c_client *client;
+ 	struct mt2060_config config;
+ 
++	u8 i2c_max_regs;
+ 	u32 frequency;
+ 	u16 if1_freq;
+ 	u8  fmfreq;
+-- 
+http://palosaari.fi/
 
