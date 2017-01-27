@@ -1,39 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:53096 "EHLO butterbrot.org"
+Received: from mail.kapsi.fi ([217.30.184.167]:50836 "EHLO mail.kapsi.fi"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934711AbdACNGZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 3 Jan 2017 08:06:25 -0500
-Date: Tue, 3 Jan 2017 13:57:45 +0100 (CET)
-From: Florian Echtler <floe@butterbrot.org>
+        id S1751247AbdA0U4G (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Jan 2017 15:56:06 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-cc: modin@yuri.at, benjamin.tissoires@redhat.com,
-        hans.verkuil@cisco.com
-Subject: [RFC] [sur40] mapping of sensor parameters to V4L2?
-Message-ID: <alpine.DEB.2.10.1701031346040.18874@butterbrot>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/2] MAINTAINERS: remove hd29l2
+Date: Fri, 27 Jan 2017 22:55:48 +0200
+Message-Id: <20170127205549.3397-1-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everyone,
+Drop unused driver.
 
-next chapter in the neverending story of reverse-engineering the SUR40:
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ MAINTAINERS | 10 ----------
+ 1 file changed, 10 deletions(-)
 
-I've identified a couple of internal LCD panel registers which control 
-some aspects of the built-in image sensor. In particular, these are called 
-"Video Voltage", "Video Bias", and "IR Illumination Level".
-
-Now, I have two questions:
-
-- Video Voltage & Bias seem to affect the sensor gain. Does anyone with 
-extensive background knowledge of image sensors want to venture a guess 
-what the exact relation is? My own interpretation would be that Video 
-Voltage is the actual amplifier gain and Video Bias is the black level...
-
-- Is there a sensible mapping of these values to V4L2 controls? Should I 
-pick something from the USER class, or from CAMERA, or FLASH, or ...
-
-Thanks & best regards, Florian
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 52cc077..761a3cc 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -5595,16 +5595,6 @@ L:	linux-parisc@vger.kernel.org
+ S:	Maintained
+ F:	sound/parisc/harmony.*
+ 
+-HD29L2 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+-L:	linux-media@vger.kernel.org
+-W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+-Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+-S:	Maintained
+-F:	drivers/media/dvb-frontends/hd29l2*
+-
+ HEWLETT PACKARD ENTERPRISE ILO NMI WATCHDOG DRIVER
+ M:	Brian Boylston <brian.boylston@hpe.com>
+ S:	Supported
 -- 
-"_Nothing_ brightens up my morning. Coffee simply provides a shade of
-grey just above the pitch-black of the infinite depths of the _abyss_."
+http://palosaari.fi/
+
