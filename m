@@ -1,47 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48540 "EHLO mx1.redhat.com"
+Received: from anholt.net ([50.246.234.109]:52066 "EHLO anholt.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751801AbdAMPpg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Jan 2017 10:45:36 -0500
-From: David Howells <dhowells@redhat.com>
-In-Reply-To: <1484304406-10820-5-git-send-email-nicolas.dichtel@6wind.com>
-References: <1484304406-10820-5-git-send-email-nicolas.dichtel@6wind.com> <3131144.4Ej3KFWRbz@wuerfel> <1484304406-10820-1-git-send-email-nicolas.dichtel@6wind.com>
-To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Cc: dhowells@redhat.com, arnd@arndb.de, linux-kbuild@vger.kernel.org,
-        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org,
-        adi-buildroot-devel@lists.sourceforge.net,
-        linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com,
-        uclinux-h8-devel@lists.sourceforge.jp,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-m68k@vger.kernel.org, linux-metag@vger.kernel.org,
-        linux-mips@linux-mips.org, linux-am33-list@redhat.com,
-        nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-        linux-arch@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        netdev@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mmc@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-nfs@vger.kernel.org,
-        linux-raid@vger.kernel.org, linux-spi@vger.kernel.org,
-        linux-mtd@lists.infradead.org, linux-rdma@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, alsa-devel@alsa-project.org,
-        linux-fbdev@vger.kernel.org, xen-devel@lists.xenproject.org,
-        linux@armlinux.org.uk
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-ID: <25482.1484322229.1@warthog.procyon.org.uk>
-Date: Fri, 13 Jan 2017 15:43:49 +0000
-Message-ID: <25483.1484322229@warthog.procyon.org.uk>
+        id S1751946AbdA0Vzy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Jan 2017 16:55:54 -0500
+From: Eric Anholt <eric@anholt.net>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: devel@driverdev.osuosl.org, linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-rpi-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        Eric Anholt <eric@anholt.net>
+Subject: [PATCH 2/6] staging: bcm2835-v4l2: Update the driver to the current VCHI API.
+Date: Fri, 27 Jan 2017 13:54:59 -0800
+Message-Id: <20170127215503.13208-3-eric@anholt.net>
+In-Reply-To: <20170127215503.13208-1-eric@anholt.net>
+References: <20170127215503.13208-1-eric@anholt.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> -header-y += msr-index.h
+49bec49fd7f2 ("staging: vc04_services: remove vchiq_copy_from_user")
+removed the flags/msg_handle arguments, which were unused, and pushed
+the implementation of copying using memcpy vs copy_from_user to the
+caller.
 
-I see it on my desktop as /usr/include/asm/msr-index.h and it's been there at
-least four years - and as such it's part of the UAPI.  I don't think you can
-remove it unless you can guarantee there are no userspace users.
+Signed-off-by: Eric Anholt <eric@anholt.net>
+---
+ drivers/staging/media/platform/bcm2835/mmal-vchiq.c | 17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
-David
+diff --git a/drivers/staging/media/platform/bcm2835/mmal-vchiq.c b/drivers/staging/media/platform/bcm2835/mmal-vchiq.c
+index 781322542d5a..24bd2948136c 100644
+--- a/drivers/staging/media/platform/bcm2835/mmal-vchiq.c
++++ b/drivers/staging/media/platform/bcm2835/mmal-vchiq.c
+@@ -378,6 +378,14 @@ static int inline_receive(struct vchiq_mmal_instance *instance,
+ 	return 0;
+ }
+ 
++static ssize_t mmal_memcpy_wrapper(void *src, void *dst,
++				   size_t offset, size_t size)
++{
++	memcpy(dst + offset, src + offset, size);
++
++	return size;
++}
++
+ /* queue the buffer availability with MMAL_MSG_TYPE_BUFFER_FROM_HOST */
+ static int
+ buffer_from_host(struct vchiq_mmal_instance *instance,
+@@ -442,10 +450,9 @@ buffer_from_host(struct vchiq_mmal_instance *instance,
+ 
+ 	vchi_service_use(instance->handle);
+ 
+-	ret = vchi_msg_queue(instance->handle, &m,
++	ret = vchi_msg_queue(instance->handle, mmal_memcpy_wrapper, &m,
+ 			     sizeof(struct mmal_msg_header) +
+-			     sizeof(m.u.buffer_from_host),
+-			     VCHI_FLAGS_BLOCK_UNTIL_QUEUED, NULL);
++			     sizeof(m.u.buffer_from_host));
+ 
+ 	if (ret != 0) {
+ 		release_msg_context(msg_context);
+@@ -731,9 +738,9 @@ static int send_synchronous_mmal_msg(struct vchiq_mmal_instance *instance,
+ 	vchi_service_use(instance->handle);
+ 
+ 	ret = vchi_msg_queue(instance->handle,
++			     mmal_memcpy_wrapper,
+ 			     msg,
+-			     sizeof(struct mmal_msg_header) + payload_len,
+-			     VCHI_FLAGS_BLOCK_UNTIL_QUEUED, NULL);
++			     sizeof(struct mmal_msg_header) + payload_len);
+ 
+ 	vchi_service_release(instance->handle);
+ 
+-- 
+2.11.0
+
