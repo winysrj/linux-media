@@ -1,46 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:39121 "EHLO
-        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755663AbdABTUe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 2 Jan 2017 14:20:34 -0500
-Subject: Re: [PATCH v2 00/21] Basic i.MX IPUv3 capture support
-To: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
- <20161019213026.GU9460@valkosipuli.retiisi.org.uk>
- <CAH-u=807nRYzza0kTfOMv1AiWazk6FGJyz6W5_bYw7v9nOrccA@mail.gmail.com>
- <20161229205113.j6wn7kmhkfrtuayu@pengutronix.de>
- <7350daac-14ee-74cc-4b01-470a375613a3@denx.de>
- <c38d80aa-5464-1e9d-e11a-f54716fdb565@mentor.com>
- <CAH-u=83LDyfcErrxaDNN2+w7ZK56v9cJkvBL864ofxiBWrmBSg@mail.gmail.com>
- <3b8ed13c-a23e-dc2b-0e31-1288ea3f562a@xs4all.nl>
- <CAH-u=834h2T5s6wY44nqo9bb6DR=z1TDynGeWp0B1wMX6bK13w@mail.gmail.com>
-CC: Marek Vasut <marex@denx.de>,
-        Robert Schwebel <r.schwebel@pengutronix.de>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Gary Bisson <gary.bisson@boundarydevices.com>,
-        Sascha Hauer <kernel@pengutronix.de>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Steve Longerbeam <steve_longerbeam@mentor.com>
-Message-ID: <c14a63f6-c3d0-e546-c62d-87dd47353a9b@mentor.com>
-Date: Mon, 2 Jan 2017 11:20:29 -0800
+Received: from mail.kapsi.fi ([217.30.184.167]:44863 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751315AbdA0U7K (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Jan 2017 15:59:10 -0500
+Received: from [82.128.187.92] (helo=c-46-246-87-105.ip4.frootvpn.com)
+        by mail.kapsi.fi with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
+        (Exim 4.84_2)
+        (envelope-from <crope@iki.fi>)
+        id 1cXDbx-0006XQ-4A
+        for linux-media@vger.kernel.org; Fri, 27 Jan 2017 22:59:09 +0200
+To: LMML <linux-media@vger.kernel.org>
+From: Antti Palosaari <crope@iki.fi>
+Subject: [GIT PULL 4.11] si2168 ber and ucb statistics
+Message-ID: <24add81b-8c80-779a-4ecf-addb0e112c18@iki.fi>
+Date: Fri, 27 Jan 2017 22:59:08 +0200
 MIME-Version: 1.0
-In-Reply-To: <CAH-u=834h2T5s6wY44nqo9bb6DR=z1TDynGeWp0B1wMX6bK13w@mail.gmail.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi JM,
+The following changes since commit d183e4efcae8d88a2f252e546978658ca6d273cc:
 
+   [media] v4l: tvp5150: Add missing break in set control handler 
+(2016-12-12 07:49:58 -0200)
 
-On 01/02/2017 06:59 AM, Jean-Michel Hautbois wrote:
->
-> Steve: which branch is the correct one on your github ?
+are available in the git repository at:
 
-branch imx-media-staging-md-v4 on
-git@github.com:slongerbeam/mediatree.git
+   git://linuxtv.org/anttip/media_tree.git si2168
 
-Steve
+for you to fetch changes up to 7a6d7b07e36a8161b56924d7e18a00f1b7e2436a:
 
+   si2168: implement ucb statistics (2016-12-19 19:55:15 +0200)
+
+----------------------------------------------------------------
+Antti Palosaari (2):
+       si2168: implement ber statistics
+       si2168: implement ucb statistics
+
+  drivers/media/dvb-frontends/si2168.c      | 70 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--
+  drivers/media/dvb-frontends/si2168_priv.h |  1 +
+  2 files changed, 69 insertions(+), 2 deletions(-)
+
+-- 
+http://palosaari.fi/
