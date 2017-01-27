@@ -1,1734 +1,731 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:59411 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752393AbdATO3q (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59168 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932443AbdA0KJD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 20 Jan 2017 09:29:46 -0500
-Subject: Re: [PATCH v3 19/24] media: imx: Add IC subdev drivers
-To: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
- <1483755102-24785-20-git-send-email-steve_longerbeam@mentor.com>
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <07f4bc9e-22ef-a925-f4ee-c14df65e4f0d@xs4all.nl>
-Date: Fri, 20 Jan 2017 15:29:39 +0100
+        Fri, 27 Jan 2017 05:09:03 -0500
+Date: Fri, 27 Jan 2017 12:08:22 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+        mchehab@s-opensource.com
+Subject: [ANN] Media object lifetime management meeting report from Oslo
+Message-ID: <20170127100822.GJ7139@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <1483755102-24785-20-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/07/2017 03:11 AM, Steve Longerbeam wrote:
-> This is a set of three media entity subdevice drivers for the i.MX
-> Image Converter. The i.MX IC module contains three independent
-> "tasks":
-> 
-> - Pre-processing Encode task: video frames are routed directly from
->   the CSI and can be scaled, color-space converted, and rotated.
->   Scaled output is limited to 1024x1024 resolution. Output frames
->   are routed to the camera interface entities (camif).
-> 
-> - Pre-processing Viewfinder task: this task can perform the same
->   conversions as the pre-process encode task, but in addition can
->   be used for hardware motion compensated deinterlacing. Frames can
->   come either directly from the CSI or from the SMFC entities (memory
->   buffers via IDMAC channels). Scaled output is limited to 1024x1024
->   resolution. Output frames can be routed to various sinks including
->   the post-processing task entities.
-> 
-> - Post-processing task: same conversions as pre-process encode. However
->   this entity sends frames to the i.MX IPU image converter which supports
->   image tiling, which allows scaled output up to 4096x4096 resolution.
->   Output frames can be routed to the camera interfaces.
-> 
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> ---
->  drivers/staging/media/imx/Makefile        |    2 +
->  drivers/staging/media/imx/imx-ic-common.c |  109 +++
->  drivers/staging/media/imx/imx-ic-pp.c     |  636 ++++++++++++++++
->  drivers/staging/media/imx/imx-ic-prpenc.c | 1033 +++++++++++++++++++++++++
->  drivers/staging/media/imx/imx-ic-prpvf.c  | 1179 +++++++++++++++++++++++++++++
->  drivers/staging/media/imx/imx-ic.h        |   38 +
->  6 files changed, 2997 insertions(+)
->  create mode 100644 drivers/staging/media/imx/imx-ic-common.c
->  create mode 100644 drivers/staging/media/imx/imx-ic-pp.c
->  create mode 100644 drivers/staging/media/imx/imx-ic-prpenc.c
->  create mode 100644 drivers/staging/media/imx/imx-ic-prpvf.c
->  create mode 100644 drivers/staging/media/imx/imx-ic.h
-> 
-> diff --git a/drivers/staging/media/imx/Makefile b/drivers/staging/media/imx/Makefile
-> index 3559d7b..d2a962c 100644
-> --- a/drivers/staging/media/imx/Makefile
-> +++ b/drivers/staging/media/imx/Makefile
-> @@ -1,8 +1,10 @@
->  imx-media-objs := imx-media-dev.o imx-media-fim.o imx-media-internal-sd.o \
->  	imx-media-of.o
-> +imx-ic-objs := imx-ic-common.o imx-ic-prpenc.o imx-ic-prpvf.o imx-ic-pp.o
->  
->  obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-media.o
->  obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-media-common.o
-> +obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-ic.o
->  
->  obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-csi.o
->  obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-smfc.o
-> diff --git a/drivers/staging/media/imx/imx-ic-common.c b/drivers/staging/media/imx/imx-ic-common.c
-> new file mode 100644
-> index 0000000..45706ca
-> --- /dev/null
-> +++ b/drivers/staging/media/imx/imx-ic-common.c
-> @@ -0,0 +1,109 @@
-> +/*
-> + * V4L2 Image Converter Subdev for Freescale i.MX5/6 SOC
-> + *
-> + * Copyright (c) 2014-2016 Mentor Graphics Inc.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + */
-> +#include <linux/module.h>
-> +#include <linux/platform_device.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-subdev.h>
-> +#include "imx-media.h"
-> +#include "imx-ic.h"
-> +
-> +static struct imx_ic_ops *ic_ops[IC_NUM_TASKS] = {
-> +	[IC_TASK_ENCODER]        = &imx_ic_prpenc_ops,
-> +	[IC_TASK_VIEWFINDER]     = &imx_ic_prpvf_ops,
-> +	[IC_TASK_POST_PROCESSOR] = &imx_ic_pp_ops,
-> +};
-> +
-> +static int imx_ic_probe(struct platform_device *pdev)
-> +{
-> +	struct imx_media_internal_sd_platformdata *pdata;
-> +	struct imx_ic_priv *priv;
-> +	int ret;
-> +
-> +	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
-> +	if (!priv)
-> +		return -ENOMEM;
-> +
-> +	platform_set_drvdata(pdev, &priv->sd);
-> +	priv->dev = &pdev->dev;
-> +
-> +	/* get our ipu_id, grp_id and IC task id */
-> +	pdata = priv->dev->platform_data;
-> +	priv->ipu_id = pdata->ipu_id;
-> +	switch (pdata->grp_id) {
-> +	case IMX_MEDIA_GRP_ID_IC_PRPENC:
-> +		priv->task_id = IC_TASK_ENCODER;
-> +		break;
-> +	case IMX_MEDIA_GRP_ID_IC_PRPVF:
-> +		priv->task_id = IC_TASK_VIEWFINDER;
-> +		break;
-> +	case IMX_MEDIA_GRP_ID_IC_PP0...IMX_MEDIA_GRP_ID_IC_PP3:
-> +		priv->task_id = IC_TASK_POST_PROCESSOR;
-> +		break;
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +
-> +	v4l2_subdev_init(&priv->sd, ic_ops[priv->task_id]->subdev_ops);
-> +	v4l2_set_subdevdata(&priv->sd, priv);
-> +	priv->sd.internal_ops = ic_ops[priv->task_id]->internal_ops;
-> +	priv->sd.entity.ops = ic_ops[priv->task_id]->entity_ops;
-> +	priv->sd.entity.function = MEDIA_ENT_F_PROC_VIDEO_SCALER;
-> +	priv->sd.dev = &pdev->dev;
-> +	priv->sd.owner = THIS_MODULE;
-> +	priv->sd.flags = V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
-> +	priv->sd.grp_id = pdata->grp_id;
-> +	strncpy(priv->sd.name, pdata->sd_name, sizeof(priv->sd.name));
-> +
-> +	ret = ic_ops[priv->task_id]->init(priv);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = v4l2_async_register_subdev(&priv->sd);
-> +	if (ret)
-> +		ic_ops[priv->task_id]->remove(priv);
-> +
-> +	return ret;
-> +}
-> +
-> +static int imx_ic_remove(struct platform_device *pdev)
-> +{
-> +	struct v4l2_subdev *sd = platform_get_drvdata(pdev);
-> +	struct imx_ic_priv *priv = container_of(sd, struct imx_ic_priv, sd);
-> +
-> +	ic_ops[priv->task_id]->remove(priv);
-> +
-> +	v4l2_async_unregister_subdev(&priv->sd);
-> +	media_entity_cleanup(&priv->sd.entity);
-> +	v4l2_device_unregister_subdev(sd);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct platform_device_id imx_ic_ids[] = {
-> +	{ .name = "imx-ipuv3-ic" },
-> +	{ },
-> +};
-> +MODULE_DEVICE_TABLE(platform, imx_ic_ids);
-> +
-> +static struct platform_driver imx_ic_driver = {
-> +	.probe = imx_ic_probe,
-> +	.remove = imx_ic_remove,
-> +	.id_table = imx_ic_ids,
-> +	.driver = {
-> +		.name = "imx-ipuv3-ic",
-> +	},
-> +};
-> +module_platform_driver(imx_ic_driver);
-> +
-> +MODULE_DESCRIPTION("i.MX IC subdev driver");
-> +MODULE_AUTHOR("Steve Longerbeam <steve_longerbeam@mentor.com>");
-> +MODULE_LICENSE("GPL");
-> +MODULE_ALIAS("platform:imx-ipuv3-ic");
-> diff --git a/drivers/staging/media/imx/imx-ic-pp.c b/drivers/staging/media/imx/imx-ic-pp.c
-> new file mode 100644
-> index 0000000..1f75616
-> --- /dev/null
-> +++ b/drivers/staging/media/imx/imx-ic-pp.c
-> @@ -0,0 +1,636 @@
-> +/*
-> + * V4L2 IC Post-Processor Subdev for Freescale i.MX5/6 SOC
-> + *
-> + * Copyright (c) 2014-2016 Mentor Graphics Inc.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + */
-> +#include <linux/delay.h>
-> +#include <linux/fs.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/module.h>
-> +#include <linux/pinctrl/consumer.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/sched.h>
-> +#include <linux/slab.h>
-> +#include <linux/timer.h>
-> +#include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-ioctl.h>
-> +#include <media/v4l2-of.h>
-> +#include <media/v4l2-subdev.h>
-> +#include <media/videobuf2-dma-contig.h>
-> +#include <video/imx-ipu-image-convert.h>
-> +#include <media/imx.h>
-> +#include "imx-media.h"
-> +#include "imx-ic.h"
-> +
-> +#define PP_NUM_PADS 2
-> +
-> +struct pp_priv {
-> +	struct imx_media_dev *md;
-> +	struct imx_ic_priv *ic_priv;
-> +	int pp_id;
-> +
-> +	struct ipu_soc *ipu;
-> +	struct ipu_image_convert_ctx *ic_ctx;
-> +
-> +	struct media_pad pad[PP_NUM_PADS];
-> +	int input_pad;
-> +	int output_pad;
-> +
-> +	/* our dma buffer sink ring */
-> +	struct imx_media_dma_buf_ring *in_ring;
-> +	/* the dma buffer ring we send to sink */
-> +	struct imx_media_dma_buf_ring *out_ring;
-> +	struct ipu_image_convert_run *out_run;
-> +
-> +	struct imx_media_dma_buf *inbuf; /* last input buffer */
-> +
-> +	bool stream_on;    /* streaming is on */
-> +	bool stop;         /* streaming is stopping */
-> +	spinlock_t irqlock;
-> +
-> +	struct v4l2_subdev *src_sd;
-> +	struct v4l2_subdev *sink_sd;
-> +
-> +	struct v4l2_mbus_framefmt format_mbus[PP_NUM_PADS];
-> +	const struct imx_media_pixfmt *cc[PP_NUM_PADS];
-> +
-> +	/* motion select control */
-> +	struct v4l2_ctrl_handler ctrl_hdlr;
-> +	int  rotation; /* degrees */
-> +	bool hflip;
-> +	bool vflip;
-> +
-> +	/* derived from rotation, hflip, vflip controls */
-> +	enum ipu_rotate_mode rot_mode;
-> +};
-> +
-> +static inline struct pp_priv *sd_to_priv(struct v4l2_subdev *sd)
-> +{
-> +	struct imx_ic_priv *ic_priv = v4l2_get_subdevdata(sd);
-> +
-> +	return ic_priv->task_priv;
-> +}
-> +
-> +static void pp_convert_complete(struct ipu_image_convert_run *run,
-> +				void *data)
-> +{
-> +	struct pp_priv *priv = data;
-> +	struct imx_media_dma_buf *done;
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&priv->irqlock, flags);
-> +
-> +	done = imx_media_dma_buf_get_active(priv->out_ring);
-> +	/* give the completed buffer to the sink */
-> +	if (!WARN_ON(!done))
-> +		imx_media_dma_buf_done(done, run->status ?
-> +				       IMX_MEDIA_BUF_STATUS_ERROR :
-> +				       IMX_MEDIA_BUF_STATUS_DONE);
-> +
-> +	/* we're done with the inbuf, queue it back */
-> +	imx_media_dma_buf_queue(priv->in_ring, priv->inbuf->index);
-> +
-> +	spin_unlock_irqrestore(&priv->irqlock, flags);
-> +}
-> +
-> +static void pp_queue_conversion(struct pp_priv *priv,
-> +				struct imx_media_dma_buf *inbuf)
-> +{
-> +	struct ipu_image_convert_run *run;
-> +	struct imx_media_dma_buf *outbuf;
-> +
-> +	/* get next queued buffer and make it active */
-> +	outbuf = imx_media_dma_buf_get_next_queued(priv->out_ring);
-> +	imx_media_dma_buf_set_active(outbuf);
-> +	priv->inbuf = inbuf;
-> +
-> +	run = &priv->out_run[outbuf->index];
-> +	run->ctx = priv->ic_ctx;
-> +	run->in_phys = inbuf->phys;
-> +	run->out_phys = outbuf->phys;
-> +	ipu_image_convert_queue(run);
-> +}
-> +
-> +static long pp_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
-> +{
-> +	struct pp_priv *priv = sd_to_priv(sd);
-> +	struct imx_media_dma_buf_ring **ring;
-> +	struct imx_media_dma_buf *buf;
-> +	unsigned long flags;
-> +
-> +	switch (cmd) {
-> +	case IMX_MEDIA_REQ_DMA_BUF_SINK_RING:
-> +		/* src asks for a buffer ring */
-> +		if (!priv->in_ring)
-> +			return -EINVAL;
-> +		ring = (struct imx_media_dma_buf_ring **)arg;
-> +		*ring = priv->in_ring;
-> +		break;
-> +	case IMX_MEDIA_NEW_DMA_BUF:
-> +		/* src hands us a new buffer */
-> +		spin_lock_irqsave(&priv->irqlock, flags);
-> +		if (!priv->stop &&
-> +		    !imx_media_dma_buf_get_active(priv->out_ring)) {
-> +			buf = imx_media_dma_buf_dequeue(priv->in_ring);
-> +			if (buf)
-> +				pp_queue_conversion(priv, buf);
-> +		}
-> +		spin_unlock_irqrestore(&priv->irqlock, flags);
-> +		break;
-> +	case IMX_MEDIA_REL_DMA_BUF_SINK_RING:
-> +		/* src indicates sink buffer ring can be freed */
-> +		if (!priv->in_ring)
-> +			return 0;
-> +		v4l2_info(sd, "%s: freeing sink ring\n", __func__);
-> +		imx_media_free_dma_buf_ring(priv->in_ring);
-> +		priv->in_ring = NULL;
-> +		break;
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int pp_start(struct pp_priv *priv)
-> +{
-> +	struct imx_ic_priv *ic_priv = priv->ic_priv;
-> +	struct ipu_image image_in, image_out;
-> +	const struct imx_media_pixfmt *incc;
-> +	struct v4l2_mbus_framefmt *infmt;
-> +	int i, in_size, ret;
-> +
-> +	/* ask the sink for the buffer ring */
-> +	ret = v4l2_subdev_call(priv->sink_sd, core, ioctl,
-> +			       IMX_MEDIA_REQ_DMA_BUF_SINK_RING,
-> +			       &priv->out_ring);
-> +	if (ret)
-> +		return ret;
-> +
-> +	imx_media_mbus_fmt_to_ipu_image(&image_in,
-> +					&priv->format_mbus[priv->input_pad]);
-> +	imx_media_mbus_fmt_to_ipu_image(&image_out,
-> +					&priv->format_mbus[priv->output_pad]);
-> +
-> +	priv->ipu = priv->md->ipu[ic_priv->ipu_id];
-> +	priv->ic_ctx = ipu_image_convert_prepare(priv->ipu,
-> +						 IC_TASK_POST_PROCESSOR,
-> +						 &image_in, &image_out,
-> +						 priv->rot_mode,
-> +						 pp_convert_complete, priv);
-> +	if (IS_ERR(priv->ic_ctx))
-> +		return PTR_ERR(priv->ic_ctx);
-> +
-> +	infmt = &priv->format_mbus[priv->input_pad];
-> +	incc = priv->cc[priv->input_pad];
-> +	in_size = (infmt->width * incc->bpp * infmt->height) >> 3;
-> +
-> +	if (priv->in_ring) {
-> +		v4l2_warn(&ic_priv->sd, "%s: dma-buf ring was not freed\n",
-> +			  __func__);
-> +		imx_media_free_dma_buf_ring(priv->in_ring);
-> +	}
-> +
-> +	priv->in_ring = imx_media_alloc_dma_buf_ring(priv->md,
-> +						     &priv->src_sd->entity,
-> +						     &ic_priv->sd.entity,
-> +						     in_size,
-> +						     IMX_MEDIA_MIN_RING_BUFS,
-> +						     true);
-> +	if (IS_ERR(priv->in_ring)) {
-> +		v4l2_err(&ic_priv->sd,
-> +			 "failed to alloc dma-buf ring\n");
-> +		ret = PTR_ERR(priv->in_ring);
-> +		priv->in_ring = NULL;
-> +		goto out_unprep;
-> +	}
-> +
-> +	for (i = 0; i < IMX_MEDIA_MIN_RING_BUFS; i++)
-> +		imx_media_dma_buf_queue(priv->in_ring, i);
-> +
-> +	priv->out_run = kzalloc(IMX_MEDIA_MAX_RING_BUFS *
-> +				sizeof(*priv->out_run), GFP_KERNEL);
-> +	if (!priv->out_run) {
-> +		v4l2_err(&ic_priv->sd, "failed to alloc src ring runs\n");
-> +		ret = -ENOMEM;
-> +		goto out_free_ring;
-> +	}
-> +
-> +	priv->stop = false;
-> +
-> +	return 0;
-> +
-> +out_free_ring:
-> +	imx_media_free_dma_buf_ring(priv->in_ring);
-> +	priv->in_ring = NULL;
-> +out_unprep:
-> +	ipu_image_convert_unprepare(priv->ic_ctx);
-> +	return ret;
-> +}
-> +
-> +static void pp_stop(struct pp_priv *priv)
-> +{
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&priv->irqlock, flags);
-> +	priv->stop = true;
-> +	spin_unlock_irqrestore(&priv->irqlock, flags);
-> +
-> +	ipu_image_convert_unprepare(priv->ic_ctx);
-> +	kfree(priv->out_run);
-> +
-> +	priv->out_ring = NULL;
-> +
-> +	/* inform sink that its sink buffer ring can now be freed */
-> +	v4l2_subdev_call(priv->sink_sd, core, ioctl,
-> +			 IMX_MEDIA_REL_DMA_BUF_SINK_RING, 0);
-> +}
-> +
-> +static int pp_s_stream(struct v4l2_subdev *sd, int enable)
-> +{
-> +	struct pp_priv *priv = sd_to_priv(sd);
-> +	int ret = 0;
-> +
-> +	if (!priv->src_sd || !priv->sink_sd)
-> +		return -EPIPE;
-> +
-> +	v4l2_info(sd, "stream %s\n", enable ? "ON" : "OFF");
-> +
-> +	if (enable && !priv->stream_on)
-> +		ret = pp_start(priv);
-> +	else if (!enable && priv->stream_on)
-> +		pp_stop(priv);
-> +
-> +	if (!ret)
-> +		priv->stream_on = enable;
-> +	return ret;
-> +}
-> +
-> +static int pp_enum_mbus_code(struct v4l2_subdev *sd,
-> +			     struct v4l2_subdev_pad_config *cfg,
-> +			     struct v4l2_subdev_mbus_code_enum *code)
-> +{
-> +	const struct imx_media_pixfmt *cc;
-> +	u32 fourcc;
-> +	int ret;
-> +
-> +	if (code->pad >= PP_NUM_PADS)
-> +		return -EINVAL;
-> +
-> +	ret = ipu_image_convert_enum_format(code->index, &fourcc);
-> +	if (ret)
-> +		return ret;
-> +
-> +	/* convert returned fourcc to mbus code */
-> +	cc = imx_media_find_format(fourcc, 0, true, true);
-> +	if (WARN_ON(!cc))
-> +		return -EINVAL;
-> +
-> +	code->code = cc->codes[0];
-> +	return 0;
-> +}
-> +
-> +static int pp_get_fmt(struct v4l2_subdev *sd,
-> +		      struct v4l2_subdev_pad_config *cfg,
-> +		      struct v4l2_subdev_format *sdformat)
-> +{
-> +	struct pp_priv *priv = sd_to_priv(sd);
-> +
-> +	if (sdformat->pad >= PP_NUM_PADS)
-> +		return -EINVAL;
-> +
-> +	sdformat->format = priv->format_mbus[sdformat->pad];
-> +
-> +	return 0;
-> +}
-> +
-> +static int pp_set_fmt(struct v4l2_subdev *sd,
-> +		      struct v4l2_subdev_pad_config *cfg,
-> +		      struct v4l2_subdev_format *sdformat)
-> +{
-> +	struct pp_priv *priv = sd_to_priv(sd);
-> +	struct v4l2_mbus_framefmt *infmt, *outfmt;
-> +	const struct imx_media_pixfmt *cc;
-> +	struct ipu_image test_in, test_out;
-> +	u32 code;
-> +
-> +	if (sdformat->pad >= PP_NUM_PADS)
-> +		return -EINVAL;
-> +
-> +	if (priv->stream_on)
-> +		return -EBUSY;
-> +
-> +	infmt = &priv->format_mbus[priv->input_pad];
-> +	outfmt = &priv->format_mbus[priv->output_pad];
-> +
-> +	cc = imx_media_find_format(0, sdformat->format.code, true, true);
-> +	if (!cc) {
-> +		imx_media_enum_format(&code, 0, true, true);
-> +		cc = imx_media_find_format(0, code, true, true);
-> +		sdformat->format.code = cc->codes[0];
-> +	}
-> +
-> +	if (sdformat->pad == priv->output_pad) {
-> +		imx_media_mbus_fmt_to_ipu_image(&test_out, &sdformat->format);
-> +		imx_media_mbus_fmt_to_ipu_image(&test_in, infmt);
-> +		ipu_image_convert_adjust(&test_in, &test_out, priv->rot_mode);
-> +		imx_media_ipu_image_to_mbus_fmt(&sdformat->format, &test_out);
-> +	} else {
-> +		imx_media_mbus_fmt_to_ipu_image(&test_in, &sdformat->format);
-> +		imx_media_mbus_fmt_to_ipu_image(&test_out, outfmt);
-> +		ipu_image_convert_adjust(&test_in, &test_out, priv->rot_mode);
-> +		imx_media_ipu_image_to_mbus_fmt(&sdformat->format, &test_in);
-> +	}
-> +
-> +	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY) {
-> +		cfg->try_fmt = sdformat->format;
-> +	} else {
-> +		if (sdformat->pad == priv->output_pad) {
-> +			*outfmt = sdformat->format;
-> +			imx_media_ipu_image_to_mbus_fmt(infmt, &test_in);
-> +		} else {
-> +			*infmt = sdformat->format;
-> +			imx_media_ipu_image_to_mbus_fmt(outfmt, &test_out);
-> +		}
-> +		priv->cc[sdformat->pad] = cc;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int pp_link_setup(struct media_entity *entity,
-> +			 const struct media_pad *local,
-> +			 const struct media_pad *remote, u32 flags)
-> +{
-> +	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
-> +	struct imx_ic_priv *ic_priv = v4l2_get_subdevdata(sd);
-> +	struct pp_priv *priv = ic_priv->task_priv;
-> +	struct v4l2_subdev *remote_sd;
-> +
-> +	dev_dbg(ic_priv->dev, "link setup %s -> %s", remote->entity->name,
-> +		local->entity->name);
-> +
-> +	remote_sd = media_entity_to_v4l2_subdev(remote->entity);
-> +
-> +	if (local->flags & MEDIA_PAD_FL_SOURCE) {
-> +		if (flags & MEDIA_LNK_FL_ENABLED) {
-> +			if (priv->sink_sd)
-> +				return -EBUSY;
-> +			priv->sink_sd = remote_sd;
-> +		} else {
-> +			priv->sink_sd = NULL;
-> +		}
-> +	} else {
-> +		if (flags & MEDIA_LNK_FL_ENABLED) {
-> +			if (priv->src_sd)
-> +				return -EBUSY;
-> +			priv->src_sd = remote_sd;
-> +		} else {
-> +			priv->src_sd = NULL;
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int pp_s_ctrl(struct v4l2_ctrl *ctrl)
-> +{
-> +	struct pp_priv *priv = container_of(ctrl->handler,
-> +					       struct pp_priv, ctrl_hdlr);
-> +	struct imx_ic_priv *ic_priv = priv->ic_priv;
-> +	enum ipu_rotate_mode rot_mode;
-> +	bool hflip, vflip;
-> +	int rotation, ret;
-> +
-> +	rotation = priv->rotation;
-> +	hflip = priv->hflip;
-> +	vflip = priv->vflip;
-> +
-> +	switch (ctrl->id) {
-> +	case V4L2_CID_HFLIP:
-> +		hflip = (ctrl->val == 1);
-> +		break;
-> +	case V4L2_CID_VFLIP:
-> +		vflip = (ctrl->val == 1);
-> +		break;
-> +	case V4L2_CID_ROTATE:
-> +		rotation = ctrl->val;
-> +		break;
-> +	default:
-> +		v4l2_err(&ic_priv->sd, "Invalid control\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	ret = ipu_degrees_to_rot_mode(&rot_mode, rotation, hflip, vflip);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (rot_mode != priv->rot_mode) {
-> +		struct v4l2_mbus_framefmt *infmt, *outfmt;
-> +		struct ipu_image test_in, test_out;
-> +
-> +		/* can't change rotation mid-streaming */
-> +		if (priv->stream_on)
-> +			return -EBUSY;
-> +
-> +		/*
-> +		 * make sure this rotation will work with current input/output
-> +		 * formats before setting
-> +		 */
-> +		infmt = &priv->format_mbus[priv->input_pad];
-> +		outfmt = &priv->format_mbus[priv->output_pad];
-> +		imx_media_mbus_fmt_to_ipu_image(&test_in, infmt);
-> +		imx_media_mbus_fmt_to_ipu_image(&test_out, outfmt);
-> +
-> +		ret = ipu_image_convert_verify(&test_in, &test_out, rot_mode);
-> +		if (ret)
-> +			return ret;
-> +
-> +		priv->rot_mode = rot_mode;
-> +		priv->rotation = rotation;
-> +		priv->hflip = hflip;
-> +		priv->vflip = vflip;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_ctrl_ops pp_ctrl_ops = {
-> +	.s_ctrl = pp_s_ctrl,
-> +};
-> +
-> +static const struct v4l2_ctrl_config pp_std_ctrl[] = {
-> +	{
-> +		.id = V4L2_CID_HFLIP,
-> +		.name = "Horizontal Flip",
-> +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> +		.def =  0,
-> +		.min =  0,
-> +		.max =  1,
-> +		.step = 1,
-> +	}, {
-> +		.id = V4L2_CID_VFLIP,
-> +		.name = "Vertical Flip",
-> +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> +		.def =  0,
-> +		.min =  0,
-> +		.max =  1,
-> +		.step = 1,
-> +	}, {
-> +		.id = V4L2_CID_ROTATE,
-> +		.name = "Rotation",
-> +		.type = V4L2_CTRL_TYPE_INTEGER,
-> +		.def =   0,
-> +		.min =   0,
-> +		.max = 270,
-> +		.step = 90,
-> +	},
-> +};
-> +
-> +#define PP_NUM_CONTROLS ARRAY_SIZE(pp_std_ctrl)
-> +
-> +static int pp_init_controls(struct pp_priv *priv)
-> +{
-> +	struct imx_ic_priv *ic_priv = priv->ic_priv;
-> +	struct v4l2_ctrl_handler *hdlr = &priv->ctrl_hdlr;
-> +	const struct v4l2_ctrl_config *c;
-> +	int i, ret;
-> +
-> +	v4l2_ctrl_handler_init(hdlr, PP_NUM_CONTROLS);
-> +
-> +	for (i = 0; i < PP_NUM_CONTROLS; i++) {
-> +		c = &pp_std_ctrl[i];
-> +		v4l2_ctrl_new_std(hdlr, &pp_ctrl_ops,
-> +				  c->id, c->min, c->max, c->step, c->def);
-> +	}
-> +
-> +	ic_priv->sd.ctrl_handler = hdlr;
-> +
-> +	if (hdlr->error) {
-> +		ret = hdlr->error;
-> +		v4l2_ctrl_handler_free(hdlr);
-> +		return ret;
-> +	}
-> +
-> +	v4l2_ctrl_handler_setup(hdlr);
-> +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * retrieve our pads parsed from the OF graph by the media device
-> + */
-> +static int pp_registered(struct v4l2_subdev *sd)
-> +{
-> +	struct pp_priv *priv = sd_to_priv(sd);
-> +	struct imx_media_subdev *imxsd;
-> +	struct imx_media_pad *pad;
-> +	int i, ret;
-> +
-> +	/* get media device */
-> +	priv->md = dev_get_drvdata(sd->v4l2_dev->dev);
-> +
-> +	imxsd = imx_media_find_subdev_by_sd(priv->md, sd);
-> +	if (IS_ERR(imxsd))
-> +		return PTR_ERR(imxsd);
-> +
-> +	if (imxsd->num_sink_pads != 1 || imxsd->num_src_pads != 1)
-> +		return -EINVAL;
-> +
-> +	for (i = 0; i < PP_NUM_PADS; i++) {
-> +		pad = &imxsd->pad[i];
-> +		priv->pad[i] = pad->pad;
-> +		if (priv->pad[i].flags & MEDIA_PAD_FL_SINK)
-> +			priv->input_pad = i;
-> +		else
-> +			priv->output_pad = i;
-> +
-> +		/* set a default mbus format  */
-> +		ret = imx_media_init_mbus_fmt(&priv->format_mbus[i],
-> +					      640, 480, 0, V4L2_FIELD_NONE,
-> +					      &priv->cc[i]);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
-> +	ret = pp_init_controls(priv);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = media_entity_pads_init(&sd->entity, PP_NUM_PADS, priv->pad);
-> +	if (ret)
-> +		goto free_ctrls;
-> +
-> +	return 0;
-> +free_ctrls:
-> +	v4l2_ctrl_handler_free(&priv->ctrl_hdlr);
-> +	return ret;
-> +}
-> +
-> +static struct v4l2_subdev_pad_ops pp_pad_ops = {
-> +	.enum_mbus_code = pp_enum_mbus_code,
-> +	.get_fmt = pp_get_fmt,
-> +	.set_fmt = pp_set_fmt,
-> +};
-> +
-> +static struct v4l2_subdev_video_ops pp_video_ops = {
-> +	.s_stream = pp_s_stream,
-> +};
-> +
-> +static struct v4l2_subdev_core_ops pp_core_ops = {
-> +	.ioctl = pp_ioctl,
-> +};
-> +
-> +static struct media_entity_operations pp_entity_ops = {
-> +	.link_setup = pp_link_setup,
-> +	.link_validate = v4l2_subdev_link_validate,
-> +};
-> +
-> +static struct v4l2_subdev_ops pp_subdev_ops = {
-> +	.video = &pp_video_ops,
-> +	.pad = &pp_pad_ops,
-> +	.core = &pp_core_ops,
-> +};
-> +
-> +static struct v4l2_subdev_internal_ops pp_internal_ops = {
-> +	.registered = pp_registered,
-> +};
-> +
-> +static int pp_init(struct imx_ic_priv *ic_priv)
-> +{
-> +	struct pp_priv *priv;
-> +
-> +	priv = devm_kzalloc(ic_priv->dev, sizeof(*priv), GFP_KERNEL);
-> +	if (!priv)
-> +		return -ENOMEM;
-> +
-> +	ic_priv->task_priv = priv;
-> +	priv->ic_priv = ic_priv;
-> +	spin_lock_init(&priv->irqlock);
-> +
-> +	/* get our PP id */
-> +	priv->pp_id = (ic_priv->sd.grp_id >> IMX_MEDIA_GRP_ID_IC_PP_BIT) - 1;
-> +
-> +	return 0;
-> +}
-> +
-> +static void pp_remove(struct imx_ic_priv *ic_priv)
-> +{
-> +	struct pp_priv *priv = ic_priv->task_priv;
-> +
-> +	v4l2_ctrl_handler_free(&priv->ctrl_hdlr);
-> +}
-> +
-> +struct imx_ic_ops imx_ic_pp_ops = {
-> +	.subdev_ops = &pp_subdev_ops,
-> +	.internal_ops = &pp_internal_ops,
-> +	.entity_ops = &pp_entity_ops,
-> +	.init = pp_init,
-> +	.remove = pp_remove,
-> +};
-> diff --git a/drivers/staging/media/imx/imx-ic-prpenc.c b/drivers/staging/media/imx/imx-ic-prpenc.c
-> new file mode 100644
-> index 0000000..3d85a82
-> --- /dev/null
-> +++ b/drivers/staging/media/imx/imx-ic-prpenc.c
-> @@ -0,0 +1,1033 @@
-> +/*
-> + * V4L2 Capture IC Encoder Subdev for Freescale i.MX5/6 SOC
-> + *
-> + * This subdevice handles capture of video frames from the CSI, which
-> + * are routed directly to the Image Converter preprocess encode task,
-> + * for resizing, colorspace conversion, and rotation.
-> + *
-> + * Copyright (c) 2012-2016 Mentor Graphics Inc.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + */
-> +#include <linux/delay.h>
-> +#include <linux/fs.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/module.h>
-> +#include <linux/pinctrl/consumer.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/sched.h>
-> +#include <linux/slab.h>
-> +#include <linux/spinlock.h>
-> +#include <linux/timer.h>
-> +#include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-ioctl.h>
-> +#include <media/v4l2-of.h>
-> +#include <media/v4l2-subdev.h>
-> +#include <media/videobuf2-dma-contig.h>
-> +#include <media/imx.h>
-> +#include "imx-media.h"
-> +#include "imx-ic.h"
-> +
-> +#define PRPENC_NUM_PADS 2
-> +
-> +#define MAX_W_IC   1024
-> +#define MAX_H_IC   1024
-> +#define MAX_W_SINK 4096
-> +#define MAX_H_SINK 4096
-> +
-> +struct prpenc_priv {
-> +	struct imx_media_dev *md;
-> +	struct imx_ic_priv *ic_priv;
-> +
-> +	/* IPU units we require */
-> +	struct ipu_soc *ipu;
-> +	struct ipu_ic *ic_enc;
-> +
-> +	struct media_pad pad[PRPENC_NUM_PADS];
-> +	int input_pad;
-> +	int output_pad;
-> +
-> +	struct ipuv3_channel *enc_ch;
-> +	struct ipuv3_channel *enc_rot_in_ch;
-> +	struct ipuv3_channel *enc_rot_out_ch;
-> +
-> +	/* the dma buffer ring to send to sink */
-> +	struct imx_media_dma_buf_ring *out_ring;
-> +	struct imx_media_dma_buf *next;
-> +
-> +	int ipu_buf_num;  /* ipu double buffer index: 0-1 */
-> +
-> +	struct v4l2_subdev *src_sd;
-> +	struct v4l2_subdev *sink_sd;
-> +
-> +	/* the CSI id at link validate */
-> +	int csi_id;
-> +
-> +	/* the attached sensor at stream on */
-> +	struct imx_media_subdev *sensor;
-> +
-> +	struct v4l2_mbus_framefmt format_mbus[PRPENC_NUM_PADS];
-> +	const struct imx_media_pixfmt *cc[PRPENC_NUM_PADS];
-> +
-> +	struct imx_media_dma_buf rot_buf[2];
-> +
-> +	/* controls */
-> +	struct v4l2_ctrl_handler ctrl_hdlr;
-> +	int  rotation; /* degrees */
-> +	bool hflip;
-> +	bool vflip;
-> +
-> +	/* derived from rotation, hflip, vflip controls */
-> +	enum ipu_rotate_mode rot_mode;
-> +
-> +	spinlock_t irqlock;
-> +
-> +	struct timer_list eof_timeout_timer;
-> +	int eof_irq;
-> +	int nfb4eof_irq;
-> +
-> +	bool stream_on; /* streaming is on */
-> +	bool last_eof;  /* waiting for last EOF at stream off */
-> +	struct completion last_eof_comp;
-> +};
-> +
-> +static inline struct prpenc_priv *sd_to_priv(struct v4l2_subdev *sd)
-> +{
-> +	struct imx_ic_priv *ic_priv = v4l2_get_subdevdata(sd);
-> +
-> +	return ic_priv->task_priv;
-> +}
-> +
-> +static void prpenc_put_ipu_resources(struct prpenc_priv *priv)
-> +{
-> +	if (!IS_ERR_OR_NULL(priv->ic_enc))
-> +		ipu_ic_put(priv->ic_enc);
-> +	priv->ic_enc = NULL;
-> +
-> +	if (!IS_ERR_OR_NULL(priv->enc_ch))
-> +		ipu_idmac_put(priv->enc_ch);
-> +	priv->enc_ch = NULL;
-> +
-> +	if (!IS_ERR_OR_NULL(priv->enc_rot_in_ch))
-> +		ipu_idmac_put(priv->enc_rot_in_ch);
-> +	priv->enc_rot_in_ch = NULL;
-> +
-> +	if (!IS_ERR_OR_NULL(priv->enc_rot_out_ch))
-> +		ipu_idmac_put(priv->enc_rot_out_ch);
-> +	priv->enc_rot_out_ch = NULL;
-> +}
-> +
-> +static int prpenc_get_ipu_resources(struct prpenc_priv *priv)
-> +{
-> +	struct imx_ic_priv *ic_priv = priv->ic_priv;
-> +	int ret;
-> +
-> +	priv->ipu = priv->md->ipu[ic_priv->ipu_id];
-> +
-> +	priv->ic_enc = ipu_ic_get(priv->ipu, IC_TASK_ENCODER);
-> +	if (IS_ERR(priv->ic_enc)) {
-> +		v4l2_err(&ic_priv->sd, "failed to get IC ENC\n");
-> +		ret = PTR_ERR(priv->ic_enc);
-> +		goto out;
-> +	}
-> +
-> +	priv->enc_ch = ipu_idmac_get(priv->ipu,
-> +				     IPUV3_CHANNEL_IC_PRP_ENC_MEM);
-> +	if (IS_ERR(priv->enc_ch)) {
-> +		v4l2_err(&ic_priv->sd, "could not get IDMAC channel %u\n",
-> +			 IPUV3_CHANNEL_IC_PRP_ENC_MEM);
-> +		ret = PTR_ERR(priv->enc_ch);
-> +		goto out;
-> +	}
-> +
-> +	priv->enc_rot_in_ch = ipu_idmac_get(priv->ipu,
-> +					    IPUV3_CHANNEL_MEM_ROT_ENC);
-> +	if (IS_ERR(priv->enc_rot_in_ch)) {
-> +		v4l2_err(&ic_priv->sd, "could not get IDMAC channel %u\n",
-> +			 IPUV3_CHANNEL_MEM_ROT_ENC);
-> +		ret = PTR_ERR(priv->enc_rot_in_ch);
-> +		goto out;
-> +	}
-> +
-> +	priv->enc_rot_out_ch = ipu_idmac_get(priv->ipu,
-> +					     IPUV3_CHANNEL_ROT_ENC_MEM);
-> +	if (IS_ERR(priv->enc_rot_out_ch)) {
-> +		v4l2_err(&ic_priv->sd, "could not get IDMAC channel %u\n",
-> +			 IPUV3_CHANNEL_ROT_ENC_MEM);
-> +		ret = PTR_ERR(priv->enc_rot_out_ch);
-> +		goto out;
-> +	}
-> +
-> +	return 0;
-> +out:
-> +	prpenc_put_ipu_resources(priv);
-> +	return ret;
-> +}
-> +
-> +static irqreturn_t prpenc_eof_interrupt(int irq, void *dev_id)
-> +{
-> +	struct prpenc_priv *priv = dev_id;
-> +	struct imx_media_dma_buf *done, *next;
-> +	struct ipuv3_channel *channel;
-> +
-> +	spin_lock(&priv->irqlock);
-> +
-> +	if (priv->last_eof) {
-> +		complete(&priv->last_eof_comp);
-> +		priv->last_eof = false;
-> +		goto unlock;
-> +	}
-> +
-> +	/* inform CSI of this EOF so it can monitor frame intervals */
-> +	v4l2_subdev_call(priv->src_sd, core, interrupt_service_routine,
-> +			 0, NULL);
-> +
-> +	channel = (ipu_rot_mode_is_irt(priv->rot_mode)) ?
-> +		priv->enc_rot_out_ch : priv->enc_ch;
-> +
-> +	done = imx_media_dma_buf_get_active(priv->out_ring);
-> +	/* give the completed buffer to the sink  */
-> +	if (!WARN_ON(!done))
-> +		imx_media_dma_buf_done(done, IMX_MEDIA_BUF_STATUS_DONE);
-> +
-> +	/* priv->next buffer is now the active one */
-> +	imx_media_dma_buf_set_active(priv->next);
-> +
-> +	/* bump the EOF timeout timer */
-> +	mod_timer(&priv->eof_timeout_timer,
-> +		  jiffies + msecs_to_jiffies(IMX_MEDIA_EOF_TIMEOUT));
-> +
-> +	if (ipu_idmac_buffer_is_ready(channel, priv->ipu_buf_num))
-> +		ipu_idmac_clear_buffer(channel, priv->ipu_buf_num);
-> +
-> +	/* get next queued buffer */
-> +	next = imx_media_dma_buf_get_next_queued(priv->out_ring);
-> +
-> +	ipu_cpmem_set_buffer(channel, priv->ipu_buf_num, next->phys);
-> +	ipu_idmac_select_buffer(channel, priv->ipu_buf_num);
-> +
-> +	/* toggle IPU double-buffer index */
-> +	priv->ipu_buf_num ^= 1;
-> +	priv->next = next;
-> +
-> +unlock:
-> +	spin_unlock(&priv->irqlock);
-> +	return IRQ_HANDLED;
-> +}
-> +
-> +static irqreturn_t prpenc_nfb4eof_interrupt(int irq, void *dev_id)
-> +{
-> +	struct prpenc_priv *priv = dev_id;
-> +	struct imx_ic_priv *ic_priv = priv->ic_priv;
-> +	static const struct v4l2_event ev = {
-> +		.type = V4L2_EVENT_IMX_NFB4EOF,
-> +	};
-> +
-> +	v4l2_err(&ic_priv->sd, "NFB4EOF\n");
-> +
-> +	v4l2_subdev_notify_event(&ic_priv->sd, &ev);
-> +
-> +	return IRQ_HANDLED;
-> +}
-> +
-> +/*
-> + * EOF timeout timer function.
-> + */
-> +static void prpenc_eof_timeout(unsigned long data)
-> +{
-> +	struct prpenc_priv *priv = (struct prpenc_priv *)data;
-> +	struct imx_ic_priv *ic_priv = priv->ic_priv;
-> +	static const struct v4l2_event ev = {
-> +		.type = V4L2_EVENT_IMX_EOF_TIMEOUT,
-> +	};
-> +
-> +	v4l2_err(&ic_priv->sd, "EOF timeout\n");
-> +
-> +	v4l2_subdev_notify_event(&ic_priv->sd, &ev);
-> +}
-> +
-> +static void prpenc_setup_channel(struct prpenc_priv *priv,
-> +				 struct ipuv3_channel *channel,
-> +				 enum ipu_rotate_mode rot_mode,
-> +				 dma_addr_t addr0, dma_addr_t addr1,
-> +				 bool rot_swap_width_height)
-> +{
-> +	struct v4l2_mbus_framefmt *infmt, *outfmt;
-> +	unsigned int burst_size;
-> +	struct ipu_image image;
-> +
-> +	infmt = &priv->format_mbus[priv->input_pad];
-> +	outfmt = &priv->format_mbus[priv->output_pad];
-> +
-> +	if (rot_swap_width_height)
-> +		swap(outfmt->width, outfmt->height);
-> +
-> +	ipu_cpmem_zero(channel);
-> +
-> +	imx_media_mbus_fmt_to_ipu_image(&image, outfmt);
-> +
-> +	image.phys0 = addr0;
-> +	image.phys1 = addr1;
-> +	ipu_cpmem_set_image(channel, &image);
-> +
-> +	if (channel == priv->enc_rot_in_ch ||
-> +	    channel == priv->enc_rot_out_ch) {
-> +		burst_size = 8;
-> +		ipu_cpmem_set_block_mode(channel);
-> +	} else {
-> +		burst_size = (outfmt->width & 0xf) ? 8 : 16;
-> +	}
-> +
-> +	ipu_cpmem_set_burstsize(channel, burst_size);
-> +
-> +	if (rot_mode)
-> +		ipu_cpmem_set_rotation(channel, rot_mode);
-> +
-> +	if (outfmt->field == V4L2_FIELD_NONE &&
-> +	    (V4L2_FIELD_HAS_BOTH(infmt->field) ||
-> +	     infmt->field == V4L2_FIELD_ALTERNATE) &&
-> +	    channel == priv->enc_ch)
-> +		ipu_cpmem_interlaced_scan(channel, image.pix.bytesperline);
-> +
-> +	ipu_ic_task_idma_init(priv->ic_enc, channel,
-> +			      outfmt->width, outfmt->height,
-> +			      burst_size, rot_mode);
-> +	ipu_cpmem_set_axi_id(channel, 1);
-> +
-> +	ipu_idmac_set_double_buffer(channel, true);
-> +
-> +	if (rot_swap_width_height)
-> +		swap(outfmt->width, outfmt->height);
-> +}
-> +
-> +static int prpenc_setup_rotation(struct prpenc_priv *priv)
-> +{
-> +	struct imx_ic_priv *ic_priv = priv->ic_priv;
-> +	struct v4l2_mbus_framefmt *infmt, *outfmt;
-> +	const struct imx_media_pixfmt *outcc, *incc;
-> +	struct imx_media_dma_buf *buf0, *buf1;
-> +	int out_size, ret;
-> +
-> +	infmt = &priv->format_mbus[priv->input_pad];
-> +	outfmt = &priv->format_mbus[priv->output_pad];
-> +	incc = priv->cc[priv->input_pad];
-> +	outcc = priv->cc[priv->output_pad];
-> +
-> +	out_size = (outfmt->width * outcc->bpp * outfmt->height) >> 3;
-> +
-> +	ret = imx_media_alloc_dma_buf(priv->md, &priv->rot_buf[0], out_size);
-> +	if (ret) {
-> +		v4l2_err(&ic_priv->sd, "failed to alloc rot_buf[0], %d\n", ret);
-> +		return ret;
-> +	}
-> +	ret = imx_media_alloc_dma_buf(priv->md, &priv->rot_buf[1], out_size);
-> +	if (ret) {
-> +		v4l2_err(&ic_priv->sd, "failed to alloc rot_buf[1], %d\n", ret);
-> +		goto free_rot0;
-> +	}
-> +
-> +	ret = ipu_ic_task_init(priv->ic_enc,
-> +			       infmt->width, infmt->height,
-> +			       outfmt->height, outfmt->width,
-> +			       incc->cs, outcc->cs);
-> +	if (ret) {
-> +		v4l2_err(&ic_priv->sd, "ipu_ic_task_init failed, %d\n", ret);
-> +		goto free_rot1;
-> +	}
-> +
-> +	/* init the IC ENC-->MEM IDMAC channel */
-> +	prpenc_setup_channel(priv, priv->enc_ch,
-> +			     IPU_ROTATE_NONE,
-> +			     priv->rot_buf[0].phys,
-> +			     priv->rot_buf[1].phys,
-> +			     true);
-> +
-> +	/* init the MEM-->IC ENC ROT IDMAC channel */
-> +	prpenc_setup_channel(priv, priv->enc_rot_in_ch,
-> +			     priv->rot_mode,
-> +			     priv->rot_buf[0].phys,
-> +			     priv->rot_buf[1].phys,
-> +			     true);
-> +
-> +	buf0 = imx_media_dma_buf_get_next_queued(priv->out_ring);
-> +	imx_media_dma_buf_set_active(buf0);
-> +	buf1 = imx_media_dma_buf_get_next_queued(priv->out_ring);
-> +	priv->next = buf1;
-> +
-> +	/* init the destination IC ENC ROT-->MEM IDMAC channel */
-> +	prpenc_setup_channel(priv, priv->enc_rot_out_ch,
-> +			     IPU_ROTATE_NONE,
-> +			     buf0->phys, buf1->phys,
-> +			     false);
-> +
-> +	/* now link IC ENC-->MEM to MEM-->IC ENC ROT */
-> +	ipu_idmac_link(priv->enc_ch, priv->enc_rot_in_ch);
-> +
-> +	/* enable the IC */
-> +	ipu_ic_enable(priv->ic_enc);
-> +
-> +	/* set buffers ready */
-> +	ipu_idmac_select_buffer(priv->enc_ch, 0);
-> +	ipu_idmac_select_buffer(priv->enc_ch, 1);
-> +	ipu_idmac_select_buffer(priv->enc_rot_out_ch, 0);
-> +	ipu_idmac_select_buffer(priv->enc_rot_out_ch, 1);
-> +
-> +	/* enable the channels */
-> +	ipu_idmac_enable_channel(priv->enc_ch);
-> +	ipu_idmac_enable_channel(priv->enc_rot_in_ch);
-> +	ipu_idmac_enable_channel(priv->enc_rot_out_ch);
-> +
-> +	/* and finally enable the IC PRPENC task */
-> +	ipu_ic_task_enable(priv->ic_enc);
-> +
-> +	return 0;
-> +
-> +free_rot1:
-> +	imx_media_free_dma_buf(priv->md, &priv->rot_buf[1]);
-> +free_rot0:
-> +	imx_media_free_dma_buf(priv->md, &priv->rot_buf[0]);
-> +	return ret;
-> +}
-> +
-> +static void prpenc_unsetup_rotation(struct prpenc_priv *priv)
-> +{
-> +	ipu_ic_task_disable(priv->ic_enc);
-> +
-> +	ipu_idmac_disable_channel(priv->enc_ch);
-> +	ipu_idmac_disable_channel(priv->enc_rot_in_ch);
-> +	ipu_idmac_disable_channel(priv->enc_rot_out_ch);
-> +
-> +	ipu_idmac_unlink(priv->enc_ch, priv->enc_rot_in_ch);
-> +
-> +	ipu_ic_disable(priv->ic_enc);
-> +
-> +	imx_media_free_dma_buf(priv->md, &priv->rot_buf[0]);
-> +	imx_media_free_dma_buf(priv->md, &priv->rot_buf[1]);
-> +}
-> +
-> +static int prpenc_setup_norotation(struct prpenc_priv *priv)
-> +{
-> +	struct imx_ic_priv *ic_priv = priv->ic_priv;
-> +	struct v4l2_mbus_framefmt *infmt, *outfmt;
-> +	const struct imx_media_pixfmt *outcc, *incc;
-> +	struct imx_media_dma_buf *buf0, *buf1;
-> +	int ret;
-> +
-> +	infmt = &priv->format_mbus[priv->input_pad];
-> +	outfmt = &priv->format_mbus[priv->output_pad];
-> +	incc = priv->cc[priv->input_pad];
-> +	outcc = priv->cc[priv->output_pad];
-> +
-> +	ret = ipu_ic_task_init(priv->ic_enc,
-> +			       infmt->width, infmt->height,
-> +			       outfmt->width, outfmt->height,
-> +			       incc->cs, outcc->cs);
-> +	if (ret) {
-> +		v4l2_err(&ic_priv->sd, "ipu_ic_task_init failed, %d\n", ret);
-> +		return ret;
-> +	}
-> +
-> +	buf0 = imx_media_dma_buf_get_next_queued(priv->out_ring);
-> +	imx_media_dma_buf_set_active(buf0);
-> +	buf1 = imx_media_dma_buf_get_next_queued(priv->out_ring);
-> +	priv->next = buf1;
-> +
-> +	/* init the IC PRP-->MEM IDMAC channel */
-> +	prpenc_setup_channel(priv, priv->enc_ch, priv->rot_mode,
-> +			     buf0->phys, buf1->phys,
-> +			     false);
-> +
-> +	ipu_cpmem_dump(priv->enc_ch);
-> +	ipu_ic_dump(priv->ic_enc);
-> +	ipu_dump(priv->ipu);
-> +
-> +	ipu_ic_enable(priv->ic_enc);
-> +
-> +	/* set buffers ready */
-> +	ipu_idmac_select_buffer(priv->enc_ch, 0);
-> +	ipu_idmac_select_buffer(priv->enc_ch, 1);
-> +
-> +	/* enable the channels */
-> +	ipu_idmac_enable_channel(priv->enc_ch);
-> +
-> +	/* enable the IC ENCODE task */
-> +	ipu_ic_task_enable(priv->ic_enc);
-> +
-> +	return 0;
-> +}
-> +
-> +static void prpenc_unsetup_norotation(struct prpenc_priv *priv)
-> +{
-> +	ipu_ic_task_disable(priv->ic_enc);
-> +	ipu_idmac_disable_channel(priv->enc_ch);
-> +	ipu_ic_disable(priv->ic_enc);
-> +}
-> +
-> +static int prpenc_start(struct prpenc_priv *priv)
-> +{
-> +	struct imx_ic_priv *ic_priv = priv->ic_priv;
-> +	int ret;
-> +
-> +	if (!priv->sensor) {
-> +		v4l2_err(&ic_priv->sd, "no sensor attached\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	ret = prpenc_get_ipu_resources(priv);
-> +	if (ret)
-> +		return ret;
-> +
-> +	/* set IC to receive from CSI */
-> +	ipu_set_ic_src_mux(priv->ipu, priv->csi_id, false);
-> +
-> +	/* ask the sink for the buffer ring */
-> +	ret = v4l2_subdev_call(priv->sink_sd, core, ioctl,
-> +			       IMX_MEDIA_REQ_DMA_BUF_SINK_RING,
-> +			       &priv->out_ring);
-> +	if (ret)
-> +		goto out_put_ipu;
-> +
-> +	priv->ipu_buf_num = 0;
-> +
-> +	/* init EOF completion waitq */
-> +	init_completion(&priv->last_eof_comp);
-> +	priv->last_eof = false;
-> +
-> +	if (ipu_rot_mode_is_irt(priv->rot_mode))
-> +		ret = prpenc_setup_rotation(priv);
-> +	else
-> +		ret = prpenc_setup_norotation(priv);
-> +	if (ret)
-> +		goto out_put_ipu;
-> +
-> +	priv->nfb4eof_irq = ipu_idmac_channel_irq(priv->ipu,
-> +						  priv->enc_ch,
-> +						  IPU_IRQ_NFB4EOF);
-> +	ret = devm_request_irq(ic_priv->dev, priv->nfb4eof_irq,
-> +			       prpenc_nfb4eof_interrupt, 0,
-> +			       "imx-ic-prpenc-nfb4eof", priv);
-> +	if (ret) {
-> +		v4l2_err(&ic_priv->sd,
-> +			 "Error registering NFB4EOF irq: %d\n", ret);
-> +		goto out_unsetup;
-> +	}
-> +
-> +	if (ipu_rot_mode_is_irt(priv->rot_mode))
-> +		priv->eof_irq = ipu_idmac_channel_irq(
-> +			priv->ipu, priv->enc_rot_out_ch, IPU_IRQ_EOF);
-> +	else
-> +		priv->eof_irq = ipu_idmac_channel_irq(
-> +			priv->ipu, priv->enc_ch, IPU_IRQ_EOF);
-> +
-> +	ret = devm_request_irq(ic_priv->dev, priv->eof_irq,
-> +			       prpenc_eof_interrupt, 0,
-> +			       "imx-ic-prpenc-eof", priv);
-> +	if (ret) {
-> +		v4l2_err(&ic_priv->sd,
-> +			 "Error registering eof irq: %d\n", ret);
-> +		goto out_free_nfb4eof_irq;
-> +	}
-> +
-> +	/* start the EOF timeout timer */
-> +	mod_timer(&priv->eof_timeout_timer,
-> +		  jiffies + msecs_to_jiffies(IMX_MEDIA_EOF_TIMEOUT));
-> +
-> +	return 0;
-> +
-> +out_free_nfb4eof_irq:
-> +	devm_free_irq(ic_priv->dev, priv->nfb4eof_irq, priv);
-> +out_unsetup:
-> +	if (ipu_rot_mode_is_irt(priv->rot_mode))
-> +		prpenc_unsetup_rotation(priv);
-> +	else
-> +		prpenc_unsetup_norotation(priv);
-> +out_put_ipu:
-> +	prpenc_put_ipu_resources(priv);
-> +	return ret;
-> +}
-> +
-> +static void prpenc_stop(struct prpenc_priv *priv)
-> +{
-> +	struct imx_ic_priv *ic_priv = priv->ic_priv;
-> +	unsigned long flags;
-> +	int ret;
-> +
-> +	/* mark next EOF interrupt as the last before stream off */
-> +	spin_lock_irqsave(&priv->irqlock, flags);
-> +	priv->last_eof = true;
-> +	spin_unlock_irqrestore(&priv->irqlock, flags);
-> +
-> +	/*
-> +	 * and then wait for interrupt handler to mark completion.
-> +	 */
-> +	ret = wait_for_completion_timeout(
-> +		&priv->last_eof_comp,
-> +		msecs_to_jiffies(IMX_MEDIA_EOF_TIMEOUT));
-> +	if (ret == 0)
-> +		v4l2_warn(&ic_priv->sd, "wait last EOF timeout\n");
-> +
-> +	devm_free_irq(ic_priv->dev, priv->eof_irq, priv);
-> +	devm_free_irq(ic_priv->dev, priv->nfb4eof_irq, priv);
-> +
-> +	if (ipu_rot_mode_is_irt(priv->rot_mode))
-> +		prpenc_unsetup_rotation(priv);
-> +	else
-> +		prpenc_unsetup_norotation(priv);
-> +
-> +	prpenc_put_ipu_resources(priv);
-> +
-> +	/* cancel the EOF timeout timer */
-> +	del_timer_sync(&priv->eof_timeout_timer);
-> +
-> +	priv->out_ring = NULL;
-> +
-> +	/* inform sink that the buffer ring can now be freed */
-> +	v4l2_subdev_call(priv->sink_sd, core, ioctl,
-> +			 IMX_MEDIA_REL_DMA_BUF_SINK_RING, 0);
-> +}
-> +
-> +static int prpenc_enum_mbus_code(struct v4l2_subdev *sd,
-> +				 struct v4l2_subdev_pad_config *cfg,
-> +				 struct v4l2_subdev_mbus_code_enum *code)
-> +{
-> +	struct prpenc_priv *priv = sd_to_priv(sd);
-> +	bool allow_planar;
-> +
-> +	if (code->pad >= PRPENC_NUM_PADS)
-> +		return -EINVAL;
-> +
-> +	allow_planar = (code->pad == priv->output_pad);
-> +
-> +	return imx_media_enum_format(&code->code, code->index,
-> +				     true, allow_planar);
-> +}
-> +
-> +static int prpenc_get_fmt(struct v4l2_subdev *sd,
-> +			  struct v4l2_subdev_pad_config *cfg,
-> +			  struct v4l2_subdev_format *sdformat)
-> +{
-> +	struct prpenc_priv *priv = sd_to_priv(sd);
-> +
-> +	if (sdformat->pad >= PRPENC_NUM_PADS)
-> +		return -EINVAL;
-> +
-> +	sdformat->format = priv->format_mbus[sdformat->pad];
-> +
-> +	return 0;
-> +}
-> +
-> +static int prpenc_set_fmt(struct v4l2_subdev *sd,
-> +			  struct v4l2_subdev_pad_config *cfg,
-> +			  struct v4l2_subdev_format *sdformat)
-> +{
-> +	struct prpenc_priv *priv = sd_to_priv(sd);
-> +	struct v4l2_mbus_framefmt *infmt, *outfmt;
-> +	const struct imx_media_pixfmt *cc;
-> +	bool allow_planar;
-> +	u32 code;
-> +
-> +	if (sdformat->pad >= PRPENC_NUM_PADS)
-> +		return -EINVAL;
-> +
-> +	if (priv->stream_on)
-> +		return -EBUSY;
-> +
-> +	infmt = &priv->format_mbus[priv->input_pad];
-> +	outfmt = &priv->format_mbus[priv->output_pad];
-> +	allow_planar = (sdformat->pad == priv->output_pad);
-> +
-> +	cc = imx_media_find_format(0, sdformat->format.code,
-> +				   true, allow_planar);
-> +	if (!cc) {
-> +		imx_media_enum_format(&code, 0, true, false);
-> +		cc = imx_media_find_format(0, code, true, false);
-> +		sdformat->format.code = cc->codes[0];
-> +	}
-> +
-> +	if (sdformat->pad == priv->output_pad) {
-> +		sdformat->format.width = min_t(__u32,
-> +					       sdformat->format.width,
-> +					       MAX_W_IC);
-> +		sdformat->format.height = min_t(__u32,
-> +						sdformat->format.height,
-> +						MAX_H_IC);
-> +
-> +		if (sdformat->format.field != V4L2_FIELD_NONE)
-> +			sdformat->format.field = infmt->field;
-> +
-> +		/* IC resizer cannot downsize more than 4:1 */
-> +		if (ipu_rot_mode_is_irt(priv->rot_mode)) {
-> +			sdformat->format.width = max_t(__u32,
-> +						       sdformat->format.width,
-> +						       infmt->height / 4);
-> +			sdformat->format.height = max_t(__u32,
-> +							sdformat->format.height,
-> +							infmt->width / 4);
-> +		} else {
-> +			sdformat->format.width = max_t(__u32,
-> +						       sdformat->format.width,
-> +						       infmt->width / 4);
-> +			sdformat->format.height = max_t(__u32,
-> +							sdformat->format.height,
-> +							infmt->height / 4);
-> +		}
-> +	} else {
-> +		sdformat->format.width = min_t(__u32,
-> +					       sdformat->format.width,
-> +					       MAX_W_SINK);
-> +		sdformat->format.height = min_t(__u32,
-> +						sdformat->format.height,
-> +						MAX_H_SINK);
-> +	}
-> +
-> +	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY) {
-> +		cfg->try_fmt = sdformat->format;
-> +	} else {
-> +		priv->format_mbus[sdformat->pad] = sdformat->format;
-> +		priv->cc[sdformat->pad] = cc;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int prpenc_link_setup(struct media_entity *entity,
-> +			     const struct media_pad *local,
-> +			     const struct media_pad *remote, u32 flags)
-> +{
-> +	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
-> +	struct imx_ic_priv *ic_priv = v4l2_get_subdevdata(sd);
-> +	struct prpenc_priv *priv = ic_priv->task_priv;
-> +	struct v4l2_subdev *remote_sd;
-> +
-> +	dev_dbg(ic_priv->dev, "link setup %s -> %s", remote->entity->name,
-> +		local->entity->name);
-> +
-> +	remote_sd = media_entity_to_v4l2_subdev(remote->entity);
-> +
-> +	if (local->flags & MEDIA_PAD_FL_SOURCE) {
-> +		if (flags & MEDIA_LNK_FL_ENABLED) {
-> +			if (priv->sink_sd)
-> +				return -EBUSY;
-> +			priv->sink_sd = remote_sd;
-> +		} else {
-> +			priv->sink_sd = NULL;
-> +		}
-> +
-> +		return 0;
-> +	}
-> +
-> +	/* this is sink pad */
-> +	if (flags & MEDIA_LNK_FL_ENABLED) {
-> +		if (priv->src_sd)
-> +			return -EBUSY;
-> +		priv->src_sd = remote_sd;
-> +	} else {
-> +		priv->src_sd = NULL;
-> +		return 0;
-> +	}
-> +
-> +	switch (remote_sd->grp_id) {
-> +	case IMX_MEDIA_GRP_ID_CSI0:
-> +		priv->csi_id = 0;
-> +		break;
-> +	case IMX_MEDIA_GRP_ID_CSI1:
-> +		priv->csi_id = 1;
-> +		break;
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int prpenc_link_validate(struct v4l2_subdev *sd,
-> +				struct media_link *link,
-> +				struct v4l2_subdev_format *source_fmt,
-> +				struct v4l2_subdev_format *sink_fmt)
-> +{
-> +	struct imx_ic_priv *ic_priv = v4l2_get_subdevdata(sd);
-> +	struct prpenc_priv *priv = ic_priv->task_priv;
-> +	struct v4l2_mbus_config sensor_mbus_cfg;
-> +	int ret;
-> +
-> +	ret = v4l2_subdev_link_validate_default(sd, link,
-> +						source_fmt, sink_fmt);
-> +	if (ret)
-> +		return ret;
-> +
-> +	priv->sensor = __imx_media_find_sensor(priv->md, &ic_priv->sd.entity);
-> +	if (IS_ERR(priv->sensor)) {
-> +		v4l2_err(&ic_priv->sd, "no sensor attached\n");
-> +		ret = PTR_ERR(priv->sensor);
-> +		priv->sensor = NULL;
-> +		return ret;
-> +	}
-> +
-> +	ret = v4l2_subdev_call(priv->sensor->sd, video, g_mbus_config,
-> +			       &sensor_mbus_cfg);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (sensor_mbus_cfg.type == V4L2_MBUS_CSI2) {
-> +		int vc_num = 0;
-> +		/* see NOTE in imx-csi.c */
-> +#if 0
-> +		vc_num = imx_media_find_mipi_csi2_channel(
-> +			priv->md, &ic_priv->sd.entity);
-> +		if (vc_num < 0)
-> +			return vc_num;
-> +#endif
-> +		/* only virtual channel 0 can be sent to IC */
-> +		if (vc_num != 0)
-> +			return -EINVAL;
-> +	} else {
-> +		/*
-> +		 * only 8-bit pixels can be sent to IC for parallel
-> +		 * busses
-> +		 */
-> +		if (priv->sensor->sensor_ep.bus.parallel.bus_width >= 16)
-> +			return -EINVAL;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int prpenc_s_ctrl(struct v4l2_ctrl *ctrl)
-> +{
-> +	struct prpenc_priv *priv = container_of(ctrl->handler,
-> +					       struct prpenc_priv, ctrl_hdlr);
-> +	struct imx_ic_priv *ic_priv = priv->ic_priv;
-> +	enum ipu_rotate_mode rot_mode;
-> +	bool hflip, vflip;
-> +	int rotation, ret;
-> +
-> +	rotation = priv->rotation;
-> +	hflip = priv->hflip;
-> +	vflip = priv->vflip;
-> +
-> +	switch (ctrl->id) {
-> +	case V4L2_CID_HFLIP:
-> +		hflip = (ctrl->val == 1);
-> +		break;
-> +	case V4L2_CID_VFLIP:
-> +		vflip = (ctrl->val == 1);
-> +		break;
-> +	case V4L2_CID_ROTATE:
-> +		rotation = ctrl->val;
-> +		break;
-> +	default:
-> +		v4l2_err(&ic_priv->sd, "Invalid control\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	ret = ipu_degrees_to_rot_mode(&rot_mode, rotation, hflip, vflip);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (rot_mode != priv->rot_mode) {
-> +		/* can't change rotation mid-streaming */
-> +		if (priv->stream_on)
-> +			return -EBUSY;
-> +
-> +		priv->rot_mode = rot_mode;
-> +		priv->rotation = rotation;
-> +		priv->hflip = hflip;
-> +		priv->vflip = vflip;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_ctrl_ops prpenc_ctrl_ops = {
-> +	.s_ctrl = prpenc_s_ctrl,
-> +};
-> +
-> +static const struct v4l2_ctrl_config prpenc_std_ctrl[] = {
-> +	{
-> +		.id = V4L2_CID_HFLIP,
-> +		.name = "Horizontal Flip",
-> +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> +		.def =  0,
-> +		.min =  0,
-> +		.max =  1,
-> +		.step = 1,
-> +	}, {
-> +		.id = V4L2_CID_VFLIP,
-> +		.name = "Vertical Flip",
-> +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> +		.def =  0,
-> +		.min =  0,
-> +		.max =  1,
-> +		.step = 1,
-> +	}, {
-> +		.id = V4L2_CID_ROTATE,
-> +		.name = "Rotation",
-> +		.type = V4L2_CTRL_TYPE_INTEGER,
-> +		.def =   0,
-> +		.min =   0,
-> +		.max = 270,
-> +		.step = 90,
-> +	},
-> +};
+Hello everyone,
 
-Use v4l2_ctrl_new_std() instead of this array: this avoids duplicating information
-like the name and type.
+Please read below my report on resolving object lifetime issues in V4L2 and
+Media controller frameworks. The document is rather long but worth reading if
+you're interested in the topic.
 
-If this is also done elsewhere, then it should be changed there as well.
 
-Regards,
+Sakari Ailus, Laurent Pinchart and Hans Verkuil present
+2016-01-13
 
-	Hans
+
+Introduction to the problem domain
+==================================
+
+The Media controller framework was first used for complex devices with
+internal data processing pipelines. The problem domain that got most of the
+attention as how the pipeline configuration would work and how V4L2
+sub-device format would be propagated or how the pipeline validation would
+work. As none of the devices that were supported in the beginning were
+hot-pluggable, little attention was paid in making it possible to remove
+them.
+
+The media graph is a complex, highly interconnected data structure with
+object allocated by different drivers and with different lifetimes. The data
+structure can be navigated by the Media controller framework and by drivers,
+including parts that those drivers did not create themselves. While some
+rules exist on how this could be done, for instance the graph traversal,
+these rules are not enough to support new use cases such as hot-pluggable
+devices (or safely unbinding devices in general).
+
+In the original (and also the current) implementation of the Media
+controller framework tearing down a Media device was centered in the ability
+of removing devices without crashing the kernel while the said devices were
+not in use by a user application. In order to prevent unbinding drivers,
+module use counts are increased whilst the devices are in use. This
+obviously does not guarantee that: hot-pluggable devices may be removed
+without the user application even knowing it, as well as non-hotpluggable
+devices may also be unbound even if the module stays loaded (of which the
+latter is certainly a lesser concern).
+
+
+Current and future issues
+=========================
+
+* Media device lifetime management. There is no serialisation between
+  issuing system calls to the media device driver and removing the struct
+  media_device from the system, typically through unbinding a device from
+  the driver. This leaves a time window in which released kernel memory may
+  be accessed.
+
+* Media entity lifetime management (including driver allocated objects that
+  can be reached through media graph objects). Media entities (and objects
+  that embed media graph objects) may be looked up by drivers and
+  referenced. Such references may be kept for an extended period of time.
+  Sub-device drivers may call other sub-devices' operations as well as they
+  may be accessed from the user space through file handles. Media entity
+  lifetime management is required for safely removing them.
+
+* Sharing a struct media_device between drivers. This is not a problem right
+  now but will need to be addressed before a struct media_device may be
+  shared between multiple drivers. Currently, the struct media_device has
+  multiple fields that are specific to a single driver which inherently
+  makes a media device non-shareable:
+
+	- dev: struct device of the bridge/ISP driver
+	- ops: ops structure that contains e.g. link_setup used for managing
+	  power across the pipelines found in a media device. In the future,
+	  this would include routing configuration as well.
+
+  The functionality supported by these fields has to be implemented by means
+  supporting multiple drivers before sharing the struct media_device is
+  possible. In that solution, these fields may not continue to exist in the
+  form they do now.
+
+
+General rules for accessing data and running code
+=================================================
+
+These rules must be followed in accessing data and executing code in all
+cases:
+
+code) While there is a chance to execute code, the containing module
+  reference count must be incremented.
+
+data) Every memory allocation must be reference counted if a pointer to
+  that memory is being shared. Each user obtains a reference and puts it
+  using a related put function which will release the memory if it was the
+  last reference.
+
+
+Object reference counting golden rules
+======================================
+
+1. When a pointer to a reference-counted object is stored for later use, a
+   reference to that object must exist.
+
+2. A reference exists if it is taken or borrowed.
+
+3. A borrowed reference is a reference taken elsewhere that can be proven to
+   exist for the complete lifetime of the pointer.
+
+4. When in doubt about whether a reference can be borrowed, it can be taken
+   without any adverse impact.
+
+5. A reference taken must be put at some point.
+
+6. No access to a pointer can occur after the corresponding reference has
+   been put.
+
+	6.1. The point when the reference is put must be proven to occur
+	     later than all other possible accesses to the reference.
+
+	6.2. At the location where the reference is put, care must be taken
+	     not to access the corresponding pointer after putting the
+	     reference.
+
+	     e.g.
+
+	     object_put(obj);
+	     obj->dead = true;
+
+	     is invalid, the correct code would be
+
+	     obj->dead = true;
+	     object_put(obj);
+
+7. Immediately set a reference to NULL before or right after putting a
+   given reference. This helps catching use-after-release errors.
+
+
+Media device lifetime
+=====================
+
+
+IOCTLs and removal
+------------------
+
+There is a choice to be made related to the approach used to ensure that the
+media device itself will stay around as long as it is needed. This can be
+done by referencing the media device, in which case the media device memory
+will be released once all the users are done with the media device. An
+alternative to this is to use locking, taking a lock during an IOCTL call
+and during device removal. rw_semaphores could potentially be used for this
+purpose, but they are hardly meant for such use.
+
+The rest of the kernel generally uses reference counting to address such
+issues. Besides this, sharing the media device later on will require using
+reference, so it is certainly more future-proof as well as being a generally
+known-good solution.
+
+The media device thus needs to be reference counted.
+
+
+Allocating struct media_devnode separately from struct media_device
+-------------------------------------------------------------------
+
+The current codebase allocates struct media_devnode dynamically. This was
+done in order to reduce the time window during which unallocated kernel
+memory could be accessed. However, there is no specific need for such a
+separation as the entire data structure, including the media device which
+used to contain struct media_devnode, will have the same lifetime. Thus the
+struct media_devnode should be allocated as part of struct media_device.
+Later on, struct media_devnode may be merged with struct media_device if so
+decided.
+
+
+Allocating struct media_device dynamically
+------------------------------------------
+
+Traditionally the media device has been allocated as part of drivers' own
+structures. This is certainly fine as such, but many drivers have allocated
+the driver private struct using the devm_() family of functions. This causes
+such memory to be released at the time of device removal rather than at the
+time when the memory is no longer accessible by e.g. user space processes or
+interrupt handlers. Besides the media device, the driver's own data
+structure is very likely to have the precisely same lifetime issue: it may
+also be accessed through IOCTLs after the device has been removed from the
+system.
+
+Instead, the memory needs to be released as part of the release() callback
+of the media device which is called when the last reference to the media
+device is gone. Still, allocating the media device outside another
+containing driver specific struct will be required in some cases: sharing
+the media device mandates that. Implementing this can certainly be postponed
+until sharing the media device is otherwise supported as well.
+
+
+Lifetime of the media entities and related framework or driver objects
+======================================================================
+
+The media graph data structure is a complex data structure consisting of
+media graph objects that themselves may be either entities, links or pads.
+The media graph objects are allocated by various drivers and currently have
+a lifetime related to binding and unbinding of the related hardware. The
+current rules (i.e. acquiring the media graph lock for graph traversal) are
+not enough to properly support removing entities.
+
+Instead, reference counting needs to be introduced for media entities and
+other objects that contain media entities. References must be acquired (or
+in some cases, borrowed) whenever a reference is held to an object. A
+release callback is used to release the memory allocation that contains an
+object when the last reference to the object has been put. For instance:
+
+	struct media_entity {
+		...
+		struct kref kref;
+		void (*release)(struct media_entity *entity);
+	};
+	
+	/*
+	 * For refcounting, the caller has to set entity->release after
+	 * initialising the entity.
+	 */
+	void media_entity_pads_init(struct media_entity *entity)
+	{
+		...
+		kref_init(&entity->kref);
+	}
+	
+	int media_device_register_entity(struct media_device *mdev,
+					 struct media_entity *entity)
+	{
+		...
+		entity->graph_obj.mdev = mdev;
+	}
+	
+	void media_entity_release(struct kref *kref)
+	{
+		struct media_entity *entity =
+			container_of(kref, struct media_entity, kref);
+		struct media_device *mdev = entity->graph_obj.mdev;
+		
+		entity->release(entity);
+		if (mdev)
+			media_device_put(mdev);
+	}
+	
+	void media_entity_put(struct media_entity *entity)
+	{
+		kref_put(&entity->kref, media_entity_release);
+	}
+
+	void media_entity_get(struct media_entity *entity)
+	{
+		kref_get(&entity->kref);
+	}
+	
+The above takes into account the current behaviour which makes no use of
+reference counting while still allowing reference counting for drivers that
+use it.
+
+Often media entities are contained in another struct such as struct
+v4l2_subdev. In that case, the allocator of that struct must provide a
+release callback which is used as a destructor of that object. Functions to
+count references (get() and put()) are defined to obtain and released
+references to the said objects. Wrappers are added for the types containing
+the object type that does have the refcount, for instance in this case:
+
+	void v4l2_subdev_get(struct v4l2_subdev *sd)
+	{
+		media_entity_get(&sd->entity);
+	}
+
+	void v4l2_subdev_put(struct v4l2_subdev *sd)
+	{
+		media_entity_put(&sd->entity);
+	}
+
+Memory allocations that contain one or more objects must be considered
+indivisible. All the objects inside a struct are allocated and released at
+one point of time. For instance, struct v4l2_subdev contains both struct
+media_entity and struct video_device. struct video_device contains struct
+device (related to the character device visible to the user) that is
+reference counted already.
+
+In the example below, foo is a sub-device driver. The struct foo_device
+contains a struct v4l2_subdev field sd which in turn contains a media
+entity. In addition to that, struct v4l2_subdev contains a struct
+video_device (the devnode field) that currently is a pointer. In order to
+simplify the reference counting, it is assumed to be directly a part of the
+struct v4l2_subdev below. The example assumes that the driver requests a
+device node for the V4L2 sub-device and does not address the case where the
+device node is not created.
+
+
+	struct media_entity {
+		...
+		struct kref kref;
+		void (*release)(struct media_entity *entity);
+	};
+	
+	struct v4l2_subdev {
+		...
+		struct video_device devnode;
+	};
+
+	void media_entity_release(struct kref *kref)
+	{
+		struct media_entity *entity =
+			container_of(kref, struct media_entity, kref);
+		struct media_device *mdev = entity->graph_obj.mdev;
+		
+		/* Release the media entity, possibly releasing its memory. */
+		entity->release(entity);
+
+		/*
+		 * If it was bound to a media device, put the media device
+		 * as well.
+		 */
+		if (mdev)
+			media_device_put(mdev);
+	}
+	
+	void media_entity_put(struct media_entity *entity)
+	{
+		kref_put(&entity->kref, media_entity_release);
+	}
+
+	/*
+	 * Returns zero if getting entity succeeds, -ENODEV otherwise.
+	 */
+	int media_entity_try_get(struct media_entity *entity)
+	{
+		return kref_get_unless_zero(&entity->kref) ? 0 : -ENODEV;
+	}
+
+	void media_entity_get(struct media_entity *entity)
+	{
+		kref_get(&entity->kref);
+	}
+	
+	/*
+	 * Depending on the data structure containing the media entity, the
+	 * caller has to set entity->release after initialising the entity.
+	 */
+	void media_entity_pads_init(struct media_entity *entity)
+	{
+		...
+		kref_init(&entity->kref);
+	}
+	
+	int media_device_register_entity(struct media_device *mdev,
+					 struct media_entity *entity)
+	{
+		...
+		/*
+		 * Bind the media entity to the media device; thus increment
+		 * media device refcount. The media device typically is not
+		 * available during sub-device driver probe() time. This
+		 * requires that a media entity may only be registered once.
+		 */
+		entity->graph_obj.mdev = mdev;
+		media_device_get(mdev);
+		/* And get the entity as well. */
+		media_entity_get(entity);
+	}
+	
+	
+	void media_device_unregister_entity(struct media_entity *entity)
+	{
+		...
+		media_entity_put(entity);
+	}
+
+	int v4l2_device_register_subdev(struct v4l2_subdev *sd)
+	{
+		...
+		media_device_register_entity(&sd->entity);
+		...
+	}
+	
+	void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
+	{
+		...
+		media_device_unregister_entity(&sd->entity);
+	}
+
+	/*
+	 * Custom release callback function for V4L2 sub-devices that export
+	 * a device node. (Could be used for others as well, with
+	 * sd->devnode.release() callback.)
+	 */
+	void v4l2_device_subdev_devnode_release(struct media_entity *entity)
+	{
+		struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
+
+		/*
+		 * If the devnode got registered we still hold a reference
+		 * to it. Check this from vdev->prio (but any other field
+		 * which gets set during device node registration and never
+		 * changed again could be used). If the devnode was never
+		 * registered, call its release function directly.
+		 */
+		if (sd->devnode.prio)
+			video_put(sd->devnode);
+		else
+			sd->devnode.release(&sd->devnode);
+	}
+	
+	int v4l2_device_register_subdev_nodes(struct v4l2_device *vdev)
+	{
+		struct video_device *vdev;
+ 	        struct v4l2_subdev *sd;
+	        int err;
+
+	        list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
+			__video_register_device(&sd->devnode, ...);
+			video_get(&sd->devnode);
+			sd->devnode.prio = something non-NULL;
+		}
+	}
+	
+	int v4l2_subdev_try_get(struct v4l2_subdev *sd)
+	{
+		return media_entity_try_get(&sd->entity);
+	}
+
+	void v4l2_subdev_get(struct v4l2_subdev *sd)
+	{
+		media_entity_get(&sd->entity);
+	}
+
+	void v4l2_subdev_put(struct v4l2_subdev *sd)
+	{
+		media_entity_put(&sd->entity);
+	}
+
+	/* V4L2 sub-device open file operation handler */	
+	int subdev_open(struct file *file)
+	{
+		struct video_device *vdev = video_devdata(file);
+		struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
+		int rval;
+		
+		/*
+		 * The v4l2_subdev depends on the video device node. It thus
+		 * may be that the media entity refcount (which is also used
+		 * to count references to the v4l2_subdev) has reached zero
+		 * here. However its memory is still intact as it's part of
+		 * the same struct v4l2_subdev.
+		 */
+		rval = v4l2_subdev_try_get(sd);
+		if (rval)
+			return rval;
+		
+		...
+	}
+	
+	/* V4L2 sub-device release file operation handler */
+	int subdev_close(struct file *file)
+	{
+		struct video_device *vdev = video_devdata(file);
+		struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
+
+		v4l2_subdev_put(sd);
+	}
+
+	struct foo_device {
+		struct v4l2_subdev sd;
+		struct media_pad pad;
+	};
+
+	void foo_device_release(struct video_device *vdev)
+	{
+		struct v4l2_subdev *sd =
+			container_of(vdev, struct v4l2_subdev, devnode);
+		struct foo_device *foo =
+			container_of(sd, struct foo_device, sd);
+
+		/*
+		 * TODO: acquire the graph mutex here and remove the
+		 * entities corresponding to the V4L2 sub-device and its
+		 * device node from the graph.
+		 */
+		media_entity_cleanup(&foo->sd.entity);
+		
+		kfree(foo);
+	}
+
+	int foo_probe(struct device *dev)
+	{
+		struct foo_device *foo = kmalloc(sizeof(*foo), GFP_KERNEL));
+
+		media_entity_pads_init(&foo->sd.entity, 1, &foo->pad);
+		foo->sd.entity.release = v4l2_subdev_devnode_release;
+		foo->sd.devnode.release = foo_device_release;
+		v4l2_async_register_subdev(&foo->sd);
+	}
+
+	void foo_remove(struct device *dev)
+	{
+		struct foo_device *foo = dev_get_drvdata(dev);
+		
+		v4l2_async_unregister_subdev(&foo->sd);
+		v4l2_device_unregister_subdev(&foo->sd);
+		/*
+		 * v4l2_subdev_put() will end up releasing foo immediately
+		 * unless file handles are open currently. Thus further
+		 * accesses to foo are not allowed.
+		 */
+		v4l2_subdev_put(&foo->sd);
+	}
+	
+Practical considerations
+------------------------
+
+- Beyond media entities, other media graph objects could be made refcounted.
+  This is not seen necessary as the related objects such as pads are in
+  practice allocated within the same driver specific struct containing the
+  media entity.
+
+	- This does not apply to links which are allocated dynamically by
+	  the framework, and released at unregistration time, meaning that
+	  accessing a link will require holding the media graph mutex.
+
+- A custom release callback is to be used for refcounted framework
+  structs. This makes it easy for the drivers to embed the objects in their
+  own structs.
+
+- As long as an object has its own reference count, getting or putting an
+  object does not affect the refcount of another object that it depends on.
+  For instance, a media entity depends on an existence of the media
+  device.
+
+- Each media entity holds a reference to the media device. Being able to
+  navigate from the media entity to the media device is used in drivers and
+  an abrupt disconnection of the two is problematic to handle for drivers.
+
+- At object initialisation time the kref refcount is initialised. The object
+  is put at unregistration time.
+  
+  	- If the object is a media entity, it is removed from the media graph
+ 	  when the last reference to the media entity is gone. The release
+ 	  callback needs to acquire the media graph mutex in order to
+ 	  perform the removal.
+
+	- In particular for struct video_device, media_entity release callback will
+	  put the refcount of the video device (struct device embedded in
+	  struct video_device)
+
+	- For struct v4l2_subdev, struct media_entity contained in struct
+	  v4l2_subdev is dependent on struct device within struct
+	  video_device.
+
+- When a driver creates multiple reference-counted objects (such as multiple
+  media entities for instance) that are part of its own private struct, it
+  will need to reference-count its own struct based on the release callbacks
+  of all those objects. It might be possible to simplify this by providing a
+  single release callback that would cover all objects. This is already
+  feasible for drivers that implement a media_device instance, V4L2
+  sub-devices and V4L2 video devices hold a reference on the media_device,
+  whose release callback could then act as a single gatekeeper. For other
+  drivers we haven't explored yet whether the core could meaningfully
+  provide help, but it should be remembered that drivers that implement
+  multiple graph objects and that do not implement a media_device are not
+  legion. Most slave drivers (such as sensor drivers) only implement a
+  single v4l2_subdev.
+
+- No V4L2 sub-device driver currently supports unbinding the device safely
+  when a media entity (or V4L2 sub-device) is registered. Prevent manual
+  unbind for all sub-device drivers by setting the suppress_bind_attrs field
+  in struct device_driver.
+
+
+Rules for navigating the media graph and accessing graph objects
+================================================================
+
+- Graph traversal is safe as long as the media graph lock is held during
+  traversal. (I.e. no changes here.)
+
+	- During graph traversal entity refcount must be increased in order
+	  to prevent them from being released. As the media entity's release()
+	  callback may be already in process at this point, a variant
+	  checking that the reference count has not reached zero must be
+	  used (media_entity_get_try()).
+
+- In order to keep a reference to an object after the graph traversal has
+  finished, a reference to the object must be obtained and held as long as
+  the object is in use.
+
+	- The same applies to file handles to V4L2 sub-devices or drivers
+	  keeping a reference to another driver's sub-device.
+
+- Once the reference count of an object reaches zero it will not be
+  increased again, even if that object was part of a memory allocation which
+  still has referenced objects. Obtaining references to such an object must
+  fail.
+
+- Navigating within a memory allocation while holding a reference to an
+  object in that allocation to obtain another object is allowed. The target
+  object type must provide a function testing for zero references in order
+  not to not to increment reference count that has reached zero.
+  kref_get_unless_zero() can be used for this. Especially drivers may need
+  this.
+
+- Circular references are not allowed.
+
+- It is safe to move between objects of the same lifetime (same kref),
+  e.g. struct v4l2_subdev and struct media_entity it contains.
+
+The rules must be documented as part of the Media framework ReST
+documentation.
+
+
+Stopping the hardware safely at device unbind
+=============================================
+
+What typically gets little attention in driver implementation is stopping
+safely whenever the hardware is being removed. The kernel frameworks are not
+very helpful in this respect --- after all how this is done somewhat depends
+on the hardware. Only hot-pluggable devices are generally affected. While it
+is possible to manually unbind e.g. platform devices, that certainly is a
+lesser problem for such devices.
+
+The rules are:
+
+- No memory related to data structures that are needed during driver
+  operation can be released as long as interrupt handlers may be still
+  executing or may start executing or user file handles are open.
+
+- All hardware access must cease after the remove() callback in driver ops
+  struct has returned. (For USB devices this callback is called
+  disconnect(), but its purpose is precisely the same.)
+
+Handling this correctly will require taking care of a few common matters:
+
+1. Checking for device presence in each system call issued on a device, and
+   returning -ENODEV if the device is not found.
+
+2. The driver's remove() function must ensure that no system calls that
+   could result in hardware access are ongoing.
+   
+3. Some system calls may sleep, and while doing so also releasing and later
+   reacquiring (when they continue) the mutexes their processes were
+   holding. Such processes must be woken up.
+
+This is not an easy task for a driver and the V4L2 and Media controller
+frameworks need to help the drivers to achieve this so that drivers would
+need to worry about this as little as possible. Drivers relying for their
+locking needs on the videobuf2 and the V4L2 frameworks are likely to require
+fewer changes.
+
+The same approach must be taken in issuing V4L2 sub-device operations by
+other kernel drivers.
+
+
+Serialising unbind with hardware access through system calls
+------------------------------------------------------------
+
+What's below is concentrated in V4L2; Media controller will need similar
+changes.
+
+- Add a function called video_unregister_device_prepare() (or
+  video_device_mark_unregistered() or a similarly named function) to amend
+  the functionality of video_unregister_device(): mark the device
+  unregistering so that new system calls issues on the device will return an
+  error.
+
+- Device node specific use count for active system calls.
+
+- Waiting list for waiting for the use count to reach zero (for proceeding
+  unregistration in v4l2_unregister_device()). Each finishing system call on
+  a file descriptor will wake up the waiting list.
+
+- Processes waiting in a waiting list of a system call (e.g. poll, DQBUF
+  IOCTL) will be woken up. After waiting, the processes will check whether
+  the video node is still registered, i.e. video_unregister_device_prepare()
+  has not been called.
+
+
+Things to remember
+------------------
+
+- Using the devm_request_irq() is _NOT_ allowed in general case, as the
+  free_irq() results in being called _after_ the driver's release callback.
+  This means that if new interrupts still arrive between driver's release
+  callback returning and devres resources not being released, the driver's
+  interrupt handler will still run. Use request_irq() and free_irq()
+  instead.
+
+
+What changes in practice?
+=========================
+
+Most of the changes needed in order to align the current implementation to
+conform the above are to be made in the frameworks themselves. What changes
+in drivers, though, is how objects are initialised and released. This mostly
+applies to drivers' own data structures that often contain reference counted
+object types from the frameworks.
+
+Relations between various frameworks objects will need to be handled in a
+standard way in the appropriate registeration, unregistration and reference
+getting and putting functions. Drivers (as well as frameworks, such as the
+V4L2 sub-device framework in its open and close file operations) will make
+use of these functions to get an put references to the said objects.
+
+Drivers that are not hot-pluggable could largely ignore the changes, as
+unregistering an object does in fact take place right before releasing that
+object, meaning drivers that did not perform any object reference counting
+are no more broken with the changes described above without implementing
+reference counting. Still care must be taken that they remain decently
+unloadable when there are no users.
+
+New drivers should be required to implement object reference counting
+correctly, whether hot-pluggable or not. One platform driver (e.g. omap3isp)
+should be fixed to function as a model for new platform drivers.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
