@@ -1,61 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f196.google.com ([209.85.220.196]:35139 "EHLO
-        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1031010AbdAFUuh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2017 15:50:37 -0500
-MIME-Version: 1.0
-In-Reply-To: <1483695839-18660-5-git-send-email-nicolas.dichtel@6wind.com>
-References: <bf83da6b-01ef-bf44-b3e1-ca6fc5636818@6wind.com>
- <1483695839-18660-1-git-send-email-nicolas.dichtel@6wind.com> <1483695839-18660-5-git-send-email-nicolas.dichtel@6wind.com>
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Date: Fri, 6 Jan 2017 22:50:34 +0200
-Message-ID: <CAHp75VdDfopdSy-7oy87ZeosDB9+FN4zFBhErPWLQB7tH81zTw@mail.gmail.com>
-Subject: Re: [PATCH v2 4/7] x86: put msr-index.h in uapi
-To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, mmarek@suse.com,
-        linux-kbuild@vger.kernel.org,
-        Linux Documentation List <linux-doc@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>,
-        adi-buildroot-devel@lists.sourceforge.net,
-        linux-c6x-dev@linux-c6x.org, Cris <linux-cris-kernel@axis.com>,
-        uclinux-h8-devel@lists.sourceforge.jp,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org,
-        linux-mips@linux-mips.org, linux-am33-list@redhat.com,
-        nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org,
-        linux-parisc@vger.kernel.org,
-        "open list:LINUX FOR POWERPC PA SEMI PWRFICIENT"
-        <linuxppc-dev@lists.ozlabs.org>, linux-s390@vger.kernel.org,
-        Linux-SH <linux-sh@vger.kernel.org>, sparclinux@vger.kernel.org,
-        linux-xtensa@linux-xtensa.org,
-        Linux-Arch <linux-arch@vger.kernel.org>,
-        dri-devel@lists.freedesktop.org, netdev <netdev@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-nfs@vger.kernel.org, linux-raid@vger.kernel.org,
-        linux-spi <linux-spi@vger.kernel.org>,
-        "open list:MEMORY TECHNOLOGY..." <linux-mtd@lists.infradead.org>,
-        linux-rdma@vger.kernel.org, fcoe-devel@open-fcoe.org,
-        ALSA Development Mailing List <alsa-devel@alsa-project.org>,
-        linux-fbdev@vger.kernel.org, xen-devel@lists.xenproject.org,
-        David Airlie <airlied@linux.ie>,
-        "David S. Miller" <davem@davemloft.net>
-Content-Type: text/plain; charset=UTF-8
+Received: from anholt.net ([50.246.234.109]:52098 "EHLO anholt.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752027AbdA0Vzy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Jan 2017 16:55:54 -0500
+From: Eric Anholt <eric@anholt.net>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: devel@driverdev.osuosl.org, linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-rpi-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        Eric Anholt <eric@anholt.net>
+Subject: [PATCH 6/6] staging: bcm2835-v4l2: Apply spelling fixes from checkpatch.
+Date: Fri, 27 Jan 2017 13:55:03 -0800
+Message-Id: <20170127215503.13208-7-eric@anholt.net>
+In-Reply-To: <20170127215503.13208-1-eric@anholt.net>
+References: <20170127215503.13208-1-eric@anholt.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 6, 2017 at 11:43 AM, Nicolas Dichtel
-<nicolas.dichtel@6wind.com> wrote:
-> This header file is exported, thus move it to uapi.
+Generated with checkpatch.pl --fix-inplace and git add -p out of the
+results.
 
-Just hint for the future:
--M (move)
--C (copy)
--D (delete) [though this is NOT for applying]
+Signed-off-by: Eric Anholt <eric@anholt.net>
+---
+ drivers/staging/media/platform/bcm2835/bcm2835-camera.c |  6 +++---
+ drivers/staging/media/platform/bcm2835/mmal-vchiq.c     | 12 ++++++------
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
+diff --git a/drivers/staging/media/platform/bcm2835/bcm2835-camera.c b/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
+index 4541a363905c..105d88102cd9 100644
+--- a/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
++++ b/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
+@@ -1027,7 +1027,7 @@ static int mmal_setup_components(struct bm2835_mmal_dev *dev,
+ 
+ 		dev->capture.encode_component = NULL;
+ 	}
+-	/* format dependant port setup */
++	/* format dependent port setup */
+ 	switch (mfmt->mmal_component) {
+ 	case MMAL_COMPONENT_CAMERA:
+ 		/* Make a further decision on port based on resolution */
+@@ -1336,7 +1336,7 @@ int vidioc_enum_framesizes(struct file *file, void *fh,
+ 	return 0;
+ }
+ 
+-/* timeperframe is arbitrary and continous */
++/* timeperframe is arbitrary and continuous */
+ static int vidioc_enum_frameintervals(struct file *file, void *priv,
+ 				      struct v4l2_frmivalenum *fival)
+ {
+@@ -1359,7 +1359,7 @@ static int vidioc_enum_frameintervals(struct file *file, void *priv,
+ 
+ 	fival->type = V4L2_FRMIVAL_TYPE_CONTINUOUS;
+ 
+-	/* fill in stepwise (step=1.0 is requred by V4L2 spec) */
++	/* fill in stepwise (step=1.0 is required by V4L2 spec) */
+ 	fival->stepwise.min  = tpf_min;
+ 	fival->stepwise.max  = tpf_max;
+ 	fival->stepwise.step = (struct v4l2_fract) {1, 1};
+diff --git a/drivers/staging/media/platform/bcm2835/mmal-vchiq.c b/drivers/staging/media/platform/bcm2835/mmal-vchiq.c
+index cc968442adc4..f71dc3e9c3ae 100644
+--- a/drivers/staging/media/platform/bcm2835/mmal-vchiq.c
++++ b/drivers/staging/media/platform/bcm2835/mmal-vchiq.c
+@@ -239,7 +239,7 @@ static int bulk_receive(struct vchiq_mmal_instance *instance,
+ 		pr_err("buffer list empty trying to submit bulk receive\n");
+ 
+ 		/* todo: this is a serious error, we should never have
+-		 * commited a buffer_to_host operation to the mmal
++		 * committed a buffer_to_host operation to the mmal
+ 		 * port without the buffer to back it up (underflow
+ 		 * handling) and there is no obvious way to deal with
+ 		 * this - how is the mmal servie going to react when
+@@ -352,7 +352,7 @@ static int inline_receive(struct vchiq_mmal_instance *instance,
+ 		pr_err("buffer list empty trying to receive inline\n");
+ 
+ 		/* todo: this is a serious error, we should never have
+-		 * commited a buffer_to_host operation to the mmal
++		 * committed a buffer_to_host operation to the mmal
+ 		 * port without the buffer to back it up (with
+ 		 * underflow handling) and there is no obvious way to
+ 		 * deal with this. Less bad than the bulk case as we
+@@ -653,7 +653,7 @@ static void service_callback(void *param,
+ 			break;
+ 
+ 		default:
+-			/* messages dependant on header context to complete */
++			/* messages dependent on header context to complete */
+ 
+ 			/* todo: the msg.context really ought to be sanity
+ 			 * checked before we just use it, afaict it comes back
+@@ -780,7 +780,7 @@ static void dump_port_info(struct vchiq_mmal_port *port)
+ 		 port->current_buffer.num,
+ 		 port->current_buffer.size, port->current_buffer.alignment);
+ 
+-	pr_debug("elementry stream: type:%d encoding:0x%x varient:0x%x\n",
++	pr_debug("elementry stream: type:%d encoding:0x%x variant:0x%x\n",
+ 		 port->format.type,
+ 		 port->format.encoding, port->format.encoding_variant);
+ 
+@@ -883,7 +883,7 @@ static int port_info_set(struct vchiq_mmal_instance *instance,
+ 	return ret;
+ }
+ 
+-/* use port info get message to retrive port information */
++/* use port info get message to retrieve port information */
+ static int port_info_get(struct vchiq_mmal_instance *instance,
+ 			 struct vchiq_mmal_port *port)
+ {
+@@ -923,7 +923,7 @@ static int port_info_get(struct vchiq_mmal_instance *instance,
+ 	/* copy the values out of the message */
+ 	port->handle = rmsg->u.port_info_get_reply.port_handle;
+ 
+-	/* port type and index cached to use on port info set becuase
++	/* port type and index cached to use on port info set because
+ 	 * it does not use a port handle
+ 	 */
+ 	port->type = rmsg->u.port_info_get_reply.port_type;
 -- 
-With Best Regards,
-Andy Shevchenko
+2.11.0
+
