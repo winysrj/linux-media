@@ -1,180 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:16759 "EHLO
-        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751850AbdACHvB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2017 02:51:01 -0500
-Subject: Re: [PATCHv2 1/4] video: add hotplug detect notifier support
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-samsung-soc@vger.kernel.org,
-        Russell King <linux@armlinux.org.uk>,
-        dri-devel@lists.freedesktop.org,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>
-From: Andrzej Hajda <a.hajda@samsung.com>
-Message-id: <ddb0ba80-c2a4-1024-8e9c-4ba74882a282@samsung.com>
-Date: Tue, 03 Jan 2017 08:50:54 +0100
-MIME-version: 1.0
-In-reply-to: <1483366747-34288-2-git-send-email-hverkuil@xs4all.nl>
-Content-type: text/plain; charset=utf-8
-Content-transfer-encoding: 7bit
-References: <1483366747-34288-1-git-send-email-hverkuil@xs4all.nl>
- <CGME20170102141939epcas2p4a53acf3b27264f0b95e60eac75133885@epcas2p4.samsung.com>
- <1483366747-34288-2-git-send-email-hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:41932 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751354AbdA0UzH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Jan 2017 15:55:07 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH v3 1/7] mt2060: add i2c bindings
+Date: Fri, 27 Jan 2017 22:54:38 +0200
+Message-Id: <20170127205444.3242-1-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Add proper i2c driver model bindings.
 
-On 02.01.2017 15:19, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> Add support for video hotplug detect and EDID/ELD notifiers, which is used
-> to convey information from video drivers to their CEC and audio counterparts.
->
-> Based on an earlier version from Russell King:
->
-> https://patchwork.kernel.org/patch/9277043/
->
-> The hpd_notifier is a reference counted object containing the HPD/EDID/ELD state
-> of a video device.
->
-> When a new notifier is registered the current state will be reported to
-> that notifier at registration time.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> ---
->  drivers/video/Kconfig        |   3 +
->  drivers/video/Makefile       |   1 +
->  drivers/video/hpd-notifier.c | 134 +++++++++++++++++++++++++++++++++++++++++++
->  include/linux/hpd-notifier.h | 109 +++++++++++++++++++++++++++++++++++
->  4 files changed, 247 insertions(+)
->  create mode 100644 drivers/video/hpd-notifier.c
->  create mode 100644 include/linux/hpd-notifier.h
->
-> diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
-> index 3c20af9..cddc860 100644
-> --- a/drivers/video/Kconfig
-> +++ b/drivers/video/Kconfig
-> @@ -36,6 +36,9 @@ config VIDEOMODE_HELPERS
->  config HDMI
->  	bool
->  
-> +config HPD_NOTIFIERS
-> +	bool
-> +
->  if VT
->  	source "drivers/video/console/Kconfig"
->  endif
-> diff --git a/drivers/video/Makefile b/drivers/video/Makefile
-> index 9ad3c17..424698b 100644
-> --- a/drivers/video/Makefile
-> +++ b/drivers/video/Makefile
-> @@ -1,5 +1,6 @@
->  obj-$(CONFIG_VGASTATE)            += vgastate.o
->  obj-$(CONFIG_HDMI)                += hdmi.o
-> +obj-$(CONFIG_HPD_NOTIFIERS)       += hpd-notifier.o
->  
->  obj-$(CONFIG_VT)		  += console/
->  obj-$(CONFIG_LOGO)		  += logo/
-> diff --git a/drivers/video/hpd-notifier.c b/drivers/video/hpd-notifier.c
-> new file mode 100644
-> index 0000000..54f7a6b
-> --- /dev/null
-> +++ b/drivers/video/hpd-notifier.c
-> @@ -0,0 +1,134 @@
-> +#include <linux/export.h>
-> +#include <linux/hpd-notifier.h>
-> +#include <linux/string.h>
-> +#include <linux/slab.h>
-> +#include <linux/list.h>
-> +
-> +static LIST_HEAD(hpd_notifiers);
-> +static DEFINE_MUTEX(hpd_notifiers_lock);
-> +
-> +struct hpd_notifier *hpd_notifier_get(struct device *dev)
-> +{
-> +	struct hpd_notifier *n;
-> +
-> +	mutex_lock(&hpd_notifiers_lock);
-> +	list_for_each_entry(n, &hpd_notifiers, head) {
-> +		if (n->dev == dev) {
-> +			mutex_unlock(&hpd_notifiers_lock);
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/mt2060.c      | 83 ++++++++++++++++++++++++++++++++++++++
+ drivers/media/tuners/mt2060.h      | 20 +++++++++
+ drivers/media/tuners/mt2060_priv.h |  2 +
+ 3 files changed, 105 insertions(+)
 
-I think this place is racy, we have pointer to unprotected area
-(n->kref), so if concurrent thread calls hpd_notifier_put in this moment
-&n->kref could be freed and kref_get in the next line will operate on
-dangling pointer. Am I right?
-
-Regards
-Andrzej
-
-> +			kref_get(&n->kref);
-> +			return n;
-> +		}
-> +	}
-> +	n = kzalloc(sizeof(*n), GFP_KERNEL);
-> +	if (!n)
-> +		goto unlock;
-> +	n->dev = dev;
-> +	mutex_init(&n->lock);
-> +	BLOCKING_INIT_NOTIFIER_HEAD(&n->notifiers);
-> +	kref_init(&n->kref);
-> +	list_add_tail(&n->head, &hpd_notifiers);
-> +unlock:
-> +	mutex_unlock(&hpd_notifiers_lock);
-> +	return n;
-> +}
-> +EXPORT_SYMBOL_GPL(hpd_notifier_get);
-> +
-> +static void hpd_notifier_release(struct kref *kref)
-> +{
-> +	struct hpd_notifier *n =
-> +		container_of(kref, struct hpd_notifier, kref);
-> +
-> +	mutex_lock(&hpd_notifiers_lock);
-> +	list_del(&n->head);
-> +	mutex_unlock(&hpd_notifiers_lock);
-> +	kfree(n->edid);
-> +	kfree(n);
-> +}
-> +
-> +void hpd_notifier_put(struct hpd_notifier *n)
-> +{
-> +	kref_put(&n->kref, hpd_notifier_release);
-> +}
-> +EXPORT_SYMBOL_GPL(hpd_notifier_put);
-> +
-> +int hpd_notifier_register(struct hpd_notifier *n, struct notifier_block *nb)
-> +{
-> +	int ret = blocking_notifier_chain_register(&n->notifiers, nb);
-> +
-> +	if (ret)
-> +		return ret;
-> +	kref_get(&n->kref);
-> +	mutex_lock(&n->lock);
-> +	if (n->connected) {
-> +		blocking_notifier_call_chain(&n->notifiers, HPD_CONNECTED, n);
-> +		if (n->edid_size)
-> +			blocking_notifier_call_chain(&n->notifiers, HPD_NEW_EDID, n);
-> +		if (n->has_eld)
-> +			blocking_notifier_call_chain(&n->notifiers, HPD_NEW_ELD, n);
-> +	}
-> +	mutex_unlock(&n->lock);
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(hpd_notifier_register);
-> +
-> +int hpd_notifier_unregister(struct hpd_notifier *n, struct notifier_block *nb)
-> +{
-> +	int ret = blocking_notifier_chain_unregister(&n->notifiers, nb);
-> +
-> +	if (ret == 0)
-> +		hpd_notifier_put(n);
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(hpd_notifier_unregister);
-(...)
+diff --git a/drivers/media/tuners/mt2060.c b/drivers/media/tuners/mt2060.c
+index 94077ea..dc4f9a9 100644
+--- a/drivers/media/tuners/mt2060.c
++++ b/drivers/media/tuners/mt2060.c
+@@ -396,6 +396,89 @@ struct dvb_frontend * mt2060_attach(struct dvb_frontend *fe, struct i2c_adapter
+ }
+ EXPORT_SYMBOL(mt2060_attach);
+ 
++static int mt2060_probe(struct i2c_client *client,
++			const struct i2c_device_id *id)
++{
++	struct mt2060_platform_data *pdata = client->dev.platform_data;
++	struct dvb_frontend *fe;
++	struct mt2060_priv *dev;
++	int ret;
++	u8 chip_id;
++
++	dev_dbg(&client->dev, "\n");
++
++	if (!pdata) {
++		dev_err(&client->dev, "Cannot proceed without platform data\n");
++		ret = -EINVAL;
++		goto err;
++	}
++
++	dev = devm_kzalloc(&client->dev, sizeof(*dev), GFP_KERNEL);
++	if (!dev) {
++		ret = -ENOMEM;
++		goto err;
++	}
++
++	fe = pdata->dvb_frontend;
++	dev->config.i2c_address = client->addr;
++	dev->config.clock_out = pdata->clock_out;
++	dev->cfg = &dev->config;
++	dev->i2c = client->adapter;
++	dev->if1_freq = pdata->if1 ? pdata->if1 : 1220;
++	dev->client = client;
++
++	ret = mt2060_readreg(dev, REG_PART_REV, &chip_id);
++	if (ret) {
++		ret = -ENODEV;
++		goto err;
++	}
++
++	dev_dbg(&client->dev, "chip id=%02x\n", chip_id);
++
++	if (chip_id != PART_REV) {
++		ret = -ENODEV;
++		goto err;
++	}
++
++	dev_info(&client->dev, "Microtune MT2060 successfully identified\n");
++	memcpy(&fe->ops.tuner_ops, &mt2060_tuner_ops, sizeof(fe->ops.tuner_ops));
++	fe->ops.tuner_ops.release = NULL;
++	fe->tuner_priv = dev;
++	i2c_set_clientdata(client, dev);
++
++	mt2060_calibrate(dev);
++
++	return 0;
++err:
++	dev_dbg(&client->dev, "failed=%d\n", ret);
++	return ret;
++}
++
++static int mt2060_remove(struct i2c_client *client)
++{
++	dev_dbg(&client->dev, "\n");
++
++	return 0;
++}
++
++static const struct i2c_device_id mt2060_id_table[] = {
++	{"mt2060", 0},
++	{}
++};
++MODULE_DEVICE_TABLE(i2c, mt2060_id_table);
++
++static struct i2c_driver mt2060_driver = {
++	.driver = {
++		.name = "mt2060",
++		.suppress_bind_attrs = true,
++	},
++	.probe		= mt2060_probe,
++	.remove		= mt2060_remove,
++	.id_table	= mt2060_id_table,
++};
++
++module_i2c_driver(mt2060_driver);
++
+ MODULE_AUTHOR("Olivier DANET");
+ MODULE_DESCRIPTION("Microtune MT2060 silicon tuner driver");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/media/tuners/mt2060.h b/drivers/media/tuners/mt2060.h
+index 6efed35..05c0d55 100644
+--- a/drivers/media/tuners/mt2060.h
++++ b/drivers/media/tuners/mt2060.h
+@@ -25,6 +25,26 @@
+ struct dvb_frontend;
+ struct i2c_adapter;
+ 
++/*
++ * I2C address
++ * 0x60, ...
++ */
++
++/**
++ * struct mt2060_platform_data - Platform data for the mt2060 driver
++ * @clock_out: Clock output setting. 0 = off, 1 = CLK/4, 2 = CLK/2, 3 = CLK/1.
++ * @if1: First IF used [MHz]. 0 defaults to 1220.
++ * @dvb_frontend: DVB frontend.
++ */
++
++struct mt2060_platform_data {
++	u8 clock_out;
++	u16 if1;
++	struct dvb_frontend *dvb_frontend;
++};
++
++
++/* configuration struct for mt2060_attach() */
+ struct mt2060_config {
+ 	u8 i2c_address;
+ 	u8 clock_out; /* 0 = off, 1 = CLK/4, 2 = CLK/2, 3 = CLK/1 */
+diff --git a/drivers/media/tuners/mt2060_priv.h b/drivers/media/tuners/mt2060_priv.h
+index 2b60de6..dfc4a06 100644
+--- a/drivers/media/tuners/mt2060_priv.h
++++ b/drivers/media/tuners/mt2060_priv.h
+@@ -95,6 +95,8 @@
+ struct mt2060_priv {
+ 	struct mt2060_config *cfg;
+ 	struct i2c_adapter   *i2c;
++	struct i2c_client *client;
++	struct mt2060_config config;
+ 
+ 	u32 frequency;
+ 	u16 if1_freq;
+-- 
+http://palosaari.fi/
 
