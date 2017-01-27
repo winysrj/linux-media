@@ -1,123 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:38856 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S939476AbdAFEZa (ORCPT
+Received: from mail-oi0-f47.google.com ([209.85.218.47]:34897 "EHLO
+        mail-oi0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750796AbdA0Si6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 5 Jan 2017 23:25:30 -0500
-Message-ID: <06a8592fea18c22783fe0b051238cc8d@smtp-cloud2.xs4all.net>
-Date: Fri, 06 Jan 2017 05:25:27 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+        Fri, 27 Jan 2017 13:38:58 -0500
+Received: by mail-oi0-f47.google.com with SMTP id j15so162029035oih.2
+        for <linux-media@vger.kernel.org>; Fri, 27 Jan 2017 10:38:28 -0800 (PST)
+MIME-Version: 1.0
+From: Hamidreza Jafari <hamidrjafari@gmail.com>
+Date: Fri, 27 Jan 2017 22:08:07 +0330
+Message-ID: <CAGS+X6PHC+f2kgtgxKQi6Z5wrFh-LbBDp_in54jR3jh=T++eWA@mail.gmail.com>
+Subject: Upside down webcam
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hello,
 
-Results of the daily build of media_tree:
+https://linuxtv.org/wiki/index.php/Libv4l_Upside_Down_Webcams
 
-date:			Fri Jan  6 05:00:09 CET 2017
-media-tree git hash:	40eca140c404505c09773d1c6685d818cb55ab1a
-media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
-v4l-utils git hash:	951c4878a93f4722146f8bc6515a47fba6470bb3
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.8.0-164
+The webcam is upside down and the solution does not work (as it did in
+a previous Ubuntu version). On Kubuntu 16.10 with 4.8.0-34 kernel I
+installed an app called Webcamoid to test and ran the following
+commands:
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9-x86_64: ERRORS
-apps: WARNINGS
-spec-git: ERRORS
-sparse: WARNINGS
+$export LIBV4LCONTROL_FLAGS=3D3 &&
+LD_PRELOAD=3D/usr/lib/x86_64-linux-gnu/libv4l/v4l1compat.so webcamoid &
+file:///usr/lib/x86_64-linux-gnu/qt5/qml/QtQuick/Controls/TextField.qml:635=
+:5:
+QML TextInputWithHandles: Binding loop detected for property "text"
+file:///usr/lib/x86_64-linux-gnu/qt5/qml/QtQuick/Controls/TextField.qml:635=
+:5:
+QML TextInputWithHandles: Binding loop detected for property "text"
+libv4l2: error setting pixformat: Device or resource busy
+libv4l2: error setting pixformat: Device or resource busy
+VideoCapture: No streams available.
 
-Detailed results are available here:
+$ v4l2-ctl -d /dev/video0 --list-formats-ext
+ioctl: VIDIOC_ENUM_FMT
+Index : 0
+Type : Video Capture
+Pixel Format: 'YUYV'
+Name : YUYV 4:2:2
+Size: Discrete 640x480
+Interval: Discrete 0.033s (30.000 fps)
+Interval: Discrete 0.067s (15.000 fps)
+Size: Discrete 352x288
+Interval: Discrete 0.033s (30.000 fps)
+Interval: Discrete 0.067s (15.000 fps)
+Size: Discrete 320x240
+Interval: Discrete 0.033s (30.000 fps)
+Interval: Discrete 0.067s (15.000 fps)
+Size: Discrete 176x144
+Interval: Discrete 0.033s (30.000 fps)
+Interval: Discrete 0.067s (15.000 fps)
+Size: Discrete 160x120
+Interval: Discrete 0.033s (30.000 fps)
+Interval: Discrete 0.067s (15.000 fps)
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+$v4l2-ctl --device=3D/dev/video0 --list-inputs
+ioctl: VIDIOC_ENUMINPUT
+Input : 0
+Name : Camera 1
+Type : 0x00000002
+Audioset : 0x00000000
+Tuner : 0x00000000
+Standard : 0x0000000000000000 ()
+Status : 0x00000000 (ok)
+Capabilities: 0x00000000 (not defined)
 
-Full logs are available here:
+How to fix the problem?
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Hamid
+=D8=A8=D8=A7 =D8=B3=D9=BE=D8=A7=D8=B3=D8=8C
+=D8=AD=D9=85=DB=8C=D8=AF=D8=B1=D8=B6=D8=A7 =D8=AC=D8=B9=D9=81=D8=B1=DB=8C
