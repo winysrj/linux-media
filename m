@@ -1,87 +1,278 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Date: Thu, 5 Jan 2017 15:42:15 -0700
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-To: Jerome Glisse <jglisse@redhat.com>
-Cc: Jerome Glisse <j.glisse@gmail.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>,
-        "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>,
-        "'linux-nvdimm@lists.01.org'" <linux-nvdimm@ml01.01.org>,
-        "'Linux-media@vger.kernel.org'" <Linux-media@vger.kernel.org>,
-        "'dri-devel@lists.freedesktop.org'" <dri-devel@lists.freedesktop.org>,
-        "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "Sagalovitch, Serguei" <Serguei.Sagalovitch@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>, hch@infradead.org,
-        david1.zhou@amd.com, qiang.yu@amd.com
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Message-ID: <20170105224215.GA3855@obsidianresearch.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <20170105183927.GA5324@gmail.com>
- <20170105190113.GA12587@obsidianresearch.com>
- <20170105195424.GB2166@redhat.com>
- <20170105200719.GB31047@obsidianresearch.com>
- <20170105201935.GC2166@redhat.com>
+Received: from relmlor1.renesas.com ([210.160.252.171]:51570 "EHLO
+        relmlie4.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754409AbdA0Nve (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Jan 2017 08:51:34 -0500
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Geert Uytterhoeven <geert@linux-m68k.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Antti Palosaari <crope@iki.fi>,
+        Chris Paterson <Chris.Paterson2@renesas.com>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+Subject: RE: [PATCH v2 6/7] dt-bindings: media: Add Renesas R-Car DRIF binding
+Date: Fri, 27 Jan 2017 13:51:26 +0000
+Message-ID: <HK2PR06MB054552024200BB86B161A983C3760@HK2PR06MB0545.apcprd06.prod.outlook.com>
+References: <1478706284-59134-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+ <HK2PR06MB05453E11C8931F881E106939C36E0@HK2PR06MB0545.apcprd06.prod.outlook.com>
+ <cca1ade8-01ef-8eab-f4b1-7dd7f204fdea@xs4all.nl> <4506041.7mPt4W6j0m@avalon>
+ <HK2PR06MB0545BF36C3DD2D4D1B951C3FC3670@HK2PR06MB0545.apcprd06.prod.outlook.com>
+ <e96cb1cd-cd4a-60f2-cf46-dc837638d115@xs4all.nl>
+In-Reply-To: <e96cb1cd-cd4a-60f2-cf46-dc837638d115@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170105201935.GC2166@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 05, 2017 at 03:19:36PM -0500, Jerome Glisse wrote:
+Hi Hans,
 
-> > Always having a VMA changes the discussion - the question is how to
-> > create a VMA that reprensents IO device memory, and how do DMA
-> > consumers extract the correct information from that VMA to pass to the
-> > kernel DMA API so it can setup peer-peer DMA.
-> 
-> Well my point is that it can't be. In HMM case inside a single VMA
-> you
-[..]
+Many thanks for the response & comments.
 
-> In the GPUDirect case the idea is that you have a specific device vma
-> that you map for peer to peer.
+> Subject: Re: [PATCH v2 6/7] dt-bindings: media: Add Renesas R-Car DRIF
+> binding
+>=20
+> On 01/10/2017 10:31 AM, Ramesh Shanmugasundaram wrote:
+> > Hi Laurent,
+> >
+> >>>>>> On Wednesday 21 Dec 2016 08:10:37 Ramesh Shanmugasundaram wrote:
+> >>>>>>> Add binding documentation for Renesas R-Car Digital Radio
+> >>>>>>> Interface
+> >>>>>>> (DRIF) controller.
+> >>>>>>>
+> >>>>>>> Signed-off-by: Ramesh Shanmugasundaram
+> >>>>>>> <ramesh.shanmugasundaram@bp.renesas.com> ---
+> >>>>>>>
+> >>>>>>>  .../devicetree/bindings/media/renesas,drif.txt     | 202
+> >> +++++++++++++
+> >>>>>>>  1 file changed, 202 insertions(+)  create mode 100644
+> >>>>>>>
+> >>>>>>> Documentation/devicetree/bindings/media/renesas,drif.txt
+> >>>>>>>
+> >>>>>>> diff --git
+> >>>>>>> a/Documentation/devicetree/bindings/media/renesas,drif.txt
+> >>>>>>> b/Documentation/devicetree/bindings/media/renesas,drif.txt new
+> >>>>>>> file mode 100644 index 0000000..1f3feaf
+> >>>>>>> --- /dev/null
+> >>>>>>> +++ b/Documentation/devicetree/bindings/media/renesas,drif.txt
+> >>>>>>>
+> >>>>>>> +Optional properties of an internal channel when:
+> >>>>>>> +     - It is the only enabled channel of the bond (or)
+> >>>>>>> +     - If it acts as primary among enabled bonds
+> >>>>>>> +--------------------------------------------------------
+> >>>>>>> +- renesas,syncmd       : sync mode
+> >>>>>>> +                      0 (Frame start sync pulse mode. 1-bit
+> >>>>>>> +width
+> >>>>>>> pulse
+> >>>>>>> +                         indicates start of a frame)
+> >>>>>>> +                      1 (L/R sync or I2S mode) (default)
+> >>>>>>> +- renesas,lsb-first    : empty property indicates lsb bit is
+> >> received
+> >>>>>>> first.
+> >>>>>>> +                      When not defined msb bit is received
+> >>>>>>> +first
+> >>>>>>> +(default)
+> >>>>>>> +- renesas,syncac-active: Indicates sync signal polarity, 0/1
+> >>>>>>> +for
+> >>>>>>> low/high
+> >>>
+> >>> Shouldn't this be 'renesas,sync-active' instead of syncac-active?
+> >>>
+> >>> I'm not sure if syncac is intended or if it is a typo.
+> >>>
+> >>>>>>> +                      respectively. The default is 1 (active
+> high)
+> >>>>>>> +- renesas,dtdl         : delay between sync signal and start of
+> >>>>>>> reception.
+> >>>>>>> +                      The possible values are represented in
+> >>>>>>> + 0.5
+> >> clock
+> >>>>>>> +                      cycle units and the range is 0 to 4. The
+> >> default
+> >>>>>>> +                      value is 2 (i.e.) 1 clock cycle delay.
+> >>>>>>> +- renesas,syncdl       : delay between end of reception and sync
+> >>>>>>> signal edge.
+> >>>>>>> +                      The possible values are represented in
+> >>>>>>> + 0.5
+> >> clock
+> >>>>>>> +                      cycle units and the range is 0 to 4 & 6.
+> >>>>>>> + The
+> >>>>>>> default
+> >>>>>>> +                      value is 0 (i.e.) no delay.
+>=20
+> Are these properties actually going to be used by anyone? Just curious.
 
-[..]
+Yes. Each of this property should be set appropriately based on the master =
+device it interfaces with.=20
 
-I still don't understand what you driving at - you've said in both
-cases a user VMA exists.
+>=20
+> >>>>>>
+> >>>>>> Most of these properties are pretty similar to the video bus
+> >>>>>> properties defined at the endpoint level in
+> >>>>>> Documentation/devicetree/bindings/media/video-interfaces.txt. I
+> >>>>>> believe it would make sense to use OF graph and try to
+> >>>>>> standardize these properties similarly.
+> >>>
+> >>> Other than sync-active, is there really anything else that is similar=
+?
+> >>> And even the sync-active isn't a good fit since here there is only
+> >>> one sync signal instead of two for video (h and vsync).
+> >>
+> >> That's why I said similar, not identical :-) My point is that, if we
+> >> consider that we could connect multiple sources to the DRIF, using OF
+> >> graph would make sense, and the above properties should then be
+> >> defined per endpoint.
+> >
+> > Thanks for the clarifications. I have some questions.
+> >
+> > - Assuming two devices are interfaced with DRIF and they are represente=
+d
+> using two endpoints, the control signal related properties of DRIF might
+> still need to be same for both endpoints? For e.g. syncac-active cannot b=
+e
+> different in both endpoints?
+>=20
+> Usually that's the case, but HW designers are weird :-)
+>=20
+> >
+> > - I suppose "lsb-first", "dtdl" & "syncdl" may be defined per endpoint.
+> However, h/w manual says same register values needs to be programmed for
+> both the internal channels of a channel. Same with "syncmd" property.
+> >
+> > We could still define them as per endpoint property with a note that
+> they need to be same. But I am not sure if that is what you intended?
+> >
+> >  If we define them per endpoint we should then also try
+> >> standardize the ones that are not really Renesas-specific (that's at
+> >> least syncac-active).
+> >
+> > OK. I will call it "sync-active".
+>=20
+> That's better, yes.
 
->From my perspective in RDMA, all I want is a core kernel flow to
-convert a '__user *' into a scatter list of DMA addresses, that works no
-matter what is backing that VMA, be it HMM, a 'hidden' GPU object, or
-struct page memory.
+Thanks.
 
-A '__user *' pointer is the only way to setup a RDMA MR, and I see no
-reason to have another API at this time.
+>=20
+> >
+> >  For the syncmd and lsb-first properties, it could also
+> >> make sense to query them from the connected subdev at runtime, as
+> >> they're similar in purpose to formats and media bus configuration
+> >> (struct v4l2_mbus_config).
+>=20
+> I consider this unlikely. I wouldn't spend time on that as this can alway=
+s
+> be done later.
+>=20
+> > May I know in bit more detail about what you had in mind? Please
+> > correct me if my understanding is wrong here but when I looked at the
+> > code
+> >
+> > 1) mbus_config is part of subdev_video_ops only. I assume we don't want
+> to support this as part of tuner subdev. The next closest is pad_ops with
+> "struct v4l2_mbus_framefmt" but it is fully video specific config unless =
+I
+> come up with new MEDIA_BUS_FMT_xxxx in media-bus-format.h and use the cod=
+e
+> field? For e.g.
+> >
+> > #define MEDIA_BUS_FMT_SDR_I2S_PADHI_BE       0x7001
+> > #define MEDIA_BUS_FMT_SDR_I2S_PADHI_LE       0x7002
+> >
+> > 2) The framework does not seem to mandate pad ops for all subdev. As th=
+e
+> tuner can be any third party subdev, is it fair to assume that these
+> properties can be queried from subdev?
+> >
+> > 3) Assuming pad ops is not available on the subdev shouldn't we still
+> need a way to define these properties on DRIF DT?
+> >
+> >>
+> >> I'm not an SDR expert, so I'd like to have your opinion on this.
+>=20
+> Neither am I :-)
+>=20
+> I think using the endpoint idea does make sense since this helps in
+> describing the routing.=20
 
-The details of how to translate to a scatter list are a MM subject,
-and the MM folks need to get 
+OK.
 
-I just don't care if that routine works at a page level, or a whole
-VMA level, or some combination of both, that is up to the MM team to
-figure out :)
+I am not sure what properties to put in there,
+> though.
+>=20
+> Can you describe a bit more which properties belong to which syncmd mode?
+> That will help me make a decision.
 
-> a page level. Expectation here is that the GPU userspace expose a special
-> API to allow RDMA to directly happen on GPU object allocated through
-> GPU specific API (ie it is not regular memory and it is not accessible
-> by CPU).
+OK. The documentation for this control is not accurate in many places of th=
+e h/w manual. My observations are based on tests with MAX2175 tuner master =
+device using I2S mode.
 
-So, how do you identify these GPU objects? How do you expect RDMA
-convert them to scatter lists? How will ODP work?
+Applicable parameters for both Frame Start Sync pulse & I2S modes
+ - sync-active
+ - lsb/msb first
+ - dtdl
+=20
+For I2S mode, syncdl property should be set to value zero only.=20
 
-> > We have MMU notifiers to handle this today in RDMA. Async RDMA MR
-> > Invalidate like you see in the above out of tree patches is totally
-> > crazy and shouldn't be in mainline. Use ODP capable RDMA hardware.
-> 
-> Well there is still a large base of hardware that do not have such
-> feature and some people would like to be able to keep using those.
+Below are timing diagram examples.
 
-Hopefully someone will figure out how to do that without the crazy
-async MR invalidation.
+Frame start sync pulse mode:
+-----------------------------
 
-Jason
+   <------------ 1 frame ------------------>
+   .---.   .---.   .---.   .---.   .---.   .---.   .---.
+___|   |___|   |___|   |___|   |___|   |___|   |___|   |___    SCK
+
+   .-------.                               .-------.
+___|       |_______________________________|       |_______    SYNC/SS
+
+   |                                       |
+   |-No data delay          No sync delay  |
+__  ______  ______  ______  ______  ______  ______  ______
+  \/      \/      \/      \/      \/      \/      \/           Rx Data
+__/\______/\______/\______/\______/\______/\______/\______
+
+   |-1 bit delay            No sync delay  |
+__________  ______  ______  ______  ______  ______  ______
+          \/      \/      \/      \/      \/      \/           Rx Data
+__________/\______/\______/\______/\______/\______/\______
+
+1 bit delay =3D> DTDL =3D 1 (i.e.) 1 clock cycle delay
+No Sync delay =3D> SYNCDL =3D 0
+
+I2S mode:
+----------
+
+   <------------ 1 frame -------------------------->
+   .---.   .---.   .---.   .---.   .---.   .---.   .---.
+___|   |___|   |___|   |___|   |___|   |___|   |___|   |___    SCK
+
+
+___                         _______________________
+   |                       |                       |          SYNC/SS
+   +-----------------------+                       +-------
+
+
+   |                                               |
+   |-No data delay                   No sync delay |
+__  ______  ______  ______  ______  ______  ______  ______
+  \/      \/      \/      \/      \/      \/      \/           Rx Data
+__/\______/\______/\______/\______/\______/\______/\______
+
+   |-1 bit delay                   No sync delay  |
+__________  ______  ______  ______  ______  ______  ______
+          \/      \/      \/      \/      \/      \/           Rx Data
+__________/\______/\______/\______/\______/\______/\______
+
+Please share your thoughts.
+
+Thanks,
+Ramesh
