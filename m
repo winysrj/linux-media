@@ -1,145 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:38242 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S940640AbdAIUh6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2017 15:37:58 -0500
-From: Christoph Hellwig <hch@lst.de>
-To: linux-pci@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        netdev@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH 3/3] PCI/msi: remove pci_enable_msi_{exact,range}
-Date: Mon,  9 Jan 2017 21:37:40 +0100
-Message-Id: <1483994260-19797-4-git-send-email-hch@lst.de>
-In-Reply-To: <1483994260-19797-1-git-send-email-hch@lst.de>
-References: <1483994260-19797-1-git-send-email-hch@lst.de>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50524
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932347AbdA0KSQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 27 Jan 2017 05:18:16 -0500
+Date: Fri, 27 Jan 2017 07:54:56 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v4.10-rc6] media fixes
+Message-ID: <20170127075456.13af6d93@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All multi-MSI allocations are now done through pci_irq_alloc_vectors,
-so remove the old interface.
+Hi Linus,
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- Documentation/PCI/MSI-HOWTO.txt |  6 ++----
- drivers/pci/msi.c               | 26 +++++++++-----------------
- include/linux/pci.h             | 16 ++--------------
- 3 files changed, 13 insertions(+), 35 deletions(-)
+Please pull from:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.10-2
 
-diff --git a/Documentation/PCI/MSI-HOWTO.txt b/Documentation/PCI/MSI-HOWTO.txt
-index cd9c9f6..b570a92 100644
---- a/Documentation/PCI/MSI-HOWTO.txt
-+++ b/Documentation/PCI/MSI-HOWTO.txt
-@@ -162,8 +162,6 @@ The following old APIs to enable and disable MSI or MSI-X interrupts should
- not be used in new code:
- 
-   pci_enable_msi()		/* deprecated */
--  pci_enable_msi_range()	/* deprecated */
--  pci_enable_msi_exact()	/* deprecated */
-   pci_disable_msi()		/* deprecated */
-   pci_enable_msix_range()	/* deprecated */
-   pci_enable_msix_exact()	/* deprecated */
-@@ -268,5 +266,5 @@ or disabled (0).  If 0 is found in any of the msi_bus files belonging
- to bridges between the PCI root and the device, MSIs are disabled.
- 
- It is also worth checking the device driver to see whether it supports MSIs.
--For example, it may contain calls to pci_enable_msi_range() or
--pci_enable_msix_range().
-+For example, it may contain calls to pci_irq_alloc_vectors with the
-+PCI_IRQ_MSI or PCI_IRQ_MSIX flags.
-diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
-index 50c5003..16dda43 100644
---- a/drivers/pci/msi.c
-+++ b/drivers/pci/msi.c
-@@ -1109,23 +1109,15 @@ static int __pci_enable_msi_range(struct pci_dev *dev, int minvec, int maxvec,
- 	}
- }
- 
--/**
-- * pci_enable_msi_range - configure device's MSI capability structure
-- * @dev: device to configure
-- * @minvec: minimal number of interrupts to configure
-- * @maxvec: maximum number of interrupts to configure
-- *
-- * This function tries to allocate a maximum possible number of interrupts in a
-- * range between @minvec and @maxvec. It returns a negative errno if an error
-- * occurs. If it succeeds, it returns the actual number of interrupts allocated
-- * and updates the @dev's irq member to the lowest new interrupt number;
-- * the other interrupt numbers allocated to this device are consecutive.
-- **/
--int pci_enable_msi_range(struct pci_dev *dev, int minvec, int maxvec)
-+/* deprecated, don't use */
-+int pci_enable_msi(struct pci_dev *dev)
- {
--	return __pci_enable_msi_range(dev, minvec, maxvec, NULL);
-+	int rc = __pci_enable_msi_range(dev, 1, 1, NULL);
-+	if (rc < 0)
-+		return rc;
-+	return 0;
- }
--EXPORT_SYMBOL(pci_enable_msi_range);
-+EXPORT_SYMBOL(pci_enable_msi);
- 
- static int __pci_enable_msix_range(struct pci_dev *dev,
- 				   struct msix_entry *entries, int minvec,
-@@ -1381,7 +1373,7 @@ int pci_msi_domain_check_cap(struct irq_domain *domain,
- {
- 	struct msi_desc *desc = first_pci_msi_entry(to_pci_dev(dev));
- 
--	/* Special handling to support pci_enable_msi_range() */
-+	/* Special handling to support __pci_enable_msi_range() */
- 	if (pci_msi_desc_is_multi_msi(desc) &&
- 	    !(info->flags & MSI_FLAG_MULTI_PCI_MSI))
- 		return 1;
-@@ -1394,7 +1386,7 @@ int pci_msi_domain_check_cap(struct irq_domain *domain,
- static int pci_msi_domain_handle_error(struct irq_domain *domain,
- 				       struct msi_desc *desc, int error)
- {
--	/* Special handling to support pci_enable_msi_range() */
-+	/* Special handling to support __pci_enable_msi_range() */
- 	if (pci_msi_desc_is_multi_msi(desc) && error == -ENOSPC)
- 		return 1;
- 
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index e2d1a12..2159376 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -1309,14 +1309,7 @@ void pci_msix_shutdown(struct pci_dev *dev);
- void pci_disable_msix(struct pci_dev *dev);
- void pci_restore_msi_state(struct pci_dev *dev);
- int pci_msi_enabled(void);
--int pci_enable_msi_range(struct pci_dev *dev, int minvec, int maxvec);
--static inline int pci_enable_msi_exact(struct pci_dev *dev, int nvec)
--{
--	int rc = pci_enable_msi_range(dev, nvec, nvec);
--	if (rc < 0)
--		return rc;
--	return 0;
--}
-+int pci_enable_msi(struct pci_dev *dev);
- int pci_enable_msix_range(struct pci_dev *dev, struct msix_entry *entries,
- 			  int minvec, int maxvec);
- static inline int pci_enable_msix_exact(struct pci_dev *dev,
-@@ -1347,10 +1340,7 @@ static inline void pci_msix_shutdown(struct pci_dev *dev) { }
- static inline void pci_disable_msix(struct pci_dev *dev) { }
- static inline void pci_restore_msi_state(struct pci_dev *dev) { }
- static inline int pci_msi_enabled(void) { return 0; }
--static inline int pci_enable_msi_range(struct pci_dev *dev, int minvec,
--				       int maxvec)
--{ return -ENOSYS; }
--static inline int pci_enable_msi_exact(struct pci_dev *dev, int nvec)
-+static inline int pci_enable_msi(struct pci_dev *dev)
- { return -ENOSYS; }
- static inline int pci_enable_msix_range(struct pci_dev *dev,
- 		      struct msix_entry *entries, int minvec, int maxvec)
-@@ -1426,8 +1416,6 @@ static inline void pcie_set_ecrc_checking(struct pci_dev *dev) { }
- static inline void pcie_ecrc_get_policy(char *str) { }
- #endif
- 
--#define pci_enable_msi(pdev)	pci_enable_msi_exact(pdev, 1)
--
- #ifdef CONFIG_HT_IRQ
- /* The functions a driver should call */
- int  ht_create_irq(struct pci_dev *dev, int idx);
--- 
-2.1.4
+For some fixes for -rc6:
+  - fix a regression on tvp5150 causing failures at input selection
+    and image glitches;
+  - CEC was moved out of staging for v4.10. Fix some bugs on it while
+    not too late;
+  - fix a regression on pctv452e caused by VM stack changes;
+  - fix suspend issued with smiapp;
+  - fix a regression on cobalt driver;
+  - fix some warnings and Kconfig issues with some random configs.
+
+The following changes since commit 65390ea01ce678379da32b01f39fcfac4903f256:
+
+  Merge branch 'patchwork' into v4l_for_linus (2016-12-15 08:38:35 -0200)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.10-2
+
+for you to fetch changes up to 0e0694ff1a7791274946b7f51bae692da0001a08:
+
+  Merge branch 'patchwork' into v4l_for_linus (2016-12-26 14:09:28 -0200)
+
+----------------------------------------------------------------
+media fixes for v4.10-rc6
+
+----------------------------------------------------------------
+Arnd Bergmann (2):
+      [media] dvb: avoid warning in dvb_net
+      [media] s5k4ecgx: select CRC32 helper
+
+Christoph Hellwig (1):
+      [media] media/cobalt: use pci_irq_allocate_vectors
+
+Hans Verkuil (7):
+      [media] cec: fix report_current_latency
+      [media] cec: when canceling a message, don't overwrite old status info
+      [media] cec: CEC_MSG_GIVE_FEATURES should abort for CEC version < 2
+      [media] cec: update log_addr[] before finishing configuration
+      [media] cec: replace cec_report_features by cec_fill_msg_report_features
+      [media] cec: move cec_report_phys_addr into cec_config_thread_func
+      [media] cec: fix race between configuring and unconfiguring
+
+Laurent Pinchart (3):
+      [media] v4l: tvp5150: Reset device at probe time, not in get/set format handlers
+      [media] v4l: tvp5150: Fix comment regarding output pin muxing
+      [media] v4l: tvp5150: Don't override output pinmuxing at stream on/off time
+
+Mauro Carvalho Chehab (1):
+      Merge branch 'patchwork' into v4l_for_linus
+
+Max Kellermann (1):
+      [media] pctv452e: move buffer to heap, no mutex
+
+Sakari Ailus (2):
+      [media] smiapp: Implement power-on and power-off sequences without runtime PM
+      [media] smiapp: Make suspend and resume functions __maybe_unused
+
+ drivers/media/cec/cec-adap.c             | 103 ++++++++++++------------
+ drivers/media/dvb-core/dvb_net.c         |  15 ++--
+ drivers/media/i2c/Kconfig                |   1 +
+ drivers/media/i2c/smiapp/smiapp-core.c   |  33 +++-----
+ drivers/media/i2c/tvp5150.c              |  56 ++++++++-----
+ drivers/media/i2c/tvp5150_reg.h          |   9 +++
+ drivers/media/pci/cobalt/cobalt-driver.c |   8 +-
+ drivers/media/pci/cobalt/cobalt-driver.h |   2 -
+ drivers/media/usb/dvb-usb/pctv452e.c     | 133 +++++++++++++++++--------------
+ include/uapi/linux/cec-funcs.h           |  10 ++-
+ 10 files changed, 195 insertions(+), 175 deletions(-)
 
