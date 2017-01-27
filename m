@@ -1,199 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:37943 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1757068AbdACHy6 (ORCPT
+Received: from mail-oi0-f41.google.com ([209.85.218.41]:34151 "EHLO
+        mail-oi0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751012AbdA0TIt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 3 Jan 2017 02:54:58 -0500
-Subject: Re: [PATCHv2 1/4] video: add hotplug detect notifier support
-To: Andrzej Hajda <a.hajda@samsung.com>, linux-media@vger.kernel.org
-References: <1483366747-34288-1-git-send-email-hverkuil@xs4all.nl>
- <CGME20170102141939epcas2p4a53acf3b27264f0b95e60eac75133885@epcas2p4.samsung.com>
- <1483366747-34288-2-git-send-email-hverkuil@xs4all.nl>
- <ddb0ba80-c2a4-1024-8e9c-4ba74882a282@samsung.com>
-Cc: linux-samsung-soc@vger.kernel.org,
-        Russell King <linux@armlinux.org.uk>,
-        dri-devel@lists.freedesktop.org,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ad4af428-fb4a-6b81-4c3a-9d525d6aa19d@xs4all.nl>
-Date: Tue, 3 Jan 2017 08:54:52 +0100
+        Fri, 27 Jan 2017 14:08:49 -0500
+Received: by mail-oi0-f41.google.com with SMTP id s203so30588273oie.1
+        for <linux-media@vger.kernel.org>; Fri, 27 Jan 2017 11:08:49 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <ddb0ba80-c2a4-1024-8e9c-4ba74882a282@samsung.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <m2k2aze5xe.fsf@baylibre.com>
+References: <20161207183025.20684-1-khilman@baylibre.com> <d4b0501a-f83a-c8b1-e460-1ba50f68cca7@xs4all.nl>
+ <m2k2aze5xe.fsf@baylibre.com>
+From: Kevin Hilman <khilman@baylibre.com>
+Date: Fri, 27 Jan 2017 09:22:25 -0800
+Message-ID: <CAOi56cX362PcE+dS59sGkh-=VMFNv_jaORMbCvxNr+VVUL7-mg@mail.gmail.com>
+Subject: Re: [PATCH v6 0/5] davinci: VPIF: add DT support
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sekhar Nori <nsekhar@ti.com>,
+        Axel Haslam <ahaslam@baylibre.com>,
+        =?UTF-8?Q?Bartosz_Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>,
+        Patrick Titiano <ptitiano@baylibre.com>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/03/2017 08:50 AM, Andrzej Hajda wrote:
-> Hi Hans,
-> 
-> On 02.01.2017 15:19, Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
+On Fri, Dec 16, 2016 at 4:49 PM, Kevin Hilman <khilman@baylibre.com> wrote:
+> Hans Verkuil <hverkuil@xs4all.nl> writes:
+>
+>> On 07/12/16 19:30, Kevin Hilman wrote:
+>>> Prepare the groundwork for adding DT support for davinci VPIF drivers.
+>>> This series does some fixups/cleanups and then adds the DT binding and
+>>> DT compatible string matching for DT probing.
+>>>
+>>> The controversial part from previous versions around async subdev
+>>> parsing, and specifically hard-coding the input/output routing of
+>>> subdevs, has been left out of this series.  That part can be done as a
+>>> follow-on step after agreement has been reached on the path forward.
+>>> With this version, platforms can still use the VPIF capture/display
+>>> drivers, but must provide platform_data for the subdevs and subdev
+>>> routing.
+>>>
+>>> Tested video capture to memory on da850-lcdk board using composite
+>>> input.
 >>
->> Add support for video hotplug detect and EDID/ELD notifiers, which is used
->> to convey information from video drivers to their CEC and audio counterparts.
+>> Other than the comment for the first patch this series looks good.
 >>
->> Based on an earlier version from Russell King:
->>
->> https://patchwork.kernel.org/patch/9277043/
->>
->> The hpd_notifier is a reference counted object containing the HPD/EDID/ELD state
->> of a video device.
->>
->> When a new notifier is registered the current state will be reported to
->> that notifier at registration time.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
->> ---
->>  drivers/video/Kconfig        |   3 +
->>  drivers/video/Makefile       |   1 +
->>  drivers/video/hpd-notifier.c | 134 +++++++++++++++++++++++++++++++++++++++++++
->>  include/linux/hpd-notifier.h | 109 +++++++++++++++++++++++++++++++++++
->>  4 files changed, 247 insertions(+)
->>  create mode 100644 drivers/video/hpd-notifier.c
->>  create mode 100644 include/linux/hpd-notifier.h
->>
->> diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
->> index 3c20af9..cddc860 100644
->> --- a/drivers/video/Kconfig
->> +++ b/drivers/video/Kconfig
->> @@ -36,6 +36,9 @@ config VIDEOMODE_HELPERS
->>  config HDMI
->>  	bool
->>  
->> +config HPD_NOTIFIERS
->> +	bool
->> +
->>  if VT
->>  	source "drivers/video/console/Kconfig"
->>  endif
->> diff --git a/drivers/video/Makefile b/drivers/video/Makefile
->> index 9ad3c17..424698b 100644
->> --- a/drivers/video/Makefile
->> +++ b/drivers/video/Makefile
->> @@ -1,5 +1,6 @@
->>  obj-$(CONFIG_VGASTATE)            += vgastate.o
->>  obj-$(CONFIG_HDMI)                += hdmi.o
->> +obj-$(CONFIG_HPD_NOTIFIERS)       += hpd-notifier.o
->>  
->>  obj-$(CONFIG_VT)		  += console/
->>  obj-$(CONFIG_LOGO)		  += logo/
->> diff --git a/drivers/video/hpd-notifier.c b/drivers/video/hpd-notifier.c
->> new file mode 100644
->> index 0000000..54f7a6b
->> --- /dev/null
->> +++ b/drivers/video/hpd-notifier.c
->> @@ -0,0 +1,134 @@
->> +#include <linux/export.h>
->> +#include <linux/hpd-notifier.h>
->> +#include <linux/string.h>
->> +#include <linux/slab.h>
->> +#include <linux/list.h>
->> +
->> +static LIST_HEAD(hpd_notifiers);
->> +static DEFINE_MUTEX(hpd_notifiers_lock);
->> +
->> +struct hpd_notifier *hpd_notifier_get(struct device *dev)
->> +{
->> +	struct hpd_notifier *n;
->> +
->> +	mutex_lock(&hpd_notifiers_lock);
->> +	list_for_each_entry(n, &hpd_notifiers, head) {
->> +		if (n->dev == dev) {
->> +			mutex_unlock(&hpd_notifiers_lock);
-> 
-> I think this place is racy, we have pointer to unprotected area
-> (n->kref), so if concurrent thread calls hpd_notifier_put in this moment
-> &n->kref could be freed and kref_get in the next line will operate on
-> dangling pointer. Am I right?
+>> So once that's addressed I'll queue it up for 4.11.
+>
+> I've fixed that issue, and sent an update for just that patch in reply
+> to the original.
+>
+> Thanks for the review,
 
-You're right. I took the hpd_notifiers_lock in hpd_notifier_release,
-but I should take it in hpd_notifier_put.
+Gentle ping on this series.
 
-Thanks! I'll fix that.
+I'm still not seeing this series yet in linux-next, so am worried it
+might not make it for v4.11.
 
-Regards,
-
-	Hans
-
-> 
-> Regards
-> Andrzej
-> 
->> +			kref_get(&n->kref);
->> +			return n;
->> +		}
->> +	}
->> +	n = kzalloc(sizeof(*n), GFP_KERNEL);
->> +	if (!n)
->> +		goto unlock;
->> +	n->dev = dev;
->> +	mutex_init(&n->lock);
->> +	BLOCKING_INIT_NOTIFIER_HEAD(&n->notifiers);
->> +	kref_init(&n->kref);
->> +	list_add_tail(&n->head, &hpd_notifiers);
->> +unlock:
->> +	mutex_unlock(&hpd_notifiers_lock);
->> +	return n;
->> +}
->> +EXPORT_SYMBOL_GPL(hpd_notifier_get);
->> +
->> +static void hpd_notifier_release(struct kref *kref)
->> +{
->> +	struct hpd_notifier *n =
->> +		container_of(kref, struct hpd_notifier, kref);
->> +
->> +	mutex_lock(&hpd_notifiers_lock);
->> +	list_del(&n->head);
->> +	mutex_unlock(&hpd_notifiers_lock);
->> +	kfree(n->edid);
->> +	kfree(n);
->> +}
->> +
->> +void hpd_notifier_put(struct hpd_notifier *n)
->> +{
->> +	kref_put(&n->kref, hpd_notifier_release);
->> +}
->> +EXPORT_SYMBOL_GPL(hpd_notifier_put);
->> +
->> +int hpd_notifier_register(struct hpd_notifier *n, struct notifier_block *nb)
->> +{
->> +	int ret = blocking_notifier_chain_register(&n->notifiers, nb);
->> +
->> +	if (ret)
->> +		return ret;
->> +	kref_get(&n->kref);
->> +	mutex_lock(&n->lock);
->> +	if (n->connected) {
->> +		blocking_notifier_call_chain(&n->notifiers, HPD_CONNECTED, n);
->> +		if (n->edid_size)
->> +			blocking_notifier_call_chain(&n->notifiers, HPD_NEW_EDID, n);
->> +		if (n->has_eld)
->> +			blocking_notifier_call_chain(&n->notifiers, HPD_NEW_ELD, n);
->> +	}
->> +	mutex_unlock(&n->lock);
->> +	return 0;
->> +}
->> +EXPORT_SYMBOL_GPL(hpd_notifier_register);
->> +
->> +int hpd_notifier_unregister(struct hpd_notifier *n, struct notifier_block *nb)
->> +{
->> +	int ret = blocking_notifier_chain_unregister(&n->notifiers, nb);
->> +
->> +	if (ret == 0)
->> +		hpd_notifier_put(n);
->> +	return ret;
->> +}
->> +EXPORT_SYMBOL_GPL(hpd_notifier_unregister);
-> (...)
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+Kevin
