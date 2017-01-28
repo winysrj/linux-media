@@ -1,711 +1,312 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:33398 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1761251AbdACU56 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2017 15:57:58 -0500
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:34300 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751968AbdA1T2F (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 28 Jan 2017 14:28:05 -0500
 From: Steve Longerbeam <slongerbeam@gmail.com>
-To: shawnguo@kernel.org, kernel@pengutronix.de, fabio.estevam@nxp.com,
-        robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk,
-        mchehab@kernel.org, gregkh@linuxfoundation.org,
-        p.zabel@pengutronix.de
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v2 11/19] media: imx: Add CSI subdev driver
-Date: Tue,  3 Jan 2017 12:57:21 -0800
-Message-Id: <1483477049-19056-12-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v3 00/24] i.MX Media Driver
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <c6e98327-7e2c-f34a-2d23-af7b236de441@xs4all.nl>
+ <1484929911.2897.70.camel@pengutronix.de>
+ <3fb68686-9447-2d8a-e2d2-005e4138cd43@gmail.com>
+ <5d23d244-aa0e-401c-24a9-07f28acf1563@xs4all.nl>
+ <1485169204.2874.57.camel@pengutronix.de>
+ <ce2d1851-8a2e-ea0b-25b8-be6649b1ebaf@gmail.com>
+ <1485257269.3600.96.camel@pengutronix.de>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, nick@shmanahar.org,
+        markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Message-ID: <9a0afd7e-1caa-4ea1-3a53-5aef1e26ae79@gmail.com>
+Date: Sat, 28 Jan 2017 11:27:50 -0800
+MIME-Version: 1.0
+In-Reply-To: <1485257269.3600.96.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a media entity subdevice for the i.MX Camera
-Serial Interface module.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/media/imx/Kconfig   |  13 +
- drivers/staging/media/imx/Makefile  |   2 +
- drivers/staging/media/imx/imx-csi.c | 638 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 653 insertions(+)
- create mode 100644 drivers/staging/media/imx/imx-csi.c
 
-diff --git a/drivers/staging/media/imx/Kconfig b/drivers/staging/media/imx/Kconfig
-index bfde58d..ce2d2c8 100644
---- a/drivers/staging/media/imx/Kconfig
-+++ b/drivers/staging/media/imx/Kconfig
-@@ -6,3 +6,16 @@ config VIDEO_IMX_MEDIA
- 	  Say yes here to enable support for video4linux media controller
- 	  driver for the i.MX5/6 SOC.
- 
-+if VIDEO_IMX_MEDIA
-+menu "i.MX5/6 Media Sub devices"
-+
-+config VIDEO_IMX_CAMERA
-+	tristate "i.MX5/6 Camera driver"
-+	depends on VIDEO_IMX_MEDIA && VIDEO_DEV && I2C
-+	select VIDEOBUF2_DMA_CONTIG
-+	default y
-+	---help---
-+	  A video4linux camera capture driver for i.MX5/6.
-+
-+endmenu
-+endif
-diff --git a/drivers/staging/media/imx/Makefile b/drivers/staging/media/imx/Makefile
-index ef9f11b..133672a 100644
---- a/drivers/staging/media/imx/Makefile
-+++ b/drivers/staging/media/imx/Makefile
-@@ -4,3 +4,5 @@ imx-media-objs := imx-media-dev.o imx-media-fim.o imx-media-internal-sd.o \
- obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-media.o
- obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-media-common.o
- 
-+obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-csi.o
-+
-diff --git a/drivers/staging/media/imx/imx-csi.c b/drivers/staging/media/imx/imx-csi.c
-new file mode 100644
-index 0000000..975eafb
---- /dev/null
-+++ b/drivers/staging/media/imx/imx-csi.c
-@@ -0,0 +1,638 @@
-+/*
-+ * V4L2 Capture CSI Subdev for Freescale i.MX5/6 SOC
-+ *
-+ * Copyright (c) 2014-2016 Mentor Graphics Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-subdev.h>
-+#include <media/videobuf2-dma-contig.h>
-+#include <media/v4l2-of.h>
-+#include <media/v4l2-ctrls.h>
-+#include <video/imx-ipu-v3.h>
-+#include "imx-media.h"
-+
-+#define CSI_NUM_PADS 2
-+
-+struct csi_priv {
-+	struct device *dev;
-+	struct ipu_soc *ipu;
-+	struct imx_media_dev *md;
-+	struct v4l2_subdev sd;
-+	struct media_pad pad[CSI_NUM_PADS];
-+	struct v4l2_mbus_framefmt format_mbus[CSI_NUM_PADS];
-+	struct v4l2_mbus_config sensor_mbus_cfg;
-+	struct v4l2_rect crop;
-+	struct ipu_csi *csi;
-+	int csi_id;
-+	int input_pad;
-+	int output_pad;
-+	bool power_on;  /* power is on */
-+	bool stream_on; /* streaming is on */
-+
-+	/* the sink for the captured frames */
-+	struct v4l2_subdev *sink_sd;
-+	enum ipu_csi_dest dest;
-+	struct v4l2_subdev *src_sd;
-+
-+	struct v4l2_ctrl_handler ctrl_hdlr;
-+	struct imx_media_fim *fim;
-+
-+	/* the attached sensor at stream on */
-+	struct imx_media_subdev *sensor;
-+};
-+
-+static inline struct csi_priv *sd_to_dev(struct v4l2_subdev *sdev)
-+{
-+	return container_of(sdev, struct csi_priv, sd);
-+}
-+
-+/* Update the CSI whole sensor and active windows */
-+static int csi_setup(struct csi_priv *priv)
-+{
-+	struct v4l2_mbus_framefmt infmt;
-+
-+	ipu_csi_set_window(priv->csi, &priv->crop);
-+
-+	/*
-+	 * the ipu-csi doesn't understand ALTERNATE, but it only
-+	 * needs to know whether the stream is interlaced, so set
-+	 * to INTERLACED if infmt field is ALTERNATE.
-+	 */
-+	infmt = priv->format_mbus[priv->input_pad];
-+	if (infmt.field == V4L2_FIELD_ALTERNATE)
-+		infmt.field = V4L2_FIELD_INTERLACED;
-+
-+	ipu_csi_init_interface(priv->csi, &priv->sensor_mbus_cfg, &infmt);
-+
-+	ipu_csi_set_dest(priv->csi, priv->dest);
-+
-+	ipu_csi_dump(priv->csi);
-+
-+	return 0;
-+}
-+
-+static int csi_start(struct csi_priv *priv)
-+{
-+	int ret;
-+
-+	if (!priv->sensor) {
-+		v4l2_err(&priv->sd, "no sensor attached\n");
-+		return -EINVAL;
-+	}
-+
-+	ret = csi_setup(priv);
-+	if (ret)
-+		return ret;
-+
-+	/* start the frame interval monitor */
-+	ret = imx_media_fim_set_stream(priv->fim, priv->sensor, true);
-+	if (ret)
-+		return ret;
-+
-+	ret = ipu_csi_enable(priv->csi);
-+	if (ret) {
-+		v4l2_err(&priv->sd, "CSI enable error: %d\n", ret);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static void csi_stop(struct csi_priv *priv)
-+{
-+	/* stop the frame interval monitor */
-+	imx_media_fim_set_stream(priv->fim, priv->sensor, false);
-+
-+	ipu_csi_disable(priv->csi);
-+}
-+
-+static int csi_s_stream(struct v4l2_subdev *sd, int enable)
-+{
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	int ret = 0;
-+
-+	if (!priv->src_sd || !priv->sink_sd)
-+		return -EPIPE;
-+
-+	v4l2_info(sd, "stream %s\n", enable ? "ON" : "OFF");
-+
-+	if (enable && !priv->stream_on)
-+		ret = csi_start(priv);
-+	else if (!enable && priv->stream_on)
-+		csi_stop(priv);
-+
-+	if (!ret)
-+		priv->stream_on = enable;
-+	return ret;
-+}
-+
-+static int csi_s_power(struct v4l2_subdev *sd, int on)
-+{
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	int ret = 0;
-+
-+	v4l2_info(sd, "power %s\n", on ? "ON" : "OFF");
-+
-+	if (on != priv->power_on)
-+		ret = imx_media_fim_set_power(priv->fim, on);
-+
-+	if (!ret)
-+		priv->power_on = on;
-+	return ret;
-+}
-+
-+static int csi_link_setup(struct media_entity *entity,
-+			  const struct media_pad *local,
-+			  const struct media_pad *remote, u32 flags)
-+{
-+	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	struct v4l2_subdev *remote_sd;
-+
-+	dev_dbg(priv->dev, "link setup %s -> %s", remote->entity->name,
-+		local->entity->name);
-+
-+	remote_sd = media_entity_to_v4l2_subdev(remote->entity);
-+
-+	if (local->flags & MEDIA_PAD_FL_SINK) {
-+		if (flags & MEDIA_LNK_FL_ENABLED) {
-+			if (priv->src_sd)
-+				return -EBUSY;
-+			priv->src_sd = remote_sd;
-+		} else {
-+			priv->src_sd = NULL;
-+			return 0;
-+		}
-+
-+		return 0;
-+	}
-+
-+	if (flags & MEDIA_LNK_FL_ENABLED) {
-+		if (priv->sink_sd)
-+			return -EBUSY;
-+		priv->sink_sd = remote_sd;
-+	} else {
-+		priv->sink_sd = NULL;
-+		return 0;
-+	}
-+
-+	/* set CSI destination */
-+	switch (remote_sd->grp_id) {
-+	case IMX_MEDIA_GRP_ID_SMFC0:
-+	case IMX_MEDIA_GRP_ID_SMFC1:
-+	case IMX_MEDIA_GRP_ID_SMFC2:
-+	case IMX_MEDIA_GRP_ID_SMFC3:
-+		priv->dest = IPU_CSI_DEST_IDMAC;
-+		break;
-+	case IMX_MEDIA_GRP_ID_IC_PRPVF:
-+		priv->dest = IPU_CSI_DEST_VDIC;
-+		break;
-+	case IMX_MEDIA_GRP_ID_IC_PRPENC:
-+		priv->dest = IPU_CSI_DEST_IC;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int csi_link_validate(struct v4l2_subdev *sd,
-+			     struct media_link *link,
-+			     struct v4l2_subdev_format *source_fmt,
-+			     struct v4l2_subdev_format *sink_fmt)
-+{
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	bool is_csi2;
-+	int ret;
-+
-+	ret = v4l2_subdev_link_validate_default(sd, link, source_fmt, sink_fmt);
-+	if (ret)
-+		return ret;
-+
-+	priv->sensor = __imx_media_find_sensor(priv->md, &priv->sd.entity);
-+	if (IS_ERR(priv->sensor)) {
-+		v4l2_err(&priv->sd, "no sensor attached\n");
-+		ret = PTR_ERR(priv->sensor);
-+		priv->sensor = NULL;
-+		return ret;
-+	}
-+
-+	ret = v4l2_subdev_call(priv->sensor->sd, video, g_mbus_config,
-+			       &priv->sensor_mbus_cfg);
-+	if (ret)
-+		return ret;
-+
-+	is_csi2 = (priv->sensor_mbus_cfg.type == V4L2_MBUS_CSI2);
-+
-+	if (is_csi2) {
-+		int vc_num = 0;
-+		/*
-+		 * NOTE! It seems the virtual channels from the mipi csi-2
-+		 * receiver are used only for routing by the video mux's,
-+		 * or for hard-wired routing to the CSI's. Once the stream
-+		 * enters the CSI's however, they are treated internally
-+		 * in the IPU as virtual channel 0.
-+		 */
-+#if 0
-+		vc_num = imx_media_find_mipi_csi2_channel(priv->md,
-+							  &priv->sd.entity);
-+		if (vc_num < 0)
-+			return vc_num;
-+#endif
-+		ipu_csi_set_mipi_datatype(priv->csi, vc_num,
-+					  &priv->format_mbus[priv->input_pad]);
-+	}
-+
-+	/* select either parallel or MIPI-CSI2 as input to CSI */
-+	ipu_set_csi_src_mux(priv->ipu, priv->csi_id, is_csi2);
-+
-+	return 0;
-+}
-+
-+static int csi_eof_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
-+{
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	struct timespec cur_ts;
-+
-+	ktime_get_ts(&cur_ts);
-+
-+	/* call frame interval monitor */
-+	imx_media_fim_eof_monitor(priv->fim, &cur_ts);
-+
-+	return 0;
-+}
-+
-+static int csi_try_crop(struct csi_priv *priv, struct v4l2_rect *crop)
-+{
-+	struct v4l2_mbus_framefmt *infmt;
-+	struct imx_media_subdev *sensor;
-+	v4l2_std_id std;
-+	int ret;
-+
-+	sensor = imx_media_find_sensor(priv->md, &priv->sd.entity);
-+	if (IS_ERR(sensor)) {
-+		v4l2_err(&priv->sd, "no sensor attached\n");
-+		return PTR_ERR(sensor);
-+	}
-+
-+	ret = v4l2_subdev_call(sensor->sd, video, g_mbus_config,
-+			       &priv->sensor_mbus_cfg);
-+	if (ret)
-+		return ret;
-+
-+	infmt = &priv->format_mbus[priv->input_pad];
-+
-+	crop->width = min_t(__u32, infmt->width, crop->width);
-+	if (crop->left + crop->width > infmt->width)
-+		crop->left = infmt->width - crop->width;
-+	/* adjust crop left/width to h/w alignment restrictions */
-+	crop->left &= ~0x3;
-+	crop->width &= ~0x7;
-+
-+	/*
-+	 * FIXME: not sure why yet, but on interlaced bt.656,
-+	 * changing the vertical cropping causes loss of vertical
-+	 * sync, so fix it to NTSC/PAL active lines. NTSC contains
-+	 * 2 extra lines of active video that need to be cropped.
-+	 */
-+	if (priv->sensor_mbus_cfg.type == V4L2_MBUS_BT656) {
-+		ret = v4l2_subdev_call(sensor->sd, video, g_std, &std);
-+		if (ret)
-+			return ret;
-+		if (std & V4L2_STD_525_60) {
-+			crop->top = 2;
-+			crop->height = 480;
-+		} else {
-+			crop->top = 0;
-+			crop->height = 576;
-+		}
-+	} else {
-+		crop->height = min_t(__u32, infmt->height, crop->height);
-+		if (crop->top + crop->height > infmt->height)
-+			crop->top = infmt->height - crop->height;
-+	}
-+
-+	return 0;
-+}
-+
-+static int csi_get_fmt(struct v4l2_subdev *sd,
-+		       struct v4l2_subdev_pad_config *cfg,
-+		       struct v4l2_subdev_format *sdformat)
-+{
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+
-+	if (sdformat->pad >= CSI_NUM_PADS)
-+		return -EINVAL;
-+
-+	sdformat->format = priv->format_mbus[sdformat->pad];
-+
-+	return 0;
-+}
-+
-+static int csi_set_fmt(struct v4l2_subdev *sd,
-+		       struct v4l2_subdev_pad_config *cfg,
-+		       struct v4l2_subdev_format *sdformat)
-+{
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	struct v4l2_mbus_framefmt *infmt, *outfmt;
-+	struct v4l2_rect crop;
-+	int ret;
-+
-+	if (sdformat->pad >= CSI_NUM_PADS)
-+		return -EINVAL;
-+
-+	if (priv->stream_on)
-+		return -EBUSY;
-+
-+	infmt = &priv->format_mbus[priv->input_pad];
-+	outfmt = &priv->format_mbus[priv->output_pad];
-+
-+	if (sdformat->pad == priv->output_pad) {
-+		sdformat->format.code = infmt->code;
-+		sdformat->format.field = infmt->field;
-+		crop.left = priv->crop.left;
-+		crop.top = priv->crop.top;
-+		crop.width = sdformat->format.width;
-+		crop.height = sdformat->format.height;
-+		ret = csi_try_crop(priv, &crop);
-+		if (ret)
-+			return ret;
-+		sdformat->format.width = crop.width;
-+		sdformat->format.height = crop.height;
-+	}
-+
-+	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY) {
-+		cfg->try_fmt = sdformat->format;
-+	} else {
-+		priv->format_mbus[sdformat->pad] = sdformat->format;
-+		/* Update the crop window if this is output pad  */
-+		if (sdformat->pad == priv->output_pad)
-+			priv->crop = crop;
-+	}
-+
-+	return 0;
-+}
-+
-+static int csi_get_selection(struct v4l2_subdev *sd,
-+			     struct v4l2_subdev_pad_config *cfg,
-+			     struct v4l2_subdev_selection *sel)
-+{
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	struct v4l2_mbus_framefmt *infmt;
-+
-+	if (sel->pad != priv->output_pad)
-+		return -EINVAL;
-+
-+	infmt = &priv->format_mbus[priv->input_pad];
-+
-+	switch (sel->target) {
-+	case V4L2_SEL_TGT_CROP_BOUNDS:
-+		sel->r.left = 0;
-+		sel->r.top = 0;
-+		sel->r.width = infmt->width;
-+		sel->r.height = infmt->height;
-+		break;
-+	case V4L2_SEL_TGT_CROP:
-+		sel->r = priv->crop;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int csi_set_selection(struct v4l2_subdev *sd,
-+			     struct v4l2_subdev_pad_config *cfg,
-+			     struct v4l2_subdev_selection *sel)
-+{
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	struct v4l2_mbus_framefmt *outfmt;
-+	int ret;
-+
-+	if (sel->pad != priv->output_pad ||
-+	    sel->target != V4L2_SEL_TGT_CROP)
-+		return -EINVAL;
-+
-+	if (priv->stream_on)
-+		return -EBUSY;
-+
-+	/*
-+	 * Modifying the crop rectangle always changes the format on the source
-+	 * pad. If the KEEP_CONFIG flag is set, just return the current crop
-+	 * rectangle.
-+	 */
-+	if (sel->flags & V4L2_SEL_FLAG_KEEP_CONFIG) {
-+		sel->r = priv->crop;
-+		if (sel->which == V4L2_SUBDEV_FORMAT_TRY)
-+			cfg->try_crop = sel->r;
-+		return 0;
-+	}
-+
-+	outfmt = &priv->format_mbus[priv->output_pad];
-+
-+	ret = csi_try_crop(priv, &sel->r);
-+	if (ret)
-+		return ret;
-+
-+	if (sel->which == V4L2_SUBDEV_FORMAT_TRY) {
-+		cfg->try_crop = sel->r;
-+	} else {
-+		priv->crop = sel->r;
-+		/* Update the source format */
-+		outfmt->width = sel->r.width;
-+		outfmt->height = sel->r.height;
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * retrieve our pads parsed from the OF graph by the media device
-+ */
-+static int csi_registered(struct v4l2_subdev *sd)
-+{
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	struct imx_media_subdev *imxsd;
-+	struct imx_media_pad *pad;
-+	int i, ret;
-+
-+	/* get media device */
-+	priv->md = dev_get_drvdata(sd->v4l2_dev->dev);
-+
-+	/* get handle to IPU CSI */
-+	priv->csi = ipu_csi_get(priv->ipu, priv->csi_id);
-+	if (IS_ERR(priv->csi)) {
-+		v4l2_err(&priv->sd, "failed to get CSI %d\n", priv->csi_id);
-+		return PTR_ERR(priv->csi);
-+	}
-+
-+	imxsd = imx_media_find_subdev_by_sd(priv->md, sd);
-+	if (IS_ERR(imxsd)) {
-+		ret = PTR_ERR(imxsd);
-+		goto put_csi;
-+	}
-+
-+	if (imxsd->num_sink_pads != 1 || imxsd->num_src_pads != 1) {
-+		ret = -EINVAL;
-+		goto put_csi;
-+	}
-+
-+	for (i = 0; i < CSI_NUM_PADS; i++) {
-+		pad = &imxsd->pad[i];
-+		priv->pad[i] = pad->pad;
-+		if (priv->pad[i].flags & MEDIA_PAD_FL_SINK)
-+			priv->input_pad = i;
-+		else
-+			priv->output_pad = i;
-+
-+		/* set a default mbus format  */
-+		ret = imx_media_init_mbus_fmt(&priv->format_mbus[i],
-+					      640, 480, 0, V4L2_FIELD_NONE,
-+					      NULL);
-+		if (ret)
-+			goto put_csi;
-+	}
-+
-+	priv->fim = imx_media_fim_init(&priv->sd);
-+	if (IS_ERR(priv->fim)) {
-+		ret = PTR_ERR(priv->fim);
-+		goto put_csi;
-+	}
-+
-+	ret = media_entity_pads_init(&sd->entity, CSI_NUM_PADS, priv->pad);
-+	if (ret)
-+		goto free_fim;
-+
-+	return 0;
-+free_fim:
-+	imx_media_fim_free(priv->fim);
-+put_csi:
-+	ipu_csi_put(priv->csi);
-+	return ret;
-+}
-+
-+static struct media_entity_operations csi_entity_ops = {
-+	.link_setup = csi_link_setup,
-+	.link_validate = v4l2_subdev_link_validate,
-+};
-+
-+static struct v4l2_subdev_core_ops csi_core_ops = {
-+	.s_power = csi_s_power,
-+	.interrupt_service_routine = csi_eof_isr,
-+};
-+
-+static struct v4l2_subdev_video_ops csi_video_ops = {
-+	.s_stream = csi_s_stream,
-+};
-+
-+static struct v4l2_subdev_pad_ops csi_pad_ops = {
-+	.get_fmt = csi_get_fmt,
-+	.set_fmt = csi_set_fmt,
-+	.get_selection = csi_get_selection,
-+	.set_selection = csi_set_selection,
-+	.link_validate = csi_link_validate,
-+};
-+
-+static struct v4l2_subdev_ops csi_subdev_ops = {
-+	.core = &csi_core_ops,
-+	.video = &csi_video_ops,
-+	.pad = &csi_pad_ops,
-+};
-+
-+static struct v4l2_subdev_internal_ops csi_internal_ops = {
-+	.registered = csi_registered,
-+};
-+
-+static int imx_csi_probe(struct platform_device *pdev)
-+{
-+	struct ipu_client_platformdata *pdata;
-+	struct csi_priv *priv;
-+	int ret;
-+
-+	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
-+	if (!priv)
-+		return -ENOMEM;
-+
-+	platform_set_drvdata(pdev, &priv->sd);
-+	priv->dev = &pdev->dev;
-+
-+	/* get parent IPU */
-+	priv->ipu = dev_get_drvdata(priv->dev->parent);
-+
-+	/* get our CSI id */
-+	pdata = priv->dev->platform_data;
-+	priv->csi_id = pdata->csi;
-+
-+	v4l2_subdev_init(&priv->sd, &csi_subdev_ops);
-+	v4l2_set_subdevdata(&priv->sd, priv);
-+	priv->sd.internal_ops = &csi_internal_ops;
-+	priv->sd.entity.ops = &csi_entity_ops;
-+	/* FIXME: this the right function? */
-+	priv->sd.entity.function = MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER;
-+	priv->sd.grp_id = priv->csi_id ?
-+		IMX_MEDIA_GRP_ID_CSI1 : IMX_MEDIA_GRP_ID_CSI0;
-+	priv->sd.dev = &pdev->dev;
-+	priv->sd.owner = THIS_MODULE;
-+	priv->sd.flags = V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
-+	imx_media_grp_id_to_sd_name(priv->sd.name, sizeof(priv->sd.name),
-+				    priv->sd.grp_id, ipu_get_num(priv->ipu));
-+
-+	v4l2_ctrl_handler_init(&priv->ctrl_hdlr, 0);
-+	priv->sd.ctrl_handler = &priv->ctrl_hdlr;
-+
-+	ret = v4l2_async_register_subdev(&priv->sd);
-+	if (ret)
-+		goto free_ctrls;
-+
-+	return 0;
-+free_ctrls:
-+	v4l2_ctrl_handler_free(&priv->ctrl_hdlr);
-+	return ret;
-+}
-+
-+static int imx_csi_remove(struct platform_device *pdev)
-+{
-+	struct v4l2_subdev *sd = platform_get_drvdata(pdev);
-+	struct csi_priv *priv = sd_to_dev(sd);
-+
-+	imx_media_fim_free(priv->fim);
-+	v4l2_async_unregister_subdev(&priv->sd);
-+	media_entity_cleanup(&priv->sd.entity);
-+	v4l2_device_unregister_subdev(sd);
-+
-+	if (!IS_ERR_OR_NULL(priv->csi))
-+		ipu_csi_put(priv->csi);
-+
-+	return 0;
-+}
-+
-+static const struct platform_device_id imx_csi_ids[] = {
-+	{ .name = "imx-ipuv3-csi" },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(platform, imx_csi_ids);
-+
-+static struct platform_driver imx_csi_driver = {
-+	.probe = imx_csi_probe,
-+	.remove = imx_csi_remove,
-+	.id_table = imx_csi_ids,
-+	.driver = {
-+		.name = "imx-ipuv3-csi",
-+		.owner = THIS_MODULE,
-+	},
-+};
-+module_platform_driver(imx_csi_driver);
-+
-+MODULE_DESCRIPTION("i.MX CSI subdev driver");
-+MODULE_AUTHOR("Steve Longerbeam <steve_longerbeam@mentor.com>");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:imx-ipuv3-csi");
--- 
-2.7.4
+On 01/24/2017 03:27 AM, Philipp Zabel wrote:
+> Hi Steve, Hans,
+>
+> [added Laurent to Cc: who I believe might have an opinion on the media
+> bus formats, too. Sorry for the wall of text, I have put a marker where
+> the MEDIA_BUS argument starts]
+>
+> The central issue seems to be that I think media pad links / media bus
+> formats should describe physical links, such as parallel or serial
+> buses, and the formats of pixels flowing through them, whereas Steve
+> would like to extend them to describe software transports and in-memory
+> formats.
+
+Hi Philipp, Hans,
+
+I've decided to pull the dma read/write channel linking between
+pads. Although I haven't heard any other feedback yet, I agree it is
+controversial and it is fairly clear it violates the current media bus
+concept that describes physical links.
+
+So the VDIC entity will support only the high motion mode, and
+the post-processor entities will be removed. We've talked in the
+past of adding full VDIC support to the IPU image conversion API
+in the IPUv3 driver, so the complete motion compensation modes
+can live there eventually, accessed from a mem2mem device. I'm
+also considering leaving the low/medium motion support in the VDIC
+entity, but accessed eventually from a separate device node sink pad
+(from a future output device), instead of from a subdev pad.
+
+So now there will be four capture device nodes per IPU: two linked
+directly from each CSI IDMAC source pad, one from the prp-encode
+source pad, and one from the prp-viewfinder source pad.
+
+I will post version 4 in a couple days.
+
+Steve
+
+
+> On Mon, 2017-01-23 at 15:08 -0800, Steve Longerbeam wrote:
+> [...]
+>>>>> And I'm actually in total agreement with that. I definitely agree that there
+>>>>> should be a mechanism in the media framework that allows passing video
+>>>>> buffers from a source pad to a sink pad using a software queue, with no
+>>>>> involvement from userland.
+>>> That is the other part of the argument. I do not agree that these
+>>> software queue "links" should be presented to userspace as media pad
+>>> links between two entities of a media device.
+>>> First, that would limit the links to subdevices contained in the same
+>>> media graph, while this should work between any two capture and output
+>>> queues of different devices.
+>> It sounds like we are talking about two different new proposed features.
+> We are talking about the same thing, but we both want a different user
+> interface.
+> Technically, the issue is to trigger the DMA read channel of a mem2mem
+> device automatically whenever another capture device's DMA write channel
+> signals a finished frame. Where we disagree is how to present this to
+> userspace.
+>
+> You represent the capture DMA write channel and mem2mem DMA read channel
+> as pads on media entites and configure the in-kernel software queue
+> between the two using a media pad link. At the same time a different
+> representation of the same DMA write and read channels (the capture
+> vb2_queue of the capture device and the output vb2_queue of the mem2mem
+> device) would be used for operation in the classic, userspace controlled
+> mode via dmabuf passing.
+>
+> I don't want the software-only link in the media graph, but instead use
+> the vb2_queue representation for both cases, and implement the in-kernel
+> queue link on top of the vb2_queue interface. This would allow userspace
+> to have control over buffer allocations and format, and thus avoid
+> unexpected performance implications: it is impossible for userspace to
+> understand which media entity link, when enabled, will cause a
+> significant increase in memory bandwidth usage, or even how much.
+> Also the same mechanism could then be used to link any two devices in a
+> generic manner, instead of special casing the software queue link for
+> two devices that happen to be part of the same media graph.
+>
+>> My proposal is to implement a software buffer queue between pads.
+>> Beyond enabling the link between pads using the existing media controller
+>> API, userspace is not involved after that. The fact that this link is
+>> accomplished with a software buffer queue is not known, and doesn't
+>> need to be known, by userspace.
+> I don't think this is a good thing for the reasons stated above and
+> below:
+> Since the software buffer queue is opaque to userspace, it is completely
+> out of userspace control which format is chosen and how the buffers are
+> allocated.
+> By using media bus formats to configure software links the kernel
+> pretends to userspace that there is a physical connection where there
+> isn't one.
+> Also, the media entity graph would quickly become very unreadable if we
+> were to add all devices to it that could reasonably be linked with
+> software queues.
+>
+>> Your proposal, if I have it right, is to allow linking two v4l2 device
+>> vb2 queues
+>> (i.e. /dev/videoX -> /dev/videoY), using a new user level API, in a free-run
+>> mode such that v4l2 buffers get passed from one device's vb2 queue to the
+>> other without requiring the v4l2 user program to actively forward those
+>> buffers.
+> Yes.
+>
+>> There isn't anything that would preclude one from the other, they can
+>> both exist. But they are different ideas. One implements software queues
+>> at the _pad level_ and is opaque to userspace, the other links queues
+>> at the _device level_ using a new user API, but once the link is
+>> established, also does not require any involvement from userspace.
+> Well, they are different ideas of how the userspace interface _for the
+> same thing_ should look like.
+>
+>> What I'm saying is we can do _both_.
+> What I am saying is we shouldn't do the pad link interface for the
+> software queues. In my opinion it is the wrong abstraction, and apart
+> from the convenience of being able to switch the links on with a single
+> media-ctl invocation, I see too many downsides.
+>
+>>> Assume for example, we want to encode the captured, deinterlaced video
+>>> to h.264 with the coda VPU driver. A software queue link could be
+>>> established between the CSI capture and the VDIC deinterlacer input,
+>> That's already available in the media graph. By linking CSI and
+>> VDIC entities. The capture device will then already be providing
+>> de-interlaced video, and ...
+> I know it is in your code. That is the cause for my concern. The link
+> between CSI and VDIC entity should only describe the direct physical
+> connection through the VDIC FIFO1 in my opinion.
+> For the indirect CSI -> SMFC -> IDMAC -> RAM, RAM -> IDMAC -> VDIC
+> software queue, I would strongly prefer to use linked vb2_queues instead
+> of the media entity link.
+>
+>>> just as between the VDIC deinterlacer output and the coda VPU input.
+>>> Technically, there would be no difference between those two linked
+>>> capture/output queue pairs. But the coda driver is a completely separate
+>>> mem2mem device. And since it is not part of the i.MX media graph, there
+>>> is no entity pad to link to.
+>> your free-run queue linking could then be used to link the (already)
+>> de-interlaced stream to the coda device for h.264 encode.
+> Yes, and I see no reason why that should use a different interface than
+> what is exactly the same process between CSI and VDIC.
+>
+>> The other idea would be to eventually make the coda device part of
+>> the media graph as an entity. Then this link would instead be via pads.
+> I would only want to do this if there was a direct connection between
+> the IPU FIFOs and the coda VPU device somehow. But since the devices are
+> completely separate, they should be described as such.
+>
+>>> Or assume there is an USB analog capture device that produces interlaced
+>>> frames. I think it should be possible to connect its capture queue to
+>>> the VDIC deinterlacer output queue just the same way as linking the CSI
+>>> to the VDIC (in software queue mode).
+>> Right, for devices that are outside the i.MX media graph, such as a USB
+>> capture device (or coda), access to the i.MX entities such as the VDIC would
+>> require an i.MX mem2mem device with media links to the VDIC. The USB
+>> capture device would forward its captured frames to mem2mem (maybe
+>> using your free-run vb2 queue linking idea):
+>>
+>> usb device -> i.mx mem2mem device -> VDIC entity -> i.mx mem2mem device
+> The VDIC doesn't have a direct to memory channel, so that would be
+> mem2mem -> VDIC -> IC -> mem2mem, I think?
+>
+> ========== MEDIA_BUS formats below =====================================
+>
+>>> Second, the subdevice pad formats describe wire formats, not memory
+>>> formats. The user might want to choose between 4:2:2 and 4:2:0
+>>> subsampled YUV formats for the intermediate buffer, for example,
+>>> depending on memory bandwidth constraints and quality requirements. This
+>>> is impossible with the media entity / subdevice pad links.
+>> It's true that there are currently no defined planar media bus
+>> pixel formats. We just need to add new definitions for them. Once
+>> that is done, the media driver will support planar YUV formats
+>> simply by adding the new codes to imx_media_formats[].
+> I am not comfortable with starting to mix MEDIA_BUS_FMT and V4L2_PIX_FMT
+> this way.
+>
+>> Perhaps this gets to the root of the issue.
+>>
+>> Is the media bus concept an abstract one, or is the media bus
+>> intended to represent actual physical buses (as the lack of planar
+>> media bus formats would imply)?
+> Yes, maybe that is the root of our disconnect. As I understand it, the
+> media bus formats are describing "image formats as flowing over physical
+> busses" [1].
+>
+> [1] Linux Media Subsystem Documentation, Chapter 4.15.3.4.1.1. Media Bus Pixel Codes
+>      https://linuxtv.org/downloads/v4l-dvb-apis/uapi/v4l/subdev-formats.html?highlight=media%20bus#v4l2-mbus-pixelcode
+>
+> I would like to keep it that way and not soften up that description.
+>
+>> Can we break with the physical-bus-only idea if that is the case, and
+>> loosen the definition of a media bus to mean the passage of media
+>> data from one pad to another by whatever means?
+>>
+>> In my view the idea of a physical bus at the sensor makes sense, but
+>> beyond that, keeping that restriction limits how data can pass between
+>> pads.
+>>
+>> Hans, any input here?
+>>
+>> If this is really anathema, then I'm willing to remove the software queues
+>> between pads, but it will be giving up some functionality in the media
+>> driver.
+> So far I am the only one arguing against this, and I haven't yet heard
+> anything yet that would have convinced me otherwise. That's why I'd too
+> like some more input on this issue.
+>
+> Certainly removing the controversial pad link controlled software queues
+> would remove the point of contention. I think losing some functionality
+> (in this case "higher quality" deinterlacing without userspace
+> intervention) for now would be worth it to achieve consensus, and also
+> reduce the list of things that have to be done for this driver to leave
+> staging, but that is of course from the point of view of the guy arguing
+> against that interface.
+>
+>> It would also mean splitting the VDIC in two. The VDIC entity would be
+>> limited to only one motion compensation mode,
+> Currently, yes. That direct mode is the only one that should be
+> described by the media pad link between CSI and VDIC in my opinion.
+>
+>> and the full functionality would have
+>> to be added somewhere else.
+> I don't understand why the other functionality would necessarily have to
+> live somewere else, but I can see that it might make sense to do so. In
+> any case, the separate control of the VDIC/IC via a mem2mem video device
+> will be needed anyway, as pointed out in the USB example above, or to
+> deinterlace streams received via network or played back from files.
+>
+>>   Currently all functionality of the VDIC is implemented in a single media entity.
+> Yes, at least the mem2mem part should move into its own mem2mem video
+> device.
+>
+>>> I think an interface where userspace configures the capture and output
+>>> queues via v4l2 API, passes dma buffers around from one to the other
+>>> queue, and then puts both queues into a free running mode would be a
+>>> much better fit for this mechanism.
+>> As I said, I see these as two different ideas that can both be
+>> implemented.
+> I think we should have cleared up now where we disagree. These are two
+> different ideas for userspace interfaces for the same functionality. My
+> opinion is that both should not be implemented
+>
+>>>>> My only disagreement is when this should be implemented. I think it is
+>>>>> fine to keep my custom implementation of this in the driver for now. Once
+>>>>> an extension of vb2 is ready to support this feature, it would be fairly
+>>>>> straightforward to strip out my custom implementation and go with the
+>>>>> new API.
+>>>> For a staging driver this isn't necessary, as long as it is documented in
+>>>> the TODO file that this needs to be fixed before it can be moved out of
+>>>> staging. The whole point of staging is that there is still work to be
+>>>> done in the driver, after all :-)
+>>> Absolutely. The reason I am arguing against merging the mem2mem media
+>>> control links so vehemently is that I am convinced the userspace
+>>> interface is wrong, and I am afraid that even though in staging, it
+>>> might become established.
+>> I don't believe there is anything wrong with the userspace interface,
+>> In fact it hasn't even changed. The fact two pads are passing memory
+>> buffers is "under the hood".
+> Which I disagree with. Doing things like this under the hood would be
+> fine only if they were properly introspectable and if the interface
+> wouldn't break assumptions that I believe to be there, such as media
+> links describing physical connections between hardware entities, and
+> media bus formats describing the image format on a physical bus.
+> Also with videobuf2 we already have a userspace interface for DMA read
+> and write queues, and I'd prefer to extend and improve that instead of
+> reimplementing the same functionality, even simplified, under the hood.
+>
+> regards
+> Philipp
+>
 
