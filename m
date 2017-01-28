@@ -1,90 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37988 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1755556AbdABUn5 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47278 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751536AbdA1Q0h (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 2 Jan 2017 15:43:57 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Subject: [PATCH 1/1] smiapp: Use runtime PM for power iff CONFIG_PM is defined
-Date: Mon,  2 Jan 2017 22:43:53 +0200
-Message-Id: <1483389833-29790-1-git-send-email-sakari.ailus@linux.intel.com>
+        Sat, 28 Jan 2017 11:26:37 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] v4l: of: check for unique lanes in data-lanes and clock-lanes
+Date: Sat, 28 Jan 2017 18:26:24 +0200
+Message-ID: <1773458.Cvt8mFyy2S@avalon>
+In-Reply-To: <20170126131259.5621-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170126131259.5621-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If CONFIG_PM is defined, always use runtime PM to manage power to the
-device. Controlling the power state directly in probe does have the
-problem of ignoring the device parent power management. Fix this.
+Hi Niklas,
 
-Fixes: commit 9447082ae666 ("[media] smiapp: Implement power-on and power-off sequences without runtime PM")
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>
----
- drivers/media/i2c/smiapp/smiapp-core.c | 21 +++++++++++++++++----
- 1 file changed, 17 insertions(+), 4 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index e290601..0ea0303 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2904,9 +2904,16 @@ static int smiapp_probe(struct i2c_client *client,
- 	if (IS_ERR(sensor->xshutdown))
- 		return PTR_ERR(sensor->xshutdown);
- 
-+	pm_runtime_set_suspended(&client->dev);
-+	pm_runtime_enable(&client->dev);
-+	rval = pm_runtime_get_sync(&client->dev);
-+	if (rval < 0)
-+		goto out_power_off;
-+#ifndef CONFIG_PM
- 	rval = smiapp_power_on(&client->dev);
- 	if (rval < 0)
- 		return rval;
-+#endif
- 
- 	rval = smiapp_identify_module(sensor);
- 	if (rval) {
-@@ -3087,12 +3094,12 @@ static int smiapp_probe(struct i2c_client *client,
- 	if (rval < 0)
- 		goto out_media_entity_cleanup;
- 
--	pm_runtime_set_active(&client->dev);
--	pm_runtime_get_noresume(&client->dev);
--	pm_runtime_enable(&client->dev);
- 	pm_runtime_set_autosuspend_delay(&client->dev, 1000);
- 	pm_runtime_use_autosuspend(&client->dev);
- 	pm_runtime_put_autosuspend(&client->dev);
-+#ifndef CONFIG_PM
-+	smiapp_power_off(&client->dev);
-+#endif
- 
- 	return 0;
- 
-@@ -3103,7 +3110,10 @@ static int smiapp_probe(struct i2c_client *client,
- 	smiapp_cleanup(sensor);
- 
- out_power_off:
-+	pm_runtime_put_sync(&client->dev);
-+#ifndef CONFIG_PM
- 	smiapp_power_off(&client->dev);
-+#endif
- 
- 	return rval;
- }
-@@ -3118,8 +3128,11 @@ static int smiapp_remove(struct i2c_client *client)
- 
- 	pm_runtime_disable(&client->dev);
- 	if (!pm_runtime_status_suspended(&client->dev))
--		smiapp_power_off(&client->dev);
-+		pm_runtime_suspend(&client->dev);
- 	pm_runtime_set_suspended(&client->dev);
-+#ifndef CONFIG_PM
-+	smiapp_power_off(&client->dev);
-+#endif
- 
- 	for (i = 0; i < sensor->ssds_used; i++) {
- 		v4l2_device_unregister_subdev(&sensor->ssds[i].sd);
--- 
-2.1.4
+On Thursday 26 Jan 2017 14:12:59 Niklas S=F6derlund wrote:
+> All lines in data-lanes and clock-lanes properties must be unique.
+> Instead of drivers checking for this add it to the generic parser.
+>=20
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech=
+.se>
+> ---
+>  drivers/media/v4l2-core/v4l2-of.c | 18 +++++++++++++++++-
+>  1 file changed, 17 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/media/v4l2-core/v4l2-of.c
+> b/drivers/media/v4l2-core/v4l2-of.c index 93b33681776c..1042db6bb996 =
+100644
+> --- a/drivers/media/v4l2-core/v4l2-of.c
+> +++ b/drivers/media/v4l2-core/v4l2-of.c
+> @@ -32,12 +32,19 @@ static int v4l2_of_parse_csi_bus(const struct
+> device_node *node, prop =3D of_find_property(node, "data-lanes", NULL=
+);
+>  =09if (prop) {
+>  =09=09const __be32 *lane =3D NULL;
+> -=09=09unsigned int i;
+> +=09=09unsigned int i, n;
+>=20
+>  =09=09for (i =3D 0; i < ARRAY_SIZE(bus->data_lanes); i++) {
+>  =09=09=09lane =3D of_prop_next_u32(prop, lane, &v);
+>  =09=09=09if (!lane)
+>  =09=09=09=09break;
+> +=09=09=09for (n =3D 0; n < i; n++) {
+> +=09=09=09=09if (bus->data_lanes[n] =3D=3D v) {
+> +=09=09=09=09=09pr_warn("%s: duplicated lane %u in=20
+data-lanes\n",
+> +=09=09=09=09=09=09node->full_name, v);
+> +=09=09=09=09=09return -EINVAL;
+> +=09=09=09=09}
+
+If you used a bitmask to store the already used lanes you could avoid t=
+he=20
+nested loops.
+
+Apart from that,
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> +=09=09=09}
+>  =09=09=09bus->data_lanes[i] =3D v;
+>  =09=09}
+>  =09=09bus->num_data_lanes =3D i;
+> @@ -63,6 +70,15 @@ static int v4l2_of_parse_csi_bus(const struct devi=
+ce_node
+> *node, }
+>=20
+>  =09if (!of_property_read_u32(node, "clock-lanes", &v)) {
+> +=09=09unsigned int n;
+> +
+> +=09=09for (n =3D 0; n < bus->num_data_lanes; n++) {
+> +=09=09=09if (bus->data_lanes[n] =3D=3D v) {
+> +=09=09=09=09pr_warn("%s: duplicated lane %u in clock-
+lanes\n",
+> +=09=09=09=09=09node->full_name, v);
+> +=09=09=09=09return -EINVAL;
+> +=09=09=09}
+> +=09=09}
+>  =09=09bus->clock_lane =3D v;
+>  =09=09have_clk_lane =3D true;
+>  =09}
+
+--=20
+Regards,
+
+Laurent Pinchart
 
