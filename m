@@ -1,50 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:34102 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1162364AbdAFDn4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2017 22:43:56 -0500
-Date: Fri, 06 Jan 2017 12:43:46 +0900
-From: Andi Shyti <andi.shyti@samsung.com>
-To: sean.wang@mediatek.com
-Cc: mchehab@osg.samsung.com, hdegoede@redhat.com, hkallweit1@gmail.com,
-        robh+dt@kernel.org, mark.rutland@arm.com, matthias.bgg@gmail.com,
-        hverkuil@xs4all.nl, sean@mess.org, ivo.g.dimitrov.75@gmail.com,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-mediatek@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        keyhaede@gmail.com
-Subject: Re: [PATCH 2/2] media: rc: add driver for IR remote receiver on MT7623
- SoC
-Message-id: <20170106034346.7njhyhtsc4yado5c@gangnam.samsung>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-disposition: inline
-In-reply-to: <1483632384-8107-3-git-send-email-sean.wang@mediatek.com>
-References: <1483632384-8107-1-git-send-email-sean.wang@mediatek.com>
- <CGME20170105160810epcas3p1b7a85197c15fbbe87e08c736259935d6@epcas3p1.samsung.com>
- <1483632384-8107-3-git-send-email-sean.wang@mediatek.com>
+Received: from smtp.220.in.ua ([89.184.67.205]:33613 "EHLO smtp.220.in.ua"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751367AbdA2SHe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 29 Jan 2017 13:07:34 -0500
+From: Oleh Kravchenko <oleg@kaa.org.ua>
+To: Steven Toth <stoth@kernellabs.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jacob Johan Verkuil <hverkuil@xs4all.nl>,
+        Antti Palosaari <crope@iki.fi>
+Cc: Oleh Kravchenko <oleg@kaa.org.ua>
+Subject: [PATCH] [media] cx231xx: Fix I2C on Internal Master 3 Bus
+Date: Sun, 29 Jan 2017 20:07:31 +0200
+Message-Id: <20170129180731.8708-1-oleg@kaa.org.ua>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sean,
+Internal Master 3 Bus can send and receive only 4 bytes per time.
 
-> +	ir->rc = rc_allocate_device();
+Signed-off-by: Oleh Kravchenko <oleg@kaa.org.ua>
+---
+ drivers/media/usb/cx231xx/cx231xx-core.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-Yes, you should use devm_rc_allocate_device(...)
+diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
+index 550ec93..46646ec 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-core.c
++++ b/drivers/media/usb/cx231xx/cx231xx-core.c
+@@ -355,7 +355,12 @@ int cx231xx_send_vendor_cmd(struct cx231xx *dev,
+ 	 */
+ 	if ((ven_req->wLength > 4) && ((ven_req->bRequest == 0x4) ||
+ 					(ven_req->bRequest == 0x5) ||
+-					(ven_req->bRequest == 0x6))) {
++					(ven_req->bRequest == 0x6) ||
++
++					/* Internal Master 3 Bus can send
++					 * and receive only 4 bytes per time
++					 */
++					(ven_req->bRequest == 0x2))) {
+ 		unsend_size = 0;
+ 		pdata = ven_req->pBuff;
+ 
+-- 
+2.10.2
 
-Besides, standing to this patch which is not in yet:
-
-https://lkml.org/lkml/2016/12/18/39
-
-rc_allocate_device should provide the driver type during
-allocation, so it should be:
-
-	ir->rc = rc_allocate_device(RC_DRIVER_IR_RAW);
-
-and this line can be removed:
-
-> +	ir->rc->driver_type = RC_DRIVER_IR_RAW;
-
-I don't know when Mauro will take the patch above.
-
-Andi
