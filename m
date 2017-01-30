@@ -1,90 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Date: Fri, 6 Jan 2017 11:26:25 -0700
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-To: Jerome Glisse <jglisse@redhat.com>
-Cc: Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
-        Jerome Glisse <j.glisse@gmail.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>,
-        "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>,
-        "'linux-nvdimm@lists.01.org'" <linux-nvdimm@ml01.01.org>,
-        "'Linux-media@vger.kernel.org'" <Linux-media@vger.kernel.org>,
-        "'dri-devel@lists.freedesktop.org'" <dri-devel@lists.freedesktop.org>,
-        "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>, hch@infradead.org,
-        david1.zhou@amd.com, qiang.yu@amd.com
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Message-ID: <20170106182625.GB5724@obsidianresearch.com>
-References: <20170105190113.GA12587@obsidianresearch.com>
- <20170105195424.GB2166@redhat.com>
- <20170105200719.GB31047@obsidianresearch.com>
- <20170105201935.GC2166@redhat.com>
- <20170105224215.GA3855@obsidianresearch.com>
- <20170105232352.GB6426@redhat.com>
- <20170106003034.GB4670@obsidianresearch.com>
- <20170106015831.GA2226@gmail.com>
- <f07700d5-211f-d091-2b0b-fbaf03c4a959@amd.com>
- <20170106173722.GB3804@redhat.com>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:36829 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752896AbdA3JoZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 30 Jan 2017 04:44:25 -0500
+Received: by mail-wm0-f67.google.com with SMTP id r18so4725444wmd.3
+        for <linux-media@vger.kernel.org>; Mon, 30 Jan 2017 01:44:25 -0800 (PST)
+Date: Mon, 30 Jan 2017 10:44:20 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Tvrtko Ursulin <tursulin@ursulin.net>
+Cc: Intel-gfx@lists.freedesktop.org,
+        Tomasz Stanislawski <t.stanislaws@samsung.com>,
+        Pawel Osciak <pawel@osciak.com>, linux-kernel@vger.kernel.org,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Matt Porter <mporter@kernel.crashing.org>,
+        linux-media@vger.kernel.org,
+        Alexandre Bounine <alexandre.bounine@idt.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [Intel-gfx] [PATCH 1/4] lib/scatterlist: Fix offset type in
+ sg_alloc_table_from_pages
+Message-ID: <20170130094420.gf6ajmbt6jfk2m7h@phenom.ffwll.local>
+References: <1484575930-6810-1-git-send-email-tvrtko.ursulin@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170106173722.GB3804@redhat.com>
+In-Reply-To: <1484575930-6810-1-git-send-email-tvrtko.ursulin@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 06, 2017 at 12:37:22PM -0500, Jerome Glisse wrote:
-> On Fri, Jan 06, 2017 at 11:56:30AM -0500, Serguei Sagalovitch wrote:
-> > On 2017-01-05 08:58 PM, Jerome Glisse wrote:
-> > > On Thu, Jan 05, 2017 at 05:30:34PM -0700, Jason Gunthorpe wrote:
-> > > > On Thu, Jan 05, 2017 at 06:23:52PM -0500, Jerome Glisse wrote:
-> > > > 
-> > > > > > I still don't understand what you driving at - you've said in both
-> > > > > > cases a user VMA exists.
-> > > > > In the former case no, there is no VMA directly but if you want one than
-> > > > > a device can provide one. But such VMA is useless as CPU access is not
-> > > > > expected.
-> > > > I disagree it is useless, the VMA is going to be necessary to support
-> > > > upcoming things like CAPI, you need it to support O_DIRECT from the
-> > > > filesystem, DPDK, etc. This is why I am opposed to any model that is
-> > > > not VMA based for setting up RDMA - that is shorted sighted and does
-> > > > not seem to reflect where the industry is going.
-> > > > 
-> > > > So focus on having VMA backed by actual physical memory that covers
-> > > > your GPU objects and ask how do we wire up the '__user *' to the DMA
-> > > > API in the best way so the DMA API still has enough information to
-> > > > setup IOMMUs and whatnot.
-> > > I am talking about 2 different thing. Existing hardware and API where you
-> > > _do not_ have a vma and you do not need one. This is just
-> > > > existing stuff.
+Hi all,
 
-> > I do not understand why you assume that existing API doesn't  need one.
-> > I would say that a lot of __existing__ user level API and their support in
-> > kernel (especially outside of graphics domain) assumes that we have vma and
-> > deal with __user * pointers.
+Ok if we merge the entire series through drm-intel (likely for 4.12, 4.11
+is getting a bit late)? We'd like to use this there, and Mauro already
+reviewed the v4l side ...
 
-+1
+Thanks, Daniel
 
-> Well i am thinking to GPUDirect here. Some of GPUDirect use case do not have
-> vma (struct vm_area_struct) associated with them they directly apply to GPU
-> object that aren't expose to CPU. Yes some use case have vma for share buffer.
+On Mon, Jan 16, 2017 at 02:12:07PM +0000, Tvrtko Ursulin wrote:
+> From: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
+> 
+> Scatterlist entries have an unsigned int for the offset so
+> correct the sg_alloc_table_from_pages function accordingly.
+> 
+> Since these are offsets withing a page, unsigned int is
+> wide enough.
+> 
+> Also converts callers which were using unsigned long locally
+> with the lower_32_bits annotation to make it explicitly
+> clear what is happening.
+> 
+> v2: Use offset_in_page. (Chris Wilson)
+> 
+> Signed-off-by: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
+> Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+> Cc: Pawel Osciak <pawel@osciak.com>
+> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> Cc: Matt Porter <mporter@kernel.crashing.org>
+> Cc: Alexandre Bounine <alexandre.bounine@idt.com>
+> Cc: linux-media@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
+> Acked-by: Marek Szyprowski <m.szyprowski@samsung.com> (v1)
+> Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
+> Reviewed-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-dma-contig.c | 4 ++--
+>  drivers/rapidio/devices/rio_mport_cdev.c       | 4 ++--
+>  include/linux/scatterlist.h                    | 2 +-
+>  lib/scatterlist.c                              | 2 +-
+>  4 files changed, 6 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> index fb6a177be461..51e8765bc3c6 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> @@ -478,7 +478,7 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
+>  {
+>  	struct vb2_dc_buf *buf;
+>  	struct frame_vector *vec;
+> -	unsigned long offset;
+> +	unsigned int offset;
+>  	int n_pages, i;
+>  	int ret = 0;
+>  	struct sg_table *sgt;
+> @@ -506,7 +506,7 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
+>  	buf->dev = dev;
+>  	buf->dma_dir = dma_dir;
+>  
+> -	offset = vaddr & ~PAGE_MASK;
+> +	offset = lower_32_bits(offset_in_page(vaddr));
+>  	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
+>  	if (IS_ERR(vec)) {
+>  		ret = PTR_ERR(vec);
+> diff --git a/drivers/rapidio/devices/rio_mport_cdev.c b/drivers/rapidio/devices/rio_mport_cdev.c
+> index 9013a585507e..0fae29ff47ba 100644
+> --- a/drivers/rapidio/devices/rio_mport_cdev.c
+> +++ b/drivers/rapidio/devices/rio_mport_cdev.c
+> @@ -876,10 +876,10 @@ rio_dma_transfer(struct file *filp, u32 transfer_mode,
+>  	 * offset within the internal buffer specified by handle parameter.
+>  	 */
+>  	if (xfer->loc_addr) {
+> -		unsigned long offset;
+> +		unsigned int offset;
+>  		long pinned;
+>  
+> -		offset = (unsigned long)(uintptr_t)xfer->loc_addr & ~PAGE_MASK;
+> +		offset = lower_32_bits(offset_in_page(xfer->loc_addr));
+>  		nr_pages = PAGE_ALIGN(xfer->length + offset) >> PAGE_SHIFT;
+>  
+>  		page_list = kmalloc_array(nr_pages,
+> diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
+> index cb3c8fe6acd7..c981bee1a3ae 100644
+> --- a/include/linux/scatterlist.h
+> +++ b/include/linux/scatterlist.h
+> @@ -263,7 +263,7 @@ int __sg_alloc_table(struct sg_table *, unsigned int, unsigned int,
+>  int sg_alloc_table(struct sg_table *, unsigned int, gfp_t);
+>  int sg_alloc_table_from_pages(struct sg_table *sgt,
+>  	struct page **pages, unsigned int n_pages,
+> -	unsigned long offset, unsigned long size,
+> +	unsigned int offset, unsigned long size,
+>  	gfp_t gfp_mask);
+>  
+>  size_t sg_copy_buffer(struct scatterlist *sgl, unsigned int nents, void *buf,
+> diff --git a/lib/scatterlist.c b/lib/scatterlist.c
+> index 004fc70fc56a..e05e7fc98892 100644
+> --- a/lib/scatterlist.c
+> +++ b/lib/scatterlist.c
+> @@ -391,7 +391,7 @@ EXPORT_SYMBOL(sg_alloc_table);
+>   */
+>  int sg_alloc_table_from_pages(struct sg_table *sgt,
+>  	struct page **pages, unsigned int n_pages,
+> -	unsigned long offset, unsigned long size,
+> +	unsigned int offset, unsigned long size,
+>  	gfp_t gfp_mask)
+>  {
+>  	unsigned int chunks;
+> -- 
+> 2.7.4
+> 
+> _______________________________________________
+> Intel-gfx mailing list
+> Intel-gfx@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/intel-gfx
 
-Lets stop talkind about GPU direct. Today we can't even make VMA
-pointing at a PCI bar work properly in the kernel - lets start there
-please. People can argue over other options once that is done.
-
-> For HMM plan is to restrict to ODP and either to replace ODP with HMM or change
-> ODP to not use get_user_pages_remote() but directly fetch informations from
-> CPU page table. Everything else stay as it is. I posted patchset to replace
-> ODP with HMM in the past.
-
-Make a generic API for all of this and you'd have my vote..
-
-IMHO, you must support basic pinning semantics - that is necessary to
-support generic short lived DMA (eg filesystem, etc). That hardware
-can clearly do that if it can support ODP.
-
-Jason
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
