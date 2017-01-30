@@ -1,183 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:45729
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751774AbdAZJKP (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:34371 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753562AbdA3OJE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 26 Jan 2017 04:10:15 -0500
-Date: Thu, 26 Jan 2017 07:10:02 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org,
-        Helen Koike <helen.koike@collabora.co.uk>
-Subject: Re: [RFC v3 00/21] Make use of kref in media device, grab
- references as needed
-Message-ID: <20170126071002.38795fb9@vento.lan>
-In-Reply-To: <20170125110231.GL3205@valkosipuli.retiisi.org.uk>
-References: <20161109154608.1e578f9e@vento.lan>
-        <20161213102447.60990b1c@vento.lan>
-        <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
-        <7529355.zfqFdROYdM@avalon>
-        <896ef36c-435e-6899-5ae8-533da7731ec1@xs4all.nl>
-        <20161216150723.GL16630@valkosipuli.retiisi.org.uk>
-        <20161219074655.3238113b@vento.lan>
-        <20170102075348.GF3958@valkosipuli.retiisi.org.uk>
-        <20170124084902.07414171@vento.lan>
-        <20170125110231.GL3205@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Mon, 30 Jan 2017 09:09:04 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 15/16] sama5d3 dts: enable atmel-isi
+Date: Mon, 30 Jan 2017 15:06:27 +0100
+Message-Id: <20170130140628.18088-16-hverkuil@xs4all.nl>
+In-Reply-To: <20170130140628.18088-1-hverkuil@xs4all.nl>
+References: <20170130140628.18088-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 25 Jan 2017 13:02:31 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Hi Mauro,
-> 
-> On Tue, Jan 24, 2017 at 08:49:02AM -0200, Mauro Carvalho Chehab wrote:
-> > Hi Sakari,
-> > 
-> > Just returned this week from vacations. I'm reading my long e-mail backlog,
-> > starting from my main inbox...
-> > 
-> > Em Mon, 2 Jan 2017 09:53:49 +0200
-> > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> >   
-> > > Hi Mauro,
-> > > 
-> > > On Mon, Dec 19, 2016 at 07:46:55AM -0200, Mauro Carvalho Chehab wrote:  
-> > > > Em Fri, 16 Dec 2016 17:07:23 +0200
-> > > > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> > > >     
-> > > > > Hi Hans,    
-> > > >     
-> > > > > > chrdev_open in fs/char_dev.c increases the refcount on open() and decreases it
-> > > > > > on release(). Thus ensuring that the cdev can never be removed while in an
-> > > > > > ioctl.      
-> > > > > 
-> > > > > It does, but it does not affect memory which is allocated separately of that.
-> > > > > 
-> > > > > See this:
-> > > > > 
-> > > > > <URL:https://www.mail-archive.com/linux-media@vger.kernel.org/msg106390.html>    
-> > > > 
-> > > > That sounds promising. If this bug issues other drivers than OMAP3,
-> > > > then indeed the core has a bug.
-> > > > 
-> > > > I'll see if I can reproduce it here with some USB drivers later this week.    
-> > > 
-> > > It's not a driver problem so yes, it is reproducible on other hardware.  
-> > 
-> > Didn't have time to test it before entering into vacations.
-> > 
-> > I guess I won't have any time this week to test those issues on
-> > my hardware, as I suspect that my patch queue is full. Also, we're
-> > approaching the next merge window. So, unfortunately, I won't have
-> > much time those days to do much testing. 
-> > 
-> > Btw, Hans commented that you were planning to working on it this month.
-> > 
-> > Do you have some news with regards to the media controller bind/unbind
-> > fixes?  
-> 
-> I have a bunch of meeting notes to send from the Oslo meeting with Hans and
-> Laurent; I should have that ready by the end of the week. The RFC patchset
-> certainly needs changes based on that.
+This illustrates the changes needed to the dts in order to hook up the
+ov7670. I don't plan on merging this.
 
-OK. I'll wait for your notes and the new patchset.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ arch/arm/boot/dts/at91-sama5d3_xplained.dts | 61 ++++++++++++++++++++++++++---
+ arch/arm/boot/dts/sama5d3.dtsi              |  4 +-
+ 2 files changed, 58 insertions(+), 7 deletions(-)
 
-> > > > While IMHO it is overkill trying to support hot plug on omap3, I won't
-> > > > mind if you do that, provided that your patch series can be applied in
-> > > > a way that it won't cause regressions for real hot-pluggable hardware.    
-> > > 
-> > > This is not really about the OMAP3 ISP driver hotplug support; it is indeed
-> > > about the framework's ability to support hotpluggable hardware. The current
-> > > painpoint is removing hardware; the current frameworks aren't quite up to
-> > > that at the moment.  
-> > 
-> > The point here is that, while it would be fun to allow unbinding OMAP3
-> > V4L2 drivers, OMAP3 doesn't really require hotplug support. On the other
-> > hand, on USB drivers, where unbind is a requirement, the current status
-> > of the tree is that hotplug works. I did some massive parallel bind/unbind
-> > loops here to double check, when we added such fixup patches. Granted, I
-> > won't doubt that there are still some rare race conditions that I was
-> > unable to reproduce on the time I tested. I also didn't try to hack the
-> > Kernel to introduce extra delays to make those race conditions more
-> > likely to happen.
-> > 
-> > Anyway, my main concern with this patch is that it breaks hotplug on devices
-> > that really need it, while it fix support only for OMAP3 (with doesn't need).  
-> 
-> I don't disagree with you. Obviously the intent is not to break
-> hot-pluggable hardware, albeit the changes needed to avoid that haven't been
-> implemented yet. (One of the reasons it's been RFC all the time.)
-> 
-> > 
-> > Also, it starts with a series of patches that will cause regressions.
-> > 
-> > I won't matter changing the solution to some other approach that would
-> > work, provided that the patches are added on an incremented way, and
-> > won't introduce regressions to USB drivers.  
-> 
-> It may be possible to avoid increasing the time window during which bad
-> things could happen before fully removing them.
+diff --git a/arch/arm/boot/dts/at91-sama5d3_xplained.dts b/arch/arm/boot/dts/at91-sama5d3_xplained.dts
+index c51fc65..2af24f7 100644
+--- a/arch/arm/boot/dts/at91-sama5d3_xplained.dts
++++ b/arch/arm/boot/dts/at91-sama5d3_xplained.dts
+@@ -65,18 +65,53 @@
+ 				status = "okay";
+ 			};
+ 
++			isi0: isi@f0034000 {
++				status = "okay";
++				port {
++					#address-cells = <1>;
++					#size-cells = <0>;
++					isi_0: endpoint {
++						reg = <0>;
++						remote-endpoint = <&ov7670_0>;
++						bus-width = <8>;
++						vsync-active = <1>;
++						hsync-active = <1>;
++					};
++				};
++			};
++
+ 			i2c0: i2c@f0014000 {
+ 				pinctrl-0 = <&pinctrl_i2c0_pu>;
+-				status = "okay";
++				status = "disabled";
+ 			};
+ 
+ 			i2c1: i2c@f0018000 {
+ 				status = "okay";
+ 
++				ov7670: camera@0x21 {
++					compatible = "ovti,ov7670";
++					reg = <0x21>;
++					pinctrl-names = "default";
++					pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
++					resetb-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
++					pwdn-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
++					clocks = <&pck0>;
++					clock-names = "xclk";
++					assigned-clocks = <&pck0>;
++					assigned-clock-rates = <25000000>;
++
++					port {
++						ov7670_0: endpoint {
++							remote-endpoint = <&isi_0>;
++							bus-width = <8>;
++						};
++					};
++				};
++
+ 				pmic: act8865@5b {
+ 					compatible = "active-semi,act8865";
+ 					reg = <0x5b>;
+-					status = "disabled";
++					status = "okay";
+ 
+ 					regulators {
+ 						vcc_1v8_reg: DCDC_REG1 {
+@@ -130,7 +165,7 @@
+ 			pwm0: pwm@f002c000 {
+ 				pinctrl-names = "default";
+ 				pinctrl-0 = <&pinctrl_pwm0_pwmh0_0 &pinctrl_pwm0_pwmh1_0>;
+-				status = "okay";
++				status = "disabled";
+ 			};
+ 
+ 			usart0: serial@f001c000 {
+@@ -143,7 +178,7 @@
+ 			};
+ 
+ 			uart0: serial@f0024000 {
+-				status = "okay";
++				status = "disabled";
+ 			};
+ 
+ 			mmc1: mmc@f8000000 {
+@@ -181,7 +216,7 @@
+ 			i2c2: i2c@f801c000 {
+ 				dmas = <0>, <0>;	/* Do not use DMA for i2c2 */
+ 				pinctrl-0 = <&pinctrl_i2c2_pu>;
+-				status = "okay";
++				status = "disabled";
+ 			};
+ 
+ 			macb1: ethernet@f802c000 {
+@@ -200,6 +235,22 @@
+ 			};
+ 
+ 			pinctrl@fffff200 {
++				camera_sensor {
++					pinctrl_pck0_as_isi_mck: pck0_as_isi_mck-0 {
++						atmel,pins =
++							<AT91_PIOD 30 AT91_PERIPH_B AT91_PINCTRL_NONE>;	/* ISI_MCK */
++					};
++
++					pinctrl_sensor_power: sensor_power-0 {
++						atmel,pins =
++							<AT91_PIOE 13 AT91_PERIPH_GPIO AT91_PINCTRL_NONE>;
++					};
++
++					pinctrl_sensor_reset: sensor_reset-0 {
++						atmel,pins =
++							<AT91_PIOE 11 AT91_PERIPH_GPIO AT91_PINCTRL_NONE>;
++					};
++				};
+ 				board {
+ 					pinctrl_i2c0_pu: i2c0_pu {
+ 						atmel,pins =
+diff --git a/arch/arm/boot/dts/sama5d3.dtsi b/arch/arm/boot/dts/sama5d3.dtsi
+index b06448b..099570e 100644
+--- a/arch/arm/boot/dts/sama5d3.dtsi
++++ b/arch/arm/boot/dts/sama5d3.dtsi
+@@ -176,7 +176,7 @@
+ 				#address-cells = <1>;
+ 				#size-cells = <0>;
+ 				clocks = <&twi1_clk>;
+-				status = "disabled";
++				status = "ok";
+ 			};
+ 
+ 			usart0: serial@f001c000 {
+@@ -235,7 +235,7 @@
+ 				pinctrl-0 = <&pinctrl_isi_data_0_7>;
+ 				clocks = <&isi_clk>;
+ 				clock-names = "isi_clk";
+-				status = "disabled";
++				status = "ok";
+ 				port {
+ 					#address-cells = <1>;
+ 					#size-cells = <0>;
+-- 
+2.10.2
 
-The fix should be to protecting those windows by either a kref, lock or
-a lockless (RCU) approach.
-
-> However the patchset is a
-> lot easier to work with without bundling the reverts into other (and likely
-> multiple) patches as the reverted patches took quite a different direction
-> than is followed in this patchset.
-
-Doing the reverts before doing the fixes do break things. What you're
-reverting is basically the logic that unbinds the struct media_devnode
-from struct media_device. This is independent from whatever changes
-you would be doing at struct media_device. So, you could do all changes
-there, apply such changes on OMAP3 and on the USB drivers and then
-rebind struct media_devnode at struct media_device[1].
-
-[1] assuming that everyone agrees that rebinding it is for the best.
-I still think that having a separate struct is better - but this is
-something that I'll analise again after seeing the hole picture after
-your changes - and the rationale for it.
-
-> 
-> Let's discuss this later, at the time when we have a patchset that produces
-> a sound code base (on the top of that patchset) that is understood to be
-> free of object lifetime issues as long as hot-pluggable hardware goes.
-
-Let's discuss it later when you submit your newer RFC patchset on the
-top of the upstream code.
-
-> >   
-> > > > On that matter, just like we use vivid as a testbench and as an
-> > > > example for other drivers, it would be great if we could merge
-> > > > the vimc driver. What's the status of Helen's patchset?    
-> > > 
-> > > That's a good point. I wasn't reviewing that driver back then when the
-> > > patches were posted, but should it go in, it should make a good example for
-> > > writing other drivers as well.
-> > >   
-> > 
-> > I saw Laurent's comments about Helen's last patch series. From his
-> > comments:
-> > 
-> > 	"I've reviewed the whole patch but haven't had time to test it. I've also 
-> > 	 skipped the items marked as TODO or FIXME as they're obviously not ready yet 
-> > 	 :-) Overall this looks good to me, all the issues are minor."
-> > 
-> > Helen promised a new version fixing those minor issues. Perhaps we should merge
-> > her next series upstream with such issues addressed and see how it behaves.  
-> 
-> I'll review Helen's set next.
-
-Thanks!
-
-
-Regards,
-Mauro
