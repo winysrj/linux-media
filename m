@@ -1,52 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f44.google.com ([209.85.214.44]:38605 "EHLO
-        mail-it0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751160AbdANQB7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 14 Jan 2017 11:01:59 -0500
-Received: by mail-it0-f44.google.com with SMTP id x2so58297876itf.1
-        for <linux-media@vger.kernel.org>; Sat, 14 Jan 2017 08:01:38 -0800 (PST)
+Received: from gofer.mess.org ([80.229.237.210]:53107 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750850AbdA3RKZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 30 Jan 2017 12:10:25 -0500
+Date: Mon, 30 Jan 2017 17:10:22 +0000
+From: Sean Young <sean@mess.org>
+To: Derek Robson <robsonde@gmail.com>
+Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] Staging: media: lirc: style fix, using octal file
+ permissions
+Message-ID: <20170130171022.GA16673@gofer.mess.org>
+References: <20170107030255.19042-1-robsonde@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAEm3SNCszAdpYYHjv3chxYNH2qDJtKoRdQzNO=konoGcZsou-g@mail.gmail.com>
-References: <CAEm3SNCszAdpYYHjv3chxYNH2qDJtKoRdQzNO=konoGcZsou-g@mail.gmail.com>
-From: Michael Ira Krufky <mkrufky@linuxtv.org>
-Date: Sat, 14 Jan 2017 11:01:37 -0500
-Message-ID: <CAOcJUbzfgb0VYBuh47mLjZGq+5OP=yhAYgS-mD3PQ0RZ104mMA@mail.gmail.com>
-Subject: Re: Problem with Hauppauge WinTV-HVR-1250
-To: Justin Husted <valentinej@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170107030255.19042-1-robsonde@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 13, 2017 at 11:56 PM, Justin Husted <valentinej@gmail.com> wrote:
-> Hi!
->
-> I recently got one of these cards on ebay to do some analog video capturing,
-> and I'm having a few problems with it on the 4.4.0 kernel.
->
-> I wasn't really sure who the maintainer is for this stuff, but I saw your
-> name in the Linux MAINTAINERS file for the tda18271, which seems to be one
-> of the relevant drivers. :-)
->
-> Are you the person to talk to, or do you know who is?
->
-> Thanks!
-> -Justin
->
+On Sat, Jan 07, 2017 at 04:02:55PM +1300, Derek Robson wrote:
+> Change file permissions to octal style.
+> Found using checkpatch
+> 
+> Signed-off-by: Derek Robson <robsonde@gmail.com>
+> ---
+>  drivers/staging/media/lirc/lirc_imon.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/staging/media/lirc/lirc_imon.c b/drivers/staging/media/lirc/lirc_imon.c
+> index 1e650fba4a92..6c8a4a15278e 100644
+> --- a/drivers/staging/media/lirc/lirc_imon.c
+> +++ b/drivers/staging/media/lirc/lirc_imon.c
+> @@ -182,7 +182,7 @@ MODULE_DESCRIPTION(MOD_DESC);
+>  MODULE_VERSION(MOD_VERSION);
+>  MODULE_LICENSE("GPL");
+>  MODULE_DEVICE_TABLE(usb, imon_usb_id_table);
+> -module_param(debug, int, S_IRUGO | S_IWUSR);
+> +module_param(debug, int, 0644);
+>  MODULE_PARM_DESC(debug, "Debug messages: 0=no, 1=yes(default: no)");
+>  
+>  static void free_imon_context(struct imon_context *context)
+
+In the current media tree, drivers/staging/media/lirc/lirc_imon.c has
+been merged with drivers/media/rc/imon.c already, I'm afraid. This
+patch no longer applies.
 
 
-Justin,
-
-Better to email the linux-media mailing list on kernel.org with this
-type of question (cc added)
-
-What is the problem that you're having in the 4.4.0 kernel?
-
-Which is the most recent kernel that works for you correctly?
-
-Do you have logs that illustrate your problem?
-
-Best regards,
-
-Mike
+Sean
