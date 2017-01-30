@@ -1,345 +1,335 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:46083 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1032324AbdAFMtQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 6 Jan 2017 07:49:16 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 3/9] [media] lirc: use plain kfifo rather than lirc_buffer
-Date: Fri,  6 Jan 2017 12:49:06 +0000
-Message-Id: <7d93613edfd25752a3a958cea0b19c8c90e0a47c.1483706563.git.sean@mess.org>
-In-Reply-To: <cover.1483706563.git.sean@mess.org>
-References: <cover.1483706563.git.sean@mess.org>
-In-Reply-To: <cover.1483706563.git.sean@mess.org>
-References: <cover.1483706563.git.sean@mess.org>
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:50858 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752050AbdA3LnD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 30 Jan 2017 06:43:03 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v1 2/3] [media] st-delta: add parsing metadata controls support
+Date: Mon, 30 Jan 2017 11:57:28 +0100
+Message-ID: <1485773849-23945-3-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1485773849-23945-1-git-send-email-hugues.fruchet@st.com>
+References: <1485773849-23945-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since a lirc char device can only be opened once, there can only be one
-reader. By using a plain kfifo we don't need a spinlock and we can use
-kfifo_to_user. The code is much simplified.
+Install all metadata controls required by registered decoders.
+Update the decoding context with the set of metadata received
+from user through extended control.
+Set the received metadata in access unit prior to call the
+decoder decoding ops.
 
-Unfortunately we cannot eliminate lirc_buffer from the tree yet, as there
-are still some staging lirc drivers which use it.
-
-Signed-off-by: Sean Young <sean@mess.org>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
- drivers/media/rc/ir-lirc-codec.c | 105 ++++++++++++++++++++++++++-------------
- drivers/media/rc/rc-core-priv.h  |  26 ++++++++++
- 2 files changed, 96 insertions(+), 35 deletions(-)
+ drivers/media/platform/sti/delta/delta-v4l2.c | 125 +++++++++++++++++++++++++-
+ drivers/media/platform/sti/delta/delta.h      |  34 +++++++
+ 2 files changed, 158 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index b78a402..46dfcec 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -19,8 +19,6 @@
- #include <media/rc-core.h>
- #include "rc-core-priv.h"
- 
--#define LIRCBUF_SIZE 256
--
- /**
-  * ir_lirc_raw_event() - Send raw IR data to lirc to be relayed to userspace
-  *
-@@ -32,10 +30,7 @@
- int ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev)
- {
- 	struct lirc_codec *lirc = &dev->raw->lirc;
--	int sample;
--
--	if (!dev->raw->lirc.drv || !dev->raw->lirc.drv->rbuf)
--		return -EINVAL;
-+	unsigned int sample;
- 
- 	/* Packet start */
- 	if (ev.reset) {
-@@ -70,10 +65,7 @@ int ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev)
- 
- 	/* Normal sample */
- 	} else {
--
- 		if (lirc->gap) {
--			int gap_sample;
--
- 			lirc->gap_duration += ktime_to_ns(ktime_sub(ktime_get(),
- 				lirc->gap_start));
- 
-@@ -82,9 +74,7 @@ int ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev)
- 			lirc->gap_duration = min(lirc->gap_duration,
- 							(u64)LIRC_VALUE_MASK);
- 
--			gap_sample = LIRC_SPACE(lirc->gap_duration);
--			lirc_buffer_write(dev->raw->lirc.drv->rbuf,
--						(unsigned char *) &gap_sample);
-+			kfifo_put(&lirc->kfifo, LIRC_SPACE(lirc->gap_duration));
- 			lirc->gap = false;
- 		}
- 
-@@ -94,9 +84,8 @@ int ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev)
- 			   TO_US(ev.duration), TO_STR(ev.pulse));
+diff --git a/drivers/media/platform/sti/delta/delta-v4l2.c b/drivers/media/platform/sti/delta/delta-v4l2.c
+index 8ad6a45..f61ff1e 100644
+--- a/drivers/media/platform/sti/delta/delta-v4l2.c
++++ b/drivers/media/platform/sti/delta/delta-v4l2.c
+@@ -335,6 +335,30 @@ static void register_decoders(struct delta_dev *delta)
  	}
- 
--	lirc_buffer_write(dev->raw->lirc.drv->rbuf,
--			  (unsigned char *) &sample);
--	wake_up(&dev->raw->lirc.drv->rbuf->wait_poll);
-+	kfifo_put(&lirc->kfifo, sample);
-+	wake_up_poll(&lirc->wait_poll, POLLIN);
- 
- 	return 0;
- }
-@@ -317,8 +306,67 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
- 	return ret;
  }
  
-+static unsigned int ir_lirc_poll_ir(struct file *filep,
-+				    struct poll_table_struct *wait)
++static void register_ctrls(struct delta_dev *delta)
 +{
-+	struct lirc_codec *lirc = lirc_get_pdata(filep);
-+	unsigned int events = 0;
++	const struct delta_dec *dec;
++	unsigned int i, j;
++	u32 meta_cid;
 +
-+	if (!lirc->drv->attached)
-+		return POLLERR;
++	/* decoders optional meta controls */
++	for (i = 0; i < delta->nb_of_decoders; i++) {
++		dec = delta->decoders[i];
++		if (!dec->meta_cids)
++			continue;
 +
-+	poll_wait(filep, &lirc->wait_poll, wait);
++		for (j = 0; j < dec->nb_of_metas; j++) {
++			meta_cid = dec->meta_cids[j];
++			if (!meta_cid)
++				continue;
 +
-+	if (!lirc->drv->attached)
-+		events = POLLERR;
-+	else if (!kfifo_is_empty(&lirc->kfifo))
-+		events = POLLIN | POLLRDNORM;
++			delta->cids[delta->nb_of_ctrls++] = meta_cid;
++		}
++	}
 +
-+	return events;
++	/* add here additional controls if needed */
 +}
 +
-+static ssize_t ir_lirc_read_ir(struct file *filep, char __user *buffer,
-+			       size_t length, loff_t *ppos)
+ static void delta_lock(void *priv)
+ {
+ 	struct delta_ctx *ctx = priv;
+@@ -351,6 +375,79 @@ static void delta_unlock(void *priv)
+ 	mutex_unlock(&delta->lock);
+ }
+ 
++static int delta_s_ctrl(struct v4l2_ctrl *ctrl)
 +{
-+	struct lirc_codec *lirc = lirc_get_pdata(filep);
-+	unsigned int copied;
-+	int ret;
++	struct delta_ctx *ctx =
++		container_of(ctrl->handler, struct delta_ctx, ctrl_handler);
++	struct delta_dev *delta = ctx->dev;
 +
-+	if (length % sizeof(unsigned int))
++	if (ctx->nb_of_metas >= DELTA_MAX_METAS) {
++		dev_err(delta->dev, "%s not enough room to set meta control\n",
++			ctx->name);
 +		return -EINVAL;
++	}
 +
-+	if (!lirc->drv->attached)
-+		return -ENODEV;
++	dev_dbg(delta->dev, "%s set metas[%d] from control id=%d (%s)\n",
++		ctx->name, ctx->nb_of_metas, ctrl->id, ctrl->name);
 +
-+	do {
-+		if (kfifo_is_empty(&lirc->kfifo)) {
-+			if (filep->f_flags & O_NONBLOCK)
-+				return -EAGAIN;
++	ctx->metas[ctx->nb_of_metas].cid = ctrl->id;
++	ctx->metas[ctx->nb_of_metas].p = ctrl->p_new.p;
++	ctx->nb_of_metas++;
 +
-+			ret = wait_event_interruptible(lirc->wait_poll,
-+					!kfifo_is_empty(&lirc->kfifo) ||
-+					!lirc->drv->attached);
-+			if (ret)
-+				return ret;
++	return 0;
++}
++
++static const struct v4l2_ctrl_ops delta_ctrl_ops = {
++	.s_ctrl = delta_s_ctrl,
++};
++
++static int delta_ctrls_setup(struct delta_ctx *ctx)
++{
++	struct delta_dev *delta = ctx->dev;
++	struct v4l2_ctrl_handler *hdl = &ctx->ctrl_handler;
++	unsigned int i;
++
++	v4l2_ctrl_handler_init(hdl, delta->nb_of_ctrls);
++
++	for (i = 0; i < delta->nb_of_ctrls; i++) {
++		struct v4l2_ctrl *ctrl;
++		u32 cid = delta->cids[i];
++		struct v4l2_ctrl_config cfg;
++
++		/* override static config to set delta_ctrl_ops */
++		memset(&cfg, 0, sizeof(cfg));
++		cfg.id = cid;
++		cfg.ops = &delta_ctrl_ops;
++
++		ctrl = v4l2_ctrl_new_custom(hdl, &cfg, NULL);
++		if (hdl->error) {
++			int err = hdl->error;
++
++			dev_err(delta->dev, "%s failed to setup control '%s' (id=%d, size=%d, err=%d)\n",
++				ctx->name, cfg.name, cfg.id,
++				cfg.elem_size, err);
++			v4l2_ctrl_handler_free(hdl);
++			return err;
 +		}
 +
-+		if (!lirc->drv->attached)
-+			return -ENODEV;
++		/* force unconditional execution of s_ctrl() by
++		 * disabling control value evaluation in case of
++		 * meta control (passed by pointer)
++		 */
++		if (ctrl->is_ptr)
++			ctrl->flags |= V4L2_CTRL_FLAG_EXECUTE_ON_WRITE;
++	}
 +
-+		ret = kfifo_to_user(&lirc->kfifo, buffer, length, &copied);
-+		if (ret)
-+			return ret;
-+	} while (copied == 0);
++	v4l2_ctrl_handler_setup(hdl);
++	ctx->fh.ctrl_handler = hdl;
 +
-+	return copied;
++	ctx->nb_of_metas = 0;
++	memset(ctx->metas, 0, sizeof(ctx->metas));
++
++	dev_dbg(delta->dev, "%s controls setup done\n", ctx->name);
++	return 0;
 +}
 +
- static int ir_lirc_open(void *data)
+ static int delta_open_decoder(struct delta_ctx *ctx, u32 streamformat,
+ 			      u32 pixelformat, const struct delta_dec **pdec)
  {
-+	struct lirc_codec *lirc = data;
+@@ -957,6 +1054,12 @@ static void delta_run_work(struct work_struct *work)
+ 	au->size = vb2_get_plane_payload(&vbuf->vb2_buf, 0);
+ 	au->dts = vbuf->vb2_buf.timestamp;
+ 
++	/* set access unit meta data in case of decoder requires it */
++	memcpy(au->metas, ctx->metas, ctx->nb_of_metas * sizeof(au->metas[0]));
++	au->nb_of_metas = ctx->nb_of_metas;
++	/* reset context metas for next decoding */
++	ctx->nb_of_metas = 0;
 +
-+	kfifo_reset_out(&lirc->kfifo);
+ 	/* dump access unit */
+ 	dump_au(ctx, au);
+ 
+@@ -1353,6 +1456,12 @@ static int delta_vb2_au_start_streaming(struct vb2_queue *q,
+ 	au->size = vb2_get_plane_payload(&vbuf->vb2_buf, 0);
+ 	au->dts = vbuf->vb2_buf.timestamp;
+ 
++	/* set access unit meta data in case of decoder requires it */
++	memcpy(au->metas, ctx->metas, ctx->nb_of_metas * sizeof(au->metas[0]));
++	au->nb_of_metas = ctx->nb_of_metas;
++	/* reset context metas for next decoding */
++	ctx->nb_of_metas = 0;
 +
- 	return 0;
- }
+ 	delta_push_dts(ctx, au->dts);
  
-@@ -334,8 +382,8 @@ static const struct file_operations lirc_fops = {
- #ifdef CONFIG_COMPAT
- 	.compat_ioctl	= ir_lirc_ioctl,
- #endif
--	.read		= lirc_dev_fop_read,
--	.poll		= lirc_dev_fop_poll,
-+	.read		= ir_lirc_read_ir,
-+	.poll		= ir_lirc_poll_ir,
- 	.open		= lirc_dev_fop_open,
- 	.release	= lirc_dev_fop_close,
- 	.llseek		= no_llseek,
-@@ -344,21 +392,12 @@ static const struct file_operations lirc_fops = {
- int ir_lirc_register(struct rc_dev *dev)
- {
- 	struct lirc_driver *drv;
--	struct lirc_buffer *rbuf;
- 	int rc = -ENOMEM;
- 	unsigned long features;
+ 	/* dump access unit */
+@@ -1645,6 +1754,13 @@ static int delta_open(struct file *file)
+ 	file->private_data = &ctx->fh;
+ 	v4l2_fh_add(&ctx->fh);
  
--	drv = kzalloc(sizeof(struct lirc_driver), GFP_KERNEL);
-+	drv = kzalloc(sizeof(*drv), GFP_KERNEL);
- 	if (!drv)
--		return rc;
--
--	rbuf = kzalloc(sizeof(struct lirc_buffer), GFP_KERNEL);
--	if (!rbuf)
--		goto rbuf_alloc_failed;
--
--	rc = lirc_buffer_init(rbuf, sizeof(int), LIRCBUF_SIZE);
--	if (rc)
--		goto rbuf_init_failed;
-+		return -ENOMEM;
++	ret = delta_ctrls_setup(ctx);
++	if (ret) {
++		dev_err(delta->dev, "%s failed to setup controls (%d)\n",
++			DELTA_PREFIX, ret);
++		goto err_fh_del;
++	}
++
+ 	INIT_WORK(&ctx->run_work, delta_run_work);
+ 	mutex_init(&ctx->lock);
  
- 	features = LIRC_CAN_REC_MODE2;
- 	if (dev->tx_ir) {
-@@ -389,7 +428,6 @@ int ir_lirc_register(struct rc_dev *dev)
- 	drv->minor = -1;
- 	drv->features = features;
- 	drv->data = &dev->raw->lirc;
--	drv->rbuf = rbuf;
- 	drv->set_use_inc = &ir_lirc_open;
- 	drv->set_use_dec = &ir_lirc_close;
- 	drv->code_length = sizeof(struct ir_raw_event) * 8;
-@@ -397,6 +435,8 @@ int ir_lirc_register(struct rc_dev *dev)
- 	drv->dev = &dev->dev;
- 	drv->rdev = dev;
- 	drv->owner = THIS_MODULE;
-+	INIT_KFIFO(dev->raw->lirc.kfifo);
-+	init_waitqueue_head(&dev->raw->lirc.wait_poll);
+@@ -1654,7 +1770,7 @@ static int delta_open(struct file *file)
+ 		ret = PTR_ERR(ctx->fh.m2m_ctx);
+ 		dev_err(delta->dev, "%s failed to initialize m2m context (%d)\n",
+ 			DELTA_PREFIX, ret);
+-		goto err_fh_del;
++		goto err_ctrls;
+ 	}
  
- 	drv->minor = lirc_register_driver(drv);
- 	if (drv->minor < 0) {
-@@ -409,11 +449,7 @@ int ir_lirc_register(struct rc_dev *dev)
+ 	/* wait stream format to determine which
+@@ -1688,6 +1804,8 @@ static int delta_open(struct file *file)
+ 
  	return 0;
  
- lirc_register_failed:
--rbuf_init_failed:
--	kfree(rbuf);
--rbuf_alloc_failed:
- 	kfree(drv);
--
- 	return rc;
- }
++err_ctrls:
++	v4l2_ctrl_handler_free(&ctx->ctrl_handler);
+ err_fh_del:
+ 	v4l2_fh_del(&ctx->fh);
+ 	v4l2_fh_exit(&ctx->fh);
+@@ -1716,6 +1834,8 @@ static int delta_release(struct file *file)
  
-@@ -421,9 +457,8 @@ int ir_lirc_unregister(struct rc_dev *dev)
- {
- 	struct lirc_codec *lirc = &dev->raw->lirc;
+ 	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
  
-+	wake_up_poll(&lirc->wait_poll, POLLERR);
- 	lirc_unregister_driver(lirc->drv->minor);
--	lirc_buffer_free(lirc->drv->rbuf);
--	kfree(lirc->drv->rbuf);
- 
- 	return 0;
- }
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index 6819310..f612340 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -19,7 +19,11 @@
- /* Define the max number of pulse/space transitions to buffer */
- #define	MAX_IR_EVENT_SIZE	512
- 
-+/* Define the number */
-+#define LIRCBUF_SIZE		256
++	v4l2_ctrl_handler_free(&ctx->ctrl_handler);
 +
- #include <linux/slab.h>
-+#include <media/lirc_dev.h>
- #include <media/rc-core.h>
+ 	v4l2_fh_del(&ctx->fh);
+ 	v4l2_fh_exit(&ctx->fh);
  
- struct ir_raw_handler {
-@@ -47,6 +51,7 @@ struct ir_raw_event_ctrl {
- 	/* raw decoder state follows */
- 	struct ir_raw_event prev_ev;
- 	struct ir_raw_event this_ev;
-+#if IS_ENABLED(CONFIG_IR_NEC_DECODER)
- 	struct nec_dec {
- 		int state;
- 		unsigned count;
-@@ -54,12 +59,16 @@ struct ir_raw_event_ctrl {
- 		bool is_nec_x;
- 		bool necx_repeat;
- 	} nec;
-+#endif
-+#if IS_ENABLED(CONFIG_IR_RC5_DECODER)
- 	struct rc5_dec {
- 		int state;
- 		u32 bits;
- 		unsigned count;
- 		bool is_rc5x;
- 	} rc5;
-+#endif
-+#if IS_ENABLED(CONFIG_IR_RC6_DECODER)
- 	struct rc6_dec {
- 		int state;
- 		u8 header;
-@@ -68,11 +77,15 @@ struct ir_raw_event_ctrl {
- 		unsigned count;
- 		unsigned wanted_bits;
- 	} rc6;
-+#endif
-+#if IS_ENABLED(CONFIG_IR_SONY_DECODER)
- 	struct sony_dec {
- 		int state;
- 		u32 bits;
- 		unsigned count;
- 	} sony;
-+#endif
-+#if IS_ENABLED(CONFIG_IR_JVC_DECODER)
- 	struct jvc_dec {
- 		int state;
- 		u16 bits;
-@@ -81,17 +94,23 @@ struct ir_raw_event_ctrl {
- 		bool first;
- 		bool toggle;
- 	} jvc;
-+#endif
-+#if IS_ENABLED(CONFIG_IR_SANYO_DECODER)
- 	struct sanyo_dec {
- 		int state;
- 		unsigned count;
- 		u64 bits;
- 	} sanyo;
-+#endif
-+#if IS_ENABLED(CONFIG_IR_SHARP_DECODER)
- 	struct sharp_dec {
- 		int state;
- 		unsigned count;
- 		u32 bits;
- 		unsigned int pulse_len;
- 	} sharp;
-+#endif
-+#if IS_ENABLED(CONFIG_IR_MCE_KBD_DECODER)
- 	struct mce_kbd_dec {
- 		struct input_dev *idev;
- 		struct timer_list rx_timeout;
-@@ -103,9 +122,13 @@ struct ir_raw_event_ctrl {
- 		unsigned count;
- 		unsigned wanted_bits;
- 	} mce_kbd;
-+#endif
-+#if IS_ENABLED(CONFIG_IR_LIRC_CODEC)
- 	struct lirc_codec {
- 		struct rc_dev *dev;
- 		struct lirc_driver *drv;
-+		DECLARE_KFIFO(kfifo, unsigned int, LIRCBUF_SIZE);
-+		wait_queue_head_t wait_poll;
- 		int carrier_low;
+@@ -1871,6 +1991,9 @@ static int delta_probe(struct platform_device *pdev)
+ 	/* register all supported formats */
+ 	register_formats(delta);
  
- 		ktime_t gap_start;
-@@ -114,11 +137,14 @@ struct ir_raw_event_ctrl {
- 		bool send_timeout_reports;
++	/* register all supported controls */
++	register_ctrls(delta);
++
+ 	/* register on V4L2 */
+ 	ret = v4l2_device_register(dev, &delta->v4l2_dev);
+ 	if (ret) {
+diff --git a/drivers/media/platform/sti/delta/delta.h b/drivers/media/platform/sti/delta/delta.h
+index 60c07324..0893948 100644
+--- a/drivers/media/platform/sti/delta/delta.h
++++ b/drivers/media/platform/sti/delta/delta.h
+@@ -8,6 +8,7 @@
+ #define DELTA_H
  
- 	} lirc;
-+#endif
-+#if IS_ENABLED(CONFIG_IR_XMP_DECODER)
- 	struct xmp_dec {
- 		int state;
- 		unsigned count;
- 		u32 durations[16];
- 	} xmp;
-+#endif
+ #include <linux/rpmsg.h>
++#include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-mem2mem.h>
+ 
+@@ -86,6 +87,19 @@ struct delta_streaminfo {
+ #define DELTA_STREAMINFO_FLAG_OTHER		0x0004
+ 
+ /*
++ * struct delta_meta - access unit metadata structure.
++ *
++ * @cid:	control identifier for this meta
++ * @p:		pointer to control data
++ */
++struct delta_meta {
++	u32 cid;
++	void *p;
++};
++
++#define DELTA_MAX_METAS 20
++
++/*
+  * struct delta_au - access unit structure.
+  *
+  * @vbuf:	video buffer information for V4L2
+@@ -106,6 +120,8 @@ struct delta_au {
+ 	dma_addr_t paddr;
+ 	u32 flags;
+ 	u64 dts;
++	struct delta_meta metas[DELTA_MAX_METAS];
++	unsigned int nb_of_metas;
  };
  
- /* macros for IR decoders */
+ /*
+@@ -229,6 +245,9 @@ struct delta_ipc_param {
+  * @name:		name of this decoder
+  * @streamformat:	input stream format that this decoder support
+  * @pixelformat:	pixel format of decoded frame that this decoder support
++ * @meta_cids:		(optional) meta control identifiers if decoder needs
++ *			additional parsing metadata to be able to decode
++ * @nb_of_metas:	(optional) nb of meta controls
+  * @max_width:		(optional) maximum width that can decode this decoder
+  *			if not set, maximum width is DELTA_MAX_WIDTH
+  * @max_height:		(optional) maximum height that can decode this decoder
+@@ -251,6 +270,8 @@ struct delta_dec {
+ 	const char *name;
+ 	u32 streamformat;
+ 	u32 pixelformat;
++	const u32 *meta_cids;
++	unsigned int nb_of_metas;
+ 	u32 max_width;
+ 	u32 max_height;
+ 	bool pm;
+@@ -396,11 +417,17 @@ struct delta_dec {
+ 
+ struct delta_dev;
+ 
++#define DELTA_MAX_CTRLS  (DELTA_MAX_DECODERS * DELTA_MAX_METAS)
++
+ /*
+  * struct delta_ctx - instance structure.
+  *
+  * @flags:		validity of fields (streaminfo)
+  * @fh:			V4L2 file handle
++ * @ctrl_handler:	controls handler
++ * @metas:		set of parsing metadata required to
++ *			decode the current access unit
++ * @nb_of_metas:	number of metatada
+  * @dev:		device context
+  * @dec:		selected decoder context for this instance
+  * @ipc_ctx:		context of IPC communication with firmware
+@@ -433,6 +460,9 @@ struct delta_dec {
+ struct delta_ctx {
+ 	u32 flags;
+ 	struct v4l2_fh fh;
++	struct v4l2_ctrl_handler ctrl_handler;
++	struct delta_meta metas[DELTA_MAX_METAS];
++	unsigned int nb_of_metas;
+ 	struct delta_dev *dev;
+ 	const struct delta_dec *dec;
+ 	struct delta_ipc_ctx ipc_ctx;
+@@ -483,6 +513,8 @@ struct delta_ctx {
+  * @nb_of_pixelformats:	number of supported umcompressed video formats
+  * @streamformats:	supported compressed video formats
+  * @nb_of_streamformats:number of supported compressed video formats
++ * @cids:		set of all control identifiers used by device
++ * @nb_of_ctrls:	overall number of controls used by device
+  * @instance_id:	rolling counter identifying an instance (debug purpose)
+  * @work_queue:		decoding job work queue
+  * @rpmsg_driver:	rpmsg IPC driver
+@@ -504,6 +536,8 @@ struct delta_dev {
+ 	u32 nb_of_pixelformats;
+ 	u32 streamformats[DELTA_MAX_FORMATS];
+ 	u32 nb_of_streamformats;
++	u32 cids[DELTA_MAX_CTRLS];
++	u32 nb_of_ctrls;
+ 	u8 instance_id;
+ 	struct workqueue_struct *work_queue;
+ 	struct rpmsg_driver rpmsg_driver;
 -- 
-2.9.3
+1.9.1
 
