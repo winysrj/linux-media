@@ -1,87 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:33228 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750708AbdAWKOc (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:50460 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753508AbdA3OIH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Jan 2017 05:14:32 -0500
-Subject: Re: [PATCHv2 4/4] s5p-cec: add hpd-notifier support, move out of
- staging
-To: Andrzej Hajda <a.hajda@samsung.com>, linux-media@vger.kernel.org
-References: <1483366747-34288-1-git-send-email-hverkuil@xs4all.nl>
- <CGME20170102141935epcas1p3b093bcf648e1fa5873683cea60803f60@epcas1p3.samsung.com>
- <1483366747-34288-5-git-send-email-hverkuil@xs4all.nl>
- <4dd103b4-6f9b-8ef5-540e-6c5673b82c98@samsung.com>
- <9652e8a9-1f5e-eadd-e588-b3051b0a8eb3@xs4all.nl>
- <ac040a2a-f6f4-cd6d-05a7-54bc2a8b7e86@samsung.com>
-Cc: Russell King <linux@armlinux.org.uk>,
-        dri-devel@lists.freedesktop.org,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
+        Mon, 30 Jan 2017 09:08:07 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <16e95a75-9b08-bf87-76b9-99ed573d1869@xs4all.nl>
-Date: Mon, 23 Jan 2017 11:14:17 +0100
-MIME-Version: 1.0
-In-Reply-To: <ac040a2a-f6f4-cd6d-05a7-54bc2a8b7e86@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 02/16] ov7670: fix g/s_parm
+Date: Mon, 30 Jan 2017 15:06:14 +0100
+Message-Id: <20170130140628.18088-3-hverkuil@xs4all.nl>
+In-Reply-To: <20170130140628.18088-1-hverkuil@xs4all.nl>
+References: <20170130140628.18088-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/04/2017 09:44 AM, Andrzej Hajda wrote:
-> On 03.01.2017 09:11, Hans Verkuil wrote:
->> On 01/03/2017 09:00 AM, Andrzej Hajda wrote:
->>> Is there a reason to split registration into two steps?
->>> Wouldn't be better to integrate hpd_notifier_get into
->>> cec_register_hpd_notifier.
->> One problem is that hpd_notifier_get can fail, whereas cec_register_hpd_notifier can't.
->> And I rather not have to register a CEC device only to unregister it again if the
->> hpd_notifier_get would fail.
-> 
-> hpd_notifier_get can fail only due to lack of memory for about 150 bytes
-> so if it happens whole system will probably fail anyway :)
-> 
-> 
->>
->> Another reason is that this keeps the responsibility of the hpd_notifier life-time
->> handling in the driver instead of hiding it in the CEC framework, which is IMHO
->> unexpected.
-> 
-> Notifier is used only by CEC framework, so IMHO it would be desirable to
-> put CEC specific things into CEC framework.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The CEC framework is just the first that needs it. But especially audio drivers also
-want to use it. It was designed to help out both subsystems since both need the EDID/ELD.
+Drop unnecesary memset. Drop the unnecessary extendedmode check and
+set the V4L2_CAP_TIMEPERFRAME capability.
 
-Regards,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/ov7670.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-	Hans
-
-> Drivers duty is just to find notifier device.
-> Leaving it as is will just put little more burden on drivers, so this is
-> not big deal, do as you wish :)
-> 
-> Regards
-> Andrzej
-> 
->>
->> I think I want to keep this as-is, at least for now.
->>
->> Regards,
->>
->> 	Hans
->>
->>
->>
->>
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+index 9af8d3b..50e4466 100644
+--- a/drivers/media/i2c/ov7670.c
++++ b/drivers/media/i2c/ov7670.c
+@@ -1046,7 +1046,6 @@ static int ov7670_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
+ 	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+ 
+-	memset(cp, 0, sizeof(struct v4l2_captureparm));
+ 	cp->capability = V4L2_CAP_TIMEPERFRAME;
+ 	info->devtype->get_framerate(sd, &cp->timeperframe);
+ 
+@@ -1061,9 +1060,8 @@ static int ov7670_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
+ 
+ 	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+-	if (cp->extendedmode != 0)
+-		return -EINVAL;
+ 
++	cp->capability = V4L2_CAP_TIMEPERFRAME;
+ 	return info->devtype->set_framerate(sd, tpf);
+ }
+ 
+-- 
+2.10.2
 
