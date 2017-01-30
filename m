@@ -1,230 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:57672 "EHLO
-        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965382AbdADOzn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2017 09:55:43 -0500
-Subject: Re: [PATCH v2 14/19] media: imx: Add Camera Interface subdev driver
-To: Steve Longerbeam <slongerbeam@gmail.com>, <shawnguo@kernel.org>,
-        <kernel@pengutronix.de>, <fabio.estevam@nxp.com>,
-        <robh+dt@kernel.org>, <mark.rutland@arm.com>,
-        <linux@armlinux.org.uk>, <mchehab@kernel.org>,
-        <gregkh@linuxfoundation.org>, <p.zabel@pengutronix.de>
-References: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
- <1483477049-19056-15-git-send-email-steve_longerbeam@mentor.com>
-CC: <linux-arm-kernel@lists.infradead.org>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-media@vger.kernel.org>, <devel@driverdev.osuosl.org>,
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:40466 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753659AbdA3Par (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 30 Jan 2017 10:30:47 -0500
+Date: Mon, 30 Jan 2017 15:28:22 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
         Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Message-ID: <4a893d70-f34a-9fb1-401f-bcb954e3a2cb@mentor.com>
-Date: Wed, 4 Jan 2017 16:55:36 +0200
+Subject: Re: [PATCH v3 16/24] media: Add i.MX media core driver
+Message-ID: <20170130152822.GB27312@n2100.armlinux.org.uk>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <1483755102-24785-17-git-send-email-steve_longerbeam@mentor.com>
+ <1484320822.31475.96.camel@pengutronix.de>
+ <a94025b4-c4dd-de51-572e-d2615a7246e4@gmail.com>
+ <1484574468.8415.136.camel@pengutronix.de>
+ <e38feca9-ed6f-8288-e006-768d6ba2fe5a@gmail.com>
+ <1485170006.2874.63.camel@pengutronix.de>
 MIME-Version: 1.0
-In-Reply-To: <1483477049-19056-15-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1485170006.2874.63.camel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/03/2017 10:57 PM, Steve Longerbeam wrote:
-> This is the camera interface driver that provides the v4l2
-> user interface. Frames can be received from various sources:
+On Mon, Jan 23, 2017 at 12:13:26PM +0100, Philipp Zabel wrote:
+> Hi Steve,
 > 
-> - directly from SMFC for capturing unconverted images directly from
->   camera sensors.
+> On Sun, 2017-01-22 at 18:31 -0800, Steve Longerbeam wrote:
+> > Second, ignoring the above locking issue for a moment, 
+> > v4l2_pipeline_pm_use()
+> > will call s_power on the sensor _first_, then the mipi csi-2 s_power, 
+> > when executing
+> > media-ctl -l '"ov5640 1-003c":0 -> "imx6-mipi-csi2":0[1]'. Which is the 
+> > wrong order.
+> > In my version which enforces the correct power on order, the mipi csi-2 
+> > s_power
+> > is called first in that link setup, followed by the sensor.
 > 
-> - from the IC pre-process encode task.
-> 
-> - from the IC pre-process viewfinder task.
-> 
-> - from the IC post-process task.
-> 
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> ---
->  drivers/staging/media/imx/Makefile    |    2 +-
->  drivers/staging/media/imx/imx-camif.c | 1010 +++++++++++++++++++++++++++++++++
->  2 files changed, 1011 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/staging/media/imx/imx-camif.c
-> 
-> diff --git a/drivers/staging/media/imx/Makefile b/drivers/staging/media/imx/Makefile
-> index d2a962c..fe9e992 100644
-> --- a/drivers/staging/media/imx/Makefile
-> +++ b/drivers/staging/media/imx/Makefile
-> @@ -8,4 +8,4 @@ obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-ic.o
->  
->  obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-csi.o
->  obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-smfc.o
-> -
-> +obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-camif.o
+> I don't understand why you want to power up subdevs as soon as the links
+> are established. Shouldn't that rather be done for all subdevices in the
+> pipeline when the corresponding capture device is opened?
+> It seems to me that powering up the pipeline should be the last step
+> before userspace actually starts the capture.
 
-obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-camif.o imx-csi.o imx-smfc.o
+I agree with Philipp here - configuration of the software pipeline
+shouldn't result in hardware being forced to be powered up.  That's
+more of a decision for the individual sub-driver than for core.
 
-as an option.
+Executing media-ctl to enable a link between two sub-device endpoints
+should really be a matter of setting the software state, and when the
+video device is opened for streaming, surely that's when the hardware
+in the chain between the source and the capture device should be
+powered up and programmed.
 
-> diff --git a/drivers/staging/media/imx/imx-camif.c b/drivers/staging/media/imx/imx-camif.c
-> new file mode 100644
-> index 0000000..3cf167e
-> --- /dev/null
-> +++ b/drivers/staging/media/imx/imx-camif.c
-> @@ -0,0 +1,1010 @@
-> +/*
-> + * Video Camera Capture Subdev for Freescale i.MX5/6 SOC
-> + *
-> + * Copyright (c) 2012-2016 Mentor Graphics Inc.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + */
-> +#include <linux/module.h>
-> +#include <linux/delay.h>
-> +#include <linux/fs.h>
-> +#include <linux/timer.h>
-> +#include <linux/sched.h>
-> +#include <linux/slab.h>
-> +#include <linux/spinlock.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/pinctrl/consumer.h>
-> +#include <linux/of_platform.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-ioctl.h>
-> +#include <media/videobuf2-dma-contig.h>
-> +#include <media/v4l2-subdev.h>
-> +#include <media/v4l2-of.h>
-> +#include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-event.h>
-
-Please sort the list of headers alphabetically.
-
-> +#include <video/imx-ipu-v3.h>
-> +#include <media/imx.h>
-> +#include "imx-media.h"
-> +
-> +#define DEVICE_NAME "imx-media-camif"
-
-I would propose to drop this macro.
-
-> +
-> +#define CAMIF_NUM_PADS 2
-> +
-> +#define CAMIF_DQ_TIMEOUT        5000
-
-Add a comment about time unit?
-
-> +
-> +struct camif_priv;
-> +
-
-This is a leftover apparently.
-
-> +struct camif_priv {
-> +	struct device         *dev;
-> +	struct video_device    vfd;
-> +	struct media_pipeline  mp;
-> +	struct imx_media_dev  *md;
-
-[snip]
-
-> +static int camif_probe(struct platform_device *pdev)
-> +{
-> +	struct imx_media_internal_sd_platformdata *pdata;
-> +	struct camif_priv *priv;
-> +	struct video_device *vfd;
-> +	int ret;
-> +
-> +	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
-> +	if (!priv)
-> +		return -ENOMEM;
-> +
-> +	platform_set_drvdata(pdev, priv);
-> +	priv->dev = &pdev->dev;
-> +
-> +	pdata = priv->dev->platform_data;
-> +
-> +	mutex_init(&priv->mutex);
-> +	spin_lock_init(&priv->q_lock);
-> +
-> +	v4l2_subdev_init(&priv->sd, &camif_subdev_ops);
-> +	v4l2_set_subdevdata(&priv->sd, priv);
-> +	priv->sd.internal_ops = &camif_internal_ops;
-> +	priv->sd.entity.ops = &camif_entity_ops;
-> +	priv->sd.entity.function = MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER;
-> +	priv->sd.dev = &pdev->dev;
-> +	priv->sd.owner = THIS_MODULE;
-> +	/* get our group id and camif id */
-> +	priv->sd.grp_id = pdata->grp_id;
-> +	priv->id = (pdata->grp_id >> IMX_MEDIA_GRP_ID_CAMIF_BIT) - 1;
-> +	strncpy(priv->sd.name, pdata->sd_name, sizeof(priv->sd.name));
-> +	snprintf(camif_videodev.name, sizeof(camif_videodev.name),
-> +		 "%s devnode", pdata->sd_name);
-> +
-> +	priv->sd.flags = V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
-> +
-> +	vfd = &priv->vfd;
-> +	*vfd = camif_videodev;
-> +	vfd->lock = &priv->mutex;
-> +	vfd->queue = &priv->buffer_queue;
-> +
-> +	video_set_drvdata(vfd, priv);
-> +
-> +	v4l2_ctrl_handler_init(&priv->ctrl_hdlr, 0);
-> +
-> +	ret = v4l2_async_register_subdev(&priv->sd);
-> +	if (ret)
-> +		goto free_ctrls;
-> +
-> +	return 0;
-> +free_ctrls:
-> +	v4l2_ctrl_handler_free(&priv->ctrl_hdlr);
-> +	return ret;
-
-A shorter version:
-
-if (ret)
-	v4l2_ctrl_handler_free(&priv->ctrl_hdlr);
-
-return ret;
-
-> +}
-> +
-> +static int camif_remove(struct platform_device *pdev)
-> +{
-> +	struct camif_priv *priv =
-> +		(struct camif_priv *)platform_get_drvdata(pdev);
-> +
-> +	v4l2_ctrl_handler_free(&priv->ctrl_hdlr);
-> +	v4l2_async_unregister_subdev(&priv->sd);
-> +	media_entity_cleanup(&priv->sd.entity);
-> +	v4l2_device_unregister_subdev(&priv->sd);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct platform_device_id camif_ids[] = {
-> +	{ .name = DEVICE_NAME },
-> +	{ },
-> +};
-> +MODULE_DEVICE_TABLE(platform, camif_ids);
-> +
-> +static struct platform_driver imx_camif_driver = {
-> +	.probe		= camif_probe,
-> +	.remove		= camif_remove,
-> +	.driver		= {
-> +		.name	= DEVICE_NAME,
-> +		.owner	= THIS_MODULE,
-
-Please drop the owner assignment.
-
-> +	},
-> +};
-> +
-> +module_platform_driver(imx_camif_driver);
-> +
-> +MODULE_DESCRIPTION("i.MX camera interface subdev driver");
-> +MODULE_AUTHOR("Steve Longerbeam <steve_longerbeam@mentor.com>");
-> +MODULE_LICENSE("GPL");
-> 
-
---
-With best wishes,
-Vladimir
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
