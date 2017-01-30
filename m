@@ -1,89 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:48008 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753529AbdA3OJC (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:33095 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751110AbdA3RrU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Jan 2017 09:09:02 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 12/16] ov2640: add MC support
-Date: Mon, 30 Jan 2017 15:06:24 +0100
-Message-Id: <20170130140628.18088-13-hverkuil@xs4all.nl>
-In-Reply-To: <20170130140628.18088-1-hverkuil@xs4all.nl>
-References: <20170130140628.18088-1-hverkuil@xs4all.nl>
+        Mon, 30 Jan 2017 12:47:20 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Avraham Shukron <avraham.shukron@gmail.com>
+Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] Staging: omap4iss: fix coding style issues
+Date: Mon, 30 Jan 2017 19:47:40 +0200
+Message-ID: <4008193.dpuA6Cf6Yl@avalon>
+In-Reply-To: <1485626408-9768-1-git-send-email-avraham.shukron@gmail.com>
+References: <1485626408-9768-1-git-send-email-avraham.shukron@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hello Avraham,
 
-The MC support is needed by the em28xx driver.
+Thank you for the patch.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/ov2640.c | 21 +++++++++++++++++++--
- 1 file changed, 19 insertions(+), 2 deletions(-)
+On Saturday 28 Jan 2017 20:00:08 Avraham Shukron wrote:
+> This is a patch that fixes checkpatch.pl issues in omap4iss/iss_video.c
+> Specifically, it fixes "line over 80 characters" issues
+> 
+> Signed-off-by: Avraham Shukron <avraham.shukron@gmail.com>
 
-diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
-index bd96889..29d4217 100644
---- a/drivers/media/i2c/ov2640.c
-+++ b/drivers/media/i2c/ov2640.c
-@@ -281,6 +281,9 @@ struct ov2640_win_size {
- 
- struct ov2640_priv {
- 	struct v4l2_subdev		subdev;
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	struct media_pad pad;
-+#endif
- 	struct v4l2_ctrl_handler	hdl;
- 	u32	cfmt_code;
- 	struct clk			*clk;
-@@ -1053,19 +1056,30 @@ static int ov2640_probe(struct i2c_client *client,
- 		ret = priv->hdl.error;
- 		goto err_hdl;
- 	}
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	priv->pad.flags = MEDIA_PAD_FL_SOURCE;
-+	priv->subdev.entity.function = MEDIA_ENT_F_CAM_SENSOR;
-+	ret = media_entity_pads_init(&priv->subdev.entity, 1, &priv->pad);
-+	if (ret < 0)
-+		goto err_hdl;
-+#endif
- 
- 	ret = ov2640_video_probe(client);
- 	if (ret < 0)
--		goto err_hdl;
-+		goto err_videoprobe;
- 
- 	ret = v4l2_async_register_subdev(&priv->subdev);
- 	if (ret < 0)
--		goto err_hdl;
-+		goto err_videoprobe;
- 
- 	dev_info(&adapter->dev, "OV2640 Probed\n");
- 
- 	return 0;
- 
-+err_videoprobe:
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	media_entity_cleanup(&priv->subdev.entity);
-+#endif
- err_hdl:
- 	v4l2_ctrl_handler_free(&priv->hdl);
- 	return ret;
-@@ -1077,6 +1091,9 @@ static int ov2640_remove(struct i2c_client *client)
- 
- 	v4l2_async_unregister_subdev(&priv->subdev);
- 	v4l2_ctrl_handler_free(&priv->hdl);
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	media_entity_cleanup(&priv->subdev.entity);
-+#endif
- 	v4l2_device_unregister_subdev(&priv->subdev);
- 	return 0;
- }
+This looks OK to me. I've applied the patch to my tree and will push it to 
+v4.11.
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/staging/media/omap4iss/iss_video.c | 7 ++++---
+>  1 file changed, 4 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/staging/media/omap4iss/iss_video.c
+> b/drivers/staging/media/omap4iss/iss_video.c index c16927a..cdab053 100644
+> --- a/drivers/staging/media/omap4iss/iss_video.c
+> +++ b/drivers/staging/media/omap4iss/iss_video.c
+> @@ -298,7 +298,8 @@ iss_video_check_format(struct iss_video *video, struct
+> iss_video_fh *vfh)
+> 
+>  static int iss_video_queue_setup(struct vb2_queue *vq,
+>  				 unsigned int *count, unsigned int 
+*num_planes,
+> -				 unsigned int sizes[], struct device 
+*alloc_devs[])
+> +				 unsigned int sizes[],
+> +				 struct device *alloc_devs[])
+>  {
+>  	struct iss_video_fh *vfh = vb2_get_drv_priv(vq);
+>  	struct iss_video *video = vfh->video;
+> @@ -678,8 +679,8 @@ iss_video_get_selection(struct file *file, void *fh,
+> struct v4l2_selection *sel) if (subdev == NULL)
+>  		return -EINVAL;
+> 
+> -	/* Try the get selection operation first and fallback to get format if 
+not
+> -	 * implemented.
+> +	/* Try the get selection operation first and fallback to get format if
+> +	 * not implemented.
+>  	 */
+>  	sdsel.pad = pad;
+>  	ret = v4l2_subdev_call(subdev, pad, get_selection, NULL, &sdsel);
+
 -- 
-2.10.2
+Regards,
+
+Laurent Pinchart
 
