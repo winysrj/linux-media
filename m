@@ -1,100 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:42370 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750827AbdAKWxj (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59573 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751222AbdA3Kgr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Jan 2017 17:53:39 -0500
-Date: Wed, 11 Jan 2017 23:53:35 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: robh+dt@kernel.org, devicetree@vger.kernel.org,
-        ivo.g.dimitrov.75@gmail.com, sakari.ailus@iki.fi, sre@kernel.org,
-        pali.rohar@gmail.com, linux-media@vger.kernel.org
-Subject: [PATCHv2] dt: bindings: Add support for CSI1 bus
-Message-ID: <20170111225335.GA21553@amd>
-References: <20161228183036.GA13139@amd>
+        Mon, 30 Jan 2017 05:36:47 -0500
+Received: from avalon.localnet (unknown [91.179.29.12])
+        by galahad.ideasonboard.com (Postfix) with ESMTPSA id 0282220098
+        for <linux-media@vger.kernel.org>; Mon, 30 Jan 2017 11:36:05 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v4.11] uvcvideo changes
+Date: Mon, 30 Jan 2017 12:37:07 +0200
+Message-ID: <1751022.MDrEgGuLi4@avalon>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="OgqxwSJOaUobr8KG"
-Content-Disposition: inline
-In-Reply-To: <20161228183036.GA13139@amd>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
 
---OgqxwSJOaUobr8KG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The following changes since commit 40eca140c404505c09773d1c6685d818cb55ab1a:
 
-=46rom: Sakari Ailus <sakari.ailus@iki.fi>
+  [media] mn88473: add DVB-T2 PLP support (2016-12-27 14:00:15 -0200)
 
-In the vast majority of cases the bus type is known to the driver(s)
-since a receiver or transmitter can only support a single one. There
-are cases however where different options are possible.
+are available in the git repository at:
 
-The existing V4L2 OF support tries to figure out the bus type and
-parse the bus parameters based on that. This does not scale too well
-as there are multiple serial busses that share common properties.
+  git://linuxtv.org/pinchartl/media.git uvc/next
 
-Some hardware also supports multiple types of busses on the same
-interfaces.
+for you to fetch changes up to eeb7ba86db3cf031b659bae245ca56d38dc44741:
 
-Document the CSI1/CCP2 property strobe. It signifies the clock or
-strobe mode.
-=20
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
+  uvcvideo: Change result code of debugfs_init to void (2017-01-19 02:07:10 
++0200)
 
-diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b=
-/Documentation/devicetree/bindings/media/video-interfaces.txt
-index 9cd2a36..08c4498 100644
---- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-+++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-@@ -76,6 +76,11 @@ Optional endpoint properties
-   mode horizontal and vertical synchronization signals are provided to the
-   slave device (data source) by the master device (data sink). In the mast=
-er
-   mode the data source device is also the source of the synchronization si=
-gnals.
-+- bus-type: data bus type. Possible values are:
-+  0 - MIPI CSI2
-+  1 - parallel / Bt656
-+  2 - MIPI CSI1
-+  3 - CCP2
- - bus-width: number of data lines actively used, valid for the parallel bu=
-sses.
- - data-shift: on the parallel data busses, if bus-width is used to specify=
- the
-   number of data lines, data-shift can be used to specify which data lines=
- are
-@@ -112,7 +117,8 @@ Optional endpoint properties
-   should be the combined length of data-lanes and clock-lanes properties.
-   If the lane-polarities property is omitted, the value must be interpreted
-   as 0 (normal). This property is valid for serial busses only.
--
-+- strobe: Whether the clock signal is used as clock or strobe. Used
-+  with CCP2, for instance.
-=20
- Example
- -------
+----------------------------------------------------------------
+Guennadi Liakhovetski (3):
+      uvcvideo: (cosmetic) Add and use an inline function
+      uvcvideo: (cosmetic) Remove a superfluous assignment
+      uvcvideo: Fix a wrong macro
 
+Jaejoong Kim (1):
+      uvcvideo: Change result code of debugfs_init to void
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+ drivers/media/usb/uvc/uvc_debugfs.c | 15 ++++++---------
+ drivers/media/usb/uvc/uvc_queue.c   | 13 +++++++++----
+ drivers/media/usb/uvc/uvc_video.c   |  3 +--
+ drivers/media/usb/uvc/uvcvideo.h    |  4 ++--
+ 4 files changed, 18 insertions(+), 17 deletions(-)
 
---OgqxwSJOaUobr8KG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+-- 
+Regards,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Laurent Pinchart
 
-iEYEARECAAYFAlh2t28ACgkQMOfwapXb+vIINgCgueEw4j3V6VYxvch0HxpyBvq7
-d8IAn3flrg3hAddXCR4AnmIYIwa49pRm
-=Nhjo
------END PGP SIGNATURE-----
-
---OgqxwSJOaUobr8KG--
