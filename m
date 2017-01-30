@@ -1,42 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:33158 "EHLO
-        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750924AbdAPQeZ (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:34146 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753557AbdA3OJE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 16 Jan 2017 11:34:25 -0500
-Subject: Re: [PATCH 1/5] [media] ir-rx51: port to rc-core
-To: Sean Young <sean@mess.org>
-References: <cover.1482255894.git.sean@mess.org>
- <f5262cc638a494f238ef96a80d8f45265ca2fd02.1482255894.git.sean@mess.org>
- <5878d916-6a60-d5c3-b912-948b5b970661@gmail.com>
- <20161230130752.GA7377@gofer.mess.org> <20161230133030.GA7861@gofer.mess.org>
- <1e4fa726-5dec-028e-9f0f-1c53d58df981@gmail.com>
- <20170116101053.GA24265@gofer.mess.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Timo Kokkonen <timo.t.kokkonen@iki.fi>,
-        Pavel Machek <pavel@ucw.cz>,
-        =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Message-ID: <750f3570-8acb-1707-c929-421518a38516@gmail.com>
-Date: Mon, 16 Jan 2017 18:34:19 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170116101053.GA24265@gofer.mess.org>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+        Mon, 30 Jan 2017 09:09:04 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 14/16] em28xx: drop last soc_camera link
+Date: Mon, 30 Jan 2017 15:06:26 +0100
+Message-Id: <20170130140628.18088-15-hverkuil@xs4all.nl>
+In-Reply-To: <20170130140628.18088-1-hverkuil@xs4all.nl>
+References: <20170130140628.18088-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 16.01.2017 12:10, Sean Young wrote:
->
-> Have you had a chance to test the ir-rx51 changes?
->
-> Thanks
-> Sean
->
+The em28xx driver still used the soc_camera.h header for the ov2640
+driver. Since this driver no longer uses soc_camera, that include can
+be removed.
 
-Still no, and afaik there are issues booting n900 with current kernel. 
-Will try to find time over the weekend.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/em28xx/em28xx-camera.c | 9 ---------
+ 1 file changed, 9 deletions(-)
 
-Ivo
+diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
+index 89c890b..63aaa57 100644
+--- a/drivers/media/usb/em28xx/em28xx-camera.c
++++ b/drivers/media/usb/em28xx/em28xx-camera.c
+@@ -23,7 +23,6 @@
+ 
+ #include <linux/i2c.h>
+ #include <linux/usb.h>
+-#include <media/soc_camera.h>
+ #include <media/i2c/mt9v011.h>
+ #include <media/v4l2-clk.h>
+ #include <media/v4l2-common.h>
+@@ -43,13 +42,6 @@ static unsigned short omnivision_sensor_addrs[] = {
+ 	I2C_CLIENT_END
+ };
+ 
+-static struct soc_camera_link camlink = {
+-	.bus_id = 0,
+-	.flags = 0,
+-	.module_name = "em28xx",
+-	.unbalanced_power = true,
+-};
+-
+ /* FIXME: Should be replaced by a proper mt9m111 driver */
+ static int em28xx_initialize_mt9m111(struct em28xx *dev)
+ {
+@@ -421,7 +413,6 @@ int em28xx_init_camera(struct em28xx *dev)
+ 			.type = "ov2640",
+ 			.flags = I2C_CLIENT_SCCB,
+ 			.addr = client->addr,
+-			.platform_data = &camlink,
+ 		};
+ 		struct v4l2_subdev_format format = {
+ 			.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+-- 
+2.10.2
+
