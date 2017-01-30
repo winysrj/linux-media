@@ -1,98 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48480 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750740AbdAaG4s (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:60957
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1754037AbdA3T1z (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jan 2017 01:56:48 -0500
-Date: Tue, 31 Jan 2017 08:56:08 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        devicetree@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv2 05/16] ov7670: document device tree bindings
-Message-ID: <20170131065608.GQ7139@valkosipuli.retiisi.org.uk>
-References: <20170130140628.18088-1-hverkuil@xs4all.nl>
- <20170130140628.18088-6-hverkuil@xs4all.nl>
+        Mon, 30 Jan 2017 14:27:55 -0500
+Date: Mon, 30 Jan 2017 17:18:21 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: Re: [GIT PULL FOR v4.11] New st-delta driver
+Message-ID: <20170130171821.1ff63f52@vento.lan>
+In-Reply-To: <20170130171536.07f4996d@vento.lan>
+References: <b5f8fb46-6507-417c-8f1e-3b3f1410a64d@xs4all.nl>
+        <20170130171536.07f4996d@vento.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170130140628.18088-6-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Mon, 30 Jan 2017 17:15:36 -0200
+Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
 
-On Mon, Jan 30, 2017 at 03:06:17PM +0100, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+> Em Mon, 9 Jan 2017 14:23:33 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 > 
-> Add binding documentation and add that file to the MAINTAINERS entry.
+> > See the v4 series for details:
+> > 
+> > https://www.spinics.net/lists/linux-media/msg108737.html
+> > 
+> > Regards,
+> > 
+> > 	Hans
+> > 
+> > The following changes since commit 40eca140c404505c09773d1c6685d818cb55ab1a:
+> > 
+> >   [media] mn88473: add DVB-T2 PLP support (2016-12-27 14:00:15 -0200)
+> > 
+> > are available in the git repository at:
+> > 
+> >   git://linuxtv.org/hverkuil/media_tree.git delta
+> > 
+> > for you to fetch changes up to e6f199d01e7b8bc4436738b6c666fda31b9f3340:
+> > 
+> >   st-delta: debug: trace stream/frame information & summary (2017-01-09 14:16:45 +0100)
+> > 
+> > ----------------------------------------------------------------
+> > Hugues Fruchet (10):
+> >       Documentation: DT: add bindings for ST DELTA
+> >       ARM: dts: STiH410: add DELTA dt node
+> >       ARM: multi_v7_defconfig: enable STMicroelectronics DELTA Support
+> >       MAINTAINERS: add st-delta driver
+> >       st-delta: STiH4xx multi-format video decoder v4l2 driver
+> >       st-delta: add memory allocator helper functions
+> >       st-delta: rpmsg ipc support
+> >       st-delta: EOS (End Of Stream) support
+> >       st-delta: add mjpeg support
+> >       st-delta: debug: trace stream/frame information & summary
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  .../devicetree/bindings/media/i2c/ov7670.txt       | 44 ++++++++++++++++++++++
->  MAINTAINERS                                        |  1 +
->  2 files changed, 45 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7670.txt
+> There is something wrong on this driver... even after applying all
+> patches, it complains that there's a for there that does nothing:
 > 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/ov7670.txt b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
-> new file mode 100644
-> index 0000000..a014694
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
-> @@ -0,0 +1,44 @@
-> +* Omnivision OV7670 CMOS sensor
-> +
-> +The Omnivision OV7670 sensor supports multiple resolutions output, such as
-> +CIF, SVGA, UXGA. It also can support the YUV422/420, RGB565/555 or raw RGB
-> +output formats.
-> +
-> +Required Properties:
-> +- compatible: should be "ovti,ov7670"
-> +- clocks: reference to the xclk input clock.
-> +- clock-names: should be "xclk".
-> +
-> +Optional Properties:
-> +- resetb-gpios: reference to the GPIO connected to the resetb pin, if any.
-> +- pwdn-gpios: reference to the GPIO connected to the pwdn pin, if any.
+> drivers/media/platform/sti/delta/delta-v4l2.c:322 register_decoders() warn: we never enter this loop
+> drivers/media/platform/sti/delta/delta-v4l2.c: In function 'register_decoders':
+> drivers/media/platform/sti/delta/delta-v4l2.c:322:16: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
+>   for (i = 0; i < ARRAY_SIZE(delta_decoders); i++) {
+>                 ^
+> 
+> On a first glance, it seems that the register_decoders() function is
+> reponsible to register the format decoders that the hardware
+> recognizes. If so, I suspect that this driver is deadly broken.
+> 
+> Please be sure that the upstream driver works properly before
+> submitting it upstream.
+> 
+> Also, please fix the comments to match the Kernel standard. E. g.
+> instead of:
+> 
+> /* guard output frame count:
+>  * - at least 1 frame needed for display
+>  * - at worst 21
+>  *   ( max h264 dpb (16) +
+>  *     decoding peak smoothing (2) +
+>  *     user display pipeline (3) )
+>  */
+> 
+> It should be:
+> 
+> /*
+>  * guard output frame count:
+>  * - at least 1 frame needed for display
+>  * - at worst 21
+>  *   ( max h264 dpb (16) +
+>  *     decoding peak smoothing (2) +
+>  *     user display pipeline (3) )
+>  */
+> 
+> There are several similar occurrences among this patch series.
 
-Please add when the signal is active. From the datasheet it seems to be that
-these are both "active high".
+Ah, forgot to comment, but it mentions a firmware. Does such firmware
+reside on some RAM memory? If so, how such firmware is loaded? 
 
-> +
-> +The device node must contain one 'port' child node for its digital output
-> +video port, in accordance with the video interface bindings defined in
-> +Documentation/devicetree/bindings/media/video-interfaces.txt.
-> +
-> +Example:
-> +
-> +	i2c1: i2c@f0018000 {
-> +		status = "okay";
-> +
-> +		ov7670: camera@0x21 {
-> +			compatible = "ovti,ov7670";
-> +			reg = <0x21>;
-> +			pinctrl-names = "default";
-> +			pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
-> +			resetb-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
-> +			pwdn-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
-> +			clocks = <&pck0>;
-> +			clock-names = "xclk";
-> +			assigned-clocks = <&pck0>;
-> +			assigned-clock-rates = <25000000>;
-> +
-> +			port {
-> +				ov7670_0: endpoint {
-> +					remote-endpoint = <&isi_0>;
-> +					bus-width = <8>;
-> +				};
-> +			};
-> +		};
-> +	};
+> 
+> Thanks,
+> Mauro
+> 
+> Thanks,
+> Mauro
 
--- 
-Kind regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+
+Thanks,
+Mauro
