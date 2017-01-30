@@ -1,82 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45661 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751064AbdARX0E (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48822 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751988AbdA3Iuv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Jan 2017 18:26:04 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Nicholas Mc Guire <hofrat@osadl.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] ov9650: use msleep() for uncritical long delay
-Date: Thu, 19 Jan 2017 01:25:26 +0200
-Message-ID: <2045244.iMhNKFpdEc@avalon>
-In-Reply-To: <1484575113-24098-1-git-send-email-hofrat@osadl.org>
-References: <1484575113-24098-1-git-send-email-hofrat@osadl.org>
+        Mon, 30 Jan 2017 03:50:51 -0500
+Date: Mon, 30 Jan 2017 10:44:09 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Tuukka Toivonen <tuukka.toivonen@intel.com>
+Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] v4l2-async: failing functions shouldn't have
+ side effects
+Message-ID: <20170130084408.GN7139@valkosipuli.retiisi.org.uk>
+References: <1485513176-6958-1-git-send-email-tuukka.toivonen@intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1485513176-6958-1-git-send-email-tuukka.toivonen@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nicholas,
+Heippa!
 
-Thank you for the patch.
+On Fri, Jan 27, 2017 at 12:32:56PM +0200, Tuukka Toivonen wrote:
+> v4l2-async had several functions doing some operations and then
+> not undoing the operations in a failure situation. For example,
+> v4l2_async_test_notify() moved a subdev into notifier's done list
+> even if registering the subdev (v4l2_device_register_subdev) failed.
+> If the subdev was allocated and v4l2_async_register_subdev() called
+> from the driver's probe() function, as usually, the probe()
+> function freed the allocated subdev and returned a failure.
+> Nevertheless, the subdev was still left into the notifier's done
+> list, causing an access to already freed memory when the notifier
+> was later unregistered.
+> 
+> A hand-edited call trace leaving freed subdevs into the notifier:
+> 
+> v4l2_async_register_notifier(notifier, asd)
+> cameradrv_probe
+>  sd = devm_kzalloc()
+>  v4l2_async_register_subdev(sd)
+>   v4l2_async_test_notify(notifier, sd, asd)
+>    list_move(sd, &notifier->done)
+>    v4l2_device_register_subdev(notifier->v4l2_dev, sd)
+>     cameradrv_registered(sd) -> fails
+> ->v4l2_async_register_subdev returns failure
+> ->cameradrv_probe returns failure
+> ->devres frees the allocated sd
+> ->sd was freed but it still remains in the notifier's list.
+> 
+> This patch fixes this and several other cases where a failing
+> function could leave nodes into a linked list while the caller
+> might free the node due to a failure.
+> 
+> Signed-off-by: Tuukka Toivonen <tuukka.toivonen@intel.com>
 
-On Monday 16 Jan 2017 14:58:33 Nicholas Mc Guire wrote:
-> ulseep_range() uses hrtimers and provides no advantage over msleep()
-> for larger delays. Fix up the 25ms delays here to use msleep() and
-> reduce the load on the hrtimer subsystem.
-> 
-> Link: http://lkml.org/lkml/2017/1/11/377
-> Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-and applied to my tree. I'll send a pull request for v4.11.
-
-> ---
-> Problem found by coccinelle script
-> 
-> Patch was compile tested with: x86_64_defconfig + CONFIG_MEDIA_SUPPORT=m
-> CONFIG_MEDIA_ANALOG_TV_SUPPORT=y, CONFIG_MEDIA_CONTROLLER=y
-> CONFIG_VIDEO_V4L2_SUBDEV_API=y, CONFIG_MEDIA_SUBDRV_AUTOSELECT=n
-> CONFIG_VIDEO_OV9650=m
-> 
-> Patch is aginast 4.10-rc3 (localversion-next is next-20170116)
-> 
->  drivers/media/i2c/ov9650.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
-> index 502c722..2de2fbb 100644
-> --- a/drivers/media/i2c/ov9650.c
-> +++ b/drivers/media/i2c/ov9650.c
-> @@ -522,7 +522,7 @@ static void __ov965x_set_power(struct ov965x *ov965x,
-> int on) if (on) {
->  		ov965x_gpio_set(ov965x->gpios[GPIO_PWDN], 0);
->  		ov965x_gpio_set(ov965x->gpios[GPIO_RST], 0);
-> -		usleep_range(25000, 26000);
-> +		msleep(25);
->  	} else {
->  		ov965x_gpio_set(ov965x->gpios[GPIO_RST], 1);
->  		ov965x_gpio_set(ov965x->gpios[GPIO_PWDN], 1);
-> @@ -1438,7 +1438,7 @@ static int ov965x_detect_sensor(struct v4l2_subdev
-> *sd)
-> 
->  	mutex_lock(&ov965x->lock);
->  	__ov965x_set_power(ov965x, 1);
-> -	usleep_range(25000, 26000);
-> +	msleep(25);
-> 
->  	/* Check sensor revision */
->  	ret = ov965x_read(client, REG_PID, &pid);
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
 -- 
-Regards,
+Terveisin,
 
-Laurent Pinchart
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
