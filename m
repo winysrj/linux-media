@@ -1,49 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:47724 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754472AbdAaAqa (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:40454 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753565AbdA3OJE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Jan 2017 19:46:30 -0500
-Date: Tue, 31 Jan 2017 00:31:29 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v3 21/24] media: imx: Add MIPI CSI-2 Receiver subdev
- driver
-Message-ID: <20170131003129.GP27312@n2100.armlinux.org.uk>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
- <1483755102-24785-22-git-send-email-steve_longerbeam@mentor.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1483755102-24785-22-git-send-email-steve_longerbeam@mentor.com>
+        Mon, 30 Jan 2017 09:09:04 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 13/16] ov2640: update bindings
+Date: Mon, 30 Jan 2017 15:06:25 +0100
+Message-Id: <20170130140628.18088-14-hverkuil@xs4all.nl>
+In-Reply-To: <20170130140628.18088-1-hverkuil@xs4all.nl>
+References: <20170130140628.18088-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 06, 2017 at 06:11:39PM -0800, Steve Longerbeam wrote:
-> +++ b/drivers/staging/media/imx/imx-mipi-csi2.c
-...
-> +#define DEVICE_NAME "imx6-mipi-csi2"
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Why is the device/driver named imx6-mipi-csi2, but the module named
-imx-mipi-csi2 - could there be some consistency here please?
+Update the bindings for this device based on a working DT example.
 
-Thanks.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ .../devicetree/bindings/media/i2c/ov2640.txt       | 22 ++++++++++------------
+ 1 file changed, 10 insertions(+), 12 deletions(-)
 
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov2640.txt b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
+index c429b5b..5e6c445 100644
+--- a/Documentation/devicetree/bindings/media/i2c/ov2640.txt
++++ b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
+@@ -1,8 +1,8 @@
+ * Omnivision OV2640 CMOS sensor
+ 
+-The Omnivision OV2640 sensor support multiple resolutions output, such as
+-CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or raw RGB
+-output format.
++The Omnivision OV2640 sensor supports multiple resolutions output, such as
++CIF, SVGA, UXGA. It also can support the YUV422/420, RGB565/555 or raw RGB
++output formats.
+ 
+ Required Properties:
+ - compatible: should be "ovti,ov2640"
+@@ -20,20 +20,18 @@ Documentation/devicetree/bindings/media/video-interfaces.txt.
+ Example:
+ 
+ 	i2c1: i2c@f0018000 {
++		status = "okay";
++
+ 		ov2640: camera@0x30 {
+ 			compatible = "ovti,ov2640";
+ 			reg = <0x30>;
+-
+ 			pinctrl-names = "default";
+-			pinctrl-0 = <&pinctrl_pck1 &pinctrl_ov2640_pwdn &pinctrl_ov2640_resetb>;
+-
+-			resetb-gpios = <&pioE 24 GPIO_ACTIVE_LOW>;
+-			pwdn-gpios = <&pioE 29 GPIO_ACTIVE_HIGH>;
+-
+-			clocks = <&pck1>;
++			pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
++			resetb-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
++			pwdn-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
++			clocks = <&pck0>;
+ 			clock-names = "xvclk";
+-
+-			assigned-clocks = <&pck1>;
++			assigned-clocks = <&pck0>;
+ 			assigned-clock-rates = <25000000>;
+ 
+ 			port {
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+2.10.2
+
