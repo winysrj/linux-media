@@ -1,74 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f175.google.com ([209.85.216.175]:36354 "EHLO
-        mail-qt0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751130AbdAWMWb (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:39184 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753557AbdA3OIH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Jan 2017 07:22:31 -0500
-Received: by mail-qt0-f175.google.com with SMTP id k15so121091722qtg.3
-        for <linux-media@vger.kernel.org>; Mon, 23 Jan 2017 04:22:26 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAN39uTpT1W9m+_OQvP_4pbPiOPKjdTGA6tyJ9VJeGq+AZQXfuw@mail.gmail.com>
-References: <CAN39uTpT1W9m+_OQvP_4pbPiOPKjdTGA6tyJ9VJeGq+AZQXfuw@mail.gmail.com>
-From: Dreamcat4 <dreamcat4@gmail.com>
-Date: Mon, 23 Jan 2017 12:21:35 +0000
-Message-ID: <CAN39uTpwe0CjqmC=ajamfN8UrsarwaDZb5YRCMfTNQ2Edyph4g@mail.gmail.com>
-Subject: Re: Mysterious regression in dvb driver
+        Mon, 30 Jan 2017 09:08:07 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 07/16] atmel-isi: move out of soc_camera to atmel
+Date: Mon, 30 Jan 2017 15:06:19 +0100
+Message-Id: <20170130140628.18088-8-hverkuil@xs4all.nl>
+In-Reply-To: <20170130140628.18088-1-hverkuil@xs4all.nl>
+References: <20170130140628.18088-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi again,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Installed Antergos (arch) linux today, and its still same issues. That
-is with an even newer 4.8 kernel. No HD channels, I2C error in dmesg,
-CRC error during w_scan tuning. (when its tuning the HD channels).
+Move this out of the soc_camera directory into the atmel directory
+where it belongs.
 
-So I'm hesitant to report it as a bug under ubuntu bug reporter. Since
-its not just limited to debian-based distros.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/Makefile                          |  1 +
+ drivers/media/platform/atmel/Kconfig                     | 11 ++++++++++-
+ drivers/media/platform/atmel/Makefile                    |  1 +
+ drivers/media/platform/{soc_camera => atmel}/atmel-isi.c |  0
+ drivers/media/platform/{soc_camera => atmel}/atmel-isi.h |  0
+ drivers/media/platform/soc_camera/Kconfig                | 10 ----------
+ drivers/media/platform/soc_camera/Makefile               |  1 -
+ 7 files changed, 12 insertions(+), 12 deletions(-)
+ rename drivers/media/platform/{soc_camera => atmel}/atmel-isi.c (100%)
+ rename drivers/media/platform/{soc_camera => atmel}/atmel-isi.h (100%)
 
-My main question is whats actually all the files on the disk /
-filesystem that are involved? If not in the kernel. Then I could go
-back and grab them all from ubuntu 14.04 (works), to try in 14.10
-(time of first breakage). Replacing one file at a time.
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 5b3cb27..15f4f69 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -61,6 +61,7 @@ obj-$(CONFIG_VIDEO_XILINX)		+= xilinx/
+ obj-$(CONFIG_VIDEO_RCAR_VIN)		+= rcar-vin/
+ 
+ obj-$(CONFIG_VIDEO_ATMEL_ISC)		+= atmel/
++obj-$(CONFIG_VIDEO_ATMEL_ISI)		+= atmel/
+ 
+ ccflags-y += -I$(srctree)/drivers/media/i2c
+ 
+diff --git a/drivers/media/platform/atmel/Kconfig b/drivers/media/platform/atmel/Kconfig
+index 867dca2..9bd0f19 100644
+--- a/drivers/media/platform/atmel/Kconfig
++++ b/drivers/media/platform/atmel/Kconfig
+@@ -6,4 +6,13 @@ config VIDEO_ATMEL_ISC
+ 	select REGMAP_MMIO
+ 	help
+ 	   This module makes the ATMEL Image Sensor Controller available
+-	   as a v4l2 device.
+\ No newline at end of file
++	   as a v4l2 device.
++
++config VIDEO_ATMEL_ISI
++	tristate "ATMEL Image Sensor Interface (ISI) support"
++	depends on VIDEO_V4L2 && OF && HAS_DMA
++	depends on ARCH_AT91 || COMPILE_TEST
++	select VIDEOBUF2_DMA_CONTIG
++	---help---
++	  This module makes the ATMEL Image Sensor Interface available
++	  as a v4l2 device.
+diff --git a/drivers/media/platform/atmel/Makefile b/drivers/media/platform/atmel/Makefile
+index 9d7c999..27000d0 100644
+--- a/drivers/media/platform/atmel/Makefile
++++ b/drivers/media/platform/atmel/Makefile
+@@ -1 +1,2 @@
+ obj-$(CONFIG_VIDEO_ATMEL_ISC) += atmel-isc.o
++obj-$(CONFIG_VIDEO_ATMEL_ISI) += atmel-isi.o
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/atmel/atmel-isi.c
+similarity index 100%
+rename from drivers/media/platform/soc_camera/atmel-isi.c
+rename to drivers/media/platform/atmel/atmel-isi.c
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.h b/drivers/media/platform/atmel/atmel-isi.h
+similarity index 100%
+rename from drivers/media/platform/soc_camera/atmel-isi.h
+rename to drivers/media/platform/atmel/atmel-isi.h
+diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
+index a37ec91..0c581aa 100644
+--- a/drivers/media/platform/soc_camera/Kconfig
++++ b/drivers/media/platform/soc_camera/Kconfig
+@@ -26,13 +26,3 @@ config VIDEO_SH_MOBILE_CEU
+ 	select SOC_CAMERA_SCALE_CROP
+ 	---help---
+ 	  This is a v4l2 driver for the SuperH Mobile CEU Interface
+-
+-config VIDEO_ATMEL_ISI
+-	tristate "ATMEL Image Sensor Interface (ISI) support"
+-	depends on VIDEO_V4L2 && OF && HAS_DMA
+-	depends on ARCH_AT91 || COMPILE_TEST
+-	select VIDEOBUF2_DMA_CONTIG
+-	---help---
+-	  This module makes the ATMEL Image Sensor Interface available
+-	  as a v4l2 device.
+-
+diff --git a/drivers/media/platform/soc_camera/Makefile b/drivers/media/platform/soc_camera/Makefile
+index 7633a0f..07a451e 100644
+--- a/drivers/media/platform/soc_camera/Makefile
++++ b/drivers/media/platform/soc_camera/Makefile
+@@ -6,5 +6,4 @@ obj-$(CONFIG_SOC_CAMERA_SCALE_CROP)	+= soc_scale_crop.o
+ obj-$(CONFIG_SOC_CAMERA_PLATFORM)	+= soc_camera_platform.o
+ 
+ # soc-camera host drivers have to be linked after camera drivers
+-obj-$(CONFIG_VIDEO_ATMEL_ISI)		+= atmel-isi.o
+ obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
+-- 
+2.10.2
 
-Wheras... if it is in the kernel then what else was added later on
-that broke this? And why is the newer 4.2 updated kernel in the old
-14.04 (+.3) still working then? Just doesn't add up / make sense to
-me.
-
-I would be very grateful if anyone here could please shed some more
-light on the matter.
-
-Kind Regards
-
-On Fri, Jan 20, 2017 at 9:45 PM, Dreamcat4 <dreamcat4@gmail.com> wrote:
-> Hi there,
->
-> Apologies if no-one wants to hear about this. But there was a patch
-> submitted in 3.17 for geniatech t220 / august dvb-t210 v1. And it
-> seems to have stopped working for some reason. (yet the patch code is
-> still there. I reached out to the birthplace / author of the patch,
-> but unfortunately its been a while, moved on to new hardware, and they
-> couldn't help.
->
-> So whats the problem?
->
-> Patch added support for scanning HD Channels (dvb-t2) for this
-> hardware. e.g. with w_scan program. This aspect:
->
-> Works in ubuntu 14.04.3 (fully updated kernel etc).
->
-> Not works anymore in any versions after that (e.g. 14.10, up to and
-> including latest 16.04).
->
-> I also tried a recent version of debian too, didn't work on debian either.
->
-> ... mostly confused because all of them have similar modern kernel
-> now, including 14.04.3 too (which still works properly). Don't know
-> where to head next. Any ideas?
->
->
-> Link to more details:
->
-> https://tvheadend.org/boards/5/topics/10864?r=23758#message-23758
