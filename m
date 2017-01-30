@@ -1,85 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f50.google.com ([209.85.215.50]:35302 "EHLO
-        mail-lf0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752451AbdAYTPn (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:38438 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753477AbdA3NIN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Jan 2017 14:15:43 -0500
-Received: by mail-lf0-f50.google.com with SMTP id n124so133929933lfd.2
-        for <linux-media@vger.kernel.org>; Wed, 25 Jan 2017 11:15:43 -0800 (PST)
-Date: Wed, 25 Jan 2017 20:15:40 +0100
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: odd kernel messages when running v4l2-compliance
-Message-ID: <20170125191540.GC20610@bigcity.dyn.berto.se>
+        Mon, 30 Jan 2017 08:08:13 -0500
+Date: Mon, 30 Jan 2017 13:06:57 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
+        markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v3 00/24] i.MX Media Driver
+Message-ID: <20170130130657.GR27312@n2100.armlinux.org.uk>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <c6e98327-7e2c-f34a-2d23-af7b236de441@xs4all.nl>
+ <1484929911.2897.70.camel@pengutronix.de>
+ <3fb68686-9447-2d8a-e2d2-005e4138cd43@gmail.com>
+ <5d23d244-aa0e-401c-24a9-07f28acf1563@xs4all.nl>
+ <1485169204.2874.57.camel@pengutronix.de>
+ <ce2d1851-8a2e-ea0b-25b8-be6649b1ebaf@gmail.com>
+ <1485257269.3600.96.camel@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1485257269.3600.96.camel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+> The central issue seems to be that I think media pad links / media bus
+> formats should describe physical links, such as parallel or serial
+> buses, and the formats of pixels flowing through them, whereas Steve
+> would like to extend them to describe software transports and in-memory
+> formats.
 
-I have noticed an odd printout when running v4l2-compliance while 
-testing the rcar-vin driver. When testing (v4l2-compliance -d 0) on 
-ARM64 I see the following messages:
+This probably isn't the right place to attach this comment in this
+thread, but... the issue of media bus formats matching physical buses
+is an argument that I think is already lost.
 
-[ 1411.016069] compat_ioctl32: unexpected VIDIOC_FMT1 type 0
-[ 1411.022981] compat_ioctl32: unexpected VIDIOC_FMT1 type 128
-[ 1411.033152] compat_ioctl32: unexpected VIDIOC_FMT1 type 128
-[ 1411.043283] compat_ioctl32: unexpected VIDIOC_FMT1 type 128
+For example, take the 10-bit bayer formats:
 
-Running the same rcar-vin driver on ARM and I see no such messages.  
-There can of course be problems with my driver but after digging around
-a bit I'm a bit confused, maybe you can help me understand where the 
-true problem is.
+#define MEDIA_BUS_FMT_SBGGR10_1X10              0x3007
+#define MEDIA_BUS_FMT_SGBRG10_1X10              0x300e
+#define MEDIA_BUS_FMT_SGRBG10_1X10              0x300a
+#define MEDIA_BUS_FMT_SRGGB10_1X10              0x300f
 
-In the kernel the messages originate from __get_v4l2_format32() in
-drivers/media/v4l2-core/v4l2-compat-ioctl32.c and they are printed if 
-the format type is unknown, that is is not one of the specified ones in 
-a switch statement. That is all entries of enum v4l2_buf_type except 
-V4L2_BUF_TYPE_PRIVATE.
+These are commonly used on CSI serial buses (see the smiapp driver for
+example).  From the description at the top of the file, it says the
+1X10 means that one pixel is transferred as one 10-bit sample.
 
-    enum v4l2_buf_type {
-            V4L2_BUF_TYPE_VIDEO_CAPTURE        = 1,
-            V4L2_BUF_TYPE_VIDEO_OUTPUT         = 2,
-            V4L2_BUF_TYPE_VIDEO_OVERLAY        = 3,
-            V4L2_BUF_TYPE_VBI_CAPTURE          = 4,
-            V4L2_BUF_TYPE_VBI_OUTPUT           = 5,
-            V4L2_BUF_TYPE_SLICED_VBI_CAPTURE   = 6,
-            V4L2_BUF_TYPE_SLICED_VBI_OUTPUT    = 7,
-            V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY = 8,
-            V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
-            V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
-            V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
-            V4L2_BUF_TYPE_SDR_OUTPUT           = 12,
-            /* Deprecated, do not use */
-            V4L2_BUF_TYPE_PRIVATE              = 0x80,
-    };
+However, the format on wire is somewhat different - four pixels are
+transmitted over five bytes:
 
+	P0	P1	P2	P3	P0	P1	P2	P3
+	8-bit	8-bit	8-bit	8-bit	2-bit	2-bit	2-bit	2-bit
 
-In v4l2-compliance the message is trigged inside testGetFormats() from 
-utils/v4l2-compliance/v4l2-test-formats.cpp by:
+This gives two problems:
+1) it doesn't fit in any sensible kind of "one pixel transferred as
+   N M-bit samples" description because the pixel/sample values
+   (depending how you look at them) are broken up.
 
-    for (type = 0; type <= V4L2_BUF_TYPE_LAST; type++) {
-            createInvalidFmt(fmt, clip, type);
-            ret = doioctl(node, VIDIOC_G_FMT, &fmt);
+2) changing this will probably be a user visible change, as things
+   like smiapp are already in use.
 
-            ....
-    }
+So, I think what we actually have is the media bus formats describing
+the _logical_ bus format.  Yes, one pixel is transferred as one 10-bit
+sample in this case.
 
-Here V4L2_BUF_TYPE_LAST is defined to V4L2_BUF_TYPE_SDR_OUTPUT and the 
-enum struct is the same as in the kernel since it's included from 
-include/linux/videodev2.h. One format is created with type = 0 and one 
-with type = 128 which is why the messages gets printed by the kernel.
+To help illustrate my point, consider the difference between
+MEDIA_BUS_FMT_RGB565_1X16 and MEDIA_BUS_FMT_RGB565_2X8_BE or
+MEDIA_BUS_FMT_RGB565_2X8_LE.  RGB565_1X16 means 1 pixel over an effective
+16-bit wide bus (if it's not 16-bit, then it has to be broken up into
+separate "samples".)  RGB565_2X8 means 1 pixel as two 8-bit samples.
 
-Is this something I should somehow handle in my driver (I can't see how 
-I could even do that)? Or is it expected that v4l2-compliance
-should provoke this messages in order to test the API and I should not 
-worry about the messages when using v4l2-compliance?
+So, the 10-bit bayer is 1 pixel as 1.25 bytes.  Or is it, over a serial
+bus.  Using the RGB565 case, 10-bit bayer over a 4 lane CSI bus becomes
+interesting:
+
+	first byte	2nd	3rd
+lane 1	P0 9:2		S0	P7 9:2
+lane 2	P1 9:2		P4 9:2	S1
+lane 3	P2 9:2		P5 9:2	P8 9:2
+lane 4	P3 9:2		P6 9:2	P9 9:2
+
+S0 = P0/P1/P2/P3 least significant two bits
+S1 = P4/P5/P6/P7 least significant two bits
+
+or 2 lane CSI:
+	first byte	2nd	3rd	4th	5th
+lane 1	P0 9:2		P2	S0	P5	P7
+lane 2	P1 9:2		P3	P4	P6	S1
+
+or 1 lane CSI:
+lane 1	P0 P1 P2 P3 S0 P4 P5 P6 P7 S1 P8 P9 ...
+
+etc.
 
 -- 
-Regards,
-Niklas Söderlund
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
