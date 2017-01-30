@@ -1,393 +1,301 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:34299 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752465AbdAFMUM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2017 07:20:12 -0500
-Received: by mail-wm0-f66.google.com with SMTP id c85so4575650wmi.1
-        for <linux-media@vger.kernel.org>; Fri, 06 Jan 2017 04:19:05 -0800 (PST)
-From: Kieran Bingham <kieran@ksquared.org.uk>
-Subject: Re: [PATCHv3 2/4] v4l: vsp1: Refactor video pipeline configuration
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-References: <1481651984-7687-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
- <1481651984-7687-3-git-send-email-kieran.bingham+renesas@ideasonboard.com>
- <4767731.yfAkbfDzfC@avalon>
- <753d4e1b-4213-7e63-bb1b-7949304c0dfa@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-Message-ID: <78a8e9ca-044b-844a-52c2-348497048ace@bingham.xyz>
-Date: Fri, 6 Jan 2017 11:11:33 +0000
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:60350
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750698AbdA3R2L (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 30 Jan 2017 12:28:11 -0500
+Date: Mon, 30 Jan 2017 15:28:03 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Cc: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>,
+        <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: Re: [PATCH v3 1/3] st-hva: encoding summary at instance release
+Message-ID: <20170130152803.4c7ab073@vento.lan>
+In-Reply-To: <1480329054-30403-2-git-send-email-jean-christophe.trotin@st.com>
+References: <1480329054-30403-1-git-send-email-jean-christophe.trotin@st.com>
+        <1480329054-30403-2-git-send-email-jean-christophe.trotin@st.com>
 MIME-Version: 1.0
-In-Reply-To: <753d4e1b-4213-7e63-bb1b-7949304c0dfa@ideasonboard.com>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Em Mon, 28 Nov 2016 11:30:52 +0100
+Jean-Christophe Trotin <jean-christophe.trotin@st.com> escreveu:
 
-I've been reworking this series to split things out and adapt for the
-comments you've provided, but I have the following queries outstanding:
+> This patch prints unconditionnaly a short summary 
 
-On 15/12/16 11:50, Kieran Bingham wrote:
-> Hi Laurent,
-> 
-> On 14/12/16 16:30, Laurent Pinchart wrote:
->> Hi Kieran,
->>
->> Thank you for the patch.
->>
->> On Tuesday 13 Dec 2016 17:59:42 Kieran Bingham wrote:
->>> With multiple inputs through the BRU it is feasible for the streams to
->>> race each other at stream-on.
->>
->> Could you please explain the race condition in the commit message ? The issue 
->> is that multiple VIDIOC_STREAMON calls racing each other could have process 
->> N-1 skipping over the pipeline setup section and then start the pipeline, if 
->> videobuf2 has already enqueued buffers to the driver for process N but not 
->> called the .start_streaming() operation yet.
->>
->>> In the case of the video pipelines, this
->>> can present two serious issues.
->>>
->>>  1) A null-dereference if the pipe->dl is committed at the same time as
->>>     the vsp1_video_setup_pipeline() is processing
->>>
->>>  2) A hardware hang, where a display list is committed without having
->>>     called vsp1_video_setup_pipeline() first
->>>
->>> Along side these race conditions, the work done by
->>> vsp1_video_setup_pipeline() is undone by the re-initialisation during a
->>> suspend resume cycle, and an active pipeline does not attempt to
->>> reconfigure the correct routing and init parameters for the entities.
->>>
->>> To repair all of these issues, we can move the call to a conditional
->>> inside vsp1_video_pipeline_run() and ensure that this can only be called
->>> on the last stream which calls into vsp1_video_start_streaming()
->>>
->>> As a convenient side effect of this, by specifying that the
->>> configuration has been lost during suspend/resume actions - the
->>> vsp1_video_pipeline_run() call can re-initialise pipelines when
->>> necessary thus repairing resume actions for active m2m pipelines.
->>>
->>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->>>
->>> ---
->>> v3:
->>>  - Move 'flag reset' to be inside the vsp1_reset_wpf() function call
->>>  - Tidy up the wpf->pipe reference for the configured flag
->>>
->>>  drivers/media/platform/vsp1/vsp1_drv.c   |  4 ++++
->>>  drivers/media/platform/vsp1/vsp1_pipe.c  |  1 +
->>>  drivers/media/platform/vsp1/vsp1_pipe.h  |  2 ++
->>>  drivers/media/platform/vsp1/vsp1_video.c | 20 +++++++++-----------
->>>  4 files changed, 16 insertions(+), 11 deletions(-)
->>>
->>> diff --git a/drivers/media/platform/vsp1/vsp1_drv.c
->>> b/drivers/media/platform/vsp1/vsp1_drv.c index 57c713a4e1df..1dc3726c4e83
->>> 100644
->>> --- a/drivers/media/platform/vsp1/vsp1_drv.c
->>> +++ b/drivers/media/platform/vsp1/vsp1_drv.c
->>> @@ -413,6 +413,7 @@ static int vsp1_create_entities(struct vsp1_device
->>> *vsp1)
->>>
->>>  int vsp1_reset_wpf(struct vsp1_device *vsp1, unsigned int index)
->>>  {
->>> +	struct vsp1_rwpf *wpf = vsp1->wpf[index];
->>>  	unsigned int timeout;
->>>  	u32 status;
->>>
->>> @@ -429,6 +430,9 @@ int vsp1_reset_wpf(struct vsp1_device *vsp1, unsigned
->>> int index) usleep_range(1000, 2000);
->>>  	}
->>>
->>> +	if (wpf->pipe)
->>> +		wpf->pipe->configured = false;
->>> +
->>>  	if (!timeout) {
->>>  		dev_err(vsp1->dev, "failed to reset wpf.%u\n", index);
->>>  		return -ETIMEDOUT;
->>> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c
->>> b/drivers/media/platform/vsp1/vsp1_pipe.c index 756ca4ea7668..7ddf862ee403
->>> 100644
->>> --- a/drivers/media/platform/vsp1/vsp1_pipe.c
->>> +++ b/drivers/media/platform/vsp1/vsp1_pipe.c
->>> @@ -208,6 +208,7 @@ void vsp1_pipeline_init(struct vsp1_pipeline *pipe)
->>>
->>>  	INIT_LIST_HEAD(&pipe->entities);
->>>  	pipe->state = VSP1_PIPELINE_STOPPED;
->>> +	pipe->configured = false;
->>>  }
->>>
->>>  /* Must be called with the pipe irqlock held. */
->>> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h
->>> b/drivers/media/platform/vsp1/vsp1_pipe.h index ac4ad2655551..0743b9fcb655
->>> 100644
->>> --- a/drivers/media/platform/vsp1/vsp1_pipe.h
->>> +++ b/drivers/media/platform/vsp1/vsp1_pipe.h
->>> @@ -61,6 +61,7 @@ enum vsp1_pipeline_state {
->>>   * @pipe: the media pipeline
->>>   * @irqlock: protects the pipeline state
->>>   * @state: current state
->>> + * @configured: determines routing configuration active on cell.
->>
->> I'm not sure to understand that. How about "true if the pipeline has been set 
->> up" ? Or maybe "true if the pipeline has been set up for video streaming" as 
->> it only applies to pipelines handled through the V4L2 API ?
-> 
-> 
-> Yes, Reading it now - I have no idea what context I was writing that in.
-> I hope it was late and I was tired ... otherwise I have no excuse :D
-> 
-> 
-> 
->>>   * @wq: wait queue to wait for state change completion
->>>   * @frame_end: frame end interrupt handler
->>>   * @lock: protects the pipeline use count and stream count
->>> @@ -86,6 +87,7 @@ struct vsp1_pipeline {
->>>
->>>  	spinlock_t irqlock;
->>>  	enum vsp1_pipeline_state state;
->>> +	bool configured;
->>>  	wait_queue_head_t wq;
->>>
->>>  	void (*frame_end)(struct vsp1_pipeline *pipe);
->>> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
->>> b/drivers/media/platform/vsp1/vsp1_video.c index 44b687c0b8df..7ff9f4c19ff0
->>> 100644
->>> --- a/drivers/media/platform/vsp1/vsp1_video.c
->>> +++ b/drivers/media/platform/vsp1/vsp1_video.c
->>> @@ -388,6 +388,8 @@ static int vsp1_video_setup_pipeline(struct
->>> vsp1_pipeline *pipe) VSP1_ENTITY_PARAMS_INIT);
->>>  	}
->>>
->>> +	pipe->configured = true;
->>> +
->>>  	return 0;
->>>  }
->>>
->>> @@ -411,6 +413,9 @@ static void vsp1_video_pipeline_run(struct vsp1_pipeline
->>> *pipe) struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
->>>  	struct vsp1_entity *entity;
->>>
->>> +	if (!pipe->configured)
->>> +		vsp1_video_setup_pipeline(pipe);
->>> +
->>
->> I don't like this much. The vsp1_video_pipeline_run() is called with a 
->> spinlock held. We should avoid operations as time consuming as 
->> vsp1_video_setup_pipeline() here.
+Why? Is this driver so broken that everyone would need an
+unconditional "short summary" about what happened there?
 
+If not, then please use dev_dbg() or debugfs instead. If yes, then
+we should move this driver to staging.
 
-I'm wondering where you stand on this now that the measurements have
-been taken.
-
-Is 18uS, once per stream start (/resume) still against your desires here?
-
-Reading the comments from, struct vsp1_pipeline
-
- * @irqlock: protects the pipeline state
- * @lock: protects the pipeline use count and stream count
-
-Doesn't this infer that calling vsp1_video_setup_pipeline, is better run
-with the @irqlock held rather than the @lock anyway?
-
-
-> I'm going to argue my case here, as I thought this was a more elegant
-> solution (and I really seem to dislike that poorly protected global
-> pipe->dl);
+> about the encoding
+> operation at each instance closing, for debug purpose:
+> - information about the frame (format, resolution)
+> - information about the stream (format, profile, level, resolution)
+> - number of encoded frames
+> - potential (system, encoding...) errors
 > 
-> However I will back down quickly/happily if needed. Especially knowing
-> that we are trying to reduce the recalculations of the DL, and I can see
-> where those changes will lead us anyway.
+> Signed-off-by: Yannick Fertre <yannick.fertre@st.com>
+> Signed-off-by: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+> ---
+>  drivers/media/platform/sti/hva/hva-h264.c |  6 ++++
+>  drivers/media/platform/sti/hva/hva-hw.c   |  5 ++++
+>  drivers/media/platform/sti/hva/hva-mem.c  |  5 +++-
+>  drivers/media/platform/sti/hva/hva-v4l2.c | 49 ++++++++++++++++++++++++-------
+>  drivers/media/platform/sti/hva/hva.h      |  8 +++++
+>  5 files changed, 62 insertions(+), 11 deletions(-)
 > 
-> Regardless of the outcome, I felt it was useful (at least to me) to
-> measure the call times on these functions to get an understanding, thus
-> I have used ftrace to measure/monitor a full run of the vsp-test suite:
-> 
->  trace-cmd record \
->         -p function_graph \
->         -l 'vsp1_video_setup_pipeline' \
->         -l 'vsp1_irq_handler' \
->         \
->         ./vsp-tests.sh
-> 
-> * I had to mark vsp1_video_setup_pipeline() as noinline to be able to
-> measure it with ftrace
-> 
-> A) Call frequency
-> 
-> Whilst vsp1_video_pipeline_run() is called for every frame, it should
-> only be on the first frame of each stream, (or the first frame following
-> a resume operation) where the flag pipe->configured == false.
-> 
->  - Measuring in the entirety of the vsp-test suite,  I count 121
->    calls here.
->    (trace-cmd report | grep vsp1_video_setup_pipeline | wc -l)
-> 
-> 
-> B) Function duration
-> 
-> The log of each of the function durations is available at:
->    http://paste.ubuntu.com/23632986/
-> 
-> Some quick and dirty statistical analysis shows the following duration
-> times for this function.
-> 
-> trace-cmd report \
-> 	| grep vsp1_video_setup_pipeline \
-> 	| sed 's/.*funcgraph_entry:\W*\([0-9]*\.[0-9]*\) us.*/\1/' \
-> 	| st
-> 
-> ## Numbers in uS ...
-> N       min     max     sum     mean    stddev
-> 121     4.68    17.76   887.885 7.33789 2.3195
-> 
-> 
-> So we do hit nearly 18 uS in this function, which could be considered a
-> lot for interrupt context, but when it is only once at the beginning of
-> stream start?
->
-> (Incidentally, running the same measurements on the whole of
-> vsp1_irq_handler nets the following statistical results:
-> 
-> trace-cmd report \
-> 	| grep vsp1_irq_handler \
-> 	| sed 's/.*funcgraph_entry:\W*\([0-9]*\.[0-9]*\) us.*/\1/' \
-> 	| st
-> 
-> N       min     max     sum     mean    stddev
-> 12360   1.32    165.481 125934  10.1889 15.0117
-> 
-> Of course the coverage on the IRQ handler is more broad, and I'm not
-> sure how to only measure the IRQ handler calls that result in calling
-> vsp1_video_setup_pipeline().
-> 
-
-Those interrupt context comparisons are irrelevant now that you've
-cleared up the reference was due to the spinlock being held, rather than
-the calls being in interrupt context :)
-
-
-> Anyway, like I said - possibly a moot point anyway - but I wanted to
-> actually measure the function times to see what we're up against.
-> 
->>>  	if (!pipe->dl)
->>>  		pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
->>>
->>> @@ -793,25 +798,18 @@ static int vsp1_video_start_streaming(struct vb2_queue
->>> *vq, unsigned int count) struct vsp1_video *video = vb2_get_drv_priv(vq);
->>>  	struct vsp1_pipeline *pipe = video->rwpf->pipe;
->>>  	unsigned long flags;
->>> -	int ret;
->>>
->>>  	mutex_lock(&pipe->lock);
->>>  	if (pipe->stream_count == pipe->num_inputs) {
->>> -		ret = vsp1_video_setup_pipeline(pipe);
->>> -		if (ret < 0) {
->>> -			mutex_unlock(&pipe->lock);
->>> -			return ret;
->>> -		}
->>> +		spin_lock_irqsave(&pipe->irqlock, flags);
->>> +		if (vsp1_pipeline_ready(pipe))
->>> +			vsp1_video_pipeline_run(pipe);
->>> +		spin_unlock_irqrestore(&pipe->irqlock, flags);
->>>  	}
->>>
->>>  	pipe->stream_count++;
->>>  	mutex_unlock(&pipe->lock);
->>>
->>> -	spin_lock_irqsave(&pipe->irqlock, flags);
->>> -	if (vsp1_pipeline_ready(pipe))
->>> -		vsp1_video_pipeline_run(pipe);
->>> -	spin_unlock_irqrestore(&pipe->irqlock, flags);
->>> -
->>
->> How about the following ?
->>
->> 	bool start_pipeline = false;
->>
->>  	mutex_lock(&pipe->lock);
->>  	if (pipe->stream_count == pipe->num_inputs) {
->> 		ret = vsp1_video_setup_pipeline(pipe);
->> 		if (ret < 0) {
->> 			mutex_unlock(&pipe->lock);
->> 			return ret;
->> 		}
->>
->> 		start_pipeline = true;
->>  	}
->>
->>  	pipe->stream_count++;
->>  	mutex_unlock(&pipe->lock);
->>
->> 	/*
->> 	 * Don't attempt to start the pipeline if we haven't configured it
->> 	 * explicitly, as otherwise multiple streamon calls could race each
->> 	 * other and one of them try to start the pipeline unconfigured.
->> 	 */
->> 	if (!start_pipeline)
->> 		return 0;
->>
->> 	spin_lock_irqsave(&pipe->irqlock, flags);
->> 	if (vsp1_pipeline_ready(pipe))
->> 		vsp1_video_pipeline_run(pipe);
->> 	spin_unlock_irqrestore(&pipe->irqlock, flags);
-> 
-> Ok, I'm happy with that, it's effectively v1 of my patchset, before I
-> discovered that the suspend resume issue was closely related.
-> 
-> 
->> This won't fix the suspend/resume issue, but I think splitting that to a 
->> separate patch would be a good idea anyway.
-> 
-
-Reverting back to the 'v1' style, and then moving the call to setup the
-pipeline, into the pipeline_run() against a configured flag to fix for
-suspend/resume cycles, netts the following code :
-
-	mutex_lock(&pipe->lock);
-	if (pipe->stream_count == pipe->num_inputs)
-		start_pipeline = true;
-
-	pipe->stream_count++;
-	mutex_unlock(&pipe->lock);
-
-	/*
-	 * vsp1_pipeline_ready() is not sufficient to establish that all streams
-	 * are prepared and the pipeline is configured, as multiple streams
-	 * can race through streamon with buffers already queued; Therefore we
-	 * don't even attempt to start the pipeline until the last stream has
-	 * called through here.
-	 */
-	if (!start_pipeline)
-		return 0;
-
-	spin_lock_irqsave(&pipe->irqlock, flags);
-	if (vsp1_pipeline_ready(pipe))
-		vsp1_video_pipeline_run(pipe);
-	spin_unlock_irqrestore(&pipe->irqlock, flags);
+> diff --git a/drivers/media/platform/sti/hva/hva-h264.c b/drivers/media/platform/sti/hva/hva-h264.c
+> index 8cc8467..e6f247a 100644
+> --- a/drivers/media/platform/sti/hva/hva-h264.c
+> +++ b/drivers/media/platform/sti/hva/hva-h264.c
+> @@ -607,6 +607,7 @@ static int hva_h264_prepare_task(struct hva_ctx *pctx,
+>  			"%s   width(%d) or height(%d) exceeds limits (%dx%d)\n",
+>  			pctx->name, frame_width, frame_height,
+>  			H264_MAX_SIZE_W, H264_MAX_SIZE_H);
+> +		pctx->frame_errors++;
+>  		return -EINVAL;
+>  	}
+>  
+> @@ -717,6 +718,7 @@ static int hva_h264_prepare_task(struct hva_ctx *pctx,
+>  	default:
+>  		dev_err(dev, "%s   invalid source pixel format\n",
+>  			pctx->name);
+> +		pctx->frame_errors++;
+>  		return -EINVAL;
+>  	}
+>  
+> @@ -741,6 +743,7 @@ static int hva_h264_prepare_task(struct hva_ctx *pctx,
+>  
+>  	if (td->framerate_den == 0) {
+>  		dev_err(dev, "%s   invalid framerate\n", pctx->name);
+> +		pctx->frame_errors++;
+>  		return -EINVAL;
+>  	}
+>  
+> @@ -831,6 +834,7 @@ static int hva_h264_prepare_task(struct hva_ctx *pctx,
+>  	    (payload > MAX_SPS_PPS_SIZE)) {
+>  		dev_err(dev, "%s   invalid sps/pps size %d\n", pctx->name,
+>  			payload);
+> +		pctx->frame_errors++;
+>  		return -EINVAL;
+>  	}
+>  
+> @@ -842,6 +846,7 @@ static int hva_h264_prepare_task(struct hva_ctx *pctx,
+>  						   (u8 *)stream->vaddr,
+>  						   &payload)) {
+>  		dev_err(dev, "%s   fail to get SEI nal\n", pctx->name);
+> +		pctx->frame_errors++;
+>  		return -EINVAL;
+>  	}
+>  
+> @@ -963,6 +968,7 @@ static int hva_h264_open(struct hva_ctx *pctx)
+>  err_ctx:
+>  	devm_kfree(dev, ctx);
+>  err:
+> +	pctx->sys_errors++;
+>  	return ret;
+>  }
+>  
+> diff --git a/drivers/media/platform/sti/hva/hva-hw.c b/drivers/media/platform/sti/hva/hva-hw.c
+> index 68d625b..5104068 100644
+> --- a/drivers/media/platform/sti/hva/hva-hw.c
+> +++ b/drivers/media/platform/sti/hva/hva-hw.c
+> @@ -470,6 +470,7 @@ int hva_hw_execute_task(struct hva_ctx *ctx, enum hva_hw_cmd_type cmd,
+>  
+>  	if (pm_runtime_get_sync(dev) < 0) {
+>  		dev_err(dev, "%s     failed to get pm_runtime\n", ctx->name);
+> +		ctx->sys_errors++;
+>  		ret = -EFAULT;
+>  		goto out;
+>  	}
+> @@ -481,6 +482,7 @@ int hva_hw_execute_task(struct hva_ctx *ctx, enum hva_hw_cmd_type cmd,
+>  		break;
+>  	default:
+>  		dev_dbg(dev, "%s     unknown command 0x%x\n", ctx->name, cmd);
+> +		ctx->encode_errors++;
+>  		ret = -EFAULT;
+>  		goto out;
+>  	}
+> @@ -511,6 +513,7 @@ int hva_hw_execute_task(struct hva_ctx *ctx, enum hva_hw_cmd_type cmd,
+>  					 msecs_to_jiffies(2000))) {
+>  		dev_err(dev, "%s     %s: time out on completion\n", ctx->name,
+>  			__func__);
+> +		ctx->encode_errors++;
+>  		ret = -EFAULT;
+>  		goto out;
+>  	}
+> @@ -518,6 +521,8 @@ int hva_hw_execute_task(struct hva_ctx *ctx, enum hva_hw_cmd_type cmd,
+>  	/* get encoding status */
+>  	ret = ctx->hw_err ? -EFAULT : 0;
+>  
+> +	ctx->encode_errors += ctx->hw_err ? 1 : 0;
+> +
+>  out:
+>  	disable_irq(hva->irq_its);
+>  	disable_irq(hva->irq_err);
+> diff --git a/drivers/media/platform/sti/hva/hva-mem.c b/drivers/media/platform/sti/hva/hva-mem.c
+> index 649f660..821c78e 100644
+> --- a/drivers/media/platform/sti/hva/hva-mem.c
+> +++ b/drivers/media/platform/sti/hva/hva-mem.c
+> @@ -17,14 +17,17 @@ int hva_mem_alloc(struct hva_ctx *ctx, u32 size, const char *name,
+>  	void *base;
+>  
+>  	b = devm_kzalloc(dev, sizeof(*b), GFP_KERNEL);
+> -	if (!b)
+> +	if (!b) {
+> +		ctx->sys_errors++;
+>  		return -ENOMEM;
+> +	}
+>  
+>  	base = dma_alloc_attrs(dev, size, &paddr, GFP_KERNEL | GFP_DMA,
+>  			       DMA_ATTR_WRITE_COMBINE);
+>  	if (!base) {
+>  		dev_err(dev, "%s %s : dma_alloc_attrs failed for %s (size=%d)\n",
+>  			ctx->name, __func__, name, size);
+> +		ctx->sys_errors++;
+>  		devm_kfree(dev, b);
+>  		return -ENOMEM;
+>  	}
+> diff --git a/drivers/media/platform/sti/hva/hva-v4l2.c b/drivers/media/platform/sti/hva/hva-v4l2.c
+> index 6bf3c858..a13b03c 100644
+> --- a/drivers/media/platform/sti/hva/hva-v4l2.c
+> +++ b/drivers/media/platform/sti/hva/hva-v4l2.c
+> @@ -226,6 +226,28 @@ static int hva_open_encoder(struct hva_ctx *ctx, u32 streamformat,
+>  	return ret;
+>  }
+>  
+> +void hva_dbg_summary(struct hva_ctx *ctx)
+> +{
+> +	struct device *dev = ctx_to_dev(ctx);
+> +	struct hva_streaminfo *stream = &ctx->streaminfo;
+> +	struct hva_frameinfo *frame = &ctx->frameinfo;
+> +
+> +	if (!(ctx->flags & HVA_FLAG_STREAMINFO))
+> +		return;
+> +
+> +	dev_info(dev, "%s %4.4s %dx%d > %4.4s %dx%d %s %s: %d frames encoded, %d system errors, %d encoding errors, %d frame errors\n",
+> +		 ctx->name,
+> +		 (char *)&frame->pixelformat,
+> +		 frame->aligned_width, frame->aligned_height,
+> +		 (char *)&stream->streamformat,
+> +		 stream->width, stream->height,
+> +		 stream->profile, stream->level,
+> +		 ctx->encoded_frames,
+> +		 ctx->sys_errors,
+> +		 ctx->encode_errors,
+> +		 ctx->frame_errors);
+> +}
+> +
+>  /*
+>   * V4L2 ioctl operations
+>   */
+> @@ -614,19 +636,17 @@ static int hva_s_ctrl(struct v4l2_ctrl *ctrl)
+>  		break;
+>  	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
+>  		ctx->ctrls.profile = ctrl->val;
+> -		if (ctx->flags & HVA_FLAG_STREAMINFO)
+> -			snprintf(ctx->streaminfo.profile,
+> -				 sizeof(ctx->streaminfo.profile),
+> -				 "%s profile",
+> -				 v4l2_ctrl_get_menu(ctrl->id)[ctrl->val]);
+> +		snprintf(ctx->streaminfo.profile,
+> +			 sizeof(ctx->streaminfo.profile),
+> +			 "%s profile",
+> +			 v4l2_ctrl_get_menu(ctrl->id)[ctrl->val]);
+>  		break;
+>  	case V4L2_CID_MPEG_VIDEO_H264_LEVEL:
+>  		ctx->ctrls.level = ctrl->val;
+> -		if (ctx->flags & HVA_FLAG_STREAMINFO)
+> -			snprintf(ctx->streaminfo.level,
+> -				 sizeof(ctx->streaminfo.level),
+> -				 "level %s",
+> -				 v4l2_ctrl_get_menu(ctrl->id)[ctrl->val]);
+> +		snprintf(ctx->streaminfo.level,
+> +			 sizeof(ctx->streaminfo.level),
+> +			 "level %s",
+> +			 v4l2_ctrl_get_menu(ctrl->id)[ctrl->val]);
+>  		break;
+>  	case V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE:
+>  		ctx->ctrls.entropy_mode = ctrl->val;
+> @@ -812,6 +832,8 @@ static void hva_run_work(struct work_struct *work)
+>  		dst_buf->field = V4L2_FIELD_NONE;
+>  		dst_buf->sequence = ctx->stream_num - 1;
+>  
+> +		ctx->encoded_frames++;
+> +
+>  		v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
+>  		v4l2_m2m_buf_done(dst_buf, VB2_BUF_STATE_DONE);
+>  	}
+> @@ -1026,6 +1048,8 @@ static int hva_start_streaming(struct vb2_queue *vq, unsigned int count)
+>  			v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_QUEUED);
+>  	}
+>  
+> +	ctx->sys_errors++;
+> +
+>  	return ret;
+>  }
+>  
+> @@ -1150,6 +1174,7 @@ static int hva_open(struct file *file)
+>  	if (ret) {
+>  		dev_err(dev, "%s [x:x] failed to setup controls\n",
+>  			HVA_PREFIX);
+> +		ctx->sys_errors++;
+>  		goto err_fh;
+>  	}
+>  	ctx->fh.ctrl_handler = &ctx->ctrl_handler;
+> @@ -1162,6 +1187,7 @@ static int hva_open(struct file *file)
+>  		ret = PTR_ERR(ctx->fh.m2m_ctx);
+>  		dev_err(dev, "%s failed to initialize m2m context (%d)\n",
+>  			HVA_PREFIX, ret);
+> +		ctx->sys_errors++;
+>  		goto err_ctrls;
+>  	}
+>  
+> @@ -1206,6 +1232,9 @@ static int hva_release(struct file *file)
+>  		hva->nb_of_instances--;
+>  	}
+>  
+> +	/* trace a summary of instance before closing (debug purpose) */
+> +	hva_dbg_summary(ctx);
+> +
+>  	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
+>  
+>  	v4l2_ctrl_handler_free(&ctx->ctrl_handler);
+> diff --git a/drivers/media/platform/sti/hva/hva.h b/drivers/media/platform/sti/hva/hva.h
+> index caa5808..1e30abe 100644
+> --- a/drivers/media/platform/sti/hva/hva.h
+> +++ b/drivers/media/platform/sti/hva/hva.h
+> @@ -182,6 +182,10 @@ struct hva_stream {
+>   * @priv:            private codec data for this instance, allocated
+>   *                   by encoder @open time
+>   * @hw_err:          true if hardware error detected
+> + * @encoded_frames:  number of encoded frames
+> + * @sys_errors:      number of system errors (memory, resource, pm...)
+> + * @encode_errors:   number of encoding errors (hw/driver errors)
+> + * @frame_errors:    number of frame errors (format, size, header...)
+>   */
+>  struct hva_ctx {
+>  	struct hva_dev		        *hva_dev;
+> @@ -207,6 +211,10 @@ struct hva_ctx {
+>  	struct hva_enc			*enc;
+>  	void				*priv;
+>  	bool				hw_err;
+> +	u32				encoded_frames;
+> +	u32				sys_errors;
+> +	u32				encode_errors;
+> +	u32				frame_errors;
+>  };
+>  
+>  #define HVA_FLAG_STREAMINFO	0x0001
 
 
 
-> I'll have to look again to consider how this could be done separately.
-> 
-> 
->> I'm also wondering whether we could have a streamon/suspend race. If the 
->> pipeline is setup and the DL allocated but not committed at suspend time I 
->> think we'll leak the DL at resume time.
-> 
-> If there is, then I believe I resolved this in :
->  "v4l: vsp1: Use local display lists and remove global pipe->dl"
-> 
-> but yes, if we end up not being able to use that patch then I'll take a
-> look and see if there's anything more needs to be done here.
-> 
->>>  	return 0;
->>>  }
->>
-> 
-
--- 
-Regards
-
-Kieran Bingham
+Thanks,
+Mauro
