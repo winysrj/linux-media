@@ -1,101 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:60873
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1754009AbdA3TQs (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:45811 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751164AbdAaJi3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Jan 2017 14:16:48 -0500
-Date: Mon, 30 Jan 2017 17:15:36 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v4.11] New st-delta driver
-Message-ID: <20170130171536.07f4996d@vento.lan>
-In-Reply-To: <b5f8fb46-6507-417c-8f1e-3b3f1410a64d@xs4all.nl>
-References: <b5f8fb46-6507-417c-8f1e-3b3f1410a64d@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Tue, 31 Jan 2017 04:38:29 -0500
+Subject: Re: [PATCH] [media] s5p-mfc: Align stream buffer and CPB buffer to 512
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: Andrzej Hajda <a.hajda@samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
+        kamil@wypas.org, jtp.park@samsung.com, mchehab@kernel.org,
+        pankaj.dubey@samsung.com, krzk@kernel.org, m.szyprowski@samsung.com
+In-reply-to: <de7bbdbf-35cc-a575-79d1-2ec5764469a5@samsung.com>
+Content-type: text/plain; charset=UTF-8
+Date: Tue, 31 Jan 2017 14:42:33 +0530
+Message-id: <1485853953.16927.23.camel@smitha-fedora>
+MIME-version: 1.0
+Content-transfer-encoding: 7bit
+References: <CGME20170118094212epcas5p22e588016d2b330dcd0b99b6e1012c744@epcas5p2.samsung.com>
+ <1484732223-24670-1-git-send-email-smitha.t@samsung.com>
+ <de7bbdbf-35cc-a575-79d1-2ec5764469a5@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 9 Jan 2017 14:23:33 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-
-> See the v4 series for details:
+On Wed, 2017-01-18 at 15:37 +0100, Andrzej Hajda wrote: 
+> Hi Smitha,
 > 
-> https://www.spinics.net/lists/linux-media/msg108737.html
+> On 18.01.2017 10:37, Smitha T Murthy wrote:
+> > >From MFCv6 onwards encoder stream buffer and decoder CPB buffer
 > 
-> Regards,
+> Unexpected char at the beginning.
 > 
-> 	Hans
+> > need to be aligned with 512.
 > 
-> The following changes since commit 40eca140c404505c09773d1c6685d818cb55ab1a:
+> Patch below adds checks only if buffer size is multiple of 512, am I right?
+> If yes, please precise the subject, for example "...CPB buffer size need
+> to be...".
 > 
->   [media] mn88473: add DVB-T2 PLP support (2016-12-27 14:00:15 -0200)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/hverkuil/media_tree.git delta
-> 
-> for you to fetch changes up to e6f199d01e7b8bc4436738b6c666fda31b9f3340:
-> 
->   st-delta: debug: trace stream/frame information & summary (2017-01-09 14:16:45 +0100)
-> 
-> ----------------------------------------------------------------
-> Hugues Fruchet (10):
->       Documentation: DT: add bindings for ST DELTA
->       ARM: dts: STiH410: add DELTA dt node
->       ARM: multi_v7_defconfig: enable STMicroelectronics DELTA Support
->       MAINTAINERS: add st-delta driver
->       st-delta: STiH4xx multi-format video decoder v4l2 driver
->       st-delta: add memory allocator helper functions
->       st-delta: rpmsg ipc support
->       st-delta: EOS (End Of Stream) support
->       st-delta: add mjpeg support
->       st-delta: debug: trace stream/frame information & summary
 
-There is something wrong on this driver... even after applying all
-patches, it complains that there's a for there that does nothing:
+Thank you for the review, after further analysis I found this patch is
+not required. So I will drop it. 
 
-drivers/media/platform/sti/delta/delta-v4l2.c:322 register_decoders() warn: we never enter this loop
-drivers/media/platform/sti/delta/delta-v4l2.c: In function 'register_decoders':
-drivers/media/platform/sti/delta/delta-v4l2.c:322:16: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
-  for (i = 0; i < ARRAY_SIZE(delta_decoders); i++) {
-                ^
-
-On a first glance, it seems that the register_decoders() function is
-reponsible to register the format decoders that the hardware
-recognizes. If so, I suspect that this driver is deadly broken.
-
-Please be sure that the upstream driver works properly before
-submitting it upstream.
-
-Also, please fix the comments to match the Kernel standard. E. g.
-instead of:
-
-/* guard output frame count:
- * - at least 1 frame needed for display
- * - at worst 21
- *   ( max h264 dpb (16) +
- *     decoding peak smoothing (2) +
- *     user display pipeline (3) )
- */
-
-It should be:
-
-/*
- * guard output frame count:
- * - at least 1 frame needed for display
- * - at worst 21
- *   ( max h264 dpb (16) +
- *     decoding peak smoothing (2) +
- *     user display pipeline (3) )
- */
-
-There are several similar occurrences among this patch series.
-
-Thanks,
-Mauro
-
-Thanks,
-Mauro
