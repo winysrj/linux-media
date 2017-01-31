@@ -1,188 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:35536
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750950AbdAXKNS (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:44255 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751069AbdAaPt5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 24 Jan 2017 05:13:18 -0500
-Date: Tue, 24 Jan 2017 08:13:11 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Marc Duponcheel <marc@offline.be>, linux-media@vger.kernel.org
-Subject: Re: kernel bug 191891
-Message-ID: <20170124081311.570555cf@vento.lan>
-In-Reply-To: <20170108002241.GA27564@offline.be>
-References: <20170108002241.GA27564@offline.be>
+        Tue, 31 Jan 2017 10:49:57 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com, Wolfram Sang <wsa@the-dreams.de>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 07/11] media: rcar-vin: move pad index discovery to async complete handler
+Date: Tue, 31 Jan 2017 16:40:12 +0100
+Message-Id: <20170131154016.15526-8-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170131154016.15526-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170131154016.15526-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Marc,
+To fix support for unbind and rebinding of subdevices the
+rvin_v4l2_probe() needs to be called before there might be any subdevice
+bound. Move pad index discovery to when we know the subdevice is
+present.
 
-I'm c/c the ML, as other people may be experiencing the very same issue.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 23 +++++++++++++++++++++++
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 18 +-----------------
+ 2 files changed, 24 insertions(+), 17 deletions(-)
 
-Em Sun, 8 Jan 2017 01:22:41 +0100
-Marc Duponcheel <marc@offline.be> escreveu:
-
-> Hi Mauro,
-> 
-> Congratulations with your work on the kernel.
-
-Thanks!
-
-> 
-> You may have noticed bugzilla kernel bug 191891.
-> 
-> Initially I suspected commit 7724325a19fb0a51d2a69bd2915b33f0ff197f5a
-> could correlate but I have revert it and still the usb dvb stick does
-> not work. So I guess in between 4.8.15 and 4.9.0 some other changes
-> must have caused the regression.
-> 
-> Please consider having a look and do not hesitate to ask for help to
-> proceed towards fix.
-
-There were a relevant change from Kernel 4.8 to 4.9: now, USB
-transfers should not use the stack. Changeset 7724325a19fb0 is
-part of a series meant to fix it. Unfortunately, I don't have all
-devices that were affected by such patch series. So, we'll need to
-manually address the issues on the devices that are still broken.
-
-What's weird is that, in this specific case, the patch was tested
-and reported to be ok. Maybe, on the test device, the existing
-firmware is enough.
-
-Anyway, please test the enclosed patch.
-
-> 
-> Greetings
-> 
-
-Thanks,
-Mauro
-
-[PATCH] dvb-usb: don't use stack for firmware load
-
-As reported by Marc Duponcheel <marc@offline.be>, firmware load on
-dvb-usb is using the stack, with is not allowed anymore on default
-Kernel configurations:
-
-[ 1025.958836] dvb-usb: found a 'WideView WT-220U PenType Receiver (based on ZL353)' in cold state, will try to load a firmware
-[ 1025.958853] dvb-usb: downloading firmware from file 'dvb-usb-wt220u-zl0353-01.fw'
-[ 1025.958855] dvb-usb: could not stop the USB controller CPU.
-[ 1025.958856] dvb-usb: error while transferring firmware (transferred size: -11, block size: 3)
-[ 1025.958856] dvb-usb: firmware download failed at 8 with -22
-[ 1025.958867] usbcore: registered new interface driver dvb_usb_dtt200u
-
-[    2.789902] dvb-usb: downloading firmware from file 'dvb-usb-wt220u-zl0353-01.fw'
-[    2.789905] ------------[ cut here ]------------
-[    2.789911] WARNING: CPU: 3 PID: 2196 at drivers/usb/core/hcd.c:1584 usb_hcd_map_urb_for_dma+0x430/0x560 [usbcore]
-[    2.789912] transfer buffer not dma capable
-[    2.789912] Modules linked in: btusb dvb_usb_dtt200u(+) dvb_usb_af9035(+) btrtl btbcm dvb_usb dvb_usb_v2 btintel dvb_core bluetooth rc_core rfkill x86_pkg_temp_thermal intel_powerclamp coretemp crc32_pclmul aesni_intel aes_x86_64 glue_helper lrw gf128mul ablk_helper cryptd drm_kms_helper syscopyarea sysfillrect pcspkr i2c_i801 sysimgblt fb_sys_fops drm i2c_smbus i2c_core r8169 lpc_ich mfd_core mii thermal fan rtc_cmos video button acpi_cpufreq processor snd_hda_codec_realtek snd_hda_codec_generic snd_hda_intel snd_hda_codec snd_hwdep snd_hda_core snd_pcm snd_timer snd crc32c_intel ahci libahci libata xhci_pci ehci_pci xhci_hcd ehci_hcd usbcore usb_common dm_mirror dm_region_hash dm_log dm_mod
-[    2.789936] CPU: 3 PID: 2196 Comm: systemd-udevd Not tainted 4.9.0-gentoo #1
-[    2.789937] Hardware name: ASUS All Series/H81I-PLUS, BIOS 0401 07/23/2013
-[    2.789938]  ffffc9000339b690 ffffffff812bd397 ffffc9000339b6e0 0000000000000000
-[    2.789939]  ffffc9000339b6d0 ffffffff81055c86 000006300339b6a0 ffff880116c0c000
-[    2.789941]  0000000000000000 0000000000000000 0000000000000001 ffff880116c08000
-[    2.789942] Call Trace:
-[    2.789945]  [<ffffffff812bd397>] dump_stack+0x4d/0x66
-[    2.789947]  [<ffffffff81055c86>] __warn+0xc6/0xe0
-[    2.789948]  [<ffffffff81055cea>] warn_slowpath_fmt+0x4a/0x50
-[    2.789952]  [<ffffffffa006d460>] usb_hcd_map_urb_for_dma+0x430/0x560 [usbcore]
-[    2.789954]  [<ffffffff814ed5a8>] ? io_schedule_timeout+0xd8/0x110
-[    2.789956]  [<ffffffffa006e09c>] usb_hcd_submit_urb+0x9c/0x980 [usbcore]
-[    2.789958]  [<ffffffff812d0ebf>] ? copy_page_to_iter+0x14f/0x2b0
-[    2.789960]  [<ffffffff81126818>] ? pagecache_get_page+0x28/0x240
-[    2.789962]  [<ffffffff8118c2a0>] ? touch_atime+0x20/0xa0
-[    2.789964]  [<ffffffffa006f7c4>] usb_submit_urb+0x2c4/0x520 [usbcore]
-[    2.789967]  [<ffffffffa006feca>] usb_start_wait_urb+0x5a/0xe0 [usbcore]
-[    2.789969]  [<ffffffffa007000c>] usb_control_msg+0xbc/0xf0 [usbcore]
-[    2.789970]  [<ffffffffa067903d>] usb_cypress_writemem+0x3d/0x40 [dvb_usb]
-[    2.789972]  [<ffffffffa06791cf>] usb_cypress_load_firmware+0x4f/0x130 [dvb_usb]
-[    2.789973]  [<ffffffff8109dbbe>] ? console_unlock+0x2fe/0x5d0
-[    2.789974]  [<ffffffff8109e10c>] ? vprintk_emit+0x27c/0x410
-[    2.789975]  [<ffffffff8109e40a>] ? vprintk_default+0x1a/0x20
-[    2.789976]  [<ffffffff81124d76>] ? printk+0x43/0x4b
-[    2.789977]  [<ffffffffa0679310>] dvb_usb_download_firmware+0x60/0xd0 [dvb_usb]
-[    2.789979]  [<ffffffffa0679898>] dvb_usb_device_init+0x3d8/0x610 [dvb_usb]
-[    2.789981]  [<ffffffffa069e302>] dtt200u_usb_probe+0x92/0xd0 [dvb_usb_dtt200u]
-[    2.789984]  [<ffffffffa007420c>] usb_probe_interface+0xfc/0x270 [usbcore]
-[    2.789985]  [<ffffffff8138bf95>] driver_probe_device+0x215/0x2d0
-[    2.789986]  [<ffffffff8138c0e6>] __driver_attach+0x96/0xa0
-[    2.789987]  [<ffffffff8138c050>] ? driver_probe_device+0x2d0/0x2d0
-[    2.789988]  [<ffffffff81389ffb>] bus_for_each_dev+0x5b/0x90
-[    2.789989]  [<ffffffff8138b7b9>] driver_attach+0x19/0x20
-[    2.789990]  [<ffffffff8138b33c>] bus_add_driver+0x11c/0x220
-[    2.789991]  [<ffffffff8138c91b>] driver_register+0x5b/0xd0
-[    2.789994]  [<ffffffffa0072f6c>] usb_register_driver+0x7c/0x130 [usbcore]
-[    2.789994]  [<ffffffffa06a5000>] ? 0xffffffffa06a5000
-[    2.789996]  [<ffffffffa06a501e>] dtt200u_usb_driver_init+0x1e/0x20 [dvb_usb_dtt200u]
-[    2.789997]  [<ffffffff81000408>] do_one_initcall+0x38/0x140
-[    2.789998]  [<ffffffff8116001c>] ? __vunmap+0x7c/0xc0
-[    2.789999]  [<ffffffff81124fb0>] ? do_init_module+0x22/0x1d2
-[    2.790000]  [<ffffffff81124fe8>] do_init_module+0x5a/0x1d2
-[    2.790002]  [<ffffffff810c96b1>] load_module+0x1e11/0x2580
-[    2.790003]  [<ffffffff810c68b0>] ? show_taint+0x30/0x30
-[    2.790004]  [<ffffffff81177250>] ? kernel_read_file+0x100/0x190
-[    2.790005]  [<ffffffff810c9ffa>] SyS_finit_module+0xba/0xc0
-[    2.790007]  [<ffffffff814f13e0>] entry_SYSCALL_64_fastpath+0x13/0x94
-[    2.790008] ---[ end trace c78a74e78baec6fc ]---
-
-So, allocate the structure dynamically.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-diff --git a/drivers/media/usb/dvb-usb/dvb-usb-firmware.c b/drivers/media/usb/dvb-usb/dvb-usb-firmware.c
-index f0023dbb7276..ab9866024ec7 100644
---- a/drivers/media/usb/dvb-usb/dvb-usb-firmware.c
-+++ b/drivers/media/usb/dvb-usb/dvb-usb-firmware.c
-@@ -35,28 +35,33 @@ static int usb_cypress_writemem(struct usb_device *udev,u16 addr,u8 *data, u8 le
- 
- int usb_cypress_load_firmware(struct usb_device *udev, const struct firmware *fw, int type)
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 89a9280efa05aa0c..2c40b6a1a93f108c 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -68,6 +68,8 @@ static bool rvin_mbus_supported(struct rvin_graph_entity *entity)
+ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
  {
--	struct hexline hx;
-+	struct hexline *hx;
- 	u8 reset;
- 	int ret,pos=0;
+ 	struct rvin_dev *vin = notifier_to_vin(notifier);
++	struct v4l2_subdev *sd = vin->digital.subdev;
++	unsigned int pad_idx;
+ 	int ret;
  
-+	hx = kmalloc(sizeof(*hx), GFP_KERNEL);
-+	if (!hx)
-+		return -ENOMEM;
+ 	/* Verify subdevices mbus format */
+@@ -80,6 +82,27 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
+ 	vin_dbg(vin, "Found media bus format for %s: %d\n",
+ 		vin->digital.subdev->name, vin->digital.code);
+ 
++	/* Figure out source and sink pad ids */
++	vin->digital.source_pad_idx = 0;
++	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
++		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SOURCE)
++			break;
++	if (pad_idx >= sd->entity.num_pads)
++		return -EINVAL;
 +
- 	/* stop the CPU */
- 	reset = 1;
- 	if ((ret = usb_cypress_writemem(udev,cypress[type].cpu_cs_register,&reset,1)) != 1)
- 		err("could not stop the USB controller CPU.");
- 
--	while ((ret = dvb_usb_get_hexline(fw,&hx,&pos)) > 0) {
--		deb_fw("writing to address 0x%04x (buffer: 0x%02x %02x)\n",hx.addr,hx.len,hx.chk);
--		ret = usb_cypress_writemem(udev,hx.addr,hx.data,hx.len);
-+	while ((ret = dvb_usb_get_hexline(fw, hx, &pos)) > 0) {
-+		deb_fw("writing to address 0x%04x (buffer: 0x%02x %02x)\n", hx->addr, hx->len, hx->chk);
-+		ret = usb_cypress_writemem(udev, hx->addr, hx->data, hx->len);
- 
--		if (ret != hx.len) {
-+		if (ret != hx->len) {
- 			err("error while transferring firmware (transferred size: %d, block size: %d)",
--				ret,hx.len);
-+				ret, hx->len);
- 			ret = -EINVAL;
- 			break;
- 		}
- 	}
++	vin->digital.source_pad_idx = pad_idx;
++
++	vin->digital.sink_pad_idx = 0;
++	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
++		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SINK) {
++			vin->digital.sink_pad_idx = pad_idx;
++			break;
++		}
++
++	vin_dbg(vin, "Found media pads for %s source: %d sink %d\n",
++		vin->digital.subdev->name, vin->digital.source_pad_idx,
++		vin->digital.sink_pad_idx);
++
+ 	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
  	if (ret < 0) {
- 		err("firmware download failed at %d with %d",pos,ret);
-+		kfree(hx);
- 		return ret;
- 	}
+ 		vin_err(vin, "Failed to register subdev nodes\n");
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index f8ff7c43944dd64a..51324c6d826f76ea 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -905,7 +905,7 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+ {
+ 	struct video_device *vdev = &vin->vdev;
+ 	struct v4l2_subdev *sd = vin_to_source(vin);
+-	int pad_idx, ret;
++	int ret;
  
-@@ -70,6 +75,8 @@ int usb_cypress_load_firmware(struct usb_device *udev, const struct firmware *fw
- 	} else
- 		ret = -EIO;
+ 	v4l2_set_subdev_hostdata(sd, vin);
  
-+	kfree(hx);
-+
- 	return ret;
- }
- EXPORT_SYMBOL(usb_cypress_load_firmware);
-
+@@ -951,22 +951,6 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+ 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+ 		V4L2_CAP_READWRITE;
+ 
+-	vin->digital.source_pad_idx = 0;
+-	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
+-		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SOURCE)
+-			break;
+-	if (pad_idx >= sd->entity.num_pads)
+-		return -EINVAL;
+-
+-	vin->digital.source_pad_idx = pad_idx;
+-
+-	vin->digital.sink_pad_idx = 0;
+-	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
+-		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SINK) {
+-			vin->digital.sink_pad_idx = pad_idx;
+-			break;
+-		}
+-
+ 	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
+ 	rvin_reset_format(vin);
+ 
+-- 
+2.11.0
 
