@@ -1,65 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from guitar.tcltek.co.il ([192.115.133.116]:55847 "EHLO
-        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750733AbdAOH7g (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 15 Jan 2017 02:59:36 -0500
-From: Baruch Siach <baruch@tkos.co.il>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org, Baruch Siach <baruch@tkos.co.il>,
-        Fabio Estevam <festevam@gmail.com>
-Subject: [PATCH v2] [media] coda: add Freescale firmware compatibility location
-Date: Sun, 15 Jan 2017 09:59:14 +0200
-Message-Id: <5723860e4668aebd07ea61d17b7879bea8b2f230.1484467154.git.baruch@tkos.co.il>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36674
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751910AbdAaNBS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 31 Jan 2017 08:01:18 -0500
+Date: Tue, 31 Jan 2017 11:01:11 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Tuukka Toivonen <tuukkat76@gmail.com>, Pavel Machek <pavel@ucw.cz>,
+        linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR v4.11] Add et8ek8 driver
+Message-ID: <20170131110111.06321f77@vento.lan>
+In-Reply-To: <20170131124534.GW7139@valkosipuli.retiisi.org.uk>
+References: <20170125140745.GH7139@valkosipuli.retiisi.org.uk>
+        <20170131104248.4e0f0bd8@vento.lan>
+        <20170131124534.GW7139@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Freescale provided imx-vpu looks for firmware files under /lib/firmware/vpu
-by default. Make coda look there for firmware files to ease the update path.
+Em Tue, 31 Jan 2017 14:45:34 +0200
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-Cc: Fabio Estevam <festevam@gmail.com>
-Signed-off-by: Baruch Siach <baruch@tkos.co.il>
----
-v2: add compatibility path; don't change existing path (Fabio)
----
- drivers/media/platform/coda/coda-common.c | 4 ++++
- 1 file changed, 4 insertions(+)
+> Hi Mauro,
+> 
+> On Tue, Jan 31, 2017 at 10:42:48AM -0200, Mauro Carvalho Chehab wrote:
+> > That added a new warning:
+> > 
+> > drivers/media/i2c/et8ek8/et8ek8_driver.c: In function 'et8ek8_registered':
+> > drivers/media/i2c/et8ek8/et8ek8_driver.c:1262:29: warning: variable 'format' set but not used [-Wunused-but-set-variable]
+> >   struct v4l2_mbus_framefmt *format;
+> >                              ^~~~~~
+> > compilation succeeded
+> > 
+> > 
+> > The driver is calling this function and storing it on a var
+> > that is not used:
+> > 
+> >         format = __et8ek8_get_pad_format(sensor, NULL, 0,
+> >                                          V4L2_SUBDEV_FORMAT_ACTIVE);
+> >         return 0;
+> > 
+> > Please send a fixup patch.  
+> 
+> I compiled it, too, but I guess I had a GCC version that didn't complain
+> about this particular matter. I'll send you a fix.
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 9e6bdafa16f5..ce0d00f3f3ba 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -2079,6 +2079,7 @@ static const struct coda_devtype coda_devdata[] = {
- 	[CODA_IMX27] = {
- 		.firmware     = {
- 			"vpu_fw_imx27_TO2.bin",
-+			"vpu/vpu_fw_imx27_TO2.bin",
- 			"v4l-codadx6-imx27.bin"
- 		},
- 		.product      = CODA_DX6,
-@@ -2092,6 +2093,7 @@ static const struct coda_devtype coda_devdata[] = {
- 	[CODA_IMX53] = {
- 		.firmware     = {
- 			"vpu_fw_imx53.bin",
-+			"vpu/vpu_fw_imx53.bin",
- 			"v4l-coda7541-imx53.bin"
- 		},
- 		.product      = CODA_7541,
-@@ -2106,6 +2108,7 @@ static const struct coda_devtype coda_devdata[] = {
- 	[CODA_IMX6Q] = {
- 		.firmware     = {
- 			"vpu_fw_imx6q.bin",
-+			"vpu/vpu_fw_imx6q.bin",
- 			"v4l-coda960-imx6q.bin"
- 		},
- 		.product      = CODA_960,
-@@ -2120,6 +2123,7 @@ static const struct coda_devtype coda_devdata[] = {
- 	[CODA_IMX6DL] = {
- 		.firmware     = {
- 			"vpu_fw_imx6d.bin",
-+			"vpu/vpu_fw_imx6d.bin",
- 			"v4l-coda960-imx6dl.bin"
- 		},
- 		.product      = CODA_960,
--- 
-2.11.0
+I run make with "W=1", to enable a few extra warnings that are usually
+troubles, like the above. W=2 would point some other things, but
+IMHO, it is not worth trying to fix the extra warnings, as it will enable
+a lot of signed/unsigned errors with are usually OK.
 
+Thanks,
+Mauro
