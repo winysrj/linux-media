@@ -1,55 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:33027 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753077AbdAHSDc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 8 Jan 2017 13:03:32 -0500
-Received: by mail-lf0-f66.google.com with SMTP id k62so7195983lfg.0
-        for <linux-media@vger.kernel.org>; Sun, 08 Jan 2017 10:03:31 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <5c13f750-52d1-e8bd-d8f1-f00b8ca6c794@gmail.com>
-References: <5c13f750-52d1-e8bd-d8f1-f00b8ca6c794@gmail.com>
-From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Date: Sun, 8 Jan 2017 19:03:09 +0100
-Message-ID: <CAFBinCAmdCz5UhjY148EmKAwKo=RKwz3G+J=Wme4g3HO70mCpQ@mail.gmail.com>
-Subject: Re: astrometa device driver
-To: dmiosga6200@gmail.com
-Cc: crope@iki.fi, mchehab@s-opensource.com,
-        linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:46941 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751386AbdAaJt5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 31 Jan 2017 04:49:57 -0500
+Message-ID: <1485856160.2932.10.camel@pengutronix.de>
+Subject: Re: [PATCH v3 21/24] media: imx: Add MIPI CSI-2 Receiver subdev
+ driver
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Tue, 31 Jan 2017 10:49:20 +0100
+In-Reply-To: <20170131000125.GO27312@n2100.armlinux.org.uk>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+         <1483755102-24785-22-git-send-email-steve_longerbeam@mentor.com>
+         <20170131000125.GO27312@n2100.armlinux.org.uk>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Dieter,
+On Tue, 2017-01-31 at 00:01 +0000, Russell King - ARM Linux wrote:
+[...]
+> The iMX6 manuals call for a very specific seven sequence of initialisation
+> for CSI2, which begins with:
+> 
+> 1. reset the D-PHY.
+> 2. place MIPI sensor in LP-11 state
+> 3. perform D-PHY initialisation
+> 4. configure CSI2 lanes and de-assert resets and shutdown signals
+> 
+> Since you reset the CSI2 at power up and then release it, how do you
+> guarantee that the published sequence is followed?
+> 
+> With Philipp's driver, this is easy, because there is a prepare_stream
+> callback which gives the sensor an opportunity to get everything
+> correctly configured according to the negotiated parameters, and place
+> the sensor in LP-11 state.
+> 
+> Some sensors do not power up in LP-11 state, but need to be programmed
+> fully before being asked to momentarily stream.  Only at that point is
+> the sensor guaranteed to be in the required LP-11 state.
 
-(I CC'ed the linux-media mailing list so other users can look this up
-when they run into the same problem)
+Do you expect that 1. and 2. could depend on the negotiated parameters
+in any way on some hardware? I had removed the prepare_stream callback
+from my driver in v2 because for my use case at least the above sequence
+could be realized by
 
-On Sun, Jan 8, 2017 at 7:27 PM, Dieter Miosga <dmiosga6200@gmail.com> wrote:
-> Happy 2017!
->
-> One of the parts that were placed under my imaginary Christmas tree was an
-> Astrometa Hybrid TV DVB-T/T2/C/FM/AV USB 2.0 stick with
-> Conexant CX23102
-that should be supported through the cx231xx driver
+1. in imx-mipi-csi2 s_power(1)
+2. in MIPI sensor s_power(1)
+3./4. in imx-mipi-csi2 s_stream(1)
+4. in MIPI sensor s_stream(1)
 
-> Rafael Micro R828D
-supported by the r820t driver
+as long as the sensor is correctly put back into LP-11 in s_stream(0).
 
-> Panasonic MN88473
-supported by the mn88473 driver
+regards
+Philipp
 
-> It was not recognized by the latest kernel versions 4.8-4.10.
-> If I can ever help you to integrate this device in your work,
-> I would be happy!
-can you show us the USB vendor/device ID of this device (please run
-"lsusb -vv" and paste the whole block which belongs to your device)?
-
-it seems that the required card definition is missing in
-drivers/media/usb/cx231xx/cx231xx-cards.c along with some code that
-connects the tuner and demodulator in
-drivers/media/usb/cx231xx/cx231xx-dvb.c (there may be more TODOs: for
-example fiddling with GPIOs, but if you're lucky this is not required)
-
-
-Regards,
-Martin
