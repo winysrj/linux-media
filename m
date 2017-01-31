@@ -1,125 +1,319 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:48354 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750713AbdAMFOR (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:38000 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750726AbdAaIur (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Jan 2017 00:14:17 -0500
-Message-ID: <8c72b87f64ce9213b1cd7a136a1a2d00@smtp-cloud6.xs4all.net>
-Date: Fri, 13 Jan 2017 06:14:13 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Tue, 31 Jan 2017 03:50:47 -0500
+From: Jean Christophe TROTIN <jean-christophe.trotin@st.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "kernel@stlinux.com" <kernel@stlinux.com>,
+        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>,
+        Yannick FERTRE <yannick.fertre@st.com>,
+        Hugues FRUCHET <hugues.fruchet@st.com>
+Subject: Re: [PATCH v3 1/3] st-hva: encoding summary at instance release
+Date: Tue, 31 Jan 2017 08:50:38 +0000
+Message-ID: <690624c4-4f73-a414-79ef-9fbe4ebce8cb@st.com>
+References: <1480329054-30403-1-git-send-email-jean-christophe.trotin@st.com>
+ <1480329054-30403-2-git-send-email-jean-christophe.trotin@st.com>
+ <20170130152803.4c7ab073@vento.lan>
+In-Reply-To: <20170130152803.4c7ab073@vento.lan>
+Content-Language: en-US
+Content-Type: text/plain; charset="Windows-1252"
+Content-ID: <C32E87E212F87F49980AFB903D580C18@st.com>
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
 
-date:			Fri Jan 13 05:00:18 CET 2017
-media-tree git hash:	40eca140c404505c09773d1c6685d818cb55ab1a
-media_build git hash:	3c6ce4ff75f19adf45869e34b376c5b9dee4d50a
-v4l-utils git hash:	aded25f433113e022adc375629c8e17eb3a5c64f
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.8.0-164
+On 01/30/2017 06:28 PM, Mauro Carvalho Chehab wrote:
+> Em Mon, 28 Nov 2016 11:30:52 +0100
+> Jean-Christophe Trotin <jean-christophe.trotin@st.com> escreveu:
+>
+>> This patch prints unconditionnaly a short summary
+>
+> Why? Is this driver so broken that everyone would need an
+> unconditional "short summary" about what happened there?
+>
+> If not, then please use dev_dbg() or debugfs instead. If yes, then
+> we should move this driver to staging.
+>
+Hi Mauro,
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.67-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10-rc3-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.12.67-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-x86_64: OK
-linux-4.10-rc3-x86_64: OK
-apps: WARNINGS
-spec-git: ERRORS
-sparse: WARNINGS
+The unconditional character of this "short summary" was a "facility" that our 
+customers used to get (it doesn't mean that this driver is broken).
+That's said, I understand your comment, and I will propose today a new version 
+of this patch with dev_dbg() instead of dev_info().
 
-Detailed results are available here:
+Regards,
+Jean-Christophe.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+>> about the encoding
+>> operation at each instance closing, for debug purpose:
+>> - information about the frame (format, resolution)
+>> - information about the stream (format, profile, level, resolution)
+>> - number of encoded frames
+>> - potential (system, encoding...) errors
+>>
+>> Signed-off-by: Yannick Fertre <yannick.fertre@st.com>
+>> Signed-off-by: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+>> ---
+>>  drivers/media/platform/sti/hva/hva-h264.c |  6 ++++
+>>  drivers/media/platform/sti/hva/hva-hw.c   |  5 ++++
+>>  drivers/media/platform/sti/hva/hva-mem.c  |  5 +++-
+>>  drivers/media/platform/sti/hva/hva-v4l2.c | 49 ++++++++++++++++++++++++-------
+>>  drivers/media/platform/sti/hva/hva.h      |  8 +++++
+>>  5 files changed, 62 insertions(+), 11 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/sti/hva/hva-h264.c b/drivers/media/platform/sti/hva/hva-h264.c
+>> index 8cc8467..e6f247a 100644
+>> --- a/drivers/media/platform/sti/hva/hva-h264.c
+>> +++ b/drivers/media/platform/sti/hva/hva-h264.c
+>> @@ -607,6 +607,7 @@ static int hva_h264_prepare_task(struct hva_ctx *pctx,
+>>  			"%s   width(%d) or height(%d) exceeds limits (%dx%d)\n",
+>>  			pctx->name, frame_width, frame_height,
+>>  			H264_MAX_SIZE_W, H264_MAX_SIZE_H);
+>> +		pctx->frame_errors++;
+>>  		return -EINVAL;
+>>  	}
+>>
+>> @@ -717,6 +718,7 @@ static int hva_h264_prepare_task(struct hva_ctx *pctx,
+>>  	default:
+>>  		dev_err(dev, "%s   invalid source pixel format\n",
+>>  			pctx->name);
+>> +		pctx->frame_errors++;
+>>  		return -EINVAL;
+>>  	}
+>>
+>> @@ -741,6 +743,7 @@ static int hva_h264_prepare_task(struct hva_ctx *pctx,
+>>
+>>  	if (td->framerate_den == 0) {
+>>  		dev_err(dev, "%s   invalid framerate\n", pctx->name);
+>> +		pctx->frame_errors++;
+>>  		return -EINVAL;
+>>  	}
+>>
+>> @@ -831,6 +834,7 @@ static int hva_h264_prepare_task(struct hva_ctx *pctx,
+>>  	    (payload > MAX_SPS_PPS_SIZE)) {
+>>  		dev_err(dev, "%s   invalid sps/pps size %d\n", pctx->name,
+>>  			payload);
+>> +		pctx->frame_errors++;
+>>  		return -EINVAL;
+>>  	}
+>>
+>> @@ -842,6 +846,7 @@ static int hva_h264_prepare_task(struct hva_ctx *pctx,
+>>  						   (u8 *)stream->vaddr,
+>>  						   &payload)) {
+>>  		dev_err(dev, "%s   fail to get SEI nal\n", pctx->name);
+>> +		pctx->frame_errors++;
+>>  		return -EINVAL;
+>>  	}
+>>
+>> @@ -963,6 +968,7 @@ static int hva_h264_open(struct hva_ctx *pctx)
+>>  err_ctx:
+>>  	devm_kfree(dev, ctx);
+>>  err:
+>> +	pctx->sys_errors++;
+>>  	return ret;
+>>  }
+>>
+>> diff --git a/drivers/media/platform/sti/hva/hva-hw.c b/drivers/media/platform/sti/hva/hva-hw.c
+>> index 68d625b..5104068 100644
+>> --- a/drivers/media/platform/sti/hva/hva-hw.c
+>> +++ b/drivers/media/platform/sti/hva/hva-hw.c
+>> @@ -470,6 +470,7 @@ int hva_hw_execute_task(struct hva_ctx *ctx, enum hva_hw_cmd_type cmd,
+>>
+>>  	if (pm_runtime_get_sync(dev) < 0) {
+>>  		dev_err(dev, "%s     failed to get pm_runtime\n", ctx->name);
+>> +		ctx->sys_errors++;
+>>  		ret = -EFAULT;
+>>  		goto out;
+>>  	}
+>> @@ -481,6 +482,7 @@ int hva_hw_execute_task(struct hva_ctx *ctx, enum hva_hw_cmd_type cmd,
+>>  		break;
+>>  	default:
+>>  		dev_dbg(dev, "%s     unknown command 0x%x\n", ctx->name, cmd);
+>> +		ctx->encode_errors++;
+>>  		ret = -EFAULT;
+>>  		goto out;
+>>  	}
+>> @@ -511,6 +513,7 @@ int hva_hw_execute_task(struct hva_ctx *ctx, enum hva_hw_cmd_type cmd,
+>>  					 msecs_to_jiffies(2000))) {
+>>  		dev_err(dev, "%s     %s: time out on completion\n", ctx->name,
+>>  			__func__);
+>> +		ctx->encode_errors++;
+>>  		ret = -EFAULT;
+>>  		goto out;
+>>  	}
+>> @@ -518,6 +521,8 @@ int hva_hw_execute_task(struct hva_ctx *ctx, enum hva_hw_cmd_type cmd,
+>>  	/* get encoding status */
+>>  	ret = ctx->hw_err ? -EFAULT : 0;
+>>
+>> +	ctx->encode_errors += ctx->hw_err ? 1 : 0;
+>> +
+>>  out:
+>>  	disable_irq(hva->irq_its);
+>>  	disable_irq(hva->irq_err);
+>> diff --git a/drivers/media/platform/sti/hva/hva-mem.c b/drivers/media/platform/sti/hva/hva-mem.c
+>> index 649f660..821c78e 100644
+>> --- a/drivers/media/platform/sti/hva/hva-mem.c
+>> +++ b/drivers/media/platform/sti/hva/hva-mem.c
+>> @@ -17,14 +17,17 @@ int hva_mem_alloc(struct hva_ctx *ctx, u32 size, const char *name,
+>>  	void *base;
+>>
+>>  	b = devm_kzalloc(dev, sizeof(*b), GFP_KERNEL);
+>> -	if (!b)
+>> +	if (!b) {
+>> +		ctx->sys_errors++;
+>>  		return -ENOMEM;
+>> +	}
+>>
+>>  	base = dma_alloc_attrs(dev, size, &paddr, GFP_KERNEL | GFP_DMA,
+>>  			       DMA_ATTR_WRITE_COMBINE);
+>>  	if (!base) {
+>>  		dev_err(dev, "%s %s : dma_alloc_attrs failed for %s (size=%d)\n",
+>>  			ctx->name, __func__, name, size);
+>> +		ctx->sys_errors++;
+>>  		devm_kfree(dev, b);
+>>  		return -ENOMEM;
+>>  	}
+>> diff --git a/drivers/media/platform/sti/hva/hva-v4l2.c b/drivers/media/platform/sti/hva/hva-v4l2.c
+>> index 6bf3c858..a13b03c 100644
+>> --- a/drivers/media/platform/sti/hva/hva-v4l2.c
+>> +++ b/drivers/media/platform/sti/hva/hva-v4l2.c
+>> @@ -226,6 +226,28 @@ static int hva_open_encoder(struct hva_ctx *ctx, u32 streamformat,
+>>  	return ret;
+>>  }
+>>
+>> +void hva_dbg_summary(struct hva_ctx *ctx)
+>> +{
+>> +	struct device *dev = ctx_to_dev(ctx);
+>> +	struct hva_streaminfo *stream = &ctx->streaminfo;
+>> +	struct hva_frameinfo *frame = &ctx->frameinfo;
+>> +
+>> +	if (!(ctx->flags & HVA_FLAG_STREAMINFO))
+>> +		return;
+>> +
+>> +	dev_info(dev, "%s %4.4s %dx%d > %4.4s %dx%d %s %s: %d frames encoded, %d system errors, %d encoding errors, %d frame errors\n",
+>> +		 ctx->name,
+>> +		 (char *)&frame->pixelformat,
+>> +		 frame->aligned_width, frame->aligned_height,
+>> +		 (char *)&stream->streamformat,
+>> +		 stream->width, stream->height,
+>> +		 stream->profile, stream->level,
+>> +		 ctx->encoded_frames,
+>> +		 ctx->sys_errors,
+>> +		 ctx->encode_errors,
+>> +		 ctx->frame_errors);
+>> +}
+>> +
+>>  /*
+>>   * V4L2 ioctl operations
+>>   */
+>> @@ -614,19 +636,17 @@ static int hva_s_ctrl(struct v4l2_ctrl *ctrl)
+>>  		break;
+>>  	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
+>>  		ctx->ctrls.profile = ctrl->val;
+>> -		if (ctx->flags & HVA_FLAG_STREAMINFO)
+>> -			snprintf(ctx->streaminfo.profile,
+>> -				 sizeof(ctx->streaminfo.profile),
+>> -				 "%s profile",
+>> -				 v4l2_ctrl_get_menu(ctrl->id)[ctrl->val]);
+>> +		snprintf(ctx->streaminfo.profile,
+>> +			 sizeof(ctx->streaminfo.profile),
+>> +			 "%s profile",
+>> +			 v4l2_ctrl_get_menu(ctrl->id)[ctrl->val]);
+>>  		break;
+>>  	case V4L2_CID_MPEG_VIDEO_H264_LEVEL:
+>>  		ctx->ctrls.level = ctrl->val;
+>> -		if (ctx->flags & HVA_FLAG_STREAMINFO)
+>> -			snprintf(ctx->streaminfo.level,
+>> -				 sizeof(ctx->streaminfo.level),
+>> -				 "level %s",
+>> -				 v4l2_ctrl_get_menu(ctrl->id)[ctrl->val]);
+>> +		snprintf(ctx->streaminfo.level,
+>> +			 sizeof(ctx->streaminfo.level),
+>> +			 "level %s",
+>> +			 v4l2_ctrl_get_menu(ctrl->id)[ctrl->val]);
+>>  		break;
+>>  	case V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE:
+>>  		ctx->ctrls.entropy_mode = ctrl->val;
+>> @@ -812,6 +832,8 @@ static void hva_run_work(struct work_struct *work)
+>>  		dst_buf->field = V4L2_FIELD_NONE;
+>>  		dst_buf->sequence = ctx->stream_num - 1;
+>>
+>> +		ctx->encoded_frames++;
+>> +
+>>  		v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
+>>  		v4l2_m2m_buf_done(dst_buf, VB2_BUF_STATE_DONE);
+>>  	}
+>> @@ -1026,6 +1048,8 @@ static int hva_start_streaming(struct vb2_queue *vq, unsigned int count)
+>>  			v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_QUEUED);
+>>  	}
+>>
+>> +	ctx->sys_errors++;
+>> +
+>>  	return ret;
+>>  }
+>>
+>> @@ -1150,6 +1174,7 @@ static int hva_open(struct file *file)
+>>  	if (ret) {
+>>  		dev_err(dev, "%s [x:x] failed to setup controls\n",
+>>  			HVA_PREFIX);
+>> +		ctx->sys_errors++;
+>>  		goto err_fh;
+>>  	}
+>>  	ctx->fh.ctrl_handler = &ctx->ctrl_handler;
+>> @@ -1162,6 +1187,7 @@ static int hva_open(struct file *file)
+>>  		ret = PTR_ERR(ctx->fh.m2m_ctx);
+>>  		dev_err(dev, "%s failed to initialize m2m context (%d)\n",
+>>  			HVA_PREFIX, ret);
+>> +		ctx->sys_errors++;
+>>  		goto err_ctrls;
+>>  	}
+>>
+>> @@ -1206,6 +1232,9 @@ static int hva_release(struct file *file)
+>>  		hva->nb_of_instances--;
+>>  	}
+>>
+>> +	/* trace a summary of instance before closing (debug purpose) */
+>> +	hva_dbg_summary(ctx);
+>> +
+>>  	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
+>>
+>>  	v4l2_ctrl_handler_free(&ctx->ctrl_handler);
+>> diff --git a/drivers/media/platform/sti/hva/hva.h b/drivers/media/platform/sti/hva/hva.h
+>> index caa5808..1e30abe 100644
+>> --- a/drivers/media/platform/sti/hva/hva.h
+>> +++ b/drivers/media/platform/sti/hva/hva.h
+>> @@ -182,6 +182,10 @@ struct hva_stream {
+>>   * @priv:            private codec data for this instance, allocated
+>>   *                   by encoder @open time
+>>   * @hw_err:          true if hardware error detected
+>> + * @encoded_frames:  number of encoded frames
+>> + * @sys_errors:      number of system errors (memory, resource, pm...)
+>> + * @encode_errors:   number of encoding errors (hw/driver errors)
+>> + * @frame_errors:    number of frame errors (format, size, header...)
+>>   */
+>>  struct hva_ctx {
+>>  	struct hva_dev		        *hva_dev;
+>> @@ -207,6 +211,10 @@ struct hva_ctx {
+>>  	struct hva_enc			*enc;
+>>  	void				*priv;
+>>  	bool				hw_err;
+>> +	u32				encoded_frames;
+>> +	u32				sys_errors;
+>> +	u32				encode_errors;
+>> +	u32				frame_errors;
+>>  };
+>>
+>>  #define HVA_FLAG_STREAMINFO	0x0001
+>
+>
+>
+> Thanks,
+> Mauro
+>
