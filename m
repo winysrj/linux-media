@@ -1,71 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:37730 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750969AbdBABOr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jan 2017 20:14:47 -0500
-Date: Wed, 1 Feb 2017 01:13:49 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v3 21/24] media: imx: Add MIPI CSI-2 Receiver subdev
- driver
-Message-ID: <20170201011349.GJ27312@n2100.armlinux.org.uk>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
- <1483755102-24785-22-git-send-email-steve_longerbeam@mentor.com>
- <20170131000125.GO27312@n2100.armlinux.org.uk>
- <1485856160.2932.10.camel@pengutronix.de>
- <6e77aefa-4f22-60e9-7cc0-55c3a2de3124@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6e77aefa-4f22-60e9-7cc0-55c3a2de3124@gmail.com>
+Received: from smtp2-2.goneo.de ([85.220.129.34]:57309 "EHLO smtp2-2.goneo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751491AbdAaKGs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 31 Jan 2017 05:06:48 -0500
+From: Markus Heiser <markus.heiser@darmarit.de>
+To: Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Markus Heiser <markus.heiser@darmarit.de>,
+        "linux-doc @ vger . kernel . org List" <linux-doc@vger.kernel.org>,
+        "linux-media @ vger . kernel . org" <linux-media@vger.kernel.org>
+Subject: [PATCH] doc-rst: fixed cleandoc target when used with O=dir
+Date: Tue, 31 Jan 2017 10:57:41 +0100
+Message-Id: <1485856661-23095-1-git-send-email-markus.heiser@darmarit.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
+The cleandocs target won't work if I use a different output folder::
 
-On Tue, Jan 31, 2017 at 05:02:40PM -0800, Steve Longerbeam wrote:
-> But this also puts a requirement on MIPI sensors that s_power(ON)
-> should only place the D_PHY in LP-11, and _not_ start the clock lane.
-> But perhaps that is correct behavior anyway.
+  $ make O=/tmp/kernel SPHINXDIRS="process" cleandocs
+  make[1]: Entering directory '/tmp/kernel'
+  make[3]: *** No rule to make target 'clean'.  Stop.
+  ... Documentation/Makefile.sphinx:100: recipe for target 'cleandocs' failed
 
-If the CSI2 DPHY is held in reset state, it shouldn't matter what the
-sensor does.  In the case of IMX219, it needs a full setup of the
-device, including enabling it to stream (so it starts the clock lane
-etc) in order to get it into LP-11 state.  Merely disabling the XCLR
-signal leaves the lanes grounded.
+Signed-off-by: Markus Heiser <markus.heiser@darmarit.de>
+---
+ Documentation/Makefile.sphinx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I do seem to remember reading in one of the MIPI specs that this is
-rather expected behaviour, though I can't point at a paragraph this
-late in the night.
-
-So, the only way to satisfy these requirements is this order:
-
-- assert PHY reset signals (so blocking any activity on the CSI lanes)
-- initialise the sensor (including allowing it to start streaming and
-  then stopping the stream - at that point, the lanes will be in LP-11.)
-- deassert the resets as per the iMX6 documentation and follow the
-  remaining procedure.
-
-I'll look at your other points tomorrow.
-
-Thanks.
-
+diff --git a/Documentation/Makefile.sphinx b/Documentation/Makefile.sphinx
+index e14d82a..be1936e 100644
+--- a/Documentation/Makefile.sphinx
++++ b/Documentation/Makefile.sphinx
+@@ -98,7 +98,7 @@ installmandocs:
+ 
+ cleandocs:
+ 	$(Q)rm -rf $(BUILDDIR)
+-	$(Q)$(MAKE) BUILDDIR=$(abspath $(BUILDDIR)) -C Documentation/media clean
++	$(Q)$(MAKE) BUILDDIR=$(abspath $(BUILDDIR)) $(build)=Documentation/media clean
+ 
+ endif # HAVE_SPHINX
+ 
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+2.7.4
+
