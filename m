@@ -1,51 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:50654 "EHLO
-        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1031968AbdAEMeW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2017 07:34:22 -0500
-Received: from eucas1p1.samsung.com (unknown [182.198.249.206])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0OJB00II4498O240@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 05 Jan 2017 12:34:20 +0000 (GMT)
-From: Andrzej Hajda <a.hajda@samsung.com>
-To: linux-media@vger.kernel.org, s.nawrocki@samsung.com
-Cc: Andrzej Hajda <a.hajda@samsung.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        David Binderman <dcb314@hotmail.com>
-Subject: [PATCH] v4l: s5c73m3: fix negation operator
-Date: Thu, 05 Jan 2017 13:34:07 +0100
-Message-id: <1483619647-11753-1-git-send-email-a.hajda@samsung.com>
-In-reply-to: <VI1PR08MB1022D94ED6D0C8252129B96F9C600@VI1PR08MB1022.eurprd08.prod.outlook.com>
-References: <VI1PR08MB1022D94ED6D0C8252129B96F9C600@VI1PR08MB1022.eurprd08.prod.outlook.com>
- <CGME20170105123418eucas1p1a71a62cac9e538fa2997a8db8772d249@eucas1p1.samsung.com>
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:44273 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751108AbdAaPt5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 31 Jan 2017 10:49:57 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com, Wolfram Sang <wsa@the-dreams.de>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 09/11] media: rcar-vin: use pad information when verifying media bus format
+Date: Tue, 31 Jan 2017 16:40:14 +0100
+Message-Id: <20170131154016.15526-10-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170131154016.15526-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170131154016.15526-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Bool values should be negated using logical operators. Using bitwise operators
-results in unexpected and possibly incorrect results.
+Use information about pad index when enumerating mbus codes.
 
-Reported-by: David Binderman <dcb314@hotmail.com>
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/i2c/s5c73m3/s5c73m3-ctrls.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/rcar-vin/rcar-core.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-ctrls.c b/drivers/media/i2c/s5c73m3/s5c73m3-ctrls.c
-index 0a06033..2e71850 100644
---- a/drivers/media/i2c/s5c73m3/s5c73m3-ctrls.c
-+++ b/drivers/media/i2c/s5c73m3/s5c73m3-ctrls.c
-@@ -211,7 +211,7 @@ static int s5c73m3_3a_lock(struct s5c73m3 *state, struct v4l2_ctrl *ctrl)
- 	}
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index e9373d9ab97fb827..50058fe9e37d8771 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -48,6 +48,7 @@ static bool rvin_mbus_supported(struct rvin_graph_entity *entity)
+ 	};
  
- 	if ((ctrl->val ^ ctrl->cur.val) & V4L2_LOCK_FOCUS)
--		ret = s5c73m3_af_run(state, ~af_lock);
-+		ret = s5c73m3_af_run(state, !af_lock);
- 
- 	return ret;
- }
+ 	code.index = 0;
++	code.pad = entity->source_pad_idx;
+ 	while (!v4l2_subdev_call(sd, pad, enum_mbus_code, NULL, &code)) {
+ 		code.index++;
+ 		switch (code.code) {
 -- 
-2.7.4
+2.11.0
 
