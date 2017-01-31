@@ -1,57 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36674
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751910AbdAaNBS (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:44251 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751124AbdAaPt5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jan 2017 08:01:18 -0500
-Date: Tue, 31 Jan 2017 11:01:11 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Tuukka Toivonen <tuukkat76@gmail.com>, Pavel Machek <pavel@ucw.cz>,
-        linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR v4.11] Add et8ek8 driver
-Message-ID: <20170131110111.06321f77@vento.lan>
-In-Reply-To: <20170131124534.GW7139@valkosipuli.retiisi.org.uk>
-References: <20170125140745.GH7139@valkosipuli.retiisi.org.uk>
-        <20170131104248.4e0f0bd8@vento.lan>
-        <20170131124534.GW7139@valkosipuli.retiisi.org.uk>
+        Tue, 31 Jan 2017 10:49:57 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com, Wolfram Sang <wsa@the-dreams.de>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 08/11] media: rcar-vin: refactor pad lookup code
+Date: Tue, 31 Jan 2017 16:40:13 +0100
+Message-Id: <20170131154016.15526-9-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170131154016.15526-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170131154016.15526-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 31 Jan 2017 14:45:34 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+If the subdeivce did not supply pad information the driver will return
+-EINVAL, this is not what we want so remove that check. The code can
+then be broken out to a helper function reducing duplication.
 
-> Hi Mauro,
-> 
-> On Tue, Jan 31, 2017 at 10:42:48AM -0200, Mauro Carvalho Chehab wrote:
-> > That added a new warning:
-> > 
-> > drivers/media/i2c/et8ek8/et8ek8_driver.c: In function 'et8ek8_registered':
-> > drivers/media/i2c/et8ek8/et8ek8_driver.c:1262:29: warning: variable 'format' set but not used [-Wunused-but-set-variable]
-> >   struct v4l2_mbus_framefmt *format;
-> >                              ^~~~~~
-> > compilation succeeded
-> > 
-> > 
-> > The driver is calling this function and storing it on a var
-> > that is not used:
-> > 
-> >         format = __et8ek8_get_pad_format(sensor, NULL, 0,
-> >                                          V4L2_SUBDEV_FORMAT_ACTIVE);
-> >         return 0;
-> > 
-> > Please send a fixup patch.  
-> 
-> I compiled it, too, but I guess I had a GCC version that didn't complain
-> about this particular matter. I'll send you a fix.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 29 +++++++++++++----------------
+ 1 file changed, 13 insertions(+), 16 deletions(-)
 
-I run make with "W=1", to enable a few extra warnings that are usually
-troubles, like the above. W=2 would point some other things, but
-IMHO, it is not worth trying to fix the extra warnings, as it will enable
-a lot of signed/unsigned errors with are usually OK.
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 2c40b6a1a93f108c..e9373d9ab97fb827 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -65,11 +65,21 @@ static bool rvin_mbus_supported(struct rvin_graph_entity *entity)
+ 	return false;
+ }
+ 
++static unsigned int rvin_pad_idx(struct v4l2_subdev *sd, int direction)
++{
++	unsigned int pad_idx;
++
++	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
++		if (sd->entity.pads[pad_idx].flags == direction)
++			return pad_idx;
++
++	return 0;
++}
++
+ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
+ {
+ 	struct rvin_dev *vin = notifier_to_vin(notifier);
+ 	struct v4l2_subdev *sd = vin->digital.subdev;
+-	unsigned int pad_idx;
+ 	int ret;
+ 
+ 	/* Verify subdevices mbus format */
+@@ -83,21 +93,8 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
+ 		vin->digital.subdev->name, vin->digital.code);
+ 
+ 	/* Figure out source and sink pad ids */
+-	vin->digital.source_pad_idx = 0;
+-	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
+-		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SOURCE)
+-			break;
+-	if (pad_idx >= sd->entity.num_pads)
+-		return -EINVAL;
+-
+-	vin->digital.source_pad_idx = pad_idx;
+-
+-	vin->digital.sink_pad_idx = 0;
+-	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
+-		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SINK) {
+-			vin->digital.sink_pad_idx = pad_idx;
+-			break;
+-		}
++	vin->digital.source_pad_idx = rvin_pad_idx(sd, MEDIA_PAD_FL_SOURCE);
++	vin->digital.sink_pad_idx = rvin_pad_idx(sd, MEDIA_PAD_FL_SINK);
+ 
+ 	vin_dbg(vin, "Found media pads for %s source: %d sink %d\n",
+ 		vin->digital.subdev->name, vin->digital.source_pad_idx,
+-- 
+2.11.0
 
-Thanks,
-Mauro
