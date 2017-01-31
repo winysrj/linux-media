@@ -1,179 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay-1.mailobj.net ([213.182.54.6]:38183 "EHLO
-        relay-1.mailobj.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966936AbdAKNy0 (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:54228 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750765AbdAaWhK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 11 Jan 2017 08:54:26 -0500
-From: leny@netcourrier.com
-To: linux-media@vger.kernel.org
-Cc: oliver@schinagl.nl
-Date: Wed, 11 Jan 2017 14:54:24 +0100 (CET)
-Subject: [PATCH] dtv-scan-tables - dvb-s - add the config file for
- Eutelsat 5 West A - 5.0W - C Band
+        Tue, 31 Jan 2017 17:37:10 -0500
+Subject: Re: [PATCH v3 20/24] media: imx: Add Camera Interface subdev driver
+To: Russell King - ARM Linux <linux@armlinux.org.uk>,
+        Ian Arkver <ian.arkver.dev@gmail.com>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <1483755102-24785-21-git-send-email-steve_longerbeam@mentor.com>
+ <b7456d40-040d-41b7-45bc-ef6709ab7933@xs4all.nl>
+ <20170131134252.GX27312@n2100.armlinux.org.uk>
+ <b0517394-7717-3e1d-b850-e2b69a9c19e9@gmail.com>
+ <20170131203340.GC27312@n2100.armlinux.org.uk>
+ <2297c62c-ae9b-3942-4700-ce268a61a6d5@gmail.com>
+ <20170131220452.GE27312@n2100.armlinux.org.uk>
+CC: Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, <robh+dt@kernel.org>,
+        <mark.rutland@arm.com>, <shawnguo@kernel.org>,
+        <kernel@pengutronix.de>, <fabio.estevam@nxp.com>,
+        <mchehab@kernel.org>, <nick@shmanahar.org>,
+        <markus.heiser@darmarIT.de>, <p.zabel@pengutronix.de>,
+        <laurent.pinchart+renesas@ideasonboard.com>, <bparrot@ti.com>,
+        <geert@linux-m68k.org>, <arnd@arndb.de>,
+        <sudipm.mukherjee@gmail.com>, <minghsiu.tsai@mediatek.com>,
+        <tiffany.lin@mediatek.com>, <jean-christophe.trotin@st.com>,
+        <horms+renesas@verge.net.au>,
+        <niklas.soderlund+renesas@ragnatech.se>, <robert.jarzmik@free.fr>,
+        <songjun.wu@microchip.com>, <andrew-ct.chen@mediatek.com>,
+        <gregkh@linuxfoundation.org>, <devicetree@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>, <devel@driverdev.osuosl.org>
+From: Steve Longerbeam <steve_longerbeam@mentor.com>
+Message-ID: <d5ede043-3b02-37f6-bd4a-db805e6b36d7@mentor.com>
+Date: Tue, 31 Jan 2017 14:36:53 -0800
 MIME-Version: 1.0
-Message-ID: <ea-mime-58763910-5114-5b007313@www-5.netcourrier.com>
-In-Reply-To: <ea-mime-587635e4-4c2d-38a283fd@www-5.netcourrier.com>
-Content-Type: multipart/mixed;
- boundary="----=_NextPart_000_58763910_5114_4624d8d1"
+In-Reply-To: <20170131220452.GE27312@n2100.armlinux.org.uk>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-------=_NextPart_000_58763910_5114_4624d8d1
-Content-Type: text/plain;
- charset="ISO-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-Hello,
-
-There is no config scan file for Eutelsat 5 West A - 5.0W - C Band transpo=
-nders at https://git.linuxtv.org/dtv-scan-tables.git/tree/dvb-s/
-Attached is a config scan file for=A0 Eutelsat 5 West A - 5.0W - C Band tr=
-ansponders in dvbv5 format.
-Could you please ensure that this new patch is committed into the DVB sour=
-ce code tree repositery ?
-
-Thank you
-
-Best regards
 
 
+On 01/31/2017 02:04 PM, Russell King - ARM Linux wrote:
+> On Tue, Jan 31, 2017 at 09:55:29PM +0000, Ian Arkver wrote:
+>> On 31/01/17 20:33, Russell King - ARM Linux wrote:
+>>> On Tue, Jan 31, 2017 at 10:21:26AM -0800, Steve Longerbeam wrote:
+>>>> On 01/31/2017 05:42 AM, Russell King - ARM Linux wrote:
+>>>>> On Fri, Jan 20, 2017 at 03:38:28PM +0100, Hans Verkuil wrote:
+>>>>>> Should be set to something like 'platform:imx-media-camif'. v4l2-compliance
+>>>>>> should complain about this.
+>>>>> ... and more.
+>>>> Right, in version 3 that you are working with, no v4l2-compliance fixes were
+>>>> in yet. A lot of the compliance errors are fixed, please look in latest
+>>>> branch
+>>>> imx-media-staging-md-wip at git@github.com:slongerbeam/mediatree.git.
+>>> Sorry, I'm not prepared to pull random trees from github as there's
+>>> no easy way to see what's in the branch.
+>>>
+>>> I've always disliked github because its web interface makes it soo
+>>> difficult to navigate around git trees hosted there.  You can see
+>>> a commit, you can see a diff of the commit.  You can get a list of
+>>> branches.  But there seems to be no way to get a list of commits
+>>> similar to "git log" or even a one-line summary of each commit on
+>>> a branch.  If there is, it's completely non-obvious (which I think is
+>>> much of the problem with github, it's web interface is horrendous.)
+>>>
+>>> Or you can clone/pull the tree without knowing what you're fetching
+>>> (eg, what the tree is based upon.)
+>>>
+>>> Or you can waste time clicking repeatedly on the "parent" commit link
+>>> on each patch working your way back through the history...
+>>>
+>>> Well, it looks like it's bsaed on 4.10-rc1 with who-knows-what work
+>> >from the linux-media tree (I didn't try and go back any further.)
+>>> As I don't want to take a whole pile of other changes into my tree,
+>>> I'm certainly not going to pull from your github tree.  Sorry.
+>>>
+>> https://github.com/slongerbeam/mediatree/compare/master...imx-media-staging-md-wip
+>>
+>> It's under the "Compare" button from the main view. It would be nice though
+>> if the first commit's parent was some clearly tagged start point.
+> I don't want master though, I want v4.10-rc1, and if I ask for that
+> it tells me it knows nothing about v4.10-rc1, despite the fact that's
+> a tag in the mainline kernel repository which was merged into the
+> linux-media tree that this tree is based upon.
 
+Hi Russell, yes git@github.com:slongerbeam/mediatree.git is a fork
+of the linux-media tree, and the imx-media-staging-md-wip branch
+is up-to-date with master, currently at 4.10-rc1.
 
-------=_NextPart_000_58763910_5114_4624d8d1
-Content-Type: application/octet-stream;
- name="Eutelsat-5-West-A-band-C-5.0W"
-Content-Disposition: attachment;
- filename="Eutelsat-5-West-A-band-C-5.0W"
-Content-Transfer-Encoding: base64
+You don't need to use the web interface, just git clone the repo.
 
-IyBFdXRlbHNhdCA1IFdlc3QgQSBAIDUuMFcgLSBoaXMgcHJldmlvdXMgbmFtZSB3ZXJlIFN0ZWxs
-YXQgNSAoMjAwMikgYW5kIEF0bGFudGljIEJpcmQgMyAoMjAwMi0yMDEyKQojIExhdGVzdCB1cGRh
-dGUgZm9yIHRoZSBkYXRhIDogMjAxNy0wMS0wMgojIFRyYW5zcG9uZGVycyBsaXN0IGZvciB0aGUg
-QyBiYW5kCiMKIyBXYXJuaW5nIDogVGhpcyBzYXRlbGxpdCBoYXZlIHNldmVyYWwgRFZCLVMyIHRy
-YW5zcG9uZGVycyB3aXRoIEFDTS1WQ00gY29kaW5nLCB0aGVuCiMgaWYgcGxzX21vZGUgaXMgbm90
-IHNwZWNpZmllZCAtIGRlZmF1bHQgMCAocm9vdCkuIDEgaXMgZ29sZCwgMiBpcyBjb21iby4KIwoK
-IyBUcmFuc3BvbmRlciAxCiMgVW5rbm93biB1c2UgLSBHbG9iZUNhc3QgcHJvdmlkZXIKW0NIQU5O
-RUxdCglERUxJVkVSWV9TWVNURU0gPSBEVkJTCglGUkVRVUVOQ1kgPSAzNjMwMDAwCglQT0xBUkla
-QVRJT04gPSBSSUdIVAoJU1lNQk9MX1JBVEUgPSAzMjU1MDAwCglJTk5FUl9GRUMgPSAyLzMKCU1P
-RFVMQVRJT04gPSBRUFNLCglJTlZFUlNJT04gPSBBVVRPCgkKIyBUcmFuc3BvbmRlciAyCiMgVW5r
-bm93biB1c2UKW0NIQU5ORUxdCglERUxJVkVSWV9TWVNURU0gPSBEVkJTCglGUkVRVUVOQ1kgPSAz
-NjQxMDAwCglQT0xBUklaQVRJT04gPSBSSUdIVAoJU1lNQk9MX1JBVEUgPSAxODYwMDAwCglJTk5F
-Ul9GRUMgPSA3LzgKCU1PRFVMQVRJT04gPSBRUFNLCglJTlZFUlNJT04gPSBBVVRPCgkKIyBUcmFu
-c3BvbmRlciAzCiMgTmlnZXIgLSBUZWxlIFNhaGVsIFRWCltDSEFOTkVMXQoJREVMSVZFUllfU1lT
-VEVNID0gRFZCUwoJRlJFUVVFTkNZID0gMzY0NzAwMAoJUE9MQVJJWkFUSU9OID0gUklHSFQKCVNZ
-TUJPTF9SQVRFID0gMjE3MDAwMAoJSU5ORVJfRkVDID0gMy80CglNT0RVTEFUSU9OID0gUVBTSwoJ
-SU5WRVJTSU9OID0gQVVUTwoJCiMgVHJhbnNwb25kZXIgNAojIENvbmdvIC0gVFYgQ29uZ28KW0NI
-QU5ORUxdCglERUxJVkVSWV9TWVNURU0gPSBEVkJTCglGUkVRVUVOQ1kgPSAzNjUyMDAwCglQT0xB
-UklaQVRJT04gPSBSSUdIVAoJU1lNQk9MX1JBVEUgPSAyMDE5MDAwCglJTk5FUl9GRUMgPSA3LzgK
-CU1PRFVMQVRJT04gPSBRUFNLCglJTlZFUlNJT04gPSBBVVRPCgkKIyBUcmFuc3BvbmRlciA1CiMg
-S2VueWEgLSBLVE4gS2VueWEgVFYKW0NIQU5ORUxdCglERUxJVkVSWV9TWVNURU0gPSBEVkJTMgoJ
-RlJFUVVFTkNZID0gMzY1ODAwMAoJUE9MQVJJWkFUSU9OID0gUklHSFQKCVNZTUJPTF9SQVRFID0g
-MjkxNzAwMAoJSU5ORVJfRkVDID0gMy81CglNT0RVTEFUSU9OID0gUFNLLzgKCUlOVkVSU0lPTiA9
-IEFVVE8KCQojIFRyYW5zcG9uZGVyIDYKIyBVbmtub3duIHVzZQpbQ0hBTk5FTF0KCURFTElWRVJZ
-X1NZU1RFTSA9IERWQlMyCglGUkVRVUVOQ1kgPSAzNjYxMDAwCglQT0xBUklaQVRJT04gPSBSSUdI
-VAoJU1lNQk9MX1JBVEUgPSAxNjAwMDAwCglJTk5FUl9GRUMgPSA1LzYKCU1PRFVMQVRJT04gPSBQ
-U0svOAoJSU5WRVJTSU9OID0gQVVUTwoJCiMgVHJhbnNwb25kZXIgNwojIENhbWVyb29uLCBDaGlu
-YSwgQ29sb21iaWEsIENvc3RhIFJpY2EsIEN1YmEsIEZyYW5jZSwgSW5kaWEsIE1leGljbywgU3Bh
-aW4sIFVTQSwgVmVuZXp1ZWxhIAojIEFsbCBUViBjaGFubmVscyB3aXRoIERWQiBTY3JhbWJsaW5n
-IDogQ0NUViBOZXdzLCBFdXJvTmV3cywgQWZyaXF1ZSBNZWRpYSwgVFZFIElOVEVSTkFDSU9OQUwg
-Li4uCltDSEFOTkVMXQoJREVMSVZFUllfU1lTVEVNID0gRFZCUzIKCUZSRVFVRU5DWSA9IDM2NjYw
-MDAKCVBPTEFSSVpBVElPTiA9IExFRlQKCVNZTUJPTF9SQVRFID0gNjAwMDAwMDAKCUlOTkVSX0ZF
-QyA9IDQvNQoJTU9EVUxBVElPTiA9IFFQU0sKCUlOVkVSU0lPTiA9IEFVVE8KCiMgVHJhbnNwb25k
-ZXIgOAojIFVua25vd24gdXNlCltDSEFOTkVMXQoJREVMSVZFUllfU1lTVEVNID0gRFZCUwoJRlJF
-UVVFTkNZID0gMzcxNzAwMAoJUE9MQVJJWkFUSU9OID0gTEVGVAoJU1lNQk9MX1JBVEUgPSAyNDM1
-MDAwCglJTk5FUl9GRUMgPSA1LzYKCU1PRFVMQVRJT04gPSBRUFNLCglJTlZFUlNJT04gPSBBVVRP
-CgkKIyBUcmFuc3BvbmRlciA5CiMgU3dlZGVuIC0gVmlhc2F0IEFmcmljYSBUViAtIGNyeXB0ZWQg
-Y2hhbm5lbHMKW0NIQU5ORUxdCglERUxJVkVSWV9TWVNURU0gPSBEVkJTMgoJRlJFUVVFTkNZID0g
-MzcyMjAwMAoJUE9MQVJJWkFUSU9OID0gTEVGVAoJU1lNQk9MX1JBVEUgPSAxODM3MDAwCglJTk5F
-Ul9GRUMgPSAzLzQKCU1PRFVMQVRJT04gPSBQU0svOAoJSU5WRVJTSU9OID0gQVVUTwoJCiMgVHJh
-bnNwb25kZXIgMTAKIyBBbGdlcmlhLCBDb25nbywgRnJhbmNlLCBNYXJvY2NvLCBTcGFpbiAtIFRW
-IGNoYW5uZWxzIDogQ2FuYWwgQWxnZXJpZSwgVFYgQ29uZ28sIExDMiBJbnQuLCBUVkUgSW50LiAu
-Li4gLSBSYWRpbyBDaGFubmVscyA6IFJUQkYsIFJGSSwgUlRWRSwgRGV1dHNjaGUgV2VsbGUsIFJh
-ZGlvIENPTkdPIC4uLgpbQ0hBTk5FTF0KCURFTElWRVJZX1NZU1RFTSA9IERWQlMKCUZSRVFVRU5D
-WSA9IDM3MjcwMDAKCVBPTEFSSVpBVElPTiA9IFJJR0hUCglTWU1CT0xfUkFURSA9IDI5OTUwMDAw
-CglJTk5FUl9GRUMgPSA3LzgKCU1PRFVMQVRJT04gPSBRUFNLCglJTlZFUlNJT04gPSBBVVRPCgkK
-IyBUcmFuc3BvbmRlciAxMQojIERhdGEgY2hhbm5lbCAtIExpbmtzdGFyCltDSEFOTkVMXQoJREVM
-SVZFUllfU1lTVEVNID0gRFZCUwoJRlJFUVVFTkNZID0gMzczMTAwMAoJUE9MQVJJWkFUSU9OID0g
-TEVGVAoJU1lNQk9MX1JBVEUgPSAxMTk2MzAwMAoJSU5ORVJfRkVDID0gMi8zCglNT0RVTEFUSU9O
-ID0gUVBTSwoJSU5WRVJTSU9OID0gQVVUTwoJCiMgVHJhbnNwb25kZXIgMTIKIyBDYW1lcm9vbiAt
-IENSVFYKW0NIQU5ORUxdCglERUxJVkVSWV9TWVNURU0gPSBEVkJTCglGUkVRVUVOQ1kgPSAzNzQz
-MDAwCglQT0xBUklaQVRJT04gPSBMRUZUCglTWU1CT0xfUkFURSA9IDI3ODUwMDAKCUlOTkVSX0ZF
-QyA9IDUvNgoJTU9EVUxBVElPTiA9IFFQU0sKCUlOVkVSU0lPTiA9IEFVVE8KCQojIFRyYW5zcG9u
-ZGVyIDEzCiMgQ29uZ28gLSBUT1AgVFYKW0NIQU5ORUxdCglERUxJVkVSWV9TWVNURU0gPSBEVkJT
-MgoJRlJFUVVFTkNZID0gNDAxNjAwMAoJUE9MQVJJWkFUSU9OID0gUklHSFQKCVNZTUJPTF9SQVRF
-ID0gMzU5MDAwMAoJSU5ORVJfRkVDID0gMy80CglNT0RVTEFUSU9OID0gUFNLLzgKCUlOVkVSU0lP
-TiA9IEFVVE8KCQojIFRyYW5zcG9uZGVyIDE0CiMgU291dGggQWZyaWNhIC0gRHVuYW1pcyBUVgpb
-Q0hBTk5FTF0KCURFTElWRVJZX1NZU1RFTSA9IERWQlMyCglGUkVRVUVOQ1kgPSA0MDIxMDAwCglQ
-T0xBUklaQVRJT04gPSBSSUdIVAoJU1lNQk9MX1JBVEUgPSAxMjQ1MDAwCglJTk5FUl9GRUMgPSAz
-LzQKCU1PRFVMQVRJT04gPSBQU0svOAoJSU5WRVJTSU9OID0gQVVUTwoJCiMgVHJhbnNwb25kZXIg
-MTUKIyBTb3V0aCBBZnJpY2EgLSBFdmFuZ2VsIFRWCltDSEFOTkVMXQoJREVMSVZFUllfU1lTVEVN
-ID0gRFZCUzIKCUZSRVFVRU5DWSA9IDQwMjMwMDAKCVBPTEFSSVpBVElPTiA9IFJJR0hUCglTWU1C
-T0xfUkFURSA9IDEyMDAwMDAKCUlOTkVSX0ZFQyA9IDMvNAoJTU9EVUxBVElPTiA9IFBTSy84CglJ
-TlZFUlNJT04gPSBBVVRPCgkKIyBUcmFuc3BvbmRlciAxNgojID8gLSBUYW5kYmVyZ1RWIHByb3Zp
-ZGVyIGZvciBUViBjcnlwdGVkIGNoYW5uZWxzCltDSEFOTkVMXQoJREVMSVZFUllfU1lTVEVNID0g
-RFZCUzIKCUZSRVFVRU5DWSA9IDQwNDgwMDAKCVBPTEFSSVpBVElPTiA9IFJJR0hUCglTWU1CT0xf
-UkFURSA9IDk4NzMwMDAKCUlOTkVSX0ZFQyA9IDMvNAoJTU9EVUxBVElPTiA9IFBTSy84CglJTlZF
-UlNJT04gPSBBVVRPCgkKIyBUcmFuc3BvbmRlciAxNwojIFVua25vd24gdXNlCltDSEFOTkVMXQoJ
-REVMSVZFUllfU1lTVEVNID0gRFZCUzIKCUZSRVFVRU5DWSA9IDQwNzEwMDAKCVBPTEFSSVpBVElP
-TiA9IFJJR0hUCglTWU1CT0xfUkFURSA9IDMwMDAwMDAKCUlOTkVSX0ZFQyA9IDMvNQoJTU9EVUxB
-VElPTiA9IFBTSy84CglJTlZFUlNJT04gPSBBVVRPCgkKIyBUcmFuc3BvbmRlciAxOAojIERhdGEg
-Y2hhbm5lbCAtIEVudmlzYXQgRERTCltDSEFOTkVMXQoJREVMSVZFUllfU1lTVEVNID0gRFZCUwoJ
-RlJFUVVFTkNZID0gNDA3NjAwMAoJUE9MQVJJWkFUSU9OID0gTEVGVAoJU1lNQk9MX1JBVEUgPSAz
-MDAwMDAwCglJTk5FUl9GRUMgPSAxLzIKCU1PRFVMQVRJT04gPSBRUFNLCglJTlZFUlNJT04gPSBB
-VVRPCgkKIyBUcmFuc3BvbmRlciAxOQojIFVua25vd24gdXNlCltDSEFOTkVMXQoJREVMSVZFUllf
-U1lTVEVNID0gRFZCUzIKCUZSRVFVRU5DWSA9IDQwNzgwMDAKCVBPTEFSSVpBVElPTiA9IExFRlQK
-CVNZTUJPTF9SQVRFID0gMTIwMDAwMAoJSU5ORVJfRkVDID0gMy80CglNT0RVTEFUSU9OID0gUFNL
-LzgKCUlOVkVSU0lPTiA9IEFVVE8KCQojIFRyYW5zcG9uZGVyIDIwCiMgVW5rbm93biB1c2UKW0NI
-QU5ORUxdCglERUxJVkVSWV9TWVNURU0gPSBEVkJTMgoJRlJFUVVFTkNZID0gNDA4MTAwMAoJUE9M
-QVJJWkFUSU9OID0gTEVGVAoJU1lNQk9MX1JBVEUgPSAxMjAwMDAwCglJTk5FUl9GRUMgPSAzLzQK
-CU1PRFVMQVRJT04gPSBQU0svOAoJSU5WRVJTSU9OID0gQVVUTwoJCiMgVHJhbnNwb25kZXIgMjEK
-IyBVbmtub3duIHVzZSAtIERWQi1TMiBBQ00tVkNNCltDSEFOTkVMXQoJREVMSVZFUllfU1lTVEVN
-ID0gRFZCUzIKCUZSRVFVRU5DWSA9IDQwOTkwMDAKCVBPTEFSSVpBVElPTiA9IExFRlQKCVNZTUJP
-TF9SQVRFID0gOTEwNzAwMAoJSU5ORVJfRkVDID0gQVVUTwoJTU9EVUxBVElPTiA9IFBTSy84CglJ
-TlZFUlNJT04gPSBBVVRPCgkKIyBUcmFuc3BvbmRlciAyMgojIEdhYm9uIC0gR2Fib24gMjQgVFYK
-W0NIQU5ORUxdCglERUxJVkVSWV9TWVNURU0gPSBEVkJTMgoJRlJFUVVFTkNZID0gNDExMDAwMAoJ
-UE9MQVJJWkFUSU9OID0gTEVGVAoJU1lNQk9MX1JBVEUgPSAxMjQ5MDAwCglJTk5FUl9GRUMgPSAz
-LzQKCU1PRFVMQVRJT04gPSBQU0svOAoJSU5WRVJTSU9OID0gQVVUTwoJCiMgVHJhbnNwb25kZXIg
-MjMKIyBHYWJvbiAtIFRlbGUgQWZyaWNhIFRWCltDSEFOTkVMXQoJREVMSVZFUllfU1lTVEVNID0g
-RFZCUwoJRlJFUVVFTkNZID0gNDExMzgwMAoJUE9MQVJJWkFUSU9OID0gTEVGVAoJU1lNQk9MX1JB
-VEUgPSAyMTQyMDAwCglJTk5FUl9GRUMgPSA1LzYKCU1PRFVMQVRJT04gPSBRUFNLCglJTlZFUlNJ
-T04gPSBBVVRPCgkKIyBUcmFuc3BvbmRlciAyNAojIFVua25vd24gdXNlCltDSEFOTkVMXQoJREVM
-SVZFUllfU1lTVEVNID0gRFZCUwoJRlJFUVVFTkNZID0gNDEyMDAwMAoJUE9MQVJJWkFUSU9OID0g
-TEVGVAoJU1lNQk9MX1JBVEUgPSAyMjIyMDAwCglJTk5FUl9GRUMgPSAzLzQKCU1PRFVMQVRJT04g
-PSBRUFNLCglJTlZFUlNJT04gPSBBVVRPCgkKIyBUcmFuc3BvbmRlciAyNQojIFVua25vd24gdXNl
-CltDSEFOTkVMXQoJREVMSVZFUllfU1lTVEVNID0gRFZCUwoJRlJFUVVFTkNZID0gNDEyNDAwMAoJ
-UE9MQVJJWkFUSU9OID0gTEVGVAoJU1lNQk9MX1JBVEUgPSAzNTcyMDAwCglJTk5FUl9GRUMgPSA3
-LzgKCU1PRFVMQVRJT04gPSBRUFNLCglJTlZFUlNJT04gPSBBVVRPCgkKIyBUcmFuc3BvbmRlciAy
-NgojIFVua25vd24gdXNlCltDSEFOTkVMXQoJREVMSVZFUllfU1lTVEVNID0gRFZCUzIKCUZSRVFV
-RU5DWSA9IDQxMjcwMDAKCVBPTEFSSVpBVElPTiA9IExFRlQKCVNZTUJPTF9SQVRFID0gMjYwMDAw
-MAoJSU5ORVJfRkVDID0gMy80CglNT0RVTEFUSU9OID0gUFNLLzgKCUlOVkVSU0lPTiA9IEFVVE8K
-CQojIFRyYW5zcG9uZGVyIDI3CiMgU2llcnJhIExlb25lIC0gU0xCQyBUVgpbQ0hBTk5FTF0KCURF
-TElWRVJZX1NZU1RFTSA9IERWQlMKCUZSRVFVRU5DWSA9IDQxMzcwMDAKCVBPTEFSSVpBVElPTiA9
-IExFRlQKCVNZTUJPTF9SQVRFID0gMjUxMDAwMAoJSU5ORVJfRkVDID0gNy84CglNT0RVTEFUSU9O
-ID0gUVBTSwoJSU5WRVJTSU9OID0gQVVUTwoJCiMgVHJhbnNwb25kZXIgMjgKIyBVbmtub3duIHVz
-ZQpbQ0hBTk5FTF0KCURFTElWRVJZX1NZU1RFTSA9IERWQlMyCglGUkVRVUVOQ1kgPSA0MTUzMDAw
-CglQT0xBUklaQVRJT04gPSBSSUdIVAoJU1lNQk9MX1JBVEUgPSAyODQ4NTAwMAoJSU5ORVJfRkVD
-ID0gNS82CglNT0RVTEFUSU9OID0gUFNLLzgKCUlOVkVSU0lPTiA9IEFVVE8KCQojIFRyYW5zcG9u
-ZGVyIDI5CiMgQmVuaW4gLSBCQiAyNCBUVgpbQ0hBTk5FTF0KCURFTElWRVJZX1NZU1RFTSA9IERW
-QlMKCUZSRVFVRU5DWSA9IDQxNTQwMDAKCVBPTEFSSVpBVElPTiA9IExFRlQKCVNZTUJPTF9SQVRF
-ID0gMjk4NTAwMAoJSU5ORVJfRkVDID0gMy80CglNT0RVTEFUSU9OID0gUVBTSwoJSU5WRVJTSU9O
-ID0gQVVUTwoJCiMgVHJhbnNwb25kZXIgMzAKIyBCZW5pbiAtIE9SVEItQkItMjQKW0NIQU5ORUxd
-CglERUxJVkVSWV9TWVNURU0gPSBEVkJTCglGUkVRVUVOQ1kgPSA0MTU3MDAwCglQT0xBUklaQVRJ
-T04gPSBMRUZUCglTWU1CT0xfUkFURSA9IDE3OTMwMDAKCUlOTkVSX0ZFQyA9IDcvOAoJTU9EVUxB
-VElPTiA9IFFQU0sKCUlOVkVSU0lPTiA9IEFVVE8KCQojIFRyYW5zcG9uZGVyIDMxCiMgR2Fib24g
-LSBSVEcgUmFkaW8gYW5kIFRWCltDSEFOTkVMXQoJREVMSVZFUllfU1lTVEVNID0gRFZCUwoJRlJF
-UVVFTkNZID0gNDE2MDAwMAoJUE9MQVJJWkFUSU9OID0gTEVGVAoJU1lNQk9MX1JBVEUgPSAxOTQz
-MDAwCglJTk5FUl9GRUMgPSA3LzgKCU1PRFVMQVRJT04gPSBRUFNLCglJTlZFUlNJT04gPSBBVVRP
-CgkKIyBUcmFuc3BvbmRlciAzMgojIEdhYm9uIC0gUkFESU8gQUZSSUNBIE4wMQpbQ0hBTk5FTF0K
-CURFTElWRVJZX1NZU1RFTSA9IERWQlMKCUZSRVFVRU5DWSA9IDQxNjI1MDAKCVBPTEFSSVpBVElP
-TiA9IExFRlQKCVNZTUJPTF9SQVRFID0gMTUwMDAwMAoJSU5ORVJfRkVDID0gMy80CglNT0RVTEFU
-SU9OID0gUVBTSwoJSU5WRVJTSU9OID0gQVVUTwoJCiMgVHJhbnNwb25kZXIgMzMKIyBHYWJvbiAt
-IFJBRElPIEFGUklDQSBOMDEgUGFyaXMKW0NIQU5ORUxdCglERUxJVkVSWV9TWVNURU0gPSBEVkJT
-CglGUkVRVUVOQ1kgPSA0MTY0MDAwCglQT0xBUklaQVRJT04gPSBMRUZUCglTWU1CT0xfUkFURSA9
-IDU1NjAwMAoJSU5ORVJfRkVDID0gMS8yCglNT0RVTEFUSU9OID0gUVBTSwoJSU5WRVJTSU9OID0g
-QVVUTwoJCiMgVHJhbnNwb25kZXIgMzQKIyBVbmtub3duIHVzZQpbQ0hBTk5FTF0KCURFTElWRVJZ
-X1NZU1RFTSA9IERWQlMyCglGUkVRVUVOQ1kgPSA0MTcxMDAwCglQT0xBUklaQVRJT04gPSBMRUZU
-CglTWU1CT0xfUkFURSA9IDEyNDQwMDAKCUlOTkVSX0ZFQyA9IDMvNAoJTU9EVUxBVElPTiA9IFBT
-Sy84CglJTlZFUlNJT04gPSBBVVRPCgoKCQ==
-------=_NextPart_000_58763910_5114_4624d8d1--
+Steve
+
 
