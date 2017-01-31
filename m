@@ -1,144 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from host.76.145.23.62.rev.coltfrance.com ([62.23.145.76]:42076 "EHLO
-        proxy.6wind.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1762111AbdAFJoh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2017 04:44:37 -0500
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-To: arnd@arndb.de
-Cc: mmarek@suse.com, linux-kbuild@vger.kernel.org,
-        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org,
-        adi-buildroot-devel@lists.sourceforge.net,
-        linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com,
-        uclinux-h8-devel@lists.sourceforge.jp,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org,
-        linux-mips@linux-mips.org, linux-am33-list@redhat.com,
-        nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-        linux-arch@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        netdev@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mmc@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-nfs@vger.kernel.org,
-        linux-raid@vger.kernel.org, linux-spi@vger.kernel.org,
-        linux-mtd@lists.infradead.org, linux-rdma@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, alsa-devel@alsa-project.org,
-        linux-fbdev@vger.kernel.org, xen-devel@lists.xenproject.org,
-        airlied@linux.ie, davem@davemloft.net,
-        Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: [PATCH v2 1/7] arm: put types.h in uapi
-Date: Fri,  6 Jan 2017 10:43:53 +0100
-Message-Id: <1483695839-18660-2-git-send-email-nicolas.dichtel@6wind.com>
-In-Reply-To: <1483695839-18660-1-git-send-email-nicolas.dichtel@6wind.com>
-References: <bf83da6b-01ef-bf44-b3e1-ca6fc5636818@6wind.com>
- <1483695839-18660-1-git-send-email-nicolas.dichtel@6wind.com>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:49322 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751042AbdAaMIx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 31 Jan 2017 07:08:53 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv2] v4l: of: check for unique lanes in data-lanes and clock-lanes
+Date: Tue, 31 Jan 2017 13:08:31 +0100
+Message-Id: <20170131120831.11283-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This header file is exported, thus move it to uapi.
+All lanes in data-lanes and clock-lanes properties should be unique. Add
+a check for this in v4l2_of_parse_csi_bus() and print a warning if
+duplicated lanes are found.
 
-Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- arch/arm/include/asm/types.h      | 36 +----------------------------------
- arch/arm/include/uapi/asm/types.h | 40 +++++++++++++++++++++++++++++++++++++++
- 2 files changed, 41 insertions(+), 35 deletions(-)
- create mode 100644 arch/arm/include/uapi/asm/types.h
 
-diff --git a/arch/arm/include/asm/types.h b/arch/arm/include/asm/types.h
-index a53cdb8f068c..c48fee3d7b3b 100644
---- a/arch/arm/include/asm/types.h
-+++ b/arch/arm/include/asm/types.h
-@@ -1,40 +1,6 @@
- #ifndef _ASM_TYPES_H
- #define _ASM_TYPES_H
+Changes since v1:
+
+- Do not return -EINVAL if a duplicate is found. Sakari pointed out 
+  there are drivers where the number of lanes matter but not the actual 
+  lane numbers. Updated commit message to highlight that only a warning 
+  is printed.
+- Switched to a bitmask to track lanes used instead of a nested loop, 
+  thanks Laurent for the suggestion.
+
+
+ drivers/media/v4l2-core/v4l2-of.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
+index 93b33681776ca427..4f59f442dd0a64c9 100644
+--- a/drivers/media/v4l2-core/v4l2-of.c
++++ b/drivers/media/v4l2-core/v4l2-of.c
+@@ -26,7 +26,7 @@ static int v4l2_of_parse_csi_bus(const struct device_node *node,
+ 	struct v4l2_of_bus_mipi_csi2 *bus = &endpoint->bus.mipi_csi2;
+ 	struct property *prop;
+ 	bool have_clk_lane = false;
+-	unsigned int flags = 0;
++	unsigned int flags = 0, lanes_used = 0;
+ 	u32 v;
  
--#include <asm-generic/int-ll64.h>
--
--/*
-- * The C99 types uintXX_t that are usually defined in 'stdint.h' are not as
-- * unambiguous on ARM as you would expect. For the types below, there is a
-- * difference on ARM between GCC built for bare metal ARM, GCC built for glibc
-- * and the kernel itself, which results in build errors if you try to build with
-- * -ffreestanding and include 'stdint.h' (such as when you include 'arm_neon.h'
-- * in order to use NEON intrinsics)
-- *
-- * As the typedefs for these types in 'stdint.h' are based on builtin defines
-- * supplied by GCC, we can tweak these to align with the kernel's idea of those
-- * types, so 'linux/types.h' and 'stdint.h' can be safely included from the same
-- * source file (provided that -ffreestanding is used).
-- *
-- *                    int32_t         uint32_t               uintptr_t
-- * bare metal GCC     long            unsigned long          unsigned int
-- * glibc GCC          int             unsigned int           unsigned int
-- * kernel             int             unsigned int           unsigned long
-- */
--
--#ifdef __INT32_TYPE__
--#undef __INT32_TYPE__
--#define __INT32_TYPE__		int
--#endif
--
--#ifdef __UINT32_TYPE__
--#undef __UINT32_TYPE__
--#define __UINT32_TYPE__	unsigned int
--#endif
--
--#ifdef __UINTPTR_TYPE__
--#undef __UINTPTR_TYPE__
--#define __UINTPTR_TYPE__	unsigned long
--#endif
-+#include <uapi/asm/types.h>
+ 	prop = of_find_property(node, "data-lanes", NULL);
+@@ -38,6 +38,12 @@ static int v4l2_of_parse_csi_bus(const struct device_node *node,
+ 			lane = of_prop_next_u32(prop, lane, &v);
+ 			if (!lane)
+ 				break;
++
++			if (lanes_used & BIT(v))
++				pr_warn("%s: duplicated lane %u in data-lanes\n",
++					node->full_name, v);
++			lanes_used |= BIT(v);
++
+ 			bus->data_lanes[i] = v;
+ 		}
+ 		bus->num_data_lanes = i;
+@@ -63,6 +69,11 @@ static int v4l2_of_parse_csi_bus(const struct device_node *node,
+ 	}
  
- #endif /* _ASM_TYPES_H */
-diff --git a/arch/arm/include/uapi/asm/types.h b/arch/arm/include/uapi/asm/types.h
-new file mode 100644
-index 000000000000..9435a42f575e
---- /dev/null
-+++ b/arch/arm/include/uapi/asm/types.h
-@@ -0,0 +1,40 @@
-+#ifndef _UAPI_ASM_TYPES_H
-+#define _UAPI_ASM_TYPES_H
+ 	if (!of_property_read_u32(node, "clock-lanes", &v)) {
++		if (lanes_used & BIT(v))
++			pr_warn("%s: duplicated lane %u in clock-lanes\n",
++				node->full_name, v);
++		lanes_used |= BIT(v);
 +
-+#include <asm-generic/int-ll64.h>
-+
-+/*
-+ * The C99 types uintXX_t that are usually defined in 'stdint.h' are not as
-+ * unambiguous on ARM as you would expect. For the types below, there is a
-+ * difference on ARM between GCC built for bare metal ARM, GCC built for glibc
-+ * and the kernel itself, which results in build errors if you try to build with
-+ * -ffreestanding and include 'stdint.h' (such as when you include 'arm_neon.h'
-+ * in order to use NEON intrinsics)
-+ *
-+ * As the typedefs for these types in 'stdint.h' are based on builtin defines
-+ * supplied by GCC, we can tweak these to align with the kernel's idea of those
-+ * types, so 'linux/types.h' and 'stdint.h' can be safely included from the same
-+ * source file (provided that -ffreestanding is used).
-+ *
-+ *                    int32_t         uint32_t               uintptr_t
-+ * bare metal GCC     long            unsigned long          unsigned int
-+ * glibc GCC          int             unsigned int           unsigned int
-+ * kernel             int             unsigned int           unsigned long
-+ */
-+
-+#ifdef __INT32_TYPE__
-+#undef __INT32_TYPE__
-+#define __INT32_TYPE__		int
-+#endif
-+
-+#ifdef __UINT32_TYPE__
-+#undef __UINT32_TYPE__
-+#define __UINT32_TYPE__	unsigned int
-+#endif
-+
-+#ifdef __UINTPTR_TYPE__
-+#undef __UINTPTR_TYPE__
-+#define __UINTPTR_TYPE__	unsigned long
-+#endif
-+
-+#endif /* _UAPI_ASM_TYPES_H */
+ 		bus->clock_lane = v;
+ 		have_clk_lane = true;
+ 	}
 -- 
-2.8.1
+2.11.0
 
