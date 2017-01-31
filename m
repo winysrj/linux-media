@@ -1,145 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:35800 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750703AbdAWIft (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:34022 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751391AbdAaUfW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Jan 2017 03:35:49 -0500
-Received: by mail-wm0-f68.google.com with SMTP id d140so24670511wmd.2
-        for <linux-media@vger.kernel.org>; Mon, 23 Jan 2017 00:35:48 -0800 (PST)
-Date: Mon, 23 Jan 2017 09:35:45 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Cc: linaro-kernel@lists.linaro.org, arnd@arndb.de, labbott@redhat.com,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, daniel.vetter@ffwll.ch,
-        laurent.pinchart@ideasonboard.com, robdclark@gmail.com,
-        broonie@kernel.org, Sumit Semwal <sumit.semwal@linaro.org>
-Subject: Re: [RFC simple allocator v1 0/2] Simple allocator
-Message-ID: <20170123083545.6l2jxlkdtmebxy5b@phenom.ffwll.local>
-References: <1484926351-30185-1-git-send-email-benjamin.gaignard@linaro.org>
+        Tue, 31 Jan 2017 15:35:22 -0500
+Date: Tue, 31 Jan 2017 20:33:40 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
+        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v3 20/24] media: imx: Add Camera Interface subdev driver
+Message-ID: <20170131203340.GC27312@n2100.armlinux.org.uk>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <1483755102-24785-21-git-send-email-steve_longerbeam@mentor.com>
+ <b7456d40-040d-41b7-45bc-ef6709ab7933@xs4all.nl>
+ <20170131134252.GX27312@n2100.armlinux.org.uk>
+ <b0517394-7717-3e1d-b850-e2b69a9c19e9@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1484926351-30185-1-git-send-email-benjamin.gaignard@linaro.org>
+In-Reply-To: <b0517394-7717-3e1d-b850-e2b69a9c19e9@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 20, 2017 at 04:32:29PM +0100, Benjamin Gaignard wrote:
-> The goal of this RFC is to understand if a common ioctl for specific memory
-> regions allocations is needed/welcome.
+On Tue, Jan 31, 2017 at 10:21:26AM -0800, Steve Longerbeam wrote:
+> On 01/31/2017 05:42 AM, Russell King - ARM Linux wrote:
+> >On Fri, Jan 20, 2017 at 03:38:28PM +0100, Hans Verkuil wrote:
+> >>Should be set to something like 'platform:imx-media-camif'. v4l2-compliance
+> >>should complain about this.
+> >... and more.
 > 
-> Obviously it will not replace allocation done in linux kernel frameworks like
-> v4l2, drm/kms or others, but offer an alternative when you don't want/need to
-> use them for buffer allocation.
-> To keep a compatibility with what already exist allocated buffers are exported
-> in userland as dmabuf file descriptor (like ION is doing).
-> 
-> "Unix Device Memory Allocator" project [1] wants to create a userland library
-> which may allow to select, depending of the devices constraint, the best
-> back-end for allocation. With this RFC I would to propose to have common ioctl
-> for a maximum of allocators to avoid to duplicated back-ends for this library.
-> 
-> One of the issues that lead me to propose this RFC it is that since the beginning
-> it is a problem to allocate contiguous memory (CMA) without using v4l2 or
-> drm/kms so the first allocator available in this RFC use CMA memory.
-> 
-> An other question is: do we have others memory regions that could be interested
-> by this new framework ? I have in mind that some title memory regions could use
-> it or replace ION heaps (system, carveout, etc...).
-> Maybe it only solve CMA allocation issue, in this case there is no need to create
-> a new framework but only a dedicated ioctl.
-> 
-> Maybe the first thing to do is to change the name and the location of this 
-> module, suggestions are welcome.
-> 
-> I have testing this code with the following program:
+> Right, in version 3 that you are working with, no v4l2-compliance fixes were
+> in yet. A lot of the compliance errors are fixed, please look in latest
+> branch
+> imx-media-staging-md-wip at git@github.com:slongerbeam/mediatree.git.
 
-I'm still maintaining that we should just destage ION (with the todo items
-fixed), since that is already an uabi to do this (afaiui at least), and
-it's used on a few devices ... Please chat with Laura Abott.
--Daniel
+Sorry, I'm not prepared to pull random trees from github as there's
+no easy way to see what's in the branch.
 
-> 
-> #include <errno.h>
-> #include <fcntl.h>
-> #include <stdio.h>
-> #include <stdlib.h>
-> #include <string.h>
-> #include <unistd.h>
-> #include <sys/ioctl.h>
-> #include <sys/mman.h>
-> #include <sys/stat.h>
-> #include <sys/types.h>
-> 
-> #include "simple-allocator.h"
-> 
-> #define LENGTH 1024*16
-> 
-> void main (void)
-> {
-> 	struct simple_allocate_data data;
-> 	int fd = open("/dev/cma0", O_RDWR, 0);
-> 	int ret;
-> 	void *mem;
-> 
-> 	if (fd < 0) {
-> 		printf("Can't open /dev/cma0\n");
-> 		return;
-> 	}
-> 
-> 	memset(&data, 0, sizeof(data));
-> 
-> 	data.length = LENGTH;
-> 	data.flags = O_RDWR | O_CLOEXEC;
-> 
-> 	ret = ioctl(fd, SA_IOC_ALLOC, &data);
-> 	if (ret) {
-> 		printf("Buffer allocation failed\n");
-> 		goto end;
-> 	}
-> 
-> 	mem = mmap(0, LENGTH, PROT_READ | PROT_WRITE, MAP_SHARED, data.fd, 0);
-> 	if (mem == MAP_FAILED) {
-> 		printf("mmap failed\n");
-> 	}
-> 
-> 	memset(mem, 0xFF, LENGTH);
-> 	munmap(mem, LENGTH);
-> 
-> 	printf("test simple allocator CMA OK\n");
-> end:
-> 	close(fd);
-> }
-> 
-> [1] https://github.com/cubanismo/allocator
-> 
-> Benjamin Gaignard (2):
->   Create Simple Allocator module
->   add CMA simple allocator module
-> 
->  Documentation/simple-allocator.txt              |  81 ++++++++++
->  drivers/Kconfig                                 |   2 +
->  drivers/Makefile                                |   1 +
->  drivers/simpleallocator/Kconfig                 |  17 +++
->  drivers/simpleallocator/Makefile                |   2 +
->  drivers/simpleallocator/simple-allocator-cma.c  | 187 ++++++++++++++++++++++++
->  drivers/simpleallocator/simple-allocator-priv.h |  33 +++++
->  drivers/simpleallocator/simple-allocator.c      | 180 +++++++++++++++++++++++
->  include/uapi/linux/simple-allocator.h           |  35 +++++
->  9 files changed, 538 insertions(+)
->  create mode 100644 Documentation/simple-allocator.txt
->  create mode 100644 drivers/simpleallocator/Kconfig
->  create mode 100644 drivers/simpleallocator/Makefile
->  create mode 100644 drivers/simpleallocator/simple-allocator-cma.c
->  create mode 100644 drivers/simpleallocator/simple-allocator-priv.h
->  create mode 100644 drivers/simpleallocator/simple-allocator.c
->  create mode 100644 include/uapi/linux/simple-allocator.h
-> 
-> -- 
-> 1.9.1
-> 
+I've always disliked github because its web interface makes it soo
+difficult to navigate around git trees hosted there.  You can see
+a commit, you can see a diff of the commit.  You can get a list of
+branches.  But there seems to be no way to get a list of commits
+similar to "git log" or even a one-line summary of each commit on
+a branch.  If there is, it's completely non-obvious (which I think is
+much of the problem with github, it's web interface is horrendous.)
+
+Or you can clone/pull the tree without knowing what you're fetching
+(eg, what the tree is based upon.)
+
+Or you can waste time clicking repeatedly on the "parent" commit link
+on each patch working your way back through the history...
+
+Well, it looks like it's bsaed on 4.10-rc1 with who-knows-what work
+from the linux-media tree (I didn't try and go back any further.)
+As I don't want to take a whole pile of other changes into my tree,
+I'm certainly not going to pull from your github tree.  Sorry.
 
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
