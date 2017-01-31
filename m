@@ -1,51 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Date: Thu, 5 Jan 2017 12:01:13 -0700
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-To: Jerome Glisse <j.glisse@gmail.com>
-Cc: "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>,
-        "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>,
-        "'linux-nvdimm@lists.01.org'" <linux-nvdimm@ml01.01.org>,
-        "'Linux-media@vger.kernel.org'" <Linux-media@vger.kernel.org>,
-        "'dri-devel@lists.freedesktop.org'" <dri-devel@lists.freedesktop.org>,
-        "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "Sagalovitch, Serguei" <Serguei.Sagalovitch@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>, hch@infradead.org,
-        david1.zhou@amd.com, qiang.yu@amd.com
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Message-ID: <20170105190113.GA12587@obsidianresearch.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <20170105183927.GA5324@gmail.com>
+Received: from mga01.intel.com ([192.55.52.88]:46196 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752329AbdAaOVF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 31 Jan 2017 09:21:05 -0500
+Date: Tue, 31 Jan 2017 22:20:27 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: kbuild-all@01.org, linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <m.chehab@samsung.com>,
+        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [linuxtv-media:master 1136/1158]
+ drivers/media/i2c/et8ek8/et8ek8_driver.c:1112:3-4: Unneeded semicolon
+Message-ID: <201701312222.8i09esDk%fengguang.wu@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170105183927.GA5324@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 05, 2017 at 01:39:29PM -0500, Jerome Glisse wrote:
+tree:   git://linuxtv.org/media_tree.git master
+head:   0df03379c541ec027c94b025f2ef259f243eeb58
+commit: c5254e72b8edc2ca0a98703e92e8c34959343d2c [1136/1158] [media] media: Driver for Toshiba et8ek8 5MP sensor
 
->   1) peer-to-peer because of userspace specific API like NVidia GPU
->     direct (AMD is pushing its own similar API i just can't remember
->     marketing name). This does not happen through a vma, this happens
->     through specific device driver call going through device specific
->     ioctl on both side (GPU and RDMA). So both kernel driver are aware
->     of each others.
 
-Today you can only do user-initiated RDMA operations in conjection
-with a VMA.
+coccinelle warnings: (new ones prefixed by >>)
 
-We'd need a really big and strong reason to create an entirely new
-non-VMA based memory handle scheme for RDMA.
+>> drivers/media/i2c/et8ek8/et8ek8_driver.c:1112:3-4: Unneeded semicolon
 
-So my inclination is to just completely push back on this idea. You
-need a VMA to do RMA.
+Please review and possibly fold the followup patch.
 
-GPUs need to create VMAs for the memory they want to RDMA from, even
-if the VMA handle just causes SIGBUS for any CPU access.
-
-Jason
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
