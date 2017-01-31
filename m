@@ -1,196 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor1.renesas.com ([210.160.252.171]:35626 "EHLO
-        relmlie4.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753692AbdASRrA (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:36215 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750758AbdAaWew (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Jan 2017 12:47:00 -0500
-From: Chris Paterson <Chris.Paterson2@renesas.com>
-To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-CC: Geert Uytterhoeven <geert@linux-m68k.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Antti Palosaari <crope@iki.fi>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
-Subject: RE: [PATCH v2 6/7] dt-bindings: media: Add Renesas R-Car DRIF binding
-Date: Thu, 19 Jan 2017 17:46:32 +0000
-Message-ID: <HK2PR0601MB132923F9E0A7C7CB21567757B77E0@HK2PR0601MB1329.apcprd06.prod.outlook.com>
-References: <1478706284-59134-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
- <HK2PR06MB05453E11C8931F881E106939C36E0@HK2PR06MB0545.apcprd06.prod.outlook.com>
- <cca1ade8-01ef-8eab-f4b1-7dd7f204fdea@xs4all.nl> <4506041.7mPt4W6j0m@avalon>
- <HK2PR06MB0545BF36C3DD2D4D1B951C3FC3670@HK2PR06MB0545.apcprd06.prod.outlook.com>
-In-Reply-To: <HK2PR06MB0545BF36C3DD2D4D1B951C3FC3670@HK2PR06MB0545.apcprd06.prod.outlook.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+        Tue, 31 Jan 2017 17:34:52 -0500
+Subject: Re: [PATCH v3 20/24] media: imx: Add Camera Interface subdev driver
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <1483755102-24785-21-git-send-email-steve_longerbeam@mentor.com>
+ <b7456d40-040d-41b7-45bc-ef6709ab7933@xs4all.nl>
+ <20170131134252.GX27312@n2100.armlinux.org.uk>
+ <b0517394-7717-3e1d-b850-e2b69a9c19e9@gmail.com>
+ <20170131203340.GC27312@n2100.armlinux.org.uk>
+ <2297c62c-ae9b-3942-4700-ce268a61a6d5@gmail.com>
+ <20170131220452.GE27312@n2100.armlinux.org.uk>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
+        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Ian Arkver <ian.arkver.dev@gmail.com>
+Message-ID: <93e5a426-03f3-c4f1-c27f-75b8b78c0a02@gmail.com>
+Date: Tue, 31 Jan 2017 22:33:40 +0000
 MIME-Version: 1.0
+In-Reply-To: <20170131220452.GE27312@n2100.armlinux.org.uk>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans,
+On 31/01/17 22:04, Russell King - ARM Linux wrote:
+> On Tue, Jan 31, 2017 at 09:55:29PM +0000, Ian Arkver wrote:
+>> On 31/01/17 20:33, Russell King - ARM Linux wrote:
+>>> On Tue, Jan 31, 2017 at 10:21:26AM -0800, Steve Longerbeam wrote:
+>>>> On 01/31/2017 05:42 AM, Russell King - ARM Linux wrote:
+>>>>> On Fri, Jan 20, 2017 at 03:38:28PM +0100, Hans Verkuil wrote:
+>>>>>> Should be set to something like 'platform:imx-media-camif'. v4l2-compliance
+>>>>>> should complain about this.
+>>>>> ... and more.
+>>>>
+>>>> Right, in version 3 that you are working with, no v4l2-compliance fixes were
+>>>> in yet. A lot of the compliance errors are fixed, please look in latest
+>>>> branch
+>>>> imx-media-staging-md-wip at git@github.com:slongerbeam/mediatree.git.
+>>>
+>>> Sorry, I'm not prepared to pull random trees from github as there's
+>>> no easy way to see what's in the branch.
+>>>
+>>> I've always disliked github because its web interface makes it soo
+>>> difficult to navigate around git trees hosted there.  You can see
+>>> a commit, you can see a diff of the commit.  You can get a list of
+>>> branches.  But there seems to be no way to get a list of commits
+>>> similar to "git log" or even a one-line summary of each commit on
+>>> a branch.  If there is, it's completely non-obvious (which I think is
+>>> much of the problem with github, it's web interface is horrendous.)
+>>>
+>>> Or you can clone/pull the tree without knowing what you're fetching
+>>> (eg, what the tree is based upon.)
+>>>
+>>> Or you can waste time clicking repeatedly on the "parent" commit link
+>>> on each patch working your way back through the history...
+>>>
+>>> Well, it looks like it's bsaed on 4.10-rc1 with who-knows-what work
+>> >from the linux-media tree (I didn't try and go back any further.)
+>>> As I don't want to take a whole pile of other changes into my tree,
+>>> I'm certainly not going to pull from your github tree.  Sorry.
+>>>
+>>
+>> https://github.com/slongerbeam/mediatree/compare/master...imx-media-staging-md-wip
+>>
+>> It's under the "Compare" button from the main view. It would be nice though
+>> if the first commit's parent was some clearly tagged start point.
+>
+> I don't want master though, I want v4.10-rc1, and if I ask for that
+> it tells me it knows nothing about v4.10-rc1, despite the fact that's
+> a tag in the mainline kernel repository which was merged into the
+> linux-media tree that this tree is based upon.
+>
 
-Do you have any further feedback on this?
+Yeah, that's what I meant about the first parent's commit not being a 
+clearly tagged branch point. At least you get the series on one page. 
+Maybe it's time for a rebase or a v4 series Steve?
 
-Thanks, Chris
+Personally, I use a bare repo with multiple remotes and fetch branches 
+from various trees. Then gitk --all --since(etc) is pretty good at 
+giving the overview picture. You don't need to pull the commits over 
+into any of your working branches if you don't want to.
 
-
-> From: Ramesh Shanmugasundaram
-> Sent: 10 January 2017 09:31
-> Hi Laurent,
->=20
-> > > >>> On Wednesday 21 Dec 2016 08:10:37 Ramesh Shanmugasundaram
-> wrote:
-> > > >>>> Add binding documentation for Renesas R-Car Digital Radio
-> > > >>>> Interface
-> > > >>>> (DRIF) controller.
-> > > >>>>
-> > > >>>> Signed-off-by: Ramesh Shanmugasundaram
-> > > >>>> <ramesh.shanmugasundaram@bp.renesas.com> ---
-> > > >>>>
-> > > >>>>  .../devicetree/bindings/media/renesas,drif.txt     | 202
-> > +++++++++++++
-> > > >>>>  1 file changed, 202 insertions(+)  create mode 100644
-> > > >>>>
-> > > >>>> Documentation/devicetree/bindings/media/renesas,drif.txt
-> > > >>>>
-> > > >>>> diff --git
-> > > >>>> a/Documentation/devicetree/bindings/media/renesas,drif.txt
-> > > >>>> b/Documentation/devicetree/bindings/media/renesas,drif.txt new
-> > > >>>> file mode 100644 index 0000000..1f3feaf
-> > > >>>> --- /dev/null
-> > > >>>> +++ b/Documentation/devicetree/bindings/media/renesas,drif.txt
-> > > >>>>
-> > > >>>> +Optional properties of an internal channel when:
-> > > >>>> +     - It is the only enabled channel of the bond (or)
-> > > >>>> +     - If it acts as primary among enabled bonds
-> > > >>>> +--------------------------------------------------------
-> > > >>>> +- renesas,syncmd       : sync mode
-> > > >>>> +                      0 (Frame start sync pulse mode. 1-bit
-> > > >>>> +width
-> > > >>>> pulse
-> > > >>>> +                         indicates start of a frame)
-> > > >>>> +                      1 (L/R sync or I2S mode) (default)
-> > > >>>> +- renesas,lsb-first    : empty property indicates lsb bit is
-> > received
-> > > >>>> first.
-> > > >>>> +                      When not defined msb bit is received
-> > > >>>> +first
-> > > >>>> +(default)
-> > > >>>> +- renesas,syncac-active: Indicates sync signal polarity, 0/1
-> > > >>>> +for
-> > > >>>> low/high
-> > >
-> > > Shouldn't this be 'renesas,sync-active' instead of syncac-active?
-> > >
-> > > I'm not sure if syncac is intended or if it is a typo.
-> > >
-> > > >>>> +                      respectively. The default is 1 (active hi=
-gh)
-> > > >>>> +- renesas,dtdl         : delay between sync signal and start of
-> > > >>>> reception.
-> > > >>>> +                      The possible values are represented in
-> > > >>>> + 0.5
-> > clock
-> > > >>>> +                      cycle units and the range is 0 to 4. The
-> > default
-> > > >>>> +                      value is 2 (i.e.) 1 clock cycle delay.
-> > > >>>> +- renesas,syncdl       : delay between end of reception and syn=
-c
-> > > >>>> signal edge.
-> > > >>>> +                      The possible values are represented in
-> > > >>>> + 0.5
-> > clock
-> > > >>>> +                      cycle units and the range is 0 to 4 & 6.
-> > > >>>> + The
-> > > >>>> default
-> > > >>>> +                      value is 0 (i.e.) no delay.
-> > > >>>
-> > > >>> Most of these properties are pretty similar to the video bus
-> > > >>> properties defined at the endpoint level in
-> > > >>> Documentation/devicetree/bindings/media/video-interfaces.txt. I
-> > > >>> believe it would make sense to use OF graph and try to
-> > > >>> standardize these properties similarly.
-> > >
-> > > Other than sync-active, is there really anything else that is similar=
-?
-> > > And even the sync-active isn't a good fit since here there is only
-> > > one sync signal instead of two for video (h and vsync).
-> >
-> > That's why I said similar, not identical :-) My point is that, if we
-> > consider that we could connect multiple sources to the DRIF, using OF
-> > graph would make sense, and the above properties should then be
-> > defined per endpoint.
->=20
-> Thanks for the clarifications. I have some questions.
->=20
-> - Assuming two devices are interfaced with DRIF and they are represented
-> using two endpoints, the control signal related properties of DRIF might =
-still
-> need to be same for both endpoints? For e.g. syncac-active cannot be
-> different in both endpoints?
->=20
-> - I suppose "lsb-first", "dtdl" & "syncdl" may be defined per endpoint.
-> However, h/w manual says same register values needs to be programmed
-> for both the internal channels of a channel. Same with "syncmd" property.
->=20
-> We could still define them as per endpoint property with a note that they
-> need to be same. But I am not sure if that is what you intended?
->=20
->  If we define them per endpoint we should then also try
-> > standardize the ones that are not really Renesas-specific (that's at
-> > least syncac-active).
->=20
-> OK. I will call it "sync-active".
->=20
->  For the syncmd and lsb-first properties, it could also
-> > make sense to query them from the connected subdev at runtime, as
-> > they're similar in purpose to formats and media bus configuration
-> > (struct v4l2_mbus_config).
->=20
-> May I know in bit more detail about what you had in mind? Please correct =
-me
-> if my understanding is wrong here but when I looked at the code
->=20
-> 1) mbus_config is part of subdev_video_ops only. I assume we don't want t=
-o
-> support this as part of tuner subdev. The next closest is pad_ops with "s=
-truct
-> v4l2_mbus_framefmt" but it is fully video specific config unless I come u=
-p
-> with new MEDIA_BUS_FMT_xxxx in media-bus-format.h and use the code
-> field? For e.g.
->=20
-> #define MEDIA_BUS_FMT_SDR_I2S_PADHI_BE       0x7001
-> #define MEDIA_BUS_FMT_SDR_I2S_PADHI_LE       0x7002
->=20
-> 2) The framework does not seem to mandate pad ops for all subdev. As the
-> tuner can be any third party subdev, is it fair to assume that these prop=
-erties
-> can be queried from subdev?
->=20
-> 3) Assuming pad ops is not available on the subdev shouldn't we still nee=
-d a
-> way to define these properties on DRIF DT?
->=20
-> >
-> > I'm not an SDR expert, so I'd like to have your opinion on this.
-> >
-> > > >> Note that the last two properties match the those in
-> > > >> Documentation/devicetree/bindings/spi/sh-msiof.txt.
-> > > >> We may want to use one DRIF channel as a plain SPI slave with the
-> > > >> (modified) MSIOF driver in the future.
-> > > >
-> > > > Should I leave it as it is or modify these as in video-interfaces.t=
-xt?
-> > > > Shall we conclude on this please?
-> >
->=20
-> Thanks,
-> Ramesh
-
+Regards,
+Ian
