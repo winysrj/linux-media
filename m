@@ -1,79 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:34862 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936099AbdAIMBh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2017 07:01:37 -0500
-Date: Mon, 9 Jan 2017 12:01:08 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Cc: arnd@arndb.de, linux-mips@linux-mips.org,
-        alsa-devel@alsa-project.org, linux-ia64@vger.kernel.org,
-        linux-doc@vger.kernel.org, airlied@linux.ie,
-        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-mtd@lists.infradead.org, sparclinux@vger.kernel.org,
-        linux-arch@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-am33-list@redhat.com, linux-c6x-dev@linux-c6x.org,
-        linux-rdma@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        linux-sh@vger.kernel.org, coreteam@netfilter.org,
-        fcoe-devel@open-fcoe.org, xen-devel@lists.xenproject.org,
-        linux-snps-arc@lists.infradead.org, linux-media@vger.kernel.org,
-        uclinux-h8-devel@lists.sourceforge.jp,
-        linux-xtensa@linux-xtensa.org, linux-kbuild@vger.kernel.org,
-        adi-buildroot-devel@lists.sourceforge.net,
-        linux-raid@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        openrisc@lists.librecores.org, linux-metag@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-nfs@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linux-cris-kernel@axis.com,
-        netdev@vger.kernel.org, linux-mmc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org,
-        mmarek@suse.com, netfilter-devel@vger.kernel.org,
-        linux-alpha@vger.kernel.org, nios2-dev@lists.rocketboards.org,
-        linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
-Subject: Re: [PATCH v2 7/7] uapi: export all headers under uapi directories
-Message-ID: <20170109120107.GW14217@n2100.armlinux.org.uk>
-References: <bf83da6b-01ef-bf44-b3e1-ca6fc5636818@6wind.com>
- <1483695839-18660-1-git-send-email-nicolas.dichtel@6wind.com>
- <1483695839-18660-8-git-send-email-nicolas.dichtel@6wind.com>
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:44334 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751244AbdAaPuD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 31 Jan 2017 10:50:03 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com, Wolfram Sang <wsa@the-dreams.de>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 04/11] media: rcar-vin: fix standard in input enumeration
+Date: Tue, 31 Jan 2017 16:40:09 +0100
+Message-Id: <20170131154016.15526-5-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170131154016.15526-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170131154016.15526-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1483695839-18660-8-git-send-email-nicolas.dichtel@6wind.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 06, 2017 at 10:43:59AM +0100, Nicolas Dichtel wrote:
-> diff --git a/arch/arm/include/uapi/asm/Kbuild b/arch/arm/include/uapi/asm/Kbuild
-> index 46a76cd6acb6..607f702c2d62 100644
-> --- a/arch/arm/include/uapi/asm/Kbuild
-> +++ b/arch/arm/include/uapi/asm/Kbuild
-> @@ -1,23 +1,6 @@
->  # UAPI Header export list
->  include include/uapi/asm-generic/Kbuild.asm
->  
-> -header-y += auxvec.h
-> -header-y += byteorder.h
-> -header-y += fcntl.h
-> -header-y += hwcap.h
-> -header-y += ioctls.h
-> -header-y += kvm_para.h
-> -header-y += mman.h
-> -header-y += perf_regs.h
-> -header-y += posix_types.h
-> -header-y += ptrace.h
-> -header-y += setup.h
-> -header-y += sigcontext.h
-> -header-y += signal.h
-> -header-y += stat.h
-> -header-y += statfs.h
-> -header-y += swab.h
-> -header-y += unistd.h
->  genhdr-y += unistd-common.h
->  genhdr-y += unistd-oabi.h
->  genhdr-y += unistd-eabi.h
+If the subdevice supports dv_timings_cap the driver should not fill in
+the standard. Also don't use the standard from probe time ask the
+subdevice each time.
 
-Acked-by: Russell King <rmk+kernel@armlinux.org.uk>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 610f59e2a9142622..f9218f230322eb0b 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -483,10 +483,16 @@ static int rvin_enum_input(struct file *file, void *priv,
+ 		return ret;
+ 
+ 	i->type = V4L2_INPUT_TYPE_CAMERA;
+-	i->std = vin->vdev.tvnorms;
+ 
+-	if (v4l2_subdev_has_op(sd, pad, dv_timings_cap))
++	if (v4l2_subdev_has_op(sd, pad, dv_timings_cap)) {
+ 		i->capabilities = V4L2_IN_CAP_DV_TIMINGS;
++		i->std = 0;
++	} else {
++		i->capabilities = V4L2_IN_CAP_STD;
++		ret = v4l2_subdev_call(sd, video, g_tvnorms, &i->std);
++		if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
++			return ret;
++	}
+ 
+ 	strlcpy(i->name, "Camera", sizeof(i->name));
+ 
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+2.11.0
+
