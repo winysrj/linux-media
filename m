@@ -1,76 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48061
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751137AbdASWgj (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48828 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750764AbdAaHbK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 19 Jan 2017 17:36:39 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Inki Dae <inki.dae@samsung.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Kukjin Kim <kgene@kernel.org>,
-        linux-samsung-soc@vger.kernel.org,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        linux-media@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH v2 2/2] [media] exynos-gsc: Only reset the GSC HW on probe() if !CONFIG_PM
-Date: Thu, 19 Jan 2017 19:36:20 -0300
-Message-Id: <1484865380-12651-2-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1484865380-12651-1-git-send-email-javier@osg.samsung.com>
-References: <1484865380-12651-1-git-send-email-javier@osg.samsung.com>
+        Tue, 31 Jan 2017 02:31:10 -0500
+Date: Tue, 31 Jan 2017 09:30:35 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        devicetree@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv2 08/16] atmel-isi: document device tree bindings
+Message-ID: <20170131073035.GR7139@valkosipuli.retiisi.org.uk>
+References: <20170130140628.18088-1-hverkuil@xs4all.nl>
+ <20170130140628.18088-9-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170130140628.18088-9-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit 15f90ab57acc ("[media] exynos-gsc: Make driver functional when
-CONFIG_PM is unset") removed the implicit dependency that the driver
-had with CONFIG_PM, since it relied on the config option to be enabled.
+Hi Hans,
 
-In order to work with !CONFIG_PM, the GSC reset logic that happens in
-the runtime resume callback had to be executed on the probe function.
+On Mon, Jan 30, 2017 at 03:06:20PM +0100, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Document the device tree bindings for this driver.
+> 
+> Mostly copied from the atmel-isc bindings.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  .../devicetree/bindings/media/atmel-isi.txt        | 91 +++++++++++++---------
+>  1 file changed, 56 insertions(+), 35 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/atmel-isi.txt b/Documentation/devicetree/bindings/media/atmel-isi.txt
+> index 251f008..d1934b4 100644
+> --- a/Documentation/devicetree/bindings/media/atmel-isi.txt
+> +++ b/Documentation/devicetree/bindings/media/atmel-isi.txt
+> @@ -1,51 +1,72 @@
+> -Atmel Image Sensor Interface (ISI) SoC Camera Subsystem
+> -----------------------------------------------
+> +Atmel Image Sensor Interface (ISI)
+> +----------------------------------
+>  
+> -Required properties:
+> -- compatible: must be "atmel,at91sam9g45-isi"
+> -- reg: physical base address and length of the registers set for the device;
+> -- interrupts: should contain IRQ line for the ISI;
+> -- clocks: list of clock specifiers, corresponding to entries in
+> -          the clock-names property;
+> -- clock-names: must contain "isi_clk", which is the isi peripherial clock.
+> +Required properties for ISI:
+> +- compatible
+> +	Must be "atmel,at91sam9g45-isi".
+> +- reg
+> +	Physical base address and length of the registers set for the device.
+> +- interrupts
+> +	Should contain IRQ line for the ISI.
+> +- clocks
+> +	List of clock specifiers, corresponding to entries in
+> +	the clock-names property;
+> +	Please refer to clock-bindings.txt.
+> +- clock-names
+> +	Required elements: "isi_clk".
+> +- #clock-cells
+> +	Should be 0.
 
-But there's no need to do this if CONFIG_PM is enabled, since in this
-case the runtime PM resume callback will be called by VIDIOC_STREAMON
-ioctl, so the resume handler will call the GSC HW reset function.
+#clock-cells can't be found in the example. Does the ISI block provide a
+#clock?
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> +- pinctrl-names, pinctrl-0
+> +	Please refer to pinctrl-bindings.txt.
+>  
+>  ISI supports a single port node with parallel bus. It should contain one
+>  'port' child node with child 'endpoint' node. Please refer to the bindings
+>  defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
 
----
+We haven't documented exactly which properties are relevant for parallel
+interfaces. I think we should, but until that's done we should explicitly
+document which endpoint properties are mandatory and which are optional.
 
-I-ve only tested with CONFIG_PM enabled since my Exynos5422 Odroid
-XU4 board fails to boot when the config option is disabled.
+Such as in Documentation/devicetree/bindings/media/i2c/nokia,smia.txt .
 
-Best regards,
-Javier
+>  
+>  Example:
+> -	isi: isi@f0034000 {
+> -		compatible = "atmel,at91sam9g45-isi";
+> -		reg = <0xf0034000 0x4000>;
+> -		interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
+>  
+> -		clocks = <&isi_clk>;
+> -		clock-names = "isi_clk";
+> +isi: isi@f0034000 {
+> +	compatible = "atmel,at91sam9g45-isi";
+> +	reg = <0xf0034000 0x4000>;
+> +	interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&pinctrl_isi_data_0_7>;
+> +	clocks = <&isi_clk>;
+> +	clock-names = "isi_clk";
+> +	status = "ok";
+> +	port {
+> +		#address-cells = <1>;
+> +		#size-cells = <0>;
+> +		isi_0: endpoint {
+> +			reg = <0>;
+> +			remote-endpoint = <&ov2640_0>;
+> +			bus-width = <8>;
+> +			vsync-active = <1>;
+> +			hsync-active = <1>;
+> +		};
+> +	};
+> +};
+> +
+> +i2c1: i2c@f0018000 {
+> +	status = "okay";
+>  
+> +	ov2640: camera@0x30 {
+> +		compatible = "ovti,ov2640";
+> +		reg = <0x30>;
+>  		pinctrl-names = "default";
+> -		pinctrl-0 = <&pinctrl_isi>;
+> +		pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
+> +		resetb-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
+> +		pwdn-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
+> +		clocks = <&pck0>;
+> +		clock-names = "xvclk";
+> +		assigned-clocks = <&pck0>;
+> +		assigned-clock-rates = <25000000>;
+>  
+>  		port {
+> -			#address-cells = <1>;
+> -			#size-cells = <0>;
+> -
+> -			isi_0: endpoint {
+> -				remote-endpoint = <&ov2640_0>;
+> +			ov2640_0: endpoint {
+> +				remote-endpoint = <&isi_0>;
+>  				bus-width = <8>;
+>  			};
+>  		};
+>  	};
+> -
+> -	i2c1: i2c@f0018000 {
+> -		ov2640: camera@0x30 {
+> -			compatible = "ovti,ov2640";
+> -			reg = <0x30>;
+> -
+> -			port {
+> -				ov2640_0: endpoint {
+> -					remote-endpoint = <&isi_0>;
+> -					bus-width = <8>;
+> -				};
+> -			};
+> -		};
+> -	};
+> +};
+> -- 
+> 2.10.2
+> 
 
-Changes in v2:
- - Remove the Fixes tag and reword the commit message after feedback
-   from Marek Szyprowski.
-
- drivers/media/platform/exynos-gsc/gsc-core.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index 83272f10722d..42e1e09ea915 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -1083,8 +1083,10 @@ static int gsc_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, gsc);
- 
--	gsc_hw_set_sw_reset(gsc);
--	gsc_wait_reset(gsc);
-+	if (!IS_ENABLED(CONFIG_PM)) {
-+		gsc_hw_set_sw_reset(gsc);
-+		gsc_wait_reset(gsc);
-+	}
- 
- 	vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
- 
 -- 
-2.7.4
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
