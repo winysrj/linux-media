@@ -1,75 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:60674 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752128AbdARJmP (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:41248 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751209AbdAaQcX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 18 Jan 2017 04:42:15 -0500
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>
-Subject: [PATCH] [media] s5p-mfc: Align stream buffer and CPB buffer to 512
-Date: Wed, 18 Jan 2017 15:07:03 +0530
-Message-id: <1484732223-24670-1-git-send-email-smitha.t@samsung.com>
-References: <CGME20170118094212epcas5p22e588016d2b330dcd0b99b6e1012c744@epcas5p2.samsung.com>
+        Tue, 31 Jan 2017 11:32:23 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v5 02/10] ARM: dts: STiH410: add DELTA dt node
+Date: Tue, 31 Jan 2017 17:30:25 +0100
+Message-ID: <1485880233-666-3-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1485880233-666-1-git-send-email-hugues.fruchet@st.com>
+References: <1485880233-666-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->From MFCv6 onwards encoder stream buffer and decoder CPB buffer
-need to be aligned with 512.
+This patch adds DT node for STMicroelectronics
+DELTA V4L2 video decoder
 
-Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    9 +++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h |    3 +++
- 2 files changed, 12 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/stih410.dtsi | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index d6f207e..57da798 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -408,8 +408,15 @@ static int s5p_mfc_set_dec_stream_buffer_v6(struct s5p_mfc_ctx *ctx,
- 	struct s5p_mfc_dev *dev = ctx->dev;
- 	const struct s5p_mfc_regs *mfc_regs = dev->mfc_regs;
- 	struct s5p_mfc_buf_size *buf_size = dev->variant->buf_size;
-+	size_t cpb_buf_size;
- 
- 	mfc_debug_enter();
-+	cpb_buf_size = ALIGN(buf_size->cpb, CPB_ALIGN);
-+	if (strm_size >= set_strm_size_max(cpb_buf_size)) {
-+		mfc_debug(2, "Decrease strm_size : %u -> %zu, gap : %d\n",
-+			strm_size, set_strm_size_max(cpb_buf_size), CPB_ALIGN);
-+		strm_size = set_strm_size_max(cpb_buf_size);
-+	}
- 	mfc_debug(2, "inst_no: %d, buf_addr: 0x%08x,\n"
- 		"buf_size: 0x%08x (%d)\n",
- 		ctx->inst_no, buf_addr, strm_size, strm_size);
-@@ -519,6 +526,8 @@ static int s5p_mfc_set_enc_stream_buffer_v6(struct s5p_mfc_ctx *ctx,
- 	struct s5p_mfc_dev *dev = ctx->dev;
- 	const struct s5p_mfc_regs *mfc_regs = dev->mfc_regs;
- 
-+	size = ALIGN(size, 512);
+diff --git a/arch/arm/boot/dts/stih410.dtsi b/arch/arm/boot/dts/stih410.dtsi
+index 281a124..42e070c 100644
+--- a/arch/arm/boot/dts/stih410.dtsi
++++ b/arch/arm/boot/dts/stih410.dtsi
+@@ -259,5 +259,15 @@
+ 			clocks = <&clk_sysin>;
+ 			interrupts = <GIC_SPI 205 IRQ_TYPE_EDGE_RISING>;
+ 		};
++		delta0 {
++			compatible = "st,st-delta";
++			clock-names = "delta",
++				      "delta-st231",
++				      "delta-flash-promip";
++			clocks = <&clk_s_c0_flexgen CLK_VID_DMU>,
++				 <&clk_s_c0_flexgen CLK_ST231_DMU>,
++				 <&clk_s_c0_flexgen CLK_FLASH_PROMIP>;
++		};
 +
- 	writel(addr, mfc_regs->e_stream_buffer_addr); /* 16B align */
- 	writel(size, mfc_regs->e_stream_buffer_size);
- 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-index 8055848..16a7b1d 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-@@ -40,6 +40,9 @@
- #define FRAME_DELTA_H264_H263		1
- #define TIGHT_CBR_MAX			10
- 
-+#define CPB_ALIGN			512
-+#define set_strm_size_max(cpb_max)	((cpb_max) - CPB_ALIGN)
-+
- struct s5p_mfc_hw_ops *s5p_mfc_init_hw_ops_v6(void);
- const struct s5p_mfc_regs *s5p_mfc_init_regs_v6_plus(struct s5p_mfc_dev *dev);
- #endif /* S5P_MFC_OPR_V6_H_ */
+ 	};
+ };
 -- 
-1.7.2.3
+1.9.1
 
