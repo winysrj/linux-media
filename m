@@ -1,51 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35669 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751303AbdAaKqd (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:32571 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751247AbdAaQcX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jan 2017 05:46:33 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Avraham Shukron <avraham.shukron@gmail.com>, mchehab@kernel.org,
-        gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] Staging: omap4iss: fix coding style issues
-Date: Tue, 31 Jan 2017 12:46:51 +0200
-Message-ID: <99077677.ouMsYN1JNl@avalon>
-In-Reply-To: <20170131104251.GU7139@valkosipuli.retiisi.org.uk>
-References: <1485626408-9768-1-git-send-email-avraham.shukron@gmail.com> <4008193.dpuA6Cf6Yl@avalon> <20170131104251.GU7139@valkosipuli.retiisi.org.uk>
+        Tue, 31 Jan 2017 11:32:23 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v5 03/10] ARM: multi_v7_defconfig: enable STMicroelectronics DELTA Support
+Date: Tue, 31 Jan 2017 17:30:26 +0100
+Message-ID: <1485880233-666-4-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1485880233-666-1-git-send-email-hugues.fruchet@st.com>
+References: <1485880233-666-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 31 Jan 2017 12:42:51 Sakari Ailus wrote:
-> On Mon, Jan 30, 2017 at 07:47:40PM +0200, Laurent Pinchart wrote:
-> > > @@ -678,8 +679,8 @@ iss_video_get_selection(struct file *file, void *fh,
-> > > struct v4l2_selection *sel) if (subdev == NULL)
-> > > 
-> > >  		return -EINVAL;
-> > > 
-> > > -	/* Try the get selection operation first and fallback to get format if
-> > 
-> > not
-> > 
-> > > -	 * implemented.
-> > > +	/* Try the get selection operation first and fallback to get format if
-> > > +	 * not implemented.
-> > > 
-> > >  	 */
-> 
-> /*
->  * Multi line
->  * comment.
->  */
+Enables support of STMicroelectronics STiH4xx SoC series
+DELTA multi-format video decoder V4L2 driver.
 
-Then let's patch the whole driver in one go :-)
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ arch/arm/configs/multi_v7_defconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
+diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
+index b01a438..5dff8fe 100644
+--- a/arch/arm/configs/multi_v7_defconfig
++++ b/arch/arm/configs/multi_v7_defconfig
+@@ -569,6 +569,7 @@ CONFIG_VIDEO_SAMSUNG_S5P_MFC=m
+ CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC=m
+ CONFIG_VIDEO_STI_BDISP=m
+ CONFIG_VIDEO_STI_HVA=m
++CONFIG_VIDEO_STI_DELTA=m
+ CONFIG_VIDEO_RENESAS_JPU=m
+ CONFIG_VIDEO_RENESAS_VSP1=m
+ CONFIG_V4L_TEST_DRIVERS=y
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
