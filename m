@@ -1,93 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Date: Thu, 5 Jan 2017 15:19:36 -0500
-From: Jerome Glisse <jglisse@redhat.com>
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Jerome Glisse <j.glisse@gmail.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>,
-        "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>,
-        "'linux-nvdimm@lists.01.org'" <linux-nvdimm@ml01.01.org>,
-        "'Linux-media@vger.kernel.org'" <Linux-media@vger.kernel.org>,
-        "'dri-devel@lists.freedesktop.org'" <dri-devel@lists.freedesktop.org>,
-        "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "Sagalovitch, Serguei" <Serguei.Sagalovitch@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>, hch@infradead.org,
-        david1.zhou@amd.com, qiang.yu@amd.com
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Message-ID: <20170105201935.GC2166@redhat.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <20170105183927.GA5324@gmail.com>
- <20170105190113.GA12587@obsidianresearch.com>
- <20170105195424.GB2166@redhat.com>
- <20170105200719.GB31047@obsidianresearch.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170105200719.GB31047@obsidianresearch.com>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:45107 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751381AbdAaJur (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 31 Jan 2017 04:50:47 -0500
+Message-ID: <1485856168.2932.11.camel@pengutronix.de>
+Subject: Re: [PATCH v3 00/24] i.MX Media Driver
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Russell King - ARM Linux <linux@armlinux.org.uk>,
+        robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devel@driverdev.osuosl.org,
+        devicetree@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org
+Date: Tue, 31 Jan 2017 10:49:28 +0100
+In-Reply-To: <951c1a08-c0f2-4333-b4bf-410de8dd863f@gmail.com>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+         <20170131004510.GQ27312@n2100.armlinux.org.uk>
+         <951c1a08-c0f2-4333-b4bf-410de8dd863f@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 05, 2017 at 01:07:19PM -0700, Jason Gunthorpe wrote:
-> On Thu, Jan 05, 2017 at 02:54:24PM -0500, Jerome Glisse wrote:
+On Mon, 2017-01-30 at 17:22 -0800, Steve Longerbeam wrote:
 > 
-> > Mellanox and NVidia support peer to peer with what they market a
-> > GPUDirect. It only works without IOMMU. It is probably not upstream :
-> > 
-> > https://www.mail-archive.com/linux-rdma@vger.kernel.org/msg21402.html
-> > 
-> > I thought it was but it seems it require an out of tree driver to work.
+> On 01/30/2017 04:45 PM, Russell King - ARM Linux wrote:
+> >
+> > Hi,
+> >
+> > Trying this driver with an imx219 camera (which works with Philipp's
+> > driver) results in not much happening... no /dev/media* node for it,
+> > no subdevs, no nothing.  No clues as to what's missing either.  Only
+> > messages from imx-media are from registering the various subdevs.
+> >
+> > [   37.444877] imx-media: Registered subdev imx6-mipi-csi2
+> > [   37.444973] imx-media: Registered subdev imx219 0-0010
+> > [   38.868740] imx-media: Registered subdev ipu1_ic_prpenc
+> > [   38.869265] imx-media: Registered subdev ipu1_ic_prpvf
+> > [   38.869425] imx-media: Registered subdev ipu1_ic_pp0
+> > [   38.870086] imx-media: Registered subdev ipu1_ic_pp1
+> > [   38.871510] imx-media: Registered subdev ipu2_ic_prpenc
+> > [   38.871743] imx-media: Registered subdev ipu1_smfc0
+> > [   38.873043] imx-media: Registered subdev ipu1_smfc1
+> > [   38.873225] imx-media: Registered subdev ipu2_ic_prpvf
+> > [   38.875027] imx-media: Registered subdev ipu2_smfc0
+> > [   38.875320] imx-media: Registered subdev ipu2_ic_pp0
+> > [   38.877148] imx-media: Registered subdev ipu2_smfc1
+> > [   38.877436] imx-media: Registered subdev ipu2_ic_pp1
+> > [   38.932089] imx-media: Registered subdev camif0
+> > [   38.956538] imx-media: Registered subdev camif1
+> > [   38.959148] imx-media: Registered subdev camif2
+> > [   38.964353] imx-media: Registered subdev camif3
+> > [  206.502077] imx-media: Registered subdev ipu1_csi0
+> > [  206.503304] imx-media: Registered subdev ipu1_csi1
+> > [  206.503814] imx-media: Registered subdev ipu2_csi0
+> > [  206.504281] imx-media: Registered subdev ipu2_csi1
+> >
+> > I also get:
+> >
+> > [   37.200072] imx6-mipi-csi2: data lanes: 2
+> > [   37.200077] imx6-mipi-csi2: flags: 0x00000200
+> >
+> > and from what I can see, all modules from drivers/staging/media/imx/ are
+> > loaded (had to load imx-csi by hand because of the brokenness in the
+> > drivers/gpu/ipu code attaching an device_node pointer after registering
+> > the platform device, which changes what userspace sees in the modalias
+> > file.)
+> >
+> > Any clues at what to look at?
 > 
-> Right, it is out of tree and not under consideration for mainline.
+> Hi Russell,
 > 
-> > Wether there is a vma or not isn't important to the issue anyway. If
-> > you want to enforce VMA rule for RDMA it is an RDMA specific discussion
-> > in which i don't want to be involve, it is not my turf :)
+> I'm not familiar with IMX219, can you send me the source for the
+> imx219 subdev? I don't see it in 4.10-rc1.
 > 
-> Always having a VMA changes the discussion - the question is how to
-> create a VMA that reprensents IO device memory, and how do DMA
-> consumers extract the correct information from that VMA to pass to the
-> kernel DMA API so it can setup peer-peer DMA.
+> I'm also having trouble finding a datasheet for it, but from what
+> I've read, it has a MIPI CSI-2 interface. It should work fine as long
+> as it presents a single source pad, registers asynchronously, and
+> sets its entity function to MEDIA_ENT_F_CAM_SENSOR.
 
-Well my point is that it can't be. In HMM case inside a single VMA you
-can have one page inside GPU memory at address A but next page inside
-regular memory at A+4k. So handling this at the VMA level does not make
-sense. So in this case you would get the device from the struct page
-and you would query through common API to determine if you can do peer
-to peer. If not it would trigger migration back to regular memory.
-If yes then you still have to solve the IOMMU issue and hence the DMA
-API changes that were propose.
+What about MEDIA_ENT_F_VID_IF_BRIDGE?
 
-In the GPUDirect case the idea is that you have a specific device vma
-that you map for peer to peer. Here thing can be at vma level and not at
-a page level. Expectation here is that the GPU userspace expose a special
-API to allow RDMA to directly happen on GPU object allocated through
-GPU specific API (ie it is not regular memory and it is not accessible
-by CPU).
-
-
-Both case are disjoint. Both case need to solve the IOMMU issue which
-seems to be best solve at the DMA API level.
-
-
-> > What matter is the back channel API between peer-to-peer device. Like
-> > the above patchset points out for GPU we need to be able to invalidate
-> > a mapping at any point in time. Pining is not something we want to
-> > live with.
-> 
-> We have MMU notifiers to handle this today in RDMA. Async RDMA MR
-> Invalidate like you see in the above out of tree patches is totally
-> crazy and shouldn't be in mainline. Use ODP capable RDMA hardware.
-
-Well there is still a large base of hardware that do not have such
-feature and some people would like to be able to keep using those.
-I believe allowing direct access to GPU object that are otherwise
-hidden from regular kernel memory management is still meaningfull.
-
-Cheers,
-Jérôme
+regards
+Philipp
 
