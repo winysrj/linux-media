@@ -1,62 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:38492 "EHLO
-        mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751323AbdAMQIo (ORCPT
+Received: from smtprelay0063.hostedemail.com ([216.40.44.63]:51300 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751752AbdAaBir (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 13 Jan 2017 11:08:44 -0500
-Received: by mail-wm0-f41.google.com with SMTP id r144so77386303wme.1
-        for <linux-media@vger.kernel.org>; Fri, 13 Jan 2017 08:08:44 -0800 (PST)
-Reply-To: nicolas.dichtel@6wind.com
-Subject: Re: [PATCH v3 4/8] x86: stop exporting msr-index.h to userland
-References: <1484304406-10820-5-git-send-email-nicolas.dichtel@6wind.com>
- <3131144.4Ej3KFWRbz@wuerfel>
- <1484304406-10820-1-git-send-email-nicolas.dichtel@6wind.com>
- <25483.1484322229@warthog.procyon.org.uk>
-To: David Howells <dhowells@redhat.com>
-Cc: arnd@arndb.de, linux-kbuild@vger.kernel.org,
-        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org,
-        adi-buildroot-devel@lists.sourceforge.net,
-        linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com,
-        uclinux-h8-devel@lists.sourceforge.jp,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-m68k@vger.kernel.org, linux-metag@vger.kernel.org,
-        linux-mips@linux-mips.org, linux-am33-list@redhat.com,
-        nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-        linux-arch@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        netdev@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mmc@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-nfs@vger.kernel.org,
-        linux-raid@vger.kernel.org, linux-spi@vger.kernel.org,
-        linux-mtd@lists.infradead.org, linux-rdma@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, alsa-devel@alsa-project.org,
-        linux-fbdev@vger.kernel.org, xen-devel@lists.xenproject.org,
-        linux@armlinux.org.uk, Borislav Petkov <bp@alien8.de>
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Message-ID: <dd826bc7-e1ef-be29-e0c3-692afb346036@6wind.com>
-Date: Fri, 13 Jan 2017 17:08:34 +0100
-MIME-Version: 1.0
-In-Reply-To: <25483.1484322229@warthog.procyon.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+        Mon, 30 Jan 2017 20:38:47 -0500
+Message-ID: <1485826718.20550.14.camel@perches.com>
+Subject: Re: [PATCH 6/6] staging: bcm2835-v4l2: Apply spelling fixes from
+ checkpatch.
+From: Joe Perches <joe@perches.com>
+To: Eric Anholt <eric@anholt.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: devel@driverdev.osuosl.org, linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-rpi-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Date: Mon, 30 Jan 2017 17:38:38 -0800
+In-Reply-To: <87inowfh55.fsf@eliezer.anholt.net>
+References: <20170127215503.13208-1-eric@anholt.net>
+         <20170127215503.13208-7-eric@anholt.net>
+         <1485556233.12563.142.camel@perches.com>
+         <87inowfh55.fsf@eliezer.anholt.net>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le 13/01/2017 à 16:43, David Howells a écrit :
->> -header-y += msr-index.h
+On Mon, 2017-01-30 at 12:05 -0800, Eric Anholt wrote:
+> Joe Perches <joe@perches.com> writes:
 > 
-> I see it on my desktop as /usr/include/asm/msr-index.h and it's been there at
-> least four years - and as such it's part of the UAPI.  I don't think you can
-> remove it unless you can guarantee there are no userspace users.
-I keep it in the v2 of the series, but the maintainer, Borislav Petkov, asks me
-to un-export it.
+> > On Fri, 2017-01-27 at 13:55 -0800, Eric Anholt wrote:
+> > > Generated with checkpatch.pl --fix-inplace and git add -p out of the
+> > > results.
+> > 
+> > Maybe another.
+> > 
+> > > diff --git a/drivers/staging/media/platform/bcm2835/mmal-vchiq.c b/drivers/staging/media/platform/bcm2835/mmal-vchiq.c
+> > 
+> > []
+> > > @@ -239,7 +239,7 @@ static int bulk_receive(struct vchiq_mmal_instance *instance,
+> > >  		pr_err("buffer list empty trying to submit bulk receive\n");
+> > >  
+> > >  		/* todo: this is a serious error, we should never have
+> > > -		 * commited a buffer_to_host operation to the mmal
+> > > +		 * committed a buffer_to_host operation to the mmal
+> > >  		 * port without the buffer to back it up (underflow
+> > >  		 * handling) and there is no obvious way to deal with
+> > >  		 * this - how is the mmal servie going to react when
+> > 
+> > Perhaps s/servie/service/ ?
+> 
+> I was trying to restrict this patch to just the fixes from checkpatch.
 
-I will follow the maintainer decision.
+That's the wrong thing to do if you're fixing
+spelling defects.  checkpatch is just one mechanism
+to identify some, and definitely not all, typos and
+spelling defects.
 
-
-Regards,
-Nicolas
+If you fixing, fix.  Don't just rely on the brainless
+tools, use your decidedly non-mechanical brain.
