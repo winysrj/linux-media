@@ -1,82 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wj0-f181.google.com ([209.85.210.181]:34410 "EHLO
-        mail-wj0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932128AbdAAQLV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 1 Jan 2017 11:11:21 -0500
-Received: by mail-wj0-f181.google.com with SMTP id sd9so225681059wjb.1
-        for <linux-media@vger.kernel.org>; Sun, 01 Jan 2017 08:11:20 -0800 (PST)
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:35230 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751238AbdAaWLw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 31 Jan 2017 17:11:52 -0500
+Date: Tue, 31 Jan 2017 22:04:52 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Ian Arkver <ian.arkver.dev@gmail.com>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
+        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v3 20/24] media: imx: Add Camera Interface subdev driver
+Message-ID: <20170131220452.GE27312@n2100.armlinux.org.uk>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <1483755102-24785-21-git-send-email-steve_longerbeam@mentor.com>
+ <b7456d40-040d-41b7-45bc-ef6709ab7933@xs4all.nl>
+ <20170131134252.GX27312@n2100.armlinux.org.uk>
+ <b0517394-7717-3e1d-b850-e2b69a9c19e9@gmail.com>
+ <20170131203340.GC27312@n2100.armlinux.org.uk>
+ <2297c62c-ae9b-3942-4700-ce268a61a6d5@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20161215221146.GA9398@arch-desktop>
-References: <20161215221146.GA9398@arch-desktop>
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Date: Sun, 1 Jan 2017 13:11:18 -0300
-Message-ID: <CAAEAJfDvN6jQc6wPjaWJ=Nhspsg-wWH7Mz=gcQnRiC52k+j_uQ@mail.gmail.com>
-Subject: Re: [PATCH v4 0/3] stk1160: Let the driver setup the device's
- internal AC97 codec
-To: Marcel Hasler <mahasler@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2297c62c-ae9b-3942-4700-ce268a61a6d5@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15 December 2016 at 19:11, Marcel Hasler <mahasler@gmail.com> wrote:
-> This patchset is a result of my attempt to fix a bug (https://bugzilla.ke=
-rnel.org/show_bug.cgi?id=3D180071) that eventually turned out to be caused =
-by a missing quirk in snd-usb-audio. My idea was to remove the AC97 interfa=
-ce and setup the codec using the same values and in the same order as the W=
-indows driver does, hoping there might be some "magic" sequence that would =
-make the sound work the way it should. Although this didn't help to fix the=
- problem, I found these changes to be useful nevertheless.
->
-> IMHO, having all of the AC97 codec's channels exposed to userspace is con=
-fusing since most of them have no meaning for this device anyway. Changing =
-these values in alsamixer has either no effect at all or may even reduce th=
-e sound quality since it can actually increase the line-in DC offset (sligh=
-tly).
->
-> In addition, having to re-select the correct capture channel everytime th=
-e device has been plugged in is annoying. At least on my systems the mixer =
-setup is only saved if the device is plugged in during shutdown/reboot. I a=
-lso get error messages in my kernel log when I unplug the device because so=
-me process (probably the AC97 driver) ist trying to read from the device af=
-ter it has been removed. Either way the device should work out-of-the-box w=
-ithout the need for the user to manually setup channels.
->
-> The first patch in the set therefore removes the 'stk1160-mixer' and lets=
- the driver setup the AC97 codec using the same values as the Windows drive=
-r. Although some of the values seem to be defaults I let the driver set the=
-m either way, just to be sure.
->
-> The second patch adds a check to determine whether the device is strapped=
- to use the internal 8-bit ADC or an external chip, or whether audio is dis=
-abled altogether. There's currently no check in place to determine whether =
-the device uses AC-link or I2S, but then again I haven't heard of any of th=
-ese devices actually using an I2S chip. If the device uses the internal ADC=
- the AC97 setup can be skipped. I implemented the check inside stk1160-ac97=
-. It could just as well be in stk1160-core but this way just seemed cleaner=
-. If at some point the need arises to check other power-on strap values, it=
- might make sense to refactor this then.
->
-> The third patch addresses an issue when reading from the AC97 chip too so=
-on, resulting in corrupt data.
->
-> Changes from version 3:
-> * Removed module param
-> * Implemented polling read/write bits
->
-> Marcel Hasler (3):
->   stk1160: Remove stk1160-mixer and setup internal AC97 codec automatical=
-ly.
->   stk1160: Check whether to use AC97 codec.
->   stk1160: Wait for completion of transfers to and from AC97 codec.
->
+On Tue, Jan 31, 2017 at 09:55:29PM +0000, Ian Arkver wrote:
+> On 31/01/17 20:33, Russell King - ARM Linux wrote:
+> >On Tue, Jan 31, 2017 at 10:21:26AM -0800, Steve Longerbeam wrote:
+> >>On 01/31/2017 05:42 AM, Russell King - ARM Linux wrote:
+> >>>On Fri, Jan 20, 2017 at 03:38:28PM +0100, Hans Verkuil wrote:
+> >>>>Should be set to something like 'platform:imx-media-camif'. v4l2-compliance
+> >>>>should complain about this.
+> >>>... and more.
+> >>
+> >>Right, in version 3 that you are working with, no v4l2-compliance fixes were
+> >>in yet. A lot of the compliance errors are fixed, please look in latest
+> >>branch
+> >>imx-media-staging-md-wip at git@github.com:slongerbeam/mediatree.git.
+> >
+> >Sorry, I'm not prepared to pull random trees from github as there's
+> >no easy way to see what's in the branch.
+> >
+> >I've always disliked github because its web interface makes it soo
+> >difficult to navigate around git trees hosted there.  You can see
+> >a commit, you can see a diff of the commit.  You can get a list of
+> >branches.  But there seems to be no way to get a list of commits
+> >similar to "git log" or even a one-line summary of each commit on
+> >a branch.  If there is, it's completely non-obvious (which I think is
+> >much of the problem with github, it's web interface is horrendous.)
+> >
+> >Or you can clone/pull the tree without knowing what you're fetching
+> >(eg, what the tree is based upon.)
+> >
+> >Or you can waste time clicking repeatedly on the "parent" commit link
+> >on each patch working your way back through the history...
+> >
+> >Well, it looks like it's bsaed on 4.10-rc1 with who-knows-what work
+> >from the linux-media tree (I didn't try and go back any further.)
+> >As I don't want to take a whole pile of other changes into my tree,
+> >I'm certainly not going to pull from your github tree.  Sorry.
+> >
+> 
+> https://github.com/slongerbeam/mediatree/compare/master...imx-media-staging-md-wip
+> 
+> It's under the "Compare" button from the main view. It would be nice though
+> if the first commit's parent was some clearly tagged start point.
 
-For the whole set:
+I don't want master though, I want v4.10-rc1, and if I ask for that
+it tells me it knows nothing about v4.10-rc1, despite the fact that's
+a tag in the mainline kernel repository which was merged into the
+linux-media tree that this tree is based upon.
 
-Acked-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-
---=20
-Ezequiel Garc=C3=ADa, VanguardiaSur
-www.vanguardiasur.com.ar
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
