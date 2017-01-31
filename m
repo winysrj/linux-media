@@ -1,91 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:35230 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751238AbdAaWLw (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:62353 "EHLO
+        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751042AbdAaMR1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 31 Jan 2017 17:11:52 -0500
-Date: Tue, 31 Jan 2017 22:04:52 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Ian Arkver <ian.arkver.dev@gmail.com>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v3 20/24] media: imx: Add Camera Interface subdev driver
-Message-ID: <20170131220452.GE27312@n2100.armlinux.org.uk>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
- <1483755102-24785-21-git-send-email-steve_longerbeam@mentor.com>
- <b7456d40-040d-41b7-45bc-ef6709ab7933@xs4all.nl>
- <20170131134252.GX27312@n2100.armlinux.org.uk>
- <b0517394-7717-3e1d-b850-e2b69a9c19e9@gmail.com>
- <20170131203340.GC27312@n2100.armlinux.org.uk>
- <2297c62c-ae9b-3942-4700-ce268a61a6d5@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2297c62c-ae9b-3942-4700-ce268a61a6d5@gmail.com>
+        Tue, 31 Jan 2017 07:17:27 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>
+Subject: [PATCH] media: exynos4-is: add flags to dummy Exynos IS i2c adapter
+Date: Tue, 31 Jan 2017 13:05:53 +0100
+Message-id: <1485864353-9205-1-git-send-email-m.szyprowski@samsung.com>
+References: <CGME20170131120559eucas1p171eea15496e67cce34f964484065a714@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 31, 2017 at 09:55:29PM +0000, Ian Arkver wrote:
-> On 31/01/17 20:33, Russell King - ARM Linux wrote:
-> >On Tue, Jan 31, 2017 at 10:21:26AM -0800, Steve Longerbeam wrote:
-> >>On 01/31/2017 05:42 AM, Russell King - ARM Linux wrote:
-> >>>On Fri, Jan 20, 2017 at 03:38:28PM +0100, Hans Verkuil wrote:
-> >>>>Should be set to something like 'platform:imx-media-camif'. v4l2-compliance
-> >>>>should complain about this.
-> >>>... and more.
-> >>
-> >>Right, in version 3 that you are working with, no v4l2-compliance fixes were
-> >>in yet. A lot of the compliance errors are fixed, please look in latest
-> >>branch
-> >>imx-media-staging-md-wip at git@github.com:slongerbeam/mediatree.git.
-> >
-> >Sorry, I'm not prepared to pull random trees from github as there's
-> >no easy way to see what's in the branch.
-> >
-> >I've always disliked github because its web interface makes it soo
-> >difficult to navigate around git trees hosted there.  You can see
-> >a commit, you can see a diff of the commit.  You can get a list of
-> >branches.  But there seems to be no way to get a list of commits
-> >similar to "git log" or even a one-line summary of each commit on
-> >a branch.  If there is, it's completely non-obvious (which I think is
-> >much of the problem with github, it's web interface is horrendous.)
-> >
-> >Or you can clone/pull the tree without knowing what you're fetching
-> >(eg, what the tree is based upon.)
-> >
-> >Or you can waste time clicking repeatedly on the "parent" commit link
-> >on each patch working your way back through the history...
-> >
-> >Well, it looks like it's bsaed on 4.10-rc1 with who-knows-what work
-> >from the linux-media tree (I didn't try and go back any further.)
-> >As I don't want to take a whole pile of other changes into my tree,
-> >I'm certainly not going to pull from your github tree.  Sorry.
-> >
-> 
-> https://github.com/slongerbeam/mediatree/compare/master...imx-media-staging-md-wip
-> 
-> It's under the "Compare" button from the main view. It would be nice though
-> if the first commit's parent was some clearly tagged start point.
+Add simple 'functionality' member to dummy Exynos IS i2c adapter to make
+i2c core happy and get rid of NULL pointer dereference during Exynos4 IS
+probe since v4.10-rc1:
 
-I don't want master though, I want v4.10-rc1, and if I ask for that
-it tells me it knows nothing about v4.10-rc1, despite the fact that's
-a tag in the mainline kernel repository which was merged into the
-linux-media tree that this tree is based upon.
+Unable to handle kernel NULL pointer dereference at virtual address 00000000
+pgd = c0004000
+[00000000] *pgd=00000000
+Internal error: Oops: 80000005 [#1] PREEMPT SMP ARM
+Modules linked in:
+CPU: 1 PID: 100 Comm: kworker/1:2 Not tainted 4.10.0-rc6-next-20170131-00054-g39e6e4233de6 #1921
+Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
+Workqueue: events deferred_probe_work_func
+task: ef2e0000 task.stack: ef2ec000
+PC is at 0x0
+LR is at i2c_register_adapter+0x98/0x5cc
+...
+[<c05040bc>] (i2c_register_adapter) from [<c05379d4>] (fimc_is_i2c_probe+0x84/0xe4)
+[<c05379d4>] (fimc_is_i2c_probe) from [<c041b5c8>] (platform_drv_probe+0x50/0xb0)
+[<c041b5c8>] (platform_drv_probe) from [<c0419f48>] (driver_probe_device+0x234/0x2dc)
+[<c0419f48>] (driver_probe_device) from [<c04184e0>] (bus_for_each_drv+0x44/0x8c)
+[<c04184e0>] (bus_for_each_drv) from [<c0419c8c>] (__device_attach+0x9c/0x100)
+[<c0419c8c>] (__device_attach) from [<c0419374>] (bus_probe_device+0x84/0x8c)
+[<c0419374>] (bus_probe_device) from [<c04178d4>] (device_add+0x380/0x528)
+[<c04178d4>] (device_add) from [<c05aceb4>] (of_platform_device_create_pdata+0x70/0xa4)
+[<c05aceb4>] (of_platform_device_create_pdata) from [<c05acfd4>] (of_platform_bus_create+0xec/0x320)
+[<c05acfd4>] (of_platform_bus_create) from [<c05ad264>] (of_platform_populate+0x5c/0xac)
+[<c05ad264>] (of_platform_populate) from [<c0533420>] (fimc_is_probe+0x1c0/0x4cc)
+[<c0533420>] (fimc_is_probe) from [<c041b5c8>] (platform_drv_probe+0x50/0xb0)
+[<c041b5c8>] (platform_drv_probe) from [<c0419f48>] (driver_probe_device+0x234/0x2dc)
+[<c0419f48>] (driver_probe_device) from [<c04184e0>] (bus_for_each_drv+0x44/0x8c)
+[<c04184e0>] (bus_for_each_drv) from [<c0419c8c>] (__device_attach+0x9c/0x100)
+[<c0419c8c>] (__device_attach) from [<c0419374>] (bus_probe_device+0x84/0x8c)
+[<c0419374>] (bus_probe_device) from [<c04197a8>] (deferred_probe_work_func+0x60/0x8c)
+[<c04197a8>] (deferred_probe_work_func) from [<c01329a4>] (process_one_work+0x120/0x31c)
+[<c01329a4>] (process_one_work) from [<c0132bc8>] (process_scheduled_works+0x28/0x38)
+[<c0132bc8>] (process_scheduled_works) from [<c0132ddc>] (worker_thread+0x204/0x4ac)
+[<c0132ddc>] (worker_thread) from [<c01381b8>] (kthread+0xfc/0x134)
+[<c01381b8>] (kthread) from [<c01078b8>] (ret_from_fork+0x14/0x3c)
 
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/media/platform/exynos4-is/fimc-is-i2c.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/exynos4-is/fimc-is-i2c.c b/drivers/media/platform/exynos4-is/fimc-is-i2c.c
+index 6bba4ca022be..2f559663e51e 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is-i2c.c
++++ b/drivers/media/platform/exynos4-is/fimc-is-i2c.c
+@@ -28,7 +28,14 @@ struct fimc_is_i2c {
+  * is implemented in the FIMC-IS subsystem firmware and the host CPU
+  * doesn't access the I2C bus controller.
+  */
+-static const struct i2c_algorithm fimc_is_i2c_algorithm;
++static u32 is_i2c_func(struct i2c_adapter *adap)
++{
++	return I2C_FUNC_I2C;
++}
++
++static const struct i2c_algorithm fimc_is_i2c_algorithm = {
++	.functionality	= is_i2c_func,
++};
+ 
+ static int fimc_is_i2c_probe(struct platform_device *pdev)
+ {
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+1.9.1
+
