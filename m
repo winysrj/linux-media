@@ -1,226 +1,282 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:36751 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752207AbdAYTKp (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:41267 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751347AbdAaQcX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 25 Jan 2017 14:10:45 -0500
-Subject: Re: [PATCH v3 22/24] media: imx: Add MIPI CSI-2 OV5640 sensor subdev
- driver
-To: Hans Verkuil <hverkuil@xs4all.nl>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
- <1483755102-24785-23-git-send-email-steve_longerbeam@mentor.com>
- <738ab8c3-83ed-cba9-77f4-6c91006d0a18@xs4all.nl>
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <62785fbc-74d9-1924-ba85-ce3f06b5b047@gmail.com>
-Date: Wed, 25 Jan 2017 11:10:41 -0800
+        Tue, 31 Jan 2017 11:32:23 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v5 08/10] [media] st-delta: EOS (End Of Stream) support
+Date: Tue, 31 Jan 2017 17:30:31 +0100
+Message-ID: <1485880233-666-9-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1485880233-666-1-git-send-email-hugues.fruchet@st.com>
+References: <1485880233-666-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-In-Reply-To: <738ab8c3-83ed-cba9-77f4-6c91006d0a18@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+EOS (End Of Stream) support allows user to get
+all the potential decoded frames remaining in decoder
+pipeline after having reached the end of video bitstream.
+To do so, user calls VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP)
+which will drain the decoder and get the drained frames
+that are then returned to user.
+User is informed of EOS completion in two ways:
+ - dequeue of an empty frame flagged to V4L2_BUF_FLAG_LAST
+ - reception of a V4L2_EVENT_EOS event.
+If, unfortunately, no buffer is available on CAPTURE queue
+to return the empty frame, EOS is delayed till user queue
+one CAPTURE buffer.
 
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/platform/sti/delta/delta-v4l2.c | 146 +++++++++++++++++++++++++-
+ drivers/media/platform/sti/delta/delta.h      |  23 ++++
+ 2 files changed, 168 insertions(+), 1 deletion(-)
 
-On 01/20/2017 06:48 AM, Hans Verkuil wrote:
-> On 01/07/2017 03:11 AM, Steve Longerbeam wrote:
->> +
->> +	/* cached control settings */
->> +	int ctrl_cache[OV5640_MAX_CONTROLS];
-> This is just duplicating the cached value in the control framework. I think this can be dropped.
-
-done, see below.
-
->
->> +
->> +static struct ov5640_control ov5640_ctrls[] = {
->> +	{
->> +		.set = ov5640_set_agc,
->> +		.ctrl = {
->> +			.id = V4L2_CID_AUTOGAIN,
->> +			.name = "Auto Gain/Exposure Control",
->> +			.minimum = 0,
->> +			.maximum = 1,
->> +			.step = 1,
->> +			.default_value = 1,
->> +			.type = V4L2_CTRL_TYPE_BOOLEAN,
->> +		},
->> +	}, {
->> +		.set = ov5640_set_exposure,
->> +		.ctrl = {
->> +			.id = V4L2_CID_EXPOSURE,
->> +			.name = "Exposure",
->> +			.minimum = 0,
->> +			.maximum = 65535,
->> +			.step = 1,
->> +			.default_value = 0,
->> +			.type = V4L2_CTRL_TYPE_INTEGER,
->> +		},
->> +	}, {
->> +		.set = ov5640_set_gain,
->> +		.ctrl = {
->> +			.id = V4L2_CID_GAIN,
->> +			.name = "Gain",
->> +			.minimum = 0,
->> +			.maximum = 1023,
->> +			.step = 1,
->> +			.default_value = 0,
->> +			.type = V4L2_CTRL_TYPE_INTEGER,
->> +		},
->> +	}, {
->> +		.set = ov5640_set_hue,
->> +		.ctrl = {
->> +			.id = V4L2_CID_HUE,
->> +			.name = "Hue",
->> +			.minimum = 0,
->> +			.maximum = 359,
->> +			.step = 1,
->> +			.default_value = 0,
->> +			.type = V4L2_CTRL_TYPE_INTEGER,
->> +		},
->> +	}, {
->> +		.set = ov5640_set_contrast,
->> +		.ctrl = {
->> +			.id = V4L2_CID_CONTRAST,
->> +			.name = "Contrast",
->> +			.minimum = 0,
->> +			.maximum = 255,
->> +			.step = 1,
->> +			.default_value = 0,
->> +			.type = V4L2_CTRL_TYPE_INTEGER,
->> +		},
->> +	}, {
->> +		.set = ov5640_set_saturation,
->> +		.ctrl = {
->> +			.id = V4L2_CID_SATURATION,
->> +			.name = "Saturation",
->> +			.minimum = 0,
->> +			.maximum = 255,
->> +			.step = 1,
->> +			.default_value = 64,
->> +			.type = V4L2_CTRL_TYPE_INTEGER,
->> +		},
->> +	}, {
->> +		.set = ov5640_set_awb,
->> +		.ctrl = {
->> +			.id = V4L2_CID_AUTO_WHITE_BALANCE,
->> +			.name = "Auto White Balance",
->> +			.minimum = 0,
->> +			.maximum = 1,
->> +			.step = 1,
->> +			.default_value = 1,
->> +			.type = V4L2_CTRL_TYPE_BOOLEAN,
->> +		},
->> +	}, {
->> +		.set = ov5640_set_red_balance,
->> +		.ctrl = {
->> +			.id = V4L2_CID_RED_BALANCE,
->> +			.name = "Red Balance",
->> +			.minimum = 0,
->> +			.maximum = 4095,
->> +			.step = 1,
->> +			.default_value = 0,
->> +			.type = V4L2_CTRL_TYPE_INTEGER,
->> +		},
->> +	}, {
->> +		.set = ov5640_set_blue_balance,
->> +		.ctrl = {
->> +			.id = V4L2_CID_BLUE_BALANCE,
->> +			.name = "Blue Balance",
->> +			.minimum = 0,
->> +			.maximum = 4095,
->> +			.step = 1,
->> +			.default_value = 0,
->> +			.type = V4L2_CTRL_TYPE_INTEGER,
->> +		},
->> +	},
->> +};
->> +#define OV5640_NUM_CONTROLS ARRAY_SIZE(ov5640_ctrls)
-> This should use v4l2_ctrl_new_std() instead of this array.
-> Just put a switch on ctrl->id in s_ctrl, and each case calls the corresponding
-> set function.
-
-In this case, because there are lots of controls, my preference is to use
-table lookup rather than a large switch statement. However I did remove
-.name and .type from the table entries, leaving only .def, .min, .max, .step
-as required to pass to v4l2_ctrl_new_std(). Also converted to 'struct 
-v4l2_ctrl_config'
-in the table.
-
-
->
->> +
->> +static int ov5640_restore_ctrls(struct ov5640_dev *sensor)
->> +{
->> +	struct ov5640_control *c;
->> +	int i;
->> +
->> +	for (i = 0; i < OV5640_NUM_CONTROLS; i++) {
->> +		c = &ov5640_ctrls[i];
->> +		c->set(sensor, sensor->ctrl_cache[i]);
->> +	}
->> +
->> +	return 0;
->> +}
-> This does the same as v4l2_ctrl_handler_setup() if I understand the code correctly.
-
-yes thanks. I remember looking at this and thinking 
-v4l2_ctrl_handler_setup()
-was setting up the default values rather than the current values, but 
-after a
-re-read it does look to be restoring the current values, which is 
-exactly what
-is needed here.
-
->> +
->> +static int ov5640_init_controls(struct ov5640_dev *sensor)
->> +{
->> +	struct ov5640_control *c;
->> +	int i;
->> +
->> +	v4l2_ctrl_handler_init(&sensor->ctrl_hdl, OV5640_NUM_CONTROLS);
->> +
->> +	for (i = 0; i < OV5640_NUM_CONTROLS; i++) {
->> +		c = &ov5640_ctrls[i];
->> +
->> +		v4l2_ctrl_new_std(&sensor->ctrl_hdl, &ov5640_ctrl_ops,
->> +				  c->ctrl.id, c->ctrl.minimum, c->ctrl.maximum,
->> +				  c->ctrl.step, c->ctrl.default_value);
->> +	}
-> As mentioned, just drop the ov5640_ctrls array and call v4l2_ctr_new_std for each
-> control you're adding.
-
-if really pressed I can be persuaded to use a switch statement and call
-v4l2_ctrl_new_std() multiple times, but I don't any problem with using
-a table.
-
->> +
->> +module_i2c_driver(ov5640_i2c_driver);
->> +
->> +MODULE_AUTHOR("Freescale Semiconductor, Inc.");
->> +MODULE_AUTHOR("Steve Longerbeam <steve_longerbeam@mentor.com>");
->> +MODULE_DESCRIPTION("OV5640 MIPI Camera Subdev Driver");
->> +MODULE_LICENSE("GPL");
->> +MODULE_VERSION("1.0");
->>
-> Same comments apply to the next patch, so I won't repeat them.
-
-done, I've made the same mods to the ov5642 subdev.
-
-Steve
-
+diff --git a/drivers/media/platform/sti/delta/delta-v4l2.c b/drivers/media/platform/sti/delta/delta-v4l2.c
+index 8af5014..9add119 100644
+--- a/drivers/media/platform/sti/delta/delta-v4l2.c
++++ b/drivers/media/platform/sti/delta/delta-v4l2.c
+@@ -107,7 +107,8 @@ static void delta_frame_done(struct delta_ctx *ctx, struct delta_frame *frame,
+ 	vbuf->sequence = ctx->frame_num++;
+ 	v4l2_m2m_buf_done(vbuf, err ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+ 
+-	ctx->output_frames++;
++	if (frame->info.size) /* ignore EOS */
++		ctx->output_frames++;
+ }
+ 
+ static void requeue_free_frames(struct delta_ctx *ctx)
+@@ -765,6 +766,135 @@ static int delta_g_selection(struct file *file, void *fh,
+ 	return 0;
+ }
+ 
++static void delta_complete_eos(struct delta_ctx *ctx,
++			       struct delta_frame *frame)
++{
++	struct delta_dev *delta = ctx->dev;
++	const struct v4l2_event ev = {.type = V4L2_EVENT_EOS};
++
++	/*
++	 * Send EOS to user:
++	 * - by returning an empty frame flagged to V4L2_BUF_FLAG_LAST
++	 * - and then send EOS event
++	 */
++
++	/* empty frame */
++	frame->info.size = 0;
++
++	/* set the last buffer flag */
++	frame->flags |= V4L2_BUF_FLAG_LAST;
++
++	/* release frame to user */
++	delta_frame_done(ctx, frame, 0);
++
++	/* send EOS event */
++	v4l2_event_queue_fh(&ctx->fh, &ev);
++
++	dev_dbg(delta->dev, "%s EOS completed\n", ctx->name);
++}
++
++static int delta_try_decoder_cmd(struct file *file, void *fh,
++				 struct v4l2_decoder_cmd *cmd)
++{
++	if (cmd->cmd != V4L2_DEC_CMD_STOP)
++		return -EINVAL;
++
++	if (cmd->flags & V4L2_DEC_CMD_STOP_TO_BLACK)
++		return -EINVAL;
++
++	if (!(cmd->flags & V4L2_DEC_CMD_STOP_IMMEDIATELY) &&
++	    (cmd->stop.pts != 0))
++		return -EINVAL;
++
++	return 0;
++}
++
++static int delta_decoder_stop_cmd(struct delta_ctx *ctx, void *fh)
++{
++	const struct delta_dec *dec = ctx->dec;
++	struct delta_dev *delta = ctx->dev;
++	struct delta_frame *frame = NULL;
++	int ret = 0;
++
++	dev_dbg(delta->dev, "%s EOS received\n", ctx->name);
++
++	if (ctx->state != DELTA_STATE_READY)
++		return 0;
++
++	/* drain the decoder */
++	call_dec_op(dec, drain, ctx);
++
++	/* release to user drained frames */
++	while (1) {
++		frame = NULL;
++		ret = call_dec_op(dec, get_frame, ctx, &frame);
++		if (ret == -ENODATA) {
++			/* no more decoded frames */
++			break;
++		}
++		if (frame) {
++			dev_dbg(delta->dev, "%s drain frame[%d]\n",
++				ctx->name, frame->index);
++
++			/* pop timestamp and mark frame with it */
++			delta_pop_dts(ctx, &frame->dts);
++
++			/* release decoded frame to user */
++			delta_frame_done(ctx, frame, 0);
++		}
++	}
++
++	/* try to complete EOS */
++	ret = delta_get_free_frame(ctx, &frame);
++	if (ret)
++		goto delay_eos;
++
++	/* new frame available, EOS can now be completed */
++	delta_complete_eos(ctx, frame);
++
++	ctx->state = DELTA_STATE_EOS;
++
++	return 0;
++
++delay_eos:
++	/*
++	 * EOS completion from driver is delayed because
++	 * we don't have a free empty frame available.
++	 * EOS completion is so delayed till next frame_queue() call
++	 * to be sure to have a free empty frame available.
++	 */
++	ctx->state = DELTA_STATE_WF_EOS;
++	dev_dbg(delta->dev, "%s EOS delayed\n", ctx->name);
++
++	return 0;
++}
++
++static int delta_decoder_cmd(struct file *file, void *fh,
++			     struct v4l2_decoder_cmd *cmd)
++{
++	struct delta_ctx *ctx = to_ctx(fh);
++	int ret = 0;
++
++	ret = delta_try_decoder_cmd(file, fh, cmd);
++	if (ret)
++		return ret;
++
++	return delta_decoder_stop_cmd(ctx, fh);
++}
++
++static int delta_subscribe_event(struct v4l2_fh *fh,
++				 const struct v4l2_event_subscription *sub)
++{
++	switch (sub->type) {
++	case V4L2_EVENT_EOS:
++		return v4l2_event_subscribe(fh, sub, 2, NULL);
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
+ /* v4l2 ioctl ops */
+ static const struct v4l2_ioctl_ops delta_ioctl_ops = {
+ 	.vidioc_querycap = delta_querycap,
+@@ -785,6 +915,10 @@ static int delta_g_selection(struct file *file, void *fh,
+ 	.vidioc_streamon = v4l2_m2m_ioctl_streamon,
+ 	.vidioc_streamoff = v4l2_m2m_ioctl_streamoff,
+ 	.vidioc_g_selection = delta_g_selection,
++	.vidioc_try_decoder_cmd = delta_try_decoder_cmd,
++	.vidioc_decoder_cmd = delta_decoder_cmd,
++	.vidioc_subscribe_event = delta_subscribe_event,
++	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
+ 
+ /*
+@@ -1379,6 +1513,16 @@ static void delta_vb2_frame_queue(struct vb2_buffer *vb)
+ 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+ 	struct delta_frame *frame = to_frame(vbuf);
+ 
++	if (ctx->state == DELTA_STATE_WF_EOS) {
++		/* new frame available, EOS can now be completed */
++		delta_complete_eos(ctx, frame);
++
++		ctx->state = DELTA_STATE_EOS;
++
++		/* return, no need to recycle this buffer to decoder */
++		return;
++	}
++
+ 	/* recycle this frame */
+ 	delta_recycle(ctx, frame);
+ }
+diff --git a/drivers/media/platform/sti/delta/delta.h b/drivers/media/platform/sti/delta/delta.h
+index d4a401b..60c07324 100644
+--- a/drivers/media/platform/sti/delta/delta.h
++++ b/drivers/media/platform/sti/delta/delta.h
+@@ -27,11 +27,19 @@
+  *@DELTA_STATE_READY:
+  *	Decoding instance is ready to decode compressed access unit.
+  *
++ *@DELTA_STATE_WF_EOS:
++ *	Decoding instance is waiting for EOS (End Of Stream) completion.
++ *
++ *@DELTA_STATE_EOS:
++ *	EOS (End Of Stream) is completed (signaled to user). Decoding instance
++ *	should then be closed.
+  */
+ enum delta_state {
+ 	DELTA_STATE_WF_FORMAT,
+ 	DELTA_STATE_WF_STREAMINFO,
+ 	DELTA_STATE_READY,
++	DELTA_STATE_WF_EOS,
++	DELTA_STATE_EOS
+ };
+ 
+ /*
+@@ -237,6 +245,7 @@ struct delta_ipc_param {
+  * @get_frame:		get the next decoded frame available, see below
+  * @recycle:		recycle the given frame, see below
+  * @flush:		(optional) flush decoder, see below
++ * @drain:		(optional) drain decoder, see below
+  */
+ struct delta_dec {
+ 	const char *name;
+@@ -371,6 +380,18 @@ struct delta_dec {
+ 	 * decoding logic.
+ 	 */
+ 	int (*flush)(struct delta_ctx *ctx);
++
++	/*
++	 * drain() - drain decoder
++	 * @ctx:	(in) instance
++	 *
++	 * Optional.
++	 * Mark decoder pending frames (decoded but not yet output) as ready
++	 * so that they can be output to client at EOS (End Of Stream).
++	 * get_frame() is to be called in a loop right after drain() to
++	 * get all those pending frames.
++	 */
++	int (*drain)(struct delta_ctx *ctx);
+ };
+ 
+ struct delta_dev;
+@@ -497,6 +518,8 @@ static inline char *frame_type_str(u32 flags)
+ 		return "P";
+ 	if (flags & V4L2_BUF_FLAG_BFRAME)
+ 		return "B";
++	if (flags & V4L2_BUF_FLAG_LAST)
++		return "EOS";
+ 	return "?";
+ }
+ 
+-- 
+1.9.1
 
