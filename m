@@ -1,76 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:40454 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753565AbdA3OJE (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:33917 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750851AbdAaVzf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 30 Jan 2017 09:09:04 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 13/16] ov2640: update bindings
-Date: Mon, 30 Jan 2017 15:06:25 +0100
-Message-Id: <20170130140628.18088-14-hverkuil@xs4all.nl>
-In-Reply-To: <20170130140628.18088-1-hverkuil@xs4all.nl>
-References: <20170130140628.18088-1-hverkuil@xs4all.nl>
+        Tue, 31 Jan 2017 16:55:35 -0500
+Subject: Re: [PATCH v3 20/24] media: imx: Add Camera Interface subdev driver
+To: Russell King - ARM Linux <linux@armlinux.org.uk>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <1483755102-24785-21-git-send-email-steve_longerbeam@mentor.com>
+ <b7456d40-040d-41b7-45bc-ef6709ab7933@xs4all.nl>
+ <20170131134252.GX27312@n2100.armlinux.org.uk>
+ <b0517394-7717-3e1d-b850-e2b69a9c19e9@gmail.com>
+ <20170131203340.GC27312@n2100.armlinux.org.uk>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
+        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Ian Arkver <ian.arkver.dev@gmail.com>
+Message-ID: <2297c62c-ae9b-3942-4700-ce268a61a6d5@gmail.com>
+Date: Tue, 31 Jan 2017 21:55:29 +0000
+MIME-Version: 1.0
+In-Reply-To: <20170131203340.GC27312@n2100.armlinux.org.uk>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 31/01/17 20:33, Russell King - ARM Linux wrote:
+> On Tue, Jan 31, 2017 at 10:21:26AM -0800, Steve Longerbeam wrote:
+>> On 01/31/2017 05:42 AM, Russell King - ARM Linux wrote:
+>>> On Fri, Jan 20, 2017 at 03:38:28PM +0100, Hans Verkuil wrote:
+>>>> Should be set to something like 'platform:imx-media-camif'. v4l2-compliance
+>>>> should complain about this.
+>>> ... and more.
+>>
+>> Right, in version 3 that you are working with, no v4l2-compliance fixes were
+>> in yet. A lot of the compliance errors are fixed, please look in latest
+>> branch
+>> imx-media-staging-md-wip at git@github.com:slongerbeam/mediatree.git.
+>
+> Sorry, I'm not prepared to pull random trees from github as there's
+> no easy way to see what's in the branch.
+>
+> I've always disliked github because its web interface makes it soo
+> difficult to navigate around git trees hosted there.  You can see
+> a commit, you can see a diff of the commit.  You can get a list of
+> branches.  But there seems to be no way to get a list of commits
+> similar to "git log" or even a one-line summary of each commit on
+> a branch.  If there is, it's completely non-obvious (which I think is
+> much of the problem with github, it's web interface is horrendous.)
+>
+> Or you can clone/pull the tree without knowing what you're fetching
+> (eg, what the tree is based upon.)
+>
+> Or you can waste time clicking repeatedly on the "parent" commit link
+> on each patch working your way back through the history...
+>
+> Well, it looks like it's bsaed on 4.10-rc1 with who-knows-what work
+> from the linux-media tree (I didn't try and go back any further.)
+> As I don't want to take a whole pile of other changes into my tree,
+> I'm certainly not going to pull from your github tree.  Sorry.
+>
 
-Update the bindings for this device based on a working DT example.
+https://github.com/slongerbeam/mediatree/compare/master...imx-media-staging-md-wip
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- .../devicetree/bindings/media/i2c/ov2640.txt       | 22 ++++++++++------------
- 1 file changed, 10 insertions(+), 12 deletions(-)
+It's under the "Compare" button from the main view. It would be nice 
+though if the first commit's parent was some clearly tagged start point.
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov2640.txt b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
-index c429b5b..5e6c445 100644
---- a/Documentation/devicetree/bindings/media/i2c/ov2640.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
-@@ -1,8 +1,8 @@
- * Omnivision OV2640 CMOS sensor
- 
--The Omnivision OV2640 sensor support multiple resolutions output, such as
--CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or raw RGB
--output format.
-+The Omnivision OV2640 sensor supports multiple resolutions output, such as
-+CIF, SVGA, UXGA. It also can support the YUV422/420, RGB565/555 or raw RGB
-+output formats.
- 
- Required Properties:
- - compatible: should be "ovti,ov2640"
-@@ -20,20 +20,18 @@ Documentation/devicetree/bindings/media/video-interfaces.txt.
- Example:
- 
- 	i2c1: i2c@f0018000 {
-+		status = "okay";
-+
- 		ov2640: camera@0x30 {
- 			compatible = "ovti,ov2640";
- 			reg = <0x30>;
--
- 			pinctrl-names = "default";
--			pinctrl-0 = <&pinctrl_pck1 &pinctrl_ov2640_pwdn &pinctrl_ov2640_resetb>;
--
--			resetb-gpios = <&pioE 24 GPIO_ACTIVE_LOW>;
--			pwdn-gpios = <&pioE 29 GPIO_ACTIVE_HIGH>;
--
--			clocks = <&pck1>;
-+			pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
-+			resetb-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
-+			pwdn-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
-+			clocks = <&pck0>;
- 			clock-names = "xvclk";
--
--			assigned-clocks = <&pck1>;
-+			assigned-clocks = <&pck0>;
- 			assigned-clock-rates = <25000000>;
- 
- 			port {
--- 
-2.10.2
-
+Regards,
+Ian
