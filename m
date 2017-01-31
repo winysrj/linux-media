@@ -1,204 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:36337 "EHLO
-        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964878AbdADMZ3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2017 07:25:29 -0500
-Subject: Re: [PATCH v2 04/19] ARM: dts: imx6-sabrelite: add OV5642 and OV5640
- camera sensors
-To: Steve Longerbeam <slongerbeam@gmail.com>, <shawnguo@kernel.org>,
-        <kernel@pengutronix.de>, <fabio.estevam@nxp.com>,
-        <robh+dt@kernel.org>, <mark.rutland@arm.com>,
-        <linux@armlinux.org.uk>, <mchehab@kernel.org>,
-        <gregkh@linuxfoundation.org>, <p.zabel@pengutronix.de>
-References: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
- <1483477049-19056-5-git-send-email-steve_longerbeam@mentor.com>
-CC: <linux-arm-kernel@lists.infradead.org>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-media@vger.kernel.org>, <devel@driverdev.osuosl.org>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Message-ID: <0a343705-1d38-9fe2-6419-56ab9bdfb0c2@mentor.com>
-Date: Wed, 4 Jan 2017 14:25:17 +0200
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:29027 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751194AbdAaKjJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 31 Jan 2017 05:39:09 -0500
+From: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v4 0/2] add debug capabilities to v4l2 encoder for STMicroelectronics SOC
+Date: Tue, 31 Jan 2017 11:37:55 +0100
+Message-ID: <1485859077-348-1-git-send-email-jean-christophe.trotin@st.com>
 MIME-Version: 1.0
-In-Reply-To: <1483477049-19056-5-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
+version 4:
+- As suggested by Mauro, the encoding summary (first patch) is no more
+  unconditionallly added: dev_dbg() is used instead of dev_info().
 
-On 01/03/2017 10:57 PM, Steve Longerbeam wrote:
-> Enables the OV5642 parallel-bus sensor, and the OV5640 MIPI CSI-2 sensor.
-> Both hang off the same i2c2 bus, so they require different (and non-
-> default) i2c slave addresses.
-> 
-> The OV5642 connects to the parallel-bus mux input port on ipu1_csi0_mux.
-> 
-> The OV5640 connects to the input port on the MIPI CSI-2 receiver on
-> mipi_csi. It is set to transmit over MIPI virtual channel 1.
-> 
-> Note there is a pin conflict with GPIO6. This pin functions as a power
-> input pin to the OV5642, but ENET uses it as the h/w workaround for
-> erratum ERR006687, to wake-up the ARM cores on normal RX and TX packet
-> done events (see 6261c4c8). So workaround 6261c4c8 is reverted here to
-> support the OV5642, and the "fsl,err006687-workaround-present" boolean
-> also must be removed. The result is that the CPUidle driver will no longer
-> allow entering the deep idle states on the sabrelite.
+version 3:
+- the encoding summary (first patch) is moved from hva-debug.c to hva-v4l2.c.
+  As suggested by Hans, dev_info() is used instead of snprintf() in the
+  hva_dbg_summary() function.
 
-For me it sounds like a candidate of its own separate change.
+- About the debugfs entries for HVA (second patch), a driver-specific Kconfig
+  option (VIDEO_STI_HVA_DEBUGFS) is added as suggested by Hans. This option
+  depends both on VIDEO_STI_HVA and on DEBUG_FS.
 
-> 
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> ---
+- The third (new) patch enables STMicroelectronics HVA debugfs in
+  multi_v7_defconfig (VIDEO_STI_HVA_DEBUGFS).
 
-[snip]
+version 2:
+- the encoding summary (first patch) doesn't include any longer information
+  about the encoding performance. Thus, after each frame encoding, only one or
+  two variables are increased (number of encoded frames, number of encoding
+  errors), but no computation is executed (as it was in version 1). When the
+  encoding instance is closed, the short summary that is printed (dev_info),
+  also doesn't require any computation, and gives a useful brief status about
+  the last operation: that are the reasons why there's no Kconfig option to
+  explicitly enable this summary.
 
->  &audmux {
->  	pinctrl-names = "default";
->  	pinctrl-0 = <&pinctrl_audmux>;
-> @@ -271,9 +298,6 @@
->  	txd1-skew-ps = <0>;
->  	txd2-skew-ps = <0>;
->  	txd3-skew-ps = <0>;
-> -	interrupts-extended = <&gpio1 6 IRQ_TYPE_LEVEL_HIGH>,
-> -			      <&intc 0 119 IRQ_TYPE_LEVEL_HIGH>;
+- the second patch enables the computation of the performances (hva_dbg_perf_begin
+  and hva_dbg_perf_end) only if DEBUG_FS is enabled. The functions that
+  create or remove the debugfs entries (hva_debugfs_create,
+  hva_debugfs_remove, hva_dbg_ctx_create, hva_dbg_ctx_remove) are not under
+  CONFIG_DEBUG_FS switch: if DEBUG_FS is disabled, the debugfs functions
+  (debugfs_create_dir and debugfs_create_file) are available, but no entry is
+  created. The "show" operations (hva_dbg_device, hva_dbg_encoders,
+  hva_dbg_last, hva_dbg_regs, hva_dbg_ctx) are also not under
+  CONFIG_DEBUG_FS switch: if DEBUG_FS is disabled, they will never be called.
+  So, with this version 2, no new Kconfig option is introduced, but the
+  performance computations and the debugfs entries depend on whether DEBUG_FS
+  is enabled or not.
 
-Like you say in the commit message this is a partial revert of 6261c4c8f13e
-("ARM: dts: imx6qdl-sabrelite: use GPIO_6 for FEC interrupt.")
+version 1:
+- Initial submission
 
-> -	fsl,err006687-workaround-present;
+With the first patch, a short summary about the encoding operation is
+added at each instance closing, for debug purpose (through dev_dbg()):
+- information about the frame (format, resolution)
+- information about the stream (format, profile, level, resolution)
+- number of encoded frames
+- potential (system, encoding...) errors
 
-This is a partial revert of a28eeb43ee57 ("ARM: dts: imx6: tag boards that
-have the HW workaround for ERR006687").
+With the second patch, 4 static debugfs entries are created to dump:
+- the device-related information ("st-hva/device")
+- the list of registered encoders ("st-hva/encoders")
+- the current values of the hva registers ("st-hva/regs")
+- the information about the last closed instance ("st-hva/last")
 
-The change should be split and reviewed separately in my opinion, also
-cc Gary Bisson <gary.bisson@boundarydevices.com> for SabreLite changes.
+Moreover, a debugfs entry is dynamically created for each opened instance,
+("st-hva/<instance identifier>") to dump:
+ - the information about the frame (format, resolution)
+- the information about the stream (format, profile, level,
+  resolution)
+- the control parameters (bitrate mode, framerate, GOP size...)
+- the potential (system, encoding...) errors
+- the performance information about the encoding (HW processing
+  duration, average bitrate, average framerate...)
+Each time a running instance is closed, its context (including the debug
+information) is saved to feed, on demand, the last closed instance debugfs
+entry.
 
->  	status = "okay";
->  };
->  
-> @@ -302,6 +326,52 @@
->  	pinctrl-names = "default";
->  	pinctrl-0 = <&pinctrl_i2c2>;
->  	status = "okay";
-> +
-> +	camera: ov5642@42 {
-> +		compatible = "ovti,ov5642";
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&pinctrl_ov5642>;
-> +		clocks = <&clks IMX6QDL_CLK_CKO2>;
-> +		clock-names = "xclk";
-> +		reg = <0x42>;
-> +		xclk = <24000000>;
-> +		reset-gpios = <&gpio1 8 GPIO_ACTIVE_LOW>;
-> +		pwdn-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
-> +		gp-gpios = <&gpio1 16 GPIO_ACTIVE_HIGH>;
-> +
-> +		port {
-> +			ov5642_to_ipu1_csi0_mux: endpoint {
-> +				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
-> +				bus-width = <8>;
-> +				hsync-active = <1>;
-> +				vsync-active = <1>;
-> +			};
-> +		};
-> +	};
-> +
-> +	mipi_camera: ov5640@40 {
+These debug capabilities are mainly implemented in the hva-debugfs.c file.
 
-Please reorder device nodes by address value, also according to ePAPR
-node names should be generic, labels can be specific:
+Jean-Christophe Trotin (2):
+  st-hva: encoding summary at instance release
+  st-hva: add debug file system
 
-	ov5640: camera@40 {
-		...
-	};
+ drivers/media/platform/Kconfig               |  11 +
+ drivers/media/platform/sti/hva/Makefile      |   1 +
+ drivers/media/platform/sti/hva/hva-debugfs.c | 422 +++++++++++++++++++++++++++
+ drivers/media/platform/sti/hva/hva-h264.c    |   6 +
+ drivers/media/platform/sti/hva/hva-hw.c      |  48 +++
+ drivers/media/platform/sti/hva/hva-hw.h      |   3 +
+ drivers/media/platform/sti/hva/hva-mem.c     |   5 +-
+ drivers/media/platform/sti/hva/hva-v4l2.c    |  78 ++++-
+ drivers/media/platform/sti/hva/hva.h         |  96 +++++-
+ 9 files changed, 656 insertions(+), 14 deletions(-)
+ create mode 100644 drivers/media/platform/sti/hva/hva-debugfs.c
 
-	ov5642: camera@42 {
-		...
-	};
+-- 
+1.9.1
 
-> +		compatible = "ovti,ov5640_mipi";
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&pinctrl_ov5640>;
-> +		clocks = <&mipi_xclk>;
-> +		clock-names = "xclk";
-> +		reg = <0x40>;
-> +		xclk = <22000000>;
-> +		reset-gpios = <&gpio2 5 GPIO_ACTIVE_LOW>; /* NANDF_D5 */
-> +		pwdn-gpios = <&gpio6 9 GPIO_ACTIVE_HIGH>; /* NANDF_WP_B */
-> +
-> +		port {
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-> +
-> +			ov5640_to_mipi_csi: endpoint@1 {
-> +				reg = <1>;
-> +				remote-endpoint = <&mipi_csi_from_mipi_sensor>;
-> +				data-lanes = <0 1>;
-> +				clock-lanes = <2>;
-> +			};
-> +		};
-> +	};
->  };
->  
->  &i2c3 {
-> @@ -374,7 +444,6 @@
->  				MX6QDL_PAD_RGMII_RX_CTL__RGMII_RX_CTL	0x1b030
->  				/* Phy reset */
->  				MX6QDL_PAD_EIM_D23__GPIO3_IO23		0x000b0
-> -				MX6QDL_PAD_GPIO_6__ENET_IRQ		0x000b1
-
-Yep.
-
->  			>;
->  		};
->  
-> @@ -449,6 +518,39 @@
->  			>;
->  		};
->  
-> +		pinctrl_ov5642: ov5642grp {
-> +			fsl,pins = <
-> +				MX6QDL_PAD_SD1_DAT0__GPIO1_IO16 0x80000000
-> +				MX6QDL_PAD_GPIO_6__GPIO1_IO06   0x80000000
-> +				MX6QDL_PAD_GPIO_8__GPIO1_IO08   0x80000000
-> +				MX6QDL_PAD_GPIO_3__CCM_CLKO2    0x80000000
-> +			>;
-> +		};
-> +
-> +		pinctrl_ipu1_csi0: ipu1grp-csi0 {
-
-Please rename node name to ipu1csi0grp.
-
-> +			fsl,pins = <
-> +				MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12    0x80000000
-> +				MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13    0x80000000
-> +				MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14    0x80000000
-> +				MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15    0x80000000
-> +				MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16    0x80000000
-> +				MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17    0x80000000
-> +				MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18    0x80000000
-> +				MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19    0x80000000
-> +				MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK   0x80000000
-> +				MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC      0x80000000
-> +				MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC     0x80000000
-> +				MX6QDL_PAD_CSI0_DATA_EN__IPU1_CSI0_DATA_EN 0x80000000
-> +			>;
-> +		};
-> +
-> +                pinctrl_ov5640: ov5640grp {
-> +                        fsl,pins = <
-> +				MX6QDL_PAD_NANDF_D5__GPIO2_IO05 0x000b0
-> +				MX6QDL_PAD_NANDF_WP_B__GPIO6_IO09 0x0b0b0
-> +                        >;
-> +                };
-> +
-
-Indentation issues above, please use tabs instead of spaces.
-
-Also please add new pin control groups preserving the alphanimerical order.
-
---
-With best wishes,
-Vladimir
