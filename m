@@ -1,405 +1,300 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:36312 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966140AbdACU6R (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2017 15:58:17 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: shawnguo@kernel.org, kernel@pengutronix.de, fabio.estevam@nxp.com,
-        robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk,
-        mchehab@kernel.org, gregkh@linuxfoundation.org,
-        p.zabel@pengutronix.de
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, Sascha Hauer <s.hauer@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v2 16/19] media: imx: Add video switch subdev driver
-Date: Tue,  3 Jan 2017 12:57:26 -0800
-Message-Id: <1483477049-19056-17-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1483477049-19056-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:42881 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751964AbdAaN5w (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 31 Jan 2017 08:57:52 -0500
+Subject: Re: [PATCH v4 1/2] st-hva: encoding summary at instance release
+To: Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <1485859077-348-1-git-send-email-jean-christophe.trotin@st.com>
+ <1485859077-348-2-git-send-email-jean-christophe.trotin@st.com>
+Cc: kernel@stlinux.com,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <f14a0895-b6c9-3eb3-f5b4-4b12790438f2@xs4all.nl>
+Date: Tue, 31 Jan 2017 14:56:52 +0100
+MIME-Version: 1.0
+In-Reply-To: <1485859077-348-2-git-send-email-jean-christophe.trotin@st.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+On 31/01/17 11:37, Jean-Christophe Trotin wrote:
+> This patch adds a short summary about the encoding operation at each
+> instance closing, for debug purpose (through dev_dbg()):
+> - information about the frame (format, resolution)
+> - information about the stream (format, profile, level, resolution)
+> - number of encoded frames
+> - potential (system, encoding...) errors
+>
+> Signed-off-by: Yannick Fertre <yannick.fertre@st.com>
+> Signed-off-by: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
 
-This driver can handle SoC internal and extern video bus multiplexers,
-controlled either by register bit fields or by GPIO.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/media/imx/Makefile           |   1 +
- drivers/staging/media/imx/imx-video-switch.c | 351 +++++++++++++++++++++++++++
- 2 files changed, 352 insertions(+)
- create mode 100644 drivers/staging/media/imx/imx-video-switch.c
+Mauro,
 
-diff --git a/drivers/staging/media/imx/Makefile b/drivers/staging/media/imx/Makefile
-index 0decef7..e3d6d8d 100644
---- a/drivers/staging/media/imx/Makefile
-+++ b/drivers/staging/media/imx/Makefile
-@@ -10,3 +10,4 @@ obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-csi.o
- obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-smfc.o
- obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-camif.o
- obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-mipi-csi2.o
-+obj-$(CONFIG_VIDEO_IMX_CAMERA) += imx-video-switch.o
-diff --git a/drivers/staging/media/imx/imx-video-switch.c b/drivers/staging/media/imx/imx-video-switch.c
-new file mode 100644
-index 0000000..79d3837
---- /dev/null
-+++ b/drivers/staging/media/imx/imx-video-switch.c
-@@ -0,0 +1,351 @@
-+/*
-+ * devicetree probed mediacontrol video multiplexer.
-+ *
-+ * Copyright (C) 2013 Sascha Hauer, Pengutronix
-+ * Copyright (c) 2016 Mentor Graphics Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version 2
-+ * of the License, or (at your option) any later version.
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/err.h>
-+#include <linux/mfd/syscon.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/gpio/consumer.h>
-+#include <linux/platform_device.h>
-+#include <linux/regmap.h>
-+#include <linux/of_graph.h>
-+#include <media/v4l2-subdev.h>
-+#include <media/v4l2-of.h>
-+#include "imx-media.h"
-+
-+struct vidsw {
-+	struct device *dev;
-+	struct imx_media_dev *md;
-+	struct v4l2_subdev subdev;
-+	struct media_pad *pads;
-+	struct v4l2_mbus_framefmt *format_mbus;
-+	struct v4l2_of_endpoint *endpoint;
-+	struct regmap_field *field;
-+	struct gpio_desc *gpio;
-+	int output_pad;
-+	int numpads;
-+	int active;
-+};
-+
-+#define to_vidsw(sd) container_of(sd, struct vidsw, subdev)
-+
-+static int vidsw_set_mux(struct vidsw *vidsw, int input_index)
-+{
-+	if (vidsw->active >= 0) {
-+		if (vidsw->active == input_index)
-+			return 0;
-+		else
-+			return -EBUSY;
-+	}
-+
-+	vidsw->active = input_index;
-+
-+	dev_dbg(vidsw->dev, "setting %d active\n", vidsw->active);
-+
-+	if (vidsw->field)
-+		regmap_field_write(vidsw->field, vidsw->active);
-+	else if (vidsw->gpio)
-+		gpiod_set_value(vidsw->gpio, vidsw->active);
-+
-+	return 0;
-+}
-+
-+static int vidsw_link_setup(struct media_entity *entity,
-+			    const struct media_pad *local,
-+			    const struct media_pad *remote, u32 flags)
-+{
-+	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
-+	struct vidsw *vidsw = to_vidsw(sd);
-+
-+	dev_dbg(vidsw->dev, "link setup %s -> %s", remote->entity->name,
-+		local->entity->name);
-+
-+	if (local->flags & MEDIA_PAD_FL_SINK) {
-+		if (!(flags & MEDIA_LNK_FL_ENABLED)) {
-+			if (local->index == vidsw->active) {
-+				dev_dbg(vidsw->dev, "going inactive\n");
-+				vidsw->active = -1;
-+			}
-+			return 0;
-+		}
-+
-+		return vidsw_set_mux(vidsw, local->index);
-+	}
-+
-+	return 0;
-+}
-+
-+static struct media_entity_operations vidsw_ops = {
-+	.link_setup = vidsw_link_setup,
-+	.link_validate = v4l2_subdev_link_validate,
-+};
-+
-+/*
-+ * retrieve our pads parsed from the OF graph by the media device
-+ */
-+static int vidsw_registered(struct v4l2_subdev *sd)
-+{
-+	struct vidsw *vidsw = container_of(sd, struct vidsw, subdev);
-+	struct device_node *np = vidsw->dev->of_node;
-+	struct imx_media_subdev *imxsd;
-+	struct device_node *epnode;
-+	struct imx_media_pad *pad;
-+	int i, ret;
-+
-+	vidsw->md = dev_get_drvdata(sd->v4l2_dev->dev);
-+
-+	imxsd = imx_media_find_subdev_by_sd(vidsw->md, sd);
-+	if (IS_ERR(imxsd))
-+		return PTR_ERR(imxsd);
-+
-+	if (imxsd->num_sink_pads < 2 || imxsd->num_src_pads != 1)
-+		return -EINVAL;
-+
-+	vidsw->numpads = imxsd->num_sink_pads + imxsd->num_src_pads;
-+
-+	vidsw->pads = devm_kzalloc(vidsw->dev,
-+				   vidsw->numpads * sizeof(*vidsw->pads),
-+				   GFP_KERNEL);
-+	if (!vidsw->pads)
-+		return -ENOMEM;
-+
-+	vidsw->endpoint = devm_kzalloc(vidsw->dev,
-+				       vidsw->numpads *
-+				       sizeof(*vidsw->endpoint),
-+				       GFP_KERNEL);
-+	if (!vidsw->endpoint)
-+		return -ENOMEM;
-+
-+	vidsw->format_mbus = devm_kzalloc(vidsw->dev,
-+					  vidsw->numpads *
-+					  sizeof(*vidsw->format_mbus),
-+					  GFP_KERNEL);
-+	if (!vidsw->format_mbus)
-+		return -ENOMEM;
-+
-+	epnode = NULL;
-+	for (i = 0; i < vidsw->numpads; i++) {
-+		pad = &imxsd->pad[i];
-+		vidsw->pads[i] = pad->pad;
-+
-+		epnode = of_graph_get_next_endpoint(np, epnode);
-+		if (!epnode)
-+			return -EINVAL;
-+
-+		v4l2_of_parse_endpoint(epnode, &vidsw->endpoint[i]);
-+		of_node_put(epnode);
-+
-+		/* set a default mbus format  */
-+		ret = imx_media_init_mbus_fmt(vidsw->format_mbus,
-+					      640, 480, 0, V4L2_FIELD_NONE,
-+					      NULL);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	/*
-+	 * the last endpoint must define the mux output pad,
-+	 * the rest are the mux input pads.
-+	 */
-+	vidsw->output_pad = vidsw->numpads - 1;
-+	if (!(vidsw->pads[vidsw->output_pad].flags & MEDIA_PAD_FL_SOURCE))
-+		return -EINVAL;
-+
-+	return media_entity_pads_init(&sd->entity, vidsw->numpads, vidsw->pads);
-+}
-+
-+static int vidsw_g_mbus_config(struct v4l2_subdev *sd,
-+			       struct v4l2_mbus_config *cfg)
-+{
-+	struct vidsw *vidsw = container_of(sd, struct vidsw, subdev);
-+
-+	dev_dbg(vidsw->dev, "reporting configration %d\n", vidsw->active);
-+
-+	/* Mirror the input side on the output side */
-+	cfg->type = vidsw->endpoint[vidsw->active].bus_type;
-+	if (cfg->type == V4L2_MBUS_PARALLEL || cfg->type == V4L2_MBUS_BT656)
-+		cfg->flags = vidsw->endpoint[vidsw->active].bus.parallel.flags;
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_video_ops vidsw_subdev_video_ops = {
-+	.g_mbus_config = vidsw_g_mbus_config,
-+};
-+
-+static int vidsw_get_format(struct v4l2_subdev *sd,
-+			    struct v4l2_subdev_pad_config *cfg,
-+			    struct v4l2_subdev_format *sdformat)
-+{
-+	struct vidsw *vidsw = container_of(sd, struct vidsw, subdev);
-+
-+	sdformat->format = vidsw->format_mbus[sdformat->pad];
-+
-+	return 0;
-+}
-+
-+static int vidsw_set_format(struct v4l2_subdev *sd,
-+			    struct v4l2_subdev_pad_config *cfg,
-+			    struct v4l2_subdev_format *sdformat)
-+{
-+	struct vidsw *vidsw = container_of(sd, struct vidsw, subdev);
-+
-+	if (sdformat->pad >= vidsw->numpads)
-+		return -EINVAL;
-+
-+	/* Output pad mirrors active input pad, no limitations on input pads */
-+	if (sdformat->pad == vidsw->output_pad && vidsw->active >= 0)
-+		sdformat->format = vidsw->format_mbus[vidsw->active];
-+
-+	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY)
-+		cfg->try_fmt = sdformat->format;
-+	else
-+		vidsw->format_mbus[sdformat->pad] = sdformat->format;
-+
-+	return 0;
-+}
-+
-+static struct v4l2_subdev_pad_ops vidsw_pad_ops = {
-+	.get_fmt = vidsw_get_format,
-+	.set_fmt = vidsw_set_format,
-+};
-+
-+static struct v4l2_subdev_ops vidsw_subdev_ops = {
-+	.pad = &vidsw_pad_ops,
-+	.video = &vidsw_subdev_video_ops,
-+};
-+
-+static struct v4l2_subdev_internal_ops vidsw_internal_ops = {
-+	.registered = vidsw_registered,
-+};
-+
-+static int of_get_reg_field(struct device_node *node, struct reg_field *field)
-+{
-+	u32 reg_bit_mask[2];
-+	int ret;
-+
-+	ret = of_property_read_u32_array(node, "reg", reg_bit_mask, 2);
-+	if (ret < 0)
-+		return ret;
-+
-+	field->reg = reg_bit_mask[0];
-+	field->lsb = __ffs(reg_bit_mask[1]);
-+	field->msb = __fls(reg_bit_mask[1]);
-+
-+	return 0;
-+}
-+
-+static int vidsw_probe(struct platform_device *pdev)
-+{
-+	struct device_node *np = pdev->dev.of_node;
-+	struct reg_field field;
-+	struct vidsw *vidsw;
-+	struct regmap *map;
-+	int ret;
-+
-+	vidsw = devm_kzalloc(&pdev->dev, sizeof(*vidsw), GFP_KERNEL);
-+	if (!vidsw)
-+		return -ENOMEM;
-+
-+	platform_set_drvdata(pdev, vidsw);
-+
-+	v4l2_subdev_init(&vidsw->subdev, &vidsw_subdev_ops);
-+	v4l2_set_subdevdata(&vidsw->subdev, &pdev->dev);
-+	vidsw->subdev.internal_ops = &vidsw_internal_ops;
-+	vidsw->subdev.entity.ops = &vidsw_ops;
-+	snprintf(vidsw->subdev.name, sizeof(vidsw->subdev.name), "%s",
-+		 np->name);
-+	/* FIXME: this is a video mux, function isn't right */
-+	vidsw->subdev.entity.function = MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER;
-+	vidsw->subdev.grp_id = IMX_MEDIA_GRP_ID_VIDMUX;
-+	vidsw->subdev.flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	vidsw->subdev.dev = &pdev->dev;
-+	vidsw->dev = &pdev->dev;
-+
-+	vidsw->active = -1;
-+
-+	ret = of_get_reg_field(np, &field);
-+	if (ret == 0) {
-+		struct device_node *gpr_np = of_get_parent(np);
-+
-+		if (!gpr_np) {
-+			dev_err(&pdev->dev,
-+				"Failed to get parent syscon node\n");
-+			return -ENODEV;
-+		}
-+		map = syscon_node_to_regmap(gpr_np);
-+		of_node_put(gpr_np);
-+		if (IS_ERR(map)) {
-+			dev_err(&pdev->dev,
-+				"Failed to get syscon register map\n");
-+			return PTR_ERR(map);
-+		}
-+
-+		vidsw->field = devm_regmap_field_alloc(&pdev->dev, map, field);
-+		if (IS_ERR(vidsw->field)) {
-+			dev_err(&pdev->dev,
-+				"Failed to allocate regmap field\n");
-+			return PTR_ERR(vidsw->field);
-+		}
-+	} else {
-+		vidsw->gpio = devm_gpiod_get_optional(&pdev->dev, "mux",
-+						      GPIOD_OUT_LOW);
-+		if (IS_ERR(vidsw->gpio)) {
-+			dev_err(&pdev->dev, "request for gpio failed\n");
-+			return PTR_ERR(vidsw->gpio);
-+		}
-+
-+		if (!vidsw->gpio)
-+			dev_warn(&pdev->dev, "no control gpio defined\n");
-+	}
-+
-+	return v4l2_async_register_subdev(&vidsw->subdev);
-+}
-+
-+static int vidsw_remove(struct platform_device *pdev)
-+{
-+	struct vidsw *vidsw = platform_get_drvdata(pdev);
-+	struct v4l2_subdev *sd = &vidsw->subdev;
-+
-+	v4l2_async_unregister_subdev(sd);
-+	media_entity_cleanup(&sd->entity);
-+	v4l2_device_unregister_subdev(sd);
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id vidsw_dt_ids[] = {
-+	{ .compatible = "imx-video-mux", },
-+	{ /* sentinel */ }
-+};
-+MODULE_DEVICE_TABLE(of, vidsw_dt_ids);
-+
-+static struct platform_driver vidsw_driver = {
-+	.probe		= vidsw_probe,
-+	.remove		= vidsw_remove,
-+	.driver		= {
-+		.of_match_table = vidsw_dt_ids,
-+		.name	= "imx-video-mux",
-+		.owner	= THIS_MODULE,
-+	},
-+};
-+
-+module_platform_driver(vidsw_driver);
-+
-+MODULE_DESCRIPTION("i.MX video stream multiplexer");
-+MODULE_AUTHOR("Sascha Hauer, Pengutronix");
-+MODULE_AUTHOR("Steve Longerbeam <steve_longerbeam@mentor.com>");
-+MODULE_LICENSE("GPL");
--- 
-2.7.4
+Can you take this v4 series? I'm OK with this change.
+
+Regards,
+
+	Hans
+
+> ---
+>  drivers/media/platform/sti/hva/hva-h264.c |  6 ++++
+>  drivers/media/platform/sti/hva/hva-hw.c   |  5 ++++
+>  drivers/media/platform/sti/hva/hva-mem.c  |  5 +++-
+>  drivers/media/platform/sti/hva/hva-v4l2.c | 49 ++++++++++++++++++++++++-------
+>  drivers/media/platform/sti/hva/hva.h      |  8 +++++
+>  5 files changed, 62 insertions(+), 11 deletions(-)
+>
+> diff --git a/drivers/media/platform/sti/hva/hva-h264.c b/drivers/media/platform/sti/hva/hva-h264.c
+> index 8cc8467..e6f247a 100644
+> --- a/drivers/media/platform/sti/hva/hva-h264.c
+> +++ b/drivers/media/platform/sti/hva/hva-h264.c
+> @@ -607,6 +607,7 @@ static int hva_h264_prepare_task(struct hva_ctx *pctx,
+>  			"%s   width(%d) or height(%d) exceeds limits (%dx%d)\n",
+>  			pctx->name, frame_width, frame_height,
+>  			H264_MAX_SIZE_W, H264_MAX_SIZE_H);
+> +		pctx->frame_errors++;
+>  		return -EINVAL;
+>  	}
+>
+> @@ -717,6 +718,7 @@ static int hva_h264_prepare_task(struct hva_ctx *pctx,
+>  	default:
+>  		dev_err(dev, "%s   invalid source pixel format\n",
+>  			pctx->name);
+> +		pctx->frame_errors++;
+>  		return -EINVAL;
+>  	}
+>
+> @@ -741,6 +743,7 @@ static int hva_h264_prepare_task(struct hva_ctx *pctx,
+>
+>  	if (td->framerate_den == 0) {
+>  		dev_err(dev, "%s   invalid framerate\n", pctx->name);
+> +		pctx->frame_errors++;
+>  		return -EINVAL;
+>  	}
+>
+> @@ -831,6 +834,7 @@ static int hva_h264_prepare_task(struct hva_ctx *pctx,
+>  	    (payload > MAX_SPS_PPS_SIZE)) {
+>  		dev_err(dev, "%s   invalid sps/pps size %d\n", pctx->name,
+>  			payload);
+> +		pctx->frame_errors++;
+>  		return -EINVAL;
+>  	}
+>
+> @@ -842,6 +846,7 @@ static int hva_h264_prepare_task(struct hva_ctx *pctx,
+>  						   (u8 *)stream->vaddr,
+>  						   &payload)) {
+>  		dev_err(dev, "%s   fail to get SEI nal\n", pctx->name);
+> +		pctx->frame_errors++;
+>  		return -EINVAL;
+>  	}
+>
+> @@ -963,6 +968,7 @@ static int hva_h264_open(struct hva_ctx *pctx)
+>  err_ctx:
+>  	devm_kfree(dev, ctx);
+>  err:
+> +	pctx->sys_errors++;
+>  	return ret;
+>  }
+>
+> diff --git a/drivers/media/platform/sti/hva/hva-hw.c b/drivers/media/platform/sti/hva/hva-hw.c
+> index 68d625b..5104068 100644
+> --- a/drivers/media/platform/sti/hva/hva-hw.c
+> +++ b/drivers/media/platform/sti/hva/hva-hw.c
+> @@ -470,6 +470,7 @@ int hva_hw_execute_task(struct hva_ctx *ctx, enum hva_hw_cmd_type cmd,
+>
+>  	if (pm_runtime_get_sync(dev) < 0) {
+>  		dev_err(dev, "%s     failed to get pm_runtime\n", ctx->name);
+> +		ctx->sys_errors++;
+>  		ret = -EFAULT;
+>  		goto out;
+>  	}
+> @@ -481,6 +482,7 @@ int hva_hw_execute_task(struct hva_ctx *ctx, enum hva_hw_cmd_type cmd,
+>  		break;
+>  	default:
+>  		dev_dbg(dev, "%s     unknown command 0x%x\n", ctx->name, cmd);
+> +		ctx->encode_errors++;
+>  		ret = -EFAULT;
+>  		goto out;
+>  	}
+> @@ -511,6 +513,7 @@ int hva_hw_execute_task(struct hva_ctx *ctx, enum hva_hw_cmd_type cmd,
+>  					 msecs_to_jiffies(2000))) {
+>  		dev_err(dev, "%s     %s: time out on completion\n", ctx->name,
+>  			__func__);
+> +		ctx->encode_errors++;
+>  		ret = -EFAULT;
+>  		goto out;
+>  	}
+> @@ -518,6 +521,8 @@ int hva_hw_execute_task(struct hva_ctx *ctx, enum hva_hw_cmd_type cmd,
+>  	/* get encoding status */
+>  	ret = ctx->hw_err ? -EFAULT : 0;
+>
+> +	ctx->encode_errors += ctx->hw_err ? 1 : 0;
+> +
+>  out:
+>  	disable_irq(hva->irq_its);
+>  	disable_irq(hva->irq_err);
+> diff --git a/drivers/media/platform/sti/hva/hva-mem.c b/drivers/media/platform/sti/hva/hva-mem.c
+> index 649f660..821c78e 100644
+> --- a/drivers/media/platform/sti/hva/hva-mem.c
+> +++ b/drivers/media/platform/sti/hva/hva-mem.c
+> @@ -17,14 +17,17 @@ int hva_mem_alloc(struct hva_ctx *ctx, u32 size, const char *name,
+>  	void *base;
+>
+>  	b = devm_kzalloc(dev, sizeof(*b), GFP_KERNEL);
+> -	if (!b)
+> +	if (!b) {
+> +		ctx->sys_errors++;
+>  		return -ENOMEM;
+> +	}
+>
+>  	base = dma_alloc_attrs(dev, size, &paddr, GFP_KERNEL | GFP_DMA,
+>  			       DMA_ATTR_WRITE_COMBINE);
+>  	if (!base) {
+>  		dev_err(dev, "%s %s : dma_alloc_attrs failed for %s (size=%d)\n",
+>  			ctx->name, __func__, name, size);
+> +		ctx->sys_errors++;
+>  		devm_kfree(dev, b);
+>  		return -ENOMEM;
+>  	}
+> diff --git a/drivers/media/platform/sti/hva/hva-v4l2.c b/drivers/media/platform/sti/hva/hva-v4l2.c
+> index 6bf3c858..65e94b3 100644
+> --- a/drivers/media/platform/sti/hva/hva-v4l2.c
+> +++ b/drivers/media/platform/sti/hva/hva-v4l2.c
+> @@ -226,6 +226,28 @@ static int hva_open_encoder(struct hva_ctx *ctx, u32 streamformat,
+>  	return ret;
+>  }
+>
+> +void hva_dbg_summary(struct hva_ctx *ctx)
+> +{
+> +	struct device *dev = ctx_to_dev(ctx);
+> +	struct hva_streaminfo *stream = &ctx->streaminfo;
+> +	struct hva_frameinfo *frame = &ctx->frameinfo;
+> +
+> +	if (!(ctx->flags & HVA_FLAG_STREAMINFO))
+> +		return;
+> +
+> +	dev_dbg(dev, "%s %4.4s %dx%d > %4.4s %dx%d %s %s: %d frames encoded, %d system errors, %d encoding errors, %d frame errors\n",
+> +		ctx->name,
+> +		(char *)&frame->pixelformat,
+> +		frame->aligned_width, frame->aligned_height,
+> +		(char *)&stream->streamformat,
+> +		stream->width, stream->height,
+> +		stream->profile, stream->level,
+> +		ctx->encoded_frames,
+> +		ctx->sys_errors,
+> +		ctx->encode_errors,
+> +		ctx->frame_errors);
+> +}
+> +
+>  /*
+>   * V4L2 ioctl operations
+>   */
+> @@ -614,19 +636,17 @@ static int hva_s_ctrl(struct v4l2_ctrl *ctrl)
+>  		break;
+>  	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
+>  		ctx->ctrls.profile = ctrl->val;
+> -		if (ctx->flags & HVA_FLAG_STREAMINFO)
+> -			snprintf(ctx->streaminfo.profile,
+> -				 sizeof(ctx->streaminfo.profile),
+> -				 "%s profile",
+> -				 v4l2_ctrl_get_menu(ctrl->id)[ctrl->val]);
+> +		snprintf(ctx->streaminfo.profile,
+> +			 sizeof(ctx->streaminfo.profile),
+> +			 "%s profile",
+> +			 v4l2_ctrl_get_menu(ctrl->id)[ctrl->val]);
+>  		break;
+>  	case V4L2_CID_MPEG_VIDEO_H264_LEVEL:
+>  		ctx->ctrls.level = ctrl->val;
+> -		if (ctx->flags & HVA_FLAG_STREAMINFO)
+> -			snprintf(ctx->streaminfo.level,
+> -				 sizeof(ctx->streaminfo.level),
+> -				 "level %s",
+> -				 v4l2_ctrl_get_menu(ctrl->id)[ctrl->val]);
+> +		snprintf(ctx->streaminfo.level,
+> +			 sizeof(ctx->streaminfo.level),
+> +			 "level %s",
+> +			 v4l2_ctrl_get_menu(ctrl->id)[ctrl->val]);
+>  		break;
+>  	case V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE:
+>  		ctx->ctrls.entropy_mode = ctrl->val;
+> @@ -812,6 +832,8 @@ static void hva_run_work(struct work_struct *work)
+>  		dst_buf->field = V4L2_FIELD_NONE;
+>  		dst_buf->sequence = ctx->stream_num - 1;
+>
+> +		ctx->encoded_frames++;
+> +
+>  		v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
+>  		v4l2_m2m_buf_done(dst_buf, VB2_BUF_STATE_DONE);
+>  	}
+> @@ -1026,6 +1048,8 @@ static int hva_start_streaming(struct vb2_queue *vq, unsigned int count)
+>  			v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_QUEUED);
+>  	}
+>
+> +	ctx->sys_errors++;
+> +
+>  	return ret;
+>  }
+>
+> @@ -1150,6 +1174,7 @@ static int hva_open(struct file *file)
+>  	if (ret) {
+>  		dev_err(dev, "%s [x:x] failed to setup controls\n",
+>  			HVA_PREFIX);
+> +		ctx->sys_errors++;
+>  		goto err_fh;
+>  	}
+>  	ctx->fh.ctrl_handler = &ctx->ctrl_handler;
+> @@ -1162,6 +1187,7 @@ static int hva_open(struct file *file)
+>  		ret = PTR_ERR(ctx->fh.m2m_ctx);
+>  		dev_err(dev, "%s failed to initialize m2m context (%d)\n",
+>  			HVA_PREFIX, ret);
+> +		ctx->sys_errors++;
+>  		goto err_ctrls;
+>  	}
+>
+> @@ -1206,6 +1232,9 @@ static int hva_release(struct file *file)
+>  		hva->nb_of_instances--;
+>  	}
+>
+> +	/* trace a summary of instance before closing (debug purpose) */
+> +	hva_dbg_summary(ctx);
+> +
+>  	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
+>
+>  	v4l2_ctrl_handler_free(&ctx->ctrl_handler);
+> diff --git a/drivers/media/platform/sti/hva/hva.h b/drivers/media/platform/sti/hva/hva.h
+> index caa5808..1e30abe 100644
+> --- a/drivers/media/platform/sti/hva/hva.h
+> +++ b/drivers/media/platform/sti/hva/hva.h
+> @@ -182,6 +182,10 @@ struct hva_stream {
+>   * @priv:            private codec data for this instance, allocated
+>   *                   by encoder @open time
+>   * @hw_err:          true if hardware error detected
+> + * @encoded_frames:  number of encoded frames
+> + * @sys_errors:      number of system errors (memory, resource, pm...)
+> + * @encode_errors:   number of encoding errors (hw/driver errors)
+> + * @frame_errors:    number of frame errors (format, size, header...)
+>   */
+>  struct hva_ctx {
+>  	struct hva_dev		        *hva_dev;
+> @@ -207,6 +211,10 @@ struct hva_ctx {
+>  	struct hva_enc			*enc;
+>  	void				*priv;
+>  	bool				hw_err;
+> +	u32				encoded_frames;
+> +	u32				sys_errors;
+> +	u32				encode_errors;
+> +	u32				frame_errors;
+>  };
+>
+>  #define HVA_FLAG_STREAMINFO	0x0001
+>
 
