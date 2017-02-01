@@ -1,181 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:47116 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754450AbdBGQVL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Feb 2017 11:21:11 -0500
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        "florent.revest@free-electrons.com"
-        <florent.revest@free-electrons.com>,
-        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "posciak@chromium.org" <posciak@chromium.org>,
-        "jung.zhao@rock-chips.com" <jung.zhao@rock-chips.com>,
-        "randy.li@rock-chips.com" <randy.li@rock-chips.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [RFC] V4L2 unified low-level decoder API
-Date: Tue, 7 Feb 2017 16:20:50 +0000
-Message-ID: <fb4a4815-e1ff-081e-787a-0213e32a5405@st.com>
-References: <2890f845-eef2-5689-f154-fc76ae6abc8b@st.com>
- <816ba2d8-f1e7-ce34-3524-b2a3f1bf3d74@xs4all.nl>
-In-Reply-To: <816ba2d8-f1e7-ce34-3524-b2a3f1bf3d74@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <15DEABB5BC201943BE17376E12CDC717@st.com>
-Content-Transfer-Encoding: base64
+Received: from mail-ot0-f193.google.com ([74.125.82.193]:33396 "EHLO
+        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752842AbdBAQvB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Feb 2017 11:51:01 -0500
+Date: Wed, 1 Feb 2017 10:50:59 -0600
+From: Rob Herring <robh@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv2 08/16] atmel-isi: document device tree bindings
+Message-ID: <20170201165059.2qw3gnuyornvfl46@rob-hp-laptop>
+References: <20170130140628.18088-1-hverkuil@xs4all.nl>
+ <20170130140628.18088-9-hverkuil@xs4all.nl>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170130140628.18088-9-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGksDQoNCkhlcmUgaXMgYW4gdXBkYXRlIHJlZ2FyZGluZyBNUEVHLTIgaW1wbGVtZW50YXRpb24g
-YmFzZWQgb24gU1QgdmlkZW8gZGVjb2RlcjoNCiogTVBFRy0yIEFQSSArIERFTFRBIGtlcm5lbCBk
-cml2ZXI6IA0KaHR0cDovL3d3dy5tYWlsLWFyY2hpdmUuY29tL2xpbnV4LW1lZGlhQHZnZXIua2Vy
-bmVsLm9yZy9tc2cxMDc0MDUuaHRtbA0KKiBsaWJ2NGwtY29kZWNwYXJzZXJzIHBsdWdpbiBpbmNs
-dWRpbmcgTVBFRy0yIGJhY2stZW5kOiANCmh0dHA6Ly93d3cubWFpbC1hcmNoaXZlLmNvbS9saW51
-eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcvbXNnMTA3ODEyLmh0bWwNCg0KUGxlYXNlIG5vdGUgdGhh
-dCB0aGlzIGlzIGltcGxlbWVudGVkICYgZnVuY3Rpb25hbCB1c2luZyBjdXJyZW50bHkgDQphdmFp
-bGFibGUgVjRMMiBjb250cm9sIGZyYW1ld29yayAobm8gUmVxdWVzdCBBUEkpLCBhc3N1bWluZyB0
-aGF0IHVzZXIgDQpzaWRlIGtlZXBzIHVuaWNpdHkgb2YgU19FWFRfQ1RSTCgpIC8gUUJVRihPVVRQ
-VVQpIHBhaXIuDQpSZXF1ZXN0IEFQSSB3aWxsIHJlbW92ZSB0aGlzIGNvbnN0cmFpbnQsIGJ1dCB0
-aGUgcG9pbnQgaGVyZSBpcyB0byBkZWZpbmUgDQpjb250cm9sIGludGVyZmFjZSwgYXMgZmFyIGFz
-IEkgaGF2ZSB1bmRlcnN0b29kIGNvZGUsIFJlcXVlc3QgQVBJIHdpbGwgDQpub3QgYWZmZWN0IHRo
-b3NlIGNvbnRyb2wgZGVmaW5pdGlvbnMuDQoNClNvbWUgdXBkYXRlcyBpbmxpbmUgdGhlcmVhZnRl
-ciByZWdhcmRpbmcgYWN0aXZpdGllcyBvbiB0aGlzIHN1YmplY3Q7IG1lIA0KZm9yIE1QRUctMiBv
-biBTVCBwbGF0Zm9ybSBhbmQgUmFuZHkgTGksIE5pY29sYXMgRHVmcmVzbmUsIEF5YWthIGZvciBI
-MjY0IA0Kb24gUm9ja2NoaXAgcGxhdGZvcm06DQoNCg0KT24gMTEvMTQvMjAxNiAxMDo1NSBBTSwg
-SGFucyBWZXJrdWlsIHdyb3RlOg0KPiBPbiAxMC8yNy8yMDE2IDA5OjQyIEFNLCBIdWd1ZXMgRlJV
-Q0hFVCB3cm90ZToNCj4+IEhpLA0KPj4NCj4+IFRoaXMgUkZDIGFpbXMgdG8gc3RhcnQgZGlzY3Vz
-c2lvbnMgaW4gb3JkZXIgdG8gZGVmaW5lIHRoZSBjb2RlYyBzcGVjaWZpYw0KPj4gY29udHJvbHMg
-c3RydWN0dXJlcyB0byBmdWxmaWxsIHRoZSBsb3ctbGV2ZWwgZGVjb2RlciBBUEkgbmVlZGVkIGJ5
-IG5vbg0KPj4gIlN0cmVhbSBBUEkiIGJhc2VkIGRlY29kZXJzICgic3RhdGVsZXNzIiBvciAiRnJh
-bWUgQVBJIiBiYXNlZCBkZWNvZGVycykuDQo+DQo+IExldCdzIHJlZmVyIHRvIHRoaXMgYXMgJ3N0
-YXRlZnVsJyBkZWNvZGVycyBhbmQgJ3N0YXRlbGVzcycgZGVjb2RlcnMuIFRoaXMNCj4gaXMgdGhl
-IHByZWZlcnJlZCB0ZXJtaW5vbG9neSAoYW5kIG11Y2ggbW9yZSBkZXNjcmlwdGl2ZSB0aGFuICdT
-dHJlYW0nIHZzDQo+ICdGcmFtZScpLiBJdCdzIGFsc28gbm90IHJlYWxseSBhIG5ldyBBUEksIGFs
-dGhvdWdoIGl0IGRvZXMgcmVseSBvbiB0aGUNCj4gUmVxdWVzdCBBUEkuDQo+DQo+PiBTZXZlcmFs
-IGltcGxlbWVudGF0aW9uIGV4aXN0cyBub3cgd2hpY2ggcnVucyBvbiBzZXZlcmFsIFNvQyBhbmQg
-dmFyaW91cw0KPj4gc29mdHdhcmUgZnJhbWV3b3Jrcy4NCj4+IFRoZSBpZGVhIGlzIHRvIGZpbmQg
-dGhlIGNvbW11bmFsaXRpZXMgYmV0d2VlbiBhbGwgdGhvc2UgaW1wbGVtZW50YXRpb25zDQo+PiBh
-bmQgU29DIHRvIGRlZmluZSBhIHNpbmdsZSB1bmlmaWVkIGludGVyZmFjZSBpbiBWNEwyIGluY2x1
-ZGVzLg0KPj4gRXZlbiBpZiAiUmVxdWVzdCBBUEkiIGlzIG5lZWRlZCB0byBwYXNzIHRob3NlIGNv
-ZGVjIHNwZWNpZmljIGNvbnRyb2xzDQo+PiBmcm9tIHVzZXJzcGFjZSBkb3duIHRvIGtlcm5lbCBv
-biBhIHBlci1idWZmZXIgYmFzaXMsIHdlIGNhbiBzdGFydA0KPj4gZGlzY3Vzc2lvbnMgYW5kIGRl
-ZmluZSB0aGUgY29udHJvbHMgaW4gcGFyYWxsZWwgb2YgaXRzIGRldmVsb3BtZW50Lg0KPj4gV2Ug
-Y2FuIGV2ZW4gcHJvcG9zZSBzb21lIGltcGxlbWVudGF0aW9ucyBiYXNlZCBvbiBleGlzdGluZyBW
-NEwyIGNvbnRyb2wNCj4+IGZyYW1ld29yayAod2hpY2ggZG9lc24ndCBzdXBwb3J0ICJwZXItZnJh
-bWUiIGJhc2lzKSBieSBlbnN1cmluZw0KPj4gYXRvbWljaXR5IG9mIHNlcXVlbmNlIFNfRVhUX0NU
-UkwoaGVhZGVyW2ldKS9RQlVGKHN0cmVhbVtpXSkuIENvbnN0cmFpbnQNCj4+IGNhbiB0aGVuIGJl
-IHJlbGF4ZWQgd2hlbiAiUmVxdWVzdCBBUEkiIGlzIG1lcmdlZC4NCj4+DQo+PiBJIHdvdWxkIGxp
-a2UgdG8gcHJvcG9zZSB0byB3b3JrIG9uIGEgInBlci1jb2RlYyIgYmFzaXMsIGhhdmluZyBhdCBs
-ZWFzdA0KPj4gMiBkaWZmZXJlbnQgU29DIGFuZCAyIGRpZmZlcmVudCBmcmFtZXdvcmtzIHRvIHRl
-c3QgYW5kIHZhbGlkYXRlIGNvbnRyb2xzLg0KPj4gVG8gZG8gc28sIEkgaGF2ZSB0cmllZCB0byBp
-ZGVudGlmeSBzb21lIHBlb3BsZSB0aGF0IGhhdmUgd29ya2VkIG9uIHRoaXMNCj4+IHN1YmplY3Qg
-YW5kIGhhdmUgcHJvcG9zZWQgc29tZSBpbXBsZW1lbnRhdGlvbnMsIGZlZWwgZnJlZSB0byBjb3Jy
-ZWN0IG1lDQo+PiBhbmQgZW5oYW5jZSB0aGUgbGlzdCBpZiBuZWVkZWQ6DQo+PiAqIE1QRUcyL01Q
-RUc0DQo+PiAgICAgLSBGbG9yZW50IFJldmVzdCBmb3IgQWxsd2lubmVyIEExMyBDZWRhclggc3Vw
-cG9ydCBbMV0gdGVzdGVkIHdpdGgNCj4+IFZMQyAtPiBsaWJWQSArIHN1bnhpLWNlZHJ1cy1kcnYt
-dmlkZW8gLT4gVjRMMg0KPj4gICAgIC0gTXlzZWxmIGZvciBTVE1pY3JvZWxlY3Ryb25pY3MgRGVs
-dGEgc3VwcG9ydCBbMl0gdGVzdGVkIHdpdGgNCj4+IEdTdHJlYW1lciBWNEwyIC0+IGxpYnY0bDIg
-KyBsaWJ2NGwtZGVsdGEgcGx1Z2luIC0+IFY0TDINCkF2YWlsYWJsZSBvbiBTVCBwbGF0Zm9ybSB3
-aXRoIFsyXSAmIFsyLjFdIHBhdGNoc2V0IHNlcmllcy4NCg0KPj4NCj4+ICogVlA4DQo+PiAtIFBh
-d2VsIE9zY2lhayBmb3IgUm9ja2NoaXAgUkszMjg4LCBSSzMzOTk/IFZQVSBTdXBwb3J0IFszXSB0
-ZXN0ZWQgd2l0aA0KPj4gQ2hyb21pdW0gLT4gVjRMMg0KPj4gLSBKdW5nIFpoYW8gZm9yIFJvY2tj
-aGlwIFJLMzI4OCBWUFUgc3VwcG9ydCBbNF0gPGNhbm5vdCBmaW5kIHRoZQ0KPj4gZnJhbWV3b3Jr
-IHVzZWQ+DQo+Pg0KPj4gKiBIMjY0DQo+PiAtIFBhd2VsIE9zY2lhayBmb3IgUm9ja2NoaXAgUksz
-Mjg4LCBSSzMzOTk/IFZQVSBTdXBwb3J0IFs1XSB0ZXN0ZWQgd2l0aA0KPj4gQ2hyb21pdW0gLT4g
-VjRMMg0KPj4gLSBSYW5keSBMaSBmb3IgUm9ja2NoaXAgUkszMjg4ICBWUFUgc3VwcG9ydCBbNl0g
-dGVzdGVkIHdpdGggVkxDPyAtPg0KPj4gbGliVkEgKyByb2NrY2hpcC12YS1kcml2ZXIgLT4gVjRM
-Mg0KPj4gVkxDPyAtPiBsaWJWRFBBVSArIHJvY2tjaGlwLXZhLWRyaXZlciAtPiBWNEwyDQpUZXN0
-ZWQgd2l0aCBHc3RyZWFtZXIgLT4gVkEtQVBJIGVsZW1lbnQgLT4gUm9ja2NoaXAgVkEtQVBJIGRy
-aXZlciAtPiBWNEwyDQpodHRwczovL2dpdGh1Yi5jb20vcm9ja2NoaXAtbGludXgvbGlidmRwYXUt
-cm9ja2NoaXANCg0KU3R1ZHkgb24tZ29pbmcgZm9yIEgyNjQgdXNlcmxhbmQva2VybmVsIHBhcnRp
-dGlvbmluZyBpbiB0aGlzIHRocmVhZDoNClJlcXVlc3QgQVBJOiBzdGF0ZWxlc3MgVlBVOiB0aGUg
-YnVmZmVyIG1lY2hhbmlzbSBhbmQgRFBCIG1hbmFnZW1lbnQ6IA0KaHR0cDovL3d3dy5tYWlsLWFy
-Y2hpdmUuY29tL2xpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZy9tc2cxMDcxNjUuaHRtbA0KDQo+
-Pg0KPj4gSSBjYW4gd29yayB0byBkZWZpbmUgTVBFRzIvTVBFRzQgY29udHJvbHMgYW5kIHByb3Bv
-c2UgZnVuY3Rpb25hbA0KPj4gaW1wbGVtZW50YXRpb25zIGZvciB0aG9zZSBjb2RlY3MsIGFuZCB3
-aWxsIGJlIGdsYWQgdG8gY28td29yayB3aXRoIHlvdQ0KPj4gRmxvcmVudC4NCj4+IEkgY2FuIGhl
-bHAgb24gSDI2NCBvbiBhIGNvZGUgcmV2aWV3IGJhc2lzIGJhc2VkIG9uIHRoZSBmdW5jdGlvbmFs
-IEgyNjQNCj4+IHNldHVwIEkgaGF2ZSBpbi1ob3VzZSBhbmQgY29kZWMga25vd2xlZGdlLCBidXQg
-SSBjYW5ub3QgcHJvdmlkZQ0KPj4gaW1wbGVtZW50YXRpb24gaW4gYSByZWFzb25hYmxlIHRpbWVm
-cmFtZSwgc2FtZSBmb3IgVlA4Lg0KPj4NCj4+IEFwYXJ0IG9mIHZlcnkgZGV0YWlscyBvZiBlYWNo
-IGNvZGVjLCB3ZSBoYXZlIGFsc28gdG8gc3RhdGUgYWJvdXQgZ2VuZXJpYw0KPj4gY29uY2VybnMg
-c3VjaCBhczoNCj4+IC0gbmV3IHBpeGVsIGZvcm1hdCBpbnRyb2R1Y3Rpb24gKFZQOCA9PiBWUDhG
-LCBIMjY0ID0+IFMyNjQsIE1QRzIgPT4NCj4+IE1HMkYsIE1QRzQgPT4gTUc0RikNCj4+IC0gbmV3
-IGRldmljZSBjYXBzIHRvIGluZGljYXRlIHRoYXQgZHJpdmVyIHJlcXVpcmVzIGV4dHJhIGhlYWRl
-cnMgPyBtYXliZQ0KPj4gbm90IG5lZWRlZCBiZWNhdXNlIHJlZHVuZGFudCB3aXRoIG5ldyBwaXhl
-bCBmb3JtYXQNCj4NCj4gVGhhdCdzIGluZGVlZCB0eXBpY2FsbHkgc2lnbmFsZWQgdGhyb3VnaCB0
-aGUgcGl4ZWxmb3JtYXQuDQo+DQoNClsyXSBpcyBpbXBsZW1lbnRlZCB0aGlzIHdheSBpbiBbbWVk
-aWFdIHY0bDogYWRkIHBhcnNlZCBNUEVHLTIgc3VwcG9ydCwgDQp0d28gbmV3IHBpeGVsIGZvcm1h
-dCBNRzFQIGFuZCBNRzJQICgiUCIgZm9yICJQYXJzZWQiKSBoYXZlIGJlZW4gaW50cm9kdWNlZDoN
-CisjZGVmaW5lIFY0TDJfUElYX0ZNVF9NUEVHMV9QQVJTRUQgdjRsMl9mb3VyY2MoJ00nLCAnRycs
-ICcxJywgJ1AnKSAvKg0KTVBFRzEgd2l0aCBwYXJzaW5nIG1ldGFkYXRhIGdpdmVuIHRocm91Z2gg
-Y29udHJvbHMgKi8NCisjZGVmaW5lIFY0TDJfUElYX0ZNVF9NUEVHMl9QQVJTRUQgdjRsMl9mb3Vy
-Y2MoJ00nLCAnRycsICcyJywgJ1AnKSAvKiANCk1QRUcyIHdpdGggcGFyc2luZyBtZXRhZGF0YSBn
-aXZlbiB0aHJvdWdoIGNvbnRyb2xzICovDQoNCmxpYnY0bCBwbHVnaW4gWzIuMV0gaW50ZXJjZXB0
-cyB0aGUgcGl4ZWwgZm9ybWF0IGluZm9ybWF0aW9uIG5lZ290aWF0ZWQgDQpiZXR3ZWVuIHVzZXIg
-YW5kIGRyaXZlciAoZW51bV9mbXQvdHJ5X2ZtdC9nZXRfZm10L3NfZm10KSBhbmQgc2VsZWN0cyB0
-aGUgDQpyaWdodCBwYXJzZXIgdG8gdXNlIHRvIGNvbnZlcnQgTVBFRy0yIGNvbXByZXNzZWQgZm9y
-bWF0IHRvIG5ldyAiTVBFRy0yIA0KcGFyc2VkIiBjb21wcmVzc2VkIGZvcm1hdCByZXF1aXJlZCBi
-eSBrZXJuZWwgZHJpdmVyLg0KUGx1Z2luIGlzIGRlc2lnbmVkIHRvIHN1cHBvcnQgc2V2ZXJhbCBm
-b3JtYXRzLg0KDQoNCj4+IC0gY29udGludWUgdG8gbW9kaWZ5IHY0bDItY29udHJvbHMuaCA/IG9y
-IGRvIHdlIGFkZCBzb21lIG5ldyBzcGVjaWZpYw0KPj4gaGVhZGVyIGZpbGVzIChIMjY0IGlzIGh1
-Z2UhKSA/DQo+PiAtIGhvdyB0byBtYW5hZ2Ugc2VxdWVuY2UgaGVhZGVyICYgcGljdHVyZSBoZWFk
-ZXIsIG9wdGlvbmFsL2V4dGVuZGVkDQo+PiBjb250cm9scyAoTVBFRzIgc2VxdWVuY2UvcGljdHVy
-ZSBleHRlbnNpb25zLCBIMjY0IFNFSSwgLi4uKS4gUGVyc29uYWxseQ0KPj4gSSBoYXZlIGFkZGVk
-IGZsYWdzIGluc2lkZSBhIHNpbmdsZSBjb250cm9sIHN0cnVjdHVyZSwgSDI2NCBpcyBkb25lIGlu
-IGENCj4+IGRpZmZlcmVudCB3YXkgdXNpbmcgc2V2ZXJhbCBjb250cm9scyAoU1BTL1BQUy9TTElD
-RS9ERUNPREUvLi4uKQ0KPj4NCj4+IFRoYW5rcyB5b3UgdG8gYWxsIG9mIHlvdSBmb3IgeW91ciBh
-dHRlbnRpb24gYW5kIGZlZWwgZnJlZSB0byByZWFjdCBvbg0KPj4gdGhpcyB0b3BpYyBpZiB5b3Ug
-YXJlIGludGVyZXN0ZWQgdG8gd29yayBvbiB0aGlzIHN1YmplY3QuDQo+DQo+IEFzIGxvbmcgYXMg
-dGhlIFY0TDIgZHJpdmVyIHVuZGVycGlucyB0aGUgdmFyaW91cyBzb2x1dGlvbnMgSSBhbSBoYXBw
-eSA6LSkNCj4NCj4gSSBkbyB0aGluayB0aGF0IGhhdmluZyBhIGxpYnY0bCBwbHVnaW4gd2lsbCBi
-ZSB1c2VmdWwgc2luY2UgaXQgd2lsbCBtYWtlDQo+IGl0IGVhc3kgZm9yIGFwcGxpY2F0aW9ucyB0
-aGF0IHN1cHBvcnQgdGhlIHN0YXRlZnVsIGRlY29kZXIgdG8gdXNlIHRoZQ0KPiBzYW1lIGNvZGUg
-Zm9yIGEgc3RhdGVsZXNzIGRlY29kZXIgYnkgc2VhbWxlc3NseSB1c2luZyB0aGUgcGx1Z2luLg0K
-Pg0KPiBUaGlzIGRvZXMgbm90IHByZXZlbnQgb3RoZXIgYXBwcm9hY2hlcyBhdCB0aGUgc2FtZSB0
-aW1lLCBvZiBjb3Vyc2UuDQo+DQo+IFJlZ2FyZHMsDQo+DQo+IAlIYW5zDQo+DQpbMl0gaW1wbGVt
-ZW50cyBuZXcgZXh0ZW5kZWQgY29udHJvbHMgZm9yIE1QRUctMiBpbiBbbWVkaWFdIHY0bDogYWRk
-IA0KcGFyc2VkIE1QRUctMiBzdXBwb3J0IA0KaHR0cDovL3d3dy5tYWlsLWFyY2hpdmUuY29tL2xp
-bnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZy9tc2cxMDc0MDYuaHRtbA0KVGhpcyBoYXMgYmVlbiBk
-b25lIGluIHVhcGkvbGludXgvdjRsMi1jb250cm9scy5oIGFzIGV4dGVuc2lvbiBvZiBhbHJlYWR5
-IA0KZXhpc3RpbmcgTVBFRyB2aWRlbyBjb250cm9scywgZGVmaW5pbmcgb25lIGNvbnRyb2wgcGVy
-ICJoZWFkZXIiIChzbyBub3QgDQp1c2luZyBhIHNpbmdsZSBjb250cm9sIHdpdGggc2VsZWN0aW9u
-IGZsYWcpOg0KI2RlZmluZSBWNEwyX0NJRF9NUEVHX1ZJREVPX01QRUcyX1NFUV9IRFINCiNkZWZp
-bmUgVjRMMl9DSURfTVBFR19WSURFT19NUEVHMl9TRVFfRVhUDQojZGVmaW5lIFY0TDJfQ0lEX01Q
-RUdfVklERU9fTVBFRzJfU0VRX0RJU1BMQVlfRVhUDQojZGVmaW5lIFY0TDJfQ0lEX01QRUdfVklE
-RU9fTVBFRzJfU0VRX01BVFJJWF9FWFQNCiNkZWZpbmUgVjRMMl9DSURfTVBFR19WSURFT19NUEVH
-Ml9QSUNfSERSDQojZGVmaW5lIFY0TDJfQ0lEX01QRUdfVklERU9fTVBFRzJfUElDX0VYVA0KDQpU
-aG9zZSBjb250cm9scyBhbmQgdGhlaXIgYXNzb2NpYXRlZCBkYXRhIHN0cnVjdHVyZSBoYXZlIGJl
-ZW4gZGVmaW5lZCANCmJhc2VkIG9uIE1QRUctMiBzdGFuZGFyZCBJU08vSUVDIDEzODE4LTIuDQoN
-Cj4+DQo+PiBCZXN0IHJlZ2FyZHMsDQo+PiBIdWd1ZXMuDQo+Pg0KPj4gWzBdIFtBTk5dIENvZGVj
-ICYgUmVxdWVzdCBBUEkgQnJhaW5zdG9ybSBtZWV0aW5nIE9jdCAxMCAmDQo+PiAxMWh0dHBzOi8v
-d3d3LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4LW1lZGlhL21zZzEwNjY5OS5odG1sDQo+PiBbMV0g
-TVBFRzIgQTEzIENlZGFyWGh0dHA6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvbGludXgtbWVkaWEv
-bXNnMTA0ODIzLmh0bWwNCj4+IFsxXSBNUEVHNCBBMTMgQ2VkYXJYaHR0cDovL3d3dy5zcGluaWNz
-Lm5ldC9saXN0cy9saW51eC1tZWRpYS9tc2cxMDQ4MTcuaHRtbA0KPj4gWzJdIE1QRUcyIFNUaTR4
-eA0KPj4gRGVsdGFodHRwOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4LW1lZGlhL21zZzEw
-NjI0MC5odG1sDQpbMl0gTVBFRzIgREVMVEEga2VybmVsIGRyaXZlcjogaHR0cDovL3d3dy5tYWls
-LWFyY2hpdmUuY29tL2xpbnV4LQ0KbWVkaWFAdmdlci5rZXJuZWwub3JnL21zZzEwNzQwNS5odG1s
-DQpbMi4xXSBNUEVHMiBsaWJ2NGwgcGx1Z2luOiANCmh0dHA6Ly93d3cubWFpbC1hcmNoaXZlLmNv
-bS9saW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcvbXNnMTA3ODEyLmh0bWwNCg0KPj4gWzJdIE1Q
-RUc0IFNUaTR4eCBEZWx0YSBpcyBhbHNvIHN1cHBvcnRlZCBidXQgbm90IHlldCBwdXNoZWQNCj4+
-IFszXSBWUDggUm9ja2NoaXAgUkszMjg4LCBSSzMzOTk/DQo+PiBWUFVodHRwczovL2Nocm9taXVt
-Lmdvb2dsZXNvdXJjZS5jb20vY2hyb21pdW1vcy9vdmVybGF5cy9jaHJvbWl1bW9zLW92ZXJsYXkv
-Ky9yZWZzL2hlYWRzL21hc3Rlci9zeXMta2VybmVsL2xpbnV4LWhlYWRlcnMvZmlsZXMvMDAwMi1D
-SFJPTUlVTS12NGwtQWRkLVZQOC1sb3ctbGV2ZWwtZGVjb2Rlci1BUEktY29udHJvbHMucGF0Y2gN
-Cj4+IFs0XSBWUDggUm9ja2NoaXAgUkszMjg4DQo+PiBWUFVodHRwOi8vd3d3LnNwaW5pY3MubmV0
-L2xpc3RzL2xpbnV4LW1lZGlhL21zZzk3OTk3Lmh0bWwNCj4+IFs1XSBIMjY0IFJvY2tjaGlwIFJL
-MzI4OCwgUkszMzk5Pw0KPj4gVlBVaHR0cHM6Ly9jaHJvbWl1bS5nb29nbGVzb3VyY2UuY29tL2No
-cm9taXVtb3Mvb3ZlcmxheXMvY2hyb21pdW1vcy1vdmVybGF5LysvcmVmcy9oZWFkcy9tYXN0ZXIv
-c3lzLWtlcm5lbC9saW51eC1oZWFkZXJzL2ZpbGVzLzAwMDEtQ0hST01JVU0tbWVkaWEtaGVhZGVy
-cy1JbXBvcnQtVjRMMi1oZWFkZXJzLWZyb20tQ2hyby5wYXRjaA0KPj4gWzZdIEgyNjQgUm9ja2No
-aXAgUkszMjg4DQo+PiBWUFVodHRwOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4LW1lZGlh
-L21zZzEwNTA5NS5odG1sDQpodHRwczovL2dpdGh1Yi5jb20vcm9ja2NoaXAtbGludXgvbGlidmRw
-YXUtcm9ja2NoaXANCmh0dHBzOi8vZ2l0aHViLmNvbS9yb2NrY2hpcC1saW51eC9nc3RyZWFtZXIt
-cm9ja2NoaXANCmh0dHBzOi8vZ2l0aHViLmNvbS9yb2NrY2hpcC1saW51eC9tcHANCg0KPj4gTu+/
-ve+/ve+/ve+/ve+/vXLvv73vv71577+977+977+9Yu+/vVjvv73vv73Hp3bvv71e77+9Kd66ey5u
-77+9K++/ve+/ve+/ve+/vXvvv73vv73vv71iainvv73vv73vv713Kh9qZ++/ve+/ve+/vR7vv73v
-v73vv73vv73vv73domov77+977+977+9eu+/vd6W77+977+9Mu+/vd6Z77+977+977+9Ju+/vSnf
-oe+/vWHvv73vv71/77+977+9Hu+/vUfvv73vv73vv71o77+9D++/vWo6K3bvv73vv73vv71377+9
-2aUNCj4+
+On Mon, Jan 30, 2017 at 03:06:20PM +0100, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Document the device tree bindings for this driver.
+
+Bindings document h/w not drivers.
+
+> 
+> Mostly copied from the atmel-isc bindings.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  .../devicetree/bindings/media/atmel-isi.txt        | 91 +++++++++++++---------
+>  1 file changed, 56 insertions(+), 35 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/atmel-isi.txt b/Documentation/devicetree/bindings/media/atmel-isi.txt
+> index 251f008..d1934b4 100644
+> --- a/Documentation/devicetree/bindings/media/atmel-isi.txt
+> +++ b/Documentation/devicetree/bindings/media/atmel-isi.txt
+> @@ -1,51 +1,72 @@
+> -Atmel Image Sensor Interface (ISI) SoC Camera Subsystem
+> -----------------------------------------------
+> +Atmel Image Sensor Interface (ISI)
+> +----------------------------------
+>  
+> -Required properties:
+> -- compatible: must be "atmel,at91sam9g45-isi"
+> -- reg: physical base address and length of the registers set for the device;
+> -- interrupts: should contain IRQ line for the ISI;
+> -- clocks: list of clock specifiers, corresponding to entries in
+> -          the clock-names property;
+> -- clock-names: must contain "isi_clk", which is the isi peripherial clock.
+> +Required properties for ISI:
+> +- compatible
+> +	Must be "atmel,at91sam9g45-isi".
+> +- reg
+> +	Physical base address and length of the registers set for the device.
+> +- interrupts
+> +	Should contain IRQ line for the ISI.
+> +- clocks
+> +	List of clock specifiers, corresponding to entries in
+> +	the clock-names property;
+> +	Please refer to clock-bindings.txt.
+> +- clock-names
+> +	Required elements: "isi_clk".
+> +- #clock-cells
+> +	Should be 0.
+
+This reformatting is unrelated and the old form was more standard for 
+bindings (not that we have any real standard).
+
+> +- pinctrl-names, pinctrl-0
+> +	Please refer to pinctrl-bindings.txt.
+>  
+>  ISI supports a single port node with parallel bus. It should contain one
+>  'port' child node with child 'endpoint' node. Please refer to the bindings
+>  defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
+>  
+>  Example:
+> -	isi: isi@f0034000 {
+> -		compatible = "atmel,at91sam9g45-isi";
+> -		reg = <0xf0034000 0x4000>;
+> -		interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
+>  
+> -		clocks = <&isi_clk>;
+> -		clock-names = "isi_clk";
+> +isi: isi@f0034000 {
+> +	compatible = "atmel,at91sam9g45-isi";
+> +	reg = <0xf0034000 0x4000>;
+> +	interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&pinctrl_isi_data_0_7>;
+> +	clocks = <&isi_clk>;
+> +	clock-names = "isi_clk";
+> +	status = "ok";
+> +	port {
+> +		#address-cells = <1>;
+> +		#size-cells = <0>;
+> +		isi_0: endpoint {
+> +			reg = <0>;
+
+Drop reg.
+
+> +			remote-endpoint = <&ov2640_0>;
+> +			bus-width = <8>;
+> +			vsync-active = <1>;
+> +			hsync-active = <1>;
+
+Which side of the connect is supposed to define these?
+
+> +		};
+> +	};
+> +};
+> +
+> +i2c1: i2c@f0018000 {
+> +	status = "okay";
+>  
+> +	ov2640: camera@0x30 {
+
+Drop the '0x'.
+
+> +		compatible = "ovti,ov2640";
+> +		reg = <0x30>;
+>  		pinctrl-names = "default";
+> -		pinctrl-0 = <&pinctrl_isi>;
+> +		pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
+> +		resetb-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
+> +		pwdn-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
+> +		clocks = <&pck0>;
+> +		clock-names = "xvclk";
+> +		assigned-clocks = <&pck0>;
+> +		assigned-clock-rates = <25000000>;
+>  
+>  		port {
+> -			#address-cells = <1>;
+> -			#size-cells = <0>;
+> -
+> -			isi_0: endpoint {
+> -				remote-endpoint = <&ov2640_0>;
+> +			ov2640_0: endpoint {
+> +				remote-endpoint = <&isi_0>;
+>  				bus-width = <8>;
+
+It is pointless to define bus-width at both ends.
+
+>  			};
+>  		};
+>  	};
+> -
+> -	i2c1: i2c@f0018000 {
+> -		ov2640: camera@0x30 {
+> -			compatible = "ovti,ov2640";
+> -			reg = <0x30>;
+> -
+> -			port {
+> -				ov2640_0: endpoint {
+> -					remote-endpoint = <&isi_0>;
+> -					bus-width = <8>;
+> -				};
+> -			};
+> -		};
+> -	};
+> +};
+> -- 
+> 2.10.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe devicetree" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
