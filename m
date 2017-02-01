@@ -1,139 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:35171 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751313AbdBMKje (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 05:39:34 -0500
-Message-ID: <1486982371.2873.52.camel@pengutronix.de>
-Subject: Re: [PATCH v2 2/2] [media] tc358743: extend colorimetry support
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Mats Randgaard <matrandg@cisco.com>
-Date: Mon, 13 Feb 2017 11:39:31 +0100
-In-Reply-To: <aae5aa4d-f407-41eb-b244-41affbdafab5@xs4all.nl>
-References: <1486977877-26206-1-git-send-email-p.zabel@pengutronix.de>
-         <1486977877-26206-2-git-send-email-p.zabel@pengutronix.de>
-         <aae5aa4d-f407-41eb-b244-41affbdafab5@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from mail.kapsi.fi ([217.30.184.167]:54948 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753359AbdBARXq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 1 Feb 2017 12:23:46 -0500
+Subject: Re: rtl2832_sdr and /dev/swradio0
+To: Russel Winder <russel@winder.org.uk>,
+        DVB_Linux_Media <linux-media@vger.kernel.org>
+References: <1485885027.10632.13.camel@winder.org.uk>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <a0d6afa8-74e8-1aeb-5a30-912e158735f7@iki.fi>
+Date: Wed, 1 Feb 2017 19:23:43 +0200
+MIME-Version: 1.0
+In-Reply-To: <1485885027.10632.13.camel@winder.org.uk>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2017-02-13 at 11:05 +0100, Hans Verkuil wrote:
-[...]
-> > @@ -1469,38 +1477,88 @@ static int tc358743_s_stream(struct v4l2_subdev *sd, int enable)
-> >  
-> >  /* --------------- PAD OPS --------------- */
-> >  
-> > -static int tc358743_get_fmt(struct v4l2_subdev *sd,
-> > -		struct v4l2_subdev_pad_config *cfg,
-> > -		struct v4l2_subdev_format *format)
-> > +static void tc358743_get_csi_color_space(struct v4l2_subdev *sd,
-> > +					 struct v4l2_mbus_framefmt *format)
-> >  {
-> > -	struct tc358743_state *state = to_state(sd);
-> > +	u8 vi_status3 = i2c_rd8(sd, VI_STATUS3);
-> >  	u8 vi_rep = i2c_rd8(sd, VI_REP);
-> >  
-> > -	if (format->pad != 0)
-> > -		return -EINVAL;
-> > +	switch (vi_status3 & MASK_S_V_COLOR) {
-> > +	default:
-> > +	case MASK_S_V_COLOR_RGB:
-> > +	case MASK_S_V_COLOR_SYCC601:
-> > +		format->colorspace = V4L2_COLORSPACE_SRGB;
-> > +		format->xfer_func = V4L2_XFER_FUNC_SRGB;
-> > +		break;
-> > +	case MASK_S_V_COLOR_YCBCR601:
-> > +	case MASK_S_V_COLOR_XVYCC601:
-> > +		format->colorspace = V4L2_COLORSPACE_SMPTE170M;
-> 
-> Not correct. XVYCC601 uses the REC709 colorspace. The XVYCC formats
-> are only defined for the REC709 colorspace and only differ in the
-> YCbCr encoding that they use.
-
-I'll move the XVYCC601 case down to join YCBCR709 and XVYCC709.
-
-> > +		format->xfer_func = V4L2_XFER_FUNC_709;
-> > +		break;
-> > +	case MASK_S_V_COLOR_YCBCR709:
-> > +	case MASK_S_V_COLOR_XVYCC709:
-> > +		format->colorspace = V4L2_COLORSPACE_REC709;
-> > +		format->xfer_func = V4L2_XFER_FUNC_709;
-> > +		break;
-> > +	case MASK_S_V_COLOR_ADOBERGB:
-> > +	case MASK_S_V_COLOR_ADOBEYCC601:
-> > +		format->colorspace = V4L2_COLORSPACE_ADOBERGB;
-> > +		format->xfer_func = V4L2_XFER_FUNC_ADOBERGB;
-> > +		break;
-> > +	}
-> >  
-> > -	format->format.code = state->mbus_fmt_code;
-> > -	format->format.width = state->timings.bt.width;
-> > -	format->format.height = state->timings.bt.height;
-> > -	format->format.field = V4L2_FIELD_NONE;
-> > +	format->ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(format->colorspace);
-> >  
-> >  	switch (vi_rep & MASK_VOUT_COLOR_SEL) {
-> > +	default:
-> >  	case MASK_VOUT_COLOR_RGB_FULL:
-> > +		format->ycbcr_enc = V4L2_YCBCR_ENC_601;
-> > +		format->quantization = V4L2_QUANTIZATION_FULL_RANGE;
-> > +		break;
-> >  	case MASK_VOUT_COLOR_RGB_LIMITED:
-> > -		format->format.colorspace = V4L2_COLORSPACE_SRGB;
-> > +		format->ycbcr_enc = V4L2_YCBCR_ENC_601;
-> > +		format->quantization = V4L2_QUANTIZATION_LIM_RANGE;
-> >  		break;
-> >  	case MASK_VOUT_COLOR_601_YCBCR_LIMITED:
-> > +		format->ycbcr_enc = V4L2_YCBCR_ENC_601;
-> > +		format->quantization = V4L2_QUANTIZATION_LIM_RANGE;
-> > +		break;
-> >  	case MASK_VOUT_COLOR_601_YCBCR_FULL:
-> > -		format->format.colorspace = V4L2_COLORSPACE_SMPTE170M;
-> > +		format->ycbcr_enc = V4L2_YCBCR_ENC_XV601;
-> 
-> This isn't right. Only use V4L2_YCBCR_ENC_XV601 (or XV709) if this is
-> signaled in the InfoFrame.
+On 01/31/2017 07:50 PM, Russel Winder wrote:
+> Hi,
 >
-> Full Range V4L2_YCBCR_ENC_601 != Full Range V4L2_YCBCR_ENC_XV601.
-> 
-> XV601 is similar to Limited Range 601, except that it also utilizes
-> values 0-15 and 241-255, thus allowing for a wider gamut of colors.
+> Is anyone actively working on the rtl2832_sdr driver?
+>
+> I am particularly interested in anyone who has code for turning the
+> byte stream from /dev/swradio0 into an ETI stream. Or failing that
+> getting enough data about the API for using /dev/swradio0 so as to
+> write a byte sequence to ETI driver based on the dab2eti program in
+> DABtool (which uses the librtlsdr mechanism instead of the
+> /dev/swradio0 one).
+>
 
-Thanks. With that explanation, I think I should just change this to
-V4L2_YCBCR_ENC_601 and limit the VOUT_COLOR_RGB/601/709 selections to
-RGB input.
+Easiest way to test it just use v4l2-ctl to configure device and then 
+read data from device file.
 
-> > +		format->quantization = V4L2_QUANTIZATION_FULL_RANGE;
-> >  		break;
-> >  	case MASK_VOUT_COLOR_709_YCBCR_FULL:
-> > +		format->ycbcr_enc = V4L2_YCBCR_ENC_XV709;
-> > +		format->quantization = V4L2_QUANTIZATION_FULL_RANGE;
-> > +		break;
-> >  	case MASK_VOUT_COLOR_709_YCBCR_LIMITED:
-> > -		format->format.colorspace = V4L2_COLORSPACE_REC709;
-> > +		format->ycbcr_enc = V4L2_YCBCR_ENC_709;
-> > +		format->quantization = V4L2_QUANTIZATION_LIM_RANGE;
-> >  		break;
-> > -	default:
-> > -		format->format.colorspace = 0;
-> > +	case MASK_VOUT_COLOR_FULL_TO_LIMITED:
-> > +		format->quantization = V4L2_QUANTIZATION_LIM_RANGE;
-> > +		break;
-> > +	case MASK_VOUT_COLOR_LIMITED_TO_FULL:
-> > +		format->quantization = V4L2_QUANTIZATION_FULL_RANGE;
-> >  		break;
+$ #set ADC 2M
+$ v4l2-ctl -d /dev/swradio0 --tuner=0 --set-freq=2.000
+Frequency for tuner 0 set to 2000000 (2.000000 MHz)
+$ #set rf tuner 98.1MHz
+$ v4l2-ctl -d /dev/swradio0 --tuner=1 --set-freq=98.1
+Frequency for tuner 1 set to 98100000 (98.100000 MHz)
+$ # dump 32 I/Q samples
+$ cat /dev/swradio0 |hexdump -n 64 -C
+00000000  80 80 7e 7d 84 84 70 71  a8 5f 74 9f 6e 53 b4 9d 
+|..~}..pq._t.nS..|
+00000010  53 8f 9e 4c 71 b8 75 28  a1 8a 57 8c 9d 46 73 c7 
+|S..Lq.u(..W..Fs.|
+00000020  79 60 a6 ae 36 82 94 60  6c bf 7e 6a a7 9e 55 73 
+|y`..6..`l.~j..Us|
+00000030  a8 72 5c a6 7f 35 a2 a2  61 54 ce 8a 57 b3 8e 50 
+|.r\..5..aT..W..P|
+00000040
+$
 
-Then I'll use FULL_TO_LIMITED / LIMITED_TO_FULL to for YUV inputs and
-correctly set ycbcr_enc and quantization depending on this and input
-colorspace.
+Looking v4l2-ctl code could give some ideas how to use control IOCTLs. 
+Data can be read both read() or mmap() method.
 
-[...]
-> Except for the noted issues this looks good to me.
-
-Thank you for the review.
 
 regards
-Philipp
+Antti
+
+-- 
+http://palosaari.fi/
