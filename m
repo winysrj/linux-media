@@ -1,246 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.220.in.ua ([89.184.67.205]:41072 "EHLO smtp.220.in.ua"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1161066AbdAIPX2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 9 Jan 2017 10:23:28 -0500
-From: Oleh Kravchenko <oleg@kaa.org.ua>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: Oleh Kravchenko <oleg@kaa.org.ua>
-Subject: [PATCH] [media] cx231xx: Initial support Evromedia USB Full Hybrid Full HD
-Date: Mon,  9 Jan 2017 17:23:10 +0200
-Message-Id: <20170109152310.22161-1-oleg@kaa.org.ua>
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:37478 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750879AbdBAA66 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 31 Jan 2017 19:58:58 -0500
+Date: Wed, 1 Feb 2017 00:58:05 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v3 17/24] media: imx: Add CSI subdev driver
+Message-ID: <20170201005805.GI27312@n2100.armlinux.org.uk>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <1483755102-24785-18-git-send-email-steve_longerbeam@mentor.com>
+ <20170131112001.GV27312@n2100.armlinux.org.uk>
+ <7ffe2dc6-4098-e89f-03fa-1007eccd7abd@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <7ffe2dc6-4098-e89f-03fa-1007eccd7abd@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch provide only digital support.
+On Tue, Jan 31, 2017 at 04:31:55PM -0800, Steve Longerbeam wrote:
+> 
+> 
+> On 01/31/2017 03:20 AM, Russell King - ARM Linux wrote:
+> >On Fri, Jan 06, 2017 at 06:11:35PM -0800, Steve Longerbeam wrote:
+> >>+static int csi_link_validate(struct v4l2_subdev *sd,
+> >>+			     struct media_link *link,
+> >>+			     struct v4l2_subdev_format *source_fmt,
+> >>+			     struct v4l2_subdev_format *sink_fmt)
+> >>+{
+> >>+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
+> >>+	bool is_csi2;
+> >>+	int ret;
+> >>+
+> >>+	ret = v4l2_subdev_link_validate_default(sd, link, source_fmt, sink_fmt);
+> >>+	if (ret)
+> >>+		return ret;
+> >>+
+> >>+	priv->sensor = __imx_media_find_sensor(priv->md, &priv->sd.entity);
+> >>+	if (IS_ERR(priv->sensor)) {
+> >>+		v4l2_err(&priv->sd, "no sensor attached\n");
+> >>+		ret = PTR_ERR(priv->sensor);
+> >>+		priv->sensor = NULL;
+> >>+		return ret;
+> >>+	}
+> >>+
+> >>+	ret = v4l2_subdev_call(priv->sensor->sd, video, g_mbus_config,
+> >>+			       &priv->sensor_mbus_cfg);
+> >>+	if (ret)
+> >>+		return ret;
+> >>+
+> >>+	is_csi2 = (priv->sensor_mbus_cfg.type == V4L2_MBUS_CSI2);
+> >>+
+> >>+	if (is_csi2) {
+> >>+		int vc_num = 0;
+> >>+		/*
+> >>+		 * NOTE! It seems the virtual channels from the mipi csi-2
+> >>+		 * receiver are used only for routing by the video mux's,
+> >>+		 * or for hard-wired routing to the CSI's. Once the stream
+> >>+		 * enters the CSI's however, they are treated internally
+> >>+		 * in the IPU as virtual channel 0.
+> >>+		 */
+> >>+#if 0
+> >>+		vc_num = imx_media_find_mipi_csi2_channel(priv->md,
+> >>+							  &priv->sd.entity);
+> >>+		if (vc_num < 0)
+> >>+			return vc_num;
+> >>+#endif
+> >>+		ipu_csi_set_mipi_datatype(priv->csi, vc_num,
+> >>+					  &priv->format_mbus[priv->input_pad]);
+> >This seems (at least to me) to go against the spirit of the subdev
+> >negotiation.  Here, you seem to bypass the negotiation performed
+> >between the CSI and the attached device, wanting to grab the
+> >format from the CSI2 sensor directly.  That bypasses negotiation
+> >performed at the CSI2 subdev and video muxes.
+> 
+> This isn't so much grabbing a pad format, it is determining
+> which source pad at the imx6-mipi-csi2 receiver subdev is
+> reached from this CSI (which determines the virtual channel
+> the CSI is receiving).
+> 
+> If there was a way to determine the vc# via a status register
+> in the CSI, that would be perfect, but there isn't. In fact, the CSIs
+> seem to be ignoring the meta-data bus sent by the CSI2IPU gasket
+> which contains this info, or that bus is not being routed to the CSIs.
+> As the note says, the CSIs only accept vc0 at the CSI_MIPI_DI register.
+> Any other value programmed there results in no data from the CSI.
+> 
+> And even the presence of CSI_MIPI_DI register makes no sense to me,
+> the CSIs are given the vc# and MIPI datatype from the CSI2IPU meta-data
+> bus, so I don't understand why it needs to be told.
 
-The device is based on Si2168 30-demodulator,
-Si2158-20 tuner and CX23102-11Z chipset;
-USB id: 1b80:d3b2.
+The CSI_MIPI_DI register selects the data stream we want from the
+CSI2 camera.
 
-Status:
-- DVB-T2 works fine;
-- Composite and SVideo works fine;
-- Analog not implemented.
+CSI2 cameras can produce many different data streams - for example,
+a CSI2 camera can, for the same image, produce a YUV encoded frame
+and a jpeg-encoded frame.  These are sent over the CSI2 serial bus
+using two different data types.
 
-Signed-off-by: Oleh Kravchenko <oleg@kaa.org.ua>
-Tested-by: Oleh Kravchenko <oleg@kaa.org.ua>
----
- drivers/media/usb/cx231xx/Kconfig         |  1 +
- drivers/media/usb/cx231xx/cx231xx-cards.c | 29 +++++++++++++
- drivers/media/usb/cx231xx/cx231xx-dvb.c   | 71 +++++++++++++++++++++++++++++++
- drivers/media/usb/cx231xx/cx231xx-i2c.c   | 37 ++++++++++++++++
- drivers/media/usb/cx231xx/cx231xx.h       |  1 +
- 5 files changed, 139 insertions(+)
+The CSI2IPU converts the serial data streams into a parallel data
+stream, feeding that into the CSI layer.  The CSI layer, in
+conjunction with the CSI_MIPI_DI register, selects one of these
+streams to pass on to the SMFC and other blocks.
 
-diff --git a/drivers/media/usb/cx231xx/Kconfig b/drivers/media/usb/cx231xx/Kconfig
-index 0cced3e..58de80b 100644
---- a/drivers/media/usb/cx231xx/Kconfig
-+++ b/drivers/media/usb/cx231xx/Kconfig
-@@ -50,6 +50,7 @@ config VIDEO_CX231XX_DVB
- 	select DVB_LGDT3306A if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_TDA18271C2DD if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_SI2165 if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
- 
- 	---help---
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index 36bc254..9b1df5a 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -841,6 +841,33 @@ struct cx231xx_board cx231xx_boards[] = {
- 			.gpio = NULL,
- 		} },
- 	},
-+	[CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD] = {
-+		.name = "Evromedia USB Full Hybrid Full HD",
-+		.tuner_type = TUNER_ABSENT,
-+		.demod_addr = 0xc8 >> 1,
-+		.demod_i2c_master = I2C_1_MUX_3,
-+		.has_dvb = 1,
-+		.ir_i2c_master = I2C_0,
-+		.norm = V4L2_STD_PAL,
-+		.output_mode = OUT_MODE_VIP11,
-+		.tuner_addr = 0xc0 >> 1,
-+		.tuner_i2c_master = I2C_2,
-+		.input = {{
-+			.type = CX231XX_VMUX_TELEVISION,
-+			.vmux = 0,
-+			.amux = CX231XX_AMUX_VIDEO,
-+		}, {
-+			.type = CX231XX_VMUX_COMPOSITE1,
-+			.vmux = CX231XX_VIN_2_1,
-+			.amux = CX231XX_AMUX_LINE_IN,
-+		}, {
-+			.type = CX231XX_VMUX_SVIDEO,
-+			.vmux = CX231XX_VIN_1_1 |
-+				(CX231XX_VIN_1_2 << 8) |
-+				CX25840_SVIDEO_ON,
-+			.amux = CX231XX_AMUX_LINE_IN,
-+		} },
-+	},
- };
- const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
- 
-@@ -908,6 +935,8 @@ struct usb_device_id cx231xx_id_table[] = {
- 	 .driver_info = CX231XX_BOARD_OTG102},
- 	{USB_DEVICE(USB_VID_TERRATEC, 0x00a6),
- 	 .driver_info = CX231XX_BOARD_TERRATEC_GRABBY},
-+	{USB_DEVICE(0x1b80, 0xd3b2),
-+	.driver_info = CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD},
- 	{},
- };
- 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-index 1417515..08472a3 100644
---- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-@@ -33,6 +33,7 @@
- #include "s5h1411.h"
- #include "lgdt3305.h"
- #include "si2165.h"
-+#include "si2168.h"
- #include "mb86a20s.h"
- #include "si2157.h"
- #include "lgdt3306a.h"
-@@ -949,6 +950,76 @@ static int dvb_init(struct cx231xx *dev)
- 			   &pv_tda18271_config);
- 		break;
- 
-+	case CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD:
-+	{
-+		struct si2157_config si2157_config = {};
-+		struct si2168_config si2168_config = {};
-+		struct i2c_board_info info = {};
-+		struct i2c_client *client;
-+		struct i2c_adapter *adapter;
-+
-+		/* attach demodulator chip */
-+		si2168_config.ts_mode = SI2168_TS_SERIAL; /* from *.inf file */
-+		si2168_config.fe = &dev->dvb->frontend;
-+		si2168_config.i2c_adapter = &adapter;
-+		si2168_config.ts_clock_inv = true;
-+
-+		strlcpy(info.type, "si2168", info.type);
-+		info.addr = dev->board.demod_addr;
-+		info.platform_data = &si2168_config;
-+
-+		request_module(info.type);
-+		client = i2c_new_device(demod_i2c, &info);
-+
-+		if (client == NULL || client->dev.driver == NULL || dev->dvb->frontend == NULL) {
-+			dev_err(dev->dev, "Failed to attach Si2168 front end\n");
-+			result = -EINVAL;
-+			goto out_free;
-+		}
-+
-+		if (!try_module_get(client->dev.driver->owner)) {
-+			i2c_unregister_device(client);
-+			result = -ENODEV;
-+			goto out_free;
-+		}
-+
-+		dvb->i2c_client_demod = client;
-+		dev->dvb->frontend->ops.i2c_gate_ctrl = NULL;
-+		dvb->frontend->callback = cx231xx_tuner_callback;
-+
-+		/* attach tuner chip */
-+		si2157_config.fe = dev->dvb->frontend;
-+#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-+		si2157_config.mdev = dev->media_dev;
-+#endif
-+		si2157_config.if_port = 1;
-+		si2157_config.inversion = false;
-+
-+		memset(&info, 0, sizeof(info));
-+		strlcpy(info.type, "si2157", info.type);
-+		info.addr = dev->board.tuner_addr;
-+		info.platform_data = &si2157_config;
-+
-+		request_module("si2157");
-+		client = i2c_new_device(tuner_i2c, &info);
-+
-+		if (client == NULL || client->dev.driver == NULL) {
-+			dvb_frontend_detach(dev->dvb->frontend);
-+			result = -ENODEV;
-+			goto out_free;
-+		}
-+
-+		if (!try_module_get(client->dev.driver->owner)) {
-+			i2c_unregister_device(client);
-+			dvb_frontend_detach(dev->dvb->frontend);
-+			result = -ENODEV;
-+			goto out_free;
-+		}
-+
-+		dev->cx231xx_reset_analog_tuner = NULL;
-+		dev->dvb->i2c_client_tuner = client;
-+		break;
-+	}
- 	default:
- 		dev_err(dev->dev,
- 			"%s/2: The frontend of your DVB/ATSC card isn't supported yet\n",
-diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-index 35e9acf..60412ec 100644
---- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-@@ -171,6 +171,43 @@ static int cx231xx_i2c_send_bytes(struct i2c_adapter *i2c_adap,
- 		bus->i2c_nostop = 0;
- 		bus->i2c_reserve = 0;
- 
-+	} else if (dev->model == CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD
-+		&& msg->addr == dev->tuner_addr
-+		&& msg->len > 4) {
-+		/* special case for Evromedia USB Full Hybrid Full HD tuner chip */
-+		size = msg->len;
-+		saddr_len = 1;
-+
-+		/* adjust the length to correct length */
-+		size -= saddr_len;
-+
-+		buf_ptr = (u8*)(msg->buf + 1);
-+
-+		do {
-+			/* prepare xfer_data struct */
-+			req_data.dev_addr = msg->addr;
-+			req_data.direction = msg->flags;
-+			req_data.saddr_len = saddr_len;
-+			req_data.saddr_dat = msg->buf[0];
-+			req_data.buf_size = size > 4 ? 4 : size;
-+			req_data.p_buffer = (u8*)(buf_ptr + loop * 4);
-+
-+			bus->i2c_nostop = (size > 4) ? 1 : 0;
-+			bus->i2c_reserve = (loop == 0) ? 0 : 1;
-+
-+			/* usb send command */
-+			status = dev->cx231xx_send_usb_command(bus, &req_data);
-+			loop++;
-+
-+			if (size >= 4) {
-+				size -= 4;
-+			} else {
-+				size = 0;
-+			}
-+		} while (size > 0);
-+
-+		bus->i2c_nostop = 0;
-+		bus->i2c_reserve = 0;
- 	} else {		/* regular case */
- 
- 		/* prepare xfer_data struct */
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index 90c8676..d9792ea 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -78,6 +78,7 @@
- #define CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx 20
- #define CX231XX_BOARD_HAUPPAUGE_955Q 21
- #define CX231XX_BOARD_TERRATEC_GRABBY 22
-+#define CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD 23
- 
- /* Limits minimum and default number of buffers */
- #define CX231XX_MIN_BUF                 4
+>From what I've read, the CSI can also be programmed to pass other
+streams on as well, but I've never tried that.
+
+In my particular case, the IMX219 camera produces a complete frame
+using the RAW8 or RAW10 MIPI data type, and also produces two lines
+of register data per frame, encoded using another data type.  I
+think it should be possible to program the CSI to pass this other
+data on as "generic data" through a different FIFO and have it
+written to memory, which makes it possible to know the camera
+settings for each frame.  (This isn't something I'm interested in
+though, I'm just using it as an example of why, possibly, there's
+that register in the CSI block.)
+
 -- 
-2.10.2
-
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
