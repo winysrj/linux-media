@@ -1,58 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:62563 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751143AbdBBPAM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Feb 2017 10:00:12 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v7 01/10] Documentation: DT: add bindings for ST DELTA
-Date: Thu, 2 Feb 2017 15:59:44 +0100
-Message-ID: <1486047593-18581-2-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1486047593-18581-1-git-send-email-hugues.fruchet@st.com>
-References: <1486047593-18581-1-git-send-email-hugues.fruchet@st.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:42711 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751463AbdBAMbc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Feb 2017 07:31:32 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCHv2] v4l: of: check for unique lanes in data-lanes and clock-lanes
+Date: Wed, 01 Feb 2017 14:31:52 +0200
+Message-ID: <8556874.pyO1Q5jdsX@avalon>
+In-Reply-To: <20170131120831.11283-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170131120831.11283-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds DT binding documentation for STMicroelectronics
-DELTA V4L2 video decoder.
+Hi Niklas,
 
-Acked-by: Peter Griffin <peter.griffin@linaro.org>
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- Documentation/devicetree/bindings/media/st,st-delta.txt | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/st,st-delta.txt
+Thank you for the patch.
 
-diff --git a/Documentation/devicetree/bindings/media/st,st-delta.txt b/Documentation/devicetree/bindings/media/st,st-delta.txt
-new file mode 100644
-index 0000000..a538ab3
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/st,st-delta.txt
-@@ -0,0 +1,17 @@
-+* STMicroelectronics DELTA multi-format video decoder
-+
-+Required properties:
-+- compatible: should be "st,st-delta".
-+- clocks: from common clock binding: handle hardware IP needed clocks, the
-+  number of clocks may depend on the SoC type.
-+  See ../clock/clock-bindings.txt for details.
-+- clock-names: names of the clocks listed in clocks property in the same order.
-+
-+Example:
-+	delta0 {
-+		compatible = "st,st-delta";
-+		clock-names = "delta", "delta-st231", "delta-flash-promip";
-+		clocks = <&clk_s_c0_flexgen CLK_VID_DMU>,
-+			 <&clk_s_c0_flexgen CLK_ST231_DMU>,
-+			 <&clk_s_c0_flexgen CLK_FLASH_PROMIP>;
-+	};
--- 
-1.9.1
+By the way, you can use
+
+git format-patch -v2
+
+to automatically add "v2" to the subject line.
+
+On Tuesday 31 Jan 2017 13:08:31 Niklas S=F6derlund wrote:
+> All lanes in data-lanes and clock-lanes properties should be unique. =
+Add
+> a check for this in v4l2_of_parse_csi_bus() and print a warning if
+> duplicated lanes are found.
+>=20
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech=
+.se>
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>=20
+> Changes since v1:
+>=20
+> - Do not return -EINVAL if a duplicate is found. Sakari pointed out
+>   there are drivers where the number of lanes matter but not the actu=
+al
+>   lane numbers. Updated commit message to highlight that only a warni=
+ng
+>   is printed.
+> - Switched to a bitmask to track lanes used instead of a nested loop,=
+
+>   thanks Laurent for the suggestion.
+>=20
+>=20
+>  drivers/media/v4l2-core/v4l2-of.c | 13 ++++++++++++-
+>  1 file changed, 12 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/media/v4l2-core/v4l2-of.c
+> b/drivers/media/v4l2-core/v4l2-of.c index
+> 93b33681776ca427..4f59f442dd0a64c9 100644
+> --- a/drivers/media/v4l2-core/v4l2-of.c
+> +++ b/drivers/media/v4l2-core/v4l2-of.c
+> @@ -26,7 +26,7 @@ static int v4l2_of_parse_csi_bus(const struct devic=
+e_node
+> *node, struct v4l2_of_bus_mipi_csi2 *bus =3D &endpoint->bus.mipi_csi2=
+;
+>  =09struct property *prop;
+>  =09bool have_clk_lane =3D false;
+> -=09unsigned int flags =3D 0;
+> +=09unsigned int flags =3D 0, lanes_used =3D 0;
+>  =09u32 v;
+>=20
+>  =09prop =3D of_find_property(node, "data-lanes", NULL);
+> @@ -38,6 +38,12 @@ static int v4l2_of_parse_csi_bus(const struct devi=
+ce_node
+> *node, lane =3D of_prop_next_u32(prop, lane, &v);
+>  =09=09=09if (!lane)
+>  =09=09=09=09break;
+> +
+> +=09=09=09if (lanes_used & BIT(v))
+> +=09=09=09=09pr_warn("%s: duplicated lane %u in data-
+lanes\n",
+> +=09=09=09=09=09node->full_name, v);
+> +=09=09=09lanes_used |=3D BIT(v);
+> +
+>  =09=09=09bus->data_lanes[i] =3D v;
+>  =09=09}
+>  =09=09bus->num_data_lanes =3D i;
+> @@ -63,6 +69,11 @@ static int v4l2_of_parse_csi_bus(const struct devi=
+ce_node
+> *node, }
+>=20
+>  =09if (!of_property_read_u32(node, "clock-lanes", &v)) {
+> +=09=09if (lanes_used & BIT(v))
+> +=09=09=09pr_warn("%s: duplicated lane %u in clock-lanes\n",
+> +=09=09=09=09node->full_name, v);
+> +=09=09lanes_used |=3D BIT(v);
+> +
+>  =09=09bus->clock_lane =3D v;
+>  =09=09have_clk_lane =3D true;
+>  =09}
+
+--=20
+Regards,
+
+Laurent Pinchart
 
