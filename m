@@ -1,105 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:39952 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752031AbdBYVxZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Feb 2017 16:53:25 -0500
-Date: Sat, 25 Feb 2017 22:53:22 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
-Subject: camera subdevice support was Re: [PATCH 1/4] v4l2:
- device_register_subdev_nodes: allow calling multiple times
-Message-ID: <20170225215321.GA29886@amd>
-References: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz>
- <20170220103114.GA9800@amd>
- <20170220130912.GT16975@valkosipuli.retiisi.org.uk>
- <20170220135636.GU16975@valkosipuli.retiisi.org.uk>
- <20170221110721.GD5021@amd>
- <20170221111104.GD16975@valkosipuli.retiisi.org.uk>
- <20170225000918.GB23662@amd>
- <20170225134444.6qzumpvasaow5qoj@ihha.localdomain>
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:43838 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751259AbdBAKLx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Feb 2017 05:11:53 -0500
+Date: Wed, 1 Feb 2017 10:11:12 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, mark.rutland@arm.com,
+        andrew-ct.chen@mediatek.com, minghsiu.tsai@mediatek.com,
+        nick@shmanahar.org, songjun.wu@microchip.com, hverkuil@xs4all.nl,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        robert.jarzmik@free.fr, devel@driverdev.osuosl.org,
+        markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, geert@linux-m68k.org,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        arnd@arndb.de, mchehab@kernel.org, bparrot@ti.com,
+        robh+dt@kernel.org, horms+renesas@verge.net.au,
+        tiffany.lin@mediatek.com, linux-arm-kernel@lists.infradead.org,
+        niklas.soderlund+renesas@ragnatech.se, gregkh@linuxfoundation.org,
+        linux-kernel@vger.kernel.org, jean-christophe.trotin@st.com,
+        kernel@pengutronix.de, fabio.estevam@nxp.com, shawnguo@kernel.org,
+        sudipm.mukherjee@gmail.com
+Subject: Re: [PATCH v3 00/24] i.MX Media Driver
+Message-ID: <20170201101111.GL27312@n2100.armlinux.org.uk>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <1485870854.2932.63.camel@pengutronix.de>
+ <5586b893-bf5c-6133-0789-ccce60626b86@gmail.com>
+ <1485941457.3353.13.camel@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="EeQfGwPcQSOJBaQU"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170225134444.6qzumpvasaow5qoj@ihha.localdomain>
+In-Reply-To: <1485941457.3353.13.camel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Wed, Feb 01, 2017 at 10:30:57AM +0100, Philipp Zabel wrote:
+> On Tue, 2017-01-31 at 17:26 -0800, Steve Longerbeam wrote:
+> [...]
+> > right, need to fix that. Probably by poking the attached
+> > source subdev (csi or prpenc/vf) for its supported formats.
+> 
+> You are right, in bayer/raw mode only one specific format should be
+> listed, depending on the CSI output pad format.
 
---EeQfGwPcQSOJBaQU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+It depends what Steve means by "source subdev".
 
-Hi!
+It should be the next sub-device below the bridge - if we have this
+setup of subdev's:
 
-> > Ok, I got the camera sensor to work. No subdevices support, so I don't
-> > have focus (etc) working, but that's a start. I also had to remove
-> > video-bus-switch support; but I guess it will be easier to use
-> > video-multiplexer patches...=20
-> >=20
-> > I'll have patches over weekend.
->=20
-> I briefly looked at what's there --- you do miss the video nodes for the
-> non-sensor sub-devices, and they also don't show up in the media graph,
-> right?
+---> CSI ---> SMFC ---> IDMAC
 
-Yes.
+then the format configured at the SMFC's output pad is what matters,
+not what was configured at CSI.
 
-> I guess they don't end up matching in the async list.
+It's the responsibility of SMFC and CSI to make sure that their source
+pads are configured with a compatible format for their corresponding
+source pad, and it's also the sink subdev's responsibility to check
+that the configuration across a link is valid (possibly via
+v4l2_subdev_link_validate(), or a more intensive or relaxed test if
+required.)
 
-How should they get to the async list?
+For example:
 
-> I think we need to make the non-sensor sub-device support more generic;
-> it's not just the OMAP 3 ISP that needs it. I think we need to document
-> the property for the flash phandle as well; I can write one, or refresh
-> an existing one that I believe already exists.
->=20
-> How about calling it either simply "flash" or "camera-flash"? Similarly
-> for lens: "lens" or "camera-lens". I have a vague feeling the "camera-"
-> prefix is somewhat redundant, so I'd just go for "flash" or "lens".
+- when CSI's source pad is configured with a RGGB output format,
+  userspace media-ctl will also set that on SMFC's sink pad.
+- when SMFC's sink pad is configured, SMFC should configure it's
+  source pad with an identical format (RGGB).
+- when SMFC's source pad is configured, it should refuse to change
+  the format, because SMFC can't modify pixel the format - it's
+  just a buffer.
 
-Actually, I'd go for "flash" and "focus-coil". There may be other
-lens properties, such as zoom, mirror movement, lens identification,
-=2E..
+When starting to stream (Documentation/media/kapi/v4l2-subdev.rst) the
+link validation function is called, and:
 
-> At the very least the property names must be generic (not hardware
-> dependent) as this kind of functionality should be present in the
-> framework rather than in individual drivers. That'll be for later
-> though.
+- the SMFC driver's link_validate function will be called to validate
+  the CSI -> SMFC link.  This allows the SMFC to be sure that there's
+  a compatible configuration - and, since the link does not allow
+  format conversion, it should verify that the format on the CSI's
+  source pad is the same as SMFC's sink pad.
 
-Agreed, that would be nice.
+Not only does this match what the hardware's doing, it also means that,
+because there's no format conversion between the CSI's hardware output
+and IDMAC, we don't need to care about trying to fetch the CSI's source
+pad configuration from the IDMAC end - we can fetch that information
+from our neighbour's SMFC's source pad _or_ our own sink pad if we have
+one.
 
-> Making the sub-device bus configuration a pointer should be in a separate
-> patch. It makes sense since the entire configuration is not valid for all
-> sub-devices attached to the ISP anymore. I think it originally was a
-> separate patch, but they probably have been merged at some point. I can't
-> find it right now anyway.
+To see why this is an important, consider what the effect would be if
+SMFC did have the capability to change the pixel format.  That means the
+format presented to the IDMAC block would depend on the configuration of
+SMFC, and the CSI's source pad format is no longer relevant to IDMAC.
 
-I believe I can find the patch. But I'm not sure if I can port it to
-the fwnode infrastructure anytime soon...
-
-									Pavel
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---EeQfGwPcQSOJBaQU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlix/NEACgkQMOfwapXb+vJ9CACfVFQAdqAqBlCrx+NU6FbqlLiT
-SyIAoI2iYskZjmICUjPjvbXFqiaid217
-=/h0s
------END PGP SIGNATURE-----
-
---EeQfGwPcQSOJBaQU--
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
