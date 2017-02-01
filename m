@@ -1,97 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:43789 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750724AbdAWKXn (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:34990 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750879AbdBAB0s (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 23 Jan 2017 05:23:43 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Russell King <linux@armlinux.org.uk>,
-        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCHv3 0/5] video/exynos/cec: add HPD state notifier & use in s5p-cec
-Date: Mon, 23 Jan 2017 11:23:32 +0100
-Message-Id: <20170123102337.20947-1-hverkuil@xs4all.nl>
+        Tue, 31 Jan 2017 20:26:48 -0500
+Subject: Re: [PATCH v3 00/24] i.MX Media Driver
+To: Philipp Zabel <p.zabel@pengutronix.de>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <1485870854.2932.63.camel@pengutronix.de>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <5586b893-bf5c-6133-0789-ccce60626b86@gmail.com>
+Date: Tue, 31 Jan 2017 17:26:45 -0800
+MIME-Version: 1.0
+In-Reply-To: <1485870854.2932.63.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This patch series adds the hotplug detect notifier code, based on Russell's code:
 
-https://patchwork.kernel.org/patch/9277043/
+On 01/31/2017 05:54 AM, Philipp Zabel wrote:
+> Hi Steve,
+>
+> I have just tested the imx-media-staging-md-wip branch on a Nitrogen6X
+> with a tc358743 (BD_HDMI_MIPI HDMI to MIPI CSI-2 receiver board). Some
+> observations:
+>
+> # Link pipeline
+> media-ctl -l "'tc358743 1-000f':0->'imx6-mipi-csi2':0[1]"
+> media-ctl -l "'imx6-mipi-csi2':1->'ipu1_csi0_mux':0[1]"
+> media-ctl -l "'ipu1_csi0_mux':2->'ipu1_csi0':0[1]"
+> media-ctl -l "'ipu1_csi0':2->'ipu1_csi0 capture':0[1]"
+>
+> # Provide an EDID to the HDMI source
+> v4l2-ctl -d /dev/v4l-subdev2 --set-edid=file=edid-1080p.hex
+> # At this point the HDMI source is enabled and sends a 1080p60 signal
+> # Configure detected DV timings
+> media-ctl --set-dv "'tc358743 1-000f':0"
+>
+> # Set pad formats
+> media-ctl --set-v4l2 "'tc358743 1-000f':0[fmt:UYVY/1920x1080]"
+> media-ctl --set-v4l2 "'imx6-mipi-csi2':1[fmt:UYVY2X8/1920x1080]"
+> media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY2X8/1920x1080]"
+> media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/1920x1080]"
+>
+> v4l2-ctl -d /dev/video4 -V
+> # This still is configured to 640x480, which is inconsistent with
+> # the 'ipu1_csi0':2 pad format. The pad set_fmt above should
+> # have set this, too.
 
-It adds support for it to the exynos_hdmi drm driver, adds support for
-it to the CEC framework and finally adds support to the s5p-cec driver,
-which now can be moved out of staging.
+Because you've only configured the source pads,
+and not the sink pads. The ipu_csi source format is
+dependent on the sink format - output crop window is
+limited by max input sensor frame, and since sink pad is
+still at 640x480, output is reduced to that.
 
-Tested with my Odroid U3 exynos4 devboard.
+Maybe I'm missing something, is it expected behavior that
+a source format should be automatically propagated to
+the sink?
 
-Comments are welcome. I'd like to get this in for the 4.11 kernel as
-this is a missing piece needed to integrate CEC drivers.
+>
+> v4l2-ctl --list-formats -d /dev/video4
+> # This lists all the RGB formats, which it shouldn't. There is
+> # no CSC in this pipeline, so we should be limited to YUV formats
+> # only.
 
-Changes since v2:
-- Split off the dts changes of the s5p-cec patch into a separate patch
-- Renamed HPD_NOTIFIERS to HPD_NOTIFIER to be consistent with the name
-  of the source.
+right, need to fix that. Probably by poking the attached
+source subdev (csi or prpenc/vf) for its supported formats.
 
-Changes since v1:
 
-Renamed HDMI notifier to HPD (hotplug detect) notifier since this code is
-not HDMI specific, but is interesting for any video source that has to
-deal with hotplug detect and EDID/ELD (HDMI, DVI, VGA, DP, ....).
-Only the use with CEC adapters is HDMI specific, but the HPD notifier
-is more generic.
+>
+> # Set capture format
+> v4l2-ctl -d /dev/video4 -v width=1920,height=1080,pixelformat=UYVY
+>
+> v4l2-ctl -d /dev/video4 -V
+> # Now the capture format is correctly configured to 1920x1080.
+>
+> v4l2-ctl -d 4 --list-frameintervals=width=1920,height=1080,pixelformat=UYVY
+> # This lists nothing. We should at least provide the 'ipu1_csi0':2 pad
+> # frame interval. In the future this should list fractions achievable
+> # via frame skipping.
 
-Regards,
+yes, need to implement g_frame_interval.
 
-	Hans
+> v4l2-compliance -d /dev/video4
+> # This fails two tests:
+> # fail: v4l2-test-input-output.cpp(383): std == 0
+> # fail: v4l2-test-input-output.cpp(449): invalid attributes for input 0
+> # test VIDIOC_G/S/ENUMINPUT: FAIL
+> # and
+> # fail: v4l2-test-controls.cpp(782): subscribe event for control 'User Controls' failed
+> # test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
+>
+> # (Slowly) stream JPEG images to a display host:
+> gst-launch-1.0 -v v4l2src device=/dev/video4 ! jpegenc ! rtpjpegpay ! udpsink
+>
+> I've done this a few times, and sometimes I only get a "ipu1_csi0: EOF
+> timeout" message when starting streaming.
 
-Hans Verkuil (5):
-  video: add hotplug detect notifier support
-  exynos_hdmi: add HPD notifier support
-  cec: integrate HPD notifier support
-  exynos4.dtsi: add HDMI controller phandle
-  s5p-cec: add hpd-notifier support, move out of staging
+It's hard to say what is going on there, it would be great if I could get my
+hands on a Nitrogen6X with the tc35874 to help you debug.
 
- .../devicetree/bindings/media/s5p-cec.txt          |   2 +
- arch/arm/boot/dts/exynos4.dtsi                     |   1 +
- drivers/gpu/drm/exynos/Kconfig                     |   1 +
- drivers/gpu/drm/exynos/exynos_hdmi.c               |  23 +++-
- drivers/media/cec/cec-core.c                       |  50 ++++++++
- drivers/media/platform/Kconfig                     |  18 +++
- drivers/media/platform/Makefile                    |   1 +
- .../media => media/platform}/s5p-cec/Makefile      |   0
- .../platform}/s5p-cec/exynos_hdmi_cec.h            |   0
- .../platform}/s5p-cec/exynos_hdmi_cecctrl.c        |   0
- .../media => media/platform}/s5p-cec/regs-cec.h    |   0
- .../media => media/platform}/s5p-cec/s5p_cec.c     |  35 +++++-
- .../media => media/platform}/s5p-cec/s5p_cec.h     |   3 +
- drivers/staging/media/Kconfig                      |   2 -
- drivers/staging/media/Makefile                     |   1 -
- drivers/staging/media/s5p-cec/Kconfig              |   9 --
- drivers/staging/media/s5p-cec/TODO                 |   7 --
- drivers/video/Kconfig                              |   3 +
- drivers/video/Makefile                             |   1 +
- drivers/video/hpd-notifier.c                       | 134 +++++++++++++++++++++
- include/linux/hpd-notifier.h                       | 109 +++++++++++++++++
- include/media/cec.h                                |  15 +++
- 22 files changed, 388 insertions(+), 27 deletions(-)
- rename drivers/{staging/media => media/platform}/s5p-cec/Makefile (100%)
- rename drivers/{staging/media => media/platform}/s5p-cec/exynos_hdmi_cec.h (100%)
- rename drivers/{staging/media => media/platform}/s5p-cec/exynos_hdmi_cecctrl.c (100%)
- rename drivers/{staging/media => media/platform}/s5p-cec/regs-cec.h (100%)
- rename drivers/{staging/media => media/platform}/s5p-cec/s5p_cec.c (89%)
- rename drivers/{staging/media => media/platform}/s5p-cec/s5p_cec.h (97%)
- delete mode 100644 drivers/staging/media/s5p-cec/Kconfig
- delete mode 100644 drivers/staging/media/s5p-cec/TODO
- create mode 100644 drivers/video/hpd-notifier.c
- create mode 100644 include/linux/hpd-notifier.h
-
--- 
-2.11.0
+Steve
 
