@@ -1,51 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56901
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932655AbdBQUYb (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52852 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750881AbdBAMrO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Feb 2017 15:24:31 -0500
-Subject: Re: [PATCH 13/15] media: s5p-mfc: Remove special configuration of
- IOMMU domain
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-References: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20170214075220eucas1p1451535e571c481c69aacec705a782c09@eucas1p1.samsung.com>
- <1487058728-16501-14-git-send-email-m.szyprowski@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <30743df2-b16a-df98-a2b0-b72fdd2e6678@osg.samsung.com>
-Date: Fri, 17 Feb 2017 17:24:24 -0300
+        Wed, 1 Feb 2017 07:47:14 -0500
+Date: Wed, 1 Feb 2017 14:47:06 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Tuukka Toivonen <tuukkat76@gmail.com>, Pavel Machek <pavel@ucw.cz>,
+        linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR v4.11] Add et8ek8 driver
+Message-ID: <20170201124705.GX7139@valkosipuli.retiisi.org.uk>
+References: <20170125140745.GH7139@valkosipuli.retiisi.org.uk>
+ <20170131104248.4e0f0bd8@vento.lan>
+ <20170131124534.GW7139@valkosipuli.retiisi.org.uk>
+ <20170131110111.06321f77@vento.lan>
 MIME-Version: 1.0
-In-Reply-To: <1487058728-16501-14-git-send-email-m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170131110111.06321f77@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Marek,
+Hi Mauro,
 
-On 02/14/2017 04:52 AM, Marek Szyprowski wrote:
-> The main reason for using special configuration of IOMMU domain was the
-> problem with MFC firmware, which failed to operate properly when placed
-> at 0 DMA address. Instead of adding custom code for configuring each
-> variant of IOMMU domain and architecture specific glue code, simply use
-> what arch code provides and if the DMA base address equals zero, skip
-> first 128 KiB to keep required alignment. This patch also make the driver
-> operational on ARM64 architecture, because it no longer depends on ARM
-> specific DMA-mapping and IOMMU glue code functions.
+On Tue, Jan 31, 2017 at 11:01:11AM -0200, Mauro Carvalho Chehab wrote:
+> Em Tue, 31 Jan 2017 14:45:34 +0200
+> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 > 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> ---
+> > Hi Mauro,
+> > 
+> > On Tue, Jan 31, 2017 at 10:42:48AM -0200, Mauro Carvalho Chehab wrote:
+> > > That added a new warning:
+> > > 
+> > > drivers/media/i2c/et8ek8/et8ek8_driver.c: In function 'et8ek8_registered':
+> > > drivers/media/i2c/et8ek8/et8ek8_driver.c:1262:29: warning: variable 'format' set but not used [-Wunused-but-set-variable]
+> > >   struct v4l2_mbus_framefmt *format;
+> > >                              ^~~~~~
+> > > compilation succeeded
+> > > 
+> > > 
+> > > The driver is calling this function and storing it on a var
+> > > that is not used:
+> > > 
+> > >         format = __et8ek8_get_pad_format(sensor, NULL, 0,
+> > >                                          V4L2_SUBDEV_FORMAT_ACTIVE);
+> > >         return 0;
+> > > 
+> > > Please send a fixup patch.  
+> > 
+> > I compiled it, too, but I guess I had a GCC version that didn't complain
+> > about this particular matter. I'll send you a fix.
+> 
+> I run make with "W=1", to enable a few extra warnings that are usually
+> troubles, like the above. W=2 would point some other things, but
+> IMHO, it is not worth trying to fix the extra warnings, as it will enable
+> a lot of signed/unsigned errors with are usually OK.
 
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
+I couldn't reproduce the warnings but I'm providing a patch nonetheless,
+also removing the extra semicolon.
 
-Best regards,
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
