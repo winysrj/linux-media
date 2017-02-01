@@ -1,46 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44926 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752366AbdBNTlr (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:43653 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751732AbdBAJcY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Feb 2017 14:41:47 -0500
-Date: Tue, 14 Feb 2017 11:41:46 -0800
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        stable@vger.kernel.org, #@smtp.w2.samsung.com,
-        For@smtp.w2.samsung.com, 4.9+@smtp.w2.samsung.com
-Subject: Re: [PATCH] siano: make it work again with CONFIG_VMAP_STACK
-Message-ID: <20170214194146.GA28566@kroah.com>
-References: <08f1b470a156163cc3394f73bcbaea3925b6f376.1487100723.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <08f1b470a156163cc3394f73bcbaea3925b6f376.1487100723.git.mchehab@s-opensource.com>
+        Wed, 1 Feb 2017 04:32:24 -0500
+Message-ID: <1485941457.3353.13.camel@pengutronix.de>
+Subject: Re: [PATCH v3 00/24] i.MX Media Driver
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Wed, 01 Feb 2017 10:30:57 +0100
+In-Reply-To: <5586b893-bf5c-6133-0789-ccce60626b86@gmail.com>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+         <1485870854.2932.63.camel@pengutronix.de>
+         <5586b893-bf5c-6133-0789-ccce60626b86@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 14, 2017 at 05:32:11PM -0200, Mauro Carvalho Chehab wrote:
-> Reported as a Kaffeine bug:
-> 	https://bugs.kde.org/show_bug.cgi?id=375811
+On Tue, 2017-01-31 at 17:26 -0800, Steve Longerbeam wrote:
+[...]
+> > # Set pad formats
+> > media-ctl --set-v4l2 "'tc358743 1-000f':0[fmt:UYVY/1920x1080]"
+> > media-ctl --set-v4l2 "'imx6-mipi-csi2':1[fmt:UYVY2X8/1920x1080]"
+> > media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY2X8/1920x1080]"
+> > media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/1920x1080]"
+> >
+> > v4l2-ctl -d /dev/video4 -V
+> > # This still is configured to 640x480, which is inconsistent with
+> > # the 'ipu1_csi0':2 pad format. The pad set_fmt above should
+> > # have set this, too.
 > 
-> The USB control messages require DMA to work. We cannot pass
-> a stack-allocated buffer, as it is not warranted that the
-> stack would be into a DMA enabled area.
-> 
-> On Kernel 4.9, the default is to not accept DMA on stack anymore.
-> 
-> Tested with USB ID 2040:5510: Hauppauge Windham
-> 
-> Cc: stable@vger.kernel.org # For 4.9+
+> Because you've only configured the source pads,
+> and not the sink pads. The ipu_csi source format is
+> dependent on the sink format - output crop window is
+> limited by max input sensor frame, and since sink pad is
+> still at 640x480, output is reduced to that.
 
-Unless there is some major reason, this should go into _all_ stable
-releases, as the driver would be broken on them all for platforms that
-can't handle USB data that is not DMA-able.  This has been a requirement
-for USB drivers since the 2.2 days.
+No, it is set (see below). What happens is that capture_g_fmt_vid_cap
+just returns the capture devices' priv->vdev.fmt, even if it is
+incompatible with the connected csi subdevice's output pad format.
 
-thanks,
+priv->vdev.fmt was never changed from the default set in
+imx_media_capture_device_register, because capture_s/try_fmt_vid_cap
+were not called yet.
 
-greg k-h
+> Maybe I'm missing something, is it expected behavior that
+> a source format should be automatically propagated to
+> the sink?
+
+media-ctl propagates the output pad format to all remote subdevices'
+input pads for all enabled links:
+
+https://git.linuxtv.org/v4l-utils.git/tree/utils/media-ctl/libv4l2subdev.c#n693
+
+> > v4l2-ctl --list-formats -d /dev/video4
+> > # This lists all the RGB formats, which it shouldn't. There is
+> > # no CSC in this pipeline, so we should be limited to YUV formats
+> > # only.
+> 
+> right, need to fix that. Probably by poking the attached
+> source subdev (csi or prpenc/vf) for its supported formats.
+
+You are right, in bayer/raw mode only one specific format should be
+listed, depending on the CSI output pad format.
+
+regards
+Philipp
+
