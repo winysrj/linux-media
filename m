@@ -1,72 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:36324 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753742AbdBRR3V (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 18 Feb 2017 12:29:21 -0500
-Subject: Re: [PATCH v4 29/36] media: imx: mipi-csi2: enable setting and
- getting of frame rates
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
- <1487211578-11360-30-git-send-email-steve_longerbeam@mentor.com>
- <24d42948-a77d-445f-e3e9-ab595b0cfc3e@gmail.com>
- <20170218092335.GI21222@n2100.armlinux.org.uk>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <e3260548-7fbc-31bc-0b2c-4c11c1e9a7c7@gmail.com>
-Date: Sat, 18 Feb 2017 09:29:17 -0800
+Received: from mail-wm0-f45.google.com ([74.125.82.45]:38842 "EHLO
+        mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751632AbdBASU4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Feb 2017 13:20:56 -0500
+Received: by mail-wm0-f45.google.com with SMTP id r141so50565629wmg.1
+        for <linux-media@vger.kernel.org>; Wed, 01 Feb 2017 10:20:55 -0800 (PST)
+Date: Wed, 1 Feb 2017 18:20:48 +0000
+From: Peter Griffin <peter.griffin@linaro.org>
+To: Hugues Fruchet <hugues.fruchet@st.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        kernel@stlinux.com,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [STLinux Kernel] [PATCH v6 03/10] ARM: multi_v7_defconfig:
+ enable STMicroelectronics DELTA Support
+Message-ID: <20170201182048.GE31988@griffinp-ThinkPad-X1-Carbon-2nd>
+References: <1485965011-17388-1-git-send-email-hugues.fruchet@st.com>
+ <1485965011-17388-4-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-In-Reply-To: <20170218092335.GI21222@n2100.armlinux.org.uk>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1485965011-17388-4-git-send-email-hugues.fruchet@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Wed, 01 Feb 2017, Hugues Fruchet wrote:
 
+> Enables support of STMicroelectronics STiH4xx SoC series
+> DELTA multi-format video decoder V4L2 driver.
+> 
+> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 
-On 02/18/2017 01:23 AM, Russell King - ARM Linux wrote:
-> On Fri, Feb 17, 2017 at 05:12:44PM -0800, Steve Longerbeam wrote:
->> Hi Russell,
->>
->> I signed-off on this but after more review I'm not sure this is right.
->>
->> The CSI-2 receiver really has no control over frame rate. It's output
->> frame rate is the same as the rate that is delivered to it.
->>
->> So this subdev should either not implement these ops, or it should
->> refer them to the attached source subdev.
->
-> Where in the V4L2 documentation does it say that is permissible?
->
+Acked-by: Peter Griffin <peter.griffin@linaro.org>
 
-https://www.linuxtv.org/downloads/v4l-dvb-apis-old/vidioc-subdev-g-frame-interval.html
-
-"The frame interval only makes sense for sub-devices that can control 
-the frame period on their own. This includes, for instance, image 
-sensors and TV tuners. Sub-devices that don't support frame intervals 
-must not implement these ioctls."
-
-
-> If you don't implement these, media-ctl fails to propagate _anything_
-> to the next sink pad if you specify a frame rate, because media-ctl
-> throws an error and exits immediately.
->
-
-But I agree with you here. I think our only option is to ignore that
-quoted requirement above and propagate [gs]_frame_interval all the way
-to the CSI (which can control the frame rate via frame skipping).
-
-Steve
+> ---
+>  arch/arm/configs/multi_v7_defconfig | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
+> index b01a438..5dff8fe 100644
+> --- a/arch/arm/configs/multi_v7_defconfig
+> +++ b/arch/arm/configs/multi_v7_defconfig
+> @@ -569,6 +569,7 @@ CONFIG_VIDEO_SAMSUNG_S5P_MFC=m
+>  CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC=m
+>  CONFIG_VIDEO_STI_BDISP=m
+>  CONFIG_VIDEO_STI_HVA=m
+> +CONFIG_VIDEO_STI_DELTA=m
+>  CONFIG_VIDEO_RENESAS_JPU=m
+>  CONFIG_VIDEO_RENESAS_VSP1=m
+>  CONFIG_V4L_TEST_DRIVERS=y
