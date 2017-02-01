@@ -1,68 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-4.cisco.com ([173.38.203.54]:60053 "EHLO
-        aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934429AbdBVUXp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Feb 2017 15:23:45 -0500
-Subject: Re: [PATCH 2/3] [media] tc358743: Add OF device ID table
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-References: <20170222161129.28613-1-javier@osg.samsung.com>
- <20170222161129.28613-2-javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org,
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44681
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750990AbdBAUFs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Feb 2017 15:05:48 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Thibault Saunier <thibault.saunier@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
-From: "Mats Randgaard (matrandg)" <matrandg@cisco.com>
-Message-ID: <033d29c6-7215-50cb-3e78-6fd005d0fd19@cisco.com>
-Date: Wed, 22 Feb 2017 21:11:02 +0100
-MIME-Version: 1.0
-In-Reply-To: <20170222161129.28613-2-javier@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        linux-samsung-soc@vger.kernel.org,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        linux-media@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        Ulf Hansson <ulf.hansson@linaro.org>
+Subject: [PATCH 1/2] [media] exynos-gsc: Do not swap cb/cr for semi planar formats
+Date: Wed,  1 Feb 2017 17:05:21 -0300
+Message-Id: <1485979523-32404-2-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1485979523-32404-1-git-send-email-javier@osg.samsung.com>
+References: <1485979523-32404-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-CC: Philipp Zabel who added device tree support to this driver
+From: Thibault Saunier <thibault.saunier@osg.samsung.com>
 
-Regards,
+In the case of semi planar formats cb and cr are in the same plane
+in memory, meaning that will be set to 'cb' whatever the format is,
+and whatever the (packed) order of those components are.
 
-Mats Randgaard
+Suggested-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+---
 
+ drivers/media/platform/exynos-gsc/gsc-core.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-On 02/22/2017 05:11 PM, Javier Martinez Canillas wrote:
-> The driver doesn't have a struct of_device_id table but supported devices
-> are registered via Device Trees. This is working on the assumption that a
-> I2C device registered via OF will always match a legacy I2C device ID and
-> that the MODALIAS reported will always be of the form i2c:<device>.
->
-> But this could change in the future so the correct approach is to have an
-> OF device ID table if the devices are registered via OF.
->
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> ---
->
->   drivers/media/i2c/tc358743.c | 9 +++++++++
->   1 file changed, 9 insertions(+)
->
-> diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-> index f569a05fe105..76baf7a7bd57 100644
-> --- a/drivers/media/i2c/tc358743.c
-> +++ b/drivers/media/i2c/tc358743.c
-> @@ -1951,9 +1951,18 @@ static struct i2c_device_id tc358743_id[] = {
->   
->   MODULE_DEVICE_TABLE(i2c, tc358743_id);
->   
-> +#if IS_ENABLED(CONFIG_OF)
-> +static const struct of_device_id tc358743_of_match[] = {
-> +	{ .compatible = "toshiba,tc358743" },
-> +	{},
-> +};
-> +MODULE_DEVICE_TABLE(of, tc358743_of_match);
-> +#endif
-> +
->   static struct i2c_driver tc358743_driver = {
->   	.driver = {
->   		.name = "tc358743",
-> +		.of_match_table = of_match_ptr(tc358743_of_match),
->   	},
->   	.probe = tc358743_probe,
->   	.remove = tc358743_remove,
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index 40aff08dd51d..a846659ae5c1 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -861,9 +861,7 @@ int gsc_prepare_addr(struct gsc_ctx *ctx, struct vb2_buffer *vb,
+ 
+ 	if ((frame->fmt->pixelformat == V4L2_PIX_FMT_VYUY) ||
+ 		(frame->fmt->pixelformat == V4L2_PIX_FMT_YVYU) ||
+-		(frame->fmt->pixelformat == V4L2_PIX_FMT_NV61) ||
+ 		(frame->fmt->pixelformat == V4L2_PIX_FMT_YVU420) ||
+-		(frame->fmt->pixelformat == V4L2_PIX_FMT_NV21) ||
+ 		(frame->fmt->pixelformat == V4L2_PIX_FMT_YVU420M))
+ 		swap(addr->cb, addr->cr);
+ 
+-- 
+2.7.4
+
