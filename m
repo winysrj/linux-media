@@ -1,94 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:45570 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932082AbdBJU1s (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Feb 2017 15:27:48 -0500
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, kieran.bingham@ideasonboard.com
-Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH 2/8] v4l: vsp1: Track the SRU entity in the pipeline
-Date: Fri, 10 Feb 2017 20:27:30 +0000
-Message-Id: <8ad9d316c05ab254b65ad5230fb9232325e783ec.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.ff94a00847faf7ed37768cea68c474926bfc8bd9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.ff94a00847faf7ed37768cea68c474926bfc8bd9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.ff94a00847faf7ed37768cea68c474926bfc8bd9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.ff94a00847faf7ed37768cea68c474926bfc8bd9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:38997 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750784AbdBAE3A (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 31 Jan 2017 23:29:00 -0500
+Message-ID: <1e5bc1f49242e6a7e26952131fb7f988@smtp-cloud2.xs4all.net>
+Date: Wed, 01 Feb 2017 05:28:57 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The UDS and other entities are already tracked directly through the
-pipeline object. To follow the design pattern, and allow us to reference
-the SRU convert the usage of 'sru_found'
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_pipe.h  |  2 ++
- drivers/media/platform/vsp1/vsp1_video.c | 11 ++++++++---
- 2 files changed, 10 insertions(+), 3 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-index bc419ef48d8d..5aa31143ce59 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.h
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -76,6 +76,7 @@ enum vsp1_pipeline_state {
-  * @output: WPF at the output of the pipeline
-  * @bru: BRU entity, if present
-  * @lif: LIF entity, if present
-+ * @sru: SRU entity, if present
-  * @uds: UDS entity, if present
-  * @uds_input: entity at the input of the UDS, if the UDS is present
-  * @entities: list of entities in the pipeline
-@@ -104,6 +105,7 @@ struct vsp1_pipeline {
- 	struct vsp1_rwpf *output;
- 	struct vsp1_entity *bru;
- 	struct vsp1_entity *lif;
-+	struct vsp1_entity *sru;
- 	struct vsp1_entity *uds;
- 	struct vsp1_entity *uds_input;
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index e2f242e7f0fa..be9c860b1c04 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -473,7 +473,6 @@ static int vsp1_video_pipeline_build_branch(struct vsp1_pipeline *pipe,
- 	struct vsp1_entity *entity;
- 	struct media_pad *pad;
- 	bool bru_found = false;
--	bool sru_found = false;
- 	int ret;
- 
- 	ret = media_entity_enum_init(&ent_enum, &input->entity.vsp1->media_dev);
-@@ -523,6 +522,12 @@ static int vsp1_video_pipeline_build_branch(struct vsp1_pipeline *pipe,
- 		if (entity->type == VSP1_ENTITY_SRU) {
- 			struct vsp1_sru *sru = to_sru(&entity->subdev);
- 
-+			/* SRU can't be chained. */
-+			if (pipe->sru) {
-+				ret = -EPIPE;
-+				goto out;
-+			}
-+
- 			/*
- 			 * Gen3 partition algorithm restricts SRU double-scaled
- 			 * resolution if it is connected after a UDS entity
-@@ -530,7 +535,7 @@ static int vsp1_video_pipeline_build_branch(struct vsp1_pipeline *pipe,
- 			if (vsp1->info->gen == 3 && pipe->uds)
- 				sru->force_identity_mode = true;
- 
--			sru_found = true;
-+			pipe->sru = entity;
- 		}
- 
- 		if (entity->type == VSP1_ENTITY_UDS) {
-@@ -546,7 +551,7 @@ static int vsp1_video_pipeline_build_branch(struct vsp1_pipeline *pipe,
- 			 * SRU on Gen3 will always engage the partition
- 			 * algorithm
- 			 */
--			if (vsp1->info->gen == 3 && sru_found) {
-+			if (vsp1->info->gen == 3 && pipe->sru) {
- 				ret = -EPIPE;
- 				goto out;
- 			}
--- 
-git-series 0.9.1
+date:			Wed Feb  1 05:00:23 CET 2017
+media-tree git hash:	e7b3a2b22176d01db0c3b31d6389ccf542ba1967
+media_build git hash:	3c6ce4ff75f19adf45869e34b376c5b9dee4d50a
+v4l-utils git hash:	9df320dd3d1a498fcd6cdeef7d783da609b526e0
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
+
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-multi: ERRORS
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9-i686: ERRORS
+linux-4.10-rc3-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9-x86_64: ERRORS
+linux-4.10-rc3-x86_64: ERRORS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
