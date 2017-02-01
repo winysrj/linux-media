@@ -1,112 +1,282 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:59670 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751833AbdBOQ6B (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 11:58:01 -0500
-Date: Wed, 15 Feb 2017 17:57:46 +0100
-From: Sebastian Reichel <sre@kernel.org>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, mchehab@kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>,
-        ivo.g.dimitrov.75@gmail.com, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH] omap3isp: add support for CSI1 bus
-Message-ID: <20170215165745.dxabuuvjspof26pg@earth>
-References: <20161228183036.GA13139@amd>
- <20170208083813.GG13854@valkosipuli.retiisi.org.uk>
- <20170208125738.GA23236@amd>
- <10545906.Gxg3yScdu4@avalon>
- <20170215102301.GA29330@amd>
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:49655 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752630AbdBAQEB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 1 Feb 2017 11:04:01 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v6 08/10] [media] st-delta: EOS (End Of Stream) support
+Date: Wed, 1 Feb 2017 17:03:29 +0100
+Message-ID: <1485965011-17388-9-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1485965011-17388-1-git-send-email-hugues.fruchet@st.com>
+References: <1485965011-17388-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="uo3cm3xwix3g5ehc"
-Content-Disposition: inline
-In-Reply-To: <20170215102301.GA29330@amd>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+EOS (End Of Stream) support allows user to get
+all the potential decoded frames remaining in decoder
+pipeline after having reached the end of video bitstream.
+To do so, user calls VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP)
+which will drain the decoder and get the drained frames
+that are then returned to user.
+User is informed of EOS completion in two ways:
+ - dequeue of an empty frame flagged to V4L2_BUF_FLAG_LAST
+ - reception of a V4L2_EVENT_EOS event.
+If, unfortunately, no buffer is available on CAPTURE queue
+to return the empty frame, EOS is delayed till user queue
+one CAPTURE buffer.
 
---uo3cm3xwix3g5ehc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/platform/sti/delta/delta-v4l2.c | 146 +++++++++++++++++++++++++-
+ drivers/media/platform/sti/delta/delta.h      |  23 ++++
+ 2 files changed, 168 insertions(+), 1 deletion(-)
 
-Hi,
+diff --git a/drivers/media/platform/sti/delta/delta-v4l2.c b/drivers/media/platform/sti/delta/delta-v4l2.c
+index 237a938..c959614 100644
+--- a/drivers/media/platform/sti/delta/delta-v4l2.c
++++ b/drivers/media/platform/sti/delta/delta-v4l2.c
+@@ -106,7 +106,8 @@ static void delta_frame_done(struct delta_ctx *ctx, struct delta_frame *frame,
+ 	vbuf->sequence = ctx->frame_num++;
+ 	v4l2_m2m_buf_done(vbuf, err ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+ 
+-	ctx->output_frames++;
++	if (frame->info.size) /* ignore EOS */
++		ctx->output_frames++;
+ }
+ 
+ static void requeue_free_frames(struct delta_ctx *ctx)
+@@ -762,6 +763,135 @@ static int delta_g_selection(struct file *file, void *fh,
+ 	return 0;
+ }
+ 
++static void delta_complete_eos(struct delta_ctx *ctx,
++			       struct delta_frame *frame)
++{
++	struct delta_dev *delta = ctx->dev;
++	const struct v4l2_event ev = {.type = V4L2_EVENT_EOS};
++
++	/*
++	 * Send EOS to user:
++	 * - by returning an empty frame flagged to V4L2_BUF_FLAG_LAST
++	 * - and then send EOS event
++	 */
++
++	/* empty frame */
++	frame->info.size = 0;
++
++	/* set the last buffer flag */
++	frame->flags |= V4L2_BUF_FLAG_LAST;
++
++	/* release frame to user */
++	delta_frame_done(ctx, frame, 0);
++
++	/* send EOS event */
++	v4l2_event_queue_fh(&ctx->fh, &ev);
++
++	dev_dbg(delta->dev, "%s EOS completed\n", ctx->name);
++}
++
++static int delta_try_decoder_cmd(struct file *file, void *fh,
++				 struct v4l2_decoder_cmd *cmd)
++{
++	if (cmd->cmd != V4L2_DEC_CMD_STOP)
++		return -EINVAL;
++
++	if (cmd->flags & V4L2_DEC_CMD_STOP_TO_BLACK)
++		return -EINVAL;
++
++	if (!(cmd->flags & V4L2_DEC_CMD_STOP_IMMEDIATELY) &&
++	    (cmd->stop.pts != 0))
++		return -EINVAL;
++
++	return 0;
++}
++
++static int delta_decoder_stop_cmd(struct delta_ctx *ctx, void *fh)
++{
++	const struct delta_dec *dec = ctx->dec;
++	struct delta_dev *delta = ctx->dev;
++	struct delta_frame *frame = NULL;
++	int ret = 0;
++
++	dev_dbg(delta->dev, "%s EOS received\n", ctx->name);
++
++	if (ctx->state != DELTA_STATE_READY)
++		return 0;
++
++	/* drain the decoder */
++	call_dec_op(dec, drain, ctx);
++
++	/* release to user drained frames */
++	while (1) {
++		frame = NULL;
++		ret = call_dec_op(dec, get_frame, ctx, &frame);
++		if (ret == -ENODATA) {
++			/* no more decoded frames */
++			break;
++		}
++		if (frame) {
++			dev_dbg(delta->dev, "%s drain frame[%d]\n",
++				ctx->name, frame->index);
++
++			/* pop timestamp and mark frame with it */
++			delta_pop_dts(ctx, &frame->dts);
++
++			/* release decoded frame to user */
++			delta_frame_done(ctx, frame, 0);
++		}
++	}
++
++	/* try to complete EOS */
++	ret = delta_get_free_frame(ctx, &frame);
++	if (ret)
++		goto delay_eos;
++
++	/* new frame available, EOS can now be completed */
++	delta_complete_eos(ctx, frame);
++
++	ctx->state = DELTA_STATE_EOS;
++
++	return 0;
++
++delay_eos:
++	/*
++	 * EOS completion from driver is delayed because
++	 * we don't have a free empty frame available.
++	 * EOS completion is so delayed till next frame_queue() call
++	 * to be sure to have a free empty frame available.
++	 */
++	ctx->state = DELTA_STATE_WF_EOS;
++	dev_dbg(delta->dev, "%s EOS delayed\n", ctx->name);
++
++	return 0;
++}
++
++static int delta_decoder_cmd(struct file *file, void *fh,
++			     struct v4l2_decoder_cmd *cmd)
++{
++	struct delta_ctx *ctx = to_ctx(fh);
++	int ret = 0;
++
++	ret = delta_try_decoder_cmd(file, fh, cmd);
++	if (ret)
++		return ret;
++
++	return delta_decoder_stop_cmd(ctx, fh);
++}
++
++static int delta_subscribe_event(struct v4l2_fh *fh,
++				 const struct v4l2_event_subscription *sub)
++{
++	switch (sub->type) {
++	case V4L2_EVENT_EOS:
++		return v4l2_event_subscribe(fh, sub, 2, NULL);
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
+ /* v4l2 ioctl ops */
+ static const struct v4l2_ioctl_ops delta_ioctl_ops = {
+ 	.vidioc_querycap = delta_querycap,
+@@ -782,6 +912,10 @@ static int delta_g_selection(struct file *file, void *fh,
+ 	.vidioc_streamon = v4l2_m2m_ioctl_streamon,
+ 	.vidioc_streamoff = v4l2_m2m_ioctl_streamoff,
+ 	.vidioc_g_selection = delta_g_selection,
++	.vidioc_try_decoder_cmd = delta_try_decoder_cmd,
++	.vidioc_decoder_cmd = delta_decoder_cmd,
++	.vidioc_subscribe_event = delta_subscribe_event,
++	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
+ 
+ /*
+@@ -1376,6 +1510,16 @@ static void delta_vb2_frame_queue(struct vb2_buffer *vb)
+ 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+ 	struct delta_frame *frame = to_frame(vbuf);
+ 
++	if (ctx->state == DELTA_STATE_WF_EOS) {
++		/* new frame available, EOS can now be completed */
++		delta_complete_eos(ctx, frame);
++
++		ctx->state = DELTA_STATE_EOS;
++
++		/* return, no need to recycle this buffer to decoder */
++		return;
++	}
++
+ 	/* recycle this frame */
+ 	delta_recycle(ctx, frame);
+ }
+diff --git a/drivers/media/platform/sti/delta/delta.h b/drivers/media/platform/sti/delta/delta.h
+index d4a401b..60c07324 100644
+--- a/drivers/media/platform/sti/delta/delta.h
++++ b/drivers/media/platform/sti/delta/delta.h
+@@ -27,11 +27,19 @@
+  *@DELTA_STATE_READY:
+  *	Decoding instance is ready to decode compressed access unit.
+  *
++ *@DELTA_STATE_WF_EOS:
++ *	Decoding instance is waiting for EOS (End Of Stream) completion.
++ *
++ *@DELTA_STATE_EOS:
++ *	EOS (End Of Stream) is completed (signaled to user). Decoding instance
++ *	should then be closed.
+  */
+ enum delta_state {
+ 	DELTA_STATE_WF_FORMAT,
+ 	DELTA_STATE_WF_STREAMINFO,
+ 	DELTA_STATE_READY,
++	DELTA_STATE_WF_EOS,
++	DELTA_STATE_EOS
+ };
+ 
+ /*
+@@ -237,6 +245,7 @@ struct delta_ipc_param {
+  * @get_frame:		get the next decoded frame available, see below
+  * @recycle:		recycle the given frame, see below
+  * @flush:		(optional) flush decoder, see below
++ * @drain:		(optional) drain decoder, see below
+  */
+ struct delta_dec {
+ 	const char *name;
+@@ -371,6 +380,18 @@ struct delta_dec {
+ 	 * decoding logic.
+ 	 */
+ 	int (*flush)(struct delta_ctx *ctx);
++
++	/*
++	 * drain() - drain decoder
++	 * @ctx:	(in) instance
++	 *
++	 * Optional.
++	 * Mark decoder pending frames (decoded but not yet output) as ready
++	 * so that they can be output to client at EOS (End Of Stream).
++	 * get_frame() is to be called in a loop right after drain() to
++	 * get all those pending frames.
++	 */
++	int (*drain)(struct delta_ctx *ctx);
+ };
+ 
+ struct delta_dev;
+@@ -497,6 +518,8 @@ static inline char *frame_type_str(u32 flags)
+ 		return "P";
+ 	if (flags & V4L2_BUF_FLAG_BFRAME)
+ 		return "B";
++	if (flags & V4L2_BUF_FLAG_LAST)
++		return "EOS";
+ 	return "?";
+ }
+ 
+-- 
+1.9.1
 
-On Wed, Feb 15, 2017 at 11:23:01AM +0100, Pavel Machek wrote:
-> It seems csiphy_routing_cfg_3430 is not called at all. I added
-> printks, but they don't trigger. If you have an idea what is going on
-> there, it would help...
-
-You added printk to csiphy_routing_cfg_3630 instead of csiphy_routing_cfg_3=
-430
-and N900 has OMAP3430. Function should be called when you start (or
-stop) using the camera:
-
-csiphy_routing_cfg_3430(...)
-csiphy_routing_cfg(...)
-omap3isp_csiphy_config(...)
-omap3isp_csiphy_acquire(...) & omap3isp_csiphy_release(...)
-ccp2_s_stream(...)
-
--- Sebastian
-
-> diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/=
-platform/omap3isp/ispcsiphy.c
-> index 6b814e1..fe9303a 100644
-> --- a/drivers/media/platform/omap3isp/ispcsiphy.c
-> +++ b/drivers/media/platform/omap3isp/ispcsiphy.c
-> @@ -30,6 +30,8 @@ static void csiphy_routing_cfg_3630(struct isp_csiphy *=
-phy,
->  	u32 reg;
->  	u32 shift, mode;
-> =20
-> +	printk("routing cfg 3630: iface %d, %d\n", iface, ISP_INTERFACE_CCP2B_P=
-HY1);
-> +=09
->  	regmap_read(phy->isp->syscon, phy->isp->syscon_offset, &reg);
-> =20
->  	switch (iface) {
-> @@ -74,6 +76,9 @@ static void csiphy_routing_cfg_3430(struct isp_csiphy *=
-phy, u32 iface, bool on,
->  	u32 csirxfe =3D OMAP343X_CONTROL_CSIRXFE_PWRDNZ
->  		| OMAP343X_CONTROL_CSIRXFE_RESET;
-> =20
-> +	/* FIXME: can this be used instead of if (isp->revision) in ispccp2.c? =
-*/
-> +=09
-> +	printk("routing cfg: iface %d, %d\n", iface, ISP_INTERFACE_CCP2B_PHY1);
->  	/* Only the CCP2B on PHY1 is configurable. */
->  	if (iface !=3D ISP_INTERFACE_CCP2B_PHY1)
->  		return;
-> @@ -105,6 +110,7 @@ static void csiphy_routing_cfg(struct isp_csiphy *phy,
->  			       enum isp_interface_type iface, bool on,
->  			       bool ccp2_strobe)
->  {
-> +	printk("csiphy_routing_cfg\n");
->  	if (phy->isp->phy_type =3D=3D ISP_PHY_TYPE_3630 && on)
->  		return csiphy_routing_cfg_3630(phy, iface, ccp2_strobe);
->  	if (phy->isp->phy_type =3D=3D ISP_PHY_TYPE_3430)
-
---uo3cm3xwix3g5ehc
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlikiIcACgkQ2O7X88g7
-+pra9w//RdTyzeSxxcsM1aAwTrzQUstxwUOt+dOHn1G+w1h7f0oGnM1E/FiCPk50
-Hsc5yQYn2GOnQ/WnWyemXmTlIZn/FLEdooN86e2VVOpzXbnm7DPOlK3T55jRelTv
-sZHt/eHuq4HRpN3MVs0DM9PiM3yd40v8/W+MeqtekN196h3toohDBAZoZ03YUOWd
-HhkfUdaB3p4xJAkyEzs+5X1A7IfNLBgOIXqWmgwdiky9Kp6JkkyQvjhQt8amfB5G
-cVkPAhJbltHpxYjuX+tccOQpRIDME0a2fj567Ba1F01zKiRvns0o0tBNY3mbyMwM
-gJ/EhuDx/WsT0jhTsTH1thg2R5kAUlv1Ks2YGPTIRFrWfsSyvNTRmE+4Q1Bf6F1A
-zEV+DiFZZIH0BkmwCi1Fv1qy9xgRzKfciMRAmdSLp06gf8vEylUv+SzQgZLMN+kU
-L8x1m/4Od6B6IfNTb3LQWL4eyO8DLuXAwBn+islneXrugsUMAvolNBPtmp1qhO+4
-p0jrY0lCJuPhXwuMtxt5f4t3Ovhs+hzG9TXwyyg9TpXwj7gV96VIp/2KImpUX/Z8
-4os4RouiQIgPrYszZZWK+OzDb8prZ4znVz9UahpesXZYp7X9SGgDmZpuYsa71fKk
-G6gq+WuO2ysk69PXSia8tHkTq0DoJCks02CZBbInncLnW8DPGNY=
-=qu1i
------END PGP SIGNATURE-----
-
---uo3cm3xwix3g5ehc--
