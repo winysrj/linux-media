@@ -1,41 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f193.google.com ([209.85.223.193]:34852 "EHLO
-        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750970AbdBBMLw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2017 07:11:52 -0500
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:36118 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751430AbdBAQDu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 1 Feb 2017 11:03:50 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v6 04/10] [media] MAINTAINERS: add st-delta driver
+Date: Wed, 1 Feb 2017 17:03:25 +0100
+Message-ID: <1485965011-17388-5-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1485965011-17388-1-git-send-email-hugues.fruchet@st.com>
+References: <1485965011-17388-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-In-Reply-To: <CAK8P3a0TMW+GrdbLPqBDKyqXaP-LvYkGfD5bfcW4W6dXMnHy1A@mail.gmail.com>
-References: <20170202113436.690145-1-arnd@arndb.de> <CAK8P3a0TMW+GrdbLPqBDKyqXaP-LvYkGfD5bfcW4W6dXMnHy1A@mail.gmail.com>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 2 Feb 2017 13:11:36 +0100
-Message-ID: <CAK8P3a3W0q8NjZdY9Wc328o6dCwkkod1k0zFqYtrkuvXwO_5dw@mail.gmail.com>
-Subject: Re: [PATCH] [media] staging: bcm2835: mark all symbols as 'static'
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Ray Jui <rjui@broadcom.com>,
-        Scott Branden <sbranden@broadcom.com>,
-        bcm-kernel-feedback-list@broadcom.com,
-        Stephen Warren <swarren@wwwdotorg.org>,
-        Lee Jones <lee@kernel.org>, Eric Anholt <eric@anholt.net>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-rpi-kernel@lists.infradead.org,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 2, 2017 at 1:04 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Thu, Feb 2, 2017 at 12:34 PM, Arnd Bergmann <arnd@arndb.de> wrote:
->> I got a link error in allyesconfig:
->> Fixes: 7b3ad5abf027 ("staging: Import the BCM2835 MMAL-based V4L2 camera driver.")
->> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
->
-> Please disregard this patch version, it's broken.
+Add entry for the STMicroelectronics DELTA driver.
 
-Too late, I see it's already applied, I'll send a follow-up to revert
-the first hunk.
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ MAINTAINERS | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-    Arnd
+diff --git a/MAINTAINERS b/MAINTAINERS
+index cfff2c9..38cc652 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2429,6 +2429,14 @@ W:	https://linuxtv.org
+ S:	Supported
+ F:	drivers/media/platform/sti/bdisp
+ 
++DELTA ST MEDIA DRIVER
++M:	Hugues Fruchet <hugues.fruchet@st.com>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++W:	https://linuxtv.org
++S:	Supported
++F:	drivers/media/platform/sti/delta
++
+ BEFS FILE SYSTEM
+ M:	Luis de Bethencourt <luisbg@osg.samsung.com>
+ M:	Salah Triki <salah.triki@gmail.com>
+-- 
+1.9.1
+
