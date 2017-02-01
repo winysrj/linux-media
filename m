@@ -1,177 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f50.google.com ([74.125.83.50]:33626 "EHLO
-        mail-pg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932131AbdBGSUu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2017 13:20:50 -0500
-Received: by mail-pg0-f50.google.com with SMTP id 204so40755700pge.0
-        for <linux-media@vger.kernel.org>; Tue, 07 Feb 2017 10:20:50 -0800 (PST)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: Sekhar Nori <nsekhar@ti.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44692
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753619AbdBAUGE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Feb 2017 15:06:04 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Thibault Saunier <thibault.saunier@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Lad Prabhakar <prabhakar.csengg@gmail.com>,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 10/10] ARM: davinci: add pdata-quirks for da850-evm vpif display
-References: <1486485683-11427-1-git-send-email-bgolaszewski@baylibre.com>
-        <1486485683-11427-11-git-send-email-bgolaszewski@baylibre.com>
-Date: Tue, 07 Feb 2017 10:20:48 -0800
-In-Reply-To: <1486485683-11427-11-git-send-email-bgolaszewski@baylibre.com>
-        (Bartosz Golaszewski's message of "Tue, 7 Feb 2017 17:41:23 +0100")
-Message-ID: <m2k291kglb.fsf@baylibre.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        linux-samsung-soc@vger.kernel.org,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        linux-media@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        Ulf Hansson <ulf.hansson@linaro.org>
+Subject: [PATCH 2/2] [media] exynos-gsc: Add support for NV{16,21,61}M pixel formats
+Date: Wed,  1 Feb 2017 17:05:22 -0300
+Message-Id: <1485979523-32404-3-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1485979523-32404-1-git-send-email-javier@osg.samsung.com>
+References: <1485979523-32404-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Bartosz Golaszewski <bgolaszewski@baylibre.com> writes:
+From: Thibault Saunier <thibault.saunier@osg.samsung.com>
 
-> Similarly to vpif capture: we need to register the vpif display driver
-> and the corresponding adv7343 encoder in pdata-quirks as the DT
-> support is not complete.
+Those are useful formats that should be handled.
 
-To add a bit more detail to the changelog:  DT support is not complete
-since there isn't currently a way to define the output_routing in the
-V4L2 drivers (c.f. s_routing) via DT.
+Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+---
 
-minor nit below, otherwise
+ drivers/media/platform/exynos-gsc/gsc-core.c | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
-Reviewed-by: Kevin Hilman <khilman@baylibre.com>
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index a846659ae5c1..eff636d4502b 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -112,6 +112,15 @@ static const struct gsc_fmt gsc_formats[] = {
+ 		.num_planes	= 1,
+ 		.num_comp	= 2,
+ 	}, {
++		.name		= "YUV 4:2:2 non-contig, Y/CbCr",
++		.pixelformat	= V4L2_PIX_FMT_NV16M,
++		.depth		= { 8, 8 },
++		.color		= GSC_YUV422,
++		.yorder		= GSC_LSB_Y,
++		.corder		= GSC_CBCR,
++		.num_planes	= 2,
++		.num_comp	= 2,
++	}, {
+ 		.name		= "YUV 4:2:2 planar, Y/CrCb",
+ 		.pixelformat	= V4L2_PIX_FMT_NV61,
+ 		.depth		= { 16 },
+@@ -121,6 +130,15 @@ static const struct gsc_fmt gsc_formats[] = {
+ 		.num_planes	= 1,
+ 		.num_comp	= 2,
+ 	}, {
++		.name		= "YUV 4:2:2 non-contig, Y/CrCb",
++		.pixelformat	= V4L2_PIX_FMT_NV61M,
++		.depth		= { 8, 8 },
++		.color		= GSC_YUV422,
++		.yorder		= GSC_LSB_Y,
++		.corder		= GSC_CRCB,
++		.num_planes	= 2,
++		.num_comp	= 2,
++	}, {
+ 		.name		= "YUV 4:2:0 planar, YCbCr",
+ 		.pixelformat	= V4L2_PIX_FMT_YUV420,
+ 		.depth		= { 12 },
+@@ -158,6 +176,15 @@ static const struct gsc_fmt gsc_formats[] = {
+ 		.num_planes	= 1,
+ 		.num_comp	= 2,
+ 	}, {
++		.name		= "YUV 4:2:0 non-contig. 2p, Y/CrCb",
++		.pixelformat	= V4L2_PIX_FMT_NV21M,
++		.depth		= { 8, 4 },
++		.color		= GSC_YUV420,
++		.yorder		= GSC_LSB_Y,
++		.corder		= GSC_CRCB,
++		.num_planes	= 2,
++		.num_comp	= 2,
++	}, {
+ 		.name		= "YUV 4:2:0 non-contig. 2p, Y/CbCr",
+ 		.pixelformat	= V4L2_PIX_FMT_NV12M,
+ 		.depth		= { 8, 4 },
+-- 
+2.7.4
 
-> ---
->  arch/arm/mach-davinci/pdata-quirks.c | 86 +++++++++++++++++++++++++++++++++++-
->  1 file changed, 85 insertions(+), 1 deletion(-)
->
-> diff --git a/arch/arm/mach-davinci/pdata-quirks.c b/arch/arm/mach-davinci/pdata-quirks.c
-> index 09f62ac..0a55546 100644
-> --- a/arch/arm/mach-davinci/pdata-quirks.c
-> +++ b/arch/arm/mach-davinci/pdata-quirks.c
-> @@ -9,13 +9,17 @@
->   */
->  #include <linux/kernel.h>
->  #include <linux/of_platform.h>
-> +#include <linux/gpio.h>
->  
->  #include <media/i2c/tvp514x.h>
-> +#include <media/i2c/adv7343.h>
->  
->  #include <mach/common.h>
->  #include <mach/da8xx.h>
->  #include <mach/mux.h>
->  
-> +#define DA850_EVM_UI_EXP_SEL_VPIF_DISP 5
-> +
->  struct pdata_init {
->  	const char *compatible;
->  	void (*fn)(void);
-> @@ -107,7 +111,78 @@ static struct vpif_capture_config da850_vpif_capture_config = {
->  	},
->  	.card_name = "DA850/OMAP-L138 Video Capture",
->  };
-> +#endif /* IS_ENABLED(CONFIG_VIDEO_DAVINCI_VPIF_CAPTURE) */
-> +
-> +#if defined(CONFIG_DA850_UI_SD_VIDEO_PORT)
-
-Why not IS_ENABLED(CONFIG_VIDEO_DAVINCI_VPIF_CAPTURE) also here?
-
-> +static void vpif_evm_display_setup(void)
-> +{
-> +	int gpio = DAVINCI_N_GPIO + DA850_EVM_UI_EXP_SEL_VPIF_DISP, ret;
-> +
-> +	ret = gpio_request(gpio, "sel_c");
-> +	if (ret) {
-> +		pr_warn("Cannot open UI expander pin %d\n", gpio);
-> +		return;
-> +	}
-> +
-> +	gpio_direction_output(gpio, 0);
-> +}
-> +
-> +static struct adv7343_platform_data adv7343_pdata = {
-> +	.mode_config = {
-> +		.dac = { 1, 1, 1 },
-> +	},
-> +	.sd_config = {
-> +		.sd_dac_out = { 1 },
-> +	},
-> +};
-> +
-> +static struct vpif_subdev_info da850_vpif_subdev[] = {
-> +	{
-> +		.name = "adv7343",
-> +		.board_info = {
-> +			I2C_BOARD_INFO("adv7343", 0x2a),
-> +			.platform_data = &adv7343_pdata,
-> +		},
-> +	},
-> +};
->  
-> +static const struct vpif_output da850_ch0_outputs[] = {
-> +	{
-> +		.output = {
-> +			.index = 0,
-> +			.name = "Composite",
-> +			.type = V4L2_OUTPUT_TYPE_ANALOG,
-> +			.capabilities = V4L2_OUT_CAP_STD,
-> +			.std = V4L2_STD_ALL,
-> +		},
-> +		.subdev_name = "adv7343",
-> +		.output_route = ADV7343_COMPOSITE_ID,
-> +	},
-> +	{
-> +		.output = {
-> +			.index = 1,
-> +			.name = "S-Video",
-> +			.type = V4L2_OUTPUT_TYPE_ANALOG,
-> +			.capabilities = V4L2_OUT_CAP_STD,
-> +			.std = V4L2_STD_ALL,
-> +		},
-> +		.subdev_name = "adv7343",
-> +		.output_route = ADV7343_SVIDEO_ID,
-> +	},
-> +};
-> +
-> +static struct vpif_display_config da850_vpif_display_config = {
-> +	.subdevinfo   = da850_vpif_subdev,
-> +	.subdev_count = ARRAY_SIZE(da850_vpif_subdev),
-> +	.chan_config[0] = {
-> +		.outputs = da850_ch0_outputs,
-> +		.output_count = ARRAY_SIZE(da850_ch0_outputs),
-> +	},
-> +	.card_name    = "DA850/OMAP-L138 Video Display",
-> +};
-> +#endif /* defined(CONFIG_DA850_UI_SD_VIDEO_PORT) */
-> +
-> +#if IS_ENABLED(CONFIG_VIDEO_DAVINCI_VPIF_CAPTURE) || defined(CONFIG_DA850_UI_SD_VIDEO_PORT)
->  static void __init da850_vpif_legacy_init(void)
->  {
->  	int ret;
-> @@ -120,8 +195,17 @@ static void __init da850_vpif_legacy_init(void)
->  	if (ret)
->  		pr_warn("%s: VPIF capture setup failed: %d\n",
->  			__func__, ret);
-> +
-> +	/* LCDK doesn't support VPIF display */
-> +	if (of_machine_is_compatible("ti,da850-evm")) {
-> +		vpif_evm_display_setup();
-> +		ret = da850_register_vpif_display(&da850_vpif_display_config);
-> +		if (ret)
-> +			pr_warn("%s: VPIF display setup failed: %d\n",
-> +				__func__, ret);
-> +	}
->  }
-> -#endif
-> +#endif /* IS_ENABLED(CONFIG_VIDEO_DAVINCI_VPIF_CAPTURE) || defined(CONFIG_DA850_UI_SD_VIDEO_PORT) */
->  
->  static void pdata_quirks_check(struct pdata_init *quirks)
->  {
