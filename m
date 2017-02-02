@@ -1,77 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:43716 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750778AbdBKXXB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Feb 2017 18:23:01 -0500
-Date: Sun, 12 Feb 2017 00:22:58 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari <sakari.ailus@iki.fi>
-Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] smiapp: add CCP2 support
-Message-ID: <20170211232258.GA11232@amd>
-References: <20170208131127.GA29237@amd>
- <20170211220752.zr3j7irpxl42ewo3@ihha.localdomain>
+Received: from ns.mm-sol.com ([37.157.136.199]:56389 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751036AbdBBQBZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 2 Feb 2017 11:01:25 -0500
+Subject: Re: [PATCH v7 2/2] media: Add a driver for the ov5645 camera sensor.
+To: Todor Tomov <todor.tomov@linaro.org>, robh+dt@kernel.org,
+        pawel.moll@arm.com, mark.rutland@arm.com,
+        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+        mchehab@osg.samsung.com, hverkuil@xs4all.nl, geert@linux-m68k.org,
+        matrandg@cisco.com, sakari.ailus@iki.fi,
+        linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+References: <1479119076-26363-1-git-send-email-todor.tomov@linaro.org>
+ <1479119076-26363-3-git-send-email-todor.tomov@linaro.org>
+From: Todor Tomov <ttomov@mm-sol.com>
+Message-ID: <5893559F.7040607@mm-sol.com>
+Date: Thu, 2 Feb 2017 17:51:59 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="9amGYk9869ThD9tj"
-Content-Disposition: inline
-In-Reply-To: <20170211220752.zr3j7irpxl42ewo3@ihha.localdomain>
+In-Reply-To: <1479119076-26363-3-git-send-email-todor.tomov@linaro.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
---9amGYk9869ThD9tj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Just to point it here - there is one more one-line correction needed below:
 
-Hi!
+On 11/14/2016 12:24 PM, Todor Tomov wrote:
+> The ov5645 sensor from Omnivision supports up to 2592x1944
+> and CSI2 interface.
+> 
+> The driver adds support for the following modes:
+> - 1280x960
+> - 1920x1080
+> - 2592x1944
+> 
+> Output format is packed 8bit UYVY.
+> 
+> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+> ---
+>  drivers/media/i2c/Kconfig  |   12 +
+>  drivers/media/i2c/Makefile |    1 +
+>  drivers/media/i2c/ov5645.c | 1352 ++++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 1365 insertions(+)
+>  create mode 100644 drivers/media/i2c/ov5645.c
+> 
 
-> Besides this patch, what else is needed? The CSI-2 / CCP2 support is
-> missing in V4L2 OF at least. It'd be better to have this all in the same
-> set.
+<snip>
 
-Quite a lot of is needed.
+> diff --git a/drivers/media/i2c/ov5645.c b/drivers/media/i2c/ov5645.c
+> new file mode 100644
+> index 0000000..2b33bc6
+> --- /dev/null
+> +++ b/drivers/media/i2c/ov5645.c
+> @@ -0,0 +1,1352 @@
 
-> I pushed the two DT patches here:
->=20
-> <URL:https://git.linuxtv.org/sailus/media_tree.git/commit/?h=3Dccp2>
+<snip>
 
-Thanks for a branch. If you could the two patches that look ok there,
-it would mean less work for me, I could just mark those two as applied
-here.
+> +static int ov5645_entity_init_cfg(struct v4l2_subdev *subdev,
+> +				  struct v4l2_subdev_pad_config *cfg)
+> +{
+> +	struct v4l2_subdev_format fmt = { 0 };
+> +	struct ov5645 *ov5645 = to_ov5645(subdev);
 
-Core changes for CSI2 support are needed.
+This variable is unused and should be removed.
 
-There are core changes in notifier locking, and subdev support.
+> +
+> +	fmt.which = cfg ? V4L2_SUBDEV_FORMAT_TRY : V4L2_SUBDEV_FORMAT_ACTIVE;
+> +	fmt.format.width = 1920;
+> +	fmt.format.height = 1080;
+> +
+> +	ov5645_set_format(subdev, cfg, &fmt);
+> +
+> +	return 0;
+> +}
 
-I need video-bus-switch, at least for testing.
+<snip>
 
-I need subdev support for omap3isp, so that we can attach flash and
-focus devices.
-
-Finally dts support on N900 can be enabled.
-
-Thanks,
-
-								Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---9amGYk9869ThD9tj
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlifnNIACgkQMOfwapXb+vL4yQCeJZC3jF8ZTPRe+eE3OqeP6Qhi
-/qUAn1kAZhKI9RP/QjRFxMQVCTil2Tjq
-=EQw9
------END PGP SIGNATURE-----
-
---9amGYk9869ThD9tj--
+-- 
+Best regards,
+Todor Tomov
