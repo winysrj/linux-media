@@ -1,96 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:54152 "EHLO
-        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751306AbdB0DOT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 26 Feb 2017 22:14:19 -0500
-Received: from epcas5p3.samsung.com (unknown [182.195.41.41])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0OM002PYSJNSFH80@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 27 Feb 2017 12:14:16 +0900 (KST)
-Subject: Re: [PATCH 2/2] media: s5p-mfc: fix MMAP of mfc buffer during reqbufs
-To: Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org
-Cc: kyungmin.park@samsung.com, jtp.park@samsung.com,
-        mchehab@kernel.org, mchehab@osg.samsung.com,
-        hans.verkuil@cisco.com, krzk@kernel.org, kgene@kernel.org,
-        Smitha T Murthy <smitha.t@samsung.com>
-From: "pankaj.dubey" <pankaj.dubey@samsung.com>
-Message-id: <384899ef-4e7e-d7f5-8f4f-ef2f023cb681@samsung.com>
-Date: Mon, 27 Feb 2017 08:47:18 +0530
-MIME-version: 1.0
-In-reply-to: <81c11e69-b7eb-ccb5-a377-2848ec551274@osg.samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
-References: <1481888915-19624-1-git-send-email-pankaj.dubey@samsung.com>
- <1481888915-19624-3-git-send-email-pankaj.dubey@samsung.com>
- <CGME20170224194302epcas2p2edea64bf7b2fc89ee97b6f5391b2dad0@epcas2p2.samsung.com>
- <81c11e69-b7eb-ccb5-a377-2848ec551274@osg.samsung.com>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:35169 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751052AbdBBATc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Feb 2017 19:19:32 -0500
+Subject: Re: [PATCH v3 00/24] i.MX Media Driver
+To: Philipp Zabel <p.zabel@pengutronix.de>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <1485870854.2932.63.camel@pengutronix.de>
+ <5586b893-bf5c-6133-0789-ccce60626b86@gmail.com>
+ <1485941457.3353.13.camel@pengutronix.de>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <8e577a3f-8d44-9dde-9507-36c3769228b6@gmail.com>
+Date: Wed, 1 Feb 2017 16:19:27 -0800
+MIME-Version: 1.0
+In-Reply-To: <1485941457.3353.13.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Javier,
 
-On Saturday 25 February 2017 01:12 AM, Javier Martinez Canillas wrote:
-> Hello Pankaj,
-> 
-> On 12/16/2016 08:48 AM, Pankaj Dubey wrote:
->> From: Smitha T Murthy <smitha.t@samsung.com>
->>
->> It has been observed on ARM64 based Exynos SoC, if IOMMU is not enabled
->> and we try to use reserved memory for MFC, reqbufs fails with below
->> mentioned error
->> ---------------------------------------------------------------------------
->> V4L2 Codec decoding example application
->> Kamil Debski <k.debski@samsung.com>
->> Copyright 2012 Samsung Electronics Co., Ltd.
->>
->> Opening MFC.
->> (mfc.c:mfc_open:58): MFC Info (/dev/video0): driver="s5p-mfc" \
->> bus_info="platform:12c30000.mfc0" card="s5p-mfc-dec" fd=0x4[
->> 42.339165] Remapping memory failed, error: -6
->>
->> MFC Open Success.
->> (main.c:main:711): Successfully opened all necessary files and devices
->> (mfc.c:mfc_dec_setup_output:103): Setup MFC decoding OUTPUT buffer \
->> size=4194304 (requested=4194304)
->> (mfc.c:mfc_dec_setup_output:120): Number of MFC OUTPUT buffers is 2 \
->> (requested 2)
->>
->> [App] Out buf phy : 0x00000000, virt : 0xffffffff
->> Output Length is = 0x300000
->> Error (mfc.c:mfc_dec_setup_output:145): Failed to MMAP MFC OUTPUT buffer
->> -------------------------------------------------------------------------
->> This is because the device requesting for memory is mfc0.left not the parent mfc0.
->> Hence setting of alloc_devs need to be done only if IOMMU is enabled
->> and in that case both the left and right device is treated as mfc0 only.
->>
-> 
-> I see, so likely you were facing the issue described in patch 1/2 after this
-> patch since the driver doesn't set alloc_devs when IOMMU is disabled, right?
-> 
 
-Yes.
+On 02/01/2017 01:30 AM, Philipp Zabel wrote:
+> On Tue, 2017-01-31 at 17:26 -0800, Steve Longerbeam wrote:
+> [...]
+>>> # Set pad formats
+>>> media-ctl --set-v4l2 "'tc358743 1-000f':0[fmt:UYVY/1920x1080]"
+>>> media-ctl --set-v4l2 "'imx6-mipi-csi2':1[fmt:UYVY2X8/1920x1080]"
+>>> media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY2X8/1920x1080]"
+>>> media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/1920x1080]"
+>>>
+>>> v4l2-ctl -d /dev/video4 -V
+>>> # This still is configured to 640x480, which is inconsistent with
+>>> # the 'ipu1_csi0':2 pad format. The pad set_fmt above should
+>>> # have set this, too.
+>> Because you've only configured the source pads,
+>> and not the sink pads. The ipu_csi source format is
+>> dependent on the sink format - output crop window is
+>> limited by max input sensor frame, and since sink pad is
+>> still at 640x480, output is reduced to that.
+> No, it is set (see below). What happens is that capture_g_fmt_vid_cap
+> just returns the capture devices' priv->vdev.fmt, even if it is
+> incompatible with the connected csi subdevice's output pad format.
+>
+> priv->vdev.fmt was never changed from the default set in
+> imx_media_capture_device_register, because capture_s/try_fmt_vid_cap
+> were not called yet.
 
-> In any case, I guess these patches have been superseded by Marek's series[0]
-> so they are no longer needed?
-> 
+Ah, yep, this is a bug. Need to modify the capture device's
+width/height at .set_fmt() in the subdev's device-node source
+pad (csi and prpenc/vf).
 
-Yes, these patches have been superseded but now by Marek's series.
-I missed to check Marek's series [0] due to some official assignment,
-but we followed up our patch series with Marek, and fix was provided in
-of_reserved_mem.c via patch [1] which has been accepted and merged as
-well. I will try to find out some time and test Marek's patch series [0].
+>> Maybe I'm missing something, is it expected behavior that
+>> a source format should be automatically propagated to
+>> the sink?
+> media-ctl propagates the output pad format to all remote subdevices'
+> input pads for all enabled links:
+>
+> https://git.linuxtv.org/v4l-utils.git/tree/utils/media-ctl/libv4l2subdev.c#n693
 
-[1]: https://patchwork.kernel.org/patch/9482499/
+Ah cool, I wasn't aware media-ctl did this, but it makes sense and
+makes it easier on the user.
 
-Thanks,
-Pankaj Dubey
+Steve
 
-> [0]: https://www.spinics.net/lists/linux-media/msg111156.html
-> 
-> Best regards,
-> 
+>
+>>> v4l2-ctl --list-formats -d /dev/video4
+>>> # This lists all the RGB formats, which it shouldn't. There is
+>>> # no CSC in this pipeline, so we should be limited to YUV formats
+>>> # only.
+>> right, need to fix that. Probably by poking the attached
+>> source subdev (csi or prpenc/vf) for its supported formats.
+> You are right, in bayer/raw mode only one specific format should be
+> listed, depending on the CSI output pad format.
+>
+> regards
+> Philipp
+>
+
