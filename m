@@ -1,81 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34800 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753745AbdBDJIT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 4 Feb 2017 04:08:19 -0500
-Received: by mail-wm0-f67.google.com with SMTP id c85so9818171wmi.1
-        for <linux-media@vger.kernel.org>; Sat, 04 Feb 2017 01:08:19 -0800 (PST)
-Subject: Re: Bug#854100: libdvbv5-0: fails to tune / scan
-To: Marcel Heinz <quisquilia@gmx.de>, 854100@bugs.debian.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <148617570740.6827.6324247760769667383.reportbug@ixtlilton.netz.invalid>
-From: Gregor Jasny <gjasny@googlemail.com>
-Message-ID: <0db3f8d1-0461-5d82-a92d-ecc3cfcfec71@googlemail.com>
-Date: Sat, 4 Feb 2017 10:08:16 +0100
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:35377 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751147AbdBBKhH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 2 Feb 2017 05:37:07 -0500
+From: Patrice CHOTARD <patrice.chotard@st.com>
+To: Peter Griffin <peter.griffin@linaro.org>,
+        Hugues FRUCHET <hugues.fruchet@st.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+        "kernel@stlinux.com" <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [STLinux Kernel] [PATCH v6 04/10] [media] MAINTAINERS: add
+ st-delta driver
+Date: Thu, 2 Feb 2017 10:36:56 +0000
+Message-ID: <05e502ef-b4fc-2233-1a65-b361bcd49d82@st.com>
+References: <1485965011-17388-1-git-send-email-hugues.fruchet@st.com>
+ <1485965011-17388-5-git-send-email-hugues.fruchet@st.com>
+ <20170201182238.GF31988@griffinp-ThinkPad-X1-Carbon-2nd>
+In-Reply-To: <20170201182238.GF31988@griffinp-ThinkPad-X1-Carbon-2nd>
+Content-Language: en-US
+Content-Type: text/plain; charset="Windows-1252"
+Content-ID: <F512A3743B727B4B9EF6499857673FF4@st.com>
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <148617570740.6827.6324247760769667383.reportbug@ixtlilton.netz.invalid>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Peter
 
-On 2/4/17 3:35 AM, Marcel Heinz wrote:
-> After the upgrade from libdvbv5-0 1.10.1-1 to 1.12.2-2, any applications
-> using libdvbv5-0 fail to work with my DVB-S card.
-> 
-> Output with old dvb-tools / libdvbv5-0 1.10.1-1:
-> 
-> |$ dvbv5-scan -l UNIVERSAL /usr/share/dvb/dvb-s/Astra-19.2e
-> |Using LNBf UNIVERSAL
-> |        Europe
-> |        10800 to 11800 MHz and 11600 to 12700 MHz
-> |	 Dual LO, IF = lowband 9750 MHz, highband 10600	MHz
-> |ERROR    command BANDWIDTH_HZ (5) not found during retrieve
-> |Cannot calc frequency shift. Either bandwidth/symbol-rate is unavailable (yet).
-> |Scanning frequency #1 12551500
-> |Lock   (0x1f) Signal= 85,55% C/N= 99,84% postBER= 0
-> | [scan runs normally from then on]
-> 
-> Output with new dvb-tools / libdvbv5-0 1.12.2-2:
-> 
-> |$ dvbv5-scan -l UNIVERSAL /usr/share/dvb/dvb-s/Astra-19.2e
-> |Using LNBf UNIVERSAL
-> |        Europe
-> |        10800 to 11800 MHz and 11600 to 12700 MHz
-> |	 Dual LO, IF = lowband 9750 MHz, highband 10600	MHz
-> |ERROR    command BANDWIDTH_HZ (5) not found during retrieve
-> |Cannot calc frequency shift. Either bandwidth/symbol-rate is unavailable (yet).
-> |Scanning frequency #1 12551500
-> |ERROR    FE_SET_PROPERTY: Invalid argument
-> |ERROR    dvb_fe_set_parms failed: Invalid argument
-> 
-> Similarily, kaffeine fails to tune to any channel, or to do a scan.
-> Other applications not using libdvbv5-0 (mplayer, tvheadend) still
-> work fine with the card.
-> 
-> DVB device is:
-> 
-> |$ dmesg | grep DVB
-> | [    8.641450] DVB: registering new adapter (FlexCop Digital TV device)
-> | [    8.662380] b2c2_flexcop_pci 0000:09:00.0: DVB: registering adapter 0 frontend 0 (Conexant CX24123/CX24109)...
-> | [    8.662664] b2c2-flexcop: initialization of 'Sky2PC/SkyStar 2 DVB-S rev 2.8' at the 'PCI' bus controlled by a 'FlexCopIIb' complete
-> 
-> -- System Information:
-> Debian Release: 9.0
->   APT prefers testing
->   APT policy: (500, 'testing')
-> Architecture: amd64 (x86_64)
-> Foreign Architectures: i386
-> 
-> Kernel: Linux 4.9.0-1-amd64 (SMP w/4 CPU cores)
-> Locale: LANG=de_DE.UTF-8, LC_CTYPE=de_DE.UTF-8 (charmap=UTF-8)
-> Shell: /bin/sh linked to /bin/dash
-> Init: systemd (via /run/systemd/system)
+On 02/01/2017 07:22 PM, Peter Griffin wrote:
+> Hi Hugues,
+>
+> On Wed, 01 Feb 2017, Hugues Fruchet wrote:
+>
+>> Add entry for the STMicroelectronics DELTA driver.
+>>
+>> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+>> ---
+>>  MAINTAINERS | 8 ++++++++
+>>  1 file changed, 8 insertions(+)
+>>
+>> diff --git a/MAINTAINERS b/MAINTAINERS
+>> index cfff2c9..38cc652 100644
+>> --- a/MAINTAINERS
+>> +++ b/MAINTAINERS
+>> @@ -2429,6 +2429,14 @@ W:	https://linuxtv.org
+>>  S:	Supported
+>>  F:	drivers/media/platform/sti/bdisp
+>>
+>> +DELTA ST MEDIA DRIVER
+>> +M:	Hugues Fruchet <hugues.fruchet@st.com>
+>> +L:	linux-media@vger.kernel.org
+>
+> Would be useful to also include kernel@stlinux.com mailing list.
 
-Mauro, do you have an idea why tuning broke?
+This mailing list was expected to be disabled on 31th December as 
+STMicroelectronics stopped the contract with the service provider but 
+..... the mailing list is still alive.
 
-Thanks,
-Gregor
+We are looking for a replacement solution and then we will update the 
+maintainers files
+
+Patrice
+
+>
+> Apart from that:
+>
+> Acked-by: Peter Griffin <peter.griffin@linaro.org>
+>
+>> +T:	git git://linuxtv.org/media_tree.git
+>> +W:	https://linuxtv.org
+>> +S:	Supported
+>> +F:	drivers/media/platform/sti/delta
+>> +
+>>  BEFS FILE SYSTEM
+>>  M:	Luis de Bethencourt <luisbg@osg.samsung.com>
+>>  M:	Salah Triki <salah.triki@gmail.com>
+>
+> _______________________________________________
+> Kernel mailing list
+> Kernel@stlinux.com
+> http://www.stlinux.com/mailman/listinfo/kernel
+>
