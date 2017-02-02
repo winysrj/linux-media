@@ -1,53 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:41986 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751147AbdBBPAM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Feb 2017 10:00:12 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v7 02/10] ARM: dts: STiH407-family: add DELTA dt node
-Date: Thu, 2 Feb 2017 15:59:45 +0100
-Message-ID: <1486047593-18581-3-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1486047593-18581-1-git-send-email-hugues.fruchet@st.com>
-References: <1486047593-18581-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from gofer.mess.org ([80.229.237.210]:40639 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751726AbdBBXOi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 2 Feb 2017 18:14:38 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] [media] mce_kbd: add missing keys from UK layout
+Date: Thu,  2 Feb 2017 23:14:36 +0000
+Message-Id: <1486077276-14156-2-git-send-email-sean@mess.org>
+In-Reply-To: <1486077276-14156-1-git-send-email-sean@mess.org>
+References: <1486077276-14156-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds DT node for STMicroelectronics
-DELTA V4L2 video decoder
+The UK layout of the Microsoft Remote Keyboard has two missing keys:
+the hash key, and the messenger key which is sent using rc6 mce.
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- arch/arm/boot/dts/stih407-family.dtsi | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/media/rc/ir-mce_kbd-decoder.c | 2 +-
+ drivers/media/rc/keymaps/rc-rc6-mce.c | 1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/stih407-family.dtsi b/arch/arm/boot/dts/stih407-family.dtsi
-index c8b2944..c32933a 100644
---- a/arch/arm/boot/dts/stih407-family.dtsi
-+++ b/arch/arm/boot/dts/stih407-family.dtsi
-@@ -1002,5 +1002,15 @@
+diff --git a/drivers/media/rc/ir-mce_kbd-decoder.c b/drivers/media/rc/ir-mce_kbd-decoder.c
+index d809862..5226d51 100644
+--- a/drivers/media/rc/ir-mce_kbd-decoder.c
++++ b/drivers/media/rc/ir-mce_kbd-decoder.c
+@@ -71,7 +71,7 @@ static unsigned char kbd_keycodes[256] = {
+ 	KEY_6,		KEY_7,		KEY_8,		KEY_9,		KEY_0,
+ 	KEY_ENTER,	KEY_ESC,	KEY_BACKSPACE,	KEY_TAB,	KEY_SPACE,
+ 	KEY_MINUS,	KEY_EQUAL,	KEY_LEFTBRACE,	KEY_RIGHTBRACE,	KEY_BACKSLASH,
+-	KEY_RESERVED,	KEY_SEMICOLON,	KEY_APOSTROPHE,	KEY_GRAVE,	KEY_COMMA,
++	KEY_BACKSLASH,	KEY_SEMICOLON,	KEY_APOSTROPHE,	KEY_GRAVE,	KEY_COMMA,
+ 	KEY_DOT,	KEY_SLASH,	KEY_CAPSLOCK,	KEY_F1,		KEY_F2,
+ 	KEY_F3,		KEY_F4,		KEY_F5,		KEY_F6,		KEY_F7,
+ 	KEY_F8,		KEY_F9,		KEY_F10,	KEY_F11,	KEY_F12,
+diff --git a/drivers/media/rc/keymaps/rc-rc6-mce.c b/drivers/media/rc/keymaps/rc-rc6-mce.c
+index ef4006f..5be5675 100644
+--- a/drivers/media/rc/keymaps/rc-rc6-mce.c
++++ b/drivers/media/rc/keymaps/rc-rc6-mce.c
+@@ -86,6 +86,7 @@ static struct rc_map_table rc6_mce[] = {
+ 	{ 0x800f045e, KEY_BLUE },
  
- 			status = "disabled";
- 		};
-+
-+		delta0 {
-+			compatible = "st,st-delta";
-+			clock-names = "delta",
-+				      "delta-st231",
-+				      "delta-flash-promip";
-+			clocks = <&clk_s_c0_flexgen CLK_VID_DMU>,
-+				 <&clk_s_c0_flexgen CLK_ST231_DMU>,
-+				 <&clk_s_c0_flexgen CLK_FLASH_PROMIP>;
-+		};
- 	};
- };
+ 	{ 0x800f0465, KEY_POWER2 },	/* TV Power */
++	{ 0x800f0469, KEY_MESSENGER },
+ 	{ 0x800f046e, KEY_PLAYPAUSE },
+ 	{ 0x800f046f, KEY_PLAYER },	/* Start media application (NEW) */
+ 
 -- 
-1.9.1
+2.9.3
 
