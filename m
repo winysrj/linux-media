@@ -1,39 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:35682 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751702AbdBOWBS (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:62563 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751143AbdBBPAM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 17:01:18 -0500
-Date: Wed, 15 Feb 2017 16:01:10 -0600
-From: Rob Herring <robh@kernel.org>
-To: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: Kevin Hilman <khilman@kernel.org>, Sekhar Nori <nsekhar@ti.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Lad Prabhakar <prabhakar.csengg@gmail.com>,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 01/10] media: dt-bindings: vpif: fix whitespace errors
-Message-ID: <20170215220110.n24xucktzsyyzm4q@rob-hp-laptop>
-References: <1486485683-11427-1-git-send-email-bgolaszewski@baylibre.com>
- <1486485683-11427-2-git-send-email-bgolaszewski@baylibre.com>
+        Thu, 2 Feb 2017 10:00:12 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v7 01/10] Documentation: DT: add bindings for ST DELTA
+Date: Thu, 2 Feb 2017 15:59:44 +0100
+Message-ID: <1486047593-18581-2-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1486047593-18581-1-git-send-email-hugues.fruchet@st.com>
+References: <1486047593-18581-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1486485683-11427-2-git-send-email-bgolaszewski@baylibre.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 07, 2017 at 05:41:14PM +0100, Bartosz Golaszewski wrote:
-> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-> ---
->  Documentation/devicetree/bindings/media/ti,da850-vpif.txt | 12 ++++++------
->  1 file changed, 6 insertions(+), 6 deletions(-)
+This patch adds DT binding documentation for STMicroelectronics
+DELTA V4L2 video decoder.
 
-Acked-by: Rob Herring <robh@kernel.org> 
+Acked-by: Peter Griffin <peter.griffin@linaro.org>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ Documentation/devicetree/bindings/media/st,st-delta.txt | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/st,st-delta.txt
+
+diff --git a/Documentation/devicetree/bindings/media/st,st-delta.txt b/Documentation/devicetree/bindings/media/st,st-delta.txt
+new file mode 100644
+index 0000000..a538ab3
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/st,st-delta.txt
+@@ -0,0 +1,17 @@
++* STMicroelectronics DELTA multi-format video decoder
++
++Required properties:
++- compatible: should be "st,st-delta".
++- clocks: from common clock binding: handle hardware IP needed clocks, the
++  number of clocks may depend on the SoC type.
++  See ../clock/clock-bindings.txt for details.
++- clock-names: names of the clocks listed in clocks property in the same order.
++
++Example:
++	delta0 {
++		compatible = "st,st-delta";
++		clock-names = "delta", "delta-st231", "delta-flash-promip";
++		clocks = <&clk_s_c0_flexgen CLK_VID_DMU>,
++			 <&clk_s_c0_flexgen CLK_ST231_DMU>,
++			 <&clk_s_c0_flexgen CLK_FLASH_PROMIP>;
++	};
+-- 
+1.9.1
+
