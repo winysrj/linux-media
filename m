@@ -1,137 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:36171 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755206AbdBQBdT (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:55495 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750777AbdBBPGJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Feb 2017 20:33:19 -0500
-Subject: Re: [PATCH v4 18/36] media: Add i.MX media core driver
-To: Philipp Zabel <p.zabel@pengutronix.de>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
- <1487211578-11360-19-git-send-email-steve_longerbeam@mentor.com>
- <1487250123.2377.53.camel@pengutronix.de>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <c22dfd68-a41c-08d2-4b8d-c7ee1884ea31@gmail.com>
-Date: Thu, 16 Feb 2017 17:33:14 -0800
+        Thu, 2 Feb 2017 10:06:09 -0500
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: Peter Griffin <peter.griffin@linaro.org>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "kernel@stlinux.com" <kernel@stlinux.com>,
+        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>
+Subject: Re: [STLinux Kernel] [PATCH v6 02/10] ARM: dts: STiH410: add DELTA dt
+ node
+Date: Thu, 2 Feb 2017 15:06:00 +0000
+Message-ID: <3659499c-08ac-396a-0c9f-2e18ee3ec1a1@st.com>
+References: <1485965011-17388-1-git-send-email-hugues.fruchet@st.com>
+ <1485965011-17388-3-git-send-email-hugues.fruchet@st.com>
+ <20170201183716.GJ31988@griffinp-ThinkPad-X1-Carbon-2nd>
+In-Reply-To: <20170201183716.GJ31988@griffinp-ThinkPad-X1-Carbon-2nd>
+Content-Language: en-US
+Content-Type: text/plain; charset="Windows-1252"
+Content-ID: <E17D8E237C2D0D4EB50EEF489E5A0C0D@st.com>
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <1487250123.2377.53.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Peter,
 
+This is now fixed in v7.
 
-On 02/16/2017 05:02 AM, Philipp Zabel wrote:
-> On Wed, 2017-02-15 at 18:19 -0800, Steve Longerbeam wrote:
-<snip>
+Best regards,
+Hugues.
+
+On 02/01/2017 07:37 PM, Peter Griffin wrote:
+> On Wed, 01 Feb 2017, Hugues Fruchet wrote:
+>
+>> This patch adds DT node for STMicroelectronics
+>> DELTA V4L2 video decoder
+>>
+>> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+>> ---
+>>  arch/arm/boot/dts/stih410.dtsi | 10 ++++++++++
+>>  1 file changed, 10 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/stih410.dtsi b/arch/arm/boot/dts/stih410.dtsi
+>> index 281a124..42e070c 100644
+>> --- a/arch/arm/boot/dts/stih410.dtsi
+>> +++ b/arch/arm/boot/dts/stih410.dtsi
+>> @@ -259,5 +259,15 @@
+>>  			clocks = <&clk_sysin>;
+>>  			interrupts = <GIC_SPI 205 IRQ_TYPE_EDGE_RISING>;
+>>  		};
+>> +		delta0 {
+>> +			compatible = "st,st-delta";
+>> +			clock-names = "delta",
+>> +				      "delta-st231",
+>> +				      "delta-flash-promip";
+>> +			clocks = <&clk_s_c0_flexgen CLK_VID_DMU>,
+>> +				 <&clk_s_c0_flexgen CLK_ST231_DMU>,
+>> +				 <&clk_s_c0_flexgen CLK_FLASH_PROMIP>;
+>> +		};
 >> +
->> +- Clean up and move the ov5642 subdev driver to drivers/media/i2c, and
->> +  create the binding docs for it.
 >
-> This is done already, right?
-
-
-I cleaned up ov5640 and moved it to drivers/media/i2c with binding docs,
-but not the ov5642 yet.
-
-
+> I think this node should be in stih407-family.dtsi file?
 >
->> +- The Frame Interval Monitor could be exported to v4l2-core for
->> +  general use.
->> +
->> +- The subdev that is the original source of video data (referred to as
->> +  the "sensor" in the code), is called from various subdevs in the
->> +  pipeline in order to set/query the video standard ({g|s|enum}_std)
->> +  and to get/set the original frame interval from the capture interface
->> +  ([gs]_parm). Instead, the entities that need this info should call its
->> +  direct neighbor, and the neighbor should propagate the call to its
->> +  neighbor in turn if necessary.
+> regards,
 >
-> Especially the [gs]_parm fix is necessary to present userspace with the
-> correct frame interval in case of frame skipping in the CSI.
-
-
-Right, understood. I've added this to list of fixes for version 5.
-
-What a pain though! It means propagating every call to g_frame_interval
-upstream until a subdev "that cares" returns ret == 0 or
-ret != -ENOIOCTLCMD. And that goes for any other chained subdev call
-as well.
-
-I've thought of writing something like a v4l2_chained_subdev_call()
-macro to do this, but it would be a big macro.
-
-
-
-
-
+> Peter.
 >
->> +- At driver load time, the device-tree node that is the original source
->> +  (the "sensor"), is parsed to record its media bus configuration, and
->> +  this info is required in various subdevs to setup the pipeline.
->> +  Laurent Pinchart argues that instead the subdev should call its
->> +  neighbor's g_mbus_config op (which should be propagated if necessary)
->> +  to get this info. However Hans Verkuil is planning to remove the
->> +  g_mbus_config op. For now this driver uses the parsed DT mbus config
->> +  method until this issue is resolved.
->> +
->> diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
->> new file mode 100644
->> index 0000000..e2041ad
->> --- /dev/null
->> +++ b/drivers/staging/media/imx/imx-media-dev.c
-> [...]
->> +static inline u32 pixfmt_to_colorspace(const struct imx_media_pixfmt *fmt)
->> +{
->> +	return (fmt->cs == IPUV3_COLORSPACE_RGB) ?
->> +		V4L2_COLORSPACE_SRGB : V4L2_COLORSPACE_SMPTE170M;
->> +}
->
-> This ...
->
-> [...]
->> +int imx_media_mbus_fmt_to_pix_fmt(struct v4l2_pix_format *pix,
->> +				  struct v4l2_mbus_framefmt *mbus,
->> +				  const struct imx_media_pixfmt *cc)
->> +{
->> +	u32 stride;
->> +
->> +	if (!cc) {
->> +		cc = imx_media_find_format(0, mbus->code, true, false);
->> +		if (!cc)
->> +			return -EINVAL;
->> +	}
->> +
->> +	stride = cc->planar ? mbus->width : (mbus->width * cc->bpp) >> 3;
->> +
->> +	pix->width = mbus->width;
->> +	pix->height = mbus->height;
->> +	pix->pixelformat = cc->fourcc;
->> +	pix->colorspace = pixfmt_to_colorspace(cc);
->
-> ... is not right. The colorspace should be taken from the input pad
-> colorspace everywhere (except for the IC output pad in the future, once
-> that supports changing YCbCr encoding and quantization), not guessed
-> based on the media bus format.
-
-Ok, will fix this to assign pix->colorspace to mbus->colorspace, after
-all the subdevs assign colorspace values to their pads.
-
-
-Steve
