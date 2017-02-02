@@ -1,125 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33288 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751507AbdBLWRE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 12 Feb 2017 17:17:04 -0500
-Date: Mon, 13 Feb 2017 00:16:30 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Thomas Axelsson <Thomas.Axelsson@cybercom.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Device Tree formatting for multiple virtual channels in
- ti-vpe/cal driver?
-Message-ID: <20170212221629.GB16975@valkosipuli.retiisi.org.uk>
-References: <DB5PR0701MB1909024C800EFCDE9AD9C4A588440@DB5PR0701MB1909.eurprd07.prod.outlook.com>
+Received: from gofer.mess.org ([80.229.237.210]:54077 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751508AbdBBXff (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 2 Feb 2017 18:35:35 -0500
+Date: Thu, 2 Feb 2017 23:35:33 +0000
+From: Sean Young <sean@mess.org>
+To: Vincent McIntyre <vincent.mcintyre@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: ir-keytable: infinite loops, segfaults
+Message-ID: <20170202233533.GA14357@gofer.mess.org>
+References: <CAEsFdVNAGexZJSQb6dABq1uXs3wLP+kKsKw-XEUXd4nb_3yf=A@mail.gmail.com>
+ <20161122092043.GA8630@gofer.mess.org>
+ <20161123123851.GB14257@shambles.local>
+ <20161123223419.GA25515@gofer.mess.org>
+ <20161124121253.GA17639@shambles.local>
+ <20161124133459.GA32385@gofer.mess.org>
+ <CAEsFdVPbKm1cDmAynL+-PFC=hQ=+-gAcJ04ykXVM6Y6bappcUA@mail.gmail.com>
+ <20161127193510.GA20548@gofer.mess.org>
+ <20161130090229.GB639@shambles.local>
+ <CAEsFdVOb8tWN=6OfnpdJqb9BZ4s-DARF53zgbyhz-_a0zac0Gg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <DB5PR0701MB1909024C800EFCDE9AD9C4A588440@DB5PR0701MB1909.eurprd07.prod.outlook.com>
+In-Reply-To: <CAEsFdVOb8tWN=6OfnpdJqb9BZ4s-DARF53zgbyhz-_a0zac0Gg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Thomas,
+Hi Vincent,
 
-On Fri, Feb 10, 2017 at 09:34:46AM +0000, Thomas Axelsson wrote:
-> Hi,
+On Thu, Feb 02, 2017 at 10:18:52PM +1100, Vincent McIntyre wrote:
+> On 11/30/16, Vincent McIntyre <vincent.mcintyre@gmail.com> wrote:
+> > On Sun, Nov 27, 2016 at 07:35:10PM +0000, Sean Young wrote:
+> >>
+> >> > I wanted to mention that the IR protocol is still showing as unknown.
+> >> > Is there anything that can be done to sort that out?
+> >>
+> >> It would be nice if that could be sorted out, although that would be
+> >> a separate patch.
+> >>
+> >> So all we know right now is what scancode the IR receiver hardware
+> >> produces but we have no idea what IR protocol is being used. In order to
+> >> figure this out we need a recording of the IR the remote sends, for which
+> >> a different IR receiver is needed. Neither your imon nor your
+> >> dvb_usb_af9035 can do this, something like a mce usb IR receiver would
+> >> be best. Do you have access to one? One with an IR emitter would be
+> >> best.
+> >>
+> >> So with that we can have a recording of the IR the remote sends, and
+> >> with the emitter we can see which IR protocols the IR receiver
+> >> understands.
+> >
+> > Haven't been able to find anything suitable. I would order something
+> > but I won't be able to follow up for several weeks.
+> > I'll ask on the myth list to see if anyone is up for trying this.
+> >
 > 
-> I have a TI AM571x CPU, and I'm trying to add support for multiple MIPI
-> CSI-2 virtual channels per PHY (port) to the ti-vpe/cal.c driver
-> (CAMSS/CAL peripheral, ch. 8 in Datasheet [1]). This CPU can have more
-> contexts (virtual channels) per PHY than what it has DMA handlers. Each
-> PHY may have up to 8 contexts, and there are 2 PHYs, but there are only 8
-> DMA channels in total. It is not required to use DMA to receive data from
-> the context.
-
-Is there a use case for receiving more than eight streams concurrently? I
-have to admit that this does appear quite exotic if 8 would not suffice. How
-does the data end up to the system memory if there's no DMA? PIO...?
-
-What are the limitations otherwise --- how many PHYs can be used
-simultaneously? Are the 8 DMAs shared among all?
-
->  
-> Since it will be very useful to specify which contexts will use DMA and which will 
-> not, the proper place to do this seems to be the device tree.
->  
-> This becomes rather messy though, since it needs to be specified in the device tree 
-> node pointed to by the remote-endpoint field - yet, it's decided by the capabilities 
-> of the master component (in this case the CAL), so the remote-endpoint is a weird 
-> place to put it.
->  
-> I have made an example [2] using the Device Tree example in 
-> Documentation/devicetree/bindings/media/ti-cal.txt (my own comments).
-> In the ar0330_1 endpoint, I have:
-> * Put multiple virtual channels in "reg", as in 
->   Documentation/devicetree/bindings/mipi/dsi/mipi-dsi-bus.txt,
-> * Added "dma-write" for specifying which virtual channels should get written 
->   directly to memory through DMA,
-> * Added "vip" just to show that a Virtual Channel can go somewhere else than 
->   through DMA write.
-> * Added "pix-proc" to show that pixel processing might be applied to some of the 
->   Virtual Channels.
->  
-> What is your advice on how to properly move forward with adding support like this?
+> I bought one of these, but I am not sure how to make the recording:
 > 
-> Thank you in advance.
+> # lsusb -d 1934:5168 -v
 > 
-> Best regards,
-> Thomas Axelsson
->  
-> 
-> [1] http://www.ti.com/lit/gpn/am5716
->  
-> [2]
-> --------------------------------------------------
-> cal: cal@4845b000 {
->     compatible = "ti,dra72-cal";
->     ti,hwmods = "cal";
->  
->     /* snip */
->  
->     ports {
->         #address-cells = <1>;
->         #size-cells = <0>;
->         csi2_0: port@0 {
->             reg = <0>;                         /* PHY index, must match port index */
->             status = "okay";                   /* Enable */
->             endpoint {
->                 slave-mode;
->                 remote-endpoint = <&ar0330_1>;
->             };
->         };
->         csi2_1: port@1 {
->             reg = <1>;                         /* PHY Index */
->         };
->     };
-> };
->  
-> i2c5: i2c@4807c000 {
->     ar0330@10 {
->         compatible = "ti,ar0330";
->         reg = <0x10>;
->         port {
->             #address-cells = <1>;
->             #size-cells = <0>;
->             ar0330_1: endpoint {
->                 reg = <0 1 2>;                 /* Virtual Channels */
->                 dma-write = <0 2>;             /* Virtual Channels that will use 
->                                                   Write DMA */
->                 vip = <1>;                     /* Virtual Channel to send on to 
->                                                   Video Input Port */
->                 pix-proc = <2>;                /* Virtual channels to apply pixel
->                                                   processing on */
->                 clock-lanes = <1>;             /* Clock lane indices */
->                 data-lanes = <0 2 3 4>;        /* Data lane indices */
->                 remote-endpoint = <&csi2_0>;
->             };
->         };
->     };
-> };
+> Bus 008 Device 003: ID 1934:5168 Feature Integration Technology Inc.
+> (Fintek) F71610A or F71612A Consumer Infrared Receiver/Transceiver
+-snip-
+> Poking around I see lirc has an irrecord program. Is that what I need?
 
--- 
-Kind regards,
+That's great. There are a couple of ways of doing this, and none of them
+is straightforward. It's a bit of reading tea leaves (that's one of the
+motivations for my lirc-scancodes patches, but I digress).
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Method 1:
+echo "+rc-5 +nec +rc-6 +jvc +sony +rc-5-sz +sanyo +sharp +xmp" > /sys/class/rc/rc3/protocols
+echo 1 > /sys/module/rc_core/parameters/debug
+journal -f -k 
+# press button on remote
+
+Now look for "scancode" somewhere in there.
+
+Method 2:
+Either use lirc's mode2 or "ir-ctl -r -d /dev/lircX" (from v4l-utils 1.12),
+and post the output here.
+
+Thanks!
+
+Sean
