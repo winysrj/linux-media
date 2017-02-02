@@ -1,76 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f176.google.com ([74.125.82.176]:34168 "EHLO
-        mail-ot0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751808AbdBMSf5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 13:35:57 -0500
-Received: by mail-ot0-f176.google.com with SMTP id f9so75112209otd.1
-        for <linux-media@vger.kernel.org>; Mon, 13 Feb 2017 10:35:57 -0800 (PST)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: Bartosz Golaszewski <bgolaszewski@baylibre.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Lad Prabhakar <prabhakar.csengg@gmail.com>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 08/10] ARM: davinci: fix the DT boot on da850-evm
-References: <1486485683-11427-1-git-send-email-bgolaszewski@baylibre.com>
-        <1486485683-11427-9-git-send-email-bgolaszewski@baylibre.com>
-        <m2fujpkgkg.fsf@baylibre.com>
-        <4574d1c3-c169-b158-dba6-f1965a1056b0@ti.com>
-Date: Mon, 13 Feb 2017 10:35:55 -0800
-In-Reply-To: <4574d1c3-c169-b158-dba6-f1965a1056b0@ti.com> (Sekhar Nori's
-        message of "Thu, 9 Feb 2017 20:53:02 +0530")
-Message-ID: <m2shnidjlg.fsf@baylibre.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mout.kundenserver.de ([212.227.126.187]:51834 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751394AbdBBOyN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2017 09:54:13 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 4/4] [media] mxl111sf: reduce stack usage in init function
+Date: Thu,  2 Feb 2017 15:53:07 +0100
+Message-Id: <20170202145318.3803805-4-arnd@arndb.de>
+In-Reply-To: <20170202145318.3803805-1-arnd@arndb.de>
+References: <20170202145318.3803805-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sekhar Nori <nsekhar@ti.com> writes:
+mxl111sf uses a lot of kernel stack memory as it puts an i2c_client
+structure on the stack:
 
-> On Tuesday 07 February 2017 11:51 PM, Kevin Hilman wrote:
->> Bartosz Golaszewski <bgolaszewski@baylibre.com> writes:
->> 
->>> When we enable vpif capture on the da850-evm we hit a BUG_ON() because
->>> the i2c adapter can't be found. The board file boot uses i2c adapter 1
->>> but in the DT mode it's actually adapter 0. Drop the problematic lines.
->>>
->>> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
->>> ---
->>>  arch/arm/mach-davinci/pdata-quirks.c | 4 ----
->>>  1 file changed, 4 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-davinci/pdata-quirks.c b/arch/arm/mach-davinci/pdata-quirks.c
->>> index 94948c1..09f62ac 100644
->>> --- a/arch/arm/mach-davinci/pdata-quirks.c
->>> +++ b/arch/arm/mach-davinci/pdata-quirks.c
->>> @@ -116,10 +116,6 @@ static void __init da850_vpif_legacy_init(void)
->>>  	if (of_machine_is_compatible("ti,da850-lcdk"))
->>>  		da850_vpif_capture_config.subdev_count = 1;
->>>  
->>> -	/* EVM (UI card) uses i2c adapter 1 (not default: zero) */
->>> -	if (of_machine_is_compatible("ti,da850-evm"))
->>> -		da850_vpif_capture_config.i2c_adapter_id = 1;
->>> -
->> 
->> oops, my bad.
->> 
->> Acked-by: Kevin Hilman <khilman@baylibre.com>
->
-> The offending code is not in my master branch. Since its almost certain
-> that VPIF platform support is going to wait for v4.12, can you or Kevin
-> please update Kevin's original patches with these fixes rolled in?
+drivers/media/usb/dvb-usb-v2/mxl111sf.c: In function 'mxl111sf_init':
+drivers/media/usb/dvb-usb-v2/mxl111sf.c:953:1: error: the frame size of 1248 bytes is larger than 1152 bytes [-Werror=frame-larger-than=]
 
-I'm folding this into the original patch.
+We can avoid doing this by open-coding the call to i2c_transfer()
+instead of calling tveeprom_read(), and not passing an i2c_client
+pointer to tveeprom_hauppauge_analog(), which would ignore that
+anyway.
 
-Kevin
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/media/usb/dvb-usb-v2/mxl111sf.c | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.c b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+index 80c635980526..60bc5cc9a483 100644
+--- a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
++++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+@@ -919,7 +919,12 @@ static int mxl111sf_init(struct dvb_usb_device *d)
+ 	struct mxl111sf_state *state = d_to_priv(d);
+ 	int ret;
+ 	static u8 eeprom[256];
+-	struct i2c_client c;
++	u8 reg = 0;
++	struct i2c_msg msg[2] = {
++		{ .addr = 0xa0 >> 1, .len = 1, .buf = &reg },
++		{ .addr = 0xa0 >> 1, .flags = I2C_M_RD,
++		  .len = sizeof(eeprom), .buf = eeprom },
++	};
+ 
+ 	ret = get_chip_info(state);
+ 	if (mxl_fail(ret))
+@@ -930,13 +935,10 @@ static int mxl111sf_init(struct dvb_usb_device *d)
+ 	if (state->chip_rev > MXL111SF_V6)
+ 		mxl111sf_config_pin_mux_modes(state, PIN_MUX_TS_SPI_IN_MODE_1);
+ 
+-	c.adapter = &d->i2c_adap;
+-	c.addr = 0xa0 >> 1;
+-
+-	ret = tveeprom_read(&c, eeprom, sizeof(eeprom));
++	ret = i2c_transfer(&d->i2c_adap, msg, 2);
+ 	if (mxl_fail(ret))
+ 		return 0;
+-	tveeprom_hauppauge_analog(&c, &state->tv, (0x84 == eeprom[0xa0]) ?
++	tveeprom_hauppauge_analog(NULL, &state->tv, (0x84 == eeprom[0xa0]) ?
+ 			eeprom + 0xa0 : eeprom + 0x80);
+ #if 0
+ 	switch (state->tv.model) {
+-- 
+2.9.0
+
