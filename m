@@ -1,58 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:32871 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750970AbdBBMEg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2017 07:04:36 -0500
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:55523 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751143AbdBBPAb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 2 Feb 2017 10:00:31 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v7 06/10] [media] st-delta: add memory allocator helper functions
+Date: Thu, 2 Feb 2017 15:59:49 +0100
+Message-ID: <1486047593-18581-7-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1486047593-18581-1-git-send-email-hugues.fruchet@st.com>
+References: <1486047593-18581-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-In-Reply-To: <20170202113436.690145-1-arnd@arndb.de>
-References: <20170202113436.690145-1-arnd@arndb.de>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 2 Feb 2017 13:04:34 +0100
-Message-ID: <CAK8P3a0TMW+GrdbLPqBDKyqXaP-LvYkGfD5bfcW4W6dXMnHy1A@mail.gmail.com>
-Subject: Re: [PATCH] [media] staging: bcm2835: mark all symbols as 'static'
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Ray Jui <rjui@broadcom.com>,
-        Scott Branden <sbranden@broadcom.com>,
-        bcm-kernel-feedback-list@broadcom.com,
-        Stephen Warren <swarren@wwwdotorg.org>,
-        Lee Jones <lee@kernel.org>, Eric Anholt <eric@anholt.net>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-rpi-kernel@lists.infradead.org,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 2, 2017 at 12:34 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> I got a link error in allyesconfig:
->
-> drivers/staging/media/platform/bcm2835/bcm2835-camera.o: In function `vidioc_enum_framesizes':
-> bcm2835-camera.c:(.text.vidioc_enum_framesizes+0x0): multiple definition of `vidioc_enum_framesizes'
-> drivers/media/platform/vivid/vivid-vid-cap.o:vivid-vid-cap.c:(.text.vidioc_enum_framesizes+0x0): first defined here
->
-> While both drivers are equally at fault for this problem, the bcm2835 one was
-> just added and is easier to fix, as it is only one file, and none of its symbols
-> need to be globally visible. This marks the three global symbols as static.
->
-> Fixes: 7b3ad5abf027 ("staging: Import the BCM2835 MMAL-based V4L2 camera driver.")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Helper functions used by decoder back-ends to allocate
+physically contiguous memory required by hardware video
+decoder.
 
-Please disregard this patch version, it's broken.
+Acked-by: Peter Griffin <peter.griffin@linaro.org>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/platform/sti/delta/Makefile    |  2 +-
+ drivers/media/platform/sti/delta/delta-mem.c | 51 ++++++++++++++++++++++++++++
+ drivers/media/platform/sti/delta/delta-mem.h | 14 ++++++++
+ drivers/media/platform/sti/delta/delta.h     |  8 +++++
+ 4 files changed, 74 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/platform/sti/delta/delta-mem.c
+ create mode 100644 drivers/media/platform/sti/delta/delta-mem.h
 
-> @@ -50,7 +50,7 @@ MODULE_AUTHOR("Vincent Sanders");
->  MODULE_LICENSE("GPL");
->  MODULE_VERSION(BM2835_MMAL_VERSION);
->
-> -int bcm2835_v4l2_debug;
-> +static int bcm2835_v4l2_debug;
->  module_param_named(debug, bcm2835_v4l2_debug, int, 0644);
->  MODULE_PARM_DESC(bcm2835_v4l2_debug, "Debug level 0-2");
->
+diff --git a/drivers/media/platform/sti/delta/Makefile b/drivers/media/platform/sti/delta/Makefile
+index 467519e..93a3037 100644
+--- a/drivers/media/platform/sti/delta/Makefile
++++ b/drivers/media/platform/sti/delta/Makefile
+@@ -1,2 +1,2 @@
+ obj-$(CONFIG_VIDEO_STI_DELTA_DRIVER) := st-delta.o
+-st-delta-y := delta-v4l2.o
++st-delta-y := delta-v4l2.o delta-mem.o
+diff --git a/drivers/media/platform/sti/delta/delta-mem.c b/drivers/media/platform/sti/delta/delta-mem.c
+new file mode 100644
+index 0000000..d7b53d3
+--- /dev/null
++++ b/drivers/media/platform/sti/delta/delta-mem.c
+@@ -0,0 +1,51 @@
++/*
++ * Copyright (C) STMicroelectronics SA 2015
++ * Author: Hugues Fruchet <hugues.fruchet@st.com> for STMicroelectronics.
++ * License terms:  GNU General Public License (GPL), version 2
++ */
++
++#include "delta.h"
++#include "delta-mem.h"
++
++int hw_alloc(struct delta_ctx *ctx, u32 size, const char *name,
++	     struct delta_buf *buf)
++{
++	struct delta_dev *delta = ctx->dev;
++	dma_addr_t dma_addr;
++	void *addr;
++	unsigned long attrs = DMA_ATTR_WRITE_COMBINE;
++
++	addr = dma_alloc_attrs(delta->dev, size, &dma_addr,
++			       GFP_KERNEL | __GFP_NOWARN, attrs);
++	if (!addr) {
++		dev_err(delta->dev,
++			"%s hw_alloc:dma_alloc_coherent failed for %s (size=%d)\n",
++			ctx->name, name, size);
++		ctx->sys_errors++;
++		return -ENOMEM;
++	}
++
++	buf->size = size;
++	buf->paddr = dma_addr;
++	buf->vaddr = addr;
++	buf->name = name;
++	buf->attrs = attrs;
++
++	dev_dbg(delta->dev,
++		"%s allocate %d bytes of HW memory @(virt=0x%p, phy=0x%pad): %s\n",
++		ctx->name, size, buf->vaddr, &buf->paddr, buf->name);
++
++	return 0;
++}
++
++void hw_free(struct delta_ctx *ctx, struct delta_buf *buf)
++{
++	struct delta_dev *delta = ctx->dev;
++
++	dev_dbg(delta->dev,
++		"%s     free %d bytes of HW memory @(virt=0x%p, phy=0x%pad): %s\n",
++		ctx->name, buf->size, buf->vaddr, &buf->paddr, buf->name);
++
++	dma_free_attrs(delta->dev, buf->size,
++		       buf->vaddr, buf->paddr, buf->attrs);
++}
+diff --git a/drivers/media/platform/sti/delta/delta-mem.h b/drivers/media/platform/sti/delta/delta-mem.h
+new file mode 100644
+index 0000000..f8ca109
+--- /dev/null
++++ b/drivers/media/platform/sti/delta/delta-mem.h
+@@ -0,0 +1,14 @@
++/*
++ * Copyright (C) STMicroelectronics SA 2015
++ * Author: Hugues Fruchet <hugues.fruchet@st.com> for STMicroelectronics.
++ * License terms:  GNU General Public License (GPL), version 2
++ */
++
++#ifndef DELTA_MEM_H
++#define DELTA_MEM_H
++
++int hw_alloc(struct delta_ctx *ctx, u32 size, const char *name,
++	     struct delta_buf *buf);
++void hw_free(struct delta_ctx *ctx, struct delta_buf *buf);
++
++#endif /* DELTA_MEM_H */
+diff --git a/drivers/media/platform/sti/delta/delta.h b/drivers/media/platform/sti/delta/delta.h
+index 74a4240..9e26525 100644
+--- a/drivers/media/platform/sti/delta/delta.h
++++ b/drivers/media/platform/sti/delta/delta.h
+@@ -191,6 +191,14 @@ struct delta_dts {
+ 	u64 val;
+ };
+ 
++struct delta_buf {
++	u32 size;
++	void *vaddr;
++	dma_addr_t paddr;
++	const char *name;
++	unsigned long attrs;
++};
++
+ struct delta_ctx;
+ 
+ /*
+-- 
+1.9.1
 
-This symbol is in fact used in more than one file.
-
-    Arnd
