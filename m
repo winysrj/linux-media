@@ -1,293 +1,283 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-eopbgr730052.outbound.protection.outlook.com ([40.107.73.52]:20661
-        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751076AbdBCQk1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Feb 2017 11:40:27 -0500
-From: Anurag Kumar Vulisha <anurag.kumar.vulisha@xilinx.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>
-CC: <punnaia@xilinx.com>, Anirudha Sarangi <anirudh@xilinx.com>,
-        <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        "Anurag Kumar Vulisha" <anuragku@xilinx.com>
-Subject: [PATCH] media: uvcvideo: Add support for changing UVC_URBS/UVC_MAX_PACKETS from sysfs
-Date: Fri, 3 Feb 2017 22:10:08 +0530
-Message-ID: <1486140008-21892-1-git-send-email-anuragku@xilinx.com>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:31338 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751500AbdBBPAZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 2 Feb 2017 10:00:25 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v7 08/10] [media] st-delta: EOS (End Of Stream) support
+Date: Thu, 2 Feb 2017 15:59:51 +0100
+Message-ID: <1486047593-18581-9-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1486047593-18581-1-git-send-email-hugues.fruchet@st.com>
+References: <1486047593-18581-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The uvc_video.c driver currently has fixed the maximum UVC_URBS queued to 5 and
-max UVC_MAX_PACKETS per URB to 32K. This configuration works fine with USB 2.0
-and some USB 3.0 cameras on embedded platforms(like Zynq Ultrascale). Since embedded
-platforms has slow processing speed as compared to servers/x86 machines, we may need
-to increase the number of URBs(UVC_URBS) queued. Also some next generation USB 3.0
-cameras (like ZED stereo camera) splits each frame into multiple chunks of 48K bytes
-(which is greater than the size of UVC_MAX_PACKETS per URB), so we may need to increase
-UVC_MAX_PACKETS also at runtime instead of #define it.
+EOS (End Of Stream) support allows user to get
+all the potential decoded frames remaining in decoder
+pipeline after having reached the end of video bitstream.
+To do so, user calls VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP)
+which will drain the decoder and get the drained frames
+that are then returned to user.
+User is informed of EOS completion in two ways:
+ - dequeue of an empty frame flagged to V4L2_BUF_FLAG_LAST
+ - reception of a V4L2_EVENT_EOS event.
+If, unfortunately, no buffer is available on CAPTURE queue
+to return the empty frame, EOS is delayed till user queue
+one CAPTURE buffer.
 
-This patch adds the solution to change UVC_URBS and UVC_MAX_PACKETS at runtime using sysfs
-layer before starting the video application.
-
-Signed-off-by: Anurag Kumar Vulisha <anuragku@xilinx.com>
+Acked-by: Peter Griffin <peter.griffin@linaro.org>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
- drivers/media/usb/uvc/uvc_driver.c | 89 ++++++++++++++++++++++++++++++++++++++
- drivers/media/usb/uvc/uvc_video.c  | 39 ++++++++++++-----
- drivers/media/usb/uvc/uvcvideo.h   | 12 +++--
- 3 files changed, 126 insertions(+), 14 deletions(-)
+ drivers/media/platform/sti/delta/delta-v4l2.c | 146 +++++++++++++++++++++++++-
+ drivers/media/platform/sti/delta/delta.h      |  23 ++++
+ 2 files changed, 168 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index 04bf350..51c8058 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -190,6 +190,89 @@ static struct uvc_format_desc uvc_fmts[] = {
- 	},
- };
+diff --git a/drivers/media/platform/sti/delta/delta-v4l2.c b/drivers/media/platform/sti/delta/delta-v4l2.c
+index 237a938..c959614 100644
+--- a/drivers/media/platform/sti/delta/delta-v4l2.c
++++ b/drivers/media/platform/sti/delta/delta-v4l2.c
+@@ -106,7 +106,8 @@ static void delta_frame_done(struct delta_ctx *ctx, struct delta_frame *frame,
+ 	vbuf->sequence = ctx->frame_num++;
+ 	v4l2_m2m_buf_done(vbuf, err ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
  
-+/* Sysfs attributes for show and store max_urbs/max_packets per URB */
-+
-+static ssize_t get_max_urbs_show(struct device *dev,
-+	struct device_attribute *attr, char *buf) {
-+
-+	struct uvc_streaming *stream = NULL;
-+	struct usb_interface *intf = to_usb_interface(dev);
-+	struct uvc_device *udev = usb_get_intfdata(intf);
-+	u32 ret_len = 0;
-+	u32 stream_num = 0;
-+
-+	list_for_each_entry(stream, &udev->streams, list) {
-+		ret_len += scnprintf((char *)(buf + ret_len), PAGE_SIZE,
-+				"stream[%d] = %d\n", stream_num++,
-+						stream->max_urbs);
-+	}
-+
-+	return ret_len;
-+}
-+static DEVICE_ATTR_RO(get_max_urbs);
-+
-+static ssize_t set_max_urbs_store(struct device *dev,
-+	struct device_attribute *attr, const char *buf, size_t count) {
-+
-+	struct uvc_streaming *stream;
-+	struct usb_interface *intf = to_usb_interface(dev);
-+	struct uvc_device *udev = usb_get_intfdata(intf);
-+
-+	list_for_each_entry(stream, &udev->streams, list) {
-+		sscanf(buf, "%d", &stream->max_urbs);
-+	}
-+
-+	return count;
-+}
-+static DEVICE_ATTR_WO(set_max_urbs);
-+
-+static ssize_t get_max_packets_show(struct device *dev,
-+	struct device_attribute *attr, char *buf) {
-+
-+	struct uvc_streaming *stream = NULL;
-+	struct usb_interface *intf = to_usb_interface(dev);
-+	struct uvc_device *udev = usb_get_intfdata(intf);
-+	u32 ret_len = 0;
-+	u32 stream_num = 0;
-+
-+	list_for_each_entry(stream, &udev->streams, list) {
-+		ret_len += scnprintf((char *)(buf + ret_len), PAGE_SIZE,
-+				"stream[%d] = %d\n", stream_num++,
-+						stream->max_packets);
-+	}
-+
-+	return ret_len;
-+}
-+static DEVICE_ATTR_RO(get_max_packets);
-+
-+static ssize_t set_max_packets_store(struct device *dev,
-+	struct device_attribute *attr, const char *buf, size_t count) {
-+
-+	struct uvc_streaming *stream;
-+	struct usb_interface *intf = to_usb_interface(dev);
-+	struct uvc_device *udev = usb_get_intfdata(intf);
-+
-+	list_for_each_entry(stream, &udev->streams, list) {
-+		sscanf(buf, "%d", &stream->max_packets);
-+	}
-+
-+	return count;
-+}
-+static DEVICE_ATTR_WO(set_max_packets);
-+
-+static struct attribute *uvc_attributes[] = {
-+	&dev_attr_get_max_urbs.attr,
-+	&dev_attr_set_max_urbs.attr,
-+	&dev_attr_get_max_packets.attr,
-+	&dev_attr_set_max_packets.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group uvc_attr_group = {
-+	.attrs = uvc_attributes,
-+};
-+
-+
- /* ------------------------------------------------------------------------
-  * Utility functions
-  */
-@@ -2097,6 +2180,12 @@ static int uvc_probe(struct usb_interface *intf,
- 			"supported.\n", ret);
- 	}
- 
-+	ret = sysfs_create_group(&dev->intf->dev.kobj, &uvc_attr_group);
-+	if (ret < 0) {
-+		uvc_printk(KERN_ERR, "Failed to create sysfs node %d\n", ret);
-+		return ret;
-+	}
-+
- 	uvc_trace(UVC_TRACE_PROBE, "UVC device initialized.\n");
- 	usb_enable_autosuspend(udev);
- 	return 0;
-diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index f3c1c85..18efd03 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -1362,7 +1362,7 @@ static void uvc_free_urb_buffers(struct uvc_streaming *stream)
- {
- 	unsigned int i;
- 
--	for (i = 0; i < UVC_URBS; ++i) {
-+	for (i = 0; i < stream->max_urbs; ++i) {
- 		if (stream->urb_buffer[i]) {
- #ifndef CONFIG_DMA_NONCOHERENT
- 			usb_free_coherent(stream->dev->udev, stream->urb_size,
-@@ -1374,6 +1374,11 @@ static void uvc_free_urb_buffers(struct uvc_streaming *stream)
- 		}
- 	}
- 
-+	/* Free memory used for storing URB pointers */
-+	kfree(stream->urb);
-+	kfree(stream->urb_buffer);
-+	kfree(stream->urb_dma);
-+
- 	stream->urb_size = 0;
+-	ctx->output_frames++;
++	if (frame->info.size) /* ignore EOS */
++		ctx->output_frames++;
  }
  
-@@ -1382,7 +1387,7 @@ static void uvc_free_urb_buffers(struct uvc_streaming *stream)
-  * already allocated when resuming from suspend, in which case it will
-  * return without touching the buffers.
-  *
-- * Limit the buffer size to UVC_MAX_PACKETS bulk/isochronous packets. If the
-+ * Limit the buffer size to stream->max_packets bulk/isochronous packets. If the
-  * system is too low on memory try successively smaller numbers of packets
-  * until allocation succeeds.
-  *
-@@ -1398,16 +1403,24 @@ static int uvc_alloc_urb_buffers(struct uvc_streaming *stream,
- 	if (stream->urb_size)
- 		return stream->urb_size / psize;
+ static void requeue_free_frames(struct delta_ctx *ctx)
+@@ -762,6 +763,135 @@ static int delta_g_selection(struct file *file, void *fh,
+ 	return 0;
+ }
  
-+	/* Allocate memory for storing URB pointers */
-+	stream->urb = (struct urb **)kcalloc(stream->max_urbs,
-+			sizeof(struct urb *), gfp_flags | __GFP_NOWARN);
-+	stream->urb_buffer = (char **)kcalloc(stream->max_urbs,
-+				sizeof(char *), gfp_flags | __GFP_NOWARN);
-+	stream->urb_dma = (dma_addr_t *)kcalloc(stream->max_urbs,
-+				sizeof(dma_addr_t), gfp_flags | __GFP_NOWARN);
++static void delta_complete_eos(struct delta_ctx *ctx,
++			       struct delta_frame *frame)
++{
++	struct delta_dev *delta = ctx->dev;
++	const struct v4l2_event ev = {.type = V4L2_EVENT_EOS};
 +
- 	/* Compute the number of packets. Bulk endpoints might transfer UVC
- 	 * payloads across multiple URBs.
++	/*
++	 * Send EOS to user:
++	 * - by returning an empty frame flagged to V4L2_BUF_FLAG_LAST
++	 * - and then send EOS event
++	 */
++
++	/* empty frame */
++	frame->info.size = 0;
++
++	/* set the last buffer flag */
++	frame->flags |= V4L2_BUF_FLAG_LAST;
++
++	/* release frame to user */
++	delta_frame_done(ctx, frame, 0);
++
++	/* send EOS event */
++	v4l2_event_queue_fh(&ctx->fh, &ev);
++
++	dev_dbg(delta->dev, "%s EOS completed\n", ctx->name);
++}
++
++static int delta_try_decoder_cmd(struct file *file, void *fh,
++				 struct v4l2_decoder_cmd *cmd)
++{
++	if (cmd->cmd != V4L2_DEC_CMD_STOP)
++		return -EINVAL;
++
++	if (cmd->flags & V4L2_DEC_CMD_STOP_TO_BLACK)
++		return -EINVAL;
++
++	if (!(cmd->flags & V4L2_DEC_CMD_STOP_IMMEDIATELY) &&
++	    (cmd->stop.pts != 0))
++		return -EINVAL;
++
++	return 0;
++}
++
++static int delta_decoder_stop_cmd(struct delta_ctx *ctx, void *fh)
++{
++	const struct delta_dec *dec = ctx->dec;
++	struct delta_dev *delta = ctx->dev;
++	struct delta_frame *frame = NULL;
++	int ret = 0;
++
++	dev_dbg(delta->dev, "%s EOS received\n", ctx->name);
++
++	if (ctx->state != DELTA_STATE_READY)
++		return 0;
++
++	/* drain the decoder */
++	call_dec_op(dec, drain, ctx);
++
++	/* release to user drained frames */
++	while (1) {
++		frame = NULL;
++		ret = call_dec_op(dec, get_frame, ctx, &frame);
++		if (ret == -ENODATA) {
++			/* no more decoded frames */
++			break;
++		}
++		if (frame) {
++			dev_dbg(delta->dev, "%s drain frame[%d]\n",
++				ctx->name, frame->index);
++
++			/* pop timestamp and mark frame with it */
++			delta_pop_dts(ctx, &frame->dts);
++
++			/* release decoded frame to user */
++			delta_frame_done(ctx, frame, 0);
++		}
++	}
++
++	/* try to complete EOS */
++	ret = delta_get_free_frame(ctx, &frame);
++	if (ret)
++		goto delay_eos;
++
++	/* new frame available, EOS can now be completed */
++	delta_complete_eos(ctx, frame);
++
++	ctx->state = DELTA_STATE_EOS;
++
++	return 0;
++
++delay_eos:
++	/*
++	 * EOS completion from driver is delayed because
++	 * we don't have a free empty frame available.
++	 * EOS completion is so delayed till next frame_queue() call
++	 * to be sure to have a free empty frame available.
++	 */
++	ctx->state = DELTA_STATE_WF_EOS;
++	dev_dbg(delta->dev, "%s EOS delayed\n", ctx->name);
++
++	return 0;
++}
++
++static int delta_decoder_cmd(struct file *file, void *fh,
++			     struct v4l2_decoder_cmd *cmd)
++{
++	struct delta_ctx *ctx = to_ctx(fh);
++	int ret = 0;
++
++	ret = delta_try_decoder_cmd(file, fh, cmd);
++	if (ret)
++		return ret;
++
++	return delta_decoder_stop_cmd(ctx, fh);
++}
++
++static int delta_subscribe_event(struct v4l2_fh *fh,
++				 const struct v4l2_event_subscription *sub)
++{
++	switch (sub->type) {
++	case V4L2_EVENT_EOS:
++		return v4l2_event_subscribe(fh, sub, 2, NULL);
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
+ /* v4l2 ioctl ops */
+ static const struct v4l2_ioctl_ops delta_ioctl_ops = {
+ 	.vidioc_querycap = delta_querycap,
+@@ -782,6 +912,10 @@ static int delta_g_selection(struct file *file, void *fh,
+ 	.vidioc_streamon = v4l2_m2m_ioctl_streamon,
+ 	.vidioc_streamoff = v4l2_m2m_ioctl_streamoff,
+ 	.vidioc_g_selection = delta_g_selection,
++	.vidioc_try_decoder_cmd = delta_try_decoder_cmd,
++	.vidioc_decoder_cmd = delta_decoder_cmd,
++	.vidioc_subscribe_event = delta_subscribe_event,
++	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
+ 
+ /*
+@@ -1376,6 +1510,16 @@ static void delta_vb2_frame_queue(struct vb2_buffer *vb)
+ 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+ 	struct delta_frame *frame = to_frame(vbuf);
+ 
++	if (ctx->state == DELTA_STATE_WF_EOS) {
++		/* new frame available, EOS can now be completed */
++		delta_complete_eos(ctx, frame);
++
++		ctx->state = DELTA_STATE_EOS;
++
++		/* return, no need to recycle this buffer to decoder */
++		return;
++	}
++
+ 	/* recycle this frame */
+ 	delta_recycle(ctx, frame);
+ }
+diff --git a/drivers/media/platform/sti/delta/delta.h b/drivers/media/platform/sti/delta/delta.h
+index d4a401b..60c07324 100644
+--- a/drivers/media/platform/sti/delta/delta.h
++++ b/drivers/media/platform/sti/delta/delta.h
+@@ -27,11 +27,19 @@
+  *@DELTA_STATE_READY:
+  *	Decoding instance is ready to decode compressed access unit.
+  *
++ *@DELTA_STATE_WF_EOS:
++ *	Decoding instance is waiting for EOS (End Of Stream) completion.
++ *
++ *@DELTA_STATE_EOS:
++ *	EOS (End Of Stream) is completed (signaled to user). Decoding instance
++ *	should then be closed.
+  */
+ enum delta_state {
+ 	DELTA_STATE_WF_FORMAT,
+ 	DELTA_STATE_WF_STREAMINFO,
+ 	DELTA_STATE_READY,
++	DELTA_STATE_WF_EOS,
++	DELTA_STATE_EOS
+ };
+ 
+ /*
+@@ -237,6 +245,7 @@ struct delta_ipc_param {
+  * @get_frame:		get the next decoded frame available, see below
+  * @recycle:		recycle the given frame, see below
+  * @flush:		(optional) flush decoder, see below
++ * @drain:		(optional) drain decoder, see below
+  */
+ struct delta_dec {
+ 	const char *name;
+@@ -371,6 +380,18 @@ struct delta_dec {
+ 	 * decoding logic.
  	 */
- 	npackets = DIV_ROUND_UP(size, psize);
--	if (npackets > UVC_MAX_PACKETS)
--		npackets = UVC_MAX_PACKETS;
-+	if (npackets > stream->max_packets)
-+		npackets = stream->max_packets;
- 
- 	/* Retry allocations until one succeed. */
- 	for (; npackets > 1; npackets /= 2) {
--		for (i = 0; i < UVC_URBS; ++i) {
-+		for (i = 0; i < stream->max_urbs; ++i) {
- 			stream->urb_size = psize * npackets;
- #ifndef CONFIG_DMA_NONCOHERENT
- 			stream->urb_buffer[i] = usb_alloc_coherent(
-@@ -1423,9 +1436,9 @@ static int uvc_alloc_urb_buffers(struct uvc_streaming *stream,
- 			}
- 		}
- 
--		if (i == UVC_URBS) {
-+		if (i == stream->max_urbs) {
- 			uvc_trace(UVC_TRACE_VIDEO, "Allocated %u URB buffers "
--				"of %ux%u bytes each.\n", UVC_URBS, npackets,
-+				"of %ux%u bytes each.\n", stream->max_urbs, npackets,
- 				psize);
- 			return npackets;
- 		}
-@@ -1446,7 +1459,7 @@ static void uvc_uninit_video(struct uvc_streaming *stream, int free_buffers)
- 
- 	uvc_video_stats_stop(stream);
- 
--	for (i = 0; i < UVC_URBS; ++i) {
-+	for (i = 0; i < stream->max_urbs; ++i) {
- 		urb = stream->urb[i];
- 		if (urb == NULL)
- 			continue;
-@@ -1507,7 +1520,7 @@ static int uvc_init_video_isoc(struct uvc_streaming *stream,
- 
- 	size = npackets * psize;
- 
--	for (i = 0; i < UVC_URBS; ++i) {
-+	for (i = 0; i < stream->max_urbs; ++i) {
- 		urb = usb_alloc_urb(npackets, gfp_flags);
- 		if (urb == NULL) {
- 			uvc_uninit_video(stream, 1);
-@@ -1573,7 +1586,7 @@ static int uvc_init_video_bulk(struct uvc_streaming *stream,
- 	if (stream->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
- 		size = 0;
- 
--	for (i = 0; i < UVC_URBS; ++i) {
-+	for (i = 0; i < stream->max_urbs; ++i) {
- 		urb = usb_alloc_urb(0, gfp_flags);
- 		if (urb == NULL) {
- 			uvc_uninit_video(stream, 1);
-@@ -1678,7 +1691,7 @@ static int uvc_init_video(struct uvc_streaming *stream, gfp_t gfp_flags)
- 		return ret;
- 
- 	/* Submit the URBs. */
--	for (i = 0; i < UVC_URBS; ++i) {
-+	for (i = 0; i < stream->max_urbs; ++i) {
- 		ret = usb_submit_urb(stream->urb[i], gfp_flags);
- 		if (ret < 0) {
- 			uvc_printk(KERN_ERR, "Failed to submit URB %u "
-@@ -1839,6 +1852,10 @@ int uvc_video_init(struct uvc_streaming *stream)
- 	stream->cur_format = format;
- 	stream->cur_frame = frame;
- 
-+	/* Set max URB numbers & max packets per URB to default */
-+	stream->max_urbs = UVC_URBS;
-+	stream->max_packets = UVC_MAX_PACKETS;
+ 	int (*flush)(struct delta_ctx *ctx);
 +
- 	/* Select the video decoding function */
- 	if (stream->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
- 		if (stream->dev->quirks & UVC_QUIRK_BUILTIN_ISIGHT)
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 3d6cc62..250cf89 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -506,9 +506,15 @@ struct uvc_streaming {
- 		__u32 max_payload_size;
- 	} bulk;
++	/*
++	 * drain() - drain decoder
++	 * @ctx:	(in) instance
++	 *
++	 * Optional.
++	 * Mark decoder pending frames (decoded but not yet output) as ready
++	 * so that they can be output to client at EOS (End Of Stream).
++	 * get_frame() is to be called in a loop right after drain() to
++	 * get all those pending frames.
++	 */
++	int (*drain)(struct delta_ctx *ctx);
+ };
  
--	struct urb *urb[UVC_URBS];
--	char *urb_buffer[UVC_URBS];
--	dma_addr_t urb_dma[UVC_URBS];
-+	/* Maximum number of URBs that can be submitted */
-+	u32 max_urbs;
-+
-+	/* Maximum number of packets per URB */
-+	u32 max_packets;
-+
-+	struct urb **urb;
-+	char **urb_buffer;
-+	dma_addr_t *urb_dma;
- 	unsigned int urb_size;
+ struct delta_dev;
+@@ -497,6 +518,8 @@ static inline char *frame_type_str(u32 flags)
+ 		return "P";
+ 	if (flags & V4L2_BUF_FLAG_BFRAME)
+ 		return "B";
++	if (flags & V4L2_BUF_FLAG_LAST)
++		return "EOS";
+ 	return "?";
+ }
  
- 	__u32 sequence;
 -- 
-2.1.1
+1.9.1
 
