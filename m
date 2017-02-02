@@ -1,113 +1,221 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f50.google.com ([74.125.82.50]:35191 "EHLO
-        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751165AbdBWGiQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Feb 2017 01:38:16 -0500
-Received: by mail-wm0-f50.google.com with SMTP id v186so161839214wmd.0
-        for <linux-media@vger.kernel.org>; Wed, 22 Feb 2017 22:37:34 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAKMK7uHsPizi3hCj4r9fw=kK1g5iy+oB7+CPO+uH-WQpXDBaFg@mail.gmail.com>
-References: <CGME20170221132114eucas1p2e527d5b5516494ba54aa91f48b3e227f@eucas1p2.samsung.com>
- <1487683261-2655-1-git-send-email-m.szyprowski@samsung.com>
- <917aff70-64f7-7224-a015-0e77951bbc1d@vodafone.de> <dbcfe0d9-cdc3-e715-2535-0a2b7ffec3a5@samsung.com>
- <ac1ddfe4-1667-bdb0-c4da-35c8cf85fbed@samsung.com> <ef70688e-35a5-00a5-44e0-575bc18d1752@vodafone.de>
- <CAKMK7uHsPizi3hCj4r9fw=kK1g5iy+oB7+CPO+uH-WQpXDBaFg@mail.gmail.com>
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Thu, 23 Feb 2017 12:07:12 +0530
-Message-ID: <CAO_48GHbXo9Fv56vcUrAMTMU4-gjHqehbd6LXntMLdSs=2vZxw@mail.gmail.com>
-Subject: Re: [PATCH] dma-buf: add support for compat ioctl
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: =?UTF-8?Q?Christian_K=C3=B6nig?= <deathsimple@vodafone.de>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Received: from mout.kundenserver.de ([212.227.126.187]:63477 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751500AbdBBOxu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2017 09:53:50 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH 2/4] [media] em28xx: reduce stack usage in probe functions
+Date: Thu,  2 Feb 2017 15:53:05 +0100
+Message-Id: <20170202145318.3803805-2-arnd@arndb.de>
+In-Reply-To: <20170202145318.3803805-1-arnd@arndb.de>
+References: <20170202145318.3803805-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marek,
+The two i2c probe functions use a lot of stack since they put
+an i2c_client structure in a local variable:
 
-On 23 February 2017 at 00:37, Daniel Vetter <daniel@ffwll.ch> wrote:
-> On Tue, Feb 21, 2017 at 4:08 PM, Christian K=C3=B6nig
-> <deathsimple@vodafone.de> wrote:
->> Am 21.02.2017 um 15:55 schrieb Marek Szyprowski:
->>>
->>> Dear All,
->>>
->>> On 2017-02-21 15:37, Marek Szyprowski wrote:
->>>>
->>>> Hi Christian,
->>>>
->>>> On 2017-02-21 14:59, Christian K=C3=B6nig wrote:
->>>>>
->>>>> Am 21.02.2017 um 14:21 schrieb Marek Szyprowski:
->>>>>>
->>>>>> Add compat ioctl support to dma-buf. This lets one to use
->>>>>> DMA_BUF_IOCTL_SYNC
->>>>>> ioctl from 32bit application on 64bit kernel. Data structures for bo=
-th
->>>>>> 32
->>>>>> and 64bit modes are same, so there is no need for additional
->>>>>> translation
->>>>>> layer.
->>>>>
->>>>>
->>>>> Well I might be wrong, but IIRC compat_ioctl was just optional and if
->>>>> not specified unlocked_ioctl was called instead.
->>>>>
->>>>> If that is true your patch wouldn't have any effect at all.
->>>>
->>>>
->>>> Well, then why I got -ENOTTY in the 32bit test app for this ioctl on
->>>> 64bit ARM64 kernel without this patch?
->>>>
->>>
->>> I've checked in fs/compat_ioctl.c, I see no fallback in
->>> COMPAT_SYSCALL_DEFINE3,
->>> so one has to provide compat_ioctl callback to have ioctl working with
->>> 32bit
->>> apps.
->>
->>
->> Then my memory cheated on me.
->>
->> In this case the patch is Reviewed-by: Christian K=C3=B6nig
->> <christian.koenig@amd.com>.
->
+drivers/media/usb/em28xx/em28xx-camera.c: In function 'em28xx_probe_sensor_micron':
+drivers/media/usb/em28xx/em28xx-camera.c:205:1: error: the frame size of 1256 bytes is larger than 1152 bytes [-Werror=frame-larger-than=]
+drivers/media/usb/em28xx/em28xx-camera.c: In function 'em28xx_probe_sensor_omnivision':
+drivers/media/usb/em28xx/em28xx-camera.c:317:1: error: the frame size of 1248 bytes is larger than 1152 bytes [-Werror=frame-larger-than=]
 
-Thanks much for spotting this!
+This cleans up both of the above by removing the need for those
+structures, calling the lower-level i2c function directly.
 
-> Since you have commit rights for drm-misc, care to push this to
-> drm-misc-next-fixes pls? Also I think this warrants a cc: stable,
-> clearly an obvious screw-up in creating this api on our side :( So
-> feel free to smash my ack on the patch.
->
-Daniel, Christian,
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/media/usb/em28xx/em28xx-camera.c | 87 ++++++++++++++++++--------------
+ 1 file changed, 50 insertions(+), 37 deletions(-)
 
-I saw this just now, so if Christian hasn't already pulled it into
-drm-misc-next-fixes, I'll give it a stab.
+diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
+index 89c890ba7dd6..e64940f95a91 100644
+--- a/drivers/media/usb/em28xx/em28xx-camera.c
++++ b/drivers/media/usb/em28xx/em28xx-camera.c
+@@ -99,6 +99,25 @@ static int em28xx_initialize_mt9m001(struct em28xx *dev)
+ 	return 0;
+ }
+ 
++/* NOTE: i2c_smbus_read_word_data() doesn't work with BE data */
++static int em28xx_i2c_read_chip_id(struct em28xx *dev, u16 addr, u8 reg, void *buf)
++{
++	struct i2c_client *client = &dev->i2c_client[dev->def_i2c_bus];
++	struct i2c_msg msg[2];
++
++	msg[0].addr = addr;
++	msg[0].flags = client->flags & I2C_M_TEN;
++	msg[0].len = 1;
++	msg[0].buf = &reg;
++	msg[1].addr = addr;
++	msg[1].flags = client->flags & I2C_M_TEN;
++	msg[1].flags |= I2C_M_RD;
++	msg[1].len = 2;
++	msg[1].buf = buf;
++
++	return i2c_transfer(client->adapter, msg, 2);
++}
++
+ /*
+  * Probes Micron sensors with 8 bit address and 16 bit register width
+  */
+@@ -106,48 +125,29 @@ static int em28xx_probe_sensor_micron(struct em28xx *dev)
+ {
+ 	int ret, i;
+ 	char *name;
+-	u8 reg;
+ 	__be16 id_be;
++	u16 addr;
+ 	u16 id;
+ 
+-	struct i2c_client client = dev->i2c_client[dev->def_i2c_bus];
+-
+ 	dev->em28xx_sensor = EM28XX_NOSENSOR;
+ 	for (i = 0; micron_sensor_addrs[i] != I2C_CLIENT_END; i++) {
+-		client.addr = micron_sensor_addrs[i];
+-		/* NOTE: i2c_smbus_read_word_data() doesn't work with BE data */
++		addr = micron_sensor_addrs[i];
+ 		/* Read chip ID from register 0x00 */
+-		reg = 0x00;
+-		ret = i2c_master_send(&client, &reg, 1);
++		ret = em28xx_i2c_read_chip_id(dev, addr, 0x00, &id_be);
+ 		if (ret < 0) {
+ 			if (ret != -ENXIO)
+ 				dev_err(&dev->intf->dev,
+ 					"couldn't read from i2c device 0x%02x: error %i\n",
+-				       client.addr << 1, ret);
+-			continue;
+-		}
+-		ret = i2c_master_recv(&client, (u8 *)&id_be, 2);
+-		if (ret < 0) {
+-			dev_err(&dev->intf->dev,
+-				"couldn't read from i2c device 0x%02x: error %i\n",
+-				client.addr << 1, ret);
++				       addr << 1, ret);
+ 			continue;
+ 		}
+ 		id = be16_to_cpu(id_be);
+ 		/* Read chip ID from register 0xff */
+-		reg = 0xff;
+-		ret = i2c_master_send(&client, &reg, 1);
++		ret = em28xx_i2c_read_chip_id(dev, addr, 0xff, &id_be);
+ 		if (ret < 0) {
+ 			dev_err(&dev->intf->dev,
+ 				"couldn't read from i2c device 0x%02x: error %i\n",
+-				client.addr << 1, ret);
+-			continue;
+-		}
+-		ret = i2c_master_recv(&client, (u8 *)&id_be, 2);
+-		if (ret < 0) {
+-			dev_err(&dev->intf->dev,
+-				"couldn't read from i2c device 0x%02x: error %i\n",
+-				client.addr << 1, ret);
++				addr << 1, ret);
+ 			continue;
+ 		}
+ 		/* Validate chip ID to be sure we have a Micron device */
+@@ -197,13 +197,26 @@ static int em28xx_probe_sensor_micron(struct em28xx *dev)
+ 			dev_info(&dev->intf->dev,
+ 				 "sensor %s detected\n", name);
+ 
+-		dev->i2c_client[dev->def_i2c_bus].addr = client.addr;
++		dev->i2c_client[dev->def_i2c_bus].addr = addr;
+ 		return 0;
+ 	}
+ 
+ 	return -ENODEV;
+ }
+ 
++/* like i2c_smbus_read_byte_data, but allows passing an addr */
++static int em28xx_smbus_read_byte(struct em28xx *dev, u16 addr, u8 command)
++{
++	struct i2c_client *client = &dev->i2c_client[dev->def_i2c_bus];
++	union i2c_smbus_data data;
++	int status;
++
++	status = i2c_smbus_xfer(client->adapter, addr, client->flags,
++				I2C_SMBUS_READ, command,
++				I2C_SMBUS_BYTE_DATA, &data);
++	return (status < 0) ? status : data.byte;
++}
++
+ /*
+  * Probes Omnivision sensors with 8 bit address and register width
+  */
+@@ -212,31 +225,31 @@ static int em28xx_probe_sensor_omnivision(struct em28xx *dev)
+ 	int ret, i;
+ 	char *name;
+ 	u8 reg;
++	u16 addr;
+ 	u16 id;
+-	struct i2c_client client = dev->i2c_client[dev->def_i2c_bus];
+ 
+ 	dev->em28xx_sensor = EM28XX_NOSENSOR;
+ 	/* NOTE: these devices have the register auto incrementation disabled
+ 	 * by default, so we have to use single byte reads !              */
+ 	for (i = 0; omnivision_sensor_addrs[i] != I2C_CLIENT_END; i++) {
+-		client.addr = omnivision_sensor_addrs[i];
++		addr = omnivision_sensor_addrs[i];
+ 		/* Read manufacturer ID from registers 0x1c-0x1d (BE) */
+ 		reg = 0x1c;
+-		ret = i2c_smbus_read_byte_data(&client, reg);
++		ret = em28xx_smbus_read_byte(dev, addr, reg);
+ 		if (ret < 0) {
+ 			if (ret != -ENXIO)
+ 				dev_err(&dev->intf->dev,
+ 					"couldn't read from i2c device 0x%02x: error %i\n",
+-					client.addr << 1, ret);
++					addr << 1, ret);
+ 			continue;
+ 		}
+ 		id = ret << 8;
+ 		reg = 0x1d;
+-		ret = i2c_smbus_read_byte_data(&client, reg);
++		ret = em28xx_smbus_read_byte(dev, addr, reg);
+ 		if (ret < 0) {
+ 			dev_err(&dev->intf->dev,
+ 				"couldn't read from i2c device 0x%02x: error %i\n",
+-				client.addr << 1, ret);
++				addr << 1, ret);
+ 			continue;
+ 		}
+ 		id += ret;
+@@ -245,20 +258,20 @@ static int em28xx_probe_sensor_omnivision(struct em28xx *dev)
+ 			continue;
+ 		/* Read product ID from registers 0x0a-0x0b (BE) */
+ 		reg = 0x0a;
+-		ret = i2c_smbus_read_byte_data(&client, reg);
++		ret = em28xx_smbus_read_byte(dev, addr, reg);
+ 		if (ret < 0) {
+ 			dev_err(&dev->intf->dev,
+ 				"couldn't read from i2c device 0x%02x: error %i\n",
+-				client.addr << 1, ret);
++				addr << 1, ret);
+ 			continue;
+ 		}
+ 		id = ret << 8;
+ 		reg = 0x0b;
+-		ret = i2c_smbus_read_byte_data(&client, reg);
++		ret = em28xx_smbus_read_byte(dev, addr, reg);
+ 		if (ret < 0) {
+ 			dev_err(&dev->intf->dev,
+ 				"couldn't read from i2c device 0x%02x: error %i\n",
+-				client.addr << 1, ret);
++				addr << 1, ret);
+ 			continue;
+ 		}
+ 		id += ret;
+@@ -309,7 +322,7 @@ static int em28xx_probe_sensor_omnivision(struct em28xx *dev)
+ 			dev_info(&dev->intf->dev,
+ 				 "sensor %s detected\n", name);
+ 
+-		dev->i2c_client[dev->def_i2c_bus].addr = client.addr;
++		dev->i2c_client[dev->def_i2c_bus].addr = addr;
+ 		return 0;
+ 	}
+ 
+-- 
+2.9.0
 
-> Thanks, Daniel
-> --
-> Daniel Vetter
-> Software Engineer, Intel Corporation
-> +41 (0) 79 365 57 48 - http://blog.ffwll.ch
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
-
-Best,
-Sumit.
-
---=20
-Thanks and regards,
-
-Sumit Semwal
-Linaro Mobile Group - Kernel Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
