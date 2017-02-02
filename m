@@ -1,116 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor4.renesas.com ([210.160.252.174]:57764 "EHLO
-        relmlie3.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754738AbdBGPNf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Feb 2017 10:13:35 -0500
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
-Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
-        geert+renesas@glider.be, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Subject: [PATCH v3 2/7] dt-bindings: media: Add MAX2175 binding description
-Date: Tue,  7 Feb 2017 15:02:32 +0000
-Message-Id: <1486479757-32128-3-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
-In-Reply-To: <1486479757-32128-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
-References: <1486479757-32128-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:42742 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751561AbdBBWpk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2017 17:45:40 -0500
+Date: Thu, 2 Feb 2017 22:44:53 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v3 16/24] media: Add i.MX media core driver
+Message-ID: <20170202224453.GY27312@n2100.armlinux.org.uk>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <1483755102-24785-17-git-send-email-steve_longerbeam@mentor.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1483755102-24785-17-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add device tree binding documentation for MAX2175 Rf to bits tuner
-device.
+On Fri, Jan 06, 2017 at 06:11:34PM -0800, Steve Longerbeam wrote:
+> +struct imx_media_dev {
+> +	struct media_device md;
+> +	struct v4l2_device  v4l2_dev;
 
-Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
----
- .../devicetree/bindings/media/i2c/max2175.txt      | 61 ++++++++++++++++++++++
- .../devicetree/bindings/property-units.txt         |  1 +
- 2 files changed, 62 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/max2175.txt
+This is similarly buggy.
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/max2175.txt b/Documentation/devicetree/bindings/media/i2c/max2175.txt
-new file mode 100644
-index 0000000..f591ab4
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/max2175.txt
-@@ -0,0 +1,61 @@
-+Maxim Integrated MAX2175 RF to Bits tuner
-+-----------------------------------------
-+
-+The MAX2175 IC is an advanced analog/digital hybrid-radio receiver with
-+RF to Bits® front-end designed for software-defined radio solutions.
-+
-+Required properties:
-+--------------------
-+- compatible: "maxim,max2175" for MAX2175 RF-to-bits tuner.
-+- clocks: phandle to the fixed xtal clock.
-+- clock-names: name of the fixed xtal clock.
-+- port: child port node of a tuner that defines the local and remote
-+  endpoints. The remote endpoint is assumed to be an SDR device
-+  that is capable of receiving the digital samples from the tuner.
-+
-+Optional properties:
-+--------------------
-+- maxim,slave	      : phandle to the master tuner if it is a slave. This
-+			is used to define two tuners in diversity mode
-+			(1 master, 1 slave). By default each tuner is an
-+			individual master.
-+- maxim,refout-load-pF: load capacitance value (in pF) on reference
-+			output drive level. The possible load values are
-+			 0 (default - refout disabled)
-+			10
-+			20
-+			30
-+			40
-+			60
-+			70
-+- maxim,am-hiz	      : empty property indicates AM Hi-Z filter path is
-+			selected for AM antenna input. By default this
-+			filter path is not used.
-+
-+Example:
-+--------
-+
-+Board specific DTS file
-+
-+/* Fixed XTAL clock node */
-+maxim_xtal: clock {
-+	compatible = "fixed-clock";
-+	#clock-cells = <0>;
-+	clock-frequency = <36864000>;
-+};
-+
-+/* A tuner device instance under i2c bus */
-+max2175_0: tuner@60 {
-+	compatible = "maxim,max2175";
-+	reg = <0x60>;
-+	clocks = <&maxim_xtal>;
-+	clock-names = "xtal";
-+	maxim,refout-load-pF = <10>;
-+
-+	port {
-+		max2175_0_ep: endpoint {
-+			remote-endpoint = <&slave_rx_device>;
-+		};
-+	};
-+
-+};
-diff --git a/Documentation/devicetree/bindings/property-units.txt b/Documentation/devicetree/bindings/property-units.txt
-index 12278d7..f1f1c22 100644
---- a/Documentation/devicetree/bindings/property-units.txt
-+++ b/Documentation/devicetree/bindings/property-units.txt
-@@ -28,6 +28,7 @@ Electricity
- -ohms		: Ohms
- -micro-ohms	: micro Ohms
- -microvolt	: micro volts
-+-pF		: pico farads
- 
- Temperature
- ----------------------------------------
+struct v4l2_device {
+        struct device *dev;
+#if defined(CONFIG_MEDIA_CONTROLLER)
+        struct media_device *mdev;
+#endif
+        struct list_head subdevs;
+        spinlock_t lock;
+        char name[V4L2_DEVICE_NAME_SIZE];
+        void (*notify)(struct v4l2_subdev *sd,
+                        unsigned int notification, void *arg);
+        struct v4l2_ctrl_handler *ctrl_handler;
+        struct v4l2_prio_state prio;
+        struct kref ref;
+        void (*release)(struct v4l2_device *v4l2_dev);
+};
+
+Notice the kref and release function.  This is the only way the
+memory backing "struct v4l2_device" may be released.  If you wish to
+embed this structure into another structure, then the lifetime of
+that other structure is determined by this one.  IOW, when this
+release function is called, only then may you kfree() the memory
+backing struct imx_media_dev.
+
+> +	struct device *dev;
+
+And... do you need all these struct device pointers?
+
+        imxmd->dev = dev;
+        imxmd->md.dev = dev;
+
+As media_device already contains a pointer, can't you re-use that?
+
 -- 
-1.9.1
-
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
