@@ -1,76 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:33365 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754634AbdBPLyk (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:23551 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751107AbdBBPAO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Feb 2017 06:54:40 -0500
-Message-ID: <1487246051.2377.41.camel@pengutronix.de>
-Subject: Re: [PATCH v4 01/36] [media] dt-bindings: Add bindings for i.MX
- media driver
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Thu, 16 Feb 2017 12:54:11 +0100
-In-Reply-To: <1487211578-11360-2-git-send-email-steve_longerbeam@mentor.com>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
-         <1487211578-11360-2-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Thu, 2 Feb 2017 10:00:14 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v7 03/10] ARM: multi_v7_defconfig: enable STMicroelectronics DELTA Support
+Date: Thu, 2 Feb 2017 15:59:46 +0100
+Message-ID: <1486047593-18581-4-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1486047593-18581-1-git-send-email-hugues.fruchet@st.com>
+References: <1486047593-18581-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2017-02-15 at 18:19 -0800, Steve Longerbeam wrote:
-> Add bindings documentation for the i.MX media driver.
-> 
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> ---
->  Documentation/devicetree/bindings/media/imx.txt | 66 +++++++++++++++++++++++++
->  1 file changed, 66 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/imx.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/imx.txt b/Documentation/devicetree/bindings/media/imx.txt
-> new file mode 100644
-> index 0000000..fd5af50
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/imx.txt
-> @@ -0,0 +1,66 @@
-> +Freescale i.MX Media Video Device
-> +=================================
-> +
-> +Video Media Controller node
-> +---------------------------
-> +
-> +This is the media controller node for video capture support. It is a
-> +virtual device that lists the camera serial interface nodes that the
-> +media device will control.
-> +
-> +Required properties:
-> +- compatible : "fsl,imx-capture-subsystem";
-> +- ports      : Should contain a list of phandles pointing to camera
-> +		sensor interface ports of IPU devices
-> +
-> +example:
-> +
-> +capture-subsystem {
-> +	compatible = "fsl,capture-subsystem";
+Enables support of STMicroelectronics STiH4xx SoC series
+DELTA multi-format video decoder V4L2 driver.
 
-"fsl,imx-capture-subsystem"
+Acked-by: Peter Griffin <peter.griffin@linaro.org>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ arch/arm/configs/multi_v7_defconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-regards
-Philipp
+diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
+index b01a438..5dff8fe 100644
+--- a/arch/arm/configs/multi_v7_defconfig
++++ b/arch/arm/configs/multi_v7_defconfig
+@@ -569,6 +569,7 @@ CONFIG_VIDEO_SAMSUNG_S5P_MFC=m
+ CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC=m
+ CONFIG_VIDEO_STI_BDISP=m
+ CONFIG_VIDEO_STI_HVA=m
++CONFIG_VIDEO_STI_DELTA=m
+ CONFIG_VIDEO_RENESAS_JPU=m
+ CONFIG_VIDEO_RENESAS_VSP1=m
+ CONFIG_V4L_TEST_DRIVERS=y
+-- 
+1.9.1
+
