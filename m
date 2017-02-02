@@ -1,64 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f173.google.com ([209.85.128.173]:34057 "EHLO
-        mail-wr0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752084AbdBJMK1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Feb 2017 07:10:27 -0500
-Received: by mail-wr0-f173.google.com with SMTP id o16so106457836wra.1
-        for <linux-media@vger.kernel.org>; Fri, 10 Feb 2017 04:09:44 -0800 (PST)
-Subject: Re: metadata node
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-References: <Pine.LNX.4.64.1701111007540.761@axis700.grange>
- <b6c8267d-d18d-419e-bb2c-a21cfcbdd5bc@linaro.org>
- <alpine.DEB.2.00.1702021932150.23282@axis700.grange>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        sakari.ailus@iki.fi, Hans Verkuil <hverkuil@xs4all.nl>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <74450682-4fdc-4561-e853-865bdaa64cfc@linaro.org>
-Date: Fri, 10 Feb 2017 14:09:42 +0200
-MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.00.1702021932150.23282@axis700.grange>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mout.kundenserver.de ([217.72.192.74]:57227 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751057AbdBBLf3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2017 06:35:29 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Ray Jui <rjui@broadcom.com>,
+        Scott Branden <sbranden@broadcom.com>,
+        bcm-kernel-feedback-list@broadcom.com,
+        Stephen Warren <swarren@wwwdotorg.org>,
+        Lee Jones <lee@kernel.org>, Eric Anholt <eric@anholt.net>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-rpi-kernel@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] staging: bcm2835: mark all symbols as 'static'
+Date: Thu,  2 Feb 2017 12:34:11 +0100
+Message-Id: <20170202113436.690145-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+I got a link error in allyesconfig:
 
-On 02/02/2017 08:35 PM, Guennadi Liakhovetski wrote:
-> Hi Stanimir,
-> 
-> On Mon, 30 Jan 2017, Stanimir Varbanov wrote:
-> 
->> Hi Guennadi,
->>
->> On 01/11/2017 11:42 AM, Guennadi Liakhovetski wrote:
-> 
-> [snip]
-> 
->>> In any case, _if_ we do keep the current approach of separate /dev/video* 
->>> nodes, we need a way to associate video and metadata nodes. Earlier I 
->>> proposed using media controller links for that. In your implementation of 
->>
->> I don't think that media controller links is a good idea. This metadata
->> api could be used by mem2mem drivers which don't have media controller
->> links so we will need a generic v4l2 way to bound image buffer and its
->> metadata buffer.
-> 
-> Is there anything, that's preventing mem2mem drivers from using the MC 
-> API? Arguably, if you need metadata, you cross the line of becoming a 
-> complex enough device to deserve MC support?
+drivers/staging/media/platform/bcm2835/bcm2835-camera.o: In function `vidioc_enum_framesizes':
+bcm2835-camera.c:(.text.vidioc_enum_framesizes+0x0): multiple definition of `vidioc_enum_framesizes'
+drivers/media/platform/vivid/vivid-vid-cap.o:vivid-vid-cap.c:(.text.vidioc_enum_framesizes+0x0): first defined here
 
-Well I don't want to cross that boundary :), and I don't want to use MC
-for such simple entity with one input and one output. The only reason to
-reply to your email was to provoke your attention to the drivers which
-aren't MC based.
+While both drivers are equally at fault for this problem, the bcm2835 one was
+just added and is easier to fix, as it is only one file, and none of its symbols
+need to be globally visible. This marks the three global symbols as static.
 
-On other side I think that sequence field in struct vb2_v4l2_buffer
-should be sufficient to bound image buffer with metadata buffer.
+Fixes: 7b3ad5abf027 ("staging: Import the BCM2835 MMAL-based V4L2 camera driver.")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/staging/media/platform/bcm2835/bcm2835-camera.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/staging/media/platform/bcm2835/bcm2835-camera.c b/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
+index 105d88102cd9..ced8eb5de0f0 100644
+--- a/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
++++ b/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
+@@ -50,7 +50,7 @@ MODULE_AUTHOR("Vincent Sanders");
+ MODULE_LICENSE("GPL");
+ MODULE_VERSION(BM2835_MMAL_VERSION);
+ 
+-int bcm2835_v4l2_debug;
++static int bcm2835_v4l2_debug;
+ module_param_named(debug, bcm2835_v4l2_debug, int, 0644);
+ MODULE_PARM_DESC(bcm2835_v4l2_debug, "Debug level 0-2");
+ 
+@@ -1312,7 +1312,7 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+ 	return ret;
+ }
+ 
+-int vidioc_enum_framesizes(struct file *file, void *fh,
++static int vidioc_enum_framesizes(struct file *file, void *fh,
+ 			   struct v4l2_frmsizeenum *fsize)
+ {
+ 	struct bm2835_mmal_dev *dev = video_drvdata(file);
+@@ -1842,7 +1842,7 @@ static int __init bm2835_mmal_init_device(struct bm2835_mmal_dev *dev,
+ 	return 0;
+ }
+ 
+-void bcm2835_cleanup_instance(struct bm2835_mmal_dev *dev)
++static void bcm2835_cleanup_instance(struct bm2835_mmal_dev *dev)
+ {
+ 	if (!dev)
+ 		return;
 -- 
-regards,
-Stan
+2.9.0
+
