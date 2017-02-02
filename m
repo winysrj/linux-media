@@ -1,42 +1,253 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f172.google.com ([209.85.128.172]:36437 "EHLO
-        mail-wr0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751999AbdBIOfC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Feb 2017 09:35:02 -0500
-Received: by mail-wr0-f172.google.com with SMTP id k90so84870425wrc.3
-        for <linux-media@vger.kernel.org>; Thu, 09 Feb 2017 06:33:53 -0800 (PST)
-Subject: Re: [PATCH v6 9/9] media: venus: enable building of Venus video
- driver
-To: kbuild test robot <lkp@intel.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-References: <201702080605.zDOHiJ3l%fengguang.wu@intel.com>
-Cc: kbuild-all@01.org, Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <9b54e6f8-d5dd-7624-6c60-cd9b7e0c771c@linaro.org>
-Date: Thu, 9 Feb 2017 15:38:57 +0200
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:32403 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751573AbdBBPAh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 2 Feb 2017 10:00:37 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v7 10/10] [media] st-delta: debug: trace stream/frame information & summary
+Date: Thu, 2 Feb 2017 15:59:53 +0100
+Message-ID: <1486047593-18581-11-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1486047593-18581-1-git-send-email-hugues.fruchet@st.com>
+References: <1486047593-18581-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-In-Reply-To: <201702080605.zDOHiJ3l%fengguang.wu@intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Adds some trace points showing input compressed stream or
+output decoded frame information.
+Adds an unconditional trace point when streaming starts showing
+the compressed stream and the decoded frame information.
+Adds an unconditional trace point at instance closure summarizing
+into a single line the decoding process (stream information, decoded
+and output frames number, potential errors observed).
 
-On 02/08/2017 12:38 AM, kbuild test robot wrote:
-> Hi Stanimir,
-> 
-> [auto build test ERROR on linuxtv-media/master]
-> [also build test ERROR on v4.10-rc7 next-20170207]
+Acked-by: Peter Griffin <peter.griffin@linaro.org>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/platform/sti/delta/Makefile      |  2 +-
+ drivers/media/platform/sti/delta/delta-debug.c | 72 ++++++++++++++++++++++++++
+ drivers/media/platform/sti/delta/delta-debug.h | 18 +++++++
+ drivers/media/platform/sti/delta/delta-v4l2.c  | 30 +++++++++--
+ 4 files changed, 117 insertions(+), 5 deletions(-)
+ create mode 100644 drivers/media/platform/sti/delta/delta-debug.c
+ create mode 100644 drivers/media/platform/sti/delta/delta-debug.h
 
-The error is not reproducible on v4.10-rc7 next-20170209!
-
+diff --git a/drivers/media/platform/sti/delta/Makefile b/drivers/media/platform/sti/delta/Makefile
+index b268df6..8d032508 100644
+--- a/drivers/media/platform/sti/delta/Makefile
++++ b/drivers/media/platform/sti/delta/Makefile
+@@ -1,5 +1,5 @@
+ obj-$(CONFIG_VIDEO_STI_DELTA_DRIVER) := st-delta.o
+-st-delta-y := delta-v4l2.o delta-mem.o delta-ipc.o
++st-delta-y := delta-v4l2.o delta-mem.o delta-ipc.o delta-debug.o
+ 
+ # MJPEG support
+ st-delta-$(CONFIG_VIDEO_STI_DELTA_MJPEG) += delta-mjpeg-hdr.o
+diff --git a/drivers/media/platform/sti/delta/delta-debug.c b/drivers/media/platform/sti/delta/delta-debug.c
+new file mode 100644
+index 0000000..a7ebf2c
+--- /dev/null
++++ b/drivers/media/platform/sti/delta/delta-debug.c
+@@ -0,0 +1,72 @@
++/*
++ * Copyright (C) STMicroelectronics SA 2015
++ * Authors: Hugues Fruchet <hugues.fruchet@st.com>
++ *          Fabrice Lecoultre <fabrice.lecoultre@st.com>
++ *          for STMicroelectronics.
++ * License terms:  GNU General Public License (GPL), version 2
++ */
++
++#include "delta.h"
++#include "delta-debug.h"
++
++char *delta_streaminfo_str(struct delta_streaminfo *s, char *str,
++			   unsigned int len)
++{
++	if (!s)
++		return NULL;
++
++	snprintf(str, len,
++		 "%4.4s %dx%d %s %s dpb=%d %s %s %s%dx%d@(%d,%d) %s%d/%d",
++		 (char *)&s->streamformat, s->width, s->height,
++		 s->profile, s->level, s->dpb,
++		 (s->field == V4L2_FIELD_NONE) ? "progressive" : "interlaced",
++		 s->other,
++		 s->flags & DELTA_STREAMINFO_FLAG_CROP ? "crop=" : "",
++		 s->crop.width, s->crop.height,
++		 s->crop.left, s->crop.top,
++		 s->flags & DELTA_STREAMINFO_FLAG_PIXELASPECT ? "par=" : "",
++		 s->pixelaspect.numerator,
++		 s->pixelaspect.denominator);
++
++	return str;
++}
++
++char *delta_frameinfo_str(struct delta_frameinfo *f, char *str,
++			  unsigned int len)
++{
++	if (!f)
++		return NULL;
++
++	snprintf(str, len,
++		 "%4.4s %dx%d aligned %dx%d %s %s%dx%d@(%d,%d) %s%d/%d",
++		 (char *)&f->pixelformat, f->width, f->height,
++		 f->aligned_width, f->aligned_height,
++		 (f->field == V4L2_FIELD_NONE) ? "progressive" : "interlaced",
++		 f->flags & DELTA_STREAMINFO_FLAG_CROP ? "crop=" : "",
++		 f->crop.width, f->crop.height,
++		 f->crop.left, f->crop.top,
++		 f->flags & DELTA_STREAMINFO_FLAG_PIXELASPECT ? "par=" : "",
++		 f->pixelaspect.numerator,
++		 f->pixelaspect.denominator);
++
++	return str;
++}
++
++void delta_trace_summary(struct delta_ctx *ctx)
++{
++	struct delta_dev *delta = ctx->dev;
++	struct delta_streaminfo *s = &ctx->streaminfo;
++	unsigned char str[100] = "";
++
++	if (!(ctx->flags & DELTA_FLAG_STREAMINFO))
++		return;
++
++	dev_dbg(delta->dev, "%s %s, %d frames decoded, %d frames output, %d frames dropped, %d stream errors, %d decode errors",
++		ctx->name,
++		delta_streaminfo_str(s, str, sizeof(str)),
++		ctx->decoded_frames,
++		ctx->output_frames,
++		ctx->dropped_frames,
++		ctx->stream_errors,
++		ctx->decode_errors);
++}
+diff --git a/drivers/media/platform/sti/delta/delta-debug.h b/drivers/media/platform/sti/delta/delta-debug.h
+new file mode 100644
+index 0000000..955c158
+--- /dev/null
++++ b/drivers/media/platform/sti/delta/delta-debug.h
+@@ -0,0 +1,18 @@
++/*
++ * Copyright (C) STMicroelectronics SA 2015
++ * Authors: Hugues Fruchet <hugues.fruchet@st.com>
++ *          Fabrice Lecoultre <fabrice.lecoultre@st.com>
++ *          for STMicroelectronics.
++ * License terms:  GNU General Public License (GPL), version 2
++ */
++
++#ifndef DELTA_DEBUG_H
++#define DELTA_DEBUG_H
++
++char *delta_streaminfo_str(struct delta_streaminfo *s, char *str,
++			   unsigned int len);
++char *delta_frameinfo_str(struct delta_frameinfo *f, char *str,
++			  unsigned int len);
++void delta_trace_summary(struct delta_ctx *ctx);
++
++#endif /* DELTA_DEBUG_H */
+diff --git a/drivers/media/platform/sti/delta/delta-v4l2.c b/drivers/media/platform/sti/delta/delta-v4l2.c
+index 6b29497..c6f2e24 100644
+--- a/drivers/media/platform/sti/delta/delta-v4l2.c
++++ b/drivers/media/platform/sti/delta/delta-v4l2.c
+@@ -17,6 +17,7 @@
+ #include <media/videobuf2-dma-contig.h>
+ 
+ #include "delta.h"
++#include "delta-debug.h"
+ #include "delta-ipc.h"
+ 
+ #define DELTA_NAME	"st-delta"
+@@ -443,11 +444,13 @@ static int delta_g_fmt_stream(struct file *file, void *fh,
+ 	struct delta_dev *delta = ctx->dev;
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+ 	struct delta_streaminfo *streaminfo = &ctx->streaminfo;
++	unsigned char str[100] = "";
+ 
+ 	if (!(ctx->flags & DELTA_FLAG_STREAMINFO))
+ 		dev_dbg(delta->dev,
+-			"%s V4L2 GET_FMT (OUTPUT): no stream information available, using default\n",
+-			ctx->name);
++			"%s V4L2 GET_FMT (OUTPUT): no stream information available, default to %s\n",
++			ctx->name,
++			delta_streaminfo_str(streaminfo, str, sizeof(str)));
+ 
+ 	pix->pixelformat = streaminfo->streamformat;
+ 	pix->width = streaminfo->width;
+@@ -470,11 +473,13 @@ static int delta_g_fmt_frame(struct file *file, void *fh, struct v4l2_format *f)
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+ 	struct delta_frameinfo *frameinfo = &ctx->frameinfo;
+ 	struct delta_streaminfo *streaminfo = &ctx->streaminfo;
++	unsigned char str[100] = "";
+ 
+ 	if (!(ctx->flags & DELTA_FLAG_FRAMEINFO))
+ 		dev_dbg(delta->dev,
+-			"%s V4L2 GET_FMT (CAPTURE): no frame information available, using default\n",
+-			ctx->name);
++			"%s V4L2 GET_FMT (CAPTURE): no frame information available, default to %s\n",
++			ctx->name,
++			delta_frameinfo_str(frameinfo, str, sizeof(str)));
+ 
+ 	pix->pixelformat = frameinfo->pixelformat;
+ 	pix->width = frameinfo->aligned_width;
+@@ -657,6 +662,7 @@ static int delta_s_fmt_frame(struct file *file, void *fh, struct v4l2_format *f)
+ 	const struct delta_dec *dec = ctx->dec;
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+ 	struct delta_frameinfo frameinfo;
++	unsigned char str[100] = "";
+ 	struct vb2_queue *vq;
+ 	int ret;
+ 
+@@ -709,6 +715,10 @@ static int delta_s_fmt_frame(struct file *file, void *fh, struct v4l2_format *f)
+ 
+ 	ctx->flags |= DELTA_FLAG_FRAMEINFO;
+ 	ctx->frameinfo = frameinfo;
++	dev_dbg(delta->dev,
++		"%s V4L2 SET_FMT (CAPTURE): frameinfo updated to %s\n",
++		ctx->name,
++		delta_frameinfo_str(&frameinfo, str, sizeof(str)));
+ 
+ 	pix->pixelformat = frameinfo.pixelformat;
+ 	pix->width = frameinfo.aligned_width;
+@@ -1320,6 +1330,8 @@ static int delta_vb2_au_start_streaming(struct vb2_queue *q,
+ 	struct vb2_v4l2_buffer *vbuf = NULL;
+ 	struct delta_streaminfo *streaminfo = &ctx->streaminfo;
+ 	struct delta_frameinfo *frameinfo = &ctx->frameinfo;
++	unsigned char str1[100] = "";
++	unsigned char str2[100] = "";
+ 
+ 	if ((ctx->state != DELTA_STATE_WF_FORMAT) &&
+ 	    (ctx->state != DELTA_STATE_WF_STREAMINFO))
+@@ -1381,6 +1393,10 @@ static int delta_vb2_au_start_streaming(struct vb2_queue *q,
+ 
+ 	ctx->state = DELTA_STATE_READY;
+ 
++	dev_dbg(delta->dev, "%s %s => %s\n", ctx->name,
++		delta_streaminfo_str(streaminfo, str1, sizeof(str1)),
++		delta_frameinfo_str(frameinfo, str2, sizeof(str2)));
++
+ 	delta_au_done(ctx, au, ret);
+ 	return 0;
+ 
+@@ -1708,6 +1724,12 @@ static int delta_release(struct file *file)
+ 	/* close decoder */
+ 	call_dec_op(dec, close, ctx);
+ 
++	/*
++	 * trace a summary of instance
++	 * before closing (debug purpose)
++	 */
++	delta_trace_summary(ctx);
++
+ 	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
+ 
+ 	v4l2_fh_del(&ctx->fh);
 -- 
-regards,
-Stan
+1.9.1
+
