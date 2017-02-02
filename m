@@ -1,60 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52822 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44854 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751714AbdBMQQc (ORCPT
+        by vger.kernel.org with ESMTP id S1750737AbdBBHFp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 11:16:32 -0500
-Received: from lanttu.localdomain (lanttu-e.localdomain [192.168.1.64])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id CAB13600AD
-        for <linux-media@vger.kernel.org>; Mon, 13 Feb 2017 18:16:27 +0200 (EET)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 2/4] smiapp: Verify clock frequency after setting it, prevent changing it
-Date: Mon, 13 Feb 2017 18:16:24 +0200
-Message-Id: <1487002586-1480-3-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1487002586-1480-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1487002586-1480-1-git-send-email-sakari.ailus@linux.intel.com>
+        Thu, 2 Feb 2017 02:05:45 -0500
+Date: Thu, 2 Feb 2017 09:05:07 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Rob Herring <robh@kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        devicetree@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv2 08/16] atmel-isi: document device tree bindings
+Message-ID: <20170202070507.GY7139@valkosipuli.retiisi.org.uk>
+References: <20170130140628.18088-1-hverkuil@xs4all.nl>
+ <20170130140628.18088-9-hverkuil@xs4all.nl>
+ <20170201165059.2qw3gnuyornvfl46@rob-hp-laptop>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170201165059.2qw3gnuyornvfl46@rob-hp-laptop>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The external clock frequency was set by the driver but the obtained
-frequency was never verified. Do that.
+Hi Rob,
 
-Being able to obtain the exact frequency is important as the value is used
-for PLL calculations which may result in frequencies that violate the PLL
-tree limits.
+On Wed, Feb 01, 2017 at 10:50:59AM -0600, Rob Herring wrote:
+> > +			remote-endpoint = <&ov2640_0>;
+> > +			bus-width = <8>;
+> > +			vsync-active = <1>;
+> > +			hsync-active = <1>;
+> 
+> Which side of the connect is supposed to define these?
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+Today we have endpoint properties at each endpoint independently of the
+remote endpoint. I guess you could obtain the endpoint properties from the
+remote endpoint as well. There are exceptions though.
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 0ea0303..64ee215 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2861,6 +2861,7 @@ static int smiapp_probe(struct i2c_client *client,
- {
- 	struct smiapp_sensor *sensor;
- 	struct smiapp_hwconfig *hwcfg = smiapp_get_hwconfig(&client->dev);
-+	unsigned long rate;
- 	unsigned int i;
- 	int rval;
- 
-@@ -2899,6 +2900,14 @@ static int smiapp_probe(struct i2c_client *client,
- 		return rval;
- 	}
- 
-+	rate = clk_get_rate(sensor->ext_clk);
-+	if (rate != sensor->hwcfg->ext_clk) {
-+		dev_err(&client->dev,
-+			"can't set clock freq, asked for %u but got %lu\n",
-+			sensor->hwcfg->ext_clk, rate);
-+		return rval;
-+	}
-+
- 	sensor->xshutdown = devm_gpiod_get_optional(&client->dev, "xshutdown",
- 						    GPIOD_OUT_LOW);
- 	if (IS_ERR(sensor->xshutdown))
+The configuration might not always be exactly the same. The parallel
+interface is a little bit special: you could conceivably have a transmitter
+with 8 wires but a receiver that could only use 10 or more. The wiring could
+be such that the two most significant bits of the transmitter would be wired
+to the two least significant bits on the receiver side. In this case the
+bus-width property would have different values at each endpoint.
+
+If we were to do something like that, it should be done everywhere and such
+exceptions be handled somehow.
+
+The CSI-2 lane mapping configuration (where supported by the hardware) is
+also specific to an endpoint.
+
 -- 
-2.1.4
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
