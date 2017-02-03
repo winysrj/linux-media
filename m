@@ -1,132 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:40340 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752516AbdBUQEk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Feb 2017 11:04:40 -0500
-Date: Tue, 21 Feb 2017 16:03:32 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v4 29/36] media: imx: mipi-csi2: enable setting and
- getting of frame rates
-Message-ID: <20170221160332.GW21222@n2100.armlinux.org.uk>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
- <1487211578-11360-30-git-send-email-steve_longerbeam@mentor.com>
- <20170220220409.GX16975@valkosipuli.retiisi.org.uk>
- <20170221001332.GS21222@n2100.armlinux.org.uk>
- <20170221123756.GI16975@valkosipuli.retiisi.org.uk>
- <20170221132132.GU21222@n2100.armlinux.org.uk>
- <20170221153834.GL16975@valkosipuli.retiisi.org.uk>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53330
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752169AbdBCNqf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2017 08:46:35 -0500
+Date: Fri, 3 Feb 2017 11:46:27 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Shyam Saini <mayhs11saini@gmail.com>
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/4] media: pci: saa7164: Replace BUG() with BUG_ON()
+Message-ID: <20170203114627.65bf6fec@vento.lan>
+In-Reply-To: <1482618702-13755-1-git-send-email-mayhs11saini@gmail.com>
+References: <1482618702-13755-1-git-send-email-mayhs11saini@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170221153834.GL16975@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 21, 2017 at 05:38:34PM +0200, Sakari Ailus wrote:
-> Hi Russell,
+Em Sun, 25 Dec 2016 04:01:39 +0530
+Shyam Saini <mayhs11saini@gmail.com> escreveu:
+
+> Replace BUG() with BUG_ON() using coccinelle
+
+First of all, don't send one patch per file, but one patch per driver.
+
+Also, as checkpatch warns:
+
+	WARNING: Avoid crashing the kernel - try using WARN_ON & recovery code rather than BUG() or BUG_ON()
+
+
+I suspect that very few (if any) BUG() calls on this driver would require
+to crash the Kernel.
+
+
 > 
-> On Tue, Feb 21, 2017 at 01:21:32PM +0000, Russell King - ARM Linux wrote:
-> > On Tue, Feb 21, 2017 at 02:37:57PM +0200, Sakari Ailus wrote:
-> > > Hi Russell,
-> > > 
-> > > On Tue, Feb 21, 2017 at 12:13:32AM +0000, Russell King - ARM Linux wrote:
-> > > > On Tue, Feb 21, 2017 at 12:04:10AM +0200, Sakari Ailus wrote:
-> > > > > On Wed, Feb 15, 2017 at 06:19:31PM -0800, Steve Longerbeam wrote:
-> > > > > > From: Russell King <rmk+kernel@armlinux.org.uk>
-> > > > > > 
-> > > > > > Setting and getting frame rates is part of the negotiation mechanism
-> > > > > > between subdevs.  The lack of support means that a frame rate at the
-> > > > > > sensor can't be negotiated through the subdev path.
-> > > > > 
-> > > > > Just wondering --- what do you need this for?
-> > > > 
-> > > > The v4l2 documentation contradicts the media-ctl implementation.
-> > > > 
-> > > > While v4l2 documentation says:
-> > > > 
-> > > >   These ioctls are used to get and set the frame interval at specific
-> > > >   subdev pads in the image pipeline. The frame interval only makes sense
-> > > >   for sub-devices that can control the frame period on their own. This
-> > > >   includes, for instance, image sensors and TV tuners. Sub-devices that
-> > > >   don't support frame intervals must not implement these ioctls.
-> > > > 
-> > > > However, when trying to configure the pipeline using media-ctl, eg:
-> > > > 
-> > > > media-ctl -d /dev/media1 --set-v4l2 '"imx219 pixel 0-0010":0[crop:(0,0)/3264x2464]'
-> > > > media-ctl -d /dev/media1 --set-v4l2 '"imx219 0-0010":1[fmt:SRGGB10/3264x2464@1/30]'
-> > > > media-ctl -d /dev/media1 --set-v4l2 '"imx219 0-0010":0[fmt:SRGGB8/816x616@1/30]'
-> > > > media-ctl -d /dev/media1 --set-v4l2 '"imx6-mipi-csi2":1[fmt:SRGGB8/816x616@1/30]'
-> > > > Unable to setup formats: Inappropriate ioctl for device (25)
-> > > > media-ctl -d /dev/media1 --set-v4l2 '"ipu1_csi0_mux":2[fmt:SRGGB8/816x616@1/30]'
-> > > > media-ctl -d /dev/media1 --set-v4l2 '"ipu1_csi0":2[fmt:SRGGB8/816x616@1/30]'
-> > > > 
-> > > > The problem there is that the format setting for the csi2 does not get
-> > > > propagated forward:
-> > > 
-> > > The CSI-2 receivers typically do not implement frame interval IOCTLs as they
-> > > do not control the frame interval. Some sensors or TV tuners typically do,
-> > > so they implement these IOCTLs.
-> > 
-> > No, TV tuners do not.  The frame rate for a TV tuner is set by the
-> > broadcaster, not by the tuner.  The tuner can't change that frame rate.
-> > The tuner may opt to "skip" fields or frames.  That's no different from
-> > what the CSI block in my example below is capable of doing.
-> > 
-> > Treating a tuner differently from the CSI block is inconsistent and
-> > completely wrong.
+> Signed-off-by: Shyam Saini <mayhs11saini@gmail.com>
+> ---
+>  drivers/media/pci/saa7164/saa7164-buffer.c | 6 ++----
+>  1 file changed, 2 insertions(+), 4 deletions(-)
 > 
-> I agree tuners in that sense are somewhat similar, and they are not treated
-> differently because they are tuners (and not CSI-2 receivers). Neither can
-> control the frame rate of the incoming video stream.
-> 
-> Conceivably a tuner could implement G_FRAME_INTERVAL IOCTL, but based on a
-> quick glance none appears to. Neither do CSI-2 receivers. Only sensor
-> drivers do currently.
+> diff --git a/drivers/media/pci/saa7164/saa7164-buffer.c b/drivers/media/pci/saa7164/saa7164-buffer.c
+> index 62c3450..7d28d46 100644
+> --- a/drivers/media/pci/saa7164/saa7164-buffer.c
+> +++ b/drivers/media/pci/saa7164/saa7164-buffer.c
+> @@ -266,15 +266,13 @@ int saa7164_buffer_cfg_port(struct saa7164_port *port)
+>  	list_for_each_safe(c, n, &port->dmaqueue.list) {
+>  		buf = list_entry(c, struct saa7164_buffer, list);
+>  
+> -		if (buf->flags != SAA7164_BUFFER_FREE)
+> -			BUG();
+> +		BUG_ON(buf->flags != SAA7164_BUFFER_FREE);
+>  
+>  		/* Place the buffer in the h/w queue */
+>  		saa7164_buffer_activate(buf, i);
+>  
+>  		/* Don't exceed the device maximum # bufs */
+> -		if (i++ > port->hwcfg.buffercount)
+> -			BUG();
+> +		BUG_ON(i++ > port->hwcfg.buffercount);
+>  
+>  	}
+>  	mutex_unlock(&port->dmaqueue_lock);
 
-Please look again.  I am being very careful with "CSI" vs "CSI-2" in my
-emails, you are conflating the two.
 
-In all my emails so far, "CSI" refers to a block of hardware that is
-responsible for receiving an image stream from some kind of source.  It
-contains hardware that supports frame skipping.
 
-"CSI-2" refers to a different block of hardware that is responsible for
-receiving a serially encoded stream from a MIPI-CSI-2 compliant source
-and providing it to the "CSI" block.
-
-I would have thought my diagram that I drew would have made it clear that
-they were different blocks of hardware, but I guess in this case, the old
-saying "a picture is worth 1000 words" is simply not true.
-
-> Images are transmitted as series of lines, with each line ending in a
-> horizontal blanking period, and each frame ending with a similar period of
-
-I'm sorry, are you seriously teaching me to suck rocks?  I am insulted.
-
-I've been involved in TV and video for many years, I don't need you to
-tell me how video is transmitted.
-
-Sorry, you've just lost my interest in further discussion.
-
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Thanks,
+Mauro
