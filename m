@@ -1,53 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f173.google.com ([209.85.220.173]:35305 "EHLO
-        mail-qk0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751115AbdBXJJn (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:34938 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752409AbdBCE2z (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Feb 2017 04:09:43 -0500
-Received: by mail-qk0-f173.google.com with SMTP id u188so13580839qkc.2
-        for <linux-media@vger.kernel.org>; Fri, 24 Feb 2017 01:09:43 -0800 (PST)
-MIME-Version: 1.0
-From: Alexandre-Xavier L-L <axdoomer@gmail.com>
-Date: Fri, 24 Feb 2017 04:09:42 -0500
-Message-ID: <CAKTMqxtM8c7Nv=UQf45zida-u8dEQtHYYHzsGpsqjBn7YB6ZEw@mail.gmail.com>
-Subject: How broken is the em28xx driver?
+        Thu, 2 Feb 2017 23:28:55 -0500
+Message-ID: <5b8b52e36254f77e2cd7caabb952b2e0@smtp-cloud2.xs4all.net>
+Date: Fri, 03 Feb 2017 05:28:52 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everyone,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Is it just me or every device that I try doesn't work. Here's a list,
-they all use the em28xx driver.
+Results of the daily build of media_tree:
 
-Ion video 2 pc
-Plextor ConvertX PX-AV100U
-Startech SVID2USB23
+date:			Fri Feb  3 05:00:16 CET 2017
+media-tree git hash:	e7b3a2b22176d01db0c3b31d6389ccf542ba1967
+media_build git hash:	3c6ce4ff75f19adf45869e34b376c5b9dee4d50a
+v4l-utils git hash:	99306f20cc7e76cf2161e3059de4da245aed2130
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
-Video of the results: https://www.youtube.com/watch?v=wgQKziHupkI
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9-i686: ERRORS
+linux-4.10-rc3-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9-x86_64: ERRORS
+linux-4.10-rc3-x86_64: ERRORS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-I have even tried a August VGB100 which doesn't use the em28xx driver
-and it doesn't work too.
+Detailed results are available here:
 
-I have already posted on the mailing list about these issues relating
-to the interlaced signal, but it's the first time that I try with a
-progressive signal. Although the results are better, I cannot qualify
-it as something that is working.
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-Is the development of the em28xx driver still going on? I would like
-to know which alternative driver that I could use or which would be
-the step that I could do to fix the driver (I don't have a lot of
-knowledge about it). I can even mail one of my devices to somebody who
-is willing to fix the em28xx driver.
+Full logs are available here:
 
-Sorry if I insulted anyone by saying that the em28xx is broken, but I
-have the impression that it doesn't work and that it won't ever work
-with any device because they may be too much defects that prevent it
-from working correctly. It could have worked before (I have seen a
-video from 2013 where it did), but maybe there were regressions and no
-one noticed it broke. I can't install old git releases because they
-are not compatible with newer kernels.
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-Regards,
-Alexandre-Xavier
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
