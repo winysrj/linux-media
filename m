@@ -1,72 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:58850 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753373AbdBJTjC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Feb 2017 14:39:02 -0500
-Date: Fri, 10 Feb 2017 19:38:50 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Thibault Saunier <thibault.saunier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        Inki Dae <inki.dae@samsung.com>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        linux-samsung-soc@vger.kernel.org,
-        Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH v2 1/4] [media] exynos-gsc: Use 576p instead 720p as a
- threshold for colorspaces
-Message-ID: <20170210193850.GN27312@n2100.armlinux.org.uk>
-References: <20170209200420.3046-1-thibault.saunier@osg.samsung.com>
- <20170209200420.3046-2-thibault.saunier@osg.samsung.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:46942 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752441AbdBCVHa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2017 16:07:30 -0500
+Date: Fri, 3 Feb 2017 22:07:28 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, robh+dt@kernel.org,
+        devicetree@vger.kernel.org, ivo.g.dimitrov.75@gmail.com,
+        sre@kernel.org, linux-media@vger.kernel.org, galak@codeaurora.org,
+        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] devicetree: Add video bus switch
+Message-ID: <20170203210728.GB18379@amd>
+References: <20161023200355.GA5391@amd>
+ <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
+ <20161214122451.GB27011@amd>
+ <20161222100104.GA30917@amd>
+ <20161222133938.GA30259@amd>
+ <20161224152031.GA8420@amd>
+ <20170203123508.GA10286@amd>
+ <20170203133219.GD26759@pali>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="qlTNgmc+xy1dBmNv"
 Content-Disposition: inline
-In-Reply-To: <20170209200420.3046-2-thibault.saunier@osg.samsung.com>
+In-Reply-To: <20170203133219.GD26759@pali>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 09, 2017 at 05:04:17PM -0300, Thibault Saunier wrote:
-> From: Javier Martinez Canillas <javier@osg.samsung.com>
-> 
-> The media documentation says that the V4L2_COLORSPACE_SMPTE170M colorspace
-> should be used for SDTV and V4L2_COLORSPACE_REC709 for HDTV. But drivers
-> don't agree on the display resolution that should be used as a threshold.
-> 
-> Some drivers set V4L2_COLORSPACE_REC709 for 720p and higher while others
-> set V4L2_COLORSPACE_REC709 for anything higher than 576p. Newers drivers
-> use the latter and that also matches what user-space multimedia programs
-> do (i.e: GStreamer), so change the driver logic to be aligned with this.
-> 
-> Also, check for the resolution in G_FMT instead unconditionally setting
-> the V4L2_COLORSPACE_REC709 colorspace.
 
-It would be nice to refer to some specification to justify the change,
-rather than "let's follow what <random-piece-of-software> does".
+--qlTNgmc+xy1dBmNv
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-EIA CEA 861B talks about colorimetry for various resolutions:
+On Fri 2017-02-03 14:32:19, Pali Roh=E1r wrote:
+> On Friday 03 February 2017 13:35:08 Pavel Machek wrote:
+> > N900 contains front and back camera, with a switch between the
+> > two. This adds support for the switch component, and it is now
+> > possible to select between front and back cameras during runtime.
+>=20
+> IIRC for controlling cameras on N900 there are two GPIOs. Should not you
+> have both in switch driver?
 
-5.1 480p, 480i, 576p, 576i, 240p, and 288p
-The color space used by the 480-line, 576-line, 240-line, and 288-line
-formats will likely be based on SMPTE 170M [1].
+I guess you recall wrongly :-). Switch seems to work. The issue was
+with switch GPIO also serving as reset GPIO for one sensor, or
+something like that, if _I_ recall correctly ;-).
 
-5.2 1080i, 1080p, and 720p
-The color space used by the high definition formats will likely be based
-on ITU-R BT.709-4 [6].
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-Notice, however, that it says "will likely be" - it's not a requirement,
-as it's expected that the colorspace will be part of the media metadata
-(eg, contained in the transport stream.)  In other words, it should be
-configurable or ultimately provided by the ultimate source of the image.
+--qlTNgmc+xy1dBmNv
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAliU8RAACgkQMOfwapXb+vJuGwCeJg/gENrQJmdW+OVEQLMaf80z
+D/MAnA/u65YzW2dhO+g5sSVhaNIp6nra
+=k0UH
+-----END PGP SIGNATURE-----
+
+--qlTNgmc+xy1dBmNv--
