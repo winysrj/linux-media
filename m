@@ -1,95 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:33610 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750826AbdBTXro (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Feb 2017 18:47:44 -0500
-Subject: Re: [PATCH v4 29/36] media: imx: mipi-csi2: enable setting and
- getting of frame rates
-To: Sakari Ailus <sakari.ailus@iki.fi>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
- <1487211578-11360-30-git-send-email-steve_longerbeam@mentor.com>
- <20170220220409.GX16975@valkosipuli.retiisi.org.uk>
- <6892fb15-2d18-4898-c328-3acff9d6cc39@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Russell King <rmk+kernel@armlinux.org.uk>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <028a05fb-f5e8-d4ed-b0bd-39b93b56dfac@gmail.com>
-Date: Mon, 20 Feb 2017 15:47:39 -0800
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:54640
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751129AbdBCTBd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2017 14:01:33 -0500
+Date: Fri, 3 Feb 2017 17:01:26 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Eric Anholt <eric@anholt.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org, linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-rpi-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 3/6] staging: bcm2835-v4l2: Add a build system for the
+ module.
+Message-ID: <20170203170126.0881e5b3@vento.lan>
+In-Reply-To: <20170127215503.13208-4-eric@anholt.net>
+References: <20170127215503.13208-1-eric@anholt.net>
+        <20170127215503.13208-4-eric@anholt.net>
 MIME-Version: 1.0
-In-Reply-To: <6892fb15-2d18-4898-c328-3acff9d6cc39@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Fri, 27 Jan 2017 13:55:00 -0800
+Eric Anholt <eric@anholt.net> escreveu:
+
+> This is derived from the downstream tree's build system, but with just
+> a single Kconfig option.
+> 
+> For now the driver only builds on 32-bit arm -- the aarch64 build
+> breaks due to the driver using arm-specific cache flushing functions.
+> 
+> Signed-off-by: Eric Anholt <eric@anholt.net>
+> ---
+>  drivers/staging/media/Kconfig                   |  2 ++
+>  drivers/staging/media/Makefile                  |  1 +
+>  drivers/staging/media/platform/bcm2835/Kconfig  | 10 ++++++++++
+>  drivers/staging/media/platform/bcm2835/Makefile | 11 +++++++++++
+>  4 files changed, 24 insertions(+)
+>  create mode 100644 drivers/staging/media/platform/bcm2835/Kconfig
+>  create mode 100644 drivers/staging/media/platform/bcm2835/Makefile
+> 
+> diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
+> index ffb8fa72c3da..abd0e2d57c20 100644
+> --- a/drivers/staging/media/Kconfig
+> +++ b/drivers/staging/media/Kconfig
+> @@ -27,6 +27,8 @@ source "drivers/staging/media/davinci_vpfe/Kconfig"
+>  
+>  source "drivers/staging/media/omap4iss/Kconfig"
+>  
+> +source "drivers/staging/media/platform/bcm2835/Kconfig"
+> +
+>  source "drivers/staging/media/s5p-cec/Kconfig"
+>  
+>  # Keep LIRC at the end, as it has sub-menus
+> diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
+> index a28e82cf6447..dc89325c463d 100644
+> --- a/drivers/staging/media/Makefile
+> +++ b/drivers/staging/media/Makefile
+> @@ -2,6 +2,7 @@ obj-$(CONFIG_I2C_BCM2048)	+= bcm2048/
+>  obj-$(CONFIG_VIDEO_SAMSUNG_S5P_CEC) += s5p-cec/
+>  obj-$(CONFIG_DVB_CXD2099)	+= cxd2099/
+>  obj-$(CONFIG_LIRC_STAGING)	+= lirc/
+> +obj-$(CONFIG_VIDEO_BCM2835)	+= platform/bcm2835/
+>  obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
+>  obj-$(CONFIG_VIDEO_OMAP4)	+= omap4iss/
+>  obj-$(CONFIG_VIDEO_STI_HDMI_CEC) += st-cec/
+> diff --git a/drivers/staging/media/platform/bcm2835/Kconfig b/drivers/staging/media/platform/bcm2835/Kconfig
+> new file mode 100644
+> index 000000000000..7c5245dc3225
+> --- /dev/null
+> +++ b/drivers/staging/media/platform/bcm2835/Kconfig
+> @@ -0,0 +1,10 @@
+> +config VIDEO_BCM2835
+> +	tristate "Broadcom BCM2835 camera driver"
+> +	depends on VIDEO_V4L2 && (ARCH_BCM2835 || COMPILE_TEST)
+> +	depends on BCM2835_VCHIQ
+> +	depends on ARM
+> +	select VIDEOBUF2_VMALLOC
+> +	help
+> +	  Say Y here to enable camera host interface devices for
+> +	  Broadcom BCM2835 SoC. This operates over the VCHIQ interface
+> +	  to a service running on VideoCore.
+> diff --git a/drivers/staging/media/platform/bcm2835/Makefile b/drivers/staging/media/platform/bcm2835/Makefile
+> new file mode 100644
+> index 000000000000..d7900a5951a8
+> --- /dev/null
+> +++ b/drivers/staging/media/platform/bcm2835/Makefile
+> @@ -0,0 +1,11 @@
+> +bcm2835-v4l2-$(CONFIG_VIDEO_BCM2835) := \
+> +	bcm2835-camera.o \
+> +	controls.o \
+> +	mmal-vchiq.o
+> +
+> +obj-$(CONFIG_VIDEO_BCM2835) += bcm2835-v4l2.o
+> +
+> +ccflags-y += \
+> +	-Idrivers/staging/vc04_services \
+> +	-Idrivers/staging/vc04_services/interface/vcos/linuxkernel \
+> +	-D__VCCOREVER__=0x04000000
+
+Huh! specifying the version of the videocore by a define seems
+wrong! This is the type of thing that should be provided via DT.
 
 
-On 02/20/2017 02:56 PM, Steve Longerbeam wrote:
->
->
-> On 02/20/2017 02:04 PM, Sakari Ailus wrote:
->> Hi Steve,
->>
->> On Wed, Feb 15, 2017 at 06:19:31PM -0800, Steve Longerbeam wrote:
->>> From: Russell King <rmk+kernel@armlinux.org.uk>
->>>
->>> Setting and getting frame rates is part of the negotiation mechanism
->>> between subdevs.  The lack of support means that a frame rate at the
->>> sensor can't be negotiated through the subdev path.
->>
->> Just wondering --- what do you need this for?
->
->
-> Hi Sakari,
->
-> i.MX does need the ability to negotiate the frame rates in the
-> pipelines. The CSI has the ability to skip frames at the output,
-> which is something Philipp added to the CSI subdev. That affects
-> frame interval at the CSI output.
->
-> But as Russell pointed out, the lack of [gs]_frame_interval op
-> causes media-ctl to fail:
->
-> media-ctl -v -d /dev/media1 --set-v4l2
-> '"imx6-mipi-csi2":1[fmt:SGBRG8/512x512@1/30]'
->
-> Opening media device /dev/media1
-> Enumerating entities
-> Found 29 entities
-> Enumerating pads and links
-> Setting up format SGBRG8 512x512 on pad imx6-mipi-csi2/1
-> Format set: SGBRG8 512x512
-> Setting up frame interval 1/30 on entity imx6-mipi-csi2
-> Unable to set frame interval: Inappropriate ioctl for device (-25)Unable
-> to setup formats: Inappropriate ioctl for device (25)
->
->
-> So i.MX needs to implement this op in every subdev in the
-> pipeline, otherwise it's not possible to configure the
-> pipeline with media-ctl.
->
 
 
-Hi Russell,
 
-But Sakari brings up a good point. The mipi csi-2 receiver doesn't
-have any control over frame rate, so why do you even need to
-give it this information via media-ctl?
-
-Steve
+Thanks,
+Mauro
