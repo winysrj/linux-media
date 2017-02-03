@@ -1,100 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:65273 "EHLO
-        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750979AbdBJHCI (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:45856 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751958AbdBCOcC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Feb 2017 02:02:08 -0500
-Subject: Re: [PATCH v2 2/4] [media] exynos-gsc: Respect userspace colorspace
- setting
-To: Thibault Saunier <thibault.saunier@osg.samsung.com>,
-        linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        linux-samsung-soc@vger.kernel.org,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        linux-media@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        Ulf Hansson <ulf.hansson@linaro.org>
-From: Andrzej Hajda <a.hajda@samsung.com>
-Message-id: <6c959d34-146b-53f2-f932-7ab4ff9e931c@samsung.com>
-Date: Fri, 10 Feb 2017 08:01:43 +0100
-MIME-version: 1.0
-In-reply-to: <20170209200420.3046-3-thibault.saunier@osg.samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
-References: <20170209200420.3046-1-thibault.saunier@osg.samsung.com>
- <CGME20170209200635epcas2p1686b5b5522efe835f7a0b4505e16cf12@epcas2p1.samsung.com>
- <20170209200420.3046-3-thibault.saunier@osg.samsung.com>
+        Fri, 3 Feb 2017 09:32:02 -0500
+Subject: Re: vb2 queue_setup documentation clarification (was "Re: [PATCH v3
+ 00/24] i.MX Media Driver")
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <20170202185826.GV27312@n2100.armlinux.org.uk>
+ <2e1cf096-ecb8-ba3d-a554-f4cc6999ed4e@gmail.com> <1600727.suTjUfaXG8@avalon>
+Cc: Russell King - ARM Linux <linux@armlinux.org.uk>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        linux-media@vger.kernel.org, p.zabel@pengutronix.de,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <9d1a185a-f614-9c16-298a-2596444569b0@xs4all.nl>
+Date: Fri, 3 Feb 2017 15:31:59 +0100
+MIME-Version: 1.0
+In-Reply-To: <1600727.suTjUfaXG8@avalon>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09.02.2017 21:04, Thibault Saunier wrote:
-> If the colorspace is specified by userspace we should respect
-> it and not reset it ourself if we can support it.
+On 03/02/17 15:21, Laurent Pinchart wrote:
+> Hi Steve,
 >
-> Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
-> ---
->  drivers/media/platform/exynos-gsc/gsc-core.c | 25 +++++++++++++++++--------
->  1 file changed, 17 insertions(+), 8 deletions(-)
+> (stripping the CC list a bit and adding Sakari Ailus)
 >
-> diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-> index 2beb43401987..63bb4577827d 100644
-> --- a/drivers/media/platform/exynos-gsc/gsc-core.c
-> +++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-> @@ -445,10 +445,14 @@ int gsc_try_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
->  
->  	pix_mp->num_planes = fmt->num_planes;
->  
-> -	if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
-> -		pix_mp->colorspace = V4L2_COLORSPACE_REC709;
-> -	else /* SD */
-> -		pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
-> +	if (pix_mp->colorspace != V4L2_COLORSPACE_REC709 &&
-> +		pix_mp->colorspace != V4L2_COLORSPACE_SMPTE170M &&
-> +		pix_mp->colorspace != V4L2_COLORSPACE_DEFAULT) {
-> +		if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
-> +		  pix_mp->colorspace = V4L2_COLORSPACE_REC709;
-> +		else /* SD */
-> +		  pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
-> +	  }
->  
->  	for (i = 0; i < pix_mp->num_planes; ++i) {
->  		struct v4l2_plane_pix_format *plane_fmt = &pix_mp->plane_fmt[i];
-> @@ -492,12 +496,17 @@ int gsc_g_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
->  	pix_mp->height		= frame->f_height;
->  	pix_mp->field		= V4L2_FIELD_NONE;
->  	pix_mp->pixelformat	= frame->fmt->pixelformat;
-> -	if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
-> -		pix_mp->colorspace = V4L2_COLORSPACE_REC709;
-> -	else /* SD */
-> -		pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
->  	pix_mp->num_planes	= frame->fmt->num_planes;
->  
-> +	if (pix_mp->colorspace != V4L2_COLORSPACE_REC709 &&
-> +		pix_mp->colorspace != V4L2_COLORSPACE_SMPTE170M &&
-> +		pix_mp->colorspace != V4L2_COLORSPACE_DEFAULT) {
-> +		if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
-> +		  pix_mp->colorspace = V4L2_COLORSPACE_REC709;
-> +		else /* SD */
-> +		  pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
-> +	  }
-> +
+> On Thursday 02 Feb 2017 11:12:41 Steve Longerbeam wrote:
+>> On 02/02/2017 10:58 AM, Russell King - ARM Linux wrote:
+>
+> [snip]
+>
+>>> It seems to me that if you don't take account of the existing queue
+>>> size, your camif_queue_setup() has the side effect that each time
+>>> either of these are called.  Hence, the vb2 queue increases by the
+>>> same amount each time, which is probably what you don't want.
+>>>
+>>> The documentation on queue_setup() leaves much to be desired:
+>>>   * @queue_setup: called from VIDIOC_REQBUFS() and VIDIOC_CREATE_BUFS()
+>>>   *          handlers before memory allocation. It can be  called
+>>>   *          twice: if the original number of requested  buffers
+>>>   *          could not be allocated, then it will be called a
+>>>   *          second time with the actually allocated number of
+>>>   *          buffers to verify if that is OK.
+>>>   *          The driver should return the required number of buffers
+>>>   *          in \*num_buffers, the required number of planes per
+>>>   *          buffer in \*num_planes, the size of each plane should be
+>>>   *          set in the sizes\[\] array and optional per-plane
+>>>   *          allocator specific device in the alloc_devs\[\] array.
+>>>   *          When called from VIDIOC_REQBUFS,() \*num_planes == 0,
+>>>   *          the driver has to use the currently configured format to
+>>>   *          determine the plane sizes and \*num_buffers is the total
+>>>   *          number of buffers that are being allocated. When called
+>>>   *          from VIDIOC_CREATE_BUFS,() \*num_planes != 0 and it
+>>>   *          describes the requested number of planes and sizes\[\]
+>>>   *          contains the requested plane sizes. If either
+>>>   *          \*num_planes or the requested sizes are invalid callback
+>>>   *          must return %-EINVAL. In this case \*num_buffers are
+>>>   *          being allocated additionally to q->num_buffers.
+>>>
+>>> That's really really ambiguous, because the "In this case" part doesn't
+>>> really tell you which case it's talking about - but it seems to me looking
+>>> at the code that it's referring to the VIDIOC_CREATE_BUFS case.
+>>
+>> Yes, I caught this when adding fixes from v4l2-compliance testing, which
+>> is not part of the version 3 driver. I agree it is a confusing API. When
+>> called from VIDIOC_CREATE_BUFS (indicated by *num_planes != 0),
+>> *num_buffers is supposed to be requested buffers _in addition_ to
+>> already requested q->num_buffers, which is important info and
+>> should be emphasized a little more than the "oh by the way" fashion
+>> in the prototype description, IMHO.
+>
+> Hans, Sakari, any opinion ?
 
-This is g_fmt, so you set colorspace regardless of its current value, am
-I right?
+This certainly could be improved.
 
-Regards
-Andrzej
+The total number of buffers is q->num_buffers + *num_buffer where q->num_buffers
+is 0 when called from VIDIOC_REQBUFS and can be > 0 when called from VIDIOC_CREATEBUFS.
 
->  	for (i = 0; i < pix_mp->num_planes; ++i) {
->  		pix_mp->plane_fmt[i].bytesperline = (frame->f_width *
->  			frame->fmt->depth[i]) / 8;
+So if you want to ensure that a certain minimum number of buffers is allocated,
+then you would code that as:
 
+         if (q->num_buffers + *num_buffers < 3)
+                 *num_buffers = 3 - q->num_buffers;
 
+Regards,
+
+	Hans
