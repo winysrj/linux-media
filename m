@@ -1,53 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:42842 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751810AbdBFVba (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Feb 2017 16:31:30 -0500
-MIME-Version: 1.0
-In-Reply-To: <00bc695f-d412-7796-93a9-8d67a8f66370@xs4all.nl>
-References: <20170130140628.18088-1-hverkuil@xs4all.nl> <20170130140628.18088-9-hverkuil@xs4all.nl>
- <20170201165059.2qw3gnuyornvfl46@rob-hp-laptop> <00bc695f-d412-7796-93a9-8d67a8f66370@xs4all.nl>
-From: Rob Herring <robh@kernel.org>
-Date: Mon, 6 Feb 2017 15:31:07 -0600
-Message-ID: <CAL_Jsq+NANxTFROAnKh_C4RDwzRQQSFv0UNQ+poGPAXxNT1-Mw@mail.gmail.com>
-Subject: Re: [PATCHv2 08/16] atmel-isi: document device tree bindings
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:31424 "EHLO
+        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752949AbdBCOFf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2017 09:05:35 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>
+Subject: [PATCH] media: s5p-mfc: Fix initialization of internal structures
+Date: Fri, 03 Feb 2017 15:05:18 +0100
+Message-id: <1486130718-25998-1-git-send-email-m.szyprowski@samsung.com>
+References: <CGME20170203140530eucas1p17e9d0bbb29da881bae025e8e3bc7cbbb@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 6, 2017 at 6:20 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 02/01/2017 05:50 PM, Rob Herring wrote:
->> On Mon, Jan 30, 2017 at 03:06:20PM +0100, Hans Verkuil wrote:
->>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>
->>> Document the device tree bindings for this driver.
+Initialize members of the internal device and context structures as early
+as possible to avoid access to uninitialized objects on initialization
+failures. If loading firmware or creating of the hardware instance fails,
+driver will access device or context queue in error handling path, which
+might not be initialized yet, what causes kernel panic. Fix this by moving
+initialization of all static members as early as possible.
 
->>> +isi: isi@f0034000 {
->>> +    compatible = "atmel,at91sam9g45-isi";
->>> +    reg = <0xf0034000 0x4000>;
->>> +    interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
->>> +    pinctrl-names = "default";
->>> +    pinctrl-0 = <&pinctrl_isi_data_0_7>;
->>> +    clocks = <&isi_clk>;
->>> +    clock-names = "isi_clk";
->>> +    status = "ok";
->>> +    port {
->>> +            #address-cells = <1>;
->>> +            #size-cells = <0>;
->>> +            isi_0: endpoint {
->>> +                    reg = <0>;
->>
->> Drop reg.
->
-> Is that because that is the default?
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c | 17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-Essentially, yes. You only need reg if you have more than one of something.
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index bb0a5887c9a9..05fe82be6584 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -764,6 +764,7 @@ static int s5p_mfc_open(struct file *file)
+ 		ret = -ENOMEM;
+ 		goto err_alloc;
+ 	}
++	init_waitqueue_head(&ctx->queue);
+ 	v4l2_fh_init(&ctx->fh, vdev);
+ 	file->private_data = &ctx->fh;
+ 	v4l2_fh_add(&ctx->fh);
+@@ -899,7 +900,6 @@ static int s5p_mfc_open(struct file *file)
+ 		mfc_err("Failed to initialize videobuf2 queue(output)\n");
+ 		goto err_queue_init;
+ 	}
+-	init_waitqueue_head(&ctx->queue);
+ 	mutex_unlock(&dev->mfc_mutex);
+ 	mfc_debug_leave();
+ 	return ret;
+@@ -1218,6 +1218,13 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+ 	vb2_dma_contig_set_max_seg_size(dev->mem_dev_r, DMA_BIT_MASK(32));
+ 
+ 	mutex_init(&dev->mfc_mutex);
++	init_waitqueue_head(&dev->queue);
++	dev->hw_lock = 0;
++	INIT_WORK(&dev->watchdog_work, s5p_mfc_watchdog_worker);
++	atomic_set(&dev->watchdog_cnt, 0);
++	init_timer(&dev->watchdog_timer);
++	dev->watchdog_timer.data = (unsigned long)dev;
++	dev->watchdog_timer.function = s5p_mfc_watchdog;
+ 
+ 	ret = s5p_mfc_alloc_firmware(dev);
+ 	if (ret)
+@@ -1226,7 +1233,6 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+ 	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
+ 	if (ret)
+ 		goto err_v4l2_dev_reg;
+-	init_waitqueue_head(&dev->queue);
+ 
+ 	/* decoder */
+ 	vfd = video_device_alloc();
+@@ -1263,13 +1269,6 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+ 	video_set_drvdata(vfd, dev);
+ 	platform_set_drvdata(pdev, dev);
+ 
+-	dev->hw_lock = 0;
+-	INIT_WORK(&dev->watchdog_work, s5p_mfc_watchdog_worker);
+-	atomic_set(&dev->watchdog_cnt, 0);
+-	init_timer(&dev->watchdog_timer);
+-	dev->watchdog_timer.data = (unsigned long)dev;
+-	dev->watchdog_timer.function = s5p_mfc_watchdog;
+-
+ 	/* Initialize HW ops and commands based on MFC version */
+ 	s5p_mfc_init_hw_ops(dev);
+ 	s5p_mfc_init_hw_cmds(dev);
+-- 
+1.9.1
 
-Rob
