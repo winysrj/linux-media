@@ -1,53 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:51889 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753530AbdBUUnt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Feb 2017 15:43:49 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v2 10/19] [media] serial_ir: iommap is a memory address, not bool
-Date: Tue, 21 Feb 2017 20:43:34 +0000
-Message-Id: <f8fecad49353d085a34c26c39779ae755bf1202d.1487709384.git.sean@mess.org>
-In-Reply-To: <cover.1487709384.git.sean@mess.org>
-References: <cover.1487709384.git.sean@mess.org>
-In-Reply-To: <cover.1487709384.git.sean@mess.org>
-References: <cover.1487709384.git.sean@mess.org>
+Received: from mail-ot0-f195.google.com ([74.125.82.195]:34284 "EHLO
+        mail-ot0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752477AbdBCVNQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2017 16:13:16 -0500
+Received: by mail-ot0-f195.google.com with SMTP id 73so3613348otj.1
+        for <linux-media@vger.kernel.org>; Fri, 03 Feb 2017 13:13:15 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <E1cZged-0003B4-EY@www.linuxtv.org>
+References: <E1cZged-0003B4-EY@www.linuxtv.org>
+From: Fabio Estevam <festevam@gmail.com>
+Date: Fri, 3 Feb 2017 19:13:14 -0200
+Message-ID: <CAOMZO5BTNZdmK4ENOGqeKwDM7h0-WzTWFOk54FS+yV-nTuaWmQ@mail.gmail.com>
+Subject: Re: [git:media_tree/master] [media] coda: add Freescale firmware
+ compatibility location
+To: linux-media <linux-media@vger.kernel.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linuxtv-commits@linuxtv.org, Fabio Estevam <fabio.estevam@nxp.com>,
+        Baruch Siach <baruch@tkos.co.il>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This has been broken for a long time, so presumably it is not used. I
-have no hardware to test this on.
+On Fri, Feb 3, 2017 at 2:23 PM, Mauro Carvalho Chehab
+<mchehab@s-opensource.com> wrote:
+> This is an automatic generated email to let you know that the following patch were queued:
+>
+> Subject: [media] coda: add Freescale firmware compatibility location
+> Author:  Baruch Siach <baruch@tkos.co.il>
+> Date:    Sun Jan 15 08:33:53 2017 -0200
+>
+> The Freescale provided imx-vpu looks for firmware files under /lib/firmware/vpu
+> by default. Make coda look there for firmware files to ease the update path.
+>
+> Cc: Fabio Estevam <festevam@gmail.com>
+> Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+> Reviewed-by: Fabio Estevam <fabio.estevam@nxp.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+>
+>  drivers/media/platform/coda/coda-common.c | 4 ++++
+>  drivers/media/platform/coda/coda.h        | 2 +-
+>  2 files changed, 5 insertions(+), 1 deletion(-)
+>
+> ---
+>
+> diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+> index a918b294adef..eb6548f46cba 100644
+> --- a/drivers/media/platform/coda/coda-common.c
+> +++ b/drivers/media/platform/coda/coda-common.c
+> @@ -2221,6 +2221,7 @@ static const struct coda_devtype coda_devdata[] = {
+>         [CODA_IMX27] = {
+>                 .firmware     = {
+>                         "vpu_fw_imx27_TO2.bin",
+> +                       "vpu/vpu_fw_imx27_TO2.bin",
+>                         "v4l-codadx6-imx27.bin"
+>                 },
+>                 .product      = CODA_DX6,
+> @@ -2234,6 +2235,7 @@ static const struct coda_devtype coda_devdata[] = {
+>         [CODA_IMX53] = {
+>                 .firmware     = {
+>                         "vpu_fw_imx53.bin",
+> +                       "vpu/vpu_fw_imx53.bin",
+>                         "v4l-coda7541-imx53.bin"
+>                 },
+>                 .product      = CODA_7541,
+> @@ -2248,6 +2250,7 @@ static const struct coda_devtype coda_devdata[] = {
+>         [CODA_IMX6Q] = {
+>                 .firmware     = {
+>                         "vpu_fw_imx6q.bin",
+> +                       "vpu/vpu_fw_imx6q.bin",
+>                         "v4l-coda960-imx6q.bin"
+>                 },
+>                 .product      = CODA_960,
+> @@ -2262,6 +2265,7 @@ static const struct coda_devtype coda_devdata[] = {
+>         [CODA_IMX6DL] = {
+>                 .firmware     = {
+>                         "vpu_fw_imx6d.bin",
+> +                       "vpu/vpu_fw_imx6d.bin",
+>                         "v4l-coda960-imx6dl.bin"
+>                 },
+>                 .product      = CODA_960,
+> diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
+> index 7ed79eb774e7..4b831c91ae4a 100644
+> --- a/drivers/media/platform/coda/coda.h
+> +++ b/drivers/media/platform/coda/coda.h
+> @@ -50,7 +50,7 @@ enum coda_product {
+>  struct coda_video_device;
+>
+>  struct coda_devtype {
+> -       char                    *firmware[2];
+> +       char                    *firmware[3];
+>         enum coda_product       product;
+>         const struct coda_codec *codecs;
+>         unsigned int            num_codecs;
 
-Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=61401
-
-Fixes: 90ab5ee ("module_param: make bool parameters really bool")
-
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/serial_ir.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/rc/serial_ir.c b/drivers/media/rc/serial_ir.c
-index 923fb22..7b3a3b5 100644
---- a/drivers/media/rc/serial_ir.c
-+++ b/drivers/media/rc/serial_ir.c
-@@ -56,7 +56,7 @@ struct serial_ir_hw {
- static int type;
- static int io;
- static int irq;
--static bool iommap;
-+static ulong iommap;
- static int ioshift;
- static bool softcarrier = true;
- static bool share_irq;
-@@ -836,7 +836,7 @@ module_param(io, int, 0444);
- MODULE_PARM_DESC(io, "I/O address base (0x3f8 or 0x2f8)");
- 
- /* some architectures (e.g. intel xscale) have memory mapped registers */
--module_param(iommap, bool, 0444);
-+module_param(iommap, ulong, 0444);
- MODULE_PARM_DESC(iommap, "physical base for memory mapped I/O (0 = no memory mapped io)");
- 
- /*
--- 
-2.9.3
+I think there was an issue pointed out by Philipp on this patch.
