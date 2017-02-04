@@ -1,108 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:36350 "EHLO
-        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751290AbdBUP62 (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:36845 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753630AbdBDE3x (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Feb 2017 10:58:28 -0500
-Subject: Re: [PATCH v9 1/2] Add OV5647 device tree documentation
-To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <devicetree@vger.kernel.org>
-References: <cover.1487334912.git.roliveir@synopsys.com>
- <5a93352142495528dd56d5e281a8ed8ad6404a05.1487334912.git.roliveir@synopsys.com>
-CC: <CARLOS.PALMINHA@synopsys.com>, Arnd Bergmann <arnd@arndb.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>,
-        Pavel Machek <pavel@ucw.cz>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Rob Herring <robh+dt@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>
-From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Message-ID: <dd33c7bc-e6f7-c234-c3c6-6cc4c7353c68@mentor.com>
-Date: Tue, 21 Feb 2017 17:58:09 +0200
-MIME-Version: 1.0
-In-Reply-To: <5a93352142495528dd56d5e281a8ed8ad6404a05.1487334912.git.roliveir@synopsys.com>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+        Fri, 3 Feb 2017 23:29:53 -0500
+Message-ID: <928869b8142346a5165eed5102ac46f3@smtp-cloud2.xs4all.net>
+Date: Sat, 04 Feb 2017 05:29:50 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ramiro,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 02/17/2017 03:14 PM, Ramiro Oliveira wrote:
-> Create device tree bindings documentation.
-> 
-> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
-> Acked-by: Rob Herring <robh@kernel.org>
-> ---
->  .../devicetree/bindings/media/i2c/ov5647.txt       | 35 ++++++++++++++++++++++
->  1 file changed, 35 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5647.txt b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
-> new file mode 100644
-> index 000000000000..31956426d3b9
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
-> @@ -0,0 +1,35 @@
-> +Omnivision OV5647 raw image sensor
-> +---------------------------------
-> +
-> +OV5647 is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
-> +and CCI (I2C compatible) control bus.
-> +
-> +Required properties:
-> +
-> +- compatible		: "ovti,ov5647".
-> +- reg			: I2C slave address of the sensor.
-> +- clocks		: Reference to the xclk clock.
+Results of the daily build of media_tree:
 
-Is "xclk" clock a pixel clock or something else?
+date:			Sat Feb  4 05:00:26 CET 2017
+media-tree git hash:	47b037a0512d9f8675ec2693bed46c8ea6a884ab
+media_build git hash:	3c6ce4ff75f19adf45869e34b376c5b9dee4d50a
+v4l-utils git hash:	99306f20cc7e76cf2161e3059de4da245aed2130
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
-> +- clock-names		: Should be "xclk".
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9-i686: ERRORS
+linux-4.10-rc3-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9-x86_64: ERRORS
+linux-4.10-rc3-x86_64: ERRORS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-You can remove this property, because there is only one source clock.
+Detailed results are available here:
 
-> +- clock-frequency	: Frequency of the xclk clock.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-And after the last updates in the driver this property can be removed as well.
+Full logs are available here:
 
-> +
-> +The common video interfaces bindings (see video-interfaces.txt) should be
-> +used to specify link to the image data receiver. The OV5647 device
-> +node should contain one 'port' child node with an 'endpoint' subnode.
-> +
-> +Example:
-> +
-> +	i2c@2000 {
-> +		...
-> +		ov: camera@36 {
-> +			compatible = "ovti,ov5647";
-> +			reg = <0x36>;
-> +			clocks = <&camera_clk>;
-> +			clock-names = "xclk";
-> +			clock-frequency = <25000000>;
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-When you remove two unused properties, please don't forget to update the
-example.
+The Media Infrastructure API from this daily build is here:
 
-> +			port {
-> +				camera_1: endpoint {
-> +					remote-endpoint = <&csi1_ep1>;
-> +				};
-> +			};
-> +		};
-> +	};
-> 
-
---
-With best wishes,
-Vladimir
+http://www.xs4all.nl/~hverkuil/spec/index.html
