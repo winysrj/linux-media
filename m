@@ -1,96 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kozue.soulik.info ([108.61.200.231]:53604 "EHLO
-        kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753919AbdBHJSC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Feb 2017 04:18:02 -0500
-Content-Type: text/plain;
-        charset=big5
-Mime-Version: 1.0 (1.0)
-Subject: Re: [PATCH v2 2/2] [media] v4l: Add 10/16-bits per channel YUV pixel formats
-From: Ayaka <ayaka@soulik.info>
-In-Reply-To: <20170203120435.65ac087b@vento.lan>
-Date: Wed, 8 Feb 2017 17:17:47 +0800
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        dri-devel@lists.freedesktop.org, ville.syrjala@linux.intel.com,
-        randy.li@rock-chips.com, linux-kernel@vger.kernel.org,
-        daniel.vetter@intel.com, mchehab@kernel.org,
-        linux-media@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <A944AF16-C2F1-4D12-977D-1EB1171CA598@soulik.info>
-References: <1483547351-5792-1-git-send-email-ayaka@soulik.info> <1483547351-5792-3-git-send-email-ayaka@soulik.info> <20170105103037.GT3958@valkosipuli.retiisi.org.uk> <9a7e7ffd-27d5-0fff-2be5-03f14cc78683@soulik.info> <20170105182717.GU3958@valkosipuli.retiisi.org.uk> <20170203120435.65ac087b@vento.lan>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Received: from mout.gmx.net ([212.227.17.20]:50420 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751084AbdBDMgL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 4 Feb 2017 07:36:11 -0500
+Subject: Re: Bug#854100: libdvbv5-0: fails to tune / scan
+To: Gregor Jasny <gjasny@googlemail.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <148617570740.6827.6324247760769667383.reportbug@ixtlilton.netz.invalid>
+ <0db3f8d1-0461-5d82-a92d-ecc3cfcfec71@googlemail.com>
+From: Marcel Heinz <quisquilia@gmx.de>
+Message-ID: <8792984d-54c9-01a8-0f84-7a1f0312a12f@gmx.de>
+Date: Sat, 4 Feb 2017 13:35:47 +0100
+MIME-Version: 1.0
+In-Reply-To: <0db3f8d1-0461-5d82-a92d-ecc3cfcfec71@googlemail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
+
+trying to provide a bit more information:
+
+Am 04.02.2017 um 10:08 schrieb Gregor Jasny:
+> Hello,
+> 
+> On 2/4/17 3:35 AM, Marcel Heinz wrote:
+>> After the upgrade from libdvbv5-0 1.10.1-1 to 1.12.2-2, any applications
+>> using libdvbv5-0 fail to work with my DVB-S card.
+>>
+>> [...]
+>> Output with new dvb-tools / libdvbv5-0 1.12.2-2:
+>>
+>> |$ dvbv5-scan -l UNIVERSAL /usr/share/dvb/dvb-s/Astra-19.2e
+>> |Using LNBf UNIVERSAL
+>> |        Europe
+>> |        10800 to 11800 MHz and 11600 to 12700 MHz
+>> |	 Dual LO, IF = lowband 9750 MHz, highband 10600	MHz
+>> |ERROR    command BANDWIDTH_HZ (5) not found during retrieve
+>> |Cannot calc frequency shift. Either bandwidth/symbol-rate is unavailable (yet).
+>> |Scanning frequency #1 12551500
+>> |ERROR    FE_SET_PROPERTY: Invalid argument
+>> |ERROR    dvb_fe_set_parms failed: Invalid argument
 
 
-從我的 iPad 傳送
+Using -vvv doesn't give any more clues:
 
-> Mauro Carvalho Chehab <mchehab@s-opensource.com> 於 2017年2月3日 下午10:04 寫道：
-> 
-> Em Thu, 5 Jan 2017 20:27:17 +0200
-> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> 
->> Hi Randy,
->> 
->>> On Thu, Jan 05, 2017 at 11:22:26PM +0800, ayaka wrote:
->>> 
->>> 
->>>> On 01/05/2017 06:30 PM, Sakari Ailus wrote:  
->>>> Hi Randy,
->>>> 
->>>> Thanks for the update.
->>>> 
->>>>> On Thu, Jan 05, 2017 at 12:29:11AM +0800, Randy Li wrote:  
->>>>> The formats added by this patch are:
->>>>>    V4L2_PIX_FMT_P010
->>>>>    V4L2_PIX_FMT_P010M
->>>>>    V4L2_PIX_FMT_P016
->>>>>    V4L2_PIX_FMT_P016M
->>>>> Currently, none of driver uses those format, but some video device
->>>>> has been confirmed with could as those format for video output.
->>>>> The Rockchip's new decoder has supported those 10 bits format for
->>>>> profile_10 HEVC/AVC video.
->>>>> 
->>>>> Signed-off-by: Randy Li <ayaka@soulik.info>
->>>>> 
->>>>> v4l2
->>>>> ---
->>>>> Documentation/media/uapi/v4l/pixfmt-p010.rst  |  86 ++++++++++++++++
->>>>> Documentation/media/uapi/v4l/pixfmt-p010m.rst |  94 ++++++++++++++++++
->>>>> Documentation/media/uapi/v4l/pixfmt-p016.rst  | 126 ++++++++++++++++++++++++
->>>>> Documentation/media/uapi/v4l/pixfmt-p016m.rst | 136 ++++++++++++++++++++++++++  
->>>> You need to include the formats in pixfmt.rst in order to compile the
->>>> documentation.
->>>> 
->>>> $ make htmldocs
->>>> 
->>>> And you'll find it in Documentation/output/media/uapi/v4l/v4l2.html .
->>>> 
->>>> In Debian you'll need to install sphinx-common and python3-sphinx-rtd-theme
->>>> .  
->>> OK, I would fix them in new version.
->>> The view of byte order for P010 serial is left empty, it is a little hard
->>> for me to use flat-table to draw them. Is there possible to use something
->>> like latex to do this job?  
->> 
->> Hmm. Not as far as I know. We recently switched from DocBook mostly due to
->> ReST being more simple to use AFAIU. I think LaTeX output could be produced
->> ReST, that might not be very helpful here though.
-> 
-> No, you can't use LaTeX, as it won't be properly displayed on all output
-> formats. There are a few options to define tables in ReST, but we prefer
-> using flat-table because the other formats are harder to maintain at the
-> V4L2 uAPI documentation.
-> 
-> Just one note about this series: it won't be merged upstream until
-> someone adds a driver needing those pixel formats.
-> 
-I made a mistake, the pixel format I want is not P010, I would post a new patch for that.
-> Regards,
-> Mauro
-> 
-> 
-> Thanks,
-> Mauro
+| Using LNBf UNIVERSAL
+|         Universal, Europe
+|         10800 to 11800 MHz, LO: 9750 MHz
+|         11600 to 12700 MHz, LO: 10600 MHz
+| Found dvb demux device: dvb0.demux0
+|   path: /dev/dvb/adapter0/demux0
+|   sysfs path:
+/sys/devices/pci0000:00/0000:00:1c.7/0000:08:00.0/0000:09:00.0/dvb/dvb0.demux0
+|   bus addr: pci:0000:09:00.0
+|   bus ID: 2103:13d0
+| Found dvb dvr device: dvb0.dvr0
+|   path: /dev/dvb/adapter0/dvr0
+|   sysfs path:
+/sys/devices/pci0000:00/0000:00:1c.7/0000:08:00.0/0000:09:00.0/dvb/dvb0.dvr0
+|   bus addr: pci:0000:09:00.0
+|   bus ID: 2103:13d0
+| Found dvb frontend device: dvb0.frontend0
+|   path: /dev/dvb/adapter0/frontend0
+|   sysfs path:
+/sys/devices/pci0000:00/0000:00:1c.7/0000:08:00.0/0000:09:00.0/dvb/dvb0.frontend0
+|   bus addr: pci:0000:09:00.0
+|   bus ID: 2103:13d0
+| Found dvb net device: dvb0.net0
+|   path: /dev/dvb/adapter0/net0
+|   sysfs path:
+/sys/devices/pci0000:00/0000:00:1c.7/0000:08:00.0/0000:09:00.0/dvb/dvb0.net0
+|   bus addr: pci:0000:09:00.0
+|   bus ID: 2103:13d0
+| Selected dvb demux device: dvb0.demux0
+|   path: /dev/dvb/adapter0/demux0
+|   sysfs path:
+/sys/devices/pci0000:00/0000:00:1c.7/0000:08:00.0/0000:09:00.0/dvb/dvb0.demux0
+|   bus addr: pci:0000:09:00.0
+|   bus ID: 2103:13d0
+| using demux 'dvb0.demux0'
+| Selected dvb frontend device: dvb0.frontend0
+|   path: /dev/dvb/adapter0/frontend0
+|   sysfs path:
+/sys/devices/pci0000:00/0000:00:1c.7/0000:08:00.0/0000:09:00.0/dvb/dvb0.frontend0
+|   bus addr: pci:0000:09:00.0
+|   bus ID: 2103:13d0
+| Device Conexant CX24123/CX24109 (/dev/dvb/adapter0/frontend0)
+capabilities:
+|      CAN_FEC_1_2
+|      CAN_FEC_2_3
+|      CAN_FEC_3_4
+|      CAN_FEC_4_5
+|      CAN_FEC_5_6
+|      CAN_FEC_6_7
+|      CAN_FEC_7_8
+|      CAN_FEC_AUTO
+|      CAN_INVERSION_AUTO
+|      CAN_QPSK
+|      CAN_RECOVER
+| DVB API Version 5.10, Current v5 delivery system: DVBS
+| Supported delivery system:
+|     [DVBS]
+| Failed to guess country from the current locale setting.
+|
+| ERROR    command BANDWIDTH_HZ (5) not found during retrieve
+| Cannot calc frequency shift. Either bandwidth/symbol-rate is
+unavailable (yet).
+| Scanning frequency #1 12551500
+| frequency: 12551.50 MHz, high_band: 1
+| L-Band frequency: 12551.50 MHz (offset = 0.00 MHz)
+| ERROR    FE_SET_PROPERTY: Invalid argument
+| FREQUENCY = 12551500
+| INVERSION = AUTO
+| SYMBOL_RATE = 22000000
+| INNER_FEC = 5/6
+| POLARIZATION = VERTICAL
+| DELIVERY_SYSTEM = DVBS
+| ERROR    dvb_fe_set_parms failed: Invalid argument
+| SEC: set voltage to OFF
+
+The arguments seem plausible to me, but the ioctl still fails with EINVAL.
+
+What might be more interesting is the kernel message produced by the
+failed attempt:
+
+| [42607.855196] b2c2_flexcop_pci 0000:09:00.0: DVB: adapter 0 frontend
+0 frequency 12551500 out of range (950000..2150000)
+
+This frequency range doesn't look like DVB-S at all...
+
+Regards,
+	Marcel
+
+
 
