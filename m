@@ -1,440 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from the.earth.li ([46.43.34.31]:55077 "EHLO the.earth.li"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750719AbdBOTaI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 14:30:08 -0500
-Date: Wed, 15 Feb 2017 19:18:51 +0000
-From: Jonathan McDowell <noodles@earth.li>
-To: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH] [media] dw2102: don't do DMA on stack
-Message-ID: <20170215191851.GH17650@earth.li>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48005 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751957AbdBEPRZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 5 Feb 2017 10:17:25 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarit.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v3 06/24] ARM: dts: imx6-sabrelite: add OV5642 and OV5640 camera sensors
+Date: Sun, 05 Feb 2017 17:17:43 +0200
+Message-ID: <3727718.gJmzFHnJnC@avalon>
+In-Reply-To: <1484571323.8415.98.camel@pengutronix.de>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com> <1bb64209-7c58-fe10-3db9-c5b8103eda90@gmail.com> <1484571323.8415.98.camel@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I upgraded my media box today from 4.4.48 to 4.9.10 and hit WARNINGs in
-the dw2102 driver for my TechnoTrend TT-connect S2-4600, one in
-su3000_power_ctrl() and the other in tt_s2_4600_frontend_attach(). Both
-were due to the use of buffers on the stack as parameters to
-dvb_usb_generic_rw() and the resulting attempt to do DMA with them.
+On Monday 16 Jan 2017 13:55:23 Philipp Zabel wrote:
+> On Fri, 2017-01-13 at 15:04 -0800, Steve Longerbeam wrote:
+> > On 01/13/2017 04:03 AM, Philipp Zabel wrote:
+> > > Am Freitag, den 06.01.2017, 18:11 -0800 schrieb Steve Longerbeam:
+> > >> Enables the OV5642 parallel-bus sensor, and the OV5640 MIPI CSI-2
+> > >> sensor.
+> > >> Both hang off the same i2c2 bus, so they require different (and non-
+> > >> default) i2c slave addresses.
+> > >> 
+> > >> The OV5642 connects to the parallel-bus mux input port on
+> > >> ipu1_csi0_mux.
+> > >> 
+> > >> The OV5640 connects to the input port on the MIPI CSI-2 receiver on
+> > >> mipi_csi. It is set to transmit over MIPI virtual channel 1.
+> > >> 
+> > >> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> > >> ---
+> > >> 
+> > >>   arch/arm/boot/dts/imx6dl-sabrelite.dts   |   5 ++
+> > >>   arch/arm/boot/dts/imx6q-sabrelite.dts    |   6 ++
+> > >>   arch/arm/boot/dts/imx6qdl-sabrelite.dtsi | 118 ++++++++++++++++++++++
+> > >>   3 files changed, 129 insertions(+)
+> > >> 
+> > >> diff --git a/arch/arm/boot/dts/imx6dl-sabrelite.dts
+> > >> b/arch/arm/boot/dts/imx6dl-sabrelite.dts index 0f06ca5..fec2524 100644
+> > >> --- a/arch/arm/boot/dts/imx6dl-sabrelite.dts
+> > >> +++ b/arch/arm/boot/dts/imx6dl-sabrelite.dts
+> 
+> [...]
+> 
+> > >> @@ -299,6 +326,52 @@
+> > >> 
+> > >>   	pinctrl-names = "default";
+> > >>   	pinctrl-0 = <&pinctrl_i2c2>;
+> > >>   	status = "okay";
+> > >> 
+> > >> +
+> > >> +	ov5640: camera@40 {
+> > >> +		compatible = "ovti,ov5640";
+> > >> +		pinctrl-names = "default";
+> > >> +		pinctrl-0 = <&pinctrl_ov5640>;
+> > >> +		clocks = <&mipi_xclk>;
+> > >> +		clock-names = "xclk";
+> > >> +		reg = <0x40>;
+> > >> +		xclk = <22000000>;
+> > > 
+> > > This is superfluous, you can use clk_get_rate on mipi_xclk.
+> > 
+> > This property is actually there to tell the driver what to set the
+> > rate to, with clk_set_rate(). So you are saying it would be better
+> > to set the rate in the device tree and the driver should only
+> > retrieve the rate?
+> 
+> Yes. Given that this is a reference clock input that is constant on a
+> given board and never changes during runtime, I think this is the
+> correct way. The clock will be fixed rate on most boards, I assume.
 
-Patch below switches this driver over to using a buffer within the
-device state structure, as has been done with other DVB-USB drivers.
-Tested against 4.9.10 but applies to Linus' master cleanly.
-
-Signed-off-by: Jonathan McDowell <noodles@earth.li>
-Cc: <stable@vger.kernel.org>
-
------
-diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
-index 2c720cb..1dde34f 100644
---- a/drivers/media/usb/dvb-usb/dw2102.c
-+++ b/drivers/media/usb/dvb-usb/dw2102.c
-@@ -68,6 +68,8 @@
- struct dw2102_state {
- 	u8 initialized;
- 	u8 last_lock;
-+	u8 data[MAX_XFER_SIZE + 4];
-+	struct mutex buf_mutex;
- 	struct i2c_client *i2c_client_demod;
- 	struct i2c_client *i2c_client_tuner;
- 
-@@ -662,62 +664,69 @@ static int su3000_i2c_transfer(struct i2c_adapter *adap, struct i2c_msg msg[],
- 								int num)
- {
- 	struct dvb_usb_device *d = i2c_get_adapdata(adap);
--	u8 obuf[0x40], ibuf[0x40];
-+	struct dw2102_state *state = (struct dw2102_state *)d->priv;
- 
- 	if (!d)
- 		return -ENODEV;
- 	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
- 		return -EAGAIN;
-+	if (mutex_lock_interruptible(&d->data_mutex) < 0) {
-+		mutex_unlock(&d->i2c_mutex);
-+		return -EAGAIN;
-+	}
- 
- 	switch (num) {
- 	case 1:
- 		switch (msg[0].addr) {
- 		case SU3000_STREAM_CTRL:
--			obuf[0] = msg[0].buf[0] + 0x36;
--			obuf[1] = 3;
--			obuf[2] = 0;
--			if (dvb_usb_generic_rw(d, obuf, 3, ibuf, 0, 0) < 0)
-+			state->data[0] = msg[0].buf[0] + 0x36;
-+			state->data[1] = 3;
-+			state->data[2] = 0;
-+			if (dvb_usb_generic_rw(d, state->data, 3,
-+					state->data, 0, 0) < 0)
- 				err("i2c transfer failed.");
- 			break;
- 		case DW2102_RC_QUERY:
--			obuf[0] = 0x10;
--			if (dvb_usb_generic_rw(d, obuf, 1, ibuf, 2, 0) < 0)
-+			state->data[0] = 0x10;
-+			if (dvb_usb_generic_rw(d, state->data, 1,
-+					state->data, 2, 0) < 0)
- 				err("i2c transfer failed.");
--			msg[0].buf[1] = ibuf[0];
--			msg[0].buf[0] = ibuf[1];
-+			msg[0].buf[1] = state->data[0];
-+			msg[0].buf[0] = state->data[1];
- 			break;
- 		default:
- 			/* always i2c write*/
--			obuf[0] = 0x08;
--			obuf[1] = msg[0].addr;
--			obuf[2] = msg[0].len;
-+			state->data[0] = 0x08;
-+			state->data[1] = msg[0].addr;
-+			state->data[2] = msg[0].len;
- 
--			memcpy(&obuf[3], msg[0].buf, msg[0].len);
-+			memcpy(&state->data[3], msg[0].buf, msg[0].len);
- 
--			if (dvb_usb_generic_rw(d, obuf, msg[0].len + 3,
--						ibuf, 1, 0) < 0)
-+			if (dvb_usb_generic_rw(d, state->data, msg[0].len + 3,
-+						state->data, 1, 0) < 0)
- 				err("i2c transfer failed.");
- 
- 		}
- 		break;
- 	case 2:
- 		/* always i2c read */
--		obuf[0] = 0x09;
--		obuf[1] = msg[0].len;
--		obuf[2] = msg[1].len;
--		obuf[3] = msg[0].addr;
--		memcpy(&obuf[4], msg[0].buf, msg[0].len);
--
--		if (dvb_usb_generic_rw(d, obuf, msg[0].len + 4,
--					ibuf, msg[1].len + 1, 0) < 0)
-+		state->data[0] = 0x09;
-+		state->data[1] = msg[0].len;
-+		state->data[2] = msg[1].len;
-+		state->data[3] = msg[0].addr;
-+		memcpy(&state->data[4], msg[0].buf, msg[0].len);
-+
-+		if (dvb_usb_generic_rw(d, state->data, msg[0].len + 4,
-+					state->data, msg[1].len + 1, 0) < 0)
- 			err("i2c transfer failed.");
- 
--		memcpy(msg[1].buf, &ibuf[1], msg[1].len);
-+		memcpy(msg[1].buf, &state->data[1], msg[1].len);
- 		break;
- 	default:
- 		warn("more than 2 i2c messages at a time is not handled yet.");
- 		break;
- 	}
-+	mutex_unlock(&d->data_mutex);
- 	mutex_unlock(&d->i2c_mutex);
- 	return num;
- }
-@@ -845,17 +854,23 @@ static int su3000_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
- static int su3000_power_ctrl(struct dvb_usb_device *d, int i)
- {
- 	struct dw2102_state *state = (struct dw2102_state *)d->priv;
--	u8 obuf[] = {0xde, 0};
-+	int ret = 0;
- 
- 	info("%s: %d, initialized %d", __func__, i, state->initialized);
- 
- 	if (i && !state->initialized) {
-+		mutex_lock(&d->data_mutex);
-+
-+		state->data[0] = 0xde;
-+		state->data[1] = 0;
-+
- 		state->initialized = 1;
- 		/* reset board */
--		return dvb_usb_generic_rw(d, obuf, 2, NULL, 0, 0);
-+		ret = dvb_usb_generic_rw(d, state->data, 2, NULL, 0, 0);
-+		mutex_unlock(&d->data_mutex);
- 	}
- 
--	return 0;
-+	return ret;
- }
- 
- static int su3000_read_mac_address(struct dvb_usb_device *d, u8 mac[6])
-@@ -1310,49 +1325,57 @@ static int prof_7500_frontend_attach(struct dvb_usb_adapter *d)
- 	return 0;
- }
- 
--static int su3000_frontend_attach(struct dvb_usb_adapter *d)
-+static int su3000_frontend_attach(struct dvb_usb_adapter *adap)
- {
--	u8 obuf[3] = { 0xe, 0x80, 0 };
--	u8 ibuf[] = { 0 };
-+	struct dvb_usb_device *d = adap->dev;
-+	struct dw2102_state *state = d->priv;
-+
-+	mutex_lock(&d->data_mutex);
- 
--	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
-+	state->data[0] = 0xe;
-+	state->data[1] = 0x80;
-+	state->data[2] = 0;
-+
-+	if (dvb_usb_generic_rw(d, state->data, 3, state->data, 1, 0) < 0)
- 		err("command 0x0e transfer failed.");
- 
--	obuf[0] = 0xe;
--	obuf[1] = 0x02;
--	obuf[2] = 1;
-+	state->data[0] = 0xe;
-+	state->data[1] = 0x02;
-+	state->data[2] = 1;
- 
--	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
-+	if (dvb_usb_generic_rw(d, state->data, 3, state->data, 1, 0) < 0)
- 		err("command 0x0e transfer failed.");
- 	msleep(300);
- 
--	obuf[0] = 0xe;
--	obuf[1] = 0x83;
--	obuf[2] = 0;
-+	state->data[0] = 0xe;
-+	state->data[1] = 0x83;
-+	state->data[2] = 0;
- 
--	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
-+	if (dvb_usb_generic_rw(d, state->data, 3, state->data, 1, 0) < 0)
- 		err("command 0x0e transfer failed.");
- 
--	obuf[0] = 0xe;
--	obuf[1] = 0x83;
--	obuf[2] = 1;
-+	state->data[0] = 0xe;
-+	state->data[1] = 0x83;
-+	state->data[2] = 1;
- 
--	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
-+	if (dvb_usb_generic_rw(d, state->data, 3, state->data, 1, 0) < 0)
- 		err("command 0x0e transfer failed.");
- 
--	obuf[0] = 0x51;
-+	state->data[0] = 0x51;
- 
--	if (dvb_usb_generic_rw(d->dev, obuf, 1, ibuf, 1, 0) < 0)
-+	if (dvb_usb_generic_rw(d, state->data, 1, state->data, 1, 0) < 0)
- 		err("command 0x51 transfer failed.");
- 
--	d->fe_adap[0].fe = dvb_attach(ds3000_attach, &su3000_ds3000_config,
--					&d->dev->i2c_adap);
--	if (d->fe_adap[0].fe == NULL)
-+	mutex_unlock(&d->data_mutex);
-+
-+	adap->fe_adap[0].fe = dvb_attach(ds3000_attach, &su3000_ds3000_config,
-+					&d->i2c_adap);
-+	if (adap->fe_adap[0].fe == NULL)
- 		return -EIO;
- 
--	if (dvb_attach(ts2020_attach, d->fe_adap[0].fe,
-+	if (dvb_attach(ts2020_attach, adap->fe_adap[0].fe,
- 				&dw2104_ts2020_config,
--				&d->dev->i2c_adap)) {
-+				&d->i2c_adap)) {
- 		info("Attached DS3000/TS2020!");
- 		return 0;
- 	}
-@@ -1361,47 +1384,55 @@ static int su3000_frontend_attach(struct dvb_usb_adapter *d)
- 	return -EIO;
- }
- 
--static int t220_frontend_attach(struct dvb_usb_adapter *d)
-+static int t220_frontend_attach(struct dvb_usb_adapter *adap)
- {
--	u8 obuf[3] = { 0xe, 0x87, 0 };
--	u8 ibuf[] = { 0 };
-+	struct dvb_usb_device *d = adap->dev;
-+	struct dw2102_state *state = d->priv;
-+
-+	mutex_lock(&d->data_mutex);
- 
--	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
-+	state->data[0] = 0xe;
-+	state->data[1] = 0x87;
-+	state->data[2] = 0x0;
-+
-+	if (dvb_usb_generic_rw(d, state->data, 3, state->data, 1, 0) < 0)
- 		err("command 0x0e transfer failed.");
- 
--	obuf[0] = 0xe;
--	obuf[1] = 0x86;
--	obuf[2] = 1;
-+	state->data[0] = 0xe;
-+	state->data[1] = 0x86;
-+	state->data[2] = 1;
- 
--	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
-+	if (dvb_usb_generic_rw(d, state->data, 3, state->data, 1, 0) < 0)
- 		err("command 0x0e transfer failed.");
- 
--	obuf[0] = 0xe;
--	obuf[1] = 0x80;
--	obuf[2] = 0;
-+	state->data[0] = 0xe;
-+	state->data[1] = 0x80;
-+	state->data[2] = 0;
- 
--	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
-+	if (dvb_usb_generic_rw(d, state->data, 3, state->data, 1, 0) < 0)
- 		err("command 0x0e transfer failed.");
- 
- 	msleep(50);
- 
--	obuf[0] = 0xe;
--	obuf[1] = 0x80;
--	obuf[2] = 1;
-+	state->data[0] = 0xe;
-+	state->data[1] = 0x80;
-+	state->data[2] = 1;
- 
--	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
-+	if (dvb_usb_generic_rw(d, state->data, 3, state->data, 1, 0) < 0)
- 		err("command 0x0e transfer failed.");
- 
--	obuf[0] = 0x51;
-+	state->data[0] = 0x51;
- 
--	if (dvb_usb_generic_rw(d->dev, obuf, 1, ibuf, 1, 0) < 0)
-+	if (dvb_usb_generic_rw(d, state->data, 1, state->data, 1, 0) < 0)
- 		err("command 0x51 transfer failed.");
- 
--	d->fe_adap[0].fe = dvb_attach(cxd2820r_attach, &cxd2820r_config,
--					&d->dev->i2c_adap, NULL);
--	if (d->fe_adap[0].fe != NULL) {
--		if (dvb_attach(tda18271_attach, d->fe_adap[0].fe, 0x60,
--					&d->dev->i2c_adap, &tda18271_config)) {
-+	mutex_unlock(&d->data_mutex);
-+
-+	adap->fe_adap[0].fe = dvb_attach(cxd2820r_attach, &cxd2820r_config,
-+					&d->i2c_adap, NULL);
-+	if (adap->fe_adap[0].fe != NULL) {
-+		if (dvb_attach(tda18271_attach, adap->fe_adap[0].fe, 0x60,
-+					&d->i2c_adap, &tda18271_config)) {
- 			info("Attached TDA18271HD/CXD2820R!");
- 			return 0;
- 		}
-@@ -1411,23 +1442,30 @@ static int t220_frontend_attach(struct dvb_usb_adapter *d)
- 	return -EIO;
- }
- 
--static int m88rs2000_frontend_attach(struct dvb_usb_adapter *d)
-+static int m88rs2000_frontend_attach(struct dvb_usb_adapter *adap)
- {
--	u8 obuf[] = { 0x51 };
--	u8 ibuf[] = { 0 };
-+	struct dvb_usb_device *d = adap->dev;
-+	struct dw2102_state *state = d->priv;
-+
-+	mutex_lock(&d->data_mutex);
- 
--	if (dvb_usb_generic_rw(d->dev, obuf, 1, ibuf, 1, 0) < 0)
-+	state->data[0] = 0x51;
-+
-+	if (dvb_usb_generic_rw(d, state->data, 1, state->data, 1, 0) < 0)
- 		err("command 0x51 transfer failed.");
- 
--	d->fe_adap[0].fe = dvb_attach(m88rs2000_attach, &s421_m88rs2000_config,
--					&d->dev->i2c_adap);
-+	mutex_unlock(&d->data_mutex);
- 
--	if (d->fe_adap[0].fe == NULL)
-+	adap->fe_adap[0].fe = dvb_attach(m88rs2000_attach,
-+					&s421_m88rs2000_config,
-+					&d->i2c_adap);
-+
-+	if (adap->fe_adap[0].fe == NULL)
- 		return -EIO;
- 
--	if (dvb_attach(ts2020_attach, d->fe_adap[0].fe,
-+	if (dvb_attach(ts2020_attach, adap->fe_adap[0].fe,
- 				&dw2104_ts2020_config,
--				&d->dev->i2c_adap)) {
-+				&d->i2c_adap)) {
- 		info("Attached RS2000/TS2020!");
- 		return 0;
- 	}
-@@ -1440,44 +1478,50 @@ static int tt_s2_4600_frontend_attach(struct dvb_usb_adapter *adap)
- {
- 	struct dvb_usb_device *d = adap->dev;
- 	struct dw2102_state *state = d->priv;
--	u8 obuf[3] = { 0xe, 0x80, 0 };
--	u8 ibuf[] = { 0 };
- 	struct i2c_adapter *i2c_adapter;
- 	struct i2c_client *client;
- 	struct i2c_board_info board_info;
- 	struct m88ds3103_platform_data m88ds3103_pdata = {};
- 	struct ts2020_config ts2020_config = {};
- 
--	if (dvb_usb_generic_rw(d, obuf, 3, ibuf, 1, 0) < 0)
-+	mutex_lock(&d->data_mutex);
-+
-+	state->data[0] = 0xe;
-+	state->data[1] = 0x80;
-+	state->data[2] = 0x0;
-+
-+	if (dvb_usb_generic_rw(d, state->data, 3, state->data, 1, 0) < 0)
- 		err("command 0x0e transfer failed.");
- 
--	obuf[0] = 0xe;
--	obuf[1] = 0x02;
--	obuf[2] = 1;
-+	state->data[0] = 0xe;
-+	state->data[1] = 0x02;
-+	state->data[2] = 1;
- 
--	if (dvb_usb_generic_rw(d, obuf, 3, ibuf, 1, 0) < 0)
-+	if (dvb_usb_generic_rw(d, state->data, 3, state->data, 1, 0) < 0)
- 		err("command 0x0e transfer failed.");
- 	msleep(300);
- 
--	obuf[0] = 0xe;
--	obuf[1] = 0x83;
--	obuf[2] = 0;
-+	state->data[0] = 0xe;
-+	state->data[1] = 0x83;
-+	state->data[2] = 0;
- 
--	if (dvb_usb_generic_rw(d, obuf, 3, ibuf, 1, 0) < 0)
-+	if (dvb_usb_generic_rw(d, state->data, 3, state->data, 1, 0) < 0)
- 		err("command 0x0e transfer failed.");
- 
--	obuf[0] = 0xe;
--	obuf[1] = 0x83;
--	obuf[2] = 1;
-+	state->data[0] = 0xe;
-+	state->data[1] = 0x83;
-+	state->data[2] = 1;
- 
--	if (dvb_usb_generic_rw(d, obuf, 3, ibuf, 1, 0) < 0)
-+	if (dvb_usb_generic_rw(d, state->data, 3, state->data, 1, 0) < 0)
- 		err("command 0x0e transfer failed.");
- 
--	obuf[0] = 0x51;
-+	state->data[0] = 0x51;
- 
--	if (dvb_usb_generic_rw(d, obuf, 1, ibuf, 1, 0) < 0)
-+	if (dvb_usb_generic_rw(d, state->data, 1, state->data, 1, 0) < 0)
- 		err("command 0x51 transfer failed.");
- 
-+	mutex_unlock(&d->data_mutex);
-+
- 	/* attach demod */
- 	m88ds3103_pdata.clk = 27000000;
- 	m88ds3103_pdata.i2c_wr_max = 33;
------
-
-J.
+I think it's a bit worse than that. The ov5640 and ov5642 drivers should 
+retrieve the clock rate and compute register values accordingly (PLL 
+configuration parameters for instance, but most probably other values as 
+well). Unfortunately, as usual with Omnivision, the lack of public and even 
+non-public information results in drivers hardcoding large lists of 
+register/value pairs that have been computed for a specific clock frequency. 
+The drivers will thus not operate correctly if the clock is running at a 
+different rate. Until that can be fixed, the best option is probably to assign 
+the rate in the device tree as Philipp proposed, and to use clk_get_rate() in 
+the driver to reject any rate other than 22MHz.
 
 -- 
-Revd Jonathan McDowell, ULC | Stand by stomach, here comes banana...
+Regards,
+
+Laurent Pinchart
+
