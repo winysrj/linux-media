@@ -1,74 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yavin4.bsod.eu ([188.164.131.106]:34494 "EHLO yavin4.bsod.eu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751357AbdBTLlF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Feb 2017 06:41:05 -0500
-Received: from yavin4.bsod.eu (localhost [127.0.0.1])
-        by yavin4.bsod.eu (Postfix) with ESMTP id 04079EDF8
-        for <linux-media@vger.kernel.org>; Mon, 20 Feb 2017 11:33:15 +0000 (GMT)
-Received: from yavin4.bsod.eu (unknown [192.168.1.3])
-        by yavin4.bsod.eu (Postfix) with ESMTP id D7050EDCF
-        for <linux-media@vger.kernel.org>; Mon, 20 Feb 2017 11:33:14 +0000 (GMT)
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:58468 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751488AbdBEPjJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 5 Feb 2017 10:39:09 -0500
+Date: Sun, 5 Feb 2017 15:37:55 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarit.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v3 06/24] ARM: dts: imx6-sabrelite: add OV5642 and OV5640
+ camera sensors
+Message-ID: <20170205153754.GJ27312@n2100.armlinux.org.uk>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <1483755102-24785-7-git-send-email-steve_longerbeam@mentor.com>
+ <20170130225133.GF27898@n2100.armlinux.org.uk>
+ <23975350.L90NWivx6X@avalon>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="=_0fefb4eea0e696322c9917b855fc6c07"
-Date: Mon, 20 Feb 2017 12:33:14 +0100
-From: Francesco <francesco@bsod.eu>
-To: linux-media@vger.kernel.org
-Subject: PATCH: v4l-utils/utils/ir-ctl/irc-ctl.c: fix musl build
-Message-ID: <df17ce75ae92e047060082c98a00b50d@bsod.eu>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <23975350.L90NWivx6X@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---=_0fefb4eea0e696322c9917b855fc6c07
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
+On Sun, Feb 05, 2017 at 05:24:30PM +0200, Laurent Pinchart wrote:
+> Hi Russell,
+> 
+> On Monday 30 Jan 2017 22:51:33 Russell King - ARM Linux wrote:
+> > > +			ov5640_to_mipi_csi: endpoint@1 {
+> > > +				reg = <1>;
+> > > +				remote-endpoint = 
+> <&mipi_csi_from_mipi_sensor>;
+> > > +				data-lanes = <0 1>;
+> > > +				clock-lanes = <2>;
+> > 
+> > How do you envision a four-lane sensor being described?
+> > 
+> > 	data-lanes = <0 1 3 4>;
+> > 	clock-lanes = <2>;
+> > 
+> > ?
+> > 
+> > The binding document for video-interfaces.txt says:
+> > 
+> > - clock-lanes: an array of physical clock lane indexes. Position of an entry
+> > determines the logical lane number, while the value of an entry indicates
+> > physical lane, e.g. for a MIPI CSI-2 bus we could have "clock-lanes =
+> > <0>;", which places the clock lane on hardware lane 0. This property is
+> > valid for serial busses only (e.g. MIPI CSI-2). Note that for the MIPI
+> > CSI-2 bus this array contains only one entry.
+> > 
+> > So I think you need to have a good reason to make the clock lane non-zero.
+> 
+> The purpose of the data-lanes and clock-lanes properties is to describe lane 
+> assignment for hardware that supports lane routing. As far as I know the 
+> OV5640 doesn't support lane routing and has dedicated pins for the clock and 
+> data lanes. The data-lanes and clock-lanes properties should probably not be 
+> specified at all.
 
-Hi.
-This is my fist attempt to send a patch for v4l-utils project.
-I maintain v4l-utils package for Alpine Linux (www.alpinelinux.org), a 
-musl-based distro.
+You need at least data-lanes so you know how many data lanes are wired
+between the camera and the mipi csi2 receiver.  Just because a camera
+has (eg) four lanes does not mean you need to wire all four, and in
+some cases less than four will be wired.
 
-This patch allows the build for v4l-utils by allowing alternatives to 
-GLIBC assumptions.
+If data-lanes does not describe that, then all existing users of the
+binding are abusing it:
 
-Thanks for considering.
+$ grep data_lanes drivers/media/i2c -r
+drivers/media/i2c/s5k5baf.c:                state->nlanes = ep.bus.mipi_csi2.num_data_lanes;
+drivers/media/i2c/s5c73m3/s5c73m3-core.c:   if (ep.bus.mipi_csi2.num_data_lanes != S5C73M3_MIPI_DATA_LANES)
+drivers/media/i2c/tc358743.c:           endpoint->bus.mipi_csi2.num_data_lanes == 0 ||
+drivers/media/i2c/smiapp/smiapp-core.c:     hwcfg->lanes = bus_cfg->bus.mipi_csi2.num_data_lanes;
+
+So all those drivers are using it for the _number_ of CSI2 lanes, and
+are not touching the mapping in any way (not even checking that it is
+an identity mapping.)  You could specify any mapping to these drivers,
+as long as num_data_lanes came out right.
+
+And... there's no point having a property in a binding if no one is
+using it... and even more silly not to have a property that everyone
+needs...
 
 -- 
-:: Francesco ::
-Twit.....http://twitter.com/fcolista
-E-Mail...francesco@bsod.eu
-AboutMe..http://about.me/fcolista
-GnuPG ID: C4FB9584
---=_0fefb4eea0e696322c9917b855fc6c07
-Content-Transfer-Encoding: base64
-Content-Type: text/x-diff;
- name=0001-utils-ir-ctl-ir-ctl.c-fix-build-with-musl-library.patch
-Content-Disposition: attachment;
- filename=0001-utils-ir-ctl-ir-ctl.c-fix-build-with-musl-library.patch;
- size=1204
-
-RnJvbSA3MWYzOTljYjEzOTljMzVmZjRjZTE2NWMyY2VjMGZjZDMyNTZkMzRlIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBGcmFuY2VzY28gQ29saXN0YSA8ZmNvbGlzdGFAaXRhLnd0YnRz
-Lm5ldD4KRGF0ZTogTW9uLCAyMCBGZWIgMjAxNyAxMDoxNjowMSArMDEwMApTdWJqZWN0OiBbUEFU
-Q0hdIHV0aWxzL2lyLWN0bC9pci1jdGwuYzogZml4IGJ1aWxkIHdpdGggbXVzbCBsaWJyYXJ5CgpU
-aGlzIHBhdGNoIGFsbG93cyB0byBidWlsZCBjb3JyZWN0bHkgdjRsLXV0aWxzIG9uIG11c2wtYmFz
-ZWQgZGlzdHJpYnV0aW9ucy4KSXQgcHJvdmlkZXMgYWx0ZXJuYXRpdmUgdG8gZ2xpYmMgYXNzdW1w
-dGlvbnMuCi0tLQogdXRpbHMvaXItY3RsL2lyLWN0bC5jIHwgMTQgKysrKysrKysrKysrKysKIDEg
-ZmlsZSBjaGFuZ2VkLCAxNCBpbnNlcnRpb25zKCspCgpkaWZmIC0tZ2l0IGEvdXRpbHMvaXItY3Rs
-L2lyLWN0bC5jIGIvdXRpbHMvaXItY3RsL2lyLWN0bC5jCmluZGV4IGJjNThjZWUwLi4wYmQwZGRj
-YyAxMDA2NDQKLS0tIGEvdXRpbHMvaXItY3RsL2lyLWN0bC5jCisrKyBiL3V0aWxzL2lyLWN0bC9p
-ci1jdGwuYwpAQCAtNDIsNiArNDIsMjAgQEAKICMgZGVmaW5lIF8oc3RyaW5nKSBzdHJpbmcKICNl
-bmRpZgogCisjaWYgIWRlZmluZWQoX19HTElCQ19fKQorCisvKiBFdmFsdWF0ZSBFWFBSRVNTSU9O
-LCBhbmQgcmVwZWF0IGFzIGxvbmcgYXMgaXQgcmV0dXJucyAtMSB3aXRoIGBlcnJubycKKyAgIHNl
-dCB0byBFSU5UUi4gICovCisKKyMgZGVmaW5lIFRFTVBfRkFJTFVSRV9SRVRSWShleHByZXNzaW9u
-KSBcCisgIChfX2V4dGVuc2lvbl9fICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICBcCisgICAgKHsgbG9uZyBpbnQgX19yZXN1bHQ7ICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcCisgICAg
-ICAgZG8gX19yZXN1bHQgPSAobG9uZyBpbnQpIChleHByZXNzaW9uKTsgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICBcCisgICAgICAgd2hpbGUgKF9fcmVzdWx0ID09IC0xTCAmJiBlcnJu
-byA9PSBFSU5UUik7ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcCisgICAgICAgX19yZXN1
-bHQ7IH0pKQorCisjZW5kaWYKKwogIyBkZWZpbmUgTl8oc3RyaW5nKSBzdHJpbmcKIAogCi0tIAoy
-LjExLjEKCg==
---=_0fefb4eea0e696322c9917b855fc6c07--
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
