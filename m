@@ -1,89 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f180.google.com ([74.125.82.180]:33220 "EHLO
-        mail-ot0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751358AbdBOTVA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 14:21:00 -0500
-Received: by mail-ot0-f180.google.com with SMTP id 73so122574533otj.0
-        for <linux-media@vger.kernel.org>; Wed, 15 Feb 2017 11:20:59 -0800 (PST)
+Received: from mail-qt0-f196.google.com ([209.85.216.196]:33175 "EHLO
+        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751239AbdBEASH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 4 Feb 2017 19:18:07 -0500
 MIME-Version: 1.0
-In-Reply-To: <572edbb2-a542-01a7-9ba0-20cee18a3217@xs4all.nl>
-References: <CADR1r6hbvri8qMYP2S7Pe9sxGsjh5iE2zWTUybYwcoRsbpgXFA@mail.gmail.com>
- <572edbb2-a542-01a7-9ba0-20cee18a3217@xs4all.nl>
-From: Martin Herrman <martin.herrman@gmail.com>
-Date: Wed, 15 Feb 2017 20:20:58 +0100
-Message-ID: <CADR1r6gvOXYpz2Qa5HnuSYmyz9pv6e9-tbRQ6PgtK8pqWWHo6A@mail.gmail.com>
-Subject: Re: Cine CT V6.1 code change request
-To: linux-media@vger.kernel.org
+In-Reply-To: <1479136968-24477-5-git-send-email-hverkuil@xs4all.nl>
+References: <1479136968-24477-1-git-send-email-hverkuil@xs4all.nl> <1479136968-24477-5-git-send-email-hverkuil@xs4all.nl>
+From: Pierre-Hugues Husson <phh@phh.me>
+Date: Sun, 5 Feb 2017 01:17:45 +0100
+Message-ID: <CAJ-oXjSsk=cZgpNp-6qLPo13Mj8Cw5mvqEe8mtFVCPSphxJOWQ@mail.gmail.com>
+Subject: Re: [RFCv2 PATCH 4/5] drm/bridge: add dw-hdmi cec driver using Hans
+ Verkuil's CEC code
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-fbdev@vger.kernel.org,
+        Russell King <rmk+kernel@armlinux.org.uk>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        dri-devel@lists.freedesktop.org
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-02-15 8:55 GMT+01:00 Hans Verkuil <hverkuil@xs4all.nl>:
+Hi,
 
-Hi Hans,
-
-Thanks for the quick response!
-
-> I'm not sure what this media_build directory is. It certainly is
-> outdated. The latest media_build is here: https://git.linuxtv.org/media_build.git/
-
-And thanks for sharing!
-
-> Can you show that line and the surrounding lines? I.e. the whole menu
-> entry?
-
-Of course, here it is:
-
-if STAGING
-menu "Media devices in staging"
-
-config STAGING_BROKEN
-bool "Enable drivers that are known to not compile"
-default n
---- help ---
- Say N here, except if you will be fixing the drivers
- compilation.
-
-menuconfig STAGING_MEDIA
-
-> Most likely because the media build you use is outdated.
-
-I cloned the latest repository and build it, all went fine, however.. (read on)
-
-> Which driver?
-
-This is my device:
-
-02:00.0 Multimedia controller: Digital Devices GmbH Octopus DVB Adapter
-Subsystem: Digital Devices GmbH Cine CT V6.1 DVB adapter
-Flags: bus master, fast devsel, latency 0, IRQ 32
-Memory at fbcf0000 (64-bit, non-prefetchable) [size=64K]
-Capabilities: [50] Power Management version 3
-Capabilities: [70] MSI: Enable+ Count=1/2 Maskable- 64bit+
-Capabilities: [90] Express Endpoint, MSI 00
-Capabilities: [100] Vendor Specific Information: ID=0000 Rev=0 Len=00c <?>
-Kernel driver in use: ddbridge
-Kernel modules: ddbridge
-
-I am using the following modules:
-
-[htpc@htpc ~]$ lsmod | grep dd
-tda18212dd             20480  2
-stv0367dd              24576  2
-ddbridge               90112  29
-cxd2099                20480  1 ddbridge
-dvb_core              102400  1 ddbridge
-
-The ddbridge and cxd2099 are in the latest media_build, but the
-stv0367dd and tda18212dd are missing (however, the stv0367 and
-tda18212 are available). How hard is it to add these two?
-
-Regards,
-
-Martin
-
-> Regards,
+2016-11-14 16:22 GMT+01:00 Hans Verkuil <hverkuil@xs4all.nl>:
+> From: Russell King <rmk+kernel@arm.linux.org.uk>
 >
->         Hans
+> Add a CEC driver for the dw-hdmi hardware using Hans Verkuil's CEC
+> implementation.
 >
+> Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+I've seen that the patchset concerning CEC/HDMI notifier after this
+one dropped dw-hdmi support.
+Is this only temporary, or does this driver need someone to take care of it?
+
+> diff --git a/drivers/gpu/drm/bridge/dw-hdmi-cec.c b/drivers/gpu/drm/bridge/dw-hdmi-cec.c
+> new file mode 100644
+> index 0000000..e7e12b5
+> --- /dev/null
+> +++ b/drivers/gpu/drm/bridge/dw-hdmi-cec.c
+> @@ -0,0 +1,346 @@
+> +/* http://git.freescale.com/git/cgit.cgi/imx/linux-2.6-imx.git/
+> + * tree/drivers/mxc/hdmi-cec/mxc_hdmi-cec.c?h=imx_3.0.35_4.1.0 */
+It is perhaps mandatory to have GPL header?
+
+> +#include <linux/hdmi-notifier.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/io.h>
+> +#include <linux/module.h>
+> +#include <linux/notifier.h>
+> +#include <linux/platform_data/dw_hdmi-cec.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/sched.h>
+> +#include <linux/slab.h>
+> +
+> +#include <drm/drm_edid.h>
+> +
+> +#include <media/cec.h>
+> +#include <media/cec-edid.h>
+> +
+> +#define DEV_NAME "mxc_hdmi_cec"
+I think that to respect the convention it should be dw-hdmi-cec?
+
+> +       writeb_relaxed(addresses & 255, cec->base + HDMI_CEC_ADDR_L);
+> +       writeb_relaxed(addresses >> 8, cec->base + HDMI_CEC_ADDR_H);
+Some platforms (at least rockchip) discuss with dw-hdmi with longs
+instead of bytes
+dw-hdmi-i2s-audio.c uses hdmi_read/hdmi_write for that
+
+Is it ok to add write and read functions to dw_hdmi_cec_ops ?
+
+> +static unsigned int parse_hdmi_addr(const struct edid *edid)
+> +{
+> +       if (!edid || edid->extensions == 0)
+> +               return (u16)~0;
+> +
+> +       return cec_get_edid_phys_addr((u8 *)edid,
+> +                               EDID_LENGTH * (edid->extensions + 1), NULL);
+> +}
+> +
+> +static int dw_hdmi_cec_notify(struct notifier_block *nb, unsigned long event,
+> +                             void *data)
+> +{
+> +       struct dw_hdmi_cec *cec = container_of(nb, struct dw_hdmi_cec, nb);
+> +       struct hdmi_notifier *n = data;
+> +       unsigned int phys;
+> +
+> +       dev_info(cec->adap->devnode.parent, "event %lu\n", event);
+> +
+> +       switch (event) {
+> +       case HDMI_CONNECTED:
+> +               break;
+> +
+> +       case HDMI_DISCONNECTED:
+> +               cec_s_phys_addr(cec->adap, CEC_PHYS_ADDR_INVALID, false);
+> +               break;
+> +
+> +       case HDMI_NEW_EDID:
+> +               phys = parse_hdmi_addr(n->edid);
+> +               cec_s_phys_addr(cec->adap, phys, false);
+> +               break;
+> +       }
+> +
+> +       return NOTIFY_OK;
+> +}
+Thanks to "cec: integrate HDMI notifier support" this code can be dropped
