@@ -1,214 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:55456 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751163AbdBFM7l (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Feb 2017 07:59:41 -0500
-Subject: Re: [PATCH 1/6] staging: Import the BCM2835 MMAL-based V4L2 camera
- driver.
-To: Eric Anholt <eric@anholt.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-References: <20170127215503.13208-1-eric@anholt.net>
- <20170127215503.13208-2-eric@anholt.net>
-Cc: devel@driverdev.osuosl.org, linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-rpi-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <1a19f3f3-6925-6477-9908-f7cbfb960f7f@xs4all.nl>
-Date: Mon, 6 Feb 2017 13:59:35 +0100
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:39978 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750851AbdBEVMY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 5 Feb 2017 16:12:24 -0500
+Date: Sun, 5 Feb 2017 22:12:20 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>, mchehab@s-opensource.com
+Cc: laurent.pinchart@ideasonboard.com, robh+dt@kernel.org,
+        devicetree@vger.kernel.org, ivo.g.dimitrov.75@gmail.com,
+        sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        galak@codeaurora.org, mchehab@osg.samsung.com,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] devicetree: Add video bus switch
+Message-ID: <20170205211219.GA27072@amd>
+References: <20161214122451.GB27011@amd>
+ <20161222100104.GA30917@amd>
+ <20161222133938.GA30259@amd>
+ <20161224152031.GA8420@amd>
+ <20170203123508.GA10286@amd>
+ <20170203130740.GB12291@valkosipuli.retiisi.org.uk>
+ <20170203210610.GA18379@amd>
+ <20170203213454.GD12291@valkosipuli.retiisi.org.uk>
+ <20170204215610.GA9243@amd>
+ <20170204223350.GF12291@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <20170127215503.13208-2-eric@anholt.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="VbJkn9YxBvnuCH5J"
+Content-Disposition: inline
+In-Reply-To: <20170204223350.GF12291@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/27/2017 10:54 PM, Eric Anholt wrote:
-> - Supports raw YUV capture, preview, JPEG and H264.
-> - Uses videobuf2 for data transfer, using dma_buf.
-> - Uses 3.6.10 timestamping
-> - Camera power based on use
-> - Uses immutable input mode on video encoder
-> 
-> This code comes from the Raspberry Pi kernel tree (rpi-4.9.y) as of
-> a15ba877dab4e61ea3fc7b006e2a73828b083c52.
-> 
-> Signed-off-by: Eric Anholt <eric@anholt.net>
-> ---
->  .../media/platform/bcm2835/bcm2835-camera.c        | 2016 ++++++++++++++++++++
->  .../media/platform/bcm2835/bcm2835-camera.h        |  145 ++
->  drivers/staging/media/platform/bcm2835/controls.c  | 1345 +++++++++++++
->  .../staging/media/platform/bcm2835/mmal-common.h   |   53 +
->  .../media/platform/bcm2835/mmal-encodings.h        |  127 ++
->  .../media/platform/bcm2835/mmal-msg-common.h       |   50 +
->  .../media/platform/bcm2835/mmal-msg-format.h       |   81 +
->  .../staging/media/platform/bcm2835/mmal-msg-port.h |  107 ++
->  drivers/staging/media/platform/bcm2835/mmal-msg.h  |  404 ++++
->  .../media/platform/bcm2835/mmal-parameters.h       |  689 +++++++
->  .../staging/media/platform/bcm2835/mmal-vchiq.c    | 1916 +++++++++++++++++++
->  .../staging/media/platform/bcm2835/mmal-vchiq.h    |  178 ++
->  12 files changed, 7111 insertions(+)
->  create mode 100644 drivers/staging/media/platform/bcm2835/bcm2835-camera.c
->  create mode 100644 drivers/staging/media/platform/bcm2835/bcm2835-camera.h
->  create mode 100644 drivers/staging/media/platform/bcm2835/controls.c
->  create mode 100644 drivers/staging/media/platform/bcm2835/mmal-common.h
->  create mode 100644 drivers/staging/media/platform/bcm2835/mmal-encodings.h
->  create mode 100644 drivers/staging/media/platform/bcm2835/mmal-msg-common.h
->  create mode 100644 drivers/staging/media/platform/bcm2835/mmal-msg-format.h
->  create mode 100644 drivers/staging/media/platform/bcm2835/mmal-msg-port.h
->  create mode 100644 drivers/staging/media/platform/bcm2835/mmal-msg.h
->  create mode 100644 drivers/staging/media/platform/bcm2835/mmal-parameters.h
->  create mode 100644 drivers/staging/media/platform/bcm2835/mmal-vchiq.c
->  create mode 100644 drivers/staging/media/platform/bcm2835/mmal-vchiq.h
-> 
-> diff --git a/drivers/staging/media/platform/bcm2835/bcm2835-camera.c b/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
-> new file mode 100644
-> index 000000000000..4f03949aecf3
-> --- /dev/null
-> +++ b/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
-> @@ -0,0 +1,2016 @@
 
-<snip>
+--VbJkn9YxBvnuCH5J
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> +static int __init bm2835_mmal_init(void)
-> +{
-> +	int ret;
-> +	struct bm2835_mmal_dev *dev;
-> +	struct vb2_queue *q;
-> +	int camera;
-> +	unsigned int num_cameras;
-> +	struct vchiq_mmal_instance *instance;
-> +	unsigned int resolutions[MAX_BCM2835_CAMERAS][2];
-> +
-> +	ret = vchiq_mmal_init(&instance);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	num_cameras = get_num_cameras(instance,
-> +				      resolutions,
-> +				      MAX_BCM2835_CAMERAS);
-> +	if (num_cameras > MAX_BCM2835_CAMERAS)
-> +		num_cameras = MAX_BCM2835_CAMERAS;
-> +
-> +	for (camera = 0; camera < num_cameras; camera++) {
-> +		dev = kzalloc(sizeof(struct bm2835_mmal_dev), GFP_KERNEL);
-> +		if (!dev)
-> +			return -ENOMEM;
-> +
-> +		dev->camera_num = camera;
-> +		dev->max_width = resolutions[camera][0];
-> +		dev->max_height = resolutions[camera][1];
-> +
-> +		/* setup device defaults */
-> +		dev->overlay.w.left = 150;
-> +		dev->overlay.w.top = 50;
-> +		dev->overlay.w.width = 1024;
-> +		dev->overlay.w.height = 768;
-> +		dev->overlay.clipcount = 0;
-> +		dev->overlay.field = V4L2_FIELD_NONE;
-> +		dev->overlay.global_alpha = 255;
-> +
-> +		dev->capture.fmt = &formats[3]; /* JPEG */
-> +
-> +		/* v4l device registration */
-> +		snprintf(dev->v4l2_dev.name, sizeof(dev->v4l2_dev.name),
-> +			 "%s", BM2835_MMAL_MODULE_NAME);
-> +		ret = v4l2_device_register(NULL, &dev->v4l2_dev);
-> +		if (ret)
-> +			goto free_dev;
-> +
-> +		/* setup v4l controls */
-> +		ret = bm2835_mmal_init_controls(dev, &dev->ctrl_handler);
-> +		if (ret < 0)
-> +			goto unreg_dev;
-> +		dev->v4l2_dev.ctrl_handler = &dev->ctrl_handler;
-> +
-> +		/* mmal init */
-> +		dev->instance = instance;
-> +		ret = mmal_init(dev);
-> +		if (ret < 0)
-> +			goto unreg_dev;
-> +
-> +		/* initialize queue */
-> +		q = &dev->capture.vb_vidq;
-> +		memset(q, 0, sizeof(*q));
-> +		q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
+Hi!
 
-I'm missing VB2_DMABUF here!
+> > 9) Highly reconfigurable hardware - Julien Beraud
+> >=20
+> > - 44 sub-devices connected with an interconnect.
+> > - As long as formats match, any sub-device could be connected to any
+> > - other sub-device through a link.
+> > - The result is 44 * 44 links at worst.
+> > - A switch sub-device proposed as the solution to model the
+> > - interconnect. The sub-devices are connected to the switch
+> > - sub-devices through the hardware links that connect to the
+> > - interconnect.
+> > - The switch would be controlled through new IOCTLs S_ROUTING and
+> > - G_ROUTING.
+> > - Patches available:
+> >  http://git.linuxtv.org/cgit.cgi/pinchartl/media.git/log/?h=3Dxilinx-wip
+> >=20
+> > but the patches are from 2005. So I guess I'll need some guidance here.=
+=2E.
+>=20
+> Yeah, that's where it began (2015?), but right now I can only suggest to
+> wait until there's more. My estimate is within next couple of weeks /
+> months. But it won't be years.
 
-In fact, with dmabuf support I wonder if you still need overlay support.
+Ok, week or two would be ok, couple of months is not. And all I need
+is single hook in common structure.
 
-Using dma-buf and just pass a gpu buffer to v4l2 is preferred over overlays.
+So if g_endpoint_config hook looks sane to _you_, I suggest we simply
+proceed. Now, maybe Mauro Carvalho Chehab <mchehab@s-opensource.com>
+or Laurent or Julien will want a different solution, but
+then... they'll have to suggest something doable now, not in couple of
+months.
 
-Regards,
+Does that sound like a plan?
 
-	Hans
+Mauro added to cc list, so we can get some input.
 
-> +		q->drv_priv = dev;
-> +		q->buf_struct_size = sizeof(struct mmal_buffer);
-> +		q->ops = &bm2835_mmal_video_qops;
-> +		q->mem_ops = &vb2_vmalloc_memops;
-> +		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-> +		ret = vb2_queue_init(q);
-> +		if (ret < 0)
-> +			goto unreg_dev;
-> +
-> +		/* v4l2 core mutex used to protect all fops and v4l2 ioctls. */
-> +		mutex_init(&dev->mutex);
-> +
-> +		/* initialise video devices */
-> +		ret = bm2835_mmal_init_device(dev, &dev->vdev);
-> +		if (ret < 0)
-> +			goto unreg_dev;
-> +
-> +		/* Really want to call vidioc_s_fmt_vid_cap with the default
-> +		 * format, but currently the APIs don't join up.
-> +		 */
-> +		ret = mmal_setup_components(dev, &default_v4l2_format);
-> +		if (ret < 0) {
-> +			v4l2_err(&dev->v4l2_dev,
-> +				 "%s: could not setup components\n", __func__);
-> +			goto unreg_dev;
-> +		}
-> +
-> +		v4l2_info(&dev->v4l2_dev,
-> +			  "Broadcom 2835 MMAL video capture ver %s loaded.\n",
-> +			  BM2835_MMAL_VERSION);
-> +
-> +		gdev[camera] = dev;
-> +	}
-> +	return 0;
-> +
-> +unreg_dev:
-> +	v4l2_ctrl_handler_free(&dev->ctrl_handler);
-> +	v4l2_device_unregister(&dev->v4l2_dev);
-> +
-> +free_dev:
-> +	kfree(dev);
-> +
-> +	for ( ; camera > 0; camera--) {
-> +		bcm2835_cleanup_instance(gdev[camera]);
-> +		gdev[camera] = NULL;
-> +	}
-> +	pr_info("%s: error %d while loading driver\n",
-> +		 BM2835_MMAL_MODULE_NAME, ret);
-> +
-> +	return ret;
-> +}
-> +
-> +static void __exit bm2835_mmal_exit(void)
-> +{
-> +	int camera;
-> +	struct vchiq_mmal_instance *instance = gdev[0]->instance;
-> +
-> +	for (camera = 0; camera < MAX_BCM2835_CAMERAS; camera++) {
-> +		bcm2835_cleanup_instance(gdev[camera]);
-> +		gdev[camera] = NULL;
-> +	}
-> +	vchiq_mmal_finalise(instance);
-> +}
-> +
-> +module_init(bm2835_mmal_init);
-> +module_exit(bm2835_mmal_exit);
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
+--VbJkn9YxBvnuCH5J
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAliXlTMACgkQMOfwapXb+vLTZQCggprGTWZ/5OsMhTltzu8ZF21v
+WLkAn2JAtJn6Q1vTeHHnWS4tV1b0ysDb
+=efDg
+-----END PGP SIGNATURE-----
+
+--VbJkn9YxBvnuCH5J--
