@@ -1,125 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:56486 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750806AbdBOFPA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 00:15:00 -0500
-Message-ID: <6b3691614436e04bbe875d25b75c6863@smtp-cloud2.xs4all.net>
-Date: Wed, 15 Feb 2017 06:14:57 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:51662 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750980AbdBFJuA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Feb 2017 04:50:00 -0500
+Date: Mon, 6 Feb 2017 10:49:57 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: robh+dt@kernel.org, devicetree@vger.kernel.org,
+        ivo.g.dimitrov.75@gmail.com, sakari.ailus@iki.fi, sre@kernel.org,
+        pali.rohar@gmail.com, linux-media@vger.kernel.org
+Subject: Re: [PATCHv2] dt: bindings: Add support for CSI1 bus
+Message-ID: <20170206094956.GA17974@amd>
+References: <20161228183036.GA13139@amd>
+ <20170111225335.GA21553@amd>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="9jxsPFA5p3P2qPhR"
+Content-Disposition: inline
+In-Reply-To: <20170111225335.GA21553@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+--9jxsPFA5p3P2qPhR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-date:			Wed Feb 15 05:00:18 CET 2017
-media-tree git hash:	9eeb0ed0f30938f31a3d9135a88b9502192c18dd
-media_build git hash:	785cdf7f0798964681b33aad44fc2ff4d734733d
-v4l-utils git hash:	90257a21f8f73f4616b3572402eaf490b4f71f79
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.8.0-164
+=46rom: Sakari Ailus <sakari.ailus@iki.fi>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10-rc3-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-x86_64: OK
-linux-4.10-rc3-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+In the vast majority of cases the bus type is known to the driver(s)
+since a receiver or transmitter can only support a single one. There
+are cases however where different options are possible.
 
-Detailed results are available here:
+The existing V4L2 OF support tries to figure out the bus type and
+parse the bus parameters based on that. This does not scale too well
+as there are multiple serial busses that share common properties.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+Some hardware also supports multiple types of busses on the same
+interfaces.
 
-Full logs are available here:
+Document the CSI1/CCP2 property strobe. It signifies the clock or
+strobe mode.
+=20
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Reviewed-By: Sebastian Reichel <sre@kernel.org>
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b=
+/Documentation/devicetree/bindings/media/video-interfaces.txt
+index 9cd2a36..6986fde 100644
+--- a/Documentation/devicetree/bindings/media/video-interfaces.txt
++++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+@@ -76,6 +76,12 @@ Optional endpoint properties
+   mode horizontal and vertical synchronization signals are provided to the
+   slave device (data source) by the master device (data sink). In the mast=
+er
+   mode the data source device is also the source of the synchronization si=
+gnals.
++- bus-type: data bus type. Possible values are:
++  0 - autodetect based on other properties (MIPI CSI-2 D-PHY, parallel or =
+Bt656)
++  1 - MIPI CSI-2 C-PHY
++  2 - MIPI CSI1
++  3 - CCP2
++  Autodetection is default, and bus-type property may be omitted in that c=
+ase.
+ - bus-width: number of data lines actively used, valid for the parallel bu=
+sses.
+ - data-shift: on the parallel data busses, if bus-width is used to specify=
+ the
+   number of data lines, data-shift can be used to specify which data lines=
+ are
+@@ -112,7 +118,8 @@ Optional endpoint properties
+   should be the combined length of data-lanes and clock-lanes properties.
+   If the lane-polarities property is omitted, the value must be interpreted
+   as 0 (normal). This property is valid for serial busses only.
+-
++- strobe: Whether the clock signal is used as clock or strobe. Used
++  with CCP2, for instance.
+=20
+ Example
+ -------
 
-The Media Infrastructure API from this daily build is here:
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+--9jxsPFA5p3P2qPhR
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAliYRsQACgkQMOfwapXb+vJhwgCfbWUGyUdgwuV2PsWZUgRPCkqP
+9jsAn2DTrcYhKR3fjy3MbpUl4xBXMnwj
+=VXYd
+-----END PGP SIGNATURE-----
+
+--9jxsPFA5p3P2qPhR--
