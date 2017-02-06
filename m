@@ -1,90 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f196.google.com ([74.125.82.196]:36743 "EHLO
-        mail-ot0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750957AbdCAA4E (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Feb 2017 19:56:04 -0500
-Received: by mail-ot0-f196.google.com with SMTP id i1so2796332ota.3
-        for <linux-media@vger.kernel.org>; Tue, 28 Feb 2017 16:54:29 -0800 (PST)
-Subject: Re: [PATCH v4 24/36] [media] add Omnivision OV5640 sensor driver
-To: Rob Herring <robh@kernel.org>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
- <1487211578-11360-25-git-send-email-steve_longerbeam@mentor.com>
- <20170227144539.3la2veztkurhwa2p@rob-hp-laptop>
-Cc: mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <7fcea7e2-b684-9824-a46d-46b5e250a728@gmail.com>
-Date: Tue, 28 Feb 2017 16:43:59 -0800
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33304
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752688AbdBFPJ7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Feb 2017 10:09:59 -0500
+Date: Mon, 6 Feb 2017 13:09:51 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v4.10] CEC fixes
+Message-ID: <20170206130951.15e6026d@vento.lan>
 MIME-Version: 1.0
-In-Reply-To: <20170227144539.3la2veztkurhwa2p@rob-hp-laptop>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Linus,
 
+Please pull from:
 
-On 02/27/2017 06:45 AM, Rob Herring wrote:
-> On Wed, Feb 15, 2017 at 06:19:26PM -0800, Steve Longerbeam wrote:
->> This driver is based on ov5640_mipi.c from Freescale imx_3.10.17_1.0.0_beta
->> branch, modified heavily to bring forward to latest interfaces and code
->> cleanup.
->>
->> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
->> ---
->>   .../devicetree/bindings/media/i2c/ov5640.txt       |   43 +
-> Please split to separate commit.
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.10-3
 
-Done.
+For a few documentation fixes at CEC (with got promoted from staging for 4.10),
+and one fix on its core.
 
->
->>   drivers/media/i2c/Kconfig                          |    7 +
->>   drivers/media/i2c/Makefile                         |    1 +
->>   drivers/media/i2c/ov5640.c                         | 2109 ++++++++++++++++++++
->>   4 files changed, 2160 insertions(+)
->>   create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5640.txt
->>   create mode 100644 drivers/media/i2c/ov5640.c
->>
->> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5640.txt b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
->> new file mode 100644
->> index 0000000..4607bbe
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
->> @@ -0,0 +1,43 @@
->> +* Omnivision OV5640 MIPI CSI-2 sensor
->> +
->> +Required Properties:
->> +- compatible: should be "ovti,ov5640"
->> +- clocks: reference to the xclk input clock.
->> +- clock-names: should be "xclk".
->> +- DOVDD-supply: Digital I/O voltage supply, 1.8 volts
->> +- AVDD-supply: Analog voltage supply, 2.8 volts
->> +- DVDD-supply: Digital core voltage supply, 1.5 volts
->> +
->> +Optional Properties:
->> +- reset-gpios: reference to the GPIO connected to the reset pin, if any.
->> +- pwdn-gpios: reference to the GPIO connected to the pwdn pin, if any.
-> Use powerdown-gpios here as that is a somewhat standard name.
+Thanks!
+Mauro
 
-Done.
+-
 
->
-> Both need to state what is the active state.
+The following changes since commit 0e0694ff1a7791274946b7f51bae692da0001a08:
 
-Done.
+  Merge branch 'patchwork' into v4l_for_linus (2016-12-26 14:09:28 -0200)
 
-Steve
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.10-3
+
+for you to fetch changes up to f9f96fc10c09ca16e336854c08bc1563eed97985:
+
+  [media] cec: fix wrong last_la determination (2017-01-30 11:42:31 -0200)
+
+----------------------------------------------------------------
+media fixes for v4.10
+
+----------------------------------------------------------------
+Hans Verkuil (3):
+      [media] cec rst: remove "This API is not yet finalized" notice
+      [media] cec-intro.rst: mention the v4l-utils package and CEC utilities
+      [media] cec: fix wrong last_la determination
+
+ Documentation/media/uapi/cec/cec-func-close.rst         |  5 -----
+ Documentation/media/uapi/cec/cec-func-ioctl.rst         |  5 -----
+ Documentation/media/uapi/cec/cec-func-open.rst          |  5 -----
+ Documentation/media/uapi/cec/cec-func-poll.rst          |  5 -----
+ Documentation/media/uapi/cec/cec-intro.rst              | 17 ++++++++++++-----
+ Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst    |  5 -----
+ .../media/uapi/cec/cec-ioc-adap-g-log-addrs.rst         |  5 -----
+ .../media/uapi/cec/cec-ioc-adap-g-phys-addr.rst         |  5 -----
+ Documentation/media/uapi/cec/cec-ioc-dqevent.rst        |  5 -----
+ Documentation/media/uapi/cec/cec-ioc-g-mode.rst         |  5 -----
+ Documentation/media/uapi/cec/cec-ioc-receive.rst        |  5 -----
+ drivers/media/cec/cec-adap.c                            |  2 +-
+ 12 files changed, 13 insertions(+), 56 deletions(-)
+
