@@ -1,110 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:41821 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933898AbdBVXH5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Feb 2017 18:07:57 -0500
-Date: Wed, 22 Feb 2017 23:00:52 +0000
-From: Sean Young <sean@mess.org>
-To: Matthias Reichl <hias@horus.com>
-Cc: Heiner Kallweit <hkallweit1@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: Re: Bug: decoders referenced in kernel rc-keymaps not loaded on boot
-Message-ID: <20170222230052.GA17047@gofer.mess.org>
-References: <20170221184929.GA2590@camel2.lan>
- <20170221193438.GA4394@gofer.mess.org>
- <20170221225224.GA5099@camel2.lan>
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:33274 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750980AbdBFXKv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Feb 2017 18:10:51 -0500
+Subject: Re: [PATCH v3 13/24] platform: add video-multiplexer subdevice driver
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <2258037.UCXsIYbtGD@avalon> <f6bfb9ec-1ea3-8477-4933-cf655acd3e0f@xs4all.nl>
+ <2038922.a1tReKKdaL@avalon>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        nick@shmanahar.org, markus.heiser@darmarit.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        sakari.ailus@linux.intel.com
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <bd64a86e-d90c-f4aa-6f22-1c832e0b563f@gmail.com>
+Date: Mon, 6 Feb 2017 15:10:46 -0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170221225224.GA5099@camel2.lan>
+In-Reply-To: <2038922.a1tReKKdaL@avalon>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 21, 2017 at 11:52:24PM +0100, Matthias Reichl wrote:
-> On Tue, Feb 21, 2017 at 07:34:39PM +0000, Sean Young wrote:
-> > On Tue, Feb 21, 2017 at 07:49:29PM +0100, Matthias Reichl wrote:
-> > > There seems to be a bug in on-demand loading of IR protocol decoders.
-> > > 
-> > > After bootup the protocol referenced in the in-kernel rc keymap shows
-> > > up as enabled (in sysfs and ir-keytable) but the protocol decoder
-> > > is not loaded and thus no rc input events will be generated.
-> > > 
-> > > For example, RPi3 with kernel 4.10 and gpio-ir-recv configured to use
-> > > the rc-hauppauge keymap in devicetree:
-> > > 
-> > > # lsmod | grep '^\(ir\|rc_\)'
-> > > ir_lirc_codec           5590  0
-> > > rc_hauppauge            2422  0
-> > > rc_core                24320  5 rc_hauppauge,ir_lirc_codec,lirc_dev,gpio_ir_recv
-> > > 
-> > > # cat /sys/class/rc/rc0/protocols
-> > > other unknown [rc-5] nec rc-6 jvc sony rc-5-sz sanyo sharp mce_kbd xmp cec [lirc]
-> > > 
-> > > # dmesg | grep "IR "
-> > > [    4.506728] Registered IR keymap rc-hauppauge
-> > > [    4.554651] lirc_dev: IR Remote Control driver registered, major 242
-> > > [    4.576490] IR LIRC bridge handler initialized
-> > > 
-> > > The same happens with other IR receivers, eg the streamzap receiver,
-> > > which uses the rc-5-sz protocol / ir_rc5_decoder, on x86.
-> > > 
-> > > Reverting the on-demand-loading patches
-> > > 
-> > > [media] media: rc: remove unneeded code
-> > > commit c1500ba0b61e9abf95e0e7ecd3c4ad877f019abe
-> > > 
-> > > [media] media: rc: move check whether a protocol is enabled to the core
-> > > commit d80ca8bd71f0b01b2b12459189927cb3299cfab9
-> > > 
-> > > [media] media: rc: load decoder modules on-demand
-> > > commit acc1c3c688ed8cc862ddc007eab0dcef839f4ec8
-> > > 
-> > > restores the previous behaviour, all decoders are enabled and IR
-> > > events can be generated immediately after boot without having to
-> > > manually trigger loading of a protocol decoder.
-> > 
-> > Hmm this seems to be working fine for me. If you write to the protocols
-> > file, eg. "echo +nec > /sys/class/rc/rc0/protocols", is ir-nec-decoder
-> > loaded and do you get any messages in dmesg (you should).
-> > 
-> > What's your config?
-> 
-> When I do an "echo +nec > /sys/class/rc/rc0/protocols" it triggers
-> the load of both rc5 and nec decoder modules:
-> 
-> root@rpi3:~# cat /sys/class/rc/rc0/protocols
-> other unknown [rc-5] nec rc-6 jvc sony rc-5-sz sanyo sharp mce_kbd xmp cec [lirc]
-> root@rpi3:~# echo +nec > /sys/class/rc/rc0/protocols
-> root@rpi3:~# cat /sys/class/rc/rc0/protocols
-> other unknown [rc-5] [nec] rc-6 jvc sony rc-5-sz sanyo sharp mce_kbd xmp cec [lirc]
-> root@rpi3:~# dmesg | grep "IR "
-> [    3.565061] Registered IR keymap rc-hauppauge
-> [    3.613031] lirc_dev: IR Remote Control driver registered, major 242
-> [    3.641423] IR LIRC bridge handler initialized
-> [   41.877263] IR RC5(x/sz) protocol handler initialized
-> [   41.931575] IR NEC protocol handler initialized
-> 
-> I'm currently testing with downstream RPi kernel 4.9 on Raspbian Jessie
-> (a Debian derivate).
-> 
-> Kernel config is here:
-> https://github.com/raspberrypi/linux/blob/rpi-4.9.y/arch/arm/configs/bcm2709_defconfig
-> 
-> To reproduce the issue it's important to disable the udev rule that
-> runs ir-keytable -a as that can trigger a load of the kernel keytable
-> via the userspace keymap/protocol.
-
-Ah. Yes, this is broken. In commit "9f0bf36 [media] media: rc: preparation
-for on-demand decoder module loading", code was added so that only the
-required decoder module was loaded. This added it to the sysfs protocols
-attribute handling, but not to the rc_register_device(), so no decoder
-will be loaded when a device is first registered.
-
-As you say the udev rule papers over the problem by executing ir-keytable,
-so I never noticed the problem either.
-
-I'll send a patch as a reply to this email.
 
 
-Sean
+On 02/06/2017 02:33 PM, Laurent Pinchart wrote:
+> Hi Hans,
+>
+> (CC'ing Sakari)
+>
+> On Monday 06 Feb 2017 10:50:22 Hans Verkuil wrote:
+>> On 02/05/2017 04:48 PM, Laurent Pinchart wrote:
+>>> On Tuesday 24 Jan 2017 18:07:55 Steve Longerbeam wrote:
+>>>> On 01/24/2017 04:02 AM, Philipp Zabel wrote:
+>>>>> On Fri, 2017-01-20 at 15:03 +0100, Hans Verkuil wrote:
+>>>>>>> +
+>>>>>>> +int vidsw_g_mbus_config(struct v4l2_subdev *sd, struct
+>>>>>>> v4l2_mbus_config
+>>>>>>> *cfg)
+>>>>>>> +{
+>>>>>>> +	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
+>>>>>>> +	struct media_pad *pad;
+>>>>>>> +	int ret;
+>>>>>>> +
+>>>>>>> +	if (vidsw->active == -1) {
+>>>>>>> +		dev_err(sd->dev, "no configuration for inactive
+> mux\n");
+>>>>>>> +		return -EINVAL;
+>>>>>>> +	}
+>>>>>>> +
+>>>>>>> +	/*
+>>>>>>> +	 * Retrieve media bus configuration from the entity connected
+> to the
+>>>>>>> +	 * active input
+>>>>>>> +	 */
+>>>>>>> +	pad = media_entity_remote_pad(&vidsw->pads[vidsw->active]);
+>>>>>>> +	if (pad) {
+>>>>>>> +		sd = media_entity_to_v4l2_subdev(pad->entity);
+>>>>>>> +		ret = v4l2_subdev_call(sd, video, g_mbus_config, cfg);
+>>>>>>> +		if (ret == -ENOIOCTLCMD)
+>>>>>>> +			pad = NULL;
+>>>>>>> +		else if (ret < 0) {
+>>>>>>> +			dev_err(sd->dev, "failed to get source
+>>>>>>> configuration\n");
+>>>>>>> +			return ret;
+>>>>>>> +		}
+>>>>>>> +	}
+>>>>>>> +	if (!pad) {
+>>>>>>> +		/* Mirror the input side on the output side */
+>>>>>>> +		cfg->type = vidsw->endpoint[vidsw->active].bus_type;
+>>>>>>> +		if (cfg->type == V4L2_MBUS_PARALLEL ||
+>>>>>>> +		    cfg->type == V4L2_MBUS_BT656)
+>>>>>>> +			cfg->flags = vidsw->endpoint[vidsw-
+>>>>>>> active].bus.parallel.flags;
+>>>>>>> +	}
+>>>>>>> +
+>>>>>>> +	return 0;
+>>>>>>> +}
+>>>>>> I am not certain this op is needed at all. In the current kernel this
+>>>>>> op is only used by soc_camera, pxa_camera and omap3isp (somewhat
+>>>>>> dubious). Normally this information should come from the device tree
+>>>>>> and there should be no need for this op.
+>>>>>>
+>>>>>> My (tentative) long-term plan was to get rid of this op.
+>>>>>>
+>>>>>> If you don't need it, then I recommend it is removed.
+>>>> Hi Hans, the imx-media driver was only calling g_mbus_config to the
+>>>> camera sensor, and it was doing that to determine the sensor's bus type.
+>>>> This info was already available from parsing a v4l2_of_endpoint from the
+>>>> sensor node. So it was simple to remove the g_mbus_config calls, and
+>>>> instead rely on the parsed sensor v4l2_of_endpoint.
+>>> That's not a good point.
+> (mea culpa, s/point/idea/)
+>
+>>> The imx-media driver must not parse the sensor DT node as it is not aware
+>>> of what bindings the sensor is compatible with.
+
+Hi Laurent,
+
+I don't really understand this argument. The sensor node has been found
+by parsing the OF graph, so it is known to be a camera sensor node at
+that point.
+
+
+>>>   Information must instead
+>>> be queried from the sensor subdev at runtime, through the g_mbus_config()
+>>> operation.
+>>>
+>>> Of course, if you can get the information from the imx-media DT node,
+>>> that's certainly an option. It's only information provided by the sensor
+>>> driver that you have no choice but query using a subdev operation.
+>> Shouldn't this come from the imx-media DT node? BTW, why is omap3isp using
+>> this?
+> It all depends on what type of information needs to be retrieved, and whether
+> it can change at runtime or is fixed. Adding properties to the imx-media DT
+> node is certainly fine as long as those properties describe the i.MX side.
+
+In this case the info needed is the media bus type. That info is most easily
+available by calling v4l2_of_parse_endpoint() on the sensor's endpoint node.
+
+The media bus type is not something that can be added to the
+imx-media node since it contains no endpoint nodes.
+
+
+> In the omap3isp case, we use the operation to query whether parallel data
+> contains embedded sync (BT.656) or uses separate h/v sync signals.
+>
+>> The reason I am suspicious about this op is that it came from soc-camera and
+>> predates the DT. The contents of v4l2_mbus_config seems very much like a HW
+>> description to me, i.e. something that belongs in the DT.
+> Part of it is possibly outdated, but for buses that support multiple modes of
+> operation (such as the parallel bus case described above) we need to make that
+> information discoverable at runtime. Maybe this should be considered as
+> related to Sakari's efforts to support VC/DT for CSI-2, and supported through
+> the API he is working on.
+
+That sounds interesting, can you point me to some info on this effort?
+I've been thinking the DT should contain virtual channel info for CSI-2
+buses.
+
+Steve
+
+>
+
