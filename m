@@ -1,148 +1,338 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40399
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753630AbdBUSEn (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:57181 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751093AbdBFMC3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Feb 2017 13:04:43 -0500
-Subject: Re: [PATCH v4 1/4] [media] exynos-gsc: Use 576p instead 720p as a
- threshold for colorspaces
-To: Andrzej Hajda <a.hajda@samsung.com>, linux-kernel@vger.kernel.org
-References: <20170213190836.26972-1-thibault.saunier@osg.samsung.com>
- <CGME20170213191052epcas3p3af2c3165d94bc82b77f7a7fab6550b15@epcas3p3.samsung.com>
- <20170213190836.26972-2-thibault.saunier@osg.samsung.com>
- <a94f6241-373a-20c2-d306-48bd979fe6c6@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        linux-arm-kernel@lists.infradead.org,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-From: Thibault Saunier <thibault.saunier@osg.samsung.com>
-Message-ID: <152b080b-59aa-4081-2be0-e86f85b2b3b8@osg.samsung.com>
-Date: Tue, 21 Feb 2017 15:04:34 -0300
+        Mon, 6 Feb 2017 07:02:29 -0500
+Subject: Re: [PATCHv2 10/16] ov2640: enable clock and fix power/reset
+To: Sakari Ailus <sakari.ailus@iki.fi>
+References: <20170130140628.18088-1-hverkuil@xs4all.nl>
+ <20170130140628.18088-11-hverkuil@xs4all.nl>
+ <20170131102020.GT7139@valkosipuli.retiisi.org.uk>
+Cc: linux-media@vger.kernel.org,
+        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        devicetree@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <46b21977-6bc0-46a0-586c-c575241870db@xs4all.nl>
+Date: Mon, 6 Feb 2017 13:02:24 +0100
 MIME-Version: 1.0
-In-Reply-To: <a94f6241-373a-20c2-d306-48bd979fe6c6@samsung.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+In-Reply-To: <20170131102020.GT7139@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Andrzej,
+On 01/31/2017 11:20 AM, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> Thank you for the patchset!
+> 
+> On Mon, Jan 30, 2017 at 03:06:22PM +0100, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Convert v4l2_clk to normal clk, enable the clock and fix the power/reset
+>> handling.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  drivers/media/i2c/ov2640.c | 80 +++++++++++++++++-----------------------------
+>>  1 file changed, 29 insertions(+), 51 deletions(-)
+>>
+>> diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
+>> index 83f88ef..565742b 100644
+>> --- a/drivers/media/i2c/ov2640.c
+>> +++ b/drivers/media/i2c/ov2640.c
+>> @@ -16,15 +16,14 @@
+>>  #include <linux/init.h>
+>>  #include <linux/module.h>
+>>  #include <linux/i2c.h>
+>> +#include <linux/clk.h>
+>>  #include <linux/slab.h>
+>>  #include <linux/delay.h>
+>>  #include <linux/gpio.h>
+>>  #include <linux/gpio/consumer.h>
+>> -#include <linux/of_gpio.h>
+>>  #include <linux/v4l2-mediabus.h>
+>>  #include <linux/videodev2.h>
+>>  
+>> -#include <media/v4l2-clk.h>
+>>  #include <media/v4l2-device.h>
+>>  #include <media/v4l2-subdev.h>
+>>  #include <media/v4l2-ctrls.h>
+>> @@ -284,7 +283,7 @@ struct ov2640_priv {
+>>  	struct v4l2_subdev		subdev;
+>>  	struct v4l2_ctrl_handler	hdl;
+>>  	u32	cfmt_code;
+>> -	struct v4l2_clk			*clk;
+>> +	struct clk			*clk;
+> 
+> Nice!
+> 
+>>  	const struct ov2640_win_size	*win;
+>>  
+>>  	struct gpio_desc *resetb_gpio;
+>> @@ -656,8 +655,9 @@ static int ov2640_mask_set(struct i2c_client *client,
+>>  	return i2c_smbus_write_byte_data(client, reg, val);
+>>  }
+>>  
+>> -static int ov2640_reset(struct i2c_client *client)
+>> +static int ov2640_reset(struct v4l2_subdev *sd, u32 val)
+>>  {
+>> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>>  	int ret;
+>>  	const struct regval_list reset_seq[] = {
+>>  		{BANK_SEL, BANK_SEL_SENS},
+>> @@ -735,21 +735,6 @@ static int ov2640_s_register(struct v4l2_subdev *sd,
+>>  }
+>>  #endif
+>>  
+>> -static int ov2640_s_power(struct v4l2_subdev *sd, int on)
+>> -{
+>> -	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>> -	struct ov2640_priv *priv = to_ov2640(client);
+>> -
+>> -	gpiod_direction_output(priv->pwdn_gpio, !on);
+>> -	if (on && priv->resetb_gpio) {
+>> -		/* Active the resetb pin to perform a reset pulse */
+>> -		gpiod_direction_output(priv->resetb_gpio, 1);
+>> -		usleep_range(3000, 5000);
+>> -		gpiod_direction_output(priv->resetb_gpio, 0);
+> 
+> Do you still perform the reset sequence somewhere? This could be crucial for
+> reliability.
 
-On 02/21/2017 06:56 AM, Andrzej Hajda wrote:
-> On 13.02.2017 20:08, Thibault Saunier wrote:
->> From: Javier Martinez Canillas <javier@osg.samsung.com>
->>
->> The media documentation says that the V4L2_COLORSPACE_SMPTE170M colorspace
->> should be used for SDTV and V4L2_COLORSPACE_REC709 for HDTV. But drivers
->> don't agree on the display resolution that should be used as a threshold.
->>
->> >From EIA CEA 861B about colorimetry for various resolutions:
->>
->>    - 5.1 480p, 480i, 576p, 576i, 240p, and 288p
->>      The color space used by the 480-line, 576-line, 240-line, and 288-line
->>      formats will likely be based on SMPTE 170M [1].
->>    - 5.2 1080i, 1080p, and 720p
->>      The color space used by the high definition formats will likely be
->>      based on ITU-R BT.709-4
->>
->> This indicates that in the case that userspace does not specify what
->> colorspace should be used, we should use 576p  as a threshold to set
->> V4L2_COLORSPACE_REC709 instead of V4L2_COLORSPACE_REC709. Even if it is
->> only 'likely' and not a requirement it is the best guess we can make.
->>
->> The stream should have been encoded with the information and userspace
->> has to pass it to the driver if it is not the case, otherwise we won't be
->> able to handle it properly anyhow.
->>
->> Also, check for the resolution in G_FMT instead unconditionally setting
->> the V4L2_COLORSPACE_REC709 colorspace.
->>
->> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
->> Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
->> Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
-> Hi Thibault,
->
-> Have you analyzed Hans response for the previous patchset [1] ?
-> I am not an expert in the subject but it seems he is right. GSCALER
-> datasheet uses term 'color space conversion' to describe conversions
-> between RGB and YCbCr, not for describe colorspaces as in V4L2.
-> GSC_(IN|OUT)_RGB_(HD|SD)_(WIDE|NARROW) macros used to set IN_CON and
-> OUT_CON registers of GSCALER are probably used incorrectly, they should
-> not be set according to pix_mp->colorspace but rather according to
-> pix_mp->ycbcr_enc and pix_mp->quantization. pix_mp->colorspace should be
-> just copied from output to capture side.
->
-> Please fix the patch accordingly, and if you are interested you can
-> prepare another patch to fix register setting.
+All I can go with is what soc_camera did, and there the reset is performed only
+once, when the sensor driver is bound to soc_camera. This is the equivalent of
+that. The reset is now performed in ov2640_init_gpio although it doesn't do a
+full reset there. See more about this below.
 
-OK, so what you describe here for the colorspace  is exactly what I am 
-doing in my next patch right?
-I am going to fixup them up as suggested in your other review.
+> 
+>> -	}
+>> -	return 0;
+>> -}
+>> -
+>>  /* Select the nearest higher resolution for capture */
+>>  static const struct ov2640_win_size *ov2640_select_win(u32 *width, u32 *height)
+>>  {
+>> @@ -769,9 +754,10 @@ static const struct ov2640_win_size *ov2640_select_win(u32 *width, u32 *height)
+>>  	return &ov2640_supported_win_sizes[default_size];
+>>  }
+>>  
+>> -static int ov2640_set_params(struct i2c_client *client, u32 *width, u32 *height,
+>> +static int ov2640_set_params(struct v4l2_subdev *sd, u32 *width, u32 *height,
+>>  			     u32 code)
+>>  {
+>> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>>  	struct ov2640_priv       *priv = to_ov2640(client);
+>>  	const struct regval_list *selected_cfmt_regs;
+>>  	int ret;
+>> @@ -802,7 +788,7 @@ static int ov2640_set_params(struct i2c_client *client, u32 *width, u32 *height,
+>>  	}
+>>  
+>>  	/* reset hardware */
+>> -	ov2640_reset(client);
+>> +	ov2640_reset(sd, 0);
+>>  
+>>  	/* initialize the sensor with default data */
+>>  	dev_dbg(&client->dev, "%s: Init default", __func__);
+>> @@ -840,7 +826,7 @@ static int ov2640_set_params(struct i2c_client *client, u32 *width, u32 *height,
+>>  
+>>  err:
+>>  	dev_err(&client->dev, "%s: Error %d", __func__, ret);
+>> -	ov2640_reset(client);
+>> +	ov2640_reset(sd, 0);
+>>  	priv->win = NULL;
+>>  
+>>  	return ret;
+>> @@ -877,7 +863,6 @@ static int ov2640_set_fmt(struct v4l2_subdev *sd,
+>>  		struct v4l2_subdev_format *format)
+>>  {
+>>  	struct v4l2_mbus_framefmt *mf = &format->format;
+>> -	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>>  
+>>  	if (format->pad)
+>>  		return -EINVAL;
+>> @@ -902,7 +887,7 @@ static int ov2640_set_fmt(struct v4l2_subdev *sd,
+>>  	}
+>>  
+>>  	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+>> -		return ov2640_set_params(client, &mf->width,
+>> +		return ov2640_set_params(sd, &mf->width,
+>>  					 &mf->height, mf->code);
+>>  	cfg->try_fmt = *mf;
+>>  	return 0;
+>> @@ -947,10 +932,6 @@ static int ov2640_video_probe(struct i2c_client *client)
+>>  	const char *devname;
+>>  	int ret;
+>>  
+>> -	ret = ov2640_s_power(&priv->subdev, 1);
+>> -	if (ret < 0)
+>> -		return ret;
+>> -
+>>  	/*
+>>  	 * check and show product ID and manufacturer ID
+>>  	 */
+>> @@ -978,7 +959,6 @@ static int ov2640_video_probe(struct i2c_client *client)
+>>  	ret = v4l2_ctrl_handler_setup(&priv->hdl);
+>>  
+>>  done:
+>> -	ov2640_s_power(&priv->subdev, 0);
+>>  	return ret;
+>>  }
+>>  
+>> @@ -991,7 +971,7 @@ static struct v4l2_subdev_core_ops ov2640_subdev_core_ops = {
+>>  	.g_register	= ov2640_g_register,
+>>  	.s_register	= ov2640_s_register,
+>>  #endif
+>> -	.s_power	= ov2640_s_power,
+>> +	.reset		= ov2640_reset,
+> 
+> Why?
+> 
+> We have s_power() callback. Shouldn't you run the reset sequence when the
+> device is powered on?
+> 
+> Few if any bridge / ISP drivers will use the reset op. It should rather be
+> removed.
 
-I will also have a look at fixing register setting and figure out what 
-you explained.
+Good point. I'm not sure why I did this.
 
-Thanks for the review.
+I will restore the s_power callback. I seem to remember that I had problems
+with s_power, but I will have to retest this.
+
+> 
+>>  };
+>>  
+>>  static const struct v4l2_subdev_pad_ops ov2640_subdev_pad_ops = {
+>> @@ -1006,9 +986,17 @@ static struct v4l2_subdev_ops ov2640_subdev_ops = {
+>>  	.pad	= &ov2640_subdev_pad_ops,
+>>  };
+>>  
+>> -static int ov2640_probe_dt(struct i2c_client *client,
+>> -		struct ov2640_priv *priv)
+>> +static int ov2640_init_gpio(struct i2c_client *client,
+>> +			    struct ov2640_priv *priv)
+>>  {
+>> +	/* Request the power down GPIO deasserted */
+>> +	priv->pwdn_gpio = devm_gpiod_get_optional(&client->dev, "pwdn",
+>> +			GPIOD_OUT_LOW);
+>> +	if (!priv->pwdn_gpio)
+>> +		dev_dbg(&client->dev, "pwdn gpio is not assigned!\n");
+> 
+> I'm pretty sure not finding a GPIO using devm_gpiod_get_optional() already
+> produces at least one line of output elsewhere.
+
+No, it doesn't. It's optional, after all.
+
+> 
+>> +	else if (IS_ERR(priv->pwdn_gpio))
+>> +		return PTR_ERR(priv->pwdn_gpio);
+>> +
+>>  	/* Request the reset GPIO deasserted */
+>>  	priv->resetb_gpio = devm_gpiod_get_optional(&client->dev, "resetb",
+>>  			GPIOD_OUT_LOW);
+>> @@ -1017,14 +1005,6 @@ static int ov2640_probe_dt(struct i2c_client *client,
+>>  	else if (IS_ERR(priv->resetb_gpio))
+>>  		return PTR_ERR(priv->resetb_gpio);
+>>  
+>> -	/* Request the power down GPIO asserted */
+>> -	priv->pwdn_gpio = devm_gpiod_get_optional(&client->dev, "pwdn",
+>> -			GPIOD_OUT_HIGH);
+>> -	if (!priv->pwdn_gpio)
+>> -		dev_dbg(&client->dev, "pwdn gpio is not assigned!\n");
+> 
+> Same here.
+> 
+>> -	else if (IS_ERR(priv->pwdn_gpio))
+>> -		return PTR_ERR(priv->pwdn_gpio);
+>> -
+>>  	return 0;
+>>  }
+>>  
+>> @@ -1051,9 +1031,10 @@ static int ov2640_probe(struct i2c_client *client,
+>>  		return -ENOMEM;
+>>  	}
+>>  
+>> -	priv->clk = v4l2_clk_get(&client->dev, "xvclk");
+>> +	priv->clk = clk_get(&client->dev, "xvclk");
+>>  	if (IS_ERR(priv->clk))
+>>  		return -EPROBE_DEFER;
+>> +	clk_prepare_enable(priv->clk);
+> 
+> I wonder V4L2 clock framework did this. This should be done in the s_power()
+> callback, not here.
+
+Yeah, I'll need to revisit this.
+
+> 
+>>  
+>>  	if (!client->dev.of_node) {
+>>  		dev_err(&client->dev, "Missing platform_data for driver\n");
+>> @@ -1061,9 +1042,9 @@ static int ov2640_probe(struct i2c_client *client,
+>>  		goto err_clk;
+>>  	}
+>>  
+>> -	ret = ov2640_probe_dt(client, priv);
+>> +	ret = ov2640_init_gpio(client, priv);
+>>  	if (ret)
+>> -		goto err_clk;
+>> +		return ret;
+>>  
+>>  	v4l2_i2c_subdev_init(&priv->subdev, client, &ov2640_subdev_ops);
+>>  	v4l2_ctrl_handler_init(&priv->hdl, 2);
+>> @@ -1074,25 +1055,23 @@ static int ov2640_probe(struct i2c_client *client,
+>>  	priv->subdev.ctrl_handler = &priv->hdl;
+>>  	if (priv->hdl.error) {
+>>  		ret = priv->hdl.error;
+>> -		goto err_clk;
+>> +		goto err_hdl;
+>>  	}
+>>  
+>>  	ret = ov2640_video_probe(client);
+>>  	if (ret < 0)
+>> -		goto err_videoprobe;
+>> +		goto err_hdl;
+>>  
+>>  	ret = v4l2_async_register_subdev(&priv->subdev);
+>>  	if (ret < 0)
+>> -		goto err_videoprobe;
+>> +		goto err_hdl;
+>>  
+>>  	dev_info(&adapter->dev, "OV2640 Probed\n");
+>>  
+>>  	return 0;
+>>  
+>> -err_videoprobe:
+>> +err_hdl:
+>>  	v4l2_ctrl_handler_free(&priv->hdl);
+>> -err_clk:
+>> -	v4l2_clk_put(priv->clk);
+>>  	return ret;
+>>  }
+>>  
+>> @@ -1101,9 +1080,8 @@ static int ov2640_remove(struct i2c_client *client)
+>>  	struct ov2640_priv       *priv = to_ov2640(client);
+>>  
+>>  	v4l2_async_unregister_subdev(&priv->subdev);
+>> -	v4l2_clk_put(priv->clk);
+>> -	v4l2_device_unregister_subdev(&priv->subdev);
+>>  	v4l2_ctrl_handler_free(&priv->hdl);
+> 
+> Shouldn't you free the control handler afterwards? I'm not sure if this
+> makes a lot of difference though.
+
+The order makes no difference here.
 
 Regards,
 
-Thibault Saunier
+	Hans
 
-> [1]: https://lkml.org/lkml/2017/2/10/473
->
-> Regards
-> Andrzej
->
->> ---
->>
->> Changes in v4:
->> - Reword commit message to better back our assumptions on specifications
->>
->> Changes in v3:
->> - Do not check values in the g_fmt functions as Andrzej explained in previous review
->> - Added 'Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>'
->>
->> Changes in v2: None
->>
->>   drivers/media/platform/exynos-gsc/gsc-core.c | 8 ++++++--
->>   1 file changed, 6 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
->> index 59a634201830..db7d9883861b 100644
->> --- a/drivers/media/platform/exynos-gsc/gsc-core.c
->> +++ b/drivers/media/platform/exynos-gsc/gsc-core.c
->> @@ -472,7 +472,7 @@ int gsc_try_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
->>   
->>   	pix_mp->num_planes = fmt->num_planes;
->>   
->> -	if (pix_mp->width >= 1280) /* HD */
->> +	if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
->>   		pix_mp->colorspace = V4L2_COLORSPACE_REC709;
->>   	else /* SD */
->>   		pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
->> @@ -519,9 +519,13 @@ int gsc_g_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
->>   	pix_mp->height		= frame->f_height;
->>   	pix_mp->field		= V4L2_FIELD_NONE;
->>   	pix_mp->pixelformat	= frame->fmt->pixelformat;
->> -	pix_mp->colorspace	= V4L2_COLORSPACE_REC709;
->>   	pix_mp->num_planes	= frame->fmt->num_planes;
->>   
->> +	if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
->> +		pix_mp->colorspace = V4L2_COLORSPACE_REC709;
->> +	else /* SD */
->> +		pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
->> +
->>   	for (i = 0; i < pix_mp->num_planes; ++i) {
->>   		pix_mp->plane_fmt[i].bytesperline = (frame->f_width *
->>   			frame->fmt->depth[i]) / 8;
->
+> 
+>> +	v4l2_device_unregister_subdev(&priv->subdev);
+>>  	return 0;
+>>  }
+>>  
+> 
+
+
