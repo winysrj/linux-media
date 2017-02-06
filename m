@@ -1,334 +1,214 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:36134 "EHLO
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:55456 "EHLO
         lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751767AbdBFKaG (ORCPT
+        by vger.kernel.org with ESMTP id S1751163AbdBFM7l (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Feb 2017 05:30:06 -0500
+        Mon, 6 Feb 2017 07:59:41 -0500
+Subject: Re: [PATCH 1/6] staging: Import the BCM2835 MMAL-based V4L2 camera
+ driver.
+To: Eric Anholt <eric@anholt.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+References: <20170127215503.13208-1-eric@anholt.net>
+ <20170127215503.13208-2-eric@anholt.net>
+Cc: devel@driverdev.osuosl.org, linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-rpi-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv4 1/9] video: add hotplug detect notifier support
-Date: Mon,  6 Feb 2017 11:29:43 +0100
-Message-Id: <20170206102951.12623-2-hverkuil@xs4all.nl>
-In-Reply-To: <20170206102951.12623-1-hverkuil@xs4all.nl>
-References: <20170206102951.12623-1-hverkuil@xs4all.nl>
+Message-ID: <1a19f3f3-6925-6477-9908-f7cbfb960f7f@xs4all.nl>
+Date: Mon, 6 Feb 2017 13:59:35 +0100
+MIME-Version: 1.0
+In-Reply-To: <20170127215503.13208-2-eric@anholt.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 01/27/2017 10:54 PM, Eric Anholt wrote:
+> - Supports raw YUV capture, preview, JPEG and H264.
+> - Uses videobuf2 for data transfer, using dma_buf.
+> - Uses 3.6.10 timestamping
+> - Camera power based on use
+> - Uses immutable input mode on video encoder
+> 
+> This code comes from the Raspberry Pi kernel tree (rpi-4.9.y) as of
+> a15ba877dab4e61ea3fc7b006e2a73828b083c52.
+> 
+> Signed-off-by: Eric Anholt <eric@anholt.net>
+> ---
+>  .../media/platform/bcm2835/bcm2835-camera.c        | 2016 ++++++++++++++++++++
+>  .../media/platform/bcm2835/bcm2835-camera.h        |  145 ++
+>  drivers/staging/media/platform/bcm2835/controls.c  | 1345 +++++++++++++
+>  .../staging/media/platform/bcm2835/mmal-common.h   |   53 +
+>  .../media/platform/bcm2835/mmal-encodings.h        |  127 ++
+>  .../media/platform/bcm2835/mmal-msg-common.h       |   50 +
+>  .../media/platform/bcm2835/mmal-msg-format.h       |   81 +
+>  .../staging/media/platform/bcm2835/mmal-msg-port.h |  107 ++
+>  drivers/staging/media/platform/bcm2835/mmal-msg.h  |  404 ++++
+>  .../media/platform/bcm2835/mmal-parameters.h       |  689 +++++++
+>  .../staging/media/platform/bcm2835/mmal-vchiq.c    | 1916 +++++++++++++++++++
+>  .../staging/media/platform/bcm2835/mmal-vchiq.h    |  178 ++
+>  12 files changed, 7111 insertions(+)
+>  create mode 100644 drivers/staging/media/platform/bcm2835/bcm2835-camera.c
+>  create mode 100644 drivers/staging/media/platform/bcm2835/bcm2835-camera.h
+>  create mode 100644 drivers/staging/media/platform/bcm2835/controls.c
+>  create mode 100644 drivers/staging/media/platform/bcm2835/mmal-common.h
+>  create mode 100644 drivers/staging/media/platform/bcm2835/mmal-encodings.h
+>  create mode 100644 drivers/staging/media/platform/bcm2835/mmal-msg-common.h
+>  create mode 100644 drivers/staging/media/platform/bcm2835/mmal-msg-format.h
+>  create mode 100644 drivers/staging/media/platform/bcm2835/mmal-msg-port.h
+>  create mode 100644 drivers/staging/media/platform/bcm2835/mmal-msg.h
+>  create mode 100644 drivers/staging/media/platform/bcm2835/mmal-parameters.h
+>  create mode 100644 drivers/staging/media/platform/bcm2835/mmal-vchiq.c
+>  create mode 100644 drivers/staging/media/platform/bcm2835/mmal-vchiq.h
+> 
+> diff --git a/drivers/staging/media/platform/bcm2835/bcm2835-camera.c b/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
+> new file mode 100644
+> index 000000000000..4f03949aecf3
+> --- /dev/null
+> +++ b/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
+> @@ -0,0 +1,2016 @@
 
-Add support for video hotplug detect and EDID/ELD notifiers, which is used
-to convey information from video drivers to their CEC and audio counterparts.
+<snip>
 
-Based on an earlier version from Russell King:
+> +static int __init bm2835_mmal_init(void)
+> +{
+> +	int ret;
+> +	struct bm2835_mmal_dev *dev;
+> +	struct vb2_queue *q;
+> +	int camera;
+> +	unsigned int num_cameras;
+> +	struct vchiq_mmal_instance *instance;
+> +	unsigned int resolutions[MAX_BCM2835_CAMERAS][2];
+> +
+> +	ret = vchiq_mmal_init(&instance);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	num_cameras = get_num_cameras(instance,
+> +				      resolutions,
+> +				      MAX_BCM2835_CAMERAS);
+> +	if (num_cameras > MAX_BCM2835_CAMERAS)
+> +		num_cameras = MAX_BCM2835_CAMERAS;
+> +
+> +	for (camera = 0; camera < num_cameras; camera++) {
+> +		dev = kzalloc(sizeof(struct bm2835_mmal_dev), GFP_KERNEL);
+> +		if (!dev)
+> +			return -ENOMEM;
+> +
+> +		dev->camera_num = camera;
+> +		dev->max_width = resolutions[camera][0];
+> +		dev->max_height = resolutions[camera][1];
+> +
+> +		/* setup device defaults */
+> +		dev->overlay.w.left = 150;
+> +		dev->overlay.w.top = 50;
+> +		dev->overlay.w.width = 1024;
+> +		dev->overlay.w.height = 768;
+> +		dev->overlay.clipcount = 0;
+> +		dev->overlay.field = V4L2_FIELD_NONE;
+> +		dev->overlay.global_alpha = 255;
+> +
+> +		dev->capture.fmt = &formats[3]; /* JPEG */
+> +
+> +		/* v4l device registration */
+> +		snprintf(dev->v4l2_dev.name, sizeof(dev->v4l2_dev.name),
+> +			 "%s", BM2835_MMAL_MODULE_NAME);
+> +		ret = v4l2_device_register(NULL, &dev->v4l2_dev);
+> +		if (ret)
+> +			goto free_dev;
+> +
+> +		/* setup v4l controls */
+> +		ret = bm2835_mmal_init_controls(dev, &dev->ctrl_handler);
+> +		if (ret < 0)
+> +			goto unreg_dev;
+> +		dev->v4l2_dev.ctrl_handler = &dev->ctrl_handler;
+> +
+> +		/* mmal init */
+> +		dev->instance = instance;
+> +		ret = mmal_init(dev);
+> +		if (ret < 0)
+> +			goto unreg_dev;
+> +
+> +		/* initialize queue */
+> +		q = &dev->capture.vb_vidq;
+> +		memset(q, 0, sizeof(*q));
+> +		q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> +		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
 
-https://patchwork.kernel.org/patch/9277043/
+I'm missing VB2_DMABUF here!
 
-The hpd_notifier is a reference counted object containing the HPD/EDID/ELD state
-of a video device.
+In fact, with dmabuf support I wonder if you still need overlay support.
 
-When a new notifier is registered the current state will be reported to
-that notifier at registration time.
+Using dma-buf and just pass a gpu buffer to v4l2 is preferred over overlays.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/video/Kconfig        |   3 +
- drivers/video/Makefile       |   1 +
- drivers/video/hpd-notifier.c | 134 +++++++++++++++++++++++++++++++++++++++++++
- include/linux/hpd-notifier.h | 109 +++++++++++++++++++++++++++++++++++
- 4 files changed, 247 insertions(+)
- create mode 100644 drivers/video/hpd-notifier.c
- create mode 100644 include/linux/hpd-notifier.h
+Regards,
 
-diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
-index 3c20af999893..a3a58d8481e9 100644
---- a/drivers/video/Kconfig
-+++ b/drivers/video/Kconfig
-@@ -36,6 +36,9 @@ config VIDEOMODE_HELPERS
- config HDMI
- 	bool
- 
-+config HPD_NOTIFIER
-+	bool
-+
- if VT
- 	source "drivers/video/console/Kconfig"
- endif
-diff --git a/drivers/video/Makefile b/drivers/video/Makefile
-index 9ad3c17d6456..2697ae5c4166 100644
---- a/drivers/video/Makefile
-+++ b/drivers/video/Makefile
-@@ -1,5 +1,6 @@
- obj-$(CONFIG_VGASTATE)            += vgastate.o
- obj-$(CONFIG_HDMI)                += hdmi.o
-+obj-$(CONFIG_HPD_NOTIFIER)        += hpd-notifier.o
- 
- obj-$(CONFIG_VT)		  += console/
- obj-$(CONFIG_LOGO)		  += logo/
-diff --git a/drivers/video/hpd-notifier.c b/drivers/video/hpd-notifier.c
-new file mode 100644
-index 000000000000..971e823ead00
---- /dev/null
-+++ b/drivers/video/hpd-notifier.c
-@@ -0,0 +1,134 @@
-+#include <linux/export.h>
-+#include <linux/hpd-notifier.h>
-+#include <linux/string.h>
-+#include <linux/slab.h>
-+#include <linux/list.h>
-+
-+static LIST_HEAD(hpd_notifiers);
-+static DEFINE_MUTEX(hpd_notifiers_lock);
-+
-+struct hpd_notifier *hpd_notifier_get(struct device *dev)
-+{
-+	struct hpd_notifier *n;
-+
-+	mutex_lock(&hpd_notifiers_lock);
-+	list_for_each_entry(n, &hpd_notifiers, head) {
-+		if (n->dev == dev) {
-+			mutex_unlock(&hpd_notifiers_lock);
-+			kref_get(&n->kref);
-+			return n;
-+		}
-+	}
-+	n = kzalloc(sizeof(*n), GFP_KERNEL);
-+	if (!n)
-+		goto unlock;
-+	n->dev = dev;
-+	mutex_init(&n->lock);
-+	BLOCKING_INIT_NOTIFIER_HEAD(&n->notifiers);
-+	kref_init(&n->kref);
-+	list_add_tail(&n->head, &hpd_notifiers);
-+unlock:
-+	mutex_unlock(&hpd_notifiers_lock);
-+	return n;
-+}
-+EXPORT_SYMBOL_GPL(hpd_notifier_get);
-+
-+static void hpd_notifier_release(struct kref *kref)
-+{
-+	struct hpd_notifier *n =
-+		container_of(kref, struct hpd_notifier, kref);
-+
-+	list_del(&n->head);
-+	kfree(n->edid);
-+	kfree(n);
-+}
-+
-+void hpd_notifier_put(struct hpd_notifier *n)
-+{
-+	mutex_lock(&hpd_notifiers_lock);
-+	kref_put(&n->kref, hpd_notifier_release);
-+	mutex_unlock(&hpd_notifiers_lock);
-+}
-+EXPORT_SYMBOL_GPL(hpd_notifier_put);
-+
-+int hpd_notifier_register(struct hpd_notifier *n, struct notifier_block *nb)
-+{
-+	int ret = blocking_notifier_chain_register(&n->notifiers, nb);
-+
-+	if (ret)
-+		return ret;
-+	kref_get(&n->kref);
-+	mutex_lock(&n->lock);
-+	if (n->connected) {
-+		blocking_notifier_call_chain(&n->notifiers, HPD_CONNECTED, n);
-+		if (n->edid_size)
-+			blocking_notifier_call_chain(&n->notifiers, HPD_NEW_EDID, n);
-+		if (n->has_eld)
-+			blocking_notifier_call_chain(&n->notifiers, HPD_NEW_ELD, n);
-+	}
-+	mutex_unlock(&n->lock);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(hpd_notifier_register);
-+
-+int hpd_notifier_unregister(struct hpd_notifier *n, struct notifier_block *nb)
-+{
-+	int ret = blocking_notifier_chain_unregister(&n->notifiers, nb);
-+
-+	if (ret == 0)
-+		hpd_notifier_put(n);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(hpd_notifier_unregister);
-+
-+void hpd_event_connect(struct hpd_notifier *n)
-+{
-+	mutex_lock(&n->lock);
-+	n->connected = true;
-+	blocking_notifier_call_chain(&n->notifiers, HPD_CONNECTED, n);
-+	mutex_unlock(&n->lock);
-+}
-+EXPORT_SYMBOL_GPL(hpd_event_connect);
-+
-+void hpd_event_disconnect(struct hpd_notifier *n)
-+{
-+	mutex_lock(&n->lock);
-+	n->connected = false;
-+	n->has_eld = false;
-+	n->edid_size = 0;
-+	blocking_notifier_call_chain(&n->notifiers, HPD_DISCONNECTED, n);
-+	mutex_unlock(&n->lock);
-+}
-+EXPORT_SYMBOL_GPL(hpd_event_disconnect);
-+
-+int hpd_event_new_edid(struct hpd_notifier *n, const void *edid, size_t size)
-+{
-+	mutex_lock(&n->lock);
-+	if (n->edid_allocated_size < size) {
-+		void *p = kmalloc(size, GFP_KERNEL);
-+
-+		if (p == NULL) {
-+			mutex_unlock(&n->lock);
-+			return -ENOMEM;
-+		}
-+		kfree(n->edid);
-+		n->edid = p;
-+		n->edid_allocated_size = size;
-+	}
-+	memcpy(n->edid, edid, size);
-+	n->edid_size = size;
-+	blocking_notifier_call_chain(&n->notifiers, HPD_NEW_EDID, n);
-+	mutex_unlock(&n->lock);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(hpd_event_new_edid);
-+
-+void hpd_event_new_eld(struct hpd_notifier *n, const u8 eld[128])
-+{
-+	mutex_lock(&n->lock);
-+	memcpy(n->eld, eld, sizeof(n->eld));
-+	n->has_eld = true;
-+	blocking_notifier_call_chain(&n->notifiers, HPD_NEW_ELD, n);
-+	mutex_unlock(&n->lock);
-+}
-+EXPORT_SYMBOL_GPL(hpd_event_new_eld);
-diff --git a/include/linux/hpd-notifier.h b/include/linux/hpd-notifier.h
-new file mode 100644
-index 000000000000..4dcb4515d2b2
---- /dev/null
-+++ b/include/linux/hpd-notifier.h
-@@ -0,0 +1,109 @@
-+/*
-+ * hpd-notifier.h - notify interested parties of (dis)connect and EDID
-+ * events
-+ *
-+ * Copyright 2016 Russell King <rmk+kernel@arm.linux.org.uk>
-+ * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+ */
-+
-+#ifndef LINUX_HPD_NOTIFIER_H
-+#define LINUX_HPD_NOTIFIER_H
-+
-+#include <linux/types.h>
-+#include <linux/notifier.h>
-+#include <linux/kref.h>
-+
-+enum {
-+	HPD_CONNECTED,
-+	HPD_DISCONNECTED,
-+	HPD_NEW_EDID,
-+	HPD_NEW_ELD,
-+};
-+
-+struct device;
-+
-+struct hpd_notifier {
-+	struct mutex lock;
-+	struct list_head head;
-+	struct kref kref;
-+	struct blocking_notifier_head notifiers;
-+	struct device *dev;
-+
-+	/* Current state */
-+	bool connected;
-+	bool has_eld;
-+	unsigned char eld[128];
-+	void *edid;
-+	size_t edid_size;
-+	size_t edid_allocated_size;
-+};
-+
-+/**
-+ * hpd_notifier_get - find or create a new hpd_notifier for the given device.
-+ * @dev: device that sends the events.
-+ *
-+ * If a notifier for device @dev already exists, then increase the refcount
-+ * and return that notifier.
-+ *
-+ * If it doesn't exist, then allocate a new notifier struct and return a
-+ * pointer to that new struct.
-+ *
-+ * Return NULL if the memory could not be allocated.
-+ */
-+struct hpd_notifier *hpd_notifier_get(struct device *dev);
-+
-+/**
-+ * hpd_notifier_put - decrease refcount and delete when the refcount reaches 0.
-+ * @n: notifier
-+ */
-+void hpd_notifier_put(struct hpd_notifier *n);
-+
-+/**
-+ * hpd_notifier_register - register the notifier with the notifier_block.
-+ * @n: the HPD notifier
-+ * @nb: the notifier_block
-+ */
-+int hpd_notifier_register(struct hpd_notifier *n, struct notifier_block *nb);
-+
-+/**
-+ * hpd_notifier_unregister - unregister the notifier with the notifier_block.
-+ * @n: the HPD notifier
-+ * @nb: the notifier_block
-+ */
-+int hpd_notifier_unregister(struct hpd_notifier *n, struct notifier_block *nb);
-+
-+/**
-+ * hpd_event_connect - send a connect event.
-+ * @n: the HPD notifier
-+ *
-+ * Send an HPD_CONNECTED event to any registered parties.
-+ */
-+void hpd_event_connect(struct hpd_notifier *n);
-+
-+/**
-+ * hpd_event_disconnect - send a disconnect event.
-+ * @n: the HPD notifier
-+ *
-+ * Send an HPD_DISCONNECTED event to any registered parties.
-+ */
-+void hpd_event_disconnect(struct hpd_notifier *n);
-+
-+/**
-+ * hpd_event_new_edid - send a new EDID event.
-+ * @n: the HPD notifier
-+ *
-+ * Send an HPD_NEW_EDID event to any registered parties.
-+ * This function will make a copy the EDID so it can return -ENOMEM if
-+ * no memory could be allocated.
-+ */
-+int hpd_event_new_edid(struct hpd_notifier *n, const void *edid, size_t size);
-+
-+/**
-+ * hpd_event_new_eld - send a new ELD event.
-+ * @n: the HPD notifier
-+ *
-+ * Send an HPD_NEW_ELD event to any registered parties.
-+ */
-+void hpd_event_new_eld(struct hpd_notifier *n, const u8 eld[128]);
-+
-+#endif
--- 
-2.11.0
+	Hans
+
+> +		q->drv_priv = dev;
+> +		q->buf_struct_size = sizeof(struct mmal_buffer);
+> +		q->ops = &bm2835_mmal_video_qops;
+> +		q->mem_ops = &vb2_vmalloc_memops;
+> +		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> +		ret = vb2_queue_init(q);
+> +		if (ret < 0)
+> +			goto unreg_dev;
+> +
+> +		/* v4l2 core mutex used to protect all fops and v4l2 ioctls. */
+> +		mutex_init(&dev->mutex);
+> +
+> +		/* initialise video devices */
+> +		ret = bm2835_mmal_init_device(dev, &dev->vdev);
+> +		if (ret < 0)
+> +			goto unreg_dev;
+> +
+> +		/* Really want to call vidioc_s_fmt_vid_cap with the default
+> +		 * format, but currently the APIs don't join up.
+> +		 */
+> +		ret = mmal_setup_components(dev, &default_v4l2_format);
+> +		if (ret < 0) {
+> +			v4l2_err(&dev->v4l2_dev,
+> +				 "%s: could not setup components\n", __func__);
+> +			goto unreg_dev;
+> +		}
+> +
+> +		v4l2_info(&dev->v4l2_dev,
+> +			  "Broadcom 2835 MMAL video capture ver %s loaded.\n",
+> +			  BM2835_MMAL_VERSION);
+> +
+> +		gdev[camera] = dev;
+> +	}
+> +	return 0;
+> +
+> +unreg_dev:
+> +	v4l2_ctrl_handler_free(&dev->ctrl_handler);
+> +	v4l2_device_unregister(&dev->v4l2_dev);
+> +
+> +free_dev:
+> +	kfree(dev);
+> +
+> +	for ( ; camera > 0; camera--) {
+> +		bcm2835_cleanup_instance(gdev[camera]);
+> +		gdev[camera] = NULL;
+> +	}
+> +	pr_info("%s: error %d while loading driver\n",
+> +		 BM2835_MMAL_MODULE_NAME, ret);
+> +
+> +	return ret;
+> +}
+> +
+> +static void __exit bm2835_mmal_exit(void)
+> +{
+> +	int camera;
+> +	struct vchiq_mmal_instance *instance = gdev[0]->instance;
+> +
+> +	for (camera = 0; camera < MAX_BCM2835_CAMERAS; camera++) {
+> +		bcm2835_cleanup_instance(gdev[camera]);
+> +		gdev[camera] = NULL;
+> +	}
+> +	vchiq_mmal_finalise(instance);
+> +}
+> +
+> +module_init(bm2835_mmal_init);
+> +module_exit(bm2835_mmal_exit);
 
