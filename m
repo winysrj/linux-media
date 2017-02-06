@@ -1,122 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f43.google.com ([209.85.215.43]:34715 "EHLO
-        mail-lf0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754954AbdBVTOH (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:34383 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753487AbdBFQAn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Feb 2017 14:14:07 -0500
-Received: by mail-lf0-f43.google.com with SMTP id g134so6345103lfe.1
-        for <linux-media@vger.kernel.org>; Wed, 22 Feb 2017 11:14:06 -0800 (PST)
-Subject: Re: [PATCH RESEND 1/1] media: platform: Renesas IMR driver
-To: Rob Herring <robh@kernel.org>
-References: <20170211200207.273799464@cogentembedded.com>
- <20170222142515.i54xtgyvxysd2qsr@rob-hp-laptop>
-Cc: Mark Rutland <mark.rutland@arm.com>,
+        Mon, 6 Feb 2017 11:00:43 -0500
+Subject: Re: [PATCH 1/6] staging: Import the BCM2835 MMAL-based V4L2 camera
+ driver.
+To: Dave Stevenson <linux-media@destevenson.freeserve.co.uk>,
+        Eric Anholt <eric@anholt.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+References: <20170127215503.13208-1-eric@anholt.net>
+ <20170127215503.13208-2-eric@anholt.net>
+ <f7f6bed9-b6c9-48cd-814d-9a2f4afe0a8b@xs4all.nl>
+ <4cb2ee48-0033-b5ac-bbed-80aa119ee9f5@destevenson.freeserve.co.uk>
+ <2cf0d891-55a1-4917-8411-b216ca7544a0@xs4all.nl>
+ <05af3466-704f-6beb-7650-208d548a5bbc@destevenson.freeserve.co.uk>
+Cc: devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org,
-        Konstantin Kozhevnikov
-        <Konstantin.Kozhevnikov@cogentembedded.com>
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <cccaf6f7-0ff3-539c-5b60-e28858018b97@cogentembedded.com>
-Date: Wed, 22 Feb 2017 22:05:21 +0300
+        linux-rpi-kernel@lists.infradead.org, linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <92d0017b-0156-06ab-1884-59708ad1b91a@xs4all.nl>
+Date: Mon, 6 Feb 2017 17:00:33 +0100
 MIME-Version: 1.0
-In-Reply-To: <20170222142515.i54xtgyvxysd2qsr@rob-hp-laptop>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <05af3466-704f-6beb-7650-208d548a5bbc@destevenson.freeserve.co.uk>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello!
-
-On 02/22/2017 05:25 PM, Rob Herring wrote:
-
->> From: Konstantin Kozhevnikov <Konstantin.Kozhevnikov@cogentembedded.com>
+On 02/06/2017 04:21 PM, Dave Stevenson wrote:
+> Hi Hans.
+> 
+> On 06/02/17 12:58, Hans Verkuil wrote:
+>> On 02/06/2017 12:37 PM, Dave Stevenson wrote:
+>>> Hi Hans.
+>>>
+>>> On 06/02/17 09:08, Hans Verkuil wrote:
+>>>> Hi Eric,
+>>>>
+>>>> Great to see this driver appearing for upstream merging!
+>>>>
+>>>> See below for my review comments, focusing mostly on V4L2 specifics.
+>>>>
+> 
+> <snip>
+> 
+>>>>> +	f->fmt.pix.pixelformat = dev->capture.fmt->fourcc;
+>>>>> +	f->fmt.pix.bytesperline = dev->capture.stride;
+>>>>> +	f->fmt.pix.sizeimage = dev->capture.buffersize;
+>>>>> +
+>>>>> +	if (dev->capture.fmt->fourcc == V4L2_PIX_FMT_RGB24)
+>>>>> +		f->fmt.pix.colorspace = V4L2_COLORSPACE_SRGB;
+>>>>> +	else if (dev->capture.fmt->fourcc == V4L2_PIX_FMT_JPEG)
+>>>>> +		f->fmt.pix.colorspace = V4L2_COLORSPACE_JPEG;
+>>>>> +	else
+>>>>> +		f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
+>>>>
+>>>> Colorspace has nothing to do with the pixel format. It should come from the
+>>>> sensor/video receiver.
+>>>>
+>>>> If this information is not available, then COLORSPACE_SRGB is generally a
+>>>> good fallback.
+>>>
+>>> I would if I could, but then I fail v4l2-compliance on V4L2_PIX_FMT_JPEG
+>>> https://git.linuxtv.org/v4l-utils.git/tree/utils/v4l2-compliance/v4l2-test-formats.cpp#n329
+>>> The special case for JPEG therefore has to remain.
 >>
->> The image renderer light extended 4 (IMR-LX4) or the distortion correction
->> engine is a drawing processor with a simple  instruction system capable of
->> referencing data on an external memory as 2D texture data and performing
->> texture mapping and drawing with respect to any shape that is split into
->> triangular objects.
+>> Correct. Sorry, my fault, I forgot about that.
 >>
->> This V4L2 memory-to-memory device driver only supports image renderer found
->> in the R-Car gen3 SoCs; the R-Car gen2 support  can be added later...
+>>>
+>>> It looks like I tripped over the subtlety between V4L2_COLORSPACE_,
+>>> V4L2_XFER_FUNC_, V4L2_YCBCR_ENC_, and V4L2_QUANTIZATION_, and Y'CbCr
+>>> encoding vs colourspace.
+>>>
+>>> The ISP coefficients are set up for BT601 limited range, and any
+>>> conversion back to RGB is done based on that. That seemed to fit
+>>> SMPTE170M rather than SRGB.
 >>
->> [Sergei: merged 2 original patches, added the patch description, removed
->> unrelated parts,  added the binding document, ported the driver to the
->> modern kernel, renamed the UAPI header file and the guard  macros to match
->> the driver name, extended the copyrights, fixed up Kconfig prompt/depends/
->> help, made use of the BIT()/GENMASK() macros, sorted #include's, removed
->> leading  dots and fixed grammar in the comments, fixed up indentation to
->> use tabs where possible, renamed IMR_DLSR to IMR_DLPR to match the manual,
->> separated the register offset/bit #define's, removed *inline* from .c file,
->> fixed lines over 80 columns, removed useless parens, operators, casts,
->> braces, variables, #include's, (commented out) statements, and even
->> function, inserted empty line after desclaration, removed extra empty
->> lines, reordered some local variable desclarations, removed calls to
->> 4l2_err() on kmalloc() failure, fixed the error returned by imr_default(),
->> avoided code duplication in the IRQ handler, used '__packed' for the UAPI
->> structures, enclosed the macro parameters in parens, exchanged the values
->> of IMR_MAP_AUTO[SD]G macros.]
+>> Colorspace refers to the primary colors + whitepoint that are used to
+>> create the colors (basically this answers the question to which colors
+>> R, G and B exactly refer to). The SMPTE170M has different primaries
+>> compared to sRGB (and a different default transfer function as well).
 >>
->> Signed-off-by: Konstantin Kozhevnikov <Konstantin.Kozhevnikov@cogentembedded.com>
->> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+>> RGB vs Y'CbCr is just an encoding and it doesn't change the underlying
+>> colorspace. Unfortunately, the term 'colorspace' is often abused to just
+>> refer to RGB vs Y'CbCr.
 >>
->> ---
->> This patch is against the 'media_tree.git' repo's 'master' branch.
+>> If the colorspace is SRGB, then when the pixelformat is a Y'CbCr encoding,
+>> then the BT601 limited range encoding is implied, unless overridden via
+>> the ycbcr_enc and/or quantization fields in struct v4l2_pix_format.
 >>
->>  Documentation/devicetree/bindings/media/rcar_imr.txt |   23
->>  drivers/media/platform/Kconfig                       |   13
->>  drivers/media/platform/Makefile                      |    1
->>  drivers/media/platform/rcar_imr.c                    | 1923 +++++++++++++++++++
->>  include/uapi/linux/rcar_imr.h                        |   94
->>  5 files changed, 2054 insertions(+)
+>> In other words, this does already the right thing.
+> 
+> https://linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/pixfmt-007.html#colorspace-srgb-v4l2-colorspace-srgb
+> "The default transfer function is V4L2_XFER_FUNC_SRGB. The default 
+> Y’CbCr encoding is V4L2_YCBCR_ENC_601. The default Y’CbCr quantization 
+> is full range."
+> So full range or limited?
+
+Ah, good catch. The default range for SRGB is full range, so the documentation
+is correct. This is according to the sYCC standard.
+
+This means that you need to set the quantization field to limited range in this driver.
+
+Sorry for the confusion I caused.
+
+Interesting, I should take a look at other drivers since I suspect that this is
+signaled wrong elsewhere as well. It used to be limited range but I changed it
+to full range (as per the sYCC spec). But in practice it is limited range in most
+cases.
+
+I'll take another look at this on Friday.
+
+I recommend that you leave the code as is for now.
+
+Regards,
+
+	Hans
+
+>>> Test input 0:
+>>>
+>>> 	Control ioctls:
+>>> 		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+>>> 		test VIDIOC_QUERYCTRL: OK
+>>> 		test VIDIOC_G/S_CTRL: OK
+>>> 		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+>>> 		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+>>> 		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+>>> 		Standard Controls: 33 Private Controls: 0
+>>>
+>>> 	Format ioctls:
+>>> 		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+>>> 		test VIDIOC_G/S_PARM: OK
+>>> 		test VIDIOC_G_FBUF: OK
+>>> 		test VIDIOC_G_FMT: OK
+>>> 		test VIDIOC_TRY_FMT: OK
+>>> 		test VIDIOC_S_FMT: OK
+>>> 		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+>>> 		test Cropping: OK (Not Supported)
+>>> 		test Composing: OK (Not Supported)
+>>> 		test Scaling: OK
 >>
->> Index: media_tree/Documentation/devicetree/bindings/media/rcar_imr.txt
->> ===================================================================
->> --- /dev/null
->> +++ media_tree/Documentation/devicetree/bindings/media/rcar_imr.txt
->> @@ -0,0 +1,23 @@
->> +Renesas R-Car Image Renderer (Distortion Correction Engine)
->> +-----------------------------------------------------------
->> +
->> +The image renderer  or the distortion correction  engine is a drawing processor
->> +with a simple  instruction system capable of referencing data in external memory
->> +as  2D texture data and performing texture mapping and drawing with respect to
->> +any shape that is split into triangular objects.
->
-> Please fix extra spaces in here.
+>> Is scaling supported? Just checking.
+> 
+> The cropping/composing/scaling API is not currently supported.
+> The hardware can do it, but I need to work out how it should be set up, 
+> and what resolutions to quote via V4L2_SEL_TGT_CROP_BOUNDS and similar. 
+> It just needs a bit of time.
 
-    OK. Seems to be your pet peeve? :-)
+OK. This needs some attention before it can be moved out of staging.
 
->> +
->> +Required properties:
->> +- compatible: must be "renesas,imr-lx4" for the image renderer light extended 4
->> +  (IMR-LX4)  found in the R-Car gen3 SoCs;
->
-> Needs an SoC specific compatible string too.
+Regards,
 
-    Strings, to be precise -- there are several SoCs but the IMR-LX4 core 
-seems the same among them. Well, if you say so...
+	Hans
 
-> The description is above, so you just need to list the compatible
-> strings.
+> 
+>>>
+>>> 	Codec ioctls:
+>>> 		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>>> 		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>>> 		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+>>>
+>>> 	Buffer ioctls:
+>>> 		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>>> 		test VIDIOC_EXPBUF: OK (Not Supported)
+>>>
+>>> Test input 0:
+>>>
+>>>
+>>> Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
+>>
+>> Note that v4l2-compliance does very limited testing of overlay handling.
+>> You should test this manually to make sure it functions properly.
+> 
+> OK, thanks for the heads up. It's not one that gets used that often in 
+> the wild either from what I can tell.
+> 
+>> Regards,
+>>
+>> 	Hans
+> 
+> Thanks,
+>    Dave
+> 
 
-    There's (most probably) gonna be other versions of the IMR core supported, 
-(this core can be forund in gen2 SoCs too)...
-
->> +- reg: offset and length of the register block;
->> +- interrupts: interrupt specifier;
->
-> How many interrupts?
-
-    I thought it was clear from using singular.
-
->> +- clocks: clock phandle and specifier pair.
->
-> How many clocks?
-
-    Two, perhaps. I meant a single clock by using singular again.
-
-[...]
-
-MBR, Sergei
