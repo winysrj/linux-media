@@ -1,59 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:57855 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751206AbdBLNhK (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:41273 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751404AbdBFKaK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 12 Feb 2017 08:37:10 -0500
-Date: Sun, 12 Feb 2017 14:37:06 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCHv2] v4l: split lane parsing code
-Message-ID: <20170212133706.GB3702@amd>
-References: <20161228183116.GA13407@amd>
- <20170102070425.GE3958@valkosipuli.retiisi.org.uk>
- <20170112102405.GF29366@amd>
- <20170211220836.6jsaivly5b6vqkcq@ihha.localdomain>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="yEPQxsgoJgBvi8ip"
-Content-Disposition: inline
-In-Reply-To: <20170211220836.6jsaivly5b6vqkcq@ihha.localdomain>
+        Mon, 6 Feb 2017 05:30:10 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Daniel Vetter <daniel.vetter@intel.com>,
+        Russell King <linux@armlinux.org.uk>,
+        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        devicetree@vger.kernel.org
+Subject: [PATCHv4 4/9] ARM: dts: exynos: add HDMI controller phandle to exynos4.dtsi
+Date: Mon,  6 Feb 2017 11:29:46 +0100
+Message-Id: <20170206102951.12623-5-hverkuil@xs4all.nl>
+In-Reply-To: <20170206102951.12623-1-hverkuil@xs4all.nl>
+References: <20170206102951.12623-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
---yEPQxsgoJgBvi8ip
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Add the new hdmi phandle to exynos4.dtsi. This phandle is needed by the
+s5p-cec driver to initialize the HPD notifier framework.
 
-Hi!
+Tested with my Odroid U3.
 
-> The patch looks good to me. Could you post a patchset containing all the
-> needed patches, maybe on top of the DT patches in the ccp2 branch, please?
-> It'd be easier to handle this that way.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+CC: linux-samsung-soc@vger.kernel.org
+CC: devicetree@vger.kernel.org
+CC: Krzysztof Kozlowski <krzk@kernel.org>
+---
+ arch/arm/boot/dts/exynos4.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
 
-Ok, will do.
+diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
+index c64737baa45e..51dfcbb51b6b 100644
+--- a/arch/arm/boot/dts/exynos4.dtsi
++++ b/arch/arm/boot/dts/exynos4.dtsi
+@@ -762,6 +762,7 @@
+ 		clocks = <&clock CLK_HDMI_CEC>;
+ 		clock-names = "hdmicec";
+ 		samsung,syscon-phandle = <&pmu_system_controller>;
++		samsung,hdmi-phandle = <&hdmi>;
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&hdmi_cec>;
+ 		status = "disabled";
+-- 
+2.11.0
 
-Best regards,
-								Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---yEPQxsgoJgBvi8ip
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAligZQIACgkQMOfwapXb+vJv1wCbBPjJtnhSiBjZI1kOHZAL1t1C
-kkYAn1CMpRi9E90Xd7ZOA2mQ4Wc8QNHV
-=u7nM
------END PGP SIGNATURE-----
-
---yEPQxsgoJgBvi8ip--
