@@ -1,131 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48270 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752199AbdBMVVh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 16:21:37 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/4] v4l: vsp1: Calculate partition sizes at stream start.
-Date: Mon, 13 Feb 2017 23:21:58 +0200
-Message-ID: <3804080.QOE9vPlxB7@avalon>
-In-Reply-To: <1478283570-19688-4-git-send-email-kieran.bingham+renesas@ideasonboard.com>
-References: <1478283570-19688-1-git-send-email-kieran.bingham+renesas@ideasonboard.com> <1478283570-19688-4-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+Received: from mail-it0-f66.google.com ([209.85.214.66]:35135 "EHLO
+        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751968AbdBFUsZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Feb 2017 15:48:25 -0500
+Received: by mail-it0-f66.google.com with SMTP id 203so10168818ith.2
+        for <linux-media@vger.kernel.org>; Mon, 06 Feb 2017 12:48:25 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+From: Matthew Hughes <matt.hughes@shrdlusblocks.com>
+Date: Mon, 6 Feb 2017 14:48:04 -0600
+Message-ID: <CAHK4VQD9Lka9d7jusbQX7ScAS9s2_jem=tXwAhJfZWoZNo+feQ@mail.gmail.com>
+Subject: V4L board mis-identified, Tuner is TDA18271HD not s921
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Plugged in a USB ATSC tuner, has an em28xx bridge along with both a
+NXP TDA18271HDC2 and a Trident DRX3933J_B2... stenciled on the board
+is EzTV306_1.2
 
-Thank you for the patch.
+It however registered as a DVB device with a sharp s921 tuner.
 
-On Friday 04 Nov 2016 18:19:29 Kieran Bingham wrote:
-> Previously the active window and partition sizes for each partition is
-
-s/is/were/
-
-> calculated for each partition every frame. This data is constant and
-> only needs to be calculated once at the start of the stream.
-> 
-> Extend the vsp1_pipe object to store the maximum number of partitions
-> possible and pre-calculate the partition sizes into this table.
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> ---
->  drivers/media/platform/vsp1/vsp1_pipe.h  | 6 ++++++
->  drivers/media/platform/vsp1/vsp1_video.c | 8 ++++++--
->  2 files changed, 12 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h
-> b/drivers/media/platform/vsp1/vsp1_pipe.h index f181949824c9..3af96c4ea244
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_pipe.h
-> +++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-> @@ -20,6 +20,9 @@
-> 
->  #include <media/media-entity.h>
-> 
-> +/* Max Video Width / Min Partition Size = 8190/128 */
-> +#define VSP1_PIPE_MAX_PARTITIONS 64
-> +
->  struct vsp1_dl_list;
->  struct vsp1_rwpf;
-> 
-> @@ -81,7 +84,9 @@ enum vsp1_pipeline_state {
->   * @dl: display list associated with the pipeline
->   * @div_size: The maximum allowed partition size for the pipeline
->   * @partitions: The number of partitions used to process one frame
-> + * @partition: The current partition for configuration to process
->   * @current_partition: The partition number currently being configured
-> + * @part_table: The pre-calculated partitions used by the pipeline
->   */
->  struct vsp1_pipeline {
->  	struct media_pipeline pipe;
-> @@ -116,6 +121,7 @@ struct vsp1_pipeline {
->  	unsigned int partitions;
->  	struct v4l2_rect partition;
->  	unsigned int current_partition;
-> +	struct v4l2_rect part_table[VSP1_PIPE_MAX_PARTITIONS];
-
-That's an extra 1kB or kmalloc'ed data. I'd prefer allocating it dynamically 
-as needed.
-
->  };
-> 
->  void vsp1_pipeline_reset(struct vsp1_pipeline *pipe);
-> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
-> b/drivers/media/platform/vsp1/vsp1_video.c index 6d43c02bbc56..c4a8c30df108
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_video.c
-> +++ b/drivers/media/platform/vsp1/vsp1_video.c
-> @@ -255,6 +255,7 @@ static void vsp1_video_pipeline_setup_partitions(struct
-> vsp1_pipeline *pipe) const struct v4l2_mbus_framefmt *format;
->  	struct vsp1_entity *entity;
->  	unsigned int div_size;
-> +	int i;
-
-i can never be negative, you can make it an unsigned int.
-
-Apart from that,
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
->  	/*
->  	 * Partitions are computed on the size before rotation, use the format
-> @@ -269,6 +270,7 @@ static void vsp1_video_pipeline_setup_partitions(struct
-> vsp1_pipeline *pipe) if (vsp1->info->gen == 2) {
->  		pipe->div_size = div_size;
->  		pipe->partitions = 1;
-> +		pipe->part_table[0] = vsp1_video_partition(pipe, div_size, 0);
->  		return;
->  	}
-> 
-> @@ -284,6 +286,9 @@ static void vsp1_video_pipeline_setup_partitions(struct
-> vsp1_pipeline *pipe)
-> 
->  	pipe->div_size = div_size;
->  	pipe->partitions = DIV_ROUND_UP(format->width, div_size);
-> +
-> +	for (i = 0; i < pipe->partitions; i++)
-> +		pipe->part_table[i] = vsp1_video_partition(pipe, div_size, i);
->  }
-> 
->  /* ------------------------------------------------------------------------
-> @@ -355,8 +360,7 @@ static void vsp1_video_pipeline_run_partition(struct
-> vsp1_pipeline *pipe, {
->  	struct vsp1_entity *entity;
-> 
-> -	pipe->partition = vsp1_video_partition(pipe, pipe->div_size,
-> -					       pipe->current_partition);
-> +	pipe->partition = pipe->part_table[pipe->current_partition];
-> 
->  	list_for_each_entry(entity, &pipe->entities, list_pipe) {
->  		if (entity->ops->configure)
-
--- 
-Regards,
-
-Laurent Pinchart
+[  208.072748] usb 4-1.3: new high-speed USB device number 3 using ehci-pci
+[  208.298601] media: Linux media interface: v0.10
+[  208.312132] Linux video capture interface: v2.00
+[  208.636160] em28xx: New device  USB 2875 Device @ 480 Mbps
+(eb1a:2875, interface 0, class 0)
+[  208.636162] em28xx: DVB interface 0 found: isoc
+[  208.636222] em28xx: chip ID is em2874
+[  208.715834] em2874 #0: EEPROM ID = 26 40 03 00, EEPROM hash = 0xe0a5bac9
+[  208.715836] em2874 #0: EEPROM info:
+[  208.715837] em2874 #0:  microcode start address = 0x4004, boot
+configuration = 0x03
+[  208.739463] em2874 #0:  I2S audio, 5 sample rates
+[  208.739465] em2874 #0:  500mA max power
+[  208.739467] em2874 #0:  Table at offset 0x24, strings=0x206a, 0x128a, 0x0000
+[  208.741337] em2874 #0: No sensor detected
+[  208.769463] em2874 #0: found i2c device @ 0xa0 on bus 0 [eeprom]
+[  208.786096] em2874 #0: Your board has no unique USB ID.
+[  208.786106] em2874 #0: A hint were successfully done, based on i2c
+devicelist hash.
+[  208.786110] em2874 #0: This method is not 100% failproof.
+[  208.786114] em2874 #0: If the board were missdetected, please email
+this log to:
+[  208.786117] em2874 #0:  V4L Mailing List  <linux-media@vger.kernel.org>
+[  208.786120] em2874 #0: Board detected as EM2874 Leadership ISDBT
+[  208.892731] em2874 #0: Identified as EM2874 Leadership ISDBT (card=77)
+[  208.892734] em2874 #0: dvb set to isoc mode.
+[  208.893013] usbcore: registered new interface driver em28xx
+[  209.067077] em2874 #0: Binding DVB extension
+[  209.124284] s921: s921_attach:
+[  209.124291] DVB: registering new adapter (em2874 #0)
+[  209.124299] usb 4-1.3: DVB: registering adapter 0 frontend 0 (Sharp S921)...
+[  209.124819] em2874 #0: DVB extension successfully initialized
+[  209.124823] em28xx: Registered (Em28xx dvb Extension) extension
