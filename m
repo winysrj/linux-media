@@ -1,94 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:43589 "EHLO
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:47223 "EHLO
         metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755370AbdBQKkY (ORCPT
+        by vger.kernel.org with ESMTP id S1751307AbdBFK2g (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Feb 2017 05:40:24 -0500
-Message-ID: <1487327951.3107.19.camel@pengutronix.de>
-Subject: Re: [PATCH v4 00/36] i.MX Media Driver
+        Mon, 6 Feb 2017 05:28:36 -0500
+Message-ID: <1486376840.3005.28.camel@pengutronix.de>
+Subject: Re: [PATCH v3 12/24] add mux and video interface bridge entity
+ functions
 From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
         mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarit.de,
         laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
         geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
         minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
         jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
         niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
         songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Fri, 17 Feb 2017 11:39:11 +0100
-In-Reply-To: <20170216225742.GB21222@n2100.armlinux.org.uk>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
-         <20170216222006.GA21222@n2100.armlinux.org.uk>
-         <923326d6-43fe-7328-d959-14fd341e47ae@gmail.com>
-         <20170216225742.GB21222@n2100.armlinux.org.uk>
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Date: Mon, 06 Feb 2017 11:27:20 +0100
+In-Reply-To: <6948005.DnfziI9GIJ@avalon>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+         <1483755102-24785-13-git-send-email-steve_longerbeam@mentor.com>
+         <6948005.DnfziI9GIJ@avalon>
 Content-Type: text/plain; charset="UTF-8"
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2017-02-16 at 22:57 +0000, Russell King - ARM Linux wrote:
-> On Thu, Feb 16, 2017 at 02:27:41PM -0800, Steve Longerbeam wrote:
-> > 
-> > 
-> > On 02/16/2017 02:20 PM, Russell King - ARM Linux wrote:
-> > >On Wed, Feb 15, 2017 at 06:19:02PM -0800, Steve Longerbeam wrote:
-> > >>In version 4:
-> > >
-> > >With this version, I get:
-> > >
-> > >[28762.892053] imx6-mipi-csi2: LP-11 timeout, phy_state = 0x00000000
-> > >[28762.899409] ipu1_csi0: pipeline_set_stream failed with -110
-> > >
-> > 
-> > Right, in the imx219, on exit from s_power(), the clock and data lanes
-> > must be placed in the LP-11 state. This has been done in the ov5640 and
-> > tc358743 subdevs.
+On Sun, 2017-02-05 at 17:36 +0200, Laurent Pinchart wrote:
+> Hi Steve,
 > 
-> The only way to do that is to enable streaming from the sensor, wait
-> an initialisation time, and then disable streaming, and wait for the
-> current line to finish.  There is _no_ other way to get the sensor to
-> place its clock and data lines into LP-11 state.
+> Thank you for the patch
+> 
+> On Friday 06 Jan 2017 18:11:30 Steve Longerbeam wrote:
+> > From: Philipp Zabel <p.zabel@pengutronix.de>
+> > 
+> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > ---
+> >  Documentation/media/uapi/mediactl/media-types.rst | 22 ++++++++++++++++++++
+> >  include/uapi/linux/media.h                        |  6 ++++++
+> >  2 files changed, 28 insertions(+)
+> > 
+> > diff --git a/Documentation/media/uapi/mediactl/media-types.rst
+> > b/Documentation/media/uapi/mediactl/media-types.rst index 3e03dc2..023be29
+> > 100644
+> > --- a/Documentation/media/uapi/mediactl/media-types.rst
+> > +++ b/Documentation/media/uapi/mediactl/media-types.rst
+> > @@ -298,6 +298,28 @@ Types and flags used to represent the media graph
+> > elements received on its sink pad and outputs the statistics data on
+> >  	  its source pad.
+> > 
+> > +    -  ..  row 29
+> > +
+> > +       ..  _MEDIA-ENT-F-MUX:
+> > +
+> > +       -  ``MEDIA_ENT_F_MUX``
+> > +
+> > +       - Video multiplexer. An entity capable of multiplexing must have at
+> > +         least two sink pads and one source pad, and must pass the video
+> > +         frame(s) received from the active sink pad to the source pad.
+> > Video
+> > +         frame(s) from the inactive sink pads are discarded.
+> 
+> Apart from the comment made by Hans regarding the macro name, this looks good 
+> to me.
+> 
+> > +    -  ..  row 30
+> > +
+> > +       ..  _MEDIA-ENT-F-VID-IF-BRIDGE:
+> > +
+> > +       -  ``MEDIA_ENT_F_VID_IF_BRIDGE``
+> > +
+> > +       - Video interface bridge. A video interface bridge entity must have
+> > at
+> > +         least one sink pad and one source pad. It receives video frame(s)
+> > on
+> > +         its sink pad in one bus format (HDMI, eDP, MIPI CSI-2, ...) and
+> > +         converts them and outputs them on its source pad in another bus
+> > format
+> > +         (eDP, MIPI CSI-2, parallel, ...).
+> 
+> 
+> The first sentence mentions *at least* one sink pad and one source pad, and 
+> the second one refers to "its sink pad" and "its source pad". This is a bit 
+> confusing. An easy option would be to require a single sink and a single 
+> source pad, but that would exclude bridges that combine a multiplexer.
 
-I thought going through LP-11 is part of the D-PHY transmitter
-initialization, during the LP->HS wakeup sequence. But then I have no
-access to MIPI specs.
-It is unfortunate that the i.MX6 MIPI CSI-2 core needs software
-assistance here, but could it be possible to trigger that sequence in
-the sensor and then without waiting switching to polling for LP-11 state
-in the i.MX6 MIPI CSI-2 receiver?
+Would it be enough to just switch to plural?
 
-> For that to happen, we need to program the sensor a bit more than we
-> currently do at power on (to a minimal resolution, and setting up the
-> PLLs), and introduce another 4ms on top of the 8ms or so that the
-> runtime resume function already takes.
-> 
-> Looking at the SMIA driver, things are worse, and I suspect that it also
-> will not work with the current setup - the SMIA spec shows that the CSI
-> clock and data lines are tristated while the sensor is not streaming,
-> which means they aren't held at a guaranteed LP-11 state, even if that
-> driver momentarily enabled streaming.  Hence, Freescale's (or is it
-> Synopsis') requirement may actually be difficult to satisfy.
-> 
-> However, I regard runtime PM broken with the current imx-capture setup.
-> At the moment, power is controlled at the sensor by whether the media
-> links are enabled.  So, if you have an enabled link coming off the
-> sensor, the sensor will be powered up, whether you're using it or not.
-> 
-> Given that the number of applications out there that know about the
-> media subdevs is really quite small, this combination makes having
-> runtime PM in sensor devices completely pointless - they can't sleep
-> as long as they have an enabled link, which could be persistent over
-> many days or weeks.
+"It receives video frame(s) on its sink pads in one bus format and
+converts them and outputs them on its source pads in another bus
+format"?
+
+I fear if this is made too specific to single-input single-output
+devices, a whole lot of multi-input devices will have to be split up
+unnecessarily. Although in cases of freely configurable multiplexers, it
+might also make sense to describe them as multiple entities. Especially
+if they can run in parallel with different configurations.
+
+> I also wonder whether "bridge" is the appropriate word here. Transceiver might 
+> be a better choice, to insist on the fact that one of the two pads corresponds 
+> to a physical interface that has special electrical properties (such as HDMI, 
+> eDP, or CSI-2 that all require PHYs).
+
+What media entity function would you suggest to use for the IPU CSI,
+which basically is
+ - a video interface bridge, because it converts media bus formats from
+   an external (up to) 20-bit parallel bus to an internal 128-bit bus,
+   with the option to either expand/compand/pack >8-bit per component
+   pixel formats (so parts of a write pixel formatter)
+ - also a video scaler, because it can crop and reduce width and/or
+   height to 1/2 the original size
+
+I wouldn't call it a transceiver, as it is completely contained inside
+the SoC.
 
 regards
 Philipp
+
