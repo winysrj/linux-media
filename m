@@ -1,83 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:48354 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753155AbdBRSMW (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:34070 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751563AbdBFJup (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 18 Feb 2017 13:12:22 -0500
-Date: Sat, 18 Feb 2017 18:08:44 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Subject: Re: [PATCH v4 29/36] media: imx: mipi-csi2: enable setting and
- getting of frame rates
-Message-ID: <20170218180844.GK21222@n2100.armlinux.org.uk>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
- <1487211578-11360-30-git-send-email-steve_longerbeam@mentor.com>
- <24d42948-a77d-445f-e3e9-ab595b0cfc3e@gmail.com>
- <20170218092335.GI21222@n2100.armlinux.org.uk>
- <e3260548-7fbc-31bc-0b2c-4c11c1e9a7c7@gmail.com>
+        Mon, 6 Feb 2017 04:50:45 -0500
+Subject: Re: [PATCH v3 13/24] platform: add video-multiplexer subdevice driver
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <1485259368.3600.126.camel@pengutronix.de>
+ <651d7b40-e87d-05ce-ae4d-256b0c1b28f7@gmail.com> <2258037.UCXsIYbtGD@avalon>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        nick@shmanahar.org, markus.heiser@darmarit.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <f6bfb9ec-1ea3-8477-4933-cf655acd3e0f@xs4all.nl>
+Date: Mon, 6 Feb 2017 10:50:22 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <e3260548-7fbc-31bc-0b2c-4c11c1e9a7c7@gmail.com>
+In-Reply-To: <2258037.UCXsIYbtGD@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Feb 18, 2017 at 09:29:17AM -0800, Steve Longerbeam wrote:
-> On 02/18/2017 01:23 AM, Russell King - ARM Linux wrote:
-> >On Fri, Feb 17, 2017 at 05:12:44PM -0800, Steve Longerbeam wrote:
-> >>Hi Russell,
-> >>
-> >>I signed-off on this but after more review I'm not sure this is right.
-> >>
-> >>The CSI-2 receiver really has no control over frame rate. It's output
-> >>frame rate is the same as the rate that is delivered to it.
-> >>
-> >>So this subdev should either not implement these ops, or it should
-> >>refer them to the attached source subdev.
-> >
-> >Where in the V4L2 documentation does it say that is permissible?
-> >
+On 02/05/2017 04:48 PM, Laurent Pinchart wrote:
+> Hi Steve,
 > 
-> https://www.linuxtv.org/downloads/v4l-dvb-apis-old/vidioc-subdev-g-frame-interval.html
+> On Tuesday 24 Jan 2017 18:07:55 Steve Longerbeam wrote:
+>> On 01/24/2017 04:02 AM, Philipp Zabel wrote:
+>>> On Fri, 2017-01-20 at 15:03 +0100, Hans Verkuil wrote:
+>>>>> +
+>>>>> +int vidsw_g_mbus_config(struct v4l2_subdev *sd, struct v4l2_mbus_config
+>>>>> *cfg)
+>>>>> +{
+>>>>> +	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
+>>>>> +	struct media_pad *pad;
+>>>>> +	int ret;
+>>>>> +
+>>>>> +	if (vidsw->active == -1) {
+>>>>> +		dev_err(sd->dev, "no configuration for inactive mux\n");
+>>>>> +		return -EINVAL;
+>>>>> +	}
+>>>>> +
+>>>>> +	/*
+>>>>> +	 * Retrieve media bus configuration from the entity connected to the
+>>>>> +	 * active input
+>>>>> +	 */
+>>>>> +	pad = media_entity_remote_pad(&vidsw->pads[vidsw->active]);
+>>>>> +	if (pad) {
+>>>>> +		sd = media_entity_to_v4l2_subdev(pad->entity);
+>>>>> +		ret = v4l2_subdev_call(sd, video, g_mbus_config, cfg);
+>>>>> +		if (ret == -ENOIOCTLCMD)
+>>>>> +			pad = NULL;
+>>>>> +		else if (ret < 0) {
+>>>>> +			dev_err(sd->dev, "failed to get source 
+> configuration\n");
+>>>>> +			return ret;
+>>>>> +		}
+>>>>> +	}
+>>>>> +	if (!pad) {
+>>>>> +		/* Mirror the input side on the output side */
+>>>>> +		cfg->type = vidsw->endpoint[vidsw->active].bus_type;
+>>>>> +		if (cfg->type == V4L2_MBUS_PARALLEL ||
+>>>>> +		    cfg->type == V4L2_MBUS_BT656)
+>>>>> +			cfg->flags = vidsw->endpoint[vidsw-
+>> active].bus.parallel.flags;
+>>>>> +	}
+>>>>> +
+>>>>> +	return 0;
+>>>>> +}
+>>>>
+>>>> I am not certain this op is needed at all. In the current kernel this op
+>>>> is only used by soc_camera, pxa_camera and omap3isp (somewhat dubious).
+>>>> Normally this information should come from the device tree and there
+>>>> should be no need for this op.
+>>>>
+>>>> My (tentative) long-term plan was to get rid of this op.
+>>>>
+>>>> If you don't need it, then I recommend it is removed.
+>>
+>> Hi Hans, the imx-media driver was only calling g_mbus_config to the camera
+>> sensor, and it was doing that to determine the sensor's bus type. This info
+>> was already available from parsing a v4l2_of_endpoint from the sensor node.
+>> So it was simple to remove the g_mbus_config calls, and instead rely on the
+>> parsed sensor v4l2_of_endpoint.
 > 
-> "The frame interval only makes sense for sub-devices that can control the
-> frame period on their own. This includes, for instance, image sensors and TV
-> tuners. Sub-devices that don't support frame intervals must not implement
-> these ioctls."
-
-That sounds clear - but the TV tuner example seems odd - the frame rate
-is determined at transmission time, not reception time.  Yes, it's
-possible to skip frames (which would be scaling) but you can't
-_control_ the frame rate per se.
-
-> >If you don't implement these, media-ctl fails to propagate _anything_
-> >to the next sink pad if you specify a frame rate, because media-ctl
-> >throws an error and exits immediately.
-> >
+> That's not a good point. The imx-media driver must not parse the sensor DT 
+> node as it is not aware of what bindings the sensor is compatible with. 
+> Information must instead be queried from the sensor subdev at runtime, through 
+> the g_mbus_config() operation.
 > 
-> But I agree with you here. I think our only option is to ignore that
-> quoted requirement above and propagate [gs]_frame_interval all the way
-> to the CSI (which can control the frame rate via frame skipping).
+> Of course, if you can get the information from the imx-media DT node, that's 
+> certainly an option. It's only information provided by the sensor driver that 
+> you have no choice but query using a subdev operation.
 
-Sounds like something to tackle the media maintainers over - the
-documentation vs media-ctl seem to have different ideas on this
-point.
+Shouldn't this come from the imx-media DT node? BTW, why is omap3isp using this?
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+The reason I am suspicious about this op is that it came from soc-camera and
+predates the DT. The contents of v4l2_mbus_config seems very much like a HW
+description to me, i.e. something that belongs in the DT.
+
+Regards,
+
+	Hans
