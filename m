@@ -1,79 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55316
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751893AbdBJOOR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Feb 2017 09:14:17 -0500
-From: Thibault Saunier <thibault.saunier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Thibault Saunier <thibault.saunier@osg.samsung.com>,
-        linux-arm-kernel@lists.infradead.org,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Kamil Debski <kamil@wypas.org>
-Subject: [PATCH v3 4/4] [media] s5p-mfc: Check and set 'v4l2_pix_format:field' field in try_fmt
-Date: Fri, 10 Feb 2017 11:10:22 -0300
-Message-Id: <20170210141022.25412-5-thibault.saunier@osg.samsung.com>
-In-Reply-To: <20170210141022.25412-1-thibault.saunier@osg.samsung.com>
-References: <20170210141022.25412-1-thibault.saunier@osg.samsung.com>
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:37180 "EHLO
+        mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755373AbdBGQmG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2017 11:42:06 -0500
+Received: by mail-wm0-f41.google.com with SMTP id v77so162578237wmv.0
+        for <linux-media@vger.kernel.org>; Tue, 07 Feb 2017 08:42:01 -0800 (PST)
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+To: Kevin Hilman <khilman@kernel.org>, Sekhar Nori <nsekhar@ti.com>,
+        Patrick Titiano <ptitiano@baylibre.com>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Lad Prabhakar <prabhakar.csengg@gmail.com>
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Subject: [PATCH 08/10] ARM: davinci: fix the DT boot on da850-evm
+Date: Tue,  7 Feb 2017 17:41:21 +0100
+Message-Id: <1486485683-11427-9-git-send-email-bgolaszewski@baylibre.com>
+In-Reply-To: <1486485683-11427-1-git-send-email-bgolaszewski@baylibre.com>
+References: <1486485683-11427-1-git-send-email-bgolaszewski@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is required by the standard that the field order is set by the
-driver.
+When we enable vpif capture on the da850-evm we hit a BUG_ON() because
+the i2c adapter can't be found. The board file boot uses i2c adapter 1
+but in the DT mode it's actually adapter 0. Drop the problematic lines.
 
-Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
-
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 ---
+ arch/arm/mach-davinci/pdata-quirks.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-Changes in v3:
-- Do not check values in the g_fmt functions as Andrzej explained in previous review
-
-Changes in v2:
-- Fix a silly build error that slipped in while rebasing the patches
-
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
-
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 16bc3eaad0ff..e249c5cee262 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -385,6 +385,20 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 	struct s5p_mfc_dev *dev = video_drvdata(file);
- 	struct v4l2_pix_format_mplane *pix_mp = &f->fmt.pix_mp;
- 	struct s5p_mfc_fmt *fmt;
-+	enum v4l2_field field;
-+
-+	field = f->fmt.pix.field;
-+	if (field == V4L2_FIELD_ANY) {
-+		field = V4L2_FIELD_NONE;
-+	} else if (field != V4L2_FIELD_NONE) {
-+		mfc_debug(2, "Not supported field order(%d)\n", pix_mp->field);
-+		return -EINVAL;
-+	}
-+
-+	/* V4L2 specification suggests the driver corrects the format struct
-+	 * if any of the dimensions is unsupported
-+	 */
-+	f->fmt.pix.field = field;
+diff --git a/arch/arm/mach-davinci/pdata-quirks.c b/arch/arm/mach-davinci/pdata-quirks.c
+index 94948c1..09f62ac 100644
+--- a/arch/arm/mach-davinci/pdata-quirks.c
++++ b/arch/arm/mach-davinci/pdata-quirks.c
+@@ -116,10 +116,6 @@ static void __init da850_vpif_legacy_init(void)
+ 	if (of_machine_is_compatible("ti,da850-lcdk"))
+ 		da850_vpif_capture_config.subdev_count = 1;
  
- 	mfc_debug(2, "Type is %d\n", f->type);
- 	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+-	/* EVM (UI card) uses i2c adapter 1 (not default: zero) */
+-	if (of_machine_is_compatible("ti,da850-evm"))
+-		da850_vpif_capture_config.i2c_adapter_id = 1;
+-
+ 	ret = da850_register_vpif_capture(&da850_vpif_capture_config);
+ 	if (ret)
+ 		pr_warn("%s: VPIF capture setup failed: %d\n",
 -- 
-2.11.1
+2.9.3
 
