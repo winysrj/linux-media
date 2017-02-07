@@ -1,226 +1,237 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from forward8h.cmail.yandex.net ([87.250.230.219]:52092 "EHLO
-        forward8h.cmail.yandex.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754207AbdBGVnZ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41530 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754541AbdBGRbZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Feb 2017 16:43:25 -0500
-Received: from smtp3m.mail.yandex.net (smtp3m.mail.yandex.net [IPv6:2a02:6b8:0:2519::125])
-        by forward8h.cmail.yandex.net (Yandex) with ESMTP id 42A9021770
-        for <linux-media@vger.kernel.org>; Wed,  8 Feb 2017 00:37:07 +0300 (MSK)
-Received: from smtp3m.mail.yandex.net (localhost.localdomain [127.0.0.1])
-        by smtp3m.mail.yandex.net (Yandex) with ESMTP id 27A192840E5D
-        for <linux-media@vger.kernel.org>; Wed,  8 Feb 2017 00:37:06 +0300 (MSK)
-From: CrazyCat <crazycat69@narod.ru>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 3/3] dvb-usb-cxusb: Geniatech T230C support.
-Date: Tue, 07 Feb 2017 23:37:01 +0200
-Message-ID: <3396730.KzdrAG0WSU@computer>
+        Tue, 7 Feb 2017 12:31:25 -0500
+Date: Tue, 7 Feb 2017 19:31:16 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        devicetree@vger.kernel.org, CARLOS.PALMINHA@synopsys.com,
+        "David S. Miller" <davem@davemloft.net>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pavel Machek <pavel@ucw.cz>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Rob Herring <robh+dt@kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+Subject: Re: [PATCH RESEND v7 2/2] Add support for OV5647 sensor.
+Message-ID: <20170207173116.GC13854@valkosipuli.retiisi.org.uk>
+References: <cover.1486136893.git.roliveir@synopsys.com>
+ <26e5a587f1ba9e2fbbc04284408305bc8cf8c5c0.1486136893.git.roliveir@synopsys.com>
+ <20170203201729.GA18086@kekkonen.localdomain>
+ <f23e76ff-326a-c4df-601d-6b12b644bff7@synopsys.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <f23e76ff-326a-c4df-601d-6b12b644bff7@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Updated Geniatech DVB-T/T2 stick support.
+Hi Ramiro,
 
-Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
----
- drivers/media/usb/dvb-usb/cxusb.c | 139 +++++++++++++++++++++++++++++++++++++-
- 1 file changed, 138 insertions(+), 1 deletion(-)
+On Mon, Feb 06, 2017 at 11:38:28AM +0000, Ramiro Oliveira wrote:
+...
+> >> +	ret = ov5647_write_array(sd, ov5647_640x480,
+> >> +					ARRAY_SIZE(ov5647_640x480));
+> >> +	if (ret < 0) {
+> >> +		dev_err(&client->dev, "write sensor_default_regs error\n");
+> >> +		return ret;
+> >> +	}
+> >> +
+> >> +	ov5647_set_virtual_channel(sd, 0);
+> >> +
+> >> +	ov5647_read(sd, 0x0100, &resetval);
+> >> +	if (!(resetval & 0x01)) {
+> > 
+> > Can this ever happen? Streaming start is at the end of the register list.
+> > 
+> 
+> I'm not sure it can happen. It was just a safeguard, but I can remove it if you
+> think it's not necessary
 
-diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
-index 5d7b4ea..9b541db 100644
---- a/drivers/media/usb/dvb-usb/cxusb.c
-+++ b/drivers/media/usb/dvb-usb/cxusb.c
-@@ -1238,6 +1238,82 @@ static int cxusb_mygica_t230_frontend_attach(struct dvb_usb_adapter *adap)
- 	return 0;
- }
- 
-+static int cxusb_mygica_t230c_frontend_attach(struct dvb_usb_adapter *adap)
-+{
-+	struct dvb_usb_device *d = adap->dev;
-+	struct cxusb_state *st = d->priv;
-+	struct i2c_adapter *adapter;
-+	struct i2c_client *client_demod;
-+	struct i2c_client *client_tuner;
-+	struct i2c_board_info info;
-+	struct si2168_config si2168_config;
-+	struct si2157_config si2157_config;
-+
-+	/* Select required USB configuration */
-+	if (usb_set_interface(d->udev, 0, 0) < 0)
-+		err("set interface failed");
-+
-+	/* Unblock all USB pipes */
-+	usb_clear_halt(d->udev,
-+		usb_sndbulkpipe(d->udev, d->props.generic_bulk_ctrl_endpoint));
-+	usb_clear_halt(d->udev,
-+		usb_rcvbulkpipe(d->udev, d->props.generic_bulk_ctrl_endpoint));
-+	usb_clear_halt(d->udev,
-+		usb_rcvbulkpipe(d->udev, d->props.adapter[0].fe[0].stream.endpoint));
-+
-+	/* attach frontend */
-+	memset(&si2168_config, 0, sizeof(si2168_config));
-+	si2168_config.i2c_adapter = &adapter;
-+	si2168_config.fe = &adap->fe_adap[0].fe;
-+	si2168_config.ts_mode = SI2168_TS_PARALLEL;
-+	si2168_config.ts_clock_inv = 1;
-+	memset(&info, 0, sizeof(struct i2c_board_info));
-+	strlcpy(info.type, "si2168", I2C_NAME_SIZE);
-+	info.addr = 0x64;
-+	info.platform_data = &si2168_config;
-+	request_module(info.type);
-+	client_demod = i2c_new_device(&d->i2c_adap, &info);
-+	if (client_demod == NULL || client_demod->dev.driver == NULL)
-+		return -ENODEV;
-+
-+	if (!try_module_get(client_demod->dev.driver->owner)) {
-+		i2c_unregister_device(client_demod);
-+		return -ENODEV;
-+	}
-+
-+	/* attach tuner */
-+	memset(&si2157_config, 0, sizeof(si2157_config));
-+	si2157_config.fe = adap->fe_adap[0].fe;
-+	memset(&info, 0, sizeof(struct i2c_board_info));
-+	strlcpy(info.type, "si2141", I2C_NAME_SIZE);
-+	info.addr = 0x60;
-+	info.platform_data = &si2157_config;
-+	request_module("si2157");
-+	client_tuner = i2c_new_device(adapter, &info);
-+	if (client_tuner == NULL || client_tuner->dev.driver == NULL) {
-+		module_put(client_demod->dev.driver->owner);
-+		i2c_unregister_device(client_demod);
-+		return -ENODEV;
-+	}
-+	if (!try_module_get(client_tuner->dev.driver->owner)) {
-+		i2c_unregister_device(client_tuner);
-+		module_put(client_demod->dev.driver->owner);
-+		i2c_unregister_device(client_demod);
-+		return -ENODEV;
-+	}
-+
-+	st->i2c_client_demod = client_demod;
-+	st->i2c_client_tuner = client_tuner;
-+
-+	/* hook fe: need to resync the slave fifo when signal locks. */
-+	mutex_init(&st->stream_mutex);
-+	st->last_lock = 0;
-+	st->fe_read_status = adap->fe_adap[0].fe->ops.read_status;
-+	adap->fe_adap[0].fe->ops.read_status = cxusb_read_status;
-+
-+	return 0;
-+}
-+
- /*
-  * DViCO has shipped two devices with the same USB ID, but only one of them
-  * needs a firmware download.  Check the device class details to see if they
-@@ -1320,6 +1396,7 @@ static int bluebird_patch_dvico_firmware_download(struct usb_device *udev,
- static struct dvb_usb_device_properties cxusb_d680_dmb_properties;
- static struct dvb_usb_device_properties cxusb_mygica_d689_properties;
- static struct dvb_usb_device_properties cxusb_mygica_t230_properties;
-+static struct dvb_usb_device_properties cxusb_mygica_t230c_properties;
- 
- static int cxusb_probe(struct usb_interface *intf,
- 		       const struct usb_device_id *id)
-@@ -1352,6 +1429,8 @@ static int cxusb_probe(struct usb_interface *intf,
- 				     THIS_MODULE, NULL, adapter_nr) ||
- 	    0 == dvb_usb_device_init(intf, &cxusb_mygica_t230_properties,
- 				     THIS_MODULE, NULL, adapter_nr) ||
-+	    0 == dvb_usb_device_init(intf, &cxusb_mygica_t230c_properties,
-+				     THIS_MODULE, NULL, adapter_nr) ||
- 	    0)
- 		return 0;
- 
-@@ -1403,6 +1482,7 @@ enum cxusb_table_index {
- 	CONEXANT_D680_DMB,
- 	MYGICA_D689,
- 	MYGICA_T230,
-+	MYGICA_T230C,
- 	NR__cxusb_table_index
- };
- 
-@@ -1470,6 +1550,9 @@ enum cxusb_table_index {
- 	[MYGICA_T230] = {
- 		USB_DEVICE(USB_VID_CONEXANT, USB_PID_MYGICA_T230)
- 	},
-+	[MYGICA_T230C] = {
-+		USB_DEVICE(USB_VID_CONEXANT, USB_PID_MYGICA_T230+1)
-+	},
- 	{}		/* Terminating entry */
- };
- MODULE_DEVICE_TABLE (usb, cxusb_table);
-@@ -2164,7 +2247,7 @@ struct dvb_usb_device_properties cxusb_bluebird_dualdig4_rev2_properties = {
- 
- 	.rc.core = {
- 		.rc_interval	= 100,
--		.rc_codes	= RC_MAP_D680_DMB,
-+		.rc_codes	= RC_MAP_TOTAL_MEDIA_IN_HAND_02,
- 		.module_name	= KBUILD_MODNAME,
- 		.rc_query       = cxusb_d680_dmb_rc_query,
- 		.allowed_protos = RC_BIT_UNKNOWN,
-@@ -2180,6 +2263,60 @@ struct dvb_usb_device_properties cxusb_bluebird_dualdig4_rev2_properties = {
- 	}
- };
- 
-+static struct dvb_usb_device_properties cxusb_mygica_t230c_properties = {
-+	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
-+
-+	.usb_ctrl         = CYPRESS_FX2,
-+
-+	.size_of_priv     = sizeof(struct cxusb_state),
-+
-+	.num_adapters = 1,
-+	.adapter = {
-+		{
-+		.num_frontends = 1,
-+		.fe = {{
-+			.streaming_ctrl   = cxusb_streaming_ctrl,
-+			.frontend_attach  = cxusb_mygica_t230c_frontend_attach,
-+
-+			/* parameter for the MPEG2-data transfer */
-+			.stream = {
-+				.type = USB_BULK,
-+				.count = 5,
-+				.endpoint = 0x02,
-+				.u = {
-+					.bulk = {
-+						.buffersize = 8192,
-+					}
-+				}
-+			},
-+		} },
-+		},
-+	},
-+
-+	.power_ctrl       = cxusb_d680_dmb_power_ctrl,
-+
-+	.i2c_algo         = &cxusb_i2c_algo,
-+
-+	.generic_bulk_ctrl_endpoint = 0x01,
-+
-+	.rc.core = {
-+		.rc_interval	= 100,
-+		.rc_codes	= RC_MAP_TOTAL_MEDIA_IN_HAND_02,
-+		.module_name	= KBUILD_MODNAME,
-+		.rc_query       = cxusb_d680_dmb_rc_query,
-+		.allowed_protos = RC_BIT_UNKNOWN,
-+	},
-+
-+	.num_device_descs = 1,
-+	.devices = {
-+		{
-+			"Mygica T230C DVB-T/T2/C",
-+			{ NULL },
-+			{ &cxusb_table[MYGICA_T230C], NULL },
-+		},
-+	}
-+};
-+
- static struct usb_driver cxusb_driver = {
- 	.name		= "dvb_usb_cxusb",
- 	.probe		= cxusb_probe,
+You're not reading back the other registers either, albeit I'd check that
+the I2C accesses actually succeed. Generally the return values are ignored.
+
+> 
+> >> +		dev_err(&client->dev, "Device was in SW standby");
+> >> +		ov5647_write(sd, 0x0100, 0x01);
+> >> +	}
+> >> +
+> >> +	ov5647_write(sd, 0x4800, 0x04);
+> >> +	ov5647_stream_on(sd);
+> >> +
+> >> +	return 0;
+> >> +}
+> >> +
+> >> +/**
+> >> + * @short Control sensor power state
+> >> + * @param[in] sd v4l2 subdev
+> >> + * @param[in] on Sensor power
+> >> + * @return Error code
+> >> + */
+> >> +static int sensor_power(struct v4l2_subdev *sd, int on)
+> >> +{
+> >> +	int ret;
+> >> +	struct ov5647 *ov5647 = to_state(sd);
+> >> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> >> +
+> >> +	ret = 0;
+> >> +	mutex_lock(&ov5647->lock);
+> >> +
+> >> +	if (on && !ov5647->power_count)	{
+> >> +		dev_dbg(&client->dev, "OV5647 power on\n");
+> >> +
+> >> +		clk_set_rate(ov5647->xclk, ov5647->xclk_freq);
+> >> +
+> >> +		ret = clk_prepare_enable(ov5647->xclk);
+> >> +		if (ret < 0) {
+> >> +			dev_err(ov5647->dev, "clk prepare enable failed\n");
+> >> +			goto out;
+> >> +		}
+> >> +
+> >> +		ret = ov5647_write_array(sd, sensor_oe_enable_regs,
+> >> +				ARRAY_SIZE(sensor_oe_enable_regs));
+> >> +		if (ret < 0) {
+> >> +			clk_disable_unprepare(ov5647->xclk);
+> >> +			dev_err(&client->dev,
+> >> +				"write sensor_oe_enable_regs error\n");
+> >> +			goto out;
+> >> +		}
+> >> +
+> >> +		ret = __sensor_init(sd);
+> >> +		if (ret < 0) {
+> >> +			clk_disable_unprepare(ov5647->xclk);
+> >> +			dev_err(&client->dev,
+> >> +				"Camera not available, check Power\n");
+> >> +			goto out;
+> >> +		}
+> >> +	} else if (!on && ov5647->power_count == 1) {
+> >> +		dev_dbg(&client->dev, "OV5647 power off\n");
+> >> +
+> >> +		dev_dbg(&client->dev, "disable oe\n");
+> >> +		ret = ov5647_write_array(sd, sensor_oe_disable_regs,
+> >> +				ARRAY_SIZE(sensor_oe_disable_regs));
+> >> +
+> >> +		if (ret < 0)
+> >> +			dev_dbg(&client->dev, "disable oe failed\n");
+> >> +
+> >> +		ret = set_sw_standby(sd, true);
+> >> +
+> >> +		if (ret < 0)
+> >> +			dev_dbg(&client->dev, "soft stby failed\n");
+> >> +
+> >> +		clk_disable_unprepare(ov5647->xclk);
+> >> +	}
+> >> +
+> >> +	/* Update the power count. */
+> >> +	ov5647->power_count += on ? 1 : -1;
+> >> +	WARN_ON(ov5647->power_count < 0);
+> >> +
+> >> +out:
+> >> +	mutex_unlock(&ov5647->lock);
+> >> +
+> >> +	return ret;
+> >> +}
+> >> +
+> >> +#ifdef CONFIG_VIDEO_ADV_DEBUG
+> >> +/**
+> >> + * @short Get register value
+> >> + * @param[in] sd v4l2 subdev
+> >> + * @param[in] reg register struct
+> >> + * @return Error code
+> >> + */
+> >> +static int sensor_get_register(struct v4l2_subdev *sd,
+> >> +				struct v4l2_dbg_register *reg)
+> >> +{
+> >> +	unsigned char val = 0;
+> >> +	int ret;
+> >> +
+> >> +	ret = ov5647_read(sd, reg->reg & 0xff, &val);
+> >> +	if (ret != 0)
+> >> +		return ret;
+> >> +
+> >> +	reg->val = val;
+> >> +	reg->size = 1;
+> >> +
+> >> +	return ret;
+> >> +}
+> >> +
+> >> +/**
+> >> + * @short Set register value
+> >> + * @param[in] sd v4l2 subdev
+> >> + * @param[in] reg register struct
+> >> + * @return Error code
+> >> + */
+> >> +static int sensor_set_register(struct v4l2_subdev *sd,
+> >> +				const struct v4l2_dbg_register *reg)
+> >> +{
+> >> +	return ov5647_write(sd, reg->reg & 0xff, reg->val & 0xff);
+> >> +}
+> >> +#endif
+> >> +
+> >> +/**
+> >> + * @short Subdev core operations registration
+> >> + */
+> >> +static const struct v4l2_subdev_core_ops sensor_core_ops = {
+> >> +	.s_power		= sensor_power,
+> >> +#ifdef CONFIG_VIDEO_ADV_DEBUG
+> >> +	.g_register		= sensor_get_register,
+> >> +	.s_register		= sensor_set_register,
+> >> +#endif
+> >> +};
+> >> +
+> >> +static int enum_mbus_code(struct v4l2_subdev *sd,
+> >> +				struct v4l2_subdev_pad_config *cfg,
+> >> +				struct v4l2_subdev_mbus_code_enum *code)
+> >> +{
+> >> +	if (code->index > 0)
+> >> +		return -EINVAL;
+> >> +
+> >> +	code->code = MEDIA_BUS_FMT_SBGGR8_1X8;
+> >> +
+> >> +	return 0;
+> >> +}
+> >> +
+> >> +static const struct v4l2_subdev_pad_ops subdev_pad_ops = {
+> >> +	.enum_mbus_code = enum_mbus_code,
+> >> +};
+> >> +
+> >> +
+> >> +/**
+> >> + * @short Subdev operations registration
+> >> + *
+> >> + */
+> >> +static const struct v4l2_subdev_ops subdev_ops = {
+> >> +	.core		= &sensor_core_ops,
+> >> +	.pad		= &subdev_pad_ops,
+> > 
+> > You should implement s_stream() in video ops to control the streaming state.
+> > 
+> > I don't know about this particular sensor, but on SMIA compliant sensors
+> > the SW standby means streaming is disabled. There seem to be additional
+> > registers as well; my educated guess is that writing all those to control
+> > streaming would be the right thing to do.
+> > 
+> > The CSI-2 bus initialisation could fail if you start streaming right away
+> > when the sensor is powered on.
+> > 
+> 
+> I haven't had any error yet, but I'll add set_stream() and start streaming video
+> there, just to be sure.
+
+It depends on the receiver. Some might work whereas some definitely don't.
+
+Please see Documentation/media/kapi/csi2.rst .
+
 -- 
-1.9.1
+Kind regards,
 
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
