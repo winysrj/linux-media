@@ -1,65 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:63779 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751221AbdBZT4l (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 26 Feb 2017 14:56:41 -0500
-Date: Sun, 26 Feb 2017 20:56:22 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-cc: linux-kernel@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/3] [media] soc-camera: ov5642: Add OF device ID table
-In-Reply-To: <20170222161129.28613-1-javier@osg.samsung.com>
-Message-ID: <Pine.LNX.4.64.1702262054130.17018@axis700.grange>
-References: <20170222161129.28613-1-javier@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:58861 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754321AbdBGQI5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 7 Feb 2017 11:08:57 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 2/4] media-ctl: print the configured frame interval
+Date: Tue,  7 Feb 2017 17:08:48 +0100
+Message-Id: <20170207160850.10299-3-p.zabel@pengutronix.de>
+In-Reply-To: <20170207160850.10299-1-p.zabel@pengutronix.de>
+References: <20170207160850.10299-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 22 Feb 2017, Javier Martinez Canillas wrote:
+After the pad format, also print the frame interval, if already configured.
 
-> The driver doesn't have a struct of_device_id table but supported devices
-> are registered via Device Trees. This is working on the assumption that a
-> I2C device registered via OF will always match a legacy I2C device ID and
-> that the MODALIAS reported will always be of the form i2c:<device>.
-> 
-> But this could change in the future so the correct approach is to have an
-> OF device ID table if the devices are registered via OF.
-> 
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ utils/media-ctl/media-ctl.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+diff --git a/utils/media-ctl/media-ctl.c b/utils/media-ctl/media-ctl.c
+index 50adbe91..1be880c6 100644
+--- a/utils/media-ctl/media-ctl.c
++++ b/utils/media-ctl/media-ctl.c
+@@ -79,6 +79,7 @@ static void v4l2_subdev_print_format(struct media_entity *entity,
+ 	unsigned int pad, enum v4l2_subdev_format_whence which)
+ {
+ 	struct v4l2_mbus_framefmt format;
++	struct v4l2_fract interval = { 0, 0 };
+ 	struct v4l2_rect rect;
+ 	int ret;
+ 
+@@ -86,10 +87,17 @@ static void v4l2_subdev_print_format(struct media_entity *entity,
+ 	if (ret != 0)
+ 		return;
+ 
++	ret = v4l2_subdev_get_frame_interval(entity, &interval, pad);
++	if (ret != 0 && ret != -ENOTTY)
++		return;
++
+ 	printf("\t\t[fmt:%s/%ux%u",
+ 	       v4l2_subdev_pixelcode_to_string(format.code),
+ 	       format.width, format.height);
+ 
++	if (interval.numerator || interval.denominator)
++		printf("@%u/%u", interval.numerator, interval.denominator);
++
+ 	if (format.field)
+ 		printf(" field:%s", v4l2_subdev_field_to_string(format.field));
+ 
+-- 
+2.11.0
 
-> ---
-> 
->  drivers/media/i2c/soc_camera/ov5642.c | 9 +++++++++
->  1 file changed, 9 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/soc_camera/ov5642.c b/drivers/media/i2c/soc_camera/ov5642.c
-> index 3d185bd622a3..1926f382dfce 100644
-> --- a/drivers/media/i2c/soc_camera/ov5642.c
-> +++ b/drivers/media/i2c/soc_camera/ov5642.c
-> @@ -1063,9 +1063,18 @@ static const struct i2c_device_id ov5642_id[] = {
->  };
->  MODULE_DEVICE_TABLE(i2c, ov5642_id);
->  
-> +#if IS_ENABLED(CONFIG_OF)
-> +static const struct of_device_id ov5642_of_match[] = {
-> +	{ .compatible = "ovti,ov5642" },
-> +	{ },
-> +};
-> +MODULE_DEVICE_TABLE(of, ov5642_of_match);
-> +#endif
-> +
->  static struct i2c_driver ov5642_i2c_driver = {
->  	.driver = {
->  		.name = "ov5642",
-> +		.of_match_table = of_match_ptr(ov5642_of_match),
->  	},
->  	.probe		= ov5642_probe,
->  	.remove		= ov5642_remove,
-> -- 
-> 2.9.3
-> 
