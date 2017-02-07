@@ -1,237 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41530 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754541AbdBGRbZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Feb 2017 12:31:25 -0500
-Date: Tue, 7 Feb 2017 19:31:16 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        devicetree@vger.kernel.org, CARLOS.PALMINHA@synopsys.com,
-        "David S. Miller" <davem@davemloft.net>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pavel Machek <pavel@ucw.cz>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Rob Herring <robh+dt@kernel.org>,
-        Steve Longerbeam <slongerbeam@gmail.com>
-Subject: Re: [PATCH RESEND v7 2/2] Add support for OV5647 sensor.
-Message-ID: <20170207173116.GC13854@valkosipuli.retiisi.org.uk>
-References: <cover.1486136893.git.roliveir@synopsys.com>
- <26e5a587f1ba9e2fbbc04284408305bc8cf8c5c0.1486136893.git.roliveir@synopsys.com>
- <20170203201729.GA18086@kekkonen.localdomain>
- <f23e76ff-326a-c4df-601d-6b12b644bff7@synopsys.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:33482 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752578AbdBGK0N (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2017 05:26:13 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Philipp Zabel <p.zabel@pengutronix.de>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        nick@shmanahar.org, markus.heiser@darmarit.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        sakari.ailus@linux.intel.com
+Subject: Re: [PATCH v3 13/24] platform: add video-multiplexer subdevice driver
+Date: Tue, 07 Feb 2017 12:26:32 +0200
+Message-ID: <3823958.XNLmIv7GEv@avalon>
+In-Reply-To: <bd64a86e-d90c-f4aa-6f22-1c832e0b563f@gmail.com>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com> <2038922.a1tReKKdaL@avalon> <bd64a86e-d90c-f4aa-6f22-1c832e0b563f@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <f23e76ff-326a-c4df-601d-6b12b644bff7@synopsys.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ramiro,
+Hi Steve,
 
-On Mon, Feb 06, 2017 at 11:38:28AM +0000, Ramiro Oliveira wrote:
-...
-> >> +	ret = ov5647_write_array(sd, ov5647_640x480,
-> >> +					ARRAY_SIZE(ov5647_640x480));
-> >> +	if (ret < 0) {
-> >> +		dev_err(&client->dev, "write sensor_default_regs error\n");
-> >> +		return ret;
-> >> +	}
-> >> +
-> >> +	ov5647_set_virtual_channel(sd, 0);
-> >> +
-> >> +	ov5647_read(sd, 0x0100, &resetval);
-> >> +	if (!(resetval & 0x01)) {
+On Monday 06 Feb 2017 15:10:46 Steve Longerbeam wrote:
+> On 02/06/2017 02:33 PM, Laurent Pinchart wrote:
+> > On Monday 06 Feb 2017 10:50:22 Hans Verkuil wrote:
+> >> On 02/05/2017 04:48 PM, Laurent Pinchart wrote:
+> >>> On Tuesday 24 Jan 2017 18:07:55 Steve Longerbeam wrote:
+> >>>> On 01/24/2017 04:02 AM, Philipp Zabel wrote:
+> >>>>> On Fri, 2017-01-20 at 15:03 +0100, Hans Verkuil wrote:
+> >>>>>>> +
+> >>>>>>> +int vidsw_g_mbus_config(struct v4l2_subdev *sd, struct
+> >>>>>>> v4l2_mbus_config *cfg)
+
+[snip]
+
+> >>>>>> I am not certain this op is needed at all. In the current kernel this
+> >>>>>> op is only used by soc_camera, pxa_camera and omap3isp (somewhat
+> >>>>>> dubious). Normally this information should come from the device tree
+> >>>>>> and there should be no need for this op.
+> >>>>>> 
+> >>>>>> My (tentative) long-term plan was to get rid of this op.
+> >>>>>> 
+> >>>>>> If you don't need it, then I recommend it is removed.
+> >>>> 
+> >>>> Hi Hans, the imx-media driver was only calling g_mbus_config to the
+> >>>> camera sensor, and it was doing that to determine the sensor's bus
+> >>>> type. This info was already available from parsing a v4l2_of_endpoint
+> >>>> from the sensor node. So it was simple to remove the g_mbus_config
+> >>>> calls, and instead rely on the parsed sensor v4l2_of_endpoint.
+> >>> 
+> >>> That's not a good point.
 > > 
-> > Can this ever happen? Streaming start is at the end of the register list.
+> > (mea culpa, s/point/idea/)
 > > 
+> >>> The imx-media driver must not parse the sensor DT node as it is not
+> >>> aware of what bindings the sensor is compatible with.
 > 
-> I'm not sure it can happen. It was just a safeguard, but I can remove it if you
-> think it's not necessary
-
-You're not reading back the other registers either, albeit I'd check that
-the I2C accesses actually succeed. Generally the return values are ignored.
-
+> Hi Laurent,
 > 
-> >> +		dev_err(&client->dev, "Device was in SW standby");
-> >> +		ov5647_write(sd, 0x0100, 0x01);
-> >> +	}
-> >> +
-> >> +	ov5647_write(sd, 0x4800, 0x04);
-> >> +	ov5647_stream_on(sd);
-> >> +
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +/**
-> >> + * @short Control sensor power state
-> >> + * @param[in] sd v4l2 subdev
-> >> + * @param[in] on Sensor power
-> >> + * @return Error code
-> >> + */
-> >> +static int sensor_power(struct v4l2_subdev *sd, int on)
-> >> +{
-> >> +	int ret;
-> >> +	struct ov5647 *ov5647 = to_state(sd);
-> >> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> >> +
-> >> +	ret = 0;
-> >> +	mutex_lock(&ov5647->lock);
-> >> +
-> >> +	if (on && !ov5647->power_count)	{
-> >> +		dev_dbg(&client->dev, "OV5647 power on\n");
-> >> +
-> >> +		clk_set_rate(ov5647->xclk, ov5647->xclk_freq);
-> >> +
-> >> +		ret = clk_prepare_enable(ov5647->xclk);
-> >> +		if (ret < 0) {
-> >> +			dev_err(ov5647->dev, "clk prepare enable failed\n");
-> >> +			goto out;
-> >> +		}
-> >> +
-> >> +		ret = ov5647_write_array(sd, sensor_oe_enable_regs,
-> >> +				ARRAY_SIZE(sensor_oe_enable_regs));
-> >> +		if (ret < 0) {
-> >> +			clk_disable_unprepare(ov5647->xclk);
-> >> +			dev_err(&client->dev,
-> >> +				"write sensor_oe_enable_regs error\n");
-> >> +			goto out;
-> >> +		}
-> >> +
-> >> +		ret = __sensor_init(sd);
-> >> +		if (ret < 0) {
-> >> +			clk_disable_unprepare(ov5647->xclk);
-> >> +			dev_err(&client->dev,
-> >> +				"Camera not available, check Power\n");
-> >> +			goto out;
-> >> +		}
-> >> +	} else if (!on && ov5647->power_count == 1) {
-> >> +		dev_dbg(&client->dev, "OV5647 power off\n");
-> >> +
-> >> +		dev_dbg(&client->dev, "disable oe\n");
-> >> +		ret = ov5647_write_array(sd, sensor_oe_disable_regs,
-> >> +				ARRAY_SIZE(sensor_oe_disable_regs));
-> >> +
-> >> +		if (ret < 0)
-> >> +			dev_dbg(&client->dev, "disable oe failed\n");
-> >> +
-> >> +		ret = set_sw_standby(sd, true);
-> >> +
-> >> +		if (ret < 0)
-> >> +			dev_dbg(&client->dev, "soft stby failed\n");
-> >> +
-> >> +		clk_disable_unprepare(ov5647->xclk);
-> >> +	}
-> >> +
-> >> +	/* Update the power count. */
-> >> +	ov5647->power_count += on ? 1 : -1;
-> >> +	WARN_ON(ov5647->power_count < 0);
-> >> +
-> >> +out:
-> >> +	mutex_unlock(&ov5647->lock);
-> >> +
-> >> +	return ret;
-> >> +}
-> >> +
-> >> +#ifdef CONFIG_VIDEO_ADV_DEBUG
-> >> +/**
-> >> + * @short Get register value
-> >> + * @param[in] sd v4l2 subdev
-> >> + * @param[in] reg register struct
-> >> + * @return Error code
-> >> + */
-> >> +static int sensor_get_register(struct v4l2_subdev *sd,
-> >> +				struct v4l2_dbg_register *reg)
-> >> +{
-> >> +	unsigned char val = 0;
-> >> +	int ret;
-> >> +
-> >> +	ret = ov5647_read(sd, reg->reg & 0xff, &val);
-> >> +	if (ret != 0)
-> >> +		return ret;
-> >> +
-> >> +	reg->val = val;
-> >> +	reg->size = 1;
-> >> +
-> >> +	return ret;
-> >> +}
-> >> +
-> >> +/**
-> >> + * @short Set register value
-> >> + * @param[in] sd v4l2 subdev
-> >> + * @param[in] reg register struct
-> >> + * @return Error code
-> >> + */
-> >> +static int sensor_set_register(struct v4l2_subdev *sd,
-> >> +				const struct v4l2_dbg_register *reg)
-> >> +{
-> >> +	return ov5647_write(sd, reg->reg & 0xff, reg->val & 0xff);
-> >> +}
-> >> +#endif
-> >> +
-> >> +/**
-> >> + * @short Subdev core operations registration
-> >> + */
-> >> +static const struct v4l2_subdev_core_ops sensor_core_ops = {
-> >> +	.s_power		= sensor_power,
-> >> +#ifdef CONFIG_VIDEO_ADV_DEBUG
-> >> +	.g_register		= sensor_get_register,
-> >> +	.s_register		= sensor_set_register,
-> >> +#endif
-> >> +};
-> >> +
-> >> +static int enum_mbus_code(struct v4l2_subdev *sd,
-> >> +				struct v4l2_subdev_pad_config *cfg,
-> >> +				struct v4l2_subdev_mbus_code_enum *code)
-> >> +{
-> >> +	if (code->index > 0)
-> >> +		return -EINVAL;
-> >> +
-> >> +	code->code = MEDIA_BUS_FMT_SBGGR8_1X8;
-> >> +
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static const struct v4l2_subdev_pad_ops subdev_pad_ops = {
-> >> +	.enum_mbus_code = enum_mbus_code,
-> >> +};
-> >> +
-> >> +
-> >> +/**
-> >> + * @short Subdev operations registration
-> >> + *
-> >> + */
-> >> +static const struct v4l2_subdev_ops subdev_ops = {
-> >> +	.core		= &sensor_core_ops,
-> >> +	.pad		= &subdev_pad_ops,
+> I don't really understand this argument. The sensor node has been found
+> by parsing the OF graph, so it is known to be a camera sensor node at
+> that point.
+
+All you know in the i.MX6 driver is that the remote node is a video source. 
+You can rely on the fact that it implements the OF graph bindings to locate 
+other ports in that DT node, but that's more or less it.
+
+DT properties are defined by DT bindings and thus qualified by a compatible 
+string. Unless you match on sensor compat strings in the i.MX6 driver (which 
+you shouldn't do, to keep the driver generic) you can't know for certain how 
+to parse the sensor node DT properties. For all you know, the video source 
+could be a bridge such as an HDMI to CSI-2 converter for instance, so you 
+can't even rely on the fact that it's a sensor.
+
+> >>> Information must instead be queried from the sensor subdev at runtime,
+> >>> through the g_mbus_config() operation.
+> >>> 
+> >>> Of course, if you can get the information from the imx-media DT node,
+> >>> that's certainly an option. It's only information provided by the sensor
+> >>> driver that you have no choice but query using a subdev operation.
+> >> 
+> >> Shouldn't this come from the imx-media DT node? BTW, why is omap3isp
+> >> using this?
 > > 
-> > You should implement s_stream() in video ops to control the streaming state.
+> > It all depends on what type of information needs to be retrieved, and
+> > whether it can change at runtime or is fixed. Adding properties to the
+> > imx-media DT node is certainly fine as long as those properties describe
+> > the i.MX side.
+>
+> In this case the info needed is the media bus type. That info is most easily
+> available by calling v4l2_of_parse_endpoint() on the sensor's endpoint
+> node.
+
+I haven't had time to check the code in details yet, so I can't really comment 
+on what you need and how it should be implemented exactly.
+
+> The media bus type is not something that can be added to the
+> imx-media node since it contains no endpoint nodes.
+
+Agreed. You have endpoints in the CSI nodes though.
+
+> > In the omap3isp case, we use the operation to query whether parallel data
+> > contains embedded sync (BT.656) or uses separate h/v sync signals.
 > > 
-> > I don't know about this particular sensor, but on SMIA compliant sensors
-> > the SW standby means streaming is disabled. There seem to be additional
-> > registers as well; my educated guess is that writing all those to control
-> > streaming would be the right thing to do.
+> >> The reason I am suspicious about this op is that it came from soc-camera
+> >> and predates the DT. The contents of v4l2_mbus_config seems very much
+> >> like a HW description to me, i.e. something that belongs in the DT.
 > > 
-> > The CSI-2 bus initialisation could fail if you start streaming right away
-> > when the sensor is powered on.
-> > 
+> > Part of it is possibly outdated, but for buses that support multiple modes
+> > of operation (such as the parallel bus case described above) we need to
+> > make that information discoverable at runtime. Maybe this should be
+> > considered as related to Sakari's efforts to support VC/DT for CSI-2, and
+> > supported through the API he is working on.
 > 
-> I haven't had any error yet, but I'll add set_stream() and start streaming video
-> there, just to be sure.
+> That sounds interesting, can you point me to some info on this effort?
 
-It depends on the receiver. Some might work whereas some definitely don't.
+Sure.
 
-Please see Documentation/media/kapi/csi2.rst .
+http://git.retiisi.org.uk/?p=~sailus/linux.git;a=shortlog;h=refs/heads/vc
+
+> I've been thinking the DT should contain virtual channel info for CSI-2
+> buses.
+
+I don't think it should. CSI-2 virtual channels and data types should be 
+handled as a software concept, and thus supported through driver code without 
+involving DT.
 
 -- 
-Kind regards,
+Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Laurent Pinchart
+
