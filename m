@@ -1,74 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51994 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751563AbdBULUu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Feb 2017 06:20:50 -0500
-Date: Tue, 21 Feb 2017 13:20:16 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH] omap3isp: avoid uninitialized memory
-Message-ID: <20170221112015.GE16975@valkosipuli.retiisi.org.uk>
-References: <20161228183036.GA13139@amd>
- <10545906.Gxg3yScdu4@avalon>
- <20170215094228.GA8586@amd>
- <2414221.XNA4JCFMRx@avalon>
- <20170220120647.GA19951@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170220120647.GA19951@amd>
+Received: from mail-wr0-f170.google.com ([209.85.128.170]:32924 "EHLO
+        mail-wr0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755242AbdBGQlr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2017 11:41:47 -0500
+Received: by mail-wr0-f170.google.com with SMTP id i10so41936785wrb.0
+        for <linux-media@vger.kernel.org>; Tue, 07 Feb 2017 08:41:47 -0800 (PST)
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+To: Kevin Hilman <khilman@kernel.org>, Sekhar Nori <nsekhar@ti.com>,
+        Patrick Titiano <ptitiano@baylibre.com>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Lad Prabhakar <prabhakar.csengg@gmail.com>
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Subject: [PATCH 01/10] media: dt-bindings: vpif: fix whitespace errors
+Date: Tue,  7 Feb 2017 17:41:14 +0100
+Message-Id: <1486485683-11427-2-git-send-email-bgolaszewski@baylibre.com>
+In-Reply-To: <1486485683-11427-1-git-send-email-bgolaszewski@baylibre.com>
+References: <1486485683-11427-1-git-send-email-bgolaszewski@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+---
+ Documentation/devicetree/bindings/media/ti,da850-vpif.txt | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-On Mon, Feb 20, 2017 at 01:06:47PM +0100, Pavel Machek wrote:
-> 
-> Code in ispcsiphy is quite confusing, and does not initialize phy1 in
-> case of isp rev. 2. Set it to zero, to prevent confusion.
-> 
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> 
-> index 8f73f6d..a2474b6 100644
-> --- a/drivers/media/platform/omap3isp/ispcsiphy.c
-> +++ b/drivers/media/platform/omap3isp/ispcsiphy.c
-> @@ -362,14 +374,16 @@ int omap3isp_csiphy_init(struct isp_device *isp)
->  	phy2->phy_regs = OMAP3_ISP_IOMEM_CSIPHY2;
->  	mutex_init(&phy2->mutex);
->  
-> -	if (isp->revision == ISP_REVISION_15_0) {
-> -		phy1->isp = isp;
-> -		phy1->csi2 = &isp->isp_csi2c;
-> -		phy1->num_data_lanes = ISP_CSIPHY1_NUM_DATA_LANES;
-> -		phy1->cfg_regs = OMAP3_ISP_IOMEM_CSI2C_REGS1;
-> -		phy1->phy_regs = OMAP3_ISP_IOMEM_CSIPHY1;
-> -		mutex_init(&phy1->mutex);
-> +	if (isp->revision != ISP_REVISION_15_0) {
-> +		memset(phy1, sizeof(*phy1), 0);
-> +		return 0;
-
-Isn't the memory allocated using kzalloc(), meaning it's already zero?
-
->  	}
->  
-> +	phy1->isp = isp;
-> +	phy1->csi2 = &isp->isp_csi2c;
-> +	phy1->num_data_lanes = ISP_CSIPHY1_NUM_DATA_LANES;
-> +	phy1->cfg_regs = OMAP3_ISP_IOMEM_CSI2C_REGS1;
-> +	phy1->phy_regs = OMAP3_ISP_IOMEM_CSIPHY1;
-> +	mutex_init(&phy1->mutex);
->  	return 0;
->  }
-> 
-> 
-
+diff --git a/Documentation/devicetree/bindings/media/ti,da850-vpif.txt b/Documentation/devicetree/bindings/media/ti,da850-vpif.txt
+index 6d25d7f..9c7510b 100644
+--- a/Documentation/devicetree/bindings/media/ti,da850-vpif.txt
++++ b/Documentation/devicetree/bindings/media/ti,da850-vpif.txt
+@@ -30,15 +30,15 @@ I2C-connected TVP5147 decoder:
+ 
+ 		port {
+ 			vpif_ch0: endpoint@0 {
+-				  reg = <0>;
+-				  bus-width = <8>;
+-				  remote-endpoint = <&composite>;
++				reg = <0>;
++				bus-width = <8>;
++				remote-endpoint = <&composite>;
+ 			};
+ 
+ 			vpif_ch1: endpoint@1 {
+-				  reg = <1>;
+-				  bus-width = <8>;
+-				  data-shift = <8>;
++				reg = <1>;
++				bus-width = <8>;
++				data-shift = <8>;
+ 			};
+ 		};
+ 	};
 -- 
-Kind regards,
+2.9.3
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
