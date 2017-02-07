@@ -1,73 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:32973
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751657AbdB0KUF (ORCPT
+Received: from mail.helmutauer.de ([185.170.112.187]:48236 "EHLO
+        v2201612530341454.powersrv.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753407AbdBGImf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Feb 2017 05:20:05 -0500
-Date: Mon, 27 Feb 2017 07:11:22 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: bill murphy <gc2majortom@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Kaffeine commit b510bff2 won't compile
-Message-ID: <20170227071122.3a319481@vento.lan>
-In-Reply-To: <bafdb165-261c-0129-e0dc-29819a55ca43@gmail.com>
-References: <bafdb165-261c-0129-e0dc-29819a55ca43@gmail.com>
+        Tue, 7 Feb 2017 03:42:35 -0500
+Message-ID: <cfb14339f809faa9b5e40d2fa53f330b.squirrel@helmutauer.de>
+In-Reply-To: <33044ec5031546f79ae9d37565240ed3.squirrel@helmutauer.de>
+References: <20170127080622.GA4153@mwanda>
+    <ae72e45aeea9d3cbead7c50e1cbe4c5b.squirrel@helmutauer.de>
+    <33044ec5031546f79ae9d37565240ed3.squirrel@helmutauer.de>
+Date: Tue, 7 Feb 2017 09:42:47 +0100
+Subject: [PATCH] [MEDIA] add device ID to ati remote
+From: vdr@helmutauer.de
+To: "Mauro Carvalho Chehab" <mchehab@kernel.org>
+Cc: "Linux Media Mailing List" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 26 Feb 2017 20:57:20 -0500
-bill murphy <gc2majortom@gmail.com> escreveu:
 
-> Hi,
-> Can someone double check me on this?
-> 
-> It seems there might be a missing header,
-> in the src directory, preventing the last commit from
-> compiling. The commit prior compiles fine. So not that big a deal, just 
-> letting folks know what I ran in to.
-> 
-> I don't see this file, 'log.h', anywhere in the src directory. Guessing 
-> it wasn't 'added' for tracking?
-> 
-> git://anongit.kde.org/kaffeine
-> 
-> diff between master and previous commit...just a snippet, as other files 
-> are including the same missing header.
-> 
-> diff --git a/src/dvb/dvbcam_linux.cpp b/src/dvb/dvbcam_linux.cpp
-> index ceb9dbd..5c9c575 100644
-> --- a/src/dvb/dvbcam_linux.cpp
-> +++ b/src/dvb/dvbcam_linux.cpp
-> @@ -18,11 +18,7 @@
->    * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
->    */
-> 
-> -#include <KLocalizedString>
-> -#include <QDebug>
-> -#if QT_VERSION < 0x050500
-> -# define qInfo qDebug
-> -#endif
-> +#include "../log.h"
-> 
->   #include <errno.h>
->   #include <fcntl.h>
-> 
-> where compile complains of that missing header...
-> 
-> Scanning dependencies of target kaffeine
-> [ 20%] Building CXX object 
-> src/CMakeFiles/kaffeine.dir/dvb/dvbcam_linux.cpp.o
-> /home/user/src2/kaffeine/src/dvb/dvbcam_linux.cpp:21:20: fatal error: 
-> ../log.h: No such file or directory
-> compilation terminated.
+Author: Helmut Auer <vdr@xxx.de>
+Date:   Fri Jan 27 19:09:35 2017 +0100
 
-Thanks for complaining about it! I forgot to add src/log.h on the
-commit.
+    Adding 1 device ID to ati_remote driver.
 
-You should be able to compile it now.
+    Signed-off-by: Helmut Auer <vdr@xxx.de>
 
-Thanks,
-Mauro
+diff --git a/drivers/media/rc/ati_remote.c b/drivers/media/rc/ati_remote.c
+index 0884b7d..83022b1 100644
+--- a/drivers/media/rc/ati_remote.c
++++ b/drivers/media/rc/ati_remote.c
+@@ -108,6 +108,7 @@
+ #define NVIDIA_REMOTE_PRODUCT_ID       0x0005
+ #define MEDION_REMOTE_PRODUCT_ID       0x0006
+ #define FIREFLY_REMOTE_PRODUCT_ID      0x0008
++#define REYCOM_REMOTE_PRODUCT_ID       0x000c
+
+ #define DRIVER_VERSION         "2.2.1"
+ #define DRIVER_AUTHOR           "Torrey Hoffman <thoffman@arnor.net>"
+@@ -227,6 +228,10 @@ static struct usb_device_id ati_remote_table[] = {
+                USB_DEVICE(ATI_REMOTE_VENDOR_ID, FIREFLY_REMOTE_PRODUCT_ID),
+                .driver_info = (unsigned long)&type_firefly
+        },
++       {
++               USB_DEVICE(ATI_REMOTE_VENDOR_ID, REYCOM_REMOTE_PRODUCT_ID),
++               .driver_info = (unsigned long)&type_firefly
++       },
+        {}      /* Terminating entry */
+ };
+
+
