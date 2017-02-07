@@ -1,198 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.220.in.ua ([89.184.67.205]:33874 "EHLO smtp.220.in.ua"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754532AbdBGTfU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Feb 2017 14:35:20 -0500
-From: Oleh Kravchenko <oleg@kaa.org.ua>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Steven Toth <stoth@kernellabs.com>,
-        Jacob Johan Verkuil <hverkuil@xs4all.nl>,
-        Antti Palosaari <crope@iki.fi>
-Cc: Oleh Kravchenko <oleg@kaa.org.ua>
-Subject: [PATCH 1/2] [media] cx231xx: Initial support Evromedia USB Full Hybrid Full HD
-Date: Tue,  7 Feb 2017 21:35:13 +0200
-Message-Id: <20170207193514.14929-1-oleg@kaa.org.ua>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:56220 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751606AbdBGFJA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 7 Feb 2017 00:09:00 -0500
+Message-ID: <925654ca8e5bc4874b86f05d2891fe19@smtp-cloud3.xs4all.net>
+Date: Tue, 07 Feb 2017 06:08:57 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch provide only digital support.
-The device is based on Si2168 30-demodulator,
-Si2158-20 tuner and CX23102-11Z chipset;
-USB id: 1b80:d3b2.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Status:
-- DVB-T2 works fine;
-- Composite and SVideo works fine;
-- Analog not implemented.
+Results of the daily build of media_tree:
 
-Signed-off-by: Oleh Kravchenko <oleg@kaa.org.ua>
-Tested-by: Oleh Kravchenko <oleg@kaa.org.ua>
----
- drivers/media/usb/cx231xx/Kconfig         |  1 +
- drivers/media/usb/cx231xx/cx231xx-cards.c | 29 +++++++++++++
- drivers/media/usb/cx231xx/cx231xx-dvb.c   | 70 +++++++++++++++++++++++++++++++
- drivers/media/usb/cx231xx/cx231xx.h       |  1 +
- 4 files changed, 101 insertions(+)
+date:			Tue Feb  7 05:00:21 CET 2017
+media-tree git hash:	47b037a0512d9f8675ec2693bed46c8ea6a884ab
+media_build git hash:	785cdf7f0798964681b33aad44fc2ff4d734733d
+v4l-utils git hash:	99306f20cc7e76cf2161e3059de4da245aed2130
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
-diff --git a/drivers/media/usb/cx231xx/Kconfig b/drivers/media/usb/cx231xx/Kconfig
-index 0cced3e..58de80b 100644
---- a/drivers/media/usb/cx231xx/Kconfig
-+++ b/drivers/media/usb/cx231xx/Kconfig
-@@ -50,6 +50,7 @@ config VIDEO_CX231XX_DVB
- 	select DVB_LGDT3306A if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_TDA18271C2DD if MEDIA_SUBDRV_AUTOSELECT
- 	select DVB_SI2165 if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
- 
- 	---help---
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index 36bc254..f730fdb 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -841,6 +841,33 @@ struct cx231xx_board cx231xx_boards[] = {
- 			.gpio = NULL,
- 		} },
- 	},
-+	[CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD] = {
-+		.name = "Evromedia USB Full Hybrid Full HD",
-+		.tuner_type = TUNER_ABSENT,
-+		.demod_addr = 0x64, /* 0xc8 >> 1 */
-+		.demod_i2c_master = I2C_1_MUX_3,
-+		.has_dvb = 1,
-+		.ir_i2c_master = I2C_0,
-+		.norm = V4L2_STD_PAL,
-+		.output_mode = OUT_MODE_VIP11,
-+		.tuner_addr = 0x60, /* 0xc0 >> 1 */
-+		.tuner_i2c_master = I2C_2,
-+		.input = {{
-+			.type = CX231XX_VMUX_TELEVISION,
-+			.vmux = 0,
-+			.amux = CX231XX_AMUX_VIDEO,
-+		}, {
-+			.type = CX231XX_VMUX_COMPOSITE1,
-+			.vmux = CX231XX_VIN_2_1,
-+			.amux = CX231XX_AMUX_LINE_IN,
-+		}, {
-+			.type = CX231XX_VMUX_SVIDEO,
-+			.vmux = CX231XX_VIN_1_1 |
-+				(CX231XX_VIN_1_2 << 8) |
-+				CX25840_SVIDEO_ON,
-+			.amux = CX231XX_AMUX_LINE_IN,
-+		} },
-+	},
- };
- const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
- 
-@@ -908,6 +935,8 @@ struct usb_device_id cx231xx_id_table[] = {
- 	 .driver_info = CX231XX_BOARD_OTG102},
- 	{USB_DEVICE(USB_VID_TERRATEC, 0x00a6),
- 	 .driver_info = CX231XX_BOARD_TERRATEC_GRABBY},
-+	{USB_DEVICE(0x1b80, 0xd3b2),
-+	.driver_info = CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD},
- 	{},
- };
- 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-index 2868546..46427fd 100644
---- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-@@ -33,6 +33,7 @@
- #include "s5h1411.h"
- #include "lgdt3305.h"
- #include "si2165.h"
-+#include "si2168.h"
- #include "mb86a20s.h"
- #include "si2157.h"
- #include "lgdt3306a.h"
-@@ -949,6 +950,75 @@ static int dvb_init(struct cx231xx *dev)
- 			   &pv_tda18271_config);
- 		break;
- 
-+	case CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD:
-+	{
-+		struct si2157_config si2157_config = {};
-+		struct si2168_config si2168_config = {};
-+		struct i2c_board_info info = {};
-+		struct i2c_client *client;
-+		struct i2c_adapter *adapter;
-+
-+		/* attach demodulator chip */
-+		si2168_config.ts_mode = SI2168_TS_SERIAL; /* from *.inf file */
-+		si2168_config.fe = &dev->dvb->frontend;
-+		si2168_config.i2c_adapter = &adapter;
-+		si2168_config.ts_clock_inv = true;
-+
-+		strlcpy(info.type, "si2168", sizeof(info.type));
-+		info.addr = dev->board.demod_addr;
-+		info.platform_data = &si2168_config;
-+
-+		request_module(info.type);
-+		client = i2c_new_device(demod_i2c, &info);
-+
-+		if (client == NULL || client->dev.driver == NULL) {
-+			result = -ENODEV;
-+			goto out_free;
-+		}
-+
-+		if (!try_module_get(client->dev.driver->owner)) {
-+			i2c_unregister_device(client);
-+			result = -ENODEV;
-+			goto out_free;
-+		}
-+
-+		dvb->i2c_client_demod = client;
-+
-+		/* attach tuner chip */
-+		si2157_config.fe = dev->dvb->frontend;
-+#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-+		si2157_config.mdev = dev->media_dev;
-+#endif
-+		si2157_config.if_port = 1;
-+		si2157_config.inversion = false;
-+
-+		memset(&info, 0, sizeof(info));
-+		strlcpy(info.type, "si2157", sizeof(info.type));
-+		info.addr = dev->board.tuner_addr;
-+		info.platform_data = &si2157_config;
-+
-+		request_module(info.type);
-+		client = i2c_new_device(tuner_i2c, &info);
-+
-+		if (client == NULL || client->dev.driver == NULL) {
-+			module_put(dvb->i2c_client_demod->dev.driver->owner);
-+			i2c_unregister_device(dvb->i2c_client_demod);
-+			result = -ENODEV;
-+			goto out_free;
-+		}
-+
-+		if (!try_module_get(client->dev.driver->owner)) {
-+			i2c_unregister_device(client);
-+			module_put(dvb->i2c_client_demod->dev.driver->owner);
-+			i2c_unregister_device(dvb->i2c_client_demod);
-+			result = -ENODEV;
-+			goto out_free;
-+		}
-+
-+		dev->cx231xx_reset_analog_tuner = NULL;
-+		dev->dvb->i2c_client_tuner = client;
-+		break;
-+	}
- 	default:
- 		dev_err(dev->dev,
- 			"%s/2: The frontend of your DVB/ATSC card isn't supported yet\n",
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index 90c8676..d9792ea 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -78,6 +78,7 @@
- #define CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx 20
- #define CX231XX_BOARD_HAUPPAUGE_955Q 21
- #define CX231XX_BOARD_TERRATEC_GRABBY 22
-+#define CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD 23
- 
- /* Limits minimum and default number of buffers */
- #define CX231XX_MIN_BUF                 4
--- 
-2.10.2
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-4.10-rc3-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+linux-4.9-x86_64: OK
+linux-4.10-rc3-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
