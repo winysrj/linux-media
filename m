@@ -1,259 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:38451 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751410AbdBYLwv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Feb 2017 06:52:51 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v3 15/19] [media] rc: use the correct carrier for scancode transmit
-Date: Sat, 25 Feb 2017 11:51:30 +0000
-Message-Id: <d316936de7b9b57fb31343e3215302c17adec70c.1488023302.git.sean@mess.org>
-In-Reply-To: <cover.1488023302.git.sean@mess.org>
-References: <cover.1488023302.git.sean@mess.org>
-In-Reply-To: <cover.1488023302.git.sean@mess.org>
-References: <cover.1488023302.git.sean@mess.org>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:32885 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753840AbdBGPmT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2017 10:42:19 -0500
+From: Avraham Shukron <avraham.shukron@gmail.com>
+To: laurent.pinchart@ideasonboard.com, mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v3 1/2] staging: omap4iss: fix multiline comment style
+Date: Tue,  7 Feb 2017 17:40:57 +0200
+Message-Id: <1e46dc3f0630eae3b531ae3a03bc65bebf5bbfc0.1486413695.git.avraham.shukron@gmail.com>
+In-Reply-To: <20170207081258.GB18271@kroah.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the lirc device supports it, set the carrier for the protocol.
-
-Signed-off-by: Sean Young <sean@mess.org>
+Signed-off-by: Avraham Shukron <avraham.shukron@gmail.com>
 ---
- drivers/media/rc/ir-jvc-decoder.c     |  1 +
- drivers/media/rc/ir-lirc-codec.c      | 28 ++++++++++++++++------------
- drivers/media/rc/ir-mce_kbd-decoder.c |  1 +
- drivers/media/rc/ir-nec-decoder.c     |  1 +
- drivers/media/rc/ir-rc5-decoder.c     |  1 +
- drivers/media/rc/ir-rc6-decoder.c     |  1 +
- drivers/media/rc/ir-sanyo-decoder.c   |  1 +
- drivers/media/rc/ir-sharp-decoder.c   |  1 +
- drivers/media/rc/ir-sony-decoder.c    |  1 +
- drivers/media/rc/rc-core-priv.h       |  1 +
- drivers/media/rc/rc-ir-raw.c          | 30 ++++++++++++++++++++++++++++++
- include/media/rc-core.h               |  1 +
- 12 files changed, 56 insertions(+), 12 deletions(-)
+ drivers/staging/media/omap4iss/iss_video.c | 38 ++++++++++++++++++++----------
+ 1 file changed, 25 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/rc/ir-jvc-decoder.c b/drivers/media/rc/ir-jvc-decoder.c
-index 674bf15..f3a1f6e 100644
---- a/drivers/media/rc/ir-jvc-decoder.c
-+++ b/drivers/media/rc/ir-jvc-decoder.c
-@@ -212,6 +212,7 @@ static struct ir_raw_handler jvc_handler = {
- 	.protocols	= RC_BIT_JVC,
- 	.decode		= ir_jvc_decode,
- 	.encode		= ir_jvc_encode,
-+	.carrier	= 38000,
- };
+diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+index bb0e3b4..e21811a 100644
+--- a/drivers/staging/media/omap4iss/iss_video.c
++++ b/drivers/staging/media/omap4iss/iss_video.c
+@@ -128,7 +128,8 @@ static unsigned int iss_video_mbus_to_pix(const struct iss_video *video,
+ 	pix->width = mbus->width;
+ 	pix->height = mbus->height;
  
- static int __init ir_jvc_decode_init(void)
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index 85f333d..c57ab6c 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -90,7 +90,7 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- {
- 	struct lirc_node *lirc;
- 	struct rc_dev *dev;
--	unsigned int *txbuf; /* buffer with values to transmit */
-+	unsigned int *txbuf = NULL; /* buffer with values to transmit */
- 	struct ir_raw_event *raw = NULL;
- 	ssize_t ret = -EINVAL;
- 	size_t count;
-@@ -105,6 +105,13 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 	if (!lirc)
- 		return -EFAULT;
+-	/* Skip the last format in the loop so that it will be selected if no
++	/*
++	 * Skip the last format in the loop so that it will be selected if no
+ 	 * match is found.
+ 	 */
+ 	for (i = 0; i < ARRAY_SIZE(formats) - 1; ++i) {
+@@ -138,7 +139,8 @@ static unsigned int iss_video_mbus_to_pix(const struct iss_video *video,
  
-+	dev = lirc->dev;
-+	if (!dev)
-+		return -EFAULT;
-+
-+	if (!dev->tx_ir)
-+		return -EINVAL;
-+
- 	if (lirc->send_mode == LIRC_MODE_SCANCODE) {
- 		struct lirc_scancode scan;
+ 	min_bpl = pix->width * ALIGN(formats[i].bpp, 8) / 8;
  
-@@ -135,7 +142,15 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 		}
+-	/* Clamp the requested bytes per line value. If the maximum bytes per
++	/*
++	 * Clamp the requested bytes per line value. If the maximum bytes per
+ 	 * line value is zero, the module doesn't support user configurable line
+ 	 * sizes. Override the requested value with the minimum in that case.
+ 	 */
+@@ -172,7 +174,8 @@ static void iss_video_pix_to_mbus(const struct v4l2_pix_format *pix,
+ 	mbus->width = pix->width;
+ 	mbus->height = pix->height;
  
- 		for (i = 0; i < count; i++)
-+			/* Convert from NS to US */
- 			txbuf[i] = DIV_ROUND_UP(raw[i].duration, 1000);
-+
-+		if (dev->s_tx_carrier) {
-+			int carrier = ir_raw_encode_carrier(scan.rc_type);
-+
-+			if (carrier > 0)
-+				dev->s_tx_carrier(dev, carrier);
-+		}
- 	} else {
- 		if (n < sizeof(unsigned int) || n % sizeof(unsigned int))
- 			return -EINVAL;
-@@ -149,17 +164,6 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 			return PTR_ERR(txbuf);
- 	}
+-	/* Skip the last format in the loop so that it will be selected if no
++	/*
++	 * Skip the last format in the loop so that it will be selected if no
+ 	 * match is found.
+ 	 */
+ 	for (i = 0; i < ARRAY_SIZE(formats) - 1; ++i) {
+@@ -360,7 +363,8 @@ static void iss_video_buf_queue(struct vb2_buffer *vb)
  
--	dev = lirc->dev;
--	if (!dev) {
--		ret = -EFAULT;
--		goto out;
--	}
--
--	if (!dev->tx_ir) {
--		ret = -EINVAL;
--		goto out;
--	}
--
- 	for (i = 0; i < count; i++) {
- 		if (txbuf[i] > IR_MAX_DURATION / 1000 - duration || !txbuf[i]) {
- 			ret = -EINVAL;
-diff --git a/drivers/media/rc/ir-mce_kbd-decoder.c b/drivers/media/rc/ir-mce_kbd-decoder.c
-index 6a4d58b..79c8f40 100644
---- a/drivers/media/rc/ir-mce_kbd-decoder.c
-+++ b/drivers/media/rc/ir-mce_kbd-decoder.c
-@@ -468,6 +468,7 @@ static struct ir_raw_handler mce_kbd_handler = {
- 	.encode		= ir_mce_kbd_encode,
- 	.raw_register	= ir_mce_kbd_register,
- 	.raw_unregister	= ir_mce_kbd_unregister,
-+	.carrier	= 36000,
- };
+ 	spin_lock_irqsave(&video->qlock, flags);
  
- static int __init ir_mce_kbd_decode_init(void)
-diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
-index 3ce8503..8f9ca71 100644
---- a/drivers/media/rc/ir-nec-decoder.c
-+++ b/drivers/media/rc/ir-nec-decoder.c
-@@ -288,6 +288,7 @@ static struct ir_raw_handler nec_handler = {
- 	.protocols	= RC_BIT_NEC | RC_BIT_NECX | RC_BIT_NEC32,
- 	.decode		= ir_nec_decode,
- 	.encode		= ir_nec_encode,
-+	.carrier	= 38000,
- };
+-	/* Mark the buffer is faulty and give it back to the queue immediately
++	/*
++	 * Mark the buffer is faulty and give it back to the queue immediately
+ 	 * if the video node has registered an error. vb2 will perform the same
+ 	 * check when preparing the buffer, but that is inherently racy, so we
+ 	 * need to handle the race condition with an authoritative check here.
+@@ -443,7 +447,8 @@ struct iss_buffer *omap4iss_video_buffer_next(struct iss_video *video)
  
- static int __init ir_nec_decode_init(void)
-diff --git a/drivers/media/rc/ir-rc5-decoder.c b/drivers/media/rc/ir-rc5-decoder.c
-index fcfedf9..d92e49b 100644
---- a/drivers/media/rc/ir-rc5-decoder.c
-+++ b/drivers/media/rc/ir-rc5-decoder.c
-@@ -281,6 +281,7 @@ static struct ir_raw_handler rc5_handler = {
- 	.protocols	= RC_BIT_RC5 | RC_BIT_RC5X_20 | RC_BIT_RC5_SZ,
- 	.decode		= ir_rc5_decode,
- 	.encode		= ir_rc5_encode,
-+	.carrier	= 36000,
- };
+ 	buf->vb.vb2_buf.timestamp = ktime_get_ns();
  
- static int __init ir_rc5_decode_init(void)
-diff --git a/drivers/media/rc/ir-rc6-decoder.c b/drivers/media/rc/ir-rc6-decoder.c
-index 6fe2268..83a36f4 100644
---- a/drivers/media/rc/ir-rc6-decoder.c
-+++ b/drivers/media/rc/ir-rc6-decoder.c
-@@ -408,6 +408,7 @@ static struct ir_raw_handler rc6_handler = {
- 			  RC_BIT_RC6_MCE,
- 	.decode		= ir_rc6_decode,
- 	.encode		= ir_rc6_encode,
-+	.carrier	= 36000,
- };
+-	/* Do frame number propagation only if this is the output video node.
++	/*
++	 * Do frame number propagation only if this is the output video node.
+ 	 * Frame number either comes from the CSI receivers or it gets
+ 	 * incremented here if H3A is not active.
+ 	 * Note: There is no guarantee that the output buffer will finish
+@@ -605,7 +610,8 @@ iss_video_set_format(struct file *file, void *fh, struct v4l2_format *format)
  
- static int __init ir_rc6_decode_init(void)
-diff --git a/drivers/media/rc/ir-sanyo-decoder.c b/drivers/media/rc/ir-sanyo-decoder.c
-index 520bb77..7d3bc03 100644
---- a/drivers/media/rc/ir-sanyo-decoder.c
-+++ b/drivers/media/rc/ir-sanyo-decoder.c
-@@ -222,6 +222,7 @@ static struct ir_raw_handler sanyo_handler = {
- 	.protocols	= RC_BIT_SANYO,
- 	.decode		= ir_sanyo_decode,
- 	.encode		= ir_sanyo_encode,
-+	.carrier	= 38000,
- };
+ 	mutex_lock(&video->mutex);
  
- static int __init ir_sanyo_decode_init(void)
-diff --git a/drivers/media/rc/ir-sharp-decoder.c b/drivers/media/rc/ir-sharp-decoder.c
-index b47e89e..2b08da4 100644
---- a/drivers/media/rc/ir-sharp-decoder.c
-+++ b/drivers/media/rc/ir-sharp-decoder.c
-@@ -226,6 +226,7 @@ static struct ir_raw_handler sharp_handler = {
- 	.protocols	= RC_BIT_SHARP,
- 	.decode		= ir_sharp_decode,
- 	.encode		= ir_sharp_encode,
-+	.carrier	= 38000,
- };
+-	/* Fill the bytesperline and sizeimage fields by converting to media bus
++	/*
++	 * Fill the bytesperline and sizeimage fields by converting to media bus
+ 	 * format and back to pixel format.
+ 	 */
+ 	iss_video_pix_to_mbus(&format->fmt.pix, &fmt);
+@@ -678,8 +684,9 @@ iss_video_get_selection(struct file *file, void *fh, struct v4l2_selection *sel)
+ 	if (subdev == NULL)
+ 		return -EINVAL;
  
- static int __init ir_sharp_decode_init(void)
-diff --git a/drivers/media/rc/ir-sony-decoder.c b/drivers/media/rc/ir-sony-decoder.c
-index 355fa81..e36e779 100644
---- a/drivers/media/rc/ir-sony-decoder.c
-+++ b/drivers/media/rc/ir-sony-decoder.c
-@@ -220,6 +220,7 @@ static struct ir_raw_handler sony_handler = {
- 	.protocols	= RC_BIT_SONY12 | RC_BIT_SONY15 | RC_BIT_SONY20,
- 	.decode		= ir_sony_decode,
- 	.encode		= ir_sony_encode,
-+	.carrier	= 40000,
- };
+-	/* Try the get selection operation first and fallback to get format if not
+-	 * implemented.
++	/*
++	 * Try the get selection operation first and fallback to get format if
++	 * not implemented.
+ 	 */
+ 	sdsel.pad = pad;
+ 	ret = v4l2_subdev_call(subdev, pad, get_selection, NULL, &sdsel);
+@@ -867,7 +874,8 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
  
- static int __init ir_sony_decode_init(void)
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index 6944d54..5624300 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -33,6 +33,7 @@ struct ir_raw_handler {
- 	int (*decode)(struct rc_dev *dev, struct ir_raw_event event);
- 	int (*encode)(enum rc_type protocol, u32 scancode,
- 		      struct ir_raw_event *events, unsigned int max);
-+	u32 carrier;
+ 	mutex_lock(&video->stream_lock);
  
- 	/* These two should only be used by the mce kbd decoder */
- 	int (*raw_register)(struct rc_dev *dev);
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index 6bfccf8..9ffa5a9 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -484,6 +484,36 @@ int ir_raw_encode_scancode(enum rc_type protocol, u32 scancode,
- }
- EXPORT_SYMBOL(ir_raw_encode_scancode);
+-	/* Start streaming on the pipeline. No link touching an entity in the
++	/*
++	 * Start streaming on the pipeline. No link touching an entity in the
+ 	 * pipeline can be activated or deactivated once streaming is started.
+ 	 */
+ 	pipe = entity->pipe
+@@ -895,7 +903,8 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	while ((entity = media_graph_walk_next(&graph)))
+ 		media_entity_enum_set(&pipe->ent_enum, entity);
  
-+/**
-+ * ir_raw_encode_carrier() - Get carrier used for protocol
-+ *
-+ * @protocol:		protocol
-+ *
-+ * Attempts to find the carrier for the specified protocol
-+ *
-+ * Returns:	The carrier in Hz
-+ *		-EINVAL if the protocol is invalid, or if no
-+ *		compatible encoder was found.
-+ */
-+int ir_raw_encode_carrier(enum rc_type protocol)
-+{
-+	struct ir_raw_handler *handler;
-+	int ret = -EINVAL;
-+	u64 mask = 1ULL << protocol;
-+
-+	mutex_lock(&ir_raw_handler_lock);
-+	list_for_each_entry(handler, &ir_raw_handler_list, list) {
-+		if (handler->protocols & mask && handler->encode) {
-+			ret = handler->carrier;
-+			break;
-+		}
-+	}
-+	mutex_unlock(&ir_raw_handler_lock);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(ir_raw_encode_carrier);
-+
- /*
-  * Used to (un)register raw event clients
-  */
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 45e8623..6fe0ba8 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -318,6 +318,7 @@ int ir_raw_event_store_with_filter(struct rc_dev *dev,
- void ir_raw_event_set_idle(struct rc_dev *dev, bool idle);
- int ir_raw_encode_scancode(enum rc_type protocol, u32 scancode,
- 			   struct ir_raw_event *events, unsigned int max);
-+int ir_raw_encode_carrier(enum rc_type protocol);
+-	/* Verify that the currently configured format matches the output of
++	/*
++	 * Verify that the currently configured format matches the output of
+ 	 * the connected subdev.
+ 	 */
+ 	ret = iss_video_check_format(video, vfh);
+@@ -905,7 +914,8 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	video->bpl_padding = ret;
+ 	video->bpl_value = vfh->format.fmt.pix.bytesperline;
  
- static inline void ir_raw_event_reset(struct rc_dev *dev)
- {
+-	/* Find the ISS video node connected at the far end of the pipeline and
++	/*
++	 * Find the ISS video node connected at the far end of the pipeline and
+ 	 * update the pipeline.
+ 	 */
+ 	far_end = iss_video_far_end(video);
+@@ -930,7 +940,8 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	pipe->state |= state;
+ 	spin_unlock_irqrestore(&pipe->lock, flags);
+ 
+-	/* Set the maximum time per frame as the value requested by userspace.
++	/*
++	 * Set the maximum time per frame as the value requested by userspace.
+ 	 * This is a soft limit that can be overridden if the hardware doesn't
+ 	 * support the request limit.
+ 	 */
+@@ -946,7 +957,8 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	if (ret < 0)
+ 		goto err_iss_video_check_format;
+ 
+-	/* In sensor-to-memory mode, the stream can be started synchronously
++	/*
++	 * In sensor-to-memory mode, the stream can be started synchronously
+ 	 * to the stream on command. In memory-to-memory mode, it will be
+ 	 * started when buffers are queued on both the input and output.
+ 	 */
 -- 
-2.9.3
+2.7.4
+
