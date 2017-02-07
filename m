@@ -1,57 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pegasos-out.vodafone.de ([80.84.1.38]:34920 "EHLO
-        pegasos-out.vodafone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752484AbdBUOGG (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:49969 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754297AbdBGQI4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Feb 2017 09:06:06 -0500
-Subject: Re: [PATCH] dma-buf: add support for compat ioctl
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-References: <CGME20170221132114eucas1p2e527d5b5516494ba54aa91f48b3e227f@eucas1p2.samsung.com>
- <1487683261-2655-1-git-send-email-m.szyprowski@samsung.com>
-Cc: linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <deathsimple@vodafone.de>
-Message-ID: <917aff70-64f7-7224-a015-0e77951bbc1d@vodafone.de>
-Date: Tue, 21 Feb 2017 14:59:18 +0100
-MIME-Version: 1.0
-In-Reply-To: <1487683261-2655-1-git-send-email-m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+        Tue, 7 Feb 2017 11:08:56 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 1/4] media-ctl: add pad support to set/get_frame_interval
+Date: Tue,  7 Feb 2017 17:08:47 +0100
+Message-Id: <20170207160850.10299-2-p.zabel@pengutronix.de>
+In-Reply-To: <20170207160850.10299-1-p.zabel@pengutronix.de>
+References: <20170207160850.10299-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 21.02.2017 um 14:21 schrieb Marek Szyprowski:
-> Add compat ioctl support to dma-buf. This lets one to use DMA_BUF_IOCTL_SYNC
-> ioctl from 32bit application on 64bit kernel. Data structures for both 32
-> and 64bit modes are same, so there is no need for additional translation
-> layer.
+This allows to set and get the frame interval on pads other than pad 0.
 
-Well I might be wrong, but IIRC compat_ioctl was just optional and if 
-not specified unlocked_ioctl was called instead.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ utils/media-ctl/libv4l2subdev.c | 24 ++++++++++++++----------
+ utils/media-ctl/v4l2subdev.h    |  4 ++--
+ 2 files changed, 16 insertions(+), 12 deletions(-)
 
-If that is true your patch wouldn't have any effect at all.
+diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
+index 3dcf943c..eadfc875 100644
+--- a/utils/media-ctl/libv4l2subdev.c
++++ b/utils/media-ctl/libv4l2subdev.c
+@@ -262,7 +262,8 @@ int v4l2_subdev_set_dv_timings(struct media_entity *entity,
+ }
+ 
+ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
+-				   struct v4l2_fract *interval)
++				   struct v4l2_fract *interval,
++				   unsigned int pad)
+ {
+ 	struct v4l2_subdev_frame_interval ival;
+ 	int ret;
+@@ -272,6 +273,7 @@ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
+ 		return ret;
+ 
+ 	memset(&ival, 0, sizeof(ival));
++	ival.pad = pad;
+ 
+ 	ret = ioctl(entity->fd, VIDIOC_SUBDEV_G_FRAME_INTERVAL, &ival);
+ 	if (ret < 0)
+@@ -282,7 +284,8 @@ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
+ }
+ 
+ int v4l2_subdev_set_frame_interval(struct media_entity *entity,
+-				   struct v4l2_fract *interval)
++				   struct v4l2_fract *interval,
++				   unsigned int pad)
+ {
+ 	struct v4l2_subdev_frame_interval ival;
+ 	int ret;
+@@ -292,6 +295,7 @@ int v4l2_subdev_set_frame_interval(struct media_entity *entity,
+ 		return ret;
+ 
+ 	memset(&ival, 0, sizeof(ival));
++	ival.pad = pad;
+ 	ival.interval = *interval;
+ 
+ 	ret = ioctl(entity->fd, VIDIOC_SUBDEV_S_FRAME_INTERVAL, &ival);
+@@ -617,7 +621,7 @@ static int set_selection(struct media_pad *pad, unsigned int target,
+ 	return 0;
+ }
+ 
+-static int set_frame_interval(struct media_entity *entity,
++static int set_frame_interval(struct media_pad *pad,
+ 			      struct v4l2_fract *interval)
+ {
+ 	int ret;
+@@ -625,20 +629,20 @@ static int set_frame_interval(struct media_entity *entity,
+ 	if (interval->numerator == 0)
+ 		return 0;
+ 
+-	media_dbg(entity->media,
+-		  "Setting up frame interval %u/%u on entity %s\n",
++	media_dbg(pad->entity->media,
++		  "Setting up frame interval %u/%u on entity %s pad %u\n",
+ 		  interval->numerator, interval->denominator,
+-		  entity->info.name);
++		  pad->entity->info.name, pad->index);
+ 
+-	ret = v4l2_subdev_set_frame_interval(entity, interval);
++	ret = v4l2_subdev_set_frame_interval(pad->entity, interval, pad->index);
+ 	if (ret < 0) {
+-		media_dbg(entity->media,
++		media_dbg(pad->entity->media,
+ 			  "Unable to set frame interval: %s (%d)",
+ 			  strerror(-ret), ret);
+ 		return ret;
+ 	}
+ 
+-	media_dbg(entity->media, "Frame interval set: %u/%u\n",
++	media_dbg(pad->entity->media, "Frame interval set: %u/%u\n",
+ 		  interval->numerator, interval->denominator);
+ 
+ 	return 0;
+@@ -685,7 +689,7 @@ static int v4l2_subdev_parse_setup_format(struct media_device *media,
+ 			return ret;
+ 	}
+ 
+-	ret = set_frame_interval(pad->entity, &interval);
++	ret = set_frame_interval(pad, &interval);
+ 	if (ret < 0)
+ 		return ret;
+ 
+diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
+index 9c8fee89..413094d5 100644
+--- a/utils/media-ctl/v4l2subdev.h
++++ b/utils/media-ctl/v4l2subdev.h
+@@ -200,7 +200,7 @@ int v4l2_subdev_set_dv_timings(struct media_entity *entity,
+  */
+ 
+ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
+-	struct v4l2_fract *interval);
++	struct v4l2_fract *interval, unsigned int pad);
+ 
+ /**
+  * @brief Set the frame interval on a sub-device.
+@@ -217,7 +217,7 @@ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
+  * @return 0 on success, or a negative error code on failure.
+  */
+ int v4l2_subdev_set_frame_interval(struct media_entity *entity,
+-	struct v4l2_fract *interval);
++	struct v4l2_fract *interval, unsigned int pad);
+ 
+ /**
+  * @brief Parse a string and apply format, crop and frame interval settings.
+-- 
+2.11.0
 
-Regards,
-Christian.
-
->
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> ---
->   drivers/dma-buf/dma-buf.c | 3 +++
->   1 file changed, 3 insertions(+)
->
-> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-> index 718f832a5c71..0007b792827b 100644
-> --- a/drivers/dma-buf/dma-buf.c
-> +++ b/drivers/dma-buf/dma-buf.c
-> @@ -325,6 +325,9 @@ static long dma_buf_ioctl(struct file *file,
->   	.llseek		= dma_buf_llseek,
->   	.poll		= dma_buf_poll,
->   	.unlocked_ioctl	= dma_buf_ioctl,
-> +#ifdef CONFIG_COMPAT
-> +	.compat_ioctl	= dma_buf_ioctl,
-> +#endif
->   };
->   
->   /*
