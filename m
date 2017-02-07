@@ -1,84 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44792 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751221AbdBZVhO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 26 Feb 2017 16:37:14 -0500
-Date: Sun, 26 Feb 2017 23:36:36 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
-Subject: Re: camera subdevice support was Re: [PATCH 1/4] v4l2:
- device_register_subdev_nodes: allow calling multiple times
-Message-ID: <20170226213636.GA16975@valkosipuli.retiisi.org.uk>
-References: <20170220103114.GA9800@amd>
- <20170220130912.GT16975@valkosipuli.retiisi.org.uk>
- <20170220135636.GU16975@valkosipuli.retiisi.org.uk>
- <20170221110721.GD5021@amd>
- <20170221111104.GD16975@valkosipuli.retiisi.org.uk>
- <20170225000918.GB23662@amd>
- <20170225134444.6qzumpvasaow5qoj@ihha.localdomain>
- <20170225215321.GA29886@amd>
- <20170225231754.GY16975@valkosipuli.retiisi.org.uk>
- <20170226083851.GA8840@amd>
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:35989 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754620AbdBGPQ0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2017 10:16:26 -0500
+Received: by mail-pg0-f66.google.com with SMTP id 75so12378840pgf.3
+        for <linux-media@vger.kernel.org>; Tue, 07 Feb 2017 07:16:26 -0800 (PST)
+From: Wei Yongjun <weiyj.lk@gmail.com>
+To: Tiffany Lin <tiffany.lin@mediatek.com>,
+        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Wei Yongjun <weiyongjun1@huawei.com>, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-mediatek@lists.infradead.org
+Subject: [PATCH -next] [media] mtk-vcodec: remove redundant return value check of platform_get_resource()
+Date: Tue,  7 Feb 2017 15:16:20 +0000
+Message-Id: <20170207151620.12711-1-weiyj.lk@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170226083851.GA8840@amd>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hyv‰‰ iltaa!
+From: Wei Yongjun <weiyongjun1@huawei.com>
 
-On Sun, Feb 26, 2017 at 09:38:51AM +0100, Pavel Machek wrote:
-> Ahoj! :-)
-> 
-> > > > > Ok, I got the camera sensor to work. No subdevices support, so I don't
-> > > > > have focus (etc) working, but that's a start. I also had to remove
-> > > > > video-bus-switch support; but I guess it will be easier to use
-> > > > > video-multiplexer patches... 
-> > > > > 
-> > > > > I'll have patches over weekend.
-> > > > 
-> > > > I briefly looked at what's there --- you do miss the video nodes for the
-> > > > non-sensor sub-devices, and they also don't show up in the media graph,
-> > > > right?
-> > > 
-> > > Yes.
-> > > 
-> > > > I guess they don't end up matching in the async list.
-> > > 
-> > > How should they get to the async list?
-> > 
-> > The patch you referred to does that. The problem is, it does make the bus
-> > configuration a pointer as well. There should be two patches. That's not a
-> > lot of work to separate them though. But it should be done.
-> 
-> Well... This is the line I'm fighting with:
-> 
-> + of_parse_phandle(dev->of_node, "ti,camera-flashes",
-> +							flash++)
-> 
-> If someone told me its fwnode equivalent, I might be able to get it to
-> work. Knowing what group_id is and if I could ignore it would help a
-> bit, too :-).
+Remove unneeded error handling on the result of a call
+to platform_get_resource() when the value is passed to
+devm_ioremap_resource().
 
-Right.
+Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+---
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c | 5 -----
+ 1 file changed, 5 deletions(-)
 
-ACPI does not have equivalents for OF phandles. That's the background of the
-problem. The port and endpoint references are a bit special: there'a a
-device reference and indices of the port and the endpoint nodes.
+diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
+index aa81f3c..83f859e 100644
+--- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
++++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
+@@ -269,11 +269,6 @@ static int mtk_vcodec_probe(struct platform_device *pdev)
+ 
+ 	for (i = VENC_SYS, j = 0; i < NUM_MAX_VCODEC_REG_BASE; i++, j++) {
+ 		res = platform_get_resource(pdev, IORESOURCE_MEM, j);
+-		if (res == NULL) {
+-			dev_err(&pdev->dev, "get memory resource failed.");
+-			ret = -ENXIO;
+-			goto err_res;
+-		}
+ 		dev->reg_base[i] = devm_ioremap_resource(&pdev->dev, res);
+ 		if (IS_ERR((__force void *)dev->reg_base[i])) {
+ 			ret = PTR_ERR((__force void *)dev->reg_base[i]);
 
-I think you can just use the OF API for the time being until we define how
-to describe flash devices with ACPI. The difference with ACPI will be
-visible there almost no matter what do you do there, which is one more
-reason to have that functionality in the framework (and not drivers).
 
--- 
-Kind regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
