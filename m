@@ -1,71 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:48795 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751126AbdBWK3d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Feb 2017 05:29:33 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] [media] rc: protocol is not set on register for raw IR devices
-Date: Thu, 23 Feb 2017 10:29:01 +0000
-Message-Id: <1487845741-21924-1-git-send-email-sean@mess.org>
+Received: from mail-wm0-f45.google.com ([74.125.82.45]:34969 "EHLO
+        mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755145AbdBGNLD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2017 08:11:03 -0500
+Received: by mail-wm0-f45.google.com with SMTP id v186so10609088wmd.0
+        for <linux-media@vger.kernel.org>; Tue, 07 Feb 2017 05:11:02 -0800 (PST)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+Subject: [PATCH v6 2/9] doc: DT: venus: binding document for Qualcomm video driver
+Date: Tue,  7 Feb 2017 15:10:17 +0200
+Message-Id: <1486473024-21705-3-git-send-email-stanimir.varbanov@linaro.org>
+In-Reply-To: <1486473024-21705-1-git-send-email-stanimir.varbanov@linaro.org>
+References: <1486473024-21705-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ir_raw_event_register() sets up change_protocol(), and without that set,
-rc_setup_rx_device() does not set the protocol for the device on register.
+Add binding document for Venus video encoder/decoder driver
 
-The standard udev rules run ir-keytable, which writes to the protocols
-file again, which hides this problem.
-
-Fixes: 7ff2c2b ("[media] rc-main: split setup and unregister functions")
-
-Signed-off-by: Sean Young <sean@mess.org>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: devicetree@vger.kernel.org
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 ---
- drivers/media/rc/rc-main.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+Changes since previous v5:
+ * dropped rproc phandle (remoteproc is not used anymore)
+ * added subnodes paragraph with descrition of three subnodes:
+    - video-decoder and video-encoder - describes decoder (core0) and
+    encoder (core1) power-domains and clocks (applicable for msm8996
+    Venus core).
+    - video-firmware - needed to get reserved memory region where the
+    firmware is stored.
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index a158b32..d845336 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1781,12 +1781,6 @@ int rc_register_device(struct rc_dev *dev)
- 		dev->input_name ?: "Unspecified device", path ?: "N/A");
- 	kfree(path);
- 
--	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
--		rc = rc_setup_rx_device(dev);
--		if (rc)
--			goto out_dev;
--	}
--
- 	if (dev->driver_type == RC_DRIVER_IR_RAW ||
- 	    dev->driver_type == RC_DRIVER_IR_RAW_TX) {
- 		if (!raw_init) {
-@@ -1795,7 +1789,13 @@ int rc_register_device(struct rc_dev *dev)
- 		}
- 		rc = ir_raw_event_register(dev);
- 		if (rc < 0)
--			goto out_rx;
-+			goto out_dev;
-+	}
+ .../devicetree/bindings/media/qcom,venus.txt       | 112 +++++++++++++++++++++
+ 1 file changed, 112 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
+
+diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
+new file mode 100644
+index 000000000000..4427af3ca5a5
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
+@@ -0,0 +1,112 @@
++* Qualcomm Venus video encode/decode accelerator
 +
-+	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
-+		rc = rc_setup_rx_device(dev);
-+		if (rc)
-+			goto out_raw;
- 	}
- 
- 	/* Allow the RC sysfs nodes to be accessible */
-@@ -1807,8 +1807,8 @@ int rc_register_device(struct rc_dev *dev)
- 
- 	return 0;
- 
--out_rx:
--	rc_free_rx_device(dev);
-+out_raw:
-+	ir_raw_event_unregister(dev);
- out_dev:
- 	device_del(&dev->dev);
- out_unlock:
++- compatible:
++	Usage: required
++	Value type: <stringlist>
++	Definition: Value should contain one of:
++		- "qcom,msm8916-venus"
++		- "qcom,msm8996-venus"
++- reg:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: Register base address and length of the register map.
++- interrupts:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: Should contain interrupt line number.
++- clocks:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: A List of phandle and clock specifier pairs as listed
++		    in clock-names property.
++- clock-names:
++	Usage: required for msm8916
++	Value type: <stringlist>
++	Definition: Should contain the following entries:
++		- "core"	Core video accelerator clock
++		- "iface"	Video accelerator AHB clock
++		- "bus"		Video accelerator AXI clock
++- clock-names:
++	Usage: required for msm8996
++	Value type: <stringlist>
++	Definition: Should contain the following entries:
++		- "core"	Core video accelerator clock
++		- "iface"	Video accelerator AHB clock
++		- "bus"		Video accelerator AXI clock
++		- "mbus"	Video MAXI clock
++- power-domains:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: A phandle and power domain specifier pairs to the
++		    power domain which is responsible for collapsing
++		    and restoring power to the peripheral.
++- iommus:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: A list of phandle and IOMMU specifier pairs.
++
++* Subnodes
++The Venus node must contain three subnodes representing video-decoder,
++video-encoder and video-firmware.
++
++Every of video-encoder or video-decoder subnode should have:
++
++- compatible:
++	Usage: required
++	Value type: <stringlist>
++	Definition: Value should contain "venus-decoder" or "venus-encoder"
++- clocks:
++	Usage: required for msm8996
++	Value type: <prop-encoded-array>
++	Definition: A List of phandle and clock specifier pairs as listed
++		    in clock-names property.
++- clock-names:
++	Usage: required for msm8996
++	Value type: <stringlist>
++	Definition: Should contain the following entries:
++		- "core"	Subcore video accelerator clock
++
++- power-domains:
++	Usage: required for msm8996
++	Value type: <prop-encoded-array>
++	Definition: A phandle and power domain specifier pairs to the
++		    power domain which is responsible for collapsing
++		    and restoring power to the subcore.
++
++The video-firmware subnode should contain:
++
++- memory-region:
++	Usage: required
++	Value type: <phandle>
++	Definition: reference to the reserved-memory for the memory region
++
++* An Example
++	video-codec@1d00000 {
++		compatible = "qcom,msm8916-venus";
++		reg = <0x01d00000 0xff000>;
++		interrupts = <GIC_SPI 44 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&gcc GCC_VENUS0_VCODEC0_CLK>,
++			 <&gcc GCC_VENUS0_AHB_CLK>,
++			 <&gcc GCC_VENUS0_AXI_CLK>;
++		clock-names = "core", "iface", "bus";
++		power-domains = <&gcc VENUS_GDSC>;
++		iommus = <&apps_iommu 5>;
++
++		video-decoder {
++			compatible = "venus-decoder";
++			clocks = <&mmcc VIDEO_SUBCORE0_CLK>;
++			clock-names = "core";
++			power-domains = <&mmcc VENUS_CORE0_GDSC>;
++		};
++
++		video-encoder {
++			compatible = "venus-encoder";
++			clocks = <&mmcc VIDEO_SUBCORE1_CLK>;
++			clock-names = "core";
++			power-domains = <&mmcc VENUS_CORE1_GDSC>;
++		};
++
++		video-firmware {
++			memory-region = <&venus_mem>;
++		};
++	};
 -- 
-2.9.3
+2.7.4
+
