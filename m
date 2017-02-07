@@ -1,852 +1,1734 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:48922 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750898AbdBCURj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Feb 2017 15:17:39 -0500
-Date: Fri, 3 Feb 2017 22:17:30 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        devicetree@vger.kernel.org, CARLOS.PALMINHA@synopsys.com,
-        "David S. Miller" <davem@davemloft.net>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pavel Machek <pavel@ucw.cz>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Rob Herring <robh+dt@kernel.org>,
-        Steve Longerbeam <slongerbeam@gmail.com>
-Subject: Re: [PATCH RESEND v7 2/2] Add support for OV5647 sensor.
-Message-ID: <20170203201729.GA18086@kekkonen.localdomain>
-References: <cover.1486136893.git.roliveir@synopsys.com>
- <26e5a587f1ba9e2fbbc04284408305bc8cf8c5c0.1486136893.git.roliveir@synopsys.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <26e5a587f1ba9e2fbbc04284408305bc8cf8c5c0.1486136893.git.roliveir@synopsys.com>
+Received: from relmlor4.renesas.com ([210.160.252.174]:57764 "EHLO
+        relmlie3.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754698AbdBGPNj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 7 Feb 2017 10:13:39 -0500
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
+Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert+renesas@glider.be, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [PATCH v3 3/7] media: i2c: max2175: Add MAX2175 support
+Date: Tue,  7 Feb 2017 15:02:33 +0000
+Message-Id: <1486479757-32128-4-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+In-Reply-To: <1486479757-32128-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+References: <1486479757-32128-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ramiro,
+This patch adds driver support for the MAX2175 chip. This is Maxim
+Integrated's RF to Bits tuner front end chip designed for software-defined
+radio solutions. This driver exposes the tuner as a sub-device instance
+with standard and custom controls to configure the device.
 
-Thanks for the update!
+Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+---
+ Documentation/media/v4l-drivers/index.rst   |    1 +
+ Documentation/media/v4l-drivers/max2175.rst |   60 ++
+ drivers/media/i2c/Kconfig                   |    4 +
+ drivers/media/i2c/Makefile                  |    2 +
+ drivers/media/i2c/max2175/Kconfig           |    8 +
+ drivers/media/i2c/max2175/Makefile          |    4 +
+ drivers/media/i2c/max2175/max2175.c         | 1438 +++++++++++++++++++++++++++
+ drivers/media/i2c/max2175/max2175.h         |  108 ++
+ 8 files changed, 1625 insertions(+)
+ create mode 100644 Documentation/media/v4l-drivers/max2175.rst
+ create mode 100644 drivers/media/i2c/max2175/Kconfig
+ create mode 100644 drivers/media/i2c/max2175/Makefile
+ create mode 100644 drivers/media/i2c/max2175/max2175.c
+ create mode 100644 drivers/media/i2c/max2175/max2175.h
 
-Please see some comments below... some streaming and hardware control
-related matters I missed earlier.
-
-On Fri, Feb 03, 2017 at 06:18:33PM +0000, Ramiro Oliveira wrote:
-> Modes supported:
->  - 640x480 RAW 8
-> 
-> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
-> Acked-by: Pavel Machek <pavel@ucw.cz>
-> ---
->  MAINTAINERS                |   7 +
->  drivers/media/i2c/Kconfig  |  12 +
->  drivers/media/i2c/Makefile |   1 +
->  drivers/media/i2c/ov5647.c | 718 +++++++++++++++++++++++++++++++++++++++++++++
->  4 files changed, 738 insertions(+)
->  create mode 100644 drivers/media/i2c/ov5647.c
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 421adffbe376..56f392fd2c39 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -9101,6 +9101,13 @@ M:	Harald Welte <laforge@gnumonks.org>
->  S:	Maintained
->  F:	drivers/char/pcmcia/cm4040_cs.*
->  
-> +OMNIVISION OV5647 SENSOR DRIVER
-> +M:	Ramiro Oliveira <roliveir@synopsys.com>
-> +L:	linux-media@vger.kernel.org
-> +T:	git git://linuxtv.org/media_tree.git
-> +S:	Maintained
-> +F:	drivers/media/i2c/ov5647.c
-> +
->  OMNIVISION OV7670 SENSOR DRIVER
->  M:	Jonathan Corbet <corbet@lwn.net>
->  L:	linux-media@vger.kernel.org
-> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-> index cee1dae6e014..ac388be5f9a8 100644
-> --- a/drivers/media/i2c/Kconfig
-> +++ b/drivers/media/i2c/Kconfig
-> @@ -531,6 +531,18 @@ config VIDEO_OV2659
->  	  To compile this driver as a module, choose M here: the
->  	  module will be called ov2659.
->  
-> +config VIDEO_OV5647
-> +	tristate "OmniVision OV5647 sensor support"
-> +	depends on OF
-> +	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-> +	depends on MEDIA_CAMERA_SUPPORT
-> +	---help---
-> +	  This is a Video4Linux2 sensor-level driver for the OmniVision
-> +	  OV5647 camera.
-> +
-> +	  To compile this driver as a module, choose M here: the
-> +	  module will be called ov5647.
-> +
->  config VIDEO_OV7640
->  	tristate "OmniVision OV7640 sensor support"
->  	depends on I2C && VIDEO_V4L2
-> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-> index 5bc7bbeb5499..ef2ccf65f94c 100644
-> --- a/drivers/media/i2c/Makefile
-> +++ b/drivers/media/i2c/Makefile
-> @@ -83,3 +83,4 @@ obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
->  obj-$(CONFIG_VIDEO_ML86V7667)	+= ml86v7667.o
->  obj-$(CONFIG_VIDEO_OV2659)	+= ov2659.o
->  obj-$(CONFIG_VIDEO_TC358743)	+= tc358743.o
-> +obj-$(CONFIG_VIDEO_OV5647)	+= ov5647.o
-> diff --git a/drivers/media/i2c/ov5647.c b/drivers/media/i2c/ov5647.c
-> new file mode 100644
-> index 000000000000..c2828650d3a3
-> --- /dev/null
-> +++ b/drivers/media/i2c/ov5647.c
-> @@ -0,0 +1,718 @@
-> +/*
-> + * A V4L2 driver for OmniVision OV5647 cameras.
-> + *
-> + * Based on Samsung S5K6AAFX SXGA 1/6" 1.3M CMOS Image Sensor driver
-> + * Copyright (C) 2011 Sylwester Nawrocki <s.nawrocki@samsung.com>
-> + *
-> + * Based on Omnivision OV7670 Camera Driver
-> + * Copyright (C) 2006-7 Jonathan Corbet <corbet@lwn.net>
-> + *
-> + * Copyright (C) 2016, Synopsys, Inc.
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License as
-> + * published by the Free Software Foundation version 2.
-> + *
-> + * This program is distributed .as is. WITHOUT ANY WARRANTY of any
-> + * kind, whether express or implied; without even the implied warranty
-> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#include <linux/clk.h>
-> +#include <linux/delay.h>
-> +#include <linux/i2c.h>
-> +#include <linux/init.h>
-> +#include <linux/io.h>
-> +#include <linux/module.h>
-> +#include <linux/slab.h>
-> +#include <linux/videodev2.h>
-> +#include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-image-sizes.h>
-> +#include <media/v4l2-mediabus.h>
-> +#include <media/v4l2-of.h>
-> +
-> +#define SENSOR_NAME "ov5647"
-> +
-> +#define OV5647_SW_RESET		0x1003
-> +#define OV5647_REG_CHIPID_H	0x300A
-> +#define OV5647_REG_CHIPID_L	0x300B
-> +
-> +#define REG_TERM 0xfffe
-> +#define VAL_TERM 0xfe
-> +#define REG_DLY  0xffff
-> +
-> +#define OV5647_ROW_START		0x01
-> +#define OV5647_ROW_START_MIN		0
-> +#define OV5647_ROW_START_MAX		2004
-> +#define OV5647_ROW_START_DEF		54
-> +
-> +#define OV5647_COLUMN_START		0x02
-> +#define OV5647_COLUMN_START_MIN		0
-> +#define OV5647_COLUMN_START_MAX		2750
-> +#define OV5647_COLUMN_START_DEF		16
-> +
-> +#define OV5647_WINDOW_HEIGHT		0x03
-> +#define OV5647_WINDOW_HEIGHT_MIN	2
-> +#define OV5647_WINDOW_HEIGHT_MAX	2006
-> +#define OV5647_WINDOW_HEIGHT_DEF	1944
-> +
-> +#define OV5647_WINDOW_WIDTH		0x04
-> +#define OV5647_WINDOW_WIDTH_MIN		2
-> +#define OV5647_WINDOW_WIDTH_MAX		2752
-> +#define OV5647_WINDOW_WIDTH_DEF		2592
-> +
-> +struct regval_list {
-> +	u16 addr;
-> +	u8 data;
-> +};
-> +
-> +struct cfg_array {
-> +	struct regval_list *regs;
-> +	int size;
-> +};
-> +
-> +struct ov5647 {
-> +	struct device			*dev;
-> +	struct v4l2_subdev		sd;
-> +	struct media_pad		pad;
-> +	struct mutex			lock;
-> +	struct v4l2_mbus_framefmt	format;
-> +	unsigned int			width;
-> +	unsigned int			height;
-> +	int				power_count;
-> +	struct clk			*xclk;
-> +	/* External clock frequency currently supported is 30MHz */
-> +	u32				xclk_freq;
-> +};
-> +
-> +static inline struct ov5647 *to_state(struct v4l2_subdev *sd)
-> +{
-> +	return container_of(sd, struct ov5647, sd);
-> +}
-> +
-> +static struct regval_list sensor_oe_disable_regs[] = {
-> +	{0x3000, 0x00},
-> +	{0x3001, 0x00},
-> +	{0x3002, 0x00},
-> +};
-> +
-> +static struct regval_list sensor_oe_enable_regs[] = {
-> +	{0x3000, 0x0f},
-> +	{0x3001, 0xff},
-> +	{0x3002, 0xe4},
-> +};
-> +
-> +static struct regval_list ov5647_640x480[] = {
-> +	{0x0100, 0x00},
-> +	{0x0103, 0x01},
-> +	{0x3034, 0x08},
-> +	{0x3035, 0x21},
-> +	{0x3036, 0x46},
-> +	{0x303c, 0x11},
-> +	{0x3106, 0xf5},
-> +	{0x3821, 0x07},
-> +	{0x3820, 0x41},
-> +	{0x3827, 0xec},
-> +	{0x370c, 0x0f},
-> +	{0x3612, 0x59},
-> +	{0x3618, 0x00},
-> +	{0x5000, 0x06},
-> +	{0x5001, 0x01},
-> +	{0x5002, 0x41},
-> +	{0x5003, 0x08},
-> +	{0x5a00, 0x08},
-> +	{0x3000, 0x00},
-> +	{0x3001, 0x00},
-> +	{0x3002, 0x00},
-> +	{0x3016, 0x08},
-> +	{0x3017, 0xe0},
-> +	{0x3018, 0x44},
-> +	{0x301c, 0xf8},
-> +	{0x301d, 0xf0},
-> +	{0x3a18, 0x00},
-> +	{0x3a19, 0xf8},
-> +	{0x3c01, 0x80},
-> +	{0x3b07, 0x0c},
-> +	{0x380c, 0x07},
-> +	{0x380d, 0x68},
-> +	{0x380e, 0x03},
-> +	{0x380f, 0xd8},
-> +	{0x3814, 0x31},
-> +	{0x3815, 0x31},
-> +	{0x3708, 0x64},
-> +	{0x3709, 0x52},
-> +	{0x3808, 0x02},
-> +	{0x3809, 0x80},
-> +	{0x380a, 0x01},
-> +	{0x380b, 0xE0},
-> +	{0x3801, 0x00},
-> +	{0x3802, 0x00},
-> +	{0x3803, 0x00},
-> +	{0x3804, 0x0a},
-> +	{0x3805, 0x3f},
-> +	{0x3806, 0x07},
-> +	{0x3807, 0xa1},
-> +	{0x3811, 0x08},
-> +	{0x3813, 0x02},
-> +	{0x3630, 0x2e},
-> +	{0x3632, 0xe2},
-> +	{0x3633, 0x23},
-> +	{0x3634, 0x44},
-> +	{0x3636, 0x06},
-> +	{0x3620, 0x64},
-> +	{0x3621, 0xe0},
-> +	{0x3600, 0x37},
-> +	{0x3704, 0xa0},
-> +	{0x3703, 0x5a},
-> +	{0x3715, 0x78},
-> +	{0x3717, 0x01},
-> +	{0x3731, 0x02},
-> +	{0x370b, 0x60},
-> +	{0x3705, 0x1a},
-> +	{0x3f05, 0x02},
-> +	{0x3f06, 0x10},
-> +	{0x3f01, 0x0a},
-> +	{0x3a08, 0x01},
-> +	{0x3a09, 0x27},
-> +	{0x3a0a, 0x00},
-> +	{0x3a0b, 0xf6},
-> +	{0x3a0d, 0x04},
-> +	{0x3a0e, 0x03},
-> +	{0x3a0f, 0x58},
-> +	{0x3a10, 0x50},
-> +	{0x3a1b, 0x58},
-> +	{0x3a1e, 0x50},
-> +	{0x3a11, 0x60},
-> +	{0x3a1f, 0x28},
-> +	{0x4001, 0x02},
-> +	{0x4004, 0x02},
-> +	{0x4000, 0x09},
-> +	{0x4837, 0x24},
-> +	{0x4050, 0x6e},
-> +	{0x4051, 0x8f},
-> +	{0x0100, 0x01},
-> +};
-> +
-> +/**
-> + * @short I2C Write operation
-> + * @param[in] i2c_client I2C client
-> + * @param[in] reg register address
-> + * @param[in] val value to write
-> + * @return Error code
-> + */
-> +static int ov5647_write(struct v4l2_subdev *sd, u16 reg, u8 val)
-> +{
-> +	int ret;
-> +	unsigned char data[3] = { reg >> 8, reg & 0xff, val};
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +
-> +	ret = i2c_master_send(client, data, 3);
-> +	if (ret != 3) {
-> +		dev_dbg(&client->dev, "%s: i2c write error, reg: %x\n",
-> +				__func__, reg);
-> +		return ret < 0 ? ret : -EIO;
-> +	}
-> +	return 0;
-> +}
-> +
-> +/**
-> + * @short I2C Read operation
-> + * @param[in] i2c_client I2C client
-> + * @param[in] reg register address
-> + * @param[out] val value read
-> + * @return Error code
-> + */
-> +static int ov5647_read(struct v4l2_subdev *sd, u16 reg, u8 *val)
-> +{
-> +	int ret;
-> +	unsigned char data_w[2] = { reg >> 8, reg & 0xff };
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +
-> +
-> +	ret = i2c_master_send(client, data_w, 2);
-> +
-> +	if (ret < 2) {
-> +		dev_dbg(&client->dev, "%s: i2c read error, reg: %x\n",
-> +			__func__, reg);
-> +		return ret < 0 ? ret : -EIO;
-> +	}
-> +
-> +
-> +	ret = i2c_master_recv(client, val, 1);
-> +
-> +	if (ret < 1) {
-> +		dev_dbg(&client->dev, "%s: i2c read error, reg: %x\n",
-> +				__func__, reg);
-> +		return ret < 0 ? ret : -EIO;
-> +	}
-> +	return 0;
-> +}
-> +
-> +static int ov5647_write_array(struct v4l2_subdev *sd,
-> +				struct regval_list *regs, int array_size)
-> +{
-> +	int i = 0;
-> +	int ret = 0;
-> +
-> +	if (!regs)
-> +		return -EINVAL;
-> +
-> +	while (i < array_size) {
-> +		ret = ov5647_write(sd, regs->addr, regs->data);
-> +		if (ret < 0)
-> +			return ret;
-> +		i++;
-> +		regs++;
-> +	}
-> +	return 0;
-> +}
-> +
-> +static void ov5647_set_virtual_channel(struct v4l2_subdev *sd, int channel)
-> +{
-> +	u8 channel_id;
-> +
-> +	ov5647_read(sd, 0x4814, &channel_id);
-> +	channel_id &= ~(3 << 6);
-> +	ov5647_write(sd, 0x4814, channel_id | (channel << 6));
-> +}
-> +
-> +void ov5647_stream_on(struct v4l2_subdev *sd)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +
-> +	ov5647_write(sd, 0x4202, 0x00);
-> +	dev_dbg(&client->dev, "Stream on");
-> +	ov5647_write(sd, 0x300D, 0x00);
-> +}
-> +
-> +void ov5647_stream_off(struct v4l2_subdev *sd)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +
-> +	ov5647_write(sd, 0x4202, 0x0f);
-> +	dev_dbg(&client->dev, "Stream off");
-> +	ov5647_write(sd, 0x300D, 0x01);
-> +}
-> +
-> +/**
-> + * @short Set SW standby
-> + * @param[in] sd v4l2 sd
-> + * @param[in] stanby standby mode status (on or off)
-> + * @return Error code
-> + */
-> +static int set_sw_standby(struct v4l2_subdev *sd, bool standby)
-> +{
-> +	int ret;
-> +	unsigned char rdval;
-> +
-> +	ret = ov5647_read(sd, 0x0100, &rdval);
-> +	if (ret != 0)
-> +		return ret;
-> +
-> +	if (standby)
-> +		rdval &= 0xfe;
-> +	else
-> +		rdval |= 0x01;
-> +
-> +	ret = ov5647_write(sd, 0x0100, rdval);
-> +
-> +	return ret;
-> +}
-> +
-> +/**
-> + * @short Initialize sensor
-> + * @param[in] sd v4l2 subdev
-> + * @param[in] val not used
-> + * @return Error code
-> + */
-> +static int __sensor_init(struct v4l2_subdev *sd)
-> +{
-> +	int ret;
-> +	u8 resetval;
-> +	u8 rdval;
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +
-> +	dev_dbg(&client->dev, "sensor init\n");
-> +
-> +	ret = ov5647_read(sd, 0x0100, &rdval);
-> +	if (ret != 0)
-> +		return ret;
-> +
-> +	ov5647_write(sd, 0x4800, 0x25);
-> +	ov5647_stream_off(sd);
-> +
-
-Your sensor configuration appears to begin with software reset, so I
-suppose whatever you do between powering the sensor on and that will be
-lost.
-
-> +	ret = ov5647_write_array(sd, ov5647_640x480,
-> +					ARRAY_SIZE(ov5647_640x480));
-> +	if (ret < 0) {
-> +		dev_err(&client->dev, "write sensor_default_regs error\n");
-> +		return ret;
-> +	}
-> +
-> +	ov5647_set_virtual_channel(sd, 0);
-> +
-> +	ov5647_read(sd, 0x0100, &resetval);
-> +	if (!(resetval & 0x01)) {
-
-Can this ever happen? Streaming start is at the end of the register list.
-
-> +		dev_err(&client->dev, "Device was in SW standby");
-> +		ov5647_write(sd, 0x0100, 0x01);
-> +	}
-> +
-> +	ov5647_write(sd, 0x4800, 0x04);
-> +	ov5647_stream_on(sd);
-> +
-> +	return 0;
-> +}
-> +
-> +/**
-> + * @short Control sensor power state
-> + * @param[in] sd v4l2 subdev
-> + * @param[in] on Sensor power
-> + * @return Error code
-> + */
-> +static int sensor_power(struct v4l2_subdev *sd, int on)
-> +{
-> +	int ret;
-> +	struct ov5647 *ov5647 = to_state(sd);
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +
-> +	ret = 0;
-> +	mutex_lock(&ov5647->lock);
-> +
-> +	if (on && !ov5647->power_count)	{
-> +		dev_dbg(&client->dev, "OV5647 power on\n");
-> +
-> +		clk_set_rate(ov5647->xclk, ov5647->xclk_freq);
-> +
-> +		ret = clk_prepare_enable(ov5647->xclk);
-> +		if (ret < 0) {
-> +			dev_err(ov5647->dev, "clk prepare enable failed\n");
-> +			goto out;
-> +		}
-> +
-> +		ret = ov5647_write_array(sd, sensor_oe_enable_regs,
-> +				ARRAY_SIZE(sensor_oe_enable_regs));
-> +		if (ret < 0) {
-> +			clk_disable_unprepare(ov5647->xclk);
-> +			dev_err(&client->dev,
-> +				"write sensor_oe_enable_regs error\n");
-> +			goto out;
-> +		}
-> +
-> +		ret = __sensor_init(sd);
-> +		if (ret < 0) {
-> +			clk_disable_unprepare(ov5647->xclk);
-> +			dev_err(&client->dev,
-> +				"Camera not available, check Power\n");
-> +			goto out;
-> +		}
-> +	} else if (!on && ov5647->power_count == 1) {
-> +		dev_dbg(&client->dev, "OV5647 power off\n");
-> +
-> +		dev_dbg(&client->dev, "disable oe\n");
-> +		ret = ov5647_write_array(sd, sensor_oe_disable_regs,
-> +				ARRAY_SIZE(sensor_oe_disable_regs));
-> +
-> +		if (ret < 0)
-> +			dev_dbg(&client->dev, "disable oe failed\n");
-> +
-> +		ret = set_sw_standby(sd, true);
-> +
-> +		if (ret < 0)
-> +			dev_dbg(&client->dev, "soft stby failed\n");
-> +
-> +		clk_disable_unprepare(ov5647->xclk);
-> +	}
-> +
-> +	/* Update the power count. */
-> +	ov5647->power_count += on ? 1 : -1;
-> +	WARN_ON(ov5647->power_count < 0);
-> +
-> +out:
-> +	mutex_unlock(&ov5647->lock);
-> +
-> +	return ret;
-> +}
-> +
-> +#ifdef CONFIG_VIDEO_ADV_DEBUG
-> +/**
-> + * @short Get register value
-> + * @param[in] sd v4l2 subdev
-> + * @param[in] reg register struct
-> + * @return Error code
-> + */
-> +static int sensor_get_register(struct v4l2_subdev *sd,
-> +				struct v4l2_dbg_register *reg)
-> +{
-> +	unsigned char val = 0;
-> +	int ret;
-> +
-> +	ret = ov5647_read(sd, reg->reg & 0xff, &val);
-> +	if (ret != 0)
-> +		return ret;
-> +
-> +	reg->val = val;
-> +	reg->size = 1;
-> +
-> +	return ret;
-> +}
-> +
-> +/**
-> + * @short Set register value
-> + * @param[in] sd v4l2 subdev
-> + * @param[in] reg register struct
-> + * @return Error code
-> + */
-> +static int sensor_set_register(struct v4l2_subdev *sd,
-> +				const struct v4l2_dbg_register *reg)
-> +{
-> +	return ov5647_write(sd, reg->reg & 0xff, reg->val & 0xff);
-> +}
-> +#endif
-> +
-> +/**
-> + * @short Subdev core operations registration
-> + */
-> +static const struct v4l2_subdev_core_ops sensor_core_ops = {
-> +	.s_power		= sensor_power,
-> +#ifdef CONFIG_VIDEO_ADV_DEBUG
-> +	.g_register		= sensor_get_register,
-> +	.s_register		= sensor_set_register,
-> +#endif
-> +};
-> +
-> +static int enum_mbus_code(struct v4l2_subdev *sd,
-> +				struct v4l2_subdev_pad_config *cfg,
-> +				struct v4l2_subdev_mbus_code_enum *code)
-> +{
-> +	if (code->index > 0)
-> +		return -EINVAL;
-> +
-> +	code->code = MEDIA_BUS_FMT_SBGGR8_1X8;
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_subdev_pad_ops subdev_pad_ops = {
-> +	.enum_mbus_code = enum_mbus_code,
-> +};
-> +
-> +
-> +/**
-> + * @short Subdev operations registration
-> + *
-> + */
-> +static const struct v4l2_subdev_ops subdev_ops = {
-> +	.core		= &sensor_core_ops,
-> +	.pad		= &subdev_pad_ops,
-
-You should implement s_stream() in video ops to control the streaming state.
-
-I don't know about this particular sensor, but on SMIA compliant sensors
-the SW standby means streaming is disabled. There seem to be additional
-registers as well; my educated guess is that writing all those to control
-streaming would be the right thing to do.
-
-The CSI-2 bus initialisation could fail if you start streaming right away
-when the sensor is powered on.
-
-> +};
-> +
-> +/**
-> + * @short Detect camera version and model
-> + * @param[in] sd v4l2 subdev
-> + * @return Error code
-> + */
-> +static int ov5647_detect(struct v4l2_subdev *sd)
-> +{
-> +	unsigned char v;
-> +	int ret;
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +
-> +	ret = ov5647_write(sd, OV5647_SW_RESET, 0x01);
-> +	if (ret < 0)
-> +		return ret;
-> +	ret = ov5647_read(sd, OV5647_REG_CHIPID_H, &v);
-> +	if (ret < 0)
-> +		return ret;
-> +	if (v != 0x56) {
-> +		dev_err(&client->dev, "Wrong model version detected");
-> +		return -ENODEV;
-> +	}
-> +	ret = ov5647_read(sd, OV5647_REG_CHIPID_L, &v);
-> +	if (ret < 0)
-> +		return ret;
-> +	if (v != 0x47) {
-> +		dev_err(&client->dev, "Wrong model version detected");
-> +		return -ENODEV;
-> +	}
-> +
-> +	ret = ov5647_write(sd, OV5647_SW_RESET, 0x00);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	return 0;
-> +}
-> +
-> +/**
-> + * @short Detect if camera is registered
-> + * @param[in] sd v4l2 subdev
-> + * @return Error code
-> + */
-> +static int ov5647_registered(struct v4l2_subdev *sd)
-> +{
-> +	return 0;
-> +}
-> +
-> +/**
-> + * @short Open device
-> + * @param[in] sd v4l2 subdev
-> + * @param[in] fh v4l2 file handler
-> + * @return Error code
-> + */
-> +static int ov5647_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-> +{
-> +	struct v4l2_mbus_framefmt *format =
-> +				v4l2_subdev_get_try_format(sd, fh->pad, 0);
-> +	struct v4l2_rect *crop =
-> +				v4l2_subdev_get_try_crop(sd, fh->pad, 0);
-> +
-> +	crop->left = OV5647_COLUMN_START_DEF;
-> +	crop->top = OV5647_ROW_START_DEF;
-> +	crop->width = OV5647_WINDOW_WIDTH_DEF;
-> +	crop->height = OV5647_WINDOW_HEIGHT_DEF;
-> +
-> +	format->code = MEDIA_BUS_FMT_SBGGR8_1X8;
-> +
-> +	format->width = OV5647_WINDOW_WIDTH_DEF;
-> +	format->height = OV5647_WINDOW_HEIGHT_DEF;
-> +	format->field = V4L2_FIELD_NONE;
-> +	format->colorspace = V4L2_COLORSPACE_SRGB;
-> +
-> +	return sensor_power(sd, true);
-> +}
-> +
-> +/**
-> + * @short Open device
-> + * @param[in] sd v4l2 subdev
-> + * @param[in] fh v4l2 file handler
-> + * @return Error code
-> + */
-> +static int ov5647_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-> +{
-> +	return sensor_power(sd, false);
-> +}
-> +
-> +/**
-> + * @short Subdev internal operations registration
-> + *
-> + */
-> +static const struct v4l2_subdev_internal_ops ov5647_subdev_internal_ops = {
-> +	.registered = ov5647_registered,
-> +	.open = ov5647_open,
-> +	.close = ov5647_close,
-> +};
-> +
-> +/**
-> + * @short Initialization routine - Entry point of the driver
-> + * @param[in] client pointer to the i2c client structure
-> + * @param[in] id pointer to the i2c device id structure
-> + * @return 0 on success and a negative number on failure
-> + */
-> +static int ov5647_probe(struct i2c_client *client,
-> +			const struct i2c_device_id *id)
-> +{
-> +	struct device *dev = &client->dev;
-> +	struct ov5647 *sensor;
-> +	int ret;
-> +	struct v4l2_subdev *sd;
-> +
-> +	dev_info(&client->dev, "Installing OmniVision OV5647 camera driver\n");
-> +
-> +	sensor = devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
-> +	if (sensor == NULL)
-> +		return -ENOMEM;
-> +
-> +	/* get system clock (xclk) */
-> +	sensor->xclk = devm_clk_get(dev, "xclk");
-> +	if (IS_ERR(sensor->xclk)) {
-> +		dev_err(dev, "could not get xclk");
-> +		return PTR_ERR(sensor->xclk);
-> +	}
-> +
-> +	ret = of_property_read_u32(dev->of_node, "clock-frequency",
-> +				    &sensor->xclk_freq);
-> +	if (ret) {
-> +		dev_err(dev, "could not get xclk frequency\n");
-> +		return ret;
-> +	}
-> +
-> +	mutex_init(&sensor->lock);
-> +	sensor->dev = dev;
-> +
-> +	sd = &sensor->sd;
-> +	v4l2_i2c_subdev_init(sd, client, &subdev_ops);
-> +	sensor->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-> +
-> +	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
-> +	sd->entity.function = MEDIA_ENT_F_CAM_SENSOR;
-> +	ret = media_entity_pads_init(&sd->entity, 1, &sensor->pad);
-> +	if (ret < 0)
-> +		goto mutex_remove;
-> +
-> +	ret = ov5647_detect(sd);
-> +	if (ret < 0)
-> +		goto error;
-> +
-> +	ret = v4l2_async_register_subdev(sd);
-> +	if (ret < 0)
-> +		goto error;
-> +
-> +	return 0;
-> +error:
-> +	media_entity_cleanup(&sd->entity);
-> +mutex_remove:
-> +	mutex_destroy(&sensor->lock);
-> +	return ret;
-> +}
-> +
-> +/**
-> + * @short Exit routine - Exit point of the driver
-> + * @param[in] client pointer to the i2c client structure
-> + * @return 0 on success and a negative number on failure
-> + */
-> +static int ov5647_remove(struct i2c_client *client)
-> +{
-> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> +	struct ov5647 *ov5647 = to_state(sd);
-> +
-> +	v4l2_async_unregister_subdev(&ov5647->sd);
-> +	media_entity_cleanup(&ov5647->sd.entity);
-> +	v4l2_device_unregister_subdev(sd);
-> +	mutex_destroy(&ov5647->lock);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct i2c_device_id ov5647_id[] = {
-> +	{ "ov5647", 0 },
-> +	{ }
-> +};
-> +MODULE_DEVICE_TABLE(i2c, ov5647_id);
-> +
-> +#if IS_ENABLED(CONFIG_OF)
-> +static const struct of_device_id ov5647_of_match[] = {
-> +	{ .compatible = "ovti,ov5647" },
-> +	{ /* sentinel */ },
-> +};
-> +MODULE_DEVICE_TABLE(of, ov5647_of_match);
-> +#endif
-> +
-> +/**
-> + * @short i2c driver structure
-> + */
-> +static struct i2c_driver ov5647_driver = {
-> +	.driver = {
-> +		.of_match_table = of_match_ptr(ov5647_of_match),
-> +		.owner	= THIS_MODULE,
-> +		.name	= "ov5647",
-> +	},
-> +	.probe		= ov5647_probe,
-> +	.remove		= ov5647_remove,
-> +	.id_table	= ov5647_id,
-> +};
-> +
-> +module_i2c_driver(ov5647_driver);
-> +
-> +MODULE_AUTHOR("Ramiro Oliveira <roliveir@synopsys.com>");
-> +MODULE_DESCRIPTION("A low-level driver for OmniVision ov5647 sensors");
-> +MODULE_LICENSE("GPL v2");
-
+diff --git a/Documentation/media/v4l-drivers/index.rst b/Documentation/media/v4l-drivers/index.rst
+index a606d1c..d8cade5 100644
+--- a/Documentation/media/v4l-drivers/index.rst
++++ b/Documentation/media/v4l-drivers/index.rst
+@@ -42,6 +42,7 @@ For more details see the file COPYING in the source distribution of Linux.
+ 	davinci-vpbe
+ 	fimc
+ 	ivtv
++        max2175
+ 	meye
+ 	omap3isp
+ 	omap4_camera
+diff --git a/Documentation/media/v4l-drivers/max2175.rst b/Documentation/media/v4l-drivers/max2175.rst
+new file mode 100644
+index 0000000..201af8f
+--- /dev/null
++++ b/Documentation/media/v4l-drivers/max2175.rst
+@@ -0,0 +1,60 @@
++Maxim Integrated MAX2175 RF to bits tuner driver
++================================================
++
++The MAX2175 driver implements the following driver-specific controls:
++
++``V4L2_CID_MAX2175_I2S_ENABLE``
++-------------------------------
++    Enable/Disable I2S output of the tuner.
++
++.. flat-table::
++    :header-rows:  0
++    :stub-columns: 0
++    :widths:       1 4
++
++    * - ``(0)``
++      - I2S output is disabled.
++    * - ``(1)``
++      - I2S output is enabled.
++
++``V4L2_CID_MAX2175_HSLS``
++-------------------------
++    The high-side/low-side (HSLS) control of the tuner for a given band.
++
++.. flat-table::
++    :header-rows:  0
++    :stub-columns: 0
++    :widths:       1 4
++
++    * - ``(0)``
++      - The LO frequency position is below the desired frequency.
++    * - ``(1)``
++      - The LO frequency position is above the desired frequency.
++
++``V4L2_CID_MAX2175_RX_MODE (menu)``
++-----------------------------------
++    The Rx mode controls a number of preset parameters of the tuner like sck
++    rate, sampling rate etc. These multiple settings are provided under one
++    single label called Rx mode in the datasheet. The list below shows the
++    supported modes with a brief description.
++
++.. flat-table::
++    :header-rows:  0
++    :stub-columns: 0
++    :widths:       1 4
++
++    * - ``"Europe modes"``
++    * - ``"FM 1.2" (0)``
++      - This configures FM band with a sample rate of 0.512 million
++        samples/sec with a 10.24 MHz sck.
++    * - ``"DAB 1.2" (1)``
++      - This configures VHF band with a sample rate of 2.048 million
++        samples/sec with a 32.768 MHz sck.
++
++    * - ``"North America modes"``
++    * - ``"FM 1.0" (0)``
++      - This configures FM band with a sample rate of 0.7441875 million
++        samples/sec with a 14.88375 MHz sck.
++    * - ``"DAB 1.2" (1)``
++      - This configures FM band with a sample rate of 0.372 million
++        samples/sec with a 7.441875 MHz sck.
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index cee1dae..3fd1443 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -751,6 +751,10 @@ config VIDEO_SAA6752HS
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called saa6752hs.
+ 
++comment "SDR tuner chips"
++
++source "drivers/media/i2c/max2175/Kconfig"
++
+ comment "Miscellaneous helper chips"
+ 
+ config VIDEO_THS7303
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index 5bc7bbe..d8a079e 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -7,6 +7,8 @@ obj-$(CONFIG_VIDEO_CX25840) += cx25840/
+ obj-$(CONFIG_VIDEO_M5MOLS)	+= m5mols/
+ obj-y				+= soc_camera/
+ 
++obj-$(CONFIG_SDR_MAX2175) 	+= max2175/
++
+ obj-$(CONFIG_VIDEO_APTINA_PLL) += aptina-pll.o
+ obj-$(CONFIG_VIDEO_TVAUDIO) += tvaudio.o
+ obj-$(CONFIG_VIDEO_TDA7432) += tda7432.o
+diff --git a/drivers/media/i2c/max2175/Kconfig b/drivers/media/i2c/max2175/Kconfig
+new file mode 100644
+index 0000000..93a8f83
+--- /dev/null
++++ b/drivers/media/i2c/max2175/Kconfig
+@@ -0,0 +1,8 @@
++config SDR_MAX2175
++	tristate "Maxim 2175 RF to Bits tuner"
++	depends on VIDEO_V4L2 && MEDIA_SDR_SUPPORT && I2C
++	---help---
++	  Support for Maxim 2175 tuner
++
++	  To compile this driver as a module, choose M here; the
++	  module will be called max2175.
+diff --git a/drivers/media/i2c/max2175/Makefile b/drivers/media/i2c/max2175/Makefile
+new file mode 100644
+index 0000000..9bb46ac
+--- /dev/null
++++ b/drivers/media/i2c/max2175/Makefile
+@@ -0,0 +1,4 @@
++#
++# Makefile for Maxim RF to Bits tuner device
++#
++obj-$(CONFIG_SDR_MAX2175) += max2175.o
+diff --git a/drivers/media/i2c/max2175/max2175.c b/drivers/media/i2c/max2175/max2175.c
+new file mode 100644
+index 0000000..e04c56c
+--- /dev/null
++++ b/drivers/media/i2c/max2175/max2175.c
+@@ -0,0 +1,1438 @@
++/*
++ * Maxim Integrated MAX2175 RF to Bits tuner driver
++ *
++ * This driver & most of the hard coded values are based on the reference
++ * application delivered by Maxim for this device.
++ *
++ * Copyright (C) 2016 Maxim Integrated Products
++ * Copyright (C) 2016 Renesas Electronics Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2
++ * as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/clk.h>
++#include <linux/delay.h>
++#include <linux/errno.h>
++#include <linux/i2c.h>
++#include <linux/init.h>
++#include <linux/interrupt.h>
++#include <linux/kernel.h>
++#include <linux/math64.h>
++#include <linux/module.h>
++#include <linux/regmap.h>
++#include <linux/slab.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-of.h>
++
++#include "max2175.h"
++
++#define DRIVER_NAME "max2175"
++
++static unsigned int debug;
++module_param(debug, uint, 0644);
++MODULE_PARM_DESC(debug, "activate debug info");
++
++#define mxm_dbg(ctx, fmt, arg...) v4l2_dbg(1, debug, &ctx->sd, fmt, ## arg)
++#define mxm_err(ctx, fmt, arg...) dev_err(&ctx->client->dev, fmt, ## arg)
++
++/* Rx mode */
++struct max2175_rxmode {
++	enum max2175_band band;		/* Associated band */
++	u32 freq;			/* Default freq in Hz */
++	u8 i2s_word_size;		/* Bit value */
++};
++
++/* Register map to define preset values */
++struct max2175_reg_map {
++	u8 idx;				/* Register index */
++	u8 val;				/* Register value */
++};
++
++static const struct max2175_rxmode eu_rx_modes[] = {
++	/* EU modes */
++	[MAX2175_EU_FM_1_2] = { MAX2175_BAND_FM, 98256000, 1 },
++	[MAX2175_DAB_1_2]   = { MAX2175_BAND_VHF, 182640000, 0 },
++};
++
++static const struct max2175_rxmode na_rx_modes[] = {
++	/* NA modes */
++	[MAX2175_NA_FM_1_0] = { MAX2175_BAND_FM, 98255520, 1 },
++	[MAX2175_NA_FM_2_0] = { MAX2175_BAND_FM, 98255520, 6 },
++};
++
++/*
++ * Preset values:
++ * Based on Maxim MAX2175 Register Table revision: 130p10
++ */
++static const u8 full_fm_eu_1p0[] = {
++	0x15, 0x04, 0xb8, 0xe3, 0x35, 0x18, 0x7c, 0x00,
++	0x00, 0x7d, 0x40, 0x08, 0x70, 0x7a, 0x88, 0x91,
++	0x61, 0x61, 0x61, 0x61, 0x5a, 0x0f, 0x34, 0x1c,
++	0x14, 0x88, 0x33, 0x02, 0x00, 0x09, 0x00, 0x65,
++	0x9f, 0x2b, 0x80, 0x00, 0x95, 0x05, 0x2c, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40,
++	0x4a, 0x08, 0xa8, 0x0e, 0x0e, 0x2f, 0x7e, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0xab, 0x5e, 0xa9,
++	0xae, 0xbb, 0x57, 0x18, 0x3b, 0x03, 0x3b, 0x64,
++	0x40, 0x60, 0x00, 0x2a, 0xbf, 0x3f, 0xff, 0x9f,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x00,
++	0xff, 0xfc, 0xef, 0x1c, 0x40, 0x00, 0x00, 0x02,
++	0x00, 0x00, 0xe0, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0xac, 0x40, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x75, 0x00, 0x00,
++	0x00, 0x47, 0x00, 0x00, 0x11, 0x3f, 0x22, 0x00,
++	0xf1, 0x00, 0x41, 0x03, 0xb0, 0x00, 0x00, 0x00,
++	0x1b,
++};
++
++static const u8 full_fm_na_1p0[] = {
++	0x13, 0x08, 0x8d, 0xc0, 0x35, 0x18, 0x7d, 0x3f,
++	0x7d, 0x75, 0x40, 0x08, 0x70, 0x7a, 0x88, 0x91,
++	0x61, 0x61, 0x61, 0x61, 0x5c, 0x0f, 0x34, 0x1c,
++	0x14, 0x88, 0x33, 0x02, 0x00, 0x01, 0x00, 0x65,
++	0x9f, 0x2b, 0x80, 0x00, 0x95, 0x05, 0x2c, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40,
++	0x4a, 0x08, 0xa8, 0x0e, 0x0e, 0xaf, 0x7e, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0xab, 0x5e, 0xa9,
++	0xae, 0xbb, 0x57, 0x18, 0x3b, 0x03, 0x3b, 0x64,
++	0x40, 0x60, 0x00, 0x2a, 0xbf, 0x3f, 0xff, 0x9f,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x00,
++	0xff, 0xfc, 0xef, 0x1c, 0x40, 0x00, 0x00, 0x02,
++	0x00, 0x00, 0xe0, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0xa6, 0x40, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x75, 0x00, 0x00,
++	0x00, 0x35, 0x00, 0x00, 0x11, 0x3f, 0x22, 0x00,
++	0xf1, 0x00, 0x41, 0x03, 0xb0, 0x00, 0x00, 0x00,
++	0x1b,
++};
++
++/* DAB1.2 settings */
++static const struct max2175_reg_map dab12_map[] = {
++	{ 0x01, 0x13 }, { 0x02, 0x0d }, { 0x03, 0x15 }, { 0x04, 0x55 },
++	{ 0x05, 0x0a }, { 0x06, 0xa0 }, { 0x07, 0x40 }, { 0x08, 0x00 },
++	{ 0x09, 0x00 }, { 0x0a, 0x7d }, { 0x0b, 0x4a }, { 0x0c, 0x28 },
++	{ 0x0e, 0x43 }, { 0x0f, 0xb5 }, { 0x10, 0x31 }, { 0x11, 0x9e },
++	{ 0x12, 0x68 }, { 0x13, 0x9e }, { 0x14, 0x68 }, { 0x15, 0x58 },
++	{ 0x16, 0x2f }, { 0x17, 0x3f }, { 0x18, 0x40 }, { 0x1a, 0x88 },
++	{ 0x1b, 0xaa }, { 0x1c, 0x9a }, { 0x1d, 0x00 }, { 0x1e, 0x00 },
++	{ 0x23, 0x80 }, { 0x24, 0x00 }, { 0x25, 0x00 }, { 0x26, 0x00 },
++	{ 0x27, 0x00 }, { 0x32, 0x08 }, { 0x33, 0xf8 }, { 0x36, 0x2d },
++	{ 0x37, 0x7e }, { 0x55, 0xaf }, { 0x56, 0x3f }, { 0x57, 0xf8 },
++	{ 0x58, 0x99 }, { 0x76, 0x00 }, { 0x77, 0x00 }, { 0x78, 0x02 },
++	{ 0x79, 0x40 }, { 0x82, 0x00 }, { 0x83, 0x00 }, { 0x85, 0x00 },
++	{ 0x86, 0x20 },
++};
++
++/* EU FM 1.2 settings */
++static const struct max2175_reg_map fmeu1p2_map[] = {
++	{ 0x01, 0x15 }, { 0x02, 0x04 }, { 0x03, 0xb8 }, { 0x04, 0xe3 },
++	{ 0x05, 0x35 }, { 0x06, 0x18 }, { 0x07, 0x7c }, { 0x08, 0x00 },
++	{ 0x09, 0x00 }, { 0x0a, 0x73 }, { 0x0b, 0x40 }, { 0x0c, 0x08 },
++	{ 0x0e, 0x7a }, { 0x0f, 0x88 }, { 0x10, 0x91 }, { 0x11, 0x61 },
++	{ 0x12, 0x61 }, { 0x13, 0x61 }, { 0x14, 0x61 }, { 0x15, 0x5a },
++	{ 0x16, 0x0f }, { 0x17, 0x34 }, { 0x18, 0x1c }, { 0x1a, 0x88 },
++	{ 0x1b, 0x33 }, { 0x1c, 0x02 }, { 0x1d, 0x00 }, { 0x1e, 0x01 },
++	{ 0x23, 0x80 }, { 0x24, 0x00 }, { 0x25, 0x95 }, { 0x26, 0x05 },
++	{ 0x27, 0x2c }, { 0x32, 0x08 }, { 0x33, 0xa8 }, { 0x36, 0x2f },
++	{ 0x37, 0x7e }, { 0x55, 0xbf }, { 0x56, 0x3f }, { 0x57, 0xff },
++	{ 0x58, 0x9f }, { 0x76, 0xac }, { 0x77, 0x40 }, { 0x78, 0x00 },
++	{ 0x79, 0x00 }, { 0x82, 0x47 }, { 0x83, 0x00 }, { 0x85, 0x11 },
++	{ 0x86, 0x3f },
++};
++
++/* FM NA 1.0 settings */
++static const struct max2175_reg_map fmna1p0_map[] = {
++	{ 0x01, 0x13 }, { 0x02, 0x08 }, { 0x03, 0x8d }, { 0x04, 0xc0 },
++	{ 0x05, 0x35 }, { 0x06, 0x18 }, { 0x07, 0x7d }, { 0x08, 0x3f },
++	{ 0x09, 0x7d }, { 0x0a, 0x75 }, { 0x0b, 0x40 }, { 0x0c, 0x08 },
++	{ 0x0e, 0x7a }, { 0x0f, 0x88 }, { 0x10, 0x91 }, { 0x11, 0x61 },
++	{ 0x12, 0x61 }, { 0x13, 0x61 }, { 0x14, 0x61 }, { 0x15, 0x5c },
++	{ 0x16, 0x0f }, { 0x17, 0x34 }, { 0x18, 0x1c }, { 0x1a, 0x88 },
++	{ 0x1b, 0x33 }, { 0x1c, 0x02 }, { 0x1d, 0x00 }, { 0x1e, 0x01 },
++	{ 0x23, 0x80 }, { 0x24, 0x00 }, { 0x25, 0x95 }, { 0x26, 0x05 },
++	{ 0x27, 0x2c }, { 0x32, 0x08 }, { 0x33, 0xa8 }, { 0x36, 0xaf },
++	{ 0x37, 0x7e }, { 0x55, 0xbf }, { 0x56, 0x3f }, { 0x57, 0xff },
++	{ 0x58, 0x9f }, { 0x76, 0xa6 }, { 0x77, 0x40 }, { 0x78, 0x00 },
++	{ 0x79, 0x00 }, { 0x82, 0x35 }, { 0x83, 0x00 }, { 0x85, 0x11 },
++	{ 0x86, 0x3f },
++};
++
++/* FM NA 2.0 settings */
++static const struct max2175_reg_map fmna2p0_map[] = {
++	{ 0x01, 0x13 }, { 0x02, 0x08 }, { 0x03, 0x8d }, { 0x04, 0xc0 },
++	{ 0x05, 0x35 }, { 0x06, 0x18 }, { 0x07, 0x7c }, { 0x08, 0x54 },
++	{ 0x09, 0xa7 }, { 0x0a, 0x55 }, { 0x0b, 0x42 }, { 0x0c, 0x48 },
++	{ 0x0e, 0x7a }, { 0x0f, 0x88 }, { 0x10, 0x91 }, { 0x11, 0x61 },
++	{ 0x12, 0x61 }, { 0x13, 0x61 }, { 0x14, 0x61 }, { 0x15, 0x5c },
++	{ 0x16, 0x0f }, { 0x17, 0x34 }, { 0x18, 0x1c }, { 0x1a, 0x88 },
++	{ 0x1b, 0x33 }, { 0x1c, 0x02 }, { 0x1d, 0x00 }, { 0x1e, 0x01 },
++	{ 0x23, 0x80 }, { 0x24, 0x00 }, { 0x25, 0x95 }, { 0x26, 0x05 },
++	{ 0x27, 0x2c }, { 0x32, 0x08 }, { 0x33, 0xa8 }, { 0x36, 0xaf },
++	{ 0x37, 0x7e }, { 0x55, 0xbf }, { 0x56, 0x3f }, { 0x57, 0xff },
++	{ 0x58, 0x9f }, { 0x76, 0xac }, { 0x77, 0xc0 }, { 0x78, 0x00 },
++	{ 0x79, 0x00 }, { 0x82, 0x6b }, { 0x83, 0x00 }, { 0x85, 0x11 },
++	{ 0x86, 0x3f },
++};
++
++static const u16 ch_coeff_dab1[] = {
++	0x001c, 0x0007, 0xffcd, 0x0056, 0xffa4, 0x0033, 0x0027, 0xff61,
++	0x010e, 0xfec0, 0x0106, 0xffb8, 0xff1c, 0x023c, 0xfcb2, 0x039b,
++	0xfd4e, 0x0055, 0x036a, 0xf7de, 0x0d21, 0xee72, 0x1499, 0x6a51,
++};
++
++static const u16 ch_coeff_fmeu[] = {
++	0x0000, 0xffff, 0x0001, 0x0002, 0xfffa, 0xffff, 0x0015, 0xffec,
++	0xffde, 0x0054, 0xfff9, 0xff52, 0x00b8, 0x00a2, 0xfe0a, 0x00af,
++	0x02e3, 0xfc14, 0xfe89, 0x089d, 0xfa2e, 0xf30f, 0x25be, 0x4eb6,
++};
++
++static const u16 eq_coeff_fmeu1_ra02_m6db[] = {
++	0x0040, 0xffc6, 0xfffa, 0x002c, 0x000d, 0xff90, 0x0037, 0x006e,
++	0xffc0, 0xff5b, 0x006a, 0x00f0, 0xff57, 0xfe94, 0x0112, 0x0252,
++	0xfe0c, 0xfc6a, 0x0385, 0x0553, 0xfa49, 0xf789, 0x0b91, 0x1a10,
++};
++
++static const u16 ch_coeff_fmna[] = {
++	0x0001, 0x0003, 0xfffe, 0xfff4, 0x0000, 0x001f, 0x000c, 0xffbc,
++	0xffd3, 0x007d, 0x0075, 0xff33, 0xff01, 0x0131, 0x01ef, 0xfe60,
++	0xfc7a, 0x020e, 0x0656, 0xfd94, 0xf395, 0x02ab, 0x2857, 0x3d3f,
++};
++
++static const u16 eq_coeff_fmna1_ra02_m6db[] = {
++	0xfff1, 0xffe1, 0xffef, 0x000e, 0x0030, 0x002f, 0xfff6, 0xffa7,
++	0xff9d, 0x000a, 0x00a2, 0x00b5, 0xffea, 0xfed9, 0xfec5, 0x003d,
++	0x0217, 0x021b, 0xff5a, 0xfc2b, 0xfcbd, 0x02c4, 0x0ac3, 0x0e85,
++};
++
++static const u8 adc_presets[2][23] = {
++	{
++		0x83, 0x00, 0xcf, 0xb4, 0x0f, 0x2c, 0x0c, 0x49,
++		0x00, 0x00, 0x00, 0x8c,	0x02, 0x02, 0x00, 0x04,
++		0xec, 0x82, 0x4b, 0xcc, 0x01, 0x88, 0x0c,
++	},
++	{
++		0x83, 0x00, 0xcf, 0xb4,	0x0f, 0x2c, 0x0c, 0x49,
++		0x00, 0x00, 0x00, 0x8c,	0x02, 0x20, 0x33, 0x8c,
++		0x57, 0xd7, 0x59, 0xb7,	0x65, 0x0e, 0x0c,
++	},
++};
++
++/* Custom controls */
++#define V4L2_CID_MAX2175_I2S_ENABLE	(V4L2_CID_USER_MAX217X_BASE + 0x01)
++#define V4L2_CID_MAX2175_HSLS		(V4L2_CID_USER_MAX217X_BASE + 0x02)
++#define V4L2_CID_MAX2175_RX_MODE	(V4L2_CID_USER_MAX217X_BASE + 0x03)
++
++/* Tuner bands */
++static const struct v4l2_frequency_band eu_bands_rf = {
++	.tuner = 0,
++	.type = V4L2_TUNER_RF,
++	.index = 0,
++	.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
++	.rangelow   = 65000000,
++	.rangehigh  = 240000000,
++};
++
++static const struct v4l2_frequency_band na_bands_rf = {
++	.tuner = 0,
++	.type = V4L2_TUNER_RF,
++	.index = 0,
++	.capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS,
++	.rangelow   = 65000000,
++	.rangehigh  = 108000000,
++};
++
++/* Regmap settings */
++static const struct regmap_range max2175_regmap_volatile_range[] = {
++	regmap_reg_range(0x30, 0x35),
++	regmap_reg_range(0x3a, 0x45),
++	regmap_reg_range(0x59, 0x5e),
++	regmap_reg_range(0x73, 0x75),
++};
++
++static const struct regmap_access_table max2175_volatile_regs = {
++	.yes_ranges = max2175_regmap_volatile_range,
++	.n_yes_ranges = ARRAY_SIZE(max2175_regmap_volatile_range),
++};
++
++static const struct reg_default max2175_reg_defaults[] = {
++	{ 0x00, 0x07},
++};
++
++static const struct regmap_config max2175_regmap_config = {
++	.reg_bits = 8,
++	.val_bits = 8,
++	.max_register = 0xff,
++	.reg_defaults = max2175_reg_defaults,
++	.num_reg_defaults = ARRAY_SIZE(max2175_reg_defaults),
++	.volatile_table = &max2175_volatile_regs,
++	.cache_type = REGCACHE_FLAT,
++};
++
++struct max2175 {
++	struct v4l2_subdev sd;		/* Sub-device */
++	struct i2c_client *client;	/* I2C client */
++
++	/* Controls */
++	struct v4l2_ctrl_handler ctrl_hdl;
++	struct v4l2_ctrl *lna_gain;	/* LNA gain value */
++	struct v4l2_ctrl *if_gain;	/* I/F gain value */
++	struct v4l2_ctrl *pll_lock;	/* PLL lock */
++	struct v4l2_ctrl *i2s_en;	/* I2S output enable */
++	struct v4l2_ctrl *hsls;		/* High-side/Low-side polarity */
++	struct v4l2_ctrl *rx_mode;	/* Receive mode */
++
++	/* Regmap */
++	struct regmap *regmap;
++
++	/* Cached configuration */
++	u32 freq;			/* Tuned freq In Hz */
++	const struct max2175_rxmode *rx_modes;		/* EU or NA modes */
++	const struct v4l2_frequency_band *bands_rf;	/* EU or NA bands */
++
++	/* Device settings */
++	unsigned long xtal_freq;	/* Ref Oscillator freq in Hz */
++	u32 decim_ratio;
++	bool master;			/* Master/Slave */
++	bool am_hiz;			/* AM Hi-Z filter usage */
++
++	/* ROM values */
++	u8 rom_bbf_bw_am;
++	u8 rom_bbf_bw_fm;
++	u8 rom_bbf_bw_dab;
++
++	/* Driver private variables */
++	bool mode_resolved;		/* Flag to sanity check settings */
++};
++
++static inline struct max2175 *max2175_from_sd(struct v4l2_subdev *sd)
++{
++	return container_of(sd, struct max2175, sd);
++}
++
++static inline struct max2175 *max2175_from_ctrl_hdl(struct v4l2_ctrl_handler *h)
++{
++	return container_of(h, struct max2175, ctrl_hdl);
++}
++
++/* Get bitval of a given val */
++static inline u8 max2175_get_bitval(u8 val, u8 msb, u8 lsb)
++{
++	return (val & GENMASK(msb, lsb)) >> lsb;
++}
++
++/* Read/Write bit(s) on top of regmap */
++static int max2175_read(struct max2175 *ctx, u8 idx, u8 *val)
++{
++	u32 regval = 0;
++	int ret = regmap_read(ctx->regmap, idx, &regval);
++
++	if (ret)
++		mxm_err(ctx, "read ret(%d): idx 0x%02x\n", ret, idx);
++
++	*val = regval;
++	return ret;
++}
++
++static int max2175_write(struct max2175 *ctx, u8 idx, u8 val)
++{
++	int ret = regmap_write(ctx->regmap, idx, val);
++
++	if (ret)
++		mxm_err(ctx, "write ret(%d): idx 0x%02x val 0x%02x\n",
++			ret, idx, val);
++	return ret;
++}
++
++static u8 max2175_read_bits(struct max2175 *ctx, u8 idx, u8 msb, u8 lsb)
++{
++	u8 val;
++
++	if (max2175_read(ctx, idx, &val))
++		return 0;
++
++	return max2175_get_bitval(val, msb, lsb);
++}
++
++static int max2175_write_bits(struct max2175 *ctx, u8 idx,
++			     u8 msb, u8 lsb, u8 newval)
++{
++	int ret = regmap_update_bits(ctx->regmap, idx, GENMASK(msb, lsb),
++				     newval << lsb);
++
++	if (ret)
++		mxm_err(ctx, "wbits ret(%d): idx 0x%02x\n", ret, idx);
++
++	return ret;
++}
++
++static int max2175_write_bit(struct max2175 *ctx, u8 idx, u8 bit, u8 newval)
++{
++	return max2175_write_bits(ctx, idx, bit, bit, newval);
++}
++
++/* Checks expected pattern every msec until timeout */
++static int max2175_poll_timeout(struct max2175 *ctx, u8 idx, u8 msb, u8 lsb,
++				u8 exp_bitval, u32 timeout_ms)
++{
++	unsigned int val;
++
++	return regmap_read_poll_timeout(ctx->regmap, idx, val,
++			(max2175_get_bitval(val, msb, lsb) == exp_bitval),
++			1000, timeout_ms * 1000);
++}
++
++static int max2175_poll_csm_ready(struct max2175 *ctx)
++{
++	int ret;
++
++	ret = max2175_poll_timeout(ctx, 69, 1, 1, 0, 50);
++	if (ret)
++		mxm_err(ctx, "csm not ready\n");
++
++	return ret;
++}
++
++#define MAX2175_IS_BAND_AM(ctx)		\
++	(max2175_read_bits(ctx, 5, 1, 0) == MAX2175_BAND_AM)
++
++#define MAX2175_IS_BAND_VHF(ctx)	\
++	(max2175_read_bits(ctx, 5, 1, 0) == MAX2175_BAND_VHF)
++
++#define MAX2175_IS_FM_MODE(ctx)		\
++	(max2175_read_bits(ctx, 12, 5, 4) == 0)
++
++#define MAX2175_IS_FMHD_MODE(ctx)	\
++	(max2175_read_bits(ctx, 12, 5, 4) == 1)
++
++#define MAX2175_IS_DAB_MODE(ctx)	\
++	(max2175_read_bits(ctx, 12, 5, 4) == 2)
++
++static int max2175_band_from_freq(u32 freq)
++{
++	if (freq >= 144000 && freq <= 26100000)
++		return MAX2175_BAND_AM;
++	else if (freq >= 65000000 && freq <= 108000000)
++		return MAX2175_BAND_FM;
++
++	return MAX2175_BAND_VHF;
++}
++
++static void max2175_i2s_enable(struct max2175 *ctx, bool enable)
++{
++	if (enable)
++		/* Stuff bits are zeroed */
++		max2175_write_bits(ctx, 104, 3, 0, 2);
++	else
++		/* Keep SCK alive */
++		max2175_write_bits(ctx, 104, 3, 0, 9);
++	mxm_dbg(ctx, "i2s %sabled\n", enable ? "en" : "dis");
++}
++
++static void max2175_set_filter_coeffs(struct max2175 *ctx, u8 m_sel,
++				      u8 bank, const u16 *coeffs)
++{
++	unsigned int i;
++	u8 coeff_addr, upper_address = 24;
++
++	mxm_dbg(ctx, "set_filter_coeffs: m_sel %d bank %d\n", m_sel, bank);
++	max2175_write_bits(ctx, 114, 5, 4, m_sel);
++
++	if (m_sel == 2)
++		upper_address = 12;
++
++	for (i = 0; i < upper_address; i++) {
++		coeff_addr = i + bank * 24;
++		max2175_write(ctx, 115, coeffs[i] >> 8);
++		max2175_write(ctx, 116, coeffs[i]);
++		max2175_write(ctx, 117, coeff_addr | 1 << 7);
++	}
++	max2175_write_bit(ctx, 117, 7, 0);
++}
++
++static void max2175_load_fmeu_1p2(struct max2175 *ctx)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(fmeu1p2_map); i++)
++		max2175_write(ctx, fmeu1p2_map[i].idx, fmeu1p2_map[i].val);
++
++	ctx->decim_ratio = 36;
++
++	/* Load the Channel Filter Coefficients into channel filter bank #2 */
++	max2175_set_filter_coeffs(ctx, MAX2175_CH_MSEL, 0, ch_coeff_fmeu);
++	max2175_set_filter_coeffs(ctx, MAX2175_EQ_MSEL, 0,
++				  eq_coeff_fmeu1_ra02_m6db);
++}
++
++static void max2175_load_dab_1p2(struct max2175 *ctx)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(dab12_map); i++)
++		max2175_write(ctx, dab12_map[i].idx, dab12_map[i].val);
++
++	ctx->decim_ratio = 1;
++
++	/* Load the Channel Filter Coefficients into channel filter bank #2 */
++	max2175_set_filter_coeffs(ctx, MAX2175_CH_MSEL, 2, ch_coeff_dab1);
++}
++
++static void max2175_load_fmna_1p0(struct max2175 *ctx)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(fmna1p0_map); i++)
++		max2175_write(ctx, fmna1p0_map[i].idx, fmna1p0_map[i].val);
++}
++
++static void max2175_load_fmna_2p0(struct max2175 *ctx)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(fmna2p0_map); i++)
++		max2175_write(ctx, fmna2p0_map[i].idx, fmna2p0_map[i].val);
++}
++
++static void max2175_set_bbfilter(struct max2175 *ctx)
++{
++	if (MAX2175_IS_BAND_AM(ctx)) {
++		max2175_write_bits(ctx, 12, 3, 0, ctx->rom_bbf_bw_am);
++		mxm_dbg(ctx, "set_bbfilter AM: rom %d\n", ctx->rom_bbf_bw_am);
++	} else if (MAX2175_IS_DAB_MODE(ctx)) {
++		max2175_write_bits(ctx, 12, 3, 0, ctx->rom_bbf_bw_dab);
++		mxm_dbg(ctx, "set_bbfilter DAB: rom %d\n", ctx->rom_bbf_bw_dab);
++	} else {
++		max2175_write_bits(ctx, 12, 3, 0, ctx->rom_bbf_bw_fm);
++		mxm_dbg(ctx, "set_bbfilter FM: rom %d\n", ctx->rom_bbf_bw_fm);
++	}
++}
++
++static bool max2175_set_csm_mode(struct max2175 *ctx,
++			  enum max2175_csm_mode new_mode)
++{
++	int ret = max2175_poll_csm_ready(ctx);
++
++	if (ret)
++		return ret;
++
++	max2175_write_bits(ctx, 0, 2, 0, new_mode);
++	mxm_dbg(ctx, "set csm new mode %d\n", new_mode);
++
++	/* Wait for a fixed settle down time depending on new mode */
++	switch (new_mode) {
++	case MAX2175_PRESET_TUNE:
++		usleep_range(51100, 51500);	/* 51.1ms */
++		break;
++	/*
++	 * Other mode switches need different sleep values depending on band &
++	 * mode
++	 */
++	default:
++		break;
++	}
++
++	return max2175_poll_csm_ready(ctx);
++}
++
++static int max2175_csm_action(struct max2175 *ctx,
++			      enum max2175_csm_mode action)
++{
++	int ret;
++
++	mxm_dbg(ctx, "csm_action: %d\n", action);
++
++	/* Other actions can be added in future when needed */
++	ret = max2175_set_csm_mode(ctx, MAX2175_LOAD_TO_BUFFER);
++	if (ret)
++		return ret;
++	return max2175_set_csm_mode(ctx, MAX2175_PRESET_TUNE);
++}
++
++static int max2175_set_lo_freq(struct max2175 *ctx, u32 lo_freq)
++{
++	u8 lo_mult, loband_bits = 0, vcodiv_bits = 0;
++	u32 int_desired, frac_desired;
++	enum max2175_band band;
++	int ret;
++
++	band = max2175_read_bits(ctx, 5, 1, 0);
++	switch (band) {
++	case MAX2175_BAND_AM:
++		lo_mult = 16;
++		break;
++	case MAX2175_BAND_FM:
++		if (lo_freq <= 74700000) {
++			lo_mult = 16;
++		} else if (lo_freq > 74700000 && lo_freq <= 110000000) {
++			loband_bits = 1;
++			lo_mult = 8;
++		} else {
++			loband_bits = 1;
++			vcodiv_bits = 3;
++			lo_mult = 8;
++		}
++		break;
++	case MAX2175_BAND_VHF:
++		if (lo_freq <= 210000000)
++			vcodiv_bits = 2;
++		else
++			vcodiv_bits = 1;
++
++		loband_bits = 2;
++		lo_mult = 4;
++		break;
++	default:
++		loband_bits = 3;
++		vcodiv_bits = 2;
++		lo_mult = 2;
++		break;
++	}
++
++	if (band == MAX2175_BAND_L)
++		lo_freq /= lo_mult;
++	else
++		lo_freq *= lo_mult;
++
++	int_desired = lo_freq / ctx->xtal_freq;
++	frac_desired = div_u64((u64)(lo_freq % ctx->xtal_freq) << 20,
++			       ctx->xtal_freq);
++
++	/* Check CSM is not busy */
++	ret = max2175_poll_csm_ready(ctx);
++	if (ret)
++		return ret;
++
++	mxm_dbg(ctx, "lo_mult %u int %u  frac %u\n",
++		lo_mult, int_desired, frac_desired);
++
++	/* Write the calculated values to the appropriate registers */
++	max2175_write(ctx, 1, int_desired);
++	max2175_write_bits(ctx, 2, 3, 0, (frac_desired >> 16) & 0xf);
++	max2175_write(ctx, 3, frac_desired >> 8);
++	max2175_write(ctx, 4, frac_desired);
++	max2175_write_bits(ctx, 5, 3, 2, loband_bits);
++	max2175_write_bits(ctx, 6, 7, 6, vcodiv_bits);
++	return ret;
++}
++
++/*
++ * Helper similar to DIV_ROUND_CLOSEST but an inline function that accepts s64
++ * dividend and s32 divisor
++ */
++static inline s64 max2175_round_closest(s64 dividend, s32 divisor)
++{
++	if ((dividend > 0 && divisor > 0) || (dividend < 0 && divisor < 0))
++		return div_s64(dividend + divisor / 2, divisor);
++
++	return div_s64(dividend - divisor / 2, divisor);
++}
++
++static int max2175_set_nco_freq(struct max2175 *ctx, s32 nco_freq)
++{
++	s32 clock_rate = ctx->xtal_freq / ctx->decim_ratio;
++	u32 nco_reg, abs_nco_freq = abs(nco_freq);
++	s64 nco_val_desired;
++	int ret;
++
++	if (abs_nco_freq < clock_rate / 2) {
++		nco_val_desired = 2 * nco_freq;
++	} else {
++		nco_val_desired = 2 * (clock_rate - abs_nco_freq);
++		if (nco_freq < 0)
++			nco_val_desired = -nco_val_desired;
++	}
++
++	nco_reg = max2175_round_closest(nco_val_desired << 20, clock_rate);
++
++	if (nco_freq < 0)
++		nco_reg += 0x200000;
++
++	/* Check CSM is not busy */
++	ret = max2175_poll_csm_ready(ctx);
++	if (ret)
++		return ret;
++
++	mxm_dbg(ctx, "freq %d desired %lld reg %u\n",
++		nco_freq, nco_val_desired, nco_reg);
++
++	/* Write the calculated values to the appropriate registers */
++	max2175_write_bits(ctx, 7, 4, 0, (nco_reg >> 16) & 0x1f);
++	max2175_write(ctx, 8, nco_reg >> 8);
++	max2175_write(ctx, 9, nco_reg);
++	return ret;
++}
++
++static int max2175_set_rf_freq_non_am_bands(struct max2175 *ctx, u64 freq,
++					    u32 lo_pos)
++{
++	s64 adj_freq, low_if_freq;
++	int ret;
++
++	mxm_dbg(ctx, "rf_freq: non AM bands\n");
++
++	if (MAX2175_IS_FM_MODE(ctx))
++		low_if_freq = 128000;
++	else if (MAX2175_IS_FMHD_MODE(ctx))
++		low_if_freq = 228000;
++	else
++		return max2175_set_lo_freq(ctx, freq);
++
++	if (MAX2175_IS_BAND_VHF(ctx) == (lo_pos == MAX2175_LO_ABOVE_DESIRED))
++		adj_freq = freq + low_if_freq;
++	else
++		adj_freq = freq - low_if_freq;
++
++	ret = max2175_set_lo_freq(ctx, adj_freq);
++	if (ret)
++		return ret;
++
++	return max2175_set_nco_freq(ctx, -low_if_freq);
++}
++
++static int max2175_set_rf_freq(struct max2175 *ctx, u64 freq, u32 lo_pos)
++{
++	int ret;
++
++	if (MAX2175_IS_BAND_AM(ctx))
++		ret = max2175_set_nco_freq(ctx, freq);
++	else
++		ret = max2175_set_rf_freq_non_am_bands(ctx, freq, lo_pos);
++
++	mxm_dbg(ctx, "set_rf_freq: ret %d freq %llu\n", ret, freq);
++	return ret;
++}
++
++static int max2175_tune_rf_freq(struct max2175 *ctx, u64 freq, u32 hsls)
++{
++	int ret;
++
++	ret = max2175_set_rf_freq(ctx, freq, hsls);
++	if (ret)
++		return ret;
++
++	ret = max2175_csm_action(ctx, MAX2175_BUFFER_PLUS_PRESET_TUNE);
++	if (ret)
++		return ret;
++
++	mxm_dbg(ctx, "tune_rf_freq: old %u new %llu\n", ctx->freq, freq);
++	ctx->freq = freq;
++	return ret;
++}
++
++static void max2175_set_hsls(struct max2175 *ctx, u32 lo_pos)
++{
++	mxm_dbg(ctx, "set_hsls: lo_pos %u\n", lo_pos);
++
++	if ((lo_pos == MAX2175_LO_BELOW_DESIRED) == MAX2175_IS_BAND_VHF(ctx))
++		max2175_write_bit(ctx, 5, 4, 1);
++	else
++		max2175_write_bit(ctx, 5, 4, 0);
++}
++
++static void max2175_set_eu_rx_mode(struct max2175 *ctx, u32 rx_mode)
++{
++	switch (rx_mode) {
++	case MAX2175_EU_FM_1_2:
++		max2175_load_fmeu_1p2(ctx);
++		break;
++
++	case MAX2175_DAB_1_2:
++		max2175_load_dab_1p2(ctx);
++		break;
++	}
++	/* Master is the default setting */
++	if (!ctx->master)
++		max2175_write_bit(ctx, 30, 7, 1);
++}
++
++static void max2175_set_na_rx_mode(struct max2175 *ctx, u32 rx_mode)
++{
++	switch (rx_mode) {
++	case MAX2175_NA_FM_1_0:
++		max2175_load_fmna_1p0(ctx);
++		break;
++	case MAX2175_NA_FM_2_0:
++		max2175_load_fmna_2p0(ctx);
++		break;
++	}
++	/* Master is the default setting */
++	if (!ctx->master)
++		max2175_write_bit(ctx, 30, 7, 1);
++
++	ctx->decim_ratio = 27;
++
++	/* Load the Channel Filter Coefficients into channel filter bank #2 */
++	max2175_set_filter_coeffs(ctx, MAX2175_CH_MSEL, 0, ch_coeff_fmna);
++	max2175_set_filter_coeffs(ctx, MAX2175_EQ_MSEL, 0,
++				  eq_coeff_fmna1_ra02_m6db);
++}
++
++static int max2175_set_rx_mode(struct max2175 *ctx, u32 rx_mode)
++{
++	mxm_dbg(ctx, "set_rx_mode: %u am_hiz %u\n", rx_mode, ctx->am_hiz);
++	if (ctx->xtal_freq == MAX2175_EU_XTAL_FREQ)
++		max2175_set_eu_rx_mode(ctx, rx_mode);
++	else
++		max2175_set_na_rx_mode(ctx, rx_mode);
++
++	if (ctx->am_hiz) {
++		mxm_dbg(ctx, "setting AM HiZ related config\n");
++		max2175_write_bit(ctx, 50, 5, 1);
++		max2175_write_bit(ctx, 90, 7, 1);
++		max2175_write_bits(ctx, 73, 1, 0, 2);
++		max2175_write_bits(ctx, 80, 5, 0, 33);
++	}
++
++	/* Load BB filter trim values saved in ROM */
++	max2175_set_bbfilter(ctx);
++
++	/* Set HSLS */
++	max2175_set_hsls(ctx, ctx->hsls->cur.val);
++
++	/* Use i2s enable settings */
++	max2175_i2s_enable(ctx, ctx->i2s_en->cur.val);
++
++	ctx->mode_resolved = true;
++	return 0;
++}
++
++static int max2175_rx_mode_from_freq(struct max2175 *ctx, u32 freq, u32 *mode)
++{
++	unsigned int i;
++	int band = max2175_band_from_freq(freq);
++
++	/* Pick the first match always */
++	for (i = 0; i <= ctx->rx_mode->maximum; i++) {
++		if (ctx->rx_modes[i].band == band) {
++			*mode = i;
++			mxm_dbg(ctx, "rx_mode_from_freq: freq %u mode %d\n",
++				freq, *mode);
++			return 0;
++		}
++	}
++	return -EINVAL;
++}
++
++static bool max2175_freq_rx_mode_valid(struct max2175 *ctx,
++					 u32 mode, u32 freq)
++{
++	int band = max2175_band_from_freq(freq);
++
++	return (ctx->rx_modes[mode].band == band);
++}
++
++static void max2175_load_adc_presets(struct max2175 *ctx)
++{
++	unsigned int i, j;
++
++	for (i = 0; i < ARRAY_SIZE(adc_presets); i++)
++		for (j = 0; j < ARRAY_SIZE(adc_presets[0]); j++)
++			max2175_write(ctx, 146 + j + i * 55, adc_presets[i][j]);
++}
++
++static int max2175_init_power_manager(struct max2175 *ctx)
++{
++	int ret;
++
++	/* Execute on-chip power-up/calibration */
++	max2175_write_bit(ctx, 99, 2, 0);
++	usleep_range(1000, 1500);
++	max2175_write_bit(ctx, 99, 2, 1);
++
++	/* Wait for the power manager to finish. */
++	ret = max2175_poll_timeout(ctx, 69, 7, 7, 1, 50);
++	if (ret)
++		mxm_err(ctx, "init pm failed\n");
++	return ret;
++}
++
++static int max2175_recalibrate_adc(struct max2175 *ctx)
++{
++	int ret;
++
++	/* ADC Re-calibration */
++	max2175_write(ctx, 150, 0xff);
++	max2175_write(ctx, 205, 0xff);
++	max2175_write(ctx, 147, 0x20);
++	max2175_write(ctx, 147, 0x00);
++	max2175_write(ctx, 202, 0x20);
++	max2175_write(ctx, 202, 0x00);
++
++	ret = max2175_poll_timeout(ctx, 69, 4, 3, 3, 50);
++	if (ret)
++		mxm_err(ctx, "adc recalibration failed\n");
++	return ret;
++}
++
++static u8 max2175_read_rom(struct max2175 *ctx, u8 row)
++{
++	u8 data;
++
++	max2175_write_bit(ctx, 56, 4, 0);
++	max2175_write_bits(ctx, 56, 3, 0, row);
++
++	usleep_range(2000, 2500);
++	max2175_read(ctx, 58, &data);
++
++	max2175_write_bits(ctx, 56, 3, 0, 0);
++
++	mxm_dbg(ctx, "read_rom: row %d data 0x%02x\n", row, data);
++	return data;
++}
++
++static void max2175_load_from_rom(struct max2175 *ctx)
++{
++	u8 data = 0;
++
++	data = max2175_read_rom(ctx, 0);
++	ctx->rom_bbf_bw_am = data & 0x0f;
++	max2175_write_bits(ctx, 81, 3, 0, data >> 4);
++
++	data = max2175_read_rom(ctx, 1);
++	ctx->rom_bbf_bw_fm = data & 0x0f;
++	ctx->rom_bbf_bw_dab = data >> 4;
++
++	data = max2175_read_rom(ctx, 2);
++	max2175_write_bits(ctx, 82, 4, 0, data & 0x1f);
++	max2175_write_bits(ctx, 82, 7, 5, data >> 5);
++
++	data = max2175_read_rom(ctx, 3);
++	if (ctx->am_hiz) {
++		data &= 0x0f;
++		data |= max2175_read_rom(ctx, 7) & 0x40 >> 2;
++		if (!data)
++			data |= 2;
++	} else {
++		data = data & 0xf0 >> 4;
++		data |= max2175_read_rom(ctx, 7) & 0x80 >> 3;
++		if (!data)
++			data |= 30;
++	}
++	max2175_write_bits(ctx, 80, 5, 0, data + 31);
++
++	data = max2175_read_rom(ctx, 6);
++	max2175_write_bits(ctx, 81, 7, 6, data >> 6);
++}
++
++static void max2175_load_full_fm_eu_1p0(struct max2175 *ctx)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(full_fm_eu_1p0); i++)
++		max2175_write(ctx, i + 1, full_fm_eu_1p0[i]);
++
++	usleep_range(5000, 5500);
++	ctx->decim_ratio = 36;
++}
++
++static void max2175_load_full_fm_na_1p0(struct max2175 *ctx)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(full_fm_na_1p0); i++)
++		max2175_write(ctx, i + 1, full_fm_na_1p0[i]);
++
++	usleep_range(5000, 5500);
++	ctx->decim_ratio = 27;
++}
++
++static int max2175_core_init(struct max2175 *ctx, u32 refout_bits)
++{
++	int ret;
++
++	/* MAX2175 uses 36.864MHz clock for EU & 40.154MHz for NA region */
++	if (ctx->xtal_freq == MAX2175_EU_XTAL_FREQ)
++		max2175_load_full_fm_eu_1p0(ctx);
++	else
++		max2175_load_full_fm_na_1p0(ctx);
++
++	/* The default settings assume master */
++	if (!ctx->master)
++		max2175_write_bit(ctx, 30, 7, 1);
++
++	mxm_dbg(ctx, "refout_bits %u\n", refout_bits);
++
++	/* Set REFOUT */
++	max2175_write_bits(ctx, 56, 7, 5, refout_bits);
++
++	/* ADC Reset */
++	max2175_write_bit(ctx, 99, 1, 0);
++	usleep_range(1000, 1500);
++	max2175_write_bit(ctx, 99, 1, 1);
++
++	/* Load ADC preset values */
++	max2175_load_adc_presets(ctx);
++
++	/* Initialize the power management state machine */
++	ret = max2175_init_power_manager(ctx);
++	if (ret)
++		return ret;
++
++	/* Recalibrate ADC */
++	ret = max2175_recalibrate_adc(ctx);
++	if (ret)
++		return ret;
++
++	/* Load ROM values to appropriate registers */
++	max2175_load_from_rom(ctx);
++
++	if (ctx->xtal_freq == MAX2175_EU_XTAL_FREQ) {
++		/* Load FIR coefficients into bank 0 */
++		max2175_set_filter_coeffs(ctx, MAX2175_CH_MSEL, 0,
++					  ch_coeff_fmeu);
++		max2175_set_filter_coeffs(ctx, MAX2175_EQ_MSEL, 0,
++					  eq_coeff_fmeu1_ra02_m6db);
++	} else {
++		/* Load FIR coefficients into bank 0 */
++		max2175_set_filter_coeffs(ctx, MAX2175_CH_MSEL, 0,
++					  ch_coeff_fmna);
++		max2175_set_filter_coeffs(ctx, MAX2175_EQ_MSEL, 0,
++					  eq_coeff_fmna1_ra02_m6db);
++	}
++	mxm_dbg(ctx, "core initialized\n");
++	return 0;
++}
++
++static void max2175_s_ctrl_rx_mode(struct max2175 *ctx, u32 rx_mode)
++{
++	/* Load mode. Range check already done */
++	max2175_set_rx_mode(ctx, rx_mode);
++
++	mxm_dbg(ctx, "s_ctrl_rx_mode: %u curr freq %u\n", rx_mode, ctx->freq);
++
++	/* Check if current freq valid for mode & update */
++	if (max2175_freq_rx_mode_valid(ctx, rx_mode, ctx->freq))
++		max2175_tune_rf_freq(ctx, ctx->freq, ctx->hsls->cur.val);
++	else
++		/* Use default freq of mode if current freq is not valid */
++		max2175_tune_rf_freq(ctx, ctx->rx_modes[rx_mode].freq,
++				     ctx->hsls->cur.val);
++}
++
++static int max2175_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct max2175 *ctx = max2175_from_ctrl_hdl(ctrl->handler);
++
++	mxm_dbg(ctx, "s_ctrl: id 0x%x, val %u\n", ctrl->id, ctrl->val);
++	switch (ctrl->id) {
++	case V4L2_CID_MAX2175_I2S_ENABLE:
++		max2175_i2s_enable(ctx, ctrl->val);
++		break;
++	case V4L2_CID_MAX2175_HSLS:
++		max2175_set_hsls(ctx, ctx->hsls->val);
++		break;
++	case V4L2_CID_MAX2175_RX_MODE:
++		max2175_s_ctrl_rx_mode(ctx, ctrl->val);
++		break;
++	}
++
++	return 0;
++}
++
++static u32 max2175_get_lna_gain(struct max2175 *ctx)
++{
++	enum max2175_band band = max2175_read_bits(ctx, 5, 1, 0);
++
++	switch (band) {
++	case MAX2175_BAND_AM:
++		return max2175_read_bits(ctx, 51, 3, 0);
++	case MAX2175_BAND_FM:
++		return max2175_read_bits(ctx, 50, 3, 0);
++	case MAX2175_BAND_VHF:
++		return max2175_read_bits(ctx, 52, 5, 0);
++	default:
++		return 0;
++	}
++}
++
++static int max2175_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct max2175 *ctx = max2175_from_ctrl_hdl(ctrl->handler);
++
++	switch (ctrl->id) {
++	case V4L2_CID_RF_TUNER_LNA_GAIN:
++		ctrl->val = max2175_get_lna_gain(ctx);
++		break;
++	case V4L2_CID_RF_TUNER_IF_GAIN:
++		ctrl->val = max2175_read_bits(ctx, 49, 4, 0);
++		break;
++	case V4L2_CID_RF_TUNER_PLL_LOCK:
++		ctrl->val = (max2175_read_bits(ctx, 60, 7, 6) == 3);
++		break;
++	}
++	mxm_dbg(ctx, "g_volatile_ctrl: id 0x%x val %d\n", ctrl->id, ctrl->val);
++	return 0;
++};
++
++static int max2175_set_freq_and_mode(struct max2175 *ctx, u32 freq)
++{
++	u32 rx_mode;
++	int ret;
++
++	/* Get band from frequency */
++	ret = max2175_rx_mode_from_freq(ctx, freq, &rx_mode);
++	if (ret)
++		return ret;
++
++	mxm_dbg(ctx, "set_freq_and_mode: freq %u rx_mode %d\n", freq, rx_mode);
++
++	/* Load mode */
++	max2175_set_rx_mode(ctx, rx_mode);
++	ctx->rx_mode->cur.val = rx_mode;
++
++	/* Tune to the new freq given */
++	return max2175_tune_rf_freq(ctx, freq, ctx->hsls->cur.val);
++}
++
++static int max2175_s_frequency(struct v4l2_subdev *sd,
++			       const struct v4l2_frequency *vf)
++{
++	struct max2175 *ctx = max2175_from_sd(sd);
++	u32 freq;
++	int ret = 0;
++
++	mxm_dbg(ctx, "s_freq: new %u curr %u, mode_resolved %d\n",
++		vf->frequency, ctx->freq, ctx->mode_resolved);
++
++	if (vf->tuner != 0)
++		return -EINVAL;
++
++	freq = clamp(vf->frequency, ctx->bands_rf->rangelow,
++		     ctx->bands_rf->rangehigh);
++
++	/* Check new freq valid for rx_mode if already resolved */
++	if (ctx->mode_resolved &&
++	    max2175_freq_rx_mode_valid(ctx, ctx->rx_mode->cur.val, freq))
++		ret = max2175_tune_rf_freq(ctx, freq, ctx->hsls->cur.val);
++	else
++		/* Find default rx_mode for freq and tune to it */
++		ret = max2175_set_freq_and_mode(ctx, freq);
++
++	mxm_dbg(ctx, "s_freq: ret %d curr %u mode_resolved %d mode %u\n",
++		ret, ctx->freq, ctx->mode_resolved, ctx->rx_mode->cur.val);
++	return ret;
++}
++
++static int max2175_g_frequency(struct v4l2_subdev *sd,
++			       struct v4l2_frequency *vf)
++{
++	struct max2175 *ctx = max2175_from_sd(sd);
++	int ret = 0;
++
++	if (vf->tuner != 0)
++		return -EINVAL;
++
++	/* RF freq */
++	vf->type = V4L2_TUNER_RF;
++	vf->frequency = ctx->freq;
++	return ret;
++}
++
++static int max2175_enum_freq_bands(struct v4l2_subdev *sd,
++			    struct v4l2_frequency_band *band)
++{
++	struct max2175 *ctx = max2175_from_sd(sd);
++
++	if (band->tuner != 0 || band->index != 0)
++		return -EINVAL;
++
++	*band = *ctx->bands_rf;
++	return 0;
++}
++
++static int max2175_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
++{
++	struct max2175 *ctx = max2175_from_sd(sd);
++
++	if (vt->index > 0)
++		return -EINVAL;
++
++	strlcpy(vt->name, "RF", sizeof(vt->name));
++	vt->type = V4L2_TUNER_RF;
++	vt->capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
++	vt->rangelow = ctx->bands_rf->rangelow;
++	vt->rangehigh = ctx->bands_rf->rangehigh;
++	return 0;
++}
++
++static int max2175_s_tuner(struct v4l2_subdev *sd, const struct v4l2_tuner *vt)
++{
++	/* Check tuner index is valid */
++	if (vt->index > 0)
++		return -EINVAL;
++
++	return 0;
++}
++
++static const struct v4l2_subdev_tuner_ops max2175_tuner_ops = {
++	.s_frequency = max2175_s_frequency,
++	.g_frequency = max2175_g_frequency,
++	.enum_freq_bands = max2175_enum_freq_bands,
++	.g_tuner = max2175_g_tuner,
++	.s_tuner = max2175_s_tuner,
++};
++
++static const struct v4l2_subdev_ops max2175_ops = {
++	.tuner = &max2175_tuner_ops,
++};
++
++static const struct v4l2_ctrl_ops max2175_ctrl_ops = {
++	.s_ctrl = max2175_s_ctrl,
++	.g_volatile_ctrl = max2175_g_volatile_ctrl,
++};
++
++static const struct v4l2_ctrl_config max2175_i2s_en = {
++	.ops = &max2175_ctrl_ops,
++	.id = V4L2_CID_MAX2175_I2S_ENABLE,
++	.name = "I2S Enable",
++	.type = V4L2_CTRL_TYPE_BOOLEAN,
++	.min = 0,
++	.max = 1,
++	.step = 1,
++	.def = 1,
++};
++
++/*
++ * HSLS value control LO freq adjacent location configuration.
++ * Refer to Documentation/media/v4l-drivers/max2175 for more details.
++ */
++static const struct v4l2_ctrl_config max2175_hsls = {
++	.ops = &max2175_ctrl_ops,
++	.id = V4L2_CID_MAX2175_HSLS,
++	.name = "HSLS above/below desired",
++	.type = V4L2_CTRL_TYPE_INTEGER,
++	.min = 0,
++	.max = 1,
++	.step = 1,
++	.def = 1,
++};
++
++/*
++ * Rx modes below are a set of preset configurations that decides the tuner's
++ * sck and sample rate of transmission. They are separate for EU & NA regions.
++ * Refer to Documentation/media/v4l-drivers/max2175 for more details.
++ */
++static const char * const max2175_ctrl_eu_rx_modes[] = {
++	[MAX2175_EU_FM_1_2]	= "EU FM 1.2",
++	[MAX2175_DAB_1_2]	= "DAB 1.2",
++};
++
++static const char * const max2175_ctrl_na_rx_modes[] = {
++	[MAX2175_NA_FM_1_0]	= "NA FM 1.0",
++	[MAX2175_NA_FM_2_0]	= "NA FM 2.0",
++};
++
++static const struct v4l2_ctrl_config max2175_eu_rx_mode = {
++	.ops = &max2175_ctrl_ops,
++	.id = V4L2_CID_MAX2175_RX_MODE,
++	.name = "RX MODE",
++	.type = V4L2_CTRL_TYPE_MENU,
++	.max = ARRAY_SIZE(max2175_ctrl_eu_rx_modes) - 1,
++	.def = 0,
++	.qmenu = max2175_ctrl_eu_rx_modes,
++};
++
++static const struct v4l2_ctrl_config max2175_na_rx_mode = {
++	.ops = &max2175_ctrl_ops,
++	.id = V4L2_CID_MAX2175_RX_MODE,
++	.name = "RX MODE",
++	.type = V4L2_CTRL_TYPE_MENU,
++	.max = ARRAY_SIZE(max2175_ctrl_na_rx_modes) - 1,
++	.def = 0,
++	.qmenu = max2175_ctrl_na_rx_modes,
++};
++
++static int max2175_refout_load_to_bits(struct i2c_client *client, u32 load,
++				       u32 *bits)
++{
++	if (load >= 0 && load <= 40)
++		*bits = load / 10;
++	else if (load >= 60 && load <= 70)
++		*bits = load / 10 - 1;
++	else
++		return -EINVAL;
++
++	return 0;
++}
++
++static int max2175_probe(struct i2c_client *client,
++			const struct i2c_device_id *id)
++{
++	bool master = true, am_hiz = false;
++	u32 refout_load, refout_bits = 0;	/* REFOUT disabled */
++	struct v4l2_ctrl_handler *hdl;
++	struct device_node *np;
++	struct v4l2_subdev *sd;
++	struct regmap *regmap;
++	struct max2175 *ctx;
++	struct clk *clk;
++	int ret;
++
++	/* Parse DT properties */
++	np = of_parse_phandle(client->dev.of_node, "slave", 0);
++	if (np)
++		master = false;			/* Slave tuner */
++
++	if (of_find_property(client->dev.of_node, "maxim,am-hiz", NULL))
++		am_hiz = true;
++
++	if (!of_property_read_u32(client->dev.of_node, "maxim,refout-load-pF",
++				  &refout_load)) {
++		ret = max2175_refout_load_to_bits(client, refout_load,
++						  &refout_bits);
++		if (ret) {
++			dev_err(&client->dev, "invalid refout_load %u\n",
++				refout_load);
++			return -EINVAL;
++		}
++	}
++
++	clk = devm_clk_get(&client->dev, "xtal");
++	if (IS_ERR(clk)) {
++		ret = PTR_ERR(clk);
++		dev_err(&client->dev, "cannot get xtal clock %d\n", ret);
++		return -ENODEV;
++	}
++
++	regmap = devm_regmap_init_i2c(client, &max2175_regmap_config);
++	if (IS_ERR(regmap)) {
++		ret = PTR_ERR(regmap);
++		dev_err(&client->dev, "regmap init failed %d\n", ret);
++		return -ENODEV;
++	}
++
++	/* Alloc tuner context */
++	ctx = devm_kzalloc(&client->dev, sizeof(*ctx), GFP_KERNEL);
++	if (ctx == NULL)
++		return -ENOMEM;
++
++	sd = &ctx->sd;
++	ctx->master = master;
++	ctx->am_hiz = am_hiz;
++	ctx->mode_resolved = false;
++	ctx->regmap = regmap;
++	ctx->xtal_freq = clk_get_rate(clk);
++	dev_info(&client->dev, "xtal freq %luHz\n", ctx->xtal_freq);
++
++	v4l2_i2c_subdev_init(sd, client, &max2175_ops);
++	ctx->client = client;
++
++	sd->flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
++
++	/* Controls */
++	hdl = &ctx->ctrl_hdl;
++	ret = v4l2_ctrl_handler_init(hdl, 7);
++	if (ret) {
++		dev_err(&client->dev, "ctrl handler init failed\n");
++		goto err;
++	}
++
++	ctx->lna_gain = v4l2_ctrl_new_std(hdl, &max2175_ctrl_ops,
++					  V4L2_CID_RF_TUNER_LNA_GAIN,
++					  0, 63, 1, 0);
++	ctx->lna_gain->flags |= (V4L2_CTRL_FLAG_VOLATILE |
++				 V4L2_CTRL_FLAG_READ_ONLY);
++	ctx->if_gain = v4l2_ctrl_new_std(hdl, &max2175_ctrl_ops,
++					 V4L2_CID_RF_TUNER_IF_GAIN,
++					 0, 31, 1, 0);
++	ctx->if_gain->flags |= (V4L2_CTRL_FLAG_VOLATILE |
++				V4L2_CTRL_FLAG_READ_ONLY);
++	ctx->pll_lock = v4l2_ctrl_new_std(hdl, &max2175_ctrl_ops,
++					  V4L2_CID_RF_TUNER_PLL_LOCK,
++					  0, 1, 1, 0);
++	ctx->pll_lock->flags |= (V4L2_CTRL_FLAG_VOLATILE |
++				 V4L2_CTRL_FLAG_READ_ONLY);
++	ctx->i2s_en = v4l2_ctrl_new_custom(hdl, &max2175_i2s_en, NULL);
++	ctx->hsls = v4l2_ctrl_new_custom(hdl, &max2175_hsls, NULL);
++
++	if (ctx->xtal_freq == MAX2175_EU_XTAL_FREQ) {
++		ctx->rx_mode = v4l2_ctrl_new_custom(hdl,
++						    &max2175_eu_rx_mode, NULL);
++		ctx->rx_modes = eu_rx_modes;
++		ctx->bands_rf = &eu_bands_rf;
++	} else {
++		ctx->rx_mode = v4l2_ctrl_new_custom(hdl,
++						    &max2175_na_rx_mode, NULL);
++		ctx->rx_modes = na_rx_modes;
++		ctx->bands_rf = &na_bands_rf;
++	}
++	ctx->sd.ctrl_handler = &ctx->ctrl_hdl;
++
++	/* Set the defaults */
++	ctx->freq = ctx->bands_rf->rangelow;
++
++	/* Register subdev */
++	ret = v4l2_async_register_subdev(sd);
++	if (ret) {
++		dev_err(&client->dev, "register subdev failed\n");
++		goto err_reg;
++	}
++
++	/* Initialize device */
++	ret = max2175_core_init(ctx, refout_bits);
++	if (ret)
++		goto err_init;
++
++	ret = v4l2_ctrl_handler_setup(hdl);
++	if (ret)
++		goto err_init;
++
++	dev_info(&client->dev, "probed\n");
++	return 0;
++
++err_init:
++	v4l2_async_unregister_subdev(sd);
++err_reg:
++	v4l2_ctrl_handler_free(&ctx->ctrl_hdl);
++err:
++	return ret;
++}
++
++static int max2175_remove(struct i2c_client *client)
++{
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct max2175 *ctx = max2175_from_sd(sd);
++
++	v4l2_ctrl_handler_free(&ctx->ctrl_hdl);
++	v4l2_async_unregister_subdev(sd);
++	dev_info(&client->dev, "removed\n");
++	return 0;
++}
++
++static const struct i2c_device_id max2175_id[] = {
++	{ DRIVER_NAME, 0},
++	{},
++};
++MODULE_DEVICE_TABLE(i2c, max2175_id);
++
++static const struct of_device_id max2175_of_ids[] = {
++	{ .compatible = "maxim, max2175", },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, max2175_of_ids);
++
++static struct i2c_driver max2175_driver = {
++	.driver = {
++		.name	= DRIVER_NAME,
++		.of_match_table = max2175_of_ids,
++	},
++	.probe		= max2175_probe,
++	.remove		= max2175_remove,
++	.id_table	= max2175_id,
++};
++
++module_i2c_driver(max2175_driver);
++
++MODULE_DESCRIPTION("Maxim MAX2175 RF to Bits tuner driver");
++MODULE_LICENSE("GPL v2");
++MODULE_AUTHOR("Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>");
+diff --git a/drivers/media/i2c/max2175/max2175.h b/drivers/media/i2c/max2175/max2175.h
+new file mode 100644
+index 0000000..3c70f49
+--- /dev/null
++++ b/drivers/media/i2c/max2175/max2175.h
+@@ -0,0 +1,108 @@
++/*
++ * Maxim Integrated MAX2175 RF to Bits tuner driver
++ *
++ * This driver & most of the hard coded values are based on the reference
++ * application delivered by Maxim for this device.
++ *
++ * Copyright (C) 2016 Maxim Integrated Products
++ * Copyright (C) 2016 Renesas Electronics Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2
++ * as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ */
++
++#ifndef __MAX2175_H__
++#define __MAX2175_H__
++
++#define MAX2175_EU_XTAL_FREQ	36864000	/* In Hz */
++#define MAX2175_NA_XTAL_FREQ	40186125	/* In Hz */
++
++enum max2175_region {
++	MAX2175_REGION_EU = 0,	/* Europe */
++	MAX2175_REGION_NA,	/* North America */
++};
++
++
++enum max2175_band {
++	MAX2175_BAND_AM = 0,
++	MAX2175_BAND_FM,
++	MAX2175_BAND_VHF,
++	MAX2175_BAND_L,
++};
++
++enum max2175_eu_mode {
++	/* EU modes */
++	MAX2175_EU_FM_1_2 = 0,
++	MAX2175_DAB_1_2,
++
++	/* Other possible modes to add in future
++	 * MAX2175_DAB_1_0,
++	 * MAX2175_DAB_1_3,
++	 * MAX2175_EU_FM_2_2,
++	 * MAX2175_EU_FMHD_4_0,
++	 * MAX2175_EU_AM_1_0,
++	 * MAX2175_EU_AM_2_2,
++	 */
++};
++
++enum max2175_na_mode {
++	/* NA modes */
++	MAX2175_NA_FM_1_0 = 0,
++	MAX2175_NA_FM_2_0,
++
++	/* Other possible modes to add in future
++	 * MAX2175_NA_FMHD_1_0,
++	 * MAX2175_NA_FMHD_1_2,
++	 * MAX2175_NA_AM_1_0,
++	 * MAX2175_NA_AM_1_2,
++	 */
++};
++
++/* Supported I2S modes */
++enum {
++	MAX2175_I2S_MODE0 = 0,
++	MAX2175_I2S_MODE1,
++	MAX2175_I2S_MODE2,
++	MAX2175_I2S_MODE3,
++	MAX2175_I2S_MODE4,
++};
++
++/* Coefficient table groups */
++enum {
++	MAX2175_CH_MSEL = 0,
++	MAX2175_EQ_MSEL,
++	MAX2175_AA_MSEL,
++};
++
++/* HSLS LO injection polarity */
++enum {
++	MAX2175_LO_BELOW_DESIRED = 0,
++	MAX2175_LO_ABOVE_DESIRED,
++};
++
++/* Channel FSM modes */
++enum max2175_csm_mode {
++	MAX2175_LOAD_TO_BUFFER = 0,
++	MAX2175_PRESET_TUNE,
++	MAX2175_SEARCH,
++	MAX2175_AF_UPDATE,
++	MAX2175_JUMP_FAST_TUNE,
++	MAX2175_CHECK,
++	MAX2175_LOAD_AND_SWAP,
++	MAX2175_END,
++	MAX2175_BUFFER_PLUS_PRESET_TUNE,
++	MAX2175_BUFFER_PLUS_SEARCH,
++	MAX2175_BUFFER_PLUS_AF_UPDATE,
++	MAX2175_BUFFER_PLUS_JUMP_FAST_TUNE,
++	MAX2175_BUFFER_PLUS_CHECK,
++	MAX2175_BUFFER_PLUS_LOAD_AND_SWAP,
++	MAX2175_NO_ACTION
++};
++
++#endif /* __MAX2175_H__ */
 -- 
-Kind regards,
+1.9.1
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
