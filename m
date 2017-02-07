@@ -1,50 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:52861 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751249AbdBTUds (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Feb 2017 15:33:48 -0500
-Received: from linux.local ([88.67.44.205]) by mail.gmx.com (mrgmx103
- [212.227.17.168]) with ESMTPSA (Nemesis) id 0MYOCL-1csmpk0gqn-00VCTh for
- <linux-media@vger.kernel.org>; Mon, 20 Feb 2017 21:33:45 +0100
-From: Peter Seiderer <ps.report@gmx.net>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v1 1/2] ir-ctl: use strndup instead of strndupa (fixes musl compile)
-Date: Mon, 20 Feb 2017 21:33:43 +0100
-Message-Id: <20170220203344.17530-1-ps.report@gmx.net>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:11397 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751526AbdBGM1d (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2017 07:27:33 -0500
+Subject: Re: [PATCH] media: s5p-mfc: Fix initialization of internal structures
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>
+From: Andrzej Hajda <a.hajda@samsung.com>
+Message-id: <299b7bdb-09b0-a5f8-9a7c-45d64c04865b@samsung.com>
+Date: Tue, 07 Feb 2017 13:27:27 +0100
+MIME-version: 1.0
+In-reply-to: <1486130718-25998-1-git-send-email-m.szyprowski@samsung.com>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
+References: <CGME20170203140530eucas1p17e9d0bbb29da881bae025e8e3bc7cbbb@eucas1p1.samsung.com>
+ <1486130718-25998-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes buildroot musl compile (see [1], [2]):
+On 03.02.2017 15:05, Marek Szyprowski wrote:
+> Initialize members of the internal device and context structures as early
+> as possible to avoid access to uninitialized objects on initialization
+> failures. If loading firmware or creating of the hardware instance fails,
+> driver will access device or context queue in error handling path, which
+> might not be initialized yet, what causes kernel panic. Fix this by moving
+> initialization of all static members as early as possible.
+>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-  ir-ctl.c:(.text+0xb06): undefined reference to `strndupa'
+Acked-by: Andrzej Hajda <a.hajda@samsung.com>
 
-[1] http://autobuild.buildroot.net/results/b8b96c7bbf2147dacac62485cbfdbcfd758271a5
-[2] http://lists.busybox.net/pipermail/buildroot/2017-February/184048.html
-
-Signed-off-by: Peter Seiderer <ps.report@gmx.net>
----
- utils/ir-ctl/ir-ctl.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/utils/ir-ctl/ir-ctl.c b/utils/ir-ctl/ir-ctl.c
-index bc58cee0..f938b429 100644
---- a/utils/ir-ctl/ir-ctl.c
-+++ b/utils/ir-ctl/ir-ctl.c
-@@ -344,12 +344,14 @@ static struct file *read_scancode(const char *name)
- 		return NULL;
- 	}
- 
--	pstr = strndupa(name, p - name);
-+	pstr = strndup(name, p - name);
- 
- 	if (!protocol_match(pstr, &proto)) {
- 		fprintf(stderr, _("error: protocol '%s' not found\n"), pstr);
-+		free(pstr);
- 		return NULL;
- 	}
-+	free(pstr);
- 
- 	if (!strtoscancode(p + 1, &scancode)) {
- 		fprintf(stderr, _("error: invalid scancode '%s'\n"), p + 1);
--- 
-2.11.0
