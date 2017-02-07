@@ -1,277 +1,235 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:41987 "EHLO
-        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750774AbdBBIaS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2017 03:30:18 -0500
-Subject: Re: [PATCH 04/11] [media] s5p-mfc: Support MFCv10.10 buffer
- requirements
-To: Smitha T Murthy <smitha.t@samsung.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
-        m.szyprowski@samsung.com, s.nawrocki@samsung.com
-From: Andrzej Hajda <a.hajda@samsung.com>
-Message-id: <1463a143-1f9d-b740-4678-2740105f64eb@samsung.com>
-Date: Thu, 02 Feb 2017 09:30:12 +0100
-MIME-version: 1.0
-In-reply-to: <1484733729-25371-5-git-send-email-smitha.t@samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
-References: <1484733729-25371-1-git-send-email-smitha.t@samsung.com>
- <CGME20170118100731epcas5p16f07548a8a6c95f2ef539704e032a54d@epcas5p1.samsung.com>
- <1484733729-25371-5-git-send-email-smitha.t@samsung.com>
+Received: from mail-pg0-f48.google.com ([74.125.83.48]:36267 "EHLO
+        mail-pg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932077AbdBGXjt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2017 18:39:49 -0500
+Received: by mail-pg0-f48.google.com with SMTP id v184so42737125pgv.3
+        for <linux-media@vger.kernel.org>; Tue, 07 Feb 2017 15:39:49 -0800 (PST)
+Date: Tue, 7 Feb 2017 15:32:02 -0800
+From: Bjorn Andersson <bjorn.andersson@linaro.org>
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Andy Gross <andy.gross@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+Subject: Re: [PATCH v6 4/9] media: venus: adding core part and helper
+ functions
+Message-ID: <20170207233202.GI27837@minitux>
+References: <1486473024-21705-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1486473024-21705-5-git-send-email-stanimir.varbanov@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1486473024-21705-5-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Smitha,
+On Tue 07 Feb 05:10 PST 2017, Stanimir Varbanov wrote:
 
-Ups, I have missed this patch, I hope it wont influence the review :)
+>  * firmware loader
+> 
 
+I like the way this turns out, just some style comments below.
 
-On 18.01.2017 11:02, Smitha T Murthy wrote:
-> Aligning the luma_dpb_size, chroma_dpb_size, mv_size and me_buffer_size
-> for MFCv10.10.
->
-> Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-> ---
->  drivers/media/platform/s5p-mfc/regs-mfc-v10.h   |   13 +++
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   97 ++++++++++++++++++-----
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h |    2 +
->  3 files changed, 91 insertions(+), 21 deletions(-)
->
-> diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-> index bd671a5..153ee68 100644
-> --- a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-> +++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-> @@ -32,5 +32,18 @@
->  #define MFC_VERSION_V10		0xA0
->  #define MFC_NUM_PORTS_V10	1
->  
-> +/* Encoder buffer size for MFC v10.0 */
-> +#define ENC_V100_H264_ME_SIZE(x, y)	\
-> +	(((x + 3) * (y + 3) * 8)	\
-> +	 + ((((x * y) + 63) / 64) * 32)	\
-> +	 + (((y * 64) + 1280) * (x + 7) / 8))
-> +#define ENC_V100_MPEG4_ME_SIZE(x, y)		\
-> +	(((x + 3) * (y + 3) * 8)		\
-> +	 + ((((x * y) + 127) / 128) * 16)	\
-> +	 + (((y * 64) + 1280) * (x + 7) / 8))
-> +#define ENC_V100_VP8_ME_SIZE(x, y)	\
-> +	(((x + 3) * (y + 3) * 8)	\
-> +	 + (((y * 64) + 1280) * (x + 7) / 8))
+[..]
+> diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
+> new file mode 100644
+> index 000000000000..4057696abaf5
+> --- /dev/null
+> +++ b/drivers/media/platform/qcom/venus/firmware.c
+> @@ -0,0 +1,151 @@
+> +/*
+> + * Copyright (C) 2017 Linaro Ltd.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 and
+> + * only version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + */
 > +
+> +#include <linux/dma-mapping.h>
+> +#include <linux/firmware.h>
+> +#include <linux/kernel.h>
+> +#include <linux/of.h>
+> +#include <linux/of_reserved_mem.h>
+> +#include <linux/slab.h>
+> +#include <linux/qcom_scm.h>
+> +#include <linux/soc/qcom/mdt_loader.h>
+> +
+> +#define VENUS_FIRMWARE_NAME		"venus.mdt"
+> +#define VENUS_PAS_ID			9
+> +#define VENUS_FW_MEM_SIZE		SZ_8M
+> +
+> +struct firmware_mem {
+> +	struct device dev;
+> +	void *mem_va;
+> +	phys_addr_t mem_phys;
+> +	size_t mem_size;
+> +};
+> +
+> +static struct firmware_mem fw;
 
-Crazy, cryptic math here, I guess you can make it more readable by using
-DIV_ROUND_UP macro and abstracting out common parts, for example:
+Rather than operating on a global variable I think you should either
+return your firmware_mem pointer or the device pointer to the caller of
+venus_boot() and have the core pass that back into venus_shutdown().
 
-#define ENC_V100_BASE_SIZE(x, y) \
-	(((x + 3) * (y + 3) * 8) \
-	+  ((y * 64) + 1280) * DIV_ROUND_UP(x, 8))
+> +
+> +static void device_release_dummy(struct device *dev)
+> +{
+> +}
+> +
+> +static int firmware_alloc_mem(struct device *parent, struct firmware_mem *fw)
+> +{
+> +	struct device_node *np;
+> +	struct device *dev = &fw->dev;
+> +	int ret;
+> +
+> +	np = of_get_child_by_name(parent->of_node, "video-firmware");
+> +	if (!np)
+> +		return -ENODEV;
+> +
+> +	memset(fw, 0, sizeof(*fw));
 
-#define ENC_V100_H264_ME_SIZE(x, y) \
-	(ENC_V100_BASE_SIZE(x, y)
-	+ DIV_ROUND_UP(x * y, 64) * 32)
+This should not be necessary.
 
-#define ENC_V100_MPEG4_ME_SIZE(x, y) \
- 	(ENC_V100_BASE_SIZE(x, y)
-	+ DIV_ROUND_UP(x * y, 128) * 16)
+Further more, if it's already initialized it's safe to assume that the
+allocation below will fail - regardless of you clearing it or not.
 
-#define ENC_V100_VP8_ME_SIZE(x, y)	\
-	ENC_V100_BASE_SIZE(x, y)
- 
+> +
+> +	dev->of_node = np;
+> +	dev->parent = parent;
+> +	dev->release = device_release_dummy;
+> +
+> +	ret = dev_set_name(dev, "venus-fw");
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = device_register(dev);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = of_reserved_mem_device_init(dev);
+> +	if (ret)
+> +		goto err_unreg_device;
+> +
+> +	fw->mem_size = VENUS_FW_MEM_SIZE;
+> +
+> +	fw->mem_va = dma_alloc_coherent(dev, fw->mem_size, &fw->mem_phys,
+> +					GFP_KERNEL);
 
->  #endif /*_REGS_MFC_V10_H*/
->  
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> index faceee6..369210a 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> @@ -64,6 +64,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
->  {
->  	struct s5p_mfc_dev *dev = ctx->dev;
->  	unsigned int mb_width, mb_height;
-> +	unsigned int lcu_width = 0, lcu_height = 0;
->  	int ret;
->  
->  	mb_width = MB_WIDTH(ctx->img_width);
-> @@ -74,7 +75,9 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
->  			  ctx->luma_size, ctx->chroma_size, ctx->mv_size);
->  		mfc_debug(2, "Totals bufs: %d\n", ctx->total_dpb_count);
->  	} else if (ctx->type == MFCINST_ENCODER) {
-> -		if (IS_MFCV8_PLUS(dev))
-> +		if (IS_MFCV10(dev)) {
-> +			ctx->tmv_buffer_size = 0;
-> +		} else if (IS_MFCV8_PLUS(dev))
->  			ctx->tmv_buffer_size = S5P_FIMV_NUM_TMV_BUFFERS_V6 *
->  			ALIGN(S5P_FIMV_TMV_BUFFER_SIZE_V8(mb_width, mb_height),
->  			S5P_FIMV_TMV_BUFFER_ALIGN_V6);
-> @@ -82,13 +85,36 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
->  			ctx->tmv_buffer_size = S5P_FIMV_NUM_TMV_BUFFERS_V6 *
->  			ALIGN(S5P_FIMV_TMV_BUFFER_SIZE_V6(mb_width, mb_height),
->  			S5P_FIMV_TMV_BUFFER_ALIGN_V6);
-> -
-> -		ctx->luma_dpb_size = ALIGN((mb_width * mb_height) *
-> -				S5P_FIMV_LUMA_MB_TO_PIXEL_V6,
-> -				S5P_FIMV_LUMA_DPB_BUFFER_ALIGN_V6);
-> -		ctx->chroma_dpb_size = ALIGN((mb_width * mb_height) *
-> -				S5P_FIMV_CHROMA_MB_TO_PIXEL_V6,
-> -				S5P_FIMV_CHROMA_DPB_BUFFER_ALIGN_V6);
-> +		if (IS_MFCV10(dev)) {
-> +			lcu_width = enc_lcu_width(ctx->img_width);
-> +			lcu_height = enc_lcu_height(ctx->img_height);
-> +			if (ctx->codec_mode != S5P_FIMV_CODEC_HEVC_ENC) {
-> +				ctx->luma_dpb_size =
-> +					ALIGN((((mb_width * 16) + 63) / 64)
-> +						* 64 * (((mb_height * 16) + 31)
-> +						/ 32) * 32 + 64, 64);
-> +				ctx->chroma_dpb_size =
-> +					ALIGN((((mb_width * 16) + 63) / 64)
-> +							* 64 * (mb_height * 8)
-> +							+ 64, 64);
-> +			} else {
-> +				ctx->luma_dpb_size =
-> +					ALIGN((((lcu_width * 32) + 63) / 64)
-> +						* 64 * (((lcu_height * 32) + 31)
-> +						/ 32) * 32 + 64, 64);
-> +				ctx->chroma_dpb_size =
-> +					ALIGN((((lcu_width * 32) + 63) / 64)
-> +							* 64 * (lcu_height * 16)
-> +							+ 64, 64);
+As this should follow the life of dev you can use dmam_alloc_coherent()
+to reduce the clean up paths.
 
-Again crazy math, please try to avoid repetitive calculations, replace
-all constructs of form (x + n - 1) / n, with DIV_ROUND_UP(x, n), verify
-if ALIGN is necessary.
+> +	if (!fw->mem_va) {
+> +		ret = -ENOMEM;
+> +		goto err_mem_device_release;
+> +	}
+> +
+> +	return 0;
+> +
+> +err_mem_device_release:
+> +	of_reserved_mem_device_release(dev);
+> +err_unreg_device:
+> +	device_unregister(dev);
+> +	return ret;
+> +}
+> +
+> +static void firmware_free_mem(struct firmware_mem *fw)
+> +{
+> +	dma_free_coherent(&fw->dev, fw->mem_size, fw->mem_va, fw->mem_phys);
 
-> +			}
-> +		} else {
-> +			ctx->luma_dpb_size = ALIGN((mb_width * mb_height) *
-> +					S5P_FIMV_LUMA_MB_TO_PIXEL_V6,
-> +					S5P_FIMV_LUMA_DPB_BUFFER_ALIGN_V6);
-> +			ctx->chroma_dpb_size = ALIGN((mb_width * mb_height) *
-> +					S5P_FIMV_CHROMA_MB_TO_PIXEL_V6,
-> +					S5P_FIMV_CHROMA_DPB_BUFFER_ALIGN_V6);
-> +		}
->  		if (IS_MFCV8_PLUS(dev))
->  			ctx->me_buffer_size = ALIGN(S5P_FIMV_ME_BUFFER_SIZE_V8(
->  						ctx->img_width, ctx->img_height,
-> @@ -197,6 +223,8 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
->  	case S5P_MFC_CODEC_H264_ENC:
->  		if (IS_MFCV10(dev)) {
->  			mfc_debug(2, "Use min scratch buffer size\n");
-> +			ctx->me_buffer_size =
-> +			ALIGN(ENC_V100_H264_ME_SIZE(mb_width, mb_height), 16);
+If you use dmam_alloc_coherent() this goes.
 
-This and similar entries below should be in previous patch, again check
-if ALIGN is needed.
+> +	of_reserved_mem_device_release(&fw->dev);
 
->  		} else if (IS_MFCV8_PLUS(dev))
->  			ctx->scratch_buf_size =
->  				S5P_FIMV_SCRATCH_BUF_SIZE_H264_ENC_V8(
-> @@ -219,6 +247,9 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
->  	case S5P_MFC_CODEC_H263_ENC:
->  		if (IS_MFCV10(dev)) {
->  			mfc_debug(2, "Use min scratch buffer size\n");
-> +			ctx->me_buffer_size =
-> +				ALIGN(ENC_V100_MPEG4_ME_SIZE(mb_width,
-> +							mb_height), 16);
->  		} else
->  			ctx->scratch_buf_size =
->  				S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_ENC_V6(
-> @@ -235,7 +266,10 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
->  	case S5P_MFC_CODEC_VP8_ENC:
->  		if (IS_MFCV10(dev)) {
->  			mfc_debug(2, "Use min scratch buffer size\n");
-> -			} else if (IS_MFCV8_PLUS(dev))
-> +			ctx->me_buffer_size =
-> +				ALIGN(ENC_V100_VP8_ME_SIZE(mb_width, mb_height),
-> +						16);
-> +		} else if (IS_MFCV8_PLUS(dev))
->  			ctx->scratch_buf_size =
->  				S5P_FIMV_SCRATCH_BUF_SIZE_VP8_ENC_V8(
->  					mb_width,
-> @@ -395,13 +429,15 @@ static void s5p_mfc_dec_calc_dpb_size_v6(struct s5p_mfc_ctx *ctx)
->  
->  	if (ctx->codec_mode == S5P_MFC_CODEC_H264_DEC ||
->  			ctx->codec_mode == S5P_MFC_CODEC_H264_MVC_DEC) {
-> -		if (IS_MFCV10(dev))
-> +		if (IS_MFCV10(dev)) {
->  			ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V10(ctx->img_width,
->  					ctx->img_height);
-> -		else
-> +			ctx->mv_size = ALIGN(ctx->mv_size, 32);
-> +		} else {
->  			ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V6(ctx->img_width,
->  					ctx->img_height);
-> -		ctx->mv_size = ALIGN(ctx->mv_size, 16);
-> +			ctx->mv_size = ALIGN(ctx->mv_size, 16);
-> +		}
->  	} else {
->  		ctx->mv_size = 0;
->  	}
-> @@ -607,15 +643,34 @@ static int s5p_mfc_set_enc_ref_buffer_v6(struct s5p_mfc_ctx *ctx)
->  
->  	mfc_debug(2, "Buf1: %p (%d)\n", (void *)buf_addr1, buf_size1);
->  
-> -	for (i = 0; i < ctx->pb_count; i++) {
-> -		writel(buf_addr1, mfc_regs->e_luma_dpb + (4 * i));
-> -		buf_addr1 += ctx->luma_dpb_size;
-> -		writel(buf_addr1, mfc_regs->e_chroma_dpb + (4 * i));
-> -		buf_addr1 += ctx->chroma_dpb_size;
-> -		writel(buf_addr1, mfc_regs->e_me_buffer + (4 * i));
-> -		buf_addr1 += ctx->me_buffer_size;
-> -		buf_size1 -= (ctx->luma_dpb_size + ctx->chroma_dpb_size +
-> -			ctx->me_buffer_size);
-> +	if (IS_MFCV10(dev)) {
-> +		/* start address of per buffer is aligned */
-> +		for (i = 0; i < ctx->pb_count; i++) {
-> +			writel(buf_addr1, mfc_regs->e_luma_dpb + (4 * i));
-> +			buf_addr1 += ctx->luma_dpb_size;
-> +			buf_size1 -= ctx->luma_dpb_size;
-> +		}
-> +		for (i = 0; i < ctx->pb_count; i++) {
-> +			writel(buf_addr1, mfc_regs->e_chroma_dpb + (4 * i));
-> +			buf_addr1 += ctx->chroma_dpb_size;
-> +			buf_size1 -= ctx->chroma_dpb_size;
-> +		}
-> +		for (i = 0; i < ctx->pb_count; i++) {
-> +			writel(buf_addr1, mfc_regs->e_me_buffer + (4 * i));
-> +			buf_addr1 += ctx->me_buffer_size;
-> +			buf_size1 -= ctx->me_buffer_size;
-> +		}
-> +	} else {
-> +		for (i = 0; i < ctx->pb_count; i++) {
-> +			writel(buf_addr1, mfc_regs->e_luma_dpb + (4 * i));
-> +			buf_addr1 += ctx->luma_dpb_size;
-> +			writel(buf_addr1, mfc_regs->e_chroma_dpb + (4 * i));
-> +			buf_addr1 += ctx->chroma_dpb_size;
-> +			writel(buf_addr1, mfc_regs->e_me_buffer + (4 * i));
-> +			buf_addr1 += ctx->me_buffer_size;
-> +			buf_size1 -= (ctx->luma_dpb_size + ctx->chroma_dpb_size
-> +					+ ctx->me_buffer_size);
-> +		}
->  	}
->  
->  	writel(buf_addr1, mfc_regs->e_scratch_buffer_addr);
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-> index fcc2368..2b5a9f4 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-> @@ -26,6 +26,8 @@
->  					(((MB_HEIGHT(y)+1)/2)*2) * 64 + 128)
->  #define S5P_MFC_DEC_MV_SIZE_V10(x, y)	(MB_WIDTH(x) * \
->  					(((MB_HEIGHT(y)+1)/2)*2) * 64 + 512)
-> +#define enc_lcu_width(x_size)          ((x_size + 31) / 32)
-> +#define enc_lcu_height(y_size)         ((y_size + 31) / 32)
-
-DIV_ROUND_UP
+And I would suggest that as this is related to the device you should
+release it in the dev->release function; turning this function into
+device_unregister(&fw->dev).
 
 
-Regards
-Andrzej
+(The devres allocation will be freed right before the release function
+is called)
 
->  
->  /* Definition */
->  #define ENC_MULTI_SLICE_MB_MAX		((1 << 30) - 1)
+> +	device_unregister(&fw->dev);
+> +	memset(fw, 0, sizeof(*fw));
 
+This should not be necessary.
 
+> +}
+> +
+> +static int firmware_load(struct firmware_mem *fw)
+> +{
+> +	struct device *dev = &fw->dev;
+> +	const struct firmware *mdt;
+> +	ssize_t fw_size;
+> +	int ret;
+> +
+> +	ret = request_firmware(&mdt, VENUS_FIRMWARE_NAME, dev);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	fw_size = qcom_mdt_get_size(mdt);
+> +	if (fw_size < 0) {
+> +		ret = fw_size;
+> +		goto err_release_fw;
+> +	} else if (fw_size > VENUS_FW_MEM_SIZE) {
+
+You can skip this this check, as qcom_mdt_load() will fail if any part
+of the firmware doesn't fit - and we would benefit from making that
+error message more verbose.
+
+> +		ret = -ENOMEM;
+> +		goto err_release_fw;
+> +	}
+> +
+> +	ret = qcom_mdt_load(&fw->dev, mdt, VENUS_FIRMWARE_NAME, VENUS_PAS_ID,
+> +			    fw->mem_va, fw->mem_phys, fw->mem_size);
+> +
+> +err_release_fw:
+
+This is not only the error path, so "release_fw" would be better.
+
+> +	release_firmware(mdt);
+> +
+> +	return ret;
+> +}
+> +
+> +int venus_boot(struct device *parent)
+> +{
+> +	int ret;
+> +
+> +	if (!qcom_scm_is_available())
+> +		return -EPROBE_DEFER;
+> +
+> +	ret = firmware_alloc_mem(parent, &fw);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = firmware_load(&fw);
+> +	if (ret) {
+> +		firmware_free_mem(&fw);
+> +		return ret;
+> +	}
+> +
+> +	return qcom_scm_pas_auth_and_reset(VENUS_PAS_ID);
+> +}
+> +
+> +int venus_shutdown(void)
+> +{
+> +	int ret;
+> +
+> +	ret = qcom_scm_pas_shutdown(VENUS_PAS_ID);
+> +	firmware_free_mem(&fw);
+> +	return ret;
+> +}
+
+Regards,
+Bjorn
