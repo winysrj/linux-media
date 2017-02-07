@@ -1,89 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:12683 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750954AbdBUJOq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Feb 2017 04:14:46 -0500
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [bug report] [media] st-delta: add mjpeg support
-Date: Tue, 21 Feb 2017 09:14:36 +0000
-Message-ID: <d003ba39-297e-dec5-37f1-f5139f496071@st.com>
-References: <20170213190704.GA7539@mwanda>
-In-Reply-To: <20170213190704.GA7539@mwanda>
-Content-Language: en-US
-Content-Type: text/plain; charset="Windows-1252"
-Content-ID: <0DCFD6F768C40F40B3EEB9F58FC0515E@st.com>
+Received: from shell.v3.sk ([92.60.52.57]:35221 "EHLO shell.v3.sk"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751886AbdBGTb1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 7 Feb 2017 14:31:27 -0500
+Message-ID: <1486495879.22785.9.camel@v3.sk>
+Subject: Re: [PATCH RESEND] [media] usbtv: add a new usbid
+From: Lubomir Rintel <lkundrak@v3.sk>
+To: Icenowy Zheng <icenowy@aosc.xyz>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Tue, 07 Feb 2017 20:31:19 +0100
+In-Reply-To: <20170207184356.64001-1-icenowy@aosc.xyz>
+References: <20170207184356.64001-1-icenowy@aosc.xyz>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks Dan,
+On Wed, 2017-02-08 at 02:43 +0800, Icenowy Zheng wrote:
+> A new usbid of UTV007 is found in a newly bought device.
+> 
+> The usbid is 1f71:3301.
+> 
+> The ID on the chip is:
+> UTV007
+> A89029.1
+> 1520L18K1
+> 
+> Both video and audio is tested with the modified usbtv driver.
+> 
+> Signed-off-by: Icenowy Zheng <icenowy@aosc.xyz>
 
-Patch sent to fix warning:
-https://www.spinics.net/lists/linux-media/msg111529.html
+Acked-by: Lubomir Rintel <lkundrak@v3.sk>
 
-BR,
-Hugues.
+Thanks for resending this. I can't seem to find the original posting in
+the patchwork and don't see how could it have slipped through the
+cracks. But then my understanding of how does the media tree
+maintenance might not be too good.
 
-On 02/13/2017 08:07 PM, Dan Carpenter wrote:
-> Hello Hugues Fruchet,
->
-> The patch 433ff5b4a29b: "[media] st-delta: add mjpeg support" from
-> Feb 2, 2017, leads to the following static checker warning:
->
-> 	drivers/media/platform/sti/delta/delta-mjpeg-dec.c:415 delta_mjpeg_decode()
-> 	error: uninitialized symbol 'data_offset'.
->
-> drivers/media/platform/sti/delta/delta-mjpeg-dec.c
->    378          unsigned int data_offset;
->                              ^^^^^^^^^^^
->    379          struct mjpeg_header *header = &ctx->header_struct;
->    380
->    381          if (!ctx->header) {
->    382                  ret = delta_mjpeg_read_header(pctx, au.vaddr, au.size,
->    383                                                header, &data_offset);
->                                                                ^^^^^^^^^^^
-> It's not immediately clear that "data_offset" must be set on the
-> success path.
->
->    384                  if (ret) {
->    385                          pctx->stream_errors++;
->    386                          goto err;
->    387                  }
->    388                  if (header->frame_width * header->frame_height >
->    389                      DELTA_MJPEG_MAX_RESO) {
->    390                          dev_err(delta->dev,
->    391                                  "%s  stream resolution too large: %dx%d > %d pixels budget\n",
->    392                                  pctx->name,
->    393                                  header->frame_width,
->    394                                  header->frame_height, DELTA_MJPEG_MAX_RESO);
->    395                          ret = -EINVAL;
->    396                          goto err;
->    397                  }
->    398                  ctx->header = header;
->    399                  goto out;
->    400          }
->    401
->    402          if (!ctx->ipc_hdl) {
->    403                  ret = delta_mjpeg_ipc_open(pctx);
->    404                  if (ret)
->    405                          goto err;
->    406          }
->    407
->    408          ret = delta_mjpeg_read_header(pctx, au.vaddr, au.size,
->    409                                        ctx->header, &data_offset);
->    410          if (ret) {
->    411                  pctx->stream_errors++;
->    412                  goto err;
->    413          }
->    414
->    415          au.paddr += data_offset;
->                 ^^^^^^^^^^^^^^^^^^^^^^^
->    416          au.vaddr += data_offset;
->
-> regards,
-> dan carpenter
->
+Also, I think new USB IDs are usually okay for stable trees too, if you
+care about that then feel free to Cc stable@ too.
+
+Lubo
+
+> ---
+>  drivers/media/usb/usbtv/usbtv-core.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/media/usb/usbtv/usbtv-core.c
+> b/drivers/media/usb/usbtv/usbtv-core.c
+> index ceb953be0770..cae637845876 100644
+> --- a/drivers/media/usb/usbtv/usbtv-core.c
+> +++ b/drivers/media/usb/usbtv/usbtv-core.c
+> @@ -144,6 +144,7 @@ static void usbtv_disconnect(struct usb_interface
+> *intf)
+>  
+>  static struct usb_device_id usbtv_id_table[] = {
+>  	{ USB_DEVICE(0x1b71, 0x3002) },
+> +	{ USB_DEVICE(0x1f71, 0x3301) },
+>  	{}
+>  };
+>  MODULE_DEVICE_TABLE(usb, usbtv_id_table);
