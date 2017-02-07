@@ -1,116 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f54.google.com ([74.125.82.54]:35253 "EHLO
-        mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754510AbdBVJZX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Feb 2017 04:25:23 -0500
-Received: by mail-wm0-f54.google.com with SMTP id v186so134963128wmd.0
-        for <linux-media@vger.kernel.org>; Wed, 22 Feb 2017 01:25:22 -0800 (PST)
-Subject: Re: [PATCH v6 2/9] doc: DT: venus: binding document for Qualcomm
- video driver
-To: Rob Herring <robh@kernel.org>
-References: <1486473024-21705-1-git-send-email-stanimir.varbanov@linaro.org>
- <1486473024-21705-3-git-send-email-stanimir.varbanov@linaro.org>
- <20170222000952.w6bg4bhvbklgkcnx@rob-hp-laptop>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, devicetree@vger.kernel.org
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <88584dd3-165f-2393-433e-95c288a8f473@linaro.org>
-Date: Wed, 22 Feb 2017 11:25:19 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170222000952.w6bg4bhvbklgkcnx@rob-hp-laptop>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mout.gmx.net ([212.227.17.22]:52831 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754625AbdBGQ3r (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 7 Feb 2017 11:29:47 -0500
+Received: from axis700.grange ([81.173.166.100]) by mail.gmx.com (mrgmx101
+ [212.227.17.168]) with ESMTPSA (Nemesis) id 0Lxt3Q-1cOmBY2TR6-015LHc for
+ <linux-media@vger.kernel.org>; Tue, 07 Feb 2017 17:29:44 +0100
+Received: from 200r.grange (200r.grange [192.168.1.16])
+        by axis700.grange (Postfix) with ESMTP id 53F448B119
+        for <linux-media@vger.kernel.org>; Tue,  7 Feb 2017 17:29:37 +0100 (CET)
+From: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v2 3/4] uvcvideo: handle control pipe protocol STALLs
+Date: Tue,  7 Feb 2017 17:29:35 +0100
+Message-Id: <1486484976-17365-4-git-send-email-guennadi.liakhovetski@intel.com>
+In-Reply-To: <1486484976-17365-1-git-send-email-guennadi.liakhovetski@intel.com>
+References: <1486484976-17365-1-git-send-email-guennadi.liakhovetski@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
+When a command ends up in a STALL on the control pipe, use the Request
+Error Code control to provide a more precise error information to the
+user.
 
-On 02/22/2017 02:09 AM, Rob Herring wrote:
-> On Tue, Feb 07, 2017 at 03:10:17PM +0200, Stanimir Varbanov wrote:
->> Add binding document for Venus video encoder/decoder driver
->>
->> Cc: Rob Herring <robh+dt@kernel.org>
->> Cc: devicetree@vger.kernel.org
->> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
->> ---
->> Changes since previous v5:
->>  * dropped rproc phandle (remoteproc is not used anymore)
->>  * added subnodes paragraph with descrition of three subnodes:
->>     - video-decoder and video-encoder - describes decoder (core0) and
->>     encoder (core1) power-domains and clocks (applicable for msm8996
->>     Venus core).
->>     - video-firmware - needed to get reserved memory region where the
->>     firmware is stored.
->>
->>  .../devicetree/bindings/media/qcom,venus.txt       | 112 +++++++++++++++++++++
->>  1 file changed, 112 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
->> new file mode 100644
->> index 000000000000..4427af3ca5a5
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
->> @@ -0,0 +1,112 @@
-> 
-> [...]
-> 
->> +* Subnodes
->> +The Venus node must contain three subnodes representing video-decoder,
->> +video-encoder and video-firmware.
-> 
-> [...]
-> 
->> +The video-firmware subnode should contain:
->> +
->> +- memory-region:
->> +	Usage: required
->> +	Value type: <phandle>
->> +	Definition: reference to the reserved-memory for the memory region
->> +
->> +* An Example
->> +	video-codec@1d00000 {
->> +		compatible = "qcom,msm8916-venus";
->> +		reg = <0x01d00000 0xff000>;
->> +		interrupts = <GIC_SPI 44 IRQ_TYPE_LEVEL_HIGH>;
->> +		clocks = <&gcc GCC_VENUS0_VCODEC0_CLK>,
->> +			 <&gcc GCC_VENUS0_AHB_CLK>,
->> +			 <&gcc GCC_VENUS0_AXI_CLK>;
->> +		clock-names = "core", "iface", "bus";
->> +		power-domains = <&gcc VENUS_GDSC>;
->> +		iommus = <&apps_iommu 5>;
->> +
->> +		video-decoder {
->> +			compatible = "venus-decoder";
->> +			clocks = <&mmcc VIDEO_SUBCORE0_CLK>;
->> +			clock-names = "core";
->> +			power-domains = <&mmcc VENUS_CORE0_GDSC>;
->> +		};
->> +
->> +		video-encoder {
->> +			compatible = "venus-encoder";
->> +			clocks = <&mmcc VIDEO_SUBCORE1_CLK>;
->> +			clock-names = "core";
->> +			power-domains = <&mmcc VENUS_CORE1_GDSC>;
->> +		};
->> +
->> +		video-firmware {
->> +			memory-region = <&venus_mem>;
-> 
-> Why does this need to be a sub node?
+Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+---
+ drivers/media/usb/uvc/uvc_video.c | 59 +++++++++++++++++++++++++++++++++++----
+ 1 file changed, 53 insertions(+), 6 deletions(-)
 
-Because firmware reserved memory region must have separate struct
-device, otherwise allocating video buffers (and map them through iommu)
-for video-codec will fail because dma_alloc_coherent trying to allocate
-from per-device coherent area.
-
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index 07a6c83..e530839 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -34,15 +34,59 @@ static int __uvc_query_ctrl(struct uvc_device *dev, __u8 query, __u8 unit,
+ 			__u8 intfnum, __u8 cs, void *data, __u16 size,
+ 			int timeout)
+ {
+-	__u8 type = USB_TYPE_CLASS | USB_RECIP_INTERFACE;
++	__u8 type = USB_TYPE_CLASS | USB_RECIP_INTERFACE, tmp, error;
+ 	unsigned int pipe;
++	int ret;
+ 
+ 	pipe = (query & 0x80) ? usb_rcvctrlpipe(dev->udev, 0)
+ 			      : usb_sndctrlpipe(dev->udev, 0);
+ 	type |= (query & 0x80) ? USB_DIR_IN : USB_DIR_OUT;
+ 
+-	return usb_control_msg(dev->udev, pipe, query, type, cs << 8,
++	ret = usb_control_msg(dev->udev, pipe, query, type, cs << 8,
+ 			unit << 8 | intfnum, data, size, timeout);
++
++	if (ret != -EPIPE)
++		return ret;
++
++	tmp = *(u8 *)data;
++
++	pipe = usb_rcvctrlpipe(dev->udev, 0);
++	type = USB_TYPE_CLASS | USB_RECIP_INTERFACE | USB_DIR_IN;
++	ret = usb_control_msg(dev->udev, pipe, UVC_GET_CUR, type,
++			      UVC_VC_REQUEST_ERROR_CODE_CONTROL << 8,
++			      unit << 8 | intfnum, data, 1, timeout);
++	error = *(u8 *)data;
++	*(u8 *)data = tmp;
++
++	if (ret < 0)
++		return ret;
++
++	if (!ret)
++		return -EINVAL;
++
++	uvc_trace(UVC_TRACE_CONTROL, "Control error %u\n", error);
++
++	switch (error) {
++	case 0:
++		/* Cannot happen - we received a STALL */
++		return -EPIPE;
++	case 1: /* Not ready */
++		return -EAGAIN;
++	case 2: /* Wrong state */
++		return -EILSEQ;
++	case 3: /* Power */
++		return -EREMOTE;
++	case 4: /* Out of range */
++		return -ERANGE;
++	case 5: /* Invalid unit */
++	case 6: /* Invalid control */
++	case 7: /* Invalid Request */
++	case 8: /* Invalid value within range */
++	default: /* reserved or unknown */
++		break;
++	}
++
++	return -EINVAL;
+ }
+ 
+ static const char *uvc_query_name(__u8 query)
+@@ -80,7 +124,7 @@ int uvc_query_ctrl(struct uvc_device *dev, __u8 query, __u8 unit,
+ 		uvc_printk(KERN_ERR, "Failed to query (%s) UVC control %u on "
+ 			"unit %u: %d (exp. %u).\n", uvc_query_name(query), cs,
+ 			unit, ret, size);
+-		return -EIO;
++		return ret < 0 ? ret : -EIO;
+ 	}
+ 
+ 	return 0;
+@@ -203,13 +247,15 @@ static int uvc_get_video_ctrl(struct uvc_streaming *stream,
+ 		uvc_warn_once(stream->dev, UVC_WARN_PROBE_DEF, "UVC non "
+ 			"compliance - GET_DEF(PROBE) not supported. "
+ 			"Enabling workaround.\n");
+-		ret = -EIO;
++		if (ret >= 0)
++			ret = -EIO;
+ 		goto out;
+ 	} else if (ret != size) {
+ 		uvc_printk(KERN_ERR, "Failed to query (%u) UVC %s control : "
+ 			"%d (exp. %u).\n", query, probe ? "probe" : "commit",
+ 			ret, size);
+-		ret = -EIO;
++		if (ret >= 0)
++			ret = -EIO;
+ 		goto out;
+ 	}
+ 
+@@ -290,7 +336,8 @@ static int uvc_set_video_ctrl(struct uvc_streaming *stream,
+ 		uvc_printk(KERN_ERR, "Failed to set UVC %s control : "
+ 			"%d (exp. %u).\n", probe ? "probe" : "commit",
+ 			ret, size);
+-		ret = -EIO;
++		if (ret >= 0)
++			ret = -EIO;
+ 	}
+ 
+ 	kfree(data);
 -- 
-regards,
-Stan
+1.9.3
+
