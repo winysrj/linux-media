@@ -1,84 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:41272 "EHLO
-        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754509AbdBVJ3g (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Feb 2017 04:29:36 -0500
-Subject: Re: [PATCH v5 3/3] [media] s5p-mfc: Check and set
- 'v4l2_pix_format:field' field in try_fmt
-To: Thibault Saunier <thibault.saunier@osg.samsung.com>,
-        linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        linux-arm-kernel@lists.infradead.org,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Kamil Debski <kamil@wypas.org>
-From: Andrzej Hajda <a.hajda@samsung.com>
-Message-id: <78444dcd-169f-0c16-0e09-6b71d1a502b2@samsung.com>
-Date: Wed, 22 Feb 2017 10:29:27 +0100
-MIME-version: 1.0
-In-reply-to: <20170221192059.29745-4-thibault.saunier@osg.samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
-References: <20170221192059.29745-1-thibault.saunier@osg.samsung.com>
- <CGME20170221192135epcas4p1811fa9ce35481d42144bdab368c9243a@epcas4p1.samsung.com>
- <20170221192059.29745-4-thibault.saunier@osg.samsung.com>
+Received: from mail-wm0-f53.google.com ([74.125.82.53]:34627 "EHLO
+        mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754315AbdBGNK5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2017 08:10:57 -0500
+Received: by mail-wm0-f53.google.com with SMTP id 196so42618731wmm.1
+        for <linux-media@vger.kernel.org>; Tue, 07 Feb 2017 05:10:56 -0800 (PST)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v6 0/9] Qualcomm video decoder/encoder driver
+Date: Tue,  7 Feb 2017 15:10:15 +0200
+Message-Id: <1486473024-21705-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 21.02.2017 20:20, Thibault Saunier wrote:
-> It is required by the standard that the field order is set by the
-> driver.
->
-> Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
->
-> ---
->
-> Changes in v5:
-> - Just adapt the field and never error out.
->
-> Changes in v4: None
-> Changes in v3:
-> - Do not check values in the g_fmt functions as Andrzej explained in previous review
->
-> Changes in v2:
-> - Fix a silly build error that slipped in while rebasing the patches
->
->  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 3 +++
->  1 file changed, 3 insertions(+)
->
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> index 0976c3e0a5ce..44ed2afe0780 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> @@ -386,6 +386,9 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
->  	struct v4l2_pix_format_mplane *pix_mp = &f->fmt.pix_mp;
->  	struct s5p_mfc_fmt *fmt;
->  
-> +	if (f->fmt.pix.field == V4L2_FIELD_ANY)
-> +		f->fmt.pix.field = V4L2_FIELD_NONE;
-> +
+Hi all,
 
-In previous version the only supported field type was NONE, here you
-support everything.
-If the only supported format is none you should set 'field'
-unconditionally to NONE, nothing more.
+Here is sixth version of the patchset - no functional changes in
+v4l2 APIs.
 
-Regards
-Andrzej
+The changes since v5 are mainly related to support Venus IP on
+msm8996 SoCs.
+  * changes in DT binding document - added three DT subnodes
+    video-decoder, video-encoder and video-firmware see 2/9.
+  * splitting up the driver on three platform drivers called
+    venus-core, venus-enc and venus-dec to satisfy requirement for
+    Venus core on msm8996 SoCs where core, decoder and encoder have
+    separate power-domains and clocks. 
+  * moved part of the firmware loader in the venus-core driver
+    (removed previous remoteproc API).
+  * fixed various issues.
 
->  	mfc_debug(2, "Type is %d\n", f->type);
->  	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
->  		fmt = find_format(f, MFC_FMT_DEC);
+Build dependencies:
+  - qcom_scm_set_remote_state is in linux-next
+  - qcom mdt_loader will be soon in linux-next
+
+regards,
+Stan
+  
+Stanimir Varbanov (9):
+  media: v4l2-mem2mem: extend m2m APIs for more accurate buffer
+    management
+  doc: DT: venus: binding document for Qualcomm video driver
+  MAINTAINERS: Add Qualcomm Venus video accelerator driver
+  media: venus: adding core part and helper functions
+  media: venus: vdec: add video decoder files
+  media: venus: venc: add video encoder files
+  media: venus: hfi: add Host Firmware Interface (HFI)
+  media: venus: hfi: add Venus HFI files
+  media: venus: enable building of Venus video driver
+
+ .../devicetree/bindings/media/qcom,venus.txt       |  112 ++
+ MAINTAINERS                                        |    8 +
+ drivers/media/platform/Kconfig                     |   14 +
+ drivers/media/platform/Makefile                    |    2 +
+ drivers/media/platform/qcom/venus/Makefile         |   11 +
+ drivers/media/platform/qcom/venus/core.c           |  368 +++++
+ drivers/media/platform/qcom/venus/core.h           |  303 ++++
+ drivers/media/platform/qcom/venus/firmware.c       |  151 ++
+ drivers/media/platform/qcom/venus/firmware.h       |   22 +
+ drivers/media/platform/qcom/venus/helpers.c        |  640 ++++++++
+ drivers/media/platform/qcom/venus/helpers.h        |   41 +
+ drivers/media/platform/qcom/venus/hfi.c            |  506 +++++++
+ drivers/media/platform/qcom/venus/hfi.h            |  174 +++
+ drivers/media/platform/qcom/venus/hfi_cmds.c       | 1256 ++++++++++++++++
+ drivers/media/platform/qcom/venus/hfi_cmds.h       |  304 ++++
+ drivers/media/platform/qcom/venus/hfi_helper.h     | 1045 +++++++++++++
+ drivers/media/platform/qcom/venus/hfi_msgs.c       | 1057 +++++++++++++
+ drivers/media/platform/qcom/venus/hfi_msgs.h       |  283 ++++
+ drivers/media/platform/qcom/venus/hfi_venus.c      | 1574 ++++++++++++++++++++
+ drivers/media/platform/qcom/venus/hfi_venus.h      |   23 +
+ drivers/media/platform/qcom/venus/hfi_venus_io.h   |  113 ++
+ drivers/media/platform/qcom/venus/vdec.c           | 1083 ++++++++++++++
+ drivers/media/platform/qcom/venus/vdec.h           |   23 +
+ drivers/media/platform/qcom/venus/vdec_ctrls.c     |  149 ++
+ drivers/media/platform/qcom/venus/venc.c           | 1231 +++++++++++++++
+ drivers/media/platform/qcom/venus/venc.h           |   23 +
+ drivers/media/platform/qcom/venus/venc_ctrls.c     |  258 ++++
+ drivers/media/v4l2-core/v4l2-mem2mem.c             |   37 +
+ include/media/v4l2-mem2mem.h                       |   92 ++
+ 29 files changed, 10903 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
+ create mode 100644 drivers/media/platform/qcom/venus/Makefile
+ create mode 100644 drivers/media/platform/qcom/venus/core.c
+ create mode 100644 drivers/media/platform/qcom/venus/core.h
+ create mode 100644 drivers/media/platform/qcom/venus/firmware.c
+ create mode 100644 drivers/media/platform/qcom/venus/firmware.h
+ create mode 100644 drivers/media/platform/qcom/venus/helpers.c
+ create mode 100644 drivers/media/platform/qcom/venus/helpers.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_helper.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_venus_io.h
+ create mode 100644 drivers/media/platform/qcom/venus/vdec.c
+ create mode 100644 drivers/media/platform/qcom/venus/vdec.h
+ create mode 100644 drivers/media/platform/qcom/venus/vdec_ctrls.c
+ create mode 100644 drivers/media/platform/qcom/venus/venc.c
+ create mode 100644 drivers/media/platform/qcom/venus/venc.h
+ create mode 100644 drivers/media/platform/qcom/venus/venc_ctrls.c
+
+-- 
+2.7.4
+
