@@ -1,238 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:43929 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752656AbdBMOAn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 09:00:43 -0500
-Subject: Re: [PATCH 2/4] [media] em28xx: reduce stack usage in probe functions
-To: Arnd Bergmann <arnd@arndb.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <20170202145318.3803805-1-arnd@arndb.de>
- <20170202145318.3803805-2-arnd@arndb.de>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        =?UTF-8?Q?Frank_Sch=c3=a4fer?= <fschaefer.oss@googlemail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <12e52c0c-1e40-3276-7c24-43cc670f00a4@xs4all.nl>
-Date: Mon, 13 Feb 2017 15:00:37 +0100
+Received: from fllnx209.ext.ti.com ([198.47.19.16]:62476 "EHLO
+        fllnx209.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753825AbdBGNnB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2017 08:43:01 -0500
+Date: Tue, 7 Feb 2017 07:36:48 -0600
+From: Benoit Parrot <bparrot@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Philipp Zabel <p.zabel@pengutronix.de>, <robh+dt@kernel.org>,
+        <mark.rutland@arm.com>, <shawnguo@kernel.org>,
+        <kernel@pengutronix.de>, <fabio.estevam@nxp.com>,
+        <linux@armlinux.org.uk>, <mchehab@kernel.org>,
+        <nick@shmanahar.org>, <markus.heiser@darmarit.de>,
+        <laurent.pinchart+renesas@ideasonboard.com>,
+        <geert@linux-m68k.org>, <arnd@arndb.de>,
+        <sudipm.mukherjee@gmail.com>, <minghsiu.tsai@mediatek.com>,
+        <tiffany.lin@mediatek.com>, <jean-christophe.trotin@st.com>,
+        <horms+renesas@verge.net.au>,
+        <niklas.soderlund+renesas@ragnatech.se>, <robert.jarzmik@free.fr>,
+        <songjun.wu@microchip.com>, <andrew-ct.chen@mediatek.com>,
+        <gregkh@linuxfoundation.org>, <devicetree@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>, <devel@driverdev.osuosl.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v3 13/24] platform: add video-multiplexer subdevice driver
+Message-ID: <20170207133648.GA27065@ti.com>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <2038922.a1tReKKdaL@avalon>
+ <bd64a86e-d90c-f4aa-6f22-1c832e0b563f@gmail.com>
+ <3823958.XNLmIv7GEv@avalon>
 MIME-Version: 1.0
-In-Reply-To: <20170202145318.3803805-2-arnd@arndb.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <3823958.XNLmIv7GEv@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arnd,
-
-I'll take the others of this patch series, but will postpone this one until it has
-been tested.
-
-I've asked Frank to see if he can test it, if not, then it will have to wait until
-March when I have access to an omnivision-em28xx device.
-
-Regards,
-
-	Hans
-
-On 02/02/2017 03:53 PM, Arnd Bergmann wrote:
-> The two i2c probe functions use a lot of stack since they put
-> an i2c_client structure in a local variable:
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote on Tue [2017-Feb-07 12:26:32 +0200]:
+> Hi Steve,
 > 
-> drivers/media/usb/em28xx/em28xx-camera.c: In function 'em28xx_probe_sensor_micron':
-> drivers/media/usb/em28xx/em28xx-camera.c:205:1: error: the frame size of 1256 bytes is larger than 1152 bytes [-Werror=frame-larger-than=]
-> drivers/media/usb/em28xx/em28xx-camera.c: In function 'em28xx_probe_sensor_omnivision':
-> drivers/media/usb/em28xx/em28xx-camera.c:317:1: error: the frame size of 1248 bytes is larger than 1152 bytes [-Werror=frame-larger-than=]
+> On Monday 06 Feb 2017 15:10:46 Steve Longerbeam wrote:
+> > On 02/06/2017 02:33 PM, Laurent Pinchart wrote:
+> > > On Monday 06 Feb 2017 10:50:22 Hans Verkuil wrote:
+> > >> On 02/05/2017 04:48 PM, Laurent Pinchart wrote:
+> > >>> On Tuesday 24 Jan 2017 18:07:55 Steve Longerbeam wrote:
+> > >>>> On 01/24/2017 04:02 AM, Philipp Zabel wrote:
+> > >>>>> On Fri, 2017-01-20 at 15:03 +0100, Hans Verkuil wrote:
+> > >>>>>>> +
+> > >>>>>>> +int vidsw_g_mbus_config(struct v4l2_subdev *sd, struct
+> > >>>>>>> v4l2_mbus_config *cfg)
 > 
-> This cleans up both of the above by removing the need for those
-> structures, calling the lower-level i2c function directly.
+> [snip]
 > 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
->  drivers/media/usb/em28xx/em28xx-camera.c | 87 ++++++++++++++++++--------------
->  1 file changed, 50 insertions(+), 37 deletions(-)
+> > >>>>>> I am not certain this op is needed at all. In the current kernel this
+> > >>>>>> op is only used by soc_camera, pxa_camera and omap3isp (somewhat
+> > >>>>>> dubious). Normally this information should come from the device tree
+> > >>>>>> and there should be no need for this op.
+> > >>>>>> 
+> > >>>>>> My (tentative) long-term plan was to get rid of this op.
+> > >>>>>> 
+> > >>>>>> If you don't need it, then I recommend it is removed.
+> > >>>> 
+> > >>>> Hi Hans, the imx-media driver was only calling g_mbus_config to the
+> > >>>> camera sensor, and it was doing that to determine the sensor's bus
+> > >>>> type. This info was already available from parsing a v4l2_of_endpoint
+> > >>>> from the sensor node. So it was simple to remove the g_mbus_config
+> > >>>> calls, and instead rely on the parsed sensor v4l2_of_endpoint.
+> > >>> 
+> > >>> That's not a good point.
+> > > 
+> > > (mea culpa, s/point/idea/)
+> > > 
+> > >>> The imx-media driver must not parse the sensor DT node as it is not
+> > >>> aware of what bindings the sensor is compatible with.
+> > 
+> > Hi Laurent,
+> > 
+> > I don't really understand this argument. The sensor node has been found
+> > by parsing the OF graph, so it is known to be a camera sensor node at
+> > that point.
 > 
-> diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
-> index 89c890ba7dd6..e64940f95a91 100644
-> --- a/drivers/media/usb/em28xx/em28xx-camera.c
-> +++ b/drivers/media/usb/em28xx/em28xx-camera.c
-> @@ -99,6 +99,25 @@ static int em28xx_initialize_mt9m001(struct em28xx *dev)
->  	return 0;
->  }
->  
-> +/* NOTE: i2c_smbus_read_word_data() doesn't work with BE data */
-> +static int em28xx_i2c_read_chip_id(struct em28xx *dev, u16 addr, u8 reg, void *buf)
-> +{
-> +	struct i2c_client *client = &dev->i2c_client[dev->def_i2c_bus];
-> +	struct i2c_msg msg[2];
-> +
-> +	msg[0].addr = addr;
-> +	msg[0].flags = client->flags & I2C_M_TEN;
-> +	msg[0].len = 1;
-> +	msg[0].buf = &reg;
-> +	msg[1].addr = addr;
-> +	msg[1].flags = client->flags & I2C_M_TEN;
-> +	msg[1].flags |= I2C_M_RD;
-> +	msg[1].len = 2;
-> +	msg[1].buf = buf;
-> +
-> +	return i2c_transfer(client->adapter, msg, 2);
-> +}
-> +
->  /*
->   * Probes Micron sensors with 8 bit address and 16 bit register width
->   */
-> @@ -106,48 +125,29 @@ static int em28xx_probe_sensor_micron(struct em28xx *dev)
->  {
->  	int ret, i;
->  	char *name;
-> -	u8 reg;
->  	__be16 id_be;
-> +	u16 addr;
->  	u16 id;
->  
-> -	struct i2c_client client = dev->i2c_client[dev->def_i2c_bus];
-> -
->  	dev->em28xx_sensor = EM28XX_NOSENSOR;
->  	for (i = 0; micron_sensor_addrs[i] != I2C_CLIENT_END; i++) {
-> -		client.addr = micron_sensor_addrs[i];
-> -		/* NOTE: i2c_smbus_read_word_data() doesn't work with BE data */
-> +		addr = micron_sensor_addrs[i];
->  		/* Read chip ID from register 0x00 */
-> -		reg = 0x00;
-> -		ret = i2c_master_send(&client, &reg, 1);
-> +		ret = em28xx_i2c_read_chip_id(dev, addr, 0x00, &id_be);
->  		if (ret < 0) {
->  			if (ret != -ENXIO)
->  				dev_err(&dev->intf->dev,
->  					"couldn't read from i2c device 0x%02x: error %i\n",
-> -				       client.addr << 1, ret);
-> -			continue;
-> -		}
-> -		ret = i2c_master_recv(&client, (u8 *)&id_be, 2);
-> -		if (ret < 0) {
-> -			dev_err(&dev->intf->dev,
-> -				"couldn't read from i2c device 0x%02x: error %i\n",
-> -				client.addr << 1, ret);
-> +				       addr << 1, ret);
->  			continue;
->  		}
->  		id = be16_to_cpu(id_be);
->  		/* Read chip ID from register 0xff */
-> -		reg = 0xff;
-> -		ret = i2c_master_send(&client, &reg, 1);
-> +		ret = em28xx_i2c_read_chip_id(dev, addr, 0xff, &id_be);
->  		if (ret < 0) {
->  			dev_err(&dev->intf->dev,
->  				"couldn't read from i2c device 0x%02x: error %i\n",
-> -				client.addr << 1, ret);
-> -			continue;
-> -		}
-> -		ret = i2c_master_recv(&client, (u8 *)&id_be, 2);
-> -		if (ret < 0) {
-> -			dev_err(&dev->intf->dev,
-> -				"couldn't read from i2c device 0x%02x: error %i\n",
-> -				client.addr << 1, ret);
-> +				addr << 1, ret);
->  			continue;
->  		}
->  		/* Validate chip ID to be sure we have a Micron device */
-> @@ -197,13 +197,26 @@ static int em28xx_probe_sensor_micron(struct em28xx *dev)
->  			dev_info(&dev->intf->dev,
->  				 "sensor %s detected\n", name);
->  
-> -		dev->i2c_client[dev->def_i2c_bus].addr = client.addr;
-> +		dev->i2c_client[dev->def_i2c_bus].addr = addr;
->  		return 0;
->  	}
->  
->  	return -ENODEV;
->  }
->  
-> +/* like i2c_smbus_read_byte_data, but allows passing an addr */
-> +static int em28xx_smbus_read_byte(struct em28xx *dev, u16 addr, u8 command)
-> +{
-> +	struct i2c_client *client = &dev->i2c_client[dev->def_i2c_bus];
-> +	union i2c_smbus_data data;
-> +	int status;
-> +
-> +	status = i2c_smbus_xfer(client->adapter, addr, client->flags,
-> +				I2C_SMBUS_READ, command,
-> +				I2C_SMBUS_BYTE_DATA, &data);
-> +	return (status < 0) ? status : data.byte;
-> +}
-> +
->  /*
->   * Probes Omnivision sensors with 8 bit address and register width
->   */
-> @@ -212,31 +225,31 @@ static int em28xx_probe_sensor_omnivision(struct em28xx *dev)
->  	int ret, i;
->  	char *name;
->  	u8 reg;
-> +	u16 addr;
->  	u16 id;
-> -	struct i2c_client client = dev->i2c_client[dev->def_i2c_bus];
->  
->  	dev->em28xx_sensor = EM28XX_NOSENSOR;
->  	/* NOTE: these devices have the register auto incrementation disabled
->  	 * by default, so we have to use single byte reads !              */
->  	for (i = 0; omnivision_sensor_addrs[i] != I2C_CLIENT_END; i++) {
-> -		client.addr = omnivision_sensor_addrs[i];
-> +		addr = omnivision_sensor_addrs[i];
->  		/* Read manufacturer ID from registers 0x1c-0x1d (BE) */
->  		reg = 0x1c;
-> -		ret = i2c_smbus_read_byte_data(&client, reg);
-> +		ret = em28xx_smbus_read_byte(dev, addr, reg);
->  		if (ret < 0) {
->  			if (ret != -ENXIO)
->  				dev_err(&dev->intf->dev,
->  					"couldn't read from i2c device 0x%02x: error %i\n",
-> -					client.addr << 1, ret);
-> +					addr << 1, ret);
->  			continue;
->  		}
->  		id = ret << 8;
->  		reg = 0x1d;
-> -		ret = i2c_smbus_read_byte_data(&client, reg);
-> +		ret = em28xx_smbus_read_byte(dev, addr, reg);
->  		if (ret < 0) {
->  			dev_err(&dev->intf->dev,
->  				"couldn't read from i2c device 0x%02x: error %i\n",
-> -				client.addr << 1, ret);
-> +				addr << 1, ret);
->  			continue;
->  		}
->  		id += ret;
-> @@ -245,20 +258,20 @@ static int em28xx_probe_sensor_omnivision(struct em28xx *dev)
->  			continue;
->  		/* Read product ID from registers 0x0a-0x0b (BE) */
->  		reg = 0x0a;
-> -		ret = i2c_smbus_read_byte_data(&client, reg);
-> +		ret = em28xx_smbus_read_byte(dev, addr, reg);
->  		if (ret < 0) {
->  			dev_err(&dev->intf->dev,
->  				"couldn't read from i2c device 0x%02x: error %i\n",
-> -				client.addr << 1, ret);
-> +				addr << 1, ret);
->  			continue;
->  		}
->  		id = ret << 8;
->  		reg = 0x0b;
-> -		ret = i2c_smbus_read_byte_data(&client, reg);
-> +		ret = em28xx_smbus_read_byte(dev, addr, reg);
->  		if (ret < 0) {
->  			dev_err(&dev->intf->dev,
->  				"couldn't read from i2c device 0x%02x: error %i\n",
-> -				client.addr << 1, ret);
-> +				addr << 1, ret);
->  			continue;
->  		}
->  		id += ret;
-> @@ -309,7 +322,7 @@ static int em28xx_probe_sensor_omnivision(struct em28xx *dev)
->  			dev_info(&dev->intf->dev,
->  				 "sensor %s detected\n", name);
->  
-> -		dev->i2c_client[dev->def_i2c_bus].addr = client.addr;
-> +		dev->i2c_client[dev->def_i2c_bus].addr = addr;
->  		return 0;
->  	}
->  
+> All you know in the i.MX6 driver is that the remote node is a video source. 
+> You can rely on the fact that it implements the OF graph bindings to locate 
+> other ports in that DT node, but that's more or less it.
+> 
+> DT properties are defined by DT bindings and thus qualified by a compatible 
+> string. Unless you match on sensor compat strings in the i.MX6 driver (which 
+> you shouldn't do, to keep the driver generic) you can't know for certain how 
+> to parse the sensor node DT properties. For all you know, the video source 
+> could be a bridge such as an HDMI to CSI-2 converter for instance, so you 
+> can't even rely on the fact that it's a sensor.
+> 
+> > >>> Information must instead be queried from the sensor subdev at runtime,
+> > >>> through the g_mbus_config() operation.
+> > >>> 
+> > >>> Of course, if you can get the information from the imx-media DT node,
+> > >>> that's certainly an option. It's only information provided by the sensor
+> > >>> driver that you have no choice but query using a subdev operation.
+> > >> 
+> > >> Shouldn't this come from the imx-media DT node? BTW, why is omap3isp
+> > >> using this?
+> > > 
+> > > It all depends on what type of information needs to be retrieved, and
+> > > whether it can change at runtime or is fixed. Adding properties to the
+> > > imx-media DT node is certainly fine as long as those properties describe
+> > > the i.MX side.
+> >
+> > In this case the info needed is the media bus type. That info is most easily
+> > available by calling v4l2_of_parse_endpoint() on the sensor's endpoint
+> > node.
+> 
+> I haven't had time to check the code in details yet, so I can't really comment 
+> on what you need and how it should be implemented exactly.
+> 
+> > The media bus type is not something that can be added to the
+> > imx-media node since it contains no endpoint nodes.
+> 
+> Agreed. You have endpoints in the CSI nodes though.
+> 
+> > > In the omap3isp case, we use the operation to query whether parallel data
+> > > contains embedded sync (BT.656) or uses separate h/v sync signals.
+> > > 
+> > >> The reason I am suspicious about this op is that it came from soc-camera
+> > >> and predates the DT. The contents of v4l2_mbus_config seems very much
+> > >> like a HW description to me, i.e. something that belongs in the DT.
+> > > 
+> > > Part of it is possibly outdated, but for buses that support multiple modes
+> > > of operation (such as the parallel bus case described above) we need to
+> > > make that information discoverable at runtime. Maybe this should be
+> > > considered as related to Sakari's efforts to support VC/DT for CSI-2, and
+> > > supported through the API he is working on.
+> > 
+> > That sounds interesting, can you point me to some info on this effort?
+> 
+> Sure.
+> 
+> http://git.retiisi.org.uk/?p=~sailus/linux.git;a=shortlog;h=refs/heads/vc
+> 
+> > I've been thinking the DT should contain virtual channel info for CSI-2
+> > buses.
+> 
+> I don't think it should. CSI-2 virtual channels and data types should be 
+> handled as a software concept, and thus supported through driver code without 
+> involving DT.
+
+Laurent,
+
+So when you have a CSI2 port aggregator for instance where traffic from up
+to 4 CSI2 sources where each source is now assigned its own VC by the
+aggregator and interleaved into a single CSI2 Receiver. I was hoping that
+in this case the VC would be DT discoverable as a specicic source identifier.
+So the CSI-RX side could associate a specific source and create its own
+video device. I am guessing that no such thing exist today?
+
+Benoit
+
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
 > 
