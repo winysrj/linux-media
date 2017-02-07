@@ -1,1144 +1,516 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:41588 "EHLO
-        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751779AbdBFI5k (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Feb 2017 03:57:40 -0500
-Subject: Re: [PATCH 09/11] [media] s5p-mfc: Add support for HEVC encoder
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-        kamil@wypas.org, jtp.park@samsung.com, mchehab@kernel.org,
-        pankaj.dubey@samsung.com, krzk@kernel.org,
-        m.szyprowski@samsung.com, s.nawrocki@samsung.com
-In-reply-to: <de28d013-9b71-8bb5-68a6-a993edb758d6@samsung.com>
-Content-type: text/plain; charset=UTF-8
-Date: Mon, 06 Feb 2017 14:12:32 +0530
-Message-id: <1486370552.16927.86.camel@smitha-fedora>
-MIME-version: 1.0
-Content-transfer-encoding: 7bit
-References: <1484733729-25371-1-git-send-email-smitha.t@samsung.com>
- <CGME20170118100807epcas5p1a0af682c334aa9581f32cbf7f1f264c2@epcas5p1.samsung.com>
- <1484733729-25371-10-git-send-email-smitha.t@samsung.com>
- <de28d013-9b71-8bb5-68a6-a993edb758d6@samsung.com>
+Received: from mout.gmx.net ([212.227.17.21]:53535 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754249AbdBGQ3o (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 7 Feb 2017 11:29:44 -0500
+Received: from axis700.grange ([81.173.166.100]) by mail.gmx.com (mrgmx102
+ [212.227.17.168]) with ESMTPSA (Nemesis) id 0MELdk-1cdIMe0rxQ-00FWiN for
+ <linux-media@vger.kernel.org>; Tue, 07 Feb 2017 17:29:40 +0100
+Received: from 200r.grange (200r.grange [192.168.1.16])
+        by axis700.grange (Postfix) with ESMTP id 40F0A8B114
+        for <linux-media@vger.kernel.org>; Tue,  7 Feb 2017 17:29:37 +0100 (CET)
+From: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v2 2/4] uvcvideo: send a control event when a Control Change interrupt arrives
+Date: Tue,  7 Feb 2017 17:29:34 +0100
+Message-Id: <1486484976-17365-3-git-send-email-guennadi.liakhovetski@intel.com>
+In-Reply-To: <1486484976-17365-1-git-send-email-guennadi.liakhovetski@intel.com>
+References: <1486484976-17365-1-git-send-email-guennadi.liakhovetski@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2017-02-02 at 09:55 +0100, Andrzej Hajda wrote: 
-> On 18.01.2017 11:02, Smitha T Murthy wrote:
-> > Add HEVC encoder support and necessary registers, V4L2 CIDs,
-> > and hevc encoder parameters
-> >
-> > Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-> > ---
-> >  drivers/media/platform/s5p-mfc/regs-mfc-v10.h   |   28 +-
-> >  drivers/media/platform/s5p-mfc/s5p_mfc.c        |    1 +
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c |    3 +
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_common.h |   55 ++-
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |  595 +++++++++++++++++++++++
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |    8 +
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |  200 ++++++++
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h |    7 +
-> >  8 files changed, 895 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-> > index 81a0a96..914ffec 100644
-> > --- a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-> > +++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-> > @@ -20,13 +20,35 @@
-> >  #define S5P_FIMV_MFC_STATE_V10				0x7124
-> >  #define S5P_FIMV_D_STATIC_BUFFER_ADDR_V10		0xF570
-> >  #define S5P_FIMV_D_STATIC_BUFFER_SIZE_V10		0xF574
-> > +#define S5P_FIMV_E_NUM_T_LAYER_V10			0xFBAC
-> > +#define S5P_FIMV_E_HIERARCHICAL_QP_LAYER0_V10		0xFBB0
-> > +#define S5P_FIMV_E_HIERARCHICAL_QP_LAYER1_V10		0xFBB4
-> > +#define S5P_FIMV_E_HIERARCHICAL_QP_LAYER2_V10		0xFBB8
-> > +#define S5P_FIMV_E_HIERARCHICAL_QP_LAYER3_V10		0xFBBC
-> > +#define S5P_FIMV_E_HIERARCHICAL_QP_LAYER4_V10		0xFBC0
-> > +#define S5P_FIMV_E_HIERARCHICAL_QP_LAYER5_V10		0xFBC4
-> > +#define S5P_FIMV_E_HIERARCHICAL_QP_LAYER6_V10		0xFBC8
-> > +#define S5P_FIMV_E_HIERARCHICAL_BIT_RATE_LAYER0_V10	0xFD18
-> > +#define S5P_FIMV_E_HIERARCHICAL_BIT_RATE_LAYER1_V10	0xFD1C
-> > +#define S5P_FIMV_E_HIERARCHICAL_BIT_RATE_LAYER2_V10	0xFD20
-> > +#define S5P_FIMV_E_HIERARCHICAL_BIT_RATE_LAYER3_V10	0xFD24
-> > +#define S5P_FIMV_E_HIERARCHICAL_BIT_RATE_LAYER4_V10	0xFD28
-> > +#define S5P_FIMV_E_HIERARCHICAL_BIT_RATE_LAYER5_V10	0xFD2C
-> > +#define S5P_FIMV_E_HIERARCHICAL_BIT_RATE_LAYER6_V10	0xFD30
-> > +#define S5P_FIMV_E_HEVC_OPTIONS_V10			0xFDD4
-> > +#define S5P_FIMV_E_HEVC_REFRESH_PERIOD_V10		0xFDD8
-> > +#define S5P_FIMV_E_HEVC_CHROMA_QP_OFFSET_V10		0xFDDC
-> > +#define S5P_FIMV_E_HEVC_LF_BETA_OFFSET_DIV2_V10		0xFDE0
-> > +#define S5P_FIMV_E_HEVC_LF_TC_OFFSET_DIV2_V10		0xFDE4
-> > +#define S5P_FIMV_E_HEVC_NAL_CONTROL_V10			0xFDE8
-> >  
-> >  /* MFCv10 Context buffer sizes */
-> >  #define MFC_CTX_BUF_SIZE_V10		(30 * SZ_1K)	/* 30KB */
-> >  #define MFC_H264_DEC_CTX_BUF_SIZE_V10	(2 * SZ_1M)	/* 2MB */
-> >  #define MFC_OTHER_DEC_CTX_BUF_SIZE_V10	(20 * SZ_1K)	/* 20KB */
-> >  #define MFC_H264_ENC_CTX_BUF_SIZE_V10	(100 * SZ_1K)	/* 100KB */
-> > -#define MFC_OTHER_ENC_CTX_BUF_SIZE_V10	(15 * SZ_1K)	/* 15KB */
-> > +#define MFC_HEVC_ENC_CTX_BUF_SIZE_V10	(30 * SZ_1K)	/* 30KB */
-> > +#define MFC_OTHER_ENC_CTX_BUF_SIZE_V10  (15 * SZ_1K)	/* 15KB */
-> >  
-> >  /* MFCv10 variant defines */
-> >  #define MAX_FW_SIZE_V10		(SZ_1M)		/* 1MB */
-> > @@ -37,6 +59,7 @@
-> >  /* MFCv10 codec defines*/
-> >  #define S5P_FIMV_CODEC_HEVC_DEC		17
-> >  #define S5P_FIMV_CODEC_VP9_DEC		18
-> > +#define S5P_FIMV_CODEC_HEVC_ENC         26
-> >  
-> >  /* Decoder buffer size for MFC v10 */
-> >  #define DEC_VP9_STATIC_BUFFER_SIZE	20480
-> > @@ -53,6 +76,9 @@
-> >  #define ENC_V100_VP8_ME_SIZE(x, y)	\
-> >  	(((x + 3) * (y + 3) * 8)	\
-> >  	 + (((y * 64) + 1280) * (x + 7) / 8))
-> > +#define ENC_V100_HEVC_ME_SIZE(x, y)	\
-> > +	(((x + 3) * (y + 3) * 32)	\
-> > +	 + (((y * 128) + 1280) * (x + 3) / 4))
-> 
-> Use DIV_ROUND_UP.
-> 
-I will correct this in next version. 
-> >  
-> >  #endif /*_REGS_MFC_V10_H*/
-> >  
-> > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> > index b014038..b01c556 100644
-> > --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> > +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> > @@ -1549,6 +1549,7 @@ static int s5p_mfc_resume(struct device *dev)
-> >  	.h264_dec_ctx   = MFC_H264_DEC_CTX_BUF_SIZE_V10,
-> >  	.other_dec_ctx  = MFC_OTHER_DEC_CTX_BUF_SIZE_V10,
-> >  	.h264_enc_ctx   = MFC_H264_ENC_CTX_BUF_SIZE_V10,
-> > +	.hevc_enc_ctx   = MFC_HEVC_ENC_CTX_BUF_SIZE_V10,
-> >  	.other_enc_ctx  = MFC_OTHER_ENC_CTX_BUF_SIZE_V10,
-> >  };
-> >  
-> > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-> > index 102b47e..7521fce 100644
-> > --- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-> > +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-> > @@ -122,6 +122,9 @@ static int s5p_mfc_open_inst_cmd_v6(struct s5p_mfc_ctx *ctx)
-> >  	case S5P_MFC_CODEC_VP8_ENC:
-> >  		codec_type = S5P_FIMV_CODEC_VP8_ENC_V7;
-> >  		break;
-> > +	case S5P_MFC_CODEC_HEVC_ENC:
-> > +		codec_type = S5P_FIMV_CODEC_HEVC_ENC;
-> > +		break;
-> >  	default:
-> >  		codec_type = S5P_FIMV_CODEC_NONE_V6;
-> >  	}
-> > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> > index e720ce6..9eec446 100644
-> > --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> > +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> > @@ -68,7 +68,7 @@ static inline dma_addr_t s5p_mfc_mem_cookie(void *a, void *b)
-> >  #define MFC_ENC_CAP_PLANE_COUNT	1
-> >  #define MFC_ENC_OUT_PLANE_COUNT	2
-> >  #define STUFF_BYTE		4
-> > -#define MFC_MAX_CTRLS		77
-> > +#define MFC_MAX_CTRLS		128
-> >  
-> >  #define S5P_MFC_CODEC_NONE		-1
-> >  #define S5P_MFC_CODEC_H264_DEC		0
-> > @@ -87,6 +87,7 @@ static inline dma_addr_t s5p_mfc_mem_cookie(void *a, void *b)
-> >  #define S5P_MFC_CODEC_MPEG4_ENC		22
-> >  #define S5P_MFC_CODEC_H263_ENC		23
-> >  #define S5P_MFC_CODEC_VP8_ENC		24
-> > +#define S5P_MFC_CODEC_HEVC_ENC		26
-> >  
-> >  #define S5P_MFC_R2H_CMD_EMPTY			0
-> >  #define S5P_MFC_R2H_CMD_SYS_INIT_RET		1
-> > @@ -222,6 +223,7 @@ struct s5p_mfc_buf_size_v6 {
-> >  	unsigned int h264_dec_ctx;
-> >  	unsigned int other_dec_ctx;
-> >  	unsigned int h264_enc_ctx;
-> > +	unsigned int hevc_enc_ctx;
-> >  	unsigned int other_enc_ctx;
-> >  };
-> >  
-> > @@ -440,6 +442,56 @@ struct s5p_mfc_vp8_enc_params {
-> >  	u8 profile;
-> >  };
-> >  
-> > +struct s5p_mfc_hevc_enc_params {
-> > +	u8 level;
-> > +	u8 tier_flag;
-> > +	/* HEVC Only */
-> > +	u32 rc_framerate;
-> > +	u8 rc_min_qp;
-> > +	u8 rc_max_qp;
-> > +	u8 rc_lcu_dark;
-> > +	u8 rc_lcu_smooth;
-> > +	u8 rc_lcu_static;
-> > +	u8 rc_lcu_activity;
-> > +	u8 rc_frame_qp;
-> > +	u8 rc_p_frame_qp;
-> > +	u8 rc_b_frame_qp;
-> > +	u8 max_partition_depth;
-> > +	u8 num_refs_for_p;
-> > +	u8 refreshtype;
-> > +	u16 refreshperiod;
-> > +	s32 lf_beta_offset_div2;
-> > +	s32 lf_tc_offset_div2;
-> > +	u8 loopfilter_disable;
-> > +	u8 loopfilter_across;
-> > +	u8 nal_control_length_filed;
-> > +	u8 nal_control_user_ref;
-> > +	u8 nal_control_store_ref;
-> > +	u8 const_intra_period_enable;
-> > +	u8 lossless_cu_enable;
-> > +	u8 wavefront_enable;
-> > +	u8 enable_ltr;
-> > +	u8 hier_qp_enable;
-> > +	enum v4l2_mpeg_video_hevc_hier_coding_type hier_qp_type;
-> > +	u8 hier_ref_type;
-> > +	u8 num_hier_layer;
-> > +	u8 hier_qp_layer[7];
-> > +	u32 hier_bit_layer[7];
-> > +	u8 sign_data_hiding;
-> > +	u8 general_pb_enable;
-> > +	u8 temporal_id_enable;
-> > +	u8 strong_intra_smooth;
-> > +	u8 intra_pu_split_disable;
-> > +	u8 tmv_prediction_disable;
-> > +	u8 max_num_merge_mv;
-> > +	u8 eco_mode_enable;
-> > +	u8 encoding_nostartcode_enable;
-> > +	u8 size_of_length_field;
-> > +	u8 user_ref;
-> > +	u8 store_ref;
-> > +	u8 prepend_sps_pps_to_idr;
-> > +};
-> > +
-> >  /**
-> >   * struct s5p_mfc_enc_params - general encoding parameters
-> >   */
-> > @@ -477,6 +529,7 @@ struct s5p_mfc_enc_params {
-> >  		struct s5p_mfc_h264_enc_params h264;
-> >  		struct s5p_mfc_mpeg4_enc_params mpeg4;
-> >  		struct s5p_mfc_vp8_enc_params vp8;
-> > +		struct s5p_mfc_hevc_enc_params hevc;
-> >  	} codec;
-> >  
-> >  };
-> > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> > index ef15831..72da776 100644
-> > --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> > +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> > @@ -104,6 +104,14 @@
-> >  		.num_planes	= 1,
-> >  		.versions	= MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
-> >  	},
-> > +	{
-> > +		.name		= "HEVC Encoded Stream",
-> > +		.fourcc		= V4L2_PIX_FMT_HEVC,
-> > +		.codec_mode	= S5P_FIMV_CODEC_HEVC_ENC,
-> > +		.type		= MFC_FMT_ENC,
-> > +		.num_planes	= 1,
-> > +		.versions	= MFC_V10_BIT,
-> > +	},
-> >  };
-> >  
-> >  #define NUM_FORMATS ARRAY_SIZE(formats)
-> > @@ -698,6 +706,447 @@
-> >  		.default_value = 0,
-> >  	},
-> >  	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP,
-> 
-> Does it compile? V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP is defined in the
-> next patch.
-> Please keep bisectability.
-> 
-> Regards
-> Andrzej
-> 
-Sorry I will take care of the bisectability in the next version.
+UVC defines a method of handling asynchronous controls, which sends a
+USB packet over the interrupt pipe. This patch implements support for
+such packets by sending a control event to the user. Since this can
+involve USB traffic and, therefore, scheduling, this has to be done
+in a work queue.
 
-Thank you for the review.
-Regards,
-Smitha 
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "HEVC Frame QP value",
-> > +		.minimum = 0,
-> > +		.maximum = 51,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "HEVC P frame QP value",
-> > +		.minimum = 0,
-> > +		.maximum = 51,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "HEVC B frame QP value",
-> > +		.minimum = 0,
-> > +		.maximum = 51,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "HEVC Minimum QP value",
-> > +		.minimum = 0,
-> > +		.maximum = 51,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "HEVC Maximum QP value",
-> > +		.minimum = 0,
-> > +		.maximum = 51,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_DARK,
-> > +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> > +		.name = "HEVC dark region adaptive",
-> > +		.minimum = 0,
-> > +		.maximum = 1,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_SMOOTH,
-> > +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> > +		.name = "HEVC smooth region adaptive",
-> > +		.minimum = 0,
-> > +		.maximum = 1,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_STATIC,
-> > +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> > +		.name = "HEVC static region adaptive",
-> > +		.minimum = 0,
-> > +		.maximum = 1,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_ACTIVITY,
-> > +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> > +		.name = "HEVC activity adaptive",
-> > +		.minimum = 0,
-> > +		.maximum = 1,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_PROFILE,
-> > +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> > +		.name = "HEVC Profile",
-> > +		.minimum = 0,
-> > +		.maximum = 0,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_LEVEL,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "HEVC level",
-> > +		.minimum = 10,
-> > +		.maximum = 62,
-> > +		.step = 1,
-> > +		.default_value = 10,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG,
-> > +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> > +		.name = "HEVC tier_flag default is Main",
-> > +		.minimum = 0,
-> > +		.maximum = 1,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_RC_FRAME_RATE,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "HEVC Frame rate",
-> > +		.minimum = 1,
-> > +		.maximum = (1 << 16) - 1,
-> > +		.step = 1,
-> > +		.default_value = 1,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH,
-> > +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> > +		.name = "HEVC Maximum coding unit depth",
-> > +		.minimum = 0,
-> > +		.maximum = 1,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_REF_NUMBER_FOR_PFRAMES,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "HEVC Number of reference picture",
-> > +		.minimum = 1,
-> > +		.maximum = 2,
-> > +		.step = 1,
-> > +		.default_value = 1,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "HEVC Number of reference picture",
-> > +		.minimum = 0,
-> > +		.maximum = 2,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED_ENABLE,
-> > +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> > +		.name = "HEVC refresh type",
-> > +		.minimum = 0,
-> > +		.maximum = 1,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU_ENABLE,
-> > +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> > +		.name = "HEVC lossless encoding select",
-> > +		.minimum = 0,
-> > +		.maximum = 1,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT_ENABLE,
-> > +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> > +		.name = "HEVC Wavefront enable",
-> > +		.minimum = 0,
-> > +		.maximum = 1,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_LF_DISABLE,
-> > +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> > +		.name = "HEVC Filter disable",
-> > +		.minimum = 0,
-> > +		.maximum = 1,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_LF_SLICE_BOUNDARY,
-> > +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> > +		.name = "across or not slice boundary",
-> > +		.minimum = 0,
-> > +		.maximum = 1,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_LTR_ENABLE,
-> > +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> > +		.name = "long term reference enable",
-> > +		.minimum = 0,
-> > +		.maximum = 1,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_QP_ENABLE,
-> > +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> > +		.name = "QP values for temporal layer",
-> > +		.minimum = 0,
-> > +		.maximum = 1,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_TYPE,
-> > +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> > +		.name = "Hierarchical Coding Type",
-> > +		.minimum = V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_B,
-> > +		.maximum = V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_P,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "Hierarchical Coding Layer",
-> > +		.minimum = 0,
-> > +		.maximum = 7,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_QP,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "Hierarchical Coding Layer QP",
-> > +		.minimum = INT_MIN,
-> > +		.maximum = INT_MAX,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT0,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "Hierarchical Coding Layer BIT0",
-> > +		.minimum = INT_MIN,
-> > +		.maximum = INT_MAX,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT1,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "Hierarchical Coding Layer BIT1",
-> > +		.minimum = INT_MIN,
-> > +		.maximum = INT_MAX,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT2,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "Hierarchical Coding Layer BIT2",
-> > +		.minimum = INT_MIN,
-> > +		.maximum = INT_MAX,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT3,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "Hierarchical Coding Layer BIT3",
-> > +		.minimum = INT_MIN,
-> > +		.maximum = INT_MAX,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT4,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "Hierarchical Coding Layer BIT4",
-> > +		.minimum = INT_MIN,
-> > +		.maximum = INT_MAX,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT5,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "Hierarchical Coding Layer BIT5",
-> > +		.minimum = INT_MIN,
-> > +		.maximum = INT_MAX,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT6,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "Hierarchical Coding Layer BIT6",
-> > +		.minimum = INT_MIN,
-> > +		.maximum = INT_MAX,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_CH,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "Hierarchical Coding Layer Change",
-> > +		.minimum = INT_MIN,
-> > +		.maximum = INT_MAX,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_SIGN_DATA_HIDING,
-> > +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> > +		.name = "HEVC Sign data hiding",
-> > +		.minimum = 0,
-> > +		.maximum = 1,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB_ENABLE,
-> > +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> > +		.name = "HEVC General pb enable",
-> > +		.minimum = 0,
-> > +		.maximum = 1,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID_ENABLE,
-> > +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> > +		.name = "HEVC Temporal id enable",
-> > +		.minimum = 0,
-> > +		.maximum = 1,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOTHING_FLAG,
-> > +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> > +		.name = "HEVC Strong intra smoothing flag",
-> > +		.minimum = 0,
-> > +		.maximum = 1,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_DISABLE_INTRA_PU_SPLIT,
-> > +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> > +		.name = "HEVC disable intra pu split",
-> > +		.minimum = 0,
-> > +		.maximum = 1,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_DISABLE_TMV_PREDICTION,
-> > +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> > +		.name = "HEVC disable tmv prediction",
-> > +		.minimum = 0,
-> > +		.maximum = 1,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "max number of candidate MVs",
-> > +		.minimum = 0,
-> > +		.maximum = 4,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE_ENABLE,
-> > +		.type = V4L2_CTRL_TYPE_BOOLEAN,
-> > +		.name = "ENC without startcode enable",
-> > +		.minimum = 0,
-> > +		.maximum = 1,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "HEVC Number of reference picture",
-> > +		.minimum = 0,
-> > +		.maximum = (1 << 16) - 1,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "HEVC loop filter beta offset",
-> > +		.minimum = -6,
-> > +		.maximum = 6,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "HEVC loop filter tc offset",
-> > +		.minimum = -6,
-> > +		.maximum = 6,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "HEVC size of length field",
-> > +		.minimum = 0,
-> > +		.maximum = 3,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_USER_REF,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "user long term reference frame",
-> > +		.minimum = 0,
-> > +		.maximum = 1,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_STORE_REF,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "store long term reference frame",
-> > +		.minimum = 0,
-> > +		.maximum = 2,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> > +		.id = V4L2_CID_MPEG_VIDEO_HEVC_PREPEND_SPSPPS_TO_IDR,
-> > +		.type = V4L2_CTRL_TYPE_INTEGER,
-> > +		.name = "Prepend SPS/PPS to every IDR",
-> > +		.minimum = 0,
-> > +		.maximum = 1,
-> > +		.step = 1,
-> > +		.default_value = 0,
-> > +	},
-> > +	{
-> >  		.id = V4L2_CID_MIN_BUFFERS_FOR_OUTPUT,
-> >  		.type = V4L2_CTRL_TYPE_INTEGER,
-> >  		.name = "Minimum number of output bufs",
-> > @@ -1642,6 +2091,152 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
-> >  	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:
-> >  		p->codec.vp8.profile = ctrl->val;
-> >  		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP:
-> > +		p->codec.hevc.rc_frame_qp = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP:
-> > +		p->codec.hevc.rc_p_frame_qp = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP:
-> > +		p->codec.hevc.rc_b_frame_qp = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_RC_FRAME_RATE:
-> > +		p->codec.hevc.rc_framerate = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP:
-> > +		p->codec.hevc.rc_min_qp = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP:
-> > +		p->codec.hevc.rc_max_qp = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:
-> > +		p->codec.hevc.level = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_DARK:
-> > +		p->codec.hevc.rc_lcu_dark = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_SMOOTH:
-> > +		p->codec.hevc.rc_lcu_smooth = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_STATIC:
-> > +		p->codec.hevc.rc_lcu_static = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_ACTIVITY:
-> > +		p->codec.hevc.rc_lcu_activity = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG:
-> > +		p->codec.hevc.tier_flag = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH:
-> > +		p->codec.hevc.max_partition_depth = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_REF_NUMBER_FOR_PFRAMES:
-> > +		p->codec.hevc.num_refs_for_p = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE:
-> > +		p->codec.hevc.refreshtype = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED_ENABLE:
-> > +		p->codec.hevc.const_intra_period_enable = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU_ENABLE:
-> > +		p->codec.hevc.lossless_cu_enable = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT_ENABLE:
-> > +		p->codec.hevc.wavefront_enable = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_LF_DISABLE:
-> > +		p->codec.hevc.loopfilter_disable = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_LF_SLICE_BOUNDARY:
-> > +		p->codec.hevc.loopfilter_across = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_LTR_ENABLE:
-> > +		p->codec.hevc.enable_ltr = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_QP_ENABLE:
-> > +		p->codec.hevc.hier_qp_enable = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_TYPE:
-> > +		p->codec.hevc.hier_qp_type =
-> > +			(enum v4l2_mpeg_video_hevc_hier_coding_type)(ctrl->val);
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER:
-> > +		p->codec.hevc.num_hier_layer = ctrl->val & 0x7;
-> > +		p->codec.hevc.hier_ref_type = (ctrl->val >> 16) & 0x1;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_QP:
-> > +		p->codec.hevc.hier_qp_layer[(ctrl->val >> 16) & 0x7]
-> > +					= ctrl->val & 0xFF;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT0:
-> > +		p->codec.hevc.hier_bit_layer[0] = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT1:
-> > +		p->codec.hevc.hier_bit_layer[1] = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT2:
-> > +		p->codec.hevc.hier_bit_layer[2] = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT3:
-> > +		p->codec.hevc.hier_bit_layer[3] = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT4:
-> > +		p->codec.hevc.hier_bit_layer[4] = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT5:
-> > +		p->codec.hevc.hier_bit_layer[5] = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT6:
-> > +		p->codec.hevc.hier_bit_layer[6] = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_SIGN_DATA_HIDING:
-> > +		p->codec.hevc.sign_data_hiding = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB_ENABLE:
-> > +		p->codec.hevc.general_pb_enable = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID_ENABLE:
-> > +		p->codec.hevc.temporal_id_enable = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOTHING_FLAG:
-> > +		p->codec.hevc.strong_intra_smooth = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_DISABLE_INTRA_PU_SPLIT:
-> > +		p->codec.hevc.intra_pu_split_disable = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_DISABLE_TMV_PREDICTION:
-> > +		p->codec.hevc.tmv_prediction_disable = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1:
-> > +		p->codec.hevc.max_num_merge_mv = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE_ENABLE:
-> > +		p->codec.hevc.encoding_nostartcode_enable = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD:
-> > +		p->codec.hevc.refreshperiod = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2:
-> > +		p->codec.hevc.lf_beta_offset_div2 = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2:
-> > +		p->codec.hevc.lf_tc_offset_div2 = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:
-> > +		p->codec.hevc.size_of_length_field = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_USER_REF:
-> > +		p->codec.hevc.user_ref = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_STORE_REF:
-> > +		p->codec.hevc.store_ref = ctrl->val;
-> > +		break;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_PREPEND_SPSPPS_TO_IDR:
-> > +		p->codec.hevc.prepend_sps_pps_to_idr = ctrl->val;
-> > +		break;
-> >  	default:
-> >  		v4l2_err(&dev->v4l2_dev, "Invalid control, id=%d, val=%d\n",
-> >  							ctrl->id, ctrl->val);
-> > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
-> > index 565decf..7751272 100644
-> > --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
-> > +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
-> > @@ -272,6 +272,14 @@ struct s5p_mfc_regs {
-> >  	void __iomem *e_vp8_hierarchical_qp_layer1;/* v7 and v8 */
-> >  	void __iomem *e_vp8_hierarchical_qp_layer2;/* v7 and v8 */
-> >  	void __iomem *e_min_scratch_buffer_size; /* v10 */
-> > +	void __iomem *e_num_t_layer; /* v10 */
-> > +	void __iomem *e_hier_qp_layer0; /* v10 */
-> > +	void __iomem *e_hier_bit_rate_layer0; /* v10 */
-> > +	void __iomem *e_hevc_options; /* v10 */
-> > +	void __iomem *e_hevc_refresh_period; /* v10 */
-> > +	void __iomem *e_hevc_lf_beta_offset_div2; /* v10 */
-> > +	void __iomem *e_hevc_lf_tc_offset_div2; /* v10 */
-> > +	void __iomem *e_hevc_nal_control; /* v10 */
-> >  };
-> >  
-> >  struct s5p_mfc_hw_ops {
-> > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> > index da4202f..733c578 100644
-> > --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> > +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> > @@ -301,6 +301,17 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
-> >  			ctx->chroma_dpb_size + ctx->me_buffer_size));
-> >  		ctx->bank2.size = 0;
-> >  		break;
-> > +	case S5P_MFC_CODEC_HEVC_ENC:
-> > +		mfc_debug(2, "Use min scratch buffer size\n");
-> > +		ctx->me_buffer_size =
-> > +			ALIGN(ENC_V100_HEVC_ME_SIZE(lcu_width, lcu_height), 16);
-> > +		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size, 256);
-> > +		ctx->bank1.size =
-> > +			ctx->scratch_buf_size + ctx->tmv_buffer_size +
-> > +			(ctx->pb_count * (ctx->luma_dpb_size +
-> > +			ctx->chroma_dpb_size + ctx->me_buffer_size));
-> > +		ctx->bank2.size = 0;
-> > +		break;
-> >  	default:
-> >  		break;
-> >  	}
-> > @@ -351,6 +362,9 @@ static int s5p_mfc_alloc_instance_buffer_v6(struct s5p_mfc_ctx *ctx)
-> >  	case S5P_MFC_CODEC_H264_ENC:
-> >  		ctx->ctx.size = buf_size->h264_enc_ctx;
-> >  		break;
-> > +	case S5P_MFC_CODEC_HEVC_ENC:
-> > +		ctx->ctx.size = buf_size->hevc_enc_ctx;
-> > +		break;
-> >  	case S5P_MFC_CODEC_MPEG4_ENC:
-> >  	case S5P_MFC_CODEC_H263_ENC:
-> >  	case S5P_MFC_CODEC_VP8_ENC:
-> > @@ -1442,6 +1456,180 @@ static int s5p_mfc_set_enc_params_vp8(struct s5p_mfc_ctx *ctx)
-> >  	return 0;
-> >  }
-> >  
-> > +static int s5p_mfc_set_enc_params_hevc(struct s5p_mfc_ctx *ctx)
-> > +{
-> > +	struct s5p_mfc_dev *dev = ctx->dev;
-> > +	const struct s5p_mfc_regs *mfc_regs = dev->mfc_regs;
-> > +	struct s5p_mfc_enc_params *p = &ctx->enc_params;
-> > +	struct s5p_mfc_hevc_enc_params *p_hevc = &p->codec.hevc;
-> > +	unsigned int reg = 0;
-> > +	int i;
-> > +
-> > +	mfc_debug_enter();
-> > +
-> > +	s5p_mfc_set_enc_params(ctx);
-> > +
-> > +	/* pictype : number of B */
-> > +	reg = readl(mfc_regs->e_gop_config);
-> > +	/* num_b_frame - 0 ~ 2 */
-> > +	reg &= ~(0x3 << 16);
-> > +	reg |= (p->num_b_frame << 16);
-> > +	writel(reg, mfc_regs->e_gop_config);
-> > +
-> > +	/* UHD encoding case */
-> > +	if ((ctx->img_width == 3840) && (ctx->img_height == 2160)) {
-> > +		p_hevc->level = 51;
-> > +		p_hevc->tier_flag = 0;
-> > +	/* this tier_flag can be changed */
-> > +	}
-> > +
-> > +	/* tier_flag & level */
-> > +	reg = 0;
-> > +	/* level */
-> > +	reg &= ~(0xFF << 8);
-> > +	reg |= (p_hevc->level << 8);
-> > +	/* tier_flag - 0 ~ 1 */
-> > +	reg |= (p_hevc->tier_flag << 16);
-> > +	writel(reg, mfc_regs->e_picture_profile);
-> > +
-> > +	/* max partition depth */
-> > +	reg = 0;
-> > +	reg |= (p_hevc->max_partition_depth & 0x1);
-> > +	reg |= (p_hevc->num_refs_for_p-1) << 2;
-> > +	reg |= (2 << 3); /* always set IDR encoding */
-> > +	reg |= (p_hevc->const_intra_period_enable & 0x1) << 5;
-> > +	reg |= (p_hevc->lossless_cu_enable & 0x1) << 6;
-> > +	reg |= (p_hevc->wavefront_enable & 0x1) << 7;
-> > +	reg |= (p_hevc->loopfilter_disable & 0x1) << 8;
-> > +	reg |= (p_hevc->loopfilter_across & 0x1) << 9;
-> > +	reg |= (p_hevc->enable_ltr & 0x1) << 10;
-> > +	reg |= (p_hevc->hier_qp_enable & 0x1) << 11;
-> > +	reg |= (p_hevc->sign_data_hiding & 0x1) << 12;
-> > +	reg |= (p_hevc->general_pb_enable & 0x1) << 13;
-> > +	reg |= (p_hevc->temporal_id_enable & 0x1) << 14;
-> > +	reg |= (p_hevc->strong_intra_smooth & 0x1) << 15;
-> > +	reg |= (p_hevc->intra_pu_split_disable & 0x1) << 16;
-> > +	reg |= (p_hevc->tmv_prediction_disable & 0x1) << 17;
-> > +	reg |= (p_hevc->max_num_merge_mv & 0x7) << 18;
-> > +	reg |= (0 << 21); /* always eco mode disable */
-> > +	reg |= (p_hevc->encoding_nostartcode_enable & 0x1) << 22;
-> > +	reg |= (p_hevc->prepend_sps_pps_to_idr << 26);
-> > +
-> > +	writel(reg, mfc_regs->e_hevc_options);
-> > +	/* refresh period */
-> > +	if (p_hevc->refreshtype) {
-> > +		reg = 0;
-> > +		reg |= (p_hevc->refreshperiod & 0xFFFF);
-> > +		writel(reg, mfc_regs->e_hevc_refresh_period);
-> > +	}
-> > +	/* loop filter setting */
-> > +	if (!p_hevc->loopfilter_disable) {
-> > +		reg = 0;
-> > +		reg |= (p_hevc->lf_beta_offset_div2);
-> > +		writel(reg, mfc_regs->e_hevc_lf_beta_offset_div2);
-> > +		reg = 0;
-> > +		reg |= (p_hevc->lf_tc_offset_div2);
-> > +		writel(reg, mfc_regs->e_hevc_lf_tc_offset_div2);
-> > +	}
-> > +	/* long term reference */
-> > +	if (p_hevc->enable_ltr) {
-> > +		reg = 0;
-> > +		reg |= (p_hevc->store_ref & 0x3);
-> > +		reg &= ~(0x3 << 2);
-> > +		reg |= (p_hevc->user_ref & 0x3) << 2;
-> > +		writel(reg, mfc_regs->e_hevc_nal_control);
-> > +	}
-> > +	/* hier qp enable */
-> > +	if (p_hevc->num_hier_layer) {
-> > +		reg = 0;
-> > +		reg |= (p_hevc->hier_qp_type & 0x1) << 0x3;
-> > +		reg |= p_hevc->num_hier_layer & 0x7;
-> > +		if (p_hevc->hier_ref_type) {
-> > +			reg |= 0x1 << 7;
-> > +			reg |= 0x3 << 4;
-> > +		} else {
-> > +			reg |= 0x7 << 4;
-> > +		}
-> > +		writel(reg, mfc_regs->e_num_t_layer);
-> > +		/* QP value for each layer */
-> > +		if (p_hevc->hier_qp_enable) {
-> > +			for (i = 0; i < 7; i++)
-> > +				writel(p_hevc->hier_qp_layer[i],
-> > +					mfc_regs->e_hier_qp_layer0 + i * 4);
-> > +		}
-> > +		if (p->rc_frame) {
-> > +			for (i = 0; i < 7; i++)
-> > +				writel(p_hevc->hier_bit_layer[i],
-> > +						mfc_regs->e_hier_bit_rate_layer0
-> > +						+ i * 4);
-> > +		}
-> > +	}
-> > +
-> > +	/* rate control config. */
-> > +	reg = readl(mfc_regs->e_rc_config);
-> > +	/* macroblock level rate control */
-> > +	reg &= ~(0x1 << 8);
-> > +	reg |= (p->rc_mb << 8);
-> > +	writel(reg, mfc_regs->e_rc_config);
-> > +	/* frame QP */
-> > +	reg &= ~(0x3F);
-> > +	reg |= p_hevc->rc_frame_qp;
-> > +	writel(reg, mfc_regs->e_rc_config);
-> > +
-> > +	/* frame rate */
-> > +	if (p->rc_frame) {
-> > +		reg = 0;
-> > +		reg &= ~(0xffff << 16);
-> > +		reg |= ((p_hevc->rc_framerate * FRAME_DELTA_DEFAULT) << 16);
-> > +		reg &= ~(0xffff);
-> > +		reg |= FRAME_DELTA_DEFAULT;
-> > +		writel(reg, mfc_regs->e_rc_frame_rate);
-> > +	}
-> > +
-> > +	/* max & min value of QP */
-> > +	reg = 0;
-> > +	/* max QP */
-> > +	reg &= ~(0x3F << 8);
-> > +	reg |= (p_hevc->rc_max_qp << 8);
-> > +	/* min QP */
-> > +	reg &= ~(0x3F);
-> > +	reg |= p_hevc->rc_min_qp;
-> > +	writel(reg, mfc_regs->e_rc_qp_bound);
-> > +
-> > +	/* macroblock adaptive scaling features */
-> > +	writel(0x0, mfc_regs->e_mb_rc_config);
-> > +	if (p->rc_mb) {
-> > +		reg = 0;
-> > +		/* dark region */
-> > +		reg &= ~(0x1 << 3);
-> > +		reg |= (p_hevc->rc_lcu_dark << 3);
-> > +		/* smooth region */
-> > +		reg &= ~(0x1 << 2);
-> > +		reg |= (p_hevc->rc_lcu_smooth << 2);
-> > +		/* static region */
-> > +		reg &= ~(0x1 << 1);
-> > +		reg |= (p_hevc->rc_lcu_static << 1);
-> > +		/* high activity region */
-> > +		reg &= ~(0x1);
-> > +		reg |= p_hevc->rc_lcu_activity;
-> > +		writel(reg, mfc_regs->e_mb_rc_config);
-> > +	}
-> > +	writel(0x0, mfc_regs->e_fixed_picture_qp);
-> > +	if (!p->rc_frame && !p->rc_mb) {
-> > +		reg = 0;
-> > +		reg &= ~(0x3f << 16);
-> > +		reg |= (p_hevc->rc_b_frame_qp << 16);
-> > +		reg &= ~(0x3f << 8);
-> > +		reg |= (p_hevc->rc_p_frame_qp << 8);
-> > +		reg &= ~(0x3f);
-> > +		reg |= p_hevc->rc_frame_qp;
-> > +		writel(reg, mfc_regs->e_fixed_picture_qp);
-> > +	}
-> > +	mfc_debug_leave();
-> > +
-> > +	return 0;
-> > +}
-> > +
-> >  /* Initialize decoding */
-> >  static int s5p_mfc_init_decode_v6(struct s5p_mfc_ctx *ctx)
-> >  {
-> > @@ -1561,6 +1749,8 @@ static int s5p_mfc_init_encode_v6(struct s5p_mfc_ctx *ctx)
-> >  		s5p_mfc_set_enc_params_h263(ctx);
-> >  	else if (ctx->codec_mode == S5P_MFC_CODEC_VP8_ENC)
-> >  		s5p_mfc_set_enc_params_vp8(ctx);
-> > +	else if (ctx->codec_mode == S5P_FIMV_CODEC_HEVC_ENC)
-> > +		s5p_mfc_set_enc_params_hevc(ctx);
-> >  	else {
-> >  		mfc_err("Unknown codec for encoding (%x).\n",
-> >  			ctx->codec_mode);
-> > @@ -2314,6 +2504,16 @@ static unsigned int s5p_mfc_get_crop_info_v_v6(struct s5p_mfc_ctx *ctx)
-> >  	R(d_static_buffer_addr, S5P_FIMV_D_STATIC_BUFFER_ADDR_V10);
-> >  	R(d_static_buffer_size, S5P_FIMV_D_STATIC_BUFFER_SIZE_V10);
-> >  
-> > +	/* encoder registers */
-> > +	R(e_num_t_layer, S5P_FIMV_E_NUM_T_LAYER_V10);
-> > +	R(e_hier_qp_layer0, S5P_FIMV_E_HIERARCHICAL_QP_LAYER0_V10);
-> > +	R(e_hier_bit_rate_layer0, S5P_FIMV_E_HIERARCHICAL_BIT_RATE_LAYER0_V10);
-> > +	R(e_hevc_options, S5P_FIMV_E_HEVC_OPTIONS_V10);
-> > +	R(e_hevc_refresh_period, S5P_FIMV_E_HEVC_REFRESH_PERIOD_V10);
-> > +	R(e_hevc_lf_beta_offset_div2, S5P_FIMV_E_HEVC_LF_BETA_OFFSET_DIV2_V10);
-> > +	R(e_hevc_lf_tc_offset_div2, S5P_FIMV_E_HEVC_LF_TC_OFFSET_DIV2_V10);
-> > +	R(e_hevc_nal_control, S5P_FIMV_E_HEVC_NAL_CONTROL_V10);
-> > +
-> >  done:
-> >  	return &mfc_regs;
-> >  #undef S5P_MFC_REG_ADDR
-> > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-> > index 2e404d8..e971f3a 100644
-> > --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-> > +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-> > @@ -48,7 +48,14 @@
-> >  #define ENC_MPEG4_VOP_TIME_RES_MAX	((1 << 16) - 1)
-> >  #define FRAME_DELTA_H264_H263		1
-> >  #define TIGHT_CBR_MAX			10
-> > +#define ENC_HEVC_RC_FRAME_RATE_MAX	((1 << 16) - 1)
-> > +#define ENC_HEVC_QP_INDEX_MIN		-12
-> > +#define ENC_HEVC_QP_INDEX_MAX		12
-> > +#define ENC_HEVC_LOOP_FILTER_MIN	-12
-> > +#define ENC_HEVC_LOOP_FILTER_MAX	12
-> > +#define ENC_HEVC_LEVEL_MAX		62
-> >  
-> > +#define FRAME_DELTA_DEFAULT		1
-> >  #define CPB_ALIGN			512
-> >  #define set_strm_size_max(cpb_max)	((cpb_max) - CPB_ALIGN)
-> >  
-> 
-> 
-> 
+Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+---
+ drivers/media/usb/uvc/uvc_ctrl.c   | 149 +++++++++++++++++++++++++++++++++----
+ drivers/media/usb/uvc/uvc_status.c | 112 +++++++++++++++++++++++++---
+ drivers/media/usb/uvc/uvc_v4l2.c   |   4 +-
+ drivers/media/usb/uvc/uvcvideo.h   |  14 +++-
+ include/uapi/linux/uvcvideo.h      |   2 +
+ 5 files changed, 253 insertions(+), 28 deletions(-)
 
-
-
-
+diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
+index 6e33bd0..98f2fed 100644
+--- a/drivers/media/usb/uvc/uvc_ctrl.c
++++ b/drivers/media/usb/uvc/uvc_ctrl.c
+@@ -20,6 +20,7 @@
+ #include <linux/videodev2.h>
+ #include <linux/vmalloc.h>
+ #include <linux/wait.h>
++#include <linux/workqueue.h>
+ #include <linux/atomic.h>
+ #include <media/v4l2-ctrls.h>
+ 
+@@ -1277,16 +1278,112 @@ static void uvc_ctrl_send_event(struct uvc_fh *handle,
+ 	}
+ }
+ 
+-static void uvc_ctrl_send_slave_event(struct uvc_fh *handle,
+-	struct uvc_control *master, u32 slave_id,
+-	const struct v4l2_ext_control *xctrls, unsigned int xctrls_count)
++static void __uvc_ctrl_send_slave_event(struct uvc_fh *handle,
++				struct uvc_control *master, u32 slave_id)
+ {
+ 	struct uvc_control_mapping *mapping = NULL;
+ 	struct uvc_control *ctrl = NULL;
+ 	u32 changes = V4L2_EVENT_CTRL_CH_FLAGS;
+-	unsigned int i;
+ 	s32 val = 0;
+ 
++	__uvc_find_control(master->entity, slave_id, &mapping, &ctrl, 0);
++	if (ctrl == NULL)
++		return;
++
++	if (__uvc_ctrl_get(handle->chain, ctrl, mapping, &val) == 0)
++		changes |= V4L2_EVENT_CTRL_CH_VALUE;
++
++	uvc_ctrl_send_event(handle, ctrl, mapping, val, changes);
++}
++
++static void uvc_ctrl_status_event_work(struct work_struct *work)
++{
++	struct uvc_device *dev = container_of(work, struct uvc_device,
++					      async_ctrl.work);
++	struct uvc_ctrl_work *w = &dev->async_ctrl;
++	struct uvc_control_mapping *mapping;
++	struct uvc_control *ctrl;
++	struct uvc_fh *handle;
++	__u8 *data;
++	unsigned int i;
++
++	spin_lock_irq(&w->lock);
++	data = w->data;
++	w->data = NULL;
++	ctrl = w->ctrl;
++	handle = ctrl->handle;
++	ctrl->handle = NULL;
++	spin_unlock_irq(&w->lock);
++
++	if (mutex_lock_interruptible(&handle->chain->ctrl_mutex))
++		goto free;
++
++	list_for_each_entry(mapping, &ctrl->info.mappings, list) {
++		s32 value;
++
++		mapping->get(mapping, UVC_GET_CUR, data, &value, sizeof(value));
++
++		for (i = 0; i < ARRAY_SIZE(mapping->slave_ids); ++i) {
++			if (!mapping->slave_ids[i])
++				break;
++
++			__uvc_ctrl_send_slave_event(handle, ctrl,
++						    mapping->slave_ids[i]);
++		}
++
++		if (mapping->v4l2_type == V4L2_CTRL_TYPE_MENU) {
++			struct uvc_menu_info *menu = mapping->menu_info;
++			unsigned int i;
++
++			for (i = 0; i < mapping->menu_count; ++i, ++menu)
++				if (menu->value == value) {
++					value = i;
++					break;
++				}
++		}
++
++		uvc_ctrl_send_event(handle, ctrl, mapping, value,
++				    V4L2_EVENT_CTRL_CH_VALUE);
++	}
++
++	mutex_unlock(&handle->chain->ctrl_mutex);
++
++free:
++	kfree(data);
++}
++
++void uvc_ctrl_status_event(struct uvc_device *dev, struct uvc_control *ctrl,
++			   __u8 *data, size_t len)
++{
++	struct uvc_ctrl_work *w = &dev->async_ctrl;
++
++	if (list_empty(&ctrl->info.mappings))
++		return;
++
++	if (!ctrl->handle)
++		/* This is an auto-update, they are unsupported */
++		return;
++
++	spin_lock(&w->lock);
++	if (w->data)
++		/* A previous event work hasn't run yet, we lose 1 event */
++		kfree(w->data);
++
++	w->data = kmalloc(len, GFP_ATOMIC);
++	if (w->data) {
++		memcpy(w->data, data, len);
++		w->ctrl = ctrl;
++		schedule_work(&w->work);
++	}
++	spin_unlock(&w->lock);
++}
++
++static void uvc_ctrl_send_slave_event(struct uvc_fh *handle,
++	struct uvc_control *master, u32 slave_id,
++	const struct v4l2_ext_control *xctrls, unsigned int xctrls_count)
++{
++	unsigned int i;
++
+ 	/*
+ 	 * We can skip sending an event for the slave if the slave
+ 	 * is being modified in the same transaction.
+@@ -1296,14 +1393,7 @@ static void uvc_ctrl_send_slave_event(struct uvc_fh *handle,
+ 			return;
+ 	}
+ 
+-	__uvc_find_control(master->entity, slave_id, &mapping, &ctrl, 0);
+-	if (ctrl == NULL)
+-		return;
+-
+-	if (__uvc_ctrl_get(handle->chain, ctrl, mapping, &val) == 0)
+-		changes |= V4L2_EVENT_CTRL_CH_VALUE;
+-
+-	uvc_ctrl_send_event(handle, ctrl, mapping, val, changes);
++	__uvc_ctrl_send_slave_event(handle, master, slave_id);
+ }
+ 
+ static void uvc_ctrl_send_events(struct uvc_fh *handle,
+@@ -1318,6 +1408,10 @@ static void uvc_ctrl_send_events(struct uvc_fh *handle,
+ 	for (i = 0; i < xctrls_count; ++i) {
+ 		ctrl = uvc_find_control(handle->chain, xctrls[i].id, &mapping);
+ 
++		if (ctrl->info.flags & UVC_CTRL_FLAG_ASYNCHRONOUS)
++			/* Notification will be sent from an Interrupt event */
++			continue;
++
+ 		for (j = 0; j < ARRAY_SIZE(mapping->slave_ids); ++j) {
+ 			if (!mapping->slave_ids[j])
+ 				break;
+@@ -1513,9 +1607,10 @@ int uvc_ctrl_get(struct uvc_video_chain *chain,
+ 	return __uvc_ctrl_get(chain, ctrl, mapping, &xctrl->value);
+ }
+ 
+-int uvc_ctrl_set(struct uvc_video_chain *chain,
++int uvc_ctrl_set(struct uvc_fh *handle,
+ 	struct v4l2_ext_control *xctrl)
+ {
++	struct uvc_video_chain *chain = handle->chain;
+ 	struct uvc_control *ctrl;
+ 	struct uvc_control_mapping *mapping;
+ 	s32 value;
+@@ -1529,6 +1624,18 @@ int uvc_ctrl_set(struct uvc_video_chain *chain,
+ 		return -EINVAL;
+ 	if (!(ctrl->info.flags & UVC_CTRL_FLAG_SET_CUR))
+ 		return -EACCES;
++	if (ctrl->info.flags & UVC_CTRL_FLAG_ASYNCHRONOUS) {
++		if (ctrl->handle)
++			/*
++			 * Actually we could send the control and let the camera
++			 * issue a STALL, but we have to check here anyway.
++			 * Besides we cannot process a new instance of the same
++			 * asynchronous control, while the previous one is still
++			 * active.
++			 */
++			return -EBUSY;
++		ctrl->handle = handle;
++	}
+ 
+ 	/* Clamp out of range values. */
+ 	switch (mapping->v4l2_type) {
+@@ -1721,7 +1828,9 @@ static int uvc_ctrl_fill_xu_info(struct uvc_device *dev,
+ 		    | (data[0] & UVC_CONTROL_CAP_SET ?
+ 		       UVC_CTRL_FLAG_SET_CUR : 0)
+ 		    | (data[0] & UVC_CONTROL_CAP_AUTOUPDATE ?
+-		       UVC_CTRL_FLAG_AUTO_UPDATE : 0);
++		       UVC_CTRL_FLAG_AUTO_UPDATE : 0)
++		    | (data[0] & UVC_CONTROL_CAP_ASYNCHRONOUS ?
++		       UVC_CTRL_FLAG_ASYNCHRONOUS : 0);
+ 
+ 	uvc_ctrl_fixup_xu_info(dev, ctrl, info);
+ 
+@@ -2169,6 +2278,13 @@ static void uvc_ctrl_init_ctrl(struct uvc_device *dev, struct uvc_control *ctrl)
+ 	if (!ctrl->initialized)
+ 		return;
+ 
++	/* Temporarily abuse DATA_CURRENT buffer to avoid 1 byte allocation */
++	if (!uvc_query_ctrl(dev, UVC_GET_INFO, ctrl->entity->id,
++			    dev->intfnum, info->selector,
++			    uvc_ctrl_data(ctrl, UVC_CTRL_DATA_CURRENT), 1) &&
++	    uvc_ctrl_data(ctrl, UVC_CTRL_DATA_CURRENT)[0] & 0x10)
++		ctrl->info.flags |= UVC_CTRL_FLAG_ASYNCHRONOUS;
++
+ 	for (; mapping < mend; ++mapping) {
+ 		if (uvc_entity_match_guid(ctrl->entity, mapping->entity) &&
+ 		    ctrl->info.selector == mapping->selector)
+@@ -2184,6 +2300,9 @@ int uvc_ctrl_init_device(struct uvc_device *dev)
+ 	struct uvc_entity *entity;
+ 	unsigned int i;
+ 
++	spin_lock_init(&dev->async_ctrl.lock);
++	INIT_WORK(&dev->async_ctrl.work, uvc_ctrl_status_event_work);
++
+ 	/* Walk the entities list and instantiate controls */
+ 	list_for_each_entry(entity, &dev->entities, list) {
+ 		struct uvc_control *ctrl;
+@@ -2252,6 +2371,8 @@ void uvc_ctrl_cleanup_device(struct uvc_device *dev)
+ 	struct uvc_entity *entity;
+ 	unsigned int i;
+ 
++	cancel_work_sync(&dev->async_ctrl.work);
++
+ 	/* Free controls and control mappings for all entities. */
+ 	list_for_each_entry(entity, &dev->entities, list) {
+ 		for (i = 0; i < entity->ncontrols; ++i) {
+diff --git a/drivers/media/usb/uvc/uvc_status.c b/drivers/media/usb/uvc/uvc_status.c
+index f552ab9..1d8f776 100644
+--- a/drivers/media/usb/uvc/uvc_status.c
++++ b/drivers/media/usb/uvc/uvc_status.c
+@@ -78,7 +78,24 @@ static void uvc_input_report_key(struct uvc_device *dev, unsigned int code,
+ /* --------------------------------------------------------------------------
+  * Status interrupt endpoint
+  */
+-static void uvc_event_streaming(struct uvc_device *dev, __u8 *data, int len)
++struct uvc_streaming_status {
++	__u8	bStatusType;
++	__u8	bOriginator;
++	__u8	bEvent;
++	__u8	bValue[];
++} __packed;
++
++struct uvc_control_status {
++	__u8	bStatusType;
++	__u8	bOriginator;
++	__u8	bEvent;
++	__u8	bSelector;
++	__u8	bAttribute;
++	__u8	bValue[];
++} __packed;
++
++static void uvc_event_streaming(struct uvc_device *dev,
++				struct uvc_streaming_status *status, int len)
+ {
+ 	if (len < 3) {
+ 		uvc_trace(UVC_TRACE_STATUS, "Invalid streaming status event "
+@@ -86,30 +103,101 @@ static void uvc_event_streaming(struct uvc_device *dev, __u8 *data, int len)
+ 		return;
+ 	}
+ 
+-	if (data[2] == 0) {
++	if (status->bEvent == 0) {
+ 		if (len < 4)
+ 			return;
+ 		uvc_trace(UVC_TRACE_STATUS, "Button (intf %u) %s len %d\n",
+-			data[1], data[3] ? "pressed" : "released", len);
+-		uvc_input_report_key(dev, KEY_CAMERA, data[3]);
++			  status->bOriginator,
++			  status->bValue[0] ? "pressed" : "released", len);
++		uvc_input_report_key(dev, KEY_CAMERA, status->bValue[0]);
+ 	} else {
+ 		uvc_trace(UVC_TRACE_STATUS, "Stream %u error event %02x %02x "
+-			"len %d.\n", data[1], data[2], data[3], len);
++			  "len %d.\n", status->bOriginator, status->bEvent,
++			  status->bValue[0], len);
+ 	}
+ }
+ 
+-static void uvc_event_control(struct uvc_device *dev, __u8 *data, int len)
++#define UVC_CTRL_VALUE_CHANGE	0
++#define UVC_CTRL_INFO_CHANGE	1
++#define UVC_CTRL_FAILURE_CHANGE	2
++#define UVC_CTRL_MIN_CHANGE	3
++#define UVC_CTRL_MAX_CHANGE	4
++
++static struct uvc_control *uvc_event_entity_ctrl(struct uvc_entity *entity,
++					       __u8 selector)
++{
++	struct uvc_control *ctrl;
++	unsigned int i;
++
++	for (i = 0, ctrl = entity->controls; i < entity->ncontrols; i++, ctrl++)
++		if (ctrl->info.selector == selector)
++			return ctrl;
++
++	return NULL;
++}
++
++static struct uvc_control *uvc_event_find_ctrl(struct uvc_device *dev,
++					struct uvc_control_status *status)
++{
++	struct uvc_video_chain *chain;
++
++	list_for_each_entry(chain, &dev->chains, list) {
++		struct uvc_entity *entity;
++		struct uvc_control *ctrl;
++
++		list_for_each_entry(entity, &chain->entities, chain) {
++			if (entity->id == status->bOriginator) {
++				ctrl = uvc_event_entity_ctrl(entity,
++							     status->bSelector);
++				/*
++				 * Some buggy cameras send asynchronous Control
++				 * Change events for control, other than the
++				 * ones, that had been changed, even though the
++				 * AutoUpdate flag isn't set for the control.
++				 */
++				if (ctrl && (!ctrl->handle ||
++					     ctrl->handle->chain == chain))
++					return ctrl;
++			}
++		}
++	}
++
++	return NULL;
++}
++
++static void uvc_event_control(struct uvc_device *dev,
++			      struct uvc_control_status *status, int len)
+ {
+-	char *attrs[3] = { "value", "info", "failure" };
++	struct uvc_control *ctrl;
++	char *attrs[] = { "value", "info", "failure", "min", "max" };
+ 
+-	if (len < 6 || data[2] != 0 || data[4] > 2) {
++	if (len < 6 || status->bEvent != 0 ||
++	    status->bAttribute >= ARRAY_SIZE(attrs)) {
+ 		uvc_trace(UVC_TRACE_STATUS, "Invalid control status event "
+ 				"received.\n");
+ 		return;
+ 	}
+ 
+ 	uvc_trace(UVC_TRACE_STATUS, "Control %u/%u %s change len %d.\n",
+-		data[1], data[3], attrs[data[4]], len);
++		  status->bOriginator, status->bSelector,
++		  attrs[status->bAttribute], len);
++
++	/* Find the control. */
++	ctrl = uvc_event_find_ctrl(dev, status);
++	if (!ctrl)
++		return;
++
++	switch (status->bAttribute) {
++	case UVC_CTRL_VALUE_CHANGE:
++	case UVC_CTRL_INFO_CHANGE:
++		uvc_ctrl_status_event(dev, ctrl, status->bValue, len -
++				      offsetof(struct uvc_control_status, bValue));
++		break;
++	case UVC_CTRL_FAILURE_CHANGE:
++	case UVC_CTRL_MIN_CHANGE:
++	case UVC_CTRL_MAX_CHANGE:
++		break;
++	}
+ }
+ 
+ static void uvc_status_complete(struct urb *urb)
+@@ -138,11 +226,13 @@ static void uvc_status_complete(struct urb *urb)
+ 	if (len > 0) {
+ 		switch (dev->status[0] & 0x0f) {
+ 		case UVC_STATUS_TYPE_CONTROL:
+-			uvc_event_control(dev, dev->status, len);
++			uvc_event_control(dev,
++				(struct uvc_control_status *)dev->status, len);
+ 			break;
+ 
+ 		case UVC_STATUS_TYPE_STREAMING:
+-			uvc_event_streaming(dev, dev->status, len);
++			uvc_event_streaming(dev,
++				(struct uvc_streaming_status *)dev->status, len);
+ 			break;
+ 
+ 		default:
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index 3e7e283..06be5f6 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -970,7 +970,7 @@ static int uvc_ioctl_s_ctrl(struct file *file, void *fh,
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = uvc_ctrl_set(chain, &xctrl);
++	ret = uvc_ctrl_set(handle, &xctrl);
+ 	if (ret < 0) {
+ 		uvc_ctrl_rollback(handle);
+ 		return ret;
+@@ -1045,7 +1045,7 @@ static int uvc_ioctl_s_try_ext_ctrls(struct uvc_fh *handle,
+ 		return ret;
+ 
+ 	for (i = 0; i < ctrls->count; ++ctrl, ++i) {
+-		ret = uvc_ctrl_set(chain, ctrl);
++		ret = uvc_ctrl_set(handle, ctrl);
+ 		if (ret < 0) {
+ 			uvc_ctrl_rollback(handle);
+ 			ctrls->error_idx = commit ? ctrls->count : i;
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 47a42f6..2ef135a 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -11,6 +11,7 @@
+ #include <linux/usb/video.h>
+ #include <linux/uvcvideo.h>
+ #include <linux/videodev2.h>
++#include <linux/workqueue.h>
+ #include <media/media-device.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-event.h>
+@@ -241,6 +242,8 @@ struct uvc_control {
+ 	     initialized:1;
+ 
+ 	__u8 *uvc_data;
++
++	struct uvc_fh *handle;	/* Used for asynchronous event delivery */
+ };
+ 
+ struct uvc_format_desc {
+@@ -574,6 +577,13 @@ struct uvc_device {
+ 	__u8 *status;
+ 	struct input_dev *input;
+ 	char input_phys[64];
++
++	struct uvc_ctrl_work {
++		struct work_struct work;
++		struct uvc_control *ctrl;
++		spinlock_t lock;
++		void *data;
++	} async_ctrl;
+ };
+ 
+ enum uvc_handle_state {
+@@ -720,6 +730,8 @@ extern int uvc_ctrl_add_mapping(struct uvc_video_chain *chain,
+ extern int uvc_ctrl_init_device(struct uvc_device *dev);
+ extern void uvc_ctrl_cleanup_device(struct uvc_device *dev);
+ extern int uvc_ctrl_restore_values(struct uvc_device *dev);
++extern void uvc_ctrl_status_event(struct uvc_device *dev,
++		struct uvc_control *ctrl, __u8 *data, size_t len);
+ 
+ extern int uvc_ctrl_begin(struct uvc_video_chain *chain);
+ extern int __uvc_ctrl_commit(struct uvc_fh *handle, int rollback,
+@@ -738,7 +750,7 @@ static inline int uvc_ctrl_rollback(struct uvc_fh *handle)
+ 
+ extern int uvc_ctrl_get(struct uvc_video_chain *chain,
+ 		struct v4l2_ext_control *xctrl);
+-extern int uvc_ctrl_set(struct uvc_video_chain *chain,
++extern int uvc_ctrl_set(struct uvc_fh *handle,
+ 		struct v4l2_ext_control *xctrl);
+ 
+ extern int uvc_xu_ctrl_query(struct uvc_video_chain *chain,
+diff --git a/include/uapi/linux/uvcvideo.h b/include/uapi/linux/uvcvideo.h
+index 3b08186..420883a 100644
+--- a/include/uapi/linux/uvcvideo.h
++++ b/include/uapi/linux/uvcvideo.h
+@@ -27,6 +27,8 @@
+ #define UVC_CTRL_FLAG_RESTORE		(1 << 6)
+ /* Control can be updated by the camera. */
+ #define UVC_CTRL_FLAG_AUTO_UPDATE	(1 << 7)
++/* Control supports asynchronous reporting */
++#define UVC_CTRL_FLAG_ASYNCHRONOUS	(1 << 8)
+ 
+ #define UVC_CTRL_FLAG_GET_RANGE \
+ 	(UVC_CTRL_FLAG_GET_CUR | UVC_CTRL_FLAG_GET_MIN | \
+-- 
+1.9.3
 
