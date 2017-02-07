@@ -1,136 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:62548 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751872AbdBJJba (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Feb 2017 04:31:30 -0500
-Date: Fri, 10 Feb 2017 17:30:42 +0800
-From: kbuild test robot <lkp@intel.com>
-To: Thibault Saunier <thibault.saunier@osg.samsung.com>
-Cc: kbuild-all@01.org, linux-kernel@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        linux-samsung-soc@vger.kernel.org,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        linux-media@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Thibault Saunier <thibault.saunier@osg.samsung.com>
-Subject: Re: [PATCH 4/4] [media] s5p-mfc: Always check and set
- 'v4l2_pix_format:field' field
-Message-ID: <201702101749.p9AsAzh5%fengguang.wu@intel.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:36690 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932543AbdBGXLh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2017 18:11:37 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Benoit Parrot <bparrot@ti.com>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Philipp Zabel <p.zabel@pengutronix.de>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        nick@shmanahar.org, markus.heiser@darmarit.de,
+        laurent.pinchart+renesas@ideasonboard.com, geert@linux-m68k.org,
+        arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        sakari.ailus@linux.intel.com
+Subject: Re: [PATCH v3 13/24] platform: add video-multiplexer subdevice driver
+Date: Wed, 08 Feb 2017 01:04:18 +0200
+Message-ID: <1629314.nX3p8IZEp0@avalon>
+In-Reply-To: <20170207133648.GA27065@ti.com>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com> <3823958.XNLmIv7GEv@avalon> <20170207133648.GA27065@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170209194314.5908-5-thibault.saunier@osg.samsung.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Thibault,
+Hi Benoit,
 
-[auto build test WARNING on linuxtv-media/master]
-[also build test WARNING on v4.10-rc7 next-20170209]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+On Tuesday 07 Feb 2017 07:36:48 Benoit Parrot wrote:
+> Laurent Pinchart wrote on Tue [2017-Feb-07 12:26:32 +0200]:
+> > On Monday 06 Feb 2017 15:10:46 Steve Longerbeam wrote:
+> >> On 02/06/2017 02:33 PM, Laurent Pinchart wrote:
+> >>> On Monday 06 Feb 2017 10:50:22 Hans Verkuil wrote:
+> >>>> On 02/05/2017 04:48 PM, Laurent Pinchart wrote:
+> >>>>> On Tuesday 24 Jan 2017 18:07:55 Steve Longerbeam wrote:
+> >>>>>> On 01/24/2017 04:02 AM, Philipp Zabel wrote:
+> >>>>>>> On Fri, 2017-01-20 at 15:03 +0100, Hans Verkuil wrote:
+> >>>>>>>>> +
+> >>>>>>>>> +int vidsw_g_mbus_config(struct v4l2_subdev *sd, struct
+> >>>>>>>>> v4l2_mbus_config *cfg)
+> > 
+> > [snip]
+> > 
+> >>>>>>>> I am not certain this op is needed at all. In the current kernel
+> >>>>>>>> this op is only used by soc_camera, pxa_camera and omap3isp
+> >>>>>>>> (somewhat dubious). Normally this information should come from the
+> >>>>>>>> device tree and there should be no need for this op.
+> >>>>>>>> 
+> >>>>>>>> My (tentative) long-term plan was to get rid of this op.
+> >>>>>>>> 
+> >>>>>>>> If you don't need it, then I recommend it is removed.
+> >>>>>> 
+> >>>>>> Hi Hans, the imx-media driver was only calling g_mbus_config to the
+> >>>>>> camera sensor, and it was doing that to determine the sensor's bus
+> >>>>>> type. This info was already available from parsing a
+> >>>>>> v4l2_of_endpoint from the sensor node. So it was simple to remove the
+> >>>>>> g_mbus_config calls, and instead rely on the parsed sensor
+> >>>>>> v4l2_of_endpoint.
+> >>>>> 
+> >>>>> That's not a good point.
+> >>> 
+> >>> (mea culpa, s/point/idea/)
+> >>> 
+> >>>>> The imx-media driver must not parse the sensor DT node as it is not
+> >>>>> aware of what bindings the sensor is compatible with.
+> >> 
+> >> Hi Laurent,
+> >> 
+> >> I don't really understand this argument. The sensor node has been found
+> >> by parsing the OF graph, so it is known to be a camera sensor node at
+> >> that point.
+> > 
+> > All you know in the i.MX6 driver is that the remote node is a video
+> > source. You can rely on the fact that it implements the OF graph bindings
+> > to locate other ports in that DT node, but that's more or less it.
+> > 
+> > DT properties are defined by DT bindings and thus qualified by a
+> > compatible string. Unless you match on sensor compat strings in the i.MX6
+> > driver (which you shouldn't do, to keep the driver generic) you can't know
+> > for certain how to parse the sensor node DT properties. For all you know,
+> > the video source could be a bridge such as an HDMI to CSI-2 converter for
+> > instance, so you can't even rely on the fact that it's a sensor.
+> > 
+> >>>>> Information must instead be queried from the sensor subdev at
+> >>>>> runtime, through the g_mbus_config() operation.
+> >>>>> 
+> >>>>> Of course, if you can get the information from the imx-media DT
+> >>>>> node, that's certainly an option. It's only information provided by
+> >>>>> the sensor driver that you have no choice but query using a subdev
+> >>>>> operation.
+> >>>> 
+> >>>> Shouldn't this come from the imx-media DT node? BTW, why is omap3isp
+> >>>> using this?
+> >>> 
+> >>> It all depends on what type of information needs to be retrieved, and
+> >>> whether it can change at runtime or is fixed. Adding properties to the
+> >>> imx-media DT node is certainly fine as long as those properties
+> >>> describe the i.MX side.
+> >> 
+> >> In this case the info needed is the media bus type. That info is most
+> >> easily available by calling v4l2_of_parse_endpoint() on the sensor's
+> >> endpoint node.
+> > 
+> > I haven't had time to check the code in details yet, so I can't really
+> > comment on what you need and how it should be implemented exactly.
+> > 
+> >> The media bus type is not something that can be added to the
+> >> imx-media node since it contains no endpoint nodes.
+> > 
+> > Agreed. You have endpoints in the CSI nodes though.
+> > 
+> >>> In the omap3isp case, we use the operation to query whether parallel
+> >>> data contains embedded sync (BT.656) or uses separate h/v sync signals.
+> >>> 
+> >>>> The reason I am suspicious about this op is that it came from
+> >>>> soc-camera and predates the DT. The contents of v4l2_mbus_config seems
+> >>>> very much like a HW description to me, i.e. something that belongs in
+> >>>> the DT.
+> >>> 
+> >>> Part of it is possibly outdated, but for buses that support multiple
+> >>> modes of operation (such as the parallel bus case described above) we
+> >>> need to make that information discoverable at runtime. Maybe this should
+> >>> be considered as related to Sakari's efforts to support VC/DT for CSI-2,
+> >>> and supported through the API he is working on.
+> >> 
+> >> That sounds interesting, can you point me to some info on this effort?
+> > 
+> > Sure.
+> > 
+> > http://git.retiisi.org.uk/?p=~sailus/linux.git;a=shortlog;h=refs/heads/vc
+> > 
+> >> I've been thinking the DT should contain virtual channel info for CSI-2
+> >> buses.
+> > 
+> > I don't think it should. CSI-2 virtual channels and data types should be
+> > handled as a software concept, and thus supported through driver code
+> > without involving DT.
+> 
+> Laurent,
+> 
+> So when you have a CSI2 port aggregator for instance where traffic from up
+> to 4 CSI2 sources where each source is now assigned its own VC by the
+> aggregator and interleaved into a single CSI2 Receiver. I was hoping that
+> in this case the VC would be DT discoverable as a specicic source
+> identifier. So the CSI-RX side could associate a specific source and create
+> its own video device.
 
-url:    https://github.com/0day-ci/linux/commits/Thibault-Saunier/exynos-gsc-Use-576p-instead-720p-as-a-threshold-for-colorspaces/20170210-113658
-base:   git://linuxtv.org/media_tree.git master
-reproduce:
-        # apt-get install sparse
-        make ARCH=x86_64 allmodconfig
-        make C=1 CF=-D__CHECK_ENDIAN__
+In this specific example, I believe the aggregator should be modelled with 4 
+input ports and one output port in DT, and with 4 sink pads and one source pad 
+in MC. Information about the VCs multiplexed over the aggregator's source link 
+should not be part of the device tree, but should be discoverable at runtime 
+through V4L2 subdev operations. This would include information about how the 4 
+input streams are routed to VCs inside the aggregator.
 
+> I am guessing that no such thing exist today?
 
-sparse warnings: (new ones prefixed by >>)
+There's very little (to not say nothing) in terms of VC support in V4L2 today.
 
-   include/linux/compiler.h:253:8: sparse: attribute 'no_sanitize_address': unknown attribute
-   drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:404:17: sparse: Expected ) in function call
-   drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:404:17: sparse: got pix_mp
->> drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:404:17: sparse: incompatible types for operation (>=)
-   drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:404:17:    left side has type int extern [signed] [addressable] [toplevel] mfc_debug_level
-   drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:404:17:    right side has type char static *<noident>
-   In file included from drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:28:0:
-   drivers/media/platform/s5p-mfc/s5p_mfc_dec.c: In function 'vidioc_try_fmt':
-   drivers/media/platform/s5p-mfc/s5p_mfc_debug.h:25:23: warning: comparison between pointer and integer
-      if (mfc_debug_level >= level)   \
-                          ^
-   drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:404:3: note: in expansion of macro 'mfc_debug'
-      mfc_debug("Not supported field order(%d)\n", pix_mp->field);
-      ^~~~~~~~~
-   drivers/media/platform/s5p-mfc/s5p_mfc_debug.h:25:23: warning: comparison with string literal results in unspecified behavior [-Waddress]
-      if (mfc_debug_level >= level)   \
-                          ^
-   drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:404:3: note: in expansion of macro 'mfc_debug'
-      mfc_debug("Not supported field order(%d)\n", pix_mp->field);
-      ^~~~~~~~~
-   drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:404:48: error: expected ')' before 'pix_mp'
-      mfc_debug("Not supported field order(%d)\n", pix_mp->field);
-                                                   ^
-   drivers/media/platform/s5p-mfc/s5p_mfc_debug.h:26:32: note: in definition of macro 'mfc_debug'
-       printk(KERN_DEBUG "%s:%d: " fmt, \
-                                   ^~~
-   In file included from include/linux/printk.h:6:0,
-                    from include/linux/kernel.h:13,
-                    from include/linux/clk.h:16,
-                    from drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:14:
-   include/linux/kern_levels.h:4:18: warning: format '%s' expects a matching 'char *' argument [-Wformat=]
-    #define KERN_SOH "\001"  /* ASCII Start Of Header */
-                     ^
-   include/linux/kern_levels.h:14:20: note: in expansion of macro 'KERN_SOH'
-    #define KERN_DEBUG KERN_SOH "7" /* debug-level messages */
-                       ^~~~~~~~
-   drivers/media/platform/s5p-mfc/s5p_mfc_debug.h:26:11: note: in expansion of macro 'KERN_DEBUG'
-       printk(KERN_DEBUG "%s:%d: " fmt, \
-              ^~~~~~~~~~
-   drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:404:3: note: in expansion of macro 'mfc_debug'
-      mfc_debug("Not supported field order(%d)\n", pix_mp->field);
-      ^~~~~~~~~
-   include/linux/kern_levels.h:4:18: warning: format '%d' expects a matching 'int' argument [-Wformat=]
-    #define KERN_SOH "\001"  /* ASCII Start Of Header */
-                     ^
-   include/linux/kern_levels.h:14:20: note: in expansion of macro 'KERN_SOH'
-    #define KERN_DEBUG KERN_SOH "7" /* debug-level messages */
-                       ^~~~~~~~
-   drivers/media/platform/s5p-mfc/s5p_mfc_debug.h:26:11: note: in expansion of macro 'KERN_DEBUG'
-       printk(KERN_DEBUG "%s:%d: " fmt, \
-              ^~~~~~~~~~
-   drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:404:3: note: in expansion of macro 'mfc_debug'
-      mfc_debug("Not supported field order(%d)\n", pix_mp->field);
-      ^~~~~~~~~
+-- 
+Regards,
 
-vim +404 drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+Laurent Pinchart
 
-   388		mfc_debug_leave();
-   389		return 0;
-   390	}
-   391	
-   392	/* Try format */
-   393	static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
-   394	{
-   395		struct s5p_mfc_dev *dev = video_drvdata(file);
-   396		struct v4l2_pix_format_mplane *pix_mp = &f->fmt.pix_mp;
-   397		struct s5p_mfc_fmt *fmt;
-   398		enum v4l2_field field;
-   399	
-   400		field = f->fmt.pix.field;
-   401		if (field == V4L2_FIELD_ANY) {
-   402			field = V4L2_FIELD_NONE;
-   403		} else if (V4L2_FIELD_NONE != field) {
- > 404			mfc_debug("Not supported field order(%d)\n", pix_mp->field);
-   405			return -EINVAL;
-   406		}
-   407	
-   408		/* V4L2 specification suggests the driver corrects the format struct
-   409		 * if any of the dimensions is unsupported */
-   410		f->fmt.pix.field = field;
-   411	
-   412		mfc_debug(2, "Type is %d\n", f->type);
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
