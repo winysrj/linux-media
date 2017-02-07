@@ -1,82 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:56389 "EHLO extserv.mm-sol.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751036AbdBBQBZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Feb 2017 11:01:25 -0500
-Subject: Re: [PATCH v7 2/2] media: Add a driver for the ov5645 camera sensor.
-To: Todor Tomov <todor.tomov@linaro.org>, robh+dt@kernel.org,
-        pawel.moll@arm.com, mark.rutland@arm.com,
-        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-        mchehab@osg.samsung.com, hverkuil@xs4all.nl, geert@linux-m68k.org,
-        matrandg@cisco.com, sakari.ailus@iki.fi,
-        linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-References: <1479119076-26363-1-git-send-email-todor.tomov@linaro.org>
- <1479119076-26363-3-git-send-email-todor.tomov@linaro.org>
-From: Todor Tomov <ttomov@mm-sol.com>
-Message-ID: <5893559F.7040607@mm-sol.com>
-Date: Thu, 2 Feb 2017 17:51:59 +0200
-MIME-Version: 1.0
-In-Reply-To: <1479119076-26363-3-git-send-email-todor.tomov@linaro.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from relmlor4.renesas.com ([210.160.252.174]:57764 "EHLO
+        relmlie3.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754698AbdBGPNn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 7 Feb 2017 10:13:43 -0500
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
+Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert+renesas@glider.be, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [PATCH v3 4/7] media: Add new SDR formats PC16, PC18 & PC20
+Date: Tue,  7 Feb 2017 15:02:34 +0000
+Message-Id: <1486479757-32128-5-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+In-Reply-To: <1486479757-32128-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+References: <1486479757-32128-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This patch adds support for the three new SDR formats. These formats
+were prefixed with "planar" indicating I & Q data are not interleaved
+as in other formats. Here, I & Q data constitutes the top half and bottom
+half of the received buffer.
 
-Just to point it here - there is one more one-line correction needed below:
+V4L2_SDR_FMT_PCU16BE - 14-bit complex (I & Q) unsigned big-endian sample
+inside 16-bit. V4L2 FourCC: PC16
 
-On 11/14/2016 12:24 PM, Todor Tomov wrote:
-> The ov5645 sensor from Omnivision supports up to 2592x1944
-> and CSI2 interface.
-> 
-> The driver adds support for the following modes:
-> - 1280x960
-> - 1920x1080
-> - 2592x1944
-> 
-> Output format is packed 8bit UYVY.
-> 
-> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
-> ---
->  drivers/media/i2c/Kconfig  |   12 +
->  drivers/media/i2c/Makefile |    1 +
->  drivers/media/i2c/ov5645.c | 1352 ++++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 1365 insertions(+)
->  create mode 100644 drivers/media/i2c/ov5645.c
-> 
+V4L2_SDR_FMT_PCU18BE - 16-bit complex (I & Q) unsigned big-endian sample
+inside 18-bit. V4L2 FourCC: PC18
 
-<snip>
+V4L2_SDR_FMT_PCU20BE - 18-bit complex (I & Q) unsigned big-endian sample
+inside 20-bit. V4L2 FourCC: PC20
 
-> diff --git a/drivers/media/i2c/ov5645.c b/drivers/media/i2c/ov5645.c
-> new file mode 100644
-> index 0000000..2b33bc6
-> --- /dev/null
-> +++ b/drivers/media/i2c/ov5645.c
-> @@ -0,0 +1,1352 @@
+Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 3 +++
+ include/uapi/linux/videodev2.h       | 3 +++
+ 2 files changed, 6 insertions(+)
 
-<snip>
-
-> +static int ov5645_entity_init_cfg(struct v4l2_subdev *subdev,
-> +				  struct v4l2_subdev_pad_config *cfg)
-> +{
-> +	struct v4l2_subdev_format fmt = { 0 };
-> +	struct ov5645 *ov5645 = to_ov5645(subdev);
-
-This variable is unused and should be removed.
-
-> +
-> +	fmt.which = cfg ? V4L2_SUBDEV_FORMAT_TRY : V4L2_SUBDEV_FORMAT_ACTIVE;
-> +	fmt.format.width = 1920;
-> +	fmt.format.height = 1080;
-> +
-> +	ov5645_set_format(subdev, cfg, &fmt);
-> +
-> +	return 0;
-> +}
-
-<snip>
-
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 0c3f238..fdf6c913 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1213,6 +1213,9 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_SDR_FMT_CS8:		descr = "Complex S8"; break;
+ 	case V4L2_SDR_FMT_CS14LE:	descr = "Complex S14LE"; break;
+ 	case V4L2_SDR_FMT_RU12LE:	descr = "Real U12LE"; break;
++	case V4L2_SDR_FMT_PCU16BE:	descr = "Planar Complex U16BE"; break;
++	case V4L2_SDR_FMT_PCU18BE:	descr = "Planar Complex U18BE"; break;
++	case V4L2_SDR_FMT_PCU20BE:	descr = "Planar Complex U20BE"; break;
+ 	case V4L2_TCH_FMT_DELTA_TD16:	descr = "16-bit signed deltas"; break;
+ 	case V4L2_TCH_FMT_DELTA_TD08:	descr = "8-bit signed deltas"; break;
+ 	case V4L2_TCH_FMT_TU16:		descr = "16-bit unsigned touch data"; break;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 46e8a2e3..26a31c8 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -669,6 +669,9 @@ struct v4l2_pix_format {
+ #define V4L2_SDR_FMT_CS8          v4l2_fourcc('C', 'S', '0', '8') /* complex s8 */
+ #define V4L2_SDR_FMT_CS14LE       v4l2_fourcc('C', 'S', '1', '4') /* complex s14le */
+ #define V4L2_SDR_FMT_RU12LE       v4l2_fourcc('R', 'U', '1', '2') /* real u12le */
++#define V4L2_SDR_FMT_PCU16BE	  v4l2_fourcc('P', 'C', '1', '6') /* planar complex u16be */
++#define V4L2_SDR_FMT_PCU18BE	  v4l2_fourcc('P', 'C', '1', '8') /* planar complex u18be */
++#define V4L2_SDR_FMT_PCU20BE	  v4l2_fourcc('P', 'C', '2', '0') /* planar complex u20be */
+ 
+ /* Touch formats - used for Touch devices */
+ #define V4L2_TCH_FMT_DELTA_TD16	v4l2_fourcc('T', 'D', '1', '6') /* 16-bit signed deltas */
 -- 
-Best regards,
-Todor Tomov
+1.9.1
+
