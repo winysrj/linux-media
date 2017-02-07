@@ -1,78 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:38041 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751389AbdBNTcU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Feb 2017 14:32:20 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        stable@vger.kernel.org, #@smtp.w2.samsung.com,
-        For@smtp.w2.samsung.com, 4.9+@smtp.w2.samsung.com
-Subject: [PATCH] siano: make it work again with CONFIG_VMAP_STACK
-Date: Tue, 14 Feb 2017 17:32:11 -0200
-Message-Id: <08f1b470a156163cc3394f73bcbaea3925b6f376.1487100723.git.mchehab@s-opensource.com>
+Received: from smtp.220.in.ua ([89.184.67.205]:33793 "EHLO smtp.220.in.ua"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754628AbdBGTeq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 7 Feb 2017 14:34:46 -0500
+From: Oleh Kravchenko <oleg@kaa.org.ua>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Steven Toth <stoth@kernellabs.com>,
+        Jacob Johan Verkuil <hverkuil@xs4all.nl>,
+        Antti Palosaari <crope@iki.fi>
+Cc: Oleh Kravchenko <oleg@kaa.org.ua>
+Subject: [PATCH 1/2] [media] cx231xx: Initial support Evromedia USB Full Hybrid Full HD
+Date: Tue,  7 Feb 2017 21:34:43 +0200
+Message-Id: <20170207193444.14876-1-oleg@kaa.org.ua>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reported as a Kaffeine bug:
-	https://bugs.kde.org/show_bug.cgi?id=375811
+This patch provide only digital support.
+The device is based on Si2168 30-demodulator,
+Si2158-20 tuner and CX23102-11Z chipset;
+USB id: 1b80:d3b2.
 
-The USB control messages require DMA to work. We cannot pass
-a stack-allocated buffer, as it is not warranted that the
-stack would be into a DMA enabled area.
+Status:
+- DVB-T2 works fine;
+- Composite and SVideo works fine;
+- Analog not implemented.
 
-On Kernel 4.9, the default is to not accept DMA on stack anymore.
-
-Tested with USB ID 2040:5510: Hauppauge Windham
-
-Cc: stable@vger.kernel.org # For 4.9+
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Oleh Kravchenko <oleg@kaa.org.ua>
+Tested-by: Oleh Kravchenko <oleg@kaa.org.ua>
 ---
- drivers/media/usb/siano/smsusb.c | 18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ drivers/media/usb/cx231xx/Kconfig         |  1 +
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 29 +++++++++++++
+ drivers/media/usb/cx231xx/cx231xx-dvb.c   | 70 +++++++++++++++++++++++++++++++
+ drivers/media/usb/cx231xx/cx231xx.h       |  1 +
+ 4 files changed, 101 insertions(+)
 
-diff --git a/drivers/media/usb/siano/smsusb.c b/drivers/media/usb/siano/smsusb.c
-index a4dcaec31d02..8c1f926567ec 100644
---- a/drivers/media/usb/siano/smsusb.c
-+++ b/drivers/media/usb/siano/smsusb.c
-@@ -218,22 +218,30 @@ static int smsusb_start_streaming(struct smsusb_device_t *dev)
- static int smsusb_sendrequest(void *context, void *buffer, size_t size)
- {
- 	struct smsusb_device_t *dev = (struct smsusb_device_t *) context;
--	struct sms_msg_hdr *phdr = (struct sms_msg_hdr *) buffer;
--	int dummy;
-+	struct sms_msg_hdr *phdr;
-+	int dummy, ret;
+diff --git a/drivers/media/usb/cx231xx/Kconfig b/drivers/media/usb/cx231xx/Kconfig
+index 0cced3e..58de80b 100644
+--- a/drivers/media/usb/cx231xx/Kconfig
++++ b/drivers/media/usb/cx231xx/Kconfig
+@@ -50,6 +50,7 @@ config VIDEO_CX231XX_DVB
+ 	select DVB_LGDT3306A if MEDIA_SUBDRV_AUTOSELECT
+ 	select DVB_TDA18271C2DD if MEDIA_SUBDRV_AUTOSELECT
+ 	select DVB_SI2165 if MEDIA_SUBDRV_AUTOSELECT
++	select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
  
- 	if (dev->state != SMSUSB_ACTIVE) {
- 		pr_debug("Device not active yet\n");
- 		return -ENOENT;
- 	}
+ 	---help---
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index 36bc254..f730fdb 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -841,6 +841,33 @@ struct cx231xx_board cx231xx_boards[] = {
+ 			.gpio = NULL,
+ 		} },
+ 	},
++	[CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD] = {
++		.name = "Evromedia USB Full Hybrid Full HD",
++		.tuner_type = TUNER_ABSENT,
++		.demod_addr = 0x64, /* 0xc8 >> 1 */
++		.demod_i2c_master = I2C_1_MUX_3,
++		.has_dvb = 1,
++		.ir_i2c_master = I2C_0,
++		.norm = V4L2_STD_PAL,
++		.output_mode = OUT_MODE_VIP11,
++		.tuner_addr = 0x60, /* 0xc0 >> 1 */
++		.tuner_i2c_master = I2C_2,
++		.input = {{
++			.type = CX231XX_VMUX_TELEVISION,
++			.vmux = 0,
++			.amux = CX231XX_AMUX_VIDEO,
++		}, {
++			.type = CX231XX_VMUX_COMPOSITE1,
++			.vmux = CX231XX_VIN_2_1,
++			.amux = CX231XX_AMUX_LINE_IN,
++		}, {
++			.type = CX231XX_VMUX_SVIDEO,
++			.vmux = CX231XX_VIN_1_1 |
++				(CX231XX_VIN_1_2 << 8) |
++				CX25840_SVIDEO_ON,
++			.amux = CX231XX_AMUX_LINE_IN,
++		} },
++	},
+ };
+ const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
  
-+	phdr = kmalloc(size, GFP_KERNEL);
-+	if (!phdr)
-+		return -ENOMEM;
-+	memcpy(phdr, buffer, size);
+@@ -908,6 +935,8 @@ struct usb_device_id cx231xx_id_table[] = {
+ 	 .driver_info = CX231XX_BOARD_OTG102},
+ 	{USB_DEVICE(USB_VID_TERRATEC, 0x00a6),
+ 	 .driver_info = CX231XX_BOARD_TERRATEC_GRABBY},
++	{USB_DEVICE(0x1b80, 0xd3b2),
++	.driver_info = CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD},
+ 	{},
+ };
+ 
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index 2868546..46427fd 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -33,6 +33,7 @@
+ #include "s5h1411.h"
+ #include "lgdt3305.h"
+ #include "si2165.h"
++#include "si2168.h"
+ #include "mb86a20s.h"
+ #include "si2157.h"
+ #include "lgdt3306a.h"
+@@ -949,6 +950,75 @@ static int dvb_init(struct cx231xx *dev)
+ 			   &pv_tda18271_config);
+ 		break;
+ 
++	case CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD:
++	{
++		struct si2157_config si2157_config = {};
++		struct si2168_config si2168_config = {};
++		struct i2c_board_info info = {};
++		struct i2c_client *client;
++		struct i2c_adapter *adapter;
 +
- 	pr_debug("sending %s(%d) size: %d\n",
- 		  smscore_translate_msg(phdr->msg_type), phdr->msg_type,
- 		  phdr->msg_length);
- 
- 	smsendian_handle_tx_message((struct sms_msg_data *) phdr);
--	smsendian_handle_message_header((struct sms_msg_hdr *)buffer);
--	return usb_bulk_msg(dev->udev, usb_sndbulkpipe(dev->udev, 2),
--			    buffer, size, &dummy, 1000);
-+	smsendian_handle_message_header((struct sms_msg_hdr *)phdr);
-+	ret = usb_bulk_msg(dev->udev, usb_sndbulkpipe(dev->udev, 2),
-+			    phdr, size, &dummy, 1000);
++		/* attach demodulator chip */
++		si2168_config.ts_mode = SI2168_TS_SERIAL; /* from *.inf file */
++		si2168_config.fe = &dev->dvb->frontend;
++		si2168_config.i2c_adapter = &adapter;
++		si2168_config.ts_clock_inv = true;
 +
-+	kfree(phdr);
-+	return ret;
- }
++		strlcpy(info.type, "si2168", sizeof(info.type));
++		info.addr = dev->board.demod_addr;
++		info.platform_data = &si2168_config;
++
++		request_module(info.type);
++		client = i2c_new_device(demod_i2c, &info);
++
++		if (client == NULL || client->dev.driver == NULL) {
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		if (!try_module_get(client->dev.driver->owner)) {
++			i2c_unregister_device(client);
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		dvb->i2c_client_demod = client;
++
++		/* attach tuner chip */
++		si2157_config.fe = dev->dvb->frontend;
++#ifdef CONFIG_MEDIA_CONTROLLER_DVB
++		si2157_config.mdev = dev->media_dev;
++#endif
++		si2157_config.if_port = 1;
++		si2157_config.inversion = false;
++
++		memset(&info, 0, sizeof(info));
++		strlcpy(info.type, "si2157", sizeof(info.type));
++		info.addr = dev->board.tuner_addr;
++		info.platform_data = &si2157_config;
++
++		request_module(info.type);
++		client = i2c_new_device(tuner_i2c, &info);
++
++		if (client == NULL || client->dev.driver == NULL) {
++			module_put(dvb->i2c_client_demod->dev.driver->owner);
++			i2c_unregister_device(dvb->i2c_client_demod);
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		if (!try_module_get(client->dev.driver->owner)) {
++			i2c_unregister_device(client);
++			module_put(dvb->i2c_client_demod->dev.driver->owner);
++			i2c_unregister_device(dvb->i2c_client_demod);
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		dev->cx231xx_reset_analog_tuner = NULL;
++		dev->dvb->i2c_client_tuner = client;
++		break;
++	}
+ 	default:
+ 		dev_err(dev->dev,
+ 			"%s/2: The frontend of your DVB/ATSC card isn't supported yet\n",
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index 90c8676..d9792ea 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -78,6 +78,7 @@
+ #define CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx 20
+ #define CX231XX_BOARD_HAUPPAUGE_955Q 21
+ #define CX231XX_BOARD_TERRATEC_GRABBY 22
++#define CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD 23
  
- static char *smsusb1_fw_lkup[] = {
+ /* Limits minimum and default number of buffers */
+ #define CX231XX_MIN_BUF                 4
 -- 
-2.9.3
+2.10.2
+
