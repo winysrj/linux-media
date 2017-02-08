@@ -1,91 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55339
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752512AbdBJOSs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Feb 2017 09:18:48 -0500
-From: Thibault Saunier <thibault.saunier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Thibault Saunier <thibault.saunier@osg.samsung.com>,
-        linux-arm-kernel@lists.infradead.org,
-        Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH v3 1/4] [media] exynos-gsc: Use 576p instead 720p as a threshold for colorspaces
-Date: Fri, 10 Feb 2017 11:10:19 -0300
-Message-Id: <20170210141022.25412-2-thibault.saunier@osg.samsung.com>
-In-Reply-To: <20170210141022.25412-1-thibault.saunier@osg.samsung.com>
-References: <20170210141022.25412-1-thibault.saunier@osg.samsung.com>
+Received: from mout.kundenserver.de ([212.227.17.13]:62905 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751952AbdBHVPT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Feb 2017 16:15:19 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mats Randgaard <matrandg@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] tc358743: fix register i2c_rd/wr functions
+Date: Wed,  8 Feb 2017 22:14:13 +0100
+Message-Id: <20170208211436.2771166-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Javier Martinez Canillas <javier@osg.samsung.com>
+While testing with CONFIG_UBSAN, I got this warning:
 
-The media documentation says that the V4L2_COLORSPACE_SMPTE170M colorspace
-should be used for SDTV and V4L2_COLORSPACE_REC709 for HDTV. But drivers
-don't agree on the display resolution that should be used as a threshold.
+drivers/media/i2c/tc358743.c: In function 'tc358743_probe':
+drivers/media/i2c/tc358743.c:1930:1: error: the frame size of 2480 bytes is larger than 2048 bytes [-Werror=frame-larger-than=]
 
-Some drivers set V4L2_COLORSPACE_REC709 for 720p and higher while others
-set V4L2_COLORSPACE_REC709 for anything higher than 576p. Newers drivers
-use the latter and that also matches what user-space multimedia programs
-do (i.e: GStreamer), so change the driver logic to be aligned with this.
+The problem is that the i2c_rd8/wr8/rd16/... functions in this driver pass
+a pointer to a local variable into a common function, and each call to one
+of them adds another variable plus redzone to the stack.
 
-Also, check for the resolution in G_FMT instead unconditionally setting
-the V4L2_COLORSPACE_REC709 colorspace.
+I also noticed that the way this is done is broken on big-endian machines,
+as we copy the registers in CPU byte order.
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
+To address both those problems, I'm adding two helper functions for reading
+a register of up to 32 bits with correct endianess and change all other
+functions to use that instead. Just to be sure we don't get the problem
+back with changed optimizations in gcc, I'm also marking the new functions
+as 'noinline', although my tests with gcc-7 don't require that.
 
-Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
+ drivers/media/i2c/tc358743.c | 46 ++++++++++++++++++++++++--------------------
+ 1 file changed, 25 insertions(+), 21 deletions(-)
 
-Changes in v3:
-- Do not check values in the g_fmt functions as Andrzej explained in previous review
-- Added 'Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>'
-
-Changes in v2: None
-
- drivers/media/platform/exynos-gsc/gsc-core.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index 59a634201830..db7d9883861b 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -472,7 +472,7 @@ int gsc_try_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
+diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+index 5eb5e951f86f..8fb10a54f745 100644
+--- a/drivers/media/i2c/tc358743.c
++++ b/drivers/media/i2c/tc358743.c
+@@ -194,57 +194,61 @@ static void i2c_wr(struct v4l2_subdev *sd, u16 reg, u8 *values, u32 n)
+ 	}
+ }
  
- 	pix_mp->num_planes = fmt->num_planes;
+-static u8 i2c_rd8(struct v4l2_subdev *sd, u16 reg)
++static noinline u32 i2c_rdreg(struct v4l2_subdev *sd, u16 reg, u32 n)
+ {
+-	u8 val;
++	__le32 val = 0;
  
--	if (pix_mp->width >= 1280) /* HD */
-+	if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
- 		pix_mp->colorspace = V4L2_COLORSPACE_REC709;
- 	else /* SD */
- 		pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
-@@ -519,9 +519,13 @@ int gsc_g_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
- 	pix_mp->height		= frame->f_height;
- 	pix_mp->field		= V4L2_FIELD_NONE;
- 	pix_mp->pixelformat	= frame->fmt->pixelformat;
--	pix_mp->colorspace	= V4L2_COLORSPACE_REC709;
- 	pix_mp->num_planes	= frame->fmt->num_planes;
+-	i2c_rd(sd, reg, &val, 1);
++	i2c_rd(sd, reg, (u8 __force *)&val, n);
  
-+	if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
-+		pix_mp->colorspace = V4L2_COLORSPACE_REC709;
-+	else /* SD */
-+		pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
+-	return val;
++	return le32_to_cpu(val);
++}
 +
- 	for (i = 0; i < pix_mp->num_planes; ++i) {
- 		pix_mp->plane_fmt[i].bytesperline = (frame->f_width *
- 			frame->fmt->depth[i]) / 8;
++static noinline void i2c_wrreg(struct v4l2_subdev *sd, u16 reg, u32 val, u32 n)
++{
++	__le32 raw = cpu_to_le32(val);
++
++	i2c_wr(sd, reg, (u8 __force *)&raw, n);
++}
++
++static u8 i2c_rd8(struct v4l2_subdev *sd, u16 reg)
++{
++	return i2c_rdreg(sd, reg, 1);
+ }
+ 
+ static void i2c_wr8(struct v4l2_subdev *sd, u16 reg, u8 val)
+ {
+-	i2c_wr(sd, reg, &val, 1);
++	i2c_wrreg(sd, reg, val, 1);
+ }
+ 
+ static void i2c_wr8_and_or(struct v4l2_subdev *sd, u16 reg,
+ 		u8 mask, u8 val)
+ {
+-	i2c_wr8(sd, reg, (i2c_rd8(sd, reg) & mask) | val);
++	i2c_wrreg(sd, reg, (i2c_rdreg(sd, reg, 2) & mask) | val, 2);
+ }
+ 
+ static u16 i2c_rd16(struct v4l2_subdev *sd, u16 reg)
+ {
+-	u16 val;
+-
+-	i2c_rd(sd, reg, (u8 *)&val, 2);
+-
+-	return val;
++	return i2c_rdreg(sd, reg, 2);
+ }
+ 
+ static void i2c_wr16(struct v4l2_subdev *sd, u16 reg, u16 val)
+ {
+-	i2c_wr(sd, reg, (u8 *)&val, 2);
++	i2c_wrreg(sd, reg, val, 2);
+ }
+ 
+ static void i2c_wr16_and_or(struct v4l2_subdev *sd, u16 reg, u16 mask, u16 val)
+ {
+-	i2c_wr16(sd, reg, (i2c_rd16(sd, reg) & mask) | val);
++	i2c_wrreg(sd, reg, (i2c_rdreg(sd, reg, 2) & mask) | val, 2);
+ }
+ 
+ static u32 i2c_rd32(struct v4l2_subdev *sd, u16 reg)
+ {
+-	u32 val;
+-
+-	i2c_rd(sd, reg, (u8 *)&val, 4);
+-
+-	return val;
++	return i2c_rdreg(sd, reg, 4);
+ }
+ 
+ static void i2c_wr32(struct v4l2_subdev *sd, u16 reg, u32 val)
+ {
+-	i2c_wr(sd, reg, (u8 *)&val, 4);
++	i2c_wrreg(sd, reg, val, 4);
+ }
+ 
+ /* --------------- STATUS --------------- */
+@@ -1227,7 +1231,7 @@ static int tc358743_g_register(struct v4l2_subdev *sd,
+ 
+ 	reg->size = tc358743_get_reg_size(reg->reg);
+ 
+-	i2c_rd(sd, reg->reg, (u8 *)&reg->val, reg->size);
++	reg->val = i2c_rdreg(sd, reg->reg, reg->size);
+ 
+ 	return 0;
+ }
+@@ -1253,7 +1257,7 @@ static int tc358743_s_register(struct v4l2_subdev *sd,
+ 	    reg->reg == BCAPS)
+ 		return 0;
+ 
+-	i2c_wr(sd, (u16)reg->reg, (u8 *)&reg->val,
++	i2c_wrreg(sd, (u16)reg->reg, reg->val,
+ 			tc358743_get_reg_size(reg->reg));
+ 
+ 	return 0;
 -- 
-2.11.1
+2.9.0
 
