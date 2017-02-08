@@ -1,74 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:33620 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751364AbdBAU1D (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Feb 2017 15:27:03 -0500
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:44474 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751025AbdBHWyr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Feb 2017 17:54:47 -0500
+Date: Wed, 8 Feb 2017 23:34:51 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Rob Herring <robh@kernel.org>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org, galak@codeaurora.org,
+        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] devicetree: Add video bus switch
+Message-ID: <20170208223451.GB18807@amd>
+References: <20161023200355.GA5391@amd>
+ <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
+ <20161214122451.GB27011@amd>
+ <20161222100104.GA30917@amd>
+ <20161222133938.GA30259@amd>
+ <20161224152031.GA8420@amd>
+ <20170203123508.GA10286@amd>
+ <20170208213609.lnemfbzitee5iur2@rob-hp-laptop>
 MIME-Version: 1.0
-From: Piotr Oleszczyk <piotr.oleszczyk@gmail.com>
-Date: Wed, 1 Feb 2017 21:26:42 +0100
-Message-ID: <CAJQUACEM0eye3AqyyoSAZXNUimV7J5jrw1hDHKi1NrRqGooauw@mail.gmail.com>
-Subject: [PATCH] add Hama Hybrid DVB-T Stick support
-To: mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Piotr Oleszczyk <piotr.oleszczyk@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="H+4ONPRPur6+Ovig"
+Content-Disposition: inline
+In-Reply-To: <20170208213609.lnemfbzitee5iur2@rob-hp-laptop>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adding Hama Hybrid DVB-T Stick support. Technically it's the same
-device what Terratec Cinergy HT USB XE is.
 
-Signed-off-by: Piotr Oleszczyk <piotr.oleszczyk@gmail.com>
+--H+4ONPRPur6+Ovig
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/dvb-core/dvb-usb-ids.h
-b/drivers/media/dvb-core/dvb-usb-ids.h
-index 779f422..c90c344 100644
---- a/drivers/media/dvb-core/dvb-usb-ids.h
-+++ b/drivers/media/dvb-core/dvb-usb-ids.h
-@@ -78,6 +78,7 @@
- #define USB_VID_EVOLUTEPC                      0x1e59
- #define USB_VID_AZUREWAVE                      0x13d3
- #define USB_VID_TECHNISAT                      0x14f7
-+#define USB_VID_HAMA                           0x147f
+> > +
+> > +This is a binding for a gpio controlled switch for camera interfaces. =
+Such a
+> > +device is used on some embedded devices to connect two cameras to the =
+same
+> > +interface of a image signal processor.
+> > +
+> > +Required properties
+> > +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> > +
+> > +compatible	: must contain "video-bus-switch"
+>=20
+> video-bus-gpio-mux
 
- /* Product IDs */
- #define USB_PID_ADSTECH_USB2_COLD                      0xa333
-@@ -413,4 +414,5 @@
- #define USB_PID_TURBOX_DTT_2000                         0xd3a4
- #define USB_PID_WINTV_SOLOHD                            0x0264
- #define USB_PID_EVOLVEO_XTRATV_STICK                   0xa115
-+#define USB_PID_HAMA_DVBT_HYBRID_STICK                 0x2758
- #endif
-diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c
-b/drivers/media/usb/dvb-usb/dib0700_devices.c
-index b29d489..81d7fd4 100644
---- a/drivers/media/usb/dvb-usb/dib0700_devices.c
-+++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
-@@ -3815,6 +3815,7 @@ struct usb_device_id dib0700_usb_id_table[] = {
-        { USB_DEVICE(USB_VID_PCTV,      USB_PID_PCTV_2002E_SE) },
-        { USB_DEVICE(USB_VID_PCTV,      USB_PID_DIBCOM_STK8096PVR) },
-        { USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_STK8096PVR) },
-+       { USB_DEVICE(USB_VID_HAMA,      USB_PID_HAMA_DVBT_HYBRID) },
-        { 0 }           /* Terminating entry */
- };
- MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
-@@ -4379,7 +4380,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
-                        },
-                },
+Sakari already asked for rename here. I believe I waited reasonable
+time, but got no input from you, so I did rename it. Now you decide on
+different name.
 
--               .num_device_descs = 9,
-+               .num_device_descs = 10,
-                .devices = {
-                        {   "Terratec Cinergy HT USB XE",
-                                { &dib0700_usb_id_table[27], NULL },
-@@ -4417,6 +4418,10 @@ struct dvb_usb_device_properties dib0700_devices[] = {
-                                { &dib0700_usb_id_table[54], NULL },
-                                { NULL },
-                        },
-+                       {   "Hama DVB=T Hybrid USB Stick",
-+                               { &dib0700_usb_id_table[85], NULL },
-+                               { NULL },
-+                       },
-                },
+Can we either get timely reactions or less bikeshedding?
 
-                .rc.core = {
+Thanks,
+
+                                                                Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--H+4ONPRPur6+Ovig
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlibnQsACgkQMOfwapXb+vK4AwCfWHApSSpUayjTh5nbxb5ftZpY
+stkAn1uv9NjSXr4ZKN5ZScKUq8rfHl11
+=Lg5y
+-----END PGP SIGNATURE-----
+
+--H+4ONPRPur6+Ovig--
