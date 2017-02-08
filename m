@@ -1,55 +1,249 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36343
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751403AbdBTUQ2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Feb 2017 15:16:28 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
+Received: from smtprelay2.synopsys.com ([198.182.60.111]:36186 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753740AbdBHLO0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Feb 2017 06:14:26 -0500
+Subject: Re: [PATCH RESEND v7 2/2] Add support for OV5647 sensor.
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+References: <cover.1486136893.git.roliveir@synopsys.com>
+ <26e5a587f1ba9e2fbbc04284408305bc8cf8c5c0.1486136893.git.roliveir@synopsys.com>
+ <20170203201729.GA18086@kekkonen.localdomain>
+ <f23e76ff-326a-c4df-601d-6b12b644bff7@synopsys.com>
+ <20170207173116.GC13854@valkosipuli.retiisi.org.uk>
+CC: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <devicetree@vger.kernel.org>, <CARLOS.PALMINHA@synopsys.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mark Rutland <mark.rutland@arm.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pavel Machek <pavel@ucw.cz>, linux-media@vger.kernel.org
-Subject: [PATCH] [media] et8ek8: Export OF device ID as module aliases
-Date: Mon, 20 Feb 2017 17:16:16 -0300
-Message-Id: <20170220201616.15028-1-javier@osg.samsung.com>
+        "Pavel Machek" <pavel@ucw.cz>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Rob Herring <robh+dt@kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+Message-ID: <e4ce5644-4f44-4c46-219a-cac2126dc8ba@synopsys.com>
+Date: Wed, 8 Feb 2017 09:56:12 +0000
+MIME-Version: 1.0
+In-Reply-To: <20170207173116.GC13854@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The I2C core always reports a MODALIAS of the form i2c:<foo> even if the
-device was registered via OF, this means that exporting the OF device ID
-table device aliases in the module is not needed. But in order to change
-how the core reports modaliases to user-space, it's better to export it.
+Hi Sakari
 
-Before this patch:
+On 2/7/2017 5:31 PM, Sakari Ailus wrote:
+> Hi Ramiro,
+> 
+> On Mon, Feb 06, 2017 at 11:38:28AM +0000, Ramiro Oliveira wrote:
+> ...
+>>>> +	ret = ov5647_write_array(sd, ov5647_640x480,
+>>>> +					ARRAY_SIZE(ov5647_640x480));
+>>>> +	if (ret < 0) {
+>>>> +		dev_err(&client->dev, "write sensor_default_regs error\n");
+>>>> +		return ret;
+>>>> +	}
+>>>> +
+>>>> +	ov5647_set_virtual_channel(sd, 0);
+>>>> +
+>>>> +	ov5647_read(sd, 0x0100, &resetval);
+>>>> +	if (!(resetval & 0x01)) {
+>>>
+>>> Can this ever happen? Streaming start is at the end of the register list.
+>>>
+>>
+>> I'm not sure it can happen. It was just a safeguard, but I can remove it if you
+>> think it's not necessary
+> 
+> You're not reading back the other registers either, albeit I'd check that
+> the I2C accesses actually succeed. Generally the return values are ignored.
+> 
 
-$ modinfo drivers/media/i2c/et8ek8/et8ek8.ko | grep alias
-alias:          i2c:et8ek8
+So you're recommending I perform a random I2C access after power on to check the
+system, and discard the read value? Or just drop this piece of code entirely?
 
-After this patch:
 
-$ modinfo drivers/media/i2c/et8ek8/et8ek8.ko | grep alias
-alias:          i2c:et8ek8
-alias:          of:N*T*Ctoshiba,et8ek8C*
-alias:          of:N*T*Ctoshiba,et8ek8
+>>
+>>>> +		dev_err(&client->dev, "Device was in SW standby");
+>>>> +		ov5647_write(sd, 0x0100, 0x01);
+>>>> +	}
+>>>> +
+>>>> +	ov5647_write(sd, 0x4800, 0x04);
+>>>> +	ov5647_stream_on(sd);
+>>>> +
+>>>> +	return 0;
+>>>> +}
+>>>> +
+>>>> +/**
+>>>> + * @short Control sensor power state
+>>>> + * @param[in] sd v4l2 subdev
+>>>> + * @param[in] on Sensor power
+>>>> + * @return Error code
+>>>> + */
+>>>> +static int sensor_power(struct v4l2_subdev *sd, int on)
+>>>> +{
+>>>> +	int ret;
+>>>> +	struct ov5647 *ov5647 = to_state(sd);
+>>>> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>>>> +
+>>>> +	ret = 0;
+>>>> +	mutex_lock(&ov5647->lock);
+>>>> +
+>>>> +	if (on && !ov5647->power_count)	{
+>>>> +		dev_dbg(&client->dev, "OV5647 power on\n");
+>>>> +
+>>>> +		clk_set_rate(ov5647->xclk, ov5647->xclk_freq);
+>>>> +
+>>>> +		ret = clk_prepare_enable(ov5647->xclk);
+>>>> +		if (ret < 0) {
+>>>> +			dev_err(ov5647->dev, "clk prepare enable failed\n");
+>>>> +			goto out;
+>>>> +		}
+>>>> +
+>>>> +		ret = ov5647_write_array(sd, sensor_oe_enable_regs,
+>>>> +				ARRAY_SIZE(sensor_oe_enable_regs));
+>>>> +		if (ret < 0) {
+>>>> +			clk_disable_unprepare(ov5647->xclk);
+>>>> +			dev_err(&client->dev,
+>>>> +				"write sensor_oe_enable_regs error\n");
+>>>> +			goto out;
+>>>> +		}
+>>>> +
+>>>> +		ret = __sensor_init(sd);
+>>>> +		if (ret < 0) {
+>>>> +			clk_disable_unprepare(ov5647->xclk);
+>>>> +			dev_err(&client->dev,
+>>>> +				"Camera not available, check Power\n");
+>>>> +			goto out;
+>>>> +		}
+>>>> +	} else if (!on && ov5647->power_count == 1) {
+>>>> +		dev_dbg(&client->dev, "OV5647 power off\n");
+>>>> +
+>>>> +		dev_dbg(&client->dev, "disable oe\n");
+>>>> +		ret = ov5647_write_array(sd, sensor_oe_disable_regs,
+>>>> +				ARRAY_SIZE(sensor_oe_disable_regs));
+>>>> +
+>>>> +		if (ret < 0)
+>>>> +			dev_dbg(&client->dev, "disable oe failed\n");
+>>>> +
+>>>> +		ret = set_sw_standby(sd, true);
+>>>> +
+>>>> +		if (ret < 0)
+>>>> +			dev_dbg(&client->dev, "soft stby failed\n");
+>>>> +
+>>>> +		clk_disable_unprepare(ov5647->xclk);
+>>>> +	}
+>>>> +
+>>>> +	/* Update the power count. */
+>>>> +	ov5647->power_count += on ? 1 : -1;
+>>>> +	WARN_ON(ov5647->power_count < 0);
+>>>> +
+>>>> +out:
+>>>> +	mutex_unlock(&ov5647->lock);
+>>>> +
+>>>> +	return ret;
+>>>> +}
+>>>> +
+>>>> +#ifdef CONFIG_VIDEO_ADV_DEBUG
+>>>> +/**
+>>>> + * @short Get register value
+>>>> + * @param[in] sd v4l2 subdev
+>>>> + * @param[in] reg register struct
+>>>> + * @return Error code
+>>>> + */
+>>>> +static int sensor_get_register(struct v4l2_subdev *sd,
+>>>> +				struct v4l2_dbg_register *reg)
+>>>> +{
+>>>> +	unsigned char val = 0;
+>>>> +	int ret;
+>>>> +
+>>>> +	ret = ov5647_read(sd, reg->reg & 0xff, &val);
+>>>> +	if (ret != 0)
+>>>> +		return ret;
+>>>> +
+>>>> +	reg->val = val;
+>>>> +	reg->size = 1;
+>>>> +
+>>>> +	return ret;
+>>>> +}
+>>>> +
+>>>> +/**
+>>>> + * @short Set register value
+>>>> + * @param[in] sd v4l2 subdev
+>>>> + * @param[in] reg register struct
+>>>> + * @return Error code
+>>>> + */
+>>>> +static int sensor_set_register(struct v4l2_subdev *sd,
+>>>> +				const struct v4l2_dbg_register *reg)
+>>>> +{
+>>>> +	return ov5647_write(sd, reg->reg & 0xff, reg->val & 0xff);
+>>>> +}
+>>>> +#endif
+>>>> +
+>>>> +/**
+>>>> + * @short Subdev core operations registration
+>>>> + */
+>>>> +static const struct v4l2_subdev_core_ops sensor_core_ops = {
+>>>> +	.s_power		= sensor_power,
+>>>> +#ifdef CONFIG_VIDEO_ADV_DEBUG
+>>>> +	.g_register		= sensor_get_register,
+>>>> +	.s_register		= sensor_set_register,
+>>>> +#endif
+>>>> +};
+>>>> +
+>>>> +static int enum_mbus_code(struct v4l2_subdev *sd,
+>>>> +				struct v4l2_subdev_pad_config *cfg,
+>>>> +				struct v4l2_subdev_mbus_code_enum *code)
+>>>> +{
+>>>> +	if (code->index > 0)
+>>>> +		return -EINVAL;
+>>>> +
+>>>> +	code->code = MEDIA_BUS_FMT_SBGGR8_1X8;
+>>>> +
+>>>> +	return 0;
+>>>> +}
+>>>> +
+>>>> +static const struct v4l2_subdev_pad_ops subdev_pad_ops = {
+>>>> +	.enum_mbus_code = enum_mbus_code,
+>>>> +};
+>>>> +
+>>>> +
+>>>> +/**
+>>>> + * @short Subdev operations registration
+>>>> + *
+>>>> + */
+>>>> +static const struct v4l2_subdev_ops subdev_ops = {
+>>>> +	.core		= &sensor_core_ops,
+>>>> +	.pad		= &subdev_pad_ops,
+>>>
+>>> You should implement s_stream() in video ops to control the streaming state.
+>>>
+>>> I don't know about this particular sensor, but on SMIA compliant sensors
+>>> the SW standby means streaming is disabled. There seem to be additional
+>>> registers as well; my educated guess is that writing all those to control
+>>> streaming would be the right thing to do.
+>>>
+>>> The CSI-2 bus initialisation could fail if you start streaming right away
+>>> when the sensor is powered on.
+>>>
+>>
+>> I haven't had any error yet, but I'll add set_stream() and start streaming video
+>> there, just to be sure.
+> 
+> It depends on the receiver. Some might work whereas some definitely don't.
+> 
+> Please see Documentation/media/kapi/csi2.rst .
+> 
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
----
+Thanks for the documentation, I'll implement s_stream as indicated.
 
- drivers/media/i2c/et8ek8/et8ek8_driver.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/media/i2c/et8ek8/et8ek8_driver.c b/drivers/media/i2c/et8ek8/et8ek8_driver.c
-index bec4a563a09c..f39f5179dd95 100644
---- a/drivers/media/i2c/et8ek8/et8ek8_driver.c
-+++ b/drivers/media/i2c/et8ek8/et8ek8_driver.c
-@@ -1485,6 +1485,7 @@ static const struct of_device_id et8ek8_of_table[] = {
- 	{ .compatible = "toshiba,et8ek8" },
- 	{ },
- };
-+MODULE_DEVICE_TABLE(of, et8ek8_of_table);
- 
- static const struct i2c_device_id et8ek8_id_table[] = {
- 	{ ET8EK8_NAME, 0 },
 -- 
-2.9.3
+Best Regards
+
+Ramiro Oliveira
+Ramiro.Oliveira@synopsys.com
