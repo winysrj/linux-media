@@ -1,79 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:53646 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751038AbdBFI4z (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Feb 2017 03:56:55 -0500
-Subject: Re: [PATCH 02/11] [media] s5p-mfc: Adding initial support for MFC
- v10.10
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: Rob Herring <robh@kernel.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com,
-        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
-        m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        devicetree@vger.kernel.org
-In-reply-to: <20170121202852.pxxfxpqwjxewjoj5@rob-hp-laptop>
-Content-type: text/plain; charset=UTF-8
-Date: Mon, 06 Feb 2017 14:07:02 +0530
-Message-id: <1486370223.16927.76.camel@smitha-fedora>
-MIME-version: 1.0
-Content-transfer-encoding: 7bit
-References: <1484733729-25371-1-git-send-email-smitha.t@samsung.com>
- <CGME20170118100723epcas5p132e0ebfad38261bed95cffc47334f9dc@epcas5p1.samsung.com>
- <1484733729-25371-3-git-send-email-smitha.t@samsung.com>
- <20170121202852.pxxfxpqwjxewjoj5@rob-hp-laptop>
+Received: from mail-ot0-f193.google.com ([74.125.82.193]:35733 "EHLO
+        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752014AbdBHWK1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Feb 2017 17:10:27 -0500
+Date: Wed, 8 Feb 2017 15:36:09 -0600
+From: Rob Herring <robh@kernel.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org, galak@codeaurora.org,
+        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] devicetree: Add video bus switch
+Message-ID: <20170208213609.lnemfbzitee5iur2@rob-hp-laptop>
+References: <20161023200355.GA5391@amd>
+ <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
+ <20161214122451.GB27011@amd>
+ <20161222100104.GA30917@amd>
+ <20161222133938.GA30259@amd>
+ <20161224152031.GA8420@amd>
+ <20170203123508.GA10286@amd>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170203123508.GA10286@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2017-01-21 at 14:28 -0600, Rob Herring wrote:
-> On Wed, Jan 18, 2017 at 03:32:00PM +0530, Smitha T Murthy wrote:
-> > Adding the support for MFC v10.10, with new register file and
-> > necessary hw control, decoder, encoder and structural changes.
-> > 
-> > CC: Rob Herring <robh+dt@kernel.org>
-> > CC: devicetree@vger.kernel.org 
-> > Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-> > ---
-> >  .../devicetree/bindings/media/s5p-mfc.txt          |    1 +
-> >  drivers/media/platform/s5p-mfc/regs-mfc-v10.h      |   36 ++++++++++++++++
-> >  drivers/media/platform/s5p-mfc/s5p_mfc.c           |   30 +++++++++++++
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |    4 +-
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c      |    4 ++
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |   44 +++++++++++---------
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |   21 +++++----
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |    9 +++-
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h    |    2 +
-> >  9 files changed, 118 insertions(+), 33 deletions(-)
-> >  create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-> > 
-> > diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt b/Documentation/devicetree/bindings/media/s5p-mfc.txt
-> > index 2c90128..b70c613 100644
-> > --- a/Documentation/devicetree/bindings/media/s5p-mfc.txt
-> > +++ b/Documentation/devicetree/bindings/media/s5p-mfc.txt
-> > @@ -13,6 +13,7 @@ Required properties:
-> >  	(c) "samsung,mfc-v7" for MFC v7 present in Exynos5420 SoC
-> >  	(d) "samsung,mfc-v8" for MFC v8 present in Exynos5800 SoC
-> >  	(e) "samsung,exynos5433-mfc" for MFC v8 present in Exynos5433 SoC
-> > +	(f) "samsung,mfc-v10" for MFC v10 present in a variant of Exynos7 SoC
+On Fri, Feb 03, 2017 at 01:35:08PM +0100, Pavel Machek wrote:
 > 
-> You are up to v10 in how many SoCs? Please stop with versions and use 
-> SoC numbers. It's one thing to use versions when you have many SoCs per 
-> version, but that doesn't seem to be happening here.
+> N900 contains front and back camera, with a switch between the
+> two. This adds support for the switch component, and it is now
+> possible to select between front and back cameras during runtime.
 > 
-> Rob
-MFCv10.10 is used in Exynos7880. There are other variants of MFCv10 used
-in Exynos8890 and Exynos7870. I will mention in the next version of
-patches the SoC name Exynos7880 using MFCv10 on which I have tested.
- 
-Thank you for the review.
-
-Regards,
-Smitha
+> This adds documentation for the devicetree binding.
+> 
+> Signed-off-by: Sebastian Reichel <sre@kernel.org>
+> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
 > 
 > 
+> diff --git a/Documentation/devicetree/bindings/media/video-bus-switch.txt b/Documentation/devicetree/bindings/media/video-bus-switch.txt
+> new file mode 100644
+> index 0000000..1b9f8e0
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/video-bus-switch.txt
+> @@ -0,0 +1,63 @@
+> +Video Bus Switch Binding
+> +========================
 
+I'd call it a mux rather than switch.
 
+BTW, there's a new mux-controller binding under review you might look 
+at. It would only be needed here if the mux ctrl also controls other 
+things.
 
+> +
+> +This is a binding for a gpio controlled switch for camera interfaces. Such a
+> +device is used on some embedded devices to connect two cameras to the same
+> +interface of a image signal processor.
+> +
+> +Required properties
+> +===================
+> +
+> +compatible	: must contain "video-bus-switch"
 
+video-bus-gpio-mux
 
+> +switch-gpios	: GPIO specifier for the gpio, which can toggle the
+
+mux-gpios to align with existing GPIO controlled muxes.
+
+> +		  selected camera. The GPIO should be configured, so
+> +		  that a disabled GPIO means, that the first port is
+> +		  selected.
+> +
+> +Required Port nodes
+> +===================
+> +
+> +More documentation on these bindings is available in
+> +video-interfaces.txt in the same directory.
+> +
+> +reg		: The interface:
+> +		  0 - port for image signal processor
+> +		  1 - port for first camera sensor
+> +		  2 - port for second camera sensor
+
+This could be used for display side as well. So describe these just as 
+inputs and outputs.
+
+Rob
