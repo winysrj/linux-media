@@ -1,351 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:47284 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751281AbdBYNe7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Feb 2017 08:34:59 -0500
-Date: Sat, 25 Feb 2017 10:34:37 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Sean Young <sean@mess.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-        kernel test robot <fengguang.wu@intel.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@kernel.org>,
-        Ruslan Ruslichenko <rruslich@cisco.com>, LKP <lkp@01.org>,
-        "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-        kernel@stlinux.com,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-mediatek@lists.infradead.org,
-        linux-amlogic@lists.infradead.org,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Linux LED Subsystem <linux-leds@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>, wfg@linux.intel.com
-Subject: Re: [PATCH] [media] serial_ir: ensure we're ready to receive
- interrupts
-Message-ID: <20170225103437.58c5a199@vento.lan>
-In-Reply-To: <20170225112816.GA7981@gofer.mess.org>
-References: <58b07b30.9XFLj9Hhl7F6HMc2%fengguang.wu@intel.com>
-        <CA+55aFytXj+TZ_TanbxcY0KgRTrV7Vvr=fWON8tioUGmYHYiNA@mail.gmail.com>
-        <20170225111424.GA7659@gofer.mess.org>
-        <20170225112816.GA7981@gofer.mess.org>
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:33760 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751394AbdBIAYN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Feb 2017 19:24:13 -0500
+Date: Wed, 8 Feb 2017 17:17:08 -0600
+From: Rob Herring <robh@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org,
+        Russell King <linux@armlinux.org.uk>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        dri-devel@lists.freedesktop.org,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCHv4 8/9] stih-cec: add HPD notifier support
+Message-ID: <20170208231708.gei5j5jmus4rsham@rob-hp-laptop>
+References: <20170206102951.12623-1-hverkuil@xs4all.nl>
+ <20170206102951.12623-9-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170206102951.12623-9-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 25 Feb 2017 11:28:16 +0000
-Sean Young <sean@mess.org> escreveu:
-
-> When the interrupt requested with devm_request_irq(), serial_ir.rcdev
-> is still null so will cause null deference if the irq handler is called
-> early on.
+On Mon, Feb 06, 2017 at 11:29:50AM +0100, Hans Verkuil wrote:
+> From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
 > 
-> Also ensure that timeout_timer is setup.
+> By using the HPD notifier framework there is no longer any reason
+> to manually set the physical address. This was the one blocking
+> issue that prevented this driver from going out of staging, so do
+> this move as well.
 > 
-> Link: http://lkml.kernel.org/r/CA+55aFxsh2uF8gi5sN_guY3Z+tiLv7LpJYKBw+y8vqLzp+TsnQ@mail.gmail.com
+> Update the bindings documentation the new hdmi phandle.
 > 
-> Cc: <stable@vger.kernel.org> # 4.10
-> Signed-off-by: Sean Young <sean@mess.org>
+> Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> CC: devicetree@vger.kernel.org
 > ---
->  drivers/media/rc/serial_ir.c | 243 +++++++++++++++++++++----------------------
->  1 file changed, 118 insertions(+), 125 deletions(-)
+>  .../devicetree/bindings/media/stih-cec.txt         |  2 ++
+>  drivers/media/platform/Kconfig                     | 10 +++++++
+>  drivers/media/platform/Makefile                    |  1 +
+>  .../st-cec => media/platform/sti/cec}/Makefile     |  0
+>  .../st-cec => media/platform/sti/cec}/stih-cec.c   | 31 +++++++++++++++++++---
+>  drivers/staging/media/Kconfig                      |  2 --
+>  drivers/staging/media/Makefile                     |  1 -
+>  drivers/staging/media/st-cec/Kconfig               |  8 ------
+>  drivers/staging/media/st-cec/TODO                  |  7 -----
+>  9 files changed, 41 insertions(+), 21 deletions(-)
+>  rename drivers/{staging/media/st-cec => media/platform/sti/cec}/Makefile (100%)
+>  rename drivers/{staging/media/st-cec => media/platform/sti/cec}/stih-cec.c (93%)
+>  delete mode 100644 drivers/staging/media/st-cec/Kconfig
+>  delete mode 100644 drivers/staging/media/st-cec/TODO
 > 
-> diff --git a/drivers/media/rc/serial_ir.c b/drivers/media/rc/serial_ir.c
-> index 923fb22..22144b4 100644
-> --- a/drivers/media/rc/serial_ir.c
-> +++ b/drivers/media/rc/serial_ir.c
-> @@ -487,74 +487,6 @@ static void serial_ir_timeout(unsigned long arg)
->  	ir_raw_event_handle(serial_ir.rcdev);
->  }
->  
-> -static int serial_ir_probe(struct platform_device *dev)
-> -{
-> -	int i, nlow, nhigh, result;
+> diff --git a/Documentation/devicetree/bindings/media/stih-cec.txt b/Documentation/devicetree/bindings/media/stih-cec.txt
+> index 71c4b2f4bcef..7d82121d148a 100644
+> --- a/Documentation/devicetree/bindings/media/stih-cec.txt
+> +++ b/Documentation/devicetree/bindings/media/stih-cec.txt
+> @@ -9,6 +9,7 @@ Required properties:
+>   - pinctrl-names: Contains only one value - "default"
+>   - pinctrl-0: Specifies the pin control groups used for CEC hardware.
+>   - resets: Reference to a reset controller
+> + - st,hdmi-handle: Phandle to the HMDI controller
 
-Hmm... why did you move this function to be after serial_ir_open()?
+2 cases in this series. Just drop the vendor prefix on both.
 
-That messes with the diff without no good reason, making harder to
-identify what you changed here.
+s/HMDI/HDMI/
 
-> -
-> -	result = devm_request_irq(&dev->dev, irq, serial_ir_irq_handler,
-> -				  share_irq ? IRQF_SHARED : 0,
-> -				  KBUILD_MODNAME, &hardware);
-> -	if (result < 0) {
-> -		if (result == -EBUSY)
-> -			dev_err(&dev->dev, "IRQ %d busy\n", irq);
-> -		else if (result == -EINVAL)
-> -			dev_err(&dev->dev, "Bad irq number or handler\n");
-> -		return result;
-> -	}
-> -
-> -	/* Reserve io region. */
-> -	if ((iommap &&
-> -	     (devm_request_mem_region(&dev->dev, iommap, 8 << ioshift,
-> -				      KBUILD_MODNAME) == NULL)) ||
-> -	     (!iommap && (devm_request_region(&dev->dev, io, 8,
-> -			  KBUILD_MODNAME) == NULL))) {
-> -		dev_err(&dev->dev, "port %04x already in use\n", io);
-> -		dev_warn(&dev->dev, "use 'setserial /dev/ttySX uart none'\n");
-> -		dev_warn(&dev->dev,
-> -			 "or compile the serial port driver as module and\n");
-> -		dev_warn(&dev->dev, "make sure this module is loaded first\n");
-> -		return -EBUSY;
-> -	}
-> -
-> -	setup_timer(&serial_ir.timeout_timer, serial_ir_timeout,
-> -		    (unsigned long)&serial_ir);
-> -
-> -	result = hardware_init_port();
-> -	if (result < 0)
-> -		return result;
-> -
-> -	/* Initialize pulse/space widths */
-> -	init_timing_params(50, 38000);
-> -
-> -	/* If pin is high, then this must be an active low receiver. */
-> -	if (sense == -1) {
-> -		/* wait 1/2 sec for the power supply */
-> -		msleep(500);
-> -
-> -		/*
-> -		 * probe 9 times every 0.04s, collect "votes" for
-> -		 * active high/low
-> -		 */
-> -		nlow = 0;
-> -		nhigh = 0;
-> -		for (i = 0; i < 9; i++) {
-> -			if (sinp(UART_MSR) & hardware[type].signal_pin)
-> -				nlow++;
-> -			else
-> -				nhigh++;
-> -			msleep(40);
-> -		}
-> -		sense = nlow >= nhigh ? 1 : 0;
-> -		dev_info(&dev->dev, "auto-detected active %s receiver\n",
-> -			 sense ? "low" : "high");
-> -	} else
-> -		dev_info(&dev->dev, "Manually using active %s receiver\n",
-> -			 sense ? "low" : "high");
-> -
-> -	dev_dbg(&dev->dev, "Interrupt %d, port %04x obtained\n", irq, io);
-> -	return 0;
-> -}
-> -
->  static int serial_ir_open(struct rc_dev *rcdev)
->  {
->  	unsigned long flags;
-> @@ -679,6 +611,123 @@ static int serial_ir_resume(struct platform_device *dev)
->  	return 0;
->  }
 >  
-> +static int serial_ir_probe(struct platform_device *dev)
-> +{
-> +	struct rc_dev *rcdev;
-> +	int i, nlow, nhigh, result;
-> +
-> +	rcdev = devm_rc_allocate_device(&dev->dev, RC_DRIVER_IR_RAW);
-> +	if (!rcdev)
-> +		return -ENOMEM;
-> +
-> +	if (hardware[type].send_pulse && hardware[type].send_space)
-> +		rcdev->tx_ir = serial_ir_tx;
-> +	if (hardware[type].set_send_carrier)
-> +		rcdev->s_tx_carrier = serial_ir_tx_carrier;
-> +	if (hardware[type].set_duty_cycle)
-> +		rcdev->s_tx_duty_cycle = serial_ir_tx_duty_cycle;
-> +
-> +	switch (type) {
-> +	case IR_HOMEBREW:
-> +		rcdev->input_name = "Serial IR type home-brew";
-> +		break;
-> +	case IR_IRDEO:
-> +		rcdev->input_name = "Serial IR type IRdeo";
-> +		break;
-> +	case IR_IRDEO_REMOTE:
-> +		rcdev->input_name = "Serial IR type IRdeo remote";
-> +		break;
-> +	case IR_ANIMAX:
-> +		rcdev->input_name = "Serial IR type AnimaX";
-> +		break;
-> +	case IR_IGOR:
-> +		rcdev->input_name = "Serial IR type IgorPlug";
-> +		break;
-> +	}
-> +
-> +	rcdev->input_phys = KBUILD_MODNAME "/input0";
-> +	rcdev->input_id.bustype = BUS_HOST;
-> +	rcdev->input_id.vendor = 0x0001;
-> +	rcdev->input_id.product = 0x0001;
-> +	rcdev->input_id.version = 0x0100;
-> +	rcdev->open = serial_ir_open;
-> +	rcdev->close = serial_ir_close;
-> +	rcdev->dev.parent = &serial_ir.pdev->dev;
-> +	rcdev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
-> +	rcdev->driver_name = KBUILD_MODNAME;
-> +	rcdev->map_name = RC_MAP_RC6_MCE;
-> +	rcdev->min_timeout = 1;
-> +	rcdev->timeout = IR_DEFAULT_TIMEOUT;
-> +	rcdev->max_timeout = 10 * IR_DEFAULT_TIMEOUT;
-> +	rcdev->rx_resolution = 250000;
-> +
-> +	serial_ir.rcdev = rcdev;
-> +
-> +	setup_timer(&serial_ir.timeout_timer, serial_ir_timeout,
-> +		    (unsigned long)&serial_ir);
-> +
-> +	result = devm_request_irq(&dev->dev, irq, serial_ir_irq_handler,
-> +				  share_irq ? IRQF_SHARED : 0,
-> +				  KBUILD_MODNAME, &hardware);
-> +	if (result < 0) {
-> +		if (result == -EBUSY)
-> +			dev_err(&dev->dev, "IRQ %d busy\n", irq);
-> +		else if (result == -EINVAL)
-> +			dev_err(&dev->dev, "Bad irq number or handler\n");
-> +		return result;
-> +	}
-> +
-> +	/* Reserve io region. */
-> +	if ((iommap &&
-> +	     (devm_request_mem_region(&dev->dev, iommap, 8 << ioshift,
-> +				      KBUILD_MODNAME) == NULL)) ||
-> +	     (!iommap && (devm_request_region(&dev->dev, io, 8,
-> +			  KBUILD_MODNAME) == NULL))) {
-> +		dev_err(&dev->dev, "port %04x already in use\n", io);
-> +		dev_warn(&dev->dev, "use 'setserial /dev/ttySX uart none'\n");
-> +		dev_warn(&dev->dev,
-> +			 "or compile the serial port driver as module and\n");
-> +		dev_warn(&dev->dev, "make sure this module is loaded first\n");
-> +		return -EBUSY;
-> +	}
-> +
-> +	result = hardware_init_port();
-> +	if (result < 0)
-> +		return result;
-> +
-> +	/* Initialize pulse/space widths */
-> +	init_timing_params(50, 38000);
-> +
-> +	/* If pin is high, then this must be an active low receiver. */
-> +	if (sense == -1) {
-> +		/* wait 1/2 sec for the power supply */
-> +		msleep(500);
-> +
-> +		/*
-> +		 * probe 9 times every 0.04s, collect "votes" for
-> +		 * active high/low
-> +		 */
-> +		nlow = 0;
-> +		nhigh = 0;
-> +		for (i = 0; i < 9; i++) {
-> +			if (sinp(UART_MSR) & hardware[type].signal_pin)
-> +				nlow++;
-> +			else
-> +				nhigh++;
-> +			msleep(40);
-> +		}
-> +		sense = nlow >= nhigh ? 1 : 0;
-> +		dev_info(&dev->dev, "auto-detected active %s receiver\n",
-> +			 sense ? "low" : "high");
-> +	} else
-> +		dev_info(&dev->dev, "Manually using active %s receiver\n",
-> +			 sense ? "low" : "high");
-> +
-> +	dev_dbg(&dev->dev, "Interrupt %d, port %04x obtained\n", irq, io);
-> +
-> +	return devm_rc_register_device(&dev->dev, rcdev);
-> +}
-> +
->  static struct platform_driver serial_ir_driver = {
->  	.probe		= serial_ir_probe,
->  	.suspend	= serial_ir_suspend,
-> @@ -723,7 +772,6 @@ static void serial_ir_exit(void)
+>  Example for STIH407:
 >  
->  static int __init serial_ir_init_module(void)
->  {
-> -	struct rc_dev *rcdev;
->  	int result;
->  
->  	switch (type) {
-> @@ -754,63 +802,9 @@ static int __init serial_ir_init_module(void)
->  		sense = !!sense;
->  
->  	result = serial_ir_init();
-> -	if (result)
-> -		return result;
-> -
-> -	rcdev = devm_rc_allocate_device(&serial_ir.pdev->dev, RC_DRIVER_IR_RAW);
-> -	if (!rcdev) {
-> -		result = -ENOMEM;
-> -		goto serial_cleanup;
-> -	}
-> -
-> -	if (hardware[type].send_pulse && hardware[type].send_space)
-> -		rcdev->tx_ir = serial_ir_tx;
-> -	if (hardware[type].set_send_carrier)
-> -		rcdev->s_tx_carrier = serial_ir_tx_carrier;
-> -	if (hardware[type].set_duty_cycle)
-> -		rcdev->s_tx_duty_cycle = serial_ir_tx_duty_cycle;
-> -
-> -	switch (type) {
-> -	case IR_HOMEBREW:
-> -		rcdev->input_name = "Serial IR type home-brew";
-> -		break;
-> -	case IR_IRDEO:
-> -		rcdev->input_name = "Serial IR type IRdeo";
-> -		break;
-> -	case IR_IRDEO_REMOTE:
-> -		rcdev->input_name = "Serial IR type IRdeo remote";
-> -		break;
-> -	case IR_ANIMAX:
-> -		rcdev->input_name = "Serial IR type AnimaX";
-> -		break;
-> -	case IR_IGOR:
-> -		rcdev->input_name = "Serial IR type IgorPlug";
-> -		break;
-> -	}
-> -
-> -	rcdev->input_phys = KBUILD_MODNAME "/input0";
-> -	rcdev->input_id.bustype = BUS_HOST;
-> -	rcdev->input_id.vendor = 0x0001;
-> -	rcdev->input_id.product = 0x0001;
-> -	rcdev->input_id.version = 0x0100;
-> -	rcdev->open = serial_ir_open;
-> -	rcdev->close = serial_ir_close;
-> -	rcdev->dev.parent = &serial_ir.pdev->dev;
-> -	rcdev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
-> -	rcdev->driver_name = KBUILD_MODNAME;
-> -	rcdev->map_name = RC_MAP_RC6_MCE;
-> -	rcdev->min_timeout = 1;
-> -	rcdev->timeout = IR_DEFAULT_TIMEOUT;
-> -	rcdev->max_timeout = 10 * IR_DEFAULT_TIMEOUT;
-> -	rcdev->rx_resolution = 250000;
-> -
-> -	serial_ir.rcdev = rcdev;
-> -
-> -	result = rc_register_device(rcdev);
-> -
->  	if (!result)
->  		return 0;
-> -serial_cleanup:
-> +
->  	serial_ir_exit();
->  	return result;
->  }
-> @@ -818,7 +812,6 @@ static int __init serial_ir_init_module(void)
->  static void __exit serial_ir_exit_module(void)
->  {
->  	del_timer_sync(&serial_ir.timeout_timer);
-> -	rc_unregister_device(serial_ir.rcdev);
->  	serial_ir_exit();
->  }
->  
-
-
-
-Thanks,
-Mauro
+> @@ -22,4 +23,5 @@ sti-cec@094a087c {
+>  	pinctrl-names = "default";
+>  	pinctrl-0 = <&pinctrl_cec0_default>;
+>  	resets = <&softreset STIH407_LPM_SOFTRESET>;
+> +	st,hdmi-handle = <&hdmi>;
+>  };
