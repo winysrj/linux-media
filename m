@@ -1,131 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:50293 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750716AbdBOH4D (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 02:56:03 -0500
-Subject: Re: Cine CT V6.1 code change request
-To: Martin Herrman <martin.herrman@gmail.com>,
+Received: from mail-ot0-f195.google.com ([74.125.82.195]:34669 "EHLO
+        mail-ot0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751235AbdBHXDq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Feb 2017 18:03:46 -0500
+Date: Wed, 8 Feb 2017 17:03:43 -0600
+From: Rob Herring <robh@kernel.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: devicetree@vger.kernel.org, ivo.g.dimitrov.75@gmail.com,
+        sakari.ailus@iki.fi, sre@kernel.org, pali.rohar@gmail.com,
         linux-media@vger.kernel.org
-References: <CADR1r6hbvri8qMYP2S7Pe9sxGsjh5iE2zWTUybYwcoRsbpgXFA@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <572edbb2-a542-01a7-9ba0-20cee18a3217@xs4all.nl>
-Date: Wed, 15 Feb 2017 08:55:58 +0100
+Subject: Re: [PATCHv2] dt: bindings: Add support for CSI1 bus
+Message-ID: <20170208230343.iobyx6axfd3nn3gh@rob-hp-laptop>
+References: <20161228183036.GA13139@amd>
+ <20170111225335.GA21553@amd>
+ <20170206094956.GA17974@amd>
 MIME-Version: 1.0
-In-Reply-To: <CADR1r6hbvri8qMYP2S7Pe9sxGsjh5iE2zWTUybYwcoRsbpgXFA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170206094956.GA17974@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/14/2017 09:59 PM, Martin Herrman wrote:
-> All,
+On Mon, Feb 06, 2017 at 10:49:57AM +0100, Pavel Machek wrote:
+> From: Sakari Ailus <sakari.ailus@iki.fi>
 > 
-> I have a Cine CT V6.1 in my fedora 25 based media center. It is now
-> running a default fedora 4.9 kernel. I install the driver as follows:
+> In the vast majority of cases the bus type is known to the driver(s)
+> since a receiver or transmitter can only support a single one. There
+> are cases however where different options are possible.
 > 
-> hg clone https://linuxtv.org/hg/~endriss/media_build_experimental
+> The existing V4L2 OF support tries to figure out the bus type and
+> parse the bus parameters based on that. This does not scale too well
+> as there are multiple serial busses that share common properties.
+> 
+> Some hardware also supports multiple types of busses on the same
+> interfaces.
+> 
+> Document the CSI1/CCP2 property strobe. It signifies the clock or
+> strobe mode.
+>  
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> Reviewed-By: Sebastian Reichel <sre@kernel.org>
 
-I'm not sure what this media_build directory is. It certainly is
-outdated. The latest media_build is here: https://git.linuxtv.org/media_build.git/
-
-> cd media_build_experimental
-> make download
-> make untar
-> make menuconfig
-> make
-> make install
-> 
-> However, I have to make two changes to the source to make it work.
-> 
-> Change 1: in media_build_experimental/v4l/Kconfig line 6936 I have to
-> remove the whitespace in '--- help ---', otherwise make menuconfig
-> fails.
-
-Can you show that line and the surrounding lines? I.e. the whole menu
-entry?
-
-> Change 2: during compilation the following error occurs (since about
-> kernel 4.5?):
-
-Most likely because the media build you use is outdated.
-
-> 
-> make -C /lib/modules/4.9.7-201.fc25.x86_64/build
-> SUBDIRS=/home/htpc/Downloads/media_build_experimental/v4l  modules
-> make[2]: Entering directory '/usr/src/kernels/4.9.7-201.fc25.x86_64'
->   CC [M]  /home/htpc/Downloads/media_build_experimental/v4l/tuner-xc2028.o
-> In file included from <command-line>:0:0:
-> /home/htpc/Downloads/media_build_experimental/v4l/compat.h:1463:1:
-> error: redefinition of 'pci_zalloc_consistent'
->  pci_zalloc_consistent(struct pci_dev *hwdev, size_t size,
->  ^~~~~~~~~~~~~~~~~~~~~
-> In file included from ./include/linux/pci.h:2145:0,
->                  from
-> /home/htpc/Downloads/media_build_experimental/v4l/compat.h:1459,
->                  from <command-line>:0:
-> ./include/linux/pci-dma-compat.h:23:1: note: previous definition of
-> 'pci_zalloc_consistent' was here
->  pci_zalloc_consistent(struct pci_dev *hwdev, size_t size,
->  ^~~~~~~~~~~~~~~~~~~~~
-> In file included from <command-line>:0:0:
-> /home/htpc/Downloads/media_build_experimental/v4l/compat.h:1552:0:
-> warning: "DMA_ATTR_SKIP_CPU_SYNC" redefined
->  #define DMA_ATTR_SKIP_CPU_SYNC 0
-> 
-> In file included from ./include/linux/pci-dma-compat.h:7:0,
->                  from ./include/linux/pci.h:2145,
->                  from
-> /home/htpc/Downloads/media_build_experimental/v4l/compat.h:1459,
->                  from <command-line>:0:
-> ./include/linux/dma-mapping.h:47:0: note: this is the location of the
-> previous definition
->  #define DMA_ATTR_SKIP_CPU_SYNC  (1UL << 5)
-> 
-> scripts/Makefile.build:299: recipe for target
-> '/home/htpc/Downloads/media_build_experimental/v4l/tuner-xc2028.o'
-> failed
-> make[3]: *** [/home/htpc/Downloads/media_build_experimental/v4l/tuner-xc2028.o]
-> Error 1
-> Makefile:1494: recipe for target
-> '_module_/home/htpc/Downloads/media_build_experimental/v4l' failed
-> make[2]: *** [_module_/home/htpc/Downloads/media_build_experimental/v4l] Error 2
-> make[2]: Leaving directory '/usr/src/kernels/4.9.7-201.fc25.x86_64'
-> Makefile:51: recipe for target 'default' failed
-> make[1]: *** [default] Error 2
-> make[1]: Leaving directory '/home/htpc/Downloads/media_build_experimental/v4l'
-> Makefile:28: recipe for target 'all' failed
-> make: *** [all] Error 2
-> 
-> Which I fix by commenting out lines 1462 up to 1468 in
-> media_build_experimental/v4l/compat.h:
-> 
-> //static inline void *
-> //pci_zalloc_consistent(struct pci_dev *hwdev, size_t size,
-> // dma_addr_t *dma_handle)
-> //{
-> // return dma_alloc_coherent(hwdev == NULL ? NULL : &hwdev->dev,
-> // size, dma_handle, GFP_ATOMIC | __GFP_ZERO);
-> //}
-> 
-> Now it compiles and works fine. I still get these warnings:
-> 
-> media_build_experimental/v4l/compat.h:1552:0: warning:
-> "DMA_ATTR_SKIP_CPU_SYNC" redefined
->  #define DMA_ATTR_SKIP_CPU_SYNC 0
-> 
-> Which I can easily remove by commenting out the specific line as well.
-> 
-> Now my questions are:
-> - is this the correct way to fix these compile errors? (I'm definately
-> not a professional developer)
-> - what can I do to have this solved in the source?
-> 
-> Besides that, I'm also wondering if these drivers have any change of
-> getting into kernel mainline?
-
-Which driver?
-
-Regards,
-
-	Hans
+Acked-by: Rob Herring <robh@kernel.org>
