@@ -1,421 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:43467 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751402AbdBYMWI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Feb 2017 07:22:08 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v3 13/19] [media] lirc: use plain kfifo rather than lirc_buffer
-Date: Sat, 25 Feb 2017 11:51:28 +0000
-Message-Id: <7c5ebc74c044a7a9a4e69a1662dc71bd87e421da.1488023302.git.sean@mess.org>
-In-Reply-To: <cover.1488023302.git.sean@mess.org>
-References: <cover.1488023302.git.sean@mess.org>
-In-Reply-To: <cover.1488023302.git.sean@mess.org>
-References: <cover.1488023302.git.sean@mess.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:41723 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754106AbdBHOQ6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Feb 2017 09:16:58 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: evgeni.raikhel@gmail.com
+Cc: linux-media@vger.kernel.org, guennadi.liakhovetski@intel.com,
+        eliezer.tamir@intel.com, sergey.dorodnicov@intel.com,
+        eraikhel <evgeni.raikhel@intel.com>
+Subject: Re: [PATCH v2 1/2] Documentation: Intel SR300 Depth camera INZI format
+Date: Wed, 08 Feb 2017 15:39:36 +0200
+Message-ID: <3382430.7k761HOSQl@avalon>
+In-Reply-To: <1486542864-5832-1-git-send-email-evgeni.raikhel@intel.com>
+References: <AA09C8071EEEFC44A7852ADCECA86673A1E6E7@hasmsx108.ger.corp.intel.com> <1486542864-5832-1-git-send-email-evgeni.raikhel@intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since a lirc char device can only be opened once, there can only be one
-reader. By using a plain kfifo we don't need a spinlock and we can use
-kfifo_to_user. The code is much simplified.
+Hi Evgeni,
 
-Unfortunately we cannot eliminate lirc_buffer from the tree yet, as there
-are still some staging lirc drivers which use it.
+Thank you for the patch.
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/ir-lirc-codec.c | 136 ++++++++++++++++++++++++---------------
- drivers/media/rc/lirc_dev.c      |   5 +-
- drivers/media/rc/rc-core-priv.h  |  33 ++++++----
- include/media/rc-core.h          |   2 +
- 4 files changed, 107 insertions(+), 69 deletions(-)
+On Wednesday 08 Feb 2017 10:34:23 evgeni.raikhel@gmail.com wrote:
+> From: eraikhel <evgeni.raikhel@intel.com>
+> 
+> Provide the frame structure and data layout of V4L2-PIX-FMT-INZI
+> format utilized by Intel SR300 Depth camera.
+> 
+> Signed-off-by: Evgeni Raikhel <evgeni.raikhel@intel.com>
+> ---
+>  Documentation/media/uapi/v4l/depth-formats.rst |  1 +
+>  Documentation/media/uapi/v4l/pixfmt-inzi.rst   | 81 +++++++++++++++++++++++
+>  include/uapi/linux/videodev2.h                 |  1 +
 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index 78f354a..74f7863 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -19,23 +19,16 @@
- #include <media/rc-core.h>
- #include "rc-core-priv.h"
- 
--#define LIRCBUF_SIZE 256
--
- /**
-  * ir_lirc_raw_event() - Send raw IR data to lirc to be relayed to userspace
-  *
-  * @input_dev:	the struct rc_dev descriptor of the device
-  * @duration:	the struct ir_raw_event descriptor of the pulse/space
-- *
-- * This function returns -EINVAL if the lirc interfaces aren't wired up.
-  */
--int ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev)
-+void ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev)
- {
--	struct lirc_codec *lirc = &dev->raw->lirc;
--	int sample;
--
--	if (!dev->raw->lirc.drv || !dev->raw->lirc.drv->rbuf)
--		return -EINVAL;
-+	struct lirc_node *lirc = dev->lirc;
-+	unsigned int sample;
- 
- 	/* Packet start */
- 	if (ev.reset) {
-@@ -54,26 +47,22 @@ int ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev)
- 
- 	/* Packet end */
- 	} else if (ev.timeout) {
--
- 		if (lirc->gap)
--			return 0;
-+			return;
- 
- 		lirc->gap_start = ktime_get();
- 		lirc->gap = true;
- 		lirc->gap_duration = ev.duration;
- 
- 		if (!lirc->send_timeout_reports)
--			return 0;
-+			return;
- 
- 		sample = LIRC_TIMEOUT(ev.duration / 1000);
- 		IR_dprintk(2, "timeout report (duration: %d)\n", sample);
- 
- 	/* Normal sample */
- 	} else {
--
- 		if (lirc->gap) {
--			int gap_sample;
--
- 			lirc->gap_duration += ktime_to_ns(ktime_sub(ktime_get(),
- 				lirc->gap_start));
- 
-@@ -82,9 +71,7 @@ int ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev)
- 			lirc->gap_duration = min(lirc->gap_duration,
- 							(u64)LIRC_VALUE_MASK);
- 
--			gap_sample = LIRC_SPACE(lirc->gap_duration);
--			lirc_buffer_write(dev->raw->lirc.drv->rbuf,
--						(unsigned char *) &gap_sample);
-+			kfifo_put(&lirc->rawir, LIRC_SPACE(lirc->gap_duration));
- 			lirc->gap = false;
- 		}
- 
-@@ -94,17 +81,14 @@ int ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev)
- 			   TO_US(ev.duration), TO_STR(ev.pulse));
- 	}
- 
--	lirc_buffer_write(dev->raw->lirc.drv->rbuf,
--			  (unsigned char *) &sample);
--	wake_up(&dev->raw->lirc.drv->rbuf->wait_poll);
--
--	return 0;
-+	kfifo_put(&lirc->rawir, sample);
-+	wake_up_poll(&lirc->wait_poll, POLLIN | POLLRDNORM);
- }
- 
- static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 				   size_t n, loff_t *ppos)
- {
--	struct lirc_codec *lirc;
-+	struct lirc_node *lirc;
- 	struct rc_dev *dev;
- 	unsigned int *txbuf; /* buffer with values to transmit */
- 	ssize_t ret = -EINVAL;
-@@ -179,7 +163,7 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
- 			unsigned long arg)
- {
--	struct lirc_codec *lirc;
-+	struct lirc_node *lirc;
- 	struct rc_dev *dev;
- 	u32 __user *argp = (u32 __user *)(arg);
- 	int ret = 0;
-@@ -248,7 +232,7 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
- 			return -EINVAL;
- 
- 		return dev->s_rx_carrier_range(dev,
--					       dev->raw->lirc.carrier_low,
-+					       dev->lirc->carrier_low,
- 					       val);
- 
- 	case LIRC_SET_REC_CARRIER_RANGE:
-@@ -258,7 +242,7 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
- 		if (val <= 0)
- 			return -EINVAL;
- 
--		dev->raw->lirc.carrier_low = val;
-+		dev->lirc->carrier_low = val;
- 		return 0;
- 
- 	case LIRC_GET_REC_RESOLUTION:
-@@ -326,8 +310,64 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
- 	return ret;
- }
- 
-+static unsigned int ir_lirc_poll(struct file *filep,
-+				 struct poll_table_struct *wait)
-+{
-+	struct lirc_node *lirc = lirc_get_pdata(filep);
-+	unsigned int events = 0;
-+
-+	poll_wait(filep, &lirc->wait_poll, wait);
-+
-+	if (!lirc->drv.attached)
-+		events = POLLHUP;
-+	else if (!kfifo_is_empty(&lirc->rawir))
-+		events = POLLIN | POLLRDNORM;
-+
-+	return events;
-+}
-+
-+static ssize_t ir_lirc_read(struct file *filep, char __user *buffer,
-+			    size_t length, loff_t *ppos)
-+{
-+	struct lirc_node *lirc = lirc_get_pdata(filep);
-+	unsigned int copied;
-+	int ret;
-+
-+	if (length % sizeof(unsigned int))
-+		return -EINVAL;
-+
-+	if (!lirc->drv.attached)
-+		return -ENODEV;
-+
-+	do {
-+		if (kfifo_is_empty(&lirc->rawir)) {
-+			if (filep->f_flags & O_NONBLOCK)
-+				return -EAGAIN;
-+
-+			ret = wait_event_interruptible(lirc->wait_poll,
-+					!kfifo_is_empty(&lirc->rawir) ||
-+					!lirc->drv.attached);
-+			if (ret)
-+				return ret;
-+		}
-+
-+		if (!lirc->drv.attached)
-+			return -ENODEV;
-+
-+		ret = kfifo_to_user(&lirc->rawir, buffer, length, &copied);
-+		if (ret)
-+			return ret;
-+	} while (copied == 0);
-+
-+	return copied;
-+}
-+
- static int ir_lirc_open(void *data)
- {
-+	struct lirc_node *lirc = data;
-+
-+	kfifo_reset_out(&lirc->rawir);
-+
- 	return 0;
- }
- 
-@@ -343,8 +383,8 @@ static const struct file_operations lirc_fops = {
- #ifdef CONFIG_COMPAT
- 	.compat_ioctl	= ir_lirc_ioctl,
- #endif
--	.read		= lirc_dev_fop_read,
--	.poll		= lirc_dev_fop_poll,
-+	.read		= ir_lirc_read,
-+	.poll		= ir_lirc_poll,
- 	.open		= lirc_dev_fop_open,
- 	.release	= lirc_dev_fop_close,
- 	.llseek		= no_llseek,
-@@ -353,22 +393,14 @@ static const struct file_operations lirc_fops = {
- int ir_lirc_register(struct rc_dev *dev)
- {
- 	struct lirc_driver *drv;
--	struct lirc_buffer *rbuf;
-+	struct lirc_node *node;
- 	int rc = -ENOMEM;
- 	unsigned long features = 0;
- 
--	drv = kzalloc(sizeof(struct lirc_driver), GFP_KERNEL);
--	if (!drv)
-+	node = kzalloc(sizeof(*node), GFP_KERNEL);
-+	if (!node)
- 		return rc;
- 
--	rbuf = kzalloc(sizeof(struct lirc_buffer), GFP_KERNEL);
--	if (!rbuf)
--		goto rbuf_alloc_failed;
--
--	rc = lirc_buffer_init(rbuf, sizeof(int), LIRCBUF_SIZE);
--	if (rc)
--		goto rbuf_init_failed;
--
- 	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
- 		features |= LIRC_CAN_REC_MODE2;
- 		if (dev->rx_resolution)
-@@ -397,12 +429,12 @@ int ir_lirc_register(struct rc_dev *dev)
- 	if (dev->max_timeout)
- 		features |= LIRC_CAN_SET_REC_TIMEOUT;
- 
-+	drv = &node->drv;
- 	snprintf(drv->name, sizeof(drv->name), "ir-lirc-codec (%s)",
- 		 dev->driver_name);
- 	drv->minor = -1;
- 	drv->features = features;
--	drv->data = &dev->raw->lirc;
--	drv->rbuf = rbuf;
-+	drv->data = node;
- 	drv->set_use_inc = &ir_lirc_open;
- 	drv->set_use_dec = &ir_lirc_close;
- 	drv->code_length = sizeof(struct ir_raw_event) * 8;
-@@ -411,30 +443,28 @@ int ir_lirc_register(struct rc_dev *dev)
- 	drv->rdev = dev;
- 	drv->owner = THIS_MODULE;
- 
-+	INIT_KFIFO(node->rawir);
-+	init_waitqueue_head(&node->wait_poll);
-+
- 	drv->minor = lirc_register_driver(drv);
- 	if (drv->minor < 0) {
- 		rc = -ENODEV;
- 		goto lirc_register_failed;
- 	}
- 
--	dev->raw->lirc.drv = drv;
--	dev->raw->lirc.dev = dev;
-+	node->dev = dev;
-+	dev->lirc = node;
- 	return 0;
- 
- lirc_register_failed:
--rbuf_init_failed:
--	kfree(rbuf);
--rbuf_alloc_failed:
- 	kfree(drv);
--
- 	return rc;
- }
- 
- void ir_lirc_unregister(struct rc_dev *dev)
- {
--	struct lirc_codec *lirc = &dev->raw->lirc;
-+	struct lirc_node *lirc = dev->lirc;
- 
--	lirc_unregister_driver(lirc->drv->minor);
--	lirc_buffer_free(lirc->drv->rbuf);
--	kfree(lirc->drv->rbuf);
-+	wake_up_poll(&lirc->wait_poll, POLLHUP);
-+	lirc_unregister_driver(lirc->drv.minor);
- }
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 44650e4..7d705af 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -328,7 +328,7 @@ int lirc_register_driver(struct lirc_driver *d)
- 	if (minor < 0)
- 		return minor;
- 
--	if (LIRC_CAN_REC(d->features)) {
-+	if (!d->rdev) {
- 		err = lirc_allocate_buffer(irctls[minor]);
- 		if (err)
- 			lirc_unregister_driver(minor);
-@@ -374,7 +374,8 @@ int lirc_unregister_driver(int minor)
- 	if (d->open) {
- 		dev_dbg(d->dev.parent, LOGHEAD "releasing opened driver\n",
- 			d->name, d->minor);
--		wake_up_interruptible(&d->buf->wait_poll);
-+		if (d->buf)
-+			wake_up_interruptible(&d->buf->wait_poll);
- 	}
- 
- 	mutex_lock(&d->irctl_lock);
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index da31738..9b561c3 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -19,7 +19,11 @@
- /* Define the max number of pulse/space transitions to buffer */
- #define	MAX_IR_EVENT_SIZE	512
- 
-+/* Define the number of samples lirc can buffer or transmit */
-+#define LIRCBUF_SIZE		256
-+
- #include <linux/slab.h>
-+#include <media/lirc_dev.h>
- #include <media/rc-core.h>
- 
- struct ir_raw_handler {
-@@ -35,6 +39,18 @@ struct ir_raw_handler {
- 	int (*raw_unregister)(struct rc_dev *dev);
- };
- 
-+struct lirc_node {
-+	struct lirc_driver drv;
-+	struct rc_dev *dev;
-+	int carrier_low;
-+	DECLARE_KFIFO(rawir, unsigned int, LIRCBUF_SIZE);
-+	wait_queue_head_t wait_poll;
-+	ktime_t gap_start;
-+	u64 gap_duration;
-+	bool gap;
-+	bool send_timeout_reports;
-+};
-+
- struct ir_raw_event_ctrl {
- 	struct list_head		list;		/* to keep track of raw clients */
- 	struct task_struct		*thread;
-@@ -103,17 +119,6 @@ struct ir_raw_event_ctrl {
- 		unsigned count;
- 		unsigned wanted_bits;
- 	} mce_kbd;
--	struct lirc_codec {
--		struct rc_dev *dev;
--		struct lirc_driver *drv;
--		int carrier_low;
--
--		ktime_t gap_start;
--		u64 gap_duration;
--		bool gap;
--		bool send_timeout_reports;
--
--	} lirc;
- 	struct xmp_dec {
- 		int state;
- 		unsigned count;
-@@ -273,12 +278,12 @@ void ir_raw_init(void);
-  * lirc interface bridge
-  */
- #ifdef CONFIG_IR_LIRC_CODEC
--int ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev);
-+void ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev);
- int ir_lirc_register(struct rc_dev *dev);
- void ir_lirc_unregister(struct rc_dev *dev);
- #else
--static inline int ir_lirc_raw_event(struct rc_dev *dev,
--				    struct ir_raw_event ev) { return 0; }
-+static inline void ir_lirc_raw_event(struct rc_dev *dev,
-+				     struct ir_raw_event ev) { }
- static inline int ir_lirc_register(struct rc_dev *dev) { return 0; }
- static inline void ir_lirc_unregister(struct rc_dev *dev) { }
- #endif
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 73ddd721..45e8623 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -115,6 +115,7 @@ enum rc_filter_type {
-  * @max_timeout: maximum timeout supported by device
-  * @rx_resolution : resolution (in ns) of input sampler
-  * @tx_resolution: resolution (in ns) of output sampler
-+ * @lirc: lirc chardev node
-  * @change_protocol: allow changing the protocol used on hardware decoders
-  * @open: callback to allow drivers to enable polling/irq when IR input device
-  *	is opened.
-@@ -175,6 +176,7 @@ struct rc_dev {
- 	u32				max_timeout;
- 	u32				rx_resolution;
- 	u32				tx_resolution;
-+	struct lirc_node		*lirc;
- 	int				(*change_protocol)(struct rc_dev *dev, u64 *rc_type);
- 	int				(*open)(struct rc_dev *dev);
- 	void				(*close)(struct rc_dev *dev);
+You should also add the format description string to v4l_fill_fmtdesc() in 
+drivers/media/v4l2-core/v4l2-ioctl.c. Maybe something like "Planar 10-bit IR 
+and 16-bit Depth" ?
+
+>  3 files changed, 83 insertions(+)
+>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-inzi.rst
+> 
+> diff --git a/Documentation/media/uapi/v4l/depth-formats.rst
+> b/Documentation/media/uapi/v4l/depth-formats.rst index
+> 82f183870aae..c755be0e4d2a 100644
+> --- a/Documentation/media/uapi/v4l/depth-formats.rst
+> +++ b/Documentation/media/uapi/v4l/depth-formats.rst
+> @@ -13,3 +13,4 @@ Depth data provides distance to points, mapped onto the
+> image plane
+>      :maxdepth: 1
+> 
+>      pixfmt-z16
+> +    pixfmt-inzi
+
+I'd keep the formats alphabetically sorted.
+
+The rest looks good to me. With these two small issues fixed,
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> diff --git a/Documentation/media/uapi/v4l/pixfmt-inzi.rst
+> b/Documentation/media/uapi/v4l/pixfmt-inzi.rst new file mode 100644
+> index 000000000000..9849e799f205
+> --- /dev/null
+> +++ b/Documentation/media/uapi/v4l/pixfmt-inzi.rst
+> @@ -0,0 +1,81 @@
+> +.. -*- coding: utf-8; mode: rst -*-
+> +
+> +.. _V4L2-PIX-FMT-INZI:
+> +
+> +**************************
+> +V4L2_PIX_FMT_INZI ('INZI')
+> +**************************
+> +
+> +Infrared 10-bit linked with Depth 16-bit images
+> +
+> +
+> +Description
+> +===========
+> +
+> +Proprietary multi-planar format used by Intel SR300 Depth cameras, comprise
+> of
+> +Infrared image followed by Depth data. The pixel definition is 32-bpp,
+> +with the Depth and Infrared Data split into separate continuous planes of
+> +identical dimensions.
+> +
+> +
+> +
+> +The first plane - Infrared data - is stored according to
+> +:ref:`V4L2_PIX_FMT_Y10 <V4L2-PIX-FMT-Y10>` greyscale format.
+> +Each pixel is 16-bit cell, with actual data stored in the 10 LSBs
+> +with values in range 0 to 1023.
+> +The six remaining MSBs are padded with zeros.
+> +
+> +
+> +The second plane provides 16-bit per-pixel Depth data arranged in
+> +:ref:`V4L2-PIX-FMT-Z16 <V4L2-PIX-FMT-Z16>` format.
+> +
+> +
+> +**Frame Structure.**
+> +Each cell is a 16-bit word with more significant data stored at higher
+> +memory address (byte order is little-endian).
+> +
+> +.. raw:: latex
+> +
+> +    \newline\newline\begin{adjustbox}{width=\columnwidth}
+> +
+> +.. tabularcolumns:: |p{4.0cm}|p{4.0cm}|p{4.0cm}|p{4.0cm}|p{4.0cm}|p{4.0cm}|
+> +
+> +.. flat-table::
+> +    :header-rows:  0
+> +    :stub-columns: 1
+> +    :widths:    1 1 1 1 1 1
+> +
+> +    * - Ir\ :sub:`0,0`
+> +      - Ir\ :sub:`0,1`
+> +      - Ir\ :sub:`0,2`
+> +      - ...
+> +      - ...
+> +      - ...
+> +    * - :cspan:`5` ...
+> +    * - :cspan:`5` Infrared Data
+> +    * - :cspan:`5` ...
+> +    * - ...
+> +      - ...
+> +      - ...
+> +      - Ir\ :sub:`n-1,n-3`
+> +      - Ir\ :sub:`n-1,n-2`
+> +      - Ir\ :sub:`n-1,n-1`
+> +    * - Depth\ :sub:`0,0`
+> +      - Depth\ :sub:`0,1`
+> +      - Depth\ :sub:`0,2`
+> +      - ...
+> +      - ...
+> +      - ...
+> +    * - :cspan:`5` ...
+> +    * - :cspan:`5` Depth Data
+> +    * - :cspan:`5` ...
+> +    * - ...
+> +      - ...
+> +      - ...
+> +      - Depth\ :sub:`n-1,n-3`
+> +      - Depth\ :sub:`n-1,n-2`
+> +      - Depth\ :sub:`n-1,n-1`
+> +
+> +.. raw:: latex
+> +
+> +    \end{adjustbox}\newline\newline
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 46e8a2e369f9..04263c59b93f 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -662,6 +662,7 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_Y12I     v4l2_fourcc('Y', '1', '2', 'I') /* Greyscale
+> 12-bit L/R interleaved */ #define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z',
+> '1', '6', ' ') /* Depth data 16-bit */ #define V4L2_PIX_FMT_MT21C   
+> v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
+> +#define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel
+> Infrared 10-bit linked with Depth 16-bit */
+> 
+>  /* SDR formats - used only for Software Defined Radio devices */
+>  #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8
+> */
+
 -- 
-2.9.3
+Regards,
+
+Laurent Pinchart
+
