@@ -1,54 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:52657
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752875AbdBCJ4K (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2017 04:56:10 -0500
-Date: Fri, 3 Feb 2017 07:55:55 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Tabrez khan <khan.tabrez21@gmail.com>
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] staging:bcm2048 : Add parentheses around  variable x
-Message-ID: <20170203075555.3038fb36@vento.lan>
-In-Reply-To: <1480758266-6160-1-git-send-email-khan.tabrez21@gmail.com>
-References: <1480758266-6160-1-git-send-email-khan.tabrez21@gmail.com>
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:52879 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S933129AbdBHPlU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 8 Feb 2017 10:41:20 -0500
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "kernel@stlinux.com" <kernel@stlinux.com>,
+        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>,
+        Jean Christophe TROTIN <jean-christophe.trotin@st.com>
+Subject: Re: [PATCH v1 3/3] [media] st-delta: add mpeg2 support
+Date: Wed, 8 Feb 2017 15:41:15 +0000
+Message-ID: <752a636d-2563-e2a4-0cec-1e283238c558@st.com>
+References: <1485773849-23945-1-git-send-email-hugues.fruchet@st.com>
+ <1485773849-23945-4-git-send-email-hugues.fruchet@st.com>
+ <20170208102259.1d5dcb8b@vento.lan>
+In-Reply-To: <20170208102259.1d5dcb8b@vento.lan>
+Content-Language: en-US
+Content-Type: text/plain; charset="Windows-1252"
+Content-ID: <E8953D0E66B8144EACE617DCBA5A5C4A@st.com>
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat,  3 Dec 2016 15:14:26 +0530
-Tabrez khan <khan.tabrez21@gmail.com> escreveu:
-
-> Add parentheses around variable x for the readability purpose.
-> 
-> This warning was found using checkpatch.pl.
-> 
-> Signed-off-by: Tabrez khan <khan.tabrez21@gmail.com>
-> ---
->  drivers/staging/media/bcm2048/radio-bcm2048.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-> index 4d9bd02..2f28dd0 100644
-> --- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-> +++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-> @@ -185,7 +185,7 @@
->  #define v4l2_to_dev(f)	((f * BCM2048_FREQV4L2_MULTI) / BCM2048_FREQDEV_UNIT)
->  
->  #define msb(x)                  ((u8)((u16)x >> 8))
-> -#define lsb(x)                  ((u8)((u16)x &  0x00FF))
-> +#define lsb(x)                  ((u8)((u16)(x) &  0x00FF))
-
-If you're willing to do that, you should do on all macros. Also,
-plese remove the extra space before the hexa value.
-
->  #define compose_u16(msb, lsb)	(((u16)msb << 8) | lsb)
->  
->  #define BCM2048_DEFAULT_POWERING_DELAY	20
 
 
+On 02/08/2017 01:22 PM, Mauro Carvalho Chehab wrote:
+> Em Mon, 30 Jan 2017 11:57:29 +0100
+> Hugues Fruchet <hugues.fruchet@st.com> escreveu:
+>
+>> Adds support of DELTA MPEG-2 video decoder back-end,
+>> implemented by calling MPEG2_TRANSFORMER0 firmware
+>> using RPMSG IPC communication layer.
+>> MPEG-2 decoder back-end is a stateless decoder which
+>> require specific parsing metadata in access unit
+>> in order to complete decoding.
+>>
+>> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+>> ---
+>>  drivers/media/platform/Kconfig                     |    6 +
+>>  drivers/media/platform/sti/delta/Makefile          |    3 +
+>>  drivers/media/platform/sti/delta/delta-cfg.h       |    5 +
+>>  drivers/media/platform/sti/delta/delta-mpeg2-dec.c | 1392 ++++++++++++++++++++
+>>  drivers/media/platform/sti/delta/delta-mpeg2-fw.h  |  415 ++++++
+>>  drivers/media/platform/sti/delta/delta-v4l2.c      |    4 +
+>>  6 files changed, 1825 insertions(+)
+>>  create mode 100644 drivers/media/platform/sti/delta/delta-mpeg2-dec.c
+>>  create mode 100644 drivers/media/platform/sti/delta/delta-mpeg2-fw.h
+>>
+>> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+>> index 9e71a7b..0472939 100644
+>> --- a/drivers/media/platform/Kconfig
+>> +++ b/drivers/media/platform/Kconfig
+>> @@ -323,6 +323,12 @@ config VIDEO_STI_DELTA_MJPEG
+>>  	help
+>>  		Enables DELTA MJPEG hardware support.
+>>
+>> +config VIDEO_STI_DELTA_MPEG2
+>> +	bool "STMicroelectronics DELTA MPEG2/MPEG1 support"
+>> +	default y
+>> +	help
+>> +		Enables DELTA MPEG2 hardware support.
+>> +
+>>  endif # VIDEO_STI_DELTA
+>
+> This patch needs to be rebased, as you need to adjust the dependencies
+> on VIDEO_STI_DELTA_DRIVER for it to depend also on this driver.
+>
+> Regards,
+> Mauro
+>
+>
+> Thanks,
+> Mauro
+>
 
-Thanks,
-Mauro
+Thanks Mauro,
+
+v2 has been pushed accordingly.
+
+Best regards,
+Hugues.
