@@ -1,143 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45578 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752069AbdBCNHr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Feb 2017 08:07:47 -0500
-Date: Fri, 3 Feb 2017 15:07:40 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: robh+dt@kernel.org, devicetree@vger.kernel.org,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org, galak@codeaurora.org,
-        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] devicetree: Add video bus switch
-Message-ID: <20170203130740.GB12291@valkosipuli.retiisi.org.uk>
-References: <20161023200355.GA5391@amd>
- <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
- <20161214122451.GB27011@amd>
- <20161222100104.GA30917@amd>
- <20161222133938.GA30259@amd>
- <20161224152031.GA8420@amd>
- <20170203123508.GA10286@amd>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:59547 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932425AbdBHNLd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Feb 2017 08:11:33 -0500
+Date: Wed, 8 Feb 2017 14:11:27 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: sakari.ailus@iki.fi, sre@kernel.org, pali.rohar@gmail.com,
+        pavel@ucw.cz, linux-media@vger.kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>
+Subject: [PATCH] smiapp: add CCP2 support
+Message-ID: <20170208131127.GA29237@amd>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="ikeVEW9yuYc//A+q"
 Content-Disposition: inline
-In-Reply-To: <20170203123508.GA10286@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
 
-My apologies for the delays in reviewing. Feel free to ping me in the future
-if this happens. :-)
+--ikeVEW9yuYc//A+q
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, Feb 03, 2017 at 01:35:08PM +0100, Pavel Machek wrote:
-> 
-> N900 contains front and back camera, with a switch between the
-> two. This adds support for the switch component, and it is now
-> possible to select between front and back cameras during runtime.
-> 
-> This adds documentation for the devicetree binding.
-> 
-> Signed-off-by: Sebastian Reichel <sre@kernel.org>
-> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> 
-> 
-> diff --git a/Documentation/devicetree/bindings/media/video-bus-switch.txt b/Documentation/devicetree/bindings/media/video-bus-switch.txt
-> new file mode 100644
-> index 0000000..1b9f8e0
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/video-bus-switch.txt
-> @@ -0,0 +1,63 @@
-> +Video Bus Switch Binding
-> +========================
-> +
-> +This is a binding for a gpio controlled switch for camera interfaces. Such a
-> +device is used on some embedded devices to connect two cameras to the same
-> +interface of a image signal processor.
-> +
-> +Required properties
-> +===================
-> +
-> +compatible	: must contain "video-bus-switch"
 
-How generic is this? Should we have e.g. nokia,video-bus-switch? And if so,
-change the file name accordingly.
+Add support for CCP2 connected SMIA sensors as found
+on the Nokia N900.
 
-> +switch-gpios	: GPIO specifier for the gpio, which can toggle the
-> +		  selected camera. The GPIO should be configured, so
-> +		  that a disabled GPIO means, that the first port is
-> +		  selected.
-> +
-> +Required Port nodes
-> +===================
-> +
-> +More documentation on these bindings is available in
-> +video-interfaces.txt in the same directory.
-> +
-> +reg		: The interface:
-> +		  0 - port for image signal processor
-> +		  1 - port for first camera sensor
-> +		  2 - port for second camera sensor
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-I'd say this must be pretty much specific to the one in N900. You could have
-more ports. Or you could say that ports beyond 0 are camera sensors. I guess
-this is good enough for now though, it can be changed later on with the
-source if a need arises.
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smi=
+app/smiapp-core.c
+index 44f8c7e..c217bc6 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2997,13 +2997,19 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig(=
+struct device *dev)
+ 	switch (bus_cfg->bus_type) {
+ 	case V4L2_MBUS_CSI2:
+ 		hwcfg->csi_signalling_mode =3D SMIAPP_CSI_SIGNALLING_MODE_CSI2;
++		hwcfg->lanes =3D bus_cfg->bus.mipi_csi2.num_data_lanes;
++		break;
++	case V4L2_MBUS_CCP2:
++		hwcfg->csi_signalling_mode =3D (bus_cfg->bus.mipi_csi1.strobe) ?
++		SMIAPP_CSI_SIGNALLING_MODE_CCP2_DATA_STROBE :
++		SMIAPP_CSI_SIGNALLING_MODE_CCP2_DATA_CLOCK;
++		hwcfg->lanes =3D 1;
+ 		break;
+-		/* FIXME: add CCP2 support. */
+ 	default:
++		dev_err(dev, "unknown bus protocol\n");
+ 		goto out_err;
+ 	}
+=20
+-	hwcfg->lanes =3D bus_cfg->bus.mipi_csi2.num_data_lanes;
+ 	dev_dbg(dev, "lanes %u\n", hwcfg->lanes);
+=20
+ 	/* NVM size is not mandatory */
+@@ -3017,8 +3023,8 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig(st=
+ruct device *dev)
+ 		goto out_err;
+ 	}
+=20
+-	dev_dbg(dev, "nvm %d, clk %d, csi %d\n", hwcfg->nvm_size,
+-		hwcfg->ext_clk, hwcfg->csi_signalling_mode);
++	dev_dbg(dev, "nvm %d, clk %d, mode %d\n",
++		hwcfg->nvm_size, hwcfg->ext_clk, hwcfg->csi_signalling_mode);
+=20
+ 	if (!bus_cfg->nr_of_link_frequencies) {
+ 		dev_warn(dev, "no link frequencies defined\n");
 
-Btw. was it still considered a problem that the endpoint properties for the
-sensors can be different? With the g_routing() pad op which is to be added,
-the ISP driver (should actually go to a framework somewhere) could parse the
-graph and find the proper endpoint there.
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-I don't think we need to wait for that now, but this is how the problem
-could be solved going forward.
+--ikeVEW9yuYc//A+q
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> +
-> +Example
-> +=======
-> +
-> +video-bus-switch {
-> +	compatible = "video-bus-switch"
-> +	switch-gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>;
-> +
-> +	ports {
-> +		#address-cells = <1>;
-> +		#size-cells = <0>;
-> +
-> +		port@0 {
-> +			reg = <0>;
-> +
-> +			csi_switch_in: endpoint {
-> +				remote-endpoint = <&csi_isp>;
-> +			};
-> +		};
-> +
-> +		port@1 {
-> +			reg = <1>;
-> +
-> +			csi_switch_out1: endpoint {
-> +				remote-endpoint = <&csi_cam1>;
-> +			};
-> +		};
-> +
-> +		port@2 {
-> +			reg = <2>;
-> +
-> +			csi_switch_out2: endpoint {
-> +				remote-endpoint = <&csi_cam2>;
-> +			};
-> +		};
-> +	};
-> +};
-> 
-> 
-> 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
--- 
-Kind regards,
+iEYEARECAAYFAlibGP8ACgkQMOfwapXb+vKquQCeJ7P0nxm1on/HHn+rP9/qJdeB
+faUAn0tdzu87ygAhBWOR5fnzayO11APe
+=cTNE
+-----END PGP SIGNATURE-----
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+--ikeVEW9yuYc//A+q--
