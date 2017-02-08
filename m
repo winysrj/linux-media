@@ -1,62 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:41283 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932363AbdBHOAk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 8 Feb 2017 09:00:40 -0500
-Date: Wed, 8 Feb 2017 13:37:41 +0000
-From: Sean Young <sean@mess.org>
-To: Vincent McIntyre <vincent.mcintyre@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [regression] dvb_usb_cxusb (was Re: ir-keytable: infinite loops,
- segfaults)
-Message-ID: <20170208133741.GA4405@gofer.mess.org>
-References: <CAEsFdVPeL0APCPCA3BLscTY=yDbqH1Fgi77xu1L-VMQ9TWy99Q@mail.gmail.com>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35846 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753604AbdBHMBD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Feb 2017 07:01:03 -0500
+To: mchehab@kernel.org, laurent.pinchart@ideasonboard.com
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        thaissa.falbo@gmail.com, janani.rvchndrn@gmail.com,
+        aryasaatvik@gmail.com, gnudevliz@gmail.com, arnd@arndb.de,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+From: Avraham Shukron <avraham.shukron@gmail.com>
+Subject: [PATCH] staging: davinci_vpfe: fix multiline comment style
+In-Reply-To: 
+Message-ID: <31df68a2-87f4-a7ad-d7c6-2f481b3b6d42@gmail.com>
+Date: Wed, 8 Feb 2017 13:52:05 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAEsFdVPeL0APCPCA3BLscTY=yDbqH1Fgi77xu1L-VMQ9TWy99Q@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vincent,
+Signed-off-by: Avraham Shukron <avraham.shukron@gmail.com>
 
-On Wed, Feb 08, 2017 at 10:30:30PM +1100, Vincent McIntyre wrote:
-> Hi
-> 
-> I have been working with Sean on figuring out the protocol used by a
-> dvico remote.
-> I thought the patch he sent was at fault but I backed it out and tried again.
-> 
-> I've attached a full dmesg but the core of it is when dvb_usb_cxusb
-> tries to load:
-> 
-> [    7.858907] WARNING: You are using an experimental version of the
-> media stack.
->                 As the driver is backported to an older kernel, it doesn't offer
->                 enough quality for its usage in production.
->                 Use it with care.
->                Latest git patches (needed if you report a bug to
-> linux-media@vger.kernel.org):
->                 47b037a0512d9f8675ec2693bed46c8ea6a884ab [media]
-> v4l2-async: failing functions shouldn't have side effects
->                 79a2eda80c6dab79790c308d9f50ecd2e5021ba3 [media]
-> mantis_dvb: fix some error codes in mantis_dvb_init()
->                 c2987aaf0c9c2bcb0d4c5902d61473d9aa018a3d [media]
-> exynos-gsc: Avoid spamming the log on VIDIOC_TRY_FMT
-> [    7.861968] dvb_usb_af9035 1-4:1.0: prechip_version=83
-> chip_version=02 chip_type=9135
-> [    7.887476] dvb_usb_cxusb: disagrees about version of symbol
-> dvb_usb_generic_rw
-> [    7.887477] dvb_usb_cxusb: Unknown symbol dvb_usb_generic_rw (err -22)
+---
+ drivers/staging/media/davinci_vpfe/dm365_resizer.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
--snip-
-
-This is a problem with media_build. I'm not familiar with media_build, I
-did try it out last night (for the first time) and got the same issue on
-Ubuntu 16.04. I haven't been able to figure out what the problem is yet.
-
-I'll have a look again tonight or tomorrow night. In the mean time, if
-anyone else knows then that would be great. :)
-
-
-Sean
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_resizer.c b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
+index 5fbc2d4..857b0e8 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
+@@ -1133,9 +1133,9 @@ void vpfe_resizer_buffer_isr(struct vpfe_resizer_device *resizer)
+                }
+        } else if (fid == 0) {
+                /*
+-               * out of sync. Recover from any hardware out-of-sync.
+-               * May loose one frame
+-               */
++                * out of sync. Recover from any hardware out-of-sync.
++                * May loose one frame
++                */
+                video_out->field_id = fid;
+        }
+ }
+-- 
+2.7.4
