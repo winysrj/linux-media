@@ -1,98 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:57621 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752140AbdBCUT0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Feb 2017 15:19:26 -0500
-Date: Fri, 3 Feb 2017 22:19:18 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        devicetree@vger.kernel.org, CARLOS.PALMINHA@synopsys.com,
-        Arnd Bergmann <arnd@arndb.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pavel Machek <pavel@ucw.cz>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Rob Herring <robh+dt@kernel.org>,
-        Steve Longerbeam <slongerbeam@gmail.com>
-Subject: Re: [PATCH RESEND v7 1/2] Add OV5647 device tree documentation
-Message-ID: <20170203201917.GB18086@kekkonen.localdomain>
-References: <cover.1486136893.git.roliveir@synopsys.com>
- <d1dc3b91af73fbcfcae54fdc80cb38389cc9bacf.1486136893.git.roliveir@synopsys.com>
+Received: from mail-it0-f54.google.com ([209.85.214.54]:34860 "EHLO
+        mail-it0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753009AbdBIQpA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Feb 2017 11:45:00 -0500
+Received: by mail-it0-f54.google.com with SMTP id 203so129482434ith.0
+        for <linux-media@vger.kernel.org>; Thu, 09 Feb 2017 08:44:31 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <d1dc3b91af73fbcfcae54fdc80cb38389cc9bacf.1486136893.git.roliveir@synopsys.com>
+In-Reply-To: <4574d1c3-c169-b158-dba6-f1965a1056b0@ti.com>
+References: <1486485683-11427-1-git-send-email-bgolaszewski@baylibre.com>
+ <1486485683-11427-9-git-send-email-bgolaszewski@baylibre.com>
+ <m2fujpkgkg.fsf@baylibre.com> <4574d1c3-c169-b158-dba6-f1965a1056b0@ti.com>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date: Thu, 9 Feb 2017 17:44:25 +0100
+Message-ID: <CAMpxmJVKRgPOEfeAwJLQ_ge92ajjb+N9TdyZtKfhdLELNVkUFQ@mail.gmail.com>
+Subject: Re: [PATCH 08/10] ARM: davinci: fix the DT boot on da850-evm
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: Kevin Hilman <khilman@baylibre.com>,
+        Patrick Titiano <ptitiano@baylibre.com>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Lad Prabhakar <prabhakar.csengg@gmail.com>,
+        linux-devicetree <devicetree@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        arm-soc <linux-arm-kernel@lists.infradead.org>,
+        linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ramiro,
+2017-02-09 16:23 GMT+01:00 Sekhar Nori <nsekhar@ti.com>:
+> On Tuesday 07 February 2017 11:51 PM, Kevin Hilman wrote:
+>> Bartosz Golaszewski <bgolaszewski@baylibre.com> writes:
+>>
+>>> When we enable vpif capture on the da850-evm we hit a BUG_ON() because
+>>> the i2c adapter can't be found. The board file boot uses i2c adapter 1
+>>> but in the DT mode it's actually adapter 0. Drop the problematic lines.
+>>>
+>>> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+>>> ---
+>>>  arch/arm/mach-davinci/pdata-quirks.c | 4 ----
+>>>  1 file changed, 4 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-davinci/pdata-quirks.c b/arch/arm/mach-davinci/pdata-quirks.c
+>>> index 94948c1..09f62ac 100644
+>>> --- a/arch/arm/mach-davinci/pdata-quirks.c
+>>> +++ b/arch/arm/mach-davinci/pdata-quirks.c
+>>> @@ -116,10 +116,6 @@ static void __init da850_vpif_legacy_init(void)
+>>>      if (of_machine_is_compatible("ti,da850-lcdk"))
+>>>              da850_vpif_capture_config.subdev_count = 1;
+>>>
+>>> -    /* EVM (UI card) uses i2c adapter 1 (not default: zero) */
+>>> -    if (of_machine_is_compatible("ti,da850-evm"))
+>>> -            da850_vpif_capture_config.i2c_adapter_id = 1;
+>>> -
+>>
+>> oops, my bad.
+>>
+>> Acked-by: Kevin Hilman <khilman@baylibre.com>
+>
+> The offending code is not in my master branch. Since its almost certain
+> that VPIF platform support is going to wait for v4.12, can you or Kevin
+> please update Kevin's original patches with these fixes rolled in?
+>
+> Thanks,
+> Sekhar
+>
 
-On Fri, Feb 03, 2017 at 06:18:32PM +0000, Ramiro Oliveira wrote:
-> Create device tree bindings documentation.
-> 
-> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
-> Acked-by: Rob Herring <robh@kernel.org>
-> ---
->  .../devicetree/bindings/media/i2c/ov5647.txt       | 35 ++++++++++++++++++++++
->  1 file changed, 35 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5647.txt b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
-> new file mode 100644
-> index 000000000000..57fd40036c26
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
-> @@ -0,0 +1,35 @@
-> +Omnivision OV5647 raw image sensor
-> +---------------------------------
-> +
-> +OV5647 is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
-> +and CCI (I2C compatible) control bus.
-> +
-> +Required properties:
-> +
-> +- compatible		: "ovti,ov5647".
-> +- reg			: I2C slave address of the sensor.
-> +- clocks		: Reference to the xclk clock.
-> +- clock-names		: Should be "xclk".
-> +- clock-frequency	: Frequency of the xclk clock.
-> +
-> +The common video interfaces bindings (see video-interfaces.txt) should be
-> +used to specify link to the image data receiver. The OV5647 device
-> +node should contain one 'port' child node with an 'endpoint' subnode.
-> +
-> +Example:
-> +
-> +	i2c@2000 {
-> +		...
-> +		ov: camera@36 {
-> +			compatible = "ovti,ov5647";
-> +			reg = <0x36>;
-> +			clocks = <&camera_clk>;
-> +			clock-names = "xclk";
-> +			clock-frequency = <30000000>;
+Sure, I based my series on Kevin's integration branch for 4.10.
 
-For what it's worth, the spec documents the supported frequency range as
-6--27 MHz. Most units could still work on frequencies slightly off the
-range though.
-
-> +			port {
-> +				camera_1: endpoint {
-> +					remote-endpoint = <&csi1_ep1>;
-> +				};
-> +			};
-> +		};
-> +	};
-
--- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Thanks,
+Bartosz
