@@ -1,148 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:36134 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751776AbdBFKaI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Feb 2017 05:30:08 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv4 3/9] cec: integrate HPD notifier support
-Date: Mon,  6 Feb 2017 11:29:45 +0100
-Message-Id: <20170206102951.12623-4-hverkuil@xs4all.nl>
-In-Reply-To: <20170206102951.12623-1-hverkuil@xs4all.nl>
-References: <20170206102951.12623-1-hverkuil@xs4all.nl>
+Received: from mail.kernel.org ([198.145.29.136]:47920 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751786AbdBIXKG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 9 Feb 2017 18:10:06 -0500
+MIME-Version: 1.0
+In-Reply-To: <20170208223017.GA18807@amd>
+References: <20161023200355.GA5391@amd> <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
+ <20161214122451.GB27011@amd> <20161222100104.GA30917@amd> <20161222133938.GA30259@amd>
+ <20161224152031.GA8420@amd> <20170203123508.GA10286@amd> <20170208213609.lnemfbzitee5iur2@rob-hp-laptop>
+ <20170208223017.GA18807@amd>
+From: Rob Herring <robh@kernel.org>
+Date: Thu, 9 Feb 2017 17:02:13 -0600
+Message-ID: <CAL_JsqKSHvg+iB-SRd=YthauGP8mWeVF0j8X-fgLchwtOppH8A@mail.gmail.com>
+Subject: Re: [PATCH] devicetree: Add video bus switch
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        Sebastian Reichel <sre@kernel.org>,
+        =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Kumar Gala <galak@codeaurora.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Feb 8, 2017 at 4:30 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> On Wed 2017-02-08 15:36:09, Rob Herring wrote:
+>> On Fri, Feb 03, 2017 at 01:35:08PM +0100, Pavel Machek wrote:
+>> >
+>> > N900 contains front and back camera, with a switch between the
+>> > two. This adds support for the switch component, and it is now
+>> > possible to select between front and back cameras during runtime.
+>> >
+>> > This adds documentation for the devicetree binding.
+>> >
+>> > Signed-off-by: Sebastian Reichel <sre@kernel.org>
+>> > Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+>> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+>> >
+>> >
+>> > diff --git a/Documentation/devicetree/bindings/media/video-bus-switch.txt b/Documentation/devicetree/bindings/media/video-bus-switch.txt
+>> > new file mode 100644
+>> > index 0000000..1b9f8e0
+>> > --- /dev/null
+>> > +++ b/Documentation/devicetree/bindings/media/video-bus-switch.txt
+>> > @@ -0,0 +1,63 @@
+>> > +Video Bus Switch Binding
+>> > +========================
+>>
+>> I'd call it a mux rather than switch.
+>
+> It is a switch, not a multiplexor (
+> https://en.wikipedia.org/wiki/Multiplexing ). Only one camera can
+> operate at a time.
 
-Support the HPD notifier framework, simplifying drivers that
-depend on this.
+It's no different than an i2c mux. It's one at a time.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/cec/cec-core.c | 50 ++++++++++++++++++++++++++++++++++++++++++++
- include/media/cec.h          | 15 +++++++++++++
- 2 files changed, 65 insertions(+)
+>
+>> BTW, there's a new mux-controller binding under review you might look
+>> at. It would only be needed here if the mux ctrl also controls other
+>> things.
+>
+> Do you have a pointer?
 
-diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
-index 37217e205040..f055720a1c65 100644
---- a/drivers/media/cec/cec-core.c
-+++ b/drivers/media/cec/cec-core.c
-@@ -195,6 +195,52 @@ static void cec_devnode_unregister(struct cec_devnode *devnode)
- 	put_device(&devnode->dev);
- }
- 
-+#ifdef CONFIG_HPD_NOTIFIER
-+static u16 parse_hdmi_addr(const struct edid *edid)
-+{
-+	if (!edid || edid->extensions == 0)
-+		return CEC_PHYS_ADDR_INVALID;
-+
-+	return cec_get_edid_phys_addr((u8 *)edid,
-+				EDID_LENGTH * (edid->extensions + 1), NULL);
-+}
-+
-+static int cec_hpd_notify(struct notifier_block *nb, unsigned long event,
-+			   void *data)
-+{
-+	struct cec_adapter *adap = container_of(nb, struct cec_adapter, nb);
-+	struct hpd_notifier *n = data;
-+	unsigned int phys;
-+
-+	dprintk(1, "event %lu\n", event);
-+
-+	switch (event) {
-+	case HPD_DISCONNECTED:
-+		cec_s_phys_addr(adap, CEC_PHYS_ADDR_INVALID, false);
-+		break;
-+
-+	case HPD_NEW_EDID:
-+		phys = parse_hdmi_addr(n->edid);
-+		cec_s_phys_addr(adap, phys, false);
-+		break;
-+	}
-+
-+	return NOTIFY_OK;
-+}
-+
-+void cec_register_hpd_notifier(struct cec_adapter *adap,
-+				struct hpd_notifier *notifier)
-+{
-+	if (WARN_ON(!adap->devnode.registered))
-+		return;
-+
-+	adap->nb.notifier_call = cec_hpd_notify;
-+	adap->notifier = notifier;
-+	hpd_notifier_register(adap->notifier, &adap->nb);
-+}
-+EXPORT_SYMBOL_GPL(cec_register_hpd_notifier);
-+#endif
-+
- struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
- 					 void *priv, const char *name, u32 caps,
- 					 u8 available_las)
-@@ -343,6 +389,10 @@ void cec_unregister_adapter(struct cec_adapter *adap)
- 	adap->rc = NULL;
- #endif
- 	debugfs_remove_recursive(adap->cec_dir);
-+#ifdef CONFIG_HPD_NOTIFIER
-+	if (adap->notifier)
-+		hpd_notifier_unregister(adap->notifier, &adap->nb);
-+#endif
- 	cec_devnode_unregister(&adap->devnode);
- }
- EXPORT_SYMBOL_GPL(cec_unregister_adapter);
-diff --git a/include/media/cec.h b/include/media/cec.h
-index 96a0aa770d61..f87a07ee36b3 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -28,6 +28,11 @@
- #include <linux/kthread.h>
- #include <linux/timer.h>
- #include <linux/cec-funcs.h>
-+#ifdef CONFIG_HPD_NOTIFIER
-+#include <linux/notifier.h>
-+#include <linux/hpd-notifier.h>
-+#include <drm/drm_edid.h>
-+#endif
- #include <media/rc-core.h>
- #include <media/cec-edid.h>
- 
-@@ -173,6 +178,11 @@ struct cec_adapter {
- 	bool passthrough;
- 	struct cec_log_addrs log_addrs;
- 
-+#ifdef CONFIG_HPD_NOTIFIER
-+	struct hpd_notifier	*notifier;
-+	struct notifier_block	nb;
-+#endif
-+
- 	struct dentry *cec_dir;
- 	struct dentry *status_file;
- 
-@@ -213,6 +223,11 @@ void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
- 		       u8 nack_cnt, u8 low_drive_cnt, u8 error_cnt);
- void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg);
- 
-+#ifdef CONFIG_HPD_NOTIFIER
-+void cec_register_hpd_notifier(struct cec_adapter *adap,
-+				struct hpd_notifier *notifier);
-+#endif
-+
- #else
- 
- static inline int cec_register_adapter(struct cec_adapter *adap,
--- 
-2.11.0
+Let me Google that for you:
 
+>
+>> > +Required Port nodes
+>> > +===================
+>> > +
+>> > +More documentation on these bindings is available in
+>> > +video-interfaces.txt in the same directory.
+>> > +
+>> > +reg                : The interface:
+>> > +             0 - port for image signal processor
+>> > +             1 - port for first camera sensor
+>> > +             2 - port for second camera sensor
+>>
+>> This could be used for display side as well. So describe these just as
+>> inputs and outputs.
+>
+> I'd prefer not to confuse people. I guess that would be 0 -- output
+> port, 1, 2 -- input ports... But this is media data, are you sure it
+> is good idea to change this?
+
+And I'd prefer something that can be reused by others.
+
+>
+>                                                                         Pavel
+> --
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
