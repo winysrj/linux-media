@@ -1,81 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:38974 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933642AbdBVTcr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Feb 2017 14:32:47 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Ajay kumar <ajaynumb@gmail.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:52016
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752079AbdBIWtV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Feb 2017 17:49:21 -0500
+From: Thibault Saunier <thibault.saunier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
         Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Thomas Axelsson <Thomas.Axelsson@cybercom.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-Subject: Re: v4l2: Adding support for multiple MIPI CSI-2 virtual channels
-Date: Wed, 22 Feb 2017 21:33:16 +0200
-Message-ID: <2309653.TxoyDJYOYi@avalon>
-In-Reply-To: <Pine.LNX.4.64.1702221822080.6242@axis700.grange>
-References: <DB5PR0701MB19091F43803C514055C4592A885D0@DB5PR0701MB1909.eurprd07.prod.outlook.com> <CAEC9eQMreAGiZW-p457YeR1csfBbrhLBD+RSFKr3oMt0re1mJA@mail.gmail.com> <Pine.LNX.4.64.1702221822080.6242@axis700.grange>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Kukjin Kim <kgene@kernel.org>,
+        linux-samsung-soc@vger.kernel.org,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        linux-media@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Thibault Saunier <thibault.saunier@osg.samsung.com>
+Subject: [PATCH 2/4] [media] exynos-gsc: Respect userspace colorspace setting
+Date: Thu,  9 Feb 2017 16:43:12 -0300
+Message-Id: <20170209194314.5908-3-thibault.saunier@osg.samsung.com>
+In-Reply-To: <20170209194314.5908-1-thibault.saunier@osg.samsung.com>
+References: <20170209194314.5908-1-thibault.saunier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+If the colorspace is specified by userspace we should respect
+it and not reset it ourself if we can support it.
 
-On Wednesday 22 Feb 2017 18:54:20 Guennadi Liakhovetski wrote:
-> On Tue, 21 Feb 2017, Ajay kumar wrote:
-> > On Fri, Feb 17, 2017 at 7:27 PM, Thomas Axelsson wrote:
-> >> Hi,
-> >> 
-> >> I have a v4l2_subdev that provides multiple MIPI CSI-2 Virtual
-> >> Channels. I want to configure each virtual channel individually (e.g.
-> >> set_fmt), but the v4l2 interface does not seem to have a clear way to
-> >> access configuration on a virtual channel level, but only the
-> >> v4l2_subdev as a whole. Using one v4l2_subdev for multiple virtual
-> >> channels by extending the "reg" tag to be an array looks like the
-> >> correct way to do it, based on the mipi-dsi-bus.txt document and
-> >> current device tree endpoint structure.
-> >> 
-> >> However, I cannot figure out how to extend e.g. set_fmt/get_fmt subdev
-> >> ioctls to specify which virtual channel the call applies to. Does
-> >> anyone have any advice on how to handle this case?
-> > 
-> > This would be helpful for my project as well since even I need to
-> > support multiple streams using Virtual Channels.
-> > Can anyone point out to some V4L2 driver, if this kind of support is
-> > already implemented?
-> 
-> My understanding is, that MIPI CSI virtual channel handling requires
-> extensions to the V4L2 subdev API. These extensions have been discussed at
-> a media mini-summit almost a year ago, slides are available at [1], but as
-> my priorities shifted away from this work, don't think those extensions
-> ever got implemented.
+Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
+---
+ drivers/media/platform/exynos-gsc/gsc-core.c | 25 +++++++++++++++++--------
+ 1 file changed, 17 insertions(+), 8 deletions(-)
 
-We've also discussed the topic last week in a face to face meeting with Niklas 
-(CC'ed) and Sakari. Niklas will start working on upstreaming the necessary 
-V4L2 API extensions for CSI-2 virtual channel support. The current plan is to 
-start the work at the beginning of April.
-
-> [1]
-> https://linuxtv.org/downloads/presentations/media_summit_2016_san_diego/v4l
-> 2-multistream.pdf
->
-> >> Previous thread: "Device Tree formatting for multiple virtual channels
-> >> in ti-vpe/cal driver?"
-> >> 
-> >> Best Regards,
-> >> Thomas Axelsson
-> >> 
-> >> PS. First e-mail seems to have gotten caught in the spam filter. I
-> >> apologize if this is a duplicate.
-
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index 2beb43401987..63bb4577827d 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -445,10 +445,14 @@ int gsc_try_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
+ 
+ 	pix_mp->num_planes = fmt->num_planes;
+ 
+-	if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
+-		pix_mp->colorspace = V4L2_COLORSPACE_REC709;
+-	else /* SD */
+-		pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
++	if (pix_mp->colorspace != V4L2_COLORSPACE_REC709 &&
++		pix_mp->colorspace != V4L2_COLORSPACE_SMPTE170M &&
++		pix_mp->colorspace != V4L2_COLORSPACE_DEFAULT) {
++		if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
++		  pix_mp->colorspace = V4L2_COLORSPACE_REC709;
++		else /* SD */
++		  pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
++	  }
+ 
+ 	for (i = 0; i < pix_mp->num_planes; ++i) {
+ 		struct v4l2_plane_pix_format *plane_fmt = &pix_mp->plane_fmt[i];
+@@ -492,12 +496,17 @@ int gsc_g_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
+ 	pix_mp->height		= frame->f_height;
+ 	pix_mp->field		= V4L2_FIELD_NONE;
+ 	pix_mp->pixelformat	= frame->fmt->pixelformat;
+-	if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
+-		pix_mp->colorspace = V4L2_COLORSPACE_REC709;
+-	else /* SD */
+-		pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
+ 	pix_mp->num_planes	= frame->fmt->num_planes;
+ 
++	if (pix_mp->colorspace != V4L2_COLORSPACE_REC709 &&
++		pix_mp->colorspace != V4L2_COLORSPACE_SMPTE170M &&
++		pix_mp->colorspace != V4L2_COLORSPACE_DEFAULT) {
++		if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
++		  pix_mp->colorspace = V4L2_COLORSPACE_REC709;
++		else /* SD */
++		  pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
++	  }
++
+ 	for (i = 0; i < pix_mp->num_planes; ++i) {
+ 		pix_mp->plane_fmt[i].bytesperline = (frame->f_width *
+ 			frame->fmt->depth[i]) / 8;
 -- 
-Regards,
+2.11.1
 
-Laurent Pinchart
