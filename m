@@ -1,44 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bay004-omc3s2.hotmail.com ([65.54.190.140]:63475 "EHLO
-        BAY004-OMC3S2.hotmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751571AbdBYIGo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Feb 2017 03:06:44 -0500
-From: Alexandre-Xavier L <alexandrexavier@live.ca>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "axdoomer@gmail.com" <axdoomer@gmail.com>
-Subject: [PATCH v3] [media] em28xx: Add new usbid eb1a:5051 for the Ion Video
- 2 PC MKII, Startech svid2usb23 and Raygo R12-41373
-Date: Sat, 25 Feb 2017 08:03:38 +0000
-Message-ID: <SN2PR20MB0752A208CA01D97C72854A37BD550@SN2PR20MB0752.namprd20.prod.outlook.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <F2136D1E2459E24F9BF71452622F8D93@namprd20.prod.outlook.com>
-Content-Transfer-Encoding: base64
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40732 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752189AbdBILRy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Feb 2017 06:17:54 -0500
+Date: Thu, 9 Feb 2017 12:06:21 +0100
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Avraham Shukron <avraham.shukron@gmail.com>
+Cc: laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH v3 1/2] staging: omap4iss: fix multiline comment style
+Message-ID: <20170209110621.GA11988@kroah.com>
+References: <20170207081258.GB18271@kroah.com>
+ <1e46dc3f0630eae3b531ae3a03bc65bebf5bbfc0.1486413695.git.avraham.shukron@gmail.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1e46dc3f0630eae3b531ae3a03bc65bebf5bbfc0.1486413695.git.avraham.shukron@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-QWRkIG5ldyB1c2JpZCBlYjFhOjUwNTEgZm9yIHRoZSBJb24gVmlkZW8gMiBQQyBNS0lJLCBTdGFy
-dGVjaCBzdmlkMnVzYjIzIGFuZCBSYXlnbyBSMTItNDEzNzMuDQoNCkhvcGVmdWxseSB0aGlzIHRp
-bWUgdGFicyBkaWRuJ3QgZ2V0IHJlcGxhY2VkIHdpdGggc3BhY2VzLiBJIGFsc28gdXNlZCB0aGlz
-IGFzIGFuIG9jY2FzaW9uIHRvIGFkZCB0aGUgY29uY2VybmVkIGRldmljZXMgaW4gY29tbWVudCBi
-ZXNpZGUgdGhlIElEcy4gDQoNCk5vIG5lZWQgdG8gbWVudGlvbiB0aGlzIGlzIHRoZSBmaXJzdCB0
-aW1lIEknbSBkb2luZyB0aGlzIGFuZCBJIGhhZCBhIGxvdCBvZiB0cm91YmxlIGdldHRpbmcgZ2l0
-IHRvIGdlbmVyYXRlIGEgcGF0Y2ggKHR1dG9yaWFscyBub3QgdXAtdG8tZGF0ZSBvbiB0aGUgd2lr
-aT8pLiANCg0KQmVzdCByZWdhcmRzLA0KQWxleGFuZHJlLVhhdmllcg0KDQpTaWduZWQtb2ZmLWJ5
-OiBBbGV4YW5kcmUtWGF2aWVyIExhYm9udMOpLUxhbW91cmV1eCA8YWxleGFuZHJleGF2aWVyQGxp
-dmUuY2E+DQotLS0NCiBkcml2ZXJzL21lZGlhL3VzYi9lbTI4eHgvZW0yOHh4LWNhcmRzLmMgfCAy
-ICsrDQogMSBmaWxlIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKQ0KDQpkaWZmIC0tZ2l0IGEvZHJp
-dmVycy9tZWRpYS91c2IvZW0yOHh4L2VtMjh4eC1jYXJkcy5jIGIvZHJpdmVycy9tZWRpYS91c2Iv
-ZW0yOHh4L2VtMjh4eC1jYXJkcy5jDQppbmRleCA1ZjkwZDA4Li5mMDQxZWE0IDEwMDY0NA0KLS0t
-IGEvZHJpdmVycy9tZWRpYS91c2IvZW0yOHh4L2VtMjh4eC1jYXJkcy5jDQorKysgYi9kcml2ZXJz
-L21lZGlhL3VzYi9lbTI4eHgvZW0yOHh4LWNhcmRzLmMNCkBAIC0yNjAwLDYgKzI2MDAsOCBAQCBz
-dHJ1Y3QgdXNiX2RldmljZV9pZCBlbTI4eHhfaWRfdGFibGVbXSA9IHsNCiAJCQkuZHJpdmVyX2lu
-Zm8gPSBFTTI4MTc4X0JPQVJEX1RFUlJBVEVDX1QyX1NUSUNLX0hEIH0sDQogCXsgVVNCX0RFVklD
-RSgweDMyNzUsIDB4MDA4NSksDQogCQkJLmRyaXZlcl9pbmZvID0gRU0yODE3OF9CT0FSRF9QTEVY
-X1BYX0JDVUQgfSwNCisJeyBVU0JfREVWSUNFKDB4ZWIxYSwgMHg1MDUxKSwgLyogSW9uIFZpZGVv
-IDIgUEMgTUtJSSAvIFN0YXJ0ZWNoIHN2aWQydXNiMjMgLyBSYXlnbyBSMTItNDEzNzMgKi8NCisJ
-CQkuZHJpdmVyX2luZm8gPSBFTTI4NjBfQk9BUkRfVFZQNTE1MF9SRUZFUkVOQ0VfREVTSUdOIH0s
-DQogCXsgfSwNCiB9Ow0KIE1PRFVMRV9ERVZJQ0VfVEFCTEUodXNiLCBlbTI4eHhfaWRfdGFibGUp
-Ow0KLS0gDQoyLjEuNA0K
+On Tue, Feb 07, 2017 at 05:40:57PM +0200, Avraham Shukron wrote:
+> Signed-off-by: Avraham Shukron <avraham.shukron@gmail.com>
+> ---
+>  drivers/staging/media/omap4iss/iss_video.c | 38 ++++++++++++++++++++----------
+>  1 file changed, 25 insertions(+), 13 deletions(-)
+
+Again, I don't take patches with no changelog text :(
