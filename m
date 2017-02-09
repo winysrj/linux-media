@@ -1,125 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:34172 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751563AbdB0FL6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Feb 2017 00:11:58 -0500
-Message-ID: <1829cf27ecbc25495db8307a6458e510@smtp-cloud6.xs4all.net>
-Date: Mon, 27 Feb 2017 06:11:55 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:51248
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932404AbdBIUEn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Feb 2017 15:04:43 -0500
+From: Thibault Saunier <thibault.saunier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        linux-samsung-soc@vger.kernel.org,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        linux-media@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Thibault Saunier <thibault.saunier@osg.samsung.com>
+Subject: [PATCH v2 3/4] [media] s5p-mfc: Set colorspace in VIDIO_{G,TRY}_FMT
+Date: Thu,  9 Feb 2017 17:04:19 -0300
+Message-Id: <20170209200420.3046-4-thibault.saunier@osg.samsung.com>
+In-Reply-To: <20170209200420.3046-1-thibault.saunier@osg.samsung.com>
+References: <20170209200420.3046-1-thibault.saunier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The media documentation says that the V4L2_COLORSPACE_SMPTE170M colorspace
+should be used for SDTV and V4L2_COLORSPACE_REC709 for HDTV but the driver
+didn't set the colorimetry, also respect usespace setting.
 
-Results of the daily build of media_tree:
+Use 576p display resolution as a threshold to set this.
 
-date:			Mon Feb 27 05:00:16 CET 2017
-media-tree git hash:	e6b377dbbb944d5e3ceef4e5d429fc5c841e3692
-media_build git hash:	785cdf7f0798964681b33aad44fc2ff4d734733d
-v4l-utils git hash:	1a5954c991a4ba5483bec6bdee708f25345de025
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: ERRORS
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10-rc3-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-x86_64: OK
-linux-4.10-rc3-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 367ef8e8dbf0..960d6c7052bd 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -354,6 +354,15 @@ static int vidioc_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 		pix_mp->plane_fmt[0].sizeimage = ctx->luma_size;
+ 		pix_mp->plane_fmt[1].bytesperline = ctx->buf_width;
+ 		pix_mp->plane_fmt[1].sizeimage = ctx->chroma_size;
++
++		if (pix_mp->colorspace != V4L2_COLORSPACE_REC709 &&
++			pix_mp->colorspace != V4L2_COLORSPACE_SMPTE170M &&
++			pix_mp->colorspace != V4L2_COLORSPACE_DEFAULT) {
++		  if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
++			pix_mp->colorspace = V4L2_COLORSPACE_REC709;
++		  else /* SD */
++			pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
++		}
+ 	} else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+ 		/* This is run on OUTPUT
+ 		   The buffer contains compressed image
+@@ -378,6 +387,7 @@ static int vidioc_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ {
+ 	struct s5p_mfc_dev *dev = video_drvdata(file);
++	struct v4l2_pix_format_mplane *pix_mp = &f->fmt.pix_mp;
+ 	struct s5p_mfc_fmt *fmt;
+ 
+ 	mfc_debug(2, "Type is %d\n", f->type);
+@@ -405,6 +415,15 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 			mfc_err("Unsupported format by this MFC version.\n");
+ 			return -EINVAL;
+ 		}
++
++		if (pix_mp->colorspace != V4L2_COLORSPACE_REC709 &&
++			pix_mp->colorspace != V4L2_COLORSPACE_SMPTE170M &&
++			pix_mp->colorspace != V4L2_COLORSPACE_DEFAULT) {
++		  if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
++			pix_mp->colorspace = V4L2_COLORSPACE_REC709;
++		  else /* SD */
++			pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
++		}
+ 	}
+ 
+ 	return 0;
+-- 
+2.11.1
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
