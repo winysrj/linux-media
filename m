@@ -1,102 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:19239 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752242AbdBNMFO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Feb 2017 07:05:14 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: pavel@ucw.cz
-Subject: [PATCH v2 2/2] ad5820: Use VOICE_COIL_CURRENT control
-Date: Tue, 14 Feb 2017 14:03:02 +0200
-Message-Id: <1487073782-27366-3-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1487073782-27366-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1487073782-27366-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:51860
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932355AbdBIWLW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Feb 2017 17:11:22 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org
+Cc: Shuah Khan <shuahkh@osg.samsung.com>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] media: s5p_mfc - remove unneeded io_modes initialzation in s5p_mfc_open()
+Date: Thu,  9 Feb 2017 15:11:17 -0700
+Message-Id: <20170209221117.26381-1-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add V4L2_CID_VOICE_COIL_CURRENT control support to the ad5820 driver. The
-usage of the control is equivalent to how V4L2_CID_FOCUS_ABSOLUTE was used
-by the driver. The old control remains supported.
+Remove unneeded io_modes initialzation in s5p_mfc_open(). It gets done
+right below in vdev == dev->vfd_dec conditional.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
- drivers/media/i2c/ad5820.c | 28 ++++++++++++++++++++--------
- 1 file changed, 20 insertions(+), 8 deletions(-)
+ drivers/media/platform/s5p-mfc/s5p_mfc.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/media/i2c/ad5820.c b/drivers/media/i2c/ad5820.c
-index 7167b26..e5ff1a2 100644
---- a/drivers/media/i2c/ad5820.c
-+++ b/drivers/media/i2c/ad5820.c
-@@ -51,7 +51,7 @@ struct ad5820_device {
- 	struct regulator *vana;
- 
- 	struct v4l2_ctrl_handler ctrls;
--	u32 focus_absolute;
-+	struct v4l2_ctrl *focus, *curr;
- 	u32 focus_ramp_time;
- 	u32 focus_ramp_mode;
- 
-@@ -59,6 +59,7 @@ struct ad5820_device {
- 	int power_count;
- 
- 	bool standby;
-+	bool in_set_ctrl;
- };
- 
- static int ad5820_write(struct ad5820_device *coil, u16 data)
-@@ -98,7 +99,7 @@ static int ad5820_update_hw(struct ad5820_device *coil)
- 	status = RAMP_US_TO_CODE(coil->focus_ramp_time);
- 	status |= coil->focus_ramp_mode
- 		? AD5820_RAMP_MODE_64_16 : AD5820_RAMP_MODE_LINEAR;
--	status |= coil->focus_absolute << AD5820_DAC_SHIFT;
-+	status |= coil->curr->val << AD5820_DAC_SHIFT;
- 
- 	if (coil->standby)
- 		status |= AD5820_POWER_DOWN;
-@@ -160,10 +161,16 @@ static int ad5820_set_ctrl(struct v4l2_ctrl *ctrl)
- 	struct ad5820_device *coil =
- 		container_of(ctrl->handler, struct ad5820_device, ctrls);
- 
-+	if (coil->in_set_ctrl)
-+		return 0;
-+
- 	switch (ctrl->id) {
- 	case V4L2_CID_FOCUS_ABSOLUTE:
- 	case V4L2_CID_VOICE_COIL_CURRENT:
--		coil->focus_absolute = ctrl->val;
-+		coil->in_set_ctrl = true;
-+		__v4l2_ctrl_s_ctrl(ctrl == coil->focus ?
-+				   coil->curr : coil->focus, ctrl->val);
-+		coil->in_set_ctrl = false;
- 		return ad5820_update_hw(coil);
- 	}
- 
-@@ -190,16 +197,21 @@ static int ad5820_init_controls(struct ad5820_device *coil)
- 	 * will just use abstract codes here. In any case, smaller value = focus
- 	 * position farther from camera. The default zero value means focus at
- 	 * infinity, and also least current consumption.
-+	 *
-+	 * The two controls below control the current. The
-+	 * FOCUS_ABSOLUTE is there for compatibility with old user
-+	 * space whereas the VOICE_COIL_CURRENT should be used by both
-+	 * new applications and drivers.
- 	 */
--	v4l2_ctrl_new_std(&coil->ctrls, &ad5820_ctrl_ops,
--			  V4L2_CID_FOCUS_ABSOLUTE, 0, 1023, 1, 0);
--	v4l2_ctrl_new_std(&coil->ctrls, &ad5820_ctrl_ops,
--			  V4L2_CID_VOICE_COIL_CURRENT, 0, 1023, 1, 0);
-+	coil->focus = v4l2_ctrl_new_std(&coil->ctrls, &ad5820_ctrl_ops,
-+					V4L2_CID_FOCUS_ABSOLUTE, 0, 1023, 1, 0);
-+	coil->curr = v4l2_ctrl_new_std(&coil->ctrls, &ad5820_ctrl_ops,
-+					  V4L2_CID_VOICE_COIL_CURRENT,
-+					  0, 1023, 1, 0);
- 
- 	if (coil->ctrls.error)
- 		return coil->ctrls.error;
- 
--	coil->focus_absolute = 0;
- 	coil->focus_ramp_time = 0;
- 	coil->focus_ramp_mode = 0;
- 
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index bb0a588..20beaa2 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -866,7 +866,6 @@ static int s5p_mfc_open(struct file *file)
+ 	/* Init videobuf2 queue for OUTPUT */
+ 	q = &ctx->vq_src;
+ 	q->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+-	q->io_modes = VB2_MMAP;
+ 	q->drv_priv = &ctx->fh;
+ 	q->lock = &dev->mfc_mutex;
+ 	if (vdev == dev->vfd_dec) {
 -- 
 2.7.4
+
