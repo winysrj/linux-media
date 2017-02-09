@@ -1,88 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:55957 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750956AbdBFKt0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Feb 2017 05:49:26 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        devicetree@vger.kernel.org
-Subject: [PATCHv4 9/9] arm: sti: update sti-cec for HPD notifier support
-Date: Mon,  6 Feb 2017 11:29:51 +0100
-Message-Id: <20170206102951.12623-10-hverkuil@xs4all.nl>
-In-Reply-To: <20170206102951.12623-1-hverkuil@xs4all.nl>
-References: <20170206102951.12623-1-hverkuil@xs4all.nl>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:35512 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751990AbdBJABI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Feb 2017 19:01:08 -0500
+Subject: Re: [PATCH v3 21/24] media: imx: Add MIPI CSI-2 Receiver subdev
+ driver
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <1483755102-24785-22-git-send-email-steve_longerbeam@mentor.com>
+ <1486036237.2289.37.camel@pengutronix.de>
+ <ca0a2eb3-21b6-d312-c8e0-61da48c4c700@gmail.com>
+ <20170208234235.GA27312@n2100.armlinux.org.uk>
+ <d6dba77e-902c-7a4c-cc70-fe3a5c9649bb@gmail.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <e9076980-ce84-f9ee-096d-865243b82a9e@gmail.com>
+Date: Thu, 9 Feb 2017 15:51:47 -0800
+MIME-Version: 1.0
+In-Reply-To: <d6dba77e-902c-7a4c-cc70-fe3a5c9649bb@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
 
-To use HPD notifier sti CEC driver needs to get phandle
-of the hdmi device.
 
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-CC: devicetree@vger.kernel.org
----
- arch/arm/boot/dts/stih407-family.dtsi | 12 ------------
- arch/arm/boot/dts/stih410.dtsi        | 13 +++++++++++++
- 2 files changed, 13 insertions(+), 12 deletions(-)
+On 02/09/2017 03:49 PM, Steve Longerbeam wrote:
+>
+>
+> On 02/08/2017 03:42 PM, Russell King - ARM Linux wrote:
+>> On Wed, Feb 08, 2017 at 03:23:53PM -0800, Steve Longerbeam wrote:
+>>>> Actually, this exact function already exists as 
+>>>> dw_mipi_dsi_phy_write in
+>>>> drivers/gpu/drm/rockchip/dw-mipi-dsi.c, and it looks like the D-PHY
+>>>> register 0x44 might contain a field called HSFREQRANGE_SEL.
+>>> Thanks for pointing out drivers/gpu/drm/rockchip/dw-mipi-dsi.c.
+>>> It's clear from that driver that there probably needs to be a fuller
+>>> treatment of the D-PHY programming here, but I don't know where
+>>> to find the MIPI CSI-2 D-PHY documentation for the i.MX6. The code
+>>> in imxcsi2_reset() was also pulled from FSL, and that's all I really 
+>>> have
+>>> to go on for the D-PHY programming. I assume the D-PHY is also a
+>>> Synopsys core, like the host controller, but the i.MX6 manual doesn't
+>>> cover it.
+>> Why exactly?  What problems are you seeing that would necessitate a
+>> more detailed programming of the D-PHY?  From my testing, I can wind
+>> a 2-lane MIPI bus on iMX6D from 912Mbps per lane down to (eg) 308Mbps
+>> per lane with your existing code without any issues.
+>
+> That's good to hear.
+>
+> Just from my experience with struggles to get the CSI2 receiver
+> up and running with an active clock lane, and my suspicions that
+> some of that could be due to my lack of understanding of the D-PHY
+> programming.
 
-diff --git a/arch/arm/boot/dts/stih407-family.dtsi b/arch/arm/boot/dts/stih407-family.dtsi
-index c8b2944e304a..592d23538346 100644
---- a/arch/arm/boot/dts/stih407-family.dtsi
-+++ b/arch/arm/boot/dts/stih407-family.dtsi
-@@ -756,18 +756,6 @@
- 				 <&clk_s_c0_flexgen CLK_ETH_PHY>;
- 		};
- 
--		cec: sti-cec@094a087c {
--			compatible = "st,stih-cec";
--			reg = <0x94a087c 0x64>;
--			clocks = <&clk_sysin>;
--			clock-names = "cec-clk";
--			interrupts = <GIC_SPI 140 IRQ_TYPE_NONE>;
--			interrupt-names = "cec-irq";
--			pinctrl-names = "default";
--			pinctrl-0 = <&pinctrl_cec0_default>;
--			resets = <&softreset STIH407_LPM_SOFTRESET>;
--		};
--
- 		rng10: rng@08a89000 {
- 			compatible      = "st,rng";
- 			reg		= <0x08a89000 0x1000>;
-diff --git a/arch/arm/boot/dts/stih410.dtsi b/arch/arm/boot/dts/stih410.dtsi
-index 281a12424cf6..e8c01f77be80 100644
---- a/arch/arm/boot/dts/stih410.dtsi
-+++ b/arch/arm/boot/dts/stih410.dtsi
-@@ -259,5 +259,18 @@
- 			clocks = <&clk_sysin>;
- 			interrupts = <GIC_SPI 205 IRQ_TYPE_EDGE_RISING>;
- 		};
-+
-+		sti-cec@094a087c {
-+			compatible = "st,stih-cec";
-+			reg = <0x94a087c 0x64>;
-+			clocks = <&clk_sysin>;
-+			clock-names = "cec-clk";
-+			interrupts = <GIC_SPI 140 IRQ_TYPE_NONE>;
-+			interrupt-names = "cec-irq";
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&pinctrl_cec0_default>;
-+			resets = <&softreset STIH407_LPM_SOFTRESET>;
-+			st,hdmi-handle = <&sti_hdmi>;
-+		};
- 	};
- };
--- 
-2.11.0
+But I should add that after a re-org of the sequence, it looks more stable
+now. Tested on both the SabreSD and SabreLite with the OV5640.
+
+Steve
+
 
