@@ -1,103 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:51662 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750980AbdBFJuA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Feb 2017 04:50:00 -0500
-Date: Mon, 6 Feb 2017 10:49:57 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: robh+dt@kernel.org, devicetree@vger.kernel.org,
-        ivo.g.dimitrov.75@gmail.com, sakari.ailus@iki.fi, sre@kernel.org,
-        pali.rohar@gmail.com, linux-media@vger.kernel.org
-Subject: Re: [PATCHv2] dt: bindings: Add support for CSI1 bus
-Message-ID: <20170206094956.GA17974@amd>
-References: <20161228183036.GA13139@amd>
- <20170111225335.GA21553@amd>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="9jxsPFA5p3P2qPhR"
-Content-Disposition: inline
-In-Reply-To: <20170111225335.GA21553@amd>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:52017
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752070AbdBIWtV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Feb 2017 17:49:21 -0500
+From: Thibault Saunier <thibault.saunier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        linux-samsung-soc@vger.kernel.org,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        linux-media@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Thibault Saunier <thibault.saunier@osg.samsung.com>
+Subject: [PATCH 3/4] [media] s5p-mfc: Set colorspace in VIDIO_{G,TRY}_FMT
+Date: Thu,  9 Feb 2017 16:43:13 -0300
+Message-Id: <20170209194314.5908-4-thibault.saunier@osg.samsung.com>
+In-Reply-To: <20170209194314.5908-1-thibault.saunier@osg.samsung.com>
+References: <20170209194314.5908-1-thibault.saunier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The media documentation says that the V4L2_COLORSPACE_SMPTE170M colorspace
+should be used for SDTV and V4L2_COLORSPACE_REC709 for HDTV but the driver
+didn't set the colorimetry, also respect usespace setting.
 
---9jxsPFA5p3P2qPhR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Use 576p display resolution as a threshold to set this.
 
-=46rom: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-In the vast majority of cases the bus type is known to the driver(s)
-since a receiver or transmitter can only support a single one. There
-are cases however where different options are possible.
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 367ef8e8dbf0..960d6c7052bd 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -354,6 +354,15 @@ static int vidioc_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 		pix_mp->plane_fmt[0].sizeimage = ctx->luma_size;
+ 		pix_mp->plane_fmt[1].bytesperline = ctx->buf_width;
+ 		pix_mp->plane_fmt[1].sizeimage = ctx->chroma_size;
++
++		if (pix_mp->colorspace != V4L2_COLORSPACE_REC709 &&
++			pix_mp->colorspace != V4L2_COLORSPACE_SMPTE170M &&
++			pix_mp->colorspace != V4L2_COLORSPACE_DEFAULT) {
++		  if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
++			pix_mp->colorspace = V4L2_COLORSPACE_REC709;
++		  else /* SD */
++			pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
++		}
+ 	} else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+ 		/* This is run on OUTPUT
+ 		   The buffer contains compressed image
+@@ -378,6 +387,7 @@ static int vidioc_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ {
+ 	struct s5p_mfc_dev *dev = video_drvdata(file);
++	struct v4l2_pix_format_mplane *pix_mp = &f->fmt.pix_mp;
+ 	struct s5p_mfc_fmt *fmt;
+ 
+ 	mfc_debug(2, "Type is %d\n", f->type);
+@@ -405,6 +415,15 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 			mfc_err("Unsupported format by this MFC version.\n");
+ 			return -EINVAL;
+ 		}
++
++		if (pix_mp->colorspace != V4L2_COLORSPACE_REC709 &&
++			pix_mp->colorspace != V4L2_COLORSPACE_SMPTE170M &&
++			pix_mp->colorspace != V4L2_COLORSPACE_DEFAULT) {
++		  if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
++			pix_mp->colorspace = V4L2_COLORSPACE_REC709;
++		  else /* SD */
++			pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
++		}
+ 	}
+ 
+ 	return 0;
+-- 
+2.11.1
 
-The existing V4L2 OF support tries to figure out the bus type and
-parse the bus parameters based on that. This does not scale too well
-as there are multiple serial busses that share common properties.
-
-Some hardware also supports multiple types of busses on the same
-interfaces.
-
-Document the CSI1/CCP2 property strobe. It signifies the clock or
-strobe mode.
-=20
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-Reviewed-By: Sebastian Reichel <sre@kernel.org>
-
-diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b=
-/Documentation/devicetree/bindings/media/video-interfaces.txt
-index 9cd2a36..6986fde 100644
---- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-+++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-@@ -76,6 +76,12 @@ Optional endpoint properties
-   mode horizontal and vertical synchronization signals are provided to the
-   slave device (data source) by the master device (data sink). In the mast=
-er
-   mode the data source device is also the source of the synchronization si=
-gnals.
-+- bus-type: data bus type. Possible values are:
-+  0 - autodetect based on other properties (MIPI CSI-2 D-PHY, parallel or =
-Bt656)
-+  1 - MIPI CSI-2 C-PHY
-+  2 - MIPI CSI1
-+  3 - CCP2
-+  Autodetection is default, and bus-type property may be omitted in that c=
-ase.
- - bus-width: number of data lines actively used, valid for the parallel bu=
-sses.
- - data-shift: on the parallel data busses, if bus-width is used to specify=
- the
-   number of data lines, data-shift can be used to specify which data lines=
- are
-@@ -112,7 +118,8 @@ Optional endpoint properties
-   should be the combined length of data-lanes and clock-lanes properties.
-   If the lane-polarities property is omitted, the value must be interpreted
-   as 0 (normal). This property is valid for serial busses only.
--
-+- strobe: Whether the clock signal is used as clock or strobe. Used
-+  with CCP2, for instance.
-=20
- Example
- -------
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---9jxsPFA5p3P2qPhR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAliYRsQACgkQMOfwapXb+vJhwgCfbWUGyUdgwuV2PsWZUgRPCkqP
-9jsAn2DTrcYhKR3fjy3MbpUl4xBXMnwj
-=VXYd
------END PGP SIGNATURE-----
-
---9jxsPFA5p3P2qPhR--
