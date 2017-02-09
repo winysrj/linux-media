@@ -1,54 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44561 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752175AbdB1Ow4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Feb 2017 09:52:56 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/6] omap3isp: Disable streaming at driver unbind time
-Date: Tue, 28 Feb 2017 16:53:11 +0200
-Message-ID: <10713629.uzrjKBVcAn@avalon>
-In-Reply-To: <a9989567-8792-480d-88e0-73ddecf0a742@linux.intel.com>
-References: <1487604142-27610-1-git-send-email-sakari.ailus@linux.intel.com> <1825906.3DC6oLSMPM@avalon> <a9989567-8792-480d-88e0-73ddecf0a742@linux.intel.com>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:36421 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751030AbdBIRFn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Feb 2017 12:05:43 -0500
+In-Reply-To: <39b0f075-6b94-45bf-76cd-e3050b501da2@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        mchehab@kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+From: Avraham Shukron <avraham.shukron@gmail.com>
+Subject: [PATCH v4 2/2] staging: omap4iss: fix coding style issue
+Message-ID: <20eb3a95-36ac-a2c6-b45c-547f61b281df@gmail.com>
+Date: Thu, 9 Feb 2017 19:01:57 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Broke argument list so that it won't exceed 80 characters
 
-On Tuesday 28 Feb 2017 16:00:01 Sakari Ailus wrote:
-> > On Monday 20 Feb 2017 17:22:20 Sakari Ailus wrote:
-> >> Once the driver is unbound accessing the hardware is not allowed anymore.
-> >> Due to this, disable streaming when the device driver is unbound. The
-> >> states of the associated objects related to Media controller and
-> >> videobuf2 frameworks are updated as well, just like if the application
-> >> disabled streaming explicitly.
-> >> 
-> >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > 
-> > This looks mostly good to me, although I'm a bit concerned about race
-> > conditions related to buffer handling. I don't think this patch introduces
-> > any new one though, so
-> > 
-> > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > 
-> > We'll have to go through buffer management at some point in the near
-> > future, including from a V4L2 API point of view I think.
-> 
-> Thanks for the review!
-> 
-> Are you happy with me sending a pull request on the set, or would you
-> prefer to pick the omap3isp patches? In the latter case I'll send a fix
-> for the issue in the first patch.
+Signed-off-by: Avraham Shukron <avraham.shukron@gmail.com>
+---
+ drivers/staging/media/omap4iss/iss_video.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Feel free to send a pull request, I don't have anything conflicting queued for 
-v4.12.
+diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+index e21811a..0bac582 100644
+--- a/drivers/staging/media/omap4iss/iss_video.c
++++ b/drivers/staging/media/omap4iss/iss_video.c
+@@ -301,7 +301,8 @@ iss_video_check_format(struct iss_video *video, struct iss_video_fh *vfh)
 
+ static int iss_video_queue_setup(struct vb2_queue *vq,
+ 				 unsigned int *count, unsigned int *num_planes,
+-				 unsigned int sizes[], struct device *alloc_devs[])
++				 unsigned int sizes[],
++				 struct device *alloc_devs[])
+ {
+ 	struct iss_video_fh *vfh = vb2_get_drv_priv(vq);
+ 	struct iss_video *video = vfh->video;
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
