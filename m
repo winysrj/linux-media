@@ -1,80 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from guitar.tcltek.co.il ([192.115.133.116]:57617 "EHLO
-        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751341AbdBTLtY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Feb 2017 06:49:24 -0500
-Date: Mon, 20 Feb 2017 13:48:23 +0200
-From: Baruch Siach <baruch@tkos.co.il>
-To: Francesco <francesco@bsod.eu>
-Cc: linux-media@vger.kernel.org
-Subject: Re: PATCH: v4l-utils/utils/ir-ctl/irc-ctl.c: fix musl build
-Message-ID: <20170220114823.hv3uy36tw3q2cwyr@tarshish>
-References: <df17ce75ae92e047060082c98a00b50d@bsod.eu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <df17ce75ae92e047060082c98a00b50d@bsod.eu>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:51231
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932419AbdBIUEn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Feb 2017 15:04:43 -0500
+From: Thibault Saunier <thibault.saunier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        linux-samsung-soc@vger.kernel.org,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        linux-media@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        Ulf Hansson <ulf.hansson@linaro.org>
+Subject: [PATCH v2 1/4] [media] exynos-gsc: Use 576p instead 720p as a threshold for colorspaces
+Date: Thu,  9 Feb 2017 17:04:17 -0300
+Message-Id: <20170209200420.3046-2-thibault.saunier@osg.samsung.com>
+In-Reply-To: <20170209200420.3046-1-thibault.saunier@osg.samsung.com>
+References: <20170209200420.3046-1-thibault.saunier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Francesco,
+From: Javier Martinez Canillas <javier@osg.samsung.com>
 
-On Mon, Feb 20, 2017 at 12:33:14PM +0100, Francesco wrote:
-> This is my fist attempt to send a patch for v4l-utils project.
-> I maintain v4l-utils package for Alpine Linux (www.alpinelinux.org), a
-> musl-based distro.
-> 
-> This patch allows the build for v4l-utils by allowing alternatives to GLIBC
-> assumptions.
-> 
-> Thanks for considering.
+The media documentation says that the V4L2_COLORSPACE_SMPTE170M colorspace
+should be used for SDTV and V4L2_COLORSPACE_REC709 for HDTV. But drivers
+don't agree on the display resolution that should be used as a threshold.
 
-> From 71f399cb1399c35ff4ce165c2cec0fcd3256d34e Mon Sep 17 00:00:00 2001
-> From: Francesco Colista <fcolista@ita.wtbts.net>
-> Date: Mon, 20 Feb 2017 10:16:01 +0100
-> Subject: [PATCH] utils/ir-ctl/ir-ctl.c: fix build with musl library
-> 
-> This patch allows to build correctly v4l-utils on musl-based distributions.
-> It provides alternative to glibc assumptions.
-> ---
->  utils/ir-ctl/ir-ctl.c | 14 ++++++++++++++
->  1 file changed, 14 insertions(+)
-> 
-> diff --git a/utils/ir-ctl/ir-ctl.c b/utils/ir-ctl/ir-ctl.c
-> index bc58cee0..0bd0ddcc 100644
-> --- a/utils/ir-ctl/ir-ctl.c
-> +++ b/utils/ir-ctl/ir-ctl.c
-> @@ -42,6 +42,20 @@
->  # define _(string) string
->  #endif
->  
-> +#if !defined(__GLIBC__)
+Some drivers set V4L2_COLORSPACE_REC709 for 720p and higher while others
+set V4L2_COLORSPACE_REC709 for anything higher than 576p. Newers drivers
+use the latter and that also matches what user-space multimedia programs
+do (i.e: GStreamer), so change the driver logic to be aligned with this.
 
-This might break other libc implementations. Instead, do
+Also, check for the resolution in G_FMT instead unconditionally setting
+the V4L2_COLORSPACE_REC709 colorspace.
 
-  #ifndef TEMP_FAILURE_RETRY
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+---
+ drivers/media/platform/exynos-gsc/gsc-core.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-See 
-https://git.busybox.net/buildroot/tree/package/libv4l/0002-ir-ctl-fixes-for-musl-compile.patch
-
-> +
-> +/* Evaluate EXPRESSION, and repeat as long as it returns -1 with `errno'
-> +   set to EINTR.  */
-> +
-> +# define TEMP_FAILURE_RETRY(expression) \
-> +  (__extension__                                                              \
-> +    ({ long int __result;                                                     \
-> +       do __result = (long int) (expression);                                 \
-> +       while (__result == -1L && errno == EINTR);                             \
-> +       __result; }))
-> +
-> +#endif
-> +
->  # define N_(string) string
-
-baruch
-
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index cbb03768f5d7..2beb43401987 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -445,7 +445,7 @@ int gsc_try_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
+ 
+ 	pix_mp->num_planes = fmt->num_planes;
+ 
+-	if (pix_mp->width >= 1280) /* HD */
++	if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
+ 		pix_mp->colorspace = V4L2_COLORSPACE_REC709;
+ 	else /* SD */
+ 		pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
+@@ -492,7 +492,10 @@ int gsc_g_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
+ 	pix_mp->height		= frame->f_height;
+ 	pix_mp->field		= V4L2_FIELD_NONE;
+ 	pix_mp->pixelformat	= frame->fmt->pixelformat;
+-	pix_mp->colorspace	= V4L2_COLORSPACE_REC709;
++	if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
++		pix_mp->colorspace = V4L2_COLORSPACE_REC709;
++	else /* SD */
++		pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
+ 	pix_mp->num_planes	= frame->fmt->num_planes;
+ 
+ 	for (i = 0; i < pix_mp->num_planes; ++i) {
 -- 
-     http://baruch.siach.name/blog/                  ~. .~   Tk Open Systems
-=}------------------------------------------------ooO--U--Ooo------------{=
-   - baruch@tkos.co.il - tel: +972.52.368.4656, http://www.tkos.co.il -
+2.11.1
+
