@@ -1,78 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:41451 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751879AbdBYXHa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Feb 2017 18:07:30 -0500
-Date: Sat, 25 Feb 2017 23:56:33 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
-Subject: Re: camera subdevice support was Re: [PATCH 1/4] v4l2:
- device_register_subdev_nodes: allow calling multiple times
-Message-ID: <20170225225633.GA8034@amd>
-References: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz>
- <20170220103114.GA9800@amd>
- <20170220130912.GT16975@valkosipuli.retiisi.org.uk>
- <20170220135636.GU16975@valkosipuli.retiisi.org.uk>
- <20170221110721.GD5021@amd>
- <20170221111104.GD16975@valkosipuli.retiisi.org.uk>
- <20170225000918.GB23662@amd>
- <20170225134444.6qzumpvasaow5qoj@ihha.localdomain>
- <20170225215321.GA29886@amd>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="gKMricLos+KVdGMg"
-Content-Disposition: inline
-In-Reply-To: <20170225215321.GA29886@amd>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:51240
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932448AbdBIUEn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Feb 2017 15:04:43 -0500
+From: Thibault Saunier <thibault.saunier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        linux-samsung-soc@vger.kernel.org,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        linux-media@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Thibault Saunier <thibault.saunier@osg.samsung.com>
+Subject: [PATCH v2 2/4] [media] exynos-gsc: Respect userspace colorspace setting
+Date: Thu,  9 Feb 2017 17:04:18 -0300
+Message-Id: <20170209200420.3046-3-thibault.saunier@osg.samsung.com>
+In-Reply-To: <20170209200420.3046-1-thibault.saunier@osg.samsung.com>
+References: <20170209200420.3046-1-thibault.saunier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+If the colorspace is specified by userspace we should respect
+it and not reset it ourself if we can support it.
 
---gKMricLos+KVdGMg
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
+---
+ drivers/media/platform/exynos-gsc/gsc-core.c | 25 +++++++++++++++++--------
+ 1 file changed, 17 insertions(+), 8 deletions(-)
 
-Hi!
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index 2beb43401987..63bb4577827d 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -445,10 +445,14 @@ int gsc_try_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
+ 
+ 	pix_mp->num_planes = fmt->num_planes;
+ 
+-	if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
+-		pix_mp->colorspace = V4L2_COLORSPACE_REC709;
+-	else /* SD */
+-		pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
++	if (pix_mp->colorspace != V4L2_COLORSPACE_REC709 &&
++		pix_mp->colorspace != V4L2_COLORSPACE_SMPTE170M &&
++		pix_mp->colorspace != V4L2_COLORSPACE_DEFAULT) {
++		if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
++		  pix_mp->colorspace = V4L2_COLORSPACE_REC709;
++		else /* SD */
++		  pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
++	  }
+ 
+ 	for (i = 0; i < pix_mp->num_planes; ++i) {
+ 		struct v4l2_plane_pix_format *plane_fmt = &pix_mp->plane_fmt[i];
+@@ -492,12 +496,17 @@ int gsc_g_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
+ 	pix_mp->height		= frame->f_height;
+ 	pix_mp->field		= V4L2_FIELD_NONE;
+ 	pix_mp->pixelformat	= frame->fmt->pixelformat;
+-	if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
+-		pix_mp->colorspace = V4L2_COLORSPACE_REC709;
+-	else /* SD */
+-		pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
+ 	pix_mp->num_planes	= frame->fmt->num_planes;
+ 
++	if (pix_mp->colorspace != V4L2_COLORSPACE_REC709 &&
++		pix_mp->colorspace != V4L2_COLORSPACE_SMPTE170M &&
++		pix_mp->colorspace != V4L2_COLORSPACE_DEFAULT) {
++		if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
++		  pix_mp->colorspace = V4L2_COLORSPACE_REC709;
++		else /* SD */
++		  pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
++	  }
++
+ 	for (i = 0; i < pix_mp->num_planes; ++i) {
+ 		pix_mp->plane_fmt[i].bytesperline = (frame->f_width *
+ 			frame->fmt->depth[i]) / 8;
+-- 
+2.11.1
 
-> > Making the sub-device bus configuration a pointer should be in a separa=
-te
-> > patch. It makes sense since the entire configuration is not valid for a=
-ll
-> > sub-devices attached to the ISP anymore. I think it originally was a
-> > separate patch, but they probably have been merged at some point. I can=
-'t
-> > find it right now anyway.
->=20
-> I believe I can find the patch. But I'm not sure if I can port it to
-> the fwnode infrastructure anytime soon...
-
-Here is the (unported) patch.
-
-https://git.kernel.org/cgit/linux/kernel/git/pavel/linux-n900.git/commit/?h=
-=3Dcamera-sa-5&id=3De705712683b99fec282f87ed3e80bb58c95cf726
-
-Maybe this helps,
-									Pavel
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---gKMricLos+KVdGMg
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAliyC6EACgkQMOfwapXb+vLJQgCbBN9IusR1tsH+xDSTMA72dI2e
-z2cAniquanjdwHk585qv6lo20yyk8CO7
-=IUWv
------END PGP SIGNATURE-----
-
---gKMricLos+KVdGMg--
