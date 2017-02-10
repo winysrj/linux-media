@@ -1,88 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fllnx210.ext.ti.com ([198.47.19.17]:10277 "EHLO
-        fllnx210.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753551AbdBMNHJ (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:57257 "EHLO
+        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751059AbdBJHSn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 08:07:09 -0500
-From: Benoit Parrot <bparrot@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        <linux-media@vger.kernel.org>
-CC: <linux-kernel@vger.kernel.org>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        Jyri Sarha <jsarha@ti.com>,
-        Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [Patch 2/2] media: ti-vpe: vpe: allow use of user specified stride
-Date: Mon, 13 Feb 2017 07:06:58 -0600
-Message-ID: <20170213130658.31907-3-bparrot@ti.com>
-In-Reply-To: <20170213130658.31907-1-bparrot@ti.com>
-References: <20170213130658.31907-1-bparrot@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Fri, 10 Feb 2017 02:18:43 -0500
+Subject: Re: [PATCH] media: fix s5p_mfc_set_dec_frame_buffer_v6() to print buf
+ size in hex
+To: Shuah Khan <shuahkh@osg.samsung.com>, kyungmin.park@samsung.com,
+        kamil@wypas.org, jtp.park@samsung.com, mchehab@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+From: Andrzej Hajda <a.hajda@samsung.com>
+Message-id: <80f7c198-0fd0-2101-de3d-998634ffcd92@samsung.com>
+Date: Fri, 10 Feb 2017 08:18:07 +0100
+MIME-version: 1.0
+In-reply-to: <20170209221051.26234-1-shuahkh@osg.samsung.com>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
+References: <CGME20170209221100epcas1p31efbe8cd7f29d67e830616af02865521@epcas1p3.samsung.com>
+ <20170209221051.26234-1-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Bytesperline/stride was always overwritten by VPE to the most
-adequate value based on needed alignment.
+On 09.02.2017 23:10, Shuah Khan wrote:
+> Fix s5p_mfc_set_dec_frame_buffer_v6() to print buffer size in hex to be
+> consistent with the rest of the messages in the routine.
+>
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 
-However in order to make use of arbitrary size DMA buffer it
-is better to use the user space provide stride instead.
+As Nicolas said please fix the subject.
 
-The driver will still calculate an appropriate stride but will
-use the provided one when it is larger than the calculated one.
+After this you can add my:
+Acked-by: Andrzej Hajda <a.hajda@samsung.com>
 
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
----
- drivers/media/platform/ti-vpe/vpe.c | 28 ++++++++++++++++++++--------
- 1 file changed, 20 insertions(+), 8 deletions(-)
+--
+Regards
+Andrzej
 
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 2dd67232b3bc..c47151495b6f 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -1597,6 +1597,7 @@ static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
- 	struct v4l2_plane_pix_format *plane_fmt;
- 	unsigned int w_align;
- 	int i, depth, depth_bytes, height;
-+	unsigned int stride = 0;
- 
- 	if (!fmt || !(fmt->types & type)) {
- 		vpe_err(ctx->dev, "Fourcc format (0x%08x) invalid.\n",
-@@ -1683,16 +1684,27 @@ static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
- 		plane_fmt = &pix->plane_fmt[i];
- 		depth = fmt->vpdma_fmt[i]->depth;
- 
--		if (i == VPE_LUMA)
--			plane_fmt->bytesperline = (pix->width * depth) >> 3;
--		else
--			plane_fmt->bytesperline = pix->width;
-+		stride = (pix->width * fmt->vpdma_fmt[VPE_LUMA]->depth) >> 3;
-+		if (stride > plane_fmt->bytesperline)
-+			plane_fmt->bytesperline = stride;
-+
-+		plane_fmt->bytesperline = ALIGN(plane_fmt->bytesperline,
-+						VPDMA_STRIDE_ALIGN);
- 
--		if (pix->num_planes == 1 && fmt->coplanar)
--			depth += fmt->vpdma_fmt[VPE_CHROMA]->depth;
--		plane_fmt->sizeimage =
--				(pix->height * pix->width * depth) >> 3;
-+		if (i == VPE_LUMA) {
-+			plane_fmt->sizeimage = pix->height *
-+					       plane_fmt->bytesperline;
- 
-+			if (pix->num_planes == 1 && fmt->coplanar)
-+				plane_fmt->sizeimage += pix->height *
-+					plane_fmt->bytesperline *
-+					fmt->vpdma_fmt[VPE_CHROMA]->depth >> 3;
-+
-+		} else { /* i == VIP_CHROMA */
-+			plane_fmt->sizeimage = (pix->height *
-+					       plane_fmt->bytesperline *
-+					       depth) >> 3;
-+		}
- 		memset(plane_fmt->reserved, 0, sizeof(plane_fmt->reserved));
- 	}
- 
--- 
-2.9.0
+> ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> index d6f207e..fc45980 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> @@ -497,7 +497,7 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
+>  		}
+>  	}
+>  
+> -	mfc_debug(2, "Buf1: %zu, buf_size1: %d (frames %d)\n",
+> +	mfc_debug(2, "Buf1: %zx, buf_size1: %d (frames %d)\n",
+>  			buf_addr1, buf_size1, ctx->total_dpb_count);
+>  	if (buf_size1 < 0) {
+>  		mfc_debug(2, "Not enough memory has been allocated.\n");
+
+
