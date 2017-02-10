@@ -1,62 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out4-smtp.messagingengine.com ([66.111.4.28]:36714 "EHLO
-        out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751966AbdB1JP6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Feb 2017 04:15:58 -0500
-Date: Tue, 28 Feb 2017 09:15:10 +0000
-From: Andrey Utkin <andrey_utkin@fastmail.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] [media] tw5864: handle unknown video std gracefully
-Message-ID: <20170228091510.GA26160@stationary.pb.com>
-References: <20170227203252.3295528-1-arnd@arndb.de>
- <20170228010803.GA7977@dell-m4800.Home>
- <CAK8P3a0GgrDsQeCzXJvRn+a5u1JavVhRZ+7q7ztYrTP2W5XoNw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAK8P3a0GgrDsQeCzXJvRn+a5u1JavVhRZ+7q7ztYrTP2W5XoNw@mail.gmail.com>
+Received: from mail.kernel.org ([198.145.29.136]:45792 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932133AbdBJU2C (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 10 Feb 2017 15:28:02 -0500
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, kieran.bingham@ideasonboard.com
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH 8/8] v4l: vsp1: Implement left edge partition algorithm overlap
+Date: Fri, 10 Feb 2017 20:27:36 +0000
+Message-Id: <19c6a7d542809dc814b5dfb11ba8ab737eab56f9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.ff94a00847faf7ed37768cea68c474926bfc8bd9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.ff94a00847faf7ed37768cea68c474926bfc8bd9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.ff94a00847faf7ed37768cea68c474926bfc8bd9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.ff94a00847faf7ed37768cea68c474926bfc8bd9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 28, 2017 at 09:20:53AM +0100, Arnd Bergmann wrote:
-> On Tue, Feb 28, 2017 at 2:08 AM, Andrey Utkin
-> <andrey.utkin@corp.bluecherry.net> wrote:
-> > Retcode checking takes place everywhere, but currently it overwrites
-> > supplied structs with potentially-uninitialized values. To make it
-> > cleaner, it should be (e.g. tw5864_g_parm())
-> >
-> > ret = tw5864_frameinterval_get(input, &cp->timeperframe);
-> > if (ret)
-> >         return ret;
-> > cp->timeperframe.numerator *= input->frame_interval;
-> > cp->capturemode = 0;
-> > cp->readbuffers = 2;
-> > return 0;
-> >
-> > and not
-> >
-> > ret = tw5864_frameinterval_get(input, &cp->timeperframe);
-> > cp->timeperframe.numerator *= input->frame_interval;
-> > cp->capturemode = 0;
-> > cp->readbuffers = 2;
-> > return ret;
-> >
-> > That would resolve your concerns of uninitialized values propagation
-> > without writing bogus values 1/1 in case of failure. I think I'd
-> > personally prefer a called function to leave my data structs intact when
-> > it fails.
-> 
-> That seems reasonable, I can try to come up with a new version that
-> incorporates this change, but I haven't been able to avoid the warning
-> without either removing the WARN() or adding an initialization.
+Increase the overlap on the left edge to allow a margin to provide
+better image scaling
 
-I don't mind dropping WARN().
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_rpf.c |  7 +++++-
+ drivers/media/platform/vsp1/vsp1_uds.c | 39 ++++++++++++++++++++++++---
+ 2 files changed, 42 insertions(+), 4 deletions(-)
 
-Thanks for your elaborate reply.
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index 94541ab4ca36..d08cfd944b7b 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -247,6 +247,13 @@ struct vsp1_partition_rect *rpf_partition(struct vsp1_entity *entity,
+ 	/* Duplicate the target configuration to the RPF */
+ 	partition->rpf = *dest;
+ 
++	/*
++	 * A partition offset, is a request for more input pixels, and a
++	 * declaration that the consumer will clip excess.
++	 */
++	partition->rpf.width += dest->offset;
++	partition->rpf.left -= dest->offset;
++
+ 	return &partition->rpf;
+ }
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
+index 9c1fb7ef3c46..9ee476c8db59 100644
+--- a/drivers/media/platform/vsp1/vsp1_uds.c
++++ b/drivers/media/platform/vsp1/vsp1_uds.c
+@@ -81,6 +81,20 @@ static struct uds_phase uds_phase_calculation(int position, int start_phase,
+ 	return phase;
+ }
+ 
++static int uds_left_src_pixel(int pos, int start_phase, int ratio)
++{
++	struct uds_phase phase;
++
++	phase = uds_phase_calculation(pos, start_phase, ratio);
++
++	/* Renesas guard against odd values in these scale ratios here ? */
++	if ((phase.mp == 2 && (phase.residual & 0x01)) ||
++	    (phase.mp == 4 && (phase.residual & 0x03)))
++		WARN_ON(1);
++
++	return phase.mp * (phase.prefilt_outpos + (phase.residual ? 1 : 0));
++}
++
+ static int uds_start_phase(int pos, int start_phase, int ratio)
+ {
+ 	struct uds_phase phase;
+@@ -420,6 +434,8 @@ struct vsp1_partition_rect *uds_partition(struct vsp1_entity *entity,
+ 	const struct v4l2_mbus_framefmt *input;
+ 	unsigned int hscale;
+ 	unsigned int image_start_phase = 0;
++	unsigned int right_sink;
++	unsigned int margin;
+ 
+ 	/* Initialise the partition state */
+ 	partition->uds_sink = *dest;
+@@ -432,10 +448,25 @@ struct vsp1_partition_rect *uds_partition(struct vsp1_entity *entity,
+ 
+ 	hscale = uds_compute_ratio(input->width, output->width);
+ 
+-	partition->uds_sink.width = dest->width * input->width
+-				  / output->width;
+-	partition->uds_sink.left = dest->left * input->width
+-				 / output->width;
++	/* Handle 'left' edge of the partitions */
++	if (partition_idx == 0) {
++		margin = 0;
++	} else {
++		margin = hscale < 0x200 ? 32 : /* 8 <  scale */
++			 hscale < 0x400 ? 16 : /* 4 <  scale <= 8 */
++			 hscale < 0x800 ?  8 : /* 2 <  scale <= 4 */
++					   4;  /* 1 <  scale <= 2, scale <= 1 */
++	}
++
++	partition->uds_sink.left = uds_left_src_pixel(dest->left,
++					image_start_phase, hscale);
++
++	partition->uds_sink.offset = margin;
++
++	right_sink = uds_left_src_pixel(dest->left + dest->width - 1,
++					image_start_phase, hscale);
++
++	partition->uds_sink.width = right_sink - partition->uds_sink.left + 1;
+ 
+ 	partition->start_phase = uds_start_phase(partition->uds_source.left,
+ 						 image_start_phase, hscale);
+-- 
+git-series 0.9.1
