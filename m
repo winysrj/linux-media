@@ -1,51 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:27940 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750844AbdBSQKB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 19 Feb 2017 11:10:01 -0500
-From: evgeni.raikhel@intel.com
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, guennadi.liakhovetski@intel.com,
-        eliezer.tamir@intel.com, Evgeni Raikhel <evgeni.raikhel@intel.com>
-Subject: [PATCH v3 0/2] Intel SR300 Depth Formats
-Date: Sun, 19 Feb 2017 18:05:47 +0200
-Message-Id: <1487520349-22150-1-git-send-email-evgeni.raikhel@intel.com>
-In-Reply-To: <AA09C8071EEEFC44A7852ADCECA86673A1E6E7@hasmsx108.ger.corp.intel.com>
-References: <AA09C8071EEEFC44A7852ADCECA86673A1E6E7@hasmsx108.ger.corp.intel.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55338
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752822AbdBJOSx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 10 Feb 2017 09:18:53 -0500
+From: Thibault Saunier <thibault.saunier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Thibault Saunier <thibault.saunier@osg.samsung.com>,
+        linux-arm-kernel@lists.infradead.org,
+        Ulf Hansson <ulf.hansson@linaro.org>
+Subject: [PATCH v3 2/4] [media] exynos-gsc: Respect userspace colorspace setting in try_fmt
+Date: Fri, 10 Feb 2017 11:10:20 -0300
+Message-Id: <20170210141022.25412-3-thibault.saunier@osg.samsung.com>
+In-Reply-To: <20170210141022.25412-1-thibault.saunier@osg.samsung.com>
+References: <20170210141022.25412-1-thibault.saunier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Evgeni Raikhel <evgeni.raikhel@intel.com>
+If the colorspace is specified by userspace we should respect
+it and not reset it ourself if we can support it.
 
-This is the third iteration of the formats patch.
-Change log:
-- Changing INZI entry order in documentation to keep it sorted alphabetically
-- Adding format description string to v4l_fill_fmtdesc() function
-- Comments update
+Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
 
+---
 
-Daniel Patrick Johnson (1):
-  uvcvideo: Add support for Intel SR300 depth camera
+Changes in v3:
+- Do not check values in the g_fmt functions as Andrzej explained in previous review
+- Set colorspace if user passed V4L2_COLORSPACE_DEFAULT in
 
-eraikhel (1):
-  Documentation: Intel SR300 Depth camera INZI format
+Changes in v2: None
 
- Documentation/media/uapi/v4l/depth-formats.rst |  1 +
- Documentation/media/uapi/v4l/pixfmt-inzi.rst   | 81 ++++++++++++++++++++++++++
- drivers/media/usb/uvc/uvc_driver.c             | 15 +++++
- drivers/media/usb/uvc/uvcvideo.h               |  9 +++
- drivers/media/v4l2-core/v4l2-ioctl.c           |  1 +
- include/uapi/linux/videodev2.h                 |  1 +
- 6 files changed, 108 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-inzi.rst
+ drivers/media/platform/exynos-gsc/gsc-core.c | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index db7d9883861b..021598817938 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -472,10 +472,13 @@ int gsc_try_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
+ 
+ 	pix_mp->num_planes = fmt->num_planes;
+ 
+-	if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
+-		pix_mp->colorspace = V4L2_COLORSPACE_REC709;
+-	else /* SD */
+-		pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
++	if (pix_mp->colorspace != V4L2_COLORSPACE_REC709 &&
++		pix_mp->colorspace != V4L2_COLORSPACE_SMPTE170M) {
++		if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
++			pix_mp->colorspace = V4L2_COLORSPACE_REC709;
++		else /* SD */
++			pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
++	}
+ 
+ 	for (i = 0; i < pix_mp->num_planes; ++i) {
+ 		struct v4l2_plane_pix_format *plane_fmt = &pix_mp->plane_fmt[i];
 -- 
-2.7.4
+2.11.1
 
----------------------------------------------------------------------
-Intel Israel (74) Limited
-
-This e-mail and any attachments may contain confidential material for
-the sole use of the intended recipient(s). Any review or distribution
-by others is strictly prohibited. If you are not the intended
-recipient, please contact the sender and delete all copies.
