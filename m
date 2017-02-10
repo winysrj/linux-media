@@ -1,65 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:50190 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751304AbdBOIm1 (ORCPT
+Received: from mail-pg0-f48.google.com ([74.125.83.48]:36210 "EHLO
+        mail-pg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752388AbdBJTk7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 03:42:27 -0500
-Subject: Re: next build: 9 warnings 0 failures (next/next-20170215)
-To: Arnd Bergmann <arnd@arndb.de>
-References: <58a40b01.0469630a.f0ee0.f7d5@mx.google.com>
- <CAK8P3a14eLrkaokSzCSOw7EqGzzyvn6GVymQbmv9Ree6f_6OHg@mail.gmail.com>
- <3794acc6-5e96-3614-6c64-2454df62de77@xs4all.nl>
- <CAK8P3a08cXifgb=cw=2j+03wG4FFNO_KfsFfwmZX6ha==Ksb-Q@mail.gmail.com>
-Cc: gregkh <gregkh@linuxfoundation.org>,
-        Olof's autobuilder <build@lixom.net>,
-        Olof Johansson <olof@lixom.net>,
-        kernel-build-reports@lists.linaro.org, linux-media@vger.kernel.org,
-        Jonathan Cameron <jic23@kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <28590438-9689-4b30-6988-da5a5ae2e26d@xs4all.nl>
-Date: Wed, 15 Feb 2017 09:42:22 +0100
+        Fri, 10 Feb 2017 14:40:59 -0500
+Received: by mail-pg0-f48.google.com with SMTP id v184so12902220pgv.3
+        for <linux-media@vger.kernel.org>; Fri, 10 Feb 2017 11:40:40 -0800 (PST)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Cc: Sekhar Nori <nsekhar@ti.com>,
+        Patrick Titiano <ptitiano@baylibre.com>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Lad Prabhakar <prabhakar.csengg@gmail.com>,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 10/10] ARM: davinci: add pdata-quirks for da850-evm vpif display
+References: <1486485683-11427-1-git-send-email-bgolaszewski@baylibre.com>
+        <1486485683-11427-11-git-send-email-bgolaszewski@baylibre.com>
+Date: Fri, 10 Feb 2017 11:40:38 -0800
+In-Reply-To: <1486485683-11427-11-git-send-email-bgolaszewski@baylibre.com>
+        (Bartosz Golaszewski's message of "Tue, 7 Feb 2017 17:41:23 +0100")
+Message-ID: <m2bmu9hm15.fsf@baylibre.com>
 MIME-Version: 1.0
-In-Reply-To: <CAK8P3a08cXifgb=cw=2j+03wG4FFNO_KfsFfwmZX6ha==Ksb-Q@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/15/2017 09:39 AM, Arnd Bergmann wrote:
-> On Wed, Feb 15, 2017 at 9:30 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> On 02/15/2017 09:24 AM, Arnd Bergmann wrote:
->>> On Wed, Feb 15, 2017 at 9:02 AM, Olof's autobuilder <build@lixom.net> wrote:
-> 
->>>>       1 drivers/media/platform/coda/imx-vdoa.c:333:571: warning: passing argument 1 of 'platform_driver_unregister' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
->>>>       1 drivers/media/platform/coda/imx-vdoa.c:333:625: warning: passing argument 1 of 'platform_driver_unregister' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
->>>>       1 drivers/usb/gadget/udc/atmel_usba_udc.c:636:38: warning: 'ept_cfg' may be used uninitialized in this function [-Wmaybe-uninitialized]
->>>>       2 drivers/media/platform/coda/imx-vdoa.c:333:181: warning: passing argument 1 of '__platform_driver_register' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
->>>
->>> This was "[media] coda/imx-vdoa: platform_driver should not be const",
->>> https://patchwork.linuxtv.org/patch/39288/ Hans already marked this as
->>> 'merged', so I assume it's on its way in, but just hasn't appeared in
->>> linux-next as of today.
->>
->> It's part of a pull request for 4.12 for Mauro to pick up. If this should
->> go into 4.10 or 4.11, then Greg should take this particular patch. Mauro is moving
->> to a new house this week and won't have time (or quite possibly even network
->> connectivity).
-> 
-> Ok, good to know, thanks for your quick reply. I checked the commit
-> that caused the
-> warning, d2fe28feaebb ("[media] coda/imx-vdoa: constify structs"), and
-> it is currently
-> part of git://linuxtv.org/media_tree.git#master . My fix should go on
-> top of this branch
-> and picked up by whoever is going to send it during the merge window.
-> As I'm reverting
-> half of Mauro's patch, we can't merge it through any other tree at the moment.
+Hi Bartosz,
 
-OK, we'll take care of this in that case.
+Bartosz Golaszewski <bgolaszewski@baylibre.com> writes:
 
-I hope I'll remember this :-)
+> Similarly to vpif capture: we need to register the vpif display driver
+> and the corresponding adv7343 encoder in pdata-quirks as the DT
+> support is not complete.
+>
+> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+> ---
+>  arch/arm/mach-davinci/pdata-quirks.c | 86 +++++++++++++++++++++++++++++++++++-
+>  1 file changed, 85 insertions(+), 1 deletion(-)
+>
+> diff --git a/arch/arm/mach-davinci/pdata-quirks.c b/arch/arm/mach-davinci/pdata-quirks.c
+> index 09f62ac..0a55546 100644
+> --- a/arch/arm/mach-davinci/pdata-quirks.c
+> +++ b/arch/arm/mach-davinci/pdata-quirks.c
+> @@ -9,13 +9,17 @@
+>   */
+>  #include <linux/kernel.h>
+>  #include <linux/of_platform.h>
+> +#include <linux/gpio.h>
+>  
+>  #include <media/i2c/tvp514x.h>
+> +#include <media/i2c/adv7343.h>
+>  
+>  #include <mach/common.h>
+>  #include <mach/da8xx.h>
+>  #include <mach/mux.h>
+>  
+> +#define DA850_EVM_UI_EXP_SEL_VPIF_DISP 5
+> +
+>  struct pdata_init {
+>  	const char *compatible;
+>  	void (*fn)(void);
+> @@ -107,7 +111,78 @@ static struct vpif_capture_config da850_vpif_capture_config = {
+>  	},
+>  	.card_name = "DA850/OMAP-L138 Video Capture",
+>  };
+> +#endif /* IS_ENABLED(CONFIG_VIDEO_DAVINCI_VPIF_CAPTURE) */
+> +
+> +#if defined(CONFIG_DA850_UI_SD_VIDEO_PORT)
+> +static void vpif_evm_display_setup(void)
+> +{
+> +	int gpio = DAVINCI_N_GPIO + DA850_EVM_UI_EXP_SEL_VPIF_DISP, ret;
+> +
+> +	ret = gpio_request(gpio, "sel_c");
+> +	if (ret) {
+> +		pr_warn("Cannot open UI expander pin %d\n", gpio);
+> +		return;
+> +	}
+> +
+> +	gpio_direction_output(gpio, 0);
+> +}
 
-Regards,
+I had a closer look at the UI board schematic, and it looks like the
+SEL_C line of the GPIO exapander is actualy to select the VPIF *input*
+source, not output, so I don't think it should be needed in this patch.
 
-	Hans
+Can you test VPIF display works without calling this function?
+
+Kevin
