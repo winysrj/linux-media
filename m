@@ -1,71 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44710 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751810AbdB1PJJ (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:50505 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751959AbdBJNqm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Feb 2017 10:09:09 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v2 0/3] Renesas R-Car VSP1 rotation support
-Date: Tue, 28 Feb 2017 17:03:17 +0200
-Message-Id: <20170228150320.10104-1-laurent.pinchart+renesas@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Fri, 10 Feb 2017 08:46:42 -0500
+Message-ID: <1486731993.2309.23.camel@pengutronix.de>
+Subject: Re: [PATCH 2/2] [media] tc358743: extend colorimetry support
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Mats Randgaard <matrandg@cisco.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Date: Fri, 10 Feb 2017 14:06:33 +0100
+In-Reply-To: <51849519-0ed8-e123-3b60-2392c8171cb1@xs4all.nl>
+References: <20170208105338.4100-1-p.zabel@pengutronix.de>
+         <20170208105338.4100-2-p.zabel@pengutronix.de>
+         <51849519-0ed8-e123-3b60-2392c8171cb1@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello everybody,
+Hi Hans,
 
-This patch series implement support for rotation in the VSP1 driver. It
-contains an update of the rotation support part of the "[PATCH 00/13]
-Renesas R-Car VSP: Scaling and rotation support on Gen3" series.
+On Fri, 2017-02-10 at 10:42 +0100, Hans Verkuil wrote:
+> Hi Philipp,
+> 
+> Here is my review. Please take note of the videodev2.h colorspace patch I
+> posted today, it affects how this patch works since you use V4L2_MAP_QUANTIZATION_DEFAULT.
 
-Patch 1/3 starts by fixing the multi-line comment style through the whole
-driver to avoid adding new offenders in patch 3/3.
+Thank you for the review.
 
-Patch 2/3 is to biggest addition since v1. It clarifies interactions between
-formats, controls and buffers in the V4L2 API documentation. The proposal is
-based on an IRC meeting held on 2016-09-15 in the #v4l channel on freenode
-which I have tried to translate as accurately as possible into documentation.
+> On 02/08/2017 11:53 AM, Philipp Zabel wrote:
+> > @@ -1486,16 +1506,40 @@ static int tc358743_get_fmt(struct v4l2_subdev *sd,
+> >  
+> >  	switch (vi_rep & MASK_VOUT_COLOR_SEL) {
+> >  	case MASK_VOUT_COLOR_RGB_FULL:
+> > +		format->format.colorspace = V4L2_COLORSPACE_SRGB;
+> > +		format->format.xfer_func = V4L2_XFER_FUNC_SRGB;
+> > +		format->format.ycbcr_enc = V4L2_YCBCR_ENC_601;
+> > +		format->format.quantization = V4L2_QUANTIZATION_FULL_RANGE;
+> > +		break;
+> >  	case MASK_VOUT_COLOR_RGB_LIMITED:
+> >  		format->format.colorspace = V4L2_COLORSPACE_SRGB;
+> > +		format->format.xfer_func = V4L2_XFER_FUNC_SRGB;
+> > +		format->format.ycbcr_enc = V4L2_YCBCR_ENC_601;
+> > +		format->format.quantization = V4L2_QUANTIZATION_LIM_RANGE;
+> >  		break;
+> >  	case MASK_VOUT_COLOR_601_YCBCR_LIMITED:
+> > +		format->format.colorspace = V4L2_COLORSPACE_SMPTE170M;
+> > +		format->format.xfer_func = V4L2_XFER_FUNC_709;
+> > +		format->format.ycbcr_enc = V4L2_YCBCR_ENC_601;
+> > +		format->format.quantization = V4L2_QUANTIZATION_LIM_RANGE;
+> > +		break;
+> >  	case MASK_VOUT_COLOR_601_YCBCR_FULL:
+> >  		format->format.colorspace = V4L2_COLORSPACE_SMPTE170M;
+> > +		format->format.xfer_func = V4L2_XFER_FUNC_709;
+> > +		format->format.ycbcr_enc = V4L2_YCBCR_ENC_XV601;
+> > +		format->format.quantization = V4L2_QUANTIZATION_FULL_RANGE;
+> >  		break;
+> >  	case MASK_VOUT_COLOR_709_YCBCR_FULL:
+> > +		format->format.colorspace = V4L2_COLORSPACE_REC709;
+> > +		format->format.xfer_func = V4L2_XFER_FUNC_709;
+> > +		format->format.ycbcr_enc = V4L2_YCBCR_ENC_XV709;
+> > +		format->format.quantization = V4L2_QUANTIZATION_FULL_RANGE;
+> > +		break;
+> >  	case MASK_VOUT_COLOR_709_YCBCR_LIMITED:
+> >  		format->format.colorspace = V4L2_COLORSPACE_REC709;
+> > +		format->format.xfer_func = V4L2_XFER_FUNC_709;
+> > +		format->format.ycbcr_enc = V4L2_YCBCR_ENC_709;
+> > +		format->format.quantization = V4L2_QUANTIZATION_LIM_RANGE;
+> >  		break;
+> 
+> This is wrong (and it is wrong in the original code as well).
+> 
+> The colorspace depends on the colorspace information in the AVI InfoFrame, not
+> on what is output. Typically if RGB is received, then that maps to COLORSPACE_SRGB
+> and XFER_FUNC_SRGB. For YCbCr with SMPTE170M it maps to SMPTE170M and XFER_FUNC_709,
+> and REC709 maps to COLORSPACE_REC709 and XFER_FUNC_709.
 
-Patch 3/3 implements rotation support in the vsp1 driver. Beside being rebased
-on top of the current vsp1/next branch, it has mostly been kept unchanged
-compared to v1.
+So colorspace and xfer_func should be set according to the AVI info
+packet, no matter whether the output is RGB or YUV?
+I think that information gets parsed into the S_V_COLOR field in the
+VI_STATUS3 register, so I'll use that instead of VOUT_COLOR_SEL.
 
-For your convenience the code is available at
+> The only thing the vout_color_sel modifies are the ycbcr_enc and the quantization
+> range.
 
-	git://linuxtv.org/pinchartl/media.git vsp1-rotation-v2-20170228
+Ok.
 
-Laurent Pinchart (3):
-  v4l: vsp1: Fix multi-line comment style
-  v4l: Clearly document interactions between formats, controls and
-    buffers
-  v4l: vsp1: wpf: Implement rotation support
+> >  	default:
+> >  		format->format.colorspace = 0;
+> 
+> The driver should never set colorspace to 0.
 
- Documentation/media/uapi/v4l/buffer.rst   |  88 ++++++++++++
- drivers/media/platform/vsp1/vsp1_bru.c    |  27 ++--
- drivers/media/platform/vsp1/vsp1_dl.c     |  27 ++--
- drivers/media/platform/vsp1/vsp1_drm.c    |  21 ++-
- drivers/media/platform/vsp1/vsp1_drv.c    |  12 +-
- drivers/media/platform/vsp1/vsp1_entity.c |   9 +-
- drivers/media/platform/vsp1/vsp1_hsit.c   |   3 +-
- drivers/media/platform/vsp1/vsp1_lif.c    |   6 +-
- drivers/media/platform/vsp1/vsp1_pipe.c   |   9 +-
- drivers/media/platform/vsp1/vsp1_rpf.c    |  11 +-
- drivers/media/platform/vsp1/vsp1_rwpf.c   |  11 +-
- drivers/media/platform/vsp1/vsp1_rwpf.h   |   3 +-
- drivers/media/platform/vsp1/vsp1_sru.c    |   3 +-
- drivers/media/platform/vsp1/vsp1_uds.c    |   3 +-
- drivers/media/platform/vsp1/vsp1_video.c  |  45 +++++--
- drivers/media/platform/vsp1/vsp1_wpf.c    | 215 +++++++++++++++++++++++-------
- 16 files changed, 382 insertions(+), 111 deletions(-)
+Ok, I'll fix this.
 
--- 
-Regards,
+> > @@ -1512,7 +1556,11 @@ static int tc358743_set_fmt(struct v4l2_subdev *sd,
+> >  	struct tc358743_state *state = to_state(sd);
+> >  
+> >  	u32 code = format->format.code; /* is overwritten by get_fmt */
+> > +	enum v4l2_colorspace colorspace = format->format.colorspace;
+> > +	enum v4l2_ycbcr_encoding ycbcr_enc = format->format.ycbcr_enc;
+> > +	enum v4l2_quantization quantization = format->format.quantization;
+> >  	int ret = tc358743_get_fmt(sd, cfg, format);
+> > +	u8 vout_color_sel;
+> >  
+> >  	format->format.code = code;
+> >  
+> > @@ -1521,16 +1569,78 @@ static int tc358743_set_fmt(struct v4l2_subdev *sd,
+> >  
+> >  	switch (code) {
+> >  	case MEDIA_BUS_FMT_RGB888_1X24:
+> > +		colorspace = V4L2_COLORSPACE_SRGB;
+> 
+> You can't set the colorspace and/or xfer_func in an HDMI receiver driver. This
+> exclusively depends on the AVI InfoFrame information and you can't change that.
 
-Laurent Pinchart
+Ok, I'll fix this.
+
+> > +		break;
+> >  	case MEDIA_BUS_FMT_UYVY8_1X16:
+> > +		switch (colorspace) {
+> > +		case V4L2_COLORSPACE_SMPTE170M:
+> > +		case V4L2_COLORSPACE_REC709:
+> > +			break;
+> > +		default:
+> > +			if (format->format.colorspace != V4L2_COLORSPACE_SRGB)
+> > +				colorspace = format->format.colorspace;
+> > +			else
+> > +				colorspace = V4L2_COLORSPACE_SMPTE170M;
+> > +			break;
+> > +		}
+> > +		break;
+> > +	default:
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	format->format.colorspace = colorspace;
+> > +
+> > +	if (ycbcr_enc == V4L2_YCBCR_ENC_DEFAULT)
+> > +		ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(colorspace);
+> > +	if (quantization == V4L2_QUANTIZATION_DEFAULT)
+> > +		quantization = V4L2_MAP_QUANTIZATION_DEFAULT(false, colorspace,
+> > +							     ycbcr_enc);
+> 
+> That also means that you cannot determine this here, since you won't know the
+> colorspace until you have the InfoFrame information.
+>
+> You should just check the ycbcr_enc and quantization fields: for MEDIA_BUS_FMT_RGB888_1X24
+> you only have to look at the quantization field, for MEDIA_BUS_FMT_UYVY8_1X16
+> both fields need checking.
+
+I assume I should set colorspace and xfer_func according to the detected
+input color space then, same as in get_fmt.
+
+regards
+Philipp
+
