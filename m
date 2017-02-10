@@ -1,100 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:39761 "EHLO
-        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752593AbdBNHw0 (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:33647 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750881AbdBJWlk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Feb 2017 02:52:26 -0500
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>
-Subject: [PATCH 14/15] media: s5p-mfc: Use preallocated block allocator always
- for MFC v6+
-Date: Tue, 14 Feb 2017 08:52:07 +0100
-Message-id: <1487058728-16501-15-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
-References: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20170214075221eucas1p1c0acfa79289ebff6306c01e47c3e83a7@eucas1p1.samsung.com>
+        Fri, 10 Feb 2017 17:41:40 -0500
+From: Ran Algawi <ran.algawi@gmail.com>
+To: gregkh@linuxfoundation.org
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] Staging: media: bcm2048: Fixed an error
+Date: Sat, 11 Feb 2017 00:41:29 +0200
+Message-Id: <1486766489-8279-1-git-send-email-ran.algawi@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It turned out that all versions of MFC v6+ hardware doesn't have a strict
-requirement for ALL buffers to be allocated on higher addresses than the
-firmware base like it was documented for MFC v5. This requirement is true
-only for the device and per-context buffers. All video data buffers can be
-allocated anywhere for all MFC v6+ versions. Basing on this fact, the
-special DMA configuration based on two reserved memory regions is not
-really needed for MFC v6+ devices, because the memory requirements for the
-firmware, device and per-context buffers can be fulfilled by the simple
-probe-time pre-allocated block allocator instroduced in previous patch.
+Fixed an error where the system was given a code in the form of decimal
+instead of octal.
 
-This patch enables support for such pre-allocated block based allocator
-always for MFC v6+ devices. Due to the limitations of the memory management
-subsystem the largest supported size of the pre-allocated buffer when no
-CMA (Contiguous Memory Allocator) is enabled is 4MiB.
-
-This patch also removes the requirement to provide two reserved memory
-regions for MFC v6+ devices in device tree. Now the driver is fully
-functional without them.
-
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Ran Algawi <ran.algawi@gmail.com>
 ---
- Documentation/devicetree/bindings/media/s5p-mfc.txt | 2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc.c            | 9 ++++++---
- 2 files changed, 7 insertions(+), 4 deletions(-)
+ drivers/staging/media/bcm2048/radio-bcm2048.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt b/Documentation/devicetree/bindings/media/s5p-mfc.txt
-index 2c901286d818..d3404b5d4d17 100644
---- a/Documentation/devicetree/bindings/media/s5p-mfc.txt
-+++ b/Documentation/devicetree/bindings/media/s5p-mfc.txt
-@@ -28,7 +28,7 @@ Optional properties:
-   - memory-region : from reserved memory binding: phandles to two reserved
- 	memory regions, first is for "left" mfc memory bus interfaces,
- 	second if for the "right" mfc memory bus, used when no SYSMMU
--	support is available
-+	support is available; used only by MFC v5 present in Exynos4 SoCs
+diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
+index 37bd439..d605c41 100644
+--- a/drivers/staging/media/bcm2048/radio-bcm2048.c
++++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
+@@ -300,7 +300,7 @@ struct bcm2048_device {
+ };
  
- Obsolete properties:
-   - samsung,mfc-r, samsung,mfc-l : support removed, please use memory-region
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 8fc6fe4ba087..36f0aec2a1b3 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1178,9 +1178,12 @@ static void s5p_mfc_unconfigure_2port_memory(struct s5p_mfc_dev *mfc_dev)
- static int s5p_mfc_configure_common_memory(struct s5p_mfc_dev *mfc_dev)
- {
- 	struct device *dev = &mfc_dev->plat_dev->dev;
--	unsigned long mem_size = SZ_8M;
-+	unsigned long mem_size = SZ_4M;
- 	unsigned int bitmap_size;
+ static int radio_nr = -1;	/* radio device minor (-1 ==> auto assign) */
+-module_param(radio_nr, int, 0);
++module_param(radio_nr, int, 0000);
+ MODULE_PARM_DESC(radio_nr,
+ 		 "Minor number for radio device (-1 ==> auto assign)");
  
-+	if (IS_ENABLED(CONFIG_DMA_CMA) || exynos_is_iommu_available(dev))
-+		mem_size = SZ_8M;
-+
- 	if (mfc_mem_size)
- 		mem_size = memparse(mfc_mem_size, NULL);
- 
-@@ -1240,7 +1243,7 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
- {
- 	struct device *dev = &mfc_dev->plat_dev->dev;
- 
--	if (exynos_is_iommu_available(dev))
-+	if (exynos_is_iommu_available(dev) || !IS_TWOPORT(mfc_dev))
- 		return s5p_mfc_configure_common_memory(mfc_dev);
- 	else
- 		return s5p_mfc_configure_2port_memory(mfc_dev);
-@@ -1251,7 +1254,7 @@ static void s5p_mfc_unconfigure_dma_memory(struct s5p_mfc_dev *mfc_dev)
- 	struct device *dev = &mfc_dev->plat_dev->dev;
- 
- 	s5p_mfc_release_firmware(mfc_dev);
--	if (exynos_is_iommu_available(dev))
-+	if (exynos_is_iommu_available(dev) || !IS_TWOPORT(mfc_dev))
- 		s5p_mfc_unconfigure_common_memory(mfc_dev);
- 	else
- 		s5p_mfc_unconfigure_2port_memory(mfc_dev);
 -- 
-1.9.1
+2.7.4
+
