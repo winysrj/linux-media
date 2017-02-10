@@ -1,73 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38286 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750716AbdBNHHI (ORCPT
+Received: from smtprelay0190.hostedemail.com ([216.40.44.190]:60020 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750910AbdBJS7U (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Feb 2017 02:07:08 -0500
-Date: Tue, 14 Feb 2017 09:06:59 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Benoit Parrot <bparrot@ti.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH 5/8] v4l: Switch from V4L2 OF not V4L2 fwnode API
-Message-ID: <20170214070658.GJ16975@valkosipuli.retiisi.org.uk>
-References: <1486992496-21078-1-git-send-email-sakari.ailus@linux.intel.com>
- <1486992496-21078-6-git-send-email-sakari.ailus@linux.intel.com>
- <20170213165746.GB1103@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170213165746.GB1103@ti.com>
+        Fri, 10 Feb 2017 13:59:20 -0500
+Message-ID: <1486753155.2192.13.camel@perches.com>
+Subject: Re: [PATCH v2] media: s5p_mfc print buf pointer in hex constistently
+From: Joe Perches <joe@perches.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>, kyungmin.park@samsung.com,
+        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com,
+        nicolas@ndufresne.ca, mchehab@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Date: Fri, 10 Feb 2017 10:59:15 -0800
+In-Reply-To: <20170210154053.23735-1-shuahkh@osg.samsung.com>
+References: <20170210154053.23735-1-shuahkh@osg.samsung.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Benoit,
+On Fri, 2017-02-10 at 08:40 -0700, Shuah Khan wrote:
+> Fix s5p_mfc_set_dec_frame_buffer_v6() to print buffer pointer in hex to be
+> consistent with the rest of the messages in the routine.
 
-On Mon, Feb 13, 2017 at 10:57:47AM -0600, Benoit Parrot wrote:
-> Sakari Ailus <sakari.ailus@linux.intel.com> wrote on Mon [2017-Feb-13 15:28:13 +0200]:
-...
-> > @@ -421,6 +423,7 @@ config VIDEO_TI_VPE
-> >  	select VIDEO_TI_VPDMA
-> >  	select VIDEO_TI_SC
-> >  	select VIDEO_TI_CSC
-> > +	select V4L2_FWNODE
+More curiously, why is buf_addr a size_t and not
+a dma_addr_t?
+
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
 > 
-> Sakari,
+> Fixed commit log. No code changes. Thanks for the catch.
 > 
-> TI_VPE does not use async registration, but as you already saw TI_CAL does.
-> So adding "select V4L2_FWNODE" should be moved to the VIDEO_TI_CAL section.
-> Once that's fixed you can add my acked-by for both the TI_CAL and AM437x_VPFE.
-
-Thanks for the review and for spotting this! I think I just used the name
-of the directory, and assumed that the matching Kconfig option is the right
-one. There don't seem to be other cases such as that one.
-
-diff:
-
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index cced276..2f7792c 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -129,6 +129,7 @@ config VIDEO_TI_CAL
- 	depends on SOC_DRA7XX || COMPILE_TEST
- 	depends on HAS_DMA
- 	select VIDEOBUF2_DMA_CONTIG
-+	select V4L2_FWNODE
- 	default n
- 	---help---
- 	  Support for the TI CAL (Camera Adaptation Layer) block
-@@ -423,7 +424,6 @@ config VIDEO_TI_VPE
- 	select VIDEO_TI_VPDMA
- 	select VIDEO_TI_SC
- 	select VIDEO_TI_CSC
--	select V4L2_FWNODE
- 	default n
- 	---help---
- 	  Support for the TI VPE(Video Processing Engine) block
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+>  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> index d6f207e..fc45980 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> @@ -497,7 +497,7 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
+>  		}
+>  	}
+>  
+> -	mfc_debug(2, "Buf1: %zu, buf_size1: %d (frames %d)\n",
+> +	mfc_debug(2, "Buf1: %zx, buf_size1: %d (frames %d)\n",
+>  			buf_addr1, buf_size1, ctx->total_dpb_count);
+>  	if (buf_size1 < 0) {
+>  		mfc_debug(2, "Not enough memory has been allocated.\n");
