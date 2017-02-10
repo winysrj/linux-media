@@ -1,261 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:32946 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751249AbdBYNyX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Feb 2017 08:54:23 -0500
-Date: Sat, 25 Feb 2017 10:54:09 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Sean Young <sean@mess.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-        kernel test robot <fengguang.wu@intel.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@kernel.org>,
-        Ruslan Ruslichenko <rruslich@cisco.com>, LKP <lkp@01.org>,
-        "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-        kernel@stlinux.com,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-mediatek@lists.infradead.org,
-        linux-amlogic@lists.infradead.org,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Linux LED Subsystem <linux-leds@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>, wfg@linux.intel.com
-Subject: Re: [PATCH] [media] serial_ir: ensure we're ready to receive
- interrupts
-Message-ID: <20170225105409.6a059861@vento.lan>
-In-Reply-To: <20170225103437.58c5a199@vento.lan>
-References: <58b07b30.9XFLj9Hhl7F6HMc2%fengguang.wu@intel.com>
-        <CA+55aFytXj+TZ_TanbxcY0KgRTrV7Vvr=fWON8tioUGmYHYiNA@mail.gmail.com>
-        <20170225111424.GA7659@gofer.mess.org>
-        <20170225112816.GA7981@gofer.mess.org>
-        <20170225103437.58c5a199@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail.kernel.org ([198.145.29.136]:45656 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932082AbdBJU1x (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 10 Feb 2017 15:27:53 -0500
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, kieran.bingham@ideasonboard.com
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH 4/8] v4l: vsp1: Move partition rectangles to struct
+Date: Fri, 10 Feb 2017 20:27:32 +0000
+Message-Id: <2a0da9a22511742091a8b8d1b79549f3cbd0c775.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.ff94a00847faf7ed37768cea68c474926bfc8bd9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.ff94a00847faf7ed37768cea68c474926bfc8bd9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.ff94a00847faf7ed37768cea68c474926bfc8bd9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.ff94a00847faf7ed37768cea68c474926bfc8bd9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 25 Feb 2017 10:34:37 -0300
-Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
+As we develop the partition algorithm, we need to store more information
+per partition to describe the phase and other parameters.
 
-> Em Sat, 25 Feb 2017 11:28:16 +0000
-> Sean Young <sean@mess.org> escreveu:
-> 
-> > When the interrupt requested with devm_request_irq(), serial_ir.rcdev
-> > is still null so will cause null deference if the irq handler is called
-> > early on.
-> > 
-> > Also ensure that timeout_timer is setup.
-> > 
-> > Link: http://lkml.kernel.org/r/CA+55aFxsh2uF8gi5sN_guY3Z+tiLv7LpJYKBw+y8vqLzp+TsnQ@mail.gmail.com
-> > 
-> > Cc: <stable@vger.kernel.org> # 4.10
-> > Signed-off-by: Sean Young <sean@mess.org>
-> > ---
-> >  drivers/media/rc/serial_ir.c | 243 +++++++++++++++++++++----------------------
-> >  1 file changed, 118 insertions(+), 125 deletions(-)
-> > 
-> > diff --git a/drivers/media/rc/serial_ir.c b/drivers/media/rc/serial_ir.c
-> > index 923fb22..22144b4 100644
-> > --- a/drivers/media/rc/serial_ir.c
-> > +++ b/drivers/media/rc/serial_ir.c
-> > @@ -487,74 +487,6 @@ static void serial_ir_timeout(unsigned long arg)
-> >  	ir_raw_event_handle(serial_ir.rcdev);
-> >  }
-> >  
-> > -static int serial_ir_probe(struct platform_device *dev)
-> > -{
-> > -	int i, nlow, nhigh, result;
-> 
-> Hmm... why did you move this function to be after serial_ir_open()?
-> 
-> That messes with the diff without no good reason, making harder to
-> identify what you changed here.
+To keep this data together, further abstract the existing v4l2_rect
+into a partition specific structure
 
-Ok, just reordered it. The diff now looks sane. Patch looks ok on
-my eyes.
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_pipe.h  | 12 ++++++++++--
+ drivers/media/platform/vsp1/vsp1_rpf.c   |  4 ++--
+ drivers/media/platform/vsp1/vsp1_uds.c   |  8 +++++---
+ drivers/media/platform/vsp1/vsp1_video.c | 14 ++++++++++----
+ drivers/media/platform/vsp1/vsp1_wpf.c   |  9 +++++----
+ 5 files changed, 32 insertions(+), 15 deletions(-)
 
-[PATCH v2] serial_ir: ensure we're ready to receive interrupts
-From: Sean Young <sean@mess.org>
-
-When the interrupt requested with devm_request_irq(), serial_ir.rcdev
-is still null so will cause null deference if the irq handler is called
-early on.
-
-Also ensure that timeout_timer is setup.
-
-Link: http://lkml.kernel.org/r/CA+55aFxsh2uF8gi5sN_guY3Z+tiLv7LpJYKBw+y8vqLzp+TsnQ@mail.gmail.com
-
-[mchehab@s-opensource.com: moved serial_ir_probe() back to its original place]
-Cc: <stable@vger.kernel.org> # 4.10
-Signed-off-by: Sean Young <sean@mess.org>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-diff --git a/drivers/media/rc/serial_ir.c b/drivers/media/rc/serial_ir.c
-index 923fb2299553..4687c34c655a 100644
---- a/drivers/media/rc/serial_ir.c
-+++ b/drivers/media/rc/serial_ir.c
-@@ -489,8 +489,59 @@ static void serial_ir_timeout(unsigned long arg)
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
+index 5aa31143ce59..6494c4c75023 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.h
++++ b/drivers/media/platform/vsp1/vsp1_pipe.h
+@@ -60,6 +60,14 @@ enum vsp1_pipeline_state {
+ };
  
- static int serial_ir_probe(struct platform_device *dev)
- {
-+	struct rc_dev *rcdev;
- 	int i, nlow, nhigh, result;
+ /*
++ * struct vsp1_partition - A description of each partition slice performed by HW
++ * @dest: The position and dimension of this partition in the destination image
++ */
++struct vsp1_partition {
++	struct v4l2_rect dest;
++};
++
++/*
+  * struct vsp1_pipeline - A VSP1 hardware pipeline
+  * @pipe: the media pipeline
+  * @irqlock: protects the pipeline state
+@@ -114,8 +122,8 @@ struct vsp1_pipeline {
+ 	struct vsp1_dl_list *dl;
  
-+	rcdev = devm_rc_allocate_device(&dev->dev, RC_DRIVER_IR_RAW);
-+	if (!rcdev)
-+		return -ENOMEM;
-+
-+	if (hardware[type].send_pulse && hardware[type].send_space)
-+		rcdev->tx_ir = serial_ir_tx;
-+	if (hardware[type].set_send_carrier)
-+		rcdev->s_tx_carrier = serial_ir_tx_carrier;
-+	if (hardware[type].set_duty_cycle)
-+		rcdev->s_tx_duty_cycle = serial_ir_tx_duty_cycle;
-+
-+	switch (type) {
-+	case IR_HOMEBREW:
-+		rcdev->input_name = "Serial IR type home-brew";
-+		break;
-+	case IR_IRDEO:
-+		rcdev->input_name = "Serial IR type IRdeo";
-+		break;
-+	case IR_IRDEO_REMOTE:
-+		rcdev->input_name = "Serial IR type IRdeo remote";
-+		break;
-+	case IR_ANIMAX:
-+		rcdev->input_name = "Serial IR type AnimaX";
-+		break;
-+	case IR_IGOR:
-+		rcdev->input_name = "Serial IR type IgorPlug";
-+		break;
-+	}
-+
-+	rcdev->input_phys = KBUILD_MODNAME "/input0";
-+	rcdev->input_id.bustype = BUS_HOST;
-+	rcdev->input_id.vendor = 0x0001;
-+	rcdev->input_id.product = 0x0001;
-+	rcdev->input_id.version = 0x0100;
-+	rcdev->open = serial_ir_open;
-+	rcdev->close = serial_ir_close;
-+	rcdev->dev.parent = &serial_ir.pdev->dev;
-+	rcdev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
-+	rcdev->driver_name = KBUILD_MODNAME;
-+	rcdev->map_name = RC_MAP_RC6_MCE;
-+	rcdev->min_timeout = 1;
-+	rcdev->timeout = IR_DEFAULT_TIMEOUT;
-+	rcdev->max_timeout = 10 * IR_DEFAULT_TIMEOUT;
-+	rcdev->rx_resolution = 250000;
-+
-+	serial_ir.rcdev = rcdev;
-+
-+	setup_timer(&serial_ir.timeout_timer, serial_ir_timeout,
-+		    (unsigned long)&serial_ir);
-+
- 	result = devm_request_irq(&dev->dev, irq, serial_ir_irq_handler,
- 				  share_irq ? IRQF_SHARED : 0,
- 				  KBUILD_MODNAME, &hardware);
-@@ -516,9 +567,6 @@ static int serial_ir_probe(struct platform_device *dev)
- 		return -EBUSY;
+ 	unsigned int partitions;
+-	struct v4l2_rect partition;
+-	struct v4l2_rect part_table[VSP1_PIPE_MAX_PARTITIONS];
++	struct vsp1_partition *partition;
++	struct vsp1_partition part_table[VSP1_PIPE_MAX_PARTITIONS];
+ };
+ 
+ void vsp1_pipeline_reset(struct vsp1_pipeline *pipe);
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index b2e34a800ffa..df380a237118 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -107,9 +107,9 @@ static void rpf_configure(struct vsp1_entity *entity,
+ 			output = vsp1_entity_get_pad_format(wpf, wpf->config,
+ 							    RWPF_PAD_SOURCE);
+ 
+-			crop.width = pipe->partition.width * input_width
++			crop.width = pipe->partition->dest.width * input_width
+ 				   / output->width;
+-			crop.left += pipe->partition.left * input_width
++			crop.left += pipe->partition->dest.left * input_width
+ 				   / output->width;
+ 		}
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
+index da8f89a31ea4..98c0836d6dcd 100644
+--- a/drivers/media/platform/vsp1/vsp1_uds.c
++++ b/drivers/media/platform/vsp1/vsp1_uds.c
+@@ -272,11 +272,13 @@ static void uds_configure(struct vsp1_entity *entity,
+ 	bool multitap;
+ 
+ 	if (params == VSP1_ENTITY_PARAMS_PARTITION) {
+-		const struct v4l2_rect *clip = &pipe->partition;
++		struct vsp1_partition *partition = pipe->partition;
+ 
+ 		vsp1_uds_write(uds, dl, VI6_UDS_CLIP_SIZE,
+-			       (clip->width << VI6_UDS_CLIP_SIZE_HSIZE_SHIFT) |
+-			       (clip->height << VI6_UDS_CLIP_SIZE_VSIZE_SHIFT));
++			       (partition->dest.width
++					<< VI6_UDS_CLIP_SIZE_HSIZE_SHIFT) |
++			       (partition->dest.height
++					<< VI6_UDS_CLIP_SIZE_VSIZE_SHIFT));
+ 		return;
  	}
  
--	setup_timer(&serial_ir.timeout_timer, serial_ir_timeout,
--		    (unsigned long)&serial_ir);
--
- 	result = hardware_init_port();
- 	if (result < 0)
- 		return result;
-@@ -552,7 +600,8 @@ static int serial_ir_probe(struct platform_device *dev)
- 			 sense ? "low" : "high");
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 4ade958a1c9e..a978508a4993 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -271,8 +271,11 @@ static void vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
  
- 	dev_dbg(&dev->dev, "Interrupt %d, port %04x obtained\n", irq, io);
--	return 0;
+ 	/* Gen2 hardware doesn't require image partitioning. */
+ 	if (vsp1->info->gen == 2) {
++		struct vsp1_partition *partition = &pipe->part_table[0];
 +
-+	return devm_rc_register_device(&dev->dev, rcdev);
- }
- 
- static int serial_ir_open(struct rc_dev *rcdev)
-@@ -723,7 +772,6 @@ static void serial_ir_exit(void)
- 
- static int __init serial_ir_init_module(void)
- {
--	struct rc_dev *rcdev;
- 	int result;
- 
- 	switch (type) {
-@@ -754,63 +802,9 @@ static int __init serial_ir_init_module(void)
- 		sense = !!sense;
- 
- 	result = serial_ir_init();
--	if (result)
--		return result;
--
--	rcdev = devm_rc_allocate_device(&serial_ir.pdev->dev, RC_DRIVER_IR_RAW);
--	if (!rcdev) {
--		result = -ENOMEM;
--		goto serial_cleanup;
--	}
--
--	if (hardware[type].send_pulse && hardware[type].send_space)
--		rcdev->tx_ir = serial_ir_tx;
--	if (hardware[type].set_send_carrier)
--		rcdev->s_tx_carrier = serial_ir_tx_carrier;
--	if (hardware[type].set_duty_cycle)
--		rcdev->s_tx_duty_cycle = serial_ir_tx_duty_cycle;
--
--	switch (type) {
--	case IR_HOMEBREW:
--		rcdev->input_name = "Serial IR type home-brew";
--		break;
--	case IR_IRDEO:
--		rcdev->input_name = "Serial IR type IRdeo";
--		break;
--	case IR_IRDEO_REMOTE:
--		rcdev->input_name = "Serial IR type IRdeo remote";
--		break;
--	case IR_ANIMAX:
--		rcdev->input_name = "Serial IR type AnimaX";
--		break;
--	case IR_IGOR:
--		rcdev->input_name = "Serial IR type IgorPlug";
--		break;
--	}
--
--	rcdev->input_phys = KBUILD_MODNAME "/input0";
--	rcdev->input_id.bustype = BUS_HOST;
--	rcdev->input_id.vendor = 0x0001;
--	rcdev->input_id.product = 0x0001;
--	rcdev->input_id.version = 0x0100;
--	rcdev->open = serial_ir_open;
--	rcdev->close = serial_ir_close;
--	rcdev->dev.parent = &serial_ir.pdev->dev;
--	rcdev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
--	rcdev->driver_name = KBUILD_MODNAME;
--	rcdev->map_name = RC_MAP_RC6_MCE;
--	rcdev->min_timeout = 1;
--	rcdev->timeout = IR_DEFAULT_TIMEOUT;
--	rcdev->max_timeout = 10 * IR_DEFAULT_TIMEOUT;
--	rcdev->rx_resolution = 250000;
--
--	serial_ir.rcdev = rcdev;
--
--	result = rc_register_device(rcdev);
--
- 	if (!result)
- 		return 0;
--serial_cleanup:
+ 		pipe->partitions = 1;
+-		pipe->part_table[0] = vsp1_video_partition(pipe, div_size, 0);
++		partition->dest = vsp1_video_partition(pipe, div_size, 0);
 +
- 	serial_ir_exit();
- 	return result;
- }
-@@ -818,7 +812,6 @@ static int __init serial_ir_init_module(void)
- static void __exit serial_ir_exit_module(void)
- {
- 	del_timer_sync(&serial_ir.timeout_timer);
--	rc_unregister_device(serial_ir.rcdev);
- 	serial_ir_exit();
+ 		return;
+ 	}
+ 
+@@ -288,8 +291,11 @@ static void vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
+ 
+ 	pipe->partitions = DIV_ROUND_UP(format->width, div_size);
+ 
+-	for (i = 0; i < pipe->partitions; i++)
+-		pipe->part_table[i] = vsp1_video_partition(pipe, div_size, i);
++	for (i = 0; i < pipe->partitions; i++) {
++		struct vsp1_partition *partition = &pipe->part_table[i];
++
++		partition->dest = vsp1_video_partition(pipe, div_size, i);
++	}
  }
  
+ /* -----------------------------------------------------------------------------
+@@ -373,7 +379,7 @@ static void vsp1_video_pipeline_run_partition(struct vsp1_pipeline *pipe,
+ {
+ 	struct vsp1_entity *entity;
+ 
+-	pipe->partition = pipe->part_table[partition_number];
++	pipe->partition = &pipe->part_table[partition_number];
+ 
+ 	list_for_each_entry(entity, &pipe->entities, list_pipe) {
+ 		if (entity->ops->configure)
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index ad67034e08e9..bd4cd2807cc6 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -227,7 +227,7 @@ static void wpf_configure(struct vsp1_entity *entity,
+ 		 * multiple slices.
+ 		 */
+ 		if (pipe->partitions > 1)
+-			width = pipe->partition.width;
++			width = pipe->partition->dest.width;
+ 
+ 		vsp1_wpf_write(wpf, dl, VI6_WPF_HSZCLIP, VI6_WPF_SZCLIP_EN |
+ 			       (0 << VI6_WPF_SZCLIP_OFST_SHIFT) |
+@@ -255,10 +255,11 @@ static void wpf_configure(struct vsp1_entity *entity,
+ 			 * order the partitions correctly.
+ 			 */
+ 			if (flip & BIT(WPF_CTRL_HFLIP))
+-				offset = format->width - pipe->partition.left
+-					- pipe->partition.width;
++				offset = format->width
++					- pipe->partition->dest.left
++					- pipe->partition->dest.width;
+ 			else
+-				offset = pipe->partition.left;
++				offset = pipe->partition->dest.left;
+ 
+ 			mem.addr[0] += offset * fmtinfo->bpp[0] / 8;
+ 			if (format->num_planes > 1) {
+-- 
+git-series 0.9.1
