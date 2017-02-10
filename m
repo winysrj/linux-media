@@ -1,268 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44962 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752400AbdB1P7l (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:48264 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751134AbdBJPLv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Feb 2017 10:59:41 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-Subject: [PATCH v3 5/8] v4l: Define a pixel format for the R-Car VSP1 1-D histogram engine
-Date: Tue, 28 Feb 2017 17:56:45 +0200
-Message-Id: <20170228155648.12051-6-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20170228155648.12051-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20170228155648.12051-1-laurent.pinchart+renesas@ideasonboard.com>
+        Fri, 10 Feb 2017 10:11:51 -0500
+Subject: Re: [PATCH v3 3/4] [media] s5p-mfc: Set colorspace in
+ VIDIO_{G,TRY}_FMT
+To: Thibault Saunier <thibault.saunier@osg.samsung.com>,
+        linux-kernel@vger.kernel.org
+References: <20170210141022.25412-1-thibault.saunier@osg.samsung.com>
+ <20170210141022.25412-4-thibault.saunier@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        linux-arm-kernel@lists.infradead.org,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Kamil Debski <kamil@wypas.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <4b0714cf-d875-022c-eb73-1556568c0a51@xs4all.nl>
+Date: Fri, 10 Feb 2017 16:10:11 +0100
+MIME-Version: 1.0
+In-Reply-To: <20170210141022.25412-4-thibault.saunier@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The format is used on the R-Car VSP1 video queues that carry
-1-D histogram statistics data.
+On 02/10/2017 03:10 PM, Thibault Saunier wrote:
+> The media documentation says that the V4L2_COLORSPACE_SMPTE170M colorspace
+> should be used for SDTV and V4L2_COLORSPACE_REC709 for HDTV but the driver
+> didn't set the colorimetry, also respect usespace setting.
+> 
+> Use 576p display resolution as a threshold to set this.
+> 
+> Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
+> 
+> ---
+> 
+> Changes in v3:
+> - Do not check values in the g_fmt functions as Andrzej explained in previous review
+> - Set colorspace if user passed V4L2_COLORSPACE_DEFAULT in
+> 
+> Changes in v2: None
+> 
+>  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 15 +++++++++++++++
+>  1 file changed, 15 insertions(+)
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> index 367ef8e8dbf0..16bc3eaad0ff 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> @@ -354,6 +354,11 @@ static int vidioc_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
+>  		pix_mp->plane_fmt[0].sizeimage = ctx->luma_size;
+>  		pix_mp->plane_fmt[1].bytesperline = ctx->buf_width;
+>  		pix_mp->plane_fmt[1].sizeimage = ctx->chroma_size;
+> +
+> +		if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
+> +			pix_mp->colorspace = V4L2_COLORSPACE_REC709;
+> +		else /* SD */
+> +			pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
+>  	} else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+>  		/* This is run on OUTPUT
+>  		   The buffer contains compressed image
+> @@ -378,6 +383,7 @@ static int vidioc_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
+>  static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+>  {
+>  	struct s5p_mfc_dev *dev = video_drvdata(file);
+> +	struct v4l2_pix_format_mplane *pix_mp = &f->fmt.pix_mp;
+>  	struct s5p_mfc_fmt *fmt;
+>  
+>  	mfc_debug(2, "Type is %d\n", f->type);
+> @@ -405,6 +411,15 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+>  			mfc_err("Unsupported format by this MFC version.\n");
+>  			return -EINVAL;
+>  		}
+> +
+> +		if (pix_mp->colorspace != V4L2_COLORSPACE_REC709 &&
+> +			pix_mp->colorspace != V4L2_COLORSPACE_SMPTE170M) {
+> +			if (pix_mp->width > 720 &&
+> +					pix_mp->height > 576) /* HD */
+> +				pix_mp->colorspace = V4L2_COLORSPACE_REC709;
+> +			else /* SD */
+> +				pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
+> +		}
+>  	}
+>  
+>  	return 0;
+> 
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- Documentation/media/uapi/v4l/meta-formats.rst      |  15 ++
- .../media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst        | 168 +++++++++++++++++++++
- Documentation/media/uapi/v4l/pixfmt.rst            |   1 +
- drivers/media/v4l2-core/v4l2-ioctl.c               |   1 +
- include/uapi/linux/videodev2.h                     |   3 +
- 5 files changed, 188 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/meta-formats.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst
+Same here: it is an mem2mem device, so it just preserves whatever colorspace the
+application passes in.
 
-diff --git a/Documentation/media/uapi/v4l/meta-formats.rst b/Documentation/media/uapi/v4l/meta-formats.rst
-new file mode 100644
-index 000000000000..05ab91e12f10
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/meta-formats.rst
-@@ -0,0 +1,15 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _meta-formats:
-+
-+****************
-+Metadata Formats
-+****************
-+
-+These formats are used for the :ref:`metadata` interface only.
-+
-+
-+.. toctree::
-+    :maxdepth: 1
-+
-+    pixfmt-meta-vsp1-hgo
-diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst b/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst
-new file mode 100644
-index 000000000000..8d37bb313493
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst
-@@ -0,0 +1,168 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _v4l2-meta-fmt-vsp1-hgo:
-+
-+*******************************
-+V4L2_META_FMT_VSP1_HGO ('VSPH')
-+*******************************
-+
-+Renesas R-Car VSP1 1-D Histogram Data
-+
-+
-+Description
-+===========
-+
-+This format describes histogram data generated by the Renesas R-Car VSP1 1-D
-+Histogram (HGO) engine.
-+
-+The VSP1 HGO is a histogram computation engine that can operate on RGB, YCrCb
-+or HSV data. It operates on a possibly cropped and subsampled input image and
-+computes the minimum, maximum and sum of all pixels as well as per-channel
-+histograms.
-+
-+The HGO can compute histograms independently per channel, on the maximum of the
-+three channels (RGB data only) or on the Y channel only (YCbCr only). It can
-+additionally output the histogram with 64 or 256 bins, resulting in four
-+possible modes of operation.
-+
-+- In *64 bins normal mode*, the HGO operates on the three channels independently
-+  to compute three 64-bins histograms. RGB, YCbCr and HSV image formats are
-+  supported.
-+- In *64 bins maximum mode*, the HGO operates on the maximum of the (R, G, B)
-+  channels to compute a single 64-bins histogram. Only the RGB image format is
-+  supported.
-+- In *256 bins normal mode*, the HGO operates on the Y channel to compute a
-+  single 256-bins histogram. Only the YCbCr image format is supported.
-+- In *256 bins maximum mode*, the HGO operates on the maximum of the (R, G, B)
-+  channels to compute a single 256-bins histogram. Only the RGB image format is
-+  supported.
-+
-+**Byte Order.**
-+All data is stored in memory in little endian format. Each cell in the tables
-+contains one byte.
-+
-+.. flat-table:: VSP1 HGO Data - 64 Bins, Normal Mode (792 bytes)
-+    :header-rows:  2
-+    :stub-columns: 0
-+
-+    * - Offset
-+      - :cspan:`4` Memory
-+    * -
-+      - [31:24]
-+      - [23:16]
-+      - [15:8]
-+      - [7:0]
-+    * - 0
-+      - -
-+      - R/Cr/H max [7:0]
-+      - -
-+      - R/Cr/H min [7:0]
-+    * - 4
-+      - -
-+      - G/Y/S max [7:0]
-+      - -
-+      - G/Y/S min [7:0]
-+    * - 8
-+      - -
-+      - B/Cb/V max [7:0]
-+      - -
-+      - B/Cb/V min [7:0]
-+    * - 12
-+      - :cspan:`4` R/Cr/H sum [31:0]
-+    * - 16
-+      - :cspan:`4` G/Y/S sum [31:0]
-+    * - 20
-+      - :cspan:`4` B/Cb/V sum [31:0]
-+    * - 24
-+      - :cspan:`4` R/Cr/H bin 0 [31:0]
-+    * -
-+      - :cspan:`4` ...
-+    * - 276
-+      - :cspan:`4` R/Cr/H bin 63 [31:0]
-+    * - 280
-+      - :cspan:`4` G/Y/S bin 0 [31:0]
-+    * -
-+      - :cspan:`4` ...
-+    * - 532
-+      - :cspan:`4` G/Y/S bin 63 [31:0]
-+    * - 536
-+      - :cspan:`4` B/Cb/V bin 0 [31:0]
-+    * -
-+      - :cspan:`4` ...
-+    * - 788
-+      - :cspan:`4` B/Cb/V bin 63 [31:0]
-+
-+.. flat-table:: VSP1 HGO Data - 64 Bins, Max Mode (264 bytes)
-+    :header-rows:  2
-+    :stub-columns: 0
-+
-+    * - Offset
-+      - :cspan:`4` Memory
-+    * -
-+      - [31:24]
-+      - [23:16]
-+      - [15:8]
-+      - [7:0]
-+    * - 0
-+      - -
-+      - max(R,G,B) max [7:0]
-+      - -
-+      - max(R,G,B) min [7:0]
-+    * - 4
-+      - :cspan:`4` max(R,G,B) sum [31:0]
-+    * - 8
-+      - :cspan:`4` max(R,G,B) bin 0 [31:0]
-+    * -
-+      - :cspan:`4` ...
-+    * - 260
-+      - :cspan:`4` max(R,G,B) bin 63 [31:0]
-+
-+.. flat-table:: VSP1 HGO Data - 256 Bins, Normal Mode (1032 bytes)
-+    :header-rows:  2
-+    :stub-columns: 0
-+
-+    * - Offset
-+      - :cspan:`4` Memory
-+    * -
-+      - [31:24]
-+      - [23:16]
-+      - [15:8]
-+      - [7:0]
-+    * - 0
-+      - -
-+      - Y max [7:0]
-+      - -
-+      - Y min [7:0]
-+    * - 4
-+      - :cspan:`4` Y sum [31:0]
-+    * - 8
-+      - :cspan:`4` Y bin 0 [31:0]
-+    * -
-+      - :cspan:`4` ...
-+    * - 1028
-+      - :cspan:`4` Y bin 255 [31:0]
-+
-+.. flat-table:: VSP1 HGO Data - 256 Bins, Max Mode (1032 bytes)
-+    :header-rows:  2
-+    :stub-columns: 0
-+
-+    * - Offset
-+      - :cspan:`4` Memory
-+    * -
-+      - [31:24]
-+      - [23:16]
-+      - [15:8]
-+      - [7:0]
-+    * - 0
-+      - -
-+      - max(R,G,B) max [7:0]
-+      - -
-+      - max(R,G,B) min [7:0]
-+    * - 4
-+      - :cspan:`4` max(R,G,B) sum [31:0]
-+    * - 8
-+      - :cspan:`4` max(R,G,B) bin 0 [31:0]
-+    * -
-+      - :cspan:`4` ...
-+    * - 1028
-+      - :cspan:`4` max(R,G,B) bin 255 [31:0]
-diff --git a/Documentation/media/uapi/v4l/pixfmt.rst b/Documentation/media/uapi/v4l/pixfmt.rst
-index 4f184c7aedab..00737152497b 100644
---- a/Documentation/media/uapi/v4l/pixfmt.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt.rst
-@@ -34,4 +34,5 @@ see also :ref:`VIDIOC_G_FBUF <VIDIOC_G_FBUF>`.)
-     pixfmt-013
-     sdr-formats
-     tch-formats
-+    meta-formats
-     pixfmt-reserved
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 44a29af6fed2..74885ba0ba68 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1232,6 +1232,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_TCH_FMT_DELTA_TD08:	descr = "8-bit signed deltas"; break;
- 	case V4L2_TCH_FMT_TU16:		descr = "16-bit unsigned touch data"; break;
- 	case V4L2_TCH_FMT_TU08:		descr = "8-bit unsigned touch data"; break;
-+	case V4L2_META_FMT_VSP1_HGO:	descr = "R-Car VSP1 1-D Histogram"; break;
- 
- 	default:
- 		/* Compressed formats */
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 1eea1b5d71c1..d402d734afe0 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -677,6 +677,9 @@ struct v4l2_pix_format {
- #define V4L2_TCH_FMT_TU16	v4l2_fourcc('T', 'U', '1', '6') /* 16-bit unsigned touch data */
- #define V4L2_TCH_FMT_TU08	v4l2_fourcc('T', 'U', '0', '8') /* 8-bit unsigned touch data */
- 
-+/* Meta-data formats */
-+#define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car VSP1 Histogram */
-+
- /* priv field value to indicates that subsequent fields are valid. */
- #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
- 
--- 
+Just look at what several other mem2mem device drivers do.
+
 Regards,
 
-Laurent Pinchart
+	Hans
