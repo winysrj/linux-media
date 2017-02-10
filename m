@@ -1,128 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:48379 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751791AbdBYLvp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Feb 2017 06:51:45 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v3 00/19] Teach lirc how to send and receive scancodes
-Date: Sat, 25 Feb 2017 11:51:15 +0000
-Message-Id: <cover.1488023302.git.sean@mess.org>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:53428 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751390AbdBJIXo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 10 Feb 2017 03:23:44 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] vidioc-g-dv-timings.rst: update v4l2_bt_timings struct
+Message-ID: <5c1e1e86-12be-d600-4bd0-a9eafb72cd26@xs4all.nl>
+Date: Fri, 10 Feb 2017 09:19:14 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series has some general cleanup work, then the lirc scancode
-interface (v3) and lirc documentation fixes. The cleanups are needed for
-the new scancode interface.
+The new picture_aspect, cea861_vic and hdmi_vic fields were not documented,
+even though the corresponding flags were.
 
-lirc already supports LIRC_MODE_LIRCCODE, but that mode is entirely
-driver dependant and makes no provision for protocol information.
+Add documentation for these new fields.
 
-Receiving LIRC_MODE_SCANCODE
-----------------------------
-If a lirc device has the LIRC_CAN_REC_SCANCODE feature, LIRC_MODE_SCANCODE
-can be set set using LIRC_SET_REC_MODE ioctl. Now when you read from the
-device you receive struct lirc_scancode. In this structure you have
-the scancode, rc_type, and flags. RC_TYPE_* is now in uapi, so now you
-can see exactly which protocol variant was used. flags might contain
-LIRC_SCANCODE_FLAGS_TOGGLE (rc5, rc6) or LIRC_SCANCODE_FLAGS_REPEAT (nec).
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+diff --git a/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst b/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
+index aea276502f5e..e573c74138de 100644
+--- a/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
++++ b/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
+@@ -146,8 +146,20 @@ EBUSY
+       - ``flags``
+       - Several flags giving more information about the format. See
+ 	:ref:`dv-bt-flags` for a description of the flags.
+-    * - __u32
+-      - ``reserved[14]``
++    * - struct :c:type:`v4l2_fract`
++      - ``picture_aspect``
++      - The picture aspect if the pixels are not square. Only valid if the
++        ``V4L2_DV_FL_HAS_PICTURE_ASPECT`` flag is set.
++    * - __u8
++      - ``cea861_vic``
++      - The Video Identification Code according to the CEA-861 standard.
++        Only valid if the ``V4L2_DV_FL_HAS_CEA861_VIC`` flag is set.
++    * - __u8
++      - ``hdmi_vic``
++      - The Video Identification Code according to the HDMI standard.
++        Only valid if the ``V4L2_DV_FL_HAS_HDMI_VIC`` flag is set.
++    * - __u8
++      - ``reserved[46]``
+       - Reserved for future extensions. Drivers and applications must set
+ 	the array to zero.
 
-Using this interface, you can see what IR protocol a remote is using. This
-was not easy to do before.
-
-Sending LIRC_MODE_SCANCODE
---------------------------
-If a lirc device has the LIRC_CAN_SEND_SCANCODE features, LIRC_MODE_SCANCODE
-can be set using the LIRC_SET_SEND_MODE ioctl. Now you can write
-struct lirc_scancode. flags should be 0, rc_type to the RC_TYPE_* and
-the scancode must be set. You can only tranmsit one lirc_scancode at a time.
-
-This interface uses the in-kernel IR encoders to work. Using this interface
-it will be possible to port lirc_zilog to rc-core. This device cannot send
-raw IR, so it will not use the IR encoders but provide the same userspace
-interface.
-
-Other user-visible changes
---------------------------
-Now all RC devices will have a lirc char device, including devices which
-do not produce raw IR. They will be fixed in mode LIRC_MODE_SCANCODE.
-
-Changes v2 -> v3:
- - add timestamp to lirc_scancode struct to record when scancode was
-   decoded in ktime (CLOCK_MONOTONIC)
- - Rather than add more members to rc_dev and ir_raw_event_ctrl, now
-   we have all the lirc settings for rc-core in lirc_node
- - Various small fixes.
-
-Changes v1 -> v2:
- - changed the scancode to 64 bit. There are many IR protocols which encode
-   more than 32 bits; we don't support any at the moment but might as 
-   well future-proof it
-   http://www.hifi-remote.com/wiki/index.php?title=DecodeIR
- - Various small fixes.
- - Added documentation
-
-Sean Young (19):
-  [media] lirc: document lirc modes better
-  [media] lirc: return ENOTTY when ioctl is not supported
-  [media] lirc: return ENOTTY when device does support ioctl
-  [media] winbond: allow timeout to be set
-  [media] gpio-ir: do not allow a timeout of 0
-  [media] rc: lirc keymap no longer makes any sense
-  [media] lirc: advertise LIRC_CAN_GET_REC_RESOLUTION and improve
-  [media] mce_kbd: add encoder
-  [media] serial_ir: iommap is a memory address, not bool
-  [media] lirc: use refcounting for lirc devices
-  [media] lirc: lirc interface should not be a raw decoder
-  [media] lirc: exorcise struct irctl
-  [media] lirc: use plain kfifo rather than lirc_buffer
-  [media] lirc: implement scancode sending
-  [media] rc: use the correct carrier for scancode transmit
-  [media] rc: auto load encoder if necessary
-  [media] lirc: implement reading scancode
-  [media] lirc: scancode rc devices should have a lirc device too
-  [media] lirc: document LIRC_MODE_SCANCODE
-
- Documentation/media/lirc.h.rst.exceptions          |  50 ++-
- Documentation/media/uapi/rc/lirc-dev-intro.rst     |  78 +++-
- Documentation/media/uapi/rc/lirc-get-features.rst  |  28 +-
- Documentation/media/uapi/rc/lirc-get-length.rst    |   3 +-
- Documentation/media/uapi/rc/lirc-get-rec-mode.rst  |   8 +-
- Documentation/media/uapi/rc/lirc-get-send-mode.rst |   8 +-
- Documentation/media/uapi/rc/lirc-read.rst          |  22 +-
- .../media/uapi/rc/lirc-set-rec-carrier-range.rst   |   2 +-
- .../media/uapi/rc/lirc-set-rec-timeout-reports.rst |   2 +
- Documentation/media/uapi/rc/lirc-write.rst         |  25 +-
- drivers/media/rc/Kconfig                           |  15 +-
- drivers/media/rc/Makefile                          |   6 +-
- drivers/media/rc/gpio-ir-recv.c                    |   2 +-
- drivers/media/rc/igorplugusb.c                     |   2 +-
- drivers/media/rc/ir-jvc-decoder.c                  |   1 +
- drivers/media/rc/ir-lirc-codec.c                   | 367 ++++++++++++------
- drivers/media/rc/ir-mce_kbd-decoder.c              |  56 ++-
- drivers/media/rc/ir-nec-decoder.c                  |   1 +
- drivers/media/rc/ir-rc5-decoder.c                  |   1 +
- drivers/media/rc/ir-rc6-decoder.c                  |   1 +
- drivers/media/rc/ir-sanyo-decoder.c                |   1 +
- drivers/media/rc/ir-sharp-decoder.c                |   1 +
- drivers/media/rc/ir-sony-decoder.c                 |   1 +
- drivers/media/rc/keymaps/Makefile                  |   1 -
- drivers/media/rc/keymaps/rc-lirc.c                 |  42 --
- drivers/media/rc/lirc_dev.c                        | 431 +++++++++------------
- drivers/media/rc/rc-core-priv.h                    |  61 ++-
- drivers/media/rc/rc-ir-raw.c                       |  55 ++-
- drivers/media/rc/rc-main.c                         |  73 ++--
- drivers/media/rc/serial_ir.c                       |   4 +-
- drivers/media/rc/st_rc.c                           |   2 +-
- drivers/media/rc/winbond-cir.c                     |   4 +-
- drivers/staging/media/lirc/lirc_sasem.c            |   3 +-
- drivers/staging/media/lirc/lirc_zilog.c            | 167 ++++----
- include/media/lirc_dev.h                           |  33 +-
- include/media/rc-core.h                            |   3 +
- include/media/rc-map.h                             | 109 ++----
- include/uapi/linux/lirc.h                          |  76 ++++
- 38 files changed, 1069 insertions(+), 676 deletions(-)
- delete mode 100644 drivers/media/rc/keymaps/rc-lirc.c
-
--- 
-2.9.3
