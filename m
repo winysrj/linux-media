@@ -1,87 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48285 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752528AbdBMV34 (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:41464 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751519AbdBJTyj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 16:29:56 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH 1/8] v4l: vsp1: Provide UDS register updates
-Date: Mon, 13 Feb 2017 23:30:21 +0200
-Message-ID: <2133199.0UdPgKqoXa@avalon>
-In-Reply-To: <bf28e7e9bf28ff60c505592072a234f8dd568f71.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.ff94a00847faf7ed37768cea68c474926bfc8bd9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com> <bf28e7e9bf28ff60c505592072a234f8dd568f71.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
+        Fri, 10 Feb 2017 14:54:39 -0500
+Date: Fri, 10 Feb 2017 20:54:35 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Rob Herring <robh@kernel.org>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        Sebastian Reichel <sre@kernel.org>,
+        Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Kumar Gala <galak@codeaurora.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] devicetree: Add video bus switch
+Message-ID: <20170210195435.GA1615@amd>
+References: <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
+ <20161214122451.GB27011@amd>
+ <20161222100104.GA30917@amd>
+ <20161222133938.GA30259@amd>
+ <20161224152031.GA8420@amd>
+ <20170203123508.GA10286@amd>
+ <20170208213609.lnemfbzitee5iur2@rob-hp-laptop>
+ <20170208223017.GA18807@amd>
+ <CAL_JsqKSHvg+iB-SRd=YthauGP8mWeVF0j8X-fgLchwtOppH8A@mail.gmail.com>
+ <CAL_JsqLfbAxBbXOyK0QOCc=wPe6=a+qyrAwtdbt3DtspK6oiaw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="Q68bSM7Ycu6FN28Q"
+Content-Disposition: inline
+In-Reply-To: <CAL_JsqLfbAxBbXOyK0QOCc=wPe6=a+qyrAwtdbt3DtspK6oiaw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
 
-Thank you for the patch.
+--Q68bSM7Ycu6FN28Q
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Friday 10 Feb 2017 20:27:29 Kieran Bingham wrote:
-> Provide register definitions required for UDS phase and partition
-> algorithm support
 
-I would mention here that those registers and bits are available on Gen3 only.
+> >>> > diff --git a/Documentation/devicetree/bindings/media/video-bus-swit=
+ch.txt b/Documentation/devicetree/bindings/media/video-bus-switch.txt
+> >>> > new file mode 100644
+> >>> > index 0000000..1b9f8e0
+> >>> > --- /dev/null
+> >>> > +++ b/Documentation/devicetree/bindings/media/video-bus-switch.txt
+> >>> > @@ -0,0 +1,63 @@
+> >>> > +Video Bus Switch Binding
+> >>> > +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D
+> >>>
+> >>> I'd call it a mux rather than switch.
+> >>
+> >> It is a switch, not a multiplexor (
+> >> https://en.wikipedia.org/wiki/Multiplexing ). Only one camera can
+> >> operate at a time.
+> >
+> > It's no different than an i2c mux. It's one at a time.
 
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> ---
->  drivers/media/platform/vsp1/vsp1_regs.h | 14 ++++++++++++++
->  1 file changed, 14 insertions(+)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_regs.h
-> b/drivers/media/platform/vsp1/vsp1_regs.h index 47b1dee044fb..1ad819680e2f
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_regs.h
-> +++ b/drivers/media/platform/vsp1/vsp1_regs.h
-> @@ -388,6 +388,7 @@
->  #define VI6_UDS_CTRL_NE_RCR		(1 << 18)
->  #define VI6_UDS_CTRL_NE_GY		(1 << 17)
->  #define VI6_UDS_CTRL_NE_BCB		(1 << 16)
-> +#define VI6_UDS_CTRL_AMDSLH		(1 << 2)
->  #define VI6_UDS_CTRL_TDIPC		(1 << 1)
-> 
->  #define VI6_UDS_SCALE			0x2304
-> @@ -420,11 +421,24 @@
->  #define VI6_UDS_PASS_BWIDTH_V_MASK	(0x7f << 0)
->  #define VI6_UDS_PASS_BWIDTH_V_SHIFT	0
-> 
-> +#define VI6_UDS_HPHASE			0x2314
-> +#define VI6_UDS_HPHASE_HSTP_MASK	(0xfff << 16)
-> +#define VI6_UDS_HPHASE_HSTP_SHIFT	16
-> +#define VI6_UDS_HPHASE_HEDP_MASK	(0xfff << 0)
-> +#define VI6_UDS_HPHASE_HEDP_SHIFT	0
-> +
->  #define VI6_UDS_IPC			0x2318
->  #define VI6_UDS_IPC_FIELD		(1 << 27)
->  #define VI6_UDS_IPC_VEDP_MASK		(0xfff << 0)
->  #define VI6_UDS_IPC_VEDP_SHIFT		0
-> 
-> +#define VI6_UDS_HSZCLIP			0x231c
-> +#define VI6_UDS_HSZCLIP_HCEN		(1 << 28)
-> +#define VI6_UDS_HSZCLIP_HCL_OFST_MASK	(0x1ff << 16)
+Take a look at the wikipedia. If you do "one at a time" at 100Hz, you
+can claim it is time-domain multiplex. But we are plain switching the
+cameras. It takes second (or so) to setup the pipeline.
 
-This field spans 8 bits, not 9.
+This is not multiplex.
 
-With that fixed,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+--Q68bSM7Ycu6FN28Q
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> +#define VI6_UDS_HSZCLIP_HCL_OFST_SHIFT	16
-> +#define VI6_UDS_HSZCLIP_HCL_SIZE_MASK	(0x1fff << 0)
-> +#define VI6_UDS_HSZCLIP_HCL_SIZE_SHIFT	0
-> +
->  #define VI6_UDS_CLIP_SIZE		0x2324
->  #define VI6_UDS_CLIP_SIZE_HSIZE_MASK	(0x1fff << 16)
->  #define VI6_UDS_CLIP_SIZE_HSIZE_SHIFT	16
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
--- 
-Regards,
+iEYEARECAAYFAlieGnsACgkQMOfwapXb+vJ//wCgu++YDF6dtxzCb9BqgCeTHma2
+WtQAoLwB9F7vIQDN05S5lLTzadyWPBV7
+=rdtk
+-----END PGP SIGNATURE-----
 
-Laurent Pinchart
+--Q68bSM7Ycu6FN28Q--
