@@ -1,101 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f54.google.com ([74.125.82.54]:38443 "EHLO
-        mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750971AbdB1BSH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Feb 2017 20:18:07 -0500
-Received: by mail-wm0-f54.google.com with SMTP id u199so164337wmd.1
-        for <linux-media@vger.kernel.org>; Mon, 27 Feb 2017 17:17:07 -0800 (PST)
-Date: Tue, 28 Feb 2017 01:08:03 +0000
-From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Andrey Utkin <andrey_utkin@fastmail.com>
-Subject: Re: [PATCH] [media] tw5864: handle unknown video std gracefully
-Message-ID: <20170228010803.GA7977@dell-m4800.Home>
-References: <20170227203252.3295528-1-arnd@arndb.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170227203252.3295528-1-arnd@arndb.de>
+Received: from mail.kernel.org ([198.145.29.136]:45770 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932133AbdBJU2A (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 10 Feb 2017 15:28:00 -0500
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, kieran.bingham@ideasonboard.com
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH 7/8] v4l: vsp1: Calculate UDS phase for partitions
+Date: Fri, 10 Feb 2017 20:27:35 +0000
+Message-Id: <c9137b8b8f1aa3d7861b56cbfec221ea24407797.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.ff94a00847faf7ed37768cea68c474926bfc8bd9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.ff94a00847faf7ed37768cea68c474926bfc8bd9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.ff94a00847faf7ed37768cea68c474926bfc8bd9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.ff94a00847faf7ed37768cea68c474926bfc8bd9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arnd,
+To improve image quality when scaling using the UDS we need to correctly
+determine the start phase value for each partition window.
 
-Thanks for sending this patch.
+Provide helper functions for calculating the phase, and write this value
+to the registers when used.
 
-On Mon, Feb 27, 2017 at 09:32:34PM +0100, Arnd Bergmann wrote:
-> tw5864_frameinterval_get() only initializes its output when it successfully
-> identifies the video standard in tw5864_input. We get a warning here because
-> gcc can't always track the state if initialized warnings across a WARN()
-> macro, and thinks it might get used incorrectly in tw5864_s_parm:
-> 
-> media/pci/tw5864/tw5864-video.c: In function 'tw5864_s_parm':
-> media/pci/tw5864/tw5864-video.c:816:38: error: 'time_base.numerator' may be used uninitialized in this function [-Werror=maybe-uninitialized]
-> media/pci/tw5864/tw5864-video.c:819:31: error: 'time_base.denominator' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_pipe.h |  4 ++-
+ drivers/media/platform/vsp1/vsp1_uds.c  | 64 +++++++++++++++++++++++++-
+ 2 files changed, 67 insertions(+), 1 deletion(-)
 
-I think behaviour of tw5864_frameinterval_get() is ok.
-I don't see how WARN() could affect gcc state tracking. There's "return
--EINVAL" right after WARN() which lets caller handle the failure case
-gracefully. Maybe I just don't see how confusing WARN() can be for gcc
-in this situation, but it's not as confusing as BUG() would be, right?
-
-I see the reason of that warning is 
-
- - time_base being not initialized in tw5864_s_parm()
- - gcc being too dumb to recognize that we have checked the retcode in
-   tw5864_s_parm() and proceed only when we are sure we have correctly
-   initialized time_base.
-
-Is that you compiling with manually added -Werror=maybe-uninitialized or
-is that default compilation flags? I don't remember encountering that
-and I doubt a lot of kernel code compiles without warnings with such
-flag.
-
-Also, which GCC version are you using?
-
-> This particular use happens to be ok, but we do copy the uninitialized
-> output of tw5864_frameinterval_get() into other memory without checking
-> the return code, interestingly without getting a warning here.
-
-Retcode checking takes place everywhere, but currently it overwrites
-supplied structs with potentially-uninitialized values. To make it
-cleaner, it should be (e.g. tw5864_g_parm())
-
-ret = tw5864_frameinterval_get(input, &cp->timeperframe);
-if (ret)
-        return ret;
-cp->timeperframe.numerator *= input->frame_interval;
-cp->capturemode = 0;
-cp->readbuffers = 2;
-return 0;
-
-and not
-
-ret = tw5864_frameinterval_get(input, &cp->timeperframe);
-cp->timeperframe.numerator *= input->frame_interval;
-cp->capturemode = 0;
-cp->readbuffers = 2;
-return ret;
-
-That would resolve your concerns of uninitialized values propagation
-without writing bogus values 1/1 in case of failure. I think I'd
-personally prefer a called function to leave my data structs intact when
-it fails.
-
-> 
-> This initializes the output to 1/1s for the case, to make sure we do
-> get an intialization that doesn't cause a division-by-zero exception
-> in case we end up using this uninitialized data later.
-
-Personally I won't object against such patch, but I find it a bit too
-much "defensive" for kernel coding taste.
-
-Making sure somebody who doesn't check return codes don't get a crash is
-traditionally not considered a valid concern AFAIK.
-
-Please let me know what you think about this.
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
+index 718ca0a5eca7..0faa1c9f6184 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.h
++++ b/drivers/media/platform/vsp1/vsp1_pipe.h
+@@ -79,6 +79,8 @@ struct vsp1_partition_rect {
+  * @uds_source: The UDS output partition window configuration
+  * @sru: The SRU partition window configuration
+  * @wpf: The WPF partition window configuration
++ * @start_phase: The UDS start phase specific to this partition.
++ * @end_phase: The UDS end phase specific to this partition.
+  */
+ struct vsp1_partition {
+ 	struct vsp1_partition_rect rpf;
+@@ -86,6 +88,8 @@ struct vsp1_partition {
+ 	struct vsp1_partition_rect uds_source;
+ 	struct vsp1_partition_rect sru;
+ 	struct vsp1_partition_rect wpf;
++	unsigned int start_phase;
++	unsigned int end_phase;
+ };
+ 
+ /*
+diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
+index b274cbc2428b..9c1fb7ef3c46 100644
+--- a/drivers/media/platform/vsp1/vsp1_uds.c
++++ b/drivers/media/platform/vsp1/vsp1_uds.c
+@@ -50,6 +50,46 @@ void vsp1_uds_set_alpha(struct vsp1_entity *entity, struct vsp1_dl_list *dl,
+ 		       alpha << VI6_UDS_ALPVAL_VAL0_SHIFT);
+ }
+ 
++struct uds_phase {
++	unsigned int mp;
++	unsigned int prefilt_term;
++	unsigned int prefilt_outpos;
++	unsigned int residual;
++};
++
++/*
++ * TODO: Remove start_phase if possible:
++ * 'start_phase' as we use it should always be 0 I believe,
++ * Therefore this could be removed once confirmed
++ */
++static struct uds_phase uds_phase_calculation(int position, int start_phase,
++					      int ratio)
++{
++	struct uds_phase phase;
++	int alpha = ratio * position;
++
++	/* These must be adjusted if we ever set BLADV */
++	phase.mp = ratio / 4096;
++	phase.mp = phase.mp < 4 ? 1 : (phase.mp < 8 ? 2 : 4);
++
++	phase.prefilt_term = phase.mp * 4096;
++	phase.prefilt_outpos = (alpha - start_phase * phase.mp)
++			/ phase.prefilt_term;
++	phase.residual = (alpha - start_phase * phase.mp)
++			% phase.prefilt_term;
++
++	return phase;
++}
++
++static int uds_start_phase(int pos, int start_phase, int ratio)
++{
++	struct uds_phase phase;
++
++	phase = uds_phase_calculation(pos, start_phase, ratio);
++
++	return phase.residual ? (4096 - phase.residual / phase.mp) : 0;
++}
++
+ /*
+  * uds_output_size - Return the output size for an input size and scaling ratio
+  * @input: input size in pixels
+@@ -269,6 +309,7 @@ static void uds_configure(struct vsp1_entity *entity,
+ 	const struct v4l2_mbus_framefmt *input;
+ 	unsigned int hscale;
+ 	unsigned int vscale;
++	bool manual_phase = (pipe->partitions > 1);
+ 	bool multitap;
+ 
+ 	if (params == VSP1_ENTITY_PARAMS_PARTITION) {
+@@ -287,6 +328,16 @@ static void uds_configure(struct vsp1_entity *entity,
+ 					<< VI6_UDS_CLIP_SIZE_HSIZE_SHIFT) |
+ 			       (partition->uds_source.height
+ 					<< VI6_UDS_CLIP_SIZE_VSIZE_SHIFT));
++
++		if (!manual_phase)
++			return;
++
++		vsp1_uds_write(uds, dl, VI6_UDS_HPHASE,
++			       (partition->start_phase
++					<< VI6_UDS_HPHASE_HSTP_SHIFT) |
++			       (partition->end_phase
++					<< VI6_UDS_HPHASE_HEDP_SHIFT));
++
+ 		return;
+ 	}
+ 
+@@ -314,7 +365,8 @@ static void uds_configure(struct vsp1_entity *entity,
+ 
+ 	vsp1_uds_write(uds, dl, VI6_UDS_CTRL,
+ 		       (uds->scale_alpha ? VI6_UDS_CTRL_AON : 0) |
+-		       (multitap ? VI6_UDS_CTRL_BC : 0));
++		       (multitap ? VI6_UDS_CTRL_BC : 0) |
++		       (manual_phase ? VI6_UDS_CTRL_AMDSLH : 0));
+ 
+ 	vsp1_uds_write(uds, dl, VI6_UDS_PASS_BWIDTH,
+ 		       (uds_passband_width(hscale)
+@@ -366,6 +418,8 @@ struct vsp1_partition_rect *uds_partition(struct vsp1_entity *entity,
+ 	struct vsp1_uds *uds = to_uds(&entity->subdev);
+ 	const struct v4l2_mbus_framefmt *output;
+ 	const struct v4l2_mbus_framefmt *input;
++	unsigned int hscale;
++	unsigned int image_start_phase = 0;
+ 
+ 	/* Initialise the partition state */
+ 	partition->uds_sink = *dest;
+@@ -376,11 +430,19 @@ struct vsp1_partition_rect *uds_partition(struct vsp1_entity *entity,
+ 	output = vsp1_entity_get_pad_format(&uds->entity, uds->entity.config,
+ 					    UDS_PAD_SOURCE);
+ 
++	hscale = uds_compute_ratio(input->width, output->width);
++
+ 	partition->uds_sink.width = dest->width * input->width
+ 				  / output->width;
+ 	partition->uds_sink.left = dest->left * input->width
+ 				 / output->width;
+ 
++	partition->start_phase = uds_start_phase(partition->uds_source.left,
++						 image_start_phase, hscale);
++
++	/* Renesas partition algorithm always sets end-phase as 0 */
++	partition->end_phase = 0;
++
+ 	return &partition->uds_sink;
+ }
+ 
+-- 
+git-series 0.9.1
