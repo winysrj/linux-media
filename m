@@ -1,140 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:45037 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750731AbdBNWry (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:12472 "EHLO
+        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751058AbdBJHDf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Feb 2017 17:47:54 -0500
-Date: Tue, 14 Feb 2017 23:47:50 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v3 1/2] v4l: Add camera voice coil lens control class,
- current control
-Message-ID: <20170214224750.GE11317@amd>
-References: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
- <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="9l24NVCWtSuIVIod"
-Content-Disposition: inline
-In-Reply-To: <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
+        Fri, 10 Feb 2017 02:03:35 -0500
+Subject: Re: [PATCH v2 3/4] [media] s5p-mfc: Set colorspace in VIDIO_{G,TRY}_FMT
+To: Thibault Saunier <thibault.saunier@osg.samsung.com>,
+        linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        linux-samsung-soc@vger.kernel.org,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        linux-media@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        Ulf Hansson <ulf.hansson@linaro.org>
+From: Andrzej Hajda <a.hajda@samsung.com>
+Message-id: <2831b146-fbed-855e-4fc5-635bc729ba31@samsung.com>
+Date: Fri, 10 Feb 2017 08:03:28 +0100
+MIME-version: 1.0
+In-reply-to: <20170209200420.3046-4-thibault.saunier@osg.samsung.com>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
+References: <20170209200420.3046-1-thibault.saunier@osg.samsung.com>
+ <CGME20170209200635epcas1p3cb8a6feb2a96285876f92157f72f17a6@epcas1p3.samsung.com>
+ <20170209200420.3046-4-thibault.saunier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
---9l24NVCWtSuIVIod
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue 2017-02-14 14:20:22, Sakari Ailus wrote:
-> Add a V4L2 control class for voice coil lens driver devices. These are
-> simple devices that are used to move a camera lens from its resting
-> position.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-Looks good to me.
-
-I wonder... should we somehow expose the range of diopters to
-userspace? I believe userland camera application will need that
-information.
-
-Thanks,
-							Pavel
-
+On 09.02.2017 21:04, Thibault Saunier wrote:
+> The media documentation says that the V4L2_COLORSPACE_SMPTE170M colorspace
+> should be used for SDTV and V4L2_COLORSPACE_REC709 for HDTV but the driver
+> didn't set the colorimetry, also respect usespace setting.
+>
+> Use 576p display resolution as a threshold to set this.
+>
+> Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
 > ---
->  Documentation/media/uapi/v4l/extended-controls.rst | 28 ++++++++++++++++=
-++++++
->  include/uapi/linux/v4l2-controls.h                 |  8 +++++++
->  2 files changed, 36 insertions(+)
->=20
-> diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documen=
-tation/media/uapi/v4l/extended-controls.rst
-> index abb1057..a75451a 100644
-> --- a/Documentation/media/uapi/v4l/extended-controls.rst
-> +++ b/Documentation/media/uapi/v4l/extended-controls.rst
-> @@ -3022,6 +3022,34 @@ Image Process Control IDs
->      driver specific and are documented in :ref:`v4l-drivers`.
-> =20
-> =20
-> +.. _voice-coil-lens-controls:
+>  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 19 +++++++++++++++++++
+>  1 file changed, 19 insertions(+)
+>
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> index 367ef8e8dbf0..960d6c7052bd 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> @@ -354,6 +354,15 @@ static int vidioc_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
+>  		pix_mp->plane_fmt[0].sizeimage = ctx->luma_size;
+>  		pix_mp->plane_fmt[1].bytesperline = ctx->buf_width;
+>  		pix_mp->plane_fmt[1].sizeimage = ctx->chroma_size;
 > +
-> +Voice Coil Lens Control Reference
-> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> +
-> +The Voice Coil class controls are used to control voice coil lens
-> +devices. These are very simple devices that consist of a voice coil, a
-> +spring and a lens. The current applied on the voice coil is used to
-> +move the lens away from the resting position which typically is (close
-> +to) infinity. The higher the current applied, the closer the lens is
-> +typically focused.
-> +
-> +.. _voice-coil-lens-control-is:
-> +
-> +Voice Coil Lens Control IDs
-> +---------------------------
-> +
-> +``V4L2_CID_VOICE_COIL_CLASS (class)``
-> +    The VOICE_COIL class descriptor.
-> +
-> +``V4L2_CID_VOICE_COIL_CURRENT (integer)``
-> +    Current applied on a voice coil. The more current is applied, the
-> +    more is the position of the lens moved from its resting position.
-> +    Do note that there may be a ringing effect; the lens will
-> +    oscillate after changing the current applied unless the device
-> +    implements ringing compensation.
-> +
-> +
->  .. _dv-controls:
-> =20
->  Digital Video Control Reference
-> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2=
--controls.h
-> index 0d2e1e0..9ef152b 100644
-> --- a/include/uapi/linux/v4l2-controls.h
-> +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -62,6 +62,7 @@
->  #define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls */
->  #define V4L2_CTRL_CLASS_RF_TUNER	0x00a20000	/* RF tuner controls */
->  #define V4L2_CTRL_CLASS_DETECT		0x00a30000	/* Detection controls */
-> +#define V4L2_CTRL_CLASS_VOICE_COIL	0x00a40000	/* Voice coil lens driver =
-controls */
-> =20
->  /* User-class control IDs */
-> =20
-> @@ -894,6 +895,13 @@ enum v4l2_jpeg_chroma_subsampling {
->  #define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 3)
->  #define V4L2_CID_DEINTERLACING_MODE		(V4L2_CID_IMAGE_PROC_CLASS_BASE + 4)
-> =20
-> +/* Voice coil lens driver controls */
-> +
-> +#define V4L2_CID_VOICE_COIL_CLASS_BASE		(V4L2_CTRL_CLASS_VOICE_COIL | 0x=
-900)
-> +#define V4L2_CID_VOICE_COIL_CLASS		(V4L2_CTRL_CLASS_VOICE_COIL | 1)
-> +
-> +#define V4L2_CID_VOICE_COIL_CURRENT		(V4L2_CID_VOICE_COIL_CLASS_BASE + 1)
-> +
-> =20
->  /*  DV-class control IDs defined by V4L2 */
->  #define V4L2_CID_DV_CLASS_BASE			(V4L2_CTRL_CLASS_DV | 0x900)
+> +		if (pix_mp->colorspace != V4L2_COLORSPACE_REC709 &&
+> +			pix_mp->colorspace != V4L2_COLORSPACE_SMPTE170M &&
+> +			pix_mp->colorspace != V4L2_COLORSPACE_DEFAULT) {
+> +		  if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
+> +			pix_mp->colorspace = V4L2_COLORSPACE_REC709;
+> +		  else /* SD */
+> +			pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
+> +		}
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+Again, in g_fmt you should not check values of fields you have to fill.
 
---9l24NVCWtSuIVIod
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Regards
+Andrzej
 
-iEYEARECAAYFAlijiRYACgkQMOfwapXb+vLCJQCeKPp9xofd4eA9QaWcyIcqdqkR
-1xcAn30tFMrjdeVjFmsY/DY5BAOELJ9P
-=zU/S
------END PGP SIGNATURE-----
+>  	} else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+>  		/* This is run on OUTPUT
+>  		   The buffer contains compressed image
+> @@ -378,6 +387,7 @@ static int vidioc_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
+>  static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+>  {
+>  	struct s5p_mfc_dev *dev = video_drvdata(file);
+> +	struct v4l2_pix_format_mplane *pix_mp = &f->fmt.pix_mp;
+>  	struct s5p_mfc_fmt *fmt;
+>  
+>  	mfc_debug(2, "Type is %d\n", f->type);
+> @@ -405,6 +415,15 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+>  			mfc_err("Unsupported format by this MFC version.\n");
+>  			return -EINVAL;
+>  		}
+> +
+> +		if (pix_mp->colorspace != V4L2_COLORSPACE_REC709 &&
+> +			pix_mp->colorspace != V4L2_COLORSPACE_SMPTE170M &&
+> +			pix_mp->colorspace != V4L2_COLORSPACE_DEFAULT) {
+> +		  if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
+> +			pix_mp->colorspace = V4L2_COLORSPACE_REC709;
+> +		  else /* SD */
+> +			pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
+> +		}
+>  	}
+>  
+>  	return 0;
 
---9l24NVCWtSuIVIod--
+
