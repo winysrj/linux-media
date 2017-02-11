@@ -1,157 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:50570 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751284AbdBYOoh (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:34002 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751131AbdBKBKy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Feb 2017 09:44:37 -0500
-Date: Sat, 25 Feb 2017 11:44:19 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        kernel test robot <fengguang.wu@intel.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@kernel.org>,
-        Ruslan Ruslichenko <rruslich@cisco.com>, LKP <lkp@01.org>,
-        "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-        kernel@stlinux.com, linux-mediatek@lists.infradead.org,
-        linux-amlogic@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        Linux LED Subsystem <linux-leds@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>, wfg@linux.intel.com,
-        Sean Young <sean@mess.org>
-Subject: [PATCH v3] [media] serial_ir: ensure we're ready to receive
- interrupts
-Message-ID: <20170225112213.6e890b38@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: base64
+        Fri, 10 Feb 2017 20:10:54 -0500
+From: Derek Robson <robsonde@gmail.com>
+To: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        swarren@wwwdotorg.org, lee@kernel.org, eric@anholt.net,
+        f.fainelli@gmail.com, rjui@broadcom.com, sbranden@broadcom.com,
+        arnd@arndb.de, robsonde@gmail.com
+Cc: bcm-kernel-feedback-list@broadcom.com, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-rpi-kernel@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] Staging: media: platform: bcm2835 - style fix
+Date: Sat, 11 Feb 2017 14:10:42 +1300
+Message-Id: <20170211011042.13512-1-robsonde@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQ0KSGFzaDogU0hBMjU2DQoNCkZyb206
-IFNlYW4gWW91bmcgPHNlYW5AbWVzcy5vcmc+DQoNCldoZW4gdGhlIGludGVycnVwdCByZXF1ZXN0
-ZWQgd2l0aCBkZXZtX3JlcXVlc3RfaXJxKCksIHNlcmlhbF9pci5yY2Rldg0KaXMgc3RpbGwgbnVs
-bCBzbyB3aWxsIGNhdXNlIG51bGwgZGVmZXJlbmNlIGlmIHRoZSBpcnEgaGFuZGxlciBpcyBjYWxs
-ZWQNCmVhcmx5IG9uLg0KDQpBbHNvIGVuc3VyZSB0aGF0IHRpbWVvdXRfdGltZXIgaXMgc2V0dXAu
-DQoNCkxpbms6IGh0dHA6Ly9sa21sLmtlcm5lbC5vcmcvci9DQSs1NWFGeHNoMnVGOGdpNXNOX2d1
-WTNaK3RpTHY3THBKWUtCdyt5OHZxTHpwK1RzblFAbWFpbC5nbWFpbC5jb20NCg0KW21jaGVoYWJA
-cy1vcGVuc291cmNlLmNvbTogbW92ZWQgc2VyaWFsX2lyX3Byb2JlKCkgYmFjayB0byBpdHMgb3Jp
-Z2luYWwgcGxhY2VdDQoNCkNjOiA8c3RhYmxlQHZnZXIua2VybmVsLm9yZz4gIyA0LjEwDQpTaWdu
-ZWQtb2ZmLWJ5OiBTZWFuIFlvdW5nIDxzZWFuQG1lc3Mub3JnPg0KU2lnbmVkLW9mZi1ieTogTWF1
-cm8gQ2FydmFsaG8gQ2hlaGFiIDxtY2hlaGFiQHMtb3BlbnNvdXJjZS5jb20+DQotIC0gLS0tDQog
-ZHJpdmVycy9tZWRpYS9yYy9zZXJpYWxfaXIuYyB8IDEyMyArKysrKysrKysrKysrKysrKysrKysr
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tDQogMSBmaWxlIGNoYW5nZWQsIDYyIGluc2VydGlvbnMoKyks
-IDYxIGRlbGV0aW9ucygtKQ0KDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9yYy9zZXJpYWxf
-aXIuYyBiL2RyaXZlcnMvbWVkaWEvcmMvc2VyaWFsX2lyLmMNCmluZGV4IDkyM2ZiMjI5OTU1My4u
-NDFiNTRlNDAxNzZjIDEwMDY0NA0KLSAtIC0tLSBhL2RyaXZlcnMvbWVkaWEvcmMvc2VyaWFsX2ly
-LmMNCisrKyBiL2RyaXZlcnMvbWVkaWEvcmMvc2VyaWFsX2lyLmMNCkBAIC00ODcsMTAgKzQ4Nyw2
-OSBAQCBzdGF0aWMgdm9pZCBzZXJpYWxfaXJfdGltZW91dCh1bnNpZ25lZCBsb25nIGFyZykNCiAJ
-aXJfcmF3X2V2ZW50X2hhbmRsZShzZXJpYWxfaXIucmNkZXYpOw0KIH0NCiANCisvKiBOZWVkZWQg
-Ynkgc2VyaWFsX2lyX3Byb2JlKCkgKi8NCitzdGF0aWMgaW50IHNlcmlhbF9pcl90eChzdHJ1Y3Qg
-cmNfZGV2ICpkZXYsIHVuc2lnbmVkIGludCAqdHhidWYsDQorCQkJdW5zaWduZWQgaW50IGNvdW50
-KTsNCitzdGF0aWMgaW50IHNlcmlhbF9pcl90eF9kdXR5X2N5Y2xlKHN0cnVjdCByY19kZXYgKmRl
-diwgdTMyIGN5Y2xlKTsNCitzdGF0aWMgaW50IHNlcmlhbF9pcl90eF9jYXJyaWVyKHN0cnVjdCBy
-Y19kZXYgKmRldiwgdTMyIGNhcnJpZXIpOw0KK3N0YXRpYyBpbnQgc2VyaWFsX2lyX29wZW4oc3Ry
-dWN0IHJjX2RldiAqcmNkZXYpOw0KK3N0YXRpYyB2b2lkIHNlcmlhbF9pcl9jbG9zZShzdHJ1Y3Qg
-cmNfZGV2ICpyY2Rldik7DQorDQogc3RhdGljIGludCBzZXJpYWxfaXJfcHJvYmUoc3RydWN0IHBs
-YXRmb3JtX2RldmljZSAqZGV2KQ0KIHsNCisJc3RydWN0IHJjX2RldiAqcmNkZXY7DQogCWludCBp
-LCBubG93LCBuaGlnaCwgcmVzdWx0Ow0KIA0KKwlyY2RldiA9IGRldm1fcmNfYWxsb2NhdGVfZGV2
-aWNlKCZkZXYtPmRldiwgUkNfRFJJVkVSX0lSX1JBVyk7DQorCWlmICghcmNkZXYpDQorCQlyZXR1
-cm4gLUVOT01FTTsNCisNCisJaWYgKGhhcmR3YXJlW3R5cGVdLnNlbmRfcHVsc2UgJiYgaGFyZHdh
-cmVbdHlwZV0uc2VuZF9zcGFjZSkNCisJCXJjZGV2LT50eF9pciA9IHNlcmlhbF9pcl90eDsNCisJ
-aWYgKGhhcmR3YXJlW3R5cGVdLnNldF9zZW5kX2NhcnJpZXIpDQorCQlyY2Rldi0+c190eF9jYXJy
-aWVyID0gc2VyaWFsX2lyX3R4X2NhcnJpZXI7DQorCWlmIChoYXJkd2FyZVt0eXBlXS5zZXRfZHV0
-eV9jeWNsZSkNCisJCXJjZGV2LT5zX3R4X2R1dHlfY3ljbGUgPSBzZXJpYWxfaXJfdHhfZHV0eV9j
-eWNsZTsNCisNCisJc3dpdGNoICh0eXBlKSB7DQorCWNhc2UgSVJfSE9NRUJSRVc6DQorCQlyY2Rl
-di0+aW5wdXRfbmFtZSA9ICJTZXJpYWwgSVIgdHlwZSBob21lLWJyZXciOw0KKwkJYnJlYWs7DQor
-CWNhc2UgSVJfSVJERU86DQorCQlyY2Rldi0+aW5wdXRfbmFtZSA9ICJTZXJpYWwgSVIgdHlwZSBJ
-UmRlbyI7DQorCQlicmVhazsNCisJY2FzZSBJUl9JUkRFT19SRU1PVEU6DQorCQlyY2Rldi0+aW5w
-dXRfbmFtZSA9ICJTZXJpYWwgSVIgdHlwZSBJUmRlbyByZW1vdGUiOw0KKwkJYnJlYWs7DQorCWNh
-c2UgSVJfQU5JTUFYOg0KKwkJcmNkZXYtPmlucHV0X25hbWUgPSAiU2VyaWFsIElSIHR5cGUgQW5p
-bWFYIjsNCisJCWJyZWFrOw0KKwljYXNlIElSX0lHT1I6DQorCQlyY2Rldi0+aW5wdXRfbmFtZSA9
-ICJTZXJpYWwgSVIgdHlwZSBJZ29yUGx1ZyI7DQorCQlicmVhazsNCisJfQ0KKw0KKwlyY2Rldi0+
-aW5wdXRfcGh5cyA9IEtCVUlMRF9NT0ROQU1FICIvaW5wdXQwIjsNCisJcmNkZXYtPmlucHV0X2lk
-LmJ1c3R5cGUgPSBCVVNfSE9TVDsNCisJcmNkZXYtPmlucHV0X2lkLnZlbmRvciA9IDB4MDAwMTsN
-CisJcmNkZXYtPmlucHV0X2lkLnByb2R1Y3QgPSAweDAwMDE7DQorCXJjZGV2LT5pbnB1dF9pZC52
-ZXJzaW9uID0gMHgwMTAwOw0KKwlyY2Rldi0+b3BlbiA9IHNlcmlhbF9pcl9vcGVuOw0KKwlyY2Rl
-di0+Y2xvc2UgPSBzZXJpYWxfaXJfY2xvc2U7DQorCXJjZGV2LT5kZXYucGFyZW50ID0gJnNlcmlh
-bF9pci5wZGV2LT5kZXY7DQorCXJjZGV2LT5hbGxvd2VkX3Byb3RvY29scyA9IFJDX0JJVF9BTExf
-SVJfREVDT0RFUjsNCisJcmNkZXYtPmRyaXZlcl9uYW1lID0gS0JVSUxEX01PRE5BTUU7DQorCXJj
-ZGV2LT5tYXBfbmFtZSA9IFJDX01BUF9SQzZfTUNFOw0KKwlyY2Rldi0+bWluX3RpbWVvdXQgPSAx
-Ow0KKwlyY2Rldi0+dGltZW91dCA9IElSX0RFRkFVTFRfVElNRU9VVDsNCisJcmNkZXYtPm1heF90
-aW1lb3V0ID0gMTAgKiBJUl9ERUZBVUxUX1RJTUVPVVQ7DQorCXJjZGV2LT5yeF9yZXNvbHV0aW9u
-ID0gMjUwMDAwOw0KKw0KKwlzZXJpYWxfaXIucmNkZXYgPSByY2RldjsNCisNCisJc2V0dXBfdGlt
-ZXIoJnNlcmlhbF9pci50aW1lb3V0X3RpbWVyLCBzZXJpYWxfaXJfdGltZW91dCwNCisJCSAgICAo
-dW5zaWduZWQgbG9uZykmc2VyaWFsX2lyKTsNCisNCiAJcmVzdWx0ID0gZGV2bV9yZXF1ZXN0X2ly
-cSgmZGV2LT5kZXYsIGlycSwgc2VyaWFsX2lyX2lycV9oYW5kbGVyLA0KIAkJCQkgIHNoYXJlX2ly
-cSA/IElSUUZfU0hBUkVEIDogMCwNCiAJCQkJICBLQlVJTERfTU9ETkFNRSwgJmhhcmR3YXJlKTsN
-CkBAIC01MTYsOSArNTc1LDYgQEAgc3RhdGljIGludCBzZXJpYWxfaXJfcHJvYmUoc3RydWN0IHBs
-YXRmb3JtX2RldmljZSAqZGV2KQ0KIAkJcmV0dXJuIC1FQlVTWTsNCiAJfQ0KIA0KLSAtIC0Jc2V0
-dXBfdGltZXIoJnNlcmlhbF9pci50aW1lb3V0X3RpbWVyLCBzZXJpYWxfaXJfdGltZW91dCwNCi0g
-LSAtCQkgICAgKHVuc2lnbmVkIGxvbmcpJnNlcmlhbF9pcik7DQotIC0gLQ0KIAlyZXN1bHQgPSBo
-YXJkd2FyZV9pbml0X3BvcnQoKTsNCiAJaWYgKHJlc3VsdCA8IDApDQogCQlyZXR1cm4gcmVzdWx0
-Ow0KQEAgLTU1Miw3ICs2MDgsOCBAQCBzdGF0aWMgaW50IHNlcmlhbF9pcl9wcm9iZShzdHJ1Y3Qg
-cGxhdGZvcm1fZGV2aWNlICpkZXYpDQogCQkJIHNlbnNlID8gImxvdyIgOiAiaGlnaCIpOw0KIA0K
-IAlkZXZfZGJnKCZkZXYtPmRldiwgIkludGVycnVwdCAlZCwgcG9ydCAlMDR4IG9idGFpbmVkXG4i
-LCBpcnEsIGlvKTsNCi0gLSAtCXJldHVybiAwOw0KKw0KKwlyZXR1cm4gZGV2bV9yY19yZWdpc3Rl
-cl9kZXZpY2UoJmRldi0+ZGV2LCByY2Rldik7DQogfQ0KIA0KIHN0YXRpYyBpbnQgc2VyaWFsX2ly
-X29wZW4oc3RydWN0IHJjX2RldiAqcmNkZXYpDQpAQCAtNzIzLDcgKzc4MCw2IEBAIHN0YXRpYyB2
-b2lkIHNlcmlhbF9pcl9leGl0KHZvaWQpDQogDQogc3RhdGljIGludCBfX2luaXQgc2VyaWFsX2ly
-X2luaXRfbW9kdWxlKHZvaWQpDQogew0KLSAtIC0Jc3RydWN0IHJjX2RldiAqcmNkZXY7DQogCWlu
-dCByZXN1bHQ7DQogDQogCXN3aXRjaCAodHlwZSkgew0KQEAgLTc1NCw2MyArODEwLDkgQEAgc3Rh
-dGljIGludCBfX2luaXQgc2VyaWFsX2lyX2luaXRfbW9kdWxlKHZvaWQpDQogCQlzZW5zZSA9ICEh
-c2Vuc2U7DQogDQogCXJlc3VsdCA9IHNlcmlhbF9pcl9pbml0KCk7DQotIC0gLQlpZiAocmVzdWx0
-KQ0KLSAtIC0JCXJldHVybiByZXN1bHQ7DQotIC0gLQ0KLSAtIC0JcmNkZXYgPSBkZXZtX3JjX2Fs
-bG9jYXRlX2RldmljZSgmc2VyaWFsX2lyLnBkZXYtPmRldiwgUkNfRFJJVkVSX0lSX1JBVyk7DQot
-IC0gLQlpZiAoIXJjZGV2KSB7DQotIC0gLQkJcmVzdWx0ID0gLUVOT01FTTsNCi0gLSAtCQlnb3Rv
-IHNlcmlhbF9jbGVhbnVwOw0KLSAtIC0JfQ0KLSAtIC0NCi0gLSAtCWlmIChoYXJkd2FyZVt0eXBl
-XS5zZW5kX3B1bHNlICYmIGhhcmR3YXJlW3R5cGVdLnNlbmRfc3BhY2UpDQotIC0gLQkJcmNkZXYt
-PnR4X2lyID0gc2VyaWFsX2lyX3R4Ow0KLSAtIC0JaWYgKGhhcmR3YXJlW3R5cGVdLnNldF9zZW5k
-X2NhcnJpZXIpDQotIC0gLQkJcmNkZXYtPnNfdHhfY2FycmllciA9IHNlcmlhbF9pcl90eF9jYXJy
-aWVyOw0KLSAtIC0JaWYgKGhhcmR3YXJlW3R5cGVdLnNldF9kdXR5X2N5Y2xlKQ0KLSAtIC0JCXJj
-ZGV2LT5zX3R4X2R1dHlfY3ljbGUgPSBzZXJpYWxfaXJfdHhfZHV0eV9jeWNsZTsNCi0gLSAtDQot
-IC0gLQlzd2l0Y2ggKHR5cGUpIHsNCi0gLSAtCWNhc2UgSVJfSE9NRUJSRVc6DQotIC0gLQkJcmNk
-ZXYtPmlucHV0X25hbWUgPSAiU2VyaWFsIElSIHR5cGUgaG9tZS1icmV3IjsNCi0gLSAtCQlicmVh
-azsNCi0gLSAtCWNhc2UgSVJfSVJERU86DQotIC0gLQkJcmNkZXYtPmlucHV0X25hbWUgPSAiU2Vy
-aWFsIElSIHR5cGUgSVJkZW8iOw0KLSAtIC0JCWJyZWFrOw0KLSAtIC0JY2FzZSBJUl9JUkRFT19S
-RU1PVEU6DQotIC0gLQkJcmNkZXYtPmlucHV0X25hbWUgPSAiU2VyaWFsIElSIHR5cGUgSVJkZW8g
-cmVtb3RlIjsNCi0gLSAtCQlicmVhazsNCi0gLSAtCWNhc2UgSVJfQU5JTUFYOg0KLSAtIC0JCXJj
-ZGV2LT5pbnB1dF9uYW1lID0gIlNlcmlhbCBJUiB0eXBlIEFuaW1hWCI7DQotIC0gLQkJYnJlYWs7
-DQotIC0gLQljYXNlIElSX0lHT1I6DQotIC0gLQkJcmNkZXYtPmlucHV0X25hbWUgPSAiU2VyaWFs
-IElSIHR5cGUgSWdvclBsdWciOw0KLSAtIC0JCWJyZWFrOw0KLSAtIC0JfQ0KLSAtIC0NCi0gLSAt
-CXJjZGV2LT5pbnB1dF9waHlzID0gS0JVSUxEX01PRE5BTUUgIi9pbnB1dDAiOw0KLSAtIC0JcmNk
-ZXYtPmlucHV0X2lkLmJ1c3R5cGUgPSBCVVNfSE9TVDsNCi0gLSAtCXJjZGV2LT5pbnB1dF9pZC52
-ZW5kb3IgPSAweDAwMDE7DQotIC0gLQlyY2Rldi0+aW5wdXRfaWQucHJvZHVjdCA9IDB4MDAwMTsN
-Ci0gLSAtCXJjZGV2LT5pbnB1dF9pZC52ZXJzaW9uID0gMHgwMTAwOw0KLSAtIC0JcmNkZXYtPm9w
-ZW4gPSBzZXJpYWxfaXJfb3BlbjsNCi0gLSAtCXJjZGV2LT5jbG9zZSA9IHNlcmlhbF9pcl9jbG9z
-ZTsNCi0gLSAtCXJjZGV2LT5kZXYucGFyZW50ID0gJnNlcmlhbF9pci5wZGV2LT5kZXY7DQotIC0g
-LQlyY2Rldi0+YWxsb3dlZF9wcm90b2NvbHMgPSBSQ19CSVRfQUxMX0lSX0RFQ09ERVI7DQotIC0g
-LQlyY2Rldi0+ZHJpdmVyX25hbWUgPSBLQlVJTERfTU9ETkFNRTsNCi0gLSAtCXJjZGV2LT5tYXBf
-bmFtZSA9IFJDX01BUF9SQzZfTUNFOw0KLSAtIC0JcmNkZXYtPm1pbl90aW1lb3V0ID0gMTsNCi0g
-LSAtCXJjZGV2LT50aW1lb3V0ID0gSVJfREVGQVVMVF9USU1FT1VUOw0KLSAtIC0JcmNkZXYtPm1h
-eF90aW1lb3V0ID0gMTAgKiBJUl9ERUZBVUxUX1RJTUVPVVQ7DQotIC0gLQlyY2Rldi0+cnhfcmVz
-b2x1dGlvbiA9IDI1MDAwMDsNCi0gLSAtDQotIC0gLQlzZXJpYWxfaXIucmNkZXYgPSByY2RldjsN
-Ci0gLSAtDQotIC0gLQlyZXN1bHQgPSByY19yZWdpc3Rlcl9kZXZpY2UocmNkZXYpOw0KLSAtIC0N
-CiAJaWYgKCFyZXN1bHQpDQogCQlyZXR1cm4gMDsNCi0gLSAtc2VyaWFsX2NsZWFudXA6DQorDQog
-CXNlcmlhbF9pcl9leGl0KCk7DQogCXJldHVybiByZXN1bHQ7DQogfQ0KQEAgLTgxOCw3ICs4MjAs
-NiBAQCBzdGF0aWMgaW50IF9faW5pdCBzZXJpYWxfaXJfaW5pdF9tb2R1bGUodm9pZCkNCiBzdGF0
-aWMgdm9pZCBfX2V4aXQgc2VyaWFsX2lyX2V4aXRfbW9kdWxlKHZvaWQpDQogew0KIAlkZWxfdGlt
-ZXJfc3luYygmc2VyaWFsX2lyLnRpbWVvdXRfdGltZXIpOw0KLSAtIC0JcmNfdW5yZWdpc3Rlcl9k
-ZXZpY2Uoc2VyaWFsX2lyLnJjZGV2KTsNCiAJc2VyaWFsX2lyX2V4aXQoKTsNCiB9DQogDQotIC0g
-LS0gDQoyLjkuMw0KLS0tLS1CRUdJTiBQR1AgU0lHTkFUVVJFLS0tLS0NClZlcnNpb246IEdudVBH
-IHYyDQoNCmlRSWNCQUVCQ0FBR0JRSllzWmhFQUFvSkVBaGZQcjJPNU9FVjJsOFAvaTBqeWlrVHNP
-QzROYUNzSW1CaFZzTTUNCnNkZ2p5K3dpYitoQ3dkbjlIRE9SeEZxN1AwWnlLU0Vya1JuSElaU2lx
-dTFxNFM5UStYYTVoOTN0YUVkWmkzOEgNCjJBaW41ckI0MHk3ZVhnc3NzVTlBUEhpbjg5SG1kVDlY
-V0tTN3BBRUUxNm1LaGlpdXUwY2dGZCtMbmdEeXBqTlENCnM1WWx6ZldGc042dWJqUy90MndKcHh4
-eWVwc0tvQ3R2OHNtVE9meVFaSWh3S1VjV1dDOWtKVEE3N3ViTzllZ3INClpCRnpzdncwWGJFalc4
-Y3VpNEVFdWR1b3pEOUsxT3JTc0NpYitOSzJOTVUwbHVZeTlZdHNVdGpONU96dTFlNnQNCko1UU9k
-c0psMGFxTFBmRWs4VFczKys1NU1hSzlMVWdFNmFhQ2RudGJlazVjWm1nc2szYWQ3OWtEUDhnU2R4
-QVYNClZVWERFUFpRcEpYZWRBNlMvYkFtWFViRVc3bVZISDlBTFlTYThBR1hDQXJLS3R6KzVpWE5Q
-MCs4M0pvRkdFSGINCnRUQ0dJbk5mc0JIZDgvTnFkVy91L3VnR1ZqNHh0MEtjKzRvT1BZZWNqTzJ0
-aUNTK2xwS1dJRHc5Yk9jYVI0LzANCncremJDbUlFbUJaNzRsTTB5cytUbUNtREd3WEMyUVlFcVkw
-VSs5Wlpjc3krN2JNY3hKSDZzbHJqZmFhNmZKYTANCmoyT1UycUIwVm5VVEpxMGEwTzhJTDdzNWpR
-bjFsS05wbUc5VEtZTm50Q3pCdUhiYXNMMnJzcitKcnI2dnBNS1UNCnZZYnBSYXBvQW5JWGFVVzcw
-OGJkdEEyeDcvSmZpTGo5TTdLdllKZmVGQXQ5SEdIZVhxMUhKc2FHaml4MW1aaDMNCm5MLzY4RnFj
-MlNjdXJienEvQzdaDQo9QXB5ZQ0KLS0tLS1FTkQgUEdQIFNJR05BVFVSRS0tLS0tDQo=
+Changed permissions to octal style
+Found using checkpatch
+
+Signed-off-by: Derek Robson <robsonde@gmail.com>
+---
+ drivers/staging/media/platform/bcm2835/bcm2835-camera.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/staging/media/platform/bcm2835/bcm2835-camera.c b/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
+index ca15a698e018..7ef9147ddef7 100644
+--- a/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
++++ b/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
+@@ -61,9 +61,9 @@ MODULE_PARM_DESC(video_nr, "videoX start numbers, -1 is autodetect");
+ 
+ static int max_video_width = MAX_VIDEO_MODE_WIDTH;
+ static int max_video_height = MAX_VIDEO_MODE_HEIGHT;
+-module_param(max_video_width, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
++module_param(max_video_width, int, 0644);
+ MODULE_PARM_DESC(max_video_width, "Threshold for video mode");
+-module_param(max_video_height, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
++module_param(max_video_height, int, 0644);
+ MODULE_PARM_DESC(max_video_height, "Threshold for video mode");
+ 
+ /* Gstreamer bug https://bugzilla.gnome.org/show_bug.cgi?id=726521
+@@ -76,7 +76,7 @@ MODULE_PARM_DESC(max_video_height, "Threshold for video mode");
+  * result).
+  */
+ static int gst_v4l2src_is_broken;
+-module_param(gst_v4l2src_is_broken, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
++module_param(gst_v4l2src_is_broken, int, 0644);
+ MODULE_PARM_DESC(gst_v4l2src_is_broken, "If non-zero, enable workaround for Gstreamer");
+ 
+ /* global device data array */
+-- 
+2.11.1
+
