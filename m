@@ -1,130 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:39075 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751665AbdBMKm6 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33624 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750882AbdBLWpB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 05:42:58 -0500
-Subject: Re: [PATCH v6 3/3] arm: dts: mt2701: Add node for Mediatek JPEG
- Decoder
-To: Rick Chang <rick.chang@mediatek.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>
-References: <1479353915-5043-1-git-send-email-rick.chang@mediatek.com>
- <1479353915-5043-4-git-send-email-rick.chang@mediatek.com>
- <d602365a-e87b-5bae-8698-bd43063ef079@xs4all.nl>
- <1479784905.8964.15.camel@mtksdaap41>
- <badf8125-27ed-9c5b-fbc0-75716ffdfb0e@xs4all.nl>
- <1479866054.8964.21.camel@mtksdaap41> <1479894203.8964.29.camel@mtksdaap41>
- <1483670099.18931.5.camel@mtksdaap41>
- <974d20f3-5133-0869-2a35-c1617bec5d6e@xs4all.nl>
- <c35bd06d-f012-1289-e765-02dc26b87e27@gmail.com>
- <1484011718.10361.7.camel@mtksdaap41>
- <267403e5-18ac-0c74-10ca-cc36b909dfb4@gmail.com>
- <1486606247.4093.9.camel@mtksdaap41>
-Cc: Eddie Huang <eddie.huang@mediatek.com>, devicetree@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        srv_heupstream@mediatek.com,
-        James Liao <jamesjj.liao@mediatek.com>,
-        linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
-        linux-mediatek@lists.infradead.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <bc20ac4c-c746-6143-a695-12edef92f036@xs4all.nl>
-Date: Mon, 13 Feb 2017 11:42:48 +0100
+        Sun, 12 Feb 2017 17:45:01 -0500
+Date: Mon, 13 Feb 2017 00:44:26 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+Subject: Re: [PATCH 3/4] media-ctl: propagate frame interval
+Message-ID: <20170212224426.GE16975@valkosipuli.retiisi.org.uk>
+References: <20170207160850.10299-1-p.zabel@pengutronix.de>
+ <20170207160850.10299-4-p.zabel@pengutronix.de>
 MIME-Version: 1.0
-In-Reply-To: <1486606247.4093.9.camel@mtksdaap41>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170207160850.10299-4-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rick,
+Hi Philipp,
 
-On 02/09/2017 03:10 AM, Rick Chang wrote:
-> Hi Hans,
+On Tue, Feb 07, 2017 at 05:08:49PM +0100, Philipp Zabel wrote:
+> Same as the media bus format, the frame interval should be propagated
+> from output pads to connected entities' input pads.
 > 
-> All the dependences of this patch have been merged into v4.10-next.Could
-> you take v9 of this patch set? Matthias will help us to take the dts
-> part.
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-Apologies for the delay. I'm posting the pull request today, but I don't know
-if Mauro will pick it up for 4.11.
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Mauro, since this needs to be coordinated with Matthias can you let him know
-whether this will go in for 4.11 or 4.12?
-
-Regards,
-
-	Hans
-
-> 
-> Best Regards,
-> Rick
-> 
-> On Fri, 2017-01-13 at 16:02 +0100, Matthias Brugger wrote:
->> Hi James,
->>
->> On 10/01/17 02:28, Eddie Huang wrote:
->>> Hi Matthias,
->>>
->>> On Mon, 2017-01-09 at 19:45 +0100, Matthias Brugger wrote:
->>>>
->>>> On 09/01/17 12:29, Hans Verkuil wrote:
->>>>> Hi Rick,
->>>>>
->>>>> On 01/06/2017 03:34 AM, Rick Chang wrote:
->>>>>> Hi Hans,
->>>>>>
->>>>>> The dependence on [1] has been merged in 4.10, but [2] has not.Do you have
->>>>>> any idea about this patch series? Should we wait for [2] or we could merge
->>>>>> the source code and dt-binding first?
->>>>>
->>>>> Looking at [2] I noticed that the last comment was July 4th. What is the reason
->>>>> it hasn't been merged yet?
->>>>>
->>>>> If I know [2] will be merged for 4.11, then I am fine with merging this media
->>>>> patch series. The dependency of this patch on [2] is something Mauro can handle.
->>>>>
->>>>> If [2] is not merged for 4.11, then I think it is better to wait until it is
->>>>> merged.
->>>>>
->>>>
->>>> I can't take [2] because there is no scpsys in the dts present. It seems
->>>> that it got never posted.
->>>>
->>>> Rick can you please follow-up with James and provide a patch which adds
->>>> a scpsys node to the mt2701.dtsi?
->>>>
->>>
->>> James sent three MT2701 dts patches [1] two weeks ago, these three
->>> patches include scpsys node. Please take a reference. And We will send
->>> new MT2701 ionmmu/smi dtsi node patch base on [1] later, thus you can
->>> accept and merge to 4.11.
->>>
->>
->> Thanks for the clarification. I pulled all this patches into 
->> v4.10-next/dts32
->>
->> Hans will you take v9 of this patch set?
->> Then I'll take the dts patch.
->>
->> Regards,
->> Matthias
->>
->>> [1]
->>> https://patchwork.kernel.org/patch/9489991/
->>> https://patchwork.kernel.org/patch/9489985/
->>> https://patchwork.kernel.org/patch/9489989/
->>>
->>> Thanks,
->>> Eddie
->>>
->>>
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
