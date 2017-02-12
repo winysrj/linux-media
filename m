@@ -1,79 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:43455
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932349AbdBHM2P (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Feb 2017 07:28:15 -0500
-Date: Wed, 8 Feb 2017 10:28:07 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Fabian Frederick <fabf@skynet.be>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-        linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-pm@vger.kernel.org, openipmi-developer@lists.sourceforge.net,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-        linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org,
-        kgdb-bugreport@lists.sourceforge.net,
-        Akinobu Mita <akinobu.mita@gmail.com>
-Subject: Re: [PATCH 00/14] use atomic_dec_not_zero()
-Message-ID: <20170208102807.5cf7a14d@vento.lan>
-In-Reply-To: <20170130183920.12476-1-fabf@skynet.be>
-References: <20170130183920.12476-1-fabf@skynet.be>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33226 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751468AbdBLWLV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 12 Feb 2017 17:11:21 -0500
+Date: Mon, 13 Feb 2017 00:10:43 +0200
+From: Sakari <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] smiapp: add CCP2 support
+Message-ID: <20170212221042.GA16975@valkosipuli.retiisi.org.uk>
+References: <20170208131127.GA29237@amd>
+ <20170211220752.zr3j7irpxl42ewo3@ihha.localdomain>
+ <20170211232258.GA11232@amd>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170211232258.GA11232@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 30 Jan 2017 19:39:20 +0100
-Fabian Frederick <fabf@skynet.be> escreveu:
+Hi Pavel,
 
-> complementary definition to atomic_inc_not_zero() featured in
-> lib/fault-inject.c. This small patchset moves it to
-> include/linux/atomic.h using it instead of
-> atomic_add_unless(value, -1, 0)
+On Sun, Feb 12, 2017 at 12:22:58AM +0100, Pavel Machek wrote:
+> Hi!
 > 
-> s390 patches were not compile-tested.
+> > Besides this patch, what else is needed? The CSI-2 / CCP2 support is
+> > missing in V4L2 OF at least. It'd be better to have this all in the same
+> > set.
 > 
-> Fabian Frederick (14):
->   locking/atomic: import atomic_dec_not_zero()
->   drm/exynos: use atomic_dec_not_zero()
->   drm/omap: use atomic_dec_not_zero()
-
->   m5mols: use atomic_dec_not_zero()
->   omap3isp: use atomic_dec_not_zero()
-
-For the media changes:
-
-Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
->   s390/qeth: use atomic_dec_not_zero()
->   PM / RUNTIME: use atomic_dec_not_zero()
->   ipmi: use atomic_dec_not_zero()
->   kdb: use atomic_dec_not_zero()
->   PM / Hibernate: use atomic_dec_not_zero()
->   PM: use atomic_dec_not_zero()
->   s390/topology: use atomic_dec_not_zero()
->   ext4: use atomic_dec_not_zero()
->   xfs: use atomic_dec_not_zero()
+> Quite a lot of is needed.
 > 
->  arch/s390/kernel/topology.c               | 2 +-
->  drivers/base/power/runtime.c              | 4 ++--
->  drivers/char/ipmi/ipmi_msghandler.c       | 2 +-
->  drivers/gpu/drm/exynos/exynos_drm_fimd.c  | 2 +-
->  drivers/gpu/drm/omapdrm/omap_dmm_tiler.c  | 2 +-
->  drivers/media/i2c/m5mols/m5mols_core.c    | 2 +-
->  drivers/media/platform/omap3isp/ispstat.c | 2 +-
->  drivers/s390/net/qeth_core_main.c         | 2 +-
->  fs/ext4/ext4.h                            | 2 +-
->  fs/xfs/xfs_buf.c                          | 2 +-
->  include/linux/atomic.h                    | 2 ++
->  kernel/debug/kdb/kdb_main.c               | 2 +-
->  kernel/power/hibernate.c                  | 4 ++--
->  kernel/power/user.c                       | 2 +-
->  lib/fault-inject.c                        | 2 --
->  15 files changed, 17 insertions(+), 17 deletions(-)
+> > I pushed the two DT patches here:
+> > 
+> > <URL:https://git.linuxtv.org/sailus/media_tree.git/commit/?h=ccp2>
 > 
+> Thanks for a branch. If you could the two patches that look ok there,
+> it would mean less work for me, I could just mark those two as applied
+> here.
 
+I think a verb could be missing from the sentence. :-) I'll send a pull
+request for the entire set, containing more than just the DT changes. Feel
+free to base yours on top of this.
 
+A word of warning: I have patches to replace the V4L2 OF framework by V4L2
+fwnode. The preliminary set (which is still missing V4L2 OF removal) is
+here, I'll post a refresh soon:
 
-Thanks,
-Mauro
+<URL:http://www.spinics.net/lists/linux-media/msg106160.html>
+
+Let's see what the order ends up to be in the end. If the fwnode set is
+applicable first, then I'd like to rebase the lane parsing changes on top of
+that rather than the other way around --- it's easier that way.
+
+> 
+> Core changes for CSI2 support are needed.
+
+CCP2? We could get these and the smiapp and possibly also the omap3isp
+patches in first, to avoid having to manage a large patchset. What do you
+think?
+
+The rest could come later.
+
+> 
+> There are core changes in notifier locking, and subdev support.
+> 
+> I need video-bus-switch, at least for testing.
+> 
+> I need subdev support for omap3isp, so that we can attach flash and
+> focus devices.
+> 
+> Finally dts support on N900 can be enabled.
+
+Yes! 8-)
+
+I don't know if any euros were saved by using that video bus switch but it
+sure has caused a lot of hassle (and perhaps some gray hair) for software
+engineers. X-)
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
