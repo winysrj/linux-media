@@ -1,744 +1,1044 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay4.synopsys.com ([198.182.47.9]:51311 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933960AbdBQNT1 (ORCPT
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:36594 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751298AbdBLWxL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Feb 2017 08:19:27 -0500
-From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org
-Cc: vladimir_zapolskiy@mentor.com, CARLOS.PALMINHA@synopsys.com,
-        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>,
-        Pavel Machek <pavel@ucw.cz>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Rob Herring <robh+dt@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>
-Subject: [PATCH v9 2/2] Add support for OV5647 sensor.
-Date: Fri, 17 Feb 2017 13:14:16 +0000
-Message-Id: <412e51e695630281d2084a77c0329fd273ea00d7.1487334912.git.roliveir@synopsys.com>
-In-Reply-To: <cover.1487334912.git.roliveir@synopsys.com>
-References: <cover.1487334912.git.roliveir@synopsys.com>
-In-Reply-To: <cover.1487334912.git.roliveir@synopsys.com>
-References: <cover.1487334912.git.roliveir@synopsys.com>
+        Sun, 12 Feb 2017 17:53:11 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Subject: Re: [PATCH v3 22/24] media: imx: Add MIPI CSI-2 OV5640 sensor subdev
+ driver
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <1483755102-24785-23-git-send-email-steve_longerbeam@mentor.com>
+ <15482412.XOGz6nc3Rt@avalon>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarit.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Message-ID: <2744b327-31c0-ac2c-240c-448168bec657@gmail.com>
+Date: Sun, 12 Feb 2017 14:53:06 -0800
+MIME-Version: 1.0
+In-Reply-To: <15482412.XOGz6nc3Rt@avalon>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The OV5647 sensor from Omnivision supports up to 2592x1944 @ 15 fps, RAW 8
-and RAW 10 output formats, and MIPI CSI-2 interface.
+(resending text only)
 
-The driver adds support for 640x480 RAW 8.
 
-Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
----
- MAINTAINERS                |   7 +
- drivers/media/i2c/Kconfig  |  11 +
- drivers/media/i2c/Makefile |   1 +
- drivers/media/i2c/ov5647.c | 638 +++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 657 insertions(+)
- create mode 100644 drivers/media/i2c/ov5647.c
+On 02/02/2017 02:36 AM, Laurent Pinchart wrote:
+> Hi Steve,
+>
+> Thank you for the patch. Many of the comments below apply to the ov5642 driver
+> too, please take them into account when reworking patch 23/24.
+>
+> On Friday 06 Jan 2017 18:11:40 Steve Longerbeam wrote:
+>> This driver is based on ov5640_mipi.c from Freescale imx_3.10.17_1.0.0_beta
+>> branch, modified heavily to bring forward to latest interfaces and code
+>> cleanup.
+>>
+>> Signed-off-by: Steve Longerbeam<steve_longerbeam@mentor.com>
+>> ---
+>>   drivers/staging/media/imx/Kconfig       |    8 +
+>>   drivers/staging/media/imx/Makefile      |    2 +
+>>   drivers/staging/media/imx/ov5640-mipi.c | 2348 ++++++++++++++++++++++++++++
+> You're missing DT bindings.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 8e7e8d7855ee..7bbca271acc8 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -9109,6 +9109,13 @@ M:	Harald Welte <laforge@gnumonks.org>
- S:	Maintained
- F:	drivers/char/pcmcia/cm4040_cs.*
- 
-+OMNIVISION OV5647 SENSOR DRIVER
-+M:	Ramiro Oliveira <roliveir@synopsys.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	drivers/media/i2c/ov5647.c
-+
- OMNIVISION OV7670 SENSOR DRIVER
- M:	Jonathan Corbet <corbet@lwn.net>
- L:	linux-media@vger.kernel.org
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index cee1dae6e014..8435b99f38bc 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -531,6 +531,17 @@ config VIDEO_OV2659
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called ov2659.
- 
-+config VIDEO_OV5647
-+	tristate "OmniVision OV5647 sensor support"
-+	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-+	depends on MEDIA_CAMERA_SUPPORT
-+	---help---
-+	  This is a Video4Linux2 sensor-level driver for the OmniVision
-+	  OV5647 camera.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called ov5647.
-+
- config VIDEO_OV7640
- 	tristate "OmniVision OV7640 sensor support"
- 	depends on I2C && VIDEO_V4L2
-diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-index 5bc7bbeb5499..ef2ccf65f94c 100644
---- a/drivers/media/i2c/Makefile
-+++ b/drivers/media/i2c/Makefile
-@@ -83,3 +83,4 @@ obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
- obj-$(CONFIG_VIDEO_ML86V7667)	+= ml86v7667.o
- obj-$(CONFIG_VIDEO_OV2659)	+= ov2659.o
- obj-$(CONFIG_VIDEO_TC358743)	+= tc358743.o
-+obj-$(CONFIG_VIDEO_OV5647)	+= ov5647.o
-diff --git a/drivers/media/i2c/ov5647.c b/drivers/media/i2c/ov5647.c
-new file mode 100644
-index 000000000000..34e620fabbaf
---- /dev/null
-+++ b/drivers/media/i2c/ov5647.c
-@@ -0,0 +1,638 @@
-+/*
-+ * A V4L2 driver for OmniVision OV5647 cameras.
-+ *
-+ * Based on Samsung S5K6AAFX SXGA 1/6" 1.3M CMOS Image Sensor driver
-+ * Copyright (C) 2011 Sylwester Nawrocki <s.nawrocki@samsung.com>
-+ *
-+ * Based on Omnivision OV7670 Camera Driver
-+ * Copyright (C) 2006-7 Jonathan Corbet <corbet@lwn.net>
-+ *
-+ * Copyright (C) 2016, Synopsys, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ * This program is distributed .as is. WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/clk.h>
-+#include <linux/delay.h>
-+#include <linux/i2c.h>
-+#include <linux/init.h>
-+#include <linux/io.h>
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/videodev2.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-image-sizes.h>
-+#include <media/v4l2-mediabus.h>
-+#include <media/v4l2-of.h>
-+
-+#define SENSOR_NAME "ov5647"
-+
-+#define OV5647_SW_RESET		0x1003
-+#define OV5647_REG_CHIPID_H	0x300A
-+#define OV5647_REG_CHIPID_L	0x300B
-+
-+#define REG_TERM 0xfffe
-+#define VAL_TERM 0xfe
-+#define REG_DLY  0xffff
-+
-+#define OV5647_ROW_START		0x01
-+#define OV5647_ROW_START_MIN		0
-+#define OV5647_ROW_START_MAX		2004
-+#define OV5647_ROW_START_DEF		54
-+
-+#define OV5647_COLUMN_START		0x02
-+#define OV5647_COLUMN_START_MIN		0
-+#define OV5647_COLUMN_START_MAX		2750
-+#define OV5647_COLUMN_START_DEF		16
-+
-+#define OV5647_WINDOW_HEIGHT		0x03
-+#define OV5647_WINDOW_HEIGHT_MIN	2
-+#define OV5647_WINDOW_HEIGHT_MAX	2006
-+#define OV5647_WINDOW_HEIGHT_DEF	1944
-+
-+#define OV5647_WINDOW_WIDTH		0x04
-+#define OV5647_WINDOW_WIDTH_MIN		2
-+#define OV5647_WINDOW_WIDTH_MAX		2752
-+#define OV5647_WINDOW_WIDTH_DEF		2592
-+
-+struct regval_list {
-+	u16 addr;
-+	u8 data;
-+};
-+
-+struct ov5647 {
-+	struct v4l2_subdev		sd;
-+	struct media_pad		pad;
-+	struct mutex			lock;
-+	struct v4l2_mbus_framefmt	format;
-+	unsigned int			width;
-+	unsigned int			height;
-+	int				power_count;
-+	struct clk			*xclk;
-+	/* External clock frequency currently supported is 30MHz */
-+	u32				xclk_freq;
-+};
-+
-+static inline struct ov5647 *to_state(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct ov5647, sd);
-+}
-+
-+static struct regval_list sensor_oe_disable_regs[] = {
-+	{0x3000, 0x00},
-+	{0x3001, 0x00},
-+	{0x3002, 0x00},
-+};
-+
-+static struct regval_list sensor_oe_enable_regs[] = {
-+	{0x3000, 0x0f},
-+	{0x3001, 0xff},
-+	{0x3002, 0xe4},
-+};
-+
-+static struct regval_list ov5647_640x480[] = {
-+	{0x0100, 0x00},
-+	{0x0103, 0x01},
-+	{0x3034, 0x08},
-+	{0x3035, 0x21},
-+	{0x3036, 0x46},
-+	{0x303c, 0x11},
-+	{0x3106, 0xf5},
-+	{0x3821, 0x07},
-+	{0x3820, 0x41},
-+	{0x3827, 0xec},
-+	{0x370c, 0x0f},
-+	{0x3612, 0x59},
-+	{0x3618, 0x00},
-+	{0x5000, 0x06},
-+	{0x5001, 0x01},
-+	{0x5002, 0x41},
-+	{0x5003, 0x08},
-+	{0x5a00, 0x08},
-+	{0x3000, 0x00},
-+	{0x3001, 0x00},
-+	{0x3002, 0x00},
-+	{0x3016, 0x08},
-+	{0x3017, 0xe0},
-+	{0x3018, 0x44},
-+	{0x301c, 0xf8},
-+	{0x301d, 0xf0},
-+	{0x3a18, 0x00},
-+	{0x3a19, 0xf8},
-+	{0x3c01, 0x80},
-+	{0x3b07, 0x0c},
-+	{0x380c, 0x07},
-+	{0x380d, 0x68},
-+	{0x380e, 0x03},
-+	{0x380f, 0xd8},
-+	{0x3814, 0x31},
-+	{0x3815, 0x31},
-+	{0x3708, 0x64},
-+	{0x3709, 0x52},
-+	{0x3808, 0x02},
-+	{0x3809, 0x80},
-+	{0x380a, 0x01},
-+	{0x380b, 0xE0},
-+	{0x3801, 0x00},
-+	{0x3802, 0x00},
-+	{0x3803, 0x00},
-+	{0x3804, 0x0a},
-+	{0x3805, 0x3f},
-+	{0x3806, 0x07},
-+	{0x3807, 0xa1},
-+	{0x3811, 0x08},
-+	{0x3813, 0x02},
-+	{0x3630, 0x2e},
-+	{0x3632, 0xe2},
-+	{0x3633, 0x23},
-+	{0x3634, 0x44},
-+	{0x3636, 0x06},
-+	{0x3620, 0x64},
-+	{0x3621, 0xe0},
-+	{0x3600, 0x37},
-+	{0x3704, 0xa0},
-+	{0x3703, 0x5a},
-+	{0x3715, 0x78},
-+	{0x3717, 0x01},
-+	{0x3731, 0x02},
-+	{0x370b, 0x60},
-+	{0x3705, 0x1a},
-+	{0x3f05, 0x02},
-+	{0x3f06, 0x10},
-+	{0x3f01, 0x0a},
-+	{0x3a08, 0x01},
-+	{0x3a09, 0x27},
-+	{0x3a0a, 0x00},
-+	{0x3a0b, 0xf6},
-+	{0x3a0d, 0x04},
-+	{0x3a0e, 0x03},
-+	{0x3a0f, 0x58},
-+	{0x3a10, 0x50},
-+	{0x3a1b, 0x58},
-+	{0x3a1e, 0x50},
-+	{0x3a11, 0x60},
-+	{0x3a1f, 0x28},
-+	{0x4001, 0x02},
-+	{0x4004, 0x02},
-+	{0x4000, 0x09},
-+	{0x4837, 0x24},
-+	{0x4050, 0x6e},
-+	{0x4051, 0x8f},
-+	{0x0100, 0x01},
-+};
-+
-+static int ov5647_write(struct v4l2_subdev *sd, u16 reg, u8 val)
-+{
-+	int ret;
-+	unsigned char data[3] = { reg >> 8, reg & 0xff, val};
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+
-+	ret = i2c_master_send(client, data, 3);
-+	if (ret < 0)
-+		dev_dbg(&client->dev, "%s: i2c write error, reg: %x\n",
-+				__func__, reg);
-+
-+	return ret;
-+}
-+
-+static int ov5647_read(struct v4l2_subdev *sd, u16 reg, u8 *val)
-+{
-+	int ret;
-+	unsigned char data_w[2] = { reg >> 8, reg & 0xff };
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+
-+	ret = i2c_master_send(client, data_w, 2);
-+	if (ret < 0) {
-+		dev_dbg(&client->dev, "%s: i2c read error, reg: %x\n",
-+			__func__, reg);
-+		return ret;
-+	}
-+
-+	ret = i2c_master_recv(client, val, 1);
-+	if (ret < 0)
-+		dev_dbg(&client->dev, "%s: i2c read error, reg: %x\n",
-+				__func__, reg);
-+
-+	return ret;
-+
-+}
-+
-+static int ov5647_write_array(struct v4l2_subdev *sd,
-+				struct regval_list *regs, int array_size)
-+{
-+	int i = 0, ret;
-+
-+	for (i = 0; i < array_size; i++) {
-+		ret = ov5647_write(sd, regs[i].addr, regs[i].data);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static int ov5647_set_virtual_channel(struct v4l2_subdev *sd, int channel)
-+{
-+	u8 channel_id;
-+	int ret;
-+
-+	ret = ov5647_read(sd, 0x4814, &channel_id);
-+	if (ret < 0)
-+		return ret;
-+
-+	channel_id &= ~(3 << 6);
-+	return ov5647_write(sd, 0x4814, channel_id | (channel << 6));
-+}
-+
-+static int ov5647_stream_on(struct v4l2_subdev *sd)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+
-+	ov5647_write(sd, 0x4202, 0x00);
-+
-+	dev_dbg(&client->dev, "Stream on");
-+
-+	return ov5647_write(sd, 0x300D, 0x00);
-+}
-+
-+static int ov5647_stream_off(struct v4l2_subdev *sd)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+
-+	ov5647_write(sd, 0x4202, 0x0f);
-+
-+	dev_dbg(&client->dev, "Stream off");
-+
-+	return ov5647_write(sd, 0x300D, 0x01);
-+}
-+
-+static int set_sw_standby(struct v4l2_subdev *sd, bool standby)
-+{
-+	int ret;
-+	u8 rdval;
-+
-+	ret = ov5647_read(sd, 0x0100, &rdval);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (standby)
-+		rdval &= ~0x01;
-+	else
-+		rdval |= 0x01;
-+
-+	return ov5647_write(sd, 0x0100, rdval);
-+}
-+
-+static int __sensor_init(struct v4l2_subdev *sd)
-+{
-+	int ret;
-+	u8 resetval;
-+	u8 rdval;
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+
-+	dev_dbg(&client->dev, "sensor init\n");
-+
-+	ret = ov5647_read(sd, 0x0100, &rdval);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = ov5647_write_array(sd, ov5647_640x480,
-+					ARRAY_SIZE(ov5647_640x480));
-+	if (ret < 0) {
-+		dev_err(&client->dev, "write sensor default regs error\n");
-+		return ret;
-+	}
-+
-+	ret = ov5647_set_virtual_channel(sd, 0);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = ov5647_read(sd, 0x0100, &resetval);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (!(resetval & 0x01)) {
-+		dev_err(&client->dev, "Device was in SW standby");
-+		ret = ov5647_write(sd, 0x0100, 0x01);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	return ov5647_write(sd, 0x4800, 0x04);
-+}
-+
-+static int sensor_power(struct v4l2_subdev *sd, int on)
-+{
-+	int ret;
-+	struct ov5647 *ov5647 = to_state(sd);
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+
-+	ret = 0;
-+	mutex_lock(&ov5647->lock);
-+
-+	if (on && !ov5647->power_count)	{
-+		dev_dbg(&client->dev, "OV5647 power on\n");
-+
-+		clk_set_rate(ov5647->xclk, ov5647->xclk_freq);
-+
-+		ret = clk_prepare_enable(ov5647->xclk);
-+		if (ret < 0) {
-+			dev_err(&client->dev, "clk prepare enable failed\n");
-+			goto out;
-+		}
-+
-+		ret = ov5647_write_array(sd, sensor_oe_enable_regs,
-+				ARRAY_SIZE(sensor_oe_enable_regs));
-+		if (ret < 0) {
-+			clk_disable_unprepare(ov5647->xclk);
-+			dev_err(&client->dev,
-+				"write sensor_oe_enable_regs error\n");
-+			goto out;
-+		}
-+
-+		ret = __sensor_init(sd);
-+		if (ret < 0) {
-+			clk_disable_unprepare(ov5647->xclk);
-+			dev_err(&client->dev,
-+				"Camera not available, check Power\n");
-+			goto out;
-+		}
-+	} else if (!on && ov5647->power_count == 1) {
-+		dev_dbg(&client->dev, "OV5647 power off\n");
-+
-+		dev_dbg(&client->dev, "disable oe\n");
-+		ret = ov5647_write_array(sd, sensor_oe_disable_regs,
-+				ARRAY_SIZE(sensor_oe_disable_regs));
-+
-+		if (ret < 0)
-+			dev_dbg(&client->dev, "disable oe failed\n");
-+
-+		ret = set_sw_standby(sd, true);
-+
-+		if (ret < 0)
-+			dev_dbg(&client->dev, "soft stby failed\n");
-+
-+		clk_disable_unprepare(ov5647->xclk);
-+	}
-+
-+	/* Update the power count. */
-+	ov5647->power_count += on ? 1 : -1;
-+	WARN_ON(ov5647->power_count < 0);
-+
-+out:
-+	mutex_unlock(&ov5647->lock);
-+
-+	return ret;
-+}
-+
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+static int sensor_get_register(struct v4l2_subdev *sd,
-+				struct v4l2_dbg_register *reg)
-+{
-+	u8 val;
-+	int ret;
-+
-+	ret = ov5647_read(sd, reg->reg & 0xff, &val);
-+	if (ret < 0)
-+		return ret;
-+
-+	reg->val = val;
-+	reg->size = 1;
-+
-+	return 0;
-+}
-+
-+static int sensor_set_register(struct v4l2_subdev *sd,
-+				const struct v4l2_dbg_register *reg)
-+{
-+	return ov5647_write(sd, reg->reg & 0xff, reg->val & 0xff);
-+}
-+#endif
-+
-+/**
-+ * @short Subdev core operations registration
-+ */
-+static const struct v4l2_subdev_core_ops subdev_core_ops = {
-+	.s_power		= sensor_power,
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+	.g_register		= sensor_get_register,
-+	.s_register		= sensor_set_register,
-+#endif
-+};
-+
-+static int s_stream(struct v4l2_subdev *sd, int enable)
-+{
-+	if (enable)
-+		return ov5647_stream_on(sd);
-+	else
-+		return ov5647_stream_off(sd);
-+}
-+
-+static const struct v4l2_subdev_video_ops subdev_video_ops = {
-+	.s_stream =		s_stream,
-+};
-+
-+static int enum_mbus_code(struct v4l2_subdev *sd,
-+				struct v4l2_subdev_pad_config *cfg,
-+				struct v4l2_subdev_mbus_code_enum *code)
-+{
-+	if (code->index > 0)
-+		return -EINVAL;
-+
-+	code->code = MEDIA_BUS_FMT_SBGGR8_1X8;
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_pad_ops subdev_pad_ops = {
-+	.enum_mbus_code =	enum_mbus_code,
-+};
-+
-+/**
-+ * @short Subdev operations registration
-+ *
-+ */
-+static const struct v4l2_subdev_ops subdev_ops = {
-+	.core		= &subdev_core_ops,
-+	.video		= &subdev_video_ops,
-+	.pad		= &subdev_pad_ops,
-+};
-+
-+static int ov5647_detect(struct v4l2_subdev *sd)
-+{
-+	u8 read;
-+	int ret;
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+
-+	ret = ov5647_write(sd, OV5647_SW_RESET, 0x01);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = ov5647_read(sd, OV5647_REG_CHIPID_H, &read);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (read != 0x56) {
-+		dev_err(&client->dev, "Wrong model version detected");
-+		return -ENODEV;
-+	}
-+
-+	ret = ov5647_read(sd, OV5647_REG_CHIPID_L, &read);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (read != 0x47) {
-+		dev_err(&client->dev, "Wrong model version detected");
-+		return -ENODEV;
-+	}
-+
-+	return ov5647_write(sd, OV5647_SW_RESET, 0x00);
-+}
-+
-+static int ov5647_registered(struct v4l2_subdev *sd)
-+{
-+	return 0;
-+}
-+
-+static int ov5647_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	struct v4l2_mbus_framefmt *format =
-+				v4l2_subdev_get_try_format(sd, fh->pad, 0);
-+	struct v4l2_rect *crop =
-+				v4l2_subdev_get_try_crop(sd, fh->pad, 0);
-+
-+	crop->left = OV5647_COLUMN_START_DEF;
-+	crop->top = OV5647_ROW_START_DEF;
-+	crop->width = OV5647_WINDOW_WIDTH_DEF;
-+	crop->height = OV5647_WINDOW_HEIGHT_DEF;
-+
-+	format->code = MEDIA_BUS_FMT_SBGGR8_1X8;
-+
-+	format->width = OV5647_WINDOW_WIDTH_DEF;
-+	format->height = OV5647_WINDOW_HEIGHT_DEF;
-+	format->field = V4L2_FIELD_NONE;
-+	format->colorspace = V4L2_COLORSPACE_SRGB;
-+
-+	return sensor_power(sd, true);
-+}
-+
-+static int ov5647_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	return sensor_power(sd, false);
-+}
-+
-+/**
-+ * @short Subdev internal operations registration
-+ *
-+ */
-+static const struct v4l2_subdev_internal_ops ov5647_subdev_internal_ops = {
-+	.registered = ov5647_registered,
-+	.open = ov5647_open,
-+	.close = ov5647_close,
-+};
-+
-+static int ov5647_probe(struct i2c_client *client,
-+			const struct i2c_device_id *id)
-+{
-+	struct device *dev = &client->dev;
-+	struct ov5647 *sensor;
-+	int ret;
-+	struct v4l2_subdev *sd;
-+
-+	sensor = devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
-+	if (sensor == NULL)
-+		return -ENOMEM;
-+
-+	/* get system clock (xclk) */
-+	sensor->xclk = devm_clk_get(dev, "xclk");
-+	if (IS_ERR(sensor->xclk)) {
-+		dev_err(dev, "could not get xclk");
-+		return PTR_ERR(sensor->xclk);
-+	}
-+
-+	sensor->xclk_freq = clk_get_rate(sensor->xclk);
-+	if (sensor->xclk_freq != 25000000) {
-+		dev_err(dev, "Unsupported clock frequency: %u\n",
-+			sensor->xclk_freq);
-+		return -EINVAL;
-+	}
-+
-+	mutex_init(&sensor->lock);
-+
-+	sd = &sensor->sd;
-+	v4l2_i2c_subdev_init(sd, client, &subdev_ops);
-+	sensor->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+
-+	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
-+	sd->entity.function = MEDIA_ENT_F_CAM_SENSOR;
-+	ret = media_entity_pads_init(&sd->entity, 1, &sensor->pad);
-+	if (ret < 0)
-+		goto mutex_remove;
-+
-+	ret = ov5647_detect(sd);
-+	if (ret < 0)
-+		goto error;
-+
-+	ret = v4l2_async_register_subdev(sd);
-+	if (ret < 0)
-+		goto error;
-+
-+	dev_dbg(&client->dev, "OmniVision OV5647 camera driver probed\n");
-+	return 0;
-+error:
-+	media_entity_cleanup(&sd->entity);
-+mutex_remove:
-+	mutex_destroy(&sensor->lock);
-+	return ret;
-+}
-+
-+static int ov5647_remove(struct i2c_client *client)
-+{
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct ov5647 *ov5647 = to_state(sd);
-+
-+	v4l2_async_unregister_subdev(&ov5647->sd);
-+	media_entity_cleanup(&ov5647->sd.entity);
-+	v4l2_device_unregister_subdev(sd);
-+	mutex_destroy(&ov5647->lock);
-+
-+	return 0;
-+}
-+
-+static const struct i2c_device_id ov5647_id[] = {
-+	{ "ov5647", 0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, ov5647_id);
-+
-+#if IS_ENABLED(CONFIG_OF)
-+static const struct of_device_id ov5647_of_match[] = {
-+	{ .compatible = "ovti,ov5647" },
-+	{ /* sentinel */ },
-+};
-+MODULE_DEVICE_TABLE(of, ov5647_of_match);
-+#endif
-+
-+static struct i2c_driver ov5647_driver = {
-+	.driver = {
-+		.of_match_table = of_match_ptr(ov5647_of_match),
-+		.name	= SENSOR_NAME,
-+	},
-+	.probe		= ov5647_probe,
-+	.remove		= ov5647_remove,
-+	.id_table	= ov5647_id,
-+};
-+
-+module_i2c_driver(ov5647_driver);
-+
-+MODULE_AUTHOR("Ramiro Oliveira <roliveir@synopsys.com>");
-+MODULE_DESCRIPTION("A low-level driver for OmniVision ov5647 sensors");
-+MODULE_LICENSE("GPL v2");
--- 
-2.11.0
+Done, created Documentation/devicetree/bindings/media/i2c/ov5640.txt.
+
+> The driver should go to drivers/media/i2c/ as it should not be specific to the
+> i.MX6, and you can just call it ov5640.c.
+
+Done.
+
+>> diff --git a/drivers/staging/media/imx/Kconfig
+>> b/drivers/staging/media/imx/Kconfig index ce2d2c8..09f373d 100644
+>> --- a/drivers/staging/media/imx/Kconfig
+>> +++ b/drivers/staging/media/imx/Kconfig
+>> @@ -17,5 +17,13 @@ config VIDEO_IMX_CAMERA
+>>   	---help---
+>>   	  A video4linux camera capture driver for i.MX5/6.
+>>
+>> +config IMX_OV5640_MIPI
+>> +       tristate "OmniVision OV5640 MIPI CSI-2 camera support"
+>> +       depends on GPIOLIB && VIDEO_IMX_CAMERA
+> The sensor driver is generic, it shouldn't depend on IMX. It should however
+> depend on at least I2C and OF by the look of it.
+
+Done.
+
+>
+>> +
+>> +#include <linux/module.h>
+>> +#include <linux/init.h>
+>> +#include <linux/slab.h>
+>> +#include <linux/ctype.h>
+>> +#include <linux/types.h>
+>> +#include <linux/delay.h>
+>> +#include <linux/device.h>
+>> +#include <linux/i2c.h>
+>> +#include <linux/of_device.h>
+>> +#include <linux/gpio/consumer.h>
+>> +#include <linux/regulator/consumer.h>
+>> +#include <linux/clk.h>
+>> +#include <linux/clk-provider.h>
+>> +#include <linux/clkdev.h>
+>> +#include <media/v4l2-device.h>
+>> +#include <media/v4l2-subdev.h>
+>> +#include <media/v4l2-async.h>
+>> +#include <media/v4l2-of.h>
+>> +#include <media/v4l2-ctrls.h>
+> Pet peeve of mine, please sort the headers alphabetically. It makes it easier
+> to locate duplicated.
+
+Fixed.
+
+>> +
+>> +#define OV5640_CHIP_ID  0x300A
+>> +#define OV5640_SLAVE_ID 0x3100
+>> +#define OV5640_DEFAULT_SLAVE_ID 0x3c
+> You're mixing lower-case and upper-case hex constants. Let's pick one. Kernel
+> code usually favours lower-case.
+
+Fixed.
+
+> Please define macros for all the other numerical constants you use in the
+> driver (register addresses and values). The large registers tables can be an
+> exception if you don't have access to the information, but for registers
+> written manually, hardcoding numerical values isn't good.
+
+Done.
+
+>> +
+>> +#define OV5640_MAX_CONTROLS 64
+>> +
+>> +enum ov5640_mode {
+>> +	ov5640_mode_MIN = 0,
+>> +	ov5640_mode_QCIF_176_144 = 0,
+>> +	ov5640_mode_QVGA_320_240,
+>> +	ov5640_mode_VGA_640_480,
+>> +	ov5640_mode_NTSC_720_480,
+>> +	ov5640_mode_PAL_720_576,
+>> +	ov5640_mode_XGA_1024_768,
+>> +	ov5640_mode_720P_1280_720,
+>> +	ov5640_mode_1080P_1920_1080,
+>> +	ov5640_mode_QSXGA_2592_1944,
+>> +	ov5640_num_modes,
+>> +	ov5640_mode_INIT = 0xff, /*only for sensor init*/
+> Please add spaces after /* and before */.
+>
+> Enumerated values should be all upper-case.
+
+Fixed (and ov5640_mode_INIT is removed).
+>> +
+>> +/* image size under 1280 * 960 are SUBSAMPLING
+>> + * image size upper 1280 * 960 are SCALING
+>> + */
+> The kernel multi-line comment style is
+>
+> /*
+>   * text
+>   * text
+>   */
+
+Fixed.
+
+>> +
+>> +struct ov5640_dev {
+>> +	struct i2c_client *i2c_client;
+>> +	struct device *dev;
+>> +	struct v4l2_subdev sd;
+>> +	struct media_pad pad;
+>> +	struct v4l2_ctrl_handler ctrl_hdl;
+>> +	struct v4l2_of_endpoint ep; /* the parsed DT endpoint info */
+>> +	struct v4l2_mbus_framefmt fmt;
+>> +	struct v4l2_captureparm streamcap;
+>> +	struct clk *xclk; /* system clock to OV5640 */
+>> +	int xclk_freq;    /* requested xclk freq from devicetree */
+>> +
+>> +	enum ov5640_mode current_mode;
+> Store a (const) pointer to the corresponding ov5640_mode_info instead, it will
+> simplify the code and allow you to get rid of the ov5640_mode enum.
+
+Done.
+
+>> +
+>> +	int prev_sysclk, prev_hts;
+>> +	int ae_low, ae_high, ae_target;
+> Can't these be unsigned int ?
+
+yep, an old left-over Freescale-ism, fixed.
+
+>> +
+>> +static void ov5640_power(struct ov5640_dev *sensor, bool enable);
+>> +static void ov5640_reset(struct ov5640_dev *sensor);
+>> +static int ov5640_restore_ctrls(struct ov5640_dev *sensor);
+>> +static int ov5640_set_agc(struct ov5640_dev *sensor, int value);
+>> +static int ov5640_set_exposure(struct ov5640_dev *sensor, int value);
+>> +static int ov5640_get_exposure(struct ov5640_dev *sensor);
+>> +static int ov5640_set_gain(struct ov5640_dev *sensor, int value);
+>> +static int ov5640_get_gain(struct ov5640_dev *sensor);
+> No forward declarations please. You should reorder functions as needed (and of
+> course still group related functions together).
+
+Fixed.
+
+>> +static struct reg_value ov5640_init_setting_30fps_VGA[] = {
+>> +
+>> <snip>
+>> +	{0x3a1f, 0x14, 0, 0}, {0x3008, 0x02, 0, 0}, {0x3c00, 0x04, 0, 300},
+>> +};
+> You only use the delay feature of the registers tables twice, once after
+> writing the first two registers (to select the clock source and perform a
+> software reset) and once at the very end.
+
+There is a delay in other places as well. There is a 1 msec delay after
+setting a PLL multiplier register, and another after programming the
+15 fps 2592x1944 mode. I'd prefer to keep the delay support in place
+for now. Later, removing these delays can be experimented with.
+
+>   Remove it, write the first two
+> registers manually in the code with a manual delay afterwards, and add another
+> manual delay after writing the whole table.
+>
+> I'm actually wondering whether you couldn't remove the 300ms delay at the end,
+> the 50/60Hz control register (0x3c00) doesn't look like it needs a delay after
+> being written.
+>
+> [snip]
+>
+>> +static struct reg_value ov5640_setting_15fps_QSXGA_2592_1944[] = {
+>> +	{0x4202, 0x0f, 0, 0},	/* stream off the sensor */
+>> <snip>
+>> +	{0x4202, 0x00, 0, 0},	/* stream on the sensor */
+> Don't turn the stream on in the init sequences, it should only be turned on
+> from the .s_stream() operation.
+
+Fixed. More old FSL-isms.
+
+>> +};
+>> +
+>> +static struct ov5640_mode_info
+>> +ov5640_mode_info_data[ov5640_num_framerates][ov5640_num_modes] = {
+> There's very few differences between the 15fps and 30fps tables. It would be
+> better if you could merge them, and manually write the registers that differ.
+
+Sorting that out will be a lot of work, I don't have the time, it will have
+to wait for future fixes. The register tables are likely bloated with 
+power-on
+reset values that need to be pruned anyway (there is a FIXME added to that
+effect).
+
+>> +
+>> +static int ov5640_probe(struct i2c_client *adapter,
+>> +			const struct i2c_device_id *device_id);
+>> +static int ov5640_remove(struct i2c_client *client);
+> No forward declarations please.
+
+Fixed, more FSL-isms.
+
+>> +
+>> +static int ov5640_read_reg(struct ov5640_dev *sensor, u16 reg, u8 *val)
+>> +{
+>> +	u8 reg_buf[2] = {0};
+>> +	u8 read_val = 0;
+>> +
+>> +	reg_buf[0] = reg >> 8;
+>> +	reg_buf[1] = reg & 0xff;
+>> +
+>> +	if (2 != i2c_master_send(sensor->i2c_client, reg_buf, 2)) {
+>> +		v4l2_err(&sensor->sd, "%s: write reg error: reg=%x\n",
+>> +			__func__, reg);
+>> +		return -EIO;
+>> +	}
+>> +
+>> +	if (1 != i2c_master_recv(sensor->i2c_client, &read_val, 1)) {
+>> +		v4l2_err(&sensor->sd, "%s: read reg error: reg=%x, val=%x\n",
+>> +			__func__, reg, read_val);
+>> +		return -EIO;
+>> +	}
+> Wouldn't i2c_transfer() be more efficient here ?
+
+Yep, done, for every register access function.
+
+>> +	*val = read_val;
+>> +	return 0;
+>> +}
+>> +
+>> +#define OV5640_READ_REG(s, r, v) {				\
+>> +		ret = ov5640_read_reg((s), (r), (v));		\
+>> +		if (ret)					\
+>> +			return ret;				\
+>> +	}
+> No. No. No no no. Don't ever return from a macro. Hiding the return makes
+> following the code flow much more difficult, it's just asking for trouble.
+>
+> And don't use externally defined variables (ret in this case), that's also
+> asking for trouble.
+
+Fixed.
+
+>> +
+>> +static int ov5640_mod_reg(struct ov5640_dev *sensor, u16 reg,
+>> +			  u8 mask, u8 val)
+>> +{
+>> +	u8 readval;
+>> +	int ret;
+>> +
+>> +	OV5640_READ_REG(sensor, reg, &readval);
+>> +
+>> +	readval &= ~mask;
+>> +	val &= mask;
+>> +	val |= readval;
+>> +
+>> +	OV5640_WRITE_REG(sensor, reg, val);
+>> +	return 0;
+>> +}
+>>
+>> If you need to modify registers a lot, switch to regmap for register access.
+>> It will provide you with a cache, removing the need to read registers back
+>> from the device.
+
+ov5640_mod_reg() is only called in a few places. If this needs more use
+later, will convert to regmap.
+
+>> +/* download ov5640 settings to sensor through i2c */
+>> +static int ov5640_load_regs(struct ov5640_dev *sensor,
+>> +			    struct reg_value *regs,
+>> +			    int size)
+> size is never negative.
+
+Fixed, actually new prototype is much simpler:
+
+static int ov5640_load_regs(struct ov5640_dev *sensor,
+                 const struct ov5640_mode_info *mode);
+
+>> +{
+>> +	register u32 delay_ms = 0;
+>> +	register u16 reg_addr = 0;
+>> +	register u8 mask = 0;
+>> +	register u8 val = 0;
+> register ? The compiler is nowadays likely smarter than us when it comes to
+> register allocation.
+
+Yeah, nutty. I didn't write that, more old FSL-isms.
+>> +
+>> +static int ov5640_get_HTS(struct ov5640_dev *sensor)
+>> +{
+>> +	 /* read HTS from register settings */
+>> +	u16 HTS;
+> Function names and variables are lower case.
+
+Fixed.
+
+>> +
+>> +static int ov5640_set_bandingfilter(struct ov5640_dev *sensor)
+>> +{
+>> +	int prev_vts;
+>> +	int band_step60, max_band60, band_step50, max_band50;
+> Aren't these values unsigned ?
+
+Yep, fixed.
+
+>> +
+>> +static int ov5640_set_AE_target(struct ov5640_dev *sensor, int target)
+>> +{
+>> +	/* stable in high */
+>> +	int fast_high, fast_low;
+> Aren't these values unsigned ?
+
+Fixed.
+
+>> +	int ret;
+>> +
+>> +	sensor->ae_low = target * 23 / 25;	/* 0.92 */
+>> +	sensor->ae_high = target * 27 / 25;	/* 1.08 */
+>> +
+>> +	fast_high = sensor->ae_high<<1;
+> Missing spaces around <<
+
+Fixed.
+
+>> +
+>> +static int ov5640_set_virtual_channel(struct ov5640_dev *sensor)
+>> +{
+>> +	u8 temp, channel = sensor->ep.base.id;
+> The endpoint id isn't meant to select a virtual channel. V4L2 has no virtual
+> channel API at the moment, you can hardcode the VC to 0 for now.
+
+Yes, imx-media bridge driver _really_ needs a subdev/V4L2 API to
+set the virtual channel that a CSI-2 sensor will transmit on, because
+it fully supports receiving on any of the 4 virtual channels (via the
+4 source pads from the imx6-mipi-csi2 / CSI2IPU gasket entity).
+
+For now I've hardcoded the ov5640 to transmit over channel 1. This is
+good for the imx-media graph because it allows simultaneous capture
+from a parallel sensor via ipu1_csi0, while the ov5640 captures via
+ipu1_csi1.
+
+Channel 1 may not be good for other bridges though. Maybe this would
+be a good candidate for a module parameter.
+
+>> +	int ret;
+>> +
+>> +	OV5640_READ_REG(sensor, 0x4814, &temp);
+>> +	temp &= ~(3 << 6);
+>> +	temp |= (channel << 6);
+>> +	OV5640_WRITE_REG(sensor, 0x4814, temp);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static enum ov5640_mode
+>> +ov5640_find_nearest_mode(struct ov5640_dev *sensor,
+>> +			 int width, int height)
+> How about using v4l2_find_nearest_format() ?
+
+It doesn't really fit ATM, see below.
+
+>
+>> +
+>> +	ret = ov5640_set_stream(sensor, true);
+> This will turn streaming on when you set the format, which I don't think is
+> correct. You should only turn streaming on in the .s_stream() operation. The
+> same comment applies to the previous function.
+
+Fixed, FSL-ism. Tested and still works fine.
+
+
+>> +
+>> +static int ov5640_change_mode(struct ov5640_dev *sensor,
+>> +			      enum ov5640_frame_rate frame_rate,
+>> +			      enum ov5640_mode mode,
+>> +			      enum ov5640_mode orig_mode)
+>> +{
+>> +	enum ov5640_downsize_mode dn_mode, orig_dn_mode;
+>> +	struct reg_value *mode_data = NULL;
+>> +	int mode_size = 0;
+>> +	int ret = 0;
+> No need to initialize ret to 0.
+
+Fixed.
+
+>> +		sensor->fmt.width = 640;
+>> +		sensor->fmt.height = 480;
+> Don't reset the format here. The format must be preserved across subdev
+> open/close.
+
+Fixed.
+
+>> +
+>> +/* restore the last set video mode after chip power-on */
+>> +static int ov5640_restore_mode(struct ov5640_dev *sensor)
+>> +{
+>> +	int ret = 0;
+> No need to initialize ret to 0.
+
+Fixed.
+
+>> +
+>> +	/* first we need to set some initial register values */
+>> +	ret = ov5640_change_mode(sensor, sensor->current_fr,
+>> +				    ov5640_mode_INIT, ov5640_mode_INIT);
+> I wouldn't use ov5640_change_mode() here. You only need to apply the init
+> register values, just call ov5640_load_regs(). The rest of the
+> ov5640_change_mode() isn't needed, as you're calling it below. This will also
+> allow you to get rid of ov5640_mode_INIT, simplifying the logic.
+
+Fixed. I created an init register table, ov5640_mode_init_data, which is
+loaded by ov5640_restore_mode().
+
+
+>
+>> +
+>> +static int ov5640_regulators_on(struct ov5640_dev *sensor)
+>> +{
+>> +	int ret;
+>> +
+>> +	if (sensor->io_regulator) {
+>> +		ret = regulator_enable(sensor->io_regulator);
+>> +		if (ret) {
+>> +			v4l2_err(&sensor->sd, "io reg enable failed\n");
+>> +			return ret;
+>> +		}
+>> +	}
+>> +	if (sensor->core_regulator) {
+>> +		ret = regulator_enable(sensor->core_regulator);
+>> +		if (ret) {
+>> +			v4l2_err(&sensor->sd, "core reg enable failed\n");
+>> +			return ret;
+>> +		}
+>> +	}
+>> +	if (sensor->gpo_regulator) {
+>> +		ret = regulator_enable(sensor->gpo_regulator);
+>> +		if (ret) {
+>> +			v4l2_err(&sensor->sd, "gpo reg enable failed\n");
+>> +			return ret;
+>> +		}
+>> +	}
+>> +	if (sensor->analog_regulator) {
+>> +		ret = regulator_enable(sensor->analog_regulator);
+>> +		if (ret) {
+>> +			v4l2_err(&sensor->sd, "analog reg enable failed\n");
+>> +			return ret;
+>> +		}
+>> +	}
+> Maybe you should use the bulk regulator API ?
+
+Done.
+
+>> +
+>> +/* --------------- Subdev Operations --------------- */
+>> +
+>> +static int ov5640_s_power(struct v4l2_subdev *sd, int on)
+>> +{
+>> +	struct ov5640_dev *sensor = to_ov5640_dev(sd);
+>> +	int ret;
+>> +
+>> +	v4l2_info(sd, "power %s\n", on ? "ON" : "OFF");
+>> +
+>> +	if (on && !sensor->on) {
+> The .s_power() calls need to be ref-counted, similarly to how the regulator
+> enable/disable calls work. See the mt9p031 sensor driver for an example.
+
+Done.
+
+>> +		if (sensor->xclk)
+>> +			clk_prepare_enable(sensor->xclk);
+>> +
+>> +		ret = ov5640_regulators_on(sensor);
+>> +		if (ret)
+>> +			return ret;
+>> +
+>> +		ov5640_reset(sensor);
+>> +		ov5640_power(sensor, true);
+>> +
+>> +		ret = ov5640_init_slave_id(sensor);
+> Why is this needed ?
+
+Because on SabreLite, the ov5642 is at the same default
+i2c slave address, so they both need to answer to a non-default
+address.
+
+>> +
+>> +static int ov5640_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *a)
+>> +{
+>> +	struct ov5640_dev *sensor = to_ov5640_dev(sd);
+>> +	struct v4l2_fract *timeperframe = &a->parm.capture.timeperframe;
+>> +	enum ov5640_frame_rate frame_rate;
+>> +	u32 tgt_fps;	/* target frames per secound */
+>> +	int ret = 0;
+> No need to initialize ret to 0.
+
+Fixed.
+
+>> +	else {
+>> +		v4l2_err(&sensor->sd, "frame rate %u not supported!\n",
+>> +			 tgt_fps);
+> Don't print an error message that is userspace-triggerable, we have enough
+> ways for applications to flood the kernel log already :-)
+
+Removed.
+
+>> +
+>> +static int ov5640_get_fmt(struct v4l2_subdev *sd,
+>> +			  struct v4l2_subdev_pad_config *cfg,
+>> +			  struct v4l2_subdev_format *format)
+>> +{
+>> +	struct ov5640_dev *sensor = to_ov5640_dev(sd);
+>> +
+>> +	if (format->pad != 0)
+>> +		return -EINVAL;
+>> +
+>> +	format->format = sensor->fmt;
+> You need to handle the TRY format here. You can have a look at the mt9p031
+> driver for an example on how to do so.
+
+Right, that was caught and fixed earlier.
+
+>> +
+>> +static int ov5640_set_fmt(struct v4l2_subdev *sd,
+>> +			  struct v4l2_subdev_pad_config *cfg,
+>> +			  struct v4l2_subdev_format *format)
+>> +{
+>> +	struct ov5640_dev *sensor = to_ov5640_dev(sd);
+>> +	enum ov5640_mode new_mode;
+>> +	int ret;
+>> +
+>> +	if (format->pad != 0)
+>> +		return -EINVAL;
+>> +
+>> +	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
+>> +		ret = ov5640_try_fmt_internal(sd, &format->format, NULL);
+>> +		if (ret)
+>> +			return ret;
+> You can move this code above the test to avoid the duplicated call below.
+
+Fixed.
+
+>> +		cfg->try_fmt = format->format;
+> Please use the v4l2_subdev_get_try_format() function to get the try format,
+> don't dereference cfg directly.
+
+Done.
+
+>> +
+>> +static int ov5640_set_hue(struct ov5640_dev *sensor, int value)
+>> +{
+>> +	int ret;
+>> +
+>> +	if (value) {
+>> +		OV5640_MOD_REG(sensor, 0x5580, 1 << 0, 1 << 0);
+>> +		OV5640_WRITE_REG16(sensor, 0x5581, value);
+>> +	} else
+>> +		OV5640_MOD_REG(sensor, 0x5580, 1 << 0, 0);
+> According to the kernel coding style, you need curly braces around the else
+> branch if you use them around the if branch.
+
+Fixed everywhere.
+
+>
+>
+>> +
+>> +#if 0
+> No compiled-out code please.
+
+Removed ov5640_set_green_balance().
+
+>> +static int ov5640_set_green_balance(struct ov5640_dev *sensor, int value)
+>> +{
+>> +	int ret;
+>> +
+>> +	if (sensor->awb_on)
+>> +		return -EINVAL;
+>> +
+>> +	OV5640_WRITE_REG(sensor, 0x3403, value & 0xff);
+>> +	OV5640_WRITE_REG(sensor, 0x3402, (value & 0xf00) >> 8);
+>> +	return 0;
+>> +}
+>> +#endif
+>> +
+>> <snip>
+>> +
+>> +static int ov5640_set_gain(struct ov5640_dev *sensor, int value)
+>> +{
+>> +	int ret;
+>> +
+>> +	if (sensor->agc_on)
+>> +		return -EINVAL;
+> You can create a cluster with the autogain and manual gain controls
+> (v4l2_ctrl_auto_cluster) to have the control framework disabling the manual
+> control automatically when autogain is enabled.
+
+Done. Also made white-balance and exposure auto clusters as well.
+And in the process, got rid of the control table as Hans had suggested
+earlier.
+
+
+>> +	OV5640_WRITE_REG16(sensor, 0x350a, value & 0x3ff);
+>> +	return 0;
+>> +}
+>> +
+>> +static int ov5640_get_gain(struct ov5640_dev *sensor)
+>> +{
+>> +	u16 gain;
+>> +	int ret;
+>> +
+>> +	if (sensor->agc_on)
+>> +		return -EINVAL;
+>> +
+>> +	OV5640_READ_REG16(sensor, 0x350a, &gain);
+>> +
+>> +	return gain & 0x3ff;
+>> +}
+>> +
+>> +#if 0
+>> +static int ov5640_set_test_pattern(struct ov5640_dev *sensor, int value)
+>> +{
+>> +	int ret;
+>> +
+>> +	OV5640_MOD_REG(sensor, 0x503d, 0xa4, value ? 0xa4 : 0);
+>> +	return 0;
+>> +}
+>> +#endif
+> You can use a control to expose the test pattern function, it's quite useful.
+
+Done, as a menu control for color bars.
+
+>> +static struct ov5640_control *ov5640_get_ctrl(int id, int *index)
+>> +{
+>> +	struct ov5640_control *ret = NULL;
+>> +	int i;
+> i is never negative, it should be unsigned int.
+
+Fixed.
+
+
+>> +
+>> +static int ov5640_restore_ctrls(struct ov5640_dev *sensor)
+>> +{
+>> +	struct ov5640_control *c;
+>> +	int i;
+> i is never negative, it should be unsigned int.
+
+restore_ctrls is gone from earlier fixes.
+
+>> +
+>> +static int ov5640_s_ctrl(struct v4l2_ctrl *ctrl)
+>> +{
+>> +	struct ov5640_dev *sensor = ctrl_to_ov5640_dev(ctrl);
+>> +	struct ov5640_control *c;
+>> +	int ret = 0;
+>> +	int i;
+>> +
+>> +	c = ov5640_get_ctrl(ctrl->id, &i);
+> You can inline the function call here as it's not used anywhere else.
+
+Done.
+
+>> +
+>> +static int ov5640_init_controls(struct ov5640_dev *sensor)
+>> +{
+>> +	struct ov5640_control *c;
+> I would name this ctrl or control, c can be a bit confusing. You can also
+> declare it inside the loop.
+
+Done.
+
+>> +	int i;
+> i can never be negative, you can make it an unsigned int.
+
+Done.
+
+>> +
+>> +	v4l2_ctrl_handler_init(&sensor->ctrl_hdl, OV5640_NUM_CONTROLS);
+>> +
+>> +	for (i = 0; i < OV5640_NUM_CONTROLS; i++) {
+>> +		c = &ov5640_ctrls[i];
+>> +
+>> +		v4l2_ctrl_new_std(&sensor->ctrl_hdl, &ov5640_ctrl_ops,
+>> +				  c->ctrl.id, c->ctrl.minimum, c-
+>> ctrl.maximum,
+>> +				  c->ctrl.step, c->ctrl.default_value);
+>> +	}
+>> +
+>> +	sensor->sd.ctrl_handler = &sensor->ctrl_hdl;
+>> +	if (sensor->ctrl_hdl.error) {
+>> +		int err = sensor->ctrl_hdl.error;
+>> +
+>> +		v4l2_ctrl_handler_free(&sensor->ctrl_hdl);
+>> +
+>> +		v4l2_err(&sensor->sd, "%s: error %d\n", __func__, err);
+> I'm not sure this brings much value.
+
+Removed.
+
+>
+>> +
+>> +static int ov5640_enum_frame_interval(
+>> +	struct v4l2_subdev *sd,
+>> +	struct v4l2_subdev_pad_config *cfg,
+>> +	struct v4l2_subdev_frame_interval_enum *fie)
+>> +{
+>> +	struct ov5640_dev *sensor = to_ov5640_dev(sd);
+>> +	enum ov5640_mode mode;
+>> +
+>> +	if (fie->pad != 0)
+>> +		return -EINVAL;
+>> +	if (fie->index < 0 || fie->index >= ov5640_num_framerates)
+>> +		return -EINVAL;
+>> +
+>> +	if (fie->width == 0 || fie->height == 0)
+>> +		return -EINVAL;
+>> +
+>> +	mode = ov5640_find_nearest_mode(sensor, fie->width, fie->height);
+> You should find an exact mode here, not the nearest one. If with and height
+> don't match, return -EINVAL. That will replace with above width == 0 and
+> height == 0 test.
+
+Fixed, I modified ov5640_find_mode() (renamed from 
+ov5640_find_nearest_mode())
+to take a "nearest" boolean, which is passed as false here.
+
+>> +
+>> +	dev_dbg(sensor->dev, "%dx%d: [%d] = %d fps\n",
+>> +		fie->width, fie->height, fie->index, fie-
+>> interval.denominator);
+> I'm not sure this is very useful, you can use ftrace if you want to trace
+> function calls.
+
+Removed.
+>> +	return 0;
+>> +}
+>> +
+>> +static int ov5640_g_input_status(struct v4l2_subdev *sd, u32 *status)
+>> +{
+>> +	struct ov5640_dev *sensor = to_ov5640_dev(sd);
+>> +
+>> +	*status = !sensor->on ? V4L2_IN_ST_NO_POWER : 0;
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int ov5640_s_routing(struct v4l2_subdev *sd, u32 input,
+>> +			    u32 output, u32 config)
+>> +{
+>> +	return (input != 0) ? -EINVAL : 0;
+>> +}
+> The g_input_status and s_routing subdev operations are not mandatory, you
+> don't have to implement them as the sensor doesn't have multiple inputs.
+
+Removed.
+
+>> +static int ov5640_s_stream(struct v4l2_subdev *sd, int enable)
+>> +{
+>> +	struct ov5640_dev *sensor = to_ov5640_dev(sd);
+>> +
+>> +	v4l2_info(sd, "stream %s\n", enable ? "ON" : "OFF");
+> You can use ftrace to trace function calls, there's no need to add debugging
+> statements that duplicate the functionality.
+
+Removed.
+
+>> +
+>> +static struct v4l2_subdev_ops ov5640_subdev_ops = {
+>> +	.core = &ov5640_core_ops,
+>> +	.video = &ov5640_video_ops,
+>> +	.pad = &ov5640_pad_ops,
+>> +};
+> All these structures should be static const.
+
+Fixed.
+
+>> +
+>> +static void ov5640_power(struct ov5640_dev *sensor, bool enable)
+>> +{
+>> +	gpiod_set_value(sensor->pwdn_gpio, enable ? 0 : 1);
+>> +}
+>> +
+>> +static void ov5640_reset(struct ov5640_dev *sensor)
+>> +{
+>> +	gpiod_set_value(sensor->reset_gpio, 0);
+>> +
+>> +	/* camera power cycle */
+>> +	ov5640_power(sensor, false);
+>> +	usleep_range(5000, 10000);
+>> +	ov5640_power(sensor, true);
+>> +	usleep_range(5000, 10000);
+>> +
+>> +	gpiod_set_value(sensor->reset_gpio, 1);
+>> +	usleep_range(1000, 2000);
+>> +
+>> +	gpiod_set_value(sensor->reset_gpio, 0);
+>> +	usleep_range(5000, 10000);
+>> +}
+>> +
+>> +static void ov5640_get_regulators(struct ov5640_dev *sensor)
+>> +{
+>> +	sensor->io_regulator = devm_regulator_get(sensor->dev, "DOVDD");
+>> +	if (!IS_ERR(sensor->io_regulator)) {
+>> +		regulator_set_voltage(sensor->io_regulator,
+>> +				      OV5640_VOLTAGE_DIGITAL_IO,
+>> +				      OV5640_VOLTAGE_DIGITAL_IO);
+>> +	} else {
+>> +		dev_dbg(sensor->dev, "%s: no io voltage reg found\n",
+>> +			__func__);
+>> +		sensor->io_regulator = NULL;
+> How about making the power supplies mandatory in DT instead ? They are
+> mandatory after all, if they're not controllable DT should just declare fixed
+> supplies.
+
+I guess that makes sense. They are now mandatory.
+
+>> +
+>> +static int ov5640_probe(struct i2c_client *client,
+>> +			const struct i2c_device_id *id)
+>> +{
+>> +	struct device *dev = &client->dev;
+>> +	struct device_node *endpoint;
+>> +	struct ov5640_dev *sensor;
+>> +	int i, xclk, ret;
+> i and xclk are never negative, you can make them unsigned int.
+
+This was removed from earlier cleanups.
+
+>> +
+>> +	sensor = devm_kzalloc(dev, sizeof(struct ov5640_dev), GFP_KERNEL);
+> Please use sizeof(*variable) instead of sizeof(type).
+
+Done.
+
+> devm_kzalloc() doesn't play nicely with dynamic removal of devices. We're in
+> the process of fixing related race conditions in the media subsystem. In order
+> not to make the problem worse, please use kzalloc() instead.
+>
+>> +	if (!sensor)
+>> +		return -ENOMEM;
+>> +
+>> +	sensor->i2c_client = client;
+>> +	sensor->dev = dev;
+> Do you really need to store both i2c_client and dev, given that the latter is
+> just &client->dev ?
+
+It was only for convenience, but sensor->dev was now only used in a
+couple places, so sensor->dev removed.
+
+>> +	sensor->fmt.code = MEDIA_BUS_FMT_UYVY8_2X8;
+>> +	sensor->fmt.width = 640;
+>> +	sensor->fmt.height = 480;
+>> +	sensor->fmt.field = V4L2_FIELD_NONE;
+>> +	sensor->streamcap.capability = V4L2_MODE_HIGHQUALITY |
+>> +					   V4L2_CAP_TIMEPERFRAME;
+> Please fix the indentation.
+
+Fixed.
+
+>> +
+>> +	v4l2_of_parse_endpoint(endpoint, &sensor->ep);
+>> +	if (sensor->ep.bus_type != V4L2_MBUS_CSI2) {
+>> +		dev_err(dev, "invalid bus type, must be MIPI CSI2\n");
+>> +		return -EINVAL;
+> You're leaking endpoint here. You should move the of_node_put() call right
+> after the v4l2_of_parse_endpoint() call.
+
+oops, Fixed.
+
+>> +
+>> +	/* get system clock (xclk) frequency */
+>> +	ret = of_property_read_u32(dev->of_node, "xclk", &xclk);
+> Instead of adding a custom DT property for this, use assigned-clock-rates. You
+> won't need to set it manually in the driver, and can verify its frequency with
+> clk_get_rate().
+
+This was done in earlier fixups.
+
+>> +	if (!ret) {
+>> +		if (xclk < OV5640_XCLK_MIN || xclk > OV5640_XCLK_MAX) {
+> Are your register tables above independent of the clock frequency ? You should
+> ideally compute register values at runtime instead of hardcoding them, but
+> given the lack of information from Omnivision I understand this isn't
+> possible. You thus need to be stricter here and reject any value other than
+> the nominal frequency.
+
+I went back and looked at the original driver from Freescale that these
+register tables are based on, and that driver does allow a range between
+6 and 24 MHz. I've updated the min/max for xclk to that range. I agree
+though that this will need some experimentation to verify these xclk ranges
+actually work.
+
+
+>> +
+>> +	/* get system clock (xclk) */
+>> +	sensor->xclk = devm_clk_get(dev, "xclk");
+>> +	if (!IS_ERR(sensor->xclk)) {
+>> +		if (!sensor->xclk_freq) {
+>> +			dev_err(dev, "xclk requires xclk frequency!\n");
+>> +			return -EINVAL;
+>> +		}
+>> +		clk_set_rate(sensor->xclk, sensor->xclk_freq);
+>> +	} else {
+>> +		/* assume system clock enabled by default */
+>> +		sensor->xclk = NULL;
+> Please don't. The clock should be mandatory.
+
+This was done in earlier fixups.
+
+
+>> +	}
+>> +
+>> +	/* request power down pin */
+>> +	sensor->pwdn_gpio = devm_gpiod_get(dev, "pwdn", GPIOD_OUT_HIGH);
+> Are the GPIOs mandatory or optional ? Can a system tie some of them to ground
+> or a voltage rail, or do they need to always be manually controllable ?
+
+Yes, they could be tied to ground or a rail, and are not required. I
+made both reset and pwdn gpios optional.
+
+>> +
+>> +	ret = ov5640_s_power(&sensor->sd, 1);
+>> +	if (ret)
+>> +		goto entity_cleanup;
+>> +	ret = ov5640_init_controls(sensor);
+>> +	if (ret)
+>> +		goto power_off;
+>> +
+>> +	ret = ov5640_s_power(&sensor->sd, 0);
+>> +	if (ret)
+>> +		goto free_ctrls;
+> Writing the controls here is pointless, as powering the chip down will lose
+> all the values. You shouldn't call v4l2_ctrl_handler_setup() in
+> ov5640_init_controls(), and you can then remove the ov5640_s_power() calls
+> here.
+
+Good idea, done.
+
+>> +
+>> +free_ctrls:
+>> +	v4l2_ctrl_handler_free(&sensor->ctrl_hdl);
+>> +power_off:
+>> +	ov5640_s_power(&sensor->sd, 0);
+>> +entity_cleanup:
+>> +	media_entity_cleanup(&sensor->sd.entity);
+>> +	ov5640_regulators_off(sensor);
+> Won't ov5640_s_power(0) already disable the regulators ?
+
+Not applicable anymore, as there's no need to enable power in probe.
+
+>> +	return ret;
+>> +}
+>> +
+>> +/*!
+>> + * ov5640 I2C detach function
+>> + *
+>> + * @param client            struct i2c_client *
+>> + * @return  Error code indicating success or failure
+>> + */
+> That's not the kerneldoc comment style. Given that this is the only documented
+> function, and that the comment is completely useless, you can just drop it.
+
+yuck, old FSL-isms, removed.
+
+>> +static int ov5640_remove(struct i2c_client *client)
+>> +{
+>> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+>> +	struct ov5640_dev *sensor = to_ov5640_dev(sd);
+>> +
+>> +	ov5640_regulators_off(sensor);
+>> +
+>> +	v4l2_async_unregister_subdev(&sensor->sd);
+>> +	media_entity_cleanup(&sensor->sd.entity);
+>> +	v4l2_device_unregister_subdev(sd);
+> This function is called by v4l2_async_unregister_subdev(), there's no need to
+> duplicate it.
+
+Removed.
+
+>> +MODULE_AUTHOR("Freescale Semiconductor, Inc.");
+> MODULE_AUTHOR isn't a synonym for copyright ownership. I don't think you
+> should add Freescale as an author. If you know who wrote the original code you
+> can list that developer explicitly.
+
+I have no clue who the original author was, I just removed
+MODULE_AUTHOR(s).
+
+>> +MODULE_AUTHOR("Steve Longerbeam<steve_longerbeam@mentor.com>");
+>> +MODULE_DESCRIPTION("OV5640 MIPI Camera Subdev Driver");
+>> +MODULE_LICENSE("GPL");
+>> +MODULE_VERSION("1.0");
+> Version numbers are never updated. I wouldn't bother adding one.
+
+Removed.
+
+Steve
