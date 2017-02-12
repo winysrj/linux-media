@@ -1,175 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45918 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754509AbdBGU4j (ORCPT
+Received: from mx-out-2.rwth-aachen.de ([134.130.5.187]:10218 "EHLO
+        mx-out-2.rwth-aachen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751225AbdBLP0o (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Feb 2017 15:56:39 -0500
-Date: Tue, 7 Feb 2017 22:50:05 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Benoit Parrot <bparrot@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Philipp Zabel <p.zabel@pengutronix.de>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        nick@shmanahar.org, markus.heiser@darmarit.de,
-        laurent.pinchart+renesas@ideasonboard.com, geert@linux-m68k.org,
-        arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        sakari.ailus@linux.intel.com
-Subject: Re: [PATCH v3 13/24] platform: add video-multiplexer subdevice driver
-Message-ID: <20170207205005.GE13854@valkosipuli.retiisi.org.uk>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
- <2038922.a1tReKKdaL@avalon>
- <bd64a86e-d90c-f4aa-6f22-1c832e0b563f@gmail.com>
- <3823958.XNLmIv7GEv@avalon>
- <20170207133648.GA27065@ti.com>
+        Sun, 12 Feb 2017 10:26:44 -0500
+From: =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>
+To: <linux-media@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Antti Palosaari <crope@iki.fi>,
+        =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>
+Subject: [PATCH 3/3] [media] cxusb: MyGica T230C support
+Date: Sun, 12 Feb 2017 16:26:28 +0100
+In-Reply-To: <20170212152628.25383-1-stefan.bruens@rwth-aachen.de>
+References: <20170212152628.25383-1-stefan.bruens@rwth-aachen.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170207133648.GA27065@ti.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Message-ID: <18845d0472524783bf68c835ac03a6bb@rwthex-w2-b.rwth-ad.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Benoit,
+Mygica T230 DVB-T/T2/C USB stick support. It uses the same FX2/Si2168
+bridge/demodulator combo as the T230, but uses the Si2141 tuner.
+Factor out the common code and pass the tuner type and if port as
+parameter, to avoid duplicating the initialization code.
 
-On Tue, Feb 07, 2017 at 07:36:48AM -0600, Benoit Parrot wrote:
-> Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote on Tue [2017-Feb-07 12:26:32 +0200]:
-> > Hi Steve,
-> > 
-> > On Monday 06 Feb 2017 15:10:46 Steve Longerbeam wrote:
-> > > On 02/06/2017 02:33 PM, Laurent Pinchart wrote:
-> > > > On Monday 06 Feb 2017 10:50:22 Hans Verkuil wrote:
-> > > >> On 02/05/2017 04:48 PM, Laurent Pinchart wrote:
-> > > >>> On Tuesday 24 Jan 2017 18:07:55 Steve Longerbeam wrote:
-> > > >>>> On 01/24/2017 04:02 AM, Philipp Zabel wrote:
-> > > >>>>> On Fri, 2017-01-20 at 15:03 +0100, Hans Verkuil wrote:
-> > > >>>>>>> +
-> > > >>>>>>> +int vidsw_g_mbus_config(struct v4l2_subdev *sd, struct
-> > > >>>>>>> v4l2_mbus_config *cfg)
-> > 
-> > [snip]
-> > 
-> > > >>>>>> I am not certain this op is needed at all. In the current kernel this
-> > > >>>>>> op is only used by soc_camera, pxa_camera and omap3isp (somewhat
-> > > >>>>>> dubious). Normally this information should come from the device tree
-> > > >>>>>> and there should be no need for this op.
-> > > >>>>>> 
-> > > >>>>>> My (tentative) long-term plan was to get rid of this op.
-> > > >>>>>> 
-> > > >>>>>> If you don't need it, then I recommend it is removed.
-> > > >>>> 
-> > > >>>> Hi Hans, the imx-media driver was only calling g_mbus_config to the
-> > > >>>> camera sensor, and it was doing that to determine the sensor's bus
-> > > >>>> type. This info was already available from parsing a v4l2_of_endpoint
-> > > >>>> from the sensor node. So it was simple to remove the g_mbus_config
-> > > >>>> calls, and instead rely on the parsed sensor v4l2_of_endpoint.
-> > > >>> 
-> > > >>> That's not a good point.
-> > > > 
-> > > > (mea culpa, s/point/idea/)
-> > > > 
-> > > >>> The imx-media driver must not parse the sensor DT node as it is not
-> > > >>> aware of what bindings the sensor is compatible with.
-> > > 
-> > > Hi Laurent,
-> > > 
-> > > I don't really understand this argument. The sensor node has been found
-> > > by parsing the OF graph, so it is known to be a camera sensor node at
-> > > that point.
-> > 
-> > All you know in the i.MX6 driver is that the remote node is a video source. 
-> > You can rely on the fact that it implements the OF graph bindings to locate 
-> > other ports in that DT node, but that's more or less it.
-> > 
-> > DT properties are defined by DT bindings and thus qualified by a compatible 
-> > string. Unless you match on sensor compat strings in the i.MX6 driver (which 
-> > you shouldn't do, to keep the driver generic) you can't know for certain how 
-> > to parse the sensor node DT properties. For all you know, the video source 
-> > could be a bridge such as an HDMI to CSI-2 converter for instance, so you 
-> > can't even rely on the fact that it's a sensor.
-> > 
-> > > >>> Information must instead be queried from the sensor subdev at runtime,
-> > > >>> through the g_mbus_config() operation.
-> > > >>> 
-> > > >>> Of course, if you can get the information from the imx-media DT node,
-> > > >>> that's certainly an option. It's only information provided by the sensor
-> > > >>> driver that you have no choice but query using a subdev operation.
-> > > >> 
-> > > >> Shouldn't this come from the imx-media DT node? BTW, why is omap3isp
-> > > >> using this?
-> > > > 
-> > > > It all depends on what type of information needs to be retrieved, and
-> > > > whether it can change at runtime or is fixed. Adding properties to the
-> > > > imx-media DT node is certainly fine as long as those properties describe
-> > > > the i.MX side.
-> > >
-> > > In this case the info needed is the media bus type. That info is most easily
-> > > available by calling v4l2_of_parse_endpoint() on the sensor's endpoint
-> > > node.
-> > 
-> > I haven't had time to check the code in details yet, so I can't really comment 
-> > on what you need and how it should be implemented exactly.
-> > 
-> > > The media bus type is not something that can be added to the
-> > > imx-media node since it contains no endpoint nodes.
-> > 
-> > Agreed. You have endpoints in the CSI nodes though.
-> > 
-> > > > In the omap3isp case, we use the operation to query whether parallel data
-> > > > contains embedded sync (BT.656) or uses separate h/v sync signals.
-> > > > 
-> > > >> The reason I am suspicious about this op is that it came from soc-camera
-> > > >> and predates the DT. The contents of v4l2_mbus_config seems very much
-> > > >> like a HW description to me, i.e. something that belongs in the DT.
-> > > > 
-> > > > Part of it is possibly outdated, but for buses that support multiple modes
-> > > > of operation (such as the parallel bus case described above) we need to
-> > > > make that information discoverable at runtime. Maybe this should be
-> > > > considered as related to Sakari's efforts to support VC/DT for CSI-2, and
-> > > > supported through the API he is working on.
-> > > 
-> > > That sounds interesting, can you point me to some info on this effort?
-> > 
-> > Sure.
-> > 
-> > http://git.retiisi.org.uk/?p=~sailus/linux.git;a=shortlog;h=refs/heads/vc
-> > 
-> > > I've been thinking the DT should contain virtual channel info for CSI-2
-> > > buses.
-> > 
-> > I don't think it should. CSI-2 virtual channels and data types should be 
-> > handled as a software concept, and thus supported through driver code without 
-> > involving DT.
-> 
-> Laurent,
-> 
-> So when you have a CSI2 port aggregator for instance where traffic from up
-> to 4 CSI2 sources where each source is now assigned its own VC by the
-> aggregator and interleaved into a single CSI2 Receiver. I was hoping that
-> in this case the VC would be DT discoverable as a specicic source identifier.
-> So the CSI-RX side could associate a specific source and create its own
-> video device. I am guessing that no such thing exist today?
+Signed-off-by: Stefan Brüns <stefan.bruens@rwth-aachen.de>
+---
+ drivers/media/dvb-core/dvb-usb-ids.h |  1 +
+ drivers/media/usb/dvb-usb/cxusb.c    | 80 ++++++++++++++++++++++++++++++++++--
+ 2 files changed, 77 insertions(+), 4 deletions(-)
 
-This should be configurable in software: the sensors connected to the
-aggregator may also output multiple streams. The number of streams may also
-depend on the user specified configuration over the MC / V4L2 sub-device
-interfaces. Thus, this needs to be configurable in software.
-
-We do need additional patches on top of the current mediatree.git master
-branch though, some of which are not yet written...
-
+diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
+index a7a4674ccc40..ce4a3d574dd7 100644
+--- a/drivers/media/dvb-core/dvb-usb-ids.h
++++ b/drivers/media/dvb-core/dvb-usb-ids.h
+@@ -380,6 +380,7 @@
+ #define USB_PID_SONY_PLAYTV				0x0003
+ #define USB_PID_MYGICA_D689				0xd811
+ #define USB_PID_MYGICA_T230				0xc688
++#define USB_PID_MYGICA_T230C				0xc689
+ #define USB_PID_ELGATO_EYETV_DIVERSITY			0x0011
+ #define USB_PID_ELGATO_EYETV_DTT			0x0021
+ #define USB_PID_ELGATO_EYETV_DTT_2			0x003f
+diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
+index 9fd43a37154c..967f4f74309c 100644
+--- a/drivers/media/usb/dvb-usb/cxusb.c
++++ b/drivers/media/usb/dvb-usb/cxusb.c
+@@ -1305,7 +1305,9 @@ static int cxusb_mygica_d689_frontend_attach(struct dvb_usb_adapter *adap)
+ 	return 0;
+ }
+ 
+-static int cxusb_mygica_t230_frontend_attach(struct dvb_usb_adapter *adap)
++static int cxusb_mygica_t230_common_frontend_attach(struct dvb_usb_adapter *adap,
++						    const char *tuner_name,
++						    u8 tuner_if_port)
+ {
+ 	struct dvb_usb_device *d = adap->dev;
+ 	struct cxusb_state *st = d->priv;
+@@ -1352,12 +1354,12 @@ static int cxusb_mygica_t230_frontend_attach(struct dvb_usb_adapter *adap)
+ 	/* attach tuner */
+ 	memset(&si2157_config, 0, sizeof(si2157_config));
+ 	si2157_config.fe = adap->fe_adap[0].fe;
+-	si2157_config.if_port = 1;
++	si2157_config.if_port = tuner_if_port;
+ 	memset(&info, 0, sizeof(struct i2c_board_info));
+-	strlcpy(info.type, "si2157", I2C_NAME_SIZE);
++	strlcpy(info.type, tuner_name, I2C_NAME_SIZE);
+ 	info.addr = 0x60;
+ 	info.platform_data = &si2157_config;
+-	request_module(info.type);
++	request_module("si2157");
+ 	client_tuner = i2c_new_device(adapter, &info);
+ 	if (client_tuner == NULL || client_tuner->dev.driver == NULL) {
+ 		module_put(client_demod->dev.driver->owner);
+@@ -1376,6 +1378,16 @@ static int cxusb_mygica_t230_frontend_attach(struct dvb_usb_adapter *adap)
+ 	return 0;
+ }
+ 
++static int cxusb_mygica_t230_frontend_attach(struct dvb_usb_adapter *adap)
++{
++	return cxusb_mygica_t230_common_frontend_attach(adap, "si2157", 1);
++}
++
++static int cxusb_mygica_t230c_frontend_attach(struct dvb_usb_adapter *adap)
++{
++	return cxusb_mygica_t230_common_frontend_attach(adap, "si2141", 0);
++}
++
+ /*
+  * DViCO has shipped two devices with the same USB ID, but only one of them
+  * needs a firmware download.  Check the device class details to see if they
+@@ -1458,6 +1470,7 @@ static struct dvb_usb_device_properties cxusb_aver_a868r_properties;
+ static struct dvb_usb_device_properties cxusb_d680_dmb_properties;
+ static struct dvb_usb_device_properties cxusb_mygica_d689_properties;
+ static struct dvb_usb_device_properties cxusb_mygica_t230_properties;
++static struct dvb_usb_device_properties cxusb_mygica_t230c_properties;
+ 
+ static int cxusb_probe(struct usb_interface *intf,
+ 		       const struct usb_device_id *id)
+@@ -1490,6 +1503,8 @@ static int cxusb_probe(struct usb_interface *intf,
+ 				     THIS_MODULE, NULL, adapter_nr) ||
+ 	    0 == dvb_usb_device_init(intf, &cxusb_mygica_t230_properties,
+ 				     THIS_MODULE, NULL, adapter_nr) ||
++	    0 == dvb_usb_device_init(intf, &cxusb_mygica_t230c_properties,
++				     THIS_MODULE, NULL, adapter_nr) ||
+ 	    0)
+ 		return 0;
+ 
+@@ -1541,6 +1556,7 @@ enum cxusb_table_index {
+ 	CONEXANT_D680_DMB,
+ 	MYGICA_D689,
+ 	MYGICA_T230,
++	MYGICA_T230C,
+ 	NR__cxusb_table_index
+ };
+ 
+@@ -1608,6 +1624,9 @@ static struct usb_device_id cxusb_table[NR__cxusb_table_index + 1] = {
+ 	[MYGICA_T230] = {
+ 		USB_DEVICE(USB_VID_CONEXANT, USB_PID_MYGICA_T230)
+ 	},
++	[MYGICA_T230C] = {
++		USB_DEVICE(USB_VID_CONEXANT, USB_PID_MYGICA_T230C)
++	},
+ 	{}		/* Terminating entry */
+ };
+ MODULE_DEVICE_TABLE (usb, cxusb_table);
+@@ -2307,6 +2326,59 @@ static struct dvb_usb_device_properties cxusb_mygica_t230_properties = {
+ 	}
+ };
+ 
++static struct dvb_usb_device_properties cxusb_mygica_t230c_properties = {
++	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
++
++	.usb_ctrl         = CYPRESS_FX2,
++
++	.size_of_priv     = sizeof(struct cxusb_state),
++
++	.num_adapters = 1,
++	.adapter = {
++		{
++		.num_frontends = 1,
++		.fe = {{
++			.streaming_ctrl   = cxusb_streaming_ctrl,
++			.frontend_attach  = cxusb_mygica_t230c_frontend_attach,
++
++			/* parameter for the MPEG2-data transfer */
++			.stream = {
++				.type = USB_BULK,
++				.count = 5,
++				.endpoint = 0x02,
++				.u = {
++					.bulk = {
++						.buffersize = 8192,
++					}
++				}
++			},
++		} },
++		},
++	},
++
++	.power_ctrl       = cxusb_d680_dmb_power_ctrl,
++
++	.i2c_algo         = &cxusb_i2c_algo,
++
++	.generic_bulk_ctrl_endpoint = 0x01,
++
++	.rc.legacy = {
++		.rc_interval      = 100,
++		.rc_map_table     = rc_map_d680_dmb_table,
++		.rc_map_size      = ARRAY_SIZE(rc_map_d680_dmb_table),
++		.rc_query         = cxusb_d680_dmb_rc_query,
++	},
++
++	.num_device_descs = 1,
++	.devices = {
++		{
++			"Mygica T230C DVB-T/T2/C",
++			{ NULL },
++			{ &cxusb_table[MYGICA_T230C], NULL },
++		},
++	}
++};
++
+ static struct usb_driver cxusb_driver = {
+ 	.name		= "dvb_usb_cxusb",
+ 	.probe		= cxusb_probe,
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.11.0
