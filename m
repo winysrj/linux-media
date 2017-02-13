@@ -1,1802 +1,1366 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:35141 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753373AbdBPCVD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 21:21:03 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v4 22/36] media: imx: Add IC subdev drivers
-Date: Wed, 15 Feb 2017 18:19:24 -0800
-Message-Id: <1487211578-11360-23-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mga14.intel.com ([192.55.52.115]:56433 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751765AbdBMNbF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Feb 2017 08:31:05 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Subject: [PATCH 5/8] v4l: Switch from V4L2 OF not V4L2 fwnode API
+Date: Mon, 13 Feb 2017 15:28:13 +0200
+Message-Id: <1486992496-21078-6-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1486992496-21078-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1486992496-21078-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a set of four media entity subdevice drivers for the i.MX
-Image Converter:
+Switch users of the v4l2_of_ APIs to the more generic v4l2_fwnode_ APIs.
 
-- Pre-process Router: Takes input frames from CSI0, CSI1, or VDIC.
-  Two output pads enable either or both of the preprocess tasks
-  below. If the input is from one of the CSIs, both proprocess task
-  links can be enabled to process frames from that CSI simultaneously.
-  If the input is the VDIC, only the Pre-processing Viewfinder task
-  link can be enabled.
+Existing OF matching continues to be supported. omap3isp and smiapp
+drivers are converted to fwnode matching as well.
 
-- Pre-processing Encode task: video frames are routed directly from
-  the CSI and can be scaled, color-space converted, and rotated.
-  Scaled output is limited to 1024x1024 resolution. Output frames
-  are routed to the capture device.
-
-- Pre-processing Viewfinder task: this task can perform the same
-  conversions as the pre-process encode task, but in addition can
-  be used for hardware motion compensated deinterlacing. Frames can
-  come either directly from the CSI or from the VDIC. Scaled output
-  is limited to 1024x1024 resolution. Output frames are routed to
-  the capture device.
-
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/staging/media/imx/Makefile          |    2 +
- drivers/staging/media/imx/imx-ic-common.c   |  113 +++
- drivers/staging/media/imx/imx-ic-prp.c      |  427 ++++++++++
- drivers/staging/media/imx/imx-ic-prpencvf.c | 1116 +++++++++++++++++++++++++++
- drivers/staging/media/imx/imx-ic.h          |   38 +
- 5 files changed, 1696 insertions(+)
- create mode 100644 drivers/staging/media/imx/imx-ic-common.c
- create mode 100644 drivers/staging/media/imx/imx-ic-prp.c
- create mode 100644 drivers/staging/media/imx/imx-ic-prpencvf.c
- create mode 100644 drivers/staging/media/imx/imx-ic.h
+ drivers/media/i2c/Kconfig                      |  9 ++++
+ drivers/media/i2c/adv7604.c                    |  7 +--
+ drivers/media/i2c/mt9v032.c                    |  7 +--
+ drivers/media/i2c/ov2659.c                     |  8 +--
+ drivers/media/i2c/s5c73m3/s5c73m3-core.c       |  7 +--
+ drivers/media/i2c/s5k5baf.c                    |  6 +--
+ drivers/media/i2c/smiapp/Kconfig               |  1 +
+ drivers/media/i2c/smiapp/smiapp-core.c         | 29 ++++++-----
+ drivers/media/i2c/tc358743.c                   | 11 ++--
+ drivers/media/i2c/tvp514x.c                    |  6 +--
+ drivers/media/i2c/tvp5150.c                    |  7 +--
+ drivers/media/i2c/tvp7002.c                    |  6 +--
+ drivers/media/platform/Kconfig                 |  3 ++
+ drivers/media/platform/am437x/Kconfig          |  1 +
+ drivers/media/platform/am437x/am437x-vpfe.c    |  8 +--
+ drivers/media/platform/atmel/Kconfig           |  1 +
+ drivers/media/platform/atmel/atmel-isc.c       |  8 +--
+ drivers/media/platform/exynos4-is/Kconfig      |  2 +
+ drivers/media/platform/exynos4-is/media-dev.c  |  6 +--
+ drivers/media/platform/exynos4-is/mipi-csis.c  |  6 +--
+ drivers/media/platform/omap3isp/isp.c          | 71 +++++++++++++-------------
+ drivers/media/platform/pxa_camera.c            |  7 +--
+ drivers/media/platform/rcar-vin/Kconfig        |  1 +
+ drivers/media/platform/rcar-vin/rcar-core.c    |  6 +--
+ drivers/media/platform/soc_camera/Kconfig      |  1 +
+ drivers/media/platform/soc_camera/atmel-isi.c  |  7 +--
+ drivers/media/platform/soc_camera/soc_camera.c |  2 +-
+ drivers/media/platform/ti-vpe/cal.c            | 11 ++--
+ drivers/media/platform/xilinx/Kconfig          |  1 +
+ drivers/media/platform/xilinx/xilinx-vipp.c    | 59 +++++++++++----------
+ include/media/v4l2-fwnode.h                    |  4 +-
+ 31 files changed, 175 insertions(+), 134 deletions(-)
 
-diff --git a/drivers/staging/media/imx/Makefile b/drivers/staging/media/imx/Makefile
-index 1f01520..878a126 100644
---- a/drivers/staging/media/imx/Makefile
-+++ b/drivers/staging/media/imx/Makefile
-@@ -1,9 +1,11 @@
- imx-media-objs := imx-media-dev.o imx-media-internal-sd.o imx-media-of.o
- imx-media-common-objs := imx-media-utils.o imx-media-fim.o
-+imx-media-ic-objs := imx-ic-common.o imx-ic-prp.o imx-ic-prpencvf.o
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index cee1dae..6b2423a 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -210,6 +210,7 @@ config VIDEO_ADV7604
+ 	depends on GPIOLIB || COMPILE_TEST
+ 	select HDMI
+ 	select MEDIA_CEC_EDID
++	select V4L2_FWNODE
+ 	---help---
+ 	  Support for the Analog Devices ADV7604 video decoder.
  
- obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-media.o
- obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-media-common.o
- obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-media-capture.o
- obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-media-vdic.o
-+obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-media-ic.o
+@@ -324,6 +325,7 @@ config VIDEO_TC358743
+ 	tristate "Toshiba TC358743 decoder"
+ 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+ 	select HDMI
++	select V4L2_FWNODE
+ 	---help---
+ 	  Support for the Toshiba TC358743 HDMI to MIPI CSI-2 bridge.
  
- obj-$(CONFIG_VIDEO_IMX_CSI) += imx-media-csi.o
-diff --git a/drivers/staging/media/imx/imx-ic-common.c b/drivers/staging/media/imx/imx-ic-common.c
-new file mode 100644
-index 0000000..cfdd490
---- /dev/null
-+++ b/drivers/staging/media/imx/imx-ic-common.c
-@@ -0,0 +1,113 @@
-+/*
-+ * V4L2 Image Converter Subdev for Freescale i.MX5/6 SOC
-+ *
-+ * Copyright (c) 2014-2016 Mentor Graphics Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-subdev.h>
-+#include "imx-media.h"
-+#include "imx-ic.h"
-+
-+#define IC_TASK_PRP IC_NUM_TASKS
-+#define IC_NUM_OPS  (IC_NUM_TASKS + 1)
-+
-+static struct imx_ic_ops *ic_ops[IC_NUM_OPS] = {
-+	[IC_TASK_PRP]            = &imx_ic_prp_ops,
-+	[IC_TASK_ENCODER]        = &imx_ic_prpencvf_ops,
-+	[IC_TASK_VIEWFINDER]     = &imx_ic_prpencvf_ops,
-+};
-+
-+static int imx_ic_probe(struct platform_device *pdev)
-+{
-+	struct imx_media_internal_sd_platformdata *pdata;
-+	struct imx_ic_priv *priv;
-+	int ret;
-+
-+	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
-+	if (!priv)
-+		return -ENOMEM;
-+
-+	platform_set_drvdata(pdev, &priv->sd);
-+	priv->dev = &pdev->dev;
-+
-+	/* get our ipu_id, grp_id and IC task id */
-+	pdata = priv->dev->platform_data;
-+	priv->ipu_id = pdata->ipu_id;
-+	switch (pdata->grp_id) {
-+	case IMX_MEDIA_GRP_ID_IC_PRP:
-+		priv->task_id = IC_TASK_PRP;
-+		break;
-+	case IMX_MEDIA_GRP_ID_IC_PRPENC:
-+		priv->task_id = IC_TASK_ENCODER;
-+		break;
-+	case IMX_MEDIA_GRP_ID_IC_PRPVF:
-+		priv->task_id = IC_TASK_VIEWFINDER;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	v4l2_subdev_init(&priv->sd, ic_ops[priv->task_id]->subdev_ops);
-+	v4l2_set_subdevdata(&priv->sd, priv);
-+	priv->sd.internal_ops = ic_ops[priv->task_id]->internal_ops;
-+	priv->sd.entity.ops = ic_ops[priv->task_id]->entity_ops;
-+	priv->sd.entity.function = MEDIA_ENT_F_PROC_VIDEO_SCALER;
-+	priv->sd.dev = &pdev->dev;
-+	priv->sd.owner = THIS_MODULE;
-+	priv->sd.flags = V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
-+	priv->sd.grp_id = pdata->grp_id;
-+	strncpy(priv->sd.name, pdata->sd_name, sizeof(priv->sd.name));
-+
-+	ret = ic_ops[priv->task_id]->init(priv);
-+	if (ret)
-+		return ret;
-+
-+	ret = v4l2_async_register_subdev(&priv->sd);
-+	if (ret)
-+		ic_ops[priv->task_id]->remove(priv);
-+
-+	return ret;
-+}
-+
-+static int imx_ic_remove(struct platform_device *pdev)
-+{
-+	struct v4l2_subdev *sd = platform_get_drvdata(pdev);
-+	struct imx_ic_priv *priv = container_of(sd, struct imx_ic_priv, sd);
-+
-+	v4l2_info(sd, "Removing\n");
-+
-+	ic_ops[priv->task_id]->remove(priv);
-+
-+	v4l2_async_unregister_subdev(sd);
-+	media_entity_cleanup(&sd->entity);
-+
-+	return 0;
-+}
-+
-+static const struct platform_device_id imx_ic_ids[] = {
-+	{ .name = "imx-ipuv3-ic" },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(platform, imx_ic_ids);
-+
-+static struct platform_driver imx_ic_driver = {
-+	.probe = imx_ic_probe,
-+	.remove = imx_ic_remove,
-+	.id_table = imx_ic_ids,
-+	.driver = {
-+		.name = "imx-ipuv3-ic",
-+	},
-+};
-+module_platform_driver(imx_ic_driver);
-+
-+MODULE_DESCRIPTION("i.MX IC subdev driver");
-+MODULE_AUTHOR("Steve Longerbeam <steve_longerbeam@mentor.com>");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:imx-ipuv3-ic");
-diff --git a/drivers/staging/media/imx/imx-ic-prp.c b/drivers/staging/media/imx/imx-ic-prp.c
-new file mode 100644
-index 0000000..3683f7c
---- /dev/null
-+++ b/drivers/staging/media/imx/imx-ic-prp.c
-@@ -0,0 +1,427 @@
-+/*
-+ * V4L2 Capture IC Preprocess Subdev for Freescale i.MX5/6 SOC
-+ *
-+ * This subdevice handles capture of video frames from the CSI or VDIC,
-+ * which are routed directly to the Image Converter preprocess tasks,
-+ * for resizing, colorspace conversion, and rotation.
-+ *
-+ * Copyright (c) 2012-2017 Mentor Graphics Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+#include <linux/delay.h>
-+#include <linux/interrupt.h>
-+#include <linux/module.h>
-+#include <linux/sched.h>
-+#include <linux/slab.h>
-+#include <linux/spinlock.h>
-+#include <linux/timer.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-subdev.h>
-+#include <media/imx.h>
-+#include "imx-media.h"
-+#include "imx-ic.h"
-+
-+/*
-+ * Min/Max supported width and heights.
-+ */
-+#define MIN_W       176
-+#define MIN_H       144
-+#define MAX_W      4096
-+#define MAX_H      4096
-+#define W_ALIGN    4 /* multiple of 16 pixels */
-+#define H_ALIGN    1 /* multiple of 2 lines */
-+#define S_ALIGN    1 /* multiple of 2 */
-+
-+struct prp_priv {
-+	struct imx_media_dev *md;
-+	struct imx_ic_priv *ic_priv;
-+
-+	/* IPU units we require */
-+	struct ipu_soc *ipu;
-+
-+	struct media_pad pad[PRP_NUM_PADS];
-+
-+	struct v4l2_subdev *src_sd;
-+	struct v4l2_subdev *sink_sd_prpenc;
-+	struct v4l2_subdev *sink_sd_prpvf;
-+
-+	/* the CSI id at link validate */
-+	int csi_id;
-+
-+	/* the attached CSI at stream on */
-+	struct v4l2_subdev *csi_sd;
-+	/* the attached sensor at stream on */
-+	struct imx_media_subdev *sensor;
-+
-+	struct v4l2_mbus_framefmt format_mbus[PRP_NUM_PADS];
-+	const struct imx_media_pixfmt *cc[PRP_NUM_PADS];
-+
-+	bool stream_on; /* streaming is on */
-+};
-+
-+static inline struct prp_priv *sd_to_priv(struct v4l2_subdev *sd)
-+{
-+	struct imx_ic_priv *ic_priv = v4l2_get_subdevdata(sd);
-+
-+	return ic_priv->prp_priv;
-+}
-+
-+static int prp_start(struct prp_priv *priv)
-+{
-+	struct imx_ic_priv *ic_priv = priv->ic_priv;
-+
-+	if (!priv->sensor) {
-+		v4l2_err(&ic_priv->sd, "no sensor attached\n");
-+		return -EINVAL;
-+	}
-+
-+	priv->ipu = priv->md->ipu[ic_priv->ipu_id];
-+
-+	/* set IC to receive from CSI or VDI depending on source */
-+	if (priv->src_sd->grp_id & IMX_MEDIA_GRP_ID_VDIC)
-+		ipu_set_ic_src_mux(priv->ipu, 0, true);
-+	else
-+		ipu_set_ic_src_mux(priv->ipu, priv->csi_id, false);
-+
-+	return 0;
-+}
-+
-+static void prp_stop(struct prp_priv *priv)
-+{
-+}
-+
-+static int prp_enum_mbus_code(struct v4l2_subdev *sd,
-+			      struct v4l2_subdev_pad_config *cfg,
-+			      struct v4l2_subdev_mbus_code_enum *code)
-+{
-+	if (code->pad >= PRP_NUM_PADS)
-+		return -EINVAL;
-+
-+	return imx_media_enum_ipu_format(NULL, &code->code, code->index, true);
-+}
-+
-+static struct v4l2_mbus_framefmt *
-+__prp_get_fmt(struct prp_priv *priv, struct v4l2_subdev_pad_config *cfg,
-+	      unsigned int pad, enum v4l2_subdev_format_whence which)
-+{
-+	struct imx_ic_priv *ic_priv = priv->ic_priv;
-+
-+	if (which == V4L2_SUBDEV_FORMAT_TRY)
-+		return v4l2_subdev_get_try_format(&ic_priv->sd, cfg, pad);
-+	else
-+		return &priv->format_mbus[pad];
-+}
-+
-+static int prp_get_fmt(struct v4l2_subdev *sd,
-+		       struct v4l2_subdev_pad_config *cfg,
-+		       struct v4l2_subdev_format *sdformat)
-+{
-+	struct prp_priv *priv = sd_to_priv(sd);
-+	struct v4l2_mbus_framefmt *fmt;
-+
-+	if (sdformat->pad >= PRP_NUM_PADS)
-+		return -EINVAL;
-+
-+	fmt = __prp_get_fmt(priv, cfg, sdformat->pad, sdformat->which);
-+	if (!fmt)
-+		return -EINVAL;
-+
-+	sdformat->format = *fmt;
-+
-+	return 0;
-+}
-+
-+static int prp_set_fmt(struct v4l2_subdev *sd,
-+		       struct v4l2_subdev_pad_config *cfg,
-+		       struct v4l2_subdev_format *sdformat)
-+{
-+	struct prp_priv *priv = sd_to_priv(sd);
-+	const struct imx_media_pixfmt *cc;
-+	struct v4l2_mbus_framefmt *infmt;
-+	u32 code;
-+
-+	if (sdformat->pad >= PRP_NUM_PADS)
-+		return -EINVAL;
-+
-+	if (priv->stream_on)
-+		return -EBUSY;
-+
-+	cc = imx_media_find_ipu_format(0, sdformat->format.code, true);
-+	if (!cc) {
-+		imx_media_enum_ipu_format(NULL, &code, 0, true);
-+		cc = imx_media_find_ipu_format(0, code, true);
-+		sdformat->format.code = cc->codes[0];
-+	}
-+
-+	v4l_bound_align_image(&sdformat->format.width, MIN_W, MAX_W,
-+			      W_ALIGN, &sdformat->format.height,
-+			      MIN_H, MAX_H, H_ALIGN, S_ALIGN);
-+
-+	/* Output pads mirror input pad */
-+	if (sdformat->pad == PRP_SRC_PAD_PRPENC ||
-+	    sdformat->pad == PRP_SRC_PAD_PRPVF) {
-+		infmt = __prp_get_fmt(priv, cfg, PRP_SINK_PAD,
-+				      sdformat->which);
-+		sdformat->format = *infmt;
-+	}
-+
-+	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY) {
-+		cfg->try_fmt = sdformat->format;
-+	} else {
-+		priv->format_mbus[sdformat->pad] = sdformat->format;
-+		priv->cc[sdformat->pad] = cc;
-+	}
-+
-+	return 0;
-+}
-+
-+static int prp_link_setup(struct media_entity *entity,
-+			  const struct media_pad *local,
-+			  const struct media_pad *remote, u32 flags)
-+{
-+	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
-+	struct imx_ic_priv *ic_priv = v4l2_get_subdevdata(sd);
-+	struct prp_priv *priv = ic_priv->prp_priv;
-+	struct v4l2_subdev *remote_sd;
-+
-+	dev_dbg(ic_priv->dev, "link setup %s -> %s", remote->entity->name,
-+		local->entity->name);
-+
-+	remote_sd = media_entity_to_v4l2_subdev(remote->entity);
-+
-+	if (local->flags & MEDIA_PAD_FL_SINK) {
-+		if (flags & MEDIA_LNK_FL_ENABLED) {
-+			if (priv->src_sd)
-+				return -EBUSY;
-+			if (priv->sink_sd_prpenc && (remote_sd->grp_id &
-+						     IMX_MEDIA_GRP_ID_VDIC))
-+				return -EINVAL;
-+			priv->src_sd = remote_sd;
-+		} else {
-+			priv->src_sd = NULL;
-+		}
-+
-+		return 0;
-+	}
-+
-+	/* this is a source pad */
-+	if (flags & MEDIA_LNK_FL_ENABLED) {
-+		switch (local->index) {
-+		case PRP_SRC_PAD_PRPENC:
-+			if (priv->sink_sd_prpenc)
-+				return -EBUSY;
-+			if (priv->src_sd && (priv->src_sd->grp_id &
-+					     IMX_MEDIA_GRP_ID_VDIC))
-+				return -EINVAL;
-+			priv->sink_sd_prpenc = remote_sd;
-+			break;
-+		case PRP_SRC_PAD_PRPVF:
-+			if (priv->sink_sd_prpvf)
-+				return -EBUSY;
-+			priv->sink_sd_prpvf = remote_sd;
-+			break;
-+		default:
-+			return -EINVAL;
-+		}
-+	} else {
-+		switch (local->index) {
-+		case PRP_SRC_PAD_PRPENC:
-+			priv->sink_sd_prpenc = NULL;
-+			break;
-+		case PRP_SRC_PAD_PRPVF:
-+			priv->sink_sd_prpvf = NULL;
-+			break;
-+		default:
-+			return -EINVAL;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int prp_link_validate(struct v4l2_subdev *sd,
-+			     struct media_link *link,
-+			     struct v4l2_subdev_format *source_fmt,
-+			     struct v4l2_subdev_format *sink_fmt)
-+{
-+	struct imx_ic_priv *ic_priv = v4l2_get_subdevdata(sd);
-+	struct prp_priv *priv = ic_priv->prp_priv;
-+	struct v4l2_of_endpoint *sensor_ep;
-+	int ret;
-+
-+	ret = v4l2_subdev_link_validate_default(sd, link,
-+						source_fmt, sink_fmt);
-+	if (ret)
-+		return ret;
-+
-+	/* the ->PRPENC link cannot be enabled if the source is the VDIC */
-+	if (priv->sink_sd_prpenc && (priv->src_sd->grp_id &
-+				     IMX_MEDIA_GRP_ID_VDIC))
-+		return -EINVAL;
-+
-+	priv->sensor = __imx_media_find_sensor(priv->md, &ic_priv->sd.entity);
-+	if (IS_ERR(priv->sensor)) {
-+		v4l2_err(&ic_priv->sd, "no sensor attached\n");
-+		ret = PTR_ERR(priv->sensor);
-+		priv->sensor = NULL;
-+		return ret;
-+	}
-+
-+	sensor_ep = &priv->sensor->sensor_ep;
-+
-+	if (priv->src_sd->grp_id & IMX_MEDIA_GRP_ID_CSI) {
-+		priv->csi_sd = priv->src_sd;
-+	} else {
-+		struct imx_media_subdev *csi =
-+			imx_media_find_pipeline_subdev(
-+				priv->md, &ic_priv->sd.entity,
-+				IMX_MEDIA_GRP_ID_CSI);
-+		if (IS_ERR(csi)) {
-+			v4l2_err(&ic_priv->sd, "no CSI attached\n");
-+			ret = PTR_ERR(csi);
-+			return ret;
-+		}
-+
-+		priv->csi_sd = csi->sd;
-+	}
-+
-+	switch (priv->csi_sd->grp_id) {
-+	case IMX_MEDIA_GRP_ID_CSI0:
-+		priv->csi_id = 0;
-+		break;
-+	case IMX_MEDIA_GRP_ID_CSI1:
-+		priv->csi_id = 1;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	if (sensor_ep->bus_type == V4L2_MBUS_CSI2) {
-+		int vc_num = 0;
-+		/* see NOTE in imx-csi.c */
-+#if 0
-+		vc_num = imx_media_find_mipi_csi2_channel(
-+			priv->md, &ic_priv->sd.entity);
-+		if (vc_num < 0)
-+			return vc_num;
-+#endif
-+		/* only virtual channel 0 can be sent to IC */
-+		if (vc_num != 0)
-+			return -EINVAL;
-+	} else {
-+		/*
-+		 * only 8-bit pixels can be sent to IC for parallel
-+		 * busses
-+		 */
-+		if (sensor_ep->bus.parallel.bus_width >= 16)
-+			return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int prp_s_stream(struct v4l2_subdev *sd, int enable)
-+{
-+	struct imx_ic_priv *ic_priv = v4l2_get_subdevdata(sd);
-+	struct prp_priv *priv = ic_priv->prp_priv;
-+	int ret = 0;
-+
-+	if (!priv->src_sd || (!priv->sink_sd_prpenc && !priv->sink_sd_prpvf))
-+		return -EPIPE;
-+
-+	dev_dbg(ic_priv->dev, "stream %s\n", enable ? "ON" : "OFF");
-+
-+	if (enable && !priv->stream_on)
-+		ret = prp_start(priv);
-+	else if (!enable && priv->stream_on)
-+		prp_stop(priv);
-+
-+	if (!ret)
-+		priv->stream_on = enable;
-+	return ret;
-+}
-+
-+/*
-+ * retrieve our pads parsed from the OF graph by the media device
-+ */
-+static int prp_registered(struct v4l2_subdev *sd)
-+{
-+	struct prp_priv *priv = sd_to_priv(sd);
-+	int i, ret;
-+	u32 code;
-+
-+	/* get media device */
-+	priv->md = dev_get_drvdata(sd->v4l2_dev->dev);
-+
-+	for (i = 0; i < PRP_NUM_PADS; i++) {
-+		priv->pad[i].flags = (i == PRP_SINK_PAD) ?
-+			MEDIA_PAD_FL_SINK : MEDIA_PAD_FL_SOURCE;
-+
-+		/* set a default mbus format  */
-+		imx_media_enum_ipu_format(NULL, &code, 0, true);
-+		ret = imx_media_init_mbus_fmt(&priv->format_mbus[i],
-+					      640, 480, code, V4L2_FIELD_NONE,
-+					      &priv->cc[i]);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	return media_entity_pads_init(&sd->entity, PRP_NUM_PADS, priv->pad);
-+}
-+
-+static struct v4l2_subdev_pad_ops prp_pad_ops = {
-+	.enum_mbus_code = prp_enum_mbus_code,
-+	.get_fmt = prp_get_fmt,
-+	.set_fmt = prp_set_fmt,
-+	.link_validate = prp_link_validate,
-+};
-+
-+static struct v4l2_subdev_video_ops prp_video_ops = {
-+	.s_stream = prp_s_stream,
-+};
-+
-+static struct media_entity_operations prp_entity_ops = {
-+	.link_setup = prp_link_setup,
-+	.link_validate = v4l2_subdev_link_validate,
-+};
-+
-+static struct v4l2_subdev_ops prp_subdev_ops = {
-+	.video = &prp_video_ops,
-+	.pad = &prp_pad_ops,
-+};
-+
-+static struct v4l2_subdev_internal_ops prp_internal_ops = {
-+	.registered = prp_registered,
-+};
-+
-+static int prp_init(struct imx_ic_priv *ic_priv)
-+{
-+	struct prp_priv *priv;
-+
-+	priv = devm_kzalloc(ic_priv->dev, sizeof(*priv), GFP_KERNEL);
-+	if (!priv)
-+		return -ENOMEM;
-+
-+	ic_priv->prp_priv = priv;
-+	priv->ic_priv = ic_priv;
-+
-+	return 0;
-+}
-+
-+static void prp_remove(struct imx_ic_priv *ic_priv)
-+{
-+}
-+
-+struct imx_ic_ops imx_ic_prp_ops = {
-+	.subdev_ops = &prp_subdev_ops,
-+	.internal_ops = &prp_internal_ops,
-+	.entity_ops = &prp_entity_ops,
-+	.init = prp_init,
-+	.remove = prp_remove,
-+};
-diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
-new file mode 100644
-index 0000000..2be8845
---- /dev/null
-+++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
-@@ -0,0 +1,1116 @@
-+/*
-+ * V4L2 Capture IC Preprocess Subdev for Freescale i.MX5/6 SOC
-+ *
-+ * This subdevice handles capture of video frames from the CSI or VDIC,
-+ * which are routed directly to the Image Converter preprocess tasks,
-+ * for resizing, colorspace conversion, and rotation.
-+ *
-+ * Copyright (c) 2012-2017 Mentor Graphics Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+#include <linux/delay.h>
-+#include <linux/interrupt.h>
-+#include <linux/module.h>
-+#include <linux/sched.h>
-+#include <linux/slab.h>
-+#include <linux/spinlock.h>
-+#include <linux/timer.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-mc.h>
-+#include <media/v4l2-subdev.h>
-+#include <media/imx.h>
-+#include "imx-media.h"
-+#include "imx-ic.h"
-+
-+/*
-+ * Min/Max supported width and heights.
-+ *
-+ * We allow planar output, so we have to align width at the source pad
-+ * by 16 pixels to meet IDMAC alignment requirements for possible planar
-+ * output.
-+ *
-+ * TODO: move this into pad format negotiation, if capture device
-+ * has not requested a planar format, we should allow 8 pixel
-+ * alignment at the source pad.
-+ */
-+#define MIN_W_SINK  176
-+#define MIN_H_SINK  144
-+#define MAX_W_SINK 4096
-+#define MAX_H_SINK 4096
-+#define W_ALIGN_SINK  3 /* multiple of 8 pixels */
-+#define H_ALIGN_SINK  1 /* multiple of 2 lines */
-+
-+#define MAX_W_SRC  1024
-+#define MAX_H_SRC  1024
-+#define W_ALIGN_SRC   4 /* multiple of 16 pixels */
-+#define H_ALIGN_SRC   1 /* multiple of 2 lines */
-+
-+#define S_ALIGN       1 /* multiple of 2 */
-+
-+struct prp_priv {
-+	struct imx_media_dev *md;
-+	struct imx_ic_priv *ic_priv;
-+
-+	/* IPU units we require */
-+	struct ipu_soc *ipu;
-+	struct ipu_ic *ic;
-+	struct ipuv3_channel *out_ch;
-+	struct ipuv3_channel *rot_in_ch;
-+	struct ipuv3_channel *rot_out_ch;
-+
-+	struct media_pad pad[PRPENCVF_NUM_PADS];
-+
-+	/* the video device at output pad */
-+	struct imx_media_video_dev *vdev;
-+
-+	/* active vb2 buffers to send to video dev sink */
-+	struct imx_media_buffer *active_vb2_buf[2];
-+	struct imx_media_dma_buf underrun_buf;
-+
-+	int ipu_buf_num;  /* ipu double buffer index: 0-1 */
-+
-+	/* the sink for the captured frames */
-+	struct media_entity *sink;
-+	/* the source subdev */
-+	struct v4l2_subdev *src_sd;
-+
-+	/* the attached CSI at stream on */
-+	struct v4l2_subdev *csi_sd;
-+
-+	struct v4l2_mbus_framefmt format_mbus[PRPENCVF_NUM_PADS];
-+	const struct imx_media_pixfmt *cc[PRPENCVF_NUM_PADS];
-+
-+	struct imx_media_dma_buf rot_buf[2];
-+
-+	/* controls */
-+	struct v4l2_ctrl_handler ctrl_hdlr;
-+	int  rotation; /* degrees */
-+	bool hflip;
-+	bool vflip;
-+
-+	/* derived from rotation, hflip, vflip controls */
-+	enum ipu_rotate_mode rot_mode;
-+
-+	spinlock_t irqlock; /* protect eof_irq handler */
-+
-+	struct timer_list eof_timeout_timer;
-+	int eof_irq;
-+	int nfb4eof_irq;
-+
-+	bool stream_on; /* streaming is on */
-+	bool last_eof;  /* waiting for last EOF at stream off */
-+	struct completion last_eof_comp;
-+};
-+
-+static const struct prp_channels {
-+	u32 out_ch;
-+	u32 rot_in_ch;
-+	u32 rot_out_ch;
-+} prp_channel[] = {
-+	[IC_TASK_ENCODER] = {
-+		.out_ch = IPUV3_CHANNEL_IC_PRP_ENC_MEM,
-+		.rot_in_ch = IPUV3_CHANNEL_MEM_ROT_ENC,
-+		.rot_out_ch = IPUV3_CHANNEL_ROT_ENC_MEM,
-+	},
-+	[IC_TASK_VIEWFINDER] = {
-+		.out_ch = IPUV3_CHANNEL_IC_PRP_VF_MEM,
-+		.rot_in_ch = IPUV3_CHANNEL_MEM_ROT_VF,
-+		.rot_out_ch = IPUV3_CHANNEL_ROT_VF_MEM,
-+	},
-+};
-+
-+static inline struct prp_priv *sd_to_priv(struct v4l2_subdev *sd)
-+{
-+	struct imx_ic_priv *ic_priv = v4l2_get_subdevdata(sd);
-+
-+	return ic_priv->task_priv;
-+}
-+
-+static void prp_put_ipu_resources(struct prp_priv *priv)
-+{
-+	if (!IS_ERR_OR_NULL(priv->ic))
-+		ipu_ic_put(priv->ic);
-+	priv->ic = NULL;
-+
-+	if (!IS_ERR_OR_NULL(priv->out_ch))
-+		ipu_idmac_put(priv->out_ch);
-+	priv->out_ch = NULL;
-+
-+	if (!IS_ERR_OR_NULL(priv->rot_in_ch))
-+		ipu_idmac_put(priv->rot_in_ch);
-+	priv->rot_in_ch = NULL;
-+
-+	if (!IS_ERR_OR_NULL(priv->rot_out_ch))
-+		ipu_idmac_put(priv->rot_out_ch);
-+	priv->rot_out_ch = NULL;
-+}
-+
-+static int prp_get_ipu_resources(struct prp_priv *priv)
-+{
-+	struct imx_ic_priv *ic_priv = priv->ic_priv;
-+	int ret, task = ic_priv->task_id;
-+
-+	priv->ipu = priv->md->ipu[ic_priv->ipu_id];
-+
-+	priv->ic = ipu_ic_get(priv->ipu, task);
-+	if (IS_ERR(priv->ic)) {
-+		v4l2_err(&ic_priv->sd, "failed to get IC\n");
-+		ret = PTR_ERR(priv->ic);
-+		goto out;
-+	}
-+
-+	priv->out_ch = ipu_idmac_get(priv->ipu,
-+				     prp_channel[task].out_ch);
-+	if (IS_ERR(priv->out_ch)) {
-+		v4l2_err(&ic_priv->sd, "could not get IDMAC channel %u\n",
-+			 prp_channel[task].out_ch);
-+		ret = PTR_ERR(priv->out_ch);
-+		goto out;
-+	}
-+
-+	priv->rot_in_ch = ipu_idmac_get(priv->ipu,
-+					prp_channel[task].rot_in_ch);
-+	if (IS_ERR(priv->rot_in_ch)) {
-+		v4l2_err(&ic_priv->sd, "could not get IDMAC channel %u\n",
-+			 prp_channel[task].rot_in_ch);
-+		ret = PTR_ERR(priv->rot_in_ch);
-+		goto out;
-+	}
-+
-+	priv->rot_out_ch = ipu_idmac_get(priv->ipu,
-+					 prp_channel[task].rot_out_ch);
-+	if (IS_ERR(priv->rot_out_ch)) {
-+		v4l2_err(&ic_priv->sd, "could not get IDMAC channel %u\n",
-+			 prp_channel[task].rot_out_ch);
-+		ret = PTR_ERR(priv->rot_out_ch);
-+		goto out;
-+	}
-+
-+	return 0;
-+out:
-+	prp_put_ipu_resources(priv);
-+	return ret;
-+}
-+
-+static void prp_vb2_buf_done(struct prp_priv *priv, struct ipuv3_channel *ch)
-+{
-+	struct imx_media_video_dev *vdev = priv->vdev;
-+	struct imx_media_buffer *done, *next;
-+	struct vb2_buffer *vb;
-+	dma_addr_t phys;
-+
-+	done = priv->active_vb2_buf[priv->ipu_buf_num];
-+	if (done) {
-+		vb = &done->vbuf.vb2_buf;
-+		vb->timestamp = ktime_get_ns();
-+		vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
-+	}
-+
-+	/* get next queued buffer */
-+	next = imx_media_capture_device_next_buf(vdev);
-+	if (next) {
-+		phys = vb2_dma_contig_plane_dma_addr(&next->vbuf.vb2_buf, 0);
-+		priv->active_vb2_buf[priv->ipu_buf_num] = next;
-+	} else {
-+		phys = priv->underrun_buf.phys;
-+		priv->active_vb2_buf[priv->ipu_buf_num] = NULL;
-+	}
-+
-+	if (ipu_idmac_buffer_is_ready(ch, priv->ipu_buf_num))
-+		ipu_idmac_clear_buffer(ch, priv->ipu_buf_num);
-+
-+	ipu_cpmem_set_buffer(ch, priv->ipu_buf_num, phys);
-+}
-+
-+static irqreturn_t prp_eof_interrupt(int irq, void *dev_id)
-+{
-+	struct prp_priv *priv = dev_id;
-+	struct ipuv3_channel *channel;
-+
-+	spin_lock(&priv->irqlock);
-+
-+	if (priv->last_eof) {
-+		complete(&priv->last_eof_comp);
-+		priv->last_eof = false;
-+		goto unlock;
-+	}
-+
-+	/* inform CSI of this EOF so it can monitor frame intervals */
-+	v4l2_subdev_call(priv->csi_sd, core, interrupt_service_routine,
-+			 0, NULL);
-+
-+	channel = (ipu_rot_mode_is_irt(priv->rot_mode)) ?
-+		priv->rot_out_ch : priv->out_ch;
-+
-+	prp_vb2_buf_done(priv, channel);
-+
-+	/* select new IPU buf */
-+	ipu_idmac_select_buffer(channel, priv->ipu_buf_num);
-+	/* toggle IPU double-buffer index */
-+	priv->ipu_buf_num ^= 1;
-+
-+	/* bump the EOF timeout timer */
-+	mod_timer(&priv->eof_timeout_timer,
-+		  jiffies + msecs_to_jiffies(IMX_MEDIA_EOF_TIMEOUT));
-+
-+unlock:
-+	spin_unlock(&priv->irqlock);
-+	return IRQ_HANDLED;
-+}
-+
-+static irqreturn_t prp_nfb4eof_interrupt(int irq, void *dev_id)
-+{
-+	struct prp_priv *priv = dev_id;
-+	struct imx_ic_priv *ic_priv = priv->ic_priv;
-+	static const struct v4l2_event ev = {
-+		.type = V4L2_EVENT_IMX_NFB4EOF,
-+	};
-+
-+	v4l2_err(&ic_priv->sd, "NFB4EOF\n");
-+
-+	v4l2_subdev_notify_event(&ic_priv->sd, &ev);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+/*
-+ * EOF timeout timer function.
-+ */
-+static void prp_eof_timeout(unsigned long data)
-+{
-+	struct prp_priv *priv = (struct prp_priv *)data;
-+	struct imx_ic_priv *ic_priv = priv->ic_priv;
-+	static const struct v4l2_event ev = {
-+		.type = V4L2_EVENT_FRAME_TIMEOUT,
-+	};
-+
-+	v4l2_err(&ic_priv->sd, "EOF timeout\n");
-+
-+	v4l2_subdev_notify_event(&ic_priv->sd, &ev);
-+}
-+
-+static void prp_setup_vb2_buf(struct prp_priv *priv, dma_addr_t *phys)
-+{
-+	struct imx_media_video_dev *vdev = priv->vdev;
-+	struct imx_media_buffer *buf;
-+	int i;
-+
-+	for (i = 0; i < 2; i++) {
-+		buf = imx_media_capture_device_next_buf(vdev);
-+		priv->active_vb2_buf[i] = buf;
-+		phys[i] = vb2_dma_contig_plane_dma_addr(&buf->vbuf.vb2_buf, 0);
-+	}
-+}
-+
-+static void prp_unsetup_vb2_buf(struct prp_priv *priv)
-+{
-+	struct imx_media_buffer *buf;
-+	int i;
-+
-+	/* return any remaining active frames with error */
-+	for (i = 0; i < 2; i++) {
-+		buf = priv->active_vb2_buf[i];
-+		if (buf) {
-+			struct vb2_buffer *vb = &buf->vbuf.vb2_buf;
-+
-+			vb->timestamp = ktime_get_ns();
-+			vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
-+		}
-+	}
-+}
-+
-+static int prp_setup_channel(struct prp_priv *priv,
-+			     struct ipuv3_channel *channel,
-+			     enum ipu_rotate_mode rot_mode,
-+			     dma_addr_t addr0, dma_addr_t addr1,
-+			     bool rot_swap_width_height)
-+{
-+	struct imx_media_video_dev *vdev = priv->vdev;
-+	const struct imx_media_pixfmt *outcc;
-+	struct v4l2_mbus_framefmt *infmt;
-+	unsigned int burst_size;
-+	struct ipu_image image;
-+	int ret;
-+
-+	infmt = &priv->format_mbus[PRPENCVF_SINK_PAD];
-+	outcc = vdev->cc;
-+
-+	ipu_cpmem_zero(channel);
-+
-+	memset(&image, 0, sizeof(image));
-+	image.pix = vdev->fmt.fmt.pix;
-+	image.rect.width = image.pix.width;
-+	image.rect.height = image.pix.height;
-+
-+	if (rot_swap_width_height) {
-+		swap(image.pix.width, image.pix.height);
-+		swap(image.rect.width, image.rect.height);
-+		/* recalc stride using swapped width */
-+		image.pix.bytesperline = outcc->planar ?
-+			image.pix.width :
-+			(image.pix.width * outcc->bpp) >> 3;
-+	}
-+
-+	image.phys0 = addr0;
-+	image.phys1 = addr1;
-+
-+	ret = ipu_cpmem_set_image(channel, &image);
-+	if (ret)
-+		return ret;
-+
-+	if (channel == priv->rot_in_ch ||
-+	    channel == priv->rot_out_ch) {
-+		burst_size = 8;
-+		ipu_cpmem_set_block_mode(channel);
-+	} else {
-+		burst_size = (image.pix.width & 0xf) ? 8 : 16;
-+	}
-+
-+	ipu_cpmem_set_burstsize(channel, burst_size);
-+
-+	if (rot_mode)
-+		ipu_cpmem_set_rotation(channel, rot_mode);
-+
-+	if (image.pix.field == V4L2_FIELD_NONE &&
-+	    V4L2_FIELD_HAS_BOTH(infmt->field) &&
-+	    channel == priv->out_ch)
-+		ipu_cpmem_interlaced_scan(channel, image.pix.bytesperline);
-+
-+	ret = ipu_ic_task_idma_init(priv->ic, channel,
-+				    image.pix.width, image.pix.height,
-+				    burst_size, rot_mode);
-+	if (ret)
-+		return ret;
-+
-+	ipu_cpmem_set_axi_id(channel, 1);
-+
-+	ipu_idmac_set_double_buffer(channel, true);
-+
-+	return 0;
-+}
-+
-+static int prp_setup_rotation(struct prp_priv *priv)
-+{
-+	struct imx_media_video_dev *vdev = priv->vdev;
-+	struct imx_ic_priv *ic_priv = priv->ic_priv;
-+	const struct imx_media_pixfmt *outcc, *incc;
-+	struct v4l2_mbus_framefmt *infmt;
-+	struct v4l2_pix_format *outfmt;
-+	dma_addr_t phys[2];
-+	int ret;
-+
-+	infmt = &priv->format_mbus[PRPENCVF_SINK_PAD];
-+	outfmt = &vdev->fmt.fmt.pix;
-+	incc = priv->cc[PRPENCVF_SINK_PAD];
-+	outcc = vdev->cc;
-+
-+	ret = imx_media_alloc_dma_buf(priv->md, &priv->rot_buf[0],
-+				      outfmt->sizeimage);
-+	if (ret) {
-+		v4l2_err(&ic_priv->sd, "failed to alloc rot_buf[0], %d\n", ret);
-+		return ret;
-+	}
-+	ret = imx_media_alloc_dma_buf(priv->md, &priv->rot_buf[1],
-+				      outfmt->sizeimage);
-+	if (ret) {
-+		v4l2_err(&ic_priv->sd, "failed to alloc rot_buf[1], %d\n", ret);
-+		goto free_rot0;
-+	}
-+
-+	ret = ipu_ic_task_init(priv->ic,
-+			       infmt->width, infmt->height,
-+			       outfmt->height, outfmt->width,
-+			       incc->cs, outcc->cs);
-+	if (ret) {
-+		v4l2_err(&ic_priv->sd, "ipu_ic_task_init failed, %d\n", ret);
-+		goto free_rot1;
-+	}
-+
-+	/* init the IC-PRP-->MEM IDMAC channel */
-+	ret = prp_setup_channel(priv, priv->out_ch, IPU_ROTATE_NONE,
-+				priv->rot_buf[0].phys, priv->rot_buf[1].phys,
-+				true);
-+	if (ret) {
-+		v4l2_err(&ic_priv->sd,
-+			 "prp_setup_channel(out_ch) failed, %d\n", ret);
-+		goto free_rot1;
-+	}
-+
-+	/* init the MEM-->IC-PRP ROT IDMAC channel */
-+	ret = prp_setup_channel(priv, priv->rot_in_ch, priv->rot_mode,
-+				priv->rot_buf[0].phys, priv->rot_buf[1].phys,
-+				true);
-+	if (ret) {
-+		v4l2_err(&ic_priv->sd,
-+			 "prp_setup_channel(rot_in_ch) failed, %d\n", ret);
-+		goto free_rot1;
-+	}
-+
-+	prp_setup_vb2_buf(priv, phys);
-+
-+	/* init the destination IC-PRP ROT-->MEM IDMAC channel */
-+	ret = prp_setup_channel(priv, priv->rot_out_ch, IPU_ROTATE_NONE,
-+				phys[0], phys[1],
-+				false);
-+	if (ret) {
-+		v4l2_err(&ic_priv->sd,
-+			 "prp_setup_channel(rot_out_ch) failed, %d\n", ret);
-+		goto free_rot1;
-+	}
-+
-+	/* now link IC-PRP-->MEM to MEM-->IC-PRP ROT */
-+	ipu_idmac_link(priv->out_ch, priv->rot_in_ch);
-+
-+	/* enable the IC */
-+	ipu_ic_enable(priv->ic);
-+
-+	/* set buffers ready */
-+	ipu_idmac_select_buffer(priv->out_ch, 0);
-+	ipu_idmac_select_buffer(priv->out_ch, 1);
-+	ipu_idmac_select_buffer(priv->rot_out_ch, 0);
-+	ipu_idmac_select_buffer(priv->rot_out_ch, 1);
-+
-+	/* enable the channels */
-+	ipu_idmac_enable_channel(priv->out_ch);
-+	ipu_idmac_enable_channel(priv->rot_in_ch);
-+	ipu_idmac_enable_channel(priv->rot_out_ch);
-+
-+	/* and finally enable the IC PRP task */
-+	ipu_ic_task_enable(priv->ic);
-+
-+	return 0;
-+
-+free_rot1:
-+	imx_media_free_dma_buf(priv->md, &priv->rot_buf[1]);
-+free_rot0:
-+	imx_media_free_dma_buf(priv->md, &priv->rot_buf[0]);
-+	return ret;
-+}
-+
-+static void prp_unsetup_rotation(struct prp_priv *priv)
-+{
-+	ipu_ic_task_disable(priv->ic);
-+
-+	ipu_idmac_disable_channel(priv->out_ch);
-+	ipu_idmac_disable_channel(priv->rot_in_ch);
-+	ipu_idmac_disable_channel(priv->rot_out_ch);
-+
-+	ipu_idmac_unlink(priv->out_ch, priv->rot_in_ch);
-+
-+	ipu_ic_disable(priv->ic);
-+
-+	imx_media_free_dma_buf(priv->md, &priv->rot_buf[0]);
-+	imx_media_free_dma_buf(priv->md, &priv->rot_buf[1]);
-+}
-+
-+static int prp_setup_norotation(struct prp_priv *priv)
-+{
-+	struct imx_media_video_dev *vdev = priv->vdev;
-+	struct imx_ic_priv *ic_priv = priv->ic_priv;
-+	const struct imx_media_pixfmt *outcc, *incc;
-+	struct v4l2_mbus_framefmt *infmt;
-+	struct v4l2_pix_format *outfmt;
-+	dma_addr_t phys[2];
-+	int ret;
-+
-+	infmt = &priv->format_mbus[PRPENCVF_SINK_PAD];
-+	outfmt = &vdev->fmt.fmt.pix;
-+	incc = priv->cc[PRPENCVF_SINK_PAD];
-+	outcc = vdev->cc;
-+
-+	ret = ipu_ic_task_init(priv->ic,
-+			       infmt->width, infmt->height,
-+			       outfmt->width, outfmt->height,
-+			       incc->cs, outcc->cs);
-+	if (ret) {
-+		v4l2_err(&ic_priv->sd, "ipu_ic_task_init failed, %d\n", ret);
-+		return ret;
-+	}
-+
-+	prp_setup_vb2_buf(priv, phys);
-+
-+	/* init the IC PRP-->MEM IDMAC channel */
-+	ret = prp_setup_channel(priv, priv->out_ch, priv->rot_mode,
-+				phys[0], phys[1], false);
-+	if (ret) {
-+		v4l2_err(&ic_priv->sd,
-+			 "prp_setup_channel(out_ch) failed, %d\n", ret);
-+		return ret;
-+	}
-+
-+	ipu_cpmem_dump(priv->out_ch);
-+	ipu_ic_dump(priv->ic);
-+	ipu_dump(priv->ipu);
-+
-+	ipu_ic_enable(priv->ic);
-+
-+	/* set buffers ready */
-+	ipu_idmac_select_buffer(priv->out_ch, 0);
-+	ipu_idmac_select_buffer(priv->out_ch, 1);
-+
-+	/* enable the channels */
-+	ipu_idmac_enable_channel(priv->out_ch);
-+
-+	/* enable the IC task */
-+	ipu_ic_task_enable(priv->ic);
-+
-+	return 0;
-+}
-+
-+static void prp_unsetup_norotation(struct prp_priv *priv)
-+{
-+	ipu_ic_task_disable(priv->ic);
-+	ipu_idmac_disable_channel(priv->out_ch);
-+	ipu_ic_disable(priv->ic);
-+}
-+
-+static void prp_unsetup(struct prp_priv *priv)
-+{
-+	if (ipu_rot_mode_is_irt(priv->rot_mode))
-+		prp_unsetup_rotation(priv);
-+	else
-+		prp_unsetup_norotation(priv);
-+
-+	prp_unsetup_vb2_buf(priv);
-+}
-+
-+static int prp_start(struct prp_priv *priv)
-+{
-+	struct imx_ic_priv *ic_priv = priv->ic_priv;
-+	struct imx_media_video_dev *vdev = priv->vdev;
-+	struct v4l2_pix_format *outfmt;
-+	int ret;
-+
-+	ret = prp_get_ipu_resources(priv);
-+	if (ret)
-+		return ret;
-+
-+	outfmt = &vdev->fmt.fmt.pix;
-+
-+	ret = imx_media_alloc_dma_buf(priv->md, &priv->underrun_buf,
-+				      outfmt->sizeimage);
-+	if (ret)
-+		goto out_put_ipu;
-+
-+	priv->ipu_buf_num = 0;
-+
-+	/* init EOF completion waitq */
-+	init_completion(&priv->last_eof_comp);
-+	priv->last_eof = false;
-+
-+	if (ipu_rot_mode_is_irt(priv->rot_mode))
-+		ret = prp_setup_rotation(priv);
-+	else
-+		ret = prp_setup_norotation(priv);
-+	if (ret)
-+		goto out_free_underrun;
-+
-+	priv->nfb4eof_irq = ipu_idmac_channel_irq(priv->ipu,
-+						  priv->out_ch,
-+						  IPU_IRQ_NFB4EOF);
-+	ret = devm_request_irq(ic_priv->dev, priv->nfb4eof_irq,
-+			       prp_nfb4eof_interrupt, 0,
-+			       "imx-ic-prp-nfb4eof", priv);
-+	if (ret) {
-+		v4l2_err(&ic_priv->sd,
-+			 "Error registering NFB4EOF irq: %d\n", ret);
-+		goto out_unsetup;
-+	}
-+
-+	if (ipu_rot_mode_is_irt(priv->rot_mode))
-+		priv->eof_irq = ipu_idmac_channel_irq(
-+			priv->ipu, priv->rot_out_ch, IPU_IRQ_EOF);
-+	else
-+		priv->eof_irq = ipu_idmac_channel_irq(
-+			priv->ipu, priv->out_ch, IPU_IRQ_EOF);
-+
-+	ret = devm_request_irq(ic_priv->dev, priv->eof_irq,
-+			       prp_eof_interrupt, 0,
-+			       "imx-ic-prp-eof", priv);
-+	if (ret) {
-+		v4l2_err(&ic_priv->sd,
-+			 "Error registering eof irq: %d\n", ret);
-+		goto out_free_nfb4eof_irq;
-+	}
-+
-+	/* start the EOF timeout timer */
-+	mod_timer(&priv->eof_timeout_timer,
-+		  jiffies + msecs_to_jiffies(IMX_MEDIA_EOF_TIMEOUT));
-+
-+	return 0;
-+
-+out_free_nfb4eof_irq:
-+	devm_free_irq(ic_priv->dev, priv->nfb4eof_irq, priv);
-+out_unsetup:
-+	prp_unsetup(priv);
-+out_free_underrun:
-+	imx_media_free_dma_buf(priv->md, &priv->underrun_buf);
-+out_put_ipu:
-+	prp_put_ipu_resources(priv);
-+	return ret;
-+}
-+
-+static void prp_stop(struct prp_priv *priv)
-+{
-+	struct imx_ic_priv *ic_priv = priv->ic_priv;
-+	unsigned long flags;
-+	int ret;
-+
-+	/* mark next EOF interrupt as the last before stream off */
-+	spin_lock_irqsave(&priv->irqlock, flags);
-+	priv->last_eof = true;
-+	spin_unlock_irqrestore(&priv->irqlock, flags);
-+
-+	/*
-+	 * and then wait for interrupt handler to mark completion.
-+	 */
-+	ret = wait_for_completion_timeout(
-+		&priv->last_eof_comp,
-+		msecs_to_jiffies(IMX_MEDIA_EOF_TIMEOUT));
-+	if (ret == 0)
-+		v4l2_warn(&ic_priv->sd, "wait last EOF timeout\n");
-+
-+	devm_free_irq(ic_priv->dev, priv->eof_irq, priv);
-+	devm_free_irq(ic_priv->dev, priv->nfb4eof_irq, priv);
-+
-+	prp_unsetup(priv);
-+
-+	imx_media_free_dma_buf(priv->md, &priv->underrun_buf);
-+
-+	/* cancel the EOF timeout timer */
-+	del_timer_sync(&priv->eof_timeout_timer);
-+
-+	prp_put_ipu_resources(priv);
-+}
-+
-+static int prp_enum_mbus_code(struct v4l2_subdev *sd,
-+			      struct v4l2_subdev_pad_config *cfg,
-+			      struct v4l2_subdev_mbus_code_enum *code)
-+{
-+	if (code->pad >= PRPENCVF_NUM_PADS)
-+		return -EINVAL;
-+
-+	if (code->pad == PRPENCVF_SRC_PAD)
-+		return imx_media_enum_format(NULL, &code->code, code->index,
-+					     true, false);
-+
-+	return imx_media_enum_ipu_format(NULL, &code->code, code->index, true);
-+}
-+
-+static struct v4l2_mbus_framefmt *
-+__prp_get_fmt(struct prp_priv *priv, struct v4l2_subdev_pad_config *cfg,
-+	      unsigned int pad, enum v4l2_subdev_format_whence which)
-+{
-+	struct imx_ic_priv *ic_priv = priv->ic_priv;
-+
-+	if (which == V4L2_SUBDEV_FORMAT_TRY)
-+		return v4l2_subdev_get_try_format(&ic_priv->sd, cfg, pad);
-+	else
-+		return &priv->format_mbus[pad];
-+}
-+
-+static int prp_get_fmt(struct v4l2_subdev *sd,
-+		       struct v4l2_subdev_pad_config *cfg,
-+		       struct v4l2_subdev_format *sdformat)
-+{
-+	struct prp_priv *priv = sd_to_priv(sd);
-+	struct v4l2_mbus_framefmt *fmt;
-+
-+	if (sdformat->pad >= PRPENCVF_NUM_PADS)
-+		return -EINVAL;
-+
-+	fmt = __prp_get_fmt(priv, cfg, sdformat->pad, sdformat->which);
-+	if (!fmt)
-+		return -EINVAL;
-+
-+	sdformat->format = *fmt;
-+
-+	return 0;
-+}
-+
-+static int prp_set_fmt(struct v4l2_subdev *sd,
-+		       struct v4l2_subdev_pad_config *cfg,
-+		       struct v4l2_subdev_format *sdformat)
-+{
-+	struct prp_priv *priv = sd_to_priv(sd);
-+	const struct imx_media_pixfmt *cc;
-+	struct v4l2_mbus_framefmt *infmt;
-+	u32 code;
-+
-+	if (sdformat->pad >= PRPENCVF_NUM_PADS)
-+		return -EINVAL;
-+
-+	if (priv->stream_on)
-+		return -EBUSY;
-+
-+	if (sdformat->pad == PRPENCVF_SRC_PAD) {
-+		infmt = __prp_get_fmt(priv, cfg, PRPENCVF_SINK_PAD,
-+				      sdformat->which);
-+
-+		cc = imx_media_find_format(0, sdformat->format.code,
-+					   true, false);
-+		if (!cc) {
-+			imx_media_enum_format(NULL, &code, 0, true, false);
-+			cc = imx_media_find_format(0, code, true, false);
-+			sdformat->format.code = cc->codes[0];
-+		}
-+
-+		if (sdformat->format.field != V4L2_FIELD_NONE)
-+			sdformat->format.field = infmt->field;
-+
-+		/* IC resizer cannot downsize more than 4:1 */
-+		if (ipu_rot_mode_is_irt(priv->rot_mode))
-+			v4l_bound_align_image(&sdformat->format.width,
-+					      infmt->height / 4, MAX_H_SRC,
-+					      H_ALIGN_SRC,
-+					      &sdformat->format.height,
-+					      infmt->width / 4, MAX_W_SRC,
-+					      W_ALIGN_SRC, S_ALIGN);
-+		else
-+			v4l_bound_align_image(&sdformat->format.width,
-+					      infmt->width / 4, MAX_W_SRC,
-+					      W_ALIGN_SRC,
-+					      &sdformat->format.height,
-+					      infmt->height / 4, MAX_H_SRC,
-+					      H_ALIGN_SRC, S_ALIGN);
-+	} else {
-+		cc = imx_media_find_ipu_format(0, sdformat->format.code,
-+					       true);
-+		if (!cc) {
-+			imx_media_enum_ipu_format(NULL, &code, 0, true);
-+			cc = imx_media_find_ipu_format(0, code, true);
-+			sdformat->format.code = cc->codes[0];
-+		}
-+
-+		v4l_bound_align_image(&sdformat->format.width,
-+				      MIN_W_SINK, MAX_W_SINK, W_ALIGN_SINK,
-+				      &sdformat->format.height,
-+				      MIN_H_SINK, MAX_H_SINK, H_ALIGN_SINK,
-+				      S_ALIGN);
-+	}
-+
-+	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY) {
-+		cfg->try_fmt = sdformat->format;
-+	} else {
-+		priv->format_mbus[sdformat->pad] = sdformat->format;
-+		priv->cc[sdformat->pad] = cc;
-+	}
-+
-+	return 0;
-+}
-+
-+static int prp_link_setup(struct media_entity *entity,
-+			  const struct media_pad *local,
-+			  const struct media_pad *remote, u32 flags)
-+{
-+	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
-+	struct imx_ic_priv *ic_priv = v4l2_get_subdevdata(sd);
-+	struct prp_priv *priv = ic_priv->task_priv;
-+	struct imx_media_video_dev *vdev = priv->vdev;
-+	struct v4l2_subdev *remote_sd;
-+	int ret;
-+
-+	dev_dbg(ic_priv->dev, "link setup %s -> %s", remote->entity->name,
-+		local->entity->name);
-+
-+	if (local->flags & MEDIA_PAD_FL_SINK) {
-+		if (!is_media_entity_v4l2_subdev(remote->entity))
-+			return -EINVAL;
-+
-+		remote_sd = media_entity_to_v4l2_subdev(remote->entity);
-+
-+		if (flags & MEDIA_LNK_FL_ENABLED) {
-+			if (priv->src_sd)
-+				return -EBUSY;
-+			priv->src_sd = remote_sd;
-+		} else {
-+			priv->src_sd = NULL;
-+		}
-+
-+		return 0;
-+	}
-+
-+	/* this is the source pad */
-+
-+	/* the remote must be the device node */
-+	if (!is_media_entity_v4l2_video_device(remote->entity))
-+		return -EINVAL;
-+
-+	if (flags & MEDIA_LNK_FL_ENABLED) {
-+		if (priv->sink)
-+			return -EBUSY;
-+	} else {
-+		/* reset video device controls */
-+		v4l2_ctrl_handler_free(vdev->vfd->ctrl_handler);
-+		v4l2_ctrl_handler_init(vdev->vfd->ctrl_handler, 0);
-+
-+		priv->sink = NULL;
-+		return 0;
-+	}
-+
-+	/* reset video device controls to refresh from subdevs */
-+	v4l2_ctrl_handler_free(vdev->vfd->ctrl_handler);
-+	v4l2_ctrl_handler_init(vdev->vfd->ctrl_handler, 0);
-+
-+	ret = __v4l2_pipeline_inherit_controls(vdev->vfd,
-+					       &ic_priv->sd.entity);
-+	if (ret)
-+		return ret;
-+
-+	priv->sink = remote->entity;
-+
-+	return 0;
-+}
-+
-+static int prp_link_validate(struct v4l2_subdev *sd,
-+			     struct media_link *link,
-+			     struct v4l2_subdev_format *source_fmt,
-+			     struct v4l2_subdev_format *sink_fmt)
-+{
-+	struct imx_ic_priv *ic_priv = v4l2_get_subdevdata(sd);
-+	struct prp_priv *priv = ic_priv->task_priv;
-+	struct imx_media_subdev *csi;
-+	int ret;
-+
-+	ret = v4l2_subdev_link_validate_default(sd, link,
-+						source_fmt, sink_fmt);
-+	if (ret)
-+		return ret;
-+
-+	csi = imx_media_find_pipeline_subdev(priv->md, &ic_priv->sd.entity,
-+					     IMX_MEDIA_GRP_ID_CSI);
-+	if (IS_ERR(csi)) {
-+		v4l2_err(&ic_priv->sd, "no CSI attached\n");
-+		ret = PTR_ERR(csi);
-+		return ret;
-+	}
-+
-+	priv->csi_sd = csi->sd;
-+
-+	return 0;
-+}
-+
-+static int prp_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct prp_priv *priv = container_of(ctrl->handler,
-+					       struct prp_priv, ctrl_hdlr);
-+	struct imx_ic_priv *ic_priv = priv->ic_priv;
-+	enum ipu_rotate_mode rot_mode;
-+	bool hflip, vflip;
-+	int rotation, ret;
-+
-+	rotation = priv->rotation;
-+	hflip = priv->hflip;
-+	vflip = priv->vflip;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_HFLIP:
-+		hflip = (ctrl->val == 1);
-+		break;
-+	case V4L2_CID_VFLIP:
-+		vflip = (ctrl->val == 1);
-+		break;
-+	case V4L2_CID_ROTATE:
-+		rotation = ctrl->val;
-+		break;
-+	default:
-+		v4l2_err(&ic_priv->sd, "Invalid control\n");
-+		return -EINVAL;
-+	}
-+
-+	ret = ipu_degrees_to_rot_mode(&rot_mode, rotation, hflip, vflip);
-+	if (ret)
-+		return ret;
-+
-+	if (rot_mode != priv->rot_mode) {
-+		/* can't change rotation mid-streaming */
-+		if (priv->stream_on)
-+			return -EBUSY;
-+
-+		priv->rot_mode = rot_mode;
-+		priv->rotation = rotation;
-+		priv->hflip = hflip;
-+		priv->vflip = vflip;
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_ctrl_ops prp_ctrl_ops = {
-+	.s_ctrl = prp_s_ctrl,
-+};
-+
-+static int prp_init_controls(struct prp_priv *priv)
-+{
-+	struct imx_ic_priv *ic_priv = priv->ic_priv;
-+	struct v4l2_ctrl_handler *hdlr = &priv->ctrl_hdlr;
-+	int ret;
-+
-+	v4l2_ctrl_handler_init(hdlr, 3);
-+
-+	v4l2_ctrl_new_std(hdlr, &prp_ctrl_ops, V4L2_CID_HFLIP,
-+			  0, 1, 1, 0);
-+	v4l2_ctrl_new_std(hdlr, &prp_ctrl_ops, V4L2_CID_VFLIP,
-+			  0, 1, 1, 0);
-+	v4l2_ctrl_new_std(hdlr, &prp_ctrl_ops, V4L2_CID_ROTATE,
-+			  0, 270, 90, 0);
-+
-+	ic_priv->sd.ctrl_handler = hdlr;
-+
-+	if (hdlr->error) {
-+		ret = hdlr->error;
-+		goto out_free;
-+	}
-+
-+	v4l2_ctrl_handler_setup(hdlr);
-+	return 0;
-+
-+out_free:
-+	v4l2_ctrl_handler_free(hdlr);
-+	return ret;
-+}
-+
-+static int prp_s_stream(struct v4l2_subdev *sd, int enable)
-+{
-+	struct imx_ic_priv *ic_priv = v4l2_get_subdevdata(sd);
-+	struct prp_priv *priv = ic_priv->task_priv;
-+	int ret = 0;
-+
-+	if (!priv->src_sd || !priv->sink)
-+		return -EPIPE;
-+
-+	dev_dbg(ic_priv->dev, "stream %s\n", enable ? "ON" : "OFF");
-+
-+	if (enable && !priv->stream_on)
-+		ret = prp_start(priv);
-+	else if (!enable && priv->stream_on)
-+		prp_stop(priv);
-+
-+	if (!ret)
-+		priv->stream_on = enable;
-+	return ret;
-+}
-+
-+/*
-+ * retrieve our pads parsed from the OF graph by the media device
-+ */
-+static int prp_registered(struct v4l2_subdev *sd)
-+{
-+	struct prp_priv *priv = sd_to_priv(sd);
-+	int i, ret;
-+	u32 code;
-+
-+	/* get media device */
-+	priv->md = dev_get_drvdata(sd->v4l2_dev->dev);
-+
-+	for (i = 0; i < PRPENCVF_NUM_PADS; i++) {
-+		if (i == PRPENCVF_SINK_PAD) {
-+			priv->pad[i].flags = MEDIA_PAD_FL_SINK;
-+			imx_media_enum_ipu_format(NULL, &code, 0, true);
-+		} else {
-+			priv->pad[i].flags = MEDIA_PAD_FL_SOURCE;
-+			code = 0;
-+		}
-+
-+		/* set a default mbus format  */
-+		ret = imx_media_init_mbus_fmt(&priv->format_mbus[i],
-+					      640, 480, code, V4L2_FIELD_NONE,
-+					      &priv->cc[i]);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	ret = media_entity_pads_init(&sd->entity, PRPENCVF_NUM_PADS,
-+				     priv->pad);
-+	if (ret)
-+		return ret;
-+
-+	ret = imx_media_capture_device_register(priv->vdev);
-+	if (ret)
-+		return ret;
-+
-+	ret = prp_init_controls(priv);
-+	if (ret)
-+		imx_media_capture_device_unregister(priv->vdev);
-+
-+	return ret;
-+}
-+
-+static void prp_unregistered(struct v4l2_subdev *sd)
-+{
-+	struct prp_priv *priv = sd_to_priv(sd);
-+
-+	imx_media_capture_device_unregister(priv->vdev);
-+	v4l2_ctrl_handler_free(&priv->ctrl_hdlr);
-+}
-+
-+static struct v4l2_subdev_pad_ops prp_pad_ops = {
-+	.enum_mbus_code = prp_enum_mbus_code,
-+	.get_fmt = prp_get_fmt,
-+	.set_fmt = prp_set_fmt,
-+	.link_validate = prp_link_validate,
-+};
-+
-+static struct v4l2_subdev_video_ops prp_video_ops = {
-+	.s_stream = prp_s_stream,
-+};
-+
-+static struct media_entity_operations prp_entity_ops = {
-+	.link_setup = prp_link_setup,
-+	.link_validate = v4l2_subdev_link_validate,
-+};
-+
-+static struct v4l2_subdev_ops prp_subdev_ops = {
-+	.video = &prp_video_ops,
-+	.pad = &prp_pad_ops,
-+};
-+
-+static struct v4l2_subdev_internal_ops prp_internal_ops = {
-+	.registered = prp_registered,
-+	.unregistered = prp_unregistered,
-+};
-+
-+static int prp_init(struct imx_ic_priv *ic_priv)
-+{
-+	struct prp_priv *priv;
-+
-+	priv = devm_kzalloc(ic_priv->dev, sizeof(*priv), GFP_KERNEL);
-+	if (!priv)
-+		return -ENOMEM;
-+
-+	ic_priv->task_priv = priv;
-+	priv->ic_priv = ic_priv;
-+
-+	spin_lock_init(&priv->irqlock);
-+	init_timer(&priv->eof_timeout_timer);
-+	priv->eof_timeout_timer.data = (unsigned long)priv;
-+	priv->eof_timeout_timer.function = prp_eof_timeout;
-+
-+	priv->vdev = imx_media_capture_device_init(&ic_priv->sd,
-+						   PRPENCVF_SRC_PAD);
-+	if (IS_ERR(priv->vdev))
-+		return PTR_ERR(priv->vdev);
-+
-+	return 0;
-+}
-+
-+static void prp_remove(struct imx_ic_priv *ic_priv)
-+{
-+	struct prp_priv *priv = ic_priv->task_priv;
-+
-+	imx_media_capture_device_remove(priv->vdev);
-+}
-+
-+struct imx_ic_ops imx_ic_prpencvf_ops = {
-+	.subdev_ops = &prp_subdev_ops,
-+	.internal_ops = &prp_internal_ops,
-+	.entity_ops = &prp_entity_ops,
-+	.init = prp_init,
-+	.remove = prp_remove,
-+};
-diff --git a/drivers/staging/media/imx/imx-ic.h b/drivers/staging/media/imx/imx-ic.h
-new file mode 100644
-index 0000000..5535111
---- /dev/null
-+++ b/drivers/staging/media/imx/imx-ic.h
-@@ -0,0 +1,38 @@
-+/*
-+ * V4L2 Image Converter Subdev for Freescale i.MX5/6 SOC
-+ *
-+ * Copyright (c) 2016 Mentor Graphics Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+#ifndef _IMX_IC_H
-+#define _IMX_IC_H
-+
-+#include <media/v4l2-subdev.h>
-+
-+struct imx_ic_priv {
-+	struct device *dev;
-+	struct v4l2_subdev sd;
-+	int    ipu_id;
-+	int    task_id;
-+	void   *prp_priv;
-+	void   *task_priv;
-+};
-+
-+struct imx_ic_ops {
-+	struct v4l2_subdev_ops *subdev_ops;
-+	struct v4l2_subdev_internal_ops *internal_ops;
-+	struct media_entity_operations *entity_ops;
-+
-+	int (*init)(struct imx_ic_priv *ic_priv);
-+	void (*remove)(struct imx_ic_priv *ic_priv);
-+};
-+
-+extern struct imx_ic_ops imx_ic_prp_ops;
-+extern struct imx_ic_ops imx_ic_prpencvf_ops;
-+extern struct imx_ic_ops imx_ic_pp_ops;
-+
-+#endif
+@@ -333,6 +335,7 @@ config VIDEO_TC358743
+ config VIDEO_TVP514X
+ 	tristate "Texas Instruments TVP514x video decoder"
+ 	depends on VIDEO_V4L2 && I2C
++	select V4L2_FWNODE
+ 	---help---
+ 	  This is a Video4Linux2 sensor-level driver for the TI TVP5146/47
+ 	  decoder. It is currently working with the TI OMAP3 camera
+@@ -344,6 +347,7 @@ config VIDEO_TVP514X
+ config VIDEO_TVP5150
+ 	tristate "Texas Instruments TVP5150 video decoder"
+ 	depends on VIDEO_V4L2 && I2C
++	select V4L2_FWNODE
+ 	---help---
+ 	  Support for the Texas Instruments TVP5150 video decoder.
+ 
+@@ -353,6 +357,7 @@ config VIDEO_TVP5150
+ config VIDEO_TVP7002
+ 	tristate "Texas Instruments TVP7002 video decoder"
+ 	depends on VIDEO_V4L2 && I2C
++	select V4L2_FWNODE
+ 	---help---
+ 	  Support for the Texas Instruments TVP7002 video decoder.
+ 
+@@ -524,6 +529,7 @@ config VIDEO_OV2659
+ 	tristate "OmniVision OV2659 sensor support"
+ 	depends on VIDEO_V4L2 && I2C
+ 	depends on MEDIA_CAMERA_SUPPORT
++	select V4L2_FWNODE
+ 	---help---
+ 	  This is a Video4Linux2 sensor-level driver for the OmniVision
+ 	  OV2659 camera.
+@@ -616,6 +622,7 @@ config VIDEO_MT9V032
+ 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+ 	depends on MEDIA_CAMERA_SUPPORT
+ 	select REGMAP_I2C
++	select V4L2_FWNODE
+ 	---help---
+ 	  This is a Video4Linux2 sensor-level driver for the Micron
+ 	  MT9V032 752x480 CMOS sensor.
+@@ -663,6 +670,7 @@ config VIDEO_S5K4ECGX
+ config VIDEO_S5K5BAF
+ 	tristate "Samsung S5K5BAF sensor support"
+ 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
++	select V4L2_FWNODE
+ 	---help---
+ 	  This is a V4L2 sensor-level driver for Samsung S5K5BAF 2M
+ 	  camera sensor with an embedded SoC image signal processor.
+@@ -673,6 +681,7 @@ source "drivers/media/i2c/et8ek8/Kconfig"
+ config VIDEO_S5C73M3
+ 	tristate "Samsung S5C73M3 sensor support"
+ 	depends on I2C && SPI && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
++	select V4L2_FWNODE
+ 	---help---
+ 	  This is a V4L2 sensor-level driver for Samsung S5C73M3
+ 	  8 Mpixel camera.
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index d8bf435..9281e54 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -33,6 +33,7 @@
+ #include <linux/i2c.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
++#include <linux/of_graph.h>
+ #include <linux/slab.h>
+ #include <linux/v4l2-dv-timings.h>
+ #include <linux/videodev2.h>
+@@ -45,7 +46,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-event.h>
+ #include <media/v4l2-dv-timings.h>
+-#include <media/v4l2-of.h>
++#include <media/v4l2-fwnode.h>
+ 
+ static int debug;
+ module_param(debug, int, 0644);
+@@ -3069,7 +3070,7 @@ MODULE_DEVICE_TABLE(of, adv76xx_of_id);
+ 
+ static int adv76xx_parse_dt(struct adv76xx_state *state)
+ {
+-	struct v4l2_of_endpoint bus_cfg;
++	struct v4l2_fwnode_endpoint bus_cfg;
+ 	struct device_node *endpoint;
+ 	struct device_node *np;
+ 	unsigned int flags;
+@@ -3083,7 +3084,7 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
+ 	if (!endpoint)
+ 		return -EINVAL;
+ 
+-	ret = v4l2_of_parse_endpoint(endpoint, &bus_cfg);
++	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(endpoint), &bus_cfg);
+ 	if (ret) {
+ 		of_node_put(endpoint);
+ 		return ret;
+diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+index 2e7a6e6..8a43064 100644
+--- a/drivers/media/i2c/mt9v032.c
++++ b/drivers/media/i2c/mt9v032.c
+@@ -19,6 +19,7 @@
+ #include <linux/log2.h>
+ #include <linux/mutex.h>
+ #include <linux/of.h>
++#include <linux/of_graph.h>
+ #include <linux/regmap.h>
+ #include <linux/slab.h>
+ #include <linux/videodev2.h>
+@@ -28,7 +29,7 @@
+ #include <media/i2c/mt9v032.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+-#include <media/v4l2-of.h>
++#include <media/v4l2-fwnode.h>
+ #include <media/v4l2-subdev.h>
+ 
+ /* The first four rows are black rows. The active area spans 753x481 pixels. */
+@@ -979,7 +980,7 @@ static struct mt9v032_platform_data *
+ mt9v032_get_pdata(struct i2c_client *client)
+ {
+ 	struct mt9v032_platform_data *pdata = NULL;
+-	struct v4l2_of_endpoint endpoint;
++	struct v4l2_fwnode_endpoint endpoint;
+ 	struct device_node *np;
+ 	struct property *prop;
+ 
+@@ -990,7 +991,7 @@ mt9v032_get_pdata(struct i2c_client *client)
+ 	if (!np)
+ 		return NULL;
+ 
+-	if (v4l2_of_parse_endpoint(np, &endpoint) < 0)
++	if (v4l2_fwnode_endpoint_parse(of_fwnode_handle(np), &endpoint) < 0)
+ 		goto done;
+ 
+ 	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
+diff --git a/drivers/media/i2c/ov2659.c b/drivers/media/i2c/ov2659.c
+index 6e63672..545ca3f 100644
+--- a/drivers/media/i2c/ov2659.c
++++ b/drivers/media/i2c/ov2659.c
+@@ -42,9 +42,9 @@
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-event.h>
++#include <media/v4l2-fwnode.h>
+ #include <media/v4l2-image-sizes.h>
+ #include <media/v4l2-mediabus.h>
+-#include <media/v4l2-of.h>
+ #include <media/v4l2-subdev.h>
+ 
+ #define DRIVER_NAME "ov2659"
+@@ -1346,7 +1346,7 @@ static struct ov2659_platform_data *
+ ov2659_get_pdata(struct i2c_client *client)
+ {
+ 	struct ov2659_platform_data *pdata;
+-	struct v4l2_of_endpoint *bus_cfg;
++	struct v4l2_fwnode_endpoint *bus_cfg;
+ 	struct device_node *endpoint;
+ 
+ 	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
+@@ -1356,7 +1356,7 @@ ov2659_get_pdata(struct i2c_client *client)
+ 	if (!endpoint)
+ 		return NULL;
+ 
+-	bus_cfg = v4l2_of_alloc_parse_endpoint(endpoint);
++	bus_cfg = v4l2_fwnode_endpoint_alloc_parse(of_fwnode_handle(endpoint));
+ 	if (IS_ERR(bus_cfg)) {
+ 		pdata = NULL;
+ 		goto done;
+@@ -1376,7 +1376,7 @@ ov2659_get_pdata(struct i2c_client *client)
+ 	pdata->link_frequency = bus_cfg->link_frequencies[0];
+ 
+ done:
+-	v4l2_of_free_endpoint(bus_cfg);
++	v4l2_fwnode_endpoint_free(bus_cfg);
+ 	of_node_put(endpoint);
+ 	return pdata;
+ }
+diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+index 3844853..f434fb2 100644
+--- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
++++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+@@ -24,6 +24,7 @@
+ #include <linux/media.h>
+ #include <linux/module.h>
+ #include <linux/of_gpio.h>
++#include <linux/of_graph.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/sizes.h>
+ #include <linux/slab.h>
+@@ -35,7 +36,7 @@
+ #include <media/v4l2-subdev.h>
+ #include <media/v4l2-mediabus.h>
+ #include <media/i2c/s5c73m3.h>
+-#include <media/v4l2-of.h>
++#include <media/v4l2-fwnode.h>
+ 
+ #include "s5c73m3.h"
+ 
+@@ -1602,7 +1603,7 @@ static int s5c73m3_get_platform_data(struct s5c73m3 *state)
+ 	const struct s5c73m3_platform_data *pdata = dev->platform_data;
+ 	struct device_node *node = dev->of_node;
+ 	struct device_node *node_ep;
+-	struct v4l2_of_endpoint ep;
++	struct v4l2_fwnode_endpoint ep;
+ 	int ret;
+ 
+ 	if (!node) {
+@@ -1639,7 +1640,7 @@ static int s5c73m3_get_platform_data(struct s5c73m3 *state)
+ 		return 0;
+ 	}
+ 
+-	ret = v4l2_of_parse_endpoint(node_ep, &ep);
++	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(node_ep), &ep);
+ 	of_node_put(node_ep);
+ 	if (ret)
+ 		return ret;
+diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
+index db82ed0..962051b 100644
+--- a/drivers/media/i2c/s5k5baf.c
++++ b/drivers/media/i2c/s5k5baf.c
+@@ -30,7 +30,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-subdev.h>
+ #include <media/v4l2-mediabus.h>
+-#include <media/v4l2-of.h>
++#include <media/v4l2-fwnode.h>
+ 
+ static int debug;
+ module_param(debug, int, 0644);
+@@ -1841,7 +1841,7 @@ static int s5k5baf_parse_device_node(struct s5k5baf *state, struct device *dev)
+ {
+ 	struct device_node *node = dev->of_node;
+ 	struct device_node *node_ep;
+-	struct v4l2_of_endpoint ep;
++	struct v4l2_fwnode_endpoint ep;
+ 	int ret;
+ 
+ 	if (!node) {
+@@ -1868,7 +1868,7 @@ static int s5k5baf_parse_device_node(struct s5k5baf *state, struct device *dev)
+ 		return -EINVAL;
+ 	}
+ 
+-	ret = v4l2_of_parse_endpoint(node_ep, &ep);
++	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(node_ep), &ep);
+ 	of_node_put(node_ep);
+ 	if (ret)
+ 		return ret;
+diff --git a/drivers/media/i2c/smiapp/Kconfig b/drivers/media/i2c/smiapp/Kconfig
+index 3149cda..f59718d 100644
+--- a/drivers/media/i2c/smiapp/Kconfig
++++ b/drivers/media/i2c/smiapp/Kconfig
+@@ -3,5 +3,6 @@ config VIDEO_SMIAPP
+ 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && HAVE_CLK
+ 	depends on MEDIA_CAMERA_SUPPORT
+ 	select VIDEO_SMIAPP_PLL
++	select V4L2_FWNODE
+ 	---help---
+ 	  This is a generic driver for SMIA++/SMIA camera modules.
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index f4e92bd..4d8ebd8 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -27,12 +27,13 @@
+ #include <linux/gpio/consumer.h>
+ #include <linux/module.h>
+ #include <linux/pm_runtime.h>
++#include <linux/property.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
+ #include <linux/smiapp.h>
+ #include <linux/v4l2-mediabus.h>
++#include <media/v4l2-fwnode.h>
+ #include <media/v4l2-device.h>
+-#include <media/v4l2-of.h>
+ 
+ #include "smiapp.h"
+ 
+@@ -2784,19 +2785,20 @@ static int __maybe_unused smiapp_resume(struct device *dev)
+ static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
+ {
+ 	struct smiapp_hwconfig *hwcfg;
+-	struct v4l2_of_endpoint *bus_cfg;
+-	struct device_node *ep;
++	struct v4l2_fwnode_endpoint *bus_cfg;
++	struct fwnode_handle *ep;
++	struct fwnode_handle *fwn = device_fwnode_handle(dev);
+ 	int i;
+ 	int rval;
+ 
+-	if (!dev->of_node)
++	if (!fwn)
+ 		return dev->platform_data;
+ 
+-	ep = of_graph_get_next_endpoint(dev->of_node, NULL);
++	ep = fwnode_graph_get_next_endpoint(fwn, NULL);
+ 	if (!ep)
+ 		return NULL;
+ 
+-	bus_cfg = v4l2_of_alloc_parse_endpoint(ep);
++	bus_cfg = v4l2_fwnode_endpoint_alloc_parse(ep);
+ 	if (IS_ERR(bus_cfg))
+ 		goto out_err;
+ 
+@@ -2817,11 +2819,10 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
+ 	dev_dbg(dev, "lanes %u\n", hwcfg->lanes);
+ 
+ 	/* NVM size is not mandatory */
+-	of_property_read_u32(dev->of_node, "nokia,nvm-size",
+-				    &hwcfg->nvm_size);
++	fwnode_property_read_u32(fwn, "nokia,nvm-size", &hwcfg->nvm_size);
+ 
+-	rval = of_property_read_u32(dev->of_node, "clock-frequency",
+-				    &hwcfg->ext_clk);
++	rval = fwnode_property_read_u32(fwn, "clock-frequency",
++					&hwcfg->ext_clk);
+ 	if (rval) {
+ 		dev_warn(dev, "can't get clock-frequency\n");
+ 		goto out_err;
+@@ -2846,13 +2847,13 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
+ 		dev_dbg(dev, "freq %d: %lld\n", i, hwcfg->op_sys_clock[i]);
+ 	}
+ 
+-	v4l2_of_free_endpoint(bus_cfg);
+-	of_node_put(ep);
++	v4l2_fwnode_endpoint_free(bus_cfg);
++	fwnode_handle_put(ep);
+ 	return hwcfg;
+ 
+ out_err:
+-	v4l2_of_free_endpoint(bus_cfg);
+-	of_node_put(ep);
++	v4l2_fwnode_endpoint_free(bus_cfg);
++	fwnode_handle_put(ep);
+ 	return NULL;
+ }
+ 
+diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+index f569a05..6a1b428 100644
+--- a/drivers/media/i2c/tc358743.c
++++ b/drivers/media/i2c/tc358743.c
+@@ -33,6 +33,7 @@
+ #include <linux/delay.h>
+ #include <linux/gpio/consumer.h>
+ #include <linux/interrupt.h>
++#include <linux/of_graph.h>
+ #include <linux/videodev2.h>
+ #include <linux/workqueue.h>
+ #include <linux/v4l2-dv-timings.h>
+@@ -41,7 +42,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-event.h>
+-#include <media/v4l2-of.h>
++#include <media/v4l2-fwnode.h>
+ #include <media/i2c/tc358743.h>
+ 
+ #include "tc358743_regs.h"
+@@ -76,7 +77,7 @@ static const struct v4l2_dv_timings_cap tc358743_timings_cap = {
+ 
+ struct tc358743_state {
+ 	struct tc358743_platform_data pdata;
+-	struct v4l2_of_bus_mipi_csi2 bus;
++	struct v4l2_fwnode_bus_mipi_csi2 bus;
+ 	struct v4l2_subdev sd;
+ 	struct media_pad pad;
+ 	struct v4l2_ctrl_handler hdl;
+@@ -1687,7 +1688,7 @@ static void tc358743_gpio_reset(struct tc358743_state *state)
+ static int tc358743_probe_of(struct tc358743_state *state)
+ {
+ 	struct device *dev = &state->i2c_client->dev;
+-	struct v4l2_of_endpoint *endpoint;
++	struct v4l2_fwnode_endpoint *endpoint;
+ 	struct device_node *ep;
+ 	struct clk *refclk;
+ 	u32 bps_pr_lane;
+@@ -1707,7 +1708,7 @@ static int tc358743_probe_of(struct tc358743_state *state)
+ 		return -EINVAL;
+ 	}
+ 
+-	endpoint = v4l2_of_alloc_parse_endpoint(ep);
++	endpoint = v4l2_fwnode_endpoint_alloc_parse(of_fwnode_handle(ep));
+ 	if (IS_ERR(endpoint)) {
+ 		dev_err(dev, "failed to parse endpoint\n");
+ 		return PTR_ERR(endpoint);
+@@ -1795,7 +1796,7 @@ static int tc358743_probe_of(struct tc358743_state *state)
+ disable_clk:
+ 	clk_disable_unprepare(refclk);
+ free_endpoint:
+-	v4l2_of_free_endpoint(endpoint);
++	v4l2_fwnode_endpoint_free(endpoint);
+ 	return ret;
+ }
+ #else
+diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
+index 07853d2..ad2df99 100644
+--- a/drivers/media/i2c/tvp514x.c
++++ b/drivers/media/i2c/tvp514x.c
+@@ -38,7 +38,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-mediabus.h>
+-#include <media/v4l2-of.h>
++#include <media/v4l2-fwnode.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/i2c/tvp514x.h>
+ #include <media/media-entity.h>
+@@ -998,7 +998,7 @@ static struct tvp514x_platform_data *
+ tvp514x_get_pdata(struct i2c_client *client)
+ {
+ 	struct tvp514x_platform_data *pdata = NULL;
+-	struct v4l2_of_endpoint bus_cfg;
++	struct v4l2_fwnode_endpoint bus_cfg;
+ 	struct device_node *endpoint;
+ 	unsigned int flags;
+ 
+@@ -1009,7 +1009,7 @@ tvp514x_get_pdata(struct i2c_client *client)
+ 	if (!endpoint)
+ 		return NULL;
+ 
+-	if (v4l2_of_parse_endpoint(endpoint, &bus_cfg))
++	if (v4l2_fwnode_endpoint_parse(of_fwnode_handle(endpoint), &bus_cfg))
+ 		goto done;
+ 
+ 	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index 48646a7..dff30a0 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -12,10 +12,11 @@
+ #include <linux/delay.h>
+ #include <linux/gpio/consumer.h>
+ #include <linux/module.h>
++#include <linux/of_graph.h>
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ctrls.h>
+-#include <media/v4l2-of.h>
++#include <media/v4l2-fwnode.h>
+ #include <media/v4l2-mc.h>
+ 
+ #include "tvp5150_reg.h"
+@@ -1358,7 +1359,7 @@ static int tvp5150_init(struct i2c_client *c)
+ 
+ static int tvp5150_parse_dt(struct tvp5150 *decoder, struct device_node *np)
+ {
+-	struct v4l2_of_endpoint bus_cfg;
++	struct v4l2_fwnode_endpoint bus_cfg;
+ 	struct device_node *ep;
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	struct device_node *connectors, *child;
+@@ -1373,7 +1374,7 @@ static int tvp5150_parse_dt(struct tvp5150 *decoder, struct device_node *np)
+ 	if (!ep)
+ 		return -EINVAL;
+ 
+-	ret = v4l2_of_parse_endpoint(ep, &bus_cfg);
++	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &bus_cfg);
+ 	if (ret)
+ 		goto err;
+ 
+diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
+index 4c11901..a26c1a3 100644
+--- a/drivers/media/i2c/tvp7002.c
++++ b/drivers/media/i2c/tvp7002.c
+@@ -33,7 +33,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ctrls.h>
+-#include <media/v4l2-of.h>
++#include <media/v4l2-fwnode.h>
+ 
+ #include "tvp7002_reg.h"
+ 
+@@ -889,7 +889,7 @@ static const struct v4l2_subdev_ops tvp7002_ops = {
+ static struct tvp7002_config *
+ tvp7002_get_pdata(struct i2c_client *client)
+ {
+-	struct v4l2_of_endpoint bus_cfg;
++	struct v4l2_fwnode_endpoint bus_cfg;
+ 	struct tvp7002_config *pdata = NULL;
+ 	struct device_node *endpoint;
+ 	unsigned int flags;
+@@ -901,7 +901,7 @@ tvp7002_get_pdata(struct i2c_client *client)
+ 	if (!endpoint)
+ 		return NULL;
+ 
+-	if (v4l2_of_parse_endpoint(endpoint, &bus_cfg))
++	if (v4l2_fwnode_endpoint_parse(of_fwnode_handle(endpoint), &bus_cfg))
+ 		goto done;
+ 
+ 	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index c9106e1..cced276 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -82,6 +82,7 @@ config VIDEO_OMAP3
+ 	select ARM_DMA_USE_IOMMU
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select MFD_SYSCON
++	select V4L2_FWNODE
+ 	---help---
+ 	  Driver for an OMAP 3 camera controller.
+ 
+@@ -97,6 +98,7 @@ config VIDEO_PXA27x
+ 	depends on PXA27x || COMPILE_TEST
+ 	select VIDEOBUF2_DMA_SG
+ 	select SG_SPLIT
++	select V4L2_FWNODE
+ 	---help---
+ 	  This is a v4l2 driver for the PXA27x Quick Capture Interface
+ 
+@@ -421,6 +423,7 @@ config VIDEO_TI_VPE
+ 	select VIDEO_TI_VPDMA
+ 	select VIDEO_TI_SC
+ 	select VIDEO_TI_CSC
++	select V4L2_FWNODE
+ 	default n
+ 	---help---
+ 	  Support for the TI VPE(Video Processing Engine) block
+diff --git a/drivers/media/platform/am437x/Kconfig b/drivers/media/platform/am437x/Kconfig
+index 42d9c18..160e77e 100644
+--- a/drivers/media/platform/am437x/Kconfig
++++ b/drivers/media/platform/am437x/Kconfig
+@@ -3,6 +3,7 @@ config VIDEO_AM437X_VPFE
+ 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && HAS_DMA
+ 	depends on SOC_AM43XX || COMPILE_TEST
+ 	select VIDEOBUF2_DMA_CONTIG
++	select V4L2_FWNODE
+ 	help
+ 	   Support for AM437x Video Processing Front End based Video
+ 	   Capture Driver.
+diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
+index 05489a4..3eb0bd2 100644
+--- a/drivers/media/platform/am437x/am437x-vpfe.c
++++ b/drivers/media/platform/am437x/am437x-vpfe.c
+@@ -26,6 +26,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/io.h>
+ #include <linux/module.h>
++#include <linux/of_graph.h>
+ #include <linux/pinctrl/consumer.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+@@ -36,7 +37,7 @@
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-event.h>
+-#include <media/v4l2-of.h>
++#include <media/v4l2-fwnode.h>
+ 
+ #include "am437x-vpfe.h"
+ 
+@@ -2419,7 +2420,7 @@ static struct vpfe_config *
+ vpfe_get_pdata(struct platform_device *pdev)
+ {
+ 	struct device_node *endpoint = NULL;
+-	struct v4l2_of_endpoint bus_cfg;
++	struct v4l2_fwnode_endpoint bus_cfg;
+ 	struct vpfe_subdev_info *sdinfo;
+ 	struct vpfe_config *pdata;
+ 	unsigned int flags;
+@@ -2463,7 +2464,8 @@ vpfe_get_pdata(struct platform_device *pdev)
+ 			sdinfo->vpfe_param.if_type = VPFE_RAW_BAYER;
+ 		}
+ 
+-		err = v4l2_of_parse_endpoint(endpoint, &bus_cfg);
++		err = v4l2_fwnode_endpoint_parse(of_fwnode_handle(endpoint),
++						 &bus_cfg);
+ 		if (err) {
+ 			dev_err(&pdev->dev, "Could not parse the endpoint\n");
+ 			goto done;
+diff --git a/drivers/media/platform/atmel/Kconfig b/drivers/media/platform/atmel/Kconfig
+index 867dca2..3dbc89c 100644
+--- a/drivers/media/platform/atmel/Kconfig
++++ b/drivers/media/platform/atmel/Kconfig
+@@ -4,6 +4,7 @@ config VIDEO_ATMEL_ISC
+ 	depends on ARCH_AT91 || COMPILE_TEST
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select REGMAP_MMIO
++	select V4L2_FWNODE
+ 	help
+ 	   This module makes the ATMEL Image Sensor Controller available
+ 	   as a v4l2 device.
+\ No newline at end of file
+diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+index fa68fe9..7af92e7 100644
+--- a/drivers/media/platform/atmel/atmel-isc.c
++++ b/drivers/media/platform/atmel/atmel-isc.c
+@@ -31,6 +31,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
++#include <linux/of_graph.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/regmap.h>
+@@ -39,7 +40,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-image-sizes.h>
+ #include <media/v4l2-ioctl.h>
+-#include <media/v4l2-of.h>
++#include <media/v4l2-fwnode.h>
+ #include <media/v4l2-subdev.h>
+ #include <media/videobuf2-dma-contig.h>
+ 
+@@ -1268,7 +1269,7 @@ static int isc_parse_dt(struct device *dev, struct isc_device *isc)
+ {
+ 	struct device_node *np = dev->of_node;
+ 	struct device_node *epn = NULL, *rem;
+-	struct v4l2_of_endpoint v4l2_epn;
++	struct v4l2_fwnode_endpoint v4l2_epn;
+ 	struct isc_subdev_entity *subdev_entity;
+ 	unsigned int flags;
+ 	int ret;
+@@ -1287,7 +1288,8 @@ static int isc_parse_dt(struct device *dev, struct isc_device *isc)
+ 			continue;
+ 		}
+ 
+-		ret = v4l2_of_parse_endpoint(epn, &v4l2_epn);
++		ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(epn),
++						 &v4l2_epn);
+ 		if (ret) {
+ 			of_node_put(rem);
+ 			ret = -EINVAL;
+diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
+index 57d42c6..c480efb 100644
+--- a/drivers/media/platform/exynos4-is/Kconfig
++++ b/drivers/media/platform/exynos4-is/Kconfig
+@@ -4,6 +4,7 @@ config VIDEO_SAMSUNG_EXYNOS4_IS
+ 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+ 	depends on ARCH_S5PV210 || ARCH_EXYNOS || COMPILE_TEST
+ 	depends on OF && COMMON_CLK
++	select V4L2_FWNODE
+ 	help
+ 	  Say Y here to enable camera host interface devices for
+ 	  Samsung S5P and EXYNOS SoC series.
+@@ -32,6 +33,7 @@ config VIDEO_S5P_MIPI_CSIS
+ 	tristate "S5P/EXYNOS MIPI-CSI2 receiver (MIPI-CSIS) driver"
+ 	depends on REGULATOR
+ 	select GENERIC_PHY
++	select V4L2_FWNODE
+ 	help
+ 	  This is a V4L2 driver for Samsung S5P and EXYNOS4 SoC MIPI-CSI2
+ 	  receiver (MIPI-CSIS) devices.
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index e82450e9..4a1808c 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -29,7 +29,7 @@
+ #include <linux/slab.h>
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-ctrls.h>
+-#include <media/v4l2-of.h>
++#include <media/v4l2-fwnode.h>
+ #include <media/media-device.h>
+ #include <media/drv-intf/exynos-fimc.h>
+ 
+@@ -388,7 +388,7 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
+ {
+ 	struct fimc_source_info *pd = &fmd->sensor[index].pdata;
+ 	struct device_node *rem, *ep, *np;
+-	struct v4l2_of_endpoint endpoint;
++	struct v4l2_fwnode_endpoint endpoint;
+ 	int ret;
+ 
+ 	/* Assume here a port node can have only one endpoint node. */
+@@ -396,7 +396,7 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
+ 	if (!ep)
+ 		return 0;
+ 
+-	ret = v4l2_of_parse_endpoint(ep, &endpoint);
++	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &endpoint);
+ 	if (ret) {
+ 		of_node_put(ep);
+ 		return ret;
+diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
+index f819b29..98c8987 100644
+--- a/drivers/media/platform/exynos4-is/mipi-csis.c
++++ b/drivers/media/platform/exynos4-is/mipi-csis.c
+@@ -30,7 +30,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/videodev2.h>
+ #include <media/drv-intf/exynos-fimc.h>
+-#include <media/v4l2-of.h>
++#include <media/v4l2-fwnode.h>
+ #include <media/v4l2-subdev.h>
+ 
+ #include "mipi-csis.h"
+@@ -718,7 +718,7 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
+ 			    struct csis_state *state)
+ {
+ 	struct device_node *node = pdev->dev.of_node;
+-	struct v4l2_of_endpoint endpoint;
++	struct v4l2_fwnode_endpoint endpoint;
+ 	int ret;
+ 
+ 	if (of_property_read_u32(node, "clock-frequency",
+@@ -735,7 +735,7 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
+ 		return -EINVAL;
+ 	}
+ 	/* Get port node and validate MIPI-CSI channel id. */
+-	ret = v4l2_of_parse_endpoint(node, &endpoint);
++	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(node), &endpoint);
+ 	if (ret)
+ 		goto err;
+ 
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 084ecf4a..245225a 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -55,6 +55,7 @@
+ #include <linux/module.h>
+ #include <linux/omap-iommu.h>
+ #include <linux/platform_device.h>
++#include <linux/property.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
+ #include <linux/sched.h>
+@@ -63,9 +64,9 @@
+ #include <asm/dma-iommu.h>
+ 
+ #include <media/v4l2-common.h>
++#include <media/v4l2-fwnode.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-mc.h>
+-#include <media/v4l2-of.h>
+ 
+ #include "isp.h"
+ #include "ispreg.h"
+@@ -2024,43 +2025,42 @@ enum isp_of_phy {
+ 	ISP_OF_PHY_CSIPHY2,
+ };
+ 
+-static int isp_of_parse_node(struct device *dev, struct device_node *node,
+-			     struct isp_async_subdev *isd)
++static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwn,
++			    struct isp_async_subdev *isd)
+ {
+ 	struct isp_bus_cfg *buscfg = &isd->bus;
+-	struct v4l2_of_endpoint vep;
++	struct v4l2_fwnode_endpoint vfwn;
+ 	unsigned int i;
+ 	int ret;
+ 
+-	ret = v4l2_of_parse_endpoint(node, &vep);
++	ret = v4l2_fwnode_endpoint_parse(fwn, &vfwn);
+ 	if (ret)
+ 		return ret;
+ 
+-	dev_dbg(dev, "parsing endpoint %s, interface %u\n", node->full_name,
+-		vep.base.port);
++	dev_dbg(dev, "interface %u\n", vfwn.base.port);
+ 
+-	switch (vep.base.port) {
++	switch (vfwn.base.port) {
+ 	case ISP_OF_PHY_PARALLEL:
+ 		buscfg->interface = ISP_INTERFACE_PARALLEL;
+ 		buscfg->bus.parallel.data_lane_shift =
+-			vep.bus.parallel.data_shift;
++			vfwn.bus.parallel.data_shift;
+ 		buscfg->bus.parallel.clk_pol =
+-			!!(vep.bus.parallel.flags
++			!!(vfwn.bus.parallel.flags
+ 			   & V4L2_MBUS_PCLK_SAMPLE_FALLING);
+ 		buscfg->bus.parallel.hs_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
++			!!(vfwn.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
+ 		buscfg->bus.parallel.vs_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
++			!!(vfwn.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
+ 		buscfg->bus.parallel.fld_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
++			!!(vfwn.bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
+ 		buscfg->bus.parallel.data_pol =
+-			!!(vep.bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
++			!!(vfwn.bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
+ 		break;
+ 
+ 	case ISP_OF_PHY_CSIPHY1:
+ 	case ISP_OF_PHY_CSIPHY2:
+ 		/* FIXME: always assume CSI-2 for now. */
+-		switch (vep.base.port) {
++		switch (vfwn.base.port) {
+ 		case ISP_OF_PHY_CSIPHY1:
+ 			buscfg->interface = ISP_INTERFACE_CSI2C_PHY1;
+ 			break;
+@@ -2068,18 +2068,18 @@ static int isp_of_parse_node(struct device *dev, struct device_node *node,
+ 			buscfg->interface = ISP_INTERFACE_CSI2A_PHY2;
+ 			break;
+ 		}
+-		buscfg->bus.csi2.lanecfg.clk.pos = vep.bus.mipi_csi2.clock_lane;
++		buscfg->bus.csi2.lanecfg.clk.pos = vfwn.bus.mipi_csi2.clock_lane;
+ 		buscfg->bus.csi2.lanecfg.clk.pol =
+-			vep.bus.mipi_csi2.lane_polarities[0];
++			vfwn.bus.mipi_csi2.lane_polarities[0];
+ 		dev_dbg(dev, "clock lane polarity %u, pos %u\n",
+ 			buscfg->bus.csi2.lanecfg.clk.pol,
+ 			buscfg->bus.csi2.lanecfg.clk.pos);
+ 
+ 		for (i = 0; i < ISP_CSIPHY2_NUM_DATA_LANES; i++) {
+ 			buscfg->bus.csi2.lanecfg.data[i].pos =
+-				vep.bus.mipi_csi2.data_lanes[i];
++				vfwn.bus.mipi_csi2.data_lanes[i];
+ 			buscfg->bus.csi2.lanecfg.data[i].pol =
+-				vep.bus.mipi_csi2.lane_polarities[i + 1];
++				vfwn.bus.mipi_csi2.lane_polarities[i + 1];
+ 			dev_dbg(dev, "data lane %u polarity %u, pos %u\n", i,
+ 				buscfg->bus.csi2.lanecfg.data[i].pol,
+ 				buscfg->bus.csi2.lanecfg.data[i].pos);
+@@ -2094,18 +2094,17 @@ static int isp_of_parse_node(struct device *dev, struct device_node *node,
+ 		break;
+ 
+ 	default:
+-		dev_warn(dev, "%s: invalid interface %u\n", node->full_name,
+-			 vep.base.port);
++		dev_warn(dev, "invalid interface %u\n", vfwn.base.port);
+ 		break;
+ 	}
+ 
+ 	return 0;
+ }
+ 
+-static int isp_of_parse_nodes(struct device *dev,
+-			      struct v4l2_async_notifier *notifier)
++static int isp_fwnodes_parse(struct device *dev,
++			     struct v4l2_async_notifier *notifier)
+ {
+-	struct device_node *node = NULL;
++	struct fwnode_handle *fwn = NULL;
+ 
+ 	notifier->subdevs = devm_kcalloc(
+ 		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
+@@ -2113,7 +2112,8 @@ static int isp_of_parse_nodes(struct device *dev,
+ 		return -ENOMEM;
+ 
+ 	while (notifier->num_subdevs < ISP_MAX_SUBDEVS &&
+-	       (node = of_graph_get_next_endpoint(dev->of_node, node))) {
++	       (fwn = fwnode_graph_get_next_endpoint(device_fwnode_handle(dev),
++						     fwn))) {
+ 		struct isp_async_subdev *isd;
+ 
+ 		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
+@@ -2122,23 +2122,24 @@ static int isp_of_parse_nodes(struct device *dev,
+ 
+ 		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
+ 
+-		if (isp_of_parse_node(dev, node, isd))
++		if (isp_fwnode_parse(dev, fwn, isd))
+ 			goto error;
+ 
+-		isd->asd.match.of.node = of_graph_get_remote_port_parent(node);
+-		if (!isd->asd.match.of.node) {
++		isd->asd.match.fwnode.fwn =
++			fwnode_graph_get_remote_port_parent(fwn);
++		if (!isd->asd.match.fwnode.fwn) {
+ 			dev_warn(dev, "bad remote port parent\n");
+ 			goto error;
+ 		}
+ 
+-		isd->asd.match_type = V4L2_ASYNC_MATCH_OF;
++		isd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+ 		notifier->num_subdevs++;
+ 	}
+ 
+ 	return notifier->num_subdevs;
+ 
+ error:
+-	of_node_put(node);
++	fwnode_handle_put(fwn);
+ 	return -EINVAL;
+ }
+ 
+@@ -2209,8 +2210,8 @@ static int isp_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 	}
+ 
+-	ret = of_property_read_u32(pdev->dev.of_node, "ti,phy-type",
+-				   &isp->phy_type);
++	ret = fwnode_property_read_u32(device_fwnode_handle(&pdev->dev),
++				       "ti,phy-type", &isp->phy_type);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -2219,12 +2220,12 @@ static int isp_probe(struct platform_device *pdev)
+ 	if (IS_ERR(isp->syscon))
+ 		return PTR_ERR(isp->syscon);
+ 
+-	ret = of_property_read_u32_index(pdev->dev.of_node, "syscon", 1,
+-					 &isp->syscon_offset);
++	ret = of_property_read_u32_index(pdev->dev.of_node,
++					 "syscon", 1, &isp->syscon_offset);
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = isp_of_parse_nodes(&pdev->dev, &isp->notifier);
++	ret = isp_fwnodes_parse(&pdev->dev, &isp->notifier);
+ 	if (ret < 0)
+ 		return ret;
+ 
+diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
+index 929006f..1ad4cf9 100644
+--- a/drivers/media/platform/pxa_camera.c
++++ b/drivers/media/platform/pxa_camera.c
+@@ -25,6 +25,7 @@
+ #include <linux/mm.h>
+ #include <linux/moduleparam.h>
+ #include <linux/of.h>
++#include <linux/of_graph.h>
+ #include <linux/time.h>
+ #include <linux/platform_device.h>
+ #include <linux/clk.h>
+@@ -39,7 +40,7 @@
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+-#include <media/v4l2-of.h>
++#include <media/v4l2-fwnode.h>
+ 
+ #include <media/videobuf2-dma-sg.h>
+ 
+@@ -2236,7 +2237,7 @@ static int pxa_camera_pdata_from_dt(struct device *dev,
+ {
+ 	u32 mclk_rate;
+ 	struct device_node *remote, *np = dev->of_node;
+-	struct v4l2_of_endpoint ep;
++	struct v4l2_fwnode_endpoint ep;
+ 	int err = of_property_read_u32(np, "clock-frequency",
+ 				       &mclk_rate);
+ 	if (!err) {
+@@ -2250,7 +2251,7 @@ static int pxa_camera_pdata_from_dt(struct device *dev,
+ 		return -EINVAL;
+ 	}
+ 
+-	err = v4l2_of_parse_endpoint(np, &ep);
++	err = v4l2_fwnode_endpoint_parse(of_fwnode_handle(np), &ep);
+ 	if (err) {
+ 		dev_err(dev, "could not parse endpoint\n");
+ 		goto out;
+diff --git a/drivers/media/platform/rcar-vin/Kconfig b/drivers/media/platform/rcar-vin/Kconfig
+index 111d2a1..af4c98b 100644
+--- a/drivers/media/platform/rcar-vin/Kconfig
++++ b/drivers/media/platform/rcar-vin/Kconfig
+@@ -3,6 +3,7 @@ config VIDEO_RCAR_VIN
+ 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && OF && HAS_DMA && MEDIA_CONTROLLER
+ 	depends on ARCH_RENESAS || COMPILE_TEST
+ 	select VIDEOBUF2_DMA_CONTIG
++	select V4L2_FWNODE
+ 	---help---
+ 	  Support for Renesas R-Car Video Input (VIN) driver.
+ 	  Supports R-Car Gen2 SoCs.
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 098a0b1..72903fc 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -21,7 +21,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ 
+-#include <media/v4l2-of.h>
++#include <media/v4l2-fwnode.h>
+ 
+ #include "rcar-vin.h"
+ 
+@@ -118,10 +118,10 @@ static int rvin_digitial_parse_v4l2(struct rvin_dev *vin,
+ 				    struct device_node *ep,
+ 				    struct v4l2_mbus_config *mbus_cfg)
+ {
+-	struct v4l2_of_endpoint v4l2_ep;
++	struct v4l2_fwnode_endpoint v4l2_ep;
+ 	int ret;
+ 
+-	ret = v4l2_of_parse_endpoint(ep, &v4l2_ep);
++	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &v4l2_ep);
+ 	if (ret) {
+ 		vin_err(vin, "Could not parse v4l2 endpoint\n");
+ 		return -EINVAL;
+diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
+index 86d7478..ab62932 100644
+--- a/drivers/media/platform/soc_camera/Kconfig
++++ b/drivers/media/platform/soc_camera/Kconfig
+@@ -33,6 +33,7 @@ config VIDEO_ATMEL_ISI
+ 	depends on ARCH_AT91 || COMPILE_TEST
+ 	depends on HAS_DMA
+ 	select VIDEOBUF2_DMA_CONTIG
++	select V4L2_FWNODE
+ 	---help---
+ 	  This module makes the ATMEL Image Sensor Interface available
+ 	  as a v4l2 device.
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index 46de657..f9f2ad6 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -19,13 +19,14 @@
+ #include <linux/interrupt.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
++#include <linux/of_graph.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/slab.h>
+ 
+ #include <media/soc_camera.h>
+ #include <media/drv-intf/soc_mediabus.h>
+-#include <media/v4l2-of.h>
++#include <media/v4l2-fwnode.h>
+ #include <media/videobuf2-dma-contig.h>
+ 
+ #include "atmel-isi.h"
+@@ -974,7 +975,7 @@ static int atmel_isi_parse_dt(struct atmel_isi *isi,
+ 			struct platform_device *pdev)
+ {
+ 	struct device_node *np= pdev->dev.of_node;
+-	struct v4l2_of_endpoint ep;
++	struct v4l2_fwnode_endpoint ep;
+ 	int err;
+ 
+ 	/* Default settings for ISI */
+@@ -987,7 +988,7 @@ static int atmel_isi_parse_dt(struct atmel_isi *isi,
+ 		return -EINVAL;
+ 	}
+ 
+-	err = v4l2_of_parse_endpoint(np, &ep);
++	err = v4l2_fwnode_endpoint_parse(of_fwnode_handle(np), &ep);
+ 	of_node_put(np);
+ 	if (err) {
+ 		dev_err(&pdev->dev, "Could not parse the endpoint\n");
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index edd1c1d..cf246b2 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -23,6 +23,7 @@
+ #include <linux/list.h>
+ #include <linux/module.h>
+ #include <linux/mutex.h>
++#include <linux/of_graph.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/regulator/consumer.h>
+@@ -36,7 +37,6 @@
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-dev.h>
+-#include <media/v4l2-of.h>
+ #include <media/videobuf-core.h>
+ #include <media/videobuf2-v4l2.h>
+ 
+diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform/ti-vpe/cal.c
+index 7a058b6..f72f541 100644
+--- a/drivers/media/platform/ti-vpe/cal.c
++++ b/drivers/media/platform/ti-vpe/cal.c
+@@ -21,7 +21,7 @@
+ #include <linux/of_device.h>
+ #include <linux/of_graph.h>
+ 
+-#include <media/v4l2-of.h>
++#include <media/v4l2-fwnode.h>
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ctrls.h>
+@@ -270,7 +270,7 @@ struct cal_ctx {
+ 	struct video_device	vdev;
+ 	struct v4l2_async_notifier notifier;
+ 	struct v4l2_subdev	*sensor;
+-	struct v4l2_of_endpoint	endpoint;
++	struct v4l2_fwnode_endpoint	endpoint;
+ 
+ 	struct v4l2_async_subdev asd;
+ 	struct v4l2_async_subdev *asd_list[1];
+@@ -608,7 +608,8 @@ static void csi2_lane_config(struct cal_ctx *ctx)
+ 	u32 val = reg_read(ctx->dev, CAL_CSI2_COMPLEXIO_CFG(ctx->csi2_port));
+ 	u32 lane_mask = CAL_CSI2_COMPLEXIO_CFG_CLOCK_POSITION_MASK;
+ 	u32 polarity_mask = CAL_CSI2_COMPLEXIO_CFG_CLOCK_POL_MASK;
+-	struct v4l2_of_bus_mipi_csi2 *mipi_csi2 = &ctx->endpoint.bus.mipi_csi2;
++	struct v4l2_fwnode_bus_mipi_csi2 *mipi_csi2 =
++		&ctx->endpoint.bus.mipi_csi2;
+ 	int lane;
+ 
+ 	set_field(&val, mipi_csi2->clock_lane + 1, lane_mask);
+@@ -1643,7 +1644,7 @@ static int of_cal_create_instance(struct cal_ctx *ctx, int inst)
+ 	struct platform_device *pdev = ctx->dev->pdev;
+ 	struct device_node *ep_node, *port, *remote_ep,
+ 			*sensor_node, *parent;
+-	struct v4l2_of_endpoint *endpoint;
++	struct v4l2_fwnode_endpoint *endpoint;
+ 	struct v4l2_async_subdev *asd;
+ 	u32 regval = 0;
+ 	int ret, index, found_port = 0, lane;
+@@ -1706,7 +1707,7 @@ static int of_cal_create_instance(struct cal_ctx *ctx, int inst)
+ 		ctx_dbg(3, ctx, "can't get remote-endpoint\n");
+ 		goto cleanup_exit;
+ 	}
+-	v4l2_of_parse_endpoint(remote_ep, endpoint);
++	v4l2_fwnode_endpoint_parse(of_fwnode_handle(remote_ep), endpoint);
+ 
+ 	if (endpoint->bus_type != V4L2_MBUS_CSI2) {
+ 		ctx_err(ctx, "Port:%d sub-device %s is not a CSI2 device\n",
+diff --git a/drivers/media/platform/xilinx/Kconfig b/drivers/media/platform/xilinx/Kconfig
+index 84bae79..a5d21b7 100644
+--- a/drivers/media/platform/xilinx/Kconfig
++++ b/drivers/media/platform/xilinx/Kconfig
+@@ -2,6 +2,7 @@ config VIDEO_XILINX
+ 	tristate "Xilinx Video IP (EXPERIMENTAL)"
+ 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && OF && HAS_DMA
+ 	select VIDEOBUF2_DMA_CONTIG
++	select V4L2_FWNODE
+ 	---help---
+ 	  Driver for Xilinx Video IP Pipelines
+ 
+diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c b/drivers/media/platform/xilinx/xilinx-vipp.c
+index feb3b2f..6a2721b 100644
+--- a/drivers/media/platform/xilinx/xilinx-vipp.c
++++ b/drivers/media/platform/xilinx/xilinx-vipp.c
+@@ -22,7 +22,7 @@
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-device.h>
+-#include <media/v4l2-of.h>
++#include <media/v4l2-fwnode.h>
+ 
+ #include "xilinx-dma.h"
+ #include "xilinx-vipp.h"
+@@ -74,7 +74,7 @@ static int xvip_graph_build_one(struct xvip_composite_device *xdev,
+ 	struct media_pad *local_pad;
+ 	struct media_pad *remote_pad;
+ 	struct xvip_graph_entity *ent;
+-	struct v4l2_of_link link;
++	struct v4l2_fwnode_link link;
+ 	struct device_node *ep = NULL;
+ 	struct device_node *next;
+ 	int ret = 0;
+@@ -92,7 +92,7 @@ static int xvip_graph_build_one(struct xvip_composite_device *xdev,
+ 
+ 		dev_dbg(xdev->dev, "processing endpoint %s\n", ep->full_name);
+ 
+-		ret = v4l2_of_parse_link(ep, &link);
++		ret = v4l2_fwnode_parse_link(of_fwnode_handle(ep), &link);
+ 		if (ret < 0) {
+ 			dev_err(xdev->dev, "failed to parse link for %s\n",
+ 				ep->full_name);
+@@ -103,9 +103,10 @@ static int xvip_graph_build_one(struct xvip_composite_device *xdev,
+ 		 * the link.
+ 		 */
+ 		if (link.local_port >= local->num_pads) {
+-			dev_err(xdev->dev, "invalid port number %u on %s\n",
+-				link.local_port, link.local_node->full_name);
+-			v4l2_of_put_link(&link);
++			dev_err(xdev->dev, "invalid port number %u for %s\n",
++				link.local_port,
++				to_of_node(link.local_node)->full_name);
++			v4l2_fwnode_put_link(&link);
+ 			ret = -EINVAL;
+ 			break;
+ 		}
+@@ -114,25 +115,28 @@ static int xvip_graph_build_one(struct xvip_composite_device *xdev,
+ 
+ 		if (local_pad->flags & MEDIA_PAD_FL_SINK) {
+ 			dev_dbg(xdev->dev, "skipping sink port %s:%u\n",
+-				link.local_node->full_name, link.local_port);
+-			v4l2_of_put_link(&link);
++				to_of_node(link.local_node)->full_name,
++				link.local_port);
++			v4l2_fwnode_put_link(&link);
+ 			continue;
+ 		}
+ 
+ 		/* Skip DMA engines, they will be processed separately. */
+-		if (link.remote_node == xdev->dev->of_node) {
++		if (link.remote_node == of_fwnode_handle(xdev->dev->of_node)) {
+ 			dev_dbg(xdev->dev, "skipping DMA port %s:%u\n",
+-				link.local_node->full_name, link.local_port);
+-			v4l2_of_put_link(&link);
++				to_of_node(link.local_node)->full_name,
++				link.local_port);
++			v4l2_fwnode_put_link(&link);
+ 			continue;
+ 		}
+ 
+ 		/* Find the remote entity. */
+-		ent = xvip_graph_find_entity(xdev, link.remote_node);
++		ent = xvip_graph_find_entity(xdev,
++					     to_of_node(link.remote_node));
+ 		if (ent == NULL) {
+ 			dev_err(xdev->dev, "no entity found for %s\n",
+-				link.remote_node->full_name);
+-			v4l2_of_put_link(&link);
++				to_of_node(link.remote_node)->full_name);
++			v4l2_fwnode_put_link(&link);
+ 			ret = -ENODEV;
+ 			break;
+ 		}
+@@ -141,15 +145,16 @@ static int xvip_graph_build_one(struct xvip_composite_device *xdev,
+ 
+ 		if (link.remote_port >= remote->num_pads) {
+ 			dev_err(xdev->dev, "invalid port number %u on %s\n",
+-				link.remote_port, link.remote_node->full_name);
+-			v4l2_of_put_link(&link);
++				link.remote_port,
++				to_of_node(link.remote_node)->full_name);
++			v4l2_fwnode_put_link(&link);
+ 			ret = -EINVAL;
+ 			break;
+ 		}
+ 
+ 		remote_pad = &remote->pads[link.remote_port];
+ 
+-		v4l2_of_put_link(&link);
++		v4l2_fwnode_put_link(&link);
+ 
+ 		/* Create the media link. */
+ 		dev_dbg(xdev->dev, "creating %s:%u -> %s:%u link\n",
+@@ -194,7 +199,7 @@ static int xvip_graph_build_dma(struct xvip_composite_device *xdev)
+ 	struct media_pad *source_pad;
+ 	struct media_pad *sink_pad;
+ 	struct xvip_graph_entity *ent;
+-	struct v4l2_of_link link;
++	struct v4l2_fwnode_link link;
+ 	struct device_node *ep = NULL;
+ 	struct device_node *next;
+ 	struct xvip_dma *dma;
+@@ -213,7 +218,7 @@ static int xvip_graph_build_dma(struct xvip_composite_device *xdev)
+ 
+ 		dev_dbg(xdev->dev, "processing endpoint %s\n", ep->full_name);
+ 
+-		ret = v4l2_of_parse_link(ep, &link);
++		ret = v4l2_fwnode_parse_link(of_fwnode_handle(ep), &link);
+ 		if (ret < 0) {
+ 			dev_err(xdev->dev, "failed to parse link for %s\n",
+ 				ep->full_name);
+@@ -225,7 +230,7 @@ static int xvip_graph_build_dma(struct xvip_composite_device *xdev)
+ 		if (dma == NULL) {
+ 			dev_err(xdev->dev, "no DMA engine found for port %u\n",
+ 				link.local_port);
+-			v4l2_of_put_link(&link);
++			v4l2_fwnode_put_link(&link);
+ 			ret = -EINVAL;
+ 			break;
+ 		}
+@@ -234,19 +239,21 @@ static int xvip_graph_build_dma(struct xvip_composite_device *xdev)
+ 			dma->video.name);
+ 
+ 		/* Find the remote entity. */
+-		ent = xvip_graph_find_entity(xdev, link.remote_node);
++		ent = xvip_graph_find_entity(xdev,
++					     to_of_node(link.remote_node));
+ 		if (ent == NULL) {
+ 			dev_err(xdev->dev, "no entity found for %s\n",
+-				link.remote_node->full_name);
+-			v4l2_of_put_link(&link);
++				to_of_node(link.remote_node)->full_name);
++			v4l2_fwnode_put_link(&link);
+ 			ret = -ENODEV;
+ 			break;
+ 		}
+ 
+ 		if (link.remote_port >= ent->entity->num_pads) {
+ 			dev_err(xdev->dev, "invalid port number %u on %s\n",
+-				link.remote_port, link.remote_node->full_name);
+-			v4l2_of_put_link(&link);
++				link.remote_port,
++				to_of_node(link.remote_node)->full_name);
++			v4l2_fwnode_put_link(&link);
+ 			ret = -EINVAL;
+ 			break;
+ 		}
+@@ -263,7 +270,7 @@ static int xvip_graph_build_dma(struct xvip_composite_device *xdev)
+ 			sink_pad = &dma->pad;
+ 		}
+ 
+-		v4l2_of_put_link(&link);
++		v4l2_fwnode_put_link(&link);
+ 
+ 		/* Create the media link. */
+ 		dev_dbg(xdev->dev, "creating %s:%u -> %s:%u link\n",
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+index a675d8a..bc9cf51 100644
+--- a/include/media/v4l2-fwnode.h
++++ b/include/media/v4l2-fwnode.h
+@@ -17,10 +17,10 @@
+ #ifndef _V4L2_FWNODE_H
+ #define _V4L2_FWNODE_H
+ 
++#include <linux/errno.h>
++#include <linux/fwnode.h>
+ #include <linux/list.h>
+ #include <linux/types.h>
+-#include <linux/errno.h>
+-#include <linux/of_graph.h>
+ 
+ #include <media/v4l2-mediabus.h>
+ 
 -- 
 2.7.4
