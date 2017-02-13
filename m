@@ -1,54 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44145 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751497AbdB1Ns4 (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36216
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753223AbdBMTJY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Feb 2017 08:48:56 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/6] omap3isp: Remove misleading comment
-Date: Tue, 28 Feb 2017 15:42:19 +0200
-Message-ID: <1506772.h8Xp7uijkX@avalon>
-In-Reply-To: <1487604142-27610-4-git-send-email-sakari.ailus@linux.intel.com>
-References: <1487604142-27610-1-git-send-email-sakari.ailus@linux.intel.com> <1487604142-27610-4-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Mon, 13 Feb 2017 14:09:24 -0500
+From: Thibault Saunier <thibault.saunier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Thibault Saunier <thibault.saunier@osg.samsung.com>,
+        linux-arm-kernel@lists.infradead.org,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Kamil Debski <kamil@wypas.org>
+Subject: [PATCH v4 4/4] [media] s5p-mfc: Check and set 'v4l2_pix_format:field' field in try_fmt
+Date: Mon, 13 Feb 2017 16:08:36 -0300
+Message-Id: <20170213190836.26972-5-thibault.saunier@osg.samsung.com>
+In-Reply-To: <20170213190836.26972-1-thibault.saunier@osg.samsung.com>
+References: <20170213190836.26972-1-thibault.saunier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+It is required by the standard that the field order is set by the
+driver.
 
-Thank you for the patch.
+Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
 
-On Monday 20 Feb 2017 17:22:19 Sakari Ailus wrote:
-> The intent of the check the comment is related to is to ensure we are
-> streaming --- still. Not that streaming wouldn't be enabled yet. Remove
-> it.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/platform/omap3isp/ispvideo.c | 1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/ispvideo.c
-> b/drivers/media/platform/omap3isp/ispvideo.c index 9e9b18c..a3ca2a4 100644
-> --- a/drivers/media/platform/omap3isp/ispvideo.c
-> +++ b/drivers/media/platform/omap3isp/ispvideo.c
-> @@ -1205,7 +1205,6 @@ isp_video_streamoff(struct file *file, void *fh, enum
-> v4l2_buf_type type)
-> 
->  	mutex_lock(&video->stream_lock);
-> 
-> -	/* Make sure we're not streaming yet. */
->  	mutex_lock(&video->queue_lock);
->  	streaming = vb2_is_streaming(&vfh->queue);
->  	mutex_unlock(&video->queue_lock);
+Changes in v4: None
+Changes in v3:
+- Do not check values in the g_fmt functions as Andrzej explained in previous review
 
+Changes in v2:
+- Fix a silly build error that slipped in while rebasing the patches
+
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 0976c3e0a5ce..c954b34cb988 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -385,6 +385,20 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 	struct s5p_mfc_dev *dev = video_drvdata(file);
+ 	struct v4l2_pix_format_mplane *pix_mp = &f->fmt.pix_mp;
+ 	struct s5p_mfc_fmt *fmt;
++	enum v4l2_field field;
++
++	field = f->fmt.pix.field;
++	if (field == V4L2_FIELD_ANY) {
++		field = V4L2_FIELD_NONE;
++	} else if (field != V4L2_FIELD_NONE) {
++		mfc_debug(2, "Not supported field order(%d)\n", pix_mp->field);
++		return -EINVAL;
++	}
++
++	/* V4L2 specification suggests the driver corrects the format struct
++	 * if any of the dimensions is unsupported
++	 */
++	f->fmt.pix.field = field;
+ 
+ 	mfc_debug(2, "Type is %d\n", f->type);
+ 	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
 -- 
-Regards,
-
-Laurent Pinchart
+2.11.1
