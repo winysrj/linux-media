@@ -1,100 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:36532 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751409AbdB0QId (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Feb 2017 11:08:33 -0500
-Date: Mon, 27 Feb 2017 08:07:51 -0800
-From: Tony Lindgren <tony@atomide.com>
-To: Ingo Molnar <mingo@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Ruslan Ruslichenko <rruslich@cisco.com>,
-        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-        kernel@stlinux.com, Sean Young <sean@mess.org>,
-        wfg@linux.intel.com, Peter Zijlstra <peterz@infradead.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-mediatek@lists.infradead.org,
-        Linux LED Subsystem <linux-leds@vger.kernel.org>,
-        "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-        linux-amlogic@lists.infradead.org,
-        kernel test robot <fengguang.wu@intel.com>, LKP <lkp@01.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [WARNING: A/V UNSCANNABLE][Merge tag 'media/v4.11-1' of git]
- ff58d005cd: BUG: unable to handle kernel NULL pointer dereference at
- 0000039c
-Message-ID: <20170227160750.GM21809@atomide.com>
-References: <58b07b30.9XFLj9Hhl7F6HMc2%fengguang.wu@intel.com>
- <CA+55aFytXj+TZ_TanbxcY0KgRTrV7Vvr=fWON8tioUGmYHYiNA@mail.gmail.com>
- <20170225090741.GA20463@gmail.com>
- <CA+55aFy+ER8cYV02eZsKAOLnZBWY96zNWqUFWSWT1+3sZD4XnQ@mail.gmail.com>
- <alpine.DEB.2.20.1702271105090.4732@nanos>
- <alpine.DEB.2.20.1702271231410.4732@nanos>
- <20170227154124.GA20569@gmail.com>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:60359 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751160AbdBMIsE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Feb 2017 03:48:04 -0500
+Subject: Re: [PATCH v2 1/4] [media] exynos-gsc: Use 576p instead 720p as a
+ threshold for colorspaces
+To: Russell King - ARM Linux <linux@armlinux.org.uk>,
+        Thibault Saunier <thibault.saunier@osg.samsung.com>
+References: <20170209200420.3046-1-thibault.saunier@osg.samsung.com>
+ <20170209200420.3046-2-thibault.saunier@osg.samsung.com>
+ <20170210193850.GN27312@n2100.armlinux.org.uk>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        Inki Dae <inki.dae@samsung.com>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        linux-samsung-soc@vger.kernel.org,
+        Marek Szyprowski <m.szyprowski@samsung.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <baf44c8e-2117-6252-bae0-54446059ecde@xs4all.nl>
+Date: Mon, 13 Feb 2017 09:47:55 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170227154124.GA20569@gmail.com>
+In-Reply-To: <20170210193850.GN27312@n2100.armlinux.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Ingo Molnar <mingo@kernel.org> [170227 07:44]:
+On 02/10/2017 08:38 PM, Russell King - ARM Linux wrote:
+> On Thu, Feb 09, 2017 at 05:04:17PM -0300, Thibault Saunier wrote:
+>> From: Javier Martinez Canillas <javier@osg.samsung.com>
+>>
+>> The media documentation says that the V4L2_COLORSPACE_SMPTE170M colorspace
+>> should be used for SDTV and V4L2_COLORSPACE_REC709 for HDTV. But drivers
+>> don't agree on the display resolution that should be used as a threshold.
+>>
+>> Some drivers set V4L2_COLORSPACE_REC709 for 720p and higher while others
+>> set V4L2_COLORSPACE_REC709 for anything higher than 576p. Newers drivers
+>> use the latter and that also matches what user-space multimedia programs
+>> do (i.e: GStreamer), so change the driver logic to be aligned with this.
+>>
+>> Also, check for the resolution in G_FMT instead unconditionally setting
+>> the V4L2_COLORSPACE_REC709 colorspace.
 > 
-> * Thomas Gleixner <tglx@linutronix.de> wrote:
+> It would be nice to refer to some specification to justify the change,
+> rather than "let's follow what <random-piece-of-software> does".
 > 
-> > The pending interrupt issue happens, at least on my test boxen, mostly on
-> > the 'legacy' interrupts (0 - 15). But even the IOAPIC interrupts >=16
-> > happen occasionally.
-> >
-> > 
-> >  - Spurious interrupts on IRQ7, which are triggered by IRQ 0 (PIT/HPET). On
-> >    one of the affected machines this stops when the interrupt system is
-> >    switched to interrupt remapping !?!?!?
-> > 
-> >  - Spurious interrupts on various interrupt lines, which are triggered by
-> >    IOAPIC interrupts >= IRQ16. That's a known issue on quite some chipsets
-> >    that the legacy PCI interrupt (which is used when IOAPIC is disabled) is
-> >    triggered when the IOAPIC >=16 interrupt fires.
-> > 
-> >  - Spurious interrupt caused by driver probing itself. I.e. the driver
-> >    probing code causes an interrupt issued from the device
-> >    inadvertently. That happens even on IRQ >= 16.
+> EIA CEA 861B talks about colorimetry for various resolutions:
+> 
+> 5.1 480p, 480i, 576p, 576i, 240p, and 288p
+> The color space used by the 480-line, 576-line, 240-line, and 288-line
+> formats will likely be based on SMPTE 170M [1].
+> 
+> 5.2 1080i, 1080p, and 720p
+> The color space used by the high definition formats will likely be based
+> on ITU-R BT.709-4 [6].
+> 
+> Notice, however, that it says "will likely be" - it's not a requirement,
+> as it's expected that the colorspace will be part of the media metadata
+> (eg, contained in the transport stream.)  In other words, it should be
+> configurable or ultimately provided by the ultimate source of the image.
 
-This sounds a lot like what we saw few weeks ago with dwc3. See commit
-12a7f17fac5b ("usb: dwc3: omap: fix race of pm runtime with irq handler in
-probe"). It was caused by runtime PM and -EPROBE_DEFER, see the description
-Grygorii wrote up in that commit.
+Colorspace information is transmitted as part of HDMI/DisplayPort meta-information
+(AVI InfoFrames, see CEA/CTA 861).
 
-> >    This problem might be handled by the device driver code itself, but
-> >    that's going to be ugly. See below.
-> 
-> That's pretty colorful behavior...
-> 
-> > We can try to sample more data from the machines of affected users, but I doubt 
-> > that it will give us more information than confirming that we really have to 
-> > deal with all that hardware wreckage out there in some way or the other.
-> 
-> BTW., instead of trying to avoid the scenario, wow about moving in the other 
-> direction: making CONFIG_DEBUG_SHIRQ=y unconditional property in the IRQ core code 
-> starting from v4.12 or so, i.e. requiring device driver IRQ handlers to handle the 
-> invocation of IRQ handlers at pretty much any moment. (We could also extend it a 
-> bit, such as invoking IRQ handlers early after suspend/resume wakeup.)
-> 
-> Because it's not the requirement that hurts primarily, but the resulting 
-> non-determinism and the sporadic crashes. Which can be solved by making the race 
-> deterministic via the debug facility.
-> 
-> If the IRQ handler crashed the moment it was first written by the driver author 
-> we'd never see these problems.
+Compressed video typically encodes the colorspace information as well.
 
-Just in case this is PM related.. Maybe the spurious interrupt is pending
-from earlier? This could be caused by glitches on the lines with runtime PM,
-or a pending interrupt during suspend/resume. In that case IRQ_DISABLE_UNLAZY
-might provide more clues if the problem goes away.
+SDTV never had metainformation and you should fall back to SMPTE170M.
+
+Webcams/sensors should give sRGB unless otherwise indicated. If it is a sensor
+that expects further processing, then COLORSPACE_RAW can be used.
+
+Anything else is typically sRGB.
+
+Note that sRGB and SMPTE170M can be considered fall-back colorspaces in the
+absence of any other information.
 
 Regards,
 
-Tony
+	Hans
