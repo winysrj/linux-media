@@ -1,50 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:38981 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754306AbdBVKpF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Feb 2017 05:45:05 -0500
-Date: Wed, 22 Feb 2017 10:45:03 +0000
-From: Sean Young <sean@mess.org>
-To: kbuild test robot <lkp@intel.com>
-Cc: kbuild-all@01.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 17/19] [media] lirc: implement reading scancode
-Message-ID: <20170222104503.GA11020@gofer.mess.org>
-References: <af0fc6e2fbbbb5f6c54905b18d6e78f04eadb4f9.1487709384.git.sean@mess.org>
- <201702220813.YFEbz0HM%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201702220813.YFEbz0HM%fengguang.wu@intel.com>
+Received: from smtprelay.synopsys.com ([198.182.47.9]:37215 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752413AbdBML1m (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Feb 2017 06:27:42 -0500
+From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+To: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+Cc: CARLOS.PALMINHA@synopsys.com,
+        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>,
+        Pavel Machek <pavel@ucw.cz>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Rob Herring <robh+dt@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+Subject: [PATCH v8 0/2] Add support Add support for Omnivision OV56477
+Date: Mon, 13 Feb 2017 11:25:01 +0000
+Message-Id: <cover.1486984040.git.roliveir@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 22, 2017 at 08:14:50AM +0800, kbuild test robot wrote:
-> Hi Sean,
-> 
-> [auto build test ERROR on linuxtv-media/master]
-> [also build test ERROR on next-20170221]
-> [cannot apply to v4.10]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-> 
-> url:    https://github.com/0day-ci/linux/commits/Sean-Young/Teach-lirc-how-to-send-and-receive-scancodes/20170222-073718
-> base:   git://linuxtv.org/media_tree.git master
-> config: i386-randconfig-x015-201708 (attached as .config)
-> compiler: gcc-6 (Debian 6.2.0-3) 6.2.0 20160901
-> reproduce:
->         # save the attached .config to linux build tree
->         make ARCH=i386 
-> 
-> Note: the linux-review/Sean-Young/Teach-lirc-how-to-send-and-receive-scancodes/20170222-073718 HEAD 9a4d3444d507190ad7996731c8c7e4ef80979de4 builds fine.
->       It only hurts bisectibility.
-> 
-> All error/warnings (new ones prefixed by >>):
-> 
->    drivers/media/rc/ir-lirc-codec.c: In function 'ir_lirc_poll':
-> >> drivers/media/rc/ir-lirc-codec.c:393:7: error: 'drv' undeclared (first use in this function)
->      if (!drv->attached) {
+Hello,
 
-Oops, too much rebasing without testing. :( The final commit compiles fine,
-I'll have to do some better testing of each commit and resend.
+This patchset adds support for the Omnivision OV5647 sensor.
 
+At the moment it only supports 640x480 in RAW 8.
 
-Sean
+This is the eighth version of the OV5647 camera driver patchset.
+
+v8:
+ - Remove a part of the initialization procedure which wasn't doing 
+ anything
+ - Check for i2c read/writes return values
+ - Add stream_on/off functions
+
+v7:
+ - Remove "0x" and leading 0 from DT documentation examples
+
+v6:
+ - Add example to DT documentation
+ - Remove data-lanes and clock-lane property from DT
+ - Add external clock property to DT
+ - Order includes
+ - Remove unused variables and functions
+ - Add external clock handling
+ - Add power on counter
+ - Change from g/s_parm to g/s_frame_interval
+
+v5:
+ - Refactor code 
+ - Change comments
+ - Add missing error handling in some functions
+
+v4: 
+ - Add correct license
+ - Revert debugging info to generic infrastructure
+ - Turn defines into enums
+ - Correct code style issues
+ - Remove unused defines
+ - Make sure all errors where being handled
+ - Rename some functions to make code more readable
+ - Add some debugging info
+
+v3: 
+ - No changes. Re-submitted due to lack of responses
+
+v2: 
+ - Corrections in DT documentation
+
+Ramiro Oliveira (2):
+  Add OV5647 device tree documentation
+  Add support for OV5647 sensor.
+
+ .../devicetree/bindings/media/i2c/ov5647.txt       |  35 +
+ MAINTAINERS                                        |   7 +
+ drivers/media/i2c/Kconfig                          |  12 +
+ drivers/media/i2c/Makefile                         |   1 +
+ drivers/media/i2c/ov5647.c                         | 736 +++++++++++++++++++++
+ 5 files changed, 791 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
+ create mode 100644 drivers/media/i2c/ov5647.c
+
+-- 
+2.11.0
