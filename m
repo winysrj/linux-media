@@ -1,70 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:43673
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932242AbdBHNSk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Feb 2017 08:18:40 -0500
-Date: Wed, 8 Feb 2017 10:22:59 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hugues Fruchet <hugues.fruchet@st.com>
-Cc: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>,
-        <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: Re: [PATCH v1 3/3] [media] st-delta: add mpeg2 support
-Message-ID: <20170208102259.1d5dcb8b@vento.lan>
-In-Reply-To: <1485773849-23945-4-git-send-email-hugues.fruchet@st.com>
-References: <1485773849-23945-1-git-send-email-hugues.fruchet@st.com>
-        <1485773849-23945-4-git-send-email-hugues.fruchet@st.com>
+Received: from mail.helmutauer.de ([185.170.112.187]:33968 "EHLO
+        v2201612530341454.powersrv.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751079AbdBMWyd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Feb 2017 17:54:33 -0500
+Message-ID: <58A239E9.8010809@helmutauer.de>
+Date: Mon, 13 Feb 2017 23:57:45 +0100
+From: Helmut Auer <vdr@helmutauer.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Sean Young <sean@mess.org>
+CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] [MEDIA] add device ID to ati remote
+References: <20170127080622.GA4153@mwanda> <ae72e45aeea9d3cbead7c50e1cbe4c5b.squirrel@helmutauer.de> <33044ec5031546f79ae9d37565240ed3.squirrel@helmutauer.de> <cfb14339f809faa9b5e40d2fa53f330b.squirrel@helmutauer.de> <20170213134244.GA18860@gofer.mess.org>
+In-Reply-To: <20170213134244.GA18860@gofer.mess.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 30 Jan 2017 11:57:29 +0100
-Hugues Fruchet <hugues.fruchet@st.com> escreveu:
+Hello
 
-> Adds support of DELTA MPEG-2 video decoder back-end,
-> implemented by calling MPEG2_TRANSFORMER0 firmware
-> using RPMSG IPC communication layer.
-> MPEG-2 decoder back-end is a stateless decoder which
-> require specific parsing metadata in access unit
-> in order to complete decoding.
-> 
-> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
-> ---
->  drivers/media/platform/Kconfig                     |    6 +
->  drivers/media/platform/sti/delta/Makefile          |    3 +
->  drivers/media/platform/sti/delta/delta-cfg.h       |    5 +
->  drivers/media/platform/sti/delta/delta-mpeg2-dec.c | 1392 ++++++++++++++++++++
->  drivers/media/platform/sti/delta/delta-mpeg2-fw.h  |  415 ++++++
->  drivers/media/platform/sti/delta/delta-v4l2.c      |    4 +
->  6 files changed, 1825 insertions(+)
->  create mode 100644 drivers/media/platform/sti/delta/delta-mpeg2-dec.c
->  create mode 100644 drivers/media/platform/sti/delta/delta-mpeg2-fw.h
-> 
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index 9e71a7b..0472939 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -323,6 +323,12 @@ config VIDEO_STI_DELTA_MJPEG
->  	help
->  		Enables DELTA MJPEG hardware support.
->  
-> +config VIDEO_STI_DELTA_MPEG2
-> +	bool "STMicroelectronics DELTA MPEG2/MPEG1 support"
-> +	default y
-> +	help
-> +		Enables DELTA MPEG2 hardware support.
-> +
->  endif # VIDEO_STI_DELTA
+Thanks for the info, but sorry I'm not willinmg to do anything more to get the patch into the kernel.
+I have an own distribution and I am applying those patches and thats easier than committing it to the kernel ;)
+Maybe anyone who needs this finds this patch.
 
-This patch needs to be rebased, as you need to adjust the dependencies
-on VIDEO_STI_DELTA_DRIVER for it to depend also on this driver.
+Kind regards
+Helmut
 
-Regards,
-Mauro
-
-
-Thanks,
-Mauro
+Am 13.02.2017 um 14:42 schrieb Sean Young:
+> On Tue, Feb 07, 2017 at 09:42:47AM +0100, vdr@helmutauer.de wrote:
+>>
+>> Author: Helmut Auer <vdr@xxx.de>
+>> Date:   Fri Jan 27 19:09:35 2017 +0100
+>>
+>>      Adding 1 device ID to ati_remote driver.
+>
+> If possible, a more descriptive message would be preferred, e.g. what
+> device do you have, what branding, what product did it come with.
+>
+>>
+>>      Signed-off-by: Helmut Auer <vdr@xxx.de>
+>
+> Unless I'm mistaken, contributions can't be anonymous or use a fake email
+> address.
+>
+>>
+>> diff --git a/drivers/media/rc/ati_remote.c b/drivers/media/rc/ati_remote.c
+>> index 0884b7d..83022b1 100644
+>> --- a/drivers/media/rc/ati_remote.c
+>> +++ b/drivers/media/rc/ati_remote.c
+>> @@ -108,6 +108,7 @@
+>>   #define NVIDIA_REMOTE_PRODUCT_ID       0x0005
+>>   #define MEDION_REMOTE_PRODUCT_ID       0x0006
+>>   #define FIREFLY_REMOTE_PRODUCT_ID      0x0008
+>> +#define REYCOM_REMOTE_PRODUCT_ID       0x000c
+>>
+>>   #define DRIVER_VERSION         "2.2.1"
+>>   #define DRIVER_AUTHOR           "Torrey Hoffman <thoffman@arnor.net>"
+>> @@ -227,6 +228,10 @@ static struct usb_device_id ati_remote_table[] = {
+>>                  USB_DEVICE(ATI_REMOTE_VENDOR_ID, FIREFLY_REMOTE_PRODUCT_ID),
+>>                  .driver_info = (unsigned long)&type_firefly
+>>          },
+>> +       {
+>> +               USB_DEVICE(ATI_REMOTE_VENDOR_ID, REYCOM_REMOTE_PRODUCT_ID),
+>> +               .driver_info = (unsigned long)&type_firefly
+>> +       },
+>>          {}      /* Terminating entry */
+>>   };
+>
+> Your email client replaced all tabs with spaces so the patch no longer
+> applies.
+>
+> Thanks,
+> Sean
+>
