@@ -1,166 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f45.google.com ([74.125.82.45]:34969 "EHLO
-        mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755145AbdBGNLD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2017 08:11:03 -0500
-Received: by mail-wm0-f45.google.com with SMTP id v186so10609088wmd.0
-        for <linux-media@vger.kernel.org>; Tue, 07 Feb 2017 05:11:02 -0800 (PST)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
-Subject: [PATCH v6 2/9] doc: DT: venus: binding document for Qualcomm video driver
-Date: Tue,  7 Feb 2017 15:10:17 +0200
-Message-Id: <1486473024-21705-3-git-send-email-stanimir.varbanov@linaro.org>
-In-Reply-To: <1486473024-21705-1-git-send-email-stanimir.varbanov@linaro.org>
-References: <1486473024-21705-1-git-send-email-stanimir.varbanov@linaro.org>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:51986 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751818AbdBMPn3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Feb 2017 10:43:29 -0500
+Subject: Re: [PATCH 00/11] media: rcar-vin: fix OPS and format/pad index
+ issues
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <20170131154016.15526-1-niklas.soderlund+renesas@ragnatech.se>
+ <35612ce2-57b1-3059-60c8-18806e3f066a@xs4all.nl> <1812889.6lH78FPids@avalon>
+Cc: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com, Wolfram Sang <wsa@the-dreams.de>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <199172bf-6144-4593-04ee-874cd76961a0@xs4all.nl>
+Date: Mon, 13 Feb 2017 16:43:24 +0100
+MIME-Version: 1.0
+In-Reply-To: <1812889.6lH78FPids@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add binding document for Venus video encoder/decoder driver
+On 02/13/2017 04:31 PM, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Monday 13 Feb 2017 15:19:13 Hans Verkuil wrote:
+>> Hi Niklas,
+>>
+>> One general remark: in many commit logs you mistype 'subdeivce'. Can you
+>> fix that for the v2?
+>>
+>> On 01/31/2017 04:40 PM, Niklas Söderlund wrote:
+>>> Hi,
+>>>
+>>> This series address issues with the R-Car Gen2 VIN driver. The most
+>>> serious issue is the OPS when unbind and rebinding the i2c driver for
+>>> the video source subdevice which have popped up as a blocker for other
+>>> work.
+>>>
+>>> This series is broken out of my much larger R-Car Gen3 enablement series
+>>> '[PATCHv2 00/32] rcar-vin: Add Gen3 with media controller support'. I
+>>> plan to remove that series form patchwork and focus on these fixes first
+>>> as they are blocking other development. Once the blocking issues are
+>>> removed I will rebase and repost the larger Gen3 series.
+>>>
+>>> Patch 1-4 fix simple problems found while testing
+>>>
+>>>     1-2 Fix format problems when the format is (re)set.
+>>>     3   Fix media pad errors
+>>>     4   Fix standard enumeration problem
+>>>
+>>> Patch 5 adds a wrapper function to retrieve the active video source
+>>> subdevice. This is strictly not needed on Gen2 which only have one
+>>> possible video source per VIN instance (This will change on Gen3). But
+>>> patch 6-8,11 which fixes real issues on Gen2 make use of this wrapper, as
+>>> not risk breaking things by removing this wrapper in this series and
+>>> then readding it in a later Gen3 series I have chosen to keep the patch.
+>>> Please let me know if I should drop it and rewrite patch 6-11 (if
+>>> possible I would like to avoid that).
+>>>
+>>> Patch 6-8 deals with video source subdevice pad index handling by moving
+>>> the information from struct rvin_dev to struct rvin_graph_entity and
+>>> moving the pad index probing to the struct v4l2_async_notifier complete
+>>> callback. This is needed to allow the bind/unbind fix in patch 10-11.
+>>>
+>>> Patch 9 use the pad information when calling enum_mbus_code.
+>>>
+>>> Patch 10-11 fix a OPS when unbinding/binding the video source subdevice.
+>>
+>> This will not help: you can unbind a subdev at any time, including when
+>> it is in use.
+>>
+>> But why do you need this at all? You can also set suppress_bind_attrs in
+>> the adv7180 driver to prevent the bind/unbind files from appearing.
+>>
+>> It really makes no sense for subdevs. In fact, all subdevs should set this
+>> flag since in the current implementation this is completely impossible to
+>> implement safely.
+>>
+>> I suggest you drop the patches relating to this and instead set the suppress
+>> flag.
+> 
+> The adv7180 is connected to an I2C controller that can be unbound. Setting the 
+> suppress_bind_attrs flag in the driver thus won't prevent the device from 
+> being unbound. suppress_bind_attrs is not a good solution for I2C drivers.
 
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: devicetree@vger.kernel.org
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
----
-Changes since previous v5:
- * dropped rproc phandle (remoteproc is not used anymore)
- * added subnodes paragraph with descrition of three subnodes:
-    - video-decoder and video-encoder - describes decoder (core0) and
-    encoder (core1) power-domains and clocks (applicable for msm8996
-    Venus core).
-    - video-firmware - needed to get reserved memory region where the
-    firmware is stored.
+Then just drop these patches, since those don't solve anything either. Without
+some of the things we discussed during the refcounting meeting (i.e. a locking
+scheme before calling into subdev ops) anything you do will at best just give
+you an illusion that you're safe.
 
- .../devicetree/bindings/media/qcom,venus.txt       | 112 +++++++++++++++++++++
- 1 file changed, 112 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
+Regards,
 
-diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
-new file mode 100644
-index 000000000000..4427af3ca5a5
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
-@@ -0,0 +1,112 @@
-+* Qualcomm Venus video encode/decode accelerator
-+
-+- compatible:
-+	Usage: required
-+	Value type: <stringlist>
-+	Definition: Value should contain one of:
-+		- "qcom,msm8916-venus"
-+		- "qcom,msm8996-venus"
-+- reg:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: Register base address and length of the register map.
-+- interrupts:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: Should contain interrupt line number.
-+- clocks:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: A List of phandle and clock specifier pairs as listed
-+		    in clock-names property.
-+- clock-names:
-+	Usage: required for msm8916
-+	Value type: <stringlist>
-+	Definition: Should contain the following entries:
-+		- "core"	Core video accelerator clock
-+		- "iface"	Video accelerator AHB clock
-+		- "bus"		Video accelerator AXI clock
-+- clock-names:
-+	Usage: required for msm8996
-+	Value type: <stringlist>
-+	Definition: Should contain the following entries:
-+		- "core"	Core video accelerator clock
-+		- "iface"	Video accelerator AHB clock
-+		- "bus"		Video accelerator AXI clock
-+		- "mbus"	Video MAXI clock
-+- power-domains:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: A phandle and power domain specifier pairs to the
-+		    power domain which is responsible for collapsing
-+		    and restoring power to the peripheral.
-+- iommus:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: A list of phandle and IOMMU specifier pairs.
-+
-+* Subnodes
-+The Venus node must contain three subnodes representing video-decoder,
-+video-encoder and video-firmware.
-+
-+Every of video-encoder or video-decoder subnode should have:
-+
-+- compatible:
-+	Usage: required
-+	Value type: <stringlist>
-+	Definition: Value should contain "venus-decoder" or "venus-encoder"
-+- clocks:
-+	Usage: required for msm8996
-+	Value type: <prop-encoded-array>
-+	Definition: A List of phandle and clock specifier pairs as listed
-+		    in clock-names property.
-+- clock-names:
-+	Usage: required for msm8996
-+	Value type: <stringlist>
-+	Definition: Should contain the following entries:
-+		- "core"	Subcore video accelerator clock
-+
-+- power-domains:
-+	Usage: required for msm8996
-+	Value type: <prop-encoded-array>
-+	Definition: A phandle and power domain specifier pairs to the
-+		    power domain which is responsible for collapsing
-+		    and restoring power to the subcore.
-+
-+The video-firmware subnode should contain:
-+
-+- memory-region:
-+	Usage: required
-+	Value type: <phandle>
-+	Definition: reference to the reserved-memory for the memory region
-+
-+* An Example
-+	video-codec@1d00000 {
-+		compatible = "qcom,msm8916-venus";
-+		reg = <0x01d00000 0xff000>;
-+		interrupts = <GIC_SPI 44 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&gcc GCC_VENUS0_VCODEC0_CLK>,
-+			 <&gcc GCC_VENUS0_AHB_CLK>,
-+			 <&gcc GCC_VENUS0_AXI_CLK>;
-+		clock-names = "core", "iface", "bus";
-+		power-domains = <&gcc VENUS_GDSC>;
-+		iommus = <&apps_iommu 5>;
-+
-+		video-decoder {
-+			compatible = "venus-decoder";
-+			clocks = <&mmcc VIDEO_SUBCORE0_CLK>;
-+			clock-names = "core";
-+			power-domains = <&mmcc VENUS_CORE0_GDSC>;
-+		};
-+
-+		video-encoder {
-+			compatible = "venus-encoder";
-+			clocks = <&mmcc VIDEO_SUBCORE1_CLK>;
-+			clock-names = "core";
-+			power-domains = <&mmcc VENUS_CORE1_GDSC>;
-+		};
-+
-+		video-firmware {
-+			memory-region = <&venus_mem>;
-+		};
-+	};
--- 
-2.7.4
-
+	Hans
