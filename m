@@ -1,147 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:33482 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752578AbdBGK0N (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2017 05:26:13 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Philipp Zabel <p.zabel@pengutronix.de>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        nick@shmanahar.org, markus.heiser@darmarit.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        sakari.ailus@linux.intel.com
-Subject: Re: [PATCH v3 13/24] platform: add video-multiplexer subdevice driver
-Date: Tue, 07 Feb 2017 12:26:32 +0200
-Message-ID: <3823958.XNLmIv7GEv@avalon>
-In-Reply-To: <bd64a86e-d90c-f4aa-6f22-1c832e0b563f@gmail.com>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com> <2038922.a1tReKKdaL@avalon> <bd64a86e-d90c-f4aa-6f22-1c832e0b563f@gmail.com>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:58738 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750853AbdBMKGo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Feb 2017 05:06:44 -0500
+Subject: Re: [PATCH v2 4/4] media-ctl: add colorimetry support
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+References: <1486978408-28580-1-git-send-email-p.zabel@pengutronix.de>
+ <1486978408-28580-4-git-send-email-p.zabel@pengutronix.de>
+ <1958d6aa-b5ba-9e8f-aa34-d08a54843c47@xs4all.nl>
+ <20170213094823.GG16975@valkosipuli.retiisi.org.uk>
+ <1486980162.2873.33.camel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <58bdf9cf-413d-26d8-0854-51db08427675@xs4all.nl>
+Date: Mon, 13 Feb 2017 11:06:39 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1486980162.2873.33.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
-
-On Monday 06 Feb 2017 15:10:46 Steve Longerbeam wrote:
-> On 02/06/2017 02:33 PM, Laurent Pinchart wrote:
-> > On Monday 06 Feb 2017 10:50:22 Hans Verkuil wrote:
-> >> On 02/05/2017 04:48 PM, Laurent Pinchart wrote:
-> >>> On Tuesday 24 Jan 2017 18:07:55 Steve Longerbeam wrote:
-> >>>> On 01/24/2017 04:02 AM, Philipp Zabel wrote:
-> >>>>> On Fri, 2017-01-20 at 15:03 +0100, Hans Verkuil wrote:
-> >>>>>>> +
-> >>>>>>> +int vidsw_g_mbus_config(struct v4l2_subdev *sd, struct
-> >>>>>>> v4l2_mbus_config *cfg)
-
-[snip]
-
-> >>>>>> I am not certain this op is needed at all. In the current kernel this
-> >>>>>> op is only used by soc_camera, pxa_camera and omap3isp (somewhat
-> >>>>>> dubious). Normally this information should come from the device tree
-> >>>>>> and there should be no need for this op.
-> >>>>>> 
-> >>>>>> My (tentative) long-term plan was to get rid of this op.
-> >>>>>> 
-> >>>>>> If you don't need it, then I recommend it is removed.
-> >>>> 
-> >>>> Hi Hans, the imx-media driver was only calling g_mbus_config to the
-> >>>> camera sensor, and it was doing that to determine the sensor's bus
-> >>>> type. This info was already available from parsing a v4l2_of_endpoint
-> >>>> from the sensor node. So it was simple to remove the g_mbus_config
-> >>>> calls, and instead rely on the parsed sensor v4l2_of_endpoint.
-> >>> 
-> >>> That's not a good point.
-> > 
-> > (mea culpa, s/point/idea/)
-> > 
-> >>> The imx-media driver must not parse the sensor DT node as it is not
-> >>> aware of what bindings the sensor is compatible with.
+On 02/13/2017 11:02 AM, Philipp Zabel wrote:
+> On Mon, 2017-02-13 at 11:48 +0200, Sakari Ailus wrote:
+>> Hi Hans,
+>>
+>> On Mon, Feb 13, 2017 at 10:40:41AM +0100, Hans Verkuil wrote:
+>> ...
+>>>> @@ -839,6 +951,157 @@ enum v4l2_field v4l2_subdev_string_to_field(const char *string)
+>>>>  	return (enum v4l2_field)-1;
+>>>>  }
+>>>>  
+>>>> +static struct {
+>>>> +	const char *name;
+>>>> +	enum v4l2_colorspace colorspace;
+>>>> +} colorspaces[] = {
+>>>> +	{ "default", V4L2_COLORSPACE_DEFAULT },
+>>>> +	{ "smpte170m", V4L2_COLORSPACE_SMPTE170M },
+>>>> +	{ "smpte240m", V4L2_COLORSPACE_SMPTE240M },
+>>>> +	{ "rec709", V4L2_COLORSPACE_REC709 },
+>>>> +	{ "bt878", V4L2_COLORSPACE_BT878 },
+>>>
+>>> Drop this, it's no longer used in the kernel.
+>>
+>> What about older kernels? Were there drivers that reported it?
 > 
-> Hi Laurent,
-> 
-> I don't really understand this argument. The sensor node has been found
-> by parsing the OF graph, so it is known to be a camera sensor node at
-> that point.
+> Has there ever been a v4l2 subdevice that reported bt878 colorspace on a
+> pad via VIDIOC_SUBDEV_G_FMT?
 
-All you know in the i.MX6 driver is that the remote node is a video source. 
-You can rely on the fact that it implements the OF graph bindings to locate 
-other ports in that DT node, but that's more or less it.
+No, never. If it was ever used it would be specific to the bttv driver which
+doesn't use subdev ioctls.
 
-DT properties are defined by DT bindings and thus qualified by a compatible 
-string. Unless you match on sensor compat strings in the i.MX6 driver (which 
-you shouldn't do, to keep the driver generic) you can't know for certain how 
-to parse the sensor node DT properties. For all you know, the video source 
-could be a bridge such as an HDMI to CSI-2 converter for instance, so you 
-can't even rely on the fact that it's a sensor.
-
-> >>> Information must instead be queried from the sensor subdev at runtime,
-> >>> through the g_mbus_config() operation.
-> >>> 
-> >>> Of course, if you can get the information from the imx-media DT node,
-> >>> that's certainly an option. It's only information provided by the sensor
-> >>> driver that you have no choice but query using a subdev operation.
-> >> 
-> >> Shouldn't this come from the imx-media DT node? BTW, why is omap3isp
-> >> using this?
-> > 
-> > It all depends on what type of information needs to be retrieved, and
-> > whether it can change at runtime or is fixed. Adding properties to the
-> > imx-media DT node is certainly fine as long as those properties describe
-> > the i.MX side.
->
-> In this case the info needed is the media bus type. That info is most easily
-> available by calling v4l2_of_parse_endpoint() on the sensor's endpoint
-> node.
-
-I haven't had time to check the code in details yet, so I can't really comment 
-on what you need and how it should be implemented exactly.
-
-> The media bus type is not something that can be added to the
-> imx-media node since it contains no endpoint nodes.
-
-Agreed. You have endpoints in the CSI nodes though.
-
-> > In the omap3isp case, we use the operation to query whether parallel data
-> > contains embedded sync (BT.656) or uses separate h/v sync signals.
-> > 
-> >> The reason I am suspicious about this op is that it came from soc-camera
-> >> and predates the DT. The contents of v4l2_mbus_config seems very much
-> >> like a HW description to me, i.e. something that belongs in the DT.
-> > 
-> > Part of it is possibly outdated, but for buses that support multiple modes
-> > of operation (such as the parallel bus case described above) we need to
-> > make that information discoverable at runtime. Maybe this should be
-> > considered as related to Sakari's efforts to support VC/DT for CSI-2, and
-> > supported through the API he is working on.
-> 
-> That sounds interesting, can you point me to some info on this effort?
-
-Sure.
-
-http://git.retiisi.org.uk/?p=~sailus/linux.git;a=shortlog;h=refs/heads/vc
-
-> I've been thinking the DT should contain virtual channel info for CSI-2
-> buses.
-
-I don't think it should. CSI-2 virtual channels and data types should be 
-handled as a software concept, and thus supported through driver code without 
-involving DT.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+	Hans
