@@ -1,82 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:44770 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750831AbdBNWhw (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:58247 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752129AbdBMJdf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Feb 2017 17:37:52 -0500
-Date: Tue, 14 Feb 2017 23:37:48 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
-Subject: Re: [RFC 03/13] v4l: split lane parsing code
-Message-ID: <20170214223748.GD11317@amd>
-References: <20170214133941.GA8469@amd>
- <20170214212927.GL16975@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="OaZoDhBhXzo6bW1J"
-Content-Disposition: inline
-In-Reply-To: <20170214212927.GL16975@valkosipuli.retiisi.org.uk>
+        Mon, 13 Feb 2017 04:33:35 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 3/4] media-ctl: propagate frame interval
+Date: Mon, 13 Feb 2017 10:33:27 +0100
+Message-Id: <1486978408-28580-3-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1486978408-28580-1-git-send-email-p.zabel@pengutronix.de>
+References: <1486978408-28580-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Same as the media bus format, the frame interval should be propagated
+from output pads to connected entities' input pads.
 
---OaZoDhBhXzo6bW1J
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ utils/media-ctl/libv4l2subdev.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-Hi!
-
-> On Tue, Feb 14, 2017 at 02:39:41PM +0100, Pavel Machek wrote:
-> > From: Sakari Ailus <sakari.ailus@iki.fi>
-> >=20
-> > The function to parse CSI2 bus parameters was called
-> > v4l2_of_parse_csi_bus(), rename it as v4l2_of_parse_csi2_bus() in
-> > anticipation of CSI1/CCP2 support.
-> >=20
-> > Obtain data bus type from bus-type property. Only try parsing bus
-> > specific properties in this case.
-> >=20
-> > Separate lane parsing from CSI-2 bus parameter parsing. The CSI-1 will
-> > need these as well, separate them into a different
-> > function. have_clk_lane and num_data_lanes arguments may be NULL; the
-> > CSI-1 bus will have no use for them.
-> >=20
-> > Add support for parsing of CSI-1 and CCP2 bus related properties
-> > documented in video-interfaces.txt.
->=20
-> One more thing: this conflicts badly with the V4L2 fwnode patchset.
->=20
-> Assuming things go well and that can be merged somewhat soonish, can I ta=
-ke
-> this and rebase it on the fwnode set? The two first patches in the set lo=
-ok
-> pretty good to me.
-
-Actually, I'd say that first four patches should be ready. Feel free
-to take them/rebase them/etc. I can then continue working on the
-rest....
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---OaZoDhBhXzo6bW1J
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlijhrwACgkQMOfwapXb+vJDVACfTzTUGeibgRF+HtEIYIl7MkZL
-fe4AoLUzo7taR/pySz+01ICR0zUgmFHt
-=aeHL
------END PGP SIGNATURE-----
-
---OaZoDhBhXzo6bW1J--
+diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
+index 2f2ac8e..7f9ef48 100644
+--- a/utils/media-ctl/libv4l2subdev.c
++++ b/utils/media-ctl/libv4l2subdev.c
+@@ -694,8 +694,8 @@ static int v4l2_subdev_parse_setup_format(struct media_device *media,
+ 		return ret;
+ 
+ 
+-	/* If the pad is an output pad, automatically set the same format on
+-	 * the remote subdev input pads, if any.
++	/* If the pad is an output pad, automatically set the same format and
++	 * frame interval on the remote subdev input pads, if any.
+ 	 */
+ 	if (pad->flags & MEDIA_PAD_FL_SOURCE) {
+ 		for (i = 0; i < pad->entity->num_links; ++i) {
+@@ -709,6 +709,10 @@ static int v4l2_subdev_parse_setup_format(struct media_device *media,
+ 			    link->sink->entity->info.type == MEDIA_ENT_T_V4L2_SUBDEV) {
+ 				remote_format = format;
+ 				set_format(link->sink, &remote_format);
++
++				ret = set_frame_interval(link->sink, &interval);
++				if (ret < 0)
++					return ret;
+ 			}
+ 		}
+ 	}
+-- 
+2.1.4
