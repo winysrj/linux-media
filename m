@@ -1,53 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:34629 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752191AbdBOR4K (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 12:56:10 -0500
-From: Gustavo Padovan <gustavo@padovan.org>
+Received: from mga02.intel.com ([134.134.136.20]:20415 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751808AbdBMNae (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Feb 2017 08:30:34 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH 5/6] [media] vivid: improve subscribe event handling
-Date: Wed, 15 Feb 2017 15:55:32 -0200
-Message-Id: <20170215175533.6384-5-gustavo@padovan.org>
-In-Reply-To: <20170215175533.6384-1-gustavo@padovan.org>
-References: <20170215175533.6384-1-gustavo@padovan.org>
+Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Subject: [PATCH 4/8] v4l2-async: Provide interoperability between OF and fwnode matching
+Date: Mon, 13 Feb 2017 15:28:12 +0200
+Message-Id: <1486992496-21078-5-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1486992496-21078-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1486992496-21078-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+OF and fwnode support are separated in V4L2 and individual drivers may
+implement one of them. Sub-devices do not match with a notifier
+expecting sub-devices with fwnodes, nor the other way around.
 
-We already check for the V4L2_EVENT_CTRL inside
-v4l2_ctrl_subscribe_event() so just move this fuction to the default:
-branch of the switch and let it does the job for us.
+Fix this by checking for sub-device's of_node field in fwnode match and
+fwnode field in OF match.
 
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/platform/vivid/vivid-vid-out.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/media/v4l2-core/v4l2-async.c | 26 +++++++++++++++++++++++---
+ include/media/v4l2-async.h           |  2 +-
+ 2 files changed, 24 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
-index 7ba52ee..1a33730 100644
---- a/drivers/media/platform/vivid/vivid-vid-out.c
-+++ b/drivers/media/platform/vivid/vivid-vid-out.c
-@@ -1172,14 +1172,12 @@ int vidioc_subscribe_event(struct v4l2_fh *fh,
- 			const struct v4l2_event_subscription *sub)
- {
- 	switch (sub->type) {
--	case V4L2_EVENT_CTRL:
--		return v4l2_ctrl_subscribe_event(fh, sub);
- 	case V4L2_EVENT_SOURCE_CHANGE:
- 		if (fh->vdev->vfl_dir == VFL_DIR_RX)
- 			return v4l2_src_change_event_subscribe(fh, sub);
- 		break;
- 	default:
--		break;
-+		return v4l2_ctrl_subscribe_event(fh, sub);
- 	}
- 	return -EINVAL;
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 384ad5e..7f5d804 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -14,6 +14,7 @@
+ #include <linux/list.h>
+ #include <linux/module.h>
+ #include <linux/mutex.h>
++#include <linux/of.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ #include <linux/types.h>
+@@ -40,15 +41,34 @@ static bool match_devname(struct v4l2_subdev *sd,
+ 	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
  }
+ 
++static bool fwnode_cmp(struct fwnode_handle *one,
++		       struct fwnode_handle *theother)
++{
++	if (!one || !theother)
++		return false;
++
++	if (one->type != theother->type)
++		return false;
++
++	if (is_of_node(one))
++		return !of_node_cmp(of_node_full_name(to_of_node(one)),
++				    of_node_full_name(to_of_node(theother)));
++	else
++		return one == theother;
++}
++
+ static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ {
+-	return !of_node_cmp(of_node_full_name(sd->of_node),
+-			    of_node_full_name(asd->match.of.node));
++	return fwnode_cmp(sd->of_node ?
++			  of_fwnode_handle(sd->of_node) : sd->fwnode,
++			  of_fwnode_handle(asd->match.of.node));
+ }
+ 
+ static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ {
+-	return sd->fwnode == asd->match.fwnode.fwn;
++	return fwnode_cmp(sd->of_node ?
++			  of_fwnode_handle(sd->of_node) : sd->fwnode,
++					   asd->match.fwnode.fwn);
+ }
+ 
+ static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 8f552d2..df8b682 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -57,7 +57,7 @@ struct v4l2_async_subdev {
+ 	enum v4l2_async_match_type match_type;
+ 	union {
+ 		struct {
+-			const struct device_node *node;
++			struct device_node *node;
+ 		} of;
+ 		struct {
+ 			struct fwnode_handle *fwn;
 -- 
-2.9.3
+2.7.4
