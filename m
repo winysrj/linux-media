@@ -1,67 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:34829 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751350AbdBKAmx (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48471 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752651AbdBMVpS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Feb 2017 19:42:53 -0500
-From: Derek Robson <robsonde@gmail.com>
-To: jarod@wilsonet.com, mchehab@kernel.org, gregkh@linuxfoundation.org,
-        namrataashettar@gmail.com, wsa-dev@sang-engineering.com,
-        elise.lennion@gmail.com, robsonde@gmail.com,
-        shailendra.v@samsung.com, sean@mess.org
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] Staging: media: lirc - style fix
-Date: Sat, 11 Feb 2017 13:42:38 +1300
-Message-Id: <20170211004238.5779-1-robsonde@gmail.com>
+        Mon, 13 Feb 2017 16:45:18 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH 3/8] v4l: vsp1: Correct image partition parameters
+Date: Mon, 13 Feb 2017 23:45:44 +0200
+Message-ID: <114416250.ZaPfxRMJ64@avalon>
+In-Reply-To: <6d9f8e04ac314ef7a1ffdc10d079fcd30707a03a.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.ff94a00847faf7ed37768cea68c474926bfc8bd9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com> <6d9f8e04ac314ef7a1ffdc10d079fcd30707a03a.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changed permissions to octal across whole driver
-Found by checkpatch
+Hi Kieran,
 
-Signed-off-by: Derek Robson <robsonde@gmail.com>
----
- drivers/staging/media/lirc/lirc_sasem.c | 2 +-
- drivers/staging/media/lirc/lirc_sir.c   | 8 ++++----
- 2 files changed, 5 insertions(+), 5 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/staging/media/lirc/lirc_sasem.c b/drivers/staging/media/lirc/lirc_sasem.c
-index b0c176e14b6b..ac69fe1e2d44 100644
---- a/drivers/staging/media/lirc/lirc_sasem.c
-+++ b/drivers/staging/media/lirc/lirc_sasem.c
-@@ -158,7 +158,7 @@ static int debug;
- MODULE_AUTHOR(MOD_AUTHOR);
- MODULE_DESCRIPTION(MOD_DESC);
- MODULE_LICENSE("GPL");
--module_param(debug, int, S_IRUGO | S_IWUSR);
-+module_param(debug, int, 0644);
- MODULE_PARM_DESC(debug, "Debug messages: 0=no, 1=yes (default: no)");
- 
- static void delete_context(struct sasem_context *context)
-diff --git a/drivers/staging/media/lirc/lirc_sir.c b/drivers/staging/media/lirc/lirc_sir.c
-index c75ae43095ba..426753edac1c 100644
---- a/drivers/staging/media/lirc/lirc_sir.c
-+++ b/drivers/staging/media/lirc/lirc_sir.c
-@@ -826,14 +826,14 @@ MODULE_AUTHOR("Milan Pikula");
- #endif
- MODULE_LICENSE("GPL");
- 
--module_param(io, int, S_IRUGO);
-+module_param(io, int, 0444);
- MODULE_PARM_DESC(io, "I/O address base (0x3f8 or 0x2f8)");
- 
--module_param(irq, int, S_IRUGO);
-+module_param(irq, int, 0444);
- MODULE_PARM_DESC(irq, "Interrupt (4 or 3)");
- 
--module_param(threshold, int, S_IRUGO);
-+module_param(threshold, int, 0444);
- MODULE_PARM_DESC(threshold, "space detection threshold (3)");
- 
--module_param(debug, bool, S_IRUGO | S_IWUSR);
-+module_param(debug, bool, 0644);
- MODULE_PARM_DESC(debug, "Enable debugging messages");
+On Friday 10 Feb 2017 20:27:31 Kieran Bingham wrote:
+> The image partition algorithm operates on the image dimensions as input
+> into the WPF entity.
+> 
+> Correct this in the code, and document what defines the properties for
+> the algorithm in the section header
+
+Nitpicking, this sentence lacks a period.
+
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/media/platform/vsp1/vsp1_video.c | 12 ++++++++++--
+>  drivers/media/platform/vsp1/vsp1_wpf.c   |  4 ++--
+>  2 files changed, 12 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
+> b/drivers/media/platform/vsp1/vsp1_video.c index be9c860b1c04..4ade958a1c9e
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_video.c
+> +++ b/drivers/media/platform/vsp1/vsp1_video.c
+> @@ -176,6 +176,14 @@ static int __vsp1_video_try_format(struct vsp1_video
+> *video,
+> 
+>  /*
+> ---------------------------------------------------------------------------
+> -- * VSP1 Partition Algorithm support
+> + *
+> + * VSP hardware can have restrictions on image width dependent on the
+> hardware + * configuration of the pipeline. Adapting for these restrictions
+> is implemented + * via the partition algorithm.
+> + *
+> + * The partition windows and sizes are based on the output size of the WPF
+> + * before rotation, which is represented by the input parameters to the WPF
+> + * entity in our pipeline.
+>   */
+> 
+>  /**
+> @@ -196,7 +204,7 @@ static struct v4l2_rect vsp1_video_partition(struct
+> vsp1_pipeline *pipe,
+> 
+>  	format = vsp1_entity_get_pad_format(&pipe->output->entity,
+>  					    pipe->output->entity.config,
+> -					    RWPF_PAD_SOURCE);
+> +					    RWPF_PAD_SINK);
+> 
+>  	/* A single partition simply processes the output size in full. */
+>  	if (pipe->partitions <= 1) {
+> @@ -258,7 +266,7 @@ static void vsp1_video_pipeline_setup_partitions(struct
+> vsp1_pipeline *pipe)
+> 
+>  	format = vsp1_entity_get_pad_format(&pipe->output->entity,
+>  					    pipe->output->entity.config,
+> -					    RWPF_PAD_SOURCE);
+> +					    RWPF_PAD_SINK);
+>  	div_size = format->width;
+> 
+>  	/* Gen2 hardware doesn't require image partitioning. */
+> diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c
+> b/drivers/media/platform/vsp1/vsp1_wpf.c index 7c48f81cd5c1..ad67034e08e9
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_wpf.c
+> +++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+> @@ -218,8 +218,8 @@ static void wpf_configure(struct vsp1_entity *entity,
+>  		const struct v4l2_pix_format_mplane *format = &wpf->format;
+>  		struct vsp1_rwpf_memory mem = wpf->mem;
+>  		unsigned int flip = wpf->flip.active;
+> -		unsigned int width = source_format->width;
+> -		unsigned int height = source_format->height;
+> +		unsigned int width = sink_format->width;
+> +		unsigned int height = sink_format->height;
+>  		unsigned int offset;
+> 
+>  		/*
+
 -- 
-2.11.1
+Regards,
 
+Laurent Pinchart
