@@ -1,30 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:64368 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751445AbdB1MrJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Feb 2017 07:47:09 -0500
-Subject: Re: [RFC 1/1] omap3isp: Ignore endpoints with invalid configuration
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-media@vger.kernel.org
-References: <1488283350-5695-1-git-send-email-sakari.ailus@linux.intel.com>
- <20170228123534.GB4307@amd>
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Message-ID: <14e1e477-037d-922b-67a8-cbf3b1157d8e@linux.intel.com>
-Date: Tue, 28 Feb 2017 14:45:31 +0200
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:46092 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751313AbdBMJ6P (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Feb 2017 04:58:15 -0500
+Subject: Re: [PATCH v2 4/4] media-ctl: add colorimetry support
+To: Sakari Ailus <sakari.ailus@iki.fi>
+References: <1486978408-28580-1-git-send-email-p.zabel@pengutronix.de>
+ <1486978408-28580-4-git-send-email-p.zabel@pengutronix.de>
+ <1958d6aa-b5ba-9e8f-aa34-d08a54843c47@xs4all.nl>
+ <20170213094823.GG16975@valkosipuli.retiisi.org.uk>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <46715967-9ac2-1cc8-1b3c-55122545a115@xs4all.nl>
+Date: Mon, 13 Feb 2017 10:58:10 +0100
 MIME-Version: 1.0
-In-Reply-To: <20170228123534.GB4307@amd>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+In-Reply-To: <20170213094823.GG16975@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Pavel Machek wrote:
-> Tested-by: Pavel Machek <pavel@ucw.cz>
+On 02/13/2017 10:48 AM, Sakari Ailus wrote:
+> Hi Hans,
+> 
+> On Mon, Feb 13, 2017 at 10:40:41AM +0100, Hans Verkuil wrote:
+> ...
+>>> @@ -839,6 +951,157 @@ enum v4l2_field v4l2_subdev_string_to_field(const char *string)
+>>>  	return (enum v4l2_field)-1;
+>>>  }
+>>>  
+>>> +static struct {
+>>> +	const char *name;
+>>> +	enum v4l2_colorspace colorspace;
+>>> +} colorspaces[] = {
+>>> +	{ "default", V4L2_COLORSPACE_DEFAULT },
+>>> +	{ "smpte170m", V4L2_COLORSPACE_SMPTE170M },
+>>> +	{ "smpte240m", V4L2_COLORSPACE_SMPTE240M },
+>>> +	{ "rec709", V4L2_COLORSPACE_REC709 },
+>>> +	{ "bt878", V4L2_COLORSPACE_BT878 },
+>>
+>> Drop this, it's no longer used in the kernel.
+> 
+> What about older kernels? Were there drivers that reported it?
+> 
 
-Thanks!
+Possibly in a very distant past. But certainly not in anything supporting subdevs.
 
-I've applied the patch, plus yours, to the ccp2 branch.
+I looked into this when I worked on colorspaces and from what I could gather it
+was based on a misunderstanding what a colorspace really is and it was just a
+bogus 'colorspace'.
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Regards,
+
+	Hans
