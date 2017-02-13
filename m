@@ -1,128 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:39727 "EHLO
-        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752125AbdBJROm (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:60223 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752981AbdBMMEH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Feb 2017 12:14:42 -0500
-Subject: Re: [PATCH v3 1/4] [media] exynos-gsc: Use 576p instead 720p as a
- threshold for colorspaces
-To: Thibault Saunier <thibault.saunier@osg.samsung.com>,
-        linux-kernel@vger.kernel.org
-References: <20170210141022.25412-1-thibault.saunier@osg.samsung.com>
- <20170210141022.25412-2-thibault.saunier@osg.samsung.com>
- <4270fc60-579b-64d0-4256-403e4e5bf371@xs4all.nl>
- <37b11e67-7ed7-244d-b27e-ec3bb7732b0e@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        linux-arm-kernel@lists.infradead.org,
-        Ulf Hansson <ulf.hansson@linaro.org>
+        Mon, 13 Feb 2017 07:04:07 -0500
+Subject: Re: [RFCv4 PATCH 1/1] hdpvr: fix interrupted recording
+To: Jonathan Sims <jonathan.625266@earthlink.net>,
+        linux-media@vger.kernel.org, mchehab@kernel.org,
+        kpyle@austin.rr.com, ryleyjangus@gmail.com
+References: <20170209195439.4e9f89d1@earthlink.net>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <a83175f9-80f9-0bc8-5447-53f1fa6a4caa@xs4all.nl>
-Date: Fri, 10 Feb 2017 18:14:34 +0100
+Message-ID: <7de9ca91-de80-aa5d-c080-83a6b639aea3@xs4all.nl>
+Date: Mon, 13 Feb 2017 13:03:57 +0100
 MIME-Version: 1.0
-In-Reply-To: <37b11e67-7ed7-244d-b27e-ec3bb7732b0e@osg.samsung.com>
+In-Reply-To: <20170209195439.4e9f89d1@earthlink.net>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/10/2017 05:37 PM, Thibault Saunier wrote:
-> On 02/10/2017 12:07 PM, Hans Verkuil wrote:
->> On 02/10/2017 03:10 PM, Thibault Saunier wrote:
->>> From: Javier Martinez Canillas <javier@osg.samsung.com>
->>>
->>> The media documentation says that the V4L2_COLORSPACE_SMPTE170M colorspace
->>> should be used for SDTV and V4L2_COLORSPACE_REC709 for HDTV. But drivers
->>> don't agree on the display resolution that should be used as a threshold.
->>>
->>> Some drivers set V4L2_COLORSPACE_REC709 for 720p and higher while others
->>> set V4L2_COLORSPACE_REC709 for anything higher than 576p. Newers drivers
->>> use the latter and that also matches what user-space multimedia programs
->>> do (i.e: GStreamer), so change the driver logic to be aligned with this.
->>>
->>> Also, check for the resolution in G_FMT instead unconditionally setting
->>> the V4L2_COLORSPACE_REC709 colorspace.
->>>
->>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
->>> Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
->>>
->>> Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
->>> ---
->>>
->>> Changes in v3:
->>> - Do not check values in the g_fmt functions as Andrzej explained in previous review
->>> - Added 'Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>'
->>>
->>> Changes in v2: None
->>>
->>>   drivers/media/platform/exynos-gsc/gsc-core.c | 8 ++++++--
->>>   1 file changed, 6 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
->>> index 59a634201830..db7d9883861b 100644
->>> --- a/drivers/media/platform/exynos-gsc/gsc-core.c
->>> +++ b/drivers/media/platform/exynos-gsc/gsc-core.c
->>> @@ -472,7 +472,7 @@ int gsc_try_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
->>>   
->>>   	pix_mp->num_planes = fmt->num_planes;
->>>   
->>> -	if (pix_mp->width >= 1280) /* HD */
->>> +	if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
->>>   		pix_mp->colorspace = V4L2_COLORSPACE_REC709;
->>>   	else /* SD */
->>>   		pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
->>> @@ -519,9 +519,13 @@ int gsc_g_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
->>>   	pix_mp->height		= frame->f_height;
->>>   	pix_mp->field		= V4L2_FIELD_NONE;
->>>   	pix_mp->pixelformat	= frame->fmt->pixelformat;
->>> -	pix_mp->colorspace	= V4L2_COLORSPACE_REC709;
->>>   	pix_mp->num_planes	= frame->fmt->num_planes;
->>>   
->>> +	if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
->>> +		pix_mp->colorspace = V4L2_COLORSPACE_REC709;
->>> +	else /* SD */
->>> +		pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
->>> +
->>>   	for (i = 0; i < pix_mp->num_planes; ++i) {
->>>   		pix_mp->plane_fmt[i].bytesperline = (frame->f_width *
->>>   			frame->fmt->depth[i]) / 8;
->>>
->> This is a mem2mem device, right? In the case of mem2mem devices the driver should never
->> set the colorspace, instead it just copies it from what the application provides (the
->> video output side) to the capture side.
->>
->> After all, you are just scaling here so the input and output colorspaces are
->> exactly the same, and the scaler doesn't care what the colorspace is.
-> 
-> This device also does color conversion so I think it matters here, am I 
-> misunderstanding something?
+Hi Jonathan,
 
-It almost certainly only does color encoding conversion (e.g. from RGB to YCbCr or
-vice versa, and from limited to full range or vice versa).
+It appears the v3 was merged and not this v4.
 
-That only affects the ycbcr_enc and quantization fields (although these probably
-will just remain 0). The colorspace and xfer_func values remain constant since
-the HW is unlikely to support full colorspace conversions.
-
-See https://hverkuil.home.xs4all.nl/spec/uapi/v4l/colorspaces.html for more
-information on what colorspaces really are.
-
-> Also, is that comment only for the try_fmt part as it looks like in 
-> g_fmt the driver should fill up the structure
-> with its values?
-
-Yes, same for try_fmt.
+It would be nice if you can make a new diff on top of the latest media_tree master code
+that does this code cleanup, because this v4 is much nicer with regard to error handling.
 
 Regards,
 
 	Hans
+
+On 02/10/2017 01:54 AM, Jonathan Sims wrote:
+> This is a reworking of a patch originally submitted by Ryley Angus, modified by Hans Verkuil and then seemingly forgotten before changes suggested by Keith Pyle here:
+> 
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg75163.html
+> 
+> were made and tested.
+> 
+> I have implemented the suggested changes and have been testing for several months. I am no longer experiencing lockups while recording (with blue light on, requiring power cycling) which had been a long standing problem with the HD-PVR. I have not noticed any other problems since applying the patch.
+> 
+> Signed-off-by: Jonathan Sims <jonathan.625266@earthlink.net>
+> ---
+> 
+> Changes in v4:
+> - Code cleanups.
+> 
+>  drivers/media/usb/hdpvr/hdpvr-video.c | 17 ++++++++++++++---
+>  1 file changed, 14 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+> index 474c11e1d495..f8ba28cb40eb 100644
+> --- a/drivers/media/usb/hdpvr/hdpvr-video.c
+> +++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+> @@ -458,9 +458,20 @@ static ssize_t hdpvr_read(struct file *file, char __user *buffer, size_t count,
+>  				goto err;
+>  			}
+>  
+> -			if (wait_event_interruptible(dev->wait_data,
+> -					      buf->status == BUFSTAT_READY))
+> -				return -ERESTARTSYS;
+> +			ret = wait_event_interruptible_timeout(dev->wait_data,
+> +				buf->status == BUFSTAT_READY,
+> +				msecs_to_jiffies(1000));
+> +			if (ret < 0)
+> +				goto err;
+> +			if (!ret) {
+> +				v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
+> +					"timeout: restart streaming\n");
+> +				hdpvr_stop_streaming(dev);
+> +				msleep(4000);
+> +				ret = hdpvr_start_streaming(dev);
+> +				if (ret)
+> +					goto err;
+> +			}
+>  		}
+>  
+>  		if (buf->status != BUFSTAT_READY)
+> 
