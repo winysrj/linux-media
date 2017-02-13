@@ -1,654 +1,372 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:36678 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753088AbdBPCUd (ORCPT
+Received: from mail-qt0-f175.google.com ([209.85.216.175]:36588 "EHLO
+        mail-qt0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752805AbdBMNHF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 21:20:33 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, Sascha Hauer <s.hauer@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v4 15/36] platform: add video-multiplexer subdevice driver
-Date: Wed, 15 Feb 2017 18:19:17 -0800
-Message-Id: <1487211578-11360-16-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+        Mon, 13 Feb 2017 08:07:05 -0500
+Received: by mail-qt0-f175.google.com with SMTP id k15so82620596qtg.3
+        for <linux-media@vger.kernel.org>; Mon, 13 Feb 2017 05:07:05 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <55ececb8-321a-226a-f89a-93262067d741@xs4all.nl>
+References: <1429780973-22006-1-git-send-email-benjamin.gaignard@linaro.org> <55ececb8-321a-226a-f89a-93262067d741@xs4all.nl>
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Date: Mon, 13 Feb 2017 14:06:53 +0100
+Message-ID: <CA+M3ks5-ksCyp=tAOPqZMzHpdcT+VBb9MiuQo==OAzxc0oDoCQ@mail.gmail.com>
+Subject: Re: [PATCH] allow buffers allocation with DMABUF memory type
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+2017-02-13 13:18 GMT+01:00 Hans Verkuil <hverkuil@xs4all.nl>:
+> Hi Benjamin,
+>
+> This is a blast from the past since this patch is almost two years old an=
+d it
+> has been languishing in my TODO list for ages. Sorry about that.
+>
+> Obviously this patch no longer applies, but I was also wondering what exa=
+ctly
+> will go wrong if we don't attach to the dma buf.
 
-This driver can handle SoC internal and external video bus multiplexers,
-controlled either by register bit fields or by a GPIO. The subdevice
-passes through frame interval and mbus configuration of the active input
-to the output side.
+Nothing goes wrong until you get a dmabuf importer which is checking
+which devices
+are attached to the dmabuf.
+For example I was working on a way to secure buffer memory (i.e.
+setting memory firewall)
+so I need to know which devices are attached to the buffer either I
+can't set the good
+secure flags.
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+>
+> If something would go wrong, then I would expect to see the attach happen=
+ when
+> the MMAP buffer is exported as a dmabuf fd. Until it is turned into a dma=
+buf there
+> is no need to attach at all.
 
---
+Yes that could be the right way to do it
 
-- fixed a cut&paste error in vidsw_remove(): v4l2_async_register_subdev()
-  should be unregister.
+>
+> It all looks very weird to me, but that might be the reason why you never=
+ pursued
+> this patch in the first place.
 
-- added media_entity_cleanup() and v4l2_device_unregister_subdev()
-  to vidsw_remove().
+The other reason was to be able to allocate buffers when using
+V4L2_MEMORY_DMABUF
+memory type and not only been able to import dmabuf in v4l2
 
-- added missing MODULE_DEVICE_TABLE().
-  Suggested-by: Javier Martinez Canillas <javier@dowhile0.org>
+>
+> Regards,
+>
+>         Hans
+>
+> On 04/23/2015 11:22 AM, Benjamin Gaignard wrote:
+>> Until now the only way to make the driver allocate buffers and
+>> share them using dma_buf was to use V4L2_MEMORY_MMAP memory type.
+>> Use of MMAP memory type is a problem because vb2 never call
+>> dma_buf_map_attachment() to attach itself while queuing the buffer
+>> so dma_buf importer will not know that another device use this buffer.
+>>
+>> This patch allow to allocate buffer even for DMABUF memory type
+>> and correctly manage dma_buf buffer attachment.
+>>
+>> vb2_mem_ops attach_dmabuf() prototype has been changed to be able
+>> to distinguish if the attachment is done on a already existing
+>> buffer or on imported one.
+>>
+>> Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+>> ---
+>>  drivers/media/v4l2-core/videobuf2-core.c       | 76 +++++++++++++++++++=
++++++--
+>>  drivers/media/v4l2-core/videobuf2-dma-contig.c | 10 ++--
+>>  drivers/media/v4l2-core/videobuf2-dma-sg.c     |  8 ++-
+>>  drivers/media/v4l2-core/videobuf2-vmalloc.c    |  8 ++-
+>>  include/media/videobuf2-core.h                 |  5 +-
+>>  5 files changed, 91 insertions(+), 16 deletions(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4=
+l2-core/videobuf2-core.c
+>> index 1329dcc..c5968aa 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>> @@ -337,6 +337,67 @@ static void __setup_offsets(struct vb2_queue *q, un=
+signed int n)
+>>  }
+>>
+>>  /**
+>> + * __setup_dmabufs() - setup dmabuf fd for every plane in
+>> + * every buffer on the queue
+>> + */
+>> +static void __setup_dmabufs(struct vb2_queue *q, unsigned int n)
+>> +{
+>> +     unsigned int buffer, plane;
+>> +     struct vb2_buffer *vb;
+>> +     struct vb2_plane *vb_plane;
+>> +     struct dma_buf *dbuf;
+>> +     void *mem_priv;
+>> +     int fd;
+>> +     int write =3D !V4L2_TYPE_IS_OUTPUT(q->type);
+>> +     int flags =3D write ? O_WRONLY : O_RDONLY;
+>> +
+>> +     for (buffer =3D q->num_buffers; buffer < q->num_buffers + n; ++buf=
+fer) {
+>> +             vb =3D q->bufs[buffer];
+>> +             if (!vb)
+>> +                     continue;
+>> +
+>> +             for (plane =3D 0; plane < vb->num_planes; ++plane) {
+>> +                     vb_plane =3D &vb->planes[plane];
+>> +
+>> +                     dbuf =3D call_ptr_memop(vb, get_dmabuf,
+>> +                                           vb_plane->mem_priv,
+>> +                                           flags & O_ACCMODE);
+>> +                     if (IS_ERR_OR_NULL(dbuf)) {
+>> +                             dprintk(1, "Failed to export buffer %d, " =
+\
+>> +                                     "plane %d\n", buffer, plane);
+>> +                             continue;
+>> +                     }
+>> +
+>> +                     fd =3D dma_buf_fd(dbuf, flags & ~O_ACCMODE);
+>> +                     if (fd < 0) {
+>> +                             dprintk(3, "buffer %d, plane %d failed " \
+>> +                                     "to export (%d)\n", buffer, plane,=
+ fd);
+>> +                             dma_buf_put(dbuf);
+>> +                             continue;
+>> +                     }
+>> +
+>> +                     /* Acquire each plane's memory */
+>> +                     mem_priv =3D call_ptr_memop(vb, attach_dmabuf,
+>> +                                               q->alloc_ctx[plane], dbu=
+f,
+>> +                                               vb->v4l2_planes[plane].l=
+ength,
+>> +                                               write, vb_plane->mem_pri=
+v);
+>> +                     if (IS_ERR(mem_priv)) {
+>> +                             dprintk(1, "Buffer %d plane %d failed "\
+>> +                                     "to attach dmabuf\n", buffer, plan=
+e);
+>> +                             dma_buf_put(dbuf);
+>> +                             continue;
+>> +                     }
+>> +
+>> +                     vb_plane->dbuf =3D dbuf;
+>> +                     vb->v4l2_planes[plane].m.fd =3D fd;
+>> +
+>> +                     dprintk(3, "Buffer %d, plane %d fd %x\n",
+>> +                             buffer, plane, fd);
+>> +             }
+>> +     }
+>> +}
+>> +
+>> +/**
+>>   * __vb2_queue_alloc() - allocate videobuf buffer structures and (for M=
+MAP type)
+>>   * video buffer memory for all buffers/planes on the queue and initiali=
+zes the
+>>   * queue
+>> @@ -369,8 +430,9 @@ static int __vb2_queue_alloc(struct vb2_queue *q, en=
+um v4l2_memory memory,
+>>               vb->v4l2_buf.type =3D q->type;
+>>               vb->v4l2_buf.memory =3D memory;
+>>
+>> -             /* Allocate video buffer memory for the MMAP type */
+>> -             if (memory =3D=3D V4L2_MEMORY_MMAP) {
+>> +             /* Allocate video buffer memory for the MMAP and DMABUF ty=
+pes */
+>> +             if (memory =3D=3D V4L2_MEMORY_MMAP ||
+>> +                 memory =3D=3D V4L2_MEMORY_DMABUF) {
+>>                       ret =3D __vb2_buf_mem_alloc(vb);
+>>                       if (ret) {
+>>                               dprintk(1, "failed allocating memory for "
+>> @@ -400,6 +462,9 @@ static int __vb2_queue_alloc(struct vb2_queue *q, en=
+um v4l2_memory memory,
+>>       if (memory =3D=3D V4L2_MEMORY_MMAP)
+>>               __setup_offsets(q, buffer);
+>>
+>> +     if (memory =3D=3D V4L2_MEMORY_DMABUF)
+>> +             __setup_dmabufs(q, buffer);
+>> +
+>>       dprintk(1, "allocated %d buffers, %d plane(s) each\n",
+>>                       buffer, num_planes);
+>>
+>> @@ -859,7 +924,7 @@ static int __verify_memory_type(struct vb2_queue *q,
+>>   *    to be used during streaming,
+>>   * 4) allocates internal buffer structures (struct vb2_buffer), accordi=
+ng to
+>>   *    the agreed parameters,
+>> - * 5) for MMAP memory type, allocates actual video memory, using the
+>> + * 5) for MMAP and DMABUF memory types, allocates actual video memory, =
+using the
+>>   *    memory handling/allocation routines provided during queue initial=
+ization
+>>   *
+>>   * If req->count is 0, all the memory will be freed instead.
+>> @@ -885,7 +950,8 @@ static int __reqbufs(struct vb2_queue *q, struct v4l=
+2_requestbuffers *req)
+>>                * are not in use and can be freed.
+>>                */
+>>               mutex_lock(&q->mmap_lock);
+>> -             if (q->memory =3D=3D V4L2_MEMORY_MMAP && __buffers_in_use(=
+q)) {
+>> +             if ((q->memory =3D=3D V4L2_MEMORY_MMAP ||
+>> +                  q->memory =3D=3D V4L2_MEMORY_DMABUF) && __buffers_in_=
+use(q)) {
+>>                       mutex_unlock(&q->mmap_lock);
+>>                       dprintk(1, "memory in use, cannot free\n");
+>>                       return -EBUSY;
+>> @@ -1540,7 +1606,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, co=
+nst struct v4l2_buffer *b)
+>>
+>>               /* Acquire each plane's memory */
+>>               mem_priv =3D call_ptr_memop(vb, attach_dmabuf, q->alloc_ct=
+x[plane],
+>> -                     dbuf, planes[plane].length, dma_dir);
+>> +                     dbuf, planes[plane].length, dma_dir, NULL);
+>>               if (IS_ERR(mem_priv)) {
+>>                       dprintk(1, "failed to attach dmabuf\n");
+>>                       ret =3D PTR_ERR(mem_priv);
+>> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/me=
+dia/v4l2-core/videobuf2-dma-contig.c
+>> index b481d20..8dc945e 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>> @@ -793,7 +793,7 @@ static void vb2_dc_detach_dmabuf(void *mem_priv)
+>>       struct vb2_dc_buf *buf =3D mem_priv;
+>>
+>>       /* if vb2 works correctly you should never detach mapped buffer */
+>> -     if (WARN_ON(buf->dma_addr))
+>> +     if (WARN_ON(buf->dma_sgt))
+>>               vb2_dc_unmap_dmabuf(buf);
+>>
+>>       /* detach this attachment */
+>> @@ -802,16 +802,18 @@ static void vb2_dc_detach_dmabuf(void *mem_priv)
+>>  }
+>>
+>>  static void *vb2_dc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf=
+,
+>> -     unsigned long size, enum dma_data_direction dma_dir)
+>> +     unsigned long size, enum dma_data_direction dma_dir, void *buf_pri=
+v)
+>>  {
+>>       struct vb2_dc_conf *conf =3D alloc_ctx;
+>> -     struct vb2_dc_buf *buf;
+>> +     struct vb2_dc_buf *buf =3D buf_priv;
+>>       struct dma_buf_attachment *dba;
+>>
+>>       if (dbuf->size < size)
+>>               return ERR_PTR(-EFAULT);
+>>
+>> -     buf =3D kzalloc(sizeof(*buf), GFP_KERNEL);
+>> +     if (!buf)
+>> +             buf =3D kzalloc(sizeof(*buf), GFP_KERNEL);
+>> +
+>>       if (!buf)
+>>               return ERR_PTR(-ENOMEM);
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/=
+v4l2-core/videobuf2-dma-sg.c
+>> index b1838ab..b9855fd 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>> @@ -667,16 +667,18 @@ static void vb2_dma_sg_detach_dmabuf(void *mem_pri=
+v)
+>>  }
+>>
+>>  static void *vb2_dma_sg_attach_dmabuf(void *alloc_ctx, struct dma_buf *=
+dbuf,
+>> -     unsigned long size, enum dma_data_direction dma_dir)
+>> +     unsigned long size, enum dma_data_direction dma_dir, void *buf_pri=
+v)
+>>  {
+>>       struct vb2_dma_sg_conf *conf =3D alloc_ctx;
+>> -     struct vb2_dma_sg_buf *buf;
+>> +     struct vb2_dma_sg_buf *buf =3D buf_priv;
+>>       struct dma_buf_attachment *dba;
+>>
+>>       if (dbuf->size < size)
+>>               return ERR_PTR(-EFAULT);
+>>
+>> -     buf =3D kzalloc(sizeof(*buf), GFP_KERNEL);
+>> +     if (!buf)
+>> +             buf =3D kzalloc(sizeof(*buf), GFP_KERNEL);
+>> +
+>>       if (!buf)
+>>               return ERR_PTR(-ENOMEM);
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media=
+/v4l2-core/videobuf2-vmalloc.c
+>> index bcde885..373294c 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+>> @@ -416,14 +416,16 @@ static void vb2_vmalloc_detach_dmabuf(void *mem_pr=
+iv)
+>>  }
+>>
+>>  static void *vb2_vmalloc_attach_dmabuf(void *alloc_ctx, struct dma_buf =
+*dbuf,
+>> -     unsigned long size, enum dma_data_direction dma_dir)
+>> +     unsigned long size, enum dma_data_direction dma_dir, void *buf_pri=
+v)
+>>  {
+>> -     struct vb2_vmalloc_buf *buf;
+>> +     struct vb2_vmalloc_buf *buf =3D buf_priv;
+>>
+>>       if (dbuf->size < size)
+>>               return ERR_PTR(-EFAULT);
+>>
+>> -     buf =3D kzalloc(sizeof(*buf), GFP_KERNEL);
+>> +     if (!buf)
+>> +             buf =3D kzalloc(sizeof(*buf), GFP_KERNEL);
+>> +
+>>       if (!buf)
+>>               return ERR_PTR(-ENOMEM);
+>>
+>> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-co=
+re.h
+>> index a5790fd..374b26b 100644
+>> --- a/include/media/videobuf2-core.h
+>> +++ b/include/media/videobuf2-core.h
+>> @@ -49,6 +49,8 @@ struct vb2_threadio_data;
+>>   *              used for DMABUF memory types; alloc_ctx is the alloc co=
+ntext
+>>   *              dbuf is the shared dma_buf; returns NULL on failure;
+>>   *              allocator private per-buffer structure on success;
+>> + *              if private per-buffer structure is provided reuse it
+>> + *              instead of allocating a new one.
+>>   *              this needs to be used for further accesses to the buffe=
+r.
+>>   * @detach_dmabuf: inform the exporter of the buffer that the current D=
+MABUF
+>>   *              buffer is no longer used; the buf_priv argument is the
+>> @@ -98,7 +100,8 @@ struct vb2_mem_ops {
+>>
+>>       void            *(*attach_dmabuf)(void *alloc_ctx, struct dma_buf =
+*dbuf,
+>>                                         unsigned long size,
+>> -                                       enum dma_data_direction dma_dir)=
+;
+>> +                                       enum dma_data_direction dma_dir,
+>> +                                       void *buf_priv);
+>>       void            (*detach_dmabuf)(void *buf_priv);
+>>       int             (*map_dmabuf)(void *buf_priv);
+>>       void            (*unmap_dmabuf)(void *buf_priv);
+>>
+>
 
-- there was a line left over from a previous iteration that negated
-  the new way of determining the pad count just before it which
-  has been removed (num_pads = of_get_child_count(np)).
 
-- Philipp Zabel has developed a set of patches that allow adding
-  to the subdev async notifier waiting list using a chaining method
-  from the async registered callbacks (v4l2_of_subdev_registered()
-  and the prep patches for that). For now, I've removed the use of
-  v4l2_of_subdev_registered() for the vidmux driver's registered
-  callback. This doesn't affect the functionality of this driver,
-  but allows for it to be merged now, before adding the chaining
-  support.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- .../bindings/media/video-multiplexer.txt           |  59 +++
- drivers/media/platform/Kconfig                     |   8 +
- drivers/media/platform/Makefile                    |   2 +
- drivers/media/platform/video-multiplexer.c         | 474 +++++++++++++++++++++
- 4 files changed, 543 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/video-multiplexer.txt
- create mode 100644 drivers/media/platform/video-multiplexer.c
+--=20
+Benjamin Gaignard
 
-diff --git a/Documentation/devicetree/bindings/media/video-multiplexer.txt b/Documentation/devicetree/bindings/media/video-multiplexer.txt
-new file mode 100644
-index 0000000..9d133d9
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/video-multiplexer.txt
-@@ -0,0 +1,59 @@
-+Video Multiplexer
-+=================
-+
-+Video multiplexers allow to select between multiple input ports. Video received
-+on the active input port is passed through to the output port. Muxes described
-+by this binding may be controlled by a syscon register bitfield or by a GPIO.
-+
-+Required properties:
-+- compatible : should be "video-multiplexer"
-+- reg: should be register base of the register containing the control bitfield
-+- bit-mask: bitmask of the control bitfield in the control register
-+- bit-shift: bit offset of the control bitfield in the control register
-+- gpios: alternatively to reg, bit-mask, and bit-shift, a single GPIO phandle
-+  may be given to switch between two inputs
-+- #address-cells: should be <1>
-+- #size-cells: should be <0>
-+- port@*: at least three port nodes containing endpoints connecting to the
-+  source and sink devices according to of_graph bindings. The last port is
-+  the output port, all others are inputs.
-+
-+Example:
-+
-+syscon {
-+	compatible = "syscon", "simple-mfd";
-+
-+	mux {
-+		compatible = "video-multiplexer";
-+		/* Single bit (1 << 19) in syscon register 0x04: */
-+		reg = <0x04>;
-+		bit-mask = <1>;
-+		bit-shift = <19>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			mux_in0: endpoint {
-+				remote-endpoint = <&video_source0_out>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			mux_in1: endpoint {
-+				remote-endpoint = <&video_source1_out>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			mux_out: endpoint {
-+				remote-endpoint = <&capture_interface_in>;
-+			};
-+		};
-+	};
-+};
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index c9106e1..3d60d4c 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -74,6 +74,14 @@ config VIDEO_M32R_AR_M64278
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called arv.
- 
-+config VIDEO_MULTIPLEXER
-+	tristate "Video Multiplexer"
-+	depends on VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER
-+	help
-+	  This driver provides support for SoC internal N:1 video bus
-+	  multiplexers controlled by register bitfields as well as external
-+	  2:1 video multiplexers controlled by a single GPIO.
-+
- config VIDEO_OMAP3
- 	tristate "OMAP 3 Camera support"
- 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 349ddf6..31bfa99 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -27,6 +27,8 @@ obj-$(CONFIG_VIDEO_SH_VEU)		+= sh_veu.o
- 
- obj-$(CONFIG_VIDEO_MEM2MEM_DEINTERLACE)	+= m2m-deinterlace.o
- 
-+obj-$(CONFIG_VIDEO_MULTIPLEXER)		+= video-multiplexer.o
-+
- obj-$(CONFIG_VIDEO_S3C_CAMIF) 		+= s3c-camif/
- obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS4_IS) 	+= exynos4-is/
- obj-$(CONFIG_VIDEO_SAMSUNG_S5P_JPEG)	+= s5p-jpeg/
-diff --git a/drivers/media/platform/video-multiplexer.c b/drivers/media/platform/video-multiplexer.c
-new file mode 100644
-index 0000000..6cc2821
---- /dev/null
-+++ b/drivers/media/platform/video-multiplexer.c
-@@ -0,0 +1,474 @@
-+/*
-+ * video stream multiplexer controlled via gpio or syscon
-+ *
-+ * Copyright (C) 2013 Pengutronix, Sascha Hauer <kernel@pengutronix.de>
-+ * Copyright (C) 2016 Pengutronix, Philipp Zabel <kernel@pengutronix.de>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version 2
-+ * of the License, or (at your option) any later version.
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/err.h>
-+#include <linux/gpio/consumer.h>
-+#include <linux/mfd/syscon.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/of_graph.h>
-+#include <linux/platform_device.h>
-+#include <linux/regmap.h>
-+#include <media/v4l2-async.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-subdev.h>
-+#include <media/v4l2-of.h>
-+
-+struct vidsw {
-+	struct v4l2_subdev subdev;
-+	unsigned int num_pads;
-+	struct media_pad *pads;
-+	struct v4l2_mbus_framefmt *format_mbus;
-+	struct v4l2_fract timeperframe;
-+	struct v4l2_of_endpoint *endpoint;
-+	struct regmap_field *field;
-+	struct gpio_desc *gpio;
-+	int active;
-+};
-+
-+static inline struct vidsw *v4l2_subdev_to_vidsw(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct vidsw, subdev);
-+}
-+
-+static void vidsw_set_active(struct vidsw *vidsw, int active)
-+{
-+	vidsw->active = active;
-+	if (active < 0)
-+		return;
-+
-+	dev_dbg(vidsw->subdev.dev, "setting %d active\n", active);
-+
-+	if (vidsw->field)
-+		regmap_field_write(vidsw->field, active);
-+	else if (vidsw->gpio)
-+		gpiod_set_value(vidsw->gpio, active);
-+}
-+
-+static int vidsw_link_setup(struct media_entity *entity,
-+			    const struct media_pad *local,
-+			    const struct media_pad *remote, u32 flags)
-+{
-+	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
-+	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
-+
-+	/* We have no limitations on enabling or disabling our output link */
-+	if (local->index == vidsw->num_pads - 1)
-+		return 0;
-+
-+	dev_dbg(sd->dev, "link setup %s -> %s", remote->entity->name,
-+		local->entity->name);
-+
-+	if (!(flags & MEDIA_LNK_FL_ENABLED)) {
-+		if (local->index == vidsw->active) {
-+			dev_dbg(sd->dev, "going inactive\n");
-+			vidsw->active = -1;
-+		}
-+		return 0;
-+	}
-+
-+	if (vidsw->active >= 0) {
-+		struct media_pad *pad;
-+
-+		if (vidsw->active == local->index)
-+			return 0;
-+
-+		pad = media_entity_remote_pad(&vidsw->pads[vidsw->active]);
-+		if (pad) {
-+			struct media_link *link;
-+			int ret;
-+
-+			link = media_entity_find_link(pad,
-+						&vidsw->pads[vidsw->active]);
-+			if (link) {
-+				ret = __media_entity_setup_link(link, 0);
-+				if (ret)
-+					return ret;
-+			}
-+		}
-+	}
-+
-+	vidsw_set_active(vidsw, local->index);
-+
-+	return 0;
-+}
-+
-+static struct media_entity_operations vidsw_ops = {
-+	.link_setup = vidsw_link_setup,
-+};
-+
-+static bool vidsw_endpoint_disabled(struct device_node *ep)
-+{
-+	struct device_node *rpp;
-+
-+	if (!of_device_is_available(ep))
-+		return true;
-+
-+	rpp = of_graph_get_remote_port_parent(ep);
-+	if (!rpp)
-+		return true;
-+
-+	return !of_device_is_available(rpp);
-+}
-+
-+static int vidsw_async_init(struct vidsw *vidsw, struct device_node *node)
-+{
-+	struct device_node *ep;
-+	u32 portno;
-+	int numports;
-+	int ret;
-+	int i;
-+	bool active_link = false;
-+
-+	numports = vidsw->num_pads;
-+
-+	for (i = 0; i < numports - 1; i++)
-+		vidsw->pads[i].flags = MEDIA_PAD_FL_SINK;
-+	vidsw->pads[numports - 1].flags = MEDIA_PAD_FL_SOURCE;
-+
-+	vidsw->subdev.entity.function = MEDIA_ENT_F_VID_MUX;
-+	ret = media_entity_pads_init(&vidsw->subdev.entity, numports,
-+				     vidsw->pads);
-+	if (ret < 0)
-+		return ret;
-+
-+	vidsw->subdev.entity.ops = &vidsw_ops;
-+
-+	for_each_endpoint_of_node(node, ep) {
-+		struct v4l2_of_endpoint endpoint;
-+
-+		v4l2_of_parse_endpoint(ep, &endpoint);
-+
-+		portno = endpoint.base.port;
-+		if (portno >= numports - 1)
-+			continue;
-+
-+		if (vidsw_endpoint_disabled(ep)) {
-+			dev_dbg(vidsw->subdev.dev,
-+				"port %d disabled\n", portno);
-+			continue;
-+		}
-+
-+		vidsw->endpoint[portno] = endpoint;
-+
-+		if (portno == vidsw->active)
-+			active_link = true;
-+	}
-+
-+	for (portno = 0; portno < numports - 1; portno++) {
-+		if (!vidsw->endpoint[portno].base.local_node)
-+			continue;
-+
-+		/* If the active input is not connected, use another */
-+		if (!active_link) {
-+			vidsw_set_active(vidsw, portno);
-+			active_link = true;
-+		}
-+	}
-+
-+	return v4l2_async_register_subdev(&vidsw->subdev);
-+}
-+
-+int vidsw_g_mbus_config(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg)
-+{
-+	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
-+	struct media_pad *pad;
-+	int ret;
-+
-+	if (vidsw->active == -1) {
-+		dev_err(sd->dev, "no configuration for inactive mux\n");
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * Retrieve media bus configuration from the entity connected to the
-+	 * active input
-+	 */
-+	pad = media_entity_remote_pad(&vidsw->pads[vidsw->active]);
-+	if (pad) {
-+		sd = media_entity_to_v4l2_subdev(pad->entity);
-+		ret = v4l2_subdev_call(sd, video, g_mbus_config, cfg);
-+		if (ret == -ENOIOCTLCMD)
-+			pad = NULL;
-+		else if (ret < 0) {
-+			dev_err(sd->dev, "failed to get source configuration\n");
-+			return ret;
-+		}
-+	}
-+	if (!pad) {
-+		/* Mirror the input side on the output side */
-+		cfg->type = vidsw->endpoint[vidsw->active].bus_type;
-+		if (cfg->type == V4L2_MBUS_PARALLEL ||
-+		    cfg->type == V4L2_MBUS_BT656)
-+			cfg->flags = vidsw->endpoint[vidsw->active].bus.parallel.flags;
-+	}
-+
-+	return 0;
-+}
-+
-+static int vidsw_s_stream(struct v4l2_subdev *sd, int enable)
-+{
-+	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
-+	struct v4l2_subdev *upstream_sd;
-+	struct media_pad *pad;
-+
-+	if (vidsw->active == -1) {
-+		dev_err(sd->dev, "Can not start streaming on inactive mux\n");
-+		return -EINVAL;
-+	}
-+
-+	pad = media_entity_remote_pad(&sd->entity.pads[vidsw->active]);
-+	if (!pad) {
-+		dev_err(sd->dev, "Failed to find remote source pad\n");
-+		return -ENOLINK;
-+	}
-+
-+	if (!is_media_entity_v4l2_subdev(pad->entity)) {
-+		dev_err(sd->dev, "Upstream entity is not a v4l2 subdev\n");
-+		return -ENODEV;
-+	}
-+
-+	upstream_sd = media_entity_to_v4l2_subdev(pad->entity);
-+
-+	return v4l2_subdev_call(upstream_sd, video, s_stream, enable);
-+}
-+
-+static int vidsw_g_frame_interval(struct v4l2_subdev *sd,
-+				  struct v4l2_subdev_frame_interval *fi)
-+{
-+	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
-+
-+	fi->interval = vidsw->timeperframe;
-+
-+	return 0;
-+}
-+
-+static int vidsw_s_frame_interval(struct v4l2_subdev *sd,
-+				  struct v4l2_subdev_frame_interval *fi)
-+{
-+	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
-+
-+	vidsw->timeperframe = fi->interval;
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_video_ops vidsw_subdev_video_ops = {
-+	.g_mbus_config = vidsw_g_mbus_config,
-+	.s_stream = vidsw_s_stream,
-+	.g_frame_interval = vidsw_g_frame_interval,
-+	.s_frame_interval = vidsw_s_frame_interval,
-+};
-+
-+static struct v4l2_mbus_framefmt *
-+__vidsw_get_pad_format(struct v4l2_subdev *sd,
-+		       struct v4l2_subdev_pad_config *cfg,
-+		       unsigned int pad, u32 which)
-+{
-+	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
-+
-+	switch (which) {
-+	case V4L2_SUBDEV_FORMAT_TRY:
-+		return v4l2_subdev_get_try_format(sd, cfg, pad);
-+	case V4L2_SUBDEV_FORMAT_ACTIVE:
-+		return &vidsw->format_mbus[pad];
-+	default:
-+		return NULL;
-+	}
-+}
-+
-+static int vidsw_get_format(struct v4l2_subdev *sd,
-+			    struct v4l2_subdev_pad_config *cfg,
-+			    struct v4l2_subdev_format *sdformat)
-+{
-+	sdformat->format = *__vidsw_get_pad_format(sd, cfg, sdformat->pad,
-+						   sdformat->which);
-+	return 0;
-+}
-+
-+static int vidsw_set_format(struct v4l2_subdev *sd,
-+			    struct v4l2_subdev_pad_config *cfg,
-+			    struct v4l2_subdev_format *sdformat)
-+{
-+	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
-+	struct v4l2_mbus_framefmt *mbusformat;
-+
-+	if (sdformat->pad >= vidsw->num_pads)
-+		return -EINVAL;
-+
-+	mbusformat = __vidsw_get_pad_format(sd, cfg, sdformat->pad,
-+					    sdformat->which);
-+	if (!mbusformat)
-+		return -EINVAL;
-+
-+	/* Output pad mirrors active input pad, no limitations on input pads */
-+	if (sdformat->pad == (vidsw->num_pads - 1) && vidsw->active >= 0)
-+		sdformat->format = vidsw->format_mbus[vidsw->active];
-+
-+	*mbusformat = sdformat->format;
-+
-+	return 0;
-+}
-+
-+static struct v4l2_subdev_pad_ops vidsw_pad_ops = {
-+	.get_fmt = vidsw_get_format,
-+	.set_fmt = vidsw_set_format,
-+};
-+
-+static struct v4l2_subdev_ops vidsw_subdev_ops = {
-+	.pad = &vidsw_pad_ops,
-+	.video = &vidsw_subdev_video_ops,
-+};
-+
-+static int of_get_reg_field(struct device_node *node, struct reg_field *field)
-+{
-+	u32 bit_mask;
-+	int ret;
-+
-+	ret = of_property_read_u32(node, "reg", &field->reg);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = of_property_read_u32(node, "bit-mask", &bit_mask);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = of_property_read_u32(node, "bit-shift", &field->lsb);
-+	if (ret < 0)
-+		return ret;
-+
-+	field->msb = field->lsb + fls(bit_mask) - 1;
-+
-+	return 0;
-+}
-+
-+static int vidsw_probe(struct platform_device *pdev)
-+{
-+	struct device_node *np = pdev->dev.of_node;
-+	struct of_endpoint endpoint;
-+	struct device_node *ep;
-+	struct reg_field field;
-+	struct vidsw *vidsw;
-+	struct regmap *map;
-+	unsigned int num_pads;
-+	int ret;
-+
-+	vidsw = devm_kzalloc(&pdev->dev, sizeof(*vidsw), GFP_KERNEL);
-+	if (!vidsw)
-+		return -ENOMEM;
-+
-+	platform_set_drvdata(pdev, vidsw);
-+
-+	v4l2_subdev_init(&vidsw->subdev, &vidsw_subdev_ops);
-+	snprintf(vidsw->subdev.name, sizeof(vidsw->subdev.name), "%s",
-+			np->name);
-+	vidsw->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	vidsw->subdev.dev = &pdev->dev;
-+
-+	/*
-+	 * The largest numbered port is the output port. It determines
-+	 * total number of pads
-+	 */
-+	num_pads = 0;
-+	for_each_endpoint_of_node(np, ep) {
-+		of_graph_parse_endpoint(ep, &endpoint);
-+		num_pads = max(num_pads, endpoint.port + 1);
-+	}
-+
-+	if (num_pads < 2) {
-+		dev_err(&pdev->dev, "Not enough ports %d\n", num_pads);
-+		return -EINVAL;
-+	}
-+
-+	ret = of_get_reg_field(np, &field);
-+	if (ret == 0) {
-+		map = syscon_node_to_regmap(np->parent);
-+		if (!map) {
-+			dev_err(&pdev->dev, "Failed to get syscon register map\n");
-+			return PTR_ERR(map);
-+		}
-+
-+		vidsw->field = devm_regmap_field_alloc(&pdev->dev, map, field);
-+		if (IS_ERR(vidsw->field)) {
-+			dev_err(&pdev->dev, "Failed to allocate regmap field\n");
-+			return PTR_ERR(vidsw->field);
-+		}
-+
-+		regmap_field_read(vidsw->field, &vidsw->active);
-+	} else {
-+		if (num_pads > 3) {
-+			dev_err(&pdev->dev, "Too many ports %d\n", num_pads);
-+			return -EINVAL;
-+		}
-+
-+		vidsw->gpio = devm_gpiod_get(&pdev->dev, NULL, GPIOD_OUT_LOW);
-+		if (IS_ERR(vidsw->gpio)) {
-+			dev_warn(&pdev->dev,
-+				 "could not request control gpio: %d\n", ret);
-+			vidsw->gpio = NULL;
-+		}
-+
-+		vidsw->active = gpiod_get_value(vidsw->gpio) ? 1 : 0;
-+	}
-+
-+	vidsw->num_pads = num_pads;
-+	vidsw->pads = devm_kzalloc(&pdev->dev, sizeof(*vidsw->pads) * num_pads,
-+			GFP_KERNEL);
-+	vidsw->format_mbus = devm_kzalloc(&pdev->dev,
-+			sizeof(*vidsw->format_mbus) * num_pads, GFP_KERNEL);
-+	vidsw->endpoint = devm_kzalloc(&pdev->dev,
-+			sizeof(*vidsw->endpoint) * (num_pads - 1), GFP_KERNEL);
-+
-+	ret = vidsw_async_init(vidsw, np);
-+	if (ret)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+static int vidsw_remove(struct platform_device *pdev)
-+{
-+	struct vidsw *vidsw = platform_get_drvdata(pdev);
-+	struct v4l2_subdev *sd = &vidsw->subdev;
-+
-+	v4l2_async_unregister_subdev(sd);
-+	media_entity_cleanup(&sd->entity);
-+	v4l2_device_unregister_subdev(sd);
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id vidsw_dt_ids[] = {
-+	{ .compatible = "video-multiplexer", },
-+	{ /* sentinel */ }
-+};
-+MODULE_DEVICE_TABLE(of, vidsw_dt_ids);
-+
-+static struct platform_driver vidsw_driver = {
-+	.probe		= vidsw_probe,
-+	.remove		= vidsw_remove,
-+	.driver		= {
-+		.of_match_table = vidsw_dt_ids,
-+		.name = "video-multiplexer",
-+	},
-+};
-+
-+module_platform_driver(vidsw_driver);
-+
-+MODULE_DESCRIPTION("video stream multiplexer");
-+MODULE_AUTHOR("Sascha Hauer, Pengutronix");
-+MODULE_AUTHOR("Philipp Zabel, Pengutronix");
-+MODULE_LICENSE("GPL");
--- 
-2.7.4
+Graphic Study Group
+
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+
+Follow Linaro: Facebook | Twitter | Blog
