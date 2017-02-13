@@ -1,83 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:59128 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754000AbdBNNkS (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48285 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752528AbdBMV34 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Feb 2017 08:40:18 -0500
-Date: Tue, 14 Feb 2017 14:40:13 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: sakari.ailus@iki.fi
-Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
-        ivo.g.dimitrov.75@gmail.com
-Subject: [RFC 10/13] omap3isp: fix capture
-Message-ID: <20170214134013.GA8611@amd>
+        Mon, 13 Feb 2017 16:29:56 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH 1/8] v4l: vsp1: Provide UDS register updates
+Date: Mon, 13 Feb 2017 23:30:21 +0200
+Message-ID: <2133199.0UdPgKqoXa@avalon>
+In-Reply-To: <bf28e7e9bf28ff60c505592072a234f8dd568f71.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.ff94a00847faf7ed37768cea68c474926bfc8bd9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com> <bf28e7e9bf28ff60c505592072a234f8dd568f71.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="HlL+5n6rz5pIUxbD"
-Content-Disposition: inline
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Kieran,
 
---HlL+5n6rz5pIUxbD
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thank you for the patch.
 
-This is neccessary for capture (not preview) to work properly on
-N900. Why is unknown.
----
- drivers/media/platform/omap3isp/ispccdc.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+On Friday 10 Feb 2017 20:27:29 Kieran Bingham wrote:
+> Provide register definitions required for UDS phase and partition
+> algorithm support
 
-diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/plat=
-form/omap3isp/ispccdc.c
-index 7207558..2fb755f 100644
---- a/drivers/media/platform/omap3isp/ispccdc.c
-+++ b/drivers/media/platform/omap3isp/ispccdc.c
-@@ -1186,7 +1186,8 @@ static void ccdc_configure(struct isp_ccdc_device *cc=
-dc)
- 	/* Use the raw, unprocessed data when writing to memory. The H3A and
- 	 * histogram modules are still fed with lens shading corrected data.
- 	 */
--	syn_mode &=3D ~ISPCCDC_SYN_MODE_VP2SDR;
-+//	syn_mode &=3D ~ISPCCDC_SYN_MODE_VP2SDR;
-+	syn_mode |=3D ISPCCDC_SYN_MODE_VP2SDR;
-=20
- 	if (ccdc->output & CCDC_OUTPUT_MEMORY)
- 		syn_mode |=3D ISPCCDC_SYN_MODE_WEN;
-@@ -1253,6 +1254,8 @@ static void ccdc_configure(struct isp_ccdc_device *cc=
-dc)
- 			<< ISPCCDC_VERT_LINES_NLV_SHIFT,
- 		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VERT_LINES);
-=20
-+	printk("configuring for %d(%d)x%d\n", crop->width, ccdc->video_out.bpl_va=
-lue, crop->height);
-+
- 	ccdc_config_outlineoffset(ccdc, ccdc->video_out.bpl_value,
- 				  format->field);
-=20
---=20
-2.1.4
+I would mention here that those registers and bits are available on Gen3 only.
 
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> ---
+>  drivers/media/platform/vsp1/vsp1_regs.h | 14 ++++++++++++++
+>  1 file changed, 14 insertions(+)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_regs.h
+> b/drivers/media/platform/vsp1/vsp1_regs.h index 47b1dee044fb..1ad819680e2f
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_regs.h
+> +++ b/drivers/media/platform/vsp1/vsp1_regs.h
+> @@ -388,6 +388,7 @@
+>  #define VI6_UDS_CTRL_NE_RCR		(1 << 18)
+>  #define VI6_UDS_CTRL_NE_GY		(1 << 17)
+>  #define VI6_UDS_CTRL_NE_BCB		(1 << 16)
+> +#define VI6_UDS_CTRL_AMDSLH		(1 << 2)
+>  #define VI6_UDS_CTRL_TDIPC		(1 << 1)
+> 
+>  #define VI6_UDS_SCALE			0x2304
+> @@ -420,11 +421,24 @@
+>  #define VI6_UDS_PASS_BWIDTH_V_MASK	(0x7f << 0)
+>  #define VI6_UDS_PASS_BWIDTH_V_SHIFT	0
+> 
+> +#define VI6_UDS_HPHASE			0x2314
+> +#define VI6_UDS_HPHASE_HSTP_MASK	(0xfff << 16)
+> +#define VI6_UDS_HPHASE_HSTP_SHIFT	16
+> +#define VI6_UDS_HPHASE_HEDP_MASK	(0xfff << 0)
+> +#define VI6_UDS_HPHASE_HEDP_SHIFT	0
+> +
+>  #define VI6_UDS_IPC			0x2318
+>  #define VI6_UDS_IPC_FIELD		(1 << 27)
+>  #define VI6_UDS_IPC_VEDP_MASK		(0xfff << 0)
+>  #define VI6_UDS_IPC_VEDP_SHIFT		0
+> 
+> +#define VI6_UDS_HSZCLIP			0x231c
+> +#define VI6_UDS_HSZCLIP_HCEN		(1 << 28)
+> +#define VI6_UDS_HSZCLIP_HCL_OFST_MASK	(0x1ff << 16)
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+This field spans 8 bits, not 9.
 
---HlL+5n6rz5pIUxbD
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+With that fixed,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-iEYEARECAAYFAlijCL0ACgkQMOfwapXb+vLv3ACgnTY69ORIQVKkH6R4byddET88
-idoAn1LM3qN9dRl0y2nZ2guTPc6Pxr8U
-=bSYl
------END PGP SIGNATURE-----
+> +#define VI6_UDS_HSZCLIP_HCL_OFST_SHIFT	16
+> +#define VI6_UDS_HSZCLIP_HCL_SIZE_MASK	(0x1fff << 0)
+> +#define VI6_UDS_HSZCLIP_HCL_SIZE_SHIFT	0
+> +
+>  #define VI6_UDS_CLIP_SIZE		0x2324
+>  #define VI6_UDS_CLIP_SIZE_HSIZE_MASK	(0x1fff << 16)
+>  #define VI6_UDS_CLIP_SIZE_HSIZE_SHIFT	16
 
---HlL+5n6rz5pIUxbD--
+-- 
+Regards,
+
+Laurent Pinchart
