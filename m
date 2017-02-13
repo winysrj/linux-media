@@ -1,52 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:40639 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751726AbdBBXOi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Feb 2017 18:14:38 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] [media] mce_kbd: add missing keys from UK layout
-Date: Thu,  2 Feb 2017 23:14:36 +0000
-Message-Id: <1486077276-14156-2-git-send-email-sean@mess.org>
-In-Reply-To: <1486077276-14156-1-git-send-email-sean@mess.org>
-References: <1486077276-14156-1-git-send-email-sean@mess.org>
+Received: from mailout4.samsung.com ([203.254.224.34]:56942 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752245AbdBMOej (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Feb 2017 09:34:39 -0500
+Subject: Re: [PATCH 0/2] [media] exynos-gsc: Fix support for NV21 and NV61
+ formats
+To: Javier Martinez Canillas <javier@dowhile0.org>,
+        Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Linux Kernel <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Thibault Saunier <thibault.saunier@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        "linux-samsung-soc@vger.kernel.org"
+        <linux-samsung-soc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <41ead50c-3a71-8c8c-3455-9571b5482f27@samsung.com>
+Date: Mon, 13 Feb 2017 15:34:22 +0100
+MIME-version: 1.0
+In-reply-to: <CABxcv==+Di=i_KBY1LY0Ejo8UXMYa5yhS=bugsyxFkQTyh0xUw@mail.gmail.com>
+Content-type: text/plain; charset=utf-8
+Content-transfer-encoding: 8bit
+References: <1485979523-32404-1-git-send-email-javier@osg.samsung.com>
+ <CABxcv==+Di=i_KBY1LY0Ejo8UXMYa5yhS=bugsyxFkQTyh0xUw@mail.gmail.com>
+ <CGME20170213143429epcas5p1e9407c814e71352ccb5ec14b082f954e@epcas5p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The UK layout of the Microsoft Remote Keyboard has two missing keys:
-the hash key, and the messenger key which is sent using rc6 mce.
+Hi Javier,
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/ir-mce_kbd-decoder.c | 2 +-
- drivers/media/rc/keymaps/rc-rc6-mce.c | 1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+On 02/13/2017 01:53 PM, Javier Martinez Canillas wrote:
+> Any comments on this series?
 
-diff --git a/drivers/media/rc/ir-mce_kbd-decoder.c b/drivers/media/rc/ir-mce_kbd-decoder.c
-index d809862..5226d51 100644
---- a/drivers/media/rc/ir-mce_kbd-decoder.c
-+++ b/drivers/media/rc/ir-mce_kbd-decoder.c
-@@ -71,7 +71,7 @@ static unsigned char kbd_keycodes[256] = {
- 	KEY_6,		KEY_7,		KEY_8,		KEY_9,		KEY_0,
- 	KEY_ENTER,	KEY_ESC,	KEY_BACKSPACE,	KEY_TAB,	KEY_SPACE,
- 	KEY_MINUS,	KEY_EQUAL,	KEY_LEFTBRACE,	KEY_RIGHTBRACE,	KEY_BACKSLASH,
--	KEY_RESERVED,	KEY_SEMICOLON,	KEY_APOSTROPHE,	KEY_GRAVE,	KEY_COMMA,
-+	KEY_BACKSLASH,	KEY_SEMICOLON,	KEY_APOSTROPHE,	KEY_GRAVE,	KEY_COMMA,
- 	KEY_DOT,	KEY_SLASH,	KEY_CAPSLOCK,	KEY_F1,		KEY_F2,
- 	KEY_F3,		KEY_F4,		KEY_F5,		KEY_F6,		KEY_F7,
- 	KEY_F8,		KEY_F9,		KEY_F10,	KEY_F11,	KEY_F12,
-diff --git a/drivers/media/rc/keymaps/rc-rc6-mce.c b/drivers/media/rc/keymaps/rc-rc6-mce.c
-index ef4006f..5be5675 100644
---- a/drivers/media/rc/keymaps/rc-rc6-mce.c
-+++ b/drivers/media/rc/keymaps/rc-rc6-mce.c
-@@ -86,6 +86,7 @@ static struct rc_map_table rc6_mce[] = {
- 	{ 0x800f045e, KEY_BLUE },
- 
- 	{ 0x800f0465, KEY_POWER2 },	/* TV Power */
-+	{ 0x800f0469, KEY_MESSENGER },
- 	{ 0x800f046e, KEY_PLAYPAUSE },
- 	{ 0x800f046f, KEY_PLAYER },	/* Start media application (NEW) */
- 
+The patches look good to me, I will Ack the patches in case
+Mauro wants to apply them directly.  Alternatively I will
+add them to my tree for v4.12 after the merge window.
+
 -- 
-2.9.3
-
+Thanks,
+Sylwester
