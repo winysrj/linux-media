@@ -1,173 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f175.google.com ([74.125.82.175]:33988 "EHLO
-        mail-ot0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750995AbdBXTTg (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:51901 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753074AbdBMU5y (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Feb 2017 14:19:36 -0500
+        Mon, 13 Feb 2017 15:57:54 -0500
+Subject: Re: [PATCH 00/11] media: rcar-vin: fix OPS and format/pad index
+ issues
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
+References: <20170131154016.15526-1-niklas.soderlund+renesas@ragnatech.se>
+ <35612ce2-57b1-3059-60c8-18806e3f066a@xs4all.nl>
+ <20170213174737.GD12706@bigcity.dyn.berto.se>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com, Wolfram Sang <wsa@the-dreams.de>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <8894bcf1-e37b-6eff-7711-17fb4647cb09@xs4all.nl>
+Date: Mon, 13 Feb 2017 21:57:48 +0100
 MIME-Version: 1.0
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Fri, 24 Feb 2017 11:19:34 -0800
-Message-ID: <CA+55aFxsh2uF8gi5sN_guY3Z+tiLv7LpJYKBw+y8vqLzp+TsnQ@mail.gmail.com>
-Subject: media / serial_ir: BUG: unable to handle kernel NULL pointer
- dereference at 0000039c
-To: kernel test robot <fengguang.wu@intel.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sean Young <sean@mess.org>,
-        Ruslan Ruslichenko <rruslich@cisco.com>
-Cc: LKP <lkp@01.org>,
-        "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-        kernel@stlinux.com,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-mediatek@lists.infradead.org,
-        linux-amlogic@lists.infradead.org,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Linux LED Subsystem <linux-leds@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>, wfg@linux.intel.com
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <20170213174737.GD12706@bigcity.dyn.berto.se>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sorry, resending with a less broken subject line that doesn't talk
-about anti-virus scanning failures.  I almost ignored the original
-email due to the crazy subject line.
+On 02/13/2017 06:47 PM, Niklas Söderlund wrote:
+> Hi Hans,
+> 
+> Thanks for your feedback.
+> 
+> On 2017-02-13 15:19:13 +0100, Hans Verkuil wrote:
+>> Hi Niklas,
+>>
+>> One general remark: in many commit logs you mistype 'subdeivce'. Can you
+>> fix that for the v2?
+> 
+> Will fix for v2.
+> 
+>>
+>> On 01/31/2017 04:40 PM, Niklas Söderlund wrote:
+>>> Hi,
+>>>
+>>> This series address issues with the R-Car Gen2 VIN driver. The most 
+>>> serious issue is the OPS when unbind and rebinding the i2c driver for 
+>>> the video source subdevice which have popped up as a blocker for other 
+>>> work.
+>>>
+>>> This series is broken out of my much larger R-Car Gen3 enablement series 
+>>> '[PATCHv2 00/32] rcar-vin: Add Gen3 with media controller support'. I 
+>>> plan to remove that series form patchwork and focus on these fixes first 
+>>> as they are blocking other development. Once the blocking issues are 
+>>> removed I will rebase and repost the larger Gen3 series.
+>>>
+>>> Patch 1-4 fix simple problems found while testing
+>>>     1-2 Fix format problems when the format is (re)set.
+>>>     3   Fix media pad errors
+>>>     4   Fix standard enumeration problem
+>>>
+>>> Patch 5 adds a wrapper function to retrieve the active video source 
+>>> subdevice. This is strictly not needed on Gen2 which only have one 
+>>> possible video source per VIN instance (This will change on Gen3). But 
+>>> patch 6-8,11 which fixes real issues on Gen2 make use of this wrapper, as 
+>>> not risk breaking things by removing this wrapper in this series and 
+>>> then readding it in a later Gen3 series I have chosen to keep the patch.  
+>>> Please let me know if I should drop it and rewrite patch 6-11 (if 
+>>> possible I would like to avoid that).
+>>>
+>>> Patch 6-8 deals with video source subdevice pad index handling by moving 
+>>> the information from struct rvin_dev to struct rvin_graph_entity and 
+>>> moving the pad index probing to the struct v4l2_async_notifier complete 
+>>> callback. This is needed to allow the bind/unbind fix in patch 10-11.
+>>>
+>>> Patch 9 use the pad information when calling enum_mbus_code.
+>>>
+>>> Patch 10-11 fix a OPS when unbinding/binding the video source subdevice.
+>>
+>> This will not help: you can unbind a subdev at any time, including when
+>> it is in use.
+> 
+> Yes, this series will not help remedy the problem if a device is in use.  
+> But I still find it useful since it unblocks other work, solves a OPS 
+> and if there are no current users the driver can supports unbind/bind of 
+> its subdevices, it's not perfect but it do make things a little better 
+> IMHO.
+> 
+> If it where not for me wishing to reuse the behavior introduced in patch 
+> 10-11 on R-Car Gen3 when a subdevice could not available for for other 
+> reasons than it's not bound (see bellow) I would be happy to drop the 
+> patches from this series.
+> 
+>>
+>> But why do you need this at all? You can also set suppress_bind_attrs in
+>> the adv7180 driver to prevent the bind/unbind files from appearing.
+> 
+> The primary use-case for this is on R-Car Gen3 where there are a limited 
+> number of possible routing options to connect CSI-2 devices to VIN 
+> devices (set in hardware), see table bellow. The routing possibilities 
+> are set per VIN group (VIN0-3 and VIN4-7) and not individually for each 
+> VIN device. Given this limitation some routing options will result in an 
+> N/A video source for one or more VIN devices in a VIN "group".
+> 
+>    - VIN0-3 controlled by chsel register in VIN0
+>    chsel    VIN0        VIN1        VIN2        VIN3
+>    0        CSI40/VC0   CSI20/VC0   N/A         CSI40/VC1
+>    1        CSI20/VC0   N/A         CSI40/VC0   CSI20/VC1
+>    2        N/A         CSI40/VC0   CSI20/VC0   N/A
+>    3        CSI40/VC0   CSI40/VC1   CSI40/VC2   CSI40/VC3
+>    4        CSI20/VC0   CSI20/VC1   CSI20/VC2   CSI20/VC3
+> 
+>    - VIN4-7 controlled by chsel register in VIN4
+>    chsel    VIN4        VIN5        VIN6        VIN7
+>    0        CSI40/VC0   CSI20/VC0   N/A         CSI40/VC1
+>    1        CSI20/VC0   N/A         CSI40/VC0   CSI20/VC1
+>    2        N/A         CSI40/VC0   CSI20/VC0   N/A
+>    3        CSI40/VC0   CSI40/VC1   CSI40/VC2   CSI40/VC3
+>    4        CSI20/VC0   CSI20/VC1   CSI20/VC2   CSI20/VC3
+> 
+> Example: If a VIN1 device is exposed as /dev/video1 and the current 
+> CSI-2 to VIN routing configuration controlled by the chsel register in 
+> VIN0 is set to 1 the video source routed to VIN1 is N/A. The idea then 
+> is that any open of /dev/video1 should result in -EBUSY until the CSI-2 
+> to VIN routing changes so that VIN1 is connected to a valid subdevice 
+> again. (side note: changing chsel value will not be allowed while any 
+> VIN device is opened and is done using MC)
+> 
+> This series was originally part of my R-Car Gen3 enablement series so I
+> chose to keep this behavior even if the underlying Gen2 OPS could be 
+> fixed in a different way. With this solution a unavailable subdevice 
+> (subdev not bound on Gen2+Gen3 or a N/A subdevice due to routing setup 
+> on Gen3) would be handled the same (-EBUSY) on both Gen2 and Gen3.
+> 
+> All testing I have done on the driver both on Gen2 and Gen3 have been 
+> based on this solution for quiet a while now. And it seemed strange for 
+> me to try and solve the Gen2 issue differently only to rework it again 
+> later in the Gen3 enablement series.
+> 
+> I'm sorry that I did not explain more about this in the original cover 
+> letter. Did this explanation help clear things up? And is the idea of 
+> returning -EBUSY a OK solution in general to the problem that a video 
+> device who once had all its subdevices available no longer do so, but it 
+> might get them back in the future? I'm happy too keep working and 
+> improving this solution, this is only the best one i found so far :-)
+> 
+>>
+>> It really makes no sense for subdevs. In fact, all subdevs should set this
+>> flag since in the current implementation this is completely impossible to
+>> implement safely.
+>>
+>> I suggest you drop the patches relating to this and instead set the suppress
+>> flag.
+> 
+> If possible I would like to explore the possibility to keep it in the 
+> series. I think it would be an advantage to treat on unbound subdevice 
+> on Gen2 in the same way as a VIN instance on Gen3 would treat a CSI-2 to 
+> VIN routing configuration with a N/A route.
+> 
+> I am of course willing to rework the behavior to something else then 
+> returning -EBUSY if a VIN instance currently have all subdevices 
+> available for some reason. I would like input on how such a scheme could 
+> look like since the -EBUSY one is the only solution I have managed to 
+> figure out and implement.
 
-So if you get this twice, don't worry. It's all the same thing, just
-quoted and subject line cleaned up.
+I think the core problem here is perhaps less the patches but more the commit
+logs you wrote. You say in several places that is it 'To support unbind and
+rebinding of subdevices'. But it doesn't support that, instead it really
+prepares for a specific Gen3 use-case.
 
-                 Linus
+All existing drivers with subdevs can be induced to oops if you unbind/bind
+a subdev. It is broken at the core, and without fixing it at the core first,
+anything you try to do in a driver is just a band-aid.
 
-On Fri, Feb 24, 2017 at 11:15 AM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
-> Added more relevant people. I've debugged the immediate problem below,
-> but I think there's another problem that actually triggered this.
->
-> On Fri, Feb 24, 2017 at 10:28 AM, kernel test robot
-> <fengguang.wu@intel.com> wrote:
->>
->> 0day kernel testing robot got the below dmesg and the first bad commit is
->>
->> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
->>
->> commit ff58d005cd10fcd372787cceac547e11cf706ff6
->> Merge: 5ab3566 9eeb0ed
->>
->>     Merge tag 'media/v4.11-1' of git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media
-> [...]
->> [    4.664940] rc rc0: lirc_dev: driver ir-lirc-codec (rc-loopback) registered at minor = 0
->> [    4.666322] BUG: unable to handle kernel NULL pointer dereference at 0000039c
->> [    4.666675] IP: serial_ir_irq_handler+0x189/0x410
->
-> This merge being fingered ends up being a subtle interaction with other changes.
->
-> Those "other changes" are (again) the interrupt retrigger code that
-> was reverted for 4.10, and then we tried to merge them again this
-> merge window.
->
-> Because the immediate cause is:
->
->> [    4.666675] EIP: serial_ir_irq_handler+0x189/0x410
->> [    4.666675] Call Trace:
->> [    4.666675]  <IRQ>
->> [    4.666675]  __handle_irq_event_percpu+0x57/0x100
->> [    4.666675]  handle_irq_event_percpu+0x1d/0x50
->> [    4.666675]  handle_irq_event+0x32/0x60
->> [    4.666675]  handle_edge_irq+0xa5/0x120
->> [    4.666675]  handle_irq+0x9d/0xd0
->> [    4.666675]  </IRQ>
->> [    4.666675]  do_IRQ+0x5f/0x130
->> [    4.666675]  common_interrupt+0x33/0x38
->> [    4.666675] EIP: hardware_init_port+0x3f/0x190
->> [    4.666675] EFLAGS: 00200246 CPU: 0
->> [    4.666675] EAX: c718990f EBX: 00000000 ECX: 00000000 EDX: 000003f9
->> [    4.666675] ESI: 000003f9 EDI: 000003f8 EBP: c0065d98 ESP: c0065d84
->> [    4.666675]  DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
->> [    4.666675]  serial_ir_probe+0xbb/0x300
->> [    4.666675]  platform_drv_probe+0x48/0xb0
-> ...
->
-> ie an interrupt came in immediately after the request_irq(), before
-> all the data was properly set up, which then causes the interrupt
-> handler to take a fault because it tries to access some field that
-> hasn't even been set up yet.
->
-> The code line is helpful, the faulting instruction is
->
->       mov    0x39c(%rax),%eax   <--- fault
->       call ..
->       mov    someglobalvar,%edx
->
-> which together with the supplied config file makes me able to match it
-> up with the assembly generation around it:
->
->         inb %dx, %al    # tmp254, value
->         andb    $1, %al #, tmp255
->         testb   %al, %al        # tmp255
->         je      .L233   #,
->   .L215:
->         movl    serial_ir+8, %eax       # serial_ir.rcdev, serial_ir.rcdev
->         xorl    %edx, %edx      # _66->timeout
->         movl    924(%eax), %eax # _66->timeout, _66->timeout
->         call    nsecs_to_jiffies        #
->         movl    jiffies, %edx   # jiffies, jiffies.33_70
->         addl    %eax, %edx      # _69, tmp259
->         movl    $serial_ir+16, %eax     #,
->         call    mod_timer       #
->         movl    serial_ir+8, %eax       # serial_ir.rcdev,
->         call    ir_raw_event_handle     #
->         movl    $1, %eax        #, <retval>
->
-> so it's that "serial_ir.rcdev->timeout" access that faults. So this is
-> the faulting source code:
->
-> drivers/media/rc/serial_ir.c: 402
->
->         mod_timer(&serial_ir.timeout_timer,
->                   jiffies + nsecs_to_jiffies(serial_ir.rcdev->timeout));
->
->         ir_raw_event_handle(serial_ir.rcdev);
->
->         return IRQ_HANDLED;
->
-> and serial_ir.rcdev is NULL when ti tries to look up the timeout.
->
-> That mod_timer() is new as of commit 2940c7e49775 ("[media] serial_ir:
-> generate timeout") and *that* is the actual new bug.
->
-> Looking at the code, that serial_ir.rcdev thing is initialized fairly
-> late in serial_ir_init_module(), while the interrupt is allocated
-> early in serial_ir_probe(), which is done _early_ in
-> serial_ir_init_module():
->
-> serial_ir_init_module -> serial_ir_init -> platform_driver_register ->
-> serial_ir_probe -> devm_request_irq
->
-> Mauro, Sean, please fix.
->
-> Anyway, this is clearly a bug in the serial_ir code, but it is *also*
-> once again clearly now being *triggered* due to the irq handling
-> changes.
->
-> I'm pretty sure that the thing that triggered this is once more commit
-> a9b4f08770b4 ("x86/ioapic: Restore IO-APIC irq_chip retrigger
-> callback") which seems to retrigger stale irqs that simply should not
-> be retriggered.
->
-> They aren't actually active any more, if they ever were.
->
-> So that commit seems to act like a random CONFIG_DEBUG_SHIRQ. It's
-> good for testing, but not good for actual users.
->
-> I the local APIC retrigger just unconditionally resends that irq. But
-> it's the core interrupt code that decides to retrigger it incorrectly
-> for some reason.
->
-> Why is IRQS_PENDING set for that thing? Something must have almost
-> certainly set it, despite the irq not actually having ever been
-> pending. Thomas?
->
->                   Linus
+Take patch 07/11, the commit log says:
+
+"To fix support for unbind and rebinding of subdevices the
+rvin_v4l2_probe() needs to be called before there might be any subdevice
+bound. Move pad index discovery to when we know the subdevice is
+present."
+
+This commit log is very misleading. It suggests that this patch fixes
+unbind/rebind support, which it doesn't. Instead, it just prepares for
+patch 11/11 where you want to (partially?) re-initialize the subdevs at
+first open. And that in turn is for future Gen3 support.
+
+None of this has anything to do with unbind/rebind. The fact that you
+can now do this if there are no filehandles open is a side-effect, and not
+the main reason for the patches.
+
+I recommend that you take another look and rewrite the commit logs so they
+reflect the real reason you do this.
+
+> And thanks again for your feedback, I really love to see some R-Car VIN 
+> work move forward. Let me know if I can do anything to ease the process.
+
+Sure, no problem. I've not been a good reviewer recently, but it's getting
+better as I have more time now.
+
+Regards,
+
+	Hans
