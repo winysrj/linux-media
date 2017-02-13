@@ -1,239 +1,313 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55504 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750923AbdBNV5n (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:57351 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751666AbdBMJYm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Feb 2017 16:57:43 -0500
-Date: Tue, 14 Feb 2017 23:57:38 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
-Subject: Re: [RFC 06/13] v4l2-async: per notifier locking
-Message-ID: <20170214215737.GM16975@valkosipuli.retiisi.org.uk>
-References: <20170214133956.GA8530@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170214133956.GA8530@amd>
+        Mon, 13 Feb 2017 04:24:42 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mats Randgaard <matrandg@cisco.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 2/2] [media] tc358743: extend colorimetry support
+Date: Mon, 13 Feb 2017 10:24:37 +0100
+Message-Id: <1486977877-26206-2-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1486977877-26206-1-git-send-email-p.zabel@pengutronix.de>
+References: <1486977877-26206-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel and Sebastian,
+The video output format can freely be chosen to be 24-bit SRGB or 16-bit
+YUV 4:2:2 in either SMPTE170M or REC709 color space. In all three modes
+the output can be full or limited range.
 
-On Tue, Feb 14, 2017 at 02:39:56PM +0100, Pavel Machek wrote:
-> From: Sebastian Reichel <sre@kernel.org>
-> 
-> Without this, camera support breaks boot on N900.
-> 
-> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-> ---
->  drivers/media/v4l2-core/v4l2-async.c | 54 ++++++++++++++++++------------------
->  include/media/v4l2-async.h           |  2 ++
->  2 files changed, 29 insertions(+), 27 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index 96cc733..26492a2 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -57,7 +57,6 @@ static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
->  
->  static LIST_HEAD(subdev_list);
->  static LIST_HEAD(notifier_list);
-> -static DEFINE_MUTEX(list_lock);
->  
->  static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
->  						    struct v4l2_subdev *sd)
-> @@ -102,12 +101,15 @@ static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
->  
->  	if (notifier->bound) {
->  		ret = notifier->bound(notifier, sd, asd);
-> -		if (ret < 0)
-> +		if (ret < 0) {
-> +			dev_warn(notifier->v4l2_dev->dev, "subdev bound failed\n");
->  			return ret;
-> +		}
->  	}
->  
->  	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
->  	if (ret < 0) {
-> +		dev_warn(notifier->v4l2_dev->dev, "subdev register failed\n");
->  		if (notifier->unbind)
->  			notifier->unbind(notifier, sd, asd);
->  		return ret;
-> @@ -141,7 +143,7 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
->  {
->  	struct v4l2_subdev *sd, *tmp;
->  	struct v4l2_async_subdev *asd;
-> -	int i;
-> +	int ret = 0, i;
->  
->  	if (!notifier->num_subdevs || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
->  		return -EINVAL;
-> @@ -149,6 +151,7 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
->  	notifier->v4l2_dev = v4l2_dev;
->  	INIT_LIST_HEAD(&notifier->waiting);
->  	INIT_LIST_HEAD(&notifier->done);
-> +	mutex_init(&notifier->lock);
->  
->  	for (i = 0; i < notifier->num_subdevs; i++) {
->  		asd = notifier->subdevs[i];
-> @@ -168,28 +171,22 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
->  		list_add_tail(&asd->list, &notifier->waiting);
->  	}
->  
-> -	mutex_lock(&list_lock);
-> +	/* Keep also completed notifiers on the list */
-> +	list_add(&notifier->list, &notifier_list);
-> +	mutex_lock(&notifier->lock);
->  
->  	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
-> -		int ret;
-> -
->  		asd = v4l2_async_belongs(notifier, sd);
->  		if (!asd)
->  			continue;
->  
->  		ret = v4l2_async_test_notify(notifier, sd, asd);
-> -		if (ret < 0) {
-> -			mutex_unlock(&list_lock);
-> -			return ret;
-> -		}
-> +		if (ret < 0)
-> +			break;
->  	}
-> +	mutex_unlock(&notifier->lock);
->  
-> -	/* Keep also completed notifiers on the list */
-> -	list_add(&notifier->list, &notifier_list);
-> -
-> -	mutex_unlock(&list_lock);
-> -
-> -	return 0;
-> +	return ret;
->  }
->  EXPORT_SYMBOL(v4l2_async_notifier_register);
->  
-> @@ -210,7 +207,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
->  			"Failed to allocate device cache!\n");
->  	}
->  
-> -	mutex_lock(&list_lock);
-> +	mutex_lock(&notifier->lock);
->  
->  	list_del(&notifier->list);
->  
-> @@ -237,7 +234,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
->  			put_device(d);
->  	}
->  
-> -	mutex_unlock(&list_lock);
-> +	mutex_unlock(&notifier->lock);
->  
->  	/*
->  	 * Call device_attach() to reprobe devices
-> @@ -262,6 +259,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
->  	}
->  	kfree(dev);
->  
-> +	mutex_destroy(&notifier->lock);
->  	notifier->v4l2_dev = NULL;
->  
->  	/*
-> @@ -274,6 +272,7 @@ EXPORT_SYMBOL(v4l2_async_notifier_unregister);
->  int v4l2_async_register_subdev(struct v4l2_subdev *sd)
->  {
->  	struct v4l2_async_notifier *notifier;
-> +	struct v4l2_async_notifier *tmp;
->  
->  	/*
->  	 * No reference taken. The reference is held by the device
-> @@ -283,24 +282,25 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
->  	if (!sd->of_node && sd->dev)
->  		sd->of_node = sd->dev->of_node;
->  
-> -	mutex_lock(&list_lock);
-> -
->  	INIT_LIST_HEAD(&sd->async_list);
->  
-> -	list_for_each_entry(notifier, &notifier_list, list) {
-> -		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, sd);
-> +	list_for_each_entry_safe(notifier, tmp, &notifier_list, list) {
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+Changes since v1:
+ - Determine colorspace and xfer_func from the S_V_COLOR (HDMI input
+   colorspace) bitfield. This defaults to SRGB full range if no input
+   is connected, or if the input does not send AVI infoframes (DVI).
+ - Control ycbcr_enc and quantization via VOUT_COLOR_SEL. This can be
+   set via set_fmt, with some limitations:
+ - Disallow YUV to RGB conversion, which is apparently not supported by the
+   hardware.
+ - Limit V4L2_YCBCR_ENC_601/709 encodings to limited quantization range and
+   limit V4L2_YCBCR_ENC_XV601/XV709 encodings to full quantization range
+ - Default to limited range for SRGB and Adobe RGB if quantization is not
+   set explicitly.
+---
+ drivers/media/i2c/tc358743.c      | 148 ++++++++++++++++++++++++++++++++------
+ drivers/media/i2c/tc358743_regs.h |   8 +++
+ 2 files changed, 135 insertions(+), 21 deletions(-)
 
-You still need to serialise access to the global notifier list.
-
-The _safe iterator variants allow deleting the current entry from the list
-but they do not help more than that.
-
-One possible approach could be to gather the matching async sub-devices and
-call the v4l2_async_test_notify() while not holding the notifier list mutex
-anymore.
-
-I presume the same problem is present in notifier registration.
-
-> +		struct v4l2_async_subdev *asd;
-> +
-> +		/* TODO: FIXME: if this is called by ->bound() we will also iterate over the locked notifier */
-> +		mutex_lock_nested(&notifier->lock, SINGLE_DEPTH_NESTING);
-> +		asd = v4l2_async_belongs(notifier, sd);
->  		if (asd) {
->  			int ret = v4l2_async_test_notify(notifier, sd, asd);
-> -			mutex_unlock(&list_lock);
-> +			mutex_unlock(&notifier->lock);
->  			return ret;
->  		}
-> +		mutex_unlock(&notifier->lock);
->  	}
->  
->  	/* None matched, wait for hot-plugging */
->  	list_add(&sd->async_list, &subdev_list);
->  
-> -	mutex_unlock(&list_lock);
-> -
->  	return 0;
->  }
->  EXPORT_SYMBOL(v4l2_async_register_subdev);
-> @@ -315,7 +315,7 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
->  		return;
->  	}
->  
-> -	mutex_lock(&list_lock);
-> +	mutex_lock_nested(&notifier->lock, SINGLE_DEPTH_NESTING);
->  
->  	list_add(&sd->asd->list, &notifier->waiting);
->  
-> @@ -324,6 +324,6 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
->  	if (notifier->unbind)
->  		notifier->unbind(notifier, sd, sd->asd);
->  
-> -	mutex_unlock(&list_lock);
-> +	mutex_unlock(&notifier->lock);
->  }
->  EXPORT_SYMBOL(v4l2_async_unregister_subdev);
-> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-> index 8e2a236..690a81f 100644
-> --- a/include/media/v4l2-async.h
-> +++ b/include/media/v4l2-async.h
-> @@ -84,6 +84,7 @@ struct v4l2_async_subdev {
->   * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
->   * @done:	list of struct v4l2_subdev, already probed
->   * @list:	member in a global list of notifiers
-> + * @lock:       lock hold when the notifier is being processed
->   * @bound:	a subdevice driver has successfully probed one of subdevices
->   * @complete:	all subdevices have been probed successfully
->   * @unbind:	a subdevice is leaving
-> @@ -95,6 +96,7 @@ struct v4l2_async_notifier {
->  	struct list_head waiting;
->  	struct list_head done;
->  	struct list_head list;
-> +	struct mutex lock;
->  	int (*bound)(struct v4l2_async_notifier *notifier,
->  		     struct v4l2_subdev *subdev,
->  		     struct v4l2_async_subdev *asd);
-
+diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+index 64a97bbbd00a8..9f191735be805 100644
+--- a/drivers/media/i2c/tc358743.c
++++ b/drivers/media/i2c/tc358743.c
+@@ -96,6 +96,7 @@ struct tc358743_state {
+ 
+ 	struct v4l2_dv_timings timings;
+ 	u32 mbus_fmt_code;
++	u8 vout_color_sel;
+ 	u8 csi_lanes_in_use;
+ 
+ 	struct gpio_desc *reset_gpio;
+@@ -628,7 +629,7 @@ static void tc358743_set_csi_color_space(struct v4l2_subdev *sd)
+ 				~(MASK_SEL422 | MASK_VOUT_422FIL_100) & 0xff,
+ 				MASK_SEL422 | MASK_VOUT_422FIL_100);
+ 		i2c_wr8_and_or(sd, VI_REP, ~MASK_VOUT_COLOR_SEL & 0xff,
+-				MASK_VOUT_COLOR_601_YCBCR_LIMITED);
++				state->vout_color_sel);
+ 		mutex_lock(&state->confctl_mutex);
+ 		i2c_wr16_and_or(sd, CONFCTL, ~MASK_YCBCRFMT,
+ 				MASK_YCBCRFMT_422_8_BIT);
+@@ -640,7 +641,7 @@ static void tc358743_set_csi_color_space(struct v4l2_subdev *sd)
+ 				~(MASK_SEL422 | MASK_VOUT_422FIL_100) & 0xff,
+ 				0x00);
+ 		i2c_wr8_and_or(sd, VI_REP, ~MASK_VOUT_COLOR_SEL & 0xff,
+-				MASK_VOUT_COLOR_RGB_FULL);
++				state->vout_color_sel);
+ 		mutex_lock(&state->confctl_mutex);
+ 		i2c_wr16_and_or(sd, CONFCTL, ~MASK_YCBCRFMT, 0);
+ 		mutex_unlock(&state->confctl_mutex);
+@@ -1096,11 +1097,17 @@ static int tc358743_log_status(struct v4l2_subdev *sd)
+ 	uint8_t hdmi_sys_status =  i2c_rd8(sd, SYS_STATUS);
+ 	uint16_t sysctl = i2c_rd16(sd, SYSCTL);
+ 	u8 vi_status3 =  i2c_rd8(sd, VI_STATUS3);
++	u8 vi_rep = i2c_rd8(sd, VI_REP);
+ 	const int deep_color_mode[4] = { 8, 10, 12, 16 };
+ 	static const char * const input_color_space[] = {
+ 		"RGB", "YCbCr 601", "Adobe RGB", "YCbCr 709", "NA (4)",
+ 		"xvYCC 601", "NA(6)", "xvYCC 709", "NA(8)", "sYCC601",
+ 		"NA(10)", "NA(11)", "NA(12)", "Adobe YCC 601"};
++	static const char * const output_color_space[8] = {
++		"full range (0-255)", "limited range (16-235)",
++		"Bt.601 (0-255)", "Bt.601 (16-235)",
++		"Bt.709 (0-255)", "Bt.709 (16-235)",
++		"full to limited range", "limited to full range"};
+ 
+ 	v4l2_info(sd, "-----Chip status-----\n");
+ 	v4l2_info(sd, "Chip ID: 0x%02x\n",
+@@ -1159,11 +1166,12 @@ static int tc358743_log_status(struct v4l2_subdev *sd)
+ 	v4l2_info(sd, "Stopped: %s\n",
+ 			(i2c_rd16(sd, CSI_STATUS) & MASK_S_HLT) ?
+ 			"yes" : "no");
+-	v4l2_info(sd, "Color space: %s\n",
++	v4l2_info(sd, "Color space: %s %s\n",
+ 			state->mbus_fmt_code == MEDIA_BUS_FMT_UYVY8_1X16 ?
+ 			"YCbCr 422 16-bit" :
+ 			state->mbus_fmt_code == MEDIA_BUS_FMT_RGB888_1X24 ?
+-			"RGB 888 24-bit" : "Unsupported");
++			"RGB 888 24-bit" : "Unsupported",
++			output_color_space[(vi_rep & MASK_VOUT_COLOR_SEL) >> 5]);
+ 
+ 	v4l2_info(sd, "-----%s status-----\n", is_hdmi(sd) ? "HDMI" : "DVI-D");
+ 	v4l2_info(sd, "HDCP encrypted content: %s\n",
+@@ -1469,38 +1477,88 @@ static int tc358743_s_stream(struct v4l2_subdev *sd, int enable)
+ 
+ /* --------------- PAD OPS --------------- */
+ 
+-static int tc358743_get_fmt(struct v4l2_subdev *sd,
+-		struct v4l2_subdev_pad_config *cfg,
+-		struct v4l2_subdev_format *format)
++static void tc358743_get_csi_color_space(struct v4l2_subdev *sd,
++					 struct v4l2_mbus_framefmt *format)
+ {
+-	struct tc358743_state *state = to_state(sd);
++	u8 vi_status3 = i2c_rd8(sd, VI_STATUS3);
+ 	u8 vi_rep = i2c_rd8(sd, VI_REP);
+ 
+-	if (format->pad != 0)
+-		return -EINVAL;
++	switch (vi_status3 & MASK_S_V_COLOR) {
++	default:
++	case MASK_S_V_COLOR_RGB:
++	case MASK_S_V_COLOR_SYCC601:
++		format->colorspace = V4L2_COLORSPACE_SRGB;
++		format->xfer_func = V4L2_XFER_FUNC_SRGB;
++		break;
++	case MASK_S_V_COLOR_YCBCR601:
++	case MASK_S_V_COLOR_XVYCC601:
++		format->colorspace = V4L2_COLORSPACE_SMPTE170M;
++		format->xfer_func = V4L2_XFER_FUNC_709;
++		break;
++	case MASK_S_V_COLOR_YCBCR709:
++	case MASK_S_V_COLOR_XVYCC709:
++		format->colorspace = V4L2_COLORSPACE_REC709;
++		format->xfer_func = V4L2_XFER_FUNC_709;
++		break;
++	case MASK_S_V_COLOR_ADOBERGB:
++	case MASK_S_V_COLOR_ADOBEYCC601:
++		format->colorspace = V4L2_COLORSPACE_ADOBERGB;
++		format->xfer_func = V4L2_XFER_FUNC_ADOBERGB;
++		break;
++	}
+ 
+-	format->format.code = state->mbus_fmt_code;
+-	format->format.width = state->timings.bt.width;
+-	format->format.height = state->timings.bt.height;
+-	format->format.field = V4L2_FIELD_NONE;
++	format->ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(format->colorspace);
+ 
+ 	switch (vi_rep & MASK_VOUT_COLOR_SEL) {
++	default:
+ 	case MASK_VOUT_COLOR_RGB_FULL:
++		format->ycbcr_enc = V4L2_YCBCR_ENC_601;
++		format->quantization = V4L2_QUANTIZATION_FULL_RANGE;
++		break;
+ 	case MASK_VOUT_COLOR_RGB_LIMITED:
+-		format->format.colorspace = V4L2_COLORSPACE_SRGB;
++		format->ycbcr_enc = V4L2_YCBCR_ENC_601;
++		format->quantization = V4L2_QUANTIZATION_LIM_RANGE;
+ 		break;
+ 	case MASK_VOUT_COLOR_601_YCBCR_LIMITED:
++		format->ycbcr_enc = V4L2_YCBCR_ENC_601;
++		format->quantization = V4L2_QUANTIZATION_LIM_RANGE;
++		break;
+ 	case MASK_VOUT_COLOR_601_YCBCR_FULL:
+-		format->format.colorspace = V4L2_COLORSPACE_SMPTE170M;
++		format->ycbcr_enc = V4L2_YCBCR_ENC_XV601;
++		format->quantization = V4L2_QUANTIZATION_FULL_RANGE;
+ 		break;
+ 	case MASK_VOUT_COLOR_709_YCBCR_FULL:
++		format->ycbcr_enc = V4L2_YCBCR_ENC_XV709;
++		format->quantization = V4L2_QUANTIZATION_FULL_RANGE;
++		break;
+ 	case MASK_VOUT_COLOR_709_YCBCR_LIMITED:
+-		format->format.colorspace = V4L2_COLORSPACE_REC709;
++		format->ycbcr_enc = V4L2_YCBCR_ENC_709;
++		format->quantization = V4L2_QUANTIZATION_LIM_RANGE;
+ 		break;
+-	default:
+-		format->format.colorspace = 0;
++	case MASK_VOUT_COLOR_FULL_TO_LIMITED:
++		format->quantization = V4L2_QUANTIZATION_LIM_RANGE;
++		break;
++	case MASK_VOUT_COLOR_LIMITED_TO_FULL:
++		format->quantization = V4L2_QUANTIZATION_FULL_RANGE;
+ 		break;
+ 	}
++}
++
++static int tc358743_get_fmt(struct v4l2_subdev *sd,
++		struct v4l2_subdev_pad_config *cfg,
++		struct v4l2_subdev_format *format)
++{
++	struct tc358743_state *state = to_state(sd);
++
++	if (format->pad != 0)
++		return -EINVAL;
++
++	format->format.code = state->mbus_fmt_code;
++	format->format.width = state->timings.bt.width;
++	format->format.height = state->timings.bt.height;
++	format->format.field = V4L2_FIELD_NONE;
++
++	tc358743_get_csi_color_space(sd, &format->format);
+ 
+ 	return 0;
+ }
+@@ -1512,25 +1570,72 @@ static int tc358743_set_fmt(struct v4l2_subdev *sd,
+ 	struct tc358743_state *state = to_state(sd);
+ 
+ 	u32 code = format->format.code; /* is overwritten by get_fmt */
++	enum v4l2_ycbcr_encoding ycbcr_enc = format->format.ycbcr_enc;
++	enum v4l2_quantization quantization = format->format.quantization;
+ 	int ret = tc358743_get_fmt(sd, cfg, format);
+-
+-	format->format.code = code;
++	enum v4l2_colorspace colorspace;
++	u8 vout_color_sel;
+ 
+ 	if (ret)
+ 		return ret;
+ 
++	colorspace = format->format.colorspace;
++
+ 	switch (code) {
+ 	case MEDIA_BUS_FMT_RGB888_1X24:
++		if (colorspace == V4L2_COLORSPACE_SRGB ||
++		    colorspace == V4L2_COLORSPACE_ADOBERGB) {
++			ycbcr_enc = V4L2_YCBCR_ENC_601;
++			if (quantization == V4L2_QUANTIZATION_FULL_RANGE) {
++				vout_color_sel = MASK_VOUT_COLOR_RGB_FULL;
++			} else {
++				quantization = V4L2_QUANTIZATION_LIM_RANGE;
++				vout_color_sel = MASK_VOUT_COLOR_RGB_LIMITED;
++			}
++			break;
++		}
++		/*
++		 * Since color space conversion to RGB is not supported,
++		 * fall through for YUV input.
++		 */
++		code = MEDIA_BUS_FMT_UYVY8_1X16;
+ 	case MEDIA_BUS_FMT_UYVY8_1X16:
++		if (ycbcr_enc == V4L2_YCBCR_ENC_DEFAULT)
++			ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(colorspace);
++		switch (ycbcr_enc) {
++		case V4L2_YCBCR_ENC_601:
++			quantization = V4L2_QUANTIZATION_LIM_RANGE;
++			vout_color_sel = MASK_VOUT_COLOR_601_YCBCR_LIMITED;
++			break;
++		case V4L2_YCBCR_ENC_709:
++			quantization = V4L2_QUANTIZATION_LIM_RANGE;
++			vout_color_sel = MASK_VOUT_COLOR_709_YCBCR_LIMITED;
++			break;
++		case V4L2_YCBCR_ENC_XV601:
++			quantization = V4L2_QUANTIZATION_FULL_RANGE;
++			vout_color_sel = MASK_VOUT_COLOR_601_YCBCR_FULL;
++			break;
++		case V4L2_YCBCR_ENC_XV709:
++			quantization = V4L2_QUANTIZATION_FULL_RANGE;
++			vout_color_sel = MASK_VOUT_COLOR_709_YCBCR_FULL;
++			break;
++		default:
++			return -EINVAL;
++		}
+ 		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+ 
++	format->format.code = code;
++	format->format.ycbcr_enc = ycbcr_enc;
++	format->format.quantization = quantization;
++
+ 	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
+ 		return 0;
+ 
+ 	state->mbus_fmt_code = format->format.code;
++	state->vout_color_sel = vout_color_sel;
+ 
+ 	enable_stream(sd, false);
+ 	tc358743_set_pll(sd);
+@@ -1898,6 +2003,7 @@ static int tc358743_probe(struct i2c_client *client,
+ 	tc358743_s_dv_timings(sd, &default_timing);
+ 
+ 	state->mbus_fmt_code = MEDIA_BUS_FMT_RGB888_1X24;
++	state->vout_color_sel = MASK_VOUT_COLOR_RGB_FULL;
+ 	tc358743_set_csi_color_space(sd);
+ 
+ 	tc358743_init_interrupts(sd);
+diff --git a/drivers/media/i2c/tc358743_regs.h b/drivers/media/i2c/tc358743_regs.h
+index 657ef50f215f5..8dae3d34c6270 100644
+--- a/drivers/media/i2c/tc358743_regs.h
++++ b/drivers/media/i2c/tc358743_regs.h
+@@ -337,6 +337,14 @@
+ 
+ #define VI_STATUS3                            0x8528
+ #define MASK_S_V_COLOR                        0x1e
++#define MASK_S_V_COLOR_RGB                    0x00
++#define MASK_S_V_COLOR_YCBCR601               0x02
++#define MASK_S_V_COLOR_YCBCR709               0x06
++#define MASK_S_V_COLOR_ADOBERGB               0x04
++#define MASK_S_V_COLOR_XVYCC601               0x0a
++#define MASK_S_V_COLOR_XVYCC709               0x0e
++#define MASK_S_V_COLOR_SYCC601                0x12
++#define MASK_S_V_COLOR_ADOBEYCC601            0x1a
+ #define MASK_LIMITED                          0x01
+ 
+ #define PHY_CTL0                              0x8531
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.11.0
