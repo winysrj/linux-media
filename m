@@ -1,67 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:33892 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753317AbdBKLYw (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36171
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752144AbdBMTIz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Feb 2017 06:24:52 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH for v4.10] cec: initiator should be the same as the
- destination for, poll
-Message-ID: <cd914a2a-9156-d3a9-066a-94383bcbf731@xs4all.nl>
-Date: Sat, 11 Feb 2017 12:24:46 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+        Mon, 13 Feb 2017 14:08:55 -0500
+From: Thibault Saunier <thibault.saunier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Thibault Saunier <thibault.saunier@osg.samsung.com>,
+        linux-arm-kernel@lists.infradead.org,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Kamil Debski <kamil@wypas.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v4 0/4] Fixes for colorspace logic in exynos-gsc and s5p-mfc drivers
+Date: Mon, 13 Feb 2017 16:08:32 -0300
+Message-Id: <20170213190836.26972-1-thibault.saunier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Poll messages that are used to allocate a logical address should
-use the same initiator as the destination. Instead, it expected that
-the initiator was 0xf which is not according to the standard.
+Hello,
 
-This also had consequences for the message checks in cec_transmit_msg_fh
-that incorrectly rejected poll messages with the same initiator and
-destination.
+This patchset fixes a few issues on the colorspace logic for the exynos-gsc
+and s5p-mfc drivers.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: <stable@vger.kernel.org>      # for v4.10
----
- drivers/media/cec/cec-adap.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+We now handle the colorspace in those drivers, and make sure to respect user setting if
+possible.
 
-diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
-index ebb5e391b800..289767a1f031 100644
---- a/drivers/media/cec/cec-adap.c
-+++ b/drivers/media/cec/cec-adap.c
-@@ -612,8 +612,7 @@ int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
- 	}
- 	memset(msg->msg + msg->len, 0, sizeof(msg->msg) - msg->len);
- 	if (msg->len == 1) {
--		if (cec_msg_initiator(msg) != 0xf ||
--		    cec_msg_destination(msg) == 0xf) {
-+		if (cec_msg_destination(msg) == 0xf) {
- 			dprintk(1, "cec_transmit_msg: invalid poll message\n");
- 			return -EINVAL;
- 		}
-@@ -638,7 +637,7 @@ int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
- 		dprintk(1, "cec_transmit_msg: destination is the adapter itself\n");
- 		return -EINVAL;
- 	}
--	if (cec_msg_initiator(msg) != 0xf &&
-+	if (msg->len > 1 && adap->is_configured &&
- 	    !cec_has_log_addr(adap, cec_msg_initiator(msg))) {
- 		dprintk(1, "cec_transmit_msg: initiator has unknown logical address %d\n",
- 			cec_msg_initiator(msg));
-@@ -1072,7 +1071,7 @@ static int cec_config_log_addr(struct cec_adapter *adap,
+We also now set the 'v4l2_pix_format:field' if userspace passed ANY, avoiding GStreamer
+spamming error at us about the driver not following the standard.
 
- 	/* Send poll message */
- 	msg.len = 1;
--	msg.msg[0] = 0xf0 | log_addr;
-+	msg.msg[0] = (log_addr << 4) | log_addr;
- 	err = cec_transmit_msg_fh(adap, &msg, NULL, true);
+This is the third version of the patch serie.
 
- 	/*
+Best regards,
+
+Thibault Saunier
+
+Changes in v4:
+- Reword commit message to better back our assumptions on specifications
+- Use any colorspace provided by the user as it won't affect the way we
+  handle our operations (guessing it if none is provided)
+- Always use output colorspace on the capture side
+- Set the colorspace only if the user passed V4L2_COLORSPACE_DEFAULT, in
+  all other cases just use what userspace provided.
+
+Changes in v3:
+- Added 'Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>'
+- Set colorspace if user passed V4L2_COLORSPACE_DEFAULT in
+- Do not check values in the g_fmt functions as Andrzej explained in previous review
+
+Changes in v2:
+- Fix a silly build error that slipped in while rebasing the patches
+
+Javier Martinez Canillas (1):
+  [media] exynos-gsc: Use 576p instead 720p as a threshold for
+    colorspaces
+
+Thibault Saunier (3):
+  [media] exynos-gsc: Respect userspace colorspace setting in try_fmt
+  [media] s5p-mfc: Set colorspace in VIDIO_{G,TRY}_FMT if DEFAULT
+    provided
+  [media] s5p-mfc: Check and set 'v4l2_pix_format:field' field in
+    try_fmt
+
+ drivers/media/platform/exynos-gsc/gsc-core.c | 20 +++++++++++++++-----
+ drivers/media/platform/exynos-gsc/gsc-core.h |  1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 28 ++++++++++++++++++++++++++++
+ 3 files changed, 44 insertions(+), 5 deletions(-)
+
 -- 
-2.11.0
-
+2.11.1
