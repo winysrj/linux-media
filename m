@@ -1,76 +1,255 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:35512 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751990AbdBJABI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Feb 2017 19:01:08 -0500
-Subject: Re: [PATCH v3 21/24] media: imx: Add MIPI CSI-2 Receiver subdev
- driver
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
- <1483755102-24785-22-git-send-email-steve_longerbeam@mentor.com>
- <1486036237.2289.37.camel@pengutronix.de>
- <ca0a2eb3-21b6-d312-c8e0-61da48c4c700@gmail.com>
- <20170208234235.GA27312@n2100.armlinux.org.uk>
- <d6dba77e-902c-7a4c-cc70-fe3a5c9649bb@gmail.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <e9076980-ce84-f9ee-096d-865243b82a9e@gmail.com>
-Date: Thu, 9 Feb 2017 15:51:47 -0800
-MIME-Version: 1.0
-In-Reply-To: <d6dba77e-902c-7a4c-cc70-fe3a5c9649bb@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f52.google.com ([74.125.82.52]:38429 "EHLO
+        mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752361AbdBMOpY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Feb 2017 09:45:24 -0500
+Received: by mail-wm0-f52.google.com with SMTP id r141so95729384wmg.1
+        for <linux-media@vger.kernel.org>; Mon, 13 Feb 2017 06:45:23 -0800 (PST)
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+To: linaro-kernel@lists.linaro.org, arnd@arndb.de, labbott@redhat.com,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, daniel.vetter@ffwll.ch,
+        laurent.pinchart@ideasonboard.com, robdclark@gmail.com,
+        akpm@linux-foundation.org, hverkuil@xs4all.nl
+Cc: broonie@kernel.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [RFC simple allocator v2 2/2] add CMA simple allocator module
+Date: Mon, 13 Feb 2017 15:45:06 +0100
+Message-Id: <1486997106-23277-3-git-send-email-benjamin.gaignard@linaro.org>
+In-Reply-To: <1486997106-23277-1-git-send-email-benjamin.gaignard@linaro.org>
+References: <1486997106-23277-1-git-send-email-benjamin.gaignard@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch add simple allocator for CMA regions.
 
+version 2:
+- fix size and page count computation
 
-On 02/09/2017 03:49 PM, Steve Longerbeam wrote:
->
->
-> On 02/08/2017 03:42 PM, Russell King - ARM Linux wrote:
->> On Wed, Feb 08, 2017 at 03:23:53PM -0800, Steve Longerbeam wrote:
->>>> Actually, this exact function already exists as 
->>>> dw_mipi_dsi_phy_write in
->>>> drivers/gpu/drm/rockchip/dw-mipi-dsi.c, and it looks like the D-PHY
->>>> register 0x44 might contain a field called HSFREQRANGE_SEL.
->>> Thanks for pointing out drivers/gpu/drm/rockchip/dw-mipi-dsi.c.
->>> It's clear from that driver that there probably needs to be a fuller
->>> treatment of the D-PHY programming here, but I don't know where
->>> to find the MIPI CSI-2 D-PHY documentation for the i.MX6. The code
->>> in imxcsi2_reset() was also pulled from FSL, and that's all I really 
->>> have
->>> to go on for the D-PHY programming. I assume the D-PHY is also a
->>> Synopsys core, like the host controller, but the i.MX6 manual doesn't
->>> cover it.
->> Why exactly?  What problems are you seeing that would necessitate a
->> more detailed programming of the D-PHY?  From my testing, I can wind
->> a 2-lane MIPI bus on iMX6D from 912Mbps per lane down to (eg) 308Mbps
->> per lane with your existing code without any issues.
->
-> That's good to hear.
->
-> Just from my experience with struggles to get the CSI2 receiver
-> up and running with an active clock lane, and my suspicions that
-> some of that could be due to my lack of understanding of the D-PHY
-> programming.
+Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+---
+ drivers/simpleallocator/Kconfig                |   7 +
+ drivers/simpleallocator/Makefile               |   1 +
+ drivers/simpleallocator/simple-allocator-cma.c | 187 +++++++++++++++++++++++++
+ 3 files changed, 195 insertions(+)
+ create mode 100644 drivers/simpleallocator/simple-allocator-cma.c
 
-But I should add that after a re-org of the sequence, it looks more stable
-now. Tested on both the SabreSD and SabreLite with the OV5640.
-
-Steve
-
-
+diff --git a/drivers/simpleallocator/Kconfig b/drivers/simpleallocator/Kconfig
+index c6fc2e3..788fb0b 100644
+--- a/drivers/simpleallocator/Kconfig
++++ b/drivers/simpleallocator/Kconfig
+@@ -7,4 +7,11 @@ config SIMPLE_ALLOCATOR
+ 	   The Simple Allocator Framework adds an API to allocate and share
+ 	   memory in userland.
+ 
++config SIMPLE_ALLOCATOR_CMA
++	tristate "Simple Allocator CMA"
++	select SIMPLE_ALLOCATOR
++	depends on DMA_CMA
++	---help---
++	   Select this option to enable Simple Allocator on CMA area.
++
+ endmenu
+diff --git a/drivers/simpleallocator/Makefile b/drivers/simpleallocator/Makefile
+index e27c6ad..4e11611 100644
+--- a/drivers/simpleallocator/Makefile
++++ b/drivers/simpleallocator/Makefile
+@@ -1 +1,2 @@
+ obj-$(CONFIG_SIMPLE_ALLOCATOR) += simple-allocator.o
++obj-$(CONFIG_SIMPLE_ALLOCATOR_CMA) += simple-allocator-cma.o
+diff --git a/drivers/simpleallocator/simple-allocator-cma.c b/drivers/simpleallocator/simple-allocator-cma.c
+new file mode 100644
+index 0000000..07cbf5b
+--- /dev/null
++++ b/drivers/simpleallocator/simple-allocator-cma.c
+@@ -0,0 +1,187 @@
++/*
++ * Copyright (C) Linaro 2017
++ *
++ * Author: Benjamin Gaignard <benjamin.gaignard@linaro.org>
++ *
++ * License terms:  GNU General Public License (GPL)
++ */
++
++#include <linux/cma.h>
++#include <linux/module.h>
++#include <linux/slab.h>
++
++#include "simple-allocator-priv.h"
++#include "../mm/cma.h"
++
++struct sa_cma_device {
++	struct sa_device parent;
++	struct cma *cma;
++};
++
++struct sa_cma_buffer_info {
++	void *vaddr;
++	size_t count;
++	size_t size;
++	struct page *pages;
++	struct sa_cma_device *sa_cma;
++};
++
++static struct sa_cma_device *sa_cma[MAX_CMA_AREAS];
++
++static inline struct sa_cma_device *to_sa_cma(struct sa_device *sadev)
++{
++	return container_of(sadev, struct sa_cma_device, parent);
++}
++
++static struct sg_table *sa_cma_map_dma_buf(struct dma_buf_attachment *attach,
++					   enum dma_data_direction direction)
++{
++	struct dma_buf *dmabuf = attach->dmabuf;
++	struct sa_cma_buffer_info *info = dmabuf->priv;
++	struct sg_table *sgt;
++	int ret;
++
++	ret = sg_alloc_table(sgt, 1, GFP_KERNEL);
++	if (unlikely(ret))
++		return NULL;
++
++	sg_set_page(sgt->sgl, info->pages, info->size, 0);
++	sg_dma_address(sgt->sgl) = (dma_addr_t) page_address(info->pages);
++	sg_dma_len(sgt->sgl) = info->size;
++
++	return sgt;
++}
++
++static void sa_cma_unmap_dma_buf(struct dma_buf_attachment *attach,
++				 struct sg_table *sgt,
++				 enum dma_data_direction dir)
++{
++	kfree(sgt);
++}
++
++static int sa_cma_mmap_dma_buf(struct dma_buf *dmabuf,
++			       struct vm_area_struct *vma)
++{
++	struct sa_cma_buffer_info *info = dmabuf->priv;
++	unsigned long user_count = vma_pages(vma);
++	unsigned long count = info->count;
++	unsigned long pfn = page_to_pfn(info->pages);
++	unsigned long off = vma->vm_pgoff;
++	int ret = -ENXIO;
++
++	if (off < count && user_count <= (count - off)) {
++		ret = remap_pfn_range(vma, vma->vm_start,
++				      pfn + off,
++				      user_count << PAGE_SHIFT,
++				      vma->vm_page_prot);
++	}
++
++	return ret;
++}
++
++static void sa_cma_release_dma_buf(struct dma_buf *dmabuf)
++{
++	struct sa_cma_buffer_info *info = dmabuf->priv;
++
++	cma_release(info->sa_cma->cma, info->pages, info->count);
++
++	kfree(info);
++}
++
++static void *sa_cma_kmap_dma_buf(struct dma_buf *dmabuf, unsigned long offset)
++{
++	struct sa_cma_buffer_info *info = dmabuf->priv;
++
++	return page_address(info->pages) + offset;
++}
++
++static struct dma_buf_ops sa_dma_buf_ops = {
++	.map_dma_buf = sa_cma_map_dma_buf,
++	.unmap_dma_buf = sa_cma_unmap_dma_buf,
++	.mmap = sa_cma_mmap_dma_buf,
++	.release = sa_cma_release_dma_buf,
++	.kmap_atomic = sa_cma_kmap_dma_buf,
++	.kmap = sa_cma_kmap_dma_buf,
++};
++
++static struct dma_buf *sa_cma_allocate(struct sa_device *sadev,
++				       u64 length, u32 flags)
++{
++	DEFINE_DMA_BUF_EXPORT_INFO(exp_info);
++	struct sa_cma_buffer_info *info;
++	struct dma_buf *dmabuf;
++
++	info = kzalloc(sizeof(*info), GFP_KERNEL);
++	if (!info)
++		return NULL;
++
++	info->size = round_up(length, PAGE_SIZE);
++	info->count = PAGE_ALIGN(info->size) >> PAGE_SHIFT;
++	info->sa_cma = to_sa_cma(sadev);
++
++	info->pages = cma_alloc(info->sa_cma->cma, info->count, 0);
++
++	if (!info->pages)
++		goto cleanup;
++
++	exp_info.ops = &sa_dma_buf_ops;
++	exp_info.size = info->size;
++	exp_info.flags = flags;
++	exp_info.priv = info;
++
++	dmabuf = dma_buf_export(&exp_info);
++	if (IS_ERR(dmabuf))
++		goto export_failed;
++
++	return dmabuf;
++
++export_failed:
++	cma_release(info->sa_cma->cma, info->pages, info->count);
++cleanup:
++	kfree(info);
++	return NULL;
++}
++
++struct sa_cma_device *simple_allocator_register_cma(struct cma *cma)
++{
++	struct sa_cma_device *sa_cma;
++	int ret;
++
++	sa_cma = kzalloc(sizeof(*sa_cma), GFP_KERNEL);
++	if (!sa_cma)
++		return NULL;
++
++	sa_cma->cma = cma;
++	sa_cma->parent.owner = THIS_MODULE;
++	sa_cma->parent.name = "cma";
++	sa_cma->parent.allocate = sa_cma_allocate;
++
++	ret = simple_allocator_register(&sa_cma->parent);
++	if (ret) {
++		kfree(sa_cma);
++		return NULL;
++	}
++
++	return sa_cma;
++}
++
++static int __init sa_cma_init(void)
++{
++	int i;
++
++	for (i = 0; i < cma_area_count; i++)
++		sa_cma[i] = simple_allocator_register_cma(&cma_areas[i]);
++
++	return 0;
++}
++
++static void __exit sa_cma_exit(void)
++{
++	int i;
++
++	for (i = 0; i < cma_area_count; i++)
++		simple_allocator_unregister(&sa_cma[i]->parent);
++}
++
++module_init(sa_cma_init);
++module_exit(sa_cma_exit);
+-- 
+1.9.1
