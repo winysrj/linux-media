@@ -1,123 +1,511 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.horus.com ([78.46.148.228]:47002 "EHLO mail.horus.com"
+Received: from mga02.intel.com ([134.134.136.20]:20415 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753345AbdBUWw2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Feb 2017 17:52:28 -0500
-Date: Tue, 21 Feb 2017 23:52:24 +0100
-From: Matthias Reichl <hias@horus.com>
-To: Sean Young <sean@mess.org>
-Cc: Heiner Kallweit <hkallweit1@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: Re: Bug: decoders referenced in kernel rc-keymaps not loaded on boot
-Message-ID: <20170221225224.GA5099@camel2.lan>
-References: <20170221184929.GA2590@camel2.lan>
- <20170221193438.GA4394@gofer.mess.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170221193438.GA4394@gofer.mess.org>
+        id S1752317AbdBMNag (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Feb 2017 08:30:36 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Subject: [PATCH 8/8] v4l: Remove V4L2 OF framework in favour of V4L2 fwnode framework
+Date: Mon, 13 Feb 2017 15:28:16 +0200
+Message-Id: <1486992496-21078-9-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1486992496-21078-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1486992496-21078-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 21, 2017 at 07:34:39PM +0000, Sean Young wrote:
-> On Tue, Feb 21, 2017 at 07:49:29PM +0100, Matthias Reichl wrote:
-> > There seems to be a bug in on-demand loading of IR protocol decoders.
-> > 
-> > After bootup the protocol referenced in the in-kernel rc keymap shows
-> > up as enabled (in sysfs and ir-keytable) but the protocol decoder
-> > is not loaded and thus no rc input events will be generated.
-> > 
-> > For example, RPi3 with kernel 4.10 and gpio-ir-recv configured to use
-> > the rc-hauppauge keymap in devicetree:
-> > 
-> > # lsmod | grep '^\(ir\|rc_\)'
-> > ir_lirc_codec           5590  0
-> > rc_hauppauge            2422  0
-> > rc_core                24320  5 rc_hauppauge,ir_lirc_codec,lirc_dev,gpio_ir_recv
-> > 
-> > # cat /sys/class/rc/rc0/protocols
-> > other unknown [rc-5] nec rc-6 jvc sony rc-5-sz sanyo sharp mce_kbd xmp cec [lirc]
-> > 
-> > # dmesg | grep "IR "
-> > [    4.506728] Registered IR keymap rc-hauppauge
-> > [    4.554651] lirc_dev: IR Remote Control driver registered, major 242
-> > [    4.576490] IR LIRC bridge handler initialized
-> > 
-> > The same happens with other IR receivers, eg the streamzap receiver,
-> > which uses the rc-5-sz protocol / ir_rc5_decoder, on x86.
-> > 
-> > Reverting the on-demand-loading patches
-> > 
-> > [media] media: rc: remove unneeded code
-> > commit c1500ba0b61e9abf95e0e7ecd3c4ad877f019abe
-> > 
-> > [media] media: rc: move check whether a protocol is enabled to the core
-> > commit d80ca8bd71f0b01b2b12459189927cb3299cfab9
-> > 
-> > [media] media: rc: load decoder modules on-demand
-> > commit acc1c3c688ed8cc862ddc007eab0dcef839f4ec8
-> > 
-> > restores the previous behaviour, all decoders are enabled and IR
-> > events can be generated immediately after boot without having to
-> > manually trigger loading of a protocol decoder.
-> 
-> Hmm this seems to be working fine for me. If you write to the protocols
-> file, eg. "echo +nec > /sys/class/rc/rc0/protocols", is ir-nec-decoder
-> loaded and do you get any messages in dmesg (you should).
-> 
-> What's your config?
+All drivers have been converted from V4L2 OF to V4L2 fwnode. The V4L2 OF
+framework is now unused. Remove it.
 
-When I do an "echo +nec > /sys/class/rc/rc0/protocols" it triggers
-the load of both rc5 and nec decoder modules:
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/Makefile  |   3 -
+ drivers/media/v4l2-core/v4l2-of.c | 327 --------------------------------------
+ include/media/v4l2-of.h           | 128 ---------------
+ 3 files changed, 458 deletions(-)
+ delete mode 100644 drivers/media/v4l2-core/v4l2-of.c
+ delete mode 100644 include/media/v4l2-of.h
 
-root@rpi3:~# cat /sys/class/rc/rc0/protocols
-other unknown [rc-5] nec rc-6 jvc sony rc-5-sz sanyo sharp mce_kbd xmp cec [lirc]
-root@rpi3:~# echo +nec > /sys/class/rc/rc0/protocols
-root@rpi3:~# cat /sys/class/rc/rc0/protocols
-other unknown [rc-5] [nec] rc-6 jvc sony rc-5-sz sanyo sharp mce_kbd xmp cec [lirc]
-root@rpi3:~# dmesg | grep "IR "
-[    3.565061] Registered IR keymap rc-hauppauge
-[    3.613031] lirc_dev: IR Remote Control driver registered, major 242
-[    3.641423] IR LIRC bridge handler initialized
-[   41.877263] IR RC5(x/sz) protocol handler initialized
-[   41.931575] IR NEC protocol handler initialized
-
-I'm currently testing with downstream RPi kernel 4.9 on Raspbian Jessie
-(a Debian derivate).
-
-Kernel config is here:
-https://github.com/raspberrypi/linux/blob/rpi-4.9.y/arch/arm/configs/bcm2709_defconfig
-
-To reproduce the issue it's important to disable the udev rule that
-runs ir-keytable -a as that can trigger a load of the kernel keytable
-via the userspace keymap/protocol.
-
-We ran accross the issue via a bugreport from a LibreELEC user,
-his streamzap remote wasn't working anymore on x86 in the beta
-releases:
-https://forum.libreelec.tv/thread-4873.html
-
-Kernel-config for LibreELEC x86 is here:
-https://github.com/LibreELEC/LibreELEC.tv/blob/libreelec-8.0/projects/Generic/linux/linux.x86_64.conf
-
-Our analysis (I hope it's not completely off) is about this:
-
-In the previous version (with kernel 4.4) it worked because
-the kernel loaded the keymap and protocol decoders. The udev
-rule probably failed as ir-keytable -a couldn't cope with the RC5_SZ
-protocol - but that went unnoticed as everything was setup fine
-by the kernel.
-
-In current beta (with kernel 4.9) the kernel only loaded the
-keymap but didn't enable the decoder. Since ir-keytable -a again
-failed to setup the protocol the user was left with a non-functioning
-remote.
-
-I then could reproduce this on RPi with Raspbian and LibreELEC
-using gpio-ir-recv. With udev/ir-keytable -a working the protocol
-decoder is loaded, without that it isn't.
-
-so long,
-
-Hias
+diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
+index cf77a63..098ad5f 100644
+--- a/drivers/media/v4l2-core/Makefile
++++ b/drivers/media/v4l2-core/Makefile
+@@ -10,9 +10,6 @@ videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
+ ifeq ($(CONFIG_COMPAT),y)
+   videodev-objs += v4l2-compat-ioctl32.o
+ endif
+-ifeq ($(CONFIG_OF),y)
+-  videodev-objs += v4l2-of.o
+-endif
+ obj-$(CONFIG_V4L2_FWNODE) += v4l2-fwnode.o
+ ifeq ($(CONFIG_TRACEPOINTS),y)
+   videodev-objs += vb2-trace.o v4l2-trace.o
+diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
+deleted file mode 100644
+index 4f59f44..0000000
+--- a/drivers/media/v4l2-core/v4l2-of.c
++++ /dev/null
+@@ -1,327 +0,0 @@
+-/*
+- * V4L2 OF binding parsing library
+- *
+- * Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
+- * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
+- *
+- * Copyright (C) 2012 Renesas Electronics Corp.
+- * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of version 2 of the GNU General Public License as
+- * published by the Free Software Foundation.
+- */
+-#include <linux/kernel.h>
+-#include <linux/module.h>
+-#include <linux/of.h>
+-#include <linux/slab.h>
+-#include <linux/string.h>
+-#include <linux/types.h>
+-
+-#include <media/v4l2-of.h>
+-
+-static int v4l2_of_parse_csi_bus(const struct device_node *node,
+-				 struct v4l2_of_endpoint *endpoint)
+-{
+-	struct v4l2_of_bus_mipi_csi2 *bus = &endpoint->bus.mipi_csi2;
+-	struct property *prop;
+-	bool have_clk_lane = false;
+-	unsigned int flags = 0, lanes_used = 0;
+-	u32 v;
+-
+-	prop = of_find_property(node, "data-lanes", NULL);
+-	if (prop) {
+-		const __be32 *lane = NULL;
+-		unsigned int i;
+-
+-		for (i = 0; i < ARRAY_SIZE(bus->data_lanes); i++) {
+-			lane = of_prop_next_u32(prop, lane, &v);
+-			if (!lane)
+-				break;
+-
+-			if (lanes_used & BIT(v))
+-				pr_warn("%s: duplicated lane %u in data-lanes\n",
+-					node->full_name, v);
+-			lanes_used |= BIT(v);
+-
+-			bus->data_lanes[i] = v;
+-		}
+-		bus->num_data_lanes = i;
+-	}
+-
+-	prop = of_find_property(node, "lane-polarities", NULL);
+-	if (prop) {
+-		const __be32 *polarity = NULL;
+-		unsigned int i;
+-
+-		for (i = 0; i < ARRAY_SIZE(bus->lane_polarities); i++) {
+-			polarity = of_prop_next_u32(prop, polarity, &v);
+-			if (!polarity)
+-				break;
+-			bus->lane_polarities[i] = v;
+-		}
+-
+-		if (i < 1 + bus->num_data_lanes /* clock + data */) {
+-			pr_warn("%s: too few lane-polarities entries (need %u, got %u)\n",
+-				node->full_name, 1 + bus->num_data_lanes, i);
+-			return -EINVAL;
+-		}
+-	}
+-
+-	if (!of_property_read_u32(node, "clock-lanes", &v)) {
+-		if (lanes_used & BIT(v))
+-			pr_warn("%s: duplicated lane %u in clock-lanes\n",
+-				node->full_name, v);
+-		lanes_used |= BIT(v);
+-
+-		bus->clock_lane = v;
+-		have_clk_lane = true;
+-	}
+-
+-	if (of_get_property(node, "clock-noncontinuous", &v))
+-		flags |= V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK;
+-	else if (have_clk_lane || bus->num_data_lanes > 0)
+-		flags |= V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
+-
+-	bus->flags = flags;
+-	endpoint->bus_type = V4L2_MBUS_CSI2;
+-
+-	return 0;
+-}
+-
+-static void v4l2_of_parse_parallel_bus(const struct device_node *node,
+-				       struct v4l2_of_endpoint *endpoint)
+-{
+-	struct v4l2_of_bus_parallel *bus = &endpoint->bus.parallel;
+-	unsigned int flags = 0;
+-	u32 v;
+-
+-	if (!of_property_read_u32(node, "hsync-active", &v))
+-		flags |= v ? V4L2_MBUS_HSYNC_ACTIVE_HIGH :
+-			V4L2_MBUS_HSYNC_ACTIVE_LOW;
+-
+-	if (!of_property_read_u32(node, "vsync-active", &v))
+-		flags |= v ? V4L2_MBUS_VSYNC_ACTIVE_HIGH :
+-			V4L2_MBUS_VSYNC_ACTIVE_LOW;
+-
+-	if (!of_property_read_u32(node, "field-even-active", &v))
+-		flags |= v ? V4L2_MBUS_FIELD_EVEN_HIGH :
+-			V4L2_MBUS_FIELD_EVEN_LOW;
+-	if (flags)
+-		endpoint->bus_type = V4L2_MBUS_PARALLEL;
+-	else
+-		endpoint->bus_type = V4L2_MBUS_BT656;
+-
+-	if (!of_property_read_u32(node, "pclk-sample", &v))
+-		flags |= v ? V4L2_MBUS_PCLK_SAMPLE_RISING :
+-			V4L2_MBUS_PCLK_SAMPLE_FALLING;
+-
+-	if (!of_property_read_u32(node, "data-active", &v))
+-		flags |= v ? V4L2_MBUS_DATA_ACTIVE_HIGH :
+-			V4L2_MBUS_DATA_ACTIVE_LOW;
+-
+-	if (of_get_property(node, "slave-mode", &v))
+-		flags |= V4L2_MBUS_SLAVE;
+-	else
+-		flags |= V4L2_MBUS_MASTER;
+-
+-	if (!of_property_read_u32(node, "bus-width", &v))
+-		bus->bus_width = v;
+-
+-	if (!of_property_read_u32(node, "data-shift", &v))
+-		bus->data_shift = v;
+-
+-	if (!of_property_read_u32(node, "sync-on-green-active", &v))
+-		flags |= v ? V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH :
+-			V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW;
+-
+-	bus->flags = flags;
+-
+-}
+-
+-/**
+- * v4l2_of_parse_endpoint() - parse all endpoint node properties
+- * @node: pointer to endpoint device_node
+- * @endpoint: pointer to the V4L2 OF endpoint data structure
+- *
+- * All properties are optional. If none are found, we don't set any flags.
+- * This means the port has a static configuration and no properties have
+- * to be specified explicitly.
+- * If any properties that identify the bus as parallel are found and
+- * slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if we recognise
+- * the bus as serial CSI-2 and clock-noncontinuous isn't set, we set the
+- * V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag.
+- * The caller should hold a reference to @node.
+- *
+- * NOTE: This function does not parse properties the size of which is
+- * variable without a low fixed limit. Please use
+- * v4l2_of_alloc_parse_endpoint() in new drivers instead.
+- *
+- * Return: 0 on success or a negative error code on failure.
+- */
+-int v4l2_of_parse_endpoint(const struct device_node *node,
+-			   struct v4l2_of_endpoint *endpoint)
+-{
+-	int rval;
+-
+-	of_graph_parse_endpoint(node, &endpoint->base);
+-	/* Zero fields from bus_type to until the end */
+-	memset(&endpoint->bus_type, 0, sizeof(*endpoint) -
+-	       offsetof(typeof(*endpoint), bus_type));
+-
+-	rval = v4l2_of_parse_csi_bus(node, endpoint);
+-	if (rval)
+-		return rval;
+-	/*
+-	 * Parse the parallel video bus properties only if none
+-	 * of the MIPI CSI-2 specific properties were found.
+-	 */
+-	if (endpoint->bus.mipi_csi2.flags == 0)
+-		v4l2_of_parse_parallel_bus(node, endpoint);
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(v4l2_of_parse_endpoint);
+-
+-/*
+- * v4l2_of_free_endpoint() - free the endpoint acquired by
+- * v4l2_of_alloc_parse_endpoint()
+- * @endpoint - the endpoint the resources of which are to be released
+- *
+- * It is safe to call this function with NULL argument or on an
+- * endpoint the parsing of which failed.
+- */
+-void v4l2_of_free_endpoint(struct v4l2_of_endpoint *endpoint)
+-{
+-	if (IS_ERR_OR_NULL(endpoint))
+-		return;
+-
+-	kfree(endpoint->link_frequencies);
+-	kfree(endpoint);
+-}
+-EXPORT_SYMBOL(v4l2_of_free_endpoint);
+-
+-/**
+- * v4l2_of_alloc_parse_endpoint() - parse all endpoint node properties
+- * @node: pointer to endpoint device_node
+- *
+- * All properties are optional. If none are found, we don't set any flags.
+- * This means the port has a static configuration and no properties have
+- * to be specified explicitly.
+- * If any properties that identify the bus as parallel are found and
+- * slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if we recognise
+- * the bus as serial CSI-2 and clock-noncontinuous isn't set, we set the
+- * V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag.
+- * The caller should hold a reference to @node.
+- *
+- * v4l2_of_alloc_parse_endpoint() has two important differences to
+- * v4l2_of_parse_endpoint():
+- *
+- * 1. It also parses variable size data and
+- *
+- * 2. The memory it has allocated to store the variable size data must
+- *    be freed using v4l2_of_free_endpoint() when no longer needed.
+- *
+- * Return: Pointer to v4l2_of_endpoint if successful, on error a
+- * negative error code.
+- */
+-struct v4l2_of_endpoint *v4l2_of_alloc_parse_endpoint(
+-	const struct device_node *node)
+-{
+-	struct v4l2_of_endpoint *endpoint;
+-	int len;
+-	int rval;
+-
+-	endpoint = kzalloc(sizeof(*endpoint), GFP_KERNEL);
+-	if (!endpoint)
+-		return ERR_PTR(-ENOMEM);
+-
+-	rval = v4l2_of_parse_endpoint(node, endpoint);
+-	if (rval < 0)
+-		goto out_err;
+-
+-	if (of_get_property(node, "link-frequencies", &len)) {
+-		endpoint->link_frequencies = kmalloc(len, GFP_KERNEL);
+-		if (!endpoint->link_frequencies) {
+-			rval = -ENOMEM;
+-			goto out_err;
+-		}
+-
+-		endpoint->nr_of_link_frequencies =
+-			len / sizeof(*endpoint->link_frequencies);
+-
+-		rval = of_property_read_u64_array(
+-			node, "link-frequencies", endpoint->link_frequencies,
+-			endpoint->nr_of_link_frequencies);
+-		if (rval < 0)
+-			goto out_err;
+-	}
+-
+-	return endpoint;
+-
+-out_err:
+-	v4l2_of_free_endpoint(endpoint);
+-	return ERR_PTR(rval);
+-}
+-EXPORT_SYMBOL(v4l2_of_alloc_parse_endpoint);
+-
+-/**
+- * v4l2_of_parse_link() - parse a link between two endpoints
+- * @node: pointer to the endpoint at the local end of the link
+- * @link: pointer to the V4L2 OF link data structure
+- *
+- * Fill the link structure with the local and remote nodes and port numbers.
+- * The local_node and remote_node fields are set to point to the local and
+- * remote port's parent nodes respectively (the port parent node being the
+- * parent node of the port node if that node isn't a 'ports' node, or the
+- * grand-parent node of the port node otherwise).
+- *
+- * A reference is taken to both the local and remote nodes, the caller must use
+- * v4l2_of_put_link() to drop the references when done with the link.
+- *
+- * Return: 0 on success, or -ENOLINK if the remote endpoint can't be found.
+- */
+-int v4l2_of_parse_link(const struct device_node *node,
+-		       struct v4l2_of_link *link)
+-{
+-	struct device_node *np;
+-
+-	memset(link, 0, sizeof(*link));
+-
+-	np = of_get_parent(node);
+-	of_property_read_u32(np, "reg", &link->local_port);
+-	np = of_get_next_parent(np);
+-	if (of_node_cmp(np->name, "ports") == 0)
+-		np = of_get_next_parent(np);
+-	link->local_node = np;
+-
+-	np = of_parse_phandle(node, "remote-endpoint", 0);
+-	if (!np) {
+-		of_node_put(link->local_node);
+-		return -ENOLINK;
+-	}
+-
+-	np = of_get_parent(np);
+-	of_property_read_u32(np, "reg", &link->remote_port);
+-	np = of_get_next_parent(np);
+-	if (of_node_cmp(np->name, "ports") == 0)
+-		np = of_get_next_parent(np);
+-	link->remote_node = np;
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(v4l2_of_parse_link);
+-
+-/**
+- * v4l2_of_put_link() - drop references to nodes in a link
+- * @link: pointer to the V4L2 OF link data structure
+- *
+- * Drop references to the local and remote nodes in the link. This function must
+- * be called on every link parsed with v4l2_of_parse_link().
+- */
+-void v4l2_of_put_link(struct v4l2_of_link *link)
+-{
+-	of_node_put(link->local_node);
+-	of_node_put(link->remote_node);
+-}
+-EXPORT_SYMBOL(v4l2_of_put_link);
+diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
+deleted file mode 100644
+index 4dc34b2..0000000
+--- a/include/media/v4l2-of.h
++++ /dev/null
+@@ -1,128 +0,0 @@
+-/*
+- * V4L2 OF binding parsing library
+- *
+- * Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
+- * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
+- *
+- * Copyright (C) 2012 Renesas Electronics Corp.
+- * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of version 2 of the GNU General Public License as
+- * published by the Free Software Foundation.
+- */
+-#ifndef _V4L2_OF_H
+-#define _V4L2_OF_H
+-
+-#include <linux/list.h>
+-#include <linux/types.h>
+-#include <linux/errno.h>
+-#include <linux/of_graph.h>
+-
+-#include <media/v4l2-mediabus.h>
+-
+-struct device_node;
+-
+-/**
+- * struct v4l2_of_bus_mipi_csi2 - MIPI CSI-2 bus data structure
+- * @flags: media bus (V4L2_MBUS_*) flags
+- * @data_lanes: an array of physical data lane indexes
+- * @clock_lane: physical lane index of the clock lane
+- * @num_data_lanes: number of data lanes
+- * @lane_polarities: polarity of the lanes. The order is the same of
+- *		   the physical lanes.
+- */
+-struct v4l2_of_bus_mipi_csi2 {
+-	unsigned int flags;
+-	unsigned char data_lanes[4];
+-	unsigned char clock_lane;
+-	unsigned short num_data_lanes;
+-	bool lane_polarities[5];
+-};
+-
+-/**
+- * struct v4l2_of_bus_parallel - parallel data bus data structure
+- * @flags: media bus (V4L2_MBUS_*) flags
+- * @bus_width: bus width in bits
+- * @data_shift: data shift in bits
+- */
+-struct v4l2_of_bus_parallel {
+-	unsigned int flags;
+-	unsigned char bus_width;
+-	unsigned char data_shift;
+-};
+-
+-/**
+- * struct v4l2_of_endpoint - the endpoint data structure
+- * @base: struct of_endpoint containing port, id, and local of_node
+- * @bus_type: bus type
+- * @bus: bus configuration data structure
+- * @link_frequencies: array of supported link frequencies
+- * @nr_of_link_frequencies: number of elements in link_frequenccies array
+- */
+-struct v4l2_of_endpoint {
+-	struct of_endpoint base;
+-	/* Fields below this line will be zeroed by v4l2_of_parse_endpoint() */
+-	enum v4l2_mbus_type bus_type;
+-	union {
+-		struct v4l2_of_bus_parallel parallel;
+-		struct v4l2_of_bus_mipi_csi2 mipi_csi2;
+-	} bus;
+-	u64 *link_frequencies;
+-	unsigned int nr_of_link_frequencies;
+-};
+-
+-/**
+- * struct v4l2_of_link - a link between two endpoints
+- * @local_node: pointer to device_node of this endpoint
+- * @local_port: identifier of the port this endpoint belongs to
+- * @remote_node: pointer to device_node of the remote endpoint
+- * @remote_port: identifier of the port the remote endpoint belongs to
+- */
+-struct v4l2_of_link {
+-	struct device_node *local_node;
+-	unsigned int local_port;
+-	struct device_node *remote_node;
+-	unsigned int remote_port;
+-};
+-
+-#ifdef CONFIG_OF
+-int v4l2_of_parse_endpoint(const struct device_node *node,
+-			   struct v4l2_of_endpoint *endpoint);
+-struct v4l2_of_endpoint *v4l2_of_alloc_parse_endpoint(
+-	const struct device_node *node);
+-void v4l2_of_free_endpoint(struct v4l2_of_endpoint *endpoint);
+-int v4l2_of_parse_link(const struct device_node *node,
+-		       struct v4l2_of_link *link);
+-void v4l2_of_put_link(struct v4l2_of_link *link);
+-#else /* CONFIG_OF */
+-
+-static inline int v4l2_of_parse_endpoint(const struct device_node *node,
+-					struct v4l2_of_endpoint *link)
+-{
+-	return -ENOSYS;
+-}
+-
+-static inline struct v4l2_of_endpoint *v4l2_of_alloc_parse_endpoint(
+-	const struct device_node *node)
+-{
+-	return NULL;
+-}
+-
+-static inline void v4l2_of_free_endpoint(struct v4l2_of_endpoint *endpoint)
+-{
+-}
+-
+-static inline int v4l2_of_parse_link(const struct device_node *node,
+-				     struct v4l2_of_link *link)
+-{
+-	return -ENOSYS;
+-}
+-
+-static inline void v4l2_of_put_link(struct v4l2_of_link *link)
+-{
+-}
+-
+-#endif /* CONFIG_OF */
+-
+-#endif /* _V4L2_OF_H */
+-- 
+2.7.4
