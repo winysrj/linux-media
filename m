@@ -1,103 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52056 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750778AbdBKWHq (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:33019 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750975AbdBMLku (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Feb 2017 17:07:46 -0500
-Date: Sun, 12 Feb 2017 00:07:43 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: metadata node
-Message-ID: <20170211220742.nc4owqemvidkv4cc@ihha.localdomain>
-References: <Pine.LNX.4.64.1701111007540.761@axis700.grange>
- <b6c8267d-d18d-419e-bb2c-a21cfcbdd5bc@linaro.org>
- <alpine.DEB.2.00.1702021932150.23282@axis700.grange>
- <74450682-4fdc-4561-e853-865bdaa64cfc@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <74450682-4fdc-4561-e853-865bdaa64cfc@linaro.org>
+        Mon, 13 Feb 2017 06:40:50 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 1/4] media-ctl: add pad support to set/get_frame_interval
+Date: Mon, 13 Feb 2017 12:40:44 +0100
+Message-Id: <1486986047-18128-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Stan,
+This allows to set and get the frame interval on pads other than pad 0.
 
-It's been a long time. How are you doing? :-)
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ utils/media-ctl/libv4l2subdev.c | 24 ++++++++++++++----------
+ utils/media-ctl/v4l2subdev.h    |  4 ++--
+ 2 files changed, 16 insertions(+), 12 deletions(-)
 
-On Fri, Feb 10, 2017 at 02:09:42PM +0200, Stanimir Varbanov wrote:
-> Hi Guennadi,
-> 
-> On 02/02/2017 08:35 PM, Guennadi Liakhovetski wrote:
-> > Hi Stanimir,
-> > 
-> > On Mon, 30 Jan 2017, Stanimir Varbanov wrote:
-> > 
-> >> Hi Guennadi,
-> >>
-> >> On 01/11/2017 11:42 AM, Guennadi Liakhovetski wrote:
-> > 
-> > [snip]
-> > 
-> >>> In any case, _if_ we do keep the current approach of separate /dev/video* 
-> >>> nodes, we need a way to associate video and metadata nodes. Earlier I 
-> >>> proposed using media controller links for that. In your implementation of 
-> >>
-> >> I don't think that media controller links is a good idea. This metadata
-> >> api could be used by mem2mem drivers which don't have media controller
-> >> links so we will need a generic v4l2 way to bound image buffer and its
-> >> metadata buffer.
-> > 
-> > Is there anything, that's preventing mem2mem drivers from using the MC 
-> > API? Arguably, if you need metadata, you cross the line of becoming a 
-> > complex enough device to deserve MC support?
-> 
-> Well I don't want to cross that boundary :), and I don't want to use MC
-> for such simple entity with one input and one output. The only reason to
-> reply to your email was to provoke your attention to the drivers which
-> aren't MC based.
-
-Do you have a particular use case in mind?
-
-We'll need to continue to support two cases: existing hardware and use
-cases employing the mem2mem interface and more complex hardware that the
-mem2mem interface is not enough to support: this requires Media controller
-and the request API.
-
-Supposing that we'd extend the mem2mem interface to encompass further
-functionality, for instance supporting metadata. That functionality would
-only be available on mem2mem devices. Devices that would not fit to that
-envelope would have to use MC / request API.
-
-Adding more functionality to mem2mem thus will continue to extend two
-incompatible (when it comes to semantics) APIs within V4L2 and MC
-interfaces. That forces the driver developer to choose which one to use.
-(S)he may not be fully aware of the implications of choosing either
-option, possibly leading to not being able to fully support the hardware
-with the chosen API. The effect is also similar for applications: they
-need to support two different APIs.
-
-Still, the existing mem2mem framework provides a well defined, easy to use
-interface within the scope of the functionality it supports. As the MC
-combined with request API will be a lot more generic, it is also more
-demanding for applications to use it. The applications are required to, if
-not know more about the devices, at least be ready to use a number of
-interfaces to fully enumerate the device's capabilities.
-
-> 
-> On other side I think that sequence field in struct vb2_v4l2_buffer
-> should be sufficient to bound image buffer with metadata buffer.
-
-Indeed.
-
-With request API, you'll be able to use the request field as well.  And
-that'll work for non-mem2mem devices, too.
-
+diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
+index 3dcf943..2f2ac8e 100644
+--- a/utils/media-ctl/libv4l2subdev.c
++++ b/utils/media-ctl/libv4l2subdev.c
+@@ -262,7 +262,8 @@ int v4l2_subdev_set_dv_timings(struct media_entity *entity,
+ }
+ 
+ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
+-				   struct v4l2_fract *interval)
++				   struct v4l2_fract *interval,
++				   unsigned int pad)
+ {
+ 	struct v4l2_subdev_frame_interval ival;
+ 	int ret;
+@@ -272,6 +273,7 @@ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
+ 		return ret;
+ 
+ 	memset(&ival, 0, sizeof(ival));
++	ival.pad = pad;
+ 
+ 	ret = ioctl(entity->fd, VIDIOC_SUBDEV_G_FRAME_INTERVAL, &ival);
+ 	if (ret < 0)
+@@ -282,7 +284,8 @@ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
+ }
+ 
+ int v4l2_subdev_set_frame_interval(struct media_entity *entity,
+-				   struct v4l2_fract *interval)
++				   struct v4l2_fract *interval,
++				   unsigned int pad)
+ {
+ 	struct v4l2_subdev_frame_interval ival;
+ 	int ret;
+@@ -292,6 +295,7 @@ int v4l2_subdev_set_frame_interval(struct media_entity *entity,
+ 		return ret;
+ 
+ 	memset(&ival, 0, sizeof(ival));
++	ival.pad = pad;
+ 	ival.interval = *interval;
+ 
+ 	ret = ioctl(entity->fd, VIDIOC_SUBDEV_S_FRAME_INTERVAL, &ival);
+@@ -617,7 +621,7 @@ static int set_selection(struct media_pad *pad, unsigned int target,
+ 	return 0;
+ }
+ 
+-static int set_frame_interval(struct media_entity *entity,
++static int set_frame_interval(struct media_pad *pad,
+ 			      struct v4l2_fract *interval)
+ {
+ 	int ret;
+@@ -625,20 +629,20 @@ static int set_frame_interval(struct media_entity *entity,
+ 	if (interval->numerator == 0)
+ 		return 0;
+ 
+-	media_dbg(entity->media,
+-		  "Setting up frame interval %u/%u on entity %s\n",
++	media_dbg(pad->entity->media,
++		  "Setting up frame interval %u/%u on pad %s/%u\n",
+ 		  interval->numerator, interval->denominator,
+-		  entity->info.name);
++		  pad->entity->info.name, pad->index);
+ 
+-	ret = v4l2_subdev_set_frame_interval(entity, interval);
++	ret = v4l2_subdev_set_frame_interval(pad->entity, interval, pad->index);
+ 	if (ret < 0) {
+-		media_dbg(entity->media,
++		media_dbg(pad->entity->media,
+ 			  "Unable to set frame interval: %s (%d)",
+ 			  strerror(-ret), ret);
+ 		return ret;
+ 	}
+ 
+-	media_dbg(entity->media, "Frame interval set: %u/%u\n",
++	media_dbg(pad->entity->media, "Frame interval set: %u/%u\n",
+ 		  interval->numerator, interval->denominator);
+ 
+ 	return 0;
+@@ -685,7 +689,7 @@ static int v4l2_subdev_parse_setup_format(struct media_device *media,
+ 			return ret;
+ 	}
+ 
+-	ret = set_frame_interval(pad->entity, &interval);
++	ret = set_frame_interval(pad, &interval);
+ 	if (ret < 0)
+ 		return ret;
+ 
+diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
+index 9c8fee8..413094d 100644
+--- a/utils/media-ctl/v4l2subdev.h
++++ b/utils/media-ctl/v4l2subdev.h
+@@ -200,7 +200,7 @@ int v4l2_subdev_set_dv_timings(struct media_entity *entity,
+  */
+ 
+ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
+-	struct v4l2_fract *interval);
++	struct v4l2_fract *interval, unsigned int pad);
+ 
+ /**
+  * @brief Set the frame interval on a sub-device.
+@@ -217,7 +217,7 @@ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
+  * @return 0 on success, or a negative error code on failure.
+  */
+ int v4l2_subdev_set_frame_interval(struct media_entity *entity,
+-	struct v4l2_fract *interval);
++	struct v4l2_fract *interval, unsigned int pad);
+ 
+ /**
+  * @brief Parse a string and apply format, crop and frame interval settings.
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.1.4
