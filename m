@@ -1,73 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:44514 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932595AbdBPTKX (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:34102
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751482AbdBMKFM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Feb 2017 14:10:23 -0500
-Date: Thu, 16 Feb 2017 19:09:31 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@redhat.com>,
-        mark.rutland@arm.com, andrew-ct.chen@mediatek.com,
-        minghsiu.tsai@mediatek.com, sakari.ailus@linux.intel.com,
-        nick@shmanahar.org, songjun.wu@microchip.com,
-        Steve Longerbeam <steve_longerbeam@mentor.com>, pavel@ucw.cz,
-        robert.jarzmik@free.fr, devel@driverdev.osuosl.org,
-        markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, shuah@kernel.org,
-        geert@linux-m68k.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, kernel@pengutronix.de, arnd@arndb.de,
-        mchehab@kernel.org, bparrot@ti.com, robh+dt@kernel.org,
-        horms+renesas@verge.net.au, tiffany.lin@mediatek.com,
-        linux-arm-kernel@lists.infradead.org,
-        niklas.soderlund+renesas@ragnatech.se, gregkh@linuxfoundation.org,
-        linux-kernel@vger.kernel.org, jean-christophe.trotin@st.com,
-        p.zabel@pengutronix.de, fabio.estevam@nxp.com, shawnguo@kernel.org,
-        sudipm.mukherjee@gmail.com
-Subject: Re: [PATCH v4 20/36] media: imx: Add CSI subdev driver
-Message-ID: <20170216190931.GV27312@n2100.armlinux.org.uk>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
- <1487211578-11360-21-git-send-email-steve_longerbeam@mentor.com>
- <20170216115206.GL27312@n2100.armlinux.org.uk>
- <20170216124027.GM27312@n2100.armlinux.org.uk>
- <fa52c59e-f582-672c-8df0-2b959f880fa1@gmail.com>
+        Mon, 13 Feb 2017 05:05:12 -0500
+Date: Mon, 13 Feb 2017 08:04:48 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Gregor Jasny <gjasny@googlemail.com>
+Cc: Marcel Heinz <quisquilia@gmx.de>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Bug#854100: libdvbv5-0: fails to tune / scan
+Message-ID: <20170213080448.11f49304@vento.lan>
+In-Reply-To: <458abbd2-a98b-243b-bf2f-48d5e5a8060b@googlemail.com>
+References: <148617570740.6827.6324247760769667383.reportbug@ixtlilton.netz.invalid>
+        <0db3f8d1-0461-5d82-a92d-ecc3cfcfec71@googlemail.com>
+        <8792984d-54c9-01a8-0f84-7a1f0312a12f@gmx.de>
+        <CAJxGH0-ewWzxSJ1vE+n4FMkqv+pnmT9G0uAZS5oUYkhxWm+=5A@mail.gmail.com>
+        <ba755934-7946-59ea-e900-fe76d4ea2f0a@gmx.de>
+        <458abbd2-a98b-243b-bf2f-48d5e5a8060b@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <fa52c59e-f582-672c-8df0-2b959f880fa1@gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 16, 2017 at 10:44:16AM -0800, Steve Longerbeam wrote:
-> On 02/16/2017 04:40 AM, Russell King - ARM Linux wrote:
-> >[    8.012191] imx_media_common: module is from the staging directory, the quality is unknown, you have been warned.
-> >[    8.018175] imx_media: module is from the staging directory, the quality is unknown, you have been warned.
-> >[    8.748345] imx-media: Registered subdev ipu1_csi0_mux
-> >[    8.753451] imx-media: Registered subdev ipu2_csi1_mux
-> >[    9.055196] imx219 0-0010: detected IMX219 sensor
-> >[    9.090733] imx6_mipi_csi2: module is from the staging directory, the quality is unknown, you have been warned.
-> >[    9.092247] imx-media: Registered subdev imx219 0-0010
-> >[    9.334338] imx-media: Registered subdev imx6-mipi-csi2
-> >[    9.372452] imx_media_capture: module is from the staging directory, the quality is unknown, you have been warned.
-> >[    9.378163] imx_media_capture: module is from the staging directory, the quality is unknown, you have been warned.
-> >[    9.390033] imx_media_csi: module is from the staging directory, the quality is unknown, you have been warned.
-> >[    9.394362] imx-media: Received unknown subdev ipu1_csi0
+Em Fri, 10 Feb 2017 22:02:01 +0100
+Gregor Jasny <gjasny@googlemail.com> escreveu:
+
+> Hello Mauro & DVB-S maintainers,
 > 
-> The root problem is here. I don't know why the CSI entities are not
-> being recognized. Can you share the changes you made?
+> could you please have a look at the bug report below? Marcel was so kind
+> to bisect the problem to the following commit:
+> 
+> https://git.linuxtv.org/v4l-utils.git/commit/?id=d982b0d03b1f929269104bb716c9d4b50c945125
 
-No, it's not the root problem that's causing the BUG/etc, but it is
-_a_ problem.  Nevertheless, it's something I fixed - disconnecting
-the of_node from the struct device needed one other change in the
-imx-media code that was missing at this time.
+Sorry for not handling it earlier. I took vacations on Jan, and had a pile
+of patches to handle after my return. I had to priorize them, as we're
+close to a Kernel merge window.
 
-However, that's no excuse what so ever for the BUG_ON() and lack of
-error cleanup (causing use-after-free, which is just another way of
-saying "data corruption waiting to happen") that I identified.
+Now that Linus postponed the merge window, I had some time to dig into
+it.
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+> 
+> Bug report against libdvbv5 is here:
+> https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=854100
+
+There was a bug at the logic that was checking if the frequency was
+at the range of the local oscillators. This patch should be addressing
+it:
+	https://git.linuxtv.org/v4l-utils.git/commit/?id=5380ad44de416a41b4972e8a9c147ce42b0e3ba0
+
+With that, the logic now seems to be working fine:
+
+$ ./utils/dvb/dvbv5-scan ~/Intelsat-34 --lnbf universal -vv
+Using LNBf UNIVERSAL
+	Universal, Europe
+	10800 to 11800 MHz, LO: 9750 MHz
+	11600 to 12700 MHz, LO: 10600 MHz
+...
+Seeking for LO for 12.17 MHz frequency
+LO setting 0: 10.80 MHz to 11.80 MHz
+LO setting 1: 11.60 MHz to 12.70 MHz
+Multi-LO LNBf. using LO setting 1 at 10600.00 MHz
+frequency: 12170.00 MHz, high_band: 1
+L-Band frequency: 1570.00 MHz (offset = 10600.00 MHz)
+
+I can't really test it here, as my satellite dish uses a different
+type of LNBf, but, from the above logs, the bug should be fixed.
+
+Marcel,
+
+Could you please test? The patch is already upstream.
+I added a debug patch after it, in order to help LNBf issues
+(enabled by using "-vv" command line parameters).
+
+Thanks!
+Mauro
