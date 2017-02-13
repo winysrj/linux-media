@@ -1,165 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f193.google.com ([74.125.82.193]:36026 "EHLO
-        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751313AbdBORJV (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48891 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751079AbdBMXaG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 12:09:21 -0500
-Date: Wed, 15 Feb 2017 11:09:19 -0600
-From: Rob Herring <robh@kernel.org>
-To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Cc: mark.rutland@arm.com, mchehab@kernel.org, hverkuil@xs4all.nl,
-        sakari.ailus@linux.intel.com, crope@iki.fi,
-        chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
-        geert+renesas@glider.be, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v3 6/7] dt-bindings: media: Add Renesas R-Car DRIF binding
-Message-ID: <20170215170919.lxmqryjxdo3uxil2@rob-hp-laptop>
-References: <1486479757-32128-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
- <1486479757-32128-7-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+        Mon, 13 Feb 2017 18:30:06 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH 8/8] v4l: vsp1: Implement left edge partition algorithm overlap
+Date: Tue, 14 Feb 2017 01:30:32 +0200
+Message-ID: <2338978.1bsPvtQNTy@avalon>
+In-Reply-To: <19c6a7d542809dc814b5dfb11ba8ab737eab56f9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.ff94a00847faf7ed37768cea68c474926bfc8bd9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com> <19c6a7d542809dc814b5dfb11ba8ab737eab56f9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1486479757-32128-7-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 07, 2017 at 03:02:36PM +0000, Ramesh Shanmugasundaram wrote:
-> Add binding documentation for Renesas R-Car Digital Radio Interface
-> (DRIF) controller.
-> 
-> Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Hi Kieran,
+
+Thank you for the patch.
+
+On Friday 10 Feb 2017 20:27:36 Kieran Bingham wrote:
+> Increase the overlap on the left edge to allow a margin to provide
+> better image scaling
+
+-EIMPOSSIBLE_TO_REVIEW I'm afraid, we need more detailed documentation.
+
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 > ---
->  .../devicetree/bindings/media/renesas,drif.txt     | 186 +++++++++++++++++++++
->  1 file changed, 186 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/renesas,drif.txt
+>  drivers/media/platform/vsp1/vsp1_rpf.c |  7 +++++-
+>  drivers/media/platform/vsp1/vsp1_uds.c | 39 ++++++++++++++++++++++++---
+>  2 files changed, 42 insertions(+), 4 deletions(-)
 > 
-> diff --git a/Documentation/devicetree/bindings/media/renesas,drif.txt b/Documentation/devicetree/bindings/media/renesas,drif.txt
-> new file mode 100644
-> index 0000000..6315609
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/renesas,drif.txt
-> @@ -0,0 +1,186 @@
-> +Renesas R-Car Gen3 Digital Radio Interface controller (DRIF)
-> +------------------------------------------------------------
+> diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c
+> b/drivers/media/platform/vsp1/vsp1_rpf.c index 94541ab4ca36..d08cfd944b7b
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_rpf.c
+> +++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+> @@ -247,6 +247,13 @@ struct vsp1_partition_rect *rpf_partition(struct
+> vsp1_entity *entity, /* Duplicate the target configuration to the RPF */
+>  	partition->rpf = *dest;
+> 
+> +	/*
+> +	 * A partition offset, is a request for more input pixels, and a
+> +	 * declaration that the consumer will clip excess.
+> +	 */
+> +	partition->rpf.width += dest->offset;
+> +	partition->rpf.left -= dest->offset;
 > +
-> +R-Car Gen3 DRIF is a SPI like receive only slave device. A general
-> +representation of DRIF interfacing with a master device is shown below.
+>  	return &partition->rpf;
+>  }
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_uds.c
+> b/drivers/media/platform/vsp1/vsp1_uds.c index 9c1fb7ef3c46..9ee476c8db59
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_uds.c
+> +++ b/drivers/media/platform/vsp1/vsp1_uds.c
+> @@ -81,6 +81,20 @@ static struct uds_phase uds_phase_calculation(int
+> position, int start_phase, return phase;
+>  }
+> 
+> +static int uds_left_src_pixel(int pos, int start_phase, int ratio)
+> +{
+> +	struct uds_phase phase;
 > +
-> ++---------------------+                +---------------------+
-> +|                     |-----SCK------->|CLK                  |
-> +|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
-> +|                     |-----SD0------->|D0                   |
-> +|                     |-----SD1------->|D1                   |
-> ++---------------------+                +---------------------+
+> +	phase = uds_phase_calculation(pos, start_phase, ratio);
 > +
-> +As per the datasheet, each DRIF channel (drifn) is made up of two internal
-> +channels (drifn0 & drifn1). These two internal channels share the common
-> +CLK & SYNC. Each internal channel has its own dedicated resources like
-> +irq, dma channels, address space & clock. This internal split is not
-> +visible to the external master device.
-> +
-> +The device tree model represents each internal channel as a separate node.
-> +The internal channels sharing the CLK & SYNC are tied together by their
-> +phandles using a new property called "renesas,bonding". For the rest of
-> +the documentation, unless explicitly stated, the word channel implies an
-> +internal channel.
-> +
-> +When both internal channels are enabled they need to be managed together
-> +as one (i.e.) they cannot operate alone as independent devices. Out of the
-> +two, one of them needs to act as a primary device that accepts common
-> +properties of both the internal channels. This channel is identified by a
-> +new property called "renesas,primary-bond".
-> +
-> +To summarize,
-> +   - When both the internal channels that are bonded together are enabled,
-> +     the zeroth channel is selected as primary-bond. This channels accepts
-> +     properties common to all the members of the bond.
-> +   - When only one of the bonded channels need to be enabled, the property
-> +     "renesas,bonding" or "renesas,primary-bond" will have no effect. That
-> +     enabled channel can act alone as any other independent device.
-> +
-> +Required properties of an internal channel:
-> +-------------------------------------------
-> +- compatible: "renesas,r8a7795-drif" if DRIF controller is a part of R8A7795 SoC.
-> +	      "renesas,rcar-gen3-drif" for a generic R-Car Gen3 compatible device.
-> +	      When compatible with the generic version, nodes must list the
-> +	      SoC-specific version corresponding to the platform first
-> +	      followed by the generic version.
-> +- reg: offset and length of that channel.
-> +- interrupts: associated with that channel.
-> +- clocks: phandle and clock specifier of that channel.
-> +- clock-names: clock input name string: "fck".
-> +- dmas: phandles to the DMA channels.
-> +- dma-names: names of the DMA channel: "rx".
-> +- renesas,bonding: phandle to the other channel.
-> +
-> +Optional properties of an internal channel:
-> +-------------------------------------------
-> +- power-domains: phandle to the respective power domain.
-> +
-> +Required properties of an internal channel when:
-> +	- It is the only enabled channel of the bond (or)
-> +	- If it acts as primary among enabled bonds
-> +--------------------------------------------------------
-> +- pinctrl-0: pin control group to be used for this channel.
-> +- pinctrl-names: must be "default".
-> +- renesas,primary-bond: empty property indicating the channel acts as primary
-> +			among the bonded channels.
-> +- port: child port node of a channel that defines the local and remote
-> +	endpoints. The remote endpoint is assumed to be a third party tuner
-> +	device endpoint.
-> +
-> +Optional endpoint property:
-> +---------------------------
-> +- renesas,sync-active  : Indicates sync signal polarity, 0/1 for low/high
-> +			 respectively. This property maps to SYNCAC bit in the
-> +			 hardware manual. The default is 1 (active high)
+> +	/* Renesas guard against odd values in these scale ratios here ? */
+> +	if ((phase.mp == 2 && (phase.residual & 0x01)) ||
+> +	    (phase.mp == 4 && (phase.residual & 0x03)))
+> +		WARN_ON(1);
 
-Why does this belong in the endpoint? I'd prefer to not have vendor 
-specific properties in endpoints. Is this a property of the tuner or 
-DRIF? 
+That's harsh. Can it happen, or can we prove it can't happen ?
 
+> +	return phase.mp * (phase.prefilt_outpos + (phase.residual ? 1 : 0));
+> +}
 > +
-> +Example
-> +--------
+>  static int uds_start_phase(int pos, int start_phase, int ratio)
+>  {
+>  	struct uds_phase phase;
+> @@ -420,6 +434,8 @@ struct vsp1_partition_rect *uds_partition(struct
+> vsp1_entity *entity, const struct v4l2_mbus_framefmt *input;
+>  	unsigned int hscale;
+>  	unsigned int image_start_phase = 0;
+> +	unsigned int right_sink;
+> +	unsigned int margin;
+> 
+>  	/* Initialise the partition state */
+>  	partition->uds_sink = *dest;
+> @@ -432,10 +448,25 @@ struct vsp1_partition_rect *uds_partition(struct
+> vsp1_entity *entity,
+> 
+>  	hscale = uds_compute_ratio(input->width, output->width);
+> 
+> -	partition->uds_sink.width = dest->width * input->width
+> -				  / output->width;
+> -	partition->uds_sink.left = dest->left * input->width
+> -				 / output->width;
+> +	/* Handle 'left' edge of the partitions */
+> +	if (partition_idx == 0) {
+> +		margin = 0;
+> +	} else {
+> +		margin = hscale < 0x200 ? 32 : /* 8 <  scale */
+> +			 hscale < 0x400 ? 16 : /* 4 <  scale <= 8 */
+> +			 hscale < 0x800 ?  8 : /* 2 <  scale <= 4 */
+> +					   4;  /* 1 <  scale <= 2, scale <= 1 
+*/
+> +	}
 > +
-> +SoC common dtsi file
+> +	partition->uds_sink.left = uds_left_src_pixel(dest->left,
+> +					image_start_phase, hscale);
 > +
-> +		drif00: rif@e6f40000 {
-> +			compatible = "renesas,r8a7795-drif",
-> +				     "renesas,rcar-gen3-drif";
-> +			reg = <0 0xe6f40000 0 0x64>;
-> +			interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>;
-> +			clocks = <&cpg CPG_MOD 515>;
-> +			clock-names = "fck";
-> +			dmas = <&dmac1 0x20>, <&dmac2 0x20>;
-> +			dma-names = "rx", "rx";
-> +			power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-> +			renesas,bonding = <&drif01>;
-> +			status = "disabled";
+> +	partition->uds_sink.offset = margin;
+> +
+> +	right_sink = uds_left_src_pixel(dest->left + dest->width - 1,
+> +					image_start_phase, hscale);
+> +
+> +	partition->uds_sink.width = right_sink - partition->uds_sink.left + 1;
+> 
+>  	partition->start_phase = uds_start_phase(partition->uds_source.left,
+>  						 image_start_phase, hscale);
 
-Don't put "status" in examples.
+-- 
+Regards,
 
-> +		};
-> +
-> +		drif01: rif@e6f50000 {
-> +			compatible = "renesas,r8a7795-drif",
-> +				     "renesas,rcar-gen3-drif";
-> +			reg = <0 0xe6f50000 0 0x64>;
-> +			interrupts = <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>;
-> +			clocks = <&cpg CPG_MOD 514>;
-> +			clock-names = "fck";
-> +			dmas = <&dmac1 0x22>, <&dmac2 0x22>;
-> +			dma-names = "rx", "rx";
-> +			power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-> +			renesas,bonding = <&drif00>;
-> +			status = "disabled";
-> +		};
-> +
-> +
-> +Board specific dts file
-
-Chip vs. board in not relevant to the binding doc. Please combine them 
-here in your example.
-
-Rob
+Laurent Pinchart
