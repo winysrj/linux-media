@@ -1,63 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:36591 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753328AbdBPCUa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 21:20:30 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v4 10/36] ARM: dts: imx6-sabreauto: add pinctrl for gpt input capture
-Date: Wed, 15 Feb 2017 18:19:12 -0800
-Message-Id: <1487211578-11360-11-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mout.gmx.net ([212.227.15.18]:51276 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752909AbdBMPTi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Feb 2017 10:19:38 -0500
+Date: Mon, 13 Feb 2017 16:19:32 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: patch superseded? (was: [linux-media] Patch notification: 1
+ patch updated)
+In-Reply-To: <d07c5170-4366-2dec-2c87-9efaa71b4976@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1702131619160.11034@axis700.grange>
+References: <Pine.LNX.4.64.1702131608170.11034@axis700.grange>
+ <d07c5170-4366-2dec-2c87-9efaa71b4976@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add pinctrl groups for both GPT input capture channels.
+On Mon, 13 Feb 2017, Hans Verkuil wrote:
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+> This is the v2 patch:
+> 
+> https://patchwork.linuxtv.org/patch/32648/
 
-diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-index 967c3b8..495709f 100644
---- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-@@ -457,6 +457,18 @@
- 			>;
- 		};
- 
-+		pinctrl_gpt_input_capture0: gptinputcapture0grp {
-+			fsl,pins = <
-+				MX6QDL_PAD_SD1_DAT0__GPT_CAPTURE1	0x1b0b0
-+			>;
-+		};
-+
-+		pinctrl_gpt_input_capture1: gptinputcapture1grp {
-+			fsl,pins = <
-+				MX6QDL_PAD_SD1_DAT1__GPT_CAPTURE2	0x1b0b0
-+			>;
-+		};
-+
- 		pinctrl_spdif: spdifgrp {
- 			fsl,pins = <
- 				MX6QDL_PAD_KEY_COL3__SPDIF_IN 0x1b0b0
--- 
-2.7.4
+Oh, ok, thanks!
+
+Guennadi
+
+> 	Hans
+> 
+> On 02/13/2017 04:10 PM, Guennadi Liakhovetski wrote:
+> > Hi,
+> > 
+> > According to the explanations below, "superseded" means, that either a 
+> > newer version of the patch is available, or it's been included in a pull 
+> > request. Since I don't see a newer version, I should assume, that it's 
+> > been included in a pull request. However, I don't see one on linux-media 
+> > either. How am I supposed to track such patch status changes?
+> > 
+> > Thanks
+> > Guennadi
+> > 
+> > ---------- Forwarded message ----------
+> > Date: Mon, 13 Feb 2017 14:56:01 -0000
+> > From: Patchwork <patchwork@linuxtv.org>
+> > To: g.liakhovetski@gmx.de
+> > Subject: [linux-media] Patch notification: 1 patch updated
+> > 
+> > Hello,
+> > 
+> > The following patch (submitted by you) has been updated in patchwork:
+> > 
+> >  * linux-media: V4L: add Y12I, Y8I and Z16 pixel format documentation
+> >      - http://patchwork.linuxtv.org/patch/32257/
+> >      - for: Linux Media kernel patches
+> >     was: New
+> >     now: Superseded
+> > 
+> > This email is a notification only - you do not need to respond.
+> > 
+> > -
+> > 
+> > Patches submitted to linux-media@vger.kernel.org have the following
+> > possible states:
+> > 
+> > New: Patches not yet reviewed (typically new patches);
+> > 
+> > Under review: When it is expected that someone is reviewing it (typically,
+> > 	      the driver's author or maintainer). Unfortunately, patchwork
+> > 	      doesn't have a field to indicate who is the driver maintainer.
+> > 	      If in doubt about who is the driver maintainer please check the
+> > 	      MAINTAINERS file or ask at the ML;
+> > 
+> > Superseded: when the same patch is sent twice, or a new version of the
+> > 	    same patch is sent, and the maintainer identified it, the first
+> > 	    version is marked as such. It is also used when a patch was
+> > 	    superseeded by a git pull request.
+> > 
+> > Obsoleted: patch doesn't apply anymore, because the modified code doesn't
+> > 	   exist anymore.
+> > 
+> > Changes requested: when someone requests changes at the patch;
+> > 
+> > Rejected: When the patch is wrong or doesn't apply. Most of the
+> > 	  time, 'rejected' and 'changes requested' means the same thing
+> > 	  for the developer: he'll need to re-work on the patch.
+> > 
+> > RFC: patches marked as such and other patches that are also RFC, but the
+> >      patch author was not nice enough to mark them as such. That includes:
+> > 	- patches sent by a driver's maintainer who send patches
+> > 	  via git pull requests;
+> > 	- patches with a very active community (typically from developers
+> > 	  working with embedded devices), where lots of versions are
+> > 	  needed for the driver maintainer and/or the community to be
+> > 	  happy with.
+> > 
+> > Not Applicable: for patches that aren't meant to be applicable via 
+> > 	        the media-tree.git.
+> > 
+> > Accepted: when some driver maintainer says that the patch will be applied
+> > 	  via his tree, or when everything is ok and it got applied
+> > 	  either at the main tree or via some other tree (fixes tree;
+> > 	  some other maintainer's tree - when it belongs to other subsystems,
+> > 	  etc);
+> > 
+> > If you think any status change is a mistake, please send an email to the ML.
+> > 
+> > -
+> > 
+> > This is an automated mail sent by the patchwork system at
+> > patchwork.linuxtv.org. To stop receiving these notifications, edit
+> > your mail settings at:
+> >   http://patchwork.linuxtv.org/mail/
+> > 
+> 
