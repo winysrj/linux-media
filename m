@@ -1,40 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:12776 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752917AbdBUQB3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Feb 2017 11:01:29 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: rmk+kernel@armlinux.org.uk
-Subject: [PATCH 1/1] docs-rst: media: Explicitly refer to sub-sampling in scaling documentation
-Date: Tue, 21 Feb 2017 17:59:45 +0200
-Message-Id: <1487692785-1016-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:36549 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752188AbdBMLPB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Feb 2017 06:15:01 -0500
+Subject: Re: [PATCH v2] [media] vivid: support for contiguous DMA buffers
+To: Vincent ABRIOU <vincent.abriou@st.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <1473670047-24670-1-git-send-email-vincent.abriou@st.com>
+ <2996e55c-b014-ac75-5cb0-c4706a7b5f37@xs4all.nl>
+ <642a56d2-1a0b-ad39-70b4-68e01a12b71f@st.com>
+Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues FRUCHET <hugues.fruchet@st.com>,
+        Jean Christophe TROTIN <jean-christophe.trotin@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <d72266c8-60bc-394c-a7fc-cc14f00b657d@xs4all.nl>
+Date: Mon, 13 Feb 2017 12:14:55 +0100
+MIME-Version: 1.0
+In-Reply-To: <642a56d2-1a0b-ad39-70b4-68e01a12b71f@st.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Skipping, which is sometimes used in terminology related to sensors when
-referring to sub-sampling is replaced by more suitable sub-sampling
-instead. Skipping is retained in a note in parentheses.
+On 01/10/2017 12:10 PM, Vincent ABRIOU wrote:
+> 
+> 
+> On 01/09/2017 04:10 PM, Hans Verkuil wrote:
+>> On 09/12/2016 10:47 AM, Vincent Abriou wrote:
+>>> It allows to simulate the behavior of hardware with such limitations or
+>>> to connect vivid to real hardware with such limitations.
+>>>
+>>> Add the "allocators" module parameter option to let vivid use the
+>>> dma-contig instead of vmalloc.
+>>>
+>>> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>> Signed-off-by: Vincent Abriou <vincent.abriou@st.com>
+>>>
+>>> Cc: Philipp Zabel <p.zabel@pengutronix.de>
+>>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>>> ---
+>>>  Documentation/media/v4l-drivers/vivid.rst |  8 ++++++++
+>>>  drivers/media/platform/vivid/Kconfig      |  2 ++
+>>>  drivers/media/platform/vivid/vivid-core.c | 32 ++++++++++++++++++++++++++-----
+>>>  3 files changed, 37 insertions(+), 5 deletions(-)
+>>>
+>>> diff --git a/Documentation/media/v4l-drivers/vivid.rst b/Documentation/media/v4l-drivers/vivid.rst
+>>> index c8cf371..3e44b22 100644
+>>> --- a/Documentation/media/v4l-drivers/vivid.rst
+>>> +++ b/Documentation/media/v4l-drivers/vivid.rst
+>>> @@ -263,6 +263,14 @@ all configurable using the following module options:
+>>>  	removed. Unless overridden by ccs_cap_mode and/or ccs_out_mode the
+>>>  	will default to enabling crop, compose and scaling.
+>>>
+>>> +- allocators:
+>>> +
+>>> +	memory allocator selection, default is 0. It specifies the way buffers
+>>> +	will be allocated.
+>>> +
+>>> +		- 0: vmalloc
+>>> +		- 1: dma-contig
+>>
+>> Could you add support for dma-sg as well? I think that would be fairly trivial (unless
+>> I missed something).
+>>
+>> Once that's added (or it's clear dma-sg won't work for some reason), then I'll merge this.
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+> 
+> Hi Hans,
+> 
+> What is the difference between a vmalloc allocation exported in DMABUF 
+> that will populate the sg and dma-sg allocation?
 
-Suggested-by: Russell King <rmk+kernel@armlinux.org.uk>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- Documentation/media/uapi/mediactl/media-types.rst | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+True. That wouldn't matter.
 
-diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
-index 3e03dc2..2a5164a 100644
---- a/Documentation/media/uapi/mediactl/media-types.rst
-+++ b/Documentation/media/uapi/mediactl/media-types.rst
-@@ -284,7 +284,8 @@ Types and flags used to represent the media graph elements
- 	  supported scaling ratios is entity-specific and can differ
- 	  between the horizontal and vertical directions (in particular
- 	  scaling can be supported in one direction only). Binning and
--	  skipping are considered as scaling.
-+	  sub-sampling (occasionally also referred to as skipping) are
-+	  considered as scaling.
- 
-     -  ..  row 28
- 
--- 
-2.7.4
+I'm merging this for 4.12.
+
+Thanks!
+
+	Hans
