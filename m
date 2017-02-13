@@ -1,143 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:56092 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751805AbdBFKaS (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48270 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752199AbdBMVVh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Feb 2017 05:30:18 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv4 7/9] sti: hdmi: add HPD notifier support
-Date: Mon,  6 Feb 2017 11:29:49 +0100
-Message-Id: <20170206102951.12623-8-hverkuil@xs4all.nl>
-In-Reply-To: <20170206102951.12623-1-hverkuil@xs4all.nl>
-References: <20170206102951.12623-1-hverkuil@xs4all.nl>
+        Mon, 13 Feb 2017 16:21:37 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/4] v4l: vsp1: Calculate partition sizes at stream start.
+Date: Mon, 13 Feb 2017 23:21:58 +0200
+Message-ID: <3804080.QOE9vPlxB7@avalon>
+In-Reply-To: <1478283570-19688-4-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+References: <1478283570-19688-1-git-send-email-kieran.bingham+renesas@ideasonboard.com> <1478283570-19688-4-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Hi Kieran,
 
-Implement the HPD notifier support to allow CEC drivers to
-be informed when there is a new EDID and when a connect or
-disconnect happens.
+Thank you for the patch.
 
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/gpu/drm/sti/Kconfig    |  1 +
- drivers/gpu/drm/sti/sti_hdmi.c | 14 ++++++++++++++
- drivers/gpu/drm/sti/sti_hdmi.h |  3 +++
- 3 files changed, 18 insertions(+)
+On Friday 04 Nov 2016 18:19:29 Kieran Bingham wrote:
+> Previously the active window and partition sizes for each partition is
 
-diff --git a/drivers/gpu/drm/sti/Kconfig b/drivers/gpu/drm/sti/Kconfig
-index acd72865feac..f5c9572b4169 100644
---- a/drivers/gpu/drm/sti/Kconfig
-+++ b/drivers/gpu/drm/sti/Kconfig
-@@ -8,5 +8,6 @@ config DRM_STI
- 	select DRM_PANEL
- 	select FW_LOADER
- 	select SND_SOC_HDMI_CODEC if SND_SOC
-+	select HPD_NOTIFIER
- 	help
- 	  Choose this option to enable DRM on STM stiH4xx chipset
-diff --git a/drivers/gpu/drm/sti/sti_hdmi.c b/drivers/gpu/drm/sti/sti_hdmi.c
-index 376b0763c874..d32a38362391 100644
---- a/drivers/gpu/drm/sti/sti_hdmi.c
-+++ b/drivers/gpu/drm/sti/sti_hdmi.c
-@@ -786,6 +786,8 @@ static void sti_hdmi_disable(struct drm_bridge *bridge)
- 	clk_disable_unprepare(hdmi->clk_pix);
- 
- 	hdmi->enabled = false;
-+
-+	hpd_event_disconnect(hdmi->notifier);
- }
- 
- static void sti_hdmi_pre_enable(struct drm_bridge *bridge)
-@@ -892,6 +894,9 @@ static int sti_hdmi_connector_get_modes(struct drm_connector *connector)
- 	if (!edid)
- 		goto fail;
- 
-+	hpd_event_new_edid(hdmi->notifier, edid,
-+			   EDID_LENGTH * (edid->extensions + 1));
-+
- 	count = drm_add_edid_modes(connector, edid);
- 	drm_mode_connector_update_edid_property(connector, edid);
- 	drm_edid_to_eld(connector, edid);
-@@ -949,10 +954,12 @@ sti_hdmi_connector_detect(struct drm_connector *connector, bool force)
- 
- 	if (hdmi->hpd) {
- 		DRM_DEBUG_DRIVER("hdmi cable connected\n");
-+		hpd_event_connect(hdmi->notifier);
- 		return connector_status_connected;
- 	}
- 
- 	DRM_DEBUG_DRIVER("hdmi cable disconnected\n");
-+	hpd_event_disconnect(hdmi->notifier);
- 	return connector_status_disconnected;
- }
- 
-@@ -1464,6 +1471,10 @@ static int sti_hdmi_probe(struct platform_device *pdev)
- 		goto release_adapter;
- 	}
- 
-+	hdmi->notifier = hpd_notifier_get(&pdev->dev);
-+	if (!hdmi->notifier)
-+		goto release_adapter;
-+
- 	hdmi->reset = devm_reset_control_get(dev, "hdmi");
- 	/* Take hdmi out of reset */
- 	if (!IS_ERR(hdmi->reset))
-@@ -1483,11 +1494,14 @@ static int sti_hdmi_remove(struct platform_device *pdev)
- {
- 	struct sti_hdmi *hdmi = dev_get_drvdata(&pdev->dev);
- 
-+	hpd_event_disconnect(hdmi->notifier);
-+
- 	i2c_put_adapter(hdmi->ddc_adapt);
- 	if (hdmi->audio_pdev)
- 		platform_device_unregister(hdmi->audio_pdev);
- 	component_del(&pdev->dev, &sti_hdmi_ops);
- 
-+	hpd_notifier_put(hdmi->notifier);
- 	return 0;
- }
- 
-diff --git a/drivers/gpu/drm/sti/sti_hdmi.h b/drivers/gpu/drm/sti/sti_hdmi.h
-index 119bc3582ac7..2109c97eb933 100644
---- a/drivers/gpu/drm/sti/sti_hdmi.h
-+++ b/drivers/gpu/drm/sti/sti_hdmi.h
-@@ -8,6 +8,7 @@
- #define _STI_HDMI_H_
- 
- #include <linux/hdmi.h>
-+#include <linux/hpd-notifier.h>
- #include <linux/platform_device.h>
- 
- #include <drm/drmP.h>
-@@ -77,6 +78,7 @@ static const struct drm_prop_enum_list colorspace_mode_names[] = {
-  * @audio_pdev: ASoC hdmi-codec platform device
-  * @audio: hdmi audio parameters.
-  * @drm_connector: hdmi connector
-+ * @notifier: hotplug detect notifier
-  */
- struct sti_hdmi {
- 	struct device dev;
-@@ -102,6 +104,7 @@ struct sti_hdmi {
- 	struct platform_device *audio_pdev;
- 	struct hdmi_audio_params audio;
- 	struct drm_connector *drm_connector;
-+	struct hpd_notifier *notifier;
- };
- 
- u32 hdmi_read(struct sti_hdmi *hdmi, int offset);
+s/is/were/
+
+> calculated for each partition every frame. This data is constant and
+> only needs to be calculated once at the start of the stream.
+> 
+> Extend the vsp1_pipe object to store the maximum number of partitions
+> possible and pre-calculate the partition sizes into this table.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> ---
+>  drivers/media/platform/vsp1/vsp1_pipe.h  | 6 ++++++
+>  drivers/media/platform/vsp1/vsp1_video.c | 8 ++++++--
+>  2 files changed, 12 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h
+> b/drivers/media/platform/vsp1/vsp1_pipe.h index f181949824c9..3af96c4ea244
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_pipe.h
+> +++ b/drivers/media/platform/vsp1/vsp1_pipe.h
+> @@ -20,6 +20,9 @@
+> 
+>  #include <media/media-entity.h>
+> 
+> +/* Max Video Width / Min Partition Size = 8190/128 */
+> +#define VSP1_PIPE_MAX_PARTITIONS 64
+> +
+>  struct vsp1_dl_list;
+>  struct vsp1_rwpf;
+> 
+> @@ -81,7 +84,9 @@ enum vsp1_pipeline_state {
+>   * @dl: display list associated with the pipeline
+>   * @div_size: The maximum allowed partition size for the pipeline
+>   * @partitions: The number of partitions used to process one frame
+> + * @partition: The current partition for configuration to process
+>   * @current_partition: The partition number currently being configured
+> + * @part_table: The pre-calculated partitions used by the pipeline
+>   */
+>  struct vsp1_pipeline {
+>  	struct media_pipeline pipe;
+> @@ -116,6 +121,7 @@ struct vsp1_pipeline {
+>  	unsigned int partitions;
+>  	struct v4l2_rect partition;
+>  	unsigned int current_partition;
+> +	struct v4l2_rect part_table[VSP1_PIPE_MAX_PARTITIONS];
+
+That's an extra 1kB or kmalloc'ed data. I'd prefer allocating it dynamically 
+as needed.
+
+>  };
+> 
+>  void vsp1_pipeline_reset(struct vsp1_pipeline *pipe);
+> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
+> b/drivers/media/platform/vsp1/vsp1_video.c index 6d43c02bbc56..c4a8c30df108
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_video.c
+> +++ b/drivers/media/platform/vsp1/vsp1_video.c
+> @@ -255,6 +255,7 @@ static void vsp1_video_pipeline_setup_partitions(struct
+> vsp1_pipeline *pipe) const struct v4l2_mbus_framefmt *format;
+>  	struct vsp1_entity *entity;
+>  	unsigned int div_size;
+> +	int i;
+
+i can never be negative, you can make it an unsigned int.
+
+Apart from that,
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+>  	/*
+>  	 * Partitions are computed on the size before rotation, use the format
+> @@ -269,6 +270,7 @@ static void vsp1_video_pipeline_setup_partitions(struct
+> vsp1_pipeline *pipe) if (vsp1->info->gen == 2) {
+>  		pipe->div_size = div_size;
+>  		pipe->partitions = 1;
+> +		pipe->part_table[0] = vsp1_video_partition(pipe, div_size, 0);
+>  		return;
+>  	}
+> 
+> @@ -284,6 +286,9 @@ static void vsp1_video_pipeline_setup_partitions(struct
+> vsp1_pipeline *pipe)
+> 
+>  	pipe->div_size = div_size;
+>  	pipe->partitions = DIV_ROUND_UP(format->width, div_size);
+> +
+> +	for (i = 0; i < pipe->partitions; i++)
+> +		pipe->part_table[i] = vsp1_video_partition(pipe, div_size, i);
+>  }
+> 
+>  /* ------------------------------------------------------------------------
+> @@ -355,8 +360,7 @@ static void vsp1_video_pipeline_run_partition(struct
+> vsp1_pipeline *pipe, {
+>  	struct vsp1_entity *entity;
+> 
+> -	pipe->partition = vsp1_video_partition(pipe, pipe->div_size,
+> -					       pipe->current_partition);
+> +	pipe->partition = pipe->part_table[pipe->current_partition];
+> 
+>  	list_for_each_entry(entity, &pipe->entities, list_pipe) {
+>  		if (entity->ops->configure)
+
 -- 
-2.11.0
+Regards,
 
+Laurent Pinchart
