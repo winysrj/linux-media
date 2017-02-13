@@ -1,255 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f52.google.com ([74.125.82.52]:38429 "EHLO
-        mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752361AbdBMOpY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 09:45:24 -0500
-Received: by mail-wm0-f52.google.com with SMTP id r141so95729384wmg.1
-        for <linux-media@vger.kernel.org>; Mon, 13 Feb 2017 06:45:23 -0800 (PST)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: linaro-kernel@lists.linaro.org, arnd@arndb.de, labbott@redhat.com,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, daniel.vetter@ffwll.ch,
-        laurent.pinchart@ideasonboard.com, robdclark@gmail.com,
-        akpm@linux-foundation.org, hverkuil@xs4all.nl
-Cc: broonie@kernel.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [RFC simple allocator v2 2/2] add CMA simple allocator module
-Date: Mon, 13 Feb 2017 15:45:06 +0100
-Message-Id: <1486997106-23277-3-git-send-email-benjamin.gaignard@linaro.org>
-In-Reply-To: <1486997106-23277-1-git-send-email-benjamin.gaignard@linaro.org>
-References: <1486997106-23277-1-git-send-email-benjamin.gaignard@linaro.org>
+Received: from mga09.intel.com ([134.134.136.24]:27917 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751947AbdBMNae (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Feb 2017 08:30:34 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Subject: [PATCH 1/8] v4l: flash led class: Use fwnode_handle instead of device_node in init
+Date: Mon, 13 Feb 2017 15:28:09 +0200
+Message-Id: <1486992496-21078-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1486992496-21078-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1486992496-21078-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch add simple allocator for CMA regions.
+Pass the more generic fwnode_handle to the init function than the
+device_node.
 
-version 2:
-- fix size and page count computation
-
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/simpleallocator/Kconfig                |   7 +
- drivers/simpleallocator/Makefile               |   1 +
- drivers/simpleallocator/simple-allocator-cma.c | 187 +++++++++++++++++++++++++
- 3 files changed, 195 insertions(+)
- create mode 100644 drivers/simpleallocator/simple-allocator-cma.c
+ drivers/leds/leds-aat1290.c                    |  5 +++--
+ drivers/leds/leds-max77693.c                   |  5 +++--
+ drivers/media/v4l2-core/v4l2-flash-led-class.c | 11 ++++++-----
+ include/media/v4l2-flash-led-class.h           |  4 ++--
+ 4 files changed, 14 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/simpleallocator/Kconfig b/drivers/simpleallocator/Kconfig
-index c6fc2e3..788fb0b 100644
---- a/drivers/simpleallocator/Kconfig
-+++ b/drivers/simpleallocator/Kconfig
-@@ -7,4 +7,11 @@ config SIMPLE_ALLOCATOR
- 	   The Simple Allocator Framework adds an API to allocate and share
- 	   memory in userland.
+diff --git a/drivers/leds/leds-aat1290.c b/drivers/leds/leds-aat1290.c
+index def3cf9..a21e192 100644
+--- a/drivers/leds/leds-aat1290.c
++++ b/drivers/leds/leds-aat1290.c
+@@ -503,8 +503,9 @@ static int aat1290_led_probe(struct platform_device *pdev)
+ 	aat1290_init_v4l2_flash_config(led, &led_cfg, &v4l2_sd_cfg);
  
-+config SIMPLE_ALLOCATOR_CMA
-+	tristate "Simple Allocator CMA"
-+	select SIMPLE_ALLOCATOR
-+	depends on DMA_CMA
-+	---help---
-+	   Select this option to enable Simple Allocator on CMA area.
-+
- endmenu
-diff --git a/drivers/simpleallocator/Makefile b/drivers/simpleallocator/Makefile
-index e27c6ad..4e11611 100644
---- a/drivers/simpleallocator/Makefile
-+++ b/drivers/simpleallocator/Makefile
-@@ -1 +1,2 @@
- obj-$(CONFIG_SIMPLE_ALLOCATOR) += simple-allocator.o
-+obj-$(CONFIG_SIMPLE_ALLOCATOR_CMA) += simple-allocator-cma.o
-diff --git a/drivers/simpleallocator/simple-allocator-cma.c b/drivers/simpleallocator/simple-allocator-cma.c
-new file mode 100644
-index 0000000..07cbf5b
---- /dev/null
-+++ b/drivers/simpleallocator/simple-allocator-cma.c
-@@ -0,0 +1,187 @@
-+/*
-+ * Copyright (C) Linaro 2017
-+ *
-+ * Author: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-+ *
-+ * License terms:  GNU General Public License (GPL)
-+ */
-+
-+#include <linux/cma.h>
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+
-+#include "simple-allocator-priv.h"
-+#include "../mm/cma.h"
-+
-+struct sa_cma_device {
-+	struct sa_device parent;
-+	struct cma *cma;
-+};
-+
-+struct sa_cma_buffer_info {
-+	void *vaddr;
-+	size_t count;
-+	size_t size;
-+	struct page *pages;
-+	struct sa_cma_device *sa_cma;
-+};
-+
-+static struct sa_cma_device *sa_cma[MAX_CMA_AREAS];
-+
-+static inline struct sa_cma_device *to_sa_cma(struct sa_device *sadev)
-+{
-+	return container_of(sadev, struct sa_cma_device, parent);
-+}
-+
-+static struct sg_table *sa_cma_map_dma_buf(struct dma_buf_attachment *attach,
-+					   enum dma_data_direction direction)
-+{
-+	struct dma_buf *dmabuf = attach->dmabuf;
-+	struct sa_cma_buffer_info *info = dmabuf->priv;
-+	struct sg_table *sgt;
-+	int ret;
-+
-+	ret = sg_alloc_table(sgt, 1, GFP_KERNEL);
-+	if (unlikely(ret))
-+		return NULL;
-+
-+	sg_set_page(sgt->sgl, info->pages, info->size, 0);
-+	sg_dma_address(sgt->sgl) = (dma_addr_t) page_address(info->pages);
-+	sg_dma_len(sgt->sgl) = info->size;
-+
-+	return sgt;
-+}
-+
-+static void sa_cma_unmap_dma_buf(struct dma_buf_attachment *attach,
-+				 struct sg_table *sgt,
-+				 enum dma_data_direction dir)
-+{
-+	kfree(sgt);
-+}
-+
-+static int sa_cma_mmap_dma_buf(struct dma_buf *dmabuf,
-+			       struct vm_area_struct *vma)
-+{
-+	struct sa_cma_buffer_info *info = dmabuf->priv;
-+	unsigned long user_count = vma_pages(vma);
-+	unsigned long count = info->count;
-+	unsigned long pfn = page_to_pfn(info->pages);
-+	unsigned long off = vma->vm_pgoff;
-+	int ret = -ENXIO;
-+
-+	if (off < count && user_count <= (count - off)) {
-+		ret = remap_pfn_range(vma, vma->vm_start,
-+				      pfn + off,
-+				      user_count << PAGE_SHIFT,
-+				      vma->vm_page_prot);
-+	}
-+
-+	return ret;
-+}
-+
-+static void sa_cma_release_dma_buf(struct dma_buf *dmabuf)
-+{
-+	struct sa_cma_buffer_info *info = dmabuf->priv;
-+
-+	cma_release(info->sa_cma->cma, info->pages, info->count);
-+
-+	kfree(info);
-+}
-+
-+static void *sa_cma_kmap_dma_buf(struct dma_buf *dmabuf, unsigned long offset)
-+{
-+	struct sa_cma_buffer_info *info = dmabuf->priv;
-+
-+	return page_address(info->pages) + offset;
-+}
-+
-+static struct dma_buf_ops sa_dma_buf_ops = {
-+	.map_dma_buf = sa_cma_map_dma_buf,
-+	.unmap_dma_buf = sa_cma_unmap_dma_buf,
-+	.mmap = sa_cma_mmap_dma_buf,
-+	.release = sa_cma_release_dma_buf,
-+	.kmap_atomic = sa_cma_kmap_dma_buf,
-+	.kmap = sa_cma_kmap_dma_buf,
-+};
-+
-+static struct dma_buf *sa_cma_allocate(struct sa_device *sadev,
-+				       u64 length, u32 flags)
-+{
-+	DEFINE_DMA_BUF_EXPORT_INFO(exp_info);
-+	struct sa_cma_buffer_info *info;
-+	struct dma_buf *dmabuf;
-+
-+	info = kzalloc(sizeof(*info), GFP_KERNEL);
-+	if (!info)
-+		return NULL;
-+
-+	info->size = round_up(length, PAGE_SIZE);
-+	info->count = PAGE_ALIGN(info->size) >> PAGE_SHIFT;
-+	info->sa_cma = to_sa_cma(sadev);
-+
-+	info->pages = cma_alloc(info->sa_cma->cma, info->count, 0);
-+
-+	if (!info->pages)
-+		goto cleanup;
-+
-+	exp_info.ops = &sa_dma_buf_ops;
-+	exp_info.size = info->size;
-+	exp_info.flags = flags;
-+	exp_info.priv = info;
-+
-+	dmabuf = dma_buf_export(&exp_info);
-+	if (IS_ERR(dmabuf))
-+		goto export_failed;
-+
-+	return dmabuf;
-+
-+export_failed:
-+	cma_release(info->sa_cma->cma, info->pages, info->count);
-+cleanup:
-+	kfree(info);
-+	return NULL;
-+}
-+
-+struct sa_cma_device *simple_allocator_register_cma(struct cma *cma)
-+{
-+	struct sa_cma_device *sa_cma;
-+	int ret;
-+
-+	sa_cma = kzalloc(sizeof(*sa_cma), GFP_KERNEL);
-+	if (!sa_cma)
-+		return NULL;
-+
-+	sa_cma->cma = cma;
-+	sa_cma->parent.owner = THIS_MODULE;
-+	sa_cma->parent.name = "cma";
-+	sa_cma->parent.allocate = sa_cma_allocate;
-+
-+	ret = simple_allocator_register(&sa_cma->parent);
-+	if (ret) {
-+		kfree(sa_cma);
-+		return NULL;
-+	}
-+
-+	return sa_cma;
-+}
-+
-+static int __init sa_cma_init(void)
-+{
-+	int i;
-+
-+	for (i = 0; i < cma_area_count; i++)
-+		sa_cma[i] = simple_allocator_register_cma(&cma_areas[i]);
-+
-+	return 0;
-+}
-+
-+static void __exit sa_cma_exit(void)
-+{
-+	int i;
-+
-+	for (i = 0; i < cma_area_count; i++)
-+		simple_allocator_unregister(&sa_cma[i]->parent);
-+}
-+
-+module_init(sa_cma_init);
-+module_exit(sa_cma_exit);
+ 	/* Create V4L2 Flash subdev. */
+-	led->v4l2_flash = v4l2_flash_init(dev, sub_node, fled_cdev, NULL,
+-					  &v4l2_flash_ops, &v4l2_sd_cfg);
++	led->v4l2_flash = v4l2_flash_init(dev, of_fwnode_handle(sub_node),
++					  fled_cdev, NULL, &v4l2_flash_ops,
++					  &v4l2_sd_cfg);
+ 	if (IS_ERR(led->v4l2_flash)) {
+ 		ret = PTR_ERR(led->v4l2_flash);
+ 		goto error_v4l2_flash_init;
+diff --git a/drivers/leds/leds-max77693.c b/drivers/leds/leds-max77693.c
+index 1eb58ef..2d3062d 100644
+--- a/drivers/leds/leds-max77693.c
++++ b/drivers/leds/leds-max77693.c
+@@ -930,8 +930,9 @@ static int max77693_register_led(struct max77693_sub_led *sub_led,
+ 	max77693_init_v4l2_flash_config(sub_led, led_cfg, &v4l2_sd_cfg);
+ 
+ 	/* Register in the V4L2 subsystem. */
+-	sub_led->v4l2_flash = v4l2_flash_init(dev, sub_node, fled_cdev, NULL,
+-					      &v4l2_flash_ops, &v4l2_sd_cfg);
++	sub_led->v4l2_flash = v4l2_flash_init(dev, of_fwnode_handle(sub_node),
++					      fled_cdev, NULL, &v4l2_flash_ops,
++					      &v4l2_sd_cfg);
+ 	if (IS_ERR(sub_led->v4l2_flash)) {
+ 		ret = PTR_ERR(sub_led->v4l2_flash);
+ 		goto err_v4l2_flash_init;
+diff --git a/drivers/media/v4l2-core/v4l2-flash-led-class.c b/drivers/media/v4l2-core/v4l2-flash-led-class.c
+index 794e563..bd47e6d 100644
+--- a/drivers/media/v4l2-core/v4l2-flash-led-class.c
++++ b/drivers/media/v4l2-core/v4l2-flash-led-class.c
+@@ -13,6 +13,7 @@
+ #include <linux/module.h>
+ #include <linux/mutex.h>
+ #include <linux/of.h>
++#include <linux/property.h>
+ #include <linux/slab.h>
+ #include <linux/types.h>
+ #include <media/v4l2-flash-led-class.h>
+@@ -612,7 +613,7 @@ static const struct v4l2_subdev_internal_ops v4l2_flash_subdev_internal_ops = {
+ static const struct v4l2_subdev_ops v4l2_flash_subdev_ops;
+ 
+ struct v4l2_flash *v4l2_flash_init(
+-	struct device *dev, struct device_node *of_node,
++	struct device *dev, struct fwnode_handle *fwn,
+ 	struct led_classdev_flash *fled_cdev,
+ 	struct led_classdev_flash *iled_cdev,
+ 	const struct v4l2_flash_ops *ops,
+@@ -638,7 +639,7 @@ struct v4l2_flash *v4l2_flash_init(
+ 	v4l2_flash->iled_cdev = iled_cdev;
+ 	v4l2_flash->ops = ops;
+ 	sd->dev = dev;
+-	sd->of_node = of_node ? of_node : led_cdev->dev->of_node;
++	sd->fwnode = fwn ? fwn : device_fwnode_handle(led_cdev->dev);
+ 	v4l2_subdev_init(sd, &v4l2_flash_subdev_ops);
+ 	sd->internal_ops = &v4l2_flash_subdev_internal_ops;
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+@@ -654,7 +655,7 @@ struct v4l2_flash *v4l2_flash_init(
+ 	if (ret < 0)
+ 		goto err_init_controls;
+ 
+-	of_node_get(sd->of_node);
++	fwnode_handle_get(sd->fwnode);
+ 
+ 	ret = v4l2_async_register_subdev(sd);
+ 	if (ret < 0)
+@@ -663,7 +664,7 @@ struct v4l2_flash *v4l2_flash_init(
+ 	return v4l2_flash;
+ 
+ err_async_register_sd:
+-	of_node_put(sd->of_node);
++	fwnode_handle_put(sd->fwnode);
+ 	v4l2_ctrl_handler_free(sd->ctrl_handler);
+ err_init_controls:
+ 	media_entity_cleanup(&sd->entity);
+@@ -683,7 +684,7 @@ void v4l2_flash_release(struct v4l2_flash *v4l2_flash)
+ 
+ 	v4l2_async_unregister_subdev(sd);
+ 
+-	of_node_put(sd->of_node);
++	fwnode_handle_put(sd->fwnode);
+ 
+ 	v4l2_ctrl_handler_free(sd->ctrl_handler);
+ 	media_entity_cleanup(&sd->entity);
+diff --git a/include/media/v4l2-flash-led-class.h b/include/media/v4l2-flash-led-class.h
+index b0fe4d6..5695853 100644
+--- a/include/media/v4l2-flash-led-class.h
++++ b/include/media/v4l2-flash-led-class.h
+@@ -108,7 +108,7 @@ static inline struct v4l2_flash *v4l2_ctrl_to_v4l2_flash(struct v4l2_ctrl *c)
+ /**
+  * v4l2_flash_init - initialize V4L2 flash led sub-device
+  * @dev:	flash device, e.g. an I2C device
+- * @of_node:	of_node of the LED, may be NULL if the same as device's
++ * @fwn:	fwnode_handle of the LED, may be NULL if the same as device's
+  * @fled_cdev:	LED flash class device to wrap
+  * @iled_cdev:	LED flash class device representing indicator LED associated
+  *		with fled_cdev, may be NULL
+@@ -122,7 +122,7 @@ static inline struct v4l2_flash *v4l2_ctrl_to_v4l2_flash(struct v4l2_ctrl *c)
+  * PTR_ERR() to obtain the numeric return value.
+  */
+ struct v4l2_flash *v4l2_flash_init(
+-	struct device *dev, struct device_node *of_node,
++	struct device *dev, struct fwnode_handle *fwn,
+ 	struct led_classdev_flash *fled_cdev,
+ 	struct led_classdev_flash *iled_cdev,
+ 	const struct v4l2_flash_ops *ops,
 -- 
-1.9.1
+2.7.4
