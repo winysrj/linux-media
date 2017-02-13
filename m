@@ -1,144 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:34808 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753088AbdBPCUP (ORCPT
+Received: from fllnx210.ext.ti.com ([198.47.19.17]:10276 "EHLO
+        fllnx210.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753576AbdBMNHN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 21:20:15 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v4 08/36] ARM: dts: imx6-sabreauto: create i2cmux for i2c3
-Date: Wed, 15 Feb 2017 18:19:10 -0800
-Message-Id: <1487211578-11360-9-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+        Mon, 13 Feb 2017 08:07:13 -0500
+From: Benoit Parrot <bparrot@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        <linux-media@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        Jyri Sarha <jsarha@ti.com>,
+        Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [Patch 1/2] media: ti-vpe: vpdma: add support for user specified stride
+Date: Mon, 13 Feb 2017 07:06:57 -0600
+Message-ID: <20170213130658.31907-2-bparrot@ti.com>
+In-Reply-To: <20170213130658.31907-1-bparrot@ti.com>
+References: <20170213130658.31907-1-bparrot@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The sabreauto uses a steering pin to select between the SDA signal on
-i2c3 bus, and a data-in pin for an SPI NOR chip. Use i2cmux to control
-this steering pin. Idle state of the i2cmux selects SPI NOR. This is not
-a classic way to use i2cmux, since one side of the mux selects something
-other than an i2c bus, but it works and is probably the cleanest
-solution. Note that if one thread is attempting to access SPI NOR while
-another thread is accessing i2c3, the SPI NOR access will fail since the
-i2cmux has selected the SDA pin rather than SPI NOR data-in. This couldn't
-be avoided in any case, the board is not designed to allow concurrent
-i2c3 and SPI NOR functions (and the default device-tree does not enable
-SPI NOR anyway).
+This patch introduce the needed vpdma API changes to support
+user space specified stride instead of forcing a driver calculated
+one.
 
-Devices hanging off i2c3 should now be defined under i2cmux, so
-that the steering pin can be properly controlled to access those
-devices. The port expanders (MAX7310) are thus moved into i2cmux.
-
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
 ---
- arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 65 +++++++++++++++++++++-----------
- 1 file changed, 44 insertions(+), 21 deletions(-)
+ drivers/media/platform/ti-vpe/vpdma.c | 14 ++++----------
+ drivers/media/platform/ti-vpe/vpdma.h |  6 +++---
+ drivers/media/platform/ti-vpe/vpe.c   |  6 ++++--
+ 3 files changed, 11 insertions(+), 15 deletions(-)
 
-diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-index 52390ba..cace88c 100644
---- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-@@ -108,6 +108,44 @@
- 		default-brightness-level = <7>;
- 		status = "okay";
- 	};
-+
-+	i2cmux {
-+		compatible = "i2c-mux-gpio";
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_i2c3mux>;
-+		mux-gpios = <&gpio5 4 0>;
-+		i2c-parent = <&i2c3>;
-+		idle-state = <0>;
-+
-+		i2c@1 {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			reg = <1>;
-+
-+			max7310_a: gpio@30 {
-+				compatible = "maxim,max7310";
-+				reg = <0x30>;
-+				gpio-controller;
-+				#gpio-cells = <2>;
-+			};
-+
-+			max7310_b: gpio@32 {
-+				compatible = "maxim,max7310";
-+				reg = <0x32>;
-+				gpio-controller;
-+				#gpio-cells = <2>;
-+			};
-+
-+			max7310_c: gpio@34 {
-+				compatible = "maxim,max7310";
-+				reg = <0x34>;
-+				gpio-controller;
-+				#gpio-cells = <2>;
-+			};
-+		};
-+	};
- };
+diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
+index 23472e3784ff..e2cf2b90e500 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.c
++++ b/drivers/media/platform/ti-vpe/vpdma.c
+@@ -801,17 +801,17 @@ static void dump_dtd(struct vpdma_dtd *dtd)
+  * flags: VPDMA flags to configure some descriptor fileds
+  */
+ void vpdma_add_out_dtd(struct vpdma_desc_list *list, int width,
+-		const struct v4l2_rect *c_rect,
++		int stride, const struct v4l2_rect *c_rect,
+ 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
+ 		int max_w, int max_h, enum vpdma_channel chan, u32 flags)
+ {
+-	vpdma_rawchan_add_out_dtd(list, width, c_rect, fmt, dma_addr,
++	vpdma_rawchan_add_out_dtd(list, width, stride, c_rect, fmt, dma_addr,
+ 				  max_w, max_h, chan_info[chan].num, flags);
+ }
+ EXPORT_SYMBOL(vpdma_add_out_dtd);
  
- &clks {
-@@ -291,27 +329,6 @@
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&pinctrl_i2c3>;
- 	status = "okay";
--
--	max7310_a: gpio@30 {
--		compatible = "maxim,max7310";
--		reg = <0x30>;
--		gpio-controller;
--		#gpio-cells = <2>;
--	};
--
--	max7310_b: gpio@32 {
--		compatible = "maxim,max7310";
--		reg = <0x32>;
--		gpio-controller;
--		#gpio-cells = <2>;
--	};
--
--	max7310_c: gpio@34 {
--		compatible = "maxim,max7310";
--		reg = <0x34>;
--		gpio-controller;
--		#gpio-cells = <2>;
--	};
- };
+ void vpdma_rawchan_add_out_dtd(struct vpdma_desc_list *list, int width,
+-		const struct v4l2_rect *c_rect,
++		int stride, const struct v4l2_rect *c_rect,
+ 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
+ 		int max_w, int max_h, int raw_vpdma_chan, u32 flags)
+ {
+@@ -821,7 +821,6 @@ void vpdma_rawchan_add_out_dtd(struct vpdma_desc_list *list, int width,
+ 	int channel, next_chan;
+ 	struct v4l2_rect rect = *c_rect;
+ 	int depth = fmt->depth;
+-	int stride;
+ 	struct vpdma_dtd *dtd;
  
- &iomuxc {
-@@ -419,6 +436,12 @@
- 			>;
- 		};
+ 	channel = next_chan = raw_vpdma_chan;
+@@ -833,8 +832,6 @@ void vpdma_rawchan_add_out_dtd(struct vpdma_desc_list *list, int width,
+ 		depth = 8;
+ 	}
  
-+		pinctrl_i2c3mux: i2c3muxgrp {
-+			fsl,pins = <
-+				MX6QDL_PAD_EIM_A24__GPIO5_IO04 0x0b0b1
-+			>;
-+		};
-+
- 		pinctrl_pwm3: pwm1grp {
- 			fsl,pins = <
- 				MX6QDL_PAD_SD4_DAT1__PWM3_OUT		0x1b0b1
+-	stride = ALIGN((depth * width) >> 3, VPDMA_STRIDE_ALIGN);
+-
+ 	dma_addr += rect.top * stride + (rect.left * depth >> 3);
+ 
+ 	dtd = list->next;
+@@ -882,7 +879,7 @@ EXPORT_SYMBOL(vpdma_rawchan_add_out_dtd);
+  *			contribute to the client)
+  */
+ void vpdma_add_in_dtd(struct vpdma_desc_list *list, int width,
+-		const struct v4l2_rect *c_rect,
++		int stride, const struct v4l2_rect *c_rect,
+ 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
+ 		enum vpdma_channel chan, int field, u32 flags, int frame_width,
+ 		int frame_height, int start_h, int start_v)
+@@ -892,7 +889,6 @@ void vpdma_add_in_dtd(struct vpdma_desc_list *list, int width,
+ 	int depth = fmt->depth;
+ 	int channel, next_chan;
+ 	struct v4l2_rect rect = *c_rect;
+-	int stride;
+ 	struct vpdma_dtd *dtd;
+ 
+ 	channel = next_chan = chan_info[chan].num;
+@@ -904,8 +900,6 @@ void vpdma_add_in_dtd(struct vpdma_desc_list *list, int width,
+ 		depth = 8;
+ 	}
+ 
+-	stride = ALIGN((depth * width) >> 3, VPDMA_STRIDE_ALIGN);
+-
+ 	dma_addr += rect.top * stride + (rect.left * depth >> 3);
+ 
+ 	dtd = list->next;
+diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
+index 131700c112b2..7e611501c291 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.h
++++ b/drivers/media/platform/ti-vpe/vpdma.h
+@@ -242,16 +242,16 @@ void vpdma_add_sync_on_channel_ctd(struct vpdma_desc_list *list,
+ void vpdma_add_abort_channel_ctd(struct vpdma_desc_list *list,
+ 		int chan_num);
+ void vpdma_add_out_dtd(struct vpdma_desc_list *list, int width,
+-		const struct v4l2_rect *c_rect,
++		int stride, const struct v4l2_rect *c_rect,
+ 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
+ 		int max_w, int max_h, enum vpdma_channel chan, u32 flags);
+ void vpdma_rawchan_add_out_dtd(struct vpdma_desc_list *list, int width,
+-		const struct v4l2_rect *c_rect,
++		int stride, const struct v4l2_rect *c_rect,
+ 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
+ 		int max_w, int max_h, int raw_vpdma_chan, u32 flags);
+ 
+ void vpdma_add_in_dtd(struct vpdma_desc_list *list, int width,
+-		const struct v4l2_rect *c_rect,
++		int stride, const struct v4l2_rect *c_rect,
+ 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
+ 		enum vpdma_channel chan, int field, u32 flags, int frame_width,
+ 		int frame_height, int start_h, int start_v);
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index f0156b7759e9..2dd67232b3bc 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -1085,7 +1085,8 @@ static void add_out_dtd(struct vpe_ctx *ctx, int port)
+ 	vpdma_set_max_size(ctx->dev->vpdma, VPDMA_MAX_SIZE1,
+ 			   MAX_W, MAX_H);
+ 
+-	vpdma_add_out_dtd(&ctx->desc_list, q_data->width, &q_data->c_rect,
++	vpdma_add_out_dtd(&ctx->desc_list, q_data->width,
++			  q_data->bytesperline[VPE_LUMA], &q_data->c_rect,
+ 			  vpdma_fmt, dma_addr, MAX_OUT_WIDTH_REG1,
+ 			  MAX_OUT_HEIGHT_REG1, p_data->channel, flags);
+ }
+@@ -1169,7 +1170,8 @@ static void add_in_dtd(struct vpe_ctx *ctx, int port)
+ 	if (p_data->vb_part && fmt->fourcc == V4L2_PIX_FMT_NV12)
+ 		frame_height /= 2;
+ 
+-	vpdma_add_in_dtd(&ctx->desc_list, q_data->width, &q_data->c_rect,
++	vpdma_add_in_dtd(&ctx->desc_list, q_data->width,
++			 q_data->bytesperline[VPE_LUMA], &q_data->c_rect,
+ 		vpdma_fmt, dma_addr, p_data->channel, field, flags, frame_width,
+ 		frame_height, 0, 0);
+ }
 -- 
-2.7.4
+2.9.0
