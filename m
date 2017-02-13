@@ -1,278 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:34791 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753536AbdBUUnq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Feb 2017 15:43:46 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v2 01/19] [media] lirc: document lirc modes better
-Date: Tue, 21 Feb 2017 20:43:25 +0000
-Message-Id: <959797f26df1adbc15174a78ca71ba5b657b1412.1487709384.git.sean@mess.org>
-In-Reply-To: <cover.1487709384.git.sean@mess.org>
-References: <cover.1487709384.git.sean@mess.org>
-In-Reply-To: <cover.1487709384.git.sean@mess.org>
-References: <cover.1487709384.git.sean@mess.org>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:55306 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751702AbdBMOFK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Feb 2017 09:05:10 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.12] Various fixes/enhancements
+Message-ID: <af600d14-a2fe-fcf0-7f54-afb924a86df5@xs4all.nl>
+Date: Mon, 13 Feb 2017 15:05:05 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-LIRC_MODE_MODE2 and LIRC_MODE_LIRCCODE were not covered at all.
+Various fixes and enhancements.
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- Documentation/media/uapi/rc/lirc-dev-intro.rst     | 53 +++++++++++++++++++---
- Documentation/media/uapi/rc/lirc-get-features.rst  | 13 ++++--
- Documentation/media/uapi/rc/lirc-get-length.rst    |  3 +-
- Documentation/media/uapi/rc/lirc-get-rec-mode.rst  |  4 +-
- Documentation/media/uapi/rc/lirc-get-send-mode.rst |  7 ++-
- Documentation/media/uapi/rc/lirc-read.rst          | 18 ++++----
- .../media/uapi/rc/lirc-set-rec-carrier-range.rst   |  2 +-
- Documentation/media/uapi/rc/lirc-write.rst         | 19 +++++---
- 8 files changed, 84 insertions(+), 35 deletions(-)
+Regards,
 
-diff --git a/Documentation/media/uapi/rc/lirc-dev-intro.rst b/Documentation/media/uapi/rc/lirc-dev-intro.rst
-index ef97e40..1250d4c 100644
---- a/Documentation/media/uapi/rc/lirc-dev-intro.rst
-+++ b/Documentation/media/uapi/rc/lirc-dev-intro.rst
-@@ -27,6 +27,8 @@ What you should see for a chardev:
-     $ ls -l /dev/lirc*
-     crw-rw---- 1 root root 248, 0 Jul 2 22:20 /dev/lirc0
- 
-+.. _lirc_modes:
-+
- **********
- LIRC modes
- **********
-@@ -38,25 +40,62 @@ on the following table.
- 
- ``LIRC_MODE_MODE2``
- 
--    The driver returns a sequence of pulse and space codes to userspace.
-+    The driver returns a sequence of pulse and space codes to userspace,
-+    as a series of u32 values.
- 
-     This mode is used only for IR receive.
- 
-+    The upper 8 bits determine the packet type, and the lower 24 bits
-+    the payload. Use ``LIRC_VALUE()`` macro to get the payload, and
-+    the macro ``LIRC_MODE2()`` will give you the type, which
-+    is one of:
-+
-+    ``LIRC_MODE2_PULSE``
-+
-+        Signifies the presence of IR in microseconds.
-+
-+    ``LIRC_MODE2_SPACE``
-+
-+        Signifies absence of IR in microseconds.
-+
-+    ``LIRC_MODE2_FREQUENCY``
-+
-+        If measurement of the carrier frequency was enabled with
-+        :ref:`lirc_set_measure_carrier_mode` then this packet gives you
-+        the carrier frequency in Hertz.
-+
-+    ``LIRC_MODE2_TIMEOUT``
-+
-+        If timeout reports are enabled with
-+        :ref:`lirc_set_rec_timeout_reports`, when the timeout set with
-+        :ref:`lirc_set_timeout` expires due to no IR being detected,
-+        this packet will be sent, with the number of microseconds with
-+        no IR.
-+
- .. _lirc-mode-lirccode:
- 
- ``LIRC_MODE_LIRCCODE``
- 
--    The IR signal is decoded internally by the receiver. The LIRC interface
--    returns the scancode as an integer value. This is the usual mode used
--    by several TV media cards.
-+    This mode can be used for IR receive and send.
- 
--    This mode is used only for IR receive.
-+    The IR signal is decoded internally by the receiver, or encoded by the
-+    transmitter. The LIRC interface represents the scancode as byte string,
-+    which might not be a u32, it can be any length. The value is entirely
-+    driver dependent. This mode is used by some older lirc drivers.
-+
-+    The length of each code depends on the driver, which can be retrieved
-+    with :ref:`lirc_get_length`. This length is used both
-+    for transmitting and receiving IR.
- 
- .. _lirc-mode-pulse:
- 
- ``LIRC_MODE_PULSE``
- 
--    On puse mode, a sequence of pulse/space integer values are written to the
--    lirc device using :Ref:`lirc-write`.
-+    In pulse mode, a sequence of pulse/space integer values are written to the
-+    lirc device using :ref:`lirc-write`.
-+
-+    The values are alternating pulse and space lengths, in microseconds. The
-+    first and last entry must be a pulse, so there must be an odd number
-+    of entries.
- 
-     This mode is used only for IR send.
-diff --git a/Documentation/media/uapi/rc/lirc-get-features.rst b/Documentation/media/uapi/rc/lirc-get-features.rst
-index 79e07b4..64f89a4 100644
---- a/Documentation/media/uapi/rc/lirc-get-features.rst
-+++ b/Documentation/media/uapi/rc/lirc-get-features.rst
-@@ -48,8 +48,8 @@ LIRC features
- 
- ``LIRC_CAN_REC_PULSE``
- 
--    The driver is capable of receiving using
--    :ref:`LIRC_MODE_PULSE <lirc-mode-pulse>`.
-+    Unused. Kept just to avoid breaking uAPI.
-+    :ref:`LIRC_MODE_PULSE <lirc-mode-pulse>` can only be used for transmitting.
- 
- .. _LIRC-CAN-REC-MODE2:
- 
-@@ -156,19 +156,22 @@ LIRC features
- 
- ``LIRC_CAN_SEND_PULSE``
- 
--    The driver supports sending using :ref:`LIRC_MODE_PULSE <lirc-mode-pulse>`.
-+    The driver supports sending (also called as IR blasting or IR TX) using
-+    :ref:`LIRC_MODE_PULSE <lirc-mode-pulse>`.
- 
- .. _LIRC-CAN-SEND-MODE2:
- 
- ``LIRC_CAN_SEND_MODE2``
- 
--    The driver supports sending using :ref:`LIRC_MODE_MODE2 <lirc-mode-mode2>`.
-+    Unused. Kept just to avoid breaking uAPI.
-+    :ref:`LIRC_MODE_MODE2 <lirc-mode-mode2>` can only be used for receiving.
- 
- .. _LIRC-CAN-SEND-LIRCCODE:
- 
- ``LIRC_CAN_SEND_LIRCCODE``
- 
--    The driver supports sending codes (also called as IR blasting or IR TX).
-+    The driver supports sending (also called as IR blasting or IR TX) using
-+    :ref:`LIRC_MODE_LIRCCODE <lirc-mode-LIRCCODE>`.
- 
- 
- Return Value
-diff --git a/Documentation/media/uapi/rc/lirc-get-length.rst b/Documentation/media/uapi/rc/lirc-get-length.rst
-index 8c2747c..3990af5 100644
---- a/Documentation/media/uapi/rc/lirc-get-length.rst
-+++ b/Documentation/media/uapi/rc/lirc-get-length.rst
-@@ -30,7 +30,8 @@ Arguments
- Description
- ===========
- 
--Retrieves the code length in bits (only for ``LIRC-MODE-LIRCCODE``).
-+Retrieves the code length in bits (only for
-+:ref:`LIRC_MODE_LIRCCODE <lirc-mode-lirccode>`).
- Reads on the device must be done in blocks matching the bit count.
- The bit could should be rounded up so that it matches full bytes.
- 
-diff --git a/Documentation/media/uapi/rc/lirc-get-rec-mode.rst b/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
-index a5023e0..a4eb6c0 100644
---- a/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
-+++ b/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
-@@ -35,8 +35,8 @@ Description
- 
- Get/set supported receive modes. Only :ref:`LIRC_MODE_MODE2 <lirc-mode-mode2>`
- and :ref:`LIRC_MODE_LIRCCODE <lirc-mode-lirccode>` are supported for IR
--receive.
--
-+receive. Use :ref:`lirc_get_features` to find out which modes the driver
-+supports.
- 
- Return Value
- ============
-diff --git a/Documentation/media/uapi/rc/lirc-get-send-mode.rst b/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-index 51ac134..a169b23 100644
---- a/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-+++ b/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-@@ -34,9 +34,12 @@ Arguments
- Description
- ===========
- 
--Get/set supported transmit mode.
-+Get/set current transmit mode.
- 
--Only :ref:`LIRC_MODE_PULSE <lirc-mode-pulse>` is supported by for IR send.
-+Only :ref:`LIRC_MODE_PULSE <lirc-mode-pulse>` and
-+:ref:`LIRC_MODE_LIRCCODE <lirc-mode-lirccode>` is supported by for IR send,
-+depending on the driver. Use :ref:`lirc_get_features` to find out which
-+modes the driver supports.
- 
- Return Value
- ============
-diff --git a/Documentation/media/uapi/rc/lirc-read.rst b/Documentation/media/uapi/rc/lirc-read.rst
-index 4c678f6..ffa2830 100644
---- a/Documentation/media/uapi/rc/lirc-read.rst
-+++ b/Documentation/media/uapi/rc/lirc-read.rst
-@@ -44,17 +44,15 @@ descriptor ``fd`` into the buffer starting at ``buf``.  If ``count`` is zero,
- :ref:`read() <lirc-read>` returns zero and has no other results. If ``count``
- is greater than ``SSIZE_MAX``, the result is unspecified.
- 
--The lircd userspace daemon reads raw IR data from the LIRC chardev. The
--exact format of the data depends on what modes a driver supports, and
--what mode has been selected. lircd obtains supported modes and sets the
--active mode via the ioctl interface, detailed at :ref:`lirc_func`.
--The generally preferred mode for receive is
--:ref:`LIRC_MODE_MODE2 <lirc-mode-mode2>`, in which packets containing an
--int value describing an IR signal are read from the chardev.
-+The exact format of the data depends on what :ref:`lirc_modes` a driver
-+supports, and which mode has been selected. Use :ref:`lirc_get_features` to
-+get a list of supported modes, and :ref:`lirc_get_rec_mode` to get or set the
-+recording mode if multiple modes are available.
- 
--See also
--`http://www.lirc.org/html/technical.html <http://www.lirc.org/html/technical.html>`__
--for more info.
-+The generally preferred mode for receive is
-+:ref:`LIRC_MODE_MODE2 <lirc-mode-mode2>`,
-+in which packets containing an int value describing an IR signal are
-+read from the chardev.
- 
- Return Value
- ============
-diff --git a/Documentation/media/uapi/rc/lirc-set-rec-carrier-range.rst b/Documentation/media/uapi/rc/lirc-set-rec-carrier-range.rst
-index a83fbbf..a892468 100644
---- a/Documentation/media/uapi/rc/lirc-set-rec-carrier-range.rst
-+++ b/Documentation/media/uapi/rc/lirc-set-rec-carrier-range.rst
-@@ -9,7 +9,7 @@ ioctl LIRC_SET_REC_CARRIER_RANGE
- Name
- ====
- 
--LIRC_SET_REC_CARRIER_RANGE - Set lower bond of the carrier used to modulate
-+LIRC_SET_REC_CARRIER_RANGE - Set lower bound of the carrier used to modulate
- IR receive.
- 
- Synopsis
-diff --git a/Documentation/media/uapi/rc/lirc-write.rst b/Documentation/media/uapi/rc/lirc-write.rst
-index 3b035c6..6b44e0d 100644
---- a/Documentation/media/uapi/rc/lirc-write.rst
-+++ b/Documentation/media/uapi/rc/lirc-write.rst
-@@ -42,13 +42,18 @@ Description
- referenced by the file descriptor ``fd`` from the buffer starting at
- ``buf``.
- 
--The data written to the chardev is a pulse/space sequence of integer
--values. Pulses and spaces are only marked implicitly by their position.
--The data must start and end with a pulse, therefore, the data must
--always include an uneven number of samples. The write function must
--block until the data has been transmitted by the hardware. If more data
--is provided than the hardware can send, the driver returns ``EINVAL``.
--
-+The exact format of the data depends on what modes a driver supports,
-+and what mode has been selected. Use :ref:`lirc_get_features` to get a
-+list of supported modes, and :ref:`lirc_get_send_mode` to get or set
-+the sending mode if multiple modes are available.
-+
-+When in :ref:`LIRC_MODE_PULSE <lirc-mode-PULSE>` mode, the data written to
-+the chardev is a pulse/space sequence of integer values. Pulses and spaces
-+are only marked implicitly by their position. The data must start and end
-+with a pulse, therefore, the data must always include an uneven number of
-+samples. The write function must block until the data has been transmitted
-+by the hardware. If more data is provided than the hardware can send, the
-+driver returns ``EINVAL``.
- 
- Return Value
- ============
--- 
-2.9.3
+	Hans
+
+The following changes since commit 9eeb0ed0f30938f31a3d9135a88b9502192c18dd:
+
+  [media] mtk-vcodec: fix build warnings without DEBUG (2017-02-08 12:08:20 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.12a
+
+for you to fetch changes up to ec82f86f87ca556d60086123ae09cf6539209bf1:
+
+  vidioc-g-dv-timings.rst: update v4l2_bt_timings struct (2017-02-13 14:51:28 +0100)
+
+----------------------------------------------------------------
+Arnd Bergmann (5):
+      pvrusb2: reduce stack usage pvr2_eeprom_analyze()
+      cx231xx-i2c: reduce stack size in bus scan
+      mxl111sf: reduce stack usage in init function
+      tc358743: fix register i2c_rd/wr functions
+      coda/imx-vdoa: platform_driver should not be const
+
+Hans Verkuil (2):
+      cec.h: small typo fix
+      vidioc-g-dv-timings.rst: update v4l2_bt_timings struct
+
+Shailendra Verma (1):
+      bdisp: Clean up file handle in open() error path.
+
+Shilpa P (1):
+      staging: Replaced BUG_ON with warnings
+
+Songjun Wu (1):
+      atmel-isc: add the isc pipeline function
+
+Vincent ABRIOU (1):
+      vivid: support for contiguous DMA buffers
+
+ Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst |  16 +-
+ Documentation/media/v4l-drivers/vivid.rst            |   8 +
+ drivers/media/i2c/tc358743.c                         |  46 ++--
+ drivers/media/platform/atmel/atmel-isc-regs.h        | 102 +++++++-
+ drivers/media/platform/atmel/atmel-isc.c             | 627 +++++++++++++++++++++++++++++++++++++++--------
+ drivers/media/platform/coda/imx-vdoa.c               |   2 +-
+ drivers/media/platform/sti/bdisp/bdisp-v4l2.c        |   2 +-
+ drivers/media/platform/vivid/Kconfig                 |   2 +
+ drivers/media/platform/vivid/vivid-core.c            |  32 ++-
+ drivers/media/usb/cx231xx/cx231xx-i2c.c              |  16 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf.c              |  14 +-
+ drivers/media/usb/pvrusb2/pvrusb2-eeprom.c           |  13 +-
+ drivers/staging/media/bcm2048/radio-bcm2048.c        |  12 +-
+ include/uapi/linux/cec.h                             |   2 +-
+ 14 files changed, 731 insertions(+), 163 deletions(-)
