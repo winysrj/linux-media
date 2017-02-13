@@ -1,125 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:38778 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750740AbdBRFLx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 18 Feb 2017 00:11:53 -0500
-Message-ID: <23bebb9d9369d4f9ad3971a1b4c930c6@smtp-cloud3.xs4all.net>
-Date: Sat, 18 Feb 2017 06:11:29 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+Received: from gofer.mess.org ([80.229.237.210]:37281 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752172AbdBMLg0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Feb 2017 06:36:26 -0500
+Date: Mon, 13 Feb 2017 11:36:23 +0000
+From: Sean Young <sean@mess.org>
+To: Heiner Kallweit <hkallweit1@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Antti =?iso-8859-1?Q?Sepp=E4l=E4?= <a.seppala@gmail.com>,
+        James Hogan <james@albanarts.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] media: rc: nuvoton: fix deadlock in
+ nvt_write_wakeup_codes
+Message-ID: <20170213113623.GA17301@gofer.mess.org>
+References: <3bf59b6c-f4be-1653-4f84-8668cf8581a1@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3bf59b6c-f4be-1653-4f84-8668cf8581a1@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Heiner,
 
-Results of the daily build of media_tree:
+On Sun, Feb 12, 2017 at 06:01:22PM +0100, Heiner Kallweit wrote:
+> nvt_write_wakeup_codes acquires the same lock as the ISR but doesn't
+> disable interrupts on the local CPU. This caused the following
+> deadlock. Fix this by using spin_lock_irqsave.
+> 
+> [  432.362008] ================================
+> [  432.362074] WARNING: inconsistent lock state
+> [  432.362144] 4.10.0-rc7-next-20170210 #1 Not tainted
+> [  432.362219] --------------------------------
 
-date:			Sat Feb 18 05:00:17 CET 2017
-media-tree git hash:	9eeb0ed0f30938f31a3d9135a88b9502192c18dd
-media_build git hash:	785cdf7f0798964681b33aad44fc2ff4d734733d
-v4l-utils git hash:	1edd6920bed585d0ea70a2d400182ba17ee2e7fc
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+-snip-
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10-rc3-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-x86_64: OK
-linux-4.10-rc3-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+Thank you for that, I'll make a pull request soon so we have it for 4.11.
 
-Detailed results are available here:
+Would you mind testing the new wakeup_protocols interface on the nuvoton
+please?
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+cd /sys/class/rc/rc0
+echo rc-5 > wakeup_protocols
+echo 0xffff > wakeup_filter_mask
+echo 0x1e01 > wakeup_filter
 
-Full logs are available here:
+(replace as needed)
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+Thanks!
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Sean
