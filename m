@@ -1,93 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:33557 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753747AbdBPCVb (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:60194 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751604AbdBMKwM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 21:21:31 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v4 35/36] media: imx: csi: fix crop rectangle reset in sink set_fmt
-Date: Wed, 15 Feb 2017 18:19:37 -0800
-Message-Id: <1487211578-11360-36-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+        Mon, 13 Feb 2017 05:52:12 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Rick Chang <rick.chang@mediatek.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.11] MediaTek JPEG encoder
+Message-ID: <0e07065d-9e0a-6ce7-9b39-197b04f4f67c@xs4all.nl>
+Date: Mon, 13 Feb 2017 11:52:07 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+Hi Mauro,
 
-The csi_try_crop call in set_fmt should compare the cropping rectangle
-to the currently set input format, not to the previous input format.
+This adds the MediaTek JPEG encoder to the media subsystem.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/media/imx/imx-media-csi.c | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+This patch https://patchwork.linuxtv.org/patch/38645/ needs to go through
+Matthias Brugger, so you need to coordinate with him for which kernel this
+driver will be merged. This pull request is for 4.11, but since it is so
+late in the cycle I can understand if this slips to 4.12.
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index 6284f99..3e6b607 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -937,15 +937,13 @@ __csi_get_fmt(struct csi_priv *priv, struct v4l2_subdev_pad_config *cfg,
- static int csi_try_crop(struct csi_priv *priv,
- 			struct v4l2_rect *crop,
- 			struct v4l2_subdev_pad_config *cfg,
--			enum v4l2_subdev_format_whence which,
-+			struct v4l2_mbus_framefmt *infmt,
- 			struct imx_media_subdev *sensor)
- {
- 	struct v4l2_of_endpoint *sensor_ep;
--	struct v4l2_mbus_framefmt *infmt;
- 	v4l2_std_id std;
- 	int ret;
- 
--	infmt = __csi_get_fmt(priv, cfg, CSI_SINK_PAD, which);
- 	sensor_ep = &sensor->sensor_ep;
- 
- 	crop->width = min_t(__u32, infmt->width, crop->width);
-@@ -1142,8 +1140,7 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
- 		crop.top = 0;
- 		crop.width = sdformat->format.width;
- 		crop.height = sdformat->format.height;
--		ret = csi_try_crop(priv, &crop, cfg,
--				   sdformat->which, sensor);
-+		ret = csi_try_crop(priv, &crop, cfg, &sdformat->format, sensor);
- 		if (ret)
- 			return ret;
- 
-@@ -1225,6 +1222,7 @@ static int csi_set_selection(struct v4l2_subdev *sd,
- 			     struct v4l2_subdev_selection *sel)
- {
- 	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	struct v4l2_mbus_framefmt *infmt;
- 	struct imx_media_subdev *sensor;
- 	int ret;
- 
-@@ -1254,7 +1252,8 @@ static int csi_set_selection(struct v4l2_subdev *sd,
- 		return 0;
- 	}
- 
--	ret = csi_try_crop(priv, &sel->r, cfg, sel->which, sensor);
-+	infmt = __csi_get_fmt(priv, cfg, CSI_SINK_PAD, sel->which);
-+	ret = csi_try_crop(priv, &sel->r, cfg, infmt, sensor);
- 	if (ret)
- 		return ret;
- 
--- 
-2.7.4
+In any case, this should be coordinated.
+
+Regards,
+
+	Hans
+
+The following changes since commit 9eeb0ed0f30938f31a3d9135a88b9502192c18dd:
+
+  [media] mtk-vcodec: fix build warnings without DEBUG (2017-02-08 12:08:20 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.11e
+
+for you to fetch changes up to 0f492f30d15aec43248fbdd4d6ceea8f495f4457:
+
+  vcodec: mediatek: Add Maintainers entry for Mediatek JPEG driver (2017-02-13 11:35:29 +0100)
+
+----------------------------------------------------------------
+Rick Chang (3):
+      dt-bindings: mediatek: Add a binding for Mediatek JPEG Decoder
+      vcodec: mediatek: Add Mediatek JPEG Decoder Driver
+      vcodec: mediatek: Add Maintainers entry for Mediatek JPEG driver
+
+ Documentation/devicetree/bindings/media/mediatek-jpeg-decoder.txt |   37 +
+ MAINTAINERS                                                       |    7 +
+ drivers/media/platform/Kconfig                                    |   15 +
+ drivers/media/platform/Makefile                                   |    2 +
+ drivers/media/platform/mtk-jpeg/Makefile                          |    2 +
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c                   | 1306 +++++++++++++++++++++++++++++++++
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_core.h                   |  139 ++++
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.c                     |  417 +++++++++++
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.h                     |   91 +++
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.c                  |  160 ++++
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.h                  |   25 +
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_reg.h                    |   58 ++
+ 12 files changed, 2259 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/mediatek-jpeg-decoder.txt
+ create mode 100644 drivers/media/platform/mtk-jpeg/Makefile
+ create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+ create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_core.h
+ create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.c
+ create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.h
+ create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.c
+ create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.h
+ create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_reg.h
