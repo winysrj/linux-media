@@ -1,96 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:52015
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751983AbdBIWtV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Feb 2017 17:49:21 -0500
-From: Thibault Saunier <thibault.saunier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        linux-samsung-soc@vger.kernel.org,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        linux-media@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Thibault Saunier <thibault.saunier@osg.samsung.com>
-Subject: [PATCH 4/4] [media] s5p-mfc: Always check and set 'v4l2_pix_format:field' field
-Date: Thu,  9 Feb 2017 16:43:14 -0300
-Message-Id: <20170209194314.5908-5-thibault.saunier@osg.samsung.com>
-In-Reply-To: <20170209194314.5908-1-thibault.saunier@osg.samsung.com>
-References: <20170209194314.5908-1-thibault.saunier@osg.samsung.com>
+Received: from mga14.intel.com ([192.55.52.115]:16689 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752337AbdBMNbd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Feb 2017 08:31:33 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Subject: [PATCH 3/8] v4l: async: Add fwnode match support
+Date: Mon, 13 Feb 2017 15:28:11 +0200
+Message-Id: <1486992496-21078-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1486992496-21078-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1486992496-21078-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is required by the standard that the field order is set by the
-driver.
+Add fwnode matching to complement OF node matching. And fwnode may also be
+an OF node.
 
-Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 23 +++++++++++++++++++++--
- 1 file changed, 21 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/v4l2-async.c | 12 ++++++++++++
+ include/media/v4l2-async.h           |  5 +++++
+ include/media/v4l2-subdev.h          |  3 +++
+ 3 files changed, 20 insertions(+)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 960d6c7052bd..dfb21b4aee10 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -345,7 +345,6 @@ static int vidioc_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 		   rectangle. */
- 		pix_mp->width = ctx->buf_width;
- 		pix_mp->height = ctx->buf_height;
--		pix_mp->field = V4L2_FIELD_NONE;
- 		pix_mp->num_planes = 2;
- 		/* Set pixelformat to the format in which MFC
- 		   outputs the decoded frame */
-@@ -369,7 +368,6 @@ static int vidioc_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 		   so width and height have no meaning */
- 		pix_mp->width = 0;
- 		pix_mp->height = 0;
--		pix_mp->field = V4L2_FIELD_NONE;
- 		pix_mp->plane_fmt[0].bytesperline = ctx->dec_src_buf_size;
- 		pix_mp->plane_fmt[0].sizeimage = ctx->dec_src_buf_size;
- 		pix_mp->pixelformat = ctx->src_fmt->fourcc;
-@@ -379,6 +377,14 @@ static int vidioc_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 		mfc_debug(2, "%s-- with error\n", __func__);
- 		return -EINVAL;
- 	}
-+
-+	if (pix_mp->field == V4L2_FIELD_ANY) {
-+		pix_mp->field = V4L2_FIELD_NONE;
-+	} else if (pix_mp->field != V4L2_FIELD_NONE) {
-+		mfc_err("Not supported field order(%d)\n", pix_mp->field);
-+		return -EINVAL;
-+	}
-+
- 	mfc_debug_leave();
- 	return 0;
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 96cc733..384ad5e 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -46,6 +46,11 @@ static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ 			    of_node_full_name(asd->match.of.node));
  }
-@@ -389,6 +395,19 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 	struct s5p_mfc_dev *dev = video_drvdata(file);
- 	struct v4l2_pix_format_mplane *pix_mp = &f->fmt.pix_mp;
- 	struct s5p_mfc_fmt *fmt;
-+	enum v4l2_field field;
-+
-+	field = f->fmt.pix.field;
-+	if (field == V4L2_FIELD_ANY) {
-+		field = V4L2_FIELD_NONE;
-+	} else if (V4L2_FIELD_NONE != field) {
-+		mfc_debug("Not supported field order(%d)\n", pix_mp->field);
-+		return -EINVAL;
-+	}
-+
-+	/* V4L2 specification suggests the driver corrects the format struct
-+	 * if any of the dimensions is unsupported */
-+	f->fmt.pix.field = field;
  
- 	mfc_debug(2, "Type is %d\n", f->type);
- 	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
++static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
++{
++	return sd->fwnode == asd->match.fwnode.fwn;
++}
++
+ static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ {
+ 	if (!asd->match.custom.match)
+@@ -80,6 +85,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
+ 		case V4L2_ASYNC_MATCH_OF:
+ 			match = match_of;
+ 			break;
++		case V4L2_ASYNC_MATCH_FWNODE:
++			match = match_fwnode;
++			break;
+ 		default:
+ 			/* Cannot happen, unless someone breaks us */
+ 			WARN_ON(true);
+@@ -158,6 +166,7 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 		case V4L2_ASYNC_MATCH_DEVNAME:
+ 		case V4L2_ASYNC_MATCH_I2C:
+ 		case V4L2_ASYNC_MATCH_OF:
++		case V4L2_ASYNC_MATCH_FWNODE:
+ 			break;
+ 		default:
+ 			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
+@@ -282,6 +291,9 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ 	 */
+ 	if (!sd->of_node && sd->dev)
+ 		sd->of_node = sd->dev->of_node;
++	if (!sd->fwnode && sd->dev)
++		sd->fwnode = sd->dev->of_node ?
++			&sd->dev->of_node->fwnode : sd->dev->fwnode;
+ 
+ 	mutex_lock(&list_lock);
+ 
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 8e2a236..8f552d2 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -32,6 +32,7 @@ struct v4l2_async_notifier;
+  * @V4L2_ASYNC_MATCH_DEVNAME: Match will use the device name
+  * @V4L2_ASYNC_MATCH_I2C: Match will check for I2C adapter ID and address
+  * @V4L2_ASYNC_MATCH_OF: Match will use OF node
++ * @V4L2_ASYNC_MATCH_FWNODE: Match will use firmware node
+  *
+  * This enum is used by the asyncrhronous sub-device logic to define the
+  * algorithm that will be used to match an asynchronous device.
+@@ -41,6 +42,7 @@ enum v4l2_async_match_type {
+ 	V4L2_ASYNC_MATCH_DEVNAME,
+ 	V4L2_ASYNC_MATCH_I2C,
+ 	V4L2_ASYNC_MATCH_OF,
++	V4L2_ASYNC_MATCH_FWNODE,
+ };
+ 
+ /**
+@@ -58,6 +60,9 @@ struct v4l2_async_subdev {
+ 			const struct device_node *node;
+ 		} of;
+ 		struct {
++			struct fwnode_handle *fwn;
++		} fwnode;
++		struct {
+ 			const char *name;
+ 		} device_name;
+ 		struct {
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 0ab1c5d..5f1669c 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -788,6 +788,8 @@ struct v4l2_subdev_platform_data {
+  * @devnode: subdev device node
+  * @dev: pointer to the physical device, if any
+  * @of_node: The device_node of the subdev, usually the same as dev->of_node.
++ * @fwnode: The fwnode_handle of the subdev, usually the same as
++ *	    either dev->of_node->fwnode or dev->fwnode (whichever is non-NULL).
+  * @async_list: Links this subdev to a global subdev_list or @notifier->done
+  *	list.
+  * @asd: Pointer to respective &struct v4l2_async_subdev.
+@@ -819,6 +821,7 @@ struct v4l2_subdev {
+ 	struct video_device *devnode;
+ 	struct device *dev;
+ 	struct device_node *of_node;
++	struct fwnode_handle *fwnode;
+ 	struct list_head async_list;
+ 	struct v4l2_async_subdev *asd;
+ 	struct v4l2_async_notifier *notifier;
 -- 
-2.11.1
-
+2.7.4
