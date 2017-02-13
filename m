@@ -1,62 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:35428 "EHLO
-        mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752958AbdBARKr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Feb 2017 12:10:47 -0500
-Received: by mail-wm0-f43.google.com with SMTP id b65so48471696wmf.0
-        for <linux-media@vger.kernel.org>; Wed, 01 Feb 2017 09:10:46 -0800 (PST)
-Date: Wed, 1 Feb 2017 17:10:40 +0000
-From: Peter Griffin <peter.griffin@linaro.org>
-To: Hugues Fruchet <hugues.fruchet@st.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        kernel@stlinux.com,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [STLinux Kernel] [PATCH v6 01/10] Documentation: DT: add
- bindings for ST DELTA
-Message-ID: <20170201171040.GA31988@griffinp-ThinkPad-X1-Carbon-2nd>
-References: <1485965011-17388-1-git-send-email-hugues.fruchet@st.com>
- <1485965011-17388-2-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1485965011-17388-2-git-send-email-hugues.fruchet@st.com>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:41785 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751007AbdBMJdd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Feb 2017 04:33:33 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 1/4] media-ctl: add pad support to set/get_frame_interval
+Date: Mon, 13 Feb 2017 10:33:25 +0100
+Message-Id: <1486978408-28580-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 01 Feb 2017, Hugues Fruchet wrote:
+This allows to set and get the frame interval on pads other than pad 0.
 
-> This patch adds DT binding documentation for STMicroelectronics
-> DELTA V4L2 video decoder.
-> 
-> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+Changes since v1:
+ - use "pad %s/%u" instead of "entity %s pad %u" in debug message
+---
+ utils/media-ctl/libv4l2subdev.c | 24 ++++++++++++++----------
+ utils/media-ctl/v4l2subdev.h    |  4 ++--
+ 2 files changed, 16 insertions(+), 12 deletions(-)
 
-Acked-by: Peter Griffin <peter.griffin@linaro.org>
-
-> ---
->  Documentation/devicetree/bindings/media/st,st-delta.txt | 17 +++++++++++++++++
->  1 file changed, 17 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/st,st-delta.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/st,st-delta.txt b/Documentation/devicetree/bindings/media/st,st-delta.txt
-> new file mode 100644
-> index 0000000..a538ab3
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/st,st-delta.txt
-> @@ -0,0 +1,17 @@
-> +* STMicroelectronics DELTA multi-format video decoder
-> +
-> +Required properties:
-> +- compatible: should be "st,st-delta".
-> +- clocks: from common clock binding: handle hardware IP needed clocks, the
-> +  number of clocks may depend on the SoC type.
-> +  See ../clock/clock-bindings.txt for details.
-> +- clock-names: names of the clocks listed in clocks property in the same order.
-> +
-> +Example:
-> +	delta0 {
-> +		compatible = "st,st-delta";
-> +		clock-names = "delta", "delta-st231", "delta-flash-promip";
-> +		clocks = <&clk_s_c0_flexgen CLK_VID_DMU>,
-> +			 <&clk_s_c0_flexgen CLK_ST231_DMU>,
-> +			 <&clk_s_c0_flexgen CLK_FLASH_PROMIP>;
-> +	};
+diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
+index 3dcf943..2f2ac8e 100644
+--- a/utils/media-ctl/libv4l2subdev.c
++++ b/utils/media-ctl/libv4l2subdev.c
+@@ -262,7 +262,8 @@ int v4l2_subdev_set_dv_timings(struct media_entity *entity,
+ }
+ 
+ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
+-				   struct v4l2_fract *interval)
++				   struct v4l2_fract *interval,
++				   unsigned int pad)
+ {
+ 	struct v4l2_subdev_frame_interval ival;
+ 	int ret;
+@@ -272,6 +273,7 @@ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
+ 		return ret;
+ 
+ 	memset(&ival, 0, sizeof(ival));
++	ival.pad = pad;
+ 
+ 	ret = ioctl(entity->fd, VIDIOC_SUBDEV_G_FRAME_INTERVAL, &ival);
+ 	if (ret < 0)
+@@ -282,7 +284,8 @@ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
+ }
+ 
+ int v4l2_subdev_set_frame_interval(struct media_entity *entity,
+-				   struct v4l2_fract *interval)
++				   struct v4l2_fract *interval,
++				   unsigned int pad)
+ {
+ 	struct v4l2_subdev_frame_interval ival;
+ 	int ret;
+@@ -292,6 +295,7 @@ int v4l2_subdev_set_frame_interval(struct media_entity *entity,
+ 		return ret;
+ 
+ 	memset(&ival, 0, sizeof(ival));
++	ival.pad = pad;
+ 	ival.interval = *interval;
+ 
+ 	ret = ioctl(entity->fd, VIDIOC_SUBDEV_S_FRAME_INTERVAL, &ival);
+@@ -617,7 +621,7 @@ static int set_selection(struct media_pad *pad, unsigned int target,
+ 	return 0;
+ }
+ 
+-static int set_frame_interval(struct media_entity *entity,
++static int set_frame_interval(struct media_pad *pad,
+ 			      struct v4l2_fract *interval)
+ {
+ 	int ret;
+@@ -625,20 +629,20 @@ static int set_frame_interval(struct media_entity *entity,
+ 	if (interval->numerator == 0)
+ 		return 0;
+ 
+-	media_dbg(entity->media,
+-		  "Setting up frame interval %u/%u on entity %s\n",
++	media_dbg(pad->entity->media,
++		  "Setting up frame interval %u/%u on pad %s/%u\n",
+ 		  interval->numerator, interval->denominator,
+-		  entity->info.name);
++		  pad->entity->info.name, pad->index);
+ 
+-	ret = v4l2_subdev_set_frame_interval(entity, interval);
++	ret = v4l2_subdev_set_frame_interval(pad->entity, interval, pad->index);
+ 	if (ret < 0) {
+-		media_dbg(entity->media,
++		media_dbg(pad->entity->media,
+ 			  "Unable to set frame interval: %s (%d)",
+ 			  strerror(-ret), ret);
+ 		return ret;
+ 	}
+ 
+-	media_dbg(entity->media, "Frame interval set: %u/%u\n",
++	media_dbg(pad->entity->media, "Frame interval set: %u/%u\n",
+ 		  interval->numerator, interval->denominator);
+ 
+ 	return 0;
+@@ -685,7 +689,7 @@ static int v4l2_subdev_parse_setup_format(struct media_device *media,
+ 			return ret;
+ 	}
+ 
+-	ret = set_frame_interval(pad->entity, &interval);
++	ret = set_frame_interval(pad, &interval);
+ 	if (ret < 0)
+ 		return ret;
+ 
+diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
+index 9c8fee8..413094d 100644
+--- a/utils/media-ctl/v4l2subdev.h
++++ b/utils/media-ctl/v4l2subdev.h
+@@ -200,7 +200,7 @@ int v4l2_subdev_set_dv_timings(struct media_entity *entity,
+  */
+ 
+ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
+-	struct v4l2_fract *interval);
++	struct v4l2_fract *interval, unsigned int pad);
+ 
+ /**
+  * @brief Set the frame interval on a sub-device.
+@@ -217,7 +217,7 @@ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
+  * @return 0 on success, or a negative error code on failure.
+  */
+ int v4l2_subdev_set_frame_interval(struct media_entity *entity,
+-	struct v4l2_fract *interval);
++	struct v4l2_fract *interval, unsigned int pad);
+ 
+ /**
+  * @brief Parse a string and apply format, crop and frame interval settings.
+-- 
+2.1.4
