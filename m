@@ -1,294 +1,238 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:41273 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751798AbdBFKaN (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:43929 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752656AbdBMOAn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Feb 2017 05:30:13 -0500
+        Mon, 13 Feb 2017 09:00:43 -0500
+Subject: Re: [PATCH 2/4] [media] em28xx: reduce stack usage in probe functions
+To: Arnd Bergmann <arnd@arndb.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <20170202145318.3803805-1-arnd@arndb.de>
+ <20170202145318.3803805-2-arnd@arndb.de>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        =?UTF-8?Q?Frank_Sch=c3=a4fer?= <fschaefer.oss@googlemail.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv4 6/9] s5p-cec: add hpd-notifier support, move out of staging
-Date: Mon,  6 Feb 2017 11:29:48 +0100
-Message-Id: <20170206102951.12623-7-hverkuil@xs4all.nl>
-In-Reply-To: <20170206102951.12623-1-hverkuil@xs4all.nl>
-References: <20170206102951.12623-1-hverkuil@xs4all.nl>
+Message-ID: <12e52c0c-1e40-3276-7c24-43cc670f00a4@xs4all.nl>
+Date: Mon, 13 Feb 2017 15:00:37 +0100
+MIME-Version: 1.0
+In-Reply-To: <20170202145318.3803805-2-arnd@arndb.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Arnd,
 
-By using the HPD notifier framework there is no longer any reason
-to manually set the physical address. This was the one blocking
-issue that prevented this driver from going out of staging, so do
-this move as well.
+I'll take the others of this patch series, but will postpone this one until it has
+been tested.
 
-Update the bindings documenting the new hdmi phandle and
-update exynos4.dtsi accordingly.
+I've asked Frank to see if he can test it, if not, then it will have to wait until
+March when I have access to an omnivision-em28xx device.
 
-Tested with my Odroid U3.
+Regards,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: linux-samsung-soc@vger.kernel.org
-CC: Krzysztof Kozlowski <krzk@kernel.org>
----
- drivers/media/platform/Kconfig                     | 18 +++++++++++
- drivers/media/platform/Makefile                    |  1 +
- .../media => media/platform}/s5p-cec/Makefile      |  0
- .../platform}/s5p-cec/exynos_hdmi_cec.h            |  0
- .../platform}/s5p-cec/exynos_hdmi_cecctrl.c        |  0
- .../media => media/platform}/s5p-cec/regs-cec.h    |  0
- .../media => media/platform}/s5p-cec/s5p_cec.c     | 35 ++++++++++++++++++----
- .../media => media/platform}/s5p-cec/s5p_cec.h     |  3 ++
- drivers/staging/media/Kconfig                      |  2 --
- drivers/staging/media/Makefile                     |  1 -
- drivers/staging/media/s5p-cec/Kconfig              |  9 ------
- drivers/staging/media/s5p-cec/TODO                 |  7 -----
- 12 files changed, 52 insertions(+), 24 deletions(-)
- rename drivers/{staging/media => media/platform}/s5p-cec/Makefile (100%)
- rename drivers/{staging/media => media/platform}/s5p-cec/exynos_hdmi_cec.h (100%)
- rename drivers/{staging/media => media/platform}/s5p-cec/exynos_hdmi_cecctrl.c (100%)
- rename drivers/{staging/media => media/platform}/s5p-cec/regs-cec.h (100%)
- rename drivers/{staging/media => media/platform}/s5p-cec/s5p_cec.c (89%)
- rename drivers/{staging/media => media/platform}/s5p-cec/s5p_cec.h (97%)
- delete mode 100644 drivers/staging/media/s5p-cec/Kconfig
- delete mode 100644 drivers/staging/media/s5p-cec/TODO
+	Hans
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 0245af0b76e0..9920726f14d2 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -406,6 +406,24 @@ config VIDEO_TI_SC
- config VIDEO_TI_CSC
- 	tristate
- 
-+menuconfig V4L_CEC_DRIVERS
-+	bool "Platform HDMI CEC drivers"
-+	depends on MEDIA_CEC_SUPPORT
-+
-+if V4L_CEC_DRIVERS
-+
-+config VIDEO_SAMSUNG_S5P_CEC
-+       tristate "Samsung S5P CEC driver"
-+       depends on VIDEO_DEV && MEDIA_CEC_SUPPORT && (PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST)
-+       select HPD_NOTIFIER
-+       ---help---
-+         This is a driver for Samsung S5P HDMI CEC interface. It uses the
-+         generic CEC framework interface.
-+         CEC bus is present in the HDMI connector and enables communication
-+         between compatible devices.
-+
-+endif #V4L_CEC_DRIVERS
-+
- menuconfig V4L_TEST_DRIVERS
- 	bool "Media test drivers"
- 	depends on MEDIA_CAMERA_SUPPORT
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 5b3cb271d2b8..ad3bf22bfeae 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -33,6 +33,7 @@ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_JPEG)	+= s5p-jpeg/
- obj-$(CONFIG_VIDEO_SAMSUNG_S5P_MFC)	+= s5p-mfc/
- 
- obj-$(CONFIG_VIDEO_SAMSUNG_S5P_G2D)	+= s5p-g2d/
-+obj-$(CONFIG_VIDEO_SAMSUNG_S5P_CEC)	+= s5p-cec/
- obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC)	+= exynos-gsc/
- 
- obj-$(CONFIG_VIDEO_STI_BDISP)		+= sti/bdisp/
-diff --git a/drivers/staging/media/s5p-cec/Makefile b/drivers/media/platform/s5p-cec/Makefile
-similarity index 100%
-rename from drivers/staging/media/s5p-cec/Makefile
-rename to drivers/media/platform/s5p-cec/Makefile
-diff --git a/drivers/staging/media/s5p-cec/exynos_hdmi_cec.h b/drivers/media/platform/s5p-cec/exynos_hdmi_cec.h
-similarity index 100%
-rename from drivers/staging/media/s5p-cec/exynos_hdmi_cec.h
-rename to drivers/media/platform/s5p-cec/exynos_hdmi_cec.h
-diff --git a/drivers/staging/media/s5p-cec/exynos_hdmi_cecctrl.c b/drivers/media/platform/s5p-cec/exynos_hdmi_cecctrl.c
-similarity index 100%
-rename from drivers/staging/media/s5p-cec/exynos_hdmi_cecctrl.c
-rename to drivers/media/platform/s5p-cec/exynos_hdmi_cecctrl.c
-diff --git a/drivers/staging/media/s5p-cec/regs-cec.h b/drivers/media/platform/s5p-cec/regs-cec.h
-similarity index 100%
-rename from drivers/staging/media/s5p-cec/regs-cec.h
-rename to drivers/media/platform/s5p-cec/regs-cec.h
-diff --git a/drivers/staging/media/s5p-cec/s5p_cec.c b/drivers/media/platform/s5p-cec/s5p_cec.c
-similarity index 89%
-rename from drivers/staging/media/s5p-cec/s5p_cec.c
-rename to drivers/media/platform/s5p-cec/s5p_cec.c
-index 2a07968b5ac6..2014f792eceb 100644
---- a/drivers/staging/media/s5p-cec/s5p_cec.c
-+++ b/drivers/media/platform/s5p-cec/s5p_cec.c
-@@ -14,15 +14,18 @@
-  */
- 
- #include <linux/clk.h>
-+#include <linux/hpd-notifier.h>
- #include <linux/interrupt.h>
- #include <linux/kernel.h>
- #include <linux/mfd/syscon.h>
- #include <linux/module.h>
- #include <linux/of.h>
-+#include <linux/of_platform.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- #include <linux/timer.h>
- #include <linux/workqueue.h>
-+#include <media/cec-edid.h>
- #include <media/cec.h>
- 
- #include "exynos_hdmi_cec.h"
-@@ -167,10 +170,22 @@ static const struct cec_adap_ops s5p_cec_adap_ops = {
- static int s5p_cec_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
-+	struct device_node *np;
-+	struct platform_device *hdmi_dev;
- 	struct resource *res;
- 	struct s5p_cec_dev *cec;
- 	int ret;
- 
-+	np = of_parse_phandle(pdev->dev.of_node, "samsung,hdmi-phandle", 0);
-+
-+	if (!np) {
-+		dev_err(&pdev->dev, "Failed to find hdmi node in device tree\n");
-+		return -ENODEV;
-+	}
-+	hdmi_dev = of_find_device_by_node(np);
-+	if (hdmi_dev == NULL)
-+		return -EPROBE_DEFER;
-+
- 	cec = devm_kzalloc(&pdev->dev, sizeof(*cec), GFP_KERNEL);
- 	if (!cec)
- 		return -ENOMEM;
-@@ -200,24 +215,33 @@ static int s5p_cec_probe(struct platform_device *pdev)
- 	if (IS_ERR(cec->reg))
- 		return PTR_ERR(cec->reg);
- 
-+	cec->notifier = hpd_notifier_get(&hdmi_dev->dev);
-+	if (cec->notifier == NULL)
-+		return -ENOMEM;
-+
- 	cec->adap = cec_allocate_adapter(&s5p_cec_adap_ops, cec,
- 		CEC_NAME,
--		CEC_CAP_PHYS_ADDR | CEC_CAP_LOG_ADDRS | CEC_CAP_TRANSMIT |
-+		CEC_CAP_LOG_ADDRS | CEC_CAP_TRANSMIT |
- 		CEC_CAP_PASSTHROUGH | CEC_CAP_RC, 1);
- 	ret = PTR_ERR_OR_ZERO(cec->adap);
- 	if (ret)
- 		return ret;
-+
- 	ret = cec_register_adapter(cec->adap, &pdev->dev);
--	if (ret) {
--		cec_delete_adapter(cec->adap);
--		return ret;
--	}
-+	if (ret)
-+		goto err_delete_adapter;
-+
-+	cec_register_hpd_notifier(cec->adap, cec->notifier);
- 
- 	platform_set_drvdata(pdev, cec);
- 	pm_runtime_enable(dev);
- 
- 	dev_dbg(dev, "successfuly probed\n");
- 	return 0;
-+
-+err_delete_adapter:
-+	cec_delete_adapter(cec->adap);
-+	return ret;
- }
- 
- static int s5p_cec_remove(struct platform_device *pdev)
-@@ -225,6 +249,7 @@ static int s5p_cec_remove(struct platform_device *pdev)
- 	struct s5p_cec_dev *cec = platform_get_drvdata(pdev);
- 
- 	cec_unregister_adapter(cec->adap);
-+	hpd_notifier_put(cec->notifier);
- 	pm_runtime_disable(&pdev->dev);
- 	return 0;
- }
-diff --git a/drivers/staging/media/s5p-cec/s5p_cec.h b/drivers/media/platform/s5p-cec/s5p_cec.h
-similarity index 97%
-rename from drivers/staging/media/s5p-cec/s5p_cec.h
-rename to drivers/media/platform/s5p-cec/s5p_cec.h
-index 03732c13d19f..a6f5af6619a4 100644
---- a/drivers/staging/media/s5p-cec/s5p_cec.h
-+++ b/drivers/media/platform/s5p-cec/s5p_cec.h
-@@ -59,12 +59,15 @@ enum cec_state {
- 	STATE_ERROR
- };
- 
-+struct hpd_notifier;
-+
- struct s5p_cec_dev {
- 	struct cec_adapter	*adap;
- 	struct clk		*clk;
- 	struct device		*dev;
- 	struct mutex		lock;
- 	struct regmap           *pmu;
-+	struct hpd_notifier	*notifier;
- 	int			irq;
- 	void __iomem		*reg;
- 
-diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
-index ffb8fa72c3da..1b7804cf4c51 100644
---- a/drivers/staging/media/Kconfig
-+++ b/drivers/staging/media/Kconfig
-@@ -27,8 +27,6 @@ source "drivers/staging/media/davinci_vpfe/Kconfig"
- 
- source "drivers/staging/media/omap4iss/Kconfig"
- 
--source "drivers/staging/media/s5p-cec/Kconfig"
--
- # Keep LIRC at the end, as it has sub-menus
- source "drivers/staging/media/lirc/Kconfig"
- 
-diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
-index a28e82cf6447..e11afbf99452 100644
---- a/drivers/staging/media/Makefile
-+++ b/drivers/staging/media/Makefile
-@@ -1,5 +1,4 @@
- obj-$(CONFIG_I2C_BCM2048)	+= bcm2048/
--obj-$(CONFIG_VIDEO_SAMSUNG_S5P_CEC) += s5p-cec/
- obj-$(CONFIG_DVB_CXD2099)	+= cxd2099/
- obj-$(CONFIG_LIRC_STAGING)	+= lirc/
- obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
-diff --git a/drivers/staging/media/s5p-cec/Kconfig b/drivers/staging/media/s5p-cec/Kconfig
-deleted file mode 100644
-index 7a3489df3e70..000000000000
---- a/drivers/staging/media/s5p-cec/Kconfig
-+++ /dev/null
-@@ -1,9 +0,0 @@
--config VIDEO_SAMSUNG_S5P_CEC
--       tristate "Samsung S5P CEC driver"
--       depends on VIDEO_DEV && MEDIA_CEC_SUPPORT && (ARCH_EXYNOS || COMPILE_TEST)
--       ---help---
--         This is a driver for Samsung S5P HDMI CEC interface. It uses the
--         generic CEC framework interface.
--         CEC bus is present in the HDMI connector and enables communication
--         between compatible devices.
--
-diff --git a/drivers/staging/media/s5p-cec/TODO b/drivers/staging/media/s5p-cec/TODO
-deleted file mode 100644
-index 64f21bab38f5..000000000000
---- a/drivers/staging/media/s5p-cec/TODO
-+++ /dev/null
-@@ -1,7 +0,0 @@
--This driver requires that userspace sets the physical address.
--However, this should be passed on from the corresponding
--Samsung HDMI driver.
--
--We have to wait until the HDMI notifier framework has been merged
--in order to handle this gracefully, until that time this driver
--has to remain in staging.
--- 
-2.11.0
-
+On 02/02/2017 03:53 PM, Arnd Bergmann wrote:
+> The two i2c probe functions use a lot of stack since they put
+> an i2c_client structure in a local variable:
+> 
+> drivers/media/usb/em28xx/em28xx-camera.c: In function 'em28xx_probe_sensor_micron':
+> drivers/media/usb/em28xx/em28xx-camera.c:205:1: error: the frame size of 1256 bytes is larger than 1152 bytes [-Werror=frame-larger-than=]
+> drivers/media/usb/em28xx/em28xx-camera.c: In function 'em28xx_probe_sensor_omnivision':
+> drivers/media/usb/em28xx/em28xx-camera.c:317:1: error: the frame size of 1248 bytes is larger than 1152 bytes [-Werror=frame-larger-than=]
+> 
+> This cleans up both of the above by removing the need for those
+> structures, calling the lower-level i2c function directly.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  drivers/media/usb/em28xx/em28xx-camera.c | 87 ++++++++++++++++++--------------
+>  1 file changed, 50 insertions(+), 37 deletions(-)
+> 
+> diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
+> index 89c890ba7dd6..e64940f95a91 100644
+> --- a/drivers/media/usb/em28xx/em28xx-camera.c
+> +++ b/drivers/media/usb/em28xx/em28xx-camera.c
+> @@ -99,6 +99,25 @@ static int em28xx_initialize_mt9m001(struct em28xx *dev)
+>  	return 0;
+>  }
+>  
+> +/* NOTE: i2c_smbus_read_word_data() doesn't work with BE data */
+> +static int em28xx_i2c_read_chip_id(struct em28xx *dev, u16 addr, u8 reg, void *buf)
+> +{
+> +	struct i2c_client *client = &dev->i2c_client[dev->def_i2c_bus];
+> +	struct i2c_msg msg[2];
+> +
+> +	msg[0].addr = addr;
+> +	msg[0].flags = client->flags & I2C_M_TEN;
+> +	msg[0].len = 1;
+> +	msg[0].buf = &reg;
+> +	msg[1].addr = addr;
+> +	msg[1].flags = client->flags & I2C_M_TEN;
+> +	msg[1].flags |= I2C_M_RD;
+> +	msg[1].len = 2;
+> +	msg[1].buf = buf;
+> +
+> +	return i2c_transfer(client->adapter, msg, 2);
+> +}
+> +
+>  /*
+>   * Probes Micron sensors with 8 bit address and 16 bit register width
+>   */
+> @@ -106,48 +125,29 @@ static int em28xx_probe_sensor_micron(struct em28xx *dev)
+>  {
+>  	int ret, i;
+>  	char *name;
+> -	u8 reg;
+>  	__be16 id_be;
+> +	u16 addr;
+>  	u16 id;
+>  
+> -	struct i2c_client client = dev->i2c_client[dev->def_i2c_bus];
+> -
+>  	dev->em28xx_sensor = EM28XX_NOSENSOR;
+>  	for (i = 0; micron_sensor_addrs[i] != I2C_CLIENT_END; i++) {
+> -		client.addr = micron_sensor_addrs[i];
+> -		/* NOTE: i2c_smbus_read_word_data() doesn't work with BE data */
+> +		addr = micron_sensor_addrs[i];
+>  		/* Read chip ID from register 0x00 */
+> -		reg = 0x00;
+> -		ret = i2c_master_send(&client, &reg, 1);
+> +		ret = em28xx_i2c_read_chip_id(dev, addr, 0x00, &id_be);
+>  		if (ret < 0) {
+>  			if (ret != -ENXIO)
+>  				dev_err(&dev->intf->dev,
+>  					"couldn't read from i2c device 0x%02x: error %i\n",
+> -				       client.addr << 1, ret);
+> -			continue;
+> -		}
+> -		ret = i2c_master_recv(&client, (u8 *)&id_be, 2);
+> -		if (ret < 0) {
+> -			dev_err(&dev->intf->dev,
+> -				"couldn't read from i2c device 0x%02x: error %i\n",
+> -				client.addr << 1, ret);
+> +				       addr << 1, ret);
+>  			continue;
+>  		}
+>  		id = be16_to_cpu(id_be);
+>  		/* Read chip ID from register 0xff */
+> -		reg = 0xff;
+> -		ret = i2c_master_send(&client, &reg, 1);
+> +		ret = em28xx_i2c_read_chip_id(dev, addr, 0xff, &id_be);
+>  		if (ret < 0) {
+>  			dev_err(&dev->intf->dev,
+>  				"couldn't read from i2c device 0x%02x: error %i\n",
+> -				client.addr << 1, ret);
+> -			continue;
+> -		}
+> -		ret = i2c_master_recv(&client, (u8 *)&id_be, 2);
+> -		if (ret < 0) {
+> -			dev_err(&dev->intf->dev,
+> -				"couldn't read from i2c device 0x%02x: error %i\n",
+> -				client.addr << 1, ret);
+> +				addr << 1, ret);
+>  			continue;
+>  		}
+>  		/* Validate chip ID to be sure we have a Micron device */
+> @@ -197,13 +197,26 @@ static int em28xx_probe_sensor_micron(struct em28xx *dev)
+>  			dev_info(&dev->intf->dev,
+>  				 "sensor %s detected\n", name);
+>  
+> -		dev->i2c_client[dev->def_i2c_bus].addr = client.addr;
+> +		dev->i2c_client[dev->def_i2c_bus].addr = addr;
+>  		return 0;
+>  	}
+>  
+>  	return -ENODEV;
+>  }
+>  
+> +/* like i2c_smbus_read_byte_data, but allows passing an addr */
+> +static int em28xx_smbus_read_byte(struct em28xx *dev, u16 addr, u8 command)
+> +{
+> +	struct i2c_client *client = &dev->i2c_client[dev->def_i2c_bus];
+> +	union i2c_smbus_data data;
+> +	int status;
+> +
+> +	status = i2c_smbus_xfer(client->adapter, addr, client->flags,
+> +				I2C_SMBUS_READ, command,
+> +				I2C_SMBUS_BYTE_DATA, &data);
+> +	return (status < 0) ? status : data.byte;
+> +}
+> +
+>  /*
+>   * Probes Omnivision sensors with 8 bit address and register width
+>   */
+> @@ -212,31 +225,31 @@ static int em28xx_probe_sensor_omnivision(struct em28xx *dev)
+>  	int ret, i;
+>  	char *name;
+>  	u8 reg;
+> +	u16 addr;
+>  	u16 id;
+> -	struct i2c_client client = dev->i2c_client[dev->def_i2c_bus];
+>  
+>  	dev->em28xx_sensor = EM28XX_NOSENSOR;
+>  	/* NOTE: these devices have the register auto incrementation disabled
+>  	 * by default, so we have to use single byte reads !              */
+>  	for (i = 0; omnivision_sensor_addrs[i] != I2C_CLIENT_END; i++) {
+> -		client.addr = omnivision_sensor_addrs[i];
+> +		addr = omnivision_sensor_addrs[i];
+>  		/* Read manufacturer ID from registers 0x1c-0x1d (BE) */
+>  		reg = 0x1c;
+> -		ret = i2c_smbus_read_byte_data(&client, reg);
+> +		ret = em28xx_smbus_read_byte(dev, addr, reg);
+>  		if (ret < 0) {
+>  			if (ret != -ENXIO)
+>  				dev_err(&dev->intf->dev,
+>  					"couldn't read from i2c device 0x%02x: error %i\n",
+> -					client.addr << 1, ret);
+> +					addr << 1, ret);
+>  			continue;
+>  		}
+>  		id = ret << 8;
+>  		reg = 0x1d;
+> -		ret = i2c_smbus_read_byte_data(&client, reg);
+> +		ret = em28xx_smbus_read_byte(dev, addr, reg);
+>  		if (ret < 0) {
+>  			dev_err(&dev->intf->dev,
+>  				"couldn't read from i2c device 0x%02x: error %i\n",
+> -				client.addr << 1, ret);
+> +				addr << 1, ret);
+>  			continue;
+>  		}
+>  		id += ret;
+> @@ -245,20 +258,20 @@ static int em28xx_probe_sensor_omnivision(struct em28xx *dev)
+>  			continue;
+>  		/* Read product ID from registers 0x0a-0x0b (BE) */
+>  		reg = 0x0a;
+> -		ret = i2c_smbus_read_byte_data(&client, reg);
+> +		ret = em28xx_smbus_read_byte(dev, addr, reg);
+>  		if (ret < 0) {
+>  			dev_err(&dev->intf->dev,
+>  				"couldn't read from i2c device 0x%02x: error %i\n",
+> -				client.addr << 1, ret);
+> +				addr << 1, ret);
+>  			continue;
+>  		}
+>  		id = ret << 8;
+>  		reg = 0x0b;
+> -		ret = i2c_smbus_read_byte_data(&client, reg);
+> +		ret = em28xx_smbus_read_byte(dev, addr, reg);
+>  		if (ret < 0) {
+>  			dev_err(&dev->intf->dev,
+>  				"couldn't read from i2c device 0x%02x: error %i\n",
+> -				client.addr << 1, ret);
+> +				addr << 1, ret);
+>  			continue;
+>  		}
+>  		id += ret;
+> @@ -309,7 +322,7 @@ static int em28xx_probe_sensor_omnivision(struct em28xx *dev)
+>  			dev_info(&dev->intf->dev,
+>  				 "sensor %s detected\n", name);
+>  
+> -		dev->i2c_client[dev->def_i2c_bus].addr = client.addr;
+> +		dev->i2c_client[dev->def_i2c_bus].addr = addr;
+>  		return 0;
+>  	}
+>  
+> 
