@@ -1,71 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:31603 "EHLO
-        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753530AbdBPMEr (ORCPT
+Received: from fllnx209.ext.ti.com ([198.47.19.16]:12633 "EHLO
+        fllnx209.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751666AbdBMJ0M (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Feb 2017 07:04:47 -0500
-Date: Thu, 16 Feb 2017 15:03:12 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: walter harms <wharms@bfs.de>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Eric Anholt <eric@anholt.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Stephen Warren <swarren@wwwdotorg.org>,
-        Lee Jones <lee@kernel.org>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Ray Jui <rjui@broadcom.com>,
-        Scott Branden <sbranden@broadcom.com>,
-        bcm-kernel-feedback-list@broadcom.com,
-        Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-rpi-kernel@lists.infradead.org,
-        kernel-janitors@vger.kernel.org
-Subject: Re: [patch] staging: bcm2835-camera: free first element in array
-Message-ID: <20170216120312.GH4162@mwanda>
-References: <20170215122523.GA12198@mwanda>
- <58A44DFB.6090105@bfs.de>
+        Mon, 13 Feb 2017 04:26:12 -0500
+Subject: Re: [PATCH 00/10] ARM: davinci: add vpif display support
+To: Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Kevin Hilman <khilman@kernel.org>,
+        Patrick Titiano <ptitiano@baylibre.com>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Lad Prabhakar <prabhakar.csengg@gmail.com>
+References: <1486485683-11427-1-git-send-email-bgolaszewski@baylibre.com>
+CC: <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>
+From: Sekhar Nori <nsekhar@ti.com>
+Message-ID: <058423ca-c53b-93a2-035e-54fe3ce6dcfe@ti.com>
+Date: Mon, 13 Feb 2017 14:52:57 +0530
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <58A44DFB.6090105@bfs.de>
+In-Reply-To: <1486485683-11427-1-git-send-email-bgolaszewski@baylibre.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 15, 2017 at 01:47:55PM +0100, walter harms wrote:
-> 
-> 
-> Am 15.02.2017 13:25, schrieb Dan Carpenter:
-> > We should free gdev[0] so the > should be >=.
-> > 
-> > Fixes: 7b3ad5abf027 ("staging: Import the BCM2835 MMAL-based V4L2 camera driver.")
-> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> > 
-> > diff --git a/drivers/staging/media/platform/bcm2835/bcm2835-camera.c b/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
-> > index ca15a698e018..9bcd8e546a14 100644
-> > --- a/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
-> > +++ b/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
-> > @@ -1998,7 +1998,7 @@ static int __init bm2835_mmal_init(void)
-> >  free_dev:
-> >  	kfree(dev);
-> >  
-> > -	for ( ; camera > 0; camera--) {
-> > +	for ( ; camera >= 0; camera--) {
-> >  		bcm2835_cleanup_instance(gdev[camera]);
-> >  		gdev[camera] = NULL;
-> >  	}
-> 
-> since we already know that programmers are bad in counting backwards ...
-> 
-> is is possible to change that into std. loop like:
-> 
->  for(i=0, i< camera; i++ {
-> 	bcm2835_cleanup_instance(gdev[i]);
-> 	gdev[i] = NULL;
->   	}
-> 
-> this is way a much more common pattern.
+Hi Bartosz,
 
-Hm...  My patch is buggy.  It frees the wong thing on the first
-iteration through the loop.  I'll resend.
+On Tuesday 07 February 2017 10:11 PM, Bartosz Golaszewski wrote:
+> The following series adds support for v4l2 display on da850-evm with
+> a UI board in device tree boot mode.
+> 
+> Patches 1/10 - 5/10 deal with the device tree: we fix whitespace
+> errors in dts files and bindings, extend the example and the dts for
+> da850-evm with the output port and address the pinmuxing.
+> 
+> Patch 6/10 enables the relevant modules in the defconfig file.
+> 
+> Patches 7/10 and 8/10 fix two already existing bugs encountered
+> during development.
+> 
+> Patch 9/10 make it possible to use a different i2c adapter in the
+> vpif display driver.
+> 
+> The last patch adds the pdata quirks necessary to enable v4l2 display.
+> 
+> Tested with a modified version of yavta[1] as gstreamer support for
+> v4l2 seems to be broken and results in picture artifacts.
+> 
+> [1] https://github.com/brgl/yavta davinci/vpif-display
 
-regards,
-dan carpenter
+Can you also share the command line you used ?
+
+Thanks,
+Sekhar
