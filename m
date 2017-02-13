@@ -1,146 +1,479 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:50797 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751511AbdB1WPR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Feb 2017 17:15:17 -0500
-Date: Tue, 28 Feb 2017 22:15:05 +0000
-From: Sean Young <sean@mess.org>
-To: Vincent McIntyre <vincent.mcintyre@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: ir-keytable: infinite loops, segfaults
-Message-ID: <20170228221505.GA13809@gofer.mess.org>
-References: <20170202233533.GA14357@gofer.mess.org>
- <CAEsFdVMhbxb3d=_ugYjfYSCRZsQMhtt=kmsqX81x-6UjTYc-bg@mail.gmail.com>
- <20170204191050.GA31779@gofer.mess.org>
- <CAEsFdVM14VngTM5X=qWTitgwox+4yD8heUqjULe8C=3z2P+h3Q@mail.gmail.com>
- <CAEsFdVMb+-iTGKnBXi1MkB+_ihb5AwG2LZnRfXzEf4Hru33T0g@mail.gmail.com>
- <CAEsFdVOfGFJ9HYav2h0gNkpdhYzbnVxnPbOaZW+HpO3KE1S9-w@mail.gmail.com>
- <20170220171309.GA26632@gofer.mess.org>
- <CAEsFdVNbmNZpYcst6wuDAVw4XS2eNBqwMwgx9LwfLZtY_jHhVA@mail.gmail.com>
- <20170221183223.GA3646@gofer.mess.org>
- <CAEsFdVP1pGPJFiUn8ERyXDhE2Zm2uwuD7gbr5mdRD=OmbQ9dwg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAEsFdVP1pGPJFiUn8ERyXDhE2Zm2uwuD7gbr5mdRD=OmbQ9dwg@mail.gmail.com>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:46609 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751703AbdBMLkv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Feb 2017 06:40:51 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v3 4/4] media-ctl: add colorimetry support
+Date: Mon, 13 Feb 2017 12:40:47 +0100
+Message-Id: <1486986047-18128-4-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1486986047-18128-1-git-send-email-p.zabel@pengutronix.de>
+References: <1486986047-18128-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Feb 25, 2017 at 02:08:39AM +1100, Vincent McIntyre wrote:
-> On 2/22/17, Sean Young <sean@mess.org> wrote:
-> 
-> > So it's still using the old keymap. I've attached a new one.
-> 
-> That works, thanks.
-> 
-> >>   # vol down
-> >> 1487676637.746348: event type EV_MSC(0x04): scancode = 0xffff0105
-> >> 1487676637.746348: event type EV_SYN(0x00).
-> >>   # vol up
-> >> 1487676642.746321: event type EV_MSC(0x04): scancode = 0xffff0115
-> >> 1487676642.746321: event type EV_SYN(0x00).
-> >
-> > Oops, that's a bug. 0xffff should be 0x0000. I've attached a new version of
-> > the patch which should fix that.
-> >
-> 
-> I am still getting the high bits set. I checked the code and the patch
-> was correctly applied,
-> I see where you are applying a 0xff mask to the ircode values.
-> 
-> 
-> Test run:
-> # Found /sys/class/rc/rc0/ (/dev/input/event5) with:
->         Driver imon, table rc-imon-mce
->         Supported protocols: rc-6
->         Enabled protocols: rc-6
->         Name: iMON Remote (15c2:ffdc)
->         bus: 3, vendor/product: 15c2:ffdc, version: 0x0000
->         Repeat delay = 500 ms, repeat period = 125 ms
-> Found /sys/class/rc/rc1/ (/dev/input/event15) with:
->         Driver dvb_usb_cxusb, table rc-dvico-mce
->         Supported protocols: nec
->         Enabled protocols:
->         Name: IR-receiver inside an USB DVB re
->         bus: 3, vendor/product: 0fe9:db78, version: 0x827b
->         Repeat delay = 500 ms, repeat period = 125 ms
-> Found /sys/class/rc/rc2/ (/dev/input/event16) with:
->         Driver dvb_usb_af9035, table rc-empty
->         Supported protocols: nec
->         Enabled protocols:
->         Name: Leadtek WinFast DTV Dongle Dual
->         bus: 3, vendor/product: 0413:6a05, version: 0x0200
->         Repeat delay = 500 ms, repeat period = 125 ms
-> 
-> #  ir-keytable -r -t -d /dev/input/event15
-> scancode 0x0101 = KEY_RECORD (0xa7)
-> scancode 0x0102 = KEY_TV (0x179)
-> scancode 0x0103 = KEY_0 (0x0b)
-> scancode 0x0105 = KEY_VOLUMEDOWN (0x72)
-> scancode 0x0107 = KEY_4 (0x05)
-> scancode 0x0109 = KEY_CHANNELDOWN (0x193)
-> scancode 0x010a = KEY_EPG (0x16d)
-> scancode 0x010b = KEY_1 (0x02)
-> scancode 0x010d = KEY_STOP (0x80)
-> scancode 0x010e = KEY_MP3 (0x187)
-> scancode 0x010f = KEY_PREVIOUSSONG (0xa5)
-> scancode 0x0111 = KEY_CHANNELUP (0x192)
-> scancode 0x0112 = KEY_NEXTSONG (0xa3)
-> scancode 0x0113 = KEY_ANGLE (0x173)
-> scancode 0x0115 = KEY_VOLUMEUP (0x73)
-> scancode 0x0116 = KEY_SETUP (0x8d)
-> scancode 0x0117 = KEY_2 (0x03)
-> scancode 0x0119 = KEY_OPEN (0x86)
-> scancode 0x011a = KEY_DVD (0x185)
-> scancode 0x011b = KEY_3 (0x04)
-> scancode 0x011e = KEY_FAVORITES (0x16c)
-> scancode 0x011f = KEY_ZOOM (0x174)
-> scancode 0x0142 = KEY_ENTER (0x1c)
-> scancode 0x0143 = KEY_REWIND (0xa8)
-> scancode 0x0146 = KEY_POWER2 (0x164)
-> scancode 0x0147 = KEY_PLAYPAUSE (0xa4)
-> scancode 0x0148 = KEY_7 (0x08)
-> scancode 0x0149 = KEY_BACK (0x9e)
-> scancode 0x014c = KEY_8 (0x09)
-> scancode 0x014d = KEY_MENU (0x8b)
-> scancode 0x014e = KEY_POWER (0x74)
-> scancode 0x014f = KEY_FASTFORWARD (0xd0)
-> scancode 0x0150 = KEY_5 (0x06)
-> scancode 0x0151 = KEY_UP (0x67)
-> scancode 0x0152 = KEY_CAMERA (0xd4)
-> scancode 0x0153 = KEY_DOWN (0x6c)
-> scancode 0x0154 = KEY_6 (0x07)
-> scancode 0x0155 = KEY_TAB (0x0f)
-> scancode 0x0157 = KEY_MUTE (0x71)
-> scancode 0x0158 = KEY_9 (0x0a)
-> scancode 0x0159 = KEY_INFO (0x166)
-> scancode 0x015a = KEY_TUNER (0x182)
-> scancode 0x015b = KEY_LEFT (0x69)
-> scancode 0x015e = KEY_OK (0x160)
-> scancode 0x015f = KEY_RIGHT (0x6a)
-> Enabled protocols: other jvc sony nec sanyo mce-kbd rc-6 sharp xmp
-> Testing events. Please, press CTRL-C to abort.
->  # '1'
-> 1487948112.709532: event type EV_MSC(0x04): scancode = 0xffff010b
-> 1487948112.709532: event type EV_SYN(0x00).
->  # '2'
-> 1487948137.229455: event type EV_MSC(0x04): scancode = 0xffff0117
-> 1487948137.229455: event type EV_SYN(0x00).
->  # '8'
-> 1487948233.341489: event type EV_MSC(0x04): scancode = 0xffff014c
-> 1487948233.341489: event type EV_SYN(0x00).
->  # '9'
-> 1487948248.417547: event type EV_MSC(0x04): scancode = 0xffff0158
-> 1487948248.417547: event type EV_SYN(0x00).
->  # volume_down
-> 1487948270.537497: event type EV_MSC(0x04): scancode = 0xffff0105
-> 1487948270.537497: event type EV_SYN(0x00).
->  # volume_up
-> 1487948464.425435: event type EV_MSC(0x04): scancode = 0xffff0115
-> 1487948464.425435: event type EV_SYN(0x00).
+media-ctl can be used to propagate v4l2 subdevice pad formats from
+source pads of one subdevice to another one's sink pads. These formats
+include colorimetry information, so media-ctl should be able to print
+or change it using the --set/get-v4l2 option.
 
-Sorry Vincent, but are you sure you're running the patch with the
-& 0xff mask? That should have solved it.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+Changes since v2:
+ - Drop deprecated bt878 colorspace.
+---
+ utils/media-ctl/libv4l2subdev.c | 262 ++++++++++++++++++++++++++++++++++++++++
+ utils/media-ctl/media-ctl.c     |  17 +++
+ utils/media-ctl/options.c       |  22 +++-
+ utils/media-ctl/v4l2subdev.h    |  80 ++++++++++++
+ 4 files changed, 380 insertions(+), 1 deletion(-)
 
-
-Sean
+diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
+index 7f9ef48..bc9b657 100644
+--- a/utils/media-ctl/libv4l2subdev.c
++++ b/utils/media-ctl/libv4l2subdev.c
+@@ -511,6 +511,118 @@ static struct media_pad *v4l2_subdev_parse_pad_format(
+ 			continue;
+ 		}
+ 
++		if (strhazit("colorspace:", &p)) {
++			enum v4l2_colorspace colorspace;
++			char *strfield;
++
++			for (end = (char *)p; isalnum(*end) || *end == '-';
++			     ++end);
++
++			strfield = strndup(p, end - p);
++			if (!strfield) {
++				*endp = (char *)p;
++				return NULL;
++			}
++
++			colorspace = v4l2_subdev_string_to_colorspace(strfield);
++			free(strfield);
++			if (colorspace == (enum v4l2_colorspace)-1) {
++				media_dbg(media, "Invalid colorspace value '%*s'\n",
++					  end - p, p);
++				*endp = (char *)p;
++				return NULL;
++			}
++
++			format->colorspace = colorspace;
++
++			p = end;
++			continue;
++		}
++
++		if (strhazit("xfer:", &p)) {
++			enum v4l2_xfer_func xfer_func;
++			char *strfield;
++
++			for (end = (char *)p; isalnum(*end) || *end == '-';
++			     ++end);
++
++			strfield = strndup(p, end - p);
++			if (!strfield) {
++				*endp = (char *)p;
++				return NULL;
++			}
++
++			xfer_func = v4l2_subdev_string_to_xfer_func(strfield);
++			free(strfield);
++			if (xfer_func == (enum v4l2_xfer_func)-1) {
++				media_dbg(media, "Invalid transfer function value '%*s'\n",
++					  end - p, p);
++				*endp = (char *)p;
++				return NULL;
++			}
++
++			format->xfer_func = xfer_func;
++
++			p = end;
++			continue;
++		}
++
++		if (strhazit("ycbcr:", &p)) {
++			enum v4l2_ycbcr_encoding ycbcr_enc;
++			char *strfield;
++
++			for (end = (char *)p; isalnum(*end) || *end == '-';
++			     ++end);
++
++			strfield = strndup(p, end - p);
++			if (!strfield) {
++				*endp = (char *)p;
++				return NULL;
++			}
++
++			ycbcr_enc = v4l2_subdev_string_to_ycbcr_encoding(strfield);
++			free(strfield);
++			if (ycbcr_enc == (enum v4l2_ycbcr_encoding)-1) {
++				media_dbg(media, "Invalid YCbCr encoding value '%*s'\n",
++					  end - p, p);
++				*endp = (char *)p;
++				return NULL;
++			}
++
++			format->ycbcr_enc = ycbcr_enc;
++
++			p = end;
++			continue;
++		}
++
++		if (strhazit("quantization:", &p)) {
++			enum v4l2_quantization quantization;
++			char *strfield;
++
++			for (end = (char *)p; isalnum(*end) || *end == '-';
++			     ++end);
++
++			strfield = strndup(p, end - p);
++			if (!strfield) {
++				*endp = (char *)p;
++				return NULL;
++			}
++
++			quantization = v4l2_subdev_string_to_quantization(strfield);
++			free(strfield);
++			if (quantization == (enum v4l2_quantization)-1) {
++				media_dbg(media, "Invalid quantization value '%*s'\n",
++					  end - p, p);
++				*endp = (char *)p;
++				return NULL;
++			}
++
++			format->quantization = quantization;
++
++			p = end;
++			continue;
++		}
++
+ 		/*
+ 		 * Backward compatibility: crop rectangles can be specified
+ 		 * implicitly without the 'crop:' property name.
+@@ -839,6 +951,156 @@ enum v4l2_field v4l2_subdev_string_to_field(const char *string)
+ 	return (enum v4l2_field)-1;
+ }
+ 
++static struct {
++	const char *name;
++	enum v4l2_colorspace colorspace;
++} colorspaces[] = {
++	{ "default", V4L2_COLORSPACE_DEFAULT },
++	{ "smpte170m", V4L2_COLORSPACE_SMPTE170M },
++	{ "smpte240m", V4L2_COLORSPACE_SMPTE240M },
++	{ "rec709", V4L2_COLORSPACE_REC709 },
++	{ "470m", V4L2_COLORSPACE_470_SYSTEM_M },
++	{ "470bg", V4L2_COLORSPACE_470_SYSTEM_BG },
++	{ "jpeg", V4L2_COLORSPACE_JPEG },
++	{ "srgb", V4L2_COLORSPACE_SRGB },
++	{ "adobergb", V4L2_COLORSPACE_ADOBERGB },
++	{ "bt2020", V4L2_COLORSPACE_BT2020 },
++	{ "dcip3", V4L2_COLORSPACE_DCI_P3 },
++};
++
++const char *v4l2_subdev_colorspace_to_string(enum v4l2_colorspace colorspace)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(colorspaces); ++i) {
++		if (colorspaces[i].colorspace == colorspace)
++			return colorspaces[i].name;
++	}
++
++	return "unknown";
++}
++
++enum v4l2_colorspace v4l2_subdev_string_to_colorspace(const char *string)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(colorspaces); ++i) {
++		if (strcasecmp(colorspaces[i].name, string) == 0)
++			return colorspaces[i].colorspace;
++	}
++
++	return (enum v4l2_colorspace)-1;
++}
++
++static struct {
++	const char *name;
++	enum v4l2_xfer_func xfer_func;
++} xfer_funcs[] = {
++	{ "default", V4L2_XFER_FUNC_DEFAULT },
++	{ "709", V4L2_XFER_FUNC_709 },
++	{ "srgb", V4L2_XFER_FUNC_SRGB },
++	{ "adobergb", V4L2_XFER_FUNC_ADOBERGB },
++	{ "smpte240m", V4L2_XFER_FUNC_SMPTE240M },
++	{ "smpte2084", V4L2_XFER_FUNC_SMPTE2084 },
++	{ "dcip3", V4L2_XFER_FUNC_DCI_P3 },
++	{ "none", V4L2_XFER_FUNC_NONE },
++};
++
++const char *v4l2_subdev_xfer_func_to_string(enum v4l2_xfer_func xfer_func)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(xfer_funcs); ++i) {
++		if (xfer_funcs[i].xfer_func == xfer_func)
++			return xfer_funcs[i].name;
++	}
++
++	return "unknown";
++}
++
++enum v4l2_xfer_func v4l2_subdev_string_to_xfer_func(const char *string)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(xfer_funcs); ++i) {
++		if (strcasecmp(xfer_funcs[i].name, string) == 0)
++			return xfer_funcs[i].xfer_func;
++	}
++
++	return (enum v4l2_xfer_func)-1;
++}
++
++static struct {
++	const char *name;
++	enum v4l2_ycbcr_encoding ycbcr_enc;
++} ycbcr_encs[] = {
++	{ "default", V4L2_YCBCR_ENC_DEFAULT },
++	{ "601", V4L2_YCBCR_ENC_601 },
++	{ "709", V4L2_YCBCR_ENC_709 },
++	{ "xv601", V4L2_YCBCR_ENC_XV601 },
++	{ "xv709", V4L2_YCBCR_ENC_XV709 },
++	{ "bt2020", V4L2_YCBCR_ENC_BT2020 },
++	{ "bt2020c", V4L2_YCBCR_ENC_BT2020_CONST_LUM },
++	{ "smpte240m", V4L2_YCBCR_ENC_SMPTE240M },
++};
++
++const char *v4l2_subdev_ycbcr_encoding_to_string(enum v4l2_ycbcr_encoding ycbcr_enc)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(ycbcr_encs); ++i) {
++		if (ycbcr_encs[i].ycbcr_enc == ycbcr_enc)
++			return ycbcr_encs[i].name;
++	}
++
++	return "unknown";
++}
++
++enum v4l2_ycbcr_encoding v4l2_subdev_string_to_ycbcr_encoding(const char *string)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(ycbcr_encs); ++i) {
++		if (strcasecmp(ycbcr_encs[i].name, string) == 0)
++			return ycbcr_encs[i].ycbcr_enc;
++	}
++
++	return (enum v4l2_ycbcr_encoding)-1;
++}
++
++static struct {
++	const char *name;
++	enum v4l2_quantization quantization;
++} quantizations[] = {
++	{ "default", V4L2_QUANTIZATION_DEFAULT },
++	{ "full-range", V4L2_QUANTIZATION_FULL_RANGE },
++	{ "lim-range", V4L2_QUANTIZATION_LIM_RANGE },
++};
++
++const char *v4l2_subdev_quantization_to_string(enum v4l2_quantization quantization)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(quantizations); ++i) {
++		if (quantizations[i].quantization == quantization)
++			return quantizations[i].name;
++	}
++
++	return "unknown";
++}
++
++enum v4l2_quantization v4l2_subdev_string_to_quantization(const char *string)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(quantizations); ++i) {
++		if (strcasecmp(quantizations[i].name, string) == 0)
++			return quantizations[i].quantization;
++	}
++
++	return (enum v4l2_quantization)-1;
++}
++
+ static const enum v4l2_mbus_pixelcode mbus_codes[] = {
+ #include "media-bus-format-codes.h"
+ };
+diff --git a/utils/media-ctl/media-ctl.c b/utils/media-ctl/media-ctl.c
+index 383fbfa..f61963a 100644
+--- a/utils/media-ctl/media-ctl.c
++++ b/utils/media-ctl/media-ctl.c
+@@ -101,6 +101,23 @@ static void v4l2_subdev_print_format(struct media_entity *entity,
+ 	if (format.field)
+ 		printf(" field:%s", v4l2_subdev_field_to_string(format.field));
+ 
++	if (format.colorspace) {
++		printf(" colorspace:%s",
++		       v4l2_subdev_colorspace_to_string(format.colorspace));
++
++		if (format.xfer_func)
++			printf(" xfer:%s",
++			       v4l2_subdev_xfer_func_to_string(format.xfer_func));
++
++		if (format.ycbcr_enc)
++			printf(" ycbcr:%s",
++			       v4l2_subdev_ycbcr_encoding_to_string(format.ycbcr_enc));
++
++		if (format.quantization)
++			printf(" quantization:%s",
++			       v4l2_subdev_quantization_to_string(format.quantization));
++	}
++
+ 	ret = v4l2_subdev_get_selection(entity, &rect, pad,
+ 					V4L2_SEL_TGT_CROP_BOUNDS,
+ 					which);
+diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
+index 59841bb..83ca1ca 100644
+--- a/utils/media-ctl/options.c
++++ b/utils/media-ctl/options.c
+@@ -68,7 +68,9 @@ static void usage(const char *argv0)
+ 	printf("\tv4l2-properties = v4l2-property { ',' v4l2-property } ;\n");
+ 	printf("\tv4l2-property   = v4l2-mbusfmt | v4l2-crop | v4l2-interval\n");
+ 	printf("\t                | v4l2-compose | v4l2-interval ;\n");
+-	printf("\tv4l2-mbusfmt    = 'fmt:' fcc '/' size ; { 'field:' v4l2-field ; }\n");
++	printf("\tv4l2-mbusfmt    = 'fmt:' fcc '/' size ; { 'field:' v4l2-field ; } { 'colorspace:' v4l2-colorspace ; }\n");
++	printf("\t                   { 'xfer:' v4l2-xfer-func ; } { 'ycbcr-enc:' v4l2-ycbcr-enc-func ; }\n");
++	printf("\t                   { 'quantization:' v4l2-quant ; }\n");
+ 	printf("\tv4l2-crop       = 'crop:' rectangle ;\n");
+ 	printf("\tv4l2-compose    = 'compose:' rectangle ;\n");
+ 	printf("\tv4l2-interval   = '@' numerator '/' denominator ;\n");
+@@ -91,6 +93,24 @@ static void usage(const char *argv0)
+ 	for (i = V4L2_FIELD_ANY; i <= V4L2_FIELD_INTERLACED_BT; i++)
+ 		printf("\t                %s\n",
+ 		       v4l2_subdev_field_to_string(i));
++
++	printf("\tv4l2-colorspace One of the following:\n");
++
++	for (i = V4L2_COLORSPACE_DEFAULT; i <= V4L2_COLORSPACE_DCI_P3; i++)
++		printf("\t                %s\n",
++		       v4l2_subdev_colorspace_to_string(i));
++
++	printf("\tv4l2-xfer-func  One of the following:\n");
++
++	for (i = V4L2_XFER_FUNC_DEFAULT; i <= V4L2_XFER_FUNC_SMPTE2084; i++)
++		printf("\t                %s\n",
++		       v4l2_subdev_xfer_func_to_string(i));
++
++	printf("\tv4l2-quant      One of the following:\n");
++
++	for (i = V4L2_QUANTIZATION_DEFAULT; i <= V4L2_QUANTIZATION_LIM_RANGE; i++)
++		printf("\t                %s\n",
++		       v4l2_subdev_quantization_to_string(i));
+ }
+ 
+ #define OPT_PRINT_DOT			256
+diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
+index 413094d..a181391 100644
+--- a/utils/media-ctl/v4l2subdev.h
++++ b/utils/media-ctl/v4l2subdev.h
+@@ -276,6 +276,86 @@ const char *v4l2_subdev_field_to_string(enum v4l2_field field);
+ enum v4l2_field v4l2_subdev_string_to_field(const char *string);
+ 
+ /**
++ * @brief Convert a colorspace to string.
++ * @param colorspace - colorspace
++ *
++ * Convert colorspace @a colorspace to a human-readable string.
++ *
++ * @return A pointer to a string on success, NULL on failure.
++ */
++const char *v4l2_subdev_colorspace_to_string(enum v4l2_colorspace colorspace);
++
++/**
++ * @brief Parse string to colorspace.
++ * @param string - nul terminated string, textual colorspace
++ *
++ * Parse human readable string @a string to colorspace.
++ *
++ * @return colorspace on success, -1 on failure.
++ */
++enum v4l2_colorspace v4l2_subdev_string_to_colorspace(const char *string);
++
++/**
++ * @brief Convert a transfer function to string.
++ * @param xfer_func - transfer function
++ *
++ * Convert transfer function @a xfer_func to a human-readable string.
++ *
++ * @return A pointer to a string on success, NULL on failure.
++ */
++const char *v4l2_subdev_xfer_func_to_string(enum v4l2_xfer_func xfer_func);
++
++/**
++ * @brief Parse string to transfer function.
++ * @param string - nul terminated string, textual transfer function
++ *
++ * Parse human readable string @a string to xfer_func.
++ *
++ * @return xfer_func on success, -1 on failure.
++ */
++enum v4l2_xfer_func v4l2_subdev_string_to_xfer_func(const char *string);
++
++/**
++ * @brief Convert a YCbCr encoding to string.
++ * @param ycbcr_enc - YCbCr encoding
++ *
++ * Convert YCbCr encoding @a ycbcr_enc to a human-readable string.
++ *
++ * @return A pointer to a string on success, NULL on failure.
++ */
++const char *v4l2_subdev_ycbcr_encoding_to_string(enum v4l2_ycbcr_encoding ycbcr_enc);
++
++/**
++ * @brief Parse string to YCbCr encoding.
++ * @param string - nul terminated string, textual YCbCr encoding
++ *
++ * Parse human readable string @a string to YCbCr encoding.
++ *
++ * @return ycbcr_enc on success, -1 on failure.
++ */
++enum v4l2_ycbcr_encoding v4l2_subdev_string_to_ycbcr_encoding(const char *string);
++
++/**
++ * @brief Convert a quantization to string.
++ * @param quantization - quantization
++ *
++ * Convert quantization @a quantization to a human-readable string.
++ *
++ * @return A pointer to a string on success, NULL on failure.
++ */
++const char *v4l2_subdev_quantization_to_string(enum v4l2_quantization quantization);
++
++/**
++ * @brief Parse string to quantization.
++ * @param string - nul terminated string, textual quantization
++ *
++ * Parse human readable string @a string to quantization.
++ *
++ * @return quantization on success, -1 on failure.
++ */
++enum v4l2_quantization v4l2_subdev_string_to_quantization(const char *string);
++
++/**
+  * @brief Enumerate library supported media bus pixel codes.
+  * @param length - the number of the supported pixel codes
+  *
+-- 
+2.1.4
