@@ -1,187 +1,340 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:21852 "EHLO
-        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752707AbdBTNjY (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:57801 "EHLO
+        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750753AbdBMFcG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Feb 2017 08:39:24 -0500
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>
-Subject: [PATCH v2 13/15] media: s5p-mfc: Remove special configuration of IOMMU
- domain
-Date: Mon, 20 Feb 2017 14:39:02 +0100
-Message-id: <1487597944-2000-14-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1487597944-2000-1-git-send-email-m.szyprowski@samsung.com>
-References: <1487597944-2000-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20170220133916eucas1p16ebd8e4da2f20e85d0c7d8198a6c6be2@eucas1p1.samsung.com>
+        Mon, 13 Feb 2017 00:32:06 -0500
+Subject: Re: [PATCH 10/11] [media] v4l2: Add v4l2 control IDs for HEVC encoder
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: Andrzej Hajda <a.hajda@samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
+        kamil@wypas.org, jtp.park@samsung.com, mchehab@kernel.org,
+        pankaj.dubey@samsung.com, krzk@kernel.org,
+        m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Wu-Cheng Li <wuchengli@chromium.org>,
+        Kieran Bingham <kieran@ksquared.org.uk>,
+        Vladimir Zapolskiy <vz@mleia.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+In-reply-to: <dcc96d3e-6835-190e-7997-8d71f617caee@samsung.com>
+Content-type: text/plain; charset=UTF-8
+Date: Mon, 13 Feb 2017 11:03:19 +0530
+Message-id: <1486963999.2629.10.camel@smitha-fedora>
+MIME-version: 1.0
+Content-transfer-encoding: 7bit
+References: <1484733729-25371-1-git-send-email-smitha.t@samsung.com>
+ <CGME20170118100818epcas5p1c7153a6fe9d93f96269008f42f736b90@epcas5p1.samsung.com>
+ <1484733729-25371-11-git-send-email-smitha.t@samsung.com>
+ <dcc96d3e-6835-190e-7997-8d71f617caee@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The main reason for using special configuration of IOMMU domain was the
-problem with MFC firmware, which failed to operate properly when placed
-at 0 DMA address. Instead of adding custom code for configuring each
-variant of IOMMU domain and architecture specific glue code, simply use
-what arch code provides and if the DMA base address equals zero, skip
-first 128 KiB to keep required alignment. This patch also make the driver
-operational on ARM64 architecture, because it no longer depends on ARM
-specific DMA-mapping and IOMMU glue code functions.
+On Mon, 2017-02-06 at 15:54 +0100, Andrzej Hajda wrote:
+> Hi Smitha,
+> 
+> I have no big experience with HEVC, so it is hard to review it
+> appropriately but I will try do my best.
+> As these control names goes to user space you should be very careful
+> about it.
+> I guess it could be good to compare these controls with other HEVC
+> encoders including software ones (ffmpeg, intel, ...) to find some
+> similarities, common naming convention.
+> 
+Thank you so much for the review :)
+I will compare it with the software HEVC encoders for the naming
+convention. Basically I was following the convention used for other
+codecs in the same file.
+> 
+> On 18.01.2017 11:02, Smitha T Murthy wrote:
+> > Add v4l2 controls for HEVC encoder
+> >
+> > CC: Hans Verkuil <hans.verkuil@cisco.com>
+> > CC: Wu-Cheng Li <wuchengli@chromium.org>
+> > CC: Kieran Bingham <kieran@bingham.xyz>
+> > CC: Vladimir Zapolskiy <vz@mleia.com>
+> > CC: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> > Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+> > ---
+> >  drivers/media/v4l2-core/v4l2-ctrls.c |   51 ++++++++++++++++
+> >  include/uapi/linux/v4l2-controls.h   |  109 ++++++++++++++++++++++++++++++++++
+> >  2 files changed, 160 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> > index 47001e2..387439d 100644
+> > --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> > +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> > @@ -775,6 +775,57 @@ static bool is_new_manual(const struct v4l2_ctrl *master)
+> >  	case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:		return "VPX P-Frame QP Value";
+> >  	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:			return "VPX Profile";
+> >  
+> > +	/* HEVC controls */
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP:		return "HEVC Frame QP value";
+> 
+> Should be "HEVC I-Frame", it looks like the convention is to upper-case
+> first letter of all words,
+> and the convention is I-Frame, B-Frame, P-Frame, here and in the next
+> controls.
+> I would drop also the word "value", but it is already used in other
+> controls so I do not know :)
+> 
+The I,P,B frame naming convention for other codecs is like
+"V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP" and
+"V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP"
+so I followed the same for HEVC codec too.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c       | 30 +++++++--------
- drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h | 51 +-------------------------
- 2 files changed, 14 insertions(+), 67 deletions(-)
+Yes they use the word "value" for other codecs too.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 1c5ec8257f4f..b70cbd637851 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1184,18 +1184,6 @@ static int s5p_mfc_configure_common_memory(struct s5p_mfc_dev *mfc_dev)
- 	struct device *dev = &mfc_dev->plat_dev->dev;
- 	unsigned long mem_size = SZ_8M;
- 	unsigned int bitmap_size;
--	/*
--	 * When IOMMU is available, we cannot use the default configuration,
--	 * because of MFC firmware requirements: address space limited to
--	 * 256M and non-zero default start address.
--	 * This is still simplified, not optimal configuration, but for now
--	 * IOMMU core doesn't allow to configure device's IOMMUs channel
--	 * separately.
--	 */
--	int ret = exynos_configure_iommu(dev, S5P_MFC_IOMMU_DMA_BASE,
--					 S5P_MFC_IOMMU_DMA_SIZE);
--	if (ret)
--		return ret;
- 
- 	if (mfc_mem_size)
- 		mem_size = memparse(mfc_mem_size, NULL);
-@@ -1203,10 +1191,8 @@ static int s5p_mfc_configure_common_memory(struct s5p_mfc_dev *mfc_dev)
- 	bitmap_size = BITS_TO_LONGS(mem_size >> PAGE_SHIFT) * sizeof(long);
- 
- 	mfc_dev->mem_bitmap = kzalloc(bitmap_size, GFP_KERNEL);
--	if (!mfc_dev->mem_bitmap) {
--		exynos_unconfigure_iommu(dev);
-+	if (!mfc_dev->mem_bitmap)
- 		return -ENOMEM;
--	}
- 
- 	mfc_dev->mem_virt = dma_alloc_coherent(dev, mem_size,
- 					       &mfc_dev->mem_base, GFP_KERNEL);
-@@ -1214,13 +1200,24 @@ static int s5p_mfc_configure_common_memory(struct s5p_mfc_dev *mfc_dev)
- 		kfree(mfc_dev->mem_bitmap);
- 		dev_err(dev, "failed to preallocate %ld MiB for the firmware and context buffers\n",
- 			(mem_size / SZ_1M));
--		exynos_unconfigure_iommu(dev);
- 		return -ENOMEM;
- 	}
- 	mfc_dev->mem_size = mem_size;
- 	mfc_dev->dma_base[BANK1_CTX] = mfc_dev->mem_base;
- 	mfc_dev->dma_base[BANK2_CTX] = mfc_dev->mem_base;
- 
-+	/*
-+	 * MFC hardware cannot handle 0 as a base address, so mark first 128K
-+	 * as used (to keep required base alignment) and adjust base address
-+	 */
-+	if (mfc_dev->mem_base == (dma_addr_t)0) {
-+		unsigned int offset = 1 << MFC_BASE_ALIGN_ORDER;
-+
-+		bitmap_set(mfc_dev->mem_bitmap, 0, offset >> PAGE_SHIFT);
-+		mfc_dev->dma_base[BANK1_CTX] += offset;
-+		mfc_dev->dma_base[BANK2_CTX] += offset;
-+	}
-+
- 	/* Firmware allocation cannot fail in this case */
- 	s5p_mfc_alloc_firmware(mfc_dev);
- 
-@@ -1237,7 +1234,6 @@ static void s5p_mfc_unconfigure_common_memory(struct s5p_mfc_dev *mfc_dev)
- {
- 	struct device *dev = &mfc_dev->plat_dev->dev;
- 
--	exynos_unconfigure_iommu(dev);
- 	dma_free_coherent(dev, mfc_dev->mem_size, mfc_dev->mem_virt,
- 			  mfc_dev->mem_base);
- 	kfree(mfc_dev->mem_bitmap);
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h b/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h
-index 6962132ae8fa..76667924ee2a 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h
-@@ -11,54 +11,13 @@
- #ifndef S5P_MFC_IOMMU_H_
- #define S5P_MFC_IOMMU_H_
- 
--#define S5P_MFC_IOMMU_DMA_BASE	0x20000000lu
--#define S5P_MFC_IOMMU_DMA_SIZE	SZ_256M
--
--#if defined(CONFIG_EXYNOS_IOMMU) && defined(CONFIG_ARM_DMA_USE_IOMMU)
--
--#include <asm/dma-iommu.h>
-+#if defined(CONFIG_EXYNOS_IOMMU)
- 
- static inline bool exynos_is_iommu_available(struct device *dev)
- {
- 	return dev->archdata.iommu != NULL;
- }
- 
--static inline void exynos_unconfigure_iommu(struct device *dev)
--{
--	struct dma_iommu_mapping *mapping = to_dma_iommu_mapping(dev);
--
--	arm_iommu_detach_device(dev);
--	arm_iommu_release_mapping(mapping);
--}
--
--static inline int exynos_configure_iommu(struct device *dev,
--					 unsigned int base, unsigned int size)
--{
--	struct dma_iommu_mapping *mapping = NULL;
--	int ret;
--
--	/* Disable the default mapping created by device core */
--	if (to_dma_iommu_mapping(dev))
--		exynos_unconfigure_iommu(dev);
--
--	mapping = arm_iommu_create_mapping(dev->bus, base, size);
--	if (IS_ERR(mapping)) {
--		pr_warn("Failed to create IOMMU mapping for device %s\n",
--			dev_name(dev));
--		return PTR_ERR(mapping);
--	}
--
--	ret = arm_iommu_attach_device(dev, mapping);
--	if (ret) {
--		pr_warn("Failed to attached device %s to IOMMU_mapping\n",
--				dev_name(dev));
--		arm_iommu_release_mapping(mapping);
--		return ret;
--	}
--
--	return 0;
--}
--
- #else
- 
- static inline bool exynos_is_iommu_available(struct device *dev)
-@@ -66,14 +25,6 @@ static inline bool exynos_is_iommu_available(struct device *dev)
- 	return false;
- }
- 
--static inline int exynos_configure_iommu(struct device *dev,
--					 unsigned int base, unsigned int size)
--{
--	return -ENOSYS;
--}
--
--static inline void exynos_unconfigure_iommu(struct device *dev) { }
--
- #endif
- 
- #endif /* S5P_MFC_IOMMU_H_ */
--- 
-1.9.1
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP:		return "HEVC P frame QP value";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP:		return "HEVC B frame QP value";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP:			return "HEVC Minimum QP value";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP:			return "HEVC Maximum QP value";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_DARK:		return "HEVC dark region adaptive";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_SMOOTH:	return "HEVC smooth region adaptive";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_STATIC:	return "HEVC static region adaptive";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_ACTIVITY:	return "HEVC activity adaptive";
+> 
+> Shouldn't it be "... Region Adaptive RC", or "... Region Adaptive Rate
+> Control" ?
+> 
+I will correct it to Region Adaptive Rate Control.
+
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:			return "HEVC Profile";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:			return "HEVC level";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG:		return "HEVC tier_flag default is Main";
+> 
+> I guess 0 - means main tier, 1 means high tier, am I right? In such case
+> it should be named "HEVC high tier" or sth similar.
+> 
+Yes 0 is for Main tier and 1 is for High tier. Since the flag by default
+is main tier and it can be used for both the tiers I just kept the name
+as "TIER_FLAG"
+
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_RC_FRAME_RATE:		return "HEVC Frame rate";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH:	return "HEVC Maximum coding unit depth";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_REF_NUMBER_FOR_PFRAMES:	return "HEVC Number of reference picture";
+> 
+> What is purpose of this control? Macro name suggest sth different than
+> string.
+> 
+Sorry the description should have been "Number of reference frames for
+P-Frame". P-frame can use 1 or 2 frames for reference.
+
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE:		return "HEVC refresh type";
+> 
+> Could you enumerate these refresh types, in patch 9 and documentation,
+> maybe it would be worth to make it menu.
+> 
+There are 3 refresh types : None, CRA, IDR. I will add more details in
+the Documentation patch and in the menu on this.
+
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED_ENABLE:	return "HEVC constant intra prediction enabled";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU_ENABLE:	return "HEVC lossless encoding select";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT_ENABLE:		return "HEVC Wavefront enable";
+> 
+> I see: enable, enabled, select. Let it be consistent.
+
+I will correct this and make it consistent.
+
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_LF_DISABLE:		return "HEVC Filter disable";
+> 
+> There is LF in macro name.
+> 
+LF is loop filter, I will add this in the description.
+
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_LF_SLICE_BOUNDARY:	return "across or not slice boundary";
+> 
+> What does it mean?
+> 
+This indicates whether to apply the loop filter across the slice
+boundary or not. 
+So if the value is 0, loop filter will not be applied across the slice
+boundary. If the value is 1, loop filter will be applied across the
+slice boundary.
+
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_LTR_ENABLE:		return "long term reference enable";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_QP_ENABLE:	return "QP values for temporal layer";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_TYPE:	return "Hierarchical Coding Type";
+> 
+> Please enumerate types.
+> 
+There are two coding type: HB and HP. I will add this in the
+documentation and the menu.
+
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER:return "Hierarchical Coding Layer";
+> 
+> Please enumerate layers.
+> 
+There are 7 layers. For each layer we can set the bit rate as well for
+which the macros are defined as
+"V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT0" for layer 0,
+"V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT1" for layer 1
+etc. I will add this in the documentation and the menu.
+
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_QP:return "Hierarchical Coding Layer QP";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT0:return "Hierarchical Coding Layer BIT0";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT1:return "Hierarchical Coding Layer BIT1";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT2:return "Hierarchical Coding Layer BIT2";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT3:return "Hierarchical Coding Layer BIT3";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT4:return "Hierarchical Coding Layer BIT4";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT5:return "Hierarchical Coding Layer BIT5";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT6:return "Hierarchical Coding Layer BIT6";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_CH:return "Hierarchical Coding Layer Change";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_SIGN_DATA_HIDING:		return "HEVC Sign data hiding";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB_ENABLE:	return "HEVC General pb enable";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID_ENABLE:	return "HEVC Temporal id enable";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOTHING_FLAG:	return "HEVC Strong intra smoothing flag";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_DISABLE_INTRA_PU_SPLIT:	return "HEVC disable intra pu split";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_DISABLE_TMV_PREDICTION:	return "HEVC disable tmv prediction";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1:	return "max number of candidate MVs";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE_ENABLE:	return "ENC without startcode enable";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD:		return "HEVC Number of reference picture";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2:	return "HEVC loop filter beta offset";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2:	return "HEVC loop filter tc offset";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:	return "HEVC size of length field";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_USER_REF:			return "user long term reference frame";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_STORE_REF:		return "store long term reference frame";
+> > +	case V4L2_CID_MPEG_VIDEO_HEVC_PREPEND_SPSPPS_TO_IDR:	return "Prepend SPS/PPS to every IDR";
+> 
+> You sometimes add HEVC prefix sometimes not, why?
+> 
+> Could you describe more these controls in documentation (patch 9), it is
+> hard to guess what they do.
+> 
+> Regards
+> Andrzej
+> 
+I will maintain consistency in the description.
+I will try to add as much description as possible in the Documentation
+patch.
+
+Thank you again for the review.
+Regards,
+Smitha
+> > +
+> >  	/* CAMERA controls */
+> >  	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+> >  	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
+> > diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> > index 0d2e1e0..a2a1c5d 100644
+> > --- a/include/uapi/linux/v4l2-controls.h
+> > +++ b/include/uapi/linux/v4l2-controls.h
+> > @@ -579,6 +579,115 @@ enum v4l2_vp8_golden_frame_sel {
+> >  #define V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP		(V4L2_CID_MPEG_BASE+510)
+> >  #define V4L2_CID_MPEG_VIDEO_VPX_PROFILE			(V4L2_CID_MPEG_BASE+511)
+> >  
+> > +/* CIDs for HEVC encoding. Number gaps are for compatibility */
+> > +
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP                         \
+> > +					(V4L2_CID_MPEG_BASE + 512)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP                         \
+> > +					(V4L2_CID_MPEG_BASE + 513)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP                     \
+> > +					(V4L2_CID_MPEG_BASE + 514)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP                     \
+> > +					(V4L2_CID_MPEG_BASE + 515)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP                     \
+> > +					(V4L2_CID_MPEG_BASE + 516)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_QP_ENABLE \
+> > +					(V4L2_CID_MPEG_BASE + 517)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_TYPE       \
+> > +					(V4L2_CID_MPEG_BASE + 518)
+> > +enum v4l2_mpeg_video_hevc_hier_coding_type {
+> > +	V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_B	= 0,
+> > +	V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_P	= 1,
+> > +};
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER      \
+> > +					(V4L2_CID_MPEG_BASE + 519)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_QP   \
+> > +					(V4L2_CID_MPEG_BASE + 520)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_PROFILE                        \
+> > +					(V4L2_CID_MPEG_BASE + 521)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_LEVEL                          \
+> > +					(V4L2_CID_MPEG_BASE + 522)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_RC_FRAME_RATE            \
+> > +					(V4L2_CID_MPEG_BASE + 523)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG                \
+> > +					(V4L2_CID_MPEG_BASE + 524)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH      \
+> > +					(V4L2_CID_MPEG_BASE + 525)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_REF_NUMBER_FOR_PFRAMES   \
+> > +					(V4L2_CID_MPEG_BASE + 526)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_LF_DISABLE               \
+> > +					(V4L2_CID_MPEG_BASE + 527)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_LF_SLICE_BOUNDARY        \
+> > +					(V4L2_CID_MPEG_BASE + 528)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2      \
+> > +					(V4L2_CID_MPEG_BASE + 529)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2        \
+> > +					(V4L2_CID_MPEG_BASE + 530)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE             \
+> > +					(V4L2_CID_MPEG_BASE + 531)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD           \
+> > +					(V4L2_CID_MPEG_BASE + 532)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU_ENABLE       \
+> > +					(V4L2_CID_MPEG_BASE + 533)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED_ENABLE  \
+> > +					(V4L2_CID_MPEG_BASE + 534)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT_ENABLE         \
+> > +					(V4L2_CID_MPEG_BASE + 535)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_LTR_ENABLE               \
+> > +					(V4L2_CID_MPEG_BASE + 536)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_USER_REF                 \
+> > +					(V4L2_CID_MPEG_BASE + 537)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_STORE_REF                \
+> > +					(V4L2_CID_MPEG_BASE + 538)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_SIGN_DATA_HIDING         \
+> > +					(V4L2_CID_MPEG_BASE + 539)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB_ENABLE        \
+> > +					(V4L2_CID_MPEG_BASE + 540)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID_ENABLE       \
+> > +					(V4L2_CID_MPEG_BASE + 541)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOTHING_FLAG     \
+> > +					(V4L2_CID_MPEG_BASE + 542)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1  \
+> > +					(V4L2_CID_MPEG_BASE + 543)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_DARK         \
+> > +					(V4L2_CID_MPEG_BASE + 544)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_SMOOTH       \
+> > +					(V4L2_CID_MPEG_BASE + 545)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_STATIC       \
+> > +					(V4L2_CID_MPEG_BASE + 546)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_ADAPTIVE_RC_ACTIVITY     \
+> > +					(V4L2_CID_MPEG_BASE + 547)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_DISABLE_INTRA_PU_SPLIT   \
+> > +					(V4L2_CID_MPEG_BASE + 548)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_DISABLE_TMV_PREDICTION   \
+> > +					(V4L2_CID_MPEG_BASE + 549)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE_ENABLE \
+> > +					(V4L2_CID_MPEG_BASE + 550)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_QP_INDEX_CR              \
+> > +					(V4L2_CID_MPEG_BASE + 551)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_QP_INDEX_CB              \
+> > +					(V4L2_CID_MPEG_BASE + 552)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD     \
+> > +					(V4L2_CID_MPEG_BASE + 553)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_PREPEND_SPSPPS_TO_IDR          \
+> > +					(V4L2_CID_MPEG_BASE + 554)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_CH   \
+> > +					(V4L2_CID_MPEG_BASE + 555)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT0 \
+> > +					(V4L2_CID_MPEG_BASE + 556)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT1 \
+> > +					(V4L2_CID_MPEG_BASE + 557)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT2 \
+> > +					(V4L2_CID_MPEG_BASE + 558)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT3 \
+> > +					(V4L2_CID_MPEG_BASE + 559)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT4 \
+> > +					(V4L2_CID_MPEG_BASE + 560)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT5 \
+> > +					(V4L2_CID_MPEG_BASE + 561)
+> > +#define V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_BIT6 \
+> > +					(V4L2_CID_MPEG_BASE + 562)
+> > +
+> >  /*  MPEG-class control IDs specific to the CX2341x driver as defined by V4L2 */
+> >  #define V4L2_CID_MPEG_CX2341X_BASE 				(V4L2_CTRL_CLASS_MPEG | 0x1000)
+> >  #define V4L2_CID_MPEG_CX2341X_VIDEO_SPATIAL_FILTER_MODE 	(V4L2_CID_MPEG_CX2341X_BASE+0)
+> 
+> 
+> 
