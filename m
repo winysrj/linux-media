@@ -1,87 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:33749 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932402AbdBHIid (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Feb 2017 03:38:33 -0500
-Received: by mail-pf0-f196.google.com with SMTP id e4so11195157pfg.0
-        for <linux-media@vger.kernel.org>; Wed, 08 Feb 2017 00:38:33 -0800 (PST)
-From: evgeni.raikhel@gmail.com
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, guennadi.liakhovetski@intel.com,
-        eliezer.tamir@intel.com, sergey.dorodnicov@intel.com,
-        Daniel Patrick Johnson <teknotus@teknot.us>,
-        Aviv Greenberg <avivgr@gmail.com>,
-        Evgeni Raikhel <evgeni.raikhel@intel.com>
-Subject: [PATCH v2 2/2] uvcvideo: Add support for Intel SR300 depth camera
-Date: Wed,  8 Feb 2017 10:34:24 +0200
-Message-Id: <1486542864-5832-2-git-send-email-evgeni.raikhel@intel.com>
-In-Reply-To: <1486542864-5832-1-git-send-email-evgeni.raikhel@intel.com>
-References: <AA09C8071EEEFC44A7852ADCECA86673A1E6E7@hasmsx108.ger.corp.intel.com>
- <1486542864-5832-1-git-send-email-evgeni.raikhel@intel.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:35020
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751842AbdBMOh0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Feb 2017 09:37:26 -0500
+Subject: Re: [PATCH 0/2] [media] exynos-gsc: Fix support for NV21 and NV61
+ formats
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Javier Martinez Canillas <javier@dowhile0.org>
+References: <1485979523-32404-1-git-send-email-javier@osg.samsung.com>
+ <CABxcv==+Di=i_KBY1LY0Ejo8UXMYa5yhS=bugsyxFkQTyh0xUw@mail.gmail.com>
+ <CGME20170213143429epcas5p1e9407c814e71352ccb5ec14b082f954e@epcas5p1.samsung.com>
+ <41ead50c-3a71-8c8c-3455-9571b5482f27@samsung.com>
+Cc: Linux Kernel <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Thibault Saunier <thibault.saunier@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        "linux-samsung-soc@vger.kernel.org"
+        <linux-samsung-soc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <f36c4e80-c16e-5dca-e23a-1a904c7636a3@osg.samsung.com>
+Date: Mon, 13 Feb 2017 11:37:15 -0300
+MIME-Version: 1.0
+In-Reply-To: <41ead50c-3a71-8c8c-3455-9571b5482f27@samsung.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Patrick Johnson <teknotus@teknot.us>
+Hello Sylwester,
 
-Add support for Intel SR300 depth camera in uvc driver.
-This includes adding three uvc GUIDs for the required pixel formats,
-adding a new V4L pixel format definition to user api headers,
-and updating the uvc driver GUID-to-4cc tables with the new formats.
+On 02/13/2017 11:34 AM, Sylwester Nawrocki wrote:
+> Hi Javier,
+> 
+> On 02/13/2017 01:53 PM, Javier Martinez Canillas wrote:
+>> Any comments on this series?
+> 
+> The patches look good to me, I will Ack the patches in case
+> Mauro wants to apply them directly.  Alternatively I will
+> add them to my tree for v4.12 after the merge window.
+> 
 
-Signed-off-by: Daniel Patrick Johnson <teknotus@teknot.us>
-Signed-off-by: Aviv Greenberg <avivgr@gmail.com>
-Signed-off-by: Evgeni Raikhel <evgeni.raikhel@intel.com>
----
- drivers/media/usb/uvc/uvc_driver.c | 15 +++++++++++++++
- drivers/media/usb/uvc/uvcvideo.h   |  9 +++++++++
- 2 files changed, 24 insertions(+)
+Great, thanks a lot for your help!
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index 04bf35063c4c..46d6be0bb316 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -188,6 +188,21 @@ static struct uvc_format_desc uvc_fmts[] = {
- 		.guid		= UVC_GUID_FORMAT_GR16,
- 		.fcc		= V4L2_PIX_FMT_SGRBG16,
- 	},
-+	{
-+		.name		= "Depth data 16-bit (Z16)",
-+		.guid		= UVC_GUID_FORMAT_INVZ,
-+		.fcc		= V4L2_PIX_FMT_Z16,
-+	},
-+	{
-+		.name		= "Greyscale 10-bit (Y10 )",
-+		.guid		= UVC_GUID_FORMAT_INVI,
-+		.fcc		= V4L2_PIX_FMT_Y10,
-+	},
-+	{
-+		.name		= "IR:Depth 26-bit (INZI)",
-+		.guid		= UVC_GUID_FORMAT_INZI,
-+		.fcc		= V4L2_PIX_FMT_INZI,
-+	},
- };
- 
- /* ------------------------------------------------------------------------
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 4205e7a423f0..15e415e32c7f 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -143,6 +143,15 @@
- #define UVC_GUID_FORMAT_RW10 \
- 	{ 'R',  'W',  '1',  '0', 0x00, 0x00, 0x10, 0x00, \
- 	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-+#define UVC_GUID_FORMAT_INVZ \
-+	{ 'I',  'N',  'V',  'Z', 0x90, 0x2d, 0x58, 0x4a, \
-+	 0x92, 0x0b, 0x77, 0x3f, 0x1f, 0x2c, 0x55, 0x6b}
-+#define UVC_GUID_FORMAT_INZI \
-+	{ 'I',  'N',  'Z',  'I', 0x66, 0x1a, 0x42, 0xa2, \
-+	 0x90, 0x65, 0xd0, 0x18, 0x14, 0xa8, 0xef, 0x8a}
-+#define UVC_GUID_FORMAT_INVI \
-+	{ 'I',  'N',  'V',  'I', 0xdb, 0x57, 0x49, 0x5e, \
-+	 0x8e, 0x3f, 0xf4, 0x79, 0x53, 0x2b, 0x94, 0x6f}
- 
- /* ------------------------------------------------------------------------
-  * Driver specific constants.
+Best regards,
 -- 
-2.7.4
-
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
