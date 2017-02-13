@@ -1,77 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f177.google.com ([74.125.82.177]:35304 "EHLO
-        mail-ot0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751458AbdBYSCq (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:49995 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751007AbdBMJkq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Feb 2017 13:02:46 -0500
+        Mon, 13 Feb 2017 04:40:46 -0500
+Subject: Re: [PATCH v2 4/4] media-ctl: add colorimetry support
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+References: <1486978408-28580-1-git-send-email-p.zabel@pengutronix.de>
+ <1486978408-28580-4-git-send-email-p.zabel@pengutronix.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <1958d6aa-b5ba-9e8f-aa34-d08a54843c47@xs4all.nl>
+Date: Mon, 13 Feb 2017 10:40:41 +0100
 MIME-Version: 1.0
-In-Reply-To: <20170225090741.GA20463@gmail.com>
-References: <58b07b30.9XFLj9Hhl7F6HMc2%fengguang.wu@intel.com>
- <CA+55aFytXj+TZ_TanbxcY0KgRTrV7Vvr=fWON8tioUGmYHYiNA@mail.gmail.com> <20170225090741.GA20463@gmail.com>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Sat, 25 Feb 2017 10:02:44 -0800
-Message-ID: <CA+55aFy+ER8cYV02eZsKAOLnZBWY96zNWqUFWSWT1+3sZD4XnQ@mail.gmail.com>
-Subject: Re: [WARNING: A/V UNSCANNABLE][Merge tag 'media/v4.11-1' of git]
- ff58d005cd: BUG: unable to handle kernel NULL pointer dereference at 0000039c
-To: Ingo Molnar <mingo@kernel.org>
-Cc: kernel test robot <fengguang.wu@intel.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sean Young <sean@mess.org>,
-        Ruslan Ruslichenko <rruslich@cisco.com>, LKP <lkp@01.org>,
-        "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-        kernel@stlinux.com,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-mediatek@lists.infradead.org,
-        linux-amlogic@lists.infradead.org,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Linux LED Subsystem <linux-leds@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>, wfg@linux.intel.com
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <1486978408-28580-4-git-send-email-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Feb 25, 2017 at 1:07 AM, Ingo Molnar <mingo@kernel.org> wrote:
->
-> So, should we revert the hw-retrigger change:
->
->   a9b4f08770b4 x86/ioapic: Restore IO-APIC irq_chip retrigger callback
->
-> ... until we managed to fix CONFIG_DEBUG_SHIRQ=y? If you'd like to revert it
-> upstream straight away:
->
-> Acked-by: Ingo Molnar <mingo@kernel.org>
+On 02/13/2017 10:33 AM, Philipp Zabel wrote:
+> media-ctl can be used to propagate v4l2 subdevice pad formats from
+> source pads of one subdevice to another one's sink pads. These formats
+> include colorimetry information, so media-ctl should be able to print
+> or change it using the --set/get-v4l2 option.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-So I'm in no huge hurry to revert that commit as long as we're still
-in the merge window or early -rc's.
+Just one small comment:
 
->From a debug standpoint, the spurious early interrupts are fine, and
-hopefully will help us find more broken drivers.
+> ---
+>  utils/media-ctl/libv4l2subdev.c | 263 ++++++++++++++++++++++++++++++++++++++++
+>  utils/media-ctl/media-ctl.c     |  17 +++
+>  utils/media-ctl/options.c       |  22 +++-
+>  utils/media-ctl/v4l2subdev.h    |  80 ++++++++++++
+>  4 files changed, 381 insertions(+), 1 deletion(-)
+> 
+> diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
+> index 7f9ef48..c918777 100644
+> --- a/utils/media-ctl/libv4l2subdev.c
+> +++ b/utils/media-ctl/libv4l2subdev.c
+> @@ -511,6 +511,118 @@ static struct media_pad *v4l2_subdev_parse_pad_format(
+>  			continue;
+>  		}
+>  
+> +		if (strhazit("colorspace:", &p)) {
+> +			enum v4l2_colorspace colorspace;
+> +			char *strfield;
+> +
+> +			for (end = (char *)p; isalnum(*end) || *end == '-';
+> +			     ++end);
+> +
+> +			strfield = strndup(p, end - p);
+> +			if (!strfield) {
+> +				*endp = (char *)p;
+> +				return NULL;
+> +			}
+> +
+> +			colorspace = v4l2_subdev_string_to_colorspace(strfield);
+> +			free(strfield);
+> +			if (colorspace == (enum v4l2_colorspace)-1) {
+> +				media_dbg(media, "Invalid colorspace value '%*s'\n",
+> +					  end - p, p);
+> +				*endp = (char *)p;
+> +				return NULL;
+> +			}
+> +
+> +			format->colorspace = colorspace;
+> +
+> +			p = end;
+> +			continue;
+> +		}
+> +
+> +		if (strhazit("xfer:", &p)) {
+> +			enum v4l2_xfer_func xfer_func;
+> +			char *strfield;
+> +
+> +			for (end = (char *)p; isalnum(*end) || *end == '-';
+> +			     ++end);
+> +
+> +			strfield = strndup(p, end - p);
+> +			if (!strfield) {
+> +				*endp = (char *)p;
+> +				return NULL;
+> +			}
+> +
+> +			xfer_func = v4l2_subdev_string_to_xfer_func(strfield);
+> +			free(strfield);
+> +			if (xfer_func == (enum v4l2_xfer_func)-1) {
+> +				media_dbg(media, "Invalid transfer function value '%*s'\n",
+> +					  end - p, p);
+> +				*endp = (char *)p;
+> +				return NULL;
+> +			}
+> +
+> +			format->xfer_func = xfer_func;
+> +
+> +			p = end;
+> +			continue;
+> +		}
+> +
+> +		if (strhazit("ycbcr:", &p)) {
+> +			enum v4l2_ycbcr_encoding ycbcr_enc;
+> +			char *strfield;
+> +
+> +			for (end = (char *)p; isalnum(*end) || *end == '-';
+> +			     ++end);
+> +
+> +			strfield = strndup(p, end - p);
+> +			if (!strfield) {
+> +				*endp = (char *)p;
+> +				return NULL;
+> +			}
+> +
+> +			ycbcr_enc = v4l2_subdev_string_to_ycbcr_encoding(strfield);
+> +			free(strfield);
+> +			if (ycbcr_enc == (enum v4l2_ycbcr_encoding)-1) {
+> +				media_dbg(media, "Invalid YCbCr encoding value '%*s'\n",
+> +					  end - p, p);
+> +				*endp = (char *)p;
+> +				return NULL;
+> +			}
+> +
+> +			format->ycbcr_enc = ycbcr_enc;
+> +
+> +			p = end;
+> +			continue;
+> +		}
+> +
+> +		if (strhazit("quantization:", &p)) {
+> +			enum v4l2_quantization quantization;
+> +			char *strfield;
+> +
+> +			for (end = (char *)p; isalnum(*end) || *end == '-';
+> +			     ++end);
+> +
+> +			strfield = strndup(p, end - p);
+> +			if (!strfield) {
+> +				*endp = (char *)p;
+> +				return NULL;
+> +			}
+> +
+> +			quantization = v4l2_subdev_string_to_quantization(strfield);
+> +			free(strfield);
+> +			if (quantization == (enum v4l2_quantization)-1) {
+> +				media_dbg(media, "Invalid quantization value '%*s'\n",
+> +					  end - p, p);
+> +				*endp = (char *)p;
+> +				return NULL;
+> +			}
+> +
+> +			format->quantization = quantization;
+> +
+> +			p = end;
+> +			continue;
+> +		}
+> +
+>  		/*
+>  		 * Backward compatibility: crop rectangles can be specified
+>  		 * implicitly without the 'crop:' property name.
+> @@ -839,6 +951,157 @@ enum v4l2_field v4l2_subdev_string_to_field(const char *string)
+>  	return (enum v4l2_field)-1;
+>  }
+>  
+> +static struct {
+> +	const char *name;
+> +	enum v4l2_colorspace colorspace;
+> +} colorspaces[] = {
+> +	{ "default", V4L2_COLORSPACE_DEFAULT },
+> +	{ "smpte170m", V4L2_COLORSPACE_SMPTE170M },
+> +	{ "smpte240m", V4L2_COLORSPACE_SMPTE240M },
+> +	{ "rec709", V4L2_COLORSPACE_REC709 },
+> +	{ "bt878", V4L2_COLORSPACE_BT878 },
 
-It's just that I'd like to revert it before the actual 4.11 release,
-unless we can find a better solution.
+Drop this, it's no longer used in the kernel.
 
-Because it really seems like the interrupt re-trigger is entirely
-bogus. It's not an _actual_ "re-trigger the interrupt that may have
-gotten lost", it's some code that ends up triggering it for no good
-reason.
+Regards,
 
-So I'd actually hope that we could figure out why IRQS_PENDING got
-set, and perhaps fix the underlying cause?
-
-There are several things that set IRQS_PENDING, ranging from "try to
-test mis-routed interrupts while irqd was working", to "prepare for
-suspend losing the irq for us", to "irq auto-probing uses it on
-unassigned probable irqs".
-
-The *actual* reason to re-send, namely getting a nested irq that we
-had to drop because we got a second one while still handling the first
-(or because it was disabled), is just one case.
-
-Personally, I'd suspect some left-over state from auto-probing earlier
-in the boot, but I don't know. Could we fix that underlying issue?
-
-                 Linus
+	Hans
