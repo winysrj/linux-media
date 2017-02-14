@@ -1,110 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:48264 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751134AbdBJPLv (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38286 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750716AbdBNHHI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Feb 2017 10:11:51 -0500
-Subject: Re: [PATCH v3 3/4] [media] s5p-mfc: Set colorspace in
- VIDIO_{G,TRY}_FMT
-To: Thibault Saunier <thibault.saunier@osg.samsung.com>,
-        linux-kernel@vger.kernel.org
-References: <20170210141022.25412-1-thibault.saunier@osg.samsung.com>
- <20170210141022.25412-4-thibault.saunier@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        linux-arm-kernel@lists.infradead.org,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Kamil Debski <kamil@wypas.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <4b0714cf-d875-022c-eb73-1556568c0a51@xs4all.nl>
-Date: Fri, 10 Feb 2017 16:10:11 +0100
+        Tue, 14 Feb 2017 02:07:08 -0500
+Date: Tue, 14 Feb 2017 09:06:59 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Benoit Parrot <bparrot@ti.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-acpi@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH 5/8] v4l: Switch from V4L2 OF not V4L2 fwnode API
+Message-ID: <20170214070658.GJ16975@valkosipuli.retiisi.org.uk>
+References: <1486992496-21078-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1486992496-21078-6-git-send-email-sakari.ailus@linux.intel.com>
+ <20170213165746.GB1103@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <20170210141022.25412-4-thibault.saunier@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170213165746.GB1103@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/10/2017 03:10 PM, Thibault Saunier wrote:
-> The media documentation says that the V4L2_COLORSPACE_SMPTE170M colorspace
-> should be used for SDTV and V4L2_COLORSPACE_REC709 for HDTV but the driver
-> didn't set the colorimetry, also respect usespace setting.
-> 
-> Use 576p display resolution as a threshold to set this.
-> 
-> Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
-> 
-> ---
-> 
-> Changes in v3:
-> - Do not check values in the g_fmt functions as Andrzej explained in previous review
-> - Set colorspace if user passed V4L2_COLORSPACE_DEFAULT in
-> 
-> Changes in v2: None
-> 
->  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 15 +++++++++++++++
->  1 file changed, 15 insertions(+)
-> 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> index 367ef8e8dbf0..16bc3eaad0ff 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> @@ -354,6 +354,11 @@ static int vidioc_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
->  		pix_mp->plane_fmt[0].sizeimage = ctx->luma_size;
->  		pix_mp->plane_fmt[1].bytesperline = ctx->buf_width;
->  		pix_mp->plane_fmt[1].sizeimage = ctx->chroma_size;
-> +
-> +		if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
-> +			pix_mp->colorspace = V4L2_COLORSPACE_REC709;
-> +		else /* SD */
-> +			pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
->  	} else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
->  		/* This is run on OUTPUT
->  		   The buffer contains compressed image
-> @@ -378,6 +383,7 @@ static int vidioc_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
->  static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
->  {
->  	struct s5p_mfc_dev *dev = video_drvdata(file);
-> +	struct v4l2_pix_format_mplane *pix_mp = &f->fmt.pix_mp;
->  	struct s5p_mfc_fmt *fmt;
->  
->  	mfc_debug(2, "Type is %d\n", f->type);
-> @@ -405,6 +411,15 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
->  			mfc_err("Unsupported format by this MFC version.\n");
->  			return -EINVAL;
->  		}
-> +
-> +		if (pix_mp->colorspace != V4L2_COLORSPACE_REC709 &&
-> +			pix_mp->colorspace != V4L2_COLORSPACE_SMPTE170M) {
-> +			if (pix_mp->width > 720 &&
-> +					pix_mp->height > 576) /* HD */
-> +				pix_mp->colorspace = V4L2_COLORSPACE_REC709;
-> +			else /* SD */
-> +				pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
-> +		}
->  	}
->  
->  	return 0;
-> 
+Hi Benoit,
 
-Same here: it is an mem2mem device, so it just preserves whatever colorspace the
-application passes in.
+On Mon, Feb 13, 2017 at 10:57:47AM -0600, Benoit Parrot wrote:
+> Sakari Ailus <sakari.ailus@linux.intel.com> wrote on Mon [2017-Feb-13 15:28:13 +0200]:
+...
+> > @@ -421,6 +423,7 @@ config VIDEO_TI_VPE
+> >  	select VIDEO_TI_VPDMA
+> >  	select VIDEO_TI_SC
+> >  	select VIDEO_TI_CSC
+> > +	select V4L2_FWNODE
+> 
+> Sakari,
+> 
+> TI_VPE does not use async registration, but as you already saw TI_CAL does.
+> So adding "select V4L2_FWNODE" should be moved to the VIDEO_TI_CAL section.
+> Once that's fixed you can add my acked-by for both the TI_CAL and AM437x_VPFE.
 
-Just look at what several other mem2mem device drivers do.
+Thanks for the review and for spotting this! I think I just used the name
+of the directory, and assumed that the matching Kconfig option is the right
+one. There don't seem to be other cases such as that one.
 
-Regards,
+diff:
 
-	Hans
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index cced276..2f7792c 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -129,6 +129,7 @@ config VIDEO_TI_CAL
+ 	depends on SOC_DRA7XX || COMPILE_TEST
+ 	depends on HAS_DMA
+ 	select VIDEOBUF2_DMA_CONTIG
++	select V4L2_FWNODE
+ 	default n
+ 	---help---
+ 	  Support for the TI CAL (Camera Adaptation Layer) block
+@@ -423,7 +424,6 @@ config VIDEO_TI_VPE
+ 	select VIDEO_TI_VPDMA
+ 	select VIDEO_TI_SC
+ 	select VIDEO_TI_CSC
+-	select V4L2_FWNODE
+ 	default n
+ 	---help---
+ 	  Support for the TI VPE(Video Processing Engine) block
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
