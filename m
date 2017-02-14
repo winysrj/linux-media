@@ -1,63 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:53986 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750873AbdBAXpe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Feb 2017 18:45:34 -0500
-Date: Wed, 1 Feb 2017 23:44:38 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v3 21/24] media: imx: Add MIPI CSI-2 Receiver subdev
- driver
-Message-ID: <20170201234438.GS27312@n2100.armlinux.org.uk>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
- <1483755102-24785-22-git-send-email-steve_longerbeam@mentor.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1483755102-24785-22-git-send-email-steve_longerbeam@mentor.com>
+Received: from bombadil.infradead.org ([65.50.211.133]:38041 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751389AbdBNTcU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Feb 2017 14:32:20 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        stable@vger.kernel.org, #@smtp.w2.samsung.com,
+        For@smtp.w2.samsung.com, 4.9+@smtp.w2.samsung.com
+Subject: [PATCH] siano: make it work again with CONFIG_VMAP_STACK
+Date: Tue, 14 Feb 2017 17:32:11 -0200
+Message-Id: <08f1b470a156163cc3394f73bcbaea3925b6f376.1487100723.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 06, 2017 at 06:11:39PM -0800, Steve Longerbeam wrote:
-> +static int imxcsi2_get_fmt(struct v4l2_subdev *sd,
-> +			   struct v4l2_subdev_pad_config *cfg,
-> +			   struct v4l2_subdev_format *sdformat)
-> +{
-> +	struct imxcsi2_dev *csi2 = sd_to_dev(sd);
-> +
-> +	sdformat->format = csi2->format_mbus;
-> +
-> +	return 0;
-> +}
+Reported as a Kaffeine bug:
+	https://bugs.kde.org/show_bug.cgi?id=375811
 
-Hi Steve,
+The USB control messages require DMA to work. We cannot pass
+a stack-allocated buffer, as it is not warranted that the
+stack would be into a DMA enabled area.
 
-This isn't correct, and I suspect the other get_fmt implementations are
-the same - I've just checked imx-csi.c, and that also appears to have
-the same issue.
+On Kernel 4.9, the default is to not accept DMA on stack anymore.
 
-When get_fmt() is called with sdformat->which == V4L2_SUBDEV_FORMAT_TRY,
-you need to return the try format rather than the current format.  See
-the second paragraph of Documentation/media/uapi/v4l/dev-subdev.rst's
-"Format Negotiation" section, where it talks about using
-V4L2_SUBDEV_FORMAT_TRY with both VIDIOC_SUBDEV_G_FMT and
-VIDIOC_SUBDEV_S_FMT.
+Tested with USB ID 2040:5510: Hauppauge Windham
 
+Cc: stable@vger.kernel.org # For 4.9+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/siano/smsusb.c | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/usb/siano/smsusb.c b/drivers/media/usb/siano/smsusb.c
+index a4dcaec31d02..8c1f926567ec 100644
+--- a/drivers/media/usb/siano/smsusb.c
++++ b/drivers/media/usb/siano/smsusb.c
+@@ -218,22 +218,30 @@ static int smsusb_start_streaming(struct smsusb_device_t *dev)
+ static int smsusb_sendrequest(void *context, void *buffer, size_t size)
+ {
+ 	struct smsusb_device_t *dev = (struct smsusb_device_t *) context;
+-	struct sms_msg_hdr *phdr = (struct sms_msg_hdr *) buffer;
+-	int dummy;
++	struct sms_msg_hdr *phdr;
++	int dummy, ret;
+ 
+ 	if (dev->state != SMSUSB_ACTIVE) {
+ 		pr_debug("Device not active yet\n");
+ 		return -ENOENT;
+ 	}
+ 
++	phdr = kmalloc(size, GFP_KERNEL);
++	if (!phdr)
++		return -ENOMEM;
++	memcpy(phdr, buffer, size);
++
+ 	pr_debug("sending %s(%d) size: %d\n",
+ 		  smscore_translate_msg(phdr->msg_type), phdr->msg_type,
+ 		  phdr->msg_length);
+ 
+ 	smsendian_handle_tx_message((struct sms_msg_data *) phdr);
+-	smsendian_handle_message_header((struct sms_msg_hdr *)buffer);
+-	return usb_bulk_msg(dev->udev, usb_sndbulkpipe(dev->udev, 2),
+-			    buffer, size, &dummy, 1000);
++	smsendian_handle_message_header((struct sms_msg_hdr *)phdr);
++	ret = usb_bulk_msg(dev->udev, usb_sndbulkpipe(dev->udev, 2),
++			    phdr, size, &dummy, 1000);
++
++	kfree(phdr);
++	return ret;
+ }
+ 
+ static char *smsusb1_fw_lkup[] = {
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+2.9.3
