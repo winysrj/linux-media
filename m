@@ -1,79 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36216
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753223AbdBMTJY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 14:09:24 -0500
-From: Thibault Saunier <thibault.saunier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Thibault Saunier <thibault.saunier@osg.samsung.com>,
-        linux-arm-kernel@lists.infradead.org,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Kamil Debski <kamil@wypas.org>
-Subject: [PATCH v4 4/4] [media] s5p-mfc: Check and set 'v4l2_pix_format:field' field in try_fmt
-Date: Mon, 13 Feb 2017 16:08:36 -0300
-Message-Id: <20170213190836.26972-5-thibault.saunier@osg.samsung.com>
-In-Reply-To: <20170213190836.26972-1-thibault.saunier@osg.samsung.com>
-References: <20170213190836.26972-1-thibault.saunier@osg.samsung.com>
+Received: from mga09.intel.com ([134.134.136.24]:19239 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752242AbdBNMFO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Feb 2017 07:05:14 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: pavel@ucw.cz
+Subject: [PATCH v2 2/2] ad5820: Use VOICE_COIL_CURRENT control
+Date: Tue, 14 Feb 2017 14:03:02 +0200
+Message-Id: <1487073782-27366-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1487073782-27366-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1487073782-27366-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is required by the standard that the field order is set by the
-driver.
+Add V4L2_CID_VOICE_COIL_CURRENT control support to the ad5820 driver. The
+usage of the control is equivalent to how V4L2_CID_FOCUS_ABSOLUTE was used
+by the driver. The old control remains supported.
 
-Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
-
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
+ drivers/media/i2c/ad5820.c | 28 ++++++++++++++++++++--------
+ 1 file changed, 20 insertions(+), 8 deletions(-)
 
-Changes in v4: None
-Changes in v3:
-- Do not check values in the g_fmt functions as Andrzej explained in previous review
-
-Changes in v2:
-- Fix a silly build error that slipped in while rebasing the patches
-
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
-
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 0976c3e0a5ce..c954b34cb988 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -385,6 +385,20 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 	struct s5p_mfc_dev *dev = video_drvdata(file);
- 	struct v4l2_pix_format_mplane *pix_mp = &f->fmt.pix_mp;
- 	struct s5p_mfc_fmt *fmt;
-+	enum v4l2_field field;
-+
-+	field = f->fmt.pix.field;
-+	if (field == V4L2_FIELD_ANY) {
-+		field = V4L2_FIELD_NONE;
-+	} else if (field != V4L2_FIELD_NONE) {
-+		mfc_debug(2, "Not supported field order(%d)\n", pix_mp->field);
-+		return -EINVAL;
-+	}
-+
-+	/* V4L2 specification suggests the driver corrects the format struct
-+	 * if any of the dimensions is unsupported
-+	 */
-+	f->fmt.pix.field = field;
+diff --git a/drivers/media/i2c/ad5820.c b/drivers/media/i2c/ad5820.c
+index 7167b26..e5ff1a2 100644
+--- a/drivers/media/i2c/ad5820.c
++++ b/drivers/media/i2c/ad5820.c
+@@ -51,7 +51,7 @@ struct ad5820_device {
+ 	struct regulator *vana;
  
- 	mfc_debug(2, "Type is %d\n", f->type);
- 	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+ 	struct v4l2_ctrl_handler ctrls;
+-	u32 focus_absolute;
++	struct v4l2_ctrl *focus, *curr;
+ 	u32 focus_ramp_time;
+ 	u32 focus_ramp_mode;
+ 
+@@ -59,6 +59,7 @@ struct ad5820_device {
+ 	int power_count;
+ 
+ 	bool standby;
++	bool in_set_ctrl;
+ };
+ 
+ static int ad5820_write(struct ad5820_device *coil, u16 data)
+@@ -98,7 +99,7 @@ static int ad5820_update_hw(struct ad5820_device *coil)
+ 	status = RAMP_US_TO_CODE(coil->focus_ramp_time);
+ 	status |= coil->focus_ramp_mode
+ 		? AD5820_RAMP_MODE_64_16 : AD5820_RAMP_MODE_LINEAR;
+-	status |= coil->focus_absolute << AD5820_DAC_SHIFT;
++	status |= coil->curr->val << AD5820_DAC_SHIFT;
+ 
+ 	if (coil->standby)
+ 		status |= AD5820_POWER_DOWN;
+@@ -160,10 +161,16 @@ static int ad5820_set_ctrl(struct v4l2_ctrl *ctrl)
+ 	struct ad5820_device *coil =
+ 		container_of(ctrl->handler, struct ad5820_device, ctrls);
+ 
++	if (coil->in_set_ctrl)
++		return 0;
++
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_FOCUS_ABSOLUTE:
+ 	case V4L2_CID_VOICE_COIL_CURRENT:
+-		coil->focus_absolute = ctrl->val;
++		coil->in_set_ctrl = true;
++		__v4l2_ctrl_s_ctrl(ctrl == coil->focus ?
++				   coil->curr : coil->focus, ctrl->val);
++		coil->in_set_ctrl = false;
+ 		return ad5820_update_hw(coil);
+ 	}
+ 
+@@ -190,16 +197,21 @@ static int ad5820_init_controls(struct ad5820_device *coil)
+ 	 * will just use abstract codes here. In any case, smaller value = focus
+ 	 * position farther from camera. The default zero value means focus at
+ 	 * infinity, and also least current consumption.
++	 *
++	 * The two controls below control the current. The
++	 * FOCUS_ABSOLUTE is there for compatibility with old user
++	 * space whereas the VOICE_COIL_CURRENT should be used by both
++	 * new applications and drivers.
+ 	 */
+-	v4l2_ctrl_new_std(&coil->ctrls, &ad5820_ctrl_ops,
+-			  V4L2_CID_FOCUS_ABSOLUTE, 0, 1023, 1, 0);
+-	v4l2_ctrl_new_std(&coil->ctrls, &ad5820_ctrl_ops,
+-			  V4L2_CID_VOICE_COIL_CURRENT, 0, 1023, 1, 0);
++	coil->focus = v4l2_ctrl_new_std(&coil->ctrls, &ad5820_ctrl_ops,
++					V4L2_CID_FOCUS_ABSOLUTE, 0, 1023, 1, 0);
++	coil->curr = v4l2_ctrl_new_std(&coil->ctrls, &ad5820_ctrl_ops,
++					  V4L2_CID_VOICE_COIL_CURRENT,
++					  0, 1023, 1, 0);
+ 
+ 	if (coil->ctrls.error)
+ 		return coil->ctrls.error;
+ 
+-	coil->focus_absolute = 0;
+ 	coil->focus_ramp_time = 0;
+ 	coil->focus_ramp_mode = 0;
+ 
 -- 
-2.11.1
+2.7.4
