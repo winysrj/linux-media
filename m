@@ -1,96 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:47920 "EHLO mail.kernel.org"
+Received: from mga09.intel.com ([134.134.136.24]:19239 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751786AbdBIXKG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 9 Feb 2017 18:10:06 -0500
-MIME-Version: 1.0
-In-Reply-To: <20170208223017.GA18807@amd>
-References: <20161023200355.GA5391@amd> <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
- <20161214122451.GB27011@amd> <20161222100104.GA30917@amd> <20161222133938.GA30259@amd>
- <20161224152031.GA8420@amd> <20170203123508.GA10286@amd> <20170208213609.lnemfbzitee5iur2@rob-hp-laptop>
- <20170208223017.GA18807@amd>
-From: Rob Herring <robh@kernel.org>
-Date: Thu, 9 Feb 2017 17:02:13 -0600
-Message-ID: <CAL_JsqKSHvg+iB-SRd=YthauGP8mWeVF0j8X-fgLchwtOppH8A@mail.gmail.com>
-Subject: Re: [PATCH] devicetree: Add video bus switch
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-        Sebastian Reichel <sre@kernel.org>,
-        =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Kumar Gala <galak@codeaurora.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+        id S1753037AbdBNMFP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Feb 2017 07:05:15 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: pavel@ucw.cz
+Subject: v4l: Add camera voice coil lens control class, current control
+Date: Tue, 14 Feb 2017 14:03:00 +0200
+Message-Id: <1487073782-27366-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 8, 2017 at 4:30 PM, Pavel Machek <pavel@ucw.cz> wrote:
-> On Wed 2017-02-08 15:36:09, Rob Herring wrote:
->> On Fri, Feb 03, 2017 at 01:35:08PM +0100, Pavel Machek wrote:
->> >
->> > N900 contains front and back camera, with a switch between the
->> > two. This adds support for the switch component, and it is now
->> > possible to select between front and back cameras during runtime.
->> >
->> > This adds documentation for the devicetree binding.
->> >
->> > Signed-off-by: Sebastian Reichel <sre@kernel.org>
->> > Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
->> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
->> >
->> >
->> > diff --git a/Documentation/devicetree/bindings/media/video-bus-switch.txt b/Documentation/devicetree/bindings/media/video-bus-switch.txt
->> > new file mode 100644
->> > index 0000000..1b9f8e0
->> > --- /dev/null
->> > +++ b/Documentation/devicetree/bindings/media/video-bus-switch.txt
->> > @@ -0,0 +1,63 @@
->> > +Video Bus Switch Binding
->> > +========================
->>
->> I'd call it a mux rather than switch.
->
-> It is a switch, not a multiplexor (
-> https://en.wikipedia.org/wiki/Multiplexing ). Only one camera can
-> operate at a time.
+Hi folks,
 
-It's no different than an i2c mux. It's one at a time.
+I wanted to refresh my voice coil lens patchset before we have more voice
+coil lens controller drivers. The VOCUS_ABSOLUTE control really is not a
+best control ID to control a voice coil driver's current.
 
->
->> BTW, there's a new mux-controller binding under review you might look
->> at. It would only be needed here if the mux ctrl also controls other
->> things.
->
-> Do you have a pointer?
+There may be additional controls in the class: the hardware I'm familiar
+with provides other controls (PWM vs. linear mode, resonance frequency and
+ringing compensation formula to name a few) but I'm not fully certain
+they're something that even should be told to the user --- let alone
+giving the user write access to them.
 
-Let me Google that for you:
+My expectation is still that there will be more controls in the class. The
+PWM / linear mode might be one candidate: PWM saves power but it may cause
+other issues. These other issues might be something to ignore, depending
+on the use case. That will be anyway left for the future.
 
->
->> > +Required Port nodes
->> > +===================
->> > +
->> > +More documentation on these bindings is available in
->> > +video-interfaces.txt in the same directory.
->> > +
->> > +reg                : The interface:
->> > +             0 - port for image signal processor
->> > +             1 - port for first camera sensor
->> > +             2 - port for second camera sensor
->>
->> This could be used for display side as well. So describe these just as
->> inputs and outputs.
->
-> I'd prefer not to confuse people. I guess that would be 0 -- output
-> port, 1, 2 -- input ports... But this is media data, are you sure it
-> is good idea to change this?
-
-And I'd prefer something that can be reused by others.
-
->
->                                                                         Pavel
-> --
-> (english) http://www.livejournal.com/~pavelmachek
-> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+-- 
+Kind regards,
+Sakari
