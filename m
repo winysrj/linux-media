@@ -1,109 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44817
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750999AbdBOOhr (ORCPT
+Received: from mail.helmutauer.de ([185.170.112.187]:36008 "EHLO
+        v2201612530341454.powersrv.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752286AbdBNHLj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 09:37:47 -0500
-Date: Wed, 15 Feb 2017 12:37:40 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Gregor Jasny <gjasny@googlemail.com>
-Cc: Marcel Heinz <quisquilia@gmx.de>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Bug#854100: libdvbv5-0: fails to tune / scan
-Message-ID: <20170215123740.00bc9e8e@vento.lan>
-In-Reply-To: <20170215111318.65ae1f0b@vento.lan>
-References: <148617570740.6827.6324247760769667383.reportbug@ixtlilton.netz.invalid>
-        <0db3f8d1-0461-5d82-a92d-ecc3cfcfec71@googlemail.com>
-        <8792984d-54c9-01a8-0f84-7a1f0312a12f@gmx.de>
-        <CAJxGH0-ewWzxSJ1vE+n4FMkqv+pnmT9G0uAZS5oUYkhxWm+=5A@mail.gmail.com>
-        <ba755934-7946-59ea-e900-fe76d4ea2f0a@gmx.de>
-        <458abbd2-a98b-243b-bf2f-48d5e5a8060b@googlemail.com>
-        <20170213080448.11f49304@vento.lan>
-        <20170215111318.65ae1f0b@vento.lan>
+        Tue, 14 Feb 2017 02:11:39 -0500
+Message-ID: <a3094b0048a1ce3f295417e9330e1194.squirrel@helmutauer.de>
+In-Reply-To: <20170213134244.GA18860@gofer.mess.org>
+References: <20170127080622.GA4153@mwanda>
+    <ae72e45aeea9d3cbead7c50e1cbe4c5b.squirrel@helmutauer.de>
+    <33044ec5031546f79ae9d37565240ed3.squirrel@helmutauer.de>
+    <cfb14339f809faa9b5e40d2fa53f330b.squirrel@helmutauer.de>
+    <20170213134244.GA18860@gofer.mess.org>
+Date: Tue, 14 Feb 2017 08:11:56 +0100
+Subject: Re: [PATCH] [MEDIA] add device ID to ati remote
+From: "Helmut Auer" <vdr@helmutauer.de>
+To: "Sean Young" <sean@mess.org>
+Cc: "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        "Linux Media Mailing List" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;boundary="----=_20170214081156_79922"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 15 Feb 2017 11:13:18 -0200
-Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+------=_20170214081156_79922
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 
-> Hi Gregor,
-> 
-> Em Mon, 13 Feb 2017 08:04:48 -0200
-> Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
-> 
-> > Em Fri, 10 Feb 2017 22:02:01 +0100
-> > Gregor Jasny <gjasny@googlemail.com> escreveu:
-> > 
-> > > Hello Mauro & DVB-S maintainers,
-> > > 
-> > > could you please have a look at the bug report below? Marcel was so kind
-> > > to bisect the problem to the following commit:
-> > > 
-> > > https://git.linuxtv.org/v4l-utils.git/commit/?id=d982b0d03b1f929269104bb716c9d4b50c945125
-> > 
-> > Sorry for not handling it earlier. I took vacations on Jan, and had a pile
-> > of patches to handle after my return. I had to priorize them, as we're
-> > close to a Kernel merge window.
-> > 
-> > Now that Linus postponed the merge window, I had some time to dig into
-> > it.
-> > 
-> > > 
-> > > Bug report against libdvbv5 is here:
-> > > https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=854100
-> > 
-> > There was a bug at the logic that was checking if the frequency was
-> > at the range of the local oscillators. This patch should be addressing
-> > it:
-> > 	https://git.linuxtv.org/v4l-utils.git/commit/?id=5380ad44de416a41b4972e8a9c147ce42b0e3ba0
-> > 
-> > With that, the logic now seems to be working fine:
-> > 
-> > $ ./utils/dvb/dvbv5-scan ~/Intelsat-34 --lnbf universal -vv
-> > Using LNBf UNIVERSAL
-> > 	Universal, Europe
-> > 	10800 to 11800 MHz, LO: 9750 MHz
-> > 	11600 to 12700 MHz, LO: 10600 MHz
-> > ...
-> > Seeking for LO for 12.17 MHz frequency
-> > LO setting 0: 10.80 MHz to 11.80 MHz
-> > LO setting 1: 11.60 MHz to 12.70 MHz
-> > Multi-LO LNBf. using LO setting 1 at 10600.00 MHz
-> > frequency: 12170.00 MHz, high_band: 1
-> > L-Band frequency: 1570.00 MHz (offset = 10600.00 MHz)
-> > 
-> > I can't really test it here, as my satellite dish uses a different
-> > type of LNBf, but, from the above logs, the bug should be fixed.
-> > 
-> > Marcel,
-> > 
-> > Could you please test? The patch is already upstream.
-> > I added a debug patch after it, in order to help LNBf issues
-> > (enabled by using "-vv" command line parameters).
-> 
-> I added both patches to stable-1.12 branch. I also added a small
-> patch there adding support for an extra LNBf model at the DVB
-> Satellite table. Such change is not disruptive, as it just
-> adds a new element on an already-existing table.
-> 
-> Btw, I found another bug there. Starting to look on it right now.
-> 
-> There's something wrong with translations there. It seems that
-> something is causing i18n to print its headers instead of doing
-> the right thing. 
-> 
-> I'm enclosing the results at the end of this e-mail, with 
-> pt_BR translation, with is currently the only one available.
-> 
-> I think you should wait for this bug to get fixed before releasing
-> a new -stable release.
+P.S. Here is the patch again with a correction.
 
-Bug fixed and pushed to stable-1.12 directory. I also updated
-there the pt_BR translation for libdvbv5.
+> On Tue, Feb 07, 2017 at 09:42:47AM +0100, vdr@helmutauer.de wrote:
+>>
+>> Author: Helmut Auer <vdr@xxx.de>
+>> Date:   Fri Jan 27 19:09:35 2017 +0100
+>>
+>>     Adding 1 device ID to ati_remote driver.
+>
+> If possible, a more descriptive message would be preferred, e.g. what
+> device do you have, what branding, what product did it come with.
+>
+>>
+>>     Signed-off-by: Helmut Auer <vdr@xxx.de>
+>
+> Unless I'm mistaken, contributions can't be anonymous or use a fake email
+> address.
+>
+>>
+>> diff --git a/drivers/media/rc/ati_remote.c
+>> b/drivers/media/rc/ati_remote.c
+>> index 0884b7d..83022b1 100644
+>> --- a/drivers/media/rc/ati_remote.c
+>> +++ b/drivers/media/rc/ati_remote.c
+>> @@ -108,6 +108,7 @@
+>>  #define NVIDIA_REMOTE_PRODUCT_ID       0x0005
+>>  #define MEDION_REMOTE_PRODUCT_ID       0x0006
+>>  #define FIREFLY_REMOTE_PRODUCT_ID      0x0008
+>> +#define REYCOM_REMOTE_PRODUCT_ID       0x000c
+>>
+>>  #define DRIVER_VERSION         "2.2.1"
+>>  #define DRIVER_AUTHOR           "Torrey Hoffman <thoffman@arnor.net>"
+>> @@ -227,6 +228,10 @@ static struct usb_device_id ati_remote_table[] = {
+>>                 USB_DEVICE(ATI_REMOTE_VENDOR_ID,
+>> FIREFLY_REMOTE_PRODUCT_ID),
+>>                 .driver_info = (unsigned long)&type_firefly
+>>         },
+>> +       {
+>> +               USB_DEVICE(ATI_REMOTE_VENDOR_ID,
+>> REYCOM_REMOTE_PRODUCT_ID),
+>> +               .driver_info = (unsigned long)&type_firefly
+>> +       },
+>>         {}      /* Terminating entry */
+>>  };
+>
+> Your email client replaced all tabs with spaces so the patch no longer
+> applies.
+>
+> Thanks,
+> Sean
+>
 
--- 
-Thanks,
-Mauro
+------=_20170214081156_79922
+Content-Type: application/octet-stream; name="015_atireycom.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="015_atireycom.patch"
+
+LS0tIGRyaXZlcnMvbWVkaWEvcmMvYXRpX3JlbW90ZS5jCTIwMTYtMTItMTEgMjA6MTc6NTQuMDAw
+MDAwMDAwICswMTAwCisrKyBkcml2ZXJzL21lZGlhL3JjL2F0aV9yZW1vdGUuYwkyMDE3LTAyLTA3
+IDA4OjM5OjI1Ljg2MDY0NDE3NyArMDEwMApAQCAtMTA4LDYgKzEwOCw3IEBACiAjZGVmaW5lIE5W
+SURJQV9SRU1PVEVfUFJPRFVDVF9JRAkweDAwMDUKICNkZWZpbmUgTUVESU9OX1JFTU9URV9QUk9E
+VUNUX0lECTB4MDAwNgogI2RlZmluZSBGSVJFRkxZX1JFTU9URV9QUk9EVUNUX0lECTB4MDAwOAor
+I2RlZmluZSBSRVlDT01fUkVNT1RFX1BST0RVQ1RfSUQJMHgwMDBjCiAKICNkZWZpbmUgRFJJVkVS
+X1ZFUlNJT04JCSIyLjIuMSIKICNkZWZpbmUgRFJJVkVSX0FVVEhPUiAgICAgICAgICAgIlRvcnJl
+eSBIb2ZmbWFuIDx0aG9mZm1hbkBhcm5vci5uZXQ+IgpAQCAtMjI3LDYgKzIyOCwxMCBAQAogCQlV
+U0JfREVWSUNFKEFUSV9SRU1PVEVfVkVORE9SX0lELCBGSVJFRkxZX1JFTU9URV9QUk9EVUNUX0lE
+KSwKIAkJLmRyaXZlcl9pbmZvID0gKHVuc2lnbmVkIGxvbmcpJnR5cGVfZmlyZWZseQogCX0sCisJ
+eworCQlVU0JfREVWSUNFKEFUSV9SRU1PVEVfVkVORE9SX0lELCBSRVlDT01fUkVNT1RFX1BST0RV
+Q1RfSUQpLAorCQkuZHJpdmVyX2luZm8gPSAodW5zaWduZWQgbG9uZykmdHlwZV9tZWRpb24KKwl9
+LAogCXt9CS8qIFRlcm1pbmF0aW5nIGVudHJ5ICovCiB9OwogCg==
+------=_20170214081156_79922--
