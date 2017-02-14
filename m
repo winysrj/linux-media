@@ -1,143 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:27275 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751353AbdBAQDx (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54902 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755665AbdBNVaB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Feb 2017 11:03:53 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v6 06/10] [media] st-delta: add memory allocator helper functions
-Date: Wed, 1 Feb 2017 17:03:27 +0100
-Message-ID: <1485965011-17388-7-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1485965011-17388-1-git-send-email-hugues.fruchet@st.com>
-References: <1485965011-17388-1-git-send-email-hugues.fruchet@st.com>
+        Tue, 14 Feb 2017 16:30:01 -0500
+Date: Tue, 14 Feb 2017 23:29:27 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
+Subject: Re: [RFC 03/13] v4l: split lane parsing code
+Message-ID: <20170214212927.GL16975@valkosipuli.retiisi.org.uk>
+References: <20170214133941.GA8469@amd>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170214133941.GA8469@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Helper functions used by decoder back-ends to allocate
-physically contiguous memory required by hardware video
-decoder.
+Hi Pavel,
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- drivers/media/platform/sti/delta/Makefile    |  2 +-
- drivers/media/platform/sti/delta/delta-mem.c | 51 ++++++++++++++++++++++++++++
- drivers/media/platform/sti/delta/delta-mem.h | 14 ++++++++
- drivers/media/platform/sti/delta/delta.h     |  8 +++++
- 4 files changed, 74 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/platform/sti/delta/delta-mem.c
- create mode 100644 drivers/media/platform/sti/delta/delta-mem.h
+On Tue, Feb 14, 2017 at 02:39:41PM +0100, Pavel Machek wrote:
+> From: Sakari Ailus <sakari.ailus@iki.fi>
+> 
+> The function to parse CSI2 bus parameters was called
+> v4l2_of_parse_csi_bus(), rename it as v4l2_of_parse_csi2_bus() in
+> anticipation of CSI1/CCP2 support.
+> 
+> Obtain data bus type from bus-type property. Only try parsing bus
+> specific properties in this case.
+> 
+> Separate lane parsing from CSI-2 bus parameter parsing. The CSI-1 will
+> need these as well, separate them into a different
+> function. have_clk_lane and num_data_lanes arguments may be NULL; the
+> CSI-1 bus will have no use for them.
+> 
+> Add support for parsing of CSI-1 and CCP2 bus related properties
+> documented in video-interfaces.txt.
 
-diff --git a/drivers/media/platform/sti/delta/Makefile b/drivers/media/platform/sti/delta/Makefile
-index 467519e..93a3037 100644
---- a/drivers/media/platform/sti/delta/Makefile
-+++ b/drivers/media/platform/sti/delta/Makefile
-@@ -1,2 +1,2 @@
- obj-$(CONFIG_VIDEO_STI_DELTA_DRIVER) := st-delta.o
--st-delta-y := delta-v4l2.o
-+st-delta-y := delta-v4l2.o delta-mem.o
-diff --git a/drivers/media/platform/sti/delta/delta-mem.c b/drivers/media/platform/sti/delta/delta-mem.c
-new file mode 100644
-index 0000000..d7b53d3
---- /dev/null
-+++ b/drivers/media/platform/sti/delta/delta-mem.c
-@@ -0,0 +1,51 @@
-+/*
-+ * Copyright (C) STMicroelectronics SA 2015
-+ * Author: Hugues Fruchet <hugues.fruchet@st.com> for STMicroelectronics.
-+ * License terms:  GNU General Public License (GPL), version 2
-+ */
-+
-+#include "delta.h"
-+#include "delta-mem.h"
-+
-+int hw_alloc(struct delta_ctx *ctx, u32 size, const char *name,
-+	     struct delta_buf *buf)
-+{
-+	struct delta_dev *delta = ctx->dev;
-+	dma_addr_t dma_addr;
-+	void *addr;
-+	unsigned long attrs = DMA_ATTR_WRITE_COMBINE;
-+
-+	addr = dma_alloc_attrs(delta->dev, size, &dma_addr,
-+			       GFP_KERNEL | __GFP_NOWARN, attrs);
-+	if (!addr) {
-+		dev_err(delta->dev,
-+			"%s hw_alloc:dma_alloc_coherent failed for %s (size=%d)\n",
-+			ctx->name, name, size);
-+		ctx->sys_errors++;
-+		return -ENOMEM;
-+	}
-+
-+	buf->size = size;
-+	buf->paddr = dma_addr;
-+	buf->vaddr = addr;
-+	buf->name = name;
-+	buf->attrs = attrs;
-+
-+	dev_dbg(delta->dev,
-+		"%s allocate %d bytes of HW memory @(virt=0x%p, phy=0x%pad): %s\n",
-+		ctx->name, size, buf->vaddr, &buf->paddr, buf->name);
-+
-+	return 0;
-+}
-+
-+void hw_free(struct delta_ctx *ctx, struct delta_buf *buf)
-+{
-+	struct delta_dev *delta = ctx->dev;
-+
-+	dev_dbg(delta->dev,
-+		"%s     free %d bytes of HW memory @(virt=0x%p, phy=0x%pad): %s\n",
-+		ctx->name, buf->size, buf->vaddr, &buf->paddr, buf->name);
-+
-+	dma_free_attrs(delta->dev, buf->size,
-+		       buf->vaddr, buf->paddr, buf->attrs);
-+}
-diff --git a/drivers/media/platform/sti/delta/delta-mem.h b/drivers/media/platform/sti/delta/delta-mem.h
-new file mode 100644
-index 0000000..f8ca109
---- /dev/null
-+++ b/drivers/media/platform/sti/delta/delta-mem.h
-@@ -0,0 +1,14 @@
-+/*
-+ * Copyright (C) STMicroelectronics SA 2015
-+ * Author: Hugues Fruchet <hugues.fruchet@st.com> for STMicroelectronics.
-+ * License terms:  GNU General Public License (GPL), version 2
-+ */
-+
-+#ifndef DELTA_MEM_H
-+#define DELTA_MEM_H
-+
-+int hw_alloc(struct delta_ctx *ctx, u32 size, const char *name,
-+	     struct delta_buf *buf);
-+void hw_free(struct delta_ctx *ctx, struct delta_buf *buf);
-+
-+#endif /* DELTA_MEM_H */
-diff --git a/drivers/media/platform/sti/delta/delta.h b/drivers/media/platform/sti/delta/delta.h
-index 74a4240..9e26525 100644
---- a/drivers/media/platform/sti/delta/delta.h
-+++ b/drivers/media/platform/sti/delta/delta.h
-@@ -191,6 +191,14 @@ struct delta_dts {
- 	u64 val;
- };
- 
-+struct delta_buf {
-+	u32 size;
-+	void *vaddr;
-+	dma_addr_t paddr;
-+	const char *name;
-+	unsigned long attrs;
-+};
-+
- struct delta_ctx;
- 
- /*
+One more thing: this conflicts badly with the V4L2 fwnode patchset.
+
+Assuming things go well and that can be merged somewhat soonish, can I take
+this and rebase it on the fwnode set? The two first patches in the set look
+pretty good to me.
+
 -- 
-1.9.1
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
