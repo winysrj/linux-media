@@ -1,82 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f180.google.com ([209.85.128.180]:36437 "EHLO
-        mail-wr0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755315AbdBGQl5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2017 11:41:57 -0500
-Received: by mail-wr0-f180.google.com with SMTP id k90so41813493wrc.3
-        for <linux-media@vger.kernel.org>; Tue, 07 Feb 2017 08:41:57 -0800 (PST)
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-To: Kevin Hilman <khilman@kernel.org>, Sekhar Nori <nsekhar@ti.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Lad Prabhakar <prabhakar.csengg@gmail.com>
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: [PATCH 09/10] media: vpif: use a configurable i2c_adapter_id for vpif display
-Date: Tue,  7 Feb 2017 17:41:22 +0100
-Message-Id: <1486485683-11427-10-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1486485683-11427-1-git-send-email-bgolaszewski@baylibre.com>
-References: <1486485683-11427-1-git-send-email-bgolaszewski@baylibre.com>
+Received: from mga09.intel.com ([134.134.136.24]:32503 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753706AbdBNMXG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Feb 2017 07:23:06 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: pavel@ucw.cz
+Subject: [PATCH v3 2/2] ad5820: Use VOICE_COIL_CURRENT control
+Date: Tue, 14 Feb 2017 14:20:23 +0200
+Message-Id: <1487074823-28274-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The vpif display driver uses a static i2c adapter ID of 1 but on the
-da850-evm board in DT boot mode the i2c adapter ID is actually 0.
+Add V4L2_CID_VOICE_COIL_CURRENT control support to the ad5820 driver. The
+usage of the control is equivalent to how V4L2_CID_FOCUS_ABSOLUTE was used
+by the driver. The old control remains supported.
 
-Make the adapter ID configurable like it already is for vpif capture.
-
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- arch/arm/mach-davinci/board-da850-evm.c       | 1 +
- drivers/media/platform/davinci/vpif_display.c | 2 +-
- include/media/davinci/vpif_types.h            | 1 +
- 3 files changed, 3 insertions(+), 1 deletion(-)
+ drivers/media/i2c/ad5820.c | 27 +++++++++++++++++++++------
+ 1 file changed, 21 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-davinci/board-da850-evm.c b/arch/arm/mach-davinci/board-da850-evm.c
-index e5d4ded..fe0bfa7 100644
---- a/arch/arm/mach-davinci/board-da850-evm.c
-+++ b/arch/arm/mach-davinci/board-da850-evm.c
-@@ -1290,6 +1290,7 @@ static struct vpif_display_config da850_vpif_display_config = {
- 		.output_count = ARRAY_SIZE(da850_ch0_outputs),
- 	},
- 	.card_name    = "DA850/OMAP-L138 Video Display",
-+	.i2c_adapter_id = 1,
+diff --git a/drivers/media/i2c/ad5820.c b/drivers/media/i2c/ad5820.c
+index a9026a91..e5ff1a2 100644
+--- a/drivers/media/i2c/ad5820.c
++++ b/drivers/media/i2c/ad5820.c
+@@ -51,7 +51,7 @@ struct ad5820_device {
+ 	struct regulator *vana;
+ 
+ 	struct v4l2_ctrl_handler ctrls;
+-	u32 focus_absolute;
++	struct v4l2_ctrl *focus, *curr;
+ 	u32 focus_ramp_time;
+ 	u32 focus_ramp_mode;
+ 
+@@ -59,6 +59,7 @@ struct ad5820_device {
+ 	int power_count;
+ 
+ 	bool standby;
++	bool in_set_ctrl;
  };
  
- static __init void da850_vpif_init(void)
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index 50c3073..7e5cf99 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -1287,7 +1287,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+ static int ad5820_write(struct ad5820_device *coil, u16 data)
+@@ -98,7 +99,7 @@ static int ad5820_update_hw(struct ad5820_device *coil)
+ 	status = RAMP_US_TO_CODE(coil->focus_ramp_time);
+ 	status |= coil->focus_ramp_mode
+ 		? AD5820_RAMP_MODE_64_16 : AD5820_RAMP_MODE_LINEAR;
+-	status |= coil->focus_absolute << AD5820_DAC_SHIFT;
++	status |= coil->curr->val << AD5820_DAC_SHIFT;
+ 
+ 	if (coil->standby)
+ 		status |= AD5820_POWER_DOWN;
+@@ -160,9 +161,16 @@ static int ad5820_set_ctrl(struct v4l2_ctrl *ctrl)
+ 	struct ad5820_device *coil =
+ 		container_of(ctrl->handler, struct ad5820_device, ctrls);
+ 
++	if (coil->in_set_ctrl)
++		return 0;
++
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_FOCUS_ABSOLUTE:
+-		coil->focus_absolute = ctrl->val;
++	case V4L2_CID_VOICE_COIL_CURRENT:
++		coil->in_set_ctrl = true;
++		__v4l2_ctrl_s_ctrl(ctrl == coil->focus ?
++				   coil->curr : coil->focus, ctrl->val);
++		coil->in_set_ctrl = false;
+ 		return ad5820_update_hw(coil);
  	}
  
- 	if (!vpif_obj.config->asd_sizes) {
--		i2c_adap = i2c_get_adapter(1);
-+		i2c_adap = i2c_get_adapter(vpif_obj.config->i2c_adapter_id);
- 		for (i = 0; i < subdev_count; i++) {
- 			vpif_obj.sd[i] =
- 				v4l2_i2c_new_subdev_board(&vpif_obj.v4l2_dev,
-diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
-index 4282a7d..0c72b46 100644
---- a/include/media/davinci/vpif_types.h
-+++ b/include/media/davinci/vpif_types.h
-@@ -57,6 +57,7 @@ struct vpif_display_config {
- 	int (*set_clock)(int, int);
- 	struct vpif_subdev_info *subdevinfo;
- 	int subdev_count;
-+	int i2c_adapter_id;
- 	struct vpif_display_chan_config chan_config[VPIF_DISPLAY_MAX_CHANNELS];
- 	const char *card_name;
- 	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
+@@ -189,14 +197,21 @@ static int ad5820_init_controls(struct ad5820_device *coil)
+ 	 * will just use abstract codes here. In any case, smaller value = focus
+ 	 * position farther from camera. The default zero value means focus at
+ 	 * infinity, and also least current consumption.
++	 *
++	 * The two controls below control the current. The
++	 * FOCUS_ABSOLUTE is there for compatibility with old user
++	 * space whereas the VOICE_COIL_CURRENT should be used by both
++	 * new applications and drivers.
+ 	 */
+-	v4l2_ctrl_new_std(&coil->ctrls, &ad5820_ctrl_ops,
+-			  V4L2_CID_FOCUS_ABSOLUTE, 0, 1023, 1, 0);
++	coil->focus = v4l2_ctrl_new_std(&coil->ctrls, &ad5820_ctrl_ops,
++					V4L2_CID_FOCUS_ABSOLUTE, 0, 1023, 1, 0);
++	coil->curr = v4l2_ctrl_new_std(&coil->ctrls, &ad5820_ctrl_ops,
++					  V4L2_CID_VOICE_COIL_CURRENT,
++					  0, 1023, 1, 0);
+ 
+ 	if (coil->ctrls.error)
+ 		return coil->ctrls.error;
+ 
+-	coil->focus_absolute = 0;
+ 	coil->focus_ramp_time = 0;
+ 	coil->focus_ramp_mode = 0;
+ 
 -- 
-2.9.3
-
+2.7.4
