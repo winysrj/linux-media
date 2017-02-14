@@ -1,46 +1,260 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:40182 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750951AbdBUINX (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:59094 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753968AbdBNNj6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Feb 2017 03:13:23 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH] [media] st-delta: mjpeg: fix static checker warning
-Date: Tue, 21 Feb 2017 09:12:52 +0100
-Message-ID: <1487664772-19798-1-git-send-email-hugues.fruchet@st.com>
+        Tue, 14 Feb 2017 08:39:58 -0500
+Date: Tue, 14 Feb 2017 14:39:56 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: sakari.ailus@iki.fi
+Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
+        ivo.g.dimitrov.75@gmail.com
+Subject: [RFC 06/13] v4l2-async: per notifier locking
+Message-ID: <20170214133956.GA8530@amd>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="y0ulUmNC+osPPQO6"
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Initialize 'data_offset' local variable to 0.
 
-drivers/media/platform/sti/delta/delta-mjpeg-dec.c:415 delta_mjpeg_decode()
-error: uninitialized symbol 'data_offset'.
+--y0ulUmNC+osPPQO6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Fixes: 433ff5b4a29b: "[media] st-delta: add mjpeg support"
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+=46rom: Sebastian Reichel <sre@kernel.org>
+
+Without this, camera support breaks boot on N900.
+
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 ---
- drivers/media/platform/sti/delta/delta-mjpeg-dec.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/v4l2-core/v4l2-async.c | 54 ++++++++++++++++++--------------=
+----
+ include/media/v4l2-async.h           |  2 ++
+ 2 files changed, 29 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/media/platform/sti/delta/delta-mjpeg-dec.c b/drivers/media/platform/sti/delta/delta-mjpeg-dec.c
-index e79bdc6..84ea43c 100644
---- a/drivers/media/platform/sti/delta/delta-mjpeg-dec.c
-+++ b/drivers/media/platform/sti/delta/delta-mjpeg-dec.c
-@@ -375,7 +375,7 @@ static int delta_mjpeg_decode(struct delta_ctx *pctx, struct delta_au *pau)
- 	struct delta_mjpeg_ctx *ctx = to_ctx(pctx);
- 	int ret;
- 	struct delta_au au = *pau;
--	unsigned int data_offset;
-+	unsigned int data_offset = 0;
- 	struct mjpeg_header *header = &ctx->header_struct;
- 
- 	if (!ctx->header) {
--- 
-1.9.1
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core=
+/v4l2-async.c
+index 96cc733..26492a2 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -57,7 +57,6 @@ static bool match_custom(struct v4l2_subdev *sd, struct v=
+4l2_async_subdev *asd)
+=20
+ static LIST_HEAD(subdev_list);
+ static LIST_HEAD(notifier_list);
+-static DEFINE_MUTEX(list_lock);
+=20
+ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_noti=
+fier *notifier,
+ 						    struct v4l2_subdev *sd)
+@@ -102,12 +101,15 @@ static int v4l2_async_test_notify(struct v4l2_async_n=
+otifier *notifier,
+=20
+ 	if (notifier->bound) {
+ 		ret =3D notifier->bound(notifier, sd, asd);
+-		if (ret < 0)
++		if (ret < 0) {
++			dev_warn(notifier->v4l2_dev->dev, "subdev bound failed\n");
+ 			return ret;
++		}
+ 	}
+=20
+ 	ret =3D v4l2_device_register_subdev(notifier->v4l2_dev, sd);
+ 	if (ret < 0) {
++		dev_warn(notifier->v4l2_dev->dev, "subdev register failed\n");
+ 		if (notifier->unbind)
+ 			notifier->unbind(notifier, sd, asd);
+ 		return ret;
+@@ -141,7 +143,7 @@ int v4l2_async_notifier_register(struct v4l2_device *v4=
+l2_dev,
+ {
+ 	struct v4l2_subdev *sd, *tmp;
+ 	struct v4l2_async_subdev *asd;
+-	int i;
++	int ret =3D 0, i;
+=20
+ 	if (!notifier->num_subdevs || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+ 		return -EINVAL;
+@@ -149,6 +151,7 @@ int v4l2_async_notifier_register(struct v4l2_device *v4=
+l2_dev,
+ 	notifier->v4l2_dev =3D v4l2_dev;
+ 	INIT_LIST_HEAD(&notifier->waiting);
+ 	INIT_LIST_HEAD(&notifier->done);
++	mutex_init(&notifier->lock);
+=20
+ 	for (i =3D 0; i < notifier->num_subdevs; i++) {
+ 		asd =3D notifier->subdevs[i];
+@@ -168,28 +171,22 @@ int v4l2_async_notifier_register(struct v4l2_device *=
+v4l2_dev,
+ 		list_add_tail(&asd->list, &notifier->waiting);
+ 	}
+=20
+-	mutex_lock(&list_lock);
++	/* Keep also completed notifiers on the list */
++	list_add(&notifier->list, &notifier_list);
++	mutex_lock(&notifier->lock);
+=20
+ 	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
+-		int ret;
+-
+ 		asd =3D v4l2_async_belongs(notifier, sd);
+ 		if (!asd)
+ 			continue;
+=20
+ 		ret =3D v4l2_async_test_notify(notifier, sd, asd);
+-		if (ret < 0) {
+-			mutex_unlock(&list_lock);
+-			return ret;
+-		}
++		if (ret < 0)
++			break;
+ 	}
++	mutex_unlock(&notifier->lock);
+=20
+-	/* Keep also completed notifiers on the list */
+-	list_add(&notifier->list, &notifier_list);
+-
+-	mutex_unlock(&list_lock);
+-
+-	return 0;
++	return ret;
+ }
+ EXPORT_SYMBOL(v4l2_async_notifier_register);
+=20
+@@ -210,7 +207,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_n=
+otifier *notifier)
+ 			"Failed to allocate device cache!\n");
+ 	}
+=20
+-	mutex_lock(&list_lock);
++	mutex_lock(&notifier->lock);
+=20
+ 	list_del(&notifier->list);
+=20
+@@ -237,7 +234,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_n=
+otifier *notifier)
+ 			put_device(d);
+ 	}
+=20
+-	mutex_unlock(&list_lock);
++	mutex_unlock(&notifier->lock);
+=20
+ 	/*
+ 	 * Call device_attach() to reprobe devices
+@@ -262,6 +259,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_n=
+otifier *notifier)
+ 	}
+ 	kfree(dev);
+=20
++	mutex_destroy(&notifier->lock);
+ 	notifier->v4l2_dev =3D NULL;
+=20
+ 	/*
+@@ -274,6 +272,7 @@ EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ {
+ 	struct v4l2_async_notifier *notifier;
++	struct v4l2_async_notifier *tmp;
+=20
+ 	/*
+ 	 * No reference taken. The reference is held by the device
+@@ -283,24 +282,25 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ 	if (!sd->of_node && sd->dev)
+ 		sd->of_node =3D sd->dev->of_node;
+=20
+-	mutex_lock(&list_lock);
+-
+ 	INIT_LIST_HEAD(&sd->async_list);
+=20
+-	list_for_each_entry(notifier, &notifier_list, list) {
+-		struct v4l2_async_subdev *asd =3D v4l2_async_belongs(notifier, sd);
++	list_for_each_entry_safe(notifier, tmp, &notifier_list, list) {
++		struct v4l2_async_subdev *asd;
++
++		/* TODO: FIXME: if this is called by ->bound() we will also iterate over=
+ the locked notifier */
++		mutex_lock_nested(&notifier->lock, SINGLE_DEPTH_NESTING);
++		asd =3D v4l2_async_belongs(notifier, sd);
+ 		if (asd) {
+ 			int ret =3D v4l2_async_test_notify(notifier, sd, asd);
+-			mutex_unlock(&list_lock);
++			mutex_unlock(&notifier->lock);
+ 			return ret;
+ 		}
++		mutex_unlock(&notifier->lock);
+ 	}
+=20
+ 	/* None matched, wait for hot-plugging */
+ 	list_add(&sd->async_list, &subdev_list);
+=20
+-	mutex_unlock(&list_lock);
+-
+ 	return 0;
+ }
+ EXPORT_SYMBOL(v4l2_async_register_subdev);
+@@ -315,7 +315,7 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *s=
+d)
+ 		return;
+ 	}
+=20
+-	mutex_lock(&list_lock);
++	mutex_lock_nested(&notifier->lock, SINGLE_DEPTH_NESTING);
+=20
+ 	list_add(&sd->asd->list, &notifier->waiting);
+=20
+@@ -324,6 +324,6 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *s=
+d)
+ 	if (notifier->unbind)
+ 		notifier->unbind(notifier, sd, sd->asd);
+=20
+-	mutex_unlock(&list_lock);
++	mutex_unlock(&notifier->lock);
+ }
+ EXPORT_SYMBOL(v4l2_async_unregister_subdev);
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 8e2a236..690a81f 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -84,6 +84,7 @@ struct v4l2_async_subdev {
+  * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
+  * @done:	list of struct v4l2_subdev, already probed
+  * @list:	member in a global list of notifiers
++ * @lock:       lock hold when the notifier is being processed
+  * @bound:	a subdevice driver has successfully probed one of subdevices
+  * @complete:	all subdevices have been probed successfully
+  * @unbind:	a subdevice is leaving
+@@ -95,6 +96,7 @@ struct v4l2_async_notifier {
+ 	struct list_head waiting;
+ 	struct list_head done;
+ 	struct list_head list;
++	struct mutex lock;
+ 	int (*bound)(struct v4l2_async_notifier *notifier,
+ 		     struct v4l2_subdev *subdev,
+ 		     struct v4l2_async_subdev *asd);
+--=20
+2.1.4
+
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--y0ulUmNC+osPPQO6
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlijCKwACgkQMOfwapXb+vJClQCcCTimLK4MAKCmujAHOAisv1Jx
+Nn4Anj6fvZXaiXx5zJXmq3eps233yMRQ
+=AyKX
+-----END PGP SIGNATURE-----
+
+--y0ulUmNC+osPPQO6--
