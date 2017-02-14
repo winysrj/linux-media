@@ -1,62 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56857
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932673AbdBQUPg (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:38601 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754679AbdBNRAd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Feb 2017 15:15:36 -0500
-Subject: Re: [PATCH 12/15] media: s5p-mfc: Add support for probe-time
- preallocated block based allocator
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-References: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20170214075220eucas1p21d7f82fa19a9f058bb6fbe0a994478cc@eucas1p2.samsung.com>
- <1487058728-16501-13-git-send-email-m.szyprowski@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <a83c8503-113a-fdbe-d2ca-0639c94e02b0@osg.samsung.com>
-Date: Fri, 17 Feb 2017 17:14:42 -0300
-MIME-Version: 1.0
-In-Reply-To: <1487058728-16501-13-git-send-email-m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=windows-1252
+        Tue, 14 Feb 2017 12:00:33 -0500
+Message-ID: <1487091550.2305.32.camel@pengutronix.de>
+Subject: Re: [PATCH v3 21/24] media: imx: Add MIPI CSI-2 Receiver subdev
+ driver
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Russell King - ARM Linux <linux@armlinux.org.uk>,
+        robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Tue, 14 Feb 2017 17:59:10 +0100
+In-Reply-To: <04a4d130-0259-cbba-7815-e41c1c80c3c7@gmail.com>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+         <1483755102-24785-22-git-send-email-steve_longerbeam@mentor.com>
+         <1486036237.2289.37.camel@pengutronix.de>
+         <ca0a2eb3-21b6-d312-c8e0-61da48c4c700@gmail.com>
+         <20170208234235.GA27312@n2100.armlinux.org.uk>
+         <d6dba77e-902c-7a4c-cc70-fe3a5c9649bb@gmail.com>
+         <e9076980-ce84-f9ee-096d-865243b82a9e@gmail.com>
+         <1486977617.2873.29.camel@pengutronix.de>
+         <04a4d130-0259-cbba-7815-e41c1c80c3c7@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Marek,
+Hi Steve,
 
-On 02/14/2017 04:52 AM, Marek Szyprowski wrote:
-> Current MFC driver depends on the fact that when IOMMU is available, the
-> DMA-mapping framework and its IOMMU glue will use first-fit allocator.
-> This was true for ARM architecture, but its not for ARM64 arch. However, in
-> case of MFC v6+ hardware and latest firmware, it turned out that there is
-> no strict requirement for ALL buffers to be allocated on higher addresses
-> than the firmware base. This requirement is true only for the device and
-> per-context buffers. All video data buffers can be allocated anywhere for
-> all MFC v6+ versions.
+On Mon, 2017-02-13 at 15:20 -0800, Steve Longerbeam wrote:
+[...]
+> > It seems the OV5640 driver never puts its the CSI-2 lanes into stop
+> > state while not streaming.
 > 
-> Such relaxed requirements for the memory buffers can be easily fulfilled
-> by allocating firmware, device and per-context buffers from the probe-time
-> preallocated larger buffer. This patch adds support for it. This way the
-> driver finally works fine on ARM64 architecture. The size of the
-> preallocated buffer is 8 MiB, what is enough for three instances H264
-> decoders or encoders (other codecs have smaller memory requirements).
-> If one needs more for particular use case, one can use "mem" module
-> parameter to force larger (or smaller) buffer (for example by adding
-> "s5p_mfc.mem=16M" to kernel command line).
+> Yes I found that as well.
 > 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> ---
+> But good news, I finally managed to coax the OV5640's clock lane
+> into LP-11 state! It was accomplished by setting bit 5 in OV5640 register
+> 0x4800. The datasheet describes this bit as "Gate clock lane when no
+> packet to transmit". But I may have also got this to work with the 
+> additional
+> write 1 to bits 4-6 in register 0x3019 ("MIPI CLK/data lane state in sleep
+> mode" - setting 1 to these bits selects LP-11 for sleep mode).
+> 
+> So I am now finally able to call csi2_dphy_wait_stopstate() in
+> csi2_s_stream(ON).
 
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
+That's good news.
 
-Best regards,
+> So for the TC35874, you shouldn't see a timeout in csi2_s_stream(ON)
+> any longer.
+> 
+> I have updated both ov5640.c and imx6-mipi-csi2.c in the wip branch.
+> Can you try again? I have not applied your patch below, because I
+> don't think that is needed anymore.
 
--- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+Thanks, I'll test tomorrow.
+
+> And speaking of the TC35874, I received this module for the SabreLite
+> from Boundary Devices (thanks BD!). So I can finally help you with
+> debug/test. Are there any patches you need to send to me (against
+> wip branch) for this support, or can I use what exists now in media
+> tree? Also any scripts or help with running.
+
+That's even better news. I have pushed my my wip branch, which contains
+some colorspace work and experiments to pass through query/g_/s_std
+subdev calls so bypassing the pipeline can be avoided. Also, there's the
+Nitrogen6X device tree that I've been using to test:
+
+    https://git.pengutronix.de/git/pza/linux imx-media-staging-md-wip
+
+> >   With the recent s_stream reordering,
+> > streaming from TC358743 does not work anymore, since imx6-mipi-csi2
+> > s_stream is called before tc358743 s_stream, while all lanes are still
+> > in stop state. Then it waits for the clock lane to become active and
+> > fails. I have applied the following patch to revert the reordering
+> > locally to get it to work again.
+> >
+> > The initialization order, as Russell pointed out, should be:
+> >
+> > 1. reset the D-PHY.
+> > 2. place MIPI sensor in LP-11 state
+> > 3. perform D-PHY initialisation
+> > 4. configure CSI2 lanes and de-assert resets and shutdown signals
+> >
+> > So csi2_s_stream should wait for stop state on all lanes (the result of
+> > 2.) before dphy_init (3.), not wait for active clock afterwards. That
+> > should happen only after sensor_s_stream was called. So unless we are
+> > allowed to reorder steps 1. and 2., we might need the prepare_stream
+> > callback after all.
+> 
+> Agreed!
+> 
+> See my new FIXME comment in imx6-mipi-csi2.c.
+
+Looks good. I wonder if enabling the phy clock isn't part of step 3.
+though.
+
+> I agree we might need a new subdev op .prepare_stream(). This
+> op would be implemented by imx6-mipi-csi2.c, and would carry
+> out steps 3, 4, 5 (instead of currently by csi2_s_stream()). Then
+> step 6 would finally become available as csi2_s_stream().
+> 
+> And then we must re-order stream on to start sensor first, then
+> csi2, as in your patch below.
+
+regards
+Philipp
