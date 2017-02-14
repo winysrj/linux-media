@@ -1,74 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:60194 "EHLO
-        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751604AbdBMKwM (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:54427 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753180AbdBNNmd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 05:52:12 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Rick Chang <rick.chang@mediatek.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.11] MediaTek JPEG encoder
-Message-ID: <0e07065d-9e0a-6ce7-9b39-197b04f4f67c@xs4all.nl>
-Date: Mon, 13 Feb 2017 11:52:07 +0100
+        Tue, 14 Feb 2017 08:42:33 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com, crope@iki.fi,
+        chris.paterson2@renesas.com, geert+renesas@glider.be,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v3 0/7] Add V4L2 SDR (DRIF & MAX2175) driver
+Date: Tue, 14 Feb 2017 15:42:53 +0200
+Message-ID: <3113698.4oBLQ9QWl0@avalon>
+In-Reply-To: <fe15c9ed-be08-c954-5891-c42ec7584b46@xs4all.nl>
+References: <1486479757-32128-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com> <fe15c9ed-be08-c954-5891-c42ec7584b46@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Hans,
 
-This adds the MediaTek JPEG encoder to the media subsystem.
+On Monday 13 Feb 2017 13:46:08 Hans Verkuil wrote:
+> On 02/07/2017 04:02 PM, Ramesh Shanmugasundaram wrote:
+> > Hi Media, DT maintainers, All,
+> > 
+> > This patch set contains two drivers
+> > 
+> >  - Renesas R-Car Digital Radio Interface (DRIF) driver
+> >  - Maxim's MAX2175 RF to Bits tuner driver
+> > 
+> > These patches were based on top of media-tree repo
+> > commit: 47b037a0512d9f8675ec2693bed46c8ea6a884ab
+> > 
+> > These two drivers combined together expose a V4L2 SDR device that is
+> > compliant with the V4L2 framework [1]. Agreed review comments are
+> > incorporated in this series.
+> > 
+> > The rcar_drif device is modelled using "renesas,bonding" property. The
+> > discussion on this property is available here [2].
+> Other than the single comment I had it all looks good. Once I have Acks for
+> the bindings and from Laurent for the rcar part I can merge it.
 
-This patch https://patchwork.linuxtv.org/patch/38645/ needs to go through
-Matthias Brugger, so you need to coordinate with him for which kernel this
-driver will be merged. This pull request is for 4.11, but since it is so
-late in the cycle I can understand if this slips to 4.12.
+Just FYI, I won't have time to review this before March at the earliest.
 
-In any case, this should be coordinated.
-
+-- 
 Regards,
 
-	Hans
-
-The following changes since commit 9eeb0ed0f30938f31a3d9135a88b9502192c18dd:
-
-  [media] mtk-vcodec: fix build warnings without DEBUG (2017-02-08 12:08:20 -0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.11e
-
-for you to fetch changes up to 0f492f30d15aec43248fbdd4d6ceea8f495f4457:
-
-  vcodec: mediatek: Add Maintainers entry for Mediatek JPEG driver (2017-02-13 11:35:29 +0100)
-
-----------------------------------------------------------------
-Rick Chang (3):
-      dt-bindings: mediatek: Add a binding for Mediatek JPEG Decoder
-      vcodec: mediatek: Add Mediatek JPEG Decoder Driver
-      vcodec: mediatek: Add Maintainers entry for Mediatek JPEG driver
-
- Documentation/devicetree/bindings/media/mediatek-jpeg-decoder.txt |   37 +
- MAINTAINERS                                                       |    7 +
- drivers/media/platform/Kconfig                                    |   15 +
- drivers/media/platform/Makefile                                   |    2 +
- drivers/media/platform/mtk-jpeg/Makefile                          |    2 +
- drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c                   | 1306 +++++++++++++++++++++++++++++++++
- drivers/media/platform/mtk-jpeg/mtk_jpeg_core.h                   |  139 ++++
- drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.c                     |  417 +++++++++++
- drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.h                     |   91 +++
- drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.c                  |  160 ++++
- drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.h                  |   25 +
- drivers/media/platform/mtk-jpeg/mtk_jpeg_reg.h                    |   58 ++
- 12 files changed, 2259 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/mediatek-jpeg-decoder.txt
- create mode 100644 drivers/media/platform/mtk-jpeg/Makefile
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_core.h
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.c
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.h
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.c
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.h
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_reg.h
+Laurent Pinchart
