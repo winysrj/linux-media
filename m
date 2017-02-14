@@ -1,94 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:43352 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750910AbdBJVRn (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:58843 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752125AbdBNWNl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Feb 2017 16:17:43 -0500
-Date: Fri, 10 Feb 2017 22:17:40 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Rob Herring <robh@kernel.org>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-        Sebastian Reichel <sre@kernel.org>,
-        Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Kumar Gala <galak@codeaurora.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] devicetree: Add video bus switch
-Message-ID: <20170210211739.GB1615@amd>
-References: <20161023200355.GA5391@amd>
- <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
- <20161214122451.GB27011@amd>
- <20161222100104.GA30917@amd>
- <20161222133938.GA30259@amd>
- <20161224152031.GA8420@amd>
- <20170203123508.GA10286@amd>
- <20170208213609.lnemfbzitee5iur2@rob-hp-laptop>
- <20170208223451.GB18807@amd>
- <CAL_JsqK2RHLoLc_ikHzP2B5_Lof2g9NG+zvamGe4o1ko1ggGQA@mail.gmail.com>
+        Tue, 14 Feb 2017 17:13:41 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Pavel Machek <pavel@ucw.cz>, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
+Subject: Re: [RFC 08/13] smiapp-pll: Take existing divisor into account in minimum divisor check
+Date: Wed, 15 Feb 2017 00:14:08 +0200
+Message-ID: <2278259.j1SsZdfySc@avalon>
+In-Reply-To: <20170214220503.GO16975@valkosipuli.retiisi.org.uk>
+References: <20170214134004.GA8570@amd> <20170214220503.GO16975@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="l76fUT7nc3MelDdI"
-Content-Disposition: inline
-In-Reply-To: <CAL_JsqK2RHLoLc_ikHzP2B5_Lof2g9NG+zvamGe4o1ko1ggGQA@mail.gmail.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Sakari,
 
---l76fUT7nc3MelDdI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Wednesday 15 Feb 2017 00:05:03 Sakari Ailus wrote:
+> On Tue, Feb 14, 2017 at 02:40:04PM +0100, Pavel Machek wrote:
+> > From: Sakari Ailus <sakari.ailus@iki.fi>
+> > 
+> > Required added multiplier (and divisor) calculation did not take into
+> > account the existing divisor when checking the values against the
+> > minimum divisor. Do just that.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> 
+> I need to understand again why did I write this patch. :-)
 
-On Thu 2017-02-09 16:58:29, Rob Herring wrote:
-> On Wed, Feb 8, 2017 at 4:34 PM, Pavel Machek <pavel@ucw.cz> wrote:
-> >> > +
-> >> > +This is a binding for a gpio controlled switch for camera interface=
-s. Such a
-> >> > +device is used on some embedded devices to connect two cameras to t=
-he same
-> >> > +interface of a image signal processor.
-> >> > +
-> >> > +Required properties
-> >> > +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> >> > +
-> >> > +compatible : must contain "video-bus-switch"
-> >>
-> >> video-bus-gpio-mux
-> >
-> > Sakari already asked for rename here. I believe I waited reasonable
-> > time, but got no input from you, so I did rename it. Now you decide on
-> > different name.
-> >
-> > Can we either get timely reactions or less bikeshedding?
->=20
-> You mean less than 5 days because I don't see any other version of
-> this? But in short, no, you can't.
+I was about to mention that a more detailed commit message (or possibly event 
+comments in the source code) would be good :-)
 
-Could we switch device tree bindings from "cc: subsystem, to: device
-tree" to "to: subsystem, cc: device tree" mode? Currently it takes
-more effort to merge the device tree parts than the relevant driver,
-and that is not quite good.
+> Could you send me the smiapp driver output with debug level messages
+> enabled, please?
+> 
+> I think the problem was with the secondary sensor.
+>
+> > diff --git a/drivers/media/i2c/smiapp-pll.c
+> > b/drivers/media/i2c/smiapp-pll.c
+> > index 771db56..166bbaf 100644
+> > --- a/drivers/media/i2c/smiapp-pll.c
+> > +++ b/drivers/media/i2c/smiapp-pll.c
+> > @@ -16,6 +16,8 @@
+> >   * General Public License for more details.
+> >   */
+> > 
+> > +#define DEBUG
+> > +
 
-Best regards,
-								Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+This should be removed.
 
---l76fUT7nc3MelDdI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> >  #include <linux/device.h>
+> >  #include <linux/gcd.h>
+> >  #include <linux/lcm.h>
+> > @@ -227,7 +229,8 @@ static int __smiapp_pll_calculate(
+> >  	more_mul_factor = lcm(div, pll->pre_pll_clk_div) / div;
+> >  	dev_dbg(dev, "more_mul_factor: %u\n", more_mul_factor);
+> > 
+> > -	more_mul_factor = lcm(more_mul_factor, op_limits->min_sys_clk_div);
+> > +	more_mul_factor = lcm(more_mul_factor,
+> > +			      DIV_ROUND_UP(op_limits->min_sys_clk_div, div));
+> >  	dev_dbg(dev, "more_mul_factor: min_op_sys_clk_div: %d\n",
+> >  		more_mul_factor);
+> >  	i = roundup(more_mul_min, more_mul_factor);
+> > @@ -456,6 +459,10 @@ int smiapp_pll_calculate(struct device *dev,
+> >  	i = gcd(pll->pll_op_clk_freq_hz, pll->ext_clk_freq_hz);
+> >  	mul = div_u64(pll->pll_op_clk_freq_hz, i);
+> >  	div = pll->ext_clk_freq_hz / i;
+> > +	if (!mul) {
+> > +		dev_err(dev, "forcing mul to 1\n");
+> > +		mul = 1;
+> > +	}
+> >  	dev_dbg(dev, "mul %u / div %u\n", mul, div);
+> >  	
+> >  	min_pre_pll_clk_div =
+-- 
+Regards,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlieLfMACgkQMOfwapXb+vLnsgCeNcc8Nh0PChLaxzfMg86wi5+Q
-7foAoJIINIWM/YEYJUcNCsB1O5tyJrsr
-=J3G6
------END PGP SIGNATURE-----
-
---l76fUT7nc3MelDdI--
+Laurent Pinchart
