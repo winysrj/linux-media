@@ -1,117 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:34775 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751111AbdBAQk1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Feb 2017 11:40:27 -0500
-Date: Wed, 1 Feb 2017 10:40:25 -0600
-From: Rob Herring <robh@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv2 05/16] ov7670: document device tree bindings
-Message-ID: <20170201164025.hiayfe6ku2sk4d2m@rob-hp-laptop>
-References: <20170130140628.18088-1-hverkuil@xs4all.nl>
- <20170130140628.18088-6-hverkuil@xs4all.nl>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:44784 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750810AbdBNWiv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Feb 2017 17:38:51 -0500
+Date: Tue, 14 Feb 2017 23:38:49 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: sakari.ailus@iki.fi
+Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
+        ivo.g.dimitrov.75@gmail.com
+Subject: [PATCH 1/4] v4l2: device_register_subdev_nodes: allow calling
+ multiple times
+Message-ID: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="u3/rZRmxL6MmkK24"
 Content-Disposition: inline
-In-Reply-To: <20170130140628.18088-6-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 30, 2017 at 03:06:17PM +0100, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Add binding documentation and add that file to the MAINTAINERS entry.
 
-This should come before the driver support.
+--u3/rZRmxL6MmkK24
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  .../devicetree/bindings/media/i2c/ov7670.txt       | 44 ++++++++++++++++++++++
->  MAINTAINERS                                        |  1 +
->  2 files changed, 45 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7670.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/ov7670.txt b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
-> new file mode 100644
-> index 0000000..a014694
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
-> @@ -0,0 +1,44 @@
-> +* Omnivision OV7670 CMOS sensor
-> +
-> +The Omnivision OV7670 sensor supports multiple resolutions output, such as
-> +CIF, SVGA, UXGA. It also can support the YUV422/420, RGB565/555 or raw RGB
-> +output formats.
-> +
-> +Required Properties:
-> +- compatible: should be "ovti,ov7670"
-> +- clocks: reference to the xclk input clock.
-> +- clock-names: should be "xclk".
-> +
-> +Optional Properties:
-> +- resetb-gpios: reference to the GPIO connected to the resetb pin, if any.
+=46rom: Sebastian Reichel <sre@kernel.org>
 
-We've somewhat standardized naming for reset gpios to "reset-gpios" even 
-if that doesn't quite match the pin name.
+If v4l2_device_register_subdev_nodes() is called multiple times, it is
+better to return early than corrupt memory.
 
-> +- pwdn-gpios: reference to the GPIO connected to the pwdn pin, if any.
+Without this, exposure / gain controls do not work in the camera
+application on N900.
 
-Same here with "powerdown-gpios".
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+---
+ drivers/media/v4l2-core/v4l2-device.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-> +
-> +The device node must contain one 'port' child node for its digital output
-> +video port, in accordance with the video interface bindings defined in
-> +Documentation/devicetree/bindings/media/video-interfaces.txt.
-> +
-> +Example:
-> +
-> +	i2c1: i2c@f0018000 {
-> +		status = "okay";
-> +
-> +		ov7670: camera@0x21 {
+diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-cor=
+e/v4l2-device.c
+index f364cc1..937c6de 100644
+--- a/drivers/media/v4l2-core/v4l2-device.c
++++ b/drivers/media/v4l2-core/v4l2-device.c
+@@ -235,6 +235,9 @@ int v4l2_device_register_subdev_nodes(struct v4l2_devic=
+e *v4l2_dev)
+ 		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE))
+ 			continue;
+=20
++		if (sd->devnode)
++			continue;
++
+ 		vdev =3D kzalloc(sizeof(*vdev), GFP_KERNEL);
+ 		if (!vdev) {
+ 			err =3D -ENOMEM;
+--=20
+2.1.4
 
-Drop the '0x'.
 
-> +			compatible = "ovti,ov7670";
-> +			reg = <0x21>;
-> +			pinctrl-names = "default";
-> +			pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
-> +			resetb-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
-> +			pwdn-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
-> +			clocks = <&pck0>;
-> +			clock-names = "xclk";
-> +			assigned-clocks = <&pck0>;
-> +			assigned-clock-rates = <25000000>;
-> +
-> +			port {
-> +				ov7670_0: endpoint {
-> +					remote-endpoint = <&isi_0>;
-> +					bus-width = <8>;
-> +				};
-> +			};
-> +		};
-> +	};
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index cfff2c9..67df205 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -9101,6 +9101,7 @@ L:	linux-media@vger.kernel.org
->  T:	git git://linuxtv.org/media_tree.git
->  S:	Maintained
->  F:	drivers/media/i2c/ov7670.c
-> +F:	Documentation/devicetree/bindings/media/i2c/ov7670.txt
->  
->  ONENAND FLASH DRIVER
->  M:	Kyungmin Park <kyungmin.park@samsung.com>
-> -- 
-> 2.10.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe devicetree" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--u3/rZRmxL6MmkK24
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlijhvkACgkQMOfwapXb+vKp2QCfV599CsYEI5XIXVbZXcy5UYt+
+DJoAniECdmpwd0U/HUVhmRr70d0LPd//
+=/wu+
+-----END PGP SIGNATURE-----
+
+--u3/rZRmxL6MmkK24--
