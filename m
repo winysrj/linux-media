@@ -1,134 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38886 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751201AbdBDWeW (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:59069 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753292AbdBNNjh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 4 Feb 2017 17:34:22 -0500
-Date: Sun, 5 Feb 2017 00:33:50 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: laurent.pinchart@ideasonboard.com, robh+dt@kernel.org,
-        devicetree@vger.kernel.org, ivo.g.dimitrov.75@gmail.com,
-        sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        galak@codeaurora.org, mchehab@osg.samsung.com,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] devicetree: Add video bus switch
-Message-ID: <20170204223350.GF12291@valkosipuli.retiisi.org.uk>
-References: <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
- <20161214122451.GB27011@amd>
- <20161222100104.GA30917@amd>
- <20161222133938.GA30259@amd>
- <20161224152031.GA8420@amd>
- <20170203123508.GA10286@amd>
- <20170203130740.GB12291@valkosipuli.retiisi.org.uk>
- <20170203210610.GA18379@amd>
- <20170203213454.GD12291@valkosipuli.retiisi.org.uk>
- <20170204215610.GA9243@amd>
+        Tue, 14 Feb 2017 08:39:37 -0500
+Date: Tue, 14 Feb 2017 14:39:34 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: sakari.ailus@iki.fi
+Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
+        ivo.g.dimitrov.75@gmail.com
+Subject: [RFC 02/13] smiapp: add CCP2 support
+Message-ID: <20170214133934.GA8448@amd>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="pf9I7BMVVzbSWLtt"
 Content-Disposition: inline
-In-Reply-To: <20170204215610.GA9243@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
 
-On Sat, Feb 04, 2017 at 10:56:10PM +0100, Pavel Machek wrote:
-> Hi!
-> 
-> > > > > +Required properties
-> > > > > +===================
-> > > > > +
-> > > > > +compatible	: must contain "video-bus-switch"
-> > > > 
-> > > > How generic is this? Should we have e.g. nokia,video-bus-switch? And if so,
-> > > > change the file name accordingly.
-> > > 
-> > > Generic for "single GPIO controls the switch", AFAICT. But that should
-> > > be common enough...
-> > 
-> > Um, yes. Then... how about: video-bus-switch-gpio? No Nokia prefix.
-> 
-> Ok, done. I also fixed the english a bit.
-> 
-> > > > > +reg		: The interface:
-> > > > > +		  0 - port for image signal processor
-> > > > > +		  1 - port for first camera sensor
-> > > > > +		  2 - port for second camera sensor
-> > > > 
-> > > > I'd say this must be pretty much specific to the one in N900. You could have
-> > > > more ports. Or you could say that ports beyond 0 are camera sensors. I guess
-> > > > this is good enough for now though, it can be changed later on with the
-> > > > source if a need arises.
-> > > 
-> > > Well, I'd say that selecting between two sensors is going to be the
-> > > common case. If someone needs more than two, it will no longer be
-> > > simple GPIO, so we'll have some fixing to do.
-> > 
-> > It could be two GPIOs --- that's how the GPIO I2C mux works.
-> > 
-> > But I'd be surprised if someone ever uses something like that
-> > again. ;-)
-> 
-> I'd say.. lets handle that when we see hardware like that.
+--pf9I7BMVVzbSWLtt
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Yes. :-)
+Add support for CCP2 connected SMIA sensors as found
+on the Nokia N900.
 
-> 
-> > > > Btw. was it still considered a problem that the endpoint properties for the
-> > > > sensors can be different? With the g_routing() pad op which is to be added,
-> > > > the ISP driver (should actually go to a framework somewhere) could parse the
-> > > > graph and find the proper endpoint there.
-> > > 
-> > > I don't know about g_routing. I added g_endpoint_config method that
-> > > passes the configuration, and that seems to work for me.
-> > > 
-> > > I don't see g_routing in next-20170201 . Is there place to look?
-> > 
-> > I think there was a patch by Laurent to LMML quite some time ago. I suppose
-> > that set will be repicked soonish.
-> > 
-> > I don't really object using g_endpoint_config() as a temporary solution; I'd
-> > like to have Laurent's opinion on that though. Another option is to wait,
-> > but we've already waited a looong time (as in total).
-> 
-> Laurent, do you have some input here? We have simple "2 cameras
-> connected to one signal processor" situation here. We need some way of
-> passing endpoint configuration from the sensors through the switch. I
-> did this:
-> 
-> > > @@ -415,6 +416,8 @@ struct v4l2_subdev_video_ops {
-> > >                          const struct v4l2_mbus_config *cfg);
-> > >     int (*s_rx_buffer)(struct v4l2_subdev *sd, void *buf,
-> > >                        unsigned int *size);
-> > > +   int (*g_endpoint_config)(struct v4l2_subdev *sd,
-> > > +                       struct v4l2_of_endpoint *cfg);
-> 
-> Google of g_routing tells me:
-> 
-> 9) Highly reconfigurable hardware - Julien Beraud
-> 
-> - 44 sub-devices connected with an interconnect.
-> - As long as formats match, any sub-device could be connected to any
-> - other sub-device through a link.
-> - The result is 44 * 44 links at worst.
-> - A switch sub-device proposed as the solution to model the
-> - interconnect. The sub-devices are connected to the switch
-> - sub-devices through the hardware links that connect to the
-> - interconnect.
-> - The switch would be controlled through new IOCTLs S_ROUTING and
-> - G_ROUTING.
-> - Patches available:
->  http://git.linuxtv.org/cgit.cgi/pinchartl/media.git/log/?h=xilinx-wip
-> 
-> but the patches are from 2005. So I guess I'll need some guidance here...
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-Yeah, that's where it began (2015?), but right now I can only suggest to
-wait until there's more. My estimate is within next couple of weeks /
-months. But it won't be years.
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smi=
+app/smiapp-core.c
+index f4e92bd..212293f 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2807,13 +2807,19 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig(=
+struct device *dev)
+ 	switch (bus_cfg->bus_type) {
+ 	case V4L2_MBUS_CSI2:
+ 		hwcfg->csi_signalling_mode =3D SMIAPP_CSI_SIGNALLING_MODE_CSI2;
++		hwcfg->lanes =3D bus_cfg->bus.mipi_csi2.num_data_lanes;
++		break;
++	case V4L2_MBUS_CCP2:
++		hwcfg->csi_signalling_mode =3D (bus_cfg->bus.mipi_csi1.strobe) ?
++		SMIAPP_CSI_SIGNALLING_MODE_CCP2_DATA_STROBE :
++		SMIAPP_CSI_SIGNALLING_MODE_CCP2_DATA_CLOCK;
++		hwcfg->lanes =3D 1;
+ 		break;
+-		/* FIXME: add CCP2 support. */
+ 	default:
++		dev_err(dev, "unknown bus protocol\n");
+ 		goto out_err;
+ 	}
+=20
+-	hwcfg->lanes =3D bus_cfg->bus.mipi_csi2.num_data_lanes;
+ 	dev_dbg(dev, "lanes %u\n", hwcfg->lanes);
+=20
+ 	/* NVM size is not mandatory */
+@@ -2827,8 +2833,8 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig(st=
+ruct device *dev)
+ 		goto out_err;
+ 	}
+=20
+-	dev_dbg(dev, "nvm %d, clk %d, csi %d\n", hwcfg->nvm_size,
+-		hwcfg->ext_clk, hwcfg->csi_signalling_mode);
++	dev_dbg(dev, "nvm %d, clk %d, mode %d\n",
++		hwcfg->nvm_size, hwcfg->ext_clk, hwcfg->csi_signalling_mode);
+=20
+ 	if (!bus_cfg->nr_of_link_frequencies) {
+ 		dev_warn(dev, "no link frequencies defined\n");
+--=20
+2.1.4
 
--- 
-Kind regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--pf9I7BMVVzbSWLtt
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlijCJYACgkQMOfwapXb+vL1oQCgmUKPLgkxedwONak0U/bhTWlY
+d0wAoIIb7uhjt7kxUmEchOhqZwQsSsNV
+=ozme
+-----END PGP SIGNATURE-----
+
+--pf9I7BMVVzbSWLtt--
