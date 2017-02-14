@@ -1,177 +1,293 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:21852 "EHLO
-        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753272AbdBTNjW (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:44807 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751649AbdBNWjW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Feb 2017 08:39:22 -0500
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>
-Subject: [PATCH v2 11/15] media: s5p-mfc: Split variant DMA memory
- configuration into separate functions
-Date: Mon, 20 Feb 2017 14:39:00 +0100
-Message-id: <1487597944-2000-12-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1487597944-2000-1-git-send-email-m.szyprowski@samsung.com>
-References: <1487597944-2000-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20170220133915eucas1p205f1ca5970e9e02411b8a1f1fb933244@eucas1p2.samsung.com>
+        Tue, 14 Feb 2017 17:39:22 -0500
+Date: Tue, 14 Feb 2017 23:39:15 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: sakari.ailus@iki.fi
+Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
+        ivo.g.dimitrov.75@gmail.com
+Subject: [PATCH 4/4] v4l: split lane parsing code
+Message-ID: <8978d03ec7deed01c598d8eef6d6d00345593e4d.1487111824.git.pavel@ucw.cz>
+References: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="pf9I7BMVVzbSWLtt"
+Content-Disposition: inline
+In-Reply-To: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move code for DMA memory configuration with IOMMU into separate function
-to make it easier to compare what is being done in each case.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
+--pf9I7BMVVzbSWLtt
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+=46rom: Sakari Ailus <sakari.ailus@iki.fi>
+
+The function to parse CSI2 bus parameters was called
+v4l2_of_parse_csi_bus(), rename it as v4l2_of_parse_csi2_bus() in
+anticipation of CSI1/CCP2 support.
+
+Obtain data bus type from bus-type property. Only try parsing bus
+specific properties in this case.
+
+Separate lane parsing from CSI-2 bus parameter parsing. The CSI-1 will
+need these as well, separate them into a different
+function. have_clk_lane and num_data_lanes arguments may be NULL; the
+CSI-1 bus will have no use for them.
+
+Add support for parsing of CSI-1 and CCP2 bus related properties
+documented in video-interfaces.txt.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc.c | 102 ++++++++++++++++++-------------
- 1 file changed, 61 insertions(+), 41 deletions(-)
+ drivers/media/v4l2-core/v4l2-of.c | 138 ++++++++++++++++++++++++++++++----=
+----
+ 1 file changed, 111 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 4403487a494a..04067bcc3feb 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1107,44 +1107,15 @@ static struct device *s5p_mfc_alloc_memdev(struct device *dev,
- 	return NULL;
- }
- 
--static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
-+static int s5p_mfc_configure_2port_memory(struct s5p_mfc_dev *mfc_dev)
- {
- 	struct device *dev = &mfc_dev->plat_dev->dev;
- 	void *bank2_virt;
- 	dma_addr_t bank2_dma_addr;
- 	unsigned long align_size = 1 << MFC_BASE_ALIGN_ORDER;
--	struct s5p_mfc_priv_buf *fw_buf = &mfc_dev->fw_buf;
- 	int ret;
- 
- 	/*
--	 * When IOMMU is available, we cannot use the default configuration,
--	 * because of MFC firmware requirements: address space limited to
--	 * 256M and non-zero default start address.
--	 * This is still simplified, not optimal configuration, but for now
--	 * IOMMU core doesn't allow to configure device's IOMMUs channel
--	 * separately.
--	 */
--	if (exynos_is_iommu_available(dev)) {
--		int ret = exynos_configure_iommu(dev, S5P_MFC_IOMMU_DMA_BASE,
--						 S5P_MFC_IOMMU_DMA_SIZE);
--		if (ret)
--			return ret;
--
--		mfc_dev->mem_dev[BANK1_CTX] = mfc_dev->mem_dev[BANK2_CTX] = dev;
--		ret = s5p_mfc_alloc_firmware(mfc_dev);
--		if (ret) {
--			exynos_unconfigure_iommu(dev);
--			return ret;
--		}
--
--		mfc_dev->dma_base[BANK1_CTX] = fw_buf->dma;
--		mfc_dev->dma_base[BANK2_CTX] = fw_buf->dma;
--		vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
--
--		return 0;
--	}
--
--	/*
- 	 * Create and initialize virtual devices for accessing
- 	 * reserved memory regions.
- 	 */
-@@ -1167,7 +1138,7 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
- 		return ret;
- 	}
- 
--	mfc_dev->dma_base[BANK1_CTX] = fw_buf->dma;
-+	mfc_dev->dma_base[BANK1_CTX] = mfc_dev->fw_buf.dma;
- 
- 	bank2_virt = dma_alloc_coherent(mfc_dev->mem_dev[BANK2_CTX], align_size,
- 					&bank2_dma_addr, GFP_KERNEL);
-@@ -1196,22 +1167,71 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
- 	return 0;
- }
- 
--static void s5p_mfc_unconfigure_dma_memory(struct s5p_mfc_dev *mfc_dev)
-+static void s5p_mfc_unconfigure_2port_memory(struct s5p_mfc_dev *mfc_dev)
- {
--	struct device *dev = &mfc_dev->plat_dev->dev;
-+	device_unregister(mfc_dev->mem_dev[BANK1_CTX]);
-+	device_unregister(mfc_dev->mem_dev[BANK2_CTX]);
-+	vb2_dma_contig_clear_max_seg_size(mfc_dev->mem_dev[BANK1_CTX]);
-+	vb2_dma_contig_clear_max_seg_size(mfc_dev->mem_dev[BANK2_CTX]);
-+}
- 
--	s5p_mfc_release_firmware(mfc_dev);
-+static int s5p_mfc_configure_common_memory(struct s5p_mfc_dev *mfc_dev)
-+{
-+	struct device *dev = &mfc_dev->plat_dev->dev;
-+	/*
-+	 * When IOMMU is available, we cannot use the default configuration,
-+	 * because of MFC firmware requirements: address space limited to
-+	 * 256M and non-zero default start address.
-+	 * This is still simplified, not optimal configuration, but for now
-+	 * IOMMU core doesn't allow to configure device's IOMMUs channel
-+	 * separately.
-+	 */
-+	int ret = exynos_configure_iommu(dev, S5P_MFC_IOMMU_DMA_BASE,
-+					 S5P_MFC_IOMMU_DMA_SIZE);
-+	if (ret)
-+		return ret;
- 
--	if (exynos_is_iommu_available(dev)) {
-+	mfc_dev->mem_dev[BANK1_CTX] = mfc_dev->mem_dev[BANK2_CTX] = dev;
-+	ret = s5p_mfc_alloc_firmware(mfc_dev);
-+	if (ret) {
- 		exynos_unconfigure_iommu(dev);
--		vb2_dma_contig_clear_max_seg_size(dev);
--		return;
-+		return ret;
- 	}
- 
--	device_unregister(mfc_dev->mem_dev[BANK1_CTX]);
--	device_unregister(mfc_dev->mem_dev[BANK2_CTX]);
--	vb2_dma_contig_clear_max_seg_size(mfc_dev->mem_dev[BANK1_CTX]);
--	vb2_dma_contig_clear_max_seg_size(mfc_dev->mem_dev[BANK2_CTX]);
-+	mfc_dev->dma_base[BANK1_CTX] = mfc_dev->fw_buf.dma;
-+	mfc_dev->dma_base[BANK2_CTX] = mfc_dev->fw_buf.dma;
-+	vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
+diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4=
+l2-of.c
+index 4f59f44..85629de 100644
+--- a/drivers/media/v4l2-core/v4l2-of.c
++++ b/drivers/media/v4l2-core/v4l2-of.c
+@@ -20,64 +20,103 @@
+=20
+ #include <media/v4l2-of.h>
+=20
+-static int v4l2_of_parse_csi_bus(const struct device_node *node,
+-				 struct v4l2_of_endpoint *endpoint)
++/* This has to match values in the device tree. */
 +
++enum v4l2_of_bus_type {
++	V4L2_OF_BUS_TYPE_GUESS =3D 0, /* CSI-2 D-PHY, parallel or Bt.656 */
++	V4L2_OF_BUS_TYPE_CSI2_CPHY,
++	V4L2_OF_BUS_TYPE_CSI1,
++	V4L2_OF_BUS_TYPE_CCP2,
++};
++
++static int v4l2_of_parse_lanes(const struct device_node *node,
++			       unsigned char *clock_lane,
++			       bool *have_clk_lane,
++			       unsigned char *data_lanes,
++			       bool *lane_polarities,
++			       unsigned short *__num_data_lanes,
++			       unsigned int max_data_lanes)
+ {
+-	struct v4l2_of_bus_mipi_csi2 *bus =3D &endpoint->bus.mipi_csi2;
+ 	struct property *prop;
+-	bool have_clk_lane =3D false;
+-	unsigned int flags =3D 0, lanes_used =3D 0;
++	unsigned int lanes_used =3D 0;
++	short num_data_lanes =3D 0;
+ 	u32 v;
+=20
+ 	prop =3D of_find_property(node, "data-lanes", NULL);
+ 	if (prop) {
+ 		const __be32 *lane =3D NULL;
+-		unsigned int i;
+=20
+-		for (i =3D 0; i < ARRAY_SIZE(bus->data_lanes); i++) {
++		for (num_data_lanes =3D 0; num_data_lanes < max_data_lanes;
++		     num_data_lanes++) {
+ 			lane =3D of_prop_next_u32(prop, lane, &v);
+ 			if (!lane)
+ 				break;
++			data_lanes[num_data_lanes] =3D v;
+=20
+ 			if (lanes_used & BIT(v))
+ 				pr_warn("%s: duplicated lane %u in data-lanes\n",
+ 					node->full_name, v);
+ 			lanes_used |=3D BIT(v);
+-
+-			bus->data_lanes[i] =3D v;
+ 		}
+-		bus->num_data_lanes =3D i;
+ 	}
++	if (__num_data_lanes)
++		*__num_data_lanes =3D num_data_lanes;
+=20
+ 	prop =3D of_find_property(node, "lane-polarities", NULL);
+ 	if (prop) {
+ 		const __be32 *polarity =3D NULL;
+ 		unsigned int i;
+=20
+-		for (i =3D 0; i < ARRAY_SIZE(bus->lane_polarities); i++) {
++		for (i =3D 0; i < 1 + max_data_lanes; i++) {
+ 			polarity =3D of_prop_next_u32(prop, polarity, &v);
+ 			if (!polarity)
+ 				break;
+-			bus->lane_polarities[i] =3D v;
++			lane_polarities[i] =3D v;
+ 		}
+=20
+-		if (i < 1 + bus->num_data_lanes /* clock + data */) {
++		if (i < 1 + num_data_lanes /* clock + data */) {
+ 			pr_warn("%s: too few lane-polarities entries (need %u, got %u)\n",
+-				node->full_name, 1 + bus->num_data_lanes, i);
++				node->full_name, 1 + num_data_lanes, i);
+ 			return -EINVAL;
+ 		}
+ 	}
+=20
++	if (have_clk_lane)
++		*have_clk_lane =3D false;
++
+ 	if (!of_property_read_u32(node, "clock-lanes", &v)) {
++		*clock_lane =3D v;
++		if (have_clk_lane)
++			*have_clk_lane =3D true;
++
+ 		if (lanes_used & BIT(v))
+ 			pr_warn("%s: duplicated lane %u in clock-lanes\n",
+ 				node->full_name, v);
+ 		lanes_used |=3D BIT(v);
+-
+-		bus->clock_lane =3D v;
+-		have_clk_lane =3D true;
+ 	}
+=20
 +	return 0;
 +}
 +
-+static void s5p_mfc_unconfigure_common_memory(struct s5p_mfc_dev *mfc_dev)
++static int v4l2_of_parse_csi2_bus(const struct device_node *node,
++				 struct v4l2_of_endpoint *endpoint)
 +{
-+	struct device *dev = &mfc_dev->plat_dev->dev;
++	struct v4l2_of_bus_mipi_csi2 *bus =3D &endpoint->bus.mipi_csi2;
++	bool have_clk_lane =3D false;
++	unsigned int flags =3D 0;
++	int rval;
++	u32 v;
 +
-+	exynos_unconfigure_iommu(dev);
-+	vb2_dma_contig_clear_max_seg_size(dev);
-+}
++	rval =3D v4l2_of_parse_lanes(node, &bus->clock_lane, &have_clk_lane,
++				   bus->data_lanes, bus->lane_polarities,
++				   &bus->num_data_lanes,
++				   ARRAY_SIZE(bus->data_lanes));
++	if (rval)
++		return rval;
 +
-+static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
-+{
-+	struct device *dev = &mfc_dev->plat_dev->dev;
++	BUILD_BUG_ON(1 + ARRAY_SIZE(bus->data_lanes)
++		       !=3D ARRAY_SIZE(bus->lane_polarities));
 +
-+	if (exynos_is_iommu_available(dev))
-+		return s5p_mfc_configure_common_memory(mfc_dev);
-+	else
-+		return s5p_mfc_configure_2port_memory(mfc_dev);
-+}
-+
-+static void s5p_mfc_unconfigure_dma_memory(struct s5p_mfc_dev *mfc_dev)
-+{
-+	struct device *dev = &mfc_dev->plat_dev->dev;
-+
-+	s5p_mfc_release_firmware(mfc_dev);
-+	if (exynos_is_iommu_available(dev))
-+		s5p_mfc_unconfigure_common_memory(mfc_dev);
-+	else
-+		s5p_mfc_unconfigure_2port_memory(mfc_dev);
+ 	if (of_get_property(node, "clock-noncontinuous", &v))
+ 		flags |=3D V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK;
+ 	else if (have_clk_lane || bus->num_data_lanes > 0)
+@@ -139,6 +178,35 @@ static void v4l2_of_parse_parallel_bus(const struct de=
+vice_node *node,
+=20
  }
- 
- /* MFC probe function */
--- 
-1.9.1
+=20
++void v4l2_of_parse_csi1_bus(const struct device_node *node,
++			    struct v4l2_of_endpoint *endpoint,
++			    enum v4l2_of_bus_type bus_type)
++{
++	struct v4l2_of_bus_mipi_csi1 *bus =3D &endpoint->bus.mipi_csi1;
++	u32 v;
++
++	v4l2_of_parse_lanes(node, &bus->clock_lane, NULL,
++			    &bus->data_lane, bus->lane_polarity,
++			    NULL, 1);
++
++	if (!of_property_read_u32(node, "clock-inv", &v))
++		bus->clock_inv =3D v;
++
++	if (!of_property_read_u32(node, "strobe", &v))
++		bus->strobe =3D v;
++
++	if (!of_property_read_u32(node, "data-lane", &v))
++		bus->data_lane =3D v;
++
++	if (!of_property_read_u32(node, "clock-lane", &v))
++		bus->clock_lane =3D v;
++
++	if (bus_type =3D=3D V4L2_OF_BUS_TYPE_CSI1)
++		endpoint->bus_type =3D V4L2_MBUS_CSI1;
++	else
++		endpoint->bus_type =3D V4L2_MBUS_CCP2;
++}
++
+ /**
+  * v4l2_of_parse_endpoint() - parse all endpoint node properties
+  * @node: pointer to endpoint device_node
+@@ -162,6 +230,7 @@ static void v4l2_of_parse_parallel_bus(const struct dev=
+ice_node *node,
+ int v4l2_of_parse_endpoint(const struct device_node *node,
+ 			   struct v4l2_of_endpoint *endpoint)
+ {
++	u32 bus_type =3D 0;
+ 	int rval;
+=20
+ 	of_graph_parse_endpoint(node, &endpoint->base);
+@@ -169,17 +238,32 @@ int v4l2_of_parse_endpoint(const struct device_node *=
+node,
+ 	memset(&endpoint->bus_type, 0, sizeof(*endpoint) -
+ 	       offsetof(typeof(*endpoint), bus_type));
+=20
+-	rval =3D v4l2_of_parse_csi_bus(node, endpoint);
+-	if (rval)
+-		return rval;
+-	/*
+-	 * Parse the parallel video bus properties only if none
+-	 * of the MIPI CSI-2 specific properties were found.
+-	 */
+-	if (endpoint->bus.mipi_csi2.flags =3D=3D 0)
+-		v4l2_of_parse_parallel_bus(node, endpoint);
++	rval =3D of_property_read_u32(node, "bus-type", &bus_type);
++	if (bus_type =3D=3D 0) {
++		endpoint->bus_type =3D 0;
++		rval =3D v4l2_of_parse_csi2_bus(node, endpoint);
++		if (rval)
++			return rval;
++		/*
++		 * Parse the parallel video bus properties only if none
++		 * of the MIPI CSI-2 specific properties were found.
++		 */
++		if (endpoint->bus.mipi_csi2.flags =3D=3D 0)
++			v4l2_of_parse_parallel_bus(node, endpoint);
++
++		return 0;
++	}
+=20
+-	return 0;
++	switch (bus_type) {
++	case V4L2_OF_BUS_TYPE_CSI1:
++	case V4L2_OF_BUS_TYPE_CCP2:
++		v4l2_of_parse_csi1_bus(node, endpoint, bus_type);
++		return 0;
++	default:
++		pr_warn("bad bus-type %u, device_node \"%s\"\n",
++			bus_type, node->full_name);
++		return -EINVAL;
++	}
+ }
+ EXPORT_SYMBOL(v4l2_of_parse_endpoint);
+=20
+--=20
+2.1.4
+
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--pf9I7BMVVzbSWLtt
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlijhxMACgkQMOfwapXb+vLWkQCeP0UEVmsBPlOkmnpSfY5LDw2F
+fQoAoLt3tcQWE2aKaKysMl4LLUhvEk51
+=pdQt
+-----END PGP SIGNATURE-----
+
+--pf9I7BMVVzbSWLtt--
