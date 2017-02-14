@@ -1,125 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:45555 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750758AbdBSFLu (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:39229 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751490AbdBNHwW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 19 Feb 2017 00:11:50 -0500
-Message-ID: <4b0c5396ee7fb3723f2acee447ab4cd0@smtp-cloud2.xs4all.net>
-Date: Sun, 19 Feb 2017 06:11:47 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Tue, 14 Feb 2017 02:52:22 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Subject: [PATCH 07/15] media: s5p-mfc: Put firmware to private buffer structure
+Date: Tue, 14 Feb 2017 08:52:00 +0100
+Message-id: <1487058728-16501-8-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
+References: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170214075217eucas1p2957a45afd938beab333a21b9bec56480@eucas1p2.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Use s5p_mfc_priv_buf structure for keeping the firmware image. This will
+help handling of firmware buffer allocation in the next patches.
 
-Results of the daily build of media_tree:
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c |  2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  3 +--
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   | 36 ++++++++++++-------------
+ 3 files changed, 20 insertions(+), 21 deletions(-)
 
-date:			Sun Feb 19 05:00:22 CET 2017
-media-tree git hash:	9eeb0ed0f30938f31a3d9135a88b9502192c18dd
-media_build git hash:	785cdf7f0798964681b33aad44fc2ff4d734733d
-v4l-utils git hash:	1edd6920bed585d0ea70a2d400182ba17ee2e7fc
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10-rc3-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-x86_64: OK
-linux-4.10-rc3-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c
+index 8c4739ca16d6..4c80bb4243be 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c
+@@ -47,7 +47,7 @@ static int s5p_mfc_sys_init_cmd_v5(struct s5p_mfc_dev *dev)
+ 	struct s5p_mfc_cmd_args h2r_args;
+ 
+ 	memset(&h2r_args, 0, sizeof(struct s5p_mfc_cmd_args));
+-	h2r_args.arg[0] = dev->fw_size;
++	h2r_args.arg[0] = dev->fw_buf.size;
+ 	return s5p_mfc_cmd_host2risc_v5(dev, S5P_FIMV_H2R_CMD_SYS_INIT,
+ 			&h2r_args);
+ }
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 9cf860f34c71..cea17a737ef7 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -314,8 +314,7 @@ struct s5p_mfc_dev {
+ 	int int_type;
+ 	unsigned int int_err;
+ 	wait_queue_head_t queue;
+-	size_t fw_size;
+-	void *fw_virt_addr;
++	struct s5p_mfc_priv_buf fw_buf;
+ 	dma_addr_t dma_base[BANK_CTX_NUM];
+ 	unsigned long hw_lock;
+ 	struct s5p_mfc_ctx *ctx[MFC_NUM_CONTEXTS];
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+index c9bff3d0655f..50d698968049 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+@@ -29,21 +29,22 @@ int s5p_mfc_alloc_firmware(struct s5p_mfc_dev *dev)
+ 	void *bank2_virt;
+ 	dma_addr_t bank2_dma_addr;
+ 	unsigned int align_size = 1 << MFC_BASE_ALIGN_ORDER;
++	struct s5p_mfc_priv_buf *fw_buf = &dev->fw_buf;
+ 
+-	dev->fw_size = dev->variant->buf_size->fw;
++	fw_buf->size = dev->variant->buf_size->fw;
+ 
+-	if (dev->fw_virt_addr) {
++	if (fw_buf->virt) {
+ 		mfc_err("Attempting to allocate firmware when it seems that it is already loaded\n");
+ 		return -ENOMEM;
+ 	}
+ 
+-	dev->fw_virt_addr = dma_alloc_coherent(dev->mem_dev[BANK1_CTX],
+-					dev->fw_size, &dev->dma_base[BANK1_CTX],
+-					GFP_KERNEL);
+-	if (!dev->fw_virt_addr) {
++	fw_buf->virt = dma_alloc_coherent(dev->mem_dev[BANK1_CTX], fw_buf->size,
++					 &fw_buf->dma, GFP_KERNEL);
++	if (!fw_buf->virt) {
+ 		mfc_err("Allocating bitprocessor buffer failed\n");
+ 		return -ENOMEM;
+ 	}
++	dev->dma_base[BANK1_CTX] = fw_buf->dma;
+ 
+ 	if (HAS_PORTNUM(dev) && IS_TWOPORT(dev)) {
+ 		bank2_virt = dma_alloc_coherent(dev->mem_dev[BANK2_CTX],
+@@ -51,10 +52,9 @@ int s5p_mfc_alloc_firmware(struct s5p_mfc_dev *dev)
+ 
+ 		if (!bank2_virt) {
+ 			mfc_err("Allocating bank2 base failed\n");
+-			dma_free_coherent(dev->mem_dev[BANK1_CTX], dev->fw_size,
+-					  dev->fw_virt_addr,
+-					  dev->dma_base[BANK1_CTX]);
+-			dev->fw_virt_addr = NULL;
++			dma_free_coherent(dev->mem_dev[BANK1_CTX], fw_buf->size,
++					  fw_buf->virt, fw_buf->dma);
++			fw_buf->virt = NULL;
+ 			return -ENOMEM;
+ 		}
+ 
+@@ -101,17 +101,17 @@ int s5p_mfc_load_firmware(struct s5p_mfc_dev *dev)
+ 		mfc_err("Firmware is not present in the /lib/firmware directory nor compiled in kernel\n");
+ 		return -EINVAL;
+ 	}
+-	if (fw_blob->size > dev->fw_size) {
++	if (fw_blob->size > dev->fw_buf.size) {
+ 		mfc_err("MFC firmware is too big to be loaded\n");
+ 		release_firmware(fw_blob);
+ 		return -ENOMEM;
+ 	}
+-	if (!dev->fw_virt_addr) {
++	if (!dev->fw_buf.virt) {
+ 		mfc_err("MFC firmware is not allocated\n");
+ 		release_firmware(fw_blob);
+ 		return -EINVAL;
+ 	}
+-	memcpy(dev->fw_virt_addr, fw_blob->data, fw_blob->size);
++	memcpy(dev->fw_buf.virt, fw_blob->data, fw_blob->size);
+ 	wmb();
+ 	release_firmware(fw_blob);
+ 	mfc_debug_leave();
+@@ -123,11 +123,11 @@ int s5p_mfc_release_firmware(struct s5p_mfc_dev *dev)
+ {
+ 	/* Before calling this function one has to make sure
+ 	 * that MFC is no longer processing */
+-	if (!dev->fw_virt_addr)
++	if (!dev->fw_buf.virt)
+ 		return -EINVAL;
+-	dma_free_coherent(dev->mem_dev[BANK1_CTX], dev->fw_size,
+-			  dev->fw_virt_addr, dev->dma_base[BANK1_CTX]);
+-	dev->fw_virt_addr = NULL;
++	dma_free_coherent(dev->mem_dev[BANK1_CTX], dev->fw_buf.size,
++			  dev->fw_buf.virt, dev->fw_buf.dma);
++	dev->fw_buf.virt = NULL;
+ 	return 0;
+ }
+ 
+@@ -246,7 +246,7 @@ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
+ 	int ret;
+ 
+ 	mfc_debug_enter();
+-	if (!dev->fw_virt_addr) {
++	if (!dev->fw_buf.virt) {
+ 		mfc_err("Firmware memory is not allocated.\n");
+ 		return -EINVAL;
+ 	}
+-- 
+1.9.1
