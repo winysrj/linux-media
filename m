@@ -1,103 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:41277 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751439AbdBHNnM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Feb 2017 08:43:12 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: evgeni.raikhel@gmail.com
-Cc: linux-media@vger.kernel.org, guennadi.liakhovetski@intel.com,
-        eliezer.tamir@intel.com, sergey.dorodnicov@intel.com,
-        Daniel Patrick Johnson <teknotus@teknot.us>,
-        Aviv Greenberg <avivgr@gmail.com>,
-        Evgeni Raikhel <evgeni.raikhel@intel.com>
-Subject: Re: [PATCH v2 2/2] uvcvideo: Add support for Intel SR300 depth camera
-Date: Wed, 08 Feb 2017 15:41:47 +0200
-Message-ID: <2977004.kzl6j44Hvb@avalon>
-In-Reply-To: <1486542864-5832-2-git-send-email-evgeni.raikhel@intel.com>
-References: <AA09C8071EEEFC44A7852ADCECA86673A1E6E7@hasmsx108.ger.corp.intel.com> <1486542864-5832-1-git-send-email-evgeni.raikhel@intel.com> <1486542864-5832-2-git-send-email-evgeni.raikhel@intel.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:59097 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753972AbdBNNkD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Feb 2017 08:40:03 -0500
+Date: Tue, 14 Feb 2017 14:40:00 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: sakari.ailus@iki.fi
+Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
+        ivo.g.dimitrov.75@gmail.com
+Subject: [RFC 07/13] v4l2: device_register_subdev_nodes: allow calling
+ multiple times
+Message-ID: <20170214134000.GA8550@amd>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="MGYHOYXEY6WxJCY8"
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Evgeni,
 
-Thank you for the patch.
+--MGYHOYXEY6WxJCY8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Wednesday 08 Feb 2017 10:34:24 evgeni.raikhel@gmail.com wrote:
-> From: Daniel Patrick Johnson <teknotus@teknot.us>
-> 
-> Add support for Intel SR300 depth camera in uvc driver.
-> This includes adding three uvc GUIDs for the required pixel formats,
-> adding a new V4L pixel format definition to user api headers,
+=46rom: Sebastian Reichel <sre@kernel.org>
 
-The header change has been split to patch 1/2, you can remove this sentence.
+Without this, exposure / gain controls do not work in the camera applicatio=
+n.
 
-Apart from that,
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+---
+ drivers/media/v4l2-core/v4l2-device.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-cor=
+e/v4l2-device.c
+index f364cc1..b3afbe8 100644
+--- a/drivers/media/v4l2-core/v4l2-device.c
++++ b/drivers/media/v4l2-core/v4l2-device.c
+@@ -235,6 +235,9 @@ int v4l2_device_register_subdev_nodes(struct v4l2_devic=
+e *v4l2_dev)
+ 		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE))
+ 			continue;
+=20
++		if(sd->devnode)
++			continue;
++
+ 		vdev =3D kzalloc(sizeof(*vdev), GFP_KERNEL);
+ 		if (!vdev) {
+ 			err =3D -ENOMEM;
+--=20
+2.1.4
 
-> and updating the uvc driver GUID-to-4cc tables with the new formats.
-> 
-> Signed-off-by: Daniel Patrick Johnson <teknotus@teknot.us>
-> Signed-off-by: Aviv Greenberg <avivgr@gmail.com>
-> Signed-off-by: Evgeni Raikhel <evgeni.raikhel@intel.com>
-> ---
->  drivers/media/usb/uvc/uvc_driver.c | 15 +++++++++++++++
->  drivers/media/usb/uvc/uvcvideo.h   |  9 +++++++++
->  2 files changed, 24 insertions(+)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> b/drivers/media/usb/uvc/uvc_driver.c index 04bf35063c4c..46d6be0bb316
-> 100644
-> --- a/drivers/media/usb/uvc/uvc_driver.c
-> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> @@ -188,6 +188,21 @@ static struct uvc_format_desc uvc_fmts[] = {
->  		.guid		= UVC_GUID_FORMAT_GR16,
->  		.fcc		= V4L2_PIX_FMT_SGRBG16,
->  	},
-> +	{
-> +		.name		= "Depth data 16-bit (Z16)",
-> +		.guid		= UVC_GUID_FORMAT_INVZ,
-> +		.fcc		= V4L2_PIX_FMT_Z16,
-> +	},
-> +	{
-> +		.name		= "Greyscale 10-bit (Y10 )",
-> +		.guid		= UVC_GUID_FORMAT_INVI,
-> +		.fcc		= V4L2_PIX_FMT_Y10,
-> +	},
-> +	{
-> +		.name		= "IR:Depth 26-bit (INZI)",
-> +		.guid		= UVC_GUID_FORMAT_INZI,
-> +		.fcc		= V4L2_PIX_FMT_INZI,
-> +	},
->  };
-> 
->  /* ------------------------------------------------------------------------
-> diff --git a/drivers/media/usb/uvc/uvcvideo.h
-> b/drivers/media/usb/uvc/uvcvideo.h index 4205e7a423f0..15e415e32c7f 100644
-> --- a/drivers/media/usb/uvc/uvcvideo.h
-> +++ b/drivers/media/usb/uvc/uvcvideo.hdrivers/media/usb/uvc/uvcvideo.h
-> @@ -143,6 +143,15 @@
->  #define UVC_GUID_FORMAT_RW10 \
->  	{ 'R',  'W',  '1',  '0', 0x00, 0x00, 0x10, 0x00, \
->  	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-> +#define UVC_GUID_FORMAT_INVZ \
-> +	{ 'I',  'N',  'V',  'Z', 0x90, 0x2d, 0x58, 0x4a, \
-> +	 0x92, 0x0b, 0x77, 0x3f, 0x1f, 0x2c, 0x55, 0x6b}
-> +#define UVC_GUID_FORMAT_INZI \
-> +	{ 'I',  'N',  'Z',  'I', 0x66, 0x1a, 0x42, 0xa2, \
-> +	 0x90, 0x65, 0xd0, 0x18, 0x14, 0xa8, 0xef, 0x8a}
-> +#define UVC_GUID_FORMAT_INVI \
-> +	{ 'I',  'N',  'V',  'I', 0xdb, 0x57, 0x49, 0x5e, \
-> +	 0x8e, 0x3f, 0xf4, 0x79, 0x53, 0x2b, 0x94, 0x6f}
-> 
->  /* ------------------------------------------------------------------------
-> * Driver specific constants.
 
--- 
-Regards,
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-Laurent Pinchart
+--MGYHOYXEY6WxJCY8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEUEARECAAYFAlijCLAACgkQMOfwapXb+vJWdwCXZ3sY0dJFQk9BNu57G4+GbPvU
+qgCeIseO/NVgeifDbK6BwVR+4rumhh0=
+=JTKX
+-----END PGP SIGNATURE-----
+
+--MGYHOYXEY6WxJCY8--
