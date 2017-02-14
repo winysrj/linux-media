@@ -1,148 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:38648 "EHLO
-        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752965AbdBASfh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Feb 2017 13:35:37 -0500
-Received: by mail-wm0-f48.google.com with SMTP id r141so51193044wmg.1
-        for <linux-media@vger.kernel.org>; Wed, 01 Feb 2017 10:35:37 -0800 (PST)
-Date: Wed, 1 Feb 2017 18:35:31 +0000
-From: Peter Griffin <peter.griffin@linaro.org>
-To: Hugues Fruchet <hugues.fruchet@st.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        kernel@stlinux.com,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [STLinux Kernel] [PATCH v6 06/10] [media] st-delta: add memory
- allocator helper functions
-Message-ID: <20170201183531.GI31988@griffinp-ThinkPad-X1-Carbon-2nd>
-References: <1485965011-17388-1-git-send-email-hugues.fruchet@st.com>
- <1485965011-17388-7-git-send-email-hugues.fruchet@st.com>
+Received: from mail-he1eur02hn0224.outbound.protection.outlook.com ([104.47.5.224]:10368
+        "EHLO EUR02-HE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1753767AbdBNRUf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Feb 2017 12:20:35 -0500
+Content-Type: text/plain; charset="iso-8859-1"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1485965011-17388-7-git-send-email-hugues.fruchet@st.com>
+Content-Transfer-Encoding: quoted-printable
+Content-Description: Mail message body
+Subject: Re: Suffering Children
+To: <dx2@badsachsaertafel.org>
+From: "Mrs. Queennet Hitachimo" <dx2@badsachsaertafel.org>
+Date: Tue, 14 Feb 2017 19:19:44 +0200
+Reply-To: <mrsmaimounafarooq@gmail.com>
+Message-ID: <VI1PR0201MB1535FA31FC399C8F6C14965581580@VI1PR0201MB1535.eurprd02.prod.outlook.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 01 Feb 2017, Hugues Fruchet wrote:
+Greetings From My Sick Bed.
 
-> Helper functions used by decoder back-ends to allocate
-> physically contiguous memory required by hardware video
-> decoder.
-> 
-> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+I Want To Donate USD15.5Million To Charity Through A Trusted And Sincere Pe=
+rson In Your Country. =
 
-Acked-by: Peter Griffin <peter.griffin@linaro.org>
 
-> ---
->  drivers/media/platform/sti/delta/Makefile    |  2 +-
->  drivers/media/platform/sti/delta/delta-mem.c | 51 ++++++++++++++++++++++++++++
->  drivers/media/platform/sti/delta/delta-mem.h | 14 ++++++++
->  drivers/media/platform/sti/delta/delta.h     |  8 +++++
->  4 files changed, 74 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/media/platform/sti/delta/delta-mem.c
->  create mode 100644 drivers/media/platform/sti/delta/delta-mem.h
-> 
-> diff --git a/drivers/media/platform/sti/delta/Makefile b/drivers/media/platform/sti/delta/Makefile
-> index 467519e..93a3037 100644
-> --- a/drivers/media/platform/sti/delta/Makefile
-> +++ b/drivers/media/platform/sti/delta/Makefile
-> @@ -1,2 +1,2 @@
->  obj-$(CONFIG_VIDEO_STI_DELTA_DRIVER) := st-delta.o
-> -st-delta-y := delta-v4l2.o
-> +st-delta-y := delta-v4l2.o delta-mem.o
-> diff --git a/drivers/media/platform/sti/delta/delta-mem.c b/drivers/media/platform/sti/delta/delta-mem.c
-> new file mode 100644
-> index 0000000..d7b53d3
-> --- /dev/null
-> +++ b/drivers/media/platform/sti/delta/delta-mem.c
-> @@ -0,0 +1,51 @@
-> +/*
-> + * Copyright (C) STMicroelectronics SA 2015
-> + * Author: Hugues Fruchet <hugues.fruchet@st.com> for STMicroelectronics.
-> + * License terms:  GNU General Public License (GPL), version 2
-> + */
-> +
-> +#include "delta.h"
-> +#include "delta-mem.h"
-> +
-> +int hw_alloc(struct delta_ctx *ctx, u32 size, const char *name,
-> +	     struct delta_buf *buf)
-> +{
-> +	struct delta_dev *delta = ctx->dev;
-> +	dma_addr_t dma_addr;
-> +	void *addr;
-> +	unsigned long attrs = DMA_ATTR_WRITE_COMBINE;
-> +
-> +	addr = dma_alloc_attrs(delta->dev, size, &dma_addr,
-> +			       GFP_KERNEL | __GFP_NOWARN, attrs);
-> +	if (!addr) {
-> +		dev_err(delta->dev,
-> +			"%s hw_alloc:dma_alloc_coherent failed for %s (size=%d)\n",
-> +			ctx->name, name, size);
-> +		ctx->sys_errors++;
-> +		return -ENOMEM;
-> +	}
-> +
-> +	buf->size = size;
-> +	buf->paddr = dma_addr;
-> +	buf->vaddr = addr;
-> +	buf->name = name;
-> +	buf->attrs = attrs;
-> +
-> +	dev_dbg(delta->dev,
-> +		"%s allocate %d bytes of HW memory @(virt=0x%p, phy=0x%pad): %s\n",
-> +		ctx->name, size, buf->vaddr, &buf->paddr, buf->name);
-> +
-> +	return 0;
-> +}
-> +
-> +void hw_free(struct delta_ctx *ctx, struct delta_buf *buf)
-> +{
-> +	struct delta_dev *delta = ctx->dev;
-> +
-> +	dev_dbg(delta->dev,
-> +		"%s     free %d bytes of HW memory @(virt=0x%p, phy=0x%pad): %s\n",
-> +		ctx->name, buf->size, buf->vaddr, &buf->paddr, buf->name);
-> +
-> +	dma_free_attrs(delta->dev, buf->size,
-> +		       buf->vaddr, buf->paddr, buf->attrs);
-> +}
-> diff --git a/drivers/media/platform/sti/delta/delta-mem.h b/drivers/media/platform/sti/delta/delta-mem.h
-> new file mode 100644
-> index 0000000..f8ca109
-> --- /dev/null
-> +++ b/drivers/media/platform/sti/delta/delta-mem.h
-> @@ -0,0 +1,14 @@
-> +/*
-> + * Copyright (C) STMicroelectronics SA 2015
-> + * Author: Hugues Fruchet <hugues.fruchet@st.com> for STMicroelectronics.
-> + * License terms:  GNU General Public License (GPL), version 2
-> + */
-> +
-> +#ifndef DELTA_MEM_H
-> +#define DELTA_MEM_H
-> +
-> +int hw_alloc(struct delta_ctx *ctx, u32 size, const char *name,
-> +	     struct delta_buf *buf);
-> +void hw_free(struct delta_ctx *ctx, struct delta_buf *buf);
-> +
-> +#endif /* DELTA_MEM_H */
-> diff --git a/drivers/media/platform/sti/delta/delta.h b/drivers/media/platform/sti/delta/delta.h
-> index 74a4240..9e26525 100644
-> --- a/drivers/media/platform/sti/delta/delta.h
-> +++ b/drivers/media/platform/sti/delta/delta.h
-> @@ -191,6 +191,14 @@ struct delta_dts {
->  	u64 val;
->  };
->  
-> +struct delta_buf {
-> +	u32 size;
-> +	void *vaddr;
-> +	dma_addr_t paddr;
-> +	const char *name;
-> +	unsigned long attrs;
-> +};
-> +
->  struct delta_ctx;
->  
->  /*
+I Am Deeply Depressed After The Doctor Showed Up With The Results Of My Dia=
+gnoses Confirming That I Have Little Time To Live On Earth.
+
+For Now, My Ailment Cannot Permit Me To Write Much, Other Detailed Informat=
+ion's Will Come Your Way As Soon As I Hear From You.
+
+Reply If You Can Be Trusted.
+
+Mrs. Queennet Hitachimo
