@@ -1,71 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:34273 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752865AbdBPCUG (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:39761 "EHLO
+        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750930AbdBNHwU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 21:20:06 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v4 04/36] ARM: dts: imx6qdl: add capture-subsystem device
-Date: Wed, 15 Feb 2017 18:19:06 -0800
-Message-Id: <1487211578-11360-5-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+        Tue, 14 Feb 2017 02:52:20 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Subject: [PATCH 02/15] media: s5p-mfc: Use generic of_device_get_match_data
+ helper
+Date: Tue, 14 Feb 2017 08:51:55 +0100
+Message-id: <1487058728-16501-3-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
+References: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170214075215eucas1p1e77dbae8e0be9f7f5bf66765c5d57f5f@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- arch/arm/boot/dts/imx6dl.dtsi | 5 +++++
- arch/arm/boot/dts/imx6q.dtsi  | 5 +++++
- 2 files changed, 10 insertions(+)
+Replace custom code with generic helper to retrieve driver data.
 
-diff --git a/arch/arm/boot/dts/imx6dl.dtsi b/arch/arm/boot/dts/imx6dl.dtsi
-index 371288a..f1743fc 100644
---- a/arch/arm/boot/dts/imx6dl.dtsi
-+++ b/arch/arm/boot/dts/imx6dl.dtsi
-@@ -100,6 +100,11 @@
- 		};
- 	};
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        | 17 ++---------------
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  4 ++--
+ 2 files changed, 4 insertions(+), 17 deletions(-)
+
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 3e1f22eb4339..ad3d7377f40d 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -22,6 +22,7 @@
+ #include <media/v4l2-event.h>
+ #include <linux/workqueue.h>
+ #include <linux/of.h>
++#include <linux/of_device.h>
+ #include <linux/of_reserved_mem.h>
+ #include <media/videobuf2-v4l2.h>
+ #include "s5p_mfc_common.h"
+@@ -1157,8 +1158,6 @@ static void s5p_mfc_unconfigure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+ 	device_unregister(mfc_dev->mem_dev_r);
+ }
  
-+	capture-subsystem {
-+		compatible = "fsl,imx-capture-subsystem";
-+		ports = <&ipu1_csi0>, <&ipu1_csi1>;
-+	};
-+
- 	display-subsystem {
- 		compatible = "fsl,imx-display-subsystem";
- 		ports = <&ipu1_di0>, <&ipu1_di1>;
-diff --git a/arch/arm/boot/dts/imx6q.dtsi b/arch/arm/boot/dts/imx6q.dtsi
-index b833b0d..4cc6579 100644
---- a/arch/arm/boot/dts/imx6q.dtsi
-+++ b/arch/arm/boot/dts/imx6q.dtsi
-@@ -206,6 +206,11 @@
- 		};
- 	};
+-static void *mfc_get_drv_data(struct platform_device *pdev);
+-
+ /* MFC probe function */
+ static int s5p_mfc_probe(struct platform_device *pdev)
+ {
+@@ -1182,7 +1181,7 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+ 		return -ENODEV;
+ 	}
  
-+	capture-subsystem {
-+		compatible = "fsl,imx-capture-subsystem";
-+		ports = <&ipu1_csi0>, <&ipu1_csi1>, <&ipu2_csi0>, <&ipu2_csi1>;
-+	};
-+
- 	display-subsystem {
- 		compatible = "fsl,imx-display-subsystem";
- 		ports = <&ipu1_di0>, <&ipu1_di1>, <&ipu2_di0>, <&ipu2_di1>;
+-	dev->variant = mfc_get_drv_data(pdev);
++	dev->variant = of_device_get_match_data(&pdev->dev);
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	dev->regs_base = devm_ioremap_resource(&pdev->dev, res);
+@@ -1541,18 +1540,6 @@ static int s5p_mfc_resume(struct device *dev)
+ };
+ MODULE_DEVICE_TABLE(of, exynos_mfc_match);
+ 
+-static void *mfc_get_drv_data(struct platform_device *pdev)
+-{
+-	struct s5p_mfc_variant *driver_data = NULL;
+-	const struct of_device_id *match;
+-
+-	match = of_match_node(exynos_mfc_match, pdev->dev.of_node);
+-	if (match)
+-		driver_data = (struct s5p_mfc_variant *)match->data;
+-
+-	return driver_data;
+-}
+-
+ static struct platform_driver s5p_mfc_driver = {
+ 	.probe		= s5p_mfc_probe,
+ 	.remove		= s5p_mfc_remove,
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 3e0e8eaf8bfe..2f1387a4c386 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -192,7 +192,7 @@ struct s5p_mfc_buf {
+  */
+ struct s5p_mfc_pm {
+ 	struct clk	*clock_gate;
+-	const char	**clk_names;
++	const char * const *clk_names;
+ 	struct clk	*clocks[MFC_MAX_CLOCKS];
+ 	int		num_clocks;
+ 	bool		use_clock_gating;
+@@ -304,7 +304,7 @@ struct s5p_mfc_dev {
+ 	struct v4l2_ctrl_handler dec_ctrl_handler;
+ 	struct v4l2_ctrl_handler enc_ctrl_handler;
+ 	struct s5p_mfc_pm	pm;
+-	struct s5p_mfc_variant	*variant;
++	const struct s5p_mfc_variant	*variant;
+ 	int num_inst;
+ 	spinlock_t irqlock;	/* lock when operating on context */
+ 	spinlock_t condlock;	/* lock when changing/checking if a context is
 -- 
-2.7.4
+1.9.1
