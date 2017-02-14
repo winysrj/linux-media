@@ -1,92 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:38116 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753537AbdBPLi6 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:58386 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752583AbdBNT7i (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Feb 2017 06:38:58 -0500
-Date: Thu, 16 Feb 2017 11:37:58 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v4 00/36] i.MX Media Driver
-Message-ID: <20170216113758.GK27312@n2100.armlinux.org.uk>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+        Tue, 14 Feb 2017 14:59:38 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Laura Abbott <labbott@redhat.com>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "Clark, Rob" <robdclark@gmail.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mark Brown <broonie@kernel.org>
+Subject: Re: [RFC simple allocator v2 1/2] Create Simple Allocator module
+Date: Tue, 14 Feb 2017 21:59:55 +0200
+Message-ID: <2684010.GP2h2R50oJ@avalon>
+In-Reply-To: <CAKMK7uEoC6vrx-Yi0K0bFaPRctRNLmjgYrZN4thmX6a3Y0KU3A@mail.gmail.com>
+References: <1486997106-23277-1-git-send-email-benjamin.gaignard@linaro.org> <1967325.JRFDDRuil3@avalon> <CAKMK7uEoC6vrx-Yi0K0bFaPRctRNLmjgYrZN4thmX6a3Y0KU3A@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Two problems.
+Hi Daniel,
 
-On Wed, Feb 15, 2017 at 06:19:02PM -0800, Steve Longerbeam wrote:
->   media: imx: propagate sink pad formats to source pads
+On Tuesday 14 Feb 2017 20:44:44 Daniel Vetter wrote:
+> On Tue, Feb 14, 2017 at 8:39 PM, Laurent Pinchart wrote:
+> > On Tuesday 14 Feb 2017 20:33:58 Daniel Vetter wrote:
+> >> On Mon, Feb 13, 2017 at 3:45 PM, Benjamin Gaignard wrote:
+> >>> This is the core of simple allocator module.
+> >>> It aim to offert one common ioctl to allocate specific memory.
+> >>> 
+> >>> version 2:
+> >>> - rebased on 4.10-rc7
+> >>> 
+> >>> Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+> >> 
+> >> Why not ION? It's a bit a broken record question, but if there is a
+> >> clear answer it should be in the patch&docs ...
+> > 
+> > There's a bit of love & hate relationship between Linux developers and
+> > ION. The API has shortcomings, and attempts to fix the issues went
+> > nowhere. As Laura explained, starting from a blank slate (obviously
+> > keeping in mind the lessons learnt so far with ION and other similar APIs)
+> > and then adding a wrapper to expose ION on Android systems (at least as an
+> > interim measure) was thought to be a better option. I still believe it is,
+> > but we seem to lack traction. The problem has been around for so long that
+> > I feel everybody has lost hope.
+> > 
+> > I don't think this is unsolvable, but we need to regain motivation. In my
+> > opinion the first step would be to define the precise extent of the
+> > problem we want to solve.
+> 
+> I'm not sure anyone really tried hard enough (in the same way no one
+> tried hard enough to destage android syncpts, until last year). And
+> anything new should at least very clearly explain why ION (even with
+> the various todo items we collected at a few conferences) won't work,
+> and how exactly the new allocator is different from ION. I don't think
+> we need a full design doc (like you say, buffer allocation is hard,
+> we'll get it wrong anyway), but at least a proper comparison with the
+> existing thing. Plus explanation why we can't reuse the uabi.
 
-1) It looks like all cases aren't being caught:
+I've explained several of my concerns (including open questions that need 
+answers) in another reply to this patch, let's discuss them there to avoid 
+splitting the discussion.
 
-- entity 74: ipu1_csi0 (3 pads, 4 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev13
-        pad0: Sink
-                [fmt:SRGGB8/816x616 field:none]
-                <- "ipu1_csi0_mux":2 [ENABLED]
-        pad1: Source
-                [fmt:AYUV32/816x616 field:none
-                 crop.bounds:(0,0)/816x616
-                 crop:(0,0)/816x616]
-                -> "ipu1_ic_prp":0 []
-                -> "ipu1_vdic":0 []
-        pad2: Source
-                [fmt:SRGGB8/816x616 field:none
-                 crop.bounds:(0,0)/816x616
-                 crop:(0,0)/816x616]
-                -> "ipu1_csi0 capture":0 [ENABLED]
+> Because ime when you rewrite something, you generally get one thing
+> right (the one thing that pissed you off about the old solution), plus
+> lots and lots of things that the old solution got right, wrong
+> (because it's all lost in the history).
 
-While the size has been propagated to pad1, the format has not.
+History, repeating mistakes, all that. History never repeats itself though. We 
+might make similar or identical mistakes, but there's no fatality, unless we 
+decide not to try before even starting :-)
 
-2) /dev/video* device node assignment
+> ADF was probably the best example in this. KMS also took a while until all
+> the fbdev wheels have been properly reinvented (some are still the same old
+> squeaky onces as fbdev had, e.g. fbcon).
+> 
+> And I don't think destaging ION is going to be hard, just a bit of
+> work (could be a nice gsoc or whatever).
 
-I've no idea at the moment how the correct /dev/video* node should be
-chosen - initially with Philipp and your previous code, it was
-/dev/video3 after initial boot.  Philipp's was consistently /dev/video3.
-Yours changed to /dev/video7 when removing and re-inserting the modules
-(having fixed that locally.)  This version makes CSI0 be /dev/video7,
-but after a remove+reinsert, it becomes (eg) /dev/video8.
-
-/dev/v4l/by-path/platform-capture-subsystem-video-index4 also is not a
-stable path - the digit changes (it's supposed to be a stable path.)
-After a remove+reinsert, it becomes (eg)
-/dev/v4l/by-path/platform-capture-subsystem-video-index5.
-/dev/v4l/by-id doesn't contain a symlink for this either.
-
-What this means is that it's very hard to script the setup, because
-there's no easy way to know what device is the capture device.  While
-it may be possible to do:
-
-	media-ctl -d /dev/media1 -p | \
-		grep -A2 ': ipu1_csi0 capture' | \
-			sed -n 's|.*\(/dev/video[0-9]*\).*|\1|p'
-
-that's hardly a nice solution - while it fixes the setup script, it
-doesn't stop the pain of having to delve around to find the correct
-device to use for gstreamer to test with.
+Oh, technically speaking, it would be pretty simple. The main issue is to 
+decide whether we want to commit to the existing ION API. I don't :-)
 
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Regards,
+
+Laurent Pinchart
