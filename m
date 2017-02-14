@@ -1,104 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:53533 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755173AbdBGQTM (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:44770 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750831AbdBNWhw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Feb 2017 11:19:12 -0500
-Message-ID: <1486484319.2277.78.camel@pengutronix.de>
-Subject: [PATCH] media: imx: csi: fix crop rectangle reset in sink set_fmt
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Tue, 07 Feb 2017 17:18:39 +0100
-In-Reply-To: <1483755102-24785-18-git-send-email-steve_longerbeam@mentor.com>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
-         <1483755102-24785-18-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Tue, 14 Feb 2017 17:37:52 -0500
+Date: Tue, 14 Feb 2017 23:37:48 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
+Subject: Re: [RFC 03/13] v4l: split lane parsing code
+Message-ID: <20170214223748.GD11317@amd>
+References: <20170214133941.GA8469@amd>
+ <20170214212927.GL16975@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="OaZoDhBhXzo6bW1J"
+Content-Disposition: inline
+In-Reply-To: <20170214212927.GL16975@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The csi_try_crop call in set_fmt should compare the cropping rectangle
-to the currently set input format, not to the previous input format.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-This is a patch against the current imx-media-staging-md-wip branch.
-S_FMT wouldn't update the cropping rectangle during the first time it is
-called, since the csi_try_crop call would compare to the input frame
-format returned by __csi_get_fmt, which still contains the old value.
----
- drivers/staging/media/imx/imx-media-csi.c | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+--OaZoDhBhXzo6bW1J
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c
-b/drivers/staging/media/imx/imx-media-csi.c
-index 637d0f137938a..7c590bf94fad5 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -820,15 +820,13 @@ __csi_get_fmt(struct csi_priv *priv, struct
-v4l2_subdev_pad_config *cfg,
- static int csi_try_crop(struct csi_priv *priv,
- 			struct v4l2_rect *crop,
- 			struct v4l2_subdev_pad_config *cfg,
--			enum v4l2_subdev_format_whence which,
-+			struct v4l2_mbus_framefmt *infmt,
- 			struct imx_media_subdev *sensor)
- {
- 	struct v4l2_of_endpoint *sensor_ep;
--	struct v4l2_mbus_framefmt *infmt;
- 	v4l2_std_id std;
- 	int ret;
- 
--	infmt = __csi_get_fmt(priv, cfg, CSI_SINK_PAD, which);
- 	sensor_ep = &sensor->sensor_ep;
- 
- 	crop->width = min_t(__u32, infmt->width, crop->width);
-@@ -1023,8 +1021,7 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
- 		crop.top = 0;
- 		crop.width = sdformat->format.width;
- 		crop.height = sdformat->format.height;
--		ret = csi_try_crop(priv, &crop, cfg,
--				   sdformat->which, sensor);
-+		ret = csi_try_crop(priv, &crop, cfg, &sdformat->format, sensor);
- 		if (ret)
- 			return ret;
- 
-@@ -1104,6 +1101,7 @@ static int csi_set_selection(struct v4l2_subdev
-*sd,
- 			     struct v4l2_subdev_selection *sel)
- {
- 	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	struct v4l2_mbus_framefmt *infmt;
- 	struct imx_media_subdev *sensor;
- 	int ret;
- 
-@@ -1133,7 +1131,8 @@ static int csi_set_selection(struct v4l2_subdev
-*sd,
- 		return 0;
- 	}
- 
--	ret = csi_try_crop(priv, &sel->r, cfg, sel->which, sensor);
-+	infmt = __csi_get_fmt(priv, cfg, CSI_SINK_PAD, sel->which);
-+	ret = csi_try_crop(priv, &sel->r, cfg, infmt, sensor);
- 	if (ret)
- 		return ret;
- 
--- 
-2.11.0
+Hi!
 
+> On Tue, Feb 14, 2017 at 02:39:41PM +0100, Pavel Machek wrote:
+> > From: Sakari Ailus <sakari.ailus@iki.fi>
+> >=20
+> > The function to parse CSI2 bus parameters was called
+> > v4l2_of_parse_csi_bus(), rename it as v4l2_of_parse_csi2_bus() in
+> > anticipation of CSI1/CCP2 support.
+> >=20
+> > Obtain data bus type from bus-type property. Only try parsing bus
+> > specific properties in this case.
+> >=20
+> > Separate lane parsing from CSI-2 bus parameter parsing. The CSI-1 will
+> > need these as well, separate them into a different
+> > function. have_clk_lane and num_data_lanes arguments may be NULL; the
+> > CSI-1 bus will have no use for them.
+> >=20
+> > Add support for parsing of CSI-1 and CCP2 bus related properties
+> > documented in video-interfaces.txt.
+>=20
+> One more thing: this conflicts badly with the V4L2 fwnode patchset.
+>=20
+> Assuming things go well and that can be merged somewhat soonish, can I ta=
+ke
+> this and rebase it on the fwnode set? The two first patches in the set lo=
+ok
+> pretty good to me.
 
+Actually, I'd say that first four patches should be ready. Feel free
+to take them/rebase them/etc. I can then continue working on the
+rest....
+
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--OaZoDhBhXzo6bW1J
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlijhrwACgkQMOfwapXb+vJDVACfTzTUGeibgRF+HtEIYIl7MkZL
+fe4AoLUzo7taR/pySz+01ICR0zUgmFHt
+=aeHL
+-----END PGP SIGNATURE-----
+
+--OaZoDhBhXzo6bW1J--
