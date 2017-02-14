@@ -1,103 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53286 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752100AbdBUMQV (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:39229 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751932AbdBNHwV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Feb 2017 07:16:21 -0500
-Date: Tue, 21 Feb 2017 14:15:42 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Russell King <rmk+kernel@armlinux.org.uk>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v4 29/36] media: imx: mipi-csi2: enable setting and
- getting of frame rates
-Message-ID: <20170221121542.GH16975@valkosipuli.retiisi.org.uk>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
- <1487211578-11360-30-git-send-email-steve_longerbeam@mentor.com>
- <20170220220409.GX16975@valkosipuli.retiisi.org.uk>
- <6892fb15-2d18-4898-c328-3acff9d6cc39@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6892fb15-2d18-4898-c328-3acff9d6cc39@gmail.com>
+        Tue, 14 Feb 2017 02:52:21 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Subject: [PATCH 06/15] media: s5p-mfc: Move setting DMA max segmetn size to DMA
+ configure function
+Date: Tue, 14 Feb 2017 08:51:59 +0100
+Message-id: <1487058728-16501-7-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
+References: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170214075217eucas1p26836eab5b19b43498b4a5186fb8f71db@eucas1p2.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
+Setting DMA max segment size to 32 bit mask is a part of DMA memory
+configuration, so move those calls to s5p_mfc_configure_dma_memory()
+function.
 
-On Mon, Feb 20, 2017 at 02:56:15PM -0800, Steve Longerbeam wrote:
-> 
-> 
-> On 02/20/2017 02:04 PM, Sakari Ailus wrote:
-> >Hi Steve,
-> >
-> >On Wed, Feb 15, 2017 at 06:19:31PM -0800, Steve Longerbeam wrote:
-> >>From: Russell King <rmk+kernel@armlinux.org.uk>
-> >>
-> >>Setting and getting frame rates is part of the negotiation mechanism
-> >>between subdevs.  The lack of support means that a frame rate at the
-> >>sensor can't be negotiated through the subdev path.
-> >
-> >Just wondering --- what do you need this for?
-> 
-> 
-> Hi Sakari,
-> 
-> i.MX does need the ability to negotiate the frame rates in the
-> pipelines. The CSI has the ability to skip frames at the output,
-> which is something Philipp added to the CSI subdev. That affects
-> frame interval at the CSI output.
-> 
-> But as Russell pointed out, the lack of [gs]_frame_interval op
-> causes media-ctl to fail:
-> 
-> media-ctl -v -d /dev/media1 --set-v4l2
-> '"imx6-mipi-csi2":1[fmt:SGBRG8/512x512@1/30]'
-> 
-> Opening media device /dev/media1
-> Enumerating entities
-> Found 29 entities
-> Enumerating pads and links
-> Setting up format SGBRG8 512x512 on pad imx6-mipi-csi2/1
-> Format set: SGBRG8 512x512
-> Setting up frame interval 1/30 on entity imx6-mipi-csi2
-> Unable to set frame interval: Inappropriate ioctl for device (-25)Unable to
-> setup formats: Inappropriate ioctl for device (25)
-> 
-> 
-> So i.MX needs to implement this op in every subdev in the
-> pipeline, otherwise it's not possible to configure the
-> pipeline with media-ctl.
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c | 21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
-The frame rate is only set on the sub-device which you explicitly set it.
-I.e. setting the frame rate fails if it's not supported on a pad.
-
-Philipp recently posted patches that add frame rate propagation to
-media-ctl.
-
-Frame rate is typically settable (and gettable) only on sensor sub-device's
-source pad, which means it normally would not be propagated by the kernel
-but with Philipp's patches, on the sink pad of the bus receiver. Receivers
-don't have a way to control it nor they implement the IOCTLs, so that would
-indeed result in an error.
-
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index f7664910f12c..bc1aeb25ebeb 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1122,9 +1122,13 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+ 	if (exynos_is_iommu_available(dev)) {
+ 		int ret = exynos_configure_iommu(dev, S5P_MFC_IOMMU_DMA_BASE,
+ 						 S5P_MFC_IOMMU_DMA_SIZE);
+-		if (ret == 0)
++		if (ret == 0) {
+ 			mfc_dev->mem_dev[BANK1_CTX] =
+ 				mfc_dev->mem_dev[BANK2_CTX] = dev;
++			vb2_dma_contig_set_max_seg_size(dev,
++							DMA_BIT_MASK(32));
++		}
++
+ 		return ret;
+ 	}
+ 
+@@ -1143,6 +1147,11 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+ 		return -ENODEV;
+ 	}
+ 
++	vb2_dma_contig_set_max_seg_size(mfc_dev->mem_dev[BANK1_CTX],
++					DMA_BIT_MASK(32));
++	vb2_dma_contig_set_max_seg_size(mfc_dev->mem_dev[BANK2_CTX],
++					DMA_BIT_MASK(32));
++
+ 	return 0;
+ }
+ 
+@@ -1152,11 +1161,14 @@ static void s5p_mfc_unconfigure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+ 
+ 	if (exynos_is_iommu_available(dev)) {
+ 		exynos_unconfigure_iommu(dev);
++		vb2_dma_contig_clear_max_seg_size(dev);
+ 		return;
+ 	}
+ 
+ 	device_unregister(mfc_dev->mem_dev[BANK1_CTX]);
+ 	device_unregister(mfc_dev->mem_dev[BANK2_CTX]);
++	vb2_dma_contig_clear_max_seg_size(mfc_dev->mem_dev[BANK1_CTX]);
++	vb2_dma_contig_clear_max_seg_size(mfc_dev->mem_dev[BANK2_CTX]);
+ }
+ 
+ /* MFC probe function */
+@@ -1214,11 +1226,6 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+ 		goto err_dma;
+ 	}
+ 
+-	vb2_dma_contig_set_max_seg_size(dev->mem_dev[BANK1_CTX],
+-					DMA_BIT_MASK(32));
+-	vb2_dma_contig_set_max_seg_size(dev->mem_dev[BANK2_CTX],
+-					DMA_BIT_MASK(32));
+-
+ 	mutex_init(&dev->mfc_mutex);
+ 	init_waitqueue_head(&dev->queue);
+ 	dev->hw_lock = 0;
+@@ -1351,8 +1358,6 @@ static int s5p_mfc_remove(struct platform_device *pdev)
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+ 	s5p_mfc_release_firmware(dev);
+ 	s5p_mfc_unconfigure_dma_memory(dev);
+-	vb2_dma_contig_clear_max_seg_size(dev->mem_dev[BANK1_CTX]);
+-	vb2_dma_contig_clear_max_seg_size(dev->mem_dev[BANK2_CTX]);
+ 
+ 	s5p_mfc_final_pm(dev);
+ 	return 0;
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+1.9.1
