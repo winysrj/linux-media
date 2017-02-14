@@ -1,93 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:2324 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752726AbdBNMV6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Feb 2017 07:21:58 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: pavel@ucw.cz
-Subject: [PATCH v3 1/2] v4l: Add camera voice coil lens control class, current control
-Date: Tue, 14 Feb 2017 14:20:22 +0200
-Message-Id: <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:39708 "EHLO
+        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752302AbdBNHwX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Feb 2017 02:52:23 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Subject: [PATCH 10/15] media: s5p-mfc: Reduce firmware buffer size for MFC v6+
+ variants
+Date: Tue, 14 Feb 2017 08:52:03 +0100
+Message-id: <1487058728-16501-11-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
+References: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170214075218eucas1p157d3da30dab72acd2bea1ea99795a274@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a V4L2 control class for voice coil lens driver devices. These are
-simple devices that are used to move a camera lens from its resting
-position.
+Firmware for MFC v6+ variants is not larger than 400 KiB, so there is no
+need to allocate a full 1 MiB buffer for it. Reduce it to 512 KiB to keep
+proper alignment of allocated buffer.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- Documentation/media/uapi/v4l/extended-controls.rst | 28 ++++++++++++++++++++++
- include/uapi/linux/v4l2-controls.h                 |  8 +++++++
- 2 files changed, 36 insertions(+)
+ drivers/media/platform/s5p-mfc/regs-mfc-v6.h | 2 +-
+ drivers/media/platform/s5p-mfc/regs-mfc-v7.h | 2 +-
+ drivers/media/platform/s5p-mfc/regs-mfc-v8.h | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
-index abb1057..a75451a 100644
---- a/Documentation/media/uapi/v4l/extended-controls.rst
-+++ b/Documentation/media/uapi/v4l/extended-controls.rst
-@@ -3022,6 +3022,34 @@ Image Process Control IDs
-     driver specific and are documented in :ref:`v4l-drivers`.
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+index d2cd35916dc5..c0166ee9a455 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+@@ -403,7 +403,7 @@
+ #define MFC_OTHER_ENC_CTX_BUF_SIZE_V6	(12 * SZ_1K)	/*  12KB */
  
+ /* MFCv6 variant defines */
+-#define MAX_FW_SIZE_V6			(SZ_1M)		/* 1MB */
++#define MAX_FW_SIZE_V6			(SZ_512K)	/* 512KB */
+ #define MAX_CPB_SIZE_V6			(3 * SZ_1M)	/* 3MB */
+ #define MFC_VERSION_V6			0x61
+ #define MFC_NUM_PORTS_V6		1
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+index 1a5c6fdf7846..9f220769d970 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+@@ -34,7 +34,7 @@
+ #define S5P_FIMV_E_VP8_NUM_T_LAYER_V7			0xfdc4
  
-+.. _voice-coil-lens-controls:
-+
-+Voice Coil Lens Control Reference
-+=================================
-+
-+The Voice Coil class controls are used to control voice coil lens
-+devices. These are very simple devices that consist of a voice coil, a
-+spring and a lens. The current applied on the voice coil is used to
-+move the lens away from the resting position which typically is (close
-+to) infinity. The higher the current applied, the closer the lens is
-+typically focused.
-+
-+.. _voice-coil-lens-control-is:
-+
-+Voice Coil Lens Control IDs
-+---------------------------
-+
-+``V4L2_CID_VOICE_COIL_CLASS (class)``
-+    The VOICE_COIL class descriptor.
-+
-+``V4L2_CID_VOICE_COIL_CURRENT (integer)``
-+    Current applied on a voice coil. The more current is applied, the
-+    more is the position of the lens moved from its resting position.
-+    Do note that there may be a ringing effect; the lens will
-+    oscillate after changing the current applied unless the device
-+    implements ringing compensation.
-+
-+
- .. _dv-controls:
+ /* MFCv7 variant defines */
+-#define MAX_FW_SIZE_V7			(SZ_1M)		/* 1MB */
++#define MAX_FW_SIZE_V7			(SZ_512K)	/* 512KB */
+ #define MAX_CPB_SIZE_V7			(3 * SZ_1M)	/* 3MB */
+ #define MFC_VERSION_V7			0x72
+ #define MFC_NUM_PORTS_V7		1
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v8.h b/drivers/media/platform/s5p-mfc/regs-mfc-v8.h
+index 4d1c3750eb5e..75f5f7511d72 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v8.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v8.h
+@@ -116,7 +116,7 @@
+ #define S5P_FIMV_D_ALIGN_PLANE_SIZE_V8	64
  
- Digital Video Control Reference
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 0d2e1e0..9ef152b 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -62,6 +62,7 @@
- #define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls */
- #define V4L2_CTRL_CLASS_RF_TUNER	0x00a20000	/* RF tuner controls */
- #define V4L2_CTRL_CLASS_DETECT		0x00a30000	/* Detection controls */
-+#define V4L2_CTRL_CLASS_VOICE_COIL	0x00a40000	/* Voice coil lens driver controls */
- 
- /* User-class control IDs */
- 
-@@ -894,6 +895,13 @@ enum v4l2_jpeg_chroma_subsampling {
- #define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 3)
- #define V4L2_CID_DEINTERLACING_MODE		(V4L2_CID_IMAGE_PROC_CLASS_BASE + 4)
- 
-+/* Voice coil lens driver controls */
-+
-+#define V4L2_CID_VOICE_COIL_CLASS_BASE		(V4L2_CTRL_CLASS_VOICE_COIL | 0x900)
-+#define V4L2_CID_VOICE_COIL_CLASS		(V4L2_CTRL_CLASS_VOICE_COIL | 1)
-+
-+#define V4L2_CID_VOICE_COIL_CURRENT		(V4L2_CID_VOICE_COIL_CLASS_BASE + 1)
-+
- 
- /*  DV-class control IDs defined by V4L2 */
- #define V4L2_CID_DV_CLASS_BASE			(V4L2_CTRL_CLASS_DV | 0x900)
+ /* MFCv8 variant defines */
+-#define MAX_FW_SIZE_V8			(SZ_1M)		/* 1MB */
++#define MAX_FW_SIZE_V8			(SZ_512K)	/* 512KB */
+ #define MAX_CPB_SIZE_V8			(3 * SZ_1M)	/* 3MB */
+ #define MFC_VERSION_V8			0x80
+ #define MFC_NUM_PORTS_V8		1
 -- 
-2.7.4
+1.9.1
