@@ -1,58 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:34552 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933547AbdBPW1p (ORCPT
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:50954 "EHLO
+        mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754829AbdBNQqJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Feb 2017 17:27:45 -0500
-Subject: Re: [PATCH v4 00/36] i.MX Media Driver
-To: Russell King - ARM Linux <linux@armlinux.org.uk>,
-        p.zabel@pengutronix.de
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
- <20170216222006.GA21222@n2100.armlinux.org.uk>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <923326d6-43fe-7328-d959-14fd341e47ae@gmail.com>
-Date: Thu, 16 Feb 2017 14:27:41 -0800
+        Tue, 14 Feb 2017 11:46:09 -0500
+Date: Tue, 14 Feb 2017 16:45:39 +0000
+From: Mark Brown <broonie@kernel.org>
+To: Laura Abbott <labbott@redhat.com>
+Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linaro-kernel@lists.linaro.org, arnd@arndb.de,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, daniel.vetter@ffwll.ch,
+        laurent.pinchart@ideasonboard.com, robdclark@gmail.com,
+        akpm@linux-foundation.org, hverkuil@xs4all.nl
+Message-ID: <20170214164539.aifbrbnpj45xlco5@sirena.org.uk>
+References: <1486997106-23277-1-git-send-email-benjamin.gaignard@linaro.org>
+ <20170213181842.tn3nf7ogrwnzje2p@sirena.org.uk>
+ <8d85ac42-9e42-ba1b-9d98-8e08a44572da@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20170216222006.GA21222@n2100.armlinux.org.uk>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="ca3cbzductlmj3xw"
+Content-Disposition: inline
+In-Reply-To: <8d85ac42-9e42-ba1b-9d98-8e08a44572da@redhat.com>
+Subject: Re: [RFC simple allocator v2 0/2] Simple allocator
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+--ca3cbzductlmj3xw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On 02/16/2017 02:20 PM, Russell King - ARM Linux wrote:
-> On Wed, Feb 15, 2017 at 06:19:02PM -0800, Steve Longerbeam wrote:
->> In version 4:
->
-> With this version, I get:
->
-> [28762.892053] imx6-mipi-csi2: LP-11 timeout, phy_state = 0x00000000
-> [28762.899409] ipu1_csi0: pipeline_set_stream failed with -110
->
+On Mon, Feb 13, 2017 at 11:01:14AM -0800, Laura Abbott wrote:
+> On 02/13/2017 10:18 AM, Mark Brown wrote:
 
-Right, in the imx219, on exit from s_power(), the clock and data lanes
-must be placed in the LP-11 state. This has been done in the ov5640 and
-tc358743 subdevs.
+> > The software defined networking people seemed to think they had a use
+> > case for this as well.  They're not entirely upstream of course but
+> > still...
 
-If we want to bring in the patch that adds a .prepare_stream() op,
-the csi-2 bus would need to be placed in LP-11 in that op instead.
+> This is the first I've heard of anything like this. Do you have any more
+> details/reading?
 
-Philipp, should I go ahead and add your .prepare_stream() patch?
+No, unfortunately it was in a meeting and I was asking for more details
+on what specifically the hardware was doing myself.  My understanding is
+that it's very similar to the GPU/video needs.
 
-Steve
+--ca3cbzductlmj3xw
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlijNDIACgkQJNaLcl1U
+h9B3lQf7BUa+Dh1H02meI/cTEqRm1tepa5VRX/5rcGCANcapSOHKBSR3fiAxwLGB
++FEPnbzS3UkMemzlNsTmEwVWlcoETmUSM+QbhnVjj8y5q+GeaIPFhKTFYhX4DwlW
+2o3eSXdGx+ANjxb+MAadzhdQPdqGh9kWy7cQQM+m+HG/uWC6UlTQVdgIX7lVxi29
+fs3IFcwszTxGC6zWxE/FTDUET8UXVOFdOE2qxrZUMC5AsKZJFokuBkOFj4QLZm71
+LXDkTshnT3C+nK/rzy0P8lSjC0w1yqVE4ldVD570VJbIUV4lmpjA8ys2AjKdgPmj
+36VAlDvR8cs2B1GF6VhweAk9ol6sZw==
+=SWXD
+-----END PGP SIGNATURE-----
+
+--ca3cbzductlmj3xw--
