@@ -1,174 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:32947 "EHLO
-        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751237AbdBEEP5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 4 Feb 2017 23:15:57 -0500
-Received: by mail-wm0-f46.google.com with SMTP id t18so25730690wmt.0
-        for <linux-media@vger.kernel.org>; Sat, 04 Feb 2017 20:15:56 -0800 (PST)
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:59061 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753078AbdBNNj3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Feb 2017 08:39:29 -0500
+Date: Tue, 14 Feb 2017 14:39:25 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: sakari.ailus@iki.fi
+Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
+        ivo.g.dimitrov.75@gmail.com
+Subject: [RFC 01/13] Core changes for CCP2/CSI1 support.
+Message-ID: <20170214133925.GA8421@amd>
 MIME-Version: 1.0
-In-Reply-To: <CAEsFdVM=d5x-ekuvQ9BtkzanPtRmZgOwkL_f4Z2UMPLT+roDzg@mail.gmail.com>
-References: <58969EF9.2000703@gmail.com> <CAEsFdVM=d5x-ekuvQ9BtkzanPtRmZgOwkL_f4Z2UMPLT+roDzg@mail.gmail.com>
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-Date: Sun, 5 Feb 2017 15:15:55 +1100
-Message-ID: <CAEsFdVNv9kfAePWokrdtqF_4k2Q2rrX5FyTvORYG-emXgSYvWw@mail.gmail.com>
-Subject: Re: Failure of ./build
-To: Bill Atwood <williamatwood41@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="bp/iNruPH9dso1Pn"
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bill
 
-with this patch I can get past the errors you are seeing. Those errors
-are happening because recent changes in the mainline kernel have not
-been reflected in the backport patches directory.
+--bp/iNruPH9dso1Pn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-[Patch] remove unneeded pr_fmt patches
+=46rom: Sakari Ailus <sakari.ailus@iki.fi>
 
-Recently  (bbdba43f) the pr_fmt macro was removed from ivtvfb.c, and
-some lirc driver
-files in staging were removed entirely (2933974c..f41003a23a). Update
-pr_fmt.patch
-to reflect those changes.
-Signed-off-by: vincent.mcintyre@gmail.com.
+CCP2, or CSI-1, is an older single data lane serial bus. Add core
+support neccessary for it.
 
-diff --git a/backports/pr_fmt.patch b/backports/pr_fmt.patch
-index edb56f5..3f374cc 100644
---- a/backports/pr_fmt.patch
-+++ b/backports/pr_fmt.patch
-@@ -322,18 +322,6 @@ index adcd09b..49382d3 100644
-  #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+---
+ include/media/v4l2-mediabus.h |  4 ++++
+ include/media/v4l2-of.h       | 17 +++++++++++++++++
+ 2 files changed, 21 insertions(+)
 
-  #include "cx25821-video.h"
--diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
--index 8b95eef..ce1cd12 100644
----- a/drivers/media/pci/ivtv/ivtvfb.c
--+++ b/drivers/media/pci/ivtv/ivtvfb.c
--@@ -38,6 +38,7 @@
--     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
--  */
--
--+#undef pr_fmt
-- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
--
-- #include <linux/module.h>
- diff --git a/drivers/media/pci/saa7134/saa7134.h
-b/drivers/media/pci/saa7134/saa7134.h
- index 3849083..957d000 100644
- --- a/drivers/media/pci/saa7134/saa7134.h
-@@ -1270,42 +1258,6 @@ index 5f7254d..8606ced 100644
-  #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-
-  #include <linux/input.h>
--diff --git a/drivers/staging/media/lirc/lirc_bt829.c
-b/drivers/staging/media/lirc/lirc_bt829.c
--index 44f5655..a45dd88 100644
----- a/drivers/staging/media/lirc/lirc_bt829.c
--+++ b/drivers/staging/media/lirc/lirc_bt829.c
--@@ -18,6 +18,7 @@
--  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-- */
--
--+#undef pr_fmt
-- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
--
-- #include <linux/kernel.h>
--diff --git a/drivers/staging/media/lirc/lirc_imon.c
-b/drivers/staging/media/lirc/lirc_imon.c
--index a183e68..adad0cd 100644
----- a/drivers/staging/media/lirc/lirc_imon.c
--+++ b/drivers/staging/media/lirc/lirc_imon.c
--@@ -20,6 +20,7 @@
--  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
--  */
--
--+#undef pr_fmt
-- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
--
-- #include <linux/errno.h>
--diff --git a/drivers/staging/media/lirc/lirc_parallel.c
-b/drivers/staging/media/lirc/lirc_parallel.c
--index 3906ac6..b554d48 100644
----- a/drivers/staging/media/lirc/lirc_parallel.c
--+++ b/drivers/staging/media/lirc/lirc_parallel.c
--@@ -22,6 +22,7 @@
--  *
--  */
--
--+#undef pr_fmt
-- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
--
-- /*** Includes ***/
- diff --git a/drivers/staging/media/lirc/lirc_sasem.c
-b/drivers/staging/media/lirc/lirc_sasem.c
- index b080fde..baa93b9 100644
- --- a/drivers/staging/media/lirc/lirc_sasem.c
+diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+index 34cc99e..315c167 100644
+--- a/include/media/v4l2-mediabus.h
++++ b/include/media/v4l2-mediabus.h
+@@ -69,11 +69,15 @@
+  * @V4L2_MBUS_PARALLEL:	parallel interface with hsync and vsync
+  * @V4L2_MBUS_BT656:	parallel interface with embedded synchronisation, can
+  *			also be used for BT.1120
++ * @V4L2_MBUS_CSI1:	MIPI CSI-1 serial interface
++ * @V4L2_MBUS_CCP2:	CCP2 (Compact Camera Port 2)
+  * @V4L2_MBUS_CSI2:	MIPI CSI-2 serial interface
+  */
+ enum v4l2_mbus_type {
+ 	V4L2_MBUS_PARALLEL,
+ 	V4L2_MBUS_BT656,
++	V4L2_MBUS_CSI1,
++	V4L2_MBUS_CCP2,
+ 	V4L2_MBUS_CSI2,
+ };
+=20
+diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
+index 4dc34b2..63a52ee 100644
+--- a/include/media/v4l2-of.h
++++ b/include/media/v4l2-of.h
+@@ -53,6 +53,22 @@ struct v4l2_of_bus_parallel {
+ };
+=20
+ /**
++ * struct v4l2_of_bus_csi1 - CSI-1/CCP2 data bus structure
++ * @clock_inv: polarity of clock/strobe signal
++ *	       false - not inverted, true - inverted
++ * @strobe: false - data/clock, true - data/strobe
++ * @data_lane: the number of the data lane
++ * @clock_lane: the number of the clock lane
++ */
++struct v4l2_of_bus_mipi_csi1 {
++	bool clock_inv;
++	bool strobe;
++	bool lane_polarity[2];
++	unsigned char data_lane;
++	unsigned char clock_lane;
++};
++
++/**
+  * struct v4l2_of_endpoint - the endpoint data structure
+  * @base: struct of_endpoint containing port, id, and local of_node
+  * @bus_type: bus type
+@@ -66,6 +82,7 @@ struct v4l2_of_endpoint {
+ 	enum v4l2_mbus_type bus_type;
+ 	union {
+ 		struct v4l2_of_bus_parallel parallel;
++		struct v4l2_of_bus_mipi_csi1 mipi_csi1;
+ 		struct v4l2_of_bus_mipi_csi2 mipi_csi2;
+ 	} bus;
+ 	u64 *link_frequencies;
+--=20
+2.1.4
 
 
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-However - when I apply the above, the build still falls over, at:
+--bp/iNruPH9dso1Pn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-  CC [M]  /home/me/git/clones/media_build/v4l/lgdt3306a.o
-/home/me/git/clones/media_build/v4l/lgdt3306a.c: In function 'lgdt3306a_select':
-/home/me/git/clones/media_build/v4l/lgdt3306a.c:2140:30: error:
-implicit declaration of function 'i2c_mux_priv'
-[-Werror=implicit-function-declaration]
-  struct i2c_client *client = i2c_mux_priv(muxc);
-                              ^
-/home/me/git/clones/media_build/v4l/lgdt3306a.c:2140:30: warning:
-initialization makes pointer from integer without a cast
-[-Wint-conversion]
-/home/me/git/clones/media_build/v4l/lgdt3306a.c: In function
-'lgdt3306a_deselect':
-/home/me/git/clones/media_build/v4l/lgdt3306a.c:2148:30: warning:
-initialization makes pointer from integer without a cast
-[-Wint-conversion]
-  struct i2c_client *client = i2c_mux_priv(muxc);
-                              ^
-/home/me/git/clones/media_build/v4l/lgdt3306a.c: In function 'lgdt3306a_probe':
-/home/me/git/clones/media_build/v4l/lgdt3306a.c:2182:16: error:
-implicit declaration of function 'i2c_mux_alloc'
-[-Werror=implicit-function-declaration]
-  state->muxc = i2c_mux_alloc(client->adapter, &client->dev,
-                ^
-/home/me/git/clones/media_build/v4l/lgdt3306a.c:2183:13: error:
-'I2C_MUX_LOCKED' undeclared (first use in this function)
-       1, 0, I2C_MUX_LOCKED,
-             ^
-/home/me/git/clones/media_build/v4l/lgdt3306a.c:2183:13: note: each
-undeclared identifier is reported only once for each function it
-appears in
-/home/me/git/clones/media_build/v4l/lgdt3306a.c:2189:13: error:
-dereferencing pointer to incomplete type 'struct i2c_mux_core'
-  state->muxc->priv = client;
-             ^
-/home/me/git/clones/media_build/v4l/lgdt3306a.c:2190:8: error:
-implicit declaration of function 'i2c_mux_add_adapter'
-[-Werror=implicit-function-declaration]
-  ret = i2c_mux_add_adapter(state->muxc, 0, 0, 0);
-        ^
-/home/me/git/clones/media_build/v4l/lgdt3306a.c: In function 'lgdt3306a_remove':
-/home/me/git/clones/media_build/v4l/lgdt3306a.c:2214:2: error:
-implicit declaration of function 'i2c_mux_del_adapters'
-[-Werror=implicit-function-declaration]
-  i2c_mux_del_adapters(state->muxc);
-  ^
-cc1: some warnings being treated as errors
-scripts/Makefile.build:264: recipe for target
-'/home/me/git/clones/media_build/v4l/lgdt3306a.o' failed
-make[3]: *** [/home/me/git/clones/media_build/v4l/lgdt3306a.o] Error 1
-Makefile:1420: recipe for target
-'_module_/home/me/git/clones/media_build/v4l' failed
-make[2]: *** [_module_/home/me/git/clones/media_build/v4l] Error 2
-make[2]: Leaving directory '/usr/src/linux-headers-4.4.0-59-generic'
-Makefile:51: recipe for target 'default' failed
-make[1]: *** [default] Error 2
-make[1]: Leaving directory '/home/me/git/clones/media_build/v4l'
-Makefile:26: recipe for target 'all' failed
-make: *** [all] Error 2
-build failed at ./build line 491, <IN> line 4.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Fixing this is presently beyond me.
-Kind regards
-Vince
+iEYEARECAAYFAlijCI0ACgkQMOfwapXb+vJTDACeOgxQj74tfps9cjdbYqOjxHrT
+0PoAn3teyCiJzS1zHUJvnwLjbnUugbtR
+=hVuq
+-----END PGP SIGNATURE-----
+
+--bp/iNruPH9dso1Pn--
