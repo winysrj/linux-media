@@ -1,194 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:50752 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751364AbdB0R15 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Feb 2017 12:27:57 -0500
-Subject: Re: [PATCHv4 1/9] video: add hotplug detect notifier support
-To: Russell King - ARM Linux <linux@armlinux.org.uk>,
-        Daniel Vetter <daniel@ffwll.ch>
-References: <20170206102951.12623-1-hverkuil@xs4all.nl>
- <20170206102951.12623-2-hverkuil@xs4all.nl>
- <20170227160841.3pgmpqwtidvjbnzn@phenom.ffwll.local>
- <20170227170454.GA21222@n2100.armlinux.org.uk>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        dri-devel@lists.freedesktop.org,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <bdc5a7a5-301d-c375-cbc0-6c119f06afc1@xs4all.nl>
-Date: Mon, 27 Feb 2017 18:21:05 +0100
-MIME-Version: 1.0
-In-Reply-To: <20170227170454.GA21222@n2100.armlinux.org.uk>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Received: from mga11.intel.com ([192.55.52.93]:56882 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752330AbdBNMV6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Feb 2017 07:21:58 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: pavel@ucw.cz
+Subject: [PATCH v3 0/2] v4l: Add camera voice coil lens control class, current control
+Date: Tue, 14 Feb 2017 14:20:21 +0200
+Message-Id: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/27/2017 06:04 PM, Russell King - ARM Linux wrote:
-> On Mon, Feb 27, 2017 at 05:08:41PM +0100, Daniel Vetter wrote:
->> On Mon, Feb 06, 2017 at 11:29:43AM +0100, Hans Verkuil wrote:
->>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>
->>> Add support for video hotplug detect and EDID/ELD notifiers, which is used
->>> to convey information from video drivers to their CEC and audio counterparts.
->>>
->>> Based on an earlier version from Russell King:
->>>
->>> https://patchwork.kernel.org/patch/9277043/
->>>
->>> The hpd_notifier is a reference counted object containing the HPD/EDID/ELD state
->>> of a video device.
->>>
->>> When a new notifier is registered the current state will be reported to
->>> that notifier at registration time.
->>>
->>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>> Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
->>
->> So I'm super late to the party because I kinda ignored all things CEC thus
->> far. Ḯ'm not sure this is a great design, with two main concerns:
-> 
-> I'm afraid that I walked away from this after it became clear that there
-> was little hope for any forward progress being made in a timely manner
-> for multiple reasons (mainly the core CEC code being out of mainline.)
+Hello everyone,
 
-In case you missed it: the core CEC code was moved out of staging and into
-mainline in 4.10.
+I wanted to refresh my voice coil lens patchset before we have more voice 
+coil lens controller drivers. The VOCUS_ABSOLUTE control really is not a
+best control ID to control a voice coil driver's current. 
 
-> 
-> The original notifier was created in August 2015, before there was any
-> "hdmi codec" support or anything of the like.  At some point (I'm not
-> sure when) Philipp gave his ack on it, and I definitely know it was
-> subsequently posted for RFC in August 2016.  We're now 1.5 years after
-> its creation, 7 months after it was definitely publically posted to
-> dri-devel, and you've only just said that you don't like the approach...
-> 
-> Anyway, the hdmi-codec header you point at is only relevant when you
-> have a driver using ASoC and you have the codec part tightly integrated
-> with your HDMI interface.  That generally works fine there, because
-> generally they are on the same device, and are very dependent (due to
-> the need to know the HDMI bus clock.)
-> 
-> The same is not true of CEC though - for example, the TDA998x is
-> actually two devices - the HDMI bridge, and an entirely separate
-> TDA9950 CEC device.  They may be in the same package, but the TDA9950
-> was available as an entirely separate device.  The reason that is the
-> case is because they are entirely separate entities as far as
-> functionality goes: nothing on the CEC communication side electrically
-> depends on the HDMI bus itself.  The only common thing in common is
-> the connector.
-> 
-> From the protocol point of view, CEC requires the "physical address"
-> of a device, and that is part of the EDID information from the HDMI
-> device - so CEC needs to have access to the EDID.  CEC also needs to
-> know when if/when the EDID information is updated, or when connection/
-> disconnection events occur so that it can re-negotiate its "logical
-> address", and update for any physical address changes.
-> 
-> For example, if you have a CEC device connected to an AV receiver,
-> which is in turn connected to a TV, and the TV is powered down but
-> the AV receiver is powered up, then the AV receiver will give all
-> devices connected to it a physical address to the best of its
-> knowledge.  Turn the TV on, and the physical address will change
-> (especially so if the AV receiver has been moved between different
-> inputs on the TV.)
-> 
-> This all needs the HDMI driver to _notify_ the CEC part of these state
-> changes - you can't get away from the need to _notify_ these events.
-> 
-> So, what we need is:
-> 
-> (a) some way for CEC to be _notified_ of all HPD change events
-> (b) some way for CEC to query the EDID in a race free manner w.r.t. HPD
-> 
-> (a) pretty much involves some kind of notification system.  It doesn't
-> matter whether it's a real notifier, or a struct of function pointers,
-> the effect is going to be the same no matter what - the basic requirement
-> is that we run some code in the CEC side when a HPD state change occurs.
-> Given that, what you seem to be objecting to (wrt locking on this) is
-> against the fundamental requirement that CEC needs to track the HPD
-> state.
-> 
-> (b) can be done in other ways, but I'd suggest reversing the design (iow,
-> having CEC explicitly query the HDMI part for the current EDID) is more
-> racy than having the HDMI part notify CEC - you have the situation where
-> CEC could be querying the EDID on one CPU while HDMI on another CPU is
-> saying that the HPD changed state.
-> 
-> The query approach also carries with it a whole new set of locking issues,
-> because we can get into this situation:
-> 
->  HDMI              CEC
->   --- HPD insert --->
->   <--- EDID read ----
-> 
-> The problem then is that if HDMI holds a lock while sending the HPD insert
-> message, and it tries to take the same lock when supplying the EDID back
-> to CEC, you have an immediate deadlock.
-> 
-> So, given that HDMI needs to notify CEC about HPD changes, it also makes
-> sense to keep the overall flow of data the same for everything - avoid
-> back-queries, and have HDMI notify CEC of the new EDID.
-> 
-> It also avoids the problem where we may see HPD assert, but it may take
-> some time for the EDID to become available from HDMI (eg, in the case
-> of TDA998x, we have to wait a while before even attempting to read the
-> EDID.)
-> 
-> The last point on EDID is one about the source of the EDID (eg, firmware-
-> loaded EDID from disk).  That won't work for CEC, since loading a fixed
-> EDID off disk will not give the correct physical address, and so HDMI
-> routing will break.  That could be worked around by having userspace
-> modify the loaded EDID, but that sounds like making the job unnecessarily
-> hard, when the correct information is only available in the sink's EDID.
-> 
-> When I created the notifier, the obvious problem was how does a driver
-> receiving a notify message know that it should process that message -
-> and I chose to supply the source "struct device" with each message.
-> This would be the HDMI interface itself, and using "struct device"
-> gives a firmware/no-firmware independent way of identifying the source.
-> 
-> For cases like the TDA998x and dw-hdmi, firmware doesn't get involved
-> with this: in both cases, the drivers declare their CEC device as a
-> platform device, so the relationship between the two struct device's
-> is known.  In the case of a stand-alone TDA9950, then the struct
-> device for the HDMI side needs to be indicated by firmware, and it's
-> possible to get the struct device corresponding with a firmware node.
-> 
-> For setups like i915, I would not expect i915 to want to use this, as
-> I would imagine that (if they did support CEC) CEC would be tightly
-> integrated, following the pattern of ultra-tight integration of
-> everything in i915 hardware (it seems to program everything through
-> the GPU stream.)
+There may be additional controls in the class: the hardware I'm familiar
+with provides other controls (PWM vs. linear mode, resonance frequency and
+ringing compensation formula to name a few) but I'm not fully certain 
+they're something that even should be told to the user --- let alone
+giving the user write access to them. 
 
-Absolutely true. From what I've seen there are two types of CEC hardware
-implementations: either tightly integrated in the HDMI IP (in which case
-you would call the CEC framework directly, without requiring a notifier
-framework), or it is entirely decoupled in which case a notifier is
-IMHO the best approach.
+My expectation is still that there will be more controls in the class. The
+PWM / linear mode might be one candidate: PWM saves power but it may cause
+other issues. These other issues might be something to ignore, depending
+on the use case. That will be anyway left for the future. 
 
-> If you can think of a better approach, then I'm sure there's lots of
-> people who'd be willing to do the coding for it... if not, I'm not
-> sure where we go from here (apart from keeping code in private/vendor
-> trees.)
+since v2:
 
-For CEC there are just two things that it needs: the physical address
-(contained in the EDID) and it needs to be informed when the EDID disappears
-(typically due to a disconnect), in which case the physical address
-becomes invalid (f.f.f.f).
+- Don't remove the newline after control class definitions.
 
-Russell, do you have pending code that needs the ELD support in the notifier?
-CEC doesn't need it, so from my perspective it can be dropped in the first
-version.
+- Move all ad5820 related changes to the second patch. Some were
+  accidentally left to the patch adding the new control class.
 
-It is also possible to have the notifier parse and store the physical address
-rather than the whole EDID to slim it down further. Personally I have no
-preference. All I need is the physical address :-)
-
-Regards,
-
-	Hans
+-- 
+Kind regards,
+Sakari
