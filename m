@@ -1,86 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:54826 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753138AbdBDBEP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Feb 2017 20:04:15 -0500
-Date: Sat, 4 Feb 2017 02:04:06 +0100
-From: Sebastian Reichel <sre@kernel.org>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, robh+dt@kernel.org,
-        devicetree@vger.kernel.org, ivo.g.dimitrov.75@gmail.com,
-        linux-media@vger.kernel.org, galak@codeaurora.org,
-        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] devicetree: Add video bus switch
-Message-ID: <20170204010406.piycm675bm7r6vv6@earth>
-References: <20161023200355.GA5391@amd>
- <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
- <20161214122451.GB27011@amd>
- <20161222100104.GA30917@amd>
- <20161222133938.GA30259@amd>
- <20161224152031.GA8420@amd>
- <20170203123508.GA10286@amd>
- <20170203133219.GD26759@pali>
- <20170203210728.GB18379@amd>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="wwo6u4ofpcf75nb4"
-Content-Disposition: inline
-In-Reply-To: <20170203210728.GB18379@amd>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:39235 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752188AbdBNHwX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Feb 2017 02:52:23 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Subject: [PATCH 13/15] media: s5p-mfc: Remove special configuration of IOMMU
+ domain
+Date: Tue, 14 Feb 2017 08:52:06 +0100
+Message-id: <1487058728-16501-14-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
+References: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170214075220eucas1p1451535e571c481c69aacec705a782c09@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The main reason for using special configuration of IOMMU domain was the
+problem with MFC firmware, which failed to operate properly when placed
+at 0 DMA address. Instead of adding custom code for configuring each
+variant of IOMMU domain and architecture specific glue code, simply use
+what arch code provides and if the DMA base address equals zero, skip
+first 128 KiB to keep required alignment. This patch also make the driver
+operational on ARM64 architecture, because it no longer depends on ARM
+specific DMA-mapping and IOMMU glue code functions.
 
---wwo6u4ofpcf75nb4
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c       | 30 +++++++--------
+ drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h | 51 +-------------------------
+ 2 files changed, 14 insertions(+), 67 deletions(-)
 
-Hi,
-
-On Fri, Feb 03, 2017 at 10:07:28PM +0100, Pavel Machek wrote:
-> On Fri 2017-02-03 14:32:19, Pali Roh=E1r wrote:
-> > On Friday 03 February 2017 13:35:08 Pavel Machek wrote:
-> > > N900 contains front and back camera, with a switch between the
-> > > two. This adds support for the switch component, and it is now
-> > > possible to select between front and back cameras during runtime.
-> >=20
-> > IIRC for controlling cameras on N900 there are two GPIOs. Should
-> > not you have both in switch driver?
->
-> I guess you recall wrongly :-). Switch seems to work. The issue was
-> with switch GPIO also serving as reset GPIO for one sensor, or
-> something like that, if _I_ recall correctly ;-).
-
-I have a schematic in my master thesis, which shows how the camera
-sensors are connected to the SoC. The PDF is available here:
-
-https://www.uni-oldenburg.de/fileadmin/user_upload/informatik/ag/svs/downlo=
-ad/thesis/Reichel_Sebastian.pdf
-
-The schematic is on page 37 (or 45 if your PDF reader does not
-use different numbers for the preamble stuff).
-
---Sebastian
-
---wwo6u4ofpcf75nb4
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAliVKIMACgkQ2O7X88g7
-+pqQhA/+MvS+RlBq5lSlWktwYMY6QAuIMzNUgR+1iWcPQPuvnTBIV5Aq4RmKGxQ4
-PlK1ToFJcF942ZTAKh+LV9JzMi199diZq+m59s07cVXDshKajLU0/UImDbZkDm2+
-/t1Bw+r3jKnInzgWzFEusJXUoRZ47TDw8HBY9t1CkplGf5pNl+s0jJ96wR72ddmN
-K0EGvamtelyzr9iYqQpolCp39TVyr5+ewCF2jipP5dBS8rOiQks4QIRpHQ6TjoaK
-2q15y4/WCdRHyY0Jc22d38TzeKSbFLsDbnRDEN/s3ll2kyYyU2X9kAfm/V2WGOaW
-xs0qWPrpPsisjlJWAQ7k85ocbep7FABt+m/LdBkoy2s/b+LdQ2DvuR/2VHc0brNq
-MXOgqwPixU4QTHFmlriBtfBcqTXXtJRYJxMNh89AmjNOIstjPvDQubs6IJ3RMbyD
-iss3CRWOLHusUsHmSWRVXql8OaTB6Wuvw/pLLEfDNYtBs4VFBGWd0Kmp0OChmU28
-l+SlALxtXpDmbtW4+ku2pRZHrim904mxgAm3R9YqDrdc1/Fu/Eztp3CbbC6hRGV1
-xMNjT3kE4MUakFS5w6Up4cZwzr+Fws4piaf8f7Npm92LTqFyl1O9oV7fnPU3ol5w
-Rk9bciU3EJP3yltb6ff4V25l63lS4evfVXYvZ3Zcm+xkqYx/75I=
-=Z4E1
------END PGP SIGNATURE-----
-
---wwo6u4ofpcf75nb4--
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 7492e81fde6d..8fc6fe4ba087 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1180,18 +1180,6 @@ static int s5p_mfc_configure_common_memory(struct s5p_mfc_dev *mfc_dev)
+ 	struct device *dev = &mfc_dev->plat_dev->dev;
+ 	unsigned long mem_size = SZ_8M;
+ 	unsigned int bitmap_size;
+-	/*
+-	 * When IOMMU is available, we cannot use the default configuration,
+-	 * because of MFC firmware requirements: address space limited to
+-	 * 256M and non-zero default start address.
+-	 * This is still simplified, not optimal configuration, but for now
+-	 * IOMMU core doesn't allow to configure device's IOMMUs channel
+-	 * separately.
+-	 */
+-	int ret = exynos_configure_iommu(dev, S5P_MFC_IOMMU_DMA_BASE,
+-					 S5P_MFC_IOMMU_DMA_SIZE);
+-	if (ret)
+-		return ret;
+ 
+ 	if (mfc_mem_size)
+ 		mem_size = memparse(mfc_mem_size, NULL);
+@@ -1199,10 +1187,8 @@ static int s5p_mfc_configure_common_memory(struct s5p_mfc_dev *mfc_dev)
+ 	bitmap_size = BITS_TO_LONGS(mem_size >> PAGE_SHIFT) * sizeof(long);
+ 
+ 	mfc_dev->mem_bitmap = kzalloc(bitmap_size, GFP_KERNEL);
+-	if (!mfc_dev->mem_bitmap) {
+-		exynos_unconfigure_iommu(dev);
++	if (!mfc_dev->mem_bitmap)
+ 		return -ENOMEM;
+-	}
+ 
+ 	mfc_dev->mem_virt = dma_alloc_coherent(dev, mem_size,
+ 					       &mfc_dev->mem_base, GFP_KERNEL);
+@@ -1210,13 +1196,24 @@ static int s5p_mfc_configure_common_memory(struct s5p_mfc_dev *mfc_dev)
+ 		kfree(mfc_dev->mem_bitmap);
+ 		dev_err(dev, "failed to preallocate %ld MiB for the firmware and context buffers\n",
+ 			(mem_size / SZ_1M));
+-		exynos_unconfigure_iommu(dev);
+ 		return -ENOMEM;
+ 	}
+ 	mfc_dev->mem_size = mem_size;
+ 	mfc_dev->dma_base[BANK1_CTX] = mfc_dev->mem_base;
+ 	mfc_dev->dma_base[BANK2_CTX] = mfc_dev->mem_base;
+ 
++	/*
++	 * MFC hardware cannot handle 0 as a base address, so mark first 128K
++	 * as used (to keep required base alignment) and adjust base address
++	 */
++	if (mfc_dev->mem_base == (dma_addr_t)0) {
++		unsigned int offset = 1 << MFC_BASE_ALIGN_ORDER;
++
++		bitmap_set(mfc_dev->mem_bitmap, 0, offset >> PAGE_SHIFT);
++		mfc_dev->dma_base[BANK1_CTX] += offset;
++		mfc_dev->dma_base[BANK2_CTX] += offset;
++	}
++
+ 	/* Firmware allocation cannot fail in this case */
+ 	s5p_mfc_alloc_firmware(mfc_dev);
+ 
+@@ -1233,7 +1230,6 @@ static void s5p_mfc_unconfigure_common_memory(struct s5p_mfc_dev *mfc_dev)
+ {
+ 	struct device *dev = &mfc_dev->plat_dev->dev;
+ 
+-	exynos_unconfigure_iommu(dev);
+ 	dma_free_coherent(dev, mfc_dev->mem_size, mfc_dev->mem_virt,
+ 			  mfc_dev->mem_base);
+ 	kfree(mfc_dev->mem_bitmap);
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h b/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h
+index 6962132ae8fa..76667924ee2a 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h
+@@ -11,54 +11,13 @@
+ #ifndef S5P_MFC_IOMMU_H_
+ #define S5P_MFC_IOMMU_H_
+ 
+-#define S5P_MFC_IOMMU_DMA_BASE	0x20000000lu
+-#define S5P_MFC_IOMMU_DMA_SIZE	SZ_256M
+-
+-#if defined(CONFIG_EXYNOS_IOMMU) && defined(CONFIG_ARM_DMA_USE_IOMMU)
+-
+-#include <asm/dma-iommu.h>
++#if defined(CONFIG_EXYNOS_IOMMU)
+ 
+ static inline bool exynos_is_iommu_available(struct device *dev)
+ {
+ 	return dev->archdata.iommu != NULL;
+ }
+ 
+-static inline void exynos_unconfigure_iommu(struct device *dev)
+-{
+-	struct dma_iommu_mapping *mapping = to_dma_iommu_mapping(dev);
+-
+-	arm_iommu_detach_device(dev);
+-	arm_iommu_release_mapping(mapping);
+-}
+-
+-static inline int exynos_configure_iommu(struct device *dev,
+-					 unsigned int base, unsigned int size)
+-{
+-	struct dma_iommu_mapping *mapping = NULL;
+-	int ret;
+-
+-	/* Disable the default mapping created by device core */
+-	if (to_dma_iommu_mapping(dev))
+-		exynos_unconfigure_iommu(dev);
+-
+-	mapping = arm_iommu_create_mapping(dev->bus, base, size);
+-	if (IS_ERR(mapping)) {
+-		pr_warn("Failed to create IOMMU mapping for device %s\n",
+-			dev_name(dev));
+-		return PTR_ERR(mapping);
+-	}
+-
+-	ret = arm_iommu_attach_device(dev, mapping);
+-	if (ret) {
+-		pr_warn("Failed to attached device %s to IOMMU_mapping\n",
+-				dev_name(dev));
+-		arm_iommu_release_mapping(mapping);
+-		return ret;
+-	}
+-
+-	return 0;
+-}
+-
+ #else
+ 
+ static inline bool exynos_is_iommu_available(struct device *dev)
+@@ -66,14 +25,6 @@ static inline bool exynos_is_iommu_available(struct device *dev)
+ 	return false;
+ }
+ 
+-static inline int exynos_configure_iommu(struct device *dev,
+-					 unsigned int base, unsigned int size)
+-{
+-	return -ENOSYS;
+-}
+-
+-static inline void exynos_unconfigure_iommu(struct device *dev) { }
+-
+ #endif
+ 
+ #endif /* S5P_MFC_IOMMU_H_ */
+-- 
+1.9.1
