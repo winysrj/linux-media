@@ -1,79 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36932 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751912AbdBYXSM (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:58825 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751875AbdBNWFu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Feb 2017 18:18:12 -0500
-Date: Sun, 26 Feb 2017 01:17:55 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        Tue, 14 Feb 2017 17:05:50 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Pavel Machek <pavel@ucw.cz>, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
         mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
-Subject: Re: camera subdevice support was Re: [PATCH 1/4] v4l2:
- device_register_subdev_nodes: allow calling multiple times
-Message-ID: <20170225231754.GY16975@valkosipuli.retiisi.org.uk>
-References: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz>
- <20170220103114.GA9800@amd>
- <20170220130912.GT16975@valkosipuli.retiisi.org.uk>
- <20170220135636.GU16975@valkosipuli.retiisi.org.uk>
- <20170221110721.GD5021@amd>
- <20170221111104.GD16975@valkosipuli.retiisi.org.uk>
- <20170225000918.GB23662@amd>
- <20170225134444.6qzumpvasaow5qoj@ihha.localdomain>
- <20170225215321.GA29886@amd>
+Subject: Re: [RFC 07/13] v4l2: device_register_subdev_nodes: allow calling multiple times
+Date: Wed, 15 Feb 2017 00:06:17 +0200
+Message-ID: <2486504.jaU8nJZtu6@avalon>
+In-Reply-To: <20170214220256.GN16975@valkosipuli.retiisi.org.uk>
+References: <20170214134000.GA8550@amd> <20170214220256.GN16975@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170225215321.GA29886@amd>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moi! :-)
+Hi Sakari,
 
-On Sat, Feb 25, 2017 at 10:53:22PM +0100, Pavel Machek wrote:
-> Hi!
-> 
-> > > Ok, I got the camera sensor to work. No subdevices support, so I don't
-> > > have focus (etc) working, but that's a start. I also had to remove
-> > > video-bus-switch support; but I guess it will be easier to use
-> > > video-multiplexer patches... 
-> > > 
-> > > I'll have patches over weekend.
+On Wednesday 15 Feb 2017 00:02:57 Sakari Ailus wrote:
+> On Tue, Feb 14, 2017 at 02:40:00PM +0100, Pavel Machek wrote:
+> > From: Sebastian Reichel <sre@kernel.org>
 > > 
-> > I briefly looked at what's there --- you do miss the video nodes for the
-> > non-sensor sub-devices, and they also don't show up in the media graph,
-> > right?
-> 
-> Yes.
-> 
-> > I guess they don't end up matching in the async list.
-> 
-> How should they get to the async list?
-
-The patch you referred to does that. The problem is, it does make the bus
-configuration a pointer as well. There should be two patches. That's not a
-lot of work to separate them though. But it should be done.
-
-> 
-> > I think we need to make the non-sensor sub-device support more generic;
-> > it's not just the OMAP 3 ISP that needs it. I think we need to document
-> > the property for the flash phandle as well; I can write one, or refresh
-> > an existing one that I believe already exists.
+> > Without this, exposure / gain controls do not work in the camera
+> > application.:
+> :-)
+> :
+> > Signed-off-by: Sebastian Reichel <sre@kernel.org>
+> > Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> > ---
 > > 
-> > How about calling it either simply "flash" or "camera-flash"? Similarly
-> > for lens: "lens" or "camera-lens". I have a vague feeling the "camera-"
-> > prefix is somewhat redundant, so I'd just go for "flash" or "lens".
+> >  drivers/media/v4l2-core/v4l2-device.c | 3 +++
+> >  1 file changed, 3 insertions(+)
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-device.c
+> > b/drivers/media/v4l2-core/v4l2-device.c index f364cc1..b3afbe8 100644
+> > --- a/drivers/media/v4l2-core/v4l2-device.c
+> > +++ b/drivers/media/v4l2-core/v4l2-device.c
+> > @@ -235,6 +235,9 @@ int v4l2_device_register_subdev_nodes(struct
+> > v4l2_device *v4l2_dev)
+> >  		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE))
+> >  			continue;
+> > 
+> > +		if(sd->devnode)
+> > +			continue;
 > 
-> Actually, I'd go for "flash" and "focus-coil". There may be other
-> lens properties, such as zoom, mirror movement, lens identification,
-> ...
+> This has been recognised as a problem but you're the first to submit a patch
+> I believe. Please add an appropriate description. :-)
+> 
+> s/if\(/if (/
+> 
+> I think this one should go in before the rest.
 
-Good point. Still there may be other ways to move the lens than the voice
-coil (which sure is cheap), so how about "flash" and "lens-focus"?
+But how can this happen ? Is v4l2_device_register_subdev_nodes() called 
+multiple times ? Do we want to allow that ?
+
+> > +
+> >  		vdev = kzalloc(sizeof(*vdev), GFP_KERNEL);
+> >  		if (!vdev) {
+> >  			err = -ENOMEM;
 
 -- 
 Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Laurent Pinchart
