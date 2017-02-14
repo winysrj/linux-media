@@ -1,136 +1,239 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx-out-2.rwth-aachen.de ([134.130.5.187]:62246 "EHLO
-        mx-out-2.rwth-aachen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751225AbdBLP0i (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55504 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750923AbdBNV5n (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 12 Feb 2017 10:26:38 -0500
-From: =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>
-To: <linux-media@vger.kernel.org>
-CC: <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Antti Palosaari <crope@iki.fi>,
-        =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>
-Subject: [PATCH 1/3] [media] si2157: Add support for Si2141-A10
-Date: Sun, 12 Feb 2017 16:26:26 +0100
-In-Reply-To: <20170212152628.25383-1-stefan.bruens@rwth-aachen.de>
-References: <20170212152628.25383-1-stefan.bruens@rwth-aachen.de>
+        Tue, 14 Feb 2017 16:57:43 -0500
+Date: Tue, 14 Feb 2017 23:57:38 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
+Subject: Re: [RFC 06/13] v4l2-async: per notifier locking
+Message-ID: <20170214215737.GM16975@valkosipuli.retiisi.org.uk>
+References: <20170214133956.GA8530@amd>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Message-ID: <8e8fe162466c417a930c519f32b2c077@rwthex-w2-b.rwth-ad.de>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170214133956.GA8530@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Si2141 needs two distinct commands for powerup/reset, otherwise it
-will not respond to chip revision requests. It also needs a firmware
-to run properly.
+Hi Pavel and Sebastian,
 
-Signed-off-by: Stefan Brüns <stefan.bruens@rwth-aachen.de>
----
- drivers/media/tuners/si2157.c      | 23 +++++++++++++++++++++--
- drivers/media/tuners/si2157_priv.h |  2 ++
- 2 files changed, 23 insertions(+), 2 deletions(-)
+On Tue, Feb 14, 2017 at 02:39:56PM +0100, Pavel Machek wrote:
+> From: Sebastian Reichel <sre@kernel.org>
+> 
+> Without this, camera support breaks boot on N900.
+> 
+> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 54 ++++++++++++++++++------------------
+>  include/media/v4l2-async.h           |  2 ++
+>  2 files changed, 29 insertions(+), 27 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index 96cc733..26492a2 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -57,7 +57,6 @@ static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+>  
+>  static LIST_HEAD(subdev_list);
+>  static LIST_HEAD(notifier_list);
+> -static DEFINE_MUTEX(list_lock);
+>  
+>  static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
+>  						    struct v4l2_subdev *sd)
+> @@ -102,12 +101,15 @@ static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
+>  
+>  	if (notifier->bound) {
+>  		ret = notifier->bound(notifier, sd, asd);
+> -		if (ret < 0)
+> +		if (ret < 0) {
+> +			dev_warn(notifier->v4l2_dev->dev, "subdev bound failed\n");
+>  			return ret;
+> +		}
+>  	}
+>  
+>  	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
+>  	if (ret < 0) {
+> +		dev_warn(notifier->v4l2_dev->dev, "subdev register failed\n");
+>  		if (notifier->unbind)
+>  			notifier->unbind(notifier, sd, asd);
+>  		return ret;
+> @@ -141,7 +143,7 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+>  {
+>  	struct v4l2_subdev *sd, *tmp;
+>  	struct v4l2_async_subdev *asd;
+> -	int i;
+> +	int ret = 0, i;
+>  
+>  	if (!notifier->num_subdevs || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+>  		return -EINVAL;
+> @@ -149,6 +151,7 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+>  	notifier->v4l2_dev = v4l2_dev;
+>  	INIT_LIST_HEAD(&notifier->waiting);
+>  	INIT_LIST_HEAD(&notifier->done);
+> +	mutex_init(&notifier->lock);
+>  
+>  	for (i = 0; i < notifier->num_subdevs; i++) {
+>  		asd = notifier->subdevs[i];
+> @@ -168,28 +171,22 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+>  		list_add_tail(&asd->list, &notifier->waiting);
+>  	}
+>  
+> -	mutex_lock(&list_lock);
+> +	/* Keep also completed notifiers on the list */
+> +	list_add(&notifier->list, &notifier_list);
+> +	mutex_lock(&notifier->lock);
+>  
+>  	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
+> -		int ret;
+> -
+>  		asd = v4l2_async_belongs(notifier, sd);
+>  		if (!asd)
+>  			continue;
+>  
+>  		ret = v4l2_async_test_notify(notifier, sd, asd);
+> -		if (ret < 0) {
+> -			mutex_unlock(&list_lock);
+> -			return ret;
+> -		}
+> +		if (ret < 0)
+> +			break;
+>  	}
+> +	mutex_unlock(&notifier->lock);
+>  
+> -	/* Keep also completed notifiers on the list */
+> -	list_add(&notifier->list, &notifier_list);
+> -
+> -	mutex_unlock(&list_lock);
+> -
+> -	return 0;
+> +	return ret;
+>  }
+>  EXPORT_SYMBOL(v4l2_async_notifier_register);
+>  
+> @@ -210,7 +207,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+>  			"Failed to allocate device cache!\n");
+>  	}
+>  
+> -	mutex_lock(&list_lock);
+> +	mutex_lock(&notifier->lock);
+>  
+>  	list_del(&notifier->list);
+>  
+> @@ -237,7 +234,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+>  			put_device(d);
+>  	}
+>  
+> -	mutex_unlock(&list_lock);
+> +	mutex_unlock(&notifier->lock);
+>  
+>  	/*
+>  	 * Call device_attach() to reprobe devices
+> @@ -262,6 +259,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+>  	}
+>  	kfree(dev);
+>  
+> +	mutex_destroy(&notifier->lock);
+>  	notifier->v4l2_dev = NULL;
+>  
+>  	/*
+> @@ -274,6 +272,7 @@ EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+>  int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+>  {
+>  	struct v4l2_async_notifier *notifier;
+> +	struct v4l2_async_notifier *tmp;
+>  
+>  	/*
+>  	 * No reference taken. The reference is held by the device
+> @@ -283,24 +282,25 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+>  	if (!sd->of_node && sd->dev)
+>  		sd->of_node = sd->dev->of_node;
+>  
+> -	mutex_lock(&list_lock);
+> -
+>  	INIT_LIST_HEAD(&sd->async_list);
+>  
+> -	list_for_each_entry(notifier, &notifier_list, list) {
+> -		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, sd);
+> +	list_for_each_entry_safe(notifier, tmp, &notifier_list, list) {
 
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index 57b250847cd3..e35b1faf0ddc 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -106,6 +106,9 @@ static int si2157_init(struct dvb_frontend *fe)
- 	if (dev->chiptype == SI2157_CHIPTYPE_SI2146) {
- 		memcpy(cmd.args, "\xc0\x05\x01\x00\x00\x0b\x00\x00\x01", 9);
- 		cmd.wlen = 9;
-+	} else if (dev->chiptype == SI2157_CHIPTYPE_SI2141) {
-+		memcpy(cmd.args, "\xc0\x00\x0d\x0e\x00\x01\x01\x01\x01\x03", 10);
-+		cmd.wlen = 10;
- 	} else {
- 		memcpy(cmd.args, "\xc0\x00\x0c\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x00\x01", 15);
- 		cmd.wlen = 15;
-@@ -115,6 +118,15 @@ static int si2157_init(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
-+	/* Si2141 needs a second command before it answers the revision query */
-+	if (dev->chiptype == SI2157_CHIPTYPE_SI2141) {
-+		memcpy(cmd.args, "\xc0\x08\x01\x02\x00\x00\x01", 7);
-+		cmd.wlen = 7;
-+		ret = si2157_cmd_execute(client, &cmd);
-+		if (ret)
-+			goto err;
-+	}
-+
- 	/* query chip revision */
- 	memcpy(cmd.args, "\x02", 1);
- 	cmd.wlen = 1;
-@@ -131,12 +143,16 @@ static int si2157_init(struct dvb_frontend *fe)
- 	#define SI2157_A30 ('A' << 24 | 57 << 16 | '3' << 8 | '0' << 0)
- 	#define SI2147_A30 ('A' << 24 | 47 << 16 | '3' << 8 | '0' << 0)
- 	#define SI2146_A10 ('A' << 24 | 46 << 16 | '1' << 8 | '0' << 0)
-+	#define SI2141_A10 ('A' << 24 | 41 << 16 | '1' << 8 | '0' << 0)
- 
- 	switch (chip_id) {
- 	case SI2158_A20:
- 	case SI2148_A20:
- 		fw_name = SI2158_A20_FIRMWARE;
- 		break;
-+	case SI2141_A10:
-+		fw_name = SI2141_A10_FIRMWARE;
-+		break;
- 	case SI2157_A30:
- 	case SI2147_A30:
- 	case SI2146_A10:
-@@ -371,7 +387,7 @@ static int si2157_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
- 
- static const struct dvb_tuner_ops si2157_ops = {
- 	.info = {
--		.name           = "Silicon Labs Si2146/2147/2148/2157/2158",
-+		.name           = "Silicon Labs Si2141/Si2146/2147/2148/2157/2158",
- 		.frequency_min  = 42000000,
- 		.frequency_max  = 870000000,
- 	},
-@@ -471,6 +487,7 @@ static int si2157_probe(struct i2c_client *client,
- #endif
- 
- 	dev_info(&client->dev, "Silicon Labs %s successfully attached\n",
-+			dev->chiptype == SI2157_CHIPTYPE_SI2141 ?  "Si2141" :
- 			dev->chiptype == SI2157_CHIPTYPE_SI2146 ?
- 			"Si2146" : "Si2147/2148/2157/2158");
- 
-@@ -508,6 +525,7 @@ static int si2157_remove(struct i2c_client *client)
- static const struct i2c_device_id si2157_id_table[] = {
- 	{"si2157", SI2157_CHIPTYPE_SI2157},
- 	{"si2146", SI2157_CHIPTYPE_SI2146},
-+	{"si2141", SI2157_CHIPTYPE_SI2141},
- 	{}
- };
- MODULE_DEVICE_TABLE(i2c, si2157_id_table);
-@@ -524,7 +542,8 @@ static struct i2c_driver si2157_driver = {
- 
- module_i2c_driver(si2157_driver);
- 
--MODULE_DESCRIPTION("Silicon Labs Si2146/2147/2148/2157/2158 silicon tuner driver");
-+MODULE_DESCRIPTION("Silicon Labs Si2141/Si2146/2147/2148/2157/2158 silicon tuner driver");
- MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
- MODULE_LICENSE("GPL");
- MODULE_FIRMWARE(SI2158_A20_FIRMWARE);
-+MODULE_FIRMWARE(SI2141_A10_FIRMWARE);
-diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
-index d6b2c7b44053..e6436f74abaa 100644
---- a/drivers/media/tuners/si2157_priv.h
-+++ b/drivers/media/tuners/si2157_priv.h
-@@ -42,6 +42,7 @@ struct si2157_dev {
- 
- #define SI2157_CHIPTYPE_SI2157 0
- #define SI2157_CHIPTYPE_SI2146 1
-+#define SI2157_CHIPTYPE_SI2141 2
- 
- /* firmware command struct */
- #define SI2157_ARGLEN      30
-@@ -52,5 +53,6 @@ struct si2157_cmd {
- };
- 
- #define SI2158_A20_FIRMWARE "dvb-tuner-si2158-a20-01.fw"
-+#define SI2141_A10_FIRMWARE "dvb-tuner-si2141-a10-01.fw"
- 
- #endif
+You still need to serialise access to the global notifier list.
+
+The _safe iterator variants allow deleting the current entry from the list
+but they do not help more than that.
+
+One possible approach could be to gather the matching async sub-devices and
+call the v4l2_async_test_notify() while not holding the notifier list mutex
+anymore.
+
+I presume the same problem is present in notifier registration.
+
+> +		struct v4l2_async_subdev *asd;
+> +
+> +		/* TODO: FIXME: if this is called by ->bound() we will also iterate over the locked notifier */
+> +		mutex_lock_nested(&notifier->lock, SINGLE_DEPTH_NESTING);
+> +		asd = v4l2_async_belongs(notifier, sd);
+>  		if (asd) {
+>  			int ret = v4l2_async_test_notify(notifier, sd, asd);
+> -			mutex_unlock(&list_lock);
+> +			mutex_unlock(&notifier->lock);
+>  			return ret;
+>  		}
+> +		mutex_unlock(&notifier->lock);
+>  	}
+>  
+>  	/* None matched, wait for hot-plugging */
+>  	list_add(&sd->async_list, &subdev_list);
+>  
+> -	mutex_unlock(&list_lock);
+> -
+>  	return 0;
+>  }
+>  EXPORT_SYMBOL(v4l2_async_register_subdev);
+> @@ -315,7 +315,7 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
+>  		return;
+>  	}
+>  
+> -	mutex_lock(&list_lock);
+> +	mutex_lock_nested(&notifier->lock, SINGLE_DEPTH_NESTING);
+>  
+>  	list_add(&sd->asd->list, &notifier->waiting);
+>  
+> @@ -324,6 +324,6 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
+>  	if (notifier->unbind)
+>  		notifier->unbind(notifier, sd, sd->asd);
+>  
+> -	mutex_unlock(&list_lock);
+> +	mutex_unlock(&notifier->lock);
+>  }
+>  EXPORT_SYMBOL(v4l2_async_unregister_subdev);
+> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+> index 8e2a236..690a81f 100644
+> --- a/include/media/v4l2-async.h
+> +++ b/include/media/v4l2-async.h
+> @@ -84,6 +84,7 @@ struct v4l2_async_subdev {
+>   * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
+>   * @done:	list of struct v4l2_subdev, already probed
+>   * @list:	member in a global list of notifiers
+> + * @lock:       lock hold when the notifier is being processed
+>   * @bound:	a subdevice driver has successfully probed one of subdevices
+>   * @complete:	all subdevices have been probed successfully
+>   * @unbind:	a subdevice is leaving
+> @@ -95,6 +96,7 @@ struct v4l2_async_notifier {
+>  	struct list_head waiting;
+>  	struct list_head done;
+>  	struct list_head list;
+> +	struct mutex lock;
+>  	int (*bound)(struct v4l2_async_notifier *notifier,
+>  		     struct v4l2_subdev *subdev,
+>  		     struct v4l2_async_subdev *asd);
+
 -- 
-2.11.0
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
