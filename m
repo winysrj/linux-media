@@ -1,147 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:34264 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751625AbdB0JXP (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:58185 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751462AbdBOK67 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Feb 2017 04:23:15 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Koji Matsuoka <koji.matsuoka.xm@renesas.com>,
-        Yoshihiro Kaneko <ykaneko0929@gmail.com>,
-        Simon Horman <horms+renesas@verge.net.au>
-Subject: Re: [PATCH] soc-camera: fix rectangle adjustment in cropping
-Date: Mon, 27 Feb 2017 11:23:18 +0200
-Message-ID: <1769100.WpXQRxlpeV@avalon>
-In-Reply-To: <Pine.LNX.4.64.1702271006290.21990@axis700.grange>
-References: <Pine.LNX.4.64.1702262150090.17018@axis700.grange> <6082161.NEqkolhdEc@avalon> <Pine.LNX.4.64.1702271006290.21990@axis700.grange>
+        Wed, 15 Feb 2017 05:58:59 -0500
+Date: Wed, 15 Feb 2017 11:58:56 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Sebastian Reichel <sre@kernel.org>
+Cc: sakari.ailus@iki.fi, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
+        ivo.g.dimitrov.75@gmail.com
+Subject: Re: [RFC 06/13] v4l2-async: per notifier locking
+Message-ID: <20170215105856.GD29330@amd>
+References: <20170214133956.GA8530@amd>
+ <20170214160720.xamqwoqo7rnb2nxi@earth>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="4zI0WCX1RcnW9Hbu"
+Content-Disposition: inline
+In-Reply-To: <20170214160720.xamqwoqo7rnb2nxi@earth>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
 
-On Monday 27 Feb 2017 10:13:53 Guennadi Liakhovetski wrote:
-> On Mon, 27 Feb 2017, Laurent Pinchart wrote:
-> > On Monday 27 Feb 2017 09:54:19 Guennadi Liakhovetski wrote:
-> >> On Mon, 27 Feb 2017, Laurent Pinchart wrote:
-> >>> On Sunday 26 Feb 2017 21:58:16 Guennadi Liakhovetski wrote:
-> >>>> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-> >>>> 
-> >>>> update_subrect() adjusts the sub-rectangle to be inside a base area.
-> >>>> It checks width and height to not exceed those of the area, then it
-> >>>> checks the low border (left or top) to lie within the area, then the
-> >>>> high border (right or bottom) to lie there too. This latter check has
-> >>>> a bug, which is fixed by this patch.
-> >>>> 
-> >>>> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-> >>>> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-> >>>> [g.liakhovetski@gmx.de: dropped supposedly wrong hunks]
-> >>>> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> >>>> ---
-> >>>> 
-> >>>> This is a part of the https://patchwork.linuxtv.org/patch/26441/
-> >>>> submitted almost 2.5 years ago. Back then I commented to the patch
-> >>>> but never got a reply or an update. I preserved original authorship
-> >>>> and Sob tags, although this version only uses a small portion of the
-> >>>> original patch. This version is of course completely untested, any
-> >>>> testing (at least regression) would be highly appreciated! This code
-> >>>> is only used by the SH CEU driver and only in cropping / zooming
-> >>>> scenarios.
-> >>>> 
-> >>>>  drivers/media/platform/soc_camera/soc_scale_crop.c | 4 ++--
-> >>>>  1 file changed, 2 insertions(+), 2 deletions(-)
-> >>>> 
-> >>>> diff --git a/drivers/media/platform/soc_camera/soc_scale_crop.c
-> >>>> b/drivers/media/platform/soc_camera/soc_scale_crop.c index
-> >>>> f77252d..4bfc1bf
-> >>>> 100644
-> >>>> --- a/drivers/media/platform/soc_camera/soc_scale_crop.c
-> >>>> +++ b/drivers/media/platform/soc_camera/soc_scale_crop.c
-> >>>> @@ -70,14 +70,14 @@ static void update_subrect(struct v4l2_rect
-> >>>> *rect, struct v4l2_rect *subrect)
-> >>>>  	if (rect->height < subrect->height)
-> >>>>  		subrect->height = rect->height;
-> >>>> 
-> >>>> -	if (rect->left > subrect->left)
-> >>>> +	if (rect->left < subrect->left)
-> >>> 
-> >>> This looks wrong to me. If the purpose of the function is indeed to
-> >>> adjust subrect to stay within rect, the condition doesn't need to be
-> >>> changed.
-> >>> 
-> >>>>  		subrect->left = rect->left;
-> >>>>  	else if (rect->left + rect->width >
-> >>>>  		 subrect->left + subrect->width)
-> >>> 
-> >>> This condition, however, is wrong.
-> >> 
-> >> Arrrrgh, of course, I meant to change this one! Thanks for catching.
-> >> 
-> >>>>  		subrect->left = rect->left + rect->width -
-> >>>>  			subrect->width;
-> >>> 
-> >>> More than that, adjusting the width first and then the left coordinate
-> >>> can result in an incorrect width.
-> >> 
-> >> The width is adjusted in the beginning only to stay within the area, you
-> >> cannot go beyond it anyway. So, that has to be done anyway. And then the
-> >> origin is adjusted.
-> >> 
-> >>> It looks to me like you should drop the width
-> >>> check at the beginning of this function, and turn the "else if" here
-> >>> into an "if" with the right condition. Or, even better in my opinion,
-> >>> use the min/max/clamp macros.
-> >> 
-> >> Well, that depends on what result we want to achieve, what parameter we
-> >> prioritise. This approach prioritises width and height, and then adjusts
-> >> edges to accommodate as much of them as possible. A different approach
-> >> would be to prioritise the origin (top and left) and adjust width and
-> >> height to stay within the area. Do we have a preference for this?
-> > 
-> > Don't you need both ? "Inside the area" is a pretty well-defined concept
-> > :-)
-> >
-> > 	subrect->left = max(subrect->left, rect->left);
-> 
-> I prefer to avoid assignments like "a = max(a, b)" to avoid a redundant
-> "a = a" assignment, when a >= b :-)
+--4zI0WCX1RcnW9Hbu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The compiler should hopefully optimize that for you.
+Hi!
 
-> > 	subrect->top = max(subrect->top, rect->top);
-> > 	subrect->width = min(subrect->left + subrect->width,
-> > 			     rect->left + rect->width) - subrect->left;
-> > 	subrect->height = min(subrect->top + subrect->height,
-> > 			      rect->top + rect->height) - subrect->top;
-> 
-> But this is exactly what I meant, isn't it? Consider an area 100..1000 and
-> a subrect 200..2000. Obviously, width is wrong. You have two
-> possibilities to adjust it: (1) size-priority. You maximise the size
-> (900) and then adjust the origin to accommodate it (100). (2)
-> origin-priority: you keep origin (200) and maximise size, based on that
-> (800). My approach does (1), yours does (2). I prefer (1). Your approach
-> also would break if origin is way too large, e.g. 1100..2000, whereas mine
-> would work unchanged.
+> > From: Sebastian Reichel <sre@kernel.org>
+> >=20
+> > Without this, camera support breaks boot on N900.
+>=20
+> That's kind of vague. I just checked my original patch and it looks
+> like I did not bother to write a proper patch description. I suggest
+> to make this
+>=20
+> "Fix v4l2-async locking, so that v4l2_async_notifiers can be used
+> recursively. This is important for sensors, that are only reachable
+> by the image signal processor through some intermediate device."
+>=20
+> You should probably move move this patch directly before the
+> video-bus-switch patch, since its a preparation for it.
+>=20
+> Also this is missing my SoB:
+>=20
+> Signed-off-by: Sebastian Reichel <sre@kernel.org>
 
-OK, I see what you mean now. It's "clamp to boundary" vs. "move within 
-boundaries and clamp if necessary". I haven't look at the caller to see what 
-is needed here. Whatever option you choose, it would make sense to rename the 
-function accordingly (and possibly move it to the V4L2 core).
+Thanks, done.
+								Pavel
+							=09
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-> > (Completely untested)
-> > 
-> >>> Same comments for the vertical checks.
-> >>> 
-> >>>> -	if (rect->top > subrect->top)
-> >>>> +	if (rect->top < subrect->top)
-> >>>>  		subrect->top = rect->top;
-> >>>>  	else if (rect->top + rect->height >
-> >>>>  		 subrect->top + subrect->height)
+--4zI0WCX1RcnW9Hbu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
--- 
-Regards,
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Laurent Pinchart
+iEYEARECAAYFAlikNHAACgkQMOfwapXb+vKWqwCgh15trxX73tNywc+RdUKPngVY
+9PEAnjxZx7LtNj2FPrFdszXZO+7Iif+G
+=AXTo
+-----END PGP SIGNATURE-----
+
+--4zI0WCX1RcnW9Hbu--
