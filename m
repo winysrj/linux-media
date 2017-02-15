@@ -1,58 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:44569 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750782AbdBNW0y (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:35241 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751737AbdBOC1O (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Feb 2017 17:26:54 -0500
-Date: Tue, 14 Feb 2017 23:26:51 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
-Subject: Re: [RFC 03/13] v4l: split lane parsing code
-Message-ID: <20170214222651.GB11317@amd>
-References: <20170214133941.GA8469@amd>
- <20170214212021.GK16975@valkosipuli.retiisi.org.uk>
+        Tue, 14 Feb 2017 21:27:14 -0500
+Subject: Re: [PATCH v3 00/24] i.MX Media Driver
+To: Philipp Zabel <p.zabel@pengutronix.de>
+References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
+ <1485870854.2932.63.camel@pengutronix.de>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <a581a944-9bee-e5ce-d7d7-24bf749a38e2@gmail.com>
+Date: Tue, 14 Feb 2017 18:27:09 -0800
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="24zk1gE8NUlDmwG9"
-Content-Disposition: inline
-In-Reply-To: <20170214212021.GK16975@valkosipuli.retiisi.org.uk>
+In-Reply-To: <1485870854.2932.63.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Philipp,
 
---24zk1gE8NUlDmwG9
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I've created a test branch off my imx-media-staging-md-wip called tc358743,
+which cherry-picks a couple of your commits from your 
+imx-media-staging-md-wip
+branch:
 
-Hi!
+[media] tc358743: set entity function to video interface bridge
+[media] tc358743: put lanes in STOP state before starting streaming
 
-> And you can remove CSI2 and PARALLEL cases.
+And one more commit that enables the tc358743 in the DT for sabrelite:
 
-Ok, that's all easy enough.
+ARM: dts: imx6-sabrelite: switch to tc358743
+
+which is based off your work in imx6qdl-nitrogen6x-bd-hdmi-mipi.dtsi.
+
+With that the tc358743 is loading fine, and is present in the media graph:
+
+root@mx6q:~# dmesg | grep -i tc358
+[   11.056799] imx-media: Registered subdev tc358743 1-000f
+[   11.122133] imx-media: imx_media_create_link: tc358743 1-000f:0 -> 
+imx6-mipi-csi2:0
+[   11.490274] tc358743 1-000f: tc358743 found @ 0x1e (21a4000.i2c)
+
+
+But I'm not able to get to testing streaming yet, see below.
+
+
+On 01/31/2017 05:54 AM, Philipp Zabel wrote:
+> Hi Steve,
+>
+> I have just tested the imx-media-staging-md-wip branch on a Nitrogen6X
+> with a tc358743 (BD_HDMI_MIPI HDMI to MIPI CSI-2 receiver board). Some
+> observations:
+>
+> # Link pipeline
+> media-ctl -l "'tc358743 1-000f':0->'imx6-mipi-csi2':0[1]"
+> media-ctl -l "'imx6-mipi-csi2':1->'ipu1_csi0_mux':0[1]"
+> media-ctl -l "'ipu1_csi0_mux':2->'ipu1_csi0':0[1]"
+> media-ctl -l "'ipu1_csi0':2->'ipu1_csi0 capture':0[1]"
+
+This works fine, I can create these links.
+
+>
+> # Provide an EDID to the HDMI source
+> v4l2-ctl -d /dev/v4l-subdev2 --set-edid=file=edid-1080p.hex
+
+I can probably generate this Intel hex file myself from sysfs
+edid outputs, but for convenience do you mind sending me this
+file? I have a 1080p HDMI source I can plug into the tc358743.
+
+The other problem here is that my version of v4l2-ctl, built from
+master branch of git@github.com:gjasny/v4l-utils.git, does not
+support taking a subdev node:
+
+root@mx6q:~# v4l2-ctl -d /dev/v4l-subdev15 --get-edid=format=hex
+VIDIOC_QUERYCAP: failed: Inappropriate ioctl for device
+/dev/v4l-subdev15: not a v4l2 node
+
+Is this something you added yourself, or where can I find this version
+of v4l2-ctrl?
 
 Thanks,
-								Pavel
-							=09
+Steve
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---24zk1gE8NUlDmwG9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlijhCsACgkQMOfwapXb+vJG6ACdGMKdrGOmAvCqIS72Y3hj4qGp
-q/EAn1aNBa9qTZZkKI6QNrQl8nOf2os+
-=CjCx
------END PGP SIGNATURE-----
-
---24zk1gE8NUlDmwG9--
+> # At this point the HDMI source is enabled and sends a 1080p60 signal
+> # Configure detected DV timings
+> media-ctl --set-dv "'tc358743 1-000f':0"
+>
+> # Set pad formats
+> media-ctl --set-v4l2 "'tc358743 1-000f':0[fmt:UYVY/1920x1080]"
+> media-ctl --set-v4l2 "'imx6-mipi-csi2':1[fmt:UYVY2X8/1920x1080]"
+> media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY2X8/1920x1080]"
+> media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/1920x1080]"
+>
+> v4l2-ctl -d /dev/video4 -V
+> # This still is configured to 640x480, which is inconsistent with
+> # the 'ipu1_csi0':2 pad format. The pad set_fmt above should
+> # have set this, too.
+>
+> v4l2-ctl --list-formats -d /dev/video4
+> # This lists all the RGB formats, which it shouldn't. There is
+> # no CSC in this pipeline, so we should be limited to YUV formats
+> # only.
+>
+> # Set capture format
+> v4l2-ctl -d /dev/video4 -v width=1920,height=1080,pixelformat=UYVY
+>
+> v4l2-ctl -d /dev/video4 -V
+> # Now the capture format is correctly configured to 1920x1080.
+>
+> v4l2-ctl -d 4 --list-frameintervals=width=1920,height=1080,pixelformat=UYVY
+> # This lists nothing. We should at least provide the 'ipu1_csi0':2 pad
+> # frame interval. In the future this should list fractions achievable
+> # via frame skipping.
+>
+> v4l2-compliance -d /dev/video4
+> # This fails two tests:
+> # fail: v4l2-test-input-output.cpp(383): std == 0
+> # fail: v4l2-test-input-output.cpp(449): invalid attributes for input 0
+> # test VIDIOC_G/S/ENUMINPUT: FAIL
+> # and
+> # fail: v4l2-test-controls.cpp(782): subscribe event for control 'User Controls' failed
+> # test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
+>
+> # (Slowly) stream JPEG images to a display host:
+> gst-launch-1.0 -v v4l2src device=/dev/video4 ! jpegenc ! rtpjpegpay ! udpsink
+>
+> I've done this a few times, and sometimes I only get a "ipu1_csi0: EOF
+> timeout" message when starting streaming.
+>
+> regards
+> Philipp
+>
