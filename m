@@ -1,174 +1,227 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f193.google.com ([74.125.82.193]:33396 "EHLO
-        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752842AbdBAQvB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Feb 2017 11:51:01 -0500
-Date: Wed, 1 Feb 2017 10:50:59 -0600
-From: Rob Herring <robh@kernel.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv2 08/16] atmel-isi: document device tree bindings
-Message-ID: <20170201165059.2qw3gnuyornvfl46@rob-hp-laptop>
-References: <20170130140628.18088-1-hverkuil@xs4all.nl>
- <20170130140628.18088-9-hverkuil@xs4all.nl>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:58846 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751412AbdBOL2A (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 15 Feb 2017 06:28:00 -0500
+Date: Wed, 15 Feb 2017 12:27:57 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
+Subject: Re: [RFC 08/13] smiapp-pll: Take existing divisor into account in
+ minimum divisor check
+Message-ID: <20170215112757.GA8974@amd>
+References: <20170214134004.GA8570@amd>
+ <20170214220503.GO16975@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="1yeeQ81UyVL57Vl7"
 Content-Disposition: inline
-In-Reply-To: <20170130140628.18088-9-hverkuil@xs4all.nl>
+In-Reply-To: <20170214220503.GO16975@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 30, 2017 at 03:06:20PM +0100, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Document the device tree bindings for this driver.
 
-Bindings document h/w not drivers.
+--1yeeQ81UyVL57Vl7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> 
-> Mostly copied from the atmel-isc bindings.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  .../devicetree/bindings/media/atmel-isi.txt        | 91 +++++++++++++---------
->  1 file changed, 56 insertions(+), 35 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/atmel-isi.txt b/Documentation/devicetree/bindings/media/atmel-isi.txt
-> index 251f008..d1934b4 100644
-> --- a/Documentation/devicetree/bindings/media/atmel-isi.txt
-> +++ b/Documentation/devicetree/bindings/media/atmel-isi.txt
-> @@ -1,51 +1,72 @@
-> -Atmel Image Sensor Interface (ISI) SoC Camera Subsystem
-> -----------------------------------------------
-> +Atmel Image Sensor Interface (ISI)
-> +----------------------------------
->  
-> -Required properties:
-> -- compatible: must be "atmel,at91sam9g45-isi"
-> -- reg: physical base address and length of the registers set for the device;
-> -- interrupts: should contain IRQ line for the ISI;
-> -- clocks: list of clock specifiers, corresponding to entries in
-> -          the clock-names property;
-> -- clock-names: must contain "isi_clk", which is the isi peripherial clock.
-> +Required properties for ISI:
-> +- compatible
-> +	Must be "atmel,at91sam9g45-isi".
-> +- reg
-> +	Physical base address and length of the registers set for the device.
-> +- interrupts
-> +	Should contain IRQ line for the ISI.
-> +- clocks
-> +	List of clock specifiers, corresponding to entries in
-> +	the clock-names property;
-> +	Please refer to clock-bindings.txt.
-> +- clock-names
-> +	Required elements: "isi_clk".
-> +- #clock-cells
-> +	Should be 0.
+On Wed 2017-02-15 00:05:03, Sakari Ailus wrote:
+> Hi Pavel,
+>=20
+> On Tue, Feb 14, 2017 at 02:40:04PM +0100, Pavel Machek wrote:
+> > From: Sakari Ailus <sakari.ailus@iki.fi>
+> >=20
+> > Required added multiplier (and divisor) calculation did not take into
+> > account the existing divisor when checking the values against the
+> > minimum divisor. Do just that.
+> >=20
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+>=20
+> I need to understand again why did I write this patch. :-)
 
-This reformatting is unrelated and the old form was more standard for 
-bindings (not that we have any real standard).
+Can you just trust your former self?
 
-> +- pinctrl-names, pinctrl-0
-> +	Please refer to pinctrl-bindings.txt.
->  
->  ISI supports a single port node with parallel bus. It should contain one
->  'port' child node with child 'endpoint' node. Please refer to the bindings
->  defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
->  
->  Example:
-> -	isi: isi@f0034000 {
-> -		compatible = "atmel,at91sam9g45-isi";
-> -		reg = <0xf0034000 0x4000>;
-> -		interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
->  
-> -		clocks = <&isi_clk>;
-> -		clock-names = "isi_clk";
-> +isi: isi@f0034000 {
-> +	compatible = "atmel,at91sam9g45-isi";
-> +	reg = <0xf0034000 0x4000>;
-> +	interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&pinctrl_isi_data_0_7>;
-> +	clocks = <&isi_clk>;
-> +	clock-names = "isi_clk";
-> +	status = "ok";
-> +	port {
-> +		#address-cells = <1>;
-> +		#size-cells = <0>;
-> +		isi_0: endpoint {
-> +			reg = <0>;
+> Could you send me the smiapp driver output with debug level messages
+> enabled, please?
 
-Drop reg.
+> I think the problem was with the secondary sensor.
 
-> +			remote-endpoint = <&ov2640_0>;
-> +			bus-width = <8>;
-> +			vsync-active = <1>;
-> +			hsync-active = <1>;
+I believe it was with the main sensor, actually. Anyway, here are the
+messages.
 
-Which side of the connect is supposed to define these?
+[    0.791290] smiapp 2-0010: could not get clock (-517)
+[    2.705352] smiapp 2-0010: GPIO lookup for consumer xshutdown
+[    2.705352] smiapp 2-0010: using device tree for GPIO lookup
+[    2.705413] smiapp 2-0010: using lookup tables for GPIO lookup
+[    2.705413] smiapp 2-0010: lookup for GPIO xshutdown failed
+[    2.875244] smiapp 2-0010: lane_op_clock_ratio: 1
+[    2.875274] smiapp 2-0010: binning: 1x1
+[    2.875274] smiapp 2-0010: min / max pre_pll_clk_div: 1 / 4
+[    2.875305] smiapp 2-0010: pre-pll check: min / max
+pre_pll_clk_div: 1 / 1
+[    2.875305] smiapp 2-0010: mul 25 / div 2
+[    2.875305] smiapp 2-0010: pll_op check: min / max pre_pll_clk_div:
+1 / 1
+[    2.875335] smiapp 2-0010: pre_pll_clk_div 1
+[    2.875335] smiapp 2-0010: more_mul_max: max_pll_multiplier check:
+1
+[    2.875335] smiapp 2-0010: more_mul_max: max_pll_op_freq_hz check:
+1
+[    2.875335] smiapp 2-0010: more_mul_max: max_op_sys_clk_div check:
+1
+[    2.875366] smiapp 2-0010: more_mul_max: min_pll_multiplier check:
+1
+[    2.875366] smiapp 2-0010: more_mul_min: min_pll_op_freq_hz check:
+1
+[    2.875366] smiapp 2-0010: more_mul_min: min_pll_multiplier check:
+1
+[    2.875396] smiapp 2-0010: more_mul_factor: 1
+[    2.875396] smiapp 2-0010: more_mul_factor: min_op_sys_clk_div: 1
+[    2.875396] smiapp 2-0010: final more_mul: 1
+[    2.875427] smiapp 2-0010: op_sys_clk_div: 2
+[    2.875427] smiapp 2-0010: op_pix_clk_div: 10
+[    2.875427] smiapp 2-0010: pre_pll_clk_div 1
+[    2.875457] smiapp 2-0010: pll_multiplier  25
+[    2.875457] smiapp 2-0010: vt_sys_clk_div  2
+[    2.875457] smiapp 2-0010: vt_pix_clk_div  10
+[    2.875457] smiapp 2-0010: ext_clk_freq_hz	9600000
+[    2.875488] smiapp 2-0010: pll_ip_clk_freq_hz	9600000
+[    2.875488] smiapp 2-0010: pll_op_clk_freq_hz 	240000000
+[    2.875488] smiapp 2-0010: vt_sys_clk_freq_hz 	120000000
+[    2.875518] smiapp 2-0010: vt_pix_clk_freq_hz 	12000000
+[    2.876068] smiapp 2-0010: lane_op_clock_ratio: 1
+[    2.876068] smiapp 2-0010: binning: 1x1
+[    2.876098] smiapp 2-0010: min / max pre_pll_clk_div: 1 / 4
+[    2.876098] smiapp 2-0010: pre-pll check: min / max
+pre_pll_clk_div: 1 / 1
+[    2.876098] smiapp 2-0010: mul 25 / div 2
+[    2.876129] smiapp 2-0010: pll_op check: min / max pre_pll_clk_div:
+1 / 1
+[    2.876129] smiapp 2-0010: pre_pll_clk_div 1
+[    2.876129] smiapp 2-0010: more_mul_max: max_pll_multiplier check:
+1
+[    2.876159] smiapp 2-0010: more_mul_max: max_pll_op_freq_hz check:
+1
+[    2.876159] smiapp 2-0010: more_mul_max: max_op_sys_clk_div check:
+1
+[    2.876159] smiapp 2-0010: more_mul_max: min_pll_multiplier check:
+1
+[    2.876190] smiapp 2-0010: more_mul_min: min_pll_op_freq_hz check:
+1
+[    2.876190] smiapp 2-0010: more_mul_min: min_pll_multiplier check:
+1
+[    2.876190] smiapp 2-0010: more_mul_factor: 1
+[    2.876190] smiapp 2-0010: more_mul_factor: min_op_sys_clk_div: 1
+[    2.876220] smiapp 2-0010: final more_mul: 1
+[    2.876220] smiapp 2-0010: op_sys_clk_div: 2
+[    2.876220] smiapp 2-0010: op_pix_clk_div: 10
+[    2.876251] smiapp 2-0010: pre_pll_clk_div 1
+[    2.876251] smiapp 2-0010: pll_multiplier  25
+[    2.876251] smiapp 2-0010: vt_sys_clk_div  2
+[    2.876251] smiapp 2-0010: vt_pix_clk_div  10
+[    2.876281] smiapp 2-0010: ext_clk_freq_hz	9600000
+[    2.876281] smiapp 2-0010: pll_ip_clk_freq_hz	9600000
+[    2.876281] smiapp 2-0010: pll_op_clk_freq_hz 	240000000
+[    2.876312] smiapp 2-0010: vt_sys_clk_freq_hz 	120000000
+[    2.876312] smiapp 2-0010: vt_pix_clk_freq_hz 	12000000
+=2E..
+[    4.728973] udevd[216]: starting version 175
+[    8.031494] smiapp 2-0010: lane_op_clock_ratio: 1
+[    8.031524] smiapp 2-0010: binning: 1x1
+[    8.031524] smiapp 2-0010: min / max pre_pll_clk_div: 1 / 4
+[    8.031524] smiapp 2-0010: pre-pll check: min / max
+pre_pll_clk_div: 1 / 1
+[    8.031555] smiapp 2-0010: mul 25 / div 2
+[    8.031555] smiapp 2-0010: pll_op check: min / max pre_pll_clk_div:
+1 / 1
+[    8.031555] smiapp 2-0010: pre_pll_clk_div 1
+[    8.031585] smiapp 2-0010: more_mul_max: max_pll_multiplier check:
+1
+[    8.031585] smiapp 2-0010: more_mul_max: max_pll_op_freq_hz check:
+1
+[    8.031585] smiapp 2-0010: more_mul_max: max_op_sys_clk_div check:
+1
+[    8.031616] smiapp 2-0010: more_mul_max: min_pll_multiplier check:
+1
+[    8.031616] smiapp 2-0010: more_mul_min: min_pll_op_freq_hz check:
+1
+[    8.031616] smiapp 2-0010: more_mul_min: min_pll_multiplier check:
+1
+[    8.031616] smiapp 2-0010: more_mul_factor: 1
+[    8.031646] smiapp 2-0010: more_mul_factor: min_op_sys_clk_div: 1
+[    8.031646] smiapp 2-0010: final more_mul: 1
+[    8.031646] smiapp 2-0010: op_sys_clk_div: 2
+[    8.031677] smiapp 2-0010: op_pix_clk_div: 10
+[    8.031677] smiapp 2-0010: pre_pll_clk_div 1
+[    8.031677] smiapp 2-0010: pll_multiplier  25
+[    8.031707] smiapp 2-0010: vt_sys_clk_div  2
+[    8.031707] smiapp 2-0010: vt_pix_clk_div  10
+[    8.031707] smiapp 2-0010: ext_clk_freq_hz	9600000
+[    8.031738] smiapp 2-0010: pll_ip_clk_freq_hz	9600000
+[    8.031738] smiapp 2-0010: pll_op_clk_freq_hz 	240000000
+[    8.031738] smiapp 2-0010: vt_sys_clk_freq_hz 	120000000
+[    8.031768] smiapp 2-0010: vt_pix_clk_freq_hz 	12000000
+[    8.064117] smiapp 2-0010: lane_op_clock_ratio: 1
+[    8.064147] smiapp 2-0010: binning: 1x1
+[    8.064147] smiapp 2-0010: min / max pre_pll_clk_div: 1 / 4
+[    8.064178] smiapp 2-0010: pre-pll check: min / max
+pre_pll_clk_div: 1 / 1
+[    8.064178] smiapp 2-0010: mul 25 / div 2
+[    8.064178] smiapp 2-0010: pll_op check: min / max pre_pll_clk_div:
+1 / 1
+[    8.064208] smiapp 2-0010: pre_pll_clk_div 1
+[    8.064208] smiapp 2-0010: more_mul_max: max_pll_multiplier check:
+1
+[    8.064208] smiapp 2-0010: more_mul_max: max_pll_op_freq_hz check:
+1
+[    8.064239] smiapp 2-0010: more_mul_max: max_op_sys_clk_div check:
+1
+[    8.064239] smiapp 2-0010: more_mul_max: min_pll_multiplier check:
+1
+[    8.064239] smiapp 2-0010: more_mul_min: min_pll_op_freq_hz check:
+1
+[    8.064239] smiapp 2-0010: more_mul_min: min_pll_multiplier check:
+1
+[    8.064270] smiapp 2-0010: more_mul_factor: 1
+[    8.064270] smiapp 2-0010: more_mul_factor: min_op_sys_clk_div: 1
+[    8.064270] smiapp 2-0010: final more_mul: 1
+[    8.064300] smiapp 2-0010: op_sys_clk_div: 2
+[    8.064300] smiapp 2-0010: op_pix_clk_div: 10
+[    8.064300] smiapp 2-0010: pre_pll_clk_div 1
+[    8.064331] smiapp 2-0010: pll_multiplier  25
+[    8.064331] smiapp 2-0010: vt_sys_clk_div  2
+[    8.064331] smiapp 2-0010: vt_pix_clk_div  10
+[    8.064361] smiapp 2-0010: ext_clk_freq_hz	9600000
+[    8.064361] smiapp 2-0010: pll_ip_clk_freq_hz	9600000
+[    8.064361] smiapp 2-0010: pll_op_clk_freq_hz 	240000000
+[    8.064392] smiapp 2-0010: vt_sys_clk_freq_hz 	120000000
+[    8.064392] smiapp 2-0010: vt_pix_clk_freq_hz 	12000000
 
-> +		};
-> +	};
-> +};
-> +
-> +i2c1: i2c@f0018000 {
-> +	status = "okay";
->  
-> +	ov2640: camera@0x30 {
+Best regards,
+								Pavel
 
-Drop the '0x'.
 
-> +		compatible = "ovti,ov2640";
-> +		reg = <0x30>;
->  		pinctrl-names = "default";
-> -		pinctrl-0 = <&pinctrl_isi>;
-> +		pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
-> +		resetb-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
-> +		pwdn-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
-> +		clocks = <&pck0>;
-> +		clock-names = "xvclk";
-> +		assigned-clocks = <&pck0>;
-> +		assigned-clock-rates = <25000000>;
->  
->  		port {
-> -			#address-cells = <1>;
-> -			#size-cells = <0>;
-> -
-> -			isi_0: endpoint {
-> -				remote-endpoint = <&ov2640_0>;
-> +			ov2640_0: endpoint {
-> +				remote-endpoint = <&isi_0>;
->  				bus-width = <8>;
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-It is pointless to define bus-width at both ends.
+--1yeeQ81UyVL57Vl7
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
->  			};
->  		};
->  	};
-> -
-> -	i2c1: i2c@f0018000 {
-> -		ov2640: camera@0x30 {
-> -			compatible = "ovti,ov2640";
-> -			reg = <0x30>;
-> -
-> -			port {
-> -				ov2640_0: endpoint {
-> -					remote-endpoint = <&isi_0>;
-> -					bus-width = <8>;
-> -				};
-> -			};
-> -		};
-> -	};
-> +};
-> -- 
-> 2.10.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe devicetree" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlikOz0ACgkQMOfwapXb+vJcNwCeOUjSjJLjYfMu8pJOlh95aChE
+slYAoJjqxOcvmi7YvQX76EKwaU9i2cTN
+=NHZ/
+-----END PGP SIGNATURE-----
+
+--1yeeQ81UyVL57Vl7--
