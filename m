@@ -1,232 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:57825 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751428AbdBYLwv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Feb 2017 06:52:51 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v3 19/19] [media] lirc: document LIRC_MODE_SCANCODE
-Date: Sat, 25 Feb 2017 11:51:34 +0000
-Message-Id: <8b62df1eee63d9b4ef805a70bebabccb0ec27580.1488023302.git.sean@mess.org>
-In-Reply-To: <cover.1488023302.git.sean@mess.org>
-References: <cover.1488023302.git.sean@mess.org>
-In-Reply-To: <cover.1488023302.git.sean@mess.org>
-References: <cover.1488023302.git.sean@mess.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:57328 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751246AbdBOKXE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 15 Feb 2017 05:23:04 -0500
+Date: Wed, 15 Feb 2017 11:23:01 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, mchehab@kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>,
+        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH] omap3isp: add support for CSI1 bus
+Message-ID: <20170215102301.GA29330@amd>
+References: <20161228183036.GA13139@amd>
+ <20170208083813.GG13854@valkosipuli.retiisi.org.uk>
+ <20170208125738.GA23236@amd>
+ <10545906.Gxg3yScdu4@avalon>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="rwEMma7ioTxnRzrJ"
+Content-Disposition: inline
+In-Reply-To: <10545906.Gxg3yScdu4@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Lirc supports a new mode which requires documentation.
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- Documentation/media/lirc.h.rst.exceptions          | 49 ++++++++++++++++++++++
- Documentation/media/uapi/rc/lirc-dev-intro.rst     | 25 +++++++++++
- Documentation/media/uapi/rc/lirc-get-features.rst  | 15 +++++++
- Documentation/media/uapi/rc/lirc-get-rec-mode.rst  |  8 ++--
- Documentation/media/uapi/rc/lirc-get-send-mode.rst |  5 ++-
- Documentation/media/uapi/rc/lirc-read.rst          |  6 +++
- Documentation/media/uapi/rc/lirc-write.rst         |  8 ++++
- 7 files changed, 110 insertions(+), 6 deletions(-)
+--rwEMma7ioTxnRzrJ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/Documentation/media/lirc.h.rst.exceptions b/Documentation/media/lirc.h.rst.exceptions
-index c130617..b29cc8d 100644
---- a/Documentation/media/lirc.h.rst.exceptions
-+++ b/Documentation/media/lirc.h.rst.exceptions
-@@ -28,6 +28,55 @@ ignore define LIRC_CAN_SEND_MASK
- ignore define LIRC_CAN_REC_MASK
- ignore define LIRC_CAN_SET_REC_DUTY_CYCLE
- 
-+# rc protocols
-+
-+ignore symbol RC_TYPE_UNKNOWN
-+ignore symbol RC_TYPE_OTHER
-+ignore symbol RC_TYPE_RC5
-+ignore symbol RC_TYPE_RC5X_20
-+ignore symbol RC_TYPE_RC5_SZ
-+ignore symbol RC_TYPE_JVC
-+ignore symbol RC_TYPE_SONY12
-+ignore symbol RC_TYPE_SONY15
-+ignore symbol RC_TYPE_SONY20
-+ignore symbol RC_TYPE_NEC
-+ignore symbol RC_TYPE_NECX
-+ignore symbol RC_TYPE_NEC32
-+ignore symbol RC_TYPE_SANYO
-+ignore symbol RC_TYPE_MCIR2_KBD
-+ignore symbol RC_TYPE_MCIR2_MSE
-+ignore symbol RC_TYPE_RC6_0
-+ignore symbol RC_TYPE_RC6_6A_20
-+ignore symbol RC_TYPE_RC6_6A_24
-+ignore symbol RC_TYPE_RC6_6A_32
-+ignore symbol RC_TYPE_RC6_MCE
-+ignore symbol RC_TYPE_SHARP
-+ignore symbol RC_TYPE_XMP
-+ignore symbol RC_TYPE_CEC
-+ignore symbol RC_TYPE_UNKNOWN
-+ignore symbol RC_TYPE_OTHER
-+ignore symbol RC_TYPE_RC5
-+ignore symbol RC_TYPE_RC5X_20
-+ignore symbol RC_TYPE_RC5_SZ
-+ignore symbol RC_TYPE_JVC
-+ignore symbol RC_TYPE_SONY12
-+ignore symbol RC_TYPE_SONY15
-+ignore symbol RC_TYPE_SONY20
-+ignore symbol RC_TYPE_NEC
-+ignore symbol RC_TYPE_NECX
-+ignore symbol RC_TYPE_NEC32
-+ignore symbol RC_TYPE_SANYO
-+ignore symbol RC_TYPE_MCIR2_KBD
-+ignore symbol RC_TYPE_MCIR2_MSE
-+ignore symbol RC_TYPE_RC6_0
-+ignore symbol RC_TYPE_RC6_6A_20
-+ignore symbol RC_TYPE_RC6_6A_24
-+ignore symbol RC_TYPE_RC6_6A_32
-+ignore symbol RC_TYPE_RC6_MCE
-+ignore symbol RC_TYPE_SHARP
-+ignore symbol RC_TYPE_XMP
-+ignore symbol RC_TYPE_CEC
-+
- # Undocumented macros
- 
- ignore define PULSE_BIT
-diff --git a/Documentation/media/uapi/rc/lirc-dev-intro.rst b/Documentation/media/uapi/rc/lirc-dev-intro.rst
-index d1936ee..162fa7c 100644
---- a/Documentation/media/uapi/rc/lirc-dev-intro.rst
-+++ b/Documentation/media/uapi/rc/lirc-dev-intro.rst
-@@ -36,6 +36,31 @@ LIRC modes
- LIRC supports some modes of receiving and sending IR codes, as shown
- on the following table.
- 
-+.. _lirc-mode-scancode:
-+.. _lirc-scancode-flag-toggle:
-+.. _lirc-scancode-flag-repeat:
-+
-+``LIRC_MODE_SCANCODE``
-+
-+    This mode is for both sending and receiving IR.
-+
-+    For transmitting (aka sending), create a ``struct lirc_scancode`` with
-+    the desired scancode set in the ``scancode`` member, ``rc_type`` set
-+    the IR protocol, and ``flags`` set to 0. Write this to the lirc device.
-+
-+    For receiving, you read ``struct lirc_scancode`` from the lirc device,
-+    with ``scancode`` set to the received scancode in the IR protocol
-+    ``rc_type``. The ``flags`` can have ``LIRC_SCANCODE_FLAG_TOGGLE`` set
-+    if the toggle bit is set in protocols that support it (e.g. rc-5 and rc-6),
-+    or ``LIRC_SCANCODE_FLAG_REPEAT`` for when a repeat is received for protocols
-+    that support it (e.g. nec).
-+
-+    The ``timestamp`` field is filled with the time nanoseconds
-+    (in ``CLOCK_MONOTONIC``) when the scancode was decoded.
-+
-+    An ``enum rc_type`` in the :ref:`lirc_header` lists all the supported
-+    IR protocols.
-+
- .. _lirc-mode-mode2:
- 
- ``LIRC_MODE_MODE2``
-diff --git a/Documentation/media/uapi/rc/lirc-get-features.rst b/Documentation/media/uapi/rc/lirc-get-features.rst
-index 64f89a4..76bc99a 100644
---- a/Documentation/media/uapi/rc/lirc-get-features.rst
-+++ b/Documentation/media/uapi/rc/lirc-get-features.rst
-@@ -65,6 +65,14 @@ LIRC features
-     The driver is capable of receiving using
-     :ref:`LIRC_MODE_LIRCCODE <lirc-mode-LIRCCODE>`.
- 
-+.. _LIRC-CAN-REC-SCANCODE:
-+
-+``LIRC_CAN_REC_SCANCODE``
-+
-+    The driver is capable of receiving using
-+    :ref:`LIRC_MODE_SCANCODE <lirc-mode-SCANCODE>`.
-+
-+
- .. _LIRC-CAN-SET-SEND-CARRIER:
- 
- ``LIRC_CAN_SET_SEND_CARRIER``
-@@ -173,6 +181,13 @@ LIRC features
-     The driver supports sending (also called as IR blasting or IR TX) using
-     :ref:`LIRC_MODE_LIRCCODE <lirc-mode-LIRCCODE>`.
- 
-+.. _LIRC-CAN-SEND-SCANCODE:
-+
-+``LIRC_CAN_SEND_SCANCODE``
-+
-+    The driver supports sending (also called as IR blasting or IR TX) using
-+    :ref:`LIRC_MODE_SCANCODE <lirc-mode-SCANCODE>`.
-+
- 
- Return Value
- ============
-diff --git a/Documentation/media/uapi/rc/lirc-get-rec-mode.rst b/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
-index a4eb6c0..221f093d 100644
---- a/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
-+++ b/Documentation/media/uapi/rc/lirc-get-rec-mode.rst
-@@ -33,10 +33,10 @@ Arguments
- Description
- ===========
- 
--Get/set supported receive modes. Only :ref:`LIRC_MODE_MODE2 <lirc-mode-mode2>`
--and :ref:`LIRC_MODE_LIRCCODE <lirc-mode-lirccode>` are supported for IR
--receive. Use :ref:`lirc_get_features` to find out which modes the driver
--supports.
-+Get/set supported receive modes. Only :ref:`LIRC_MODE_MODE2 <lirc-mode-mode2>`,
-+:ref:`LIRC_MODE_LIRCCODE <lirc-mode-lirccode>` and
-+:ref:`LIRC_MODE_SCANCODE <lirc-mode-scancode>` are supported for IR
-+Use :ref:`lirc_get_features` to find out which modes the driver supports.
- 
- Return Value
- ============
-diff --git a/Documentation/media/uapi/rc/lirc-get-send-mode.rst b/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-index a169b23..be0992e 100644
---- a/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-+++ b/Documentation/media/uapi/rc/lirc-get-send-mode.rst
-@@ -36,8 +36,9 @@ Description
- 
- Get/set current transmit mode.
- 
--Only :ref:`LIRC_MODE_PULSE <lirc-mode-pulse>` and
--:ref:`LIRC_MODE_LIRCCODE <lirc-mode-lirccode>` is supported by for IR send,
-+Only :ref:`LIRC_MODE_PULSE <lirc-mode-pulse>`,
-+:ref:`LIRC_MODE_LIRCCODE <lirc-mode-lirccode>` and
-+:ref:`LIRC_MODE_SCANCODE <lirc-mode-scancode>` is supported by for IR send,
- depending on the driver. Use :ref:`lirc_get_features` to find out which
- modes the driver supports.
- 
-diff --git a/Documentation/media/uapi/rc/lirc-read.rst b/Documentation/media/uapi/rc/lirc-read.rst
-index ffa2830..b4e5a56 100644
---- a/Documentation/media/uapi/rc/lirc-read.rst
-+++ b/Documentation/media/uapi/rc/lirc-read.rst
-@@ -54,6 +54,12 @@ The generally preferred mode for receive is
- in which packets containing an int value describing an IR signal are
- read from the chardev.
- 
-+Alternatively, :ref:`LIRC_MODE_SCANCODE <lirc-mode-scancode>` might be available.
-+Some hardware only produces scancodes so this might be the only available mode.
-+In this mode, full decoded scancodes read from the chardev with their protocol
-+information.
-+
-+
- Return Value
- ============
- 
-diff --git a/Documentation/media/uapi/rc/lirc-write.rst b/Documentation/media/uapi/rc/lirc-write.rst
-index 6b44e0d..21e4d19 100644
---- a/Documentation/media/uapi/rc/lirc-write.rst
-+++ b/Documentation/media/uapi/rc/lirc-write.rst
-@@ -55,6 +55,14 @@ samples. The write function must block until the data has been transmitted
- by the hardware. If more data is provided than the hardware can send, the
- driver returns ``EINVAL``.
- 
-+When in :ref:`LIRC_MODE_SCANCODE <lirc-mode-scancode>` mode, one
-+``struct lirc_scancode`` must be written to the chardev. The ``flags``
-+and ``timestamp`` members must be 0, and ``rc_type`` must be set to a
-+valid protocol. Set the desired scancode in the ``scancode`` member. If
-+there is no protocol encoder for the protocol or the scancode is not
-+valid for the specified protocol, ``EINVAL`` is returned.
-+
-+
- Return Value
- ============
- 
--- 
-2.9.3
+Hi!
+
+> > +		if (enable) {
+> > +			csirxfe =3D OMAP343X_CONTROL_CSIRXFE_PWRDNZ |
+> > +				  OMAP343X_CONTROL_CSIRXFE_RESET;
+> > +
+> > +			if (buscfg->phy_layer)
+> > +				csirxfe |=3D OMAP343X_CONTROL_CSIRXFE_SELFORM;
+> > +
+> > +			if (buscfg->strobe_clk_pol)
+> > +				csirxfe |=3D OMAP343X_CONTROL_CSIRXFE_CSIB_INV;
+> > +		} else
+> > +			csirxfe =3D 0;
+>=20
+> You need curly braces for the else statement too.
+>=20
+> > +
+> > +		regmap_write(isp->syscon, isp->syscon_offset, csirxfe);
+>=20
+> Isn't this already configured by csiphy_routing_cfg_3430(), called throug=
+h=20
+> omap3isp_csiphy_acquire() ? You'll need to add support for the strobe/clo=
+ck=20
+> polarity there, but the rest should already be handled.
+
+It seems csiphy_routing_cfg_3430 is not called at all. I added
+printks, but they don't trigger. If you have an idea what is going on
+there, it would help...
+									Pavel
+
+diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/pl=
+atform/omap3isp/ispcsiphy.c
+index 6b814e1..fe9303a 100644
+--- a/drivers/media/platform/omap3isp/ispcsiphy.c
++++ b/drivers/media/platform/omap3isp/ispcsiphy.c
+@@ -30,6 +30,8 @@ static void csiphy_routing_cfg_3630(struct isp_csiphy *ph=
+y,
+ 	u32 reg;
+ 	u32 shift, mode;
+=20
++	printk("routing cfg 3630: iface %d, %d\n", iface, ISP_INTERFACE_CCP2B_PHY=
+1);
++=09
+ 	regmap_read(phy->isp->syscon, phy->isp->syscon_offset, &reg);
+=20
+ 	switch (iface) {
+@@ -74,6 +76,9 @@ static void csiphy_routing_cfg_3430(struct isp_csiphy *ph=
+y, u32 iface, bool on,
+ 	u32 csirxfe =3D OMAP343X_CONTROL_CSIRXFE_PWRDNZ
+ 		| OMAP343X_CONTROL_CSIRXFE_RESET;
+=20
++	/* FIXME: can this be used instead of if (isp->revision) in ispccp2.c? */
++=09
++	printk("routing cfg: iface %d, %d\n", iface, ISP_INTERFACE_CCP2B_PHY1);
+ 	/* Only the CCP2B on PHY1 is configurable. */
+ 	if (iface !=3D ISP_INTERFACE_CCP2B_PHY1)
+ 		return;
+@@ -105,6 +110,7 @@ static void csiphy_routing_cfg(struct isp_csiphy *phy,
+ 			       enum isp_interface_type iface, bool on,
+ 			       bool ccp2_strobe)
+ {
++	printk("csiphy_routing_cfg\n");
+ 	if (phy->isp->phy_type =3D=3D ISP_PHY_TYPE_3630 && on)
+ 		return csiphy_routing_cfg_3630(phy, iface, ccp2_strobe);
+ 	if (phy->isp->phy_type =3D=3D ISP_PHY_TYPE_3430)
+
+
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--rwEMma7ioTxnRzrJ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlikLAUACgkQMOfwapXb+vLN7QCaA+q03kwYWXP0w2YsSDHXItwc
+DZ0AnAzwJ9kIrDpQyAbfX8R+KAdLX1WH
+=h7pp
+-----END PGP SIGNATURE-----
+
+--rwEMma7ioTxnRzrJ--
