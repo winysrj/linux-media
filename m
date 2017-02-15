@@ -1,53 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:58629 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754088AbdBGQ3p (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Feb 2017 11:29:45 -0500
-Received: from axis700.grange ([81.173.166.100]) by mail.gmx.com (mrgmx103
- [212.227.17.168]) with ESMTPSA (Nemesis) id 0MegeC-1cm3n20fZw-00OEm3 for
- <linux-media@vger.kernel.org>; Tue, 07 Feb 2017 17:29:40 +0100
-Received: from 200r.grange (200r.grange [192.168.1.16])
-        by axis700.grange (Postfix) with ESMTP id 3D9238B113
-        for <linux-media@vger.kernel.org>; Tue,  7 Feb 2017 17:29:37 +0100 (CET)
-From: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH v2 0/4] uvcvideo: asynchronous control reporting
-Date: Tue,  7 Feb 2017 17:29:32 +0100
-Message-Id: <1486484976-17365-1-git-send-email-guennadi.liakhovetski@intel.com>
+Received: from mail-qt0-f180.google.com ([209.85.216.180]:33946 "EHLO
+        mail-qt0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751022AbdBOR2e (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 15 Feb 2017 12:28:34 -0500
+Received: by mail-qt0-f180.google.com with SMTP id w20so142533708qtb.1
+        for <linux-media@vger.kernel.org>; Wed, 15 Feb 2017 09:28:34 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAGoCfiyLiiew1kGmmo72_7ABvVKrmH8h4jt72zqshmk3FG+AHA@mail.gmail.com>
+References: <CAL+psHz-rC5xTj-N0ZTv-hTke3OaZx-Cd=nnSMOv6XUuXbj0Zg@mail.gmail.com>
+ <CAGoCfiyLiiew1kGmmo72_7ABvVKrmH8h4jt72zqshmk3FG+AHA@mail.gmail.com>
+From: Markus Rechberger <mrechberger@gmail.com>
+Date: Wed, 15 Feb 2017 18:28:32 +0100
+Message-ID: <CA+O4pCJpaLVE=RyBiotvk6yJVpHrZLsoMqd+xz+RyJjgWj7FbA@mail.gmail.com>
+Subject: Re: [xawtv3] Request: Support for FM RDS
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: George Pojar <geoubuntu@gmail.com>,
+        linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The UVC standard defines a way to implement controls, that take a
-relatively long time to process. Such controls can deliver a status
-update once their processing has completed. This patch implements
-such asynchronous control completion reporting, using V4L2 events.
+Hi,
 
-Support is also added for compound controls, however, V4L2 events
-for them will not deliver updated data, since V4L2 events only
-support integer (up to 64 bits) controls.
+On Wed, Feb 15, 2017 at 5:28 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> Hi George,
+>
+> The big problem is that almost none of the hardware tuners out there
+> which support FM have support for RDS.  You generally need an extra
+> chip, and very few devices have it (IIRC, none of the ones that are
+> supported in Linux have been available in retail for a number of
+> years).
+>
 
-Asynchronous control processing also includes more advanced protocol
-STALL handling, which can be caused by racing controls.
+Sundtek MediaTV Pro has support for RDS and we also manufacture
+dedicated radio units from time to time.
 
-Guennadi Liakhovetski (4):
-  uvcvideo: prepare to support compound controls
-  uvcvideo: send a control event when a Control Change interrupt arrives
-  uvcvideo: handle control pipe protocol STALLs
-  uvcvideo: support compound controls
+Best Regards,
+Markus Rechberger
 
- drivers/media/usb/uvc/uvc_ctrl.c   | 397 ++++++++++++++++++++++++++++++-------
- drivers/media/usb/uvc/uvc_status.c | 112 ++++++++++-
- drivers/media/usb/uvc/uvc_v4l2.c   |  10 +-
- drivers/media/usb/uvc/uvc_video.c  |  59 +++++-
- drivers/media/usb/uvc/uvcvideo.h   |  25 ++-
- include/uapi/linux/uvcvideo.h      |   2 +
- 6 files changed, 503 insertions(+), 102 deletions(-)
-
--- 
-1.9.3
-
-Thanks
-Guennadi
-
+> Don't get me wrong - I would like to see RDS supported as well - but I
+> couldn't find a single tuner product shipping in retail that supports
+> it.
+>
+> In short, it's a hardware limitation, not a problem with the
+> linux-media driver stack.
+>
+> Devin
+>
+> On Wed, Feb 15, 2017 at 11:07 AM, George Pojar <geoubuntu@gmail.com> wrote:
+>> FM RDS would be a great feature in radio console application. It would
+>> be nice to see what the name of the song is that is playing (that is,
+>> if the station supports RDS).
+>
+>
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
