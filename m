@@ -1,97 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx-out-2.rwth-aachen.de ([134.130.5.187]:36955 "EHLO
-        mx-out-2.rwth-aachen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751956AbdBEPIC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 5 Feb 2017 10:08:02 -0500
-From: =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>
-To: <linux-media@vger.kernel.org>
-CC: <linux-kernel@vger.kernel.org>,
+Received: from mail-qt0-f194.google.com ([209.85.216.194]:33422 "EHLO
+        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752193AbdBORz4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 15 Feb 2017 12:55:56 -0500
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
+        Ismael Luceno <ismael@iodev.co.uk>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>
-Subject: [PATCH 2/2] [media] dvb-usb-firmware: don't do DMA on stack
-Date: Sun, 5 Feb 2017 15:58:00 +0100
-In-Reply-To: <20170205145800.3561-1-stefan.bruens@rwth-aachen.de>
-References: <20170205145800.3561-1-stefan.bruens@rwth-aachen.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Message-ID: <cfae2a63a36641bcab2ec298b21b5b06@rwthex-w2-b.rwth-ad.de>
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH 3/6] [media] solo6x10: improve subscribe event handling
+Date: Wed, 15 Feb 2017 15:55:30 -0200
+Message-Id: <20170215175533.6384-3-gustavo@padovan.org>
+In-Reply-To: <20170215175533.6384-1-gustavo@padovan.org>
+References: <20170215175533.6384-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The USB control messages require DMA to work. We cannot pass
-a stack-allocated buffer, as it is not warranted that the
-stack would be into a DMA enabled area.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Signed-off-by: Stefan Brüns <stefan.bruens@rwth-aachen.de>
+We already check for the V4L2_EVENT_CTRL inside
+v4l2_ctrl_subscribe_event() so just move the function to the default:
+branch of the switch and let it does the job for us.
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 ---
- drivers/media/usb/dvb-usb/dvb-usb-firmware.c | 30 ++++++++++++++++------------
- 1 file changed, 17 insertions(+), 13 deletions(-)
+ drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb/dvb-usb-firmware.c b/drivers/media/usb/dvb-usb/dvb-usb-firmware.c
-index dd048a7c461c..189b6725edd0 100644
---- a/drivers/media/usb/dvb-usb/dvb-usb-firmware.c
-+++ b/drivers/media/usb/dvb-usb/dvb-usb-firmware.c
-@@ -35,41 +35,45 @@ static int usb_cypress_writemem(struct usb_device *udev,u16 addr,u8 *data, u8 le
- 
- int usb_cypress_load_firmware(struct usb_device *udev, const struct firmware *fw, int type)
+diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+index 25a2137..25f9f2e 100644
+--- a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
++++ b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+@@ -1140,14 +1140,13 @@ static int solo_subscribe_event(struct v4l2_fh *fh,
  {
--	struct hexline hx;
--	u8 reset;
--	int ret,pos=0;
-+	u8 *buf = kmalloc(sizeof(struct hexline), GFP_KERNEL);
-+	struct hexline *hx = (struct hexline *)buf;
-+	int ret, pos = 0;
-+	u16 cpu_cs_register = cypress[type].cpu_cs_register;
  
- 	/* stop the CPU */
--	reset = 1;
--	if ((ret = usb_cypress_writemem(udev,cypress[type].cpu_cs_register,&reset,1)) != 1)
-+	buf[0] = 1;
-+	if (usb_cypress_writemem(udev, cpu_cs_register, buf, 1) != 1)
- 		err("could not stop the USB controller CPU.");
- 
--	while ((ret = dvb_usb_get_hexline(fw,&hx,&pos)) > 0) {
--		deb_fw("writing to address 0x%04x (buffer: 0x%02x %02x)\n",hx.addr,hx.len,hx.chk);
--		ret = usb_cypress_writemem(udev,hx.addr,hx.data,hx.len);
-+	while ((ret = dvb_usb_get_hexline(fw, hx, &pos)) > 0) {
-+		deb_fw("writing to address 0x%04x (buffer: 0x%02x %02x)\n",
-+		       hx->addr, hx->len, hx->chk);
-+		ret = usb_cypress_writemem(udev, hx->addr, hx->data, hx->len);
- 
--		if (ret != hx.len) {
-+		if (ret != hx->len) {
- 			err("error while transferring firmware "
- 				"(transferred size: %d, block size: %d)",
--				ret,hx.len);
-+				ret, hx->len);
- 			ret = -EINVAL;
- 			break;
- 		}
+ 	switch (sub->type) {
+-	case V4L2_EVENT_CTRL:
+-		return v4l2_ctrl_subscribe_event(fh, sub);
+ 	case V4L2_EVENT_MOTION_DET:
+ 		/* Allow for up to 30 events (1 second for NTSC) to be
+ 		 * stored. */
+ 		return v4l2_event_subscribe(fh, sub, 30, NULL);
++	default:
++		return v4l2_ctrl_subscribe_event(fh, sub);
  	}
- 	if (ret < 0) {
--		err("firmware download failed at %d with %d",pos,ret);
-+		err("firmware download failed at %d with %d", pos, ret);
-+		kfree(buf);
- 		return ret;
- 	}
- 
- 	if (ret == 0) {
- 		/* restart the CPU */
--		reset = 0;
--		if (ret || usb_cypress_writemem(udev,cypress[type].cpu_cs_register,&reset,1) != 1) {
-+		buf[0] = 0;
-+		if (usb_cypress_writemem(udev, cpu_cs_register, buf, 1) != 1) {
- 			err("could not restart the USB controller CPU.");
- 			ret = -EINVAL;
- 		}
- 	} else
- 		ret = -EIO;
-+	kfree(buf);
- 
- 	return ret;
+-	return -EINVAL;
  }
+ 
+ static const struct v4l2_file_operations solo_enc_fops = {
 -- 
-2.11.0
-
+2.9.3
