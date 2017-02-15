@@ -1,44 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.horus.com ([78.46.148.228]:40038 "EHLO mail.horus.com"
+Received: from gofer.mess.org ([80.229.237.210]:46659 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932956AbdBQJ2c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Feb 2017 04:28:32 -0500
-Date: Fri, 17 Feb 2017 10:19:16 +0100
-From: Matthias Reichl <hias@horus.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        linux-media@vger.kernel.org
-Subject: [PATCH] v4l-utils: fix invalid protocol in streamzap keymap
-Message-ID: <20170217091916.GA24266@camel2.lan>
+        id S1751695AbdBOQHB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 15 Feb 2017 11:07:01 -0500
+Date: Wed, 15 Feb 2017 16:06:58 +0000
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Cc: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [GIT PULL FOR v4.11] RC deadlocks
+Message-ID: <20170215160658.GA6704@gofer.mess.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ir-keytable can't load the streamzap keymap because the
-protocol type RC5_SZ is invalid:
+Hi Mauro,
 
-./ir-keytable -w rc_keymaps/streamzap
-Protocol RC5_SZ invalid
-...
+Two deadlocks which would be nice to have fixed for v4.11. Both were
+introduced by the wakeup changes; I guess that teaches me for working
+without lockdep enabled.
 
-Fix this by changing the protocol type to RC-5-SZ which
-matches the kernel protocol rc-5-sz
+Thanks,
+Sean
 
-Signed-off-by: Matthias Reichl <hias@horus.com>
----
- utils/keytable/rc_keymaps/streamzap | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The following changes since commit 9eeb0ed0f30938f31a3d9135a88b9502192c18dd:
 
-diff --git a/utils/keytable/rc_keymaps/streamzap b/utils/keytable/rc_keymaps/streamzap
-index 3512cd8..03d2cb8 100644
---- a/utils/keytable/rc_keymaps/streamzap
-+++ b/utils/keytable/rc_keymaps/streamzap
-@@ -1,4 +1,4 @@
--# table streamzap, type: RC5_SZ
-+# table streamzap, type: RC-5-SZ
- 0x28c0 KEY_NUMERIC_0
- 0x28c1 KEY_NUMERIC_1
- 0x28c2 KEY_NUMERIC_2
--- 
-2.1.4
+  [media] mtk-vcodec: fix build warnings without DEBUG (2017-02-08 12:08:20 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/syoung/media_tree.git for-v4.11d
+
+for you to fetch changes up to 79522eaacc1bc691b419a1c9006da1e494bba5c6:
+
+  [media] rc: nuvoton: fix deadlock in nvt_write_wakeup_codes (2017-02-13 13:21:44 +0000)
+
+----------------------------------------------------------------
+Heiner Kallweit (1):
+      [media] rc: nuvoton: fix deadlock in nvt_write_wakeup_codes
+
+Sean Young (1):
+      [media] lirc: fix dead lock between open and wakeup_filter
+
+ drivers/media/rc/lirc_dev.c    | 4 ++--
+ drivers/media/rc/nuvoton-cir.c | 5 +++--
+ 2 files changed, 5 insertions(+), 4 deletions(-)
