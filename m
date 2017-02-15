@@ -1,175 +1,574 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:41487 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751823AbdBJNjk (ORCPT
+Received: from mail-qt0-f177.google.com ([209.85.216.177]:36727 "EHLO
+        mail-qt0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750806AbdBOIl4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Feb 2017 08:39:40 -0500
-Subject: Re: [PATCH 2/2] [media] tc358743: extend colorimetry support
-To: Philipp Zabel <p.zabel@pengutronix.de>
-References: <20170208105338.4100-1-p.zabel@pengutronix.de>
- <20170208105338.4100-2-p.zabel@pengutronix.de>
- <51849519-0ed8-e123-3b60-2392c8171cb1@xs4all.nl>
- <1486731993.2309.23.camel@pengutronix.de>
-Cc: linux-media@vger.kernel.org, Mats Randgaard <matrandg@cisco.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <7fd21a43-7154-0d92-7fdc-7ade3d8b425d@xs4all.nl>
-Date: Fri, 10 Feb 2017 14:36:37 +0100
+        Wed, 15 Feb 2017 03:41:56 -0500
+Received: by mail-qt0-f177.google.com with SMTP id k15so131873609qtg.3
+        for <linux-media@vger.kernel.org>; Wed, 15 Feb 2017 00:41:55 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <1486731993.2309.23.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4441232.4RNTQKa4zP@avalon>
+References: <1486997106-23277-1-git-send-email-benjamin.gaignard@linaro.org>
+ <1486997106-23277-2-git-send-email-benjamin.gaignard@linaro.org> <4441232.4RNTQKa4zP@avalon>
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Date: Wed, 15 Feb 2017 09:41:54 +0100
+Message-ID: <CA+M3ks6pj6OKxy_CBkQW1JCGcmsSvcAU17YdSChLCt0Hq3pibw@mail.gmail.com>
+Subject: Re: [RFC simple allocator v2 1/2] Create Simple Allocator module
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Laura Abbott <labbott@redhat.com>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Rob Clark <robdclark@gmail.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mark Brown <broonie@kernel.org>, linux-api@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/10/17 14:06, Philipp Zabel wrote:
-> Hi Hans,
+2017-02-14 20:30 GMT+01:00 Laurent Pinchart <laurent.pinchart@ideasonboard.=
+com>:
+> Hi Benjamin,
 >
-> On Fri, 2017-02-10 at 10:42 +0100, Hans Verkuil wrote:
->> Hi Philipp,
+> Thank you for the patch. I've CC'ed the linux-api mailing list.
+>
+> On Monday 13 Feb 2017 15:45:05 Benjamin Gaignard wrote:
+>> This is the core of simple allocator module.
+>> It aim to offert one common ioctl to allocate specific memory.
 >>
->> Here is my review. Please take note of the videodev2.h colorspace patch I
->> posted today, it affects how this patch works since you use V4L2_MAP_QUANTIZATION_DEFAULT.
->
-> Thank you for the review.
->
->> On 02/08/2017 11:53 AM, Philipp Zabel wrote:
->>> @@ -1486,16 +1506,40 @@ static int tc358743_get_fmt(struct v4l2_subdev *sd,
->>>
->>>  	switch (vi_rep & MASK_VOUT_COLOR_SEL) {
->>>  	case MASK_VOUT_COLOR_RGB_FULL:
->>> +		format->format.colorspace = V4L2_COLORSPACE_SRGB;
->>> +		format->format.xfer_func = V4L2_XFER_FUNC_SRGB;
->>> +		format->format.ycbcr_enc = V4L2_YCBCR_ENC_601;
->>> +		format->format.quantization = V4L2_QUANTIZATION_FULL_RANGE;
->>> +		break;
->>>  	case MASK_VOUT_COLOR_RGB_LIMITED:
->>>  		format->format.colorspace = V4L2_COLORSPACE_SRGB;
->>> +		format->format.xfer_func = V4L2_XFER_FUNC_SRGB;
->>> +		format->format.ycbcr_enc = V4L2_YCBCR_ENC_601;
->>> +		format->format.quantization = V4L2_QUANTIZATION_LIM_RANGE;
->>>  		break;
->>>  	case MASK_VOUT_COLOR_601_YCBCR_LIMITED:
->>> +		format->format.colorspace = V4L2_COLORSPACE_SMPTE170M;
->>> +		format->format.xfer_func = V4L2_XFER_FUNC_709;
->>> +		format->format.ycbcr_enc = V4L2_YCBCR_ENC_601;
->>> +		format->format.quantization = V4L2_QUANTIZATION_LIM_RANGE;
->>> +		break;
->>>  	case MASK_VOUT_COLOR_601_YCBCR_FULL:
->>>  		format->format.colorspace = V4L2_COLORSPACE_SMPTE170M;
->>> +		format->format.xfer_func = V4L2_XFER_FUNC_709;
->>> +		format->format.ycbcr_enc = V4L2_YCBCR_ENC_XV601;
->>> +		format->format.quantization = V4L2_QUANTIZATION_FULL_RANGE;
->>>  		break;
->>>  	case MASK_VOUT_COLOR_709_YCBCR_FULL:
->>> +		format->format.colorspace = V4L2_COLORSPACE_REC709;
->>> +		format->format.xfer_func = V4L2_XFER_FUNC_709;
->>> +		format->format.ycbcr_enc = V4L2_YCBCR_ENC_XV709;
->>> +		format->format.quantization = V4L2_QUANTIZATION_FULL_RANGE;
->>> +		break;
->>>  	case MASK_VOUT_COLOR_709_YCBCR_LIMITED:
->>>  		format->format.colorspace = V4L2_COLORSPACE_REC709;
->>> +		format->format.xfer_func = V4L2_XFER_FUNC_709;
->>> +		format->format.ycbcr_enc = V4L2_YCBCR_ENC_709;
->>> +		format->format.quantization = V4L2_QUANTIZATION_LIM_RANGE;
->>>  		break;
+>> version 2:
+>> - rebased on 4.10-rc7
 >>
->> This is wrong (and it is wrong in the original code as well).
+>> Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+>> ---
+>>  Documentation/simple-allocator.txt              |  81 +++++++++++
+>>  drivers/Kconfig                                 |   2 +
+>>  drivers/Makefile                                |   1 +
+>>  drivers/simpleallocator/Kconfig                 |  10 ++
+>>  drivers/simpleallocator/Makefile                |   1 +
+>>  drivers/simpleallocator/simple-allocator-priv.h |  33 +++++
+>>  drivers/simpleallocator/simple-allocator.c      | 180 +++++++++++++++++=
+++++
+>>  include/uapi/linux/simple-allocator.h           |  35 +++++
+>>  8 files changed, 343 insertions(+)
+>>  create mode 100644 Documentation/simple-allocator.txt
+>>  create mode 100644 drivers/simpleallocator/Kconfig
+>>  create mode 100644 drivers/simpleallocator/Makefile
+>>  create mode 100644 drivers/simpleallocator/simple-allocator-priv.h
+>>  create mode 100644 drivers/simpleallocator/simple-allocator.c
+>>  create mode 100644 include/uapi/linux/simple-allocator.h
 >>
->> The colorspace depends on the colorspace information in the AVI InfoFrame, not
->> on what is output. Typically if RGB is received, then that maps to COLORSPACE_SRGB
->> and XFER_FUNC_SRGB. For YCbCr with SMPTE170M it maps to SMPTE170M and XFER_FUNC_709,
->> and REC709 maps to COLORSPACE_REC709 and XFER_FUNC_709.
+>> diff --git a/Documentation/simple-allocator.txt
+>> b/Documentation/simple-allocator.txt new file mode 100644
+>> index 0000000..89ba883
+>> --- /dev/null
+>> +++ b/Documentation/simple-allocator.txt
+>> @@ -0,0 +1,81 @@
+>> +Simple Allocator Framework
 >
-> So colorspace and xfer_func should be set according to the AVI info
-> packet, no matter whether the output is RGB or YUV?
+> There's nothing simple in buffer allocation, otherwise we would have solv=
+ed
+> the problem a long time ago. Let's not use a misleading name.
 
-Correct. You have no control over that and converting between different
-transfer functions and colorimetries requires fancy hardware which
-is usually the domain of GPUs and FPGAs and almost never implemented
-in standard video receivers. YCbCr encoding and quantization range
-can be implemented by a simple 3x3 matrix and a vector offset, so that is
-much easier to do.
+Simple was not about the problem, it was about the using only one ioctl.
+Anyway a better name is needed: "Limited allocation API", "Basic
+allocator framework" ?
+suggestions are welcomes
 
-> I think that information gets parsed into the S_V_COLOR field in the
-> VI_STATUS3 register, so I'll use that instead of VOUT_COLOR_SEL.
 >
->> The only thing the vout_color_sel modifies are the ycbcr_enc and the quantization
->> range.
+>> +Simple Allocator offer a single ioctl SA_IOC_ALLOC to allocate buffers
+>> +on dedicated memory regions and export them as a dmabuf file descriptor=
+.
+>> +Using dmabuf file descriptor allow to share this memory between process=
+es
+>> +and/or import it into other frameworks like v4l2 or drm/kms (prime).
+>> +When userland wants to free the memory only a call to close() in needed
+>> +so it could done even without knowing that buffer has been allocated by
+>> +simple allocator ioctl.
+>> +
+>> +Each memory regions will be seen as a filein /dev/.
+>> +For example CMA regions will exposed has /dev/cmaX.
 >
-> Ok.
+> Why do you need multiple devices ? Furthermore, given how central this AP=
+I
+> will become, I believe it needs very strict review, and would be a candid=
+ate
+> for a syscall.
+
+I believe that having a device per memory regions is simple than have havin=
+g,
+like ION, heaps which request to add masks (or heap ids) to select them.
+My goal here is not to have a a central device /dev/simple_allocator
+where allcoations
+are dispatched over heaps but only a common ioctl to make userland life eas=
+ier.
+Maybe I should regroup all the device under the same directory: /dev/simple=
+/ ?
+
 >
->>>  	default:
->>>  		format->format.colorspace = 0;
+> Without diving into details yet, there are a few particular points I'm
+> concerned about.
+>
+> - What is the scope of this API ? What problems do you want to solve, pla=
+n to
+> solve in the future, and consider as out of scope ?
+
+My problem is to be able to allocate a buffer in contiguous memory
+(CMA) when using
+a software decoder and Weston. This will save the copy between decoder
+and display
+because display only accepted contiguous memory.
+Wayland dmabuf protocol can't allocate buffers so I need an other way
+to get access to CMA.
+I also other use cases where I need to allocate memory in special
+memory region for secure
+purpose.
+
+For those both cases I need an API to allocate memory from userland so
+I decided to
+propose a common ioctl which may be used for even more memory regions.
+
+>
+> - How should we handle permissions and resource limits ? Is file-based
+> permission on a device node a good model ? How do we prevent or at least
+> mitigate memory-related DoS ?
+
+Since each memory region will be represented by a device we could set per
+device permissions for example with SELinux policy.
+
+>
+> - How should such a central allocator API interact with containers and
+> virtualization in general ?
+
+I'm not expert enough in container and virtualization but I know they could=
+ have
+access to some files/directories to store data so I guess it will
+possible for them
+to call (for example) /dev/cma0  to allocate memory
+
+> - What model do we want to expose to applications to select a memory type=
+ ?
+> You still haven't convinced me that we should expose memory pools explici=
+tly
+> to application (=C3=A0 la ION), and I believe a usage/constraint model wo=
+uld be
+> better.
+
+Memory type selection should be solved by something more smarter than my co=
+de.
+My goal here is only to provided a common way to perform allocations.
+If  "Unix Device Memory Allocator" project manage to define a way to expose
+memory constraint I plan to add one ioctl to let it know the
+capabilities of each memory region.
+I hope that what I'm proposing could become a backend for "Unix Device
+Memory Allocator".
+
+>
+>> +Implementing a simple allocator
+>> +-------------------------------
+>> +
+>> +Simple Allocator provide helpers functions to register/unregister an
+>> +allocator:
+>> +- simple_allocator_register(struct sa_device *sadev)
+>> +  Register simple_allocator_device using sa_device structure where name=
+,
+>> +  owner and allocate fields must be set.
+>> +
+>> +- simple_allocator_unregister(struct sa_device *sadev)
+>> +  Unregister a simple allocator device.
+>> +
+>> +Using Simple Allocator /dev interface example
+>> +---------------------------------------------
+>> +
+>> +This example of code allocate a buffer on the first CMA region (/dev/cm=
+a0)
+>> +before mmap and close it.
+>> +
+>> +#include <errno.h>
+>> +#include <fcntl.h>
+>> +#include <stdio.h>
+>> +#include <stdlib.h>
+>> +#include <string.h>
+>> +#include <unistd.h>
+>> +#include <sys/ioctl.h>
+>> +#include <sys/mman.h>
+>> +#include <sys/stat.h>
+>> +#include <sys/types.h>
+>> +
+>> +#include "simple-allocator.h"
+>> +
+>> +#define LENGTH 1024*16
+>> +
+>> +void main (void)
+>> +{
+>> +     struct simple_allocate_data data;
+>> +     int fd =3D open("/dev/cma0", O_RDWR, 0);
+>> +     int ret;
+>> +     void *mem;
+>> +
+>> +     if (fd < 0) {
+>> +             printf("Can't open /dev/cma0\n");
+>> +             return;
+>> +     }
+>> +
+>> +     memset(&data, 0, sizeof(data));
+>> +
+>> +     data.length =3D LENGTH;
+>> +     data.flags =3D O_RDWR | O_CLOEXEC;
+>> +
+>> +     ret =3D ioctl(fd, SA_IOC_ALLOC, &data);
+>> +     if (ret) {
+>> +             printf("Buffer allocation failed\n");
+>> +             goto end;
+>> +     }
+>> +
+>> +     mem =3D mmap(0, LENGTH, PROT_READ | PROT_WRITE, MAP_SHARED, data.f=
+d, 0);
+>> +     if (mem =3D=3D MAP_FAILED) {
+>> +             printf("mmap failed\n");
+>> +     }
+>> +
+>> +     memset(mem, 0xFF, LENGTH);
+>> +     munmap(mem, LENGTH);
+>> +
+>> +     printf("test simple allocator CMA OK\n");
+>> +end:
+>> +     close(fd);
+>> +}
+>> diff --git a/drivers/Kconfig b/drivers/Kconfig
+>> index e1e2066..a6d8828 100644
+>> --- a/drivers/Kconfig
+>> +++ b/drivers/Kconfig
+>> @@ -202,4 +202,6 @@ source "drivers/hwtracing/intel_th/Kconfig"
 >>
->> The driver should never set colorspace to 0.
->
-> Ok, I'll fix this.
->
->>> @@ -1512,7 +1556,11 @@ static int tc358743_set_fmt(struct v4l2_subdev *sd,
->>>  	struct tc358743_state *state = to_state(sd);
->>>
->>>  	u32 code = format->format.code; /* is overwritten by get_fmt */
->>> +	enum v4l2_colorspace colorspace = format->format.colorspace;
->>> +	enum v4l2_ycbcr_encoding ycbcr_enc = format->format.ycbcr_enc;
->>> +	enum v4l2_quantization quantization = format->format.quantization;
->>>  	int ret = tc358743_get_fmt(sd, cfg, format);
->>> +	u8 vout_color_sel;
->>>
->>>  	format->format.code = code;
->>>
->>> @@ -1521,16 +1569,78 @@ static int tc358743_set_fmt(struct v4l2_subdev *sd,
->>>
->>>  	switch (code) {
->>>  	case MEDIA_BUS_FMT_RGB888_1X24:
->>> +		colorspace = V4L2_COLORSPACE_SRGB;
+>>  source "drivers/fpga/Kconfig"
 >>
->> You can't set the colorspace and/or xfer_func in an HDMI receiver driver. This
->> exclusively depends on the AVI InfoFrame information and you can't change that.
+>> +source "drivers/simpleallocator/Kconfig"
+>> +
+>>  endmenu
+>> diff --git a/drivers/Makefile b/drivers/Makefile
+>> index 060026a..5081eb8 100644
+>> --- a/drivers/Makefile
+>> +++ b/drivers/Makefile
+>> @@ -173,3 +173,4 @@ obj-$(CONFIG_STM)         +=3D hwtracing/stm/
+>>  obj-$(CONFIG_ANDROID)                +=3D android/
+>>  obj-$(CONFIG_NVMEM)          +=3D nvmem/
+>>  obj-$(CONFIG_FPGA)           +=3D fpga/
+>> +obj-$(CONFIG_SIMPLE_ALLOCATOR)       +=3D simpleallocator/
+>> diff --git a/drivers/simpleallocator/Kconfig
+>> b/drivers/simpleallocator/Kconfig new file mode 100644
+>> index 0000000..c6fc2e3
+>> --- /dev/null
+>> +++ b/drivers/simpleallocator/Kconfig
+>> @@ -0,0 +1,10 @@
+>> +menu "Simple Allocator"
+>> +
+>> +config SIMPLE_ALLOCATOR
+>> +     tristate "Simple Alllocator Framework"
+>> +     select DMA_SHARED_BUFFER
+>> +     ---help---
+>> +        The Simple Allocator Framework adds an API to allocate and shar=
+e
+>> +        memory in userland.
+>> +
+>> +endmenu
+>> diff --git a/drivers/simpleallocator/Makefile
+>> b/drivers/simpleallocator/Makefile new file mode 100644
+>> index 0000000..e27c6ad
+>> --- /dev/null
+>> +++ b/drivers/simpleallocator/Makefile
+>> @@ -0,0 +1 @@
+>> +obj-$(CONFIG_SIMPLE_ALLOCATOR) +=3D simple-allocator.o
+>> diff --git a/drivers/simpleallocator/simple-allocator-priv.h
+>> b/drivers/simpleallocator/simple-allocator-priv.h new file mode 100644
+>> index 0000000..33f5a33
+>> --- /dev/null
+>> +++ b/drivers/simpleallocator/simple-allocator-priv.h
+>> @@ -0,0 +1,33 @@
+>> +/*
+>> + * Copyright (C) Linaro 2016
+>> + *
+>> + * Author: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+>> + *
+>> + * License terms:  GNU General Public License (GPL)
+>> + */
+>> +
+>> +#ifndef _SIMPLE_ALLOCATOR_PRIV_H_
+>> +#define _SIMPLE_ALLOCATOR_PRIV_H_
+>> +
+>> +#include <linux/cdev.h>
+>> +#include <linux/device.h>
+>> +#include <linux/dma-buf.h>
+>> +
+>> +/**
+>> + * struct sa_device - simple allocator device
+>> + * @owner: module owner, must be set to THIS_MODULE
+>> + * @name: name of the allocator
+>> + * @allocate: callabck for memory allocation
+>> + */
+>> +struct sa_device {
+>> +     struct device   dev;
+>> +     struct cdev     chrdev;
+>> +     struct module   *owner;
+>> +     const char      *name;
+>> +     struct dma_buf *(*allocate)(struct sa_device *, u64 length, u32
+> flags);
+>> +};
+>> +
+>> +int simple_allocator_register(struct sa_device *sadev);
+>> +void simple_allocator_unregister(struct sa_device *sadev);
+>> +
+>> +#endif
+>> diff --git a/drivers/simpleallocator/simple-allocator.c
+>> b/drivers/simpleallocator/simple-allocator.c new file mode 100644
+>> index 0000000..d89ccbf
+>> --- /dev/null
+>> +++ b/drivers/simpleallocator/simple-allocator.c
+>> @@ -0,0 +1,180 @@
+>> +/*
+>> + * Copyright (C) Linaro 2016
+>> + *
+>> + * Author: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+>> + *
+>> + * License terms:  GNU General Public License (GPL)
+>> + */
+>> +
+>> +#include <linux/module.h>
+>> +#include <linux/simple-allocator.h>
+>> +#include <linux/uaccess.h>
+>> +
+>> +#include "simple-allocator-priv.h"
+>> +
+>> +#define SA_MAJOR     222
+>> +#define SA_NUM_DEVICES       256
+>> +#define SA_NAME              "simple_allocator"
+>> +
+>> +static int sa_minor;
+>> +
+>> +static struct class sa_class =3D {
+>> +     .name =3D SA_NAME,
+>> +};
+>> +
+>> +static long sa_ioctl(struct file *filp, unsigned int cmd, unsigned long
+>> arg) +{
+>> +     struct sa_device *sadev =3D filp->private_data;
+>> +     int ret =3D -ENODEV;
+>> +
+>> +     switch (cmd) {
+>> +     case SA_IOC_ALLOC:
+>> +     {
+>> +             struct simple_allocate_data data;
+>> +             struct dma_buf *dmabuf;
+>> +
+>> +             if (copy_from_user(&data, (void __user *)arg, _IOC_SIZE(cm=
+d)))
+>> +                     return -EFAULT;
+>> +
+>> +             if (data.version !=3D 0)
+>> +                     return -EINVAL;
+>> +
+>> +             dmabuf =3D sadev->allocate(sadev, data.length, data.flags)=
+;
+>> +             if (!dmabuf)
+>> +                     return -EINVAL;
+>> +
+>> +             data.fd =3D dma_buf_fd(dmabuf, data.flags);
+>> +             if (data.fd < 0) {
+>> +                     dma_buf_put(dmabuf);
+>> +                     return -EINVAL;
+>> +             }
+>> +
+>> +             data.length =3D dmabuf->size;
+>> +
+>> +             if (copy_to_user((void __user *)arg, &data, _IOC_SIZE(cmd)=
+)) {
+>> +                     dma_buf_put(dmabuf);
+>> +                     return -EFAULT;
+>> +             }
+>> +
+>> +             return 0;
+>> +     }
+>> +     }
+>> +     return ret;
+>> +}
+>> +
+>> +static int sa_open(struct inode *inode, struct file *filp)
+>> +{
+>> +     struct sa_device *sadev =3D container_of(inode->i_cdev,
+>> +                                            struct sa_device, chrdev);
+>> +
+>> +     if (!sadev)
+>> +             return -ENODEV;
+>> +
+>> +     get_device(&sadev->dev);
+>> +     filp->private_data =3D sadev;
+>> +     return 0;
+>> +}
+>> +
+>> +static int sa_release(struct inode *inode, struct file *filp)
+>> +{
+>> +     struct sa_device *sadev =3D container_of(inode->i_cdev,
+>> +                                            struct sa_device, chrdev);
+>> +
+>> +     if (!sadev)
+>> +             return -ENODEV;
+>> +
+>> +     put_device(&sadev->dev);
+>> +     return 0;
+>> +}
+>> +
+>> +static const struct file_operations sa_fops =3D {
+>> +     .owner =3D THIS_MODULE,
+>> +     .open =3D sa_open,
+>> +     .release =3D sa_release,
+>> +     .unlocked_ioctl =3D sa_ioctl,
+>> +};
+>> +
+>> +/**
+>> + * simple_allocator_register - register a simple allocator
+>> + * @sadev: simple allocator structure to be registered
+>> + *
+>> + * Return 0 if allocator has been regsitered, either a negative value.
+>> + */
+>> +int simple_allocator_register(struct sa_device *sadev)
+>> +{
+>> +     int ret;
+>> +
+>> +     if (!sadev->name || !sadev->allocate)
+>> +             return -EINVAL;
+>> +
+>> +     cdev_init(&sadev->chrdev, &sa_fops);
+>> +     sadev->chrdev.owner =3D sadev->owner;
+>> +
+>> +     ret =3D cdev_add(&sadev->chrdev, MKDEV(SA_MAJOR, sa_minor), 1);
+>> +     if (ret < 0)
+>> +             return ret;
+>> +
+>> +     sadev->dev.class =3D &sa_class;
+>> +     sadev->dev.devt =3D MKDEV(SA_MAJOR, sa_minor);
+>> +     dev_set_name(&sadev->dev, "%s%d", sadev->name, sa_minor);
+>> +     ret =3D device_register(&sadev->dev);
+>> +     if (ret < 0)
+>> +             goto cleanup;
+>> +
+>> +     sa_minor++;
+>> +     return 0;
+>> +
+>> +cleanup:
+>> +     cdev_del(&sadev->chrdev);
+>> +     return ret;
+>> +}
+>> +EXPORT_SYMBOL_GPL(simple_allocator_register);
+>> +
+>> +/**
+>> + * simple_allocator_unregister - unregister a simple allocator
+>> + * @sadev: simple allocator device to be unregistered
+>> + */
+>> +void simple_allocator_unregister(struct sa_device *sadev)
+>> +{
+>> +     if (!sadev)
+>> +             return;
+>> +
+>> +     cdev_del(&sadev->chrdev);
+>> +     device_del(&sadev->dev);
+>> +     put_device(&sadev->dev);
+>> +}
+>> +EXPORT_SYMBOL_GPL(simple_allocator_unregister);
+>> +
+>> +static int __init sa_init(void)
+>> +{
+>> +     dev_t dev =3D MKDEV(SA_MAJOR, 0);
+>> +     int ret;
+>> +
+>> +     ret =3D register_chrdev_region(dev, SA_NUM_DEVICES, SA_NAME);
+>> +     if (ret < 0)
+>> +             return ret;
+>> +
+>> +     ret =3D class_register(&sa_class);
+>> +     if (ret < 0) {
+>> +             unregister_chrdev_region(dev, SA_NUM_DEVICES);
+>> +             return -EIO;
+>> +     }
+>> +
+>> +     return 0;
+>> +}
+>> +
+>> +static void __exit sa_exit(void)
+>> +{
+>> +     dev_t dev =3D MKDEV(SA_MAJOR, 0);
+>> +
+>> +     class_unregister(&sa_class);
+>> +     unregister_chrdev_region(dev, SA_NUM_DEVICES);
+>> +}
+>> +
+>> +subsys_initcall(sa_init);
+>> +module_exit(sa_exit);
+>> +
+>> +MODULE_AUTHOR("Benjamin Gaignard <benjamin.gaignard@linaro.org>");
+>> +MODULE_DESCRIPTION("Simple allocator");
+>> +MODULE_LICENSE("GPL");
+>> +MODULE_ALIAS_CHARDEV_MAJOR(SA_MAJOR);
+>> diff --git a/include/uapi/linux/simple-allocator.h
+>> b/include/uapi/linux/simple-allocator.h new file mode 100644
+>> index 0000000..5520a85
+>> --- /dev/null
+>> +++ b/include/uapi/linux/simple-allocator.h
+>> @@ -0,0 +1,35 @@
+>> +/*
+>> + * Copyright (C) Linaro 2016
+>> + *
+>> + * Author: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+>> + *
+>> + * License terms:  GNU General Public License (GPL), version 2
+>> + */
+>> +
+>> +#ifndef _SIMPLE_ALLOCATOR_H_
+>> +#define _SIMPLE_ALLOCATOR_H_
+>> +
+>> +#include <linux/ioctl.h>
+>> +#include <linux/types.h>
+>> +
+>> +/**
+>> + * struct simple_allocate_data - allocation parameters
+>> + * @version: structure version (must be set to 0)
+>> + * @length:  size of the requested buffer
+>> + * @flags:   mode flags for the file like O_RDWR or O_CLOEXEC
+>> + * @fd:              returned file descriptor
+>> + */
+>> +struct simple_allocate_data {
+>> +     __u64 version;
+>> +     __u64 length;
+>> +     __u32 flags;
+>> +     __u32 reserved1;
+>> +     __s32 fd;
+>> +     __u32 reserved2;
+>> +};
+>> +
+>> +#define SA_IOC_MAGIC 'S'
+>> +
+>> +#define SA_IOC_ALLOC _IOWR(SA_IOC_MAGIC, 0, struct simple_allocate_data=
+)
+>> +
+>> +#endif
 >
-> Ok, I'll fix this.
+> --
+> Regards,
 >
->>> +		break;
->>>  	case MEDIA_BUS_FMT_UYVY8_1X16:
->>> +		switch (colorspace) {
->>> +		case V4L2_COLORSPACE_SMPTE170M:
->>> +		case V4L2_COLORSPACE_REC709:
->>> +			break;
->>> +		default:
->>> +			if (format->format.colorspace != V4L2_COLORSPACE_SRGB)
->>> +				colorspace = format->format.colorspace;
->>> +			else
->>> +				colorspace = V4L2_COLORSPACE_SMPTE170M;
->>> +			break;
->>> +		}
->>> +		break;
->>> +	default:
->>> +		return -EINVAL;
->>> +	}
->>> +
->>> +	format->format.colorspace = colorspace;
->>> +
->>> +	if (ycbcr_enc == V4L2_YCBCR_ENC_DEFAULT)
->>> +		ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(colorspace);
->>> +	if (quantization == V4L2_QUANTIZATION_DEFAULT)
->>> +		quantization = V4L2_MAP_QUANTIZATION_DEFAULT(false, colorspace,
->>> +							     ycbcr_enc);
->>
->> That also means that you cannot determine this here, since you won't know the
->> colorspace until you have the InfoFrame information.
->>
->> You should just check the ycbcr_enc and quantization fields: for MEDIA_BUS_FMT_RGB888_1X24
->> you only have to look at the quantization field, for MEDIA_BUS_FMT_UYVY8_1X16
->> both fields need checking.
+> Laurent Pinchart
 >
-> I assume I should set colorspace and xfer_func according to the detected
-> input color space then, same as in get_fmt.
 
-Provided there is a signal, yes.
 
-Otherwise fallback to SRGB.
 
-Regards,
+--=20
+Benjamin Gaignard
 
-	Hans
+Graphic Study Group
 
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+
+Follow Linaro: Facebook | Twitter | Blog
