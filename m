@@ -1,91 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:57985 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751617AbdB0KZT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Feb 2017 05:25:19 -0500
-Date: Mon, 27 Feb 2017 11:23:34 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Koji Matsuoka <koji.matsuoka.xm@renesas.com>,
-        Yoshihiro Kaneko <ykaneko0929@gmail.com>,
-        Simon Horman <horms+renesas@verge.net.au>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH v2] soc-camera: fix rectangle adjustment in cropping
-Message-ID: <Pine.LNX.4.64.1702271120060.21990@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:56486 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750806AbdBOFPA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 15 Feb 2017 00:15:00 -0500
+Message-ID: <6b3691614436e04bbe875d25b75c6863@smtp-cloud2.xs4all.net>
+Date: Wed, 15 Feb 2017 06:14:57 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-update_subrect() adjusts the sub-rectangle to be inside a base area.
-It checks width and height to not exceed those of the area, then it
-checks the low border (left or top) to lie within the area, then the
-high border (right or bottom) to lie there too. This latter check has
-a bug, which is fixed by this patch.
+Results of the daily build of media_tree:
 
-Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-[g.liakhovetski@gmx.de: dropped supposedly wrong hunks]
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+date:			Wed Feb 15 05:00:18 CET 2017
+media-tree git hash:	9eeb0ed0f30938f31a3d9135a88b9502192c18dd
+media_build git hash:	785cdf7f0798964681b33aad44fc2ff4d734733d
+v4l-utils git hash:	90257a21f8f73f4616b3572402eaf490b4f71f79
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
-v2: fix a silly typo, reported by Laurent, thanks! Also renamed the 
-function, according to his suggestion.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-4.10-rc3-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+linux-4.9-x86_64: OK
+linux-4.10-rc3-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
- drivers/media/platform/soc_camera/soc_scale_crop.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+Detailed results are available here:
 
-diff --git a/drivers/media/platform/soc_camera/soc_scale_crop.c b/drivers/media/platform/soc_camera/soc_scale_crop.c
-index f77252d..0116097 100644
---- a/drivers/media/platform/soc_camera/soc_scale_crop.c
-+++ b/drivers/media/platform/soc_camera/soc_scale_crop.c
-@@ -62,7 +62,8 @@ int soc_camera_client_g_rect(struct v4l2_subdev *sd, struct v4l2_rect *rect)
- EXPORT_SYMBOL(soc_camera_client_g_rect);
- 
- /* Client crop has changed, update our sub-rectangle to remain within the area */
--static void update_subrect(struct v4l2_rect *rect, struct v4l2_rect *subrect)
-+static void move_and_crop_subrect(struct v4l2_rect *rect,
-+				  struct v4l2_rect *subrect)
- {
- 	if (rect->width < subrect->width)
- 		subrect->width = rect->width;
-@@ -72,14 +73,14 @@ static void update_subrect(struct v4l2_rect *rect, struct v4l2_rect *subrect)
- 
- 	if (rect->left > subrect->left)
- 		subrect->left = rect->left;
--	else if (rect->left + rect->width >
-+	else if (rect->left + rect->width <
- 		 subrect->left + subrect->width)
- 		subrect->left = rect->left + rect->width -
- 			subrect->width;
- 
- 	if (rect->top > subrect->top)
- 		subrect->top = rect->top;
--	else if (rect->top + rect->height >
-+	else if (rect->top + rect->height <
- 		 subrect->top + subrect->height)
- 		subrect->top = rect->top + rect->height -
- 			subrect->height;
-@@ -216,7 +217,7 @@ int soc_camera_client_s_selection(struct v4l2_subdev *sd,
- 
- 	if (!ret) {
- 		*target_rect = *cam_rect;
--		update_subrect(target_rect, subrect);
-+		move_and_crop_subrect(target_rect, subrect);
- 	}
- 
- 	return ret;
-@@ -299,7 +300,7 @@ static int client_set_fmt(struct soc_camera_device *icd,
- 	if (host_1to1)
- 		*subrect = *rect;
- 	else
--		update_subrect(rect, subrect);
-+		move_and_crop_subrect(rect, subrect);
- 
- 	return 0;
- }
--- 
-1.9.3
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
