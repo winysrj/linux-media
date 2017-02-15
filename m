@@ -1,148 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48976 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751494AbdBNA0g (ORCPT
+Received: from mail-oi0-f45.google.com ([209.85.218.45]:34605 "EHLO
+        mail-oi0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751317AbdBOQ2g (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 19:26:36 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v4 2/4] v4l: vsp1: Move vsp1_video_setup_pipeline()
-Date: Tue, 14 Feb 2017 02:27:02 +0200
-Message-ID: <1924310.HjluRV82qB@avalon>
-In-Reply-To: <703b4aa60797b9ce28ed26a0d8b2583a62a181f4.1483704413.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.4df11e0fa078e5cc8bc8f668951249cca0fd3d7f.1483704413.git-series.kieran.bingham+renesas@ideasonboard.com> <703b4aa60797b9ce28ed26a0d8b2583a62a181f4.1483704413.git-series.kieran.bingham+renesas@ideasonboard.com>
+        Wed, 15 Feb 2017 11:28:36 -0500
+Received: by mail-oi0-f45.google.com with SMTP id s203so89082353oie.1
+        for <linux-media@vger.kernel.org>; Wed, 15 Feb 2017 08:28:36 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <CAL+psHz-rC5xTj-N0ZTv-hTke3OaZx-Cd=nnSMOv6XUuXbj0Zg@mail.gmail.com>
+References: <CAL+psHz-rC5xTj-N0ZTv-hTke3OaZx-Cd=nnSMOv6XUuXbj0Zg@mail.gmail.com>
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date: Wed, 15 Feb 2017 11:28:35 -0500
+Message-ID: <CAGoCfiyLiiew1kGmmo72_7ABvVKrmH8h4jt72zqshmk3FG+AHA@mail.gmail.com>
+Subject: Re: [xawtv3] Request: Support for FM RDS
+To: George Pojar <geoubuntu@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Hi George,
 
-Thank you for the patch.
+The big problem is that almost none of the hardware tuners out there
+which support FM have support for RDS.  You generally need an extra
+chip, and very few devices have it (IIRC, none of the ones that are
+supported in Linux have been available in retail for a number of
+years).
 
-On Friday 06 Jan 2017 12:15:29 Kieran Bingham wrote:
-> Move the static vsp1_video_setup_pipeline() function in preparation for
-> the callee updates so that the vsp1_video_pipeline_run() call can
-> configure pipelines following suspend resume actions.
-> 
-> This commit is just a code move for clarity performing no functional
-> change.
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Don't get me wrong - I would like to see RDS supported as well - but I
+couldn't find a single tuner product shipping in retail that supports
+it.
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+In short, it's a hardware limitation, not a problem with the
+linux-media driver stack.
 
-> ---
->  drivers/media/platform/vsp1/vsp1_video.c | 82 ++++++++++++-------------
->  1 file changed, 41 insertions(+), 41 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
-> b/drivers/media/platform/vsp1/vsp1_video.c index f7dc249eb398..938ecc2766ed
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_video.c
-> +++ b/drivers/media/platform/vsp1/vsp1_video.c
-> @@ -355,6 +355,47 @@ static void vsp1_video_frame_end(struct vsp1_pipeline
-> *pipe, pipe->buffers_ready |= 1 << video->pipe_index;
->  }
-> 
-> +static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
-> +{
-> +	struct vsp1_entity *entity;
-> +
-> +	/* Determine this pipelines sizes for image partitioning support. */
-> +	vsp1_video_pipeline_setup_partitions(pipe);
-> +
-> +	/* Prepare the display list. */
-> +	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
-> +	if (!pipe->dl)
-> +		return -ENOMEM;
-> +
-> +	if (pipe->uds) {
-> +		struct vsp1_uds *uds = to_uds(&pipe->uds->subdev);
-> +
-> +		/* If a BRU is present in the pipeline before the UDS, the 
-alpha
-> +		 * component doesn't need to be scaled as the BRU output alpha
-> +		 * value is fixed to 255. Otherwise we need to scale the alpha
-> +		 * component only when available at the input RPF.
-> +		 */
-> +		if (pipe->uds_input->type == VSP1_ENTITY_BRU) {
-> +			uds->scale_alpha = false;
-> +		} else {
-> +			struct vsp1_rwpf *rpf =
-> +				to_rwpf(&pipe->uds_input->subdev);
-> +
-> +			uds->scale_alpha = rpf->fmtinfo->alpha;
-> +		}
-> +	}
-> +
-> +	list_for_each_entry(entity, &pipe->entities, list_pipe) {
-> +		vsp1_entity_route_setup(entity, pipe->dl);
-> +
-> +		if (entity->ops->configure)
-> +			entity->ops->configure(entity, pipe, pipe->dl,
-> +					       VSP1_ENTITY_PARAMS_INIT);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  static void vsp1_video_pipeline_run_partition(struct vsp1_pipeline *pipe,
->  					      struct vsp1_dl_list *dl)
->  {
-> @@ -752,47 +793,6 @@ static void vsp1_video_buffer_queue(struct vb2_buffer
-> *vb) spin_unlock_irqrestore(&pipe->irqlock, flags);
->  }
-> 
-> -static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
-> -{
-> -	struct vsp1_entity *entity;
-> -
-> -	/* Determine this pipelines sizes for image partitioning support. */
-> -	vsp1_video_pipeline_setup_partitions(pipe);
-> -
-> -	/* Prepare the display list. */
-> -	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
-> -	if (!pipe->dl)
-> -		return -ENOMEM;
-> -
-> -	if (pipe->uds) {
-> -		struct vsp1_uds *uds = to_uds(&pipe->uds->subdev);
-> -
-> -		/* If a BRU is present in the pipeline before the UDS, the 
-alpha
-> -		 * component doesn't need to be scaled as the BRU output alpha
-> -		 * value is fixed to 255. Otherwise we need to scale the alpha
-> -		 * component only when available at the input RPF.
-> -		 */
-> -		if (pipe->uds_input->type == VSP1_ENTITY_BRU) {
-> -			uds->scale_alpha = false;
-> -		} else {
-> -			struct vsp1_rwpf *rpf =
-> -				to_rwpf(&pipe->uds_input->subdev);
-> -
-> -			uds->scale_alpha = rpf->fmtinfo->alpha;
-> -		}
-> -	}
-> -
-> -	list_for_each_entry(entity, &pipe->entities, list_pipe) {
-> -		vsp1_entity_route_setup(entity, pipe->dl);
-> -
-> -		if (entity->ops->configure)
-> -			entity->ops->configure(entity, pipe, pipe->dl,
-> -					       VSP1_ENTITY_PARAMS_INIT);
-> -	}
-> -
-> -	return 0;
-> -}
-> -
->  static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int
-> count) {
->  	struct vsp1_video *video = vb2_get_drv_priv(vq);
+Devin
+
+On Wed, Feb 15, 2017 at 11:07 AM, George Pojar <geoubuntu@gmail.com> wrote:
+> FM RDS would be a great feature in radio console application. It would
+> be nice to see what the name of the song is that is playing (that is,
+> if the station supports RDS).
+
+
 
 -- 
-Regards,
-
-Laurent Pinchart
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
