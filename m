@@ -1,95 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay.synopsys.com ([198.182.47.9]:37215 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752413AbdBML1m (ORCPT
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:34629 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752191AbdBOR4K (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 06:27:42 -0500
-From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-To: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org
-Cc: CARLOS.PALMINHA@synopsys.com,
-        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-        Mark Rutland <mark.rutland@arm.com>,
+        Wed, 15 Feb 2017 12:56:10 -0500
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>,
-        Pavel Machek <pavel@ucw.cz>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Rob Herring <robh+dt@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>
-Subject: [PATCH v8 0/2] Add support Add support for Omnivision OV56477
-Date: Mon, 13 Feb 2017 11:25:01 +0000
-Message-Id: <cover.1486984040.git.roliveir@synopsys.com>
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH 5/6] [media] vivid: improve subscribe event handling
+Date: Wed, 15 Feb 2017 15:55:32 -0200
+Message-Id: <20170215175533.6384-5-gustavo@padovan.org>
+In-Reply-To: <20170215175533.6384-1-gustavo@padovan.org>
+References: <20170215175533.6384-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-This patchset adds support for the Omnivision OV5647 sensor.
+We already check for the V4L2_EVENT_CTRL inside
+v4l2_ctrl_subscribe_event() so just move this fuction to the default:
+branch of the switch and let it does the job for us.
 
-At the moment it only supports 640x480 in RAW 8.
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+---
+ drivers/media/platform/vivid/vivid-vid-out.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-This is the eighth version of the OV5647 camera driver patchset.
-
-v8:
- - Remove a part of the initialization procedure which wasn't doing 
- anything
- - Check for i2c read/writes return values
- - Add stream_on/off functions
-
-v7:
- - Remove "0x" and leading 0 from DT documentation examples
-
-v6:
- - Add example to DT documentation
- - Remove data-lanes and clock-lane property from DT
- - Add external clock property to DT
- - Order includes
- - Remove unused variables and functions
- - Add external clock handling
- - Add power on counter
- - Change from g/s_parm to g/s_frame_interval
-
-v5:
- - Refactor code 
- - Change comments
- - Add missing error handling in some functions
-
-v4: 
- - Add correct license
- - Revert debugging info to generic infrastructure
- - Turn defines into enums
- - Correct code style issues
- - Remove unused defines
- - Make sure all errors where being handled
- - Rename some functions to make code more readable
- - Add some debugging info
-
-v3: 
- - No changes. Re-submitted due to lack of responses
-
-v2: 
- - Corrections in DT documentation
-
-Ramiro Oliveira (2):
-  Add OV5647 device tree documentation
-  Add support for OV5647 sensor.
-
- .../devicetree/bindings/media/i2c/ov5647.txt       |  35 +
- MAINTAINERS                                        |   7 +
- drivers/media/i2c/Kconfig                          |  12 +
- drivers/media/i2c/Makefile                         |   1 +
- drivers/media/i2c/ov5647.c                         | 736 +++++++++++++++++++++
- 5 files changed, 791 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
- create mode 100644 drivers/media/i2c/ov5647.c
-
+diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
+index 7ba52ee..1a33730 100644
+--- a/drivers/media/platform/vivid/vivid-vid-out.c
++++ b/drivers/media/platform/vivid/vivid-vid-out.c
+@@ -1172,14 +1172,12 @@ int vidioc_subscribe_event(struct v4l2_fh *fh,
+ 			const struct v4l2_event_subscription *sub)
+ {
+ 	switch (sub->type) {
+-	case V4L2_EVENT_CTRL:
+-		return v4l2_ctrl_subscribe_event(fh, sub);
+ 	case V4L2_EVENT_SOURCE_CHANGE:
+ 		if (fh->vdev->vfl_dir == VFL_DIR_RX)
+ 			return v4l2_src_change_event_subscribe(fh, sub);
+ 		break;
+ 	default:
+-		break;
++		return v4l2_ctrl_subscribe_event(fh, sub);
+ 	}
+ 	return -EINVAL;
+ }
 -- 
-2.11.0
+2.9.3
