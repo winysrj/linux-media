@@ -1,157 +1,427 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:58823 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753268AbdBGKmI (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44576
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750800AbdBONN1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Feb 2017 05:42:08 -0500
-Message-ID: <1486464090.2277.60.camel@pengutronix.de>
-Subject: Re: [PATCH v3 13/24] platform: add video-multiplexer subdevice
- driver
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        nick@shmanahar.org, markus.heiser@darmarit.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        sakari.ailus@linux.intel.com
-Date: Tue, 07 Feb 2017 11:41:30 +0100
-In-Reply-To: <3823958.XNLmIv7GEv@avalon>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
-         <2038922.a1tReKKdaL@avalon>
-         <bd64a86e-d90c-f4aa-6f22-1c832e0b563f@gmail.com>
-         <3823958.XNLmIv7GEv@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+        Wed, 15 Feb 2017 08:13:27 -0500
+Date: Wed, 15 Feb 2017 11:13:18 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Gregor Jasny <gjasny@googlemail.com>
+Cc: Marcel Heinz <quisquilia@gmx.de>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Bug#854100: libdvbv5-0: fails to tune / scan
+Message-ID: <20170215111318.65ae1f0b@vento.lan>
+In-Reply-To: <20170213080448.11f49304@vento.lan>
+References: <148617570740.6827.6324247760769667383.reportbug@ixtlilton.netz.invalid>
+        <0db3f8d1-0461-5d82-a92d-ecc3cfcfec71@googlemail.com>
+        <8792984d-54c9-01a8-0f84-7a1f0312a12f@gmx.de>
+        <CAJxGH0-ewWzxSJ1vE+n4FMkqv+pnmT9G0uAZS5oUYkhxWm+=5A@mail.gmail.com>
+        <ba755934-7946-59ea-e900-fe76d4ea2f0a@gmx.de>
+        <458abbd2-a98b-243b-bf2f-48d5e5a8060b@googlemail.com>
+        <20170213080448.11f49304@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2017-02-07 at 12:26 +0200, Laurent Pinchart wrote:
-> Hi Steve,
-> 
-> On Monday 06 Feb 2017 15:10:46 Steve Longerbeam wrote:
-> > On 02/06/2017 02:33 PM, Laurent Pinchart wrote:
-> > > On Monday 06 Feb 2017 10:50:22 Hans Verkuil wrote:
-> > >> On 02/05/2017 04:48 PM, Laurent Pinchart wrote:
-> > >>> On Tuesday 24 Jan 2017 18:07:55 Steve Longerbeam wrote:
-> > >>>> On 01/24/2017 04:02 AM, Philipp Zabel wrote:
-> > >>>>> On Fri, 2017-01-20 at 15:03 +0100, Hans Verkuil wrote:
-> > >>>>>>> +
-> > >>>>>>> +int vidsw_g_mbus_config(struct v4l2_subdev *sd, struct
-> > >>>>>>> v4l2_mbus_config *cfg)
-> 
-> [snip]
-> 
-> > >>>>>> I am not certain this op is needed at all. In the current kernel this
-> > >>>>>> op is only used by soc_camera, pxa_camera and omap3isp (somewhat
-> > >>>>>> dubious). Normally this information should come from the device tree
-> > >>>>>> and there should be no need for this op.
-> > >>>>>> 
-> > >>>>>> My (tentative) long-term plan was to get rid of this op.
-> > >>>>>> 
-> > >>>>>> If you don't need it, then I recommend it is removed.
-> > >>>> 
-> > >>>> Hi Hans, the imx-media driver was only calling g_mbus_config to the
-> > >>>> camera sensor, and it was doing that to determine the sensor's bus
-> > >>>> type. This info was already available from parsing a v4l2_of_endpoint
-> > >>>> from the sensor node. So it was simple to remove the g_mbus_config
-> > >>>> calls, and instead rely on the parsed sensor v4l2_of_endpoint.
-> > >>> 
-> > >>> That's not a good point.
-> > > 
-> > > (mea culpa, s/point/idea/)
-> > > 
-> > >>> The imx-media driver must not parse the sensor DT node as it is not
-> > >>> aware of what bindings the sensor is compatible with.
-> > 
-> > Hi Laurent,
-> > 
-> > I don't really understand this argument. The sensor node has been found
-> > by parsing the OF graph, so it is known to be a camera sensor node at
-> > that point.
-> 
-> All you know in the i.MX6 driver is that the remote node is a video source. 
-> You can rely on the fact that it implements the OF graph bindings to locate 
-> other ports in that DT node, but that's more or less it.
-> 
-> DT properties are defined by DT bindings and thus qualified by a compatible 
-> string. Unless you match on sensor compat strings in the i.MX6 driver (which 
-> you shouldn't do, to keep the driver generic) you can't know for certain how 
-> to parse the sensor node DT properties. For all you know, the video source 
-> could be a bridge such as an HDMI to CSI-2 converter for instance, so you 
-> can't even rely on the fact that it's a sensor.
-> 
-> > >>> Information must instead be queried from the sensor subdev at runtime,
-> > >>> through the g_mbus_config() operation.
-> > >>> 
-> > >>> Of course, if you can get the information from the imx-media DT node,
-> > >>> that's certainly an option. It's only information provided by the sensor
-> > >>> driver that you have no choice but query using a subdev operation.
-> > >> 
-> > >> Shouldn't this come from the imx-media DT node? BTW, why is omap3isp
-> > >> using this?
-> > > 
-> > > It all depends on what type of information needs to be retrieved, and
-> > > whether it can change at runtime or is fixed. Adding properties to the
-> > > imx-media DT node is certainly fine as long as those properties describe
-> > > the i.MX side.
-> >
-> > In this case the info needed is the media bus type. That info is most easily
-> > available by calling v4l2_of_parse_endpoint() on the sensor's endpoint
-> > node.
-> 
-> I haven't had time to check the code in details yet, so I can't really comment 
-> on what you need and how it should be implemented exactly.
-> 
-> > The media bus type is not something that can be added to the
-> > imx-media node since it contains no endpoint nodes.
-> 
-> Agreed. You have endpoints in the CSI nodes though.
-> 
-> > > In the omap3isp case, we use the operation to query whether parallel data
-> > > contains embedded sync (BT.656) or uses separate h/v sync signals.
-> > > 
-> > >> The reason I am suspicious about this op is that it came from soc-camera
-> > >> and predates the DT. The contents of v4l2_mbus_config seems very much
-> > >> like a HW description to me, i.e. something that belongs in the DT.
-> > > 
-> > > Part of it is possibly outdated, but for buses that support multiple modes
-> > > of operation (such as the parallel bus case described above) we need to
-> > > make that information discoverable at runtime. Maybe this should be
-> > > considered as related to Sakari's efforts to support VC/DT for CSI-2, and
-> > > supported through the API he is working on.
-> > 
-> > That sounds interesting, can you point me to some info on this effort?
-> 
-> Sure.
-> 
-> http://git.retiisi.org.uk/?p=~sailus/linux.git;a=shortlog;h=refs/heads/vc
-> 
-> > I've been thinking the DT should contain virtual channel info for CSI-2
-> > buses.
-> 
-> I don't think it should. CSI-2 virtual channels and data types should be 
-> handled as a software concept, and thus supported through driver code without 
-> involving DT.
+Hi Gregor,
 
-I agree. The CSI2IPU gasket is a bit special in that it distributes its
-input data to four different parallel buses depending on the input's VC,
-but upstream of the MIPI CSI-2 receiver, any virtual channel information
-is purely a matter of the data sent over the CSI-2 link, and not board
-specific hardware description.
+Em Mon, 13 Feb 2017 08:04:48 -0200
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
 
-regards
-Philipp
+> Em Fri, 10 Feb 2017 22:02:01 +0100
+> Gregor Jasny <gjasny@googlemail.com> escreveu:
+> 
+> > Hello Mauro & DVB-S maintainers,
+> > 
+> > could you please have a look at the bug report below? Marcel was so kind
+> > to bisect the problem to the following commit:
+> > 
+> > https://git.linuxtv.org/v4l-utils.git/commit/?id=d982b0d03b1f929269104bb716c9d4b50c945125
+> 
+> Sorry for not handling it earlier. I took vacations on Jan, and had a pile
+> of patches to handle after my return. I had to priorize them, as we're
+> close to a Kernel merge window.
+> 
+> Now that Linus postponed the merge window, I had some time to dig into
+> it.
+> 
+> > 
+> > Bug report against libdvbv5 is here:
+> > https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=854100
+> 
+> There was a bug at the logic that was checking if the frequency was
+> at the range of the local oscillators. This patch should be addressing
+> it:
+> 	https://git.linuxtv.org/v4l-utils.git/commit/?id=5380ad44de416a41b4972e8a9c147ce42b0e3ba0
+> 
+> With that, the logic now seems to be working fine:
+> 
+> $ ./utils/dvb/dvbv5-scan ~/Intelsat-34 --lnbf universal -vv
+> Using LNBf UNIVERSAL
+> 	Universal, Europe
+> 	10800 to 11800 MHz, LO: 9750 MHz
+> 	11600 to 12700 MHz, LO: 10600 MHz
+> ...
+> Seeking for LO for 12.17 MHz frequency
+> LO setting 0: 10.80 MHz to 11.80 MHz
+> LO setting 1: 11.60 MHz to 12.70 MHz
+> Multi-LO LNBf. using LO setting 1 at 10600.00 MHz
+> frequency: 12170.00 MHz, high_band: 1
+> L-Band frequency: 1570.00 MHz (offset = 10600.00 MHz)
+> 
+> I can't really test it here, as my satellite dish uses a different
+> type of LNBf, but, from the above logs, the bug should be fixed.
+> 
+> Marcel,
+> 
+> Could you please test? The patch is already upstream.
+> I added a debug patch after it, in order to help LNBf issues
+> (enabled by using "-vv" command line parameters).
 
+I added both patches to stable-1.12 branch. I also added a small
+patch there adding support for an extra LNBf model at the DVB
+Satellite table. Such change is not disruptive, as it just
+adds a new element on an already-existing table.
+
+Btw, I found another bug there. Starting to look on it right now.
+
+There's something wrong with translations there. It seems that
+something is causing i18n to print its headers instead of doing
+the right thing. 
+
+I'm enclosing the results at the end of this e-mail, with 
+pt_BR translation, with is currently the only one available.
+
+I think you should wait for this bug to get fixed before releasing
+a new -stable release.
+
+Thanks,
+Mauro
+
+---
+
+$ LANG=pt_BR.utf8 dvbv5-scan -l
+Por favor selecione o modelo do LNBf  abaixo:
+UNIVERSAL
+	Universal, Europe
+	Project-Id-Version: libdvbv5 1.7.0
+Report-Msgid-Bugs-To: linux-media@vger.Kernel.org
+POT-Creation-Date: 2016-01-24 08:42+0100
+PO-Revision-Date: 2015-05-13 19:33-0300
+Last-Translator: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Language-Team: Brazilian Portuguese
+Language: pt_BR
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Plural-Forms: nplurals=2; plural=(n > 1);
+X-Generator: Poedit 1.7.5
+X-Poedit-KeywordsList: _;N_
+X-Poedit-Basepath: ../
+X-Poedit-SourceCharset: UTF-8
+X-Poedit-SearchPath-0: lib/libdvbv5
+10800 to 11800 MHz, LO: 9750 MHz
+	Project-Id-Version: libdvbv5 1.7.0
+Report-Msgid-Bugs-To: linux-media@vger.Kernel.org
+POT-Creation-Date: 2016-01-24 08:42+0100
+PO-Revision-Date: 2015-05-13 19:33-0300
+Last-Translator: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Language-Team: Brazilian Portuguese
+Language: pt_BR
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Plural-Forms: nplurals=2; plural=(n > 1);
+X-Generator: Poedit 1.7.5
+X-Poedit-KeywordsList: _;N_
+X-Poedit-Basepath: ../
+X-Poedit-SourceCharset: UTF-8
+X-Poedit-SearchPath-0: lib/libdvbv5
+11600 to 12700 MHz, LO: 10600 MHz
+
+DBS
+	Expressvu, North America
+	Project-Id-Version: libdvbv5 1.7.0
+Report-Msgid-Bugs-To: linux-media@vger.Kernel.org
+POT-Creation-Date: 2016-01-24 08:42+0100
+PO-Revision-Date: 2015-05-13 19:33-0300
+Last-Translator: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Language-Team: Brazilian Portuguese
+Language: pt_BR
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Plural-Forms: nplurals=2; plural=(n > 1);
+X-Generator: Poedit 1.7.5
+X-Poedit-KeywordsList: _;N_
+X-Poedit-Basepath: ../
+X-Poedit-SourceCharset: UTF-8
+X-Poedit-SearchPath-0: lib/libdvbv5
+12200 to 12700 MHz, LO: 11250 MHz
+
+EXTENDED
+	Astra 1E, European Universal Ku (extended)
+	Project-Id-Version: libdvbv5 1.7.0
+Report-Msgid-Bugs-To: linux-media@vger.Kernel.org
+POT-Creation-Date: 2016-01-24 08:42+0100
+PO-Revision-Date: 2015-05-13 19:33-0300
+Last-Translator: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Language-Team: Brazilian Portuguese
+Language: pt_BR
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Plural-Forms: nplurals=2; plural=(n > 1);
+X-Generator: Poedit 1.7.5
+X-Poedit-KeywordsList: _;N_
+X-Poedit-Basepath: ../
+X-Poedit-SourceCharset: UTF-8
+X-Poedit-SearchPath-0: lib/libdvbv5
+10700 to 11700 MHz, LO: 9750 MHz
+	Project-Id-Version: libdvbv5 1.7.0
+Report-Msgid-Bugs-To: linux-media@vger.Kernel.org
+POT-Creation-Date: 2016-01-24 08:42+0100
+PO-Revision-Date: 2015-05-13 19:33-0300
+Last-Translator: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Language-Team: Brazilian Portuguese
+Language: pt_BR
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Plural-Forms: nplurals=2; plural=(n > 1);
+X-Generator: Poedit 1.7.5
+X-Poedit-KeywordsList: _;N_
+X-Poedit-Basepath: ../
+X-Poedit-SourceCharset: UTF-8
+X-Poedit-SearchPath-0: lib/libdvbv5
+11700 to 12750 MHz, LO: 10600 MHz
+
+STANDARD
+	Standard
+	Project-Id-Version: libdvbv5 1.7.0
+Report-Msgid-Bugs-To: linux-media@vger.Kernel.org
+POT-Creation-Date: 2016-01-24 08:42+0100
+PO-Revision-Date: 2015-05-13 19:33-0300
+Last-Translator: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Language-Team: Brazilian Portuguese
+Language: pt_BR
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Plural-Forms: nplurals=2; plural=(n > 1);
+X-Generator: Poedit 1.7.5
+X-Poedit-KeywordsList: _;N_
+X-Poedit-Basepath: ../
+X-Poedit-SourceCharset: UTF-8
+X-Poedit-SearchPath-0: lib/libdvbv5
+10945 to 11450 MHz, LO: 10000 MHz
+
+L10700
+	L10700
+	Project-Id-Version: libdvbv5 1.7.0
+Report-Msgid-Bugs-To: linux-media@vger.Kernel.org
+POT-Creation-Date: 2016-01-24 08:42+0100
+PO-Revision-Date: 2015-05-13 19:33-0300
+Last-Translator: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Language-Team: Brazilian Portuguese
+Language: pt_BR
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Plural-Forms: nplurals=2; plural=(n > 1);
+X-Generator: Poedit 1.7.5
+X-Poedit-KeywordsList: _;N_
+X-Poedit-Basepath: ../
+X-Poedit-SourceCharset: UTF-8
+X-Poedit-SearchPath-0: lib/libdvbv5
+11750 to 12750 MHz, LO: 10700 MHz
+
+L11300
+	L11300
+	Project-Id-Version: libdvbv5 1.7.0
+Report-Msgid-Bugs-To: linux-media@vger.Kernel.org
+POT-Creation-Date: 2016-01-24 08:42+0100
+PO-Revision-Date: 2015-05-13 19:33-0300
+Last-Translator: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Language-Team: Brazilian Portuguese
+Language: pt_BR
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Plural-Forms: nplurals=2; plural=(n > 1);
+X-Generator: Poedit 1.7.5
+X-Poedit-KeywordsList: _;N_
+X-Poedit-Basepath: ../
+X-Poedit-SourceCharset: UTF-8
+X-Poedit-SearchPath-0: lib/libdvbv5
+12250 to 12750 MHz, LO: 11300 MHz
+
+ENHANCED
+	Astra
+	Project-Id-Version: libdvbv5 1.7.0
+Report-Msgid-Bugs-To: linux-media@vger.Kernel.org
+POT-Creation-Date: 2016-01-24 08:42+0100
+PO-Revision-Date: 2015-05-13 19:33-0300
+Last-Translator: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Language-Team: Brazilian Portuguese
+Language: pt_BR
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Plural-Forms: nplurals=2; plural=(n > 1);
+X-Generator: Poedit 1.7.5
+X-Poedit-KeywordsList: _;N_
+X-Poedit-Basepath: ../
+X-Poedit-SourceCharset: UTF-8
+X-Poedit-SearchPath-0: lib/libdvbv5
+10700 to 11700 MHz, LO: 9750 MHz
+
+QPH031
+	Invacom QPH-031
+	Project-Id-Version: libdvbv5 1.7.0
+Report-Msgid-Bugs-To: linux-media@vger.Kernel.org
+POT-Creation-Date: 2016-01-24 08:42+0100
+PO-Revision-Date: 2015-05-13 19:33-0300
+Last-Translator: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Language-Team: Brazilian Portuguese
+Language: pt_BR
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Plural-Forms: nplurals=2; plural=(n > 1);
+X-Generator: Poedit 1.7.5
+X-Poedit-KeywordsList: _;N_
+X-Poedit-Basepath: ../
+X-Poedit-SourceCharset: UTF-8
+X-Poedit-SearchPath-0: lib/libdvbv5
+11700 to 12200 MHz, LO: 10750 MHz
+	Project-Id-Version: libdvbv5 1.7.0
+Report-Msgid-Bugs-To: linux-media@vger.Kernel.org
+POT-Creation-Date: 2016-01-24 08:42+0100
+PO-Revision-Date: 2015-05-13 19:33-0300
+Last-Translator: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Language-Team: Brazilian Portuguese
+Language: pt_BR
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Plural-Forms: nplurals=2; plural=(n > 1);
+X-Generator: Poedit 1.7.5
+X-Poedit-KeywordsList: _;N_
+X-Poedit-Basepath: ../
+X-Poedit-SourceCharset: UTF-8
+X-Poedit-SearchPath-0: lib/libdvbv5
+12200 to 12700 MHz, LO: 11250 MHz
+
+C-BAND
+	Big Dish - Monopoint LNBf
+	Project-Id-Version: libdvbv5 1.7.0
+Report-Msgid-Bugs-To: linux-media@vger.Kernel.org
+POT-Creation-Date: 2016-01-24 08:42+0100
+PO-Revision-Date: 2015-05-13 19:33-0300
+Last-Translator: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Language-Team: Brazilian Portuguese
+Language: pt_BR
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Plural-Forms: nplurals=2; plural=(n > 1);
+X-Generator: Poedit 1.7.5
+X-Poedit-KeywordsList: _;N_
+X-Poedit-Basepath: ../
+X-Poedit-SourceCharset: UTF-8
+X-Poedit-SearchPath-0: lib/libdvbv5
+3700 to 4200 MHz, LO: 5150 MHz
+
+C-MULT
+	Big Dish - Multipoint LNBf (bandstacking)
+	Right     : 3700 to 4200 MHz, LO: 5150 MHz
+	Left      : 3700 to 4200 MHz, LO: 5750 MHz
+
+DISHPRO
+	DishPro LNBf (bandstacking)
+	Vertical  : 12200 to 12700 MHz, LO: 11250 MHz
+	Horizontal: 12200 to 12700 MHz, LO: 14350 MHz
+
+110BS
+	Japan 110BS/CS LNBf
+	Project-Id-Version: libdvbv5 1.7.0
+Report-Msgid-Bugs-To: linux-media@vger.Kernel.org
+POT-Creation-Date: 2016-01-24 08:42+0100
+PO-Revision-Date: 2015-05-13 19:33-0300
+Last-Translator: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Language-Team: Brazilian Portuguese
+Language: pt_BR
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Plural-Forms: nplurals=2; plural=(n > 1);
+X-Generator: Poedit 1.7.5
+X-Poedit-KeywordsList: _;N_
+X-Poedit-Basepath: ../
+X-Poedit-SourceCharset: UTF-8
+X-Poedit-SearchPath-0: lib/libdvbv5
+11710 to 12751 MHz, LO: 10678 MHz
+
+STACKED-BRASILSAT
+	BrasilSat Stacked (bandstacking)
+	Horizontal: 10700 to 11700 MHz, LO: 9710 MHz
+	Horizontal: 10700 to 11700 MHz, LO: 9750 MHz
+
+OI-BRASILSAT
+	BrasilSat Oi
+	Project-Id-Version: libdvbv5 1.7.0
+Report-Msgid-Bugs-To: linux-media@vger.Kernel.org
+POT-Creation-Date: 2016-01-24 08:42+0100
+PO-Revision-Date: 2015-05-13 19:33-0300
+Last-Translator: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Language-Team: Brazilian Portuguese
+Language: pt_BR
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Plural-Forms: nplurals=2; plural=(n > 1);
+X-Generator: Poedit 1.7.5
+X-Poedit-KeywordsList: _;N_
+X-Poedit-Basepath: ../
+X-Poedit-SourceCharset: UTF-8
+X-Poedit-SearchPath-0: lib/libdvbv5
+10950 to 11200 MHz, LO: 10000 MHz
+	Project-Id-Version: libdvbv5 1.7.0
+Report-Msgid-Bugs-To: linux-media@vger.Kernel.org
+POT-Creation-Date: 2016-01-24 08:42+0100
+PO-Revision-Date: 2015-05-13 19:33-0300
+Last-Translator: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Language-Team: Brazilian Portuguese
+Language: pt_BR
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Plural-Forms: nplurals=2; plural=(n > 1);
+X-Generator: Poedit 1.7.5
+X-Poedit-KeywordsList: _;N_
+X-Poedit-Basepath: ../
+X-Poedit-SourceCharset: UTF-8
+X-Poedit-SearchPath-0: lib/libdvbv5
+11800 to 12200 MHz, LO: 10445 MHz
+
+AMAZONAS
+	BrasilSat Amazonas 1/2 - 3 Oscilators (bandstacking)
+	Vertical  : 11037 to 11450 MHz, LO: 9670 MHz
+	Horizontal: 11770 to 12070 MHz, LO: 9922 MHz
+	Horizontal: 10950 to 11280 MHz, LO: 10000 MHz
+
+AMAZONAS
+	BrasilSat Amazonas 1/2 - 2 Oscilators (bandstacking)
+	Vertical  : 11037 to 11360 MHz, LO: 9670 MHz
+	Horizontal: 11780 to 12150 MHz, LO: 10000 MHz
+	Horizontal: 10950 to 11280 MHz, LO: 10000 MHz
+
+GVT-BRASILSAT
+	BrasilSat custom GVT (bandstacking)
+	Vertical  : 11010 to 11067 MHz, LO: 12860 MHz
+	Vertical  : 11704 to 11941 MHz, LO: 13435 MHz
+	Horizontal: 10962 to 11199 MHz, LO: 13112 MHz
+	Horizontal: 11704 to 12188 MHz, LO: 13138 MHz
