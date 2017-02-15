@@ -1,64 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f170.google.com ([209.85.128.170]:32924 "EHLO
-        mail-wr0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755242AbdBGQlr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2017 11:41:47 -0500
-Received: by mail-wr0-f170.google.com with SMTP id i10so41936785wrb.0
-        for <linux-media@vger.kernel.org>; Tue, 07 Feb 2017 08:41:47 -0800 (PST)
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-To: Kevin Hilman <khilman@kernel.org>, Sekhar Nori <nsekhar@ti.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Lad Prabhakar <prabhakar.csengg@gmail.com>
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: [PATCH 01/10] media: dt-bindings: vpif: fix whitespace errors
-Date: Tue,  7 Feb 2017 17:41:14 +0100
-Message-Id: <1486485683-11427-2-git-send-email-bgolaszewski@baylibre.com>
-In-Reply-To: <1486485683-11427-1-git-send-email-bgolaszewski@baylibre.com>
-References: <1486485683-11427-1-git-send-email-bgolaszewski@baylibre.com>
+Received: from mga07.intel.com ([134.134.136.100]:14503 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751837AbdBOHPT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 15 Feb 2017 02:15:19 -0500
+Subject: Re: [PATCH v3 1/2] v4l: Add camera voice coil lens control class,
+ current control
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-media@vger.kernel.org
+References: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
+ <20170214224750.GE11317@amd>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Message-ID: <f3ba8ca3-0931-604e-d84c-43c0e43857db@linux.intel.com>
+Date: Wed, 15 Feb 2017 09:15:03 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170214224750.GE11317@amd>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="w6j5ULPA7r2gedNpgSo1NAM1NvHSdaHcM"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
----
- Documentation/devicetree/bindings/media/ti,da850-vpif.txt | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--w6j5ULPA7r2gedNpgSo1NAM1NvHSdaHcM
+Content-Type: multipart/mixed; boundary="Xlt2covLlwa6sxNP5roCaK1EMTUfnQnI0";
+ protected-headers="v1"
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-media@vger.kernel.org
+Message-ID: <f3ba8ca3-0931-604e-d84c-43c0e43857db@linux.intel.com>
+Subject: Re: [PATCH v3 1/2] v4l: Add camera voice coil lens control class,
+ current control
+References: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
+ <20170214224750.GE11317@amd>
+In-Reply-To: <20170214224750.GE11317@amd>
 
-diff --git a/Documentation/devicetree/bindings/media/ti,da850-vpif.txt b/Documentation/devicetree/bindings/media/ti,da850-vpif.txt
-index 6d25d7f..9c7510b 100644
---- a/Documentation/devicetree/bindings/media/ti,da850-vpif.txt
-+++ b/Documentation/devicetree/bindings/media/ti,da850-vpif.txt
-@@ -30,15 +30,15 @@ I2C-connected TVP5147 decoder:
- 
- 		port {
- 			vpif_ch0: endpoint@0 {
--				  reg = <0>;
--				  bus-width = <8>;
--				  remote-endpoint = <&composite>;
-+				reg = <0>;
-+				bus-width = <8>;
-+				remote-endpoint = <&composite>;
- 			};
- 
- 			vpif_ch1: endpoint@1 {
--				  reg = <1>;
--				  bus-width = <8>;
--				  data-shift = <8>;
-+				reg = <1>;
-+				bus-width = <8>;
-+				data-shift = <8>;
- 			};
- 		};
- 	};
--- 
-2.9.3
+--Xlt2covLlwa6sxNP5roCaK1EMTUfnQnI0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
+Hi Pavel,
+
+On 02/15/17 00:47, Pavel Machek wrote:
+> On Tue 2017-02-14 14:20:22, Sakari Ailus wrote:
+>> Add a V4L2 control class for voice coil lens driver devices. These are=
+
+>> simple devices that are used to move a camera lens from its resting
+>> position.
+>>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>=20
+> Looks good to me.
+>=20
+> I wonder... should we somehow expose the range of diopters to
+> userspace? I believe userland camera application will need that
+> information.
+
+It'd certainly be useful to be able to provide more information.
+
+The question is: where to store it, and how? It depends on the voice
+coil, the spring constant, the lens and the distance of the lens from
+the sensor --- at least. Probably the sensor size as well.
+
+On voice coil lenses it is also somewhat inexact.
+
+--=20
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
+
+
+--Xlt2covLlwa6sxNP5roCaK1EMTUfnQnI0--
+
+--w6j5ULPA7r2gedNpgSo1NAM1NvHSdaHcM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iF4EAREIAAYFAlikAAQACgkQbUA2G24owZNorwD8DP4YWoonm3JE/Psg1oQk5kGF
+uqVnq49oP07YZiDrmCEBAJj/IvS2+aziB9PJ3wdoU1mxtGdAObGxA6H1cfeWbOje
+=yjRb
+-----END PGP SIGNATURE-----
+
+--w6j5ULPA7r2gedNpgSo1NAM1NvHSdaHcM--
