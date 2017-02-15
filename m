@@ -1,71 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34885 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753581AbdBJVCE (ORCPT
+Received: from fllnx209.ext.ti.com ([198.47.19.16]:32671 "EHLO
+        fllnx209.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751804AbdBOLXS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Feb 2017 16:02:04 -0500
-Received: by mail-wm0-f65.google.com with SMTP id u63so9053749wmu.2
-        for <linux-media@vger.kernel.org>; Fri, 10 Feb 2017 13:02:03 -0800 (PST)
-Subject: Re: Bug#854100: libdvbv5-0: fails to tune / scan
-To: Marcel Heinz <quisquilia@gmx.de>
-References: <148617570740.6827.6324247760769667383.reportbug@ixtlilton.netz.invalid>
- <0db3f8d1-0461-5d82-a92d-ecc3cfcfec71@googlemail.com>
- <8792984d-54c9-01a8-0f84-7a1f0312a12f@gmx.de>
- <CAJxGH0-ewWzxSJ1vE+n4FMkqv+pnmT9G0uAZS5oUYkhxWm+=5A@mail.gmail.com>
- <ba755934-7946-59ea-e900-fe76d4ea2f0a@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        mchehab@osg.samsung.com
-From: Gregor Jasny <gjasny@googlemail.com>
-Message-ID: <458abbd2-a98b-243b-bf2f-48d5e5a8060b@googlemail.com>
-Date: Fri, 10 Feb 2017 22:02:01 +0100
+        Wed, 15 Feb 2017 06:23:18 -0500
+Subject: Re: [Patch 2/2] media: ti-vpe: vpe: allow use of user specified
+ stride
+To: Benoit Parrot <bparrot@ti.com>, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        <linux-media@vger.kernel.org>
+References: <20170213130658.31907-1-bparrot@ti.com>
+ <20170213130658.31907-3-bparrot@ti.com>
+CC: <linux-kernel@vger.kernel.org>, Jyri Sarha <jsarha@ti.com>,
+        Peter Ujfalusi <peter.ujfalusi@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Message-ID: <4f5aa907-59fe-0230-7108-ef292978fcde@ti.com>
+Date: Wed, 15 Feb 2017 13:22:42 +0200
 MIME-Version: 1.0
-In-Reply-To: <ba755934-7946-59ea-e900-fe76d4ea2f0a@gmx.de>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20170213130658.31907-3-bparrot@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature";
+        boundary="Q1aoBOOVBLgwlXoEx3TA4eRfvR7uDm8lM"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro & DVB-S maintainers,
+--Q1aoBOOVBLgwlXoEx3TA4eRfvR7uDm8lM
+Content-Type: multipart/mixed; boundary="JqVIUgjbmNxHeIc1L4Vrs4TnJ3QIi7CLi";
+ protected-headers="v1"
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Benoit Parrot <bparrot@ti.com>, Hans Verkuil <hverkuil@xs4all.nl>,
+ Mauro Carvalho Chehab <mchehab@osg.samsung.com>, linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Jyri Sarha <jsarha@ti.com>,
+ Peter Ujfalusi <peter.ujfalusi@ti.com>
+Message-ID: <4f5aa907-59fe-0230-7108-ef292978fcde@ti.com>
+Subject: Re: [Patch 2/2] media: ti-vpe: vpe: allow use of user specified
+ stride
+References: <20170213130658.31907-1-bparrot@ti.com>
+ <20170213130658.31907-3-bparrot@ti.com>
+In-Reply-To: <20170213130658.31907-3-bparrot@ti.com>
 
-could you please have a look at the bug report below? Marcel was so kind
-to bisect the problem to the following commit:
+--JqVIUgjbmNxHeIc1L4Vrs4TnJ3QIi7CLi
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-https://git.linuxtv.org/v4l-utils.git/commit/?id=d982b0d03b1f929269104bb716c9d4b50c945125
+Hi,
 
-Bug report against libdvbv5 is here:
-https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=854100
+On 13/02/17 15:06, Benoit Parrot wrote:
+> Bytesperline/stride was always overwritten by VPE to the most
+> adequate value based on needed alignment.
+>=20
+> However in order to make use of arbitrary size DMA buffer it
+> is better to use the user space provide stride instead.
+>=20
+> The driver will still calculate an appropriate stride but will
+> use the provided one when it is larger than the calculated one.
+>=20
+> Signed-off-by: Benoit Parrot <bparrot@ti.com>
+> ---
+>  drivers/media/platform/ti-vpe/vpe.c | 28 ++++++++++++++++++++--------
+>  1 file changed, 20 insertions(+), 8 deletions(-)
+>=20
+> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platfo=
+rm/ti-vpe/vpe.c
+> index 2dd67232b3bc..c47151495b6f 100644
+> --- a/drivers/media/platform/ti-vpe/vpe.c
+> +++ b/drivers/media/platform/ti-vpe/vpe.c
+> @@ -1597,6 +1597,7 @@ static int __vpe_try_fmt(struct vpe_ctx *ctx, str=
+uct v4l2_format *f,
+>  	struct v4l2_plane_pix_format *plane_fmt;
+>  	unsigned int w_align;
+>  	int i, depth, depth_bytes, height;
+> +	unsigned int stride =3D 0;
+> =20
+>  	if (!fmt || !(fmt->types & type)) {
+>  		vpe_err(ctx->dev, "Fourcc format (0x%08x) invalid.\n",
+> @@ -1683,16 +1684,27 @@ static int __vpe_try_fmt(struct vpe_ctx *ctx, s=
+truct v4l2_format *f,
+>  		plane_fmt =3D &pix->plane_fmt[i];
+>  		depth =3D fmt->vpdma_fmt[i]->depth;
+> =20
+> -		if (i =3D=3D VPE_LUMA)
+> -			plane_fmt->bytesperline =3D (pix->width * depth) >> 3;
+> -		else
+> -			plane_fmt->bytesperline =3D pix->width;
+> +		stride =3D (pix->width * fmt->vpdma_fmt[VPE_LUMA]->depth) >> 3;
+> +		if (stride > plane_fmt->bytesperline)
+> +			plane_fmt->bytesperline =3D stride;
 
-On 2/4/17 5:43 PM, Marcel Heinz wrote:
-> Am 04.02.2017 um 15:57 schrieb Gregor Jasny:
->> Thanks for sharing! Maybe you could try to bisect to find the breaking
->> commit?
-> 
-> OK, I ended up with
-> 
-> d982b0d03b1f929269104bb716c9d4b50c945125 is the first bad commit
-> commit d982b0d03b1f929269104bb716c9d4b50c945125
-> Author: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Date:   Tue Dec 13 16:43:28 2016 -0200
-> 
->     dvb-sat: change the LNBf logic to make it more generic
-> 
->     There are some new LNBf models with more than two frequency
->     ranges. Change the logic there to allow adding those new
->     LNBf types.
-> 
->     Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> 
-> :040000 040000 5c0591da94959207f4b1573a40383b8143d12278
-> 34df9c19cb42119706fce20dec00d18552ddf058 M      lib
-> 
-> 
-> This looks very related to the frequency range error I got from the kernel:
-> 
->> | [42607.855196] b2c2_flexcop_pci 0000:09:00.0: DVB: adapter 0 frontend
->> 0 frequency 12551500 out of range (950000..2150000)
->>
->> This frequency range doesn't look like DVB-S at all...
+The old code calculates different bytes per line for luma and chroma,
+but the new one calculates only for luma. Is that correct?
 
-Thanks,
-Gregor
+ Tomi
 
+
+--JqVIUgjbmNxHeIc1L4Vrs4TnJ3QIi7CLi--
+
+--Q1aoBOOVBLgwlXoEx3TA4eRfvR7uDm8lM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJYpDoCAAoJEPo9qoy8lh71VUsP/RC3taM5rehV1TXchBaloOC5
+yaTqLjSu4W1z0N/wDaLsjAThX73CgcXr4cZlztVaBkE63QbYbZ0Q55YsXmxT7B5X
+CoMgf3xe0IEYok6QgvC4utXydNmuiNwuV3bPYtJm6E0aYUPgPB2pgHRafi9nQ0T7
+U0Hw7oXFAq3UdWJk0gFnlO7IjPEp/I+mvfaA/sn7h+fmoTKB2pNPc3MXhMf3ZhNe
+8fINp6k29i8hTy6a9CjeSR5Wzm2HEjd1A21uGJlJexlX/nMAH8iptN3gthEoQ2pi
+sTAQTioY4xdNg4DHwY0A/+da1ns9ExApqryE9xQJCGGNir2RLnjsReP531tcQk/+
+//nHISm2ibGGp/3+VpAYmYoU+44y9YITwQ649n7m4CURJFfaX6R/dm0k35MUzABk
+8crBWlIEKZ/jmv2RCghOMFreMTajZ1K171Yh3eVa0LCewbF2bF5C0J0CXRzeGOLL
+1pbFJwePkqxxdeLQZTpM5oSO5g1HOEue+4ZLUDqDGg4Wqh1OtkhtPdfgFdu/E3Ed
+0z2P76h3xjXC8U5kER91Wq2c0XBZCCA+SH/j1MbniujmBCyRfpoA6jMA/wxkW0gj
+NKoSIMD3+EvUriMRV6zHmhKUXcALPBcOakNRMOxysqr6N01P13GCE1LPcwbD7hhB
+9mT8gq+y1I1v6/mrPnCd
+=L3P5
+-----END PGP SIGNATURE-----
+
+--Q1aoBOOVBLgwlXoEx3TA4eRfvR7uDm8lM--
