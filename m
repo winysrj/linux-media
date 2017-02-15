@@ -1,78 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f54.google.com ([209.85.214.54]:34860 "EHLO
-        mail-it0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753009AbdBIQpA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Feb 2017 11:45:00 -0500
-Received: by mail-it0-f54.google.com with SMTP id 203so129482434ith.0
-        for <linux-media@vger.kernel.org>; Thu, 09 Feb 2017 08:44:31 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4574d1c3-c169-b158-dba6-f1965a1056b0@ti.com>
-References: <1486485683-11427-1-git-send-email-bgolaszewski@baylibre.com>
- <1486485683-11427-9-git-send-email-bgolaszewski@baylibre.com>
- <m2fujpkgkg.fsf@baylibre.com> <4574d1c3-c169-b158-dba6-f1965a1056b0@ti.com>
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date: Thu, 9 Feb 2017 17:44:25 +0100
-Message-ID: <CAMpxmJVKRgPOEfeAwJLQ_ge92ajjb+N9TdyZtKfhdLELNVkUFQ@mail.gmail.com>
-Subject: Re: [PATCH 08/10] ARM: davinci: fix the DT boot on da850-evm
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: Kevin Hilman <khilman@baylibre.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+Received: from mail-qt0-f194.google.com ([209.85.216.194]:34607 "EHLO
+        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752572AbdBORz7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 15 Feb 2017 12:55:59 -0500
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Lad Prabhakar <prabhakar.csengg@gmail.com>,
-        linux-devicetree <devicetree@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        arm-soc <linux-arm-kernel@lists.infradead.org>,
-        linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH 4/6] [media] tw5864: improve subscribe event handling
+Date: Wed, 15 Feb 2017 15:55:31 -0200
+Message-Id: <20170215175533.6384-4-gustavo@padovan.org>
+In-Reply-To: <20170215175533.6384-1-gustavo@padovan.org>
+References: <20170215175533.6384-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-02-09 16:23 GMT+01:00 Sekhar Nori <nsekhar@ti.com>:
-> On Tuesday 07 February 2017 11:51 PM, Kevin Hilman wrote:
->> Bartosz Golaszewski <bgolaszewski@baylibre.com> writes:
->>
->>> When we enable vpif capture on the da850-evm we hit a BUG_ON() because
->>> the i2c adapter can't be found. The board file boot uses i2c adapter 1
->>> but in the DT mode it's actually adapter 0. Drop the problematic lines.
->>>
->>> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
->>> ---
->>>  arch/arm/mach-davinci/pdata-quirks.c | 4 ----
->>>  1 file changed, 4 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-davinci/pdata-quirks.c b/arch/arm/mach-davinci/pdata-quirks.c
->>> index 94948c1..09f62ac 100644
->>> --- a/arch/arm/mach-davinci/pdata-quirks.c
->>> +++ b/arch/arm/mach-davinci/pdata-quirks.c
->>> @@ -116,10 +116,6 @@ static void __init da850_vpif_legacy_init(void)
->>>      if (of_machine_is_compatible("ti,da850-lcdk"))
->>>              da850_vpif_capture_config.subdev_count = 1;
->>>
->>> -    /* EVM (UI card) uses i2c adapter 1 (not default: zero) */
->>> -    if (of_machine_is_compatible("ti,da850-evm"))
->>> -            da850_vpif_capture_config.i2c_adapter_id = 1;
->>> -
->>
->> oops, my bad.
->>
->> Acked-by: Kevin Hilman <khilman@baylibre.com>
->
-> The offending code is not in my master branch. Since its almost certain
-> that VPIF platform support is going to wait for v4.12, can you or Kevin
-> please update Kevin's original patches with these fixes rolled in?
->
-> Thanks,
-> Sekhar
->
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Sure, I based my series on Kevin's integration branch for 4.10.
+We already check for the V4L2_EVENT_CTRL inside
+v4l2_ctrl_subscribe_event() so just move this function to the default:
+branch of the switch and let it does the job for us.
 
-Thanks,
-Bartosz
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+---
+ drivers/media/pci/tw5864/tw5864-video.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/pci/tw5864/tw5864-video.c b/drivers/media/pci/tw5864/tw5864-video.c
+index 9421216..6d5ed8e 100644
+--- a/drivers/media/pci/tw5864/tw5864-video.c
++++ b/drivers/media/pci/tw5864/tw5864-video.c
+@@ -664,15 +664,14 @@ static int tw5864_subscribe_event(struct v4l2_fh *fh,
+ 				  const struct v4l2_event_subscription *sub)
+ {
+ 	switch (sub->type) {
+-	case V4L2_EVENT_CTRL:
+-		return v4l2_ctrl_subscribe_event(fh, sub);
+ 	case V4L2_EVENT_MOTION_DET:
+ 		/*
+ 		 * Allow for up to 30 events (1 second for NTSC) to be stored.
+ 		 */
+ 		return v4l2_event_subscribe(fh, sub, 30, NULL);
++	default:
++		return v4l2_ctrl_subscribe_event(fh, sub);
+ 	}
+-	return -EINVAL;
+ }
+ 
+ static void tw5864_frame_interval_set(struct tw5864_input *input)
+-- 
+2.9.3
