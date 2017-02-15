@@ -1,217 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:8840 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751947AbdBMNah (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 08:30:37 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
-Subject: [PATCH 7/8] v4l: Improve header file ordering
-Date: Mon, 13 Feb 2017 15:28:15 +0200
-Message-Id: <1486992496-21078-8-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1486992496-21078-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1486992496-21078-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44817
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750999AbdBOOhr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 15 Feb 2017 09:37:47 -0500
+Date: Wed, 15 Feb 2017 12:37:40 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Gregor Jasny <gjasny@googlemail.com>
+Cc: Marcel Heinz <quisquilia@gmx.de>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Bug#854100: libdvbv5-0: fails to tune / scan
+Message-ID: <20170215123740.00bc9e8e@vento.lan>
+In-Reply-To: <20170215111318.65ae1f0b@vento.lan>
+References: <148617570740.6827.6324247760769667383.reportbug@ixtlilton.netz.invalid>
+        <0db3f8d1-0461-5d82-a92d-ecc3cfcfec71@googlemail.com>
+        <8792984d-54c9-01a8-0f84-7a1f0312a12f@gmx.de>
+        <CAJxGH0-ewWzxSJ1vE+n4FMkqv+pnmT9G0uAZS5oUYkhxWm+=5A@mail.gmail.com>
+        <ba755934-7946-59ea-e900-fe76d4ea2f0a@gmx.de>
+        <458abbd2-a98b-243b-bf2f-48d5e5a8060b@googlemail.com>
+        <20170213080448.11f49304@vento.lan>
+        <20170215111318.65ae1f0b@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Improve header file ordering and remove a few duplicates and unnecessary
-headers for drivers the header file ordering of which was adversely
-affected by V4L2 OF to V4L2 fwnode API changes.
+Em Wed, 15 Feb 2017 11:13:18 -0200
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/adv7604.c                   |  4 ++--
- drivers/media/i2c/s5c73m3/s5c73m3-core.c      |  4 ++--
- drivers/media/i2c/s5k5baf.c                   |  2 +-
- drivers/media/i2c/tc358743.c                  |  2 +-
- drivers/media/i2c/tvp514x.c                   | 10 +++++-----
- drivers/media/platform/atmel/atmel-isc.c      |  2 +-
- drivers/media/platform/exynos4-is/media-dev.c |  4 ++--
- drivers/media/platform/pxa_camera.c           |  2 +-
- drivers/media/platform/soc_camera/atmel-isi.c |  2 +-
- drivers/media/platform/ti-vpe/cal.c           |  7 ++-----
- 10 files changed, 18 insertions(+), 21 deletions(-)
+> Hi Gregor,
+> 
+> Em Mon, 13 Feb 2017 08:04:48 -0200
+> Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+> 
+> > Em Fri, 10 Feb 2017 22:02:01 +0100
+> > Gregor Jasny <gjasny@googlemail.com> escreveu:
+> > 
+> > > Hello Mauro & DVB-S maintainers,
+> > > 
+> > > could you please have a look at the bug report below? Marcel was so kind
+> > > to bisect the problem to the following commit:
+> > > 
+> > > https://git.linuxtv.org/v4l-utils.git/commit/?id=d982b0d03b1f929269104bb716c9d4b50c945125
+> > 
+> > Sorry for not handling it earlier. I took vacations on Jan, and had a pile
+> > of patches to handle after my return. I had to priorize them, as we're
+> > close to a Kernel merge window.
+> > 
+> > Now that Linus postponed the merge window, I had some time to dig into
+> > it.
+> > 
+> > > 
+> > > Bug report against libdvbv5 is here:
+> > > https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=854100
+> > 
+> > There was a bug at the logic that was checking if the frequency was
+> > at the range of the local oscillators. This patch should be addressing
+> > it:
+> > 	https://git.linuxtv.org/v4l-utils.git/commit/?id=5380ad44de416a41b4972e8a9c147ce42b0e3ba0
+> > 
+> > With that, the logic now seems to be working fine:
+> > 
+> > $ ./utils/dvb/dvbv5-scan ~/Intelsat-34 --lnbf universal -vv
+> > Using LNBf UNIVERSAL
+> > 	Universal, Europe
+> > 	10800 to 11800 MHz, LO: 9750 MHz
+> > 	11600 to 12700 MHz, LO: 10600 MHz
+> > ...
+> > Seeking for LO for 12.17 MHz frequency
+> > LO setting 0: 10.80 MHz to 11.80 MHz
+> > LO setting 1: 11.60 MHz to 12.70 MHz
+> > Multi-LO LNBf. using LO setting 1 at 10600.00 MHz
+> > frequency: 12170.00 MHz, high_band: 1
+> > L-Band frequency: 1570.00 MHz (offset = 10600.00 MHz)
+> > 
+> > I can't really test it here, as my satellite dish uses a different
+> > type of LNBf, but, from the above logs, the bug should be fixed.
+> > 
+> > Marcel,
+> > 
+> > Could you please test? The patch is already upstream.
+> > I added a debug patch after it, in order to help LNBf issues
+> > (enabled by using "-vv" command line parameters).
+> 
+> I added both patches to stable-1.12 branch. I also added a small
+> patch there adding support for an extra LNBf model at the DVB
+> Satellite table. Such change is not disruptive, as it just
+> adds a new element on an already-existing table.
+> 
+> Btw, I found another bug there. Starting to look on it right now.
+> 
+> There's something wrong with translations there. It seems that
+> something is causing i18n to print its headers instead of doing
+> the right thing. 
+> 
+> I'm enclosing the results at the end of this e-mail, with 
+> pt_BR translation, with is currently the only one available.
+> 
+> I think you should wait for this bug to get fixed before releasing
+> a new -stable release.
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 9281e54..f821da5 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -40,12 +40,12 @@
- #include <linux/workqueue.h>
- #include <linux/regmap.h>
- 
--#include <media/i2c/adv7604.h>
- #include <media/cec.h>
-+#include <media/i2c/adv7604.h>
- #include <media/v4l2-ctrls.h>
--#include <media/v4l2-device.h>
- #include <media/v4l2-event.h>
- #include <media/v4l2-dv-timings.h>
-+#include <media/v4l2-device.h>
- #include <media/v4l2-fwnode.h>
- 
- static int debug;
-diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-index f434fb2..aa2f034 100644
---- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-+++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-@@ -30,13 +30,13 @@
- #include <linux/slab.h>
- #include <linux/spi/spi.h>
- #include <linux/videodev2.h>
-+#include <media/i2c/s5c73m3.h>
- #include <media/media-entity.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-fwnode.h>
- #include <media/v4l2-subdev.h>
- #include <media/v4l2-mediabus.h>
--#include <media/i2c/s5c73m3.h>
--#include <media/v4l2-fwnode.h>
- 
- #include "s5c73m3.h"
- 
-diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
-index 962051b..5eafc05 100644
---- a/drivers/media/i2c/s5k5baf.c
-+++ b/drivers/media/i2c/s5k5baf.c
-@@ -28,9 +28,9 @@
- #include <media/media-entity.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-fwnode.h>
- #include <media/v4l2-subdev.h>
- #include <media/v4l2-mediabus.h>
--#include <media/v4l2-fwnode.h>
- 
- static int debug;
- module_param(debug, int, 0644);
-diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-index 6a1b428..87c84c1 100644
---- a/drivers/media/i2c/tc358743.c
-+++ b/drivers/media/i2c/tc358743.c
-@@ -38,12 +38,12 @@
- #include <linux/workqueue.h>
- #include <linux/v4l2-dv-timings.h>
- #include <linux/hdmi.h>
-+#include <media/i2c/tc358743.h>
- #include <media/v4l2-dv-timings.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-event.h>
- #include <media/v4l2-fwnode.h>
--#include <media/i2c/tc358743.h>
- 
- #include "tc358743_regs.h"
- 
-diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
-index ad2df99..92ac4ad 100644
---- a/drivers/media/i2c/tvp514x.c
-+++ b/drivers/media/i2c/tvp514x.c
-@@ -34,14 +34,14 @@
- #include <linux/of.h>
- #include <linux/of_graph.h>
- 
-+#include <media/i2c/tvp514x.h>
-+#include <media/media-entity.h>
- #include <media/v4l2-async.h>
--#include <media/v4l2-device.h>
- #include <media/v4l2-common.h>
--#include <media/v4l2-mediabus.h>
--#include <media/v4l2-fwnode.h>
- #include <media/v4l2-ctrls.h>
--#include <media/i2c/tvp514x.h>
--#include <media/media-entity.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-fwnode.h>
-+#include <media/v4l2-mediabus.h>
- 
- #include "tvp514x_regs.h"
- 
-diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
-index 7af92e7..db97445 100644
---- a/drivers/media/platform/atmel/atmel-isc.c
-+++ b/drivers/media/platform/atmel/atmel-isc.c
-@@ -38,9 +38,9 @@
- #include <linux/videodev2.h>
- 
- #include <media/v4l2-device.h>
-+#include <media/v4l2-fwnode.h>
- #include <media/v4l2-image-sizes.h>
- #include <media/v4l2-ioctl.h>
--#include <media/v4l2-fwnode.h>
- #include <media/v4l2-subdev.h>
- #include <media/videobuf2-dma-contig.h>
- 
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index 4a1808c..50bbd98 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -27,11 +27,11 @@
- #include <linux/pm_runtime.h>
- #include <linux/types.h>
- #include <linux/slab.h>
-+#include <media/drv-intf/exynos-fimc.h>
-+#include <media/media-device.h>
- #include <media/v4l2-async.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-fwnode.h>
--#include <media/media-device.h>
--#include <media/drv-intf/exynos-fimc.h>
- 
- #include "media-dev.h"
- #include "fimc-core.h"
-diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
-index 1ad4cf9..69b06c6 100644
---- a/drivers/media/platform/pxa_camera.c
-+++ b/drivers/media/platform/pxa_camera.c
-@@ -39,8 +39,8 @@
- #include <media/v4l2-clk.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-device.h>
--#include <media/v4l2-ioctl.h>
- #include <media/v4l2-fwnode.h>
-+#include <media/v4l2-ioctl.h>
- 
- #include <media/videobuf2-dma-sg.h>
- 
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index f9f2ad6..2640468 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -24,8 +24,8 @@
- #include <linux/pm_runtime.h>
- #include <linux/slab.h>
- 
--#include <media/soc_camera.h>
- #include <media/drv-intf/soc_mediabus.h>
-+#include <media/soc_camera.h>
- #include <media/v4l2-fwnode.h>
- #include <media/videobuf2-dma-contig.h>
- 
-diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform/ti-vpe/cal.c
-index f72f541..5870f1e 100644
---- a/drivers/media/platform/ti-vpe/cal.c
-+++ b/drivers/media/platform/ti-vpe/cal.c
-@@ -21,17 +21,14 @@
- #include <linux/of_device.h>
- #include <linux/of_graph.h>
- 
--#include <media/v4l2-fwnode.h>
- #include <media/v4l2-async.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-event.h>
--#include <media/v4l2-ioctl.h>
--#include <media/v4l2-ctrls.h>
- #include <media/v4l2-fh.h>
--#include <media/v4l2-event.h>
--#include <media/v4l2-common.h>
-+#include <media/v4l2-fwnode.h>
-+#include <media/v4l2-ioctl.h>
- #include <media/videobuf2-core.h>
- #include <media/videobuf2-dma-contig.h>
- #include "cal_regs.h"
+Bug fixed and pushed to stable-1.12 directory. I also updated
+there the pt_BR translation for libdvbv5.
+
 -- 
-2.7.4
+Thanks,
+Mauro
