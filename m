@@ -1,156 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:51767 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751017AbdBUJLj (ORCPT
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:33439 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751374AbdBOIYl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Feb 2017 04:11:39 -0500
-Message-ID: <1487668265.2331.23.camel@pengutronix.de>
-Subject: Re: [PATCH v4 15/36] platform: add video-multiplexer subdevice
- driver
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Tue, 21 Feb 2017 10:11:05 +0100
-In-Reply-To: <20170219220237.GD32327@amd>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
-         <1487211578-11360-16-git-send-email-steve_longerbeam@mentor.com>
-         <20170219220237.GD32327@amd>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Wed, 15 Feb 2017 03:24:41 -0500
+MIME-Version: 1.0
+In-Reply-To: <58a40b01.0469630a.f0ee0.f7d5@mx.google.com>
+References: <58a40b01.0469630a.f0ee0.f7d5@mx.google.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Wed, 15 Feb 2017 09:24:39 +0100
+Message-ID: <CAK8P3a14eLrkaokSzCSOw7EqGzzyvn6GVymQbmv9Ree6f_6OHg@mail.gmail.com>
+Subject: Re: next build: 9 warnings 0 failures (next/next-20170215)
+To: "Olof's autobuilder" <build@lixom.net>
+Cc: Olof Johansson <olof@lixom.net>,
+        kernel-build-reports@lists.linaro.org, linux-media@vger.kernel.org,
+        hans.verkuil@cisco.com, Jonathan Cameron <jic23@kernel.org>,
+        gregkh <gregkh@linuxfoundation.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2017-02-19 at 23:02 +0100, Pavel Machek wrote:
-> Hi!
-> 
-> > From: Philipp Zabel <p.zabel@pengutronix.de>
-> > 
-> > This driver can handle SoC internal and external video bus multiplexers,
-> > controlled either by register bit fields or by a GPIO. The subdevice
-> > passes through frame interval and mbus configuration of the active input
-> > to the output side.
-> > 
-> > Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > --
-> >
-> 
-> Again, this is slightly non-standard format. Normally changes from v1
-> go below ---, but in your case it would cut off the signoff...
-> 
-> > diff --git a/Documentation/devicetree/bindings/media/video-multiplexer.txt b/Documentation/devicetree/bindings/media/video-multiplexer.txt
-> > new file mode 100644
-> > index 0000000..9d133d9
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/media/video-multiplexer.txt
-> > @@ -0,0 +1,59 @@
-> > +Video Multiplexer
-> > +=================
-> > +
-> > +Video multiplexers allow to select between multiple input ports. Video received
-> > +on the active input port is passed through to the output port. Muxes described
-> > +by this binding may be controlled by a syscon register bitfield or by a GPIO.
-> > +
-> > +Required properties:
-> > +- compatible : should be "video-multiplexer"
-> > +- reg: should be register base of the register containing the control bitfield
-> > +- bit-mask: bitmask of the control bitfield in the control register
-> > +- bit-shift: bit offset of the control bitfield in the control register
-> > +- gpios: alternatively to reg, bit-mask, and bit-shift, a single GPIO phandle
-> > +  may be given to switch between two inputs
-> > +- #address-cells: should be <1>
-> > +- #size-cells: should be <0>
-> > +- port@*: at least three port nodes containing endpoints connecting to the
-> > +  source and sink devices according to of_graph bindings. The last port is
-> > +  the output port, all others are inputs.
-> 
-> At least three? I guess it is exactly three with the gpio?
+On Wed, Feb 15, 2017 at 9:02 AM, Olof's autobuilder <build@lixom.net> wrote:
+> Here are the build results from automated periodic testing.
 
-Yes. With the mmio bitfield muxes there can be more.
+>
+>         Warnings:               9
 
-> Plus you might want to describe which port correspond to which gpio
-> state/bitfield values...
-> 
-> > +struct vidsw {
-> 
-> I knew it: it is secretely a switch! :-).
+It seems we're closing in on zero again, with just two build regressions
+against 4.10 in linux-next. I did patches for both, and they made it into
+maintainer trees but not yet into linux-next
 
-This driver started as a two-input gpio controlled bus switch.
-I changed the name when adding support for bitfield controlled
-multiplexers with more than two inputs.
+> Warnings:
+>
+>       1 drivers/iio/adc/rcar-gyroadc.c:398:26: warning: 'adcmode' may be used uninitialized in this function [-Wmaybe-uninitialized]
+>       1 drivers/iio/adc/rcar-gyroadc.c:426:22: warning: 'sample_width' may be used uninitialized in this function [-Wmaybe-uninitialized]
+>       1 drivers/iio/adc/rcar-gyroadc.c:428:23: warning: 'channels' may be used uninitialized in this function [-Wmaybe-uninitialized]
+>       1 drivers/iio/adc/rcar-gyroadc.c:429:27: warning: 'num_channels' may be used uninitialized in this function [-Wmaybe-uninitialized]
 
-> > +static void vidsw_set_active(struct vidsw *vidsw, int active)
-> > +{
-> > +	vidsw->active = active;
-> > +	if (active < 0)
-> > +		return;
-> > +
-> > +	dev_dbg(vidsw->subdev.dev, "setting %d active\n", active);
-> > +
-> > +	if (vidsw->field)
-> > +		regmap_field_write(vidsw->field, active);
-> > +	else if (vidsw->gpio)
-> > +		gpiod_set_value(vidsw->gpio, active);
-> 
->          else dev_err()...?
+This was "iio: adc: handle unknow of_device_id data",
+http://lkml.iu.edu/hypermail/linux/kernel/1702.0/02707.html
 
-If neither field nor gpio are set, probe will have failed and this will
-never be called.
+Jonathan applied it into 'fixes-togreg-post-rc1', which is probably
+enough, though I'd expect that Greg would take it earlier as it
+addresses a (harmless) regression in -next.
 
-> > +static int vidsw_async_init(struct vidsw *vidsw, struct device_node *node)
-> > +{
-> > +	struct device_node *ep;
-> > +	u32 portno;
-> > +	int numports;
-> 
-> numbports is int, so I guess portno should be, too?
+>       1 drivers/media/platform/coda/imx-vdoa.c:333:571: warning: passing argument 1 of 'platform_driver_unregister' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+>       1 drivers/media/platform/coda/imx-vdoa.c:333:625: warning: passing argument 1 of 'platform_driver_unregister' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+>       1 drivers/usb/gadget/udc/atmel_usba_udc.c:636:38: warning: 'ept_cfg' may be used uninitialized in this function [-Wmaybe-uninitialized]
+>       2 drivers/media/platform/coda/imx-vdoa.c:333:181: warning: passing argument 1 of '__platform_driver_register' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
 
-We could change both to unsigned int, as both vidsw->num_pads and
-endpoint.base.port are unsigned int, and they are only compared/assigned
-to those and each other.
+This was "[media] coda/imx-vdoa: platform_driver should not be const",
+https://patchwork.linuxtv.org/patch/39288/ Hans already marked this as
+'merged', so I assume it's on its way in, but just hasn't appeared in
+linux-next as of today.
 
-> > +		portno = endpoint.base.port;
-> > +		if (portno >= numports - 1)
-> > +			continue;
-> 
-     I. 
-> > +	if (!pad) {
-> > +		/* Mirror the input side on the output side */
-> > +		cfg->type = vidsw->endpoint[vidsw->active].bus_type;
-> > +		if (cfg->type == V4L2_MBUS_PARALLEL ||
-> > +		    cfg->type == V4L2_MBUS_BT656)
-> > +			cfg->flags = vidsw->endpoint[vidsw->active].bus.parallel.flags;
-> > +	}
-> 
-> Will this need support for other V4L2_MBUS_ values?
+I think there were a couple of other new build warnings in the
+kernelci builder, I'll have another look when today's linux-next build
+results come in from there.
 
-To support CSI-2 multiplexers, yes.
-
-> > +MODULE_AUTHOR("Sascha Hauer, Pengutronix");
-> > +MODULE_AUTHOR("Philipp Zabel, Pengutronix");
-> 
-> Normally, MODULE_AUTHOR contains comma separated names of authors,
-> perhaps with <email@addresses>. Not sure two MODULE_AUTHORs per file
-> will work.
-> 
-> Thanks,
-> 								Pavel
-
-regards
-Philipp
+    Arnd
