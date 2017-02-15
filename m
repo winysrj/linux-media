@@ -1,84 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:34348 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753088AbdBPCUn (ORCPT
+Received: from mail-ot0-f180.google.com ([74.125.82.180]:33220 "EHLO
+        mail-ot0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751358AbdBOTVA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 21:20:43 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v4 13/36] [media] v4l2: add a frame timeout event
-Date: Wed, 15 Feb 2017 18:19:15 -0800
-Message-Id: <1487211578-11360-14-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+        Wed, 15 Feb 2017 14:21:00 -0500
+Received: by mail-ot0-f180.google.com with SMTP id 73so122574533otj.0
+        for <linux-media@vger.kernel.org>; Wed, 15 Feb 2017 11:20:59 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <572edbb2-a542-01a7-9ba0-20cee18a3217@xs4all.nl>
+References: <CADR1r6hbvri8qMYP2S7Pe9sxGsjh5iE2zWTUybYwcoRsbpgXFA@mail.gmail.com>
+ <572edbb2-a542-01a7-9ba0-20cee18a3217@xs4all.nl>
+From: Martin Herrman <martin.herrman@gmail.com>
+Date: Wed, 15 Feb 2017 20:20:58 +0100
+Message-ID: <CADR1r6gvOXYpz2Qa5HnuSYmyz9pv6e9-tbRQ6PgtK8pqWWHo6A@mail.gmail.com>
+Subject: Re: Cine CT V6.1 code change request
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new FRAME_TIMEOUT event to signal that a video capture or
-output device has timed out waiting for reception or transmit
-completion of a video frame.
+2017-02-15 8:55 GMT+01:00 Hans Verkuil <hverkuil@xs4all.nl>:
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- Documentation/media/uapi/v4l/vidioc-dqevent.rst | 5 +++++
- Documentation/media/videodev2.h.rst.exceptions  | 1 +
- include/uapi/linux/videodev2.h                  | 1 +
- 3 files changed, 7 insertions(+)
+Hi Hans,
 
-diff --git a/Documentation/media/uapi/v4l/vidioc-dqevent.rst b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
-index 8d663a7..dd77d9b 100644
---- a/Documentation/media/uapi/v4l/vidioc-dqevent.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
-@@ -197,6 +197,11 @@ call.
- 	the regions changes. This event has a struct
- 	:c:type:`v4l2_event_motion_det`
- 	associated with it.
-+    * - ``V4L2_EVENT_FRAME_TIMEOUT``
-+      - 7
-+      - This event is triggered when the video capture or output device
-+	has timed out waiting for the reception or transmit completion of
-+	a frame of video.
-     * - ``V4L2_EVENT_PRIVATE_START``
-       - 0x08000000
-       - Base event number for driver-private events.
-diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
-index e11a0d0..5b0f767 100644
---- a/Documentation/media/videodev2.h.rst.exceptions
-+++ b/Documentation/media/videodev2.h.rst.exceptions
-@@ -459,6 +459,7 @@ replace define V4L2_EVENT_CTRL event-type
- replace define V4L2_EVENT_FRAME_SYNC event-type
- replace define V4L2_EVENT_SOURCE_CHANGE event-type
- replace define V4L2_EVENT_MOTION_DET event-type
-+replace define V4L2_EVENT_FRAME_TIMEOUT event-type
- replace define V4L2_EVENT_PRIVATE_START event-type
- 
- replace define V4L2_EVENT_CTRL_CH_VALUE ctrl-changes-flags
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 46e8a2e3..e174c45 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -2132,6 +2132,7 @@ struct v4l2_streamparm {
- #define V4L2_EVENT_FRAME_SYNC			4
- #define V4L2_EVENT_SOURCE_CHANGE		5
- #define V4L2_EVENT_MOTION_DET			6
-+#define V4L2_EVENT_FRAME_TIMEOUT		7
- #define V4L2_EVENT_PRIVATE_START		0x08000000
- 
- /* Payload for V4L2_EVENT_VSYNC */
--- 
-2.7.4
+Thanks for the quick response!
+
+> I'm not sure what this media_build directory is. It certainly is
+> outdated. The latest media_build is here: https://git.linuxtv.org/media_build.git/
+
+And thanks for sharing!
+
+> Can you show that line and the surrounding lines? I.e. the whole menu
+> entry?
+
+Of course, here it is:
+
+if STAGING
+menu "Media devices in staging"
+
+config STAGING_BROKEN
+bool "Enable drivers that are known to not compile"
+default n
+--- help ---
+ Say N here, except if you will be fixing the drivers
+ compilation.
+
+menuconfig STAGING_MEDIA
+
+> Most likely because the media build you use is outdated.
+
+I cloned the latest repository and build it, all went fine, however.. (read on)
+
+> Which driver?
+
+This is my device:
+
+02:00.0 Multimedia controller: Digital Devices GmbH Octopus DVB Adapter
+Subsystem: Digital Devices GmbH Cine CT V6.1 DVB adapter
+Flags: bus master, fast devsel, latency 0, IRQ 32
+Memory at fbcf0000 (64-bit, non-prefetchable) [size=64K]
+Capabilities: [50] Power Management version 3
+Capabilities: [70] MSI: Enable+ Count=1/2 Maskable- 64bit+
+Capabilities: [90] Express Endpoint, MSI 00
+Capabilities: [100] Vendor Specific Information: ID=0000 Rev=0 Len=00c <?>
+Kernel driver in use: ddbridge
+Kernel modules: ddbridge
+
+I am using the following modules:
+
+[htpc@htpc ~]$ lsmod | grep dd
+tda18212dd             20480  2
+stv0367dd              24576  2
+ddbridge               90112  29
+cxd2099                20480  1 ddbridge
+dvb_core              102400  1 ddbridge
+
+The ddbridge and cxd2099 are in the latest media_build, but the
+stv0367dd and tda18212dd are missing (however, the stv0367 and
+tda18212 are available). How hard is it to add these two?
+
+Regards,
+
+Martin
+
+> Regards,
+>
+>         Hans
+>
