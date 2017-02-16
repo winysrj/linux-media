@@ -1,58 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:44414 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751192AbdBAKxz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Feb 2017 05:53:55 -0500
-Date: Wed, 1 Feb 2017 10:53:10 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>, mark.rutland@arm.com,
-        andrew-ct.chen@mediatek.com, minghsiu.tsai@mediatek.com,
-        nick@shmanahar.org, songjun.wu@microchip.com, hverkuil@xs4all.nl,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        robert.jarzmik@free.fr, devel@driverdev.osuosl.org,
-        markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, geert@linux-m68k.org,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        arnd@arndb.de, mchehab@kernel.org, bparrot@ti.com,
-        robh+dt@kernel.org, horms+renesas@verge.net.au,
-        tiffany.lin@mediatek.com, linux-arm-kernel@lists.infradead.org,
-        niklas.soderlund+renesas@ragnatech.se, gregkh@linuxfoundation.org,
-        linux-kernel@vger.kernel.org, jean-christophe.trotin@st.com,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, shawnguo@kernel.org,
-        sudipm.mukherjee@gmail.com
-Subject: Re: [PATCH v3 00/24] i.MX Media Driver
-Message-ID: <20170201105310.GN27312@n2100.armlinux.org.uk>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
- <1485870854.2932.63.camel@pengutronix.de>
- <5586b893-bf5c-6133-0789-ccce60626b86@gmail.com>
- <1485941457.3353.13.camel@pengutronix.de>
- <20170201101111.GL27312@n2100.armlinux.org.uk>
- <1485945751.3353.28.camel@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1485945751.3353.28.camel@pengutronix.de>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:33365 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754634AbdBPLyk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 16 Feb 2017 06:54:40 -0500
+Message-ID: <1487246051.2377.41.camel@pengutronix.de>
+Subject: Re: [PATCH v4 01/36] [media] dt-bindings: Add bindings for i.MX
+ media driver
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Thu, 16 Feb 2017 12:54:11 +0100
+In-Reply-To: <1487211578-11360-2-git-send-email-steve_longerbeam@mentor.com>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+         <1487211578-11360-2-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 01, 2017 at 11:42:31AM +0100, Philipp Zabel wrote:
-> On Wed, 2017-02-01 at 10:11 +0000, Russell King - ARM Linux wrote:
-> Right, it's just that in the latest version there is no v4l2_subdev for
-> fifos and idmac. There is the capture interface entity that represents
-> one of the IDMAC write channels, but that doesn't have a pad and format
-> configuration.
-> The SMFC entity was removed because the fifo can be considered part of
-> the link between CSI and IDMAC. There is no manual configuration
-> necessary as the SMFC itself can't do anything to the data that flows
-> through it. There is no reason to present it to userspace as a no-op
-> entity.
-> So in the direct CSI -> SMFC -> IDMAC case, the CSI source pad now is
-> the nearest neighbor pad to the IDMAC capture video device.
+On Wed, 2017-02-15 at 18:19 -0800, Steve Longerbeam wrote:
+> Add bindings documentation for the i.MX media driver.
+> 
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> ---
+>  Documentation/devicetree/bindings/media/imx.txt | 66 +++++++++++++++++++++++++
+>  1 file changed, 66 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/imx.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/imx.txt b/Documentation/devicetree/bindings/media/imx.txt
+> new file mode 100644
+> index 0000000..fd5af50
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/imx.txt
+> @@ -0,0 +1,66 @@
+> +Freescale i.MX Media Video Device
+> +=================================
+> +
+> +Video Media Controller node
+> +---------------------------
+> +
+> +This is the media controller node for video capture support. It is a
+> +virtual device that lists the camera serial interface nodes that the
+> +media device will control.
+> +
+> +Required properties:
+> +- compatible : "fsl,imx-capture-subsystem";
+> +- ports      : Should contain a list of phandles pointing to camera
+> +		sensor interface ports of IPU devices
+> +
+> +example:
+> +
+> +capture-subsystem {
+> +	compatible = "fsl,capture-subsystem";
 
-Ok, that sounds fine then.
+"fsl,imx-capture-subsystem"
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+regards
+Philipp
