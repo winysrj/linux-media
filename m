@@ -1,115 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f42.google.com ([209.85.218.42]:35158 "EHLO
-        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751613AbdBNU7M (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:35931 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754095AbdBPLcw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Feb 2017 15:59:12 -0500
-Received: by mail-oi0-f42.google.com with SMTP id j15so77530031oih.2
-        for <linux-media@vger.kernel.org>; Tue, 14 Feb 2017 12:59:11 -0800 (PST)
-MIME-Version: 1.0
-From: Martin Herrman <martin.herrman@gmail.com>
-Date: Tue, 14 Feb 2017 21:59:10 +0100
-Message-ID: <CADR1r6hbvri8qMYP2S7Pe9sxGsjh5iE2zWTUybYwcoRsbpgXFA@mail.gmail.com>
-Subject: Cine CT V6.1 code change request
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+        Thu, 16 Feb 2017 06:32:52 -0500
+Message-ID: <1487244744.2377.38.camel@pengutronix.de>
+Subject: Re: [PATCH v4 33/36] media: imx: redo pixel format enumeration and
+ negotiation
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Thu, 16 Feb 2017 12:32:24 +0100
+In-Reply-To: <1487211578-11360-34-git-send-email-steve_longerbeam@mentor.com>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+         <1487211578-11360-34-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All,
+On Wed, 2017-02-15 at 18:19 -0800, Steve Longerbeam wrote:
+> The previous API and negotiation of mbus codes and pixel formats
+> was broken, and has been completely redone.
+> 
+> The negotiation of media bus codes should be as follows:
+> 
+> CSI:
+> 
+> sink pad     direct src pad      IDMAC src pad
+> --------     ----------------    -------------
+> RGB (any)        IPU RGB           RGB (any)
+> YUV (any)        IPU YUV           YUV (any)
+> Bayer              N/A             must be same bayer code as sink
 
-I have a Cine CT V6.1 in my fedora 25 based media center. It is now
-running a default fedora 4.9 kernel. I install the driver as follows:
+The IDMAC src pad should also use the internal 32-bit RGB / YUV format,
+except if bayer/raw mode is selected, in which case the attached capture
+video device should only allow a single mode corresponding to the output
+pad media bus format.
 
-hg clone https://linuxtv.org/hg/~endriss/media_build_experimental
-cd media_build_experimental
-make download
-make untar
-make menuconfig
-make
-make install
-
-However, I have to make two changes to the source to make it work.
-
-Change 1: in media_build_experimental/v4l/Kconfig line 6936 I have to
-remove the whitespace in '--- help ---', otherwise make menuconfig
-fails.
-Change 2: during compilation the following error occurs (since about
-kernel 4.5?):
-
-make -C /lib/modules/4.9.7-201.fc25.x86_64/build
-SUBDIRS=/home/htpc/Downloads/media_build_experimental/v4l  modules
-make[2]: Entering directory '/usr/src/kernels/4.9.7-201.fc25.x86_64'
-  CC [M]  /home/htpc/Downloads/media_build_experimental/v4l/tuner-xc2028.o
-In file included from <command-line>:0:0:
-/home/htpc/Downloads/media_build_experimental/v4l/compat.h:1463:1:
-error: redefinition of 'pci_zalloc_consistent'
- pci_zalloc_consistent(struct pci_dev *hwdev, size_t size,
- ^~~~~~~~~~~~~~~~~~~~~
-In file included from ./include/linux/pci.h:2145:0,
-                 from
-/home/htpc/Downloads/media_build_experimental/v4l/compat.h:1459,
-                 from <command-line>:0:
-./include/linux/pci-dma-compat.h:23:1: note: previous definition of
-'pci_zalloc_consistent' was here
- pci_zalloc_consistent(struct pci_dev *hwdev, size_t size,
- ^~~~~~~~~~~~~~~~~~~~~
-In file included from <command-line>:0:0:
-/home/htpc/Downloads/media_build_experimental/v4l/compat.h:1552:0:
-warning: "DMA_ATTR_SKIP_CPU_SYNC" redefined
- #define DMA_ATTR_SKIP_CPU_SYNC 0
-
-In file included from ./include/linux/pci-dma-compat.h:7:0,
-                 from ./include/linux/pci.h:2145,
-                 from
-/home/htpc/Downloads/media_build_experimental/v4l/compat.h:1459,
-                 from <command-line>:0:
-./include/linux/dma-mapping.h:47:0: note: this is the location of the
-previous definition
- #define DMA_ATTR_SKIP_CPU_SYNC  (1UL << 5)
-
-scripts/Makefile.build:299: recipe for target
-'/home/htpc/Downloads/media_build_experimental/v4l/tuner-xc2028.o'
-failed
-make[3]: *** [/home/htpc/Downloads/media_build_experimental/v4l/tuner-xc2028.o]
-Error 1
-Makefile:1494: recipe for target
-'_module_/home/htpc/Downloads/media_build_experimental/v4l' failed
-make[2]: *** [_module_/home/htpc/Downloads/media_build_experimental/v4l] Error 2
-make[2]: Leaving directory '/usr/src/kernels/4.9.7-201.fc25.x86_64'
-Makefile:51: recipe for target 'default' failed
-make[1]: *** [default] Error 2
-make[1]: Leaving directory '/home/htpc/Downloads/media_build_experimental/v4l'
-Makefile:28: recipe for target 'all' failed
-make: *** [all] Error 2
-
-Which I fix by commenting out lines 1462 up to 1468 in
-media_build_experimental/v4l/compat.h:
-
-//static inline void *
-//pci_zalloc_consistent(struct pci_dev *hwdev, size_t size,
-// dma_addr_t *dma_handle)
-//{
-// return dma_alloc_coherent(hwdev == NULL ? NULL : &hwdev->dev,
-// size, dma_handle, GFP_ATOMIC | __GFP_ZERO);
-//}
-
-Now it compiles and works fine. I still get these warnings:
-
-media_build_experimental/v4l/compat.h:1552:0: warning:
-"DMA_ATTR_SKIP_CPU_SYNC" redefined
- #define DMA_ATTR_SKIP_CPU_SYNC 0
-
-Which I can easily remove by commenting out the specific line as well.
-
-Now my questions are:
-- is this the correct way to fix these compile errors? (I'm definately
-not a professional developer)
-- what can I do to have this solved in the source?
-
-Besides that, I'm also wondering if these drivers have any change of
-getting into kernel mainline?
-
-Regards,
-
-Martin
+regards
+Philipp
