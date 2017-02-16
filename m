@@ -1,97 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from Galois.linutronix.de ([146.0.238.70]:35130 "EHLO
-        Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752222AbdB1Nww (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:40068 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754410AbdBPNp1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Feb 2017 08:52:52 -0500
-Date: Tue, 28 Feb 2017 11:51:25 +0100 (CET)
-From: Thomas Gleixner <tglx@linutronix.de>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-cc: Ingo Molnar <mingo@kernel.org>,
-        kernel test robot <fengguang.wu@intel.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sean Young <sean@mess.org>,
-        Ruslan Ruslichenko <rruslich@cisco.com>, LKP <lkp@01.org>,
-        "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-        kernel@stlinux.com,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-mediatek@lists.infradead.org,
-        linux-amlogic@lists.infradead.org,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Linux LED Subsystem <linux-leds@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>, wfg@linux.intel.com,
-        Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [WARNING: A/V UNSCANNABLE][Merge tag 'media/v4.11-1' of git]
- ff58d005cd: BUG: unable to handle kernel NULL pointer dereference at
- 0000039c
-In-Reply-To: <CA+55aFxwtkOs95R-v7z8yjguvp91oDTxRKs-x3uN_=sM_33Gvg@mail.gmail.com>
-Message-ID: <alpine.DEB.2.20.1702281103590.4732@nanos>
-References: <58b07b30.9XFLj9Hhl7F6HMc2%fengguang.wu@intel.com> <CA+55aFytXj+TZ_TanbxcY0KgRTrV7Vvr=fWON8tioUGmYHYiNA@mail.gmail.com> <20170225090741.GA20463@gmail.com> <CA+55aFy+ER8cYV02eZsKAOLnZBWY96zNWqUFWSWT1+3sZD4XnQ@mail.gmail.com>
- <alpine.DEB.2.20.1702271105090.4732@nanos> <alpine.DEB.2.20.1702271231410.4732@nanos> <20170227154124.GA20569@gmail.com> <CA+55aFxwtkOs95R-v7z8yjguvp91oDTxRKs-x3uN_=sM_33Gvg@mail.gmail.com>
+        Thu, 16 Feb 2017 08:45:27 -0500
+Date: Thu, 16 Feb 2017 13:44:23 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v4 18/36] media: Add i.MX media core driver
+Message-ID: <20170216134422.GO27312@n2100.armlinux.org.uk>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+ <1487211578-11360-19-git-send-email-steve_longerbeam@mentor.com>
+ <1487250123.2377.53.camel@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1487250123.2377.53.camel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 27 Feb 2017, Linus Torvalds wrote:
-> So I don't disagree that in a perfect world all drivers should just
-> handle it. It's just that it's not realistic.
+On Thu, Feb 16, 2017 at 02:02:03PM +0100, Philipp Zabel wrote:
+> On Wed, 2017-02-15 at 18:19 -0800, Steve Longerbeam wrote:
+> > +- imx-csi subdev is not being autoloaded as a kernel module, probably
+> > +  because ipu_add_client_devices() does not register the IPU client
+> > +  platform devices, but only allocates those devices.
 > 
-> The fact that we have now *twice* gotten an oops report or a "this
-> machine doesn't boot" report etc within a week or so of merging the
-> problematic patch does *not* indicate that it's easy to fix or rare.
-> 
-> Quite the reverse.
-> 
-> It indicates that it's just rare enough that core developers don't see
-> it, but it's common enough to have triggered issues in random places.
-> 
-> And it will just get *much* worse when you then get the random
-> end-users that usually have older machines than the developers who
-> actually test daily development -git trees.
+> As Russell points out, this is an issue with the ipu-v3 driver, which
+> needs to be fixed to stop setting the ipu client devices' dev->of_node
+> field.
 
-I tend to disagree.
+>From my local testing (albiet the shambles that is bits of v4l2) setting
+dev->of_node is not necessary for imx-drm - imx-drm comes up fine without.
 
-The retrigger mechanism has been there forever, at least the history git
-tree which goes back to 2.5.0 has it and as it was in the initial commit is
-it was there in 2.4 already.
+Fixing _this_ code for that is not too difficult - it's a matter of:
 
-We broke that in 4.2 when the x86 interrupt mechanism was reworked
-completely. That went pretty much unnoticed until somebody moved from 4.1
-to 4.9 and discovered that edge interrupts got lost. It's not surprising
-that it went unnoticed because lots of stuff moved towards MSI (which has
-the retrigger still enabled) and the devices which are prone to the 'lost
-edge' issue are limited.
+	priv->sd.of_node = pdata->of_node;
 
-So we had that retrigger exposing crappy older drivers to the spurious
-interrupt until 2 years ago. The two drivers which have been exposed by
-bringing the retrigger back are post 4.2 or have been wreckaged post 4.2.
+in imx_csi_probe().  However, the difficult bit is the poor state of
+code in v4l2, particularly the v4l2-async crap.  Right now, fixing the
+module autoloading will oops the kernel, so it's best that module
+autoloading remains broken for the time being.
 
-Due to the fact that the old drivers have been exposed over many years to
-the spurious retrigger (that "feature" exists on old hardware as well) I
-don't think it's much of a problem.
-
-We also had the DEBUG_SHIRQ active until we had to disable it in
-6d83f94db95cf (2.6.38) but not because it exposed crappy interrupt
-handlers. We had to disable due to a functional problem described in the
-commit message. I know for sure that distros had enabled DEBUG_SHIRQ (and
-some still have the reduced functionality of it enabled).
-
-What I find more problematic is:
-
- - to keep this 'lost edge' regression around, which really can render
-   hardware useless.
-
- - to ignore the fact that these buggy interrupt handlers can be exposed by
-   spurious interrupt events (as I showed in the other mail) "naturaly",
-   but with a way smaller probability. If a user runs into such a spurious
-   problem he has absolutely NO chance to debug it at all. Exposing it by
-   the retrigger mechanism makes the detection more "reliable" and allows
-   debugging it. The backtraces are pretty telling and clear.
-
-Thanks,
-
-	tglx
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
