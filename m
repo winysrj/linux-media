@@ -1,65 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f47.google.com ([74.125.83.47]:35313 "EHLO
-        mail-pg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754498AbdBGSVX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2017 13:21:23 -0500
-Received: by mail-pg0-f47.google.com with SMTP id 194so40767341pgd.2
-        for <linux-media@vger.kernel.org>; Tue, 07 Feb 2017 10:21:21 -0800 (PST)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: Sekhar Nori <nsekhar@ti.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Lad Prabhakar <prabhakar.csengg@gmail.com>,
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:35963 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932552AbdBPRyb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 16 Feb 2017 12:54:31 -0500
+Subject: Re: [PATCH v4 23/36] media: imx: Add MIPI CSI-2 Receiver subdev
+ driver
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+ <1487211578-11360-24-git-send-email-steve_longerbeam@mentor.com>
+ <20170216102806.GI27312@n2100.armlinux.org.uk>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
         devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 08/10] ARM: davinci: fix the DT boot on da850-evm
-References: <1486485683-11427-1-git-send-email-bgolaszewski@baylibre.com>
-        <1486485683-11427-9-git-send-email-bgolaszewski@baylibre.com>
-Date: Tue, 07 Feb 2017 10:21:19 -0800
-In-Reply-To: <1486485683-11427-9-git-send-email-bgolaszewski@baylibre.com>
-        (Bartosz Golaszewski's message of "Tue, 7 Feb 2017 17:41:21 +0100")
-Message-ID: <m2fujpkgkg.fsf@baylibre.com>
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <49157f31-5b7b-f643-42fb-10401f5f33aa@gmail.com>
+Date: Thu, 16 Feb 2017 09:54:27 -0800
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20170216102806.GI27312@n2100.armlinux.org.uk>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Bartosz Golaszewski <bgolaszewski@baylibre.com> writes:
 
-> When we enable vpif capture on the da850-evm we hit a BUG_ON() because
-> the i2c adapter can't be found. The board file boot uses i2c adapter 1
-> but in the DT mode it's actually adapter 0. Drop the problematic lines.
+
+On 02/16/2017 02:28 AM, Russell King - ARM Linux wrote:
+> On Wed, Feb 15, 2017 at 06:19:25PM -0800, Steve Longerbeam wrote:
+>> Adds MIPI CSI-2 Receiver subdev driver. This subdev is required
+>> for sensors with a MIPI CSI2 interface.
+>>
+>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 >
-> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-> ---
->  arch/arm/mach-davinci/pdata-quirks.c | 4 ----
->  1 file changed, 4 deletions(-)
+> Just like I reported on the 30th January:
 >
-> diff --git a/arch/arm/mach-davinci/pdata-quirks.c b/arch/arm/mach-davinci/pdata-quirks.c
-> index 94948c1..09f62ac 100644
-> --- a/arch/arm/mach-davinci/pdata-quirks.c
-> +++ b/arch/arm/mach-davinci/pdata-quirks.c
-> @@ -116,10 +116,6 @@ static void __init da850_vpif_legacy_init(void)
->  	if (of_machine_is_compatible("ti,da850-lcdk"))
->  		da850_vpif_capture_config.subdev_count = 1;
->  
-> -	/* EVM (UI card) uses i2c adapter 1 (not default: zero) */
-> -	if (of_machine_is_compatible("ti,da850-evm"))
-> -		da850_vpif_capture_config.i2c_adapter_id = 1;
-> -
+> .git/rebase-apply/patch:236: trailing whitespace.
+>  *
+> warning: 1 line adds whitespace errors.
+>
+> This needs fixing.
+>
 
-oops, my bad.
-
-Acked-by: Kevin Hilman <khilman@baylibre.com>
-
->  	ret = da850_register_vpif_capture(&da850_vpif_capture_config);
->  	if (ret)
->  		pr_warn("%s: VPIF capture setup failed: %d\n",
+Fixed.
