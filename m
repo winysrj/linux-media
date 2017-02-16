@@ -1,89 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:35933 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751457AbdB0Plg (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:36591 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932752AbdBPST3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Feb 2017 10:41:36 -0500
-Date: Mon, 27 Feb 2017 16:41:24 +0100
-From: Ingo Molnar <mingo@kernel.org>
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-        kernel test robot <fengguang.wu@intel.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sean Young <sean@mess.org>,
-        Ruslan Ruslichenko <rruslich@cisco.com>, LKP <lkp@01.org>,
-        "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-        kernel@stlinux.com,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-mediatek@lists.infradead.org,
-        linux-amlogic@lists.infradead.org,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Linux LED Subsystem <linux-leds@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>, wfg@linux.intel.com,
-        Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [WARNING: A/V UNSCANNABLE][Merge tag 'media/v4.11-1' of git]
- ff58d005cd: BUG: unable to handle kernel NULL pointer dereference at
- 0000039c
-Message-ID: <20170227154124.GA20569@gmail.com>
-References: <58b07b30.9XFLj9Hhl7F6HMc2%fengguang.wu@intel.com>
- <CA+55aFytXj+TZ_TanbxcY0KgRTrV7Vvr=fWON8tioUGmYHYiNA@mail.gmail.com>
- <20170225090741.GA20463@gmail.com>
- <CA+55aFy+ER8cYV02eZsKAOLnZBWY96zNWqUFWSWT1+3sZD4XnQ@mail.gmail.com>
- <alpine.DEB.2.20.1702271105090.4732@nanos>
- <alpine.DEB.2.20.1702271231410.4732@nanos>
+        Thu, 16 Feb 2017 13:19:29 -0500
+Subject: Re: [PATCH v4 36/36] media: imx: propagate sink pad formats to source
+ pads
+To: Philipp Zabel <p.zabel@pengutronix.de>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+ <1487211578-11360-37-git-send-email-steve_longerbeam@mentor.com>
+ <1487244568.2377.36.camel@pengutronix.de>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <5512bed2-375b-ae31-f210-3fff4c0417c7@gmail.com>
+Date: Thu, 16 Feb 2017 10:19:25 -0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.20.1702271231410.4732@nanos>
+In-Reply-To: <1487244568.2377.36.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-* Thomas Gleixner <tglx@linutronix.de> wrote:
 
-> The pending interrupt issue happens, at least on my test boxen, mostly on
-> the 'legacy' interrupts (0 - 15). But even the IOAPIC interrupts >=16
-> happen occasionally.
+On 02/16/2017 03:29 AM, Philipp Zabel wrote:
+> On Wed, 2017-02-15 at 18:19 -0800, Steve Longerbeam wrote:
+> [...]
+>> diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
+>> index dd9d499..c43f85f 100644
+>> --- a/drivers/staging/media/imx/imx-ic-prpencvf.c
+>> +++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
+>> @@ -806,16 +806,22 @@ static int prp_set_fmt(struct v4l2_subdev *sd,
+>>  	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY) {
+>>  		cfg->try_fmt = sdformat->format;
+>>  	} else {
+>> -		priv->format_mbus[sdformat->pad] = sdformat->format;
+>> +		struct v4l2_mbus_framefmt *f =
+>> +			&priv->format_mbus[sdformat->pad];
+>> +		struct v4l2_mbus_framefmt *outf =
+>> +			&priv->format_mbus[PRPENCVF_SRC_PAD];
+>> +
+>> +		*f = sdformat->format;
+>>  		priv->cc[sdformat->pad] = cc;
+>> -		if (sdformat->pad == PRPENCVF_SRC_PAD) {
+>> -			/*
+>> -			 * update the capture device format if this is
+>> -			 * the IDMAC output pad
+>> -			 */
+>> -			imx_media_mbus_fmt_to_pix_fmt(&vdev->fmt.fmt.pix,
+>> -						      &sdformat->format, cc);
+>> +
+>> +		/* propagate format to source pad */
+>> +		if (sdformat->pad == PRPENCVF_SINK_PAD) {
+>> +			outf->width = f->width;
+>> +			outf->height = f->height;
 >
-> 
->  - Spurious interrupts on IRQ7, which are triggered by IRQ 0 (PIT/HPET). On
->    one of the affected machines this stops when the interrupt system is
->    switched to interrupt remapping !?!?!?
-> 
->  - Spurious interrupts on various interrupt lines, which are triggered by
->    IOAPIC interrupts >= IRQ16. That's a known issue on quite some chipsets
->    that the legacy PCI interrupt (which is used when IOAPIC is disabled) is
->    triggered when the IOAPIC >=16 interrupt fires.
-> 
->  - Spurious interrupt caused by driver probing itself. I.e. the driver
->    probing code causes an interrupt issued from the device
->    inadvertently. That happens even on IRQ >= 16.
-> 
->    This problem might be handled by the device driver code itself, but
->    that's going to be ugly. See below.
+> What about media bus format, field, and colorimetry?
 
-That's pretty colorful behavior...
+Right, I need to propagate a default media bus format and field
+that works.
 
-> We can try to sample more data from the machines of affected users, but I doubt 
-> that it will give us more information than confirming that we really have to 
-> deal with all that hardware wreckage out there in some way or the other.
+As for colorimtery, I did see the work you are doing in your
+branch, but was not sure if you were finished with that support.
+Can you send me a patch?
 
-BTW., instead of trying to avoid the scenario, wow about moving in the other 
-direction: making CONFIG_DEBUG_SHIRQ=y unconditional property in the IRQ core code 
-starting from v4.12 or so, i.e. requiring device driver IRQ handlers to handle the 
-invocation of IRQ handlers at pretty much any moment. (We could also extend it a 
-bit, such as invoking IRQ handlers early after suspend/resume wakeup.)
+>
+>>  		}
+>> +
+>> +		/* update the capture device format from output pad */
+>> +		imx_media_mbus_fmt_to_pix_fmt(&vdev->fmt.fmt.pix, outf, cc);
+>>  	}
+>>
+>>  	return 0;
+>> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+>> index 3e6b607..9d9ec03 100644
+>> --- a/drivers/staging/media/imx/imx-media-csi.c
+>> +++ b/drivers/staging/media/imx/imx-media-csi.c
+>> @@ -1161,19 +1161,27 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
+>>  	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY) {
+>>  		cfg->try_fmt = sdformat->format;
+>>  	} else {
+>> +		struct v4l2_mbus_framefmt *f_direct, *f_idmac;
+>> +
+>>  		priv->format_mbus[sdformat->pad] = sdformat->format;
+>>  		priv->cc[sdformat->pad] = cc;
+>> -		/* Reset the crop window if this is the input pad */
+>> -		if (sdformat->pad == CSI_SINK_PAD)
+>> +
+>> +		f_direct = &priv->format_mbus[CSI_SRC_PAD_DIRECT];
+>> +		f_idmac = &priv->format_mbus[CSI_SRC_PAD_IDMAC];
+>> +
+>> +		if (sdformat->pad == CSI_SINK_PAD) {
+>> +			/* reset the crop window */
+>>  			priv->crop = crop;
+>> -		else if (sdformat->pad == CSI_SRC_PAD_IDMAC) {
+>> -			/*
+>> -			 * update the capture device format if this is
+>> -			 * the IDMAC output pad
+>> -			 */
+>> -			imx_media_mbus_fmt_to_pix_fmt(&vdev->fmt.fmt.pix,
+>> -						      &sdformat->format, cc);
+>> +
+>> +			/* propagate format to source pads */
+>> +			f_direct->width = crop.width;
+>> +			f_direct->height = crop.height;
+>> +			f_idmac->width = crop.width;
+>> +			f_idmac->height = crop.height;
+>
+> This is missing also media bus format, field and colorimetry
+> propagation.
 
-Because it's not the requirement that hurts primarily, but the resulting 
-non-determinism and the sporadic crashes. Which can be solved by making the race 
-deterministic via the debug facility.
+Yep, will add that.
 
-If the IRQ handler crashed the moment it was first written by the driver author 
-we'd never see these problems.
+Steve
 
-Thanks,
-
-	Ingo
+>
+>>  		}
+>> +
+>> +		/* update the capture device format from IDMAC output pad */
+>> +		imx_media_mbus_fmt_to_pix_fmt(&vdev->fmt.fmt.pix, f_idmac, cc);
+>>  	}
+>>
+>>  	return 0;
+>> diff --git a/drivers/staging/media/imx/imx-media-vdic.c b/drivers/staging/media/imx/imx-media-vdic.c
+>> index 61e6017..55fb522 100644
+>> --- a/drivers/staging/media/imx/imx-media-vdic.c
+>> +++ b/drivers/staging/media/imx/imx-media-vdic.c
+>> @@ -649,8 +649,21 @@ static int vdic_set_fmt(struct v4l2_subdev *sd,
+>>  	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY) {
+>>  		cfg->try_fmt = sdformat->format;
+>>  	} else {
+>> -		priv->format_mbus[sdformat->pad] = sdformat->format;
+>> +		struct v4l2_mbus_framefmt *f =
+>> +			&priv->format_mbus[sdformat->pad];
+>> +		struct v4l2_mbus_framefmt *outf =
+>> +			&priv->format_mbus[VDIC_SRC_PAD_DIRECT];
+>> +
+>> +		*f = sdformat->format;
+>>  		priv->cc[sdformat->pad] = cc;
+>> +
+>> +		/* propagate format to source pad */
+>> +		if (sdformat->pad == VDIC_SINK_PAD_DIRECT ||
+>> +		    sdformat->pad == VDIC_SINK_PAD_IDMAC) {
+>> +			outf->width = f->width;
+>> +			outf->height = f->height;
+>> +			outf->field = V4L2_FIELD_NONE;
+>
+> This is missing colorimetry, too.
+>
+> regards
+> Philipp
+>
