@@ -1,86 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36171
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752144AbdBMTIz (ORCPT
+Received: from mail-it0-f48.google.com ([209.85.214.48]:38157 "EHLO
+        mail-it0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932386AbdBPQG2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 14:08:55 -0500
-From: Thibault Saunier <thibault.saunier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Thibault Saunier <thibault.saunier@osg.samsung.com>,
-        linux-arm-kernel@lists.infradead.org,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Kamil Debski <kamil@wypas.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v4 0/4] Fixes for colorspace logic in exynos-gsc and s5p-mfc drivers
-Date: Mon, 13 Feb 2017 16:08:32 -0300
-Message-Id: <20170213190836.26972-1-thibault.saunier@osg.samsung.com>
+        Thu, 16 Feb 2017 11:06:28 -0500
+Received: by mail-it0-f48.google.com with SMTP id c7so29764400itd.1
+        for <linux-media@vger.kernel.org>; Thu, 16 Feb 2017 08:06:28 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20170215220822.nsws6kzrd6ihvmqt@rob-hp-laptop>
+References: <1486485683-11427-1-git-send-email-bgolaszewski@baylibre.com>
+ <1486485683-11427-4-git-send-email-bgolaszewski@baylibre.com> <20170215220822.nsws6kzrd6ihvmqt@rob-hp-laptop>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date: Thu, 16 Feb 2017 17:06:20 +0100
+Message-ID: <CAMpxmJUuaa+aZQaPaYokfNrehzOTuvT7jJPpxpDLQiuEyY2Oqw@mail.gmail.com>
+Subject: Re: [PATCH 03/10] media: dt-bindings: vpif: extend the example with
+ an output port
+To: Rob Herring <robh@kernel.org>
+Cc: Kevin Hilman <khilman@kernel.org>, Sekhar Nori <nsekhar@ti.com>,
+        Patrick Titiano <ptitiano@baylibre.com>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Lad Prabhakar <prabhakar.csengg@gmail.com>,
+        linux-devicetree <devicetree@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        arm-soc <linux-arm-kernel@lists.infradead.org>,
+        linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+2017-02-15 23:08 GMT+01:00 Rob Herring <robh@kernel.org>:
+> On Tue, Feb 07, 2017 at 05:41:16PM +0100, Bartosz Golaszewski wrote:
+>> This makes the example more or less correspond with the da850-evm
+>> hardware setup.
+>>
+>> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+>> ---
+>>  .../devicetree/bindings/media/ti,da850-vpif.txt    | 35 ++++++++++++++++++----
+>>  1 file changed, 29 insertions(+), 6 deletions(-)
+>
+> Spoke too soon...
+>
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/ti,da850-vpif.txt b/Documentation/devicetree/bindings/media/ti,da850-vpif.txt
+>> index 9c7510b..543f6f3 100644
+>> --- a/Documentation/devicetree/bindings/media/ti,da850-vpif.txt
+>> +++ b/Documentation/devicetree/bindings/media/ti,da850-vpif.txt
+>> @@ -28,19 +28,27 @@ I2C-connected TVP5147 decoder:
+>>               reg = <0x217000 0x1000>;
+>>               interrupts = <92>;
+>>
+>> -             port {
+>> -                     vpif_ch0: endpoint@0 {
+>> +             port@0 {
+>> +                     vpif_input_ch0: endpoint@0 {
+>>                               reg = <0>;
+>>                               bus-width = <8>;
+>> -                             remote-endpoint = <&composite>;
+>> +                             remote-endpoint = <&composite_in>;
+>>                       };
+>>
+>> -                     vpif_ch1: endpoint@1 {
+>> +                     vpif_input_ch1: endpoint@1 {
+>>                               reg = <1>;
+>>                               bus-width = <8>;
+>>                               data-shift = <8>;
+>>                       };
+>>               };
+>> +
+>> +             port@1 {
+>
+> The binding doc says nothing about supporting a 2nd port.
+>
 
-This patchset fixes a few issues on the colorspace logic for the exynos-gsc
-and s5p-mfc drivers.
+I assumed that "It should contain at least one port child node" means
+there can be more than one.
 
-We now handle the colorspace in those drivers, and make sure to respect user setting if
-possible.
+Thanks,
+Bartosz
 
-We also now set the 'v4l2_pix_format:field' if userspace passed ANY, avoiding GStreamer
-spamming error at us about the driver not following the standard.
-
-This is the third version of the patch serie.
-
-Best regards,
-
-Thibault Saunier
-
-Changes in v4:
-- Reword commit message to better back our assumptions on specifications
-- Use any colorspace provided by the user as it won't affect the way we
-  handle our operations (guessing it if none is provided)
-- Always use output colorspace on the capture side
-- Set the colorspace only if the user passed V4L2_COLORSPACE_DEFAULT, in
-  all other cases just use what userspace provided.
-
-Changes in v3:
-- Added 'Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>'
-- Set colorspace if user passed V4L2_COLORSPACE_DEFAULT in
-- Do not check values in the g_fmt functions as Andrzej explained in previous review
-
-Changes in v2:
-- Fix a silly build error that slipped in while rebasing the patches
-
-Javier Martinez Canillas (1):
-  [media] exynos-gsc: Use 576p instead 720p as a threshold for
-    colorspaces
-
-Thibault Saunier (3):
-  [media] exynos-gsc: Respect userspace colorspace setting in try_fmt
-  [media] s5p-mfc: Set colorspace in VIDIO_{G,TRY}_FMT if DEFAULT
-    provided
-  [media] s5p-mfc: Check and set 'v4l2_pix_format:field' field in
-    try_fmt
-
- drivers/media/platform/exynos-gsc/gsc-core.c | 20 +++++++++++++++-----
- drivers/media/platform/exynos-gsc/gsc-core.h |  1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 28 ++++++++++++++++++++++++++++
- 3 files changed, 44 insertions(+), 5 deletions(-)
-
--- 
-2.11.1
+>
+>> +                     vpif_output_ch0: endpoint@0 {
+>> +                             reg = <0>;
+>
+> Don't need reg here.
+>
+>> +                             bus-width = <8>;
+>> +                             remote-endpoint = <&composite_out>;
+>> +                     };
+>> +             };
+>>       };
