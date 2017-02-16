@@ -1,151 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:34359 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753181AbdBPCUf (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:39516 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754291AbdBPNKT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 21:20:35 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit controls from a pipeline
-Date: Wed, 15 Feb 2017 18:19:16 -0800
-Message-Id: <1487211578-11360-15-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+        Thu, 16 Feb 2017 08:10:19 -0500
+Date: Thu, 16 Feb 2017 13:09:35 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: mark.rutland@arm.com, andrew-ct.chen@mediatek.com,
+        minghsiu.tsai@mediatek.com, nick@shmanahar.org,
+        songjun.wu@microchip.com, pavel@ucw.cz, shuah@kernel.org,
+        devel@driverdev.osuosl.org, markus.heiser@darmarIT.de,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        robert.jarzmik@free.fr, geert@linux-m68k.org,
+        p.zabel@pengutronix.de, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, kernel@pengutronix.de, arnd@arndb.de,
+        tiffany.lin@mediatek.com, bparrot@ti.com, robh+dt@kernel.org,
+        horms+renesas@verge.net.au, mchehab@kernel.org,
+        laurent.pinchart+renesas@ideasonboard.com,
+        linux-arm-kernel@lists.infradead.org,
+        niklas.soderlund+renesas@ragnatech.se, gregkh@linuxfoundation.org,
+        linux-kernel@vger.kernel.org, jean-christophe.trotin@st.com,
+        sakari.ailus@linux.intel.com, fabio.estevam@nxp.com,
+        shawnguo@kernel.org, sudipm.mukherjee@gmail.com
+Subject: Re: [PATCH v4 20/36] media: imx: Add CSI subdev driver
+Message-ID: <20170216130935.GN27312@n2100.armlinux.org.uk>
 References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+ <1487211578-11360-21-git-send-email-steve_longerbeam@mentor.com>
+ <20170216115206.GL27312@n2100.armlinux.org.uk>
+ <20170216124027.GM27312@n2100.armlinux.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170216124027.GM27312@n2100.armlinux.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2_pipeline_inherit_controls() will add the v4l2 controls from
-all subdev entities in a pipeline to a given video device.
+On Thu, Feb 16, 2017 at 12:40:27PM +0000, Russell King - ARM Linux wrote:
+> However, the following is primerily directed at Laurent as the one who
+> introduced the BUG_ON() in question...
+> 
+> NEVER EVER USE BUG_ON() IN A PATH THAT CAN RETURN AN ERROR.
+> 
+> It's possible to find Linus rants about this, eg,
+> https://www.spinics.net/lists/stable/msg146439.html
+> 
+>  I should have reacted to the damn added BUG_ON() lines. I suspect I
+>  will have to finally just remove the idiotic BUG_ON() concept once and
+>  for all, because there is NO F*CKING EXCUSE to knowingly kill the
+>  kernel.
+> 
+> Also: http://yarchive.net/comp/linux/BUG.html
+> 
+>  Rule of thumb: BUG() is only good for something that never happens and
+>  that we really have no other option for (ie state is so corrupt that
+>  continuing is deadly).
+> 
+> So, _unless_ people want to see BUG_ON() removed from the kernel, I
+> strongly suggest to _STOP_ using it as "we didn't like the function
+> arguments, let's use it as an assert() statement instead of returning
+> an error."
+> 
+> There's no excuse what so ever to be killing the machine in
+> media_create_pad_link().  If it doesn't like a NULL pointer, it's damn
+> well got an error path to report that fact.  Use that mechanism and
+> stop needlessly killing the kernel.
+> 
+> BUG_ON() IS NOT ASSERT().  DO NOT USE IT AS SUCH.
+> 
+> Linus is absolutely right about BUG_ON() - it hurts debuggability,
+> because now the only way to do further tests is to reboot the damned
+> machine after removing those fscking BUG_ON()s that should *never*
+> have been there in the first place.
+> 
+> As Linus went on to say:
+> 
+>  And dammit, if anybody else feels that they had done "debugging
+>  messages with BUG_ON()", I would suggest you
+> 
+>   (a) rethink your approach to programming
+> 
+>   (b) send me patches to remove the crap entirely, or make them real
+>  *DEBUGGING* messages, not "kill the whole machine" messages.
+> 
+>  I've ranted against people using BUG_ON() for debugging in the past.
+>  Why the f*ck does this still happen? And Andrew - please stop taking
+>  those kinds of patches! Lookie here:
+> 
+>      https://lwn.net/Articles/13183/
+> 
+>  so excuse me for being upset that people still do this shit almost 15
+>  years later.
+> 
+> So I suggest people heed that advice and start fixing these stupid
+> BUG_ON()s that they've created.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/media/v4l2-core/v4l2-mc.c | 48 +++++++++++++++++++++++++++++++++++++++
- include/media/v4l2-mc.h           | 25 ++++++++++++++++++++
- 2 files changed, 73 insertions(+)
+More crap.
 
-diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
-index 303980b..09d4d97 100644
---- a/drivers/media/v4l2-core/v4l2-mc.c
-+++ b/drivers/media/v4l2-core/v4l2-mc.c
-@@ -22,6 +22,7 @@
- #include <linux/usb.h>
- #include <media/media-device.h>
- #include <media/media-entity.h>
-+#include <media/v4l2-ctrls.h>
- #include <media/v4l2-fh.h>
- #include <media/v4l2-mc.h>
- #include <media/v4l2-subdev.h>
-@@ -238,6 +239,53 @@ int v4l_vb2q_enable_media_source(struct vb2_queue *q)
- }
- EXPORT_SYMBOL_GPL(v4l_vb2q_enable_media_source);
- 
-+int __v4l2_pipeline_inherit_controls(struct video_device *vfd,
-+				     struct media_entity *start_entity)
-+{
-+	struct media_device *mdev = start_entity->graph_obj.mdev;
-+	struct media_entity *entity;
-+	struct media_graph graph;
-+	struct v4l2_subdev *sd;
-+	int ret;
-+
-+	ret = media_graph_walk_init(&graph, mdev);
-+	if (ret)
-+		return ret;
-+
-+	media_graph_walk_start(&graph, start_entity);
-+
-+	while ((entity = media_graph_walk_next(&graph))) {
-+		if (!is_media_entity_v4l2_subdev(entity))
-+			continue;
-+
-+		sd = media_entity_to_v4l2_subdev(entity);
-+
-+		ret = v4l2_ctrl_add_handler(vfd->ctrl_handler,
-+					    sd->ctrl_handler,
-+					    NULL);
-+		if (ret)
-+			break;
-+	}
-+
-+	media_graph_walk_cleanup(&graph);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(__v4l2_pipeline_inherit_controls);
-+
-+int v4l2_pipeline_inherit_controls(struct video_device *vfd,
-+				   struct media_entity *start_entity)
-+{
-+	struct media_device *mdev = start_entity->graph_obj.mdev;
-+	int ret;
-+
-+	mutex_lock(&mdev->graph_mutex);
-+	ret = __v4l2_pipeline_inherit_controls(vfd, start_entity);
-+	mutex_unlock(&mdev->graph_mutex);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_pipeline_inherit_controls);
-+
- /* -----------------------------------------------------------------------------
-  * Pipeline power management
-  *
-diff --git a/include/media/v4l2-mc.h b/include/media/v4l2-mc.h
-index 2634d9d..9848e77 100644
---- a/include/media/v4l2-mc.h
-+++ b/include/media/v4l2-mc.h
-@@ -171,6 +171,17 @@ void v4l_disable_media_source(struct video_device *vdev);
-  */
- int v4l_vb2q_enable_media_source(struct vb2_queue *q);
- 
-+/**
-+ * v4l2_pipeline_inherit_controls - Add the v4l2 controls from all
-+ *				    subdev entities in a pipeline to
-+ *				    the given video device.
-+ * @vfd: the video device
-+ * @start_entity: Starting entity
-+ */
-+int __v4l2_pipeline_inherit_controls(struct video_device *vfd,
-+				     struct media_entity *start_entity);
-+int v4l2_pipeline_inherit_controls(struct video_device *vfd,
-+				   struct media_entity *start_entity);
- 
- /**
-  * v4l2_pipeline_pm_use - Update the use count of an entity
-@@ -231,6 +242,20 @@ static inline int v4l_vb2q_enable_media_source(struct vb2_queue *q)
- 	return 0;
- }
- 
-+static inline int __v4l2_pipeline_inherit_controls(
-+	struct video_device *vfd,
-+	struct media_entity *start_entity)
-+{
-+	return 0;
-+}
-+
-+static inline int v4l2_pipeline_inherit_controls(
-+	struct video_device *vfd,
-+	struct media_entity *start_entity)
-+{
-+	return 0;
-+}
-+
- static inline int v4l2_pipeline_pm_use(struct media_entity *entity, int use)
- {
- 	return 0;
+If the "complete" method fails (or, in fact, anything in
+v4l2_async_test_notify() fails) then all hell breaks loose, because
+of the total lack of clean up (and no, this isn't anything to do with
+some stupid justification of those BUG_ON()s above.)
+
+v4l2_async_notifier_register() gets called, it adds the notifier to
+the global notifier list.  v4l2_async_test_notify() gets called.  It
+returns an error, which is propagated out of
+v4l2_async_notifier_register().
+
+So the caller thinks that v4l2_async_notifier_register() failed, which
+will cause imx_media_probe() to fail, causing imxmd->subdev_notifier
+to be kfree()'d.  We now have a use-after free bug.
+
+Second case.  v4l2_async_register_subdev().  Almost exactly the same,
+except in this case adding sd->async_list to the notifier->done list
+may have succeeded, and failure after that, again, results in an
+in-use list_head being kfree()'d.
+
 -- 
-2.7.4
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
