@@ -1,126 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:47223 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751307AbdBFK2g (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:44514 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932595AbdBPTKX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Feb 2017 05:28:36 -0500
-Message-ID: <1486376840.3005.28.camel@pengutronix.de>
-Subject: Re: [PATCH v3 12/24] add mux and video interface bridge entity
- functions
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarit.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Date: Mon, 06 Feb 2017 11:27:20 +0100
-In-Reply-To: <6948005.DnfziI9GIJ@avalon>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
-         <1483755102-24785-13-git-send-email-steve_longerbeam@mentor.com>
-         <6948005.DnfziI9GIJ@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Thu, 16 Feb 2017 14:10:23 -0500
+Date: Thu, 16 Feb 2017 19:09:31 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@redhat.com>,
+        mark.rutland@arm.com, andrew-ct.chen@mediatek.com,
+        minghsiu.tsai@mediatek.com, sakari.ailus@linux.intel.com,
+        nick@shmanahar.org, songjun.wu@microchip.com,
+        Steve Longerbeam <steve_longerbeam@mentor.com>, pavel@ucw.cz,
+        robert.jarzmik@free.fr, devel@driverdev.osuosl.org,
+        markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, shuah@kernel.org,
+        geert@linux-m68k.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, kernel@pengutronix.de, arnd@arndb.de,
+        mchehab@kernel.org, bparrot@ti.com, robh+dt@kernel.org,
+        horms+renesas@verge.net.au, tiffany.lin@mediatek.com,
+        linux-arm-kernel@lists.infradead.org,
+        niklas.soderlund+renesas@ragnatech.se, gregkh@linuxfoundation.org,
+        linux-kernel@vger.kernel.org, jean-christophe.trotin@st.com,
+        p.zabel@pengutronix.de, fabio.estevam@nxp.com, shawnguo@kernel.org,
+        sudipm.mukherjee@gmail.com
+Subject: Re: [PATCH v4 20/36] media: imx: Add CSI subdev driver
+Message-ID: <20170216190931.GV27312@n2100.armlinux.org.uk>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+ <1487211578-11360-21-git-send-email-steve_longerbeam@mentor.com>
+ <20170216115206.GL27312@n2100.armlinux.org.uk>
+ <20170216124027.GM27312@n2100.armlinux.org.uk>
+ <fa52c59e-f582-672c-8df0-2b959f880fa1@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <fa52c59e-f582-672c-8df0-2b959f880fa1@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2017-02-05 at 17:36 +0200, Laurent Pinchart wrote:
-> Hi Steve,
+On Thu, Feb 16, 2017 at 10:44:16AM -0800, Steve Longerbeam wrote:
+> On 02/16/2017 04:40 AM, Russell King - ARM Linux wrote:
+> >[    8.012191] imx_media_common: module is from the staging directory, the quality is unknown, you have been warned.
+> >[    8.018175] imx_media: module is from the staging directory, the quality is unknown, you have been warned.
+> >[    8.748345] imx-media: Registered subdev ipu1_csi0_mux
+> >[    8.753451] imx-media: Registered subdev ipu2_csi1_mux
+> >[    9.055196] imx219 0-0010: detected IMX219 sensor
+> >[    9.090733] imx6_mipi_csi2: module is from the staging directory, the quality is unknown, you have been warned.
+> >[    9.092247] imx-media: Registered subdev imx219 0-0010
+> >[    9.334338] imx-media: Registered subdev imx6-mipi-csi2
+> >[    9.372452] imx_media_capture: module is from the staging directory, the quality is unknown, you have been warned.
+> >[    9.378163] imx_media_capture: module is from the staging directory, the quality is unknown, you have been warned.
+> >[    9.390033] imx_media_csi: module is from the staging directory, the quality is unknown, you have been warned.
+> >[    9.394362] imx-media: Received unknown subdev ipu1_csi0
 > 
-> Thank you for the patch
-> 
-> On Friday 06 Jan 2017 18:11:30 Steve Longerbeam wrote:
-> > From: Philipp Zabel <p.zabel@pengutronix.de>
-> > 
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > ---
-> >  Documentation/media/uapi/mediactl/media-types.rst | 22 ++++++++++++++++++++
-> >  include/uapi/linux/media.h                        |  6 ++++++
-> >  2 files changed, 28 insertions(+)
-> > 
-> > diff --git a/Documentation/media/uapi/mediactl/media-types.rst
-> > b/Documentation/media/uapi/mediactl/media-types.rst index 3e03dc2..023be29
-> > 100644
-> > --- a/Documentation/media/uapi/mediactl/media-types.rst
-> > +++ b/Documentation/media/uapi/mediactl/media-types.rst
-> > @@ -298,6 +298,28 @@ Types and flags used to represent the media graph
-> > elements received on its sink pad and outputs the statistics data on
-> >  	  its source pad.
-> > 
-> > +    -  ..  row 29
-> > +
-> > +       ..  _MEDIA-ENT-F-MUX:
-> > +
-> > +       -  ``MEDIA_ENT_F_MUX``
-> > +
-> > +       - Video multiplexer. An entity capable of multiplexing must have at
-> > +         least two sink pads and one source pad, and must pass the video
-> > +         frame(s) received from the active sink pad to the source pad.
-> > Video
-> > +         frame(s) from the inactive sink pads are discarded.
-> 
-> Apart from the comment made by Hans regarding the macro name, this looks good 
-> to me.
-> 
-> > +    -  ..  row 30
-> > +
-> > +       ..  _MEDIA-ENT-F-VID-IF-BRIDGE:
-> > +
-> > +       -  ``MEDIA_ENT_F_VID_IF_BRIDGE``
-> > +
-> > +       - Video interface bridge. A video interface bridge entity must have
-> > at
-> > +         least one sink pad and one source pad. It receives video frame(s)
-> > on
-> > +         its sink pad in one bus format (HDMI, eDP, MIPI CSI-2, ...) and
-> > +         converts them and outputs them on its source pad in another bus
-> > format
-> > +         (eDP, MIPI CSI-2, parallel, ...).
-> 
-> 
-> The first sentence mentions *at least* one sink pad and one source pad, and 
-> the second one refers to "its sink pad" and "its source pad". This is a bit 
-> confusing. An easy option would be to require a single sink and a single 
-> source pad, but that would exclude bridges that combine a multiplexer.
+> The root problem is here. I don't know why the CSI entities are not
+> being recognized. Can you share the changes you made?
 
-Would it be enough to just switch to plural?
+No, it's not the root problem that's causing the BUG/etc, but it is
+_a_ problem.  Nevertheless, it's something I fixed - disconnecting
+the of_node from the struct device needed one other change in the
+imx-media code that was missing at this time.
 
-"It receives video frame(s) on its sink pads in one bus format and
-converts them and outputs them on its source pads in another bus
-format"?
+However, that's no excuse what so ever for the BUG_ON() and lack of
+error cleanup (causing use-after-free, which is just another way of
+saying "data corruption waiting to happen") that I identified.
 
-I fear if this is made too specific to single-input single-output
-devices, a whole lot of multi-input devices will have to be split up
-unnecessarily. Although in cases of freely configurable multiplexers, it
-might also make sense to describe them as multiple entities. Especially
-if they can run in parallel with different configurations.
-
-> I also wonder whether "bridge" is the appropriate word here. Transceiver might 
-> be a better choice, to insist on the fact that one of the two pads corresponds 
-> to a physical interface that has special electrical properties (such as HDMI, 
-> eDP, or CSI-2 that all require PHYs).
-
-What media entity function would you suggest to use for the IPU CSI,
-which basically is
- - a video interface bridge, because it converts media bus formats from
-   an external (up to) 20-bit parallel bus to an internal 128-bit bus,
-   with the option to either expand/compand/pack >8-bit per component
-   pixel formats (so parts of a write pixel formatter)
- - also a video scaler, because it can crop and reduce width and/or
-   height to 1/2 the original size
-
-I wouldn't call it a transceiver, as it is completely contained inside
-the SoC.
-
-regards
-Philipp
-
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
