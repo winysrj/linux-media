@@ -1,253 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:26633 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751107AbdBBPAM (ORCPT
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:37021 "EHLO
+        mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933050AbdBPSIP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Feb 2017 10:00:12 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v7 00/10] Add support for DELTA video decoder of STMicroelectronics STiH4xx SoC series
-Date: Thu, 2 Feb 2017 15:59:43 +0100
-Message-ID: <1486047593-18581-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Thu, 16 Feb 2017 13:08:15 -0500
+Received: by mail-wm0-f54.google.com with SMTP id v77so21629357wmv.0
+        for <linux-media@vger.kernel.org>; Thu, 16 Feb 2017 10:08:15 -0800 (PST)
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+To: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@baylibre.com>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Patrick Titiano <ptitiano@baylibre.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Prabhakar Lad <prabhakar.csengg@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Subject: [PATCH] media: vpif: use a configurable i2c_adapter_id for vpif display
+Date: Thu, 16 Feb 2017 19:08:01 +0100
+Message-Id: <1487268481-6127-1-git-send-email-bgolaszewski@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset introduces a basic support for DELTA multi-format video
-decoder of STMicroelectronics STiH4xx SoC series.
+The vpif display driver uses a static i2c adapter ID of 1 but on the
+da850-evm board in DT boot mode the i2c adapter ID is actually 0.
 
-DELTA hardware IP is controlled by a remote firmware loaded in a ST231
-coprocessor. Communication with firmware is done within an IPC layer
-using rpmsg kernel framework and a shared memory for messages handling.
-This driver is compatible with firmware version 21.1-3.
-While a single firmware is loaded in ST231 coprocessor, it is composed
-of several firmwares, one per video format family.
+Make the adapter ID configurable like it already is for vpif capture.
 
-This DELTA V4L2 driver is designed around files:
-  - delta-v4l2.c   : handles V4L2 APIs using M2M framework and calls decoder ops
-  - delta-<codec>* : implements <codec> decoder calling its associated
-                     video firmware (for ex. MJPEG) using IPC layer
-  - delta-ipc.c    : IPC layer which handles communication with firmware using rpmsg
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Acked-by: Kevin Hilman <khilman@baylibre.com>
+---
+ arch/arm/mach-davinci/board-da850-evm.c       | 1 +
+ drivers/media/platform/davinci/vpif_display.c | 2 +-
+ include/media/davinci/vpif_types.h            | 1 +
+ 3 files changed, 3 insertions(+), 1 deletion(-)
 
-This first basic support implements only MJPEG hardware acceleration but
-the driver structure is in place to support all the features of the
-DELTA video decoder hardware IP.
-
-This driver depends on:
-  - ST remoteproc/rpmsg:
-    - https://lkml.org/lkml/2017/1/31/389: remoteproc: st: add virtio_rpmsg support
-    - https://lkml.org/lkml/2017/1/31/415: virtio_rpmsg: make rpmsg channel configurable
-  - ST DELTA firmware: its license is under review. When available,
-    pull request will be done on linux-firmware.
-
-===========
-= history =
-===========
-version 7
-  - update after v6 review:
-    - devicetree: move delta section from stih410.dtsi to stih407-family.dtsi.
-    - missing "[media]" prefix in last commit
-  - Acked-by: Peter Griffin <peter.griffin@linaro.org>
-
-version 6
-  - update after v5 review:
-    - rework configuration in order to build driver only if at least
-      one decoder is selected.
-
-version 5
-  - update after v4 review:
-    - fixed warning in case of no decoder selected in config
-    - fixed multiple lines comments
-  - dev_info changed to dev_dbg for summary trace (from HVA driver review)
-
-version 4
-  - update after v3 review:
-    - "select" RPMSG instead "depends on"
-    - v4l2-compliance S_SELECTION is no more failed
-      till sync on latest v4l2-compliance codebase
-  - sparse warnings fixes
-
-version 3
-  - update after v2 review:
-    - fixed m2m_buf_done missing on start_streaming error case
-    - fixed q->dev missing in queue_init()
-    - removed unsupported s_selection
-    - refactored string namings in delta-debug.c
-    - fixed space before comment
-    - all commits have commit messages
-    - reword memory allocator helper commit
-
-version 2
-  - update after v1 review:
-    - simplified tracing
-    - G_/S_SELECTION reworked to fit COMPOSE(CAPTURE)
-    - fixed m2m_buf_done missing on start_streaming error case
-    - fixed q->dev missing in queue_init()
-  - switch to kernel-4.9 rpmsg API
-  - DELTA support added in multi_v7_defconfig
-  - minor typo fixes & code cleanup
-
-version 1:
-  - Initial submission
-
-===================
-= v4l2-compliance =
-===================
-Below is the v4l2-compliance report for the version 4 of the DELTA video
-decoder driver. v4l2-compliance has been build from SHA1:
-003f31e59f353b4aecc82e8fb1c7555964da7efa (v4l2-compliance: allow S_SELECTION to return ENOTTY)
-
-root@sti-4:~# v4l2-compliance -d /dev/video0
-v4l2-compliance SHA   : 003f31e59f353b4aecc82e8fb1c7555964da7efa
-
-Driver Info:
-	Driver name   : st-delta
-	Card type     : st-delta-21.1-3
-	Bus info      : platform:soc:delta0
-	Driver version: 4.9.0
-	Capabilities  : 0x84208000
-		Video Memory-to-Memory
-		Streaming
-		Extended Pix Format
-		Device Capabilities
-	Device Caps   : 0x04208000
-		Video Memory-to-Memory
-		Streaming
-		Extended Pix Format
-
-Compliance test for device /dev/video0 (not using libv4l2):
-
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-	test second video open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
-	test for unlimited opens: OK
-
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-	test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-	test VIDIOC_G/S_EDID: OK (Not Supported)
-
-	Control ioctls:
-		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
-		test VIDIOC_QUERYCTRL: OK (Not Supported)
-		test VIDIOC_G/S_CTRL: OK (Not Supported)
-		test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-		Standard Controls: 0 Private Controls: 0
-
-	Format ioctls:
-		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-		test VIDIOC_G/S_PARM: OK (Not Supported)
-		test VIDIOC_G_FBUF: OK (Not Supported)
-		test VIDIOC_G_FMT: OK
-		warn: sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(717): TRY_FMT cannot handle an invalid pixelformat.
-		warn: sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(718): This may or may not be a problem. For more information see:
-		warn: sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(719): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
-		test VIDIOC_TRY_FMT: OK
-		warn: sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(977): S_FMT cannot handle an invalid pixelformat.
-		warn: sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(978): This may or may not be a problem. For more information see:
-		warn: sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(979): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
-		test VIDIOC_S_FMT: OK
-		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-		test Cropping: OK (Not Supported)
-		test Composing: OK
-		test Scaling: OK
-
-	Codec ioctls:
-		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-		test VIDIOC_(TRY_)DECODER_CMD: OK
-
-	Buffer ioctls:
-		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-		test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-
-Total: 43, Succeeded: 43, Failed: 0, Warnings: 6
-
-Hugues Fruchet (10):
-  Documentation: DT: add bindings for ST DELTA
-  ARM: dts: STiH407-family: add DELTA dt node
-  ARM: multi_v7_defconfig: enable STMicroelectronics DELTA Support
-  [media] MAINTAINERS: add st-delta driver
-  [media] st-delta: STiH4xx multi-format video decoder v4l2 driver
-  [media] st-delta: add memory allocator helper functions
-  [media] st-delta: rpmsg ipc support
-  [media] st-delta: EOS (End Of Stream) support
-  [media] st-delta: add mjpeg support
-  [media] st-delta: debug: trace stream/frame information & summary
-
- .../devicetree/bindings/media/st,st-delta.txt      |   17 +
- MAINTAINERS                                        |    8 +
- arch/arm/boot/dts/stih407-family.dtsi              |   10 +
- arch/arm/configs/multi_v7_defconfig                |    1 +
- drivers/media/platform/Kconfig                     |   39 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/sti/delta/Makefile          |    6 +
- drivers/media/platform/sti/delta/delta-cfg.h       |   64 +
- drivers/media/platform/sti/delta/delta-debug.c     |   72 +
- drivers/media/platform/sti/delta/delta-debug.h     |   18 +
- drivers/media/platform/sti/delta/delta-ipc.c       |  594 ++++++
- drivers/media/platform/sti/delta/delta-ipc.h       |   76 +
- drivers/media/platform/sti/delta/delta-mem.c       |   51 +
- drivers/media/platform/sti/delta/delta-mem.h       |   14 +
- drivers/media/platform/sti/delta/delta-mjpeg-dec.c |  455 +++++
- drivers/media/platform/sti/delta/delta-mjpeg-fw.h  |  225 +++
- drivers/media/platform/sti/delta/delta-mjpeg-hdr.c |  149 ++
- drivers/media/platform/sti/delta/delta-mjpeg.h     |   35 +
- drivers/media/platform/sti/delta/delta-v4l2.c      | 1993 ++++++++++++++++++++
- drivers/media/platform/sti/delta/delta.h           |  566 ++++++
- 20 files changed, 4395 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/st,st-delta.txt
- create mode 100644 drivers/media/platform/sti/delta/Makefile
- create mode 100644 drivers/media/platform/sti/delta/delta-cfg.h
- create mode 100644 drivers/media/platform/sti/delta/delta-debug.c
- create mode 100644 drivers/media/platform/sti/delta/delta-debug.h
- create mode 100644 drivers/media/platform/sti/delta/delta-ipc.c
- create mode 100644 drivers/media/platform/sti/delta/delta-ipc.h
- create mode 100644 drivers/media/platform/sti/delta/delta-mem.c
- create mode 100644 drivers/media/platform/sti/delta/delta-mem.h
- create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg-dec.c
- create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg-fw.h
- create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg-hdr.c
- create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg.h
- create mode 100644 drivers/media/platform/sti/delta/delta-v4l2.c
- create mode 100644 drivers/media/platform/sti/delta/delta.h
-
+diff --git a/arch/arm/mach-davinci/board-da850-evm.c b/arch/arm/mach-davinci/board-da850-evm.c
+index df3ca38..6f1e129 100644
+--- a/arch/arm/mach-davinci/board-da850-evm.c
++++ b/arch/arm/mach-davinci/board-da850-evm.c
+@@ -1290,6 +1290,7 @@ static struct vpif_display_config da850_vpif_display_config = {
+ 		.output_count = ARRAY_SIZE(da850_ch0_outputs),
+ 	},
+ 	.card_name    = "DA850/OMAP-L138 Video Display",
++	.i2c_adapter_id = 1,
+ };
+ 
+ static __init void da850_vpif_init(void)
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index 50c3073..7e5cf99 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -1287,7 +1287,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	if (!vpif_obj.config->asd_sizes) {
+-		i2c_adap = i2c_get_adapter(1);
++		i2c_adap = i2c_get_adapter(vpif_obj.config->i2c_adapter_id);
+ 		for (i = 0; i < subdev_count; i++) {
+ 			vpif_obj.sd[i] =
+ 				v4l2_i2c_new_subdev_board(&vpif_obj.v4l2_dev,
+diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
+index 4282a7d..0c72b46 100644
+--- a/include/media/davinci/vpif_types.h
++++ b/include/media/davinci/vpif_types.h
+@@ -57,6 +57,7 @@ struct vpif_display_config {
+ 	int (*set_clock)(int, int);
+ 	struct vpif_subdev_info *subdevinfo;
+ 	int subdev_count;
++	int i2c_adapter_id;
+ 	struct vpif_display_chan_config chan_config[VPIF_DISPLAY_MAX_CHANNELS];
+ 	const char *card_name;
+ 	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
 -- 
-1.9.1
-
+2.9.3
