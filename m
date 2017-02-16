@@ -1,55 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:41423
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753598AbdBNTqF (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:33557 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753747AbdBPCVb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Feb 2017 14:46:05 -0500
-Date: Tue, 14 Feb 2017 17:45:57 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        stable@vger.kernel.org
-Subject: Re: [PATCH] siano: make it work again with CONFIG_VMAP_STACK
-Message-ID: <20170214174557.4d7b2100@vento.lan>
-In-Reply-To: <20170214194146.GA28566@kroah.com>
-References: <08f1b470a156163cc3394f73bcbaea3925b6f376.1487100723.git.mchehab@s-opensource.com>
-        <20170214194146.GA28566@kroah.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Wed, 15 Feb 2017 21:21:31 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v4 35/36] media: imx: csi: fix crop rectangle reset in sink set_fmt
+Date: Wed, 15 Feb 2017 18:19:37 -0800
+Message-Id: <1487211578-11360-36-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 14 Feb 2017 11:41:46 -0800
-Greg KH <gregkh@linuxfoundation.org> escreveu:
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-> On Tue, Feb 14, 2017 at 05:32:11PM -0200, Mauro Carvalho Chehab wrote:
-> > Reported as a Kaffeine bug:
-> > 	https://bugs.kde.org/show_bug.cgi?id=375811
-> > 
-> > The USB control messages require DMA to work. We cannot pass
-> > a stack-allocated buffer, as it is not warranted that the
-> > stack would be into a DMA enabled area.
-> > 
-> > On Kernel 4.9, the default is to not accept DMA on stack anymore.
-> > 
-> > Tested with USB ID 2040:5510: Hauppauge Windham
-> > 
-> > Cc: stable@vger.kernel.org # For 4.9+  
-> 
-> Unless there is some major reason, this should go into _all_ stable
-> releases, as the driver would be broken on them all for platforms that
-> can't handle USB data that is not DMA-able.  This has been a requirement
-> for USB drivers since the 2.2 days.
+The csi_try_crop call in set_fmt should compare the cropping rectangle
+to the currently set input format, not to the previous input format.
 
-Good point! No, there's no particular reason why not backporting it
-to older Kernel releases. I suspect that this particular part of
-the driver hasn't changed for a while. So, it can very likely be
-backported to all stable releases.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/media/imx/imx-media-csi.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-I'll fix the C/C message when submitting it upstream.
-
-Thanks,
-Mauro
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 6284f99..3e6b607 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -937,15 +937,13 @@ __csi_get_fmt(struct csi_priv *priv, struct v4l2_subdev_pad_config *cfg,
+ static int csi_try_crop(struct csi_priv *priv,
+ 			struct v4l2_rect *crop,
+ 			struct v4l2_subdev_pad_config *cfg,
+-			enum v4l2_subdev_format_whence which,
++			struct v4l2_mbus_framefmt *infmt,
+ 			struct imx_media_subdev *sensor)
+ {
+ 	struct v4l2_of_endpoint *sensor_ep;
+-	struct v4l2_mbus_framefmt *infmt;
+ 	v4l2_std_id std;
+ 	int ret;
+ 
+-	infmt = __csi_get_fmt(priv, cfg, CSI_SINK_PAD, which);
+ 	sensor_ep = &sensor->sensor_ep;
+ 
+ 	crop->width = min_t(__u32, infmt->width, crop->width);
+@@ -1142,8 +1140,7 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
+ 		crop.top = 0;
+ 		crop.width = sdformat->format.width;
+ 		crop.height = sdformat->format.height;
+-		ret = csi_try_crop(priv, &crop, cfg,
+-				   sdformat->which, sensor);
++		ret = csi_try_crop(priv, &crop, cfg, &sdformat->format, sensor);
+ 		if (ret)
+ 			return ret;
+ 
+@@ -1225,6 +1222,7 @@ static int csi_set_selection(struct v4l2_subdev *sd,
+ 			     struct v4l2_subdev_selection *sel)
+ {
+ 	struct csi_priv *priv = v4l2_get_subdevdata(sd);
++	struct v4l2_mbus_framefmt *infmt;
+ 	struct imx_media_subdev *sensor;
+ 	int ret;
+ 
+@@ -1254,7 +1252,8 @@ static int csi_set_selection(struct v4l2_subdev *sd,
+ 		return 0;
+ 	}
+ 
+-	ret = csi_try_crop(priv, &sel->r, cfg, sel->which, sensor);
++	infmt = __csi_get_fmt(priv, cfg, CSI_SINK_PAD, sel->which);
++	ret = csi_try_crop(priv, &sel->r, cfg, infmt, sensor);
+ 	if (ret)
+ 		return ret;
+ 
+-- 
+2.7.4
