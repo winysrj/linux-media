@@ -1,136 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx-out-1.rwth-aachen.de ([134.130.5.186]:27634 "EHLO
-        mx-out-1.rwth-aachen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754704AbdBQAzr (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:35673 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753673AbdBPCVS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Feb 2017 19:55:47 -0500
-From: =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>
-To: <linux-media@vger.kernel.org>
-CC: <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Antti Palosaari <crope@iki.fi>,
-        =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>
-Subject: [PATCH v3 1/3] [media] si2157: Add support for Si2141-A10
-Date: Fri, 17 Feb 2017 01:55:31 +0100
-In-Reply-To: <20170217005533.22424-1-stefan.bruens@rwth-aachen.de>
-References: <20170217005533.22424-1-stefan.bruens@rwth-aachen.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Message-ID: <86d1cb766b584798af4f651f1ec4bf0e@rwthex-w2-b.rwth-ad.de>
+        Wed, 15 Feb 2017 21:21:18 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Russell King <rmk+kernel@armlinux.org.uk>
+Subject: [PATCH v4 32/36] media: imx: csi/fim: add support for frame intervals
+Date: Wed, 15 Feb 2017 18:19:34 -0800
+Message-Id: <1487211578-11360-33-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Si2141 needs two distinct commands for powerup/reset, otherwise it
-will not respond to chip revision requests. It also needs a firmware
-to run properly.
+Add support to CSI for negotiation of frame intervals, and use this
+information to configure the frame interval monitor.
 
-Signed-off-by: Stefan Brüns <stefan.bruens@rwth-aachen.de>
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/tuners/si2157.c      | 23 +++++++++++++++++++++--
- drivers/media/tuners/si2157_priv.h |  2 ++
- 2 files changed, 23 insertions(+), 2 deletions(-)
+ drivers/staging/media/imx/imx-media-csi.c | 36 ++++++++++++++++++++++++++++---
+ drivers/staging/media/imx/imx-media-fim.c | 28 +++++++++---------------
+ drivers/staging/media/imx/imx-media.h     |  2 +-
+ 3 files changed, 44 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index 57b250847cd3..e35b1faf0ddc 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -106,6 +106,9 @@ static int si2157_init(struct dvb_frontend *fe)
- 	if (dev->chiptype == SI2157_CHIPTYPE_SI2146) {
- 		memcpy(cmd.args, "\xc0\x05\x01\x00\x00\x0b\x00\x00\x01", 9);
- 		cmd.wlen = 9;
-+	} else if (dev->chiptype == SI2157_CHIPTYPE_SI2141) {
-+		memcpy(cmd.args, "\xc0\x00\x0d\x0e\x00\x01\x01\x01\x01\x03", 10);
-+		cmd.wlen = 10;
- 	} else {
- 		memcpy(cmd.args, "\xc0\x00\x0c\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x00\x01", 15);
- 		cmd.wlen = 15;
-@@ -115,6 +118,15 @@ static int si2157_init(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index b0aac82..040cca6 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -56,6 +56,7 @@ struct csi_priv {
  
-+	/* Si2141 needs a second command before it answers the revision query */
-+	if (dev->chiptype == SI2157_CHIPTYPE_SI2141) {
-+		memcpy(cmd.args, "\xc0\x08\x01\x02\x00\x00\x01", 7);
-+		cmd.wlen = 7;
-+		ret = si2157_cmd_execute(client, &cmd);
-+		if (ret)
-+			goto err;
-+	}
+ 	struct v4l2_mbus_framefmt format_mbus[CSI_NUM_PADS];
+ 	const struct imx_media_pixfmt *cc[CSI_NUM_PADS];
++	struct v4l2_fract frame_interval;
+ 	struct v4l2_rect crop;
+ 
+ 	/* the video device at IDMAC output pad */
+@@ -565,7 +566,8 @@ static int csi_start(struct csi_priv *priv)
+ 
+ 	/* start the frame interval monitor */
+ 	if (priv->fim) {
+-		ret = imx_media_fim_set_stream(priv->fim, priv->sensor, true);
++		ret = imx_media_fim_set_stream(priv->fim,
++					       &priv->frame_interval, true);
+ 		if (ret)
+ 			goto idmac_stop;
+ 	}
+@@ -580,7 +582,8 @@ static int csi_start(struct csi_priv *priv)
+ 
+ fim_off:
+ 	if (priv->fim)
+-		imx_media_fim_set_stream(priv->fim, priv->sensor, false);
++		imx_media_fim_set_stream(priv->fim,
++					 &priv->frame_interval, false);
+ idmac_stop:
+ 	if (priv->dest == IPU_CSI_DEST_IDMAC)
+ 		csi_idmac_stop(priv);
+@@ -594,11 +597,36 @@ static void csi_stop(struct csi_priv *priv)
+ 
+ 	/* stop the frame interval monitor */
+ 	if (priv->fim)
+-		imx_media_fim_set_stream(priv->fim, priv->sensor, false);
++		imx_media_fim_set_stream(priv->fim,
++					 &priv->frame_interval, false);
+ 
+ 	ipu_csi_disable(priv->csi);
+ }
+ 
++static int csi_g_frame_interval(struct v4l2_subdev *sd,
++				struct v4l2_subdev_frame_interval *fi)
++{
++	struct csi_priv *priv = v4l2_get_subdevdata(sd);
 +
- 	/* query chip revision */
- 	memcpy(cmd.args, "\x02", 1);
- 	cmd.wlen = 1;
-@@ -131,12 +143,16 @@ static int si2157_init(struct dvb_frontend *fe)
- 	#define SI2157_A30 ('A' << 24 | 57 << 16 | '3' << 8 | '0' << 0)
- 	#define SI2147_A30 ('A' << 24 | 47 << 16 | '3' << 8 | '0' << 0)
- 	#define SI2146_A10 ('A' << 24 | 46 << 16 | '1' << 8 | '0' << 0)
-+	#define SI2141_A10 ('A' << 24 | 41 << 16 | '1' << 8 | '0' << 0)
- 
- 	switch (chip_id) {
- 	case SI2158_A20:
- 	case SI2148_A20:
- 		fw_name = SI2158_A20_FIRMWARE;
- 		break;
-+	case SI2141_A10:
-+		fw_name = SI2141_A10_FIRMWARE;
-+		break;
- 	case SI2157_A30:
- 	case SI2147_A30:
- 	case SI2146_A10:
-@@ -371,7 +387,7 @@ static int si2157_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
- 
- static const struct dvb_tuner_ops si2157_ops = {
- 	.info = {
--		.name           = "Silicon Labs Si2146/2147/2148/2157/2158",
-+		.name           = "Silicon Labs Si2141/Si2146/2147/2148/2157/2158",
- 		.frequency_min  = 42000000,
- 		.frequency_max  = 870000000,
- 	},
-@@ -471,6 +487,7 @@ static int si2157_probe(struct i2c_client *client,
- #endif
- 
- 	dev_info(&client->dev, "Silicon Labs %s successfully attached\n",
-+			dev->chiptype == SI2157_CHIPTYPE_SI2141 ?  "Si2141" :
- 			dev->chiptype == SI2157_CHIPTYPE_SI2146 ?
- 			"Si2146" : "Si2147/2148/2157/2158");
- 
-@@ -508,6 +525,7 @@ static int si2157_remove(struct i2c_client *client)
- static const struct i2c_device_id si2157_id_table[] = {
- 	{"si2157", SI2157_CHIPTYPE_SI2157},
- 	{"si2146", SI2157_CHIPTYPE_SI2146},
-+	{"si2141", SI2157_CHIPTYPE_SI2141},
- 	{}
- };
- MODULE_DEVICE_TABLE(i2c, si2157_id_table);
-@@ -524,7 +542,8 @@ static struct i2c_driver si2157_driver = {
- 
- module_i2c_driver(si2157_driver);
- 
--MODULE_DESCRIPTION("Silicon Labs Si2146/2147/2148/2157/2158 silicon tuner driver");
-+MODULE_DESCRIPTION("Silicon Labs Si2141/Si2146/2147/2148/2157/2158 silicon tuner driver");
- MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
- MODULE_LICENSE("GPL");
- MODULE_FIRMWARE(SI2158_A20_FIRMWARE);
-+MODULE_FIRMWARE(SI2141_A10_FIRMWARE);
-diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
-index d6b2c7b44053..e6436f74abaa 100644
---- a/drivers/media/tuners/si2157_priv.h
-+++ b/drivers/media/tuners/si2157_priv.h
-@@ -42,6 +42,7 @@ struct si2157_dev {
- 
- #define SI2157_CHIPTYPE_SI2157 0
- #define SI2157_CHIPTYPE_SI2146 1
-+#define SI2157_CHIPTYPE_SI2141 2
- 
- /* firmware command struct */
- #define SI2157_ARGLEN      30
-@@ -52,5 +53,6 @@ struct si2157_cmd {
++	fi->interval = priv->frame_interval;
++
++	return 0;
++}
++
++static int csi_s_frame_interval(struct v4l2_subdev *sd,
++				struct v4l2_subdev_frame_interval *fi)
++{
++	struct csi_priv *priv = v4l2_get_subdevdata(sd);
++
++	/* Output pads mirror active input pad, no limits on input pads */
++	if (fi->pad == CSI_SRC_PAD_IDMAC || fi->pad == CSI_SRC_PAD_DIRECT)
++		fi->interval = priv->frame_interval;
++
++	priv->frame_interval = fi->interval;
++
++	return 0;
++}
++
+ static int csi_s_stream(struct v4l2_subdev *sd, int enable)
+ {
+ 	struct csi_priv *priv = v4l2_get_subdevdata(sd);
+@@ -1187,6 +1215,8 @@ static struct v4l2_subdev_core_ops csi_core_ops = {
  };
  
- #define SI2158_A20_FIRMWARE "dvb-tuner-si2158-a20-01.fw"
-+#define SI2141_A10_FIRMWARE "dvb-tuner-si2141-a10-01.fw"
+ static struct v4l2_subdev_video_ops csi_video_ops = {
++	.g_frame_interval = csi_g_frame_interval,
++	.s_frame_interval = csi_s_frame_interval,
+ 	.s_stream = csi_s_stream,
+ };
  
- #endif
+diff --git a/drivers/staging/media/imx/imx-media-fim.c b/drivers/staging/media/imx/imx-media-fim.c
+index acc7e39..a6ed57e 100644
+--- a/drivers/staging/media/imx/imx-media-fim.c
++++ b/drivers/staging/media/imx/imx-media-fim.c
+@@ -67,26 +67,18 @@ struct imx_media_fim {
+ };
+ 
+ static void update_fim_nominal(struct imx_media_fim *fim,
+-			       struct imx_media_subdev *sensor)
++			       const struct v4l2_fract *fi)
+ {
+-	struct v4l2_streamparm parm;
+-	struct v4l2_fract tpf;
+-	int ret;
+-
+-	parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-	ret = v4l2_subdev_call(sensor->sd, video, g_parm, &parm);
+-	tpf = parm.parm.capture.timeperframe;
+-
+-	if (ret || tpf.denominator == 0) {
+-		dev_dbg(fim->sd->dev, "no tpf from sensor, FIM disabled\n");
++	if (fi->denominator == 0) {
++		dev_dbg(fim->sd->dev, "no frame interval, FIM disabled\n");
+ 		fim->enabled = false;
+ 		return;
+ 	}
+ 
+-	fim->nominal = DIV_ROUND_CLOSEST(1000 * 1000 * tpf.numerator,
+-					 tpf.denominator);
++	fim->nominal = DIV_ROUND_CLOSEST_ULL(1000000ULL * (u64)fi->numerator,
++					     fi->denominator);
+ 
+-	dev_dbg(fim->sd->dev, "sensor FI=%lu usec\n", fim->nominal);
++	dev_dbg(fim->sd->dev, "FI=%lu usec\n", fim->nominal);
+ }
+ 
+ static void reset_fim(struct imx_media_fim *fim, bool curval)
+@@ -130,8 +122,8 @@ static void send_fim_event(struct imx_media_fim *fim, unsigned long error)
+ 
+ /*
+  * Monitor an averaged frame interval. If the average deviates too much
+- * from the sensor's nominal frame rate, send the frame interval error
+- * event. The frame intervals are averaged in order to quiet noise from
++ * from the nominal frame rate, send the frame interval error event. The
++ * frame intervals are averaged in order to quiet noise from
+  * (presumably random) interrupt latency.
+  */
+ static void frame_interval_monitor(struct imx_media_fim *fim,
+@@ -422,12 +414,12 @@ EXPORT_SYMBOL_GPL(imx_media_fim_set_power);
+ 
+ /* Called by the subdev in its s_stream callback */
+ int imx_media_fim_set_stream(struct imx_media_fim *fim,
+-			     struct imx_media_subdev *sensor,
++			     const struct v4l2_fract *fi,
+ 			     bool on)
+ {
+ 	if (on) {
+ 		reset_fim(fim, true);
+-		update_fim_nominal(fim, sensor);
++		update_fim_nominal(fim, fi);
+ 
+ 		if (fim->icap_channel >= 0)
+ 			fim_acquire_first_ts(fim);
+diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
+index ae3af0d..7f19739 100644
+--- a/drivers/staging/media/imx/imx-media.h
++++ b/drivers/staging/media/imx/imx-media.h
+@@ -259,7 +259,7 @@ struct imx_media_fim;
+ void imx_media_fim_eof_monitor(struct imx_media_fim *fim, struct timespec *ts);
+ int imx_media_fim_set_power(struct imx_media_fim *fim, bool on);
+ int imx_media_fim_set_stream(struct imx_media_fim *fim,
+-			     struct imx_media_subdev *sensor,
++			     const struct v4l2_fract *frame_interval,
+ 			     bool on);
+ struct imx_media_fim *imx_media_fim_init(struct v4l2_subdev *sd);
+ void imx_media_fim_free(struct imx_media_fim *fim);
 -- 
-2.11.0
+2.7.4
