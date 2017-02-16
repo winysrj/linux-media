@@ -1,120 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:52795 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751356AbdBOPOx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 10:14:53 -0500
-Date: Wed, 15 Feb 2017 15:14:50 +0000
-From: Sean Young <sean@mess.org>
-To: Vincent McIntyre <vincent.mcintyre@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [regression] dvb_usb_cxusb (was Re: ir-keytable: infinite loops,
- segfaults)
-Message-ID: <20170215151450.GA5781@gofer.mess.org>
-References: <CAEsFdVPeL0APCPCA3BLscTY=yDbqH1Fgi77xu1L-VMQ9TWy99Q@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAEsFdVPeL0APCPCA3BLscTY=yDbqH1Fgi77xu1L-VMQ9TWy99Q@mail.gmail.com>
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:32890 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753088AbdBPCU2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 15 Feb 2017 21:20:28 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v4 09/36] ARM: dts: imx6-sabreauto: add reset-gpios property for max7310_b
+Date: Wed, 15 Feb 2017 18:19:11 -0800
+Message-Id: <1487211578-11360-10-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 08, 2017 at 10:30:30PM +1100, Vincent McIntyre wrote:
-> Hi
-> 
-> I have been working with Sean on figuring out the protocol used by a
-> dvico remote.
-> I thought the patch he sent was at fault but I backed it out and tried again.
-> 
-> I've attached a full dmesg but the core of it is when dvb_usb_cxusb
-> tries to load:
-> 
-> [    7.858907] WARNING: You are using an experimental version of the
-> media stack.
->                 As the driver is backported to an older kernel, it doesn't offer
->                 enough quality for its usage in production.
->                 Use it with care.
->                Latest git patches (needed if you report a bug to
-> linux-media@vger.kernel.org):
->                 47b037a0512d9f8675ec2693bed46c8ea6a884ab [media]
-> v4l2-async: failing functions shouldn't have side effects
->                 79a2eda80c6dab79790c308d9f50ecd2e5021ba3 [media]
-> mantis_dvb: fix some error codes in mantis_dvb_init()
->                 c2987aaf0c9c2bcb0d4c5902d61473d9aa018a3d [media]
-> exynos-gsc: Avoid spamming the log on VIDIOC_TRY_FMT
-> [    7.861968] dvb_usb_af9035 1-4:1.0: prechip_version=83
-> chip_version=02 chip_type=9135
-> [    7.887476] dvb_usb_cxusb: disagrees about version of symbol
+The reset pin to the port expander chip (MAX7310) is controlled by a gpio,
+so define a reset-gpios property to control it. There are three MAX7310's
+on the SabreAuto CPU card (max7310_[abc]), but all use the same pin for
+their reset. Since all can't acquire the same pin, assign it to max7310_b,
+that chip is needed by more functions (usb and adv7180).
 
-Sorry about not getting back to you sooner, life got in the way. The
-problem here is that the dvb-usb-cxusb did not get selected, so it
-was not recompiled.
-
-The problem is that DVB_USB_CXUSB Kconfig has this line:
-        select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
-The make_kconfig.pl script transforms this into a dependency, but 
-DVB_SI2168 is only available when compiling against kernel 4.7 or later. 
-I think only one select line needs to match, so I created this patch.
-
-Please apply this patch against media_build, you might need to do make
-clean before building again.
-
-Thanks,
-
-Sean
-
-
-From: Sean Young <sean@mess.org>
-Date: Wed, 15 Feb 2017 14:58:00 +0000
-Subject: [PATCH] only one select Kconfig needs to match
-
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- v4l/scripts/make_kconfig.pl | 20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/v4l/scripts/make_kconfig.pl b/v4l/scripts/make_kconfig.pl
-index ba8c134..a11f820 100755
---- a/v4l/scripts/make_kconfig.pl
-+++ b/v4l/scripts/make_kconfig.pl
-@@ -169,6 +169,7 @@ sub depends($$)
- 	push @{$depends{$key}}, $deps;
- }
+diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+index cace88c..967c3b8 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+@@ -136,6 +136,9 @@
+ 				reg = <0x32>;
+ 				gpio-controller;
+ 				#gpio-cells = <2>;
++				pinctrl-names = "default";
++				pinctrl-0 = <&pinctrl_max7310>;
++				reset-gpios = <&gpio1 15 GPIO_ACTIVE_LOW>;
+ 			};
  
-+my %selectdepends = ();
- sub selects($$$)
- {
- 	my $key = shift;
-@@ -181,7 +182,7 @@ sub selects($$$)
- 		# Transform "select X if Y" into "depends on !Y || X"
- 		$select = "!($if) || ($select)";
- 	}
--	push @{$depends{$key}}, $select;
-+	push @{$selectdepends{$key}}, $select;
- }
+ 			max7310_c: gpio@34 {
+@@ -442,6 +445,12 @@
+ 			>;
+ 		};
  
- # Needs:
-@@ -228,6 +229,23 @@ sub checkdeps()
- 				return 0;
- 			}
- 		}
-+		my $selectdeps = $selectdepends{$key};
-+		if ($selectdeps) {
-+			my $found = 0;
-+			foreach (@$selectdeps) {
-+				next if($_ eq '');
-+				if (eval(toperl($_))) {
-+					$found = 1;
-+					last;
-+				}
-+			}
-+			if ($found == 0) {
-+				print "Disabling $key, select dependency '$_' not met\n" if $debug;
-+				$allconfig{$key} = 0;
-+				return 0;
-+			}
-+		}
++		pinctrl_max7310: max7310grp {
++			fsl,pins = <
++				MX6QDL_PAD_SD2_DAT0__GPIO1_IO15 0x1b0b0
++			>;
++		};
 +
- 		return 1;
- 	}
- 
+ 		pinctrl_pwm3: pwm1grp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_SD4_DAT1__PWM3_OUT		0x1b0b1
 -- 
 2.7.4
