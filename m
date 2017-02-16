@@ -1,110 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:40635 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751285AbdBOJfE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 04:35:04 -0500
-Message-ID: <1487151211.2433.21.camel@pengutronix.de>
-Subject: Re: [PATCH v3 00/24] i.MX Media Driver
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Wed, 15 Feb 2017 10:33:31 +0100
-In-Reply-To: <a581a944-9bee-e5ce-d7d7-24bf749a38e2@gmail.com>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
-         <1485870854.2932.63.camel@pengutronix.de>
-         <a581a944-9bee-e5ce-d7d7-24bf749a38e2@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:33432 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752576AbdBPIsN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 16 Feb 2017 03:48:13 -0500
+Subject: Re: [PATCH v2 3/3] [media] dvbsky: MyGica T230C support
+To: Stefan Bruens <stefan.bruens@rwth-aachen.de>
+References: <20170215015122.4647-1-stefan.bruens@rwth-aachen.de>
+ <884178a1fe9a4178a480b592e71820f7@rwthex-w2-b.rwth-ad.de>
+ <599879d5-7925-6013-f8bb-a42df69e3f30@iki.fi>
+ <8751632.4KFmXH3LkI@pebbles.site>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <557ce694-5edd-169a-7062-da249137f2ed@iki.fi>
+Date: Thu, 16 Feb 2017 10:48:09 +0200
+MIME-Version: 1.0
+In-Reply-To: <8751632.4KFmXH3LkI@pebbles.site>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
+Hello
 
-On Tue, 2017-02-14 at 18:27 -0800, Steve Longerbeam wrote:
-[...]
-> >
-> > # Provide an EDID to the HDMI source
-> > v4l2-ctl -d /dev/v4l-subdev2 --set-edid=file=edid-1080p.hex
-> 
-> I can probably generate this Intel hex file myself from sysfs
-> edid outputs, but for convenience do you mind sending me this
-> file? I have a 1080p HDMI source I can plug into the tc358743.
+On 02/16/2017 01:31 AM, Stefan Bruens wrote:
+> Hi Antti,
+>
+> first thanks for for the review. Note the t230c_attach is mostly a copy of the
+> t330_attach (which is very similar to the t680c_attach), so any of your
+> comments should probably applied to the other attach functions to have a
+> common coding style.
 
-I copied the EDID off of some random 1080p HDMI monitor,
-probably using something like:
+Old code could be bad, but imho you could make new code better even it 
+makes existing diver coding style slightly inconsistent.
 
-    xxd -g1 /sys/class/drm/card0-HDMI-A-1/edid | cut -c 9-56
+>
+> On Mittwoch, 15. Februar 2017 10:27:09 CET Antti Palosaari wrote:
+>> On 02/15/2017 03:51 AM, Stefan Brüns wrote:
+> [...]
+>>> diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c
+>>> b/drivers/media/usb/dvb-usb-v2/dvbsky.c index 02dbc6c45423..729496e5a52e
+>>> 100644
+>>> --- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
+>>> +++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+>>> @@ -665,6 +665,68 @@ static int dvbsky_t330_attach(struct dvb_usb_adapter
+>>> *adap)>
+>>>  	return ret;
+>>>
+>>>  }
+>>>
+>>> +static int dvbsky_mygica_t230c_attach(struct dvb_usb_adapter *adap)
+>>> +{
+>>> +	struct dvbsky_state *state = adap_to_priv(adap);
+>>> +	struct dvb_usb_device *d = adap_to_d(adap);
+>>> +	int ret = 0;
+>>
+>> you could return ret completely as you don't assign its value runtime
+>
+> Sure, so something like:
+>
+>   ...
+>   return 0;
+> fail_foo:
+>   xxx;
+> fail bar:
+>   yyy;
+>   return -ENODEV;
+>
+> Some of the other attach functions assign ret = -ENODEV and then goto one of
+> the fail_foo: labels.
+>
+>
+>>> +	struct i2c_adapter *i2c_adapter;
+>>> +	struct i2c_client *client_demod, *client_tuner;
+>>> +	struct i2c_board_info info;
+>>> +	struct si2168_config si2168_config;
+>>> +	struct si2157_config si2157_config;
+>>> +
+>>> +	/* attach demod */
+>>> +	memset(&si2168_config, 0, sizeof(si2168_config));
+>>
+>> prefer sizeof dst
+>
+> You mean sizeof(struct si2168_config) ?
 
-----------8<----------
- 00 ff ff ff ff ff ff 00 09 d1 89 78 45 54 00 00
- 2a 14 01 03 80 35 1e 78 2e b8 45 a1 59 55 9f 28
- 0d 50 54 a5 6b 80 81 c0 81 00 81 80 a9 c0 b3 00
- d1 c0 01 01 01 01 02 3a 80 18 71 38 2d 40 58 2c
- 45 00 13 2a 21 00 00 1e 00 00 00 ff 00 4e 41 41
- 30 36 32 39 36 53 4c 30 0a 20 00 00 00 fd 00 32
- 4c 1e 53 11 00 0a 20 20 20 20 20 20 00 00 00 fc
- 00 42 65 6e 51 20 47 4c 32 34 34 30 48 0a 01 18
- 02 03 22 f1 4f 90 05 04 03 02 01 11 12 13 14 06
- 07 15 16 1f 23 09 07 07 65 03 0c 00 10 00 83 01
- 00 00 02 3a 80 18 71 38 2d 40 58 2c 45 00 13 2a
- 21 00 00 1f 01 1d 80 18 71 1c 16 20 58 2c 25 00
- 13 2a 21 00 00 9f 01 1d 00 72 51 d0 1e 20 6e 28
- 55 00 13 2a 21 00 00 1e 8c 0a d0 8a 20 e0 2d 10
- 10 3e 96 00 13 2a 21 00 00 18 00 00 00 00 00 00
- 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 eb
----------->8----------
+yeah. See chapter 14 from kernel coding style documentation, it handles 
+issue slightly.
 
-> The other problem here is that my version of v4l2-ctl, built from
-> master branch of git@github.com:gjasny/v4l-utils.git, does not
-> support taking a subdev node:
-> 
-> root@mx6q:~# v4l2-ctl -d /dev/v4l-subdev15 --get-edid=format=hex
-> VIDIOC_QUERYCAP: failed: Inappropriate ioctl for device
-> /dev/v4l-subdev15: not a v4l2 node
-> 
-> Is this something you added yourself, or where can I find this version
-> of v4l2-ctrl?
+>
+>>> +	si2168_config.i2c_adapter = &i2c_adapter;
+>>> +	si2168_config.fe = &adap->fe[0];
+>>> +	si2168_config.ts_mode = SI2168_TS_PARALLEL;
+>>> +	si2168_config.ts_clock_inv = 1;
+>>
+>> it has boolean type
+>
+> Sure
+>
+>>> +	memset(&info, 0, sizeof(struct i2c_board_info));
+>>> +	strlcpy(info.type, "si2168", I2C_NAME_SIZE);
+>>
+>> I would prefer sizeof dst here too.
+>
+> Most occurences of similar code in media/usb/ use I2C_NAME_SIZE, found two
+> occurences of "strlcpy(buf, ..., sizeof(buf)), but of course I can change
+> this.
+>
+>>> +	info.addr = 0x64;
+>>> +	info.platform_data = &si2168_config;
+>>> +
+>>> +	request_module(info.type);
+>>
+>> Use module name here. Even it is same than device id on that case, it is
+>> not always the case.
+>
+> While si2157 driver has several supported chip types, si2168 only supports
+> si2168 (several revisions). Both request_module("foobar") and
+> request_module(info.type) are common in media/usb/. Change nevertheless?
+>
+>>> +	client_demod = i2c_new_device(&d->i2c_adap, &info);
+>>> +	if (client_demod == NULL ||
+>>> +			client_demod->dev.driver == NULL)
+>>
+>> You did not ran checkpatch.pl for that patch? or doesn't it complain
+>> anymore about these?
+>
+> Checkpatch did not complain.
 
-Ah right, I still have no proper fix for that. v4l-ctl bails out if it
-can't VIDIOC_QUERYCAP, which is an ioctl not supported on subdevices.
-I have just patched it out locally:
+Indentation seem seems to be wrong (see again coding style doc). Also 
+those might fit into single line. And not sure comparing even to NULL, 
+at least some point preferred style was !foo, but personally I don't mind.
 
-----------8<----------
-diff --git a/utils/v4l2-ctl/v4l2-ctl.cpp b/utils/v4l2-ctl/v4l2-ctl.cpp
-index 886a91d093ae..fa15a49375ae 100644
---- a/utils/v4l2-ctl/v4l2-ctl.cpp
-+++ b/utils/v4l2-ctl/v4l2-ctl.cpp
-@@ -1214,10 +1214,7 @@ int main(int argc, char **argv)
- 	}
- 
- 	verbose = options[OptVerbose];
--	if (doioctl(fd, VIDIOC_QUERYCAP, &vcap)) {
--		fprintf(stderr, "%s: not a v4l2 node\n", device);
--		exit(1);
--	}
-+	doioctl(fd, VIDIOC_QUERYCAP, &vcap);
- 	capabilities = vcap.capabilities;
- 	if (capabilities & V4L2_CAP_DEVICE_CAPS)
- 		capabilities = vcap.device_caps;
----------->8----------
+>
+> [...]
+>>> @@ -858,6 +946,9 @@ static const struct usb_device_id dvbsky_id_table[] =
+>>> {
+>>>
+>>>  	{ DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_CINERGY_S2_R4,
+>>>  	
+>>>  		&dvbsky_s960_props, "Terratec Cinergy S2 Rev.4",
+>>>  		RC_MAP_DVBSKY) },
+>>>
+>>> +	{ DVB_USB_DEVICE(USB_VID_CONEXANT, USB_PID_MYGICA_T230C,
+>>> +		&mygica_t230c_props, "Mygica T230C DVB-T/T2/C",
+>>
+>> Drop supported DTV standard names from device name. Also it is MyGica
+>> not Mygica.
+>
+> The print on the stick says: "MyGica(R) DVB-T2", label on the backside says
+> "T230C<serial number>". According to the USB descriptors it is a "Geniatech"
+> "EyeTV Stick". According to the box it is a "MyGica(R)" "Mini DVB-T2 USB Stick
+> T230C"
+>
+> Would "MyGica DVB-T2 T230C" be ok?
 
-Note that setting the EDID is not necessary if you can force the mode on
-your HDMI source.
+I would just use device commercial name, which one seems to be most 
+official. Geniatech is manufacturer, but commercial brand they sell 
+these is MyGica so at least it is not Geniatech EyeTV Stick which is 
+something like design name.
 
 regards
-Philipp
+Antti
+
+-- 
+http://palosaari.fi/
