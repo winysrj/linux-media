@@ -1,46 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52826 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752179AbdBMQQc (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:31603 "EHLO
+        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753530AbdBPMEr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 11:16:32 -0500
-Received: from lanttu.localdomain (lanttu-e.localdomain [192.168.1.64])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id F1538600AF
-        for <linux-media@vger.kernel.org>; Mon, 13 Feb 2017 18:16:27 +0200 (EET)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 4/4] smiapp: Make clock control optional
-Date: Mon, 13 Feb 2017 18:16:26 +0200
-Message-Id: <1487002586-1480-5-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1487002586-1480-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1487002586-1480-1-git-send-email-sakari.ailus@linux.intel.com>
+        Thu, 16 Feb 2017 07:04:47 -0500
+Date: Thu, 16 Feb 2017 15:03:12 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: walter harms <wharms@bfs.de>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Eric Anholt <eric@anholt.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Stephen Warren <swarren@wwwdotorg.org>,
+        Lee Jones <lee@kernel.org>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Ray Jui <rjui@broadcom.com>,
+        Scott Branden <sbranden@broadcom.com>,
+        bcm-kernel-feedback-list@broadcom.com,
+        Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-rpi-kernel@lists.infradead.org,
+        kernel-janitors@vger.kernel.org
+Subject: Re: [patch] staging: bcm2835-camera: free first element in array
+Message-ID: <20170216120312.GH4162@mwanda>
+References: <20170215122523.GA12198@mwanda>
+ <58A44DFB.6090105@bfs.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <58A44DFB.6090105@bfs.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The clock control is not explicitly controlled by the driver in two cases:
-ACPI based systems and when the clock is part of the power sequence of the
-camera module.
+On Wed, Feb 15, 2017 at 01:47:55PM +0100, walter harms wrote:
+> 
+> 
+> Am 15.02.2017 13:25, schrieb Dan Carpenter:
+> > We should free gdev[0] so the > should be >=.
+> > 
+> > Fixes: 7b3ad5abf027 ("staging: Import the BCM2835 MMAL-based V4L2 camera driver.")
+> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> > 
+> > diff --git a/drivers/staging/media/platform/bcm2835/bcm2835-camera.c b/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
+> > index ca15a698e018..9bcd8e546a14 100644
+> > --- a/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
+> > +++ b/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
+> > @@ -1998,7 +1998,7 @@ static int __init bm2835_mmal_init(void)
+> >  free_dev:
+> >  	kfree(dev);
+> >  
+> > -	for ( ; camera > 0; camera--) {
+> > +	for ( ; camera >= 0; camera--) {
+> >  		bcm2835_cleanup_instance(gdev[camera]);
+> >  		gdev[camera] = NULL;
+> >  	}
+> 
+> since we already know that programmers are bad in counting backwards ...
+> 
+> is is possible to change that into std. loop like:
+> 
+>  for(i=0, i< camera; i++ {
+> 	bcm2835_cleanup_instance(gdev[i]);
+> 	gdev[i] = NULL;
+>   	}
+> 
+> this is way a much more common pattern.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+Hm...  My patch is buggy.  It frees the wong thing on the first
+iteration through the loop.  I'll resend.
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index caf376c..9ed1b86 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2883,7 +2883,10 @@ static int smiapp_probe(struct i2c_client *client,
- 	}
- 
- 	sensor->ext_clk = devm_clk_get(&client->dev, NULL);
--	if (IS_ERR(sensor->ext_clk)) {
-+	if (PTR_ERR(sensor->ext_clk) == -ENOENT) {
-+		dev_info(&client->dev, "no clock defined, continuing...\n");
-+		sensor->ext_clk = NULL;
-+	} else if (IS_ERR(sensor->ext_clk)) {
- 		dev_err(&client->dev, "could not get clock (%ld)\n",
- 			PTR_ERR(sensor->ext_clk));
- 		return -EPROBE_DEFER;
--- 
-2.1.4
+regards,
+dan carpenter
