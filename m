@@ -1,150 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:32885 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753840AbdBGPmT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2017 10:42:19 -0500
-From: Avraham Shukron <avraham.shukron@gmail.com>
-To: laurent.pinchart@ideasonboard.com, mchehab@kernel.org
-Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v3 1/2] staging: omap4iss: fix multiline comment style
-Date: Tue,  7 Feb 2017 17:40:57 +0200
-Message-Id: <1e46dc3f0630eae3b531ae3a03bc65bebf5bbfc0.1486413695.git.avraham.shukron@gmail.com>
-In-Reply-To: <20170207081258.GB18271@kroah.com>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:34540 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750744AbdBPFOr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 16 Feb 2017 00:14:47 -0500
+Message-ID: <a1d825a6543005f59e0d901751b2035a@smtp-cloud3.xs4all.net>
+Date: Thu, 16 Feb 2017 06:14:44 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Avraham Shukron <avraham.shukron@gmail.com>
----
- drivers/staging/media/omap4iss/iss_video.c | 38 ++++++++++++++++++++----------
- 1 file changed, 25 insertions(+), 13 deletions(-)
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
-index bb0e3b4..e21811a 100644
---- a/drivers/staging/media/omap4iss/iss_video.c
-+++ b/drivers/staging/media/omap4iss/iss_video.c
-@@ -128,7 +128,8 @@ static unsigned int iss_video_mbus_to_pix(const struct iss_video *video,
- 	pix->width = mbus->width;
- 	pix->height = mbus->height;
- 
--	/* Skip the last format in the loop so that it will be selected if no
-+	/*
-+	 * Skip the last format in the loop so that it will be selected if no
- 	 * match is found.
- 	 */
- 	for (i = 0; i < ARRAY_SIZE(formats) - 1; ++i) {
-@@ -138,7 +139,8 @@ static unsigned int iss_video_mbus_to_pix(const struct iss_video *video,
- 
- 	min_bpl = pix->width * ALIGN(formats[i].bpp, 8) / 8;
- 
--	/* Clamp the requested bytes per line value. If the maximum bytes per
-+	/*
-+	 * Clamp the requested bytes per line value. If the maximum bytes per
- 	 * line value is zero, the module doesn't support user configurable line
- 	 * sizes. Override the requested value with the minimum in that case.
- 	 */
-@@ -172,7 +174,8 @@ static void iss_video_pix_to_mbus(const struct v4l2_pix_format *pix,
- 	mbus->width = pix->width;
- 	mbus->height = pix->height;
- 
--	/* Skip the last format in the loop so that it will be selected if no
-+	/*
-+	 * Skip the last format in the loop so that it will be selected if no
- 	 * match is found.
- 	 */
- 	for (i = 0; i < ARRAY_SIZE(formats) - 1; ++i) {
-@@ -360,7 +363,8 @@ static void iss_video_buf_queue(struct vb2_buffer *vb)
- 
- 	spin_lock_irqsave(&video->qlock, flags);
- 
--	/* Mark the buffer is faulty and give it back to the queue immediately
-+	/*
-+	 * Mark the buffer is faulty and give it back to the queue immediately
- 	 * if the video node has registered an error. vb2 will perform the same
- 	 * check when preparing the buffer, but that is inherently racy, so we
- 	 * need to handle the race condition with an authoritative check here.
-@@ -443,7 +447,8 @@ struct iss_buffer *omap4iss_video_buffer_next(struct iss_video *video)
- 
- 	buf->vb.vb2_buf.timestamp = ktime_get_ns();
- 
--	/* Do frame number propagation only if this is the output video node.
-+	/*
-+	 * Do frame number propagation only if this is the output video node.
- 	 * Frame number either comes from the CSI receivers or it gets
- 	 * incremented here if H3A is not active.
- 	 * Note: There is no guarantee that the output buffer will finish
-@@ -605,7 +610,8 @@ iss_video_set_format(struct file *file, void *fh, struct v4l2_format *format)
- 
- 	mutex_lock(&video->mutex);
- 
--	/* Fill the bytesperline and sizeimage fields by converting to media bus
-+	/*
-+	 * Fill the bytesperline and sizeimage fields by converting to media bus
- 	 * format and back to pixel format.
- 	 */
- 	iss_video_pix_to_mbus(&format->fmt.pix, &fmt);
-@@ -678,8 +684,9 @@ iss_video_get_selection(struct file *file, void *fh, struct v4l2_selection *sel)
- 	if (subdev == NULL)
- 		return -EINVAL;
- 
--	/* Try the get selection operation first and fallback to get format if not
--	 * implemented.
-+	/*
-+	 * Try the get selection operation first and fallback to get format if
-+	 * not implemented.
- 	 */
- 	sdsel.pad = pad;
- 	ret = v4l2_subdev_call(subdev, pad, get_selection, NULL, &sdsel);
-@@ -867,7 +874,8 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 
- 	mutex_lock(&video->stream_lock);
- 
--	/* Start streaming on the pipeline. No link touching an entity in the
-+	/*
-+	 * Start streaming on the pipeline. No link touching an entity in the
- 	 * pipeline can be activated or deactivated once streaming is started.
- 	 */
- 	pipe = entity->pipe
-@@ -895,7 +903,8 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	while ((entity = media_graph_walk_next(&graph)))
- 		media_entity_enum_set(&pipe->ent_enum, entity);
- 
--	/* Verify that the currently configured format matches the output of
-+	/*
-+	 * Verify that the currently configured format matches the output of
- 	 * the connected subdev.
- 	 */
- 	ret = iss_video_check_format(video, vfh);
-@@ -905,7 +914,8 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	video->bpl_padding = ret;
- 	video->bpl_value = vfh->format.fmt.pix.bytesperline;
- 
--	/* Find the ISS video node connected at the far end of the pipeline and
-+	/*
-+	 * Find the ISS video node connected at the far end of the pipeline and
- 	 * update the pipeline.
- 	 */
- 	far_end = iss_video_far_end(video);
-@@ -930,7 +940,8 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	pipe->state |= state;
- 	spin_unlock_irqrestore(&pipe->lock, flags);
- 
--	/* Set the maximum time per frame as the value requested by userspace.
-+	/*
-+	 * Set the maximum time per frame as the value requested by userspace.
- 	 * This is a soft limit that can be overridden if the hardware doesn't
- 	 * support the request limit.
- 	 */
-@@ -946,7 +957,8 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	if (ret < 0)
- 		goto err_iss_video_check_format;
- 
--	/* In sensor-to-memory mode, the stream can be started synchronously
-+	/*
-+	 * In sensor-to-memory mode, the stream can be started synchronously
- 	 * to the stream on command. In memory-to-memory mode, it will be
- 	 * started when buffers are queued on both the input and output.
- 	 */
--- 
-2.7.4
+Results of the daily build of media_tree:
 
+date:			Thu Feb 16 05:00:15 CET 2017
+media-tree git hash:	9eeb0ed0f30938f31a3d9135a88b9502192c18dd
+media_build git hash:	785cdf7f0798964681b33aad44fc2ff4d734733d
+v4l-utils git hash:	77797c40cefaa03449c39c913842b119c94b16f3
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-4.10-rc3-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+linux-4.9-x86_64: OK
+linux-4.10-rc3-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
