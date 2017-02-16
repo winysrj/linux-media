@@ -1,74 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from forward20p.cmail.yandex.net ([77.88.31.15]:43502 "EHLO
-        forward20p.cmail.yandex.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932334AbdBGVj5 (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:36023 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753807AbdBPCVd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Feb 2017 16:39:57 -0500
-Received: from smtp1p.mail.yandex.net (smtp1p.mail.yandex.net [IPv6:2a02:6b8:0:1472:2741:0:8b6:6])
-        by forward20p.cmail.yandex.net (Yandex) with ESMTP id D443721EFB
-        for <linux-media@vger.kernel.org>; Wed,  8 Feb 2017 00:33:54 +0300 (MSK)
-Received: from smtp1p.mail.yandex.net (localhost.localdomain [127.0.0.1])
-        by smtp1p.mail.yandex.net (Yandex) with ESMTP id B49FE1780884
-        for <linux-media@vger.kernel.org>; Wed,  8 Feb 2017 00:33:54 +0300 (MSK)
-From: CrazyCat <crazycat69@narod.ru>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/3] si2168: Si2168-D60 support.
-Date: Tue, 07 Feb 2017 23:33:47 +0200
-Message-ID: <2400472.5jOdR5GxAm@computer>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Wed, 15 Feb 2017 21:21:33 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v4 36/36] media: imx: propagate sink pad formats to source pads
+Date: Wed, 15 Feb 2017 18:19:38 -0800
+Message-Id: <1487211578-11360-37-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Support for new demod version.
-
-Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/dvb-frontends/si2168.c      | 4 ++++
- drivers/media/dvb-frontends/si2168_priv.h | 2 ++
- 2 files changed, 6 insertions(+)
+ drivers/staging/media/imx/imx-ic-prp.c      | 11 ++++++++++-
+ drivers/staging/media/imx/imx-ic-prpencvf.c | 22 ++++++++++++++--------
+ drivers/staging/media/imx/imx-media-csi.c   | 26 +++++++++++++++++---------
+ drivers/staging/media/imx/imx-media-vdic.c  | 15 ++++++++++++++-
+ 4 files changed, 55 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 680ba06..172fc36 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -740,6 +740,9 @@ static int si2168_probe(struct i2c_client *client,
- 	case SI2168_CHIP_ID_B40:
- 		dev->firmware_name = SI2168_B40_FIRMWARE;
- 		break;
-+	case SI2168_CHIP_ID_D60:
-+		dev->firmware_name = SI2168_D60_FIRMWARE;
-+		break;
- 	default:
- 		dev_dbg(&client->dev, "unknown chip version Si21%d-%c%c%c\n",
- 			cmd.args[2], cmd.args[1], cmd.args[3], cmd.args[4]);
-@@ -827,3 +830,4 @@ static int si2168_remove(struct i2c_client *client)
- MODULE_FIRMWARE(SI2168_A20_FIRMWARE);
- MODULE_FIRMWARE(SI2168_A30_FIRMWARE);
- MODULE_FIRMWARE(SI2168_B40_FIRMWARE);
-+MODULE_FIRMWARE(SI2168_D60_FIRMWARE);
-diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
-index 2fecac6..737cf41 100644
---- a/drivers/media/dvb-frontends/si2168_priv.h
-+++ b/drivers/media/dvb-frontends/si2168_priv.h
-@@ -26,6 +26,7 @@
- #define SI2168_A20_FIRMWARE "dvb-demod-si2168-a20-01.fw"
- #define SI2168_A30_FIRMWARE "dvb-demod-si2168-a30-01.fw"
- #define SI2168_B40_FIRMWARE "dvb-demod-si2168-b40-01.fw"
-+#define SI2168_D60_FIRMWARE "dvb-demod-si2168-d60-01.fw"
- #define SI2168_B40_FIRMWARE_FALLBACK "dvb-demod-si2168-02.fw"
+diff --git a/drivers/staging/media/imx/imx-ic-prp.c b/drivers/staging/media/imx/imx-ic-prp.c
+index b9ee8fb..5c57d2b 100644
+--- a/drivers/staging/media/imx/imx-ic-prp.c
++++ b/drivers/staging/media/imx/imx-ic-prp.c
+@@ -196,8 +196,17 @@ static int prp_set_fmt(struct v4l2_subdev *sd,
+ 	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY) {
+ 		cfg->try_fmt = sdformat->format;
+ 	} else {
+-		priv->format_mbus[sdformat->pad] = sdformat->format;
++		struct v4l2_mbus_framefmt *f =
++			&priv->format_mbus[sdformat->pad];
++
++		*f = sdformat->format;
+ 		priv->cc[sdformat->pad] = cc;
++
++		/* propagate format to source pads */
++		if (sdformat->pad == PRP_SINK_PAD) {
++			priv->format_mbus[PRP_SRC_PAD_PRPENC] = *f;
++			priv->format_mbus[PRP_SRC_PAD_PRPVF] = *f;
++		}
+ 	}
  
- /* state struct */
-@@ -38,6 +39,7 @@ struct si2168_dev {
- 	#define SI2168_CHIP_ID_A20 ('A' << 24 | 68 << 16 | '2' << 8 | '0' << 0)
- 	#define SI2168_CHIP_ID_A30 ('A' << 24 | 68 << 16 | '3' << 8 | '0' << 0)
- 	#define SI2168_CHIP_ID_B40 ('B' << 24 | 68 << 16 | '4' << 8 | '0' << 0)
-+	#define SI2168_CHIP_ID_D60 ('D' << 24 | 68 << 16 | '6' << 8 | '0' << 0)
- 	unsigned int chip_id;
- 	unsigned int version;
- 	const char *firmware_name;
+ 	return 0;
+diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
+index dd9d499..c43f85f 100644
+--- a/drivers/staging/media/imx/imx-ic-prpencvf.c
++++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
+@@ -806,16 +806,22 @@ static int prp_set_fmt(struct v4l2_subdev *sd,
+ 	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY) {
+ 		cfg->try_fmt = sdformat->format;
+ 	} else {
+-		priv->format_mbus[sdformat->pad] = sdformat->format;
++		struct v4l2_mbus_framefmt *f =
++			&priv->format_mbus[sdformat->pad];
++		struct v4l2_mbus_framefmt *outf =
++			&priv->format_mbus[PRPENCVF_SRC_PAD];
++
++		*f = sdformat->format;
+ 		priv->cc[sdformat->pad] = cc;
+-		if (sdformat->pad == PRPENCVF_SRC_PAD) {
+-			/*
+-			 * update the capture device format if this is
+-			 * the IDMAC output pad
+-			 */
+-			imx_media_mbus_fmt_to_pix_fmt(&vdev->fmt.fmt.pix,
+-						      &sdformat->format, cc);
++
++		/* propagate format to source pad */
++		if (sdformat->pad == PRPENCVF_SINK_PAD) {
++			outf->width = f->width;
++			outf->height = f->height;
+ 		}
++
++		/* update the capture device format from output pad */
++		imx_media_mbus_fmt_to_pix_fmt(&vdev->fmt.fmt.pix, outf, cc);
+ 	}
+ 
+ 	return 0;
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index 3e6b607..9d9ec03 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -1161,19 +1161,27 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
+ 	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY) {
+ 		cfg->try_fmt = sdformat->format;
+ 	} else {
++		struct v4l2_mbus_framefmt *f_direct, *f_idmac;
++
+ 		priv->format_mbus[sdformat->pad] = sdformat->format;
+ 		priv->cc[sdformat->pad] = cc;
+-		/* Reset the crop window if this is the input pad */
+-		if (sdformat->pad == CSI_SINK_PAD)
++
++		f_direct = &priv->format_mbus[CSI_SRC_PAD_DIRECT];
++		f_idmac = &priv->format_mbus[CSI_SRC_PAD_IDMAC];
++
++		if (sdformat->pad == CSI_SINK_PAD) {
++			/* reset the crop window */
+ 			priv->crop = crop;
+-		else if (sdformat->pad == CSI_SRC_PAD_IDMAC) {
+-			/*
+-			 * update the capture device format if this is
+-			 * the IDMAC output pad
+-			 */
+-			imx_media_mbus_fmt_to_pix_fmt(&vdev->fmt.fmt.pix,
+-						      &sdformat->format, cc);
++
++			/* propagate format to source pads */
++			f_direct->width = crop.width;
++			f_direct->height = crop.height;
++			f_idmac->width = crop.width;
++			f_idmac->height = crop.height;
+ 		}
++
++		/* update the capture device format from IDMAC output pad */
++		imx_media_mbus_fmt_to_pix_fmt(&vdev->fmt.fmt.pix, f_idmac, cc);
+ 	}
+ 
+ 	return 0;
+diff --git a/drivers/staging/media/imx/imx-media-vdic.c b/drivers/staging/media/imx/imx-media-vdic.c
+index 61e6017..55fb522 100644
+--- a/drivers/staging/media/imx/imx-media-vdic.c
++++ b/drivers/staging/media/imx/imx-media-vdic.c
+@@ -649,8 +649,21 @@ static int vdic_set_fmt(struct v4l2_subdev *sd,
+ 	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY) {
+ 		cfg->try_fmt = sdformat->format;
+ 	} else {
+-		priv->format_mbus[sdformat->pad] = sdformat->format;
++		struct v4l2_mbus_framefmt *f =
++			&priv->format_mbus[sdformat->pad];
++		struct v4l2_mbus_framefmt *outf =
++			&priv->format_mbus[VDIC_SRC_PAD_DIRECT];
++
++		*f = sdformat->format;
+ 		priv->cc[sdformat->pad] = cc;
++
++		/* propagate format to source pad */
++		if (sdformat->pad == VDIC_SINK_PAD_DIRECT ||
++		    sdformat->pad == VDIC_SINK_PAD_IDMAC) {
++			outf->width = f->width;
++			outf->height = f->height;
++			outf->field = V4L2_FIELD_NONE;
++		}
+ 	}
+ 
+ 	return 0;
 -- 
-1.9.1
-
-
+2.7.4
