@@ -1,80 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:35862 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751635AbdBNTsC (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:35372 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753088AbdBPCUI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Feb 2017 14:48:02 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        stable@vger.kernel.org
-Subject: [PATCH v2] siano: make it work again with CONFIG_VMAP_STACK
-Date: Tue, 14 Feb 2017 17:47:57 -0200
-Message-Id: <cf18292e098a882bbe00cd758cf3022126581132.1487101669.git.mchehab@s-opensource.com>
+        Wed, 15 Feb 2017 21:20:08 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v4 05/36] ARM: dts: imx6qdl-sabrelite: remove erratum ERR006687 workaround
+Date: Wed, 15 Feb 2017 18:19:07 -0800
+Message-Id: <1487211578-11360-6-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reported as a Kaffeine bug:
-	https://bugs.kde.org/show_bug.cgi?id=375811
+There is a pin conflict with GPIO_6. This pin functions as a power
+input pin to the OV5642 camera sensor, but ENET uses it as the h/w
+workaround for erratum ERR006687, to wake-up the ARM cores on normal
+RX and TX packet done events. So we need to remove the h/w workaround
+to support the OV5642. The result is that the CPUidle driver will no
+longer allow entering the deep idle states on the sabrelite.
 
-The USB control messages require DMA to work. We cannot pass
-a stack-allocated buffer, as it is not warranted that the
-stack would be into a DMA enabled area.
+This is a partial revert of
 
-On Kernel 4.9, the default is to not accept DMA on stack anymore
-on x86 architecture. On other architectures, this has been a
-requirement since Kernel 2.2. So, after this patch, this driver
-should likely work fine on all archs.
+commit 6261c4c8f13e ("ARM: dts: imx6qdl-sabrelite: use GPIO_6 for FEC
+			interrupt.")
+commit a28eeb43ee57 ("ARM: dts: imx6: tag boards that have the HW workaround
+			for ERR006687")
 
-Tested with USB ID 2040:5510: Hauppauge Windham
-
-Cc: stable@vger.kernel.org
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/usb/siano/smsusb.c | 18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ arch/arm/boot/dts/imx6qdl-sabrelite.dtsi | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/drivers/media/usb/siano/smsusb.c b/drivers/media/usb/siano/smsusb.c
-index a4dcaec31d02..8c1f926567ec 100644
---- a/drivers/media/usb/siano/smsusb.c
-+++ b/drivers/media/usb/siano/smsusb.c
-@@ -218,22 +218,30 @@ static int smsusb_start_streaming(struct smsusb_device_t *dev)
- static int smsusb_sendrequest(void *context, void *buffer, size_t size)
- {
- 	struct smsusb_device_t *dev = (struct smsusb_device_t *) context;
--	struct sms_msg_hdr *phdr = (struct sms_msg_hdr *) buffer;
--	int dummy;
-+	struct sms_msg_hdr *phdr;
-+	int dummy, ret;
+diff --git a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+index 1f9076e..795b5a5 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+@@ -271,9 +271,6 @@
+ 	txd1-skew-ps = <0>;
+ 	txd2-skew-ps = <0>;
+ 	txd3-skew-ps = <0>;
+-	interrupts-extended = <&gpio1 6 IRQ_TYPE_LEVEL_HIGH>,
+-			      <&intc 0 119 IRQ_TYPE_LEVEL_HIGH>;
+-	fsl,err006687-workaround-present;
+ 	status = "okay";
+ };
  
- 	if (dev->state != SMSUSB_ACTIVE) {
- 		pr_debug("Device not active yet\n");
- 		return -ENOENT;
- 	}
+@@ -374,7 +371,6 @@
+ 				MX6QDL_PAD_RGMII_RX_CTL__RGMII_RX_CTL	0x1b030
+ 				/* Phy reset */
+ 				MX6QDL_PAD_EIM_D23__GPIO3_IO23		0x000b0
+-				MX6QDL_PAD_GPIO_6__ENET_IRQ		0x000b1
+ 			>;
+ 		};
  
-+	phdr = kmalloc(size, GFP_KERNEL);
-+	if (!phdr)
-+		return -ENOMEM;
-+	memcpy(phdr, buffer, size);
-+
- 	pr_debug("sending %s(%d) size: %d\n",
- 		  smscore_translate_msg(phdr->msg_type), phdr->msg_type,
- 		  phdr->msg_length);
- 
- 	smsendian_handle_tx_message((struct sms_msg_data *) phdr);
--	smsendian_handle_message_header((struct sms_msg_hdr *)buffer);
--	return usb_bulk_msg(dev->udev, usb_sndbulkpipe(dev->udev, 2),
--			    buffer, size, &dummy, 1000);
-+	smsendian_handle_message_header((struct sms_msg_hdr *)phdr);
-+	ret = usb_bulk_msg(dev->udev, usb_sndbulkpipe(dev->udev, 2),
-+			    phdr, size, &dummy, 1000);
-+
-+	kfree(phdr);
-+	return ret;
- }
- 
- static char *smsusb1_fw_lkup[] = {
 -- 
-2.9.3
+2.7.4
