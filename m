@@ -1,168 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:36591 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932752AbdBPST3 (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:33681 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932302AbdBPSbA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Feb 2017 13:19:29 -0500
-Subject: Re: [PATCH v4 36/36] media: imx: propagate sink pad formats to source
- pads
-To: Philipp Zabel <p.zabel@pengutronix.de>
+        Thu, 16 Feb 2017 13:31:00 -0500
+Subject: Re: [PATCH v4 00/36] i.MX Media Driver
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
 References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
- <1487211578-11360-37-git-send-email-steve_longerbeam@mentor.com>
- <1487244568.2377.36.camel@pengutronix.de>
+ <20170216113758.GK27312@n2100.armlinux.org.uk>
 Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
         devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
         devel@driverdev.osuosl.org,
         Steve Longerbeam <steve_longerbeam@mentor.com>
 From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <5512bed2-375b-ae31-f210-3fff4c0417c7@gmail.com>
-Date: Thu, 16 Feb 2017 10:19:25 -0800
+Message-ID: <67a4fa15-2745-a5e9-e894-be05150c3dac@gmail.com>
+Date: Thu, 16 Feb 2017 10:30:56 -0800
 MIME-Version: 1.0
-In-Reply-To: <1487244568.2377.36.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
+In-Reply-To: <20170216113758.GK27312@n2100.armlinux.org.uk>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
 
-On 02/16/2017 03:29 AM, Philipp Zabel wrote:
-> On Wed, 2017-02-15 at 18:19 -0800, Steve Longerbeam wrote:
-> [...]
->> diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
->> index dd9d499..c43f85f 100644
->> --- a/drivers/staging/media/imx/imx-ic-prpencvf.c
->> +++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
->> @@ -806,16 +806,22 @@ static int prp_set_fmt(struct v4l2_subdev *sd,
->>  	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY) {
->>  		cfg->try_fmt = sdformat->format;
->>  	} else {
->> -		priv->format_mbus[sdformat->pad] = sdformat->format;
->> +		struct v4l2_mbus_framefmt *f =
->> +			&priv->format_mbus[sdformat->pad];
->> +		struct v4l2_mbus_framefmt *outf =
->> +			&priv->format_mbus[PRPENCVF_SRC_PAD];
->> +
->> +		*f = sdformat->format;
->>  		priv->cc[sdformat->pad] = cc;
->> -		if (sdformat->pad == PRPENCVF_SRC_PAD) {
->> -			/*
->> -			 * update the capture device format if this is
->> -			 * the IDMAC output pad
->> -			 */
->> -			imx_media_mbus_fmt_to_pix_fmt(&vdev->fmt.fmt.pix,
->> -						      &sdformat->format, cc);
->> +
->> +		/* propagate format to source pad */
->> +		if (sdformat->pad == PRPENCVF_SINK_PAD) {
->> +			outf->width = f->width;
->> +			outf->height = f->height;
+On 02/16/2017 03:37 AM, Russell King - ARM Linux wrote:
+> Two problems.
 >
-> What about media bus format, field, and colorimetry?
+> On Wed, Feb 15, 2017 at 06:19:02PM -0800, Steve Longerbeam wrote:
+>>   media: imx: propagate sink pad formats to source pads
+>
+> 1) It looks like all cases aren't being caught:
+>
+> - entity 74: ipu1_csi0 (3 pads, 4 links)
+>              type V4L2 subdev subtype Unknown flags 0
+>              device node name /dev/v4l-subdev13
+>         pad0: Sink
+>                 [fmt:SRGGB8/816x616 field:none]
+>                 <- "ipu1_csi0_mux":2 [ENABLED]
+>         pad1: Source
+>                 [fmt:AYUV32/816x616 field:none
+>                  crop.bounds:(0,0)/816x616
+>                  crop:(0,0)/816x616]
+>                 -> "ipu1_ic_prp":0 []
+>                 -> "ipu1_vdic":0 []
+>         pad2: Source
+>                 [fmt:SRGGB8/816x616 field:none
+>                  crop.bounds:(0,0)/816x616
+>                  crop:(0,0)/816x616]
+>                 -> "ipu1_csi0 capture":0 [ENABLED]
+>
+> While the size has been propagated to pad1, the format has not.
 
-Right, I need to propagate a default media bus format and field
-that works.
-
-As for colorimtery, I did see the work you are doing in your
-branch, but was not sure if you were finished with that support.
-Can you send me a patch?
+Right, Philipp also caught this. I need to finish propagating all
+params from sink to source pads (mbus code and field, and colorimetry
+eventually).
 
 >
->>  		}
->> +
->> +		/* update the capture device format from output pad */
->> +		imx_media_mbus_fmt_to_pix_fmt(&vdev->fmt.fmt.pix, outf, cc);
->>  	}
->>
->>  	return 0;
->> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
->> index 3e6b607..9d9ec03 100644
->> --- a/drivers/staging/media/imx/imx-media-csi.c
->> +++ b/drivers/staging/media/imx/imx-media-csi.c
->> @@ -1161,19 +1161,27 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
->>  	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY) {
->>  		cfg->try_fmt = sdformat->format;
->>  	} else {
->> +		struct v4l2_mbus_framefmt *f_direct, *f_idmac;
->> +
->>  		priv->format_mbus[sdformat->pad] = sdformat->format;
->>  		priv->cc[sdformat->pad] = cc;
->> -		/* Reset the crop window if this is the input pad */
->> -		if (sdformat->pad == CSI_SINK_PAD)
->> +
->> +		f_direct = &priv->format_mbus[CSI_SRC_PAD_DIRECT];
->> +		f_idmac = &priv->format_mbus[CSI_SRC_PAD_IDMAC];
->> +
->> +		if (sdformat->pad == CSI_SINK_PAD) {
->> +			/* reset the crop window */
->>  			priv->crop = crop;
->> -		else if (sdformat->pad == CSI_SRC_PAD_IDMAC) {
->> -			/*
->> -			 * update the capture device format if this is
->> -			 * the IDMAC output pad
->> -			 */
->> -			imx_media_mbus_fmt_to_pix_fmt(&vdev->fmt.fmt.pix,
->> -						      &sdformat->format, cc);
->> +
->> +			/* propagate format to source pads */
->> +			f_direct->width = crop.width;
->> +			f_direct->height = crop.height;
->> +			f_idmac->width = crop.width;
->> +			f_idmac->height = crop.height;
+> 2) /dev/video* device node assignment
 >
-> This is missing also media bus format, field and colorimetry
-> propagation.
+> I've no idea at the moment how the correct /dev/video* node should be
+> chosen - initially with Philipp and your previous code, it was
+> /dev/video3 after initial boot.  Philipp's was consistently /dev/video3.
+> Yours changed to /dev/video7 when removing and re-inserting the modules
+> (having fixed that locally.)  This version makes CSI0 be /dev/video7,
+> but after a remove+reinsert, it becomes (eg) /dev/video8.
+>
+> /dev/v4l/by-path/platform-capture-subsystem-video-index4 also is not a
+> stable path - the digit changes (it's supposed to be a stable path.)
+> After a remove+reinsert, it becomes (eg)
+> /dev/v4l/by-path/platform-capture-subsystem-video-index5.
+> /dev/v4l/by-id doesn't contain a symlink for this either.
+>
+> What this means is that it's very hard to script the setup, because
+> there's no easy way to know what device is the capture device.  While
+> it may be possible to do:
+>
+> 	media-ctl -d /dev/media1 -p | \
+> 		grep -A2 ': ipu1_csi0 capture' | \
+> 			sed -n 's|.*\(/dev/video[0-9]*\).*|\1|p'
+>
+> that's hardly a nice solution - while it fixes the setup script, it
+> doesn't stop the pain of having to delve around to find the correct
+> device to use for gstreamer to test with.
+>
 
-Yep, will add that.
+I'll try to nail down the main capture node numbers, even after module
+reload.
 
 Steve
-
->
->>  		}
->> +
->> +		/* update the capture device format from IDMAC output pad */
->> +		imx_media_mbus_fmt_to_pix_fmt(&vdev->fmt.fmt.pix, f_idmac, cc);
->>  	}
->>
->>  	return 0;
->> diff --git a/drivers/staging/media/imx/imx-media-vdic.c b/drivers/staging/media/imx/imx-media-vdic.c
->> index 61e6017..55fb522 100644
->> --- a/drivers/staging/media/imx/imx-media-vdic.c
->> +++ b/drivers/staging/media/imx/imx-media-vdic.c
->> @@ -649,8 +649,21 @@ static int vdic_set_fmt(struct v4l2_subdev *sd,
->>  	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY) {
->>  		cfg->try_fmt = sdformat->format;
->>  	} else {
->> -		priv->format_mbus[sdformat->pad] = sdformat->format;
->> +		struct v4l2_mbus_framefmt *f =
->> +			&priv->format_mbus[sdformat->pad];
->> +		struct v4l2_mbus_framefmt *outf =
->> +			&priv->format_mbus[VDIC_SRC_PAD_DIRECT];
->> +
->> +		*f = sdformat->format;
->>  		priv->cc[sdformat->pad] = cc;
->> +
->> +		/* propagate format to source pad */
->> +		if (sdformat->pad == VDIC_SINK_PAD_DIRECT ||
->> +		    sdformat->pad == VDIC_SINK_PAD_IDMAC) {
->> +			outf->width = f->width;
->> +			outf->height = f->height;
->> +			outf->field = V4L2_FIELD_NONE;
->
-> This is missing colorimetry, too.
->
-> regards
-> Philipp
->
