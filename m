@@ -1,122 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:34165 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751614AbdB0JIt (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:56662 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933235AbdBQMcE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Feb 2017 04:08:49 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Koji Matsuoka <koji.matsuoka.xm@renesas.com>,
-        Yoshihiro Kaneko <ykaneko0929@gmail.com>,
-        Simon Horman <horms+renesas@verge.net.au>
-Subject: Re: [PATCH] soc-camera: fix rectangle adjustment in cropping
-Date: Mon, 27 Feb 2017 11:02:35 +0200
-Message-ID: <6082161.NEqkolhdEc@avalon>
-In-Reply-To: <Pine.LNX.4.64.1702270945390.21990@axis700.grange>
-References: <Pine.LNX.4.64.1702262150090.17018@axis700.grange> <1908551.GjAGnFoZ8e@avalon> <Pine.LNX.4.64.1702270945390.21990@axis700.grange>
+        Fri, 17 Feb 2017 07:32:04 -0500
+Date: Fri, 17 Feb 2017 12:31:00 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v4 00/36] i.MX Media Driver
+Message-ID: <20170217123100.GG21222@n2100.armlinux.org.uk>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+ <20170216222006.GA21222@n2100.armlinux.org.uk>
+ <923326d6-43fe-7328-d959-14fd341e47ae@gmail.com>
+ <1487331818.3107.46.camel@pengutronix.de>
+ <20170217122213.GQ16975@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170217122213.GQ16975@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
-
-On Monday 27 Feb 2017 09:54:19 Guennadi Liakhovetski wrote:
-> On Mon, 27 Feb 2017, Laurent Pinchart wrote:
-> > On Sunday 26 Feb 2017 21:58:16 Guennadi Liakhovetski wrote:
-> >> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-> >> 
-> >> update_subrect() adjusts the sub-rectangle to be inside a base area.
-> >> It checks width and height to not exceed those of the area, then it
-> >> checks the low border (left or top) to lie within the area, then the
-> >> high border (right or bottom) to lie there too. This latter check has
-> >> a bug, which is fixed by this patch.
-> >> 
-> >> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-> >> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-> >> [g.liakhovetski@gmx.de: dropped supposedly wrong hunks]
-> >> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> >> ---
-> >> 
-> >> This is a part of the https://patchwork.linuxtv.org/patch/26441/
-> >> submitted almost 2.5 years ago. Back then I commented to the patch but
-> >> never got a reply or an update. I preserved original authorship and Sob
-> >> tags, although this version only uses a small portion of the original
-> >> patch. This version is of course completely untested, any testing (at
-> >> least regression) would be highly appreciated! This code is only used by
-> >> the SH CEU driver and only in cropping / zooming scenarios.
-> >> 
-> >>  drivers/media/platform/soc_camera/soc_scale_crop.c | 4 ++--
-> >>  1 file changed, 2 insertions(+), 2 deletions(-)
-> >> 
-> >> diff --git a/drivers/media/platform/soc_camera/soc_scale_crop.c
-> >> b/drivers/media/platform/soc_camera/soc_scale_crop.c index
-> >> f77252d..4bfc1bf
-> >> 100644
-> >> --- a/drivers/media/platform/soc_camera/soc_scale_crop.c
-> >> +++ b/drivers/media/platform/soc_camera/soc_scale_crop.c
-> >> @@ -70,14 +70,14 @@ static void update_subrect(struct v4l2_rect *rect,
-> >> struct v4l2_rect *subrect)
-> >>  	if (rect->height < subrect->height)
-> >>  		subrect->height = rect->height;
-> >> 
-> >> -	if (rect->left > subrect->left)
-> >> +	if (rect->left < subrect->left)
-> > 
-> > This looks wrong to me. If the purpose of the function is indeed to adjust
-> > subrect to stay within rect, the condition doesn't need to be changed.
-> > 
-> >>  		subrect->left = rect->left;
-> >>  	else if (rect->left + rect->width >
-> >>  		 subrect->left + subrect->width)
-> > 
-> > This condition, however, is wrong.
+On Fri, Feb 17, 2017 at 02:22:14PM +0200, Sakari Ailus wrote:
+> Hi Philipp, Steve and Russell,
 > 
-> Arrrrgh, of course, I meant to change this one! Thanks for catching.
+> On Fri, Feb 17, 2017 at 12:43:38PM +0100, Philipp Zabel wrote:
+> > I think with Russell's explanation of how the imx219 sensor operates,
+> > we'll have to do something before calling the sensor s_stream, but right
+> > now I'm still unsure what exactly.
 > 
-> >>  		subrect->left = rect->left + rect->width -
-> >>  			subrect->width;
-> > 
-> > More than that, adjusting the width first and then the left coordinate can
-> > result in an incorrect width.
+> Indeed there appears to be no other way to achieve the LP-11 state than
+> going through the streaming state for this particular sensor, apart from
+> starting streaming.
 > 
-> The width is adjusted in the beginning only to stay within the area, you
-> cannot go beyond it anyway. So, that has to be done anyway. And then the
-> origin is adjusted.
+> Is there a particular reason why you're waiting for the transmitter to
+> transfer to LP-11 state? That appears to be the last step which is done in
+> the csi2_s_stream() callback.
 > 
-> > It looks to me like you should drop the width
-> > check at the beginning of this function, and turn the "else if" here into
-> > an "if" with the right condition. Or, even better in my opinion, use the
-> > min/max/clamp macros.
+> What the sensor does next is to start streaming, and the first thing it does
+> in that process is to switch to LP-11 state.
 > 
-> Well, that depends on what result we want to achieve, what parameter we
-> prioritise. This approach prioritises width and height, and then adjusts
-> edges to accommodate as much of them as possible. A different approach
-> would be to prioritise the origin (top and left) and adjust width and
-> height to stay within the area. Do we have a preference for this?
+> Have you tried what happens if you simply drop the LP-11 check? To me that
+> would seem the right thing to do.
 
-Don't you need both ? "Inside the area" is a pretty well-defined concept :-)
+The Freescale documentation for iMX6's CSI2 receiver (chapter 40.3.1)
+specifies a very specific sequence to be followed to safely bring up the
+CSI2 receiver.  Bold text gets used, which implies emphasis on certain
+points, which suggests that it's important to follow it.
 
-	subrect->left = max(subrect->left, rect->left);
-	subrect->top = max(subrect->top, rect->top);
-	subrect->width = min(subrect->left + subrect->width,
-			     rect->left + rect->width) - subrect->left;
-	subrect->height = min(subrect->top + subrect->height,
-			      rect->top + rect->height) - subrect->top;
+Presumably, the reason for this is to ensure that a state machine within
+the CSI2 receiver is properly synchronised to the incoming data stream,
+and while avoiding the sequence may work, it may not be guaranteed to
+work every time.
 
-(Completely untested)
-
-> > Same comments for the vertical checks.
-> > 
-> >> -	if (rect->top > subrect->top)
-> >> +	if (rect->top < subrect->top)
-> >>  		subrect->top = rect->top;
-> >>  	else if (rect->top + rect->height >
-> >>  		 subrect->top + subrect->height)
+I guess we need someone from NXP to comment.
 
 -- 
-Regards,
-
-Laurent Pinchart
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
