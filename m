@@ -1,201 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48478 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752444AbdBMVwd (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56788
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S934613AbdBQUEv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 16:52:33 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH 4/8] v4l: vsp1: Move partition rectangles to struct
-Date: Mon, 13 Feb 2017 23:52:58 +0200
-Message-ID: <4172040.3kVqaMM1Dh@avalon>
-In-Reply-To: <2a0da9a22511742091a8b8d1b79549f3cbd0c775.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.ff94a00847faf7ed37768cea68c474926bfc8bd9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com> <2a0da9a22511742091a8b8d1b79549f3cbd0c775.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
+        Fri, 17 Feb 2017 15:04:51 -0500
+Subject: Re: [PATCH 11/15] media: s5p-mfc: Split variant DMA memory
+ configuration into separate functions
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+References: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170214075219eucas1p193de247c3127167d68a2cca922e83fb3@eucas1p1.samsung.com>
+ <1487058728-16501-12-git-send-email-m.szyprowski@samsung.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Message-ID: <fc726a1a-b1f3-0301-2432-f568eeeeec5d@osg.samsung.com>
+Date: Fri, 17 Feb 2017 17:04:43 -0300
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1487058728-16501-12-git-send-email-m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Hello Marek,
 
-Thank you for the patch.
-
-On Friday 10 Feb 2017 20:27:32 Kieran Bingham wrote:
-> As we develop the partition algorithm, we need to store more information
-> per partition to describe the phase and other parameters.
+On 02/14/2017 04:52 AM, Marek Szyprowski wrote:
+> Move code for DMA memory configuration with IOMMU into separate function
+> to make it easier to compare what is being done in each case.
 > 
-> To keep this data together, further abstract the existing v4l2_rect
-> into a partition specific structure
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 > ---
->  drivers/media/platform/vsp1/vsp1_pipe.h  | 12 ++++++++++--
->  drivers/media/platform/vsp1/vsp1_rpf.c   |  4 ++--
->  drivers/media/platform/vsp1/vsp1_uds.c   |  8 +++++---
->  drivers/media/platform/vsp1/vsp1_video.c | 14 ++++++++++----
->  drivers/media/platform/vsp1/vsp1_wpf.c   |  9 +++++----
->  5 files changed, 32 insertions(+), 15 deletions(-)
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c | 102 ++++++++++++++++++-------------
+>  1 file changed, 61 insertions(+), 41 deletions(-)
 > 
-> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h
-> b/drivers/media/platform/vsp1/vsp1_pipe.h index 5aa31143ce59..6494c4c75023
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_pipe.h
-> +++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-> @@ -60,6 +60,14 @@ enum vsp1_pipeline_state {
->  };
-> 
->  /*
-> + * struct vsp1_partition - A description of each partition slice performed
-> by HW
-> + * @dest: The position and dimension of this partition in the destination
-> image
-> + */
-> +struct vsp1_partition {
-> +	struct v4l2_rect dest;
-
-Given that we only partition the image horizontally, how about just storing 
-the left and width values ?
-
-Apart from that,
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> +};
-> +
-> +/*
->   * struct vsp1_pipeline - A VSP1 hardware pipeline
->   * @pipe: the media pipeline
->   * @irqlock: protects the pipeline state
-> @@ -114,8 +122,8 @@ struct vsp1_pipeline {
->  	struct vsp1_dl_list *dl;
-> 
->  	unsigned int partitions;
-> -	struct v4l2_rect partition;
-> -	struct v4l2_rect part_table[VSP1_PIPE_MAX_PARTITIONS];
-> +	struct vsp1_partition *partition;
-> +	struct vsp1_partition part_table[VSP1_PIPE_MAX_PARTITIONS];
->  };
-> 
->  void vsp1_pipeline_reset(struct vsp1_pipeline *pipe);
-> diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c
-> b/drivers/media/platform/vsp1/vsp1_rpf.c index b2e34a800ffa..df380a237118
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_rpf.c
-> +++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-> @@ -107,9 +107,9 @@ static void rpf_configure(struct vsp1_entity *entity,
->  			output = vsp1_entity_get_pad_format(wpf, wpf->config,
->  							    RWPF_PAD_SOURCE);
-> 
-> -			crop.width = pipe->partition.width * input_width
-> +			crop.width = pipe->partition->dest.width * input_width
->  				   / output->width;
-> -			crop.left += pipe->partition.left * input_width
-> +			crop.left += pipe->partition->dest.left * input_width
->  				   / output->width;
->  		}
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_uds.c
-> b/drivers/media/platform/vsp1/vsp1_uds.c index da8f89a31ea4..98c0836d6dcd
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_uds.c
-> +++ b/drivers/media/platform/vsp1/vsp1_uds.c
-> @@ -272,11 +272,13 @@ static void uds_configure(struct vsp1_entity *entity,
->  	bool multitap;
-> 
->  	if (params == VSP1_ENTITY_PARAMS_PARTITION) {
-> -		const struct v4l2_rect *clip = &pipe->partition;
-> +		struct vsp1_partition *partition = pipe->partition;
-> 
->  		vsp1_uds_write(uds, dl, VI6_UDS_CLIP_SIZE,
-> -			       (clip->width << VI6_UDS_CLIP_SIZE_HSIZE_SHIFT) 
-|
-> -			       (clip->height << 
-VI6_UDS_CLIP_SIZE_VSIZE_SHIFT));
-> +			       (partition->dest.width
-> +					<< VI6_UDS_CLIP_SIZE_HSIZE_SHIFT) |
-> +			       (partition->dest.height
-> +					<< VI6_UDS_CLIP_SIZE_VSIZE_SHIFT));
->  		return;
->  	}
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
-> b/drivers/media/platform/vsp1/vsp1_video.c index 4ade958a1c9e..a978508a4993
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_video.c
-> +++ b/drivers/media/platform/vsp1/vsp1_video.c
-> @@ -271,8 +271,11 @@ static void vsp1_video_pipeline_setup_partitions(struct
-> vsp1_pipeline *pipe)
-> 
->  	/* Gen2 hardware doesn't require image partitioning. */
->  	if (vsp1->info->gen == 2) {
-> +		struct vsp1_partition *partition = &pipe->part_table[0];
-> +
->  		pipe->partitions = 1;
-> -		pipe->part_table[0] = vsp1_video_partition(pipe, div_size, 0);
-> +		partition->dest = vsp1_video_partition(pipe, div_size, 0);
-> +
->  		return;
->  	}
-> 
-> @@ -288,8 +291,11 @@ static void vsp1_video_pipeline_setup_partitions(struct
-> vsp1_pipeline *pipe)
-> 
->  	pipe->partitions = DIV_ROUND_UP(format->width, div_size);
-> 
-> -	for (i = 0; i < pipe->partitions; i++)
-> -		pipe->part_table[i] = vsp1_video_partition(pipe, div_size, i);
-> +	for (i = 0; i < pipe->partitions; i++) {
-> +		struct vsp1_partition *partition = &pipe->part_table[i];
-> +
-> +		partition->dest = vsp1_video_partition(pipe, div_size, i);
-> +	}
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> index 92a88c20b26d..a18740c81c55 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> @@ -1107,41 +1107,13 @@ static struct device *s5p_mfc_alloc_memdev(struct device *dev,
+>  	return NULL;
 >  }
-> 
->  /*
-> ---------------------------------------------------------------------------
-> -- @@ -373,7 +379,7 @@ static void vsp1_video_pipeline_run_partition(struct
-> vsp1_pipeline *pipe, {
->  	struct vsp1_entity *entity;
-> 
-> -	pipe->partition = pipe->part_table[partition_number];
-> +	pipe->partition = &pipe->part_table[partition_number];
-> 
->  	list_for_each_entry(entity, &pipe->entities, list_pipe) {
->  		if (entity->ops->configure)
-> diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c
-> b/drivers/media/platform/vsp1/vsp1_wpf.c index ad67034e08e9..bd4cd2807cc6
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_wpf.c
-> +++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-> @@ -227,7 +227,7 @@ static void wpf_configure(struct vsp1_entity *entity,
->  		 * multiple slices.
->  		 */
->  		if (pipe->partitions > 1)
-> -			width = pipe->partition.width;
-> +			width = pipe->partition->dest.width;
-> 
->  		vsp1_wpf_write(wpf, dl, VI6_WPF_HSZCLIP, VI6_WPF_SZCLIP_EN |
->  			       (0 << VI6_WPF_SZCLIP_OFST_SHIFT) |
-> @@ -255,10 +255,11 @@ static void wpf_configure(struct vsp1_entity *entity,
->  			 * order the partitions correctly.
->  			 */
->  			if (flip & BIT(WPF_CTRL_HFLIP))
-> -				offset = format->width - pipe->partition.left
-> -					- pipe->partition.width;
-> +				offset = format->width
-> +					- pipe->partition->dest.left
-> +					- pipe->partition->dest.width;
->  			else
-> -				offset = pipe->partition.left;
-> +				offset = pipe->partition->dest.left;
-> 
->  			mem.addr[0] += offset * fmtinfo->bpp[0] / 8;
->  			if (format->num_planes > 1) {
+>  
+> -static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+> +static int s5p_mfc_configure_2port_memory(struct s5p_mfc_dev *mfc_dev)
+>  {
+>  	struct device *dev = &mfc_dev->plat_dev->dev;
+>  	void *bank2_virt;
+>  	dma_addr_t bank2_dma_addr;
+>  	unsigned long align_size = 1 << MFC_BASE_ALIGN_ORDER;
+> -	struct s5p_mfc_priv_buf *fw_buf = &mfc_dev->fw_buf;
+> -
+> -	/*
+> -	 * When IOMMU is available, we cannot use the default configuration,
+> -	 * because of MFC firmware requirements: address space limited to
+> -	 * 256M and non-zero default start address.
+> -	 * This is still simplified, not optimal configuration, but for now
+> -	 * IOMMU core doesn't allow to configure device's IOMMUs channel
+> -	 * separately.
+> -	 */
+> -	if (exynos_is_iommu_available(dev)) {
+> -		int ret = exynos_configure_iommu(dev, S5P_MFC_IOMMU_DMA_BASE,
+> -						 S5P_MFC_IOMMU_DMA_SIZE);
+> -		if (ret)
+> -			return ret;
+> -
+> -		mfc_dev->mem_dev[BANK1_CTX] = mfc_dev->mem_dev[BANK2_CTX] = dev;
+> -		ret = s5p_mfc_alloc_firmware(mfc_dev);
+> -		if (ret) {
+> -			exynos_unconfigure_iommu(dev);
+> -			return ret;
+> -		}
+> -
+> -		mfc_dev->dma_base[BANK1_CTX] = mfc_dev->fw_buf.dma;
+> -		mfc_dev->dma_base[BANK2_CTX] = mfc_dev->fw_buf.dma;
+> -		vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
+> -
+> -		return 0;
+> -	}
+> +	int ret;
 
+This should be declared in patch 8/15.
+
+>  
+>  	/*
+>  	 * Create and initialize virtual devices for accessing
+> @@ -1188,26 +1160,74 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+>  					DMA_BIT_MASK(32));
+>  	vb2_dma_contig_set_max_seg_size(mfc_dev->mem_dev[BANK2_CTX],
+>  					DMA_BIT_MASK(32));
+> -
+
+This seems to be an unrelated change.
+
+The rest looks good to me.
+
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
+Best regards,
 -- 
-Regards,
-
-Laurent Pinchart
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
