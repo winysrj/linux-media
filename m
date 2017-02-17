@@ -1,42 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:51771 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751200AbdBCP0h (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:47182 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934163AbdBQQRe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Feb 2017 10:26:37 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        linux-input <linux-input@vger.kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 1/2] serio.h: add SERIO_RAINSHADOW_CEC ID
-Date: Fri,  3 Feb 2017 16:26:32 +0100
-Message-Id: <20170203152633.33323-2-hverkuil@xs4all.nl>
-In-Reply-To: <20170203152633.33323-1-hverkuil@xs4all.nl>
-References: <20170203152633.33323-1-hverkuil@xs4all.nl>
+        Fri, 17 Feb 2017 11:17:34 -0500
+From: Colin King <colin.king@canonical.com>
+To: Jarod Wilson <jarod@wilsonet.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Mihaela Muraru <mihaela.muraru21@gmail.com>,
+        RitwikGopi <ritwikgopi@gmail.com>, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] Staging: media/lirc: don't call put_ir_rx on rx twice
+Date: Fri, 17 Feb 2017 16:17:30 +0000
+Message-Id: <20170217161730.31908-1-colin.king@canonical.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Colin Ian King <colin.king@canonical.com>
 
-Add a new serio ID for the RainShadow Tech USB HDMI CEC adapter.
+There is an exit path where rx is kfree'd on put_ir_rx and then
+a jump to label out_put_xx will again kfree it with another
+call to put_ir_rx.  Fix this by adding a new label that avoids
+this 2nd call to put_ir_rx for this specific case.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Detected with CoverityScan, CID#145119 ("Use after free")
+
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 ---
- include/uapi/linux/serio.h | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/staging/media/lirc/lirc_zilog.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/serio.h b/include/uapi/linux/serio.h
-index f2447a8..f42e919 100644
---- a/include/uapi/linux/serio.h
-+++ b/include/uapi/linux/serio.h
-@@ -79,5 +79,6 @@
- #define SERIO_WACOM_IV	0x3e
- #define SERIO_EGALAX	0x3f
- #define SERIO_PULSE8_CEC	0x40
-+#define SERIO_RAINSHADOW_CEC	0x41
+diff --git a/drivers/staging/media/lirc/lirc_zilog.c b/drivers/staging/media/lirc/lirc_zilog.c
+index 34aac3e..5dd1e62 100644
+--- a/drivers/staging/media/lirc/lirc_zilog.c
++++ b/drivers/staging/media/lirc/lirc_zilog.c
+@@ -1597,7 +1597,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 			i2c_set_clientdata(client, NULL);
+ 			put_ir_rx(rx, true);
+ 			ir->l.features &= ~LIRC_CAN_REC_LIRCCODE;
+-			goto out_put_xx;
++			goto out_put_tx;
+ 		}
  
- #endif /* _UAPI_SERIO_H */
+ 		/* Proceed only if the Tx client is also ready */
+@@ -1637,6 +1637,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ out_put_xx:
+ 	if (rx != NULL)
+ 		put_ir_rx(rx, true);
++out_put_tx:
+ 	if (tx != NULL)
+ 		put_ir_tx(tx, true);
+ out_put_ir:
 -- 
 2.10.2
-
