@@ -1,51 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:33290 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750898AbdBAWO2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Feb 2017 17:14:28 -0500
-From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-To: linux-amlogic@lists.infradead.org, khilman@baylibre.com,
-        carlo@caione.org, mchehab@kernel.org, devicetree@vger.kernel.org,
-        linux-media@vger.kernel.org
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, narmstrong@baylibre.com,
-        linux-arm-kernel@lists.infradead.org, afaerber@suse.de,
-        Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Subject: [PATCH v2] Documentation: devicetree: meson-ir: "linux,rc-map-name" is supported
-Date: Wed,  1 Feb 2017 23:14:15 +0100
-Message-Id: <20170201221415.22794-1-martin.blumenstingl@googlemail.com>
-In-Reply-To: <20170131212112.5582-1-martin.blumenstingl@googlemail.com>
-References: <20170131212112.5582-1-martin.blumenstingl@googlemail.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56245
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S934053AbdBQSEQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Feb 2017 13:04:16 -0500
+Subject: Re: [PATCH 02/15] media: s5p-mfc: Use generic
+ of_device_get_match_data helper
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+References: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170214075215eucas1p1e77dbae8e0be9f7f5bf66765c5d57f5f@eucas1p1.samsung.com>
+ <1487058728-16501-3-git-send-email-m.szyprowski@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <aff8c825-86d0-f9a8-f51a-d0fc97055b6e@osg.samsung.com>
+Date: Fri, 17 Feb 2017 14:42:06 -0300
+MIME-Version: 1.0
+In-Reply-To: <1487058728-16501-3-git-send-email-m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver already parses the "linux,rc-map-name" property. Add this
-information to the documentation so .dts maintainers don't have to look
-it up in the source-code.
+Hello Marek,
 
-Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Acked-by: Rob Herring <robh@kernel.org>
----
-Changes since v1:
-- removed character which shows up as whitespace from subject
-- added Rob Herring's ACK
+On 02/14/2017 04:51 AM, Marek Szyprowski wrote:
+> Replace custom code with generic helper to retrieve driver data.
+> 
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
 
- Documentation/devicetree/bindings/media/meson-ir.txt | 3 +++
- 1 file changed, 3 insertions(+)
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-diff --git a/Documentation/devicetree/bindings/media/meson-ir.txt b/Documentation/devicetree/bindings/media/meson-ir.txt
-index e7e3f3c4fc8f..efd9d29a8f10 100644
---- a/Documentation/devicetree/bindings/media/meson-ir.txt
-+++ b/Documentation/devicetree/bindings/media/meson-ir.txt
-@@ -8,6 +8,9 @@ Required properties:
-  - reg		: physical base address and length of the device registers
-  - interrupts	: a single specifier for the interrupt from the device
- 
-+Optional properties:
-+ - linux,rc-map-name:	see rc.txt file in the same directory.
-+
- Example:
- 
- 	ir-receiver@c8100480 {
+Best regards,
 -- 
-2.11.0
-
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
