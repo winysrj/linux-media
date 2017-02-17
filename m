@@ -1,65 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56674
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751219AbdBXVTa (ORCPT
+Received: from mx-out-2.rwth-aachen.de ([134.130.5.187]:26000 "EHLO
+        mx-out-2.rwth-aachen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753537AbdBQAzm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Feb 2017 16:19:30 -0500
-Subject: Re: [PATCH] [media] exynos4-is: Add missing 'of_node_put'
-To: Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
-        kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-        mchehab@kernel.org, kgene@kernel.org, krzk@kernel.org
-References: <20170123211656.11185-1-christophe.jaillet@wanadoo.fr>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        kernel-janitors@vger.kernel.org
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <2357ef6e-8d90-77d0-0399-21fec41389a1@osg.samsung.com>
-Date: Fri, 24 Feb 2017 18:19:17 -0300
+        Thu, 16 Feb 2017 19:55:42 -0500
+From: =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>
+To: <linux-media@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Antti Palosaari <crope@iki.fi>,
+        =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>
+Subject: [PATCH v3 0/3] Add support for MyGica T230C DVB-T2 stick
+Date: Fri, 17 Feb 2017 01:55:30 +0100
 MIME-Version: 1.0
-In-Reply-To: <20170123211656.11185-1-christophe.jaillet@wanadoo.fr>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Message-ID: <ee7cd3b07e7447c683df5daa4cea3a3f@rwthex-w2-b.rwth-ad.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Christophe,
+The required command sequence for the new tuner (Si2141) was traced from the
+current Windows driver and verified with a small python script/libusb.
+The changes to the Si2168 and dvbsky driver are mostly additions of the
+required IDs and some glue code.
 
-On 01/23/2017 06:16 PM, Christophe JAILLET wrote:
-> It is likely that a "of_node_put(ep)" is missing here.
-> There is one in the previous error handling code, and one a few lines
-> below in the normal case as well.
-> 
-> Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-> ---
->  drivers/media/platform/exynos4-is/media-dev.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-> index e3a8709138fa..da5b76c1df98 100644
-> --- a/drivers/media/platform/exynos4-is/media-dev.c
-> +++ b/drivers/media/platform/exynos4-is/media-dev.c
-> @@ -402,8 +402,10 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
->  		return ret;
->  	}
->  
-> -	if (WARN_ON(endpoint.base.port == 0) || index >= FIMC_MAX_SENSORS)
-> +	if (WARN_ON(endpoint.base.port == 0) || index >= FIMC_MAX_SENSORS) {
-> +		of_node_put(ep);
->  		return -EINVAL;
-> +	}
->  
->  	pd->mux_id = (endpoint.base.port - 1) & 0x1;
->  
-> 
+Stefan Brüns (3):
+  [media] si2157: Add support for Si2141-A10
+  [media] si2168: add support for Si2168-D60
+  [media] dvbsky: MyGica T230C support
 
-Thanks for the patch, but Krzysztof sent the exact same patch before [0]. There
-was feedback from Sylwester at the time that you can also look at [0]. Could you
-please take that into account and post a patch according to what he suggested?
+ drivers/media/dvb-core/dvb-usb-ids.h      |  1 +
+ drivers/media/dvb-frontends/si2168.c      |  4 ++
+ drivers/media/dvb-frontends/si2168_priv.h |  2 +
+ drivers/media/tuners/si2157.c             | 23 +++++++-
+ drivers/media/tuners/si2157_priv.h        |  2 +
+ drivers/media/usb/dvb-usb-v2/dvbsky.c     | 88 +++++++++++++++++++++++++++++++
+ 6 files changed, 118 insertions(+), 2 deletions(-)
 
-[0]: http://lists.infradead.org/pipermail/linux-arm-kernel/2016-March/415207.html
-
-Best regards,
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+2.11.0
