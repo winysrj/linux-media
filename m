@@ -1,239 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:37192 "EHLO
-        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751119AbdBBLSz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2017 06:18:55 -0500
-Received: by mail-wm0-f48.google.com with SMTP id v77so82948398wmv.0
-        for <linux-media@vger.kernel.org>; Thu, 02 Feb 2017 03:18:54 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20161130090229.GB639@shambles.local>
-References: <20161118220107.GA3510@shambles.local> <20161120132948.GA23247@gofer.mess.org>
- <CAEsFdVNAGexZJSQb6dABq1uXs3wLP+kKsKw-XEUXd4nb_3yf=A@mail.gmail.com>
- <20161122092043.GA8630@gofer.mess.org> <20161123123851.GB14257@shambles.local>
- <20161123223419.GA25515@gofer.mess.org> <20161124121253.GA17639@shambles.local>
- <20161124133459.GA32385@gofer.mess.org> <CAEsFdVPbKm1cDmAynL+-PFC=hQ=+-gAcJ04ykXVM6Y6bappcUA@mail.gmail.com>
- <20161127193510.GA20548@gofer.mess.org> <20161130090229.GB639@shambles.local>
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-Date: Thu, 2 Feb 2017 22:18:52 +1100
-Message-ID: <CAEsFdVOb8tWN=6OfnpdJqb9BZ4s-DARF53zgbyhz-_a0zac0Gg@mail.gmail.com>
-Subject: Re: ir-keytable: infinite loops, segfaults
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:35887 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933885AbdBQPFN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Feb 2017 10:05:13 -0500
+Message-ID: <1487343870.3107.95.camel@pengutronix.de>
+Subject: Re: [PATCH v4 00/36] i.MX Media Driver
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Fri, 17 Feb 2017 16:04:30 +0100
+In-Reply-To: <20170217122213.GQ16975@valkosipuli.retiisi.org.uk>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+         <20170216222006.GA21222@n2100.armlinux.org.uk>
+         <923326d6-43fe-7328-d959-14fd341e47ae@gmail.com>
+         <1487331818.3107.46.camel@pengutronix.de>
+         <20170217122213.GQ16975@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey there
+On Fri, 2017-02-17 at 14:22 +0200, Sakari Ailus wrote:
+> Hi Philipp, Steve and Russell,
+> 
+> On Fri, Feb 17, 2017 at 12:43:38PM +0100, Philipp Zabel wrote:
+> > On Thu, 2017-02-16 at 14:27 -0800, Steve Longerbeam wrote:
+> > > 
+> > > On 02/16/2017 02:20 PM, Russell King - ARM Linux wrote:
+> > > > On Wed, Feb 15, 2017 at 06:19:02PM -0800, Steve Longerbeam wrote:
+> > > >> In version 4:
+> > > >
+> > > > With this version, I get:
+> > > >
+> > > > [28762.892053] imx6-mipi-csi2: LP-11 timeout, phy_state = 0x00000000
+> > > > [28762.899409] ipu1_csi0: pipeline_set_stream failed with -110
+> > > >
+> > > 
+> > > Right, in the imx219, on exit from s_power(), the clock and data lanes
+> > > must be placed in the LP-11 state. This has been done in the ov5640 and
+> > > tc358743 subdevs.
+> > > 
+> > > If we want to bring in the patch that adds a .prepare_stream() op,
+> > > the csi-2 bus would need to be placed in LP-11 in that op instead.
+> > > 
+> > > Philipp, should I go ahead and add your .prepare_stream() patch?
+> > 
+> > I think with Russell's explanation of how the imx219 sensor operates,
+> > we'll have to do something before calling the sensor s_stream, but right
+> > now I'm still unsure what exactly.
+> 
+> Indeed there appears to be no other way to achieve the LP-11 state than
+> going through the streaming state for this particular sensor, apart from
+> starting streaming.
+> 
+> Is there a particular reason why you're waiting for the transmitter to
+> transfer to LP-11 state? That appears to be the last step which is done in
+> the csi2_s_stream() callback.
+> 
+> What the sensor does next is to start streaming, and the first thing it does
+> in that process is to switch to LP-11 state.
+> 
+> Have you tried what happens if you simply drop the LP-11 check? To me that
+> would seem the right thing to do.
 
-On 11/30/16, Vincent McIntyre <vincent.mcintyre@gmail.com> wrote:
-> On Sun, Nov 27, 2016 at 07:35:10PM +0000, Sean Young wrote:
->>
->> > I wanted to mention that the IR protocol is still showing as unknown.
->> > Is there anything that can be done to sort that out?
->>
->> It would be nice if that could be sorted out, although that would be
->> a separate patch.
->>
->> So all we know right now is what scancode the IR receiver hardware
->> produces but we have no idea what IR protocol is being used. In order to
->> figure this out we need a recording of the IR the remote sends, for which
->> a different IR receiver is needed. Neither your imon nor your
->> dvb_usb_af9035 can do this, something like a mce usb IR receiver would
->> be best. Do you have access to one? One with an IR emitter would be
->> best.
->>
->> So with that we can have a recording of the IR the remote sends, and
->> with the emitter we can see which IR protocols the IR receiver
->> understands.
->
-> Haven't been able to find anything suitable. I would order something
-> but I won't be able to follow up for several weeks.
-> I'll ask on the myth list to see if anyone is up for trying this.
->
+Removing the wait for LP-11 alone might not be an issue in my case, as
+the TC358743 is known to be in stop state all along. So I just have to
+make sure that the time between s_stream(csi2) starting the receiver and
+s_stream(tc358743) causing LP-11 to be changed to the next state is long
+enough for the receiver to detect LP-11 (which I really can't, I just
+have to pray I2C transmissions are slow enough).
 
-I bought one of these, but I am not sure how to make the recording:
+The problems start if we have to enable the D-PHY and deassert resets
+either before the sensor enters LP-11 state or after it already started
+streaming, because we don't know when the sensor drives that state on
+the bus.
 
-# lsusb -d 1934:5168 -v
+The latter case I is simulated easily by again changing the order so
+that the "sensor" (tc358743) is enabled before the CSI-2 receiver D-PHY
+initialization. The result is that captures time out, presumably because
+the receiver never entered HS mode because it didn't see LP-11. The
+PHY_STATE register contains 0x200, meaning RXCLKACTIVEHS (which we
+should wait for in step 7.) is never set.
 
-Bus 008 Device 003: ID 1934:5168 Feature Integration Technology Inc.
-(Fintek) F71610A or F71612A Consumer Infrared Receiver/Transceiver
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        16
-  idVendor           0x1934 Feature Integration Technology Inc. (Fintek)
-  idProduct          0x5168 F71610A or F71612A Consumer Infrared
-Receiver/Transceiver
-  bcdDevice            0.01
-  iManufacturer           1 FINTEK
-  iProduct                2 eHome Infrared Transceiver
-  iSerial                 3 88636562727801
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength           32
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration          0
-    bmAttributes         0xa0
-      (Bus Powered)
-      Remote Wakeup
-    MaxPower              100mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           2
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0010  1x 16 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0010  1x 16 bytes
-        bInterval               1
-Device Status:     0x0000
-  (Bus Powered)
+I tried to test the former by instead modifying the tc358743 driver a
+bit:
 
+----------8<----------
+diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+index 39d4cdd328c0f..43df80903215b 100644
+--- a/drivers/media/i2c/tc358743.c
++++ b/drivers/media/i2c/tc358743.c
+@@ -1378,8 +1378,6 @@ static int tc358743_s_dv_timings(struct v4l2_subdev *sd,
+        state->timings = *timings;
+ 
+        enable_stream(sd, false);
+-       tc358743_set_pll(sd);
+-       tc358743_set_csi(sd);
+ 
+        return 0;
+ }
+@@ -1469,6 +1467,11 @@ static int tc358743_g_mbus_config(struct v4l2_subdev *sd,
+ 
+ static int tc358743_s_stream(struct v4l2_subdev *sd, int enable)
+ {
++       if (enable) {
++               tc358743_set_pll(sd);
++               tc358743_set_csi(sd);
++               tc358743_set_csi_color_space(sd);
++       }
+        enable_stream(sd, enable);
+        if (!enable) {
+                /* Put all lanes in PL-11 state (STOPSTATE) */
+@@ -1657,9 +1660,6 @@ static int tc358743_set_fmt(struct v4l2_subdev *sd,
+        state->vout_color_sel = vout_color_sel;
+ 
+        enable_stream(sd, false);
+-       tc358743_set_pll(sd);
+-       tc358743_set_csi(sd);
+-       tc358743_set_csi_color_space(sd);
+ 
+        return 0;
+ }
+---------->8----------
 
-# ir-keytable -v
-Found device /sys/class/rc/rc0/
-Found device /sys/class/rc/rc1/
-Found device /sys/class/rc/rc2/
-Found device /sys/class/rc/rc3/                          <---- the new device
-Input sysfs node is /sys/class/rc/rc0/input8/
-Event sysfs node is /sys/class/rc/rc0/input8/event5/
-Parsing uevent /sys/class/rc/rc0/input8/event5/uevent
-/sys/class/rc/rc0/input8/event5/uevent uevent MAJOR=13
-/sys/class/rc/rc0/input8/event5/uevent uevent MINOR=69
-/sys/class/rc/rc0/input8/event5/uevent uevent DEVNAME=input/event5
-Parsing uevent /sys/class/rc/rc0/uevent
-/sys/class/rc/rc0/uevent uevent NAME=rc-imon-mce
-/sys/class/rc/rc0/uevent uevent DRV_NAME=imon
-input device is /dev/input/event5
-/sys/class/rc/rc0/protocols protocol rc-6 (enabled)
-Found /sys/class/rc/rc0/ (/dev/input/event5) with:
-	Driver imon, table rc-imon-mce
-	Supported protocols: rc-6
-	Enabled protocols: rc-6
-	Name: iMON Remote (15c2:ffdc)
-	bus: 3, vendor/product: 15c2:ffdc, version: 0x0000
-	Repeat delay = 500 ms, repeat period = 125 ms
-Input sysfs node is /sys/class/rc/rc1/input18/
-Event sysfs node is /sys/class/rc/rc1/input18/event15/
-Parsing uevent /sys/class/rc/rc1/input18/event15/uevent
-/sys/class/rc/rc1/input18/event15/uevent uevent MAJOR=13
-/sys/class/rc/rc1/input18/event15/uevent uevent MINOR=79
-/sys/class/rc/rc1/input18/event15/uevent uevent DEVNAME=input/event15
-Parsing uevent /sys/class/rc/rc1/uevent
-/sys/class/rc/rc1/uevent uevent NAME=rc-dvico-mce
-/sys/class/rc/rc1/uevent uevent DRV_NAME=dvb_usb_cxusb
-input device is /dev/input/event15
-/sys/class/rc/rc1/protocols protocol unknown (disabled)
-Found /sys/class/rc/rc1/ (/dev/input/event15) with:
-	Driver dvb_usb_cxusb, table rc-dvico-mce
-	Supported protocols: unknown
-	Enabled protocols:
-	Name: IR-receiver inside an USB DVB re
-	bus: 3, vendor/product: 0fe9:db78, version: 0x827b
-	Repeat delay = 500 ms, repeat period = 125 ms
-Input sysfs node is /sys/class/rc/rc2/input19/
-Event sysfs node is /sys/class/rc/rc2/input19/event16/
-Parsing uevent /sys/class/rc/rc2/input19/event16/uevent
-/sys/class/rc/rc2/input19/event16/uevent uevent MAJOR=13
-/sys/class/rc/rc2/input19/event16/uevent uevent MINOR=80
-/sys/class/rc/rc2/input19/event16/uevent uevent DEVNAME=input/event16
-Parsing uevent /sys/class/rc/rc2/uevent
-/sys/class/rc/rc2/uevent uevent NAME=rc-empty
-/sys/class/rc/rc2/uevent uevent DRV_NAME=dvb_usb_af9035
-input device is /dev/input/event16
-/sys/class/rc/rc2/protocols protocol nec (disabled)
-Found /sys/class/rc/rc2/ (/dev/input/event16) with:
-	Driver dvb_usb_af9035, table rc-empty
-	Supported protocols: nec
-	Enabled protocols:
-	Name: Leadtek WinFast DTV Dongle Dual
-	bus: 3, vendor/product: 0413:6a05, version: 0x0200
-	Repeat delay = 500 ms, repeat period = 125 ms
-Input sysfs node is /sys/class/rc/rc3/input20/
- <---- new device
-Event sysfs node is /sys/class/rc/rc3/input20/event2/
-Parsing uevent /sys/class/rc/rc3/input20/event2/uevent
-/sys/class/rc/rc3/input20/event2/uevent uevent MAJOR=13
-/sys/class/rc/rc3/input20/event2/uevent uevent MINOR=66
-/sys/class/rc/rc3/input20/event2/uevent uevent DEVNAME=input/event2
-Parsing uevent /sys/class/rc/rc3/uevent
-/sys/class/rc/rc3/uevent uevent NAME=rc-rc6-mce
-/sys/class/rc/rc3/uevent uevent DRV_NAME=mceusb
-input device is /dev/input/event2
-/sys/class/rc/rc3/protocols protocol other (disabled)
-/sys/class/rc/rc3/protocols protocol unknown (disabled)
-/sys/class/rc/rc3/protocols protocol rc-5 (disabled)
-/sys/class/rc/rc3/protocols protocol nec (disabled)
-/sys/class/rc/rc3/protocols protocol rc-6 (enabled)
-/sys/class/rc/rc3/protocols protocol jvc (disabled)
-/sys/class/rc/rc3/protocols protocol sony (disabled)
-/sys/class/rc/rc3/protocols protocol rc-5-sz (disabled)
-/sys/class/rc/rc3/protocols protocol sanyo (disabled)
-/sys/class/rc/rc3/protocols protocol sharp (disabled)
-/sys/class/rc/rc3/protocols protocol mce_kbd (disabled)
-/sys/class/rc/rc3/protocols protocol xmp (disabled)
-/sys/class/rc/rc3/protocols protocol cec (disabled)
-/sys/class/rc/rc3/protocols protocol lirc (enabled)
-Found /sys/class/rc/rc3/ (/dev/input/event2) with:
-	Driver mceusb, table rc-rc6-mce
-	Supported protocols: unknown other lirc rc-5 jvc sony nec sanyo
-mce-kbd rc-6 sharp xmp
-	Enabled protocols: lirc rc-6
-	Name: Media Center Ed. eHome Infrared
-	bus: 3, vendor/product: 1934:5168, version: 0x0001
-	Repeat delay = 500 ms, repeat period = 125 ms
+That should enable the CSI-2 Tx and put it in LP-11 only after the CSI-2
+receiver is enabled, right before starting streaming.
 
+That did seem to work the few times I tested, but I have no idea how
+this will behave with other chips that do something else to the bus
+while not streaming, and whether it is ok to enable the CSI right after
+the sensor without waiting for the CSI-2 bus to settle.
 
-When I plugged it in, I got this in dmesg:
-
-usb 8-1: new full-speed USB device number 3 using uhci_hcd
-usb 8-1: New USB device found, idVendor=1934, idProduct=5168
-usb 8-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-usb 8-1: Product: eHome Infrared Transceiver
-usb 8-1: Manufacturer: FINTEK
-usb 8-1: SerialNumber: 88636562727801
-Registered IR keymap rc-rc6-mce
-input: Media Center Ed. eHome Infrared Remote Transceiver (1934:5168)
-as /devices/pci0000:00/0000:00:1d.1/usb8/8-1/8-1:1.0/rc/rc3/input20
-rc rc3: Media Center Ed. eHome Infrared Remote Transceiver (1934:5168)
-as /devices/pci0000:00/0000:00:1d.1/usb8/8-1/8-1:1.0/rc/rc3
-lirc_dev: IR Remote Control driver registered, major 241
-rc rc3: lirc_dev: driver ir-lirc-codec (mceusb) registered at minor = 0
-IR LIRC bridge handler initialized
-mceusb 8-1:1.0: Registered FINTEK eHome Infrared Transceiver with mce
-emulator interface version 2
-mceusb 8-1:1.0: 0 tx ports (0x0 cabled) and 2 rx sensors (0x1 active)
-usbcore: registered new interface driver mceusb
-IR RC6 protocol handler initialized
-
-Poking around I see lirc has an irrecord program. Is that what I need?
-
-Vince
+regards
+Philipp
