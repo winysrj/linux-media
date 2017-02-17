@@ -1,85 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:54077 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751508AbdBBXff (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Feb 2017 18:35:35 -0500
-Date: Thu, 2 Feb 2017 23:35:33 +0000
-From: Sean Young <sean@mess.org>
-To: Vincent McIntyre <vincent.mcintyre@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: ir-keytable: infinite loops, segfaults
-Message-ID: <20170202233533.GA14357@gofer.mess.org>
-References: <CAEsFdVNAGexZJSQb6dABq1uXs3wLP+kKsKw-XEUXd4nb_3yf=A@mail.gmail.com>
- <20161122092043.GA8630@gofer.mess.org>
- <20161123123851.GB14257@shambles.local>
- <20161123223419.GA25515@gofer.mess.org>
- <20161124121253.GA17639@shambles.local>
- <20161124133459.GA32385@gofer.mess.org>
- <CAEsFdVPbKm1cDmAynL+-PFC=hQ=+-gAcJ04ykXVM6Y6bappcUA@mail.gmail.com>
- <20161127193510.GA20548@gofer.mess.org>
- <20161130090229.GB639@shambles.local>
- <CAEsFdVOb8tWN=6OfnpdJqb9BZ4s-DARF53zgbyhz-_a0zac0Gg@mail.gmail.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:57050
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932757AbdBQVNP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Feb 2017 16:13:15 -0500
+Subject: Re: [PATCH 14/15] media: s5p-mfc: Use preallocated block allocator
+ always for MFC v6+
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+References: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170214075221eucas1p1c0acfa79289ebff6306c01e47c3e83a7@eucas1p1.samsung.com>
+ <1487058728-16501-15-git-send-email-m.szyprowski@samsung.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Message-ID: <99bd8023-2d89-c1f5-5554-ad3de82f1372@osg.samsung.com>
+Date: Fri, 17 Feb 2017 18:13:06 -0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAEsFdVOb8tWN=6OfnpdJqb9BZ4s-DARF53zgbyhz-_a0zac0Gg@mail.gmail.com>
+In-Reply-To: <1487058728-16501-15-git-send-email-m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vincent,
+Hello Marek,
 
-On Thu, Feb 02, 2017 at 10:18:52PM +1100, Vincent McIntyre wrote:
-> On 11/30/16, Vincent McIntyre <vincent.mcintyre@gmail.com> wrote:
-> > On Sun, Nov 27, 2016 at 07:35:10PM +0000, Sean Young wrote:
-> >>
-> >> > I wanted to mention that the IR protocol is still showing as unknown.
-> >> > Is there anything that can be done to sort that out?
-> >>
-> >> It would be nice if that could be sorted out, although that would be
-> >> a separate patch.
-> >>
-> >> So all we know right now is what scancode the IR receiver hardware
-> >> produces but we have no idea what IR protocol is being used. In order to
-> >> figure this out we need a recording of the IR the remote sends, for which
-> >> a different IR receiver is needed. Neither your imon nor your
-> >> dvb_usb_af9035 can do this, something like a mce usb IR receiver would
-> >> be best. Do you have access to one? One with an IR emitter would be
-> >> best.
-> >>
-> >> So with that we can have a recording of the IR the remote sends, and
-> >> with the emitter we can see which IR protocols the IR receiver
-> >> understands.
-> >
-> > Haven't been able to find anything suitable. I would order something
-> > but I won't be able to follow up for several weeks.
-> > I'll ask on the myth list to see if anyone is up for trying this.
-> >
+On 02/14/2017 04:52 AM, Marek Szyprowski wrote:
+> It turned out that all versions of MFC v6+ hardware doesn't have a strict
+> requirement for ALL buffers to be allocated on higher addresses than the
+> firmware base like it was documented for MFC v5. This requirement is true
+> only for the device and per-context buffers. All video data buffers can be
+> allocated anywhere for all MFC v6+ versions. Basing on this fact, the
+> special DMA configuration based on two reserved memory regions is not
+> really needed for MFC v6+ devices, because the memory requirements for the
+> firmware, device and per-context buffers can be fulfilled by the simple
+> probe-time pre-allocated block allocator instroduced in previous patch.
+
+s/instroduced/introduced
+
 > 
-> I bought one of these, but I am not sure how to make the recording:
+> This patch enables support for such pre-allocated block based allocator
+> always for MFC v6+ devices. Due to the limitations of the memory management
+> subsystem the largest supported size of the pre-allocated buffer when no
+> CMA (Contiguous Memory Allocator) is enabled is 4MiB.
 > 
-> # lsusb -d 1934:5168 -v
+> This patch also removes the requirement to provide two reserved memory
+> regions for MFC v6+ devices in device tree. Now the driver is fully
+> functional without them.
+>
+
+Great!
+
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
+
+The patch looks good to me though and it works on my tests,
+I've just one comment below.
+
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
+>  Documentation/devicetree/bindings/media/s5p-mfc.txt | 2 +-
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c            | 9 ++++++---
+>  2 files changed, 7 insertions(+), 4 deletions(-)
 > 
-> Bus 008 Device 003: ID 1934:5168 Feature Integration Technology Inc.
-> (Fintek) F71610A or F71612A Consumer Infrared Receiver/Transceiver
--snip-
-> Poking around I see lirc has an irrecord program. Is that what I need?
+> diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+> index 2c901286d818..d3404b5d4d17 100644
+> --- a/Documentation/devicetree/bindings/media/s5p-mfc.txt
+> +++ b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+> @@ -28,7 +28,7 @@ Optional properties:
+>    - memory-region : from reserved memory binding: phandles to two reserved
+>  	memory regions, first is for "left" mfc memory bus interfaces,
+>  	second if for the "right" mfc memory bus, used when no SYSMMU
+> -	support is available
+> +	support is available; used only by MFC v5 present in Exynos4 SoCs
+>  
+>  Obsolete properties:
+>    - samsung,mfc-r, samsung,mfc-l : support removed, please use memory-region
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> index 8fc6fe4ba087..36f0aec2a1b3 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> @@ -1178,9 +1178,12 @@ static void s5p_mfc_unconfigure_2port_memory(struct s5p_mfc_dev *mfc_dev)
+>  static int s5p_mfc_configure_common_memory(struct s5p_mfc_dev *mfc_dev)
+>  {
+>  	struct device *dev = &mfc_dev->plat_dev->dev;
+> -	unsigned long mem_size = SZ_8M;
+> +	unsigned long mem_size = SZ_4M;
+>  	unsigned int bitmap_size;
+>  
+> +	if (IS_ENABLED(CONFIG_DMA_CMA) || exynos_is_iommu_available(dev))
+> +		mem_size = SZ_8M;
+> +
+>  	if (mfc_mem_size)
+>  		mem_size = memparse(mfc_mem_size, NULL);
+> 
 
-That's great. There are a couple of ways of doing this, and none of them
-is straightforward. It's a bit of reading tea leaves (that's one of the
-motivations for my lirc-scancodes patches, but I digress).
+The driver allows the user to set mem_size > SZ_4M using the s5p_mfc.mem
+parameter even when CMA ins't enabled and IOMMU isn't available. Maybe it
+should fail early instead and notify the user what's missing?
 
-Method 1:
-echo "+rc-5 +nec +rc-6 +jvc +sony +rc-5-sz +sanyo +sharp +xmp" > /sys/class/rc/rc3/protocols
-echo 1 > /sys/module/rc_core/parameters/debug
-journal -f -k 
-# press button on remote
-
-Now look for "scancode" somewhere in there.
-
-Method 2:
-Either use lirc's mode2 or "ir-ctl -r -d /dev/lircX" (from v4l-utils 1.12),
-and post the output here.
-
-Thanks!
-
-Sean
+Best regards,
+-- 
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
