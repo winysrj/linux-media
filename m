@@ -1,95 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:35297 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751650AbdB1HcA (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56544
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752588AbdBQTAf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Feb 2017 02:32:00 -0500
-Date: Tue, 28 Feb 2017 08:25:50 +0100
-From: Ingo Molnar <mingo@kernel.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>,
-        kernel test robot <fengguang.wu@intel.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sean Young <sean@mess.org>,
-        Ruslan Ruslichenko <rruslich@cisco.com>, LKP <lkp@01.org>,
-        "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-        kernel@stlinux.com,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-mediatek@lists.infradead.org,
-        linux-amlogic@lists.infradead.org,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Linux LED Subsystem <linux-leds@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>, wfg@linux.intel.com,
-        Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [WARNING: A/V UNSCANNABLE][Merge tag 'media/v4.11-1' of git]
- ff58d005cd: BUG: unable to handle kernel NULL pointer dereference at
- 0000039c
-Message-ID: <20170228072550.GA17204@gmail.com>
-References: <58b07b30.9XFLj9Hhl7F6HMc2%fengguang.wu@intel.com>
- <CA+55aFytXj+TZ_TanbxcY0KgRTrV7Vvr=fWON8tioUGmYHYiNA@mail.gmail.com>
- <20170225090741.GA20463@gmail.com>
- <CA+55aFy+ER8cYV02eZsKAOLnZBWY96zNWqUFWSWT1+3sZD4XnQ@mail.gmail.com>
- <alpine.DEB.2.20.1702271105090.4732@nanos>
- <alpine.DEB.2.20.1702271231410.4732@nanos>
- <20170227154124.GA20569@gmail.com>
- <CA+55aFxwtkOs95R-v7z8yjguvp91oDTxRKs-x3uN_=sM_33Gvg@mail.gmail.com>
+        Fri, 17 Feb 2017 14:00:35 -0500
+Subject: Re: [PATCH 08/15] media: s5p-mfc: Move firmware allocation to DMA
+ configure function
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+References: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170214075218eucas1p2918abf0dc5cb970183f5a18561050720@eucas1p2.samsung.com>
+ <1487058728-16501-9-git-send-email-m.szyprowski@samsung.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Message-ID: <97a33f65-8e79-3b93-2eaf-dba5260411d2@osg.samsung.com>
+Date: Fri, 17 Feb 2017 16:00:27 -0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CA+55aFxwtkOs95R-v7z8yjguvp91oDTxRKs-x3uN_=sM_33Gvg@mail.gmail.com>
+In-Reply-To: <1487058728-16501-9-git-send-email-m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello Marek,
 
-* Linus Torvalds <torvalds@linux-foundation.org> wrote:
-
-> In other words: what will happen is that distros start getting bootup problem 
-> reports six months or a year after we've done it, and *if* they figure out it's 
-> the irq enabling, they'll disable it, because they have no way to solve it 
-> either.
+On 02/14/2017 04:52 AM, Marek Szyprowski wrote:
+> To complete DMA memory configuration for MFC device, allocation of the
+> firmware buffer is needed, because some parameters are dependant on its base
+> address. Till now, this has been handled in the s5p_mfc_alloc_firmware()
+> function. This patch moves that logic to s5p_mfc_configure_dma_memory() to
+> keep DMA memory related operations in a single place. This way
+> s5p_mfc_alloc_firmware() is simplified and does what it name says. The
+> other consequence of this change is moving s5p_mfc_alloc_firmware() call
+> from the s5p_mfc_probe() function to the s5p_mfc_configure_dma_memory().
 > 
-> And core developers will just maybe see the occasional "4.12 doesn't boot for 
-> me" reports, but by then developers will ahve moved on to 4.16 or something.
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c      | 58 +++++++++++++++++++++------
+>  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c | 31 --------------
+>  2 files changed, 45 insertions(+), 44 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> index bc1aeb25ebeb..92a88c20b26d 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> @@ -1110,6 +1110,10 @@ static struct device *s5p_mfc_alloc_memdev(struct device *dev,
+>  static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+>  {
+>  	struct device *dev = &mfc_dev->plat_dev->dev;
+> +	void *bank2_virt;
+> +	dma_addr_t bank2_dma_addr;
+> +	unsigned long align_size = 1 << MFC_BASE_ALIGN_ORDER;
+> +	struct s5p_mfc_priv_buf *fw_buf = &mfc_dev->fw_buf;
+>  
+>  	/*
+>  	 * When IOMMU is available, we cannot use the default configuration,
+> @@ -1122,14 +1126,21 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+>  	if (exynos_is_iommu_available(dev)) {
+>  		int ret = exynos_configure_iommu(dev, S5P_MFC_IOMMU_DMA_BASE,
+>  						 S5P_MFC_IOMMU_DMA_SIZE);
+> -		if (ret == 0) {
+> -			mfc_dev->mem_dev[BANK1_CTX] =
+> -				mfc_dev->mem_dev[BANK2_CTX] = dev;
+> -			vb2_dma_contig_set_max_seg_size(dev,
+> -							DMA_BIT_MASK(32));
+> +		if (ret)
+> +			return ret;
+> +
+> +		mfc_dev->mem_dev[BANK1_CTX] = mfc_dev->mem_dev[BANK2_CTX] = dev;
+> +		ret = s5p_mfc_alloc_firmware(mfc_dev);
+> +		if (ret) {
+> +			exynos_unconfigure_iommu(dev);
+> +			return ret;
+>  		}
+>  
+> -		return ret;
+> +		mfc_dev->dma_base[BANK1_CTX] = mfc_dev->fw_buf.dma;
+> +		mfc_dev->dma_base[BANK2_CTX] = mfc_dev->fw_buf.dma;
 
-Yeah, you are right, there's over 2,100 request_irq() calls in the kernel and 
-perhaps only 1% of them gets tested on real hardware by the time a change gets 
-upstream :-/
+I guess you meant to use fw_buf->dma here? Since otherwise the fw_buf
+variable won't be used.
 
-So in theory we could require all *new* drivers handle this properly, as new 
-drivers tend to come through developers who can fix such bugs - which would at 
-least guarantee that with time the problem would obsolete itself.
+> +		vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
+> +
+> +		return 0;
+>  	}
+>  
+>  	/*
+> @@ -1147,6 +1158,32 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+>  		return -ENODEV;
+>  	}
+>  
+> +	/* Allocate memory for firmware and initialize both banks addresses */
+> +	ret = s5p_mfc_alloc_firmware(mfc_dev);
+> +	if (ret)
 
-But I cannot see an easy non-intrusive way to do that - we'd have to rename all 
-existing request_irq() calls:
+Shouldn't you have to unregister both banks devices here in the error path?
 
- - We could rename request_irq() to request_irq_legacy() - which does not do the 
-   tests.
+Also, ret is not declared so this patch will cause a compile error, breaking
+git bisect-ability.
 
- - The 'new' request_irq() function would do the tests unconditionally.
+> +		return ret;
+> +
+> +	mfc_dev->dma_base[BANK1_CTX] = mfc_dev->fw_buf.dma;
 
-... and that's just too much churn - unless you think it's worth it, or if anyone 
-can think of a better method to phase in the new behavior without affecting old 
-users.
+Same comment than before, probably you wanted to use fw_buf->dma here?
 
-Another, less intrusive method would be to introduce a new request_irq_shared() 
-API call, mark request_irq() obsolete (without putting warnings into the build 
-though), and put a check into checkpatch that warns about request_irq() use.
+The rest of the patch looks good to me. 
 
-The flip side would be that:
-
- - request_irq() is such a nice and well-known name to waste
-
- - plus request_irq_shared() is a misnomer, as this has nothing to do with sharing 
-   IRQs, it's about getting IRQs in unexpected moments.
-
-I'd rather do the renaming that is easy to automate and the pain is one time only.
-
-Or revert the retrigger change and muddle through, although as per Thomas's 
-observations spurious interrupts are very common.
-
-Thanks,
-
-	Ingo
+Best regards,
+-- 
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
