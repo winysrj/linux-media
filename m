@@ -1,87 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f174.google.com ([209.85.223.174]:33934 "EHLO
-        mail-io0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751507AbdB0WT1 (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:55356 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933226AbdBQK5g (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Feb 2017 17:19:27 -0500
+        Fri, 17 Feb 2017 05:57:36 -0500
+Date: Fri, 17 Feb 2017 10:56:24 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v4 00/36] i.MX Media Driver
+Message-ID: <20170217105624.GC21222@n2100.armlinux.org.uk>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+ <20170216222006.GA21222@n2100.armlinux.org.uk>
+ <923326d6-43fe-7328-d959-14fd341e47ae@gmail.com>
+ <20170216225742.GB21222@n2100.armlinux.org.uk>
+ <1487327951.3107.19.camel@pengutronix.de>
 MIME-Version: 1.0
-In-Reply-To: <20170227154124.GA20569@gmail.com>
-References: <58b07b30.9XFLj9Hhl7F6HMc2%fengguang.wu@intel.com>
- <CA+55aFytXj+TZ_TanbxcY0KgRTrV7Vvr=fWON8tioUGmYHYiNA@mail.gmail.com>
- <20170225090741.GA20463@gmail.com> <CA+55aFy+ER8cYV02eZsKAOLnZBWY96zNWqUFWSWT1+3sZD4XnQ@mail.gmail.com>
- <alpine.DEB.2.20.1702271105090.4732@nanos> <alpine.DEB.2.20.1702271231410.4732@nanos>
- <20170227154124.GA20569@gmail.com>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Mon, 27 Feb 2017 11:23:21 -0800
-Message-ID: <CA+55aFxwtkOs95R-v7z8yjguvp91oDTxRKs-x3uN_=sM_33Gvg@mail.gmail.com>
-Subject: Re: [WARNING: A/V UNSCANNABLE][Merge tag 'media/v4.11-1' of git]
- ff58d005cd: BUG: unable to handle kernel NULL pointer dereference at 0000039c
-To: Ingo Molnar <mingo@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>,
-        kernel test robot <fengguang.wu@intel.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sean Young <sean@mess.org>,
-        Ruslan Ruslichenko <rruslich@cisco.com>, LKP <lkp@01.org>,
-        "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-        kernel@stlinux.com,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-mediatek@lists.infradead.org,
-        linux-amlogic@lists.infradead.org,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Linux LED Subsystem <linux-leds@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>, wfg@linux.intel.com,
-        Peter Zijlstra <peterz@infradead.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1487327951.3107.19.camel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 27, 2017 at 7:41 AM, Ingo Molnar <mingo@kernel.org> wrote:
->
-> BTW., instead of trying to avoid the scenario, wow about moving in the other
-> direction: making CONFIG_DEBUG_SHIRQ=y unconditional property in the IRQ core code
-> starting from v4.12 or so
+On Fri, Feb 17, 2017 at 11:39:11AM +0100, Philipp Zabel wrote:
+> On Thu, 2017-02-16 at 22:57 +0000, Russell King - ARM Linux wrote:
+> > On Thu, Feb 16, 2017 at 02:27:41PM -0800, Steve Longerbeam wrote:
+> > > 
+> > > 
+> > > On 02/16/2017 02:20 PM, Russell King - ARM Linux wrote:
+> > > >On Wed, Feb 15, 2017 at 06:19:02PM -0800, Steve Longerbeam wrote:
+> > > >>In version 4:
+> > > >
+> > > >With this version, I get:
+> > > >
+> > > >[28762.892053] imx6-mipi-csi2: LP-11 timeout, phy_state = 0x00000000
+> > > >[28762.899409] ipu1_csi0: pipeline_set_stream failed with -110
+> > > >
+> > > 
+> > > Right, in the imx219, on exit from s_power(), the clock and data lanes
+> > > must be placed in the LP-11 state. This has been done in the ov5640 and
+> > > tc358743 subdevs.
+> > 
+> > The only way to do that is to enable streaming from the sensor, wait
+> > an initialisation time, and then disable streaming, and wait for the
+> > current line to finish.  There is _no_ other way to get the sensor to
+> > place its clock and data lines into LP-11 state.
+> 
+> I thought going through LP-11 is part of the D-PHY transmitter
+> initialization, during the LP->HS wakeup sequence. But then I have no
+> access to MIPI specs.
 
-The problem is that it's generally almost undebuggable ahead of time
-by developers, and most users won't be able to do good reports either,
-because the symptom is geberally a boot-time crash, often with no
-logs.
+The D-PHY transmitter initialisation *only* happens as part of the
+wake-up from standby to streaming mode.  That is because Sony expect
+that you program the sensor, and then when you switch it to streaming
+mode, it computes the D-PHY parameters from the PLL, input clock rate
+(you have to tell it the clock rate in 1/256 MHz units), number of
+lanes, and other parameters.
 
-So this option is *not* good for actual users. It's been tried before.
+It is possible to program the D-PHY parameters manually, but that
+doesn't change the above sequence in any way (it just avoids the
+chip computing the values, it doesn't result in any change of
+behaviour on the bus.)
 
-It's a wonderful thing for developers to run with to make sure the
-drivers they are working on are resilient to this problem, but we have
-too many legacy drivers and lots of random users, and it's unrealistic
-to expect them to handle it.
+The IMX219 specifications are clear: the clock and data lines are
+held low (LP-00 state) after releasing the hardware enable signal.
+There's a period of chip initialisation, and then you can access the
+I2C bus and configure it.  There's a further period of initialisation
+where charge pumps are getting to their operating state.  Then, you
+set the streaming bit, and a load more initialisation happens before
+the CSI bus enters LP-11 state and the first frame pops out.  When
+entering standby, the last frame is completed, and then the CSI bus
+enters LP-11 state.
 
-In other words: what will happen is that distros start getting bootup
-problem reports six months or a year after we've done it, and *if*
-they figure out it's the irq enabling, they'll disable it, because
-they have no way to solve it either.
+SMIA are slightly different - mostly following what I've said above,
+but the clock and data lines are tristated after releasing the
+xshutdown signal, and they remain tristated until the clock line
+starts toggling before the first frame appears.  There appears to
+be no point that the clock line enters LP-11 state before it starts
+toggling.  When entering standby, the last frame is completed, and
+the CSI bus enters tristate mode (so floating.)  There is no way to
+get these sensors into LP-11 state.
 
-And core developers will just maybe see the occasional "4.12 doesn't
-boot for me" reports, but by then developers will ahve moved on to
-4.16 or something.
-
-So I don't disagree that in a perfect world all drivers should just
-handle it. It's just that it's not realistic.
-
-The fact that we have now *twice* gotten an oops report or a "this
-machine doesn't boot" report etc within a week or so of merging the
-problematic patch does *not* indicate that it's easy to fix or rare.
-
-Quite the reverse.
-
-It indicates that it's just rare enough that core developers don't see
-it, but it's common enough to have triggered issues in random places.
-
-And it will just get *much* worse when you then get the random
-end-users that usually have older machines than the developers who
-actually test daily development -git trees.
-
-Then we'll just hit *other* random places, and without having testers
-that are competent and willing or able to bisect or debug.
-
-                  Linus
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
