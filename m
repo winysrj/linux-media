@@ -1,48 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:44857 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751437AbdB0OYy (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56901
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932655AbdBQUYb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Feb 2017 09:24:54 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 4/9] cec: return -EPERM when no LAs are configured
-Date: Mon, 27 Feb 2017 15:20:37 +0100
-Message-Id: <20170227142042.37085-5-hverkuil@xs4all.nl>
-In-Reply-To: <20170227142042.37085-1-hverkuil@xs4all.nl>
-References: <20170227142042.37085-1-hverkuil@xs4all.nl>
+        Fri, 17 Feb 2017 15:24:31 -0500
+Subject: Re: [PATCH 13/15] media: s5p-mfc: Remove special configuration of
+ IOMMU domain
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+References: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170214075220eucas1p1451535e571c481c69aacec705a782c09@eucas1p1.samsung.com>
+ <1487058728-16501-14-git-send-email-m.szyprowski@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <30743df2-b16a-df98-a2b0-b72fdd2e6678@osg.samsung.com>
+Date: Fri, 17 Feb 2017 17:24:24 -0300
+MIME-Version: 1.0
+In-Reply-To: <1487058728-16501-14-git-send-email-m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hello Marek,
 
-The CEC_TRANSMIT ioctl now returns -EPERM if an attempt is made to
-transmit a message for an unconfigured adapter (i.e. userspace
-never called CEC_ADAP_S_LOG_ADDRS).
+On 02/14/2017 04:52 AM, Marek Szyprowski wrote:
+> The main reason for using special configuration of IOMMU domain was the
+> problem with MFC firmware, which failed to operate properly when placed
+> at 0 DMA address. Instead of adding custom code for configuring each
+> variant of IOMMU domain and architecture specific glue code, simply use
+> what arch code provides and if the DMA base address equals zero, skip
+> first 128 KiB to keep required alignment. This patch also make the driver
+> operational on ARM64 architecture, because it no longer depends on ARM
+> specific DMA-mapping and IOMMU glue code functions.
+> 
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
 
-This differentiates this case from when LAs are configured, but no
-physical address is set. In that case -ENONET is returned.
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/cec/cec-api.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/cec/cec-api.c b/drivers/media/cec/cec-api.c
-index 627cdf7b12d1..cea350ea2a52 100644
---- a/drivers/media/cec/cec-api.c
-+++ b/drivers/media/cec/cec-api.c
-@@ -198,7 +198,9 @@ static long cec_transmit(struct cec_adapter *adap, struct cec_fh *fh,
- 		return -EINVAL;
- 
- 	mutex_lock(&adap->lock);
--	if (adap->is_configuring)
-+	if (adap->log_addrs.num_log_addrs == 0)
-+		err = -EPERM;
-+	else if (adap->is_configuring)
- 		err = -ENONET;
- 	else if (!adap->is_configured && (msg.msg[0] != 0xf0 || msg.reply))
- 		err = -ENONET;
+Best regards,
 -- 
-2.11.0
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
