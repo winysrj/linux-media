@@ -1,68 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33304
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56244
         "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752688AbdBFPJ7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Feb 2017 10:09:59 -0500
-Date: Mon, 6 Feb 2017 13:09:51 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for v4.10] CEC fixes
-Message-ID: <20170206130951.15e6026d@vento.lan>
+        with ESMTP id S934275AbdBQSEQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Feb 2017 13:04:16 -0500
+Subject: Re: [PATCH 01/15] media: s5p-mfc: Remove unused structures and dead
+ code
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+References: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170214075214eucas1p10569ef126fbab2e3f3ca2c9818c9b4d6@eucas1p1.samsung.com>
+ <1487058728-16501-2-git-send-email-m.szyprowski@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <bb1a9a0c-6bbd-d852-434b-12fdd726499a@osg.samsung.com>
+Date: Fri, 17 Feb 2017 14:40:16 -0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <1487058728-16501-2-git-send-email-m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+Hello Marek,
 
-Please pull from:
+On 02/14/2017 04:51 AM, Marek Szyprowski wrote:
+> Remove unused structures, definitions and functions that are no longer
+> called from the driver code.
+> 
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.10-3
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-For a few documentation fixes at CEC (with got promoted from staging for 4.10),
-and one fix on its core.
+Also on an Exynos5422 Odroid XU4 and Exyos5800 Peach Pi boards:
 
-Thanks!
-Mauro
+Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
--
-
-The following changes since commit 0e0694ff1a7791274946b7f51bae692da0001a08:
-
-  Merge branch 'patchwork' into v4l_for_linus (2016-12-26 14:09:28 -0200)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.10-3
-
-for you to fetch changes up to f9f96fc10c09ca16e336854c08bc1563eed97985:
-
-  [media] cec: fix wrong last_la determination (2017-01-30 11:42:31 -0200)
-
-----------------------------------------------------------------
-media fixes for v4.10
-
-----------------------------------------------------------------
-Hans Verkuil (3):
-      [media] cec rst: remove "This API is not yet finalized" notice
-      [media] cec-intro.rst: mention the v4l-utils package and CEC utilities
-      [media] cec: fix wrong last_la determination
-
- Documentation/media/uapi/cec/cec-func-close.rst         |  5 -----
- Documentation/media/uapi/cec/cec-func-ioctl.rst         |  5 -----
- Documentation/media/uapi/cec/cec-func-open.rst          |  5 -----
- Documentation/media/uapi/cec/cec-func-poll.rst          |  5 -----
- Documentation/media/uapi/cec/cec-intro.rst              | 17 ++++++++++++-----
- Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst    |  5 -----
- .../media/uapi/cec/cec-ioc-adap-g-log-addrs.rst         |  5 -----
- .../media/uapi/cec/cec-ioc-adap-g-phys-addr.rst         |  5 -----
- Documentation/media/uapi/cec/cec-ioc-dqevent.rst        |  5 -----
- Documentation/media/uapi/cec/cec-ioc-g-mode.rst         |  5 -----
- Documentation/media/uapi/cec/cec-ioc-receive.rst        |  5 -----
- drivers/media/cec/cec-adap.c                            |  2 +-
- 12 files changed, 13 insertions(+), 56 deletions(-)
-
+Best regards,
+-- 
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
