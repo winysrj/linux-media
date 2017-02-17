@@ -1,40 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:34507 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753605AbdBMPlI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 10:41:08 -0500
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id 7A38620295
-        for <linux-media@vger.kernel.org>; Mon, 13 Feb 2017 17:40:55 +0200 (EET)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/1] smiapp: Make VANA regulator optional
-Date: Mon, 13 Feb 2017 17:39:29 +0200
-Message-Id: <1487000369-2188-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56199
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S934096AbdBQRyQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Feb 2017 12:54:16 -0500
+Subject: Re: [PATCH 03/15] media: s5p-mfc: Replace mem_dev_* entries with an
+ array
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+References: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170214075215eucas1p2c3c06daf02ca5b3d29bce024fc9898e1@eucas1p2.samsung.com>
+ <1487058728-16501-4-git-send-email-m.szyprowski@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <d64d73fe-380f-15cd-63e6-e72648e9549a@osg.samsung.com>
+Date: Fri, 17 Feb 2017 14:47:06 -0300
+MIME-Version: 1.0
+In-Reply-To: <1487058728-16501-4-git-send-email-m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On ACPI based systems ACPI will control the camera module's power
-resources. In that case the sensor driver does not explicitly need to
-control them, thus make them optional.
+Hello Marek,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On 02/14/2017 04:51 AM, Marek Szyprowski wrote:
+> Internal MFC driver device structure contains two pointers to devices used
+> for DMA memory allocation: mem_dev_l and mem_dev_r. Replace them with the
+> mem_dev[] array and use defines for accessing particular banks. This will
+> help to simplify code in the next patches.
+> 
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index f4e92bd..1a56763 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2878,7 +2878,7 @@ static int smiapp_probe(struct i2c_client *client,
- 	v4l2_i2c_subdev_init(&sensor->src->sd, client, &smiapp_ops);
- 	sensor->src->sd.internal_ops = &smiapp_internal_src_ops;
- 
--	sensor->vana = devm_regulator_get(&client->dev, "vana");
-+	sensor->vana = devm_regulator_get_optional(&client->dev, "vana");
- 	if (IS_ERR(sensor->vana)) {
- 		dev_err(&client->dev, "could not get regulator for vana\n");
- 		return PTR_ERR(sensor->vana);
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
+Best regards,
 -- 
-2.7.4
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
