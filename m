@@ -1,80 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:53100 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751364AbdB0SA1 (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56205
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S934096AbdBQRy1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Feb 2017 13:00:27 -0500
-Date: Mon, 27 Feb 2017 17:46:51 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Daniel Vetter <daniel@ffwll.ch>, linux-media@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org,
+        Fri, 17 Feb 2017 12:54:27 -0500
+Subject: Re: [PATCH 04/15] media: s5p-mfc: Replace bank1/bank2 entries with an
+ array
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+References: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170214075216eucas1p24d953cf4977047973c5f030f4cb331f1@eucas1p2.samsung.com>
+ <1487058728-16501-5-git-send-email-m.szyprowski@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
         Krzysztof Kozlowski <krzk@kernel.org>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        dri-devel@lists.freedesktop.org,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCHv4 1/9] video: add hotplug detect notifier support
-Message-ID: <20170227174650.GB21222@n2100.armlinux.org.uk>
-References: <20170206102951.12623-1-hverkuil@xs4all.nl>
- <20170206102951.12623-2-hverkuil@xs4all.nl>
- <20170227160841.3pgmpqwtidvjbnzn@phenom.ffwll.local>
- <20170227170454.GA21222@n2100.armlinux.org.uk>
- <bdc5a7a5-301d-c375-cbc0-6c119f06afc1@xs4all.nl>
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <fc4b773f-6b5c-0e6d-792d-b7b291906bda@osg.samsung.com>
+Date: Fri, 17 Feb 2017 14:54:18 -0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <bdc5a7a5-301d-c375-cbc0-6c119f06afc1@xs4all.nl>
+In-Reply-To: <1487058728-16501-5-git-send-email-m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 27, 2017 at 06:21:05PM +0100, Hans Verkuil wrote:
-> On 02/27/2017 06:04 PM, Russell King - ARM Linux wrote:
-> > I'm afraid that I walked away from this after it became clear that there
-> > was little hope for any forward progress being made in a timely manner
-> > for multiple reasons (mainly the core CEC code being out of mainline.)
+Hello Marek,
+
+On 02/14/2017 04:51 AM, Marek Szyprowski wrote:
+> Internal MFC driver device structure contains two entries for keeping
+> addresses of the DMA memory banks. Replace them with the dma_base[] array
+> and use defines for accessing particular banks. This will help to simplify
+> code in the next patches.
 > 
-> In case you missed it: the core CEC code was moved out of staging and into
-> mainline in 4.10.
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
 
-I was aware (even though I've not been publishing anything, I do keep
-dw-hdmi-cec and tda9950/tda998x up to date with every final kernel
-release.)
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-> > If you can think of a better approach, then I'm sure there's lots of
-> > people who'd be willing to do the coding for it... if not, I'm not
-> > sure where we go from here (apart from keeping code in private/vendor
-> > trees.)
-> 
-> For CEC there are just two things that it needs: the physical address
-> (contained in the EDID) and it needs to be informed when the EDID disappears
-> (typically due to a disconnect), in which case the physical address
-> becomes invalid (f.f.f.f).
-
-Yep.  CEC really only needs to know "have new phys address" and
-"disconnect" provided that CEC drivers understand that they may receive
-a new phys address with no intervening disconnect.  (Consider the case
-where EDID changes, but the HDMI driver failed to spot the HPD signal
-pulse - unfortunately, there's hardware out there where HPD is next to
-useless.)
-
-> Russell, do you have pending code that needs the ELD support in the
-> notifier?  CEC doesn't need it, so from my perspective it can be
-> dropped in the first version.
-
-I was looking for that while writing the previous mail, and I think
-it's time to drop it - I had thought dw-hdmi-*audio would use it, or
-the ASoC people, but it's still got no users, so I think it's time
-to drop it.
-
-I have seen some patch sets go by which are making use of the notifier,
-but I haven't paid close attention to how they're using it or what
-they're using it for... as I sort of implied in my previous mail, I
-had lost interest in mainline wrt CEC stuff due to the glacial rate
-of progress.  (That's not a criticism.)
-
+Best regards,
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
