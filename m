@@ -1,45 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:8794 "EHLO
-        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752250AbdBUNVT (ORCPT
+Received: from smtprelay4.synopsys.com ([198.182.47.9]:51293 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933336AbdBQNTT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Feb 2017 08:21:19 -0500
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: [PATCH] dma-buf: add support for compat ioctl
-Date: Tue, 21 Feb 2017 14:21:01 +0100
-Message-id: <1487683261-2655-1-git-send-email-m.szyprowski@samsung.com>
-References: <CGME20170221132114eucas1p2e527d5b5516494ba54aa91f48b3e227f@eucas1p2.samsung.com>
+        Fri, 17 Feb 2017 08:19:19 -0500
+From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org
+Cc: vladimir_zapolskiy@mentor.com, CARLOS.PALMINHA@synopsys.com,
+        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pavel Machek <pavel@ucw.cz>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Rob Herring <robh+dt@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+Subject: [PATCH v9 0/2] Add support for Omnivision OV5647
+Date: Fri, 17 Feb 2017 13:14:14 +0000
+Message-Id: <cover.1487334912.git.roliveir@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add compat ioctl support to dma-buf. This lets one to use DMA_BUF_IOCTL_SYNC
-ioctl from 32bit application on 64bit kernel. Data structures for both 32
-and 64bit modes are same, so there is no need for additional translation
-layer.
+Hello,
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/dma-buf/dma-buf.c | 3 +++
- 1 file changed, 3 insertions(+)
+This patchset adds support for the Omnivision OV5647 sensor.
 
-diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-index 718f832a5c71..0007b792827b 100644
---- a/drivers/dma-buf/dma-buf.c
-+++ b/drivers/dma-buf/dma-buf.c
-@@ -325,6 +325,9 @@ static long dma_buf_ioctl(struct file *file,
- 	.llseek		= dma_buf_llseek,
- 	.poll		= dma_buf_poll,
- 	.unlocked_ioctl	= dma_buf_ioctl,
-+#ifdef CONFIG_COMPAT
-+	.compat_ioctl	= dma_buf_ioctl,
-+#endif
- };
- 
- /*
+At the moment it only supports 640x480 in RAW 8.
+
+This is the ninth version of the OV5647 camera driver patchset.
+
+v9:
+ - Remove unused struct
+ - Remove comments
+ - Refactor error handling in i2c r/w functions
+ - Change declarations to single line.
+ - Remove value assignment in variable declarion
+ - Refactor configurion write loop 
+ - Change the variable type that received ov5647_read() read value
+ - Remove print from probe function
+ - Remove unused device struct
+ - Remove OF dependency from Kconfig
+Suggested-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+
+v8:
+ - Remove a part of the initialization procedure which wasn't doing 
+ anything
+ - Check for i2c read/writes return values
+ - Add stream_on/off functions
+Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+v7:
+ - Remove "0x" and leading 0 from DT documentation examples
+
+v6:
+ - Add example to DT documentation
+ - Remove data-lanes and clock-lane property from DT
+ - Add external clock property to DT
+ - Order includes
+ - Remove unused variables and functions
+ - Add external clock handling
+ - Add power on counter
+ - Change from g/s_parm to g/s_frame_interval
+
+v5:
+ - Refactor code 
+ - Change comments
+ - Add missing error handling in some functions
+
+v4: 
+ - Add correct license
+ - Revert debugging info to generic infrastructure
+ - Turn defines into enums
+ - Correct code style issues
+ - Remove unused defines
+ - Make sure all errors where being handled
+ - Rename some functions to make code more readable
+ - Add some debugging info
+
+v3: 
+ - No changes. Re-submitted due to lack of responses
+
+v2: 
+ - Corrections in DT documentation
+
+
+Ramiro Oliveira (2):
+  Add OV5647 device tree documentation
+  Add support for OV5647 sensor.
+
+ .../devicetree/bindings/media/i2c/ov5647.txt       |  35 ++
+ MAINTAINERS                                        |   7 +
+ drivers/media/i2c/Kconfig                          |  11 +
+ drivers/media/i2c/Makefile                         |   1 +
+ drivers/media/i2c/ov5647.c                         | 638 +++++++++++++++++++++
+ 5 files changed, 692 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
+ create mode 100644 drivers/media/i2c/ov5647.c
+
 -- 
-1.9.1
+2.11.0
