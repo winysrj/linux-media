@@ -1,476 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:48361 "EHLO
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:43589 "EHLO
         metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754437AbdBGQI7 (ORCPT
+        by vger.kernel.org with ESMTP id S1755370AbdBQKkY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Feb 2017 11:08:59 -0500
+        Fri, 17 Feb 2017 05:40:24 -0500
+Message-ID: <1487327951.3107.19.camel@pengutronix.de>
+Subject: Re: [PATCH v4 00/36] i.MX Media Driver
 From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 4/4] media-ctl: add colorimetry support
-Date: Tue,  7 Feb 2017 17:08:50 +0100
-Message-Id: <20170207160850.10299-5-p.zabel@pengutronix.de>
-In-Reply-To: <20170207160850.10299-1-p.zabel@pengutronix.de>
-References: <20170207160850.10299-1-p.zabel@pengutronix.de>
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Fri, 17 Feb 2017 11:39:11 +0100
+In-Reply-To: <20170216225742.GB21222@n2100.armlinux.org.uk>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+         <20170216222006.GA21222@n2100.armlinux.org.uk>
+         <923326d6-43fe-7328-d959-14fd341e47ae@gmail.com>
+         <20170216225742.GB21222@n2100.armlinux.org.uk>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-media-ctl can be used to propagate v4l2 subdevice pad formats from
-source pads of one subdevice to another one's sink pads. These formats
-include colorimetry information, so media-ctl should be able to print
-or change it using the --set/get-v4l2 option.
+On Thu, 2017-02-16 at 22:57 +0000, Russell King - ARM Linux wrote:
+> On Thu, Feb 16, 2017 at 02:27:41PM -0800, Steve Longerbeam wrote:
+> > 
+> > 
+> > On 02/16/2017 02:20 PM, Russell King - ARM Linux wrote:
+> > >On Wed, Feb 15, 2017 at 06:19:02PM -0800, Steve Longerbeam wrote:
+> > >>In version 4:
+> > >
+> > >With this version, I get:
+> > >
+> > >[28762.892053] imx6-mipi-csi2: LP-11 timeout, phy_state = 0x00000000
+> > >[28762.899409] ipu1_csi0: pipeline_set_stream failed with -110
+> > >
+> > 
+> > Right, in the imx219, on exit from s_power(), the clock and data lanes
+> > must be placed in the LP-11 state. This has been done in the ov5640 and
+> > tc358743 subdevs.
+> 
+> The only way to do that is to enable streaming from the sensor, wait
+> an initialisation time, and then disable streaming, and wait for the
+> current line to finish.  There is _no_ other way to get the sensor to
+> place its clock and data lines into LP-11 state.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- utils/media-ctl/libv4l2subdev.c | 263 ++++++++++++++++++++++++++++++++++++++++
- utils/media-ctl/media-ctl.c     |  17 +++
- utils/media-ctl/options.c       |  22 +++-
- utils/media-ctl/v4l2subdev.h    |  80 ++++++++++++
- 4 files changed, 381 insertions(+), 1 deletion(-)
+I thought going through LP-11 is part of the D-PHY transmitter
+initialization, during the LP->HS wakeup sequence. But then I have no
+access to MIPI specs.
+It is unfortunate that the i.MX6 MIPI CSI-2 core needs software
+assistance here, but could it be possible to trigger that sequence in
+the sensor and then without waiting switching to polling for LP-11 state
+in the i.MX6 MIPI CSI-2 receiver?
 
-diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-index 81d6420f..f01ed89c 100644
---- a/utils/media-ctl/libv4l2subdev.c
-+++ b/utils/media-ctl/libv4l2subdev.c
-@@ -511,6 +511,118 @@ static struct media_pad *v4l2_subdev_parse_pad_format(
- 			continue;
- 		}
- 
-+		if (strhazit("colorspace:", &p)) {
-+			enum v4l2_colorspace colorspace;
-+			char *strfield;
-+
-+			for (end = (char *)p; isalnum(*end) || *end == '-';
-+			     ++end);
-+
-+			strfield = strndup(p, end - p);
-+			if (!strfield) {
-+				*endp = (char *)p;
-+				return NULL;
-+			}
-+
-+			colorspace = v4l2_subdev_string_to_colorspace(strfield);
-+			free(strfield);
-+			if (colorspace == (enum v4l2_colorspace)-1) {
-+				media_dbg(media, "Invalid colorspace value '%*s'\n",
-+					  end - p, p);
-+				*endp = (char *)p;
-+				return NULL;
-+			}
-+
-+			format->colorspace = colorspace;
-+
-+			p = end;
-+			continue;
-+		}
-+
-+		if (strhazit("xfer:", &p)) {
-+			enum v4l2_xfer_func xfer_func;
-+			char *strfield;
-+
-+			for (end = (char *)p; isalnum(*end) || *end == '-';
-+			     ++end);
-+
-+			strfield = strndup(p, end - p);
-+			if (!strfield) {
-+				*endp = (char *)p;
-+				return NULL;
-+			}
-+
-+			xfer_func = v4l2_subdev_string_to_xfer_func(strfield);
-+			free(strfield);
-+			if (xfer_func == (enum v4l2_xfer_func)-1) {
-+				media_dbg(media, "Invalid transfer function value '%*s'\n",
-+					  end - p, p);
-+				*endp = (char *)p;
-+				return NULL;
-+			}
-+
-+			format->xfer_func = xfer_func;
-+
-+			p = end;
-+			continue;
-+		}
-+
-+		if (strhazit("ycbcr:", &p)) {
-+			enum v4l2_ycbcr_encoding ycbcr_enc;
-+			char *strfield;
-+
-+			for (end = (char *)p; isalnum(*end) || *end == '-';
-+			     ++end);
-+
-+			strfield = strndup(p, end - p);
-+			if (!strfield) {
-+				*endp = (char *)p;
-+				return NULL;
-+			}
-+
-+			ycbcr_enc = v4l2_subdev_string_to_ycbcr_encoding(strfield);
-+			free(strfield);
-+			if (ycbcr_enc == (enum v4l2_ycbcr_encoding)-1) {
-+				media_dbg(media, "Invalid YCbCr encoding value '%*s'\n",
-+					  end - p, p);
-+				*endp = (char *)p;
-+				return NULL;
-+			}
-+
-+			format->ycbcr_enc = ycbcr_enc;
-+
-+			p = end;
-+			continue;
-+		}
-+
-+		if (strhazit("quantization:", &p)) {
-+			enum v4l2_quantization quantization;
-+			char *strfield;
-+
-+			for (end = (char *)p; isalnum(*end) || *end == '-';
-+			     ++end);
-+
-+			strfield = strndup(p, end - p);
-+			if (!strfield) {
-+				*endp = (char *)p;
-+				return NULL;
-+			}
-+
-+			quantization = v4l2_subdev_string_to_quantization(strfield);
-+			free(strfield);
-+			if (quantization == (enum v4l2_quantization)-1) {
-+				media_dbg(media, "Invalid quantization value '%*s'\n",
-+					  end - p, p);
-+				*endp = (char *)p;
-+				return NULL;
-+			}
-+
-+			format->quantization = quantization;
-+
-+			p = end;
-+			continue;
-+		}
-+
- 		/*
- 		 * Backward compatibility: crop rectangles can be specified
- 		 * implicitly without the 'crop:' property name.
-@@ -839,6 +951,157 @@ enum v4l2_field v4l2_subdev_string_to_field(const char *string)
- 	return (enum v4l2_field)-1;
- }
- 
-+static struct {
-+	const char *name;
-+	enum v4l2_colorspace colorspace;
-+} colorspaces[] = {
-+	{ "default", V4L2_COLORSPACE_DEFAULT },
-+	{ "smpte170m", V4L2_COLORSPACE_SMPTE170M },
-+	{ "smpte240m", V4L2_COLORSPACE_SMPTE240M },
-+	{ "rec709", V4L2_COLORSPACE_REC709 },
-+	{ "bt878", V4L2_COLORSPACE_BT878 },
-+	{ "470m", V4L2_COLORSPACE_470_SYSTEM_M },
-+	{ "470bg", V4L2_COLORSPACE_470_SYSTEM_BG },
-+	{ "jpeg", V4L2_COLORSPACE_JPEG },
-+	{ "srgb", V4L2_COLORSPACE_SRGB },
-+	{ "adobergb", V4L2_COLORSPACE_ADOBERGB },
-+	{ "bt2020", V4L2_COLORSPACE_BT2020 },
-+	{ "dcip3", V4L2_COLORSPACE_DCI_P3 },
-+};
-+
-+const char *v4l2_subdev_colorspace_to_string(enum v4l2_colorspace colorspace)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(colorspaces); ++i) {
-+		if (colorspaces[i].colorspace == colorspace)
-+			return colorspaces[i].name;
-+	}
-+
-+	return "unknown";
-+}
-+
-+enum v4l2_colorspace v4l2_subdev_string_to_colorspace(const char *string)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(colorspaces); ++i) {
-+		if (strcasecmp(colorspaces[i].name, string) == 0)
-+			return colorspaces[i].colorspace;
-+	}
-+
-+	return (enum v4l2_colorspace)-1;
-+}
-+
-+static struct {
-+	const char *name;
-+	enum v4l2_xfer_func xfer_func;
-+} xfer_funcs[] = {
-+	{ "default", V4L2_XFER_FUNC_DEFAULT },
-+	{ "709", V4L2_XFER_FUNC_709 },
-+	{ "srgb", V4L2_XFER_FUNC_SRGB },
-+	{ "adobergb", V4L2_XFER_FUNC_ADOBERGB },
-+	{ "smpte240m", V4L2_XFER_FUNC_SMPTE240M },
-+	{ "smpte2084", V4L2_XFER_FUNC_SMPTE2084 },
-+	{ "dcip3", V4L2_XFER_FUNC_DCI_P3 },
-+	{ "none", V4L2_XFER_FUNC_NONE },
-+};
-+
-+const char *v4l2_subdev_xfer_func_to_string(enum v4l2_xfer_func xfer_func)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(xfer_funcs); ++i) {
-+		if (xfer_funcs[i].xfer_func == xfer_func)
-+			return xfer_funcs[i].name;
-+	}
-+
-+	return "unknown";
-+}
-+
-+enum v4l2_xfer_func v4l2_subdev_string_to_xfer_func(const char *string)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(xfer_funcs); ++i) {
-+		if (strcasecmp(xfer_funcs[i].name, string) == 0)
-+			return xfer_funcs[i].xfer_func;
-+	}
-+
-+	return (enum v4l2_xfer_func)-1;
-+}
-+
-+static struct {
-+	const char *name;
-+	enum v4l2_ycbcr_encoding ycbcr_enc;
-+} ycbcr_encs[] = {
-+	{ "default", V4L2_YCBCR_ENC_DEFAULT },
-+	{ "601", V4L2_YCBCR_ENC_601 },
-+	{ "709", V4L2_YCBCR_ENC_709 },
-+	{ "xv601", V4L2_YCBCR_ENC_XV601 },
-+	{ "xv709", V4L2_YCBCR_ENC_XV709 },
-+	{ "bt2020", V4L2_YCBCR_ENC_BT2020 },
-+	{ "bt2020c", V4L2_YCBCR_ENC_BT2020_CONST_LUM },
-+	{ "smpte240m", V4L2_YCBCR_ENC_SMPTE240M },
-+};
-+
-+const char *v4l2_subdev_ycbcr_encoding_to_string(enum v4l2_ycbcr_encoding ycbcr_enc)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(ycbcr_encs); ++i) {
-+		if (ycbcr_encs[i].ycbcr_enc == ycbcr_enc)
-+			return ycbcr_encs[i].name;
-+	}
-+
-+	return "unknown";
-+}
-+
-+enum v4l2_ycbcr_encoding v4l2_subdev_string_to_ycbcr_encoding(const char *string)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(ycbcr_encs); ++i) {
-+		if (strcasecmp(ycbcr_encs[i].name, string) == 0)
-+			return ycbcr_encs[i].ycbcr_enc;
-+	}
-+
-+	return (enum v4l2_ycbcr_encoding)-1;
-+}
-+
-+static struct {
-+	const char *name;
-+	enum v4l2_quantization quantization;
-+} quantizations[] = {
-+	{ "default", V4L2_QUANTIZATION_DEFAULT },
-+	{ "full-range", V4L2_QUANTIZATION_FULL_RANGE },
-+	{ "lim-range", V4L2_QUANTIZATION_LIM_RANGE },
-+};
-+
-+const char *v4l2_subdev_quantization_to_string(enum v4l2_quantization quantization)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(quantizations); ++i) {
-+		if (quantizations[i].quantization == quantization)
-+			return quantizations[i].name;
-+	}
-+
-+	return "unknown";
-+}
-+
-+enum v4l2_quantization v4l2_subdev_string_to_quantization(const char *string)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(quantizations); ++i) {
-+		if (strcasecmp(quantizations[i].name, string) == 0)
-+			return quantizations[i].quantization;
-+	}
-+
-+	return (enum v4l2_quantization)-1;
-+}
-+
- static const enum v4l2_mbus_pixelcode mbus_codes[] = {
- #include "media-bus-format-codes.h"
- };
-diff --git a/utils/media-ctl/media-ctl.c b/utils/media-ctl/media-ctl.c
-index 1be880c6..9c8cff6a 100644
---- a/utils/media-ctl/media-ctl.c
-+++ b/utils/media-ctl/media-ctl.c
-@@ -101,6 +101,23 @@ static void v4l2_subdev_print_format(struct media_entity *entity,
- 	if (format.field)
- 		printf(" field:%s", v4l2_subdev_field_to_string(format.field));
- 
-+	if (format.colorspace) {
-+		printf(" colorspace:%s",
-+		       v4l2_subdev_colorspace_to_string(format.colorspace));
-+
-+		if (format.xfer_func)
-+			printf(" xfer:%s",
-+			       v4l2_subdev_xfer_func_to_string(format.xfer_func));
-+
-+		if (format.ycbcr_enc)
-+			printf(" ycbcr:%s",
-+			       v4l2_subdev_ycbcr_encoding_to_string(format.ycbcr_enc));
-+
-+		if (format.quantization)
-+			printf(" quantization:%s",
-+			       v4l2_subdev_quantization_to_string(format.quantization));
-+	}
-+
- 	ret = v4l2_subdev_get_selection(entity, &rect, pad,
- 					V4L2_SEL_TGT_CROP_BOUNDS,
- 					which);
-diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
-index 59841bbe..83ca1cac 100644
---- a/utils/media-ctl/options.c
-+++ b/utils/media-ctl/options.c
-@@ -68,7 +68,9 @@ static void usage(const char *argv0)
- 	printf("\tv4l2-properties = v4l2-property { ',' v4l2-property } ;\n");
- 	printf("\tv4l2-property   = v4l2-mbusfmt | v4l2-crop | v4l2-interval\n");
- 	printf("\t                | v4l2-compose | v4l2-interval ;\n");
--	printf("\tv4l2-mbusfmt    = 'fmt:' fcc '/' size ; { 'field:' v4l2-field ; }\n");
-+	printf("\tv4l2-mbusfmt    = 'fmt:' fcc '/' size ; { 'field:' v4l2-field ; } { 'colorspace:' v4l2-colorspace ; }\n");
-+	printf("\t                   { 'xfer:' v4l2-xfer-func ; } { 'ycbcr-enc:' v4l2-ycbcr-enc-func ; }\n");
-+	printf("\t                   { 'quantization:' v4l2-quant ; }\n");
- 	printf("\tv4l2-crop       = 'crop:' rectangle ;\n");
- 	printf("\tv4l2-compose    = 'compose:' rectangle ;\n");
- 	printf("\tv4l2-interval   = '@' numerator '/' denominator ;\n");
-@@ -91,6 +93,24 @@ static void usage(const char *argv0)
- 	for (i = V4L2_FIELD_ANY; i <= V4L2_FIELD_INTERLACED_BT; i++)
- 		printf("\t                %s\n",
- 		       v4l2_subdev_field_to_string(i));
-+
-+	printf("\tv4l2-colorspace One of the following:\n");
-+
-+	for (i = V4L2_COLORSPACE_DEFAULT; i <= V4L2_COLORSPACE_DCI_P3; i++)
-+		printf("\t                %s\n",
-+		       v4l2_subdev_colorspace_to_string(i));
-+
-+	printf("\tv4l2-xfer-func  One of the following:\n");
-+
-+	for (i = V4L2_XFER_FUNC_DEFAULT; i <= V4L2_XFER_FUNC_SMPTE2084; i++)
-+		printf("\t                %s\n",
-+		       v4l2_subdev_xfer_func_to_string(i));
-+
-+	printf("\tv4l2-quant      One of the following:\n");
-+
-+	for (i = V4L2_QUANTIZATION_DEFAULT; i <= V4L2_QUANTIZATION_LIM_RANGE; i++)
-+		printf("\t                %s\n",
-+		       v4l2_subdev_quantization_to_string(i));
- }
- 
- #define OPT_PRINT_DOT			256
-diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
-index 413094d5..a1813911 100644
---- a/utils/media-ctl/v4l2subdev.h
-+++ b/utils/media-ctl/v4l2subdev.h
-@@ -276,6 +276,86 @@ const char *v4l2_subdev_field_to_string(enum v4l2_field field);
- enum v4l2_field v4l2_subdev_string_to_field(const char *string);
- 
- /**
-+ * @brief Convert a colorspace to string.
-+ * @param colorspace - colorspace
-+ *
-+ * Convert colorspace @a colorspace to a human-readable string.
-+ *
-+ * @return A pointer to a string on success, NULL on failure.
-+ */
-+const char *v4l2_subdev_colorspace_to_string(enum v4l2_colorspace colorspace);
-+
-+/**
-+ * @brief Parse string to colorspace.
-+ * @param string - nul terminated string, textual colorspace
-+ *
-+ * Parse human readable string @a string to colorspace.
-+ *
-+ * @return colorspace on success, -1 on failure.
-+ */
-+enum v4l2_colorspace v4l2_subdev_string_to_colorspace(const char *string);
-+
-+/**
-+ * @brief Convert a transfer function to string.
-+ * @param xfer_func - transfer function
-+ *
-+ * Convert transfer function @a xfer_func to a human-readable string.
-+ *
-+ * @return A pointer to a string on success, NULL on failure.
-+ */
-+const char *v4l2_subdev_xfer_func_to_string(enum v4l2_xfer_func xfer_func);
-+
-+/**
-+ * @brief Parse string to transfer function.
-+ * @param string - nul terminated string, textual transfer function
-+ *
-+ * Parse human readable string @a string to xfer_func.
-+ *
-+ * @return xfer_func on success, -1 on failure.
-+ */
-+enum v4l2_xfer_func v4l2_subdev_string_to_xfer_func(const char *string);
-+
-+/**
-+ * @brief Convert a YCbCr encoding to string.
-+ * @param ycbcr_enc - YCbCr encoding
-+ *
-+ * Convert YCbCr encoding @a ycbcr_enc to a human-readable string.
-+ *
-+ * @return A pointer to a string on success, NULL on failure.
-+ */
-+const char *v4l2_subdev_ycbcr_encoding_to_string(enum v4l2_ycbcr_encoding ycbcr_enc);
-+
-+/**
-+ * @brief Parse string to YCbCr encoding.
-+ * @param string - nul terminated string, textual YCbCr encoding
-+ *
-+ * Parse human readable string @a string to YCbCr encoding.
-+ *
-+ * @return ycbcr_enc on success, -1 on failure.
-+ */
-+enum v4l2_ycbcr_encoding v4l2_subdev_string_to_ycbcr_encoding(const char *string);
-+
-+/**
-+ * @brief Convert a quantization to string.
-+ * @param quantization - quantization
-+ *
-+ * Convert quantization @a quantization to a human-readable string.
-+ *
-+ * @return A pointer to a string on success, NULL on failure.
-+ */
-+const char *v4l2_subdev_quantization_to_string(enum v4l2_quantization quantization);
-+
-+/**
-+ * @brief Parse string to quantization.
-+ * @param string - nul terminated string, textual quantization
-+ *
-+ * Parse human readable string @a string to quantization.
-+ *
-+ * @return quantization on success, -1 on failure.
-+ */
-+enum v4l2_quantization v4l2_subdev_string_to_quantization(const char *string);
-+
-+/**
-  * @brief Enumerate library supported media bus pixel codes.
-  * @param length - the number of the supported pixel codes
-  *
--- 
-2.11.0
+> For that to happen, we need to program the sensor a bit more than we
+> currently do at power on (to a minimal resolution, and setting up the
+> PLLs), and introduce another 4ms on top of the 8ms or so that the
+> runtime resume function already takes.
+> 
+> Looking at the SMIA driver, things are worse, and I suspect that it also
+> will not work with the current setup - the SMIA spec shows that the CSI
+> clock and data lines are tristated while the sensor is not streaming,
+> which means they aren't held at a guaranteed LP-11 state, even if that
+> driver momentarily enabled streaming.  Hence, Freescale's (or is it
+> Synopsis') requirement may actually be difficult to satisfy.
+> 
+> However, I regard runtime PM broken with the current imx-capture setup.
+> At the moment, power is controlled at the sensor by whether the media
+> links are enabled.  So, if you have an enabled link coming off the
+> sensor, the sensor will be powered up, whether you're using it or not.
+> 
+> Given that the number of applications out there that know about the
+> media subdevs is really quite small, this combination makes having
+> runtime PM in sensor devices completely pointless - they can't sleep
+> as long as they have an enabled link, which could be persistent over
+> many days or weeks.
 
+regards
+Philipp
