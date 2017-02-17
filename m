@@ -1,108 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56788
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S934613AbdBQUEv (ORCPT
+Received: from mx-out-2.rwth-aachen.de ([134.130.5.187]:26000 "EHLO
+        mx-out-2.rwth-aachen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754701AbdBQAzq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Feb 2017 15:04:51 -0500
-Subject: Re: [PATCH 11/15] media: s5p-mfc: Split variant DMA memory
- configuration into separate functions
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-References: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20170214075219eucas1p193de247c3127167d68a2cca922e83fb3@eucas1p1.samsung.com>
- <1487058728-16501-12-git-send-email-m.szyprowski@samsung.com>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>
-Message-ID: <fc726a1a-b1f3-0301-2432-f568eeeeec5d@osg.samsung.com>
-Date: Fri, 17 Feb 2017 17:04:43 -0300
+        Thu, 16 Feb 2017 19:55:46 -0500
+From: =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>
+To: <linux-media@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Antti Palosaari <crope@iki.fi>,
+        =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>
+Subject: [PATCH v3 2/3] [media] si2168: add support for Si2168-D60
+Date: Fri, 17 Feb 2017 01:55:32 +0100
+In-Reply-To: <20170217005533.22424-1-stefan.bruens@rwth-aachen.de>
+References: <20170217005533.22424-1-stefan.bruens@rwth-aachen.de>
 MIME-Version: 1.0
-In-Reply-To: <1487058728-16501-12-git-send-email-m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Message-ID: <464caa957d024d40a6dc936105a1a76f@rwthex-w2-b.rwth-ad.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Marek,
+Add handling for new revision, requiring new firmware.
 
-On 02/14/2017 04:52 AM, Marek Szyprowski wrote:
-> Move code for DMA memory configuration with IOMMU into separate function
-> to make it easier to compare what is being done in each case.
-> 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc.c | 102 ++++++++++++++++++-------------
->  1 file changed, 61 insertions(+), 41 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> index 92a88c20b26d..a18740c81c55 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> @@ -1107,41 +1107,13 @@ static struct device *s5p_mfc_alloc_memdev(struct device *dev,
->  	return NULL;
->  }
->  
-> -static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
-> +static int s5p_mfc_configure_2port_memory(struct s5p_mfc_dev *mfc_dev)
->  {
->  	struct device *dev = &mfc_dev->plat_dev->dev;
->  	void *bank2_virt;
->  	dma_addr_t bank2_dma_addr;
->  	unsigned long align_size = 1 << MFC_BASE_ALIGN_ORDER;
-> -	struct s5p_mfc_priv_buf *fw_buf = &mfc_dev->fw_buf;
-> -
-> -	/*
-> -	 * When IOMMU is available, we cannot use the default configuration,
-> -	 * because of MFC firmware requirements: address space limited to
-> -	 * 256M and non-zero default start address.
-> -	 * This is still simplified, not optimal configuration, but for now
-> -	 * IOMMU core doesn't allow to configure device's IOMMUs channel
-> -	 * separately.
-> -	 */
-> -	if (exynos_is_iommu_available(dev)) {
-> -		int ret = exynos_configure_iommu(dev, S5P_MFC_IOMMU_DMA_BASE,
-> -						 S5P_MFC_IOMMU_DMA_SIZE);
-> -		if (ret)
-> -			return ret;
-> -
-> -		mfc_dev->mem_dev[BANK1_CTX] = mfc_dev->mem_dev[BANK2_CTX] = dev;
-> -		ret = s5p_mfc_alloc_firmware(mfc_dev);
-> -		if (ret) {
-> -			exynos_unconfigure_iommu(dev);
-> -			return ret;
-> -		}
-> -
-> -		mfc_dev->dma_base[BANK1_CTX] = mfc_dev->fw_buf.dma;
-> -		mfc_dev->dma_base[BANK2_CTX] = mfc_dev->fw_buf.dma;
-> -		vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
-> -
-> -		return 0;
-> -	}
-> +	int ret;
+Signed-off-by: Stefan Brüns <stefan.bruens@rwth-aachen.de>
+---
+ drivers/media/dvb-frontends/si2168.c      | 4 ++++
+ drivers/media/dvb-frontends/si2168_priv.h | 2 ++
+ 2 files changed, 6 insertions(+)
 
-This should be declared in patch 8/15.
-
->  
->  	/*
->  	 * Create and initialize virtual devices for accessing
-> @@ -1188,26 +1160,74 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
->  					DMA_BIT_MASK(32));
->  	vb2_dma_contig_set_max_seg_size(mfc_dev->mem_dev[BANK2_CTX],
->  					DMA_BIT_MASK(32));
-> -
-
-This seems to be an unrelated change.
-
-The rest looks good to me.
-
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
-
-Best regards,
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index 20b4a659e2e4..28f3bbe0af25 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -674,6 +674,9 @@ static int si2168_probe(struct i2c_client *client,
+ 	case SI2168_CHIP_ID_B40:
+ 		dev->firmware_name = SI2168_B40_FIRMWARE;
+ 		break;
++	case SI2168_CHIP_ID_D60:
++		dev->firmware_name = SI2168_D60_FIRMWARE;
++		break;
+ 	default:
+ 		dev_dbg(&client->dev, "unknown chip version Si21%d-%c%c%c\n",
+ 			cmd.args[2], cmd.args[1], cmd.args[3], cmd.args[4]);
+@@ -761,3 +764,4 @@ MODULE_LICENSE("GPL");
+ MODULE_FIRMWARE(SI2168_A20_FIRMWARE);
+ MODULE_FIRMWARE(SI2168_A30_FIRMWARE);
+ MODULE_FIRMWARE(SI2168_B40_FIRMWARE);
++MODULE_FIRMWARE(SI2168_D60_FIRMWARE);
+diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
+index 7843ccb448a0..4baa95b7d648 100644
+--- a/drivers/media/dvb-frontends/si2168_priv.h
++++ b/drivers/media/dvb-frontends/si2168_priv.h
+@@ -25,6 +25,7 @@
+ #define SI2168_A20_FIRMWARE "dvb-demod-si2168-a20-01.fw"
+ #define SI2168_A30_FIRMWARE "dvb-demod-si2168-a30-01.fw"
+ #define SI2168_B40_FIRMWARE "dvb-demod-si2168-b40-01.fw"
++#define SI2168_D60_FIRMWARE "dvb-demod-si2168-d60-01.fw"
+ #define SI2168_B40_FIRMWARE_FALLBACK "dvb-demod-si2168-02.fw"
+ 
+ /* state struct */
+@@ -37,6 +38,7 @@ struct si2168_dev {
+ 	#define SI2168_CHIP_ID_A20 ('A' << 24 | 68 << 16 | '2' << 8 | '0' << 0)
+ 	#define SI2168_CHIP_ID_A30 ('A' << 24 | 68 << 16 | '3' << 8 | '0' << 0)
+ 	#define SI2168_CHIP_ID_B40 ('B' << 24 | 68 << 16 | '4' << 8 | '0' << 0)
++	#define SI2168_CHIP_ID_D60 ('D' << 24 | 68 << 16 | '6' << 8 | '0' << 0)
+ 	unsigned int chip_id;
+ 	unsigned int version;
+ 	const char *firmware_name;
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+2.11.0
