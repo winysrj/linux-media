@@ -1,125 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:51969 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750751AbdBNFN2 (ORCPT
+Received: from userp1050.oracle.com ([156.151.31.82]:28587 "EHLO
+        userp1050.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964855AbdBQXWb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Feb 2017 00:13:28 -0500
-Message-ID: <0f76ea29f3a3bbc54e3ee893d618aa9a@smtp-cloud3.xs4all.net>
-Date: Tue, 14 Feb 2017 06:13:25 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Fri, 17 Feb 2017 18:22:31 -0500
+Date: Sat, 18 Feb 2017 02:20:15 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Stephen Warren <swarren@wwwdotorg.org>,
+        Lee Jones <lee@kernel.org>, Eric Anholt <eric@anholt.net>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Ray Jui <rjui@broadcom.com>,
+        Scott Branden <sbranden@broadcom.com>,
+        bcm-kernel-feedback-list@broadcom.com,
+        Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-rpi-kernel@lists.infradead.org,
+        kernel-janitors@vger.kernel.org
+Subject: [patch v2] staging: bcm2835-camera: fix error handling in init
+Message-ID: <20170217232015.GA26717@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <58A44DFB.6090105@bfs.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The unwinding here isn't right.  We don't free gdev[0] and instead
+free 1 step past what was allocated.  Also we can't allocate "dev" then
+we should unwind instead of returning directly.
 
-Results of the daily build of media_tree:
+Fixes: 7b3ad5abf027 ("staging: Import the BCM2835 MMAL-based V4L2 camera driver.")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+v2: Change the style to make Walter Harms happy.  Fix some additional
+    bugs I missed in the first patch.
 
-date:			Tue Feb 14 05:00:17 CET 2017
-media-tree git hash:	9eeb0ed0f30938f31a3d9135a88b9502192c18dd
-media_build git hash:	785cdf7f0798964681b33aad44fc2ff4d734733d
-v4l-utils git hash:	90257a21f8f73f4616b3572402eaf490b4f71f79
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.8.0-164
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10-rc3-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-x86_64: OK
-linux-4.10-rc3-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/staging/media/platform/bcm2835/bcm2835-camera.c b/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
+index ca15a698e018..c4dad30dd133 100644
+--- a/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
++++ b/drivers/staging/media/platform/bcm2835/bcm2835-camera.c
+@@ -1901,6 +1901,7 @@ static int __init bm2835_mmal_init(void)
+ 	unsigned int num_cameras;
+ 	struct vchiq_mmal_instance *instance;
+ 	unsigned int resolutions[MAX_BCM2835_CAMERAS][2];
++	int i;
+ 
+ 	ret = vchiq_mmal_init(&instance);
+ 	if (ret < 0)
+@@ -1914,8 +1915,10 @@ static int __init bm2835_mmal_init(void)
+ 
+ 	for (camera = 0; camera < num_cameras; camera++) {
+ 		dev = kzalloc(sizeof(struct bm2835_mmal_dev), GFP_KERNEL);
+-		if (!dev)
+-			return -ENOMEM;
++		if (!dev) {
++			ret = -ENOMEM;
++			goto cleanup_gdev;
++		}
+ 
+ 		dev->camera_num = camera;
+ 		dev->max_width = resolutions[camera][0];
+@@ -1998,9 +2001,10 @@ static int __init bm2835_mmal_init(void)
+ free_dev:
+ 	kfree(dev);
+ 
+-	for ( ; camera > 0; camera--) {
+-		bcm2835_cleanup_instance(gdev[camera]);
+-		gdev[camera] = NULL;
++cleanup_gdev:
++	for (i = 0; i < camera; i++) {
++		bcm2835_cleanup_instance(gdev[i]);
++		gdev[i] = NULL;
+ 	}
+ 	pr_info("%s: error %d while loading driver\n",
+ 		BM2835_MMAL_MODULE_NAME, ret);
