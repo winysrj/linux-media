@@ -1,95 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:36520 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753289AbdBPCUZ (ORCPT
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:38489 "EHLO
+        mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752574AbdBQKrC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 21:20:25 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v4 12/36] add mux and video interface bridge entity functions
-Date: Wed, 15 Feb 2017 18:19:14 -0800
-Message-Id: <1487211578-11360-13-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+        Fri, 17 Feb 2017 05:47:02 -0500
+Received: by mail-wm0-f41.google.com with SMTP id r141so7234823wmg.1
+        for <linux-media@vger.kernel.org>; Fri, 17 Feb 2017 02:47:01 -0800 (PST)
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+To: hverkuil@xs4all.nl
+Cc: devicetree@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux@armlinux.org.uk, krzk@kernel.org, javier@osg.samsung.com,
+        hans.verkuil@cisco.com, dri-devel@lists.freedesktop.org,
+        daniel.vetter@intel.com, m.szyprowski@samsung.com,
+        linux-media@vger.kernel.org, robh@kernel.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v3 0/3] video/sti/cec: add HPD notifier support
+Date: Fri, 17 Feb 2017 11:46:49 +0100
+Message-Id: <1487328412-8305-1-git-send-email-benjamin.gaignard@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+This patch series following what Hans is doing on exynos to support
+hotplug detect notifier code.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+It add support of HPD in sti_hdmi drm driver and stih-cec driver which
+move out of staging.
 
-- renamed MEDIA_ENT_F_MUX to MEDIA_ENT_F_VID_MUX
+Those patches should be applied on top of Hans branch exynos4-cec.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- Documentation/media/uapi/mediactl/media-types.rst | 22 ++++++++++++++++++++++
- include/uapi/linux/media.h                        |  6 ++++++
- 2 files changed, 28 insertions(+)
+I have tested hdmi notifier by pluging/unpluging HDMI cable and check
+the value of the physical address with "cec-ctl --tuner".
+"cec-compliance -A" is also functional.
 
-diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
-index 3e03dc2..023be29 100644
---- a/Documentation/media/uapi/mediactl/media-types.rst
-+++ b/Documentation/media/uapi/mediactl/media-types.rst
-@@ -298,6 +298,28 @@ Types and flags used to represent the media graph elements
- 	  received on its sink pad and outputs the statistics data on
- 	  its source pad.
- 
-+    -  ..  row 29
-+
-+       ..  _MEDIA-ENT-F-MUX:
-+
-+       -  ``MEDIA_ENT_F_MUX``
-+
-+       - Video multiplexer. An entity capable of multiplexing must have at
-+         least two sink pads and one source pad, and must pass the video
-+         frame(s) received from the active sink pad to the source pad. Video
-+         frame(s) from the inactive sink pads are discarded.
-+
-+    -  ..  row 30
-+
-+       ..  _MEDIA-ENT-F-VID-IF-BRIDGE:
-+
-+       -  ``MEDIA_ENT_F_VID_IF_BRIDGE``
-+
-+       - Video interface bridge. A video interface bridge entity must have at
-+         least one sink pad and one source pad. It receives video frame(s) on
-+         its sink pad in one bus format (HDMI, eDP, MIPI CSI-2, ...) and
-+         converts them and outputs them on its source pad in another bus format
-+         (eDP, MIPI CSI-2, parallel, ...).
- 
- ..  tabularcolumns:: |p{5.5cm}|p{12.0cm}|
- 
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 4890787..fac96c6 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -105,6 +105,12 @@ struct media_device_info {
- #define MEDIA_ENT_F_PROC_VIDEO_STATISTICS	(MEDIA_ENT_F_BASE + 0x4006)
- 
- /*
-+ * Switch and bridge entitites
-+ */
-+#define MEDIA_ENT_F_VID_MUX			(MEDIA_ENT_F_BASE + 0x5001)
-+#define MEDIA_ENT_F_VID_IF_BRIDGE		(MEDIA_ENT_F_BASE + 0x5002)
-+
-+/*
-  * Connectors
-  */
- /* It is a responsibility of the entity drivers to add connectors and links */
+version 3:
+- change hdmi phandle from "st,hdmi-handle" to "hdmi-handle"
+- fix typo in bindings
+
+version 2:
+- use HPD notifier instead of HDMI notifier
+- move stih-cec out of staging
+- rebase code on top of git://linuxtv.org/hverkuil/media_tree.git exynos4-cec
+  branch
+- split DT modifications in a separate patch
+
+Benjamin Gaignard (3):
+  sti: hdmi: add HPD notifier support
+  stih-cec: add HPD notifier support
+  arm: sti: update sti-cec for HPD notifier support
+
+ .../devicetree/bindings/media/stih-cec.txt         |   2 +
+ arch/arm/boot/dts/stih407-family.dtsi              |  12 -
+ arch/arm/boot/dts/stih410.dtsi                     |  13 +
+ drivers/gpu/drm/sti/Kconfig                        |   1 +
+ drivers/gpu/drm/sti/sti_hdmi.c                     |  14 +
+ drivers/gpu/drm/sti/sti_hdmi.h                     |   3 +
+ drivers/media/platform/Kconfig                     |  10 +
+ drivers/media/platform/Makefile                    |   1 +
+ drivers/media/platform/sti/cec/Makefile            |   1 +
+ drivers/media/platform/sti/cec/stih-cec.c          | 404 +++++++++++++++++++++
+ drivers/staging/media/Kconfig                      |   2 -
+ drivers/staging/media/Makefile                     |   1 -
+ drivers/staging/media/st-cec/Kconfig               |   8 -
+ drivers/staging/media/st-cec/Makefile              |   1 -
+ drivers/staging/media/st-cec/TODO                  |   7 -
+ drivers/staging/media/st-cec/stih-cec.c            | 379 -------------------
+ 16 files changed, 449 insertions(+), 410 deletions(-)
+ create mode 100644 drivers/media/platform/sti/cec/Makefile
+ create mode 100644 drivers/media/platform/sti/cec/stih-cec.c
+ delete mode 100644 drivers/staging/media/st-cec/Kconfig
+ delete mode 100644 drivers/staging/media/st-cec/Makefile
+ delete mode 100644 drivers/staging/media/st-cec/TODO
+ delete mode 100644 drivers/staging/media/st-cec/stih-cec.c
+
 -- 
-2.7.4
+1.9.1
