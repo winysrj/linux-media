@@ -1,99 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:35306 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751242AbdBXBlR (ORCPT
+Received: from smtprelay0216.hostedemail.com ([216.40.44.216]:33065 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753968AbdBQHMS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Feb 2017 20:41:17 -0500
-Subject: Re: [PATCH v4 33/36] media: imx: redo pixel format enumeration and
- negotiation
-To: Philipp Zabel <p.zabel@pengutronix.de>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
- <1487211578-11360-34-git-send-email-steve_longerbeam@mentor.com>
- <1487244744.2377.38.camel@pengutronix.de>
- <9a4a4da7-418e-860e-05ec-da44b3c945cc@gmail.com>
- <1487841019.2916.7.camel@pengutronix.de>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <9d4fe000-f694-7d3d-34f2-a89cd637b3f0@gmail.com>
-Date: Thu, 23 Feb 2017 17:30:57 -0800
-MIME-Version: 1.0
-In-Reply-To: <1487841019.2916.7.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+        Fri, 17 Feb 2017 02:12:18 -0500
+From: Joe Perches <joe@perches.com>
+To: Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+        Karol Herbst <karolherbst@gmail.com>,
+        Pekka Paalanen <ppaalanen@gmail.com>,
+        Richard Weinberger <richard@nod.at>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linuxppc-dev@lists.ozlabs.org, tboot-devel@lists.sourceforge.net,
+        nouveau@lists.freedesktop.org, oprofile-list@lists.sf.net,
+        sfi-devel@simplefirmware.org, xen-devel@lists.xenproject.org,
+        linux-acpi@vger.kernel.org, drbd-dev@lists.linbit.com,
+        virtualization@lists.linux-foundation.org,
+        linux-crypto@vger.kernel.org, linux-ide@vger.kernel.org,
+        gigaset307x-common@lists.sourceforge.net,
+        linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-mtd@lists.infradead.org, devicetree@vger.kernel.org,
+        acpi4asus-user@lists.sourceforge.net,
+        platform-driver-x86@vger.kernel.org, linux-scsi@vger.kernel.org,
+        linux-fbdev@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: linux-alpha@vger.kernel.org,
+        adi-buildroot-devel@lists.sourceforge.net,
+        linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, amd-gfx@lists.freedesktop.org,
+        dri-devel@lists.freedesktop.org, linux-input@vger.kernel.org,
+        netdev@vger.kernel.org
+Subject: [PATCH 00/35] treewide trivial patches converting pr_warning to pr_warn
+Date: Thu, 16 Feb 2017 23:11:13 -0800
+Message-Id: <cover.1487314666.git.joe@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+There are ~4300 uses of pr_warn and ~250 uses of the older
+pr_warning in the kernel source tree.
 
+Make the use of pr_warn consistent across all kernel files.
 
-On 02/23/2017 01:10 AM, Philipp Zabel wrote:
-> Hi Steve,
->
-> On Wed, 2017-02-22 at 15:52 -0800, Steve Longerbeam wrote:
->> Hi Philipp,
->>
->>
->> On 02/16/2017 03:32 AM, Philipp Zabel wrote:
->>> On Wed, 2017-02-15 at 18:19 -0800, Steve Longerbeam wrote:
->>>> The previous API and negotiation of mbus codes and pixel formats
->>>> was broken, and has been completely redone.
->>>>
->>>> The negotiation of media bus codes should be as follows:
->>>>
->>>> CSI:
->>>>
->>>> sink pad     direct src pad      IDMAC src pad
->>>> --------     ----------------    -------------
->>>> RGB (any)        IPU RGB           RGB (any)
->>>> YUV (any)        IPU YUV           YUV (any)
->>>> Bayer              N/A             must be same bayer code as sink
->>>
->>> The IDMAC src pad should also use the internal 32-bit RGB / YUV format,
->>> except if bayer/raw mode is selected, in which case the attached capture
->>> video device should only allow a single mode corresponding to the output
->>> pad media bus format.
->>
->> The IDMAC source pad is going to memory, so it has left the IPU.
->> Are you sure it should be an internal IPU format? I realize it
->> is linked to a capture device node, and the IPU format could then
->> be translated to a v4l2 fourcc by the capture device, but IMHO this
->> pad is external to the IPU.
->
-> The CSI IDMAC source pad should describe the format at the connection
-> between the CSI and the IDMAC, just as the icprpvf and icprpenc source
-> pads.
-> The format outside of the IPU is the memory format written by the IDMAC,
-> but that is a memory pixel format and not a media bus format at all.
->
+This excludes all files in tools/ as there is a separate
+define pr_warning for that directory tree and pr_warn is
+not used in tools/.
 
-True, it is a memory format. I don't really mind if the CSI and PRP
-ENC/VF source pads are characterized as IPU internal formats, since
-they are only used to indicate the colorspace to the capture device.
+Done with 'sed s/\bpr_warning\b/pr_warn/' and some emacsing.
 
-And yes it did simplify the enumeration and try_fmt code a bit. So
-I went ahead and made the change.
+Miscellanea:
 
-Steve
+o Coalesce formats and realign arguments
 
+Some files not compiled - no cross-compilers
 
-> That would also make it more straightforward to enumerate the memory
-> pixel formats in the capture device: If the source pad media bus format
-> is 32-bit YUV, enumerate all YUV formats, if it is 32-bit RGB or RGB565,
-> enumerate all rgb formats, otherwise (bayer/raw mode) only allow the
-> specific memory format matching the bus format.
->
->
+Joe Perches (35):
+  alpha: Convert remaining uses of pr_warning to pr_warn
+  ARM: ep93xx: Convert remaining uses of pr_warning to pr_warn
+  arm64: Convert remaining uses of pr_warning to pr_warn
+  arch/blackfin: Convert remaining uses of pr_warning to pr_warn
+  ia64: Convert remaining use of pr_warning to pr_warn
+  powerpc: Convert remaining uses of pr_warning to pr_warn
+  sh: Convert remaining uses of pr_warning to pr_warn
+  sparc: Convert remaining use of pr_warning to pr_warn
+  x86: Convert remaining uses of pr_warning to pr_warn
+  drivers/acpi: Convert remaining uses of pr_warning to pr_warn
+  block/drbd: Convert remaining uses of pr_warning to pr_warn
+  gdrom: Convert remaining uses of pr_warning to pr_warn
+  drivers/char: Convert remaining use of pr_warning to pr_warn
+  clocksource: Convert remaining use of pr_warning to pr_warn
+  drivers/crypto: Convert remaining uses of pr_warning to pr_warn
+  fmc: Convert remaining use of pr_warning to pr_warn
+  drivers/gpu: Convert remaining uses of pr_warning to pr_warn
+  drivers/ide: Convert remaining uses of pr_warning to pr_warn
+  drivers/input: Convert remaining uses of pr_warning to pr_warn
+  drivers/isdn: Convert remaining uses of pr_warning to pr_warn
+  drivers/macintosh: Convert remaining uses of pr_warning to pr_warn
+  drivers/media: Convert remaining use of pr_warning to pr_warn
+  drivers/mfd: Convert remaining uses of pr_warning to pr_warn
+  drivers/mtd: Convert remaining uses of pr_warning to pr_warn
+  drivers/of: Convert remaining uses of pr_warning to pr_warn
+  drivers/oprofile: Convert remaining uses of pr_warning to pr_warn
+  drivers/platform: Convert remaining uses of pr_warning to pr_warn
+  drivers/rapidio: Convert remaining use of pr_warning to pr_warn
+  drivers/scsi: Convert remaining use of pr_warning to pr_warn
+  drivers/sh: Convert remaining use of pr_warning to pr_warn
+  drivers/tty: Convert remaining uses of pr_warning to pr_warn
+  drivers/video: Convert remaining uses of pr_warning to pr_warn
+  kernel/trace: Convert remaining uses of pr_warning to pr_warn
+  lib: Convert remaining uses of pr_warning to pr_warn
+  sound/soc: Convert remaining uses of pr_warning to pr_warn
+
+ arch/alpha/kernel/perf_event.c                     |  4 +-
+ arch/arm/mach-ep93xx/core.c                        |  4 +-
+ arch/arm64/include/asm/syscall.h                   |  8 ++--
+ arch/arm64/kernel/hw_breakpoint.c                  |  8 ++--
+ arch/arm64/kernel/smp.c                            |  4 +-
+ arch/blackfin/kernel/nmi.c                         |  2 +-
+ arch/blackfin/kernel/ptrace.c                      |  2 +-
+ arch/blackfin/mach-bf533/boards/stamp.c            |  2 +-
+ arch/blackfin/mach-bf537/boards/cm_bf537e.c        |  2 +-
+ arch/blackfin/mach-bf537/boards/cm_bf537u.c        |  2 +-
+ arch/blackfin/mach-bf537/boards/stamp.c            |  2 +-
+ arch/blackfin/mach-bf537/boards/tcm_bf537.c        |  2 +-
+ arch/blackfin/mach-bf561/boards/cm_bf561.c         |  2 +-
+ arch/blackfin/mach-bf561/boards/ezkit.c            |  2 +-
+ arch/blackfin/mm/isram-driver.c                    |  4 +-
+ arch/ia64/kernel/setup.c                           |  6 +--
+ arch/powerpc/kernel/pci-common.c                   |  4 +-
+ arch/powerpc/mm/init_64.c                          |  5 +--
+ arch/powerpc/mm/mem.c                              |  3 +-
+ arch/powerpc/platforms/512x/mpc512x_shared.c       |  4 +-
+ arch/powerpc/platforms/85xx/socrates_fpga_pic.c    |  7 ++--
+ arch/powerpc/platforms/86xx/mpc86xx_hpcn.c         |  2 +-
+ arch/powerpc/platforms/pasemi/dma_lib.c            |  4 +-
+ arch/powerpc/platforms/powernv/opal.c              |  8 ++--
+ arch/powerpc/platforms/powernv/pci-ioda.c          | 10 ++---
+ arch/powerpc/platforms/ps3/device-init.c           | 14 +++----
+ arch/powerpc/platforms/ps3/mm.c                    |  4 +-
+ arch/powerpc/platforms/ps3/os-area.c               |  2 +-
+ arch/powerpc/platforms/pseries/iommu.c             |  8 ++--
+ arch/powerpc/platforms/pseries/setup.c             |  4 +-
+ arch/powerpc/sysdev/fsl_pci.c                      |  9 ++---
+ arch/powerpc/sysdev/mpic.c                         | 10 ++---
+ arch/powerpc/sysdev/xics/icp-native.c              | 10 ++---
+ arch/powerpc/sysdev/xics/ics-opal.c                |  4 +-
+ arch/powerpc/sysdev/xics/ics-rtas.c                |  4 +-
+ arch/powerpc/sysdev/xics/xics-common.c             |  8 ++--
+ arch/sh/boards/mach-sdk7786/nmi.c                  |  2 +-
+ arch/sh/drivers/pci/fixups-sdk7786.c               |  2 +-
+ arch/sh/kernel/io_trapped.c                        |  2 +-
+ arch/sh/kernel/setup.c                             |  2 +-
+ arch/sh/mm/consistent.c                            |  5 +--
+ arch/sparc/kernel/smp_64.c                         |  5 +--
+ arch/x86/kernel/amd_gart_64.c                      | 12 ++----
+ arch/x86/kernel/apic/apic.c                        | 46 ++++++++++------------
+ arch/x86/kernel/apic/apic_noop.c                   |  2 +-
+ arch/x86/kernel/setup_percpu.c                     |  4 +-
+ arch/x86/kernel/tboot.c                            | 15 ++++---
+ arch/x86/kernel/tsc_sync.c                         |  8 ++--
+ arch/x86/mm/kmmio.c                                |  8 ++--
+ arch/x86/mm/mmio-mod.c                             |  5 +--
+ arch/x86/mm/numa.c                                 | 12 +++---
+ arch/x86/mm/numa_emulation.c                       |  6 +--
+ arch/x86/mm/testmmiotrace.c                        |  5 +--
+ arch/x86/oprofile/op_x86_model.h                   |  6 +--
+ arch/x86/platform/olpc/olpc-xo15-sci.c             |  2 +-
+ arch/x86/platform/sfi/sfi.c                        |  3 +-
+ arch/x86/xen/debugfs.c                             |  2 +-
+ arch/x86/xen/setup.c                               |  2 +-
+ drivers/acpi/apei/apei-base.c                      | 32 +++++++--------
+ drivers/acpi/apei/einj.c                           |  4 +-
+ drivers/acpi/apei/erst-dbg.c                       |  4 +-
+ drivers/acpi/apei/ghes.c                           | 30 +++++++-------
+ drivers/acpi/apei/hest.c                           | 10 ++---
+ drivers/acpi/resource.c                            |  4 +-
+ drivers/block/drbd/drbd_nl.c                       | 13 +++---
+ drivers/cdrom/gdrom.c                              |  4 +-
+ drivers/char/virtio_console.c                      |  2 +-
+ drivers/clocksource/samsung_pwm_timer.c            |  4 +-
+ drivers/crypto/n2_core.c                           | 12 +++---
+ drivers/fmc/fmc-fakedev.c                          |  2 +-
+ drivers/gpu/drm/amd/powerplay/hwmgr/smu7_hwmgr.c   |  2 +-
+ drivers/gpu/drm/amd/powerplay/inc/pp_debug.h       |  2 +-
+ drivers/gpu/drm/amd/powerplay/smumgr/fiji_smc.c    |  4 +-
+ drivers/gpu/drm/amd/powerplay/smumgr/iceland_smc.c | 14 +++----
+ .../gpu/drm/amd/powerplay/smumgr/polaris10_smc.c   |  4 +-
+ drivers/gpu/drm/amd/powerplay/smumgr/tonga_smc.c   |  4 +-
+ drivers/ide/tx4938ide.c                            |  2 +-
+ drivers/ide/tx4939ide.c                            |  5 +--
+ drivers/input/gameport/gameport.c                  |  4 +-
+ drivers/input/joystick/gamecon.c                   |  3 +-
+ drivers/input/misc/apanel.c                        |  3 +-
+ drivers/input/misc/xen-kbdfront.c                  |  8 ++--
+ drivers/input/serio/serio.c                        |  8 ++--
+ drivers/isdn/gigaset/interface.c                   |  2 +-
+ drivers/isdn/hardware/mISDN/avmfritz.c             | 17 ++++----
+ drivers/isdn/hardware/mISDN/hfcmulti.c             |  8 ++--
+ drivers/isdn/hardware/mISDN/hfcpci.c               |  4 +-
+ drivers/isdn/hardware/mISDN/hfcsusb.c              |  4 +-
+ drivers/isdn/hardware/mISDN/mISDNipac.c            |  4 +-
+ drivers/isdn/hardware/mISDN/mISDNisar.c            | 10 ++---
+ drivers/isdn/hardware/mISDN/netjet.c               |  8 ++--
+ drivers/isdn/hardware/mISDN/w6692.c                | 12 +++---
+ drivers/isdn/mISDN/hwchannel.c                     |  8 ++--
+ drivers/macintosh/windfarm_fcu_controls.c          |  5 +--
+ drivers/macintosh/windfarm_lm87_sensor.c           |  4 +-
+ drivers/macintosh/windfarm_pm72.c                  | 22 +++++------
+ drivers/macintosh/windfarm_rm31.c                  |  6 +--
+ drivers/media/platform/sh_vou.c                    |  4 +-
+ drivers/mfd/db8500-prcmu.c                         |  2 +-
+ drivers/mfd/sta2x11-mfd.c                          |  4 +-
+ drivers/mfd/twl4030-power.c                        |  7 +---
+ drivers/mtd/chips/cfi_cmdset_0002.c                | 12 ++++--
+ drivers/mtd/nand/cmx270_nand.c                     |  4 +-
+ drivers/mtd/ofpart.c                               |  4 +-
+ drivers/of/fdt.c                                   | 20 +++++-----
+ drivers/oprofile/oprofile_perf.c                   |  8 ++--
+ drivers/platform/x86/asus-laptop.c                 |  2 +-
+ drivers/platform/x86/eeepc-laptop.c                |  2 +-
+ drivers/platform/x86/intel_oaktrail.c              | 10 ++---
+ drivers/rapidio/rio-sysfs.c                        |  4 +-
+ drivers/scsi/a3000.c                               |  2 +-
+ drivers/sh/intc/core.c                             |  4 +-
+ drivers/tty/hvc/hvcs.c                             |  2 +-
+ drivers/tty/tty_io.c                               |  4 +-
+ drivers/video/fbdev/aty/radeon_base.c              |  4 +-
+ drivers/video/fbdev/core/fbmon.c                   |  4 +-
+ drivers/video/fbdev/pxafb.c                        |  7 ++--
+ kernel/trace/trace_benchmark.c                     |  4 +-
+ lib/cpu_rmap.c                                     |  2 +-
+ lib/dma-debug.c                                    |  2 +-
+ sound/soc/fsl/imx-audmux.c                         |  6 +--
+ sound/soc/samsung/s3c-i2s-v2.c                     |  6 +--
+ 122 files changed, 367 insertions(+), 397 deletions(-)
+
+-- 
+2.10.0.rc2.1.g053435c
