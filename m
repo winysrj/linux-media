@@ -1,62 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:40439 "EHLO pokefinder.org"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751526AbdBGLUn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Feb 2017 06:20:43 -0500
-Date: Tue, 7 Feb 2017 12:20:40 +0100
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Niklas =?utf-8?Q?S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com
-Subject: Re: [PATCH 00/11] media: rcar-vin: fix OPS and format/pad index
- issues
-Message-ID: <20170207112040.iicu2whtmkjmld7e@ninjato>
-References: <20170131154016.15526-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43324 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932941AbdBQMW5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Feb 2017 07:22:57 -0500
+Date: Fri, 17 Feb 2017 14:22:14 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v4 00/36] i.MX Media Driver
+Message-ID: <20170217122213.GQ16975@valkosipuli.retiisi.org.uk>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+ <20170216222006.GA21222@n2100.armlinux.org.uk>
+ <923326d6-43fe-7328-d959-14fd341e47ae@gmail.com>
+ <1487331818.3107.46.camel@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="c2zyb4sq36mzkzdt"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170131154016.15526-1-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <1487331818.3107.46.camel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Philipp, Steve and Russell,
 
---c2zyb4sq36mzkzdt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Fri, Feb 17, 2017 at 12:43:38PM +0100, Philipp Zabel wrote:
+> On Thu, 2017-02-16 at 14:27 -0800, Steve Longerbeam wrote:
+> > 
+> > On 02/16/2017 02:20 PM, Russell King - ARM Linux wrote:
+> > > On Wed, Feb 15, 2017 at 06:19:02PM -0800, Steve Longerbeam wrote:
+> > >> In version 4:
+> > >
+> > > With this version, I get:
+> > >
+> > > [28762.892053] imx6-mipi-csi2: LP-11 timeout, phy_state = 0x00000000
+> > > [28762.899409] ipu1_csi0: pipeline_set_stream failed with -110
+> > >
+> > 
+> > Right, in the imx219, on exit from s_power(), the clock and data lanes
+> > must be placed in the LP-11 state. This has been done in the ov5640 and
+> > tc358743 subdevs.
+> > 
+> > If we want to bring in the patch that adds a .prepare_stream() op,
+> > the csi-2 bus would need to be placed in LP-11 in that op instead.
+> > 
+> > Philipp, should I go ahead and add your .prepare_stream() patch?
+> 
+> I think with Russell's explanation of how the imx219 sensor operates,
+> we'll have to do something before calling the sensor s_stream, but right
+> now I'm still unsure what exactly.
 
+Indeed there appears to be no other way to achieve the LP-11 state than
+going through the streaming state for this particular sensor, apart from
+starting streaming.
 
-> Patch 10-11 fix a OPS when unbinding/binding the video source subdevice.
+Is there a particular reason why you're waiting for the transmitter to
+transfer to LP-11 state? That appears to be the last step which is done in
+the csi2_s_stream() callback.
 
-I can happily confirm that this series finally makes the I2C demuxer
-work on the I2C bus with the HDMI clients because rebinding works now!
-Note that I didn't test inputting any actual video but only the
-rebinding capabilites. But since rebinding was a major motivation for
-this series to be factored out of a bigger one:
+What the sensor does next is to start streaming, and the first thing it does
+in that process is to switch to LP-11 state.
 
-Tested-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Have you tried what happens if you simply drop the LP-11 check? To me that
+would seem the right thing to do.
 
+-- 
+Kind regards,
 
---c2zyb4sq36mzkzdt
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAliZrYQACgkQFA3kzBSg
-KbZr5w/+KuhuY/nyCK3i9t5kgpFMHp2RHjM8iBeGePvecR7SevRUmuEY8CN8+sa2
-RxNCfJaYrtPAEeU6/ywV4GcqQODzDjsFNVKokED5J6LM2QAd/VNSLl9/TkxQOuVx
-E8KlLGXRRgjKgZwuHdZVnwzBLMFlZd7h+UfLXmvl4yOVcKCRHwks7cDDYmDsILKl
-bWt6FZhMyA27PAF1xyxbhzp4OauaOt/fV1KA1nWNq1lKKNXeWnfx/FJYJM7Yamvb
-Ahxf2JdNbnyHSOU03pug0dVpPwQOsMi5d/qcqVQuTCmsORXR3pdx/cDpu9x7EqLQ
-2khEQkrymwwK+WVJgfOvB3NwXdiC5ziu+wBcoosDW060IH38X8RvzrKZX+BHKbhz
-mT0dtqozKBa7avfDk68TuhH33sUjnCC9R3g46Q65TH7GeUdFwe6o+4hv7UDjprhS
-sx0EE9P+eciTEAl8W/g/sGvUYZnv+bkDZivm1YniTBQ2sgYOXv1Xt1YwvFXi3LXx
-uekMzVk2iBdm44dUK21F2C44wbsXMDy25MAaXketLkn9gqHJH48PFy0Ui6TrYYot
-Pgq/WG0EujyqYY/2psX95rtAylHiMszHTOknuTYeIEowvuUtKmldlSeHMxym2gWt
-828o6iujNXFUiQP4ucQTP+ULC2xi24bBoV2FLJr/gXSk5PJyeAk=
-=orWe
------END PGP SIGNATURE-----
-
---c2zyb4sq36mzkzdt--
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
