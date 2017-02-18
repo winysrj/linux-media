@@ -1,160 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:50505 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751959AbdBJNqm (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35303 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752838AbdBRKya (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Feb 2017 08:46:42 -0500
-Message-ID: <1486731993.2309.23.camel@pengutronix.de>
-Subject: Re: [PATCH 2/2] [media] tc358743: extend colorimetry support
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Mats Randgaard <matrandg@cisco.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Date: Fri, 10 Feb 2017 14:06:33 +0100
-In-Reply-To: <51849519-0ed8-e123-3b60-2392c8171cb1@xs4all.nl>
-References: <20170208105338.4100-1-p.zabel@pengutronix.de>
-         <20170208105338.4100-2-p.zabel@pengutronix.de>
-         <51849519-0ed8-e123-3b60-2392c8171cb1@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Sat, 18 Feb 2017 05:54:30 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Shaobo <shaobo@cs.utah.edu>
+Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
+        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com,
+        ricardo.ribalda@gmail.com
+Subject: Re: Dead code in v4l2-mem2mem.c?
+Date: Sat, 18 Feb 2017 12:53:43 +0200
+Message-ID: <2249581.t3xTjk4llj@avalon>
+In-Reply-To: <00a901d2894d$95c553b0$c14ffb10$@cs.utah.edu>
+References: <002201d288a9$93dd7360$bb985a20$@cs.utah.edu> <5573207.UYLCxH4UDO@avalon> <00a901d2894d$95c553b0$c14ffb10$@cs.utah.edu>
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Shaobo,
 
-On Fri, 2017-02-10 at 10:42 +0100, Hans Verkuil wrote:
-> Hi Philipp,
-> 
-> Here is my review. Please take note of the videodev2.h colorspace patch I
-> posted today, it affects how this patch works since you use V4L2_MAP_QUANTIZATION_DEFAULT.
+On Friday 17 Feb 2017 11:42:25 Shaobo wrote:
+> Hi Laurent,
+>=20
+> Thanks a lot for your reply.
+>=20
+> I would like to also point out the inconsistency of using `v4l2_m2m_g=
+et_vq`
+> inside drivers/media/v4l2-core/v4l2-mem2mem.c and inside other files.=
+ It
+> appears to me almost all call sites of `v4l2_m2m_get_vq` in
+> drivers/media/v4l2-core/v4l2-mem2mem.c does not have NULL check after=
+wards
+> while in other files (e.g., drivers/media/platform/mx2_emmaprp.c) the=
+y do. I
+> was wondering if there is special assumption on this function in mem2=
+mem.c.
 
-Thank you for the review.
+I don't see any case where the function could reasonably be called with=
+ a NULL=20
+context other than a severe driver bug. This being said, we need to aud=
+it the=20
+callers to make sure that's really the case. Would you like to do so an=
+d=20
+submit a patch ? :-)
 
-> On 02/08/2017 11:53 AM, Philipp Zabel wrote:
-> > @@ -1486,16 +1506,40 @@ static int tc358743_get_fmt(struct v4l2_subdev *sd,
-> >  
-> >  	switch (vi_rep & MASK_VOUT_COLOR_SEL) {
-> >  	case MASK_VOUT_COLOR_RGB_FULL:
-> > +		format->format.colorspace = V4L2_COLORSPACE_SRGB;
-> > +		format->format.xfer_func = V4L2_XFER_FUNC_SRGB;
-> > +		format->format.ycbcr_enc = V4L2_YCBCR_ENC_601;
-> > +		format->format.quantization = V4L2_QUANTIZATION_FULL_RANGE;
-> > +		break;
-> >  	case MASK_VOUT_COLOR_RGB_LIMITED:
-> >  		format->format.colorspace = V4L2_COLORSPACE_SRGB;
-> > +		format->format.xfer_func = V4L2_XFER_FUNC_SRGB;
-> > +		format->format.ycbcr_enc = V4L2_YCBCR_ENC_601;
-> > +		format->format.quantization = V4L2_QUANTIZATION_LIM_RANGE;
-> >  		break;
-> >  	case MASK_VOUT_COLOR_601_YCBCR_LIMITED:
-> > +		format->format.colorspace = V4L2_COLORSPACE_SMPTE170M;
-> > +		format->format.xfer_func = V4L2_XFER_FUNC_709;
-> > +		format->format.ycbcr_enc = V4L2_YCBCR_ENC_601;
-> > +		format->format.quantization = V4L2_QUANTIZATION_LIM_RANGE;
-> > +		break;
-> >  	case MASK_VOUT_COLOR_601_YCBCR_FULL:
-> >  		format->format.colorspace = V4L2_COLORSPACE_SMPTE170M;
-> > +		format->format.xfer_func = V4L2_XFER_FUNC_709;
-> > +		format->format.ycbcr_enc = V4L2_YCBCR_ENC_XV601;
-> > +		format->format.quantization = V4L2_QUANTIZATION_FULL_RANGE;
-> >  		break;
-> >  	case MASK_VOUT_COLOR_709_YCBCR_FULL:
-> > +		format->format.colorspace = V4L2_COLORSPACE_REC709;
-> > +		format->format.xfer_func = V4L2_XFER_FUNC_709;
-> > +		format->format.ycbcr_enc = V4L2_YCBCR_ENC_XV709;
-> > +		format->format.quantization = V4L2_QUANTIZATION_FULL_RANGE;
-> > +		break;
-> >  	case MASK_VOUT_COLOR_709_YCBCR_LIMITED:
-> >  		format->format.colorspace = V4L2_COLORSPACE_REC709;
-> > +		format->format.xfer_func = V4L2_XFER_FUNC_709;
-> > +		format->format.ycbcr_enc = V4L2_YCBCR_ENC_709;
-> > +		format->format.quantization = V4L2_QUANTIZATION_LIM_RANGE;
-> >  		break;
-> 
-> This is wrong (and it is wrong in the original code as well).
-> 
-> The colorspace depends on the colorspace information in the AVI InfoFrame, not
-> on what is output. Typically if RGB is received, then that maps to COLORSPACE_SRGB
-> and XFER_FUNC_SRGB. For YCbCr with SMPTE170M it maps to SMPTE170M and XFER_FUNC_709,
-> and REC709 maps to COLORSPACE_REC709 and XFER_FUNC_709.
+> -----Original Message-----
+> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> Sent: 2017=E5=B9=B42=E6=9C=8817=E6=97=A5 3:26
+> To: Shaobo <shaobo@cs.utah.edu>
+> Cc: linux-media@vger.kernel.org; mchehab@kernel.org; hverkuil@xs4all.=
+nl;
+> sakari.ailus@linux.intel.com; ricardo.ribalda@gmail.com
+> Subject: Re: Dead code in v4l2-mem2mem.c?
+>=20
+> Hi Shaobo,
+>=20
+> First of all, could you please make sure you send future mails to the=
+ linux-
+> media mailing list in plain text only (no HTML) ? The mailing list se=
+rver
+> rejects HTML e-mails.
+>=20
+> On Thursday 16 Feb 2017 16:08:25 Shaobo wrote:
+> > Hi there,
+> >=20
+> > My name is Shaobo He and I am a graduate student at University of
+> > Utah. I am applying a static analysis tool to the Linux device
+> > drivers, looking for NULL pointer dereference and accidentally foun=
+d a
+> > plausible dead code location in v4l2-mem2mem.c due to undefined beh=
+avior.
+> >=20
+> > The following is the problematic code segment,
+> >=20
+> > static struct v4l2_m2m_queue_ctx *get_queue_ctx(struct v4l2_m2m_ctx=
 
-So colorspace and xfer_func should be set according to the AVI info
-packet, no matter whether the output is RGB or YUV?
-I think that information gets parsed into the S_V_COLOR field in the
-VI_STATUS3 register, so I'll use that instead of VOUT_COLOR_SEL.
+> > *m2m_ctx,
+> >=20
+> > =09=09=09=09=09=09  enum v4l2_buf_type type)
+> >=20
+> > {
+> >=20
+> > =09if (V4L2_TYPE_IS_OUTPUT(type))
+> > =09
+> > =09=09return &m2m_ctx->out_q_ctx;
+> > =09
+> > =09else
+> > =09
+> > =09=09return &m2m_ctx->cap_q_ctx;
+> >=20
+> > }
+> >=20
+> > struct vb2_queue *v4l2_m2m_get_vq(struct v4l2_m2m_ctx *m2m_ctx,
+> >=20
+> > =09=09=09=09    enum v4l2_buf_type type)
+> >=20
+> > {
+> >=20
+> > =09struct v4l2_m2m_queue_ctx *q_ctx;
+> > =09
+> > =09q_ctx =3D get_queue_ctx(m2m_ctx, type);
+> > =09if (!q_ctx)
+> > =09
+> > =09=09return NULL;
+> > =09
+> > =09return &q_ctx->q;
+> >=20
+> > }
+> >=20
+> > `get_queue_ctx` returns a pointer value that is an addition of the
+> > base pointer address (`m2m_ctx`) to a non-zero offset. The followin=
+g
+> > is the definition of struct v4l2_m2m_ctx,
+> >=20
+> > struct v4l2_m2m_ctx {
+> >=20
+> > =09/* optional cap/out vb2 queues lock */
+> > =09struct mutex=09=09=09*q_lock;
+> > =09
+> > =09/* internal use only */
+> > =09struct v4l2_m2m_dev=09=09*m2m_dev;
+> > =09
+> > =09struct v4l2_m2m_queue_ctx=09cap_q_ctx;
+> > =09
+> > =09struct v4l2_m2m_queue_ctx=09out_q_ctx;
+> > =09
+> > =09/* For device job queue */
+> > =09struct list_head=09=09queue;
+> > =09unsigned long=09=09=09job_flags;
+> > =09wait_queue_head_t=09=09finished;
+> > =09
+> > =09void=09=09=09=09*priv;
+> >=20
+> > };
+> >=20
+> > There is a NULL test in a caller of `get_queue_ctx` (line 85), whic=
+h
+> > appears problematic to me. I'm not sure if it is defined or feasibl=
+e
+> > under the context of Linux kernel. This blog
+> > (https://wdtz.org/undefined-behavior-in-binutils-causes-segfault.ht=
+ml)
+> > suggests that the NULL check can be optimized away because the only=
 
-> The only thing the vout_color_sel modifies are the ycbcr_enc and the quantization
-> range.
+> > case that the return value can be NULL triggers pointer overflow,
+> > which is undefined.
+> >=20
+> > Please let me know if it makes sense or not. Thanks for your time a=
+nd
+> > I am looking forward to your reply.
+>=20
+> The NULL check is indeed wrong. I believe that the m2m_ctx argument p=
+assed
+> to the v4l2_m2m_get_vq() function should never be NULL. We will howev=
+er need
+> to audit drivers to make sure that's the case. The NULL check could t=
+hen be
+> removed. Alternatively we could check m2m_ctx above the get_queue_ctx=
+()
+> call, which wouldn't require auditing drivers. It's a safe option, bu=
+t
+> would likely result in an unneeded NULL check.
+>=20
+> --
+> Regards,
+>=20
+> Laurent Pinchart
 
-Ok.
+--=20
+Regards,
 
-> >  	default:
-> >  		format->format.colorspace = 0;
-> 
-> The driver should never set colorspace to 0.
-
-Ok, I'll fix this.
-
-> > @@ -1512,7 +1556,11 @@ static int tc358743_set_fmt(struct v4l2_subdev *sd,
-> >  	struct tc358743_state *state = to_state(sd);
-> >  
-> >  	u32 code = format->format.code; /* is overwritten by get_fmt */
-> > +	enum v4l2_colorspace colorspace = format->format.colorspace;
-> > +	enum v4l2_ycbcr_encoding ycbcr_enc = format->format.ycbcr_enc;
-> > +	enum v4l2_quantization quantization = format->format.quantization;
-> >  	int ret = tc358743_get_fmt(sd, cfg, format);
-> > +	u8 vout_color_sel;
-> >  
-> >  	format->format.code = code;
-> >  
-> > @@ -1521,16 +1569,78 @@ static int tc358743_set_fmt(struct v4l2_subdev *sd,
-> >  
-> >  	switch (code) {
-> >  	case MEDIA_BUS_FMT_RGB888_1X24:
-> > +		colorspace = V4L2_COLORSPACE_SRGB;
-> 
-> You can't set the colorspace and/or xfer_func in an HDMI receiver driver. This
-> exclusively depends on the AVI InfoFrame information and you can't change that.
-
-Ok, I'll fix this.
-
-> > +		break;
-> >  	case MEDIA_BUS_FMT_UYVY8_1X16:
-> > +		switch (colorspace) {
-> > +		case V4L2_COLORSPACE_SMPTE170M:
-> > +		case V4L2_COLORSPACE_REC709:
-> > +			break;
-> > +		default:
-> > +			if (format->format.colorspace != V4L2_COLORSPACE_SRGB)
-> > +				colorspace = format->format.colorspace;
-> > +			else
-> > +				colorspace = V4L2_COLORSPACE_SMPTE170M;
-> > +			break;
-> > +		}
-> > +		break;
-> > +	default:
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	format->format.colorspace = colorspace;
-> > +
-> > +	if (ycbcr_enc == V4L2_YCBCR_ENC_DEFAULT)
-> > +		ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(colorspace);
-> > +	if (quantization == V4L2_QUANTIZATION_DEFAULT)
-> > +		quantization = V4L2_MAP_QUANTIZATION_DEFAULT(false, colorspace,
-> > +							     ycbcr_enc);
-> 
-> That also means that you cannot determine this here, since you won't know the
-> colorspace until you have the InfoFrame information.
->
-> You should just check the ycbcr_enc and quantization fields: for MEDIA_BUS_FMT_RGB888_1X24
-> you only have to look at the quantization field, for MEDIA_BUS_FMT_UYVY8_1X16
-> both fields need checking.
-
-I assume I should set colorspace and xfer_func according to the detected
-input color space then, same as in get_fmt.
-
-regards
-Philipp
-
+Laurent Pinchart
