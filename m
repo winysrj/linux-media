@@ -1,86 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:33919 "EHLO
-        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751435AbdB0OYy (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:38778 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750740AbdBRFLx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Feb 2017 09:24:54 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+        Sat, 18 Feb 2017 00:11:53 -0500
+Message-ID: <23bebb9d9369d4f9ad3971a1b4c930c6@smtp-cloud3.xs4all.net>
+Date: Sat, 18 Feb 2017 06:11:29 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 7/9] cec: use __func__ in log messages.
-Date: Mon, 27 Feb 2017 15:20:40 +0100
-Message-Id: <20170227142042.37085-8-hverkuil@xs4all.nl>
-In-Reply-To: <20170227142042.37085-1-hverkuil@xs4all.nl>
-References: <20170227142042.37085-1-hverkuil@xs4all.nl>
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-The hardcoded function name is actually wrong. Use __func__ instead.
+Results of the daily build of media_tree:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/cec/cec-adap.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+date:			Sat Feb 18 05:00:17 CET 2017
+media-tree git hash:	9eeb0ed0f30938f31a3d9135a88b9502192c18dd
+media_build git hash:	785cdf7f0798964681b33aad44fc2ff4d734733d
+v4l-utils git hash:	1edd6920bed585d0ea70a2d400182ba17ee2e7fc
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
-index 78a85c44d96e..4f1e571d10b7 100644
---- a/drivers/media/cec/cec-adap.c
-+++ b/drivers/media/cec/cec-adap.c
-@@ -606,17 +606,17 @@ int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
- 
- 	/* Sanity checks */
- 	if (msg->len == 0 || msg->len > CEC_MAX_MSG_SIZE) {
--		dprintk(1, "cec_transmit_msg: invalid length %d\n", msg->len);
-+		dprintk(1, "%s: invalid length %d\n", __func__, msg->len);
- 		return -EINVAL;
- 	}
- 	if (msg->timeout && msg->len == 1) {
--		dprintk(1, "cec_transmit_msg: can't reply for poll msg\n");
-+		dprintk(1, "%s: can't reply for poll msg\n", __func__);
- 		return -EINVAL;
- 	}
- 	memset(msg->msg + msg->len, 0, sizeof(msg->msg) - msg->len);
- 	if (msg->len == 1) {
- 		if (cec_msg_destination(msg) == 0xf) {
--			dprintk(1, "cec_transmit_msg: invalid poll message\n");
-+			dprintk(1, "%s: invalid poll message\n", __func__);
- 			return -EINVAL;
- 		}
- 		if (cec_has_log_addr(adap, cec_msg_destination(msg))) {
-@@ -637,13 +637,13 @@ int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
- 	}
- 	if (msg->len > 1 && !cec_msg_is_broadcast(msg) &&
- 	    cec_has_log_addr(adap, cec_msg_destination(msg))) {
--		dprintk(1, "cec_transmit_msg: destination is the adapter itself\n");
-+		dprintk(1, "%s: destination is the adapter itself\n", __func__);
- 		return -EINVAL;
- 	}
- 	if (msg->len > 1 && adap->is_configured &&
- 	    !cec_has_log_addr(adap, cec_msg_initiator(msg))) {
--		dprintk(1, "cec_transmit_msg: initiator has unknown logical address %d\n",
--			cec_msg_initiator(msg));
-+		dprintk(1, "%s: initiator has unknown logical address %d\n",
-+			__func__, cec_msg_initiator(msg));
- 		return -EINVAL;
- 	}
- 	if (!adap->is_configured && !adap->is_configuring &&
-@@ -663,11 +663,11 @@ int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
- 	}
- 
- 	if (msg->timeout)
--		dprintk(2, "cec_transmit_msg: %*ph (wait for 0x%02x%s)\n",
--			msg->len, msg->msg, msg->reply, !block ? ", nb" : "");
-+		dprintk(2, "%s: %*ph (wait for 0x%02x%s)\n",
-+			__func__, msg->len, msg->msg, msg->reply, !block ? ", nb" : "");
- 	else
--		dprintk(2, "cec_transmit_msg: %*ph%s\n",
--			msg->len, msg->msg, !block ? " (nb)" : "");
-+		dprintk(2, "%s: %*ph%s\n",
-+			__func__, msg->len, msg->msg, !block ? " (nb)" : "");
- 
- 	data->msg = *msg;
- 	data->fh = fh;
--- 
-2.11.0
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-4.10-rc3-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+linux-4.9-x86_64: OK
+linux-4.10-rc3-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
