@@ -1,54 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:33459 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752553AbdBORz6 (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:59171 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752071AbdBRBLV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 12:55:58 -0500
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH 6/6] [media] go7007: improve subscribe event handling
-Date: Wed, 15 Feb 2017 15:55:33 -0200
-Message-Id: <20170215175533.6384-6-gustavo@padovan.org>
-In-Reply-To: <20170215175533.6384-1-gustavo@padovan.org>
-References: <20170215175533.6384-1-gustavo@padovan.org>
+        Fri, 17 Feb 2017 20:11:21 -0500
+Subject: Re: [PATCH v4 29/36] media: imx: mipi-csi2: enable setting and
+ getting of frame rates
+To: Steve Longerbeam <slongerbeam@gmail.com>, <robh+dt@kernel.org>,
+        <mark.rutland@arm.com>, <shawnguo@kernel.org>,
+        <kernel@pengutronix.de>, <fabio.estevam@nxp.com>,
+        <linux@armlinux.org.uk>, <mchehab@kernel.org>,
+        <hverkuil@xs4all.nl>, <nick@shmanahar.org>,
+        <markus.heiser@darmarIT.de>, <p.zabel@pengutronix.de>,
+        <laurent.pinchart+renesas@ideasonboard.com>, <bparrot@ti.com>,
+        <geert@linux-m68k.org>, <arnd@arndb.de>,
+        <sudipm.mukherjee@gmail.com>, <minghsiu.tsai@mediatek.com>,
+        <tiffany.lin@mediatek.com>, <jean-christophe.trotin@st.com>,
+        <horms+renesas@verge.net.au>,
+        <niklas.soderlund+renesas@ragnatech.se>, <robert.jarzmik@free.fr>,
+        <songjun.wu@microchip.com>, <andrew-ct.chen@mediatek.com>,
+        <gregkh@linuxfoundation.org>, <shuah@kernel.org>,
+        <sakari.ailus@linux.intel.com>, <pavel@ucw.cz>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+ <1487211578-11360-30-git-send-email-steve_longerbeam@mentor.com>
+CC: <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>, <devel@driverdev.osuosl.org>,
+        Russell King <rmk+kernel@armlinux.org.uk>
+From: Steve Longerbeam <steve_longerbeam@mentor.com>
+Message-ID: <f009ada9-a480-3961-d42c-8c4f117e9134@mentor.com>
+Date: Fri, 17 Feb 2017 17:11:03 -0800
+MIME-Version: 1.0
+In-Reply-To: <1487211578-11360-30-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-We already check for the V4L2_EVENT_CTRL inside
-v4l2_ctrl_subscribe_event() so just move this function to the default:
-branch of the switch and let it does the job for us.
 
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
----
- drivers/media/usb/go7007/go7007-v4l2.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+On 02/15/2017 06:19 PM, Steve Longerbeam wrote:
+> From: Russell King <rmk+kernel@armlinux.org.uk>
+>
+> Setting and getting frame rates is part of the negotiation mechanism
+> between subdevs.  The lack of support means that a frame rate at the
+> sensor can't be negotiated through the subdev path.
+>
+> Add support at MIPI CSI2 level for handling this part of the
+> negotiation.
+>
+> Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 
-diff --git a/drivers/media/usb/go7007/go7007-v4l2.c b/drivers/media/usb/go7007/go7007-v4l2.c
-index 4eaba0c..ed5ec97 100644
---- a/drivers/media/usb/go7007/go7007-v4l2.c
-+++ b/drivers/media/usb/go7007/go7007-v4l2.c
-@@ -792,14 +792,13 @@ static int vidioc_subscribe_event(struct v4l2_fh *fh,
- {
- 
- 	switch (sub->type) {
--	case V4L2_EVENT_CTRL:
--		return v4l2_ctrl_subscribe_event(fh, sub);
- 	case V4L2_EVENT_MOTION_DET:
- 		/* Allow for up to 30 events (1 second for NTSC) to be
- 		 * stored. */
- 		return v4l2_event_subscribe(fh, sub, 30, NULL);
-+	default:
-+		return v4l2_ctrl_subscribe_event(fh, sub);
- 	}
--	return -EINVAL;
- }
- 
- 
+
+Hi Russell,
+
+I signed-off on this but after more review I'm not sure this is right.
+
+The CSI-2 receiver really has no control over frame rate. It's output
+frame rate is the same as the rate that is delivered to it.
+
+So this subdev should either not implement these ops, or it should
+refer them to the attached source subdev.
+
+Steve
+
+> ---
+>  drivers/staging/media/imx/imx6-mipi-csi2.c | 27 +++++++++++++++++++++++++++
+>  1 file changed, 27 insertions(+)
+>
+> diff --git a/drivers/staging/media/imx/imx6-mipi-csi2.c b/drivers/staging/media/imx/imx6-mipi-csi2.c
+> index 23dca80..c62f14e 100644
+> --- a/drivers/staging/media/imx/imx6-mipi-csi2.c
+> +++ b/drivers/staging/media/imx/imx6-mipi-csi2.c
+> @@ -34,6 +34,7 @@ struct csi2_dev {
+>  	struct v4l2_subdev      sd;
+>  	struct media_pad       pad[CSI2_NUM_PADS];
+>  	struct v4l2_mbus_framefmt format_mbus;
+> +	struct v4l2_fract      frame_interval;
+>  	struct clk             *dphy_clk;
+>  	struct clk             *cfg_clk;
+>  	struct clk             *pix_clk; /* what is this? */
+> @@ -397,6 +398,30 @@ static int csi2_set_fmt(struct v4l2_subdev *sd,
+>  	return 0;
+>  }
+>
+> +static int csi2_g_frame_interval(struct v4l2_subdev *sd,
+> +				 struct v4l2_subdev_frame_interval *fi)
+> +{
+> +	struct csi2_dev *csi2 = sd_to_dev(sd);
+> +
+> +	fi->interval = csi2->frame_interval;
+> +
+> +	return 0;
+> +}
+> +
+> +static int csi2_s_frame_interval(struct v4l2_subdev *sd,
+> +				 struct v4l2_subdev_frame_interval *fi)
+> +{
+> +	struct csi2_dev *csi2 = sd_to_dev(sd);
+> +
+> +	/* Output pads mirror active input pad, no limits on input pads */
+> +	if (fi->pad != CSI2_SINK_PAD)
+> +		fi->interval = csi2->frame_interval;
+> +
+> +	csi2->frame_interval = fi->interval;
+> +
+> +	return 0;
+> +}
+> +
+>  /*
+>   * retrieve our pads parsed from the OF graph by the media device
+>   */
+> @@ -430,6 +455,8 @@ static struct v4l2_subdev_core_ops csi2_core_ops = {
+>
+>  static struct v4l2_subdev_video_ops csi2_video_ops = {
+>  	.s_stream = csi2_s_stream,
+> +	.g_frame_interval = csi2_g_frame_interval,
+> +	.s_frame_interval = csi2_s_frame_interval,
+>  };
+>
+>  static struct v4l2_subdev_pad_ops csi2_pad_ops = {
+>
+
 -- 
-2.9.3
+Steve Longerbeam | Senior Embedded Engineer, ESD Services
+Mentor Embedded(tm) | 46871 Bayside Parkway, Fremont, CA 94538
+P 510.354.5838 | M 408.410.2735
