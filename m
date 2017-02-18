@@ -1,100 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f44.google.com ([209.85.214.44]:35246 "EHLO
-        mail-it0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752338AbdBRBVL (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:48976 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751024AbdBRWxQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Feb 2017 20:21:11 -0500
-Received: by mail-it0-f44.google.com with SMTP id 203so38288207ith.0
-        for <linux-media@vger.kernel.org>; Fri, 17 Feb 2017 17:21:10 -0800 (PST)
-Received: from [192.168.2.215] (bras-vprn-mtrlpq0806w-lp140-01-70-26-206-103.dsl.bell.ca. [70.26.206.103])
-        by smtp.gmail.com with ESMTPSA id p19sm3842612iod.48.2017.02.17.17.21.09
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 17 Feb 2017 17:21:09 -0800 (PST)
-To: LMML <linux-media@vger.kernel.org>
-From: Bill Atwood <williamatwood41@gmail.com>
-Subject: cx231xx: disagrees about version of symbol videobuf_streamoff
-Message-ID: <6cf94272-11f4-8c04-ceca-6096822d9859@gmail.com>
-Date: Fri, 17 Feb 2017 20:21:08 -0500
+        Sat, 18 Feb 2017 17:53:16 -0500
+Date: Sat, 18 Feb 2017 23:53:12 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: sakari.ailus@iki.fi
+Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
+Subject: Re: [RFC 04/13] omap3isp: add support for CSI1 bus
+Message-ID: <20170218225312.GA14012@amd>
+References: <20170214133947.GA8490@amd>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="oyUTqETQ0mS9luUI"
+Content-Disposition: inline
+In-Reply-To: <20170214133947.GA8490@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have downloaded the V4L git tree and complied it (apparently) 
-successfully.  I did "sudo make install", and (at the end) I see the 
-message that several items of firmware are installed in /lib/firmware.  
-v4l-cx231xx-avcore-01.fw is one of those:
 
--rw-r--r-- 1 root root  16382 Feb 17 17:46 v4l-cx231xx-avcore-01.fw
+--oyUTqETQ0mS9luUI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Kernel version: 4.4.0-62-generic
+Hi!
 
-OS version: Ubuntu 16.04.2 LTS
-(64-bit)
+I guess I'll need some help here.
 
-My device (Hauppauge WinTV-HVR-955Q) is recognized by the kernel:
+> @@ -160,6 +163,33 @@ static int ccp2_if_enable(struct isp_ccp2_device *cc=
+p2, u8 enable)
+>  			return ret;
+>  	}
+> =20
+> +	if (isp->revision =3D=3D ISP_REVISION_2_0) {
+> +		struct media_pad *pad;
+> +		struct v4l2_subdev *sensor;
+> +		const struct isp_ccp2_cfg *buscfg;
+> +		u32 csirxfe;
+> +
+> +		pad =3D media_entity_remote_pad(&ccp2->pads[CCP2_PAD_SINK]);
+> +		sensor =3D media_entity_to_v4l2_subdev(pad->entity);
+> +		/* Struct isp_bus_cfg has union inside */
+> +		buscfg =3D &((struct isp_bus_cfg *)sensor->host_priv)->bus.ccp2;
+> +
+> +
+> +		if (enable) {
+> +			csirxfe =3D OMAP343X_CONTROL_CSIRXFE_PWRDNZ |
+> +				  OMAP343X_CONTROL_CSIRXFE_RESET;
+> +
+> +			if (buscfg->phy_layer)
+> +				csirxfe |=3D OMAP343X_CONTROL_CSIRXFE_SELFORM;
+> +
+> +			if (buscfg->strobe_clk_pol)
+> +				csirxfe |=3D OMAP343X_CONTROL_CSIRXFE_CSIB_INV;
+> +		} else
+> +			csirxfe =3D 0;
+> +
+> +		regmap_write(isp->syscon, isp->syscon_offset, csirxfe);
+> +	}
+> +
 
-Feb 17 17:54:58 willow kernel: [    1.858780] usb 2-2: New USB device 
-found, idVendor=2040, idProduct=b123
-Feb 17 17:54:58 willow kernel: [    1.858783] usb 2-2: New USB device 
-strings: Mfr=1, Product=2, SerialNumber=3
-Feb 17 17:54:58 willow kernel: [    1.858785] usb 2-2: Product: 
-Hauppauge Device
-Feb 17 17:54:58 willow kernel: [    1.858787] usb 2-2: Manufacturer: 
-Hauppauge
-Feb 17 17:54:58 willow kernel: [    1.858789] usb 2-2: SerialNumber: 
-4035560228
+This is ugly. This does not belong here, it is basically duplicate of
 
-However, once the kernel starts processing the software that must be 
-present for the 955Q, it issues a series of messages, of which this is 
-the first pair:
+=2E But that function is not called, because ccp2->phy is not
+initialized for ISP_REVISION_2_0 in ..._ccp2_init():
 
-Feb 17 17:54:58 willow kernel: [   11.491848] cx231xx: disagrees about 
-version of symbol videobuf_streamoff
-
-Feb 17 17:54:58 willow kernel: [   11.491852] cx231xx: Unknown symbol 
-videobuf_streamoff (err -22)
-
-This pair then repeats going through a large number of unresolved symbols.
-
-I built exactly the same software for a 32-bit machine a few days ago, 
-and it installed the device successfully.  I was able to do a channel 
-scan with the device, so it was clearly working.  (I did not try to 
-watch LiveTV, because the display capabilities of the 32-bit processor 
-were not sufficient.)
-
-The sha-256 sum for the firmware in my 32-bit machine is
-
-09a39c139d8e47ebfa2e7f64472e7165dff66359277ca02bcfdcd79f515764ef
-
-and the date is Apr 25 2016.
-
-The sha-256 sum for the firmware in my 64-bit machine is
-
-c2a75fc710f51c778abe7c7e8b54ed5686b17811dd203d1de3070d3df70d70f6
-
-and (as noted above) the date is Feb 17 17:46 (i.e., the time when the 
-"sudo make install" command was run).
-
-The sha-256 sum for the file on 
-https://www.linuxtv.org/downloads/firmware/ is identical to the sha-256 
-sum for the firmware in my 64-bit machine.
-
-
-The OSes for both the 32-bit machine and the 64-bit machine were built 
-as clean installs from downloaded Ubuntu 16.04 LTS .iso files, and 
-allowed to update to 16.04.2 (i.e., all updates applied) before I 
-attempted to install MythTV and the linux-media drivers.
+int omap3isp_ccp2_init(struct isp_device *isp)
+{
+        if (isp->revision =3D=3D ISP_REVISION_2_0) {
+                ccp2->vdds_csib =3D devm_regulator_get(isp->dev, "vdds_csib=
+");
+                if (IS_ERR(ccp2->vdds_csib)) {
+                        if (PTR_ERR(ccp2->vdds_csib) =3D=3D -EPROBE_DEFER)
+                                return -EPROBE_DEFER;
+                        dev_dbg(isp->dev,
+                                "Could not get regulator vdds_csib\n");
+                        ccp2->vdds_csib =3D NULL;
+                }
+        } else if (isp->revision =3D=3D ISP_REVISION_15_0) {
+                ccp2->phy =3D &isp->isp_csiphy1;
+        }
 
 
-I did find an old reference to this "unresolved symbols" issue on the 
-web, but it dates from 2008, and does not seem pertinent to the problem 
-that I am having.
+=2E..phy is only initialized for REVISION_15 case. (and isp_csiphy1
+seems to contain uninitialized data at this point. Below is a fix for
+that).
+
+If someone has an idea what to do there, please help. I tried
+ccp2->phy =3D &isp->isp_csiphy2; but that does not have pipe
+initialized, so it eventually leads to crash.
+
+Thanks,
+								Pavel
 
 
-Does anyone have any suggestions for how to fix this?
+diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/pl=
+atform/omap3isp/ispcsiphy.c
+index 8f73f6d..a2474b6 100644
+--- a/drivers/media/platform/omap3isp/ispcsiphy.c
++++ b/drivers/media/platform/omap3isp/ispcsiphy.c
+@@ -362,14 +374,16 @@ int omap3isp_csiphy_init(struct isp_device *isp)
+ 	phy2->phy_regs =3D OMAP3_ISP_IOMEM_CSIPHY2;
+ 	mutex_init(&phy2->mutex);
+=20
+-	if (isp->revision =3D=3D ISP_REVISION_15_0) {
+-		phy1->isp =3D isp;
+-		phy1->csi2 =3D &isp->isp_csi2c;
+-		phy1->num_data_lanes =3D ISP_CSIPHY1_NUM_DATA_LANES;
+-		phy1->cfg_regs =3D OMAP3_ISP_IOMEM_CSI2C_REGS1;
+-		phy1->phy_regs =3D OMAP3_ISP_IOMEM_CSIPHY1;
+-		mutex_init(&phy1->mutex);
++	if (isp->revision !=3D ISP_REVISION_15_0) {
++		memset(phy1, sizeof(*phy1), 0);
++		return 0;
+ 	}
+=20
++	phy1->isp =3D isp;
++	phy1->csi2 =3D &isp->isp_csi2c;
++	phy1->num_data_lanes =3D ISP_CSIPHY1_NUM_DATA_LANES;
++	phy1->cfg_regs =3D OMAP3_ISP_IOMEM_CSI2C_REGS1;
++	phy1->phy_regs =3D OMAP3_ISP_IOMEM_CSIPHY1;
++	mutex_init(&phy1->mutex);
+ 	return 0;
+ }
 
 
-   Bill
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--oyUTqETQ0mS9luUI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlio0FgACgkQMOfwapXb+vIZOgCfQXzRkbMh8j48S8VIl8Lk7Ap6
+w3QAoMIcuUoT1Ci3uDUHAVymk7ettS1P
+=Et0V
+-----END PGP SIGNATURE-----
+
+--oyUTqETQ0mS9luUI--
