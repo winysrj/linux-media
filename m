@@ -1,86 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:52016
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752079AbdBIWtV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Feb 2017 17:49:21 -0500
-From: Thibault Saunier <thibault.saunier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        linux-samsung-soc@vger.kernel.org,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        linux-media@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Thibault Saunier <thibault.saunier@osg.samsung.com>
-Subject: [PATCH 2/4] [media] exynos-gsc: Respect userspace colorspace setting
-Date: Thu,  9 Feb 2017 16:43:12 -0300
-Message-Id: <20170209194314.5908-3-thibault.saunier@osg.samsung.com>
-In-Reply-To: <20170209194314.5908-1-thibault.saunier@osg.samsung.com>
-References: <20170209194314.5908-1-thibault.saunier@osg.samsung.com>
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:40866 "EHLO
+        shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750739AbdBRAay (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Feb 2017 19:30:54 -0500
+Date: Sat, 18 Feb 2017 00:30:51 +0000
+From: Ben Hutchings <ben@decadent.org.uk>
+To: linux-media@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>, 853110@bugs.debian.org
+Message-ID: <20170218003051.GB4152@decadent.org.uk>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="B4IIlcmfBL/1gGOG"
+Content-Disposition: inline
+Subject: [PATCH] [media] dvb-usb-dibusb-mc-common: Add MODULE_LICENSE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the colorspace is specified by userspace we should respect
-it and not reset it ourself if we can support it.
 
-Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
+--B4IIlcmfBL/1gGOG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+dvb-usb-dibusb-mc-common is licensed under GPLv2, and if we don't say
+so then it won't even load since it needs a GPL-only symbol.
+
+Reported-by: Dominique Dumont <dod@debian.org>
+References: https://bugs.debian.org/853110
+Cc: stable@vger.kernel.org # 4.9+
+Fixes: e91455a1495a ("[media] dvb-usb: split out common parts of dibusb")
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- drivers/media/platform/exynos-gsc/gsc-core.c | 25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
+ drivers/media/usb/dvb-usb/dibusb-mc-common.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index 2beb43401987..63bb4577827d 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -445,10 +445,14 @@ int gsc_try_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
- 
- 	pix_mp->num_planes = fmt->num_planes;
- 
--	if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
--		pix_mp->colorspace = V4L2_COLORSPACE_REC709;
--	else /* SD */
--		pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
-+	if (pix_mp->colorspace != V4L2_COLORSPACE_REC709 &&
-+		pix_mp->colorspace != V4L2_COLORSPACE_SMPTE170M &&
-+		pix_mp->colorspace != V4L2_COLORSPACE_DEFAULT) {
-+		if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
-+		  pix_mp->colorspace = V4L2_COLORSPACE_REC709;
-+		else /* SD */
-+		  pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
-+	  }
- 
- 	for (i = 0; i < pix_mp->num_planes; ++i) {
- 		struct v4l2_plane_pix_format *plane_fmt = &pix_mp->plane_fmt[i];
-@@ -492,12 +496,17 @@ int gsc_g_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
- 	pix_mp->height		= frame->f_height;
- 	pix_mp->field		= V4L2_FIELD_NONE;
- 	pix_mp->pixelformat	= frame->fmt->pixelformat;
--	if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
--		pix_mp->colorspace = V4L2_COLORSPACE_REC709;
--	else /* SD */
--		pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
- 	pix_mp->num_planes	= frame->fmt->num_planes;
- 
-+	if (pix_mp->colorspace != V4L2_COLORSPACE_REC709 &&
-+		pix_mp->colorspace != V4L2_COLORSPACE_SMPTE170M &&
-+		pix_mp->colorspace != V4L2_COLORSPACE_DEFAULT) {
-+		if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
-+		  pix_mp->colorspace = V4L2_COLORSPACE_REC709;
-+		else /* SD */
-+		  pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
-+	  }
+diff --git a/drivers/media/usb/dvb-usb/dibusb-mc-common.c b/drivers/media/u=
+sb/dvb-usb/dibusb-mc-common.c
+index c989cac9343d..0c2bc97436d5 100644
+--- a/drivers/media/usb/dvb-usb/dibusb-mc-common.c
++++ b/drivers/media/usb/dvb-usb/dibusb-mc-common.c
+@@ -11,6 +11,8 @@
+=20
+ #include "dibusb.h"
+=20
++MODULE_LICENSE("GPL");
 +
- 	for (i = 0; i < pix_mp->num_planes; ++i) {
- 		pix_mp->plane_fmt[i].bytesperline = (frame->f_width *
- 			frame->fmt->depth[i]) / 8;
--- 
-2.11.1
+ /* 3000MC/P stuff */
+ // Config Adjacent channels  Perf -cal22
+ static struct dibx000_agc_config dib3000p_mt2060_agc_config =3D {
 
+--B4IIlcmfBL/1gGOG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIVAwUBWKeVu+e/yOyVhhEJAQpQIg//c9xaO0xiTbnp3wDlbk+77YEAkSh8jlRE
+YwsUKb8qMqdNZhlvfcQ25j9SJbzd84+YM2nG5wETlWIhrEVhmly2Z0CMVQIj2rF5
+KUYbyeFdQ12HrOBBSDXDhA0NhjnyRL3Xig6a++oORNOONRppKSPHgLNLULFjyusK
+FTwGstHXJELiVt7jR02lxVc+deYi+cRLHq5SkRKotiR4YOB0DkMs/XfbSIZcHhCv
+Hp49ZUKUxGhtcjqxPhMgEFoY1TjVd431VWTD7WeqntrckLYWEx6m1SwLARdeEbad
+fB2qhKhvgEHBmniIAygGgHWIADt9iw5uSYeFvb9T3ePe/thuA8NAlUqUlJ/adn9Q
+2E7Acbwg3vEr1cagl2hJ4KCDWhmMkhGabMVpgh2486zjfdfgNY9+evRRV+AbN7SH
+TCoBxQNG/K4OrBRWdMFRzfxi4XOyWYAQMaxRjgYz0ZLaEVOt65Gk2KvY+6n8vJ/C
+ZLjP2E7vqO5rH+TbQ6PAUS1c/8/jViKdR1DXI8Arl9scbfAMImmHCFo9B3onJoTF
+FaMRJ5yRgM3eusLZhK2w5u8CQAAefyfK0eXjuBJELRhSnNV4g//jCbL1bkOTzS8p
+x4zDd9Hm2X2htlnANq6e+Ev6f/54e1YyV1NEkTgEaqXV1I9lwPKDNgUTi6BhcqBN
+Iynqnr++hJQ=
+=hcR1
+-----END PGP SIGNATURE-----
+
+--B4IIlcmfBL/1gGOG--
