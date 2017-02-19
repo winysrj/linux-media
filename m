@@ -1,56 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:33422 "EHLO
-        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752193AbdBORz4 (ORCPT
+Received: from smtp11.smtpout.orange.fr ([80.12.242.133]:22002 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751031AbdBSRd5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 12:55:56 -0500
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
-        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-        Ismael Luceno <ismael@iodev.co.uk>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH 3/6] [media] solo6x10: improve subscribe event handling
-Date: Wed, 15 Feb 2017 15:55:30 -0200
-Message-Id: <20170215175533.6384-3-gustavo@padovan.org>
-In-Reply-To: <20170215175533.6384-1-gustavo@padovan.org>
-References: <20170215175533.6384-1-gustavo@padovan.org>
+        Sun, 19 Feb 2017 12:33:57 -0500
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+To: kyungmin.park@samsung.com, kamil@wypas.org, a.hajda@samsung.com,
+        mchehab@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: [PATCH] [media] s5p-g2d: Fix error handling
+Date: Sun, 19 Feb 2017 18:30:22 +0100
+Message-Id: <20170219173022.18707-1-christophe.jaillet@wanadoo.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+According to the surrounding goto, it is likely that 'unprep_clk_gate' was
+expected here.
 
-We already check for the V4L2_EVENT_CTRL inside
-v4l2_ctrl_subscribe_event() so just move the function to the default:
-branch of the switch and let it does the job for us.
-
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 ---
- drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/media/platform/s5p-g2d/g2d.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-index 25a2137..25f9f2e 100644
---- a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-+++ b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-@@ -1140,14 +1140,13 @@ static int solo_subscribe_event(struct v4l2_fh *fh,
- {
- 
- 	switch (sub->type) {
--	case V4L2_EVENT_CTRL:
--		return v4l2_ctrl_subscribe_event(fh, sub);
- 	case V4L2_EVENT_MOTION_DET:
- 		/* Allow for up to 30 events (1 second for NTSC) to be
- 		 * stored. */
- 		return v4l2_event_subscribe(fh, sub, 30, NULL);
-+	default:
-+		return v4l2_ctrl_subscribe_event(fh, sub);
+diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
+index 62c0dec30b59..81ed5cd5cd5d 100644
+--- a/drivers/media/platform/s5p-g2d/g2d.c
++++ b/drivers/media/platform/s5p-g2d/g2d.c
+@@ -679,7 +679,7 @@ static int g2d_probe(struct platform_device *pdev)
+ 						0, pdev->name, dev);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to install IRQ\n");
+-		goto put_clk_gate;
++		goto unprep_clk_gate;
  	}
--	return -EINVAL;
- }
  
- static const struct v4l2_file_operations solo_enc_fops = {
+ 	vb2_dma_contig_set_max_seg_size(&pdev->dev, DMA_BIT_MASK(32));
 -- 
 2.9.3
