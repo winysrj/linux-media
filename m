@@ -1,50 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:59191
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750851AbdBEWWj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 5 Feb 2017 17:22:39 -0500
-Date: Sun, 5 Feb 2017 20:22:31 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Sean Young <sean@mess.org>, linux-media@vger.kernel.org
-Subject: Re: linux-next: build failure after merge of the v4l-dvb tree
-Message-ID: <20170205202231.55ef80ff@vento.lan>
-In-Reply-To: <20170206091914.56836dd3@canb.auug.org.au>
-References: <20170131115505.3f8c769b@canb.auug.org.au>
-        <20170203092446.7e86e8af@canb.auug.org.au>
-        <20170202204620.75b20605@vento.lan>
-        <20170203095934.2bbbbf45@canb.auug.org.au>
-        <20170202212440.5e514ebc@vento.lan>
-        <20170203110117.4a0c5628@canb.auug.org.au>
-        <20170202222435.2798402e@vento.lan>
-        <20170206091914.56836dd3@canb.auug.org.au>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:32771 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751554AbdBSS3K (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 19 Feb 2017 13:29:10 -0500
+Received: by mail-wm0-f66.google.com with SMTP id v77so10799650wmv.0
+        for <linux-media@vger.kernel.org>; Sun, 19 Feb 2017 10:29:09 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@kernel.org, arnd@arndb.de,
+        =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 2/2] em28xx: simplify ID-reading from Micron sensors
+Date: Sun, 19 Feb 2017 19:29:18 +0100
+Message-Id: <20170219182918.4978-2-fschaefer.oss@googlemail.com>
+In-Reply-To: <20170219182918.4978-1-fschaefer.oss@googlemail.com>
+References: <20170219182918.4978-1-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 6 Feb 2017 09:19:14 +1100
-Stephen Rothwell <sfr@canb.auug.org.au> escreveu:
+Use i2c_smbus_read_word_data() instead of i2c_master_send() and
+i2c_master_recv() for reading the ID of Micorn sensors.
+Bytes need to be swapped afterwards, because i2c_smbus_read_word_data()
+assumes that the received bytes are little-endian byte order (as specified
+by smbus), while Micron sensors with 16 bit register width use big endian
+byte order.
 
-> Hi Mauro,
-> 
-> On Thu, 2 Feb 2017 22:24:35 -0200 Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
-> >
-> > So, if this is not a problem to you, maybe you can setup your
-> > environment to pull (in this order) from:
-> > 
-> > 	git://linuxtv.org/media_tree.git fixes
-> > 	git://linuxtv.org/media_tree.git master
-> > 	git://linuxtv.org/mchehab/media-next.git master
-> > 
-> > Most of the time, the last pull won't get anything.  
-> 
-> OK, from today I have those three trees called v4l-dvb-fixes, v4l-dvb
-> and v4l-dvb-next respectively.  We'll see how it goes.
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-camera.c | 28 ++++------------------------
+ 1 file changed, 4 insertions(+), 24 deletions(-)
 
-OK!
-
-Thanks!
-Mauro
+diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
+index 7b4129ab1cf9..4839479624e7 100644
+--- a/drivers/media/usb/em28xx/em28xx-camera.c
++++ b/drivers/media/usb/em28xx/em28xx-camera.c
+@@ -106,8 +106,6 @@ static int em28xx_probe_sensor_micron(struct em28xx *dev)
+ {
+ 	int ret, i;
+ 	char *name;
+-	u8 reg;
+-	__be16 id_be;
+ 	u16 id;
+ 
+ 	struct i2c_client *client = &dev->i2c_client[dev->def_i2c_bus];
+@@ -115,10 +113,8 @@ static int em28xx_probe_sensor_micron(struct em28xx *dev)
+ 	dev->em28xx_sensor = EM28XX_NOSENSOR;
+ 	for (i = 0; micron_sensor_addrs[i] != I2C_CLIENT_END; i++) {
+ 		client->addr = micron_sensor_addrs[i];
+-		/* NOTE: i2c_smbus_read_word_data() doesn't work with BE data */
+ 		/* Read chip ID from register 0x00 */
+-		reg = 0x00;
+-		ret = i2c_master_send(client, &reg, 1);
++		ret = i2c_smbus_read_word_data(client, 0x00); /* assumes LE */
+ 		if (ret < 0) {
+ 			if (ret != -ENXIO)
+ 				dev_err(&dev->intf->dev,
+@@ -126,24 +122,9 @@ static int em28xx_probe_sensor_micron(struct em28xx *dev)
+ 				       client->addr << 1, ret);
+ 			continue;
+ 		}
+-		ret = i2c_master_recv(client, (u8 *)&id_be, 2);
+-		if (ret < 0) {
+-			dev_err(&dev->intf->dev,
+-				"couldn't read from i2c device 0x%02x: error %i\n",
+-				client->addr << 1, ret);
+-			continue;
+-		}
+-		id = be16_to_cpu(id_be);
++		id = swab16(ret); /* LE -> BE */
+ 		/* Read chip ID from register 0xff */
+-		reg = 0xff;
+-		ret = i2c_master_send(client, &reg, 1);
+-		if (ret < 0) {
+-			dev_err(&dev->intf->dev,
+-				"couldn't read from i2c device 0x%02x: error %i\n",
+-				client->addr << 1, ret);
+-			continue;
+-		}
+-		ret = i2c_master_recv(client, (u8 *)&id_be, 2);
++		ret = i2c_smbus_read_word_data(client, 0xff);
+ 		if (ret < 0) {
+ 			dev_err(&dev->intf->dev,
+ 				"couldn't read from i2c device 0x%02x: error %i\n",
+@@ -151,10 +132,9 @@ static int em28xx_probe_sensor_micron(struct em28xx *dev)
+ 			continue;
+ 		}
+ 		/* Validate chip ID to be sure we have a Micron device */
+-		if (id != be16_to_cpu(id_be))
++		if (id != swab16(ret))
+ 			continue;
+ 		/* Check chip ID */
+-		id = be16_to_cpu(id_be);
+ 		switch (id) {
+ 		case 0x1222:
+ 			name = "MT9V012"; /* MI370 */ /* 640x480 */
+-- 
+2.11.0
