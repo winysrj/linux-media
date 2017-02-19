@@ -1,204 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:39708 "EHLO
-        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752127AbdBNHwV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Feb 2017 02:52:21 -0500
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>
-Subject: [PATCH 08/15] media: s5p-mfc: Move firmware allocation to DMA
- configure function
-Date: Tue, 14 Feb 2017 08:52:01 +0100
-Message-id: <1487058728-16501-9-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
-References: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20170214075218eucas1p2918abf0dc5cb970183f5a18561050720@eucas1p2.samsung.com>
+Received: from mga06.intel.com ([134.134.136.31]:14613 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750868AbdBSQTX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 19 Feb 2017 11:19:23 -0500
+From: evgeni.raikhel@intel.com
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, guennadi.liakhovetski@intel.com,
+        eliezer.tamir@intel.com, eraikhel <evgeni.raikhel@intel.com>
+Subject: [PATCH v3 1/2] Documentation: Intel SR300 Depth camera INZI format
+Date: Sun, 19 Feb 2017 18:14:36 +0200
+Message-Id: <1487520877-23173-2-git-send-email-evgeni.raikhel@intel.com>
+In-Reply-To: <1487520877-23173-1-git-send-email-evgeni.raikhel@intel.com>
+References: <AA09C8071EEEFC44A7852ADCECA86673A1E6E7@hasmsx108.ger.corp.intel.com>
+ <1487520877-23173-1-git-send-email-evgeni.raikhel@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To complete DMA memory configuration for MFC device, allocation of the
-firmware buffer is needed, because some parameters are dependant on its base
-address. Till now, this has been handled in the s5p_mfc_alloc_firmware()
-function. This patch moves that logic to s5p_mfc_configure_dma_memory() to
-keep DMA memory related operations in a single place. This way
-s5p_mfc_alloc_firmware() is simplified and does what it name says. The
-other consequence of this change is moving s5p_mfc_alloc_firmware() call
-from the s5p_mfc_probe() function to the s5p_mfc_configure_dma_memory().
+From: eraikhel <evgeni.raikhel@intel.com>
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Provide the frame structure and data layout of V4L2-PIX-FMT-INZI
+format utilized by Intel SR300 Depth camera.
+
+Signed-off-by: Evgeni Raikhel <evgeni.raikhel@intel.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc.c      | 58 +++++++++++++++++++++------
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c | 31 --------------
- 2 files changed, 45 insertions(+), 44 deletions(-)
+ Documentation/media/uapi/v4l/depth-formats.rst |  1 +
+ Documentation/media/uapi/v4l/pixfmt-inzi.rst   | 81 ++++++++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-ioctl.c           |  1 +
+ include/uapi/linux/videodev2.h                 |  1 +
+ 4 files changed, 84 insertions(+)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-inzi.rst
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index bc1aeb25ebeb..92a88c20b26d 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1110,6 +1110,10 @@ static struct device *s5p_mfc_alloc_memdev(struct device *dev,
- static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
- {
- 	struct device *dev = &mfc_dev->plat_dev->dev;
-+	void *bank2_virt;
-+	dma_addr_t bank2_dma_addr;
-+	unsigned long align_size = 1 << MFC_BASE_ALIGN_ORDER;
-+	struct s5p_mfc_priv_buf *fw_buf = &mfc_dev->fw_buf;
+diff --git a/Documentation/media/uapi/v4l/depth-formats.rst b/Documentation/media/uapi/v4l/depth-formats.rst
+index 82f183870aae..c755be0e4d2a 100644
+--- a/Documentation/media/uapi/v4l/depth-formats.rst
++++ b/Documentation/media/uapi/v4l/depth-formats.rst
+@@ -13,3 +13,4 @@ Depth data provides distance to points, mapped onto the image plane
+     :maxdepth: 1
  
- 	/*
- 	 * When IOMMU is available, we cannot use the default configuration,
-@@ -1122,14 +1126,21 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
- 	if (exynos_is_iommu_available(dev)) {
- 		int ret = exynos_configure_iommu(dev, S5P_MFC_IOMMU_DMA_BASE,
- 						 S5P_MFC_IOMMU_DMA_SIZE);
--		if (ret == 0) {
--			mfc_dev->mem_dev[BANK1_CTX] =
--				mfc_dev->mem_dev[BANK2_CTX] = dev;
--			vb2_dma_contig_set_max_seg_size(dev,
--							DMA_BIT_MASK(32));
-+		if (ret)
-+			return ret;
+     pixfmt-z16
++    pixfmt-inzi
+diff --git a/Documentation/media/uapi/v4l/pixfmt-inzi.rst b/Documentation/media/uapi/v4l/pixfmt-inzi.rst
+new file mode 100644
+index 000000000000..9849e799f205
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-inzi.rst
+@@ -0,0 +1,81 @@
++.. -*- coding: utf-8; mode: rst -*-
 +
-+		mfc_dev->mem_dev[BANK1_CTX] = mfc_dev->mem_dev[BANK2_CTX] = dev;
-+		ret = s5p_mfc_alloc_firmware(mfc_dev);
-+		if (ret) {
-+			exynos_unconfigure_iommu(dev);
-+			return ret;
- 		}
- 
--		return ret;
-+		mfc_dev->dma_base[BANK1_CTX] = mfc_dev->fw_buf.dma;
-+		mfc_dev->dma_base[BANK2_CTX] = mfc_dev->fw_buf.dma;
-+		vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
++.. _V4L2-PIX-FMT-INZI:
 +
-+		return 0;
- 	}
- 
- 	/*
-@@ -1147,6 +1158,32 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
- 		return -ENODEV;
- 	}
- 
-+	/* Allocate memory for firmware and initialize both banks addresses */
-+	ret = s5p_mfc_alloc_firmware(mfc_dev);
-+	if (ret)
-+		return ret;
++**************************
++V4L2_PIX_FMT_INZI ('INZI')
++**************************
 +
-+	mfc_dev->dma_base[BANK1_CTX] = mfc_dev->fw_buf.dma;
++Infrared 10-bit linked with Depth 16-bit images
 +
-+	bank2_virt = dma_alloc_coherent(mfc_dev->mem_dev[BANK2_CTX], align_size,
-+					&bank2_dma_addr, GFP_KERNEL);
-+	if (!bank2_virt) {
-+		mfc_err("Allocating bank2 base failed\n");
-+		s5p_mfc_release_firmware(mfc_dev);
-+		device_unregister(mfc_dev->mem_dev[BANK2_CTX]);
-+		device_unregister(mfc_dev->mem_dev[BANK1_CTX]);
-+		return -ENOMEM;
-+	}
 +
-+	/* Valid buffers passed to MFC encoder with LAST_FRAME command
-+	 * should not have address of bank2 - MFC will treat it as a null frame.
-+	 * To avoid such situation we set bank2 address below the pool address.
-+	 */
-+	mfc_dev->dma_base[BANK2_CTX] = bank2_dma_addr - align_size;
++Description
++===========
 +
-+	dma_free_coherent(mfc_dev->mem_dev[BANK2_CTX], align_size, bank2_virt,
-+			  bank2_dma_addr);
++Proprietary multi-planar format used by Intel SR300 Depth cameras, comprise of
++Infrared image followed by Depth data. The pixel definition is 32-bpp,
++with the Depth and Infrared Data split into separate continuous planes of
++identical dimensions.
 +
- 	vb2_dma_contig_set_max_seg_size(mfc_dev->mem_dev[BANK1_CTX],
- 					DMA_BIT_MASK(32));
- 	vb2_dma_contig_set_max_seg_size(mfc_dev->mem_dev[BANK2_CTX],
-@@ -1159,6 +1196,8 @@ static void s5p_mfc_unconfigure_dma_memory(struct s5p_mfc_dev *mfc_dev)
- {
- 	struct device *dev = &mfc_dev->plat_dev->dev;
- 
-+	s5p_mfc_release_firmware(mfc_dev);
 +
- 	if (exynos_is_iommu_available(dev)) {
- 		exynos_unconfigure_iommu(dev);
- 		vb2_dma_contig_clear_max_seg_size(dev);
-@@ -1235,10 +1274,6 @@ static int s5p_mfc_probe(struct platform_device *pdev)
- 	dev->watchdog_timer.data = (unsigned long)dev;
- 	dev->watchdog_timer.function = s5p_mfc_watchdog;
++
++The first plane - Infrared data - is stored according to
++:ref:`V4L2_PIX_FMT_Y10 <V4L2-PIX-FMT-Y10>` greyscale format.
++Each pixel is 16-bit cell, with actual data stored in the 10 LSBs
++with values in range 0 to 1023.
++The six remaining MSBs are padded with zeros.
++
++
++The second plane provides 16-bit per-pixel Depth data arranged in
++:ref:`V4L2-PIX-FMT-Z16 <V4L2-PIX-FMT-Z16>` format.
++
++
++**Frame Structure.**
++Each cell is a 16-bit word with more significant data stored at higher
++memory address (byte order is little-endian).
++
++.. raw:: latex
++
++    \newline\newline\begin{adjustbox}{width=\columnwidth}
++
++.. tabularcolumns:: |p{4.0cm}|p{4.0cm}|p{4.0cm}|p{4.0cm}|p{4.0cm}|p{4.0cm}|
++
++.. flat-table::
++    :header-rows:  0
++    :stub-columns: 1
++    :widths:    1 1 1 1 1 1
++
++    * - Ir\ :sub:`0,0`
++      - Ir\ :sub:`0,1`
++      - Ir\ :sub:`0,2`
++      - ...
++      - ...
++      - ...
++    * - :cspan:`5` ...
++    * - :cspan:`5` Infrared Data
++    * - :cspan:`5` ...
++    * - ...
++      - ...
++      - ...
++      - Ir\ :sub:`n-1,n-3`
++      - Ir\ :sub:`n-1,n-2`
++      - Ir\ :sub:`n-1,n-1`
++    * - Depth\ :sub:`0,0`
++      - Depth\ :sub:`0,1`
++      - Depth\ :sub:`0,2`
++      - ...
++      - ...
++      - ...
++    * - :cspan:`5` ...
++    * - :cspan:`5` Depth Data
++    * - :cspan:`5` ...
++    * - ...
++      - ...
++      - ...
++      - Depth\ :sub:`n-1,n-3`
++      - Depth\ :sub:`n-1,n-2`
++      - Depth\ :sub:`n-1,n-1`
++
++.. raw:: latex
++
++    \end{adjustbox}\newline\newline
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 0c3f238a2e76..3023e2351861 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1131,6 +1131,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_PIX_FMT_Y8I:		descr = "Interleaved 8-bit Greyscale"; break;
+ 	case V4L2_PIX_FMT_Y12I:		descr = "Interleaved 12-bit Greyscale"; break;
+ 	case V4L2_PIX_FMT_Z16:		descr = "16-bit Depth"; break;
++	case V4L2_PIX_FMT_INZI:		descr = "Planar 10-bit Greyscale and 16-bit Depth"; break;
+ 	case V4L2_PIX_FMT_PAL8:		descr = "8-bit Palette"; break;
+ 	case V4L2_PIX_FMT_UV8:		descr = "8-bit Chrominance UV 4-4"; break;
+ 	case V4L2_PIX_FMT_YVU410:	descr = "Planar YVU 4:1:0"; break;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 46e8a2e369f9..8543741a9910 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -662,6 +662,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_Y12I     v4l2_fourcc('Y', '1', '2', 'I') /* Greyscale 12-bit L/R interleaved */
+ #define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
+ #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
++#define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth 16-bit */
  
--	ret = s5p_mfc_alloc_firmware(dev);
--	if (ret)
--		goto err_res;
--
- 	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
- 	if (ret)
- 		goto err_v4l2_dev_reg;
-@@ -1313,8 +1348,6 @@ static int s5p_mfc_probe(struct platform_device *pdev)
- err_dec_alloc:
- 	v4l2_device_unregister(&dev->v4l2_dev);
- err_v4l2_dev_reg:
--	s5p_mfc_release_firmware(dev);
--err_res:
- 	s5p_mfc_final_pm(dev);
- err_dma:
- 	s5p_mfc_unconfigure_dma_memory(dev);
-@@ -1356,7 +1389,6 @@ static int s5p_mfc_remove(struct platform_device *pdev)
- 	video_device_release(dev->vfd_enc);
- 	video_device_release(dev->vfd_dec);
- 	v4l2_device_unregister(&dev->v4l2_dev);
--	s5p_mfc_release_firmware(dev);
- 	s5p_mfc_unconfigure_dma_memory(dev);
- 
- 	s5p_mfc_final_pm(dev);
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-index 50d698968049..b0cf3970117a 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-@@ -26,9 +26,6 @@
- /* Allocate memory for firmware */
- int s5p_mfc_alloc_firmware(struct s5p_mfc_dev *dev)
- {
--	void *bank2_virt;
--	dma_addr_t bank2_dma_addr;
--	unsigned int align_size = 1 << MFC_BASE_ALIGN_ORDER;
- 	struct s5p_mfc_priv_buf *fw_buf = &dev->fw_buf;
- 
- 	fw_buf->size = dev->variant->buf_size->fw;
-@@ -44,35 +41,7 @@ int s5p_mfc_alloc_firmware(struct s5p_mfc_dev *dev)
- 		mfc_err("Allocating bitprocessor buffer failed\n");
- 		return -ENOMEM;
- 	}
--	dev->dma_base[BANK1_CTX] = fw_buf->dma;
--
--	if (HAS_PORTNUM(dev) && IS_TWOPORT(dev)) {
--		bank2_virt = dma_alloc_coherent(dev->mem_dev[BANK2_CTX],
--				       align_size, &bank2_dma_addr, GFP_KERNEL);
--
--		if (!bank2_virt) {
--			mfc_err("Allocating bank2 base failed\n");
--			dma_free_coherent(dev->mem_dev[BANK1_CTX], fw_buf->size,
--					  fw_buf->virt, fw_buf->dma);
--			fw_buf->virt = NULL;
--			return -ENOMEM;
--		}
--
--		/* Valid buffers passed to MFC encoder with LAST_FRAME command
--		 * should not have address of bank2 - MFC will treat it as a null frame.
--		 * To avoid such situation we set bank2 address below the pool address.
--		 */
--		dev->dma_base[BANK2_CTX] = bank2_dma_addr - align_size;
- 
--		dma_free_coherent(dev->mem_dev[BANK2_CTX], align_size,
--				  bank2_virt, bank2_dma_addr);
--
--	} else {
--		/* In this case bank2 can point to the same address as bank1.
--		 * Firmware will always occupy the beginning of this area so it is
--		 * impossible having a video frame buffer with zero address. */
--		dev->dma_base[BANK2_CTX] = dev->dma_base[BANK1_CTX];
--	}
- 	return 0;
- }
- 
+ /* SDR formats - used only for Software Defined Radio devices */
+ #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
 -- 
-1.9.1
+2.7.4
+
+---------------------------------------------------------------------
+Intel Israel (74) Limited
+
+This e-mail and any attachments may contain confidential material for
+the sole use of the intended recipient(s). Any review or distribution
+by others is strictly prohibited. If you are not the intended
+recipient, please contact the sender and delete all copies.
