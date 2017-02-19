@@ -1,111 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:50882 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752070AbdBMPMz (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:45555 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750758AbdBSFLu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 10:12:55 -0500
-Subject: Re: patch superseded? (was: [linux-media] Patch notification: 1 patch
- updated)
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <Pine.LNX.4.64.1702131608170.11034@axis700.grange>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <d07c5170-4366-2dec-2c87-9efaa71b4976@xs4all.nl>
-Date: Mon, 13 Feb 2017 16:12:50 +0100
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1702131608170.11034@axis700.grange>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Sun, 19 Feb 2017 00:11:50 -0500
+Message-ID: <4b0c5396ee7fb3723f2acee447ab4cd0@smtp-cloud2.xs4all.net>
+Date: Sun, 19 Feb 2017 06:11:47 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is the v2 patch:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-https://patchwork.linuxtv.org/patch/32648/
+Results of the daily build of media_tree:
 
-	Hans
+date:			Sun Feb 19 05:00:22 CET 2017
+media-tree git hash:	9eeb0ed0f30938f31a3d9135a88b9502192c18dd
+media_build git hash:	785cdf7f0798964681b33aad44fc2ff4d734733d
+v4l-utils git hash:	1edd6920bed585d0ea70a2d400182ba17ee2e7fc
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-On 02/13/2017 04:10 PM, Guennadi Liakhovetski wrote:
-> Hi,
-> 
-> According to the explanations below, "superseded" means, that either a 
-> newer version of the patch is available, or it's been included in a pull 
-> request. Since I don't see a newer version, I should assume, that it's 
-> been included in a pull request. However, I don't see one on linux-media 
-> either. How am I supposed to track such patch status changes?
-> 
-> Thanks
-> Guennadi
-> 
-> ---------- Forwarded message ----------
-> Date: Mon, 13 Feb 2017 14:56:01 -0000
-> From: Patchwork <patchwork@linuxtv.org>
-> To: g.liakhovetski@gmx.de
-> Subject: [linux-media] Patch notification: 1 patch updated
-> 
-> Hello,
-> 
-> The following patch (submitted by you) has been updated in patchwork:
-> 
->  * linux-media: V4L: add Y12I, Y8I and Z16 pixel format documentation
->      - http://patchwork.linuxtv.org/patch/32257/
->      - for: Linux Media kernel patches
->     was: New
->     now: Superseded
-> 
-> This email is a notification only - you do not need to respond.
-> 
-> -
-> 
-> Patches submitted to linux-media@vger.kernel.org have the following
-> possible states:
-> 
-> New: Patches not yet reviewed (typically new patches);
-> 
-> Under review: When it is expected that someone is reviewing it (typically,
-> 	      the driver's author or maintainer). Unfortunately, patchwork
-> 	      doesn't have a field to indicate who is the driver maintainer.
-> 	      If in doubt about who is the driver maintainer please check the
-> 	      MAINTAINERS file or ask at the ML;
-> 
-> Superseded: when the same patch is sent twice, or a new version of the
-> 	    same patch is sent, and the maintainer identified it, the first
-> 	    version is marked as such. It is also used when a patch was
-> 	    superseeded by a git pull request.
-> 
-> Obsoleted: patch doesn't apply anymore, because the modified code doesn't
-> 	   exist anymore.
-> 
-> Changes requested: when someone requests changes at the patch;
-> 
-> Rejected: When the patch is wrong or doesn't apply. Most of the
-> 	  time, 'rejected' and 'changes requested' means the same thing
-> 	  for the developer: he'll need to re-work on the patch.
-> 
-> RFC: patches marked as such and other patches that are also RFC, but the
->      patch author was not nice enough to mark them as such. That includes:
-> 	- patches sent by a driver's maintainer who send patches
-> 	  via git pull requests;
-> 	- patches with a very active community (typically from developers
-> 	  working with embedded devices), where lots of versions are
-> 	  needed for the driver maintainer and/or the community to be
-> 	  happy with.
-> 
-> Not Applicable: for patches that aren't meant to be applicable via 
-> 	        the media-tree.git.
-> 
-> Accepted: when some driver maintainer says that the patch will be applied
-> 	  via his tree, or when everything is ok and it got applied
-> 	  either at the main tree or via some other tree (fixes tree;
-> 	  some other maintainer's tree - when it belongs to other subsystems,
-> 	  etc);
-> 
-> If you think any status change is a mistake, please send an email to the ML.
-> 
-> -
-> 
-> This is an automated mail sent by the patchwork system at
-> patchwork.linuxtv.org. To stop receiving these notifications, edit
-> your mail settings at:
->   http://patchwork.linuxtv.org/mail/
-> 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-4.10-rc3-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+linux-4.9-x86_64: OK
+linux-4.10-rc3-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
