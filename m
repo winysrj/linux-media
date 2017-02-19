@@ -1,67 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:34188 "EHLO
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:35625 "EHLO
         mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751805AbdBGBww (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Feb 2017 20:52:52 -0500
-Subject: Re: [PATCH v3 20/24] media: imx: Add Camera Interface subdev driver
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
- <1483755102-24785-21-git-send-email-steve_longerbeam@mentor.com>
- <20170202223528.GX27312@n2100.armlinux.org.uk>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <b836f8c6-f166-261e-a989-414a5b56af70@gmail.com>
-Date: Mon, 6 Feb 2017 17:52:48 -0800
-MIME-Version: 1.0
-In-Reply-To: <20170202223528.GX27312@n2100.armlinux.org.uk>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+        with ESMTP id S1751648AbdBSNIC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 19 Feb 2017 08:08:02 -0500
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH] saa7134: constify nxt200x_config structures
+Date: Sun, 19 Feb 2017 18:36:38 +0530
+Message-Id: <1487509598-26237-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Declare nxt200x_config structures as const as they are only passed as
+an argument to the function dvb_attach. dvb_attach calls its first
+argument on the rest of its arguments. The first argument of
+dvb_attach in the changed cases is nxt200x_attach and the parameter of
+this function to which the object references are passed is of type
+const. So, nxt200x_config structures having this property can be made
+const.
 
-On 02/02/2017 02:35 PM, Russell King - ARM Linux wrote:
-> <snip>
-> However, "*vfd" contains a struct device, and you _correctly_ set the
-> release function for "*vfd" to video_device_release via camif_videodev.
->
-> However, if you try to rmmod imx-media, then you end up with a kernel
-> warning that you're freeing memory containing a held lock, and later
-> chaos ensues because kmalloc has been corrupted.
->
-> The root cause of this is embedding the device structure within the
-> video_device into the driver's private data.  *Any* structure what so
-> ever that contains a kref is reference counted, and that includes
-> struct device, and therefore also includes struct video_device.  What
-> that means is that its lifetime is _not_ under _your_ control, and
-> you may not free it except through its release function (which is
-> video_device_release().)  However, that also tries to kfree (with an
-> offset of 4) your private data, which results in the warning and the
-> corrupted kmalloc free lists.
->
-> The solution is simple, make "vfd" a pointer in your private data
-> structure and kmalloc() it separately, letting video_device_release()
-> kfree() that data when it needs to.
+File size before:
+   text	   data	    bss	    dec	    hex	filename
+  21320	   3776	     16	  25112	   6218	saa7134/saa7134-dvb.o
 
-Thanks Russell for tracking this down. I remember doing this
-when I was reviewing the code for opportunities to "optimize" :-/,
-and carelessly caused this bug by not reviewing how video_device
-is freed.
+File size after:
+   text	   data	    bss	    dec	    hex	filename
+  21384	   3744	     16	  25144	   6238	saa7134/saa7134-dvb.o
 
-Fixed.
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+ drivers/media/pci/saa7134/saa7134-dvb.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Steve
-
+diff --git a/drivers/media/pci/saa7134/saa7134-dvb.c b/drivers/media/pci/saa7134/saa7134-dvb.c
+index 598b8bb..36156f1 100644
+--- a/drivers/media/pci/saa7134/saa7134-dvb.c
++++ b/drivers/media/pci/saa7134/saa7134-dvb.c
+@@ -1046,11 +1046,11 @@ static int md8800_set_high_voltage2(struct dvb_frontend *fe, long arg)
+  * nxt200x based ATSC cards, helper functions
+  */
+ 
+-static struct nxt200x_config avertvhda180 = {
++static const struct nxt200x_config avertvhda180 = {
+ 	.demod_address    = 0x0a,
+ };
+ 
+-static struct nxt200x_config kworldatsc110 = {
++static const struct nxt200x_config kworldatsc110 = {
+ 	.demod_address    = 0x0a,
+ };
+ 
+-- 
+1.9.1
