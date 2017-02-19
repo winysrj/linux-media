@@ -1,125 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:36746 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750714AbdBLFPI (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:46559 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750844AbdBSQpO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 12 Feb 2017 00:15:08 -0500
-Message-ID: <3bffc534535ce40ddbfb9a38687a49f9@smtp-cloud2.xs4all.net>
-Date: Sun, 12 Feb 2017 06:15:05 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Sun, 19 Feb 2017 11:45:14 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: evgeni.raikhel@intel.com
+Cc: linux-media@vger.kernel.org, guennadi.liakhovetski@intel.com,
+        eliezer.tamir@intel.com
+Subject: Re: [PATCH v3 1/2] Documentation: Intel SR300 Depth camera INZI format
+Date: Sun, 19 Feb 2017 18:45:41 +0200
+Message-ID: <4006803.aJX31t57Hd@avalon>
+In-Reply-To: <1487520877-23173-2-git-send-email-evgeni.raikhel@intel.com>
+References: <AA09C8071EEEFC44A7852ADCECA86673A1E6E7@hasmsx108.ger.corp.intel.com> <1487520877-23173-1-git-send-email-evgeni.raikhel@intel.com> <1487520877-23173-2-git-send-email-evgeni.raikhel@intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Evgeni,
 
-Results of the daily build of media_tree:
+Thank you for the patch.
 
-date:			Sun Feb 12 05:00:18 CET 2017
-media-tree git hash:	9eeb0ed0f30938f31a3d9135a88b9502192c18dd
-media_build git hash:	785cdf7f0798964681b33aad44fc2ff4d734733d
-v4l-utils git hash:	beb8f75b18b9014b49e0efaee7d6a6bff9cdec8c
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.8.0-164
+On Sunday 19 Feb 2017 18:14:36 evgeni.raikhel@intel.com wrote:
+> From: eraikhel <evgeni.raikhel@intel.com>
+> 
+> Provide the frame structure and data layout of V4L2-PIX-FMT-INZI
+> format utilized by Intel SR300 Depth camera.
+> 
+> Signed-off-by: Evgeni Raikhel <evgeni.raikhel@intel.com>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  Documentation/media/uapi/v4l/depth-formats.rst |  1 +
+>  Documentation/media/uapi/v4l/pixfmt-inzi.rst   | 81 ++++++++++++++++++++++
+>  drivers/media/v4l2-core/v4l2-ioctl.c           |  1 +
+>  include/uapi/linux/videodev2.h                 |  1 +
+>  4 files changed, 84 insertions(+)
+>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-inzi.rst
+> 
+> diff --git a/Documentation/media/uapi/v4l/depth-formats.rst
+> b/Documentation/media/uapi/v4l/depth-formats.rst index
+> 82f183870aae..c755be0e4d2a 100644
+> --- a/Documentation/media/uapi/v4l/depth-formats.rst
+> +++ b/Documentation/media/uapi/v4l/depth-formats.rst
+> @@ -13,3 +13,4 @@ Depth data provides distance to points, mapped onto the
+> image plane
+>      :maxdepth: 1
+> 
+>      pixfmt-z16
+> +    pixfmt-inzi
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10-rc3-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-x86_64: OK
-linux-4.10-rc3-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+According the the cover letter, this version reordered "INZI entry in 
+../depth-formats.rst to keep the list strictly alphabetic. Do we have a 
+different definition of the alphabetic order ? :-)
 
-Detailed results are available here:
+[snip]
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
+> b/drivers/media/v4l2-core/v4l2-ioctl.c index 0c3f238a2e76..3023e2351861
+> 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -1131,6 +1131,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+> 	case V4L2_PIX_FMT_Y8I:		descr = "Interleaved 8-bit Greyscale";
+> break;
+> 	case V4L2_PIX_FMT_Y12I:		descr = "Interleaved 12-bit
+> Greyscale"; break;
+> 	case V4L2_PIX_FMT_Z16:		descr = "16-bit Depth"; break;
+> +	case V4L2_PIX_FMT_INZI:		descr = "Planar 10-bit Greyscale and
+> 16-bit Depth"; break;
 
-Full logs are available here:
+I'm afraid that the format description is limited to 32 characters (including 
+the terminating 0), while this is 41 characters long.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+> 	case V4L2_PIX_FMT_PAL8:		descr = "8-bit Palette"; break;
+>  	case V4L2_PIX_FMT_UV8:		descr = "8-bit Chrominance UV 4-4";
+> break;
+>  	case V4L2_PIX_FMT_YVU410:	descr = "Planar YVU 4:1:0"; break;
 
-The Media Infrastructure API from this daily build is here:
+-- 
+Regards,
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Laurent Pinchart
