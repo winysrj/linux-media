@@ -1,72 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx-out-1.rwth-aachen.de ([134.130.5.186]:50959 "EHLO
-        mx-out-1.rwth-aachen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751596AbdBOBvg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Feb 2017 20:51:36 -0500
-From: =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>
-To: <linux-media@vger.kernel.org>
-CC: <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Antti Palosaari <crope@iki.fi>,
-        =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>
-Subject: [PATCH v2 2/3] [media] si2168: add support for Si2168-D60
-Date: Wed, 15 Feb 2017 02:51:21 +0100
-In-Reply-To: <20170215015122.4647-1-stefan.bruens@rwth-aachen.de>
-References: <20170215015122.4647-1-stefan.bruens@rwth-aachen.de>
+Received: from mail.kernel.org ([198.145.29.136]:53646 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751893AbdBTLW1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Feb 2017 06:22:27 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Message-ID: <c6410d9604d74154bfe045bec5d74cf9@rwthex-w2-b.rwth-ad.de>
+In-Reply-To: <c73d6600-0e0c-d1da-58c7-f6b4d3b6a389@samsung.com>
+References: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170214075221eucas1p18648b047f71e9dd95626e5766c74601b@eucas1p1.samsung.com>
+ <1487058728-16501-16-git-send-email-m.szyprowski@samsung.com>
+ <20170214170316.nsp3g5ht3ldoxc43@kozik-lap> <c73d6600-0e0c-d1da-58c7-f6b4d3b6a389@samsung.com>
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Date: Mon, 20 Feb 2017 13:22:22 +0200
+Message-ID: <CAJKOXPe8ORrajSiPmkJzhbsXBgEAJjV8sRrHx3e8ZTRx9khgNQ@mail.gmail.com>
+Subject: Re: [PATCH 15/15] ARM: dts: exynos: Remove MFC reserved buffersg
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add handling for new revision, requiring new firmware.
+On Mon, Feb 20, 2017 at 12:28 PM, Sylwester Nawrocki
+<s.nawrocki@samsung.com> wrote:
+> On 02/14/2017 06:03 PM, Krzysztof Kozlowski wrote:
+>> On Tue, Feb 14, 2017 at 08:52:08AM +0100, Marek Szyprowski wrote:
+>>> During my research I found that some of the requirements for the memory
+>>> buffers for MFC v6+ devices were blindly copied from the previous (v5)
+>>> version and simply turned out to be excessive. The relaxed requirements
+>>> are applied by the recent patches to the MFC driver and the driver is
+>>> now fully functional even without the reserved memory blocks for all
+>>> v6+ variants. This patch removes those reserved memory nodes from all
+>> boards having MFC v6+ hardware block.
+>>
+>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>> ---
+>>
+>> Looks okay (for v4.12). Full bisectability depends on changes in MFC
+>> driver, right?  I will need a stable branch/tag with driver changes
+>> (although recently Arnd did not want driver changes mixed with DTS...).
+>
+> I'd suggest postponing that dts cleanup patch to v4.13, everything
+> should continue to work properly with just the driver patches merged
+> and that way there will be no need to pull all 14 driver patches
+> into the arm-soc tree.
 
-Signed-off-by: Stefan Brüns <stefan.bruens@rwth-aachen.de>
----
- drivers/media/dvb-frontends/si2168.c      | 4 ++++
- drivers/media/dvb-frontends/si2168_priv.h | 2 ++
- 2 files changed, 6 insertions(+)
+Yes. I didn't post an update here but to make it clear - the DTS
+change in this case have to wait. It cannot go to a branch with the
+driver changes (regardless if these as pulled from outside or included
+as is).
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 20b4a659e2e4..28f3bbe0af25 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -674,6 +674,9 @@ static int si2168_probe(struct i2c_client *client,
- 	case SI2168_CHIP_ID_B40:
- 		dev->firmware_name = SI2168_B40_FIRMWARE;
- 		break;
-+	case SI2168_CHIP_ID_D60:
-+		dev->firmware_name = SI2168_D60_FIRMWARE;
-+		break;
- 	default:
- 		dev_dbg(&client->dev, "unknown chip version Si21%d-%c%c%c\n",
- 			cmd.args[2], cmd.args[1], cmd.args[3], cmd.args[4]);
-@@ -761,3 +764,4 @@ MODULE_LICENSE("GPL");
- MODULE_FIRMWARE(SI2168_A20_FIRMWARE);
- MODULE_FIRMWARE(SI2168_A30_FIRMWARE);
- MODULE_FIRMWARE(SI2168_B40_FIRMWARE);
-+MODULE_FIRMWARE(SI2168_D60_FIRMWARE);
-diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
-index 7843ccb448a0..4baa95b7d648 100644
---- a/drivers/media/dvb-frontends/si2168_priv.h
-+++ b/drivers/media/dvb-frontends/si2168_priv.h
-@@ -25,6 +25,7 @@
- #define SI2168_A20_FIRMWARE "dvb-demod-si2168-a20-01.fw"
- #define SI2168_A30_FIRMWARE "dvb-demod-si2168-a30-01.fw"
- #define SI2168_B40_FIRMWARE "dvb-demod-si2168-b40-01.fw"
-+#define SI2168_D60_FIRMWARE "dvb-demod-si2168-d60-01.fw"
- #define SI2168_B40_FIRMWARE_FALLBACK "dvb-demod-si2168-02.fw"
- 
- /* state struct */
-@@ -37,6 +38,7 @@ struct si2168_dev {
- 	#define SI2168_CHIP_ID_A20 ('A' << 24 | 68 << 16 | '2' << 8 | '0' << 0)
- 	#define SI2168_CHIP_ID_A30 ('A' << 24 | 68 << 16 | '3' << 8 | '0' << 0)
- 	#define SI2168_CHIP_ID_B40 ('B' << 24 | 68 << 16 | '4' << 8 | '0' << 0)
-+	#define SI2168_CHIP_ID_D60 ('D' << 24 | 68 << 16 | '6' << 8 | '0' << 0)
- 	unsigned int chip_id;
- 	unsigned int version;
- 	const char *firmware_name;
--- 
-2.11.0
+Best regards,
+Krzysztof
