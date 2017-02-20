@@ -1,154 +1,287 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49571 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751718AbdBEPs2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 5 Feb 2017 10:48:28 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hverkuil@xs4all.nl>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        nick@shmanahar.org, markus.heiser@darmarit.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v3 13/24] platform: add video-multiplexer subdevice driver
-Date: Sun, 05 Feb 2017 17:48:46 +0200
-Message-ID: <2258037.UCXsIYbtGD@avalon>
-In-Reply-To: <651d7b40-e87d-05ce-ae4d-256b0c1b28f7@gmail.com>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com> <1485259368.3600.126.camel@pengutronix.de> <651d7b40-e87d-05ce-ae4d-256b0c1b28f7@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:21852 "EHLO
+        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753099AbdBTNjT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Feb 2017 08:39:19 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Subject: [PATCH v2 04/15] media: s5p-mfc: Replace bank1/bank2 entries with an
+ array
+Date: Mon, 20 Feb 2017 14:38:53 +0100
+Message-id: <1487597944-2000-5-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1487597944-2000-1-git-send-email-m.szyprowski@samsung.com>
+References: <1487597944-2000-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170220133912eucas1p19e2a64a41537bfcd25369a59a52ca057@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
+Internal MFC driver device structure contains two entries for keeping
+addresses of the DMA memory banks. Replace them with the dma_base[] array
+and use defines for accessing particular banks. This will help to simplify
+code in the next patches.
 
-On Tuesday 24 Jan 2017 18:07:55 Steve Longerbeam wrote:
-> On 01/24/2017 04:02 AM, Philipp Zabel wrote:
-> > On Fri, 2017-01-20 at 15:03 +0100, Hans Verkuil wrote:
-> >>> +
-> >>> +int vidsw_g_mbus_config(struct v4l2_subdev *sd, struct v4l2_mbus_config
-> >>> *cfg)
-> >>> +{
-> >>> +	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
-> >>> +	struct media_pad *pad;
-> >>> +	int ret;
-> >>> +
-> >>> +	if (vidsw->active == -1) {
-> >>> +		dev_err(sd->dev, "no configuration for inactive mux\n");
-> >>> +		return -EINVAL;
-> >>> +	}
-> >>> +
-> >>> +	/*
-> >>> +	 * Retrieve media bus configuration from the entity connected to the
-> >>> +	 * active input
-> >>> +	 */
-> >>> +	pad = media_entity_remote_pad(&vidsw->pads[vidsw->active]);
-> >>> +	if (pad) {
-> >>> +		sd = media_entity_to_v4l2_subdev(pad->entity);
-> >>> +		ret = v4l2_subdev_call(sd, video, g_mbus_config, cfg);
-> >>> +		if (ret == -ENOIOCTLCMD)
-> >>> +			pad = NULL;
-> >>> +		else if (ret < 0) {
-> >>> +			dev_err(sd->dev, "failed to get source 
-configuration\n");
-> >>> +			return ret;
-> >>> +		}
-> >>> +	}
-> >>> +	if (!pad) {
-> >>> +		/* Mirror the input side on the output side */
-> >>> +		cfg->type = vidsw->endpoint[vidsw->active].bus_type;
-> >>> +		if (cfg->type == V4L2_MBUS_PARALLEL ||
-> >>> +		    cfg->type == V4L2_MBUS_BT656)
-> >>> +			cfg->flags = vidsw->endpoint[vidsw-
->active].bus.parallel.flags;
-> >>> +	}
-> >>> +
-> >>> +	return 0;
-> >>> +}
-> >> 
-> >> I am not certain this op is needed at all. In the current kernel this op
-> >> is only used by soc_camera, pxa_camera and omap3isp (somewhat dubious).
-> >> Normally this information should come from the device tree and there
-> >> should be no need for this op.
-> >> 
-> >> My (tentative) long-term plan was to get rid of this op.
-> >> 
-> >> If you don't need it, then I recommend it is removed.
-> 
-> Hi Hans, the imx-media driver was only calling g_mbus_config to the camera
-> sensor, and it was doing that to determine the sensor's bus type. This info
-> was already available from parsing a v4l2_of_endpoint from the sensor node.
-> So it was simple to remove the g_mbus_config calls, and instead rely on the
-> parsed sensor v4l2_of_endpoint.
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  6 ++--
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   | 27 +++++++++++-------
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c | 38 +++++++++++++------------
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 10 +++----
+ 4 files changed, 43 insertions(+), 38 deletions(-)
 
-That's not a good point. The imx-media driver must not parse the sensor DT 
-node as it is not aware of what bindings the sensor is compatible with. 
-Information must instead be queried from the sensor subdev at runtime, through 
-the g_mbus_config() operation.
-
-Of course, if you can get the information from the imx-media DT node, that's 
-certainly an option. It's only information provided by the sensor driver that 
-you have no choice but query using a subdev operation.
-
-> > We currently use this to make the CSI capture interface understand
-> > whether its source from the MIPI CSI-2 or from the parallel bus. That is
-> > probably something that should be fixed, but I'm not quite sure how.
-> > 
-> > The Synopsys DesignWare MIPI CSI-2 reciever turns the incoming MIPI
-> > CSI-2 signal into a 32-bit parallel pixel bus plus some signals for the
-> > MIPI specific metadata (virtual channel, data type).
-> > 
-> > Then the CSI2IPU gasket turns this input bus into four separate parallel
-> > 16-bit pixel buses plus an 8-bit "mct_di" bus for each of them, that
-> > carries the MIPI metadata. The incoming data is split into the four
-> > outputs according to the MIPI virtual channel.
-> > 
-> > Two of these 16-bit + 8-bit parallel buses are routed through a
-> > multiplexer before finally arriving at the CSI on the other side.
-> > 
-> > We need to configure the CSI to either use or ignore the data from the
-> > 8-bit mct_di bus depending on whether the source of the mux is
-> > configured to the MIPI CSI-2 receiver / CSI2IPU gasket, or to a parallel
-> > input.
-> 
-> Philipp, from my experience, the CSI_MIPI_DI register (configured
-> by ipu_csi_set_mipi_datatype()) can only be given a virtual channel 0,
-> otherwise no data is received from the MIPI CSI-2 sensor, regardless
-> of the virtual channel the sensor is transmitting over.
-> 
-> So it seems the info on the 8-bit mct_di buses generated by the CSI2IPU
-> gasket are ignored by the CSI's, at least the virtual channel number is
-> ignored.
-> 
-> For example, if the sensor is transmitting on vc 1, the gasket routes
-> the sensor data to the parallel bus to CSI1. But if CSI_MIPI_DI on CSI1
-> is written with vc 1, no data is received.
-> 
-> Steve
-> 
-> > Currently we let g_mbus_config pretend that even the internal 32-bit +
-> > metadata and 16-bit + 8-bit metadata parallel buses are of type
-> > V4L2_MBUS_CSI so that the CSI can ask the mux, which propagates to the
-> > CSI-2 receiver, if connected.
-> > 
-> > Without g_mbus_config we'd need to get that information from somewhere
-> > else. One possibility would be to extend MEDIA_BUS formats to describe
-> > these "parallelized MIPI data" buses separately.
-
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 27d4c864e06e..da601a2dba2f 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -273,8 +273,7 @@ struct s5p_mfc_priv_buf {
+  * @queue:		waitqueue for waiting for completion of device commands
+  * @fw_size:		size of firmware
+  * @fw_virt_addr:	virtual firmware address
+- * @bank1:		address of the beginning of bank 1 memory
+- * @bank2:		address of the beginning of bank 2 memory
++ * @dma_base[]:		address of the beginning of memory banks
+  * @hw_lock:		used for hardware locking
+  * @ctx:		array of driver contexts
+  * @curr_ctx:		number of the currently running context
+@@ -315,8 +314,7 @@ struct s5p_mfc_dev {
+ 	wait_queue_head_t queue;
+ 	size_t fw_size;
+ 	void *fw_virt_addr;
+-	dma_addr_t bank1;
+-	dma_addr_t bank2;
++	dma_addr_t dma_base[BANK_CTX_NUM];
+ 	unsigned long hw_lock;
+ 	struct s5p_mfc_ctx *ctx[MFC_NUM_CONTEXTS];
+ 	int curr_ctx;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+index cd1406c75d9a..c9bff3d0655f 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+@@ -38,8 +38,8 @@ int s5p_mfc_alloc_firmware(struct s5p_mfc_dev *dev)
+ 	}
+ 
+ 	dev->fw_virt_addr = dma_alloc_coherent(dev->mem_dev[BANK1_CTX],
+-					dev->fw_size, &dev->bank1, GFP_KERNEL);
+-
++					dev->fw_size, &dev->dma_base[BANK1_CTX],
++					GFP_KERNEL);
+ 	if (!dev->fw_virt_addr) {
+ 		mfc_err("Allocating bitprocessor buffer failed\n");
+ 		return -ENOMEM;
+@@ -52,7 +52,8 @@ int s5p_mfc_alloc_firmware(struct s5p_mfc_dev *dev)
+ 		if (!bank2_virt) {
+ 			mfc_err("Allocating bank2 base failed\n");
+ 			dma_free_coherent(dev->mem_dev[BANK1_CTX], dev->fw_size,
+-					  dev->fw_virt_addr, dev->bank1);
++					  dev->fw_virt_addr,
++					  dev->dma_base[BANK1_CTX]);
+ 			dev->fw_virt_addr = NULL;
+ 			return -ENOMEM;
+ 		}
+@@ -61,7 +62,7 @@ int s5p_mfc_alloc_firmware(struct s5p_mfc_dev *dev)
+ 		 * should not have address of bank2 - MFC will treat it as a null frame.
+ 		 * To avoid such situation we set bank2 address below the pool address.
+ 		 */
+-		dev->bank2 = bank2_dma_addr - align_size;
++		dev->dma_base[BANK2_CTX] = bank2_dma_addr - align_size;
+ 
+ 		dma_free_coherent(dev->mem_dev[BANK2_CTX], align_size,
+ 				  bank2_virt, bank2_dma_addr);
+@@ -70,7 +71,7 @@ int s5p_mfc_alloc_firmware(struct s5p_mfc_dev *dev)
+ 		/* In this case bank2 can point to the same address as bank1.
+ 		 * Firmware will always occupy the beginning of this area so it is
+ 		 * impossible having a video frame buffer with zero address. */
+-		dev->bank2 = dev->bank1;
++		dev->dma_base[BANK2_CTX] = dev->dma_base[BANK1_CTX];
+ 	}
+ 	return 0;
+ }
+@@ -125,7 +126,7 @@ int s5p_mfc_release_firmware(struct s5p_mfc_dev *dev)
+ 	if (!dev->fw_virt_addr)
+ 		return -EINVAL;
+ 	dma_free_coherent(dev->mem_dev[BANK1_CTX], dev->fw_size,
+-			  dev->fw_virt_addr, dev->bank1);
++			  dev->fw_virt_addr, dev->dma_base[BANK1_CTX]);
+ 	dev->fw_virt_addr = NULL;
+ 	return 0;
+ }
+@@ -211,13 +212,17 @@ int s5p_mfc_reset(struct s5p_mfc_dev *dev)
+ static inline void s5p_mfc_init_memctrl(struct s5p_mfc_dev *dev)
+ {
+ 	if (IS_MFCV6_PLUS(dev)) {
+-		mfc_write(dev, dev->bank1, S5P_FIMV_RISC_BASE_ADDRESS_V6);
+-		mfc_debug(2, "Base Address : %pad\n", &dev->bank1);
++		mfc_write(dev, dev->dma_base[BANK1_CTX],
++			  S5P_FIMV_RISC_BASE_ADDRESS_V6);
++		mfc_debug(2, "Base Address : %pad\n",
++			  &dev->dma_base[BANK1_CTX]);
+ 	} else {
+-		mfc_write(dev, dev->bank1, S5P_FIMV_MC_DRAMBASE_ADR_A);
+-		mfc_write(dev, dev->bank2, S5P_FIMV_MC_DRAMBASE_ADR_B);
++		mfc_write(dev, dev->dma_base[BANK1_CTX],
++			  S5P_FIMV_MC_DRAMBASE_ADR_A);
++		mfc_write(dev, dev->dma_base[BANK2_CTX],
++			  S5P_FIMV_MC_DRAMBASE_ADR_B);
+ 		mfc_debug(2, "Bank1: %pad, Bank2: %pad\n",
+-				&dev->bank1, &dev->bank2);
++			  &dev->dma_base[BANK1_CTX], &dev->dma_base[BANK2_CTX]);
+ 	}
+ }
+ 
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
+index 65dd3e64b4db..32ce9ade2edb 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
+@@ -30,8 +30,8 @@
+ #include <linux/mm.h>
+ #include <linux/sched.h>
+ 
+-#define OFFSETA(x)		(((x) - dev->bank1) >> MFC_OFFSET_SHIFT)
+-#define OFFSETB(x)		(((x) - dev->bank2) >> MFC_OFFSET_SHIFT)
++#define OFFSETA(x)		(((x) - dev->dma_base[BANK1_CTX]) >> MFC_OFFSET_SHIFT)
++#define OFFSETB(x)		(((x) - dev->dma_base[BANK2_CTX]) >> MFC_OFFSET_SHIFT)
+ 
+ /* Allocate temporary buffers for decoding */
+ static int s5p_mfc_alloc_dec_temp_buffers_v5(struct s5p_mfc_ctx *ctx)
+@@ -41,8 +41,8 @@ static int s5p_mfc_alloc_dec_temp_buffers_v5(struct s5p_mfc_ctx *ctx)
+ 	int ret;
+ 
+ 	ctx->dsc.size = buf_size->dsc;
+-	ret =  s5p_mfc_alloc_priv_buf(dev->mem_dev[BANK1_CTX], dev->bank1,
+-				      &ctx->dsc);
++	ret =  s5p_mfc_alloc_priv_buf(dev->mem_dev[BANK1_CTX],
++				      dev->dma_base[BANK1_CTX], &ctx->dsc);
+ 	if (ret) {
+ 		mfc_err("Failed to allocate temporary buffer\n");
+ 		return ret;
+@@ -174,7 +174,7 @@ static int s5p_mfc_alloc_codec_buffers_v5(struct s5p_mfc_ctx *ctx)
+ 	if (ctx->bank1.size > 0) {
+ 
+ 		ret = s5p_mfc_alloc_priv_buf(dev->mem_dev[BANK1_CTX],
+-					     dev->bank1, &ctx->bank1);
++				     dev->dma_base[BANK1_CTX], &ctx->bank1);
+ 		if (ret) {
+ 			mfc_err("Failed to allocate Bank1 temporary buffer\n");
+ 			return ret;
+@@ -184,7 +184,7 @@ static int s5p_mfc_alloc_codec_buffers_v5(struct s5p_mfc_ctx *ctx)
+ 	/* Allocate only if memory from bank 2 is necessary */
+ 	if (ctx->bank2.size > 0) {
+ 		ret = s5p_mfc_alloc_priv_buf(dev->mem_dev[BANK2_CTX],
+-					     dev->bank2, &ctx->bank2);
++				     dev->dma_base[BANK2_CTX], &ctx->bank2);
+ 		if (ret) {
+ 			mfc_err("Failed to allocate Bank2 temporary buffer\n");
+ 			s5p_mfc_release_priv_buf(ctx->dev->mem_dev[BANK1_CTX],
+@@ -216,8 +216,8 @@ static int s5p_mfc_alloc_instance_buffer_v5(struct s5p_mfc_ctx *ctx)
+ 	else
+ 		ctx->ctx.size = buf_size->non_h264_ctx;
+ 
+-	ret = s5p_mfc_alloc_priv_buf(dev->mem_dev[BANK1_CTX], dev->bank1,
+-				     &ctx->ctx);
++	ret = s5p_mfc_alloc_priv_buf(dev->mem_dev[BANK1_CTX],
++				     dev->dma_base[BANK1_CTX], &ctx->ctx);
+ 	if (ret) {
+ 		mfc_err("Failed to allocate instance buffer\n");
+ 		return ret;
+@@ -230,8 +230,8 @@ static int s5p_mfc_alloc_instance_buffer_v5(struct s5p_mfc_ctx *ctx)
+ 
+ 	/* Initialize shared memory */
+ 	ctx->shm.size = buf_size->shm;
+-	ret = s5p_mfc_alloc_priv_buf(dev->mem_dev[BANK1_CTX], dev->bank1,
+-				     &ctx->shm);
++	ret = s5p_mfc_alloc_priv_buf(dev->mem_dev[BANK1_CTX],
++				     dev->dma_base[BANK1_CTX], &ctx->shm);
+ 	if (ret) {
+ 		mfc_err("Failed to allocate shared memory buffer\n");
+ 		s5p_mfc_release_priv_buf(dev->mem_dev[BANK1_CTX], &ctx->ctx);
+@@ -239,7 +239,7 @@ static int s5p_mfc_alloc_instance_buffer_v5(struct s5p_mfc_ctx *ctx)
+ 	}
+ 
+ 	/* shared memory offset only keeps the offset from base (port a) */
+-	ctx->shm.ofs = ctx->shm.dma - dev->bank1;
++	ctx->shm.ofs = ctx->shm.dma - dev->dma_base[BANK1_CTX];
+ 	BUG_ON(ctx->shm.ofs & ((1 << MFC_BANK1_ALIGN_ORDER) - 1));
+ 
+ 	memset(ctx->shm.virt, 0, buf_size->shm);
+@@ -538,10 +538,10 @@ static void s5p_mfc_get_enc_frame_buffer_v5(struct s5p_mfc_ctx *ctx,
+ {
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+ 
+-	*y_addr = dev->bank2 + (mfc_read(dev, S5P_FIMV_ENCODED_Y_ADDR)
+-							<< MFC_OFFSET_SHIFT);
+-	*c_addr = dev->bank2 + (mfc_read(dev, S5P_FIMV_ENCODED_C_ADDR)
+-							<< MFC_OFFSET_SHIFT);
++	*y_addr = dev->dma_base[BANK2_CTX] +
++		  (mfc_read(dev, S5P_FIMV_ENCODED_Y_ADDR) << MFC_OFFSET_SHIFT);
++	*c_addr = dev->dma_base[BANK2_CTX] +
++		  (mfc_read(dev, S5P_FIMV_ENCODED_C_ADDR) << MFC_OFFSET_SHIFT);
+ }
+ 
+ /* Set encoding ref & codec buffer */
+@@ -1218,7 +1218,8 @@ static int s5p_mfc_run_enc_frame(struct s5p_mfc_ctx *ctx)
+ 	}
+ 	if (list_empty(&ctx->src_queue)) {
+ 		/* send null frame */
+-		s5p_mfc_set_enc_frame_buffer_v5(ctx, dev->bank2, dev->bank2);
++		s5p_mfc_set_enc_frame_buffer_v5(ctx, dev->dma_base[BANK2_CTX],
++						dev->dma_base[BANK2_CTX]);
+ 		src_mb = NULL;
+ 	} else {
+ 		src_mb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf,
+@@ -1226,8 +1227,9 @@ static int s5p_mfc_run_enc_frame(struct s5p_mfc_ctx *ctx)
+ 		src_mb->flags |= MFC_BUF_FLAG_USED;
+ 		if (src_mb->b->vb2_buf.planes[0].bytesused == 0) {
+ 			/* send null frame */
+-			s5p_mfc_set_enc_frame_buffer_v5(ctx, dev->bank2,
+-								dev->bank2);
++			s5p_mfc_set_enc_frame_buffer_v5(ctx,
++						dev->dma_base[BANK2_CTX],
++						dev->dma_base[BANK2_CTX]);
+ 			ctx->state = MFCINST_FINISHING;
+ 		} else {
+ 			src_y_addr = vb2_dma_contig_plane_dma_addr(
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index d2bc938253bc..51053ed68741 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -240,7 +240,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 	/* Allocate only if memory from bank 1 is necessary */
+ 	if (ctx->bank1.size > 0) {
+ 		ret = s5p_mfc_alloc_priv_buf(dev->mem_dev[BANK1_CTX],
+-					     dev->bank1, &ctx->bank1);
++					dev->dma_base[BANK1_CTX], &ctx->bank1);
+ 		if (ret) {
+ 			mfc_err("Failed to allocate Bank1 memory\n");
+ 			return ret;
+@@ -292,8 +292,8 @@ static int s5p_mfc_alloc_instance_buffer_v6(struct s5p_mfc_ctx *ctx)
+ 		break;
+ 	}
+ 
+-	ret = s5p_mfc_alloc_priv_buf(dev->mem_dev[BANK1_CTX], dev->bank1,
+-				     &ctx->ctx);
++	ret = s5p_mfc_alloc_priv_buf(dev->mem_dev[BANK1_CTX],
++				     dev->dma_base[BANK1_CTX], &ctx->ctx);
+ 	if (ret) {
+ 		mfc_err("Failed to allocate instance buffer\n");
+ 		return ret;
+@@ -322,8 +322,8 @@ static int s5p_mfc_alloc_dev_context_buffer_v6(struct s5p_mfc_dev *dev)
+ 	mfc_debug_enter();
+ 
+ 	dev->ctx_buf.size = buf_size->dev_ctx;
+-	ret = s5p_mfc_alloc_priv_buf(dev->mem_dev[BANK1_CTX], dev->bank1,
+-				     &dev->ctx_buf);
++	ret = s5p_mfc_alloc_priv_buf(dev->mem_dev[BANK1_CTX],
++				     dev->dma_base[BANK1_CTX], &dev->ctx_buf);
+ 	if (ret) {
+ 		mfc_err("Failed to allocate device context buffer\n");
+ 		return ret;
 -- 
-Regards,
-
-Laurent Pinchart
-
+1.9.1
