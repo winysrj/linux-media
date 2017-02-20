@@ -1,125 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:53290 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751040AbdB1FOA (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:21738 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752520AbdBTNjP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Feb 2017 00:14:00 -0500
-Message-ID: <e8e71f54d89d43bba68ea58e55009693@smtp-cloud6.xs4all.net>
-Date: Tue, 28 Feb 2017 06:11:57 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Mon, 20 Feb 2017 08:39:15 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Subject: [PATCH v2 00/15] Exynos MFC v6+ - remove the need for the reserved
+ memory
+Date: Mon, 20 Feb 2017 14:38:49 +0100
+Message-id: <1487597944-2000-1-git-send-email-m.szyprowski@samsung.com>
+References: <CGME20170220133910eucas1p10f347d7688dd51ea70d15994c9d5d1f1@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Dear All,
 
-Results of the daily build of media_tree:
+This patchset is a result of my work on enabling full support for MFC device
+(multimedia codec) on Exynos 5433 on ARM64 architecture. Initially I thought
+that to let it working on ARM64 architecture with IOMMU, I would need to
+solve the issue related to the fact that s5p-mfc driver was depending on the
+first-fit allocation method in the DMA-mapping / IOMMU glue code (ARM64 use
+different algorithm). It turned out, that there is a much simpler way.
 
-date:			Tue Feb 28 05:00:21 CET 2017
-media-tree git hash:	e6b377dbbb944d5e3ceef4e5d429fc5c841e3692
-media_build git hash:	785cdf7f0798964681b33aad44fc2ff4d734733d
-v4l-utils git hash:	1a5954c991a4ba5483bec6bdee708f25345de025
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+During my research I found that some of the requirements for the memory
+buffers for MFC v6+ devices were blindly copied from the previous
+hardware (v5) version and simply turned out to be excessive. It turned out
+that there is no strict requirement for ALL buffers to be allocated on
+the higher addresses than the firmware base. This requirement is true only
+for the device and per-context buffers. All video data buffers can be
+allocated anywhere for all MFC v6+ versions. This heavily simplifies
+memory management in the driver.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: ERRORS
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10-rc3-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-x86_64: OK
-linux-4.10-rc3-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+Such relaxed requirements for the memory buffers can be easily fulfilled
+by allocating firmware, device and per-context buffers from the probe-time
+preallocated larger buffer. There is no need to create special reserved
+memory regions. The only case, when those memory regions are needed is an
+oldest Exynos series - Exynos4210 or Exyno4412, which both have MFC v5
+hardware, and only when IOMMU is disabled.
 
-Detailed results are available here:
+This patchset has been tested on Odroid U3 (Exynos4412 with MFC v5), Google
+Snow (Exynos5250 with MFC v6), Odroid XU3 (Exynos5422 with MFC v8) and
+TM2 (Exynos5433 with MFC v8, ARM64) boards.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+To get it working on TM2/Exynos5433 with IOMMU enabled, the 'architectural
+clock gating' in SYSMMU has to be disabled. Fixing this will be handled
+separately. As a temporary solution, one need to clear CFG_ACGEN bit in
+REG_MMU_CFG of the SYSMMU, see __sysmmu_init_config function in
+drivers/iommu/exynos-iommu.c.
 
-Full logs are available here:
+Patches are based on linux-next from 20th February 2017 with "media:
+s5p-mfc: Fix initialization of internal structures" patch applied:
+https://patchwork.linuxtv.org/patch/39198/
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+I've tried to split changes into small pieces to make it easier to review
+the code. I've also did a bit of cleanup while touching the driver.
 
-The Media Infrastructure API from this daily build is here:
+Best regards
+Marek Szyprowski
+Samsung R&D Institute Poland
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+
+Changelog:
+
+v2:
+- fixed issues pointed by Javier Martinez Canillas: code compiles now
+  after applying each patch, added missing cleanup
+- added tags
+
+v1: https://www.spinics.net/lists/linux-media/msg111156.html
+- initial version
+
+
+Patch summary:
+
+Marek Szyprowski (15):
+  media: s5p-mfc: Remove unused structures and dead code
+  media: s5p-mfc: Use generic of_device_get_match_data helper
+  media: s5p-mfc: Replace mem_dev_* entries with an array
+  media: s5p-mfc: Replace bank1/bank2 entries with an array
+  media: s5p-mfc: Simplify alloc/release private buffer functions
+  media: s5p-mfc: Move setting DMA max segment size to DMA configure
+    function
+  media: s5p-mfc: Put firmware to private buffer structure
+  media: s5p-mfc: Move firmware allocation to DMA configure function
+  media: s5p-mfc: Allocate firmware with internal private buffer alloc
+    function
+  media: s5p-mfc: Reduce firmware buffer size for MFC v6+ variants
+  media: s5p-mfc: Split variant DMA memory configuration into separate
+    functions
+  media: s5p-mfc: Add support for probe-time preallocated block based
+    allocator
+  media: s5p-mfc: Remove special configuration of IOMMU domain
+  media: s5p-mfc: Use preallocated block allocator always for MFC v6+
+  ARM: dts: exynos: Remove MFC reserved buffers
+
+ .../devicetree/bindings/media/s5p-mfc.txt          |   2 +-
+ arch/arm/boot/dts/exynos5250-arndale.dts           |   1 -
+ arch/arm/boot/dts/exynos5250-smdk5250.dts          |   1 -
+ arch/arm/boot/dts/exynos5250-spring.dts            |   1 -
+ arch/arm/boot/dts/exynos5420-arndale-octa.dts      |   1 -
+ arch/arm/boot/dts/exynos5420-peach-pit.dts         |   1 -
+ arch/arm/boot/dts/exynos5420-smdk5420.dts          |   1 -
+ arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi |   1 -
+ arch/arm/boot/dts/exynos5800-peach-pi.dts          |   1 -
+ drivers/media/platform/s5p-mfc/regs-mfc-v6.h       |   2 +-
+ drivers/media/platform/s5p-mfc/regs-mfc-v7.h       |   2 +-
+ drivers/media/platform/s5p-mfc/regs-mfc-v8.h       |   2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           | 214 +++++++++++++--------
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c    |   2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |  43 ++---
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c      |  71 ++-----
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h      |   1 -
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |   8 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |  10 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h     |  51 +----
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.c       |  65 +++++--
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.h       |   8 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c    |  48 ++---
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |  14 +-
+ 24 files changed, 268 insertions(+), 283 deletions(-)
+
+-- 
+1.9.1
