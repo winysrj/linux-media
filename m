@@ -1,238 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:38164 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752388AbdBUNWo (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:21852 "EHLO
+        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753272AbdBTNjW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Feb 2017 08:22:44 -0500
-Date: Tue, 21 Feb 2017 13:21:32 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v4 29/36] media: imx: mipi-csi2: enable setting and
- getting of frame rates
-Message-ID: <20170221132132.GU21222@n2100.armlinux.org.uk>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
- <1487211578-11360-30-git-send-email-steve_longerbeam@mentor.com>
- <20170220220409.GX16975@valkosipuli.retiisi.org.uk>
- <20170221001332.GS21222@n2100.armlinux.org.uk>
- <20170221123756.GI16975@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170221123756.GI16975@valkosipuli.retiisi.org.uk>
+        Mon, 20 Feb 2017 08:39:22 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Subject: [PATCH v2 11/15] media: s5p-mfc: Split variant DMA memory
+ configuration into separate functions
+Date: Mon, 20 Feb 2017 14:39:00 +0100
+Message-id: <1487597944-2000-12-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1487597944-2000-1-git-send-email-m.szyprowski@samsung.com>
+References: <1487597944-2000-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170220133915eucas1p205f1ca5970e9e02411b8a1f1fb933244@eucas1p2.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 21, 2017 at 02:37:57PM +0200, Sakari Ailus wrote:
-> Hi Russell,
-> 
-> On Tue, Feb 21, 2017 at 12:13:32AM +0000, Russell King - ARM Linux wrote:
-> > On Tue, Feb 21, 2017 at 12:04:10AM +0200, Sakari Ailus wrote:
-> > > On Wed, Feb 15, 2017 at 06:19:31PM -0800, Steve Longerbeam wrote:
-> > > > From: Russell King <rmk+kernel@armlinux.org.uk>
-> > > > 
-> > > > Setting and getting frame rates is part of the negotiation mechanism
-> > > > between subdevs.  The lack of support means that a frame rate at the
-> > > > sensor can't be negotiated through the subdev path.
-> > > 
-> > > Just wondering --- what do you need this for?
-> > 
-> > The v4l2 documentation contradicts the media-ctl implementation.
-> > 
-> > While v4l2 documentation says:
-> > 
-> >   These ioctls are used to get and set the frame interval at specific
-> >   subdev pads in the image pipeline. The frame interval only makes sense
-> >   for sub-devices that can control the frame period on their own. This
-> >   includes, for instance, image sensors and TV tuners. Sub-devices that
-> >   don't support frame intervals must not implement these ioctls.
-> > 
-> > However, when trying to configure the pipeline using media-ctl, eg:
-> > 
-> > media-ctl -d /dev/media1 --set-v4l2 '"imx219 pixel 0-0010":0[crop:(0,0)/3264x2464]'
-> > media-ctl -d /dev/media1 --set-v4l2 '"imx219 0-0010":1[fmt:SRGGB10/3264x2464@1/30]'
-> > media-ctl -d /dev/media1 --set-v4l2 '"imx219 0-0010":0[fmt:SRGGB8/816x616@1/30]'
-> > media-ctl -d /dev/media1 --set-v4l2 '"imx6-mipi-csi2":1[fmt:SRGGB8/816x616@1/30]'
-> > Unable to setup formats: Inappropriate ioctl for device (25)
-> > media-ctl -d /dev/media1 --set-v4l2 '"ipu1_csi0_mux":2[fmt:SRGGB8/816x616@1/30]'
-> > media-ctl -d /dev/media1 --set-v4l2 '"ipu1_csi0":2[fmt:SRGGB8/816x616@1/30]'
-> > 
-> > The problem there is that the format setting for the csi2 does not get
-> > propagated forward:
-> 
-> The CSI-2 receivers typically do not implement frame interval IOCTLs as they
-> do not control the frame interval. Some sensors or TV tuners typically do,
-> so they implement these IOCTLs.
+Move code for DMA memory configuration with IOMMU into separate function
+to make it easier to compare what is being done in each case.
 
-No, TV tuners do not.  The frame rate for a TV tuner is set by the
-broadcaster, not by the tuner.  The tuner can't change that frame rate.
-The tuner may opt to "skip" fields or frames.  That's no different from
-what the CSI block in my example below is capable of doing.
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c | 102 ++++++++++++++++++-------------
+ 1 file changed, 61 insertions(+), 41 deletions(-)
 
-Treating a tuner differently from the CSI block is inconsistent and
-completely wrong.
-
-> There are alternative ways to specify the frame rate.
-
-Empty statements (or hand-waving type statements) I'm afraid don't
-contribute to the discussion, because they mean nothing to me.  Please
-give an example, or flesh out what you mean.
-
-> > $ strace media-ctl -d /dev/media1 --set-v4l2 '"imx6-mipi-csi2":1[fmt:SRGGB8/816x616@1/30]'
-> > ...
-> > open("/dev/v4l-subdev16", O_RDWR)       = 3
-> > ioctl(3, VIDIOC_SUBDEV_S_FMT, 0xbec16244) = 0
-> > ioctl(3, VIDIOC_SUBDEV_S_FRAME_INTERVAL, 0xbec162a4) = -1 ENOTTY (Inappropriate
-> > ioctl for device)
-> > fstat64(1, {st_mode=S_IFCHR|0600, st_rdev=makedev(136, 2), ...}) = 0
-> > write(1, "Unable to setup formats: Inappro"..., 61) = 61
-> > Unable to setup formats: Inappropriate ioctl for device (25)
-> > close(3)                                = 0
-> > exit_group(1)                           = ?
-> > +++ exited with 1 +++
-> > 
-> > because media-ctl exits as soon as it encouters the error while trying
-> > to set the frame rate.
-> > 
-> > This makes implementing setup of the media pipeline in shell scripts
-> > unnecessarily difficult - as you need to then know whether an entity
-> > is likely not to support the VIDIOC_SUBDEV_S_FRAME_INTERVAL call,
-> > and either avoid specifying a frame rate:
-> 
-> You should remove the frame interval setting from sub-devices that do not
-> support it.
-
-That means we end up with horribly complex scripts.  This "solution" does
-not scale.  Therefore, it is not a "solution".
-
-It's fine if you want to write a script to setup the media pipeline using
-media-ctl, listing _each_ media-ctl command individually, with arguments
-specific to each step, but as I've already said, that does not scale.
-
-I don't want to end up writing separate scripts to configure the pipeline
-for different parameters or setups.  I don't want to teach users how to
-do that either.
-
-How are users supposed to cope with this craziness?  Are they expected to
-write their own scripts and understand this stuff?
-
-As far as I can see, there are no applications out there at the moment that
-come close to understanding how to configure a media pipeline, so users
-have to understand how to use media-ctl to configure the pipeline manually.
-Are we really expecting users to write scripts to do this, and understand
-all these nuances?
-
-IMHO, this is completely crazy, and hasn't been fully thought out.
-
-> > $ strace media-ctl -d /dev/media1 --set-v4l2 '"imx6-mipi-csi2":1[fmt:SRGGB8/816x616]'
-> > ...
-> > open("/dev/v4l-subdev16", O_RDWR)       = 3
-> > ioctl(3, VIDIOC_SUBDEV_S_FMT, 0xbeb1a254) = 0
-> > open("/dev/v4l-subdev0", O_RDWR)        = 4
-> > ioctl(4, VIDIOC_SUBDEV_S_FMT, 0xbeb1a254) = 0
-> > close(4)                                = 0
-> > close(3)                                = 0
-> > exit_group(0)                           = ?
-> > +++ exited with 0 +++
-> > 
-> > or manually setting the format on the sink.
-> > 
-> > Allowing the S_FRAME_INTERVAL call seems to me to be more in keeping
-> > with the negotiation mechanism that is implemented in subdevs, and
-> > IMHO should be implemented inside the kernel as a pad operation along
-> > with the format negotiation, especially so as frame skipping is
-> > defined as scaling, in just the same way as the frame size is also
-> > scaling:
-> 
-> The origins of the S_FRAME_INTERVAL IOCTL for sub-devices are the S_PARM
-> IOCTL for video nodes. It is used to control the frame rate for more simple
-> devices that do not expose the Media controller interface. The similar
-> S_FRAME_INTERVAL was added for sub-devices as well, and it has been so far
-> used to control the frame interval for sensors (and G_FRAME_INTERVAL to
-> obtain the frame interval for TV tuners, for instance).
-> 
-> The pad argument was added there but media-ctl only supported setting the
-> frame interval on pad 0, which, coincidentally, worked well for sensor
-> devices.
-> 
-> The link validation is primarily done in order to ensure the validity of the
-> hardware configuration: streaming may not be started if the hardware
-> configuration is not valid.
-> 
-> Also, frame interval is not a static property during streaming: it may be
-> changed without the knowledge of the other sub-device drivers downstream. It
-> neither is a property of hardware receiving or processing images: if there
-> are limitations in processing pixels, then they in practice are related to
-> pixel rates or image sizes (i.e. not frame rates).
-
-So what about the case where we have a subdev (CSI) that is capable of
-frame rate reduction, that needs to know the input frame rate and the
-desired output frame rate?  It seems to me that this has not been
-thought through...
-
-> >        -  ``MEDIA_ENT_F_PROC_VIDEO_SCALER``
-> > 
-> >        -  Video scaler. An entity capable of video scaling must have
-> >           at least one sink pad and one source pad, and scale the
-> >           video frame(s) received on its sink pad(s) to a different
-> >           resolution output on its source pad(s). The range of
-> >           supported scaling ratios is entity-specific and can differ
-> >           between the horizontal and vertical directions (in particular
-> >           scaling can be supported in one direction only). Binning and
-> >           skipping are considered as scaling.
-> > 
-> > Although, this is vague, as it doesn't define what it means by "skipping",
-> > whether that's skipping pixels (iow, sub-sampling) or whether that's
-> > frame skipping.
-> 
-> Skipping in the context is used to refer to sub-sampling. The term is often
-> used in conjunction of sensors. The documentation could certainly be
-> clarified here.
-
-It definitely needs to be, it's currently mis-leading.
-
-> > Then there's the issue where, if you have this setup:
-> > 
-> >  camera --> csi2 receiver --> csi --> capture
-> > 
-> > and the "csi" subdev can skip frames, you need to know (a) at the CSI
-> > sink pad what the frame rate is of the source (b) what the desired
-> > source pad frame rate is, so you can configure the frame skipping.
-> > So, does the csi subdev have to walk back through the media graph
-> > looking for the frame rate?  Does the capture device have to walk back
-> > through the media graph looking for some subdev to tell it what the
-> > frame rate is - the capture device certainly can't go straight to the
-> > sensor to get an answer to that question, because that bypasses the
-> > effect of the CSI frame skipping (which will lower the frame rate.)
-> > 
-> > IMHO, frame rate is just another format property, just like the
-> > resolution and data format itself, and v4l2 should be treating it no
-> > differently.
-> > 
-> > In any case, the documentation vs media-ctl create something of a very
-> > obscure situation, one that probably needs solving one way or another.
-> 
-> Before going to solutions I need to ask: what do you want to achieve?
-
-Full and consistent support for the hardware, and a sane and consistent
-way to setup a media pipeline that is easy for everyone to understand.
-
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 4403487a494a..04067bcc3feb 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1107,44 +1107,15 @@ static struct device *s5p_mfc_alloc_memdev(struct device *dev,
+ 	return NULL;
+ }
+ 
+-static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
++static int s5p_mfc_configure_2port_memory(struct s5p_mfc_dev *mfc_dev)
+ {
+ 	struct device *dev = &mfc_dev->plat_dev->dev;
+ 	void *bank2_virt;
+ 	dma_addr_t bank2_dma_addr;
+ 	unsigned long align_size = 1 << MFC_BASE_ALIGN_ORDER;
+-	struct s5p_mfc_priv_buf *fw_buf = &mfc_dev->fw_buf;
+ 	int ret;
+ 
+ 	/*
+-	 * When IOMMU is available, we cannot use the default configuration,
+-	 * because of MFC firmware requirements: address space limited to
+-	 * 256M and non-zero default start address.
+-	 * This is still simplified, not optimal configuration, but for now
+-	 * IOMMU core doesn't allow to configure device's IOMMUs channel
+-	 * separately.
+-	 */
+-	if (exynos_is_iommu_available(dev)) {
+-		int ret = exynos_configure_iommu(dev, S5P_MFC_IOMMU_DMA_BASE,
+-						 S5P_MFC_IOMMU_DMA_SIZE);
+-		if (ret)
+-			return ret;
+-
+-		mfc_dev->mem_dev[BANK1_CTX] = mfc_dev->mem_dev[BANK2_CTX] = dev;
+-		ret = s5p_mfc_alloc_firmware(mfc_dev);
+-		if (ret) {
+-			exynos_unconfigure_iommu(dev);
+-			return ret;
+-		}
+-
+-		mfc_dev->dma_base[BANK1_CTX] = fw_buf->dma;
+-		mfc_dev->dma_base[BANK2_CTX] = fw_buf->dma;
+-		vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
+-
+-		return 0;
+-	}
+-
+-	/*
+ 	 * Create and initialize virtual devices for accessing
+ 	 * reserved memory regions.
+ 	 */
+@@ -1167,7 +1138,7 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+ 		return ret;
+ 	}
+ 
+-	mfc_dev->dma_base[BANK1_CTX] = fw_buf->dma;
++	mfc_dev->dma_base[BANK1_CTX] = mfc_dev->fw_buf.dma;
+ 
+ 	bank2_virt = dma_alloc_coherent(mfc_dev->mem_dev[BANK2_CTX], align_size,
+ 					&bank2_dma_addr, GFP_KERNEL);
+@@ -1196,22 +1167,71 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+ 	return 0;
+ }
+ 
+-static void s5p_mfc_unconfigure_dma_memory(struct s5p_mfc_dev *mfc_dev)
++static void s5p_mfc_unconfigure_2port_memory(struct s5p_mfc_dev *mfc_dev)
+ {
+-	struct device *dev = &mfc_dev->plat_dev->dev;
++	device_unregister(mfc_dev->mem_dev[BANK1_CTX]);
++	device_unregister(mfc_dev->mem_dev[BANK2_CTX]);
++	vb2_dma_contig_clear_max_seg_size(mfc_dev->mem_dev[BANK1_CTX]);
++	vb2_dma_contig_clear_max_seg_size(mfc_dev->mem_dev[BANK2_CTX]);
++}
+ 
+-	s5p_mfc_release_firmware(mfc_dev);
++static int s5p_mfc_configure_common_memory(struct s5p_mfc_dev *mfc_dev)
++{
++	struct device *dev = &mfc_dev->plat_dev->dev;
++	/*
++	 * When IOMMU is available, we cannot use the default configuration,
++	 * because of MFC firmware requirements: address space limited to
++	 * 256M and non-zero default start address.
++	 * This is still simplified, not optimal configuration, but for now
++	 * IOMMU core doesn't allow to configure device's IOMMUs channel
++	 * separately.
++	 */
++	int ret = exynos_configure_iommu(dev, S5P_MFC_IOMMU_DMA_BASE,
++					 S5P_MFC_IOMMU_DMA_SIZE);
++	if (ret)
++		return ret;
+ 
+-	if (exynos_is_iommu_available(dev)) {
++	mfc_dev->mem_dev[BANK1_CTX] = mfc_dev->mem_dev[BANK2_CTX] = dev;
++	ret = s5p_mfc_alloc_firmware(mfc_dev);
++	if (ret) {
+ 		exynos_unconfigure_iommu(dev);
+-		vb2_dma_contig_clear_max_seg_size(dev);
+-		return;
++		return ret;
+ 	}
+ 
+-	device_unregister(mfc_dev->mem_dev[BANK1_CTX]);
+-	device_unregister(mfc_dev->mem_dev[BANK2_CTX]);
+-	vb2_dma_contig_clear_max_seg_size(mfc_dev->mem_dev[BANK1_CTX]);
+-	vb2_dma_contig_clear_max_seg_size(mfc_dev->mem_dev[BANK2_CTX]);
++	mfc_dev->dma_base[BANK1_CTX] = mfc_dev->fw_buf.dma;
++	mfc_dev->dma_base[BANK2_CTX] = mfc_dev->fw_buf.dma;
++	vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
++
++	return 0;
++}
++
++static void s5p_mfc_unconfigure_common_memory(struct s5p_mfc_dev *mfc_dev)
++{
++	struct device *dev = &mfc_dev->plat_dev->dev;
++
++	exynos_unconfigure_iommu(dev);
++	vb2_dma_contig_clear_max_seg_size(dev);
++}
++
++static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
++{
++	struct device *dev = &mfc_dev->plat_dev->dev;
++
++	if (exynos_is_iommu_available(dev))
++		return s5p_mfc_configure_common_memory(mfc_dev);
++	else
++		return s5p_mfc_configure_2port_memory(mfc_dev);
++}
++
++static void s5p_mfc_unconfigure_dma_memory(struct s5p_mfc_dev *mfc_dev)
++{
++	struct device *dev = &mfc_dev->plat_dev->dev;
++
++	s5p_mfc_release_firmware(mfc_dev);
++	if (exynos_is_iommu_available(dev))
++		s5p_mfc_unconfigure_common_memory(mfc_dev);
++	else
++		s5p_mfc_unconfigure_2port_memory(mfc_dev);
+ }
+ 
+ /* MFC probe function */
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+1.9.1
