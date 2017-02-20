@@ -1,147 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:62434 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751510AbdB0JYs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Feb 2017 04:24:48 -0500
-Date: Mon, 27 Feb 2017 10:24:30 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Koji Matsuoka <koji.matsuoka.xm@renesas.com>,
-        Yoshihiro Kaneko <ykaneko0929@gmail.com>,
-        Simon Horman <horms+renesas@verge.net.au>
-Subject: Re: [PATCH] soc-camera: fix rectangle adjustment in cropping
-In-Reply-To: <319e8cdd-4cd0-079f-649c-cc2f9f10d466@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1702271021130.21990@axis700.grange>
-References: <Pine.LNX.4.64.1702262150090.17018@axis700.grange>
- <1908551.GjAGnFoZ8e@avalon> <Pine.LNX.4.64.1702270945390.21990@axis700.grange>
- <6082161.NEqkolhdEc@avalon> <319e8cdd-4cd0-079f-649c-cc2f9f10d466@xs4all.nl>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:34209
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751436AbdBTKE4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Feb 2017 05:04:56 -0500
+Date: Mon, 20 Feb 2017 06:52:53 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Marcel Heinz <quisquilia@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Gregor Jasny <gjasny@googlemail.com>
+Subject: Re: Bug#854100: libdvbv5-0: fails to tune / scan
+Message-ID: <20170220065253.25e0d44b@vento.lan>
+In-Reply-To: <ac7c042a-e636-adf3-6f2e-a1e9d9f4525f@gmx.de>
+References: <ac7c042a-e636-adf3-6f2e-a1e9d9f4525f@gmx.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 27 Feb 2017, Hans Verkuil wrote:
+Em Fri, 17 Feb 2017 22:50:57 +0100
+Marcel Heinz <quisquilia@gmx.de> escreveu:
 
-> On 02/27/2017 10:02 AM, Laurent Pinchart wrote:
-> > Hi Guennadi,
-> > 
-> > On Monday 27 Feb 2017 09:54:19 Guennadi Liakhovetski wrote:
-> >> On Mon, 27 Feb 2017, Laurent Pinchart wrote:
-> >>> On Sunday 26 Feb 2017 21:58:16 Guennadi Liakhovetski wrote:
-> >>>> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-> >>>>
-> >>>> update_subrect() adjusts the sub-rectangle to be inside a base area.
-> >>>> It checks width and height to not exceed those of the area, then it
-> >>>> checks the low border (left or top) to lie within the area, then the
-> >>>> high border (right or bottom) to lie there too. This latter check has
-> >>>> a bug, which is fixed by this patch.
-> >>>>
-> >>>> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-> >>>> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-> >>>> [g.liakhovetski@gmx.de: dropped supposedly wrong hunks]
-> >>>> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> >>>> ---
-> >>>>
-> >>>> This is a part of the https://patchwork.linuxtv.org/patch/26441/
-> >>>> submitted almost 2.5 years ago. Back then I commented to the patch but
-> >>>> never got a reply or an update. I preserved original authorship and Sob
-> >>>> tags, although this version only uses a small portion of the original
-> >>>> patch. This version is of course completely untested, any testing (at
-> >>>> least regression) would be highly appreciated! This code is only used by
-> >>>> the SH CEU driver and only in cropping / zooming scenarios.
-> >>>>
-> >>>>  drivers/media/platform/soc_camera/soc_scale_crop.c | 4 ++--
-> >>>>  1 file changed, 2 insertions(+), 2 deletions(-)
-> >>>>
-> >>>> diff --git a/drivers/media/platform/soc_camera/soc_scale_crop.c
-> >>>> b/drivers/media/platform/soc_camera/soc_scale_crop.c index
-> >>>> f77252d..4bfc1bf
-> >>>> 100644
-> >>>> --- a/drivers/media/platform/soc_camera/soc_scale_crop.c
-> >>>> +++ b/drivers/media/platform/soc_camera/soc_scale_crop.c
-> >>>> @@ -70,14 +70,14 @@ static void update_subrect(struct v4l2_rect *rect,
-> >>>> struct v4l2_rect *subrect)
-> >>>>  	if (rect->height < subrect->height)
-> >>>>  		subrect->height = rect->height;
-> >>>>
-> >>>> -	if (rect->left > subrect->left)
-> >>>> +	if (rect->left < subrect->left)
-> >>>
-> >>> This looks wrong to me. If the purpose of the function is indeed to adjust
-> >>> subrect to stay within rect, the condition doesn't need to be changed.
-> >>>
-> >>>>  		subrect->left = rect->left;
-> >>>>  	else if (rect->left + rect->width >
-> >>>>  		 subrect->left + subrect->width)
-> >>>
-> >>> This condition, however, is wrong.
-> >>
-> >> Arrrrgh, of course, I meant to change this one! Thanks for catching.
-> >>
-> >>>>  		subrect->left = rect->left + rect->width -
-> >>>>  			subrect->width;
-> >>>
-> >>> More than that, adjusting the width first and then the left coordinate can
-> >>> result in an incorrect width.
-> >>
-> >> The width is adjusted in the beginning only to stay within the area, you
-> >> cannot go beyond it anyway. So, that has to be done anyway. And then the
-> >> origin is adjusted.
-> >>
-> >>> It looks to me like you should drop the width
-> >>> check at the beginning of this function, and turn the "else if" here into
-> >>> an "if" with the right condition. Or, even better in my opinion, use the
-> >>> min/max/clamp macros.
-> >>
-> >> Well, that depends on what result we want to achieve, what parameter we
-> >> prioritise. This approach prioritises width and height, and then adjusts
-> >> edges to accommodate as much of them as possible. A different approach
-> >> would be to prioritise the origin (top and left) and adjust width and
-> >> height to stay within the area. Do we have a preference for this?
-> > 
-> > Don't you need both ? "Inside the area" is a pretty well-defined concept :-)
+> Hi,
 > 
-> Generally the top-left is adjusted first, and then the width/height if it still
-> can't be made to fit. I.e. the priority is to keep the width/height unchanged
-> if possible.
-
-Ok, sure, you can use either order, but if we prioritise width / height, 
-then the only restriction for them is to be <= original width / height, 
-right? So, you can always first do
-
-	if (subrect->width > rect->width)
-		subrect->width = rect->width;
-
-right? That wqay you guarantee, that you can fit and that you keep as much 
-of the requested subrect width, as you can. And then you can adjust left / 
-top if still needed.
-
-Thanks
-Guennadi
-
+> Am 13. Februar 2017 schrieb Mauro Carvalho Chehab:
 > 
-> Regards,
+> > Em Fri, 10 Feb 2017 22:02:01 +0100
+> > Gregor Jasny <gjasny@xxxxxxxxxxxxxx> escreveu:
+> >   
+> >> Bug report against libdvbv5 is here:
+> >> https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=854100  
+> > 
+> > There was a bug at the logic that was checking if the frequency was
+> > at the range of the local oscillators. This patch should be addressing
+> > it:
+> > 	https://git.linuxtv.org/v4l-utils.git/commit/?id=5380ad44de416a41b4972e8a9c147ce42b0e3ba0
+> > 
+> > With that, the logic now seems to be working fine:
+> > 
+> > $ ./utils/dvb/dvbv5-scan ~/Intelsat-34 --lnbf universal -vv
+> > Using LNBf UNIVERSAL
+> > 	Universal, Europe
+> > 	10800 to 11800 MHz, LO: 9750 MHz
+> > 	11600 to 12700 MHz, LO: 10600 MHz
+> > ...
+> > Seeking for LO for 12.17 MHz frequency
+> > LO setting 0: 10.80 MHz to 11.80 MHz
+> > LO setting 1: 11.60 MHz to 12.70 MHz
+> > Multi-LO LNBf. using LO setting 1 at 10600.00 MHz
+> > frequency: 12170.00 MHz, high_band: 1
+> > L-Band frequency: 1570.00 MHz (offset = 10600.00 MHz)
+> > 
+> > I can't really test it here, as my satellite dish uses a different
+> > type of LNBf, but, from the above logs, the bug should be fixed.
+> > 
+> > Marcel,
+> > 
+> > Could you please test? The patch is already upstream.
+> > I added a debug patch after it, in order to help LNBf issues
+> > (enabled by using "-vv" command line parameters).  
 > 
-> 	Hans
-> 
-> > 
-> > 	subrect->left = max(subrect->left, rect->left);
-> > 	subrect->top = max(subrect->top, rect->top);
-> > 	subrect->width = min(subrect->left + subrect->width,
-> > 			     rect->left + rect->width) - subrect->left;
-> > 	subrect->height = min(subrect->top + subrect->height,
-> > 			      rect->top + rect->height) - subrect->top;
-> > 
-> > (Completely untested)
-> > 
-> >>> Same comments for the vertical checks.
-> >>>
-> >>>> -	if (rect->top > subrect->top)
-> >>>> +	if (rect->top < subrect->top)
-> >>>>  		subrect->top = rect->top;
-> >>>>  	else if (rect->top + rect->height >
-> >>>>  		 subrect->top + subrect->height)
-> > 
-> 
+> I can confirm that 1.12.3 solves the issue for me. Thanks for the fix.
+
+Good!
+
+Thanks for testing!
+
+Regards,
+Mauro
