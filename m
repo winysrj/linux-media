@@ -1,71 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:34209
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751436AbdBTKE4 (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:23438 "EHLO
+        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753278AbdBTNjW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Feb 2017 05:04:56 -0500
-Date: Mon, 20 Feb 2017 06:52:53 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Marcel Heinz <quisquilia@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Gregor Jasny <gjasny@googlemail.com>
-Subject: Re: Bug#854100: libdvbv5-0: fails to tune / scan
-Message-ID: <20170220065253.25e0d44b@vento.lan>
-In-Reply-To: <ac7c042a-e636-adf3-6f2e-a1e9d9f4525f@gmx.de>
-References: <ac7c042a-e636-adf3-6f2e-a1e9d9f4525f@gmx.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Mon, 20 Feb 2017 08:39:22 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Subject: [PATCH v2 15/15] ARM: dts: exynos: Remove MFC reserved buffers
+Date: Mon, 20 Feb 2017 14:39:04 +0100
+Message-id: <1487597944-2000-16-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1487597944-2000-1-git-send-email-m.szyprowski@samsung.com>
+References: <1487597944-2000-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170220133917eucas1p1e5c6106b0d479c4571966fcc2c601c22@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 17 Feb 2017 22:50:57 +0100
-Marcel Heinz <quisquilia@gmx.de> escreveu:
+During my research I found that some of the requirements for the memory
+buffers for MFC v6+ devices were blindly copied from the previous (v5)
+version and simply turned out to be excessive. The relaxed requirements
+are applied by the recent patches to the MFC driver and the driver is
+now fully functional even without the reserved memory blocks for all
+v6+ variants. This patch removes those reserved memory nodes from all
+boards having MFC v6+ hardware block.
 
-> Hi,
-> 
-> Am 13. Februar 2017 schrieb Mauro Carvalho Chehab:
-> 
-> > Em Fri, 10 Feb 2017 22:02:01 +0100
-> > Gregor Jasny <gjasny@xxxxxxxxxxxxxx> escreveu:
-> >   
-> >> Bug report against libdvbv5 is here:
-> >> https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=854100  
-> > 
-> > There was a bug at the logic that was checking if the frequency was
-> > at the range of the local oscillators. This patch should be addressing
-> > it:
-> > 	https://git.linuxtv.org/v4l-utils.git/commit/?id=5380ad44de416a41b4972e8a9c147ce42b0e3ba0
-> > 
-> > With that, the logic now seems to be working fine:
-> > 
-> > $ ./utils/dvb/dvbv5-scan ~/Intelsat-34 --lnbf universal -vv
-> > Using LNBf UNIVERSAL
-> > 	Universal, Europe
-> > 	10800 to 11800 MHz, LO: 9750 MHz
-> > 	11600 to 12700 MHz, LO: 10600 MHz
-> > ...
-> > Seeking for LO for 12.17 MHz frequency
-> > LO setting 0: 10.80 MHz to 11.80 MHz
-> > LO setting 1: 11.60 MHz to 12.70 MHz
-> > Multi-LO LNBf. using LO setting 1 at 10600.00 MHz
-> > frequency: 12170.00 MHz, high_band: 1
-> > L-Band frequency: 1570.00 MHz (offset = 10600.00 MHz)
-> > 
-> > I can't really test it here, as my satellite dish uses a different
-> > type of LNBf, but, from the above logs, the bug should be fixed.
-> > 
-> > Marcel,
-> > 
-> > Could you please test? The patch is already upstream.
-> > I added a debug patch after it, in order to help LNBf issues
-> > (enabled by using "-vv" command line parameters).  
-> 
-> I can confirm that 1.12.3 solves the issue for me. Thanks for the fix.
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
+---
+ arch/arm/boot/dts/exynos5250-arndale.dts           | 1 -
+ arch/arm/boot/dts/exynos5250-smdk5250.dts          | 1 -
+ arch/arm/boot/dts/exynos5250-spring.dts            | 1 -
+ arch/arm/boot/dts/exynos5420-arndale-octa.dts      | 1 -
+ arch/arm/boot/dts/exynos5420-peach-pit.dts         | 1 -
+ arch/arm/boot/dts/exynos5420-smdk5420.dts          | 1 -
+ arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi | 1 -
+ arch/arm/boot/dts/exynos5800-peach-pi.dts          | 1 -
+ 8 files changed, 8 deletions(-)
 
-Good!
-
-Thanks for testing!
-
-Regards,
-Mauro
+diff --git a/arch/arm/boot/dts/exynos5250-arndale.dts b/arch/arm/boot/dts/exynos5250-arndale.dts
+index 6098dacd09f1..6a432460eb77 100644
+--- a/arch/arm/boot/dts/exynos5250-arndale.dts
++++ b/arch/arm/boot/dts/exynos5250-arndale.dts
+@@ -14,7 +14,6 @@
+ #include <dt-bindings/interrupt-controller/irq.h>
+ #include <dt-bindings/input/input.h>
+ #include "exynos5250.dtsi"
+-#include "exynos-mfc-reserved-memory.dtsi"
+ 
+ / {
+ 	model = "Insignal Arndale evaluation board based on EXYNOS5250";
+diff --git a/arch/arm/boot/dts/exynos5250-smdk5250.dts b/arch/arm/boot/dts/exynos5250-smdk5250.dts
+index a97a785ccc6b..6632f657394e 100644
+--- a/arch/arm/boot/dts/exynos5250-smdk5250.dts
++++ b/arch/arm/boot/dts/exynos5250-smdk5250.dts
+@@ -13,7 +13,6 @@
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/interrupt-controller/irq.h>
+ #include "exynos5250.dtsi"
+-#include "exynos-mfc-reserved-memory.dtsi"
+ 
+ / {
+ 	model = "SAMSUNG SMDK5250 board based on EXYNOS5250";
+diff --git a/arch/arm/boot/dts/exynos5250-spring.dts b/arch/arm/boot/dts/exynos5250-spring.dts
+index 4d7bdb735ed3..95c3bcace9dc 100644
+--- a/arch/arm/boot/dts/exynos5250-spring.dts
++++ b/arch/arm/boot/dts/exynos5250-spring.dts
+@@ -14,7 +14,6 @@
+ #include <dt-bindings/interrupt-controller/irq.h>
+ #include <dt-bindings/input/input.h>
+ #include "exynos5250.dtsi"
+-#include "exynos-mfc-reserved-memory.dtsi"
+ 
+ / {
+ 	model = "Google Spring";
+diff --git a/arch/arm/boot/dts/exynos5420-arndale-octa.dts b/arch/arm/boot/dts/exynos5420-arndale-octa.dts
+index 9cc83c51c925..ee1bb9b8b366 100644
+--- a/arch/arm/boot/dts/exynos5420-arndale-octa.dts
++++ b/arch/arm/boot/dts/exynos5420-arndale-octa.dts
+@@ -16,7 +16,6 @@
+ #include <dt-bindings/interrupt-controller/irq.h>
+ #include <dt-bindings/input/input.h>
+ #include <dt-bindings/clock/samsung,s2mps11.h>
+-#include "exynos-mfc-reserved-memory.dtsi"
+ 
+ / {
+ 	model = "Insignal Arndale Octa evaluation board based on EXYNOS5420";
+diff --git a/arch/arm/boot/dts/exynos5420-peach-pit.dts b/arch/arm/boot/dts/exynos5420-peach-pit.dts
+index 1f964ec35c5e..2cd65699a29c 100644
+--- a/arch/arm/boot/dts/exynos5420-peach-pit.dts
++++ b/arch/arm/boot/dts/exynos5420-peach-pit.dts
+@@ -16,7 +16,6 @@
+ #include <dt-bindings/regulator/maxim,max77802.h>
+ #include "exynos5420.dtsi"
+ #include "exynos5420-cpus.dtsi"
+-#include "exynos-mfc-reserved-memory.dtsi"
+ 
+ / {
+ 	model = "Google Peach Pit Rev 6+";
+diff --git a/arch/arm/boot/dts/exynos5420-smdk5420.dts b/arch/arm/boot/dts/exynos5420-smdk5420.dts
+index aaccd0da41e5..08c8ab173e87 100644
+--- a/arch/arm/boot/dts/exynos5420-smdk5420.dts
++++ b/arch/arm/boot/dts/exynos5420-smdk5420.dts
+@@ -13,7 +13,6 @@
+ #include "exynos5420.dtsi"
+ #include "exynos5420-cpus.dtsi"
+ #include <dt-bindings/gpio/gpio.h>
+-#include "exynos-mfc-reserved-memory.dtsi"
+ 
+ / {
+ 	model = "Samsung SMDK5420 board based on EXYNOS5420";
+diff --git a/arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi b/arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi
+index 05b9afdd6757..657535e2e3cc 100644
+--- a/arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi
++++ b/arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi
+@@ -18,7 +18,6 @@
+ #include <dt-bindings/sound/samsung-i2s.h>
+ #include "exynos5800.dtsi"
+ #include "exynos5422-cpus.dtsi"
+-#include "exynos-mfc-reserved-memory.dtsi"
+ 
+ / {
+ 	memory@40000000 {
+diff --git a/arch/arm/boot/dts/exynos5800-peach-pi.dts b/arch/arm/boot/dts/exynos5800-peach-pi.dts
+index f9ff7f07ae0c..ecf1c916e8fc 100644
+--- a/arch/arm/boot/dts/exynos5800-peach-pi.dts
++++ b/arch/arm/boot/dts/exynos5800-peach-pi.dts
+@@ -16,7 +16,6 @@
+ #include <dt-bindings/regulator/maxim,max77802.h>
+ #include "exynos5800.dtsi"
+ #include "exynos5420-cpus.dtsi"
+-#include "exynos-mfc-reserved-memory.dtsi"
+ 
+ / {
+ 	model = "Google Peach Pi Rev 10+";
+-- 
+1.9.1
