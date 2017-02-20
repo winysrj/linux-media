@@ -1,56 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:54063 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750774AbdBBNEZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Feb 2017 08:04:25 -0500
-Subject: Re: [PATCH v2] Documentation: devicetree: meson-ir:
- "linux,rc-map-name" is supported
-To: Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
-        mchehab@kernel.org
-References: <20170131212112.5582-1-martin.blumenstingl@googlemail.com>
- <20170201221415.22794-1-martin.blumenstingl@googlemail.com>
- <CAFBinCDF2d36E2hp7w_ehqdErdZPK9maQLpBmqMoGMPZmTTqqQ@mail.gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>, carlo@caione.org,
-        khilman@baylibre.com, linux-amlogic@lists.infradead.org,
-        robh+dt@kernel.org, mark.rutland@arm.com, narmstrong@baylibre.com,
-        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
-From: =?UTF-8?Q?Andreas_F=c3=a4rber?= <afaerber@suse.de>
-Message-ID: <cccd0fef-fa2c-bdfd-b7dd-b26ef288dfa0@suse.de>
-Date: Thu, 2 Feb 2017 14:04:15 +0100
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59638 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753405AbdBTN5M (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Feb 2017 08:57:12 -0500
+Date: Mon, 20 Feb 2017 15:56:36 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
+Subject: Re: [PATCH 1/4] v4l2: device_register_subdev_nodes: allow calling
+ multiple times
+Message-ID: <20170220135636.GU16975@valkosipuli.retiisi.org.uk>
+References: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz>
+ <20170220103114.GA9800@amd>
+ <20170220130912.GT16975@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <CAFBinCDF2d36E2hp7w_ehqdErdZPK9maQLpBmqMoGMPZmTTqqQ@mail.gmail.com>
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170220130912.GT16975@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 01.02.2017 um 23:26 schrieb Martin Blumenstingl:
-> On Wed, Feb 1, 2017 at 11:14 PM, Martin Blumenstingl
-> <martin.blumenstingl@googlemail.com> wrote:
->> The driver already parses the "linux,rc-map-name" property. Add this
->> information to the documentation so .dts maintainers don't have to look
->> it up in the source-code.
->>
->> Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
->> Acked-by: Rob Herring <robh@kernel.org>
->> ---
->> Changes since v1:
->> - removed character which shows up as whitespace from subject
-> I have verified that I really sent this without a whitespace (I'm
-> using git send-email, so the patch is not mangled by some webmailer) -
-> unfortunately it seems to appear again (maybe one of the receiving
-> mail-servers or the mailing-list software does something weird here).
+On Mon, Feb 20, 2017 at 03:09:13PM +0200, Sakari Ailus wrote:
+> I've tested ACPI, will test DT soon...
 
-Shows up fine here now,
-
-Reviewed-by: Andreas Färber <afaerber@suse.de>
-
-Didn't expect a resend for that btw.
-
-Thanks,
-Andreas
+DT case works, too (Nokia N9).
 
 -- 
-SUSE Linux GmbH, Maxfeldstr. 5, 90409 Nürnberg, Germany
-GF: Felix Imendörffer, Jane Smithard, Graham Norton
-HRB 21284 (AG Nürnberg)
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
