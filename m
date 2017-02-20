@@ -1,65 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-4.cisco.com ([173.38.203.54]:33256 "EHLO
-        aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752116AbdBJN6h (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:35186 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752822AbdBTMGv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Feb 2017 08:58:37 -0500
-Subject: Re: media device drivers for Intel hardware platform incoming
-To: "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "mchehab@osg.samsung.com" <mchehab@osg.samsung.com>,
-        "Laurent.pinchart@ideasonboard.com"
-        <Laurent.pinchart@ideasonboard.com>
-References: <FA6CF6692DF0B343ABE491A46A2CD0E76C3AAAA3@SHSMSX101.ccr.corp.intel.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Zhang, Lei L" <lei.l.zhang@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-From: Hans Verkuil <hansverk@cisco.com>
-Message-ID: <fd2eb32e-4cbe-7df9-2f24-3d91bbc58507@cisco.com>
-Date: Fri, 10 Feb 2017 13:37:37 +0100
+        Mon, 20 Feb 2017 07:06:51 -0500
+Date: Mon, 20 Feb 2017 13:06:47 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, mchehab@kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>,
+        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org
+Subject: [PATCH] omap3isp: avoid uninitialized memory
+Message-ID: <20170220120647.GA19951@amd>
+References: <20161228183036.GA13139@amd>
+ <10545906.Gxg3yScdu4@avalon>
+ <20170215094228.GA8586@amd>
+ <2414221.XNA4JCFMRx@avalon>
 MIME-Version: 1.0
-In-Reply-To: <FA6CF6692DF0B343ABE491A46A2CD0E76C3AAAA3@SHSMSX101.ccr.corp.intel.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="FL5UXtIhxfXey3p5"
+Content-Disposition: inline
+In-Reply-To: <2414221.XNA4JCFMRx@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/10/17 13:26, Zheng, Jian Xu wrote:
-> Dear maintainers & reviewers,
->
-> First, thank you so much for your time to reading this email.
->
-> Recently we are about to upstream several media drivers on Intel hardware platform, especially one ISP HW with hybrid imaging processing pipeline and its driver may be the first Intel ISP driver trying to upstream in linux-media.
-> Also 2 sensor drivers and VCM driver are included.
->
-> Patch sets will likely reach at mailing list in several weeks. So I'm sending ice-breaking email for a smooth communication in the next months.
-> Looking forward to work with the most active and respected kernel driver component. Also contributing to the Open Source community is our honor and goal in the progress.
->
-> If you're interested in, here are some introductions about those drivers (details will be in the cover letter of patch set)
-> 	1. MIPI CSI-2 device is part of ISP and is one PCI device. It would pass on data from MIPI bus to the DDR memory(without image processing).
->                      MIPI CSI-2 driver registers 1 v4l2 subdev and 1 video node. Buffers are managed via vb2.
->
-> 	2. Imaging processing unit is another part of ISP. It's one PCI device and a hardware with one hybrid imaging processing hardware pipeline.
-> 	     This HW consumes DDR RAW input and produces the YUV output after running imaging processing pipeline.
->                      So it's abstracted as one memory to memory device with 5 output pins(main output, vf output, 3A statistics, DVS statistics, LACE),
->                      2 input pins(RAW image, ISP parameters). Certain video nodes are created for buffer looping. Buffers are managed via vb2.
->
-> 	3. Camera sensors are i2c devices and drivers register 2 v4l2 subdevs and media entities as Pixel Array and Binner (binning/subsample).
->                      Exposure/gain/hflip/vflip/vblank/hblank settings are set via certain V4L2_CID_* IOCTLs.
->
-> 	4. VCM is i2c device and registers as a v4l2 subdev. Lens position is set through V4L2_CID_FOCUS_ABSOLUTE
 
-Great news! Thank you for working on this.
+--FL5UXtIhxfXey3p5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Just one question for my understanding: Sakari, is this something you've been
-involved in or is this from a different Intel team?
 
-If Sakari has not been involved in this, then it is probably a good idea to work
-with him to do a preliminary code review.
+Code in ispcsiphy is quite confusing, and does not initialize phy1 in
+case of isp rev. 2. Set it to zero, to prevent confusion.
 
-Looking forward to the patch series,
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-	Hans
+index 8f73f6d..a2474b6 100644
+--- a/drivers/media/platform/omap3isp/ispcsiphy.c
++++ b/drivers/media/platform/omap3isp/ispcsiphy.c
+@@ -362,14 +374,16 @@ int omap3isp_csiphy_init(struct isp_device *isp)
+ 	phy2->phy_regs =3D OMAP3_ISP_IOMEM_CSIPHY2;
+ 	mutex_init(&phy2->mutex);
+=20
+-	if (isp->revision =3D=3D ISP_REVISION_15_0) {
+-		phy1->isp =3D isp;
+-		phy1->csi2 =3D &isp->isp_csi2c;
+-		phy1->num_data_lanes =3D ISP_CSIPHY1_NUM_DATA_LANES;
+-		phy1->cfg_regs =3D OMAP3_ISP_IOMEM_CSI2C_REGS1;
+-		phy1->phy_regs =3D OMAP3_ISP_IOMEM_CSIPHY1;
+-		mutex_init(&phy1->mutex);
++	if (isp->revision !=3D ISP_REVISION_15_0) {
++		memset(phy1, sizeof(*phy1), 0);
++		return 0;
+ 	}
+=20
++	phy1->isp =3D isp;
++	phy1->csi2 =3D &isp->isp_csi2c;
++	phy1->num_data_lanes =3D ISP_CSIPHY1_NUM_DATA_LANES;
++	phy1->cfg_regs =3D OMAP3_ISP_IOMEM_CSI2C_REGS1;
++	phy1->phy_regs =3D OMAP3_ISP_IOMEM_CSIPHY1;
++	mutex_init(&phy1->mutex);
+ 	return 0;
+ }
 
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--FL5UXtIhxfXey3p5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAliq29cACgkQMOfwapXb+vJ1FgCghP4v8/SWR9Vabwt88Bvg6rzV
+ZzEAn1lLXlS7D8cKbOPblqyTP7K0GWBt
+=R5L+
+-----END PGP SIGNATURE-----
+
+--FL5UXtIhxfXey3p5--
