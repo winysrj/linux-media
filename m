@@ -1,157 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f182.google.com ([74.125.82.182]:34059 "EHLO
-        mail-ot0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752219AbdBMS2D (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:44007 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753094AbdBTK35 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 13:28:03 -0500
-Received: by mail-ot0-f182.google.com with SMTP id f9so74920060otd.1
-        for <linux-media@vger.kernel.org>; Mon, 13 Feb 2017 10:28:03 -0800 (PST)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: Sekhar Nori <nsekhar@ti.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Lad Prabhakar <prabhakar.csengg@gmail.com>,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 02/10] ARM: dts: da850-evm: fix whitespace errors
-References: <1486485683-11427-1-git-send-email-bgolaszewski@baylibre.com>
-        <1486485683-11427-3-git-send-email-bgolaszewski@baylibre.com>
-Date: Mon, 13 Feb 2017 10:28:00 -0800
-In-Reply-To: <1486485683-11427-3-git-send-email-bgolaszewski@baylibre.com>
-        (Bartosz Golaszewski's message of "Tue, 7 Feb 2017 17:41:15 +0100")
-Message-ID: <m24lzyeyj3.fsf@baylibre.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Mon, 20 Feb 2017 05:29:57 -0500
+Subject: Re: [PATCH 15/15] ARM: dts: exynos: Remove MFC reserved buffersg
+To: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <c73d6600-0e0c-d1da-58c7-f6b4d3b6a389@samsung.com>
+Date: Mon, 20 Feb 2017 11:28:35 +0100
+MIME-version: 1.0
+In-reply-to: <20170214170316.nsp3g5ht3ldoxc43@kozik-lap>
+Content-type: text/plain; charset=utf-8
+Content-transfer-encoding: 8bit
+References: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170214075221eucas1p18648b047f71e9dd95626e5766c74601b@eucas1p1.samsung.com>
+ <1487058728-16501-16-git-send-email-m.szyprowski@samsung.com>
+ <20170214170316.nsp3g5ht3ldoxc43@kozik-lap>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Bartosz Golaszewski <bgolaszewski@baylibre.com> writes:
-
-> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-
-Acked-by: Kevin Hilman <khilman@baylibre.com>
-
+On 02/14/2017 06:03 PM, Krzysztof Kozlowski wrote:
+> On Tue, Feb 14, 2017 at 08:52:08AM +0100, Marek Szyprowski wrote:
+>> During my research I found that some of the requirements for the memory
+>> buffers for MFC v6+ devices were blindly copied from the previous (v5)
+>> version and simply turned out to be excessive. The relaxed requirements
+>> are applied by the recent patches to the MFC driver and the driver is
+>> now fully functional even without the reserved memory blocks for all
+>> v6+ variants. This patch removes those reserved memory nodes from all
+> boards having MFC v6+ hardware block.
+> 
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 > ---
->  arch/arm/boot/dts/da850-evm.dts | 10 +++++-----
->  1 file changed, 5 insertions(+), 5 deletions(-)
->
-> diff --git a/arch/arm/boot/dts/da850-evm.dts b/arch/arm/boot/dts/da850-evm.dts
-> index c970b6e..94938a3 100644
-> --- a/arch/arm/boot/dts/da850-evm.dts
-> +++ b/arch/arm/boot/dts/da850-evm.dts
-> @@ -301,14 +301,14 @@
->  	/* VPIF capture port */
->  	port {
->  		vpif_ch0: endpoint@0 {
-> -			  reg = <0>;
-> -			  bus-width = <8>;
-> +			reg = <0>;
-> +			bus-width = <8>;
->  		};
->  
->  		vpif_ch1: endpoint@1 {
-> -			  reg = <1>;
-> -			  bus-width = <8>;
-> -			  data-shift = <8>;
-> +			reg = <1>;
-> +			bus-width = <8>;
-> +			data-shift = <8>;
->  		};
->  	};
->  };
+> 
+> Looks okay (for v4.12). Full bisectability depends on changes in MFC
+> driver, right?  I will need a stable branch/tag with driver changes
+> (although recently Arnd did not want driver changes mixed with DTS...).
 
-Bartosz Golaszewski <bgolaszewski@baylibre.com> writes:
+I'd suggest postponing that dts cleanup patch to v4.13, everything
+should continue to work properly with just the driver patches merged
+and that way there will be no need to pull all 14 driver patches
+into the arm-soc tree.
 
-> Extend the vpif node with an output port with a single channel.
->
-> NOTE: this is still just hardware description - the actual driver
-> is registered using pdata-quirks.
->
-> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-> ---
->  arch/arm/boot/dts/da850-evm.dts | 14 +++++++++++---
->  arch/arm/boot/dts/da850.dtsi    |  8 +++++++-
->  2 files changed, 18 insertions(+), 4 deletions(-)
->
-> diff --git a/arch/arm/boot/dts/da850-evm.dts b/arch/arm/boot/dts/da850-evm.dts
-> index 94938a3..3d6dd66 100644
-> --- a/arch/arm/boot/dts/da850-evm.dts
-> +++ b/arch/arm/boot/dts/da850-evm.dts
-> @@ -299,16 +299,24 @@
->  	status = "okay";
->  
->  	/* VPIF capture port */
-> -	port {
-> -		vpif_ch0: endpoint@0 {
-> +	port@0 {
-> +		vpif_input_ch0: endpoint@0 {
->  			reg = <0>;
->  			bus-width = <8>;
->  		};
->  
-> -		vpif_ch1: endpoint@1 {
-> +		vpif_input_ch1: endpoint@1 {
->  			reg = <1>;
->  			bus-width = <8>;
->  			data-shift = <8>;
->  		};
->  	};
-> +
-> +	/* VPIF display port */
-> +	port@1 {
-> +		vpif_output_ch0: endpoint@0 {
-> +			reg = <0>;
-> +			bus-width = <8>;
-> +		};
-> +	};
->  };
-> diff --git a/arch/arm/boot/dts/da850.dtsi b/arch/arm/boot/dts/da850.dtsi
-> index 69ec5e7..768a58c 100644
-> --- a/arch/arm/boot/dts/da850.dtsi
-> +++ b/arch/arm/boot/dts/da850.dtsi
-> @@ -494,7 +494,13 @@
->  			status = "disabled";
->  
->  			/* VPIF capture port */
-> -			port {
-> +			port@0 {
-> +				#address-cells = <1>;
-> +				#size-cells = <0>;
-> +			};
-> +
-> +			/* VPIF display port */
-> +			port@1 {
->  				#address-cells = <1>;
->  				#size-cells = <0>;
->  			};
-
-Bartosz Golaszewski <bgolaszewski@baylibre.com> writes:
-
-> There's a stray tab in da850_vpif_legacy_init(). Remove it.
->
-> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-> ---
->  arch/arm/mach-davinci/pdata-quirks.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/arch/arm/mach-davinci/pdata-quirks.c b/arch/arm/mach-davinci/pdata-quirks.c
-> index a186513..94948c1 100644
-> --- a/arch/arm/mach-davinci/pdata-quirks.c
-> +++ b/arch/arm/mach-davinci/pdata-quirks.c
-> @@ -111,7 +111,7 @@ static struct vpif_capture_config da850_vpif_capture_config = {
->  static void __init da850_vpif_legacy_init(void)
->  {
->  	int ret;
-> -	
-> +
->  	/* LCDK doesn't have the 2nd TVP514x on CH1 */
->  	if (of_machine_is_compatible("ti,da850-lcdk"))
->  		da850_vpif_capture_config.subdev_count = 1;
+--
+Regards,
+Sylwester
