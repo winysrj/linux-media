@@ -1,99 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:36248 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751419AbdBYJHr (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:21852 "EHLO
+        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752562AbdBTNjQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Feb 2017 04:07:47 -0500
-Date: Sat, 25 Feb 2017 10:07:41 +0100
-From: Ingo Molnar <mingo@kernel.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: kernel test robot <fengguang.wu@intel.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sean Young <sean@mess.org>,
-        Ruslan Ruslichenko <rruslich@cisco.com>, LKP <lkp@01.org>,
-        "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-        kernel@stlinux.com,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-mediatek@lists.infradead.org,
-        linux-amlogic@lists.infradead.org,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Linux LED Subsystem <linux-leds@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>, wfg@linux.intel.com
-Subject: Re: [WARNING: A/V UNSCANNABLE][Merge tag 'media/v4.11-1' of git]
- ff58d005cd: BUG: unable to handle kernel NULL pointer dereference at
- 0000039c
-Message-ID: <20170225090741.GA20463@gmail.com>
-References: <58b07b30.9XFLj9Hhl7F6HMc2%fengguang.wu@intel.com>
- <CA+55aFytXj+TZ_TanbxcY0KgRTrV7Vvr=fWON8tioUGmYHYiNA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CA+55aFytXj+TZ_TanbxcY0KgRTrV7Vvr=fWON8tioUGmYHYiNA@mail.gmail.com>
+        Mon, 20 Feb 2017 08:39:16 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Subject: [PATCH v2 02/15] media: s5p-mfc: Use generic of_device_get_match_data
+ helper
+Date: Mon, 20 Feb 2017 14:38:51 +0100
+Message-id: <1487597944-2000-3-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1487597944-2000-1-git-send-email-m.szyprowski@samsung.com>
+References: <1487597944-2000-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170220133911eucas1p17c0e5d66163593575edc5b8014aa9c30@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Replace custom code with generic helper to retrieve driver data.
 
-* Linus Torvalds <torvalds@linux-foundation.org> wrote:
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        | 17 ++---------------
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  4 ++--
+ 2 files changed, 4 insertions(+), 17 deletions(-)
 
-> I'm pretty sure that the thing that triggered this is once more commit
-> a9b4f08770b4 ("x86/ioapic: Restore IO-APIC irq_chip retrigger
-> callback") which seems to retrigger stale irqs that simply should not
-> be retriggered.
-> 
-> They aren't actually active any more, if they ever were.
-> 
-> So that commit seems to act like a random CONFIG_DEBUG_SHIRQ. It's
-> good for testing, but not good for actual users.
-
-Yeah, so some distros like Fedora already have CONFIG_DEBUG_SHIRQ=y enabled, but 
-part of the problem is that CONFIG_DEBUG_SHIRQ=y has this:
-
-#ifdef CONFIG_DEBUG_SHIRQ_FIXME
-        if (!retval && (irqflags & IRQF_SHARED)) {
-                /*
-                 * It's a shared IRQ -- the driver ought to be prepared for it
-                 * to happen immediately, so let's make sure....
-                 * We disable the irq to make sure that a 'real' IRQ doesn't
-                 * run in parallel with our fake.
-                 */
-                unsigned long flags;
-
-                disable_irq(irq);
-                local_irq_save(flags);
-
-                handler(irq, dev_id);
-
-                local_irq_restore(flags);
-                enable_irq(irq);
-        }
-#endif
-
-Note that the '_FIXME' postfix effectively turns off this particular debug check 
-...
-
-Thomas and me realized this risk a week ago ago, and tried to resurrect full 
-CONFIG_DEBUG_SHIRQ=y functionality to more reliably trigger these problems:
-
-  https://lkml.org/lkml/2017/2/15/341
-
-... but were forced to revert that fix because it's not working on x86 yet (it's 
-crashing). We also thought we fixed the problems exposed in drivers, as the 
-retrigger changes have been in -tip and -next for some time, but were clearly too 
-optimistic about that.
-
-So, should we revert the hw-retrigger change:
-
-  a9b4f08770b4 x86/ioapic: Restore IO-APIC irq_chip retrigger callback
-
-... until we managed to fix CONFIG_DEBUG_SHIRQ=y? If you'd like to revert it 
-upstream straight away:
-
-Acked-by: Ingo Molnar <mingo@kernel.org>
-
-Thanks,
-
-	Ingo
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 3e1f22eb4339..ad3d7377f40d 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -22,6 +22,7 @@
+ #include <media/v4l2-event.h>
+ #include <linux/workqueue.h>
+ #include <linux/of.h>
++#include <linux/of_device.h>
+ #include <linux/of_reserved_mem.h>
+ #include <media/videobuf2-v4l2.h>
+ #include "s5p_mfc_common.h"
+@@ -1157,8 +1158,6 @@ static void s5p_mfc_unconfigure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+ 	device_unregister(mfc_dev->mem_dev_r);
+ }
+ 
+-static void *mfc_get_drv_data(struct platform_device *pdev);
+-
+ /* MFC probe function */
+ static int s5p_mfc_probe(struct platform_device *pdev)
+ {
+@@ -1182,7 +1181,7 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+ 		return -ENODEV;
+ 	}
+ 
+-	dev->variant = mfc_get_drv_data(pdev);
++	dev->variant = of_device_get_match_data(&pdev->dev);
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	dev->regs_base = devm_ioremap_resource(&pdev->dev, res);
+@@ -1541,18 +1540,6 @@ static int s5p_mfc_resume(struct device *dev)
+ };
+ MODULE_DEVICE_TABLE(of, exynos_mfc_match);
+ 
+-static void *mfc_get_drv_data(struct platform_device *pdev)
+-{
+-	struct s5p_mfc_variant *driver_data = NULL;
+-	const struct of_device_id *match;
+-
+-	match = of_match_node(exynos_mfc_match, pdev->dev.of_node);
+-	if (match)
+-		driver_data = (struct s5p_mfc_variant *)match->data;
+-
+-	return driver_data;
+-}
+-
+ static struct platform_driver s5p_mfc_driver = {
+ 	.probe		= s5p_mfc_probe,
+ 	.remove		= s5p_mfc_remove,
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 3e0e8eaf8bfe..2f1387a4c386 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -192,7 +192,7 @@ struct s5p_mfc_buf {
+  */
+ struct s5p_mfc_pm {
+ 	struct clk	*clock_gate;
+-	const char	**clk_names;
++	const char * const *clk_names;
+ 	struct clk	*clocks[MFC_MAX_CLOCKS];
+ 	int		num_clocks;
+ 	bool		use_clock_gating;
+@@ -304,7 +304,7 @@ struct s5p_mfc_dev {
+ 	struct v4l2_ctrl_handler dec_ctrl_handler;
+ 	struct v4l2_ctrl_handler enc_ctrl_handler;
+ 	struct s5p_mfc_pm	pm;
+-	struct s5p_mfc_variant	*variant;
++	const struct s5p_mfc_variant	*variant;
+ 	int num_inst;
+ 	spinlock_t irqlock;	/* lock when operating on context */
+ 	spinlock_t condlock;	/* lock when changing/checking if a context is
+-- 
+1.9.1
