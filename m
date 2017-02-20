@@ -1,88 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from us01smtprelay-2.synopsys.com ([198.182.47.9]:35690 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750881AbdBCSUI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2017 13:20:08 -0500
-From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        devicetree@vger.kernel.org
-Cc: CARLOS.PALMINHA@synopsys.com,
-        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pavel Machek <pavel@ucw.cz>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Rob Herring <robh+dt@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>
-Subject: [PATCH RESEND v7 1/2] Add OV5647 device tree documentation
-Date: Fri,  3 Feb 2017 18:18:32 +0000
-Message-Id: <d1dc3b91af73fbcfcae54fdc80cb38389cc9bacf.1486136893.git.roliveir@synopsys.com>
-In-Reply-To: <cover.1486136893.git.roliveir@synopsys.com>
-References: <cover.1486136893.git.roliveir@synopsys.com>
-In-Reply-To: <cover.1486136893.git.roliveir@synopsys.com>
-References: <cover.1486136893.git.roliveir@synopsys.com>
+Received: from mail-svr1.cs.utah.edu ([155.98.64.241]:60043 "EHLO
+        mail-svr1.cs.utah.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751100AbdBTTtY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Feb 2017 14:49:24 -0500
+From: "Shaobo" <shaobo@cs.utah.edu>
+To: "'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>
+Cc: <linux-media@vger.kernel.org>, <mchehab@kernel.org>,
+        <hverkuil@xs4all.nl>, <sakari.ailus@linux.intel.com>,
+        <ricardo.ribalda@gmail.com>
+References: <002201d288a9$93dd7360$bb985a20$@cs.utah.edu> <5573207.UYLCxH4UDO@avalon> <00a901d2894d$95c553b0$c14ffb10$@cs.utah.edu> <2249581.t3xTjk4llj@avalon>
+In-Reply-To: <2249581.t3xTjk4llj@avalon>
+Subject: RE: Dead code in v4l2-mem2mem.c?
+Date: Mon, 20 Feb 2017 12:49:18 -0700
+Message-ID: <000601d28bb2$6d0ca330$4725e990$@cs.utah.edu>
+MIME-Version: 1.0
+Content-Type: text/plain;
+        charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Content-Language: zh-cn
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Create device tree bindings documentation.
+Hi Laurent,
 
-Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
-Acked-by: Rob Herring <robh@kernel.org>
----
- .../devicetree/bindings/media/i2c/ov5647.txt       | 35 ++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
+I'd like to. It sounds interesting and useful to me. Could you give me some pointers about how to audit drivers?
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov5647.txt b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
-new file mode 100644
-index 000000000000..57fd40036c26
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
-@@ -0,0 +1,35 @@
-+Omnivision OV5647 raw image sensor
-+---------------------------------
-+
-+OV5647 is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
-+and CCI (I2C compatible) control bus.
-+
-+Required properties:
-+
-+- compatible		: "ovti,ov5647".
-+- reg			: I2C slave address of the sensor.
-+- clocks		: Reference to the xclk clock.
-+- clock-names		: Should be "xclk".
-+- clock-frequency	: Frequency of the xclk clock.
-+
-+The common video interfaces bindings (see video-interfaces.txt) should be
-+used to specify link to the image data receiver. The OV5647 device
-+node should contain one 'port' child node with an 'endpoint' subnode.
-+
-+Example:
-+
-+	i2c@2000 {
-+		...
-+		ov: camera@36 {
-+			compatible = "ovti,ov5647";
-+			reg = <0x36>;
-+			clocks = <&camera_clk>;
-+			clock-names = "xclk";
-+			clock-frequency = <30000000>;
-+			port {
-+				camera_1: endpoint {
-+					remote-endpoint = <&csi1_ep1>;
-+				};
-+			};
-+		};
-+	};
--- 
-2.11.0
+Shaobo
+-----Original Message-----
+From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com] 
+Sent: 2017年2月18日 3:54
+To: Shaobo <shaobo@cs.utah.edu>
+Cc: linux-media@vger.kernel.org; mchehab@kernel.org; hverkuil@xs4all.nl; sakari.ailus@linux.intel.com; ricardo.ribalda@gmail.com
+Subject: Re: Dead code in v4l2-mem2mem.c?
 
+Hi Shaobo,
 
+On Friday 17 Feb 2017 11:42:25 Shaobo wrote:
+> Hi Laurent,
+> 
+> Thanks a lot for your reply.
+> 
+> I would like to also point out the inconsistency of using 
+> `v4l2_m2m_get_vq` inside drivers/media/v4l2-core/v4l2-mem2mem.c and 
+> inside other files. It appears to me almost all call sites of 
+> `v4l2_m2m_get_vq` in drivers/media/v4l2-core/v4l2-mem2mem.c does not 
+> have NULL check afterwards while in other files (e.g., 
+> drivers/media/platform/mx2_emmaprp.c) they do. I was wondering if there is special assumption on this function in mem2mem.c.
+
+I don't see any case where the function could reasonably be called with a NULL context other than a severe driver bug. This being said, we need to audit the callers to make sure that's really the case. Would you like to do so and submit a patch ? :-)
+
+> -----Original Message-----
+> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> Sent: 2017年2月17日 3:26
+> To: Shaobo <shaobo@cs.utah.edu>
+> Cc: linux-media@vger.kernel.org; mchehab@kernel.org; 
+> hverkuil@xs4all.nl; sakari.ailus@linux.intel.com; 
+> ricardo.ribalda@gmail.com
+> Subject: Re: Dead code in v4l2-mem2mem.c?
+> 
+> Hi Shaobo,
+> 
+> First of all, could you please make sure you send future mails to the 
+> linux- media mailing list in plain text only (no HTML) ? The mailing 
+> list server rejects HTML e-mails.
+> 
+> On Thursday 16 Feb 2017 16:08:25 Shaobo wrote:
+> > Hi there,
+> > 
+> > My name is Shaobo He and I am a graduate student at University of 
+> > Utah. I am applying a static analysis tool to the Linux device 
+> > drivers, looking for NULL pointer dereference and accidentally found 
+> > a plausible dead code location in v4l2-mem2mem.c due to undefined behavior.
+> > 
+> > The following is the problematic code segment,
+> > 
+> > static struct v4l2_m2m_queue_ctx *get_queue_ctx(struct v4l2_m2m_ctx 
+> > *m2m_ctx,
+> > 
+> > 						  enum v4l2_buf_type type)
+> > 
+> > {
+> > 
+> > 	if (V4L2_TYPE_IS_OUTPUT(type))
+> > 	
+> > 		return &m2m_ctx->out_q_ctx;
+> > 	
+> > 	else
+> > 	
+> > 		return &m2m_ctx->cap_q_ctx;
+> > 
+> > }
+> > 
+> > struct vb2_queue *v4l2_m2m_get_vq(struct v4l2_m2m_ctx *m2m_ctx,
+> > 
+> > 				    enum v4l2_buf_type type)
+> > 
+> > {
+> > 
+> > 	struct v4l2_m2m_queue_ctx *q_ctx;
+> > 	
+> > 	q_ctx = get_queue_ctx(m2m_ctx, type);
+> > 	if (!q_ctx)
+> > 	
+> > 		return NULL;
+> > 	
+> > 	return &q_ctx->q;
+> > 
+> > }
+> > 
+> > `get_queue_ctx` returns a pointer value that is an addition of the 
+> > base pointer address (`m2m_ctx`) to a non-zero offset. The following 
+> > is the definition of struct v4l2_m2m_ctx,
+> > 
+> > struct v4l2_m2m_ctx {
+> > 
+> > 	/* optional cap/out vb2 queues lock */
+> > 	struct mutex			*q_lock;
+> > 	
+> > 	/* internal use only */
+> > 	struct v4l2_m2m_dev		*m2m_dev;
+> > 	
+> > 	struct v4l2_m2m_queue_ctx	cap_q_ctx;
+> > 	
+> > 	struct v4l2_m2m_queue_ctx	out_q_ctx;
+> > 	
+> > 	/* For device job queue */
+> > 	struct list_head		queue;
+> > 	unsigned long			job_flags;
+> > 	wait_queue_head_t		finished;
+> > 	
+> > 	void				*priv;
+> > 
+> > };
+> > 
+> > There is a NULL test in a caller of `get_queue_ctx` (line 85), which 
+> > appears problematic to me. I'm not sure if it is defined or feasible 
+> > under the context of Linux kernel. This blog
+> > (https://wdtz.org/undefined-behavior-in-binutils-causes-segfault.htm
+> > l) suggests that the NULL check can be optimized away because the 
+> > only case that the return value can be NULL triggers pointer 
+> > overflow, which is undefined.
+> > 
+> > Please let me know if it makes sense or not. Thanks for your time 
+> > and I am looking forward to your reply.
+> 
+> The NULL check is indeed wrong. I believe that the m2m_ctx argument 
+> passed to the v4l2_m2m_get_vq() function should never be NULL. We will 
+> however need to audit drivers to make sure that's the case. The NULL 
+> check could then be removed. Alternatively we could check m2m_ctx 
+> above the get_queue_ctx() call, which wouldn't require auditing 
+> drivers. It's a safe option, but would likely result in an unneeded NULL check.
+> 
+> --
+> Regards,
+> 
+> Laurent Pinchart
+
+--
+Regards,
+
+Laurent Pinchart
