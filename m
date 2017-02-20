@@ -1,74 +1,233 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:51270 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932705AbdBVRy7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Feb 2017 12:54:59 -0500
-Date: Wed, 22 Feb 2017 18:54:20 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Ajay kumar <ajaynumb@gmail.com>
-cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:23438 "EHLO
+        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753142AbdBTNjU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Feb 2017 08:39:20 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
         Andrzej Hajda <a.hajda@samsung.com>,
-        Thomas Axelsson <Thomas.Axelsson@cybercom.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: v4l2: Adding support for multiple MIPI CSI-2 virtual channels
-In-Reply-To: <CAEC9eQMreAGiZW-p457YeR1csfBbrhLBD+RSFKr3oMt0re1mJA@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1702221822080.6242@axis700.grange>
-References: <DB5PR0701MB19091F43803C514055C4592A885D0@DB5PR0701MB1909.eurprd07.prod.outlook.com>
- <CAEC9eQMreAGiZW-p457YeR1csfBbrhLBD+RSFKr3oMt0re1mJA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Subject: [PATCH v2 12/15] media: s5p-mfc: Add support for probe-time
+ preallocated block based allocator
+Date: Mon, 20 Feb 2017 14:39:01 +0100
+Message-id: <1487597944-2000-13-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1487597944-2000-1-git-send-email-m.szyprowski@samsung.com>
+References: <1487597944-2000-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170220133916eucas1p148acb6b6c3d0fbcaefa90f85bb723c9a@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Current MFC driver depends on the fact that when IOMMU is available, the
+DMA-mapping framework and its IOMMU glue will use first-fit allocator.
+This was true for ARM architecture, but its not for ARM64 arch. However, in
+case of MFC v6+ hardware and latest firmware, it turned out that there is
+no strict requirement for ALL buffers to be allocated on higher addresses
+than the firmware base. This requirement is true only for the device and
+per-context buffers. All video data buffers can be allocated anywhere for
+all MFC v6+ versions.
 
-On Tue, 21 Feb 2017, Ajay kumar wrote:
+Such relaxed requirements for the memory buffers can be easily fulfilled
+by allocating firmware, device and per-context buffers from the probe-time
+preallocated larger buffer. This patch adds support for it. This way the
+driver finally works fine on ARM64 architecture. The size of the
+preallocated buffer is 8 MiB, what is enough for three instances H264
+decoders or encoders (other codecs have smaller memory requirements).
+If one needs more for particular use case, one can use "mem" module
+parameter to force larger (or smaller) buffer (for example by adding
+"s5p_mfc.mem=16M" to kernel command line).
 
-> Hi Everyone,
-> 
-> On Fri, Feb 17, 2017 at 7:27 PM, Thomas Axelsson
-> <Thomas.Axelsson@cybercom.com> wrote:
-> > Hi,
-> >
-> > I have a v4l2_subdev that provides multiple MIPI CSI-2 Virtual 
-> > Channels. I want to configure each virtual channel individually (e.g. 
-> > set_fmt), but the v4l2 interface does not seem to have a clear way to 
-> > access configuration on a virtual channel level, but only the 
-> > v4l2_subdev as a whole. Using one v4l2_subdev for multiple virtual 
-> > channels by extending the "reg" tag to be an array looks like the 
-> > correct way to do it, based on the mipi-dsi-bus.txt document and 
-> > current device tree endpoint structure.
-> >
-> > However, I cannot figure out how to extend e.g. set_fmt/get_fmt subdev 
-> > ioctls to specify which virtual channel the call applies to. Does 
-> > anyone have any advice on how to handle this case?
-> This would be helpful for my project as well since even I need to
-> support multiple streams using Virtual Channels.
-> Can anyone point out to some V4L2 driver, if this kind of support is
-> already implemented?
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        | 43 ++++++++++++++++---
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  4 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.c    | 57 ++++++++++++++++---------
+ 3 files changed, 79 insertions(+), 25 deletions(-)
 
-My understanding is, that MIPI CSI virtual channel handling requires 
-extensions to the V4L2 subdev API. These extensions have been discussed at 
-a media mini-summit almost a year ago, slides are available at [1], but as 
-my priorities shifted away from this work, don't think those extensions 
-ever got implemented.
-
-Thanks
-Guennadi
-
-[1] https://linuxtv.org/downloads/presentations/media_summit_2016_san_diego/v4l2-multistream.pdf
-
-> 
-> Thanks.
-> >
-> > Previous thread: "Device Tree formatting for multiple virtual channels in ti-vpe/cal driver?"
-> >
-> >
-> > Best Regards,
-> > Thomas Axelsson
-> >
-> > PS. First e-mail seems to have gotten caught in the spam filter. I apologize if this is a duplicate.
-> 
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 04067bcc3feb..1c5ec8257f4f 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -43,6 +43,10 @@
+ module_param_named(debug, mfc_debug_level, int, S_IRUGO | S_IWUSR);
+ MODULE_PARM_DESC(debug, "Debug level - higher value produces more verbose messages");
+ 
++static char *mfc_mem_size = NULL;
++module_param_named(mem, mfc_mem_size, charp, S_IRUGO | S_IWUSR);
++MODULE_PARM_DESC(mem, "Preallocated memory size for the firmware and context buffers");
++
+ /* Helper functions for interrupt processing */
+ 
+ /* Remove from hw execution round robin */
+@@ -1178,6 +1182,8 @@ static void s5p_mfc_unconfigure_2port_memory(struct s5p_mfc_dev *mfc_dev)
+ static int s5p_mfc_configure_common_memory(struct s5p_mfc_dev *mfc_dev)
+ {
+ 	struct device *dev = &mfc_dev->plat_dev->dev;
++	unsigned long mem_size = SZ_8M;
++	unsigned int bitmap_size;
+ 	/*
+ 	 * When IOMMU is available, we cannot use the default configuration,
+ 	 * because of MFC firmware requirements: address space limited to
+@@ -1191,17 +1197,39 @@ static int s5p_mfc_configure_common_memory(struct s5p_mfc_dev *mfc_dev)
+ 	if (ret)
+ 		return ret;
+ 
+-	mfc_dev->mem_dev[BANK1_CTX] = mfc_dev->mem_dev[BANK2_CTX] = dev;
+-	ret = s5p_mfc_alloc_firmware(mfc_dev);
+-	if (ret) {
++	if (mfc_mem_size)
++		mem_size = memparse(mfc_mem_size, NULL);
++
++	bitmap_size = BITS_TO_LONGS(mem_size >> PAGE_SHIFT) * sizeof(long);
++
++	mfc_dev->mem_bitmap = kzalloc(bitmap_size, GFP_KERNEL);
++	if (!mfc_dev->mem_bitmap) {
+ 		exynos_unconfigure_iommu(dev);
+-		return ret;
++		return -ENOMEM;
+ 	}
+ 
+-	mfc_dev->dma_base[BANK1_CTX] = mfc_dev->fw_buf.dma;
+-	mfc_dev->dma_base[BANK2_CTX] = mfc_dev->fw_buf.dma;
++	mfc_dev->mem_virt = dma_alloc_coherent(dev, mem_size,
++					       &mfc_dev->mem_base, GFP_KERNEL);
++	if (!mfc_dev->mem_virt) {
++		kfree(mfc_dev->mem_bitmap);
++		dev_err(dev, "failed to preallocate %ld MiB for the firmware and context buffers\n",
++			(mem_size / SZ_1M));
++		exynos_unconfigure_iommu(dev);
++		return -ENOMEM;
++	}
++	mfc_dev->mem_size = mem_size;
++	mfc_dev->dma_base[BANK1_CTX] = mfc_dev->mem_base;
++	mfc_dev->dma_base[BANK2_CTX] = mfc_dev->mem_base;
++
++	/* Firmware allocation cannot fail in this case */
++	s5p_mfc_alloc_firmware(mfc_dev);
++
++	mfc_dev->mem_dev[BANK1_CTX] = mfc_dev->mem_dev[BANK2_CTX] = dev;
+ 	vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
+ 
++	dev_info(dev, "preallocated %ld MiB buffer for the firmware and context buffers\n",
++		 (mem_size / SZ_1M));
++
+ 	return 0;
+ }
+ 
+@@ -1210,6 +1238,9 @@ static void s5p_mfc_unconfigure_common_memory(struct s5p_mfc_dev *mfc_dev)
+ 	struct device *dev = &mfc_dev->plat_dev->dev;
+ 
+ 	exynos_unconfigure_iommu(dev);
++	dma_free_coherent(dev, mfc_dev->mem_size, mfc_dev->mem_virt,
++			  mfc_dev->mem_base);
++	kfree(mfc_dev->mem_bitmap);
+ 	vb2_dma_contig_clear_max_seg_size(dev);
+ }
+ 
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index cea17a737ef7..e64dc6e3c75e 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -315,6 +315,10 @@ struct s5p_mfc_dev {
+ 	unsigned int int_err;
+ 	wait_queue_head_t queue;
+ 	struct s5p_mfc_priv_buf fw_buf;
++	size_t mem_size;
++	dma_addr_t mem_base;
++	unsigned long *mem_bitmap;
++	void *mem_virt;
+ 	dma_addr_t dma_base[BANK_CTX_NUM];
+ 	unsigned long hw_lock;
+ 	struct s5p_mfc_ctx *ctx[MFC_NUM_CONTEXTS];
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
+index 9294ee124661..34a66189d980 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
+@@ -40,41 +40,60 @@ void s5p_mfc_init_regs(struct s5p_mfc_dev *dev)
+ int s5p_mfc_alloc_priv_buf(struct s5p_mfc_dev *dev, unsigned int mem_ctx,
+ 			   struct s5p_mfc_priv_buf *b)
+ {
+-	struct device *mem_dev = dev->mem_dev[mem_ctx];
+-	dma_addr_t base = dev->dma_base[mem_ctx];
++	unsigned int bits = dev->mem_size >> PAGE_SHIFT;
++	unsigned int count = b->size >> PAGE_SHIFT;
++	unsigned int align = (SZ_64K >> PAGE_SHIFT) - 1;
++	unsigned int start, offset;
+ 
+ 	mfc_debug(3, "Allocating priv: %zu\n", b->size);
+ 
+-	b->ctx = mem_ctx;
+-	b->virt = dma_alloc_coherent(mem_dev, b->size, &b->dma, GFP_KERNEL);
++	if (dev->mem_virt) {
++		start = bitmap_find_next_zero_area(dev->mem_bitmap, bits, 0, count, align);
++		if (start > bits)
++			goto no_mem;
+ 
+-	if (!b->virt) {
+-		mfc_err("Allocating private buffer of size %zu failed\n",
+-			b->size);
+-		return -ENOMEM;
+-	}
++		bitmap_set(dev->mem_bitmap, start, count);
++		offset = start << PAGE_SHIFT;
++		b->virt = dev->mem_virt + offset;
++		b->dma = dev->mem_base + offset;
++	} else {
++		struct device *mem_dev = dev->mem_dev[mem_ctx];
++		dma_addr_t base = dev->dma_base[mem_ctx];
+ 
+-	if (b->dma < base) {
+-		mfc_err("Invalid memory configuration - buffer (%pad) is below base memory address(%pad)\n",
+-			&b->dma, &base);
+-		dma_free_coherent(mem_dev, b->size, b->virt, b->dma);
+-		return -ENOMEM;
++		b->ctx = mem_ctx;
++		b->virt = dma_alloc_coherent(mem_dev, b->size, &b->dma, GFP_KERNEL);
++		if (!b->virt)
++			goto no_mem;
++		if (b->dma < base) {
++			mfc_err("Invalid memory configuration - buffer (%pad) is below base memory address(%pad)\n",
++				&b->dma, &base);
++			dma_free_coherent(mem_dev, b->size, b->virt, b->dma);
++			return -ENOMEM;
++		}
+ 	}
+ 
+ 	mfc_debug(3, "Allocated addr %p %pad\n", b->virt, &b->dma);
+ 	return 0;
++no_mem:
++	mfc_err("Allocating private buffer of size %zu failed\n", b->size);
++	return -ENOMEM;
+ }
+ 
+ void s5p_mfc_release_priv_buf(struct s5p_mfc_dev *dev,
+ 			      struct s5p_mfc_priv_buf *b)
+ {
+-	struct device *mem_dev = dev->mem_dev[b->ctx];
++	if (dev->mem_virt) {
++		unsigned int start = (b->dma - dev->mem_base) >> PAGE_SHIFT;
++		unsigned int count = b->size >> PAGE_SHIFT;
++
++		bitmap_clear(dev->mem_bitmap, start, count);
++	} else {
++		struct device *mem_dev = dev->mem_dev[b->ctx];
+ 
+-	if (b->virt) {
+ 		dma_free_coherent(mem_dev, b->size, b->virt, b->dma);
+-		b->virt = NULL;
+-		b->dma = 0;
+-		b->size = 0;
+ 	}
++	b->virt = NULL;
++	b->dma = 0;
++	b->size = 0;
+ }
+ 
+-- 
+1.9.1
