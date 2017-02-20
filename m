@@ -1,52 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:56942 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752245AbdBMOej (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 09:34:39 -0500
-Subject: Re: [PATCH 0/2] [media] exynos-gsc: Fix support for NV21 and NV61
- formats
-To: Javier Martinez Canillas <javier@dowhile0.org>,
-        Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Linux Kernel <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        Thibault Saunier <thibault.saunier@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        "linux-samsung-soc@vger.kernel.org"
-        <linux-samsung-soc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <41ead50c-3a71-8c8c-3455-9571b5482f27@samsung.com>
-Date: Mon, 13 Feb 2017 15:34:22 +0100
-MIME-version: 1.0
-In-reply-to: <CABxcv==+Di=i_KBY1LY0Ejo8UXMYa5yhS=bugsyxFkQTyh0xUw@mail.gmail.com>
-Content-type: text/plain; charset=utf-8
-Content-transfer-encoding: 8bit
-References: <1485979523-32404-1-git-send-email-javier@osg.samsung.com>
- <CABxcv==+Di=i_KBY1LY0Ejo8UXMYa5yhS=bugsyxFkQTyh0xUw@mail.gmail.com>
- <CGME20170213143429epcas5p1e9407c814e71352ccb5ec14b082f954e@epcas5p1.samsung.com>
+Received: from mout.gmx.net ([212.227.17.21]:52861 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751249AbdBTUds (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Feb 2017 15:33:48 -0500
+Received: from linux.local ([88.67.44.205]) by mail.gmx.com (mrgmx103
+ [212.227.17.168]) with ESMTPSA (Nemesis) id 0MYOCL-1csmpk0gqn-00VCTh for
+ <linux-media@vger.kernel.org>; Mon, 20 Feb 2017 21:33:45 +0100
+From: Peter Seiderer <ps.report@gmx.net>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v1 1/2] ir-ctl: use strndup instead of strndupa (fixes musl compile)
+Date: Mon, 20 Feb 2017 21:33:43 +0100
+Message-Id: <20170220203344.17530-1-ps.report@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+Fixes buildroot musl compile (see [1], [2]):
 
-On 02/13/2017 01:53 PM, Javier Martinez Canillas wrote:
-> Any comments on this series?
+  ir-ctl.c:(.text+0xb06): undefined reference to `strndupa'
 
-The patches look good to me, I will Ack the patches in case
-Mauro wants to apply them directly.  Alternatively I will
-add them to my tree for v4.12 after the merge window.
+[1] http://autobuild.buildroot.net/results/b8b96c7bbf2147dacac62485cbfdbcfd758271a5
+[2] http://lists.busybox.net/pipermail/buildroot/2017-February/184048.html
 
+Signed-off-by: Peter Seiderer <ps.report@gmx.net>
+---
+ utils/ir-ctl/ir-ctl.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/utils/ir-ctl/ir-ctl.c b/utils/ir-ctl/ir-ctl.c
+index bc58cee0..f938b429 100644
+--- a/utils/ir-ctl/ir-ctl.c
++++ b/utils/ir-ctl/ir-ctl.c
+@@ -344,12 +344,14 @@ static struct file *read_scancode(const char *name)
+ 		return NULL;
+ 	}
+ 
+-	pstr = strndupa(name, p - name);
++	pstr = strndup(name, p - name);
+ 
+ 	if (!protocol_match(pstr, &proto)) {
+ 		fprintf(stderr, _("error: protocol '%s' not found\n"), pstr);
++		free(pstr);
+ 		return NULL;
+ 	}
++	free(pstr);
+ 
+ 	if (!strtoscancode(p + 1, &scancode)) {
+ 		fprintf(stderr, _("error: invalid scancode '%s'\n"), p + 1);
 -- 
-Thanks,
-Sylwester
+2.11.0
