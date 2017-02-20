@@ -1,74 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56333
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751221AbdBXTmo (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:21852 "EHLO
+        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753257AbdBTNjV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Feb 2017 14:42:44 -0500
-Subject: Re: [PATCH 2/2] media: s5p-mfc: fix MMAP of mfc buffer during reqbufs
-To: Pankaj Dubey <pankaj.dubey@samsung.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org
-References: <1481888915-19624-1-git-send-email-pankaj.dubey@samsung.com>
- <1481888915-19624-3-git-send-email-pankaj.dubey@samsung.com>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: kyungmin.park@samsung.com, jtp.park@samsung.com,
-        mchehab@kernel.org, mchehab@osg.samsung.com,
-        hans.verkuil@cisco.com, krzk@kernel.org, kgene@kernel.org,
-        Smitha T Murthy <smitha.t@samsung.com>
-Message-ID: <81c11e69-b7eb-ccb5-a377-2848ec551274@osg.samsung.com>
-Date: Fri, 24 Feb 2017 16:42:31 -0300
-MIME-Version: 1.0
-In-Reply-To: <1481888915-19624-3-git-send-email-pankaj.dubey@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Mon, 20 Feb 2017 08:39:21 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Subject: [PATCH v2 10/15] media: s5p-mfc: Reduce firmware buffer size for MFC
+ v6+ variants
+Date: Mon, 20 Feb 2017 14:38:59 +0100
+Message-id: <1487597944-2000-11-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1487597944-2000-1-git-send-email-m.szyprowski@samsung.com>
+References: <1487597944-2000-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170220133915eucas1p11c62869bc2eff0b2d2e6a515a0941768@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Pankaj,
+Firmware for MFC v6+ variants is not larger than 400 KiB, so there is no
+need to allocate a full 1 MiB buffer for it. Reduce it to 512 KiB to keep
+proper alignment of allocated buffer.
 
-On 12/16/2016 08:48 AM, Pankaj Dubey wrote:
-> From: Smitha T Murthy <smitha.t@samsung.com>
-> 
-> It has been observed on ARM64 based Exynos SoC, if IOMMU is not enabled
-> and we try to use reserved memory for MFC, reqbufs fails with below
-> mentioned error
-> ---------------------------------------------------------------------------
-> V4L2 Codec decoding example application
-> Kamil Debski <k.debski@samsung.com>
-> Copyright 2012 Samsung Electronics Co., Ltd.
-> 
-> Opening MFC.
-> (mfc.c:mfc_open:58): MFC Info (/dev/video0): driver="s5p-mfc" \
-> bus_info="platform:12c30000.mfc0" card="s5p-mfc-dec" fd=0x4[
-> 42.339165] Remapping memory failed, error: -6
-> 
-> MFC Open Success.
-> (main.c:main:711): Successfully opened all necessary files and devices
-> (mfc.c:mfc_dec_setup_output:103): Setup MFC decoding OUTPUT buffer \
-> size=4194304 (requested=4194304)
-> (mfc.c:mfc_dec_setup_output:120): Number of MFC OUTPUT buffers is 2 \
-> (requested 2)
-> 
-> [App] Out buf phy : 0x00000000, virt : 0xffffffff
-> Output Length is = 0x300000
-> Error (mfc.c:mfc_dec_setup_output:145): Failed to MMAP MFC OUTPUT buffer
-> -------------------------------------------------------------------------
-> This is because the device requesting for memory is mfc0.left not the parent mfc0.
-> Hence setting of alloc_devs need to be done only if IOMMU is enabled
-> and in that case both the left and right device is treated as mfc0 only.
-> 
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+---
+ drivers/media/platform/s5p-mfc/regs-mfc-v6.h | 2 +-
+ drivers/media/platform/s5p-mfc/regs-mfc-v7.h | 2 +-
+ drivers/media/platform/s5p-mfc/regs-mfc-v8.h | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-I see, so likely you were facing the issue described in patch 1/2 after this
-patch since the driver doesn't set alloc_devs when IOMMU is disabled, right?
-
-In any case, I guess these patches have been superseded by Marek's series[0]
-so they are no longer needed?
-
-[0]: https://www.spinics.net/lists/linux-media/msg111156.html
-
-Best regards,
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+index d2cd35916dc5..c0166ee9a455 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+@@ -403,7 +403,7 @@
+ #define MFC_OTHER_ENC_CTX_BUF_SIZE_V6	(12 * SZ_1K)	/*  12KB */
+ 
+ /* MFCv6 variant defines */
+-#define MAX_FW_SIZE_V6			(SZ_1M)		/* 1MB */
++#define MAX_FW_SIZE_V6			(SZ_512K)	/* 512KB */
+ #define MAX_CPB_SIZE_V6			(3 * SZ_1M)	/* 3MB */
+ #define MFC_VERSION_V6			0x61
+ #define MFC_NUM_PORTS_V6		1
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+index 1a5c6fdf7846..9f220769d970 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+@@ -34,7 +34,7 @@
+ #define S5P_FIMV_E_VP8_NUM_T_LAYER_V7			0xfdc4
+ 
+ /* MFCv7 variant defines */
+-#define MAX_FW_SIZE_V7			(SZ_1M)		/* 1MB */
++#define MAX_FW_SIZE_V7			(SZ_512K)	/* 512KB */
+ #define MAX_CPB_SIZE_V7			(3 * SZ_1M)	/* 3MB */
+ #define MFC_VERSION_V7			0x72
+ #define MFC_NUM_PORTS_V7		1
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v8.h b/drivers/media/platform/s5p-mfc/regs-mfc-v8.h
+index 4d1c3750eb5e..75f5f7511d72 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v8.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v8.h
+@@ -116,7 +116,7 @@
+ #define S5P_FIMV_D_ALIGN_PLANE_SIZE_V8	64
+ 
+ /* MFCv8 variant defines */
+-#define MAX_FW_SIZE_V8			(SZ_1M)		/* 1MB */
++#define MAX_FW_SIZE_V8			(SZ_512K)	/* 512KB */
+ #define MAX_CPB_SIZE_V8			(3 * SZ_1M)	/* 3MB */
+ #define MFC_VERSION_V8			0x80
+ #define MFC_NUM_PORTS_V8		1
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+1.9.1
