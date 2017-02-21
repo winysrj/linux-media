@@ -1,61 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:36507 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751456AbdBMLkv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 06:40:51 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
+Received: from gofer.mess.org ([80.229.237.210]:33789 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753175AbdBUUnu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 21 Feb 2017 15:43:50 -0500
+From: Sean Young <sean@mess.org>
 To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 2/4] media-ctl: print the configured frame interval
-Date: Mon, 13 Feb 2017 12:40:45 +0100
-Message-Id: <1486986047-18128-2-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1486986047-18128-1-git-send-email-p.zabel@pengutronix.de>
-References: <1486986047-18128-1-git-send-email-p.zabel@pengutronix.de>
+Subject: [PATCH v2 16/19] [media] rc: auto load encoder if necessary
+Date: Tue, 21 Feb 2017 20:43:40 +0000
+Message-Id: <1bdd4e2b92f0c4aa33f9ca69de17875fd06ffedd.1487709384.git.sean@mess.org>
+In-Reply-To: <cover.1487709384.git.sean@mess.org>
+References: <cover.1487709384.git.sean@mess.org>
+In-Reply-To: <cover.1487709384.git.sean@mess.org>
+References: <cover.1487709384.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After the pad format, also print the frame interval, if already configured.
+When sending scancodes, load the encoder if we need it.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- utils/media-ctl/media-ctl.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/media/rc/rc-core-priv.h | 1 +
+ drivers/media/rc/rc-ir-raw.c    | 2 ++
+ drivers/media/rc/rc-main.c      | 2 +-
+ 3 files changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/utils/media-ctl/media-ctl.c b/utils/media-ctl/media-ctl.c
-index 572bcf7..383fbfa 100644
---- a/utils/media-ctl/media-ctl.c
-+++ b/utils/media-ctl/media-ctl.c
-@@ -79,6 +79,7 @@ static void v4l2_subdev_print_format(struct media_entity *entity,
- 	unsigned int pad, enum v4l2_subdev_format_whence which)
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index 1b53409..db0d2e0 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -294,6 +294,7 @@ int ir_raw_event_register(struct rc_dev *dev);
+ void ir_raw_event_unregister(struct rc_dev *dev);
+ int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler);
+ void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler);
++void ir_raw_load_modules(u64 *protocols);
+ void ir_raw_init(void);
+ 
+ /*
+diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+index 9ffa5a9..65531c5 100644
+--- a/drivers/media/rc/rc-ir-raw.c
++++ b/drivers/media/rc/rc-ir-raw.c
+@@ -470,6 +470,8 @@ int ir_raw_encode_scancode(enum rc_type protocol, u32 scancode,
+ 	int ret = -EINVAL;
+ 	u64 mask = 1ULL << protocol;
+ 
++	ir_raw_load_modules(&mask);
++
+ 	mutex_lock(&ir_raw_handler_lock);
+ 	list_for_each_entry(handler, &ir_raw_handler_list, list) {
+ 		if (handler->protocols & mask && handler->encode) {
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index de533b5..68888f3 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1039,7 +1039,7 @@ static int parse_protocol_change(u64 *protocols, const char *buf)
+ 	return count;
+ }
+ 
+-static void ir_raw_load_modules(u64 *protocols)
++void ir_raw_load_modules(u64 *protocols)
  {
- 	struct v4l2_mbus_framefmt format;
-+	struct v4l2_fract interval = { 0, 0 };
- 	struct v4l2_rect rect;
- 	int ret;
- 
-@@ -86,10 +87,17 @@ static void v4l2_subdev_print_format(struct media_entity *entity,
- 	if (ret != 0)
- 		return;
- 
-+	ret = v4l2_subdev_get_frame_interval(entity, &interval, pad);
-+	if (ret != 0 && ret != -ENOTTY)
-+		return;
-+
- 	printf("\t\t[fmt:%s/%ux%u",
- 	       v4l2_subdev_pixelcode_to_string(format.code),
- 	       format.width, format.height);
- 
-+	if (interval.numerator || interval.denominator)
-+		printf("@%u/%u", interval.numerator, interval.denominator);
-+
- 	if (format.field)
- 		printf(" field:%s", v4l2_subdev_field_to_string(format.field));
- 
+ 	u64 available;
+ 	int i, ret;
 -- 
-2.1.4
+2.9.3
