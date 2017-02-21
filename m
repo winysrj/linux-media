@@ -1,49 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor4.renesas.com ([210.160.252.174]:57764 "EHLO
-        relmlie3.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754738AbdBGPNb (ORCPT
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33938 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751018AbdBUEtq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Feb 2017 10:13:31 -0500
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
-Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
-        geert+renesas@glider.be, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Subject: [PATCH v3 1/7] media: v4l2-ctrls: Reserve controls for MAX217X
-Date: Tue,  7 Feb 2017 15:02:31 +0000
-Message-Id: <1486479757-32128-2-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
-In-Reply-To: <1486479757-32128-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
-References: <1486479757-32128-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+        Mon, 20 Feb 2017 23:49:46 -0500
+Date: Tue, 21 Feb 2017 05:49:42 +0100
+From: Greg KH <gregkh@linuxfoundation.org>
+To: David Cako <dc@cako.io>
+Cc: linux-media@vger.kernel.org, mchehab@kernel.org
+Subject: Re: [PATCH] media: staging: bcm2048: use unsigned int instead of
+ unsigned
+Message-ID: <20170221044942.GA29799@kroah.com>
+References: <1487635736-161650-1-git-send-email-dc@cako.io>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1487635736-161650-1-git-send-email-dc@cako.io>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reserve controls for MAX217X RF to Bits tuner family. These hybrid
-radio receiver chips are highly programmable and hence reserving 32
-controls.
+On Mon, Feb 20, 2017 at 05:08:56PM -0700, David Cako wrote:
+> Signed-off-by: David Cako <dc@cako.io>
+> ---
+>  drivers/staging/media/bcm2048/radio-bcm2048.c | 44 +++++++++++++--------------
+>  1 file changed, 22 insertions(+), 22 deletions(-)
 
-Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
----
- include/uapi/linux/v4l2-controls.h | 5 +++++
- 1 file changed, 5 insertions(+)
+We can't take patches without any changelog text, sorry.  And always
+test-build your patches, this is a known tricky one, you have to ignore
+checkpatch, it is wrong.
 
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 0d2e1e0..83b28b4 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -180,6 +180,11 @@ enum v4l2_colorfx {
-  * We reserve 16 controls for this driver. */
- #define V4L2_CID_USER_TC358743_BASE		(V4L2_CID_USER_BASE + 0x1080)
- 
-+/* The base for the max217x driver controls.
-+ * We reserve 32 controls for this driver
-+ */
-+#define V4L2_CID_USER_MAX217X_BASE		(V4L2_CID_USER_BASE + 0x1090)
-+
- /* MPEG-class control IDs */
- /* The MPEG controls are applicable to all codec controls
-  * and the 'MPEG' part of the define is historical */
--- 
-1.9.1
+sorry,
 
+greg k-h
