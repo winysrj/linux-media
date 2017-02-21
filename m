@@ -1,282 +1,383 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:49655 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752630AbdBAQEB (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:35769 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751306AbdBUPy0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Feb 2017 11:04:01 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v6 08/10] [media] st-delta: EOS (End Of Stream) support
-Date: Wed, 1 Feb 2017 17:03:29 +0100
-Message-ID: <1485965011-17388-9-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1485965011-17388-1-git-send-email-hugues.fruchet@st.com>
-References: <1485965011-17388-1-git-send-email-hugues.fruchet@st.com>
+        Tue, 21 Feb 2017 10:54:26 -0500
+Subject: Re: [PATCH v9 2/2] Add support for OV5647 sensor.
+To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <devicetree@vger.kernel.org>
+References: <cover.1487334912.git.roliveir@synopsys.com>
+ <412e51e695630281d2084a77c0329fd273ea00d7.1487334912.git.roliveir@synopsys.com>
+CC: <CARLOS.PALMINHA@synopsys.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>,
+        Pavel Machek <pavel@ucw.cz>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Rob Herring <robh+dt@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Message-ID: <cea82e22-07eb-dd8a-c781-7384ac27823e@mentor.com>
+Date: Tue, 21 Feb 2017 17:54:14 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <412e51e695630281d2084a77c0329fd273ea00d7.1487334912.git.roliveir@synopsys.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-EOS (End Of Stream) support allows user to get
-all the potential decoded frames remaining in decoder
-pipeline after having reached the end of video bitstream.
-To do so, user calls VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP)
-which will drain the decoder and get the drained frames
-that are then returned to user.
-User is informed of EOS completion in two ways:
- - dequeue of an empty frame flagged to V4L2_BUF_FLAG_LAST
- - reception of a V4L2_EVENT_EOS event.
-If, unfortunately, no buffer is available on CAPTURE queue
-to return the empty frame, EOS is delayed till user queue
-one CAPTURE buffer.
+Hi Ramiro,
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- drivers/media/platform/sti/delta/delta-v4l2.c | 146 +++++++++++++++++++++++++-
- drivers/media/platform/sti/delta/delta.h      |  23 ++++
- 2 files changed, 168 insertions(+), 1 deletion(-)
+please find some review comments below.
 
-diff --git a/drivers/media/platform/sti/delta/delta-v4l2.c b/drivers/media/platform/sti/delta/delta-v4l2.c
-index 237a938..c959614 100644
---- a/drivers/media/platform/sti/delta/delta-v4l2.c
-+++ b/drivers/media/platform/sti/delta/delta-v4l2.c
-@@ -106,7 +106,8 @@ static void delta_frame_done(struct delta_ctx *ctx, struct delta_frame *frame,
- 	vbuf->sequence = ctx->frame_num++;
- 	v4l2_m2m_buf_done(vbuf, err ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
- 
--	ctx->output_frames++;
-+	if (frame->info.size) /* ignore EOS */
-+		ctx->output_frames++;
- }
- 
- static void requeue_free_frames(struct delta_ctx *ctx)
-@@ -762,6 +763,135 @@ static int delta_g_selection(struct file *file, void *fh,
- 	return 0;
- }
- 
-+static void delta_complete_eos(struct delta_ctx *ctx,
-+			       struct delta_frame *frame)
-+{
-+	struct delta_dev *delta = ctx->dev;
-+	const struct v4l2_event ev = {.type = V4L2_EVENT_EOS};
-+
-+	/*
-+	 * Send EOS to user:
-+	 * - by returning an empty frame flagged to V4L2_BUF_FLAG_LAST
-+	 * - and then send EOS event
-+	 */
-+
-+	/* empty frame */
-+	frame->info.size = 0;
-+
-+	/* set the last buffer flag */
-+	frame->flags |= V4L2_BUF_FLAG_LAST;
-+
-+	/* release frame to user */
-+	delta_frame_done(ctx, frame, 0);
-+
-+	/* send EOS event */
-+	v4l2_event_queue_fh(&ctx->fh, &ev);
-+
-+	dev_dbg(delta->dev, "%s EOS completed\n", ctx->name);
-+}
-+
-+static int delta_try_decoder_cmd(struct file *file, void *fh,
-+				 struct v4l2_decoder_cmd *cmd)
-+{
-+	if (cmd->cmd != V4L2_DEC_CMD_STOP)
-+		return -EINVAL;
-+
-+	if (cmd->flags & V4L2_DEC_CMD_STOP_TO_BLACK)
-+		return -EINVAL;
-+
-+	if (!(cmd->flags & V4L2_DEC_CMD_STOP_IMMEDIATELY) &&
-+	    (cmd->stop.pts != 0))
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static int delta_decoder_stop_cmd(struct delta_ctx *ctx, void *fh)
-+{
-+	const struct delta_dec *dec = ctx->dec;
-+	struct delta_dev *delta = ctx->dev;
-+	struct delta_frame *frame = NULL;
-+	int ret = 0;
-+
-+	dev_dbg(delta->dev, "%s EOS received\n", ctx->name);
-+
-+	if (ctx->state != DELTA_STATE_READY)
-+		return 0;
-+
-+	/* drain the decoder */
-+	call_dec_op(dec, drain, ctx);
-+
-+	/* release to user drained frames */
-+	while (1) {
-+		frame = NULL;
-+		ret = call_dec_op(dec, get_frame, ctx, &frame);
-+		if (ret == -ENODATA) {
-+			/* no more decoded frames */
-+			break;
-+		}
-+		if (frame) {
-+			dev_dbg(delta->dev, "%s drain frame[%d]\n",
-+				ctx->name, frame->index);
-+
-+			/* pop timestamp and mark frame with it */
-+			delta_pop_dts(ctx, &frame->dts);
-+
-+			/* release decoded frame to user */
-+			delta_frame_done(ctx, frame, 0);
-+		}
-+	}
-+
-+	/* try to complete EOS */
-+	ret = delta_get_free_frame(ctx, &frame);
-+	if (ret)
-+		goto delay_eos;
-+
-+	/* new frame available, EOS can now be completed */
-+	delta_complete_eos(ctx, frame);
-+
-+	ctx->state = DELTA_STATE_EOS;
-+
-+	return 0;
-+
-+delay_eos:
-+	/*
-+	 * EOS completion from driver is delayed because
-+	 * we don't have a free empty frame available.
-+	 * EOS completion is so delayed till next frame_queue() call
-+	 * to be sure to have a free empty frame available.
-+	 */
-+	ctx->state = DELTA_STATE_WF_EOS;
-+	dev_dbg(delta->dev, "%s EOS delayed\n", ctx->name);
-+
-+	return 0;
-+}
-+
-+static int delta_decoder_cmd(struct file *file, void *fh,
-+			     struct v4l2_decoder_cmd *cmd)
-+{
-+	struct delta_ctx *ctx = to_ctx(fh);
-+	int ret = 0;
-+
-+	ret = delta_try_decoder_cmd(file, fh, cmd);
-+	if (ret)
-+		return ret;
-+
-+	return delta_decoder_stop_cmd(ctx, fh);
-+}
-+
-+static int delta_subscribe_event(struct v4l2_fh *fh,
-+				 const struct v4l2_event_subscription *sub)
-+{
-+	switch (sub->type) {
-+	case V4L2_EVENT_EOS:
-+		return v4l2_event_subscribe(fh, sub, 2, NULL);
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
- /* v4l2 ioctl ops */
- static const struct v4l2_ioctl_ops delta_ioctl_ops = {
- 	.vidioc_querycap = delta_querycap,
-@@ -782,6 +912,10 @@ static int delta_g_selection(struct file *file, void *fh,
- 	.vidioc_streamon = v4l2_m2m_ioctl_streamon,
- 	.vidioc_streamoff = v4l2_m2m_ioctl_streamoff,
- 	.vidioc_g_selection = delta_g_selection,
-+	.vidioc_try_decoder_cmd = delta_try_decoder_cmd,
-+	.vidioc_decoder_cmd = delta_decoder_cmd,
-+	.vidioc_subscribe_event = delta_subscribe_event,
-+	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
- 
- /*
-@@ -1376,6 +1510,16 @@ static void delta_vb2_frame_queue(struct vb2_buffer *vb)
- 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct delta_frame *frame = to_frame(vbuf);
- 
-+	if (ctx->state == DELTA_STATE_WF_EOS) {
-+		/* new frame available, EOS can now be completed */
-+		delta_complete_eos(ctx, frame);
-+
-+		ctx->state = DELTA_STATE_EOS;
-+
-+		/* return, no need to recycle this buffer to decoder */
-+		return;
-+	}
-+
- 	/* recycle this frame */
- 	delta_recycle(ctx, frame);
- }
-diff --git a/drivers/media/platform/sti/delta/delta.h b/drivers/media/platform/sti/delta/delta.h
-index d4a401b..60c07324 100644
---- a/drivers/media/platform/sti/delta/delta.h
-+++ b/drivers/media/platform/sti/delta/delta.h
-@@ -27,11 +27,19 @@
-  *@DELTA_STATE_READY:
-  *	Decoding instance is ready to decode compressed access unit.
-  *
-+ *@DELTA_STATE_WF_EOS:
-+ *	Decoding instance is waiting for EOS (End Of Stream) completion.
-+ *
-+ *@DELTA_STATE_EOS:
-+ *	EOS (End Of Stream) is completed (signaled to user). Decoding instance
-+ *	should then be closed.
-  */
- enum delta_state {
- 	DELTA_STATE_WF_FORMAT,
- 	DELTA_STATE_WF_STREAMINFO,
- 	DELTA_STATE_READY,
-+	DELTA_STATE_WF_EOS,
-+	DELTA_STATE_EOS
- };
- 
- /*
-@@ -237,6 +245,7 @@ struct delta_ipc_param {
-  * @get_frame:		get the next decoded frame available, see below
-  * @recycle:		recycle the given frame, see below
-  * @flush:		(optional) flush decoder, see below
-+ * @drain:		(optional) drain decoder, see below
-  */
- struct delta_dec {
- 	const char *name;
-@@ -371,6 +380,18 @@ struct delta_dec {
- 	 * decoding logic.
- 	 */
- 	int (*flush)(struct delta_ctx *ctx);
-+
-+	/*
-+	 * drain() - drain decoder
-+	 * @ctx:	(in) instance
-+	 *
-+	 * Optional.
-+	 * Mark decoder pending frames (decoded but not yet output) as ready
-+	 * so that they can be output to client at EOS (End Of Stream).
-+	 * get_frame() is to be called in a loop right after drain() to
-+	 * get all those pending frames.
-+	 */
-+	int (*drain)(struct delta_ctx *ctx);
- };
- 
- struct delta_dev;
-@@ -497,6 +518,8 @@ static inline char *frame_type_str(u32 flags)
- 		return "P";
- 	if (flags & V4L2_BUF_FLAG_BFRAME)
- 		return "B";
-+	if (flags & V4L2_BUF_FLAG_LAST)
-+		return "EOS";
- 	return "?";
- }
- 
--- 
-1.9.1
+On 02/17/2017 03:14 PM, Ramiro Oliveira wrote:
+> The OV5647 sensor from Omnivision supports up to 2592x1944 @ 15 fps, RAW 8
+> and RAW 10 output formats, and MIPI CSI-2 interface.
+> 
+> The driver adds support for 640x480 RAW 8.
+> 
+> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
+> ---
 
+[snip]
+
+> +
+> +struct ov5647 {
+> +	struct v4l2_subdev		sd;
+> +	struct media_pad		pad;
+> +	struct mutex			lock;
+> +	struct v4l2_mbus_framefmt	format;
+> +	unsigned int			width;
+> +	unsigned int			height;
+> +	int				power_count;
+> +	struct clk			*xclk;
+> +	/* External clock frequency currently supported is 30MHz */
+> +	u32				xclk_freq;
+
+See a comment about 25MHz vs 30MHz below.
+
+Also I assume you can remove 'xclk_freq' from the struct fields,
+it can be replaced by a local variable.
+
+> +};
+
+[snip]
+
+> +
+> +static int ov5647_read(struct v4l2_subdev *sd, u16 reg, u8 *val)
+> +{
+> +	int ret;
+> +	unsigned char data_w[2] = { reg >> 8, reg & 0xff };
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +
+> +	ret = i2c_master_send(client, data_w, 2);
+> +	if (ret < 0) {
+> +		dev_dbg(&client->dev, "%s: i2c read error, reg: %x\n",
+
+s/i2c read error/i2c write error/
+
+> +			__func__, reg);
+> +		return ret;
+> +	}
+> +
+> +	ret = i2c_master_recv(client, val, 1);
+> +	if (ret < 0)
+> +		dev_dbg(&client->dev, "%s: i2c read error, reg: %x\n",
+> +				__func__, reg);
+> +
+> +	return ret;
+> +
+
+Please remove the empty line above.
+
+> +}
+> +
+> +static int ov5647_write_array(struct v4l2_subdev *sd,
+> +				struct regval_list *regs, int array_size)
+> +{
+> +	int i = 0, ret;
+
+Assignment of 'i' on declaration is not needed, please remove.
+
+> +
+> +	for (i = 0; i < array_size; i++) {
+> +		ret = ov5647_write(sd, regs[i].addr, regs[i].data);
+> +		if (ret < 0)
+> +			return ret;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int ov5647_set_virtual_channel(struct v4l2_subdev *sd, int channel)
+> +{
+> +	u8 channel_id;
+> +	int ret;
+> +
+> +	ret = ov5647_read(sd, 0x4814, &channel_id);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	channel_id &= ~(3 << 6);
+> +	return ov5647_write(sd, 0x4814, channel_id | (channel << 6));
+> +}
+> +
+> +static int ov5647_stream_on(struct v4l2_subdev *sd)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +
+> +	ov5647_write(sd, 0x4202, 0x00);
+
+Should you add a check of the returned value?
+
+> +
+> +	dev_dbg(&client->dev, "Stream on");
+
+I would suggest to remove dev_dbg(), because ftrace will report to a user,
+when this function is called.
+
+Also dev_dbg() in the middle of two I2C transfers in a row looks as being
+placed improperly.
+
+> +
+> +	return ov5647_write(sd, 0x300D, 0x00);
+> +}
+> +
+> +static int ov5647_stream_off(struct v4l2_subdev *sd)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +
+> +	ov5647_write(sd, 0x4202, 0x0f);
+
+Should you add a check of the returned value?
+
+> +
+> +	dev_dbg(&client->dev, "Stream off");
+
+I would suggest to remove dev_dbg(), because ftrace will report to a user,
+when this function is called.
+
+Also dev_dbg() in the middle of two I2C transfers in a row looks as being
+placed improperly.
+
+> +
+> +	return ov5647_write(sd, 0x300D, 0x01);
+> +}
+> +
+> +static int set_sw_standby(struct v4l2_subdev *sd, bool standby)
+> +{
+> +	int ret;
+> +	u8 rdval;
+> +
+> +	ret = ov5647_read(sd, 0x0100, &rdval);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	if (standby)
+> +		rdval &= ~0x01;
+> +	else
+> +		rdval |= 0x01;
+> +
+> +	return ov5647_write(sd, 0x0100, rdval);
+> +}
+> +
+> +static int __sensor_init(struct v4l2_subdev *sd)
+> +{
+> +	int ret;
+> +	u8 resetval;
+> +	u8 rdval;
+
+It could be possible to put declarations of 'resetval' and 'rdval' on the same line.
+
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +
+> +	dev_dbg(&client->dev, "sensor init\n");
+> +
+> +	ret = ov5647_read(sd, 0x0100, &rdval);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = ov5647_write_array(sd, ov5647_640x480,
+> +					ARRAY_SIZE(ov5647_640x480));
+> +	if (ret < 0) {
+> +		dev_err(&client->dev, "write sensor default regs error\n");
+> +		return ret;
+> +	}
+> +
+> +	ret = ov5647_set_virtual_channel(sd, 0);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = ov5647_read(sd, 0x0100, &resetval);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	if (!(resetval & 0x01)) {
+> +		dev_err(&client->dev, "Device was in SW standby");
+> +		ret = ov5647_write(sd, 0x0100, 0x01);
+> +		if (ret < 0)
+> +			return ret;
+> +	}
+> +
+> +	return ov5647_write(sd, 0x4800, 0x04);
+> +}
+> +
+> +static int sensor_power(struct v4l2_subdev *sd, int on)
+> +{
+> +	int ret;
+> +	struct ov5647 *ov5647 = to_state(sd);
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +
+> +	ret = 0;
+> +	mutex_lock(&ov5647->lock);
+> +
+> +	if (on && !ov5647->power_count)	{
+> +		dev_dbg(&client->dev, "OV5647 power on\n");
+> +
+> +		clk_set_rate(ov5647->xclk, ov5647->xclk_freq);
+
+Now clk_set_rate() is redundant, please remove it.
+
+If once it is needed again, please move it to the .probe function, so
+it is called only once in the runtime.
+
+> +
+> +		ret = clk_prepare_enable(ov5647->xclk);
+
+I wonder would it be possible to unload the driver or to unbind the device
+and leave the clock unintentionally enabled? If yes, then this is a bug.
+
+> +		if (ret < 0) {
+> +			dev_err(&client->dev, "clk prepare enable failed\n");
+> +			goto out;
+> +		}
+> +
+> +		ret = ov5647_write_array(sd, sensor_oe_enable_regs,
+> +				ARRAY_SIZE(sensor_oe_enable_regs));
+> +		if (ret < 0) {
+> +			clk_disable_unprepare(ov5647->xclk);
+> +			dev_err(&client->dev,
+> +				"write sensor_oe_enable_regs error\n");
+> +			goto out;
+> +		}
+> +
+> +		ret = __sensor_init(sd);
+> +		if (ret < 0) {
+> +			clk_disable_unprepare(ov5647->xclk);
+> +			dev_err(&client->dev,
+> +				"Camera not available, check Power\n");
+> +			goto out;
+> +		}
+> +	} else if (!on && ov5647->power_count == 1) {
+> +		dev_dbg(&client->dev, "OV5647 power off\n");
+> +
+> +		dev_dbg(&client->dev, "disable oe\n");
+
+One of two dev_dbg()'s above is apparently redundant.
+
+> +		ret = ov5647_write_array(sd, sensor_oe_disable_regs,
+> +				ARRAY_SIZE(sensor_oe_disable_regs));
+> +
+> +		if (ret < 0)
+> +			dev_dbg(&client->dev, "disable oe failed\n");
+> +
+> +		ret = set_sw_standby(sd, true);
+> +
+> +		if (ret < 0)
+> +			dev_dbg(&client->dev, "soft stby failed\n");
+> +
+> +		clk_disable_unprepare(ov5647->xclk);
+> +	}
+> +
+> +	/* Update the power count. */
+> +	ov5647->power_count += on ? 1 : -1;
+> +	WARN_ON(ov5647->power_count < 0);
+> +
+> +out:
+> +	mutex_unlock(&ov5647->lock);
+> +
+> +	return ret;
+> +}
+> +
+
+[snip]
+
+> +
+> +static int ov5647_probe(struct i2c_client *client,
+> +			const struct i2c_device_id *id)
+> +{
+> +	struct device *dev = &client->dev;
+> +	struct ov5647 *sensor;
+> +	int ret;
+> +	struct v4l2_subdev *sd;
+> +
+> +	sensor = devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
+> +	if (sensor == NULL)
+
+if (!sensor) is a bit shorter.
+
+> +		return -ENOMEM;
+> +
+> +	/* get system clock (xclk) */
+> +	sensor->xclk = devm_clk_get(dev, "xclk");
+> +	if (IS_ERR(sensor->xclk)) {
+> +		dev_err(dev, "could not get xclk");
+> +		return PTR_ERR(sensor->xclk);
+> +	}
+> +
+> +	sensor->xclk_freq = clk_get_rate(sensor->xclk);
+> +	if (sensor->xclk_freq != 25000000) {
+
+A comment in "struct ov5647" declaration says about 30MHz, which one is correct?
+
+> +		dev_err(dev, "Unsupported clock frequency: %u\n",
+> +			sensor->xclk_freq);
+> +		return -EINVAL;
+> +	}
+> +
+> +	mutex_init(&sensor->lock);
+> +
+> +	sd = &sensor->sd;
+> +	v4l2_i2c_subdev_init(sd, client, &subdev_ops);
+> +	sensor->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> +
+> +	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
+> +	sd->entity.function = MEDIA_ENT_F_CAM_SENSOR;
+> +	ret = media_entity_pads_init(&sd->entity, 1, &sensor->pad);
+> +	if (ret < 0)
+> +		goto mutex_remove;
+> +
+> +	ret = ov5647_detect(sd);
+> +	if (ret < 0)
+> +		goto error;
+> +
+> +	ret = v4l2_async_register_subdev(sd);
+> +	if (ret < 0)
+> +		goto error;
+> +
+> +	dev_dbg(&client->dev, "OmniVision OV5647 camera driver probed\n");
+> +	return 0;
+> +error:
+> +	media_entity_cleanup(&sd->entity);
+> +mutex_remove:
+> +	mutex_destroy(&sensor->lock);
+> +	return ret;
+> +}
+> +
+
+[snip]
+
+The driver looks good in general IMO.
+
+--
+With best wishes,
+Vladimir
