@@ -1,102 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:33681 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932302AbdBPSbA (ORCPT
+Received: from pegasos-out.vodafone.de ([80.84.1.38]:34920 "EHLO
+        pegasos-out.vodafone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752484AbdBUOGG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Feb 2017 13:31:00 -0500
-Subject: Re: [PATCH v4 00/36] i.MX Media Driver
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
- <20170216113758.GK27312@n2100.armlinux.org.uk>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <67a4fa15-2745-a5e9-e894-be05150c3dac@gmail.com>
-Date: Thu, 16 Feb 2017 10:30:56 -0800
+        Tue, 21 Feb 2017 09:06:06 -0500
+Subject: Re: [PATCH] dma-buf: add support for compat ioctl
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+References: <CGME20170221132114eucas1p2e527d5b5516494ba54aa91f48b3e227f@eucas1p2.samsung.com>
+ <1487683261-2655-1-git-send-email-m.szyprowski@samsung.com>
+Cc: linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <deathsimple@vodafone.de>
+Message-ID: <917aff70-64f7-7224-a015-0e77951bbc1d@vodafone.de>
+Date: Tue, 21 Feb 2017 14:59:18 +0100
 MIME-Version: 1.0
-In-Reply-To: <20170216113758.GK27312@n2100.armlinux.org.uk>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+In-Reply-To: <1487683261-2655-1-git-send-email-m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Am 21.02.2017 um 14:21 schrieb Marek Szyprowski:
+> Add compat ioctl support to dma-buf. This lets one to use DMA_BUF_IOCTL_SYNC
+> ioctl from 32bit application on 64bit kernel. Data structures for both 32
+> and 64bit modes are same, so there is no need for additional translation
+> layer.
 
+Well I might be wrong, but IIRC compat_ioctl was just optional and if 
+not specified unlocked_ioctl was called instead.
 
-On 02/16/2017 03:37 AM, Russell King - ARM Linux wrote:
-> Two problems.
->
-> On Wed, Feb 15, 2017 at 06:19:02PM -0800, Steve Longerbeam wrote:
->>   media: imx: propagate sink pad formats to source pads
->
-> 1) It looks like all cases aren't being caught:
->
-> - entity 74: ipu1_csi0 (3 pads, 4 links)
->              type V4L2 subdev subtype Unknown flags 0
->              device node name /dev/v4l-subdev13
->         pad0: Sink
->                 [fmt:SRGGB8/816x616 field:none]
->                 <- "ipu1_csi0_mux":2 [ENABLED]
->         pad1: Source
->                 [fmt:AYUV32/816x616 field:none
->                  crop.bounds:(0,0)/816x616
->                  crop:(0,0)/816x616]
->                 -> "ipu1_ic_prp":0 []
->                 -> "ipu1_vdic":0 []
->         pad2: Source
->                 [fmt:SRGGB8/816x616 field:none
->                  crop.bounds:(0,0)/816x616
->                  crop:(0,0)/816x616]
->                 -> "ipu1_csi0 capture":0 [ENABLED]
->
-> While the size has been propagated to pad1, the format has not.
+If that is true your patch wouldn't have any effect at all.
 
-Right, Philipp also caught this. I need to finish propagating all
-params from sink to source pads (mbus code and field, and colorimetry
-eventually).
+Regards,
+Christian.
 
 >
-> 2) /dev/video* device node assignment
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
+>   drivers/dma-buf/dma-buf.c | 3 +++
+>   1 file changed, 3 insertions(+)
 >
-> I've no idea at the moment how the correct /dev/video* node should be
-> chosen - initially with Philipp and your previous code, it was
-> /dev/video3 after initial boot.  Philipp's was consistently /dev/video3.
-> Yours changed to /dev/video7 when removing and re-inserting the modules
-> (having fixed that locally.)  This version makes CSI0 be /dev/video7,
-> but after a remove+reinsert, it becomes (eg) /dev/video8.
->
-> /dev/v4l/by-path/platform-capture-subsystem-video-index4 also is not a
-> stable path - the digit changes (it's supposed to be a stable path.)
-> After a remove+reinsert, it becomes (eg)
-> /dev/v4l/by-path/platform-capture-subsystem-video-index5.
-> /dev/v4l/by-id doesn't contain a symlink for this either.
->
-> What this means is that it's very hard to script the setup, because
-> there's no easy way to know what device is the capture device.  While
-> it may be possible to do:
->
-> 	media-ctl -d /dev/media1 -p | \
-> 		grep -A2 ': ipu1_csi0 capture' | \
-> 			sed -n 's|.*\(/dev/video[0-9]*\).*|\1|p'
->
-> that's hardly a nice solution - while it fixes the setup script, it
-> doesn't stop the pain of having to delve around to find the correct
-> device to use for gstreamer to test with.
->
-
-I'll try to nail down the main capture node numbers, even after module
-reload.
-
-Steve
+> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+> index 718f832a5c71..0007b792827b 100644
+> --- a/drivers/dma-buf/dma-buf.c
+> +++ b/drivers/dma-buf/dma-buf.c
+> @@ -325,6 +325,9 @@ static long dma_buf_ioctl(struct file *file,
+>   	.llseek		= dma_buf_llseek,
+>   	.poll		= dma_buf_poll,
+>   	.unlocked_ioctl	= dma_buf_ioctl,
+> +#ifdef CONFIG_COMPAT
+> +	.compat_ioctl	= dma_buf_ioctl,
+> +#endif
+>   };
+>   
+>   /*
