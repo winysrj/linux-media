@@ -1,65 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from elasmtp-kukur.atl.sa.earthlink.net ([209.86.89.65]:42865 "EHLO
-        elasmtp-kukur.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750990AbdBJAzm (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:51767 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751017AbdBUJLj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 9 Feb 2017 19:55:42 -0500
-Date: Thu, 9 Feb 2017 19:54:39 -0500
-From: Jonathan Sims <jonathan.625266@earthlink.net>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-        mchehab@kernel.org, kpyle@austin.rr.com, ryleyjangus@gmail.com
-Subject: [RFCv4 PATCH 1/1] hdpvr: fix interrupted recording
-Message-ID: <20170209195439.4e9f89d1@earthlink.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+        Tue, 21 Feb 2017 04:11:39 -0500
+Message-ID: <1487668265.2331.23.camel@pengutronix.de>
+Subject: Re: [PATCH v4 15/36] platform: add video-multiplexer subdevice
+ driver
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Tue, 21 Feb 2017 10:11:05 +0100
+In-Reply-To: <20170219220237.GD32327@amd>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+         <1487211578-11360-16-git-send-email-steve_longerbeam@mentor.com>
+         <20170219220237.GD32327@amd>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a reworking of a patch originally submitted by Ryley Angus, modified by Hans Verkuil and then seemingly forgotten before changes suggested by Keith Pyle here:
+On Sun, 2017-02-19 at 23:02 +0100, Pavel Machek wrote:
+> Hi!
+> 
+> > From: Philipp Zabel <p.zabel@pengutronix.de>
+> > 
+> > This driver can handle SoC internal and external video bus multiplexers,
+> > controlled either by register bit fields or by a GPIO. The subdevice
+> > passes through frame interval and mbus configuration of the active input
+> > to the output side.
+> > 
+> > Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > --
+> >
+> 
+> Again, this is slightly non-standard format. Normally changes from v1
+> go below ---, but in your case it would cut off the signoff...
+> 
+> > diff --git a/Documentation/devicetree/bindings/media/video-multiplexer.txt b/Documentation/devicetree/bindings/media/video-multiplexer.txt
+> > new file mode 100644
+> > index 0000000..9d133d9
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/video-multiplexer.txt
+> > @@ -0,0 +1,59 @@
+> > +Video Multiplexer
+> > +=================
+> > +
+> > +Video multiplexers allow to select between multiple input ports. Video received
+> > +on the active input port is passed through to the output port. Muxes described
+> > +by this binding may be controlled by a syscon register bitfield or by a GPIO.
+> > +
+> > +Required properties:
+> > +- compatible : should be "video-multiplexer"
+> > +- reg: should be register base of the register containing the control bitfield
+> > +- bit-mask: bitmask of the control bitfield in the control register
+> > +- bit-shift: bit offset of the control bitfield in the control register
+> > +- gpios: alternatively to reg, bit-mask, and bit-shift, a single GPIO phandle
+> > +  may be given to switch between two inputs
+> > +- #address-cells: should be <1>
+> > +- #size-cells: should be <0>
+> > +- port@*: at least three port nodes containing endpoints connecting to the
+> > +  source and sink devices according to of_graph bindings. The last port is
+> > +  the output port, all others are inputs.
+> 
+> At least three? I guess it is exactly three with the gpio?
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg75163.html
+Yes. With the mmio bitfield muxes there can be more.
 
-were made and tested.
+> Plus you might want to describe which port correspond to which gpio
+> state/bitfield values...
+> 
+> > +struct vidsw {
+> 
+> I knew it: it is secretely a switch! :-).
 
-I have implemented the suggested changes and have been testing for several months. I am no longer experiencing lockups while recording (with blue light on, requiring power cycling) which had been a long standing problem with the HD-PVR. I have not noticed any other problems since applying the patch.
+This driver started as a two-input gpio controlled bus switch.
+I changed the name when adding support for bitfield controlled
+multiplexers with more than two inputs.
 
-Signed-off-by: Jonathan Sims <jonathan.625266@earthlink.net>
----
+> > +static void vidsw_set_active(struct vidsw *vidsw, int active)
+> > +{
+> > +	vidsw->active = active;
+> > +	if (active < 0)
+> > +		return;
+> > +
+> > +	dev_dbg(vidsw->subdev.dev, "setting %d active\n", active);
+> > +
+> > +	if (vidsw->field)
+> > +		regmap_field_write(vidsw->field, active);
+> > +	else if (vidsw->gpio)
+> > +		gpiod_set_value(vidsw->gpio, active);
+> 
+>          else dev_err()...?
 
-Changes in v4:
-- Code cleanups.
+If neither field nor gpio are set, probe will have failed and this will
+never be called.
 
- drivers/media/usb/hdpvr/hdpvr-video.c | 17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+> > +static int vidsw_async_init(struct vidsw *vidsw, struct device_node *node)
+> > +{
+> > +	struct device_node *ep;
+> > +	u32 portno;
+> > +	int numports;
+> 
+> numbports is int, so I guess portno should be, too?
 
-diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
-index 474c11e1d495..f8ba28cb40eb 100644
---- a/drivers/media/usb/hdpvr/hdpvr-video.c
-+++ b/drivers/media/usb/hdpvr/hdpvr-video.c
-@@ -458,9 +458,20 @@ static ssize_t hdpvr_read(struct file *file, char __user *buffer, size_t count,
- 				goto err;
- 			}
- 
--			if (wait_event_interruptible(dev->wait_data,
--					      buf->status == BUFSTAT_READY))
--				return -ERESTARTSYS;
-+			ret = wait_event_interruptible_timeout(dev->wait_data,
-+				buf->status == BUFSTAT_READY,
-+				msecs_to_jiffies(1000));
-+			if (ret < 0)
-+				goto err;
-+			if (!ret) {
-+				v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
-+					"timeout: restart streaming\n");
-+				hdpvr_stop_streaming(dev);
-+				msleep(4000);
-+				ret = hdpvr_start_streaming(dev);
-+				if (ret)
-+					goto err;
-+			}
- 		}
- 
- 		if (buf->status != BUFSTAT_READY)
--- 
-2.11.1
+We could change both to unsigned int, as both vidsw->num_pads and
+endpoint.base.port are unsigned int, and they are only compared/assigned
+to those and each other.
+
+> > +		portno = endpoint.base.port;
+> > +		if (portno >= numports - 1)
+> > +			continue;
+> 
+     I. 
+> > +	if (!pad) {
+> > +		/* Mirror the input side on the output side */
+> > +		cfg->type = vidsw->endpoint[vidsw->active].bus_type;
+> > +		if (cfg->type == V4L2_MBUS_PARALLEL ||
+> > +		    cfg->type == V4L2_MBUS_BT656)
+> > +			cfg->flags = vidsw->endpoint[vidsw->active].bus.parallel.flags;
+> > +	}
+> 
+> Will this need support for other V4L2_MBUS_ values?
+
+To support CSI-2 multiplexers, yes.
+
+> > +MODULE_AUTHOR("Sascha Hauer, Pengutronix");
+> > +MODULE_AUTHOR("Philipp Zabel, Pengutronix");
+> 
+> Normally, MODULE_AUTHOR contains comma separated names of authors,
+> perhaps with <email@addresses>. Not sure two MODULE_AUTHORs per file
+> will work.
+> 
+> Thanks,
+> 								Pavel
+
+regards
+Philipp
