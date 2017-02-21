@@ -1,76 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:53646 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751681AbdBFI5Q (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Feb 2017 03:57:16 -0500
-Subject: Re: [PATCH 06/11] [media] videodev2.h: Add v4l2 definition for HEVC
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-        kamil@wypas.org, jtp.park@samsung.com, mchehab@kernel.org,
-        pankaj.dubey@samsung.com, krzk@kernel.org,
-        m.szyprowski@samsung.com, s.nawrocki@samsung.com
-In-reply-to: <c8733135-dd3d-cff9-df99-68a900f71cfc@samsung.com>
-Content-type: text/plain; charset=UTF-8
-Date: Mon, 06 Feb 2017 14:11:41 +0530
-Message-id: <1486370501.16927.84.camel@smitha-fedora>
-MIME-version: 1.0
-Content-transfer-encoding: 7bit
-References: <1484733729-25371-1-git-send-email-smitha.t@samsung.com>
- <CGME20170118100742epcas5p1bb390dffa4fe530d94573f41d8791ef7@epcas5p1.samsung.com>
- <1484733729-25371-7-git-send-email-smitha.t@samsung.com>
- <c8733135-dd3d-cff9-df99-68a900f71cfc@samsung.com>
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:35629 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752642AbdBUXe2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 21 Feb 2017 18:34:28 -0500
+Subject: Re: [PATCH v4 29/36] media: imx: mipi-csi2: enable setting and
+ getting of frame rates
+To: Sakari Ailus <sakari.ailus@iki.fi>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+ <1487211578-11360-30-git-send-email-steve_longerbeam@mentor.com>
+ <20170220220409.GX16975@valkosipuli.retiisi.org.uk>
+ <6892fb15-2d18-4898-c328-3acff9d6cc39@gmail.com>
+ <20170221121542.GH16975@valkosipuli.retiisi.org.uk>
+ <f9cfbde0-de54-6603-f0bf-9a7086840fda@gmail.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Russell King <rmk+kernel@armlinux.org.uk>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <3c02e0fc-eb04-726b-ea77-65550d20953a@gmail.com>
+Date: Tue, 21 Feb 2017 15:34:23 -0800
+MIME-Version: 1.0
+In-Reply-To: <f9cfbde0-de54-6603-f0bf-9a7086840fda@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2017-02-02 at 09:34 +0100, Andrzej Hajda wrote: 
-> On 18.01.2017 11:02, Smitha T Murthy wrote:
-> > Add V4L2 definition for HEVC compressed format
-> >
-> > Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-> Beside small nitpick.
-> 
-> Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
-> 
-> > ---
-> >  include/uapi/linux/videodev2.h |    1 +
-> >  1 files changed, 1 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> > index 46e8a2e3..620e941 100644
-> > --- a/include/uapi/linux/videodev2.h
-> > +++ b/include/uapi/linux/videodev2.h
-> > @@ -630,6 +630,7 @@ struct v4l2_pix_format {
-> >  #define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE 421M Annex L compliant stream */
-> >  #define V4L2_PIX_FMT_VP8      v4l2_fourcc('V', 'P', '8', '0') /* VP8 */
-> >  #define V4L2_PIX_FMT_VP9      v4l2_fourcc('V', 'P', '9', '0') /* VP9 */
-> > +#define V4L2_PIX_FMT_HEVC     v4l2_fourcc('H', 'E', 'V', 'C') /* HEVC */
-> 
-> I am not sure if it shouldn't be sorted alphabetically in compressed
-> formats stanza.
-> 
-> --
-> Regards
-> Andrzej
-
-Actually the formats are not arranged alphabetically. For example
-#define V4L2_PIX_FMT_XVID is added before the #define
-V4L2_PIX_FMT_VC1_ANNEX_G. Hence I added the definition at the end.
-If required, I will take this as a separate patch.
-
-Thank you for the review.
-Regards,
-Smitha 
-> 
-> >  
-> >  /*  Vendor-specific formats   */
-> >  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
-> 
-> 
-> 
 
 
+On 02/21/2017 02:21 PM, Steve Longerbeam wrote:
+>
+>
+> On 02/21/2017 04:15 AM, Sakari Ailus wrote:
+>> Hi Steve,
+>>
+>> On Mon, Feb 20, 2017 at 02:56:15PM -0800, Steve Longerbeam wrote:
+>>>
+>>>
+>>> On 02/20/2017 02:04 PM, Sakari Ailus wrote:
+>>>> Hi Steve,
+>>>>
+>>>> On Wed, Feb 15, 2017 at 06:19:31PM -0800, Steve Longerbeam wrote:
+>>>>> From: Russell King <rmk+kernel@armlinux.org.uk>
+>>>>>
+>>>>> Setting and getting frame rates is part of the negotiation mechanism
+>>>>> between subdevs.  The lack of support means that a frame rate at the
+>>>>> sensor can't be negotiated through the subdev path.
+>>>>
+>>>> Just wondering --- what do you need this for?
+>>>
+>>>
+>>> Hi Sakari,
+>>>
+>>> i.MX does need the ability to negotiate the frame rates in the
+>>> pipelines. The CSI has the ability to skip frames at the output,
+>>> which is something Philipp added to the CSI subdev. That affects
+>>> frame interval at the CSI output.
+>>>
+>>> But as Russell pointed out, the lack of [gs]_frame_interval op
+>>> causes media-ctl to fail:
+>>>
+>>> media-ctl -v -d /dev/media1 --set-v4l2
+>>> '"imx6-mipi-csi2":1[fmt:SGBRG8/512x512@1/30]'
+>>>
+>>> Opening media device /dev/media1
+>>> Enumerating entities
+>>> Found 29 entities
+>>> Enumerating pads and links
+>>> Setting up format SGBRG8 512x512 on pad imx6-mipi-csi2/1
+>>> Format set: SGBRG8 512x512
+>>> Setting up frame interval 1/30 on entity imx6-mipi-csi2
+>>> Unable to set frame interval: Inappropriate ioctl for device
+>>> (-25)Unable to
+>>> setup formats: Inappropriate ioctl for device (25)
+>>>
+>>>
+>>> So i.MX needs to implement this op in every subdev in the
+>>> pipeline, otherwise it's not possible to configure the
+>>> pipeline with media-ctl.
+>>
+>> The frame rate is only set on the sub-device which you explicitly set it.
+>> I.e. setting the frame rate fails if it's not supported on a pad.
+>>
+>> Philipp recently posted patches that add frame rate propagation to
+>> media-ctl.
+>>
+>> Frame rate is typically settable (and gettable) only on sensor
+>> sub-device's
+>> source pad,  which means it normally would not be propagated by the
+>> kernel
+>> but with Philipp's patches, on the sink pad of the bus receiver.
+>> Receivers
+>> don't have a way to control it nor they implement the IOCTLs, so that
+>> would
+>> indeed result in an error.
+>>
+>
+> Frame rate is really an essential piece of information. The spatial
+> dimensions and data type provided by set_fmt are really only half the
+> equation, the other is temporal, i.e. the data rate.
+>
+> It's true that subdevices have no control over the frame rate at their
+> sink pads, but the same argument applies to set_fmt. Even if it has
+> no control over the data format it receives, it still needs that
+> information in order to determine the correct format at the source.
+> The same argument applies to frame rate.
+>
+> So in my opinion, the behavior of [gs]_frame_interval should be, if a
+> subdevice is capable of modifying the frame rate, then it should
+> implement [gs]_frame_interval at _all_ of its pads, similar to set_fmt.
+> And frame rate should really be part of link validation the same as
+> set_fmt is.
+>
 
+Actually, if frame rate were added to link validation then
+[gs]_frame_interval would have to be mandatory, even if the
+subdev has no control over frame rate, again this is like
+set_fmt. Otherwise, if a subdev has not implemented
+[gs]_frame_interval, then frame rate validation across
+the whole pipeline is broken. Because, if we have
 
+A -> B -> C
 
+and B has not implemented [gs]_frame_interval, and C is expecting
+30 fps, then pipeline validation would succeed even though A is 
+outputting 60 fps.
+
+Steve
