@@ -1,88 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f47.google.com ([74.125.83.47]:36337 "EHLO
-        mail-pg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754951AbdBGSQq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2017 13:16:46 -0500
-Received: by mail-pg0-f47.google.com with SMTP id v184so40687549pgv.3
-        for <linux-media@vger.kernel.org>; Tue, 07 Feb 2017 10:16:46 -0800 (PST)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: Sekhar Nori <nsekhar@ti.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Lad Prabhakar <prabhakar.csengg@gmail.com>,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 09/10] media: vpif: use a configurable i2c_adapter_id for vpif display
-References: <1486485683-11427-1-git-send-email-bgolaszewski@baylibre.com>
-        <1486485683-11427-10-git-send-email-bgolaszewski@baylibre.com>
-Date: Tue, 07 Feb 2017 10:16:44 -0800
-In-Reply-To: <1486485683-11427-10-git-send-email-bgolaszewski@baylibre.com>
-        (Bartosz Golaszewski's message of "Tue, 7 Feb 2017 17:41:22 +0100")
-Message-ID: <m2r339kgs3.fsf@baylibre.com>
+Received: from mail.horus.com ([78.46.148.228]:57776 "EHLO mail.horus.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753111AbdBUStd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 21 Feb 2017 13:49:33 -0500
+Date: Tue, 21 Feb 2017 19:49:29 +0100
+From: Matthias Reichl <hias@horus.com>
+To: Heiner Kallweit <hkallweit1@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org
+Subject: Bug: decoders referenced in kernel rc-keymaps not loaded on boot
+Message-ID: <20170221184929.GA2590@camel2.lan>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Bartosz Golaszewski <bgolaszewski@baylibre.com> writes:
+There seems to be a bug in on-demand loading of IR protocol decoders.
 
-> The vpif display driver uses a static i2c adapter ID of 1 but on the
-> da850-evm board in DT boot mode the i2c adapter ID is actually 0.
->
-> Make the adapter ID configurable like it already is for vpif capture.
->
-> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+After bootup the protocol referenced in the in-kernel rc keymap shows
+up as enabled (in sysfs and ir-keytable) but the protocol decoder
+is not loaded and thus no rc input events will be generated.
 
-Acked-by: Kevin Hilman <khilman@baylibre.com>
+For example, RPi3 with kernel 4.10 and gpio-ir-recv configured to use
+the rc-hauppauge keymap in devicetree:
 
-> ---
->  arch/arm/mach-davinci/board-da850-evm.c       | 1 +
->  drivers/media/platform/davinci/vpif_display.c | 2 +-
->  include/media/davinci/vpif_types.h            | 1 +
->  3 files changed, 3 insertions(+), 1 deletion(-)
->
-> diff --git a/arch/arm/mach-davinci/board-da850-evm.c b/arch/arm/mach-davinci/board-da850-evm.c
-> index e5d4ded..fe0bfa7 100644
-> --- a/arch/arm/mach-davinci/board-da850-evm.c
-> +++ b/arch/arm/mach-davinci/board-da850-evm.c
-> @@ -1290,6 +1290,7 @@ static struct vpif_display_config da850_vpif_display_config = {
->  		.output_count = ARRAY_SIZE(da850_ch0_outputs),
->  	},
->  	.card_name    = "DA850/OMAP-L138 Video Display",
-> +	.i2c_adapter_id = 1,
->  };
->  
->  static __init void da850_vpif_init(void)
-> diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-> index 50c3073..7e5cf99 100644
-> --- a/drivers/media/platform/davinci/vpif_display.c
-> +++ b/drivers/media/platform/davinci/vpif_display.c
-> @@ -1287,7 +1287,7 @@ static __init int vpif_probe(struct platform_device *pdev)
->  	}
->  
->  	if (!vpif_obj.config->asd_sizes) {
-> -		i2c_adap = i2c_get_adapter(1);
-> +		i2c_adap = i2c_get_adapter(vpif_obj.config->i2c_adapter_id);
->  		for (i = 0; i < subdev_count; i++) {
->  			vpif_obj.sd[i] =
->  				v4l2_i2c_new_subdev_board(&vpif_obj.v4l2_dev,
-> diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
-> index 4282a7d..0c72b46 100644
-> --- a/include/media/davinci/vpif_types.h
-> +++ b/include/media/davinci/vpif_types.h
-> @@ -57,6 +57,7 @@ struct vpif_display_config {
->  	int (*set_clock)(int, int);
->  	struct vpif_subdev_info *subdevinfo;
->  	int subdev_count;
-> +	int i2c_adapter_id;
->  	struct vpif_display_chan_config chan_config[VPIF_DISPLAY_MAX_CHANNELS];
->  	const char *card_name;
->  	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
+# lsmod | grep '^\(ir\|rc_\)'
+ir_lirc_codec           5590  0
+rc_hauppauge            2422  0
+rc_core                24320  5 rc_hauppauge,ir_lirc_codec,lirc_dev,gpio_ir_recv
+
+# cat /sys/class/rc/rc0/protocols
+other unknown [rc-5] nec rc-6 jvc sony rc-5-sz sanyo sharp mce_kbd xmp cec [lirc]
+
+# dmesg | grep "IR "
+[    4.506728] Registered IR keymap rc-hauppauge
+[    4.554651] lirc_dev: IR Remote Control driver registered, major 242
+[    4.576490] IR LIRC bridge handler initialized
+
+The same happens with other IR receivers, eg the streamzap receiver,
+which uses the rc-5-sz protocol / ir_rc5_decoder, on x86.
+
+Reverting the on-demand-loading patches
+
+[media] media: rc: remove unneeded code
+commit c1500ba0b61e9abf95e0e7ecd3c4ad877f019abe
+
+[media] media: rc: move check whether a protocol is enabled to the core
+commit d80ca8bd71f0b01b2b12459189927cb3299cfab9
+
+[media] media: rc: load decoder modules on-demand
+commit acc1c3c688ed8cc862ddc007eab0dcef839f4ec8
+
+restores the previous behaviour, all decoders are enabled and IR
+events can be generated immediately after boot without having to
+manually trigger loading of a protocol decoder.
+
+so long,
+
+Hias
