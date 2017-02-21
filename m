@@ -1,157 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:44221 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751084AbdBDV4O (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 4 Feb 2017 16:56:14 -0500
-Date: Sat, 4 Feb 2017 22:56:10 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-        laurent.pinchart@ideasonboard.com
-Cc: robh+dt@kernel.org, devicetree@vger.kernel.org,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org, galak@codeaurora.org,
-        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] devicetree: Add video bus switch
-Message-ID: <20170204215610.GA9243@amd>
-References: <20161023200355.GA5391@amd>
- <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
- <20161214122451.GB27011@amd>
- <20161222100104.GA30917@amd>
- <20161222133938.GA30259@amd>
- <20161224152031.GA8420@amd>
- <20170203123508.GA10286@amd>
- <20170203130740.GB12291@valkosipuli.retiisi.org.uk>
- <20170203210610.GA18379@amd>
- <20170203213454.GD12291@valkosipuli.retiisi.org.uk>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53814 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752397AbdBUMid (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 21 Feb 2017 07:38:33 -0500
+Date: Tue, 21 Feb 2017 14:37:57 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v4 29/36] media: imx: mipi-csi2: enable setting and
+ getting of frame rates
+Message-ID: <20170221123756.GI16975@valkosipuli.retiisi.org.uk>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+ <1487211578-11360-30-git-send-email-steve_longerbeam@mentor.com>
+ <20170220220409.GX16975@valkosipuli.retiisi.org.uk>
+ <20170221001332.GS21222@n2100.armlinux.org.uk>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="opJtzjQTFsWo+cga"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170203213454.GD12291@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20170221001332.GS21222@n2100.armlinux.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Russell,
 
---opJtzjQTFsWo+cga
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue, Feb 21, 2017 at 12:13:32AM +0000, Russell King - ARM Linux wrote:
+> On Tue, Feb 21, 2017 at 12:04:10AM +0200, Sakari Ailus wrote:
+> > On Wed, Feb 15, 2017 at 06:19:31PM -0800, Steve Longerbeam wrote:
+> > > From: Russell King <rmk+kernel@armlinux.org.uk>
+> > > 
+> > > Setting and getting frame rates is part of the negotiation mechanism
+> > > between subdevs.  The lack of support means that a frame rate at the
+> > > sensor can't be negotiated through the subdev path.
+> > 
+> > Just wondering --- what do you need this for?
+> 
+> The v4l2 documentation contradicts the media-ctl implementation.
+> 
+> While v4l2 documentation says:
+> 
+>   These ioctls are used to get and set the frame interval at specific
+>   subdev pads in the image pipeline. The frame interval only makes sense
+>   for sub-devices that can control the frame period on their own. This
+>   includes, for instance, image sensors and TV tuners. Sub-devices that
+>   don't support frame intervals must not implement these ioctls.
+> 
+> However, when trying to configure the pipeline using media-ctl, eg:
+> 
+> media-ctl -d /dev/media1 --set-v4l2 '"imx219 pixel 0-0010":0[crop:(0,0)/3264x2464]'
+> media-ctl -d /dev/media1 --set-v4l2 '"imx219 0-0010":1[fmt:SRGGB10/3264x2464@1/30]'
+> media-ctl -d /dev/media1 --set-v4l2 '"imx219 0-0010":0[fmt:SRGGB8/816x616@1/30]'
+> media-ctl -d /dev/media1 --set-v4l2 '"imx6-mipi-csi2":1[fmt:SRGGB8/816x616@1/30]'
+> Unable to setup formats: Inappropriate ioctl for device (25)
+> media-ctl -d /dev/media1 --set-v4l2 '"ipu1_csi0_mux":2[fmt:SRGGB8/816x616@1/30]'
+> media-ctl -d /dev/media1 --set-v4l2 '"ipu1_csi0":2[fmt:SRGGB8/816x616@1/30]'
+> 
+> The problem there is that the format setting for the csi2 does not get
+> propagated forward:
 
-Hi!
+The CSI-2 receivers typically do not implement frame interval IOCTLs as they
+do not control the frame interval. Some sensors or TV tuners typically do,
+so they implement these IOCTLs.
 
-> > > > +Required properties
-> > > > +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > > > +
-> > > > +compatible	: must contain "video-bus-switch"
-> > >=20
-> > > How generic is this? Should we have e.g. nokia,video-bus-switch? And =
-if so,
-> > > change the file name accordingly.
-> >=20
-> > Generic for "single GPIO controls the switch", AFAICT. But that should
-> > be common enough...
->=20
-> Um, yes. Then... how about: video-bus-switch-gpio? No Nokia prefix.
+There are alternative ways to specify the frame rate.
 
-Ok, done. I also fixed the english a bit.
+> 
+> $ strace media-ctl -d /dev/media1 --set-v4l2 '"imx6-mipi-csi2":1[fmt:SRGGB8/816x616@1/30]'
+> ...
+> open("/dev/v4l-subdev16", O_RDWR)       = 3
+> ioctl(3, VIDIOC_SUBDEV_S_FMT, 0xbec16244) = 0
+> ioctl(3, VIDIOC_SUBDEV_S_FRAME_INTERVAL, 0xbec162a4) = -1 ENOTTY (Inappropriate
+> ioctl for device)
+> fstat64(1, {st_mode=S_IFCHR|0600, st_rdev=makedev(136, 2), ...}) = 0
+> write(1, "Unable to setup formats: Inappro"..., 61) = 61
+> Unable to setup formats: Inappropriate ioctl for device (25)
+> close(3)                                = 0
+> exit_group(1)                           = ?
+> +++ exited with 1 +++
+> 
+> because media-ctl exits as soon as it encouters the error while trying
+> to set the frame rate.
+> 
+> This makes implementing setup of the media pipeline in shell scripts
+> unnecessarily difficult - as you need to then know whether an entity
+> is likely not to support the VIDIOC_SUBDEV_S_FRAME_INTERVAL call,
+> and either avoid specifying a frame rate:
 
-> > > > +reg		: The interface:
-> > > > +		  0 - port for image signal processor
-> > > > +		  1 - port for first camera sensor
-> > > > +		  2 - port for second camera sensor
-> > >=20
-> > > I'd say this must be pretty much specific to the one in N900. You cou=
-ld have
-> > > more ports. Or you could say that ports beyond 0 are camera sensors. =
-I guess
-> > > this is good enough for now though, it can be changed later on with t=
-he
-> > > source if a need arises.
-> >=20
-> > Well, I'd say that selecting between two sensors is going to be the
-> > common case. If someone needs more than two, it will no longer be
-> > simple GPIO, so we'll have some fixing to do.
->=20
-> It could be two GPIOs --- that's how the GPIO I2C mux works.
->=20
-> But I'd be surprised if someone ever uses something like that
-> again. ;-)
+You should remove the frame interval setting from sub-devices that do not
+support it.
 
-I'd say.. lets handle that when we see hardware like that.
+> 
+> $ strace media-ctl -d /dev/media1 --set-v4l2 '"imx6-mipi-csi2":1[fmt:SRGGB8/816x616]'
+> ...
+> open("/dev/v4l-subdev16", O_RDWR)       = 3
+> ioctl(3, VIDIOC_SUBDEV_S_FMT, 0xbeb1a254) = 0
+> open("/dev/v4l-subdev0", O_RDWR)        = 4
+> ioctl(4, VIDIOC_SUBDEV_S_FMT, 0xbeb1a254) = 0
+> close(4)                                = 0
+> close(3)                                = 0
+> exit_group(0)                           = ?
+> +++ exited with 0 +++
+> 
+> or manually setting the format on the sink.
+> 
+> Allowing the S_FRAME_INTERVAL call seems to me to be more in keeping
+> with the negotiation mechanism that is implemented in subdevs, and
+> IMHO should be implemented inside the kernel as a pad operation along
+> with the format negotiation, especially so as frame skipping is
+> defined as scaling, in just the same way as the frame size is also
+> scaling:
 
-> > > Btw. was it still considered a problem that the endpoint properties f=
-or the
-> > > sensors can be different? With the g_routing() pad op which is to be =
-added,
-> > > the ISP driver (should actually go to a framework somewhere) could pa=
-rse the
-> > > graph and find the proper endpoint there.
-> >=20
-> > I don't know about g_routing. I added g_endpoint_config method that
-> > passes the configuration, and that seems to work for me.
-> >=20
-> > I don't see g_routing in next-20170201 . Is there place to look?
->=20
-> I think there was a patch by Laurent to LMML quite some time ago. I suppo=
-se
-> that set will be repicked soonish.
->=20
-> I don't really object using g_endpoint_config() as a temporary solution; =
-I'd
-> like to have Laurent's opinion on that though. Another option is to wait,
-> but we've already waited a looong time (as in total).
+The origins of the S_FRAME_INTERVAL IOCTL for sub-devices are the S_PARM
+IOCTL for video nodes. It is used to control the frame rate for more simple
+devices that do not expose the Media controller interface. The similar
+S_FRAME_INTERVAL was added for sub-devices as well, and it has been so far
+used to control the frame interval for sensors (and G_FRAME_INTERVAL to
+obtain the frame interval for TV tuners, for instance).
 
-Laurent, do you have some input here? We have simple "2 cameras
-connected to one signal processor" situation here. We need some way of
-passing endpoint configuration from the sensors through the switch. I
-did this:
+The pad argument was added there but media-ctl only supported setting the
+frame interval on pad 0, which, coincidentally, worked well for sensor
+devices.
 
-> > @@ -415,6 +416,8 @@ struct v4l2_subdev_video_ops {
-> >                          const struct v4l2_mbus_config *cfg);
-> >     int (*s_rx_buffer)(struct v4l2_subdev *sd, void *buf,
-> >                        unsigned int *size);
-> > +   int (*g_endpoint_config)(struct v4l2_subdev *sd,
-> > +                       struct v4l2_of_endpoint *cfg);
+The link validation is primarily done in order to ensure the validity of the
+hardware configuration: streaming may not be started if the hardware
+configuration is not valid.
 
-Google of g_routing tells me:
+Also, frame interval is not a static property during streaming: it may be
+changed without the knowledge of the other sub-device drivers downstream. It
+neither is a property of hardware receiving or processing images: if there
+are limitations in processing pixels, then they in practice are related to
+pixel rates or image sizes (i.e. not frame rates).
 
-9) Highly reconfigurable hardware - Julien Beraud
+> 
+>        -  ``MEDIA_ENT_F_PROC_VIDEO_SCALER``
+> 
+>        -  Video scaler. An entity capable of video scaling must have
+>           at least one sink pad and one source pad, and scale the
+>           video frame(s) received on its sink pad(s) to a different
+>           resolution output on its source pad(s). The range of
+>           supported scaling ratios is entity-specific and can differ
+>           between the horizontal and vertical directions (in particular
+>           scaling can be supported in one direction only). Binning and
+>           skipping are considered as scaling.
+> 
+> Although, this is vague, as it doesn't define what it means by "skipping",
+> whether that's skipping pixels (iow, sub-sampling) or whether that's
+> frame skipping.
 
-- 44 sub-devices connected with an interconnect.
-- As long as formats match, any sub-device could be connected to any
-- other sub-device through a link.
-- The result is 44 * 44 links at worst.
-- A switch sub-device proposed as the solution to model the
-- interconnect. The sub-devices are connected to the switch
-- sub-devices through the hardware links that connect to the
-- interconnect.
-- The switch would be controlled through new IOCTLs S_ROUTING and
-- G_ROUTING.
-- Patches available:
- http://git.linuxtv.org/cgit.cgi/pinchartl/media.git/log/?h=3Dxilinx-wip
+Skipping in the context is used to refer to sub-sampling. The term is often
+used in conjunction of sensors. The documentation could certainly be
+clarified here.
 
-but the patches are from 2005. So I guess I'll need some guidance here...
+> 
+> Then there's the issue where, if you have this setup:
+> 
+>  camera --> csi2 receiver --> csi --> capture
+> 
+> and the "csi" subdev can skip frames, you need to know (a) at the CSI
+> sink pad what the frame rate is of the source (b) what the desired
+> source pad frame rate is, so you can configure the frame skipping.
+> So, does the csi subdev have to walk back through the media graph
+> looking for the frame rate?  Does the capture device have to walk back
+> through the media graph looking for some subdev to tell it what the
+> frame rate is - the capture device certainly can't go straight to the
+> sensor to get an answer to that question, because that bypasses the
+> effect of the CSI frame skipping (which will lower the frame rate.)
+> 
+> IMHO, frame rate is just another format property, just like the
+> resolution and data format itself, and v4l2 should be treating it no
+> differently.
+> 
+> In any case, the documentation vs media-ctl create something of a very
+> obscure situation, one that probably needs solving one way or another.
 
-> I'll reply to the other patch containing the code.
+Before going to solutions I need to ask: what do you want to achieve?
 
-Ok, thanks.
-								Pavel
+-- 
+Regards,
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---opJtzjQTFsWo+cga
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAliWTfoACgkQMOfwapXb+vJGpgCaA11DUW57SgRdf3Xi9yAd4QmZ
-sFMAn0Gga7IICyx1LzxFwUjzV8D/oJGH
-=DVuo
------END PGP SIGNATURE-----
-
---opJtzjQTFsWo+cga--
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
