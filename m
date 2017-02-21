@@ -1,155 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:39229 "EHLO
-        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751490AbdBNHwW (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59760 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751072AbdBUQP2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Feb 2017 02:52:22 -0500
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>
-Subject: [PATCH 07/15] media: s5p-mfc: Put firmware to private buffer structure
-Date: Tue, 14 Feb 2017 08:52:00 +0100
-Message-id: <1487058728-16501-8-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
-References: <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20170214075217eucas1p2957a45afd938beab333a21b9bec56480@eucas1p2.samsung.com>
+        Tue, 21 Feb 2017 11:15:28 -0500
+Date: Tue, 21 Feb 2017 18:15:19 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v4 29/36] media: imx: mipi-csi2: enable setting and
+ getting of frame rates
+Message-ID: <20170221161518.GM16975@valkosipuli.retiisi.org.uk>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+ <1487211578-11360-30-git-send-email-steve_longerbeam@mentor.com>
+ <20170220220409.GX16975@valkosipuli.retiisi.org.uk>
+ <20170221001332.GS21222@n2100.armlinux.org.uk>
+ <20170221123756.GI16975@valkosipuli.retiisi.org.uk>
+ <20170221132132.GU21222@n2100.armlinux.org.uk>
+ <20170221153834.GL16975@valkosipuli.retiisi.org.uk>
+ <20170221160332.GW21222@n2100.armlinux.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170221160332.GW21222@n2100.armlinux.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use s5p_mfc_priv_buf structure for keeping the firmware image. This will
-help handling of firmware buffer allocation in the next patches.
+On Tue, Feb 21, 2017 at 04:03:32PM +0000, Russell King - ARM Linux wrote:
+> On Tue, Feb 21, 2017 at 05:38:34PM +0200, Sakari Ailus wrote:
+> > Hi Russell,
+> > 
+> > On Tue, Feb 21, 2017 at 01:21:32PM +0000, Russell King - ARM Linux wrote:
+> > > On Tue, Feb 21, 2017 at 02:37:57PM +0200, Sakari Ailus wrote:
+> > > > Hi Russell,
+> > > > 
+> > > > On Tue, Feb 21, 2017 at 12:13:32AM +0000, Russell King - ARM Linux wrote:
+> > > > > On Tue, Feb 21, 2017 at 12:04:10AM +0200, Sakari Ailus wrote:
+> > > > > > On Wed, Feb 15, 2017 at 06:19:31PM -0800, Steve Longerbeam wrote:
+> > > > > > > From: Russell King <rmk+kernel@armlinux.org.uk>
+> > > > > > > 
+> > > > > > > Setting and getting frame rates is part of the negotiation mechanism
+> > > > > > > between subdevs.  The lack of support means that a frame rate at the
+> > > > > > > sensor can't be negotiated through the subdev path.
+> > > > > > 
+> > > > > > Just wondering --- what do you need this for?
+> > > > > 
+> > > > > The v4l2 documentation contradicts the media-ctl implementation.
+> > > > > 
+> > > > > While v4l2 documentation says:
+> > > > > 
+> > > > >   These ioctls are used to get and set the frame interval at specific
+> > > > >   subdev pads in the image pipeline. The frame interval only makes sense
+> > > > >   for sub-devices that can control the frame period on their own. This
+> > > > >   includes, for instance, image sensors and TV tuners. Sub-devices that
+> > > > >   don't support frame intervals must not implement these ioctls.
+> > > > > 
+> > > > > However, when trying to configure the pipeline using media-ctl, eg:
+> > > > > 
+> > > > > media-ctl -d /dev/media1 --set-v4l2 '"imx219 pixel 0-0010":0[crop:(0,0)/3264x2464]'
+> > > > > media-ctl -d /dev/media1 --set-v4l2 '"imx219 0-0010":1[fmt:SRGGB10/3264x2464@1/30]'
+> > > > > media-ctl -d /dev/media1 --set-v4l2 '"imx219 0-0010":0[fmt:SRGGB8/816x616@1/30]'
+> > > > > media-ctl -d /dev/media1 --set-v4l2 '"imx6-mipi-csi2":1[fmt:SRGGB8/816x616@1/30]'
+> > > > > Unable to setup formats: Inappropriate ioctl for device (25)
+> > > > > media-ctl -d /dev/media1 --set-v4l2 '"ipu1_csi0_mux":2[fmt:SRGGB8/816x616@1/30]'
+> > > > > media-ctl -d /dev/media1 --set-v4l2 '"ipu1_csi0":2[fmt:SRGGB8/816x616@1/30]'
+> > > > > 
+> > > > > The problem there is that the format setting for the csi2 does not get
+> > > > > propagated forward:
+> > > > 
+> > > > The CSI-2 receivers typically do not implement frame interval IOCTLs as they
+> > > > do not control the frame interval. Some sensors or TV tuners typically do,
+> > > > so they implement these IOCTLs.
+> > > 
+> > > No, TV tuners do not.  The frame rate for a TV tuner is set by the
+> > > broadcaster, not by the tuner.  The tuner can't change that frame rate.
+> > > The tuner may opt to "skip" fields or frames.  That's no different from
+> > > what the CSI block in my example below is capable of doing.
+> > > 
+> > > Treating a tuner differently from the CSI block is inconsistent and
+> > > completely wrong.
+> > 
+> > I agree tuners in that sense are somewhat similar, and they are not treated
+> > differently because they are tuners (and not CSI-2 receivers). Neither can
+> > control the frame rate of the incoming video stream.
+> > 
+> > Conceivably a tuner could implement G_FRAME_INTERVAL IOCTL, but based on a
+> > quick glance none appears to. Neither do CSI-2 receivers. Only sensor
+> > drivers do currently.
+> 
+> Please look again.  I am being very careful with "CSI" vs "CSI-2" in my
+> emails, you are conflating the two.
+> 
+> In all my emails so far, "CSI" refers to a block of hardware that is
+> responsible for receiving an image stream from some kind of source.  It
+> contains hardware that supports frame skipping.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c |  2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  3 +--
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   | 36 ++++++++++++-------------
- 3 files changed, 20 insertions(+), 21 deletions(-)
+Ah, I missed the difference. Thanks for pointing it out.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c
-index 8c4739ca16d6..4c80bb4243be 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c
-@@ -47,7 +47,7 @@ static int s5p_mfc_sys_init_cmd_v5(struct s5p_mfc_dev *dev)
- 	struct s5p_mfc_cmd_args h2r_args;
- 
- 	memset(&h2r_args, 0, sizeof(struct s5p_mfc_cmd_args));
--	h2r_args.arg[0] = dev->fw_size;
-+	h2r_args.arg[0] = dev->fw_buf.size;
- 	return s5p_mfc_cmd_host2risc_v5(dev, S5P_FIMV_H2R_CMD_SYS_INIT,
- 			&h2r_args);
- }
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index 9cf860f34c71..cea17a737ef7 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -314,8 +314,7 @@ struct s5p_mfc_dev {
- 	int int_type;
- 	unsigned int int_err;
- 	wait_queue_head_t queue;
--	size_t fw_size;
--	void *fw_virt_addr;
-+	struct s5p_mfc_priv_buf fw_buf;
- 	dma_addr_t dma_base[BANK_CTX_NUM];
- 	unsigned long hw_lock;
- 	struct s5p_mfc_ctx *ctx[MFC_NUM_CONTEXTS];
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-index c9bff3d0655f..50d698968049 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-@@ -29,21 +29,22 @@ int s5p_mfc_alloc_firmware(struct s5p_mfc_dev *dev)
- 	void *bank2_virt;
- 	dma_addr_t bank2_dma_addr;
- 	unsigned int align_size = 1 << MFC_BASE_ALIGN_ORDER;
-+	struct s5p_mfc_priv_buf *fw_buf = &dev->fw_buf;
- 
--	dev->fw_size = dev->variant->buf_size->fw;
-+	fw_buf->size = dev->variant->buf_size->fw;
- 
--	if (dev->fw_virt_addr) {
-+	if (fw_buf->virt) {
- 		mfc_err("Attempting to allocate firmware when it seems that it is already loaded\n");
- 		return -ENOMEM;
- 	}
- 
--	dev->fw_virt_addr = dma_alloc_coherent(dev->mem_dev[BANK1_CTX],
--					dev->fw_size, &dev->dma_base[BANK1_CTX],
--					GFP_KERNEL);
--	if (!dev->fw_virt_addr) {
-+	fw_buf->virt = dma_alloc_coherent(dev->mem_dev[BANK1_CTX], fw_buf->size,
-+					 &fw_buf->dma, GFP_KERNEL);
-+	if (!fw_buf->virt) {
- 		mfc_err("Allocating bitprocessor buffer failed\n");
- 		return -ENOMEM;
- 	}
-+	dev->dma_base[BANK1_CTX] = fw_buf->dma;
- 
- 	if (HAS_PORTNUM(dev) && IS_TWOPORT(dev)) {
- 		bank2_virt = dma_alloc_coherent(dev->mem_dev[BANK2_CTX],
-@@ -51,10 +52,9 @@ int s5p_mfc_alloc_firmware(struct s5p_mfc_dev *dev)
- 
- 		if (!bank2_virt) {
- 			mfc_err("Allocating bank2 base failed\n");
--			dma_free_coherent(dev->mem_dev[BANK1_CTX], dev->fw_size,
--					  dev->fw_virt_addr,
--					  dev->dma_base[BANK1_CTX]);
--			dev->fw_virt_addr = NULL;
-+			dma_free_coherent(dev->mem_dev[BANK1_CTX], fw_buf->size,
-+					  fw_buf->virt, fw_buf->dma);
-+			fw_buf->virt = NULL;
- 			return -ENOMEM;
- 		}
- 
-@@ -101,17 +101,17 @@ int s5p_mfc_load_firmware(struct s5p_mfc_dev *dev)
- 		mfc_err("Firmware is not present in the /lib/firmware directory nor compiled in kernel\n");
- 		return -EINVAL;
- 	}
--	if (fw_blob->size > dev->fw_size) {
-+	if (fw_blob->size > dev->fw_buf.size) {
- 		mfc_err("MFC firmware is too big to be loaded\n");
- 		release_firmware(fw_blob);
- 		return -ENOMEM;
- 	}
--	if (!dev->fw_virt_addr) {
-+	if (!dev->fw_buf.virt) {
- 		mfc_err("MFC firmware is not allocated\n");
- 		release_firmware(fw_blob);
- 		return -EINVAL;
- 	}
--	memcpy(dev->fw_virt_addr, fw_blob->data, fw_blob->size);
-+	memcpy(dev->fw_buf.virt, fw_blob->data, fw_blob->size);
- 	wmb();
- 	release_firmware(fw_blob);
- 	mfc_debug_leave();
-@@ -123,11 +123,11 @@ int s5p_mfc_release_firmware(struct s5p_mfc_dev *dev)
- {
- 	/* Before calling this function one has to make sure
- 	 * that MFC is no longer processing */
--	if (!dev->fw_virt_addr)
-+	if (!dev->fw_buf.virt)
- 		return -EINVAL;
--	dma_free_coherent(dev->mem_dev[BANK1_CTX], dev->fw_size,
--			  dev->fw_virt_addr, dev->dma_base[BANK1_CTX]);
--	dev->fw_virt_addr = NULL;
-+	dma_free_coherent(dev->mem_dev[BANK1_CTX], dev->fw_buf.size,
-+			  dev->fw_buf.virt, dev->fw_buf.dma);
-+	dev->fw_buf.virt = NULL;
- 	return 0;
- }
- 
-@@ -246,7 +246,7 @@ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
- 	int ret;
- 
- 	mfc_debug_enter();
--	if (!dev->fw_virt_addr) {
-+	if (!dev->fw_buf.virt) {
- 		mfc_err("Firmware memory is not allocated.\n");
- 		return -EINVAL;
- 	}
+Still, that does not change how the skipping would work nor how I proposed
+it would be configured from the user space.
+
+> 
+> "CSI-2" refers to a different block of hardware that is responsible for
+> receiving a serially encoded stream from a MIPI-CSI-2 compliant source
+> and providing it to the "CSI" block.
+> 
+> I would have thought my diagram that I drew would have made it clear that
+> they were different blocks of hardware, but I guess in this case, the old
+> saying "a picture is worth 1000 words" is simply not true.
+> 
+> > Images are transmitted as series of lines, with each line ending in a
+> > horizontal blanking period, and each frame ending with a similar period of
+> 
+> I'm sorry, are you seriously teaching me to suck rocks?  I am insulted.
+> 
+> I've been involved in TV and video for many years, I don't need you to
+> tell me how video is transmitted.
+> 
+> Sorry, you've just lost my interest in further discussion.
+
+There's no need to feel insulted; that certainly was not the intention.
+
+I've proposed you a solution, please comment on that.
+
 -- 
-1.9.1
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
