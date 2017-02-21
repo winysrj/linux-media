@@ -1,200 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:35673 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753673AbdBPCVS (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:42356 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753174AbdBUOVA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 21:21:18 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Russell King <rmk+kernel@armlinux.org.uk>
-Subject: [PATCH v4 32/36] media: imx: csi/fim: add support for frame intervals
-Date: Wed, 15 Feb 2017 18:19:34 -0800
-Message-Id: <1487211578-11360-33-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+        Tue, 21 Feb 2017 09:21:00 -0500
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 8bit
+Date: Tue, 21 Feb 2017 06:20:58 -0800
+From: Sodagudi Prasad <psodagud@codeaurora.org>
+To: James Morse <james.morse@arm.com>, mchehab@s-opensource.com,
+        linux-media@vger.kernel.org
+Cc: shijie.huang@arm.com, catalin.marinas@arm.com, will.deacon@arm.com,
+        mark.rutland@arm.com, akpm@linux-foundation.org,
+        sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, mchehab@s-opensource.com,
+        hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+        sakari.ailus@linux.intel.com, tiffany.lin@mediatek.com,
+        nick@shmanahar.org, shuah@kernel.org, ricardo.ribalda@gmail.com
+Subject: Re: <Query> Looking more details and reasons for using
+ orig_add_limit.
+In-Reply-To: <58A58162.2020101@arm.com>
+References: <def87360266193184dc013a055ec3869@codeaurora.org>
+ <58A4450C.3040602@arm.com> <7c727e6043e58077d143e35de0ce632c@codeaurora.org>
+ <58A58162.2020101@arm.com>
+Message-ID: <568205ddc2e7af6a57a71b8c5cd47d68@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support to CSI for negotiation of frame intervals, and use this
-information to configure the frame interval monitor.
+Hi mchehab/linux-media,
 
-Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/media/imx/imx-media-csi.c | 36 ++++++++++++++++++++++++++++---
- drivers/staging/media/imx/imx-media-fim.c | 28 +++++++++---------------
- drivers/staging/media/imx/imx-media.h     |  2 +-
- 3 files changed, 44 insertions(+), 22 deletions(-)
+It is not clear why KERNEL_DS was set explicitly here. In this path 
+video_usercopy() gets  called  and it
+copies the “struct v4l2_buffer” struct to user space stack memory.
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index b0aac82..040cca6 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -56,6 +56,7 @@ struct csi_priv {
- 
- 	struct v4l2_mbus_framefmt format_mbus[CSI_NUM_PADS];
- 	const struct imx_media_pixfmt *cc[CSI_NUM_PADS];
-+	struct v4l2_fract frame_interval;
- 	struct v4l2_rect crop;
- 
- 	/* the video device at IDMAC output pad */
-@@ -565,7 +566,8 @@ static int csi_start(struct csi_priv *priv)
- 
- 	/* start the frame interval monitor */
- 	if (priv->fim) {
--		ret = imx_media_fim_set_stream(priv->fim, priv->sensor, true);
-+		ret = imx_media_fim_set_stream(priv->fim,
-+					       &priv->frame_interval, true);
- 		if (ret)
- 			goto idmac_stop;
- 	}
-@@ -580,7 +582,8 @@ static int csi_start(struct csi_priv *priv)
- 
- fim_off:
- 	if (priv->fim)
--		imx_media_fim_set_stream(priv->fim, priv->sensor, false);
-+		imx_media_fim_set_stream(priv->fim,
-+					 &priv->frame_interval, false);
- idmac_stop:
- 	if (priv->dest == IPU_CSI_DEST_IDMAC)
- 		csi_idmac_stop(priv);
-@@ -594,11 +597,36 @@ static void csi_stop(struct csi_priv *priv)
- 
- 	/* stop the frame interval monitor */
- 	if (priv->fim)
--		imx_media_fim_set_stream(priv->fim, priv->sensor, false);
-+		imx_media_fim_set_stream(priv->fim,
-+					 &priv->frame_interval, false);
- 
- 	ipu_csi_disable(priv->csi);
- }
- 
-+static int csi_g_frame_interval(struct v4l2_subdev *sd,
-+				struct v4l2_subdev_frame_interval *fi)
-+{
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+
-+	fi->interval = priv->frame_interval;
-+
-+	return 0;
-+}
-+
-+static int csi_s_frame_interval(struct v4l2_subdev *sd,
-+				struct v4l2_subdev_frame_interval *fi)
-+{
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+
-+	/* Output pads mirror active input pad, no limits on input pads */
-+	if (fi->pad == CSI_SRC_PAD_IDMAC || fi->pad == CSI_SRC_PAD_DIRECT)
-+		fi->interval = priv->frame_interval;
-+
-+	priv->frame_interval = fi->interval;
-+
-+	return 0;
-+}
-+
- static int csi_s_stream(struct v4l2_subdev *sd, int enable)
- {
- 	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-@@ -1187,6 +1215,8 @@ static struct v4l2_subdev_core_ops csi_core_ops = {
- };
- 
- static struct v4l2_subdev_video_ops csi_video_ops = {
-+	.g_frame_interval = csi_g_frame_interval,
-+	.s_frame_interval = csi_s_frame_interval,
- 	.s_stream = csi_s_stream,
- };
- 
-diff --git a/drivers/staging/media/imx/imx-media-fim.c b/drivers/staging/media/imx/imx-media-fim.c
-index acc7e39..a6ed57e 100644
---- a/drivers/staging/media/imx/imx-media-fim.c
-+++ b/drivers/staging/media/imx/imx-media-fim.c
-@@ -67,26 +67,18 @@ struct imx_media_fim {
- };
- 
- static void update_fim_nominal(struct imx_media_fim *fim,
--			       struct imx_media_subdev *sensor)
-+			       const struct v4l2_fract *fi)
- {
--	struct v4l2_streamparm parm;
--	struct v4l2_fract tpf;
--	int ret;
--
--	parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
--	ret = v4l2_subdev_call(sensor->sd, video, g_parm, &parm);
--	tpf = parm.parm.capture.timeperframe;
--
--	if (ret || tpf.denominator == 0) {
--		dev_dbg(fim->sd->dev, "no tpf from sensor, FIM disabled\n");
-+	if (fi->denominator == 0) {
-+		dev_dbg(fim->sd->dev, "no frame interval, FIM disabled\n");
- 		fim->enabled = false;
- 		return;
- 	}
- 
--	fim->nominal = DIV_ROUND_CLOSEST(1000 * 1000 * tpf.numerator,
--					 tpf.denominator);
-+	fim->nominal = DIV_ROUND_CLOSEST_ULL(1000000ULL * (u64)fi->numerator,
-+					     fi->denominator);
- 
--	dev_dbg(fim->sd->dev, "sensor FI=%lu usec\n", fim->nominal);
-+	dev_dbg(fim->sd->dev, "FI=%lu usec\n", fim->nominal);
- }
- 
- static void reset_fim(struct imx_media_fim *fim, bool curval)
-@@ -130,8 +122,8 @@ static void send_fim_event(struct imx_media_fim *fim, unsigned long error)
- 
- /*
-  * Monitor an averaged frame interval. If the average deviates too much
-- * from the sensor's nominal frame rate, send the frame interval error
-- * event. The frame intervals are averaged in order to quiet noise from
-+ * from the nominal frame rate, send the frame interval error event. The
-+ * frame intervals are averaged in order to quiet noise from
-  * (presumably random) interrupt latency.
-  */
- static void frame_interval_monitor(struct imx_media_fim *fim,
-@@ -422,12 +414,12 @@ EXPORT_SYMBOL_GPL(imx_media_fim_set_power);
- 
- /* Called by the subdev in its s_stream callback */
- int imx_media_fim_set_stream(struct imx_media_fim *fim,
--			     struct imx_media_subdev *sensor,
-+			     const struct v4l2_fract *fi,
- 			     bool on)
- {
- 	if (on) {
- 		reset_fim(fim, true);
--		update_fim_nominal(fim, sensor);
-+		update_fim_nominal(fim, fi);
- 
- 		if (fim->icap_channel >= 0)
- 			fim_acquire_first_ts(fim);
-diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
-index ae3af0d..7f19739 100644
---- a/drivers/staging/media/imx/imx-media.h
-+++ b/drivers/staging/media/imx/imx-media.h
-@@ -259,7 +259,7 @@ struct imx_media_fim;
- void imx_media_fim_eof_monitor(struct imx_media_fim *fim, struct timespec *ts);
- int imx_media_fim_set_power(struct imx_media_fim *fim, bool on);
- int imx_media_fim_set_stream(struct imx_media_fim *fim,
--			     struct imx_media_subdev *sensor,
-+			     const struct v4l2_fract *frame_interval,
- 			     bool on);
- struct imx_media_fim *imx_media_fim_init(struct v4l2_subdev *sd);
- void imx_media_fim_free(struct imx_media_fim *fim);
+Can you please share reasons for setting to KERNEL_DS here?
+
+static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned 
+long arg)
+{
+…
+…
+
+         if (compatible_arg)
+                 err = native_ioctl(file, cmd, (unsigned long)up);
+         else {
+                 mm_segment_t old_fs = get_fs();
+
+                 set_fs(KERNEL_DS);
+                 err = native_ioctl(file, cmd, (unsigned long)&karg);
+                 set_fs(old_fs);
+         }
+…
+}
+
+On 2017-02-16 02:39, James Morse wrote:
+> Hi Prasad,
+> 
+> On 15/02/17 21:12, Sodagudi Prasad wrote:
+>> On 2017-02-15 04:09, James Morse wrote:
+>>> On 15/02/17 05:52, Sodagudi Prasad wrote:
+>>>> that driver is calling set_fs(KERNEL_DS) and  then copy_to_user() to 
+>>>> user space
+>>>> memory.
+>>> 
+>>> Don't do this, its exactly the case PAN+UAO and the code you pointed 
+>>> to are
+>>> designed to catch. Accessing userspace needs doing carefully, setting 
+>>> USER_DS
+>>> and using the put_user()/copy_to_user() accessors are the required 
+>>> steps.
+>>> 
+>>> Which driver is doing this? Is it in mainline?
+>> 
+>> Yes. It is mainline driver - 
+>> drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> 
+>> In some v4l2 use-case kernel panic is observed. Below part
+>> of the code has set_fs to KERNEL_DS before calling native_ioctl().
+>> 
+>> static long do_video_ioctl(struct file *file, unsigned int cmd, 
+>> unsigned long arg)
+>> {
+>> …
+>> …
+>>         if (compatible_arg)
+>>                 err = native_ioctl(file, cmd, (unsigned long)up);
+>>         else {
+>>                 mm_segment_t old_fs = get_fs();
+>> 
+>>                 set_fs(KERNEL_DS);   ====> KERNEL_DS.
+>>                 err = native_ioctl(file, cmd, (unsigned long)&karg);
+>>                 set_fs(old_fs);
+>>         }
+>> 
+>> Here is the call stack which is resulting crash, because user space 
+>> memory has
+>> read only permissions.
+>> [27249.920041] [<ffffff8008357890>] __arch_copy_to_user+0x110/0x180
+>> [27249.920047] [<ffffff8008847c98>] video_ioctl2+0x38/0x44
+>> [27249.920054] [<ffffff8008840968>] v4l2_ioctl+0x78/0xb4
+>> [27249.920059] [<ffffff80088542d8>] do_video_ioctl+0x91c/0x1160
+>> [27249.920064] [<ffffff8008854b7c>] v4l2_compat_ioctl32+0x60/0xcc
+>> [27249.920071] [<ffffff800822553c>] compat_SyS_ioctl+0x124/0xd88
+>> [27249.920077] [<ffffff8008084e30>] el0_svc_naked+0x24/0x2
+> 
+> It's not totally clear to me what is going on here, but some 
+> observations:
+> the ioctl is trying to copy_to_user() to some read-only memory.  This 
+> would
+> normally fail gracefully with -EFAULT, but because KERNEL_DS has been 
+> set, the
+> kernel checks this before calling the fault handler and calls die() on
+> your ioctl().
+> 
+> The ioctl code is doing this deliberately as a compat mechanism, but 
+> the code
+> behind file->f_op->unlocked_ioctl() expects fs==USER_DS when it does 
+> its work.
+> That code needs to be made aware of this compat translation, or a 
+> compat_ioctl
+> call provided.
+
+> 
+> Which v4l driver is this? Which ioctl is being called? Does the driver 
+> using the
+> v4l framework have a compat_ioctl() call?
+Yes. Same kernel crash is seen with both video and camera use cases. 
+Yes. Driver have compact_ioctl().
+
+> What path does this call take through v4l2_compat_ioctl32()? It looks 
+> like
+> compat_ioctl will be skipped in certain cases, v4l2_compat_ioctl32() 
+> has:
+>> 	if (_IOC_TYPE(cmd) == 'V' && _IOC_NR(cmd) < BASE_VIDIOC_PRIVATE)
+>> 		ret = do_video_ioctl(file, cmd, arg);
+>> 	else if (vdev->fops->compat_ioctl32)
+>> 		ret = vdev->fops->compat_ioctl32(file, cmd, arg);
+> 
+> Is your ioctl matched by that top if()?
+Yes.  Top if condition in true and do_video_ioctl() getting called.
+
+> 
+>>>> If there is permission fault for user space address the above 
+>>>> condition
+>>>> is leading to kernel crash. Because orig_add_limit is having 
+>>>> KERNEL_DS as set_fs
+>>>> called before copy_to_user().
+>>>> 
+>>>> 1)    So I would like to understand that,  is that user space 
+>>>> pointer leading to
+>>>> permission fault not correct(condition_1) in this scenario?
+>>> 
+>>> The correct thing has happened here. To access user space 
+>>> set_fs(USER_DS) first.
+>>> (and set it back to whatever it was afterwards).
+>>> 
+>> 
+>> So, Any clean up needed to above call path similar to what was done in 
+>> the below
+>> commit?
+>> commit a7f61e89af73e9bf760826b20dba4e637221fcb9 - compat_ioctl: don't 
+>> call
+>> do_ioctl under set_fs(KERNEL_DS)
+> 
+> That's clever. Is that code doing a conversion, or do you have a 
+> compat_ioctl()
+> in your driver?
+> 
+> It's possible that fs/compat_ioctl.c has done this work, but 
+> do_video_ioctl()
+> un-does it. Someone who knows about v4l and compat-ioctls should take a 
+> look...
+> 
+> 
+> This looks like a case of:
+>> The accidental invocation of an unlocked_ioctl handler that 
+>> unexpectedly
+>> calls copy_to_user could be a severe security issue.
+> 
+> that Jann describes in the commit message. Fixing the code behind
+> file->f_op->unlocked_ioctl() to consider compat calls from 
+> do_video_ioctl() is
+> one way to solve this.
+> 
+> 
+> 
+> Thanks,
+> 
+> James
+
+-Thanks, Prasad
 -- 
-2.7.4
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora 
+Forum,
+Linux Foundation Collaborative Project
