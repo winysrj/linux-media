@@ -1,214 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:36150 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751555AbdBJJv2 (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:50498 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750837AbdBUFLc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Feb 2017 04:51:28 -0500
-Received: by mail-wr0-f194.google.com with SMTP id k90so14506562wrc.3
-        for <linux-media@vger.kernel.org>; Fri, 10 Feb 2017 01:51:27 -0800 (PST)
-Date: Fri, 10 Feb 2017 11:41:41 +0200
-From: Ran Algawi <ran.algawi@gmail.com>
-To: gregkh@linuxfoundation.org
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: [Patch] Staging: media: bcm2048: fixed errors and warnings
-Message-ID: <20170210094141.GA24612@LestatChateau>
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="17pEHd4RhPHOinZp"
-Content-Disposition: inline
+        Tue, 21 Feb 2017 00:11:32 -0500
+Message-ID: <0268e4f164f251dc06912ce104263566@smtp-cloud2.xs4all.net>
+Date: Tue, 21 Feb 2017 06:11:28 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
---17pEHd4RhPHOinZp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Results of the daily build of media_tree:
 
+date:			Tue Feb 21 05:00:28 CET 2017
+media-tree git hash:	9eeb0ed0f30938f31a3d9135a88b9502192c18dd
+media_build git hash:	785cdf7f0798964681b33aad44fc2ff4d734733d
+v4l-utils git hash:	1edd6920bed585d0ea70a2d400182ba17ee2e7fc
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-4.10-rc3-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+linux-4.9-x86_64: OK
+linux-4.10-rc3-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
---17pEHd4RhPHOinZp
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="0001-Staging-media-bcm2048-fixed-20-warings-errors.patch"
+Detailed results are available here:
 
->From 678cf1e0eb1d30537b228e25e38cd4f35c1501ee Mon Sep 17 00:00:00 2001
-From: Ran Algawi <ran.algawi@gmail.com>
-Date: Fri, 10 Feb 2017 11:11:27 +0200
-Subject: [PATCH 1/2] Staging: media: bcm2048: fixed 20+ warings/errors
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Fixed a coding style issues, and two major erros about complex macros
-and an error where the driver used a decimal number insted of an octal
-number when using a warning.
+Full logs are available here:
 
-Signed-off-by: Ran Algawi <ran.algawi@gmail.com>
----
- drivers/staging/media/bcm2048/radio-bcm2048.c | 64 +++++++++++++--------------
- 1 file changed, 32 insertions(+), 32 deletions(-)
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
-diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-index 37bd439..55968ba 100644
---- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-+++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-@@ -177,12 +177,12 @@
- 
- #define BCM2048_FREQDEV_UNIT		10000
- #define BCM2048_FREQV4L2_MULTI		625
--#define dev_to_v4l2(f)	((f * BCM2048_FREQDEV_UNIT) / BCM2048_FREQV4L2_MULTI)
--#define v4l2_to_dev(f)	((f * BCM2048_FREQV4L2_MULTI) / BCM2048_FREQDEV_UNIT)
-+#define dev_to_v4l2(f)	(((f) * BCM2048_FREQDEV_UNIT) / BCM2048_FREQV4L2_MULTI)
-+#define v4l2_to_dev(f)	(((f) * BCM2048_FREQV4L2_MULTI) / BCM2048_FREQDEV_UNIT)
- 
--#define msb(x)                  ((u8)((u16)x >> 8))
--#define lsb(x)                  ((u8)((u16)x &  0x00FF))
--#define compose_u16(msb, lsb)	(((u16)msb << 8) | lsb)
-+#define msb(x)                  ((u8)((u16)(x) >> 8))
-+#define lsb(x)                  ((u8)((u16)(x) &  0x00FF))
-+#define compose_u16(msb, lsb)	(((u16)(msb) << 8) | (lsb))
- 
- #define BCM2048_DEFAULT_POWERING_DELAY	20
- #define BCM2048_DEFAULT_REGION		0x02
-@@ -300,7 +300,7 @@ struct bcm2048_device {
- };
- 
- static int radio_nr = -1;	/* radio device minor (-1 ==> auto assign) */
--module_param(radio_nr, int, 0);
-+module_param(radio_nr, int, 0000);
- MODULE_PARM_DESC(radio_nr,
- 		 "Minor number for radio device (-1 ==> auto assign)");
- 
-@@ -1534,7 +1534,7 @@ static int bcm2048_parse_rt_match_c(struct bcm2048_device *bdev, int i,
- 	if (crc == BCM2048_RDS_CRC_UNRECOVARABLE)
- 		return 0;
- 
--	BUG_ON((index+2) >= BCM2048_MAX_RDS_RT);
-+	WARN_ON((index + 2) >= BCM2048_MAX_RDS_RT);
- 
- 	if ((bdev->rds_info.radio_text[i] & BCM2048_RDS_BLOCK_MASK) ==
- 		BCM2048_RDS_BLOCK_C) {
-@@ -1557,7 +1557,7 @@ static void bcm2048_parse_rt_match_d(struct bcm2048_device *bdev, int i,
- 	if (crc == BCM2048_RDS_CRC_UNRECOVARABLE)
- 		return;
- 
--	BUG_ON((index+4) >= BCM2048_MAX_RDS_RT);
-+	WARN_ON((index + 4) >= BCM2048_MAX_RDS_RT);
- 
- 	if ((bdev->rds_info.radio_text[i] & BCM2048_RDS_BLOCK_MASK) ==
- 	    BCM2048_RDS_BLOCK_D)
-@@ -1857,7 +1857,7 @@ static int bcm2048_probe(struct bcm2048_device *bdev)
- 		goto unlock;
- 
- 	err = bcm2048_set_fm_search_rssi_threshold(bdev,
--					BCM2048_DEFAULT_RSSI_THRESHOLD);
-+			BCM2048_DEFAULT_RSSI_THRESHOLD);
- 	if (err < 0)
- 		goto unlock;
- 
-@@ -1992,7 +1992,7 @@ static ssize_t bcm2048_##prop##_read(struct device *dev,		\
- 	return sprintf(buf, mask "\n", value);				\
- }
- 
--#define DEFINE_SYSFS_PROPERTY(prop, signal, size, mask, check)		\
-+#define DEFINE_SYSFS_PROPERTY(prop, signal, size, mask, check) \
- property_write(prop, signal size, mask, check)				\
- property_read(prop, size, mask)
- 
-@@ -2020,27 +2020,27 @@ static ssize_t bcm2048_##prop##_read(struct device *dev,		\
- 	return count;							\
- }
- 
--DEFINE_SYSFS_PROPERTY(power_state, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(mute, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(audio_route, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(dac_output, unsigned, int, "%u", 0)
--
--DEFINE_SYSFS_PROPERTY(fm_hi_lo_injection, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_frequency, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_af_frequency, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_deemphasis, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_rds_mask, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_best_tune_mode, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_search_rssi_threshold, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_search_mode_direction, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_search_tune_mode, unsigned, int, "%u", value > 3)
--
--DEFINE_SYSFS_PROPERTY(rds, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(rds_b_block_mask, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(rds_b_block_match, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(rds_pi_mask, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(rds_pi_match, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(rds_wline, unsigned, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(power_state, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(mute, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(audio_route, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(dac_output, unsigned int, int, "%u", 0)
-+
-+DEFINE_SYSFS_PROPERTY(fm_hi_lo_injection, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_frequency, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_af_frequency, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_deemphasis, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_rds_mask, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_best_tune_mode, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_search_rssi_threshold, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_search_mode_direction, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_search_tune_mode, unsigned int, int, "%u", value > 3)
-+
-+DEFINE_SYSFS_PROPERTY(rds, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(rds_b_block_mask, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(rds_b_block_match, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(rds_pi_mask, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(rds_pi_match, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(rds_wline, unsigned int, int, "%u", 0)
- property_read(rds_pi, unsigned int, "%x")
- property_str_read(rds_rt, (BCM2048_MAX_RDS_RT + 1))
- property_str_read(rds_ps, (BCM2048_MAX_RDS_PS + 1))
-@@ -2052,7 +2052,7 @@ property_read(region_bottom_frequency, unsigned int, "%u")
- property_read(region_top_frequency, unsigned int, "%u")
- property_signed_read(fm_carrier_error, int, "%d")
- property_signed_read(fm_rssi, int, "%d")
--DEFINE_SYSFS_PROPERTY(region, unsigned, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(region, unsigned int, int, "%u", 0)
- 
- static struct device_attribute attrs[] = {
- 	__ATTR(power_state, 0644, bcm2048_power_state_read,
--- 
-2.7.4
+The Media Infrastructure API from this daily build is here:
 
-
---17pEHd4RhPHOinZp
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="0002-Staging-media-bcm2048-fixed-warnings-and-erros.patch"
-
->From c0f4ae981d1fa3be29c4dfed4494d71f24309056 Mon Sep 17 00:00:00 2001
-From: Ran Algawi <ran.algawi@gmail.com>
-Date: Fri, 10 Feb 2017 11:29:40 +0200
-Subject: [PATCH 2/2] Staging: media: bcm2048: fixed warnings and erros
-
-Fixed a coding style issue.
-Also, fixed an error where the function used a decimal number instead of
-an octal number when calling errors.
-
-Signed-off-by: Ran Algawi <ran.algawi@gmail.com>
----
- drivers/staging/media/bcm2048/radio-bcm2048.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-index 55968ba..6ba4061 100644
---- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-+++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-@@ -1992,9 +1992,9 @@ static ssize_t bcm2048_##prop##_read(struct device *dev,		\
- 	return sprintf(buf, mask "\n", value);				\
- }
- 
--#define DEFINE_SYSFS_PROPERTY(prop, signal, size, mask, check) \
-+#define DEFINE_SYSFS_PROPERTY(prop, signal, size, mask, check) { \
- property_write(prop, signal size, mask, check)				\
--property_read(prop, size, mask)
-+property_read(prop, size, mask) }
- 
- #define property_str_read(prop, size)					\
- static ssize_t bcm2048_##prop##_read(struct device *dev,		\
--- 
-2.7.4
-
-
---17pEHd4RhPHOinZp--
+http://www.xs4all.nl/~hverkuil/spec/index.html
