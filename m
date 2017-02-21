@@ -1,70 +1,238 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fllnx210.ext.ti.com ([198.47.19.17]:65261 "EHLO
-        fllnx210.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752896AbdBIPhm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Feb 2017 10:37:42 -0500
-Subject: Re: [PATCH 08/10] ARM: davinci: fix the DT boot on da850-evm
-To: Kevin Hilman <khilman@baylibre.com>,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>
-References: <1486485683-11427-1-git-send-email-bgolaszewski@baylibre.com>
- <1486485683-11427-9-git-send-email-bgolaszewski@baylibre.com>
- <m2fujpkgkg.fsf@baylibre.com>
-CC: Patrick Titiano <ptitiano@baylibre.com>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Lad Prabhakar <prabhakar.csengg@gmail.com>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>
-From: Sekhar Nori <nsekhar@ti.com>
-Message-ID: <4574d1c3-c169-b158-dba6-f1965a1056b0@ti.com>
-Date: Thu, 9 Feb 2017 20:53:02 +0530
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:38164 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752388AbdBUNWo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 21 Feb 2017 08:22:44 -0500
+Date: Tue, 21 Feb 2017 13:21:32 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v4 29/36] media: imx: mipi-csi2: enable setting and
+ getting of frame rates
+Message-ID: <20170221132132.GU21222@n2100.armlinux.org.uk>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+ <1487211578-11360-30-git-send-email-steve_longerbeam@mentor.com>
+ <20170220220409.GX16975@valkosipuli.retiisi.org.uk>
+ <20170221001332.GS21222@n2100.armlinux.org.uk>
+ <20170221123756.GI16975@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <m2fujpkgkg.fsf@baylibre.com>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170221123756.GI16975@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 07 February 2017 11:51 PM, Kevin Hilman wrote:
-> Bartosz Golaszewski <bgolaszewski@baylibre.com> writes:
+On Tue, Feb 21, 2017 at 02:37:57PM +0200, Sakari Ailus wrote:
+> Hi Russell,
 > 
->> When we enable vpif capture on the da850-evm we hit a BUG_ON() because
->> the i2c adapter can't be found. The board file boot uses i2c adapter 1
->> but in the DT mode it's actually adapter 0. Drop the problematic lines.
->>
->> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
->> ---
->>  arch/arm/mach-davinci/pdata-quirks.c | 4 ----
->>  1 file changed, 4 deletions(-)
->>
->> diff --git a/arch/arm/mach-davinci/pdata-quirks.c b/arch/arm/mach-davinci/pdata-quirks.c
->> index 94948c1..09f62ac 100644
->> --- a/arch/arm/mach-davinci/pdata-quirks.c
->> +++ b/arch/arm/mach-davinci/pdata-quirks.c
->> @@ -116,10 +116,6 @@ static void __init da850_vpif_legacy_init(void)
->>  	if (of_machine_is_compatible("ti,da850-lcdk"))
->>  		da850_vpif_capture_config.subdev_count = 1;
->>  
->> -	/* EVM (UI card) uses i2c adapter 1 (not default: zero) */
->> -	if (of_machine_is_compatible("ti,da850-evm"))
->> -		da850_vpif_capture_config.i2c_adapter_id = 1;
->> -
+> On Tue, Feb 21, 2017 at 12:13:32AM +0000, Russell King - ARM Linux wrote:
+> > On Tue, Feb 21, 2017 at 12:04:10AM +0200, Sakari Ailus wrote:
+> > > On Wed, Feb 15, 2017 at 06:19:31PM -0800, Steve Longerbeam wrote:
+> > > > From: Russell King <rmk+kernel@armlinux.org.uk>
+> > > > 
+> > > > Setting and getting frame rates is part of the negotiation mechanism
+> > > > between subdevs.  The lack of support means that a frame rate at the
+> > > > sensor can't be negotiated through the subdev path.
+> > > 
+> > > Just wondering --- what do you need this for?
+> > 
+> > The v4l2 documentation contradicts the media-ctl implementation.
+> > 
+> > While v4l2 documentation says:
+> > 
+> >   These ioctls are used to get and set the frame interval at specific
+> >   subdev pads in the image pipeline. The frame interval only makes sense
+> >   for sub-devices that can control the frame period on their own. This
+> >   includes, for instance, image sensors and TV tuners. Sub-devices that
+> >   don't support frame intervals must not implement these ioctls.
+> > 
+> > However, when trying to configure the pipeline using media-ctl, eg:
+> > 
+> > media-ctl -d /dev/media1 --set-v4l2 '"imx219 pixel 0-0010":0[crop:(0,0)/3264x2464]'
+> > media-ctl -d /dev/media1 --set-v4l2 '"imx219 0-0010":1[fmt:SRGGB10/3264x2464@1/30]'
+> > media-ctl -d /dev/media1 --set-v4l2 '"imx219 0-0010":0[fmt:SRGGB8/816x616@1/30]'
+> > media-ctl -d /dev/media1 --set-v4l2 '"imx6-mipi-csi2":1[fmt:SRGGB8/816x616@1/30]'
+> > Unable to setup formats: Inappropriate ioctl for device (25)
+> > media-ctl -d /dev/media1 --set-v4l2 '"ipu1_csi0_mux":2[fmt:SRGGB8/816x616@1/30]'
+> > media-ctl -d /dev/media1 --set-v4l2 '"ipu1_csi0":2[fmt:SRGGB8/816x616@1/30]'
+> > 
+> > The problem there is that the format setting for the csi2 does not get
+> > propagated forward:
 > 
-> oops, my bad.
+> The CSI-2 receivers typically do not implement frame interval IOCTLs as they
+> do not control the frame interval. Some sensors or TV tuners typically do,
+> so they implement these IOCTLs.
+
+No, TV tuners do not.  The frame rate for a TV tuner is set by the
+broadcaster, not by the tuner.  The tuner can't change that frame rate.
+The tuner may opt to "skip" fields or frames.  That's no different from
+what the CSI block in my example below is capable of doing.
+
+Treating a tuner differently from the CSI block is inconsistent and
+completely wrong.
+
+> There are alternative ways to specify the frame rate.
+
+Empty statements (or hand-waving type statements) I'm afraid don't
+contribute to the discussion, because they mean nothing to me.  Please
+give an example, or flesh out what you mean.
+
+> > $ strace media-ctl -d /dev/media1 --set-v4l2 '"imx6-mipi-csi2":1[fmt:SRGGB8/816x616@1/30]'
+> > ...
+> > open("/dev/v4l-subdev16", O_RDWR)       = 3
+> > ioctl(3, VIDIOC_SUBDEV_S_FMT, 0xbec16244) = 0
+> > ioctl(3, VIDIOC_SUBDEV_S_FRAME_INTERVAL, 0xbec162a4) = -1 ENOTTY (Inappropriate
+> > ioctl for device)
+> > fstat64(1, {st_mode=S_IFCHR|0600, st_rdev=makedev(136, 2), ...}) = 0
+> > write(1, "Unable to setup formats: Inappro"..., 61) = 61
+> > Unable to setup formats: Inappropriate ioctl for device (25)
+> > close(3)                                = 0
+> > exit_group(1)                           = ?
+> > +++ exited with 1 +++
+> > 
+> > because media-ctl exits as soon as it encouters the error while trying
+> > to set the frame rate.
+> > 
+> > This makes implementing setup of the media pipeline in shell scripts
+> > unnecessarily difficult - as you need to then know whether an entity
+> > is likely not to support the VIDIOC_SUBDEV_S_FRAME_INTERVAL call,
+> > and either avoid specifying a frame rate:
 > 
-> Acked-by: Kevin Hilman <khilman@baylibre.com>
+> You should remove the frame interval setting from sub-devices that do not
+> support it.
 
-The offending code is not in my master branch. Since its almost certain
-that VPIF platform support is going to wait for v4.12, can you or Kevin
-please update Kevin's original patches with these fixes rolled in?
+That means we end up with horribly complex scripts.  This "solution" does
+not scale.  Therefore, it is not a "solution".
 
-Thanks,
-Sekhar
+It's fine if you want to write a script to setup the media pipeline using
+media-ctl, listing _each_ media-ctl command individually, with arguments
+specific to each step, but as I've already said, that does not scale.
 
+I don't want to end up writing separate scripts to configure the pipeline
+for different parameters or setups.  I don't want to teach users how to
+do that either.
+
+How are users supposed to cope with this craziness?  Are they expected to
+write their own scripts and understand this stuff?
+
+As far as I can see, there are no applications out there at the moment that
+come close to understanding how to configure a media pipeline, so users
+have to understand how to use media-ctl to configure the pipeline manually.
+Are we really expecting users to write scripts to do this, and understand
+all these nuances?
+
+IMHO, this is completely crazy, and hasn't been fully thought out.
+
+> > $ strace media-ctl -d /dev/media1 --set-v4l2 '"imx6-mipi-csi2":1[fmt:SRGGB8/816x616]'
+> > ...
+> > open("/dev/v4l-subdev16", O_RDWR)       = 3
+> > ioctl(3, VIDIOC_SUBDEV_S_FMT, 0xbeb1a254) = 0
+> > open("/dev/v4l-subdev0", O_RDWR)        = 4
+> > ioctl(4, VIDIOC_SUBDEV_S_FMT, 0xbeb1a254) = 0
+> > close(4)                                = 0
+> > close(3)                                = 0
+> > exit_group(0)                           = ?
+> > +++ exited with 0 +++
+> > 
+> > or manually setting the format on the sink.
+> > 
+> > Allowing the S_FRAME_INTERVAL call seems to me to be more in keeping
+> > with the negotiation mechanism that is implemented in subdevs, and
+> > IMHO should be implemented inside the kernel as a pad operation along
+> > with the format negotiation, especially so as frame skipping is
+> > defined as scaling, in just the same way as the frame size is also
+> > scaling:
+> 
+> The origins of the S_FRAME_INTERVAL IOCTL for sub-devices are the S_PARM
+> IOCTL for video nodes. It is used to control the frame rate for more simple
+> devices that do not expose the Media controller interface. The similar
+> S_FRAME_INTERVAL was added for sub-devices as well, and it has been so far
+> used to control the frame interval for sensors (and G_FRAME_INTERVAL to
+> obtain the frame interval for TV tuners, for instance).
+> 
+> The pad argument was added there but media-ctl only supported setting the
+> frame interval on pad 0, which, coincidentally, worked well for sensor
+> devices.
+> 
+> The link validation is primarily done in order to ensure the validity of the
+> hardware configuration: streaming may not be started if the hardware
+> configuration is not valid.
+> 
+> Also, frame interval is not a static property during streaming: it may be
+> changed without the knowledge of the other sub-device drivers downstream. It
+> neither is a property of hardware receiving or processing images: if there
+> are limitations in processing pixels, then they in practice are related to
+> pixel rates or image sizes (i.e. not frame rates).
+
+So what about the case where we have a subdev (CSI) that is capable of
+frame rate reduction, that needs to know the input frame rate and the
+desired output frame rate?  It seems to me that this has not been
+thought through...
+
+> >        -  ``MEDIA_ENT_F_PROC_VIDEO_SCALER``
+> > 
+> >        -  Video scaler. An entity capable of video scaling must have
+> >           at least one sink pad and one source pad, and scale the
+> >           video frame(s) received on its sink pad(s) to a different
+> >           resolution output on its source pad(s). The range of
+> >           supported scaling ratios is entity-specific and can differ
+> >           between the horizontal and vertical directions (in particular
+> >           scaling can be supported in one direction only). Binning and
+> >           skipping are considered as scaling.
+> > 
+> > Although, this is vague, as it doesn't define what it means by "skipping",
+> > whether that's skipping pixels (iow, sub-sampling) or whether that's
+> > frame skipping.
+> 
+> Skipping in the context is used to refer to sub-sampling. The term is often
+> used in conjunction of sensors. The documentation could certainly be
+> clarified here.
+
+It definitely needs to be, it's currently mis-leading.
+
+> > Then there's the issue where, if you have this setup:
+> > 
+> >  camera --> csi2 receiver --> csi --> capture
+> > 
+> > and the "csi" subdev can skip frames, you need to know (a) at the CSI
+> > sink pad what the frame rate is of the source (b) what the desired
+> > source pad frame rate is, so you can configure the frame skipping.
+> > So, does the csi subdev have to walk back through the media graph
+> > looking for the frame rate?  Does the capture device have to walk back
+> > through the media graph looking for some subdev to tell it what the
+> > frame rate is - the capture device certainly can't go straight to the
+> > sensor to get an answer to that question, because that bypasses the
+> > effect of the CSI frame skipping (which will lower the frame rate.)
+> > 
+> > IMHO, frame rate is just another format property, just like the
+> > resolution and data format itself, and v4l2 should be treating it no
+> > differently.
+> > 
+> > In any case, the documentation vs media-ctl create something of a very
+> > obscure situation, one that probably needs solving one way or another.
+> 
+> Before going to solutions I need to ask: what do you want to achieve?
+
+Full and consistent support for the hardware, and a sane and consistent
+way to setup a media pipeline that is easy for everyone to understand.
+
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
