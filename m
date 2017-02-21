@@ -1,60 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:23880 "EHLO
-        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750941AbdBBIeW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2017 03:34:22 -0500
-Subject: Re: [PATCH 06/11] [media] videodev2.h: Add v4l2 definition for HEVC
-To: Smitha T Murthy <smitha.t@samsung.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
-        m.szyprowski@samsung.com, s.nawrocki@samsung.com
-From: Andrzej Hajda <a.hajda@samsung.com>
-Message-id: <c8733135-dd3d-cff9-df99-68a900f71cfc@samsung.com>
-Date: Thu, 02 Feb 2017 09:34:14 +0100
-MIME-version: 1.0
-In-reply-to: <1484733729-25371-7-git-send-email-smitha.t@samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
-References: <1484733729-25371-1-git-send-email-smitha.t@samsung.com>
- <CGME20170118100742epcas5p1bb390dffa4fe530d94573f41d8791ef7@epcas5p1.samsung.com>
- <1484733729-25371-7-git-send-email-smitha.t@samsung.com>
+Received: from gofer.mess.org ([80.229.237.210]:45641 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753546AbdBUUnr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 21 Feb 2017 15:43:47 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 04/19] [media] winbond: allow timeout to be set
+Date: Tue, 21 Feb 2017 20:43:28 +0000
+Message-Id: <7b1e8b828cd15d12a68eeb930c87cd9851e502c9.1487709384.git.sean@mess.org>
+In-Reply-To: <cover.1487709384.git.sean@mess.org>
+References: <cover.1487709384.git.sean@mess.org>
+In-Reply-To: <cover.1487709384.git.sean@mess.org>
+References: <cover.1487709384.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18.01.2017 11:02, Smitha T Murthy wrote:
-> Add V4L2 definition for HEVC compressed format
->
-> Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-Beside small nitpick.
+The drivers sets the hardware to idle when a timeout occurs. This can
+be any reasonable value.
 
-Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/winbond-cir.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-> ---
->  include/uapi/linux/videodev2.h |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
->
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 46e8a2e3..620e941 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -630,6 +630,7 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE 421M Annex L compliant stream */
->  #define V4L2_PIX_FMT_VP8      v4l2_fourcc('V', 'P', '8', '0') /* VP8 */
->  #define V4L2_PIX_FMT_VP9      v4l2_fourcc('V', 'P', '9', '0') /* VP9 */
-> +#define V4L2_PIX_FMT_HEVC     v4l2_fourcc('H', 'E', 'V', 'C') /* HEVC */
-
-I am not sure if it shouldn't be sorted alphabetically in compressed
-formats stanza.
-
---
-Regards
-Andrzej
-
-
->  
->  /*  Vendor-specific formats   */
->  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
-
-
+diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+index dc1c830..5a4d4a6 100644
+--- a/drivers/media/rc/winbond-cir.c
++++ b/drivers/media/rc/winbond-cir.c
+@@ -1082,7 +1082,9 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
+ 	data->dev->tx_ir = wbcir_tx;
+ 	data->dev->priv = data;
+ 	data->dev->dev.parent = &device->dev;
+-	data->dev->timeout = MS_TO_NS(100);
++	data->dev->min_timeout = 1;
++	data->dev->timeout = IR_DEFAULT_TIMEOUT;
++	data->dev->max_timeout = 10 * IR_DEFAULT_TIMEOUT;
+ 	data->dev->rx_resolution = US_TO_NS(2);
+ 	data->dev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
+ 	data->dev->allowed_wakeup_protocols = RC_BIT_NEC | RC_BIT_NECX |
+-- 
+2.9.3
