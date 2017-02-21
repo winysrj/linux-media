@@ -1,141 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp03.smtpout.orange.fr ([80.12.242.125]:17836 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750953AbdBYIBz (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:58126 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751161AbdBUUg0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Feb 2017 03:01:55 -0500
-Subject: Re: [PATCH] [media] exynos4-is: Add missing 'of_node_put'
-To: Javier Martinez Canillas <javier@osg.samsung.com>,
-        kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-        mchehab@kernel.org, kgene@kernel.org, krzk@kernel.org
-References: <20170123211656.11185-1-christophe.jaillet@wanadoo.fr>
- <2357ef6e-8d90-77d0-0399-21fec41389a1@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        kernel-janitors@vger.kernel.org
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Message-ID: <c3c046ca-4f03-5023-83b9-353351a7696f@wanadoo.fr>
-Date: Sat, 25 Feb 2017 09:01:19 +0100
+        Tue, 21 Feb 2017 15:36:26 -0500
+Subject: Re: [PATCH v9 2/2] Add support for OV5647 sensor.
+To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <devicetree@vger.kernel.org>
+References: <cover.1487334912.git.roliveir@synopsys.com>
+ <412e51e695630281d2084a77c0329fd273ea00d7.1487334912.git.roliveir@synopsys.com>
+ <cea82e22-07eb-dd8a-c781-7384ac27823e@mentor.com>
+ <c39814c2-20a0-db08-38c1-ce95ccc49738@synopsys.com>
+CC: <CARLOS.PALMINHA@synopsys.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>,
+        Pavel Machek <pavel@ucw.cz>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Rob Herring <robh+dt@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Message-ID: <21847f33-901c-7d26-15d8-6b92f10c8b15@mentor.com>
+Date: Tue, 21 Feb 2017 22:36:13 +0200
 MIME-Version: 1.0
-In-Reply-To: <2357ef6e-8d90-77d0-0399-21fec41389a1@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <c39814c2-20a0-db08-38c1-ce95ccc49738@synopsys.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le 24/02/2017 à 22:19, Javier Martinez Canillas a écrit :
-> Thanks for the patch, but Krzysztof sent the exact same patch before 
-> [0]. There
-> was feedback from Sylwester at the time that you can also look at [0]. Could you
-> please take that into account and post a patch according to what he suggested?
->
-> [0]: http://lists.infradead.org/pipermail/linux-arm-kernel/2016-March/415207.html
->
-> Best regards,
+Hi Ramiro,
 
-Hi,
+On 02/21/2017 06:42 PM, Ramiro Oliveira wrote:
+> Hi Vladimir,
+> 
+> Thank you for your feedback
+> 
+> On 2/21/2017 3:54 PM, Vladimir Zapolskiy wrote:
+>> Hi Ramiro,
+>>
+>> please find some review comments below.
+>>
+>> On 02/17/2017 03:14 PM, Ramiro Oliveira wrote:
+>>> The OV5647 sensor from Omnivision supports up to 2592x1944 @ 15 fps, RAW 8
+>>> and RAW 10 output formats, and MIPI CSI-2 interface.
+>>>
+>>> The driver adds support for 640x480 RAW 8.
+>>>
+>>> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
+>>> ---
+>>
+>> [snip]
+>>
+>>> +
+>>> +struct ov5647 {
+>>> +	struct v4l2_subdev		sd;
+>>> +	struct media_pad		pad;
+>>> +	struct mutex			lock;
+>>> +	struct v4l2_mbus_framefmt	format;
+>>> +	unsigned int			width;
+>>> +	unsigned int			height;
+>>> +	int				power_count;
+>>> +	struct clk			*xclk;
+>>> +	/* External clock frequency currently supported is 30MHz */
+>>> +	u32				xclk_freq;
+>>
+>> See a comment about 25MHz vs 30MHz below.
+>>
+>> Also I assume you can remove 'xclk_freq' from the struct fields,
+>> it can be replaced by a local variable.
+>>
+> 
+> I'll do that.
+> 
+>>> +};
+>>
+>> [snip]
+>>
+>>> +
+>>> +static int ov5647_read(struct v4l2_subdev *sd, u16 reg, u8 *val)
+>>> +{
+>>> +	int ret;
+>>> +	unsigned char data_w[2] = { reg >> 8, reg & 0xff };
+>>> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>>> +
+>>> +	ret = i2c_master_send(client, data_w, 2);
+>>> +	if (ret < 0) {
+>>> +		dev_dbg(&client->dev, "%s: i2c read error, reg: %x\n",
+>>
+>> s/i2c read error/i2c write error/
+>>
+> 
+> I'm not sure I understand what you mean.
 
-apparently, the patch has already been taken into -next by Mauro 
-Carvalho Chehab.
+That's a sed expression for string substitution. Here you do i2c_master_send()
+but dev_dbg() comment says "i2c read error". It's a simple copy-paste typo to fix.
 
-Moreover, I personally don't think that what is proposed in [0] is more 
-readable.
-There is not that much code between 'of_get_next_child' and 
-'of_node_put' in the normal path and not so many error handling paths 
-between the 2 function calls.
-Adding some indentation level is not an improvement, IMHO.
+>>> +			__func__, reg);
+>>> +		return ret;
+>>> +	}
+>>> +
 
-If you really want, I could propose something like the code below (not 
-carefully checked, just to give an idea), but honestly, I don't think it 
-is needed.
-It avoids some new indent and avoids duplicating 'of_node_put'.
+[snip]
 
-Tell me if you think it is an improvement and I'll send a patch.
+>>> +
+>>> +static int sensor_power(struct v4l2_subdev *sd, int on)
 
-CJ
+On the caller's side (functions ov5647_open() and ov5647_close()) the second
+argument of the function is of 'bool' type, however .s_power callback from
+struct v4l2_subdev_core_ops (see include/media/v4l2-subdev.h) defines it as
+'int'.
 
+It's just a nitpicking, please feel free to ignore the comment above or
+please consider to change the arguments on callers' side to integers.
 
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c 
-b/drivers/media/platform/exynos4-is/media-dev.c
-index e3a8709138fa..da5b76c1df98 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -385,38 +385,35 @@ static void fimc_md_pipelines_free(struct fimc_md 
-*fmd)
-  static int fimc_md_parse_port_node(struct fimc_md *fmd,
-                     struct device_node *port,
-                     unsigned int index)
-  {
-      struct fimc_source_info *pd = &fmd->sensor[index].pdata;
--    struct device_node *rem, *ep, *np;
-+    struct device_node *rem = NULL, *ep = NULL, *np;
-      struct v4l2_of_endpoint endpoint;
-      int ret;
+Also you may consider to add 'ov5647_' prefix to the function name to
+distinguish it from a potentially added in future sensor_power() function,
+the original name sounds too generic.
 
-      /* Assume here a port node can have only one endpoint node. */
-      ep = of_get_next_child(port, NULL);
-      if (!ep)
-          return 0;
+>>> +{
+>>> +	int ret;
+>>> +	struct ov5647 *ov5647 = to_state(sd);
+>>> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>>> +
+>>> +	ret = 0;
+>>> +	mutex_lock(&ov5647->lock);
+>>> +
+>>> +	if (on && !ov5647->power_count)	{
+>>> +		dev_dbg(&client->dev, "OV5647 power on\n");
+>>> +
+>>> +		clk_set_rate(ov5647->xclk, ov5647->xclk_freq);
+>>
+>> Now clk_set_rate() is redundant, please remove it.
+>>
+>> If once it is needed again, please move it to the .probe function, so
+>> it is called only once in the runtime.
+>>
+> 
+> Ok. I'll remove it for now.
+> 
+>>> +
+>>> +		ret = clk_prepare_enable(ov5647->xclk);
+>>
+>> I wonder would it be possible to unload the driver or to unbind the device
+>> and leave the clock unintentionally enabled? If yes, then this is a bug.
+>>
+> 
+> You're saying that if the driver was unloaded and the clock was left enabled
+> when the driver was loaded again this line would cause an error?
 
-      ret = v4l2_of_parse_endpoint(ep, &endpoint);
--    if (ret) {
--        of_node_put(ep);
--        return ret;
--    }
-+    if (ret)
-+        goto put_ep;
+Not exactly, here I saw a potential resource leak, namely a potentially left
+prepared/enabled clock.
 
-      if (WARN_ON(endpoint.base.port == 0) || index >= FIMC_MAX_SENSORS) {
--        of_node_put(ep);
--        return -EINVAL;
-+        ret = -EINVAL;
-+        goto put_ep;
-      }
+> 
+> Should I disable the clock when the driver is removed?
+> 
 
-      pd->mux_id = (endpoint.base.port - 1) & 0x1;
+The driver (and framework) shall guarantee that when it is detached from
+device(s) (e.g. by unloading "ov5647" kernel module or unbinding ov5647 device),
+all acquired resources are released.
 
-      rem = of_graph_get_remote_port_parent(ep);
--    of_node_put(ep);
-      if (rem == NULL) {
-          v4l2_info(&fmd->v4l2_dev, "Remote device at %s not found\n",
-                              ep->full_name);
--        return 0;
-+        goto out;
-      }
+But in this particular case most probably I've been overly alert, I believe
+that V4L2 framework correcly handles device power states, so please ignore my
+comment.
 
-      if (fimc_input_is_parallel(endpoint.base.port)) {
-          if (endpoint.bus_type == V4L2_MBUS_PARALLEL)
-              pd->sensor_bus_type = FIMC_BUS_TYPE_ITU_601;
-@@ -447,22 +444,28 @@ static int fimc_md_parse_port_node(struct fimc_md 
-*fmd,
-          pd->fimc_bus_type = FIMC_BUS_TYPE_ISP_WRITEBACK;
-      else
-          pd->fimc_bus_type = pd->sensor_bus_type;
+To add something valuable to the review, could you please confirm that
+ov5647_subdev_internal_ops data is in use by the driver?
 
-      if (WARN_ON(index >= ARRAY_SIZE(fmd->sensor))) {
--        of_node_put(rem);
--        return -EINVAL;
-+        ret = -EINVAL;
-+        goto put_rem;
-      }
+E.g. shouldn't it be registered by
 
-      fmd->sensor[index].asd.match_type = V4L2_ASYNC_MATCH_OF;
-      fmd->sensor[index].asd.match.of.node = rem;
-      fmd->async_subdevs[index] = &fmd->sensor[index].asd;
+  sd->internal_ops = &ov5647_subdev_internal_ops;
 
-      fmd->num_sensors++;
-+out:
-+    ret = 0;
+before calling v4l2_async_register_subdev(sd) ?
 
-+put_rem:
-      of_node_put(rem);
--    return 0;
-+
-+put_ep:
-+    of_node_put(ep);
-+    return ret;
-  }
-
-  /* Register all SoC external sub-devices */
-  static int fimc_md_register_sensor_entities(struct fimc_md *fmd)
-  {
+--
+With best wishes,
+Vladimir
