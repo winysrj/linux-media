@@ -1,57 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:35625 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751648AbdBSNIC (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39358 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751745AbdBUVsy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 19 Feb 2017 08:08:02 -0500
-From: Bhumika Goyal <bhumirks@gmail.com>
-To: julia.lawall@lip6.fr, mchehab@kernel.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH] saa7134: constify nxt200x_config structures
-Date: Sun, 19 Feb 2017 18:36:38 +0530
-Message-Id: <1487509598-26237-1-git-send-email-bhumirks@gmail.com>
+        Tue, 21 Feb 2017 16:48:54 -0500
+Date: Tue, 21 Feb 2017 23:48:14 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Cc: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, CARLOS.PALMINHA@synopsys.com,
+        Arnd Bergmann <arnd@arndb.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>,
+        Pavel Machek <pavel@ucw.cz>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Rob Herring <robh+dt@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+Subject: Re: [PATCH v9 1/2] Add OV5647 device tree documentation
+Message-ID: <20170221214813.GN16975@valkosipuli.retiisi.org.uk>
+References: <cover.1487334912.git.roliveir@synopsys.com>
+ <5a93352142495528dd56d5e281a8ed8ad6404a05.1487334912.git.roliveir@synopsys.com>
+ <dd33c7bc-e6f7-c234-c3c6-6cc4c7353c68@mentor.com>
+ <a2887a9a-0317-eb89-b971-9b238a214459@synopsys.com>
+ <cc6c914e-c3e7-7703-0405-104e701610cf@mentor.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cc6c914e-c3e7-7703-0405-104e701610cf@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Declare nxt200x_config structures as const as they are only passed as
-an argument to the function dvb_attach. dvb_attach calls its first
-argument on the rest of its arguments. The first argument of
-dvb_attach in the changed cases is nxt200x_attach and the parameter of
-this function to which the object references are passed is of type
-const. So, nxt200x_config structures having this property can be made
-const.
+Hi, Vladimir!
 
-File size before:
-   text	   data	    bss	    dec	    hex	filename
-  21320	   3776	     16	  25112	   6218	saa7134/saa7134-dvb.o
+How do you do? :-)
 
-File size after:
-   text	   data	    bss	    dec	    hex	filename
-  21384	   3744	     16	  25144	   6238	saa7134/saa7134-dvb.o
+On Tue, Feb 21, 2017 at 10:48:09PM +0200, Vladimir Zapolskiy wrote:
+> Hi Ramiro,
+> 
+> On 02/21/2017 10:13 PM, Ramiro Oliveira wrote:
+> > Hi Vladimir,
+> > 
+> > Thank you for your feedback
+> > 
+> > On 2/21/2017 3:58 PM, Vladimir Zapolskiy wrote:
+> >> Hi Ramiro,
+> >>
+> >> On 02/17/2017 03:14 PM, Ramiro Oliveira wrote:
+> >>> Create device tree bindings documentation.
+> >>>
+> >>> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
+> >>> Acked-by: Rob Herring <robh@kernel.org>
+> >>> ---
+> >>>  .../devicetree/bindings/media/i2c/ov5647.txt       | 35 ++++++++++++++++++++++
+> >>>  1 file changed, 35 insertions(+)
+> >>>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
+> >>>
+> >>> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5647.txt b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
+> >>> new file mode 100644
+> >>> index 000000000000..31956426d3b9
+> >>> --- /dev/null
+> >>> +++ b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
+> >>> @@ -0,0 +1,35 @@
+> >>> +Omnivision OV5647 raw image sensor
+> >>> +---------------------------------
+> >>> +
+> >>> +OV5647 is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
+> >>> +and CCI (I2C compatible) control bus.
+> >>> +
+> >>> +Required properties:
+> >>> +
+> >>> +- compatible		: "ovti,ov5647".
+> >>> +- reg			: I2C slave address of the sensor.
+> >>> +- clocks		: Reference to the xclk clock.
+> >>
+> >> Is "xclk" clock a pixel clock or something else?
+> >>
+> > 
+> > It's an external oscillator.
+> 
+> hmm, I suppose a clock of any type could serve as a clock for the sensor.
+> It can be an external oscillator on a particular board, or it can be
+> something else on another board.
 
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
----
- drivers/media/pci/saa7134/saa7134-dvb.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Any clock source could be used I presume.
 
-diff --git a/drivers/media/pci/saa7134/saa7134-dvb.c b/drivers/media/pci/saa7134/saa7134-dvb.c
-index 598b8bb..36156f1 100644
---- a/drivers/media/pci/saa7134/saa7134-dvb.c
-+++ b/drivers/media/pci/saa7134/saa7134-dvb.c
-@@ -1046,11 +1046,11 @@ static int md8800_set_high_voltage2(struct dvb_frontend *fe, long arg)
-  * nxt200x based ATSC cards, helper functions
-  */
- 
--static struct nxt200x_config avertvhda180 = {
-+static const struct nxt200x_config avertvhda180 = {
- 	.demod_address    = 0x0a,
- };
- 
--static struct nxt200x_config kworldatsc110 = {
-+static const struct nxt200x_config kworldatsc110 = {
- 	.demod_address    = 0x0a,
- };
- 
+> 
+> Can you please describe what for does ov5647 sensor need this clock, what
+> is its function?
+
+Camera modules (sensors) quite commonly require an external clock as they do
+not have an oscillator on their own. A lot of devices under
+Documentation/devicetree/bindings/media/i2c/ have similar properties.
+
+> 
+> > 
+> >>> +- clock-names		: Should be "xclk".
+> >>
+> >> You can remove this property, because there is only one source clock.
+> >>
+> > 
+> > Ok.
+> > 
+> >>> +- clock-frequency	: Frequency of the xclk clock.
+> >>
+> >> And after the last updates in the driver this property can be removed as well.
+> >>
+> > 
+> > But I'm still using clk_get_rate in the driver, if I remove the frequency here
+> > the probing will fail.
+> > 
+> 
+> I doubt it, there should be no connection between a custom "clock-frequency"
+> device tree property in a clock consumer device node and clk_get_rate() function
+> from the CCF, which takes a clock provider as its argument.
+
+The purpose is to make sure the clock frequency is really usable for the
+device, in this particular case the driver can work with one particular
+frequency.
+
+That said, the driver does not appear to use the property at the moment. It
+should.
+
+It'd be good to verify that the rate matches: clk_set_rate() is not
+guaranteed to produce the requested clock rate, and the driver could
+conceivably be updated with support for more frequencies. There are
+typically a few frequencies that a SoC such a sensor is connected can
+support, and 25 MHz is not one of the common frequencies. With this
+property, the frequency would be always there explicitly.
+
+> 
+> >>> +
+> >>> +The common video interfaces bindings (see video-interfaces.txt) should be
+> >>> +used to specify link to the image data receiver. The OV5647 device
+> >>> +node should contain one 'port' child node with an 'endpoint' subnode.
+> >>> +
+> >>> +Example:
+> >>> +
+> >>> +	i2c@2000 {
+> >>> +		...
+> >>> +		ov: camera@36 {
+> >>> +			compatible = "ovti,ov5647";
+> >>> +			reg = <0x36>;
+> >>> +			clocks = <&camera_clk>;
+> >>> +			clock-names = "xclk";
+> >>> +			clock-frequency = <25000000>;
+> >>
+> >> When you remove two unused properties, please don't forget to update the
+> >> example.
+> >>
+> > 
+> > Ok.
+> > 
+> >>> +			port {
+> >>> +				camera_1: endpoint {
+> >>> +					remote-endpoint = <&csi1_ep1>;
+> >>> +				};
+> >>> +			};
+> >>> +		};
+> >>> +	};
+> >>>
+> >>
+> 
+> --
+    ^
+There's a space missing here.
+
+> With best wishes,
+> Vladimir
+
 -- 
-1.9.1
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
