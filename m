@@ -1,71 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:55495 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750777AbdBBPGJ (ORCPT
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:34603 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750826AbdBUAJ2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Feb 2017 10:06:09 -0500
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Peter Griffin <peter.griffin@linaro.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "kernel@stlinux.com" <kernel@stlinux.com>,
-        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>
-Subject: Re: [STLinux Kernel] [PATCH v6 02/10] ARM: dts: STiH410: add DELTA dt
- node
-Date: Thu, 2 Feb 2017 15:06:00 +0000
-Message-ID: <3659499c-08ac-396a-0c9f-2e18ee3ec1a1@st.com>
-References: <1485965011-17388-1-git-send-email-hugues.fruchet@st.com>
- <1485965011-17388-3-git-send-email-hugues.fruchet@st.com>
- <20170201183716.GJ31988@griffinp-ThinkPad-X1-Carbon-2nd>
-In-Reply-To: <20170201183716.GJ31988@griffinp-ThinkPad-X1-Carbon-2nd>
-Content-Language: en-US
-Content-Type: text/plain; charset="Windows-1252"
-Content-ID: <E17D8E237C2D0D4EB50EEF489E5A0C0D@st.com>
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+        Mon, 20 Feb 2017 19:09:28 -0500
+Received: by mail-oi0-f66.google.com with SMTP id f204so2610488oia.1
+        for <linux-media@vger.kernel.org>; Mon, 20 Feb 2017 16:09:28 -0800 (PST)
+From: David Cako <dc@cako.io>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        gregkh@linuxfoundation.org
+Cc: David Cako <dc@cako.io>
+Subject: [PATCH] media: staging: bcm2048: use unsigned int instead of unsigned
+Date: Mon, 20 Feb 2017 17:08:56 -0700
+Message-Id: <1487635736-161650-1-git-send-email-dc@cako.io>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Peter,
+Signed-off-by: David Cako <dc@cako.io>
+---
+ drivers/staging/media/bcm2048/radio-bcm2048.c | 44 +++++++++++++--------------
+ 1 file changed, 22 insertions(+), 22 deletions(-)
 
-This is now fixed in v7.
-
-Best regards,
-Hugues.
-
-On 02/01/2017 07:37 PM, Peter Griffin wrote:
-> On Wed, 01 Feb 2017, Hugues Fruchet wrote:
->
->> This patch adds DT node for STMicroelectronics
->> DELTA V4L2 video decoder
->>
->> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
->> ---
->>  arch/arm/boot/dts/stih410.dtsi | 10 ++++++++++
->>  1 file changed, 10 insertions(+)
->>
->> diff --git a/arch/arm/boot/dts/stih410.dtsi b/arch/arm/boot/dts/stih410.dtsi
->> index 281a124..42e070c 100644
->> --- a/arch/arm/boot/dts/stih410.dtsi
->> +++ b/arch/arm/boot/dts/stih410.dtsi
->> @@ -259,5 +259,15 @@
->>  			clocks = <&clk_sysin>;
->>  			interrupts = <GIC_SPI 205 IRQ_TYPE_EDGE_RISING>;
->>  		};
->> +		delta0 {
->> +			compatible = "st,st-delta";
->> +			clock-names = "delta",
->> +				      "delta-st231",
->> +				      "delta-flash-promip";
->> +			clocks = <&clk_s_c0_flexgen CLK_VID_DMU>,
->> +				 <&clk_s_c0_flexgen CLK_ST231_DMU>,
->> +				 <&clk_s_c0_flexgen CLK_FLASH_PROMIP>;
->> +		};
->> +
->
-> I think this node should be in stih407-family.dtsi file?
->
-> regards,
->
-> Peter.
->
+diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
+index 37bd439..b1923a3 100644
+--- a/drivers/staging/media/bcm2048/radio-bcm2048.c
++++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
+@@ -2020,27 +2020,27 @@ static ssize_t bcm2048_##prop##_read(struct device *dev,		\
+ 	return count;							\
+ }
+ 
+-DEFINE_SYSFS_PROPERTY(power_state, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(mute, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(audio_route, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(dac_output, unsigned, int, "%u", 0)
+-
+-DEFINE_SYSFS_PROPERTY(fm_hi_lo_injection, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_frequency, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_af_frequency, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_deemphasis, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_rds_mask, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_best_tune_mode, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_search_rssi_threshold, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_search_mode_direction, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(fm_search_tune_mode, unsigned, int, "%u", value > 3)
+-
+-DEFINE_SYSFS_PROPERTY(rds, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(rds_b_block_mask, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(rds_b_block_match, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(rds_pi_mask, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(rds_pi_match, unsigned, int, "%u", 0)
+-DEFINE_SYSFS_PROPERTY(rds_wline, unsigned, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(power_state, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(mute, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(audio_route, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(dac_output, unsigned int, int, "%u", 0)
++
++DEFINE_SYSFS_PROPERTY(fm_hi_lo_injection, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_frequency, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_af_frequency, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_deemphasis, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_rds_mask, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_best_tune_mode, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_search_rssi_threshold, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_search_mode_direction, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(fm_search_tune_mode, unsigned int, int, "%u", value > 3)
++
++DEFINE_SYSFS_PROPERTY(rds, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(rds_b_block_mask, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(rds_b_block_match, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(rds_pi_mask, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(rds_pi_match, unsigned int, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(rds_wline, unsigned int, int, "%u", 0)
+ property_read(rds_pi, unsigned int, "%x")
+ property_str_read(rds_rt, (BCM2048_MAX_RDS_RT + 1))
+ property_str_read(rds_ps, (BCM2048_MAX_RDS_PS + 1))
+@@ -2052,7 +2052,7 @@ property_read(region_bottom_frequency, unsigned int, "%u")
+ property_read(region_top_frequency, unsigned int, "%u")
+ property_signed_read(fm_carrier_error, int, "%d")
+ property_signed_read(fm_rssi, int, "%d")
+-DEFINE_SYSFS_PROPERTY(region, unsigned, int, "%u", 0)
++DEFINE_SYSFS_PROPERTY(region, unsigned int, int, "%u", 0)
+ 
+ static struct device_attribute attrs[] = {
+ 	__ATTR(power_state, 0644, bcm2048_power_state_read,
+-- 
+2.7.4
