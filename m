@@ -1,153 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:33530 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751000AbdBJJhx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Feb 2017 04:37:53 -0500
-From: Ran Algawi <ran.algawi@gmail.com>
-To: gregkh@linuxfoundation.org
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org, Ran Algawi <ran.algawi@gmail.com>
-Subject: [PATCH 1/2] Staging: media: bcm2048: fixed 20+ warings/errors
-Date: Fri, 10 Feb 2017 11:37:04 +0200
-Message-Id: <1486719425-24546-1-git-send-email-ran.algawi@gmail.com>
+Received: from mail.horus.com ([78.46.148.228]:47002 "EHLO mail.horus.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753345AbdBUWw2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 21 Feb 2017 17:52:28 -0500
+Date: Tue, 21 Feb 2017 23:52:24 +0100
+From: Matthias Reichl <hias@horus.com>
+To: Sean Young <sean@mess.org>
+Cc: Heiner Kallweit <hkallweit1@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Subject: Re: Bug: decoders referenced in kernel rc-keymaps not loaded on boot
+Message-ID: <20170221225224.GA5099@camel2.lan>
+References: <20170221184929.GA2590@camel2.lan>
+ <20170221193438.GA4394@gofer.mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170221193438.GA4394@gofer.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixed a coding style issues, and two major erros about complex macros
-and an error where the driver used a decimal number insted of an octal
-number when using a warning.
+On Tue, Feb 21, 2017 at 07:34:39PM +0000, Sean Young wrote:
+> On Tue, Feb 21, 2017 at 07:49:29PM +0100, Matthias Reichl wrote:
+> > There seems to be a bug in on-demand loading of IR protocol decoders.
+> > 
+> > After bootup the protocol referenced in the in-kernel rc keymap shows
+> > up as enabled (in sysfs and ir-keytable) but the protocol decoder
+> > is not loaded and thus no rc input events will be generated.
+> > 
+> > For example, RPi3 with kernel 4.10 and gpio-ir-recv configured to use
+> > the rc-hauppauge keymap in devicetree:
+> > 
+> > # lsmod | grep '^\(ir\|rc_\)'
+> > ir_lirc_codec           5590  0
+> > rc_hauppauge            2422  0
+> > rc_core                24320  5 rc_hauppauge,ir_lirc_codec,lirc_dev,gpio_ir_recv
+> > 
+> > # cat /sys/class/rc/rc0/protocols
+> > other unknown [rc-5] nec rc-6 jvc sony rc-5-sz sanyo sharp mce_kbd xmp cec [lirc]
+> > 
+> > # dmesg | grep "IR "
+> > [    4.506728] Registered IR keymap rc-hauppauge
+> > [    4.554651] lirc_dev: IR Remote Control driver registered, major 242
+> > [    4.576490] IR LIRC bridge handler initialized
+> > 
+> > The same happens with other IR receivers, eg the streamzap receiver,
+> > which uses the rc-5-sz protocol / ir_rc5_decoder, on x86.
+> > 
+> > Reverting the on-demand-loading patches
+> > 
+> > [media] media: rc: remove unneeded code
+> > commit c1500ba0b61e9abf95e0e7ecd3c4ad877f019abe
+> > 
+> > [media] media: rc: move check whether a protocol is enabled to the core
+> > commit d80ca8bd71f0b01b2b12459189927cb3299cfab9
+> > 
+> > [media] media: rc: load decoder modules on-demand
+> > commit acc1c3c688ed8cc862ddc007eab0dcef839f4ec8
+> > 
+> > restores the previous behaviour, all decoders are enabled and IR
+> > events can be generated immediately after boot without having to
+> > manually trigger loading of a protocol decoder.
+> 
+> Hmm this seems to be working fine for me. If you write to the protocols
+> file, eg. "echo +nec > /sys/class/rc/rc0/protocols", is ir-nec-decoder
+> loaded and do you get any messages in dmesg (you should).
+> 
+> What's your config?
 
-Signed-off-by: Ran Algawi <ran.algawi@gmail.com>
----
- drivers/staging/media/bcm2048/radio-bcm2048.c | 64 +++++++++++++--------------
- 1 file changed, 32 insertions(+), 32 deletions(-)
+When I do an "echo +nec > /sys/class/rc/rc0/protocols" it triggers
+the load of both rc5 and nec decoder modules:
 
-diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-index 37bd439..55968ba 100644
---- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-+++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-@@ -177,12 +177,12 @@
- 
- #define BCM2048_FREQDEV_UNIT		10000
- #define BCM2048_FREQV4L2_MULTI		625
--#define dev_to_v4l2(f)	((f * BCM2048_FREQDEV_UNIT) / BCM2048_FREQV4L2_MULTI)
--#define v4l2_to_dev(f)	((f * BCM2048_FREQV4L2_MULTI) / BCM2048_FREQDEV_UNIT)
-+#define dev_to_v4l2(f)	(((f) * BCM2048_FREQDEV_UNIT) / BCM2048_FREQV4L2_MULTI)
-+#define v4l2_to_dev(f)	(((f) * BCM2048_FREQV4L2_MULTI) / BCM2048_FREQDEV_UNIT)
- 
--#define msb(x)                  ((u8)((u16)x >> 8))
--#define lsb(x)                  ((u8)((u16)x &  0x00FF))
--#define compose_u16(msb, lsb)	(((u16)msb << 8) | lsb)
-+#define msb(x)                  ((u8)((u16)(x) >> 8))
-+#define lsb(x)                  ((u8)((u16)(x) &  0x00FF))
-+#define compose_u16(msb, lsb)	(((u16)(msb) << 8) | (lsb))
- 
- #define BCM2048_DEFAULT_POWERING_DELAY	20
- #define BCM2048_DEFAULT_REGION		0x02
-@@ -300,7 +300,7 @@ struct bcm2048_device {
- };
- 
- static int radio_nr = -1;	/* radio device minor (-1 ==> auto assign) */
--module_param(radio_nr, int, 0);
-+module_param(radio_nr, int, 0000);
- MODULE_PARM_DESC(radio_nr,
- 		 "Minor number for radio device (-1 ==> auto assign)");
- 
-@@ -1534,7 +1534,7 @@ static int bcm2048_parse_rt_match_c(struct bcm2048_device *bdev, int i,
- 	if (crc == BCM2048_RDS_CRC_UNRECOVARABLE)
- 		return 0;
- 
--	BUG_ON((index+2) >= BCM2048_MAX_RDS_RT);
-+	WARN_ON((index + 2) >= BCM2048_MAX_RDS_RT);
- 
- 	if ((bdev->rds_info.radio_text[i] & BCM2048_RDS_BLOCK_MASK) ==
- 		BCM2048_RDS_BLOCK_C) {
-@@ -1557,7 +1557,7 @@ static void bcm2048_parse_rt_match_d(struct bcm2048_device *bdev, int i,
- 	if (crc == BCM2048_RDS_CRC_UNRECOVARABLE)
- 		return;
- 
--	BUG_ON((index+4) >= BCM2048_MAX_RDS_RT);
-+	WARN_ON((index + 4) >= BCM2048_MAX_RDS_RT);
- 
- 	if ((bdev->rds_info.radio_text[i] & BCM2048_RDS_BLOCK_MASK) ==
- 	    BCM2048_RDS_BLOCK_D)
-@@ -1857,7 +1857,7 @@ static int bcm2048_probe(struct bcm2048_device *bdev)
- 		goto unlock;
- 
- 	err = bcm2048_set_fm_search_rssi_threshold(bdev,
--					BCM2048_DEFAULT_RSSI_THRESHOLD);
-+			BCM2048_DEFAULT_RSSI_THRESHOLD);
- 	if (err < 0)
- 		goto unlock;
- 
-@@ -1992,7 +1992,7 @@ static ssize_t bcm2048_##prop##_read(struct device *dev,		\
- 	return sprintf(buf, mask "\n", value);				\
- }
- 
--#define DEFINE_SYSFS_PROPERTY(prop, signal, size, mask, check)		\
-+#define DEFINE_SYSFS_PROPERTY(prop, signal, size, mask, check) \
- property_write(prop, signal size, mask, check)				\
- property_read(prop, size, mask)
- 
-@@ -2020,27 +2020,27 @@ static ssize_t bcm2048_##prop##_read(struct device *dev,		\
- 	return count;							\
- }
- 
--DEFINE_SYSFS_PROPERTY(power_state, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(mute, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(audio_route, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(dac_output, unsigned, int, "%u", 0)
--
--DEFINE_SYSFS_PROPERTY(fm_hi_lo_injection, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_frequency, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_af_frequency, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_deemphasis, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_rds_mask, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_best_tune_mode, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_search_rssi_threshold, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_search_mode_direction, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_search_tune_mode, unsigned, int, "%u", value > 3)
--
--DEFINE_SYSFS_PROPERTY(rds, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(rds_b_block_mask, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(rds_b_block_match, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(rds_pi_mask, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(rds_pi_match, unsigned, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(rds_wline, unsigned, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(power_state, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(mute, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(audio_route, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(dac_output, unsigned int, int, "%u", 0)
-+
-+DEFINE_SYSFS_PROPERTY(fm_hi_lo_injection, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_frequency, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_af_frequency, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_deemphasis, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_rds_mask, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_best_tune_mode, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_search_rssi_threshold, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_search_mode_direction, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_search_tune_mode, unsigned int, int, "%u", value > 3)
-+
-+DEFINE_SYSFS_PROPERTY(rds, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(rds_b_block_mask, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(rds_b_block_match, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(rds_pi_mask, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(rds_pi_match, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(rds_wline, unsigned int, int, "%u", 0)
- property_read(rds_pi, unsigned int, "%x")
- property_str_read(rds_rt, (BCM2048_MAX_RDS_RT + 1))
- property_str_read(rds_ps, (BCM2048_MAX_RDS_PS + 1))
-@@ -2052,7 +2052,7 @@ property_read(region_bottom_frequency, unsigned int, "%u")
- property_read(region_top_frequency, unsigned int, "%u")
- property_signed_read(fm_carrier_error, int, "%d")
- property_signed_read(fm_rssi, int, "%d")
--DEFINE_SYSFS_PROPERTY(region, unsigned, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(region, unsigned int, int, "%u", 0)
- 
- static struct device_attribute attrs[] = {
- 	__ATTR(power_state, 0644, bcm2048_power_state_read,
--- 
-2.7.4
+root@rpi3:~# cat /sys/class/rc/rc0/protocols
+other unknown [rc-5] nec rc-6 jvc sony rc-5-sz sanyo sharp mce_kbd xmp cec [lirc]
+root@rpi3:~# echo +nec > /sys/class/rc/rc0/protocols
+root@rpi3:~# cat /sys/class/rc/rc0/protocols
+other unknown [rc-5] [nec] rc-6 jvc sony rc-5-sz sanyo sharp mce_kbd xmp cec [lirc]
+root@rpi3:~# dmesg | grep "IR "
+[    3.565061] Registered IR keymap rc-hauppauge
+[    3.613031] lirc_dev: IR Remote Control driver registered, major 242
+[    3.641423] IR LIRC bridge handler initialized
+[   41.877263] IR RC5(x/sz) protocol handler initialized
+[   41.931575] IR NEC protocol handler initialized
 
+I'm currently testing with downstream RPi kernel 4.9 on Raspbian Jessie
+(a Debian derivate).
+
+Kernel config is here:
+https://github.com/raspberrypi/linux/blob/rpi-4.9.y/arch/arm/configs/bcm2709_defconfig
+
+To reproduce the issue it's important to disable the udev rule that
+runs ir-keytable -a as that can trigger a load of the kernel keytable
+via the userspace keymap/protocol.
+
+We ran accross the issue via a bugreport from a LibreELEC user,
+his streamzap remote wasn't working anymore on x86 in the beta
+releases:
+https://forum.libreelec.tv/thread-4873.html
+
+Kernel-config for LibreELEC x86 is here:
+https://github.com/LibreELEC/LibreELEC.tv/blob/libreelec-8.0/projects/Generic/linux/linux.x86_64.conf
+
+Our analysis (I hope it's not completely off) is about this:
+
+In the previous version (with kernel 4.4) it worked because
+the kernel loaded the keymap and protocol decoders. The udev
+rule probably failed as ir-keytable -a couldn't cope with the RC5_SZ
+protocol - but that went unnoticed as everything was setup fine
+by the kernel.
+
+In current beta (with kernel 4.9) the kernel only loaded the
+keymap but didn't enable the decoder. Since ir-keytable -a again
+failed to setup the protocol the user was left with a non-functioning
+remote.
+
+I then could reproduce this on RPi with Raspbian and LibreELEC
+using gpio-ir-recv. With udev/ir-keytable -a working the protocol
+decoder is loaded, without that it isn't.
+
+so long,
+
+Hias
