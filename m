@@ -1,164 +1,456 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f193.google.com ([74.125.82.193]:33866 "EHLO
-        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750995AbdBXTPx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Feb 2017 14:15:53 -0500
-MIME-Version: 1.0
-In-Reply-To: <58b07b30.9XFLj9Hhl7F6HMc2%fengguang.wu@intel.com>
-References: <58b07b30.9XFLj9Hhl7F6HMc2%fengguang.wu@intel.com>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Fri, 24 Feb 2017 11:15:51 -0800
-Message-ID: <CA+55aFytXj+TZ_TanbxcY0KgRTrV7Vvr=fWON8tioUGmYHYiNA@mail.gmail.com>
-Subject: Re: [WARNING: A/V UNSCANNABLE][Merge tag 'media/v4.11-1' of git]
- ff58d005cd: BUG: unable to handle kernel NULL pointer dereference at 0000039c
-To: kernel test robot <fengguang.wu@intel.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sean Young <sean@mess.org>,
-        Ruslan Ruslichenko <rruslich@cisco.com>
-Cc: LKP <lkp@01.org>,
-        "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-        kernel@stlinux.com,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-mediatek@lists.infradead.org,
-        linux-amlogic@lists.infradead.org,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Linux LED Subsystem <linux-leds@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>, wfg@linux.intel.com
-Content-Type: text/plain; charset=UTF-8
+Received: from gofer.mess.org ([80.229.237.210]:38343 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753829AbdBUUnv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 21 Feb 2017 15:43:51 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 18/19] [media] lirc: scancode rc devices should have a lirc device too
+Date: Tue, 21 Feb 2017 20:43:42 +0000
+Message-Id: <47bf02e61e548bb542c059687c6589562d877393.1487709384.git.sean@mess.org>
+In-Reply-To: <cover.1487709384.git.sean@mess.org>
+References: <cover.1487709384.git.sean@mess.org>
+In-Reply-To: <cover.1487709384.git.sean@mess.org>
+References: <cover.1487709384.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Added more relevant people. I've debugged the immediate problem below,
-but I think there's another problem that actually triggered this.
+Now that the lirc interface supports scancodes, RC scancode devices
+can also have a lirc device, except for cec devices which have their
+own /dev/cecN interface.
 
-On Fri, Feb 24, 2017 at 10:28 AM, kernel test robot
-<fengguang.wu@intel.com> wrote:
->
-> 0day kernel testing robot got the below dmesg and the first bad commit is
->
-> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
->
-> commit ff58d005cd10fcd372787cceac547e11cf706ff6
-> Merge: 5ab3566 9eeb0ed
->
->     Merge tag 'media/v4.11-1' of git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media
-[...]
-> [    4.664940] rc rc0: lirc_dev: driver ir-lirc-codec (rc-loopback) registered at minor = 0
-> [    4.666322] BUG: unable to handle kernel NULL pointer dereference at 0000039c
-> [    4.666675] IP: serial_ir_irq_handler+0x189/0x410
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/ir-lirc-codec.c      | 106 ++++++++++++++--------------------
+ drivers/media/rc/ir-mce_kbd-decoder.c |   2 +-
+ drivers/media/rc/rc-core-priv.h       |  15 -----
+ drivers/media/rc/rc-main.c            |   9 +--
+ include/media/rc-core.h               |  10 ++++
+ 5 files changed, 60 insertions(+), 82 deletions(-)
 
-This merge being fingered ends up being a subtle interaction with other changes.
-
-Those "other changes" are (again) the interrupt retrigger code that
-was reverted for 4.10, and then we tried to merge them again this
-merge window.
-
-Because the immediate cause is:
-
-> [    4.666675] EIP: serial_ir_irq_handler+0x189/0x410
-> [    4.666675] Call Trace:
-> [    4.666675]  <IRQ>
-> [    4.666675]  __handle_irq_event_percpu+0x57/0x100
-> [    4.666675]  handle_irq_event_percpu+0x1d/0x50
-> [    4.666675]  handle_irq_event+0x32/0x60
-> [    4.666675]  handle_edge_irq+0xa5/0x120
-> [    4.666675]  handle_irq+0x9d/0xd0
-> [    4.666675]  </IRQ>
-> [    4.666675]  do_IRQ+0x5f/0x130
-> [    4.666675]  common_interrupt+0x33/0x38
-> [    4.666675] EIP: hardware_init_port+0x3f/0x190
-> [    4.666675] EFLAGS: 00200246 CPU: 0
-> [    4.666675] EAX: c718990f EBX: 00000000 ECX: 00000000 EDX: 000003f9
-> [    4.666675] ESI: 000003f9 EDI: 000003f8 EBP: c0065d98 ESP: c0065d84
-> [    4.666675]  DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
-> [    4.666675]  serial_ir_probe+0xbb/0x300
-> [    4.666675]  platform_drv_probe+0x48/0xb0
-...
-
-ie an interrupt came in immediately after the request_irq(), before
-all the data was properly set up, which then causes the interrupt
-handler to take a fault because it tries to access some field that
-hasn't even been set up yet.
-
-The code line is helpful, the faulting instruction is
-
-      mov    0x39c(%rax),%eax   <--- fault
-      call ..
-      mov    someglobalvar,%edx
-
-which together with the supplied config file makes me able to match it
-up with the assembly generation around it:
-
-        inb %dx, %al    # tmp254, value
-        andb    $1, %al #, tmp255
-        testb   %al, %al        # tmp255
-        je      .L233   #,
-  .L215:
-        movl    serial_ir+8, %eax       # serial_ir.rcdev, serial_ir.rcdev
-        xorl    %edx, %edx      # _66->timeout
-        movl    924(%eax), %eax # _66->timeout, _66->timeout
-        call    nsecs_to_jiffies        #
-        movl    jiffies, %edx   # jiffies, jiffies.33_70
-        addl    %eax, %edx      # _69, tmp259
-        movl    $serial_ir+16, %eax     #,
-        call    mod_timer       #
-        movl    serial_ir+8, %eax       # serial_ir.rcdev,
-        call    ir_raw_event_handle     #
-        movl    $1, %eax        #, <retval>
-
-so it's that "serial_ir.rcdev->timeout" access that faults. So this is
-the faulting source code:
-
-drivers/media/rc/serial_ir.c: 402
-
-        mod_timer(&serial_ir.timeout_timer,
-                  jiffies + nsecs_to_jiffies(serial_ir.rcdev->timeout));
-
-        ir_raw_event_handle(serial_ir.rcdev);
-
-        return IRQ_HANDLED;
-
-and serial_ir.rcdev is NULL when ti tries to look up the timeout.
-
-That mod_timer() is new as of commit 2940c7e49775 ("[media] serial_ir:
-generate timeout") and *that* is the actual new bug.
-
-Looking at the code, that serial_ir.rcdev thing is initialized fairly
-late in serial_ir_init_module(), while the interrupt is allocated
-early in serial_ir_probe(), which is done _early_ in
-serial_ir_init_module():
-
-serial_ir_init_module -> serial_ir_init -> platform_driver_register ->
-serial_ir_probe -> devm_request_irq
-
-Mauro, Sean, please fix.
-
-Anyway, this is clearly a bug in the serial_ir code, but it is *also*
-once again clearly now being *triggered* due to the irq handling
-changes.
-
-I'm pretty sure that the thing that triggered this is once more commit
-a9b4f08770b4 ("x86/ioapic: Restore IO-APIC irq_chip retrigger
-callback") which seems to retrigger stale irqs that simply should not
-be retriggered.
-
-They aren't actually active any more, if they ever were.
-
-So that commit seems to act like a random CONFIG_DEBUG_SHIRQ. It's
-good for testing, but not good for actual users.
-
-I the local APIC retrigger just unconditionally resends that irq. But
-it's the core interrupt code that decides to retrigger it incorrectly
-for some reason.
-
-Why is IRQS_PENDING set for that thing? Something must have almost
-certainly set it, despite the irq not actually having ever been
-pending. Thomas?
-
-                  Linus
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index 1847f5f..d0dc9b4 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -85,7 +85,7 @@ int ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev)
+ 	}
+ 
+ 	kfifo_put(&lirc->kfifo, sample);
+-	wake_up_poll(&lirc->wait_poll, POLLIN);
++	wake_up_poll(&dev->wait_poll, POLLIN);
+ 
+ 	return 0;
+ }
+@@ -93,8 +93,7 @@ int ir_lirc_raw_event(struct rc_dev *dev, struct ir_raw_event ev)
+ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 				   size_t n, loff_t *ppos)
+ {
+-	struct lirc_codec *lirc;
+-	struct rc_dev *dev;
++	struct rc_dev *dev = lirc_get_pdata(file);
+ 	unsigned int *txbuf = NULL; /* buffer with values to transmit */
+ 	struct ir_raw_event *raw = NULL;
+ 	ssize_t ret = -EINVAL;
+@@ -106,18 +105,10 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 
+ 	start = ktime_get();
+ 
+-	lirc = lirc_get_pdata(file);
+-	if (!lirc)
+-		return -EFAULT;
+-
+-	dev = lirc->dev;
+-	if (!dev)
+-		return -EFAULT;
+-
+ 	if (!dev->tx_ir)
+ 		return -EINVAL;
+ 
+-	if (lirc->send_mode == LIRC_MODE_SCANCODE) {
++	if (dev->send_mode == LIRC_MODE_SCANCODE) {
+ 		struct lirc_scancode scan;
+ 
+ 		if (n != sizeof(scan))
+@@ -185,7 +176,7 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 	for (duration = i = 0; i < ret; i++)
+ 		duration += txbuf[i];
+ 
+-	if (lirc->send_mode == LIRC_MODE_SCANCODE)
++	if (dev->send_mode == LIRC_MODE_SCANCODE)
+ 		ret = n;
+ 	else
+ 		ret *= sizeof(unsigned int);
+@@ -210,20 +201,11 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+ 			unsigned long arg)
+ {
+-	struct lirc_codec *lirc;
+-	struct rc_dev *dev;
++	struct rc_dev *dev = lirc_get_pdata(filep);
+ 	u32 __user *argp = (u32 __user *)(arg);
+ 	int ret = 0;
+ 	__u32 val = 0, tmp;
+ 
+-	lirc = lirc_get_pdata(filep);
+-	if (!lirc)
+-		return -EFAULT;
+-
+-	dev = lirc->dev;
+-	if (!dev)
+-		return -EFAULT;
+-
+ 	if (_IOC_DIR(cmd) & _IOC_WRITE) {
+ 		ret = get_user(val, argp);
+ 		if (ret)
+@@ -235,7 +217,7 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+ 		if (dev->driver_type == RC_DRIVER_IR_RAW_TX)
+ 			return -ENOTTY;
+ 
+-		val = lirc->rec_mode;
++		val = dev->rec_mode;
+ 		break;
+ 
+ 	case LIRC_SET_REC_MODE:
+@@ -253,14 +235,14 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+ 			return -ENOTTY;
+ 		}
+ 
+-		lirc->rec_mode = val;
++		dev->rec_mode = val;
+ 		return 0;
+ 
+ 	case LIRC_GET_SEND_MODE:
+ 		if (!dev->tx_ir)
+ 			return -ENOTTY;
+ 
+-		val = lirc->send_mode;
++		val = dev->send_mode;
+ 		break;
+ 
+ 	case LIRC_SET_SEND_MODE:
+@@ -270,7 +252,7 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+ 		if (!(val == LIRC_MODE_PULSE || val == LIRC_MODE_SCANCODE))
+ 			return -EINVAL;
+ 
+-		lirc->send_mode = val;
++		dev->send_mode = val;
+ 		return 0;
+ 
+ 	/* TX settings */
+@@ -297,7 +279,7 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+ 
+ 	/* RX settings */
+ 	case LIRC_SET_REC_CARRIER:
+-		if (!dev->s_rx_carrier_range)
++		if (!dev->s_rx_carrier_range || !dev->raw)
+ 			return -ENOTTY;
+ 
+ 		if (val <= 0)
+@@ -308,7 +290,7 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+ 					       val);
+ 
+ 	case LIRC_SET_REC_CARRIER_RANGE:
+-		if (!dev->s_rx_carrier_range)
++		if (!dev->s_rx_carrier_range || !dev->raw)
+ 			return -ENOTTY;
+ 
+ 		if (val <= 0)
+@@ -366,10 +348,10 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+ 		break;
+ 
+ 	case LIRC_SET_REC_TIMEOUT_REPORTS:
+-		if (!dev->timeout)
++		if (!dev->timeout || !dev->raw)
+ 			return -ENOTTY;
+ 
+-		lirc->send_timeout_reports = !!val;
++		dev->raw->lirc.send_timeout_reports = !!val;
+ 		break;
+ 
+ 	default:
+@@ -385,10 +367,11 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+ static unsigned int ir_lirc_poll(struct file *filep,
+ 				 struct poll_table_struct *wait)
+ {
+-	struct lirc_codec *lirc = lirc_get_pdata(filep);
++	struct rc_dev *dev = lirc_get_pdata(filep);
++	struct lirc_driver *drv = dev->lirc_drv;
+ 	unsigned int events = 0;
+ 
+-	poll_wait(filep, &lirc->wait_poll, wait);
++	poll_wait(filep, &dev->wait_poll, wait);
+ 
+ 	if (!drv->attached) {
+ 		events = POLLERR;
+@@ -406,35 +389,35 @@ static unsigned int ir_lirc_poll(struct file *filep,
+ static ssize_t ir_lirc_read(struct file *filep, char __user *buffer,
+ 			    size_t length, loff_t *ppos)
+ {
+-	struct lirc_codec *lirc = lirc_get_pdata(filep);
++	struct rc_dev *dev = lirc_get_pdata(filep);
++	struct lirc_driver *drv = dev->lirc_drv;
++	struct lirc_codec *lirc = &dev->raw->lirc;
+ 	unsigned int copied;
+ 	int ret;
+ 
+-	if (!lirc->drv->attached)
++	if (!drv->attached)
+ 		return -ENODEV;
+ 
+-	if (lirc->rec_mode == LIRC_MODE_SCANCODE) {
+-		struct rc_dev *rcdev = lirc->dev;
+-
++	if (dev->rec_mode == LIRC_MODE_SCANCODE) {
+ 		if (length % sizeof(struct lirc_scancode))
+ 			return -EINVAL;
+ 
+ 		do {
+-			if (kfifo_is_empty(&rcdev->kfifo)) {
++			if (kfifo_is_empty(&dev->kfifo)) {
+ 				if (filep->f_flags & O_NONBLOCK)
+ 					return -EAGAIN;
+ 
+-				ret = wait_event_interruptible(lirc->wait_poll,
+-					!kfifo_is_empty(&rcdev->kfifo) ||
+-					!lirc->drv->attached);
++				ret = wait_event_interruptible(dev->wait_poll,
++					!kfifo_is_empty(&dev->kfifo) ||
++					!drv->attached);
+ 				if (ret)
+ 					return ret;
+ 			}
+ 
+-			if (!lirc->drv->attached)
++			if (!drv->attached)
+ 				return -ENODEV;
+ 
+-			ret = kfifo_to_user(&rcdev->kfifo, buffer, length,
++			ret = kfifo_to_user(&dev->kfifo, buffer, length,
+ 					    &copied);
+ 			if (ret)
+ 				return ret;
+@@ -448,14 +431,14 @@ static ssize_t ir_lirc_read(struct file *filep, char __user *buffer,
+ 				if (filep->f_flags & O_NONBLOCK)
+ 					return -EAGAIN;
+ 
+-				ret = wait_event_interruptible(lirc->wait_poll,
++				ret = wait_event_interruptible(dev->wait_poll,
+ 						!kfifo_is_empty(&lirc->kfifo) ||
+-						!lirc->drv->attached);
++						!drv->attached);
+ 				if (ret)
+ 					return ret;
+ 			}
+ 
+-			if (!lirc->drv->attached)
++			if (!drv->attached)
+ 				return -ENODEV;
+ 
+ 			ret = kfifo_to_user(&lirc->kfifo, buffer, length,
+@@ -470,10 +453,11 @@ static ssize_t ir_lirc_read(struct file *filep, char __user *buffer,
+ 
+ static int ir_lirc_open(void *data)
+ {
+-	struct lirc_codec *lirc = data;
++	struct rc_dev *dev = data;
+ 
+-	kfifo_reset_out(&lirc->kfifo);
+-	kfifo_reset_out(&lirc->dev->kfifo);
++	kfifo_reset_out(&dev->kfifo);
++	if (dev->raw)
++		kfifo_reset_out(&dev->raw->lirc.kfifo);
+ 
+ 	return 0;
+ }
+@@ -509,15 +493,15 @@ int ir_lirc_register(struct rc_dev *dev)
+ 
+ 	if (dev->driver_type == RC_DRIVER_SCANCODE) {
+ 		features |= LIRC_CAN_REC_SCANCODE;
+-		dev->raw->lirc.rec_mode = LIRC_MODE_SCANCODE;
++		dev->rec_mode = LIRC_MODE_SCANCODE;
+ 	} else if (dev->driver_type == RC_DRIVER_IR_RAW) {
+ 		features |= LIRC_CAN_REC_MODE2 | LIRC_CAN_REC_SCANCODE;
+ 		if (dev->rx_resolution)
+ 			features |= LIRC_CAN_GET_REC_RESOLUTION;
+-		dev->raw->lirc.rec_mode = LIRC_MODE_MODE2;
++		dev->rec_mode = LIRC_MODE_MODE2;
+ 	}
+ 	if (dev->tx_ir) {
+-		dev->raw->lirc.send_mode = LIRC_MODE_PULSE;
++		dev->send_mode = LIRC_MODE_PULSE;
+ 		features |= LIRC_CAN_SEND_PULSE | LIRC_CAN_SEND_SCANCODE;
+ 		if (dev->s_tx_mask)
+ 			features |= LIRC_CAN_SET_TRANSMITTER_MASK;
+@@ -544,16 +528,16 @@ int ir_lirc_register(struct rc_dev *dev)
+ 		 dev->driver_name);
+ 	drv->minor = -1;
+ 	drv->features = features;
+-	drv->data = &dev->raw->lirc;
+ 	drv->set_use_inc = &ir_lirc_open;
+ 	drv->set_use_dec = &ir_lirc_close;
+ 	drv->code_length = sizeof(struct ir_raw_event) * 8;
+ 	drv->fops = &lirc_fops;
+ 	drv->dev.parent = &dev->dev;
++	drv->data = dev;
+ 	drv->rdev = dev;
+ 	drv->owner = THIS_MODULE;
+-	INIT_KFIFO(dev->raw->lirc.kfifo);
+-	init_waitqueue_head(&dev->raw->lirc.wait_poll);
++	if (dev->raw)
++		INIT_KFIFO(dev->raw->lirc.kfifo);
+ 
+ 	drv->minor = lirc_register_driver(drv);
+ 	if (drv->minor < 0) {
+@@ -561,8 +545,8 @@ int ir_lirc_register(struct rc_dev *dev)
+ 		goto lirc_register_failed;
+ 	}
+ 
+-	dev->raw->lirc.drv = drv;
+-	dev->raw->lirc.dev = dev;
++	dev->lirc_drv = drv;
++
+ 	return 0;
+ 
+ lirc_register_failed:
+@@ -572,8 +556,6 @@ int ir_lirc_register(struct rc_dev *dev)
+ 
+ void ir_lirc_unregister(struct rc_dev *dev)
+ {
+-	struct lirc_codec *lirc = &dev->raw->lirc;
+-
+-	wake_up_poll(&lirc->wait_poll, POLLERR);
+-	lirc_unregister_driver(lirc->drv->minor);
++	wake_up_poll(&dev->wait_poll, POLLERR);
++	lirc_unregister_driver(dev->lirc_drv->minor);
+ }
+diff --git a/drivers/media/rc/ir-mce_kbd-decoder.c b/drivers/media/rc/ir-mce_kbd-decoder.c
+index c4b2998..552d0fe 100644
+--- a/drivers/media/rc/ir-mce_kbd-decoder.c
++++ b/drivers/media/rc/ir-mce_kbd-decoder.c
+@@ -344,7 +344,7 @@ static int ir_mce_kbd_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 		lsc.scancode = scancode;
+ 		lsc.flags = 0;
+ 		if (kfifo_put(&dev->kfifo, lsc))
+-			ir_wakeup_poll(dev->raw);
++			wake_up_poll(&dev->wait_poll, POLLIN);
+ 		data->state = STATE_INACTIVE;
+ 		input_event(data->idev, EV_MSC, MSC_SCAN, scancode);
+ 		input_sync(data->idev);
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index 858c467..001911d 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -126,18 +126,13 @@ struct ir_raw_event_ctrl {
+ #endif
+ #if IS_ENABLED(CONFIG_IR_LIRC_CODEC)
+ 	struct lirc_codec {
+-		struct rc_dev *dev;
+-		struct lirc_driver *drv;
+ 		DECLARE_KFIFO(kfifo, unsigned int, LIRCBUF_SIZE);
+-		wait_queue_head_t wait_poll;
+ 		int carrier_low;
+ 
+ 		ktime_t gap_start;
+ 		u64 gap_duration;
+ 		bool gap;
+ 		bool send_timeout_reports;
+-		int send_mode;
+-		int rec_mode;
+ 	} lirc;
+ #endif
+ #if IS_ENABLED(CONFIG_IR_XMP_DECODER)
+@@ -149,16 +144,6 @@ struct ir_raw_event_ctrl {
+ #endif
+ };
+ 
+-#if IS_ENABLED(CONFIG_IR_LIRC_CODEC)
+-static inline void ir_wakeup_poll(struct ir_raw_event_ctrl *ctrl)
+-{
+-	if (ctrl)
+-		wake_up_poll(&ctrl->lirc.wait_poll, POLLIN);
+-}
+-#else
+-static inline void ir_wakeup_poll(struct ir_raw_event_ctrl *ctrl) {}
+-#endif
+-
+ /* macros for IR decoders */
+ static inline bool geq_margin(unsigned d1, unsigned d2, unsigned margin)
+ {
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index feff1f3..ebca5bf 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -622,7 +622,7 @@ void rc_repeat(struct rc_dev *dev)
+ 	};
+ 
+ 	if (kfifo_put(&dev->kfifo, sc))
+-		ir_wakeup_poll(dev->raw);
++		wake_up_poll(&dev->wait_poll, POLLIN);
+ 
+ 	spin_lock_irqsave(&dev->keylock, flags);
+ 
+@@ -664,7 +664,7 @@ static void ir_do_keydown(struct rc_dev *dev, enum rc_type protocol,
+ 	};
+ 
+ 	if (kfifo_put(&dev->kfifo, sc))
+-		ir_wakeup_poll(dev->raw);
++		wake_up_poll(&dev->wait_poll, POLLIN);
+ 
+ 	if (new_event && dev->keypressed)
+ 		ir_do_keyup(dev, false);
+@@ -1606,6 +1606,7 @@ struct rc_dev *rc_allocate_device(enum rc_driver_type type)
+ 		spin_lock_init(&dev->rc_map.lock);
+ 		spin_lock_init(&dev->keylock);
+ 		INIT_KFIFO(dev->kfifo);
++		init_waitqueue_head(&dev->wait_poll);
+ 	}
+ 	mutex_init(&dev->lock);
+ 
+@@ -1794,7 +1795,7 @@ int rc_register_device(struct rc_dev *dev)
+ 			goto out_rx;
+ 	}
+ 
+-	if (dev->driver_type != RC_DRIVER_SCANCODE) {
++	if (dev->allowed_protocols != RC_BIT_CEC) {
+ 		rc = ir_lirc_register(dev);
+ 		if (rc < 0)
+ 			goto out_raw;
+@@ -1859,7 +1860,7 @@ void rc_unregister_device(struct rc_dev *dev)
+ 	if (dev->driver_type == RC_DRIVER_IR_RAW)
+ 		ir_raw_event_unregister(dev);
+ 
+-	if (dev->driver_type != RC_DRIVER_SCANCODE)
++	if (dev->allowed_protocols != RC_BIT_CEC)
+ 		ir_lirc_unregister(dev);
+ 
+ 	rc_free_rx_device(dev);
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 24486d7..52e818d 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -111,6 +111,12 @@ enum rc_filter_type {
+  * @last_protocol: protocol of last keypress
+  * @last_scancode: scancode of last keypress
+  * @last_toggle: toggle value of last command
++ * @lirc_drv: lirc driver associated with this rc device
++ * @wait_poll: used for implementing poll on lirc char device
++ * @rec_mode: lirc char device recording mode (LIRC_MODE_MODE2 or
++ *	LIRC_MODE_SCANCODE).
++ * @send_mode: lirc char device sending mode (LIRC_MODE_PULSE or
++ *	LIRC_MODE_SCANCODE).
+  * @timeout: optional time after which device stops sending data
+  * @min_timeout: minimum timeout supported by device
+  * @max_timeout: maximum timeout supported by device
+@@ -172,6 +178,10 @@ struct rc_dev {
+ 	enum rc_type			last_protocol;
+ 	u32				last_scancode;
+ 	u8				last_toggle;
++	struct lirc_driver		*lirc_drv;
++	wait_queue_head_t		wait_poll;
++	u8				rec_mode;
++	u8				send_mode;
+ 	u32				timeout;
+ 	u32				min_timeout;
+ 	u32				max_timeout;
+-- 
+2.9.3
