@@ -1,85 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:43653 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751732AbdBAJcY (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40876
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753998AbdBUTVk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Feb 2017 04:32:24 -0500
-Message-ID: <1485941457.3353.13.camel@pengutronix.de>
-Subject: Re: [PATCH v3 00/24] i.MX Media Driver
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Wed, 01 Feb 2017 10:30:57 +0100
-In-Reply-To: <5586b893-bf5c-6133-0789-ccce60626b86@gmail.com>
-References: <1483755102-24785-1-git-send-email-steve_longerbeam@mentor.com>
-         <1485870854.2932.63.camel@pengutronix.de>
-         <5586b893-bf5c-6133-0789-ccce60626b86@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Tue, 21 Feb 2017 14:21:40 -0500
+From: Thibault Saunier <thibault.saunier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Thibault Saunier <thibault.saunier@osg.samsung.com>,
+        linux-arm-kernel@lists.infradead.org,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Kamil Debski <kamil@wypas.org>
+Subject: [PATCH v5 3/3] [media] s5p-mfc: Check and set 'v4l2_pix_format:field' field in try_fmt
+Date: Tue, 21 Feb 2017 16:20:59 -0300
+Message-Id: <20170221192059.29745-4-thibault.saunier@osg.samsung.com>
+In-Reply-To: <20170221192059.29745-1-thibault.saunier@osg.samsung.com>
+References: <20170221192059.29745-1-thibault.saunier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2017-01-31 at 17:26 -0800, Steve Longerbeam wrote:
-[...]
-> > # Set pad formats
-> > media-ctl --set-v4l2 "'tc358743 1-000f':0[fmt:UYVY/1920x1080]"
-> > media-ctl --set-v4l2 "'imx6-mipi-csi2':1[fmt:UYVY2X8/1920x1080]"
-> > media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY2X8/1920x1080]"
-> > media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/1920x1080]"
-> >
-> > v4l2-ctl -d /dev/video4 -V
-> > # This still is configured to 640x480, which is inconsistent with
-> > # the 'ipu1_csi0':2 pad format. The pad set_fmt above should
-> > # have set this, too.
-> 
-> Because you've only configured the source pads,
-> and not the sink pads. The ipu_csi source format is
-> dependent on the sink format - output crop window is
-> limited by max input sensor frame, and since sink pad is
-> still at 640x480, output is reduced to that.
+It is required by the standard that the field order is set by the
+driver.
 
-No, it is set (see below). What happens is that capture_g_fmt_vid_cap
-just returns the capture devices' priv->vdev.fmt, even if it is
-incompatible with the connected csi subdevice's output pad format.
+Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
 
-priv->vdev.fmt was never changed from the default set in
-imx_media_capture_device_register, because capture_s/try_fmt_vid_cap
-were not called yet.
+---
 
-> Maybe I'm missing something, is it expected behavior that
-> a source format should be automatically propagated to
-> the sink?
+Changes in v5:
+- Just adapt the field and never error out.
 
-media-ctl propagates the output pad format to all remote subdevices'
-input pads for all enabled links:
+Changes in v4: None
+Changes in v3:
+- Do not check values in the g_fmt functions as Andrzej explained in previous review
 
-https://git.linuxtv.org/v4l-utils.git/tree/utils/media-ctl/libv4l2subdev.c#n693
+Changes in v2:
+- Fix a silly build error that slipped in while rebasing the patches
 
-> > v4l2-ctl --list-formats -d /dev/video4
-> > # This lists all the RGB formats, which it shouldn't. There is
-> > # no CSC in this pipeline, so we should be limited to YUV formats
-> > # only.
-> 
-> right, need to fix that. Probably by poking the attached
-> source subdev (csi or prpenc/vf) for its supported formats.
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-You are right, in bayer/raw mode only one specific format should be
-listed, depending on the CSI output pad format.
-
-regards
-Philipp
-
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 0976c3e0a5ce..44ed2afe0780 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -386,6 +386,9 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 	struct v4l2_pix_format_mplane *pix_mp = &f->fmt.pix_mp;
+ 	struct s5p_mfc_fmt *fmt;
+ 
++	if (f->fmt.pix.field == V4L2_FIELD_ANY)
++		f->fmt.pix.field = V4L2_FIELD_NONE;
++
+ 	mfc_debug(2, "Type is %d\n", f->type);
+ 	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+ 		fmt = find_format(f, MFC_FMT_DEC);
+-- 
+2.11.1
