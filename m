@@ -1,90 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:47105 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751445AbdB1MgZ (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44299
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932120AbdBVNKr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Feb 2017 07:36:25 -0500
-Date: Tue, 28 Feb 2017 13:35:34 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [RFC 1/1] omap3isp: Ignore endpoints with invalid configuration
-Message-ID: <20170228123534.GB4307@amd>
-References: <1488283350-5695-1-git-send-email-sakari.ailus@linux.intel.com>
+        Wed, 22 Feb 2017 08:10:47 -0500
+Subject: Re: [PATCH v5 3/3] [media] s5p-mfc: Check and set
+ 'v4l2_pix_format:field' field in try_fmt
+To: Andrzej Hajda <a.hajda@samsung.com>, linux-kernel@vger.kernel.org
+References: <20170221192059.29745-1-thibault.saunier@osg.samsung.com>
+ <CGME20170221192135epcas4p1811fa9ce35481d42144bdab368c9243a@epcas4p1.samsung.com>
+ <20170221192059.29745-4-thibault.saunier@osg.samsung.com>
+ <78444dcd-169f-0c16-0e09-6b71d1a502b2@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        linux-arm-kernel@lists.infradead.org,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Kamil Debski <kamil@wypas.org>
+From: Thibault Saunier <thibault.saunier@osg.samsung.com>
+Message-ID: <ed287d5a-687b-b344-3f20-10154071852c@osg.samsung.com>
+Date: Wed, 22 Feb 2017 10:10:40 -0300
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="R3G7APHDIzY6R/pk"
-Content-Disposition: inline
-In-Reply-To: <1488283350-5695-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <78444dcd-169f-0c16-0e09-6b71d1a502b2@samsung.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello,
 
---R3G7APHDIzY6R/pk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 02/22/2017 06:29 AM, Andrzej Hajda wrote:
+> On 21.02.2017 20:20, Thibault Saunier wrote:
+>> It is required by the standard that the field order is set by the
+>> driver.
+>>
+>> Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
+>>
+>> ---
+>>
+>> Changes in v5:
+>> - Just adapt the field and never error out.
+>>
+>> Changes in v4: None
+>> Changes in v3:
+>> - Do not check values in the g_fmt functions as Andrzej explained in previous review
+>>
+>> Changes in v2:
+>> - Fix a silly build error that slipped in while rebasing the patches
+>>
+>>   drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 3 +++
+>>   1 file changed, 3 insertions(+)
+>>
+>> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+>> index 0976c3e0a5ce..44ed2afe0780 100644
+>> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+>> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+>> @@ -386,6 +386,9 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+>>   	struct v4l2_pix_format_mplane *pix_mp = &f->fmt.pix_mp;
+>>   	struct s5p_mfc_fmt *fmt;
+>>   
+>> +	if (f->fmt.pix.field == V4L2_FIELD_ANY)
+>> +		f->fmt.pix.field = V4L2_FIELD_NONE;
+>> +
+> In previous version the only supported field type was NONE, here you
+> support everything.
+> If the only supported format is none you should set 'field'
+> unconditionally to NONE, nothing more.
+Afaict we  support 2 things:
 
-On Tue 2017-02-28 14:02:30, Sakari Ailus wrote:
-> If endpoint has an invalid configuration, ignore it instead of happily
-> proceeding to use it nonetheless. Ignoring such an endpoint is better than
-> failing since there could be multiple endpoints, only some of which are
-> bad.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
-> Hi Pavel,
->=20
-> How about this one? isp_fwnode_parse() is expected to return an error if
-> there's one but currently it's quite shy. With this patch, the faulty
-> endpoint is simply ignored. This is completely untested so far.
+   1. NONE
+   2. INTERLACE
 
-Does not seem to break anything.
+Until now we were not checking what was supported or not and basically 
+ignoring that info, this patch
+keeps the old behaviour making sure to be compliant.
 
-Tested-by: Pavel Machek <pavel@ucw.cz>
+I had a doubt and was pondering doing:
 
-								Pavel
+``` diff
 
->  drivers/media/platform/omap3isp/isp.c | 8 +++++---
->  1 file changed, 5 insertions(+), 3 deletions(-)
->=20
-> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platfo=
-rm/omap3isp/isp.c
-> index 95850b9..8026221 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -2120,10 +2120,12 @@ static int isp_fwnodes_parse(struct device *dev,
->  		if (!isd)
->  			goto error;
-> =20
-> -		notifier->subdevs[notifier->num_subdevs] =3D &isd->asd;
-> +		if (isp_fwnode_parse(dev, fwn, isd)) {
-> +			devm_kfree(dev, isd);
-> +			continue;
-> +		}
-> =20
-> -		if (isp_fwnode_parse(dev, fwn, isd))
-> -			goto error;
-> +		notifier->subdevs[notifier->num_subdevs] =3D &isd->asd;
-> =20
->  		isd->asd.match.fwnode.fwn =3D
->  			fwnode_graph_get_remote_port_parent(fwn);
++	if (f->fmt.pix.field != V4L2_FIELD_INTERLACED)
++		f->fmt.pix.field = V4L2_FIELD_NONE;
++
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+```
 
---R3G7APHDIzY6R/pk
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+instead, it is probably more correct, do you think it is what should be 
+done here?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Regards,
 
-iEYEARECAAYFAli1bpYACgkQMOfwapXb+vJhNgCdFxC/8gIhpcj8CwvioEK1QCDg
-UFIAn3IcX+IAnQMvplwxPMgKMcWR9SR2
-=InL1
------END PGP SIGNATURE-----
+Thibault
 
---R3G7APHDIzY6R/pk--
+>
+> Regards
+> Andrzej
+>
+>>   	mfc_debug(2, "Type is %d\n", f->type);
+>>   	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+>>   		fmt = find_format(f, MFC_FMT_DEC);
+>
