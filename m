@@ -1,98 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:33207 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752632AbdBPCVi (ORCPT
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:35253 "EHLO
+        mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754510AbdBVJZX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 21:21:38 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v4 30/36] media: imx: update capture dev format on IDMAC output pad set_fmt
-Date: Wed, 15 Feb 2017 18:19:32 -0800
-Message-Id: <1487211578-11360-31-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+        Wed, 22 Feb 2017 04:25:23 -0500
+Received: by mail-wm0-f54.google.com with SMTP id v186so134963128wmd.0
+        for <linux-media@vger.kernel.org>; Wed, 22 Feb 2017 01:25:22 -0800 (PST)
+Subject: Re: [PATCH v6 2/9] doc: DT: venus: binding document for Qualcomm
+ video driver
+To: Rob Herring <robh@kernel.org>
+References: <1486473024-21705-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1486473024-21705-3-git-send-email-stanimir.varbanov@linaro.org>
+ <20170222000952.w6bg4bhvbklgkcnx@rob-hp-laptop>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, devicetree@vger.kernel.org
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <88584dd3-165f-2393-433e-95c288a8f473@linaro.org>
+Date: Wed, 22 Feb 2017 11:25:19 +0200
+MIME-Version: 1.0
+In-Reply-To: <20170222000952.w6bg4bhvbklgkcnx@rob-hp-laptop>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When configuring the IDMAC output pad formats (in ipu_csi,
-ipu_ic_prpenc, and ipu_ic_prpvf subdevs), the attached capture
-device format must also be updated.
+Hi Rob,
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-Suggested-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/staging/media/imx/imx-ic-prpencvf.c | 9 +++++++++
- drivers/staging/media/imx/imx-media-csi.c   | 9 +++++++++
- 2 files changed, 18 insertions(+)
+On 02/22/2017 02:09 AM, Rob Herring wrote:
+> On Tue, Feb 07, 2017 at 03:10:17PM +0200, Stanimir Varbanov wrote:
+>> Add binding document for Venus video encoder/decoder driver
+>>
+>> Cc: Rob Herring <robh+dt@kernel.org>
+>> Cc: devicetree@vger.kernel.org
+>> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+>> ---
+>> Changes since previous v5:
+>>  * dropped rproc phandle (remoteproc is not used anymore)
+>>  * added subnodes paragraph with descrition of three subnodes:
+>>     - video-decoder and video-encoder - describes decoder (core0) and
+>>     encoder (core1) power-domains and clocks (applicable for msm8996
+>>     Venus core).
+>>     - video-firmware - needed to get reserved memory region where the
+>>     firmware is stored.
+>>
+>>  .../devicetree/bindings/media/qcom,venus.txt       | 112 +++++++++++++++++++++
+>>  1 file changed, 112 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
+>> new file mode 100644
+>> index 000000000000..4427af3ca5a5
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
+>> @@ -0,0 +1,112 @@
+> 
+> [...]
+> 
+>> +* Subnodes
+>> +The Venus node must contain three subnodes representing video-decoder,
+>> +video-encoder and video-firmware.
+> 
+> [...]
+> 
+>> +The video-firmware subnode should contain:
+>> +
+>> +- memory-region:
+>> +	Usage: required
+>> +	Value type: <phandle>
+>> +	Definition: reference to the reserved-memory for the memory region
+>> +
+>> +* An Example
+>> +	video-codec@1d00000 {
+>> +		compatible = "qcom,msm8916-venus";
+>> +		reg = <0x01d00000 0xff000>;
+>> +		interrupts = <GIC_SPI 44 IRQ_TYPE_LEVEL_HIGH>;
+>> +		clocks = <&gcc GCC_VENUS0_VCODEC0_CLK>,
+>> +			 <&gcc GCC_VENUS0_AHB_CLK>,
+>> +			 <&gcc GCC_VENUS0_AXI_CLK>;
+>> +		clock-names = "core", "iface", "bus";
+>> +		power-domains = <&gcc VENUS_GDSC>;
+>> +		iommus = <&apps_iommu 5>;
+>> +
+>> +		video-decoder {
+>> +			compatible = "venus-decoder";
+>> +			clocks = <&mmcc VIDEO_SUBCORE0_CLK>;
+>> +			clock-names = "core";
+>> +			power-domains = <&mmcc VENUS_CORE0_GDSC>;
+>> +		};
+>> +
+>> +		video-encoder {
+>> +			compatible = "venus-encoder";
+>> +			clocks = <&mmcc VIDEO_SUBCORE1_CLK>;
+>> +			clock-names = "core";
+>> +			power-domains = <&mmcc VENUS_CORE1_GDSC>;
+>> +		};
+>> +
+>> +		video-firmware {
+>> +			memory-region = <&venus_mem>;
+> 
+> Why does this need to be a sub node?
 
-diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
-index 2be8845..6e45975 100644
---- a/drivers/staging/media/imx/imx-ic-prpencvf.c
-+++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
-@@ -739,6 +739,7 @@ static int prp_set_fmt(struct v4l2_subdev *sd,
- 		       struct v4l2_subdev_format *sdformat)
- {
- 	struct prp_priv *priv = sd_to_priv(sd);
-+	struct imx_media_video_dev *vdev = priv->vdev;
- 	const struct imx_media_pixfmt *cc;
- 	struct v4l2_mbus_framefmt *infmt;
- 	u32 code;
-@@ -800,6 +801,14 @@ static int prp_set_fmt(struct v4l2_subdev *sd,
- 	} else {
- 		priv->format_mbus[sdformat->pad] = sdformat->format;
- 		priv->cc[sdformat->pad] = cc;
-+		if (sdformat->pad == PRPENCVF_SRC_PAD) {
-+			/*
-+			 * update the capture device format if this is
-+			 * the IDMAC output pad
-+			 */
-+			imx_media_mbus_fmt_to_pix_fmt(&vdev->fmt.fmt.pix,
-+						      &sdformat->format, cc);
-+		}
- 	}
- 
- 	return 0;
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index 3cb97e2..63555dc 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -866,6 +866,7 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
- 		       struct v4l2_subdev_format *sdformat)
- {
- 	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	struct imx_media_video_dev *vdev = priv->vdev;
- 	const struct imx_media_pixfmt *cc, *incc;
- 	struct v4l2_mbus_framefmt *infmt;
- 	struct imx_media_subdev *sensor;
-@@ -980,6 +981,14 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
- 		/* Reset the crop window if this is the input pad */
- 		if (sdformat->pad == CSI_SINK_PAD)
- 			priv->crop = crop;
-+		else if (sdformat->pad == CSI_SRC_PAD_IDMAC) {
-+			/*
-+			 * update the capture device format if this is
-+			 * the IDMAC output pad
-+			 */
-+			imx_media_mbus_fmt_to_pix_fmt(&vdev->fmt.fmt.pix,
-+						      &sdformat->format, cc);
-+		}
- 	}
- 
- 	return 0;
+Because firmware reserved memory region must have separate struct
+device, otherwise allocating video buffers (and map them through iommu)
+for video-codec will fail because dma_alloc_coherent trying to allocate
+from per-device coherent area.
+
 -- 
-2.7.4
+regards,
+Stan
