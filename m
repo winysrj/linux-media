@@ -1,57 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:36272 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751770AbdBOLlK (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38974 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933642AbdBVTcr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 06:41:10 -0500
-Date: Wed, 15 Feb 2017 12:41:04 +0100
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Pavel Machek <pavel@ucw.cz>, sre@kernel.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
-        ivo.g.dimitrov.75@gmail.com
-Subject: Re: [RFC 08/13] smiapp-pll: Take existing divisor into account in
- minimum divisor check
-Message-ID: <20170215114104.GE32000@pali>
-References: <20170214134004.GA8570@amd>
- <20170214220503.GO16975@valkosipuli.retiisi.org.uk>
+        Wed, 22 Feb 2017 14:32:47 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Ajay kumar <ajaynumb@gmail.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Thomas Axelsson <Thomas.Axelsson@cybercom.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+Subject: Re: v4l2: Adding support for multiple MIPI CSI-2 virtual channels
+Date: Wed, 22 Feb 2017 21:33:16 +0200
+Message-ID: <2309653.TxoyDJYOYi@avalon>
+In-Reply-To: <Pine.LNX.4.64.1702221822080.6242@axis700.grange>
+References: <DB5PR0701MB19091F43803C514055C4592A885D0@DB5PR0701MB1909.eurprd07.prod.outlook.com> <CAEC9eQMreAGiZW-p457YeR1csfBbrhLBD+RSFKr3oMt0re1mJA@mail.gmail.com> <Pine.LNX.4.64.1702221822080.6242@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170214220503.GO16975@valkosipuli.retiisi.org.uk>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 15 February 2017 00:05:03 Sakari Ailus wrote:
-> Hi Pavel,
-> 
-> On Tue, Feb 14, 2017 at 02:40:04PM +0100, Pavel Machek wrote:
-> > From: Sakari Ailus <sakari.ailus@iki.fi>
-> > 
-> > Required added multiplier (and divisor) calculation did not take into
-> > account the existing divisor when checking the values against the
-> > minimum divisor. Do just that.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> 
-> I need to understand again why did I write this patch. :-)
-> 
-> Could you send me the smiapp driver output with debug level messages
-> enabled, please?
-> 
-> I think the problem was with the secondary sensor.
-> 
+Hi Guennadi,
 
-Hi, search for emails and threads:
-Message-Id: <1364719448-29894-1-git-send-email-sakari.ailus@iki.fi>
-Message-ID: <5728ED34.3060402@gmail.com>
+On Wednesday 22 Feb 2017 18:54:20 Guennadi Liakhovetski wrote:
+> On Tue, 21 Feb 2017, Ajay kumar wrote:
+> > On Fri, Feb 17, 2017 at 7:27 PM, Thomas Axelsson wrote:
+> >> Hi,
+> >> 
+> >> I have a v4l2_subdev that provides multiple MIPI CSI-2 Virtual
+> >> Channels. I want to configure each virtual channel individually (e.g.
+> >> set_fmt), but the v4l2 interface does not seem to have a clear way to
+> >> access configuration on a virtual channel level, but only the
+> >> v4l2_subdev as a whole. Using one v4l2_subdev for multiple virtual
+> >> channels by extending the "reg" tag to be an array looks like the
+> >> correct way to do it, based on the mipi-dsi-bus.txt document and
+> >> current device tree endpoint structure.
+> >> 
+> >> However, I cannot figure out how to extend e.g. set_fmt/get_fmt subdev
+> >> ioctls to specify which virtual channel the call applies to. Does
+> >> anyone have any advice on how to handle this case?
+> > 
+> > This would be helpful for my project as well since even I need to
+> > support multiple streams using Virtual Channels.
+> > Can anyone point out to some V4L2 driver, if this kind of support is
+> > already implemented?
+> 
+> My understanding is, that MIPI CSI virtual channel handling requires
+> extensions to the V4L2 subdev API. These extensions have been discussed at
+> a media mini-summit almost a year ago, slides are available at [1], but as
+> my priorities shifted away from this work, don't think those extensions
+> ever got implemented.
 
-I think I already resent those information again :-)
+We've also discussed the topic last week in a face to face meeting with Niklas 
+(CC'ed) and Sakari. Niklas will start working on upstreaming the necessary 
+V4L2 API extensions for CSI-2 virtual channel support. The current plan is to 
+start the work at the beginning of April.
+
+> [1]
+> https://linuxtv.org/downloads/presentations/media_summit_2016_san_diego/v4l
+> 2-multistream.pdf
+>
+> >> Previous thread: "Device Tree formatting for multiple virtual channels
+> >> in ti-vpe/cal driver?"
+> >> 
+> >> Best Regards,
+> >> Thomas Axelsson
+> >> 
+> >> PS. First e-mail seems to have gotten caught in the spam filter. I
+> >> apologize if this is a duplicate.
 
 -- 
-Pali Rohár
-pali.rohar@gmail.com
+Regards,
+
+Laurent Pinchart
