@@ -1,46 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f51.google.com ([74.125.82.51]:38140 "EHLO
-        mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752029AbdB1QR2 (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:51975 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750890AbdBVFLn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Feb 2017 11:17:28 -0500
-Received: by mail-wm0-f51.google.com with SMTP id u199so15896548wmd.1
-        for <linux-media@vger.kernel.org>; Tue, 28 Feb 2017 08:17:27 -0800 (PST)
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-To: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Kevin Hilman <khilman@baylibre.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sekhar Nori <nsekhar@ti.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: [PATCH v3 0/2] media: dt-bindings: extend the vpif bindings
-Date: Tue, 28 Feb 2017 17:08:52 +0100
-Message-Id: <1488298134-6200-1-git-send-email-bgolaszewski@baylibre.com>
+        Wed, 22 Feb 2017 00:11:43 -0500
+Message-ID: <a18eeb126dca88990ccda843b9d5d0d7@smtp-cloud6.xs4all.net>
+Date: Wed, 22 Feb 2017 06:11:40 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series adds pdata quirks and other changes required to make vpif
-work on the da850-evm board.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-v1 -> v2:
-- added patch 3/3
-- specified the purpose of port@0 and port@1 nodes
+Results of the daily build of media_tree:
 
-v2 -> v3:
-- removed patch 3/3 - it may take some more time to determine the
-  correct solution for enable-gpios, so I decided to respin the
-  series without it and send it later as a follow-up
-- added Rob Herring's acks
+date:			Wed Feb 22 05:00:25 CET 2017
+media-tree git hash:	9eeb0ed0f30938f31a3d9135a88b9502192c18dd
+media_build git hash:	785cdf7f0798964681b33aad44fc2ff4d734733d
+v4l-utils git hash:	1edd6920bed585d0ea70a2d400182ba17ee2e7fc
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-Bartosz Golaszewski (2):
-  media: dt-bindings: vpif: fix whitespace errors
-  media: dt-bindings: vpif: extend the example with an output port
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-4.10-rc3-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+linux-4.9-x86_64: OK
+linux-4.10-rc3-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
- .../devicetree/bindings/media/ti,da850-vpif.txt    | 50 ++++++++++++++++------
- 1 file changed, 37 insertions(+), 13 deletions(-)
+Detailed results are available here:
 
--- 
-2.9.3
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
