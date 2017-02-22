@@ -1,131 +1,233 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33880 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751162AbdBRMAx (ORCPT
+Received: from mail-ot0-f194.google.com ([74.125.82.194]:35218 "EHLO
+        mail-ot0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932896AbdBVSHu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 18 Feb 2017 07:00:53 -0500
-Date: Sat, 18 Feb 2017 13:58:28 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v4 00/36] i.MX Media Driver
-Message-ID: <20170218115827.GR16975@valkosipuli.retiisi.org.uk>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
- <20170216222006.GA21222@n2100.armlinux.org.uk>
- <923326d6-43fe-7328-d959-14fd341e47ae@gmail.com>
- <1487331818.3107.46.camel@pengutronix.de>
- <20170217122213.GQ16975@valkosipuli.retiisi.org.uk>
- <1487343870.3107.95.camel@pengutronix.de>
+        Wed, 22 Feb 2017 13:07:50 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1487343870.3107.95.camel@pengutronix.de>
+In-Reply-To: <1487597944-2000-9-git-send-email-m.szyprowski@samsung.com>
+References: <CGME20170220133914eucas1p1ed7898e67e5d580742875aceaac278e6@eucas1p1.samsung.com>
+ <1487597944-2000-1-git-send-email-m.szyprowski@samsung.com> <1487597944-2000-9-git-send-email-m.szyprowski@samsung.com>
+From: Shuah Khan <shuahkhan@gmail.com>
+Date: Wed, 22 Feb 2017 11:07:48 -0700
+Message-ID: <CAKocOOPjYj+0yuMeGmR0-pnzzmoNBWeMRfZvcDw8N9_s3KjmyA@mail.gmail.com>
+Subject: Re: [PATCH v2 08/15] media: s5p-mfc: Move firmware allocation to DMA
+ configure function
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>, shuahkh@osg.samsung.com
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp and Russell,
+On Mon, Feb 20, 2017 at 6:38 AM, Marek Szyprowski
+<m.szyprowski@samsung.com> wrote:
+> To complete DMA memory configuration for MFC device, allocation of the
+> firmware buffer is needed, because some parameters are dependant on its base
+> address. Till now, this has been handled in the s5p_mfc_alloc_firmware()
+> function. This patch moves that logic to s5p_mfc_configure_dma_memory() to
+> keep DMA memory related operations in a single place. This way
+> s5p_mfc_alloc_firmware() is simplified and does what it name says. The
+> other consequence of this change is moving s5p_mfc_alloc_firmware() call
+> from the s5p_mfc_probe() function to the s5p_mfc_configure_dma_memory().
 
-On Fri, Feb 17, 2017 at 04:04:30PM +0100, Philipp Zabel wrote:
-> On Fri, 2017-02-17 at 14:22 +0200, Sakari Ailus wrote:
-> > Hi Philipp, Steve and Russell,
-> > 
-> > On Fri, Feb 17, 2017 at 12:43:38PM +0100, Philipp Zabel wrote:
-> > > On Thu, 2017-02-16 at 14:27 -0800, Steve Longerbeam wrote:
-> > > > 
-> > > > On 02/16/2017 02:20 PM, Russell King - ARM Linux wrote:
-> > > > > On Wed, Feb 15, 2017 at 06:19:02PM -0800, Steve Longerbeam wrote:
-> > > > >> In version 4:
-> > > > >
-> > > > > With this version, I get:
-> > > > >
-> > > > > [28762.892053] imx6-mipi-csi2: LP-11 timeout, phy_state = 0x00000000
-> > > > > [28762.899409] ipu1_csi0: pipeline_set_stream failed with -110
-> > > > >
-> > > > 
-> > > > Right, in the imx219, on exit from s_power(), the clock and data lanes
-> > > > must be placed in the LP-11 state. This has been done in the ov5640 and
-> > > > tc358743 subdevs.
-> > > > 
-> > > > If we want to bring in the patch that adds a .prepare_stream() op,
-> > > > the csi-2 bus would need to be placed in LP-11 in that op instead.
-> > > > 
-> > > > Philipp, should I go ahead and add your .prepare_stream() patch?
-> > > 
-> > > I think with Russell's explanation of how the imx219 sensor operates,
-> > > we'll have to do something before calling the sensor s_stream, but right
-> > > now I'm still unsure what exactly.
-> > 
-> > Indeed there appears to be no other way to achieve the LP-11 state than
-> > going through the streaming state for this particular sensor, apart from
-> > starting streaming.
-> > 
-> > Is there a particular reason why you're waiting for the transmitter to
-> > transfer to LP-11 state? That appears to be the last step which is done in
-> > the csi2_s_stream() callback.
-> > 
-> > What the sensor does next is to start streaming, and the first thing it does
-> > in that process is to switch to LP-11 state.
-> > 
-> > Have you tried what happens if you simply drop the LP-11 check? To me that
-> > would seem the right thing to do.
-> 
-> Removing the wait for LP-11 alone might not be an issue in my case, as
-> the TC358743 is known to be in stop state all along. So I just have to
-> make sure that the time between s_stream(csi2) starting the receiver and
-> s_stream(tc358743) causing LP-11 to be changed to the next state is long
-> enough for the receiver to detect LP-11 (which I really can't, I just
-> have to pray I2C transmissions are slow enough).
+Overall looks good. This patch makes subtle change in the dma and firwmare
+initialization sequence. Might be okay, but wanted to call out just in case,
 
-Fair enough; it appears that the timing of the bus setup is indeed ill
-defined between the transmitter and the receiver. So there can be hardware
-specific matters in stream starting that have to be taken into account. :-(
+Before this change:
+vb2_dma_contig_set_max_seg_size() is done for both iommu and non-iommu
+case before s5p_mfc_alloc_firmware(). With this change setting
+dma_contig max size happens after s5p_mfc_alloc_firmware(). From what
+I can tell this might not be an issue.
+vb2_dma_contig_clear_max_seg_size() still happens after
+s5p_mfc_release_firmware(), so that part hasn't changed.
 
-This is quite annoying, as there does not appear to be a good way to tell
-the sensor to set the receiver to LP-11 state without going through the
-streaming state. If there was, just doing that in s_power(, 1) callback
-would be quite practical.
+Do any of the dma_* calls made from s5p_mfc_alloc_firmware() and later
+during the dma congiguration sequence depend on dmap_parms being
+allocated? Doesn't looks like it from what I can tell, but safe to
+ask.
 
-I guess then there's no really a way to avoid having an extra callback that
-would explicitly tell the sensor to go to LP-11 state. It should be no issue
-if the transmitter is already in that state from power-on, but the new
-callback should guarantee that.
+thanks,
+-- Shuah
 
-Another question is that how far do you need to proceed with streaming in a
-case where you want to go to LP-11 through streaming? Is simply starting
-streaming and stopping it right after enough? On some devices it might be
-but not on others. As the receiver is not started yet, you can't wait for
-the first frame to start either. And how long it would take for the first
-frame to start is not defined either in general case: or a driver such as
-SMIA that's not exactly aware of the underlying hardware but is relying on a
-standard device interface and behaviour, such approach could be best effort
-only. Of course it's possible to make changes to the driver if you encounter
-a combination of a sensor and a receiver that doesn't seem to work, but
-still it's hardly an ideal solution.
-
-How about calling the new callback phy_prepare(), for instance? We could
-document that it must explicitly set up the transmitter PHY in LP-11 state
-for CSI-2. The current documentation states that the device should be
-already in LP-11 after power-on but that apparently is not the case in
-general.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c      | 62 +++++++++++++++++++++------
+>  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c | 31 --------------
+>  2 files changed, 49 insertions(+), 44 deletions(-)
+>
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> index bc1aeb25ebeb..4403487a494a 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> @@ -1110,6 +1110,11 @@ static struct device *s5p_mfc_alloc_memdev(struct device *dev,
+>  static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+>  {
+>         struct device *dev = &mfc_dev->plat_dev->dev;
+> +       void *bank2_virt;
+> +       dma_addr_t bank2_dma_addr;
+> +       unsigned long align_size = 1 << MFC_BASE_ALIGN_ORDER;
+> +       struct s5p_mfc_priv_buf *fw_buf = &mfc_dev->fw_buf;
+> +       int ret;
+>
+>         /*
+>          * When IOMMU is available, we cannot use the default configuration,
+> @@ -1122,14 +1127,21 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+>         if (exynos_is_iommu_available(dev)) {
+>                 int ret = exynos_configure_iommu(dev, S5P_MFC_IOMMU_DMA_BASE,
+>                                                  S5P_MFC_IOMMU_DMA_SIZE);
+> -               if (ret == 0) {
+> -                       mfc_dev->mem_dev[BANK1_CTX] =
+> -                               mfc_dev->mem_dev[BANK2_CTX] = dev;
+> -                       vb2_dma_contig_set_max_seg_size(dev,
+> -                                                       DMA_BIT_MASK(32));
+> +               if (ret)
+> +                       return ret;
+> +
+> +               mfc_dev->mem_dev[BANK1_CTX] = mfc_dev->mem_dev[BANK2_CTX] = dev;
+> +               ret = s5p_mfc_alloc_firmware(mfc_dev);
+> +               if (ret) {
+> +                       exynos_unconfigure_iommu(dev);
+> +                       return ret;
+>                 }
+>
+> -               return ret;
+> +               mfc_dev->dma_base[BANK1_CTX] = fw_buf->dma;
+> +               mfc_dev->dma_base[BANK2_CTX] = fw_buf->dma;
+> +               vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
+> +
+> +               return 0;
+>         }
+>
+>         /*
+> @@ -1147,6 +1159,35 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+>                 return -ENODEV;
+>         }
+>
+> +       /* Allocate memory for firmware and initialize both banks addresses */
+> +       ret = s5p_mfc_alloc_firmware(mfc_dev);
+> +       if (ret) {
+> +               device_unregister(mfc_dev->mem_dev[BANK2_CTX]);
+> +               device_unregister(mfc_dev->mem_dev[BANK1_CTX]);
+> +               return ret;
+> +       }
+> +
+> +       mfc_dev->dma_base[BANK1_CTX] = fw_buf->dma;
+> +
+> +       bank2_virt = dma_alloc_coherent(mfc_dev->mem_dev[BANK2_CTX], align_size,
+> +                                       &bank2_dma_addr, GFP_KERNEL);
+> +       if (!bank2_virt) {
+> +               mfc_err("Allocating bank2 base failed\n");
+> +               s5p_mfc_release_firmware(mfc_dev);
+> +               device_unregister(mfc_dev->mem_dev[BANK2_CTX]);
+> +               device_unregister(mfc_dev->mem_dev[BANK1_CTX]);
+> +               return -ENOMEM;
+> +       }
+> +
+> +       /* Valid buffers passed to MFC encoder with LAST_FRAME command
+> +        * should not have address of bank2 - MFC will treat it as a null frame.
+> +        * To avoid such situation we set bank2 address below the pool address.
+> +        */
+> +       mfc_dev->dma_base[BANK2_CTX] = bank2_dma_addr - align_size;
+> +
+> +       dma_free_coherent(mfc_dev->mem_dev[BANK2_CTX], align_size, bank2_virt,
+> +                         bank2_dma_addr);
+> +
+>         vb2_dma_contig_set_max_seg_size(mfc_dev->mem_dev[BANK1_CTX],
+>                                         DMA_BIT_MASK(32));
+>         vb2_dma_contig_set_max_seg_size(mfc_dev->mem_dev[BANK2_CTX],
+> @@ -1159,6 +1200,8 @@ static void s5p_mfc_unconfigure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+>  {
+>         struct device *dev = &mfc_dev->plat_dev->dev;
+>
+> +       s5p_mfc_release_firmware(mfc_dev);
+> +
+>         if (exynos_is_iommu_available(dev)) {
+>                 exynos_unconfigure_iommu(dev);
+>                 vb2_dma_contig_clear_max_seg_size(dev);
+> @@ -1235,10 +1278,6 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+>         dev->watchdog_timer.data = (unsigned long)dev;
+>         dev->watchdog_timer.function = s5p_mfc_watchdog;
+>
+> -       ret = s5p_mfc_alloc_firmware(dev);
+> -       if (ret)
+> -               goto err_res;
+> -
+>         ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
+>         if (ret)
+>                 goto err_v4l2_dev_reg;
+> @@ -1313,8 +1352,6 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+>  err_dec_alloc:
+>         v4l2_device_unregister(&dev->v4l2_dev);
+>  err_v4l2_dev_reg:
+> -       s5p_mfc_release_firmware(dev);
+> -err_res:
+>         s5p_mfc_final_pm(dev);
+>  err_dma:
+>         s5p_mfc_unconfigure_dma_memory(dev);
+> @@ -1356,7 +1393,6 @@ static int s5p_mfc_remove(struct platform_device *pdev)
+>         video_device_release(dev->vfd_enc);
+>         video_device_release(dev->vfd_dec);
+>         v4l2_device_unregister(&dev->v4l2_dev);
+> -       s5p_mfc_release_firmware(dev);
+>         s5p_mfc_unconfigure_dma_memory(dev);
+>
+>         s5p_mfc_final_pm(dev);
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> index 50d698968049..b0cf3970117a 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> @@ -26,9 +26,6 @@
+>  /* Allocate memory for firmware */
+>  int s5p_mfc_alloc_firmware(struct s5p_mfc_dev *dev)
+>  {
+> -       void *bank2_virt;
+> -       dma_addr_t bank2_dma_addr;
+> -       unsigned int align_size = 1 << MFC_BASE_ALIGN_ORDER;
+>         struct s5p_mfc_priv_buf *fw_buf = &dev->fw_buf;
+>
+>         fw_buf->size = dev->variant->buf_size->fw;
+> @@ -44,35 +41,7 @@ int s5p_mfc_alloc_firmware(struct s5p_mfc_dev *dev)
+>                 mfc_err("Allocating bitprocessor buffer failed\n");
+>                 return -ENOMEM;
+>         }
+> -       dev->dma_base[BANK1_CTX] = fw_buf->dma;
+> -
+> -       if (HAS_PORTNUM(dev) && IS_TWOPORT(dev)) {
+> -               bank2_virt = dma_alloc_coherent(dev->mem_dev[BANK2_CTX],
+> -                                      align_size, &bank2_dma_addr, GFP_KERNEL);
+> -
+> -               if (!bank2_virt) {
+> -                       mfc_err("Allocating bank2 base failed\n");
+> -                       dma_free_coherent(dev->mem_dev[BANK1_CTX], fw_buf->size,
+> -                                         fw_buf->virt, fw_buf->dma);
+> -                       fw_buf->virt = NULL;
+> -                       return -ENOMEM;
+> -               }
+> -
+> -               /* Valid buffers passed to MFC encoder with LAST_FRAME command
+> -                * should not have address of bank2 - MFC will treat it as a null frame.
+> -                * To avoid such situation we set bank2 address below the pool address.
+> -                */
+> -               dev->dma_base[BANK2_CTX] = bank2_dma_addr - align_size;
+>
+> -               dma_free_coherent(dev->mem_dev[BANK2_CTX], align_size,
+> -                                 bank2_virt, bank2_dma_addr);
+> -
+> -       } else {
+> -               /* In this case bank2 can point to the same address as bank1.
+> -                * Firmware will always occupy the beginning of this area so it is
+> -                * impossible having a video frame buffer with zero address. */
+> -               dev->dma_base[BANK2_CTX] = dev->dma_base[BANK1_CTX];
+> -       }
+>         return 0;
+>  }
+>
+> --
+> 1.9.1
+>
