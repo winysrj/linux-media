@@ -1,143 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:35629 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752642AbdBUXe2 (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:48557 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753235AbdBVCTv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Feb 2017 18:34:28 -0500
-Subject: Re: [PATCH v4 29/36] media: imx: mipi-csi2: enable setting and
- getting of frame rates
-To: Sakari Ailus <sakari.ailus@iki.fi>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
- <1487211578-11360-30-git-send-email-steve_longerbeam@mentor.com>
- <20170220220409.GX16975@valkosipuli.retiisi.org.uk>
- <6892fb15-2d18-4898-c328-3acff9d6cc39@gmail.com>
- <20170221121542.GH16975@valkosipuli.retiisi.org.uk>
- <f9cfbde0-de54-6603-f0bf-9a7086840fda@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Russell King <rmk+kernel@armlinux.org.uk>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <3c02e0fc-eb04-726b-ea77-65550d20953a@gmail.com>
-Date: Tue, 21 Feb 2017 15:34:23 -0800
+        Tue, 21 Feb 2017 21:19:51 -0500
+Subject: Re: [PATCH v5 1/3] [media] exynos-gsc: Use user configured colorspace
+ if provided
+To: Thibault Saunier <thibault.saunier@osg.samsung.com>,
+        linux-kernel@vger.kernel.org
+References: <20170221192059.29745-1-thibault.saunier@osg.samsung.com>
+ <20170221192059.29745-2-thibault.saunier@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        linux-arm-kernel@lists.infradead.org,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <329a892b-eb57-26a5-d048-cfe4efc331b6@xs4all.nl>
+Date: Tue, 21 Feb 2017 18:19:35 -0800
 MIME-Version: 1.0
-In-Reply-To: <f9cfbde0-de54-6603-f0bf-9a7086840fda@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+In-Reply-To: <20170221192059.29745-2-thibault.saunier@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
 
-On 02/21/2017 02:21 PM, Steve Longerbeam wrote:
->
->
-> On 02/21/2017 04:15 AM, Sakari Ailus wrote:
->> Hi Steve,
->>
->> On Mon, Feb 20, 2017 at 02:56:15PM -0800, Steve Longerbeam wrote:
->>>
->>>
->>> On 02/20/2017 02:04 PM, Sakari Ailus wrote:
->>>> Hi Steve,
->>>>
->>>> On Wed, Feb 15, 2017 at 06:19:31PM -0800, Steve Longerbeam wrote:
->>>>> From: Russell King <rmk+kernel@armlinux.org.uk>
->>>>>
->>>>> Setting and getting frame rates is part of the negotiation mechanism
->>>>> between subdevs.  The lack of support means that a frame rate at the
->>>>> sensor can't be negotiated through the subdev path.
->>>>
->>>> Just wondering --- what do you need this for?
->>>
->>>
->>> Hi Sakari,
->>>
->>> i.MX does need the ability to negotiate the frame rates in the
->>> pipelines. The CSI has the ability to skip frames at the output,
->>> which is something Philipp added to the CSI subdev. That affects
->>> frame interval at the CSI output.
->>>
->>> But as Russell pointed out, the lack of [gs]_frame_interval op
->>> causes media-ctl to fail:
->>>
->>> media-ctl -v -d /dev/media1 --set-v4l2
->>> '"imx6-mipi-csi2":1[fmt:SGBRG8/512x512@1/30]'
->>>
->>> Opening media device /dev/media1
->>> Enumerating entities
->>> Found 29 entities
->>> Enumerating pads and links
->>> Setting up format SGBRG8 512x512 on pad imx6-mipi-csi2/1
->>> Format set: SGBRG8 512x512
->>> Setting up frame interval 1/30 on entity imx6-mipi-csi2
->>> Unable to set frame interval: Inappropriate ioctl for device
->>> (-25)Unable to
->>> setup formats: Inappropriate ioctl for device (25)
->>>
->>>
->>> So i.MX needs to implement this op in every subdev in the
->>> pipeline, otherwise it's not possible to configure the
->>> pipeline with media-ctl.
->>
->> The frame rate is only set on the sub-device which you explicitly set it.
->> I.e. setting the frame rate fails if it's not supported on a pad.
->>
->> Philipp recently posted patches that add frame rate propagation to
->> media-ctl.
->>
->> Frame rate is typically settable (and gettable) only on sensor
->> sub-device's
->> source pad,  which means it normally would not be propagated by the
->> kernel
->> but with Philipp's patches, on the sink pad of the bus receiver.
->> Receivers
->> don't have a way to control it nor they implement the IOCTLs, so that
->> would
->> indeed result in an error.
->>
->
-> Frame rate is really an essential piece of information. The spatial
-> dimensions and data type provided by set_fmt are really only half the
-> equation, the other is temporal, i.e. the data rate.
->
-> It's true that subdevices have no control over the frame rate at their
-> sink pads, but the same argument applies to set_fmt. Even if it has
-> no control over the data format it receives, it still needs that
-> information in order to determine the correct format at the source.
-> The same argument applies to frame rate.
->
-> So in my opinion, the behavior of [gs]_frame_interval should be, if a
-> subdevice is capable of modifying the frame rate, then it should
-> implement [gs]_frame_interval at _all_ of its pads, similar to set_fmt.
-> And frame rate should really be part of link validation the same as
-> set_fmt is.
->
+On 02/21/2017 11:20 AM, Thibault Saunier wrote:
+> Use colorspace provided by the user as we are only doing scaling and
+> color encoding conversion, we won't be able to transform the colorspace
+> itself and the colorspace won't mater in that operation.
+> 
+> Also always use output colorspace on the capture side.
+> 
+> Start using 576p as a threashold to compute the colorspace.
+> The media documentation says that the V4L2_COLORSPACE_SMPTE170M colorspace
+> should be used for SDTV and V4L2_COLORSPACE_REC709 for HDTV. But drivers
+> don't agree on the display resolution that should be used as a threshold.
+> 
+> From EIA CEA 861B about colorimetry for various resolutions:
+> 
+>   - 5.1 480p, 480i, 576p, 576i, 240p, and 288p
+>     The color space used by the 480-line, 576-line, 240-line, and 288-line
+>     formats will likely be based on SMPTE 170M [1].
+>   - 5.2 1080i, 1080p, and 720p
+>     The color space used by the high definition formats will likely be
+>     based on ITU-R BT.709-4
+> 
+> This indicates that in the case that userspace does not specify what
+> colorspace should be used, we should use 576p  as a threshold to set
+> V4L2_COLORSPACE_REC709 instead of V4L2_COLORSPACE_SMPTE170M. Even if it is
+> only 'likely' and not a requirement it is the best guess we can make.
+> 
+> The stream should have been encoded with the information and userspace
+> has to pass it to the driver if it is not the case, otherwise we won't be
+> able to handle it properly anyhow.
+> 
+> Also, check for the resolution in G_FMT instead unconditionally setting
+> the V4L2_COLORSPACE_REC709 colorspace.
+> 
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
+> Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
+> 
+> ---
+> 
+> Changes in v5:
+> - Squash commit to always use output colorspace on the capture side
+>   inside this one
+> - Fix typo in commit message
+> 
+> Changes in v4:
+> - Reword commit message to better back our assumptions on specifications
+> 
+> Changes in v3:
+> - Do not check values in the g_fmt functions as Andrzej explained in previous review
+> - Added 'Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>'
+> 
+> Changes in v2: None
+> 
+>  drivers/media/platform/exynos-gsc/gsc-core.c | 20 +++++++++++++++-----
+>  drivers/media/platform/exynos-gsc/gsc-core.h |  1 +
+>  2 files changed, 16 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+> index 59a634201830..772599de8c13 100644
+> --- a/drivers/media/platform/exynos-gsc/gsc-core.c
+> +++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+> @@ -454,6 +454,7 @@ int gsc_try_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
+>  	} else {
+>  		min_w = variant->pix_min->target_rot_dis_w;
+>  		min_h = variant->pix_min->target_rot_dis_h;
+> +		pix_mp->colorspace = ctx->out_colorspace;
+>  	}
+>  
+>  	pr_debug("mod_x: %d, mod_y: %d, max_w: %d, max_h = %d",
+> @@ -472,10 +473,15 @@ int gsc_try_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
+>  
+>  	pix_mp->num_planes = fmt->num_planes;
+>  
+> -	if (pix_mp->width >= 1280) /* HD */
+> -		pix_mp->colorspace = V4L2_COLORSPACE_REC709;
+> -	else /* SD */
+> -		pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
+> +	if (pix_mp->colorspace == V4L2_COLORSPACE_DEFAULT) {
+> +		if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
 
-Actually, if frame rate were added to link validation then
-[gs]_frame_interval would have to be mandatory, even if the
-subdev has no control over frame rate, again this is like
-set_fmt. Otherwise, if a subdev has not implemented
-[gs]_frame_interval, then frame rate validation across
-the whole pipeline is broken. Because, if we have
+I'd use || instead of && here. Ditto for the next patch.
 
-A -> B -> C
+> +			pix_mp->colorspace = V4L2_COLORSPACE_REC709;
+> +		else /* SD */
+> +			pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
+> +	}
 
-and B has not implemented [gs]_frame_interval, and C is expecting
-30 fps, then pipeline validation would succeed even though A is 
-outputting 60 fps.
+Are you sure this is in fact how it is used? If the source of the video
+is the sensor (camera), then the colorspace is typically SRGB. I'm not
+really sure you should guess here. All a mem2mem driver should do is to
+pass the colorspace etc. information from the output to the capture side,
+and not invent things. That simply makes no sense.
 
-Steve
+We may have to update the documentation or v4l2-compliance test if this
+is an issue. The more I think about this, the more I think we shouldn't
+do this guessing game.
+
+Regards,
+
+	Hans
+
+> +
+> +	if (V4L2_TYPE_IS_OUTPUT(f->type))
+> +		ctx->out_colorspace = pix_mp->colorspace;
+>  
+>  	for (i = 0; i < pix_mp->num_planes; ++i) {
+>  		struct v4l2_plane_pix_format *plane_fmt = &pix_mp->plane_fmt[i];
+> @@ -519,9 +525,13 @@ int gsc_g_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
+>  	pix_mp->height		= frame->f_height;
+>  	pix_mp->field		= V4L2_FIELD_NONE;
+>  	pix_mp->pixelformat	= frame->fmt->pixelformat;
+> -	pix_mp->colorspace	= V4L2_COLORSPACE_REC709;
+>  	pix_mp->num_planes	= frame->fmt->num_planes;
+>  
+> +	if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
+> +		pix_mp->colorspace = V4L2_COLORSPACE_REC709;
+> +	else /* SD */
+> +		pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
+> +
+>  	for (i = 0; i < pix_mp->num_planes; ++i) {
+>  		pix_mp->plane_fmt[i].bytesperline = (frame->f_width *
+>  			frame->fmt->depth[i]) / 8;
+> diff --git a/drivers/media/platform/exynos-gsc/gsc-core.h b/drivers/media/platform/exynos-gsc/gsc-core.h
+> index 696217e9af66..715d9c9d8d30 100644
+> --- a/drivers/media/platform/exynos-gsc/gsc-core.h
+> +++ b/drivers/media/platform/exynos-gsc/gsc-core.h
+> @@ -376,6 +376,7 @@ struct gsc_ctx {
+>  	struct v4l2_ctrl_handler ctrl_handler;
+>  	struct gsc_ctrls	gsc_ctrls;
+>  	bool			ctrls_rdy;
+> +	enum v4l2_colorspace out_colorspace;
+>  };
+>  
+>  void gsc_set_prefbuf(struct gsc_dev *gsc, struct gsc_frame *frm);
+> 
