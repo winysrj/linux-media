@@ -1,57 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:41273 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751404AbdBFKaK (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:32940 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933644AbdBVXxc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Feb 2017 05:30:10 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        devicetree@vger.kernel.org
-Subject: [PATCHv4 4/9] ARM: dts: exynos: add HDMI controller phandle to exynos4.dtsi
-Date: Mon,  6 Feb 2017 11:29:46 +0100
-Message-Id: <20170206102951.12623-5-hverkuil@xs4all.nl>
-In-Reply-To: <20170206102951.12623-1-hverkuil@xs4all.nl>
-References: <20170206102951.12623-1-hverkuil@xs4all.nl>
+        Wed, 22 Feb 2017 18:53:32 -0500
+Subject: Re: [PATCH v4 33/36] media: imx: redo pixel format enumeration and
+ negotiation
+To: Philipp Zabel <p.zabel@pengutronix.de>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+ <1487211578-11360-34-git-send-email-steve_longerbeam@mentor.com>
+ <1487244744.2377.38.camel@pengutronix.de>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <9a4a4da7-418e-860e-05ec-da44b3c945cc@gmail.com>
+Date: Wed, 22 Feb 2017 15:52:50 -0800
+MIME-Version: 1.0
+In-Reply-To: <1487244744.2377.38.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Philipp,
 
-Add the new hdmi phandle to exynos4.dtsi. This phandle is needed by the
-s5p-cec driver to initialize the HPD notifier framework.
 
-Tested with my Odroid U3.
+On 02/16/2017 03:32 AM, Philipp Zabel wrote:
+> On Wed, 2017-02-15 at 18:19 -0800, Steve Longerbeam wrote:
+>> The previous API and negotiation of mbus codes and pixel formats
+>> was broken, and has been completely redone.
+>>
+>> The negotiation of media bus codes should be as follows:
+>>
+>> CSI:
+>>
+>> sink pad     direct src pad      IDMAC src pad
+>> --------     ----------------    -------------
+>> RGB (any)        IPU RGB           RGB (any)
+>> YUV (any)        IPU YUV           YUV (any)
+>> Bayer              N/A             must be same bayer code as sink
+>
+> The IDMAC src pad should also use the internal 32-bit RGB / YUV format,
+> except if bayer/raw mode is selected, in which case the attached capture
+> video device should only allow a single mode corresponding to the output
+> pad media bus format.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: linux-samsung-soc@vger.kernel.org
-CC: devicetree@vger.kernel.org
-CC: Krzysztof Kozlowski <krzk@kernel.org>
----
- arch/arm/boot/dts/exynos4.dtsi | 1 +
- 1 file changed, 1 insertion(+)
+The IDMAC source pad is going to memory, so it has left the IPU.
+Are you sure it should be an internal IPU format? I realize it
+is linked to a capture device node, and the IPU format could then
+be translated to a v4l2 fourcc by the capture device, but IMHO this
+pad is external to the IPU.
 
-diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
-index c64737baa45e..51dfcbb51b6b 100644
---- a/arch/arm/boot/dts/exynos4.dtsi
-+++ b/arch/arm/boot/dts/exynos4.dtsi
-@@ -762,6 +762,7 @@
- 		clocks = <&clock CLK_HDMI_CEC>;
- 		clock-names = "hdmicec";
- 		samsung,syscon-phandle = <&pmu_system_controller>;
-+		samsung,hdmi-phandle = <&hdmi>;
- 		pinctrl-names = "default";
- 		pinctrl-0 = <&hdmi_cec>;
- 		status = "disabled";
--- 
-2.11.0
-
+Steve
