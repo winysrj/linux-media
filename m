@@ -1,87 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59990 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751246AbdBYNpt (ORCPT
+Received: from mail-it0-f67.google.com ([209.85.214.67]:33468 "EHLO
+        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754938AbdBVTIc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Feb 2017 08:45:49 -0500
-Date: Sat, 25 Feb 2017 15:44:45 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
-Subject: Re: [PATCH 1/4] v4l2: device_register_subdev_nodes: allow calling
- multiple times
-Message-ID: <20170225134444.6qzumpvasaow5qoj@ihha.localdomain>
-References: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz>
- <20170220103114.GA9800@amd>
- <20170220130912.GT16975@valkosipuli.retiisi.org.uk>
- <20170220135636.GU16975@valkosipuli.retiisi.org.uk>
- <20170221110721.GD5021@amd>
- <20170221111104.GD16975@valkosipuli.retiisi.org.uk>
- <20170225000918.GB23662@amd>
+        Wed, 22 Feb 2017 14:08:32 -0500
+Received: by mail-it0-f67.google.com with SMTP id e137so1538912itc.0
+        for <linux-media@vger.kernel.org>; Wed, 22 Feb 2017 11:07:39 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170225000918.GB23662@amd>
+In-Reply-To: <ef70688e-35a5-00a5-44e0-575bc18d1752@vodafone.de>
+References: <CGME20170221132114eucas1p2e527d5b5516494ba54aa91f48b3e227f@eucas1p2.samsung.com>
+ <1487683261-2655-1-git-send-email-m.szyprowski@samsung.com>
+ <917aff70-64f7-7224-a015-0e77951bbc1d@vodafone.de> <dbcfe0d9-cdc3-e715-2535-0a2b7ffec3a5@samsung.com>
+ <ac1ddfe4-1667-bdb0-c4da-35c8cf85fbed@samsung.com> <ef70688e-35a5-00a5-44e0-575bc18d1752@vodafone.de>
+From: Daniel Vetter <daniel@ffwll.ch>
+Date: Wed, 22 Feb 2017 20:07:38 +0100
+Message-ID: <CAKMK7uHsPizi3hCj4r9fw=kK1g5iy+oB7+CPO+uH-WQpXDBaFg@mail.gmail.com>
+Subject: Re: [PATCH] dma-buf: add support for compat ioctl
+To: =?UTF-8?Q?Christian_K=C3=B6nig?= <deathsimple@vodafone.de>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Feb 25, 2017 at 01:09:18AM +0100, Pavel Machek wrote:
-> On Tue 2017-02-21 13:11:04, Sakari Ailus wrote:
-> > On Tue, Feb 21, 2017 at 12:07:21PM +0100, Pavel Machek wrote:
-> > > On Mon 2017-02-20 15:56:36, Sakari Ailus wrote:
-> > > > On Mon, Feb 20, 2017 at 03:09:13PM +0200, Sakari Ailus wrote:
-> > > > > I've tested ACPI, will test DT soon...
-> > > > 
-> > > > DT case works, too (Nokia N9).
-> > > 
-> > > Hmm. Good to know. Now to figure out how to get N900 case to work...
-> > > 
-> > > AFAICT N9 has CSI2, not CSI1 support, right? Some of the core changes
-> > > seem to be in, so I'll need to figure out which, and will still need
-> > > omap3isp modifications...
-> > 
-> > Indeed, I've only tested for CSI-2 as I have no functional CSI-1 devices.
-> > 
-> > It's essentially the functionality in the four patches. The data-lane and
-> > clock-name properties have been renamed as data-lanes and clock-lanes (i.e.
-> > plural) to match the property documentation.
-> 
-> Ok, I got the camera sensor to work. No subdevices support, so I don't
-> have focus (etc) working, but that's a start. I also had to remove
-> video-bus-switch support; but I guess it will be easier to use
-> video-multiplexer patches... 
-> 
-> I'll have patches over weekend.
+On Tue, Feb 21, 2017 at 4:08 PM, Christian K=C3=B6nig
+<deathsimple@vodafone.de> wrote:
+> Am 21.02.2017 um 15:55 schrieb Marek Szyprowski:
+>>
+>> Dear All,
+>>
+>> On 2017-02-21 15:37, Marek Szyprowski wrote:
+>>>
+>>> Hi Christian,
+>>>
+>>> On 2017-02-21 14:59, Christian K=C3=B6nig wrote:
+>>>>
+>>>> Am 21.02.2017 um 14:21 schrieb Marek Szyprowski:
+>>>>>
+>>>>> Add compat ioctl support to dma-buf. This lets one to use
+>>>>> DMA_BUF_IOCTL_SYNC
+>>>>> ioctl from 32bit application on 64bit kernel. Data structures for bot=
+h
+>>>>> 32
+>>>>> and 64bit modes are same, so there is no need for additional
+>>>>> translation
+>>>>> layer.
+>>>>
+>>>>
+>>>> Well I might be wrong, but IIRC compat_ioctl was just optional and if
+>>>> not specified unlocked_ioctl was called instead.
+>>>>
+>>>> If that is true your patch wouldn't have any effect at all.
+>>>
+>>>
+>>> Well, then why I got -ENOTTY in the 32bit test app for this ioctl on
+>>> 64bit ARM64 kernel without this patch?
+>>>
+>>
+>> I've checked in fs/compat_ioctl.c, I see no fallback in
+>> COMPAT_SYSCALL_DEFINE3,
+>> so one has to provide compat_ioctl callback to have ioctl working with
+>> 32bit
+>> apps.
+>
+>
+> Then my memory cheated on me.
+>
+> In this case the patch is Reviewed-by: Christian K=C3=B6nig
+> <christian.koenig@amd.com>.
 
-I briefly looked at what's there --- you do miss the video nodes for the
-non-sensor sub-devices, and they also don't show up in the media graph,
-right?
+Since you have commit rights for drm-misc, care to push this to
+drm-misc-next-fixes pls? Also I think this warrants a cc: stable,
+clearly an obvious screw-up in creating this api on our side :( So
+feel free to smash my ack on the patch.
 
-I guess they don't end up matching in the async list.
-
-I think we need to make the non-sensor sub-device support more generic;
-it's not just the OMAP 3 ISP that needs it. I think we need to document
-the property for the flash phandle as well; I can write one, or refresh
-an existing one that I believe already exists.
-
-How about calling it either simply "flash" or "camera-flash"? Similarly
-for lens: "lens" or "camera-lens". I have a vague feeling the "camera-"
-prefix is somewhat redundant, so I'd just go for "flash" or "lens".
-
-At the very least the property names must be generic (not hardware
-dependent) as this kind of functionality should be present in the
-framework rather than in individual drivers. That'll be for later though.
-
-Making the sub-device bus configuration a pointer should be in a separate
-patch. It makes sense since the entire configuration is not valid for all
-sub-devices attached to the ISP anymore. I think it originally was a
-separate patch, but they probably have been merged at some point. I can't
-find it right now anyway.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Thanks, Daniel
+--=20
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
