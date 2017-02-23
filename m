@@ -1,866 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:38227 "EHLO
-        mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753508AbdBASUN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Feb 2017 13:20:13 -0500
-Received: by mail-wm0-f43.google.com with SMTP id r141so50533720wmg.1
-        for <linux-media@vger.kernel.org>; Wed, 01 Feb 2017 10:20:12 -0800 (PST)
-Date: Wed, 1 Feb 2017 18:19:57 +0000
-From: Peter Griffin <peter.griffin@linaro.org>
-To: Hugues Fruchet <hugues.fruchet@st.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        kernel@stlinux.com,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [STLinux Kernel] [PATCH v6 07/10] [media] st-delta: rpmsg ipc
- support
-Message-ID: <20170201181957.GD31988@griffinp-ThinkPad-X1-Carbon-2nd>
-References: <1485965011-17388-1-git-send-email-hugues.fruchet@st.com>
- <1485965011-17388-8-git-send-email-hugues.fruchet@st.com>
+Received: from mail-ot0-f195.google.com ([74.125.82.195]:35145 "EHLO
+        mail-ot0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751199AbdBWVnG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 23 Feb 2017 16:43:06 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1485965011-17388-8-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1487058728-16501-15-git-send-email-m.szyprowski@samsung.com>
+References: <CGME20170214075221eucas1p1c0acfa79289ebff6306c01e47c3e83a7@eucas1p1.samsung.com>
+ <1487058728-16501-1-git-send-email-m.szyprowski@samsung.com> <1487058728-16501-15-git-send-email-m.szyprowski@samsung.com>
+From: Shuah Khan <shuahkhan@gmail.com>
+Date: Thu, 23 Feb 2017 14:43:05 -0700
+Message-ID: <CAKocOOO+JLD7pcL2A-8adi1hwDjw55Y2jMQ3Ki6oVTWdSn1W+A@mail.gmail.com>
+Subject: Re: [PATCH 14/15] media: s5p-mfc: Use preallocated block allocator
+ always for MFC v6+
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>, shuahkh@osg.samsung.com
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 01 Feb 2017, Hugues Fruchet wrote:
+On Tue, Feb 14, 2017 at 12:52 AM, Marek Szyprowski
+<m.szyprowski@samsung.com> wrote:
+> It turned out that all versions of MFC v6+ hardware doesn't have a strict
+> requirement for ALL buffers to be allocated on higher addresses than the
+> firmware base like it was documented for MFC v5. This requirement is true
+> only for the device and per-context buffers. All video data buffers can be
+> allocated anywhere for all MFC v6+ versions. Basing on this fact, the
+> special DMA configuration based on two reserved memory regions is not
+> really needed for MFC v6+ devices, because the memory requirements for the
+> firmware, device and per-context buffers can be fulfilled by the simple
+> probe-time pre-allocated block allocator instroduced in previous patch.
+>
+> This patch enables support for such pre-allocated block based allocator
+> always for MFC v6+ devices. Due to the limitations of the memory management
+> subsystem the largest supported size of the pre-allocated buffer when no
+> CMA (Contiguous Memory Allocator) is enabled is 4MiB.
+>
+> This patch also removes the requirement to provide two reserved memory
+> regions for MFC v6+ devices in device tree. Now the driver is fully
+> functional without them.
+>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-> IPC (Inter Process Communication) support for communication with
-> DELTA coprocessor firmware using rpmsg kernel framework.
-> Based on 4 services open/set_stream/decode/close and their associated
-> rpmsg messages.
-> The messages structures are duplicated on both host and firmware
-> side and are packed (use only of 32 bits size fields in messages
-> structures to ensure packing).
-> Each service is synchronous; service returns only when firmware
-> acknowledges the associated command message.
-> Due to significant parameters size exchanged from host to copro,
-> parameters are not inserted in rpmsg messages. Instead, parameters are
-> stored in physical memory shared between host and coprocessor.
-> Memory is non-cacheable, so no special operation is required
-> to ensure memory coherency on host and on coprocessor side.
-> Multi-instance support and re-entrance are ensured using host_hdl and
-> copro_hdl in message header exchanged between both host and coprocessor.
-> This avoids to manage tables on both sides to get back the running context
-> of each instance.
-> 
-> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+Hi Marek,
 
-Acked-by: Peter Griffin <peter.griffin@linaro.org>
+This patch breaks display manager. exynos_drm_gem_create() isn't happy.
+dmesg and console are flooded with
+
+odroid login: [  209.170566] [drm:exynos_drm_gem_create] *ERROR* failed to allo.
+[  212.173222] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  215.354790] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  218.736464] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  221.837128] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  226.284827] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  229.242498] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  232.063150] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  235.799993] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  239.472061] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  242.567465] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  246.500541] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  249.996018] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  253.837272] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  257.048782] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  260.084819] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  263.448611] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  266.271074] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  269.011558] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  272.039066] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  275.404938] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  278.339033] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  281.274751] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  284.641202] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  287.461039] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  291.062011] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  294.746870] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+[  298.246570] [drm:exynos_drm_gem_create] *ERROR* failed to allocate buffer.
+
+I don't think this is an acceptable behavior. It is a regression.
+
+thanks,
+-- Shuah
 
 > ---
->  drivers/media/platform/Kconfig                |   1 +
->  drivers/media/platform/sti/delta/Makefile     |   2 +-
->  drivers/media/platform/sti/delta/delta-ipc.c  | 594 ++++++++++++++++++++++++++
->  drivers/media/platform/sti/delta/delta-ipc.h  |  76 ++++
->  drivers/media/platform/sti/delta/delta-v4l2.c |  11 +
->  drivers/media/platform/sti/delta/delta.h      |  21 +
->  6 files changed, 704 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/media/platform/sti/delta/delta-ipc.c
->  create mode 100644 drivers/media/platform/sti/delta/delta-ipc.h
-> 
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index 2247d9d..2e82ec6 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -323,6 +323,7 @@ config VIDEO_STI_DELTA_DRIVER
->  	default n
->  	select VIDEOBUF2_DMA_CONTIG
->  	select V4L2_MEM2MEM_DEV
-> +	select RPMSG
->  
->  endif # VIDEO_STI_DELTA
->  
-> diff --git a/drivers/media/platform/sti/delta/Makefile b/drivers/media/platform/sti/delta/Makefile
-> index 93a3037..b791ba0 100644
-> --- a/drivers/media/platform/sti/delta/Makefile
-> +++ b/drivers/media/platform/sti/delta/Makefile
-> @@ -1,2 +1,2 @@
->  obj-$(CONFIG_VIDEO_STI_DELTA_DRIVER) := st-delta.o
-> -st-delta-y := delta-v4l2.o delta-mem.o
-> +st-delta-y := delta-v4l2.o delta-mem.o delta-ipc.o
-> diff --git a/drivers/media/platform/sti/delta/delta-ipc.c b/drivers/media/platform/sti/delta/delta-ipc.c
-> new file mode 100644
-> index 0000000..41e4a4c
-> --- /dev/null
-> +++ b/drivers/media/platform/sti/delta/delta-ipc.c
-> @@ -0,0 +1,594 @@
-> +/*
-> + * Copyright (C) STMicroelectronics SA 2015
-> + * Author: Hugues Fruchet <hugues.fruchet@st.com> for STMicroelectronics.
-> + * License terms:  GNU General Public License (GPL), version 2
-> + */
-> +
-> +#include <linux/rpmsg.h>
-> +
-> +#include "delta.h"
-> +#include "delta-ipc.h"
-> +#include "delta-mem.h"
-> +
-> +#define IPC_TIMEOUT 100
-> +#define IPC_SANITY_TAG 0xDEADBEEF
-> +
-> +enum delta_ipc_fw_command {
-> +	DELTA_IPC_OPEN,
-> +	DELTA_IPC_SET_STREAM,
-> +	DELTA_IPC_DECODE,
-> +	DELTA_IPC_CLOSE
-> +};
-> +
-> +#define to_rpmsg_driver(__drv) container_of(__drv, struct rpmsg_driver, drv)
-> +#define to_delta(__d) container_of(__d, struct delta_dev, rpmsg_driver)
-> +
-> +#define to_ctx(hdl) ((struct delta_ipc_ctx *)hdl)
-> +#define to_pctx(ctx) container_of(ctx, struct delta_ctx, ipc_ctx)
-> +
-> +struct delta_ipc_header_msg {
-> +	u32 tag;
-> +	void *host_hdl;
-> +	u32 copro_hdl;
-> +	u32 command;
-> +};
-> +
-> +#define to_host_hdl(ctx) ((void *)ctx)
-> +
-> +#define msg_to_ctx(msg) ((struct delta_ipc_ctx *)(msg)->header.host_hdl)
-> +#define msg_to_copro_hdl(msg) ((msg)->header.copro_hdl)
-> +
-> +static inline dma_addr_t to_paddr(struct delta_ipc_ctx *ctx, void *vaddr)
-> +{
-> +	return (ctx->ipc_buf->paddr + (vaddr - ctx->ipc_buf->vaddr));
-> +}
-> +
-> +static inline bool is_valid_data(struct delta_ipc_ctx *ctx,
-> +				 void *data, u32 size)
-> +{
-> +	return ((data >= ctx->ipc_buf->vaddr) &&
-> +		((data + size) <= (ctx->ipc_buf->vaddr + ctx->ipc_buf->size)));
-> +}
-> +
-> +/*
-> + * IPC shared memory (@ipc_buf_size, @ipc_buf_paddr) is sent to copro
-> + * at each instance opening. This memory is allocated by IPC client
-> + * and given through delta_ipc_open(). All messages parameters
-> + * (open, set_stream, decode) will have their phy address within
-> + * this IPC shared memory, avoiding de-facto recopies inside delta-ipc.
-> + * All the below messages structures are used on both host and firmware
-> + * side and are packed (use only of 32 bits size fields in messages
-> + * structures to ensure packing):
-> + * - struct delta_ipc_open_msg
-> + * - struct delta_ipc_set_stream_msg
-> + * - struct delta_ipc_decode_msg
-> + * - struct delta_ipc_close_msg
-> + * - struct delta_ipc_cb_msg
-> + */
-> +struct delta_ipc_open_msg {
-> +	struct delta_ipc_header_msg header;
-> +	u32 ipc_buf_size;
-> +	dma_addr_t ipc_buf_paddr;
-> +	char name[32];
-> +	u32 param_size;
-> +	dma_addr_t param_paddr;
-> +};
-> +
-> +struct delta_ipc_set_stream_msg {
-> +	struct delta_ipc_header_msg header;
-> +	u32 param_size;
-> +	dma_addr_t param_paddr;
-> +};
-> +
-> +struct delta_ipc_decode_msg {
-> +	struct delta_ipc_header_msg header;
-> +	u32 param_size;
-> +	dma_addr_t param_paddr;
-> +	u32 status_size;
-> +	dma_addr_t status_paddr;
-> +};
-> +
-> +struct delta_ipc_close_msg {
-> +	struct delta_ipc_header_msg header;
-> +};
-> +
-> +struct delta_ipc_cb_msg {
-> +	struct delta_ipc_header_msg header;
-> +	int err;
-> +};
-> +
-> +static void build_msg_header(struct delta_ipc_ctx *ctx,
-> +			     enum delta_ipc_fw_command command,
-> +			     struct delta_ipc_header_msg *header)
-> +{
-> +	header->tag = IPC_SANITY_TAG;
-> +	header->host_hdl = to_host_hdl(ctx);
-> +	header->copro_hdl = ctx->copro_hdl;
-> +	header->command = command;
-> +}
-> +
-> +int delta_ipc_open(struct delta_ctx *pctx, const char *name,
-> +		   struct delta_ipc_param *param, u32 ipc_buf_size,
-> +		   struct delta_buf **ipc_buf, void **hdl)
-> +{
-> +	struct delta_dev *delta = pctx->dev;
-> +	struct rpmsg_device *rpmsg_device = delta->rpmsg_device;
-> +	struct delta_ipc_ctx *ctx = &pctx->ipc_ctx;
-> +	struct delta_ipc_open_msg msg;
-> +	struct delta_buf *buf = &ctx->ipc_buf_struct;
-> +	int ret;
-> +
-> +	if (!rpmsg_device) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to open, rpmsg is not initialized\n",
-> +			pctx->name);
-> +		pctx->sys_errors++;
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (!name) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to open, no name given\n",
-> +			pctx->name);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (!param || !param->data || !param->size) {
-> +		dev_err(delta->dev,
-> +			"%s  ipc: failed to open, empty parameter\n",
-> +			pctx->name);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (!ipc_buf_size) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to open, no size given for ipc buffer\n",
-> +			pctx->name);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (param->size > ipc_buf_size) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to open, too large ipc parameter (%d bytes while max %d expected)\n",
-> +			pctx->name,
-> +			param->size, ctx->ipc_buf->size);
-> +		return -EINVAL;
-> +	}
-> +
-> +	/* init */
-> +	init_completion(&ctx->done);
-> +
-> +	/*
-> +	 * allocation of contiguous buffer for
-> +	 * data of commands exchanged between
-> +	 * host and firmware coprocessor
-> +	 */
-> +	ret = hw_alloc(pctx, ipc_buf_size,
-> +		       "ipc data buffer", buf);
-> +	if (ret)
-> +		return ret;
-> +	ctx->ipc_buf = buf;
-> +
-> +	/* build rpmsg message */
-> +	build_msg_header(ctx, DELTA_IPC_OPEN, &msg.header);
-> +
-> +	msg.ipc_buf_size = ipc_buf_size;
-> +	msg.ipc_buf_paddr = ctx->ipc_buf->paddr;
-> +
-> +	memcpy(msg.name, name, sizeof(msg.name));
-> +	msg.name[sizeof(msg.name) - 1] = 0;
-> +
-> +	msg.param_size = param->size;
-> +	memcpy(ctx->ipc_buf->vaddr, param->data, msg.param_size);
-> +	msg.param_paddr = ctx->ipc_buf->paddr;
-> +
-> +	/* send it */
-> +	ret = rpmsg_send(rpmsg_device->ept, &msg, sizeof(msg));
-> +	if (ret) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to open, rpmsg_send failed (%d) for DELTA_IPC_OPEN (name=%s, size=%d, data=%p)\n",
-> +			pctx->name,
-> +			ret, name, param->size, param->data);
-> +		goto err;
-> +	}
-> +
-> +	/* wait for acknowledge */
-> +	if (!wait_for_completion_timeout
-> +	    (&ctx->done, msecs_to_jiffies(IPC_TIMEOUT))) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to open, timeout waiting for DELTA_IPC_OPEN callback (name=%s, size=%d, data=%p)\n",
-> +			pctx->name,
-> +			name, param->size, param->data);
-> +		ret = -ETIMEDOUT;
-> +		goto err;
-> +	}
-> +
-> +	/* command completed, check error */
-> +	if (ctx->cb_err) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to open, DELTA_IPC_OPEN completed but with error (%d) (name=%s, size=%d, data=%p)\n",
-> +			pctx->name,
-> +			ctx->cb_err, name, param->size, param->data);
-> +		ret = -EIO;
-> +		goto err;
-> +	}
-> +
-> +	*ipc_buf = ctx->ipc_buf;
-> +	*hdl = (void *)ctx;
-> +
-> +	return 0;
-> +
-> +err:
-> +	pctx->sys_errors++;
-> +	if (ctx->ipc_buf) {
-> +		hw_free(pctx, ctx->ipc_buf);
-> +		ctx->ipc_buf = NULL;
-> +	}
-> +
-> +	return ret;
-> +};
-> +
-> +int delta_ipc_set_stream(void *hdl, struct delta_ipc_param *param)
-> +{
-> +	struct delta_ipc_ctx *ctx = to_ctx(hdl);
-> +	struct delta_ctx *pctx = to_pctx(ctx);
-> +	struct delta_dev *delta = pctx->dev;
-> +	struct rpmsg_device *rpmsg_device = delta->rpmsg_device;
-> +	struct delta_ipc_set_stream_msg msg;
-> +	int ret;
-> +
-> +	if (!hdl) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to set stream, invalid ipc handle\n",
-> +			pctx->name);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (!rpmsg_device) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to set stream, rpmsg is not initialized\n",
-> +			pctx->name);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (!param || !param->data || !param->size) {
-> +		dev_err(delta->dev,
-> +			"%s  ipc: failed to set stream, empty parameter\n",
-> +			pctx->name);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (param->size > ctx->ipc_buf->size) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to set stream, too large ipc parameter(%d bytes while max %d expected)\n",
-> +			pctx->name,
-> +			param->size, ctx->ipc_buf->size);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (!is_valid_data(ctx, param->data, param->size)) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to set stream, parameter is not in expected address range (size=%d, data=%p not in %p..%p)\n",
-> +			pctx->name,
-> +			param->size,
-> +			param->data,
-> +			ctx->ipc_buf->vaddr,
-> +			ctx->ipc_buf->vaddr + ctx->ipc_buf->size - 1);
-> +		return -EINVAL;
-> +	}
-> +
-> +	/* build rpmsg message */
-> +	build_msg_header(ctx, DELTA_IPC_SET_STREAM, &msg.header);
-> +
-> +	msg.param_size = param->size;
-> +	msg.param_paddr = to_paddr(ctx, param->data);
-> +
-> +	/* send it */
-> +	ret = rpmsg_send(rpmsg_device->ept, &msg, sizeof(msg));
-> +	if (ret) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to set stream, rpmsg_send failed (%d) for DELTA_IPC_SET_STREAM (size=%d, data=%p)\n",
-> +			pctx->name,
-> +			ret, param->size, param->data);
-> +		pctx->sys_errors++;
-> +		return ret;
-> +	}
-> +
-> +	/* wait for acknowledge */
-> +	if (!wait_for_completion_timeout
-> +	    (&ctx->done, msecs_to_jiffies(IPC_TIMEOUT))) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to set stream, timeout waiting for DELTA_IPC_SET_STREAM callback (size=%d, data=%p)\n",
-> +			pctx->name,
-> +			param->size, param->data);
-> +		pctx->sys_errors++;
-> +		return -ETIMEDOUT;
-> +	}
-> +
-> +	/* command completed, check status */
-> +	if (ctx->cb_err) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to set stream, DELTA_IPC_SET_STREAM completed but with error (%d) (size=%d, data=%p)\n",
-> +			pctx->name,
-> +			ctx->cb_err, param->size, param->data);
-> +		pctx->sys_errors++;
-> +		return -EIO;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +int delta_ipc_decode(void *hdl, struct delta_ipc_param *param,
-> +		     struct delta_ipc_param *status)
-> +{
-> +	struct delta_ipc_ctx *ctx = to_ctx(hdl);
-> +	struct delta_ctx *pctx = to_pctx(ctx);
-> +	struct delta_dev *delta = pctx->dev;
-> +	struct rpmsg_device *rpmsg_device = delta->rpmsg_device;
-> +	struct delta_ipc_decode_msg msg;
-> +	int ret;
-> +
-> +	if (!hdl) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to decode, invalid ipc handle\n",
-> +			pctx->name);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (!rpmsg_device) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to decode, rpmsg is not initialized\n",
-> +			pctx->name);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (!param || !param->data || !param->size) {
-> +		dev_err(delta->dev,
-> +			"%s  ipc: failed to decode, empty parameter\n",
-> +			pctx->name);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (!status || !status->data || !status->size) {
-> +		dev_err(delta->dev,
-> +			"%s  ipc: failed to decode, empty status\n",
-> +			pctx->name);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (param->size + status->size > ctx->ipc_buf->size) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to decode, too large ipc parameter (%d bytes (param) + %d bytes (status) while max %d expected)\n",
-> +			pctx->name,
-> +			param->size,
-> +			status->size,
-> +			ctx->ipc_buf->size);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (!is_valid_data(ctx, param->data, param->size)) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to decode, parameter is not in expected address range (size=%d, data=%p not in %p..%p)\n",
-> +			pctx->name,
-> +			param->size,
-> +			param->data,
-> +			ctx->ipc_buf->vaddr,
-> +			ctx->ipc_buf->vaddr + ctx->ipc_buf->size - 1);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (!is_valid_data(ctx, status->data, status->size)) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to decode, status is not in expected address range (size=%d, data=%p not in %p..%p)\n",
-> +			pctx->name,
-> +			status->size,
-> +			status->data,
-> +			ctx->ipc_buf->vaddr,
-> +			ctx->ipc_buf->vaddr + ctx->ipc_buf->size - 1);
-> +		return -EINVAL;
-> +	}
-> +
-> +	/* build rpmsg message */
-> +	build_msg_header(ctx, DELTA_IPC_DECODE, &msg.header);
-> +
-> +	msg.param_size = param->size;
-> +	msg.param_paddr = to_paddr(ctx, param->data);
-> +
-> +	msg.status_size = status->size;
-> +	msg.status_paddr = to_paddr(ctx, status->data);
-> +
-> +	/* send it */
-> +	ret = rpmsg_send(rpmsg_device->ept, &msg, sizeof(msg));
-> +	if (ret) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to decode, rpmsg_send failed (%d) for DELTA_IPC_DECODE (size=%d, data=%p)\n",
-> +			pctx->name,
-> +			ret, param->size, param->data);
-> +		pctx->sys_errors++;
-> +		return ret;
-> +	}
-> +
-> +	/* wait for acknowledge */
-> +	if (!wait_for_completion_timeout
-> +	    (&ctx->done, msecs_to_jiffies(IPC_TIMEOUT))) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to decode, timeout waiting for DELTA_IPC_DECODE callback (size=%d, data=%p)\n",
-> +			pctx->name,
-> +			param->size, param->data);
-> +		pctx->sys_errors++;
-> +		return -ETIMEDOUT;
-> +	}
-> +
-> +	/* command completed, check status */
-> +	if (ctx->cb_err) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to decode, DELTA_IPC_DECODE completed but with error (%d) (size=%d, data=%p)\n",
-> +			pctx->name,
-> +			ctx->cb_err, param->size, param->data);
-> +		pctx->sys_errors++;
-> +		return -EIO;
-> +	}
-> +
-> +	return 0;
-> +};
-> +
-> +void delta_ipc_close(void *hdl)
-> +{
-> +	struct delta_ipc_ctx *ctx = to_ctx(hdl);
-> +	struct delta_ctx *pctx = to_pctx(ctx);
-> +	struct delta_dev *delta = pctx->dev;
-> +	struct rpmsg_device *rpmsg_device = delta->rpmsg_device;
-> +	struct delta_ipc_close_msg msg;
-> +	int ret;
-> +
-> +	if (!hdl) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to close, invalid ipc handle\n",
-> +			pctx->name);
-> +		return;
-> +	}
-> +
-> +	if (ctx->ipc_buf) {
-> +		hw_free(pctx, ctx->ipc_buf);
-> +		ctx->ipc_buf = NULL;
-> +	}
-> +
-> +	if (!rpmsg_device) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to close, rpmsg is not initialized\n",
-> +			pctx->name);
-> +		return;
-> +	}
-> +
-> +	/* build rpmsg message */
-> +	build_msg_header(ctx, DELTA_IPC_CLOSE, &msg.header);
-> +
-> +	/* send it */
-> +	ret = rpmsg_send(rpmsg_device->ept, &msg, sizeof(msg));
-> +	if (ret) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to close, rpmsg_send failed (%d) for DELTA_IPC_CLOSE\n",
-> +			pctx->name, ret);
-> +		pctx->sys_errors++;
-> +		return;
-> +	}
-> +
-> +	/* wait for acknowledge */
-> +	if (!wait_for_completion_timeout
-> +	    (&ctx->done, msecs_to_jiffies(IPC_TIMEOUT))) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to close, timeout waiting for DELTA_IPC_CLOSE callback\n",
-> +			pctx->name);
-> +		pctx->sys_errors++;
-> +		return;
-> +	}
-> +
-> +	/* command completed, check status */
-> +	if (ctx->cb_err) {
-> +		dev_err(delta->dev,
-> +			"%s   ipc: failed to close, DELTA_IPC_CLOSE completed but with error (%d)\n",
-> +			pctx->name, ctx->cb_err);
-> +		pctx->sys_errors++;
-> +	}
-> +};
-> +
-> +static int delta_ipc_cb(struct rpmsg_device *rpdev, void *data,
-> +			int len, void *priv, u32 src)
-> +{
-> +	struct delta_ipc_ctx *ctx;
-> +	struct delta_ipc_cb_msg *msg;
-> +
-> +	/* sanity check */
-> +	if (!rpdev) {
-> +		dev_err(NULL, "rpdev is NULL\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (!data || !len) {
-> +		dev_err(&rpdev->dev,
-> +			"unexpected empty message received from src=%d\n", src);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (len != sizeof(*msg)) {
-> +		dev_err(&rpdev->dev,
-> +			"unexpected message length received from src=%d (received %d bytes while %zu bytes expected)\n",
-> +			len, src, sizeof(*msg));
-> +		return -EINVAL;
-> +	}
-> +
-> +	msg = (struct delta_ipc_cb_msg *)data;
-> +	if (msg->header.tag != IPC_SANITY_TAG) {
-> +		dev_err(&rpdev->dev,
-> +			"unexpected message tag received from src=%d (received %x tag while %x expected)\n",
-> +			src, msg->header.tag, IPC_SANITY_TAG);
-> +		return -EINVAL;
-> +	}
-> +
-> +	ctx = msg_to_ctx(msg);
-> +	if (!ctx) {
-> +		dev_err(&rpdev->dev,
-> +			"unexpected message with NULL host_hdl received from src=%d\n",
-> +			src);
-> +		return -EINVAL;
-> +	}
-> +
-> +	/*
-> +	 * if not already known, save copro instance context
-> +	 * to ensure re-entrance on copro side
-> +	 */
-> +	if (!ctx->copro_hdl)
-> +		ctx->copro_hdl = msg_to_copro_hdl(msg);
-> +
-> +	/*
-> +	 * all is fine,
-> +	 * update status & complete command
-> +	 */
-> +	ctx->cb_err = msg->err;
-> +	complete(&ctx->done);
-> +
-> +	return 0;
-> +}
-> +
-> +static int delta_ipc_probe(struct rpmsg_device *rpmsg_device)
-> +{
-> +	struct rpmsg_driver *rpdrv = to_rpmsg_driver(rpmsg_device->dev.driver);
-> +	struct delta_dev *delta = to_delta(rpdrv);
-> +
-> +	delta->rpmsg_device = rpmsg_device;
-> +
-> +	return 0;
-> +}
-> +
-> +static void delta_ipc_remove(struct rpmsg_device *rpmsg_device)
-> +{
-> +	struct rpmsg_driver *rpdrv = to_rpmsg_driver(rpmsg_device->dev.driver);
-> +	struct delta_dev *delta = to_delta(rpdrv);
-> +
-> +	delta->rpmsg_device = NULL;
-> +}
-> +
-> +static struct rpmsg_device_id delta_ipc_device_id_table[] = {
-> +	{.name = "rpmsg-delta"},
-> +	{},
-> +};
-> +
-> +static struct rpmsg_driver delta_rpmsg_driver = {
-> +	.drv = {.name = KBUILD_MODNAME},
-> +	.id_table = delta_ipc_device_id_table,
-> +	.probe = delta_ipc_probe,
-> +	.callback = delta_ipc_cb,
-> +	.remove = delta_ipc_remove,
-> +};
-> +
-> +int delta_ipc_init(struct delta_dev *delta)
-> +{
-> +	delta->rpmsg_driver = delta_rpmsg_driver;
-> +
-> +	return register_rpmsg_driver(&delta->rpmsg_driver);
-> +}
-> +
-> +void delta_ipc_exit(struct delta_dev *delta)
-> +{
-> +	unregister_rpmsg_driver(&delta->rpmsg_driver);
-> +}
-> diff --git a/drivers/media/platform/sti/delta/delta-ipc.h b/drivers/media/platform/sti/delta/delta-ipc.h
-> new file mode 100644
-> index 0000000..cef2019
-> --- /dev/null
-> +++ b/drivers/media/platform/sti/delta/delta-ipc.h
-> @@ -0,0 +1,76 @@
-> +/*
-> + * Copyright (C) STMicroelectronics SA 2015
-> + * Author: Hugues Fruchet <hugues.fruchet@st.com> for STMicroelectronics.
-> + * License terms:  GNU General Public License (GPL), version 2
-> + */
-> +
-> +#ifndef DELTA_IPC_H
-> +#define DELTA_IPC_H
-> +
-> +int delta_ipc_init(struct delta_dev *delta);
-> +void delta_ipc_exit(struct delta_dev *delta);
-> +
-> +/*
-> + * delta_ipc_open - open a decoding instance on firmware side
-> + * @ctx:		(in) delta context
-> + * @name:		(in) name of decoder to be used
-> + * @param:		(in) open command parameters specific to decoder
-> + *  @param.size:		(in) size of parameter
-> + *  @param.data:		(in) virtual address of parameter
-> + * @ipc_buf_size:	(in) size of IPC shared buffer between host
-> + *			     and copro used to share command data.
-> + *			     Client have to set here the size of the biggest
-> + *			     command parameters (+ status if any).
-> + *			     Allocation will be done in this function which
-> + *			     will give back to client in @ipc_buf the virtual
-> + *			     & physical addresses & size of shared IPC buffer.
-> + *			     All the further command data (parameters + status)
-> + *			     have to be written in this shared IPC buffer
-> + *			     virtual memory. This is done to avoid
-> + *			     unnecessary copies of command data.
-> + * @ipc_buf:		(out) allocated IPC shared buffer
-> + *  @ipc_buf.size:		(out) allocated size
-> + *  @ipc_buf.vaddr:		(out) virtual address where to copy
-> + *				      further command data
-> + * @hdl:		(out) handle of decoding instance.
-> + */
-> +
-> +int delta_ipc_open(struct delta_ctx *ctx, const char *name,
-> +		   struct delta_ipc_param *param, u32 ipc_buf_size,
-> +		   struct delta_buf **ipc_buf, void **hdl);
-> +
-> +/*
-> + * delta_ipc_set_stream - set information about stream to decoder
-> + * @hdl:		(in) handle of decoding instance.
-> + * @param:		(in) set stream command parameters specific to decoder
-> + *  @param.size:		(in) size of parameter
-> + *  @param.data:		(in) virtual address of parameter. Must be
-> + *				     within IPC shared buffer range
-> + */
-> +int delta_ipc_set_stream(void *hdl, struct delta_ipc_param *param);
-> +
-> +/*
-> + * delta_ipc_decode - frame decoding synchronous request, returns only
-> + *		      after decoding completion on firmware side.
-> + * @hdl:		(in) handle of decoding instance.
-> + * @param:		(in) decode command parameters specific to decoder
-> + *  @param.size:		(in) size of parameter
-> + *  @param.data:		(in) virtual address of parameter. Must be
-> + *				     within IPC shared buffer range
-> + * @status:		(in/out) decode command status specific to decoder
-> + *  @status.size:		(in) size of status
-> + *  @status.data:		(in/out) virtual address of status. Must be
-> + *					 within IPC shared buffer range.
-> + *					 Status is filled by decoding instance
-> + *					 after decoding completion.
-> + */
-> +int delta_ipc_decode(void *hdl, struct delta_ipc_param *param,
-> +		     struct delta_ipc_param *status);
-> +
-> +/*
-> + * delta_ipc_close - close decoding instance
-> + * @hdl:		(in) handle of decoding instance to close.
-> + */
-> +void delta_ipc_close(void *hdl);
-> +
-> +#endif /* DELTA_IPC_H */
-> diff --git a/drivers/media/platform/sti/delta/delta-v4l2.c b/drivers/media/platform/sti/delta/delta-v4l2.c
-> index e65a3a3..237a938 100644
-> --- a/drivers/media/platform/sti/delta/delta-v4l2.c
-> +++ b/drivers/media/platform/sti/delta/delta-v4l2.c
-> @@ -17,6 +17,7 @@
->  #include <media/videobuf2-dma-contig.h>
->  
->  #include "delta.h"
-> +#include "delta-ipc.h"
->  
->  #define DELTA_NAME	"st-delta"
->  
-> @@ -1703,6 +1704,14 @@ static int delta_probe(struct platform_device *pdev)
->  	pm_runtime_set_suspended(dev);
->  	pm_runtime_enable(dev);
->  
-> +	/* init firmware ipc channel */
-> +	ret = delta_ipc_init(delta);
-> +	if (ret) {
-> +		dev_err(delta->dev, "%s failed to initialize firmware ipc channel\n",
-> +			DELTA_PREFIX);
-> +		goto err;
-> +	}
-> +
->  	/* register all available decoders */
->  	register_decoders(delta);
->  
-> @@ -1747,6 +1756,8 @@ static int delta_remove(struct platform_device *pdev)
+>  Documentation/devicetree/bindings/media/s5p-mfc.txt | 2 +-
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c            | 9 ++++++---
+>  2 files changed, 7 insertions(+), 4 deletions(-)
+>
+> diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+> index 2c901286d818..d3404b5d4d17 100644
+> --- a/Documentation/devicetree/bindings/media/s5p-mfc.txt
+> +++ b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+> @@ -28,7 +28,7 @@ Optional properties:
+>    - memory-region : from reserved memory binding: phandles to two reserved
+>         memory regions, first is for "left" mfc memory bus interfaces,
+>         second if for the "right" mfc memory bus, used when no SYSMMU
+> -       support is available
+> +       support is available; used only by MFC v5 present in Exynos4 SoCs
+>
+>  Obsolete properties:
+>    - samsung,mfc-r, samsung,mfc-l : support removed, please use memory-region
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> index 8fc6fe4ba087..36f0aec2a1b3 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> @@ -1178,9 +1178,12 @@ static void s5p_mfc_unconfigure_2port_memory(struct s5p_mfc_dev *mfc_dev)
+>  static int s5p_mfc_configure_common_memory(struct s5p_mfc_dev *mfc_dev)
 >  {
->  	struct delta_dev *delta = platform_get_drvdata(pdev);
->  
-> +	delta_ipc_exit(delta);
+>         struct device *dev = &mfc_dev->plat_dev->dev;
+> -       unsigned long mem_size = SZ_8M;
+> +       unsigned long mem_size = SZ_4M;
+>         unsigned int bitmap_size;
+>
+> +       if (IS_ENABLED(CONFIG_DMA_CMA) || exynos_is_iommu_available(dev))
+> +               mem_size = SZ_8M;
 > +
->  	delta_unregister_device(delta);
->  
->  	destroy_workqueue(delta->work_queue);
-> diff --git a/drivers/media/platform/sti/delta/delta.h b/drivers/media/platform/sti/delta/delta.h
-> index 9e26525..d4a401b 100644
-> --- a/drivers/media/platform/sti/delta/delta.h
-> +++ b/drivers/media/platform/sti/delta/delta.h
-> @@ -7,6 +7,7 @@
->  #ifndef DELTA_H
->  #define DELTA_H
->  
-> +#include <linux/rpmsg.h>
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-mem2mem.h>
->  
-> @@ -199,6 +200,19 @@ struct delta_buf {
->  	unsigned long attrs;
->  };
->  
-> +struct delta_ipc_ctx {
-> +	int cb_err;
-> +	u32 copro_hdl;
-> +	struct completion done;
-> +	struct delta_buf ipc_buf_struct;
-> +	struct delta_buf *ipc_buf;
-> +};
-> +
-> +struct delta_ipc_param {
-> +	u32 size;
-> +	void *data;
-> +};
-> +
->  struct delta_ctx;
->  
->  /*
-> @@ -368,6 +382,7 @@ struct delta_dec {
->   * @fh:			V4L2 file handle
->   * @dev:		device context
->   * @dec:		selected decoder context for this instance
-> + * @ipc_ctx:		context of IPC communication with firmware
->   * @state:		instance state
->   * @frame_num:		frame number
->   * @au_num:		access unit number
-> @@ -399,6 +414,8 @@ struct delta_ctx {
->  	struct v4l2_fh fh;
->  	struct delta_dev *dev;
->  	const struct delta_dec *dec;
-> +	struct delta_ipc_ctx ipc_ctx;
-> +
->  	enum delta_state state;
->  	u32 frame_num;
->  	u32 au_num;
-> @@ -447,6 +464,8 @@ struct delta_ctx {
->   * @nb_of_streamformats:number of supported compressed video formats
->   * @instance_id:	rolling counter identifying an instance (debug purpose)
->   * @work_queue:		decoding job work queue
-> + * @rpmsg_driver:	rpmsg IPC driver
-> + * @rpmsg_device:	rpmsg IPC device
->   */
->  struct delta_dev {
->  	struct v4l2_device v4l2_dev;
-> @@ -466,6 +485,8 @@ struct delta_dev {
->  	u32 nb_of_streamformats;
->  	u8 instance_id;
->  	struct workqueue_struct *work_queue;
-> +	struct rpmsg_driver rpmsg_driver;
-> +	struct rpmsg_device *rpmsg_device;
->  };
->  
->  static inline char *frame_type_str(u32 flags)
+>         if (mfc_mem_size)
+>                 mem_size = memparse(mfc_mem_size, NULL);
+>
+> @@ -1240,7 +1243,7 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+>  {
+>         struct device *dev = &mfc_dev->plat_dev->dev;
+>
+> -       if (exynos_is_iommu_available(dev))
+> +       if (exynos_is_iommu_available(dev) || !IS_TWOPORT(mfc_dev))
+>                 return s5p_mfc_configure_common_memory(mfc_dev);
+>         else
+>                 return s5p_mfc_configure_2port_memory(mfc_dev);
+> @@ -1251,7 +1254,7 @@ static void s5p_mfc_unconfigure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+>         struct device *dev = &mfc_dev->plat_dev->dev;
+>
+>         s5p_mfc_release_firmware(mfc_dev);
+> -       if (exynos_is_iommu_available(dev))
+> +       if (exynos_is_iommu_available(dev) || !IS_TWOPORT(mfc_dev))
+>                 s5p_mfc_unconfigure_common_memory(mfc_dev);
+>         else
+>                 s5p_mfc_unconfigure_2port_memory(mfc_dev);
+> --
+> 1.9.1
+>
