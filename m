@@ -1,65 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:36594 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752110AbdBULHe (ORCPT
+Received: from smtprelay0113.hostedemail.com ([216.40.44.113]:41803 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751125AbdBWRyG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Feb 2017 06:07:34 -0500
-Date: Tue, 21 Feb 2017 12:07:21 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
-Subject: Re: [PATCH 1/4] v4l2: device_register_subdev_nodes: allow calling
- multiple times
-Message-ID: <20170221110721.GD5021@amd>
-References: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz>
- <20170220103114.GA9800@amd>
- <20170220130912.GT16975@valkosipuli.retiisi.org.uk>
- <20170220135636.GU16975@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="5gxpn/Q6ypwruk0T"
-Content-Disposition: inline
-In-Reply-To: <20170220135636.GU16975@valkosipuli.retiisi.org.uk>
+        Thu, 23 Feb 2017 12:54:06 -0500
+Message-ID: <1487872421.14159.38.camel@perches.com>
+Subject: Re: [PATCH 00/35] treewide trivial patches converting pr_warning to
+ pr_warn
+From: Joe Perches <joe@perches.com>
+To: Emil Velikov <emil.l.velikov@gmail.com>
+Cc: Rob Herring <robh@kernel.org>,
+        "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+        linux-ia64@vger.kernel.org, SH-Linux <linux-sh@vger.kernel.org>,
+        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+        ML nouveau <nouveau@lists.freedesktop.org>,
+        Linux-ALSA <alsa-devel@alsa-project.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        "open list:VIRTIO GPU DRIVER"
+        <virtualization@lists.linux-foundation.org>,
+        "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>,
+        "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>,
+        sparclinux@vger.kernel.org, drbd-dev@lists.linbit.com,
+        linux-scsi@vger.kernel.org, Richard Weinberger <richard@nod.at>,
+        sfi-devel@simplefirmware.org,
+        amd-gfx mailing list <amd-gfx@lists.freedesktop.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        tboot-devel@lists.sourceforge.net, oprofile-list@lists.sf.net,
+        "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+        xen-devel@lists.xenproject.org,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        platform-driver-x86@vger.kernel.org,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        gigaset307x-common@lists.sourceforge.net,
+        acpi4asus-user@lists.sourceforge.net,
+        adi-buildroot-devel@lists.sourceforge.net,
+        Pekka Paalanen <ppaalanen@gmail.com>,
+        linux-omap <linux-omap@vger.kernel.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        netdev <netdev@vger.kernel.org>,
+        Karol Herbst <karolherbst@gmail.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        linux-crypto@vger.kernel.org, linux-alpha@vger.kernel.org,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
+Date: Thu, 23 Feb 2017 09:53:41 -0800
+In-Reply-To: <CACvgo50LUm5VSn_F=Dh8kL5zCPpCQDoCyUEL=Z+=1+6hJpfTaw@mail.gmail.com>
+References: <cover.1487314666.git.joe@perches.com>
+         <CAL_JsqLTaq-QLTqfyDO8EVJYpgeUx1e4J0Fo2NvfFWqVoiVedQ@mail.gmail.com>
+         <1487870304.14159.29.camel@perches.com>
+         <CACvgo50LUm5VSn_F=Dh8kL5zCPpCQDoCyUEL=Z+=1+6hJpfTaw@mail.gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, 2017-02-23 at 17:41 +0000, Emil Velikov wrote:
+> On 23 February 2017 at 17:18, Joe Perches <joe@perches.com> wrote:
+> > On Thu, 2017-02-23 at 09:28 -0600, Rob Herring wrote:
+> > > On Fri, Feb 17, 2017 at 1:11 AM, Joe Perches <joe@perches.com> wrote:
+> > > > There are ~4300 uses of pr_warn and ~250 uses of the older
+> > > > pr_warning in the kernel source tree.
+> > > > 
+> > > > Make the use of pr_warn consistent across all kernel files.
+> > > > 
+> > > > This excludes all files in tools/ as there is a separate
+> > > > define pr_warning for that directory tree and pr_warn is
+> > > > not used in tools/.
+> > > > 
+> > > > Done with 'sed s/\bpr_warning\b/pr_warn/' and some emacsing.
+> > 
+> > []
+> > > Where's the removal of pr_warning so we don't have more sneak in?
+> > 
+> > After all of these actually get applied,
+> > and maybe a cycle or two later, one would
+> > get sent.
+> > 
+> 
+> By which point you'll get a few reincarnation of it. So you'll have to
+> do the same exercise again :-(
 
---5gxpn/Q6ypwruk0T
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Maybe to one or two files.  Not a big deal.
 
-On Mon 2017-02-20 15:56:36, Sakari Ailus wrote:
-> On Mon, Feb 20, 2017 at 03:09:13PM +0200, Sakari Ailus wrote:
-> > I've tested ACPI, will test DT soon...
->=20
-> DT case works, too (Nokia N9).
+> I guess the question is - are you expecting to get the series merged
+> all together/via one tree ?
 
-Hmm. Good to know. Now to figure out how to get N900 case to work...
+No.  The only person that could do that effectively is Linus.
 
-AFAICT N9 has CSI2, not CSI1 support, right? Some of the core changes
-seem to be in, so I'll need to figure out which, and will still need
-omap3isp modifications...
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---5gxpn/Q6ypwruk0T
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlisH2kACgkQMOfwapXb+vK+5QCfU6T+OX+EjWnrtFidLTgvDJoY
-DS8An2/Aa/CXEf7RV1+w+nWIB6dU1FVK
-=C8TC
------END PGP SIGNATURE-----
-
---5gxpn/Q6ypwruk0T--
+> If not, your plan is perfectly reasonable.
