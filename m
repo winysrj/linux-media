@@ -1,233 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:23438 "EHLO
-        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753142AbdBTNjU (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:35486 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933767AbdBWAGk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Feb 2017 08:39:20 -0500
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>
-Subject: [PATCH v2 12/15] media: s5p-mfc: Add support for probe-time
- preallocated block based allocator
-Date: Mon, 20 Feb 2017 14:39:01 +0100
-Message-id: <1487597944-2000-13-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1487597944-2000-1-git-send-email-m.szyprowski@samsung.com>
-References: <1487597944-2000-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20170220133916eucas1p148acb6b6c3d0fbcaefa90f85bb723c9a@eucas1p1.samsung.com>
+        Wed, 22 Feb 2017 19:06:40 -0500
+Subject: Re: [PATCH v4 23/36] media: imx: Add MIPI CSI-2 Receiver subdev
+ driver
+To: Russell King - ARM Linux <linux@armlinux.org.uk>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+ <1487211578-11360-24-git-send-email-steve_longerbeam@mentor.com>
+ <1487328479.3107.21.camel@pengutronix.de>
+ <20170217110616.GD21222@n2100.armlinux.org.uk>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <20b7d3b7-85be-b701-19ca-1e8024260fc2@gmail.com>
+Date: Wed, 22 Feb 2017 16:06:36 -0800
+MIME-Version: 1.0
+In-Reply-To: <20170217110616.GD21222@n2100.armlinux.org.uk>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Current MFC driver depends on the fact that when IOMMU is available, the
-DMA-mapping framework and its IOMMU glue will use first-fit allocator.
-This was true for ARM architecture, but its not for ARM64 arch. However, in
-case of MFC v6+ hardware and latest firmware, it turned out that there is
-no strict requirement for ALL buffers to be allocated on higher addresses
-than the firmware base. This requirement is true only for the device and
-per-context buffers. All video data buffers can be allocated anywhere for
-all MFC v6+ versions.
 
-Such relaxed requirements for the memory buffers can be easily fulfilled
-by allocating firmware, device and per-context buffers from the probe-time
-preallocated larger buffer. This patch adds support for it. This way the
-driver finally works fine on ARM64 architecture. The size of the
-preallocated buffer is 8 MiB, what is enough for three instances H264
-decoders or encoders (other codecs have smaller memory requirements).
-If one needs more for particular use case, one can use "mem" module
-parameter to force larger (or smaller) buffer (for example by adding
-"s5p_mfc.mem=16M" to kernel command line).
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c        | 43 ++++++++++++++++---
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  4 ++
- drivers/media/platform/s5p-mfc/s5p_mfc_opr.c    | 57 ++++++++++++++++---------
- 3 files changed, 79 insertions(+), 25 deletions(-)
+On 02/17/2017 03:06 AM, Russell King - ARM Linux wrote:
+> On Fri, Feb 17, 2017 at 11:47:59AM +0100, Philipp Zabel wrote:
+>> On Wed, 2017-02-15 at 18:19 -0800, Steve Longerbeam wrote:
+>>> +static void csi2_dphy_init(struct csi2_dev *csi2)
+>>> +{
+>>> +	/*
+>>> +	 * FIXME: 0x14 is derived from a fixed D-PHY reference
+>>> +	 * clock from the HSI_TX PLL, and a fixed target lane max
+>>> +	 * bandwidth of 300 Mbps. This value should be derived
+>>
+>> If the table in https://community.nxp.com/docs/DOC-94312 is correct,
+>> this should be 850 Mbps. Where does this 300 Mbps value come from?
+>
+> I thought you had some code to compute the correct value, although
+> I guess we've lost the ability to know how fast the sensor is going
+> to drive the link.
+>
+> Note that the IMX219 currently drives the data lanes at 912Mbps almost
+> exclusively, as I've yet to finish working out how to derive the PLL
+> parameters.  (I have something that works, but it currently takes on
+> the order of 100k iterations to derive the parameters.  gcd() doesn't
+> help you in this instance.)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 04067bcc3feb..1c5ec8257f4f 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -43,6 +43,10 @@
- module_param_named(debug, mfc_debug_level, int, S_IRUGO | S_IWUSR);
- MODULE_PARM_DESC(debug, "Debug level - higher value produces more verbose messages");
- 
-+static char *mfc_mem_size = NULL;
-+module_param_named(mem, mfc_mem_size, charp, S_IRUGO | S_IWUSR);
-+MODULE_PARM_DESC(mem, "Preallocated memory size for the firmware and context buffers");
-+
- /* Helper functions for interrupt processing */
- 
- /* Remove from hw execution round robin */
-@@ -1178,6 +1182,8 @@ static void s5p_mfc_unconfigure_2port_memory(struct s5p_mfc_dev *mfc_dev)
- static int s5p_mfc_configure_common_memory(struct s5p_mfc_dev *mfc_dev)
- {
- 	struct device *dev = &mfc_dev->plat_dev->dev;
-+	unsigned long mem_size = SZ_8M;
-+	unsigned int bitmap_size;
- 	/*
- 	 * When IOMMU is available, we cannot use the default configuration,
- 	 * because of MFC firmware requirements: address space limited to
-@@ -1191,17 +1197,39 @@ static int s5p_mfc_configure_common_memory(struct s5p_mfc_dev *mfc_dev)
- 	if (ret)
- 		return ret;
- 
--	mfc_dev->mem_dev[BANK1_CTX] = mfc_dev->mem_dev[BANK2_CTX] = dev;
--	ret = s5p_mfc_alloc_firmware(mfc_dev);
--	if (ret) {
-+	if (mfc_mem_size)
-+		mem_size = memparse(mfc_mem_size, NULL);
-+
-+	bitmap_size = BITS_TO_LONGS(mem_size >> PAGE_SHIFT) * sizeof(long);
-+
-+	mfc_dev->mem_bitmap = kzalloc(bitmap_size, GFP_KERNEL);
-+	if (!mfc_dev->mem_bitmap) {
- 		exynos_unconfigure_iommu(dev);
--		return ret;
-+		return -ENOMEM;
- 	}
- 
--	mfc_dev->dma_base[BANK1_CTX] = mfc_dev->fw_buf.dma;
--	mfc_dev->dma_base[BANK2_CTX] = mfc_dev->fw_buf.dma;
-+	mfc_dev->mem_virt = dma_alloc_coherent(dev, mem_size,
-+					       &mfc_dev->mem_base, GFP_KERNEL);
-+	if (!mfc_dev->mem_virt) {
-+		kfree(mfc_dev->mem_bitmap);
-+		dev_err(dev, "failed to preallocate %ld MiB for the firmware and context buffers\n",
-+			(mem_size / SZ_1M));
-+		exynos_unconfigure_iommu(dev);
-+		return -ENOMEM;
-+	}
-+	mfc_dev->mem_size = mem_size;
-+	mfc_dev->dma_base[BANK1_CTX] = mfc_dev->mem_base;
-+	mfc_dev->dma_base[BANK2_CTX] = mfc_dev->mem_base;
-+
-+	/* Firmware allocation cannot fail in this case */
-+	s5p_mfc_alloc_firmware(mfc_dev);
-+
-+	mfc_dev->mem_dev[BANK1_CTX] = mfc_dev->mem_dev[BANK2_CTX] = dev;
- 	vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
- 
-+	dev_info(dev, "preallocated %ld MiB buffer for the firmware and context buffers\n",
-+		 (mem_size / SZ_1M));
-+
- 	return 0;
- }
- 
-@@ -1210,6 +1238,9 @@ static void s5p_mfc_unconfigure_common_memory(struct s5p_mfc_dev *mfc_dev)
- 	struct device *dev = &mfc_dev->plat_dev->dev;
- 
- 	exynos_unconfigure_iommu(dev);
-+	dma_free_coherent(dev, mfc_dev->mem_size, mfc_dev->mem_virt,
-+			  mfc_dev->mem_base);
-+	kfree(mfc_dev->mem_bitmap);
- 	vb2_dma_contig_clear_max_seg_size(dev);
- }
- 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index cea17a737ef7..e64dc6e3c75e 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -315,6 +315,10 @@ struct s5p_mfc_dev {
- 	unsigned int int_err;
- 	wait_queue_head_t queue;
- 	struct s5p_mfc_priv_buf fw_buf;
-+	size_t mem_size;
-+	dma_addr_t mem_base;
-+	unsigned long *mem_bitmap;
-+	void *mem_virt;
- 	dma_addr_t dma_base[BANK_CTX_NUM];
- 	unsigned long hw_lock;
- 	struct s5p_mfc_ctx *ctx[MFC_NUM_CONTEXTS];
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
-index 9294ee124661..34a66189d980 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
-@@ -40,41 +40,60 @@ void s5p_mfc_init_regs(struct s5p_mfc_dev *dev)
- int s5p_mfc_alloc_priv_buf(struct s5p_mfc_dev *dev, unsigned int mem_ctx,
- 			   struct s5p_mfc_priv_buf *b)
- {
--	struct device *mem_dev = dev->mem_dev[mem_ctx];
--	dma_addr_t base = dev->dma_base[mem_ctx];
-+	unsigned int bits = dev->mem_size >> PAGE_SHIFT;
-+	unsigned int count = b->size >> PAGE_SHIFT;
-+	unsigned int align = (SZ_64K >> PAGE_SHIFT) - 1;
-+	unsigned int start, offset;
- 
- 	mfc_debug(3, "Allocating priv: %zu\n", b->size);
- 
--	b->ctx = mem_ctx;
--	b->virt = dma_alloc_coherent(mem_dev, b->size, &b->dma, GFP_KERNEL);
-+	if (dev->mem_virt) {
-+		start = bitmap_find_next_zero_area(dev->mem_bitmap, bits, 0, count, align);
-+		if (start > bits)
-+			goto no_mem;
- 
--	if (!b->virt) {
--		mfc_err("Allocating private buffer of size %zu failed\n",
--			b->size);
--		return -ENOMEM;
--	}
-+		bitmap_set(dev->mem_bitmap, start, count);
-+		offset = start << PAGE_SHIFT;
-+		b->virt = dev->mem_virt + offset;
-+		b->dma = dev->mem_base + offset;
-+	} else {
-+		struct device *mem_dev = dev->mem_dev[mem_ctx];
-+		dma_addr_t base = dev->dma_base[mem_ctx];
- 
--	if (b->dma < base) {
--		mfc_err("Invalid memory configuration - buffer (%pad) is below base memory address(%pad)\n",
--			&b->dma, &base);
--		dma_free_coherent(mem_dev, b->size, b->virt, b->dma);
--		return -ENOMEM;
-+		b->ctx = mem_ctx;
-+		b->virt = dma_alloc_coherent(mem_dev, b->size, &b->dma, GFP_KERNEL);
-+		if (!b->virt)
-+			goto no_mem;
-+		if (b->dma < base) {
-+			mfc_err("Invalid memory configuration - buffer (%pad) is below base memory address(%pad)\n",
-+				&b->dma, &base);
-+			dma_free_coherent(mem_dev, b->size, b->virt, b->dma);
-+			return -ENOMEM;
-+		}
- 	}
- 
- 	mfc_debug(3, "Allocated addr %p %pad\n", b->virt, &b->dma);
- 	return 0;
-+no_mem:
-+	mfc_err("Allocating private buffer of size %zu failed\n", b->size);
-+	return -ENOMEM;
- }
- 
- void s5p_mfc_release_priv_buf(struct s5p_mfc_dev *dev,
- 			      struct s5p_mfc_priv_buf *b)
- {
--	struct device *mem_dev = dev->mem_dev[b->ctx];
-+	if (dev->mem_virt) {
-+		unsigned int start = (b->dma - dev->mem_base) >> PAGE_SHIFT;
-+		unsigned int count = b->size >> PAGE_SHIFT;
-+
-+		bitmap_clear(dev->mem_bitmap, start, count);
-+	} else {
-+		struct device *mem_dev = dev->mem_dev[b->ctx];
- 
--	if (b->virt) {
- 		dma_free_coherent(mem_dev, b->size, b->virt, b->dma);
--		b->virt = NULL;
--		b->dma = 0;
--		b->size = 0;
- 	}
-+	b->virt = NULL;
-+	b->dma = 0;
-+	b->size = 0;
- }
- 
--- 
-1.9.1
+Hi Russell,
+
+As I mentioned, I've added code to imx6-mipi-csi2 to determine the
+sources link frequency via V4L2_CID_LINK_FREQ. If you were to implement
+this control and return 912 Mbps-per-lane, the D-PHY will be programmed
+correctly for the IMX219 (at least, that is the theory anyway).
+
+Alternatively, I could up the default in imx6-mipi-csi2 to 950
+Mbps. I will have to test that to make sure it still works with
+OV5640 and tc358743.
+
+Steve
