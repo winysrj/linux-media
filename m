@@ -1,256 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49005 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751525AbdBNA5W (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:31664 "EHLO
+        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750891AbdBWLRm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 19:57:22 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v4 3/4] v4l: vsp1: Repair suspend resume operations for video pipelines
-Date: Tue, 14 Feb 2017 02:57:41 +0200
-Message-ID: <2636151.pr0fsBy4LR@avalon>
-In-Reply-To: <8f5f1d1a0102c4c5713950d062077f65e38b6b93.1483704413.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.4df11e0fa078e5cc8bc8f668951249cca0fd3d7f.1483704413.git-series.kieran.bingham+renesas@ideasonboard.com> <8f5f1d1a0102c4c5713950d062077f65e38b6b93.1483704413.git-series.kieran.bingham+renesas@ideasonboard.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Thu, 23 Feb 2017 06:17:42 -0500
+Subject: Re: [PATCH v5 3/3] [media] s5p-mfc: Check and set
+ 'v4l2_pix_format:field' field in try_fmt
+To: Thibault Saunier <thibault.saunier@osg.samsung.com>,
+        linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        linux-arm-kernel@lists.infradead.org,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Kamil Debski <kamil@wypas.org>
+From: Andrzej Hajda <a.hajda@samsung.com>
+Message-id: <ded4b715-39a2-adfa-0f2d-7276a0024e29@samsung.com>
+Date: Thu, 23 Feb 2017 12:17:35 +0100
+MIME-version: 1.0
+In-reply-to: <ed287d5a-687b-b344-3f20-10154071852c@osg.samsung.com>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
+References: <20170221192059.29745-1-thibault.saunier@osg.samsung.com>
+ <CGME20170221192135epcas4p1811fa9ce35481d42144bdab368c9243a@epcas4p1.samsung.com>
+ <20170221192059.29745-4-thibault.saunier@osg.samsung.com>
+ <78444dcd-169f-0c16-0e09-6b71d1a502b2@samsung.com>
+ <ed287d5a-687b-b344-3f20-10154071852c@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
-
-Thank you for the patch.
-
-On Friday 06 Jan 2017 12:15:30 Kieran Bingham wrote:
-> When a suspend/resume action is taken, the pipeline is reset and never
-> reconfigured.
-> 
-> To correct this, we establish a new flag pipe->configured and utilise
-> this to establish when we write a full configuration set to the current
-> display list.
-
-As discussed face to face, I think a better approach would be to cache the 
-display list instead of recomputing it a resume time. However, given that this 
-will require more work, I could be convinced to merge this patch in the 
-meantime. Let's check in a couple of weeks whether we will have moved forward 
-with display list caching in time for v4.12, and merge this patch otherwise.
-
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> ---
->  drivers/media/platform/vsp1/vsp1_drv.c   |  4 ++-
->  drivers/media/platform/vsp1/vsp1_pipe.c  |  1 +-
->  drivers/media/platform/vsp1/vsp1_pipe.h  |  2 +-
->  drivers/media/platform/vsp1/vsp1_video.c | 56 ++++++++++---------------
->  4 files changed, 31 insertions(+), 32 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_drv.c
-> b/drivers/media/platform/vsp1/vsp1_drv.c index aa237b48ad55..d596cdead1c1
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drv.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drv.c
-> @@ -413,6 +413,7 @@ static int vsp1_create_entities(struct vsp1_device
-> *vsp1)
-> 
->  int vsp1_reset_wpf(struct vsp1_device *vsp1, unsigned int index)
->  {
-> +	struct vsp1_rwpf *wpf = vsp1->wpf[index];
->  	unsigned int timeout;
->  	u32 status;
-> 
-> @@ -429,6 +430,9 @@ int vsp1_reset_wpf(struct vsp1_device *vsp1, unsigned
-> int index) usleep_range(1000, 2000);
->  	}
-> 
-> +	if (wpf->pipe)
-> +		wpf->pipe->configured = false;
+On 22.02.2017 14:10, Thibault Saunier wrote:
+> Hello,
+>
+> On 02/22/2017 06:29 AM, Andrzej Hajda wrote:
+>> On 21.02.2017 20:20, Thibault Saunier wrote:
+>>> It is required by the standard that the field order is set by the
+>>> driver.
+>>>
+>>> Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
+>>>
+>>> ---
+>>>
+>>> Changes in v5:
+>>> - Just adapt the field and never error out.
+>>>
+>>> Changes in v4: None
+>>> Changes in v3:
+>>> - Do not check values in the g_fmt functions as Andrzej explained in previous review
+>>>
+>>> Changes in v2:
+>>> - Fix a silly build error that slipped in while rebasing the patches
+>>>
+>>>   drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 3 +++
+>>>   1 file changed, 3 insertions(+)
+>>>
+>>> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+>>> index 0976c3e0a5ce..44ed2afe0780 100644
+>>> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+>>> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+>>> @@ -386,6 +386,9 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+>>>   	struct v4l2_pix_format_mplane *pix_mp = &f->fmt.pix_mp;
+>>>   	struct s5p_mfc_fmt *fmt;
+>>>   
+>>> +	if (f->fmt.pix.field == V4L2_FIELD_ANY)
+>>> +		f->fmt.pix.field = V4L2_FIELD_NONE;
+>>> +
+>> In previous version the only supported field type was NONE, here you
+>> support everything.
+>> If the only supported format is none you should set 'field'
+>> unconditionally to NONE, nothing more.
+> Afaict we  support 2 things:
+>
+>    1. NONE
+>    2. INTERLACE
+>
+> Until now we were not checking what was supported or not and basically 
+> ignoring that info, this patch
+> keeps the old behaviour making sure to be compliant.
+>
+> I had a doubt and was pondering doing:
+>
+> ``` diff
+>
+> +	if (f->fmt.pix.field != V4L2_FIELD_INTERLACED)
+> +		f->fmt.pix.field = V4L2_FIELD_NONE;
 > +
->  	if (!timeout) {
->  		dev_err(vsp1->dev, "failed to reset wpf.%u\n", index);
->  		return -ETIMEDOUT;
-> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c
-> b/drivers/media/platform/vsp1/vsp1_pipe.c index 280ba0804699..c568db193fba
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_pipe.c
-> +++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-> @@ -216,6 +216,7 @@ void vsp1_pipeline_init(struct vsp1_pipeline *pipe)
-> 
->  	INIT_LIST_HEAD(&pipe->entities);
->  	pipe->state = VSP1_PIPELINE_STOPPED;
-> +	pipe->configured = false;
->  }
-> 
->  /* Must be called with the pipe irqlock held. */
-> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h
-> b/drivers/media/platform/vsp1/vsp1_pipe.h index ac4ad2655551..fff122b4874d
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_pipe.h
-> +++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-> @@ -61,6 +61,7 @@ enum vsp1_pipeline_state {
->   * @pipe: the media pipeline
->   * @irqlock: protects the pipeline state
->   * @state: current state
-> + * @configured: true if the pipeline has been set up for video streaming
->   * @wq: wait queue to wait for state change completion
->   * @frame_end: frame end interrupt handler
->   * @lock: protects the pipeline use count and stream count
-> @@ -86,6 +87,7 @@ struct vsp1_pipeline {
-> 
->  	spinlock_t irqlock;
->  	enum vsp1_pipeline_state state;
-> +	bool configured;
->  	wait_queue_head_t wq;
-> 
->  	void (*frame_end)(struct vsp1_pipeline *pipe);
-> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
-> b/drivers/media/platform/vsp1/vsp1_video.c index 938ecc2766ed..414303442e7c
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_video.c
-> +++ b/drivers/media/platform/vsp1/vsp1_video.c
-> @@ -355,18 +355,14 @@ static void vsp1_video_frame_end(struct vsp1_pipeline
-> *pipe, pipe->buffers_ready |= 1 << video->pipe_index;
->  }
-> 
-> -static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
-> +static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe,
-> +				     struct vsp1_dl_list *dl)
->  {
->  	struct vsp1_entity *entity;
-> 
->  	/* Determine this pipelines sizes for image partitioning support. */
->  	vsp1_video_pipeline_setup_partitions(pipe);
-> 
-> -	/* Prepare the display list. */
-> -	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
-> -	if (!pipe->dl)
-> -		return -ENOMEM;
-> -
->  	if (pipe->uds) {
->  		struct vsp1_uds *uds = to_uds(&pipe->uds->subdev);
-> 
-> @@ -386,13 +382,15 @@ static int vsp1_video_setup_pipeline(struct
-> vsp1_pipeline *pipe) }
-> 
->  	list_for_each_entry(entity, &pipe->entities, list_pipe) {
-> -		vsp1_entity_route_setup(entity, pipe->dl);
-> +		vsp1_entity_route_setup(entity, dl);
-> 
->  		if (entity->ops->configure)
-> -			entity->ops->configure(entity, pipe, pipe->dl,
-> +			entity->ops->configure(entity, pipe, dl,
->  					       VSP1_ENTITY_PARAMS_INIT);
->  	}
-> 
-> +	pipe->configured = true;
-> +
->  	return 0;
->  }
-> 
-> @@ -415,9 +413,16 @@ static void vsp1_video_pipeline_run(struct
-> vsp1_pipeline *pipe) {
->  	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
->  	struct vsp1_entity *entity;
-> +	struct vsp1_dl_list *dl;
-> 
-> -	if (!pipe->dl)
-> -		pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
-> +	dl = vsp1_dl_list_get(pipe->output->dlm);
-> +	if (!dl) {
-> +		dev_err(vsp1->dev, "Failed to obtain a dl list\n");
-> +		return;
-> +	}
-> +
-> +	if (!pipe->configured)
-> +		vsp1_video_setup_pipeline(pipe, dl);
-> 
->  	/*
->  	 * Start with the runtime parameters as the configure operation can
-> @@ -426,45 +431,43 @@ static void vsp1_video_pipeline_run(struct
-> vsp1_pipeline *pipe) */
->  	list_for_each_entry(entity, &pipe->entities, list_pipe) {
->  		if (entity->ops->configure)
-> -			entity->ops->configure(entity, pipe, pipe->dl,
-> +			entity->ops->configure(entity, pipe, dl,
->  					       VSP1_ENTITY_PARAMS_RUNTIME);
->  	}
-> 
->  	/* Run the first partition */
->  	pipe->current_partition = 0;
-> -	vsp1_video_pipeline_run_partition(pipe, pipe->dl);
-> +	vsp1_video_pipeline_run_partition(pipe, dl);
-> 
->  	/* Process consecutive partitions as necessary */
->  	for (pipe->current_partition = 1;
->  	     pipe->current_partition < pipe->partitions;
->  	     pipe->current_partition++) {
-> -		struct vsp1_dl_list *dl;
-> +		struct vsp1_dl_list *child;
-> 
->  		/*
->  		 * Partition configuration operations will utilise
->  		 * the pipe->current_partition variable to determine
->  		 * the work they should complete.
->  		 */
-> -		dl = vsp1_dl_list_get(pipe->output->dlm);
-> +		child = vsp1_dl_list_get(pipe->output->dlm);
-> 
->  		/*
->  		 * An incomplete chain will still function, but output only
->  		 * the partitions that had a dl available. The frame end
->  		 * interrupt will be marked on the last dl in the chain.
->  		 */
-> -		if (!dl) {
-> +		if (!child) {
->  			dev_err(vsp1->dev, "Failed to obtain a dl list. Frame 
-will be
-> incomplete\n"); break;
->  		}
-> 
-> -		vsp1_video_pipeline_run_partition(pipe, dl);
-> -		vsp1_dl_list_add_chain(pipe->dl, dl);
-> +		vsp1_video_pipeline_run_partition(pipe, child);
-> +		vsp1_dl_list_add_chain(dl, child);
->  	}
-> 
->  	/* Complete, and commit the head display list. */
-> -	vsp1_dl_list_commit(pipe->dl);
-> -	pipe->dl = NULL;
-> -
-> +	vsp1_dl_list_commit(dl);
->  	vsp1_pipeline_run(pipe);
->  }
-> 
-> @@ -799,18 +802,10 @@ static int vsp1_video_start_streaming(struct vb2_queue
-> *vq, unsigned int count) struct vsp1_pipeline *pipe = video->rwpf->pipe;
->  	bool start_pipeline = false;
->  	unsigned long flags;
-> -	int ret;
-> 
->  	mutex_lock(&pipe->lock);
-> -	if (pipe->stream_count == pipe->num_inputs) {
-> -		ret = vsp1_video_setup_pipeline(pipe);
-> -		if (ret < 0) {
-> -			mutex_unlock(&pipe->lock);
-> -			return ret;
-> -		}
-> -
-> +	if (pipe->stream_count == pipe->num_inputs)
->  		start_pipeline = true;
-> -	}
-> 
->  	pipe->stream_count++;
->  	mutex_unlock(&pipe->lock);
-> @@ -855,9 +850,6 @@ static void vsp1_video_stop_streaming(struct vb2_queue
-> *vq) ret = vsp1_pipeline_stop(pipe);
->  		if (ret == -ETIMEDOUT)
->  			dev_err(video->vsp1->dev, "pipeline stop timeout\n");
-> -
-> -		vsp1_dl_list_put(pipe->dl);
-> -		pipe->dl = NULL;
->  	}
->  	mutex_unlock(&pipe->lock);
+>
+> ```
+>
+> instead, it is probably more correct, do you think it is what should be 
+> done here?
 
--- 
-Regards,
+I have realized I have forgot that it is not simple mem2mem device, it
+is decoder. It is feed with compressed data which is just byte stream,
+the only valid field value on output side is V4L2_FIELD_NONE.
+About possible interlacing we could only say in case of capture side.
+And in this case there are multiple questions:
+- how MFC decodes stream with interlaced content?
+- is it possible to convince it to decode it as user asks?
+- does it perform (de-)interlacing?
+- what is implemented in the driver?
 
-Laurent Pinchart
+After answering above questions we will be able to say how fmt.pix.field
+should be treated on capture side.
+And similar question we can pose in case of encoder.
+
+So simple patch and so many doubts.
+
+Regards
+Andrzej
+
+>
+> Regards,
+>
+> Thibault
+>
+>> Regards
+>> Andrzej
+>>
+>>>   	mfc_debug(2, "Type is %d\n", f->type);
+>>>   	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+>>>   		fmt = find_format(f, MFC_FMT_DEC);
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-samsung-soc" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
