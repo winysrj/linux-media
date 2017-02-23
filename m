@@ -1,78 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:39978 "EHLO
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:36928 "EHLO
         atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750851AbdBEVMY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 5 Feb 2017 16:12:24 -0500
-Date: Sun, 5 Feb 2017 22:12:20 +0100
+        with ESMTP id S1751195AbdBWWww (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 23 Feb 2017 17:52:52 -0500
+Date: Thu, 23 Feb 2017 23:52:34 +0100
 From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>, mchehab@s-opensource.com
-Cc: laurent.pinchart@ideasonboard.com, robh+dt@kernel.org,
-        devicetree@vger.kernel.org, ivo.g.dimitrov.75@gmail.com,
-        sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        galak@codeaurora.org, mchehab@osg.samsung.com,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] devicetree: Add video bus switch
-Message-ID: <20170205211219.GA27072@amd>
-References: <20161214122451.GB27011@amd>
- <20161222100104.GA30917@amd>
- <20161222133938.GA30259@amd>
- <20161224152031.GA8420@amd>
- <20170203123508.GA10286@amd>
- <20170203130740.GB12291@valkosipuli.retiisi.org.uk>
- <20170203210610.GA18379@amd>
- <20170203213454.GD12291@valkosipuli.retiisi.org.uk>
- <20170204215610.GA9243@amd>
- <20170204223350.GF12291@valkosipuli.retiisi.org.uk>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
+Subject: Re: [PATCH 1/4] v4l2: device_register_subdev_nodes: allow calling
+ multiple times
+Message-ID: <20170223225234.GA6022@amd>
+References: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz>
+ <20170220103114.GA9800@amd>
+ <20170220130912.GT16975@valkosipuli.retiisi.org.uk>
+ <20170220135636.GU16975@valkosipuli.retiisi.org.uk>
+ <20170221110721.GD5021@amd>
+ <20170221111104.GD16975@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="VbJkn9YxBvnuCH5J"
+        protocol="application/pgp-signature"; boundary="sm4nu43k4a2Rpi4c"
 Content-Disposition: inline
-In-Reply-To: <20170204223350.GF12291@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20170221111104.GD16975@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---VbJkn9YxBvnuCH5J
+--sm4nu43k4a2Rpi4c
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi!
 
-> > 9) Highly reconfigurable hardware - Julien Beraud
+On Tue 2017-02-21 13:11:04, Sakari Ailus wrote:
+> On Tue, Feb 21, 2017 at 12:07:21PM +0100, Pavel Machek wrote:
+> > On Mon 2017-02-20 15:56:36, Sakari Ailus wrote:
+> > > On Mon, Feb 20, 2017 at 03:09:13PM +0200, Sakari Ailus wrote:
+> > > > I've tested ACPI, will test DT soon...
+> > >=20
+> > > DT case works, too (Nokia N9).
 > >=20
-> > - 44 sub-devices connected with an interconnect.
-> > - As long as formats match, any sub-device could be connected to any
-> > - other sub-device through a link.
-> > - The result is 44 * 44 links at worst.
-> > - A switch sub-device proposed as the solution to model the
-> > - interconnect. The sub-devices are connected to the switch
-> > - sub-devices through the hardware links that connect to the
-> > - interconnect.
-> > - The switch would be controlled through new IOCTLs S_ROUTING and
-> > - G_ROUTING.
-> > - Patches available:
-> >  http://git.linuxtv.org/cgit.cgi/pinchartl/media.git/log/?h=3Dxilinx-wip
+> > Hmm. Good to know. Now to figure out how to get N900 case to work...
 > >=20
-> > but the patches are from 2005. So I guess I'll need some guidance here.=
-=2E.
+> > AFAICT N9 has CSI2, not CSI1 support, right? Some of the core changes
+> > seem to be in, so I'll need to figure out which, and will still need
+> > omap3isp modifications...
 >=20
-> Yeah, that's where it began (2015?), but right now I can only suggest to
-> wait until there's more. My estimate is within next couple of weeks /
-> months. But it won't be years.
+> Indeed, I've only tested for CSI-2 as I have no functional CSI-1 devices.
+>=20
+> It's essentially the functionality in the four patches. The data-lane and
+> clock-name properties have been renamed as data-lanes and clock-lanes (i.=
+e.
+> plural) to match the property documentation.
 
-Ok, week or two would be ok, couple of months is not. And all I need
-is single hook in common structure.
+Ok, thanks, I got CSI-1 support to compile.
 
-So if g_endpoint_config hook looks sane to _you_, I suggest we simply
-proceed. Now, maybe Mauro Carvalho Chehab <mchehab@s-opensource.com>
-or Laurent or Julien will want a different solution, but
-then... they'll have to suggest something doable now, not in couple of
-months.
+I'm now fighting with subdevices support. Camera flash and autofocus
+coil really should be subdevices of the ISP, right?
 
-Does that sound like a plan?
-
-Mauro added to cc list, so we can get some input.
+Do you have any solution for that? [I need it for my userspace to
+work, and porting the old one looks like lot of fun (tm) :-(].
 
 Best regards,
 									Pavel
@@ -81,16 +71,16 @@ Best regards,
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
 g.html
 
---VbJkn9YxBvnuCH5J
+--sm4nu43k4a2Rpi4c
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAliXlTMACgkQMOfwapXb+vLTZQCggprGTWZ/5OsMhTltzu8ZF21v
-WLkAn2JAtJn6Q1vTeHHnWS4tV1b0ysDb
-=efDg
+iEYEARECAAYFAlivZ7IACgkQMOfwapXb+vIhMgCbBH5KqZ0eZwx5NuqBbb06TlhZ
+LccAn2g346x6cEm7d9HS7tmjdSmohjtV
+=B6Q8
 -----END PGP SIGNATURE-----
 
---VbJkn9YxBvnuCH5J--
+--sm4nu43k4a2Rpi4c--
