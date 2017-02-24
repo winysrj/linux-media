@@ -1,49 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51814 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751266AbdBULLm (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56674
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751219AbdBXVTa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Feb 2017 06:11:42 -0500
-Date: Tue, 21 Feb 2017 13:11:04 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
-Subject: Re: [PATCH 1/4] v4l2: device_register_subdev_nodes: allow calling
- multiple times
-Message-ID: <20170221111104.GD16975@valkosipuli.retiisi.org.uk>
-References: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz>
- <20170220103114.GA9800@amd>
- <20170220130912.GT16975@valkosipuli.retiisi.org.uk>
- <20170220135636.GU16975@valkosipuli.retiisi.org.uk>
- <20170221110721.GD5021@amd>
+        Fri, 24 Feb 2017 16:19:30 -0500
+Subject: Re: [PATCH] [media] exynos4-is: Add missing 'of_node_put'
+To: Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+        kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+        mchehab@kernel.org, kgene@kernel.org, krzk@kernel.org
+References: <20170123211656.11185-1-christophe.jaillet@wanadoo.fr>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        kernel-janitors@vger.kernel.org
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <2357ef6e-8d90-77d0-0399-21fec41389a1@osg.samsung.com>
+Date: Fri, 24 Feb 2017 18:19:17 -0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170221110721.GD5021@amd>
+In-Reply-To: <20170123211656.11185-1-christophe.jaillet@wanadoo.fr>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 21, 2017 at 12:07:21PM +0100, Pavel Machek wrote:
-> On Mon 2017-02-20 15:56:36, Sakari Ailus wrote:
-> > On Mon, Feb 20, 2017 at 03:09:13PM +0200, Sakari Ailus wrote:
-> > > I've tested ACPI, will test DT soon...
-> > 
-> > DT case works, too (Nokia N9).
+Hello Christophe,
+
+On 01/23/2017 06:16 PM, Christophe JAILLET wrote:
+> It is likely that a "of_node_put(ep)" is missing here.
+> There is one in the previous error handling code, and one a few lines
+> below in the normal case as well.
 > 
-> Hmm. Good to know. Now to figure out how to get N900 case to work...
+> Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+> ---
+>  drivers/media/platform/exynos4-is/media-dev.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
 > 
-> AFAICT N9 has CSI2, not CSI1 support, right? Some of the core changes
-> seem to be in, so I'll need to figure out which, and will still need
-> omap3isp modifications...
+> diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+> index e3a8709138fa..da5b76c1df98 100644
+> --- a/drivers/media/platform/exynos4-is/media-dev.c
+> +++ b/drivers/media/platform/exynos4-is/media-dev.c
+> @@ -402,8 +402,10 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
+>  		return ret;
+>  	}
+>  
+> -	if (WARN_ON(endpoint.base.port == 0) || index >= FIMC_MAX_SENSORS)
+> +	if (WARN_ON(endpoint.base.port == 0) || index >= FIMC_MAX_SENSORS) {
+> +		of_node_put(ep);
+>  		return -EINVAL;
+> +	}
+>  
+>  	pd->mux_id = (endpoint.base.port - 1) & 0x1;
+>  
+> 
 
-Indeed, I've only tested for CSI-2 as I have no functional CSI-1 devices.
+Thanks for the patch, but Krzysztof sent the exact same patch before [0]. There
+was feedback from Sylwester at the time that you can also look at [0]. Could you
+please take that into account and post a patch according to what he suggested?
 
-It's essentially the functionality in the four patches. The data-lane and
-clock-name properties have been renamed as data-lanes and clock-lanes (i.e.
-plural) to match the property documentation.
+[0]: http://lists.infradead.org/pipermail/linux-arm-kernel/2016-March/415207.html
 
+Best regards,
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
