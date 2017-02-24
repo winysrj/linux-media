@@ -1,125 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:51975 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750890AbdBVFLn (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56333
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751221AbdBXTmo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Feb 2017 00:11:43 -0500
-Message-ID: <a18eeb126dca88990ccda843b9d5d0d7@smtp-cloud6.xs4all.net>
-Date: Wed, 22 Feb 2017 06:11:40 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Fri, 24 Feb 2017 14:42:44 -0500
+Subject: Re: [PATCH 2/2] media: s5p-mfc: fix MMAP of mfc buffer during reqbufs
+To: Pankaj Dubey <pankaj.dubey@samsung.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org
+References: <1481888915-19624-1-git-send-email-pankaj.dubey@samsung.com>
+ <1481888915-19624-3-git-send-email-pankaj.dubey@samsung.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: kyungmin.park@samsung.com, jtp.park@samsung.com,
+        mchehab@kernel.org, mchehab@osg.samsung.com,
+        hans.verkuil@cisco.com, krzk@kernel.org, kgene@kernel.org,
+        Smitha T Murthy <smitha.t@samsung.com>
+Message-ID: <81c11e69-b7eb-ccb5-a377-2848ec551274@osg.samsung.com>
+Date: Fri, 24 Feb 2017 16:42:31 -0300
+MIME-Version: 1.0
+In-Reply-To: <1481888915-19624-3-git-send-email-pankaj.dubey@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hello Pankaj,
 
-Results of the daily build of media_tree:
+On 12/16/2016 08:48 AM, Pankaj Dubey wrote:
+> From: Smitha T Murthy <smitha.t@samsung.com>
+> 
+> It has been observed on ARM64 based Exynos SoC, if IOMMU is not enabled
+> and we try to use reserved memory for MFC, reqbufs fails with below
+> mentioned error
+> ---------------------------------------------------------------------------
+> V4L2 Codec decoding example application
+> Kamil Debski <k.debski@samsung.com>
+> Copyright 2012 Samsung Electronics Co., Ltd.
+> 
+> Opening MFC.
+> (mfc.c:mfc_open:58): MFC Info (/dev/video0): driver="s5p-mfc" \
+> bus_info="platform:12c30000.mfc0" card="s5p-mfc-dec" fd=0x4[
+> 42.339165] Remapping memory failed, error: -6
+> 
+> MFC Open Success.
+> (main.c:main:711): Successfully opened all necessary files and devices
+> (mfc.c:mfc_dec_setup_output:103): Setup MFC decoding OUTPUT buffer \
+> size=4194304 (requested=4194304)
+> (mfc.c:mfc_dec_setup_output:120): Number of MFC OUTPUT buffers is 2 \
+> (requested 2)
+> 
+> [App] Out buf phy : 0x00000000, virt : 0xffffffff
+> Output Length is = 0x300000
+> Error (mfc.c:mfc_dec_setup_output:145): Failed to MMAP MFC OUTPUT buffer
+> -------------------------------------------------------------------------
+> This is because the device requesting for memory is mfc0.left not the parent mfc0.
+> Hence setting of alloc_devs need to be done only if IOMMU is enabled
+> and in that case both the left and right device is treated as mfc0 only.
+> 
 
-date:			Wed Feb 22 05:00:25 CET 2017
-media-tree git hash:	9eeb0ed0f30938f31a3d9135a88b9502192c18dd
-media_build git hash:	785cdf7f0798964681b33aad44fc2ff4d734733d
-v4l-utils git hash:	1edd6920bed585d0ea70a2d400182ba17ee2e7fc
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+I see, so likely you were facing the issue described in patch 1/2 after this
+patch since the driver doesn't set alloc_devs when IOMMU is disabled, right?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10-rc3-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-x86_64: OK
-linux-4.10-rc3-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+In any case, I guess these patches have been superseded by Marek's series[0]
+so they are no longer needed?
 
-Detailed results are available here:
+[0]: https://www.spinics.net/lists/linux-media/msg111156.html
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Best regards,
+-- 
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
