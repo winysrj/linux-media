@@ -1,103 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:51435 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750949AbdBFJhw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Feb 2017 04:37:52 -0500
-Date: Mon, 6 Feb 2017 10:37:48 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sebastian Reichel <sre@kernel.org>, mchehab@s-opensource.com
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        laurent.pinchart@ideasonboard.com, ivo.g.dimitrov.75@gmail.com,
-        pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        galak@codeaurora.org, mchehab@osg.samsung.com,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] media: add operation to get configuration of "the other
- side" of the link
-Message-ID: <20170206093748.GA17017@amd>
-References: <20161222133938.GA30259@amd>
- <20161224152031.GA8420@amd>
- <20170203123508.GA10286@amd>
- <20170203130740.GB12291@valkosipuli.retiisi.org.uk>
- <20170203210610.GA18379@amd>
- <20170203213454.GD12291@valkosipuli.retiisi.org.uk>
- <20170204215610.GA9243@amd>
- <20170204223350.GF12291@valkosipuli.retiisi.org.uk>
- <20170205211219.GA27072@amd>
- <20170205234011.nyttcpurodvoztor@earth>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="Qxx1br4bt0+wmkIi"
-Content-Disposition: inline
-In-Reply-To: <20170205234011.nyttcpurodvoztor@earth>
+Received: from gofer.mess.org ([80.229.237.210]:41769 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751319AbdBYMRx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 25 Feb 2017 07:17:53 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v3 06/19] [media] rc: lirc keymap no longer makes any sense
+Date: Sat, 25 Feb 2017 11:51:21 +0000
+Message-Id: <ba62e72160d86a1eefb2eb39894e42fee9317fcb.1488023302.git.sean@mess.org>
+In-Reply-To: <cover.1488023302.git.sean@mess.org>
+References: <cover.1488023302.git.sean@mess.org>
+In-Reply-To: <cover.1488023302.git.sean@mess.org>
+References: <cover.1488023302.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The lirc keymap existed once upon a time to select the lirc protocol.
+Since '275ddb4 [media] rc-core: remove the LIRC "protocol"', IR is
+always passed to the lirc decoder so this keymap is no longer needed.
 
---Qxx1br4bt0+wmkIi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/keymaps/Makefile  |  1 -
+ drivers/media/rc/keymaps/rc-lirc.c | 42 --------------------------------------
+ drivers/media/rc/st_rc.c           |  2 +-
+ include/media/rc-map.h             |  1 -
+ 4 files changed, 1 insertion(+), 45 deletions(-)
+ delete mode 100644 drivers/media/rc/keymaps/rc-lirc.c
 
-
-Normally, link configuration can be determined at probe time... but
-Nokia N900 has two cameras, and can switch between them at runtime, so
-that mechanism is not suitable here.
-
-Add a hook that tells us link configuration.
-
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index cf778c5..74148b9 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -25,6 +25,7 @@
- #include <media/v4l2-dev.h>
- #include <media/v4l2-fh.h>
- #include <media/v4l2-mediabus.h>
-+#include <media/v4l2-of.h>
-=20
- /* generic v4l2_device notify callback notification values */
- #define V4L2_SUBDEV_IR_RX_NOTIFY		_IOW('v', 0, u32)
-@@ -383,6 +384,8 @@ struct v4l2_mbus_frame_desc {
-  * @s_rx_buffer: set a host allocated memory buffer for the subdev. The su=
-bdev
-  *	can adjust @size to a lower value and must not write more data to the
-  *	buffer starting at @data than the original value of @size.
-+ *
-+ * @g_endpoint_config: get link configuration required by this device.
-  */
- struct v4l2_subdev_video_ops {
- 	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 confi=
-g);
-@@ -415,6 +418,8 @@ struct v4l2_subdev_video_ops {
- 			     const struct v4l2_mbus_config *cfg);
- 	int (*s_rx_buffer)(struct v4l2_subdev *sd, void *buf,
- 			   unsigned int *size);
-+	int (*g_endpoint_config)(struct v4l2_subdev *sd,
-+			    struct v4l2_of_endpoint *cfg);
- };
-=20
- /**
-
-
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---Qxx1br4bt0+wmkIi
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAliYQ+wACgkQMOfwapXb+vLzNACfa1Mhc8Zo9eUdw8zm3gJZpG2V
-PlMAoKJN5rjBHo9rNomw7tJ9p5CK0uZE
-=ibQw
------END PGP SIGNATURE-----
-
---Qxx1br4bt0+wmkIi--
+diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
+index ffe9e61..2945f99 100644
+--- a/drivers/media/rc/keymaps/Makefile
++++ b/drivers/media/rc/keymaps/Makefile
+@@ -57,7 +57,6 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
+ 			rc-kworld-pc150u.o \
+ 			rc-kworld-plus-tv-analog.o \
+ 			rc-leadtek-y04g0051.o \
+-			rc-lirc.o \
+ 			rc-lme2510.o \
+ 			rc-manli.o \
+ 			rc-medion-x10.o \
+diff --git a/drivers/media/rc/keymaps/rc-lirc.c b/drivers/media/rc/keymaps/rc-lirc.c
+deleted file mode 100644
+index e172f5d..0000000
+--- a/drivers/media/rc/keymaps/rc-lirc.c
++++ /dev/null
+@@ -1,42 +0,0 @@
+-/* rc-lirc.c - Empty dummy keytable, for use when its preferred to pass
+- * all raw IR data to the lirc userspace decoder.
+- *
+- * Copyright (c) 2010 by Jarod Wilson <jarod@redhat.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- */
+-
+-#include <media/rc-core.h>
+-#include <linux/module.h>
+-
+-static struct rc_map_table lirc[] = {
+-	{ },
+-};
+-
+-static struct rc_map_list lirc_map = {
+-	.map = {
+-		.scan    = lirc,
+-		.size    = ARRAY_SIZE(lirc),
+-		.rc_type = RC_TYPE_OTHER,
+-		.name    = RC_MAP_LIRC,
+-	}
+-};
+-
+-static int __init init_rc_map_lirc(void)
+-{
+-	return rc_map_register(&lirc_map);
+-}
+-
+-static void __exit exit_rc_map_lirc(void)
+-{
+-	rc_map_unregister(&lirc_map);
+-}
+-
+-module_init(init_rc_map_lirc)
+-module_exit(exit_rc_map_lirc)
+-
+-MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Jarod Wilson <jarod@redhat.com>");
+diff --git a/drivers/media/rc/st_rc.c b/drivers/media/rc/st_rc.c
+index f0d7190..6228d93 100644
+--- a/drivers/media/rc/st_rc.c
++++ b/drivers/media/rc/st_rc.c
+@@ -298,7 +298,7 @@ static int st_rc_probe(struct platform_device *pdev)
+ 	rdev->open = st_rc_open;
+ 	rdev->close = st_rc_close;
+ 	rdev->driver_name = IR_ST_NAME;
+-	rdev->map_name = RC_MAP_LIRC;
++	rdev->map_name = RC_MAP_EMPTY;
+ 	rdev->input_name = "ST Remote Control Receiver";
+ 
+ 	ret = rc_register_device(rdev);
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index a704749..878d852 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -255,7 +255,6 @@ struct rc_map *rc_map_get(const char *name);
+ #define RC_MAP_KWORLD_PC150U             "rc-kworld-pc150u"
+ #define RC_MAP_KWORLD_PLUS_TV_ANALOG     "rc-kworld-plus-tv-analog"
+ #define RC_MAP_LEADTEK_Y04G0051          "rc-leadtek-y04g0051"
+-#define RC_MAP_LIRC                      "rc-lirc"
+ #define RC_MAP_LME2510                   "rc-lme2510"
+ #define RC_MAP_MANLI                     "rc-manli"
+ #define RC_MAP_MEDION_X10                "rc-medion-x10"
+-- 
+2.9.3
