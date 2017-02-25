@@ -1,58 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:57257 "EHLO
-        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751059AbdBJHSn (ORCPT
+Received: from aserp1040.oracle.com ([141.146.126.69]:17740 "EHLO
+        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751460AbdBYENg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Feb 2017 02:18:43 -0500
-Subject: Re: [PATCH] media: fix s5p_mfc_set_dec_frame_buffer_v6() to print buf
- size in hex
-To: Shuah Khan <shuahkh@osg.samsung.com>, kyungmin.park@samsung.com,
-        kamil@wypas.org, jtp.park@samsung.com, mchehab@kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-From: Andrzej Hajda <a.hajda@samsung.com>
-Message-id: <80f7c198-0fd0-2101-de3d-998634ffcd92@samsung.com>
-Date: Fri, 10 Feb 2017 08:18:07 +0100
-MIME-version: 1.0
-In-reply-to: <20170209221051.26234-1-shuahkh@osg.samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
-References: <CGME20170209221100epcas1p31efbe8cd7f29d67e830616af02865521@epcas1p3.samsung.com>
- <20170209221051.26234-1-shuahkh@osg.samsung.com>
+        Fri, 24 Feb 2017 23:13:36 -0500
+Date: Sat, 25 Feb 2017 07:11:11 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Stefan Wahren <stefan.wahren@i2se.com>
+Cc: lee@kernel.org, rjui@broadcom.com, linux-media@vger.kernel.org,
+        eric@anholt.net, kernel-janitors@vger.kernel.org, arnd@arndb.de,
+        linux-arm-kernel@lists.infradead.org, mchehab@kernel.org,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+        sbranden@broadcom.com, gregkh@linuxfoundation.org,
+        linux-kernel@vger.kernel.org,
+        bcm-kernel-feedback-list@broadcom.com, devel@driverdev.osuosl.org,
+        swarren@wwwdotorg.org, f.fainelli@gmail.com,
+        linux-rpi-kernel@lists.infradead.org
+Subject: Re: [PATCH] staging: bcm2835: Fix a memory leak in error handling
+ path
+Message-ID: <20170225041111.GB4429@mwanda>
+References: <20170219103412.10092-1-christophe.jaillet@wanadoo.fr>
+ <6585ca42-71f4-1517-c6fc-b9ed2f23c687@i2se.com>
+ <20170224195731.GB4480@mwanda>
+ <398315856.259038.1487972318815@email.1und1.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <398315856.259038.1487972318815@email.1und1.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09.02.2017 23:10, Shuah Khan wrote:
-> Fix s5p_mfc_set_dec_frame_buffer_v6() to print buffer size in hex to be
-> consistent with the rest of the messages in the routine.
->
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+On Fri, Feb 24, 2017 at 10:38:38PM +0100, Stefan Wahren wrote:
+> 
+> > Dan Carpenter <dan.carpenter@oracle.com> hat am 24. Februar 2017 um 20:57 geschrieben:
+> > 
+> > 
+> > On Fri, Feb 24, 2017 at 01:37:30PM +0100, Stefan Wahren wrote:
+> > > Hi Christophe,
+> > > 
+> > > Am 19.02.2017 um 11:34 schrieb Christophe JAILLET:
+> > > >If 'kzalloc()' fails, we should release resources allocated so far, just as
+> > > >done in all other cases in this function.
+> > > >
+> > > >Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+> > > >---
+> > > >Not sure that the error handling path is correct.
+> > > >Is 'gdev[0]' freed? Should it be?
+> > > 
+> > 
+> > Yes, but I already sent a patch to fix this and your leak as well and
+> > Greg merged it.
+> 
+> My leak? I'm confused.
 
-As Nicolas said please fix the subject.
-
-After this you can add my:
-Acked-by: Andrzej Hajda <a.hajda@samsung.com>
-
---
-Regards
-Andrzej
-
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> index d6f207e..fc45980 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> @@ -497,7 +497,7 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
->  		}
->  	}
->  
-> -	mfc_debug(2, "Buf1: %zu, buf_size1: %d (frames %d)\n",
-> +	mfc_debug(2, "Buf1: %zx, buf_size1: %d (frames %d)\n",
->  			buf_addr1, buf_size1, ctx->total_dpb_count);
->  	if (buf_size1 < 0) {
->  		mfc_debug(2, "Not enough memory has been allocated.\n");
-
-
+The one you're fixing I mean.
