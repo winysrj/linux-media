@@ -1,86 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:51240
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932448AbdBIUEn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Feb 2017 15:04:43 -0500
-From: Thibault Saunier <thibault.saunier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        linux-samsung-soc@vger.kernel.org,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        linux-media@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Thibault Saunier <thibault.saunier@osg.samsung.com>
-Subject: [PATCH v2 2/4] [media] exynos-gsc: Respect userspace colorspace setting
-Date: Thu,  9 Feb 2017 17:04:18 -0300
-Message-Id: <20170209200420.3046-3-thibault.saunier@osg.samsung.com>
-In-Reply-To: <20170209200420.3046-1-thibault.saunier@osg.samsung.com>
-References: <20170209200420.3046-1-thibault.saunier@osg.samsung.com>
+Received: from gofer.mess.org ([80.229.237.210]:59141 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751398AbdBYMWI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 25 Feb 2017 07:22:08 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v3 05/19] [media] gpio-ir: do not allow a timeout of 0
+Date: Sat, 25 Feb 2017 11:51:20 +0000
+Message-Id: <fa5fd97c187d9e2998859c0ee720c1484d6c9b3b.1488023302.git.sean@mess.org>
+In-Reply-To: <cover.1488023302.git.sean@mess.org>
+References: <cover.1488023302.git.sean@mess.org>
+In-Reply-To: <cover.1488023302.git.sean@mess.org>
+References: <cover.1488023302.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the colorspace is specified by userspace we should respect
-it and not reset it ourself if we can support it.
+According to the documentation, a timeout of 0 turns off timeouts,
+which is not the case.
 
-Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- drivers/media/platform/exynos-gsc/gsc-core.c | 25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
+ drivers/media/rc/gpio-ir-recv.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index 2beb43401987..63bb4577827d 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -445,10 +445,14 @@ int gsc_try_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
- 
- 	pix_mp->num_planes = fmt->num_planes;
- 
--	if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
--		pix_mp->colorspace = V4L2_COLORSPACE_REC709;
--	else /* SD */
--		pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
-+	if (pix_mp->colorspace != V4L2_COLORSPACE_REC709 &&
-+		pix_mp->colorspace != V4L2_COLORSPACE_SMPTE170M &&
-+		pix_mp->colorspace != V4L2_COLORSPACE_DEFAULT) {
-+		if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
-+		  pix_mp->colorspace = V4L2_COLORSPACE_REC709;
-+		else /* SD */
-+		  pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
-+	  }
- 
- 	for (i = 0; i < pix_mp->num_planes; ++i) {
- 		struct v4l2_plane_pix_format *plane_fmt = &pix_mp->plane_fmt[i];
-@@ -492,12 +496,17 @@ int gsc_g_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
- 	pix_mp->height		= frame->f_height;
- 	pix_mp->field		= V4L2_FIELD_NONE;
- 	pix_mp->pixelformat	= frame->fmt->pixelformat;
--	if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
--		pix_mp->colorspace = V4L2_COLORSPACE_REC709;
--	else /* SD */
--		pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
- 	pix_mp->num_planes	= frame->fmt->num_planes;
- 
-+	if (pix_mp->colorspace != V4L2_COLORSPACE_REC709 &&
-+		pix_mp->colorspace != V4L2_COLORSPACE_SMPTE170M &&
-+		pix_mp->colorspace != V4L2_COLORSPACE_DEFAULT) {
-+		if (pix_mp->width > 720 && pix_mp->height > 576) /* HD */
-+		  pix_mp->colorspace = V4L2_COLORSPACE_REC709;
-+		else /* SD */
-+		  pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
-+	  }
-+
- 	for (i = 0; i < pix_mp->num_planes; ++i) {
- 		pix_mp->plane_fmt[i].bytesperline = (frame->f_width *
- 			frame->fmt->depth[i]) / 8;
+diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
+index 4a4895e..b4f773b 100644
+--- a/drivers/media/rc/gpio-ir-recv.c
++++ b/drivers/media/rc/gpio-ir-recv.c
+@@ -158,7 +158,7 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
+ 	rcdev->input_id.version = 0x0100;
+ 	rcdev->dev.parent = &pdev->dev;
+ 	rcdev->driver_name = GPIO_IR_DRIVER_NAME;
+-	rcdev->min_timeout = 0;
++	rcdev->min_timeout = 1;
+ 	rcdev->timeout = IR_DEFAULT_TIMEOUT;
+ 	rcdev->max_timeout = 10 * IR_DEFAULT_TIMEOUT;
+ 	if (pdata->allowed_protos)
 -- 
-2.11.1
-
+2.9.3
