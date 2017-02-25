@@ -1,283 +1,216 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:60609 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751289AbdBYMRx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Feb 2017 07:17:53 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v3 10/19] [media] lirc: use refcounting for lirc devices
-Date: Sat, 25 Feb 2017 11:51:25 +0000
-Message-Id: <723e8f78001a53687b4288e8a66ba16474b6e1bb.1488023302.git.sean@mess.org>
-In-Reply-To: <cover.1488023302.git.sean@mess.org>
-References: <cover.1488023302.git.sean@mess.org>
-In-Reply-To: <cover.1488023302.git.sean@mess.org>
-References: <cover.1488023302.git.sean@mess.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:40388 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752113AbdBYWM6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 25 Feb 2017 17:12:58 -0500
+Date: Sat, 25 Feb 2017 23:12:55 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
+Subject: Re: [PATCH 1/4] v4l2: device_register_subdev_nodes: allow calling
+ multiple times
+Message-ID: <20170225221255.GA6411@amd>
+References: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz>
+ <20170220103114.GA9800@amd>
+ <20170220130912.GT16975@valkosipuli.retiisi.org.uk>
+ <20170220135636.GU16975@valkosipuli.retiisi.org.uk>
+ <20170221110721.GD5021@amd>
+ <20170221111104.GD16975@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="W/nzBZO5zC0uMSeA"
+Content-Disposition: inline
+In-Reply-To: <20170221111104.GD16975@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If a lirc device is unplugged, the struct rc_dev is freed even though
-userspace can still have a file descriptor open on the lirc chardev. The
-rc_dev structure can be used in a subsequent, or even currently executing
-ioctl, read or write.
 
-Signed-off-by: Sean Young <sean@mess.org>
+--W/nzBZO5zC0uMSeA
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi!
+
+> > On Mon 2017-02-20 15:56:36, Sakari Ailus wrote:
+> > > On Mon, Feb 20, 2017 at 03:09:13PM +0200, Sakari Ailus wrote:
+> > > > I've tested ACPI, will test DT soon...
+> > >=20
+> > > DT case works, too (Nokia N9).
+> >=20
+> > Hmm. Good to know. Now to figure out how to get N900 case to work...
+> >=20
+> > AFAICT N9 has CSI2, not CSI1 support, right? Some of the core changes
+> > seem to be in, so I'll need to figure out which, and will still need
+> > omap3isp modifications...
+>=20
+> Indeed, I've only tested for CSI-2 as I have no functional CSI-1 devices.
+>=20
+> It's essentially the functionality in the four patches. The data-lane and
+> clock-name properties have been renamed as data-lanes and clock-lanes (i.=
+e.
+> plural) to match the property documentation.
+
+Yes, it seems to work.
+
+Here's a patch. It has checkpatch issues, I can fix them.  More
+support is needed on the ispcsiphy.c side... Could you take (fixed)
+version of this to your fwnode branch?
+
+Thanks,
+									Pavel
+
+
+
+
 ---
- drivers/media/rc/lirc_dev.c | 120 +++++++++++++++++++-------------------------
- 1 file changed, 51 insertions(+), 69 deletions(-)
 
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index ccbdce0..988758b 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -54,7 +54,8 @@ struct irctl {
- 	struct lirc_buffer *buf;
- 	unsigned int chunk_size;
- 
--	struct cdev *cdev;
-+	struct device dev;
-+	struct cdev cdev;
- 
- 	struct task_struct *task;
- 	long jiffies_to_wait;
-@@ -76,15 +77,21 @@ static void lirc_irctl_init(struct irctl *ir)
- 	ir->d.minor = NOPLUG;
- }
- 
--static void lirc_irctl_cleanup(struct irctl *ir)
-+static void lirc_release(struct device *ld)
- {
--	device_destroy(lirc_class, MKDEV(MAJOR(lirc_base_dev), ir->d.minor));
-+	struct irctl *ir = container_of(ld, struct irctl, dev);
-+
-+	put_device(ir->dev.parent);
- 
- 	if (ir->buf != ir->d.rbuf) {
- 		lirc_buffer_free(ir->buf);
- 		kfree(ir->buf);
- 	}
--	ir->buf = NULL;
-+
-+	mutex_lock(&lirc_dev_lock);
-+	irctls[ir->d.minor] = NULL;
-+	mutex_unlock(&lirc_dev_lock);
-+	kfree(ir);
- }
- 
- /*  helper function
-@@ -157,32 +164,21 @@ static int lirc_cdev_add(struct irctl *ir)
- 	struct cdev *cdev;
- 	int retval;
- 
--	cdev = cdev_alloc();
--	if (!cdev)
--		return -ENOMEM;
-+	cdev = &ir->cdev;
- 
- 	if (d->fops) {
--		cdev->ops = d->fops;
-+		cdev_init(cdev, d->fops);
- 		cdev->owner = d->owner;
- 	} else {
--		cdev->ops = &lirc_dev_fops;
-+		cdev_init(cdev, &lirc_dev_fops);
- 		cdev->owner = THIS_MODULE;
- 	}
- 	retval = kobject_set_name(&cdev->kobj, "lirc%d", d->minor);
- 	if (retval)
--		goto err_out;
--
--	retval = cdev_add(cdev, MKDEV(MAJOR(lirc_base_dev), d->minor), 1);
--	if (retval)
--		goto err_out;
--
--	ir->cdev = cdev;
--
--	return 0;
-+		return retval;
- 
--err_out:
--	cdev_del(cdev);
--	return retval;
-+	cdev->kobj.parent = &ir->dev.kobj;
-+	return cdev_add(cdev, ir->dev.devt, 1);
- }
- 
- static int lirc_allocate_buffer(struct irctl *ir)
-@@ -304,9 +300,12 @@ static int lirc_allocate_driver(struct lirc_driver *d)
- 
- 	ir->d = *d;
- 
--	device_create(lirc_class, ir->d.dev,
--		      MKDEV(MAJOR(lirc_base_dev), ir->d.minor), NULL,
--		      "lirc%u", ir->d.minor);
-+	ir->dev.devt = MKDEV(MAJOR(lirc_base_dev), ir->d.minor);
-+	ir->dev.class = lirc_class;
-+	ir->dev.parent = d->dev;
-+	ir->dev.release = lirc_release;
-+	dev_set_name(&ir->dev, "lirc%d", ir->d.minor);
-+	device_initialize(&ir->dev);
- 
- 	if (d->sample_rate) {
- 		ir->jiffies_to_wait = HZ / d->sample_rate;
-@@ -329,14 +328,22 @@ static int lirc_allocate_driver(struct lirc_driver *d)
- 		goto out_sysfs;
- 
- 	ir->attached = 1;
-+
-+	err = device_add(&ir->dev);
-+	if (err)
-+		goto out_cdev;
-+
- 	mutex_unlock(&lirc_dev_lock);
- 
-+	get_device(ir->dev.parent);
-+
- 	dev_info(ir->d.dev, "lirc_dev: driver %s registered at minor = %d\n",
- 		 ir->d.name, ir->d.minor);
- 	return minor;
--
-+out_cdev:
-+	cdev_del(&ir->cdev);
- out_sysfs:
--	device_destroy(lirc_class, MKDEV(MAJOR(lirc_base_dev), ir->d.minor));
-+	put_device(&ir->dev);
- out_lock:
- 	mutex_unlock(&lirc_dev_lock);
- 
-@@ -364,7 +371,6 @@ EXPORT_SYMBOL(lirc_register_driver);
- int lirc_unregister_driver(int minor)
- {
- 	struct irctl *ir;
--	struct cdev *cdev;
- 
- 	if (minor < 0 || minor >= MAX_IRCTL_DEVICES) {
- 		pr_err("minor (%d) must be between 0 and %d!\n",
-@@ -378,8 +384,6 @@ int lirc_unregister_driver(int minor)
- 		return -ENOENT;
- 	}
- 
--	cdev = ir->cdev;
--
- 	mutex_lock(&lirc_dev_lock);
- 
- 	if (ir->d.minor != minor) {
-@@ -401,22 +405,20 @@ int lirc_unregister_driver(int minor)
- 		dev_dbg(ir->d.dev, LOGHEAD "releasing opened driver\n",
- 			ir->d.name, ir->d.minor);
- 		wake_up_interruptible(&ir->buf->wait_poll);
--		mutex_lock(&ir->irctl_lock);
-+	}
- 
--		if (ir->d.set_use_dec)
--			ir->d.set_use_dec(ir->d.data);
-+	mutex_lock(&ir->irctl_lock);
- 
--		module_put(cdev->owner);
--		mutex_unlock(&ir->irctl_lock);
--	} else {
--		lirc_irctl_cleanup(ir);
--		cdev_del(cdev);
--		kfree(ir);
--		irctls[minor] = NULL;
--	}
-+	if (ir->d.set_use_dec)
-+		ir->d.set_use_dec(ir->d.data);
- 
-+	mutex_unlock(&ir->irctl_lock);
- 	mutex_unlock(&lirc_dev_lock);
- 
-+	device_del(&ir->dev);
-+	cdev_del(&ir->cdev);
-+	put_device(&ir->dev);
-+
- 	return 0;
- }
- EXPORT_SYMBOL(lirc_unregister_driver);
-@@ -424,7 +426,6 @@ EXPORT_SYMBOL(lirc_unregister_driver);
- int lirc_dev_fop_open(struct inode *inode, struct file *file)
- {
- 	struct irctl *ir;
--	struct cdev *cdev;
- 	int retval = 0;
- 
- 	if (iminor(inode) >= MAX_IRCTL_DEVICES) {
-@@ -459,18 +460,14 @@ int lirc_dev_fop_open(struct inode *inode, struct file *file)
- 			goto error;
- 	}
- 
--	cdev = ir->cdev;
--	if (try_module_get(cdev->owner)) {
--		ir->open++;
--		if (ir->d.set_use_inc)
--			retval = ir->d.set_use_inc(ir->d.data);
--
--		if (retval) {
--			module_put(cdev->owner);
--			ir->open--;
--		} else if (ir->buf) {
-+	ir->open++;
-+	if (ir->d.set_use_inc)
-+		retval = ir->d.set_use_inc(ir->d.data);
-+	if (retval) {
-+		ir->open--;
-+	} else {
-+		if (ir->buf)
- 			lirc_buffer_clear(ir->buf);
--		}
- 		if (ir->task)
- 			wake_up_process(ir->task);
- 	}
-@@ -487,7 +484,6 @@ EXPORT_SYMBOL(lirc_dev_fop_open);
- int lirc_dev_fop_close(struct inode *inode, struct file *file)
- {
- 	struct irctl *ir = irctls[iminor(inode)];
--	struct cdev *cdev;
+omap3isp: add support for CSI1 bus
+   =20
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+   =20
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform=
+/omap3isp/isp.c
+index 245225a..4b10cfe 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2032,6 +2034,7 @@ static int isp_fwnode_parse(struct device *dev, struc=
+t fwnode_handle *fwn,
+ 	struct v4l2_fwnode_endpoint vfwn;
+ 	unsigned int i;
  	int ret;
- 
- 	if (!ir) {
-@@ -495,25 +491,14 @@ int lirc_dev_fop_close(struct inode *inode, struct file *file)
- 		return -EINVAL;
- 	}
- 
--	cdev = ir->cdev;
++	int csi1 =3D 0;
+=20
+ 	ret =3D v4l2_fwnode_endpoint_parse(fwn, &vfwn);
+ 	if (ret)
+@@ -2059,38 +2062,82 @@ static int isp_fwnode_parse(struct device *dev, str=
+uct fwnode_handle *fwn,
+=20
+ 	case ISP_OF_PHY_CSIPHY1:
+ 	case ISP_OF_PHY_CSIPHY2:
+-		/* FIXME: always assume CSI-2 for now. */
++		switch (vfwn.bus_type) {
++		case V4L2_MBUS_CSI2:
++			dev_dbg(dev, "csi2 configuration\n");
++			csi1 =3D 0;
++			break;
++		case V4L2_MBUS_CCP2:
++		case V4L2_MBUS_CSI1:
++			dev_dbg(dev, "csi1 configuration\n");
++			csi1 =3D 1;
++			break;
++		default:
++			dev_err(dev, "unkonwn bus type\n");
++		}
++
+ 		switch (vfwn.base.port) {
+ 		case ISP_OF_PHY_CSIPHY1:
+-			buscfg->interface =3D ISP_INTERFACE_CSI2C_PHY1;
++			if (csi1)
++				buscfg->interface =3D ISP_INTERFACE_CCP2B_PHY1;
++			else
++				buscfg->interface =3D ISP_INTERFACE_CSI2C_PHY1;
+ 			break;
+ 		case ISP_OF_PHY_CSIPHY2:
+-			buscfg->interface =3D ISP_INTERFACE_CSI2A_PHY2;
++			if (csi1)
++				buscfg->interface =3D ISP_INTERFACE_CCP2B_PHY2;
++			else
++				buscfg->interface =3D ISP_INTERFACE_CSI2A_PHY2;
+ 			break;
++		default:
++			dev_err(dev, "bad port\n");
+ 		}
+-		buscfg->bus.csi2.lanecfg.clk.pos =3D vfwn.bus.mipi_csi2.clock_lane;
+-		buscfg->bus.csi2.lanecfg.clk.pol =3D
+-			vfwn.bus.mipi_csi2.lane_polarities[0];
+-		dev_dbg(dev, "clock lane polarity %u, pos %u\n",
+-			buscfg->bus.csi2.lanecfg.clk.pol,
+-			buscfg->bus.csi2.lanecfg.clk.pos);
 -
- 	ret = mutex_lock_killable(&lirc_dev_lock);
- 	WARN_ON(ret);
- 
- 	rc_close(ir->d.rdev);
- 
- 	ir->open--;
--	if (ir->attached) {
--		if (ir->d.set_use_dec)
--			ir->d.set_use_dec(ir->d.data);
--		module_put(cdev->owner);
--	} else {
--		lirc_irctl_cleanup(ir);
--		cdev_del(cdev);
--		irctls[ir->d.minor] = NULL;
--		kfree(ir);
--	}
+-		for (i =3D 0; i < ISP_CSIPHY2_NUM_DATA_LANES; i++) {
+-			buscfg->bus.csi2.lanecfg.data[i].pos =3D
+-				vfwn.bus.mipi_csi2.data_lanes[i];
+-			buscfg->bus.csi2.lanecfg.data[i].pol =3D
+-				vfwn.bus.mipi_csi2.lane_polarities[i + 1];
++		if (csi1) {
++			buscfg->bus.ccp2.lanecfg.clk.pos =3D vfwn.bus.mipi_csi1.clock_lane;
++			buscfg->bus.ccp2.lanecfg.clk.pol =3D
++				vfwn.bus.mipi_csi1.lane_polarity[0];
++			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
++				buscfg->bus.ccp2.lanecfg.clk.pol,
++				buscfg->bus.ccp2.lanecfg.clk.pos);
++
++			buscfg->bus.ccp2.lanecfg.data[0].pos =3D 1;
++			buscfg->bus.ccp2.lanecfg.data[0].pol =3D 0;
++
+ 			dev_dbg(dev, "data lane %u polarity %u, pos %u\n", i,
+-				buscfg->bus.csi2.lanecfg.data[i].pol,
+-				buscfg->bus.csi2.lanecfg.data[i].pos);
++				buscfg->bus.ccp2.lanecfg.data[0].pol,
++				buscfg->bus.ccp2.lanecfg.data[0].pos);
++
++			buscfg->bus.ccp2.strobe_clk_pol =3D vfwn.bus.mipi_csi1.clock_inv;
++			buscfg->bus.ccp2.phy_layer =3D vfwn.bus.mipi_csi1.strobe;
++			buscfg->bus.ccp2.ccp2_mode =3D vfwn.bus_type =3D=3D V4L2_MBUS_CCP2;
++			buscfg->bus.ccp2.vp_clk_pol =3D 1;
++		=09
++			buscfg->bus.ccp2.crc =3D 1;	=09
++		} else {
++			buscfg->bus.csi2.lanecfg.clk.pos =3D vfwn.bus.mipi_csi2.clock_lane;
++			buscfg->bus.csi2.lanecfg.clk.pol =3D
++				vfwn.bus.mipi_csi2.lane_polarities[0];
++			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
++				buscfg->bus.csi2.lanecfg.clk.pol,
++				buscfg->bus.csi2.lanecfg.clk.pos);
++
++			for (i =3D 0; i < ISP_CSIPHY2_NUM_DATA_LANES; i++) {
++				buscfg->bus.csi2.lanecfg.data[i].pos =3D
++					vfwn.bus.mipi_csi2.data_lanes[i];
++				buscfg->bus.csi2.lanecfg.data[i].pol =3D
++					vfwn.bus.mipi_csi2.lane_polarities[i + 1];
++				dev_dbg(dev, "data lane %u polarity %u, pos %u\n", i,
++					buscfg->bus.csi2.lanecfg.data[i].pol,
++					buscfg->bus.csi2.lanecfg.data[i].pos);
++			}
++			/*
++			 * FIXME: now we assume the CRC is always there.
++			 * Implement a way to obtain this information from the
++			 * sensor. Frame descriptors, perhaps?
++			 */
++
++			buscfg->bus.csi2.crc =3D 1;
+ 		}
 -
-+	if (ir->d.set_use_dec)
-+		ir->d.set_use_dec(ir->d.data);
- 	if (!ret)
- 		mutex_unlock(&lirc_dev_lock);
- 
-@@ -780,15 +765,12 @@ static int __init lirc_dev_init(void)
- 		return retval;
- 	}
- 
--
- 	pr_info("IR Remote Control driver registered, major %d\n",
- 						MAJOR(lirc_base_dev));
- 
- 	return 0;
- }
- 
--
--
- static void __exit lirc_dev_exit(void)
- {
- 	class_destroy(lirc_class);
--- 
-2.9.3
+-		/*
+-		 * FIXME: now we assume the CRC is always there.
+-		 * Implement a way to obtain this information from the
+-		 * sensor. Frame descriptors, perhaps?
+-		 */
+-		buscfg->bus.csi2.crc =3D 1;
+ 		break;
+=20
+ 	default:
+
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--W/nzBZO5zC0uMSeA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAliyAWYACgkQMOfwapXb+vJoNACgnQE7+2eo0QR3ElV01z/3SMWC
+RIcAn1rwmwoGYCESOVC567Tmmv9GRJuA
+=sD7q
+-----END PGP SIGNATURE-----
+
+--W/nzBZO5zC0uMSeA--
