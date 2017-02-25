@@ -1,71 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:32890 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753088AbdBPCU2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 21:20:28 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v4 09/36] ARM: dts: imx6-sabreauto: add reset-gpios property for max7310_b
-Date: Wed, 15 Feb 2017 18:19:11 -0800
-Message-Id: <1487211578-11360-10-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from gofer.mess.org ([80.229.237.210]:47627 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751284AbdBYMRx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 25 Feb 2017 07:17:53 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v3 09/19] [media] serial_ir: iommap is a memory address, not bool
+Date: Sat, 25 Feb 2017 11:51:24 +0000
+Message-Id: <eaadc6e5e6de627b175a617ad636aed5ea4d386e.1488023302.git.sean@mess.org>
+In-Reply-To: <cover.1488023302.git.sean@mess.org>
+References: <cover.1488023302.git.sean@mess.org>
+In-Reply-To: <cover.1488023302.git.sean@mess.org>
+References: <cover.1488023302.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The reset pin to the port expander chip (MAX7310) is controlled by a gpio,
-so define a reset-gpios property to control it. There are three MAX7310's
-on the SabreAuto CPU card (max7310_[abc]), but all use the same pin for
-their reset. Since all can't acquire the same pin, assign it to max7310_b,
-that chip is needed by more functions (usb and adv7180).
+This has been broken for a long time, so presumably it is not used. I
+have no hardware to test this on.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=61401
+
+Fixes: 90ab5ee ("module_param: make bool parameters really bool")
+
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/media/rc/serial_ir.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-index cace88c..967c3b8 100644
---- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-@@ -136,6 +136,9 @@
- 				reg = <0x32>;
- 				gpio-controller;
- 				#gpio-cells = <2>;
-+				pinctrl-names = "default";
-+				pinctrl-0 = <&pinctrl_max7310>;
-+				reset-gpios = <&gpio1 15 GPIO_ACTIVE_LOW>;
- 			};
+diff --git a/drivers/media/rc/serial_ir.c b/drivers/media/rc/serial_ir.c
+index 923fb22..7b3a3b5 100644
+--- a/drivers/media/rc/serial_ir.c
++++ b/drivers/media/rc/serial_ir.c
+@@ -56,7 +56,7 @@ struct serial_ir_hw {
+ static int type;
+ static int io;
+ static int irq;
+-static bool iommap;
++static ulong iommap;
+ static int ioshift;
+ static bool softcarrier = true;
+ static bool share_irq;
+@@ -836,7 +836,7 @@ module_param(io, int, 0444);
+ MODULE_PARM_DESC(io, "I/O address base (0x3f8 or 0x2f8)");
  
- 			max7310_c: gpio@34 {
-@@ -442,6 +445,12 @@
- 			>;
- 		};
+ /* some architectures (e.g. intel xscale) have memory mapped registers */
+-module_param(iommap, bool, 0444);
++module_param(iommap, ulong, 0444);
+ MODULE_PARM_DESC(iommap, "physical base for memory mapped I/O (0 = no memory mapped io)");
  
-+		pinctrl_max7310: max7310grp {
-+			fsl,pins = <
-+				MX6QDL_PAD_SD2_DAT0__GPIO1_IO15 0x1b0b0
-+			>;
-+		};
-+
- 		pinctrl_pwm3: pwm1grp {
- 			fsl,pins = <
- 				MX6QDL_PAD_SD4_DAT1__PWM3_OUT		0x1b0b1
+ /*
 -- 
-2.7.4
+2.9.3
