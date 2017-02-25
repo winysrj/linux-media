@@ -1,235 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f48.google.com ([74.125.83.48]:36267 "EHLO
-        mail-pg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932077AbdBGXjt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2017 18:39:49 -0500
-Received: by mail-pg0-f48.google.com with SMTP id v184so42737125pgv.3
-        for <linux-media@vger.kernel.org>; Tue, 07 Feb 2017 15:39:49 -0800 (PST)
-Date: Tue, 7 Feb 2017 15:32:02 -0800
-From: Bjorn Andersson <bjorn.andersson@linaro.org>
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Andy Gross <andy.gross@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-Subject: Re: [PATCH v6 4/9] media: venus: adding core part and helper
- functions
-Message-ID: <20170207233202.GI27837@minitux>
-References: <1486473024-21705-1-git-send-email-stanimir.varbanov@linaro.org>
- <1486473024-21705-5-git-send-email-stanimir.varbanov@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1486473024-21705-5-git-send-email-stanimir.varbanov@linaro.org>
+Received: from gofer.mess.org ([80.229.237.210]:48379 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751791AbdBYLvp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 25 Feb 2017 06:51:45 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v3 00/19] Teach lirc how to send and receive scancodes
+Date: Sat, 25 Feb 2017 11:51:15 +0000
+Message-Id: <cover.1488023302.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue 07 Feb 05:10 PST 2017, Stanimir Varbanov wrote:
+This patch series has some general cleanup work, then the lirc scancode
+interface (v3) and lirc documentation fixes. The cleanups are needed for
+the new scancode interface.
 
->  * firmware loader
-> 
+lirc already supports LIRC_MODE_LIRCCODE, but that mode is entirely
+driver dependant and makes no provision for protocol information.
 
-I like the way this turns out, just some style comments below.
+Receiving LIRC_MODE_SCANCODE
+----------------------------
+If a lirc device has the LIRC_CAN_REC_SCANCODE feature, LIRC_MODE_SCANCODE
+can be set set using LIRC_SET_REC_MODE ioctl. Now when you read from the
+device you receive struct lirc_scancode. In this structure you have
+the scancode, rc_type, and flags. RC_TYPE_* is now in uapi, so now you
+can see exactly which protocol variant was used. flags might contain
+LIRC_SCANCODE_FLAGS_TOGGLE (rc5, rc6) or LIRC_SCANCODE_FLAGS_REPEAT (nec).
 
-[..]
-> diff --git a/drivers/media/platform/qcom/venus/firmware.c b/drivers/media/platform/qcom/venus/firmware.c
-> new file mode 100644
-> index 000000000000..4057696abaf5
-> --- /dev/null
-> +++ b/drivers/media/platform/qcom/venus/firmware.c
-> @@ -0,0 +1,151 @@
-> +/*
-> + * Copyright (C) 2017 Linaro Ltd.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 and
-> + * only version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + */
-> +
-> +#include <linux/dma-mapping.h>
-> +#include <linux/firmware.h>
-> +#include <linux/kernel.h>
-> +#include <linux/of.h>
-> +#include <linux/of_reserved_mem.h>
-> +#include <linux/slab.h>
-> +#include <linux/qcom_scm.h>
-> +#include <linux/soc/qcom/mdt_loader.h>
-> +
-> +#define VENUS_FIRMWARE_NAME		"venus.mdt"
-> +#define VENUS_PAS_ID			9
-> +#define VENUS_FW_MEM_SIZE		SZ_8M
-> +
-> +struct firmware_mem {
-> +	struct device dev;
-> +	void *mem_va;
-> +	phys_addr_t mem_phys;
-> +	size_t mem_size;
-> +};
-> +
-> +static struct firmware_mem fw;
+Using this interface, you can see what IR protocol a remote is using. This
+was not easy to do before.
 
-Rather than operating on a global variable I think you should either
-return your firmware_mem pointer or the device pointer to the caller of
-venus_boot() and have the core pass that back into venus_shutdown().
+Sending LIRC_MODE_SCANCODE
+--------------------------
+If a lirc device has the LIRC_CAN_SEND_SCANCODE features, LIRC_MODE_SCANCODE
+can be set using the LIRC_SET_SEND_MODE ioctl. Now you can write
+struct lirc_scancode. flags should be 0, rc_type to the RC_TYPE_* and
+the scancode must be set. You can only tranmsit one lirc_scancode at a time.
 
-> +
-> +static void device_release_dummy(struct device *dev)
-> +{
-> +}
-> +
-> +static int firmware_alloc_mem(struct device *parent, struct firmware_mem *fw)
-> +{
-> +	struct device_node *np;
-> +	struct device *dev = &fw->dev;
-> +	int ret;
-> +
-> +	np = of_get_child_by_name(parent->of_node, "video-firmware");
-> +	if (!np)
-> +		return -ENODEV;
-> +
-> +	memset(fw, 0, sizeof(*fw));
+This interface uses the in-kernel IR encoders to work. Using this interface
+it will be possible to port lirc_zilog to rc-core. This device cannot send
+raw IR, so it will not use the IR encoders but provide the same userspace
+interface.
 
-This should not be necessary.
+Other user-visible changes
+--------------------------
+Now all RC devices will have a lirc char device, including devices which
+do not produce raw IR. They will be fixed in mode LIRC_MODE_SCANCODE.
 
-Further more, if it's already initialized it's safe to assume that the
-allocation below will fail - regardless of you clearing it or not.
+Changes v2 -> v3:
+ - add timestamp to lirc_scancode struct to record when scancode was
+   decoded in ktime (CLOCK_MONOTONIC)
+ - Rather than add more members to rc_dev and ir_raw_event_ctrl, now
+   we have all the lirc settings for rc-core in lirc_node
+ - Various small fixes.
 
-> +
-> +	dev->of_node = np;
-> +	dev->parent = parent;
-> +	dev->release = device_release_dummy;
-> +
-> +	ret = dev_set_name(dev, "venus-fw");
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = device_register(dev);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	ret = of_reserved_mem_device_init(dev);
-> +	if (ret)
-> +		goto err_unreg_device;
-> +
-> +	fw->mem_size = VENUS_FW_MEM_SIZE;
-> +
-> +	fw->mem_va = dma_alloc_coherent(dev, fw->mem_size, &fw->mem_phys,
-> +					GFP_KERNEL);
+Changes v1 -> v2:
+ - changed the scancode to 64 bit. There are many IR protocols which encode
+   more than 32 bits; we don't support any at the moment but might as 
+   well future-proof it
+   http://www.hifi-remote.com/wiki/index.php?title=DecodeIR
+ - Various small fixes.
+ - Added documentation
 
-As this should follow the life of dev you can use dmam_alloc_coherent()
-to reduce the clean up paths.
+Sean Young (19):
+  [media] lirc: document lirc modes better
+  [media] lirc: return ENOTTY when ioctl is not supported
+  [media] lirc: return ENOTTY when device does support ioctl
+  [media] winbond: allow timeout to be set
+  [media] gpio-ir: do not allow a timeout of 0
+  [media] rc: lirc keymap no longer makes any sense
+  [media] lirc: advertise LIRC_CAN_GET_REC_RESOLUTION and improve
+  [media] mce_kbd: add encoder
+  [media] serial_ir: iommap is a memory address, not bool
+  [media] lirc: use refcounting for lirc devices
+  [media] lirc: lirc interface should not be a raw decoder
+  [media] lirc: exorcise struct irctl
+  [media] lirc: use plain kfifo rather than lirc_buffer
+  [media] lirc: implement scancode sending
+  [media] rc: use the correct carrier for scancode transmit
+  [media] rc: auto load encoder if necessary
+  [media] lirc: implement reading scancode
+  [media] lirc: scancode rc devices should have a lirc device too
+  [media] lirc: document LIRC_MODE_SCANCODE
 
-> +	if (!fw->mem_va) {
-> +		ret = -ENOMEM;
-> +		goto err_mem_device_release;
-> +	}
-> +
-> +	return 0;
-> +
-> +err_mem_device_release:
-> +	of_reserved_mem_device_release(dev);
-> +err_unreg_device:
-> +	device_unregister(dev);
-> +	return ret;
-> +}
-> +
-> +static void firmware_free_mem(struct firmware_mem *fw)
-> +{
-> +	dma_free_coherent(&fw->dev, fw->mem_size, fw->mem_va, fw->mem_phys);
+ Documentation/media/lirc.h.rst.exceptions          |  50 ++-
+ Documentation/media/uapi/rc/lirc-dev-intro.rst     |  78 +++-
+ Documentation/media/uapi/rc/lirc-get-features.rst  |  28 +-
+ Documentation/media/uapi/rc/lirc-get-length.rst    |   3 +-
+ Documentation/media/uapi/rc/lirc-get-rec-mode.rst  |   8 +-
+ Documentation/media/uapi/rc/lirc-get-send-mode.rst |   8 +-
+ Documentation/media/uapi/rc/lirc-read.rst          |  22 +-
+ .../media/uapi/rc/lirc-set-rec-carrier-range.rst   |   2 +-
+ .../media/uapi/rc/lirc-set-rec-timeout-reports.rst |   2 +
+ Documentation/media/uapi/rc/lirc-write.rst         |  25 +-
+ drivers/media/rc/Kconfig                           |  15 +-
+ drivers/media/rc/Makefile                          |   6 +-
+ drivers/media/rc/gpio-ir-recv.c                    |   2 +-
+ drivers/media/rc/igorplugusb.c                     |   2 +-
+ drivers/media/rc/ir-jvc-decoder.c                  |   1 +
+ drivers/media/rc/ir-lirc-codec.c                   | 367 ++++++++++++------
+ drivers/media/rc/ir-mce_kbd-decoder.c              |  56 ++-
+ drivers/media/rc/ir-nec-decoder.c                  |   1 +
+ drivers/media/rc/ir-rc5-decoder.c                  |   1 +
+ drivers/media/rc/ir-rc6-decoder.c                  |   1 +
+ drivers/media/rc/ir-sanyo-decoder.c                |   1 +
+ drivers/media/rc/ir-sharp-decoder.c                |   1 +
+ drivers/media/rc/ir-sony-decoder.c                 |   1 +
+ drivers/media/rc/keymaps/Makefile                  |   1 -
+ drivers/media/rc/keymaps/rc-lirc.c                 |  42 --
+ drivers/media/rc/lirc_dev.c                        | 431 +++++++++------------
+ drivers/media/rc/rc-core-priv.h                    |  61 ++-
+ drivers/media/rc/rc-ir-raw.c                       |  55 ++-
+ drivers/media/rc/rc-main.c                         |  73 ++--
+ drivers/media/rc/serial_ir.c                       |   4 +-
+ drivers/media/rc/st_rc.c                           |   2 +-
+ drivers/media/rc/winbond-cir.c                     |   4 +-
+ drivers/staging/media/lirc/lirc_sasem.c            |   3 +-
+ drivers/staging/media/lirc/lirc_zilog.c            | 167 ++++----
+ include/media/lirc_dev.h                           |  33 +-
+ include/media/rc-core.h                            |   3 +
+ include/media/rc-map.h                             | 109 ++----
+ include/uapi/linux/lirc.h                          |  76 ++++
+ 38 files changed, 1069 insertions(+), 676 deletions(-)
+ delete mode 100644 drivers/media/rc/keymaps/rc-lirc.c
 
-If you use dmam_alloc_coherent() this goes.
-
-> +	of_reserved_mem_device_release(&fw->dev);
-
-And I would suggest that as this is related to the device you should
-release it in the dev->release function; turning this function into
-device_unregister(&fw->dev).
-
-
-(The devres allocation will be freed right before the release function
-is called)
-
-> +	device_unregister(&fw->dev);
-> +	memset(fw, 0, sizeof(*fw));
-
-This should not be necessary.
-
-> +}
-> +
-> +static int firmware_load(struct firmware_mem *fw)
-> +{
-> +	struct device *dev = &fw->dev;
-> +	const struct firmware *mdt;
-> +	ssize_t fw_size;
-> +	int ret;
-> +
-> +	ret = request_firmware(&mdt, VENUS_FIRMWARE_NAME, dev);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	fw_size = qcom_mdt_get_size(mdt);
-> +	if (fw_size < 0) {
-> +		ret = fw_size;
-> +		goto err_release_fw;
-> +	} else if (fw_size > VENUS_FW_MEM_SIZE) {
-
-You can skip this this check, as qcom_mdt_load() will fail if any part
-of the firmware doesn't fit - and we would benefit from making that
-error message more verbose.
-
-> +		ret = -ENOMEM;
-> +		goto err_release_fw;
-> +	}
-> +
-> +	ret = qcom_mdt_load(&fw->dev, mdt, VENUS_FIRMWARE_NAME, VENUS_PAS_ID,
-> +			    fw->mem_va, fw->mem_phys, fw->mem_size);
-> +
-> +err_release_fw:
-
-This is not only the error path, so "release_fw" would be better.
-
-> +	release_firmware(mdt);
-> +
-> +	return ret;
-> +}
-> +
-> +int venus_boot(struct device *parent)
-> +{
-> +	int ret;
-> +
-> +	if (!qcom_scm_is_available())
-> +		return -EPROBE_DEFER;
-> +
-> +	ret = firmware_alloc_mem(parent, &fw);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = firmware_load(&fw);
-> +	if (ret) {
-> +		firmware_free_mem(&fw);
-> +		return ret;
-> +	}
-> +
-> +	return qcom_scm_pas_auth_and_reset(VENUS_PAS_ID);
-> +}
-> +
-> +int venus_shutdown(void)
-> +{
-> +	int ret;
-> +
-> +	ret = qcom_scm_pas_shutdown(VENUS_PAS_ID);
-> +	firmware_free_mem(&fw);
-> +	return ret;
-> +}
-
-Regards,
-Bjorn
+-- 
+2.9.3
