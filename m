@@ -1,120 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48964 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751453AbdBNAZK (ORCPT
+Received: from bay004-omc3s2.hotmail.com ([65.54.190.140]:63475 "EHLO
+        BAY004-OMC3S2.hotmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751571AbdBYIGo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 19:25:10 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v4 1/4] v4l: vsp1: Prevent multiple streamon race commencing pipeline early
-Date: Tue, 14 Feb 2017 02:25:34 +0200
-Message-ID: <2882411.slzxzAmkTH@avalon>
-In-Reply-To: <d510ad628ee135c12e7b5050ddd5606e573cf01a.1483704413.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.4df11e0fa078e5cc8bc8f668951249cca0fd3d7f.1483704413.git-series.kieran.bingham+renesas@ideasonboard.com> <d510ad628ee135c12e7b5050ddd5606e573cf01a.1483704413.git-series.kieran.bingham+renesas@ideasonboard.com>
+        Sat, 25 Feb 2017 03:06:44 -0500
+From: Alexandre-Xavier L <alexandrexavier@live.ca>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "axdoomer@gmail.com" <axdoomer@gmail.com>
+Subject: [PATCH v3] [media] em28xx: Add new usbid eb1a:5051 for the Ion Video
+ 2 PC MKII, Startech svid2usb23 and Raygo R12-41373
+Date: Sat, 25 Feb 2017 08:03:38 +0000
+Message-ID: <SN2PR20MB0752A208CA01D97C72854A37BD550@SN2PR20MB0752.namprd20.prod.outlook.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <F2136D1E2459E24F9BF71452622F8D93@namprd20.prod.outlook.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
-
-Thank you for the patch.
-
-On Friday 06 Jan 2017 12:15:28 Kieran Bingham wrote:
-> With multiple inputs through the BRU it is feasible for the streams to
-> race each other at stream-on.
-> 
-> Multiple VIDIOC_STREAMON calls racing each other could have process
-> N-1 skipping over the pipeline setup section and then start the pipeline
-> early, if videobuf2 has already enqueued buffers to the driver for
-> process N but not called the .start_streaming() operation yet
-> 
-> In the case of the video pipelines, this
-> can present two serious issues.
-> 
->  1) A null-dereference if the pipe->dl is committed at the same time as
->     the vsp1_video_setup_pipeline() is processing
-> 
->  2) A hardware hang, where a display list is committed without having
->     called vsp1_video_setup_pipeline() first
-> 
-> Repair this issue, by ensuring that only the stream which configures the
-> pipeline is able to start it.
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> 
-> ---
-> 
-> v4:
->  - Revert and rework back to v1 implementation style
->  - Provide detailed comments on the race
-> 
-> v3:
->  - Move 'flag reset' to be inside the vsp1_reset_wpf() function call
->  - Tidy up the wpf->pipe reference for the configured flag
-> 
-> To test this race, I have used the vsp-unit-test-0007.sh from Laurent's
-> VSP-Tests [0] in iteration. Without this patch, failures can be seen be
-> seen anywhere up to the 150 iterations mark.
-> 
-> With this patch in place, tests have successfully iterated over 1500
-> loops.
-> 
-> The function affected by this change appears to have been around since
-> v4.6-rc2-105-g351bbf99f245 and thus could be included in stable trees
-> from that point forward. The issue may have been prevalent before that
-> but the solution would need reworking for earlier version.
-> 
-> [0] http://git.ideasonboard.com/renesas/vsp-tests.git
-> ---
->  drivers/media/platform/vsp1/vsp1_video.c | 13 +++++++++++++
->  1 file changed, 13 insertions(+)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
-> b/drivers/media/platform/vsp1/vsp1_video.c index e6592b576ca3..f7dc249eb398
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_video.c
-> +++ b/drivers/media/platform/vsp1/vsp1_video.c
-> @@ -797,6 +797,7 @@ static int vsp1_video_start_streaming(struct vb2_queue
-> *vq, unsigned int count) {
->  	struct vsp1_video *video = vb2_get_drv_priv(vq);
->  	struct vsp1_pipeline *pipe = video->rwpf->pipe;
-> +	bool start_pipeline = false;
->  	unsigned long flags;
->  	int ret;
-> 
-> @@ -807,11 +808,23 @@ static int vsp1_video_start_streaming(struct vb2_queue
-> *vq, unsigned int count) mutex_unlock(&pipe->lock);
->  			return ret;
->  		}
-> +
-> +		start_pipeline = true;
->  	}
-> 
->  	pipe->stream_count++;
->  	mutex_unlock(&pipe->lock);
-> 
-> +	/*
-> +	 * vsp1_pipeline_ready() is not sufficient to establish that all 
-streams
-> +	 * are prepared and the pipeline is configured, as multiple streams
-> +	 * can race through streamon with buffers already queued; Therefore we
-> +	 * don't even attempt to start the pipeline until the last stream has
-> +	 * called through here.
-> +	 */
-> +	if (!start_pipeline)
-> +		return 0;
-> +
->  	spin_lock_irqsave(&pipe->irqlock, flags);
->  	if (vsp1_pipeline_ready(pipe))
->  		vsp1_video_pipeline_run(pipe);
-
--- 
-Regards,
-
-Laurent Pinchart
+QWRkIG5ldyB1c2JpZCBlYjFhOjUwNTEgZm9yIHRoZSBJb24gVmlkZW8gMiBQQyBNS0lJLCBTdGFy
+dGVjaCBzdmlkMnVzYjIzIGFuZCBSYXlnbyBSMTItNDEzNzMuDQoNCkhvcGVmdWxseSB0aGlzIHRp
+bWUgdGFicyBkaWRuJ3QgZ2V0IHJlcGxhY2VkIHdpdGggc3BhY2VzLiBJIGFsc28gdXNlZCB0aGlz
+IGFzIGFuIG9jY2FzaW9uIHRvIGFkZCB0aGUgY29uY2VybmVkIGRldmljZXMgaW4gY29tbWVudCBi
+ZXNpZGUgdGhlIElEcy4gDQoNCk5vIG5lZWQgdG8gbWVudGlvbiB0aGlzIGlzIHRoZSBmaXJzdCB0
+aW1lIEknbSBkb2luZyB0aGlzIGFuZCBJIGhhZCBhIGxvdCBvZiB0cm91YmxlIGdldHRpbmcgZ2l0
+IHRvIGdlbmVyYXRlIGEgcGF0Y2ggKHR1dG9yaWFscyBub3QgdXAtdG8tZGF0ZSBvbiB0aGUgd2lr
+aT8pLiANCg0KQmVzdCByZWdhcmRzLA0KQWxleGFuZHJlLVhhdmllcg0KDQpTaWduZWQtb2ZmLWJ5
+OiBBbGV4YW5kcmUtWGF2aWVyIExhYm9udMOpLUxhbW91cmV1eCA8YWxleGFuZHJleGF2aWVyQGxp
+dmUuY2E+DQotLS0NCiBkcml2ZXJzL21lZGlhL3VzYi9lbTI4eHgvZW0yOHh4LWNhcmRzLmMgfCAy
+ICsrDQogMSBmaWxlIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKQ0KDQpkaWZmIC0tZ2l0IGEvZHJp
+dmVycy9tZWRpYS91c2IvZW0yOHh4L2VtMjh4eC1jYXJkcy5jIGIvZHJpdmVycy9tZWRpYS91c2Iv
+ZW0yOHh4L2VtMjh4eC1jYXJkcy5jDQppbmRleCA1ZjkwZDA4Li5mMDQxZWE0IDEwMDY0NA0KLS0t
+IGEvZHJpdmVycy9tZWRpYS91c2IvZW0yOHh4L2VtMjh4eC1jYXJkcy5jDQorKysgYi9kcml2ZXJz
+L21lZGlhL3VzYi9lbTI4eHgvZW0yOHh4LWNhcmRzLmMNCkBAIC0yNjAwLDYgKzI2MDAsOCBAQCBz
+dHJ1Y3QgdXNiX2RldmljZV9pZCBlbTI4eHhfaWRfdGFibGVbXSA9IHsNCiAJCQkuZHJpdmVyX2lu
+Zm8gPSBFTTI4MTc4X0JPQVJEX1RFUlJBVEVDX1QyX1NUSUNLX0hEIH0sDQogCXsgVVNCX0RFVklD
+RSgweDMyNzUsIDB4MDA4NSksDQogCQkJLmRyaXZlcl9pbmZvID0gRU0yODE3OF9CT0FSRF9QTEVY
+X1BYX0JDVUQgfSwNCisJeyBVU0JfREVWSUNFKDB4ZWIxYSwgMHg1MDUxKSwgLyogSW9uIFZpZGVv
+IDIgUEMgTUtJSSAvIFN0YXJ0ZWNoIHN2aWQydXNiMjMgLyBSYXlnbyBSMTItNDEzNzMgKi8NCisJ
+CQkuZHJpdmVyX2luZm8gPSBFTTI4NjBfQk9BUkRfVFZQNTE1MF9SRUZFUkVOQ0VfREVTSUdOIH0s
+DQogCXsgfSwNCiB9Ow0KIE1PRFVMRV9ERVZJQ0VfVEFCTEUodXNiLCBlbTI4eHhfaWRfdGFibGUp
+Ow0KLS0gDQoyLjEuNA0K
