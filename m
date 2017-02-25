@@ -1,195 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:35508 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751081AbdBJWaW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Feb 2017 17:30:22 -0500
-From: Derek Robson <robsonde@gmail.com>
-To: mchehab@kernel.org, gregkh@linuxfoundation.org, robsonde@gmail.com,
-        thaissa.falbo@gmail.com, karniksayli1995@gmail.com,
-        bhaktipriya96@gmail.com, laurent.pinchart@ideasonboard.com,
-        arnd@arndb.de, gnudevliz@gmail.com, aryasaatvik@gmail.com,
-        janani.rvchndrn@gmail.com
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] Staging: media: davinci_vpfe - style fix
-Date: Sat, 11 Feb 2017 11:28:25 +1300
-Message-Id: <20170210222825.23390-1-robsonde@gmail.com>
+Received: from gofer.mess.org ([80.229.237.210]:44425 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751301AbdBYLQ4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 25 Feb 2017 06:16:56 -0500
+Date: Sat, 25 Feb 2017 11:14:25 +0000
+From: Sean Young <sean@mess.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: kernel test robot <fengguang.wu@intel.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Ruslan Ruslichenko <rruslich@cisco.com>, LKP <lkp@01.org>,
+        "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+        kernel@stlinux.com,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-mediatek@lists.infradead.org,
+        linux-amlogic@lists.infradead.org,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Linux LED Subsystem <linux-leds@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>, wfg@linux.intel.com
+Subject: Re: [WARNING: A/V UNSCANNABLE][Merge tag 'media/v4.11-1' of git]
+ ff58d005cd: BUG: unable to handle kernel NULL pointer dereference at
+ 0000039c
+Message-ID: <20170225111424.GA7659@gofer.mess.org>
+References: <58b07b30.9XFLj9Hhl7F6HMc2%fengguang.wu@intel.com>
+ <CA+55aFytXj+TZ_TanbxcY0KgRTrV7Vvr=fWON8tioUGmYHYiNA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CA+55aFytXj+TZ_TanbxcY0KgRTrV7Vvr=fWON8tioUGmYHYiNA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixed alignment of block commenents across whole driver.
-Found using checkpatch.
+On Fri, Feb 24, 2017 at 11:15:51AM -0800, Linus Torvalds wrote:
+> Added more relevant people. I've debugged the immediate problem below,
+> but I think there's another problem that actually triggered this.
+> 
+> On Fri, Feb 24, 2017 at 10:28 AM, kernel test robot
+> <fengguang.wu@intel.com> wrote:
+> >
+> > 0day kernel testing robot got the below dmesg and the first bad commit is
+> >
+> > https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
+> >
+> > commit ff58d005cd10fcd372787cceac547e11cf706ff6
+> > Merge: 5ab3566 9eeb0ed
+> >
+> >     Merge tag 'media/v4.11-1' of git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media
+> [...]
+> > [    4.664940] rc rc0: lirc_dev: driver ir-lirc-codec (rc-loopback) registered at minor = 0
+> > [    4.666322] BUG: unable to handle kernel NULL pointer dereference at 0000039c
+> > [    4.666675] IP: serial_ir_irq_handler+0x189/0x410
+> 
+> This merge being fingered ends up being a subtle interaction with other changes.
+> 
+> Those "other changes" are (again) the interrupt retrigger code that
+> was reverted for 4.10, and then we tried to merge them again this
+> merge window.
+> 
+> Because the immediate cause is:
+> 
+> > [    4.666675] EIP: serial_ir_irq_handler+0x189/0x410
+> > [    4.666675] Call Trace:
+> > [    4.666675]  <IRQ>
+> > [    4.666675]  __handle_irq_event_percpu+0x57/0x100
+> > [    4.666675]  handle_irq_event_percpu+0x1d/0x50
+> > [    4.666675]  handle_irq_event+0x32/0x60
+> > [    4.666675]  handle_edge_irq+0xa5/0x120
+> > [    4.666675]  handle_irq+0x9d/0xd0
+> > [    4.666675]  </IRQ>
+> > [    4.666675]  do_IRQ+0x5f/0x130
+> > [    4.666675]  common_interrupt+0x33/0x38
+> > [    4.666675] EIP: hardware_init_port+0x3f/0x190
+> > [    4.666675] EFLAGS: 00200246 CPU: 0
+> > [    4.666675] EAX: c718990f EBX: 00000000 ECX: 00000000 EDX: 000003f9
+> > [    4.666675] ESI: 000003f9 EDI: 000003f8 EBP: c0065d98 ESP: c0065d84
+> > [    4.666675]  DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
+> > [    4.666675]  serial_ir_probe+0xbb/0x300
+> > [    4.666675]  platform_drv_probe+0x48/0xb0
+> ...
+> 
+> ie an interrupt came in immediately after the request_irq(), before
+> all the data was properly set up, which then causes the interrupt
+> handler to take a fault because it tries to access some field that
+> hasn't even been set up yet.
 
-Signed-off-by: Derek Robson <robsonde@gmail.com>
----
- .../staging/media/davinci_vpfe/davinci_vpfe_user.h | 24 +++++++++++-----------
- .../staging/media/davinci_vpfe/dm365_ipipe_hw.c    |  4 ++--
- .../staging/media/davinci_vpfe/dm365_isif_regs.h   | 20 +++++++++---------
- drivers/staging/media/davinci_vpfe/dm365_resizer.c |  6 +++---
- 4 files changed, 27 insertions(+), 27 deletions(-)
+Oh dear. I've pointed out others making the same mistake when doing code
+reviews, clearly I need review my own code better.
 
-diff --git a/drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h b/drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h
-index d3f34f9bf712..7cc115c9ebe6 100644
---- a/drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h
-+++ b/drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h
-@@ -155,8 +155,8 @@ struct vpfe_isif_dfc {
- };
- 
- /************************************************************************
--*   Digital/Black clamp or DC Subtract parameters
--************************************************************************/
-+ *   Digital/Black clamp or DC Subtract parameters
-+ ************************************************************************/
- /**
-  * Horizontal Black Clamp modes
-  */
-@@ -309,8 +309,8 @@ struct vpfe_isif_black_clamp {
- };
- 
- /*************************************************************************
--** Color Space Conversion (CSC)
--*************************************************************************/
-+ ** Color Space Conversion (CSC)
-+ *************************************************************************/
- /**
-  * Number of Coefficient values used for CSC
-  */
-@@ -331,8 +331,8 @@ struct float_16_bit {
- };
- 
- /*************************************************************************
--**  Color Space Conversion parameters
--*************************************************************************/
-+ **  Color Space Conversion parameters
-+ *************************************************************************/
- /**
-  * Structure used for CSC config params
-  */
-@@ -365,8 +365,8 @@ enum vpfe_isif_datasft {
- 
- #define VPFE_ISIF_LINEAR_TAB_SIZE		192
- /*************************************************************************
--**  Linearization parameters
--*************************************************************************/
-+ **  Linearization parameters
-+ *************************************************************************/
- /**
-  * Structure for Sensor data linearization
-  */
-@@ -382,8 +382,8 @@ struct vpfe_isif_linearize {
- };
- 
- /*************************************************************************
--**  ISIF Raw configuration parameters
--*************************************************************************/
-+ **  ISIF Raw configuration parameters
-+ *************************************************************************/
- enum vpfe_isif_fmt_mode {
- 	VPFE_ISIF_SPLIT,
- 	VPFE_ISIF_COMBINE
-@@ -1189,8 +1189,8 @@ struct vpfe_ipipe_config {
- };
- 
- /*******************************************************************
--**  Resizer API structures
--*******************************************************************/
-+ **  Resizer API structures
-+ *******************************************************************/
- /* Interpolation types used for horizontal rescale */
- enum vpfe_rsz_intp_t {
- 	VPFE_RSZ_INTP_CUBIC,
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
-index 958ef71ee4d5..a893072d0f04 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
-@@ -1003,8 +1003,8 @@ void ipipe_set_car_regs(void __iomem *base_addr, struct vpfe_ipipe_car *car)
- 		ipipe_set_mf(base_addr);
- 		ipipe_set_gain_ctrl(base_addr, car);
- 		/* Set the threshold for switching between
--		  * the two Here we overwrite the MF SW0 value
--		  */
-+		 * the two Here we overwrite the MF SW0 value
-+		 */
- 		regw_ip(base_addr, VPFE_IPIPE_CAR_DYN_SWITCH, CAR_TYP);
- 		val = car->sw1;
- 		val <<= CAR_SW1_SHIFT;
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_isif_regs.h b/drivers/staging/media/davinci_vpfe/dm365_isif_regs.h
-index 8aceabb43f8e..64fbb459baa2 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_isif_regs.h
-+++ b/drivers/staging/media/davinci_vpfe/dm365_isif_regs.h
-@@ -59,8 +59,8 @@
- #define REC656IF				0x84
- #define CCDCFG					0x88
- /*****************************************************
--* Defect Correction registers
--*****************************************************/
-+ * Defect Correction registers
-+ *****************************************************/
- #define DFCCTL					0x8c
- #define VDFSATLV				0x90
- #define DFCMEMCTL				0x94
-@@ -70,8 +70,8 @@
- #define DFCMEM3					0xa4
- #define DFCMEM4					0xa8
- /****************************************************
--* Black Clamp registers
--****************************************************/
-+ * Black Clamp registers
-+ ****************************************************/
- #define CLAMPCFG				0xac
- #define CLDCOFST				0xb0
- #define CLSV					0xb4
-@@ -84,8 +84,8 @@
- #define CLVWIN2					0xd0
- #define CLVWIN3					0xd4
- /****************************************************
--* Lense Shading Correction
--****************************************************/
-+ * Lense Shading Correction
-+ ****************************************************/
- #define DATAHOFST				0xd8
- #define DATAVOFST				0xdc
- #define LSCHVAL					0xe0
-@@ -102,8 +102,8 @@
- #define TWODLSCIRQEN				0x10c
- #define TWODLSCIRQST				0x110
- /****************************************************
--* Data formatter
--****************************************************/
-+ * Data formatter
-+ ****************************************************/
- #define FMTCFG					0x114
- #define FMTPLEN					0x118
- #define FMTSPH					0x11c
-@@ -128,8 +128,8 @@
- #define FMTPGMAPS6				0x19c
- #define FMTPGMAPS7				0x1a0
- /************************************************
--* Color Space Converter
--************************************************/
-+ * Color Space Converter
-+ ************************************************/
- #define CSCCTL					0x1a4
- #define CSCM0					0x1a8
- #define CSCM1					0x1ac
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_resizer.c b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-index 5fbc2d447ff2..857b0e847c5e 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-@@ -1133,9 +1133,9 @@ void vpfe_resizer_buffer_isr(struct vpfe_resizer_device *resizer)
- 		}
- 	} else if (fid == 0) {
- 		/*
--		* out of sync. Recover from any hardware out-of-sync.
--		* May loose one frame
--		*/
-+		 * out of sync. Recover from any hardware out-of-sync.
-+		 * May loose one frame
-+		 */
- 		video_out->field_id = fid;
- 	}
- }
--- 
-2.11.1
+> 
+> The code line is helpful, the faulting instruction is
+> 
+>       mov    0x39c(%rax),%eax   <--- fault
+>       call ..
+>       mov    someglobalvar,%edx
+> 
+> which together with the supplied config file makes me able to match it
+> up with the assembly generation around it:
+> 
+>         inb %dx, %al    # tmp254, value
+>         andb    $1, %al #, tmp255
+>         testb   %al, %al        # tmp255
+>         je      .L233   #,
+>   .L215:
+>         movl    serial_ir+8, %eax       # serial_ir.rcdev, serial_ir.rcdev
+>         xorl    %edx, %edx      # _66->timeout
+>         movl    924(%eax), %eax # _66->timeout, _66->timeout
+>         call    nsecs_to_jiffies        #
+>         movl    jiffies, %edx   # jiffies, jiffies.33_70
+>         addl    %eax, %edx      # _69, tmp259
+>         movl    $serial_ir+16, %eax     #,
+>         call    mod_timer       #
+>         movl    serial_ir+8, %eax       # serial_ir.rcdev,
+>         call    ir_raw_event_handle     #
+>         movl    $1, %eax        #, <retval>
+> 
+> so it's that "serial_ir.rcdev->timeout" access that faults. So this is
+> the faulting source code:
+> 
+> drivers/media/rc/serial_ir.c: 402
+> 
+>         mod_timer(&serial_ir.timeout_timer,
+>                   jiffies + nsecs_to_jiffies(serial_ir.rcdev->timeout));
+> 
+>         ir_raw_event_handle(serial_ir.rcdev);
+> 
+>         return IRQ_HANDLED;
+> 
+> and serial_ir.rcdev is NULL when ti tries to look up the timeout.
 
+ir_raw_event_handle() call will also go bang if passed a null pointer, so
+this problem existed before (since v4.10).
+
+Thanks for debugging this, I'll send a patch as a reply to this email.
+
+
+Sean
