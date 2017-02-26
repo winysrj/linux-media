@@ -1,131 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:21738 "EHLO
-        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752520AbdBTNjP (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:50349 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750971AbdBZIiz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Feb 2017 08:39:15 -0500
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>
-Subject: [PATCH v2 00/15] Exynos MFC v6+ - remove the need for the reserved
- memory
-Date: Mon, 20 Feb 2017 14:38:49 +0100
-Message-id: <1487597944-2000-1-git-send-email-m.szyprowski@samsung.com>
-References: <CGME20170220133910eucas1p10f347d7688dd51ea70d15994c9d5d1f1@eucas1p1.samsung.com>
+        Sun, 26 Feb 2017 03:38:55 -0500
+Date: Sun, 26 Feb 2017 09:38:51 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
+Subject: Re: camera subdevice support was Re: [PATCH 1/4] v4l2:
+ device_register_subdev_nodes: allow calling multiple times
+Message-ID: <20170226083851.GA8840@amd>
+References: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz>
+ <20170220103114.GA9800@amd>
+ <20170220130912.GT16975@valkosipuli.retiisi.org.uk>
+ <20170220135636.GU16975@valkosipuli.retiisi.org.uk>
+ <20170221110721.GD5021@amd>
+ <20170221111104.GD16975@valkosipuli.retiisi.org.uk>
+ <20170225000918.GB23662@amd>
+ <20170225134444.6qzumpvasaow5qoj@ihha.localdomain>
+ <20170225215321.GA29886@amd>
+ <20170225231754.GY16975@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="tKW2IUtsqtDRztdT"
+Content-Disposition: inline
+In-Reply-To: <20170225231754.GY16975@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear All,
 
-This patchset is a result of my work on enabling full support for MFC device
-(multimedia codec) on Exynos 5433 on ARM64 architecture. Initially I thought
-that to let it working on ARM64 architecture with IOMMU, I would need to
-solve the issue related to the fact that s5p-mfc driver was depending on the
-first-fit allocation method in the DMA-mapping / IOMMU glue code (ARM64 use
-different algorithm). It turned out, that there is a much simpler way.
+--tKW2IUtsqtDRztdT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-During my research I found that some of the requirements for the memory
-buffers for MFC v6+ devices were blindly copied from the previous
-hardware (v5) version and simply turned out to be excessive. It turned out
-that there is no strict requirement for ALL buffers to be allocated on
-the higher addresses than the firmware base. This requirement is true only
-for the device and per-context buffers. All video data buffers can be
-allocated anywhere for all MFC v6+ versions. This heavily simplifies
-memory management in the driver.
+Ahoj! :-)
 
-Such relaxed requirements for the memory buffers can be easily fulfilled
-by allocating firmware, device and per-context buffers from the probe-time
-preallocated larger buffer. There is no need to create special reserved
-memory regions. The only case, when those memory regions are needed is an
-oldest Exynos series - Exynos4210 or Exyno4412, which both have MFC v5
-hardware, and only when IOMMU is disabled.
+> > > > Ok, I got the camera sensor to work. No subdevices support, so I do=
+n't
+> > > > have focus (etc) working, but that's a start. I also had to remove
+> > > > video-bus-switch support; but I guess it will be easier to use
+> > > > video-multiplexer patches...=20
+> > > >=20
+> > > > I'll have patches over weekend.
+> > >=20
+> > > I briefly looked at what's there --- you do miss the video nodes for =
+the
+> > > non-sensor sub-devices, and they also don't show up in the media grap=
+h,
+> > > right?
+> >=20
+> > Yes.
+> >=20
+> > > I guess they don't end up matching in the async list.
+> >=20
+> > How should they get to the async list?
+>=20
+> The patch you referred to does that. The problem is, it does make the bus
+> configuration a pointer as well. There should be two patches. That's not a
+> lot of work to separate them though. But it should be done.
 
-This patchset has been tested on Odroid U3 (Exynos4412 with MFC v5), Google
-Snow (Exynos5250 with MFC v6), Odroid XU3 (Exynos5422 with MFC v8) and
-TM2 (Exynos5433 with MFC v8, ARM64) boards.
+Well... This is the line I'm fighting with:
 
-To get it working on TM2/Exynos5433 with IOMMU enabled, the 'architectural
-clock gating' in SYSMMU has to be disabled. Fixing this will be handled
-separately. As a temporary solution, one need to clear CFG_ACGEN bit in
-REG_MMU_CFG of the SYSMMU, see __sysmmu_init_config function in
-drivers/iommu/exynos-iommu.c.
++ of_parse_phandle(dev->of_node, "ti,camera-flashes",
++							flash++)
 
-Patches are based on linux-next from 20th February 2017 with "media:
-s5p-mfc: Fix initialization of internal structures" patch applied:
-https://patchwork.linuxtv.org/patch/39198/
+If someone told me its fwnode equivalent, I might be able to get it to
+work. Knowing what group_id is and if I could ignore it would help a
+bit, too :-).
 
-I've tried to split changes into small pieces to make it easier to review
-the code. I've also did a bit of cleanup while touching the driver.
+(Also, I'll be glad to test patches :-))
 
-Best regards
-Marek Szyprowski
-Samsung R&D Institute Poland
+> > > I think we need to make the non-sensor sub-device support more generi=
+c;
+> > > it's not just the OMAP 3 ISP that needs it. I think we need to docume=
+nt
+> > > the property for the flash phandle as well; I can write one, or refre=
+sh
+> > > an existing one that I believe already exists.
+> > >=20
+> > > How about calling it either simply "flash" or "camera-flash"? Similar=
+ly
+> > > for lens: "lens" or "camera-lens". I have a vague feeling the "camera=
+-"
+> > > prefix is somewhat redundant, so I'd just go for "flash" or "lens".
+> >=20
+> > Actually, I'd go for "flash" and "focus-coil". There may be other
+> > lens properties, such as zoom, mirror movement, lens identification,
+> > ...
+>=20
+> Good point. Still there may be other ways to move the lens than the voice
+> coil (which sure is cheap), so how about "flash" and "lens-focus"?
 
+Sounds good to me.
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-Changelog:
+--tKW2IUtsqtDRztdT
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-v2:
-- fixed issues pointed by Javier Martinez Canillas: code compiles now
-  after applying each patch, added missing cleanup
-- added tags
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-v1: https://www.spinics.net/lists/linux-media/msg111156.html
-- initial version
+iEYEARECAAYFAliylBoACgkQMOfwapXb+vKAlgCfaoIIeXVh827dwK01sgT2Q81n
+Ye0AoJKEbuLBCyVKDxvwQN/m8sUCndYi
+=c60Q
+-----END PGP SIGNATURE-----
 
-
-Patch summary:
-
-Marek Szyprowski (15):
-  media: s5p-mfc: Remove unused structures and dead code
-  media: s5p-mfc: Use generic of_device_get_match_data helper
-  media: s5p-mfc: Replace mem_dev_* entries with an array
-  media: s5p-mfc: Replace bank1/bank2 entries with an array
-  media: s5p-mfc: Simplify alloc/release private buffer functions
-  media: s5p-mfc: Move setting DMA max segment size to DMA configure
-    function
-  media: s5p-mfc: Put firmware to private buffer structure
-  media: s5p-mfc: Move firmware allocation to DMA configure function
-  media: s5p-mfc: Allocate firmware with internal private buffer alloc
-    function
-  media: s5p-mfc: Reduce firmware buffer size for MFC v6+ variants
-  media: s5p-mfc: Split variant DMA memory configuration into separate
-    functions
-  media: s5p-mfc: Add support for probe-time preallocated block based
-    allocator
-  media: s5p-mfc: Remove special configuration of IOMMU domain
-  media: s5p-mfc: Use preallocated block allocator always for MFC v6+
-  ARM: dts: exynos: Remove MFC reserved buffers
-
- .../devicetree/bindings/media/s5p-mfc.txt          |   2 +-
- arch/arm/boot/dts/exynos5250-arndale.dts           |   1 -
- arch/arm/boot/dts/exynos5250-smdk5250.dts          |   1 -
- arch/arm/boot/dts/exynos5250-spring.dts            |   1 -
- arch/arm/boot/dts/exynos5420-arndale-octa.dts      |   1 -
- arch/arm/boot/dts/exynos5420-peach-pit.dts         |   1 -
- arch/arm/boot/dts/exynos5420-smdk5420.dts          |   1 -
- arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi |   1 -
- arch/arm/boot/dts/exynos5800-peach-pi.dts          |   1 -
- drivers/media/platform/s5p-mfc/regs-mfc-v6.h       |   2 +-
- drivers/media/platform/s5p-mfc/regs-mfc-v7.h       |   2 +-
- drivers/media/platform/s5p-mfc/regs-mfc-v8.h       |   2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc.c           | 214 +++++++++++++--------
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c    |   2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |  43 ++---
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c      |  71 ++-----
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h      |   1 -
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |   8 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |  10 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h     |  51 +----
- drivers/media/platform/s5p-mfc/s5p_mfc_opr.c       |  65 +++++--
- drivers/media/platform/s5p-mfc/s5p_mfc_opr.h       |   8 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c    |  48 ++---
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |  14 +-
- 24 files changed, 268 insertions(+), 283 deletions(-)
-
--- 
-1.9.1
+--tKW2IUtsqtDRztdT--
