@@ -1,61 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58702 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752383AbdBTNJy (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:54518 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750971AbdBZFMw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Feb 2017 08:09:54 -0500
-Date: Mon, 20 Feb 2017 15:09:13 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
-Subject: Re: [PATCH 1/4] v4l2: device_register_subdev_nodes: allow calling
- multiple times
-Message-ID: <20170220130912.GT16975@valkosipuli.retiisi.org.uk>
-References: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz>
- <20170220103114.GA9800@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170220103114.GA9800@amd>
+        Sun, 26 Feb 2017 00:12:52 -0500
+Message-ID: <63308f4ddf90df0767963940eae3a2d8@smtp-cloud2.xs4all.net>
+Date: Sun, 26 Feb 2017 06:11:31 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Mon, Feb 20, 2017 at 11:31:14AM +0100, Pavel Machek wrote:
-> Hi!
-> 
-> On Tue 2017-02-14 23:38:49, Pavel Machek wrote:
-> > From: Sebastian Reichel <sre@kernel.org>
-> > 
-> > If v4l2_device_register_subdev_nodes() is called multiple times, it is
-> > better to return early than corrupt memory.
-> > 
-> > Without this, exposure / gain controls do not work in the camera
-> > application on N900.
-> > 
-> > Signed-off-by: Sebastian Reichel <sre@kernel.org>
-> > Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> 
-> Can I get some updates/feedback here?
-> 
-> You liked this one and whole series should be ready...
+Results of the daily build of media_tree:
 
-:-)
+date:			Sun Feb 26 05:00:22 CET 2017
+media-tree git hash:	e6b377dbbb944d5e3ceef4e5d429fc5c841e3692
+media_build git hash:	785cdf7f0798964681b33aad44fc2ff4d734733d
+v4l-utils git hash:	1a5954c991a4ba5483bec6bdee708f25345de025
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-I was just rebasing the CCP2 support on the fwnode patchset.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: ERRORS
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-4.10-rc3-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+linux-4.9-x86_64: OK
+linux-4.10-rc3-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-I'm just pushing the result here:
+Detailed results are available here:
 
-<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=ccp2>
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-I've tested ACPI, will test DT soon...
+Full logs are available here:
 
--- 
-Kind regards,
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
