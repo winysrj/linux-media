@@ -1,77 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:21852 "EHLO
-        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753257AbdBTNjV (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44792 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751221AbdBZVhO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Feb 2017 08:39:21 -0500
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>
-Subject: [PATCH v2 10/15] media: s5p-mfc: Reduce firmware buffer size for MFC
- v6+ variants
-Date: Mon, 20 Feb 2017 14:38:59 +0100
-Message-id: <1487597944-2000-11-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1487597944-2000-1-git-send-email-m.szyprowski@samsung.com>
-References: <1487597944-2000-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20170220133915eucas1p11c62869bc2eff0b2d2e6a515a0941768@eucas1p1.samsung.com>
+        Sun, 26 Feb 2017 16:37:14 -0500
+Date: Sun, 26 Feb 2017 23:36:36 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
+Subject: Re: camera subdevice support was Re: [PATCH 1/4] v4l2:
+ device_register_subdev_nodes: allow calling multiple times
+Message-ID: <20170226213636.GA16975@valkosipuli.retiisi.org.uk>
+References: <20170220103114.GA9800@amd>
+ <20170220130912.GT16975@valkosipuli.retiisi.org.uk>
+ <20170220135636.GU16975@valkosipuli.retiisi.org.uk>
+ <20170221110721.GD5021@amd>
+ <20170221111104.GD16975@valkosipuli.retiisi.org.uk>
+ <20170225000918.GB23662@amd>
+ <20170225134444.6qzumpvasaow5qoj@ihha.localdomain>
+ <20170225215321.GA29886@amd>
+ <20170225231754.GY16975@valkosipuli.retiisi.org.uk>
+ <20170226083851.GA8840@amd>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170226083851.GA8840@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Firmware for MFC v6+ variants is not larger than 400 KiB, so there is no
-need to allocate a full 1 MiB buffer for it. Reduce it to 512 KiB to keep
-proper alignment of allocated buffer.
+Hyv‰‰ iltaa!
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
----
- drivers/media/platform/s5p-mfc/regs-mfc-v6.h | 2 +-
- drivers/media/platform/s5p-mfc/regs-mfc-v7.h | 2 +-
- drivers/media/platform/s5p-mfc/regs-mfc-v8.h | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+On Sun, Feb 26, 2017 at 09:38:51AM +0100, Pavel Machek wrote:
+> Ahoj! :-)
+> 
+> > > > > Ok, I got the camera sensor to work. No subdevices support, so I don't
+> > > > > have focus (etc) working, but that's a start. I also had to remove
+> > > > > video-bus-switch support; but I guess it will be easier to use
+> > > > > video-multiplexer patches... 
+> > > > > 
+> > > > > I'll have patches over weekend.
+> > > > 
+> > > > I briefly looked at what's there --- you do miss the video nodes for the
+> > > > non-sensor sub-devices, and they also don't show up in the media graph,
+> > > > right?
+> > > 
+> > > Yes.
+> > > 
+> > > > I guess they don't end up matching in the async list.
+> > > 
+> > > How should they get to the async list?
+> > 
+> > The patch you referred to does that. The problem is, it does make the bus
+> > configuration a pointer as well. There should be two patches. That's not a
+> > lot of work to separate them though. But it should be done.
+> 
+> Well... This is the line I'm fighting with:
+> 
+> + of_parse_phandle(dev->of_node, "ti,camera-flashes",
+> +							flash++)
+> 
+> If someone told me its fwnode equivalent, I might be able to get it to
+> work. Knowing what group_id is and if I could ignore it would help a
+> bit, too :-).
 
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
-index d2cd35916dc5..c0166ee9a455 100644
---- a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
-@@ -403,7 +403,7 @@
- #define MFC_OTHER_ENC_CTX_BUF_SIZE_V6	(12 * SZ_1K)	/*  12KB */
- 
- /* MFCv6 variant defines */
--#define MAX_FW_SIZE_V6			(SZ_1M)		/* 1MB */
-+#define MAX_FW_SIZE_V6			(SZ_512K)	/* 512KB */
- #define MAX_CPB_SIZE_V6			(3 * SZ_1M)	/* 3MB */
- #define MFC_VERSION_V6			0x61
- #define MFC_NUM_PORTS_V6		1
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
-index 1a5c6fdf7846..9f220769d970 100644
---- a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
-@@ -34,7 +34,7 @@
- #define S5P_FIMV_E_VP8_NUM_T_LAYER_V7			0xfdc4
- 
- /* MFCv7 variant defines */
--#define MAX_FW_SIZE_V7			(SZ_1M)		/* 1MB */
-+#define MAX_FW_SIZE_V7			(SZ_512K)	/* 512KB */
- #define MAX_CPB_SIZE_V7			(3 * SZ_1M)	/* 3MB */
- #define MFC_VERSION_V7			0x72
- #define MFC_NUM_PORTS_V7		1
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v8.h b/drivers/media/platform/s5p-mfc/regs-mfc-v8.h
-index 4d1c3750eb5e..75f5f7511d72 100644
---- a/drivers/media/platform/s5p-mfc/regs-mfc-v8.h
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v8.h
-@@ -116,7 +116,7 @@
- #define S5P_FIMV_D_ALIGN_PLANE_SIZE_V8	64
- 
- /* MFCv8 variant defines */
--#define MAX_FW_SIZE_V8			(SZ_1M)		/* 1MB */
-+#define MAX_FW_SIZE_V8			(SZ_512K)	/* 512KB */
- #define MAX_CPB_SIZE_V8			(3 * SZ_1M)	/* 3MB */
- #define MFC_VERSION_V8			0x80
- #define MFC_NUM_PORTS_V8		1
+Right.
+
+ACPI does not have equivalents for OF phandles. That's the background of the
+problem. The port and endpoint references are a bit special: there'a a
+device reference and indices of the port and the endpoint nodes.
+
+I think you can just use the OF API for the time being until we define how
+to describe flash devices with ACPI. The difference with ACPI will be
+visible there almost no matter what do you do there, which is one more
+reason to have that functionality in the framework (and not drivers).
+
 -- 
-1.9.1
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
