@@ -1,72 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx-out-2.rwth-aachen.de ([134.130.5.187]:36955 "EHLO
-        mx-out-2.rwth-aachen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751442AbdBEPIA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 5 Feb 2017 10:08:00 -0500
-From: =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>
-To: <linux-media@vger.kernel.org>
-CC: <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>
-Subject: [PATCH 1/2] [media] cxusb: Use a dma capable buffer also for reading
-Date: Sun, 5 Feb 2017 15:57:59 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Message-ID: <b638428812af41e080ccfc7cf7ad6963@rwthex-w2-b.rwth-ad.de>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:36809 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751390AbdB0OYy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 27 Feb 2017 09:24:54 -0500
+Received: from tschai.fritz.box (localhost [127.0.0.1])
+        by tschai.lan (Postfix) with ESMTPSA id B37D81802DD
+        for <linux-media@vger.kernel.org>; Mon, 27 Feb 2017 15:20:42 +0100 (CET)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 0/9] cec: code and doc fixes/improvements
+Date: Mon, 27 Feb 2017 15:20:33 +0100
+Message-Id: <20170227142042.37085-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit 17ce039b4e54 ("[media] cxusb: don't do DMA on stack")
-added a kmalloc'ed bounce buffer for writes, but missed to do the same
-for reads. As the read only happens after the write is finished, we can
-reuse the same buffer.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-As dvb_usb_generic_rw handles a read length of 0 by itself, avoid calling
-it using the dvb_usb_generic_read wrapper function.
+Besides various documentation and logging improvements, the main
+addition to CEC is support for a special corner case:
 
-Signed-off-by: Stefan Brüns <stefan.bruens@rwth-aachen.de>
----
- drivers/media/usb/dvb-usb/cxusb.c | 15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+When the physical address is invalid, it is still allowed by the CEC
+specification to send messages from 0xf ('Unregistered') to 0 ('TV').
 
-diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
-index 9b8c82d94b3f..8f28a63597bd 100644
---- a/drivers/media/usb/dvb-usb/cxusb.c
-+++ b/drivers/media/usb/dvb-usb/cxusb.c
-@@ -59,23 +59,24 @@ static int cxusb_ctrl_msg(struct dvb_usb_device *d,
- 			  u8 cmd, u8 *wbuf, int wlen, u8 *rbuf, int rlen)
- {
- 	struct cxusb_state *st = d->priv;
--	int ret, wo;
-+	int ret;
- 
- 	if (1 + wlen > MAX_XFER_SIZE) {
- 		warn("i2c wr: len=%d is too big!\n", wlen);
- 		return -EOPNOTSUPP;
- 	}
- 
--	wo = (rbuf == NULL || rlen == 0); /* write-only */
-+	if (rlen > MAX_XFER_SIZE) {
-+		warn("i2c rd: len=%d is too big!\n", rlen);
-+		return -EOPNOTSUPP;
-+	}
- 
- 	mutex_lock(&d->data_mutex);
- 	st->data[0] = cmd;
- 	memcpy(&st->data[1], wbuf, wlen);
--	if (wo)
--		ret = dvb_usb_generic_write(d, st->data, 1 + wlen);
--	else
--		ret = dvb_usb_generic_rw(d, st->data, 1 + wlen,
--					 rbuf, rlen, 0);
-+	ret = dvb_usb_generic_rw(d, st->data, 1 + wlen, st->data, rlen, 0);
-+	if (!ret && rbuf && rlen)
-+		memcpy(rbuf, st->data, rlen);
- 
- 	mutex_unlock(&d->data_mutex);
- 	return ret;
+This is a workaround for devices that pull their HPD pin low when they
+go into standby or switch to another input, even though CEC messages are
+still working.
+
+Regards,
+
+	Hans
+
+Hans Verkuil (9):
+  cec: documentation fixes
+  cec: improve flushing queue
+  cec: allow specific messages even when unconfigured
+  cec: return -EPERM when no LAs are configured
+  cec: document the error codes
+  cec: document the special unconfigured case
+  cec: use __func__ in log messages.
+  cec: improve cec_transmit_msg_fh logging
+  cec: log reason for returning -EINVAL
+
+ Documentation/media/uapi/cec/cec-func-ioctl.rst    |   2 +-
+ Documentation/media/uapi/cec/cec-func-open.rst     |   2 +-
+ Documentation/media/uapi/cec/cec-func-poll.rst     |   4 +-
+ .../media/uapi/cec/cec-ioc-adap-g-log-addrs.rst    |  13 ++
+ .../media/uapi/cec/cec-ioc-adap-g-phys-addr.rst    |  13 ++
+ Documentation/media/uapi/cec/cec-ioc-dqevent.rst   |  13 +-
+ Documentation/media/uapi/cec/cec-ioc-g-mode.rst    |  12 ++
+ Documentation/media/uapi/cec/cec-ioc-receive.rst   |  55 ++++++++-
+ drivers/media/cec/cec-adap.c                       | 134 +++++++++++++--------
+ drivers/media/cec/cec-api.c                        |  21 +++-
+ 10 files changed, 208 insertions(+), 61 deletions(-)
+
 -- 
 2.11.0
-
