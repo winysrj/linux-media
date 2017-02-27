@@ -1,116 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:47772 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751409AbdB0OYy (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37060 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751364AbdB0UzK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Feb 2017 09:24:54 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/9] cec: improve flushing queue
-Date: Mon, 27 Feb 2017 15:20:35 +0100
-Message-Id: <20170227142042.37085-3-hverkuil@xs4all.nl>
-In-Reply-To: <20170227142042.37085-1-hverkuil@xs4all.nl>
-References: <20170227142042.37085-1-hverkuil@xs4all.nl>
+        Mon, 27 Feb 2017 15:55:10 -0500
+Date: Mon, 27 Feb 2017 22:54:20 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
+Subject: Re: [PATCH 1/4] v4l2: device_register_subdev_nodes: allow calling
+ multiple times
+Message-ID: <20170227205420.GF16975@valkosipuli.retiisi.org.uk>
+References: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz>
+ <20170220103114.GA9800@amd>
+ <20170220130912.GT16975@valkosipuli.retiisi.org.uk>
+ <20170220135636.GU16975@valkosipuli.retiisi.org.uk>
+ <20170221110721.GD5021@amd>
+ <20170221111104.GD16975@valkosipuli.retiisi.org.uk>
+ <20170225221255.GA6411@amd>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170225221255.GA6411@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Pavel,
 
-When the adapter is unloaded or unconfigured, then all transmits and
-pending waits should be flushed.
+Please find my comments below.
 
-Move this code into its own function and improve the code that cancels
-delayed work to avoid having to unlock adap->lock.
+On Sat, Feb 25, 2017 at 11:12:55PM +0100, Pavel Machek wrote:
+> Hi!
+> 
+> > > On Mon 2017-02-20 15:56:36, Sakari Ailus wrote:
+> > > > On Mon, Feb 20, 2017 at 03:09:13PM +0200, Sakari Ailus wrote:
+> > > > > I've tested ACPI, will test DT soon...
+> > > > 
+> > > > DT case works, too (Nokia N9).
+> > > 
+> > > Hmm. Good to know. Now to figure out how to get N900 case to work...
+> > > 
+> > > AFAICT N9 has CSI2, not CSI1 support, right? Some of the core changes
+> > > seem to be in, so I'll need to figure out which, and will still need
+> > > omap3isp modifications...
+> > 
+> > Indeed, I've only tested for CSI-2 as I have no functional CSI-1 devices.
+> > 
+> > It's essentially the functionality in the four patches. The data-lane and
+> > clock-name properties have been renamed as data-lanes and clock-lanes (i.e.
+> > plural) to match the property documentation.
+> 
+> Yes, it seems to work.
+> 
+> Here's a patch. It has checkpatch issues, I can fix them.  More
+> support is needed on the ispcsiphy.c side... Could you take (fixed)
+> version of this to your fwnode branch?
+> 
+> Thanks,
+> 									Pavel
+> 
+> 
+> 
+> 
+> ---
+> 
+> omap3isp: add support for CSI1 bus
+>     
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+>     
+> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+> index 245225a..4b10cfe 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -2032,6 +2034,7 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwn,
+>  	struct v4l2_fwnode_endpoint vfwn;
+>  	unsigned int i;
+>  	int ret;
+> +	int csi1 = 0;
+>  
+>  	ret = v4l2_fwnode_endpoint_parse(fwn, &vfwn);
+>  	if (ret)
+> @@ -2059,38 +2062,82 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwn,
+>  
+>  	case ISP_OF_PHY_CSIPHY1:
+>  	case ISP_OF_PHY_CSIPHY2:
+> -		/* FIXME: always assume CSI-2 for now. */
+> +		switch (vfwn.bus_type) {
+> +		case V4L2_MBUS_CSI2:
+> +			dev_dbg(dev, "csi2 configuration\n");
+> +			csi1 = 0;
+> +			break;
+> +		case V4L2_MBUS_CCP2:
+> +		case V4L2_MBUS_CSI1:
+> +			dev_dbg(dev, "csi1 configuration\n");
+> +			csi1 = 1;
+> +			break;
+> +		default:
+> +			dev_err(dev, "unkonwn bus type\n");
+> +		}
+> +
+>  		switch (vfwn.base.port) {
+>  		case ISP_OF_PHY_CSIPHY1:
+> -			buscfg->interface = ISP_INTERFACE_CSI2C_PHY1;
+> +			if (csi1)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/cec/cec-adap.c | 66 +++++++++++++++++++++++---------------------
- 1 file changed, 35 insertions(+), 31 deletions(-)
+You could compare vfwn.bus_type == V4L2_MBUS_CSI2 for this. But if you
+choose the local variable, please make it bool instead.
 
-diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
-index ccda41c2c9e4..421472b492ee 100644
---- a/drivers/media/cec/cec-adap.c
-+++ b/drivers/media/cec/cec-adap.c
-@@ -300,6 +300,40 @@ static void cec_data_cancel(struct cec_data *data)
- }
- 
- /*
-+ * Flush all pending transmits and cancel any pending timeout work.
-+ *
-+ * This function is called with adap->lock held.
-+ */
-+static void cec_flush(struct cec_adapter *adap)
-+{
-+	struct cec_data *data, *n;
-+
-+	/*
-+	 * If the adapter is disabled, or we're asked to stop,
-+	 * then cancel any pending transmits.
-+	 */
-+	while (!list_empty(&adap->transmit_queue)) {
-+		data = list_first_entry(&adap->transmit_queue,
-+					struct cec_data, list);
-+		cec_data_cancel(data);
-+	}
-+	if (adap->transmitting)
-+		cec_data_cancel(adap->transmitting);
-+
-+	/* Cancel the pending timeout work. */
-+	list_for_each_entry_safe(data, n, &adap->wait_queue, list) {
-+		if (cancel_delayed_work(&data->work))
-+			cec_data_cancel(data);
-+		/*
-+		 * If cancel_delayed_work returned false, then
-+		 * the cec_wait_timeout function is running,
-+		 * which will call cec_data_completed. So no
-+		 * need to do anything special in that case.
-+		 */
-+	}
-+}
-+
-+/*
-  * Main CEC state machine
-  *
-  * Wait until the thread should be stopped, or we are not transmitting and
-@@ -350,37 +384,7 @@ int cec_thread_func(void *_adap)
- 
- 		if ((!adap->is_configured && !adap->is_configuring) ||
- 		    kthread_should_stop()) {
--			/*
--			 * If the adapter is disabled, or we're asked to stop,
--			 * then cancel any pending transmits.
--			 */
--			while (!list_empty(&adap->transmit_queue)) {
--				data = list_first_entry(&adap->transmit_queue,
--							struct cec_data, list);
--				cec_data_cancel(data);
--			}
--			if (adap->transmitting)
--				cec_data_cancel(adap->transmitting);
--
--			/*
--			 * Cancel the pending timeout work. We have to unlock
--			 * the mutex when flushing the work since
--			 * cec_wait_timeout() will take it. This is OK since
--			 * no new entries can be added to wait_queue as long
--			 * as adap->transmitting is NULL, which it is due to
--			 * the cec_data_cancel() above.
--			 */
--			while (!list_empty(&adap->wait_queue)) {
--				data = list_first_entry(&adap->wait_queue,
--							struct cec_data, list);
--
--				if (!cancel_delayed_work(&data->work)) {
--					mutex_unlock(&adap->lock);
--					flush_scheduled_work();
--					mutex_lock(&adap->lock);
--				}
--				cec_data_cancel(data);
--			}
-+			cec_flush(adap);
- 			goto unlock;
- 		}
- 
+> +				buscfg->interface = ISP_INTERFACE_CCP2B_PHY1;
+> +			else
+> +				buscfg->interface = ISP_INTERFACE_CSI2C_PHY1;
+>  			break;
+>  		case ISP_OF_PHY_CSIPHY2:
+> -			buscfg->interface = ISP_INTERFACE_CSI2A_PHY2;
+> +			if (csi1)
+> +				buscfg->interface = ISP_INTERFACE_CCP2B_PHY2;
+> +			else
+> +				buscfg->interface = ISP_INTERFACE_CSI2A_PHY2;
+>  			break;
+> +		default:
+> +			dev_err(dev, "bad port\n");
+>  		}
+> -		buscfg->bus.csi2.lanecfg.clk.pos = vfwn.bus.mipi_csi2.clock_lane;
+> -		buscfg->bus.csi2.lanecfg.clk.pol =
+> -			vfwn.bus.mipi_csi2.lane_polarities[0];
+> -		dev_dbg(dev, "clock lane polarity %u, pos %u\n",
+> -			buscfg->bus.csi2.lanecfg.clk.pol,
+> -			buscfg->bus.csi2.lanecfg.clk.pos);
+> -
+> -		for (i = 0; i < ISP_CSIPHY2_NUM_DATA_LANES; i++) {
+> -			buscfg->bus.csi2.lanecfg.data[i].pos =
+> -				vfwn.bus.mipi_csi2.data_lanes[i];
+> -			buscfg->bus.csi2.lanecfg.data[i].pol =
+> -				vfwn.bus.mipi_csi2.lane_polarities[i + 1];
+> +		if (csi1) {
+> +			buscfg->bus.ccp2.lanecfg.clk.pos = vfwn.bus.mipi_csi1.clock_lane;
+
+Wrap after "="?
+
+> +			buscfg->bus.ccp2.lanecfg.clk.pol =
+> +				vfwn.bus.mipi_csi1.lane_polarity[0];
+> +			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
+> +				buscfg->bus.ccp2.lanecfg.clk.pol,
+> +				buscfg->bus.ccp2.lanecfg.clk.pos);
+> +
+> +			buscfg->bus.ccp2.lanecfg.data[0].pos = 1;
+
+Shouldn't this be vfwn.bus.mipi_csi1.data_lane ?
+
+> +			buscfg->bus.ccp2.lanecfg.data[0].pol = 0;
+
+And this one is vfwn.bus.mipi_csi1.lane_polarity[1] .
+
+> +
+>  			dev_dbg(dev, "data lane %u polarity %u, pos %u\n", i,
+> -				buscfg->bus.csi2.lanecfg.data[i].pol,
+> -				buscfg->bus.csi2.lanecfg.data[i].pos);
+> +				buscfg->bus.ccp2.lanecfg.data[0].pol,
+> +				buscfg->bus.ccp2.lanecfg.data[0].pos);
+> +
+> +			buscfg->bus.ccp2.strobe_clk_pol = vfwn.bus.mipi_csi1.clock_inv;
+> +			buscfg->bus.ccp2.phy_layer = vfwn.bus.mipi_csi1.strobe;
+> +			buscfg->bus.ccp2.ccp2_mode = vfwn.bus_type == V4L2_MBUS_CCP2;
+
+The lines over 80 characters should be wrapped.
+
+> +			buscfg->bus.ccp2.vp_clk_pol = 1;
+> +			
+> +			buscfg->bus.ccp2.crc = 1;		
+> +		} else {
+> +			buscfg->bus.csi2.lanecfg.clk.pos = vfwn.bus.mipi_csi2.clock_lane;
+> +			buscfg->bus.csi2.lanecfg.clk.pol =
+> +				vfwn.bus.mipi_csi2.lane_polarities[0];
+> +			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
+> +				buscfg->bus.csi2.lanecfg.clk.pol,
+> +				buscfg->bus.csi2.lanecfg.clk.pos);
+> +
+> +			for (i = 0; i < ISP_CSIPHY2_NUM_DATA_LANES; i++) {
+> +				buscfg->bus.csi2.lanecfg.data[i].pos =
+> +					vfwn.bus.mipi_csi2.data_lanes[i];
+> +				buscfg->bus.csi2.lanecfg.data[i].pol =
+> +					vfwn.bus.mipi_csi2.lane_polarities[i + 1];
+> +				dev_dbg(dev, "data lane %u polarity %u, pos %u\n", i,
+> +					buscfg->bus.csi2.lanecfg.data[i].pol,
+> +					buscfg->bus.csi2.lanecfg.data[i].pos);
+> +			}
+> +			/*
+> +			 * FIXME: now we assume the CRC is always there.
+> +			 * Implement a way to obtain this information from the
+> +			 * sensor. Frame descriptors, perhaps?
+> +			 */
+> +
+> +			buscfg->bus.csi2.crc = 1;
+>  		}
+> -
+> -		/*
+> -		 * FIXME: now we assume the CRC is always there.
+> -		 * Implement a way to obtain this information from the
+> -		 * sensor. Frame descriptors, perhaps?
+> -		 */
+> -		buscfg->bus.csi2.crc = 1;
+>  		break;
+>  
+>  	default:
+> 
+> 
+
 -- 
-2.11.0
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
