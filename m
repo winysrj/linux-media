@@ -1,37 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33678 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750882AbdBLWuX (ORCPT
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:34465 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751344AbdB0VMm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 12 Feb 2017 17:50:23 -0500
-Date: Mon, 13 Feb 2017 00:50:19 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Steve Longerbeam <slongerbeam@gmail.com>
-Subject: Re: [PATCH 4/4] media-ctl: add colorimetry support
-Message-ID: <20170212225019.GF16975@valkosipuli.retiisi.org.uk>
-References: <20170207160850.10299-1-p.zabel@pengutronix.de>
- <20170207160850.10299-5-p.zabel@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170207160850.10299-5-p.zabel@pengutronix.de>
+        Mon, 27 Feb 2017 16:12:42 -0500
+Received: by mail-lf0-f67.google.com with SMTP id a198so4403661lfb.1
+        for <linux-media@vger.kernel.org>; Mon, 27 Feb 2017 13:12:21 -0800 (PST)
+Received: from [192.168.0.15] (78-11-165-59.static.ip.netia.com.pl. [78.11.165.59])
+        by smtp.gmail.com with ESMTPSA id t125sm2838001lff.31.2017.02.27.12.21.25
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 27 Feb 2017 12:21:25 -0800 (PST)
+From: =?utf-8?Q?=C5=81ukasz_Strzeszkowski?=
+        <lukasz.strzeszkowski@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Mime-Version: 1.0 (Mac OS X Mail 10.2 \(3259\))
+Subject: em28xx: new board id [1d19:6901]
+Message-Id: <69E7B5B4-6359-4AD6-8F36-5E1A33A05C1D@gmail.com>
+Date: Mon, 27 Feb 2017 21:21:24 +0100
+To: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 07, 2017 at 05:08:50PM +0100, Philipp Zabel wrote:
-> media-ctl can be used to propagate v4l2 subdevice pad formats from
-> source pads of one subdevice to another one's sink pads. These formats
-> include colorimetry information, so media-ctl should be able to print
-> or change it using the --set/get-v4l2 option.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Hi,
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+	I=E2=80=99ve found a new device which is not listed
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+model: LogiLink VG0011
+vendor/product: [1d19:6901] Dexatek Technology Ltd.
+
+mode: analog
+
+I am unable to load a driver, because there is no such vendor in driver =
+list.
+
+dmesg output:
+[ 1232.506295] usb 2-4: new high-speed USB device number 4 using =
+xhci_hcd
+[ 1232.637496] usb 2-4: New USB device found, idVendor=3D1d19, =
+idProduct=3D6901
+[ 1232.637500] usb 2-4: New USB device strings: Mfr=3D0, Product=3D1, =
+SerialNumber=3D0
+[ 1232.637502] usb 2-4: Product: USB 2861 Video
+[ 1232.660061] usbcore: registered new interface driver snd-usb-audio
+
+
+Regards
+=C5=81ukasz Strzeszkowski=
