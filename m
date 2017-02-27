@@ -1,135 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f54.google.com ([74.125.82.54]:34991 "EHLO
-        mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752020AbdBMOpT (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:53100 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751364AbdB0SA1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 09:45:19 -0500
-Received: by mail-wm0-f54.google.com with SMTP id v186so159710347wmd.0
-        for <linux-media@vger.kernel.org>; Mon, 13 Feb 2017 06:45:18 -0800 (PST)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: linaro-kernel@lists.linaro.org, arnd@arndb.de, labbott@redhat.com,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, daniel.vetter@ffwll.ch,
-        laurent.pinchart@ideasonboard.com, robdclark@gmail.com,
-        akpm@linux-foundation.org, hverkuil@xs4all.nl
-Cc: broonie@kernel.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [RFC simple allocator v2 0/2] Simple allocator
-Date: Mon, 13 Feb 2017 15:45:04 +0100
-Message-Id: <1486997106-23277-1-git-send-email-benjamin.gaignard@linaro.org>
+        Mon, 27 Feb 2017 13:00:27 -0500
+Date: Mon, 27 Feb 2017 17:46:51 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Daniel Vetter <daniel@ffwll.ch>, linux-media@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        dri-devel@lists.freedesktop.org,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCHv4 1/9] video: add hotplug detect notifier support
+Message-ID: <20170227174650.GB21222@n2100.armlinux.org.uk>
+References: <20170206102951.12623-1-hverkuil@xs4all.nl>
+ <20170206102951.12623-2-hverkuil@xs4all.nl>
+ <20170227160841.3pgmpqwtidvjbnzn@phenom.ffwll.local>
+ <20170227170454.GA21222@n2100.armlinux.org.uk>
+ <bdc5a7a5-301d-c375-cbc0-6c119f06afc1@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <bdc5a7a5-301d-c375-cbc0-6c119f06afc1@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-version 2:
-- rebase code on 4.10-rc7
-- fix bug in CMA allocator
-- do more tests with wayland dmabuf protocol:
-  https://git.linaro.org/people/benjamin.gaignard/simple_allocator.git
+On Mon, Feb 27, 2017 at 06:21:05PM +0100, Hans Verkuil wrote:
+> On 02/27/2017 06:04 PM, Russell King - ARM Linux wrote:
+> > I'm afraid that I walked away from this after it became clear that there
+> > was little hope for any forward progress being made in a timely manner
+> > for multiple reasons (mainly the core CEC code being out of mainline.)
+> 
+> In case you missed it: the core CEC code was moved out of staging and into
+> mainline in 4.10.
 
-The goal of this RFC is to understand if a common ioctl for specific memory
-regions allocations is needed/welcome.
+I was aware (even though I've not been publishing anything, I do keep
+dw-hdmi-cec and tda9950/tda998x up to date with every final kernel
+release.)
 
-Obviously it will not replace allocation done in linux kernel frameworks like
-v4l2, drm/kms or others, but offer an alternative when you don't want/need to
-use them for buffer allocation.
-To keep a compatibility with what already exist allocated buffers are exported
-in userland as dmabuf file descriptor (like ION is doing).
+> > If you can think of a better approach, then I'm sure there's lots of
+> > people who'd be willing to do the coding for it... if not, I'm not
+> > sure where we go from here (apart from keeping code in private/vendor
+> > trees.)
+> 
+> For CEC there are just two things that it needs: the physical address
+> (contained in the EDID) and it needs to be informed when the EDID disappears
+> (typically due to a disconnect), in which case the physical address
+> becomes invalid (f.f.f.f).
 
-"Unix Device Memory Allocator" project [1] wants to create a userland library
-which may allow to select, depending of the devices constraint, the best
-back-end for allocation. With this RFC I would to propose to have common ioctl
-for a maximum of allocators to avoid to duplicated back-ends for this library.
+Yep.  CEC really only needs to know "have new phys address" and
+"disconnect" provided that CEC drivers understand that they may receive
+a new phys address with no intervening disconnect.  (Consider the case
+where EDID changes, but the HDMI driver failed to spot the HPD signal
+pulse - unfortunately, there's hardware out there where HPD is next to
+useless.)
 
-One of the issues that lead me to propose this RFC it is that since the beginning
-it is a problem to allocate contiguous memory (CMA) without using v4l2 or
-drm/kms so the first allocator available in this RFC use CMA memory.
+> Russell, do you have pending code that needs the ELD support in the
+> notifier?  CEC doesn't need it, so from my perspective it can be
+> dropped in the first version.
 
-An other question is: do we have others memory regions that could be interested
-by this new framework ? I have in mind that some title memory regions could use
-it or replace ION heaps (system, carveout, etc...).
-Maybe it only solve CMA allocation issue, in this case there is no need to create
-a new framework but only a dedicated ioctl.
+I was looking for that while writing the previous mail, and I think
+it's time to drop it - I had thought dw-hdmi-*audio would use it, or
+the ASoC people, but it's still got no users, so I think it's time
+to drop it.
 
-Maybe the first thing to do is to change the name and the location of this 
-module, suggestions are welcome.
-
-I have testing this code with the following program:
-
-#include <errno.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-
-#include "simple-allocator.h"
-
-#define LENGTH 1024*16
-
-void main (void)
-{
-	struct simple_allocate_data data;
-	int fd = open("/dev/cma0", O_RDWR, 0);
-	int ret;
-	void *mem;
-
-	if (fd < 0) {
-		printf("Can't open /dev/cma0\n");
-		return;
-	}
-
-	memset(&data, 0, sizeof(data));
-
-	data.length = LENGTH;
-	data.flags = O_RDWR | O_CLOEXEC;
-
-	ret = ioctl(fd, SA_IOC_ALLOC, &data);
-	if (ret) {
-		printf("Buffer allocation failed\n");
-		goto end;
-	}
-
-	mem = mmap(0, LENGTH, PROT_READ | PROT_WRITE, MAP_SHARED, data.fd, 0);
-	if (mem == MAP_FAILED) {
-		printf("mmap failed\n");
-	}
-
-	memset(mem, 0xFF, LENGTH);
-	munmap(mem, LENGTH);
-
-	printf("test simple allocator CMA OK\n");
-end:
-	close(fd);
-}
-
-[1] https://github.com/cubanismo/allocator
-
-
-Benjamin Gaignard (2):
-  Create Simple Allocator module
-  add CMA simple allocator module
-
- Documentation/simple-allocator.txt              |  81 ++++++++++
- drivers/Kconfig                                 |   2 +
- drivers/Makefile                                |   1 +
- drivers/simpleallocator/Kconfig                 |  17 +++
- drivers/simpleallocator/Makefile                |   2 +
- drivers/simpleallocator/simple-allocator-cma.c  | 187 ++++++++++++++++++++++++
- drivers/simpleallocator/simple-allocator-priv.h |  33 +++++
- drivers/simpleallocator/simple-allocator.c      | 180 +++++++++++++++++++++++
- include/uapi/linux/simple-allocator.h           |  35 +++++
- 9 files changed, 538 insertions(+)
- create mode 100644 Documentation/simple-allocator.txt
- create mode 100644 drivers/simpleallocator/Kconfig
- create mode 100644 drivers/simpleallocator/Makefile
- create mode 100644 drivers/simpleallocator/simple-allocator-cma.c
- create mode 100644 drivers/simpleallocator/simple-allocator-priv.h
- create mode 100644 drivers/simpleallocator/simple-allocator.c
- create mode 100644 include/uapi/linux/simple-allocator.h
+I have seen some patch sets go by which are making use of the notifier,
+but I haven't paid close attention to how they're using it or what
+they're using it for... as I sort of implied in my previous mail, I
+had lost interest in mainline wrt CEC stuff due to the glacial rate
+of progress.  (That's not a criticism.)
 
 -- 
-1.9.1
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
