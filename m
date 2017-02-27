@@ -1,105 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54731 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933066AbdBQKZd (ORCPT
+Received: from mail-ot0-f193.google.com ([74.125.82.193]:35694 "EHLO
+        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751829AbdB0Opl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Feb 2017 05:25:33 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Shaobo <shaobo@cs.utah.edu>
-Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
-        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com,
-        ricardo.ribalda@gmail.com
-Subject: Re: Dead code in v4l2-mem2mem.c?
-Date: Fri, 17 Feb 2017 12:26 +0200
-Message-ID: <5573207.UYLCxH4UDO@avalon>
-In-Reply-To: <002201d288a9$93dd7360$bb985a20$@cs.utah.edu>
-References: <002201d288a9$93dd7360$bb985a20$@cs.utah.edu>
+        Mon, 27 Feb 2017 09:45:41 -0500
+Date: Mon, 27 Feb 2017 08:45:39 -0600
+From: Rob Herring <robh@kernel.org>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v4 24/36] [media] add Omnivision OV5640 sensor driver
+Message-ID: <20170227144539.3la2veztkurhwa2p@rob-hp-laptop>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+ <1487211578-11360-25-git-send-email-steve_longerbeam@mentor.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1487211578-11360-25-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shaobo,
+On Wed, Feb 15, 2017 at 06:19:26PM -0800, Steve Longerbeam wrote:
+> This driver is based on ov5640_mipi.c from Freescale imx_3.10.17_1.0.0_beta
+> branch, modified heavily to bring forward to latest interfaces and code
+> cleanup.
+> 
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> ---
+>  .../devicetree/bindings/media/i2c/ov5640.txt       |   43 +
 
-First of all, could you please make sure you send future mails to the linux-
-media mailing list in plain text only (no HTML) ? The mailing list server 
-rejects HTML e-mails.
+Please split to separate commit.
 
-On Thursday 16 Feb 2017 16:08:25 Shaobo wrote:
-> Hi there,
+>  drivers/media/i2c/Kconfig                          |    7 +
+>  drivers/media/i2c/Makefile                         |    1 +
+>  drivers/media/i2c/ov5640.c                         | 2109 ++++++++++++++++++++
+>  4 files changed, 2160 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5640.txt
+>  create mode 100644 drivers/media/i2c/ov5640.c
 > 
-> My name is Shaobo He and I am a graduate student at University of Utah. I am
-> applying a static analysis tool to the Linux device drivers, looking for
-> NULL pointer dereference and accidentally found a plausible dead code
-> location in v4l2-mem2mem.c due to undefined behavior.
-> 
-> The following is the problematic code segment,
-> 
-> static struct v4l2_m2m_queue_ctx *get_queue_ctx(struct v4l2_m2m_ctx
-> *m2m_ctx,
-> 						  enum v4l2_buf_type type)
-> {
-> 	if (V4L2_TYPE_IS_OUTPUT(type))
-> 		return &m2m_ctx->out_q_ctx;
-> 	else
-> 		return &m2m_ctx->cap_q_ctx;
-> }
-> 
-> struct vb2_queue *v4l2_m2m_get_vq(struct v4l2_m2m_ctx *m2m_ctx,
-> 				    enum v4l2_buf_type type)
-> {
-> 	struct v4l2_m2m_queue_ctx *q_ctx;
-> 
-> 	q_ctx = get_queue_ctx(m2m_ctx, type);
-> 	if (!q_ctx)
-> 		return NULL;
-> 
-> 	return &q_ctx->q;
-> }
-> 
-> `get_queue_ctx` returns a pointer value that is an addition of the base
-> pointer address (`m2m_ctx`) to a non-zero offset. The following is the
-> definition of struct v4l2_m2m_ctx,
-> 
-> struct v4l2_m2m_ctx {
-> 	/* optional cap/out vb2 queues lock */
-> 	struct mutex			*q_lock;
-> 
-> 	/* internal use only */
-> 	struct v4l2_m2m_dev		*m2m_dev;
-> 
-> 	struct v4l2_m2m_queue_ctx	cap_q_ctx;
-> 
-> 	struct v4l2_m2m_queue_ctx	out_q_ctx;
-> 
-> 	/* For device job queue */
-> 	struct list_head		queue;
-> 	unsigned long			job_flags;
-> 	wait_queue_head_t		finished;
-> 
-> 	void				*priv;
-> };
-> 
-> There is a NULL test in a caller of `get_queue_ctx` (line 85), which appears
-> problematic to me. I'm not sure if it is defined or feasible under the
-> context of Linux kernel. This blog
-> (https://wdtz.org/undefined-behavior-in-binutils-causes-segfault.html)
-> suggests that the NULL check can be optimized away because the only case
-> that the return value can be NULL triggers pointer overflow, which is
-> undefined.
-> 
-> Please let me know if it makes sense or not. Thanks for your time and I am
-> looking forward to your reply.
+> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5640.txt b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+> new file mode 100644
+> index 0000000..4607bbe
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+> @@ -0,0 +1,43 @@
+> +* Omnivision OV5640 MIPI CSI-2 sensor
+> +
+> +Required Properties:
+> +- compatible: should be "ovti,ov5640"
+> +- clocks: reference to the xclk input clock.
+> +- clock-names: should be "xclk".
+> +- DOVDD-supply: Digital I/O voltage supply, 1.8 volts
+> +- AVDD-supply: Analog voltage supply, 2.8 volts
+> +- DVDD-supply: Digital core voltage supply, 1.5 volts
+> +
+> +Optional Properties:
+> +- reset-gpios: reference to the GPIO connected to the reset pin, if any.
+> +- pwdn-gpios: reference to the GPIO connected to the pwdn pin, if any.
 
-The NULL check is indeed wrong. I believe that the m2m_ctx argument passed to 
-the v4l2_m2m_get_vq() function should never be NULL. We will however need to 
-audit drivers to make sure that's the case. The NULL check could then be 
-removed. Alternatively we could check m2m_ctx above the get_queue_ctx() call, 
-which wouldn't require auditing drivers. It's a safe option, but would likely 
-result in an unneeded NULL check.
+Use powerdown-gpios here as that is a somewhat standard name.
 
--- 
-Regards,
+Both need to state what is the active state.
 
-Laurent Pinchart
+> +
+> +The device node must contain one 'port' child node for its digital output
+> +video port, in accordance with the video interface bindings defined in
+> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+> +
+> +Example:
+> +
+> +&i2c1 {
+> +	ov5640: camera@3c {
+> +		compatible = "ovti,ov5640";
+> +		pinctrl-names = "default";
+> +		pinctrl-0 = <&pinctrl_ov5640>;
+> +		reg = <0x3c>;
+> +		clocks = <&clks IMX6QDL_CLK_CKO>;
+> +		clock-names = "xclk";
+> +		DOVDD-supply = <&vgen4_reg>; /* 1.8v */
+> +		AVDD-supply = <&vgen3_reg>;  /* 2.8v */
+> +		DVDD-supply = <&vgen2_reg>;  /* 1.5v */
+> +		pwdn-gpios = <&gpio1 19 GPIO_ACTIVE_HIGH>;
+> +		reset-gpios = <&gpio1 20 GPIO_ACTIVE_LOW>;
+> +
+> +		port {
+> +			ov5640_to_mipi_csi2: endpoint {
+> +				remote-endpoint = <&mipi_csi2_from_ov5640>;
+> +				clock-lanes = <0>;
+> +				data-lanes = <1 2>;
+> +			};
+> +		};
+> +	};
+> +};
