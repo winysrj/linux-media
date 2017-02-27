@@ -1,85 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:45614 "EHLO mail.kernel.org"
+Received: from muru.com ([72.249.23.125]:36586 "EHLO muru.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932082AbdBJU1u (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Feb 2017 15:27:50 -0500
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, kieran.bingham@ideasonboard.com
-Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH 3/8] v4l: vsp1: Correct image partition parameters
-Date: Fri, 10 Feb 2017 20:27:31 +0000
-Message-Id: <6d9f8e04ac314ef7a1ffdc10d079fcd30707a03a.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.ff94a00847faf7ed37768cea68c474926bfc8bd9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.ff94a00847faf7ed37768cea68c474926bfc8bd9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.ff94a00847faf7ed37768cea68c474926bfc8bd9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.ff94a00847faf7ed37768cea68c474926bfc8bd9.1486758327.git-series.kieran.bingham+renesas@ideasonboard.com>
+        id S1751461AbdB0Q0p (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 27 Feb 2017 11:26:45 -0500
+Date: Mon, 27 Feb 2017 08:26:39 -0800
+From: Tony Lindgren <tony@atomide.com>
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Ruslan Ruslichenko <rruslich@cisco.com>,
+        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+        kernel@stlinux.com, Sean Young <sean@mess.org>,
+        wfg@linux.intel.com, Peter Zijlstra <peterz@infradead.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-mediatek@lists.infradead.org,
+        Linux LED Subsystem <linux-leds@vger.kernel.org>,
+        "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+        linux-amlogic@lists.infradead.org,
+        kernel test robot <fengguang.wu@intel.com>, LKP <lkp@01.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [WARNING: A/V UNSCANNABLE][Merge tag 'media/v4.11-1' of git]
+ ff58d005cd: BUG: unable to handle kernel NULL pointer dereference at
+ 0000039c
+Message-ID: <20170227162639.GN21809@atomide.com>
+References: <58b07b30.9XFLj9Hhl7F6HMc2%fengguang.wu@intel.com>
+ <CA+55aFytXj+TZ_TanbxcY0KgRTrV7Vvr=fWON8tioUGmYHYiNA@mail.gmail.com>
+ <20170225090741.GA20463@gmail.com>
+ <CA+55aFy+ER8cYV02eZsKAOLnZBWY96zNWqUFWSWT1+3sZD4XnQ@mail.gmail.com>
+ <alpine.DEB.2.20.1702271105090.4732@nanos>
+ <alpine.DEB.2.20.1702271231410.4732@nanos>
+ <20170227154124.GA20569@gmail.com>
+ <20170227160750.GM21809@atomide.com>
+ <alpine.DEB.2.20.1702271712470.4732@nanos>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.20.1702271712470.4732@nanos>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The image partition algorithm operates on the image dimensions as input
-into the WPF entity.
+* Thomas Gleixner <tglx@linutronix.de> [170227 08:20]:
+> On Mon, 27 Feb 2017, Tony Lindgren wrote:
+> > * Ingo Molnar <mingo@kernel.org> [170227 07:44]:
+> > > Because it's not the requirement that hurts primarily, but the resulting 
+> > > non-determinism and the sporadic crashes. Which can be solved by making the race 
+> > > deterministic via the debug facility.
+> > > 
+> > > If the IRQ handler crashed the moment it was first written by the driver author 
+> > > we'd never see these problems.
+> > 
+> > Just in case this is PM related.. Maybe the spurious interrupt is pending
+> > from earlier? This could be caused by glitches on the lines with runtime PM,
+> > or a pending interrupt during suspend/resume. In that case IRQ_DISABLE_UNLAZY
+> > might provide more clues if the problem goes away.
+> 
+> It's not PM related.  That's just silly hardware. At the moment when you
+> enable some magic bit in the control register, which is required to probe
+> the version, the fricking thing spits out a spurious interrupt despite the
+> interrupt enable bit in the same control register being still disabled. Of
+> course we cannot install an interrupt handler before having probed the
+> version and setup other stuff, except we add magic 'if (!initialized)'
+> crappola into the handler and lose the ability to install version dependent
+> handlers afterwards.
 
-Correct this in the code, and document what defines the properties for
-the algorithm in the section header
+OK and presumably no -EPROBE_DEFER happening either.
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_video.c | 12 ++++++++++--
- drivers/media/platform/vsp1/vsp1_wpf.c   |  4 ++--
- 2 files changed, 12 insertions(+), 4 deletions(-)
+> Wonderful crap that, isn't it?
 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index be9c860b1c04..4ade958a1c9e 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -176,6 +176,14 @@ static int __vsp1_video_try_format(struct vsp1_video *video,
- 
- /* -----------------------------------------------------------------------------
-  * VSP1 Partition Algorithm support
-+ *
-+ * VSP hardware can have restrictions on image width dependent on the hardware
-+ * configuration of the pipeline. Adapting for these restrictions is implemented
-+ * via the partition algorithm.
-+ *
-+ * The partition windows and sizes are based on the output size of the WPF
-+ * before rotation, which is represented by the input parameters to the WPF
-+ * entity in our pipeline.
-  */
- 
- /**
-@@ -196,7 +204,7 @@ static struct v4l2_rect vsp1_video_partition(struct vsp1_pipeline *pipe,
- 
- 	format = vsp1_entity_get_pad_format(&pipe->output->entity,
- 					    pipe->output->entity.config,
--					    RWPF_PAD_SOURCE);
-+					    RWPF_PAD_SINK);
- 
- 	/* A single partition simply processes the output size in full. */
- 	if (pipe->partitions <= 1) {
-@@ -258,7 +266,7 @@ static void vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
- 
- 	format = vsp1_entity_get_pad_format(&pipe->output->entity,
- 					    pipe->output->entity.config,
--					    RWPF_PAD_SOURCE);
-+					    RWPF_PAD_SINK);
- 	div_size = format->width;
- 
- 	/* Gen2 hardware doesn't require image partitioning. */
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index 7c48f81cd5c1..ad67034e08e9 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -218,8 +218,8 @@ static void wpf_configure(struct vsp1_entity *entity,
- 		const struct v4l2_pix_format_mplane *format = &wpf->format;
- 		struct vsp1_rwpf_memory mem = wpf->mem;
- 		unsigned int flip = wpf->flip.active;
--		unsigned int width = source_format->width;
--		unsigned int height = source_format->height;
-+		unsigned int width = sink_format->width;
-+		unsigned int height = sink_format->height;
- 		unsigned int offset;
- 
- 		/*
--- 
-git-series 0.9.1
+Sounds broken..
+
+Regards,
+
+Tony
