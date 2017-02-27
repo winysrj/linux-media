@@ -1,103 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:57980 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751421AbdBOKsX (ORCPT
+Received: from Galois.linutronix.de ([146.0.238.70]:59633 "EHLO
+        Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751387AbdB0RFo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 05:48:23 -0500
-Date: Wed, 15 Feb 2017 11:48:19 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari <sakari.ailus@iki.fi>
-Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] smiapp: add CCP2 support
-Message-ID: <20170215104819.GC29330@amd>
-References: <20170208131127.GA29237@amd>
- <20170211220752.zr3j7irpxl42ewo3@ihha.localdomain>
- <20170211232258.GA11232@amd>
- <20170212221042.GA16975@valkosipuli.retiisi.org.uk>
+        Mon, 27 Feb 2017 12:05:44 -0500
+Date: Mon, 27 Feb 2017 17:12:16 +0100 (CET)
+From: Thomas Gleixner <tglx@linutronix.de>
+To: Ingo Molnar <mingo@kernel.org>
+cc: Linus Torvalds <torvalds@linux-foundation.org>,
+        kernel test robot <fengguang.wu@intel.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sean Young <sean@mess.org>,
+        Ruslan Ruslichenko <rruslich@cisco.com>, LKP <lkp@01.org>,
+        "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+        kernel@stlinux.com,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-mediatek@lists.infradead.org,
+        linux-amlogic@lists.infradead.org,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Linux LED Subsystem <linux-leds@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>, wfg@linux.intel.com,
+        Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [WARNING: A/V UNSCANNABLE][Merge tag 'media/v4.11-1' of git]
+ ff58d005cd: BUG: unable to handle kernel NULL pointer dereference at
+ 0000039c
+In-Reply-To: <20170227154124.GA20569@gmail.com>
+Message-ID: <alpine.DEB.2.20.1702271647570.4732@nanos>
+References: <58b07b30.9XFLj9Hhl7F6HMc2%fengguang.wu@intel.com> <CA+55aFytXj+TZ_TanbxcY0KgRTrV7Vvr=fWON8tioUGmYHYiNA@mail.gmail.com> <20170225090741.GA20463@gmail.com> <CA+55aFy+ER8cYV02eZsKAOLnZBWY96zNWqUFWSWT1+3sZD4XnQ@mail.gmail.com>
+ <alpine.DEB.2.20.1702271105090.4732@nanos> <alpine.DEB.2.20.1702271231410.4732@nanos> <20170227154124.GA20569@gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="5QAgd0e35j3NYeGe"
-Content-Disposition: inline
-In-Reply-To: <20170212221042.GA16975@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, 27 Feb 2017, Ingo Molnar wrote:
+> * Thomas Gleixner <tglx@linutronix.de> wrote:
+> 
+> > The pending interrupt issue happens, at least on my test boxen, mostly on
+> > the 'legacy' interrupts (0 - 15). But even the IOAPIC interrupts >=16
+> > happen occasionally.
+> >
+> > 
+> >  - Spurious interrupts on IRQ7, which are triggered by IRQ 0 (PIT/HPET). On
+> >    one of the affected machines this stops when the interrupt system is
+> >    switched to interrupt remapping !?!?!?
+> > 
+> >  - Spurious interrupts on various interrupt lines, which are triggered by
+> >    IOAPIC interrupts >= IRQ16. That's a known issue on quite some chipsets
+> >    that the legacy PCI interrupt (which is used when IOAPIC is disabled) is
+> >    triggered when the IOAPIC >=16 interrupt fires.
+> > 
+> >  - Spurious interrupt caused by driver probing itself. I.e. the driver
+> >    probing code causes an interrupt issued from the device
+> >    inadvertently. That happens even on IRQ >= 16.
+> > 
+> >    This problem might be handled by the device driver code itself, but
+> >    that's going to be ugly. See below.
+> 
+> That's pretty colorful behavior...
+> 
+> > We can try to sample more data from the machines of affected users, but I doubt 
+> > that it will give us more information than confirming that we really have to 
+> > deal with all that hardware wreckage out there in some way or the other.
+> 
+> BTW., instead of trying to avoid the scenario, wow about moving in the other 
+> direction: making CONFIG_DEBUG_SHIRQ=y unconditional property in the IRQ core code 
+> starting from v4.12 or so, i.e. requiring device driver IRQ handlers to handle the 
+> invocation of IRQ handlers at pretty much any moment. (We could also extend it a 
+> bit, such as invoking IRQ handlers early after suspend/resume wakeup.)
+> 
+> Because it's not the requirement that hurts primarily, but the resulting 
+> non-determinism and the sporadic crashes. Which can be solved by making the race 
+> deterministic via the debug facility.
+> 
+> If the IRQ handler crashed the moment it was first written by the driver author 
+> we'd never see these problems.
 
---5QAgd0e35j3NYeGe
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Yes, I'd love to do that. That's just a nightmare as well.
 
-Hi!
+See commit 6d83f94db95cf, which added the _FIXME suffix to that code.
 
-> > > I pushed the two DT patches here:
-> > >=20
-> > > <URL:https://git.linuxtv.org/sailus/media_tree.git/commit/?h=3Dccp2>
-> >=20
-> > Thanks for a branch. If you could the two patches that look ok there,
-> > it would mean less work for me, I could just mark those two as applied
-> > here.
->=20
-> I think a verb could be missing from the sentence. :-) I'll send a pull
-> request for the entire set, containing more than just the DT changes. Feel
-> free to base yours on top of this.
->=20
-> A word of warning: I have patches to replace the V4L2 OF framework by V4L2
-> fwnode. The preliminary set (which is still missing V4L2 OF removal) is
-> here, I'll post a refresh soon:
->=20
-> <URL:http://www.spinics.net/lists/linux-media/msg106160.html>
->=20
-> Let's see what the order ends up to be in the end. If the fwnode set is
-> applicable first, then I'd like to rebase the lane parsing changes on top=
- of
-> that rather than the other way around --- it's easier that way.
->=20
-> >=20
-> > Core changes for CSI2 support are needed.
->=20
-> CCP2? We could get these and the smiapp and possibly also the omap3isp
-> patches in first, to avoid having to manage a large patchset. What do you
-> think?
+So recently I tried to invoke the primary handler, which causes another
+issue:
 
-Well... anything that reduces the ammount of patches I need to
-maintain to keep camera working is welcome.
+  Some of the low level code (e.g. IOAPIC interrupt migration, but also
+  some PPC irq chip machinery) depends on being called in hard interrupt
+  context. They invoke get_irq_regs(), which obviously does not work from
+  thread context.
 
-> > There are core changes in notifier locking, and subdev support.
-> >=20
-> > I need video-bus-switch, at least for testing.
-> >=20
-> > I need subdev support for omap3isp, so that we can attach flash and
-> > focus devices.
-> >=20
-> > Finally dts support on N900 can be enabled.
->=20
-> Yes! 8-)
->=20
-> I don't know if any euros were saved by using that video bus switch but it
-> sure has caused a lot of hassle (and perhaps some gray hair) for software
-> engineers. X-)
+So I removed that one from -next as well and postponed it another time. And
+I should have known before I tried it that it does not work. Simply because
+of that stuff x86 cannot use the software based resend mechanism.
 
-Yes, switch is one of the problems. OTOH... Nokia did a great thing by
-creating phone with reasonable design...
-								=09
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+Still trying to wrap my head around a proper solution for the problem. On
+x86 we might just check whether we are really in hard irq context and
+otherwise skip the part which depends on get_irq_regs(). That would be a
+sane thing to do. Have not yet looked at the PPC side of affairs, whether
+that's easy to solve as well. But even if it is, then there might be still
+other magic code in some irq chip drivers which relies on things which are
+only available/correct when actually invoked by a hardware interrupt.
 
---5QAgd0e35j3NYeGe
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Not only the hardware has colorful behaviour ....
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Thanks,
 
-iEYEARECAAYFAlikMfMACgkQMOfwapXb+vJGbwCguLSaZH2lhS5N29ZM+lq4yoFb
-MWwAnAnCxH2SnfE7Iic+GiIPVYviGspI
-=BvK8
------END PGP SIGNATURE-----
-
---5QAgd0e35j3NYeGe--
+	tglx
