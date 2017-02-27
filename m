@@ -1,111 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:54640
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751129AbdBCTBd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2017 14:01:33 -0500
-Date: Fri, 3 Feb 2017 17:01:26 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Eric Anholt <eric@anholt.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org, linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-rpi-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 3/6] staging: bcm2835-v4l2: Add a build system for the
- module.
-Message-ID: <20170203170126.0881e5b3@vento.lan>
-In-Reply-To: <20170127215503.13208-4-eric@anholt.net>
-References: <20170127215503.13208-1-eric@anholt.net>
-        <20170127215503.13208-4-eric@anholt.net>
+Received: from mout.gmx.net ([212.227.17.20]:62434 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751510AbdB0JYs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 27 Feb 2017 04:24:48 -0500
+Date: Mon, 27 Feb 2017 10:24:30 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Koji Matsuoka <koji.matsuoka.xm@renesas.com>,
+        Yoshihiro Kaneko <ykaneko0929@gmail.com>,
+        Simon Horman <horms+renesas@verge.net.au>
+Subject: Re: [PATCH] soc-camera: fix rectangle adjustment in cropping
+In-Reply-To: <319e8cdd-4cd0-079f-649c-cc2f9f10d466@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1702271021130.21990@axis700.grange>
+References: <Pine.LNX.4.64.1702262150090.17018@axis700.grange>
+ <1908551.GjAGnFoZ8e@avalon> <Pine.LNX.4.64.1702270945390.21990@axis700.grange>
+ <6082161.NEqkolhdEc@avalon> <319e8cdd-4cd0-079f-649c-cc2f9f10d466@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 27 Jan 2017 13:55:00 -0800
-Eric Anholt <eric@anholt.net> escreveu:
+On Mon, 27 Feb 2017, Hans Verkuil wrote:
 
-> This is derived from the downstream tree's build system, but with just
-> a single Kconfig option.
+> On 02/27/2017 10:02 AM, Laurent Pinchart wrote:
+> > Hi Guennadi,
+> > 
+> > On Monday 27 Feb 2017 09:54:19 Guennadi Liakhovetski wrote:
+> >> On Mon, 27 Feb 2017, Laurent Pinchart wrote:
+> >>> On Sunday 26 Feb 2017 21:58:16 Guennadi Liakhovetski wrote:
+> >>>> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> >>>>
+> >>>> update_subrect() adjusts the sub-rectangle to be inside a base area.
+> >>>> It checks width and height to not exceed those of the area, then it
+> >>>> checks the low border (left or top) to lie within the area, then the
+> >>>> high border (right or bottom) to lie there too. This latter check has
+> >>>> a bug, which is fixed by this patch.
+> >>>>
+> >>>> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> >>>> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+> >>>> [g.liakhovetski@gmx.de: dropped supposedly wrong hunks]
+> >>>> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> >>>> ---
+> >>>>
+> >>>> This is a part of the https://patchwork.linuxtv.org/patch/26441/
+> >>>> submitted almost 2.5 years ago. Back then I commented to the patch but
+> >>>> never got a reply or an update. I preserved original authorship and Sob
+> >>>> tags, although this version only uses a small portion of the original
+> >>>> patch. This version is of course completely untested, any testing (at
+> >>>> least regression) would be highly appreciated! This code is only used by
+> >>>> the SH CEU driver and only in cropping / zooming scenarios.
+> >>>>
+> >>>>  drivers/media/platform/soc_camera/soc_scale_crop.c | 4 ++--
+> >>>>  1 file changed, 2 insertions(+), 2 deletions(-)
+> >>>>
+> >>>> diff --git a/drivers/media/platform/soc_camera/soc_scale_crop.c
+> >>>> b/drivers/media/platform/soc_camera/soc_scale_crop.c index
+> >>>> f77252d..4bfc1bf
+> >>>> 100644
+> >>>> --- a/drivers/media/platform/soc_camera/soc_scale_crop.c
+> >>>> +++ b/drivers/media/platform/soc_camera/soc_scale_crop.c
+> >>>> @@ -70,14 +70,14 @@ static void update_subrect(struct v4l2_rect *rect,
+> >>>> struct v4l2_rect *subrect)
+> >>>>  	if (rect->height < subrect->height)
+> >>>>  		subrect->height = rect->height;
+> >>>>
+> >>>> -	if (rect->left > subrect->left)
+> >>>> +	if (rect->left < subrect->left)
+> >>>
+> >>> This looks wrong to me. If the purpose of the function is indeed to adjust
+> >>> subrect to stay within rect, the condition doesn't need to be changed.
+> >>>
+> >>>>  		subrect->left = rect->left;
+> >>>>  	else if (rect->left + rect->width >
+> >>>>  		 subrect->left + subrect->width)
+> >>>
+> >>> This condition, however, is wrong.
+> >>
+> >> Arrrrgh, of course, I meant to change this one! Thanks for catching.
+> >>
+> >>>>  		subrect->left = rect->left + rect->width -
+> >>>>  			subrect->width;
+> >>>
+> >>> More than that, adjusting the width first and then the left coordinate can
+> >>> result in an incorrect width.
+> >>
+> >> The width is adjusted in the beginning only to stay within the area, you
+> >> cannot go beyond it anyway. So, that has to be done anyway. And then the
+> >> origin is adjusted.
+> >>
+> >>> It looks to me like you should drop the width
+> >>> check at the beginning of this function, and turn the "else if" here into
+> >>> an "if" with the right condition. Or, even better in my opinion, use the
+> >>> min/max/clamp macros.
+> >>
+> >> Well, that depends on what result we want to achieve, what parameter we
+> >> prioritise. This approach prioritises width and height, and then adjusts
+> >> edges to accommodate as much of them as possible. A different approach
+> >> would be to prioritise the origin (top and left) and adjust width and
+> >> height to stay within the area. Do we have a preference for this?
+> > 
+> > Don't you need both ? "Inside the area" is a pretty well-defined concept :-)
 > 
-> For now the driver only builds on 32-bit arm -- the aarch64 build
-> breaks due to the driver using arm-specific cache flushing functions.
+> Generally the top-left is adjusted first, and then the width/height if it still
+> can't be made to fit. I.e. the priority is to keep the width/height unchanged
+> if possible.
+
+Ok, sure, you can use either order, but if we prioritise width / height, 
+then the only restriction for them is to be <= original width / height, 
+right? So, you can always first do
+
+	if (subrect->width > rect->width)
+		subrect->width = rect->width;
+
+right? That wqay you guarantee, that you can fit and that you keep as much 
+of the requested subrect width, as you can. And then you can adjust left / 
+top if still needed.
+
+Thanks
+Guennadi
+
 > 
-> Signed-off-by: Eric Anholt <eric@anholt.net>
-> ---
->  drivers/staging/media/Kconfig                   |  2 ++
->  drivers/staging/media/Makefile                  |  1 +
->  drivers/staging/media/platform/bcm2835/Kconfig  | 10 ++++++++++
->  drivers/staging/media/platform/bcm2835/Makefile | 11 +++++++++++
->  4 files changed, 24 insertions(+)
->  create mode 100644 drivers/staging/media/platform/bcm2835/Kconfig
->  create mode 100644 drivers/staging/media/platform/bcm2835/Makefile
+> Regards,
 > 
-> diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
-> index ffb8fa72c3da..abd0e2d57c20 100644
-> --- a/drivers/staging/media/Kconfig
-> +++ b/drivers/staging/media/Kconfig
-> @@ -27,6 +27,8 @@ source "drivers/staging/media/davinci_vpfe/Kconfig"
->  
->  source "drivers/staging/media/omap4iss/Kconfig"
->  
-> +source "drivers/staging/media/platform/bcm2835/Kconfig"
-> +
->  source "drivers/staging/media/s5p-cec/Kconfig"
->  
->  # Keep LIRC at the end, as it has sub-menus
-> diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
-> index a28e82cf6447..dc89325c463d 100644
-> --- a/drivers/staging/media/Makefile
-> +++ b/drivers/staging/media/Makefile
-> @@ -2,6 +2,7 @@ obj-$(CONFIG_I2C_BCM2048)	+= bcm2048/
->  obj-$(CONFIG_VIDEO_SAMSUNG_S5P_CEC) += s5p-cec/
->  obj-$(CONFIG_DVB_CXD2099)	+= cxd2099/
->  obj-$(CONFIG_LIRC_STAGING)	+= lirc/
-> +obj-$(CONFIG_VIDEO_BCM2835)	+= platform/bcm2835/
->  obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
->  obj-$(CONFIG_VIDEO_OMAP4)	+= omap4iss/
->  obj-$(CONFIG_VIDEO_STI_HDMI_CEC) += st-cec/
-> diff --git a/drivers/staging/media/platform/bcm2835/Kconfig b/drivers/staging/media/platform/bcm2835/Kconfig
-> new file mode 100644
-> index 000000000000..7c5245dc3225
-> --- /dev/null
-> +++ b/drivers/staging/media/platform/bcm2835/Kconfig
-> @@ -0,0 +1,10 @@
-> +config VIDEO_BCM2835
-> +	tristate "Broadcom BCM2835 camera driver"
-> +	depends on VIDEO_V4L2 && (ARCH_BCM2835 || COMPILE_TEST)
-> +	depends on BCM2835_VCHIQ
-> +	depends on ARM
-> +	select VIDEOBUF2_VMALLOC
-> +	help
-> +	  Say Y here to enable camera host interface devices for
-> +	  Broadcom BCM2835 SoC. This operates over the VCHIQ interface
-> +	  to a service running on VideoCore.
-> diff --git a/drivers/staging/media/platform/bcm2835/Makefile b/drivers/staging/media/platform/bcm2835/Makefile
-> new file mode 100644
-> index 000000000000..d7900a5951a8
-> --- /dev/null
-> +++ b/drivers/staging/media/platform/bcm2835/Makefile
-> @@ -0,0 +1,11 @@
-> +bcm2835-v4l2-$(CONFIG_VIDEO_BCM2835) := \
-> +	bcm2835-camera.o \
-> +	controls.o \
-> +	mmal-vchiq.o
-> +
-> +obj-$(CONFIG_VIDEO_BCM2835) += bcm2835-v4l2.o
-> +
-> +ccflags-y += \
-> +	-Idrivers/staging/vc04_services \
-> +	-Idrivers/staging/vc04_services/interface/vcos/linuxkernel \
-> +	-D__VCCOREVER__=0x04000000
-
-Huh! specifying the version of the videocore by a define seems
-wrong! This is the type of thing that should be provided via DT.
-
-
-
-
-
-Thanks,
-Mauro
+> 	Hans
+> 
+> > 
+> > 	subrect->left = max(subrect->left, rect->left);
+> > 	subrect->top = max(subrect->top, rect->top);
+> > 	subrect->width = min(subrect->left + subrect->width,
+> > 			     rect->left + rect->width) - subrect->left;
+> > 	subrect->height = min(subrect->top + subrect->height,
+> > 			      rect->top + rect->height) - subrect->top;
+> > 
+> > (Completely untested)
+> > 
+> >>> Same comments for the vertical checks.
+> >>>
+> >>>> -	if (rect->top > subrect->top)
+> >>>> +	if (rect->top < subrect->top)
+> >>>>  		subrect->top = rect->top;
+> >>>>  	else if (rect->top + rect->height >
+> >>>>  		 subrect->top + subrect->height)
+> > 
+> 
