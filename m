@@ -1,163 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:14613 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750868AbdBSQTX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 19 Feb 2017 11:19:23 -0500
-From: evgeni.raikhel@intel.com
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:59895 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751419AbdB0OYy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 27 Feb 2017 09:24:54 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, guennadi.liakhovetski@intel.com,
-        eliezer.tamir@intel.com, eraikhel <evgeni.raikhel@intel.com>
-Subject: [PATCH v3 1/2] Documentation: Intel SR300 Depth camera INZI format
-Date: Sun, 19 Feb 2017 18:14:36 +0200
-Message-Id: <1487520877-23173-2-git-send-email-evgeni.raikhel@intel.com>
-In-Reply-To: <1487520877-23173-1-git-send-email-evgeni.raikhel@intel.com>
-References: <AA09C8071EEEFC44A7852ADCECA86673A1E6E7@hasmsx108.ger.corp.intel.com>
- <1487520877-23173-1-git-send-email-evgeni.raikhel@intel.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 9/9] cec: log reason for returning -EINVAL
+Date: Mon, 27 Feb 2017 15:20:42 +0100
+Message-Id: <20170227142042.37085-10-hverkuil@xs4all.nl>
+In-Reply-To: <20170227142042.37085-1-hverkuil@xs4all.nl>
+References: <20170227142042.37085-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: eraikhel <evgeni.raikhel@intel.com>
+When validating the struct cec_s_log_addrs input a debug message is printed
+for all except two of the 'return -EINVAL' paths.
 
-Provide the frame structure and data layout of V4L2-PIX-FMT-INZI
-format utilized by Intel SR300 Depth camera.
+Also log the reason for the missing two paths.
 
-Signed-off-by: Evgeni Raikhel <evgeni.raikhel@intel.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/media/uapi/v4l/depth-formats.rst |  1 +
- Documentation/media/uapi/v4l/pixfmt-inzi.rst   | 81 ++++++++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-ioctl.c           |  1 +
- include/uapi/linux/videodev2.h                 |  1 +
- 4 files changed, 84 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-inzi.rst
+ drivers/media/cec/cec-adap.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/depth-formats.rst b/Documentation/media/uapi/v4l/depth-formats.rst
-index 82f183870aae..c755be0e4d2a 100644
---- a/Documentation/media/uapi/v4l/depth-formats.rst
-+++ b/Documentation/media/uapi/v4l/depth-formats.rst
-@@ -13,3 +13,4 @@ Depth data provides distance to points, mapped onto the image plane
-     :maxdepth: 1
+diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
+index 9e25ba20f4d1..46b7da6df9b5 100644
+--- a/drivers/media/cec/cec-adap.c
++++ b/drivers/media/cec/cec-adap.c
+@@ -1461,12 +1461,16 @@ int __cec_s_log_addrs(struct cec_adapter *adap,
+ 	 * within the correct range.
+ 	 */
+ 	if (log_addrs->vendor_id != CEC_VENDOR_ID_NONE &&
+-	    (log_addrs->vendor_id & 0xff000000) != 0)
++	    (log_addrs->vendor_id & 0xff000000) != 0) {
++		dprintk(1, "invalid vendor ID\n");
+ 		return -EINVAL;
++	}
  
-     pixfmt-z16
-+    pixfmt-inzi
-diff --git a/Documentation/media/uapi/v4l/pixfmt-inzi.rst b/Documentation/media/uapi/v4l/pixfmt-inzi.rst
-new file mode 100644
-index 000000000000..9849e799f205
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-inzi.rst
-@@ -0,0 +1,81 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _V4L2-PIX-FMT-INZI:
-+
-+**************************
-+V4L2_PIX_FMT_INZI ('INZI')
-+**************************
-+
-+Infrared 10-bit linked with Depth 16-bit images
-+
-+
-+Description
-+===========
-+
-+Proprietary multi-planar format used by Intel SR300 Depth cameras, comprise of
-+Infrared image followed by Depth data. The pixel definition is 32-bpp,
-+with the Depth and Infrared Data split into separate continuous planes of
-+identical dimensions.
-+
-+
-+
-+The first plane - Infrared data - is stored according to
-+:ref:`V4L2_PIX_FMT_Y10 <V4L2-PIX-FMT-Y10>` greyscale format.
-+Each pixel is 16-bit cell, with actual data stored in the 10 LSBs
-+with values in range 0 to 1023.
-+The six remaining MSBs are padded with zeros.
-+
-+
-+The second plane provides 16-bit per-pixel Depth data arranged in
-+:ref:`V4L2-PIX-FMT-Z16 <V4L2-PIX-FMT-Z16>` format.
-+
-+
-+**Frame Structure.**
-+Each cell is a 16-bit word with more significant data stored at higher
-+memory address (byte order is little-endian).
-+
-+.. raw:: latex
-+
-+    \newline\newline\begin{adjustbox}{width=\columnwidth}
-+
-+.. tabularcolumns:: |p{4.0cm}|p{4.0cm}|p{4.0cm}|p{4.0cm}|p{4.0cm}|p{4.0cm}|
-+
-+.. flat-table::
-+    :header-rows:  0
-+    :stub-columns: 1
-+    :widths:    1 1 1 1 1 1
-+
-+    * - Ir\ :sub:`0,0`
-+      - Ir\ :sub:`0,1`
-+      - Ir\ :sub:`0,2`
-+      - ...
-+      - ...
-+      - ...
-+    * - :cspan:`5` ...
-+    * - :cspan:`5` Infrared Data
-+    * - :cspan:`5` ...
-+    * - ...
-+      - ...
-+      - ...
-+      - Ir\ :sub:`n-1,n-3`
-+      - Ir\ :sub:`n-1,n-2`
-+      - Ir\ :sub:`n-1,n-1`
-+    * - Depth\ :sub:`0,0`
-+      - Depth\ :sub:`0,1`
-+      - Depth\ :sub:`0,2`
-+      - ...
-+      - ...
-+      - ...
-+    * - :cspan:`5` ...
-+    * - :cspan:`5` Depth Data
-+    * - :cspan:`5` ...
-+    * - ...
-+      - ...
-+      - ...
-+      - Depth\ :sub:`n-1,n-3`
-+      - Depth\ :sub:`n-1,n-2`
-+      - Depth\ :sub:`n-1,n-1`
-+
-+.. raw:: latex
-+
-+    \end{adjustbox}\newline\newline
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 0c3f238a2e76..3023e2351861 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1131,6 +1131,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_PIX_FMT_Y8I:		descr = "Interleaved 8-bit Greyscale"; break;
- 	case V4L2_PIX_FMT_Y12I:		descr = "Interleaved 12-bit Greyscale"; break;
- 	case V4L2_PIX_FMT_Z16:		descr = "16-bit Depth"; break;
-+	case V4L2_PIX_FMT_INZI:		descr = "Planar 10-bit Greyscale and 16-bit Depth"; break;
- 	case V4L2_PIX_FMT_PAL8:		descr = "8-bit Palette"; break;
- 	case V4L2_PIX_FMT_UV8:		descr = "8-bit Chrominance UV 4-4"; break;
- 	case V4L2_PIX_FMT_YVU410:	descr = "Planar YVU 4:1:0"; break;
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 46e8a2e369f9..8543741a9910 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -662,6 +662,7 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_Y12I     v4l2_fourcc('Y', '1', '2', 'I') /* Greyscale 12-bit L/R interleaved */
- #define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
- #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
-+#define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth 16-bit */
+ 	if (log_addrs->cec_version != CEC_OP_CEC_VERSION_1_4 &&
+-	    log_addrs->cec_version != CEC_OP_CEC_VERSION_2_0)
++	    log_addrs->cec_version != CEC_OP_CEC_VERSION_2_0) {
++		dprintk(1, "invalid CEC version\n");
+ 		return -EINVAL;
++	}
  
- /* SDR formats - used only for Software Defined Radio devices */
- #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
+ 	if (log_addrs->num_log_addrs > 1)
+ 		for (i = 0; i < log_addrs->num_log_addrs; i++)
 -- 
-2.7.4
-
----------------------------------------------------------------------
-Intel Israel (74) Limited
-
-This e-mail and any attachments may contain confidential material for
-the sole use of the intended recipient(s). Any review or distribution
-by others is strictly prohibited. If you are not the intended
-recipient, please contact the sender and delete all copies.
+2.11.0
