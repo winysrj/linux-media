@@ -1,75 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:40866 "EHLO
-        shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750739AbdBRAay (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:44857 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751437AbdB0OYy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Feb 2017 19:30:54 -0500
-Date: Sat, 18 Feb 2017 00:30:51 +0000
-From: Ben Hutchings <ben@decadent.org.uk>
+        Mon, 27 Feb 2017 09:24:54 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>, 853110@bugs.debian.org
-Message-ID: <20170218003051.GB4152@decadent.org.uk>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="B4IIlcmfBL/1gGOG"
-Content-Disposition: inline
-Subject: [PATCH] [media] dvb-usb-dibusb-mc-common: Add MODULE_LICENSE
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 4/9] cec: return -EPERM when no LAs are configured
+Date: Mon, 27 Feb 2017 15:20:37 +0100
+Message-Id: <20170227142042.37085-5-hverkuil@xs4all.nl>
+In-Reply-To: <20170227142042.37085-1-hverkuil@xs4all.nl>
+References: <20170227142042.37085-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
---B4IIlcmfBL/1gGOG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The CEC_TRANSMIT ioctl now returns -EPERM if an attempt is made to
+transmit a message for an unconfigured adapter (i.e. userspace
+never called CEC_ADAP_S_LOG_ADDRS).
 
-dvb-usb-dibusb-mc-common is licensed under GPLv2, and if we don't say
-so then it won't even load since it needs a GPL-only symbol.
+This differentiates this case from when LAs are configured, but no
+physical address is set. In that case -ENONET is returned.
 
-Reported-by: Dominique Dumont <dod@debian.org>
-References: https://bugs.debian.org/853110
-Cc: stable@vger.kernel.org # 4.9+
-Fixes: e91455a1495a ("[media] dvb-usb: split out common parts of dibusb")
-Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/dvb-usb/dibusb-mc-common.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/cec/cec-api.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/dvb-usb/dibusb-mc-common.c b/drivers/media/u=
-sb/dvb-usb/dibusb-mc-common.c
-index c989cac9343d..0c2bc97436d5 100644
---- a/drivers/media/usb/dvb-usb/dibusb-mc-common.c
-+++ b/drivers/media/usb/dvb-usb/dibusb-mc-common.c
-@@ -11,6 +11,8 @@
-=20
- #include "dibusb.h"
-=20
-+MODULE_LICENSE("GPL");
-+
- /* 3000MC/P stuff */
- // Config Adjacent channels  Perf -cal22
- static struct dibx000_agc_config dib3000p_mt2060_agc_config =3D {
-
---B4IIlcmfBL/1gGOG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIVAwUBWKeVu+e/yOyVhhEJAQpQIg//c9xaO0xiTbnp3wDlbk+77YEAkSh8jlRE
-YwsUKb8qMqdNZhlvfcQ25j9SJbzd84+YM2nG5wETlWIhrEVhmly2Z0CMVQIj2rF5
-KUYbyeFdQ12HrOBBSDXDhA0NhjnyRL3Xig6a++oORNOONRppKSPHgLNLULFjyusK
-FTwGstHXJELiVt7jR02lxVc+deYi+cRLHq5SkRKotiR4YOB0DkMs/XfbSIZcHhCv
-Hp49ZUKUxGhtcjqxPhMgEFoY1TjVd431VWTD7WeqntrckLYWEx6m1SwLARdeEbad
-fB2qhKhvgEHBmniIAygGgHWIADt9iw5uSYeFvb9T3ePe/thuA8NAlUqUlJ/adn9Q
-2E7Acbwg3vEr1cagl2hJ4KCDWhmMkhGabMVpgh2486zjfdfgNY9+evRRV+AbN7SH
-TCoBxQNG/K4OrBRWdMFRzfxi4XOyWYAQMaxRjgYz0ZLaEVOt65Gk2KvY+6n8vJ/C
-ZLjP2E7vqO5rH+TbQ6PAUS1c/8/jViKdR1DXI8Arl9scbfAMImmHCFo9B3onJoTF
-FaMRJ5yRgM3eusLZhK2w5u8CQAAefyfK0eXjuBJELRhSnNV4g//jCbL1bkOTzS8p
-x4zDd9Hm2X2htlnANq6e+Ev6f/54e1YyV1NEkTgEaqXV1I9lwPKDNgUTi6BhcqBN
-Iynqnr++hJQ=
-=hcR1
------END PGP SIGNATURE-----
-
---B4IIlcmfBL/1gGOG--
+diff --git a/drivers/media/cec/cec-api.c b/drivers/media/cec/cec-api.c
+index 627cdf7b12d1..cea350ea2a52 100644
+--- a/drivers/media/cec/cec-api.c
++++ b/drivers/media/cec/cec-api.c
+@@ -198,7 +198,9 @@ static long cec_transmit(struct cec_adapter *adap, struct cec_fh *fh,
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&adap->lock);
+-	if (adap->is_configuring)
++	if (adap->log_addrs.num_log_addrs == 0)
++		err = -EPERM;
++	else if (adap->is_configuring)
+ 		err = -ENONET;
+ 	else if (!adap->is_configured && (msg.msg[0] != 0xf0 || msg.reply))
+ 		err = -ENONET;
+-- 
+2.11.0
