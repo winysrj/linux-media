@@ -1,83 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40332 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751226AbdBLPuk (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:47772 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751409AbdB0OYy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 12 Feb 2017 10:50:40 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org,
-        Konstantin Kozhevnikov
-        <Konstantin.Kozhevnikov@cogentembedded.com>,
-        dri-devel@lists.freedesktop.org
-Subject: Re: [PATCH RESEND 1/1] media: platform: Renesas IMR driver
-Date: Sun, 12 Feb 2017 17:51:03 +0200
-Message-ID: <1770632.4GFlW6r2cg@avalon>
-In-Reply-To: <20170211200207.273799464@cogentembedded.com>
-References: <20170211200207.273799464@cogentembedded.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Mon, 27 Feb 2017 09:24:54 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/9] cec: improve flushing queue
+Date: Mon, 27 Feb 2017 15:20:35 +0100
+Message-Id: <20170227142042.37085-3-hverkuil@xs4all.nl>
+In-Reply-To: <20170227142042.37085-1-hverkuil@xs4all.nl>
+References: <20170227142042.37085-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergei,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-(CC'ing the dri-evel mailing list)
+When the adapter is unloaded or unconfigured, then all transmits and
+pending waits should be flushed.
 
-Thank you for the patch.
+Move this code into its own function and improve the code that cancels
+delayed work to avoid having to unlock adap->lock.
 
-On Saturday 11 Feb 2017 23:02:01 Sergei Shtylyov wrote:
-> From: Konstantin Kozhevnikov <Konstantin.Kozhevnikov@cogentembedded.com>
-> 
-> The image renderer light extended 4 (IMR-LX4) or the distortion correction
-> engine is a drawing processor with a simple  instruction system capable of
-> referencing data on an external memory as 2D texture data and performing
-> texture mapping and drawing with respect to any shape that is split into
-> triangular objects.
-> 
-> This V4L2 memory-to-memory device driver only supports image renderer found
-> in the R-Car gen3 SoCs; the R-Car gen2 support  can be added later...
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/cec/cec-adap.c | 66 +++++++++++++++++++++++---------------------
+ 1 file changed, 35 insertions(+), 31 deletions(-)
 
-Let's start with the main question : given that this is a rendering engine, it 
-looks like it should use the DRM subsystem.
-
-> [Sergei: merged 2 original patches, added the patch description, removed
-> unrelated parts,  added the binding document, ported the driver to the
-> modern kernel, renamed the UAPI header file and the guard  macros to match
-> the driver name, extended the copyrights, fixed up Kconfig prompt/depends/
-> help, made use of the BIT()/GENMASK() macros, sorted #include's, removed
-> leading  dots and fixed grammar in the comments, fixed up indentation to
-> use tabs where possible, renamed IMR_DLSR to IMR_DLPR to match the manual,
-> separated the register offset/bit #define's, removed *inline* from .c file,
-> fixed lines over 80 columns, removed useless parens, operators, casts,
-> braces, variables, #include's, (commented out) statements, and even
-> function, inserted empty line after desclaration, removed extra empty
-> lines, reordered some local variable desclarations, removed calls to
-> 4l2_err() on kmalloc() failure, fixed the error returned by imr_default(),
-> avoided code duplication in the IRQ handler, used '__packed' for the UAPI
-> structures, enclosed the macro parameters in parens, exchanged the values
-> of IMR_MAP_AUTO[SD]G macros.]
-> 
-> Signed-off-by: Konstantin Kozhevnikov
-> <Konstantin.Kozhevnikov@cogentembedded.com> Signed-off-by: Sergei Shtylyov
-> <sergei.shtylyov@cogentembedded.com>
-> 
-> ---
-> This patch is against the 'media_tree.git' repo's 'master' branch.
-> 
->  Documentation/devicetree/bindings/media/rcar_imr.txt |   23
->  drivers/media/platform/Kconfig                       |   13
->  drivers/media/platform/Makefile                      |    1
->  drivers/media/platform/rcar_imr.c                    | 1923 +++++++++++++++
->  include/uapi/linux/rcar_imr.h                        |   94
->  5 files changed, 2054 insertions(+)
-
+diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
+index ccda41c2c9e4..421472b492ee 100644
+--- a/drivers/media/cec/cec-adap.c
++++ b/drivers/media/cec/cec-adap.c
+@@ -300,6 +300,40 @@ static void cec_data_cancel(struct cec_data *data)
+ }
+ 
+ /*
++ * Flush all pending transmits and cancel any pending timeout work.
++ *
++ * This function is called with adap->lock held.
++ */
++static void cec_flush(struct cec_adapter *adap)
++{
++	struct cec_data *data, *n;
++
++	/*
++	 * If the adapter is disabled, or we're asked to stop,
++	 * then cancel any pending transmits.
++	 */
++	while (!list_empty(&adap->transmit_queue)) {
++		data = list_first_entry(&adap->transmit_queue,
++					struct cec_data, list);
++		cec_data_cancel(data);
++	}
++	if (adap->transmitting)
++		cec_data_cancel(adap->transmitting);
++
++	/* Cancel the pending timeout work. */
++	list_for_each_entry_safe(data, n, &adap->wait_queue, list) {
++		if (cancel_delayed_work(&data->work))
++			cec_data_cancel(data);
++		/*
++		 * If cancel_delayed_work returned false, then
++		 * the cec_wait_timeout function is running,
++		 * which will call cec_data_completed. So no
++		 * need to do anything special in that case.
++		 */
++	}
++}
++
++/*
+  * Main CEC state machine
+  *
+  * Wait until the thread should be stopped, or we are not transmitting and
+@@ -350,37 +384,7 @@ int cec_thread_func(void *_adap)
+ 
+ 		if ((!adap->is_configured && !adap->is_configuring) ||
+ 		    kthread_should_stop()) {
+-			/*
+-			 * If the adapter is disabled, or we're asked to stop,
+-			 * then cancel any pending transmits.
+-			 */
+-			while (!list_empty(&adap->transmit_queue)) {
+-				data = list_first_entry(&adap->transmit_queue,
+-							struct cec_data, list);
+-				cec_data_cancel(data);
+-			}
+-			if (adap->transmitting)
+-				cec_data_cancel(adap->transmitting);
+-
+-			/*
+-			 * Cancel the pending timeout work. We have to unlock
+-			 * the mutex when flushing the work since
+-			 * cec_wait_timeout() will take it. This is OK since
+-			 * no new entries can be added to wait_queue as long
+-			 * as adap->transmitting is NULL, which it is due to
+-			 * the cec_data_cancel() above.
+-			 */
+-			while (!list_empty(&adap->wait_queue)) {
+-				data = list_first_entry(&adap->wait_queue,
+-							struct cec_data, list);
+-
+-				if (!cancel_delayed_work(&data->work)) {
+-					mutex_unlock(&adap->lock);
+-					flush_scheduled_work();
+-					mutex_lock(&adap->lock);
+-				}
+-				cec_data_cancel(data);
+-			}
++			cec_flush(adap);
+ 			goto unlock;
+ 		}
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+2.11.0
