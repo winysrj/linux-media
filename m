@@ -1,125 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:37419 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751143AbdBMFOz (ORCPT
+Received: from mail-qk0-f194.google.com ([209.85.220.194]:33848 "EHLO
+        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751221AbdB0CFf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 00:14:55 -0500
-Message-ID: <a920bb5144dd4de7cc018edc062c9e2e@smtp-cloud3.xs4all.net>
-Date: Mon, 13 Feb 2017 06:14:51 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+        Sun, 26 Feb 2017 21:05:35 -0500
+Received: by mail-qk0-f194.google.com with SMTP id s186so13970899qkb.1
+        for <linux-media@vger.kernel.org>; Sun, 26 Feb 2017 18:04:29 -0800 (PST)
+Received: from ?IPv6:2604:6000:1315:40e3:4962:a086:e12b:910a? ([2604:6000:1315:40e3:4962:a086:e12b:910a])
+        by smtp.gmail.com with ESMTPSA id m30sm9595005qtg.10.2017.02.26.17.57.21
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sun, 26 Feb 2017 17:57:22 -0800 (PST)
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+From: bill murphy <gc2majortom@gmail.com>
+Subject: Kaffeine commit b510bff2 won't compile
+Message-ID: <bafdb165-261c-0129-e0dc-29819a55ca43@gmail.com>
+Date: Sun, 26 Feb 2017 20:57:20 -0500
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi,
+Can someone double check me on this?
 
-Results of the daily build of media_tree:
+It seems there might be a missing header,
+in the src directory, preventing the last commit from
+compiling. The commit prior compiles fine. So not that big a deal, just 
+letting folks know what I ran in to.
 
-date:			Mon Feb 13 05:00:15 CET 2017
-media-tree git hash:	9eeb0ed0f30938f31a3d9135a88b9502192c18dd
-media_build git hash:	785cdf7f0798964681b33aad44fc2ff4d734733d
-v4l-utils git hash:	beb8f75b18b9014b49e0efaee7d6a6bff9cdec8c
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.8.0-164
+I don't see this file, 'log.h', anywhere in the src directory. Guessing 
+it wasn't 'added' for tracking?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10-rc3-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-x86_64: OK
-linux-4.10-rc3-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+git://anongit.kde.org/kaffeine
 
-Detailed results are available here:
+diff between master and previous commit...just a snippet, as other files 
+are including the same missing header.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+diff --git a/src/dvb/dvbcam_linux.cpp b/src/dvb/dvbcam_linux.cpp
+index ceb9dbd..5c9c575 100644
+--- a/src/dvb/dvbcam_linux.cpp
++++ b/src/dvb/dvbcam_linux.cpp
+@@ -18,11 +18,7 @@
+   * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+   */
 
-Full logs are available here:
+-#include <KLocalizedString>
+-#include <QDebug>
+-#if QT_VERSION < 0x050500
+-# define qInfo qDebug
+-#endif
++#include "../log.h"
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+  #include <errno.h>
+  #include <fcntl.h>
 
-The Media Infrastructure API from this daily build is here:
+where compile complains of that missing header...
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Scanning dependencies of target kaffeine
+[ 20%] Building CXX object 
+src/CMakeFiles/kaffeine.dir/dvb/dvbcam_linux.cpp.o
+/home/user/src2/kaffeine/src/dvb/dvbcam_linux.cpp:21:20: fatal error: 
+../log.h: No such file or directory
+compilation terminated.
+
+Regards,
+
+Bill
