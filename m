@@ -1,284 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:58662 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750933AbdBAPdR (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:34264 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751625AbdB0JXP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Feb 2017 10:33:17 -0500
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jean Christophe TROTIN <jean-christophe.trotin@st.com>
-Subject: Re: [GIT PULL FOR v4.11] New st-delta driver
-Date: Wed, 1 Feb 2017 15:33:10 +0000
-Message-ID: <6f10c777-4f3d-aa4a-de62-8c6095a3cc74@st.com>
-References: <b5f8fb46-6507-417c-8f1e-3b3f1410a64d@xs4all.nl>
- <20170130171536.07f4996d@vento.lan> <20170130171821.1ff63f52@vento.lan>
- <b316166d-b183-0c65-ca9f-d23f6ad4eea6@st.com>
- <20170201083920.4b68281d@vento.lan>
-In-Reply-To: <20170201083920.4b68281d@vento.lan>
-Content-Language: en-US
-Content-Type: text/plain; charset="Windows-1252"
-Content-ID: <F603749A42BB424CB20A703F1CBA1022@st.com>
-Content-Transfer-Encoding: 8BIT
+        Mon, 27 Feb 2017 04:23:15 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Koji Matsuoka <koji.matsuoka.xm@renesas.com>,
+        Yoshihiro Kaneko <ykaneko0929@gmail.com>,
+        Simon Horman <horms+renesas@verge.net.au>
+Subject: Re: [PATCH] soc-camera: fix rectangle adjustment in cropping
+Date: Mon, 27 Feb 2017 11:23:18 +0200
+Message-ID: <1769100.WpXQRxlpeV@avalon>
+In-Reply-To: <Pine.LNX.4.64.1702271006290.21990@axis700.grange>
+References: <Pine.LNX.4.64.1702262150090.17018@axis700.grange> <6082161.NEqkolhdEc@avalon> <Pine.LNX.4.64.1702271006290.21990@axis700.grange>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Guennadi,
 
+On Monday 27 Feb 2017 10:13:53 Guennadi Liakhovetski wrote:
+> On Mon, 27 Feb 2017, Laurent Pinchart wrote:
+> > On Monday 27 Feb 2017 09:54:19 Guennadi Liakhovetski wrote:
+> >> On Mon, 27 Feb 2017, Laurent Pinchart wrote:
+> >>> On Sunday 26 Feb 2017 21:58:16 Guennadi Liakhovetski wrote:
+> >>>> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> >>>> 
+> >>>> update_subrect() adjusts the sub-rectangle to be inside a base area.
+> >>>> It checks width and height to not exceed those of the area, then it
+> >>>> checks the low border (left or top) to lie within the area, then the
+> >>>> high border (right or bottom) to lie there too. This latter check has
+> >>>> a bug, which is fixed by this patch.
+> >>>> 
+> >>>> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> >>>> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+> >>>> [g.liakhovetski@gmx.de: dropped supposedly wrong hunks]
+> >>>> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> >>>> ---
+> >>>> 
+> >>>> This is a part of the https://patchwork.linuxtv.org/patch/26441/
+> >>>> submitted almost 2.5 years ago. Back then I commented to the patch
+> >>>> but never got a reply or an update. I preserved original authorship
+> >>>> and Sob tags, although this version only uses a small portion of the
+> >>>> original patch. This version is of course completely untested, any
+> >>>> testing (at least regression) would be highly appreciated! This code
+> >>>> is only used by the SH CEU driver and only in cropping / zooming
+> >>>> scenarios.
+> >>>> 
+> >>>>  drivers/media/platform/soc_camera/soc_scale_crop.c | 4 ++--
+> >>>>  1 file changed, 2 insertions(+), 2 deletions(-)
+> >>>> 
+> >>>> diff --git a/drivers/media/platform/soc_camera/soc_scale_crop.c
+> >>>> b/drivers/media/platform/soc_camera/soc_scale_crop.c index
+> >>>> f77252d..4bfc1bf
+> >>>> 100644
+> >>>> --- a/drivers/media/platform/soc_camera/soc_scale_crop.c
+> >>>> +++ b/drivers/media/platform/soc_camera/soc_scale_crop.c
+> >>>> @@ -70,14 +70,14 @@ static void update_subrect(struct v4l2_rect
+> >>>> *rect, struct v4l2_rect *subrect)
+> >>>>  	if (rect->height < subrect->height)
+> >>>>  		subrect->height = rect->height;
+> >>>> 
+> >>>> -	if (rect->left > subrect->left)
+> >>>> +	if (rect->left < subrect->left)
+> >>> 
+> >>> This looks wrong to me. If the purpose of the function is indeed to
+> >>> adjust subrect to stay within rect, the condition doesn't need to be
+> >>> changed.
+> >>> 
+> >>>>  		subrect->left = rect->left;
+> >>>>  	else if (rect->left + rect->width >
+> >>>>  		 subrect->left + subrect->width)
+> >>> 
+> >>> This condition, however, is wrong.
+> >> 
+> >> Arrrrgh, of course, I meant to change this one! Thanks for catching.
+> >> 
+> >>>>  		subrect->left = rect->left + rect->width -
+> >>>>  			subrect->width;
+> >>> 
+> >>> More than that, adjusting the width first and then the left coordinate
+> >>> can result in an incorrect width.
+> >> 
+> >> The width is adjusted in the beginning only to stay within the area, you
+> >> cannot go beyond it anyway. So, that has to be done anyway. And then the
+> >> origin is adjusted.
+> >> 
+> >>> It looks to me like you should drop the width
+> >>> check at the beginning of this function, and turn the "else if" here
+> >>> into an "if" with the right condition. Or, even better in my opinion,
+> >>> use the min/max/clamp macros.
+> >> 
+> >> Well, that depends on what result we want to achieve, what parameter we
+> >> prioritise. This approach prioritises width and height, and then adjusts
+> >> edges to accommodate as much of them as possible. A different approach
+> >> would be to prioritise the origin (top and left) and adjust width and
+> >> height to stay within the area. Do we have a preference for this?
+> > 
+> > Don't you need both ? "Inside the area" is a pretty well-defined concept
+> > :-)
+> >
+> > 	subrect->left = max(subrect->left, rect->left);
+> 
+> I prefer to avoid assignments like "a = max(a, b)" to avoid a redundant
+> "a = a" assignment, when a >= b :-)
 
-On 02/01/2017 11:39 AM, Mauro Carvalho Chehab wrote:
-> Em Tue, 31 Jan 2017 15:16:10 +0000
-> Hugues FRUCHET <hugues.fruchet@st.com> escreveu:
->
->> On 01/30/2017 08:18 PM, Mauro Carvalho Chehab wrote:
->>> Em Mon, 30 Jan 2017 17:15:36 -0200
->>> Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
->>>
->>>> Em Mon, 9 Jan 2017 14:23:33 +0100
->>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>>>
->>>>> See the v4 series for details:
->>>>>
->>>>> https://www.spinics.net/lists/linux-media/msg108737.html
->>>>>
->>>>> Regards,
->>>>>
->>>>> 	Hans
->>>>>
->>>>> The following changes since commit 40eca140c404505c09773d1c6685d818cb55ab1a:
->>>>>
->>>>>   [media] mn88473: add DVB-T2 PLP support (2016-12-27 14:00:15 -0200)
->>>>>
->>>>> are available in the git repository at:
->>>>>
->>>>>   git://linuxtv.org/hverkuil/media_tree.git delta
->>>>>
->>>>> for you to fetch changes up to e6f199d01e7b8bc4436738b6c666fda31b9f3340:
->>>>>
->>>>>   st-delta: debug: trace stream/frame information & summary (2017-01-09 14:16:45 +0100)
->>>>>
->>>>> ----------------------------------------------------------------
->>>>> Hugues Fruchet (10):
->>>>>       Documentation: DT: add bindings for ST DELTA
->>>>>       ARM: dts: STiH410: add DELTA dt node
->>>>>       ARM: multi_v7_defconfig: enable STMicroelectronics DELTA Support
->>>>>       MAINTAINERS: add st-delta driver
->>>>>       st-delta: STiH4xx multi-format video decoder v4l2 driver
->>>>>       st-delta: add memory allocator helper functions
->>>>>       st-delta: rpmsg ipc support
->>>>>       st-delta: EOS (End Of Stream) support
->>>>>       st-delta: add mjpeg support
->>>>>       st-delta: debug: trace stream/frame information & summary
->>>>
->>>> There is something wrong on this driver... even after applying all
->>>> patches, it complains that there's a for there that does nothing:
->>>>
->>>> drivers/media/platform/sti/delta/delta-v4l2.c:322 register_decoders() warn: we never enter this loop
->>>> drivers/media/platform/sti/delta/delta-v4l2.c: In function 'register_decoders':
->>>> drivers/media/platform/sti/delta/delta-v4l2.c:322:16: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
->>>>   for (i = 0; i < ARRAY_SIZE(delta_decoders); i++) {
->>>>                 ^
->>
->> Hi Mauro,
->>
->> It's strange that you face this warning, code is like that:
->> /* registry of available decoders */
->> static const struct delta_dec *delta_decoders[] = {
->> #ifdef CONFIG_VIDEO_STI_DELTA_MJPEG
->> 	&mjpegdec,
->> #endif
->> };
->>
->> and MJPEG config is enabled by default:
->> config VIDEO_STI_DELTA_MJPEG
->> 	bool "STMicroelectronics DELTA MJPEG support"
->> 	default y
->>
->> so you should not encounter this warning.
->>
->> On the other hand, you face issue on line 322 of delta-v4l2.c but in my
->> codebase, and also in Hans' git tree
->> (git://linuxtv.org/hverkuil/media_tree.git delta), this code is at line 323.
->
-> Well, here I compile everything patch per patch.
->
->>
->> Anyway, in order to prevent such warning even if no decoder are selected
->> in config, I have reworked the code in v5 adding a "NULL"
->> element at the end of decoder array out of any config switch:
->> static const struct delta_dec *delta_decoders[] = {
->> #ifdef CONFIG_VIDEO_STI_DELTA_MJPEG
->> 	&mjpegdec,
->> #endif
->> 	NULL,
->> };
->
-> That just hides the warning. The real problem here is that, if
-> someone compiles just the main driver with no decoder drivers, it
-> will get an useless driver.
->
-> It only makes sense to build VIDEO_STI_DELTA if at least one of
-> the "daughter" drivers is built.
->
-> Assuming that, on some future, you add a MPEG decoder, I guess the
-> best way to address it would be to have something like this at the
-> Kconfig:
->
-> config VIDEO_STI_DELTA
-> 	tristate "STMicroelectronics STiH4xx DELTA multi-format video decoder V4L2 driver options"
-> 	depends on VIDEO_DEV && VIDEO_V4L2
-> 	depends on ARCH_STI || COMPILE_TEST
-> 	depends on HAS_DMA
-> 	help
-> 		This V4L2 DELTA multi-format video decoder driver
-> 		of STMicroelectronics STiH4xx SoC series allow hardware
-> 		decoding of various compressed video bitstream format in
-> 		raw uncompressed format.
->
-> 		Use this option to see the decoders available for
-> 		such hardware.
->
-> 		Please notice that the driver will only be built if
-> 		at least one of the delta codecs below is selected.
->
-> if VIDEO_STI_DELTA
->
-> config VIDEO_STI_DELTA_MJPEG
-> 	bool "STMicroelectronics DELTA MJPEG support"
-> 	help
-> 		Enables the DELTA driver with MJPEG hardware support.
->
-> 		To compile this driver as a module, choose M here:
-> 		the module will be called st-delta.
->
-> config VIDEO_STI_DELTA_MPEG
-> 	bool "STMicroelectronics DELTA MPEG support"
-> 	help
-> 		Enables the DELTA driver with MPEG hardware support.
->
-> 		To compile this driver as a module, choose M here:
-> 		the module will be called st-delta.
->
-> config VIDEO_STI_DELTA_DRIVER
-> 	tristate
-> 	depends on VIDEO_STI_DELTA
-> 	depends on VIDEO_STI_DELTA_MJPEG | VIDEO_STI_DELTA_MPEG
-> 	default VIDEO_STI_DELTA_MJPEG | VIDEO_STI_DELTA_MPEG
-> 	select VIDEOBUF2_DMA_CONTIG
-> 	select V4L2_MEM2MEM_DEV
-> 	select RPMSG
->
-> endif # VIDEO_STI_DELTA
->
-> and change the sti/delta/Makefile to compile the delta driver using
-> the VIDEO_STI_DELTA_DRIVER symbol:
->
-> obj-$(CONFIG_VIDEO_STI_DELTA_DRIVER) := st-delta.o
-> st-delta-y := delta-v4l2.o delta-mem.o delta-ipc.o delta-debug.o
->
-> # MJPEG support
-> st-delta-$(CONFIG_VIDEO_STI_DELTA_MJPEG) += delta-mjpeg-hdr.o
-> st-delta-$(CONFIG_VIDEO_STI_DELTA_MJPEG) += delta-mjpeg-dec.o
->
-> # MPEG support
-> st-delta-$(CONFIG_VIDEO_STI_DELTA_MPEG) += delta-mpeg-hdr.o
-> st-delta-$(CONFIG_VIDEO_STI_DELTA_MPEG) += delta-mpeg-dec.o
->
+The compiler should hopefully optimize that for you.
 
-Hi Mauro,
-Thanks for the code, I have implemented it in v6 and reverted
-the v5 change around adding NULL in delta_decoders array.
+> > 	subrect->top = max(subrect->top, rect->top);
+> > 	subrect->width = min(subrect->left + subrect->width,
+> > 			     rect->left + rect->width) - subrect->left;
+> > 	subrect->height = min(subrect->top + subrect->height,
+> > 			      rect->top + rect->height) - subrect->top;
+> 
+> But this is exactly what I meant, isn't it? Consider an area 100..1000 and
+> a subrect 200..2000. Obviously, width is wrong. You have two
+> possibilities to adjust it: (1) size-priority. You maximise the size
+> (900) and then adjust the origin to accommodate it (100). (2)
+> origin-priority: you keep origin (200) and maximise size, based on that
+> (800). My approach does (1), yours does (2). I prefer (1). Your approach
+> also would break if origin is way too large, e.g. 1100..2000, whereas mine
+> would work unchanged.
 
-Many thanks,
-Hugues.
+OK, I see what you mean now. It's "clamp to boundary" vs. "move within 
+boundaries and clamp if necessary". I haven't look at the caller to see what 
+is needed here. Whatever option you choose, it would make sense to rename the 
+function accordingly (and possibly move it to the V4L2 core).
 
->>
->>>>
->>>> On a first glance, it seems that the register_decoders() function is
->>>> reponsible to register the format decoders that the hardware
->>>> recognizes. If so, I suspect that this driver is deadly broken.
->>>>
->>>> Please be sure that the upstream driver works properly before
->>>> submitting it upstream.
->>>>
->>>> Also, please fix the comments to match the Kernel standard. E. g.
->>>> instead of:
->>>>
->>>> /* guard output frame count:
->>>>  * - at least 1 frame needed for display
->>>>  * - at worst 21
->>>>  *   ( max h264 dpb (16) +
->>>>  *     decoding peak smoothing (2) +
->>>>  *     user display pipeline (3) )
->>>>  */
->>>>
->>>> It should be:
->>>>
->>>> /*
->>>>  * guard output frame count:
->>>>  * - at least 1 frame needed for display
->>>>  * - at worst 21
->>>>  *   ( max h264 dpb (16) +
->>>>  *     decoding peak smoothing (2) +
->>>>  *     user display pipeline (3) )
->>>>  */
->>>>
->>>> There are several similar occurrences among this patch series.
->>
->> I apologize for this -unfortunately not raised by checkpatch, I will
->> have a look to fix it-
->> Multiple lines comments are now fixed in v5.
->
-> You need to enable checkpatch in pedantic mode in order to see those
-> warnings.
->
->>
->>>
->>> Ah, forgot to comment, but it mentions a firmware. Does such firmware
->>> reside on some RAM memory? If so, how such firmware is loaded?
->>
->> Firmware is loaded in coprocessor at system startup by remoteproc framework:
->>  From "[GIT PULL] STi DT update for v4.11 round 1"
->> https://lkml.org/lkml/2017/1/12/525:
->> https://kernel.googlesource.com/pub/scm/linux/kernel/git/pchotard/sti/+/sti-dt-for-v4.11/arch/arm/boot/dts/stih407-family.dtsi
->> 		st231_delta: remote-processor {
->> 			compatible	= "st,st231-rproc";
->> 			memory-region	= <&delta_reserved>;
->> 			resets		= <&softreset STIH407_ST231_DMU_SOFTRESET>;
->> 			reset-names	= "sw_reset";
->> 			clocks		= <&clk_s_c0_flexgen CLK_ST231_DMU>;
->> 			clock-frequency	= <600000000>;
->> 			st,syscfg	= <&syscfg_core 0x224>;
->> 			#mbox-cells = <1>;
->> 			mbox-names = "vq0_rx", "vq0_tx", "vq1_rx", "vq1_tx";
->> 			mboxes = <&mailbox0 0 0>, <&mailbox3 0 1>, <&mailbox0 0 1>,
->> <&mailbox3 0 0>;
->> 		};
->
->
-> Ok.
->
->>
->>>
->>>>
->>>> Thanks,
->>>> Mauro
->>>>
->>>> Thanks,
->>>> Mauro
->>>
->>>
->>>
->>> Thanks,
->>> Mauro
->>>
->>
->> Thanks for all,
->> Hugues.
->
->
-> Thanks,
-> Mauro
->
+> > (Completely untested)
+> > 
+> >>> Same comments for the vertical checks.
+> >>> 
+> >>>> -	if (rect->top > subrect->top)
+> >>>> +	if (rect->top < subrect->top)
+> >>>>  		subrect->top = rect->top;
+> >>>>  	else if (rect->top + rect->height >
+> >>>>  		 subrect->top + subrect->height)
+
+-- 
+Regards,
+
+Laurent Pinchart
