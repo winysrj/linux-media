@@ -1,131 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:55811 "EHLO
-        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932077AbdBHBi5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2017 20:38:57 -0500
-Message-ID: <1486517907.18649.1.camel@mtksdaap41>
-Subject: Re: [PATCH] [media] mtk-vcodec: fix build errors without DEBUG
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Daniel Kurtz <djkurtz@chromium.org>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-        Daniel Thompson <daniel.thompson@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        "Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        srv_heupstream <srv_heupstream@mediatek.com>,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        Tiffany Lin <tiffany.lin@mediatek.com>,
-        "open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>,
-        "moderated list:ARM/Mediatek SoC support"
-        <linux-mediatek@lists.infradead.org>
-Date: Wed, 8 Feb 2017 09:38:27 +0800
-In-Reply-To: <CAGS+omAU7UohsUkXwwHyhNh_dSX=R9tLKYvSV5767m81sTf_RA@mail.gmail.com>
-References: <1486453244-26094-1-git-send-email-minghsiu.tsai@mediatek.com>
-         <CAGS+omAU7UohsUkXwwHyhNh_dSX=R9tLKYvSV5767m81sTf_RA@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-MIME-Version: 1.0
+Received: from mailout1.samsung.com ([203.254.224.24]:54152 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751306AbdB0DOT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 26 Feb 2017 22:14:19 -0500
+Received: from epcas5p3.samsung.com (unknown [182.195.41.41])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0OM002PYSJNSFH80@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 27 Feb 2017 12:14:16 +0900 (KST)
+Subject: Re: [PATCH 2/2] media: s5p-mfc: fix MMAP of mfc buffer during reqbufs
+To: Javier Martinez Canillas <javier@osg.samsung.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org
+Cc: kyungmin.park@samsung.com, jtp.park@samsung.com,
+        mchehab@kernel.org, mchehab@osg.samsung.com,
+        hans.verkuil@cisco.com, krzk@kernel.org, kgene@kernel.org,
+        Smitha T Murthy <smitha.t@samsung.com>
+From: "pankaj.dubey" <pankaj.dubey@samsung.com>
+Message-id: <384899ef-4e7e-d7f5-8f4f-ef2f023cb681@samsung.com>
+Date: Mon, 27 Feb 2017 08:47:18 +0530
+MIME-version: 1.0
+In-reply-to: <81c11e69-b7eb-ccb5-a377-2848ec551274@osg.samsung.com>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
+References: <1481888915-19624-1-git-send-email-pankaj.dubey@samsung.com>
+ <1481888915-19624-3-git-send-email-pankaj.dubey@samsung.com>
+ <CGME20170224194302epcas2p2edea64bf7b2fc89ee97b6f5391b2dad0@epcas2p2.samsung.com>
+ <81c11e69-b7eb-ccb5-a377-2848ec551274@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2017-02-07 at 20:17 +0800, Daniel Kurtz wrote:
-> On Tue, Feb 7, 2017 at 3:40 PM, Minghsiu Tsai
-> <minghsiu.tsai@mediatek.com> wrote:
-> > Fix build errors after removing DEBUG definition.
+Hello Javier,
+
+On Saturday 25 February 2017 01:12 AM, Javier Martinez Canillas wrote:
+> Hello Pankaj,
 > 
-> It would be useful to specify which build errors were fixed by this
-> patch, and a brief description of why - namely because when DEBUG is
-> not defined, mtk_v4l2_debug() is an empty macros, and therefore the
-> arguments are unused.
+> On 12/16/2016 08:48 AM, Pankaj Dubey wrote:
+>> From: Smitha T Murthy <smitha.t@samsung.com>
+>>
+>> It has been observed on ARM64 based Exynos SoC, if IOMMU is not enabled
+>> and we try to use reserved memory for MFC, reqbufs fails with below
+>> mentioned error
+>> ---------------------------------------------------------------------------
+>> V4L2 Codec decoding example application
+>> Kamil Debski <k.debski@samsung.com>
+>> Copyright 2012 Samsung Electronics Co., Ltd.
+>>
+>> Opening MFC.
+>> (mfc.c:mfc_open:58): MFC Info (/dev/video0): driver="s5p-mfc" \
+>> bus_info="platform:12c30000.mfc0" card="s5p-mfc-dec" fd=0x4[
+>> 42.339165] Remapping memory failed, error: -6
+>>
+>> MFC Open Success.
+>> (main.c:main:711): Successfully opened all necessary files and devices
+>> (mfc.c:mfc_dec_setup_output:103): Setup MFC decoding OUTPUT buffer \
+>> size=4194304 (requested=4194304)
+>> (mfc.c:mfc_dec_setup_output:120): Number of MFC OUTPUT buffers is 2 \
+>> (requested 2)
+>>
+>> [App] Out buf phy : 0x00000000, virt : 0xffffffff
+>> Output Length is = 0x300000
+>> Error (mfc.c:mfc_dec_setup_output:145): Failed to MMAP MFC OUTPUT buffer
+>> -------------------------------------------------------------------------
+>> This is because the device requesting for memory is mfc0.left not the parent mfc0.
+>> Hence setting of alloc_devs need to be done only if IOMMU is enabled
+>> and in that case both the left and right device is treated as mfc0 only.
+>>
 > 
-> With an updated commit message, this patch is:
-> 
-> Reviewed-by: Daniel Kurtz <djkurtz@chromium.org>
+> I see, so likely you were facing the issue described in patch 1/2 after this
+> patch since the driver doesn't set alloc_devs when IOMMU is disabled, right?
 > 
 
-Hi Daniel,
-Thanks for your review and comment. I will update it soon.
+Yes.
 
-> >
-> > Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-> > ---
-> >  drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c | 9 ++++-----
-> >  drivers/media/platform/mtk-vcodec/vdec_vpu_if.c    | 5 ++---
-> >  drivers/media/platform/mtk-vcodec/venc_vpu_if.c    | 4 +---
-> >  3 files changed, 7 insertions(+), 11 deletions(-)
-> >
-> > diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-> > index 0746592..6219c7d 100644
-> > --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-> > +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-> > @@ -1126,15 +1126,14 @@ static void vb2ops_vdec_buf_queue(struct vb2_buffer *vb)
-> >                  * if there is no SPS header or picture info
-> >                  * in bs
-> >                  */
-> > -               int log_level = ret ? 0 : 1;
-> >
-> >                 src_buf = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
-> >                 v4l2_m2m_buf_done(to_vb2_v4l2_buffer(src_buf),
-> >                                         VB2_BUF_STATE_DONE);
-> > -               mtk_v4l2_debug(log_level,
-> > -                               "[%d] vdec_if_decode() src_buf=%d, size=%zu, fail=%d, res_chg=%d",
-> > -                               ctx->id, src_buf->index,
-> > -                               src_mem.size, ret, res_chg);
-> > +               mtk_v4l2_debug(ret ? 0 : 1,
-> > +                              "[%d] vdec_if_decode() src_buf=%d, size=%zu, fail=%d, res_chg=%d",
-> > +                              ctx->id, src_buf->index,
-> > +                              src_mem.size, ret, res_chg);
-> >                 return;
-> >         }
-> >
-> > diff --git a/drivers/media/platform/mtk-vcodec/vdec_vpu_if.c b/drivers/media/platform/mtk-vcodec/vdec_vpu_if.c
-> > index 5a24c51..1abd14e 100644
-> > --- a/drivers/media/platform/mtk-vcodec/vdec_vpu_if.c
-> > +++ b/drivers/media/platform/mtk-vcodec/vdec_vpu_if.c
-> > @@ -70,9 +70,8 @@ void vpu_dec_ipi_handler(void *data, unsigned int len, void *priv)
-> >  static int vcodec_vpu_send_msg(struct vdec_vpu_inst *vpu, void *msg, int len)
-> >  {
-> >         int err;
-> > -       uint32_t msg_id = *(uint32_t *)msg;
-> >
-> > -       mtk_vcodec_debug(vpu, "id=%X", msg_id);
-> > +       mtk_vcodec_debug(vpu, "id=%X", *(uint32_t *)msg);
-> >
-> >         vpu->failure = 0;
-> >         vpu->signaled = 0;
-> > @@ -80,7 +79,7 @@ static int vcodec_vpu_send_msg(struct vdec_vpu_inst *vpu, void *msg, int len)
-> >         err = vpu_ipi_send(vpu->dev, vpu->id, msg, len);
-> >         if (err) {
-> >                 mtk_vcodec_err(vpu, "send fail vpu_id=%d msg_id=%X status=%d",
-> > -                              vpu->id, msg_id, err);
-> > +                              vpu->id, *(uint32_t *)msg, err);
-> >                 return err;
-> >         }
-> >
-> > diff --git a/drivers/media/platform/mtk-vcodec/venc_vpu_if.c b/drivers/media/platform/mtk-vcodec/venc_vpu_if.c
-> > index a01c759..0d882ac 100644
-> > --- a/drivers/media/platform/mtk-vcodec/venc_vpu_if.c
-> > +++ b/drivers/media/platform/mtk-vcodec/venc_vpu_if.c
-> > @@ -79,10 +79,8 @@ static int vpu_enc_send_msg(struct venc_vpu_inst *vpu, void *msg,
-> >
-> >         status = vpu_ipi_send(vpu->dev, vpu->id, msg, len);
-> >         if (status) {
-> > -               uint32_t msg_id = *(uint32_t *)msg;
-> > -
-> >                 mtk_vcodec_err(vpu, "vpu_ipi_send msg_id %x len %d fail %d",
-> > -                              msg_id, len, status);
-> > +                              *(uint32_t *)msg, len, status);
-> >                 return -EINVAL;
-> >         }
-> >         if (vpu->failure)
-> > --
-> > 1.9.1
-> >
+> In any case, I guess these patches have been superseded by Marek's series[0]
+> so they are no longer needed?
+> 
 
+Yes, these patches have been superseded but now by Marek's series.
+I missed to check Marek's series [0] due to some official assignment,
+but we followed up our patch series with Marek, and fix was provided in
+of_reserved_mem.c via patch [1] which has been accepted and merged as
+well. I will try to find out some time and test Marek's patch series [0].
 
+[1]: https://patchwork.kernel.org/patch/9482499/
+
+Thanks,
+Pankaj Dubey
+
+> [0]: https://www.spinics.net/lists/linux-media/msg111156.html
+> 
+> Best regards,
+> 
