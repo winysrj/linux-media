@@ -1,110 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:33897 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751717AbdBCLus (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2017 06:50:48 -0500
-Date: Fri, 3 Feb 2017 12:50:45 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: robh+dt@kernel.org, devicetree@vger.kernel.org,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCHv2] dt: bindings: Add support for CSI1 bus
-Message-ID: <20170203115045.GA1350@amd>
-References: <20161228183036.GA13139@amd>
- <20170111225335.GA21553@amd>
- <20170119214905.GD3205@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="ReaqsoxgOBHFXBhH"
-Content-Disposition: inline
-In-Reply-To: <20170119214905.GD3205@valkosipuli.retiisi.org.uk>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:42751 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751414AbdB0OYy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 27 Feb 2017 09:24:54 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 8/9] cec: improve cec_transmit_msg_fh logging
+Date: Mon, 27 Feb 2017 15:20:41 +0100
+Message-Id: <20170227142042.37085-9-hverkuil@xs4all.nl>
+In-Reply-To: <20170227142042.37085-1-hverkuil@xs4all.nl>
+References: <20170227142042.37085-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
---ReaqsoxgOBHFXBhH
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Several error paths didn't log why an error was returned. Add this.
 
-Hi!
+Also handle the corner case of "adapter is unconfigured AND the message
+is from Unregistered to TV AND reply is non-zero" separately and return
+EINVAL in that case, since it really is an invalid value and not an
+unconfigured CEC device.
 
-> > --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > @@ -76,6 +76,11 @@ Optional endpoint properties
-> >    mode horizontal and vertical synchronization signals are provided to=
- the
-> >    slave device (data source) by the master device (data sink). In the =
-master
-> >    mode the data source device is also the source of the synchronizatio=
-n signals.
-> > +- bus-type: data bus type. Possible values are:
-> > +  0 - MIPI CSI2
-> > +  1 - parallel / Bt656
-> > +  2 - MIPI CSI1
-> > +  3 - CCP2
->=20
-> Actually, thinking about this again --- we only need to explictly specify
-> busses if we're dealing with either CCP2 or CSI-1. The vast majority of t=
-he
-> actual busses are and continue to be CSI-2 or either parallel or Bt.656. =
-As
-> they can be implicitly detected, we would have an option to just drop val=
-ues
-> 0 and 1 from above, i.e. only leave CSI-1 and CCP2. For now, specifying
-> CSI-2 or parallel / Bt.656 adds no value as the old DT binaries without
-> bus-type will need to be supported anyway.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/cec/cec-adap.c | 17 +++++++++++++----
+ drivers/media/cec/cec-api.c  |  2 +-
+ 2 files changed, 14 insertions(+), 5 deletions(-)
 
-Hmm. "Just deleting the others" may be a bit confusing... but what
-about this? It explains what we can autodetect.
-
-Best regards,
-								Pavel
-
-diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b=
-/Documentation/devicetree/bindings/media/video-interfaces.txt
-index 08c4498..d54093b 100644
---- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-+++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-@@ -77,10 +77,10 @@ Optional endpoint properties
-   slave device (data source) by the master device (data sink). In the mast=
-er
-   mode the data source device is also the source of the synchronization si=
-gnals.
- - bus-type: data bus type. Possible values are:
--  0 - MIPI CSI2
--  1 - parallel / Bt656
--  2 - MIPI CSI1
--  3 - CCP2
-+  0 - autodetect based on other properties (MIPI CSI2, parallel, Bt656)
-+  1 - MIPI CSI1
-+  2 - CCP2
-+  Autodetection is default, and bus-type property may be omitted in that c=
-ase.
- - bus-width: number of data lines actively used, valid for the parallel bu=
-sses.
- - data-shift: on the parallel data busses, if bus-width is used to specify=
- the
-   number of data lines, data-shift can be used to specify which data lines=
- are
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---ReaqsoxgOBHFXBhH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAliUbpUACgkQMOfwapXb+vKpWgCgjqqV/Dkmc42a5e2en6Xvoq4d
-WO8AoIgDGWMJI4yUfUDFFqvOsAYAz6hm
-=oRA4
------END PGP SIGNATURE-----
-
---ReaqsoxgOBHFXBhH--
+diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
+index 4f1e571d10b7..9e25ba20f4d1 100644
+--- a/drivers/media/cec/cec-adap.c
++++ b/drivers/media/cec/cec-adap.c
+@@ -646,12 +646,21 @@ int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
+ 			__func__, cec_msg_initiator(msg));
+ 		return -EINVAL;
+ 	}
+-	if (!adap->is_configured && !adap->is_configuring &&
+-	    (msg->msg[0] != 0xf0 || msg->reply))
+-		return -ENONET;
++	if (!adap->is_configured && !adap->is_configuring) {
++		if (msg->msg[0] != 0xf0) {
++			dprintk(1, "%s: adapter is unconfigured\n", __func__);
++			return -ENONET;
++		}
++		if (msg->reply) {
++			dprintk(1, "%s: invalid msg->reply\n", __func__);
++			return -EINVAL;
++		}
++	}
+ 
+-	if (adap->transmit_queue_sz >= CEC_MAX_MSG_TX_QUEUE_SZ)
++	if (adap->transmit_queue_sz >= CEC_MAX_MSG_TX_QUEUE_SZ) {
++		dprintk(1, "%s: transmit queue full\n", __func__);
+ 		return -EBUSY;
++	}
+ 
+ 	data = kzalloc(sizeof(*data), GFP_KERNEL);
+ 	if (!data)
+diff --git a/drivers/media/cec/cec-api.c b/drivers/media/cec/cec-api.c
+index cea350ea2a52..0860fb458757 100644
+--- a/drivers/media/cec/cec-api.c
++++ b/drivers/media/cec/cec-api.c
+@@ -202,7 +202,7 @@ static long cec_transmit(struct cec_adapter *adap, struct cec_fh *fh,
+ 		err = -EPERM;
+ 	else if (adap->is_configuring)
+ 		err = -ENONET;
+-	else if (!adap->is_configured && (msg.msg[0] != 0xf0 || msg.reply))
++	else if (!adap->is_configured && msg.msg[0] != 0xf0)
+ 		err = -ENONET;
+ 	else if (cec_is_busy(adap, fh))
+ 		err = -EBUSY;
+-- 
+2.11.0
