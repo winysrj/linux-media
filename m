@@ -1,146 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:35204 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753610AbdBPCVL (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:47359 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751454AbdB0OYy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Feb 2017 21:21:11 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Russell King <rmk+kernel@armlinux.org.uk>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v4 27/36] media: imx: csi: add support for bayer formats
-Date: Wed, 15 Feb 2017 18:19:29 -0800
-Message-Id: <1487211578-11360-28-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+        Mon, 27 Feb 2017 09:24:54 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 3/9] cec: allow specific messages even when unconfigured
+Date: Mon, 27 Feb 2017 15:20:36 +0100
+Message-Id: <20170227142042.37085-4-hverkuil@xs4all.nl>
+In-Reply-To: <20170227142042.37085-1-hverkuil@xs4all.nl>
+References: <20170227142042.37085-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Russell King <rmk+kernel@armlinux.org.uk>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Bayer formats must be treated as generic data and passthrough mode must
-be used.  Add the correct setup for these formats.
+The CEC specifications explicitly allows you to send poll messages and
+Image/Text View On messages to a TV, even when unconfigured (i.e. there is
+no hotplug signal detected). Some TVs will pull the HPD low when switching
+to another input, or when going into standby, but CEC should still be
+allowed to wake up such a display.
 
-Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+Add support for sending messages with initiator 0xf (Unregistered) and
+destination 0 (TV) when no physical address is present.
 
-- added check to csi_link_validate() to verify that destination is
-  IDMAC output pad when passthrough conditions exist: bayer formats
-  and 16-bit parallel buses.
+This also required another change: the CEC adapter has to stay enabled as
+long as 1) the CEC device is configured or 2) at least one filehandle is open
+for the CEC device.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/staging/media/imx/imx-media-csi.c | 50 ++++++++++++++++++++++++++-----
- 1 file changed, 42 insertions(+), 8 deletions(-)
+ drivers/media/cec/cec-adap.c | 27 ++++++++++++++++++++-------
+ drivers/media/cec/cec-api.c  | 19 +++++++++++++++++--
+ 2 files changed, 37 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index 0343fc3..ae24b42 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -2,6 +2,7 @@
-  * V4L2 Capture CSI Subdev for Freescale i.MX5/6 SOC
-  *
-  * Copyright (c) 2014-2016 Mentor Graphics Inc.
-+ * Copyright (C) 2017 Pengutronix, Philipp Zabel <kernel@pengutronix.de>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-@@ -271,10 +272,11 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
- 	struct imx_media_video_dev *vdev = priv->vdev;
- 	struct v4l2_of_endpoint *sensor_ep;
- 	struct v4l2_mbus_framefmt *infmt;
--	unsigned int burst_size;
- 	struct ipu_image image;
-+	u32 passthrough_bits;
- 	dma_addr_t phys[2];
- 	bool passthrough;
-+	u32 burst_size;
- 	int ret;
+diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
+index 421472b492ee..78a85c44d96e 100644
+--- a/drivers/media/cec/cec-adap.c
++++ b/drivers/media/cec/cec-adap.c
+@@ -367,7 +367,6 @@ int cec_thread_func(void *_adap)
+ 			 */
+ 			err = wait_event_interruptible_timeout(adap->kthread_waitq,
+ 				kthread_should_stop() ||
+-				(!adap->is_configured && !adap->is_configuring) ||
+ 				(!adap->transmitting &&
+ 				 !list_empty(&adap->transmit_queue)),
+ 				msecs_to_jiffies(CEC_XFER_TIMEOUT_MS));
+@@ -382,8 +381,7 @@ int cec_thread_func(void *_adap)
  
- 	infmt = &priv->format_mbus[CSI_SINK_PAD];
-@@ -301,15 +303,38 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
- 	ipu_cpmem_set_burstsize(priv->idmac_ch, burst_size);
+ 		mutex_lock(&adap->lock);
  
- 	/*
--	 * If the sensor uses 16-bit parallel CSI bus, we must handle
--	 * the data internally in the IPU as 16-bit generic, aka
--	 * passthrough mode.
-+	 * Check for conditions that require the IPU to handle the
-+	 * data internally as generic data, aka passthrough mode:
-+	 * - raw bayer formats
-+	 * - the sensor bus is 16-bit parallel
- 	 */
--	passthrough = (sensor_ep->bus_type != V4L2_MBUS_CSI2 &&
--		       sensor_ep->bus.parallel.bus_width >= 16);
-+	switch (image.pix.pixelformat) {
-+	case V4L2_PIX_FMT_SBGGR8:
-+	case V4L2_PIX_FMT_SGBRG8:
-+	case V4L2_PIX_FMT_SGRBG8:
-+	case V4L2_PIX_FMT_SRGGB8:
-+		burst_size = 8;
-+		passthrough = true;
-+		passthrough_bits = 8;
-+		break;
-+	case V4L2_PIX_FMT_SBGGR16:
-+	case V4L2_PIX_FMT_SGBRG16:
-+	case V4L2_PIX_FMT_SGRBG16:
-+	case V4L2_PIX_FMT_SRGGB16:
-+		burst_size = 4;
-+		passthrough = true;
-+		passthrough_bits = 16;
-+		break;
-+	default:
-+		passthrough = (sensor_ep->bus_type != V4L2_MBUS_CSI2 &&
-+			       sensor_ep->bus.parallel.bus_width >= 16);
-+		passthrough_bits = 16;
-+		break;
-+	}
+-		if ((!adap->is_configured && !adap->is_configuring) ||
+-		    kthread_should_stop()) {
++		if (kthread_should_stop()) {
+ 			cec_flush(adap);
+ 			goto unlock;
+ 		}
+@@ -414,6 +412,7 @@ int cec_thread_func(void *_adap)
+ 					struct cec_data, list);
+ 		list_del_init(&data->list);
+ 		adap->transmit_queue_sz--;
++
+ 		/* Make this the current transmitting message */
+ 		adap->transmitting = data;
  
- 	if (passthrough)
--		ipu_cpmem_set_format_passthrough(priv->idmac_ch, 16);
-+		ipu_cpmem_set_format_passthrough(priv->idmac_ch,
-+						 passthrough_bits);
+@@ -647,7 +646,8 @@ int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
+ 			cec_msg_initiator(msg));
+ 		return -EINVAL;
+ 	}
+-	if (!adap->is_configured && !adap->is_configuring)
++	if (!adap->is_configured && !adap->is_configuring &&
++	    (msg->msg[0] != 0xf0 || msg->reply))
+ 		return -ENONET;
  
- 	/*
- 	 * Set the channel for the direct CSI-->memory via SMFC
-@@ -695,6 +720,7 @@ static int csi_link_validate(struct v4l2_subdev *sd,
- 			     struct v4l2_subdev_format *sink_fmt)
- {
- 	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	const struct imx_media_pixfmt *incc;
- 	struct v4l2_of_endpoint *sensor_ep;
- 	bool is_csi2;
- 	int ret;
-@@ -713,8 +739,16 @@ static int csi_link_validate(struct v4l2_subdev *sd,
+ 	if (adap->transmit_queue_sz >= CEC_MAX_MSG_TX_QUEUE_SZ)
+@@ -696,6 +696,7 @@ int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
+ 
+ 	if (fh)
+ 		list_add_tail(&data->xfer_list, &fh->xfer_list);
++
+ 	list_add_tail(&data->list, &adap->transmit_queue);
+ 	adap->transmit_queue_sz++;
+ 	if (!adap->transmitting)
+@@ -1121,6 +1122,7 @@ static void cec_adap_unconfigure(struct cec_adapter *adap)
+ 	adap->is_configuring = false;
+ 	adap->is_configured = false;
+ 	memset(adap->phys_addrs, 0xff, sizeof(adap->phys_addrs));
++	cec_flush(adap);
+ 	wake_up_interruptible(&adap->kthread_waitq);
+ 	cec_post_state_event(adap);
+ }
+@@ -1352,19 +1354,30 @@ void __cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr, bool block)
+ 		/* Disabling monitor all mode should always succeed */
+ 		if (adap->monitor_all_cnt)
+ 			WARN_ON(call_op(adap, adap_monitor_all_enable, false));
+-		WARN_ON(adap->ops->adap_enable(adap, false));
++		mutex_lock(&adap->devnode.lock);
++		if (list_empty(&adap->devnode.fhs))
++			WARN_ON(adap->ops->adap_enable(adap, false));
++		mutex_unlock(&adap->devnode.lock);
+ 		if (phys_addr == CEC_PHYS_ADDR_INVALID)
+ 			return;
  	}
  
- 	sensor_ep = &priv->sensor->sensor_ep;
--
- 	is_csi2 = (sensor_ep->bus_type == V4L2_MBUS_CSI2);
-+	incc = priv->cc[CSI_SINK_PAD];
-+
-+	if (priv->dest != IPU_CSI_DEST_IDMAC &&
-+	    (incc->bayer || (!is_csi2 &&
-+			     sensor_ep->bus.parallel.bus_width >= 16))) {
-+		v4l2_err(&priv->sd,
-+			 "bayer/16-bit parallel buses must go to IDMAC pad\n");
-+		return -EINVAL;
+-	if (adap->ops->adap_enable(adap, true))
++	mutex_lock(&adap->devnode.lock);
++	if (list_empty(&adap->devnode.fhs) &&
++	    adap->ops->adap_enable(adap, true)) {
++		mutex_unlock(&adap->devnode.lock);
+ 		return;
 +	}
  
- 	if (is_csi2) {
- 		int vc_num = 0;
+ 	if (adap->monitor_all_cnt &&
+ 	    call_op(adap, adap_monitor_all_enable, true)) {
+-		WARN_ON(adap->ops->adap_enable(adap, false));
++		if (list_empty(&adap->devnode.fhs))
++			WARN_ON(adap->ops->adap_enable(adap, false));
++		mutex_unlock(&adap->devnode.lock);
+ 		return;
+ 	}
++	mutex_unlock(&adap->devnode.lock);
++
+ 	adap->phys_addr = phys_addr;
+ 	cec_post_state_event(adap);
+ 	if (adap->log_addrs.num_log_addrs)
+diff --git a/drivers/media/cec/cec-api.c b/drivers/media/cec/cec-api.c
+index 8950b6c9d6a9..627cdf7b12d1 100644
+--- a/drivers/media/cec/cec-api.c
++++ b/drivers/media/cec/cec-api.c
+@@ -198,7 +198,9 @@ static long cec_transmit(struct cec_adapter *adap, struct cec_fh *fh,
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&adap->lock);
+-	if (!adap->is_configured)
++	if (adap->is_configuring)
++		err = -ENONET;
++	else if (!adap->is_configured && (msg.msg[0] != 0xf0 || msg.reply))
+ 		err = -ENONET;
+ 	else if (cec_is_busy(adap, fh))
+ 		err = -EBUSY;
+@@ -515,9 +517,18 @@ static int cec_open(struct inode *inode, struct file *filp)
+ 		return err;
+ 	}
+ 
++	mutex_lock(&devnode->lock);
++	if (list_empty(&devnode->fhs) &&
++	    adap->phys_addr == CEC_PHYS_ADDR_INVALID) {
++		err = adap->ops->adap_enable(adap, true);
++		if (err) {
++			mutex_unlock(&devnode->lock);
++			kfree(fh);
++			return err;
++		}
++	}
+ 	filp->private_data = fh;
+ 
+-	mutex_lock(&devnode->lock);
+ 	/* Queue up initial state events */
+ 	ev_state.state_change.phys_addr = adap->phys_addr;
+ 	ev_state.state_change.log_addr_mask = adap->log_addrs.log_addr_mask;
+@@ -551,6 +562,10 @@ static int cec_release(struct inode *inode, struct file *filp)
+ 
+ 	mutex_lock(&devnode->lock);
+ 	list_del(&fh->list);
++	if (list_empty(&devnode->fhs) &&
++	    adap->phys_addr == CEC_PHYS_ADDR_INVALID) {
++		WARN_ON(adap->ops->adap_enable(adap, false));
++	}
+ 	mutex_unlock(&devnode->lock);
+ 
+ 	/* Unhook pending transmits from this filehandle. */
 -- 
-2.7.4
+2.11.0
