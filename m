@@ -1,56 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f66.google.com ([209.85.214.66]:35135 "EHLO
-        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751968AbdBFUsZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Feb 2017 15:48:25 -0500
-Received: by mail-it0-f66.google.com with SMTP id 203so10168818ith.2
-        for <linux-media@vger.kernel.org>; Mon, 06 Feb 2017 12:48:25 -0800 (PST)
+Received: from Galois.linutronix.de ([146.0.238.70]:59630 "EHLO
+        Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751291AbdB0RFl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 27 Feb 2017 12:05:41 -0500
+Date: Mon, 27 Feb 2017 17:18:28 +0100 (CET)
+From: Thomas Gleixner <tglx@linutronix.de>
+To: Tony Lindgren <tony@atomide.com>
+cc: Ingo Molnar <mingo@kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Ruslan Ruslichenko <rruslich@cisco.com>,
+        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+        kernel@stlinux.com, Sean Young <sean@mess.org>,
+        wfg@linux.intel.com, Peter Zijlstra <peterz@infradead.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-mediatek@lists.infradead.org,
+        Linux LED Subsystem <linux-leds@vger.kernel.org>,
+        "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+        linux-amlogic@lists.infradead.org,
+        kernel test robot <fengguang.wu@intel.com>, LKP <lkp@01.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [WARNING: A/V UNSCANNABLE][Merge tag 'media/v4.11-1' of git]
+ ff58d005cd: BUG: unable to handle kernel NULL pointer dereference at
+ 0000039c
+In-Reply-To: <20170227160750.GM21809@atomide.com>
+Message-ID: <alpine.DEB.2.20.1702271712470.4732@nanos>
+References: <58b07b30.9XFLj9Hhl7F6HMc2%fengguang.wu@intel.com> <CA+55aFytXj+TZ_TanbxcY0KgRTrV7Vvr=fWON8tioUGmYHYiNA@mail.gmail.com> <20170225090741.GA20463@gmail.com> <CA+55aFy+ER8cYV02eZsKAOLnZBWY96zNWqUFWSWT1+3sZD4XnQ@mail.gmail.com>
+ <alpine.DEB.2.20.1702271105090.4732@nanos> <alpine.DEB.2.20.1702271231410.4732@nanos> <20170227154124.GA20569@gmail.com> <20170227160750.GM21809@atomide.com>
 MIME-Version: 1.0
-From: Matthew Hughes <matt.hughes@shrdlusblocks.com>
-Date: Mon, 6 Feb 2017 14:48:04 -0600
-Message-ID: <CAHK4VQD9Lka9d7jusbQX7ScAS9s2_jem=tXwAhJfZWoZNo+feQ@mail.gmail.com>
-Subject: V4L board mis-identified, Tuner is TDA18271HD not s921
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Plugged in a USB ATSC tuner, has an em28xx bridge along with both a
-NXP TDA18271HDC2 and a Trident DRX3933J_B2... stenciled on the board
-is EzTV306_1.2
+On Mon, 27 Feb 2017, Tony Lindgren wrote:
+> * Ingo Molnar <mingo@kernel.org> [170227 07:44]:
+> > Because it's not the requirement that hurts primarily, but the resulting 
+> > non-determinism and the sporadic crashes. Which can be solved by making the race 
+> > deterministic via the debug facility.
+> > 
+> > If the IRQ handler crashed the moment it was first written by the driver author 
+> > we'd never see these problems.
+> 
+> Just in case this is PM related.. Maybe the spurious interrupt is pending
+> from earlier? This could be caused by glitches on the lines with runtime PM,
+> or a pending interrupt during suspend/resume. In that case IRQ_DISABLE_UNLAZY
+> might provide more clues if the problem goes away.
 
-It however registered as a DVB device with a sharp s921 tuner.
+It's not PM related.  That's just silly hardware. At the moment when you
+enable some magic bit in the control register, which is required to probe
+the version, the fricking thing spits out a spurious interrupt despite the
+interrupt enable bit in the same control register being still disabled. Of
+course we cannot install an interrupt handler before having probed the
+version and setup other stuff, except we add magic 'if (!initialized)'
+crappola into the handler and lose the ability to install version dependent
+handlers afterwards.
 
-[  208.072748] usb 4-1.3: new high-speed USB device number 3 using ehci-pci
-[  208.298601] media: Linux media interface: v0.10
-[  208.312132] Linux video capture interface: v2.00
-[  208.636160] em28xx: New device  USB 2875 Device @ 480 Mbps
-(eb1a:2875, interface 0, class 0)
-[  208.636162] em28xx: DVB interface 0 found: isoc
-[  208.636222] em28xx: chip ID is em2874
-[  208.715834] em2874 #0: EEPROM ID = 26 40 03 00, EEPROM hash = 0xe0a5bac9
-[  208.715836] em2874 #0: EEPROM info:
-[  208.715837] em2874 #0:  microcode start address = 0x4004, boot
-configuration = 0x03
-[  208.739463] em2874 #0:  I2S audio, 5 sample rates
-[  208.739465] em2874 #0:  500mA max power
-[  208.739467] em2874 #0:  Table at offset 0x24, strings=0x206a, 0x128a, 0x0000
-[  208.741337] em2874 #0: No sensor detected
-[  208.769463] em2874 #0: found i2c device @ 0xa0 on bus 0 [eeprom]
-[  208.786096] em2874 #0: Your board has no unique USB ID.
-[  208.786106] em2874 #0: A hint were successfully done, based on i2c
-devicelist hash.
-[  208.786110] em2874 #0: This method is not 100% failproof.
-[  208.786114] em2874 #0: If the board were missdetected, please email
-this log to:
-[  208.786117] em2874 #0:  V4L Mailing List  <linux-media@vger.kernel.org>
-[  208.786120] em2874 #0: Board detected as EM2874 Leadership ISDBT
-[  208.892731] em2874 #0: Identified as EM2874 Leadership ISDBT (card=77)
-[  208.892734] em2874 #0: dvb set to isoc mode.
-[  208.893013] usbcore: registered new interface driver em28xx
-[  209.067077] em2874 #0: Binding DVB extension
-[  209.124284] s921: s921_attach:
-[  209.124291] DVB: registering new adapter (em2874 #0)
-[  209.124299] usb 4-1.3: DVB: registering adapter 0 frontend 0 (Sharp S921)...
-[  209.124819] em2874 #0: DVB extension successfully initialized
-[  209.124823] em28xx: Registered (Em28xx dvb Extension) extension
+Wonderful crap that, isn't it?
+
+Thanks,
+
+	tglx
