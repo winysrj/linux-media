@@ -1,52 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60771 "EHLO mail.kapsi.fi"
+Received: from mga03.intel.com ([134.134.136.65]:64368 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750711AbdBMFCz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 00:02:55 -0500
-Subject: Re: [PATCH 0/3] Add support for MyGica T230C DVB-T2 stick
-To: =?UTF-8?Q?Stefan_Br=c3=bcns?= <stefan.bruens@rwth-aachen.de>,
-        linux-media@vger.kernel.org
-References: <2d61325e1fdc496ea5f2c4ab37a30aae@rwthex-w2-b.rwth-ad.de>
-Cc: linux-kernel@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <addf6591-3028-2950-17cc-b96e2fc37601@iki.fi>
-Date: Mon, 13 Feb 2017 07:02:52 +0200
+        id S1751445AbdB1MrJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Feb 2017 07:47:09 -0500
+Subject: Re: [RFC 1/1] omap3isp: Ignore endpoints with invalid configuration
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-media@vger.kernel.org
+References: <1488283350-5695-1-git-send-email-sakari.ailus@linux.intel.com>
+ <20170228123534.GB4307@amd>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Message-ID: <14e1e477-037d-922b-67a8-cbf3b1157d8e@linux.intel.com>
+Date: Tue, 28 Feb 2017 14:45:31 +0200
 MIME-Version: 1.0
-In-Reply-To: <2d61325e1fdc496ea5f2c4ab37a30aae@rwthex-w2-b.rwth-ad.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170228123534.GB4307@amd>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/12/2017 05:26 PM, Stefan Brüns wrote:
-> The required command sequence for the new tuner (Si2141) was traced from the
-> current Windows driver and verified with a small python script/libusb.
-> The changes to the Si2168 and cxusb driver are mostly addition of the
-> required IDs and some glue code.
->
-> Stefan Brüns (3):
->   [media] si2157: Add support for Si2141-A10
->   [media] si2168: add support for Si2168-D60
->   [media] cxusb: MyGica T230C support
->
->  drivers/media/dvb-core/dvb-usb-ids.h      |  1 +
->  drivers/media/dvb-frontends/si2168.c      |  4 ++
->  drivers/media/dvb-frontends/si2168_priv.h |  2 +
->  drivers/media/tuners/si2157.c             | 23 ++++++++-
->  drivers/media/tuners/si2157_priv.h        |  2 +
->  drivers/media/usb/dvb-usb/cxusb.c         | 80 +++++++++++++++++++++++++++++--
->  6 files changed, 106 insertions(+), 6 deletions(-)
->
+Pavel Machek wrote:
+> Tested-by: Pavel Machek <pavel@ucw.cz>
 
-Patch set looks pretty correct, but remote controller is something I 
-hope you could fix. Old T230 did it wrong and defined 
-rc_map_d680_dmb_table whilst proper map is 
-RC_MAP_TOTAL_MEDIA_IN_HAND_02. Secondly it should be converted to 
-rc-core. Even those are wrong for old revision, for new devices those 
-should be done correct.
+Thanks!
 
-regards
-Antti
+I've applied the patch, plus yours, to the ccp2 branch.
+
 -- 
-http://palosaari.fi/
+Sakari Ailus
+sakari.ailus@linux.intel.com
