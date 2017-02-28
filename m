@@ -1,108 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:49012 "EHLO mail.kernel.org"
+Received: from mga04.intel.com ([192.55.52.120]:4842 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750828AbdBWP2v (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Feb 2017 10:28:51 -0500
+        id S1751060AbdB1OAi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Feb 2017 09:00:38 -0500
+Subject: Re: [PATCH 4/6] omap3isp: Disable streaming at driver unbind time
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+References: <1487604142-27610-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1487604142-27610-5-git-send-email-sakari.ailus@linux.intel.com>
+ <1825906.3DC6oLSMPM@avalon>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Message-ID: <a9989567-8792-480d-88e0-73ddecf0a742@linux.intel.com>
+Date: Tue, 28 Feb 2017 16:00:01 +0200
 MIME-Version: 1.0
-In-Reply-To: <cover.1487314666.git.joe@perches.com>
-References: <cover.1487314666.git.joe@perches.com>
-From: Rob Herring <robh@kernel.org>
-Date: Thu, 23 Feb 2017 09:28:23 -0600
-Message-ID: <CAL_JsqLTaq-QLTqfyDO8EVJYpgeUx1e4J0Fo2NvfFWqVoiVedQ@mail.gmail.com>
-Subject: Re: [PATCH 00/35] treewide trivial patches converting pr_warning to pr_warn
-To: Joe Perches <joe@perches.com>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Karol Herbst <karolherbst@gmail.com>,
-        Pekka Paalanen <ppaalanen@gmail.com>,
-        Richard Weinberger <richard@nod.at>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        tboot-devel@lists.sourceforge.net, nouveau@lists.freedesktop.org,
-        oprofile-list@lists.sf.net, sfi-devel@simplefirmware.org,
-        xen-devel@lists.xenproject.org,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        drbd-dev@lists.linbit.com,
-        virtualization@lists.linux-foundation.org,
-        linux-crypto@vger.kernel.org,
-        "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>,
-        gigaset307x-common@lists.sourceforge.net,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        linux-omap <linux-omap@vger.kernel.org>,
-        "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        acpi4asus-user@lists.sourceforge.net,
-        platform-driver-x86@vger.kernel.org, linux-scsi@vger.kernel.org,
-        "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-        Linux-ALSA <alsa-devel@alsa-project.org>,
-        linux-alpha@vger.kernel.org,
-        adi-buildroot-devel@lists.sourceforge.net,
-        linux-ia64@vger.kernel.org, SH-Linux <linux-sh@vger.kernel.org>,
-        sparclinux@vger.kernel.org, amd-gfx@lists.freedesktop.org,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <1825906.3DC6oLSMPM@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 17, 2017 at 1:11 AM, Joe Perches <joe@perches.com> wrote:
-> There are ~4300 uses of pr_warn and ~250 uses of the older
-> pr_warning in the kernel source tree.
+Laurent Pinchart wrote:
+> Hi Sakari,
 >
-> Make the use of pr_warn consistent across all kernel files.
+> Thank you for the patch.
 >
-> This excludes all files in tools/ as there is a separate
-> define pr_warning for that directory tree and pr_warn is
-> not used in tools/.
+> On Monday 20 Feb 2017 17:22:20 Sakari Ailus wrote:
+>> Once the driver is unbound accessing the hardware is not allowed anymore.
+>> Due to this, disable streaming when the device driver is unbound. The
+>> states of the associated objects related to Media controller and videobuf2
+>> frameworks are updated as well, just like if the application disabled
+>> streaming explicitly.
+>>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 >
-> Done with 'sed s/\bpr_warning\b/pr_warn/' and some emacsing.
+> This looks mostly good to me, although I'm a bit concerned about race
+> conditions related to buffer handling. I don't think this patch introduces any
+> new one though, so
 >
-> Miscellanea:
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 >
-> o Coalesce formats and realign arguments
->
-> Some files not compiled - no cross-compilers
->
-> Joe Perches (35):
->   alpha: Convert remaining uses of pr_warning to pr_warn
->   ARM: ep93xx: Convert remaining uses of pr_warning to pr_warn
->   arm64: Convert remaining uses of pr_warning to pr_warn
->   arch/blackfin: Convert remaining uses of pr_warning to pr_warn
->   ia64: Convert remaining use of pr_warning to pr_warn
->   powerpc: Convert remaining uses of pr_warning to pr_warn
->   sh: Convert remaining uses of pr_warning to pr_warn
->   sparc: Convert remaining use of pr_warning to pr_warn
->   x86: Convert remaining uses of pr_warning to pr_warn
->   drivers/acpi: Convert remaining uses of pr_warning to pr_warn
->   block/drbd: Convert remaining uses of pr_warning to pr_warn
->   gdrom: Convert remaining uses of pr_warning to pr_warn
->   drivers/char: Convert remaining use of pr_warning to pr_warn
->   clocksource: Convert remaining use of pr_warning to pr_warn
->   drivers/crypto: Convert remaining uses of pr_warning to pr_warn
->   fmc: Convert remaining use of pr_warning to pr_warn
->   drivers/gpu: Convert remaining uses of pr_warning to pr_warn
->   drivers/ide: Convert remaining uses of pr_warning to pr_warn
->   drivers/input: Convert remaining uses of pr_warning to pr_warn
->   drivers/isdn: Convert remaining uses of pr_warning to pr_warn
->   drivers/macintosh: Convert remaining uses of pr_warning to pr_warn
->   drivers/media: Convert remaining use of pr_warning to pr_warn
->   drivers/mfd: Convert remaining uses of pr_warning to pr_warn
->   drivers/mtd: Convert remaining uses of pr_warning to pr_warn
->   drivers/of: Convert remaining uses of pr_warning to pr_warn
->   drivers/oprofile: Convert remaining uses of pr_warning to pr_warn
->   drivers/platform: Convert remaining uses of pr_warning to pr_warn
->   drivers/rapidio: Convert remaining use of pr_warning to pr_warn
->   drivers/scsi: Convert remaining use of pr_warning to pr_warn
->   drivers/sh: Convert remaining use of pr_warning to pr_warn
->   drivers/tty: Convert remaining uses of pr_warning to pr_warn
->   drivers/video: Convert remaining uses of pr_warning to pr_warn
->   kernel/trace: Convert remaining uses of pr_warning to pr_warn
->   lib: Convert remaining uses of pr_warning to pr_warn
->   sound/soc: Convert remaining uses of pr_warning to pr_warn
+> We'll have to go through buffer management at some point in the near future,
+> including from a V4L2 API point of view I think.
 
-Where's the removal of pr_warning so we don't have more sneak in?
+Thanks for the review!
 
-Rob
+Are you happy with me sending a pull request on the set, or would you 
+prefer to pick the omap3isp patches? In the latter case I'll send a fix 
+for the issue in the first patch.
+
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
