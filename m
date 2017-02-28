@@ -1,118 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:59061 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753078AbdBNNj3 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44144 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751768AbdB1Ns4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Feb 2017 08:39:29 -0500
-Date: Tue, 14 Feb 2017 14:39:25 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: sakari.ailus@iki.fi
-Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com, mchehab@kernel.org,
-        ivo.g.dimitrov.75@gmail.com
-Subject: [RFC 01/13] Core changes for CCP2/CSI1 support.
-Message-ID: <20170214133925.GA8421@amd>
+        Tue, 28 Feb 2017 08:48:56 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/6] omap3isp: Call video_unregister_device() unconditionally
+Date: Tue, 28 Feb 2017 15:42:08 +0200
+Message-ID: <1795290.FHDqLA2GvD@avalon>
+In-Reply-To: <1487604142-27610-3-git-send-email-sakari.ailus@linux.intel.com>
+References: <1487604142-27610-1-git-send-email-sakari.ailus@linux.intel.com> <1487604142-27610-3-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="bp/iNruPH9dso1Pn"
-Content-Disposition: inline
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Sakari,
 
---bp/iNruPH9dso1Pn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thank you for the patch.
 
-=46rom: Sakari Ailus <sakari.ailus@iki.fi>
+On Monday 20 Feb 2017 17:22:18 Sakari Ailus wrote:
+> video_unregister_device() can be called on a never or an already
+> unregistered device. Drop the redundant check.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-CCP2, or CSI-1, is an older single data lane serial bus. Add core
-support neccessary for it.
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
----
- include/media/v4l2-mediabus.h |  4 ++++
- include/media/v4l2-of.h       | 17 +++++++++++++++++
- 2 files changed, 21 insertions(+)
+> ---
+>  drivers/media/platform/omap3isp/ispvideo.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/ispvideo.c
+> b/drivers/media/platform/omap3isp/ispvideo.c index 218e6d7..9e9b18c 100644
+> --- a/drivers/media/platform/omap3isp/ispvideo.c
+> +++ b/drivers/media/platform/omap3isp/ispvideo.c
+> @@ -1495,6 +1495,5 @@ int omap3isp_video_register(struct isp_video *video,
+> struct v4l2_device *vdev)
+> 
+>  void omap3isp_video_unregister(struct isp_video *video)
+>  {
+> -	if (video_is_registered(&video->video))
+> -		video_unregister_device(&video->video);
+> +	video_unregister_device(&video->video);
+>  }
 
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-index 34cc99e..315c167 100644
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -69,11 +69,15 @@
-  * @V4L2_MBUS_PARALLEL:	parallel interface with hsync and vsync
-  * @V4L2_MBUS_BT656:	parallel interface with embedded synchronisation, can
-  *			also be used for BT.1120
-+ * @V4L2_MBUS_CSI1:	MIPI CSI-1 serial interface
-+ * @V4L2_MBUS_CCP2:	CCP2 (Compact Camera Port 2)
-  * @V4L2_MBUS_CSI2:	MIPI CSI-2 serial interface
-  */
- enum v4l2_mbus_type {
- 	V4L2_MBUS_PARALLEL,
- 	V4L2_MBUS_BT656,
-+	V4L2_MBUS_CSI1,
-+	V4L2_MBUS_CCP2,
- 	V4L2_MBUS_CSI2,
- };
-=20
-diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
-index 4dc34b2..63a52ee 100644
---- a/include/media/v4l2-of.h
-+++ b/include/media/v4l2-of.h
-@@ -53,6 +53,22 @@ struct v4l2_of_bus_parallel {
- };
-=20
- /**
-+ * struct v4l2_of_bus_csi1 - CSI-1/CCP2 data bus structure
-+ * @clock_inv: polarity of clock/strobe signal
-+ *	       false - not inverted, true - inverted
-+ * @strobe: false - data/clock, true - data/strobe
-+ * @data_lane: the number of the data lane
-+ * @clock_lane: the number of the clock lane
-+ */
-+struct v4l2_of_bus_mipi_csi1 {
-+	bool clock_inv;
-+	bool strobe;
-+	bool lane_polarity[2];
-+	unsigned char data_lane;
-+	unsigned char clock_lane;
-+};
-+
-+/**
-  * struct v4l2_of_endpoint - the endpoint data structure
-  * @base: struct of_endpoint containing port, id, and local of_node
-  * @bus_type: bus type
-@@ -66,6 +82,7 @@ struct v4l2_of_endpoint {
- 	enum v4l2_mbus_type bus_type;
- 	union {
- 		struct v4l2_of_bus_parallel parallel;
-+		struct v4l2_of_bus_mipi_csi1 mipi_csi1;
- 		struct v4l2_of_bus_mipi_csi2 mipi_csi2;
- 	} bus;
- 	u64 *link_frequencies;
---=20
-2.1.4
+-- 
+Regards,
 
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---bp/iNruPH9dso1Pn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlijCI0ACgkQMOfwapXb+vJTDACeOgxQj74tfps9cjdbYqOjxHrT
-0PoAn3teyCiJzS1zHUJvnwLjbnUugbtR
-=hVuq
------END PGP SIGNATURE-----
-
---bp/iNruPH9dso1Pn--
+Laurent Pinchart
