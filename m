@@ -1,58 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:48651 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751588AbdBMLkv (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44962 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752429AbdB1P7n (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 06:40:51 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
+        Tue, 28 Feb 2017 10:59:43 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v3 3/4] media-ctl: propagate frame interval
-Date: Mon, 13 Feb 2017 12:40:46 +0100
-Message-Id: <1486986047-18128-3-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1486986047-18128-1-git-send-email-p.zabel@pengutronix.de>
-References: <1486986047-18128-1-git-send-email-p.zabel@pengutronix.de>
+Cc: linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
+Subject: [PATCH v3 7/8] v4l: Define a pixel format for the R-Car VSP1 2-D histogram engine
+Date: Tue, 28 Feb 2017 17:56:47 +0200
+Message-Id: <20170228155648.12051-8-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20170228155648.12051-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20170228155648.12051-1-laurent.pinchart+renesas@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Same as the media bus format, the frame interval should be propagated
-from output pads to connected entities' input pads.
+From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+The format is used on the R-Car VSP1 video queues that carry
+2-D histogram statistics data.
+
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- utils/media-ctl/libv4l2subdev.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ Documentation/media/uapi/v4l/meta-formats.rst      |   1 +
+ .../media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst        | 120 +++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-ioctl.c               |   1 +
+ include/uapi/linux/videodev2.h                     |   3 +-
+ 4 files changed, 124 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst
 
-diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-index 2f2ac8e..7f9ef48 100644
---- a/utils/media-ctl/libv4l2subdev.c
-+++ b/utils/media-ctl/libv4l2subdev.c
-@@ -694,8 +694,8 @@ static int v4l2_subdev_parse_setup_format(struct media_device *media,
- 		return ret;
+diff --git a/Documentation/media/uapi/v4l/meta-formats.rst b/Documentation/media/uapi/v4l/meta-formats.rst
+index 05ab91e12f10..01e24e3df571 100644
+--- a/Documentation/media/uapi/v4l/meta-formats.rst
++++ b/Documentation/media/uapi/v4l/meta-formats.rst
+@@ -13,3 +13,4 @@ These formats are used for the :ref:`metadata` interface only.
+     :maxdepth: 1
  
- 
--	/* If the pad is an output pad, automatically set the same format on
--	 * the remote subdev input pads, if any.
-+	/* If the pad is an output pad, automatically set the same format and
-+	 * frame interval on the remote subdev input pads, if any.
- 	 */
- 	if (pad->flags & MEDIA_PAD_FL_SOURCE) {
- 		for (i = 0; i < pad->entity->num_links; ++i) {
-@@ -709,6 +709,10 @@ static int v4l2_subdev_parse_setup_format(struct media_device *media,
- 			    link->sink->entity->info.type == MEDIA_ENT_T_V4L2_SUBDEV) {
- 				remote_format = format;
- 				set_format(link->sink, &remote_format);
+     pixfmt-meta-vsp1-hgo
++    pixfmt-meta-vsp1-hgt
+diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst b/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst
+new file mode 100644
+index 000000000000..fb9f79466319
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst
+@@ -0,0 +1,120 @@
++.. -*- coding: utf-8; mode: rst -*-
 +
-+				ret = set_frame_interval(link->sink, &interval);
-+				if (ret < 0)
-+					return ret;
- 			}
- 		}
- 	}
++.. _v4l2-meta-fmt-vsp1-hgt:
++
++*******************************
++V4L2_META_FMT_VSP1_HGT ('VSPT')
++*******************************
++
++Renesas R-Car VSP1 2-D Histogram Data
++
++
++Description
++===========
++
++This format describes histogram data generated by the Renesas R-Car VSP1
++2-D Histogram (HGT) engine.
++
++The VSP1 HGT is a histogram computation engine that operates on HSV
++data. It operates on a possibly cropped and subsampled input image and
++computes the sum, maximum and minimum of the S component as well as a
++weighted frequency histogram based on the H and S components.
++
++The histogram is a matrix of 6 Hue and 32 Saturation buckets, 192 in
++total. Each HSV value is added to one or more buckets with a weight
++between 1 and 16 depending on the Hue areas configuration. Finding the
++corresponding buckets is done by inspecting the H and S value independently.
++
++The Saturation position **n** (0 - 31) of the bucket in the matrix is
++found by the expression:
++
++    n = S / 8
++
++The Hue position **m** (0 - 5) of the bucket in the matrix depends on
++how the HGT Hue areas are configured. There are 6 user configurable Hue
++Areas which can be configured to cover overlapping Hue values:
++
++::
++
++         Area 0       Area 1       Area 2       Area 3       Area 4       Area 5
++        ________     ________     ________     ________     ________     ________
++   \   /|      |\   /|      |\   /|      |\   /|      |\   /|      |\   /|      |\   /
++    \ / |      | \ / |      | \ / |      | \ / |      | \ / |      | \ / |      | \ /
++     X  |      |  X  |      |  X  |      |  X  |      |  X  |      |  X  |      |  X
++    / \ |      | / \ |      | / \ |      | / \ |      | / \ |      | / \ |      | / \
++   /   \|      |/   \|      |/   \|      |/   \|      |/   \|      |/   \|      |/   \
++  5U   0L      0U   1L      1U   2L      2U   3L      3U   4L      4U   5L      5U   0L
++        <0..............................Hue Value............................255>
++
++When two consecutive areas don't overlap (n+1L is equal to nU) the boundary
++value is considered as part of the lower area.
++
++Pixels with a hue value included in the centre of an area (between nL and nU
++included) are attributed to that single area and given a weight of 16. Pixels
++with a hue value included in the overlapping region between two areas (between
++n+1L and nU excluded) are attributed to both areas and given a weight for each
++of these areas proportional to their position along the diagonal lines
++(rounded down).
++
++The Hue area setup must match one of the following constrains:
++
++::
++
++    0L <= 0U <= 1L <= 1U <= 2L <= 2U <= 3L <= 3U <= 4L <= 4U <= 5L <= 5U
++
++::
++
++    0U <= 1L <= 1U <= 2L <= 2U <= 3L <= 3U <= 4L <= 4U <= 5L <= 5U <= 0L
++
++**Byte Order.**
++All data is stored in memory in little endian format. Each cell in the tables
++contains one byte.
++
++.. flat-table:: VSP1 HGT Data - (776 bytes)
++    :header-rows:  2
++    :stub-columns: 0
++
++    * - Offset
++      - :cspan:`4` Memory
++    * -
++      - [31:24]
++      - [23:16]
++      - [15:8]
++      - [7:0]
++    * - 0
++      - -
++      - S max [7:0]
++      - -
++      - S min [7:0]
++    * - 4
++      - :cspan:`4` S sum [31:0]
++    * - 8
++      - :cspan:`4` Histogram bucket (m=0, n=0) [31:0]
++    * - 12
++      - :cspan:`4` Histogram bucket (m=0, n=1) [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 132
++      - :cspan:`4` Histogram bucket (m=0, n=31) [31:0]
++    * - 136
++      - :cspan:`4` Histogram bucket (m=1, n=0) [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 264
++      - :cspan:`4` Histogram bucket (m=2, n=0) [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 392
++      - :cspan:`4` Histogram bucket (m=3, n=0) [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 520
++      - :cspan:`4` Histogram bucket (m=4, n=0) [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 648
++      - :cspan:`4` Histogram bucket (m=5, n=0) [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 772
++      - :cspan:`4` Histogram bucket (m=5, n=31) [31:0]
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 74885ba0ba68..063ee248b54f 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1233,6 +1233,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_TCH_FMT_TU16:		descr = "16-bit unsigned touch data"; break;
+ 	case V4L2_TCH_FMT_TU08:		descr = "8-bit unsigned touch data"; break;
+ 	case V4L2_META_FMT_VSP1_HGO:	descr = "R-Car VSP1 1-D Histogram"; break;
++	case V4L2_META_FMT_VSP1_HGT:	descr = "R-Car VSP1 2-D Histogram"; break;
+ 
+ 	default:
+ 		/* Compressed formats */
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index d402d734afe0..1ddd75afce76 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -678,7 +678,8 @@ struct v4l2_pix_format {
+ #define V4L2_TCH_FMT_TU08	v4l2_fourcc('T', 'U', '0', '8') /* 8-bit unsigned touch data */
+ 
+ /* Meta-data formats */
+-#define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car VSP1 Histogram */
++#define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car VSP1 1-D Histogram */
++#define V4L2_META_FMT_VSP1_HGT    v4l2_fourcc('V', 'S', 'P', 'T') /* R-Car VSP1 2-D Histogram */
+ 
+ /* priv field value to indicates that subsequent fields are valid. */
+ #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
