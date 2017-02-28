@@ -1,446 +1,268 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f45.google.com ([74.125.82.45]:33577 "EHLO
-        mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752296AbdBMOpV (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44962 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752400AbdB1P7l (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Feb 2017 09:45:21 -0500
-Received: by mail-wm0-f45.google.com with SMTP id t18so6989141wmt.0
-        for <linux-media@vger.kernel.org>; Mon, 13 Feb 2017 06:45:21 -0800 (PST)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: linaro-kernel@lists.linaro.org, arnd@arndb.de, labbott@redhat.com,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, daniel.vetter@ffwll.ch,
-        laurent.pinchart@ideasonboard.com, robdclark@gmail.com,
-        akpm@linux-foundation.org, hverkuil@xs4all.nl
-Cc: broonie@kernel.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [RFC simple allocator v2 1/2] Create Simple Allocator module
-Date: Mon, 13 Feb 2017 15:45:05 +0100
-Message-Id: <1486997106-23277-2-git-send-email-benjamin.gaignard@linaro.org>
-In-Reply-To: <1486997106-23277-1-git-send-email-benjamin.gaignard@linaro.org>
-References: <1486997106-23277-1-git-send-email-benjamin.gaignard@linaro.org>
+        Tue, 28 Feb 2017 10:59:41 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
+Subject: [PATCH v3 5/8] v4l: Define a pixel format for the R-Car VSP1 1-D histogram engine
+Date: Tue, 28 Feb 2017 17:56:45 +0200
+Message-Id: <20170228155648.12051-6-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20170228155648.12051-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20170228155648.12051-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is the core of simple allocator module.
-It aim to offert one common ioctl to allocate specific memory.
+The format is used on the R-Car VSP1 video queues that carry
+1-D histogram statistics data.
 
-version 2:
-- rebased on 4.10-rc7
-
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- Documentation/simple-allocator.txt              |  81 +++++++++++
- drivers/Kconfig                                 |   2 +
- drivers/Makefile                                |   1 +
- drivers/simpleallocator/Kconfig                 |  10 ++
- drivers/simpleallocator/Makefile                |   1 +
- drivers/simpleallocator/simple-allocator-priv.h |  33 +++++
- drivers/simpleallocator/simple-allocator.c      | 180 ++++++++++++++++++++++++
- include/uapi/linux/simple-allocator.h           |  35 +++++
- 8 files changed, 343 insertions(+)
- create mode 100644 Documentation/simple-allocator.txt
- create mode 100644 drivers/simpleallocator/Kconfig
- create mode 100644 drivers/simpleallocator/Makefile
- create mode 100644 drivers/simpleallocator/simple-allocator-priv.h
- create mode 100644 drivers/simpleallocator/simple-allocator.c
- create mode 100644 include/uapi/linux/simple-allocator.h
+ Documentation/media/uapi/v4l/meta-formats.rst      |  15 ++
+ .../media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst        | 168 +++++++++++++++++++++
+ Documentation/media/uapi/v4l/pixfmt.rst            |   1 +
+ drivers/media/v4l2-core/v4l2-ioctl.c               |   1 +
+ include/uapi/linux/videodev2.h                     |   3 +
+ 5 files changed, 188 insertions(+)
+ create mode 100644 Documentation/media/uapi/v4l/meta-formats.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst
 
-diff --git a/Documentation/simple-allocator.txt b/Documentation/simple-allocator.txt
+diff --git a/Documentation/media/uapi/v4l/meta-formats.rst b/Documentation/media/uapi/v4l/meta-formats.rst
 new file mode 100644
-index 0000000..89ba883
+index 000000000000..05ab91e12f10
 --- /dev/null
-+++ b/Documentation/simple-allocator.txt
-@@ -0,0 +1,81 @@
-+Simple Allocator Framework
++++ b/Documentation/media/uapi/v4l/meta-formats.rst
+@@ -0,0 +1,15 @@
++.. -*- coding: utf-8; mode: rst -*-
 +
-+Simple Allocator offer a single ioctl SA_IOC_ALLOC to allocate buffers
-+on dedicated memory regions and export them as a dmabuf file descriptor.
-+Using dmabuf file descriptor allow to share this memory between processes
-+and/or import it into other frameworks like v4l2 or drm/kms (prime).
-+When userland wants to free the memory only a call to close() in needed
-+so it could done even without knowing that buffer has been allocated by
-+simple allocator ioctl.
++.. _meta-formats:
 +
-+Each memory regions will be seen as a filein /dev/.
-+For example CMA regions will exposed has /dev/cmaX.
++****************
++Metadata Formats
++****************
 +
-+Implementing a simple allocator
-+-------------------------------
++These formats are used for the :ref:`metadata` interface only.
 +
-+Simple Allocator provide helpers functions to register/unregister an
-+allocator:
-+- simple_allocator_register(struct sa_device *sadev)
-+  Register simple_allocator_device using sa_device structure where name,
-+  owner and allocate fields must be set.
 +
-+- simple_allocator_unregister(struct sa_device *sadev)
-+  Unregister a simple allocator device.
++.. toctree::
++    :maxdepth: 1
 +
-+Using Simple Allocator /dev interface example
-+---------------------------------------------
++    pixfmt-meta-vsp1-hgo
+diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst b/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst
+new file mode 100644
+index 000000000000..8d37bb313493
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgo.rst
+@@ -0,0 +1,168 @@
++.. -*- coding: utf-8; mode: rst -*-
 +
-+This example of code allocate a buffer on the first CMA region (/dev/cma0)
-+before mmap and close it.
++.. _v4l2-meta-fmt-vsp1-hgo:
 +
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <unistd.h>
-+#include <sys/ioctl.h>
-+#include <sys/mman.h>
-+#include <sys/stat.h>
-+#include <sys/types.h>
++*******************************
++V4L2_META_FMT_VSP1_HGO ('VSPH')
++*******************************
 +
-+#include "simple-allocator.h"
++Renesas R-Car VSP1 1-D Histogram Data
 +
-+#define LENGTH 1024*16
 +
-+void main (void)
-+{
-+	struct simple_allocate_data data;
-+	int fd = open("/dev/cma0", O_RDWR, 0);
-+	int ret;
-+	void *mem;
++Description
++===========
 +
-+	if (fd < 0) {
-+		printf("Can't open /dev/cma0\n");
-+		return;
-+	}
++This format describes histogram data generated by the Renesas R-Car VSP1 1-D
++Histogram (HGO) engine.
 +
-+	memset(&data, 0, sizeof(data));
++The VSP1 HGO is a histogram computation engine that can operate on RGB, YCrCb
++or HSV data. It operates on a possibly cropped and subsampled input image and
++computes the minimum, maximum and sum of all pixels as well as per-channel
++histograms.
 +
-+	data.length = LENGTH;
-+	data.flags = O_RDWR | O_CLOEXEC;
++The HGO can compute histograms independently per channel, on the maximum of the
++three channels (RGB data only) or on the Y channel only (YCbCr only). It can
++additionally output the histogram with 64 or 256 bins, resulting in four
++possible modes of operation.
 +
-+	ret = ioctl(fd, SA_IOC_ALLOC, &data);
-+	if (ret) {
-+		printf("Buffer allocation failed\n");
-+		goto end;
-+	}
++- In *64 bins normal mode*, the HGO operates on the three channels independently
++  to compute three 64-bins histograms. RGB, YCbCr and HSV image formats are
++  supported.
++- In *64 bins maximum mode*, the HGO operates on the maximum of the (R, G, B)
++  channels to compute a single 64-bins histogram. Only the RGB image format is
++  supported.
++- In *256 bins normal mode*, the HGO operates on the Y channel to compute a
++  single 256-bins histogram. Only the YCbCr image format is supported.
++- In *256 bins maximum mode*, the HGO operates on the maximum of the (R, G, B)
++  channels to compute a single 256-bins histogram. Only the RGB image format is
++  supported.
 +
-+	mem = mmap(0, LENGTH, PROT_READ | PROT_WRITE, MAP_SHARED, data.fd, 0);
-+	if (mem == MAP_FAILED) {
-+		printf("mmap failed\n");
-+	}
++**Byte Order.**
++All data is stored in memory in little endian format. Each cell in the tables
++contains one byte.
 +
-+	memset(mem, 0xFF, LENGTH);
-+	munmap(mem, LENGTH);
++.. flat-table:: VSP1 HGO Data - 64 Bins, Normal Mode (792 bytes)
++    :header-rows:  2
++    :stub-columns: 0
 +
-+	printf("test simple allocator CMA OK\n");
-+end:
-+	close(fd);
-+}
-diff --git a/drivers/Kconfig b/drivers/Kconfig
-index e1e2066..a6d8828 100644
---- a/drivers/Kconfig
-+++ b/drivers/Kconfig
-@@ -202,4 +202,6 @@ source "drivers/hwtracing/intel_th/Kconfig"
++    * - Offset
++      - :cspan:`4` Memory
++    * -
++      - [31:24]
++      - [23:16]
++      - [15:8]
++      - [7:0]
++    * - 0
++      - -
++      - R/Cr/H max [7:0]
++      - -
++      - R/Cr/H min [7:0]
++    * - 4
++      - -
++      - G/Y/S max [7:0]
++      - -
++      - G/Y/S min [7:0]
++    * - 8
++      - -
++      - B/Cb/V max [7:0]
++      - -
++      - B/Cb/V min [7:0]
++    * - 12
++      - :cspan:`4` R/Cr/H sum [31:0]
++    * - 16
++      - :cspan:`4` G/Y/S sum [31:0]
++    * - 20
++      - :cspan:`4` B/Cb/V sum [31:0]
++    * - 24
++      - :cspan:`4` R/Cr/H bin 0 [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 276
++      - :cspan:`4` R/Cr/H bin 63 [31:0]
++    * - 280
++      - :cspan:`4` G/Y/S bin 0 [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 532
++      - :cspan:`4` G/Y/S bin 63 [31:0]
++    * - 536
++      - :cspan:`4` B/Cb/V bin 0 [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 788
++      - :cspan:`4` B/Cb/V bin 63 [31:0]
++
++.. flat-table:: VSP1 HGO Data - 64 Bins, Max Mode (264 bytes)
++    :header-rows:  2
++    :stub-columns: 0
++
++    * - Offset
++      - :cspan:`4` Memory
++    * -
++      - [31:24]
++      - [23:16]
++      - [15:8]
++      - [7:0]
++    * - 0
++      - -
++      - max(R,G,B) max [7:0]
++      - -
++      - max(R,G,B) min [7:0]
++    * - 4
++      - :cspan:`4` max(R,G,B) sum [31:0]
++    * - 8
++      - :cspan:`4` max(R,G,B) bin 0 [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 260
++      - :cspan:`4` max(R,G,B) bin 63 [31:0]
++
++.. flat-table:: VSP1 HGO Data - 256 Bins, Normal Mode (1032 bytes)
++    :header-rows:  2
++    :stub-columns: 0
++
++    * - Offset
++      - :cspan:`4` Memory
++    * -
++      - [31:24]
++      - [23:16]
++      - [15:8]
++      - [7:0]
++    * - 0
++      - -
++      - Y max [7:0]
++      - -
++      - Y min [7:0]
++    * - 4
++      - :cspan:`4` Y sum [31:0]
++    * - 8
++      - :cspan:`4` Y bin 0 [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 1028
++      - :cspan:`4` Y bin 255 [31:0]
++
++.. flat-table:: VSP1 HGO Data - 256 Bins, Max Mode (1032 bytes)
++    :header-rows:  2
++    :stub-columns: 0
++
++    * - Offset
++      - :cspan:`4` Memory
++    * -
++      - [31:24]
++      - [23:16]
++      - [15:8]
++      - [7:0]
++    * - 0
++      - -
++      - max(R,G,B) max [7:0]
++      - -
++      - max(R,G,B) min [7:0]
++    * - 4
++      - :cspan:`4` max(R,G,B) sum [31:0]
++    * - 8
++      - :cspan:`4` max(R,G,B) bin 0 [31:0]
++    * -
++      - :cspan:`4` ...
++    * - 1028
++      - :cspan:`4` max(R,G,B) bin 255 [31:0]
+diff --git a/Documentation/media/uapi/v4l/pixfmt.rst b/Documentation/media/uapi/v4l/pixfmt.rst
+index 4f184c7aedab..00737152497b 100644
+--- a/Documentation/media/uapi/v4l/pixfmt.rst
++++ b/Documentation/media/uapi/v4l/pixfmt.rst
+@@ -34,4 +34,5 @@ see also :ref:`VIDIOC_G_FBUF <VIDIOC_G_FBUF>`.)
+     pixfmt-013
+     sdr-formats
+     tch-formats
++    meta-formats
+     pixfmt-reserved
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 44a29af6fed2..74885ba0ba68 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1232,6 +1232,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_TCH_FMT_DELTA_TD08:	descr = "8-bit signed deltas"; break;
+ 	case V4L2_TCH_FMT_TU16:		descr = "16-bit unsigned touch data"; break;
+ 	case V4L2_TCH_FMT_TU08:		descr = "8-bit unsigned touch data"; break;
++	case V4L2_META_FMT_VSP1_HGO:	descr = "R-Car VSP1 1-D Histogram"; break;
  
- source "drivers/fpga/Kconfig"
+ 	default:
+ 		/* Compressed formats */
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 1eea1b5d71c1..d402d734afe0 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -677,6 +677,9 @@ struct v4l2_pix_format {
+ #define V4L2_TCH_FMT_TU16	v4l2_fourcc('T', 'U', '1', '6') /* 16-bit unsigned touch data */
+ #define V4L2_TCH_FMT_TU08	v4l2_fourcc('T', 'U', '0', '8') /* 8-bit unsigned touch data */
  
-+source "drivers/simpleallocator/Kconfig"
++/* Meta-data formats */
++#define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car VSP1 Histogram */
 +
- endmenu
-diff --git a/drivers/Makefile b/drivers/Makefile
-index 060026a..5081eb8 100644
---- a/drivers/Makefile
-+++ b/drivers/Makefile
-@@ -173,3 +173,4 @@ obj-$(CONFIG_STM)		+= hwtracing/stm/
- obj-$(CONFIG_ANDROID)		+= android/
- obj-$(CONFIG_NVMEM)		+= nvmem/
- obj-$(CONFIG_FPGA)		+= fpga/
-+obj-$(CONFIG_SIMPLE_ALLOCATOR) 	+= simpleallocator/
-diff --git a/drivers/simpleallocator/Kconfig b/drivers/simpleallocator/Kconfig
-new file mode 100644
-index 0000000..c6fc2e3
---- /dev/null
-+++ b/drivers/simpleallocator/Kconfig
-@@ -0,0 +1,10 @@
-+menu "Simple Allocator"
-+
-+config SIMPLE_ALLOCATOR
-+	tristate "Simple Alllocator Framework"
-+	select DMA_SHARED_BUFFER
-+	---help---
-+	   The Simple Allocator Framework adds an API to allocate and share
-+	   memory in userland.
-+
-+endmenu
-diff --git a/drivers/simpleallocator/Makefile b/drivers/simpleallocator/Makefile
-new file mode 100644
-index 0000000..e27c6ad
---- /dev/null
-+++ b/drivers/simpleallocator/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_SIMPLE_ALLOCATOR) += simple-allocator.o
-diff --git a/drivers/simpleallocator/simple-allocator-priv.h b/drivers/simpleallocator/simple-allocator-priv.h
-new file mode 100644
-index 0000000..33f5a33
---- /dev/null
-+++ b/drivers/simpleallocator/simple-allocator-priv.h
-@@ -0,0 +1,33 @@
-+/*
-+ * Copyright (C) Linaro 2016
-+ *
-+ * Author: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-+ *
-+ * License terms:  GNU General Public License (GPL)
-+ */
-+
-+#ifndef _SIMPLE_ALLOCATOR_PRIV_H_
-+#define _SIMPLE_ALLOCATOR_PRIV_H_
-+
-+#include <linux/cdev.h>
-+#include <linux/device.h>
-+#include <linux/dma-buf.h>
-+
-+/**
-+ * struct sa_device - simple allocator device
-+ * @owner: module owner, must be set to THIS_MODULE
-+ * @name: name of the allocator
-+ * @allocate: callabck for memory allocation
-+ */
-+struct sa_device {
-+	struct device	dev;
-+	struct cdev	chrdev;
-+	struct module	*owner;
-+	const char	*name;
-+	struct dma_buf *(*allocate)(struct sa_device *, u64 length, u32 flags);
-+};
-+
-+int simple_allocator_register(struct sa_device *sadev);
-+void simple_allocator_unregister(struct sa_device *sadev);
-+
-+#endif
-diff --git a/drivers/simpleallocator/simple-allocator.c b/drivers/simpleallocator/simple-allocator.c
-new file mode 100644
-index 0000000..d89ccbf
---- /dev/null
-+++ b/drivers/simpleallocator/simple-allocator.c
-@@ -0,0 +1,180 @@
-+/*
-+ * Copyright (C) Linaro 2016
-+ *
-+ * Author: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-+ *
-+ * License terms:  GNU General Public License (GPL)
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/simple-allocator.h>
-+#include <linux/uaccess.h>
-+
-+#include "simple-allocator-priv.h"
-+
-+#define SA_MAJOR	222
-+#define SA_NUM_DEVICES	256
-+#define SA_NAME		"simple_allocator"
-+
-+static int sa_minor;
-+
-+static struct class sa_class = {
-+	.name = SA_NAME,
-+};
-+
-+static long sa_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
-+{
-+	struct sa_device *sadev = filp->private_data;
-+	int ret = -ENODEV;
-+
-+	switch (cmd) {
-+	case SA_IOC_ALLOC:
-+	{
-+		struct simple_allocate_data data;
-+		struct dma_buf *dmabuf;
-+
-+		if (copy_from_user(&data, (void __user *)arg, _IOC_SIZE(cmd)))
-+			return -EFAULT;
-+
-+		if (data.version != 0)
-+			return -EINVAL;
-+
-+		dmabuf = sadev->allocate(sadev, data.length, data.flags);
-+		if (!dmabuf)
-+			return -EINVAL;
-+
-+		data.fd = dma_buf_fd(dmabuf, data.flags);
-+		if (data.fd < 0) {
-+			dma_buf_put(dmabuf);
-+			return -EINVAL;
-+		}
-+
-+		data.length = dmabuf->size;
-+
-+		if (copy_to_user((void __user *)arg, &data, _IOC_SIZE(cmd))) {
-+			dma_buf_put(dmabuf);
-+			return -EFAULT;
-+		}
-+
-+		return 0;
-+	}
-+	}
-+	return ret;
-+}
-+
-+static int sa_open(struct inode *inode, struct file *filp)
-+{
-+	struct sa_device *sadev = container_of(inode->i_cdev,
-+					       struct sa_device, chrdev);
-+
-+	if (!sadev)
-+		return -ENODEV;
-+
-+	get_device(&sadev->dev);
-+	filp->private_data = sadev;
-+	return 0;
-+}
-+
-+static int sa_release(struct inode *inode, struct file *filp)
-+{
-+	struct sa_device *sadev = container_of(inode->i_cdev,
-+					       struct sa_device, chrdev);
-+
-+	if (!sadev)
-+		return -ENODEV;
-+
-+	put_device(&sadev->dev);
-+	return 0;
-+}
-+
-+static const struct file_operations sa_fops = {
-+	.owner = THIS_MODULE,
-+	.open = sa_open,
-+	.release = sa_release,
-+	.unlocked_ioctl = sa_ioctl,
-+};
-+
-+/**
-+ * simple_allocator_register - register a simple allocator
-+ * @sadev: simple allocator structure to be registered
-+ *
-+ * Return 0 if allocator has been regsitered, either a negative value.
-+ */
-+int simple_allocator_register(struct sa_device *sadev)
-+{
-+	int ret;
-+
-+	if (!sadev->name || !sadev->allocate)
-+		return -EINVAL;
-+
-+	cdev_init(&sadev->chrdev, &sa_fops);
-+	sadev->chrdev.owner = sadev->owner;
-+
-+	ret = cdev_add(&sadev->chrdev, MKDEV(SA_MAJOR, sa_minor), 1);
-+	if (ret < 0)
-+		return ret;
-+
-+	sadev->dev.class = &sa_class;
-+	sadev->dev.devt = MKDEV(SA_MAJOR, sa_minor);
-+	dev_set_name(&sadev->dev, "%s%d", sadev->name, sa_minor);
-+	ret = device_register(&sadev->dev);
-+	if (ret < 0)
-+		goto cleanup;
-+
-+	sa_minor++;
-+	return 0;
-+
-+cleanup:
-+	cdev_del(&sadev->chrdev);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(simple_allocator_register);
-+
-+/**
-+ * simple_allocator_unregister - unregister a simple allocator
-+ * @sadev: simple allocator device to be unregistered
-+ */
-+void simple_allocator_unregister(struct sa_device *sadev)
-+{
-+	if (!sadev)
-+		return;
-+
-+	cdev_del(&sadev->chrdev);
-+	device_del(&sadev->dev);
-+	put_device(&sadev->dev);
-+}
-+EXPORT_SYMBOL_GPL(simple_allocator_unregister);
-+
-+static int __init sa_init(void)
-+{
-+	dev_t dev = MKDEV(SA_MAJOR, 0);
-+	int ret;
-+
-+	ret = register_chrdev_region(dev, SA_NUM_DEVICES, SA_NAME);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = class_register(&sa_class);
-+	if (ret < 0) {
-+		unregister_chrdev_region(dev, SA_NUM_DEVICES);
-+		return -EIO;
-+	}
-+
-+	return 0;
-+}
-+
-+static void __exit sa_exit(void)
-+{
-+	dev_t dev = MKDEV(SA_MAJOR, 0);
-+
-+	class_unregister(&sa_class);
-+	unregister_chrdev_region(dev, SA_NUM_DEVICES);
-+}
-+
-+subsys_initcall(sa_init);
-+module_exit(sa_exit);
-+
-+MODULE_AUTHOR("Benjamin Gaignard <benjamin.gaignard@linaro.org>");
-+MODULE_DESCRIPTION("Simple allocator");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS_CHARDEV_MAJOR(SA_MAJOR);
-diff --git a/include/uapi/linux/simple-allocator.h b/include/uapi/linux/simple-allocator.h
-new file mode 100644
-index 0000000..5520a85
---- /dev/null
-+++ b/include/uapi/linux/simple-allocator.h
-@@ -0,0 +1,35 @@
-+/*
-+ * Copyright (C) Linaro 2016
-+ *
-+ * Author: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-+ *
-+ * License terms:  GNU General Public License (GPL), version 2
-+ */
-+
-+#ifndef _SIMPLE_ALLOCATOR_H_
-+#define _SIMPLE_ALLOCATOR_H_
-+
-+#include <linux/ioctl.h>
-+#include <linux/types.h>
-+
-+/**
-+ * struct simple_allocate_data - allocation parameters
-+ * @version:	structure version (must be set to 0)
-+ * @length:	size of the requested buffer
-+ * @flags:	mode flags for the file like O_RDWR or O_CLOEXEC
-+ * @fd:		returned file descriptor
-+ */
-+struct simple_allocate_data {
-+	__u64 version;
-+	__u64 length;
-+	__u32 flags;
-+	__u32 reserved1;
-+	__s32 fd;
-+	__u32 reserved2;
-+};
-+
-+#define SA_IOC_MAGIC 'S'
-+
-+#define SA_IOC_ALLOC _IOWR(SA_IOC_MAGIC, 0, struct simple_allocate_data)
-+
-+#endif
+ /* priv field value to indicates that subsequent fields are valid. */
+ #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
+ 
 -- 
-1.9.1
+Regards,
+
+Laurent Pinchart
