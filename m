@@ -1,48 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:34207 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752830AbdBASWZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Feb 2017 13:22:25 -0500
-Subject: Re: [PATCH] Documentation: devicetree: meson-ir: "linux, rc-map-name"
- is supported
-To: Rob Herring <robh@kernel.org>,
-        Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-References: <20170131212112.5582-1-martin.blumenstingl@googlemail.com>
- <20170201174726.2vyvxpnie7qclrvk@rob-hp-laptop>
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org,
-        narmstrong@baylibre.com, khilman@baylibre.com, carlo@caione.org,
-        linux-amlogic@lists.infradead.org, mchehab@kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-From: =?UTF-8?Q?Andreas_F=c3=a4rber?= <afaerber@suse.de>
-Message-ID: <29c4bd35-8723-55fe-2467-2c17d2f75b15@suse.de>
-Date: Wed, 1 Feb 2017 19:22:21 +0100
-MIME-Version: 1.0
-In-Reply-To: <20170201174726.2vyvxpnie7qclrvk@rob-hp-laptop>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44963 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752382AbdB1P7l (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Feb 2017 10:59:41 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
+Subject: [PATCH v3 4/8] v4l: vsp1: Fix HGO and HGT routing register addresses
+Date: Tue, 28 Feb 2017 17:56:44 +0200
+Message-Id: <20170228155648.12051-5-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20170228155648.12051-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20170228155648.12051-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 01.02.2017 um 18:47 schrieb Rob Herring:
-> On Tue, Jan 31, 2017 at 10:21:12PM +0100, Martin Blumenstingl wrote:
->> The driver already parses the "linux,rc-map-name" property. Add this
->> information to the documentation so .dts maintainers don't have to look
->> it up in the source-code.
->>
->> Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
->> ---
->>  Documentation/devicetree/bindings/media/meson-ir.txt | 3 +++
->>  1 file changed, 3 insertions(+)
-> 
-> Acked-by: Rob Herring <robh@kernel.org>
+The addresses are incorrect, fix them.
 
-Note that the subject has a space in the property name that should be
-dropped before applying.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_regs.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Regards,
-Andreas
-
+diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
+index 47b1dee044fb..61369e267667 100644
+--- a/drivers/media/platform/vsp1/vsp1_regs.h
++++ b/drivers/media/platform/vsp1/vsp1_regs.h
+@@ -328,8 +328,8 @@
+ #define VI6_DPR_ROUTE_RT_MASK		(0x3f << 0)
+ #define VI6_DPR_ROUTE_RT_SHIFT		0
+ 
+-#define VI6_DPR_HGO_SMPPT		0x2050
+-#define VI6_DPR_HGT_SMPPT		0x2054
++#define VI6_DPR_HGO_SMPPT		0x2054
++#define VI6_DPR_HGT_SMPPT		0x2058
+ #define VI6_DPR_SMPPT_TGW_MASK		(7 << 8)
+ #define VI6_DPR_SMPPT_TGW_SHIFT		8
+ #define VI6_DPR_SMPPT_PT_MASK		(0x3f << 0)
 -- 
-SUSE Linux GmbH, Maxfeldstr. 5, 90409 Nürnberg, Germany
-GF: Felix Imendörffer, Jane Smithard, Graham Norton
-HRB 21284 (AG Nürnberg)
+Regards,
+
+Laurent Pinchart
