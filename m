@@ -1,110 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from Galois.linutronix.de ([146.0.238.70]:59633 "EHLO
-        Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751387AbdB0RFo (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59202 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751435AbdB1VQp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Feb 2017 12:05:44 -0500
-Date: Mon, 27 Feb 2017 17:12:16 +0100 (CET)
-From: Thomas Gleixner <tglx@linutronix.de>
-To: Ingo Molnar <mingo@kernel.org>
-cc: Linus Torvalds <torvalds@linux-foundation.org>,
-        kernel test robot <fengguang.wu@intel.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sean Young <sean@mess.org>,
-        Ruslan Ruslichenko <rruslich@cisco.com>, LKP <lkp@01.org>,
-        "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-        kernel@stlinux.com,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-mediatek@lists.infradead.org,
-        linux-amlogic@lists.infradead.org,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Linux LED Subsystem <linux-leds@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>, wfg@linux.intel.com,
-        Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [WARNING: A/V UNSCANNABLE][Merge tag 'media/v4.11-1' of git]
- ff58d005cd: BUG: unable to handle kernel NULL pointer dereference at
- 0000039c
-In-Reply-To: <20170227154124.GA20569@gmail.com>
-Message-ID: <alpine.DEB.2.20.1702271647570.4732@nanos>
-References: <58b07b30.9XFLj9Hhl7F6HMc2%fengguang.wu@intel.com> <CA+55aFytXj+TZ_TanbxcY0KgRTrV7Vvr=fWON8tioUGmYHYiNA@mail.gmail.com> <20170225090741.GA20463@gmail.com> <CA+55aFy+ER8cYV02eZsKAOLnZBWY96zNWqUFWSWT1+3sZD4XnQ@mail.gmail.com>
- <alpine.DEB.2.20.1702271105090.4732@nanos> <alpine.DEB.2.20.1702271231410.4732@nanos> <20170227154124.GA20569@gmail.com>
+        Tue, 28 Feb 2017 16:16:45 -0500
+Date: Tue, 28 Feb 2017 23:13:34 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v2 3/3] v4l: vsp1: wpf: Implement rotation support
+Message-ID: <20170228211334.GC3220@valkosipuli.retiisi.org.uk>
+References: <20170228150320.10104-1-laurent.pinchart+renesas@ideasonboard.com>
+ <20170228150320.10104-4-laurent.pinchart+renesas@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170228150320.10104-4-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 27 Feb 2017, Ingo Molnar wrote:
-> * Thomas Gleixner <tglx@linutronix.de> wrote:
+Hi Laurent,
+
+On Tue, Feb 28, 2017 at 05:03:20PM +0200, Laurent Pinchart wrote:
+> Some WPF instances, on Gen3 devices, can perform 90° rotation when
+> writing frames to memory. Implement support for this using the
+> V4L2_CID_ROTATE control.
 > 
-> > The pending interrupt issue happens, at least on my test boxen, mostly on
-> > the 'legacy' interrupts (0 - 15). But even the IOAPIC interrupts >=16
-> > happen occasionally.
-> >
-> > 
-> >  - Spurious interrupts on IRQ7, which are triggered by IRQ 0 (PIT/HPET). On
-> >    one of the affected machines this stops when the interrupt system is
-> >    switched to interrupt remapping !?!?!?
-> > 
-> >  - Spurious interrupts on various interrupt lines, which are triggered by
-> >    IOAPIC interrupts >= IRQ16. That's a known issue on quite some chipsets
-> >    that the legacy PCI interrupt (which is used when IOAPIC is disabled) is
-> >    triggered when the IOAPIC >=16 interrupt fires.
-> > 
-> >  - Spurious interrupt caused by driver probing itself. I.e. the driver
-> >    probing code causes an interrupt issued from the device
-> >    inadvertently. That happens even on IRQ >= 16.
-> > 
-> >    This problem might be handled by the device driver code itself, but
-> >    that's going to be ugly. See below.
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> ---
+>  drivers/media/platform/vsp1/vsp1_rpf.c   |   2 +-
+>  drivers/media/platform/vsp1/vsp1_rwpf.c  |   5 +
+>  drivers/media/platform/vsp1/vsp1_rwpf.h  |   3 +-
+>  drivers/media/platform/vsp1/vsp1_video.c |  12 +-
+>  drivers/media/platform/vsp1/vsp1_wpf.c   | 205 +++++++++++++++++++++++--------
+>  5 files changed, 175 insertions(+), 52 deletions(-)
 > 
-> That's pretty colorful behavior...
-> 
-> > We can try to sample more data from the machines of affected users, but I doubt 
-> > that it will give us more information than confirming that we really have to 
-> > deal with all that hardware wreckage out there in some way or the other.
-> 
-> BTW., instead of trying to avoid the scenario, wow about moving in the other 
-> direction: making CONFIG_DEBUG_SHIRQ=y unconditional property in the IRQ core code 
-> starting from v4.12 or so, i.e. requiring device driver IRQ handlers to handle the 
-> invocation of IRQ handlers at pretty much any moment. (We could also extend it a 
-> bit, such as invoking IRQ handlers early after suspend/resume wakeup.)
-> 
-> Because it's not the requirement that hurts primarily, but the resulting 
-> non-determinism and the sporadic crashes. Which can be solved by making the race 
-> deterministic via the debug facility.
-> 
-> If the IRQ handler crashed the moment it was first written by the driver author 
-> we'd never see these problems.
+> diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+> index f5a9a4c8c74d..8feddd59cf8d 100644
+> --- a/drivers/media/platform/vsp1/vsp1_rpf.c
+> +++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+> @@ -106,7 +106,7 @@ static void rpf_configure(struct vsp1_entity *entity,
+>  			 * of the pipeline.
+>  			 */
+>  			output = vsp1_entity_get_pad_format(wpf, wpf->config,
+> -							    RWPF_PAD_SOURCE);
+> +							    RWPF_PAD_SINK);
+>  
+>  			crop.width = pipe->partition.width * input_width
+>  				   / output->width;
+> diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.c b/drivers/media/platform/vsp1/vsp1_rwpf.c
+> index 7d52c88a583e..cfd8f1904fa6 100644
+> --- a/drivers/media/platform/vsp1/vsp1_rwpf.c
+> +++ b/drivers/media/platform/vsp1/vsp1_rwpf.c
+> @@ -121,6 +121,11 @@ static int vsp1_rwpf_set_format(struct v4l2_subdev *subdev,
+>  					    RWPF_PAD_SOURCE);
+>  	*format = fmt->format;
+>  
+> +	if (rwpf->flip.rotate) {
+> +		format->width = fmt->format.height;
+> +		format->height = fmt->format.width;
+> +	}
+> +
+>  done:
+>  	mutex_unlock(&rwpf->entity.lock);
+>  	return ret;
+> diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
+> index 1c98aff3da5d..b4ffc38f48af 100644
+> --- a/drivers/media/platform/vsp1/vsp1_rwpf.h
+> +++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
+> @@ -56,9 +56,10 @@ struct vsp1_rwpf {
+>  
+>  	struct {
+>  		spinlock_t lock;
+> -		struct v4l2_ctrl *ctrls[2];
+> +		struct v4l2_ctrl *ctrls[3];
 
-Yes, I'd love to do that. That's just a nightmare as well.
+At least what comes to this patch --- having a field for each control would
+look much nicer in the code. Is there a particular reason for having an
+array with all the controls in it?
 
-See commit 6d83f94db95cf, which added the _FIXME suffix to that code.
+>  		unsigned int pending;
+>  		unsigned int active;
+> +		bool rotate;
+>  	} flip;
+>  
+>  	struct vsp1_rwpf_memory mem;
 
-So recently I tried to invoke the primary handler, which causes another
-issue:
+-- 
+Regards,
 
-  Some of the low level code (e.g. IOAPIC interrupt migration, but also
-  some PPC irq chip machinery) depends on being called in hard interrupt
-  context. They invoke get_irq_regs(), which obviously does not work from
-  thread context.
-
-So I removed that one from -next as well and postponed it another time. And
-I should have known before I tried it that it does not work. Simply because
-of that stuff x86 cannot use the software based resend mechanism.
-
-Still trying to wrap my head around a proper solution for the problem. On
-x86 we might just check whether we are really in hard irq context and
-otherwise skip the part which depends on get_irq_regs(). That would be a
-sane thing to do. Have not yet looked at the PPC side of affairs, whether
-that's easy to solve as well. But even if it is, then there might be still
-other magic code in some irq chip drivers which relies on things which are
-only available/correct when actually invoked by a hardware interrupt.
-
-Not only the hardware has colorful behaviour ....
-
-Thanks,
-
-	tglx
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
