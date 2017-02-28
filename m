@@ -1,72 +1,209 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx-out-1.rwth-aachen.de ([134.130.5.186]:29296 "EHLO
-        mx-out-1.rwth-aachen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751225AbdBLP0t (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:45310 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751452AbdB1LiX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 12 Feb 2017 10:26:49 -0500
-From: =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>
-To: <linux-media@vger.kernel.org>
-CC: <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Antti Palosaari <crope@iki.fi>,
-        =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>
-Subject: [PATCH 2/3] [media] si2168: add support for Si2168-D60
-Date: Sun, 12 Feb 2017 16:26:27 +0100
-In-Reply-To: <20170212152628.25383-1-stefan.bruens@rwth-aachen.de>
-References: <20170212152628.25383-1-stefan.bruens@rwth-aachen.de>
+        Tue, 28 Feb 2017 06:38:23 -0500
+Date: Tue, 28 Feb 2017 12:38:16 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
+Subject: [PATCH] omap3isp: Parse CSI1 configuration from the device tree.
+Message-ID: <20170228113815.GA4206@amd>
+References: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz>
+ <20170220103114.GA9800@amd>
+ <20170220130912.GT16975@valkosipuli.retiisi.org.uk>
+ <20170220135636.GU16975@valkosipuli.retiisi.org.uk>
+ <20170221110721.GD5021@amd>
+ <20170221111104.GD16975@valkosipuli.retiisi.org.uk>
+ <20170225221255.GA6411@amd>
+ <20170227205420.GF16975@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Message-ID: <03602c258e664857911599bba1da19fe@rwthex-w2-b.rwth-ad.de>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="uAKRQypu60I7Lcqm"
+Content-Disposition: inline
+In-Reply-To: <20170227205420.GF16975@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add handling for new revision, requiring new firmware.
 
-Signed-off-by: Stefan Brüns <stefan.bruens@rwth-aachen.de>
+--uAKRQypu60I7Lcqm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Add support for parsing CSI1 configuration.
+
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+
 ---
- drivers/media/dvb-frontends/si2168.c      | 4 ++++
- drivers/media/dvb-frontends/si2168_priv.h | 2 ++
- 2 files changed, 6 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 20b4a659e2e4..28f3bbe0af25 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -674,6 +674,9 @@ static int si2168_probe(struct i2c_client *client,
- 	case SI2168_CHIP_ID_B40:
- 		dev->firmware_name = SI2168_B40_FIRMWARE;
+> Please find my comments below.
+
+Thanks for comments. They are fixed now, plus I fixed the checkpatch
+stuff that was possible.
+
+It should be ready to apply to the right branch.
+
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform=
+/omap3isp/isp.c
+index 245225a..b8eef2f 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2032,6 +2032,7 @@ static int isp_fwnode_parse(struct device *dev, struc=
+t fwnode_handle *fwn,
+ 	struct v4l2_fwnode_endpoint vfwn;
+ 	unsigned int i;
+ 	int ret;
++	bool csi1 =3D false;
+=20
+ 	ret =3D v4l2_fwnode_endpoint_parse(fwn, &vfwn);
+ 	if (ret)
+@@ -2059,38 +2060,88 @@ static int isp_fwnode_parse(struct device *dev, str=
+uct fwnode_handle *fwn,
+=20
+ 	case ISP_OF_PHY_CSIPHY1:
+ 	case ISP_OF_PHY_CSIPHY2:
+-		/* FIXME: always assume CSI-2 for now. */
++		switch (vfwn.bus_type) {
++		case V4L2_MBUS_CCP2:
++		case V4L2_MBUS_CSI1:
++			dev_dbg(dev, "csi1 configuration\n");
++			csi1 =3D true;
++			break;
++		case V4L2_MBUS_CSI2:
++			dev_dbg(dev, "csi2 configuration\n");
++			csi1 =3D false;
++			break;
++		default:
++			dev_err(dev, "unkonwn bus type\n");
++		}
++
+ 		switch (vfwn.base.port) {
+ 		case ISP_OF_PHY_CSIPHY1:
+-			buscfg->interface =3D ISP_INTERFACE_CSI2C_PHY1;
++			if (csi1)
++				buscfg->interface =3D ISP_INTERFACE_CCP2B_PHY1;
++			else
++				buscfg->interface =3D ISP_INTERFACE_CSI2C_PHY1;
+ 			break;
+ 		case ISP_OF_PHY_CSIPHY2:
+-			buscfg->interface =3D ISP_INTERFACE_CSI2A_PHY2;
++			if (csi1)
++				buscfg->interface =3D ISP_INTERFACE_CCP2B_PHY2;
++			else
++				buscfg->interface =3D ISP_INTERFACE_CSI2A_PHY2;
+ 			break;
++		default:
++			dev_err(dev, "bad port\n");
+ 		}
+-		buscfg->bus.csi2.lanecfg.clk.pos =3D vfwn.bus.mipi_csi2.clock_lane;
+-		buscfg->bus.csi2.lanecfg.clk.pol =3D
+-			vfwn.bus.mipi_csi2.lane_polarities[0];
+-		dev_dbg(dev, "clock lane polarity %u, pos %u\n",
+-			buscfg->bus.csi2.lanecfg.clk.pol,
+-			buscfg->bus.csi2.lanecfg.clk.pos);
+-
+-		for (i =3D 0; i < ISP_CSIPHY2_NUM_DATA_LANES; i++) {
+-			buscfg->bus.csi2.lanecfg.data[i].pos =3D
+-				vfwn.bus.mipi_csi2.data_lanes[i];
+-			buscfg->bus.csi2.lanecfg.data[i].pol =3D
+-				vfwn.bus.mipi_csi2.lane_polarities[i + 1];
++		if (csi1) {
++			buscfg->bus.ccp2.lanecfg.clk.pos =3D
++				vfwn.bus.mipi_csi1.clock_lane;
++			buscfg->bus.ccp2.lanecfg.clk.pol =3D
++				vfwn.bus.mipi_csi1.lane_polarity[0];
++			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
++				buscfg->bus.ccp2.lanecfg.clk.pol,
++				buscfg->bus.ccp2.lanecfg.clk.pos);
++
++			buscfg->bus.ccp2.lanecfg.data[0].pos =3D
++				vfwn.bus.mipi_csi1.data_lane;
++			buscfg->bus.ccp2.lanecfg.data[0].pol =3D
++				vfwn.bus.mipi_csi1.lane_polarity[1];
++
+ 			dev_dbg(dev, "data lane %u polarity %u, pos %u\n", i,
+-				buscfg->bus.csi2.lanecfg.data[i].pol,
+-				buscfg->bus.csi2.lanecfg.data[i].pos);
++				buscfg->bus.ccp2.lanecfg.data[0].pol,
++				buscfg->bus.ccp2.lanecfg.data[0].pos);
++
++			buscfg->bus.ccp2.strobe_clk_pol =3D
++				vfwn.bus.mipi_csi1.clock_inv;
++			buscfg->bus.ccp2.phy_layer =3D vfwn.bus.mipi_csi1.strobe;
++			buscfg->bus.ccp2.ccp2_mode =3D
++				vfwn.bus_type =3D=3D V4L2_MBUS_CCP2;
++			buscfg->bus.ccp2.vp_clk_pol =3D 1;
++
++			buscfg->bus.ccp2.crc =3D 1;
++		} else {
++			buscfg->bus.csi2.lanecfg.clk.pos =3D
++				vfwn.bus.mipi_csi2.clock_lane;
++			buscfg->bus.csi2.lanecfg.clk.pol =3D
++				vfwn.bus.mipi_csi2.lane_polarities[0];
++			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
++				buscfg->bus.csi2.lanecfg.clk.pol,
++				buscfg->bus.csi2.lanecfg.clk.pos);
++
++			for (i =3D 0; i < ISP_CSIPHY2_NUM_DATA_LANES; i++) {
++				buscfg->bus.csi2.lanecfg.data[i].pos =3D
++					vfwn.bus.mipi_csi2.data_lanes[i];
++				buscfg->bus.csi2.lanecfg.data[i].pol =3D
++					vfwn.bus.mipi_csi2.lane_polarities[i + 1];
++				dev_dbg(dev, "data lane %u polarity %u, pos %u\n", i,
++					buscfg->bus.csi2.lanecfg.data[i].pol,
++					buscfg->bus.csi2.lanecfg.data[i].pos);
++			}
++			/*
++			 * FIXME: now we assume the CRC is always there.
++			 * Implement a way to obtain this information from the
++			 * sensor. Frame descriptors, perhaps?
++			 */
++
++			buscfg->bus.csi2.crc =3D 1;
+ 		}
+-
+-		/*
+-		 * FIXME: now we assume the CRC is always there.
+-		 * Implement a way to obtain this information from the
+-		 * sensor. Frame descriptors, perhaps?
+-		 */
+-		buscfg->bus.csi2.crc =3D 1;
  		break;
-+	case SI2168_CHIP_ID_D60:
-+		dev->firmware_name = SI2168_D60_FIRMWARE;
-+		break;
+=20
  	default:
- 		dev_dbg(&client->dev, "unknown chip version Si21%d-%c%c%c\n",
- 			cmd.args[2], cmd.args[1], cmd.args[3], cmd.args[4]);
-@@ -761,3 +764,4 @@ MODULE_LICENSE("GPL");
- MODULE_FIRMWARE(SI2168_A20_FIRMWARE);
- MODULE_FIRMWARE(SI2168_A30_FIRMWARE);
- MODULE_FIRMWARE(SI2168_B40_FIRMWARE);
-+MODULE_FIRMWARE(SI2168_D60_FIRMWARE);
-diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
-index 7843ccb448a0..4baa95b7d648 100644
---- a/drivers/media/dvb-frontends/si2168_priv.h
-+++ b/drivers/media/dvb-frontends/si2168_priv.h
-@@ -25,6 +25,7 @@
- #define SI2168_A20_FIRMWARE "dvb-demod-si2168-a20-01.fw"
- #define SI2168_A30_FIRMWARE "dvb-demod-si2168-a30-01.fw"
- #define SI2168_B40_FIRMWARE "dvb-demod-si2168-b40-01.fw"
-+#define SI2168_D60_FIRMWARE "dvb-demod-si2168-d60-01.fw"
- #define SI2168_B40_FIRMWARE_FALLBACK "dvb-demod-si2168-02.fw"
- 
- /* state struct */
-@@ -37,6 +38,7 @@ struct si2168_dev {
- 	#define SI2168_CHIP_ID_A20 ('A' << 24 | 68 << 16 | '2' << 8 | '0' << 0)
- 	#define SI2168_CHIP_ID_A30 ('A' << 24 | 68 << 16 | '3' << 8 | '0' << 0)
- 	#define SI2168_CHIP_ID_B40 ('B' << 24 | 68 << 16 | '4' << 8 | '0' << 0)
-+	#define SI2168_CHIP_ID_D60 ('D' << 24 | 68 << 16 | '6' << 8 | '0' << 0)
- 	unsigned int chip_id;
- 	unsigned int version;
- 	const char *firmware_name;
--- 
-2.11.0
+diff --git a/drivers/media/platform/omap3isp/omap3isp.h b/drivers/media/pla=
+tform/omap3isp/omap3isp.h
+index 443e8f7..f6d1d0d 100644
+--- a/drivers/media/platform/omap3isp/omap3isp.h
++++ b/drivers/media/platform/omap3isp/omap3isp.h
+@@ -108,6 +108,7 @@ struct isp_ccp2_cfg {
+ 	unsigned int ccp2_mode:1;
+ 	unsigned int phy_layer:1;
+ 	unsigned int vpclk_div:2;
++	unsigned int vp_clk_pol:1;
+ 	struct isp_csiphy_lanes_cfg lanecfg;
+ };
+=20
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--uAKRQypu60I7Lcqm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAli1YScACgkQMOfwapXb+vJYVACfV7ZEJaaRYpjr4cQBwzr0DMTB
+WmsAn11UViph2Kk5QowbPYYRnQ1nwN2A
+=09SW
+-----END PGP SIGNATURE-----
+
+--uAKRQypu60I7Lcqm--
