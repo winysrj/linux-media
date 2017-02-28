@@ -1,110 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:44094 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751092AbdBHWaV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Feb 2017 17:30:21 -0500
-Date: Wed, 8 Feb 2017 23:30:18 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Rob Herring <robh@kernel.org>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org, galak@codeaurora.org,
-        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] devicetree: Add video bus switch
-Message-ID: <20170208223017.GA18807@amd>
-References: <20161023200355.GA5391@amd>
- <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
- <20161214122451.GB27011@amd>
- <20161222100104.GA30917@amd>
- <20161222133938.GA30259@amd>
- <20161224152031.GA8420@amd>
- <20170203123508.GA10286@amd>
- <20170208213609.lnemfbzitee5iur2@rob-hp-laptop>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="ReaqsoxgOBHFXBhH"
-Content-Disposition: inline
-In-Reply-To: <20170208213609.lnemfbzitee5iur2@rob-hp-laptop>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48012 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751154AbdB1XK0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Feb 2017 18:10:26 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH] v4l: vsp1: Disable HSV formats on Gen3 hardware
+Date: Wed,  1 Mar 2017 01:08:13 +0200
+Message-Id: <20170228230813.21848-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+While all VSP instances can process HSV internally, on Gen3 hardware
+reading or writing HSV24 or HSV32 from/to memory causes the device to
+hang. Disable those pixel formats on Gen3 hardware.
 
---ReaqsoxgOBHFXBhH
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_pipe.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-On Wed 2017-02-08 15:36:09, Rob Herring wrote:
-> On Fri, Feb 03, 2017 at 01:35:08PM +0100, Pavel Machek wrote:
-> >=20
-> > N900 contains front and back camera, with a switch between the
-> > two. This adds support for the switch component, and it is now
-> > possible to select between front and back cameras during runtime.
-> >=20
-> > This adds documentation for the devicetree binding.
-> >=20
-> > Signed-off-by: Sebastian Reichel <sre@kernel.org>
-> > Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> >=20
-> >=20
-> > diff --git a/Documentation/devicetree/bindings/media/video-bus-switch.t=
-xt b/Documentation/devicetree/bindings/media/video-bus-switch.txt
-> > new file mode 100644
-> > index 0000000..1b9f8e0
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/media/video-bus-switch.txt
-> > @@ -0,0 +1,63 @@
-> > +Video Bus Switch Binding
-> > +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
->=20
-> I'd call it a mux rather than switch.
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
+index 3f1acf68dc6e..35364f594e19 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.c
++++ b/drivers/media/platform/vsp1/vsp1_pipe.c
+@@ -157,9 +157,15 @@ const struct vsp1_format_info *vsp1_get_format_info(struct vsp1_device *vsp1,
+ {
+ 	unsigned int i;
+ 
+-	/* Special case, the VYUY format is supported on Gen2 only. */
+-	if (vsp1->info->gen != 2 && fourcc == V4L2_PIX_FMT_VYUY)
+-		return NULL;
++	/* Special case, the VYUY and HSV formats are supported on Gen2 only. */
++	if (vsp1->info->gen != 2) {
++		switch (fourcc) {
++		case V4L2_PIX_FMT_VYUY:
++		case V4L2_PIX_FMT_HSV24:
++		case V4L2_PIX_FMT_HSV32:
++			return NULL;
++		}
++	}
+ 
+ 	for (i = 0; i < ARRAY_SIZE(vsp1_video_formats); ++i) {
+ 		const struct vsp1_format_info *info = &vsp1_video_formats[i];
+-- 
+Regards,
 
-It is a switch, not a multiplexor (
-https://en.wikipedia.org/wiki/Multiplexing ). Only one camera can
-operate at a time.
-
-> BTW, there's a new mux-controller binding under review you might look=20
-> at. It would only be needed here if the mux ctrl also controls other=20
-> things.
-
-Do you have a pointer?
-
-> > +Required Port nodes
-> > +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > +
-> > +More documentation on these bindings is available in
-> > +video-interfaces.txt in the same directory.
-> > +
-> > +reg		: The interface:
-> > +		  0 - port for image signal processor
-> > +		  1 - port for first camera sensor
-> > +		  2 - port for second camera sensor
->=20
-> This could be used for display side as well. So describe these just as=20
-> inputs and outputs.
-
-I'd prefer not to confuse people. I guess that would be 0 -- output
-port, 1, 2 -- input ports... But this is media data, are you sure it
-is good idea to change this?
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---ReaqsoxgOBHFXBhH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlibm/kACgkQMOfwapXb+vICSwCgmlj2icghfhg3FyPhVYj6YgLO
-r2cAnieWslJV+DG14qFtG7j6lYQRsfyB
-=wQnK
------END PGP SIGNATURE-----
-
---ReaqsoxgOBHFXBhH--
+Laurent Pinchart
