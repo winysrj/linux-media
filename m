@@ -1,93 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40553 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933883AbdBWA0R (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:47105 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751445AbdB1MgZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Feb 2017 19:26:17 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Sodagudi Prasad <psodagud@codeaurora.org>,
-        James Morse <james.morse@arm.com>, linux-media@vger.kernel.org,
-        shijie.huang@arm.com, catalin.marinas@arm.com, will.deacon@arm.com,
-        mark.rutland@arm.com, akpm@linux-foundation.org,
-        sandeepa.s.prabhu@gmail.com, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, hans.verkuil@cisco.com,
-        sakari.ailus@linux.intel.com, tiffany.lin@mediatek.com,
-        nick@shmanahar.org, shuah@kernel.org, ricardo.ribalda@gmail.com
-Subject: Re: <Query> Looking more details and reasons for using orig_add_limit.
-Date: Thu, 23 Feb 2017 02:25:53 +0200
-Message-ID: <1721361.FT1A3EpsKm@avalon>
-In-Reply-To: <20170222172541.49b7cbb1@vento.lan>
-References: <def87360266193184dc013a055ec3869@codeaurora.org> <2944633.ljab0sy3Dg@avalon> <20170222172541.49b7cbb1@vento.lan>
+        Tue, 28 Feb 2017 07:36:25 -0500
+Date: Tue, 28 Feb 2017 13:35:34 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [RFC 1/1] omap3isp: Ignore endpoints with invalid configuration
+Message-ID: <20170228123534.GB4307@amd>
+References: <1488283350-5695-1-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="utf-8"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="R3G7APHDIzY6R/pk"
+Content-Disposition: inline
+In-Reply-To: <1488283350-5695-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
 
-On Wednesday 22 Feb 2017 17:25:41 Mauro Carvalho Chehab wrote:
-> Em Wed, 22 Feb 2017 21:53:08 +0200 Laurent Pinchart escreveu:
-> > On Tuesday 21 Feb 2017 06:20:58 Sodagudi Prasad wrote:
-> >> Hi mchehab/linux-media,
-> >>=20
-> >> It is not clear why KERNEL_DS was set explicitly here. In this pat=
-h
-> >> video_usercopy() gets  called  and it
-> >> copies the =E2=80=9Cstruct v4l2_buffer=E2=80=9D struct to user spa=
-ce stack memory.
-> >>=20
-> >> Can you please share reasons for setting to KERNEL_DS here?
-> >=20
-> > It's a bit of historical hack. To implement compat ioctl handling, =
-we copy
-> > the ioctl 32-bit argument from userspace, turn it into a native 64-=
-bit
-> > ioctl argument, and call the native ioctl code. That code expects t=
-he
-> > argument to be stored in userspace memory and uses get_user() and
-> > put_user() to access it. As the 64-bit argument now lives in kernel=
+--R3G7APHDIzY6R/pk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> > memory, my understanding is that we fake things up with KERNEL_DS.
+On Tue 2017-02-28 14:02:30, Sakari Ailus wrote:
+> If endpoint has an invalid configuration, ignore it instead of happily
+> proceeding to use it nonetheless. Ignoring such an endpoint is better than
+> failing since there could be multiple endpoints, only some of which are
+> bad.
 >=20
-> Precisely. Actually, if I remember well, this was needed to pass poin=
-ter
-> arguments from 32 bits userspace to 64 bits kernelspace. There are a =
-lot of
-> V4L2 ioctls that pass structures with pointers on it. Setting DS caus=
-e
-> those pointers to do the right thing, but yeah, it is hackish.
-
-We should restructure the core ioctl code to decouple copy from/to user=
- and=20
-ioctl execution (this might just be a matter of exporting a currently s=
-tatic=20
-function), and change the compat code to perform the copy/from to user=20=
-
-directly when converting between 32-bit and 64-bit structures (dropping=
- all=20
-the alloc in userspace hacks) and call the ioctl execution handler. Tha=
-t will=20
-fix the problem. Any volunteer ? :-)
-
-> This used to work fine on x86_64 (when such code was written e. g. Ke=
-rnel
-> 2.6.1x). I never tested myself on ARM64, but I guess it used to work,=
- as we
-> received some patches fixing support for some ioctl compat code due t=
-o
-> x86_64/arm64 differences in the past.
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+> Hi Pavel,
 >=20
-> On what Kernel version it started to cause troubles? 4.9? If so, then=
+> How about this one? isp_fwnode_parse() is expected to return an error if
+> there's one but currently it's quite shy. With this patch, the faulty
+> endpoint is simply ignored. This is completely untested so far.
 
-> maybe the breakage is a side effect of VM stack changes.
+Does not seem to break anything.
+
+Tested-by: Pavel Machek <pavel@ucw.cz>
+
+								Pavel
+
+>  drivers/media/platform/omap3isp/isp.c | 8 +++++---
+>  1 file changed, 5 insertions(+), 3 deletions(-)
 >=20
-> > The ioctl code should be refactored to get rid of this hack.
->=20
-> Agreed.
+> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platfo=
+rm/omap3isp/isp.c
+> index 95850b9..8026221 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -2120,10 +2120,12 @@ static int isp_fwnodes_parse(struct device *dev,
+>  		if (!isd)
+>  			goto error;
+> =20
+> -		notifier->subdevs[notifier->num_subdevs] =3D &isd->asd;
+> +		if (isp_fwnode_parse(dev, fwn, isd)) {
+> +			devm_kfree(dev, isd);
+> +			continue;
+> +		}
+> =20
+> -		if (isp_fwnode_parse(dev, fwn, isd))
+> -			goto error;
+> +		notifier->subdevs[notifier->num_subdevs] =3D &isd->asd;
+> =20
+>  		isd->asd.match.fwnode.fwn =3D
+>  			fwnode_graph_get_remote_port_parent(fwn);
 
 --=20
-Regards,
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-Laurent Pinchart
+--R3G7APHDIzY6R/pk
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAli1bpYACgkQMOfwapXb+vJhNgCdFxC/8gIhpcj8CwvioEK1QCDg
+UFIAn3IcX+IAnQMvplwxPMgKMcWR9SR2
+=InL1
+-----END PGP SIGNATURE-----
+
+--R3G7APHDIzY6R/pk--
