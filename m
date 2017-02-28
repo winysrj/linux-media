@@ -1,67 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52852 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750881AbdBAMrO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Feb 2017 07:47:14 -0500
-Date: Wed, 1 Feb 2017 14:47:06 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Tuukka Toivonen <tuukkat76@gmail.com>, Pavel Machek <pavel@ucw.cz>,
-        linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR v4.11] Add et8ek8 driver
-Message-ID: <20170201124705.GX7139@valkosipuli.retiisi.org.uk>
-References: <20170125140745.GH7139@valkosipuli.retiisi.org.uk>
- <20170131104248.4e0f0bd8@vento.lan>
- <20170131124534.GW7139@valkosipuli.retiisi.org.uk>
- <20170131110111.06321f77@vento.lan>
+Received: from mga02.intel.com ([134.134.136.20]:6843 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752462AbdB1NeV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Feb 2017 08:34:21 -0500
+Subject: Re: [PATCH 1/6] omap3isp: Don't rely on devm for memory resource
+ management
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+References: <1487604142-27610-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1487604142-27610-2-git-send-email-sakari.ailus@linux.intel.com>
+ <17312150.yLXnxzLeiM@avalon>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Message-ID: <a199bb19-bfae-9191-b74c-5be175ba79c7@linux.intel.com>
+Date: Tue, 28 Feb 2017 15:21:48 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170131110111.06321f77@vento.lan>
+In-Reply-To: <17312150.yLXnxzLeiM@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Laurent Pinchart wrote:
+> Hi Sakari,
+>
+> Thank you for the patch.
+>
+> On Monday 20 Feb 2017 17:22:17 Sakari Ailus wrote:
+...
+>> @@ -516,9 +516,12 @@ int omap3isp_hist_init(struct isp_device *isp)
+>>  	hist->event_type = V4L2_EVENT_OMAP3ISP_HIST;
+>>
+>>  	ret = omap3isp_stat_init(hist, "histogram", &hist_subdev_ops);
+>> +
+>> +err:
+>>  	if (ret) {
+>> -		if (hist->dma_ch)
+>> +		if (!IS_ERR(hist->dma_ch))
+>
+> I think this change is wrong. dma_ch is initialize to NULL by kzalloc(). You
+> will end up calling dma_release_channel() on a NULL channel if
+> omap3isp_stat_init() fails and HIST_CONFIG_DMA is false. The check should be
+>
+> 	if (!IS_ERR_OR_NULL(hist->dma_ch))
 
-On Tue, Jan 31, 2017 at 11:01:11AM -0200, Mauro Carvalho Chehab wrote:
-> Em Tue, 31 Jan 2017 14:45:34 +0200
-> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> 
-> > Hi Mauro,
-> > 
-> > On Tue, Jan 31, 2017 at 10:42:48AM -0200, Mauro Carvalho Chehab wrote:
-> > > That added a new warning:
-> > > 
-> > > drivers/media/i2c/et8ek8/et8ek8_driver.c: In function 'et8ek8_registered':
-> > > drivers/media/i2c/et8ek8/et8ek8_driver.c:1262:29: warning: variable 'format' set but not used [-Wunused-but-set-variable]
-> > >   struct v4l2_mbus_framefmt *format;
-> > >                              ^~~~~~
-> > > compilation succeeded
-> > > 
-> > > 
-> > > The driver is calling this function and storing it on a var
-> > > that is not used:
-> > > 
-> > >         format = __et8ek8_get_pad_format(sensor, NULL, 0,
-> > >                                          V4L2_SUBDEV_FORMAT_ACTIVE);
-> > >         return 0;
-> > > 
-> > > Please send a fixup patch.  
-> > 
-> > I compiled it, too, but I guess I had a GCC version that didn't complain
-> > about this particular matter. I'll send you a fix.
-> 
-> I run make with "W=1", to enable a few extra warnings that are usually
-> troubles, like the above. W=2 would point some other things, but
-> IMHO, it is not worth trying to fix the extra warnings, as it will enable
-> a lot of signed/unsigned errors with are usually OK.
+Good catch! I'll fix that.
 
-I couldn't reproduce the warnings but I'm providing a patch nonetheless,
-also removing the extra semicolon.
+>
+> Apart from that,
+>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Thanks!
+
 
 -- 
-Regards,
-
 Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+sakari.ailus@linux.intel.com
