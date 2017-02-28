@@ -1,163 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-svr1.cs.utah.edu ([155.98.64.241]:60043 "EHLO
-        mail-svr1.cs.utah.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751100AbdBTTtY (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:35297 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751650AbdB1HcA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Feb 2017 14:49:24 -0500
-From: "Shaobo" <shaobo@cs.utah.edu>
-To: "'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>
-Cc: <linux-media@vger.kernel.org>, <mchehab@kernel.org>,
-        <hverkuil@xs4all.nl>, <sakari.ailus@linux.intel.com>,
-        <ricardo.ribalda@gmail.com>
-References: <002201d288a9$93dd7360$bb985a20$@cs.utah.edu> <5573207.UYLCxH4UDO@avalon> <00a901d2894d$95c553b0$c14ffb10$@cs.utah.edu> <2249581.t3xTjk4llj@avalon>
-In-Reply-To: <2249581.t3xTjk4llj@avalon>
-Subject: RE: Dead code in v4l2-mem2mem.c?
-Date: Mon, 20 Feb 2017 12:49:18 -0700
-Message-ID: <000601d28bb2$6d0ca330$4725e990$@cs.utah.edu>
+        Tue, 28 Feb 2017 02:32:00 -0500
+Date: Tue, 28 Feb 2017 08:25:50 +0100
+From: Ingo Molnar <mingo@kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>,
+        kernel test robot <fengguang.wu@intel.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sean Young <sean@mess.org>,
+        Ruslan Ruslichenko <rruslich@cisco.com>, LKP <lkp@01.org>,
+        "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+        "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+        kernel@stlinux.com,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-mediatek@lists.infradead.org,
+        linux-amlogic@lists.infradead.org,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Linux LED Subsystem <linux-leds@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>, wfg@linux.intel.com,
+        Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [WARNING: A/V UNSCANNABLE][Merge tag 'media/v4.11-1' of git]
+ ff58d005cd: BUG: unable to handle kernel NULL pointer dereference at
+ 0000039c
+Message-ID: <20170228072550.GA17204@gmail.com>
+References: <58b07b30.9XFLj9Hhl7F6HMc2%fengguang.wu@intel.com>
+ <CA+55aFytXj+TZ_TanbxcY0KgRTrV7Vvr=fWON8tioUGmYHYiNA@mail.gmail.com>
+ <20170225090741.GA20463@gmail.com>
+ <CA+55aFy+ER8cYV02eZsKAOLnZBWY96zNWqUFWSWT1+3sZD4XnQ@mail.gmail.com>
+ <alpine.DEB.2.20.1702271105090.4732@nanos>
+ <alpine.DEB.2.20.1702271231410.4732@nanos>
+ <20170227154124.GA20569@gmail.com>
+ <CA+55aFxwtkOs95R-v7z8yjguvp91oDTxRKs-x3uN_=sM_33Gvg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-        charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Content-Language: zh-cn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CA+55aFxwtkOs95R-v7z8yjguvp91oDTxRKs-x3uN_=sM_33Gvg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
 
-I'd like to. It sounds interesting and useful to me. Could you give me some pointers about how to audit drivers?
+* Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-Shaobo
------Original Message-----
-From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com] 
-Sent: 2017年2月18日 3:54
-To: Shaobo <shaobo@cs.utah.edu>
-Cc: linux-media@vger.kernel.org; mchehab@kernel.org; hverkuil@xs4all.nl; sakari.ailus@linux.intel.com; ricardo.ribalda@gmail.com
-Subject: Re: Dead code in v4l2-mem2mem.c?
+> In other words: what will happen is that distros start getting bootup problem 
+> reports six months or a year after we've done it, and *if* they figure out it's 
+> the irq enabling, they'll disable it, because they have no way to solve it 
+> either.
+> 
+> And core developers will just maybe see the occasional "4.12 doesn't boot for 
+> me" reports, but by then developers will ahve moved on to 4.16 or something.
 
-Hi Shaobo,
+Yeah, you are right, there's over 2,100 request_irq() calls in the kernel and 
+perhaps only 1% of them gets tested on real hardware by the time a change gets 
+upstream :-/
 
-On Friday 17 Feb 2017 11:42:25 Shaobo wrote:
-> Hi Laurent,
-> 
-> Thanks a lot for your reply.
-> 
-> I would like to also point out the inconsistency of using 
-> `v4l2_m2m_get_vq` inside drivers/media/v4l2-core/v4l2-mem2mem.c and 
-> inside other files. It appears to me almost all call sites of 
-> `v4l2_m2m_get_vq` in drivers/media/v4l2-core/v4l2-mem2mem.c does not 
-> have NULL check afterwards while in other files (e.g., 
-> drivers/media/platform/mx2_emmaprp.c) they do. I was wondering if there is special assumption on this function in mem2mem.c.
+So in theory we could require all *new* drivers handle this properly, as new 
+drivers tend to come through developers who can fix such bugs - which would at 
+least guarantee that with time the problem would obsolete itself.
 
-I don't see any case where the function could reasonably be called with a NULL context other than a severe driver bug. This being said, we need to audit the callers to make sure that's really the case. Would you like to do so and submit a patch ? :-)
+But I cannot see an easy non-intrusive way to do that - we'd have to rename all 
+existing request_irq() calls:
 
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: 2017年2月17日 3:26
-> To: Shaobo <shaobo@cs.utah.edu>
-> Cc: linux-media@vger.kernel.org; mchehab@kernel.org; 
-> hverkuil@xs4all.nl; sakari.ailus@linux.intel.com; 
-> ricardo.ribalda@gmail.com
-> Subject: Re: Dead code in v4l2-mem2mem.c?
-> 
-> Hi Shaobo,
-> 
-> First of all, could you please make sure you send future mails to the 
-> linux- media mailing list in plain text only (no HTML) ? The mailing 
-> list server rejects HTML e-mails.
-> 
-> On Thursday 16 Feb 2017 16:08:25 Shaobo wrote:
-> > Hi there,
-> > 
-> > My name is Shaobo He and I am a graduate student at University of 
-> > Utah. I am applying a static analysis tool to the Linux device 
-> > drivers, looking for NULL pointer dereference and accidentally found 
-> > a plausible dead code location in v4l2-mem2mem.c due to undefined behavior.
-> > 
-> > The following is the problematic code segment,
-> > 
-> > static struct v4l2_m2m_queue_ctx *get_queue_ctx(struct v4l2_m2m_ctx 
-> > *m2m_ctx,
-> > 
-> > 						  enum v4l2_buf_type type)
-> > 
-> > {
-> > 
-> > 	if (V4L2_TYPE_IS_OUTPUT(type))
-> > 	
-> > 		return &m2m_ctx->out_q_ctx;
-> > 	
-> > 	else
-> > 	
-> > 		return &m2m_ctx->cap_q_ctx;
-> > 
-> > }
-> > 
-> > struct vb2_queue *v4l2_m2m_get_vq(struct v4l2_m2m_ctx *m2m_ctx,
-> > 
-> > 				    enum v4l2_buf_type type)
-> > 
-> > {
-> > 
-> > 	struct v4l2_m2m_queue_ctx *q_ctx;
-> > 	
-> > 	q_ctx = get_queue_ctx(m2m_ctx, type);
-> > 	if (!q_ctx)
-> > 	
-> > 		return NULL;
-> > 	
-> > 	return &q_ctx->q;
-> > 
-> > }
-> > 
-> > `get_queue_ctx` returns a pointer value that is an addition of the 
-> > base pointer address (`m2m_ctx`) to a non-zero offset. The following 
-> > is the definition of struct v4l2_m2m_ctx,
-> > 
-> > struct v4l2_m2m_ctx {
-> > 
-> > 	/* optional cap/out vb2 queues lock */
-> > 	struct mutex			*q_lock;
-> > 	
-> > 	/* internal use only */
-> > 	struct v4l2_m2m_dev		*m2m_dev;
-> > 	
-> > 	struct v4l2_m2m_queue_ctx	cap_q_ctx;
-> > 	
-> > 	struct v4l2_m2m_queue_ctx	out_q_ctx;
-> > 	
-> > 	/* For device job queue */
-> > 	struct list_head		queue;
-> > 	unsigned long			job_flags;
-> > 	wait_queue_head_t		finished;
-> > 	
-> > 	void				*priv;
-> > 
-> > };
-> > 
-> > There is a NULL test in a caller of `get_queue_ctx` (line 85), which 
-> > appears problematic to me. I'm not sure if it is defined or feasible 
-> > under the context of Linux kernel. This blog
-> > (https://wdtz.org/undefined-behavior-in-binutils-causes-segfault.htm
-> > l) suggests that the NULL check can be optimized away because the 
-> > only case that the return value can be NULL triggers pointer 
-> > overflow, which is undefined.
-> > 
-> > Please let me know if it makes sense or not. Thanks for your time 
-> > and I am looking forward to your reply.
-> 
-> The NULL check is indeed wrong. I believe that the m2m_ctx argument 
-> passed to the v4l2_m2m_get_vq() function should never be NULL. We will 
-> however need to audit drivers to make sure that's the case. The NULL 
-> check could then be removed. Alternatively we could check m2m_ctx 
-> above the get_queue_ctx() call, which wouldn't require auditing 
-> drivers. It's a safe option, but would likely result in an unneeded NULL check.
-> 
-> --
-> Regards,
-> 
-> Laurent Pinchart
+ - We could rename request_irq() to request_irq_legacy() - which does not do the 
+   tests.
 
---
-Regards,
+ - The 'new' request_irq() function would do the tests unconditionally.
 
-Laurent Pinchart
+... and that's just too much churn - unless you think it's worth it, or if anyone 
+can think of a better method to phase in the new behavior without affecting old 
+users.
+
+Another, less intrusive method would be to introduce a new request_irq_shared() 
+API call, mark request_irq() obsolete (without putting warnings into the build 
+though), and put a check into checkpatch that warns about request_irq() use.
+
+The flip side would be that:
+
+ - request_irq() is such a nice and well-known name to waste
+
+ - plus request_irq_shared() is a misnomer, as this has nothing to do with sharing 
+   IRQs, it's about getting IRQs in unexpected moments.
+
+I'd rather do the renaming that is easy to automate and the pain is one time only.
+
+Or revert the retrigger change and muddle through, although as per Thomas's 
+observations spurious interrupts are very common.
+
+Thanks,
+
+	Ingo
