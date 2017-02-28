@@ -1,77 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f54.google.com ([74.125.82.54]:37021 "EHLO
-        mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933050AbdBPSIP (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47588 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751154AbdB1WtX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Feb 2017 13:08:15 -0500
-Received: by mail-wm0-f54.google.com with SMTP id v77so21629357wmv.0
-        for <linux-media@vger.kernel.org>; Thu, 16 Feb 2017 10:08:15 -0800 (PST)
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-To: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@baylibre.com>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Prabhakar Lad <prabhakar.csengg@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org,
-        Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: [PATCH] media: vpif: use a configurable i2c_adapter_id for vpif display
-Date: Thu, 16 Feb 2017 19:08:01 +0100
-Message-Id: <1487268481-6127-1-git-send-email-bgolaszewski@baylibre.com>
+        Tue, 28 Feb 2017 17:49:23 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v2 3/3] v4l: vsp1: wpf: Implement rotation support
+Date: Wed, 01 Mar 2017 00:23:04 +0200
+Message-ID: <2151035.IRLLozJt72@avalon>
+In-Reply-To: <20170228211334.GC3220@valkosipuli.retiisi.org.uk>
+References: <20170228150320.10104-1-laurent.pinchart+renesas@ideasonboard.com> <20170228150320.10104-4-laurent.pinchart+renesas@ideasonboard.com> <20170228211334.GC3220@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The vpif display driver uses a static i2c adapter ID of 1 but on the
-da850-evm board in DT boot mode the i2c adapter ID is actually 0.
+Hi Sakari,
 
-Make the adapter ID configurable like it already is for vpif capture.
+On Tuesday 28 Feb 2017 23:13:34 Sakari Ailus wrote:
+> On Tue, Feb 28, 2017 at 05:03:20PM +0200, Laurent Pinchart wrote:
+> > Some WPF instances, on Gen3 devices, can perform 90=B0 rotation whe=
+n
+> > writing frames to memory. Implement support for this using the
+> > V4L2_CID_ROTATE control.
+> >=20
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+> > ---
+> >=20
+> >  drivers/media/platform/vsp1/vsp1_rpf.c   |   2 +-
+> >  drivers/media/platform/vsp1/vsp1_rwpf.c  |   5 +
+> >  drivers/media/platform/vsp1/vsp1_rwpf.h  |   3 +-
+> >  drivers/media/platform/vsp1/vsp1_video.c |  12 +-
+> >  drivers/media/platform/vsp1/vsp1_wpf.c   | 205 ++++++++++++++++++-=
+-------
+> >  5 files changed, 175 insertions(+), 52 deletions(-)
 
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Acked-by: Kevin Hilman <khilman@baylibre.com>
----
- arch/arm/mach-davinci/board-da850-evm.c       | 1 +
- drivers/media/platform/davinci/vpif_display.c | 2 +-
- include/media/davinci/vpif_types.h            | 1 +
- 3 files changed, 3 insertions(+), 1 deletion(-)
+[snip]
 
-diff --git a/arch/arm/mach-davinci/board-da850-evm.c b/arch/arm/mach-davinci/board-da850-evm.c
-index df3ca38..6f1e129 100644
---- a/arch/arm/mach-davinci/board-da850-evm.c
-+++ b/arch/arm/mach-davinci/board-da850-evm.c
-@@ -1290,6 +1290,7 @@ static struct vpif_display_config da850_vpif_display_config = {
- 		.output_count = ARRAY_SIZE(da850_ch0_outputs),
- 	},
- 	.card_name    = "DA850/OMAP-L138 Video Display",
-+	.i2c_adapter_id = 1,
- };
- 
- static __init void da850_vpif_init(void)
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index 50c3073..7e5cf99 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -1287,7 +1287,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 	}
- 
- 	if (!vpif_obj.config->asd_sizes) {
--		i2c_adap = i2c_get_adapter(1);
-+		i2c_adap = i2c_get_adapter(vpif_obj.config->i2c_adapter_id);
- 		for (i = 0; i < subdev_count; i++) {
- 			vpif_obj.sd[i] =
- 				v4l2_i2c_new_subdev_board(&vpif_obj.v4l2_dev,
-diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
-index 4282a7d..0c72b46 100644
---- a/include/media/davinci/vpif_types.h
-+++ b/include/media/davinci/vpif_types.h
-@@ -57,6 +57,7 @@ struct vpif_display_config {
- 	int (*set_clock)(int, int);
- 	struct vpif_subdev_info *subdevinfo;
- 	int subdev_count;
-+	int i2c_adapter_id;
- 	struct vpif_display_chan_config chan_config[VPIF_DISPLAY_MAX_CHANNELS];
- 	const char *card_name;
- 	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
--- 
-2.9.3
+> > diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h
+> > b/drivers/media/platform/vsp1/vsp1_rwpf.h index
+> > 1c98aff3da5d..b4ffc38f48af 100644
+> > --- a/drivers/media/platform/vsp1/vsp1_rwpf.h
+> > +++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
+> > @@ -56,9 +56,10 @@ struct vsp1_rwpf {
+> >=20
+> >  =09struct {
+> >  =09=09spinlock_t lock;
+> > -=09=09struct v4l2_ctrl *ctrls[2];
+> > +=09=09struct v4l2_ctrl *ctrls[3];
+>=20
+> At least what comes to this patch --- having a field for each control=
+ would
+> look much nicer in the code. Is there a particular reason for having =
+an
+> array with all the controls in it?
+
+Not really. I need to put the three controls in a cluster, so I stored =
+them in=20
+an array to make sure they would be properly contiguous in memory. I ca=
+n also=20
+use three separate pointers, it shouldn't hurt.
+
+> >  =09=09unsigned int pending;
+> >  =09=09unsigned int active;
+> > +=09=09bool rotate;
+> >  =09} flip;
+> >  =09
+> >  =09struct vsp1_rwpf_memory mem;
+
+--=20
+Regards,
+
+Laurent Pinchart
