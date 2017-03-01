@@ -1,88 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay2.synopsys.com ([198.182.60.111]:41935 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759361AbdCVMeY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Mar 2017 08:34:24 -0400
-From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org
-Cc: vladimir_zapolskiy@mentor.com, CARLOS.PALMINHA@synopsys.com,
-        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pavel Machek <pavel@ucw.cz>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Rob Herring <robh+dt@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>
-Subject: [PATCH v11 1/2] Documentation: DT: Add OV5647 bindings
-Date: Wed, 22 Mar 2017 12:30:26 +0000
-Message-Id: <28a30fddd5bcfc9e85f0bafb184acd18f8387357.1490185140.git.roliveir@synopsys.com>
-In-Reply-To: <cover.1490185140.git.roliveir@synopsys.com>
-References: <cover.1490185140.git.roliveir@synopsys.com>
-In-Reply-To: <cover.1490185140.git.roliveir@synopsys.com>
-References: <cover.1490185140.git.roliveir@synopsys.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:42431
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751962AbdCALwV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Mar 2017 06:52:21 -0500
+From: Thibault Saunier <thibault.saunier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Thibault Saunier <thibault.saunier@osg.samsung.com>,
+        linux-arm-kernel@lists.infradead.org,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Kamil Debski <kamil@wypas.org>
+Subject: [PATCH v6 2/2] [media] s5p-mfc: Handle 'v4l2_pix_format:field' in try_fmt and g_fmt
+Date: Wed,  1 Mar 2017 08:51:08 -0300
+Message-Id: <20170301115108.14187-3-thibault.saunier@osg.samsung.com>
+In-Reply-To: <20170301115108.14187-1-thibault.saunier@osg.samsung.com>
+References: <20170301115108.14187-1-thibault.saunier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Create device tree bindings documentation.
+It is required by the standard that the field order is set by the
+driver, default to NONE in case any is provided, but we can basically
+accept any value provided by the userspace as we will anyway not
+be able to do any deinterlacing.
 
-Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
-Acked-by: Rob Herring <robh@kernel.org>
-Reviewed-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+In this patch we also make sure to pass the interlacing mode provided
+by userspace from the output to the capture side of the device so
+that the information is given back to userspace. This way it can
+handle it and potentially deinterlace afterward.
+
+Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
 
 ---
- .../devicetree/bindings/media/i2c/ov5647.txt       | 35 ++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov5647.txt b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
-new file mode 100644
-index 000000000000..22e44945b661
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
-@@ -0,0 +1,35 @@
-+Omnivision OV5647 raw image sensor
-+---------------------------------
+Changes in v6:
+- Pass user output field value to the capture as the device is not
+  doing any deinterlacing and thus decoded content will still be
+  interlaced on the output.
+
+Changes in v5:
+- Just adapt the field and never error out.
+
+Changes in v4: None
+Changes in v3:
+- Do not check values in the g_fmt functions as Andrzej explained in previous review
+
+Changes in v2:
+- Fix a silly build error that slipped in while rebasing the patches
+
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h | 2 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    | 6 +++++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index ab23236aa942..3816a37de4bc 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -652,6 +652,8 @@ struct s5p_mfc_ctx {
+ 	size_t me_buffer_size;
+ 	size_t tmv_buffer_size;
+ 
++	enum v4l2_field field;
 +
-+OV5647 is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
-+and CCI (I2C compatible) control bus.
+ 	enum v4l2_mpeg_mfc51_video_force_frame_type force_frame_type;
+ 
+ 	struct list_head ref_queue;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 367ef8e8dbf0..6e5ca86fb331 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -345,7 +345,7 @@ static int vidioc_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 		   rectangle. */
+ 		pix_mp->width = ctx->buf_width;
+ 		pix_mp->height = ctx->buf_height;
+-		pix_mp->field = V4L2_FIELD_NONE;
++		pix_mp->field = ctx->field;
+ 		pix_mp->num_planes = 2;
+ 		/* Set pixelformat to the format in which MFC
+ 		   outputs the decoded frame */
+@@ -380,6 +380,9 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 	struct s5p_mfc_dev *dev = video_drvdata(file);
+ 	struct s5p_mfc_fmt *fmt;
+ 
++	if (f->fmt.pix.field == V4L2_FIELD_ANY)
++		f->fmt.pix.field = V4L2_FIELD_NONE;
 +
-+Required properties:
-+
-+- compatible		: "ovti,ov5647".
-+- reg			: I2C slave address of the sensor.
-+- clocks		: Reference to the xclk clock.
-+
-+The common video interfaces bindings (see video-interfaces.txt) should be
-+used to specify link to the image data receiver. The OV5647 device
-+node should contain one 'port' child node with an 'endpoint' subnode.
-+
-+Endpoint node mandatory properties:
-+
-+- remote-endpoint: A phandle to the bus receiver's endpoint node.
-+
-+Example:
-+
-+	i2c@2000 {
-+		...
-+		ov: camera@36 {
-+			compatible = "ovti,ov5647";
-+			reg = <0x36>;
-+			clocks = <&camera_clk>;
-+			port {
-+				camera_1: endpoint {
-+					remote-endpoint = <&csi1_ep1>;
-+				};
-+			};
-+		};
-+	};
+ 	mfc_debug(2, "Type is %d\n", f->type);
+ 	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+ 		fmt = find_format(f, MFC_FMT_DEC);
+@@ -436,6 +439,7 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 		goto out;
+ 	} else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+ 		/* src_fmt is validated by call to vidioc_try_fmt */
++		ctx->field = f->fmt.pix.field;
+ 		ctx->src_fmt = find_format(f, MFC_FMT_DEC);
+ 		ctx->codec_mode = ctx->src_fmt->codec_mode;
+ 		mfc_debug(2, "The codec number is: %d\n", ctx->codec_mode);
 -- 
-2.11.0
+2.11.1
