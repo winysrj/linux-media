@@ -1,143 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:56341 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932667AbdC3KqI (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:58671 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751853AbdCAPhO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 06:46:08 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
-        linux-rpi-kernel@lists.infradead.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH v2 08/22] usb/anchors.txt: convert to ReST and add to driver-api book
-Date: Thu, 30 Mar 2017 07:45:42 -0300
-Message-Id: <27e02685a76dae589625368f18782d4a27f34c45.1490870599.git.mchehab@s-opensource.com>
-In-Reply-To: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
-References: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
-In-Reply-To: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
-References: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
+        Wed, 1 Mar 2017 10:37:14 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: linux-media@vger.kernel.org, Fabio Estevam <festevam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Baruch Siach <baruch@tkos.co.il>
+Subject: [PATCH] [media] coda: restore original firmware locations
+Date: Wed,  1 Mar 2017 16:36:25 +0100
+Message-Id: <20170301153625.16249-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This document describe some USB core functions. Add it to the
-driver-api book.
+Recently, an unfinished patch was merged that added a third entry to the
+beginning of the array of firmware locations without changing the code
+to also look at the third element, thus pushing an old firmware location
+off the list.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Fixes: 8af7779f3cbc ("[media] coda: add Freescale firmware compatibility location")
+Cc: Baruch Siach <baruch@tkos.co.il>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- .../anchors.txt => driver-api/usb/anchors.rst}     | 36 ++++++++++++----------
- Documentation/driver-api/usb/index.rst             |  1 +
- 2 files changed, 21 insertions(+), 16 deletions(-)
- rename Documentation/{usb/anchors.txt => driver-api/usb/anchors.rst} (75%)
+ drivers/media/platform/coda/coda-common.c | 17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff --git a/Documentation/usb/anchors.txt b/Documentation/driver-api/usb/anchors.rst
-similarity index 75%
-rename from Documentation/usb/anchors.txt
-rename to Documentation/driver-api/usb/anchors.rst
-index fe6a99a32bbd..4b248e691bd6 100644
---- a/Documentation/usb/anchors.txt
-+++ b/Documentation/driver-api/usb/anchors.rst
-@@ -1,3 +1,6 @@
-+USB Anchors
-+~~~~~~~~~~~
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index eb6548f46cbac..e1a2e8c70db01 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -2128,6 +2128,9 @@ static int coda_firmware_request(struct coda_dev *dev)
+ {
+ 	char *fw = dev->devtype->firmware[dev->firmware];
+ 
++	if (dev->firmware >= ARRAY_SIZE(dev->devtype->firmware))
++		return -EINVAL;
 +
- What is anchor?
- ===============
+ 	dev_dbg(&dev->plat_dev->dev, "requesting firmware '%s' for %s\n", fw,
+ 		coda_product_name(dev->devtype->product));
  
-@@ -13,7 +16,7 @@ Allocation and Initialisation
- =============================
+@@ -2142,16 +2145,16 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
+ 	struct platform_device *pdev = dev->plat_dev;
+ 	int i, ret;
  
- There's no API to allocate an anchor. It is simply declared
--as struct usb_anchor. init_usb_anchor() must be called to
-+as struct usb_anchor. :c:func:`init_usb_anchor` must be called to
- initialise the data structure.
- 
- Deallocation
-@@ -26,52 +29,53 @@ Association and disassociation of URBs with anchors
- ===================================================
- 
- An association of URBs to an anchor is made by an explicit
--call to usb_anchor_urb(). The association is maintained until
-+call to :c:func:`usb_anchor_urb`. The association is maintained until
- an URB is finished by (successful) completion. Thus disassociation
- is automatic. A function is provided to forcibly finish (kill)
- all URBs associated with an anchor.
--Furthermore, disassociation can be made with usb_unanchor_urb()
-+Furthermore, disassociation can be made with :c:func:`usb_unanchor_urb`
- 
- Operations on multitudes of URBs
- ================================
- 
--usb_kill_anchored_urbs()
--------------------------
-+:c:func:`usb_kill_anchored_urbs`
-+--------------------------------
- 
- This function kills all URBs associated with an anchor. The URBs
- are called in the reverse temporal order they were submitted.
- This way no data can be reordered.
- 
--usb_unlink_anchored_urbs()
----------------------------
-+:c:func:`usb_unlink_anchored_urbs`
-+----------------------------------
-+
- 
- This function unlinks all URBs associated with an anchor. The URBs
- are processed in the reverse temporal order they were submitted.
--This is similar to usb_kill_anchored_urbs(), but it will not sleep.
-+This is similar to :c:func:`usb_kill_anchored_urbs`, but it will not sleep.
- Therefore no guarantee is made that the URBs have been unlinked when
- the call returns. They may be unlinked later but will be unlinked in
- finite time.
- 
--usb_scuttle_anchored_urbs()
-----------------------------
-+:c:func:`usb_scuttle_anchored_urbs`
-+-----------------------------------
- 
- All URBs of an anchor are unanchored en masse.
- 
--usb_wait_anchor_empty_timeout()
---------------------------------
-+:c:func:`usb_wait_anchor_empty_timeout`
-+---------------------------------------
- 
- This function waits for all URBs associated with an anchor to finish
- or a timeout, whichever comes first. Its return value will tell you
- whether the timeout was reached.
- 
--usb_anchor_empty()
--------------------
-+:c:func:`usb_anchor_empty`
-+--------------------------
- 
- Returns true if no URBs are associated with an anchor. Locking
- is the caller's responsibility.
- 
--usb_get_from_anchor()
-----------------------
-+:c:func:`usb_get_from_anchor`
-+-----------------------------
- 
- Returns the oldest anchored URB of an anchor. The URB is unanchored
- and returned with a reference. As you may mix URBs to several
-diff --git a/Documentation/driver-api/usb/index.rst b/Documentation/driver-api/usb/index.rst
-index cf2fa2e8d236..5dfb04b2d730 100644
---- a/Documentation/driver-api/usb/index.rst
-+++ b/Documentation/driver-api/usb/index.rst
-@@ -6,6 +6,7 @@ Linux USB API
- 
-    usb
-    gadget
-+   anchors
-    writing_usb_driver
-    writing_musb_glue_layer
- 
+-	if (!fw && dev->firmware == 1) {
+-		v4l2_err(&dev->v4l2_dev, "firmware request failed\n");
+-		goto put_pm;
+-	}
+ 	if (!fw) {
+-		dev->firmware = 1;
+-		coda_firmware_request(dev);
++		dev->firmware++;
++		ret = coda_firmware_request(dev);
++		if (ret < 0) {
++			v4l2_err(&dev->v4l2_dev, "firmware request failed\n");
++			goto put_pm;
++		}
+ 		return;
+ 	}
+-	if (dev->firmware == 1) {
++	if (dev->firmware > 0) {
+ 		/*
+ 		 * Since we can't suppress warnings for failed asynchronous
+ 		 * firmware requests, report that the fallback firmware was
 -- 
-2.9.3
+2.11.0
