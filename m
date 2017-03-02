@@ -1,85 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:20044 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932268AbdC3Lpb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 07:45:31 -0400
-From: Jani Nikula <jani.nikula@intel.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
-        linux-rpi-kernel@lists.infradead.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: Re: [PATCH v2 01/22] tmplcvt: make the tool more robust
-In-Reply-To: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
-References: <3068fc7fac09293300b9c59ece0adb985232de12.1490870599.git.mchehab@s-opensource.com>
-Date: Thu, 30 Mar 2017 14:45:26 +0300
-Message-ID: <87vaqr2dk9.fsf@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:32929 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750787AbdCBTxQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 14:53:16 -0500
+From: simran singhal <singhalsimran0@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        outreachy-kernel@googlegroups.com
+Subject: [PATCH 4/7] staging: media: Remove blank line before '}' and after '{' braces
+Date: Fri,  3 Mar 2017 01:21:59 +0530
+Message-Id: <1488484322-5928-4-git-send-email-singhalsimran0@gmail.com>
+In-Reply-To: <1488484322-5928-1-git-send-email-singhalsimran0@gmail.com>
+References: <1488484322-5928-1-git-send-email-singhalsimran0@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 30 Mar 2017, Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
-> Currently, the script just assumes to be called at
-> Documentation/sphinx/. Change it to work on any directory,
-> and make it abort if something gets wrong.
->
-> Also, be sure that both parameters are specified.
->
-> That should avoid troubles like this:
->
-> $ Documentation/sphinx/tmplcvt Documentation/DocBook/writing_usb_driver.tmpl
-> sed: couldn't open file convert_template.sed: No such file or directory
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  Documentation/sphinx/tmplcvt | 13 +++++++++++--
->  1 file changed, 11 insertions(+), 2 deletions(-)
->
-> diff --git a/Documentation/sphinx/tmplcvt b/Documentation/sphinx/tmplcvt
-> index 909a73065e0a..31df8eb7feca 100755
-> --- a/Documentation/sphinx/tmplcvt
-> +++ b/Documentation/sphinx/tmplcvt
-> @@ -7,13 +7,22 @@
->  # fix \_
->  # title line?
->  #
-> +set -eu
-> +
-> +if [ "$2" == "" ]; then
+Remove unneeded blank lines preceding/following '}' and '{' braces, as
+pointed out by checkpatch.
 
-if [ "$#" != "2" ]; then
+This patch addresses the following checkpatch checks:
 
-otherwise with set -u you'll get unbound variable error if you don't
-provide $2.
+CHECK: Blank lines aren't necessary before a close brace '}'
+CHECK: Blank lines aren't necessary after an open brace '{'
 
-BR,
-Jani.
+Signed-off-by: simran singhal <singhalsimran0@gmail.com>
+---
+ drivers/staging/media/atomisp/i2c/gc2235.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-> +	echo "$0 <docbook file> <rst file>"
-> +	exit
-> +fi
-> +
-> +DIR=$(dirname $0)
->  
->  in=$1
->  rst=$2
->  tmp=$rst.tmp
->  
->  cp $in $tmp
-> -sed --in-place -f convert_template.sed $tmp
-> +sed --in-place -f $DIR/convert_template.sed $tmp
->  pandoc -s -S -f docbook -t rst -o $rst $tmp
-> -sed --in-place -f post_convert.sed $rst
-> +sed --in-place -f $DIR/post_convert.sed $rst
->  rm $tmp
-> +echo "book writen to $rst"
-
+diff --git a/drivers/staging/media/atomisp/i2c/gc2235.c b/drivers/staging/media/atomisp/i2c/gc2235.c
+index 2ef876a..198df22 100644
+--- a/drivers/staging/media/atomisp/i2c/gc2235.c
++++ b/drivers/staging/media/atomisp/i2c/gc2235.c
+@@ -788,7 +788,6 @@ static int gc2235_set_fmt(struct v4l2_subdev *sd,
+ 			  struct v4l2_subdev_pad_config *cfg,
+ 			  struct v4l2_subdev_format *format)
+ {
+-
+ 	struct v4l2_mbus_framefmt *fmt = &format->format;
+ 	struct gc2235_device *dev = to_gc2235_sensor(sd);
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+@@ -1070,7 +1069,6 @@ static int gc2235_enum_frame_size(struct v4l2_subdev *sd,
+ 	fse->max_height = gc2235_res[index].height;
+ 
+ 	return 0;
+-
+ }
+ 
+ static int gc2235_g_skip_frames(struct v4l2_subdev *sd, u32 *frames)
+@@ -1228,7 +1226,6 @@ static int init_gc2235(void)
+ 
+ static void exit_gc2235(void)
+ {
+-
+ 	i2c_del_driver(&gc2235_driver);
+ }
+ 
 -- 
-Jani Nikula, Intel Open Source Technology Center
+2.7.4
