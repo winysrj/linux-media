@@ -1,57 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:54236 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751774AbdCAOIr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Mar 2017 09:08:47 -0500
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com,
-        linux-renesas-soc@vger.kernel.org
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [RFC PATCH 0/3] RCAR-DU, VSP1: Prevent pre-emptive frame flips on VSP1-DRM pipelines
-Date: Wed,  1 Mar 2017 13:12:53 +0000
-Message-Id: <cover.79abe454b4a405227fcacc23f1b6ba624ee99cf0.1488373517.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from mout.kundenserver.de ([212.227.126.131]:62338 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753100AbdCBRLM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 12:11:12 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: kasan-dev@googlegroups.com
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-wireless@vger.kernel.org,
+        kernel-build-reports@lists.linaro.org,
+        "David S . Miller" <davem@davemloft.net>,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 12/26] wl3501_cs: reduce stack size for KASAN
+Date: Thu,  2 Mar 2017 17:38:20 +0100
+Message-Id: <20170302163834.2273519-13-arnd@arndb.de>
+In-Reply-To: <20170302163834.2273519-1-arnd@arndb.de>
+References: <20170302163834.2273519-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The RCAR-DU utilises a running VSPD pipeline to perform processing
-for the display pipeline.
+Inlining functions with local variables can lead to excessive stack usage
+with KASAN:
 
-Changes to this pipeline are performed with an atomic flush operation which
-updates the state in the VSPD. Due to the way the running pipeline is
-operated, any flush operation has an implicit latency of one frame interval.
+drivers/net/wireless/wl3501_cs.c: In function 'wl3501_rx_interrupt':
+drivers/net/wireless/wl3501_cs.c:1103:1: error: the frame size of 2232 bytes is larger than 1536 bytes [-Werror=frame-larger-than=]
 
-This comes about as the display list is committed, but not updated until the
-next VSP1 interrupt. At this point the frame is being processed, but is not
-complete until the following VSP1 frame end interrupt.
+Marking a few functions as noinline_for_kasan avoids the problem
 
-To prevent reporting page flips early, we must track this timing through the
-VSP1, and only allow the rcar-du object to report the page-flip completion
-event after the VSP1 has processed.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/net/wireless/wl3501_cs.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-[PATCH 1/3] fixes the VSP DRM object to register it's pipeline correctly.
-[PATCH 2/3] extends the VSP1 to allow a callback to be registered allowing the
-            VSP1 to notify completion events, and extend the existing atomic
-            flush API to allow private event data to be passed through.
-[PATCH 3/3] Utilises this API extension to postpone page flips as required.
-
-In current testing, with kmstest, and kmscube, it can be seen that our refresh
-rate has halved. I believe this is due to the one frame latency imposed by the
-VSPD and will need further investigation.
-
-Kieran Bingham (3):
-  v4l: vsp1: Register pipe with output WPF
-  v4l: vsp1: extend VSP1 module API to allow DRM callback registration
-  drm: rcar-du: Register a completion callback with VSP1
-
- drivers/gpu/drm/rcar-du/rcar_du_crtc.c |  8 ++++-
- drivers/gpu/drm/rcar-du/rcar_du_crtc.h |  1 +-
- drivers/gpu/drm/rcar-du/rcar_du_vsp.c  | 34 ++++++++++++++++++++-
- drivers/media/platform/vsp1/vsp1_drm.c | 43 +++++++++++++++++++++++++--
- drivers/media/platform/vsp1/vsp1_drm.h | 12 ++++++++-
- include/media/vsp1.h                   |  6 +++-
- 6 files changed, 99 insertions(+), 5 deletions(-)
-
-base-commit: a194138cd82dff52d4c39895fd89dc6f26eafc97
+diff --git a/drivers/net/wireless/wl3501_cs.c b/drivers/net/wireless/wl3501_cs.c
+index acec0d9ec422..15dd8e31d373 100644
+--- a/drivers/net/wireless/wl3501_cs.c
++++ b/drivers/net/wireless/wl3501_cs.c
+@@ -242,8 +242,8 @@ static int wl3501_get_flash_mac_addr(struct wl3501_card *this)
+  *
+  * Move 'size' bytes from PC to card. (Shouldn't be interrupted)
+  */
+-static void wl3501_set_to_wla(struct wl3501_card *this, u16 dest, void *src,
+-			      int size)
++static noinline_for_kasan void wl3501_set_to_wla(struct wl3501_card *this,
++						 u16 dest, void *src, int size)
+ {
+ 	/* switch to SRAM Page 0 */
+ 	wl3501_switch_page(this, (dest & 0x8000) ? WL3501_BSS_SPAGE1 :
+@@ -264,8 +264,8 @@ static void wl3501_set_to_wla(struct wl3501_card *this, u16 dest, void *src,
+  *
+  * Move 'size' bytes from card to PC. (Shouldn't be interrupted)
+  */
+-static void wl3501_get_from_wla(struct wl3501_card *this, u16 src, void *dest,
+-				int size)
++static noinline_for_kasan void wl3501_get_from_wla(struct wl3501_card *this,
++						u16 src, void *dest, int size)
+ {
+ 	/* switch to SRAM Page 0 */
+ 	wl3501_switch_page(this, (src & 0x8000) ? WL3501_BSS_SPAGE1 :
+@@ -1037,7 +1037,7 @@ static inline void wl3501_auth_confirm_interrupt(struct wl3501_card *this,
+ 		wl3501_mgmt_resync(this);
+ }
+ 
+-static inline void wl3501_rx_interrupt(struct net_device *dev)
++static noinline_for_kasan void wl3501_rx_interrupt(struct net_device *dev)
+ {
+ 	int morepkts;
+ 	u16 addr;
 -- 
-git-series 0.9.1
+2.9.0
