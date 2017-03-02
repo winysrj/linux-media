@@ -1,42 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out4.electric.net ([192.162.216.183]:53953 "EHLO
-        smtp-out4.electric.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751677AbdCCRGs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 12:06:48 -0500
-From: David Laight <David.Laight@ACULAB.COM>
-To: 'Andrey Ryabinin' <aryabinin@virtuozzo.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        "kasan-dev@googlegroups.com" <kasan-dev@googlegroups.com>
-CC: Alexander Potapenko <glider@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>,
-        "kernel-build-reports@lists.linaro.org"
-        <kernel-build-reports@lists.linaro.org>,
-        "David S . Miller" <davem@davemloft.net>
-Subject: RE: [PATCH 01/26] compiler: introduce noinline_for_kasan annotation
-Date: Fri, 3 Mar 2017 16:34:26 +0000
-Message-ID: <063D6719AE5E284EB5DD2968C1650D6DCFE74524@AcuExch.aculab.com>
-References: <20170302163834.2273519-1-arnd@arndb.de>
- <20170302163834.2273519-2-arnd@arndb.de>
- <7e7a62de-3b79-6044-72fa-4ade418953d1@virtuozzo.com>
-In-Reply-To: <7e7a62de-3b79-6044-72fa-4ade418953d1@virtuozzo.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:56231 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751870AbdCBLGm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 2 Mar 2017 06:06:42 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH] [media] coda: disable BWB for all codecs on CODA 960
+Date: Thu,  2 Mar 2017 11:19:52 +0100
+Message-Id: <20170302101952.16917-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Andrey Ryabinin
-> Sent: 03 March 2017 13:50
-...
-> noinline_iff_kasan might be a better name.  noinline_for_kasan gives the impression
-> that we always noinline function for the sake of kasan, while noinline_iff_kasan
-> clearly indicates that function is noinline only if kasan is used.
+I don't know what the BWB unit is, I guess W is for write and one of the
+Bs is for burst. All I know is that there repeatedly have been issues
+with it hanging on certain streams (ENGR00223231, ENGR00293425), with
+various firmware versions, sometimes blocking something related to the
+GDI bus or the GDI AXI adapter. There are some error cases that we don't
+know how to recover from without a reboot. Apparently this unit can be
+disabled by setting bit 12 in the FRAME_MEM_CTRL mailbox register to
+zero, so do that to avoid crashes.
 
-noinline_if_stackbloat
+Side effects are reduced burst lengths when writing out decoded frames
+to memory, so there is an "enable_bwb" module parameter to turn it back
+on.
 
-	David
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-common.c | 7 ++++++-
+ drivers/media/platform/coda/coda_regs.h   | 1 +
+ 2 files changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 4d25ca1981301..aeb2456830348 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -71,6 +71,10 @@ static int disable_vdoa;
+ module_param(disable_vdoa, int, 0644);
+ MODULE_PARM_DESC(disable_vdoa, "Disable Video Data Order Adapter tiled to raster-scan conversion");
+ 
++static int enable_bwb = 0;
++module_param(enable_bwb, int, 0644);
++MODULE_PARM_DESC(enable_bwb, "Enable BWB unit, may crash on certain streams");
++
+ void coda_write(struct coda_dev *dev, u32 data, u32 reg)
+ {
+ 	v4l2_dbg(2, coda_debug, &dev->v4l2_dev,
+@@ -1891,7 +1895,8 @@ static int coda_open(struct file *file)
+ 	ctx->idx = idx;
+ 	switch (dev->devtype->product) {
+ 	case CODA_960:
+-		ctx->frame_mem_ctrl = 1 << 12;
++		if (enable_bwb)
++			ctx->frame_mem_ctrl = CODA9_FRAME_ENABLE_BWB;
+ 		/* fallthrough */
+ 	case CODA_7541:
+ 		ctx->reg_idx = 0;
+diff --git a/drivers/media/platform/coda/coda_regs.h b/drivers/media/platform/coda/coda_regs.h
+index 3490602fa6e1e..77ee46a934272 100644
+--- a/drivers/media/platform/coda/coda_regs.h
++++ b/drivers/media/platform/coda/coda_regs.h
+@@ -51,6 +51,7 @@
+ #define		CODA7_STREAM_SEL_64BITS_ENDIAN	(1 << 1)
+ #define		CODA_STREAM_ENDIAN_SELECT	(1 << 0)
+ #define CODA_REG_BIT_FRAME_MEM_CTRL		0x110
++#define		CODA9_FRAME_ENABLE_BWB		(1 << 12)
+ #define		CODA9_FRAME_TILED2LINEAR	(1 << 11)
+ #define		CODA_FRAME_CHROMA_INTERLEAVE	(1 << 2)
+ #define		CODA_IMAGE_ENDIAN_SELECT	(1 << 0)
+-- 
+2.11.0
