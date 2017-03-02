@@ -1,194 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:35604 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754104AbdC1Amy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 20:42:54 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+Received: from mail-qk0-f182.google.com ([209.85.220.182]:35955 "EHLO
+        mail-qk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751150AbdCBVpM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 16:45:12 -0500
+Received: by mail-qk0-f182.google.com with SMTP id 1so27787241qkl.3
+        for <linux-media@vger.kernel.org>; Thu, 02 Mar 2017 13:45:11 -0800 (PST)
+From: Laura Abbott <labbott@redhat.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com
+Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v6 29/39] media: imx: csi: add __csi_get_fmt
-Date: Mon, 27 Mar 2017 17:40:46 -0700
-Message-Id: <1490661656-10318-30-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org
+Subject: [RFC PATCH 06/12] staging: android: ion: Remove crufty cache support
+Date: Thu,  2 Mar 2017 13:44:38 -0800
+Message-Id: <1488491084-17252-7-git-send-email-labbott@redhat.com>
+In-Reply-To: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add __csi_get_fmt() and use it to return the correct mbus format
-(active or try) in get_fmt. Use it in other places as well.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-Suggested-by: Russell King <linux@armlinux.org.uk>
+
+Now that we call dma_map in the dma_buf API callbacks there is no need
+to use the existing cache APIs. Remove the sync ioctl and the existing
+bad dma_sync calls. Explicit caching can be handled with the dma_buf
+sync API.
+
+Signed-off-by: Laura Abbott <labbott@redhat.com>
 ---
- drivers/staging/media/imx/imx-media-csi.c | 61 ++++++++++++++++++++++++-------
- 1 file changed, 47 insertions(+), 14 deletions(-)
+ drivers/staging/android/ion/ion-ioctl.c         |  5 ----
+ drivers/staging/android/ion/ion.c               | 40 -------------------------
+ drivers/staging/android/ion/ion_carveout_heap.c |  6 ----
+ drivers/staging/android/ion/ion_chunk_heap.c    |  6 ----
+ drivers/staging/android/ion/ion_page_pool.c     |  3 --
+ drivers/staging/android/ion/ion_system_heap.c   |  5 ----
+ 6 files changed, 65 deletions(-)
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index 730966b..f4c6a33 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -843,13 +843,26 @@ static int csi_eof_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 	return 0;
+diff --git a/drivers/staging/android/ion/ion-ioctl.c b/drivers/staging/android/ion/ion-ioctl.c
+index 5b2e93f..f820d77 100644
+--- a/drivers/staging/android/ion/ion-ioctl.c
++++ b/drivers/staging/android/ion/ion-ioctl.c
+@@ -146,11 +146,6 @@ long ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 			data.handle.handle = handle->id;
+ 		break;
+ 	}
+-	case ION_IOC_SYNC:
+-	{
+-		ret = ion_sync_for_device(client, data.fd.fd);
+-		break;
+-	}
+ 	case ION_IOC_CUSTOM:
+ 	{
+ 		if (!dev->custom_ioctl)
+diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
+index 8eef1d7..c3c316f 100644
+--- a/drivers/staging/android/ion/ion.c
++++ b/drivers/staging/android/ion/ion.c
+@@ -815,22 +815,6 @@ static void ion_unmap_dma_buf(struct dma_buf_attachment *attachment,
+ 	free_duped_table(table);
  }
  
--static int csi_try_crop(struct csi_priv *priv, struct v4l2_rect *crop,
-+static struct v4l2_mbus_framefmt *
-+__csi_get_fmt(struct csi_priv *priv, struct v4l2_subdev_pad_config *cfg,
-+	      unsigned int pad, enum v4l2_subdev_format_whence which)
-+{
-+	if (which == V4L2_SUBDEV_FORMAT_TRY)
-+		return v4l2_subdev_get_try_format(&priv->sd, cfg, pad);
-+	else
-+		return &priv->format_mbus[pad];
-+}
-+
-+static int csi_try_crop(struct csi_priv *priv,
-+			struct v4l2_rect *crop,
-+			struct v4l2_subdev_pad_config *cfg,
-+			enum v4l2_subdev_format_whence which,
- 			struct imx_media_subdev *sensor)
- {
- 	struct v4l2_of_endpoint *sensor_ep;
- 	struct v4l2_mbus_framefmt *infmt;
- 
--	infmt = &priv->format_mbus[CSI_SINK_PAD];
-+	infmt = __csi_get_fmt(priv, cfg, CSI_SINK_PAD, which);
- 	sensor_ep = &sensor->sensor_ep;
- 
- 	crop->width = min_t(__u32, infmt->width, crop->width);
-@@ -899,17 +912,24 @@ static int csi_get_fmt(struct v4l2_subdev *sd,
- 		       struct v4l2_subdev_format *sdformat)
- {
- 	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	struct v4l2_mbus_framefmt *fmt;
-+	int ret = 0;
- 
- 	if (sdformat->pad >= CSI_NUM_PADS)
- 		return -EINVAL;
- 
- 	mutex_lock(&priv->lock);
- 
--	sdformat->format = priv->format_mbus[sdformat->pad];
-+	fmt = __csi_get_fmt(priv, cfg, sdformat->pad, sdformat->which);
-+	if (!fmt) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
- 
-+	sdformat->format = *fmt;
-+out:
- 	mutex_unlock(&priv->lock);
+-void ion_pages_sync_for_device(struct device *dev, struct page *page,
+-			       size_t size, enum dma_data_direction dir)
+-{
+-	struct scatterlist sg;
 -
+-	sg_init_table(&sg, 1);
+-	sg_set_page(&sg, page, size, 0);
+-	/*
+-	 * This is not correct - sg_dma_address needs a dma_addr_t that is valid
+-	 * for the targeted device, but this works on the currently targeted
+-	 * hardware.
+-	 */
+-	sg_dma_address(&sg) = page_to_phys(page);
+-	dma_sync_sg_for_device(dev, &sg, 1, dir);
+-}
+-
+ static int ion_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
+ {
+ 	struct ion_buffer *buffer = dmabuf->priv;
+@@ -1042,30 +1026,6 @@ struct ion_handle *ion_import_dma_buf_fd(struct ion_client *client, int fd)
+ }
+ EXPORT_SYMBOL(ion_import_dma_buf_fd);
+ 
+-int ion_sync_for_device(struct ion_client *client, int fd)
+-{
+-	struct dma_buf *dmabuf;
+-	struct ion_buffer *buffer;
+-
+-	dmabuf = dma_buf_get(fd);
+-	if (IS_ERR(dmabuf))
+-		return PTR_ERR(dmabuf);
+-
+-	/* if this memory came from ion */
+-	if (dmabuf->ops != &dma_buf_ops) {
+-		pr_err("%s: can not sync dmabuf from another exporter\n",
+-		       __func__);
+-		dma_buf_put(dmabuf);
+-		return -EINVAL;
+-	}
+-	buffer = dmabuf->priv;
+-
+-	dma_sync_sg_for_device(NULL, buffer->sg_table->sgl,
+-			       buffer->sg_table->nents, DMA_BIDIRECTIONAL);
+-	dma_buf_put(dmabuf);
 -	return 0;
-+	return ret;
- }
- 
- static int csi_set_fmt(struct v4l2_subdev *sd,
-@@ -940,8 +960,6 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
- 		goto out;
- 	}
- 
--	infmt = &priv->format_mbus[CSI_SINK_PAD];
+-}
 -
- 	v4l_bound_align_image(&sdformat->format.width, MIN_W, MAX_W,
- 			      W_ALIGN, &sdformat->format.height,
- 			      MIN_H, MAX_H, H_ALIGN, S_ALIGN);
-@@ -949,6 +967,8 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
- 	switch (sdformat->pad) {
- 	case CSI_SRC_PAD_DIRECT:
- 	case CSI_SRC_PAD_IDMAC:
-+		infmt = __csi_get_fmt(priv, cfg, CSI_SINK_PAD, sdformat->which);
-+
- 		if (sdformat->format.width < priv->crop.width * 3 / 4)
- 			sdformat->format.width = priv->crop.width / 2;
- 		else
-@@ -1007,7 +1027,8 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
- 		crop.top = 0;
- 		crop.width = sdformat->format.width;
- 		crop.height = sdformat->format.height;
--		ret = csi_try_crop(priv, &crop, sensor);
-+		ret = csi_try_crop(priv, &crop, cfg,
-+				   sdformat->which, sensor);
- 		if (ret)
- 			goto out;
- 
-@@ -1052,7 +1073,11 @@ static int csi_get_selection(struct v4l2_subdev *sd,
- 
- 	mutex_lock(&priv->lock);
- 
--	infmt = &priv->format_mbus[CSI_SINK_PAD];
-+	infmt = __csi_get_fmt(priv, cfg, CSI_SINK_PAD, sel->which);
-+	if (!infmt) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
- 
- 	switch (sel->target) {
- 	case V4L2_SEL_TGT_CROP_BOUNDS:
-@@ -1062,12 +1087,20 @@ static int csi_get_selection(struct v4l2_subdev *sd,
- 		sel->r.height = infmt->height;
- 		break;
- 	case V4L2_SEL_TGT_CROP:
--		sel->r = priv->crop;
-+		if (sel->which == V4L2_SUBDEV_FORMAT_TRY) {
-+			struct v4l2_rect *try_crop =
-+				v4l2_subdev_get_try_crop(&priv->sd,
-+							 cfg, sel->pad);
-+			sel->r = *try_crop;
-+		} else {
-+			sel->r = priv->crop;
-+		}
- 		break;
- 	default:
- 		ret = -EINVAL;
- 	}
- 
-+out:
- 	mutex_unlock(&priv->lock);
- 	return ret;
- }
-@@ -1077,7 +1110,6 @@ static int csi_set_selection(struct v4l2_subdev *sd,
- 			     struct v4l2_subdev_selection *sel)
+ int ion_query_heaps(struct ion_client *client, struct ion_heap_query *query)
  {
- 	struct csi_priv *priv = v4l2_get_subdevdata(sd);
--	struct v4l2_mbus_framefmt *outfmt;
- 	struct imx_media_subdev *sensor;
- 	int ret = 0;
+ 	struct ion_device *dev = client->dev;
+diff --git a/drivers/staging/android/ion/ion_carveout_heap.c b/drivers/staging/android/ion/ion_carveout_heap.c
+index 9bf8e98..e0e360f 100644
+--- a/drivers/staging/android/ion/ion_carveout_heap.c
++++ b/drivers/staging/android/ion/ion_carveout_heap.c
+@@ -100,10 +100,6 @@ static void ion_carveout_heap_free(struct ion_buffer *buffer)
  
-@@ -1111,15 +1143,16 @@ static int csi_set_selection(struct v4l2_subdev *sd,
- 		goto out;
- 	}
+ 	ion_heap_buffer_zero(buffer);
  
--	outfmt = &priv->format_mbus[sel->pad];
+-	if (ion_buffer_cached(buffer))
+-		dma_sync_sg_for_device(NULL, table->sgl, table->nents,
+-				       DMA_BIDIRECTIONAL);
 -
--	ret = csi_try_crop(priv, &sel->r, sensor);
-+	ret = csi_try_crop(priv, &sel->r, cfg, sel->which, sensor);
- 	if (ret)
- 		goto out;
+ 	ion_carveout_free(heap, paddr, buffer->size);
+ 	sg_free_table(table);
+ 	kfree(table);
+@@ -128,8 +124,6 @@ struct ion_heap *ion_carveout_heap_create(struct ion_platform_heap *heap_data)
+ 	page = pfn_to_page(PFN_DOWN(heap_data->base));
+ 	size = heap_data->size;
  
- 	if (sel->which == V4L2_SUBDEV_FORMAT_TRY) {
- 		cfg->try_crop = sel->r;
- 	} else {
-+		struct v4l2_mbus_framefmt *outfmt =
-+			&priv->format_mbus[sel->pad];
-+
- 		priv->crop = sel->r;
- 		/* Update the source format */
- 		outfmt->width = sel->r.width;
+-	ion_pages_sync_for_device(NULL, page, size, DMA_BIDIRECTIONAL);
+-
+ 	ret = ion_heap_pages_zero(page, size, pgprot_writecombine(PAGE_KERNEL));
+ 	if (ret)
+ 		return ERR_PTR(ret);
+diff --git a/drivers/staging/android/ion/ion_chunk_heap.c b/drivers/staging/android/ion/ion_chunk_heap.c
+index 8c41889..46e13f6 100644
+--- a/drivers/staging/android/ion/ion_chunk_heap.c
++++ b/drivers/staging/android/ion/ion_chunk_heap.c
+@@ -101,10 +101,6 @@ static void ion_chunk_heap_free(struct ion_buffer *buffer)
+ 
+ 	ion_heap_buffer_zero(buffer);
+ 
+-	if (ion_buffer_cached(buffer))
+-		dma_sync_sg_for_device(NULL, table->sgl, table->nents,
+-				       DMA_BIDIRECTIONAL);
+-
+ 	for_each_sg(table->sgl, sg, table->nents, i) {
+ 		gen_pool_free(chunk_heap->pool, page_to_phys(sg_page(sg)),
+ 			      sg->length);
+@@ -132,8 +128,6 @@ struct ion_heap *ion_chunk_heap_create(struct ion_platform_heap *heap_data)
+ 	page = pfn_to_page(PFN_DOWN(heap_data->base));
+ 	size = heap_data->size;
+ 
+-	ion_pages_sync_for_device(NULL, page, size, DMA_BIDIRECTIONAL);
+-
+ 	ret = ion_heap_pages_zero(page, size, pgprot_writecombine(PAGE_KERNEL));
+ 	if (ret)
+ 		return ERR_PTR(ret);
+diff --git a/drivers/staging/android/ion/ion_page_pool.c b/drivers/staging/android/ion/ion_page_pool.c
+index aea89c1..532eda7 100644
+--- a/drivers/staging/android/ion/ion_page_pool.c
++++ b/drivers/staging/android/ion/ion_page_pool.c
+@@ -30,9 +30,6 @@ static void *ion_page_pool_alloc_pages(struct ion_page_pool *pool)
+ 
+ 	if (!page)
+ 		return NULL;
+-	if (!pool->cached)
+-		ion_pages_sync_for_device(NULL, page, PAGE_SIZE << pool->order,
+-					  DMA_BIDIRECTIONAL);
+ 	return page;
+ }
+ 
+diff --git a/drivers/staging/android/ion/ion_system_heap.c b/drivers/staging/android/ion/ion_system_heap.c
+index 6cb2fe7..a33331b 100644
+--- a/drivers/staging/android/ion/ion_system_heap.c
++++ b/drivers/staging/android/ion/ion_system_heap.c
+@@ -75,9 +75,6 @@ static struct page *alloc_buffer_page(struct ion_system_heap *heap,
+ 
+ 	page = ion_page_pool_alloc(pool);
+ 
+-	if (cached)
+-		ion_pages_sync_for_device(NULL, page, PAGE_SIZE << order,
+-					  DMA_BIDIRECTIONAL);
+ 	return page;
+ }
+ 
+@@ -401,8 +398,6 @@ static int ion_system_contig_heap_allocate(struct ion_heap *heap,
+ 
+ 	buffer->sg_table = table;
+ 
+-	ion_pages_sync_for_device(NULL, page, len, DMA_BIDIRECTIONAL);
+-
+ 	return 0;
+ 
+ free_table:
 -- 
 2.7.4
