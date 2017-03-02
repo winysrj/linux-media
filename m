@@ -1,70 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:58917 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750798AbdCIK5V (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 9 Mar 2017 05:57:21 -0500
-Subject: Re: [PATCH] [media] atmel-isc: fix off-by-one comparison and out of
- bounds read issue
-To: "Wu, Songjun" <Songjun.Wu@microchip.com>,
-        Colin King <colin.king@canonical.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-References: <20170307143047.30082-1-colin.king@canonical.com>
- <5dc9d025-31d5-b129-09df-5de19758e886@microchip.com>
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b84a5576-7b29-728b-b7c2-9929069a2b35@xs4all.nl>
-Date: Thu, 9 Mar 2017 11:57:18 +0100
-MIME-Version: 1.0
-In-Reply-To: <5dc9d025-31d5-b129-09df-5de19758e886@microchip.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:36852 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750972AbdCBUYp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 15:24:45 -0500
+From: simran singhal <singhalsimran0@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        outreachy-kernel@googlegroups.com
+Subject: [PATCH 2/7] staging: media: Add blank line after a declaration
+Date: Fri,  3 Mar 2017 01:21:57 +0530
+Message-Id: <1488484322-5928-2-git-send-email-singhalsimran0@gmail.com>
+In-Reply-To: <1488484322-5928-1-git-send-email-singhalsimran0@gmail.com>
+References: <1488484322-5928-1-git-send-email-singhalsimran0@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Songjun,
+Add blank line after a declaration. Problem found
+using checkpatch.
 
-On 08/03/17 03:25, Wu, Songjun wrote:
-> Hi Colin,
-> 
-> Thank you for your comment.
-> It is a bug, will be fixed in the next patch.
+This patch fixes these warning messages found by checkpatch.pl:
+WARNING : Missing a blank line after declarations.
 
-Do you mean that you will provide a new patch for this? Is there anything
-wrong with this patch? It seems reasonable to me.
+Signed-off-by: simran singhal <singhalsimran0@gmail.com>
+---
+ drivers/staging/media/atomisp/i2c/gc2235.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-Regards,
-
-	Hans
-
-> 
-> On 3/7/2017 22:30, Colin King wrote:
->> From: Colin Ian King <colin.king@canonical.com>
->>
->> The are only HIST_ENTRIES worth of entries in  hist_entry however the
->> for-loop is iterating one too many times leasing to a read access off
->> the end off the array ctrls->hist_entry.  Fix this by iterating by
->> the correct number of times.
->>
->> Detected by CoverityScan, CID#1415279 ("Out-of-bounds read")
->>
->> Signed-off-by: Colin Ian King <colin.king@canonical.com>
->> ---
->>  drivers/media/platform/atmel/atmel-isc.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
->> index b380a7d..7dacf8c 100644
->> --- a/drivers/media/platform/atmel/atmel-isc.c
->> +++ b/drivers/media/platform/atmel/atmel-isc.c
->> @@ -1298,7 +1298,7 @@ static void isc_hist_count(struct isc_device *isc)
->>      regmap_bulk_read(regmap, ISC_HIS_ENTRY, hist_entry, HIST_ENTRIES);
->>
->>      *hist_count = 0;
->> -    for (i = 0; i <= HIST_ENTRIES; i++)
->> +    for (i = 0; i < HIST_ENTRIES; i++)
->>          *hist_count += i * (*hist_entry++);
->>  }
->>
->>
+diff --git a/drivers/staging/media/atomisp/i2c/gc2235.c b/drivers/staging/media/atomisp/i2c/gc2235.c
+index 3f2b11ec..7de7e24 100644
+--- a/drivers/staging/media/atomisp/i2c/gc2235.c
++++ b/drivers/staging/media/atomisp/i2c/gc2235.c
+@@ -359,6 +359,7 @@ static long __gc2235_set_exposure(struct v4l2_subdev *sd, int coarse_itg,
+ 	u16 coarse_integration = (u16)coarse_itg;
+ 	int ret = 0;
+ 	u16 expo_coarse_h, expo_coarse_l, gain_val = 0xF0, gain_val2 = 0xF0;
++
+ 	expo_coarse_h = coarse_integration>>8;
+ 	expo_coarse_l = coarse_integration & 0xff;
+ 
+@@ -410,6 +411,7 @@ static long gc2235_s_exposure(struct v4l2_subdev *sd,
+ 	/* we should not accept the invalid value below. */
+ 	if (gain == 0) {
+ 		struct i2c_client *client = v4l2_get_subdevdata(sd);
++
+ 		v4l2_err(client, "%s: invalid value\n", __func__);
+ 		return -EINVAL;
+ 	}
+@@ -546,6 +548,7 @@ static int is_init;
+ static int gc2235_init(struct v4l2_subdev *sd)
+ {
+ 	int ret = 0;
++
+ 	ret = __gc2235_init(sd);
+ 
+ 	return ret;
+@@ -759,6 +762,7 @@ static int startup(struct v4l2_subdev *sd)
+ 	struct gc2235_device *dev = to_gc2235_sensor(sd);
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	int ret = 0;
++
+ 	if (is_init == 0) {
+ 		/* force gc2235 to do a reset in res change, otherwise it
+ 		* can not output normal after switching res. and it is not
+@@ -893,6 +897,7 @@ static int gc2235_s_stream(struct v4l2_subdev *sd, int enable)
+ 	struct gc2235_device *dev = to_gc2235_sensor(sd);
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	int ret;
++
+ 	mutex_lock(&dev->input_lock);
+ 
+ 	if (enable)
+@@ -1007,6 +1012,7 @@ static int gc2235_s_parm(struct v4l2_subdev *sd,
+ 			struct v4l2_streamparm *param)
+ {
+ 	struct gc2235_device *dev = to_gc2235_sensor(sd);
++
+ 	dev->run_mode = param->parm.capture.capturemode;
+ 
+ 	mutex_lock(&dev->input_lock);
+@@ -1112,6 +1118,7 @@ static int gc2235_remove(struct i2c_client *client)
+ {
+ 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+ 	struct gc2235_device *dev = to_gc2235_sensor(sd);
++
+ 	dev_dbg(&client->dev, "gc2235_remove...\n");
+ 
+ 	if (dev->platform_data->platform_deinit)
+-- 
+2.7.4
