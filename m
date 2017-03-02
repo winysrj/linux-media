@@ -1,68 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:60396 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755633AbdCKLXh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Mar 2017 06:23:37 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv5 14/16] em28xx: drop last soc_camera link
-Date: Sat, 11 Mar 2017 12:23:26 +0100
-Message-Id: <20170311112328.11802-15-hverkuil@xs4all.nl>
-In-Reply-To: <20170311112328.11802-1-hverkuil@xs4all.nl>
-References: <20170311112328.11802-1-hverkuil@xs4all.nl>
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:36217 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750713AbdCBTxQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 14:53:16 -0500
+From: simran singhal <singhalsimran0@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        outreachy-kernel@googlegroups.com
+Subject: [PATCH 3/7] staging: media: Replace NULL with "!"
+Date: Fri,  3 Mar 2017 01:21:58 +0530
+Message-Id: <1488484322-5928-3-git-send-email-singhalsimran0@gmail.com>
+In-Reply-To: <1488484322-5928-1-git-send-email-singhalsimran0@gmail.com>
+References: <1488484322-5928-1-git-send-email-singhalsimran0@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Use ! in comparison tests using "==NULL" rather than moving the
+"==NULL" to the right side of the test.
 
-The em28xx driver still used the soc_camera.h header for the ov2640
-driver. Since this driver no longer uses soc_camera, that include can
-be removed.
+Addesses multiple instances of the checkpatch.pl warning:
+WARNING: Comparisons should place the constant on the right side of the
+test
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: simran singhal <singhalsimran0@gmail.com>
 ---
- drivers/media/usb/em28xx/em28xx-camera.c | 9 ---------
- 1 file changed, 9 deletions(-)
+ drivers/staging/media/atomisp/i2c/gc2235.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
-index 89c890ba7dd6..63aaa577a742 100644
---- a/drivers/media/usb/em28xx/em28xx-camera.c
-+++ b/drivers/media/usb/em28xx/em28xx-camera.c
-@@ -23,7 +23,6 @@
+diff --git a/drivers/staging/media/atomisp/i2c/gc2235.c b/drivers/staging/media/atomisp/i2c/gc2235.c
+index 7de7e24..2ef876a 100644
+--- a/drivers/staging/media/atomisp/i2c/gc2235.c
++++ b/drivers/staging/media/atomisp/i2c/gc2235.c
+@@ -603,7 +603,7 @@ static int power_up(struct v4l2_subdev *sd)
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	int ret;
  
- #include <linux/i2c.h>
- #include <linux/usb.h>
--#include <media/soc_camera.h>
- #include <media/i2c/mt9v011.h>
- #include <media/v4l2-clk.h>
- #include <media/v4l2-common.h>
-@@ -43,13 +42,6 @@ static unsigned short omnivision_sensor_addrs[] = {
- 	I2C_CLIENT_END
- };
+-	if (NULL == dev->platform_data) {
++	if (!dev->platform_data) {
+ 		dev_err(&client->dev,
+ 			"no camera_sensor_platform_data");
+ 		return -ENODEV;
+@@ -647,7 +647,7 @@ static int power_down(struct v4l2_subdev *sd)
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	int ret = 0;
  
--static struct soc_camera_link camlink = {
--	.bus_id = 0,
--	.flags = 0,
--	.module_name = "em28xx",
--	.unbalanced_power = true,
--};
--
- /* FIXME: Should be replaced by a proper mt9m111 driver */
- static int em28xx_initialize_mt9m111(struct em28xx *dev)
- {
-@@ -421,7 +413,6 @@ int em28xx_init_camera(struct em28xx *dev)
- 			.type = "ov2640",
- 			.flags = I2C_CLIENT_SCCB,
- 			.addr = client->addr,
--			.platform_data = &camlink,
- 		};
- 		struct v4l2_subdev_format format = {
- 			.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+-	if (NULL == dev->platform_data) {
++	if (!dev->platform_data) {
+ 		dev_err(&client->dev,
+ 			"no camera_sensor_platform_data");
+ 		return -ENODEV;
 -- 
-2.11.0
+2.7.4
