@@ -1,96 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx-out-2.rwth-aachen.de ([134.130.5.187]:18837 "EHLO
-        mx-out-2.rwth-aachen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751333AbdC0QxB (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40334 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750867AbdCBLdk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 12:53:01 -0400
-From: =?iso-8859-1?Q?Br=FCns=2C_Stefan?= <Stefan.Bruens@rwth-aachen.de>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-CC: Antti Palosaari <crope@iki.fi>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "mchehab@kernel.org" <mchehab@kernel.org>
-Subject: Re: [PATCH v3 0/3] Add support for MyGica T230C DVB-T2 stick
-Date: Mon, 27 Mar 2017 16:52:58 +0000
-Message-ID: <1853859.nLLveUtAEZ@sbruens-linux>
-References: <20170217005533.22424-1-stefan.bruens@rwth-aachen.de>
- <2b3bb92a-4024-7a82-c86d-2e5893786daf@iki.fi>
- <20170306083408.5abb44b5@vento.lan>
-In-Reply-To: <20170306083408.5abb44b5@vento.lan>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-ID: <209651FD3663EC4F99793922C1780EAD@rwth-ad.de>
-Content-Transfer-Encoding: 8BIT
+        Thu, 2 Mar 2017 06:33:40 -0500
+Date: Thu, 2 Mar 2017 13:24:02 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
+        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCHv2] omap3isp: add support for CSI1 bus
+Message-ID: <20170302112401.GF3220@valkosipuli.retiisi.org.uk>
+References: <20161228183036.GA13139@amd>
+ <10545906.Gxg3yScdu4@avalon>
+ <20170215094228.GA8586@amd>
+ <2414221.XNA4JCFMRx@avalon>
+ <20170302090143.GB27818@amd>
+ <20170302101603.GE27818@amd>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170302101603.GE27818@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Montag, 6. März 2017 12:34:13 CEST Mauro Carvalho Chehab wrote:
-> Em Sat, 4 Mar 2017 03:23:42 +0200
+Hi Pavel,
+
+On Thu, Mar 02, 2017 at 11:16:04AM +0100, Pavel Machek wrote:
+> Hi!
 > 
-> Antti Palosaari <crope@iki.fi> escreveu:
-> > On 03/03/2017 08:35 PM, Brüns, Stefan wrote:
-> > > On Fr, 2017-02-17 at 01:55 +0100, Stefan Brüns wrote:
-> > >> The required command sequence for the new tuner (Si2141) was traced
-> > >> from the
-> > >> current Windows driver and verified with a small python
-> > >> script/libusb.
-> > >> The changes to the Si2168 and dvbsky driver are mostly additions of
-> > >> the
-> > >> required IDs and some glue code.
-> > >> 
-> > >> Stefan Brüns (3):
-> > >>   [media] si2157: Add support for Si2141-A10
-> > >>   [media] si2168: add support for Si2168-D60
-> > >>   [media] dvbsky: MyGica T230C support
-> > >>  
-> > >>  drivers/media/dvb-core/dvb-usb-ids.h      |  1 +
-> > >>  drivers/media/dvb-frontends/si2168.c      |  4 ++
-> > >>  drivers/media/dvb-frontends/si2168_priv.h |  2 +
-> > >>  drivers/media/tuners/si2157.c             | 23 +++++++-
-> > >>  drivers/media/tuners/si2157_priv.h        |  2 +
-> > >>  drivers/media/usb/dvb-usb-v2/dvbsky.c     | 88
-> > >> 
-> > >> +++++++++++++++++++++++++++++++
-> > >> 
-> > >>  6 files changed, 118 insertions(+), 2 deletions(-)
+> > > > >> +++ b/drivers/media/platform/omap3isp/ispccp2.c
+> > > > >> @@ -160,6 +163,33 @@ static int ccp2_if_enable(struct isp_ccp2_device
+> > > > >> *ccp2, u8 enable) return ret;
+> > > > >> 
+> > > > >>  	}
+> > > > >> 
+> > > > >> +	if (isp->revision == ISP_REVISION_2_0) {
+> > > > > 
+> > > > > The isp_csiphy.c code checks phy->isp->phy_type for the same purpose,
+> > > > > shouldn't you use that too ?
+> > > > 
+> > > > Do you want me to do phy->isp->phy_type == ISP_PHY_TYPE_3430 check
+> > > > here? Can do...
 > > > 
-> > > Instead of this series, a different patchset was accepted, although
-> > > Antti raised concerns about at least 2 of the 3 patches accpeted, more
-> > > specifically the si2157 patch contains some bogus initialization code,
+> > > Yes that's what I meant.
+> > 
+> > Ok, that's something I can do.
+> > 
+> > But code is still somewhat "interesting". Code in omap3isp_csiphy_acquire()
+> > assumes csi2, and I don't need most of it.. so I'll just not use it,
+> > but it looks strange. I'll post new patch shortly.
 > 
-> Sorry, I likely missed those comments when reviewed the patch series.
+> Ok, how about this one?
 > 
-> As the applied series won't cause regressions, as all init code seem
-> specific to the new tuner, I won't be reverting the patchsets, but
-> wait for Antti to be able to do a deeper look on it.
+> 									Pavel
 > 
-> Please submit a patch removing the bogus init code, for Antti's
-> review.
+> omap3isp: add rest of CSI1 support
+>     
+> CSI1 needs one more bit to be set up. Do just that.
+>     
+> It is not as straightforward as I'd like, see the comments in the code
+> for explanation.
+>     
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
 > 
-> > > and the T230C support were better added to the dvbsky driver instead of
-> > > 
-> > >  cxusb.
-> 
-> IMHO, the better here would be to merge both drivers into one, as they
-> seem to be doing very similar stuff. So, I can't find a good reason
-> why we should keep both drivers upstream. As dvbsky uses dvb-usb-v2,
-> the best would be to move the board-specific code from cxusb into
-> the dvbsky driver, and drop the cxusb driver.
-> 
-> Feel free to submit such patch too.
+> index ca09523..b6e055e 100644
+> --- a/drivers/media/platform/omap3isp/ispccp2.c
+> +++ b/drivers/media/platform/omap3isp/ispccp2.c
+> @@ -21,6 +23,7 @@
+>  #include <linux/mutex.h>
+>  #include <linux/uaccess.h>
+>  #include <linux/regulator/consumer.h>
+> +#include <linux/regmap.h>
+>  
+>  #include "isp.h"
+>  #include "ispreg.h"
+> @@ -160,6 +163,22 @@ static int ccp2_if_enable(struct isp_ccp2_device *ccp2, u8 enable)
+>  			return ret;
+>  	}
+>  
+> +	if (isp->phy_type == ISP_PHY_TYPE_3430) {
+> +		struct media_pad *pad;
+> +		struct v4l2_subdev *sensor;
+> +		const struct isp_ccp2_cfg *buscfg;
+> +
+> +		pad = media_entity_remote_pad(&ccp2->pads[CCP2_PAD_SINK]);
+> +		sensor = media_entity_to_v4l2_subdev(pad->entity);
+> +		/* Struct isp_bus_cfg has union inside */
+> +		buscfg = &((struct isp_bus_cfg *)sensor->host_priv)->bus.ccp2;
+> +
+> +		csiphy_routing_cfg_3430(&isp->isp_csiphy2,
+> +					ISP_INTERFACE_CCP2B_PHY1,
+> +					enable, !!buscfg->phy_layer,
+> +					buscfg->strobe_clk_pol);
 
-"Merging" the drivers comes down to reverting the patch to cxusb, and instead 
-applying Patch 3 from my series. I won't port support for any other stick, as 
-I lack the hardware for testing.
- 
-> > Patch set looks good. I ordered that device and it arrived yesterday. I
-> > will handle that during 2 weeks - it is now skiing holiday and I am at
-> > France alps whole next week. So just wait :)
+You should do this through omap3isp_csiphy_acquire(), and not call
+csiphy_routing_cfg_3430() directly from here.
 
-@Annti - hope you enjoyed skiing, did you have time for looking into the 
-issue?
 
+> +	}
+> +
+>  	/* Enable/Disable all the LCx channels */
+>  	for (i = 0; i < CCP2_LCx_CHANS_NUM; i++)
+>  		isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_LCx_CTRL(i),
+> @@ -1137,10 +1159,19 @@ int omap3isp_ccp2_init(struct isp_device *isp)
+>  	if (isp->revision == ISP_REVISION_2_0) {
+>  		ccp2->vdds_csib = devm_regulator_get(isp->dev, "vdds_csib");
+>  		if (IS_ERR(ccp2->vdds_csib)) {
+> +			if (PTR_ERR(ccp2->vdds_csib) == -EPROBE_DEFER)
+> +				return -EPROBE_DEFER;
+
+This should go to a separate patch.
+
+>  			dev_dbg(isp->dev,
+>  				"Could not get regulator vdds_csib\n");
+>  			ccp2->vdds_csib = NULL;
+>  		}
+> +		/*
+> +		 * If we set up ccp2->phy here,
+> +		 * omap3isp_csiphy_acquire() will go ahead and assume
+> +		 * csi2, dereferencing some null pointers.
+> +		 *
+> +		 * ccp2->phy = &isp->isp_csiphy2;
+
+That needs to be fixed separately.
+
+> +		 */
+>  	} else if (isp->revision == ISP_REVISION_15_0) {
+>  		ccp2->phy = &isp->isp_csiphy1;
+>  	}
+> diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/platform/omap3isp/ispcsiphy.c
+> index 871d4fe..897097b 100644
+> --- a/drivers/media/platform/omap3isp/ispcsiphy.c
+> +++ b/drivers/media/platform/omap3isp/ispcsiphy.c
+> @@ -68,8 +68,8 @@ static void csiphy_routing_cfg_3630(struct isp_csiphy *phy,
+>  	regmap_write(phy->isp->syscon, phy->isp->syscon_offset, reg);
+>  }
+>  
+> -static void csiphy_routing_cfg_3430(struct isp_csiphy *phy, u32 iface, bool on,
+> -				    bool ccp2_strobe)
+> +void csiphy_routing_cfg_3430(struct isp_csiphy *phy, u32 iface, bool on,
+> +			     bool ccp2_strobe, bool strobe_clk_pol)
+>  {
+>  	u32 csirxfe = OMAP343X_CONTROL_CSIRXFE_PWRDNZ
+>  		| OMAP343X_CONTROL_CSIRXFE_RESET;
+> @@ -85,6 +85,9 @@ static void csiphy_routing_cfg_3430(struct isp_csiphy *phy, u32 iface, bool on,
+>  
+>  	if (ccp2_strobe)
+>  		csirxfe |= OMAP343X_CONTROL_CSIRXFE_SELFORM;
+> +	
+> +	if (strobe_clk_pol)
+> +		csirxfe |= OMAP343X_CONTROL_CSIRXFE_CSIB_INV;
+>  
+>  	regmap_write(phy->isp->syscon, phy->isp->syscon_offset, csirxfe);
+>  }
+> @@ -108,7 +111,7 @@ static void csiphy_routing_cfg(struct isp_csiphy *phy,
+>  	if (phy->isp->phy_type == ISP_PHY_TYPE_3630 && on)
+>  		return csiphy_routing_cfg_3630(phy, iface, ccp2_strobe);
+>  	if (phy->isp->phy_type == ISP_PHY_TYPE_3430)
+> -		return csiphy_routing_cfg_3430(phy, iface, on, ccp2_strobe);
+> +		return csiphy_routing_cfg_3430(phy, iface, on, ccp2_strobe, false);
+>  }
+>  
+>  /*
+> diff --git a/drivers/media/platform/omap3isp/ispcsiphy.h b/drivers/media/platform/omap3isp/ispcsiphy.h
+> index 28b63b2..88c5c1e8 100644
+> --- a/drivers/media/platform/omap3isp/ispcsiphy.h
+> +++ b/drivers/media/platform/omap3isp/ispcsiphy.h
+> @@ -40,4 +40,7 @@ int omap3isp_csiphy_acquire(struct isp_csiphy *phy);
+>  void omap3isp_csiphy_release(struct isp_csiphy *phy);
+>  int omap3isp_csiphy_init(struct isp_device *isp);
+>  
+> +void csiphy_routing_cfg_3430(struct isp_csiphy *phy, u32 iface, bool on,
+> +				    bool ccp2_strobe, bool strobe_clk_pol);
+> +
+>  #endif	/* OMAP3_ISP_CSI_PHY_H */
+> 
+> 
+> 
+
+-- 
 Kind regards,
 
-Stefan
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
