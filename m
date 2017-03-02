@@ -1,60 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f171.google.com ([209.85.223.171]:34109 "EHLO
-        mail-io0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751831AbdCCLYM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 06:24:12 -0500
+Received: from mail-oi0-f47.google.com ([209.85.218.47]:33949 "EHLO
+        mail-oi0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752111AbdCBQcO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 11:32:14 -0500
+Received: by mail-oi0-f47.google.com with SMTP id m124so42039028oig.1
+        for <linux-media@vger.kernel.org>; Thu, 02 Mar 2017 08:30:44 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20170302210104.646782352@cogentembedded.com>
-References: <20170302210104.646782352@cogentembedded.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Fri, 3 Mar 2017 12:24:00 +0100
-Message-ID: <CAMuHMdVg5N82bu8fxRS=3iqF2MQmqoR0idb_x0t2RNn8eoedQg@mail.gmail.com>
-Subject: Re: [PATCH] media: platform: Renesas IMR driver
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Konstantin Kozhevnikov
-        <Konstantin.Kozhevnikov@cogentembedded.com>
+In-Reply-To: <20170302095144.32090-1-p.zabel@pengutronix.de>
+References: <20170302095144.32090-1-p.zabel@pengutronix.de>
+From: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
+Date: Thu, 2 Mar 2017 17:30:23 +0100
+Message-ID: <CAH-u=83Jib=vFPXQTsfojssrR3h8eXzm_1imufZ9NKJ=0DPdgw@mail.gmail.com>
+Subject: Re: [PATCH] [media] coda: implement encoder stop command
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sascha Hauer <kernel@pengutronix.de>
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergei,
+<snip>
 
-On Thu, Mar 2, 2017 at 10:00 PM, Sergei Shtylyov
-<sergei.shtylyov@cogentembedded.com> wrote:
-> --- /dev/null
-> +++ media_tree/Documentation/devicetree/bindings/media/rcar_imr.txt
+> +       /* If there is no buffer in flight, wake up */
+> +       if (ctx->qsequence == ctx->osequence) {
 
-> +- compatible: "renesas,imr-lx4-<soctype>", "renesas,imr-lx4" as a fallback for
+Not sure about this one, I would have done something like :
+if (!(ctx->fh.m2m_ctx->job_flags)) {
 
-"renesas,<soctype>-imr-lx4"
-
-> +  the image renderer light extended 4 (IMR-LX4) found in the R-Car gen3 SoCs,
-> +  where the examples with <soctype> are:
-> +  - "renesas,imr-lx4-h3" for R-Car H3,
-
-"renesas,r8a7795-imr-lx4"
-
-> +  - "renesas,imr-lx4-m3-w" for R-Car M3-W,
-
-"renesas,r8a7796-imr-lx4"
-
-> +  - "renesas,imr-lx4-v3m" for R-Car V3M.
-
-"renesas,-EPROBE_DEFER-imr-lx4"
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+> +               dst_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx,
+> +                                        V4L2_BUF_TYPE_VIDEO_CAPTURE);
+> +               dst_vq->last_buffer_dequeued = true;
+> +               wake_up(&dst_vq->done_wq);
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+>  static int coda_try_decoder_cmd(struct file *file, void *fh,
+>                                 struct v4l2_decoder_cmd *dc)
+>  {
+> @@ -1054,6 +1095,8 @@ static const struct v4l2_ioctl_ops coda_ioctl_ops = {
+>
+>         .vidioc_g_selection     = coda_g_selection,
+>
+> +       .vidioc_try_encoder_cmd = coda_try_encoder_cmd,
+> +       .vidioc_encoder_cmd     = coda_encoder_cmd,
+>         .vidioc_try_decoder_cmd = coda_try_decoder_cmd,
+>         .vidioc_decoder_cmd     = coda_decoder_cmd,
+>
+> @@ -1330,9 +1373,13 @@ static void coda_buf_queue(struct vb2_buffer *vb)
+>                 mutex_lock(&ctx->bitstream_mutex);
+>                 v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
+>                 if (vb2_is_streaming(vb->vb2_queue))
+> +                       /* This set buf->sequence = ctx->qsequence++ */
+>                         coda_fill_bitstream(ctx, true);
+>                 mutex_unlock(&ctx->bitstream_mutex);
+>         } else {
+> +               if (ctx->inst_type == CODA_INST_ENCODER &&
+> +                   vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> +                       vbuf->sequence = ctx->qsequence++;
+>                 v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
+>         }
+>  }
+> --
+> 2.11.0
+>
