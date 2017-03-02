@@ -1,127 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:48312 "EHLO
-        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932470AbdCaD7Z (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 23:59:25 -0400
-Message-ID: <d0a8ab4c0ea9967c3c0d69c3a16d7f69@smtp-cloud6.xs4all.net>
-Date: Fri, 31 Mar 2017 05:59:21 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mout.kundenserver.de ([212.227.126.187]:49556 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752674AbdCBRjM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 12:39:12 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: kasan-dev@googlegroups.com
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-wireless@vger.kernel.org,
+        kernel-build-reports@lists.linaro.org,
+        "David S . Miller" <davem@davemloft.net>,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 22/26] drm/i915/gvt: don't overflow the kernel stack with KASAN
+Date: Thu,  2 Mar 2017 17:38:30 +0100
+Message-Id: <20170302163834.2273519-23-arnd@arndb.de>
+In-Reply-To: <20170302163834.2273519-1-arnd@arndb.de>
+References: <20170302163834.2273519-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Enabling CONFIG_KASAN can lead to an instant stack overflow:
 
-Results of the daily build of media_tree:
+drivers/gpu/drm/i915/gvt/handlers.c: In function 'init_generic_mmio_info':
+drivers/gpu/drm/i915/gvt/handlers.c:2200:1: error: the frame size of 30464 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
+drivers/gpu/drm/i915/gvt/handlers.c: In function 'init_broadwell_mmio_info':
+drivers/gpu/drm/i915/gvt/handlers.c:2402:1: error: the frame size of 5376 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
+drivers/gpu/drm/i915/gvt/handlers.c: In function 'init_skl_mmio_info':
+drivers/gpu/drm/i915/gvt/handlers.c:2628:1: error: the frame size of 5296 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
 
-date:			Fri Mar 31 05:00:16 CEST 2017
-media-tree git hash:	c3d4fb0fb41f4b5eafeee51173c14e50be12f839
-media_build git hash:	bc4c2a205c087c8deff3cd14ed663c4767dd2016
-v4l-utils git hash:	984caeac9a41f8d4f636b933dfba4f29c5257f96
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+The reason is the INTEL_GVT_MMIO_OFFSET() hack that attempts to convert any type
+(including i915_reg_t) into a u32 by reading the first four bytes, in combination
+with the stack sanitizer that adds a redzone around each instance.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10.1-i686: OK
-linux-4.11-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-x86_64: WARNINGS
-linux-4.10.1-x86_64: WARNINGS
-linux-4.11-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+Originally, i915_reg_t was introduced to add a little extra type safety by
+disallowing simple type casts, and INTEL_GVT_MMIO_OFFSET() goes the opposite
+way by allowing any type as input, including those that are not safe in this
+context.
 
-Detailed results are available here:
+I'm replacing it with an implementation that specifically allows the three
+types that are actually used as input: 'i915_reg_t' (from _MMIO constants),
+'int' (from other constants), and 'unsigned int' (from function arguments),
+and any other type should now provoke a build error. This also solves the
+stack overflow as we no longer use a local variable for each instance.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/gpu/drm/i915/gvt/mmio.h | 17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/gpu/drm/i915/gvt/mmio.h b/drivers/gpu/drm/i915/gvt/mmio.h
+index 3bc620f56f35..bf40100fc626 100644
+--- a/drivers/gpu/drm/i915/gvt/mmio.h
++++ b/drivers/gpu/drm/i915/gvt/mmio.h
+@@ -78,13 +78,20 @@ bool intel_gvt_match_device(struct intel_gvt *gvt, unsigned long device);
+ int intel_gvt_setup_mmio_info(struct intel_gvt *gvt);
+ void intel_gvt_clean_mmio_info(struct intel_gvt *gvt);
+ 
++static inline u32 intel_gvt_mmio_offset(unsigned int offset)
++{
++	return offset;
++}
++
+ struct intel_gvt_mmio_info *intel_gvt_find_mmio_info(struct intel_gvt *gvt,
+ 						     unsigned int offset);
+-#define INTEL_GVT_MMIO_OFFSET(reg) ({ \
+-	typeof(reg) __reg = reg; \
+-	u32 *offset = (u32 *)&__reg; \
+-	*offset; \
+-})
++#define INTEL_GVT_MMIO_OFFSET(reg) \
++__builtin_choose_expr(__builtin_types_compatible_p(typeof(reg), int), intel_gvt_mmio_offset, \
++__builtin_choose_expr(__builtin_types_compatible_p(typeof(reg), unsigned int), intel_gvt_mmio_offset, \
++__builtin_choose_expr(__builtin_types_compatible_p(typeof(reg), i915_reg_t), i915_mmio_reg_offset, \
++	(void)(0) \
++)))(reg)
++
+ 
+ int intel_vgpu_init_mmio(struct intel_vgpu *vgpu);
+ void intel_vgpu_reset_mmio(struct intel_vgpu *vgpu);
+-- 
+2.9.0
