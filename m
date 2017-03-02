@@ -1,66 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:48304 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753746AbdCHOXF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 8 Mar 2017 09:23:05 -0500
-Subject: Re: [PATCH] atomisp2: unify some ifdef cases caused by format changes
-To: Greg KH <greg@kroah.com>
-References: <148879924465.10733.17814546240558419917.stgit@acox1-desk1.ger.corp.intel.com>
- <90583522-0afb-e556-b1a6-dea0efc5392d@xs4all.nl>
- <20170308133947.GB5221@kroah.com>
- <b13609bf-0e14-685a-01a7-0ba88e15db8c@xs4all.nl>
- <2540e923-6468-a283-26ff-9e48a4f18157@xs4all.nl>
- <20170308142054.GA11016@kroah.com>
-Cc: Alan Cox <alan@linux.intel.com>, linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <a9a9df02-d36b-a9f8-5fc1-25db689dabd6@xs4all.nl>
-Date: Wed, 8 Mar 2017 15:22:51 +0100
+Received: from mail-ot0-f170.google.com ([74.125.82.170]:35208 "EHLO
+        mail-ot0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750867AbdCBLAc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 06:00:32 -0500
+Received: by mail-ot0-f170.google.com with SMTP id x37so4789893ota.2
+        for <linux-media@vger.kernel.org>; Thu, 02 Mar 2017 03:00:32 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20170308142054.GA11016@kroah.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20170302095144.32090-1-p.zabel@pengutronix.de>
+References: <20170302095144.32090-1-p.zabel@pengutronix.de>
+From: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
+Date: Thu, 2 Mar 2017 11:02:55 +0100
+Message-ID: <CAH-u=833MgX4ZD07db4Reg+N6ch7Q35_7qt0Prn-6THYO0wFTQ@mail.gmail.com>
+Subject: Re: [PATCH] [media] coda: implement encoder stop command
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sascha Hauer <kernel@pengutronix.de>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/03/17 15:20, Greg KH wrote:
-> On Wed, Mar 08, 2017 at 02:55:44PM +0100, Hans Verkuil wrote:
->> On 08/03/17 14:45, Hans Verkuil wrote:
->>> On 08/03/17 14:39, Greg KH wrote:
->>>> On Wed, Mar 08, 2017 at 01:49:23PM +0100, Hans Verkuil wrote:
->>>>> OK, so I discovered that these patches are for a driver added to linux-next
->>>>> without it ever been cross-posted to linux-media.
->>>>>
->>>>> To be polite, I think that's rather impolite.
->>>>
->>>> They were, but got rejected due to the size :(
->>>>
->>>> Mauro was cc:ed directly, he knew these were coming...
->>>>
->>>> I can take care of the cleanup patches for now, you don't have to review
->>>> them if you don't want to.
->>>
->>> Please do.
->>>
->>> For the next time if the patches are too large: at least post a message with
->>> a link to a repo for people to look at. I would like to know what's going
->>> on in staging/media, especially since I will do a lot of the reviewing (at
->>> least if it is a V4L2 driver) when they want to move it out of staging.
->>
->> Same issue BTW with the bcm2835 driver. That too landed in staging without
->> ever being posted to the linux-media mailinglist. Size is no excuse for that
->> driver since it isn't that large.
->>
->> I'll handle cleanup patches for the bcm2835 driver since it is now in our tree.
-> 
-> Nope, it got moved out as it didn't belong there yet :)
-> 
-> It's now in drivers/staging/vc04_services/ as all of the issues so far
-> aren't media ones, but vc04 api issues.  Once those get ironed out, then
-> the media people can have at it :)
+Hi Philipp,
 
-OK, then I will ignore bcm2835 patches for now.
+2017-03-02 10:51 GMT+01:00 Philipp Zabel <p.zabel@pengutronix.de>:
+> There is no need to call v4l2_m2m_try_schedule to kick off draining the
+> bitstream buffer for the encoder, but we have to wake up the destination
+> queue in case there are no new OUTPUT buffers to be encoded and userspace
+> is already polling for new CAPTURE buffers.
+>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>  drivers/media/platform/coda/coda-common.c | 47 +++++++++++++++++++++++++++++++
+>  1 file changed, 47 insertions(+)
+>
+> diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+> index e1a2e8c70db01..085bbdb0d361b 100644
+> --- a/drivers/media/platform/coda/coda-common.c
+> +++ b/drivers/media/platform/coda/coda-common.c
+> @@ -881,6 +881,47 @@ static int coda_g_selection(struct file *file, void *fh,
+>         return 0;
+>  }
+>
+> +static int coda_try_encoder_cmd(struct file *file, void *fh,
+> +                               struct v4l2_encoder_cmd *ec)
+> +{
+> +       if (ec->cmd != V4L2_ENC_CMD_STOP)
+> +               return -EINVAL;
+> +
+> +       if (ec->flags & V4L2_ENC_CMD_STOP_AT_GOP_END)
+> +               return -EINVAL;
+> +
+> +       return 0;
+> +}
+> +
+> +static int coda_encoder_cmd(struct file *file, void *fh,
+> +                           struct v4l2_encoder_cmd *ec)
+> +{
+> +       struct coda_ctx *ctx = fh_to_ctx(fh);
+> +       struct vb2_queue *dst_vq;
+> +       int ret;
+> +
+> +       ret = coda_try_encoder_cmd(file, fh, ec);
+> +       if (ret < 0)
+> +               return ret;
+> +
+> +       /* Ignore encoder stop command silently in decoder context */
+> +       if (ctx->inst_type != CODA_INST_ENCODER)
+> +               return 0;
+> +
+> +       /* Set the stream-end flag on this context */
+> +       ctx->bit_stream_param |= CODA_BIT_STREAM_END_FLAG;
 
-Good to know!
+Why aren't you calling coda_bit_stream_end_flag() ?
 
-	Hans
+> +       /* If there is no buffer in flight, wake up */
+> +       if (ctx->qsequence == ctx->osequence) {
+> +               dst_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx,
+> +                                        V4L2_BUF_TYPE_VIDEO_CAPTURE);
+> +               dst_vq->last_buffer_dequeued = true;
+> +               wake_up(&dst_vq->done_wq);
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+>  static int coda_try_decoder_cmd(struct file *file, void *fh,
+>                                 struct v4l2_decoder_cmd *dc)
+>  {
+> @@ -1054,6 +1095,8 @@ static const struct v4l2_ioctl_ops coda_ioctl_ops = {
+>
+>         .vidioc_g_selection     = coda_g_selection,
+>
+> +       .vidioc_try_encoder_cmd = coda_try_encoder_cmd,
+> +       .vidioc_encoder_cmd     = coda_encoder_cmd,
+>         .vidioc_try_decoder_cmd = coda_try_decoder_cmd,
+>         .vidioc_decoder_cmd     = coda_decoder_cmd,
+>
+> @@ -1330,9 +1373,13 @@ static void coda_buf_queue(struct vb2_buffer *vb)
+>                 mutex_lock(&ctx->bitstream_mutex);
+>                 v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
+>                 if (vb2_is_streaming(vb->vb2_queue))
+> +                       /* This set buf->sequence = ctx->qsequence++ */
+>                         coda_fill_bitstream(ctx, true);
+>                 mutex_unlock(&ctx->bitstream_mutex);
+>         } else {
+> +               if (ctx->inst_type == CODA_INST_ENCODER &&
+> +                   vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> +                       vbuf->sequence = ctx->qsequence++;
+>                 v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
+>         }
+>  }
+> --
+> 2.11.0
+>
+
+JM
