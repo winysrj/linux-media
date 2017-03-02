@@ -1,105 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:60962 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751527AbdCAMCa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Mar 2017 07:02:30 -0500
-Date: Wed, 1 Mar 2017 12:45:46 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, mchehab@kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org
-Subject: [media] omap3isp: Correctly set IO_OUT_SEL and VP_CLK_POL for CCP2
- mode
-Message-ID: <20170301114545.GA19201@amd>
-References: <20161228183036.GA13139@amd>
- <10545906.Gxg3yScdu4@avalon>
- <20170215094228.GA8586@amd>
- <2414221.XNA4JCFMRx@avalon>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="pf9I7BMVVzbSWLtt"
-Content-Disposition: inline
-In-Reply-To: <2414221.XNA4JCFMRx@avalon>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:20006 "EHLO
+        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751132AbdCBHyL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 02:54:11 -0500
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Subject: Re: [PATCH v6 2/2] [media] s5p-mfc: Handle 'v4l2_pix_format:field' in
+ try_fmt and g_fmt
+To: Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Thibault Saunier <thibault.saunier@osg.samsung.com>,
+        linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        linux-arm-kernel@lists.infradead.org,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Kamil Debski <kamil@wypas.org>
+From: Andrzej Hajda <a.hajda@samsung.com>
+Message-id: <54862f6b-290d-7e87-4297-57ffc35d357a@samsung.com>
+Date: Thu, 02 Mar 2017 08:42:51 +0100
+In-reply-to: <1488381666.14858.5.camel@collabora.com>
+Content-transfer-encoding: 8bit
+References: <20170301115108.14187-1-thibault.saunier@osg.samsung.com>
+ <CGME20170301115141epcas2p37801b1fbe0951cc37a4e01bf2bcae3da@epcas2p3.samsung.com>
+ <20170301115108.14187-3-thibault.saunier@osg.samsung.com>
+ <33dbd3fa-04b2-3d94-5163-0a10589ff1c7@samsung.com>
+ <1488381666.14858.5.camel@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 01.03.2017 16:21, Nicolas Dufresne wrote:
+> Le mercredi 01 mars 2017 à 14:12 +0100, Andrzej Hajda a écrit :
+>> - on output side you have encoded bytestream - you cannot say about
+>> interlacing in such case, so the only valid value is NONE,
+>> - on capture side you have decoded frames, and in this case it
+>> depends
+>> on the device and driver capabilities, if the driver/device does not
+>> support (de-)interlacing (I suppose this is MFC case), interlace type
+>> field should be filled according to decoded bytestream header (on
+>> output
+>> side), but no direct copying from output side!!!
+> I think we need some nuance here for this to actually be usable. If the
+> information is not provided by the driver (yes, hardware is limiting
+> sometimes), it would make sense to copy over the information that
+> userspace provided. Setting NONE is just the worst approximation in my
+> opinion.
 
---pf9I7BMVVzbSWLtt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The whole point is that s_fmt on output side is to describe format of
+the stream passed to the device, and in case of decoder it is just
+mpeg/h.26x/... stream. It does not contain frames, fields, width, height
+- it is just raw stream of bytes. We cannot say in such case about field
+type, there is not such thing as interlaced byte stream.
+Using s_fmt on output to describe things on capture side look for me
+unnecessary and abuses V4L2 API IMO.
 
-ISP CSI1 module needs all the bits correctly set to work.
+>
+> About MFC, it will be worth trying to read the DISPLAY_STATUS after the
+> headers has been processed. It's not clearly stated in the spec if this
+> will be set or not.
+>
+Documentation for MFC6.5 states clearly:
 
-Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> Note: On SEQ_DONE, INTERLACE_PICTURE will return the picture type to
+> be decoded based on the
+> sequence header information.
 
-index ca09523..e6584a2 100644
---- a/drivers/media/platform/omap3isp/ispccp2.c
-+++ b/drivers/media/platform/omap3isp/ispccp2.c
-@@ -213,14 +236,17 @@ static int ccp2_phyif_config(struct isp_ccp2_device *=
-ccp2,
- 	struct isp_device *isp =3D to_isp_device(ccp2);
- 	u32 val;
-=20
--	/* CCP2B mode */
- 	val =3D isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_CTRL) |
--			    ISPCCP2_CTRL_IO_OUT_SEL | ISPCCP2_CTRL_MODE;
-+			    ISPCCP2_CTRL_MODE;
- 	/* Data/strobe physical layer */
- 	BIT_SET(val, ISPCCP2_CTRL_PHY_SEL_SHIFT, ISPCCP2_CTRL_PHY_SEL_MASK,
- 		buscfg->phy_layer);
-+	BIT_SET(val, ISPCCP2_CTRL_IO_OUT_SEL_SHIFT,
-+		ISPCCP2_CTRL_IO_OUT_SEL_MASK, buscfg->ccp2_mode);
- 	BIT_SET(val, ISPCCP2_CTRL_INV_SHIFT, ISPCCP2_CTRL_INV_MASK,
- 		buscfg->strobe_clk_pol);
-+	BIT_SET(val, ISPCCP2_CTRL_VP_CLK_POL_SHIFT,
-+		ISPCCP2_CTRL_VP_CLK_POL_MASK, buscfg->vp_clk_pol);
- 	isp_reg_writel(isp, val, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_CTRL);
-=20
- 	val =3D isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_CTRL);
-diff --git a/drivers/media/platform/omap3isp/ispreg.h b/drivers/media/platf=
-orm/omap3isp/ispreg.h
-index b5ea8da..d084839 100644
---- a/drivers/media/platform/omap3isp/ispreg.h
-+++ b/drivers/media/platform/omap3isp/ispreg.h
-@@ -87,6 +87,8 @@
- #define ISPCCP2_CTRL_PHY_SEL_MASK	0x1
- #define ISPCCP2_CTRL_PHY_SEL_SHIFT	1
- #define ISPCCP2_CTRL_IO_OUT_SEL		(1 << 2)
-+#define ISPCCP2_CTRL_IO_OUT_SEL_MASK	0x1
-+#define ISPCCP2_CTRL_IO_OUT_SEL_SHIFT	2
- #define ISPCCP2_CTRL_MODE		(1 << 4)
- #define ISPCCP2_CTRL_VP_CLK_FORCE_ON	(1 << 9)
- #define ISPCCP2_CTRL_INV		(1 << 10)
-@@ -94,6 +96,8 @@
- #define ISPCCP2_CTRL_INV_SHIFT		10
- #define ISPCCP2_CTRL_VP_ONLY_EN		(1 << 11)
- #define ISPCCP2_CTRL_VP_CLK_POL		(1 << 12)
-+#define ISPCCP2_CTRL_VP_CLK_POL_MASK	0x1
-+#define ISPCCP2_CTRL_VP_CLK_POL_SHIFT	12
- #define ISPCCP2_CTRL_VPCLK_DIV_SHIFT	15
- #define ISPCCP2_CTRL_VPCLK_DIV_MASK	0x1ffff /* [31:15] */
- #define ISPCCP2_CTRL_VP_OUT_CTRL_SHIFT	8 /* 3430 bits */
+In case of MFC5.1 it is unclear, but I hope HW behaves the same way.
+
+Anyway I agree it will be good to fix it at least for MFC6.5+, any
+volunteer?
 
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+Regards
 
---pf9I7BMVVzbSWLtt
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAli2tGkACgkQMOfwapXb+vILjQCgt/8J1EdriFx8v9VD4v+XLulD
-h40AoL5CdLVTsISAFvZj7FYhcwf93K6H
-=6rp0
------END PGP SIGNATURE-----
-
---pf9I7BMVVzbSWLtt--
+Andrzej
