@@ -1,119 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:44080 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751566AbdCMKxX (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48354 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751646AbdCBQmf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 06:53:23 -0400
-Subject: Re: [PATCH v5 15/39] [media] v4l2: add a frame interval error event
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <1489121599-23206-16-git-send-email-steve_longerbeam@mentor.com>
- <5b0a0e76-2524-4140-5ccc-380a8f949cfa@xs4all.nl>
- <ec05e6e0-79f2-2db2-bde9-4aed00d76faa@gmail.com>
- <6b574476-77df-0e25-a4d1-32d4fe0aec12@xs4all.nl>
- <5d5cf4a4-a4d3-586e-cd16-54f543dfcce9@gmail.com>
- <aa6a5a1d-18fd-8bed-a349-2654d2d1abe0@xs4all.nl>
- <20170313104538.GF21222@n2100.armlinux.org.uk>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        Thu, 2 Mar 2017 11:42:35 -0500
+Date: Thu, 2 Mar 2017 18:02:57 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
         devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b36875e0-683a-fcc3-343d-9ddd1a39cac0@xs4all.nl>
-Date: Mon, 13 Mar 2017 11:53:14 +0100
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
+ controls from a pipeline
+Message-ID: <20170302160257.GK3220@valkosipuli.retiisi.org.uk>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+ <1487211578-11360-15-git-send-email-steve_longerbeam@mentor.com>
 MIME-Version: 1.0
-In-Reply-To: <20170313104538.GF21222@n2100.armlinux.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1487211578-11360-15-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/13/2017 11:45 AM, Russell King - ARM Linux wrote:
-> On Mon, Mar 13, 2017 at 11:02:34AM +0100, Hans Verkuil wrote:
->> On 03/11/2017 07:14 PM, Steve Longerbeam wrote:
->>> The event must be user visible, otherwise the user has no indication
->>> the error, and can't correct it by stream restart.
->>
->> In that case the driver can detect this and call vb2_queue_error. It's
->> what it is there for.
->>
->> The event doesn't help you since only this driver has this issue. So nobody
->> will watch this event, unless it is sw specifically written for this SoC.
->>
->> Much better to call vb2_queue_error to signal a fatal error (which this
->> apparently is) since there are more drivers that do this, and vivid supports
->> triggering this condition as well.
-> 
-> So today, I can fiddle around with the IMX219 registers to help gain
-> an understanding of how this sensor works.  Several of the registers
-> (such as the PLL setup [*]) require me to disable streaming on the
-> sensor while changing them.
-> 
-> This is something I've done many times while testing various ideas,
-> and is my primary way of figuring out and testing such things.
-> 
-> Whenever I resume streaming (provided I've let the sensor stop
-> streaming at a frame boundary) it resumes as if nothing happened.  If I
-> stop the sensor mid-frame, then I get the rolling issue that Steve
-> reports, but once the top of the frame becomes aligned with the top of
-> the capture, everything then becomes stable again as if nothing happened.
-> 
-> The side effect of what you're proposing is that when I disable streaming
-> at the sensor by poking at its registers, rather than the capture just
-> stopping, an error is going to be delivered to gstreamer, and gstreamer
-> is going to exit, taking the entire capture process down.
-> 
-> This severely restricts the ability to be able to develop and test
-> sensor drivers.
-> 
-> So, I strongly disagree with you.
-> 
-> Loss of capture frames is not necessarily a fatal error - as I have been
-> saying repeatedly.  In Steve's case, there's some unknown interaction
-> between the source and iMX6 hardware that is causing the instability,
-> but that is simply not true of other sources, and I oppose any idea that
-> we should cripple the iMX6 side of the capture based upon just one
-> hardware combination where this is a problem.
-> 
-> Steve suggested that the problem could be in the iMX6 CSI block - and I
-> note comparing Steve's code with the code in FSL's repository that there
-> are some changes that are missing in Steve's code to do with the CCIR656
-> sync code setup, particularly for >8 bit.  The progressive CCIR656 8-bit
-> setup looks pretty similar though - but I think what needs to be asked
-> is whether the same problem is visible using the FSL/NXP vendor kernel.
-> 
-> 
-> * - the PLL setup is something that requires research at the moment.
-> Sony's official position (even to their customers) is that they do not
-> supply the necessary information, instead they expect customers to tell
-> them the capture settings they want, and Sony will throw the values into
-> a spreadsheet, and they'll supply the register settings back to the
-> customer.  Hence, the only way to proceed with a generic driver for
-> this sensor is to experiment, and experimenting requires the ability to
-> pause the stream at the sensor while making changes.  Take this away,
-> and we're stuck with the tables-of-register-settings-for-set-of-fixed-
-> capture-settings approach.  I've made a lot of progress away from this
-> which is all down to the flexibility afforded by _not_ killing the
-> capture process.
-> 
+Hi Steve,
 
-In other words: Steve should either find a proper fix for this, or only
-call vb2_queue_error in this specific case. Sending an event that nobody
-will know how to handle or what to do with is pretty pointless IMHO.
+On Wed, Feb 15, 2017 at 06:19:16PM -0800, Steve Longerbeam wrote:
+> v4l2_pipeline_inherit_controls() will add the v4l2 controls from
+> all subdev entities in a pipeline to a given video device.
+> 
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-mc.c | 48 +++++++++++++++++++++++++++++++++++++++
+>  include/media/v4l2-mc.h           | 25 ++++++++++++++++++++
+>  2 files changed, 73 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
+> index 303980b..09d4d97 100644
+> --- a/drivers/media/v4l2-core/v4l2-mc.c
+> +++ b/drivers/media/v4l2-core/v4l2-mc.c
+> @@ -22,6 +22,7 @@
+>  #include <linux/usb.h>
+>  #include <media/media-device.h>
+>  #include <media/media-entity.h>
+> +#include <media/v4l2-ctrls.h>
+>  #include <media/v4l2-fh.h>
+>  #include <media/v4l2-mc.h>
+>  #include <media/v4l2-subdev.h>
+> @@ -238,6 +239,53 @@ int v4l_vb2q_enable_media_source(struct vb2_queue *q)
+>  }
+>  EXPORT_SYMBOL_GPL(v4l_vb2q_enable_media_source);
+>  
+> +int __v4l2_pipeline_inherit_controls(struct video_device *vfd,
+> +				     struct media_entity *start_entity)
 
-Let's just give him time to try and figure out the real issue here.
+I have a few concerns / questions:
 
-Regards,
+- What's the purpose of this patch? Why not to access the sub-device node
+  directly?
 
-	Hans
+- This implementation is only workable as long as you do not modify the
+  pipeline. Once you disable a link along the pipeline, a device where the
+  control was inherited from may no longer be a part of the pipeline.
+  Depending on the hardware, it could be a part of another pipeline, in
+  which case it certainly must not be accessible through an unrelated video
+  node. As the function is added to the framework, I would expect it to
+  handle such a case correctly.
+
+- I assume it is the responsibility of the caller of this function to ensure
+  the device in question will not be powered off whilst the video node is
+  used as another user space interface to such a sub-device. If the driver
+  uses the generic PM functions in the same file, this works, but it still
+  has to be documented.
+
+> +{
+> +	struct media_device *mdev = start_entity->graph_obj.mdev;
+> +	struct media_entity *entity;
+> +	struct media_graph graph;
+> +	struct v4l2_subdev *sd;
+> +	int ret;
+> +
+> +	ret = media_graph_walk_init(&graph, mdev);
+> +	if (ret)
+> +		return ret;
+> +
+> +	media_graph_walk_start(&graph, start_entity);
+> +
+> +	while ((entity = media_graph_walk_next(&graph))) {
+> +		if (!is_media_entity_v4l2_subdev(entity))
+> +			continue;
+> +
+> +		sd = media_entity_to_v4l2_subdev(entity);
+> +
+> +		ret = v4l2_ctrl_add_handler(vfd->ctrl_handler,
+> +					    sd->ctrl_handler,
+> +					    NULL);
+> +		if (ret)
+> +			break;
+> +	}
+> +
+> +	media_graph_walk_cleanup(&graph);
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(__v4l2_pipeline_inherit_controls);
+> +
+> +int v4l2_pipeline_inherit_controls(struct video_device *vfd,
+> +				   struct media_entity *start_entity)
+> +{
+> +	struct media_device *mdev = start_entity->graph_obj.mdev;
+> +	int ret;
+> +
+> +	mutex_lock(&mdev->graph_mutex);
+> +	ret = __v4l2_pipeline_inherit_controls(vfd, start_entity);
+> +	mutex_unlock(&mdev->graph_mutex);
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_pipeline_inherit_controls);
+> +
+>  /* -----------------------------------------------------------------------------
+>   * Pipeline power management
+>   *
+> diff --git a/include/media/v4l2-mc.h b/include/media/v4l2-mc.h
+> index 2634d9d..9848e77 100644
+> --- a/include/media/v4l2-mc.h
+> +++ b/include/media/v4l2-mc.h
+> @@ -171,6 +171,17 @@ void v4l_disable_media_source(struct video_device *vdev);
+>   */
+>  int v4l_vb2q_enable_media_source(struct vb2_queue *q);
+>  
+> +/**
+> + * v4l2_pipeline_inherit_controls - Add the v4l2 controls from all
+> + *				    subdev entities in a pipeline to
+> + *				    the given video device.
+> + * @vfd: the video device
+> + * @start_entity: Starting entity
+> + */
+> +int __v4l2_pipeline_inherit_controls(struct video_device *vfd,
+> +				     struct media_entity *start_entity);
+> +int v4l2_pipeline_inherit_controls(struct video_device *vfd,
+> +				   struct media_entity *start_entity);
+>  
+>  /**
+>   * v4l2_pipeline_pm_use - Update the use count of an entity
+> @@ -231,6 +242,20 @@ static inline int v4l_vb2q_enable_media_source(struct vb2_queue *q)
+>  	return 0;
+>  }
+>  
+> +static inline int __v4l2_pipeline_inherit_controls(
+> +	struct video_device *vfd,
+> +	struct media_entity *start_entity)
+> +{
+> +	return 0;
+> +}
+> +
+> +static inline int v4l2_pipeline_inherit_controls(
+> +	struct video_device *vfd,
+> +	struct media_entity *start_entity)
+> +{
+> +	return 0;
+> +}
+> +
+>  static inline int v4l2_pipeline_pm_use(struct media_entity *entity, int use)
+>  {
+>  	return 0;
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
