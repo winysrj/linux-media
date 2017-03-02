@@ -1,59 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:26385 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933204AbdCJLft (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Mar 2017 06:35:49 -0500
-Subject: [PATCH 8/8] atomisp: remove FPGA defines
-From: Alan Cox <alan@linux.intel.com>
-To: greg@kroah.com, linux-media@vger.kernel.org
-Date: Fri, 10 Mar 2017 11:35:17 +0000
-Message-ID: <148914571319.25309.6693184637114214680.stgit@acox1-desk1.ger.corp.intel.com>
-In-Reply-To: <148914560647.25309.2276061224604665212.stgit@acox1-desk1.ger.corp.intel.com>
-References: <148914560647.25309.2276061224604665212.stgit@acox1-desk1.ger.corp.intel.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:33021 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750841AbdCBUJp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 15:09:45 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, mchehab@kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>,
+        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH] omap3isp: wait for regulators to come up
+Date: Thu, 02 Mar 2017 16:46:42 +0200
+Message-ID: <1546676.OUenhTMaLy@avalon>
+In-Reply-To: <20170302124532.GA29046@amd>
+References: <20161228183036.GA13139@amd> <20170302101603.GE27818@amd> <20170302124532.GA29046@amd>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These are not relevant to an upstream kernel driver.
+Hi Pavel,
 
-Signed-off-by: Alan Cox <alan@linux.intel.com>
----
- .../host/hive_isp_css_hrt_modified.h               |   16 ----------------
- 1 file changed, 16 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/hive_isp_css_hrt_modified.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/hive_isp_css_hrt_modified.h
-index 603ef1d..342553d 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/hive_isp_css_hrt_modified.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/hive_isp_css_hrt_modified.h
-@@ -30,21 +30,6 @@
- #include <gpio_block.h>
- #include <gp_regs.h>
- #include <gp_timer_hrt.h>
--#ifdef _HIVE_ISP_CSS_FPGA_SYSTEM
--  #include <i2c_api.h>
--  #include <dis_sensor.h>
--  #include <display_driver.h>
--  #include <display.h>
--  #include <display_driver.h>
--  #include <shi_sensor_api.h>
--#define hrt_gdc_slave_port(gdc_id)    HRTCAT(gdc_id,_sl_in)
--  #include <isp2400_mamoiada_demo_params.h>
--  #include <isp2400_support.h>
--  #include "isp_css_dev_flash_hrt.h"
--  #include "isp_css_dev_display_hrt.h"
--  #include "isp_css_dev_i2c_hrt.h"
--  #include "isp_css_dev_tb.h"
--#else /* CSS ASIC system */
-   #include <css_receiver_2400_hrt.h>
- //  #include <isp2400_mamoiada_params.h>
- //  #include <isp2400_support.h>
-@@ -63,7 +48,6 @@
- #error "hive_isp_css_hrt_modified.h: SYSTEM must be one of {2400_MAMOIADA_SYSTEM, 2401_MAMOIADA_SYSTEM}"
- #endif
-   #endif
--#endif /* _HIVE_ISP_CSS_FPGA_SYSTEM */
- #include <sp_hrt.h>
- #include <input_system_hrt.h>
- #include <input_selector_hrt.h>
+On Thursday 02 Mar 2017 13:45:32 Pavel Machek wrote:
+> If regulator returns -EPROBE_DEFER, we need to return it too, so that
+> omap3isp will be re-probed when regulator is ready.
+> 
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> 
+> diff --git a/drivers/media/platform/omap3isp/ispccp2.c
+> b/drivers/media/platform/omap3isp/ispccp2.c index ca09523..b6e055e 100644
+> --- a/drivers/media/platform/omap3isp/ispccp2.c
+> +++ b/drivers/media/platform/omap3isp/ispccp2.c
+> @@ -1137,10 +1159,12 @@ int omap3isp_ccp2_init(struct isp_device *isp)
+>  	if (isp->revision == ISP_REVISION_2_0) {
+>  		ccp2->vdds_csib = devm_regulator_get(isp->dev, "vdds_csib");
+>  		if (IS_ERR(ccp2->vdds_csib)) {
+> +			if (PTR_ERR(ccp2->vdds_csib) == -EPROBE_DEFER)
+> +				return -EPROBE_DEFER;
+
+This looks good to me, but it will result in the caller printing a "CCP2 
+initialization failed" error message, which I'm not sure is right. Maybe we 
+should move that message to the omap3isp_ccp2_init() function ?
+
+In any case, this change is fine, so
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+>  			dev_dbg(isp->dev,
+>  				"Could not get regulator vdds_csib\n");
+>  			ccp2->vdds_csib = NULL;
+>  		}
+>  	} else if (isp->revision == ISP_REVISION_15_0) {
+>  		ccp2->phy = &isp->isp_csiphy1;
+>  	}
+
+-- 
+Regards,
+
+Laurent Pinchart
