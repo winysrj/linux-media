@@ -1,57 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:34588 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752865AbdCBAKo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Mar 2017 19:10:44 -0500
-Date: Wed, 1 Mar 2017 15:41:23 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>, Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] ad5820: remove incorrect __exit markups
-Message-ID: <20170301234123.GA12089@dtor-ws>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:35740 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750941AbdCBTxQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 14:53:16 -0500
+From: simran singhal <singhalsimran0@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        outreachy-kernel@googlegroups.com
+Subject: [PATCH 6/7] staging: media: Use x instead of x != NULL
+Date: Fri,  3 Mar 2017 01:22:01 +0530
+Message-Id: <1488484322-5928-6-git-send-email-singhalsimran0@gmail.com>
+In-Reply-To: <1488484322-5928-1-git-send-email-singhalsimran0@gmail.com>
+References: <1488484322-5928-1-git-send-email-singhalsimran0@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Even if bus is not hot-pluggable, devices can be unbound from the
-driver via sysfs, so we should not be using __exit annotations on
-remove() methods. The only exception is drivers registered with
-platform_driver_probe() which specifically disables sysfs bind/unbind
-attributes.
+Use x instead of x != NULL .
+This patch removes the explicit NULL comparisons.This issue is found by
+checkpatch.pl script.
 
-Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Signed-off-by: simran singhal <singhalsimran0@gmail.com>
 ---
- drivers/media/i2c/ad5820.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/staging/media/atomisp/i2c/gc2235.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/i2c/ad5820.c b/drivers/media/i2c/ad5820.c
-index a9026a91855e..3d2a3c6b67d8 100644
---- a/drivers/media/i2c/ad5820.c
-+++ b/drivers/media/i2c/ad5820.c
-@@ -336,7 +336,7 @@ static int ad5820_probe(struct i2c_client *client,
- 	return ret;
- }
+diff --git a/drivers/staging/media/atomisp/i2c/gc2235.c b/drivers/staging/media/atomisp/i2c/gc2235.c
+index 165dcb3..40a5a2f 100644
+--- a/drivers/staging/media/atomisp/i2c/gc2235.c
++++ b/drivers/staging/media/atomisp/i2c/gc2235.c
+@@ -255,7 +255,7 @@ static int gc2235_get_intg_factor(struct i2c_client *client,
+ 	u16 reg_val, reg_val_h, dummy;
+ 	int ret;
  
--static int __exit ad5820_remove(struct i2c_client *client)
-+static int ad5820_remove(struct i2c_client *client)
- {
- 	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
- 	struct ad5820_device *coil = to_ad5820_device(subdev);
-@@ -362,7 +362,7 @@ static struct i2c_driver ad5820_i2c_driver = {
- 		.pm	= &ad5820_pm,
- 	},
- 	.probe		= ad5820_probe,
--	.remove		= __exit_p(ad5820_remove),
-+	.remove		= ad5820_remove,
- 	.id_table	= ad5820_id_table,
- };
+-	if (info == NULL)
++	if (!info)
+ 		return -EINVAL;
  
+ 	/* pixel clock calculattion */
+@@ -797,7 +797,7 @@ static int gc2235_set_fmt(struct v4l2_subdev *sd,
+ 	int idx;
+ 
+ 	gc2235_info = v4l2_get_subdev_hostdata(sd);
+-	if (gc2235_info == NULL)
++	if (!gc2235_info)
+ 		return -EINVAL;
+ 	if (format->pad)
+ 		return -EINVAL;
+@@ -917,7 +917,7 @@ static int gc2235_s_config(struct v4l2_subdev *sd,
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	int ret = 0;
+ 
+-	if (platform_data == NULL)
++	if (!platform_data)
+ 		return -ENODEV;
+ 
+ 	dev->platform_data =
 -- 
-2.12.0.rc1.440.g5b76565f74-goog
-
-
--- 
-Dmitry
+2.7.4
