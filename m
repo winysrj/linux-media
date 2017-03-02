@@ -1,145 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:56495 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751116AbdCQSuZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Mar 2017 14:50:25 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
-        Johannes Thumshirn <jthumshirn@suse.de>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Cyrille Pitchen <cyrille.pitchen@atmel.com>
-Cc: linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org,
-        rtc-linux@googlegroups.com, linux-mtd@lists.infradead.org,
-        linux-media@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Logan Gunthorpe <logang@deltatee.com>
-Date: Fri, 17 Mar 2017 12:48:18 -0600
-Message-Id: <1489776503-3151-12-git-send-email-logang@deltatee.com>
-In-Reply-To: <1489776503-3151-1-git-send-email-logang@deltatee.com>
-References: <1489776503-3151-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v5 11/16] media: utilize new cdev_device_add helper function
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59940 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750787AbdCBSkT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 13:40:19 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Pavel Machek <pavel@ucw.cz>, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
+Subject: Re: subdevice config into pointer (was Re: [PATCH 1/4] v4l2: device_register_subdev_nodes: allow calling multiple times)
+Date: Thu, 02 Mar 2017 20:39:51 +0200
+Message-ID: <2358884.6crJRnJuOY@avalon>
+In-Reply-To: <20170302141617.GG3220@valkosipuli.retiisi.org.uk>
+References: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz> <20170302090727.GC27818@amd> <20170302141617.GG3220@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the open coded registration of the cdev and dev with the
-new device_add_cdev() helper. The helper replaces a common pattern by
-taking the proper reference against the parent device and adding both
-the cdev and the device.
+Hi Sakari,
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/cec/cec-core.c  | 16 ++++------------
- drivers/media/media-devnode.c | 20 +++++---------------
- 2 files changed, 9 insertions(+), 27 deletions(-)
+On Thursday 02 Mar 2017 16:16:17 Sakari Ailus wrote:
+> On Thu, Mar 02, 2017 at 10:07:27AM +0100, Pavel Machek wrote:
+> > Hi!
+> > 
+> > > Making the sub-device bus configuration a pointer should be in a
+> > > separate patch. It makes sense since the entire configuration is not
+> > > valid for all sub-devices attached to the ISP anymore. I think it
+> > > originally was a separate patch, but they probably have been merged at
+> > > some point. I can'tfind it right now anyway.
+> > 
+> > Something like this?
+> > 
+> > 									Pavel
+> > 
+> > commit df9141c66678b549fac9d143bd55ed0b242cf36e
+> > Author: Pavel <pavel@ucw.cz>
+> > Date:   Wed Mar 1 13:27:56 2017 +0100
+> > 
+> >     Turn bus in struct isp_async_subdev into pointer; some of our subdevs
+> >     (flash, focus) will not need bus configuration.
+> > 
+> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> 
+> I applied this to the ccp2 branch with an improved patch description.
+> 
+> > diff --git a/drivers/media/platform/omap3isp/isp.c
+> > b/drivers/media/platform/omap3isp/isp.c index 8a456d4..36bd359 100644
+> > --- a/drivers/media/platform/omap3isp/isp.c
+> > +++ b/drivers/media/platform/omap3isp/isp.c
+> > @@ -2030,12 +2030,18 @@ enum isp_of_phy {
+> > 
+> >  static int isp_fwnode_parse(struct device *dev, struct fwnode_handle
+> >  *fwn,
+> >  
+> >  			    struct isp_async_subdev *isd)
+> >  
+> >  {
+> > 
+> > -	struct isp_bus_cfg *buscfg = &isd->bus;
+> > +	struct isp_bus_cfg *buscfg;
+> > 
+> >  	struct v4l2_fwnode_endpoint vfwn;
+> >  	unsigned int i;
+> >  	int ret;
+> >  	bool csi1 = false;
+> > 
+> > +	buscfg = devm_kzalloc(dev, sizeof(*isd->bus), GFP_KERNEL);
 
-diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
-index 37217e2..3163e03 100644
---- a/drivers/media/cec/cec-core.c
-+++ b/drivers/media/cec/cec-core.c
-@@ -137,24 +137,17 @@ static int __must_check cec_devnode_register(struct cec_devnode *devnode,
- 
- 	/* Part 2: Initialize and register the character device */
- 	cdev_init(&devnode->cdev, &cec_devnode_fops);
--	devnode->cdev.kobj.parent = &devnode->dev.kobj;
- 	devnode->cdev.owner = owner;
- 
--	ret = cdev_add(&devnode->cdev, devnode->dev.devt, 1);
--	if (ret < 0) {
--		pr_err("%s: cdev_add failed\n", __func__);
-+	ret = cdev_device_add(&devnode->cdev, &devnode->dev);
-+	if (ret) {
-+		pr_err("%s: cdev_device_add failed\n", __func__);
- 		goto clr_bit;
- 	}
- 
--	ret = device_add(&devnode->dev);
--	if (ret)
--		goto cdev_del;
--
- 	devnode->registered = true;
- 	return 0;
- 
--cdev_del:
--	cdev_del(&devnode->cdev);
- clr_bit:
- 	mutex_lock(&cec_devnode_lock);
- 	clear_bit(devnode->minor, cec_devnode_nums);
-@@ -190,8 +183,7 @@ static void cec_devnode_unregister(struct cec_devnode *devnode)
- 	devnode->unregistered = true;
- 	mutex_unlock(&devnode->lock);
- 
--	device_del(&devnode->dev);
--	cdev_del(&devnode->cdev);
-+	cdev_device_del(&devnode->cdev, &devnode->dev);
- 	put_device(&devnode->dev);
- }
- 
-diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-index ae46753..423248f 100644
---- a/drivers/media/media-devnode.c
-+++ b/drivers/media/media-devnode.c
-@@ -248,31 +248,22 @@ int __must_check media_devnode_register(struct media_device *mdev,
- 	dev_set_name(&devnode->dev, "media%d", devnode->minor);
- 	device_initialize(&devnode->dev);
- 
--	/* Part 2: Initialize and register the character device */
-+	/* Part 2: Initialize the character device */
- 	cdev_init(&devnode->cdev, &media_devnode_fops);
- 	devnode->cdev.owner = owner;
--	devnode->cdev.kobj.parent = &devnode->dev.kobj;
- 
--	ret = cdev_add(&devnode->cdev, MKDEV(MAJOR(media_dev_t), devnode->minor), 1);
-+	/* Part 3: Add the media and char device */
-+	ret = cdev_device_add(&devnode->cdev, &devnode->dev);
- 	if (ret < 0) {
--		pr_err("%s: cdev_add failed\n", __func__);
-+		pr_err("%s: cdev_device_add failed\n", __func__);
- 		goto cdev_add_error;
- 	}
- 
--	/* Part 3: Add the media device */
--	ret = device_add(&devnode->dev);
--	if (ret < 0) {
--		pr_err("%s: device_add failed\n", __func__);
--		goto device_add_error;
--	}
--
- 	/* Part 4: Activate this minor. The char device can now be used. */
- 	set_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
- 
- 	return 0;
- 
--device_add_error:
--	cdev_del(&devnode->cdev);
- cdev_add_error:
- 	mutex_lock(&media_devnode_lock);
- 	clear_bit(devnode->minor, media_devnode_nums);
-@@ -298,9 +289,8 @@ void media_devnode_unregister(struct media_devnode *devnode)
- {
- 	mutex_lock(&media_devnode_lock);
- 	/* Delete the cdev on this minor as well */
--	cdev_del(&devnode->cdev);
-+	cdev_device_del(&devnode->cdev, &devnode->dev);
- 	mutex_unlock(&media_devnode_lock);
--	device_del(&devnode->dev);
- 	devnode->media_dev = NULL;
- 	put_device(&devnode->dev);
- }
+Given that you recently get rid of devm_kzalloc() in the driver, let's not 
+introduce a new one here.
+
+> > +	if (!buscfg)
+> > +		return -ENOMEM;
+> > +
+> > +	isd->bus = buscfg;
+> > +
+> >  	ret = v4l2_fwnode_endpoint_parse(fwn, &vfwn);
+> >  	if (ret)
+> >  	
+> >  		return ret;
+> > 
+
+[snip]
+
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
