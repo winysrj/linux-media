@@ -1,49 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lelnx193.ext.ti.com ([198.47.27.77]:36551 "EHLO
-        lelnx193.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751099AbdCBT1u (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 14:27:50 -0500
-Date: Thu, 2 Mar 2017 13:08:21 -0600
-From: Benoit Parrot <bparrot@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        Jyri Sarha <jsarha@ti.com>,
-        Peter Ujfalusi <peter.ujfalusi@ti.com>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [Patch 0/2] media: ti-vpe: allow user specified stride
-Message-ID: <20170302190821.GS16339@ti.com>
-References: <20170213130658.31907-1-bparrot@ti.com>
- <2aeeb8ff-879d-9f56-9b4d-3e8b01c880a2@ti.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:42491 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752101AbdCBNOH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 08:14:07 -0500
+Date: Thu, 2 Mar 2017 13:45:32 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, mchehab@kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>,
+        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org
+Subject: [PATCH] omap3isp: wait for regulators to come up
+Message-ID: <20170302124532.GA29046@amd>
+References: <20161228183036.GA13139@amd>
+ <10545906.Gxg3yScdu4@avalon>
+ <20170215094228.GA8586@amd>
+ <2414221.XNA4JCFMRx@avalon>
+ <20170302090143.GB27818@amd>
+ <20170302101603.GE27818@amd>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="SUOF0GtieIMvvwua"
 Content-Disposition: inline
-In-Reply-To: <2aeeb8ff-879d-9f56-9b4d-3e8b01c880a2@ti.com>
+In-Reply-To: <20170302101603.GE27818@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans, Mauro,
 
-Ping.
+--SUOF0GtieIMvvwua
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
-Benoit
 
-Tomi Valkeinen <tomi.valkeinen@ti.com> wrote on Fri [2017-Feb-17 11:45:41 +0200]:
-> On 13/02/17 15:06, Benoit Parrot wrote:
-> > This patch series enables user specified buffer stride to be used
-> > instead of always forcing the stride from the driver side.
-> > 
-> > Benoit Parrot (2):
-> >   media: ti-vpe: vpdma: add support for user specified stride
-> >   media: ti-vpe: vpe: allow use of user specified stride
-> > 
-> >  drivers/media/platform/ti-vpe/vpdma.c | 14 ++++----------
-> >  drivers/media/platform/ti-vpe/vpdma.h |  6 +++---
-> >  drivers/media/platform/ti-vpe/vpe.c   | 34 ++++++++++++++++++++++++----------
-> >  3 files changed, 31 insertions(+), 23 deletions(-)
-> 
-> Reviewed-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> 
->  Tomi
-> 
+If regulator returns -EPROBE_DEFER, we need to return it too, so that
+omap3isp will be re-probed when regulator is ready.
+
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+
+diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/plat=
+form/omap3isp/ispccp2.c
+index ca09523..b6e055e 100644
+--- a/drivers/media/platform/omap3isp/ispccp2.c
++++ b/drivers/media/platform/omap3isp/ispccp2.c
+@@ -1137,10 +1159,12 @@ int omap3isp_ccp2_init(struct isp_device *isp)
+ 	if (isp->revision =3D=3D ISP_REVISION_2_0) {
+ 		ccp2->vdds_csib =3D devm_regulator_get(isp->dev, "vdds_csib");
+ 		if (IS_ERR(ccp2->vdds_csib)) {
++			if (PTR_ERR(ccp2->vdds_csib) =3D=3D -EPROBE_DEFER)
++				return -EPROBE_DEFER;
+ 			dev_dbg(isp->dev,
+ 				"Could not get regulator vdds_csib\n");
+ 			ccp2->vdds_csib =3D NULL;
+ 		}
+ 	} else if (isp->revision =3D=3D ISP_REVISION_15_0) {
+ 		ccp2->phy =3D &isp->isp_csiphy1;
+ 	}
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--SUOF0GtieIMvvwua
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAli4E+wACgkQMOfwapXb+vLIyQCdGdV5+EryHUHXkofWjZfaqBbR
+PFsAn0cKxv9gwYL7G1lT8bz3cq1wSuCU
+=8WUA
+-----END PGP SIGNATURE-----
+
+--SUOF0GtieIMvvwua--
