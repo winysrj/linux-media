@@ -1,224 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:44820 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753107AbdCTNYd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 09:24:33 -0400
-Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
- controls from a pipeline
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <20170303230645.GR21222@n2100.armlinux.org.uk>
- <20170304131329.GV3220@valkosipuli.retiisi.org.uk>
- <a7b8e095-a95c-24bd-b1e9-e983f18061c4@xs4all.nl>
- <20170310130733.GU21222@n2100.armlinux.org.uk>
- <c679f755-52a6-3c6f-3d65-277db46676cc@xs4all.nl>
- <20170310140124.GV21222@n2100.armlinux.org.uk>
- <cc8900b0-c091-b14b-96f4-01f8fa72431c@xs4all.nl>
- <20170310125342.7f047acf@vento.lan>
- <20170310223714.GI3220@valkosipuli.retiisi.org.uk>
- <20170311082549.576531d0@vento.lan>
- <20170313124621.GA10701@valkosipuli.retiisi.org.uk>
- <20170314004533.3b3cd44b@vento.lan>
- <e0a6c60b-1735-de0b-21f4-d8c3f4b3f10f@xs4all.nl>
- <20170314072143.498cde9b@vento.lan>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Jacek Anaszewski <j.anaszewski@samsung.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5c935062-61f4-40e7-0ee9-87655197e661@xs4all.nl>
-Date: Mon, 20 Mar 2017 14:24:25 +0100
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:33024 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751035AbdCBXC0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 18:02:26 -0500
 MIME-Version: 1.0
-In-Reply-To: <20170314072143.498cde9b@vento.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1488494428.2179.23.camel@perches.com>
+References: <20170302163834.2273519-1-arnd@arndb.de> <20170302163834.2273519-25-arnd@arndb.de>
+ <1488476770.2179.6.camel@perches.com> <CAK8P3a1gW9UqMKD2ijzxMH4rv1zAji0GUoz+bLY_oi0yvLU1cw@mail.gmail.com>
+ <1488494428.2179.23.camel@perches.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Thu, 2 Mar 2017 23:59:22 +0100
+Message-ID: <CAK8P3a2ZQR8ukt6Aky7onD2Y=b+Cz+pp+C0+Svb2EyK2474j-g@mail.gmail.com>
+Subject: Re: [PATCH 24/26] ocfs2: reduce stack size with KASAN
+To: Joe Perches <joe@perches.com>
+Cc: kasan-dev <kasan-dev@googlegroups.com>,
+        Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Networking <netdev@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org,
+        linux-wireless <linux-wireless@vger.kernel.org>,
+        kernel-build-reports@lists.linaro.org,
+        "David S . Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/14/2017 11:21 AM, Mauro Carvalho Chehab wrote:
-> Em Tue, 14 Mar 2017 08:55:36 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> On 03/14/2017 04:45 AM, Mauro Carvalho Chehab wrote:
->>> Hi Sakari,
->>>
->>> I started preparing a long argument about it, but gave up in favor of a
->>> simpler one.
->>>
->>> Em Mon, 13 Mar 2017 14:46:22 +0200
->>> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
->>>   
->>>> Drivers are written to support hardware, not particular use case.    
->>>
->>> No, it is just the reverse: drivers and hardware are developed to
->>> support use cases.
->>>
->>> Btw, you should remember that the hardware is the full board, not just the
->>> SoC. In practice, the board do limit the use cases: several provide a
->>> single physical CSI connector, allowing just one sensor.
->>>   
->>>>> This situation is there since 2009. If I remember well, you tried to write
->>>>> such generic plugin in the past, but never finished it, apparently because
->>>>> it is too complex. Others tried too over the years.     
->>>>
->>>> I'd argue I know better what happened with that attempt than you do. I had a
->>>> prototype of a generic pipeline configuration library but due to various
->>>> reasons I haven't been able to continue working on that since around 2012.  
->>>
->>> ...
->>>   
->>>>> The last trial was done by Jacek, trying to cover just the exynos4 driver. 
->>>>> Yet, even such limited scope plugin was not good enough, as it was never
->>>>> merged upstream. Currently, there's no such plugins upstream.
->>>>>
->>>>> If we can't even merge a plugin that solves it for just *one* driver,
->>>>> I have no hope that we'll be able to do it for the generic case.    
->>>>
->>>> I believe Jacek ceased to work on that plugin in his day job; other than
->>>> that, there are some matters left to be addressed in his latest patchset.  
->>>
->>> The two above basically summaries the issue: the task of doing a generic
->>> plugin on userspace, even for a single driver is complex enough to
->>> not cover within a reasonable timeline.
->>>
->>> From 2009 to 2012, you were working on it, but didn't finish it.
->>>
->>> Apparently, nobody worked on it between 2013-2014 (but I may be wrong, as
->>> I didn't check when the generic plugin interface was added to libv4l).
->>>
->>> In the case of Jacek's work, the first patch I was able to find was
->>> written in Oct, 2014:
->>> 	https://patchwork.kernel.org/patch/5098111/
->>> 	(not sure what happened with the version 1).
->>>
->>> The last e-mail about this subject was issued in Dec, 2016.
->>>
->>> In summary, you had this on your task for 3 years for an OMAP3
->>> plugin (where you have a good expertise), and Jacek for 2 years, 
->>> for Exynos 4, where he should also have a good knowledge.
->>>
->>> Yet, with all that efforts, no concrete results were achieved, as none
->>> of the plugins got merged.
->>>
->>> Even if they were merged, if we keep the same mean time to develop a
->>> libv4l plugin, that would mean that a plugin for i.MX6 could take 2-3
->>> years to be developed.
->>>
->>> There's a clear message on it:
->>> 	- we shouldn't keep pushing for a solution via libv4l.  
+On Thu, Mar 2, 2017 at 11:40 PM, Joe Perches <joe@perches.com> wrote:
+> On Thu, 2017-03-02 at 23:22 +0100, Arnd Bergmann wrote:
+>> On Thu, Mar 2, 2017 at 6:46 PM, Joe Perches <joe@perches.com> wrote:
+>> > On Thu, 2017-03-02 at 17:38 +0100, Arnd Bergmann wrote:
+>> > > The internal logging infrastructure in ocfs2 causes special warning code to be
+>> > > used with KASAN, which produces rather large stack frames:
+>> > > fs/ocfs2/super.c: In function 'ocfs2_fill_super':
+>> > > fs/ocfs2/super.c:1219:1: error: the frame size of 3264 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
+>> >
+>> > At least by default it doesn't seem to.
+>> >
+>> > gcc 6.2 allyesconfig, CONFIG_KASAN=y
+>> > with either CONFIG_KASAN_INLINE or CONFIG_KASAN_OUTLINE
+>> >
+>> > gcc doesn't emit a stack warning
 >>
->> Or:
+>> The warning is disabled until patch 26/26. which picks the 3072 default.
+>> The 3264 number was with gcc-7, which is worse than gcc-6 since it enables
+>> an extra check.
 >>
->> 	- userspace plugin development had a very a low priority and
->> 	  never got the attention it needed.
-> 
-> The end result is the same: we can't count on it.
-> 
+>> > > By simply passing the mask by value instead of reference, we can avoid the
+>> > > problem completely.
+>> >
+>> > Any idea why that's so?
 >>
->> I know that's *my* reason. I rarely if ever looked at it. I always assumed
->> Sakari and/or Laurent would look at it. If this reason is also valid for
->> Sakari and Laurent, then it is no wonder nothing has happened in all that
->> time.
->>
->> We're all very driver-development-driven, and userspace gets very little
->> attention in general. So before just throwing in the towel we should take
->> a good look at the reasons why there has been little or no development: is
->> it because of fundamental design defects, or because nobody paid attention
->> to it?
-> 
-> No. We should look it the other way: basically, there are patches
-> for i.MX6 driver that sends control from videonode to subdevs. 
-> 
-> If we nack apply it, who will write the userspace plugin? When
-> such change will be merged upstream?
-> 
-> If we don't have answers to any of the above questions, we should not
-> nack it.
-> 
-> That's said, that doesn't prevent merging a libv4l plugin if/when
-> someone can find time/interest to develop it.
+>> With KASAN, every time we inline the function, the compiler has to allocate
+>> space for another copy of the variable plus a redzone to detect whether
+>> passing it by reference into another function causes an overflow at runtime.
+>
+> These logging functions aren't inlined.
 
-I don't think this control inheritance patch will magically prevent you
-from needed a plugin.
+Sorry, my mistake. In this case mlog() is a macro, not an inline functions.
+The effect is the same though.
 
-> 
->> I strongly suspect it is the latter.
->>
->> In addition, I suspect end-users of these complex devices don't really care
->> about a plugin: they want full control and won't typically use generic
->> applications. If they would need support for that, we'd have seen much more
->> interest. The main reason for having a plugin is to simplify testing and
->> if this is going to be used on cheap hobbyist devkits.
-> 
-> What are the needs for a cheap hobbyist devkit owner? Do we currently
-> satisfy those needs? I'd say that having a functional driver when
-> compiled without the subdev API, that implements the ioctl's/controls
-> that a generic application like camorama/google talk/skype/zbar...
-> would work should be enough to make them happy, even if they need to
-> add some udev rule and/or run some "prep" application that would setup 
-> the pipelines via MC and eventually rename the device with a working
-> pipeline to /dev/video0.
+> You're referring to the stack frame?
 
-This is literally the first time we have to cater to a cheap devkit. We
-were always aware of this issue, but nobody really needed it.
+The stack frame of the function that calls mlog(), yes.
+>
+> Still doesn't make sense to me.
+>
+> None of the logging functions are inlined as they are all
+> EXPORT_SYMBOL.
 
-> 
->>
->> An additional complication is simply that it is hard to find fully supported
->> MC hardware. omap3 boards are hard to find these days, renesas boards are not
->> easy to get, freescale isn't the most popular either. Allwinner, mediatek,
->> amlogic, broadcom and qualcomm all have closed source implementations or no
->> implementation at all.
-> 
-> I'd say that we should not care anymore on providing a solution for
-> generic applications to run on boards like OMAP3[1]. For hardware that
-> are currently available that have Kernel driver and boards developed
-> to be used as "cheap hobbyist devkit", I'd say we should implement
-> a Kernel solution that would allow them to be used without subdev
-> API, e. g. having all ioctls needed by generic applications to work
-> functional, after some external application sets the pipeline.
+mlog() is placed in the calling function.
 
-I liked Russell's idea of having the DT set up an initial video path.
-This would (probably) make it much easier to provide a generic plugin since
-there is already an initial valid path when the driver is loaded, and it
-doesn't require custom code in the driver since this is left to the DT
-which really knows about the HW.
+> This just changes a pointer to a u64, which is the same
+> size on x86-64 (and is of course larger on x86-32).
 
-> 
-> [1] Yet, I might eventually do that for fun, an OMAP3 board with tvp5150
-> just arrived here last week. It would be nice to have xawtv3 running on it :-)
-> So, if I have a lot of spare time (with is very unlikely), I might eventually 
-> do something for it to work.
-> 
->> I know it took me a very long time before I had a working omap3.
-> 
-> My first OMAP3 board with working V4L2 source just arrived last week :-)
-> 
->> So I am not at all surprised that little progress has been made.
-> 
-> I'm not surprised, but I'm disappointed, as I tried to push toward a
-> solution for this problem since when we had our initial meetings about
-> it.
+KASAN decides that passing a pointer to _m into an extern function
+(_mlog_printk) is potentially dangerous, as that function might
+keep a reference to that pointer after it goes out of scope,
+or it might not know the correct length of the stack object pointed to.
 
-So many things to do, so little time. Sounds corny, but really, that's what
-this is all about. There were always (and frankly, still are) more important
-things that needed to be done.
+We can see from looking at the __mlog_printk() function definition
+that it's actually safe, but the compiler cannot see that when looking
+at another source file.
 
-Regards,
+> Perhaps KASAN has the odd behavior and working around
+> KASAN's behavior may not be the proper thing to do.
 
-	Hans
+Turning off KASAN fixes the problem, but the entire purpose of
+KASAN is to identify code that is potentially dangerous.
+
+> Maybe if CONFIG_KASAN is set, the minimum stack should
+> be increased via THREAD_SIZE_ORDER or some such.
+
+This is what happened in 3f181b4d8652 ("lib/Kconfig.debug:
+disable -Wframe-larger-than warnings with KASAN=y").
+
+I'm trying to revert that patch so we actually get warnings
+again about functions that are still dangerous. I picked 3072
+as an arbitrary limit, as there are only a handful of files
+that use larger stack frames in the worst case, but we can
+only use that limit after fixing up all the warnings it shows.
+
+       Arnd
