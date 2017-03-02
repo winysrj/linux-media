@@ -1,73 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f49.google.com ([209.85.214.49]:35126 "EHLO
-        mail-it0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752979AbdC0O7T (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:56541 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750736AbdCBJww (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 10:59:19 -0400
-Received: by mail-it0-f49.google.com with SMTP id y18so76824014itc.0
-        for <linux-media@vger.kernel.org>; Mon, 27 Mar 2017 07:59:04 -0700 (PDT)
-Message-ID: <1490626683.5935.18.camel@ndufresne.ca>
-Subject: Re: [PATCH v7 5/9] media: venus: vdec: add video decoder files
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-Date: Mon, 27 Mar 2017 10:58:03 -0400
-In-Reply-To: <6ea4524d-9794-a9b5-8327-367152c92493@xs4all.nl>
-References: <1489423058-12492-1-git-send-email-stanimir.varbanov@linaro.org>
-         <1489423058-12492-6-git-send-email-stanimir.varbanov@linaro.org>
-         <52b39f43-6f70-0cf6-abaf-4bb5bd2b3d86@xs4all.nl>
-         <be41ccbd-3ff1-bcae-c423-1acc68f35694@mm-sol.com>
-         <6ea4524d-9794-a9b5-8327-367152c92493@xs4all.nl>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-        boundary="=-hJgOGKCnhgucUo3AG8si"
-Mime-Version: 1.0
+        Thu, 2 Mar 2017 04:52:52 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH] [media] coda: implement encoder stop command
+Date: Thu,  2 Mar 2017 10:51:44 +0100
+Message-Id: <20170302095144.32090-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+There is no need to call v4l2_m2m_try_schedule to kick off draining the
+bitstream buffer for the encoder, but we have to wake up the destination
+queue in case there are no new OUTPUT buffers to be encoded and userspace
+is already polling for new CAPTURE buffers.
 
---=-hJgOGKCnhgucUo3AG8si
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-common.c | 47 +++++++++++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
 
-Le lundi 27 mars 2017 =C3=A0 10:45 +0200, Hans Verkuil a =C3=A9crit=C2=A0:
-> > > timestamp and sequence are only set for CAPTURE, not OUTPUT. Is
-> > > that correct?
-> >=20
-> > Correct. I can add sequence for the OUTPUT queue too, but I have no
-> > idea how that sequence is used by userspace.
->=20
-> You set V4L2_BUF_FLAG_TIMESTAMP_COPY, so you have to copy the
-> timestamp from the output buffer
-> to the capture buffer, if that makes sense for this codec. If not,
-> then you shouldn't use that
-> V4L2_BUF_FLAG and just generate new timestamps whenever a capture
-> buffer is ready.
->=20
-> For sequence numbering just give the output queue its own sequence
-> counter.
-
-Btw, GStreamer and Chromium only supports TIMESTAMP_COPY, and will most
-likely leak frames if you craft timestamp.
-
-Nicolas
---=-hJgOGKCnhgucUo3AG8si
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iEYEABECAAYFAljZKHsACgkQcVMCLawGqByoUgCbBp7XbvkFYcKl9sYQ2TdzP1LE
-mRwAnjUd2J0Bf3baPl+9SXDQa8YZAXkL
-=k7fQ
------END PGP SIGNATURE-----
-
---=-hJgOGKCnhgucUo3AG8si--
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index e1a2e8c70db01..085bbdb0d361b 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -881,6 +881,47 @@ static int coda_g_selection(struct file *file, void *fh,
+ 	return 0;
+ }
+ 
++static int coda_try_encoder_cmd(struct file *file, void *fh,
++				struct v4l2_encoder_cmd *ec)
++{
++	if (ec->cmd != V4L2_ENC_CMD_STOP)
++		return -EINVAL;
++
++	if (ec->flags & V4L2_ENC_CMD_STOP_AT_GOP_END)
++		return -EINVAL;
++
++	return 0;
++}
++
++static int coda_encoder_cmd(struct file *file, void *fh,
++			    struct v4l2_encoder_cmd *ec)
++{
++	struct coda_ctx *ctx = fh_to_ctx(fh);
++	struct vb2_queue *dst_vq;
++	int ret;
++
++	ret = coda_try_encoder_cmd(file, fh, ec);
++	if (ret < 0)
++		return ret;
++
++	/* Ignore encoder stop command silently in decoder context */
++	if (ctx->inst_type != CODA_INST_ENCODER)
++		return 0;
++
++	/* Set the stream-end flag on this context */
++	ctx->bit_stream_param |= CODA_BIT_STREAM_END_FLAG;
++
++	/* If there is no buffer in flight, wake up */
++	if (ctx->qsequence == ctx->osequence) {
++		dst_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx,
++					 V4L2_BUF_TYPE_VIDEO_CAPTURE);
++		dst_vq->last_buffer_dequeued = true;
++		wake_up(&dst_vq->done_wq);
++	}
++
++	return 0;
++}
++
+ static int coda_try_decoder_cmd(struct file *file, void *fh,
+ 				struct v4l2_decoder_cmd *dc)
+ {
+@@ -1054,6 +1095,8 @@ static const struct v4l2_ioctl_ops coda_ioctl_ops = {
+ 
+ 	.vidioc_g_selection	= coda_g_selection,
+ 
++	.vidioc_try_encoder_cmd	= coda_try_encoder_cmd,
++	.vidioc_encoder_cmd	= coda_encoder_cmd,
+ 	.vidioc_try_decoder_cmd	= coda_try_decoder_cmd,
+ 	.vidioc_decoder_cmd	= coda_decoder_cmd,
+ 
+@@ -1330,9 +1373,13 @@ static void coda_buf_queue(struct vb2_buffer *vb)
+ 		mutex_lock(&ctx->bitstream_mutex);
+ 		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
+ 		if (vb2_is_streaming(vb->vb2_queue))
++			/* This set buf->sequence = ctx->qsequence++ */
+ 			coda_fill_bitstream(ctx, true);
+ 		mutex_unlock(&ctx->bitstream_mutex);
+ 	} else {
++		if (ctx->inst_type == CODA_INST_ENCODER &&
++		    vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
++			vbuf->sequence = ctx->qsequence++;
+ 		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
+ 	}
+ }
+-- 
+2.11.0
