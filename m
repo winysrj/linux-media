@@ -1,82 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:35659 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751247AbdCPJ0w (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Mar 2017 05:26:52 -0400
-Message-ID: <1489656360.2303.2.camel@pengutronix.de>
-Subject: Re: media / v4l2-mc: wishlist for complex cameras (was Re: [PATCH
- v4 14/36] [media] v4l2-mc: add a function to inherit controls from a
- pipeline)
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Nicolas Dufresne <nicolas@ndufresne.ca>
-Cc: Philippe De Muyter <phdm@macq.eu>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Pavel Machek <pavel@ucw.cz>, Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Jacek Anaszewski <j.anaszewski@samsung.com>
-Date: Thu, 16 Mar 2017 10:26:00 +0100
-In-Reply-To: <1489604109.4593.4.camel@ndufresne.ca>
-References: <cc8900b0-c091-b14b-96f4-01f8fa72431c@xs4all.nl>
-         <20170310125342.7f047acf@vento.lan>
-         <20170310223714.GI3220@valkosipuli.retiisi.org.uk>
-         <20170311082549.576531d0@vento.lan>
-         <20170313124621.GA10701@valkosipuli.retiisi.org.uk>
-         <20170314004533.3b3cd44b@vento.lan>
-         <e0a6c60b-1735-de0b-21f4-d8c3f4b3f10f@xs4all.nl>
-         <20170314072143.498cde9b@vento.lan> <20170314223254.GA7141@amd>
-         <20170314215420.6fc63c67@vento.lan> <20170315105049.GA12099@frolo.macqel>
-         <1489604109.4593.4.camel@ndufresne.ca>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:36076 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754430AbdCBJH5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 04:07:57 -0500
+Date: Thu, 2 Mar 2017 10:07:27 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
+Subject: subdevice config into pointer (was Re: [PATCH 1/4] v4l2:
+ device_register_subdev_nodes: allow calling multiple times)
+Message-ID: <20170302090727.GC27818@amd>
+References: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz>
+ <20170220103114.GA9800@amd>
+ <20170220130912.GT16975@valkosipuli.retiisi.org.uk>
+ <20170220135636.GU16975@valkosipuli.retiisi.org.uk>
+ <20170221110721.GD5021@amd>
+ <20170221111104.GD16975@valkosipuli.retiisi.org.uk>
+ <20170225000918.GB23662@amd>
+ <20170225134444.6qzumpvasaow5qoj@ihha.localdomain>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="wxDdMuZNg1r63Hyj"
+Content-Disposition: inline
+In-Reply-To: <20170225134444.6qzumpvasaow5qoj@ihha.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2017-03-15 at 14:55 -0400, Nicolas Dufresne wrote:
-> Le mercredi 15 mars 2017 à 11:50 +0100, Philippe De Muyter a écrit :
-> > > I would say: camorama, xawtv3, zbar, google talk, skype. If it runs
-> > > with those, it will likely run with any other application.
-> > > 
-> > 
-> > I would like to add the 'v4l2src' plugin of gstreamer, and on the
-> > imx6 its
-> 
-> While it would be nice if somehow you would get v4l2src to work (in
-> some legacy/emulation mode through libv4l2),
 
-v4l2src works just fine, provided the pipeline is configured manually in
-advance via media-ctl.
+--wxDdMuZNg1r63Hyj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->  the longer plan is to
-> implement smart bin that handle several v4l2src, that can do the
-> required interactions so we can expose similar level of controls as
-> found in Android Camera HAL3, and maybe even further assuming userspace
-> can change the media tree at run-time. We might be a long way from
-> there, specially that some of the features depends on how much the
-> hardware can do. Just being able to figure-out how to build the MC tree
-> dynamically seems really hard when thinking of generic mechanism. Also,
-> Request API will be needed.
-> 
-> I think for this one, we'll need some userspace driver that enable the
-> features (not hide them), and that's what I'd be looking for from
-> libv4l2 in this regard.
+Hi!
 
-regards
-Philipp
+> Making the sub-device bus configuration a pointer should be in a separate
+> patch. It makes sense since the entire configuration is not valid for all
+> sub-devices attached to the ISP anymore. I think it originally was a
+> separate patch, but they probably have been merged at some point. I can't
+> find it right now anyway.
+
+Something like this?
+									Pavel
+
+commit df9141c66678b549fac9d143bd55ed0b242cf36e
+Author: Pavel <pavel@ucw.cz>
+Date:   Wed Mar 1 13:27:56 2017 +0100
+
+    Turn bus in struct isp_async_subdev into pointer; some of our subdevs
+    (flash, focus) will not need bus configuration.
+
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform=
+/omap3isp/isp.c
+index 8a456d4..36bd359 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2030,12 +2030,18 @@ enum isp_of_phy {
+ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwn,
+ 			    struct isp_async_subdev *isd)
+ {
+-	struct isp_bus_cfg *buscfg =3D &isd->bus;
++	struct isp_bus_cfg *buscfg;
+ 	struct v4l2_fwnode_endpoint vfwn;
+ 	unsigned int i;
+ 	int ret;
+ 	bool csi1 =3D false;
+=20
++	buscfg =3D devm_kzalloc(dev, sizeof(*isd->bus), GFP_KERNEL);
++	if (!buscfg)
++		return -ENOMEM;
++
++	isd->bus =3D buscfg;
++
+ 	ret =3D v4l2_fwnode_endpoint_parse(fwn, &vfwn);
+ 	if (ret)
+ 		return ret;
+@@ -2246,7 +2252,7 @@ static int isp_subdev_notifier_bound(struct v4l2_asyn=
+c_notifier *async,
+ 		container_of(asd, struct isp_async_subdev, asd);
+=20
+ 	isd->sd =3D subdev;
+-	isd->sd->host_priv =3D &isd->bus;
++	isd->sd->host_priv =3D isd->bus;
+=20
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform=
+/omap3isp/isp.h
+index 7e6f663..c0b9d1d 100644
+--- a/drivers/media/platform/omap3isp/isp.h
++++ b/drivers/media/platform/omap3isp/isp.h
+@@ -228,7 +228,7 @@ struct isp_device {
+=20
+ struct isp_async_subdev {
+ 	struct v4l2_subdev *sd;
+-	struct isp_bus_cfg bus;
++	struct isp_bus_cfg *bus;
+ 	struct v4l2_async_subdev asd;
+ };
+=20
+diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/pl=
+atform/omap3isp/ispcsiphy.c
+index f20abe8..be23408 100644
+--- a/drivers/media/platform/omap3isp/ispcsiphy.c
++++ b/drivers/media/platform/omap3isp/ispcsiphy.c
+@@ -202,7 +202,7 @@ static int omap3isp_csiphy_config(struct isp_csiphy *ph=
+y)
+ 		struct isp_async_subdev *isd =3D
+ 			container_of(pipe->external->asd,
+ 				     struct isp_async_subdev, asd);
+-		buscfg =3D &isd->bus;
++		buscfg =3D isd->bus;
+ 	}
+=20
+ 	if (buscfg->interface =3D=3D ISP_INTERFACE_CCP2B_PHY1
+
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--wxDdMuZNg1r63Hyj
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAli34M8ACgkQMOfwapXb+vJe1wCffNltjuOWtDYEoa5pXXpshmVc
+DlkAni2zQPEP4PV4YqEFF+UXGCiUi+GB
+=vPNP
+-----END PGP SIGNATURE-----
+
+--wxDdMuZNg1r63Hyj--
