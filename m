@@ -1,12 +1,13 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f179.google.com ([209.85.216.179]:35239 "EHLO
-        mail-qt0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750957AbdCREHE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 18 Mar 2017 00:07:04 -0400
-Received: by mail-qt0-f179.google.com with SMTP id x35so76515496qtc.2
-        for <linux-media@vger.kernel.org>; Fri, 17 Mar 2017 21:05:23 -0700 (PDT)
+Received: from mail-qk0-f178.google.com ([209.85.220.178]:34950 "EHLO
+        mail-qk0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751623AbdCBVpB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 16:45:01 -0500
+Received: by mail-qk0-f178.google.com with SMTP id m67so31709495qkf.2
+        for <linux-media@vger.kernel.org>; Thu, 02 Mar 2017 13:45:00 -0800 (PST)
 From: Laura Abbott <labbott@redhat.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com
 Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
         devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
         linaro-mm-sig@lists.linaro.org,
@@ -17,352 +18,77 @@ Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
         Daniel Vetter <daniel.vetter@intel.com>,
         Mark Brown <broonie@kernel.org>,
         Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-mm@kvack.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [RFC PATCHv2 15/21] staging: android: ion: Break the ABI in the name of forward progress
-Date: Fri, 17 Mar 2017 17:54:47 -0700
-Message-Id: <1489798493-16600-16-git-send-email-labbott@redhat.com>
-In-Reply-To: <1489798493-16600-1-git-send-email-labbott@redhat.com>
-References: <1489798493-16600-1-git-send-email-labbott@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        linux-mm@kvack.org
+Subject: [RFC PATCH 03/12] staging: android: ion: Duplicate sg_table
+Date: Thu,  2 Mar 2017 13:44:35 -0800
+Message-Id: <1488491084-17252-4-git-send-email-labbott@redhat.com>
+In-Reply-To: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To: Sumit Semwal <sumit.semwal@linaro.org>
-To: Riley Andrews <riandrews@android.com>
-Cc: romlem@google.com
-To: arve@android.com
-To: Riley Andrews <riandrews@android.com>
-Cc: devel@driverdev.osuosl.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linaro-mm-sig@lists.linaro.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org
-Cc: Brian Starkey <brian.starkey@arm.com>
-Cc: Daniel Vetter <daniel.vetter@intel.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Cc: linux-mm@kvack.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-
-Several of the Ion ioctls were designed in such a way that they
-necessitate compat ioctls. We're breaking a bunch of other ABIs and
-cleaning stuff up anyway so let's follow the ioctl guidelines and clean
-things up while everyone is busy converting things over anyway. As part
-of this, also remove the useless alignment field from the allocation
-structure.
+Ion currently returns a single sg_table on each dma_map call. This is
+incorrect for later usage.
 
 Signed-off-by: Laura Abbott <labbott@redhat.com>
 ---
- drivers/staging/android/ion/Makefile     |   3 -
- drivers/staging/android/ion/compat_ion.c | 152 -------------------------------
- drivers/staging/android/ion/compat_ion.h |  29 ------
- drivers/staging/android/ion/ion-ioctl.c  |   1 -
- drivers/staging/android/ion/ion.c        |   5 +-
- drivers/staging/android/uapi/ion.h       |  19 ++--
- 6 files changed, 11 insertions(+), 198 deletions(-)
- delete mode 100644 drivers/staging/android/ion/compat_ion.c
- delete mode 100644 drivers/staging/android/ion/compat_ion.h
+ drivers/staging/android/ion/ion.c | 30 +++++++++++++++++++++++++++++-
+ 1 file changed, 29 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/staging/android/ion/Makefile b/drivers/staging/android/ion/Makefile
-index 66d0c4a..a892afa 100644
---- a/drivers/staging/android/ion/Makefile
-+++ b/drivers/staging/android/ion/Makefile
-@@ -2,6 +2,3 @@ obj-$(CONFIG_ION) +=	ion.o ion-ioctl.o ion_heap.o \
- 			ion_page_pool.o ion_system_heap.o \
- 			ion_carveout_heap.o ion_chunk_heap.o
- obj-$(CONFIG_ION_CMA_HEAP) += ion_cma_heap.o
--ifdef CONFIG_COMPAT
--obj-$(CONFIG_ION) += compat_ion.o
--endif
-diff --git a/drivers/staging/android/ion/compat_ion.c b/drivers/staging/android/ion/compat_ion.c
-deleted file mode 100644
-index 5037ddd..0000000
---- a/drivers/staging/android/ion/compat_ion.c
-+++ /dev/null
-@@ -1,152 +0,0 @@
--/*
-- * drivers/staging/android/ion/compat_ion.c
-- *
-- * Copyright (C) 2013 Google, Inc.
-- *
-- * This software is licensed under the terms of the GNU General Public
-- * License version 2, as published by the Free Software Foundation, and
-- * may be copied, distributed, and modified under those terms.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- */
--
--#include <linux/compat.h>
--#include <linux/fs.h>
--#include <linux/uaccess.h>
--
--#include "ion.h"
--#include "compat_ion.h"
--
--/* See drivers/staging/android/uapi/ion.h for the definition of these structs */
--struct compat_ion_allocation_data {
--	compat_size_t len;
--	compat_size_t align;
--	compat_uint_t heap_id_mask;
--	compat_uint_t flags;
--	compat_int_t handle;
--};
--
--struct compat_ion_handle_data {
--	compat_int_t handle;
--};
--
--#define COMPAT_ION_IOC_ALLOC	_IOWR(ION_IOC_MAGIC, 0, \
--				      struct compat_ion_allocation_data)
--#define COMPAT_ION_IOC_FREE	_IOWR(ION_IOC_MAGIC, 1, \
--				      struct compat_ion_handle_data)
--
--static int compat_get_ion_allocation_data(
--			struct compat_ion_allocation_data __user *data32,
--			struct ion_allocation_data __user *data)
--{
--	compat_size_t s;
--	compat_uint_t u;
--	compat_int_t i;
--	int err;
--
--	err = get_user(s, &data32->len);
--	err |= put_user(s, &data->len);
--	err |= get_user(s, &data32->align);
--	err |= put_user(s, &data->align);
--	err |= get_user(u, &data32->heap_id_mask);
--	err |= put_user(u, &data->heap_id_mask);
--	err |= get_user(u, &data32->flags);
--	err |= put_user(u, &data->flags);
--	err |= get_user(i, &data32->handle);
--	err |= put_user(i, &data->handle);
--
--	return err;
--}
--
--static int compat_get_ion_handle_data(
--			struct compat_ion_handle_data __user *data32,
--			struct ion_handle_data __user *data)
--{
--	compat_int_t i;
--	int err;
--
--	err = get_user(i, &data32->handle);
--	err |= put_user(i, &data->handle);
--
--	return err;
--}
--
--static int compat_put_ion_allocation_data(
--			struct compat_ion_allocation_data __user *data32,
--			struct ion_allocation_data __user *data)
--{
--	compat_size_t s;
--	compat_uint_t u;
--	compat_int_t i;
--	int err;
--
--	err = get_user(s, &data->len);
--	err |= put_user(s, &data32->len);
--	err |= get_user(s, &data->align);
--	err |= put_user(s, &data32->align);
--	err |= get_user(u, &data->heap_id_mask);
--	err |= put_user(u, &data32->heap_id_mask);
--	err |= get_user(u, &data->flags);
--	err |= put_user(u, &data32->flags);
--	err |= get_user(i, &data->handle);
--	err |= put_user(i, &data32->handle);
--
--	return err;
--}
--
--long compat_ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
--{
--	long ret;
--
--	if (!filp->f_op->unlocked_ioctl)
--		return -ENOTTY;
--
--	switch (cmd) {
--	case COMPAT_ION_IOC_ALLOC:
--	{
--		struct compat_ion_allocation_data __user *data32;
--		struct ion_allocation_data __user *data;
--		int err;
--
--		data32 = compat_ptr(arg);
--		data = compat_alloc_user_space(sizeof(*data));
--		if (!data)
--			return -EFAULT;
--
--		err = compat_get_ion_allocation_data(data32, data);
--		if (err)
--			return err;
--		ret = filp->f_op->unlocked_ioctl(filp, ION_IOC_ALLOC,
--							(unsigned long)data);
--		err = compat_put_ion_allocation_data(data32, data);
--		return ret ? ret : err;
--	}
--	case COMPAT_ION_IOC_FREE:
--	{
--		struct compat_ion_handle_data __user *data32;
--		struct ion_handle_data __user *data;
--		int err;
--
--		data32 = compat_ptr(arg);
--		data = compat_alloc_user_space(sizeof(*data));
--		if (!data)
--			return -EFAULT;
--
--		err = compat_get_ion_handle_data(data32, data);
--		if (err)
--			return err;
--
--		return filp->f_op->unlocked_ioctl(filp, ION_IOC_FREE,
--							(unsigned long)data);
--	}
--	case ION_IOC_SHARE:
--		return filp->f_op->unlocked_ioctl(filp, cmd,
--						(unsigned long)compat_ptr(arg));
--	default:
--		return -ENOIOCTLCMD;
--	}
--}
-diff --git a/drivers/staging/android/ion/compat_ion.h b/drivers/staging/android/ion/compat_ion.h
-deleted file mode 100644
-index 9da8f91..0000000
---- a/drivers/staging/android/ion/compat_ion.h
-+++ /dev/null
-@@ -1,29 +0,0 @@
--/*
-- * drivers/staging/android/ion/compat_ion.h
-- *
-- * Copyright (C) 2013 Google, Inc.
-- *
-- * This software is licensed under the terms of the GNU General Public
-- * License version 2, as published by the Free Software Foundation, and
-- * may be copied, distributed, and modified under those terms.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- */
--
--#ifndef _LINUX_COMPAT_ION_H
--#define _LINUX_COMPAT_ION_H
--
--#if IS_ENABLED(CONFIG_COMPAT)
--
--long compat_ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
--
--#else
--
--#define compat_ion_ioctl  NULL
--
--#endif /* CONFIG_COMPAT */
--#endif /* _LINUX_COMPAT_ION_H */
-diff --git a/drivers/staging/android/ion/ion-ioctl.c b/drivers/staging/android/ion/ion-ioctl.c
-index a361724..91b5c2b 100644
---- a/drivers/staging/android/ion/ion-ioctl.c
-+++ b/drivers/staging/android/ion/ion-ioctl.c
-@@ -20,7 +20,6 @@
- 
- #include "ion.h"
- #include "ion_priv.h"
--#include "compat_ion.h"
- 
- union ion_ioctl_arg {
- 	struct ion_fd_data fd;
 diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-index 65638f5..fbab1e3 100644
+index 94a498e..ce4adac 100644
 --- a/drivers/staging/android/ion/ion.c
 +++ b/drivers/staging/android/ion/ion.c
-@@ -40,7 +40,6 @@
+@@ -799,6 +799,32 @@ static void ion_buffer_sync_for_device(struct ion_buffer *buffer,
+ 				       struct device *dev,
+ 				       enum dma_data_direction direction);
  
- #include "ion.h"
- #include "ion_priv.h"
--#include "compat_ion.h"
- 
- bool ion_buffer_cached(struct ion_buffer *buffer)
++static struct sg_table *dup_sg_table(struct sg_table *table)
++{
++	struct sg_table *new_table;
++	int ret, i;
++	struct scatterlist *sg, *new_sg;
++
++	new_table = kzalloc(sizeof(*new_table), GFP_KERNEL);
++	if (!new_table)
++		return ERR_PTR(-ENOMEM);
++
++	ret = sg_alloc_table(new_table, table->nents, GFP_KERNEL);
++	if (ret) {
++		kfree(table);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	new_sg = new_table->sgl;
++	for_each_sg(table->sgl, sg, table->nents, i) {
++		memcpy(new_sg, sg, sizeof(*sg));
++		sg->dma_address = 0;
++		new_sg = sg_next(new_sg);
++	}
++
++	return new_table;
++}
++
+ static struct sg_table *ion_map_dma_buf(struct dma_buf_attachment *attachment,
+ 					enum dma_data_direction direction)
  {
-@@ -1065,7 +1064,9 @@ static const struct file_operations ion_fops = {
- 	.open           = ion_open,
- 	.release        = ion_release,
- 	.unlocked_ioctl = ion_ioctl,
--	.compat_ioctl   = compat_ion_ioctl,
-+#ifdef CONFIG_COMPAT
-+	.compat_ioctl	= ion_ioctl,
-+#endif
- };
+@@ -806,13 +832,15 @@ static struct sg_table *ion_map_dma_buf(struct dma_buf_attachment *attachment,
+ 	struct ion_buffer *buffer = dmabuf->priv;
  
- static size_t ion_debug_heap_total(struct ion_client *client,
-diff --git a/drivers/staging/android/uapi/ion.h b/drivers/staging/android/uapi/ion.h
-index abd72fd..bba1c47 100644
---- a/drivers/staging/android/uapi/ion.h
-+++ b/drivers/staging/android/uapi/ion.h
-@@ -20,8 +20,6 @@
- #include <linux/ioctl.h>
- #include <linux/types.h>
+ 	ion_buffer_sync_for_device(buffer, attachment->dev, direction);
+-	return buffer->sg_table;
++	return dup_sg_table(buffer->sg_table);
+ }
  
--typedef int ion_user_handle_t;
--
- /**
-  * enum ion_heap_types - list of all possible types of heaps
-  * @ION_HEAP_TYPE_SYSTEM:	 memory allocated via vmalloc
-@@ -76,7 +74,6 @@ enum ion_heap_type {
- /**
-  * struct ion_allocation_data - metadata passed from userspace for allocations
-  * @len:		size of the allocation
-- * @align:		required alignment of the allocation
-  * @heap_id_mask:	mask of heap ids to allocate from
-  * @flags:		flags passed to heap
-  * @handle:		pointer that will be populated with a cookie to use to
-@@ -85,11 +82,11 @@ enum ion_heap_type {
-  * Provided by userspace as an argument to the ioctl
-  */
- struct ion_allocation_data {
--	size_t len;
--	size_t align;
--	unsigned int heap_id_mask;
--	unsigned int flags;
--	ion_user_handle_t handle;
-+	__u64 len;
-+	__u32 heap_id_mask;
-+	__u32 flags;
-+	__u32 handle;
-+	__u32 unused;
- };
+ static void ion_unmap_dma_buf(struct dma_buf_attachment *attachment,
+ 			      struct sg_table *table,
+ 			      enum dma_data_direction direction)
+ {
++	sg_free_table(table);
++	kfree(table);
+ }
  
- /**
-@@ -103,8 +100,8 @@ struct ion_allocation_data {
-  * provides the file descriptor and the kernel returns the handle.
-  */
- struct ion_fd_data {
--	ion_user_handle_t handle;
--	int fd;
-+	__u32 handle;
-+	__u32 fd;
- };
- 
- /**
-@@ -112,7 +109,7 @@ struct ion_fd_data {
-  * @handle:	a handle
-  */
- struct ion_handle_data {
--	ion_user_handle_t handle;
-+	__u32 handle;
- };
- 
- #define MAX_HEAP_NAME			32
+ void ion_pages_sync_for_device(struct device *dev, struct page *page,
 -- 
 2.7.4
