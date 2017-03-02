@@ -1,94 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:34475 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S935531AbdCJK0T (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Mar 2017 05:26:19 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv4 01/15] ov7670: document device tree bindings
-Date: Fri, 10 Mar 2017 11:26:00 +0100
-Message-Id: <20170310102614.20922-2-hverkuil@xs4all.nl>
-In-Reply-To: <20170310102614.20922-1-hverkuil@xs4all.nl>
-References: <20170310102614.20922-1-hverkuil@xs4all.nl>
+Received: from mout.kundenserver.de ([212.227.126.135]:65022 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751495AbdCBTC4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 14:02:56 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: kasan-dev@googlegroups.com
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-wireless@vger.kernel.org,
+        kernel-build-reports@lists.linaro.org,
+        "David S . Miller" <davem@davemloft.net>,
+        Arnd Bergmann <arnd@arndb.de>, Joe Perches <joe@perches.com>
+Subject: [PATCH 24/26] ocfs2: reduce stack size with KASAN
+Date: Thu,  2 Mar 2017 17:38:32 +0100
+Message-Id: <20170302163834.2273519-25-arnd@arndb.de>
+In-Reply-To: <20170302163834.2273519-1-arnd@arndb.de>
+References: <20170302163834.2273519-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The internal logging infrastructure in ocfs2 causes special warning code to be
+used with KASAN, which produces rather large stack frames:
 
-Add binding documentation and add that file to the MAINTAINERS entry.
+fs/ocfs2/super.c: In function 'ocfs2_fill_super':
+fs/ocfs2/super.c:1219:1: error: the frame size of 3264 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+By simply passing the mask by value instead of reference, we can avoid the
+problem completely. On 64-bit architectures, this is also more efficient,
+while on the less common (at least among ocfs2 users) 32-bit architectures,
+I'm guessing that the resulting code is comparable to what it was before.
+
+The current version was introduced by Joe Perches as an optimization, maybe
+he can see if my change regresses compared to his.
+
+Cc: Joe Perches <joe@perches.com>
+Fixes: 7c2bd2f930ae ("ocfs2: reduce object size of mlog uses")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- .../devicetree/bindings/media/i2c/ov7670.txt       | 43 ++++++++++++++++++++++
- MAINTAINERS                                        |  1 +
- 2 files changed, 44 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7670.txt
+ fs/ocfs2/cluster/masklog.c | 10 +++++-----
+ fs/ocfs2/cluster/masklog.h |  4 ++--
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov7670.txt b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
-new file mode 100644
-index 000000000000..826b6563b009
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
-@@ -0,0 +1,43 @@
-+* Omnivision OV7670 CMOS sensor
-+
-+The Omnivision OV7670 sensor supports multiple resolutions output, such as
-+CIF, SVGA, UXGA. It also can support the YUV422/420, RGB565/555 or raw RGB
-+output formats.
-+
-+Required Properties:
-+- compatible: should be "ovti,ov7670"
-+- clocks: reference to the xclk input clock.
-+- clock-names: should be "xclk".
-+
-+Optional Properties:
-+- reset-gpios: reference to the GPIO connected to the resetb pin, if any.
-+  Active is low.
-+- powerdown-gpios: reference to the GPIO connected to the pwdn pin, if any.
-+  Active is high.
-+
-+The device node must contain one 'port' child node for its digital output
-+video port, in accordance with the video interface bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Example:
-+
-+	i2c1: i2c@f0018000 {
-+		ov7670: camera@21 {
-+			compatible = "ovti,ov7670";
-+			reg = <0x21>;
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
-+			reset-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
-+			powerdown-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
-+			clocks = <&pck0>;
-+			clock-names = "xclk";
-+			assigned-clocks = <&pck0>;
-+			assigned-clock-rates = <25000000>;
-+
-+			port {
-+				ov7670_0: endpoint {
-+					remote-endpoint = <&isi_0>;
-+				};
-+			};
-+		};
-+	};
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 83a42ef1d1a7..93500928ca4f 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -9273,6 +9273,7 @@ L:	linux-media@vger.kernel.org
- T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	drivers/media/i2c/ov7670.c
-+F:	Documentation/devicetree/bindings/media/i2c/ov7670.txt
+diff --git a/fs/ocfs2/cluster/masklog.c b/fs/ocfs2/cluster/masklog.c
+index d331c2386b94..9720c5443e4d 100644
+--- a/fs/ocfs2/cluster/masklog.c
++++ b/fs/ocfs2/cluster/masklog.c
+@@ -64,7 +64,7 @@ static ssize_t mlog_mask_store(u64 mask, const char *buf, size_t count)
+ 	return count;
+ }
  
- ONENAND FLASH DRIVER
- M:	Kyungmin Park <kyungmin.park@samsung.com>
+-void __mlog_printk(const u64 *mask, const char *func, int line,
++void __mlog_printk(const u64 mask, const char *func, int line,
+ 		   const char *fmt, ...)
+ {
+ 	struct va_format vaf;
+@@ -72,14 +72,14 @@ void __mlog_printk(const u64 *mask, const char *func, int line,
+ 	const char *level;
+ 	const char *prefix = "";
+ 
+-	if (!__mlog_test_u64(*mask, mlog_and_bits) ||
+-	    __mlog_test_u64(*mask, mlog_not_bits))
++	if (!__mlog_test_u64(mask, mlog_and_bits) ||
++	    __mlog_test_u64(mask, mlog_not_bits))
+ 		return;
+ 
+-	if (*mask & ML_ERROR) {
++	if (mask & ML_ERROR) {
+ 		level = KERN_ERR;
+ 		prefix = "ERROR: ";
+-	} else if (*mask & ML_NOTICE) {
++	} else if (mask & ML_NOTICE) {
+ 		level = KERN_NOTICE;
+ 	} else {
+ 		level = KERN_INFO;
+diff --git a/fs/ocfs2/cluster/masklog.h b/fs/ocfs2/cluster/masklog.h
+index 308ea0eb35fd..0d0f4bf2c3d8 100644
+--- a/fs/ocfs2/cluster/masklog.h
++++ b/fs/ocfs2/cluster/masklog.h
+@@ -163,7 +163,7 @@ extern struct mlog_bits mlog_and_bits, mlog_not_bits;
+ #endif
+ 
+ __printf(4, 5)
+-void __mlog_printk(const u64 *m, const char *func, int line,
++void __mlog_printk(const u64 m, const char *func, int line,
+ 		   const char *fmt, ...);
+ 
+ /*
+@@ -174,7 +174,7 @@ void __mlog_printk(const u64 *m, const char *func, int line,
+ do {									\
+ 	u64 _m = MLOG_MASK_PREFIX | (mask);				\
+ 	if (_m & ML_ALLOWED_BITS)					\
+-		__mlog_printk(&_m, __func__, __LINE__, fmt,		\
++		__mlog_printk(_m, __func__, __LINE__, fmt,		\
+ 			      ##__VA_ARGS__);				\
+ } while (0)
+ 
 -- 
-2.11.0
+2.9.0
