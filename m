@@ -1,112 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx02-sz.bfs.de ([194.94.69.103]:44778 "EHLO mx02-sz.bfs.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753304AbdCTNMm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 09:12:42 -0400
-Message-ID: <58CFD505.60201@bfs.de>
-Date: Mon, 20 Mar 2017 14:11:33 +0100
-From: walter harms <wharms@bfs.de>
-Reply-To: wharms@bfs.de
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43982 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754066AbdCBOl5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 2 Mar 2017 09:41:57 -0500
+Date: Thu, 2 Mar 2017 16:16:17 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
+Subject: Re: subdevice config into pointer (was Re: [PATCH 1/4] v4l2:
+ device_register_subdev_nodes: allow calling multiple times)
+Message-ID: <20170302141617.GG3220@valkosipuli.retiisi.org.uk>
+References: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz>
+ <20170220103114.GA9800@amd>
+ <20170220130912.GT16975@valkosipuli.retiisi.org.uk>
+ <20170220135636.GU16975@valkosipuli.retiisi.org.uk>
+ <20170221110721.GD5021@amd>
+ <20170221111104.GD16975@valkosipuli.retiisi.org.uk>
+ <20170225000918.GB23662@amd>
+ <20170225134444.6qzumpvasaow5qoj@ihha.localdomain>
+ <20170302090727.GC27818@amd>
 MIME-Version: 1.0
-To: DaeSeok Youn <daeseok.youn@gmail.com>
-CC: mchehab@kernel.org, Greg KH <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@linux.intel.com>,
-        SIMRAN SINGHAL <singhalsimran0@gmail.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        linux-media@vger.kernel.org, devel <devel@driverdev.osuosl.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        kernel-janitors <kernel-janitors@vger.kernel.org>
-Subject: Re: [PATCH 2/4] staging: atomisp: simplify if statement in atomisp_get_sensor_fps()
-References: <20170320105940.GA17472@SEL-JYOUN-D1> <58CFC561.8090104@bfs.de> <CAHb8M2DELnWoo8UAEni-dc8fnVmpp8d-XeOObeB37deT5+8_gQ@mail.gmail.com>
-In-Reply-To: <CAHb8M2DELnWoo8UAEni-dc8fnVmpp8d-XeOObeB37deT5+8_gQ@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170302090727.GC27818@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Pavel,
 
+On Thu, Mar 02, 2017 at 10:07:27AM +0100, Pavel Machek wrote:
+> Hi!
+> 
+> > Making the sub-device bus configuration a pointer should be in a separate
+> > patch. It makes sense since the entire configuration is not valid for all
+> > sub-devices attached to the ISP anymore. I think it originally was a
+> > separate patch, but they probably have been merged at some point. I can't
+> > find it right now anyway.
+> 
+> Something like this?
+> 									Pavel
+> 
+> commit df9141c66678b549fac9d143bd55ed0b242cf36e
+> Author: Pavel <pavel@ucw.cz>
+> Date:   Wed Mar 1 13:27:56 2017 +0100
+> 
+>     Turn bus in struct isp_async_subdev into pointer; some of our subdevs
+>     (flash, focus) will not need bus configuration.
+> 
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-Am 20.03.2017 13:51, schrieb DaeSeok Youn:
-> 2017-03-20 21:04 GMT+09:00 walter harms <wharms@bfs.de>:
->>
->>
->> Am 20.03.2017 11:59, schrieb Daeseok Youn:
->>> If v4l2_subdev_call() gets the global frame interval values,
->>> it returned 0 and it could be checked whether numerator is zero or not.
->>>
->>> If the numerator is not zero, the fps could be calculated in this function.
->>> If not, it just returns 0.
->>>
->>> Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
->>> ---
->>>  .../media/atomisp/pci/atomisp2/atomisp_cmd.c       | 22 ++++++++++------------
->>>  1 file changed, 10 insertions(+), 12 deletions(-)
->>>
->>> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
->>> index 8bdb224..6bdd19e 100644
->>> --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
->>> +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
->>> @@ -153,20 +153,18 @@ struct atomisp_acc_pipe *atomisp_to_acc_pipe(struct video_device *dev)
->>>
->>>  static unsigned short atomisp_get_sensor_fps(struct atomisp_sub_device *asd)
->>>  {
->>> -     struct v4l2_subdev_frame_interval frame_interval;
->>> +     struct v4l2_subdev_frame_interval fi;
->>>       struct atomisp_device *isp = asd->isp;
->>> -     unsigned short fps;
->>>
->>> -     if (v4l2_subdev_call(isp->inputs[asd->input_curr].camera,
->>> -         video, g_frame_interval, &frame_interval)) {
->>> -             fps = 0;
->>> -     } else {
->>> -             if (frame_interval.interval.numerator)
->>> -                     fps = frame_interval.interval.denominator /
->>> -                         frame_interval.interval.numerator;
->>> -             else
->>> -                     fps = 0;
->>> -     }
->>> +     unsigned short fps = 0;
->>> +     int ret;
->>> +
->>> +     ret = v4l2_subdev_call(isp->inputs[asd->input_curr].camera,
->>> +                            video, g_frame_interval, &fi);
->>> +
->>> +     if (!ret && fi.interval.numerator)
->>> +             fps = fi.interval.denominator / fi.interval.numerator;
->>> +
->>>       return fps;
->>>  }
->>
->>
->>
->> do you need to check ret at all ? if an error occurs can fi.interval.numerator
->> be something else than 0 ?
-> the return value from the v4l2_subdev_call() function is zero when it
-> is done without any error. and also I checked
-> the ret value whether is 0 or not. if the ret is 0 then the value of
-> numerator should be checked to avoid for dividing by 0.
->>
->> if ret is an ERRNO it would be wise to return ret not fps, but this may require
->> changes at other places also.
-> hmm.., yes, you are right. but I think it is ok because the
-> atomisp_get_sensor_fps() function is needed to get fps value.
-> (originally, zero or calculated fps value was returned.)
-
-maybe its better to divide this in:
-	if (ret)
-	   return 0; // error case
-
-	return (fi.interval.numerator>0)?fi.interval.denominator / fi.interval.numerator:0;
-
-So there is a chance that someone will a) understand and b) fix the error return.
-
-re,
- wh
+I applied this to the ccp2 branch with an improved patch description.
 
 > 
->>
->> re,
->>  wh
->>
->>>
+> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+> index 8a456d4..36bd359 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -2030,12 +2030,18 @@ enum isp_of_phy {
+>  static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwn,
+>  			    struct isp_async_subdev *isd)
+>  {
+> -	struct isp_bus_cfg *buscfg = &isd->bus;
+> +	struct isp_bus_cfg *buscfg;
+>  	struct v4l2_fwnode_endpoint vfwn;
+>  	unsigned int i;
+>  	int ret;
+>  	bool csi1 = false;
+>  
+> +	buscfg = devm_kzalloc(dev, sizeof(*isd->bus), GFP_KERNEL);
+> +	if (!buscfg)
+> +		return -ENOMEM;
+> +
+> +	isd->bus = buscfg;
+> +
+>  	ret = v4l2_fwnode_endpoint_parse(fwn, &vfwn);
+>  	if (ret)
+>  		return ret;
+> @@ -2246,7 +2252,7 @@ static int isp_subdev_notifier_bound(struct v4l2_async_notifier *async,
+>  		container_of(asd, struct isp_async_subdev, asd);
+>  
+>  	isd->sd = subdev;
+> -	isd->sd->host_priv = &isd->bus;
+> +	isd->sd->host_priv = isd->bus;
+>  
+>  	return 0;
+>  }
+> diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
+> index 7e6f663..c0b9d1d 100644
+> --- a/drivers/media/platform/omap3isp/isp.h
+> +++ b/drivers/media/platform/omap3isp/isp.h
+> @@ -228,7 +228,7 @@ struct isp_device {
+>  
+>  struct isp_async_subdev {
+>  	struct v4l2_subdev *sd;
+> -	struct isp_bus_cfg bus;
+> +	struct isp_bus_cfg *bus;
+>  	struct v4l2_async_subdev asd;
+>  };
+>  
+> diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/platform/omap3isp/ispcsiphy.c
+> index f20abe8..be23408 100644
+> --- a/drivers/media/platform/omap3isp/ispcsiphy.c
+> +++ b/drivers/media/platform/omap3isp/ispcsiphy.c
+> @@ -202,7 +202,7 @@ static int omap3isp_csiphy_config(struct isp_csiphy *phy)
+>  		struct isp_async_subdev *isd =
+>  			container_of(pipe->external->asd,
+>  				     struct isp_async_subdev, asd);
+> -		buscfg = &isd->bus;
+> +		buscfg = isd->bus;
+>  	}
+>  
+>  	if (buscfg->interface == ISP_INTERFACE_CCP2B_PHY1
 > 
+> 
+
+-- 
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
