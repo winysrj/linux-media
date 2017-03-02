@@ -1,92 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:54727 "EHLO
-        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932621AbdC2AgI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Mar 2017 20:36:08 -0400
-Subject: Re: [PATCH v6 02/39] [media] dt-bindings: Add bindings for i.MX media
- driver
-To: Rob Herring <robh+dt@kernel.org>,
-        Steve Longerbeam <slongerbeam@gmail.com>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
- <1490661656-10318-3-git-send-email-steve_longerbeam@mentor.com>
- <CAL_JsqJm_JjuVPcOBERCqsnjTDdNoKr9xRE9MXMO4ivxGath2Q@mail.gmail.com>
-CC: Mark Rutland <mark.rutland@arm.com>,
-        Shawn Guo <shawnguo@kernel.org>,
-        "kernel@pengutronix.de" <kernel@pengutronix.de>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Nick Dyer <nick@shmanahar.org>, <markus.heiser@darmarit.de>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Benoit Parrot <bparrot@ti.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        tiffany lin <tiffany.lin@mediatek.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Simon Horman <horms+renesas@verge.net.au>,
-        =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        =?UTF-8?B?QW5kcmV3LUNUIENoZW4gKOmZs+aZuui/qik=?=
-        <andrew-ct.chen@mediatek.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        <shuah@kernel.org>, Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Pavel Machek <pavel@ucw.cz>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        <devel@driverdev.osuosl.org>
-From: Steve Longerbeam <steve_longerbeam@mentor.com>
-Message-ID: <70bacfb5-aef1-76d1-37d2-23a524903d45@mentor.com>
-Date: Tue, 28 Mar 2017 17:35:52 -0700
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:35629 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754082AbdCBIzG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 03:55:06 -0500
+Date: Thu, 2 Mar 2017 08:58:26 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] ad5820: remove incorrect __exit markups
+Message-ID: <20170302075825.GA4200@amd>
+References: <20170301234123.GA12089@dtor-ws>
 MIME-Version: 1.0
-In-Reply-To: <CAL_JsqJm_JjuVPcOBERCqsnjTDdNoKr9xRE9MXMO4ivxGath2Q@mail.gmail.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="IS0zKkzwUGydFO0o"
+Content-Disposition: inline
+In-Reply-To: <20170301234123.GA12089@dtor-ws>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+--IS0zKkzwUGydFO0o
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 03/28/2017 05:21 PM, Rob Herring wrote:
-> On Mon, Mar 27, 2017 at 7:40 PM, Steve Longerbeam <slongerbeam@gmail.com> wrote:
->> Add bindings documentation for the i.MX media driver.
->>
->> <snip>
->> +
->> +mipi_csi2 node
->> +--------------
->> +
->> +This is the device node for the MIPI CSI-2 Receiver, required for MIPI
->> +CSI-2 sensors.
->> +
->> +Required properties:
->> +- compatible   : "fsl,imx6-mipi-csi2", "snps,dw-mipi-csi2";
->
-> As I mentioned in v5, there's a DW CSI2 binding in progress. This
-> needs to be based on that.
+On Wed 2017-03-01 15:41:23, Dmitry Torokhov wrote:
+> Even if bus is not hot-pluggable, devices can be unbound from the
+> driver via sysfs, so we should not be using __exit annotations on
+> remove() methods. The only exception is drivers registered with
+> platform_driver_probe() which specifically disables sysfs bind/unbind
+> attributes.
+>=20
+> Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-Hi Rob, I'm not sure what you are asking me to do.
+Acked-by: Pavel Machek <pavel@ucw.cz>
 
-I assume if there's another binding doc in progress, it means
-someone is working on another Synopsys DW CSI-2 subdevice driver.
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-Unfortunately I don't have the time to contribute and switch to
-this other subdevice, and do test/debug.
+--IS0zKkzwUGydFO0o
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-For now I would prefer if this patchset is merged as is, and
-then contribute/switch to another CSI-2 subdev later. It is
-also getting very difficult managing all these patches (39 as
-of this version), and I'd prefer not to spam the lists with
-such large patchsets for too much longer.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
+iEYEARECAAYFAli30KEACgkQMOfwapXb+vIm7wCdHBznpuGtBTdHWqaEhGywdOs6
+R2QAnR9w5KoR8A3OO9j/dIivhP4iWAL6
+=TlEC
+-----END PGP SIGNATURE-----
 
-Steve
+--IS0zKkzwUGydFO0o--
