@@ -1,243 +1,388 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:36597 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932079AbdCJExi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 23:53:38 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v5 00/39] i.MX Media Driver
-Date: Thu,  9 Mar 2017 20:52:40 -0800
-Message-Id: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mout.kundenserver.de ([212.227.126.135]:50625 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752620AbdCBQsW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 11:48:22 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: kasan-dev@googlegroups.com
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-wireless@vger.kernel.org,
+        kernel-build-reports@lists.linaro.org,
+        "David S . Miller" <davem@davemloft.net>,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 14/26] [media] dvb-frontends: reduce stack size in i2c access
+Date: Thu,  2 Mar 2017 17:38:22 +0100
+Message-Id: <20170302163834.2273519-15-arnd@arndb.de>
+In-Reply-To: <20170302163834.2273519-1-arnd@arndb.de>
+References: <20170302163834.2273519-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In version 5:
+A typical code fragment was copied across many dvb-frontend
+drivers and causes large stack frames when built with
+-fsanitize-address-use-after-scope, e.g.
 
-- ov5640: renamed "pwdn-gpios" to "powerdown-gpios"
+drivers/media/dvb-frontends/cxd2841er.c:3225:1: error: the frame size of 3992 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
+drivers/media/dvb-frontends/cxd2841er.c:3404:1: error: the frame size of 3136 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
+drivers/media/dvb-frontends/stv0367.c:3143:1: error: the frame size of 4016 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
+drivers/media/dvb-frontends/stv090x.c:3430:1: error: the frame size of 5312 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
+drivers/media/dvb-frontends/stv090x.c:4248:1: error: the frame size of 4872 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
 
-- ov5640: add mutex lock around the subdev op entry points.
+By marking the register access functions as noinline_for_kasan,
+we can completely avoid this problem.
 
-- ov5640: don't attempt to program the new mode in ov5640_set_fmt().
-  Instead set a new flag, pending_mode_change, and program the new
-  mode at s_stream() if flag is set.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/media/dvb-frontends/ascot2e.c       |  3 ++-
+ drivers/media/dvb-frontends/cxd2841er.c     |  4 ++--
+ drivers/media/dvb-frontends/drx39xyj/drxj.c | 14 +++++++-------
+ drivers/media/dvb-frontends/helene.c        |  4 ++--
+ drivers/media/dvb-frontends/horus3a.c       |  2 +-
+ drivers/media/dvb-frontends/itd1000.c       |  2 +-
+ drivers/media/dvb-frontends/mt312.c         |  2 +-
+ drivers/media/dvb-frontends/si2165.c        | 14 +++++++-------
+ drivers/media/dvb-frontends/stb0899_drv.c   |  2 +-
+ drivers/media/dvb-frontends/stb6100.c       |  2 +-
+ drivers/media/dvb-frontends/stv0367.c       |  2 +-
+ drivers/media/dvb-frontends/stv090x.c       |  2 +-
+ drivers/media/dvb-frontends/stv6110.c       |  2 +-
+ drivers/media/dvb-frontends/stv6110x.c      |  2 +-
+ drivers/media/dvb-frontends/tda8083.c       |  2 +-
+ drivers/media/dvb-frontends/zl10039.c       |  2 +-
+ 16 files changed, 31 insertions(+), 30 deletions(-)
 
-- ov5640: implement [gs]_frame_interval. As part of that, create
-  ov5640_try_frame_interval(), which is used by both [gs]_frame_interval
-  and [gs]_parm.
-
-- ov5640: don't attempt to set controls in ov5640_s_ctrl(), or at
-  mode change, do it instead after first power-up.
-
-- video-multiplexer: include link_validate in media_entity_operations.
-
-- video-multiplexer: enforce that output pad frame interval must match
-  input pad frame interval in vidsw_s_frame_interval().
-
-- video-multiplexer: initialize frame interval to a default 30 fps.
-
-- mipi csi-2: renamed "cfg" clock name property to "ref". This is the
-  27 MHz mipi csi-2 PLL reference clock.
-
-- mipi csi-2: create a hsfreq_map[] table based on
-  https://community.nxp.com/docs/DOC-94312. Use it to select
-  a hsfreqrange_sel value when programming the D-PHY, based on
-  a max Mbps per lane. This is computed from the source subdev
-  via V4L2_CID_LINK_FREQ control, and if the subdev doesn't implement
-  that control, use a default hard-coded max Mbps per lane.
-
-- added required ports property description to imx-media binding doc.
-
-- removed event V4L2_EVENT_FRAME_TIMEOUT. On a frame timeout, which
-  is always unrecoverable, call vb2_queue_error() instead.
-
-- export the remaining custom events to V4L2_EVENT_FRAME_INTERVAL_ERROR
-  and V4L2_EVENT_NEW_FRAME_BEFORE_EOF.
-
-- vdic: use V4L2_CID_DEINTERLACING_MODE for motion compensation control
-  instead of a custom control.
-
-- add v4l2_subdev_link_validate_frame_interval(). Call this in the
-  link_validate imx-media subdev callbacks and video-multiplexer.
-
-- fix subdev event registration: implementation of subscribe_event()
-  and unsubscribe_event() subdev ops were missing.
-
-- all calls from the pipeline to the sensor subdev have been removed.
-  Only the CSI subdev still refers to a sensor, and only to retrieve
-  its media bus config, which is necessary to setup the CSI interface.
-
-- add mutex locks around the imx-media subdev op entry points.
-
-- completed the propagation of all pad format parameters from sink
-  pads to source pads within every imx-media subdev.
-
-- implement [gs]_frame_interval in all the imx-media subdevs.
-
-- imx-ic-prpencvf: there isn't necessarily a CSI subdev in the pipeline
-  in the future, so make sure this is optional when calling the CSI's
-  FIM.
-
-- the source pads that attach to capture device nodes now require the
-  IPU internal pixel codes. The capture device translates these to
-  v4l2 fourcc memory formats.
-
-- fix control inheritance to the capture device. When the pipeline
-  was modified, the inherited controls were not being refreshed.
-  v4l2_pipeline_inherit_controls() is now called only in imx-media
-  link_notify() callback when a pipelink link is disabled or modified.
-  imx_media_find_pipeline_video_device() is created to locate the
-  capture device in the pipeline.
-
-- fix a possible race when propagating formats to the capture device.
-  The subdevs and capture device use different mutex locks when setting
-  formats. imx_media_capture_device_set_format() is created which acquires
-  the capture device mutex when updating the capture device format.
-
-- verify all subdevs were bound in the async completion callback.
+diff --git a/drivers/media/dvb-frontends/ascot2e.c b/drivers/media/dvb-frontends/ascot2e.c
+index 0ee0df53b91b..435eb4d3f3ef 100644
+--- a/drivers/media/dvb-frontends/ascot2e.c
++++ b/drivers/media/dvb-frontends/ascot2e.c
+@@ -153,7 +153,8 @@ static int ascot2e_write_regs(struct ascot2e_priv *priv,
+ 	return 0;
+ }
  
-
-Philipp Zabel (7):
-  [media] dt-bindings: Add bindings for video-multiplexer device
-  ARM: dts: imx6qdl: Add mipi_ipu1/2 multiplexers, mipi_csi, and their
-    connections
-  add mux and video interface bridge entity functions
-  platform: add video-multiplexer subdevice driver
-  media: imx: csi: fix crop rectangle changes in set_fmt
-  media: imx: csi: add frame skipping support
-  media: imx: csi: fix crop rectangle reset in sink set_fmt
-
-Russell King (4):
-  media: imx: add support for bayer formats
-  media: imx: csi: add support for bayer formats
-  media: imx: mipi-csi2: enable setting and getting of frame rates
-  media: imx: csi/fim: add support for frame intervals
-
-Steve Longerbeam (28):
-  [media] dt-bindings: Add bindings for i.MX media driver
-  [media] dt/bindings: Add bindings for OV5640
-  ARM: dts: imx6qdl: Add compatible, clocks, irqs to MIPI CSI-2 node
-  ARM: dts: imx6qdl: add capture-subsystem device
-  ARM: dts: imx6qdl-sabrelite: remove erratum ERR006687 workaround
-  ARM: dts: imx6-sabrelite: add OV5642 and OV5640 camera sensors
-  ARM: dts: imx6-sabresd: add OV5642 and OV5640 camera sensors
-  ARM: dts: imx6-sabreauto: create i2cmux for i2c3
-  ARM: dts: imx6-sabreauto: add reset-gpios property for max7310_b
-  ARM: dts: imx6-sabreauto: add pinctrl for gpt input capture
-  ARM: dts: imx6-sabreauto: add the ADV7180 video decoder
-  [media] v4l2: add a frame interval error event
-  [media] v4l2: add a new-frame before end-of-frame event
-  [media] v4l2-mc: add a function to inherit controls from a pipeline
-  [media] v4l: subdev: Add function to validate frame interval
-  [media] add Omnivision OV5640 sensor driver
-  UAPI: Add media UAPI Kbuild file
-  media: Add userspace header file for i.MX
-  media: Add i.MX media core driver
-  media: imx: Add Capture Device Interface
-  media: imx: Add CSI subdev driver
-  media: imx: Add VDIC subdev driver
-  media: imx: Add IC subdev drivers
-  media: imx: Add MIPI CSI-2 Receiver subdev driver
-  ARM: imx_v6_v7_defconfig: Enable staging video4linux drivers
-  media: imx: csi: add __csi_get_fmt
-  media: imx: redo pixel format enumeration and negotiation
-  media: imx: propagate sink pad formats to source pads
-
- .../devicetree/bindings/media/i2c/ov5640.txt       |   45 +
- Documentation/devicetree/bindings/media/imx.txt    |   74 +
- .../bindings/media/video-multiplexer.txt           |   59 +
- Documentation/media/uapi/mediactl/media-types.rst  |   22 +
- Documentation/media/uapi/v4l/vidioc-dqevent.rst    |   12 +
- Documentation/media/v4l-drivers/imx.rst            |  560 +++++
- Documentation/media/videodev2.h.rst.exceptions     |    2 +
- arch/arm/boot/dts/imx6dl-sabrelite.dts             |    5 +
- arch/arm/boot/dts/imx6dl-sabresd.dts               |    5 +
- arch/arm/boot/dts/imx6dl.dtsi                      |  185 ++
- arch/arm/boot/dts/imx6q-sabrelite.dts              |    5 +
- arch/arm/boot/dts/imx6q-sabresd.dts                |    5 +
- arch/arm/boot/dts/imx6q.dtsi                       |  121 ++
- arch/arm/boot/dts/imx6qdl-sabreauto.dtsi           |  144 +-
- arch/arm/boot/dts/imx6qdl-sabrelite.dtsi           |  152 +-
- arch/arm/boot/dts/imx6qdl-sabresd.dtsi             |  114 +-
- arch/arm/boot/dts/imx6qdl.dtsi                     |   17 +-
- arch/arm/configs/imx_v6_v7_defconfig               |   11 +
- drivers/media/i2c/Kconfig                          |    7 +
- drivers/media/i2c/Makefile                         |    1 +
- drivers/media/i2c/ov5640.c                         | 2231 ++++++++++++++++++++
- drivers/media/platform/Kconfig                     |    8 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/video-multiplexer.c         |  498 +++++
- drivers/media/v4l2-core/v4l2-mc.c                  |   48 +
- drivers/media/v4l2-core/v4l2-subdev.c              |   50 +
- drivers/staging/media/Kconfig                      |    2 +
- drivers/staging/media/Makefile                     |    1 +
- drivers/staging/media/imx/Kconfig                  |   20 +
- drivers/staging/media/imx/Makefile                 |   12 +
- drivers/staging/media/imx/TODO                     |   17 +
- drivers/staging/media/imx/imx-ic-common.c          |  113 +
- drivers/staging/media/imx/imx-ic-prp.c             |  497 +++++
- drivers/staging/media/imx/imx-ic-prpencvf.c        | 1236 +++++++++++
- drivers/staging/media/imx/imx-ic.h                 |   38 +
- drivers/staging/media/imx/imx-media-capture.c      |  694 ++++++
- drivers/staging/media/imx/imx-media-csi.c          | 1595 ++++++++++++++
- drivers/staging/media/imx/imx-media-dev.c          |  522 +++++
- drivers/staging/media/imx/imx-media-fim.c          |  463 ++++
- drivers/staging/media/imx/imx-media-internal-sd.c  |  349 +++
- drivers/staging/media/imx/imx-media-of.c           |  267 +++
- drivers/staging/media/imx/imx-media-utils.c        | 1009 +++++++++
- drivers/staging/media/imx/imx-media-vdic.c         |  949 +++++++++
- drivers/staging/media/imx/imx-media.h              |  311 +++
- drivers/staging/media/imx/imx6-mipi-csi2.c         |  725 +++++++
- include/media/imx.h                                |   15 +
- include/media/v4l2-mc.h                            |   25 +
- include/media/v4l2-subdev.h                        |   10 +
- include/uapi/Kbuild                                |    1 +
- include/uapi/linux/media.h                         |    6 +
- include/uapi/linux/v4l2-controls.h                 |    4 +
- include/uapi/linux/videodev2.h                     |    2 +
- include/uapi/media/Kbuild                          |    2 +
- include/uapi/media/imx.h                           |   21 +
- 54 files changed, 13262 insertions(+), 27 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5640.txt
- create mode 100644 Documentation/devicetree/bindings/media/imx.txt
- create mode 100644 Documentation/devicetree/bindings/media/video-multiplexer.txt
- create mode 100644 Documentation/media/v4l-drivers/imx.rst
- create mode 100644 drivers/media/i2c/ov5640.c
- create mode 100644 drivers/media/platform/video-multiplexer.c
- create mode 100644 drivers/staging/media/imx/Kconfig
- create mode 100644 drivers/staging/media/imx/Makefile
- create mode 100644 drivers/staging/media/imx/TODO
- create mode 100644 drivers/staging/media/imx/imx-ic-common.c
- create mode 100644 drivers/staging/media/imx/imx-ic-prp.c
- create mode 100644 drivers/staging/media/imx/imx-ic-prpencvf.c
- create mode 100644 drivers/staging/media/imx/imx-ic.h
- create mode 100644 drivers/staging/media/imx/imx-media-capture.c
- create mode 100644 drivers/staging/media/imx/imx-media-csi.c
- create mode 100644 drivers/staging/media/imx/imx-media-dev.c
- create mode 100644 drivers/staging/media/imx/imx-media-fim.c
- create mode 100644 drivers/staging/media/imx/imx-media-internal-sd.c
- create mode 100644 drivers/staging/media/imx/imx-media-of.c
- create mode 100644 drivers/staging/media/imx/imx-media-utils.c
- create mode 100644 drivers/staging/media/imx/imx-media-vdic.c
- create mode 100644 drivers/staging/media/imx/imx-media.h
- create mode 100644 drivers/staging/media/imx/imx6-mipi-csi2.c
- create mode 100644 include/media/imx.h
- create mode 100644 include/uapi/media/Kbuild
- create mode 100644 include/uapi/media/imx.h
-
+-static int ascot2e_write_reg(struct ascot2e_priv *priv, u8 reg, u8 val)
++static noinline_for_kasan int ascot2e_write_reg(struct ascot2e_priv *priv,
++						u8 reg, u8 val)
+ {
+ 	return ascot2e_write_regs(priv, reg, &val, 1);
+ }
+diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
+index 614bfb3740f1..01f7ec4d42c1 100644
+--- a/drivers/media/dvb-frontends/cxd2841er.c
++++ b/drivers/media/dvb-frontends/cxd2841er.c
+@@ -258,7 +258,7 @@ static int cxd2841er_write_regs(struct cxd2841er_priv *priv,
+ 	return 0;
+ }
+ 
+-static int cxd2841er_write_reg(struct cxd2841er_priv *priv,
++static noinline_for_kasan int cxd2841er_write_reg(struct cxd2841er_priv *priv,
+ 			       u8 addr, u8 reg, u8 val)
+ {
+ 	return cxd2841er_write_regs(priv, addr, reg, &val, 1);
+@@ -306,7 +306,7 @@ static int cxd2841er_read_regs(struct cxd2841er_priv *priv,
+ 	return 0;
+ }
+ 
+-static int cxd2841er_read_reg(struct cxd2841er_priv *priv,
++static noinline_for_kasan int cxd2841er_read_reg(struct cxd2841er_priv *priv,
+ 			      u8 addr, u8 reg, u8 *val)
+ {
+ 	return cxd2841er_read_regs(priv, addr, reg, val, 1);
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+index daeaf965dd56..0e6540709e09 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+@@ -1516,7 +1516,7 @@ static int drxdap_fasi_read_block(struct i2c_device_addr *dev_addr,
+ *
+ ******************************/
+ 
+-static int drxdap_fasi_read_reg16(struct i2c_device_addr *dev_addr,
++static noinline_for_kasan int drxdap_fasi_read_reg16(struct i2c_device_addr *dev_addr,
+ 					 u32 addr,
+ 					 u16 *data, u32 flags)
+ {
+@@ -1549,7 +1549,7 @@ static int drxdap_fasi_read_reg16(struct i2c_device_addr *dev_addr,
+ *
+ ******************************/
+ 
+-static int drxdap_fasi_read_reg32(struct i2c_device_addr *dev_addr,
++static noinline_for_kasan int drxdap_fasi_read_reg32(struct i2c_device_addr *dev_addr,
+ 					 u32 addr,
+ 					 u32 *data, u32 flags)
+ {
+@@ -1722,7 +1722,7 @@ static int drxdap_fasi_write_block(struct i2c_device_addr *dev_addr,
+ *
+ ******************************/
+ 
+-static int drxdap_fasi_write_reg16(struct i2c_device_addr *dev_addr,
++static noinline_for_kasan int drxdap_fasi_write_reg16(struct i2c_device_addr *dev_addr,
+ 					  u32 addr,
+ 					  u16 data, u32 flags)
+ {
+@@ -1795,7 +1795,7 @@ static int drxdap_fasi_read_modify_write_reg16(struct i2c_device_addr *dev_addr,
+ *
+ ******************************/
+ 
+-static int drxdap_fasi_write_reg32(struct i2c_device_addr *dev_addr,
++static noinline_for_kasan int drxdap_fasi_write_reg32(struct i2c_device_addr *dev_addr,
+ 					  u32 addr,
+ 					  u32 data, u32 flags)
+ {
+@@ -2172,7 +2172,7 @@ int drxj_dap_atomic_read_write_block(struct i2c_device_addr *dev_addr,
+ * \fn int drxj_dap_atomic_read_reg32()
+ * \brief Atomic read of 32 bits words
+ */
+-static
++static noinline_for_kasan
+ int drxj_dap_atomic_read_reg32(struct i2c_device_addr *dev_addr,
+ 				     u32 addr,
+ 				     u32 *data, u32 flags)
+@@ -4191,7 +4191,7 @@ int drxj_dap_scu_atomic_read_write_block(struct i2c_device_addr *dev_addr, u32 a
+ * \fn int DRXJ_DAP_AtomicReadReg16()
+ * \brief Atomic read of 16 bits words
+ */
+-static
++static noinline_for_kasan
+ int drxj_dap_scu_atomic_read_reg16(struct i2c_device_addr *dev_addr,
+ 					 u32 addr,
+ 					 u16 *data, u32 flags)
+@@ -4219,7 +4219,7 @@ int drxj_dap_scu_atomic_read_reg16(struct i2c_device_addr *dev_addr,
+ * \fn int drxj_dap_scu_atomic_write_reg16()
+ * \brief Atomic read of 16 bits words
+ */
+-static
++static noinline_for_kasan
+ int drxj_dap_scu_atomic_write_reg16(struct i2c_device_addr *dev_addr,
+ 					  u32 addr,
+ 					  u16 data, u32 flags)
+diff --git a/drivers/media/dvb-frontends/helene.c b/drivers/media/dvb-frontends/helene.c
+index 4bf5a551ba40..d984dfc392f0 100644
+--- a/drivers/media/dvb-frontends/helene.c
++++ b/drivers/media/dvb-frontends/helene.c
+@@ -329,7 +329,7 @@ static int helene_write_regs(struct helene_priv *priv,
+ 	return 0;
+ }
+ 
+-static int helene_write_reg(struct helene_priv *priv, u8 reg, u8 val)
++static noinline_for_kasan int helene_write_reg(struct helene_priv *priv, u8 reg, u8 val)
+ {
+ 	return helene_write_regs(priv, reg, &val, 1);
+ }
+@@ -374,7 +374,7 @@ static int helene_read_regs(struct helene_priv *priv,
+ 	return 0;
+ }
+ 
+-static int helene_read_reg(struct helene_priv *priv, u8 reg, u8 *val)
++static noinline_for_kasan int helene_read_reg(struct helene_priv *priv, u8 reg, u8 *val)
+ {
+ 	return helene_read_regs(priv, reg, val, 1);
+ }
+diff --git a/drivers/media/dvb-frontends/horus3a.c b/drivers/media/dvb-frontends/horus3a.c
+index 94bb4f7a2298..9dc6662073a7 100644
+--- a/drivers/media/dvb-frontends/horus3a.c
++++ b/drivers/media/dvb-frontends/horus3a.c
+@@ -87,7 +87,7 @@ static int horus3a_write_regs(struct horus3a_priv *priv,
+ 	return 0;
+ }
+ 
+-static int horus3a_write_reg(struct horus3a_priv *priv, u8 reg, u8 val)
++static noinline_for_kasan int horus3a_write_reg(struct horus3a_priv *priv, u8 reg, u8 val)
+ {
+ 	return horus3a_write_regs(priv, reg, &val, 1);
+ }
+diff --git a/drivers/media/dvb-frontends/itd1000.c b/drivers/media/dvb-frontends/itd1000.c
+index 5bb1e73a10b4..ae0b19c65b9f 100644
+--- a/drivers/media/dvb-frontends/itd1000.c
++++ b/drivers/media/dvb-frontends/itd1000.c
+@@ -93,7 +93,7 @@ static int itd1000_read_reg(struct itd1000_state *state, u8 reg)
+ 	return val;
+ }
+ 
+-static inline int itd1000_write_reg(struct itd1000_state *state, u8 r, u8 v)
++static noinline_for_kasan int itd1000_write_reg(struct itd1000_state *state, u8 r, u8 v)
+ {
+ 	int ret = itd1000_write_regs(state, r, &v, 1);
+ 	state->shadow[r] = v;
+diff --git a/drivers/media/dvb-frontends/mt312.c b/drivers/media/dvb-frontends/mt312.c
+index 961b9a2508e0..a41d2c719aac 100644
+--- a/drivers/media/dvb-frontends/mt312.c
++++ b/drivers/media/dvb-frontends/mt312.c
+@@ -139,7 +139,7 @@ static inline int mt312_readreg(struct mt312_state *state,
+ 	return mt312_read(state, reg, val, 1);
+ }
+ 
+-static inline int mt312_writereg(struct mt312_state *state,
++static noinline_for_kasan int mt312_writereg(struct mt312_state *state,
+ 				 const enum mt312_reg_addr reg, const u8 val)
+ {
+ 	return mt312_write(state, reg, &val, 1);
+diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
+index 528b82a5dd46..1a0997e1db4a 100644
+--- a/drivers/media/dvb-frontends/si2165.c
++++ b/drivers/media/dvb-frontends/si2165.c
+@@ -140,7 +140,7 @@ static int si2165_read(struct si2165_state *state,
+ 	return 0;
+ }
+ 
+-static int si2165_readreg8(struct si2165_state *state,
++static noinline_for_kasan int si2165_readreg8(struct si2165_state *state,
+ 		       const u16 reg, u8 *val)
+ {
+ 	unsigned int val_tmp;
+@@ -150,7 +150,7 @@ static int si2165_readreg8(struct si2165_state *state,
+ 	return ret;
+ }
+ 
+-static int si2165_readreg16(struct si2165_state *state,
++static noinline_for_kasan int si2165_readreg16(struct si2165_state *state,
+ 		       const u16 reg, u16 *val)
+ {
+ 	u8 buf[2];
+@@ -161,26 +161,26 @@ static int si2165_readreg16(struct si2165_state *state,
+ 	return ret;
+ }
+ 
+-static int si2165_writereg8(struct si2165_state *state, const u16 reg, u8 val)
++static noinline_for_kasan int si2165_writereg8(struct si2165_state *state, const u16 reg, u8 val)
+ {
+ 	return regmap_write(state->regmap, reg, val);
+ }
+ 
+-static int si2165_writereg16(struct si2165_state *state, const u16 reg, u16 val)
++static noinline_for_kasan int si2165_writereg16(struct si2165_state *state, const u16 reg, u16 val)
+ {
+ 	u8 buf[2] = { val & 0xff, (val >> 8) & 0xff };
+ 
+ 	return si2165_write(state, reg, buf, 2);
+ }
+ 
+-static int si2165_writereg24(struct si2165_state *state, const u16 reg, u32 val)
++static noinline_for_kasan int si2165_writereg24(struct si2165_state *state, const u16 reg, u32 val)
+ {
+ 	u8 buf[3] = { val & 0xff, (val >> 8) & 0xff, (val >> 16) & 0xff };
+ 
+ 	return si2165_write(state, reg, buf, 3);
+ }
+ 
+-static int si2165_writereg32(struct si2165_state *state, const u16 reg, u32 val)
++static noinline_for_kasan int si2165_writereg32(struct si2165_state *state, const u16 reg, u32 val)
+ {
+ 	u8 buf[4] = {
+ 		val & 0xff,
+@@ -191,7 +191,7 @@ static int si2165_writereg32(struct si2165_state *state, const u16 reg, u32 val)
+ 	return si2165_write(state, reg, buf, 4);
+ }
+ 
+-static int si2165_writereg_mask8(struct si2165_state *state, const u16 reg,
++static noinline_for_kasan int si2165_writereg_mask8(struct si2165_state *state, const u16 reg,
+ 				 u8 val, u8 mask)
+ {
+ 	if (mask != 0xff) {
+diff --git a/drivers/media/dvb-frontends/stb0899_drv.c b/drivers/media/dvb-frontends/stb0899_drv.c
+index 02347598277a..f638950f1478 100644
+--- a/drivers/media/dvb-frontends/stb0899_drv.c
++++ b/drivers/media/dvb-frontends/stb0899_drv.c
+@@ -537,7 +537,7 @@ int stb0899_write_regs(struct stb0899_state *state, unsigned int reg, u8 *data,
+ 	return 0;
+ }
+ 
+-int stb0899_write_reg(struct stb0899_state *state, unsigned int reg, u8 data)
++noinline_for_kasan int stb0899_write_reg(struct stb0899_state *state, unsigned int reg, u8 data)
+ {
+ 	return stb0899_write_regs(state, reg, &data, 1);
+ }
+diff --git a/drivers/media/dvb-frontends/stb6100.c b/drivers/media/dvb-frontends/stb6100.c
+index 17a955d0031b..2fd6378ebd9a 100644
+--- a/drivers/media/dvb-frontends/stb6100.c
++++ b/drivers/media/dvb-frontends/stb6100.c
+@@ -224,7 +224,7 @@ static int stb6100_write_reg_range(struct stb6100_state *state, u8 buf[], int st
+ 	return 0;
+ }
+ 
+-static int stb6100_write_reg(struct stb6100_state *state, u8 reg, u8 data)
++static noinline_for_kasan int stb6100_write_reg(struct stb6100_state *state, u8 reg, u8 data)
+ {
+ 	if (unlikely(reg >= STB6100_NUMREGS)) {
+ 		dprintk(verbose, FE_ERROR, 1, "Invalid register offset 0x%x", reg);
+diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
+index fd49c436a36d..dc7c1e596d29 100644
+--- a/drivers/media/dvb-frontends/stv0367.c
++++ b/drivers/media/dvb-frontends/stv0367.c
+@@ -798,7 +798,7 @@ int stv0367_writeregs(struct stv0367_state *state, u16 reg, u8 *data, int len)
+ 	return (ret != 1) ? -EREMOTEIO : 0;
+ }
+ 
+-static int stv0367_writereg(struct stv0367_state *state, u16 reg, u8 data)
++static noinline_for_kasan int stv0367_writereg(struct stv0367_state *state, u16 reg, u8 data)
+ {
+ 	return stv0367_writeregs(state, reg, &data, 1);
+ }
+diff --git a/drivers/media/dvb-frontends/stv090x.c b/drivers/media/dvb-frontends/stv090x.c
+index 7ef469c0c866..236325ae2580 100644
+--- a/drivers/media/dvb-frontends/stv090x.c
++++ b/drivers/media/dvb-frontends/stv090x.c
+@@ -753,7 +753,7 @@ static int stv090x_write_regs(struct stv090x_state *state, unsigned int reg, u8
+ 	return 0;
+ }
+ 
+-static int stv090x_write_reg(struct stv090x_state *state, unsigned int reg, u8 data)
++static noinline_for_kasan int stv090x_write_reg(struct stv090x_state *state, unsigned int reg, u8 data)
+ {
+ 	return stv090x_write_regs(state, reg, &data, 1);
+ }
+diff --git a/drivers/media/dvb-frontends/stv6110.c b/drivers/media/dvb-frontends/stv6110.c
+index e4fd9c1b0560..34677f7327d5 100644
+--- a/drivers/media/dvb-frontends/stv6110.c
++++ b/drivers/media/dvb-frontends/stv6110.c
+@@ -137,7 +137,7 @@ static int stv6110_read_regs(struct dvb_frontend *fe, u8 regs[],
+ 	return 0;
+ }
+ 
+-static int stv6110_read_reg(struct dvb_frontend *fe, int start)
++static noinline_for_kasan int stv6110_read_reg(struct dvb_frontend *fe, int start)
+ {
+ 	u8 buf[] = { 0 };
+ 	stv6110_read_regs(fe, buf, start, 1);
+diff --git a/drivers/media/dvb-frontends/stv6110x.c b/drivers/media/dvb-frontends/stv6110x.c
+index 66eba38f1014..b8e3c5ac06e2 100644
+--- a/drivers/media/dvb-frontends/stv6110x.c
++++ b/drivers/media/dvb-frontends/stv6110x.c
+@@ -95,7 +95,7 @@ static int stv6110x_write_regs(struct stv6110x_state *stv6110x, int start, u8 da
+ 	return 0;
+ }
+ 
+-static int stv6110x_write_reg(struct stv6110x_state *stv6110x, u8 reg, u8 data)
++static noinline_for_kasan int stv6110x_write_reg(struct stv6110x_state *stv6110x, u8 reg, u8 data)
+ {
+ 	return stv6110x_write_regs(stv6110x, reg, &data, 1);
+ }
+diff --git a/drivers/media/dvb-frontends/tda8083.c b/drivers/media/dvb-frontends/tda8083.c
+index aa3200d3c352..26732db739a5 100644
+--- a/drivers/media/dvb-frontends/tda8083.c
++++ b/drivers/media/dvb-frontends/tda8083.c
+@@ -88,7 +88,7 @@ static int tda8083_readregs (struct tda8083_state* state, u8 reg1, u8 *b, u8 len
+ 	return ret == 2 ? 0 : -1;
+ }
+ 
+-static inline u8 tda8083_readreg (struct tda8083_state* state, u8 reg)
++static noinline_for_kasan u8 tda8083_readreg (struct tda8083_state* state, u8 reg)
+ {
+ 	u8 val;
+ 
+diff --git a/drivers/media/dvb-frontends/zl10039.c b/drivers/media/dvb-frontends/zl10039.c
+index 623355fc2666..713da9e02700 100644
+--- a/drivers/media/dvb-frontends/zl10039.c
++++ b/drivers/media/dvb-frontends/zl10039.c
+@@ -130,7 +130,7 @@ static inline int zl10039_readreg(struct zl10039_state *state,
+ 	return zl10039_read(state, reg, val, 1);
+ }
+ 
+-static inline int zl10039_writereg(struct zl10039_state *state,
++static noinline_for_kasan int zl10039_writereg(struct zl10039_state *state,
+ 				const enum zl10039_reg_addr reg,
+ 				const u8 val)
+ {
 -- 
-2.7.4
+2.9.0
