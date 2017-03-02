@@ -1,95 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:59955 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754702AbdC1I0X (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Mar 2017 04:26:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv6 04/14] ov7670: get xclk
-Date: Tue, 28 Mar 2017 10:23:37 +0200
-Message-Id: <20170328082347.11159-5-hverkuil@xs4all.nl>
-In-Reply-To: <20170328082347.11159-1-hverkuil@xs4all.nl>
-References: <20170328082347.11159-1-hverkuil@xs4all.nl>
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:35060 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751603AbdCBWwk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 17:52:40 -0500
+MIME-Version: 1.0
+In-Reply-To: <1488476770.2179.6.camel@perches.com>
+References: <20170302163834.2273519-1-arnd@arndb.de> <20170302163834.2273519-25-arnd@arndb.de>
+ <1488476770.2179.6.camel@perches.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Thu, 2 Mar 2017 23:22:26 +0100
+Message-ID: <CAK8P3a1gW9UqMKD2ijzxMH4rv1zAji0GUoz+bLY_oi0yvLU1cw@mail.gmail.com>
+Subject: Re: [PATCH 24/26] ocfs2: reduce stack size with KASAN
+To: Joe Perches <joe@perches.com>
+Cc: kasan-dev <kasan-dev@googlegroups.com>,
+        Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Networking <netdev@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org,
+        linux-wireless <linux-wireless@vger.kernel.org>,
+        kernel-build-reports@lists.linaro.org,
+        "David S . Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thu, Mar 2, 2017 at 6:46 PM, Joe Perches <joe@perches.com> wrote:
+> On Thu, 2017-03-02 at 17:38 +0100, Arnd Bergmann wrote:
+>> The internal logging infrastructure in ocfs2 causes special warning code to be
+>> used with KASAN, which produces rather large stack frames:
+>
+>> fs/ocfs2/super.c: In function 'ocfs2_fill_super':
+>> fs/ocfs2/super.c:1219:1: error: the frame size of 3264 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
+>
+> At least by default it doesn't seem to.
+>
+> gcc 6.2 allyesconfig, CONFIG_KASAN=y
+> with either CONFIG_KASAN_INLINE or CONFIG_KASAN_OUTLINE
+>
+> gcc doesn't emit a stack warning
 
-Get the clock for this sensor.
+The warning is disabled until patch 26/26. which picks the 3072 default.
+The 3264 number was with gcc-7, which is worse than gcc-6 since it enables
+an extra check.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/ov7670.c | 18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+>> By simply passing the mask by value instead of reference, we can avoid the
+>> problem completely.
+>
+> Any idea why that's so?
 
-diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-index 50e4466a2b37..912ff09c6100 100644
---- a/drivers/media/i2c/ov7670.c
-+++ b/drivers/media/i2c/ov7670.c
-@@ -10,6 +10,7 @@
-  * This file may be distributed under the terms of the GNU General
-  * Public License, version 2.
-  */
-+#include <linux/clk.h>
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/slab.h>
-@@ -227,6 +228,7 @@ struct ov7670_info {
- 		struct v4l2_ctrl *hue;
- 	};
- 	struct ov7670_format_struct *fmt;  /* Current format */
-+	struct clk *clk;
- 	int min_width;			/* Filter out smaller sizes */
- 	int min_height;			/* Filter out smaller sizes */
- 	int clock_speed;		/* External clock speed (MHz) */
-@@ -1587,13 +1589,24 @@ static int ov7670_probe(struct i2c_client *client,
- 			info->pclk_hb_disable = true;
- 	}
- 
-+	info->clk = devm_clk_get(&client->dev, "xclk");
-+	if (IS_ERR(info->clk))
-+		return -EPROBE_DEFER;
-+	clk_prepare_enable(info->clk);
-+
-+	info->clock_speed = clk_get_rate(info->clk) / 1000000;
-+	if (info->clock_speed < 10 || info->clock_speed > 48) {
-+		ret = -EINVAL;
-+		goto clk_disable;
-+	}
-+
- 	/* Make sure it's an ov7670 */
- 	ret = ov7670_detect(sd);
- 	if (ret) {
- 		v4l_dbg(1, debug, client,
- 			"chip found @ 0x%x (%s) is not an ov7670 chip.\n",
- 			client->addr << 1, client->adapter->name);
--		return ret;
-+		goto clk_disable;
- 	}
- 	v4l_info(client, "chip found @ 0x%02x (%s)\n",
- 			client->addr << 1, client->adapter->name);
-@@ -1656,6 +1669,8 @@ static int ov7670_probe(struct i2c_client *client,
- 
- hdl_free:
- 	v4l2_ctrl_handler_free(&info->hdl);
-+clk_disable:
-+	clk_disable_unprepare(info->clk);
- 	return ret;
- }
- 
-@@ -1667,6 +1682,7 @@ static int ov7670_remove(struct i2c_client *client)
- 
- 	v4l2_device_unregister_subdev(sd);
- 	v4l2_ctrl_handler_free(&info->hdl);
-+	clk_disable_unprepare(info->clk);
- 	return 0;
- }
- 
--- 
-2.11.0
+With KASAN, every time we inline the function, the compiler has to allocate
+space for another copy of the variable plus a redzone to detect whether
+passing it by reference into another function causes an overflow at runtime.
+
+>>  On 64-bit architectures, this is also more efficient,
+>
+> Efficient true, but the same overall stack no?
+
+Here is what I see with CONFIG_FRAME_WARN=300 and x86_64-linux-gcc-6.3.1:
+
+before:
+fs/ocfs2/super.c: In function 'ocfs2_parse_options.isra.3':
+fs/ocfs2/super.c:1508:1: error: the frame size of 352 bytes is larger
+than 300 bytes [-Werror=frame-larger-than=]
+fs/ocfs2/super.c: In function 'ocfs2_enable_quotas':
+fs/ocfs2/super.c:974:1: error: the frame size of 344 bytes is larger
+than 300 bytes [-Werror=frame-larger-than=]
+fs/ocfs2/super.c: In function 'ocfs2_fill_super':
+fs/ocfs2/super.c:1219:1: error: the frame size of 552 bytes is larger
+than 300 bytes [-Werror=frame-larger-than=]
+
+after:
+fs/ocfs2/super.c: In function 'ocfs2_fill_super':
+fs/ocfs2/super.c:1219:1: error: the frame size of 472 bytes is larger
+than 300 bytes [-Werror=frame-larger-than=]
+
+and with gcc-7.0.1 (including -fsanitize-address-use-after-scope), before:
+fs/ocfs2/super.c: In function 'ocfs2_check_volume':
+fs/ocfs2/super.c:2512:1: error: the frame size of 768 bytes is larger
+than 300 bytes [-Werror=frame-larger-than=]
+fs/ocfs2/super.c: In function 'ocfs2_statfs':
+fs/ocfs2/super.c:1717:1: error: the frame size of 320 bytes is larger
+than 300 bytes [-Werror=frame-larger-than=]
+fs/ocfs2/super.c: In function 'ocfs2_parse_options.isra.3':
+fs/ocfs2/super.c:1508:1: error: the frame size of 464 bytes is larger
+than 300 bytes [-Werror=frame-larger-than=]
+fs/ocfs2/super.c: In function 'ocfs2_enable_quotas':
+fs/ocfs2/super.c:974:1: error: the frame size of 320 bytes is larger
+than 300 bytes [-Werror=frame-larger-than=]
+fs/ocfs2/super.c: In function 'ocfs2_remount':
+fs/ocfs2/super.c:752:1: error: the frame size of 568 bytes is larger
+than 300 bytes [-Werror=frame-larger-than=]
+fs/ocfs2/super.c: In function 'ocfs2_initialize_super.isra.8':
+fs/ocfs2/super.c:2339:1: error: the frame size of 1712 bytes is larger
+than 300 bytes [-Werror=frame-larger-than=]
+fs/ocfs2/super.c: In function 'ocfs2_fill_super':
+fs/ocfs2/super.c:1219:1: error: the frame size of 3264 bytes is larger
+than 300 bytes [-Werror=frame-larger-than=]
+
+after:
+fs/ocfs2/super.c: In function 'ocfs2_fill_super':
+fs/ocfs2/super.c:1219:1: error: the frame size of 704 bytes is larger
+than 300 bytes [-Werror=frame-larger-than=]
+
+     Arnd
