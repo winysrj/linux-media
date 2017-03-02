@@ -1,43 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:48960 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754720AbdCaKD1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Mar 2017 06:03:27 -0400
-From: Russell King <rmk+kernel@armlinux.org.uk>
-To: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org
-Subject: [PATCH] dma-buf: align debugfs output
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:35866 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754430AbdCBJBr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 04:01:47 -0500
+Date: Thu, 2 Mar 2017 10:01:43 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, mchehab@kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>,
+        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH] omap3isp: add support for CSI1 bus
+Message-ID: <20170302090143.GB27818@amd>
+References: <20161228183036.GA13139@amd>
+ <10545906.Gxg3yScdu4@avalon>
+ <20170215094228.GA8586@amd>
+ <2414221.XNA4JCFMRx@avalon>
 MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="4SFOXa2GPu3tIq4H"
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <E1cttOq-0006GX-U7@rmk-PC.armlinux.org.uk>
-Date: Fri, 31 Mar 2017 11:03:20 +0100
+In-Reply-To: <2414221.XNA4JCFMRx@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Align the heading with the values output from debugfs.
 
-Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
----
- drivers/dma-buf/dma-buf.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+--4SFOXa2GPu3tIq4H
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-index ebaf1923ad6b..f72aaacbe023 100644
---- a/drivers/dma-buf/dma-buf.c
-+++ b/drivers/dma-buf/dma-buf.c
-@@ -1072,7 +1072,8 @@ static int dma_buf_debug_show(struct seq_file *s, void *unused)
- 		return ret;
- 
- 	seq_puts(s, "\nDma-buf Objects:\n");
--	seq_puts(s, "size\tflags\tmode\tcount\texp_name\n");
-+	seq_printf(s, "%-8s\t%-8s\t%-8s\t%-8s\texp_name\n",
-+		   "size", "flags", "mode", "count");
- 
- 	list_for_each_entry(buf_obj, &db_list.head, list_node) {
- 		ret = mutex_lock_interruptible(&buf_obj->lock);
--- 
-2.7.4
+Hi!
+
+> > >> +
+> > >> +static int isp_of_parse_node_endpoint(struct device *dev,
+> > >> +				      struct device_node *node,
+> > >> +				      struct isp_async_subdev *isd)
+> > >> +{
+> > >> +	struct isp_bus_cfg *buscfg;
+> > >> +	struct v4l2_of_endpoint vep;
+> > >> +	int ret;
+> > >> +
+> > >> +	isd->bus =3D devm_kzalloc(dev, sizeof(*isd->bus), GFP_KERNEL);
+> > >=20
+> > > Why do you now need to allocate this manually ?
+> >=20
+> > bus is now a pointer.
+>=20
+> I've seen that, but why have you changed it ?
+
+subdev support. Needs to go into separate patch. Will be done shortly.
+
+> > >> +++ b/drivers/media/platform/omap3isp/ispccp2.c
+> > >> @@ -160,6 +163,33 @@ static int ccp2_if_enable(struct isp_ccp2_device
+> > >> *ccp2, u8 enable) return ret;
+> > >>=20
+> > >>  	}
+> > >>=20
+> > >> +	if (isp->revision =3D=3D ISP_REVISION_2_0) {
+> > >=20
+> > > The isp_csiphy.c code checks phy->isp->phy_type for the same purpose,
+> > > shouldn't you use that too ?
+> >=20
+> > Do you want me to do phy->isp->phy_type =3D=3D ISP_PHY_TYPE_3430 check
+> > here? Can do...
+>=20
+> Yes that's what I meant.
+
+Ok, that's something I can do.
+
+But code is still somewhat "interesting". Code in omap3isp_csiphy_acquire()
+assumes csi2, and I don't need most of it.. so I'll just not use it,
+but it looks strange. I'll post new patch shortly.
+
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--4SFOXa2GPu3tIq4H
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAli333cACgkQMOfwapXb+vJ0kQCfTsWtvdJ9VBeNYzFJivJIetD5
+j3MAn16BOfOG0Oq2dVfAEp42khmxc/8Q
+=mhAp
+-----END PGP SIGNATURE-----
+
+--4SFOXa2GPu3tIq4H--
