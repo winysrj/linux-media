@@ -1,78 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f46.google.com ([74.125.83.46]:33126 "EHLO
-        mail-pg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932756AbdCaX6w (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Mar 2017 19:58:52 -0400
-Received: by mail-pg0-f46.google.com with SMTP id x125so84301043pgb.0
-        for <linux-media@vger.kernel.org>; Fri, 31 Mar 2017 16:58:52 -0700 (PDT)
-Date: Fri, 31 Mar 2017 16:58:50 -0700
-From: Matthias Kaehlcke <mka@chromium.org>
-To: Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        PoChun Lin <pochun.lin@mediatek.com>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-mediatek@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] vcodec: mediatek: Remove double parentheses
-Message-ID: <20170331235850.GB2130@google.com>
-References: <20170317210133.9662-1-mka@chromium.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20170317210133.9662-1-mka@chromium.org>
+Received: from mout.kundenserver.de ([212.227.126.134]:64120 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753967AbdCBRLM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 12:11:12 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: kasan-dev@googlegroups.com
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-wireless@vger.kernel.org,
+        kernel-build-reports@lists.linaro.org,
+        "David S . Miller" <davem@davemloft.net>,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 06/26] rocker: mark rocker_tlv_put_* functions as noinline_for_kasan
+Date: Thu,  2 Mar 2017 17:38:14 +0100
+Message-Id: <20170302163834.2273519-7-arnd@arndb.de>
+In-Reply-To: <20170302163834.2273519-1-arnd@arndb.de>
+References: <20170302163834.2273519-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-El Fri, Mar 17, 2017 at 02:01:33PM -0700 Matthias Kaehlcke ha dit:
+Inlining these functions creates lots of stack variables when KASAN is
+enabled, leading to this warning about potential stack overflow:
 
-> The extra pairs of parentheses are not needed and cause clang
-> warnings like this:
-> 
-> drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c:158:32: error: equality comparison with extraneous parentheses [-Werror,-Wparentheses-equality]
->                 if ((inst->work_bufs[i].size == 0))
->                      ~~~~~~~~~~~~~~~~~~~~~~~~^~~~
-> drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c:158:32: note: remove extraneous parentheses around the comparison to silence this warning
->                 if ((inst->work_bufs[i].size == 0))
->                     ~                        ^   ~
-> drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c:158:32: note: use '=' to turn this equality comparison into an assignment
->                 if ((inst->work_bufs[i].size == 0))
->                                              ^~
->                                              =
-> 
-> Signed-off-by: Matthias Kaehlcke <mka@chromium.org>
-> ---
->  drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c b/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
-> index 544f57186243..129cc74b4fe4 100644
-> --- a/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
-> +++ b/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
-> @@ -155,7 +155,7 @@ static void vp8_enc_free_work_buf(struct venc_vp8_inst *inst)
->  
->  	/* Buffers need to be freed by AP. */
->  	for (i = 0; i < VENC_VP8_VPU_WORK_BUF_MAX; i++) {
-> -		if ((inst->work_bufs[i].size == 0))
-> +		if (inst->work_bufs[i].size == 0)
->  			continue;
->  		mtk_vcodec_mem_free(inst->ctx, &inst->work_bufs[i]);
->  	}
-> @@ -172,7 +172,7 @@ static int vp8_enc_alloc_work_buf(struct venc_vp8_inst *inst)
->  	mtk_vcodec_debug_enter(inst);
->  
->  	for (i = 0; i < VENC_VP8_VPU_WORK_BUF_MAX; i++) {
-> -		if ((wb[i].size == 0))
-> +		if (wb[i].size == 0)
->  			continue;
->  		/*
->  		 * This 'wb' structure is set by VPU side and shared to AP for
+drivers/net/ethernet/rocker/rocker_ofdpa.c: In function 'ofdpa_cmd_flow_tbl_add':
+drivers/net/ethernet/rocker/rocker_ofdpa.c:621:1: error: the frame size of 2752 bytes is larger than 1536 bytes [-Werror=frame-larger-than=]
 
-Ping? Any feedback on this patch?
+This marks all of them noinline_for_kasan, which solves the problem by
+keeping the redzone inside of the separate stack frames.
 
-Cheers
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/net/ethernet/rocker/rocker_tlv.h | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-Matthias
+diff --git a/drivers/net/ethernet/rocker/rocker_tlv.h b/drivers/net/ethernet/rocker/rocker_tlv.h
+index a63ef82e7c72..3a9573fe0191 100644
+--- a/drivers/net/ethernet/rocker/rocker_tlv.h
++++ b/drivers/net/ethernet/rocker/rocker_tlv.h
+@@ -139,38 +139,38 @@ rocker_tlv_start(struct rocker_desc_info *desc_info)
+ int rocker_tlv_put(struct rocker_desc_info *desc_info,
+ 		   int attrtype, int attrlen, const void *data);
+ 
+-static inline int rocker_tlv_put_u8(struct rocker_desc_info *desc_info,
+-				    int attrtype, u8 value)
++static noinline_for_kasan int
++rocker_tlv_put_u8(struct rocker_desc_info *desc_info, int attrtype, u8 value)
+ {
+ 	return rocker_tlv_put(desc_info, attrtype, sizeof(u8), &value);
+ }
+ 
+-static inline int rocker_tlv_put_u16(struct rocker_desc_info *desc_info,
+-				     int attrtype, u16 value)
++static noinline_for_kasan int
++rocker_tlv_put_u16(struct rocker_desc_info *desc_info, int attrtype, u16 value)
+ {
+ 	return rocker_tlv_put(desc_info, attrtype, sizeof(u16), &value);
+ }
+ 
+-static inline int rocker_tlv_put_be16(struct rocker_desc_info *desc_info,
+-				      int attrtype, __be16 value)
++static noinline_for_kasan int
++rocker_tlv_put_be16(struct rocker_desc_info *desc_info, int attrtype, __be16 value)
+ {
+ 	return rocker_tlv_put(desc_info, attrtype, sizeof(__be16), &value);
+ }
+ 
+-static inline int rocker_tlv_put_u32(struct rocker_desc_info *desc_info,
+-				     int attrtype, u32 value)
++static noinline_for_kasan int
++rocker_tlv_put_u32(struct rocker_desc_info *desc_info, int attrtype, u32 value)
+ {
+ 	return rocker_tlv_put(desc_info, attrtype, sizeof(u32), &value);
+ }
+ 
+-static inline int rocker_tlv_put_be32(struct rocker_desc_info *desc_info,
+-				      int attrtype, __be32 value)
++static noinline_for_kasan int
++rocker_tlv_put_be32(struct rocker_desc_info *desc_info, int attrtype, __be32 value)
+ {
+ 	return rocker_tlv_put(desc_info, attrtype, sizeof(__be32), &value);
+ }
+ 
+-static inline int rocker_tlv_put_u64(struct rocker_desc_info *desc_info,
+-				     int attrtype, u64 value)
++static noinline_for_kasan int
++rocker_tlv_put_u64(struct rocker_desc_info *desc_info, int attrtype, u64 value)
+ {
+ 	return rocker_tlv_put(desc_info, attrtype, sizeof(u64), &value);
+ }
+-- 
+2.9.0
