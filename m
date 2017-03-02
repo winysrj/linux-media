@@ -1,176 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-ch2-01v.sys.comcast.net ([69.252.207.33]:45140 "EHLO
-        resqmta-ch2-01v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751378AbdCZTHS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 26 Mar 2017 15:07:18 -0400
-Subject: [PATCH 3/3] [media] mceusb: fix inaccurate debug buffer dumps,and
- misleading debug messages
-To: Sean Young <sean@mess.org>
-References: <58D6A1DD.2030405@comcast.net>
- <20170326102748.GA1672@gofer.mess.org>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-From: A Sun <as1033x@comcast.net>
-Message-ID: <58D810D3.6000109@comcast.net>
-Date: Sun, 26 Mar 2017 15:04:51 -0400
-MIME-Version: 1.0
-In-Reply-To: <20170326102748.GA1672@gofer.mess.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mout.kundenserver.de ([212.227.126.134]:51994 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752658AbdCBRLM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 12:11:12 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: kasan-dev@googlegroups.com
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-wireless@vger.kernel.org,
+        kernel-build-reports@lists.linaro.org,
+        "David S . Miller" <davem@davemloft.net>,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 05/26] netlink: mark nla_put_{u8,u16,u32} noinline_for_kasan
+Date: Thu,  2 Mar 2017 17:38:13 +0100
+Message-Id: <20170302163834.2273519-6-arnd@arndb.de>
+In-Reply-To: <20170302163834.2273519-1-arnd@arndb.de>
+References: <20170302163834.2273519-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-commit https://github.com/asunxx/linux/commit/14cae79824739ae03caa3b1c4f66cbdf73654bde
-Author: A Sun <as1033x@comcast.net>
-Date:   Sun, 26 Mar 2017 14:55:31 -0400
+When CONFIG_KASAN is enabled, the "--param asan-stack=1" causes rather large
+stack frames in some functions. This goes unnoticed normally because
+CONFIG_FRAME_WARN is disabled with CONFIG_KASAN by default as of commit
+3f181b4d8652 ("lib/Kconfig.debug: disable -Wframe-larger-than warnings with
+KASAN=y").
 
-Bug:
+The kernelci.org build bot however has the warning enabled and that led
+me to investigate it a little further, as every build produces these warnings:
 
-Some dev_dbg messages are misleading.
-Some dev_dbg messages have inconsistent formatting.
-mceusb_dev_printdata() prints incorrect range of bytes (0 to len) in buffer which the driver will actually process next.
+net/wireless/nl80211.c:4389:1: warning: the frame size of 2240 bytes is larger than 2048 bytes [-Wframe-larger-than=]
+net/wireless/nl80211.c:1895:1: warning: the frame size of 3776 bytes is larger than 2048 bytes [-Wframe-larger-than=]
+net/wireless/nl80211.c:1410:1: warning: the frame size of 2208 bytes is larger than 2048 bytes [-Wframe-larger-than=]
+net/bridge/br_netlink.c:1282:1: warning: the frame size of 2544 bytes is larger than 2048 bytes [-Wframe-larger-than=]
 
-Fix:
+With the new noinline_for_kasan annotation, we can avoid the problem
+when KASAN is enabled but not change anything otherwise.
 
-Add size of received data argument to mceusb_dev_printdata().
-Revise buffer print range to (offset to offset+len).
-Remove static USB_BUFLEN = 32, which is variable depending on device
-(buffer size is 64 for Pinnacle IR transceiver).
-Revise bound test to prevent reporting data beyond end of read or end of buffer.
-Drop "\n" use from dev_dbg().
-References to "receive request" should read "send request".
-
-Tested with:
-
-Linux raspberrypi 4.4.50-v7+ #970 SMP Mon Feb 20 19:18:29 GMT 2017 armv7l GNU/Linux
-mceusb 1-1.2:1.0: Registered Pinnacle Systems PCTV Remote USB with mce emulator interface version 1
-mceusb 1-1.2:1.0: 2 tx ports (0x1 cabled) and 2 rx sensors (0x1 active)
-
-Signed-off-by: A Sun <as1033x@comcast.net>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: kasan-dev@googlegroups.com
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/media/rc/mceusb.c | 29 +++++++++++++++--------------
- 1 file changed, 15 insertions(+), 14 deletions(-)
+ include/net/netlink.h | 36 ++++++++++++++++++------------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index 720df6f..a9a9a85 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -48,7 +48,6 @@
- 			"device driver"
- #define DRIVER_NAME	"mceusb"
- 
--#define USB_BUFLEN		32 /* USB reception buffer length */
- #define USB_CTRL_MSG_SZ		2  /* Size of usb ctrl msg on gen1 hw */
- #define MCE_G1_INIT_MSGS	40 /* Init messages on gen1 hw to throw out */
- 
-@@ -535,7 +534,7 @@ static int mceusb_cmd_datasize(u8 cmd, u8 subcmd)
- }
- 
- static void mceusb_dev_printdata(struct mceusb_dev *ir, char *buf,
--				 int offset, int len, bool out)
-+				 int buf_len, int offset, int len, bool out)
+diff --git a/include/net/netlink.h b/include/net/netlink.h
+index b239fcd33d80..d84878d8347f 100644
+--- a/include/net/netlink.h
++++ b/include/net/netlink.h
+@@ -755,7 +755,7 @@ static inline int nla_parse_nested(struct nlattr *tb[], int maxtype,
+  * @attrtype: attribute type
+  * @value: numeric value
+  */
+-static inline int nla_put_u8(struct sk_buff *skb, int attrtype, u8 value)
++static noinline_for_kasan int nla_put_u8(struct sk_buff *skb, int attrtype, u8 value)
  {
- #if defined(DEBUG) || defined(CONFIG_DYNAMIC_DEBUG)
- 	char *inout;
-@@ -552,7 +551,8 @@ static void mceusb_dev_printdata(struct mceusb_dev *ir, char *buf,
- 		return;
- 
- 	dev_dbg(dev, "%cx data: %*ph (length=%d)",
--		(out ? 't' : 'r'), min(len, USB_BUFLEN), buf, len);
-+		(out ? 't' : 'r'),
-+		min(len, buf_len - offset), buf + offset, len);
- 
- 	inout = out ? "Request" : "Got";
- 
-@@ -709,7 +709,8 @@ static void mce_async_callback(struct urb *urb)
- 	case 0:
- 		len = urb->actual_length;
- 
--		mceusb_dev_printdata(ir, urb->transfer_buffer, 0, len, true);
-+		mceusb_dev_printdata(ir, urb->transfer_buffer, len,
-+				     0, len, true);
- 		break;
- 
- 	case -ECONNRESET:
-@@ -729,7 +730,7 @@ static void mce_async_callback(struct urb *urb)
- 	usb_free_urb(urb);
+ 	return nla_put(skb, attrtype, sizeof(u8), &value);
  }
- 
--/* request incoming or send outgoing usb packet - used to initialize remote */
-+/* request outgoing (send) usb packet - used to initialize remote */
- static void mce_request_packet(struct mceusb_dev *ir, unsigned char *data,
- 								int size)
+@@ -766,7 +766,7 @@ static inline int nla_put_u8(struct sk_buff *skb, int attrtype, u8 value)
+  * @attrtype: attribute type
+  * @value: numeric value
+  */
+-static inline int nla_put_u16(struct sk_buff *skb, int attrtype, u16 value)
++static noinline_for_kasan int nla_put_u16(struct sk_buff *skb, int attrtype, u16 value)
  {
-@@ -740,7 +741,7 @@ static void mce_request_packet(struct mceusb_dev *ir, unsigned char *data,
- 
- 	async_urb = usb_alloc_urb(0, GFP_KERNEL);
- 	if (unlikely(!async_urb)) {
--		dev_err(dev, "Error, couldn't allocate urb!\n");
-+		dev_err(dev, "Error, couldn't allocate urb!");
- 		return;
- 	}
- 
-@@ -766,17 +767,17 @@ static void mce_request_packet(struct mceusb_dev *ir, unsigned char *data,
- 	}
- 	memcpy(async_buf, data, size);
- 
--	dev_dbg(dev, "receive request called (size=%#x)", size);
-+	dev_dbg(dev, "send request called (size=%#x)", size);
- 
- 	async_urb->transfer_buffer_length = size;
- 	async_urb->dev = ir->usbdev;
- 
- 	res = usb_submit_urb(async_urb, GFP_ATOMIC);
- 	if (res) {
--		dev_err(dev, "receive request FAILED! (res=%d)", res);
-+		dev_err(dev, "send request FAILED! (res=%d)", res);
- 		return;
- 	}
--	dev_dbg(dev, "receive request complete (res=%d)", res);
-+	dev_dbg(dev, "send request complete (res=%d)", res);
+ 	return nla_put(skb, attrtype, sizeof(u16), &value);
  }
- 
- static void mce_async_out(struct mceusb_dev *ir, unsigned char *data, int size)
-@@ -982,7 +983,7 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
- 		switch (ir->parser_state) {
- 		case SUBCMD:
- 			ir->rem = mceusb_cmd_datasize(ir->cmd, ir->buf_in[i]);
--			mceusb_dev_printdata(ir, ir->buf_in, i - 1,
-+			mceusb_dev_printdata(ir, ir->buf_in, buf_len, i - 1,
- 					     ir->rem + 2, false);
- 			mceusb_handle_command(ir, i);
- 			ir->parser_state = CMD_DATA;
-@@ -994,7 +995,7 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
- 			rawir.duration = (ir->buf_in[i] & MCE_PULSE_MASK)
- 					 * US_TO_NS(MCE_TIME_UNIT);
- 
--			dev_dbg(ir->dev, "Storing %s with duration %d",
-+			dev_dbg(ir->dev, "Storing %s with duration %u",
- 				rawir.pulse ? "pulse" : "space",
- 				rawir.duration);
- 
-@@ -1015,7 +1016,7 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
- 				continue;
- 			}
- 			ir->rem = (ir->cmd & MCE_PACKET_LENGTH_MASK);
--			mceusb_dev_printdata(ir, ir->buf_in,
-+			mceusb_dev_printdata(ir, ir->buf_in, buf_len,
- 					     i, ir->rem + 1, false);
- 			if (ir->rem)
- 				ir->parser_state = PARSE_IRDATA;
-@@ -1412,10 +1413,10 @@ static int mceusb_dev_probe(struct usb_interface *intf,
- 	ir->urb_in->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
- 
- 	/* flush buffers on the device */
--	dev_dbg(&intf->dev, "Flushing receive buffers\n");
-+	dev_dbg(&intf->dev, "Flushing receive buffers");
- 	res = usb_submit_urb(ir->urb_in, GFP_KERNEL);
- 	if (res)
--		dev_err(&intf->dev, "failed to flush buffers: %d\n", res);
-+		dev_err(&intf->dev, "failed to flush buffers: %d", res);
- 
- 	/* figure out which firmware/emulator version this hardware has */
- 	mceusb_get_emulator_version(ir);
+@@ -777,7 +777,7 @@ static inline int nla_put_u16(struct sk_buff *skb, int attrtype, u16 value)
+  * @attrtype: attribute type
+  * @value: numeric value
+  */
+-static inline int nla_put_be16(struct sk_buff *skb, int attrtype, __be16 value)
++static noinline_for_kasan int nla_put_be16(struct sk_buff *skb, int attrtype, __be16 value)
+ {
+ 	return nla_put(skb, attrtype, sizeof(__be16), &value);
+ }
+@@ -788,7 +788,7 @@ static inline int nla_put_be16(struct sk_buff *skb, int attrtype, __be16 value)
+  * @attrtype: attribute type
+  * @value: numeric value
+  */
+-static inline int nla_put_net16(struct sk_buff *skb, int attrtype, __be16 value)
++static noinline_for_kasan int nla_put_net16(struct sk_buff *skb, int attrtype, __be16 value)
+ {
+ 	return nla_put_be16(skb, attrtype | NLA_F_NET_BYTEORDER, value);
+ }
+@@ -799,7 +799,7 @@ static inline int nla_put_net16(struct sk_buff *skb, int attrtype, __be16 value)
+  * @attrtype: attribute type
+  * @value: numeric value
+  */
+-static inline int nla_put_le16(struct sk_buff *skb, int attrtype, __le16 value)
++static noinline_for_kasan int nla_put_le16(struct sk_buff *skb, int attrtype, __le16 value)
+ {
+ 	return nla_put(skb, attrtype, sizeof(__le16), &value);
+ }
+@@ -810,7 +810,7 @@ static inline int nla_put_le16(struct sk_buff *skb, int attrtype, __le16 value)
+  * @attrtype: attribute type
+  * @value: numeric value
+  */
+-static inline int nla_put_u32(struct sk_buff *skb, int attrtype, u32 value)
++static noinline_for_kasan int nla_put_u32(struct sk_buff *skb, int attrtype, u32 value)
+ {
+ 	return nla_put(skb, attrtype, sizeof(u32), &value);
+ }
+@@ -821,7 +821,7 @@ static inline int nla_put_u32(struct sk_buff *skb, int attrtype, u32 value)
+  * @attrtype: attribute type
+  * @value: numeric value
+  */
+-static inline int nla_put_be32(struct sk_buff *skb, int attrtype, __be32 value)
++static noinline_for_kasan int nla_put_be32(struct sk_buff *skb, int attrtype, __be32 value)
+ {
+ 	return nla_put(skb, attrtype, sizeof(__be32), &value);
+ }
+@@ -832,7 +832,7 @@ static inline int nla_put_be32(struct sk_buff *skb, int attrtype, __be32 value)
+  * @attrtype: attribute type
+  * @value: numeric value
+  */
+-static inline int nla_put_net32(struct sk_buff *skb, int attrtype, __be32 value)
++static noinline_for_kasan int nla_put_net32(struct sk_buff *skb, int attrtype, __be32 value)
+ {
+ 	return nla_put_be32(skb, attrtype | NLA_F_NET_BYTEORDER, value);
+ }
+@@ -843,7 +843,7 @@ static inline int nla_put_net32(struct sk_buff *skb, int attrtype, __be32 value)
+  * @attrtype: attribute type
+  * @value: numeric value
+  */
+-static inline int nla_put_le32(struct sk_buff *skb, int attrtype, __le32 value)
++static noinline_for_kasan int nla_put_le32(struct sk_buff *skb, int attrtype, __le32 value)
+ {
+ 	return nla_put(skb, attrtype, sizeof(__le32), &value);
+ }
+@@ -855,7 +855,7 @@ static inline int nla_put_le32(struct sk_buff *skb, int attrtype, __le32 value)
+  * @value: numeric value
+  * @padattr: attribute type for the padding
+  */
+-static inline int nla_put_u64_64bit(struct sk_buff *skb, int attrtype,
++static noinline_for_kasan int nla_put_u64_64bit(struct sk_buff *skb, int attrtype,
+ 				    u64 value, int padattr)
+ {
+ 	return nla_put_64bit(skb, attrtype, sizeof(u64), &value, padattr);
+@@ -868,7 +868,7 @@ static inline int nla_put_u64_64bit(struct sk_buff *skb, int attrtype,
+  * @value: numeric value
+  * @padattr: attribute type for the padding
+  */
+-static inline int nla_put_be64(struct sk_buff *skb, int attrtype, __be64 value,
++static noinline_for_kasan int nla_put_be64(struct sk_buff *skb, int attrtype, __be64 value,
+ 			       int padattr)
+ {
+ 	return nla_put_64bit(skb, attrtype, sizeof(__be64), &value, padattr);
+@@ -881,7 +881,7 @@ static inline int nla_put_be64(struct sk_buff *skb, int attrtype, __be64 value,
+  * @value: numeric value
+  * @padattr: attribute type for the padding
+  */
+-static inline int nla_put_net64(struct sk_buff *skb, int attrtype, __be64 value,
++static noinline_for_kasan int nla_put_net64(struct sk_buff *skb, int attrtype, __be64 value,
+ 				int padattr)
+ {
+ 	return nla_put_be64(skb, attrtype | NLA_F_NET_BYTEORDER, value,
+@@ -895,7 +895,7 @@ static inline int nla_put_net64(struct sk_buff *skb, int attrtype, __be64 value,
+  * @value: numeric value
+  * @padattr: attribute type for the padding
+  */
+-static inline int nla_put_le64(struct sk_buff *skb, int attrtype, __le64 value,
++static noinline_for_kasan int nla_put_le64(struct sk_buff *skb, int attrtype, __le64 value,
+ 			       int padattr)
+ {
+ 	return nla_put_64bit(skb, attrtype, sizeof(__le64), &value, padattr);
+@@ -907,7 +907,7 @@ static inline int nla_put_le64(struct sk_buff *skb, int attrtype, __le64 value,
+  * @attrtype: attribute type
+  * @value: numeric value
+  */
+-static inline int nla_put_s8(struct sk_buff *skb, int attrtype, s8 value)
++static noinline_for_kasan int nla_put_s8(struct sk_buff *skb, int attrtype, s8 value)
+ {
+ 	return nla_put(skb, attrtype, sizeof(s8), &value);
+ }
+@@ -918,7 +918,7 @@ static inline int nla_put_s8(struct sk_buff *skb, int attrtype, s8 value)
+  * @attrtype: attribute type
+  * @value: numeric value
+  */
+-static inline int nla_put_s16(struct sk_buff *skb, int attrtype, s16 value)
++static noinline_for_kasan int nla_put_s16(struct sk_buff *skb, int attrtype, s16 value)
+ {
+ 	return nla_put(skb, attrtype, sizeof(s16), &value);
+ }
+@@ -929,7 +929,7 @@ static inline int nla_put_s16(struct sk_buff *skb, int attrtype, s16 value)
+  * @attrtype: attribute type
+  * @value: numeric value
+  */
+-static inline int nla_put_s32(struct sk_buff *skb, int attrtype, s32 value)
++static noinline_for_kasan int nla_put_s32(struct sk_buff *skb, int attrtype, s32 value)
+ {
+ 	return nla_put(skb, attrtype, sizeof(s32), &value);
+ }
+@@ -941,7 +941,7 @@ static inline int nla_put_s32(struct sk_buff *skb, int attrtype, s32 value)
+  * @value: numeric value
+  * @padattr: attribute type for the padding
+  */
+-static inline int nla_put_s64(struct sk_buff *skb, int attrtype, s64 value,
++static noinline_for_kasan int nla_put_s64(struct sk_buff *skb, int attrtype, s64 value,
+ 			      int padattr)
+ {
+ 	return nla_put_64bit(skb, attrtype, sizeof(s64), &value, padattr);
+@@ -976,7 +976,7 @@ static inline int nla_put_flag(struct sk_buff *skb, int attrtype)
+  * @njiffies: number of jiffies to convert to msecs
+  * @padattr: attribute type for the padding
+  */
+-static inline int nla_put_msecs(struct sk_buff *skb, int attrtype,
++static noinline_for_kasan int nla_put_msecs(struct sk_buff *skb, int attrtype,
+ 				unsigned long njiffies, int padattr)
+ {
+ 	u64 tmp = jiffies_to_msecs(njiffies);
 -- 
-2.1.4
+2.9.0
