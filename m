@@ -1,71 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:36668 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753762AbdC1Al3 (ORCPT
+Received: from smtprelay0076.hostedemail.com ([216.40.44.76]:33778 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753011AbdCBRuR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 20:41:29 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v6 06/39] ARM: dts: imx6qdl: add capture-subsystem device
-Date: Mon, 27 Mar 2017 17:40:23 -0700
-Message-Id: <1490661656-10318-7-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+        Thu, 2 Mar 2017 12:50:17 -0500
+Message-ID: <1488476770.2179.6.camel@perches.com>
+Subject: Re: [PATCH 24/26] ocfs2: reduce stack size with KASAN
+From: Joe Perches <joe@perches.com>
+To: Arnd Bergmann <arnd@arndb.de>, kasan-dev@googlegroups.com
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-wireless@vger.kernel.org,
+        kernel-build-reports@lists.linaro.org,
+        "David S . Miller" <davem@davemloft.net>
+Date: Thu, 02 Mar 2017 09:46:10 -0800
+In-Reply-To: <20170302163834.2273519-25-arnd@arndb.de>
+References: <20170302163834.2273519-1-arnd@arndb.de>
+         <20170302163834.2273519-25-arnd@arndb.de>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- arch/arm/boot/dts/imx6dl.dtsi | 5 +++++
- arch/arm/boot/dts/imx6q.dtsi  | 5 +++++
- 2 files changed, 10 insertions(+)
+On Thu, 2017-03-02 at 17:38 +0100, Arnd Bergmann wrote:
+> The internal logging infrastructure in ocfs2 causes special warning code to be
+> used with KASAN, which produces rather large stack frames:
 
-diff --git a/arch/arm/boot/dts/imx6dl.dtsi b/arch/arm/boot/dts/imx6dl.dtsi
-index 8958c4a..a959c76 100644
---- a/arch/arm/boot/dts/imx6dl.dtsi
-+++ b/arch/arm/boot/dts/imx6dl.dtsi
-@@ -100,6 +100,11 @@
- 		};
- 	};
+> fs/ocfs2/super.c: In function 'ocfs2_fill_super':
+> fs/ocfs2/super.c:1219:1: error: the frame size of 3264 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
+
+At least by default it doesn't seem to.
+
+gcc 6.2 allyesconfig, CONFIG_KASAN=y
+with either CONFIG_KASAN_INLINE or CONFIG_KASAN_OUTLINE
+
+gcc doesn't emit a stack warning
+
+> By simply passing the mask by value instead of reference, we can avoid the
+> problem completely.
+
+Any idea why that's so?
  
-+	capture-subsystem {
-+		compatible = "fsl,imx-capture-subsystem";
-+		ports = <&ipu1_csi0>, <&ipu1_csi1>;
-+	};
-+
- 	display-subsystem {
- 		compatible = "fsl,imx-display-subsystem";
- 		ports = <&ipu1_di0>, <&ipu1_di1>;
-diff --git a/arch/arm/boot/dts/imx6q.dtsi b/arch/arm/boot/dts/imx6q.dtsi
-index b833b0d..4cc6579 100644
---- a/arch/arm/boot/dts/imx6q.dtsi
-+++ b/arch/arm/boot/dts/imx6q.dtsi
-@@ -206,6 +206,11 @@
- 		};
- 	};
- 
-+	capture-subsystem {
-+		compatible = "fsl,imx-capture-subsystem";
-+		ports = <&ipu1_csi0>, <&ipu1_csi1>, <&ipu2_csi0>, <&ipu2_csi1>;
-+	};
-+
- 	display-subsystem {
- 		compatible = "fsl,imx-display-subsystem";
- 		ports = <&ipu1_di0>, <&ipu1_di1>, <&ipu2_di0>, <&ipu2_di1>;
--- 
-2.7.4
+>  On 64-bit architectures, this is also more efficient,
+
+Efficient true, but the same overall stack no?
+
+> while on the less common (at least among ocfs2 users) 32-bit architectures,
+> I'm guessing that the resulting code is comparable to what it was before.
+> 
+> The current version was introduced by Joe Perches as an optimization, maybe
+> he can see if my change regresses compared to his.
+
+I don't see it.
+
+> Cc: Joe Perches <joe@perches.com>
+> Fixes: 7c2bd2f930ae ("ocfs2: reduce object size of mlog uses")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  fs/ocfs2/cluster/masklog.c | 10 +++++-----
+>  fs/o cfs2/cluster/masklog.h |  4 ++--
+>  2 files changed, 7 insertions(+), 7 deletions(-)
+> 
+> diff --git a/fs/ocfs2/cluster/masklog.c b/fs/ocfs2/cluster/masklog.c
+> index d331c2386b94..9720c5443e4d 100644
+> --- a/fs/ocfs2/cluster/masklog.c
+> +++ b/fs/ocfs2/cluster/masklog.c
+> @@ -64,7 +64,7 @@ static ssize_t mlog_mask_store(u64 mask, const char *buf, size_t count)
+>  	return count;
+>  }
+>  
+> -void __mlog_printk(const u64 *mask, const char *func, int line,
+> +void __mlog_printk(const u64 mask, const char *func, int line,
+>  		   const char *fmt, ...)
+>  {
+>  	struct va_format vaf;
+> @@ -72,14 +72,14 @@ void __mlog_printk(const u64 *mask, const char *func, int line,
+>  	const char *level;
+>  	const char *prefix = "";
+>  
+> -	if (!__mlog_test_u64(*mask, mlog_and_bits) ||
+> -	    __mlog_test_u64(*mask, mlog_not_bits))
+> +	if (!__mlog_test_u64(mask, mlog_and_bits) ||
+> +	    __mlog_test_u64(mask, mlog_not_bits))
+>  		return;
+>  
+> -	if (*mask & ML_ERROR) {
+> +	if (mask & ML_ERROR) {
+>  		level = KERN_ERR;
+>  		prefix = "ERROR: ";
+> -	} else if (*mask & ML_NOTICE) {
+> +	} else if (mask & ML_NOTICE) {
+>  		level = KERN_NOTICE;
+>  	} else {
+>  		level = KERN_INFO;
+> diff --git a/fs/ocfs2/cluster/masklog.h b/fs/ocfs2/cluster/masklog.h
+> index 308ea0eb35fd..0d0f4bf2c3d8 100644
+> --- a/fs/ocfs2/cluster/masklog.h
+> +++ b/fs/ocfs2/cluster/masklog.h
+> @@ -163,7 +163,7 @@ extern struct mlog_bits mlog_and_bits, mlog_not_bits;
+>  #endif
+>  
+>  __printf(4, 5)
+> -void __mlog_printk(const u64 *m, const char *func, int line,
+> +void __mlog_printk(const u64 m, const char *func, int line,
+>  		   const char *fmt, ...);
+>  
+>  /*
+> @@ -174,7 +174,7 @@ void __mlog_printk(const u64 *m, const char *func, int line,
+>  do {									\
+>  	u64 _m = MLOG_MASK_PREFIX | (mask);				\
+>  	if (_m & ML_ALLOWED_BITS)					\
+> -		__mlog_printk(&_m, __func__, __LINE__, fmt,		\
+> +		__mlog_printk(_m, __func__, __LINE__, fmt,		\
+>  			      ##__VA_ARGS__);				\
+>  } while (0)
+>  
