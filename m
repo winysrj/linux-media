@@ -1,63 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:34914 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750776AbdCJFNY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Mar 2017 00:13:24 -0500
-Received: by mail-pg0-f67.google.com with SMTP id g2so4557912pge.2
-        for <linux-media@vger.kernel.org>; Thu, 09 Mar 2017 21:13:23 -0800 (PST)
-From: simran singhal <singhalsimran0@gmail.com>
-To: gregkh@linuxfoundation.org
-Cc: devel@driverdev.osuosl.org, jarod@wilsonet.com, mchehab@kernel.org,
-        linux-media@vger.kernel.org
-Subject: [PATCH 2/3] staging: vpfe_mc_capture: Clean up tests if NULL returned on failure
-Date: Fri, 10 Mar 2017 10:43:11 +0530
-Message-Id: <1489122792-8081-3-git-send-email-singhalsimran0@gmail.com>
-In-Reply-To: <1489122792-8081-1-git-send-email-singhalsimran0@gmail.com>
-References: <1489122792-8081-1-git-send-email-singhalsimran0@gmail.com>
+Received: from mail.kernel.org ([198.145.29.136]:52174 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750703AbdCBLGO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 2 Mar 2017 06:06:14 -0500
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: laurent.pinchart@ideasonboard.com
+Cc: linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH] v4l: vsp1: Fix struct vsp1_drm documentation
+Date: Thu,  2 Mar 2017 10:12:22 +0000
+Message-Id: <1488449542-28990-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some functions like kmalloc/kzalloc return NULL on failure.
-When NULL represents failure, !x is commonly used.
+The struct vsp1_drm references a member 'planes' which doesn't exist.
+Correctly identify this documentation against the 'inputs'
 
-This was done using Coccinelle:
-@@
-expression *e;
-identifier l1;
-@@
-
-e = \(kmalloc\|kzalloc\|kcalloc\|devm_kzalloc\)(...);
-...
-- e == NULL
-+ !e
-
-Signed-off-by: simran singhal <singhalsimran0@gmail.com>
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 ---
- drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/platform/vsp1/vsp1_drm.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
-index 32109cd..bffe215 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
-@@ -228,7 +228,7 @@ static int vpfe_enable_clock(struct vpfe_device *vpfe_dev)
- 
- 	vpfe_dev->clks = kcalloc(vpfe_cfg->num_clocks,
- 				 sizeof(*vpfe_dev->clks), GFP_KERNEL);
--	if (vpfe_dev->clks == NULL)
-+	if (!vpfe_dev->clks)
- 		return -ENOMEM;
- 
- 	for (i = 0; i < vpfe_cfg->num_clocks; i++) {
-@@ -348,7 +348,7 @@ static int register_i2c_devices(struct vpfe_device *vpfe_dev)
- 	vpfe_dev->sd =
- 		  kcalloc(num_subdevs, sizeof(struct v4l2_subdev *),
- 			  GFP_KERNEL);
--	if (vpfe_dev->sd == NULL)
-+	if (!vpfe_dev->sd)
- 		return -ENOMEM;
- 
- 	for (i = 0, k = 0; i < num_subdevs; i++) {
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.h b/drivers/media/platform/vsp1/vsp1_drm.h
+index 9e28ab9254ba..c8d2f88fc483 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.h
++++ b/drivers/media/platform/vsp1/vsp1_drm.h
+@@ -21,7 +21,7 @@
+  * vsp1_drm - State for the API exposed to the DRM driver
+  * @pipe: the VSP1 pipeline used for display
+  * @num_inputs: number of active pipeline inputs at the beginning of an update
+- * @planes: source crop rectangle, destination compose rectangle and z-order
++ * @inputs: source crop rectangle, destination compose rectangle and z-order
+  *	position for every input
+  */
+ struct vsp1_drm {
 -- 
 2.7.4
