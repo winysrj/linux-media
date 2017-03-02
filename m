@@ -1,10 +1,10 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f174.google.com ([209.85.220.174]:33671 "EHLO
-        mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751150AbdCBVpO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 16:45:14 -0500
-Received: by mail-qk0-f174.google.com with SMTP id n127so147099631qkf.0
-        for <linux-media@vger.kernel.org>; Thu, 02 Mar 2017 13:45:09 -0800 (PST)
+Received: from mail-qk0-f173.google.com ([209.85.220.173]:32926 "EHLO
+        mail-qk0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751975AbdCBVp1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 16:45:27 -0500
+Received: by mail-qk0-f173.google.com with SMTP id n127so147111941qkf.0
+        for <linux-media@vger.kernel.org>; Thu, 02 Mar 2017 13:45:21 -0800 (PST)
 From: Laura Abbott <labbott@redhat.com>
 To: Sumit Semwal <sumit.semwal@linaro.org>,
         Riley Andrews <riandrews@android.com>, arve@android.com
@@ -19,178 +19,56 @@ Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
         Mark Brown <broonie@kernel.org>,
         Benjamin Gaignard <benjamin.gaignard@linaro.org>,
         linux-mm@kvack.org
-Subject: [RFC PATCH 04/12] staging: android: ion: Call dma_map_sg for syncing and mapping
-Date: Thu,  2 Mar 2017 13:44:36 -0800
-Message-Id: <1488491084-17252-5-git-send-email-labbott@redhat.com>
+Subject: [RFC PATCH 09/12] cma: Introduce cma_for_each_area
+Date: Thu,  2 Mar 2017 13:44:41 -0800
+Message-Id: <1488491084-17252-10-git-send-email-labbott@redhat.com>
 In-Reply-To: <1488491084-17252-1-git-send-email-labbott@redhat.com>
 References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-Technically, calling dma_buf_map_attachment should return a buffer
-properly dma_mapped. Add calls to dma_map_sg to begin_cpu_access to
-ensure this happens. As a side effect, this lets Ion buffers take
-advantage of the dma_buf sync ioctls.
+Frameworks (e.g. Ion) may want to iterate over each possible CMA area to
+allow for enumeration. Introduce a function to allow a callback.
 
 Signed-off-by: Laura Abbott <labbott@redhat.com>
 ---
- drivers/staging/android/ion/ion.c | 101 +++++++++++++++++++-------------------
- 1 file changed, 50 insertions(+), 51 deletions(-)
+ include/linux/cma.h |  2 ++
+ mm/cma.c            | 14 ++++++++++++++
+ 2 files changed, 16 insertions(+)
 
-diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-index ce4adac..a931b30 100644
---- a/drivers/staging/android/ion/ion.c
-+++ b/drivers/staging/android/ion/ion.c
-@@ -795,10 +795,6 @@ void ion_client_destroy(struct ion_client *client)
- }
- EXPORT_SYMBOL(ion_client_destroy);
+diff --git a/include/linux/cma.h b/include/linux/cma.h
+index 49f98ea..b521e3c 100644
+--- a/include/linux/cma.h
++++ b/include/linux/cma.h
+@@ -33,4 +33,6 @@ extern int cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
+ 					struct cma **res_cma);
+ extern struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align);
+ extern bool cma_release(struct cma *cma, const struct page *pages, unsigned int count);
++
++extern int cma_for_each_area(int (*it)(struct cma *cma, void *data), void *data);
+ #endif
+diff --git a/mm/cma.c b/mm/cma.c
+index 4a93d2b..a430df0 100644
+--- a/mm/cma.c
++++ b/mm/cma.c
+@@ -464,3 +464,17 @@ bool cma_release(struct cma *cma, const struct page *pages, unsigned int count)
  
--static void ion_buffer_sync_for_device(struct ion_buffer *buffer,
--				       struct device *dev,
--				       enum dma_data_direction direction);
--
- static struct sg_table *dup_sg_table(struct sg_table *table)
- {
- 	struct sg_table *new_table;
-@@ -825,22 +821,43 @@ static struct sg_table *dup_sg_table(struct sg_table *table)
- 	return new_table;
+ 	return true;
  }
- 
-+static void free_duped_table(struct sg_table *table)
++
++int cma_for_each_area(int (*it)(struct cma *cma, void *data), void *data)
 +{
-+	sg_free_table(table);
-+	kfree(table);
-+}
++	int i;
 +
- static struct sg_table *ion_map_dma_buf(struct dma_buf_attachment *attachment,
- 					enum dma_data_direction direction)
- {
- 	struct dma_buf *dmabuf = attachment->dmabuf;
- 	struct ion_buffer *buffer = dmabuf->priv;
-+	struct sg_table *table;
-+	int ret;
++	for (i = 0; i < cma_area_count; i++) {
++		int ret = it(&cma_areas[i], data);
 +
-+	/*
-+	 * TODO: Need to sync wrt CPU or device completely owning?
-+	 */
-+
-+	table = dup_sg_table(buffer->sg_table);
- 
--	ion_buffer_sync_for_device(buffer, attachment->dev, direction);
--	return dup_sg_table(buffer->sg_table);
-+	if (!dma_map_sg(attachment->dev, table->sgl, table->nents,
-+			direction)){
-+		ret = -ENOMEM;
-+		goto err;
++		if (ret)
++			return ret;
 +	}
-+
-+err:
-+	free_duped_table(table);
-+	return ERR_PTR(ret);
- }
- 
- static void ion_unmap_dma_buf(struct dma_buf_attachment *attachment,
- 			      struct sg_table *table,
- 			      enum dma_data_direction direction)
- {
--	sg_free_table(table);
--	kfree(table);
-+	dma_unmap_sg(attachment->dev, table->sgl, table->nents, direction);
-+	free_duped_table(table);
- }
- 
- void ion_pages_sync_for_device(struct device *dev, struct page *page,
-@@ -864,38 +881,6 @@ struct ion_vma_list {
- 	struct vm_area_struct *vma;
- };
- 
--static void ion_buffer_sync_for_device(struct ion_buffer *buffer,
--				       struct device *dev,
--				       enum dma_data_direction dir)
--{
--	struct ion_vma_list *vma_list;
--	int pages = PAGE_ALIGN(buffer->size) / PAGE_SIZE;
--	int i;
--
--	pr_debug("%s: syncing for device %s\n", __func__,
--		 dev ? dev_name(dev) : "null");
--
--	if (!ion_buffer_fault_user_mappings(buffer))
--		return;
--
--	mutex_lock(&buffer->lock);
--	for (i = 0; i < pages; i++) {
--		struct page *page = buffer->pages[i];
--
--		if (ion_buffer_page_is_dirty(page))
--			ion_pages_sync_for_device(dev, ion_buffer_page(page),
--						  PAGE_SIZE, dir);
--
--		ion_buffer_page_clean(buffer->pages + i);
--	}
--	list_for_each_entry(vma_list, &buffer->vmas, list) {
--		struct vm_area_struct *vma = vma_list->vma;
--
--		zap_page_range(vma, vma->vm_start, vma->vm_end - vma->vm_start);
--	}
--	mutex_unlock(&buffer->lock);
--}
--
- static int ion_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
- 	struct ion_buffer *buffer = vma->vm_private_data;
-@@ -1014,16 +999,24 @@ static int ion_dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
- 	struct ion_buffer *buffer = dmabuf->priv;
- 	void *vaddr;
- 
--	if (!buffer->heap->ops->map_kernel) {
--		pr_err("%s: map kernel is not implemented by this heap.\n",
--		       __func__);
--		return -ENODEV;
-+	/*
-+	 * TODO: Move this elsewhere because we don't always need a vaddr
-+	 */
-+	if (buffer->heap->ops->map_kernel) {
-+		mutex_lock(&buffer->lock);
-+		vaddr = ion_buffer_kmap_get(buffer);
-+		mutex_unlock(&buffer->lock);
- 	}
- 
--	mutex_lock(&buffer->lock);
--	vaddr = ion_buffer_kmap_get(buffer);
--	mutex_unlock(&buffer->lock);
--	return PTR_ERR_OR_ZERO(vaddr);
-+	/*
-+	 * Close enough right now? Flag to skip sync?
-+	 */
-+	if (!dma_map_sg(buffer->dev->dev.this_device, buffer->sg_table->sgl,
-+			buffer->sg_table->nents,
-+                        DMA_BIDIRECTIONAL))
-+		return -ENOMEM;
 +
 +	return 0;
- }
- 
- static int ion_dma_buf_end_cpu_access(struct dma_buf *dmabuf,
-@@ -1031,9 +1024,15 @@ static int ion_dma_buf_end_cpu_access(struct dma_buf *dmabuf,
- {
- 	struct ion_buffer *buffer = dmabuf->priv;
- 
--	mutex_lock(&buffer->lock);
--	ion_buffer_kmap_put(buffer);
--	mutex_unlock(&buffer->lock);
-+	if (buffer->heap->ops->map_kernel) {
-+		mutex_lock(&buffer->lock);
-+		ion_buffer_kmap_put(buffer);
-+		mutex_unlock(&buffer->lock);
-+	}
-+
-+	dma_unmap_sg(buffer->dev->dev.this_device, buffer->sg_table->sgl,
-+			buffer->sg_table->nents,
-+			DMA_BIDIRECTIONAL);
- 
- 	return 0;
- }
++}
 -- 
 2.7.4
