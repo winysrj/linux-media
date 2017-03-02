@@ -1,155 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:56688 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932817AbdCKReG (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53718 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751065AbdCBVSz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Mar 2017 12:34:06 -0500
-Date: Sat, 11 Mar 2017 17:32:54 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
- controls from a pipeline
-Message-ID: <20170311173254.GC21222@n2100.armlinux.org.uk>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
- <1487211578-11360-15-git-send-email-steve_longerbeam@mentor.com>
- <20170302160257.GK3220@valkosipuli.retiisi.org.uk>
- <20170303230645.GR21222@n2100.armlinux.org.uk>
- <20170304131329.GV3220@valkosipuli.retiisi.org.uk>
- <a7b8e095-a95c-24bd-b1e9-e983f18061c4@xs4all.nl>
- <20170310120902.1daebc7b@vento.lan>
- <5e1183f4-774f-413a-628a-96e0df321faf@xs4all.nl>
- <20170311101408.272a9187@vento.lan>
- <20170311153229.yrdjmggb3p2suhdw@ihha.localdomain>
+        Thu, 2 Mar 2017 16:18:55 -0500
+Date: Thu, 2 Mar 2017 23:18:25 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Pavel Machek <pavel@ucw.cz>, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
+Subject: Re: subdevice config into pointer (was Re: [PATCH 1/4] v4l2:
+ device_register_subdev_nodes: allow calling multiple times)
+Message-ID: <20170302211825.GL3220@valkosipuli.retiisi.org.uk>
+References: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz>
+ <20170302090727.GC27818@amd>
+ <20170302141617.GG3220@valkosipuli.retiisi.org.uk>
+ <2358884.6crJRnJuOY@avalon>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="FCuugMFkClbJLl1L"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170311153229.yrdjmggb3p2suhdw@ihha.localdomain>
+In-Reply-To: <2358884.6crJRnJuOY@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Laurent,
 
---FCuugMFkClbJLl1L
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Thu, Mar 02, 2017 at 08:39:51PM +0200, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> On Thursday 02 Mar 2017 16:16:17 Sakari Ailus wrote:
+> > On Thu, Mar 02, 2017 at 10:07:27AM +0100, Pavel Machek wrote:
+> > > Hi!
+> > > 
+> > > > Making the sub-device bus configuration a pointer should be in a
+> > > > separate patch. It makes sense since the entire configuration is not
+> > > > valid for all sub-devices attached to the ISP anymore. I think it
+> > > > originally was a separate patch, but they probably have been merged at
+> > > > some point. I can'tfind it right now anyway.
+> > > 
+> > > Something like this?
+> > > 
+> > > 									Pavel
+> > > 
+> > > commit df9141c66678b549fac9d143bd55ed0b242cf36e
+> > > Author: Pavel <pavel@ucw.cz>
+> > > Date:   Wed Mar 1 13:27:56 2017 +0100
+> > > 
+> > >     Turn bus in struct isp_async_subdev into pointer; some of our subdevs
+> > >     (flash, focus) will not need bus configuration.
+> > > 
+> > > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> > 
+> > I applied this to the ccp2 branch with an improved patch description.
+> > 
+> > > diff --git a/drivers/media/platform/omap3isp/isp.c
+> > > b/drivers/media/platform/omap3isp/isp.c index 8a456d4..36bd359 100644
+> > > --- a/drivers/media/platform/omap3isp/isp.c
+> > > +++ b/drivers/media/platform/omap3isp/isp.c
+> > > @@ -2030,12 +2030,18 @@ enum isp_of_phy {
+> > > 
+> > >  static int isp_fwnode_parse(struct device *dev, struct fwnode_handle
+> > >  *fwn,
+> > >  
+> > >  			    struct isp_async_subdev *isd)
+> > >  
+> > >  {
+> > > 
+> > > -	struct isp_bus_cfg *buscfg = &isd->bus;
+> > > +	struct isp_bus_cfg *buscfg;
+> > > 
+> > >  	struct v4l2_fwnode_endpoint vfwn;
+> > >  	unsigned int i;
+> > >  	int ret;
+> > >  	bool csi1 = false;
+> > > 
+> > > +	buscfg = devm_kzalloc(dev, sizeof(*isd->bus), GFP_KERNEL);
+> 
+> Given that you recently get rid of devm_kzalloc() in the driver, let's not 
+> introduce a new one here.
 
-On Sat, Mar 11, 2017 at 05:32:29PM +0200, Sakari Ailus wrote:
-> My understanding of the i.MX6 case is the hardware is configurable enough
-> to warrant the use of the Media controller API. Some patches indicate
-> there are choices to be made in data routing.
+That's certainly a valid point.
 
-The iMX6 does have configurable data routing, but in some scenarios
-(eg, when receiving bayer data) there's only one possible routing.
+Still, the entire async sub-devices array is allocated with devm_()
+allocation functions still; that part wasn't addressed by the patchset
+mostly removing devm_() memory allocation, so this patch does actually not
+change how the memory is allocated.
 
-> Steve: could you enlighten us on the topic, by e.g. doing media-ctl
-> --print-dot and sending the results to the list? What kind of different IP
-> blocks are there and what do they do? A pointer to hardware documentation
-> wouldn't hurt either (if it's available).
+Beyond that, I'm not entirely sure whether this is a problem to begin with:
+devm resources are released after remove() callback and access to this data
+structure should only happen as a direct result of user IOCTL. IOCTLs may
+only be in progress as long as there are open file handles on a device ---
+and such file handles must be closed until the remove() callback may finish.
+(Referring to the Oslo meeting notes.)
 
-Attached for the imx219 camera.  Note that although the CSI2 block has
-four outputs, each output is dedicated to a CSI virtual channel, so
-they can not be arbitarily assigned without configuring the sensor.
+Some of the above must be still verified; either way, but the options are
+clear: either devm must be removed here as well (with the rest) or that it's
+fine to use it here: from this point of view this patch makes no difference.
 
-Since the imx219 only produces bayer, the graph is also showing the
-_only_ possible routing for the imx219 configured for CSI virtual
-channel 0.
-
-The iMX6 manuals are available on the 'net.
-
-	https://community.nxp.com/docs/DOC-101840
-
-There are several chapters that cover the capture side:
-
-* MIPI CSI2
-* IPU CSI2 gasket
-* IPU
-
-The IPU not only performs capture, but also display as well.
+> 
+> > > +	if (!buscfg)
+> > > +		return -ENOMEM;
+> > > +
+> > > +	isd->bus = buscfg;
+> > > +
+> > >  	ret = v4l2_fwnode_endpoint_parse(fwn, &vfwn);
+> > >  	if (ret)
+> > >  	
+> > >  		return ret;
+> > > 
+> 
+> [snip]
+> 
 
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Kind regards,
 
---FCuugMFkClbJLl1L
-Content-Type: text/vnd.graphviz; charset=us-ascii
-Content-Disposition: attachment; filename="imx219.dot"
-
-digraph board {
-	rankdir=TB
-	n00000001 [label="{{<port0> 0 | <port1> 1} | ipu1_csi0_mux\n/dev/v4l-subdev0 | {<port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
-	n00000001:port2 -> n00000044:port0
-	n00000005 [label="{{<port0> 0 | <port1> 1} | ipu2_csi1_mux\n/dev/v4l-subdev1 | {<port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
-	n00000005:port2 -> n00000068:port0 [style=dashed]
-	n00000009 [label="{{<port0> 0 | <port1> 1} | ipu1_vdic\n/dev/v4l-subdev2 | {<port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
-	n00000009:port2 -> n00000011:port0 [style=dashed]
-	n0000000d [label="{{<port0> 0 | <port1> 1} | ipu2_vdic\n/dev/v4l-subdev3 | {<port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
-	n0000000d:port2 -> n00000027:port0 [style=dashed]
-	n00000011 [label="{{<port0> 0} | ipu1_ic_prp\n/dev/v4l-subdev4 | {<port1> 1 | <port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
-	n00000011:port1 -> n00000015:port0 [style=dashed]
-	n00000011:port2 -> n0000001e:port0 [style=dashed]
-	n00000015 [label="{{<port0> 0} | ipu1_ic_prpenc\n/dev/v4l-subdev5 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
-	n00000015:port1 -> n00000018 [style=dashed]
-	n00000018 [label="ipu1_ic_prpenc capture\n/dev/video0", shape=box, style=filled, fillcolor=yellow]
-	n0000001e [label="{{<port0> 0} | ipu1_ic_prpvf\n/dev/v4l-subdev6 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
-	n0000001e:port1 -> n00000021 [style=dashed]
-	n00000021 [label="ipu1_ic_prpvf capture\n/dev/video1", shape=box, style=filled, fillcolor=yellow]
-	n00000027 [label="{{<port0> 0} | ipu2_ic_prp\n/dev/v4l-subdev7 | {<port1> 1 | <port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
-	n00000027:port1 -> n0000002b:port0 [style=dashed]
-	n00000027:port2 -> n00000034:port0 [style=dashed]
-	n0000002b [label="{{<port0> 0} | ipu2_ic_prpenc\n/dev/v4l-subdev8 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
-	n0000002b:port1 -> n0000002e [style=dashed]
-	n0000002e [label="ipu2_ic_prpenc capture\n/dev/video2", shape=box, style=filled, fillcolor=yellow]
-	n00000034 [label="{{<port0> 0} | ipu2_ic_prpvf\n/dev/v4l-subdev9 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
-	n00000034:port1 -> n00000037 [style=dashed]
-	n00000037 [label="ipu2_ic_prpvf capture\n/dev/video3", shape=box, style=filled, fillcolor=yellow]
-	n0000003d [label="{{<port1> 1} | imx219 0-0010\n/dev/v4l-subdev11 | {<port0> 0}}", shape=Mrecord, style=filled, fillcolor=green]
-	n0000003d:port0 -> n00000058:port0
-	n00000040 [label="{{} | imx219 pixel 0-0010\n/dev/v4l-subdev10 | {<port0> 0}}", shape=Mrecord, style=filled, fillcolor=green]
-	n00000040:port0 -> n0000003d:port1 [style=bold]
-	n00000044 [label="{{<port0> 0} | ipu1_csi0\n/dev/v4l-subdev12 | {<port1> 1 | <port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
-	n00000044:port2 -> n00000048
-	n00000044:port1 -> n00000011:port0 [style=dashed]
-	n00000044:port1 -> n00000009:port0 [style=dashed]
-	n00000048 [label="ipu1_csi0 capture\n/dev/video4", shape=box, style=filled, fillcolor=yellow]
-	n0000004e [label="{{<port0> 0} | ipu1_csi1\n/dev/v4l-subdev13 | {<port1> 1 | <port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
-	n0000004e:port2 -> n00000052 [style=dashed]
-	n0000004e:port1 -> n00000011:port0 [style=dashed]
-	n0000004e:port1 -> n00000009:port0 [style=dashed]
-	n00000052 [label="ipu1_csi1 capture\n/dev/video5", shape=box, style=filled, fillcolor=yellow]
-	n00000058 [label="{{<port0> 0} | imx6-mipi-csi2\n/dev/v4l-subdev14 | {<port1> 1 | <port2> 2 | <port3> 3 | <port4> 4}}", shape=Mrecord, style=filled, fillcolor=green]
-	n00000058:port1 -> n00000001:port0
-	n00000058:port2 -> n0000004e:port0 [style=dashed]
-	n00000058:port3 -> n0000005e:port0 [style=dashed]
-	n00000058:port4 -> n00000005:port0 [style=dashed]
-	n0000005e [label="{{<port0> 0} | ipu2_csi0\n/dev/v4l-subdev15 | {<port1> 1 | <port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
-	n0000005e:port2 -> n00000062 [style=dashed]
-	n0000005e:port1 -> n00000027:port0 [style=dashed]
-	n0000005e:port1 -> n0000000d:port0 [style=dashed]
-	n00000062 [label="ipu2_csi0 capture\n/dev/video6", shape=box, style=filled, fillcolor=yellow]
-	n00000068 [label="{{<port0> 0} | ipu2_csi1\n/dev/v4l-subdev16 | {<port1> 1 | <port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
-	n00000068:port2 -> n0000006c [style=dashed]
-	n00000068:port1 -> n00000027:port0 [style=dashed]
-	n00000068:port1 -> n0000000d:port0 [style=dashed]
-	n0000006c [label="ipu2_csi1 capture\n/dev/video7", shape=box, style=filled, fillcolor=yellow]
-}
-
-
---FCuugMFkClbJLl1L--
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
