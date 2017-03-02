@@ -1,242 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f51.google.com ([74.125.82.51]:38758 "EHLO
-        mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754687AbdCaOZk (ORCPT
+Received: from smtprelay0098.hostedemail.com ([216.40.44.98]:54157 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750910AbdCBX7N (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Mar 2017 10:25:40 -0400
-Received: by mail-wm0-f51.google.com with SMTP id t189so101242wmt.1
-        for <linux-media@vger.kernel.org>; Fri, 31 Mar 2017 07:25:38 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: dri-devel@lists.freedesktop.org,
-        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org
-Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
-        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-media@vger.kernel.org
-Subject: [PATCH v5.1 6/6] drm: bridge: dw-hdmi: Move HPD handling to PHY operations
-Date: Fri, 31 Mar 2017 16:25:19 +0200
-Message-Id: <1490970319-24981-7-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1490970319-24981-1-git-send-email-narmstrong@baylibre.com>
-References: <1490970319-24981-1-git-send-email-narmstrong@baylibre.com>
+        Thu, 2 Mar 2017 18:59:13 -0500
+Message-ID: <1488499097.2179.27.camel@perches.com>
+Subject: Re: [PATCH 24/26] ocfs2: reduce stack size with KASAN
+From: Joe Perches <joe@perches.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: kasan-dev <kasan-dev@googlegroups.com>,
+        Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Networking <netdev@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org,
+        linux-wireless <linux-wireless@vger.kernel.org>,
+        kernel-build-reports@lists.linaro.org,
+        "David S . Miller" <davem@davemloft.net>
+Date: Thu, 02 Mar 2017 15:58:17 -0800
+In-Reply-To: <CAK8P3a2ZQR8ukt6Aky7onD2Y=b+Cz+pp+C0+Svb2EyK2474j-g@mail.gmail.com>
+References: <20170302163834.2273519-1-arnd@arndb.de>
+         <20170302163834.2273519-25-arnd@arndb.de>
+         <1488476770.2179.6.camel@perches.com>
+         <CAK8P3a1gW9UqMKD2ijzxMH4rv1zAji0GUoz+bLY_oi0yvLU1cw@mail.gmail.com>
+         <1488494428.2179.23.camel@perches.com>
+         <CAK8P3a2ZQR8ukt6Aky7onD2Y=b+Cz+pp+C0+Svb2EyK2474j-g@mail.gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The HDMI TX controller support HPD and RXSENSE signaling from the PHY
-via it's STAT0 PHY interface, but some vendor PHYs can manage these
-signals independently from the controller, thus these STAT0 handling
-should be moved to PHY specific operations and become optional.
+On Thu, 2017-03-02 at 23:59 +0100, Arnd Bergmann wrote:
+> KASAN decides that passing a pointer to _m into an extern function
+> (_mlog_printk) is potentially dangerous, as that function might
+> keep a reference to that pointer after it goes out of scope,
+> or it might not know the correct length of the stack object pointed to.
+> 
+> We can see from looking at the __mlog_printk() function definition
+> that it's actually safe, but the compiler cannot see that when looking
+> at another source file.
 
-The existing STAT0 HPD and RXSENSE handling code is refactored into
-a supplementaty set of default PHY operations that are used automatically
-when the platform glue doesn't provide its own operations.
+OK, thanks.
 
-Reviewed-by: Jose Abreu <joabreu@synopsys.com>
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+btw:
+
+changing __mlog_printk can save ~11% (90+KB) of object text size
+by removing __func__ and __LINE__ and using vsprintf pointer extension
+%pS, __builtin_return_address(0) as it is already used in dlmmaster.
+
+(defconfig x86-64, with ocfs2)
+
+$ size fs/ocfs2/built-in.o*
+   text	   data	    bss	    dec	    hex	filename
+ 759791	 111373	 105688	 976852	  ee7d4	fs/ocfs2/built-in.o.new
+ 852959	 111373	 105688	1070020	 1053c4	fs/ocfs2/built-in.o.old
+
+It's nearly the same output.
+
 ---
- drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 135 ++++++++++++++++++------------
- include/drm/bridge/dw_hdmi.h              |   5 ++
- 2 files changed, 86 insertions(+), 54 deletions(-)
 
-diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-index 16d5fff3..84cc949 100644
---- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-+++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-@@ -1229,10 +1229,46 @@ static enum drm_connector_status dw_hdmi_phy_read_hpd(struct dw_hdmi *hdmi,
- 		connector_status_connected : connector_status_disconnected;
+ fs/ocfs2/cluster/masklog.c | 8 ++++----
+ fs/ocfs2/cluster/masklog.h | 8 +++-----
+ 2 files changed, 7 insertions(+), 9 deletions(-)
+
+diff --git a/fs/ocfs2/cluster/masklog.c b/fs/ocfs2/cluster/masklog.c
+index d331c2386b94..a3f080f37108 100644
+--- a/fs/ocfs2/cluster/masklog.c
++++ b/fs/ocfs2/cluster/masklog.c
+@@ -64,8 +64,7 @@ static ssize_t mlog_mask_store(u64 mask, const char *buf, size_t count)
+ 	return count;
  }
  
-+static void dw_hdmi_phy_update_hpd(struct dw_hdmi *hdmi, void *data,
-+				   bool force, bool disabled, bool rxsense)
-+{
-+	u8 old_mask = hdmi->phy_mask;
-+
-+	if (force || disabled || !rxsense)
-+		hdmi->phy_mask |= HDMI_PHY_RX_SENSE;
-+	else
-+		hdmi->phy_mask &= ~HDMI_PHY_RX_SENSE;
-+
-+	if (old_mask != hdmi->phy_mask)
-+		hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
-+}
-+
-+static void dw_hdmi_phy_setup_hpd(struct dw_hdmi *hdmi, void *data)
-+{
-+	/*
-+	 * Configure the PHY RX SENSE and HPD interrupts polarities and clear
-+	 * any pending interrupt.
-+	 */
-+	hdmi_writeb(hdmi, HDMI_PHY_HPD | HDMI_PHY_RX_SENSE, HDMI_PHY_POL0);
-+	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
-+		    HDMI_IH_PHY_STAT0);
-+
-+	/* Enable cable hot plug irq. */
-+	hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
-+
-+	/* Clear and unmute interrupts. */
-+	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
-+		    HDMI_IH_PHY_STAT0);
-+	hdmi_writeb(hdmi, ~(HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE),
-+		    HDMI_IH_MUTE_PHY_STAT0);
-+}
-+
- static const struct dw_hdmi_phy_ops dw_hdmi_synopsys_phy_ops = {
- 	.init = dw_hdmi_phy_init,
- 	.disable = dw_hdmi_phy_disable,
- 	.read_hpd = dw_hdmi_phy_read_hpd,
-+	.update_hpd = dw_hdmi_phy_update_hpd,
-+	.setup_hpd = dw_hdmi_phy_setup_hpd,
- };
- 
- /* -----------------------------------------------------------------------------
-@@ -1808,35 +1844,10 @@ static void dw_hdmi_update_power(struct dw_hdmi *hdmi)
-  */
- static void dw_hdmi_update_phy_mask(struct dw_hdmi *hdmi)
+-void __mlog_printk(const u64 *mask, const char *func, int line,
+-		   const char *fmt, ...)
++void __mlog_printk(const u64 *mask, const char *fmt, ...)
  {
--	u8 old_mask = hdmi->phy_mask;
--
--	if (hdmi->force || hdmi->disabled || !hdmi->rxsense)
--		hdmi->phy_mask |= HDMI_PHY_RX_SENSE;
--	else
--		hdmi->phy_mask &= ~HDMI_PHY_RX_SENSE;
--
--	if (old_mask != hdmi->phy_mask)
--		hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
--}
--
--static void dw_hdmi_phy_setup_hpd(struct dw_hdmi *hdmi)
--{
--	/*
--	 * Configure the PHY RX SENSE and HPD interrupts polarities and clear
--	 * any pending interrupt.
--	 */
--	hdmi_writeb(hdmi, HDMI_PHY_HPD | HDMI_PHY_RX_SENSE, HDMI_PHY_POL0);
--	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
--		    HDMI_IH_PHY_STAT0);
--
--	/* Enable cable hot plug irq. */
--	hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
--
--	/* Clear and unmute interrupts. */
--	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
--		    HDMI_IH_PHY_STAT0);
--	hdmi_writeb(hdmi, ~(HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE),
--		    HDMI_IH_MUTE_PHY_STAT0);
-+	if (hdmi->phy.ops->update_hpd)
-+		hdmi->phy.ops->update_hpd(hdmi, hdmi->phy.data,
-+					  hdmi->force, hdmi->disabled,
-+					  hdmi->rxsense);
+ 	struct va_format vaf;
+ 	va_list args;
+@@ -90,9 +89,10 @@ void __mlog_printk(const u64 *mask, const char *func, int line,
+ 	vaf.fmt = fmt;
+ 	vaf.va = &args;
+ 
+-	printk("%s(%s,%u,%u):%s:%d %s%pV",
++	printk("%s(%s,%u,%u):%pS %s%pV",
+ 	       level, current->comm, task_pid_nr(current),
+-	       raw_smp_processor_id(), func, line, prefix, &vaf);
++	       raw_smp_processor_id(), __builtin_return_address(0),
++	       prefix, &vaf);
+ 
+ 	va_end(args);
  }
+diff --git a/fs/ocfs2/cluster/masklog.h b/fs/ocfs2/cluster/masklog.h
+index 3c16da69605d..56ba5baf625b 100644
+--- a/fs/ocfs2/cluster/masklog.h
++++ b/fs/ocfs2/cluster/masklog.h
+@@ -162,9 +162,8 @@ extern struct mlog_bits mlog_and_bits, mlog_not_bits;
  
- static enum drm_connector_status
-@@ -2028,6 +2039,41 @@ static irqreturn_t dw_hdmi_hardirq(int irq, void *dev_id)
- 	return ret;
- }
- 
-+void __dw_hdmi_setup_rx_sense(struct dw_hdmi *hdmi, bool hpd, bool rx_sense)
-+{
-+	mutex_lock(&hdmi->mutex);
-+
-+	if (!hdmi->force) {
-+		/*
-+		 * If the RX sense status indicates we're disconnected,
-+		 * clear the software rxsense status.
-+		 */
-+		if (!rx_sense)
-+			hdmi->rxsense = false;
-+
-+		/*
-+		 * Only set the software rxsense status when both
-+		 * rxsense and hpd indicates we're connected.
-+		 * This avoids what seems to be bad behaviour in
-+		 * at least iMX6S versions of the phy.
-+		 */
-+		if (hpd)
-+			hdmi->rxsense = true;
-+
-+		dw_hdmi_update_power(hdmi);
-+		dw_hdmi_update_phy_mask(hdmi);
-+	}
-+	mutex_unlock(&hdmi->mutex);
-+}
-+
-+void dw_hdmi_setup_rx_sense(struct device *dev, bool hpd, bool rx_sense)
-+{
-+	struct dw_hdmi *hdmi = dev_get_drvdata(dev);
-+
-+	__dw_hdmi_setup_rx_sense(hdmi, hpd, rx_sense);
-+}
-+EXPORT_SYMBOL_GPL(dw_hdmi_setup_rx_sense);
-+
- static irqreturn_t dw_hdmi_irq(int irq, void *dev_id)
- {
- 	struct dw_hdmi *hdmi = dev_id;
-@@ -2060,30 +2106,10 @@ static irqreturn_t dw_hdmi_irq(int irq, void *dev_id)
- 	 * ask the source to re-read the EDID.
- 	 */
- 	if (intr_stat &
--	    (HDMI_IH_PHY_STAT0_RX_SENSE | HDMI_IH_PHY_STAT0_HPD)) {
--		mutex_lock(&hdmi->mutex);
--		if (!hdmi->force) {
--			/*
--			 * If the RX sense status indicates we're disconnected,
--			 * clear the software rxsense status.
--			 */
--			if (!(phy_stat & HDMI_PHY_RX_SENSE))
--				hdmi->rxsense = false;
--
--			/*
--			 * Only set the software rxsense status when both
--			 * rxsense and hpd indicates we're connected.
--			 * This avoids what seems to be bad behaviour in
--			 * at least iMX6S versions of the phy.
--			 */
--			if (phy_stat & HDMI_PHY_HPD)
--				hdmi->rxsense = true;
--
--			dw_hdmi_update_power(hdmi);
--			dw_hdmi_update_phy_mask(hdmi);
--		}
--		mutex_unlock(&hdmi->mutex);
--	}
-+	    (HDMI_IH_PHY_STAT0_RX_SENSE | HDMI_IH_PHY_STAT0_HPD))
-+		__dw_hdmi_setup_rx_sense(hdmi,
-+					 phy_stat & HDMI_PHY_HPD,
-+					 phy_stat & HDMI_PHY_RX_SENSE);
- 
- 	if (intr_stat & HDMI_IH_PHY_STAT0_HPD) {
- 		dev_dbg(hdmi->dev, "EVENT=%s\n",
-@@ -2357,7 +2383,8 @@ static int dw_hdmi_detect_phy(struct dw_hdmi *hdmi)
  #endif
  
- 	dw_hdmi_setup_i2c(hdmi);
--	dw_hdmi_phy_setup_hpd(hdmi);
-+	if (hdmi->phy.ops->setup_hpd)
-+		hdmi->phy.ops->setup_hpd(hdmi, hdmi->phy.data);
+-__printf(4, 5) __nocapture(2)
+-void __mlog_printk(const u64 *m, const char *func, int line,
+-		   const char *fmt, ...);
++__printf(2, 3) __nocapture(2)
++void __mlog_printk(const u64 *m, const char *fmt, ...);
  
- 	memset(&pdevinfo, 0, sizeof(pdevinfo));
- 	pdevinfo.parent = dev;
-diff --git a/include/drm/bridge/dw_hdmi.h b/include/drm/bridge/dw_hdmi.h
-index 45c2c15..e63d675 100644
---- a/include/drm/bridge/dw_hdmi.h
-+++ b/include/drm/bridge/dw_hdmi.h
-@@ -117,6 +117,9 @@ struct dw_hdmi_phy_ops {
- 		    struct drm_display_mode *mode);
- 	void (*disable)(struct dw_hdmi *hdmi, void *data);
- 	enum drm_connector_status (*read_hpd)(struct dw_hdmi *hdmi, void *data);
-+	void (*update_hpd)(struct dw_hdmi *hdmi, void *data,
-+			   bool force, bool disabled, bool rxsense);
-+	void (*setup_hpd)(struct dw_hdmi *hdmi, void *data);
- };
+ /*
+  * Testing before the __mlog_printk call lets the compiler eliminate the
+@@ -174,8 +173,7 @@ void __mlog_printk(const u64 *m, const char *func, int line,
+ do {									\
+ 	u64 _m = MLOG_MASK_PREFIX | (mask);				\
+ 	if (_m & ML_ALLOWED_BITS)					\
+-		__mlog_printk(&_m, __func__, __LINE__, fmt,		\
+-			      ##__VA_ARGS__);				\
++		__mlog_printk(&_m, fmt, ##__VA_ARGS__);			\
+ } while (0)
  
- struct dw_hdmi_plat_data {
-@@ -147,6 +150,8 @@ int dw_hdmi_probe(struct platform_device *pdev,
- int dw_hdmi_bind(struct platform_device *pdev, struct drm_encoder *encoder,
- 		 const struct dw_hdmi_plat_data *plat_data);
- 
-+void dw_hdmi_setup_rx_sense(struct device *dev, bool hpd, bool rx_sense);
-+
- void dw_hdmi_set_sample_rate(struct dw_hdmi *hdmi, unsigned int rate);
- void dw_hdmi_audio_enable(struct dw_hdmi *hdmi);
- void dw_hdmi_audio_disable(struct dw_hdmi *hdmi);
--- 
-1.9.1
+ #define mlog_errno(st) ({						\
