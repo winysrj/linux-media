@@ -1,73 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.macqel.be ([109.135.2.61]:55652 "EHLO smtp2.macqel.be"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751384AbdCPJ4P (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Mar 2017 05:56:15 -0400
-Date: Thu, 16 Mar 2017 10:47:29 +0100
-From: Philippe De Muyter <phdm@macq.eu>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Nicolas Dufresne <nicolas@ndufresne.ca>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Pavel Machek <pavel@ucw.cz>, Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: Re: media / v4l2-mc: wishlist for complex cameras (was Re: [PATCH
-        v4 14/36] [media] v4l2-mc: add a function to inherit controls from
-        a pipeline)
-Message-ID: <20170316094729.GA5595@frolo.macqel>
-References: <20170311082549.576531d0@vento.lan> <20170313124621.GA10701@valkosipuli.retiisi.org.uk> <20170314004533.3b3cd44b@vento.lan> <e0a6c60b-1735-de0b-21f4-d8c3f4b3f10f@xs4all.nl> <20170314072143.498cde9b@vento.lan> <20170314223254.GA7141@amd> <20170314215420.6fc63c67@vento.lan> <20170315105049.GA12099@frolo.macqel> <1489604109.4593.4.camel@ndufresne.ca> <1489656360.2303.2.camel@pengutronix.de>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57347 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752503AbdCBMJQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 07:09:16 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] v4l: vsp1: Fix struct vsp1_drm documentation
+Date: Thu, 02 Mar 2017 14:08:43 +0200
+Message-ID: <3893724.eCjZMHPHA5@avalon>
+In-Reply-To: <1488449542-28990-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+References: <1488449542-28990-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1489656360.2303.2.camel@pengutronix.de>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 16, 2017 at 10:26:00AM +0100, Philipp Zabel wrote:
-> On Wed, 2017-03-15 at 14:55 -0400, Nicolas Dufresne wrote:
-> > Le mercredi 15 mars 2017 à 11:50 +0100, Philippe De Muyter a écrit :
-> > > > I would say: camorama, xawtv3, zbar, google talk, skype. If it runs
-> > > > with those, it will likely run with any other application.
-> > > > 
-> > > 
-> > > I would like to add the 'v4l2src' plugin of gstreamer, and on the
-> > > imx6 its
-> > 
-> > While it would be nice if somehow you would get v4l2src to work (in
-> > some legacy/emulation mode through libv4l2),
+Hi Kieran,
+
+Thank you for the patch.
+
+On Thursday 02 Mar 2017 10:12:22 Kieran Bingham wrote:
+> The struct vsp1_drm references a member 'planes' which doesn't exist.
+> Correctly identify this documentation against the 'inputs'
 > 
-> v4l2src works just fine, provided the pipeline is configured manually in
-> advance via media-ctl.
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Including choosing the framerate ?  Sorry, I have no time these days
-to test it myself.
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-And I cited imxv4l2videosrc for its ability to provide the physical address
-of the image buffers for further processing by other (not necessarily next
-in gstreamer pipeline, or for all frames) hardware-accelerated plugins likes
-the h.264 video encoder.  As I am stuck with fsl/nxp kernel and driver on that
-matter, I don't know how the interfaces have evolved in current linux kernels.
+and applied to my tree, thank you.
 
-BR
-
-Philippe
+> ---
+>  drivers/media/platform/vsp1/vsp1_drm.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_drm.h
+> b/drivers/media/platform/vsp1/vsp1_drm.h index 9e28ab9254ba..c8d2f88fc483
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drm.h
+> +++ b/drivers/media/platform/vsp1/vsp1_drm.h
+> @@ -21,7 +21,7 @@
+>   * vsp1_drm - State for the API exposed to the DRM driver
+>   * @pipe: the VSP1 pipeline used for display
+>   * @num_inputs: number of active pipeline inputs at the beginning of an
+> update - * @planes: source crop rectangle, destination compose rectangle
+> and z-order + * @inputs: source crop rectangle, destination compose
+> rectangle and z-order *	position for every input
+>   */
+>  struct vsp1_drm {
 
 -- 
-Philippe De Muyter +32 2 6101532 Macq SA rue de l'Aeronef 2 B-1140 Bruxelles
+Regards,
+
+Laurent Pinchart
