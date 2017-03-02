@@ -1,103 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:59564 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753026AbdCFOY4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Mar 2017 09:24:56 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] vivid: fix try_fmt behavior
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Vincent ABRIOU <vincent.abriou@st.com>
-Message-ID: <31f776c6-bfd8-5c88-6a04-8e29cde9a53a@xs4all.nl>
-Date: Mon, 6 Mar 2017 15:23:15 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mout.kundenserver.de ([212.227.126.130]:57083 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752574AbdCBQsW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 11:48:22 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: kasan-dev@googlegroups.com
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-wireless@vger.kernel.org,
+        kernel-build-reports@lists.linaro.org,
+        "David S . Miller" <davem@davemloft.net>,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 13/26] rtl8180: reduce stack size for KASAN
+Date: Thu,  2 Mar 2017 17:38:21 +0100
+Message-Id: <20170302163834.2273519-14-arnd@arndb.de>
+In-Reply-To: <20170302163834.2273519-1-arnd@arndb.de>
+References: <20170302163834.2273519-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-vivid_try_fmt_vid_cap() called tpg_calc_line_width to calculate the sizeimage
-value, but that tpg function uses the current format, not the proposed (tried)
-format.
+When CONFIG_KASAN is set, we see overly large stack frames from inlining
+functions with local variables:
 
-Rewrote this code to calculate this correctly.
+drivers/net/wireless/realtek/rtl818x/rtl8180/rtl8225se.c: In function 'rtl8225se_rf_init':
+drivers/net/wireless/realtek/rtl818x/rtl8180/rtl8225se.c:431:1: warning: the frame size of 4384 bytes is larger than 3072 bytes [-Wframe-larger-than=]
 
-The vivid_try_fmt_vid_out() code was completely wrong w.r.t. sizeimage, and
-neither did it take the vdownsampling[] factors into account.
+This marks them noinline_for_kasan.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
-diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
-index a18e6fec219b..01419455e545 100644
---- a/drivers/media/platform/vivid/vivid-vid-cap.c
-+++ b/drivers/media/platform/vivid/vivid-vid-cap.c
-@@ -616,7 +616,7 @@ int vivid_try_fmt_vid_cap(struct file *file, void *priv,
-  	/* This driver supports custom bytesperline values */
+ drivers/net/wireless/realtek/rtl818x/rtl8180/rtl8225se.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-  	mp->num_planes = fmt->buffers;
--	for (p = 0; p < mp->num_planes; p++) {
-+	for (p = 0; p < fmt->buffers; p++) {
-  		/* Calculate the minimum supported bytesperline value */
-  		bytesperline = (mp->width * fmt->bit_depth[p]) >> 3;
-  		/* Calculate the maximum supported bytesperline value */
-@@ -626,10 +626,17 @@ int vivid_try_fmt_vid_cap(struct file *file, void *priv,
-  			pfmt[p].bytesperline = max_bpl;
-  		if (pfmt[p].bytesperline < bytesperline)
-  			pfmt[p].bytesperline = bytesperline;
--		pfmt[p].sizeimage = tpg_calc_line_width(&dev->tpg, p, pfmt[p].bytesperline) *
--			mp->height + fmt->data_offset[p];
-+
-+		pfmt[p].sizeimage = (pfmt[p].bytesperline * mp->height) /
-+				fmt->vdownsampling[p] + fmt->data_offset[p];
-+
-  		memset(pfmt[p].reserved, 0, sizeof(pfmt[p].reserved));
-  	}
-+	for (p = fmt->buffers; p < fmt->planes; p++)
-+		pfmt[0].sizeimage += (pfmt[0].bytesperline * mp->height *
-+			(fmt->bit_depth[p] / fmt->vdownsampling[p])) /
-+			(fmt->bit_depth[0] / fmt->vdownsampling[0]);
-+
-  	mp->colorspace = vivid_colorspace_cap(dev);
-  	if (fmt->color_enc == TGP_COLOR_ENC_HSV)
-  		mp->hsv_enc = vivid_hsv_enc_cap(dev);
-diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
-index 7ba52ee98371..b3b3b31c873b 100644
---- a/drivers/media/platform/vivid/vivid-vid-out.c
-+++ b/drivers/media/platform/vivid/vivid-vid-out.c
-@@ -390,22 +390,28 @@ int vivid_try_fmt_vid_out(struct file *file, void *priv,
-
-  	/* This driver supports custom bytesperline values */
-
--	/* Calculate the minimum supported bytesperline value */
--	bytesperline = (mp->width * fmt->bit_depth[0]) >> 3;
--	/* Calculate the maximum supported bytesperline value */
--	max_bpl = (MAX_ZOOM * MAX_WIDTH * fmt->bit_depth[0]) >> 3;
-  	mp->num_planes = fmt->buffers;
--	for (p = 0; p < mp->num_planes; p++) {
-+	for (p = 0; p < fmt->buffers; p++) {
-+		/* Calculate the minimum supported bytesperline value */
-+		bytesperline = (mp->width * fmt->bit_depth[p]) >> 3;
-+		/* Calculate the maximum supported bytesperline value */
-+		max_bpl = (MAX_ZOOM * MAX_WIDTH * fmt->bit_depth[p]) >> 3;
-+
-  		if (pfmt[p].bytesperline > max_bpl)
-  			pfmt[p].bytesperline = max_bpl;
-  		if (pfmt[p].bytesperline < bytesperline)
-  			pfmt[p].bytesperline = bytesperline;
--		pfmt[p].sizeimage = pfmt[p].bytesperline * mp->height;
-+
-+		pfmt[p].sizeimage = (pfmt[p].bytesperline * mp->height) /
-+					fmt->vdownsampling[p];
-+
-  		memset(pfmt[p].reserved, 0, sizeof(pfmt[p].reserved));
-  	}
-  	for (p = fmt->buffers; p < fmt->planes; p++)
--		pfmt[0].sizeimage += (pfmt[0].bytesperline * fmt->bit_depth[p]) /
--				     (fmt->bit_depth[0] * fmt->vdownsampling[p]);
-+		pfmt[0].sizeimage += (pfmt[0].bytesperline * mp->height *
-+			(fmt->bit_depth[p] / fmt->vdownsampling[p])) /
-+			(fmt->bit_depth[0] / fmt->vdownsampling[0]);
-+
-  	mp->xfer_func = V4L2_XFER_FUNC_DEFAULT;
-  	mp->ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;
-  	mp->quantization = V4L2_QUANTIZATION_DEFAULT;
+diff --git a/drivers/net/wireless/realtek/rtl818x/rtl8180/rtl8225se.c b/drivers/net/wireless/realtek/rtl818x/rtl8180/rtl8225se.c
+index fde89866fa8d..1efa098a2e32 100644
+--- a/drivers/net/wireless/realtek/rtl818x/rtl8180/rtl8225se.c
++++ b/drivers/net/wireless/realtek/rtl818x/rtl8180/rtl8225se.c
+@@ -174,14 +174,14 @@ static void rtl8187se_three_wire_io(struct ieee80211_hw *dev, u8 *data,
+ 	} while (0);
+ }
+ 
+-static u32 rtl8187se_rf_readreg(struct ieee80211_hw *dev, u8 addr)
++static noinline_for_kasan u32 rtl8187se_rf_readreg(struct ieee80211_hw *dev, u8 addr)
+ {
+ 	u32 dataread = addr & 0x0F;
+ 	rtl8187se_three_wire_io(dev, (u8 *)&dataread, 16, 0);
+ 	return dataread;
+ }
+ 
+-static void rtl8187se_rf_writereg(struct ieee80211_hw *dev, u8 addr, u32 data)
++static noinline_for_kasan void rtl8187se_rf_writereg(struct ieee80211_hw *dev, u8 addr, u32 data)
+ {
+ 	u32 outdata = (data << 4) | (u32)(addr & 0x0F);
+ 	rtl8187se_three_wire_io(dev, (u8 *)&outdata, 16, 1);
+-- 
+2.9.0
