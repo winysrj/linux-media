@@ -1,122 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:34645 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752657AbdCPVS6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Mar 2017 17:18:58 -0400
-Date: Thu, 16 Mar 2017 16:18:54 -0500
-From: Rob Herring <robh@kernel.org>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org,
-        Konstantin Kozhevnikov
-        <Konstantin.Kozhevnikov@cogentembedded.com>
-Subject: Re: [PATCH v5] media: platform: Renesas IMR driver
-Message-ID: <20170316211854.i3mb7nmyqgfvezaw@rob-hp-laptop>
-References: <20170309200818.786255823@cogentembedded.com>
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:36763 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751639AbdCCKlp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 05:41:45 -0500
+Received: by mail-wr0-f196.google.com with SMTP id l37so12777597wrc.3
+        for <linux-media@vger.kernel.org>; Fri, 03 Mar 2017 02:41:36 -0800 (PST)
+Date: Fri, 3 Mar 2017 11:33:04 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Laura Abbott <labbott@redhat.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com,
+        romlem@google.com, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org
+Subject: Re: [RFC PATCH 11/12] staging: android: ion: Make Ion heaps
+ selectable
+Message-ID: <20170303103304.nxfn7zlccx24b3xq@phenom.ffwll.local>
+References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+ <1488491084-17252-12-git-send-email-labbott@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170309200818.786255823@cogentembedded.com>
+In-Reply-To: <1488491084-17252-12-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 09, 2017 at 11:08:03PM +0300, Sergei Shtylyov wrote:
-> From: Konstantin Kozhevnikov <Konstantin.Kozhevnikov@cogentembedded.com>
+On Thu, Mar 02, 2017 at 01:44:43PM -0800, Laura Abbott wrote:
 > 
-> The image renderer, or the distortion correction engine, is a drawing
-> processor with a simple instruction system capable of referencing video
-> capture data or data in an external memory as the 2D texture data and
-> performing texture mapping and drawing with respect to any shape that is
-> split into triangular objects.
+> Currently, all heaps are compiled in all the time. In switching to
+> a better platform model, let's allow these to be compiled out for good
+> measure.
 > 
-> This V4L2 memory-to-memory device driver only supports image renderer light
-> extended 4 (IMR-LX4) found in the R-Car gen3 SoCs; the R-Car gen2 support
-> can be added later...
-> 
-> [Sergei: merged 2 original patches, added the patch description, removed
-> unrelated parts,  added the binding document, ported the driver to the
-> modern kernel, renamed the UAPI header file and the  guard macros to match
-> the driver name, extended the copyrights, fixed up Kconfig prompt/depends/
-> help, made use of the BIT/GENMASK() macros, sorted #include's, removed
-> leading  dots and fixed grammar in the comments, fixed up indentation to
-> use tabs where possible, renamed DLSR, CMRCR.DY1{0|2}, and ICR bits to
-> match the manual, changed the prefixes of the CMRCR[2]/TRI{M|C}R bits/
-> fields to match the manual, removed non-existent TRIMR.D{Y|U}D{X|V}M bits,
-> added/used the IMR/{UV|CP}DPOR/SUSR bits/fields/shifts, separated the
-> register offset/bit #define's, sorted the instruction macros by opcode,
-> removed unsupported LINE instruction, masked the register address in
-> WTL[2]/WTS instruction macros, moved the display list #define's after
-> the register #define's, removing the redundant comment, avoided setting
-> reserved bits when writing CMRCCR[2]/TRIMCR, used the SR bits instead of
-> a bare number, used ALIGN() macro in imr_ioctl_map(), removed *inline*
-> from .c file, fixed lines over 80 columns, removed useless spaces,
-> comments, parens, operators, casts, braces, variables, #include's,
-> statements, and even 1 function, uppercased the abbreviations, made
-> comment wording more consistent/correct, fixed the comment typos,
-> reformatted some multiline comments, inserted empty line after declaration,
-> removed extra empty lines, reordered some local variable desclarations,
-> removed calls to 4l2_err() on kmalloc() failure, replaced '*' with 'x'
-> in some format strings for v4l2_dbg(), fixed the error returned by
-> imr_default(), avoided code duplication in the IRQ handler, used
-> '__packed' for the UAPI structures, enclosed the macro parameters in
-> parens, exchanged the values of IMR_MAP_AUTO{S|D}G macros.]
-> 
-> Signed-off-by: Konstantin Kozhevnikov <Konstantin.Kozhevnikov@cogentembedded.com>
-> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> 
+> Signed-off-by: Laura Abbott <labbott@redhat.com>
+
+I'm not the biggest fan of making everything Kconfig-selectable. And the
+#ifdef stuff doesn't look all that pretty. If we'd also use this
+opportunity to split each heap into their own file I think this patch here
+would be a lot more useful.
+
+Anyway, no real opinion from me on this, just an idea.
+-Daniel
+
 > ---
-> This patch is against the 'media_tree.git' repo's 'master' branch.
+>  drivers/staging/android/ion/Kconfig    | 32 ++++++++++++++++++++
+>  drivers/staging/android/ion/Makefile   |  8 +++--
+>  drivers/staging/android/ion/ion_priv.h | 53 ++++++++++++++++++++++++++++++++--
+>  3 files changed, 87 insertions(+), 6 deletions(-)
 > 
-> Changes in version 5:
-> - used ALIGN() macro in imr_ioctl_map();
-> - moved the display list #define's after the register #define's, removing the
->   redundant comment;
-> - uppercased the "tbd" abbreviation in the comments;
-> - made the TRI instruction types A/B/C named consistently;
-> - avoided quotes around the coordinate's names;
-> - avoided some  hyphens in the comments;
-> - removed spaces around / and before ? in the comments;
-> - reworded some comments;
-> - reformatted some multiline comments;
-> - fixed typos in the comments.
+> diff --git a/drivers/staging/android/ion/Kconfig b/drivers/staging/android/ion/Kconfig
+> index 0c91b2b..2e97990 100644
+> --- a/drivers/staging/android/ion/Kconfig
+> +++ b/drivers/staging/android/ion/Kconfig
+> @@ -17,3 +17,35 @@ config ION_TEST
+>  	  Choose this option to create a device that can be used to test the
+>  	  kernel and device side ION functions.
+>  
+> +config ION_SYSTEM_HEAP
+> +	bool "Ion system heap"
+> +	depends on ION
+> +	help
+> +	  Choose this option to enable the Ion system heap. The system heap
+> +	  is backed by pages from the buddy allocator. If in doubt, say Y.
+> +
+> +config ION_CARVEOUT_HEAP
+> +	bool "Ion carveout heap support"
+> +	depends on ION
+> +	help
+> +	  Choose this option to enable carveout heaps with Ion. Carveout heaps
+> +	  are backed by memory reserved from the system. Allocation times are
+> +	  typically faster at the cost of memory not being used. Unless you
+> +	  know your system has these regions, you should say N here.
+> +
+> +config ION_CHUNK_HEAP
+> +	bool "Ion chunk heap support"
+> +	depends on ION
+> +	help
+> +          Choose this option to enable chunk heaps with Ion. This heap is
+> +	  similar in function the carveout heap but memory is broken down
+> +	  into smaller chunk sizes, typically corresponding to a TLB size.
+> +	  Unless you know your system has these regions, you should say N here.
+> +
+> +config ION_CMA_HEAP
+> +	bool "Ion CMA heap support"
+> +	depends on ION && CMA
+> +	help
+> +	  Choose this option to enable CMA heaps with Ion. This heap is backed
+> +	  by the Contiguous Memory Allocator (CMA). If your system has these
+> +	  regions, you should say Y here.
+> diff --git a/drivers/staging/android/ion/Makefile b/drivers/staging/android/ion/Makefile
+> index 9457090..eef022b 100644
+> --- a/drivers/staging/android/ion/Makefile
+> +++ b/drivers/staging/android/ion/Makefile
+> @@ -1,6 +1,8 @@
+> -obj-$(CONFIG_ION) +=	ion.o ion-ioctl.o ion_heap.o \
+> -			ion_page_pool.o ion_system_heap.o \
+> -			ion_carveout_heap.o ion_chunk_heap.o ion_cma_heap.o
+> +obj-$(CONFIG_ION) +=	ion.o ion-ioctl.o ion_heap.o
+> +obj-$(CONFIG_ION_SYSTEM_HEAP) += ion_system_heap.o ion_page_pool.o
+> +obj-$(CONFIG_ION_CARVEOUT_HEAP) += ion_carveout_heap.o
+> +obj-$(CONFIG_ION_CHUNK_HEAP) += ion_chunk_heap.o
+> +obj-$(CONFIG_ION_CMA_HEAP) += ion_cma_heap.o
+>  obj-$(CONFIG_ION_TEST) += ion_test.o
+>  ifdef CONFIG_COMPAT
+>  obj-$(CONFIG_ION) += compat_ion.o
+> diff --git a/drivers/staging/android/ion/ion_priv.h b/drivers/staging/android/ion/ion_priv.h
+> index b09bc7c..6eafe0d 100644
+> --- a/drivers/staging/android/ion/ion_priv.h
+> +++ b/drivers/staging/android/ion/ion_priv.h
+> @@ -369,21 +369,68 @@ size_t ion_heap_freelist_size(struct ion_heap *heap);
+>   * heaps as appropriate.
+>   */
+>  
+> +
+>  struct ion_heap *ion_heap_create(struct ion_platform_heap *heap_data);
+>  void ion_heap_destroy(struct ion_heap *heap);
+> +
+> +#ifdef CONFIG_ION_SYSTEM_HEAP
+>  struct ion_heap *ion_system_heap_create(struct ion_platform_heap *unused);
+>  void ion_system_heap_destroy(struct ion_heap *heap);
+> -
+>  struct ion_heap *ion_system_contig_heap_create(struct ion_platform_heap *heap);
+>  void ion_system_contig_heap_destroy(struct ion_heap *heap);
+> -
+> +#else
+> +static inline struct ion_heap * ion_system_heap_create(
+> +	struct ion_platform_heap *unused)
+> +{
+> +	return ERR_PTR(-ENODEV);
+> +}
+> +static inline void ion_system_heap_destroy(struct ion_heap *heap) { }
+> +
+> +static inline struct ion_heap *ion_system_contig_heap_create(
+> +	struct ion_platform_heap *heap)
+> +{
+> +	return ERR_PTR(-ENODEV);
+> +}
+> +
+> +static inline void ion_system_contig_heap_destroy(struct ion_heap *heap) { }
+> +#endif
+> +
+> +#ifdef CONFIG_ION_CARVEOUT_HEAP
+>  struct ion_heap *ion_carveout_heap_create(struct ion_platform_heap *heap_data);
+>  void ion_carveout_heap_destroy(struct ion_heap *heap);
+> -
+> +#else
+> +static inline struct ion_heap *ion_carveout_heap_create(
+> +	struct ion_platform_heap *heap_data)
+> +{
+> +	return ERR_PTR(-ENODEV);
+> +}
+> +static inline void ion_carveout_heap_destroy(struct ion_heap *heap) { }
+> +#endif
+> +
+> +#ifdef CONFIG_ION_CHUNK_HEAP
+>  struct ion_heap *ion_chunk_heap_create(struct ion_platform_heap *heap_data);
+>  void ion_chunk_heap_destroy(struct ion_heap *heap);
+> +#else
+> +static inline struct ion_heap *ion_chunk_heap_create(
+> +	struct ion_platform_heap *heap_data)
+> +{
+> +	return ERR_PTR(-ENODEV);
+> +}
+> +static inline void ion_chunk_heap_destroy(struct ion_heap *heap) { }
+> +
+> +#endif
+> +
+> +#ifdef CONFIG_ION_CMA_HEAP
+>  struct ion_heap *ion_cma_heap_create(struct ion_platform_heap *data);
+>  void ion_cma_heap_destroy(struct ion_heap *heap);
+> +#else
+> +static inline struct ion_heap *ion_cma_heap_create(
+> +	struct ion_platform_heap *data)
+> +{
+> +	return ERR_PTR(-ENODEV);
+> +}
+> +static inline void ion_cma_heap_destroy(struct ion_heap *heap) { }
+> +#endif
+>  
+>  /**
+>   * functions for creating and destroying a heap pool -- allows you
+> -- 
+> 2.7.4
 > 
-> Changes in version 4:
-> - added/used the SUSR fields/shifts.
-> 
-> Changes in version 3:
-> - added/used the {UV|CP}DPOR fields/shifts;
-> - removed unsupported LINE instruction;
-> - replaced '*' with 'x' in the string passed to v4l2_dbg() in
->   imr_dl_program_setup();
-> - switched to prepending the SoC model to "imr-lx4" in the "compatible" prop
->   strings.
-> 
-> Changes in version 2:
-> - renamed the ICR bits to match the manual;
-> - added/used  the IMR bits;
-> - changed the prefixes of the CMRCR[2]/TRI{M|C}R bits/fields to match the
->   manual;
-> - renamed the CMRCR.DY1{0|2} bits to match the manual;
-> - removed non-existent TRIMR.D{Y|U}D{X|V}M bits;
-> - used the SR bits instead of a bare number;
-> - sorted the instruction macros by opcode, removing redundant parens;
-> - masked the register address in WTL[2]/WTS instruction macros;
-> - avoided setting reserved bits when writing to CMRCCR[2]/TRIMCR;
-> - mentioned the video capture data as a texture source in the binding and the
->   patch description;
-> - documented the SoC specific "compatible" values;
-> - clarified the "interrupts" and "clocks" property text;
-> - updated the patch description.
-> 
->  Documentation/devicetree/bindings/media/rcar_imr.txt |   27 
+> --
+> To unsubscribe, send a message with 'unsubscribe linux-mm' in
+> the body to majordomo@kvack.org.  For more info on Linux MM,
+> see: http://www.linux-mm.org/ .
+> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
 
-Acked-by: Rob Herring <robh@kernel.org>
-
->  drivers/media/platform/Kconfig                       |   13 
->  drivers/media/platform/Makefile                      |    1 
->  drivers/media/platform/rcar_imr.c                    | 1943 +++++++++++++++++++
->  include/uapi/linux/rcar_imr.h                        |   94 
->  5 files changed, 2078 insertions(+)
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
