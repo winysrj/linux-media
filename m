@@ -1,46 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:58818 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752266AbdCHNqO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 8 Mar 2017 08:46:14 -0500
-Subject: Re: [PATCH] atomisp2: unify some ifdef cases caused by format changes
-To: Greg KH <greg@kroah.com>
-References: <148879924465.10733.17814546240558419917.stgit@acox1-desk1.ger.corp.intel.com>
- <90583522-0afb-e556-b1a6-dea0efc5392d@xs4all.nl>
- <20170308133947.GB5221@kroah.com>
-Cc: Alan Cox <alan@linux.intel.com>, linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b13609bf-0e14-685a-01a7-0ba88e15db8c@xs4all.nl>
-Date: Wed, 8 Mar 2017 14:45:35 +0100
+Received: from mail-ot0-f195.google.com ([74.125.82.195]:33138 "EHLO
+        mail-ot0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751617AbdCCOg7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 09:36:59 -0500
 MIME-Version: 1.0
-In-Reply-To: <20170308133947.GB5221@kroah.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAG_fn=UVcLhP8mH6tvzqZUn4u9T4pnQw8bMf=qccNro59VcABw@mail.gmail.com>
+References: <20170302163834.2273519-1-arnd@arndb.de> <CAG_fn=UVcLhP8mH6tvzqZUn4u9T4pnQw8bMf=qccNro59VcABw@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Fri, 3 Mar 2017 13:54:00 +0100
+Message-ID: <CAK8P3a1tek+4zWwHJtXO=r7Zqe7atwrPk70hWcM_Qp_Ekv9KHw@mail.gmail.com>
+Subject: Re: [PATCH 00/26] bring back stack frame warning with KASAN
+To: Alexander Potapenko <glider@google.com>
+Cc: kasan-dev <kasan-dev@googlegroups.com>,
+        Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Networking <netdev@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
+        linux-wireless <linux-wireless@vger.kernel.org>,
+        kernel-build-reports@lists.linaro.org,
+        "David S . Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/03/17 14:39, Greg KH wrote:
-> On Wed, Mar 08, 2017 at 01:49:23PM +0100, Hans Verkuil wrote:
->> OK, so I discovered that these patches are for a driver added to linux-next
->> without it ever been cross-posted to linux-media.
+On Fri, Mar 3, 2017 at 1:25 PM, Alexander Potapenko <glider@google.com> wrote:
+> On Thu, Mar 2, 2017 at 5:38 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+>> It took a long while to get this done, but I'm finally ready
+>> to send the first half of the KASAN stack size patches that
+>> I did in response to the kernelci.org warnings.
 >>
->> To be polite, I think that's rather impolite.
+>> As before, it's worth mentioning that things are generally worse
+>> with gcc-7.0.1 because of the addition of -fsanitize-address-use-after-scope
+>> that are not present on kernelci, so my randconfig testing found
+>> a lot more than kernelci did.
+>>
+>> The main areas are:
+>>
+>> - READ_ONCE/WRITE_ONCE cause problems in lots of code
+>> - typecheck() causes huge problems in a few places
+>> - I'm introducing "noinline_for_kasan" and use it in a lot
+>>   of places that suffer from inline functions with local variables
+>>   - netlink, as used in various parts of the kernel
+>>   - a number of drivers/media drivers
+>>   - a handful of wireless network drivers
+>> - kmemcheck conflicts with -fsanitize-address-use-after-scope
+>>
+>> This series lets us add back a stack frame warning for 3072 bytes
+>> with -fsanitize-address-use-after-scope, or 2048 bytes without it.
+>>
+>> I have a follow-up series that further reduces the stack frame
+>> warning limit to 1280 bytes for all 64-bit architectures, and
+>> 1536 bytes with basic KASAN support (no -fsanitize-address-use-after-scope).
+>> For now, I'm only posting the first half, in order to keep
+>> it (barely) reviewable.
 >
-> They were, but got rejected due to the size :(
->
-> Mauro was cc:ed directly, he knew these were coming...
->
-> I can take care of the cleanup patches for now, you don't have to review
-> them if you don't want to.
+> Can you please elaborate on why do you need this? Are you trying to
+> squeeze KASAN into some embedded device?
+> Noinlines sprayed over the codebase are hard to maintain, and certain
+> compiler changes may cause bloated stack frames in other places.
+> Maybe it should be enough to just increase the stack frame limit in
+> KASAN builds, as Dmitry suggested previously?
 
-Please do.
+The current state of mainline has doubled the kernel stack size with
+KASAN, and completely turned off the warning for per-function
+stack frames. In some cases, this is completely broken as we have
+functions that exceed even the 32kb per-thread stacks by themselves,
+so I want to turn on the warning again and fix all the outliers.
 
-For the next time if the patches are too large: at least post a message with
-a link to a repo for people to look at. I would like to know what's going
-on in staging/media, especially since I will do a lot of the reviewing (at
-least if it is a V4L2 driver) when they want to move it out of staging.
+The hard part is deciding what size is reasonable for a given function,
+as smaller limits cause more harmless warnings while larger limits
+can hide more actual problems. Before running into the KASAN
+problem, I had already determined that we can lower the warning
+limit for 64-bit architectures from 2048 bytes to 1280 with just
+a handful of patches that are generally a good cleanup anyway.
 
-Thanks,
+This led me to picking three separate warning limits, based on
+what I found reasonable to work around in the code:
 
-	Hans
+3072 bytes with -fsanitize-address-use-after-scope
+1536 bytes with KASAN but without -fsanitize-address-use-after-scope
+1280 bytes on 64-bit without KASAN
+1024 bytes on 32-bit architectures
+
+If we use higher limits, the patch series will get a bit shorter. For
+the limits above, I needed a total of 51 patches, while this shorter
+series of 26 patches has slightly laxer limits:
+
+3072 bytes with -fsanitize-address-use-after-scope
+2048 bytes on 64-bit architectures with or without KASAN, but
+          without  -fsanitize-address-use-after-scope
+1024 bytes on 32-bit architectures
+
+The individual patches should list the highest frame size I ran
+into, so I can try to reduce the number of patches if you have
+a suggestion for a different set of limits.
+
+       Arnd
