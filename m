@@ -1,43 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52382 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753286AbdC2HIi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Mar 2017 03:08:38 -0400
-Date: Wed, 29 Mar 2017 09:08:15 +0200
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Daniel Cashman <dan.a.cashman@gmail.com>
-Cc: mchehab@kernel.org, alan@linux.intel.com,
-        devel@driverdev.osuosl.org, rvarsha016@gmail.com,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] Remove atomisp/i2c style errors.
-Message-ID: <20170329070815.GA11051@kroah.com>
-References: <1490758297-26282-1-git-send-email-dan.a.cashman@gmail.com>
+Received: from smtp-out4.electric.net ([192.162.216.183]:53953 "EHLO
+        smtp-out4.electric.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751677AbdCCRGs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 12:06:48 -0500
+From: David Laight <David.Laight@ACULAB.COM>
+To: 'Andrey Ryabinin' <aryabinin@virtuozzo.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        "kasan-dev@googlegroups.com" <kasan-dev@googlegroups.com>
+CC: Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>,
+        "kernel-build-reports@lists.linaro.org"
+        <kernel-build-reports@lists.linaro.org>,
+        "David S . Miller" <davem@davemloft.net>
+Subject: RE: [PATCH 01/26] compiler: introduce noinline_for_kasan annotation
+Date: Fri, 3 Mar 2017 16:34:26 +0000
+Message-ID: <063D6719AE5E284EB5DD2968C1650D6DCFE74524@AcuExch.aculab.com>
+References: <20170302163834.2273519-1-arnd@arndb.de>
+ <20170302163834.2273519-2-arnd@arndb.de>
+ <7e7a62de-3b79-6044-72fa-4ade418953d1@virtuozzo.com>
+In-Reply-To: <7e7a62de-3b79-6044-72fa-4ade418953d1@virtuozzo.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1490758297-26282-1-git-send-email-dan.a.cashman@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 28, 2017 at 08:31:37PM -0700, Daniel Cashman wrote:
-> From: Dan Cashman <dan.a.cashman@gmail.com>
+From: Andrey Ryabinin
+> Sent: 03 March 2017 13:50
+...
+> noinline_iff_kasan might be a better name.  noinline_for_kasan gives the impression
+> that we always noinline function for the sake of kasan, while noinline_iff_kasan
+> clearly indicates that function is noinline only if kasan is used.
 
-Please list what the issue you fixed in the subject line.
+noinline_if_stackbloat
 
-Also change the subject to match others for this driver, a 'git log'
-will show you what to do there.
-
-> 
-> Remove two ' , ' issues and change spaces to tabs found by poking around in
-> drivers/staging/. Warnings left untouched.
-> 
-> Test: Run checkpatch script in drivers/staging/media/atomisp/i2c before and
-> after change.  Errors go from 3 to 0.
-
-This isn't needed, and really, you didn't test the code, only a random
-perl script :)
-
-thanks,
-
-greg k-h
+	David
