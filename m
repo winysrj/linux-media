@@ -1,93 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:34714 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753124AbdCTOS5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 10:18:57 -0400
-Date: Mon, 20 Mar 2017 14:17:05 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v5 38/39] media: imx: csi: fix crop rectangle reset in
- sink set_fmt
-Message-ID: <20170320141705.GL21222@n2100.armlinux.org.uk>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <1489121599-23206-39-git-send-email-steve_longerbeam@mentor.com>
- <20170319152233.GW21222@n2100.armlinux.org.uk>
- <327d67d9-68c1-7f74-0c0f-f6aee1c4b546@gmail.com>
- <1490010926.2917.59.camel@pengutronix.de>
- <20170320120855.GH21222@n2100.armlinux.org.uk>
- <1490018451.2917.86.camel@pengutronix.de>
+Received: from mail-ot0-f194.google.com ([74.125.82.194]:35647 "EHLO
+        mail-ot0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751593AbdCCOwL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 09:52:11 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1490018451.2917.86.camel@pengutronix.de>
+In-Reply-To: <CAG_fn=X3PDDpX_K8Dhk-yCviC87ycRaX4X1d+rJENPZJK_rFmw@mail.gmail.com>
+References: <20170302163834.2273519-1-arnd@arndb.de> <20170302163834.2273519-2-arnd@arndb.de>
+ <7e7a62de-3b79-6044-72fa-4ade418953d1@virtuozzo.com> <CAG_fn=WayMEnBO4pzuxQ5jgn-ii6vrALuOex5Ei1ZhzMR7_tjg@mail.gmail.com>
+ <CAK8P3a3+8wxsUntUnOteOv8_p=yBZLk-4Uu-HGM17o9n9OqteQ@mail.gmail.com> <CAG_fn=X3PDDpX_K8Dhk-yCviC87ycRaX4X1d+rJENPZJK_rFmw@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Fri, 3 Mar 2017 15:51:41 +0100
+Message-ID: <CAK8P3a1r9LbZ3f_AcBG6LCmmL9KhzUSUMJuhtVKTkUwYjrexmg@mail.gmail.com>
+Subject: Re: [PATCH 01/26] compiler: introduce noinline_for_kasan annotation
+To: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        kasan-dev <kasan-dev@googlegroups.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Networking <netdev@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
+        linux-wireless <linux-wireless@vger.kernel.org>,
+        kernel-build-reports@lists.linaro.org,
+        "David S . Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 20, 2017 at 03:00:51PM +0100, Philipp Zabel wrote:
-> On Mon, 2017-03-20 at 12:08 +0000, Russell King - ARM Linux wrote:
-> > The same document says:
-> > 
-> >   Scaling support is optional. When supported by a subdev, the crop
-> >   rectangle on the subdev's sink pad is scaled to the size configured
-> >   using the
-> >   :ref:`VIDIOC_SUBDEV_S_SELECTION <VIDIOC_SUBDEV_G_SELECTION>` IOCTL
-> >   using ``V4L2_SEL_TGT_COMPOSE`` selection target on the same pad. If the
-> >   subdev supports scaling but not composing, the top and left values are
-> >   not used and must always be set to zero.
-> 
-> Right, this sentence does imply that when scaling is supported, there
-> must be a sink compose rectangle, even when composing is not.
-> 
-> I have previously set up scaling like this:
-> 
-> media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY2X8/1920x1080@1/60]"
-> media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/960x540@1/30]"
-> 
-> Does this mean, it should work like this instead?
-> 
-> media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY2X8/1920x1080@1/60]"
-> media-ctl --set-v4l2 "'ipu1_csi0':0[fmt:UYVY2X8/1920x1080@1/60,compose:(0,0)/960x540]"
-> media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/960x540@1/30]"
-> 
-> I suppose setting the source pad format should not be allowed to modify
-> the sink compose rectangle.
+On Fri, Mar 3, 2017 at 3:33 PM, Alexander Potapenko <glider@google.com> wrote:
+> On Fri, Mar 3, 2017 at 3:30 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+>> On Fri, Mar 3, 2017 at 2:55 PM, Alexander Potapenko <glider@google.com> wrote:
+>>
+>> Would KMSAN also force local variables to be non-overlapping the way that
+>> asan-stack=1 and -fsanitize-address-use-after-scope do? As I understood it,
+>> KMSAN would add extra code for maintaining the uninit bits, but in an example
+>> like this
+> The thing is that KMSAN (and other tools that insert heavyweight
+> instrumentation) may cause heavy register spilling which will also
+> blow up the stack frames.
 
-That is what I believe having read these documents several times, but
-we need v4l2 people to confirm.
+In that case, I would expect a mostly distinct set of functions to have large
+stack frames with KMSAN, compared to the ones that need
+noinline_for_kasan. In most cases I patched, the called inline function is
+actually trivial, but invoked many times from the same caller.
 
-Note that setting the format on 'ipu1_csi0':0 should already be done by
-the previous media-ctl command, so it should be possible to simplify
-that to:
-
-media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY2X8/1920x1080@1/60]"
-media-ctl --set-v4l2 "'ipu1_csi0':0[compose:(0,0)/960x540]"
-media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/960x540@1/30]"
-
-I have tripped over a bug in media-ctl when specifying both a crop and
-compose rectangle - the --help output suggests that "," should be used
-to separate them.  media-ctl rejects that, telling me the character at
-the "," should be "]".  Replacing the "," with " " allows media-ctl to
-accept it and set both rectangles, so it sounds like a parser bug - I've
-not looked into this any further yet.
-
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+     Arnd
