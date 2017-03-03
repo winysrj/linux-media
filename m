@@ -1,66 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:46752 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754065AbdCTKcC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 06:32:02 -0400
-Date: Mon, 20 Mar 2017 11:22:02 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] [media] platform: Order the Makefile alphabetically
-Message-ID: <20170320102202.pv5t2bqonftris6a@lukather>
-References: <20170307133928.24527-1-maxime.ripard@free-electrons.com>
+Received: from mail-lf0-f44.google.com ([209.85.215.44]:36268 "EHLO
+        mail-lf0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751160AbdCCL5i (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 06:57:38 -0500
+Received: by mail-lf0-f44.google.com with SMTP id y193so46283637lfd.3
+        for <linux-media@vger.kernel.org>; Fri, 03 Mar 2017 03:56:45 -0800 (PST)
+Subject: Re: [PATCH] media: platform: Renesas IMR driver
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+References: <20170302210104.646782352@cogentembedded.com>
+ <CAMuHMdVg5N82bu8fxRS=3iqF2MQmqoR0idb_x0t2RNn8eoedQg@mail.gmail.com>
+Cc: Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Konstantin Kozhevnikov
+        <Konstantin.Kozhevnikov@cogentembedded.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <f8702961-3561-977f-d6dc-16571a64181e@cogentembedded.com>
+Date: Fri, 3 Mar 2017 14:56:41 +0300
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="6bi6f3ezdwnvzlke"
-Content-Disposition: inline
-In-Reply-To: <20170307133928.24527-1-maxime.ripard@free-electrons.com>
+In-Reply-To: <CAMuHMdVg5N82bu8fxRS=3iqF2MQmqoR0idb_x0t2RNn8eoedQg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello!
 
---6bi6f3ezdwnvzlke
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 03/03/2017 02:24 PM, Geert Uytterhoeven wrote:
 
-Hi Mauro,
+>> --- /dev/null
+>> +++ media_tree/Documentation/devicetree/bindings/media/rcar_imr.txt
+>
+>> +- compatible: "renesas,imr-lx4-<soctype>", "renesas,imr-lx4" as a fallback for
+>
+> "renesas,<soctype>-imr-lx4"
+>
+>> +  the image renderer light extended 4 (IMR-LX4) found in the R-Car gen3 SoCs,
+>> +  where the examples with <soctype> are:
+>> +  - "renesas,imr-lx4-h3" for R-Car H3,
+>
+> "renesas,r8a7795-imr-lx4"
 
-On Tue, Mar 07, 2017 at 02:39:28PM +0100, Maxime Ripard wrote:
-> The Makefile was a free for all without a clear order defined. Sort all t=
-he
-> options based on the Kconfig symbol.
->=20
-> Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+    The IMR core names were copied from the manual verbatim (just in lower case).
 
-Any news on this one?
-Maxime
+>> +  - "renesas,imr-lx4-m3-w" for R-Car M3-W,
+>
+> "renesas,r8a7796-imr-lx4"
+>
+>> +  - "renesas,imr-lx4-v3m" for R-Car V3M.
+>
+> "renesas,-EPROBE_DEFER-imr-lx4"
 
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+    Huh? :-)
 
---6bi6f3ezdwnvzlke
-Content-Type: application/pgp-signature; name="signature.asc"
+> Gr{oetje,eeting}s,
+>
+>                         Geert
 
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBCAAGBQJYz61GAAoJEBx+YmzsjxAgApgP/3pWKqgNCpNkj2yiVkMi5cV6
-lDDOeuy+vIDrH0Il3E8j0syodsjdOFBb3vaI48YizarSjmKN5KCvflQRNge/2Fky
-ODuECEJf0oRxrdBaEEd442I5lHptuz/JzL1uw6N8Sitf/yXLIQuTgZDfbpMOE/2c
-NtwP0wIygG3GaJNO6VM6CZyNjto0gz7A/Gs/bRaD+36b7ZMk7zKfU9YkpGBTAoqk
-Ew4oR9LXDAoGYQycpfG2PCmOVpIJPWI8XXk1ib+XdTrtW+t45zmIt5pXJxkt1Z9n
-vlPAx6Ep6yPijQEBtLdKIvjTng9rvp/JqmT1itm23oGNvb4Ntz4A+eDJg1491W0r
-I5CZn73JwOXS/vap+bEHs8pq2VqeGXEaC9Ro+AADsttuxg3+GcDLSh54WpM9wbNf
-0E143BYxSviDjEZupVLfg98E0f1Wx3saJHfI15OOWdlEJ0lYKn7/tTjCQM2Y+CO5
-kgVgYaBfqCRPpR3TfN8g60iHjw9EwY/tyJf7+bWxsMpDB+ZKyFKxzq785OXZpvyR
-Ef/a3u1oZwR6pMl48EbdDsbDUT+lnmPuE9nwQ6c11nzz8GoelgT3Ws+EhifQncu1
-sK9z5EdXgCxb6sf2pGuTmvdd0gtXsnH8ZIIF863qyqpZMv+knbDzlUOPrgLMSSkt
-SVFG/cffVocDS9DhE+Id
-=Ddwv
------END PGP SIGNATURE-----
-
---6bi6f3ezdwnvzlke--
+MBR, Sergei
