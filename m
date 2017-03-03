@@ -1,59 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:49593 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934778AbdC3ULp (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:56373 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752107AbdCCOLw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 16:11:45 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Matt Fleming <matt@codeblueprint.co.uk>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Alexey Dobriyan <adobriyan@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 6/9] kernel-api.rst: fix output of the vsnprintf() documentation
-Date: Thu, 30 Mar 2017 17:11:33 -0300
-Message-Id: <6994c1cfc9ecdf0116fd89269930ae6deb34a805.1490904090.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1490904090.git.mchehab@s-opensource.com>
-References: <cover.1490904090.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1490904090.git.mchehab@s-opensource.com>
-References: <cover.1490904090.git.mchehab@s-opensource.com>
+        Fri, 3 Mar 2017 09:11:52 -0500
+Message-ID: <1488541813.2196.52.camel@pengutronix.de>
+Subject: Re: [PATCH] [media] coda: implement encoder stop command
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sascha Hauer <kernel@pengutronix.de>
+Date: Fri, 03 Mar 2017 12:50:13 +0100
+In-Reply-To: <CAH-u=83Jib=vFPXQTsfojssrR3h8eXzm_1imufZ9NKJ=0DPdgw@mail.gmail.com>
+References: <20170302095144.32090-1-p.zabel@pengutronix.de>
+         <CAH-u=83Jib=vFPXQTsfojssrR3h8eXzm_1imufZ9NKJ=0DPdgw@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The vsnprintf() kernel-doc comment uses % character with a special
-meaning other than escaping a constant. As ReST already defines
-``literal`` as an escape sequence, let's make kernel-doc handle it,
-and use it at lib/vsprintf.c.
+On Thu, 2017-03-02 at 17:30 +0100, Jean-Michel Hautbois wrote:
+> <snip>
+> 
+> > +       /* If there is no buffer in flight, wake up */
+> > +       if (ctx->qsequence == ctx->osequence) {
+> 
+> Not sure about this one, I would have done something like :
+> if (!(ctx->fh.m2m_ctx->job_flags)) {
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- lib/vsprintf.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+This field is documented as "used internally", though.
 
-diff --git a/lib/vsprintf.c b/lib/vsprintf.c
-index e3bf4e0f10b5..176641cc549d 100644
---- a/lib/vsprintf.c
-+++ b/lib/vsprintf.c
-@@ -1954,13 +1954,13 @@ set_precision(struct printf_spec *spec, int prec)
-  * This function generally follows C99 vsnprintf, but has some
-  * extensions and a few limitations:
-  *
-- * %n is unsupported
-- * %p* is handled by pointer()
-+ *  - ``%n`` is unsupported
-+ *  - ``%p*`` is handled by pointer()
-  *
-  * See pointer() or Documentation/printk-formats.txt for more
-  * extensive description.
-  *
-- * ** Please update the documentation in both places when making changes **
-+ * **Please update the documentation in both places when making changes**
-  *
-  * The return value is the number of characters which would
-  * be generated for the given input, excluding the trailing
--- 
-2.9.3
+regards
+Philipp
