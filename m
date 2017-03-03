@@ -1,47 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:36565 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750772AbdCMMyd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 08:54:33 -0400
-From: Johan Hovold <johan@kernel.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>,
-        stable <stable@vger.kernel.org>
-Subject: [PATCH 1/6] [media] dib0700: fix NULL-deref at probe
-Date: Mon, 13 Mar 2017 13:53:54 +0100
-Message-Id: <20170313125359.29394-2-johan@kernel.org>
-In-Reply-To: <20170313125359.29394-1-johan@kernel.org>
-References: <20170313125359.29394-1-johan@kernel.org>
+Received: from aserp1040.oracle.com ([141.146.126.69]:49903 "EHLO
+        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751262AbdCCLHf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 06:07:35 -0500
+Date: Fri, 3 Mar 2017 14:04:26 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Laura Abbott <labbott@redhat.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com,
+        devel@driverdev.osuosl.org, romlem@google.com,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Brian Starkey <brian.starkey@arm.com>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 04/12] staging: android: ion: Call dma_map_sg for
+ syncing and mapping
+Message-ID: <20170303110329.GA4132@mwanda>
+References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+ <1488491084-17252-5-git-send-email-labbott@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1488491084-17252-5-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make sure to check the number of endpoints to avoid dereferencing a
-NULL-pointer should a malicious device lack endpoints.
+On Thu, Mar 02, 2017 at 01:44:36PM -0800, Laura Abbott wrote:
+>  static struct sg_table *ion_map_dma_buf(struct dma_buf_attachment *attachment,
+>  					enum dma_data_direction direction)
+>  {
+>  	struct dma_buf *dmabuf = attachment->dmabuf;
+>  	struct ion_buffer *buffer = dmabuf->priv;
+> +	struct sg_table *table;
+> +	int ret;
+> +
+> +	/*
+> +	 * TODO: Need to sync wrt CPU or device completely owning?
+> +	 */
+> +
+> +	table = dup_sg_table(buffer->sg_table);
+>  
+> -	ion_buffer_sync_for_device(buffer, attachment->dev, direction);
+> -	return dup_sg_table(buffer->sg_table);
+> +	if (!dma_map_sg(attachment->dev, table->sgl, table->nents,
+> +			direction)){
+> +		ret = -ENOMEM;
+> +		goto err;
+> +	}
+> +
+> +err:
+> +	free_duped_table(table);
+> +	return ERR_PTR(ret);
 
-Fixes: c4018fa2e4c0 ("[media] dib0700: fix RC support on Hauppauge
-Nova-TD")
-Cc: stable <stable@vger.kernel.org>     # 3.16
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Signed-off-by: Johan Hovold <johan@kernel.org>
----
- drivers/media/usb/dvb-usb/dib0700_core.c | 3 +++
- 1 file changed, 3 insertions(+)
+ret isn't initialized on success.
 
-diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c b/drivers/media/usb/dvb-usb/dib0700_core.c
-index dd5edd3a17ee..08acdd32e412 100644
---- a/drivers/media/usb/dvb-usb/dib0700_core.c
-+++ b/drivers/media/usb/dvb-usb/dib0700_core.c
-@@ -809,6 +809,9 @@ int dib0700_rc_setup(struct dvb_usb_device *d, struct usb_interface *intf)
- 
- 	/* Starting in firmware 1.20, the RC info is provided on a bulk pipe */
- 
-+	if (intf->altsetting[0].desc.bNumEndpoints < rc_ep + 1)
-+		return -ENODEV;
-+
- 	purb = usb_alloc_urb(0, GFP_KERNEL);
- 	if (purb == NULL)
- 		return -ENOMEM;
--- 
-2.12.0
+>  }
+>  
+
+regards,
+dan carpenter
