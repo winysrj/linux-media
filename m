@@ -1,79 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:43129 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753474AbdCIIrT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 9 Mar 2017 03:47:19 -0500
-Subject: Re: [PATCH 22/29] drivers, scsi: convert iscsi_task.refcount from
- atomic_t to refcount_t
-To: "Reshetova, Elena" <elena.reshetova@intel.com>,
-        Chris Leech <cleech@redhat.com>
-References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
- <1488810076-3754-23-git-send-email-elena.reshetova@intel.com>
- <20170308184740.4gueok5csdkt7u62@straylight.hirudinean.org>
- <2236FBA76BA1254E88B949DDB74E612B41C569DC@IRSMSX102.ger.corp.intel.com>
-Cc: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
+Received: from mx-out-1.rwth-aachen.de ([134.130.5.186]:30629 "EHLO
+        mx-out-1.rwth-aachen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752336AbdCCSlU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 13:41:20 -0500
+From: =?utf-8?B?QnLDvG5zLCBTdGVmYW4=?= <Stefan.Bruens@rwth-aachen.de>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "crope@iki.fi" <crope@iki.fi>,
         "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux1394-devel@lists.sourceforge.net"
-        <linux1394-devel@lists.sourceforge.net>,
-        "linux-bcache@vger.kernel.org" <linux-bcache@vger.kernel.org>,
-        "linux-raid@vger.kernel.org" <linux-raid@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "devel@linuxdriverproject.org" <devel@linuxdriverproject.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
-        "fcoe-devel@open-fcoe.org" <fcoe-devel@open-fcoe.org>,
-        "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>,
-        "open-iscsi@googlegroups.com" <open-iscsi@googlegroups.com>,
-        "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
-        "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>,
-        "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
-        "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
-        "peterz@infradead.org" <peterz@infradead.org>,
-        Hans Liljestrand <ishkamiel@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        David Windsor <dwindsor@gmail.com>
-From: Johannes Thumshirn <jthumshirn@suse.de>
-Message-ID: <5a1f7860-b650-9fe7-fafb-1f0c7cae00e7@suse.de>
-Date: Thu, 9 Mar 2017 09:43:12 +0100
+        "mchehab@kernel.org" <mchehab@kernel.org>
+Subject: Re: [PATCH v3 0/3] Add support for MyGica T230C DVB-T2 stick
+Date: Fri, 3 Mar 2017 18:35:46 +0000
+Message-ID: <1488566145.30993.5.camel@rwth-aachen.de>
+References: <20170217005533.22424-1-stefan.bruens@rwth-aachen.de>
+In-Reply-To: <20170217005533.22424-1-stefan.bruens@rwth-aachen.de>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <DF3C7CF976215C4B8BF35A213A77FBC2@rwth-ad.de>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-In-Reply-To: <2236FBA76BA1254E88B949DDB74E612B41C569DC@IRSMSX102.ger.corp.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/09/2017 08:18 AM, Reshetova, Elena wrote:
->> On Mon, Mar 06, 2017 at 04:21:09PM +0200, Elena Reshetova wrote:
->>> refcount_t type and corresponding API should be
->>> used instead of atomic_t when the variable is used as
->>> a reference counter. This allows to avoid accidental
->>> refcounter overflows that might lead to use-after-free
->>> situations.
->>>
->>> Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
->>> Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
->>> Signed-off-by: Kees Cook <keescook@chromium.org>
->>> Signed-off-by: David Windsor <dwindsor@gmail.com>
->>
->> This looks OK to me.
->>
->> Acked-by: Chris Leech <cleech@redhat.com>
-> 
-> Thank you for review! Do you have a tree that can take this change? 
-
-Hi Elena,
-
-iscsi like fcoe should go via the SCSI tree.
-
-Byte,
-	Johannes
-
--- 
-Johannes Thumshirn                                          Storage
-jthumshirn@suse.de                                +49 911 74053 689
-SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
-GF: Felix Imendörffer, Jane Smithard, Graham Norton
-HRB 21284 (AG Nürnberg)
-Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
+T24gRnIsIDIwMTctMDItMTcgYXQgMDE6NTUgKzAxMDAsIFN0ZWZhbiBCcsO8bnMgd3JvdGU6DQo+
+IFRoZSByZXF1aXJlZCBjb21tYW5kIHNlcXVlbmNlIGZvciB0aGUgbmV3IHR1bmVyIChTaTIxNDEp
+IHdhcyB0cmFjZWQNCj4gZnJvbSB0aGUNCj4gY3VycmVudCBXaW5kb3dzIGRyaXZlciBhbmQgdmVy
+aWZpZWQgd2l0aCBhIHNtYWxsIHB5dGhvbg0KPiBzY3JpcHQvbGlidXNiLg0KPiBUaGUgY2hhbmdl
+cyB0byB0aGUgU2kyMTY4IGFuZCBkdmJza3kgZHJpdmVyIGFyZSBtb3N0bHkgYWRkaXRpb25zIG9m
+DQo+IHRoZQ0KPiByZXF1aXJlZCBJRHMgYW5kIHNvbWUgZ2x1ZSBjb2RlLg0KPiANCj4gU3RlZmFu
+IEJyw7xucyAoMyk6DQo+IMKgIFttZWRpYV0gc2kyMTU3OiBBZGQgc3VwcG9ydCBmb3IgU2kyMTQx
+LUExMA0KPiDCoCBbbWVkaWFdIHNpMjE2ODogYWRkIHN1cHBvcnQgZm9yIFNpMjE2OC1ENjANCj4g
+wqAgW21lZGlhXSBkdmJza3k6IE15R2ljYSBUMjMwQyBzdXBwb3J0DQo+IA0KPiDCoGRyaXZlcnMv
+bWVkaWEvZHZiLWNvcmUvZHZiLXVzYi1pZHMuaMKgwqDCoMKgwqDCoHzCoMKgMSArDQo+IMKgZHJp
+dmVycy9tZWRpYS9kdmItZnJvbnRlbmRzL3NpMjE2OC5jwqDCoMKgwqDCoMKgfMKgwqA0ICsrDQo+
+IMKgZHJpdmVycy9tZWRpYS9kdmItZnJvbnRlbmRzL3NpMjE2OF9wcml2LmggfMKgwqAyICsNCj4g
+wqBkcml2ZXJzL21lZGlhL3R1bmVycy9zaTIxNTcuY8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+fCAyMyArKysrKysrLQ0KPiDCoGRyaXZlcnMvbWVkaWEvdHVuZXJzL3NpMjE1N19wcml2LmjCoMKg
+wqDCoMKgwqDCoMKgfMKgwqAyICsNCj4gwqBkcml2ZXJzL21lZGlhL3VzYi9kdmItdXNiLXYyL2R2
+YnNreS5jwqDCoMKgwqDCoHwgODgNCj4gKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKw0K
+PiDCoDYgZmlsZXMgY2hhbmdlZCwgMTE4IGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pDQoN
+Ckluc3RlYWQgb2YgdGhpcyBzZXJpZXMsIGEgZGlmZmVyZW50IHBhdGNoc2V0IHdhcyBhY2NlcHRl
+ZCwgYWx0aG91Z2gNCkFudHRpIHJhaXNlZCBjb25jZXJucyBhYm91dCBhdCBsZWFzdCAyIG9mIHRo
+ZSAzIHBhdGNoZXMgYWNjcGV0ZWQsIG1vcmUNCnNwZWNpZmljYWxseSB0aGUgc2kyMTU3IHBhdGNo
+IGNvbnRhaW5zIHNvbWUgYm9ndXMgaW5pdGlhbGl6YXRpb24gY29kZSwNCmFuZCB0aGUgVDIzMEMg
+c3VwcG9ydCB3ZXJlIGJldHRlciBhZGRlZCB0byB0aGUgZHZic2t5IGRyaXZlciBpbnN0ZWFkIG9m
+DQogY3h1c2IuDQoNCktpbmQgcmVnYXJkcywNCg0KU3RlZmFuDQo=
