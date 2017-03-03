@@ -1,153 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f173.google.com ([209.85.128.173]:34509 "EHLO
-        mail-wr0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754120AbdCMQiG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 12:38:06 -0400
-Received: by mail-wr0-f173.google.com with SMTP id l37so107513489wrc.1
-        for <linux-media@vger.kernel.org>; Mon, 13 Mar 2017 09:38:04 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
-Subject: [PATCH v7 2/9] doc: DT: venus: binding document for Qualcomm video driver
-Date: Mon, 13 Mar 2017 18:37:31 +0200
-Message-Id: <1489423058-12492-3-git-send-email-stanimir.varbanov@linaro.org>
-In-Reply-To: <1489423058-12492-1-git-send-email-stanimir.varbanov@linaro.org>
-References: <1489423058-12492-1-git-send-email-stanimir.varbanov@linaro.org>
+Received: from mail-qk0-f172.google.com ([209.85.220.172]:34915 "EHLO
+        mail-qk0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751427AbdCCN4J (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 08:56:09 -0500
+Received: by mail-qk0-f172.google.com with SMTP id h9so21875747qke.2
+        for <linux-media@vger.kernel.org>; Fri, 03 Mar 2017 05:55:37 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <7e7a62de-3b79-6044-72fa-4ade418953d1@virtuozzo.com>
+References: <20170302163834.2273519-1-arnd@arndb.de> <20170302163834.2273519-2-arnd@arndb.de>
+ <7e7a62de-3b79-6044-72fa-4ade418953d1@virtuozzo.com>
+From: Alexander Potapenko <glider@google.com>
+Date: Fri, 3 Mar 2017 14:55:35 +0100
+Message-ID: <CAG_fn=WayMEnBO4pzuxQ5jgn-ii6vrALuOex5Ei1ZhzMR7_tjg@mail.gmail.com>
+Subject: Re: [PATCH 01/26] compiler: introduce noinline_for_kasan annotation
+To: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        kasan-dev <kasan-dev@googlegroups.com>,
+        Dmitry Vyukov <dvyukov@google.com>, netdev@vger.kernel.org,
+        LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
+        linux-wireless@vger.kernel.org,
+        kernel-build-reports@lists.linaro.org,
+        "David S . Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add binding document for Venus video encoder/decoder driver
+On Fri, Mar 3, 2017 at 2:50 PM, Andrey Ryabinin <aryabinin@virtuozzo.com> w=
+rote:
+>
+>
+> On 03/02/2017 07:38 PM, Arnd Bergmann wrote:
+>> When CONFIG_KASAN is set, we can run into some code that uses incredible
+>> amounts of kernel stack:
+>>
+>> drivers/staging/dgnc/dgnc_neo.c:1056:1: error: the frame size of 11112 b=
+ytes is larger than 2048 bytes [-Werror=3Dframe-larger-than=3D]
+>> drivers/media/i2c/cx25840/cx25840-core.c:4960:1: error: the frame size o=
+f 94000 bytes is larger than 2048 bytes [-Werror=3Dframe-larger-than=3D]
+>> drivers/media/dvb-frontends/stv090x.c:3430:1: error: the frame size of 5=
+312 bytes is larger than 3072 bytes [-Werror=3Dframe-larger-than=3D]
+>>
+>> This happens when a sanitizer uses stack memory each time an inline func=
+tion
+>> gets called. This introduces a new annotation for those functions to mak=
+e
+>> them either 'inline' or 'noinline' dependning on the CONFIG_KASAN symbol=
+.
+>>
+>> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+>> ---
+>>  include/linux/compiler.h | 11 +++++++++++
+>>  1 file changed, 11 insertions(+)
+>>
+>> diff --git a/include/linux/compiler.h b/include/linux/compiler.h
+>> index f8110051188f..56b90897a459 100644
+>> --- a/include/linux/compiler.h
+>> +++ b/include/linux/compiler.h
+>> @@ -416,6 +416,17 @@ static __always_inline void __write_once_size(volat=
+ile void *p, void *res, int s
+>>   */
+>>  #define noinline_for_stack noinline
+>>
+>> +/*
+>> + * CONFIG_KASAN can lead to extreme stack usage with certain patterns w=
+hen
+>> + * one function gets inlined many times and each instance requires a st=
+ack
+>> + * ckeck.
+>> + */
+>> +#ifdef CONFIG_KASAN
+>> +#define noinline_for_kasan noinline __maybe_unused
+>
+>
+> noinline_iff_kasan might be a better name.  noinline_for_kasan gives the =
+impression
+> that we always noinline function for the sake of kasan, while noinline_if=
+f_kasan
+> clearly indicates that function is noinline only if kasan is used.
+FWIW we may be facing the same problem with other compiler-based
+tools, e.g. KMSAN (which isn't there yet).
+So it might be better to choose a macro name that doesn't use the name "KAS=
+AN".
+E.g. noinline_iff_memtool (or noinline_iff_memory_tool if that's not too lo=
+ng).
+WDYT?
+>> +#else
+>> +#define noinline_for_kasan inline
+>> +#endif
+>> +
+>>  #ifndef __always_inline
+>>  #define __always_inline inline
+>>  #endif
+>>
+>
+> --
+> You received this message because you are subscribed to the Google Groups=
+ "kasan-dev" group.
+> To unsubscribe from this group and stop receiving emails from it, send an=
+ email to kasan-dev+unsubscribe@googlegroups.com.
+> To post to this group, send email to kasan-dev@googlegroups.com.
+> To view this discussion on the web visit https://groups.google.com/d/msgi=
+d/kasan-dev/7e7a62de-3b79-6044-72fa-4ade418953d1%40virtuozzo.com.
+> For more options, visit https://groups.google.com/d/optout.
 
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: devicetree@vger.kernel.org
-Acked-by: Rob Herring <robh@kernel.org>
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
----
- .../devicetree/bindings/media/qcom,venus.txt       | 107 +++++++++++++++++++++
- 1 file changed, 107 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
 
-diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
-new file mode 100644
-index 000000000000..2693449daf73
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
-@@ -0,0 +1,107 @@
-+* Qualcomm Venus video encoder/decoder accelerators
-+
-+- compatible:
-+	Usage: required
-+	Value type: <stringlist>
-+	Definition: Value should contain one of:
-+		- "qcom,msm8916-venus"
-+		- "qcom,msm8996-venus"
-+- reg:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: Register base address and length of the register map.
-+- interrupts:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: Should contain interrupt line number.
-+- clocks:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: A List of phandle and clock specifier pairs as listed
-+		    in clock-names property.
-+- clock-names:
-+	Usage: required for msm8916
-+	Value type: <stringlist>
-+	Definition: Should contain the following entries:
-+		- "core"	Core video accelerator clock
-+		- "iface"	Video accelerator AHB clock
-+		- "bus"		Video accelerator AXI clock
-+- clock-names:
-+	Usage: required for msm8996
-+	Value type: <stringlist>
-+	Definition: Should contain the following entries:
-+		- "core"	Core video accelerator clock
-+		- "iface"	Video accelerator AHB clock
-+		- "bus"		Video accelerator AXI clock
-+		- "mbus"	Video MAXI clock
-+- power-domains:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: A phandle and power domain specifier pairs to the
-+		    power domain which is responsible for collapsing
-+		    and restoring power to the peripheral.
-+- iommus:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: A list of phandle and IOMMU specifier pairs.
-+- memory-region:
-+	Usage: required
-+	Value type: <phandle>
-+	Definition: reference to the reserved-memory for the firmware
-+		    memory region.
-+
-+* Subnodes
-+The Venus video-codec node must contain two subnodes representing
-+video-decoder and video-encoder.
-+
-+Every of video-encoder or video-decoder subnode should have:
-+
-+- compatible:
-+	Usage: required
-+	Value type: <stringlist>
-+	Definition: Value should contain "venus-decoder" or "venus-encoder"
-+- clocks:
-+	Usage: required for msm8996
-+	Value type: <prop-encoded-array>
-+	Definition: A List of phandle and clock specifier pairs as listed
-+		    in clock-names property.
-+- clock-names:
-+	Usage: required for msm8996
-+	Value type: <stringlist>
-+	Definition: Should contain the following entries:
-+		- "core"	Subcore video accelerator clock
-+
-+- power-domains:
-+	Usage: required for msm8996
-+	Value type: <prop-encoded-array>
-+	Definition: A phandle and power domain specifier pairs to the
-+		    power domain which is responsible for collapsing
-+		    and restoring power to the subcore.
-+
-+* An Example
-+	video-codec@1d00000 {
-+		compatible = "qcom,msm8916-venus";
-+		reg = <0x01d00000 0xff000>;
-+		interrupts = <GIC_SPI 44 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&gcc GCC_VENUS0_VCODEC0_CLK>,
-+			 <&gcc GCC_VENUS0_AHB_CLK>,
-+			 <&gcc GCC_VENUS0_AXI_CLK>;
-+		clock-names = "core", "iface", "bus";
-+		power-domains = <&gcc VENUS_GDSC>;
-+		iommus = <&apps_iommu 5>;
-+		memory-region = <&venus_mem>;
-+
-+		video-decoder {
-+			compatible = "venus-decoder";
-+			clocks = <&mmcc VIDEO_SUBCORE0_CLK>;
-+			clock-names = "core";
-+			power-domains = <&mmcc VENUS_CORE0_GDSC>;
-+		};
-+
-+		video-encoder {
-+			compatible = "venus-encoder";
-+			clocks = <&mmcc VIDEO_SUBCORE1_CLK>;
-+			clock-names = "core";
-+			power-domains = <&mmcc VENUS_CORE1_GDSC>;
-+		};
-+	};
--- 
-2.7.4
+
+--=20
+Alexander Potapenko
+Software Engineer
+
+Google Germany GmbH
+Erika-Mann-Stra=C3=9Fe, 33
+80636 M=C3=BCnchen
+
+Gesch=C3=A4ftsf=C3=BChrer: Matthew Scott Sucherman, Paul Terence Manicle
+Registergericht und -nummer: Hamburg, HRB 86891
+Sitz der Gesellschaft: Hamburg
