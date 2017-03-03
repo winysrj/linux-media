@@ -1,68 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55896
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S935083AbdCXKht (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Mar 2017 06:37:49 -0400
-Date: Fri, 24 Mar 2017 07:37:41 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for v4.11-rc4] media fixes
-Message-ID: <20170324073741.5a557911@vento.lan>
+Received: from mail-io0-f177.google.com ([209.85.223.177]:33136 "EHLO
+        mail-io0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751269AbdCCL62 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 06:58:28 -0500
 MIME-Version: 1.0
+In-Reply-To: <f8702961-3561-977f-d6dc-16571a64181e@cogentembedded.com>
+References: <20170302210104.646782352@cogentembedded.com> <CAMuHMdVg5N82bu8fxRS=3iqF2MQmqoR0idb_x0t2RNn8eoedQg@mail.gmail.com>
+ <f8702961-3561-977f-d6dc-16571a64181e@cogentembedded.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Fri, 3 Mar 2017 12:58:20 +0100
+Message-ID: <CAMuHMdUa4n_Gw7bMiSvDzb8TYQMu3WgnR6kTXtsMu_=k1mQrsA@mail.gmail.com>
+Subject: Re: [PATCH] media: platform: Renesas IMR driver
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Konstantin Kozhevnikov
+        <Konstantin.Kozhevnikov@cogentembedded.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+On Fri, Mar 3, 2017 at 12:56 PM, Sergei Shtylyov
+<sergei.shtylyov@cogentembedded.com> wrote:
+>>> +  - "renesas,imr-lx4-v3m" for R-Car V3M.
+>>
+>>
+>> "renesas,-EPROBE_DEFER-imr-lx4"
+>
+>
+>    Huh? :-)
 
-Please pull from:
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.11-3
+Do you know the part number of V3M?
 
-for a series of fixes:
-   - dvb-usb-firmware: don't do DMA on stack
-   - coda/imx-vdoa: platform_driver should not be const
-   - bdisp: Clean up file handle in open() error path
-   - exynos-gsc: Do not swap cb/cr for semi planar formats
+Gr{oetje,eeting}s,
 
-Thanks!
-Mauro
+                        Geert
 
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-The following changes since commit 8c71fff434e5ecf5ff27bd61db1bc9ac4c2b2a1b:
-
-  [media] v4l: vsp1: Adapt vsp1_du_setup_lif() interface to use a structure (2017-03-07 13:34:11 -0300)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.11-3
-
-for you to fetch changes up to 24a47426066c8ba16a4db1b20a41d63187281195:
-
-  [media] exynos-gsc: Do not swap cb/cr for semi planar formats (2017-03-22 09:50:07 -0300)
-
-----------------------------------------------------------------
-media fixes for v4.11-rc4
-
-----------------------------------------------------------------
-Arnd Bergmann (1):
-      [media] coda/imx-vdoa: platform_driver should not be const
-
-Shailendra Verma (1):
-      [media] bdisp: Clean up file handle in open() error path
-
-Stefan Brüns (1):
-      [media] dvb-usb-firmware: don't do DMA on stack
-
-Thibault Saunier (1):
-      [media] exynos-gsc: Do not swap cb/cr for semi planar formats
-
- drivers/media/platform/coda/imx-vdoa.c        |  2 +-
- drivers/media/platform/exynos-gsc/gsc-core.c  |  2 --
- drivers/media/platform/sti/bdisp/bdisp-v4l2.c |  2 +-
- drivers/media/usb/dvb-usb/dvb-usb-firmware.c  | 22 ++++++++++++----------
- 4 files changed, 14 insertions(+), 14 deletions(-)
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
