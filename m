@@ -1,214 +1,230 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:43305 "EHLO
-        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752059AbdC0IsC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 04:48:02 -0400
-Subject: Re: [PATCH v7 5/9] media: venus: vdec: add video decoder files
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1489423058-12492-1-git-send-email-stanimir.varbanov@linaro.org>
- <1489423058-12492-6-git-send-email-stanimir.varbanov@linaro.org>
- <52b39f43-6f70-0cf6-abaf-4bb5bd2b3d86@xs4all.nl>
- <be41ccbd-3ff1-bcae-c423-1acc68f35694@mm-sol.com>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <8895e079-a484-579f-8fe6-cc25ff92b06a@xs4all.nl>
-Date: Mon, 27 Mar 2017 10:47:26 +0200
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38114 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751593AbdCCLjN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 06:39:13 -0500
+Subject: Re: [RFC PATCH 3/3] drm: rcar-du: Register a completion callback with
+ VSP1
+References: <cover.79abe454b4a405227fcacc23f1b6ba624ee99cf0.1488373517.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <b2e74113040a80c99151c392b1d42ea604b8ca1f.1488373517.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <1896383.LZRWDRHL8Z@avalon>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org
+Reply-To: kieran.bingham@ideasonboard.com
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <a3eb7b77-324f-03f9-98d1-3dfa3922c9a3@ideasonboard.com>
+Date: Fri, 3 Mar 2017 11:31:24 +0000
 MIME-Version: 1.0
-In-Reply-To: <be41ccbd-3ff1-bcae-c423-1acc68f35694@mm-sol.com>
+In-Reply-To: <1896383.LZRWDRHL8Z@avalon>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 25/03/17 23:30, Stanimir Varbanov wrote:
-> Thanks for the comments!
-> 
-> On 03/24/2017 04:41 PM, Hans Verkuil wrote:
->> Some comments and questions below:
->>
->> On 03/13/17 17:37, Stanimir Varbanov wrote:
->>> This consists of video decoder implementation plus decoder
->>> controls.
->>>
->>> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
->>> ---
->>>  drivers/media/platform/qcom/venus/vdec.c       | 1091 ++++++++++++++++++++++++
->>>  drivers/media/platform/qcom/venus/vdec.h       |   23 +
->>>  drivers/media/platform/qcom/venus/vdec_ctrls.c |  149 ++++
->>>  3 files changed, 1263 insertions(+)
->>>  create mode 100644 drivers/media/platform/qcom/venus/vdec.c
->>>  create mode 100644 drivers/media/platform/qcom/venus/vdec.h
->>>  create mode 100644 drivers/media/platform/qcom/venus/vdec_ctrls.c
->>>
->>> diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
->>> new file mode 100644
->>> index 000000000000..ec5203f2ba81
->>> --- /dev/null
->>> +++ b/drivers/media/platform/qcom/venus/vdec.c
->>> @@ -0,0 +1,1091 @@
->>> +/*
->>> + * Copyright (c) 2012-2016, The Linux Foundation. All rights reserved.
->>> + * Copyright (C) 2017 Linaro Ltd.
->>> + *
->>> + * This program is free software; you can redistribute it and/or modify
->>> + * it under the terms of the GNU General Public License version 2 and
->>> + * only version 2 as published by the Free Software Foundation.
->>> + *
->>> + * This program is distributed in the hope that it will be useful,
->>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->>> + * GNU General Public License for more details.
->>> + *
->>> + */
->>> +#include <linux/clk.h>
->>> +#include <linux/module.h>
->>> +#include <linux/platform_device.h>
->>> +#include <linux/pm_runtime.h>
->>> +#include <linux/slab.h>
->>> +#include <media/v4l2-ioctl.h>
->>> +#include <media/v4l2-event.h>
->>> +#include <media/v4l2-ctrls.h>
->>> +#include <media/v4l2-mem2mem.h>
->>> +#include <media/videobuf2-dma-sg.h>
->>> +
->>> +#include "hfi_venus_io.h"
->>> +#include "core.h"
->>> +#include "helpers.h"
->>> +#include "vdec.h"
->>> +
->>> +static u32 get_framesize_uncompressed(unsigned int plane, u32 width, u32 height)
->>> +{
->>> +    u32 y_stride, uv_stride, y_plane;
->>> +    u32 y_sclines, uv_sclines, uv_plane;
->>> +    u32 size;
->>> +
->>> +    y_stride = ALIGN(width, 128);
->>> +    uv_stride = ALIGN(width, 128);
->>> +    y_sclines = ALIGN(height, 32);
->>> +    uv_sclines = ALIGN(((height + 1) >> 1), 16);
->>> +
->>> +    y_plane = y_stride * y_sclines;
->>> +    uv_plane = uv_stride * uv_sclines + SZ_4K;
->>> +    size = y_plane + uv_plane + SZ_8K;
->>> +
->>> +    return ALIGN(size, SZ_4K);
->>> +}
->>> +
->>> +static u32 get_framesize_compressed(unsigned int width, unsigned int height)
->>> +{
->>> +    return ((width * height * 3 / 2) / 2) + 128;
->>> +}
->>> +
->>> +static const struct venus_format vdec_formats[] = {
->>> +    {
->>> +        .pixfmt = V4L2_PIX_FMT_NV12,
->>> +        .num_planes = 1,
->>> +        .type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
->>
->> Just curious: is NV12 the only uncompressed format supported by the hardware?
->> Or just the only one that is implemented here?
->>
->>> +    }, {
->>> +        .pixfmt = V4L2_PIX_FMT_MPEG4,
->>> +        .num_planes = 1,
->>> +        .type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
->>> +    }, {
->>> +        .pixfmt = V4L2_PIX_FMT_MPEG2,
->>> +        .num_planes = 1,
->>> +        .type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
->>> +    }, {
->>> +        .pixfmt = V4L2_PIX_FMT_H263,
->>> +        .num_planes = 1,
->>> +        .type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
->>> +    }, {
->>> +        .pixfmt = V4L2_PIX_FMT_VC1_ANNEX_G,
->>> +        .num_planes = 1,
->>> +        .type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
->>> +    }, {
->>> +        .pixfmt = V4L2_PIX_FMT_VC1_ANNEX_L,
->>> +        .num_planes = 1,
->>> +        .type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
->>> +    }, {
->>> +        .pixfmt = V4L2_PIX_FMT_H264,
->>> +        .num_planes = 1,
->>> +        .type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
->>> +    }, {
->>> +        .pixfmt = V4L2_PIX_FMT_VP8,
->>> +        .num_planes = 1,
->>> +        .type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
->>> +    }, {
->>> +        .pixfmt = V4L2_PIX_FMT_XVID,
->>> +        .num_planes = 1,
->>> +        .type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
->>> +    },
->>
->> num_planes is always 1, do you need it at all? And if it is always one,
->> why use _MPLANE at all? Is this for future additions?
->>
->>> +};
->>> +
-> 
-> <snip> three reasons:
-> - _MPLAIN allows one plane only
-> - downstream qualcomm driver use _MPLAIN (the second plain is used for extaradata, I ignored the extaradata support for now until v4l2 metadata api is merged)
-> - I still believe that qualcomm firmware guys will add support the second or even third plain at some point.
+Hi Laurent,
 
-Please add a comment in the code explaining the reason. Just before this format list would be
-a good place for that.
+On 03/03/17 02:17, Laurent Pinchart wrote:
+> Hi Kieran,
+> 
+> Thank you for the patch.
+> 
+> On Wednesday 01 Mar 2017 13:12:56 Kieran Bingham wrote:
+>> Updating the state in a running VSP1 requires two interrupts from the
+>> VSP. Initially, the updated state will be committed - but only after the
+>> VSP1 has completed processing it's current frame will the new state be
+>> taken into account. As such, the committed state will only be 'completed'
+>> after an extra frame completion interrupt.
+>>
+>> Track this delay, by passing the frame flip event through the VSP
+>> module; It will be returned only when the frame has completed and can be
+>> returned to the caller.
+> 
+> I'll check the interrupt sequence logic tomorrow, it's a bit too late now. 
+> Please see below for additional comments.
 
-	Hans
+No worries
 
 > 
->>> +
->>> +static void vdec_buf_done(struct venus_inst *inst, unsigned int buf_type,
->>> +              u32 tag, u32 bytesused, u32 data_offset, u32 flags,
->>> +              u64 timestamp_us)
->>> +{
->>> +    struct vb2_v4l2_buffer *vbuf;
->>> +    struct vb2_buffer *vb;
->>> +    unsigned int type;
->>> +
->>> +    if (buf_type == HFI_BUFFER_INPUT)
->>> +        type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
->>> +    else
->>> +        type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
->>> +
->>> +    vbuf = helper_find_buf(inst, type, tag);
->>> +    if (!vbuf)
->>> +        return;
->>> +
->>> +    vbuf->flags = flags;
->>> +
->>> +    if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
->>> +        vb = &vbuf->vb2_buf;
->>> +        vb->planes[0].bytesused =
->>> +            max_t(unsigned int, inst->output_buf_size, bytesused);
->>> +        vb->planes[0].data_offset = data_offset;
->>> +        vb->timestamp = timestamp_us * NSEC_PER_USEC;
->>> +        vbuf->sequence = inst->sequence++;
+>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>> ---
+>>  drivers/gpu/drm/rcar-du/rcar_du_crtc.c |  8 +++++-
+>>  drivers/gpu/drm/rcar-du/rcar_du_crtc.h |  1 +-
+>>  drivers/gpu/drm/rcar-du/rcar_du_vsp.c  | 34 ++++++++++++++++++++++++++-
+>>  3 files changed, 41 insertions(+), 2 deletions(-)
 >>
->> timestamp and sequence are only set for CAPTURE, not OUTPUT. Is that correct?
-> 
-> Correct. I can add sequence for the OUTPUT queue too, but I have no idea how that sequence is used by userspace.
-> 
+>> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+>> b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c index 7391dd95c733..0a824633a012
+>> 100644
+>> --- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+>> +++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+>> @@ -328,7 +328,7 @@ static bool rcar_du_crtc_page_flip_pending(struct
+>> rcar_du_crtc *rcrtc) bool pending;
 >>
->>> +
->>> +        if (vbuf->flags & V4L2_BUF_FLAG_LAST) {
->>> +            const struct v4l2_event ev = { .type = V4L2_EVENT_EOS };
->>> +
->>> +            v4l2_event_queue_fh(&inst->fh, &ev);
->>> +        }
->>> +    }
->>> +
->>> +    v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_DONE);
->>> +}
+>>  	spin_lock_irqsave(&dev->event_lock, flags);
+>> -	pending = rcrtc->event != NULL;
+>> +	pending = (rcrtc->event != NULL) || (rcrtc->pending != NULL);
+>>  	spin_unlock_irqrestore(&dev->event_lock, flags);
+>>
+>>  	return pending;
+>> @@ -578,6 +578,12 @@ static irqreturn_t rcar_du_crtc_irq(int irq, void *arg)
+>> rcar_du_crtc_write(rcrtc, DSRCR, status & DSRCR_MASK);
+>>
+>>  	if (status & DSSR_FRM) {
+>> +
+>> +		if (rcrtc->pending) {
+>> +			trace_printk("VBlank loss due to VSP Overrun\n");
+>> +			return IRQ_HANDLED;
+>> +		}
+>> +
+>>  		drm_crtc_handle_vblank(&rcrtc->crtc);
+>>  		rcar_du_crtc_finish_page_flip(rcrtc);
+>>  		ret = IRQ_HANDLED;
+>> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.h
+>> b/drivers/gpu/drm/rcar-du/rcar_du_crtc.h index a7194812997e..8374a858446a
+>> 100644
+>> --- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.h
+>> +++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.h
+>> @@ -46,6 +46,7 @@ struct rcar_du_crtc {
+>>  	bool started;
+>>
+>>  	struct drm_pending_vblank_event *event;
+>> +	struct drm_pending_vblank_event *pending;
+>>  	wait_queue_head_t flip_wait;
+>>
+>>  	unsigned int outputs;
+>> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+>> b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c index 71e70e1e0881..408375aff1a0
+>> 100644
+>> --- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+>> +++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+>> @@ -28,6 +28,26 @@
+>>  #include "rcar_du_kms.h"
+>>  #include "rcar_du_vsp.h"
+>>
+>> +static void rcar_du_vsp_complete(void *private, void *data)
+>> +{
+>> +	struct rcar_du_crtc *crtc = (struct rcar_du_crtc *)private;
+>> +	struct drm_device *dev = crtc->crtc.dev;
+>> +	struct drm_pending_vblank_event *event;
+>> +	bool match;
+>> +	unsigned long flags;
+>> +
+>> +	spin_lock_irqsave(&dev->event_lock, flags);
+>> +	event = crtc->event;
+>> +	crtc->event = data;
+>> +	match = (crtc->event == crtc->pending);
+>> +	crtc->pending = NULL;
+>> +	spin_unlock_irqrestore(&dev->event_lock, flags);
+>> +
+>> +	/* Safety checks */
+>> +	WARN(event, "Event lost by VSP completion callback\n");
+>> +	WARN(!match, "Stored pending event, does not match completion\n");
 > 
-> <snip>
+> I understand you want to be safe, and I assume these have never been triggered 
+> in your tests. I'd rather replace them by a mechanism that doesn't require 
+> passing the event to the VSP driver, and that wouldn't require adding a 
+> pending field to the rcar_du_crtc structure. 
+
+Ok - understandable, I started this way - but hit problems, which I think were
+unrelated. Anyway, I switched to 'moving' the event so that I could be sure
+rcar_du_crtc_finish_page_flip() couldn't have an event to send.
+
+I can switch back to keeping it's 'ownership' in rcar-du.
+
+> Wouldn't adding a WARN_ON(rcrtc-
+>> event) in rcar_du_crtc_atomic_begin() in the if (crtc->state->event) block do 
+> the job ?
+
+Yes, that would :D - I put those in just to be sure things were going as
+expected, and there weren't any code paths I hadn't considered. But I think they
+are 'unreachable' warnings anyway (at least at the moment).
+
+
+
+> Would this get in the way of your trace_printk() debugging in 
+> rcar_du_crtc_irq() ? Could you implement the debugging in a separate patch 
+> without requiring to pass the event to the VSP driver ?
+
+Moving the event wasn't necessarily about trace_printk debugging, but perhaps it
+was part of me debugging why I hadn't got things working correctly.
+
+Moving the event out meant I was certain it couldn't let userspace flip until
+after the VSP had returned the event. I can adjust this now.
+
+
+So the next issue is in the performance, which I am currently investigating:
+
+We are currently halving the throughput due to requiring two interrupts on any
+update in the VSP1.
+
+We have interrupt timings such as the following:
+                   (loops)
+VSP-FRE : |          |          |          |          |
+	  0uS
+VSP-DFE : |          |          |          |          |
+          4uS
+VSP-DST :  |          |          |          |          |
+           58uS
+DU-DSSR :   |          |          |          |          |
+          16187uS
+
+(From the timings shown in http://paste.ubuntu.com/24089285/)
+
+Currently, an atomic flush committed between A-B, commences at B, and completes
+at C.
+
+VSP-FRE : |          |          |          |          |
+VSP-DFE : |          A          B          C          |
+VSP-DST :  |          |          |          |          |
+DU-DSSR :   |          |F         |          |          |
+
+The atomic flush occurs immediately after, DU-DSSR has 'flipped' a page, at 'F'
+in the above diagram.
+
+This gives plenty of time for processing the lists, but of course means that
+actually processing is a full frame latency behind.
+
+Full timing log can be seen at http://paste.ubuntu.com/24101386/
+
+--
+Regards
+
+Kieran
+
+
+>> +}
+>> +
+>>  void rcar_du_vsp_enable(struct rcar_du_crtc *crtc)
+>>  {
+>>  	const struct drm_display_mode *mode = &crtc->crtc.state-
+>> adjusted_mode;
+>> @@ -66,6 +86,8 @@ void rcar_du_vsp_enable(struct rcar_du_crtc *crtc)
+>>  	 */
+>>  	crtc->group->need_restart = true;
+>>
+>> +	vsp1_du_register_callback(crtc->vsp->vsp, rcar_du_vsp_complete, crtc);
+>> +
+>>  	vsp1_du_setup_lif(crtc->vsp->vsp, mode->hdisplay, mode->vdisplay);
+>>  }
+>>
+>> @@ -81,7 +103,17 @@ void rcar_du_vsp_atomic_begin(struct rcar_du_crtc *crtc)
+>>
+>>  void rcar_du_vsp_atomic_flush(struct rcar_du_crtc *crtc)
+>>  {
+>> -	vsp1_du_atomic_flush(crtc->vsp->vsp, NULL);
+>> +	struct drm_device *dev = crtc->crtc.dev;
+>> +	struct drm_pending_vblank_event *event;
+>> +	unsigned long flags;
+>> +
+>> +	/* Move the event to the VSP, track it locally as 'pending' */
+>> +	spin_lock_irqsave(&dev->event_lock, flags);
+>> +	event = crtc->pending = crtc->event;
+>> +	crtc->event = NULL;
+>> +	spin_unlock_irqrestore(&dev->event_lock, flags);
+>> +
+>> +	vsp1_du_atomic_flush(crtc->vsp->vsp, event);
+>>  }
+>>
+>>  /* Keep the two tables in sync. */
 > 
