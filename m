@@ -1,77 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f178.google.com ([209.85.216.178]:33962 "EHLO
-        mail-qt0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751107AbdCRB1I (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Mar 2017 21:27:08 -0400
-Received: by mail-qt0-f178.google.com with SMTP id n21so75504569qta.1
-        for <linux-media@vger.kernel.org>; Fri, 17 Mar 2017 18:26:47 -0700 (PDT)
-From: Laura Abbott <labbott@redhat.com>
-To: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com
-Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Brian Starkey <brian.starkey@arm.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Mark Brown <broonie@kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-mm@kvack.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [RFC PATCHv2 14/21] staging: android: ion: Stop butchering the DMA address
-Date: Fri, 17 Mar 2017 17:54:46 -0700
-Message-Id: <1489798493-16600-15-git-send-email-labbott@redhat.com>
-In-Reply-To: <1489798493-16600-1-git-send-email-labbott@redhat.com>
-References: <1489798493-16600-1-git-send-email-labbott@redhat.com>
+Received: from mailout2.samsung.com ([203.254.224.25]:41013 "EHLO
+        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751675AbdCCJHH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 04:07:07 -0500
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+        Smitha T Murthy <smitha.t@samsung.com>
+Subject: [Patch v2 06/11] s5p-mfc: Add support for HEVC decoder
+Date: Fri, 03 Mar 2017 14:37:11 +0530
+Message-id: <1488532036-13044-7-git-send-email-smitha.t@samsung.com>
+In-reply-to: <1488532036-13044-1-git-send-email-smitha.t@samsung.com>
+References: <1488532036-13044-1-git-send-email-smitha.t@samsung.com>
+ <CGME20170303090454epcas5p3b7faeac000db97fcf4cb06e361bf32e7@epcas5p3.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add support for codec definition and corresponding buffer
+requirements for HEVC decoder.
 
-Now that we have proper caching, stop setting the DMA address manually.
-It should be set after properly calling dma_map.
-
-Signed-off-by: Laura Abbott <labbott@redhat.com>
+Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
 ---
- drivers/staging/android/ion/ion.c | 17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
+ drivers/media/platform/s5p-mfc/regs-mfc-v10.h   |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c |    3 +++
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |    8 ++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   17 +++++++++++++++--
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h |    3 +++
+ 6 files changed, 31 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-index 3d979ef5..65638f5 100644
---- a/drivers/staging/android/ion/ion.c
-+++ b/drivers/staging/android/ion/ion.c
-@@ -81,8 +81,7 @@ static struct ion_buffer *ion_buffer_create(struct ion_heap *heap,
- {
- 	struct ion_buffer *buffer;
- 	struct sg_table *table;
--	struct scatterlist *sg;
--	int i, ret;
-+	int ret;
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+index dafcf9d..bb79932 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+@@ -33,6 +33,7 @@
+ #define MFC_NUM_PORTS_V10	1
  
- 	buffer = kzalloc(sizeof(*buffer), GFP_KERNEL);
- 	if (!buffer)
-@@ -119,20 +118,6 @@ static struct ion_buffer *ion_buffer_create(struct ion_heap *heap,
- 	INIT_LIST_HEAD(&buffer->vmas);
- 	INIT_LIST_HEAD(&buffer->attachments);
- 	mutex_init(&buffer->lock);
--	/*
--	 * this will set up dma addresses for the sglist -- it is not
--	 * technically correct as per the dma api -- a specific
--	 * device isn't really taking ownership here.  However, in practice on
--	 * our systems the only dma_address space is physical addresses.
--	 * Additionally, we can't afford the overhead of invalidating every
--	 * allocation via dma_map_sg. The implicit contract here is that
--	 * memory coming from the heaps is ready for dma, ie if it has a
--	 * cached mapping that mapping has been invalidated
--	 */
--	for_each_sg(buffer->sg_table->sgl, sg, buffer->sg_table->nents, i) {
--		sg_dma_address(sg) = sg_phys(sg);
--		sg_dma_len(sg) = sg->length;
--	}
- 	mutex_lock(&dev->buffer_lock);
- 	ion_buffer_add(dev, buffer);
- 	mutex_unlock(&dev->buffer_lock);
+ /* MFCv10 codec defines*/
++#define S5P_FIMV_CODEC_HEVC_DEC		17
+ #define S5P_FIMV_CODEC_HEVC_ENC         26
+ 
+ /* Encoder buffer size for MFC v10.0 */
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
+index b1b1491..76eca67 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
+@@ -101,6 +101,9 @@ static int s5p_mfc_open_inst_cmd_v6(struct s5p_mfc_ctx *ctx)
+ 	case S5P_MFC_CODEC_VP8_DEC:
+ 		codec_type = S5P_FIMV_CODEC_VP8_DEC_V6;
+ 		break;
++	case S5P_MFC_CODEC_HEVC_DEC:
++		codec_type = S5P_FIMV_CODEC_HEVC_DEC;
++		break;
+ 	case S5P_MFC_CODEC_H264_ENC:
+ 		codec_type = S5P_FIMV_CODEC_H264_ENC_V6;
+ 		break;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 998e24b..5c46060 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -79,6 +79,7 @@ static inline dma_addr_t s5p_mfc_mem_cookie(void *a, void *b)
+ #define S5P_MFC_CODEC_H263_DEC		5
+ #define S5P_MFC_CODEC_VC1RCV_DEC	6
+ #define S5P_MFC_CODEC_VP8_DEC		7
++#define S5P_MFC_CODEC_HEVC_DEC		17
+ 
+ #define S5P_MFC_CODEC_H264_ENC		20
+ #define S5P_MFC_CODEC_H264_MVC_ENC	21
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 784b28e..9f459b3 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -156,6 +156,14 @@
+ 		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT |
+ 								MFC_V10_BIT,
+ 	},
++	{
++		.name		= "HEVC Encoded Stream",
++		.fourcc		= V4L2_PIX_FMT_HEVC,
++		.codec_mode	= S5P_FIMV_CODEC_HEVC_DEC,
++		.type		= MFC_FMT_DEC,
++		.num_planes	= 1,
++		.versions	= MFC_V10_BIT,
++	},
+ };
+ 
+ #define NUM_FORMATS ARRAY_SIZE(formats)
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index d4c75eb..cda0403 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -222,6 +222,12 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 				S5P_FIMV_SCRATCH_BUFFER_ALIGN_V6);
+ 		ctx->bank1.size = ctx->scratch_buf_size;
+ 		break;
++	case S5P_MFC_CODEC_HEVC_DEC:
++		mfc_debug(2, "Use min scratch buffer size\n");
++		ctx->bank1.size =
++			ctx->scratch_buf_size +
++			(ctx->mv_count * ctx->mv_size);
++		break;
+ 	case S5P_MFC_CODEC_H264_ENC:
+ 		if (IS_MFCV10(dev)) {
+ 			mfc_debug(2, "Use min scratch buffer size\n");
+@@ -324,6 +330,7 @@ static int s5p_mfc_alloc_instance_buffer_v6(struct s5p_mfc_ctx *ctx)
+ 	switch (ctx->codec_mode) {
+ 	case S5P_MFC_CODEC_H264_DEC:
+ 	case S5P_MFC_CODEC_H264_MVC_DEC:
++	case S5P_MFC_CODEC_HEVC_DEC:
+ 		ctx->ctx.size = buf_size->h264_dec_ctx;
+ 		break;
+ 	case S5P_MFC_CODEC_MPEG4_DEC:
+@@ -440,6 +447,10 @@ static void s5p_mfc_dec_calc_dpb_size_v6(struct s5p_mfc_ctx *ctx)
+ 					ctx->img_height);
+ 			ctx->mv_size = ALIGN(ctx->mv_size, 16);
+ 		}
++	} else if (ctx->codec_mode == S5P_MFC_CODEC_HEVC_DEC) {
++		ctx->mv_size = s5p_mfc_dec_hevc_mv_size(ctx->img_width,
++				ctx->img_height);
++		ctx->mv_size = ALIGN(ctx->mv_size, 32);
+ 	} else {
+ 		ctx->mv_size = 0;
+ 	}
+@@ -521,7 +532,8 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
+ 	buf_size1 -= ctx->scratch_buf_size;
+ 
+ 	if (ctx->codec_mode == S5P_FIMV_CODEC_H264_DEC ||
+-			ctx->codec_mode == S5P_FIMV_CODEC_H264_MVC_DEC){
++			ctx->codec_mode == S5P_FIMV_CODEC_H264_MVC_DEC ||
++			ctx->codec_mode == S5P_FIMV_CODEC_HEVC_DEC) {
+ 		writel(ctx->mv_size, mfc_regs->d_mv_buffer_size);
+ 		writel(ctx->mv_count, mfc_regs->d_num_mv);
+ 	}
+@@ -544,7 +556,8 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
+ 				mfc_regs->d_second_plane_dpb + i * 4);
+ 	}
+ 	if (ctx->codec_mode == S5P_MFC_CODEC_H264_DEC ||
+-			ctx->codec_mode == S5P_MFC_CODEC_H264_MVC_DEC) {
++			ctx->codec_mode == S5P_MFC_CODEC_H264_MVC_DEC ||
++			ctx->codec_mode == S5P_MFC_CODEC_HEVC_DEC) {
+ 		for (i = 0; i < ctx->mv_count; i++) {
+ 			/* To test alignment */
+ 			align_gap = buf_addr1;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
+index 975bbc5..2290f7e 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
+@@ -29,6 +29,9 @@
+ #define enc_lcu_width(x_size)		DIV_ROUND_UP(x_size, 32)
+ #define enc_lcu_height(y_size)		DIV_ROUND_UP(y_size, 32)
+ 
++#define s5p_mfc_dec_hevc_mv_size(x, y) \
++	(DIV_ROUND_UP(x, 64) * DIV_ROUND_UP(y, 64) * 256 + 512)
++
+ /* Definition */
+ #define ENC_MULTI_SLICE_MB_MAX		((1 << 30) - 1)
+ #define ENC_MULTI_SLICE_BIT_MIN		2800
 -- 
-2.7.4
+1.7.2.3
