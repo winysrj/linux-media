@@ -1,89 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-ch2-08v.sys.comcast.net ([69.252.207.40]:40940 "EHLO
-        resqmta-ch2-08v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932749AbdC3QfZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 12:35:25 -0400
-Subject: Re: [PATCH 1/3] [media] mceusb: RX -EPIPE (urb status = -32) lockup
- failure fix
-To: Sean Young <sean@mess.org>
-References: <58D6A1DD.2030405@comcast.net>
- <20170326102748.GA1672@gofer.mess.org> <58D80838.8050809@comcast.net>
- <20170326203130.GA6070@gofer.mess.org> <58D8CAD9.80304@comcast.net>
- <20170328202516.GA27790@gofer.mess.org> <58DB1075.60302@comcast.net>
- <20170329210645.GA6080@gofer.mess.org> <58DC2F89.7000304@comcast.net>
- <20170330071222.GA9579@gofer.mess.org>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-From: A Sun <as1033x@comcast.net>
-Message-ID: <58DD33C5.2020202@comcast.net>
-Date: Thu, 30 Mar 2017 12:35:17 -0400
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:36363 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751074AbdCCKwT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 05:52:19 -0500
 MIME-Version: 1.0
-In-Reply-To: <20170330071222.GA9579@gofer.mess.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <f86cf852-3960-0dcf-5917-509080ca7bf5@de.ibm.com>
+References: <20170302163834.2273519-1-arnd@arndb.de> <20170302163834.2273519-3-arnd@arndb.de>
+ <76790664-a7a9-193c-2e30-edaee1308cb0@de.ibm.com> <CAK8P3a082Bi6Vf5gEFLAJtJvUm=7MtddBzcCOqagQyfJPFTu_g@mail.gmail.com>
+ <2adc6ff4-5dc5-8f1d-cce1-47f3124a528f@de.ibm.com> <CAK8P3a2mepCjPfM9Ychk7CHFHi0UW8RBzK4skJKMSOjw3gKoYg@mail.gmail.com>
+ <f86cf852-3960-0dcf-5917-509080ca7bf5@de.ibm.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Fri, 3 Mar 2017 10:54:07 +0100
+Message-ID: <CAK8P3a0M6KAiLj9HM8UYykL-CtZNEsDcD0L1kZ1usPCx4=vq+g@mail.gmail.com>
+Subject: Re: [PATCH 02/26] rewrite READ_ONCE/WRITE_ONCE
+To: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: kasan-dev <kasan-dev@googlegroups.com>,
+        Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Networking <netdev@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org,
+        linux-wireless <linux-wireless@vger.kernel.org>,
+        kernel-build-reports@lists.linaro.org,
+        "David S . Miller" <davem@davemloft.net>,
+        Paul McKenney <paulmck@linux.vnet.ibm.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 3/30/2017 3:12 AM, Sean Young wrote:
-> On Wed, Mar 29, 2017 at 06:04:58PM -0400, A Sun wrote:
->> On 3/29/2017 5:06 PM, Sean Young wrote:
->> <snip>
->>>
->>> Anyway, you're right and this patch looks ok. It would be nice to have the
->>> tx case handled too though.
->>>
->>> Thanks
->>> Sean
->>>
->>
->> Thanks; I'm looking at handling the tx case. If I can figure out the details, I'll post a new patch proposal separate, and likely dependent, on this one.
->>
->> My main obstacle at the moment, is I'm looking for a way to get mceusb device to respond with a USB TX error halt/stall (rather than the typical ACK and NAK) on a TX endpoint, in order to test halt/stall error detection and recovery for TX. ..A Sun
-> 
-> If you send IR, the drivers send a usb packet. However, the kernel will
-> sleep for however long the IR is in ir_lirc_transmit_ir, so your other option
-> is to set the transmit carrier repeatedly instead. You'd have to set the
-> carrier to a different value every time.
-> 
-> 
-> {
-> 	int fd, carrier;
-> 
-> 	fd = open("/dev/lirc0", O_RDWR);
-> 	carrier = 38000;
-> 	for (;;) {
-> 		ioctl(fd, LIRC_SET_SEND_CARRIER, &carrier);
-> 		if (++carrier >= 40000)
-> 			carrier = 38000;
-> 	}
-> }
-> 
-> 
-> Sean
-> 
+On Fri, Mar 3, 2017 at 9:26 AM, Christian Borntraeger
+<borntraeger@de.ibm.com> wrote:
+> On 03/02/2017 10:45 PM, Arnd Bergmann wrote:
+>> Ok, got it. So I guess the behavior of forcing aligned accesses on aligned
+>> data is accidental, and allowing non-power-of-two arguments is also not
+>> the main purpose.
+>
+>
+> Right. The main purpose is to read/write _ONCE_. You can assume a somewhat
+> atomic access for sizes <= word size. And there are certainly places that
+> rely on that. But the *ONCE thing is mostly used for things where we used
+> barrier() 10 years ago.
 
-Thanks, this is good to know, for testing where multiple TX I/Os are pending prior to fault. 
+Ok
 
-I found a way to set up the TX -EPIPE fault administratively:
+>
+>  Maybe we could just bail out on new compilers if we get
+>> either of those? That might catch code that accidentally does something
+>> that is inherently non-atomic or that causes a trap when the intention was
+>> to have a simple atomic access.
+>
+> I think Linus stated that its ok to assume that the compiler is smart enough
+> to uses a single instruction to access aligned and properly sized scalar types
+> for *ONCE.
+>
+> Back then when I changed ACCESS_ONCE there were many places that did use it
+> for non-atomic, > word size accesses. For example on some architectures a pmd_t
+> is a typedef to an array, for which there is no way to read that atomically.
+> So the focus must be on the "ONCE" part.
+>
+> If some code uses a properly aligned, word sized object we can also assume
+> atomic access. If the access is not properly sized/aligned we do not get
+> atomicity, but we do get the "ONCE".
+> But adding a check for alignment/size would break the compilation of some
+> code.
 
-	retval = usb_control_msg(ir->usbdev, usb_sndctrlpipe(ir->usbdev, 0),
-		USB_REQ_SET_FEATURE, USB_RECIP_ENDPOINT,
-		USB_ENDPOINT_HALT, usb_pipeendpoint(ir->pipe_out),
-		NULL, 0, USB_CTRL_SET_TIMEOUT);
-	dev_dbg(ir->dev, "set halt retval, %d", retval);
-	
-and have replications now for TX error and lock -out. Error occurs for every TX. No message flooding otherwise, as we expect. The RX side remains working.
+So what should be the expected behavior for objects that have a smaller
+alignment? E.g. this structure
 
-...
-[  249.986174] mceusb 1-1.2:1.0: requesting 38000 HZ carrier
-[  249.986210] mceusb 1-1.2:1.0: send request called (size=0x4)
-[  249.986256] mceusb 1-1.2:1.0: send request complete (res=0)
-[  249.986403] mceusb 1-1.2:1.0: Error: request urb status = -32 (TX HALT)
-[  249.999885] mceusb 1-1.2:1.0: send request called (size=0x3)
-[  249.999929] mceusb 1-1.2:1.0: send request complete (res=0)
-[  250.000013] mceusb 1-1.2:1.0: Error: request urb status = -32 (TX HALT)
-[  250.019830] mceusb 1-1.2:1.0: send request called (size=0x21)
-[  250.019868] mceusb 1-1.2:1.0: send request complete (res=0)
-[  250.020007] mceusb 1-1.2:1.0: Error: request urb status = -32 (TX HALT)
-...
+struct fourbytes {
+   char bytes[4];
+} __packed;
+
+when passed into the current READ_ONCE() will be accessed with
+a 32-bit load, while reading it with
+
+struct fourbytes local = *(volatile struct fourbytes *)voidpointer;
+
+on architectures like ARMv5 or lower will turn into four single-byte
+reads to avoid an alignment trap when the pointer is actually
+unaligned.
+
+I can see arguments for and against either behavior, but what should
+I do when modifying it for newer compilers? The possible options
+that I see are
+
+- keep assuming that the pointer will be aligned at runtime
+  and doesn't trap
+- use the regular gcc behavior and do byte-accesses on those
+  architectures that otherwise might trap
+- add a runtime alignment check to do atomic accesses whenever
+  possible, but never trap
+- fail the build
+
+     Arnd
