@@ -1,42 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f195.google.com ([74.125.82.195]:33559 "EHLO
-        mail-ot0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751137AbdCPJ75 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Mar 2017 05:59:57 -0400
+Received: from mail-io0-f171.google.com ([209.85.223.171]:34109 "EHLO
+        mail-io0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751831AbdCCLYM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 06:24:12 -0500
 MIME-Version: 1.0
-In-Reply-To: <CAK8P3a1jHhM=80Zo59JoDNd2RKwTfdR_i61_=ASqqUeJ1oecxg@mail.gmail.com>
-References: <58c97f8f.c4b5190a.8c4e4.300d@mx.google.com> <CAK8P3a1jHhM=80Zo59JoDNd2RKwTfdR_i61_=ASqqUeJ1oecxg@mail.gmail.com>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 16 Mar 2017 10:59:55 +0100
-Message-ID: <CAK8P3a145sL=DHiyP39c2FrH9Vh9aZBd7GUs96pWd-93NngQDg@mail.gmail.com>
-Subject: Re: mainline build: 208 builds: 0 failed, 208 passed, 422 warnings (v4.11-rc2-164-gdefc7d752265)
-To: "kernelci.org bot" <bot@kernelci.org>
-Cc: kernel-build-reports@lists.linaro.org,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will.deacon@arm.com>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        linux-mips@linux-mips.org, Ralf Baechle <ralf@linux-mips.org>,
-        James Hogan <james.hogan@imgtec.com>,
-        linux-media@vger.kernel.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
+In-Reply-To: <20170302210104.646782352@cogentembedded.com>
+References: <20170302210104.646782352@cogentembedded.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Fri, 3 Mar 2017 12:24:00 +0100
+Message-ID: <CAMuHMdVg5N82bu8fxRS=3iqF2MQmqoR0idb_x0t2RNn8eoedQg@mail.gmail.com>
+Subject: Re: [PATCH] media: platform: Renesas IMR driver
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Konstantin Kozhevnikov
+        <Konstantin.Kozhevnikov@cogentembedded.com>
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 15, 2017 at 9:02 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Wed, Mar 15, 2017 at 6:53 PM, kernelci.org bot <bot@kernelci.org> wrote:
->>
->> mainline build: 208 builds: 0 failed, 208 passed, 422 warnings (v4.11-rc2-164-gdefc7d752265)
->
-> The last build failure in mainline is gone now, though I don't know
-> what fixed it.
-> Let's hope this doesn't come back as the cause was apparently a race condition
-> in Kbuild that might have stopped triggering.
+Hi Sergei,
 
-Now the failure in x86_64 allmodconfig+CONFIG_OF=n is back, which makes it
-particularly hard to bisect as the problem only shows up sometimes.
+On Thu, Mar 2, 2017 at 10:00 PM, Sergei Shtylyov
+<sergei.shtylyov@cogentembedded.com> wrote:
+> --- /dev/null
+> +++ media_tree/Documentation/devicetree/bindings/media/rcar_imr.txt
 
-     Arnd
+> +- compatible: "renesas,imr-lx4-<soctype>", "renesas,imr-lx4" as a fallback for
+
+"renesas,<soctype>-imr-lx4"
+
+> +  the image renderer light extended 4 (IMR-LX4) found in the R-Car gen3 SoCs,
+> +  where the examples with <soctype> are:
+> +  - "renesas,imr-lx4-h3" for R-Car H3,
+
+"renesas,r8a7795-imr-lx4"
+
+> +  - "renesas,imr-lx4-m3-w" for R-Car M3-W,
+
+"renesas,r8a7796-imr-lx4"
+
+> +  - "renesas,imr-lx4-v3m" for R-Car V3M.
+
+"renesas,-EPROBE_DEFER-imr-lx4"
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
