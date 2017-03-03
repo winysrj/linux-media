@@ -1,79 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58694 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752692AbdCPWUF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Mar 2017 18:20:05 -0400
-Date: Fri, 17 Mar 2017 00:17:27 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v5 18/39] [media] v4l: subdev: Add function to validate
- frame interval
-Message-ID: <20170316221727.GJ10701@valkosipuli.retiisi.org.uk>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <1489121599-23206-19-git-send-email-steve_longerbeam@mentor.com>
- <20170311134119.GO3220@valkosipuli.retiisi.org.uk>
- <dc2836e2-c110-4e4f-1717-8df9622fdf04@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <dc2836e2-c110-4e4f-1717-8df9622fdf04@gmail.com>
+Received: from mailout4.samsung.com ([203.254.224.34]:38416 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752444AbdCCQKZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 11:10:25 -0500
+Received: from epcas5p1.samsung.com (unknown [182.195.41.39])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0OM801A9DMDOHX80@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 03 Mar 2017 20:53:48 +0900 (KST)
+Subject: Re: [v2,01/15] media: s5p-mfc: Remove unused structures and dead code
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+In-reply-to: <1487597944-2000-2-git-send-email-m.szyprowski@samsung.com>
+Date: Fri, 03 Mar 2017 17:26:51 +0530
+Message-id: <1488542211.3182.14.camel@smitha-fedora>
+MIME-version: 1.0
+Content-transfer-encoding: 7bit
+Content-type: text/plain; charset=utf-8
+References: <1487597944-2000-2-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170303115347epcas5p1a4d81408a974580cd1c1f2c6d216f10a@epcas5p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Mar 11, 2017 at 12:31:24PM -0800, Steve Longerbeam wrote:
+On Mon, 2017-02-20 at 14:38 +0100, Marek Szyprowski wrote:
+> Remove unused structures, definitions and functions that are no longer
+> called from the driver code.
 > 
-> 
-> On 03/11/2017 05:41 AM, Sakari Ailus wrote:
-> >Hi Steve,
-> >
-> >On Thu, Mar 09, 2017 at 08:52:58PM -0800, Steve Longerbeam wrote:
-> >>If the pads on both sides of a link specify a frame interval, then
-> >>those frame intervals should match. Create the exported function
-> >>v4l2_subdev_link_validate_frame_interval() to verify this. This
-> >>function can be called in a subdevice's media_entity_operations
-> >>or v4l2_subdev_pad_ops link_validate callbacks.
-> >>
-> >>Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> >
-> >If your only goal is to configure frame dropping on a sub-device, I suggest
-> >to implement s_frame_interval() on the pads of that sub-device only. The
-> >frames are then dropped according to the configured frame rates between the
-> >sink and source pads. Say, configuring sink for 1/30 s and source 1/15 would
-> >drop half of the incoming frames.
-> >
-> >Considering that supporting specific frame interval on most sub-devices adds
-> >no value or is not the interface through which it the frame rate configured,
-> >I think it is overkill to change the link validation to expect otherwise.
-> 
-> 
-> Well, while I think this function might still have validity in the future, I
-> do agree with you that a subdev that has no control over
-> frame rate has no business implementing the get|set ops.
-> 
-> In the imx-media subdevs, the only one that can affect frame rate (via
-> frame skipping) is the CSI. So I'll go ahead and remove the
-> [gs]_frame_interval ops from the others. I can remove this patch as
-> a result.
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> Acked-by: Andrzej Hajda <a.hajda@samsung.com>
 
-Agreed.
+Reviewed-by: Smitha T Murthy <smitha.t@samsung.com>
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Regards,
+Smitha T Murthy
+> ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c        | 21 ---------------------
+>  drivers/media/platform/s5p-mfc/s5p_mfc_common.h | 13 -------------
+>  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h   |  1 -
+>  3 files changed, 35 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> index 05fe82be6584..3e1f22eb4339 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> @@ -1422,16 +1422,11 @@ static int s5p_mfc_resume(struct device *dev)
+>  	.priv	= &mfc_buf_size_v5,
+>  };
+>  
+> -static struct s5p_mfc_buf_align mfc_buf_align_v5 = {
+> -	.base = MFC_BASE_ALIGN_ORDER,
+> -};
+> -
+>  static struct s5p_mfc_variant mfc_drvdata_v5 = {
+>  	.version	= MFC_VERSION,
+>  	.version_bit	= MFC_V5_BIT,
+>  	.port_num	= MFC_NUM_PORTS,
+>  	.buf_size	= &buf_size_v5,
+> -	.buf_align	= &mfc_buf_align_v5,
+>  	.fw_name[0]	= "s5p-mfc.fw",
+>  	.clk_names	= {"mfc", "sclk_mfc"},
+>  	.num_clocks	= 2,
+> @@ -1452,16 +1447,11 @@ static int s5p_mfc_resume(struct device *dev)
+>  	.priv	= &mfc_buf_size_v6,
+>  };
+>  
+> -static struct s5p_mfc_buf_align mfc_buf_align_v6 = {
+> -	.base = 0,
+> -};
+> -
+>  static struct s5p_mfc_variant mfc_drvdata_v6 = {
+>  	.version	= MFC_VERSION_V6,
+>  	.version_bit	= MFC_V6_BIT,
+>  	.port_num	= MFC_NUM_PORTS_V6,
+>  	.buf_size	= &buf_size_v6,
+> -	.buf_align	= &mfc_buf_align_v6,
+>  	.fw_name[0]     = "s5p-mfc-v6.fw",
+>  	/*
+>  	 * v6-v2 firmware contains bug fixes and interface change
+> @@ -1486,16 +1476,11 @@ static int s5p_mfc_resume(struct device *dev)
+>  	.priv	= &mfc_buf_size_v7,
+>  };
+>  
+> -static struct s5p_mfc_buf_align mfc_buf_align_v7 = {
+> -	.base = 0,
+> -};
+> -
+>  static struct s5p_mfc_variant mfc_drvdata_v7 = {
+>  	.version	= MFC_VERSION_V7,
+>  	.version_bit	= MFC_V7_BIT,
+>  	.port_num	= MFC_NUM_PORTS_V7,
+>  	.buf_size	= &buf_size_v7,
+> -	.buf_align	= &mfc_buf_align_v7,
+>  	.fw_name[0]     = "s5p-mfc-v7.fw",
+>  	.clk_names	= {"mfc", "sclk_mfc"},
+>  	.num_clocks	= 2,
+> @@ -1515,16 +1500,11 @@ static int s5p_mfc_resume(struct device *dev)
+>  	.priv	= &mfc_buf_size_v8,
+>  };
+>  
+> -static struct s5p_mfc_buf_align mfc_buf_align_v8 = {
+> -	.base = 0,
+> -};
+> -
+>  static struct s5p_mfc_variant mfc_drvdata_v8 = {
+>  	.version	= MFC_VERSION_V8,
+>  	.version_bit	= MFC_V8_BIT,
+>  	.port_num	= MFC_NUM_PORTS_V8,
+>  	.buf_size	= &buf_size_v8,
+> -	.buf_align	= &mfc_buf_align_v8,
+>  	.fw_name[0]     = "s5p-mfc-v8.fw",
+>  	.clk_names	= {"mfc"},
+>  	.num_clocks	= 1,
+> @@ -1535,7 +1515,6 @@ static int s5p_mfc_resume(struct device *dev)
+>  	.version_bit	= MFC_V8_BIT,
+>  	.port_num	= MFC_NUM_PORTS_V8,
+>  	.buf_size	= &buf_size_v8,
+> -	.buf_align	= &mfc_buf_align_v8,
+>  	.fw_name[0]     = "s5p-mfc-v8.fw",
+>  	.clk_names	= {"pclk", "aclk", "aclk_xiu"},
+>  	.num_clocks	= 3,
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> index ab23236aa942..3e0e8eaf8bfe 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> @@ -44,14 +44,6 @@
+>  
+>  #include <media/videobuf2-dma-contig.h>
+>  
+> -static inline dma_addr_t s5p_mfc_mem_cookie(void *a, void *b)
+> -{
+> -	/* Same functionality as the vb2_dma_contig_plane_paddr */
+> -	dma_addr_t *paddr = vb2_dma_contig_memops.cookie(b);
+> -
+> -	return *paddr;
+> -}
+> -
+>  /* MFC definitions */
+>  #define MFC_MAX_EXTRA_DPB       5
+>  #define MFC_MAX_BUFFERS		32
+> @@ -229,16 +221,11 @@ struct s5p_mfc_buf_size {
+>  	void *priv;
+>  };
+>  
+> -struct s5p_mfc_buf_align {
+> -	unsigned int base;
+> -};
+> -
+>  struct s5p_mfc_variant {
+>  	unsigned int version;
+>  	unsigned int port_num;
+>  	u32 version_bit;
+>  	struct s5p_mfc_buf_size *buf_size;
+> -	struct s5p_mfc_buf_align *buf_align;
+>  	char	*fw_name[MFC_FW_MAX_VERSIONS];
+>  	const char	*clk_names[MFC_MAX_CLOCKS];
+>  	int		num_clocks;
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h
+> index 8e5df041edf7..45c807bf19cc 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h
+> @@ -18,7 +18,6 @@
+>  int s5p_mfc_release_firmware(struct s5p_mfc_dev *dev);
+>  int s5p_mfc_alloc_firmware(struct s5p_mfc_dev *dev);
+>  int s5p_mfc_load_firmware(struct s5p_mfc_dev *dev);
+> -int s5p_mfc_reload_firmware(struct s5p_mfc_dev *dev);
+>  
+>  int s5p_mfc_init_hw(struct s5p_mfc_dev *dev);
+>  void s5p_mfc_deinit_hw(struct s5p_mfc_dev *dev);
