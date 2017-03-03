@@ -1,72 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57762 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751258AbdCGId1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Mar 2017 03:33:27 -0500
-Date: Tue, 7 Mar 2017 10:30:17 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Elena Reshetova <elena.reshetova@intel.com>
-Cc: gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org,
-        xen-devel@lists.xenproject.org, netdev@vger.kernel.org,
-        linux1394-devel@lists.sourceforge.net,
-        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
-        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
-        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
-        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
-        linux-usb@vger.kernel.org, peterz@infradead.org,
-        Hans Liljestrand <ishkamiel@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        David Windsor <dwindsor@gmail.com>
-Subject: Re: [PATCH 12/29] drivers, media: convert s2255_dev.num_channels
- from atomic_t to refcount_t
-Message-ID: <20170307083016.GG3220@valkosipuli.retiisi.org.uk>
-References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
- <1488810076-3754-13-git-send-email-elena.reshetova@intel.com>
+Received: from mail-qk0-f180.google.com ([209.85.220.180]:35524 "EHLO
+        mail-qk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752271AbdCCTO5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 14:14:57 -0500
+Received: by mail-qk0-f180.google.com with SMTP id v125so12301809qkh.2
+        for <linux-media@vger.kernel.org>; Fri, 03 Mar 2017 11:14:56 -0800 (PST)
+Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of
+ staging
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        dri-devel@lists.freedesktop.org
+References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+ <1836110.VXJcCJDUAn@avalon>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com,
+        devel@driverdev.osuosl.org, romlem@google.com,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-kernel@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+        linux-mm@kvack.org, Mark Brown <broonie@kernel.org>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+From: Laura Abbott <labbott@redhat.com>
+Message-ID: <a7cfd3c5-435f-3fba-33d8-69330768eb5c@redhat.com>
+Date: Fri, 3 Mar 2017 11:14:47 -0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1488810076-3754-13-git-send-email-elena.reshetova@intel.com>
+In-Reply-To: <1836110.VXJcCJDUAn@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Elena,
-
-On Mon, Mar 06, 2017 at 04:20:59PM +0200, Elena Reshetova wrote:
-> refcount_t type and corresponding API should be
-> used instead of atomic_t when the variable is used as
-> a reference counter. This allows to avoid accidental
-> refcounter overflows that might lead to use-after-free
-> situations.
+On 03/03/2017 08:25 AM, Laurent Pinchart wrote:
+> Hi Laura,
 > 
-> Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
-> Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
-> Signed-off-by: Kees Cook <keescook@chromium.org>
-> Signed-off-by: David Windsor <dwindsor@gmail.com>
-> ---
-...
-> @@ -1688,7 +1689,7 @@ static int s2255_probe_v4l(struct s2255_dev *dev)
->  				"failed to register video device!\n");
->  			break;
->  		}
-> -		atomic_inc(&dev->num_channels);
-> +		refcount_set(&dev->num_channels, 1);
+> Thank you for the patches.
+> 
+> On Thursday 02 Mar 2017 13:44:32 Laura Abbott wrote:
+>> Hi,
+>>
+>> There's been some recent discussions[1] about Ion-like frameworks. There's
+>> apparently interest in just keeping Ion since it works reasonablly well.
+>> This series does what should be the final clean ups for it to possibly be
+>> moved out of staging.
+>>
+>> This includes the following:
+>> - Some general clean up and removal of features that never got a lot of use
+>>   as far as I can tell.
+>> - Fixing up the caching. This is the series I proposed back in December[2]
+>>   but never heard any feedback on. It will certainly break existing
+>>   applications that rely on the implicit caching. I'd rather make an effort
+>>   to move to a model that isn't going directly against the establishement
+>>   though.
+>> - Fixing up the platform support. The devicetree approach was never well
+>>   recieved by DT maintainers. The proposal here is to think of Ion less as
+>>   specifying requirements and more of a framework for exposing memory to
+>>   userspace.
+> 
+> That's where most of my concerns with ion are. I still strongly believe that 
+> the heap-based approach is inherently flawed, as it would need to be 
+> configured for each device according to product-specific use cases. That's not 
+> something that could be easily shipped with a generic distribution. We should 
+> replace that with a constraint-based system.
+> 
 
-That's not right. The loop runs four iterations and the value after the
-loop should be indeed the number of channels.
+I don't think of constraints and heaps as being mutually exclusive. Some general
+heaps (e.g. system heaps) can be available always. Others might just be
+exposed if there is a particular memory region available. The constraint solving
+is responsible for querying and figuring out what's the best choice.
 
-atomic_t isn't really used for reference counting here, but storing out how
-many "channels" there are per hardware device, with maximum number of four
-(4). I'd leave this driver using atomic_t.
-
->  		v4l2_info(&dev->v4l2_dev, "V4L2 device registered as %s\n",
->  			  video_device_node_name(&vc->vdev));
->  
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Thanks,
+Laura
