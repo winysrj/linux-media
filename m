@@ -1,67 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:51325 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S935589AbdCJK0X (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48792 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752297AbdCCRqM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Mar 2017 05:26:23 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv4 13/15] em28xx: drop last soc_camera link
-Date: Fri, 10 Mar 2017 11:26:12 +0100
-Message-Id: <20170310102614.20922-14-hverkuil@xs4all.nl>
-In-Reply-To: <20170310102614.20922-1-hverkuil@xs4all.nl>
-References: <20170310102614.20922-1-hverkuil@xs4all.nl>
+        Fri, 3 Mar 2017 12:46:12 -0500
+Date: Fri, 3 Mar 2017 19:45:52 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: simran singhal <singhalsimran0@gmail.com>
+Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org, outreachy-kernel@googlegroups.com
+Subject: Re: [PATCH 1/7] staging: media: Remove unnecessary typecast of c90
+ int constant
+Message-ID: <20170303174552.GP3220@valkosipuli.retiisi.org.uk>
+References: <1488484322-5928-1-git-send-email-singhalsimran0@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1488484322-5928-1-git-send-email-singhalsimran0@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Simran,
 
-The em28xx driver still used the soc_camera.h header for the ov2640
-driver. Since this driver no longer uses soc_camera, that include can
-be removed.
+On Fri, Mar 03, 2017 at 01:21:56AM +0530, simran singhal wrote:
+> This patch removes unnecessary typecast of c90 int constant.
+> 
+> WARNING: Unnecessary typecast of c90 int constant
+> 
+> Signed-off-by: simran singhal <singhalsimran0@gmail.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/em28xx/em28xx-camera.c | 9 ---------
- 1 file changed, 9 deletions(-)
+Which tree are these patches based on?
 
-diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
-index 89c890ba7dd6..63aaa577a742 100644
---- a/drivers/media/usb/em28xx/em28xx-camera.c
-+++ b/drivers/media/usb/em28xx/em28xx-camera.c
-@@ -23,7 +23,6 @@
- 
- #include <linux/i2c.h>
- #include <linux/usb.h>
--#include <media/soc_camera.h>
- #include <media/i2c/mt9v011.h>
- #include <media/v4l2-clk.h>
- #include <media/v4l2-common.h>
-@@ -43,13 +42,6 @@ static unsigned short omnivision_sensor_addrs[] = {
- 	I2C_CLIENT_END
- };
- 
--static struct soc_camera_link camlink = {
--	.bus_id = 0,
--	.flags = 0,
--	.module_name = "em28xx",
--	.unbalanced_power = true,
--};
--
- /* FIXME: Should be replaced by a proper mt9m111 driver */
- static int em28xx_initialize_mt9m111(struct em28xx *dev)
- {
-@@ -421,7 +413,6 @@ int em28xx_init_camera(struct em28xx *dev)
- 			.type = "ov2640",
- 			.flags = I2C_CLIENT_SCCB,
- 			.addr = client->addr,
--			.platform_data = &camlink,
- 		};
- 		struct v4l2_subdev_format format = {
- 			.which = V4L2_SUBDEV_FORMAT_ACTIVE,
 -- 
-2.11.0
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
