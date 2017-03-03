@@ -1,165 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:33599 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752435AbdCCXYK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 18:24:10 -0500
-Date: Sat, 4 Mar 2017 00:24:01 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
-Subject: Re: subdevice config into pointer (was Re: [PATCH 1/4] v4l2:
- device_register_subdev_nodes: allow calling multiple times)
-Message-ID: <20170303232400.GA6442@amd>
-References: <20170220130912.GT16975@valkosipuli.retiisi.org.uk>
- <20170220135636.GU16975@valkosipuli.retiisi.org.uk>
- <20170221110721.GD5021@amd>
- <20170221111104.GD16975@valkosipuli.retiisi.org.uk>
- <20170225000918.GB23662@amd>
- <20170225134444.6qzumpvasaow5qoj@ihha.localdomain>
- <20170302090727.GC27818@amd>
- <20170302141617.GG3220@valkosipuli.retiisi.org.uk>
- <20170302145808.GA3315@amd>
- <20170302151321.GH3220@valkosipuli.retiisi.org.uk>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:36250 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751772AbdCCRBq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 12:01:46 -0500
+Date: Fri, 3 Mar 2017 22:31:39 +0530
+From: simran singhal <singhalsimran0@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        outreachy-kernel@googlegroups.com
+Subject: [PATCH] staging: media: Remove parentheses from return arguments
+Message-ID: <20170303170139.GA9887@singhal-Inspiron-5558>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="9amGYk9869ThD9tj"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170302151321.GH3220@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The sematic patch used for this is:
+@@
+identifier i;
+constant c;
+@@
+return
+- (
+    \(i\|-i\|i(...)\|c\)
+- )
+  ;
 
---9amGYk9869ThD9tj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: simran singhal <singhalsimran0@gmail.com>
+---
+ .../media/atomisp/pci/atomisp2/css2400/sh_css.c      | 20 ++++++++++----------
+ .../atomisp/pci/atomisp2/css2400/sh_css_firmware.c   |  2 +-
+ 2 files changed, 11 insertions(+), 11 deletions(-)
 
-Hi!
-
-> > > > > Making the sub-device bus configuration a pointer should be in a =
-separate
-> > > > > patch. It makes sense since the entire configuration is not valid=
- for all
-> > > > > sub-devices attached to the ISP anymore. I think it originally wa=
-s a
-> > > > > separate patch, but they probably have been merged at some point.=
- I can't
-> > > > > find it right now anyway.
-> > > >=20
-> > > > Something like this?
-> > > >=20
-> > > > commit df9141c66678b549fac9d143bd55ed0b242cf36e
-> > > > Author: Pavel <pavel@ucw.cz>
-> > > > Date:   Wed Mar 1 13:27:56 2017 +0100
-> > > >=20
-> > > >     Turn bus in struct isp_async_subdev into pointer; some of our s=
-ubdevs
-> > > >     (flash, focus) will not need bus configuration.
-> > > >=20
-> > > > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> > >=20
-> > > I applied this to the ccp2 branch with an improved patch
-> > > description.
-> >=20
-> > Thanks!
-> >=20
-> > [But the important part is to get subdevices to work on ccp2 based
-> > branch, and it still fails to work at all if I attempt to enable
-> > them. I'd like to understand why...]
->=20
-> Did you add the flash / lens to the async list? The patches currently in =
-the
-> ccp branch do not include that --- it should be in parsing the flash /
-> lens-focus properties in omap3isp device's node.
-
-I retried, and it fails different way than I assumed. I might be able
-to debug this one as sensor (and mplayer) still works.
-
-Best regards,
-								Pavel
-
---
-
-    This is what subdevs support should look like, I guess; but I don't
-    know fwnode stuff well enough.
-   =20
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform=
-/omap3isp/isp.c
-index c80397a..36bd359 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2166,6 +2166,8 @@ static int isp_fwnodes_parse(struct device *dev,
- 			     struct v4l2_async_notifier *notifier)
- {
- 	struct fwnode_handle *fwn =3D NULL;
-+	struct device_node *node;
-+	int flash =3D 0;
-=20
- 	notifier->subdevs =3D devm_kcalloc(
- 		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
-@@ -2199,6 +2201,42 @@ static int isp_fwnodes_parse(struct device *dev,
- 		notifier->num_subdevs++;
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
+index f39d6f5..1216efb 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
+@@ -2009,7 +2009,7 @@ enum ia_css_err ia_css_suspend(void)
+ 	for(i=0;i<MAX_ACTIVE_STREAMS;i++)
+ 		ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE, "==*> after 1: seed %d (%p)\n", i, my_css_save.stream_seeds[i].stream);
+ 	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE, "ia_css_suspend() leave\n");
+-	return(IA_CSS_SUCCESS);
++	return IA_CSS_SUCCESS;
+ }
+ 
+ enum ia_css_err
+@@ -2021,10 +2021,10 @@ ia_css_resume(void)
+ 
+ 	err = ia_css_init(&(my_css_save.driver_env), my_css_save.loaded_fw, my_css_save.mmu_base, my_css_save.irq_type);
+ 	if (err != IA_CSS_SUCCESS)
+-		return(err);
++		return err;
+ 	err = ia_css_start_sp();
+ 	if (err != IA_CSS_SUCCESS)
+-		return(err);
++		return err;
+ 	my_css_save.mode = sh_css_mode_resume;
+ 	for(i=0;i<MAX_ACTIVE_STREAMS;i++)
+ 	{
+@@ -2038,7 +2038,7 @@ ia_css_resume(void)
+ 				if (i)
+ 					for(j=0;j<i;j++)
+ 						ia_css_stream_unload(my_css_save.stream_seeds[j].stream);
+-				return(err);
++				return err;
+ 			}
+ 			err = ia_css_stream_start(my_css_save.stream_seeds[i].stream);
+ 			if (err != IA_CSS_SUCCESS)
+@@ -2048,7 +2048,7 @@ ia_css_resume(void)
+ 					ia_css_stream_stop(my_css_save.stream_seeds[j].stream);
+ 					ia_css_stream_unload(my_css_save.stream_seeds[j].stream);
+ 				}
+-				return(err);
++				return err;
+ 			}
+ 			*my_css_save.stream_seeds[i].orig_stream = my_css_save.stream_seeds[i].stream;
+ 			for(j=0;j<my_css_save.stream_seeds[i].num_pipes;j++)
+@@ -2057,7 +2057,7 @@ ia_css_resume(void)
  	}
-=20
-+	printk("Going through camera-flashes\n");
-+	while (notifier->num_subdevs < ISP_MAX_SUBDEVS) {
-+	       /* FIXME: fwnode_graph_get_remote_endpoint()
-+	       (fwn =3D fwnode_graph_get_next_endpoint(device_fwnode_handle(dev),=
- fwn, ))  */
-+		struct isp_async_subdev *isd;
-+
-+		node =3D of_parse_phandle(dev->of_node, "ti,camera-flashes", flash++);
-+		flash++;
-+		if (!node)
-+			break;
-+
-+		printk("Having subdevice: %p\n", node);
-+	=09
-+#if 1
-+		isd =3D devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
-+		if (!isd)
-+			goto error;
-+
-+		notifier->subdevs[notifier->num_subdevs] =3D &isd->asd;
-+
-+
-+		isd->asd.match.of.node =3D node;
-+		if (!isd->asd.match.of.node) {
-+			dev_warn(dev, "bad remote port parent\n");
-+			goto error;
-+		}
-+
-+		isd->asd.match_type =3D V4L2_ASYNC_MATCH_OF;
-+		notifier->num_subdevs++;
-+#endif
-+	}
-+
-+
-+	if (notifier->num_subdevs =3D=3D ISP_MAX_SUBDEVS) {
-+		printk("isp: Maybe too many devices?\n");
-+	}
- 	return notifier->num_subdevs;
-=20
- error:
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---9amGYk9869ThD9tj
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAli5+xAACgkQMOfwapXb+vKh1ACgxLNl8/uwoTnDapoXP0YtkqZo
-0nkAoK8Wo7hXhxJDOCz6O2/qPJtT1NiA
-=rigT
------END PGP SIGNATURE-----
-
---9amGYk9869ThD9tj--
+ 	my_css_save.mode = sh_css_mode_working;
+ 	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE, "ia_css_resume() leave: return_void\n");
+-	return(IA_CSS_SUCCESS);
++	return IA_CSS_SUCCESS;
+ }
+ 
+ enum ia_css_err
+@@ -10261,7 +10261,7 @@ ia_css_stream_load(struct ia_css_stream *stream)
+ 						for(k=0;k<j;k++)
+ 							ia_css_pipe_destroy(my_css_save.stream_seeds[i].pipes[k]);
+ 					}
+-					return(err);
++					return err;
+ 				}
+ 			err = ia_css_stream_create(&(my_css_save.stream_seeds[i].stream_config), my_css_save.stream_seeds[i].num_pipes,
+ 						    my_css_save.stream_seeds[i].pipes, &(my_css_save.stream_seeds[i].stream));
+@@ -10270,12 +10270,12 @@ ia_css_stream_load(struct ia_css_stream *stream)
+ 				ia_css_stream_destroy(stream);
+ 				for(j=0;j<my_css_save.stream_seeds[i].num_pipes;j++)
+ 					ia_css_pipe_destroy(my_css_save.stream_seeds[i].pipes[j]);
+-				return(err);
++				return err;
+ 			}
+ 			break;
+ 		}
+ 	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE,	"ia_css_stream_load() exit, \n");
+-	return(IA_CSS_SUCCESS);
++	return IA_CSS_SUCCESS;
+ #else
+ 	/* TODO remove function - DEPRECATED */
+ 	(void)stream;
+@@ -10416,7 +10416,7 @@ ia_css_stream_unload(struct ia_css_stream *stream)
+ 			break;
+ 		}
+ 	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE,	"ia_css_stream_unload() exit, \n");
+-	return(IA_CSS_SUCCESS);
++	return IA_CSS_SUCCESS;
+ }
+ 
+ #endif
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+index b7db3de..d3567ac 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+@@ -74,7 +74,7 @@ static struct fw_param *fw_minibuffer;
+ 
+ char *sh_css_get_fw_version(void)
+ {
+-	return(FW_rel_ver_name);
++	return FW_rel_ver_name;
+ }
+ 
+ 
+-- 
+2.7.4
