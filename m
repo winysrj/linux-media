@@ -1,96 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.macqel.be ([109.135.2.61]:57212 "EHLO smtp2.macqel.be"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753403AbdCTJYb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 05:24:31 -0400
-Date: Mon, 20 Mar 2017 10:23:30 +0100
-From: Philippe De Muyter <phdm@macq.eu>
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        sakari.ailus@linux.intel.com, hverkuil@xs4all.nl,
-        linux-media@vger.kernel.org, kernel@pengutronix.de,
-        mchehab@kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, p.zabel@pengutronix.de
-Subject: Re: [PATCH 4/4] media: imx-media-capture: add frame sizes/interval
-        enumeration
-Message-ID: <20170320092330.GA28094@frolo.macqel>
-References: <20170319103801.GQ21222@n2100.armlinux.org.uk> <E1cpYOa-0006Eu-CL@rmk-PC.armlinux.org.uk> <20170320085512.GA20923@frolo.macqel> <20170320090524.GC21222@n2100.armlinux.org.uk>
+Received: from mail-qk0-f177.google.com ([209.85.220.177]:33478 "EHLO
+        mail-qk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752122AbdCCOfO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 09:35:14 -0500
+Received: by mail-qk0-f177.google.com with SMTP id n127so178235242qkf.0
+        for <linux-media@vger.kernel.org>; Fri, 03 Mar 2017 06:33:17 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170320090524.GC21222@n2100.armlinux.org.uk>
+In-Reply-To: <CAK8P3a3+8wxsUntUnOteOv8_p=yBZLk-4Uu-HGM17o9n9OqteQ@mail.gmail.com>
+References: <20170302163834.2273519-1-arnd@arndb.de> <20170302163834.2273519-2-arnd@arndb.de>
+ <7e7a62de-3b79-6044-72fa-4ade418953d1@virtuozzo.com> <CAG_fn=WayMEnBO4pzuxQ5jgn-ii6vrALuOex5Ei1ZhzMR7_tjg@mail.gmail.com>
+ <CAK8P3a3+8wxsUntUnOteOv8_p=yBZLk-4Uu-HGM17o9n9OqteQ@mail.gmail.com>
+From: Alexander Potapenko <glider@google.com>
+Date: Fri, 3 Mar 2017 15:33:16 +0100
+Message-ID: <CAG_fn=X3PDDpX_K8Dhk-yCviC87ycRaX4X1d+rJENPZJK_rFmw@mail.gmail.com>
+Subject: Re: [PATCH 01/26] compiler: introduce noinline_for_kasan annotation
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        kasan-dev <kasan-dev@googlegroups.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Networking <netdev@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
+        linux-wireless <linux-wireless@vger.kernel.org>,
+        kernel-build-reports@lists.linaro.org,
+        "David S . Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 20, 2017 at 09:05:25AM +0000, Russell King - ARM Linux wrote:
-> On Mon, Mar 20, 2017 at 09:55:12AM +0100, Philippe De Muyter wrote:
-> > Hi Russel,
-> > 
-> > On Sun, Mar 19, 2017 at 10:49:08AM +0000, Russell King wrote:
-> > > Add support for enumerating frame sizes and frame intervals from the
-> > > first subdev via the V4L2 interfaces.
-> > > 
-> > > Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-> > > ---
-> > >  drivers/staging/media/imx/imx-media-capture.c | 62 +++++++++++++++++++++++++++
-> > >  1 file changed, 62 insertions(+)
-> > > 
-> > ...
-> > > +static int capture_enum_frameintervals(struct file *file, void *fh,
-> > > +				       struct v4l2_frmivalenum *fival)
-> > > +{
-> > > +	struct capture_priv *priv = video_drvdata(file);
-> > > +	const struct imx_media_pixfmt *cc;
-> > > +	struct v4l2_subdev_frame_interval_enum fie = {
-> > > +		.index = fival->index,
-> > > +		.pad = priv->src_sd_pad,
-> > > +		.width = fival->width,
-> > > +		.height = fival->height,
-> > > +		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-> > > +	};
-> > > +	int ret;
-> > > +
-> > > +	cc = imx_media_find_format(fival->pixel_format, CS_SEL_ANY, true);
-> > > +	if (!cc)
-> > > +		return -EINVAL;
-> > > +
-> > > +	fie.code = cc->codes[0];
-> > > +
-> > > +	ret = v4l2_subdev_call(priv->src_sd, pad, enum_frame_interval, NULL, &fie);
-> > > +	if (ret)
-> > > +		return ret;
-> > > +
-> > > +	fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
-> > > +	fival->discrete = fie.interval;
-> > 
-> > For some parallel sensors (mine is a E2V ev76c560) "any" frame interval is possible,
-> > and hence type should be V4L2_FRMIVAL_TYPE_CONTINUOUS.
-> 
-> For my sensor, any frame interval is also possible, but that isn't the
-> point here.
-> 
-> /dev/video* only talks to the CSI source pad, not it's sink pad.  The
-> sink pad gets configured with the sensor frame rate via the media
-> controller API.  /dev/video* itself has no control over the sensor
-> frame rate.
-> 
-> The media controller stuff completely changes the way the established
-> /dev/video* functionality works - the ability to select arbitary frame
-> sizes and frame rates supported by the ultimate sensor is gone.  All
-> that needs to be setup through the media controller pipeline, one
-> subdev at a time.
-> 
-So existing gstreamer applications using /dev/video* to control framerate,
-and even gain and exposure won't work anymore :( ?
+On Fri, Mar 3, 2017 at 3:30 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Fri, Mar 3, 2017 at 2:55 PM, Alexander Potapenko <glider@google.com> w=
+rote:
+>> On Fri, Mar 3, 2017 at 2:50 PM, Andrey Ryabinin <aryabinin@virtuozzo.com=
+> wrote:
+>
+>>>> @@ -416,6 +416,17 @@ static __always_inline void __write_once_size(vol=
+atile void *p, void *res, int s
+>>>>   */
+>>>>  #define noinline_for_stack noinline
+>>>>
+>>>> +/*
+>>>> + * CONFIG_KASAN can lead to extreme stack usage with certain patterns=
+ when
+>>>> + * one function gets inlined many times and each instance requires a =
+stack
+>>>> + * ckeck.
+>>>> + */
+>>>> +#ifdef CONFIG_KASAN
+>>>> +#define noinline_for_kasan noinline __maybe_unused
+>>>
+>>>
+>>> noinline_iff_kasan might be a better name.  noinline_for_kasan gives th=
+e impression
+>>> that we always noinline function for the sake of kasan, while noinline_=
+iff_kasan
+>>> clearly indicates that function is noinline only if kasan is used.
+>
+> Fine with me. I actually tried to come up with a name that implies that t=
+he
+> symbol is actually "inline" (or even __always_inline_ without KASAN, but
+> couldn't think of any good name for it.
+>
+>> FWIW we may be facing the same problem with other compiler-based
+>> tools, e.g. KMSAN (which isn't there yet).
+>> So it might be better to choose a macro name that doesn't use the name "=
+KASAN".
+>> E.g. noinline_iff_memtool (or noinline_iff_memory_tool if that's not too=
+ long).
+>> WDYT?
+>
+> Would KMSAN also force local variables to be non-overlapping the way that
+> asan-stack=3D1 and -fsanitize-address-use-after-scope do? As I understood=
+ it,
+> KMSAN would add extra code for maintaining the uninit bits, but in an exa=
+mple
+> like this
+The thing is that KMSAN (and other tools that insert heavyweight
+instrumentation) may cause heavy register spilling which will also
+blow up the stack frames.
+> int f(int *);
+> static inline __attribute__((always_inline)) int g(void)
+> {
+>     int i;
+>     f(&i);
+>     return i;
+> }
+> int f(void)
+> {
+>      return g()+g()+g()+g();
+> }
+>
+> each of the four copies of 'i' could have the same location on the stack
+> and get marked uninitialized again before calling f(). We only need
+> noinline_for_kasan (whatever we end up calling that) for compiler
+> features that force each instance of 'i' to have its own stack redzone.
+>
+>      Arnd
 
-I had hoped to keep compatibility, with added robustness and functionality.
 
-I seems like I'll stay with my NXP/Freescale old and imperfect kernel.
 
-Best regards
+--=20
+Alexander Potapenko
+Software Engineer
 
-Philippe
+Google Germany GmbH
+Erika-Mann-Stra=C3=9Fe, 33
+80636 M=C3=BCnchen
 
--- 
-Philippe De Muyter +32 2 6101532 Macq SA rue de l'Aeronef 2 B-1140 Bruxelles
+Gesch=C3=A4ftsf=C3=BChrer: Matthew Scott Sucherman, Paul Terence Manicle
+Registergericht und -nummer: Hamburg, HRB 86891
+Sitz der Gesellschaft: Hamburg
