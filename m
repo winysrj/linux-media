@@ -1,163 +1,245 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52348 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752186AbdCDXr7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 4 Mar 2017 18:47:59 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        dri-devel@lists.freedesktop.org
-Subject: Re: [PATCH v2 1/3] v4l: vsp1: extend VSP1 module API to allow DRM callbacks
-Date: Sun, 05 Mar 2017 01:48:33 +0200
-Message-ID: <5795168.BWSj1XIdJL@avalon>
-In-Reply-To: <b23c4017e8f7346a1c15d7e192a8e0f626121dca.1488592678.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.4a217716bf5515d07dcb6d2b052f883eeecae9e8.1488592678.git-series.kieran.bingham+renesas@ideasonboard.com> <b23c4017e8f7346a1c15d7e192a8e0f626121dca.1488592678.git-series.kieran.bingham+renesas@ideasonboard.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout1.samsung.com ([203.254.224.24]:56181 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752044AbdCCKSN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 05:18:13 -0500
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+        Smitha T Murthy <smitha.t@samsung.com>
+Subject: [Patch v2 04/11] s5p-mfc: Support MFCv10.10 buffer requirements
+Date: Fri, 03 Mar 2017 14:37:09 +0530
+Message-id: <1488532036-13044-5-git-send-email-smitha.t@samsung.com>
+In-reply-to: <1488532036-13044-1-git-send-email-smitha.t@samsung.com>
+References: <1488532036-13044-1-git-send-email-smitha.t@samsung.com>
+ <CGME20170303090444epcas5p338f4cd2b1746da117f69907ca09e0ea9@epcas5p3.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Aligning the luma_dpb_size, chroma_dpb_size, mv_size and me_buffer_size
+for MFCv10.10.
 
-Thank you for the patch.
+Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/regs-mfc-v10.h   |   19 +++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   99 ++++++++++++++++++-----
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h |    2 +
+ 3 files changed, 99 insertions(+), 21 deletions(-)
 
-On Saturday 04 Mar 2017 02:01:17 Kieran Bingham wrote:
-> To be able to perform page flips in DRM without flicker we need to be
-> able to notify the rcar-du module when the VSP has completed its
-> processing.
-> 
-> We must not have bidirectional dependencies on the two components to
-> maintain support for loadable modules, thus we extend the API to allow
-> a callback to be registered within the VSP DRM interface.
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
-> ---
-> v2:
->  - vsp1_du_setup_lif() uses config structure to set callbacks
->  - vsp1_du_pipeline_frame_end() moved to interrupt section
->  - vsp1_du_pipeline_frame_end registered in vsp1_drm_init()
->    meaning of any NULL values
->  - removed unnecessary 'private data' variables
-> 
->  drivers/media/platform/vsp1/vsp1_drm.c | 20 ++++++++++++++++++++
->  drivers/media/platform/vsp1/vsp1_drm.h | 10 ++++++++++
->  include/media/vsp1.h                   |  3 +++
->  3 files changed, 33 insertions(+)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
-> b/drivers/media/platform/vsp1/vsp1_drm.c index 7dce55043379..85e5ebca82a5
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> @@ -36,6 +36,16 @@ void vsp1_drm_display_start(struct vsp1_device *vsp1)
->  	vsp1_dlm_irq_display_start(vsp1->drm->pipe.output->dlm);
->  }
-> 
-> +static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe)
-> +{
-> +	struct vsp1_drm *drm = to_vsp1_drm(pipe);
-> +
-> +	if (drm->du_complete && drm->du_pending) {
-> +		drm->du_complete(drm->du_private);
-> +		drm->du_pending = false;
-> +	}
-> +}
-> +
->  /* ------------------------------------------------------------------------
->   * DU Driver API
->   */
-> @@ -95,6 +105,7 @@ int vsp1_du_setup_lif(struct device *dev, const struct
-> vsp1_du_lif_config *cfg)
-> 		}
-> 
->  		pipe->num_inputs = 0;
-> +		vsp1->drm->du_complete = NULL;
-> 
->  		vsp1_dlm_reset(pipe->output->dlm);
->  		vsp1_device_put(vsp1);
-> @@ -196,6 +207,13 @@ int vsp1_du_setup_lif(struct device *dev, const struct
-> vsp1_du_lif_config *cfg) if (ret < 0)
->  		return ret;
-> 
-> +	/*
-> +	 * Register a callback to allow us to notify the DRM framework of 
-frame
-> +	 * completion events.
-> +	 */
-> +	vsp1->drm->du_complete = cfg->callback;
-> +	vsp1->drm->du_private = cfg->callback_data;
-> +
->  	ret = media_pipeline_start(&pipe->output->entity.subdev.entity,
->  					  &pipe->pipe);
->  	if (ret < 0) {
-> @@ -504,6 +522,7 @@ void vsp1_du_atomic_flush(struct device *dev)
-> 
->  	vsp1_dl_list_commit(pipe->dl);
->  	pipe->dl = NULL;
-> +	vsp1->drm->du_pending = true;
-> 
->  	/* Start or stop the pipeline if needed. */
->  	if (!vsp1->drm->num_inputs && pipe->num_inputs) {
-> @@ -597,6 +616,7 @@ int vsp1_drm_init(struct vsp1_device *vsp1)
->  	pipe->lif = &vsp1->lif->entity;
->  	pipe->output = vsp1->wpf[0];
->  	pipe->output->pipe = pipe;
-> +	pipe->frame_end = vsp1_du_pipeline_frame_end;
-> 
->  	return 0;
->  }
-> diff --git a/drivers/media/platform/vsp1/vsp1_drm.h
-> b/drivers/media/platform/vsp1/vsp1_drm.h index 9e28ab9254ba..3a53e9a60c73
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drm.h
-> +++ b/drivers/media/platform/vsp1/vsp1_drm.h
-> @@ -33,8 +33,18 @@ struct vsp1_drm {
->  		struct v4l2_rect compose;
->  		unsigned int zpos;
->  	} inputs[VSP1_MAX_RPF];
-> +
-> +	/* Frame syncronisation */
-> +	void (*du_complete)(void *);
-> +	void *du_private;
-
-These fields need to be documented.
-
-> +	bool du_pending;
-
-You can remove the du_pending flag, see my comments in patch 2/3.
-
->  };
-> 
-> +static inline struct vsp1_drm *to_vsp1_drm(struct vsp1_pipeline *pipe)
-> +{
-> +	return container_of(pipe, struct vsp1_drm, pipe);
-> +}
-> +
->  int vsp1_drm_init(struct vsp1_device *vsp1);
->  void vsp1_drm_cleanup(struct vsp1_device *vsp1);
->  int vsp1_drm_create_links(struct vsp1_device *vsp1);
-> diff --git a/include/media/vsp1.h b/include/media/vsp1.h
-> index bfc701f04f3f..f6629f19f209 100644
-> --- a/include/media/vsp1.h
-> +++ b/include/media/vsp1.h
-> @@ -23,6 +23,9 @@ int vsp1_du_init(struct device *dev);
->  struct vsp1_du_lif_config {
->  	unsigned int width;
->  	unsigned int height;
-> +
-> +	void (*callback)(void *);
-> +	void *callback_data;
-
-These fields need to be documented too.
-
->  };
-> 
->  int vsp1_du_setup_lif(struct device *dev, const struct vsp1_du_lif_config
-> *cfg);
-
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+index bd671a5..dafcf9d 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+@@ -32,5 +32,24 @@
+ #define MFC_VERSION_V10		0xA0
+ #define MFC_NUM_PORTS_V10	1
+ 
++/* MFCv10 codec defines*/
++#define S5P_FIMV_CODEC_HEVC_ENC         26
++
++/* Encoder buffer size for MFC v10.0 */
++#define ENC_V100_BASE_SIZE(x, y) \
++	(((x + 3) * (y + 3) * 8) \
++	+  ((y * 64) + 1280) * DIV_ROUND_UP(x, 8))
++
++#define ENC_V100_H264_ME_SIZE(x, y) \
++	(ENC_V100_BASE_SIZE(x, y) \
++	+ (DIV_ROUND_UP(x * y, 64) * 32))
++
++#define ENC_V100_MPEG4_ME_SIZE(x, y) \
++	(ENC_V100_BASE_SIZE(x, y) \
++	+ (DIV_ROUND_UP(x * y, 128) * 16))
++
++#define ENC_V100_VP8_ME_SIZE(x, y) \
++	ENC_V100_BASE_SIZE(x, y)
++
+ #endif /*_REGS_MFC_V10_H*/
+ 
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index 5f0da0b..d4c75eb 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -45,6 +45,8 @@
+ 
+ #define IS_MFCV6_V2(dev) (!IS_MFCV7_PLUS(dev) && dev->fw_ver == MFC_FW_V2)
+ 
++#define calc_param(value, align) (DIV_ROUND_UP(value, align) * align)
++
+ /* Allocate temporary buffers for decoding */
+ static int s5p_mfc_alloc_dec_temp_buffers_v6(struct s5p_mfc_ctx *ctx)
+ {
+@@ -64,6 +66,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ {
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+ 	unsigned int mb_width, mb_height;
++	unsigned int lcu_width = 0, lcu_height = 0;
+ 	int ret;
+ 
+ 	mb_width = MB_WIDTH(ctx->img_width);
+@@ -74,7 +77,9 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 			  ctx->luma_size, ctx->chroma_size, ctx->mv_size);
+ 		mfc_debug(2, "Totals bufs: %d\n", ctx->total_dpb_count);
+ 	} else if (ctx->type == MFCINST_ENCODER) {
+-		if (IS_MFCV8_PLUS(dev))
++		if (IS_MFCV10(dev)) {
++			ctx->tmv_buffer_size = 0;
++		} else if (IS_MFCV8_PLUS(dev))
+ 			ctx->tmv_buffer_size = S5P_FIMV_NUM_TMV_BUFFERS_V6 *
+ 			ALIGN(S5P_FIMV_TMV_BUFFER_SIZE_V8(mb_width, mb_height),
+ 			S5P_FIMV_TMV_BUFFER_ALIGN_V6);
+@@ -82,13 +87,36 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 			ctx->tmv_buffer_size = S5P_FIMV_NUM_TMV_BUFFERS_V6 *
+ 			ALIGN(S5P_FIMV_TMV_BUFFER_SIZE_V6(mb_width, mb_height),
+ 			S5P_FIMV_TMV_BUFFER_ALIGN_V6);
+-
+-		ctx->luma_dpb_size = ALIGN((mb_width * mb_height) *
+-				S5P_FIMV_LUMA_MB_TO_PIXEL_V6,
+-				S5P_FIMV_LUMA_DPB_BUFFER_ALIGN_V6);
+-		ctx->chroma_dpb_size = ALIGN((mb_width * mb_height) *
+-				S5P_FIMV_CHROMA_MB_TO_PIXEL_V6,
+-				S5P_FIMV_CHROMA_DPB_BUFFER_ALIGN_V6);
++		if (IS_MFCV10(dev)) {
++			lcu_width = enc_lcu_width(ctx->img_width);
++			lcu_height = enc_lcu_height(ctx->img_height);
++			if (ctx->codec_mode != S5P_FIMV_CODEC_HEVC_ENC) {
++				ctx->luma_dpb_size =
++					ALIGN(calc_param((mb_width * 16), 64)
++					* calc_param((mb_height * 16), 32)
++						+ 64, 64);
++				ctx->chroma_dpb_size =
++					ALIGN(calc_param((mb_width * 16), 64)
++							* (mb_height * 8)
++							+ 64, 64);
++			} else {
++				ctx->luma_dpb_size =
++					ALIGN(calc_param((lcu_width * 32), 64)
++					* calc_param((lcu_height * 32), 32)
++						+ 64, 64);
++				ctx->chroma_dpb_size =
++					ALIGN(calc_param((lcu_width * 32), 64)
++							* (lcu_height * 16)
++							+ 64, 64);
++			}
++		} else {
++			ctx->luma_dpb_size = ALIGN((mb_width * mb_height) *
++					S5P_FIMV_LUMA_MB_TO_PIXEL_V6,
++					S5P_FIMV_LUMA_DPB_BUFFER_ALIGN_V6);
++			ctx->chroma_dpb_size = ALIGN((mb_width * mb_height) *
++					S5P_FIMV_CHROMA_MB_TO_PIXEL_V6,
++					S5P_FIMV_CHROMA_DPB_BUFFER_ALIGN_V6);
++		}
+ 		if (IS_MFCV8_PLUS(dev))
+ 			ctx->me_buffer_size = ALIGN(S5P_FIMV_ME_BUFFER_SIZE_V8(
+ 						ctx->img_width, ctx->img_height,
+@@ -197,6 +225,8 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 	case S5P_MFC_CODEC_H264_ENC:
+ 		if (IS_MFCV10(dev)) {
+ 			mfc_debug(2, "Use min scratch buffer size\n");
++			ctx->me_buffer_size =
++			ALIGN(ENC_V100_H264_ME_SIZE(mb_width, mb_height), 16);
+ 		} else if (IS_MFCV8_PLUS(dev))
+ 			ctx->scratch_buf_size =
+ 				S5P_FIMV_SCRATCH_BUF_SIZE_H264_ENC_V8(
+@@ -219,6 +249,9 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 	case S5P_MFC_CODEC_H263_ENC:
+ 		if (IS_MFCV10(dev)) {
+ 			mfc_debug(2, "Use min scratch buffer size\n");
++			ctx->me_buffer_size =
++				ALIGN(ENC_V100_MPEG4_ME_SIZE(mb_width,
++							mb_height), 16);
+ 		} else
+ 			ctx->scratch_buf_size =
+ 				S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_ENC_V6(
+@@ -235,7 +268,10 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 	case S5P_MFC_CODEC_VP8_ENC:
+ 		if (IS_MFCV10(dev)) {
+ 			mfc_debug(2, "Use min scratch buffer size\n");
+-			} else if (IS_MFCV8_PLUS(dev))
++			ctx->me_buffer_size =
++				ALIGN(ENC_V100_VP8_ME_SIZE(mb_width, mb_height),
++						16);
++		} else if (IS_MFCV8_PLUS(dev))
+ 			ctx->scratch_buf_size =
+ 				S5P_FIMV_SCRATCH_BUF_SIZE_VP8_ENC_V8(
+ 					mb_width,
+@@ -395,13 +431,15 @@ static void s5p_mfc_dec_calc_dpb_size_v6(struct s5p_mfc_ctx *ctx)
+ 
+ 	if (ctx->codec_mode == S5P_MFC_CODEC_H264_DEC ||
+ 			ctx->codec_mode == S5P_MFC_CODEC_H264_MVC_DEC) {
+-		if (IS_MFCV10(dev))
++		if (IS_MFCV10(dev)) {
+ 			ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V10(ctx->img_width,
+ 					ctx->img_height);
+-		else
++			ctx->mv_size = ALIGN(ctx->mv_size, 32);
++		} else {
+ 			ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V6(ctx->img_width,
+ 					ctx->img_height);
+-		ctx->mv_size = ALIGN(ctx->mv_size, 16);
++			ctx->mv_size = ALIGN(ctx->mv_size, 16);
++		}
+ 	} else {
+ 		ctx->mv_size = 0;
+ 	}
+@@ -598,15 +636,34 @@ static int s5p_mfc_set_enc_ref_buffer_v6(struct s5p_mfc_ctx *ctx)
+ 
+ 	mfc_debug(2, "Buf1: %p (%d)\n", (void *)buf_addr1, buf_size1);
+ 
+-	for (i = 0; i < ctx->pb_count; i++) {
+-		writel(buf_addr1, mfc_regs->e_luma_dpb + (4 * i));
+-		buf_addr1 += ctx->luma_dpb_size;
+-		writel(buf_addr1, mfc_regs->e_chroma_dpb + (4 * i));
+-		buf_addr1 += ctx->chroma_dpb_size;
+-		writel(buf_addr1, mfc_regs->e_me_buffer + (4 * i));
+-		buf_addr1 += ctx->me_buffer_size;
+-		buf_size1 -= (ctx->luma_dpb_size + ctx->chroma_dpb_size +
+-			ctx->me_buffer_size);
++	if (IS_MFCV10(dev)) {
++		/* start address of per buffer is aligned */
++		for (i = 0; i < ctx->pb_count; i++) {
++			writel(buf_addr1, mfc_regs->e_luma_dpb + (4 * i));
++			buf_addr1 += ctx->luma_dpb_size;
++			buf_size1 -= ctx->luma_dpb_size;
++		}
++		for (i = 0; i < ctx->pb_count; i++) {
++			writel(buf_addr1, mfc_regs->e_chroma_dpb + (4 * i));
++			buf_addr1 += ctx->chroma_dpb_size;
++			buf_size1 -= ctx->chroma_dpb_size;
++		}
++		for (i = 0; i < ctx->pb_count; i++) {
++			writel(buf_addr1, mfc_regs->e_me_buffer + (4 * i));
++			buf_addr1 += ctx->me_buffer_size;
++			buf_size1 -= ctx->me_buffer_size;
++		}
++	} else {
++		for (i = 0; i < ctx->pb_count; i++) {
++			writel(buf_addr1, mfc_regs->e_luma_dpb + (4 * i));
++			buf_addr1 += ctx->luma_dpb_size;
++			writel(buf_addr1, mfc_regs->e_chroma_dpb + (4 * i));
++			buf_addr1 += ctx->chroma_dpb_size;
++			writel(buf_addr1, mfc_regs->e_me_buffer + (4 * i));
++			buf_addr1 += ctx->me_buffer_size;
++			buf_size1 -= (ctx->luma_dpb_size + ctx->chroma_dpb_size
++					+ ctx->me_buffer_size);
++		}
+ 	}
+ 
+ 	writel(buf_addr1, mfc_regs->e_scratch_buffer_addr);
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
+index 021b8db..975bbc5 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
+@@ -26,6 +26,8 @@
+ 					(((MB_HEIGHT(y)+1)/2)*2) * 64 + 128)
+ #define S5P_MFC_DEC_MV_SIZE_V10(x, y)	(MB_WIDTH(x) * \
+ 					(((MB_HEIGHT(y)+1)/2)*2) * 64 + 512)
++#define enc_lcu_width(x_size)		DIV_ROUND_UP(x_size, 32)
++#define enc_lcu_height(y_size)		DIV_ROUND_UP(y_size, 32)
+ 
+ /* Definition */
+ #define ENC_MULTI_SLICE_MB_MAX		((1 << 30) - 1)
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.2.3
