@@ -1,52 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50897
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753338AbdCaKFQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Mar 2017 06:05:16 -0400
-Date: Fri, 31 Mar 2017 07:05:08 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Helen Koike <helen.koike@collabora.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: Re: [PATCH] vidioc-enumin/output.rst: improve documentation
-Message-ID: <20170331070508.7a8eae16@vento.lan>
-In-Reply-To: <dfd64830-b66d-044d-2a40-82210a32c18a@xs4all.nl>
-References: <dfd64830-b66d-044d-2a40-82210a32c18a@xs4all.nl>
+Received: from mailapp01.imgtec.com ([195.59.15.196]:13800 "EHLO
+        mailapp01.imgtec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751269AbdCCL6p (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 06:58:45 -0500
+Date: Fri, 3 Mar 2017 11:58:42 +0000
+From: Eric Engestrom <eric.engestrom@imgtec.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+CC: Laura Abbott <labbott@redhat.com>, <devel@driverdev.osuosl.org>,
+        <romlem@google.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        <arve@android.com>, <dri-devel@lists.freedesktop.org>,
+        <linux-kernel@vger.kernel.org>, <linaro-mm-sig@lists.linaro.org>,
+        <linux-mm@kvack.org>, Riley Andrews <riandrews@android.com>,
+        Mark Brown <broonie@kernel.org>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>
+Subject: Re: [RFC PATCH 04/12] staging: android: ion: Call dma_map_sg for
+ syncing and mapping
+Message-ID: <20170303115841.2fxuhkzo5yazgvrd@imgtec.com>
+References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+ <1488491084-17252-5-git-send-email-labbott@redhat.com>
+ <20170303110329.GA4132@mwanda>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Disposition: inline
+In-Reply-To: <20170303110329.GA4132@mwanda>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 31 Mar 2017 10:58:39 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On Friday, 2017-03-03 14:04:26 +0300, Dan Carpenter wrote:
+> On Thu, Mar 02, 2017 at 01:44:36PM -0800, Laura Abbott wrote:
+> >  static struct sg_table *ion_map_dma_buf(struct dma_buf_attachment *attachment,
+> >  					enum dma_data_direction direction)
+> >  {
+> >  	struct dma_buf *dmabuf = attachment->dmabuf;
+> >  	struct ion_buffer *buffer = dmabuf->priv;
+> > +	struct sg_table *table;
+> > +	int ret;
+> > +
+> > +	/*
+> > +	 * TODO: Need to sync wrt CPU or device completely owning?
+> > +	 */
+> > +
+> > +	table = dup_sg_table(buffer->sg_table);
+> >  
+> > -	ion_buffer_sync_for_device(buffer, attachment->dev, direction);
+> > -	return dup_sg_table(buffer->sg_table);
+> > +	if (!dma_map_sg(attachment->dev, table->sgl, table->nents,
+> > +			direction)){
+> > +		ret = -ENOMEM;
+> > +		goto err;
+> > +	}
 
-> The V4L2_INPUT_TYPE_CAMERA and V4L2_OUTPUT_TYPE_ANALOG descriptions were
-> hopelessly out of date. Fix this, and also fix a few style issues in these
-> documents. Finally add the missing documentation for V4L2_OUTPUT_TYPE_ANALOGVGAOVERLAY
-> (only used by the zoran driver).
+Actually, I think `ret` should be left uninitialised on success,
+what's really missing is this return before the `err:` label:
+
++	return table;
+
+
+> > +
+> > +err:
+> > +	free_duped_table(table);
+> > +	return ERR_PTR(ret);
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
-
-Patch looks OK to me, but see below.
-
-> Question: should we perhaps add _TYPE_VIDEO aliases?
-
-IMHO, let's rename it to _TYPE_VIDEO (or STREAM, or V_STREAM), and make 
-_TYPE_CAMERA an alias, e. g.:
-
-#define V4L2_INPUT_TYPE_VIDEO 2
-
-#define V4L2_INPUT_TYPE_CAMERA V4L2_INPUT_TYPE_VIDEO
-
-This way, we'll let clearer what's currently preferred. We should also
-change it at the documentation, mentioning that V4L2_INPUT_TYPE_CAMERA
-is an alias, due to historical reasons.
-
-Thanks,
-Mauro
+> ret isn't initialized on success.
+> 
+> >  }
+> >  
+> 
+> regards,
+> dan carpenter
