@@ -1,124 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:46137 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755631AbdCKLXh (ORCPT
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:62935 "EHLO
+        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752019AbdCCRdQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Mar 2017 06:23:37 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv5 12/16] ov2640: use standard clk and enable it.
-Date: Sat, 11 Mar 2017 12:23:24 +0100
-Message-Id: <20170311112328.11802-13-hverkuil@xs4all.nl>
-In-Reply-To: <20170311112328.11802-1-hverkuil@xs4all.nl>
-References: <20170311112328.11802-1-hverkuil@xs4all.nl>
+        Fri, 3 Mar 2017 12:33:16 -0500
+Date: Fri, 3 Mar 2017 18:06:11 +0100 (CET)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: simran singhal <singhalsimran0@gmail.com>
+cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org, outreachy-kernel@googlegroups.com
+Subject: Re: [Outreachy kernel] [PATCH] staging: media: Remove parentheses
+ from return arguments
+In-Reply-To: <20170303170139.GA9887@singhal-Inspiron-5558>
+Message-ID: <alpine.DEB.2.20.1703031805570.3490@hadrien>
+References: <20170303170139.GA9887@singhal-Inspiron-5558>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Convert v4l2_clk to normal clk and enable the clock.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/ov2640.c | 31 ++++++++++++++-----------------
- 1 file changed, 14 insertions(+), 17 deletions(-)
+On Fri, 3 Mar 2017, simran singhal wrote:
 
-diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
-index 83f88efbce69..0445963c5fae 100644
---- a/drivers/media/i2c/ov2640.c
-+++ b/drivers/media/i2c/ov2640.c
-@@ -16,6 +16,7 @@
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/i2c.h>
-+#include <linux/clk.h>
- #include <linux/slab.h>
- #include <linux/delay.h>
- #include <linux/gpio.h>
-@@ -24,7 +25,6 @@
- #include <linux/v4l2-mediabus.h>
- #include <linux/videodev2.h>
- 
--#include <media/v4l2-clk.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-subdev.h>
- #include <media/v4l2-ctrls.h>
-@@ -284,7 +284,7 @@ struct ov2640_priv {
- 	struct v4l2_subdev		subdev;
- 	struct v4l2_ctrl_handler	hdl;
- 	u32	cfmt_code;
--	struct v4l2_clk			*clk;
-+	struct clk			*clk;
- 	const struct ov2640_win_size	*win;
- 
- 	struct gpio_desc *resetb_gpio;
-@@ -1051,14 +1051,11 @@ static int ov2640_probe(struct i2c_client *client,
- 		return -ENOMEM;
- 	}
- 
--	priv->clk = v4l2_clk_get(&client->dev, "xvclk");
--	if (IS_ERR(priv->clk))
--		return -EPROBE_DEFER;
--
--	if (!client->dev.of_node) {
--		dev_err(&client->dev, "Missing platform_data for driver\n");
--		ret = -EINVAL;
--		goto err_clk;
-+	if (client->dev.of_node) {
-+		priv->clk = devm_clk_get(&client->dev, "xvclk");
-+		if (IS_ERR(priv->clk))
-+			return -EPROBE_DEFER;
-+		clk_prepare_enable(priv->clk);
- 	}
- 
- 	ret = ov2640_probe_dt(client, priv);
-@@ -1074,25 +1071,25 @@ static int ov2640_probe(struct i2c_client *client,
- 	priv->subdev.ctrl_handler = &priv->hdl;
- 	if (priv->hdl.error) {
- 		ret = priv->hdl.error;
--		goto err_clk;
-+		goto err_hdl;
- 	}
- 
- 	ret = ov2640_video_probe(client);
- 	if (ret < 0)
--		goto err_videoprobe;
-+		goto err_hdl;
- 
- 	ret = v4l2_async_register_subdev(&priv->subdev);
- 	if (ret < 0)
--		goto err_videoprobe;
-+		goto err_hdl;
- 
- 	dev_info(&adapter->dev, "OV2640 Probed\n");
- 
- 	return 0;
- 
--err_videoprobe:
-+err_hdl:
- 	v4l2_ctrl_handler_free(&priv->hdl);
- err_clk:
--	v4l2_clk_put(priv->clk);
-+	clk_disable_unprepare(priv->clk);
- 	return ret;
- }
- 
-@@ -1101,9 +1098,9 @@ static int ov2640_remove(struct i2c_client *client)
- 	struct ov2640_priv       *priv = to_ov2640(client);
- 
- 	v4l2_async_unregister_subdev(&priv->subdev);
--	v4l2_clk_put(priv->clk);
--	v4l2_device_unregister_subdev(&priv->subdev);
- 	v4l2_ctrl_handler_free(&priv->hdl);
-+	v4l2_device_unregister_subdev(&priv->subdev);
-+	clk_disable_unprepare(priv->clk);
- 	return 0;
- }
- 
--- 
-2.11.0
+> The sematic patch used for this is:
+> @@
+> identifier i;
+> constant c;
+> @@
+> return
+> - (
+>     \(i\|-i\|i(...)\|c\)
+> - )
+>   ;
+>
+> Signed-off-by: simran singhal <singhalsimran0@gmail.com>
+
+Acked-by: Julia Lawall <julia.lawall@lip6.fr>
+
+
+> ---
+>  .../media/atomisp/pci/atomisp2/css2400/sh_css.c      | 20 ++++++++++----------
+>  .../atomisp/pci/atomisp2/css2400/sh_css_firmware.c   |  2 +-
+>  2 files changed, 11 insertions(+), 11 deletions(-)
+>
+> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
+> index f39d6f5..1216efb 100644
+> --- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
+> +++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
+> @@ -2009,7 +2009,7 @@ enum ia_css_err ia_css_suspend(void)
+>  	for(i=0;i<MAX_ACTIVE_STREAMS;i++)
+>  		ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE, "==*> after 1: seed %d (%p)\n", i, my_css_save.stream_seeds[i].stream);
+>  	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE, "ia_css_suspend() leave\n");
+> -	return(IA_CSS_SUCCESS);
+> +	return IA_CSS_SUCCESS;
+>  }
+>
+>  enum ia_css_err
+> @@ -2021,10 +2021,10 @@ ia_css_resume(void)
+>
+>  	err = ia_css_init(&(my_css_save.driver_env), my_css_save.loaded_fw, my_css_save.mmu_base, my_css_save.irq_type);
+>  	if (err != IA_CSS_SUCCESS)
+> -		return(err);
+> +		return err;
+>  	err = ia_css_start_sp();
+>  	if (err != IA_CSS_SUCCESS)
+> -		return(err);
+> +		return err;
+>  	my_css_save.mode = sh_css_mode_resume;
+>  	for(i=0;i<MAX_ACTIVE_STREAMS;i++)
+>  	{
+> @@ -2038,7 +2038,7 @@ ia_css_resume(void)
+>  				if (i)
+>  					for(j=0;j<i;j++)
+>  						ia_css_stream_unload(my_css_save.stream_seeds[j].stream);
+> -				return(err);
+> +				return err;
+>  			}
+>  			err = ia_css_stream_start(my_css_save.stream_seeds[i].stream);
+>  			if (err != IA_CSS_SUCCESS)
+> @@ -2048,7 +2048,7 @@ ia_css_resume(void)
+>  					ia_css_stream_stop(my_css_save.stream_seeds[j].stream);
+>  					ia_css_stream_unload(my_css_save.stream_seeds[j].stream);
+>  				}
+> -				return(err);
+> +				return err;
+>  			}
+>  			*my_css_save.stream_seeds[i].orig_stream = my_css_save.stream_seeds[i].stream;
+>  			for(j=0;j<my_css_save.stream_seeds[i].num_pipes;j++)
+> @@ -2057,7 +2057,7 @@ ia_css_resume(void)
+>  	}
+>  	my_css_save.mode = sh_css_mode_working;
+>  	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE, "ia_css_resume() leave: return_void\n");
+> -	return(IA_CSS_SUCCESS);
+> +	return IA_CSS_SUCCESS;
+>  }
+>
+>  enum ia_css_err
+> @@ -10261,7 +10261,7 @@ ia_css_stream_load(struct ia_css_stream *stream)
+>  						for(k=0;k<j;k++)
+>  							ia_css_pipe_destroy(my_css_save.stream_seeds[i].pipes[k]);
+>  					}
+> -					return(err);
+> +					return err;
+>  				}
+>  			err = ia_css_stream_create(&(my_css_save.stream_seeds[i].stream_config), my_css_save.stream_seeds[i].num_pipes,
+>  						    my_css_save.stream_seeds[i].pipes, &(my_css_save.stream_seeds[i].stream));
+> @@ -10270,12 +10270,12 @@ ia_css_stream_load(struct ia_css_stream *stream)
+>  				ia_css_stream_destroy(stream);
+>  				for(j=0;j<my_css_save.stream_seeds[i].num_pipes;j++)
+>  					ia_css_pipe_destroy(my_css_save.stream_seeds[i].pipes[j]);
+> -				return(err);
+> +				return err;
+>  			}
+>  			break;
+>  		}
+>  	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE,	"ia_css_stream_load() exit, \n");
+> -	return(IA_CSS_SUCCESS);
+> +	return IA_CSS_SUCCESS;
+>  #else
+>  	/* TODO remove function - DEPRECATED */
+>  	(void)stream;
+> @@ -10416,7 +10416,7 @@ ia_css_stream_unload(struct ia_css_stream *stream)
+>  			break;
+>  		}
+>  	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE,	"ia_css_stream_unload() exit, \n");
+> -	return(IA_CSS_SUCCESS);
+> +	return IA_CSS_SUCCESS;
+>  }
+>
+>  #endif
+> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+> index b7db3de..d3567ac 100644
+> --- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+> +++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+> @@ -74,7 +74,7 @@ static struct fw_param *fw_minibuffer;
+>
+>  char *sh_css_get_fw_version(void)
+>  {
+> -	return(FW_rel_ver_name);
+> +	return FW_rel_ver_name;
+>  }
+>
+>
+> --
+> 2.7.4
+>
+> --
+> You received this message because you are subscribed to the Google Groups "outreachy-kernel" group.
+> To unsubscribe from this group and stop receiving emails from it, send an email to outreachy-kernel+unsubscribe@googlegroups.com.
+> To post to this group, send email to outreachy-kernel@googlegroups.com.
+> To view this discussion on the web visit https://groups.google.com/d/msgid/outreachy-kernel/20170303170139.GA9887%40singhal-Inspiron-5558.
+> For more options, visit https://groups.google.com/d/optout.
+>
