@@ -1,242 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f169.google.com ([209.85.128.169]:35646 "EHLO
-        mail-wr0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754499AbdC3JEv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 05:04:51 -0400
-Received: by mail-wr0-f169.google.com with SMTP id k6so45070744wre.2
-        for <linux-media@vger.kernel.org>; Thu, 30 Mar 2017 02:04:50 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: dri-devel@lists.freedesktop.org,
-        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org
-Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
-        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-media@vger.kernel.org
-Subject: [PATCH v5 6/6] drm: bridge: dw-hdmi: Move HPD handling to PHY operations
-Date: Thu, 30 Mar 2017 11:04:35 +0200
-Message-Id: <1490864675-17336-7-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1490864675-17336-1-git-send-email-narmstrong@baylibre.com>
-References: <1490864675-17336-1-git-send-email-narmstrong@baylibre.com>
+Received: from mailout3.samsung.com ([203.254.224.33]:42410 "EHLO
+        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751665AbdCCJHO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 04:07:14 -0500
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+        Smitha T Murthy <smitha.t@samsung.com>
+Subject: [Patch v2 08/11] s5p-mfc: Add VP9 decoder support
+Date: Fri, 03 Mar 2017 14:37:13 +0530
+Message-id: <1488532036-13044-9-git-send-email-smitha.t@samsung.com>
+In-reply-to: <1488532036-13044-1-git-send-email-smitha.t@samsung.com>
+References: <1488532036-13044-1-git-send-email-smitha.t@samsung.com>
+ <CGME20170303090504epcas5p4f218e2ff6dbdc13728e140ec474d4d3d@epcas5p4.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The HDMI TX controller support HPD and RXSENSE signaling from the PHY
-via it's STAT0 PHY interface, but some vendor PHYs can manage these
-signals independently from the controller, thus these STAT0 handling
-should be moved to PHY specific operations and become optional.
+Add support for codec definition and corresponding buffer
+requirements for VP9 decoder.
 
-The existing STAT0 HPD and RXSENSE handling code is refactored into
-a supplementaty set of default PHY operations that are used automatically
-when the platform glue doesn't provide its own operations.
-
-Reviewed-by: Jose Abreu <joabreu@synopsys.com>
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
 ---
- drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 135 ++++++++++++++++++------------
- include/drm/bridge/dw_hdmi.h              |   5 ++
- 2 files changed, 86 insertions(+), 54 deletions(-)
+ drivers/media/platform/s5p-mfc/regs-mfc-v10.h   |    6 +++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c |    3 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |    8 ++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |    2 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   27 +++++++++++++++++++++++
+ 6 files changed, 47 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-index 16d5fff3..84cc949 100644
---- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-+++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-@@ -1229,10 +1229,46 @@ static enum drm_connector_status dw_hdmi_phy_read_hpd(struct dw_hdmi *hdmi,
- 		connector_status_connected : connector_status_disconnected;
- }
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+index bb79932..846dcf5 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+@@ -18,6 +18,8 @@
+ /* MFCv10 register definitions*/
+ #define S5P_FIMV_MFC_CLOCK_OFF_V10			0x7120
+ #define S5P_FIMV_MFC_STATE_V10				0x7124
++#define S5P_FIMV_D_STATIC_BUFFER_ADDR_V10		0xF570
++#define S5P_FIMV_D_STATIC_BUFFER_SIZE_V10		0xF574
  
-+static void dw_hdmi_phy_update_hpd(struct dw_hdmi *hdmi, void *data,
-+				   bool force, bool disabled, bool rxsense)
-+{
-+	u8 old_mask = hdmi->phy_mask;
+ /* MFCv10 Context buffer sizes */
+ #define MFC_CTX_BUF_SIZE_V10		(30 * SZ_1K)	/* 30KB */
+@@ -34,8 +36,12 @@
+ 
+ /* MFCv10 codec defines*/
+ #define S5P_FIMV_CODEC_HEVC_DEC		17
++#define S5P_FIMV_CODEC_VP9_DEC		18
+ #define S5P_FIMV_CODEC_HEVC_ENC         26
+ 
++/* Decoder buffer size for MFC v10 */
++#define DEC_VP9_STATIC_BUFFER_SIZE	20480
 +
-+	if (force || disabled || !rxsense)
-+		hdmi->phy_mask |= HDMI_PHY_RX_SENSE;
-+	else
-+		hdmi->phy_mask &= ~HDMI_PHY_RX_SENSE;
-+
-+	if (old_mask != hdmi->phy_mask)
-+		hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
-+}
-+
-+static void dw_hdmi_phy_setup_hpd(struct dw_hdmi *hdmi, void *data)
-+{
-+	/*
-+	 * Configure the PHY RX SENSE and HPD interrupts polarities and clear
-+	 * any pending interrupt.
-+	 */
-+	hdmi_writeb(hdmi, HDMI_PHY_HPD | HDMI_PHY_RX_SENSE, HDMI_PHY_POL0);
-+	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
-+		    HDMI_IH_PHY_STAT0);
-+
-+	/* Enable cable hot plug irq. */
-+	hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
-+
-+	/* Clear and unmute interrupts. */
-+	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
-+		    HDMI_IH_PHY_STAT0);
-+	hdmi_writeb(hdmi, ~(HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE),
-+		    HDMI_IH_MUTE_PHY_STAT0);
-+}
-+
- static const struct dw_hdmi_phy_ops dw_hdmi_synopsys_phy_ops = {
- 	.init = dw_hdmi_phy_init,
- 	.disable = dw_hdmi_phy_disable,
- 	.read_hpd = dw_hdmi_phy_read_hpd,
-+	.update_hpd = dw_hdmi_phy_update_hpd,
-+	.setup_hpd = dw_hdmi_phy_setup_hpd,
+ /* Encoder buffer size for MFC v10.0 */
+ #define ENC_V100_BASE_SIZE(x, y) \
+ 	(((x + 3) * (y + 3) * 8) \
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
+index 76eca67..102b47e 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
+@@ -104,6 +104,9 @@ static int s5p_mfc_open_inst_cmd_v6(struct s5p_mfc_ctx *ctx)
+ 	case S5P_MFC_CODEC_HEVC_DEC:
+ 		codec_type = S5P_FIMV_CODEC_HEVC_DEC;
+ 		break;
++	case S5P_MFC_CODEC_VP9_DEC:
++		codec_type = S5P_FIMV_CODEC_VP9_DEC;
++		break;
+ 	case S5P_MFC_CODEC_H264_ENC:
+ 		codec_type = S5P_FIMV_CODEC_H264_ENC_V6;
+ 		break;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 5c46060..e720ce6 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -80,6 +80,7 @@ static inline dma_addr_t s5p_mfc_mem_cookie(void *a, void *b)
+ #define S5P_MFC_CODEC_VC1RCV_DEC	6
+ #define S5P_MFC_CODEC_VP8_DEC		7
+ #define S5P_MFC_CODEC_HEVC_DEC		17
++#define S5P_MFC_CODEC_VP9_DEC		18
+ 
+ #define S5P_MFC_CODEC_H264_ENC		20
+ #define S5P_MFC_CODEC_H264_MVC_ENC	21
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 9f459b3..93626ed 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -164,6 +164,14 @@
+ 		.num_planes	= 1,
+ 		.versions	= MFC_V10_BIT,
+ 	},
++	{
++		.name		= "VP9 Encoded Stream",
++		.fourcc		= V4L2_PIX_FMT_VP9,
++		.codec_mode	= S5P_FIMV_CODEC_VP9_DEC,
++		.type		= MFC_FMT_DEC,
++		.num_planes	= 1,
++		.versions	= MFC_V10_BIT,
++	},
  };
  
- /* -----------------------------------------------------------------------------
-@@ -1808,35 +1844,10 @@ static void dw_hdmi_update_power(struct dw_hdmi *hdmi)
-  */
- static void dw_hdmi_update_phy_mask(struct dw_hdmi *hdmi)
- {
--	u8 old_mask = hdmi->phy_mask;
--
--	if (hdmi->force || hdmi->disabled || !hdmi->rxsense)
--		hdmi->phy_mask |= HDMI_PHY_RX_SENSE;
--	else
--		hdmi->phy_mask &= ~HDMI_PHY_RX_SENSE;
--
--	if (old_mask != hdmi->phy_mask)
--		hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
--}
--
--static void dw_hdmi_phy_setup_hpd(struct dw_hdmi *hdmi)
--{
--	/*
--	 * Configure the PHY RX SENSE and HPD interrupts polarities and clear
--	 * any pending interrupt.
--	 */
--	hdmi_writeb(hdmi, HDMI_PHY_HPD | HDMI_PHY_RX_SENSE, HDMI_PHY_POL0);
--	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
--		    HDMI_IH_PHY_STAT0);
--
--	/* Enable cable hot plug irq. */
--	hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
--
--	/* Clear and unmute interrupts. */
--	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
--		    HDMI_IH_PHY_STAT0);
--	hdmi_writeb(hdmi, ~(HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE),
--		    HDMI_IH_MUTE_PHY_STAT0);
-+	if (hdmi->phy.ops->update_hpd)
-+		hdmi->phy.ops->update_hpd(hdmi, hdmi->phy.data,
-+					  hdmi->force, hdmi->disabled,
-+					  hdmi->rxsense);
- }
+ #define NUM_FORMATS ARRAY_SIZE(formats)
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+index 6478f70..565decf 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+@@ -170,6 +170,8 @@ struct s5p_mfc_regs {
+ 	void __iomem *d_used_dpb_flag_upper;/* v7 and v8 */
+ 	void __iomem *d_used_dpb_flag_lower;/* v7 and v8 */
+ 	void __iomem *d_min_scratch_buffer_size; /* v10 */
++	void __iomem *d_static_buffer_addr; /* v10 */
++	void __iomem *d_static_buffer_size; /* v10 */
  
- static enum drm_connector_status
-@@ -2028,6 +2039,41 @@ static irqreturn_t dw_hdmi_hardirq(int irq, void *dev_id)
- 	return ret;
- }
+ 	/* encoder registers */
+ 	void __iomem *e_frame_width;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index cda0403..7dcc671 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -228,6 +228,12 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 			ctx->scratch_buf_size +
+ 			(ctx->mv_count * ctx->mv_size);
+ 		break;
++	case S5P_MFC_CODEC_VP9_DEC:
++		mfc_debug(2, "Use min scratch buffer size\n");
++		ctx->bank1.size =
++			ctx->scratch_buf_size +
++			DEC_VP9_STATIC_BUFFER_SIZE;
++		break;
+ 	case S5P_MFC_CODEC_H264_ENC:
+ 		if (IS_MFCV10(dev)) {
+ 			mfc_debug(2, "Use min scratch buffer size\n");
+@@ -339,6 +345,7 @@ static int s5p_mfc_alloc_instance_buffer_v6(struct s5p_mfc_ctx *ctx)
+ 	case S5P_MFC_CODEC_VC1_DEC:
+ 	case S5P_MFC_CODEC_MPEG2_DEC:
+ 	case S5P_MFC_CODEC_VP8_DEC:
++	case S5P_MFC_CODEC_VP9_DEC:
+ 		ctx->ctx.size = buf_size->other_dec_ctx;
+ 		break;
+ 	case S5P_MFC_CODEC_H264_ENC:
+@@ -573,6 +580,14 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
+ 		}
+ 	}
  
-+void __dw_hdmi_setup_rx_sense(struct dw_hdmi *hdmi, bool hpd, bool rx_sense)
-+{
-+	mutex_lock(&hdmi->mutex);
-+
-+	if (!hdmi->force) {
-+		/*
-+		 * If the RX sense status indicates we're disconnected,
-+		 * clear the software rxsense status.
-+		 */
-+		if (!rx_sense)
-+			hdmi->rxsense = false;
-+
-+		/*
-+		 * Only set the software rxsense status when both
-+		 * rxsense and hpd indicates we're connected.
-+		 * This avoids what seems to be bad behaviour in
-+		 * at least iMX6S versions of the phy.
-+		 */
-+		if (hpd)
-+			hdmi->rxsense = true;
-+
-+		dw_hdmi_update_power(hdmi);
-+		dw_hdmi_update_phy_mask(hdmi);
++	if (ctx->codec_mode == S5P_FIMV_CODEC_VP9_DEC) {
++		writel(buf_addr1, mfc_regs->d_static_buffer_addr);
++		writel(DEC_VP9_STATIC_BUFFER_SIZE,
++				mfc_regs->d_static_buffer_size);
++		buf_addr1 += DEC_VP9_STATIC_BUFFER_SIZE;
++		buf_size1 -= DEC_VP9_STATIC_BUFFER_SIZE;
 +	}
-+	mutex_unlock(&hdmi->mutex);
-+}
 +
-+void dw_hdmi_setup_rx_sense(struct device *dev, bool hpd, bool rx_sense)
-+{
-+	struct dw_hdmi *hdmi = dev_get_drvdata(dev);
+ 	mfc_debug(2, "Buf1: %zu, buf_size1: %d (frames %d)\n",
+ 			buf_addr1, buf_size1, ctx->total_dpb_count);
+ 	if (buf_size1 < 0) {
+@@ -2278,6 +2293,18 @@ static unsigned int s5p_mfc_get_crop_info_v_v6(struct s5p_mfc_ctx *ctx)
+ 	R(e_h264_options, S5P_FIMV_E_H264_OPTIONS_V8);
+ 	R(e_min_scratch_buffer_size, S5P_FIMV_E_MIN_SCRATCH_BUFFER_SIZE_V8);
+ 
++	if (!IS_MFCV10(dev))
++		goto done;
 +
-+	__dw_hdmi_setup_rx_sense(hdmi, hpd, rx_sense);
-+}
-+EXPORT_SYMBOL_GPL(dw_hdmi_setup_rx_sense);
++	/* Initialize registers used in MFC v10 only.
++	 * Also, over-write the registers which have
++	 * a different offset for MFC v10.
++	 */
 +
- static irqreturn_t dw_hdmi_irq(int irq, void *dev_id)
- {
- 	struct dw_hdmi *hdmi = dev_id;
-@@ -2060,30 +2106,10 @@ static irqreturn_t dw_hdmi_irq(int irq, void *dev_id)
- 	 * ask the source to re-read the EDID.
- 	 */
- 	if (intr_stat &
--	    (HDMI_IH_PHY_STAT0_RX_SENSE | HDMI_IH_PHY_STAT0_HPD)) {
--		mutex_lock(&hdmi->mutex);
--		if (!hdmi->force) {
--			/*
--			 * If the RX sense status indicates we're disconnected,
--			 * clear the software rxsense status.
--			 */
--			if (!(phy_stat & HDMI_PHY_RX_SENSE))
--				hdmi->rxsense = false;
--
--			/*
--			 * Only set the software rxsense status when both
--			 * rxsense and hpd indicates we're connected.
--			 * This avoids what seems to be bad behaviour in
--			 * at least iMX6S versions of the phy.
--			 */
--			if (phy_stat & HDMI_PHY_HPD)
--				hdmi->rxsense = true;
--
--			dw_hdmi_update_power(hdmi);
--			dw_hdmi_update_phy_mask(hdmi);
--		}
--		mutex_unlock(&hdmi->mutex);
--	}
-+	    (HDMI_IH_PHY_STAT0_RX_SENSE | HDMI_IH_PHY_STAT0_HPD))
-+		__dw_hdmi_setup_rx_sense(hdmi,
-+					 phy_stat & HDMI_PHY_HPD,
-+					 phy_stat & HDMI_PHY_RX_SENSE);
- 
- 	if (intr_stat & HDMI_IH_PHY_STAT0_HPD) {
- 		dev_dbg(hdmi->dev, "EVENT=%s\n",
-@@ -2357,7 +2383,8 @@ static int dw_hdmi_detect_phy(struct dw_hdmi *hdmi)
- #endif
- 
- 	dw_hdmi_setup_i2c(hdmi);
--	dw_hdmi_phy_setup_hpd(hdmi);
-+	if (hdmi->phy.ops->setup_hpd)
-+		hdmi->phy.ops->setup_hpd(hdmi, hdmi->phy.data);
- 
- 	memset(&pdevinfo, 0, sizeof(pdevinfo));
- 	pdevinfo.parent = dev;
-diff --git a/include/drm/bridge/dw_hdmi.h b/include/drm/bridge/dw_hdmi.h
-index 45c2c15..e63d675 100644
---- a/include/drm/bridge/dw_hdmi.h
-+++ b/include/drm/bridge/dw_hdmi.h
-@@ -117,6 +117,9 @@ struct dw_hdmi_phy_ops {
- 		    struct drm_display_mode *mode);
- 	void (*disable)(struct dw_hdmi *hdmi, void *data);
- 	enum drm_connector_status (*read_hpd)(struct dw_hdmi *hdmi, void *data);
-+	void (*update_hpd)(struct dw_hdmi *hdmi, void *data,
-+			   bool force, bool disabled, bool rxsense);
-+	void (*setup_hpd)(struct dw_hdmi *hdmi, void *data);
- };
- 
- struct dw_hdmi_plat_data {
-@@ -147,6 +150,8 @@ int dw_hdmi_probe(struct platform_device *pdev,
- int dw_hdmi_bind(struct platform_device *pdev, struct drm_encoder *encoder,
- 		 const struct dw_hdmi_plat_data *plat_data);
- 
-+void dw_hdmi_setup_rx_sense(struct device *dev, bool hpd, bool rx_sense);
++	/* decoder registers */
++	R(d_static_buffer_addr, S5P_FIMV_D_STATIC_BUFFER_ADDR_V10);
++	R(d_static_buffer_size, S5P_FIMV_D_STATIC_BUFFER_SIZE_V10);
 +
- void dw_hdmi_set_sample_rate(struct dw_hdmi *hdmi, unsigned int rate);
- void dw_hdmi_audio_enable(struct dw_hdmi *hdmi);
- void dw_hdmi_audio_disable(struct dw_hdmi *hdmi);
+ done:
+ 	return &mfc_regs;
+ #undef S5P_MFC_REG_ADDR
 -- 
-1.9.1
+1.7.2.3
