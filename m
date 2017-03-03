@@ -1,103 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:35724 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753159AbdCFOY5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Mar 2017 09:24:57 -0500
-From: Elena Reshetova <elena.reshetova@intel.com>
-To: gregkh@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org,
-        netdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
-        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
-        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
-        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
-        linux-usb@vger.kernel.org, peterz@infradead.org,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        Hans Liljestrand <ishkamiel@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        David Windsor <dwindsor@gmail.com>
-Subject: [PATCH 04/29] drivers, connector: convert cn_callback_entry.refcnt from atomic_t to refcount_t
-Date: Mon,  6 Mar 2017 16:20:51 +0200
-Message-Id: <1488810076-3754-5-git-send-email-elena.reshetova@intel.com>
-In-Reply-To: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
-References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40276 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751332AbdCCMIq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 3 Mar 2017 07:08:46 -0500
+Date: Fri, 3 Mar 2017 13:45:06 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v4 13/36] [media] v4l2: add a frame timeout event
+Message-ID: <20170303114506.GM3220@valkosipuli.retiisi.org.uk>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+ <1487211578-11360-14-git-send-email-steve_longerbeam@mentor.com>
+ <20170302155342.GJ3220@valkosipuli.retiisi.org.uk>
+ <4b2bcee1-8da0-776e-4455-8d8e7a7abf0a@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4b2bcee1-8da0-776e-4455-8d8e7a7abf0a@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-refcount_t type and corresponding API should be
-used instead of atomic_t when the variable is used as
-a reference counter. This allows to avoid accidental
-refcounter overflows that might lead to use-after-free
-situations.
+On Thu, Mar 02, 2017 at 03:07:21PM -0800, Steve Longerbeam wrote:
+> 
+> 
+> On 03/02/2017 07:53 AM, Sakari Ailus wrote:
+> >Hi Steve,
+> >
+> >On Wed, Feb 15, 2017 at 06:19:15PM -0800, Steve Longerbeam wrote:
+> >>Add a new FRAME_TIMEOUT event to signal that a video capture or
+> >>output device has timed out waiting for reception or transmit
+> >>completion of a video frame.
+> >>
+> >>Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> >>---
+> >> Documentation/media/uapi/v4l/vidioc-dqevent.rst | 5 +++++
+> >> Documentation/media/videodev2.h.rst.exceptions  | 1 +
+> >> include/uapi/linux/videodev2.h                  | 1 +
+> >> 3 files changed, 7 insertions(+)
+> >>
+> >>diff --git a/Documentation/media/uapi/v4l/vidioc-dqevent.rst b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
+> >>index 8d663a7..dd77d9b 100644
+> >>--- a/Documentation/media/uapi/v4l/vidioc-dqevent.rst
+> >>+++ b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
+> >>@@ -197,6 +197,11 @@ call.
+> >> 	the regions changes. This event has a struct
+> >> 	:c:type:`v4l2_event_motion_det`
+> >> 	associated with it.
+> >>+    * - ``V4L2_EVENT_FRAME_TIMEOUT``
+> >>+      - 7
+> >>+      - This event is triggered when the video capture or output device
+> >>+	has timed out waiting for the reception or transmit completion of
+> >>+	a frame of video.
+> >
+> >As you're adding a new interface, I suppose you have an implementation
+> >around. How do you determine what that timeout should be?
+> 
+> The imx-media driver sets the timeout to 1 second, or 30 frame
+> periods at 30 fps.
 
-Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
-Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Signed-off-by: David Windsor <dwindsor@gmail.com>
----
- drivers/connector/cn_queue.c  | 4 ++--
- drivers/connector/connector.c | 2 +-
- include/linux/connector.h     | 4 ++--
- 3 files changed, 5 insertions(+), 5 deletions(-)
+The frame rate is not necessarily constant during streaming. It may well
+change as a result of lighting conditions. I wouldn't add an event for this:
+this is unreliable and 30 times the frame period is an arbitrary value
+anyway. No other drivers do this either.
 
-diff --git a/drivers/connector/cn_queue.c b/drivers/connector/cn_queue.c
-index 1f8bf05..9c54fdf 100644
---- a/drivers/connector/cn_queue.c
-+++ b/drivers/connector/cn_queue.c
-@@ -45,7 +45,7 @@ cn_queue_alloc_callback_entry(struct cn_queue_dev *dev, const char *name,
- 		return NULL;
- 	}
- 
--	atomic_set(&cbq->refcnt, 1);
-+	refcount_set(&cbq->refcnt, 1);
- 
- 	atomic_inc(&dev->refcnt);
- 	cbq->pdev = dev;
-@@ -58,7 +58,7 @@ cn_queue_alloc_callback_entry(struct cn_queue_dev *dev, const char *name,
- 
- void cn_queue_release_callback(struct cn_callback_entry *cbq)
- {
--	if (!atomic_dec_and_test(&cbq->refcnt))
-+	if (!refcount_dec_and_test(&cbq->refcnt))
- 		return;
- 
- 	atomic_dec(&cbq->pdev->refcnt);
-diff --git a/drivers/connector/connector.c b/drivers/connector/connector.c
-index 25693b0..8615594b 100644
---- a/drivers/connector/connector.c
-+++ b/drivers/connector/connector.c
-@@ -157,7 +157,7 @@ static int cn_call_callback(struct sk_buff *skb)
- 	spin_lock_bh(&dev->cbdev->queue_lock);
- 	list_for_each_entry(i, &dev->cbdev->queue_list, callback_entry) {
- 		if (cn_cb_equal(&i->id.id, &msg->id)) {
--			atomic_inc(&i->refcnt);
-+			refcount_inc(&i->refcnt);
- 			cbq = i;
- 			break;
- 		}
-diff --git a/include/linux/connector.h b/include/linux/connector.h
-index f8fe863..032102b 100644
---- a/include/linux/connector.h
-+++ b/include/linux/connector.h
-@@ -22,7 +22,7 @@
- #define __CONNECTOR_H
- 
- 
--#include <linux/atomic.h>
-+#include <linux/refcount.h>
- 
- #include <linux/list.h>
- #include <linux/workqueue.h>
-@@ -49,7 +49,7 @@ struct cn_callback_id {
- 
- struct cn_callback_entry {
- 	struct list_head callback_entry;
--	atomic_t refcnt;
-+	refcount_t refcnt;
- 	struct cn_queue_dev *pdev;
- 
- 	struct cn_callback_id id;
+The user space is generally in control of the frame period (or on some
+devices it could be the sensor, too, but *not* the CSI-2 receiver driver),
+so detecting the condition of not receiving any frames is more reliably done
+in the user space --- if needed.
+
 -- 
-2.7.4
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
