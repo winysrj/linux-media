@@ -1,100 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35499 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751409AbdCCB5A (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 20:57:00 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org
-Subject: Re: [RFC PATCH 1/3] v4l: vsp1: Register pipe with output WPF
-Date: Fri, 03 Mar 2017 03:57:32 +0200
-Message-ID: <6507442.4PsfNadeTq@avalon>
-In-Reply-To: <c49f9bbdc3061afda54dfeab3b0d05c309a2e0c4.1488373517.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.79abe454b4a405227fcacc23f1b6ba624ee99cf0.1488373517.git-series.kieran.bingham+renesas@ideasonboard.com> <c49f9bbdc3061afda54dfeab3b0d05c309a2e0c4.1488373517.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:34699 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752371AbdCCOay (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 09:30:54 -0500
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <CAG_fn=WayMEnBO4pzuxQ5jgn-ii6vrALuOex5Ei1ZhzMR7_tjg@mail.gmail.com>
+References: <20170302163834.2273519-1-arnd@arndb.de> <20170302163834.2273519-2-arnd@arndb.de>
+ <7e7a62de-3b79-6044-72fa-4ade418953d1@virtuozzo.com> <CAG_fn=WayMEnBO4pzuxQ5jgn-ii6vrALuOex5Ei1ZhzMR7_tjg@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Fri, 3 Mar 2017 15:30:37 +0100
+Message-ID: <CAK8P3a3+8wxsUntUnOteOv8_p=yBZLk-4Uu-HGM17o9n9OqteQ@mail.gmail.com>
+Subject: Re: [PATCH 01/26] compiler: introduce noinline_for_kasan annotation
+To: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        kasan-dev <kasan-dev@googlegroups.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Networking <netdev@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
+        linux-wireless <linux-wireless@vger.kernel.org>,
+        kernel-build-reports@lists.linaro.org,
+        "David S . Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+On Fri, Mar 3, 2017 at 2:55 PM, Alexander Potapenko <glider@google.com> wrote:
+> On Fri, Mar 3, 2017 at 2:50 PM, Andrey Ryabinin <aryabinin@virtuozzo.com> wrote:
 
-Thank you for the patch.
+>>> @@ -416,6 +416,17 @@ static __always_inline void __write_once_size(volatile void *p, void *res, int s
+>>>   */
+>>>  #define noinline_for_stack noinline
+>>>
+>>> +/*
+>>> + * CONFIG_KASAN can lead to extreme stack usage with certain patterns when
+>>> + * one function gets inlined many times and each instance requires a stack
+>>> + * ckeck.
+>>> + */
+>>> +#ifdef CONFIG_KASAN
+>>> +#define noinline_for_kasan noinline __maybe_unused
+>>
+>>
+>> noinline_iff_kasan might be a better name.  noinline_for_kasan gives the impression
+>> that we always noinline function for the sake of kasan, while noinline_iff_kasan
+>> clearly indicates that function is noinline only if kasan is used.
 
-On Wednesday 01 Mar 2017 13:12:54 Kieran Bingham wrote:
-> The DRM object does not register the pipe with the WPF object. This is
-> used internally throughout the driver as a means of accessing the pipe.
-> As such this breaks operations which require access to the pipe from WPF
-> interrupts.
-> 
-> Register the pipe inside the WPF object after it has been declared as
-> the output.
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> ---
->  drivers/media/platform/vsp1/vsp1_drm.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
-> b/drivers/media/platform/vsp1/vsp1_drm.c index cd209dccff1b..8e2aa3f8e52f
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> @@ -596,6 +596,7 @@ int vsp1_drm_init(struct vsp1_device *vsp1)
->  	pipe->bru = &vsp1->bru->entity;
->  	pipe->lif = &vsp1->lif->entity;
->  	pipe->output = vsp1->wpf[0];
-> +	pipe->output->pipe = pipe;
+Fine with me. I actually tried to come up with a name that implies that the
+symbol is actually "inline" (or even __always_inline_ without KASAN, but
+couldn't think of any good name for it.
 
-The vsp1_irq_handler() function calls vsp1_pipeline_frame_end() with wpf-
->pipe, which is currently NULL. With this patch the function will get a non-
-NULL pipeline and will thus proceed to calling vsp1_dlm_irq_frame_end():
+> FWIW we may be facing the same problem with other compiler-based
+> tools, e.g. KMSAN (which isn't there yet).
+> So it might be better to choose a macro name that doesn't use the name "KASAN".
+> E.g. noinline_iff_memtool (or noinline_iff_memory_tool if that's not too long).
+> WDYT?
 
-void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
+Would KMSAN also force local variables to be non-overlapping the way that
+asan-stack=1 and -fsanitize-address-use-after-scope do? As I understood it,
+KMSAN would add extra code for maintaining the uninit bits, but in an example
+like this
+
+int f(int *);
+static inline __attribute__((always_inline)) int g(void)
 {
-	if (pipe == NULL)
-		return;
-
-	vsp1_dlm_irq_frame_end(pipe->output->dlm);
-
-	if (pipe->frame_end)
-		pipe->frame_end(pipe);
-
-	pipe->sequence++;
+    int i;
+    f(&i);
+    return i;
+}
+int f(void)
+{
+     return g()+g()+g()+g();
 }
 
-pipe->frame_end is NULL, pipe->sequence doesn't matter, but we now end up 
-calling vsp1_dlm_irq_frame_end(). This is a major change regarding display 
-list processing, yet it seems to have no effect at all.
+each of the four copies of 'i' could have the same location on the stack
+and get marked uninitialized again before calling f(). We only need
+noinline_for_kasan (whatever we end up calling that) for compiler
+features that force each instance of 'i' to have its own stack redzone.
 
-The following commit is to blame for skipping the call to 
-vsp1_dlm_irq_frame_end().
-
-commit ff7e97c94d9f7f370fe3ce2a72e85361ca22a605
-Author: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Date:   Tue Jan 19 19:16:36 2016 -0200
-
-    [media] v4l: vsp1: Store pipeline pointer in rwpf
-
-I've added a few debug print statements to vsp1_dlm_irq_frame_end(), and it 
-looks like we only hit the if (dlm->queued) test or none of them at all. It 
-looks like we've been lucky that nothing broke.
-
-Restoring the previous behaviour should be safe, but it would be worth it 
-inspecting the code very carefully to make sure the logic is still correct. 
-I'll do it tomorrow if you don't beat me to it.
-
-In any case, how about adding a
-
-Fixes: ff7e97c94d9f ("[media] v4l: vsp1: Store pipeline pointer in rwpf")
-
-line ?
-
->  	return 0;
->  }
-
--- 
-Regards,
-
-Laurent Pinchart
+     Arnd
