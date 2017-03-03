@@ -1,152 +1,209 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:14630 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750724AbdCIHWm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 9 Mar 2017 02:22:42 -0500
-From: "Reshetova, Elena" <elena.reshetova@intel.com>
-To: Chris Leech <cleech@redhat.com>
-CC: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux1394-devel@lists.sourceforge.net"
-        <linux1394-devel@lists.sourceforge.net>,
-        "linux-bcache@vger.kernel.org" <linux-bcache@vger.kernel.org>,
-        "linux-raid@vger.kernel.org" <linux-raid@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "devel@linuxdriverproject.org" <devel@linuxdriverproject.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
-        "fcoe-devel@open-fcoe.org" <fcoe-devel@open-fcoe.org>,
-        "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>,
-        "open-iscsi@googlegroups.com" <open-iscsi@googlegroups.com>,
-        "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
-        "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>,
-        "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
-        "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
-        "peterz@infradead.org" <peterz@infradead.org>,
-        Hans Liljestrand <ishkamiel@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        David Windsor <dwindsor@gmail.com>
-Subject: RE: [PATCH 22/29] drivers, scsi: convert iscsi_task.refcount from
- atomic_t to refcount_t
-Date: Thu, 9 Mar 2017 07:18:29 +0000
-Message-ID: <2236FBA76BA1254E88B949DDB74E612B41C569DC@IRSMSX102.ger.corp.intel.com>
-References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
- <1488810076-3754-23-git-send-email-elena.reshetova@intel.com>
- <20170308184740.4gueok5csdkt7u62@straylight.hirudinean.org>
-In-Reply-To: <20170308184740.4gueok5csdkt7u62@straylight.hirudinean.org>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-qk0-f174.google.com ([209.85.220.174]:32826 "EHLO
+        mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751276AbdCCNjY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 08:39:24 -0500
+Received: by mail-qk0-f174.google.com with SMTP id n127so175616247qkf.0
+        for <linux-media@vger.kernel.org>; Fri, 03 Mar 2017 05:38:40 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <20170302163834.2273519-1-arnd@arndb.de>
+References: <20170302163834.2273519-1-arnd@arndb.de>
+From: Alexander Potapenko <glider@google.com>
+Date: Fri, 3 Mar 2017 13:25:29 +0100
+Message-ID: <CAG_fn=UVcLhP8mH6tvzqZUn4u9T4pnQw8bMf=qccNro59VcABw@mail.gmail.com>
+Subject: Re: [PATCH 00/26] bring back stack frame warning with KASAN
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: kasan-dev <kasan-dev@googlegroups.com>,
+        Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Dmitry Vyukov <dvyukov@google.com>, netdev@vger.kernel.org,
+        LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
+        linux-wireless@vger.kernel.org,
+        kernel-build-reports@lists.linaro.org,
+        "David S . Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> On Mon, Mar 06, 2017 at 04:21:09PM +0200, Elena Reshetova wrote:
-> > refcount_t type and corresponding API should be
-> > used instead of atomic_t when the variable is used as
-> > a reference counter. This allows to avoid accidental
-> > refcounter overflows that might lead to use-after-free
-> > situations.
-> >
-> > Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
-> > Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
-> > Signed-off-by: Kees Cook <keescook@chromium.org>
-> > Signed-off-by: David Windsor <dwindsor@gmail.com>
-> 
-> This looks OK to me.
-> 
-> Acked-by: Chris Leech <cleech@redhat.com>
+On Thu, Mar 2, 2017 at 5:38 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> It took a long while to get this done, but I'm finally ready
+> to send the first half of the KASAN stack size patches that
+> I did in response to the kernelci.org warnings.
+>
+> As before, it's worth mentioning that things are generally worse
+> with gcc-7.0.1 because of the addition of -fsanitize-address-use-after-sc=
+ope
+> that are not present on kernelci, so my randconfig testing found
+> a lot more than kernelci did.
+>
+> The main areas are:
+>
+> - READ_ONCE/WRITE_ONCE cause problems in lots of code
+> - typecheck() causes huge problems in a few places
+> - I'm introducing "noinline_for_kasan" and use it in a lot
+>   of places that suffer from inline functions with local variables
+>   - netlink, as used in various parts of the kernel
+>   - a number of drivers/media drivers
+>   - a handful of wireless network drivers
+> - kmemcheck conflicts with -fsanitize-address-use-after-scope
+>
+> This series lets us add back a stack frame warning for 3072 bytes
+> with -fsanitize-address-use-after-scope, or 2048 bytes without it.
+>
+> I have a follow-up series that further reduces the stack frame
+> warning limit to 1280 bytes for all 64-bit architectures, and
+> 1536 bytes with basic KASAN support (no -fsanitize-address-use-after-scop=
+e).
+> For now, I'm only posting the first half, in order to keep
+> it (barely) reviewable.
+Can you please elaborate on why do you need this? Are you trying to
+squeeze KASAN into some embedded device?
+Noinlines sprayed over the codebase are hard to maintain, and certain
+compiler changes may cause bloated stack frames in other places.
+Maybe it should be enough to just increase the stack frame limit in
+KASAN builds, as Dmitry suggested previously?
+> Both series are tested with many hundred randconfig builds on both
+> x86 and arm64, which are the only architectures supporting KASAN.
+>
+>         Arnd
+>
+>  [PATCH 01/26] compiler: introduce noinline_for_kasan annotation
+>  [PATCH 02/26] rewrite READ_ONCE/WRITE_ONCE
+>  [PATCH 03/26] typecheck.h: avoid local variables in typecheck() macro
+>  [PATCH 04/26] tty: kbd: reduce stack size with KASAN
+>  [PATCH 05/26] netlink: mark nla_put_{u8,u16,u32} noinline_for_kasan
+>  [PATCH 06/26] rocker: mark rocker_tlv_put_* functions as
+>  [PATCH 07/26] brcmsmac: reduce stack size with KASAN
+>  [PATCH 08/26] brcmsmac: make some local variables 'static const' to
+>  [PATCH 09/26] brcmsmac: split up wlc_phy_workarounds_nphy
+>  [PATCH 10/26] brcmsmac: reindent split functions
+>  [PATCH 11/26] rtlwifi: reduce stack usage for KASAN
+>  [PATCH 12/26] wl3501_cs: reduce stack size for KASAN
+>  [PATCH 13/26] rtl8180: reduce stack size for KASAN
+>  [PATCH 14/26] [media] dvb-frontends: reduce stack size in i2c access
+>  [PATCH 15/26] [media] tuners: i2c: reduce stack usage for
+>  [PATCH 16/26] [media] i2c: adv7604: mark register access as
+>  [PATCH 17/26] [media] i2c: ks0127: reduce stack frame size for KASAN
+>  [PATCH 18/26] [media] i2c: cx25840: avoid stack overflow with KASAN
+>  [PATCH 19/26] [media] r820t: mark register functions as
+>  [PATCH 20/26] [media] em28xx: split up em28xx_dvb_init to reduce
+>  [PATCH 21/26] drm/bridge: ps8622: reduce stack size for KASAN
+>  [PATCH 22/26] drm/i915/gvt: don't overflow the kernel stack with
+>  [PATCH 23/26] mtd: cfi: reduce stack size with KASAN
+>  [PATCH 24/26] ocfs2: reduce stack size with KASAN
+>  [PATCH 25/26] isdn: eicon: mark divascapi incompatible with kasan
+>  [PATCH 26/26] kasan: rework Kconfig settings
+>
+>  arch/x86/include/asm/switch_to.h                                 |    2 =
++-
+>  drivers/gpu/drm/bridge/parade-ps8622.c                           |    2 =
++-
+>  drivers/gpu/drm/i915/gvt/mmio.h                                  |   17 =
++-
+>  drivers/isdn/hardware/eicon/Kconfig                              |    1 =
++
+>  drivers/media/dvb-frontends/ascot2e.c                            |    3 =
++-
+>  drivers/media/dvb-frontends/cxd2841er.c                          |    4 =
++-
+>  drivers/media/dvb-frontends/drx39xyj/drxj.c                      |   14 =
++-
+>  drivers/media/dvb-frontends/helene.c                             |    4 =
++-
+>  drivers/media/dvb-frontends/horus3a.c                            |    2 =
++-
+>  drivers/media/dvb-frontends/itd1000.c                            |    2 =
++-
+>  drivers/media/dvb-frontends/mt312.c                              |    2 =
++-
+>  drivers/media/dvb-frontends/si2165.c                             |   14 =
++-
+>  drivers/media/dvb-frontends/stb0899_drv.c                        |    2 =
++-
+>  drivers/media/dvb-frontends/stb6100.c                            |    2 =
++-
+>  drivers/media/dvb-frontends/stv0367.c                            |    2 =
++-
+>  drivers/media/dvb-frontends/stv090x.c                            |    2 =
++-
+>  drivers/media/dvb-frontends/stv6110.c                            |    2 =
++-
+>  drivers/media/dvb-frontends/stv6110x.c                           |    2 =
++-
+>  drivers/media/dvb-frontends/tda8083.c                            |    2 =
++-
+>  drivers/media/dvb-frontends/zl10039.c                            |    2 =
++-
+>  drivers/media/i2c/adv7604.c                                      |    4 =
++-
+>  drivers/media/i2c/cx25840/cx25840-core.c                         |    4 =
++-
+>  drivers/media/i2c/ks0127.c                                       |    2 =
++-
+>  drivers/media/tuners/r820t.c                                     |    4 =
++-
+>  drivers/media/tuners/tuner-i2c.h                                 |   15 =
++-
+>  drivers/media/usb/em28xx/em28xx-dvb.c                            |  947 =
++++++++++++++++++++++------------------
+>  drivers/mtd/chips/cfi_cmdset_0020.c                              |    8 =
++-
+>  drivers/net/ethernet/rocker/rocker_tlv.h                         |   24 =
++-
+>  drivers/net/wireless/broadcom/brcm80211/brcmsmac/phy/phy_n.c     | 1860 =
++++++++++++++++++++++++++++++++++++++--------------------------------------=
+--
+>  drivers/net/wireless/realtek/rtl818x/rtl8180/rtl8225se.c         |    4 =
++-
+>  drivers/net/wireless/realtek/rtlwifi/btcoexist/halbtc8192e2ant.c |   41 =
++-
+>  drivers/net/wireless/realtek/rtlwifi/btcoexist/halbtc8723b1ant.c |   26 =
++-
+>  drivers/net/wireless/realtek/rtlwifi/btcoexist/halbtc8723b2ant.c |   34 =
++-
+>  drivers/net/wireless/realtek/rtlwifi/btcoexist/halbtc8821a1ant.c |   36 =
++-
+>  drivers/net/wireless/realtek/rtlwifi/btcoexist/halbtc8821a2ant.c |   38 =
++-
+>  drivers/net/wireless/wl3501_cs.c                                 |   10 =
++-
+>  drivers/tty/vt/keyboard.c                                        |    6 =
++-
+>  fs/ocfs2/cluster/masklog.c                                       |   10 =
++-
+>  fs/ocfs2/cluster/masklog.h                                       |    4 =
++-
+>  fs/overlayfs/util.c                                              |    6 =
++-
+>  include/linux/compiler.h                                         |   58 =
+++-
+>  include/linux/mtd/map.h                                          |    8 =
++-
+>  include/linux/typecheck.h                                        |    7 =
++-
+>  include/net/netlink.h                                            |   36 =
++-
+>  lib/Kconfig.debug                                                |    9 =
++-
+>  lib/Kconfig.kasan                                                |   11 =
++-
+>  lib/Kconfig.kmemcheck                                            |    1 =
++
+>  scripts/Makefile.kasan                                           |    3 =
++
+>  48 files changed, 1670 insertions(+), 1629 deletions(-)
+>
 
-Thank you for review! Do you have a tree that can take this change? 
 
-Best Regards,
-Elena.
 
-> 
-> > ---
-> >  drivers/scsi/libiscsi.c        | 8 ++++----
-> >  drivers/scsi/qedi/qedi_iscsi.c | 2 +-
-> >  include/scsi/libiscsi.h        | 3 ++-
-> >  3 files changed, 7 insertions(+), 6 deletions(-)
-> >
-> > diff --git a/drivers/scsi/libiscsi.c b/drivers/scsi/libiscsi.c
-> > index 834d121..7eb1d2c 100644
-> > --- a/drivers/scsi/libiscsi.c
-> > +++ b/drivers/scsi/libiscsi.c
-> > @@ -516,13 +516,13 @@ static void iscsi_free_task(struct iscsi_task *task)
-> >
-> >  void __iscsi_get_task(struct iscsi_task *task)
-> >  {
-> > -	atomic_inc(&task->refcount);
-> > +	refcount_inc(&task->refcount);
-> >  }
-> >  EXPORT_SYMBOL_GPL(__iscsi_get_task);
-> >
-> >  void __iscsi_put_task(struct iscsi_task *task)
-> >  {
-> > -	if (atomic_dec_and_test(&task->refcount))
-> > +	if (refcount_dec_and_test(&task->refcount))
-> >  		iscsi_free_task(task);
-> >  }
-> >  EXPORT_SYMBOL_GPL(__iscsi_put_task);
-> > @@ -744,7 +744,7 @@ __iscsi_conn_send_pdu(struct iscsi_conn *conn, struct
-> iscsi_hdr *hdr,
-> >  	 * released by the lld when it has transmitted the task for
-> >  	 * pdus we do not expect a response for.
-> >  	 */
-> > -	atomic_set(&task->refcount, 1);
-> > +	refcount_set(&task->refcount, 1);
-> >  	task->conn = conn;
-> >  	task->sc = NULL;
-> >  	INIT_LIST_HEAD(&task->running);
-> > @@ -1616,7 +1616,7 @@ static inline struct iscsi_task *iscsi_alloc_task(struct
-> iscsi_conn *conn,
-> >  	sc->SCp.phase = conn->session->age;
-> >  	sc->SCp.ptr = (char *) task;
-> >
-> > -	atomic_set(&task->refcount, 1);
-> > +	refcount_set(&task->refcount, 1);
-> >  	task->state = ISCSI_TASK_PENDING;
-> >  	task->conn = conn;
-> >  	task->sc = sc;
-> > diff --git a/drivers/scsi/qedi/qedi_iscsi.c b/drivers/scsi/qedi/qedi_iscsi.c
-> > index b9f79d3..3895bd5 100644
-> > --- a/drivers/scsi/qedi/qedi_iscsi.c
-> > +++ b/drivers/scsi/qedi/qedi_iscsi.c
-> > @@ -1372,7 +1372,7 @@ static void qedi_cleanup_task(struct iscsi_task *task)
-> >  {
-> >  	if (!task->sc || task->state == ISCSI_TASK_PENDING) {
-> >  		QEDI_INFO(NULL, QEDI_LOG_IO, "Returning
-> ref_cnt=%d\n",
-> > -			  atomic_read(&task->refcount));
-> > +			  refcount_read(&task->refcount));
-> >  		return;
-> >  	}
-> >
-> > diff --git a/include/scsi/libiscsi.h b/include/scsi/libiscsi.h
-> > index b0e275d..24d74b5 100644
-> > --- a/include/scsi/libiscsi.h
-> > +++ b/include/scsi/libiscsi.h
-> > @@ -29,6 +29,7 @@
-> >  #include <linux/timer.h>
-> >  #include <linux/workqueue.h>
-> >  #include <linux/kfifo.h>
-> > +#include <linux/refcount.h>
-> >  #include <scsi/iscsi_proto.h>
-> >  #include <scsi/iscsi_if.h>
-> >  #include <scsi/scsi_transport_iscsi.h>
-> > @@ -139,7 +140,7 @@ struct iscsi_task {
-> >
-> >  	/* state set/tested under session->lock */
-> >  	int			state;
-> > -	atomic_t		refcount;
-> > +	refcount_t		refcount;
-> >  	struct list_head	running;	/* running cmd list */
-> >  	void			*dd_data;	/*
-> driver/transport data */
-> >  };
-> > --
-> > 2.7.4
-> >
+--=20
+Alexander Potapenko
+Software Engineer
+
+Google Germany GmbH
+Erika-Mann-Stra=C3=9Fe, 33
+80636 M=C3=BCnchen
+
+Gesch=C3=A4ftsf=C3=BChrer: Matthew Scott Sucherman, Paul Terence Manicle
+Registergericht und -nummer: Hamburg, HRB 86891
+Sitz der Gesellschaft: Hamburg
