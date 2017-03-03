@@ -1,230 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:43080 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933137AbdCaMUw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Mar 2017 08:20:52 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Patrice.chotard@st.com, Hans Verkuil <hans.verkuil@cisco.com>,
-        devicetree@vger.kernel.org
-Subject: [PATCHv6 09/10] stih-cec: add CEC notifier support
-Date: Fri, 31 Mar 2017 14:20:35 +0200
-Message-Id: <20170331122036.55706-10-hverkuil@xs4all.nl>
-In-Reply-To: <20170331122036.55706-1-hverkuil@xs4all.nl>
-References: <20170331122036.55706-1-hverkuil@xs4all.nl>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40402 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751571AbdCCQht (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 11:37:49 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org
+Cc: Laura Abbott <labbott@redhat.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com,
+        devel@driverdev.osuosl.org, romlem@google.com,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-kernel@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+        linux-mm@kvack.org, Mark Brown <broonie@kernel.org>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 04/12] staging: android: ion: Call dma_map_sg for syncing and mapping
+Date: Fri, 03 Mar 2017 18:37:47 +0200
+Message-ID: <1842876.9VofhAIJSQ@avalon>
+In-Reply-To: <1488491084-17252-5-git-send-email-labbott@redhat.com>
+References: <1488491084-17252-1-git-send-email-labbott@redhat.com> <1488491084-17252-5-git-send-email-labbott@redhat.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Hi Laura,
 
-By using the CEC notifier framework there is no longer any reason
-to manually set the physical address. This was the one blocking
-issue that prevented this driver from going out of staging, so do
-this move as well.
+Thank you for the patch.
 
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-CC: devicetree@vger.kernel.org
----
- drivers/media/platform/Kconfig                     | 10 +++++++
- drivers/media/platform/Makefile                    |  1 +
- .../st-cec => media/platform/sti/cec}/Makefile     |  0
- .../st-cec => media/platform/sti/cec}/stih-cec.c   | 31 +++++++++++++++++++---
- drivers/staging/media/Kconfig                      |  2 --
- drivers/staging/media/Makefile                     |  1 -
- drivers/staging/media/st-cec/Kconfig               |  8 ------
- drivers/staging/media/st-cec/TODO                  |  7 -----
- 8 files changed, 39 insertions(+), 21 deletions(-)
- rename drivers/{staging/media/st-cec => media/platform/sti/cec}/Makefile (100%)
- rename drivers/{staging/media/st-cec => media/platform/sti/cec}/stih-cec.c (93%)
- delete mode 100644 drivers/staging/media/st-cec/Kconfig
- delete mode 100644 drivers/staging/media/st-cec/TODO
+On Thursday 02 Mar 2017 13:44:36 Laura Abbott wrote:
+> Technically, calling dma_buf_map_attachment should return a buffer
+> properly dma_mapped. Add calls to dma_map_sg to begin_cpu_access to
+> ensure this happens. As a side effect, this lets Ion buffers take
+> advantage of the dma_buf sync ioctls.
+> 
+> Signed-off-by: Laura Abbott <labbott@redhat.com>
+> ---
+>  drivers/staging/android/ion/ion.c | 101 +++++++++++++++++------------------
+>  1 file changed, 50 insertions(+), 51 deletions(-)
+> 
+> diff --git a/drivers/staging/android/ion/ion.c
+> b/drivers/staging/android/ion/ion.c index ce4adac..a931b30 100644
+> --- a/drivers/staging/android/ion/ion.c
+> +++ b/drivers/staging/android/ion/ion.c
+> @@ -795,10 +795,6 @@ void ion_client_destroy(struct ion_client *client)
+>  }
+>  EXPORT_SYMBOL(ion_client_destroy);
+> 
+> -static void ion_buffer_sync_for_device(struct ion_buffer *buffer,
+> -				       struct device *dev,
+> -				       enum dma_data_direction direction);
+> -
+>  static struct sg_table *dup_sg_table(struct sg_table *table)
+>  {
+>  	struct sg_table *new_table;
+> @@ -825,22 +821,43 @@ static struct sg_table *dup_sg_table(struct sg_table
+> *table) return new_table;
+>  }
+> 
+> +static void free_duped_table(struct sg_table *table)
+> +{
+> +	sg_free_table(table);
+> +	kfree(table);
+> +}
+> +
+>  static struct sg_table *ion_map_dma_buf(struct dma_buf_attachment
+> *attachment, enum dma_data_direction direction)
+>  {
+>  	struct dma_buf *dmabuf = attachment->dmabuf;
+>  	struct ion_buffer *buffer = dmabuf->priv;
+> +	struct sg_table *table;
+> +	int ret;
+> +
+> +	/*
+> +	 * TODO: Need to sync wrt CPU or device completely owning?
+> +	 */
+> +
+> +	table = dup_sg_table(buffer->sg_table);
+> 
+> -	ion_buffer_sync_for_device(buffer, attachment->dev, direction);
+> -	return dup_sg_table(buffer->sg_table);
+> +	if (!dma_map_sg(attachment->dev, table->sgl, table->nents,
+> +			direction)){
+> +		ret = -ENOMEM;
+> +		goto err;
+> +	}
+> +
+> +err:
+> +	free_duped_table(table);
+> +	return ERR_PTR(ret);
+>  }
+> 
+>  static void ion_unmap_dma_buf(struct dma_buf_attachment *attachment,
+>  			      struct sg_table *table,
+>  			      enum dma_data_direction direction)
+>  {
+> -	sg_free_table(table);
+> -	kfree(table);
+> +	dma_unmap_sg(attachment->dev, table->sgl, table->nents, direction);
+> +	free_duped_table(table);
+>  }
+> 
+>  void ion_pages_sync_for_device(struct device *dev, struct page *page,
+> @@ -864,38 +881,6 @@ struct ion_vma_list {
+>  	struct vm_area_struct *vma;
+>  };
+> 
+> -static void ion_buffer_sync_for_device(struct ion_buffer *buffer,
+> -				       struct device *dev,
+> -				       enum dma_data_direction dir)
+> -{
+> -	struct ion_vma_list *vma_list;
+> -	int pages = PAGE_ALIGN(buffer->size) / PAGE_SIZE;
+> -	int i;
+> -
+> -	pr_debug("%s: syncing for device %s\n", __func__,
+> -		 dev ? dev_name(dev) : "null");
+> -
+> -	if (!ion_buffer_fault_user_mappings(buffer))
+> -		return;
+> -
+> -	mutex_lock(&buffer->lock);
+> -	for (i = 0; i < pages; i++) {
+> -		struct page *page = buffer->pages[i];
+> -
+> -		if (ion_buffer_page_is_dirty(page))
+> -			ion_pages_sync_for_device(dev, ion_buffer_page(page),
+> -						  PAGE_SIZE, dir);
+> -
+> -		ion_buffer_page_clean(buffer->pages + i);
+> -	}
+> -	list_for_each_entry(vma_list, &buffer->vmas, list) {
+> -		struct vm_area_struct *vma = vma_list->vma;
+> -
+> -		zap_page_range(vma, vma->vm_start, vma->vm_end - vma-
+>vm_start);
+> -	}
+> -	mutex_unlock(&buffer->lock);
+> -}
+> -
+>  static int ion_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+>  {
+>  	struct ion_buffer *buffer = vma->vm_private_data;
+> @@ -1014,16 +999,24 @@ static int ion_dma_buf_begin_cpu_access(struct
+> dma_buf *dmabuf, struct ion_buffer *buffer = dmabuf->priv;
+>  	void *vaddr;
+> 
+> -	if (!buffer->heap->ops->map_kernel) {
+> -		pr_err("%s: map kernel is not implemented by this heap.\n",
+> -		       __func__);
+> -		return -ENODEV;
+> +	/*
+> +	 * TODO: Move this elsewhere because we don't always need a vaddr
+> +	 */
+> +	if (buffer->heap->ops->map_kernel) {
+> +		mutex_lock(&buffer->lock);
+> +		vaddr = ion_buffer_kmap_get(buffer);
+> +		mutex_unlock(&buffer->lock);
+>  	}
+> 
+> -	mutex_lock(&buffer->lock);
+> -	vaddr = ion_buffer_kmap_get(buffer);
+> -	mutex_unlock(&buffer->lock);
+> -	return PTR_ERR_OR_ZERO(vaddr);
+> +	/*
+> +	 * Close enough right now? Flag to skip sync?
+> +	 */
+> +	if (!dma_map_sg(buffer->dev->dev.this_device, buffer->sg_table->sgl,
+> +			buffer->sg_table->nents,
+> +                        DMA_BIDIRECTIONAL))
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 2c449b88fc94..7321f6123659 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -476,6 +476,16 @@ config VIDEO_SAMSUNG_S5P_CEC
-          CEC bus is present in the HDMI connector and enables communication
-          between compatible devices.
- 
-+config VIDEO_STI_HDMI_CEC
-+       tristate "STMicroelectronics STiH4xx HDMI CEC driver"
-+       depends on VIDEO_DEV && MEDIA_CEC_SUPPORT && (ARCH_STI || COMPILE_TEST)
-+       select MEDIA_CEC_NOTIFIER
-+       ---help---
-+         This is a driver for STIH4xx HDMI CEC interface. It uses the
-+         generic CEC framework interface.
-+         CEC bus is present in the HDMI connector and enables communication
-+         between compatible devices.
-+
- endif #V4L_CEC_DRIVERS
- 
- menuconfig V4L_TEST_DRIVERS
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 2f94d82afa4c..940724ab9b70 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -39,6 +39,7 @@ obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC)	+= exynos-gsc/
- obj-$(CONFIG_VIDEO_STI_BDISP)		+= sti/bdisp/
- obj-$(CONFIG_VIDEO_STI_HVA)		+= sti/hva/
- obj-$(CONFIG_DVB_C8SECTPFE)		+= sti/c8sectpfe/
-+obj-$(CONFIG_VIDEO_STI_HDMI_CEC) 	+= sti/cec/
- 
- obj-$(CONFIG_VIDEO_STI_DELTA)		+= sti/delta/
- 
-diff --git a/drivers/staging/media/st-cec/Makefile b/drivers/media/platform/sti/cec/Makefile
-similarity index 100%
-rename from drivers/staging/media/st-cec/Makefile
-rename to drivers/media/platform/sti/cec/Makefile
-diff --git a/drivers/staging/media/st-cec/stih-cec.c b/drivers/media/platform/sti/cec/stih-cec.c
-similarity index 93%
-rename from drivers/staging/media/st-cec/stih-cec.c
-rename to drivers/media/platform/sti/cec/stih-cec.c
-index 3c25638a9610..636281c64c04 100644
---- a/drivers/staging/media/st-cec/stih-cec.c
-+++ b/drivers/media/platform/sti/cec/stih-cec.c
-@@ -1,6 +1,4 @@
- /*
-- * drivers/staging/media/st-cec/stih-cec.c
-- *
-  * STIH4xx CEC driver
-  * Copyright (C) STMicroelectronic SA 2016
-  *
-@@ -15,9 +13,11 @@
- #include <linux/mfd/syscon.h>
- #include <linux/module.h>
- #include <linux/of.h>
-+#include <linux/of_platform.h>
- #include <linux/platform_device.h>
- 
- #include <media/cec.h>
-+#include <media/cec-notifier.h>
- 
- #define CEC_NAME	"stih-cec"
- 
-@@ -129,6 +129,7 @@ struct stih_cec {
- 	void __iomem		*regs;
- 	int			irq;
- 	u32			irq_status;
-+	struct cec_notifier	*notifier;
- };
- 
- static int stih_cec_adap_enable(struct cec_adapter *adap, bool enable)
-@@ -303,12 +304,29 @@ static int stih_cec_probe(struct platform_device *pdev)
- 	struct device *dev = &pdev->dev;
- 	struct resource *res;
- 	struct stih_cec *cec;
-+	struct device_node *np;
-+	struct platform_device *hdmi_dev;
- 	int ret;
- 
- 	cec = devm_kzalloc(dev, sizeof(*cec), GFP_KERNEL);
- 	if (!cec)
- 		return -ENOMEM;
- 
-+	np = of_parse_phandle(pdev->dev.of_node, "hdmi-phandle", 0);
-+
-+	if (!np) {
-+		dev_err(&pdev->dev, "Failed to find hdmi node in device tree\n");
-+		return -ENODEV;
-+	}
-+
-+	hdmi_dev = of_find_device_by_node(np);
-+	if (!hdmi_dev)
-+		return -EPROBE_DEFER;
-+
-+	cec->notifier = cec_notifier_get(&hdmi_dev->dev);
-+	if (!cec->notifier)
-+		return -ENOMEM;
-+
- 	cec->dev = dev;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-@@ -335,7 +353,7 @@ static int stih_cec_probe(struct platform_device *pdev)
- 	cec->adap = cec_allocate_adapter(&sti_cec_adap_ops, cec,
- 			CEC_NAME,
- 			CEC_CAP_LOG_ADDRS | CEC_CAP_PASSTHROUGH |
--			CEC_CAP_PHYS_ADDR | CEC_CAP_TRANSMIT, 1);
-+			CEC_CAP_TRANSMIT, 1);
- 	ret = PTR_ERR_OR_ZERO(cec->adap);
- 	if (ret)
- 		return ret;
-@@ -346,12 +364,19 @@ static int stih_cec_probe(struct platform_device *pdev)
- 		return ret;
- 	}
- 
-+	cec_register_cec_notifier(cec->adap, cec->notifier);
-+
- 	platform_set_drvdata(pdev, cec);
- 	return 0;
- }
- 
- static int stih_cec_remove(struct platform_device *pdev)
- {
-+	struct stih_cec *cec = platform_get_drvdata(pdev);
-+
-+	cec_unregister_adapter(cec->adap);
-+	cec_notifier_put(cec->notifier);
-+
- 	return 0;
- }
- 
-diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
-index c0d83cecf528..8ed8202da57a 100644
---- a/drivers/staging/media/Kconfig
-+++ b/drivers/staging/media/Kconfig
-@@ -32,6 +32,4 @@ source "drivers/staging/media/platform/bcm2835/Kconfig"
- # Keep LIRC at the end, as it has sub-menus
- source "drivers/staging/media/lirc/Kconfig"
- 
--source "drivers/staging/media/st-cec/Kconfig"
--
- endif
-diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
-index 97b29ece9a2c..3a6adeabede1 100644
---- a/drivers/staging/media/Makefile
-+++ b/drivers/staging/media/Makefile
-@@ -4,4 +4,3 @@ obj-$(CONFIG_LIRC_STAGING)	+= lirc/
- obj-$(CONFIG_VIDEO_BCM2835)	+= platform/bcm2835/
- obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
- obj-$(CONFIG_VIDEO_OMAP4)	+= omap4iss/
--obj-$(CONFIG_VIDEO_STI_HDMI_CEC) += st-cec/
-diff --git a/drivers/staging/media/st-cec/Kconfig b/drivers/staging/media/st-cec/Kconfig
-deleted file mode 100644
-index c04283db58d6..000000000000
---- a/drivers/staging/media/st-cec/Kconfig
-+++ /dev/null
-@@ -1,8 +0,0 @@
--config VIDEO_STI_HDMI_CEC
--       tristate "STMicroelectronics STiH4xx HDMI CEC driver"
--       depends on VIDEO_DEV && MEDIA_CEC_SUPPORT && (ARCH_STI || COMPILE_TEST)
--       ---help---
--         This is a driver for STIH4xx HDMI CEC interface. It uses the
--         generic CEC framework interface.
--         CEC bus is present in the HDMI connector and enables communication
--         between compatible devices.
-diff --git a/drivers/staging/media/st-cec/TODO b/drivers/staging/media/st-cec/TODO
-deleted file mode 100644
-index c61289742c5c..000000000000
---- a/drivers/staging/media/st-cec/TODO
-+++ /dev/null
-@@ -1,7 +0,0 @@
--This driver requires that userspace sets the physical address.
--However, this should be passed on from the corresponding
--ST HDMI driver.
--
--We have to wait until the HDMI notifier framework has been merged
--in order to handle this gracefully, until that time this driver
--has to remain in staging.
+Aren't the dma_(un)map_* calls supposed to take a real, physical device as 
+their first argument ? Beside, this doesn't seem to be the right place to 
+create the mapping, as you mentioned in the commit message the buffer should 
+be mapped in the dma_buf map handler. This is something that needs to be 
+fixed, especially in the light of the comment in ion_buffer_create():
+
+        /*
+         * this will set up dma addresses for the sglist -- it is not
+         * technically correct as per the dma api -- a specific
+         * device isn't really taking ownership here.  However, in practice on
+         * our systems the only dma_address space is physical addresses.
+         * Additionally, we can't afford the overhead of invalidating every
+         * allocation via dma_map_sg. The implicit contract here is that
+         * memory coming from the heaps is ready for dma, ie if it has a
+         * cached mapping that mapping has been invalidated
+         */
+
+That's a showstopper in my opinion, the DMA address space can't be restricted 
+to physical addresses, IOMMU have to be supported.
+
+> +		return -ENOMEM;
+> +
+> +	return 0;
+>  }
+> 
+>  static int ion_dma_buf_end_cpu_access(struct dma_buf *dmabuf,
+> @@ -1031,9 +1024,15 @@ static int ion_dma_buf_end_cpu_access(struct dma_buf
+> *dmabuf, {
+>  	struct ion_buffer *buffer = dmabuf->priv;
+> 
+> -	mutex_lock(&buffer->lock);
+> -	ion_buffer_kmap_put(buffer);
+> -	mutex_unlock(&buffer->lock);
+> +	if (buffer->heap->ops->map_kernel) {
+> +		mutex_lock(&buffer->lock);
+> +		ion_buffer_kmap_put(buffer);
+> +		mutex_unlock(&buffer->lock);
+> +	}
+> +
+> +	dma_unmap_sg(buffer->dev->dev.this_device, buffer->sg_table->sgl,
+> +			buffer->sg_table->nents,
+> +			DMA_BIDIRECTIONAL);
+> 
+>  	return 0;
+>  }
+
 -- 
-2.11.0
+Regards,
+
+Laurent Pinchart
