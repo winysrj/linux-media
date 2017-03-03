@@ -1,101 +1,214 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:56517 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751242AbdCQSuZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Mar 2017 14:50:25 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
-        Johannes Thumshirn <jthumshirn@suse.de>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Cyrille Pitchen <cyrille.pitchen@atmel.com>
-Cc: linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org,
-        rtc-linux@googlegroups.com, linux-mtd@lists.infradead.org,
-        linux-media@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Logan Gunthorpe <logang@deltatee.com>
-Date: Fri, 17 Mar 2017 12:48:12 -0600
-Message-Id: <1489776503-3151-6-git-send-email-logang@deltatee.com>
-In-Reply-To: <1489776503-3151-1-git-send-email-logang@deltatee.com>
-References: <1489776503-3151-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v5 05/16] gpiolib: utilize new cdev_device_add helper function
+Received: from galahad.ideasonboard.com ([185.26.127.97]:36560 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750753AbdCCFOi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 00:14:38 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org
+Subject: Re: [RFC PATCH 2/3] v4l: vsp1: extend VSP1 module API to allow DRM callback registration
+Date: Fri, 03 Mar 2017 04:11:09 +0200
+Message-ID: <2628026.T8y166ePVA@avalon>
+In-Reply-To: <b150930211d305da848eed1346e2258340cfbc8b.1488373517.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.79abe454b4a405227fcacc23f1b6ba624ee99cf0.1488373517.git-series.kieran.bingham+renesas@ideasonboard.com> <b150930211d305da848eed1346e2258340cfbc8b.1488373517.git-series.kieran.bingham+renesas@ideasonboard.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the open coded registration of the cdev and dev with the
-new device_add_cdev() helper. The helper replaces a common pattern by
-taking the proper reference against the parent device and adding both
-the cdev and the device.
+Hi Kieran,
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
----
- drivers/gpio/gpiolib.c | 23 ++++++++---------------
- 1 file changed, 8 insertions(+), 15 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-index 8b4d721..3ce2a27 100644
---- a/drivers/gpio/gpiolib.c
-+++ b/drivers/gpio/gpiolib.c
-@@ -1035,18 +1035,14 @@ static int gpiochip_setup_dev(struct gpio_device *gdev)
- 
- 	cdev_init(&gdev->chrdev, &gpio_fileops);
- 	gdev->chrdev.owner = THIS_MODULE;
--	gdev->chrdev.kobj.parent = &gdev->dev.kobj;
- 	gdev->dev.devt = MKDEV(MAJOR(gpio_devt), gdev->id);
--	status = cdev_add(&gdev->chrdev, gdev->dev.devt, 1);
--	if (status < 0)
--		chip_warn(gdev->chip, "failed to add char device %d:%d\n",
--			  MAJOR(gpio_devt), gdev->id);
--	else
--		chip_dbg(gdev->chip, "added GPIO chardev (%d:%d)\n",
--			 MAJOR(gpio_devt), gdev->id);
--	status = device_add(&gdev->dev);
-+
-+	status = cdev_device_add(&gdev->chrdev, &gdev->dev);
- 	if (status)
--		goto err_remove_chardev;
-+		return status;
-+
-+	chip_dbg(gdev->chip, "added GPIO chardev (%d:%d)\n",
-+		 MAJOR(gpio_devt), gdev->id);
- 
- 	status = gpiochip_sysfs_register(gdev);
- 	if (status)
-@@ -1061,9 +1057,7 @@ static int gpiochip_setup_dev(struct gpio_device *gdev)
- 	return 0;
- 
- err_remove_device:
--	device_del(&gdev->dev);
--err_remove_chardev:
--	cdev_del(&gdev->chrdev);
-+	cdev_device_del(&gdev->chrdev, &gdev->dev);
- 	return status;
- }
- 
-@@ -1347,8 +1341,7 @@ void gpiochip_remove(struct gpio_chip *chip)
- 	 * be removed, else it will be dangling until the last user is
- 	 * gone.
- 	 */
--	cdev_del(&gdev->chrdev);
--	device_del(&gdev->dev);
-+	cdev_device_del(&gdev->chrdev, &gdev->dev);
- 	put_device(&gdev->dev);
- }
- EXPORT_SYMBOL_GPL(gpiochip_remove);
+On Wednesday 01 Mar 2017 13:12:55 Kieran Bingham wrote:
+> To be able to perform page flips in DRM without flicker we need to be
+> able to notify the rcar-du module when the VSP has completed its
+> processing.
+> 
+> To synchronise the page flip events for userspace, we move the required
+> event through the VSP to track the data flow. When the frame is
+> completed, the event can be returned back to the originator through the
+> registered callback.
+> 
+> We must not have bidirectional dependencies on the two components to
+> maintain support for loadable modules, thus we extend the API to allow
+> a callback to be registered within the VSP DRM interface.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> ---
+>  drivers/gpu/drm/rcar-du/rcar_du_vsp.c  |  2 +-
+>  drivers/media/platform/vsp1/vsp1_drm.c | 42 +++++++++++++++++++++++++--
+>  drivers/media/platform/vsp1/vsp1_drm.h | 12 ++++++++-
+>  include/media/vsp1.h                   |  6 +++-
+>  4 files changed, 58 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+> b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c index b5bfbe50bd87..71e70e1e0881
+> 100644
+> --- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+> +++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+> @@ -81,7 +81,7 @@ void rcar_du_vsp_atomic_begin(struct rcar_du_crtc *crtc)
+> 
+>  void rcar_du_vsp_atomic_flush(struct rcar_du_crtc *crtc)
+>  {
+> -	vsp1_du_atomic_flush(crtc->vsp->vsp);
+> +	vsp1_du_atomic_flush(crtc->vsp->vsp, NULL);
+>  }
+> 
+>  /* Keep the two tables in sync. */
+> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
+> b/drivers/media/platform/vsp1/vsp1_drm.c index 8e2aa3f8e52f..743cbce48d0c
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drm.c
+> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+> @@ -52,6 +52,40 @@ int vsp1_du_init(struct device *dev)
+>  EXPORT_SYMBOL_GPL(vsp1_du_init);
+> 
+>  /**
+> + * vsp1_du_register_callback - Register VSP completion notifier callback
+> + *
+> + * Allow the DRM framework to register a callback with us to notify the end
+> of + * processing each frame. This allows synchronisation for page
+> flipping. + *
+> + * @dev: the VSP device
+> + * @callback: the callback function to notify the DU module
+> + * @private: private structure data to pass with the callback
+> + *
+> + */
+> +void vsp1_du_register_callback(struct device *dev,
+> +			       void (*callback)(void *, void *),
+> +			       void *private)
+> +{
+> +	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
+> +
+> +	vsp1->drm->du_complete = callback;
+> +	vsp1->drm->du_private = private;
+> +}
+> +EXPORT_SYMBOL_GPL(vsp1_du_register_callback);
+
+As they're not supposed to change at runtime while the display is running, how 
+about passing the callback and private data pointer to the vsp1_du_setup_lif() 
+function ? Feel free to create a structure for all the parameters passed to 
+the function if you think we'll have too much (which would, as a side effect, 
+made updates to the API easier in the future as changes to the two subsystems 
+will be easier to decouple).
+
+> +static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe)
+> +{
+> +	struct vsp1_drm *drm = to_vsp1_drm(pipe);
+> +
+> +	if (drm->du_complete && drm->active_data)
+> +		drm->du_complete(drm->du_private, drm->active_data);
+> +
+> +	/* The pending frame is now active */
+> +	drm->active_data = drm->pending_data;
+> +	drm->pending_data = NULL;
+> +}
+
+I would move this function to the "Interrupt Handling" section.
+
+> +/**
+>   * vsp1_du_setup_lif - Setup the output part of the VSP pipeline
+>   * @dev: the VSP device
+>   * @width: output frame width in pixels
+> @@ -99,7 +133,8 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int
+> width, }
+> 
+>  		pipe->num_inputs = 0;
+> -
+> +		pipe->frame_end = NULL;
+
+You can drop this if ...
+
+> +		vsp1->drm->du_complete = NULL;
+>  		vsp1_dlm_reset(pipe->output->dlm);
+>  		vsp1_device_put(vsp1);
+> 
+> @@ -196,6 +231,8 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int
+> width, if (ret < 0)
+>  		return ret;
+> 
+> +	pipe->frame_end = vsp1_du_pipeline_frame_end;
+> +
+
+... you move this to vsp1_drm_init().
+
+>  	ret = media_entity_pipeline_start(&pipe->output->entity.subdev.entity,
+>  					  &pipe->pipe);
+>  	if (ret < 0) {
+> @@ -420,7 +457,7 @@ static unsigned int rpf_zpos(struct vsp1_device *vsp1,
+> struct vsp1_rwpf *rpf) * vsp1_du_atomic_flush - Commit an atomic update
+>   * @dev: the VSP device
+>   */
+> -void vsp1_du_atomic_flush(struct device *dev)
+> +void vsp1_du_atomic_flush(struct device *dev, void *data)
+>  {
+>  	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
+>  	struct vsp1_pipeline *pipe = &vsp1->drm->pipe;
+> @@ -504,6 +541,7 @@ void vsp1_du_atomic_flush(struct device *dev)
+> 
+>  	vsp1_dl_list_commit(pipe->dl);
+>  	pipe->dl = NULL;
+> +	vsp1->drm->pending_data = data;
+> 
+>  	/* Start or stop the pipeline if needed. */
+>  	if (!vsp1->drm->num_inputs && pipe->num_inputs) {
+> diff --git a/drivers/media/platform/vsp1/vsp1_drm.h
+> b/drivers/media/platform/vsp1/vsp1_drm.h index 9e28ab9254ba..fde19e5948a0
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drm.h
+> +++ b/drivers/media/platform/vsp1/vsp1_drm.h
+> @@ -33,8 +33,20 @@ struct vsp1_drm {
+>  		struct v4l2_rect compose;
+>  		unsigned int zpos;
+>  	} inputs[VSP1_MAX_RPF];
+> +
+> +	/* Frame syncronisation */
+> +	void (*du_complete)(void *, void *);
+> +	void *du_private;
+> +	void *pending_data;
+> +	void *active_data;
+>  };
+> 
+> +static inline struct vsp1_drm *
+> +to_vsp1_drm(struct vsp1_pipeline *pipe)
+
+No need for a line split.
+
+> +{
+> +	return container_of(pipe, struct vsp1_drm, pipe);
+> +}
+> +
+>  int vsp1_drm_init(struct vsp1_device *vsp1);
+>  void vsp1_drm_cleanup(struct vsp1_device *vsp1);
+>  int vsp1_drm_create_links(struct vsp1_device *vsp1);
+> diff --git a/include/media/vsp1.h b/include/media/vsp1.h
+> index 458b400373d4..f82fbab01f21 100644
+> --- a/include/media/vsp1.h
+> +++ b/include/media/vsp1.h
+> @@ -20,6 +20,10 @@ struct device;
+> 
+>  int vsp1_du_init(struct device *dev);
+> 
+> +void vsp1_du_register_callback(struct device *dev,
+> +			       void (*callback)(void *, void *),
+> +			       void *private);
+> +
+>  int vsp1_du_setup_lif(struct device *dev, unsigned int width,
+>  		      unsigned int height);
+> 
+> @@ -36,6 +40,6 @@ struct vsp1_du_atomic_config {
+>  void vsp1_du_atomic_begin(struct device *dev);
+>  int vsp1_du_atomic_update(struct device *dev, unsigned int rpf,
+>  			  const struct vsp1_du_atomic_config *cfg);
+> -void vsp1_du_atomic_flush(struct device *dev);
+> +void vsp1_du_atomic_flush(struct device *dev, void *data);
+> 
+>  #endif /* __MEDIA_VSP1_H__ */
+
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
