@@ -1,168 +1,224 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:52959 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932262AbdCIPkU (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:57811 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751518AbdCCMb6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 9 Mar 2017 10:40:20 -0500
-Subject: Re: [PATCH] [media] v4l2-dv-timings: Introduce v4l2_calc_fps()
-To: Jose Abreu <Jose.Abreu@synopsys.com>, linux-media@vger.kernel.org
-References: <94397052765d1f6d84dc7edac65f906b09890871.1488905139.git.joabreu@synopsys.com>
- <4f598aba-3002-eeb5-1cad-d4dff4553644@xs4all.nl>
- <8bc4a61a-5b5d-2233-741a-bbf44fc5f009@synopsys.com>
-Cc: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>,
-        linux-kernel@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <908807fd-5b1c-4fb1-d24a-a8d7bd06a3b9@xs4all.nl>
-Date: Thu, 9 Mar 2017 16:40:14 +0100
-MIME-Version: 1.0
-In-Reply-To: <8bc4a61a-5b5d-2233-741a-bbf44fc5f009@synopsys.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Fri, 3 Mar 2017 07:31:58 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>,
+        Lucas Stach <l.stach@pengutronix.de>
+Subject: [PATCH 4/4] [media] coda: disable reordering for baseline profile h.264 streams
+Date: Fri,  3 Mar 2017 13:12:50 +0100
+Message-Id: <20170303121250.13693-4-p.zabel@pengutronix.de>
+In-Reply-To: <20170303121250.13693-1-p.zabel@pengutronix.de>
+References: <20170303121250.13693-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/03/17 16:15, Jose Abreu wrote:
-> Hi Hans,
-> 
-> 
-> Thanks for the review!
-> 
-> 
-> On 09-03-2017 12:29, Hans Verkuil wrote:
->> On 07/03/17 17:48, Jose Abreu wrote:
->>> HDMI Receivers receive video modes which, according to
->>> CEA specification, can have different frames per second
->>> (fps) values.
->>>
->>> This patch introduces a helper function in the media core
->>> which can calculate the expected video mode fps given the
->>> pixel clock value and the horizontal/vertical values. HDMI
->>> video receiver drivers are expected to use this helper so
->>> that they can correctly fill the v4l2_streamparm structure
->>> which is requested by vidioc_g_parm callback.
->>>
->>> We could also use a lookup table for this but it wouldn't
->>> correctly handle 60Hz vs 59.94Hz situations as this all
->>> depends on the pixel clock value.
->>>
->>> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
->>> Cc: Carlos Palminha <palminha@synopsys.com>
->>> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
->>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->>> Cc: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
->>> Cc: linux-media@vger.kernel.org
->>> Cc: linux-kernel@vger.kernel.org
->>> ---
->>>  drivers/media/v4l2-core/v4l2-dv-timings.c | 29 +++++++++++++++++++++++++++++
->>>  include/media/v4l2-dv-timings.h           |  8 ++++++++
->>>  2 files changed, 37 insertions(+)
->>>
->>> diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
->>> index 5c8c49d..19946c6 100644
->>> --- a/drivers/media/v4l2-core/v4l2-dv-timings.c
->>> +++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
->>> @@ -814,3 +814,32 @@ struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait)
->>>  	return aspect;
->>>  }
->>>  EXPORT_SYMBOL_GPL(v4l2_calc_aspect_ratio);
->>> +
->>> +struct v4l2_fract v4l2_calc_fps(const struct v4l2_dv_timings *t)
->>> +{
->>> +	const struct v4l2_bt_timings *bt = &t->bt;
->>> +	struct v4l2_fract fps_fract = { 1, 1 };
->>> +	unsigned long n, d;
->>> +	unsigned long mask = GENMASK(BITS_PER_LONG - 1, 0);
->> This is wrong since v4l2_fract uses u32, and LONG can be 64 bits.
-> 
-> Yes, its wrong. I will remove the variable and just use fps, 100
-> instead of mask, mask.
-> 
->>
->>> +	u32 htot, vtot, fps;
->>> +	u64 pclk;
->>> +
->>> +	if (t->type != V4L2_DV_BT_656_1120)
->>> +		return fps_fract;
->>> +
->>> +	htot = V4L2_DV_BT_FRAME_WIDTH(bt);
->>> +	vtot = V4L2_DV_BT_FRAME_HEIGHT(bt);
->>> +	pclk = bt->pixelclock;
->>> +	if (bt->interlaced)
->>> +		htot /= 2;
->> This can be dropped. This is the timeperframe, not timeperfield. So for interleaved
->> formats the time is that of two fields (aka one frame).
-> 
-> Ok, but then there is something not correct in
-> v4l2_dv_timings_presets structure field values because I get
-> wrong results in double clocked modes. I checked the definition
-> and the modes that are double clocked are defined with half the
-> clock, i.e., V4L2_DV_BT_CEA_720X480I59_94 is defined with a pixel
-> clock of 13.5MHz but in CEA spec this mode is defined with pixel
-> clock of 27MHz.
+With reordering enabled, the sequence init in CODA960 firmware requests an
+unreasonable number of internal frames for some baseline profile streams.
+Disabling the reordering feature manually if baseline streams are detected
+fixes this problem.
 
-It's defined in the CEA spec as 1440x480 which is the double clocked
-version of 720x480.
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-bit.c    | 44 ++++++++++++++++++++-
+ drivers/media/platform/coda/coda-common.c | 12 ++++++
+ drivers/media/platform/coda/coda-h264.c   | 63 +++++++++++++++++++++++++++++++
+ drivers/media/platform/coda/coda.h        |  5 +++
+ 4 files changed, 122 insertions(+), 2 deletions(-)
 
-The presets are defined without any pixel repeating. In fact, no driver
-that is in the kernel today supports pixel repeating. Mostly because there was
-never any need since almost nobody uses resolutions that require this.
-
-If you decide to add support for this, then it would not surprise me if
-some of the core dv-timings support needs to be adjusted.
-
-To be honest, I never spent time digging into the pixel repeating details,
-so I am not an expert on this at all.
-
-> 
->>
->>> +
->>> +	fps = (htot * vtot) > 0 ? div_u64((100 * pclk), (htot * vtot)) : 0;
->>> +
->>> +	rational_best_approximation(fps, 100, mask, mask, &n, &d);
->> I think you can just use fps, 100 instead of mask, mask.
->>
->> What is returned if fps == 0?
-> 
-> I will add a check for this.
-> 
->>
->> I don't have a problem as such with this function, but just be aware that the
->> pixelclock is never precise: there are HDMI receivers that are unable to report
->> the pixelclock with enough precision to even detect if it is 60 vs 59.94 Hz.
->>
->> And even for those that can, it is often not reliable.
-> 
-> My initial intention for this function was that it should be used
-> with v4l2_find_dv_timings_cea861_vic, when possible. That is,
-> HDMI receivers have access to AVI infoframe contents. Then they
-> should get the vic, call v4l2_find_dv_timings_cea861_vic, get
-> timings and then call v4l2_calc_fps to get fps. If no AVI
-> infoframe is available then it should resort to pixel clock and
-> H/V measures as last resort.
-
-Right, but there are no separate VIC codes for 60 vs 59.94 Hz. Any vertical
-refresh rate that can be divided by 6 can also support these slightly lower
-refresh rates. The timings returned by v4l2_find_dv_timings_cea861_vic just
-report if that is possible, but the pixelclock is set for 24, 30 or 60 fps.
-
-Perhaps I should see the driver code...
-
-> 
->>
->> In order for me to merge this it also should be used in a driver. Actually the
->> cobalt and vivid drivers would be suitable: you can test the vivid driver yourself,
->> and if you have a patch for the cobalt driver, then I can test that for you.
->>
->> Would be nice for the cobalt driver, since g_parm always returns 60 fps :-)
-> 
-> Ok, I will check what I can do :)
-> 
-> Best regards,
-> Jose Miguel Abreu
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index 89965ca5bd250..403214e00e954 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -1548,6 +1548,47 @@ static int coda_decoder_reqbufs(struct coda_ctx *ctx,
+ 	return 0;
+ }
+ 
++static bool coda_reorder_enable(struct coda_ctx *ctx)
++{
++	const char * const *profile_names;
++	const char * const *level_names;
++	struct coda_dev *dev = ctx->dev;
++	int profile, level;
++
++	if (dev->devtype->product != CODA_7541 &&
++	    dev->devtype->product != CODA_960)
++		return false;
++
++	if (ctx->codec->src_fourcc == V4L2_PIX_FMT_JPEG)
++		return false;
++
++	if (ctx->codec->src_fourcc != V4L2_PIX_FMT_H264)
++		return true;
++
++	profile = coda_h264_profile(ctx->params.h264_profile_idc);
++	if (profile < 0) {
++		v4l2_warn(&dev->v4l2_dev, "Invalid H264 Profile: %d\n",
++			 ctx->params.h264_profile_idc);
++		return false;
++	}
++
++	level = coda_h264_level(ctx->params.h264_level_idc);
++	if (level < 0) {
++		v4l2_warn(&dev->v4l2_dev, "Invalid H264 Level: %d\n",
++			 ctx->params.h264_level_idc);
++		return false;
++	}
++
++	profile_names = v4l2_ctrl_get_menu(V4L2_CID_MPEG_VIDEO_H264_PROFILE);
++	level_names = v4l2_ctrl_get_menu(V4L2_CID_MPEG_VIDEO_H264_LEVEL);
++
++	v4l2_dbg(1, coda_debug, &dev->v4l2_dev, "H264 Profile/Level: %s L%s\n",
++		 profile_names[profile], level_names[level]);
++
++	/* Baseline profile does not support reordering */
++	return profile > V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE;
++}
++
+ static int __coda_start_decoding(struct coda_ctx *ctx)
+ {
+ 	struct coda_q_data *q_data_src, *q_data_dst;
+@@ -1594,8 +1635,7 @@ static int __coda_start_decoding(struct coda_ctx *ctx)
+ 	coda_write(dev, bitstream_buf, CODA_CMD_DEC_SEQ_BB_START);
+ 	coda_write(dev, bitstream_size / 1024, CODA_CMD_DEC_SEQ_BB_SIZE);
+ 	val = 0;
+-	if ((dev->devtype->product == CODA_7541) ||
+-	    (dev->devtype->product == CODA_960))
++	if (coda_reorder_enable(ctx))
+ 		val |= CODA_REORDER_ENABLE;
+ 	if (ctx->codec->src_fourcc == V4L2_PIX_FMT_JPEG)
+ 		val |= CODA_NO_INT_ENABLE;
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index f3d4a595bb13a..6fb6402de3a98 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1374,6 +1374,18 @@ static void coda_buf_queue(struct vb2_buffer *vb)
+ 		 */
+ 		if (vb2_get_plane_payload(vb, 0) == 0)
+ 			coda_bit_stream_end_flag(ctx);
++
++		if (q_data->fourcc == V4L2_PIX_FMT_H264) {
++			/*
++			 * Unless already done, try to obtain profile_idc and
++			 * level_idc from the SPS header. This allows to decide
++			 * whether to enable reordering during sequence
++			 * initialization.
++			 */
++			if (!ctx->params.h264_profile_idc)
++				coda_sps_parse_profile(ctx, vb);
++		}
++
+ 		mutex_lock(&ctx->bitstream_mutex);
+ 		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
+ 		if (vb2_is_streaming(vb->vb2_queue))
+diff --git a/drivers/media/platform/coda/coda-h264.c b/drivers/media/platform/coda/coda-h264.c
+index dc137c3fd510b..0e27412e01f54 100644
+--- a/drivers/media/platform/coda/coda-h264.c
++++ b/drivers/media/platform/coda/coda-h264.c
+@@ -13,10 +13,42 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/string.h>
++#include <linux/videodev2.h>
+ #include <coda.h>
+ 
+ static const u8 coda_filler_size[8] = { 0, 7, 14, 13, 12, 11, 10, 9 };
+ 
++static const u8 *coda_find_nal_header(const u8 *buf, const u8 *end)
++{
++	u32 val = 0xffffffff;
++
++	do {
++		val = val << 8 | *buf++;
++		if (buf >= end)
++			return NULL;
++	} while (val != 0x00000001);
++
++	return buf;
++}
++
++int coda_sps_parse_profile(struct coda_ctx *ctx, struct vb2_buffer *vb)
++{
++	const u8 *buf = vb2_plane_vaddr(vb, 0);
++	const u8 *end = buf + vb2_get_plane_payload(vb, 0);
++
++	/* Find SPS header */
++	do {
++		buf = coda_find_nal_header(buf, end);
++		if (!buf)
++			return -EINVAL;
++	} while ((*buf++ & 0x1f) != 0x7);
++
++	ctx->params.h264_profile_idc = buf[0];
++	ctx->params.h264_level_idc = buf[2];
++
++	return 0;
++}
++
+ int coda_h264_filler_nal(int size, char *p)
+ {
+ 	if (size < 6)
+@@ -48,3 +80,34 @@ int coda_h264_padding(int size, char *p)
+ 
+ 	return nal_size;
+ }
++
++int coda_h264_profile(int profile_idc)
++{
++	switch (profile_idc) {
++	case 66: return V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE;
++	case 77: return V4L2_MPEG_VIDEO_H264_PROFILE_MAIN;
++	case 88: return V4L2_MPEG_VIDEO_H264_PROFILE_EXTENDED;
++	case 100: return V4L2_MPEG_VIDEO_H264_PROFILE_HIGH;
++	default: return -EINVAL;
++	}
++}
++
++int coda_h264_level(int level_idc)
++{
++	switch (level_idc) {
++	case 10: return V4L2_MPEG_VIDEO_H264_LEVEL_1_0;
++	case 9:  return V4L2_MPEG_VIDEO_H264_LEVEL_1B;
++	case 11: return V4L2_MPEG_VIDEO_H264_LEVEL_1_1;
++	case 12: return V4L2_MPEG_VIDEO_H264_LEVEL_1_2;
++	case 13: return V4L2_MPEG_VIDEO_H264_LEVEL_1_3;
++	case 20: return V4L2_MPEG_VIDEO_H264_LEVEL_2_0;
++	case 21: return V4L2_MPEG_VIDEO_H264_LEVEL_2_1;
++	case 22: return V4L2_MPEG_VIDEO_H264_LEVEL_2_2;
++	case 30: return V4L2_MPEG_VIDEO_H264_LEVEL_3_0;
++	case 31: return V4L2_MPEG_VIDEO_H264_LEVEL_3_1;
++	case 32: return V4L2_MPEG_VIDEO_H264_LEVEL_3_2;
++	case 40: return V4L2_MPEG_VIDEO_H264_LEVEL_4_0;
++	case 41: return V4L2_MPEG_VIDEO_H264_LEVEL_4_1;
++	default: return -EINVAL;
++	}
++}
+diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
+index a730bc2a2ff99..5e762f5c533de 100644
+--- a/drivers/media/platform/coda/coda.h
++++ b/drivers/media/platform/coda/coda.h
+@@ -117,6 +117,8 @@ struct coda_params {
+ 	u8			h264_deblk_enabled;
+ 	u8			h264_deblk_alpha;
+ 	u8			h264_deblk_beta;
++	u8			h264_profile_idc;
++	u8			h264_level_idc;
+ 	u8			mpeg4_intra_qp;
+ 	u8			mpeg4_inter_qp;
+ 	u8			gop_size;
+@@ -292,6 +294,9 @@ void coda_m2m_buf_done(struct coda_ctx *ctx, struct vb2_v4l2_buffer *buf,
+ 
+ int coda_h264_filler_nal(int size, char *p);
+ int coda_h264_padding(int size, char *p);
++int coda_h264_profile(int profile_idc);
++int coda_h264_level(int level_idc);
++int coda_sps_parse_profile(struct coda_ctx *ctx, struct vb2_buffer *vb);
+ 
+ bool coda_jpeg_check_buffer(struct coda_ctx *ctx, struct vb2_buffer *vb);
+ int coda_jpeg_write_tables(struct coda_ctx *ctx);
+-- 
+2.11.0
