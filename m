@@ -1,92 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.74]:63888 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753990AbdC1KEA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Mar 2017 06:04:00 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34916 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751816AbdCCK7E (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 05:59:04 -0500
+Received: by mail-wm0-f66.google.com with SMTP id z63so328548wmg.2
+        for <linux-media@vger.kernel.org>; Fri, 03 Mar 2017 02:59:02 -0800 (PST)
+Date: Fri, 3 Mar 2017 11:04:33 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Laura Abbott <labbott@redhat.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com,
+        romlem@google.com, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@linux.intel.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Varsha Rao <rvarsha016@gmail.com>,
-        sayli karnik <karniksayli1995@gmail.com>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] staging: atomisp: avoid false-positive maybe-uninitialized warning
-Date: Tue, 28 Mar 2017 12:02:20 +0200
-Message-Id: <20170328100321.3836826-1-arnd@arndb.de>
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org
+Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of
+ staging
+Message-ID: <20170303100433.lm5t4hqxj6friyp6@phenom.ffwll.local>
+References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1488491084-17252-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In combination with CONFIG_PROFILE_ANNOTATED_BRANCHES=y, the unlikely()
-inside of the WARN() macro becomes too complex for gcc to see that
-we don't use the output arguments of mt9m114_to_res() are used
-correctly:
+On Thu, Mar 02, 2017 at 01:44:32PM -0800, Laura Abbott wrote:
+> Hi,
+> 
+> There's been some recent discussions[1] about Ion-like frameworks. There's
+> apparently interest in just keeping Ion since it works reasonablly well.
+> This series does what should be the final clean ups for it to possibly be
+> moved out of staging.
+> 
+> This includes the following:
+> - Some general clean up and removal of features that never got a lot of use
+>   as far as I can tell.
+> - Fixing up the caching. This is the series I proposed back in December[2]
+>   but never heard any feedback on. It will certainly break existing
+>   applications that rely on the implicit caching. I'd rather make an effort
+>   to move to a model that isn't going directly against the establishement
+>   though.
+> - Fixing up the platform support. The devicetree approach was never well
+>   recieved by DT maintainers. The proposal here is to think of Ion less as
+>   specifying requirements and more of a framework for exposing memory to
+>   userspace.
+> - CMA allocations now happen without the need of a dummy device structure.
+>   This fixes a bunch of the reasons why I attempted to add devicetree
+>   support before.
+> 
+> I've had problems getting feedback in the past so if I don't hear any major
+> objections I'm going to send out with the RFC dropped to be picked up.
+> The only reason there isn't a patch to come out of staging is to discuss any
+> other changes to the ABI people might want. Once this comes out of staging,
+> I really don't want to mess with the ABI.
+> 
+> Feedback appreciated.
 
-drivers/staging/media/atomisp/i2c/mt9m114.c: In function 'mt9m114_get_fmt':
-drivers/staging/media/atomisp/i2c/mt9m114.c:817:13: error: 'height' may be used uninitialized in this function [-Werror=maybe-uninitialized]
-  int width, height;
-             ^~~~~~
-drivers/staging/media/atomisp/i2c/mt9m114.c: In function 'mt9m114_s_exposure_selection':
-drivers/staging/media/atomisp/i2c/mt9m114.c:1179:13: error: 'height' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+Imo looks all good. And I just realized that cross-checking with the TODO,
+the 2 items about _CUSTOM and _IMPORT ioctls I noted are already there.
 
-Without WARN_ON(), there is no problem, so by simply replacing it with
-v4l2_err(), the warnings go away. The WARN() output is also not needed
-here, as we'd probably catch the problem before even getting here,
-and other checks for the same condition already use v4l2_err.
+Otherwise I looked through the patches, looks all really reasonable.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/staging/media/atomisp/i2c/mt9m114.c | 12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+Wrt merging, my experience from destaging the android syncpt stuff was
+that merging the patches through the staging tree lead to lots of
+cross-tree issues with the gpu folks wanting to use that. Ion will
+probably run into similar things, so I'd propose we pull these cleanup
+patches and the eventual de-staging in throught drm. Yes that defacto
+means I'm also volunteering myself a bit :-)
 
-diff --git a/drivers/staging/media/atomisp/i2c/mt9m114.c b/drivers/staging/media/atomisp/i2c/mt9m114.c
-index c4f4c888a59a..12b19fbafb5c 100644
---- a/drivers/staging/media/atomisp/i2c/mt9m114.c
-+++ b/drivers/staging/media/atomisp/i2c/mt9m114.c
-@@ -689,12 +689,13 @@ static struct mt9m114_res_struct *mt9m114_to_res(u32 w, u32 h)
- 	return &mt9m114_res[index];
- }
- 
--static int mt9m114_res2size(unsigned int res, int *h_size, int *v_size)
-+static int mt9m114_res2size(struct v4l2_subdev *sd, int *h_size, int *v_size)
- {
-+	struct mt9m114_device *dev = to_mt9m114_sensor(sd);
- 	unsigned short hsize;
- 	unsigned short vsize;
- 
--	switch (res) {
-+	switch (dev->res) {
- 	case MT9M114_RES_736P:
- 		hsize = MT9M114_RES_736P_SIZE_H;
- 		vsize = MT9M114_RES_736P_SIZE_V;
-@@ -708,7 +709,8 @@ static int mt9m114_res2size(unsigned int res, int *h_size, int *v_size)
- 		vsize = MT9M114_RES_960P_SIZE_V;
- 		break;
- 	default:
--		WARN(1, "%s: Resolution 0x%08x unknown\n", __func__, res);
-+		v4l2_err(sd, "%s: Resolution 0x%08x unknown\n", __func__,
-+			 dev->res);
- 		return -EINVAL;
- 	}
- 
-@@ -820,7 +822,7 @@ static int mt9m114_get_fmt(struct v4l2_subdev *sd,
- 		return -EINVAL;
- 	fmt->code = MEDIA_BUS_FMT_SGRBG10_1X10;
- 
--	ret = mt9m114_res2size(dev->res, &width, &height);
-+	ret = mt9m114_res2size(sd, &width, &height);
- 	if (ret)
- 		return ret;
- 	fmt->width = width;
-@@ -1192,7 +1194,7 @@ static int mt9m114_s_exposure_selection(struct v4l2_subdev *sd,
- 	grid_right = sel->r.left + sel->r.width - 1;
- 	grid_bottom = sel->r.top + sel->r.height - 1;
- 
--	ret = mt9m114_res2size(dev->res, &width, &height);
-+	ret = mt9m114_res2size(sd, &width, &height);
- 	if (ret)
- 		return ret;
- 
+In the end we could put it all into drivers/gpu/ion or something like
+that.
+
+Thoughts? Greg?
+-Daniel
+
+
+> 
+> Thanks,
+> Laura
+> 
+> [1] https://marc.info/?l=linux-kernel&m=148699712602105&w=2
+> [2] https://marc.info/?l=linaro-mm-sig&m=148176050802908&w=2
+> 
+> Laura Abbott (12):
+>   staging: android: ion: Remove dmap_cnt
+>   staging: android: ion: Remove alignment from allocation field
+>   staging: android: ion: Duplicate sg_table
+>   staging: android: ion: Call dma_map_sg for syncing and mapping
+>   staging: android: ion: Remove page faulting support
+>   staging: android: ion: Remove crufty cache support
+>   staging: android: ion: Remove old platform support
+>   cma: Store a name in the cma structure
+>   cma: Introduce cma_for_each_area
+>   staging: android: ion: Use CMA APIs directly
+>   staging: android: ion: Make Ion heaps selectable
+>   staging; android: ion: Enumerate all available heaps
+> 
+>  drivers/base/dma-contiguous.c                      |   5 +-
+>  drivers/staging/android/ion/Kconfig                |  51 ++--
+>  drivers/staging/android/ion/Makefile               |  14 +-
+>  drivers/staging/android/ion/hisilicon/Kconfig      |   5 -
+>  drivers/staging/android/ion/hisilicon/Makefile     |   1 -
+>  drivers/staging/android/ion/hisilicon/hi6220_ion.c | 113 ---------
+>  drivers/staging/android/ion/ion-ioctl.c            |   6 -
+>  drivers/staging/android/ion/ion.c                  | 282 ++++++---------------
+>  drivers/staging/android/ion/ion.h                  |   5 +-
+>  drivers/staging/android/ion/ion_carveout_heap.c    |  16 +-
+>  drivers/staging/android/ion/ion_chunk_heap.c       |  15 +-
+>  drivers/staging/android/ion/ion_cma_heap.c         | 102 ++------
+>  drivers/staging/android/ion/ion_dummy_driver.c     | 156 ------------
+>  drivers/staging/android/ion/ion_enumerate.c        |  89 +++++++
+>  drivers/staging/android/ion/ion_of.c               | 184 --------------
+>  drivers/staging/android/ion/ion_of.h               |  37 ---
+>  drivers/staging/android/ion/ion_page_pool.c        |   3 -
+>  drivers/staging/android/ion/ion_priv.h             |  57 ++++-
+>  drivers/staging/android/ion/ion_system_heap.c      |  14 +-
+>  drivers/staging/android/ion/tegra/Makefile         |   1 -
+>  drivers/staging/android/ion/tegra/tegra_ion.c      |  80 ------
+>  include/linux/cma.h                                |   6 +-
+>  mm/cma.c                                           |  25 +-
+>  mm/cma.h                                           |   1 +
+>  mm/cma_debug.c                                     |   2 +-
+>  25 files changed, 312 insertions(+), 958 deletions(-)
+>  delete mode 100644 drivers/staging/android/ion/hisilicon/Kconfig
+>  delete mode 100644 drivers/staging/android/ion/hisilicon/Makefile
+>  delete mode 100644 drivers/staging/android/ion/hisilicon/hi6220_ion.c
+>  delete mode 100644 drivers/staging/android/ion/ion_dummy_driver.c
+>  create mode 100644 drivers/staging/android/ion/ion_enumerate.c
+>  delete mode 100644 drivers/staging/android/ion/ion_of.c
+>  delete mode 100644 drivers/staging/android/ion/ion_of.h
+>  delete mode 100644 drivers/staging/android/ion/tegra/Makefile
+>  delete mode 100644 drivers/staging/android/ion/tegra/tegra_ion.c
+> 
+> -- 
+> 2.7.4
+> 
+> --
+> To unsubscribe, send a message with 'unsubscribe linux-mm' in
+> the body to majordomo@kvack.org.  For more info on Linux MM,
+> see: http://www.linux-mm.org/ .
+> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+
 -- 
-2.9.0
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
