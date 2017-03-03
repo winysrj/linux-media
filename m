@@ -1,119 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f172.google.com ([209.85.220.172]:34915 "EHLO
-        mail-qk0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751427AbdCCN4J (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 08:56:09 -0500
-Received: by mail-qk0-f172.google.com with SMTP id h9so21875747qke.2
-        for <linux-media@vger.kernel.org>; Fri, 03 Mar 2017 05:55:37 -0800 (PST)
+Received: from mail-qk0-f171.google.com ([209.85.220.171]:33856 "EHLO
+        mail-qk0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751917AbdCCSrO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 13:47:14 -0500
+Received: by mail-qk0-f171.google.com with SMTP id g129so6952224qkd.1
+        for <linux-media@vger.kernel.org>; Fri, 03 Mar 2017 10:46:08 -0800 (PST)
+Subject: Re: [RFC PATCH 06/12] staging: android: ion: Remove crufty cache
+ support
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        dri-devel@lists.freedesktop.org
+References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+ <1488491084-17252-7-git-send-email-labbott@redhat.com>
+ <20170303095654.zbcqkcojo3vf6y4y@phenom.ffwll.local>
+ <2273106.Hjr80nPvcZ@avalon>
+Cc: Daniel Vetter <daniel@ffwll.ch>, devel@driverdev.osuosl.org,
+        romlem@google.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        arve@android.com, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+        Riley Andrews <riandrews@android.com>,
+        Mark Brown <broonie@kernel.org>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+From: Laura Abbott <labbott@redhat.com>
+Message-ID: <87fe5d0a-19d2-b6c7-391f-687aa5ff8571@redhat.com>
+Date: Fri, 3 Mar 2017 10:46:03 -0800
 MIME-Version: 1.0
-In-Reply-To: <7e7a62de-3b79-6044-72fa-4ade418953d1@virtuozzo.com>
-References: <20170302163834.2273519-1-arnd@arndb.de> <20170302163834.2273519-2-arnd@arndb.de>
- <7e7a62de-3b79-6044-72fa-4ade418953d1@virtuozzo.com>
-From: Alexander Potapenko <glider@google.com>
-Date: Fri, 3 Mar 2017 14:55:35 +0100
-Message-ID: <CAG_fn=WayMEnBO4pzuxQ5jgn-ii6vrALuOex5Ei1ZhzMR7_tjg@mail.gmail.com>
-Subject: Re: [PATCH 01/26] compiler: introduce noinline_for_kasan annotation
-To: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        kasan-dev <kasan-dev@googlegroups.com>,
-        Dmitry Vyukov <dvyukov@google.com>, netdev@vger.kernel.org,
-        LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
-        linux-wireless@vger.kernel.org,
-        kernel-build-reports@lists.linaro.org,
-        "David S . Miller" <davem@davemloft.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <2273106.Hjr80nPvcZ@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 3, 2017 at 2:50 PM, Andrey Ryabinin <aryabinin@virtuozzo.com> w=
-rote:
->
->
-> On 03/02/2017 07:38 PM, Arnd Bergmann wrote:
->> When CONFIG_KASAN is set, we can run into some code that uses incredible
->> amounts of kernel stack:
+On 03/03/2017 08:39 AM, Laurent Pinchart wrote:
+> Hi Daniel,
+> 
+> On Friday 03 Mar 2017 10:56:54 Daniel Vetter wrote:
+>> On Thu, Mar 02, 2017 at 01:44:38PM -0800, Laura Abbott wrote:
+>>> Now that we call dma_map in the dma_buf API callbacks there is no need
+>>> to use the existing cache APIs. Remove the sync ioctl and the existing
+>>> bad dma_sync calls. Explicit caching can be handled with the dma_buf
+>>> sync API.
+>>>
+>>> Signed-off-by: Laura Abbott <labbott@redhat.com>
+>>> ---
+>>>
+>>>  drivers/staging/android/ion/ion-ioctl.c         |  5 ----
+>>>  drivers/staging/android/ion/ion.c               | 40 --------------------
+>>>  drivers/staging/android/ion/ion_carveout_heap.c |  6 ----
+>>>  drivers/staging/android/ion/ion_chunk_heap.c    |  6 ----
+>>>  drivers/staging/android/ion/ion_page_pool.c     |  3 --
+>>>  drivers/staging/android/ion/ion_system_heap.c   |  5 ----
+>>>  6 files changed, 65 deletions(-)
+>>>
+>>> diff --git a/drivers/staging/android/ion/ion-ioctl.c
+>>> b/drivers/staging/android/ion/ion-ioctl.c index 5b2e93f..f820d77 100644
+>>> --- a/drivers/staging/android/ion/ion-ioctl.c
+>>> +++ b/drivers/staging/android/ion/ion-ioctl.c
+>>> @@ -146,11 +146,6 @@ long ion_ioctl(struct file *filp, unsigned int cmd,
+>>> unsigned long arg)> 
+>>>  			data.handle.handle = handle->id;
+>>>  		
+>>>  		break;
+>>>  	
+>>>  	}
+>>>
+>>> -	case ION_IOC_SYNC:
+>>> -	{
+>>> -		ret = ion_sync_for_device(client, data.fd.fd);
+>>> -		break;
+>>> -	}
 >>
->> drivers/staging/dgnc/dgnc_neo.c:1056:1: error: the frame size of 11112 b=
-ytes is larger than 2048 bytes [-Werror=3Dframe-larger-than=3D]
->> drivers/media/i2c/cx25840/cx25840-core.c:4960:1: error: the frame size o=
-f 94000 bytes is larger than 2048 bytes [-Werror=3Dframe-larger-than=3D]
->> drivers/media/dvb-frontends/stv090x.c:3430:1: error: the frame size of 5=
-312 bytes is larger than 3072 bytes [-Werror=3Dframe-larger-than=3D]
+>> You missed the case ION_IOC_SYNC: in compat_ion.c.
 >>
->> This happens when a sanitizer uses stack memory each time an inline func=
-tion
->> gets called. This introduces a new annotation for those functions to mak=
-e
->> them either 'inline' or 'noinline' dependning on the CONFIG_KASAN symbol=
-.
+>> While at it: Should we also remove the entire custom_ioctl infrastructure?
+>> It's entirely unused afaict, and for a pure buffer allocator I don't see
+>> any need to have custom ioctl.
+> 
+> I second that, if you want to make ion a standard API, then we certainly don't 
+> want any custom ioctl.
+> 
+>> More code to remove potentially:
+>> - The entire compat ioctl stuff - would be an abi break, but I guess if we
+>>   pick the 32bit abi and clean up the uapi headers we'll be mostly fine.
+>>   would allow us to remove compat_ion.c entirely.
 >>
->> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
->> ---
->>  include/linux/compiler.h | 11 +++++++++++
->>  1 file changed, 11 insertions(+)
+>> - ION_IOC_IMPORT: With this ion is purely an allocator, so not sure we
+>>   still need to be able to import anything. All the cache flushing/mapping
+>>   is done through dma-buf ops/ioctls.
 >>
->> diff --git a/include/linux/compiler.h b/include/linux/compiler.h
->> index f8110051188f..56b90897a459 100644
->> --- a/include/linux/compiler.h
->> +++ b/include/linux/compiler.h
->> @@ -416,6 +416,17 @@ static __always_inline void __write_once_size(volat=
-ile void *p, void *res, int s
->>   */
->>  #define noinline_for_stack noinline
 >>
->> +/*
->> + * CONFIG_KASAN can lead to extreme stack usage with certain patterns w=
-hen
->> + * one function gets inlined many times and each instance requires a st=
-ack
->> + * ckeck.
->> + */
->> +#ifdef CONFIG_KASAN
->> +#define noinline_for_kasan noinline __maybe_unused
->
->
-> noinline_iff_kasan might be a better name.  noinline_for_kasan gives the =
-impression
-> that we always noinline function for the sake of kasan, while noinline_if=
-f_kasan
-> clearly indicates that function is noinline only if kasan is used.
-FWIW we may be facing the same problem with other compiler-based
-tools, e.g. KMSAN (which isn't there yet).
-So it might be better to choose a macro name that doesn't use the name "KAS=
-AN".
-E.g. noinline_iff_memtool (or noinline_iff_memory_tool if that's not too lo=
-ng).
-WDYT?
->> +#else
->> +#define noinline_for_kasan inline
->> +#endif
->> +
->>  #ifndef __always_inline
->>  #define __always_inline inline
->>  #endif
->>
->
-> --
-> You received this message because you are subscribed to the Google Groups=
- "kasan-dev" group.
-> To unsubscribe from this group and stop receiving emails from it, send an=
- email to kasan-dev+unsubscribe@googlegroups.com.
-> To post to this group, send email to kasan-dev@googlegroups.com.
-> To view this discussion on the web visit https://groups.google.com/d/msgi=
-d/kasan-dev/7e7a62de-3b79-6044-72fa-4ade418953d1%40virtuozzo.com.
-> For more options, visit https://groups.google.com/d/optout.
 
+Good point to all of the above. I was considering keeping the import around
+for backwards compatibility reasons but given how much other stuff is being
+potentially broken, everything should just get ripped out.
 
-
---=20
-Alexander Potapenko
-Software Engineer
-
-Google Germany GmbH
-Erika-Mann-Stra=C3=9Fe, 33
-80636 M=C3=BCnchen
-
-Gesch=C3=A4ftsf=C3=BChrer: Matthew Scott Sucherman, Paul Terence Manicle
-Registergericht und -nummer: Hamburg, HRB 86891
-Sitz der Gesellschaft: Hamburg
+Thanks,
+Laura
