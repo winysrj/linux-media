@@ -1,122 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:36440 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754048AbdC1Amd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 20:42:33 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v6 28/39] media: imx: csi: fix crop rectangle changes in set_fmt
-Date: Mon, 27 Mar 2017 17:40:45 -0700
-Message-Id: <1490661656-10318-29-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from merlin.infradead.org ([205.233.59.134]:38406 "EHLO
+        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751610AbdCCQoS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 11:44:18 -0500
+Date: Fri, 3 Mar 2017 15:49:38 +0100
+From: Peter Zijlstra <peterz@infradead.org>
+To: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        kasan-dev <kasan-dev@googlegroups.com>,
+        Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Networking <netdev@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org,
+        linux-wireless <linux-wireless@vger.kernel.org>,
+        kernel-build-reports@lists.linaro.org,
+        "David S . Miller" <davem@davemloft.net>,
+        Paul McKenney <paulmck@linux.vnet.ibm.com>
+Subject: Re: [PATCH 02/26] rewrite READ_ONCE/WRITE_ONCE
+Message-ID: <20170303144938.GF6557@twins.programming.kicks-ass.net>
+References: <20170302163834.2273519-1-arnd@arndb.de>
+ <20170302163834.2273519-3-arnd@arndb.de>
+ <76790664-a7a9-193c-2e30-edaee1308cb0@de.ibm.com>
+ <CAK8P3a082Bi6Vf5gEFLAJtJvUm=7MtddBzcCOqagQyfJPFTu_g@mail.gmail.com>
+ <2adc6ff4-5dc5-8f1d-cce1-47f3124a528f@de.ibm.com>
+ <CAK8P3a2mepCjPfM9Ychk7CHFHi0UW8RBzK4skJKMSOjw3gKoYg@mail.gmail.com>
+ <f86cf852-3960-0dcf-5917-509080ca7bf5@de.ibm.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <f86cf852-3960-0dcf-5917-509080ca7bf5@de.ibm.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+On Fri, Mar 03, 2017 at 09:26:50AM +0100, Christian Borntraeger wrote:
+> Right. The main purpose is to read/write _ONCE_. You can assume a somewhat
+> atomic access for sizes <= word size. And there are certainly places that
+> rely on that. But the *ONCE thing is mostly used for things where we used
+> barrier() 10 years ago.
 
-The cropping rectangle was being modified by the output pad's
-set_fmt, which is the wrong pad to do this. The crop rectangle
-should not be modified by the output pad set_fmt. It instead
-should be reset to the full input frame when the input pad format
-is set.
+A lot of code relies on READ/WRITE_ONCE() to generate single
+instructions for naturally aligned machined word sized loads/stores
+(something GCC used to guarantee, but does no longer IIRC).
 
-The output pad set_fmt should set width/height to the current
-crop dimensions, or 1/2 the crop width/height to enable
-downscaling.
+So much so that I would say its a bug if READ/WRITE_ONCE() doesn't
+generate a single instruction under those conditions.
 
-So the other part of this patch is to enable downscaling if
-the output pad dimension(s) are 1/2 the crop dimension(s) at
-csi_setup() time.
-
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/media/imx/imx-media-csi.c | 35 ++++++++++++++++++++-----------
- 1 file changed, 23 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index 37c68d8..730966b 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -555,6 +555,10 @@ static int csi_setup(struct csi_priv *priv)
- 
- 	ipu_csi_set_window(priv->csi, &priv->crop);
- 
-+	ipu_csi_set_downsize(priv->csi,
-+			     priv->crop.width == 2 * outfmt->width,
-+			     priv->crop.height == 2 * outfmt->height);
-+
- 	ipu_csi_init_interface(priv->csi, &sensor_mbus_cfg, &if_fmt);
- 
- 	ipu_csi_set_dest(priv->csi, priv->dest);
-@@ -945,15 +949,15 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
- 	switch (sdformat->pad) {
- 	case CSI_SRC_PAD_DIRECT:
- 	case CSI_SRC_PAD_IDMAC:
--		crop.left = priv->crop.left;
--		crop.top = priv->crop.top;
--		crop.width = sdformat->format.width;
--		crop.height = sdformat->format.height;
--		ret = csi_try_crop(priv, &crop, sensor);
--		if (ret)
--			goto out;
--		sdformat->format.width = crop.width;
--		sdformat->format.height = crop.height;
-+		if (sdformat->format.width < priv->crop.width * 3 / 4)
-+			sdformat->format.width = priv->crop.width / 2;
-+		else
-+			sdformat->format.width = priv->crop.width;
-+
-+		if (sdformat->format.height < priv->crop.height * 3 / 4)
-+			sdformat->format.height = priv->crop.height / 2;
-+		else
-+			sdformat->format.height = priv->crop.height;
- 
- 		if (sdformat->pad == CSI_SRC_PAD_IDMAC) {
- 			cc = imx_media_find_format(0, sdformat->format.code,
-@@ -999,6 +1003,14 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
- 		}
- 		break;
- 	case CSI_SINK_PAD:
-+		crop.left = 0;
-+		crop.top = 0;
-+		crop.width = sdformat->format.width;
-+		crop.height = sdformat->format.height;
-+		ret = csi_try_crop(priv, &crop, sensor);
-+		if (ret)
-+			goto out;
-+
- 		cc = imx_media_find_format(0, sdformat->format.code,
- 					   true, false);
- 		if (!cc) {
-@@ -1017,9 +1029,8 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
- 	} else {
- 		priv->format_mbus[sdformat->pad] = sdformat->format;
- 		priv->cc[sdformat->pad] = cc;
--		/* Update the crop window if this is an output pad  */
--		if (sdformat->pad == CSI_SRC_PAD_DIRECT ||
--		    sdformat->pad == CSI_SRC_PAD_IDMAC)
-+		/* Reset the crop window if this is the input pad */
-+		if (sdformat->pad == CSI_SINK_PAD)
- 			priv->crop = crop;
- 	}
- 
--- 
-2.7.4
+However, every time I've tried to introduce stricter
+semantics/primitives to verify things Linus hated it.
