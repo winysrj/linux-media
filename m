@@ -1,60 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:22683 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754843AbdCTOw4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 10:52:56 -0400
-Subject: [PATCH 07/24] ov5693: remove unused function
-From: Alan Cox <alan@linux.intel.com>
-To: greg@kroah.com, linux-media@vger.kernel.org
-Date: Mon, 20 Mar 2017 14:39:56 +0000
-Message-ID: <149002078811.17109.12866139241727781113.stgit@acox1-desk1.ger.corp.intel.com>
-In-Reply-To: <149002068431.17109.1216139691005241038.stgit@acox1-desk1.ger.corp.intel.com>
-References: <149002068431.17109.1216139691005241038.stgit@acox1-desk1.ger.corp.intel.com>
+Received: from mail-qk0-f174.google.com ([209.85.220.174]:33943 "EHLO
+        mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751368AbdCDN34 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 4 Mar 2017 08:29:56 -0500
+Received: by mail-qk0-f174.google.com with SMTP id g129so32164330qkd.1
+        for <linux-media@vger.kernel.org>; Sat, 04 Mar 2017 05:29:55 -0800 (PST)
+Subject: Re: Kaffeine commit b510bff2 won't compile
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <bafdb165-261c-0129-e0dc-29819a55ca43@gmail.com>
+ <20170227071122.3a319481@vento.lan>
+ <a2c23f62-215a-9066-45bc-0b8eebacc84b@gmail.com>
+ <20170301070024.3ca3150a@vento.lan>
+Cc: linux-media@vger.kernel.org
+From: bill murphy <gc2majortom@gmail.com>
+Message-ID: <fdc10667-1ed9-7c84-bf7d-ec3a255c59b2@gmail.com>
+Date: Sat, 4 Mar 2017 08:21:51 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+In-Reply-To: <20170301070024.3ca3150a@vento.lan>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It's commented out in the tree with a note saying to remove it. So let's remove it.
+Hi Mauro,
 
-Signed-off-by: Alan Cox <alan@linux.intel.com>
----
- drivers/staging/media/atomisp/i2c/ov5693/ov5693.c |   23 ---------------------
- 1 file changed, 23 deletions(-)
+yes I can appreciate that, but why not just make one file for each 
+country that actually differs,
 
-diff --git a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
-index ac75982..5e9dafe 100644
---- a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
-+++ b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
-@@ -82,30 +82,7 @@ static int vcm_ad_i2c_wr8(struct i2c_client *client, u8 reg, u8 val)
- 	}
- 	return 0;
- }
--/*TODO: remove this unuseful i2c writer helper*/
--/*
--static int vcm_ad_i2c_wr16(struct i2c_client *client, u8 reg, u16 val)
--{
--	int err;
--	struct i2c_msg msg;
--	u8 buf[3];
--	buf[0] = reg;
--	buf[1] = (u8)(val >> 8);
--	buf[2] = (u8)(val & 0xff);
--	msg.addr = VCM_ADDR;
--	msg.flags = 0;
--	msg.len = 3;
--	msg.buf = &buf[0];
- 
--	err = i2c_transfer(client->adapter, &msg, 1);
--	if (err != 1) {
--		dev_err(&client->dev, "%s: vcm i2c fail, err code = %d\n",
--			__func__, err);
--		return -EIO;
--	}
--	return 0;
--}
--*/
- static int ad5823_i2c_write(struct i2c_client *client, u8 reg, u8 val)
- {
- 	struct i2c_msg msg;
+rather than make the rest of us suffer?
+
+canada and the us are the same.
+
+atsc/us-ATSC-center-frequencies-8VSB
+
+So could add two files for mexico and korea.
+
+atsc/mx-ATSC-center-frequencies-8VSB
+atsc/kr-ATSC-center-frequencies-8VSB
+
+can't be any worse that the hundreds of files being maintained for DVB-T 
+in various countries.
+
+
+On 03/01/2017 05:00 AM, Mauro Carvalho Chehab wrote:
+> Hi Bill,
+>
+> Em Mon, 27 Feb 2017 23:46:09 -0500
+> bill murphy <gc2majortom@gmail.com> escreveu:
+>
+>> Hi Mauro,
+>>
+>> Thanks for looking in to it. All is well now.
+> Good! Thanks for testing.
+>
+>> On a sidenote, given 700 MHz is used for LTE, and not broadcasting
+>>
+>> anymore, would you folks consider removing ch 52 thru 69
+>>
+>> in the us-atsc-frequencies if I posted a simple patch to dtv-scan-tables?
+> The problem is that, despite its name, this table is used on other
+> Countries using atsc (like Mexico, Canada and South Korea):
+>
+> 	https://en.wikipedia.org/wiki/List_of_digital_television_deployments_by_country#/media/File:Digital_broadcast_standards.svg
+>
+> So, while the 700 MHz are still used on other ATSC Countries, we can't
+> remove, as otherwise, it will not discover the channels at the upper
+> frequency range there.
+>
+> Regards,
+> Mauro
