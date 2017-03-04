@@ -1,156 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:62935 "EHLO
-        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752019AbdCCRdQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Mar 2017 12:33:16 -0500
-Date: Fri, 3 Mar 2017 18:06:11 +0100 (CET)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: simran singhal <singhalsimran0@gmail.com>
-cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org, outreachy-kernel@googlegroups.com
-Subject: Re: [Outreachy kernel] [PATCH] staging: media: Remove parentheses
- from return arguments
-In-Reply-To: <20170303170139.GA9887@singhal-Inspiron-5558>
-Message-ID: <alpine.DEB.2.20.1703031805570.3490@hadrien>
-References: <20170303170139.GA9887@singhal-Inspiron-5558>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail.kernel.org ([198.145.29.136]:56906 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751083AbdCDCCP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 3 Mar 2017 21:02:15 -0500
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: laurent.pinchart@ideasonboard.com
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v2 0/3] RCAR-DU, VSP1: Prevent pre-emptive frame flips on VSP1-DRM pipelines
+Date: Sat,  4 Mar 2017 02:01:16 +0000
+Message-Id: <cover.4a217716bf5515d07dcb6d2b052f883eeecae9e8.1488592678.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The RCAR-DU utilises a running VSPD pipeline to perform processing
+for the display pipeline.
 
+Changes to this pipeline are performed with an atomic flush operation which
+updates the state in the VSPD. Due to the way the running pipeline is
+operated, any flush operation has an implicit latency of one frame interval.
 
-On Fri, 3 Mar 2017, simran singhal wrote:
+This comes about as the display list is committed, but not updated until the
+next VSP1 interrupt. At this point the frame is being processed, but is not
+complete until the following VSP1 frame end interrupt.
 
-> The sematic patch used for this is:
-> @@
-> identifier i;
-> constant c;
-> @@
-> return
-> - (
->     \(i\|-i\|i(...)\|c\)
-> - )
->   ;
->
-> Signed-off-by: simran singhal <singhalsimran0@gmail.com>
+To prevent reporting page flips early, we must track this timing through the
+VSP1, and only allow the rcar-du object to report the page-flip completion
+event after the VSP1 has processed.
 
-Acked-by: Julia Lawall <julia.lawall@lip6.fr>
+This series ensures that tearing and flicker is prevented, without introducing the
+performance impact mentioned in the previous series.
 
+[PATCH 1/3] extends the VSP1 to allow a callback to be registered giving the
+            VSP1 the ability to notify completion events
+[PATCH 2/3] checks for race conditions in the commits of the display list, and
+            in such event postpones the sending of the completion event
+[PATCH 3/3] Utilises the callback extension to send page flips at the end of
+            VSP processing.
 
-> ---
->  .../media/atomisp/pci/atomisp2/css2400/sh_css.c      | 20 ++++++++++----------
->  .../atomisp/pci/atomisp2/css2400/sh_css_firmware.c   |  2 +-
->  2 files changed, 11 insertions(+), 11 deletions(-)
->
-> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-> index f39d6f5..1216efb 100644
-> --- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-> +++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-> @@ -2009,7 +2009,7 @@ enum ia_css_err ia_css_suspend(void)
->  	for(i=0;i<MAX_ACTIVE_STREAMS;i++)
->  		ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE, "==*> after 1: seed %d (%p)\n", i, my_css_save.stream_seeds[i].stream);
->  	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE, "ia_css_suspend() leave\n");
-> -	return(IA_CSS_SUCCESS);
-> +	return IA_CSS_SUCCESS;
->  }
->
->  enum ia_css_err
-> @@ -2021,10 +2021,10 @@ ia_css_resume(void)
->
->  	err = ia_css_init(&(my_css_save.driver_env), my_css_save.loaded_fw, my_css_save.mmu_base, my_css_save.irq_type);
->  	if (err != IA_CSS_SUCCESS)
-> -		return(err);
-> +		return err;
->  	err = ia_css_start_sp();
->  	if (err != IA_CSS_SUCCESS)
-> -		return(err);
-> +		return err;
->  	my_css_save.mode = sh_css_mode_resume;
->  	for(i=0;i<MAX_ACTIVE_STREAMS;i++)
->  	{
-> @@ -2038,7 +2038,7 @@ ia_css_resume(void)
->  				if (i)
->  					for(j=0;j<i;j++)
->  						ia_css_stream_unload(my_css_save.stream_seeds[j].stream);
-> -				return(err);
-> +				return err;
->  			}
->  			err = ia_css_stream_start(my_css_save.stream_seeds[i].stream);
->  			if (err != IA_CSS_SUCCESS)
-> @@ -2048,7 +2048,7 @@ ia_css_resume(void)
->  					ia_css_stream_stop(my_css_save.stream_seeds[j].stream);
->  					ia_css_stream_unload(my_css_save.stream_seeds[j].stream);
->  				}
-> -				return(err);
-> +				return err;
->  			}
->  			*my_css_save.stream_seeds[i].orig_stream = my_css_save.stream_seeds[i].stream;
->  			for(j=0;j<my_css_save.stream_seeds[i].num_pipes;j++)
-> @@ -2057,7 +2057,7 @@ ia_css_resume(void)
->  	}
->  	my_css_save.mode = sh_css_mode_working;
->  	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE, "ia_css_resume() leave: return_void\n");
-> -	return(IA_CSS_SUCCESS);
-> +	return IA_CSS_SUCCESS;
->  }
->
->  enum ia_css_err
-> @@ -10261,7 +10261,7 @@ ia_css_stream_load(struct ia_css_stream *stream)
->  						for(k=0;k<j;k++)
->  							ia_css_pipe_destroy(my_css_save.stream_seeds[i].pipes[k]);
->  					}
-> -					return(err);
-> +					return err;
->  				}
->  			err = ia_css_stream_create(&(my_css_save.stream_seeds[i].stream_config), my_css_save.stream_seeds[i].num_pipes,
->  						    my_css_save.stream_seeds[i].pipes, &(my_css_save.stream_seeds[i].stream));
-> @@ -10270,12 +10270,12 @@ ia_css_stream_load(struct ia_css_stream *stream)
->  				ia_css_stream_destroy(stream);
->  				for(j=0;j<my_css_save.stream_seeds[i].num_pipes;j++)
->  					ia_css_pipe_destroy(my_css_save.stream_seeds[i].pipes[j]);
-> -				return(err);
-> +				return err;
->  			}
->  			break;
->  		}
->  	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE,	"ia_css_stream_load() exit, \n");
-> -	return(IA_CSS_SUCCESS);
-> +	return IA_CSS_SUCCESS;
->  #else
->  	/* TODO remove function - DEPRECATED */
->  	(void)stream;
-> @@ -10416,7 +10416,7 @@ ia_css_stream_unload(struct ia_css_stream *stream)
->  			break;
->  		}
->  	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE,	"ia_css_stream_unload() exit, \n");
-> -	return(IA_CSS_SUCCESS);
-> +	return IA_CSS_SUCCESS;
->  }
->
->  #endif
-> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
-> index b7db3de..d3567ac 100644
-> --- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
-> +++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
-> @@ -74,7 +74,7 @@ static struct fw_param *fw_minibuffer;
->
->  char *sh_css_get_fw_version(void)
->  {
-> -	return(FW_rel_ver_name);
-> +	return FW_rel_ver_name;
->  }
->
->
-> --
-> 2.7.4
->
-> --
-> You received this message because you are subscribed to the Google Groups "outreachy-kernel" group.
-> To unsubscribe from this group and stop receiving emails from it, send an email to outreachy-kernel+unsubscribe@googlegroups.com.
-> To post to this group, send email to outreachy-kernel@googlegroups.com.
-> To view this discussion on the web visit https://groups.google.com/d/msgid/outreachy-kernel/20170303170139.GA9887%40singhal-Inspiron-5558.
-> For more options, visit https://groups.google.com/d/optout.
->
+These patches have been tested by introducing artificial delays in the commit
+code paths and verifying that no visual tearing or flickering occurs.
+
+Manual start/stop testing has also been performed
+
+Kieran Bingham (3):
+  v4l: vsp1: extend VSP1 module API to allow DRM callbacks
+  v4l: vsp1: Postpone page flip in event of display list race
+  drm: rcar-du: Register a completion callback with VSP1
+
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.c  | 10 +++++++--
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.h  |  2 ++-
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.c   | 29 ++++++++++++++++++++++++++-
+ drivers/media/platform/vsp1/vsp1_dl.c   |  9 ++++++--
+ drivers/media/platform/vsp1/vsp1_dl.h   |  2 +-
+ drivers/media/platform/vsp1/vsp1_drm.c  | 22 ++++++++++++++++++++-
+ drivers/media/platform/vsp1/vsp1_drm.h  | 10 +++++++++-
+ drivers/media/platform/vsp1/vsp1_pipe.c |  6 ++++-
+ drivers/media/platform/vsp1/vsp1_pipe.h |  2 ++-
+ include/media/vsp1.h                    |  3 +++-
+ 10 files changed, 89 insertions(+), 6 deletions(-)
+
+base-commit: 55e78dfc82988a79773ccca67e121f9a88df81c2
+-- 
+git-series 0.9.1
