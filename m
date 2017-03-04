@@ -1,45 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:50075 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932836AbdCaNdh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Mar 2017 09:33:37 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 1/2] [media] tvp5150: allow get/set_fmt on the video source pad
-Date: Fri, 31 Mar 2017 15:33:25 +0200
-Message-Id: <20170331133326.31159-1-p.zabel@pengutronix.de>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56224
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751927AbdCDOIj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 4 Mar 2017 09:08:39 -0500
+Date: Sat, 4 Mar 2017 11:07:43 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: bill murphy <gc2majortom@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Kaffeine commit b510bff2 won't compile
+Message-ID: <20170304110743.7635879c@vento.lan>
+In-Reply-To: <fdc10667-1ed9-7c84-bf7d-ec3a255c59b2@gmail.com>
+References: <bafdb165-261c-0129-e0dc-29819a55ca43@gmail.com>
+        <20170227071122.3a319481@vento.lan>
+        <a2c23f62-215a-9066-45bc-0b8eebacc84b@gmail.com>
+        <20170301070024.3ca3150a@vento.lan>
+        <fdc10667-1ed9-7c84-bf7d-ec3a255c59b2@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To let userspace propagate formats downstream in a media controller
-scenario, the video source pad (now pad 1, DEMOD_PAD_VID_OUT) must allow
-setting and getting the format. Incidentally, tvp5150_fill_fmt was
-implemented for this pad, not for the new analog input pad (now pad 0,
-DEMOD_PAD_IF_INPUT).
+Em Sat, 4 Mar 2017 08:21:51 -0500
+bill murphy <gc2majortom@gmail.com> escreveu:
 
-Fixes: 55606310e77f ("[media] tvp5150: create the expected number of pads")
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/i2c/tvp5150.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> Hi Mauro,
+> 
+> yes I can appreciate that, but why not just make one file for each 
+> country that actually differs,
+> 
+> rather than make the rest of us suffer?
+> 
+> canada and the us are the same.
+> 
+> atsc/us-ATSC-center-frequencies-8VSB
+> 
+> So could add two files for mexico and korea.
+> 
+> atsc/mx-ATSC-center-frequencies-8VSB
+> atsc/kr-ATSC-center-frequencies-8VSB
+> 
+> can't be any worse that the hundreds of files being maintained for DVB-T 
+> in various countries.
 
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index d8487d97617ec..9390662453b0f 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -870,7 +870,7 @@ static int tvp5150_fill_fmt(struct v4l2_subdev *sd,
- 	struct v4l2_mbus_framefmt *f;
- 	struct tvp5150 *decoder = to_tvp5150(sd);
- 
--	if (!format || format->pad)
-+	if (!format || (format->pad != DEMOD_PAD_VID_OUT))
- 		return -EINVAL;
- 
- 	f = &format->format;
--- 
-2.11.0
+That could be done, but newer updates to dtv-scan-tables
+(and projects that use it, like Kaffeine) would have regressions for
+people outside US that use it.
+
+What could be done, instead, would be to have another file for
+US new frequency set.
+
+> 
+> 
+> On 03/01/2017 05:00 AM, Mauro Carvalho Chehab wrote:
+> > Hi Bill,
+> >
+> > Em Mon, 27 Feb 2017 23:46:09 -0500
+> > bill murphy <gc2majortom@gmail.com> escreveu:
+> >  
+> >> Hi Mauro,
+> >>
+> >> Thanks for looking in to it. All is well now.  
+> > Good! Thanks for testing.
+> >  
+> >> On a sidenote, given 700 MHz is used for LTE, and not broadcasting
+> >>
+> >> anymore, would you folks consider removing ch 52 thru 69
+> >>
+> >> in the us-atsc-frequencies if I posted a simple patch to dtv-scan-tables?  
+> > The problem is that, despite its name, this table is used on other
+> > Countries using atsc (like Mexico, Canada and South Korea):
+> >
+> > 	https://en.wikipedia.org/wiki/List_of_digital_television_deployments_by_country#/media/File:Digital_broadcast_standards.svg
+> >
+> > So, while the 700 MHz are still used on other ATSC Countries, we can't
+> > remove, as otherwise, it will not discover the channels at the upper
+> > frequency range there.
+> >
+> > Regards,
+> > Mauro  
+> 
+
+
+
+Thanks,
+Mauro
