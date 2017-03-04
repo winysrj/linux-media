@@ -1,163 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:38425
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932072AbdC1Lik (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Mar 2017 07:38:40 -0400
-Date: Tue, 28 Mar 2017 08:38:26 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Helen Koike <helen.koike@collabora.co.uk>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Helen Koike <helen.koike@collabora.com>,
-        linux-media@vger.kernel.org, jgebben@codeaurora.org,
-        Helen Fornazier <helen.fornazier@gmail.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v7] [media] vimc: Virtual Media Controller core, capture
- and sensor
-Message-ID: <20170328083826.6cf003ff@vento.lan>
-In-Reply-To: <f668b12f-0da8-98da-63b0-c5064cc87da9@xs4all.nl>
-References: <6c85eaf4-1f91-7964-1cf9-602005b62a94@collabora.co.uk>
-        <1490461896-19221-1-git-send-email-helen.koike@collabora.com>
-        <f8466f7a-0f33-a610-10fc-2515d5f6b499@iki.fi>
-        <ef7c1d62-0553-2c5b-004f-527d82e380b3@collabora.co.uk>
-        <20170327150918.6843e285@vento.lan>
-        <f668b12f-0da8-98da-63b0-c5064cc87da9@xs4all.nl>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52368 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752323AbdCDXyc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 4 Mar 2017 18:54:32 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        dri-devel@lists.freedesktop.org
+Subject: Re: [PATCH v2 2/3] v4l: vsp1: Postpone page flip in event of display list race
+Date: Sun, 05 Mar 2017 01:46:57 +0200
+Message-ID: <2000889.heoPCI45nc@avalon>
+In-Reply-To: <7b4ce1b20550d8651feceacf638ffc46be7400f7.1488592678.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.4a217716bf5515d07dcb6d2b052f883eeecae9e8.1488592678.git-series.kieran.bingham+renesas@ideasonboard.com> <7b4ce1b20550d8651feceacf638ffc46be7400f7.1488592678.git-series.kieran.bingham+renesas@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 28 Mar 2017 12:00:36 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi Kieran,
 
-> On 27/03/17 20:09, Mauro Carvalho Chehab wrote:
-> > Em Mon, 27 Mar 2017 12:19:51 -0300
-> > Helen Koike <helen.koike@collabora.co.uk> escreveu:
-> >   
-> >> Hi Sakari,
-> >>
-> >> On 2017-03-26 10:31 AM, Sakari Ailus wrote:  
-> >>> Hi Helen,
-> >>>
-> >>> ...    
-> >>>> +static int vimc_cap_enum_input(struct file *file, void *priv,
-> >>>> +			       struct v4l2_input *i)
-> >>>> +{
-> >>>> +	/* We only have one input */
-> >>>> +	if (i->index > 0)
-> >>>> +		return -EINVAL;
-> >>>> +
-> >>>> +	i->type = V4L2_INPUT_TYPE_CAMERA;
-> >>>> +	strlcpy(i->name, "VIMC capture", sizeof(i->name));
-> >>>> +
-> >>>> +	return 0;
-> >>>> +}
-> >>>> +
-> >>>> +static int vimc_cap_g_input(struct file *file, void *priv, unsigned int *i)
-> >>>> +{
-> >>>> +	/* We only have one input */
-> >>>> +	*i = 0;
-> >>>> +	return 0;
-> >>>> +}
-> >>>> +
-> >>>> +static int vimc_cap_s_input(struct file *file, void *priv, unsigned int i)
-> >>>> +{
-> >>>> +	/* We only have one input */
-> >>>> +	return i ? -EINVAL : 0;
-> >>>> +}    
-> >>>
-> >>> You can drop the input IOCTLs altogether here. If you had e.g. a TV
-> >>> tuner, it'd be the TV tuner driver's responsibility to implement them.
-> >>>    
-> >>
-> >> input IOCTLs seems to be mandatory from v4l2-compliance when capability 
-> >> V4L2_CAP_VIDEO_CAPTURE is set (which is the case):
-> >>
-> >> https://git.linuxtv.org/v4l-utils.git/tree/utils/v4l2-compliance/v4l2-test-input-output.cpp#n418
-> >>
-> >> https://git.linuxtv.org/v4l-utils.git/tree/utils/v4l2-compliance/v4l2-compliance.cpp#n989  
-> > 
-> > The V4L2 spec doesn't actually define what's mandatory and what's
-> > optional. The idea that was agreed on one of the media summits
-> > were to define a set of profiles for different device types,
-> > matching the features required by existing applications to work,
-> > but this was never materialized.
-> > 
-> > So, my understanding is that any driver can implement
-> > any V4L2 ioctl.
-> > 
-> > Yet, some applications require enum/get/set inputs, or otherwise
-> > they wouldn't work. It is too late to change this behavior. 
-> > So, either the driver or the core should implement those
-> > ioctls, in order to avoid breaking backward-compatibility.  
+Thank you for the patch.
+
+On Saturday 04 Mar 2017 02:01:18 Kieran Bingham wrote:
+> If we try to commit the display list while an update is pending, we have
+> missed our opportunity. The display list manager will hold the commit
+> until the next interrupt.
 > 
-> The closest we have to determining which ioctls are mandatory or not is
-> v4l2-compliance.
-
-Yes, but we should explicitly document what's mandatory at the V4L2
-API spec and mention the v4l2-compliance tool there.
-
-> That said, v4l2-compliance is actually a bit more strict
-> in some cases than the spec since some ioctls are optional in the spec, but
-> required in v4l2-compliance for the simple reason that there is no reason
-> for drivers NOT to implement those ioctls.
+> In this event, we inform the vsp1 completion callback handler so that
+> the du will not perform a page flip out of turn.
 > 
-> However, the v4l2-compliance test was never written for MC devices. It turns
-> out that it works reasonably well as long as a working pipeline is configured
-> first, but these input ioctls are a bit iffy.
-
-The way I see, v4l2-compliance V4L2 API check[1] should not be modified to
-explicitly support devices with MC and/or subdev API.
-
-Provided that a valid pipeline is set (either via MC or via some pipeline
-loaded by DT, as Russell proposed), v4l2-compliance should be checking
-if what the device driver provides is enough for a generic V4L2 application
-to work with such pipeline.
-
-As v4l2-compliance also supports libv4l, if are there any plugin
-for that device, it should use such plugin automatically.
-
-So, from my side, if the driver doesn't pass at v4l2-compliance, it is
-not ready for upstream.
-
-[1] Still, it would make sense to add support at v4l2-compliance
-(or to have some other tool) that would check if the MC and subdev 
-APIs are properly implemented - but this is another matter.
-
-> There are really two options: don't implement them, or implement it as a single
-> input. Multiple inputs make no sense for MC devices: the video node is the
-> endpoint of a video pipeline, you never switch 'inputs' there.
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> ---
+>  drivers/media/platform/vsp1/vsp1_dl.c   |  9 +++++++--
+>  drivers/media/platform/vsp1/vsp1_dl.h   |  2 +-
+>  drivers/media/platform/vsp1/vsp1_drm.c  |  4 +++-
+>  drivers/media/platform/vsp1/vsp1_pipe.c |  6 +++++-
+>  drivers/media/platform/vsp1/vsp1_pipe.h |  2 ++
+>  5 files changed, 18 insertions(+), 5 deletions(-)
 > 
-> The way the input ioctls are implemented here would fit nicely for an MC
-> device IMHO.
+> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c
+> b/drivers/media/platform/vsp1/vsp1_dl.c index ad545aff4e35..f8e8c90f22bc
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_dl.c
+> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
+> @@ -557,9 +557,10 @@ void vsp1_dlm_irq_display_start(struct vsp1_dl_manager
+> *dlm)
+>  	spin_unlock(&dlm->lock);
+>  }
 > 
-> So should we define these ioctls or not?
-
-We should. All ioctls that generic application require should be there
-on all drivers, as nobody will modify those applications to work with
-"capped" drivers. Even if someone would be willing to do that, it would
-take years for those apps to be reflected at the distros.
-
-What we could do is to provide a default handler for "trivial" handling
-of ioctls like G_INPUT/S_INPUT at the V4L2 core. This way, drivers that
-don't have multiple inputs (like most webcam drivers) won't need to
-explicitly implement it.
-
-> I am inclined to define them for the following reasons:
+> -void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
+> +int vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
+>  {
+>  	struct vsp1_device *vsp1 = dlm->vsp1;
+> +	int ret = 0;
 > 
-> - Some applications expect them, so adding them to the driver costs little but
->   allows these applications to work, provided the correct pipeline is configured
->   first.
+>  	spin_lock(&dlm->lock);
 > 
-> - If a plugin is needed, then that plugin can always override these ioctls and
->   for different 'inputs' reconfigure the pipeline.
+> @@ -578,8 +579,10 @@ void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager
+> *dlm) * before interrupt processing. The hardware hasn't taken the update *
+> into account yet, we'll thus skip one frame and retry.
+>  	 */
+> -	if (vsp1_read(vsp1, VI6_DL_BODY_SIZE) & VI6_DL_BODY_SIZE_UPD)
+> +	if (vsp1_read(vsp1, VI6_DL_BODY_SIZE) & VI6_DL_BODY_SIZE_UPD) {
+> +		ret = -EBUSY;
+
+Getting there, but not quite :-)
+
+What we need to protect against is the display list not being committed early 
+enough, resulting in one frame skip in the hardware. The good news is that the 
+driver already detects the opposite condition just below. 
+
+>  		goto done;
+> +	}
 > 
-> I really don't see implementing this as a problem. Reporting that an MC video node
-> has a "VIMC capture" input seems perfectly reasonable to me.
+>  	/* The device starts processing the queued display list right after 
+the
+>  	 * frame end interrupt. The display list thus becomes active.
 
-Agreed.
+This is what we want to report. You can simply return a bool that will tell 
+whether the previous display list has completed at frame end. You should 
+return true when the condition right below this comment is true, as well as 
+when using header mode (to avoid breaking mem-to-mem pipelines), and false in 
+all other cases.
 
-Thanks,
-Mauro
+> @@ -606,6 +609,8 @@ void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
+> 
+>  done:
+>  	spin_unlock(&dlm->lock);
+> +
+> +	return ret;
+>  }
+> 
+>  /* Hardware Setup */
+> diff --git a/drivers/media/platform/vsp1/vsp1_dl.h
+> b/drivers/media/platform/vsp1/vsp1_dl.h index 7131aa3c5978..c772a1d92513
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_dl.h
+> +++ b/drivers/media/platform/vsp1/vsp1_dl.h
+> @@ -28,7 +28,7 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device
+> *vsp1, void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm);
+>  void vsp1_dlm_reset(struct vsp1_dl_manager *dlm);
+>  void vsp1_dlm_irq_display_start(struct vsp1_dl_manager *dlm);
+> -void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
+> +int vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
+> 
+>  struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm);
+>  void vsp1_dl_list_put(struct vsp1_dl_list *dl);
+> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
+> b/drivers/media/platform/vsp1/vsp1_drm.c index 85e5ebca82a5..6f2dd42ca01b
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drm.c
+> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+> @@ -40,10 +40,12 @@ static void vsp1_du_pipeline_frame_end(struct
+> vsp1_pipeline *pipe) {
+>  	struct vsp1_drm *drm = to_vsp1_drm(pipe);
+> 
+> -	if (drm->du_complete && drm->du_pending) {
+> +	if (drm->du_complete && drm->du_pending && !pipe->dl_postponed) {
+>  		drm->du_complete(drm->du_private);
+>  		drm->du_pending = false;
+>  	}
+> +
+> +	pipe->dl_postponed = false;
+>  }
+> 
+>  /* ------------------------------------------------------------------------
+> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c
+> b/drivers/media/platform/vsp1/vsp1_pipe.c index 280ba0804699..3c5aae8767dd
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_pipe.c
+> +++ b/drivers/media/platform/vsp1/vsp1_pipe.c
+> @@ -297,10 +297,14 @@ bool vsp1_pipeline_ready(struct vsp1_pipeline *pipe)
+> 
+>  void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
+>  {
+> +	int ret;
+> +
+>  	if (pipe == NULL)
+>  		return;
+> 
+> -	vsp1_dlm_irq_frame_end(pipe->output->dlm);
+> +	ret = vsp1_dlm_irq_frame_end(pipe->output->dlm);
+> +	if (ret)
+> +		pipe->dl_postponed = true;
+
+This can be simplified greatly. If vsp1_dlm_irq_frame_end() returns false, 
+return immediately without calling the pipe->frame_end() handler or 
+incrementing the sequence number, as the frame has not completed. You can then 
+remove the dl_postponed field from the vsp1_pipeline structure and call the 
+.du_complete() handler unconditionally in vsp1_du_pipeline_frame_end() 
+(provided it's not NULL of course). As the vsp1_dlm_irq_frame_end() function 
+can't return true if a commit hasn't been queued in the first place, there's 
+no need for a dl_pending flag either.
+
+> 
+>  	if (pipe->frame_end)
+>  		pipe->frame_end(pipe);
+> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h
+> b/drivers/media/platform/vsp1/vsp1_pipe.h index ac4ad2655551..65cc8fb76662
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_pipe.h
+> +++ b/drivers/media/platform/vsp1/vsp1_pipe.h
+> @@ -77,6 +77,7 @@ enum vsp1_pipeline_state {
+>   * @uds_input: entity at the input of the UDS, if the UDS is present
+>   * @entities: list of entities in the pipeline
+>   * @dl: display list associated with the pipeline
+> + * @dl_postponed: identifies if the dl commit was caught by a race
+> condition * @div_size: The maximum allowed partition size for the pipeline
+> * @partitions: The number of partitions used to process one frame *
+> @current_partition: The partition number currently being configured @@
+> -107,6 +108,7 @@ struct vsp1_pipeline {
+>  	struct list_head entities;
+> 
+>  	struct vsp1_dl_list *dl;
+> +	bool dl_postponed;
+> 
+>  	unsigned int div_size;
+>  	unsigned int partitions;
+
+-- 
+Regards,
+
+Laurent Pinchart
