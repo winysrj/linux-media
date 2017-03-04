@@ -1,336 +1,238 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f194.google.com ([209.85.220.194]:33027 "EHLO
-        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752380AbdCEPPC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 5 Mar 2017 10:15:02 -0500
-Received: by mail-qk0-f194.google.com with SMTP id j127so20314770qke.0
-        for <linux-media@vger.kernel.org>; Sun, 05 Mar 2017 07:15:01 -0800 (PST)
-From: Bill Murphy <gc2majortom@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Bill Murphy <gc2majortom@gmail.com>
-Subject: [PATCH] [dtv-scan-tables] [atsc] Add a new list for USA/CAN. Remove channels 52 thru 69 for those in the USA or Canada who may want to save a few clock cycles avoiding scanning through ch 52 to 69.
-Date: Sun,  5 Mar 2017 10:06:07 -0500
-Message-Id: <1488726367-13263-1-git-send-email-gc2majortom@gmail.com>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:58676 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751370AbdCDKxt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 4 Mar 2017 05:53:49 -0500
+Subject: Re: [PATCH v2 2/3] v4l: Clearly document interactions between
+ formats, controls and buffers
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org
+References: <20170228150320.10104-1-laurent.pinchart+renesas@ideasonboard.com>
+ <20170228150320.10104-3-laurent.pinchart+renesas@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <30dd7931-7c7c-70ed-1a62-00756406761c@xs4all.nl>
+Date: Sat, 4 Mar 2017 11:53:45 +0100
+MIME-Version: 1.0
+In-Reply-To: <20170228150320.10104-3-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Bill Murphy <gc2majortom@gmail.com>
----
- atsc/us-ATSC-center-frequencies-8VSB-062009 | 306 ++++++++++++++++++++++++++++
- 1 file changed, 306 insertions(+)
- create mode 100644 atsc/us-ATSC-center-frequencies-8VSB-062009
+Hi Laurent,
 
-diff --git a/atsc/us-ATSC-center-frequencies-8VSB-062009 b/atsc/us-ATSC-center-frequencies-8VSB-062009
-new file mode 100644
-index 0000000..3590860
---- /dev/null
-+++ b/atsc/us-ATSC-center-frequencies-8VSB-062009
-@@ -0,0 +1,306 @@
-+# US ATSC center frequencies, ch 52 to 69 removed.
-+# Use this if you wish to avoid scanning ch 52 to 69.
-+# ch 52 thru 69 are unused for ATSC 
-+# in the USA since June 2009
-+# in Canada since September 2011
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 57028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 63028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 69028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 79028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 85028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 177028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 183028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 189028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 195028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 201028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 207028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 213028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 473028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 479028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 485028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 491028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 497028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 503028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 509028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 515028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 521028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 527028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 533028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 539028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 545028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 551028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 557028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 563028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 569028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 575028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 581028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 587028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 593028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 599028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 605028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 611028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 617028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 623028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 629028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 635028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 641028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 647028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 653028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 659028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 665028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 671028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 677028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 683028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 689028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 695028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
--- 
-2.7.4
+Here is my review:
+
+On 28/02/17 16:03, Laurent Pinchart wrote:
+> V4L2 exposes parameters that influence buffers sizes through the format
+> ioctls (VIDIOC_G_FMT, VIDIOC_TRY_FMT and VIDIO_S_FMT). Other parameters
+
+S_SELECTION should be mentioned here as well (more about that later).
+
+> not part of the format structure may also influence buffer sizes or
+> buffer layout in general. One existing such parameter is rotation, which
+> is implemented by the VIDIOC_ROTATE control and thus exposed through the
+> V4L2 control ioctls.
+>
+> The interaction between those parameters and buffers is currently only
+> partially specified by the V4L2 API. In particular interactions between
+> controls and buffers isn't specified at all. The behaviour of the
+> VIDIOC_S_FMT ioctl when buffers are allocated is also not fully
+> specified.
+>
+> This commit clearly defines and documents the interactions between
+> formats, controls and buffers.
+>
+> The preparatory discussions for the documentation change considered
+> completely disallowing controls that change the buffer size or layout,
+> in favour of extending the format API with a new ioctl that would bundle
+> those controls with format information. The idea has been rejected, as
+> this would essentially be a restricted version of the upcoming request
+> API that wouldn't bring any additional value.
+>
+> Another option we have considered was to mandate the use of the request
+> API to modify controls that influence buffer size or layout. This has
+> also been rejected on the grounds that requiring the request API to
+> change rotation even when streaming is stopped would significantly
+> complicate implementation of drivers and usage of the V4L2 API for
+> applications.
+>
+> Applications will however be required to use the upcoming request API to
+> change at runtime formats or controls that influence the buffer size or
+> layout, because of the need to synchronize buffers with the formats and
+> controls. Otherwise there would be no way to interpret the content of a
+> buffer correctly.
+>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> ---
+>  Documentation/media/uapi/v4l/buffer.rst | 88 +++++++++++++++++++++++++++++++++
+>  1 file changed, 88 insertions(+)
+>
+> diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+> index ac58966ccb9b..5c58db98ab7a 100644
+> --- a/Documentation/media/uapi/v4l/buffer.rst
+> +++ b/Documentation/media/uapi/v4l/buffer.rst
+> @@ -34,6 +34,94 @@ flags are copied from the OUTPUT video buffer to the CAPTURE video
+>  buffer.
+>
+>
+> +Interactions between formats, controls and buffers
+> +==================================================
+> +
+> +V4L2 exposes parameters that influence the buffer size, or the way data is
+> +laid out in the buffer. Those parameters are exposed through both formats and
+> +controls. One example of such a control is the ``V4L2_CID_ROTATE`` control
+> +that modifies the direction in which pixels are stored in the buffer, as well
+> +as the buffer size when the selected format includes padding at the end of
+> +lines.
+> +
+> +The set of information needed to interpret the content of a buffer (e.g. the
+> +pixel format, the line stride, the tiling orientation or the rotation) is
+> +collectively referred to in the rest of this section as the buffer layout.
+> +
+> +Modifying formats or controls that influence the buffer size or layout require
+> +the stream to be stopped. Any attempt at such a modification while the stream
+> +is active shall cause the format or control set ioctl to return the ``EBUSY``
+> +error code.
+
+This is not what happens today: it's not the streaming part that causes EBUSY to
+be returned but whether or not buffers are allocated.
+
+Today we do not support changing buffer sizes on the fly, so any attempt to
+call an ioctl that would change the buffer size is blocked and EBUSY is returned.
+To be precise: drivers call vb2_is_busy() to determine this.
+
+To my knowledge all vb2-using drivers behave like this. There may be old drivers
+that do not do this (and these have a high likelyhood of being wrong).
+
+> +
+> +Controls that only influence the buffer layout can be modified at any time
+> +when the stream is stopped. As they don't influence the buffer size, no
+> +special handling is needed to synchronize those controls with buffer
+> +allocation.
+> +
+> +Formats and controls that influence the buffer size interact with buffer
+> +allocation. As buffer allocation is an expensive operation, drivers should
+> +allow format or controls that influence the buffer size to be changed with
+> +buffers allocated. A typical ioctl sequence to modify format and controls is
+> +
+> + #. VIDIOC_STREAMOFF
+> + #. VIDIOC_S_FMT
+> + #. VIDIOC_S_EXT_CTRLS
+> + #. VIDIOC_QBUF
+> + #. VIDIOC_STREAMON
+> +
+> +Queued buffers must be large enough for the new format or controls.
+> +
+> +Drivers shall return a ``ENOSPC`` error in response to format change
+> +(:c:func:`VIDIOC_S_FMT`) or control changes (:c:func:`VIDIOC_S_CTRL` or
+> +:c:func:`VIDIOC_S_EXT_CTRLS`) if buffers too small for the new format are
+> +currently queued. As a simplification, drivers are allowed to return an error
+> +from these ioctls if any buffer is currently queued, without checking the
+> +queued buffers sizes. Drivers shall also return a ``ENOSPC`` error from the
+> +:c:func:`VIDIOC_QBUF` ioctl if the buffer being queued is too small for the
+> +current format or controls.
+
+Actually, today qbuf will return -EINVAL (from __verify_length in videobuf2-v4l2.c)
+in these cases. I am pretty sure you can't change that to ENOSPC since this has
+always been -EINVAL, and so changing this would break the ABI.
+
+Trying to change the format while buffers are allocated will return EBUSY today.
+
+If you are trying to document what will happen when drivers allow format changes
+on the fly then this is not at all clear from what you write here.
+
+So:
+
+If the driver does not support changing the format while buffers are queued, then
+it will return EBUSY (true for almost (?) all drivers today). If it does support
+this, then it will behave as described above, except for the ENOSPC error in QBUF.
+
+Note that the meaning of ENOSPC should also be explicitly documented in the ioctls
+that can return this.
+
+ > Together, these requirements ensure that queued
+> +buffers will always be large enough for the configured format and controls.
+> +
+> +Userspace applications can query the buffer size required for a given format
+> +and controls by first setting the desired control values and then trying the
+> +desired format. The :c:func:`VIDIOC_TRY_FMT` ioctl will return the required
+> +buffer size.
+> +
+> + #. VIDIOC_S_EXT_CTRLS(x)
+> + #. VIDIOC_TRY_FMT()
+> + #. VIDIOC_S_EXT_CTRLS(y)
+> + #. VIDIOC_TRY_FMT()
+> +
+> +The :c:func:`VIDIOC_CREATE_BUFS` ioctl can then be used to allocate buffers
+> +based on the queried sizes (for instance by allocating a set of buffers large
+> +enough for all the desired formats and controls, or by allocating separate set
+> +of appropriately sized buffers for each use case).
+> +
+> +To simplify their implementation, drivers may also require buffers to be
+> +reallocated in order to change formats or controls that influence the buffer
+> +size. In that case, to perform such changes, userspace applications shall
+> +first stop the video stream with the :c:func:`VIDIOC_STREAMOFF` ioctl if it
+> +is running and free all buffers with the :c:func:`VIDIOC_REQBUFS` ioctl if
+> +they are allocated. The format or controls can then be modified, and buffers
+> +shall then be reallocated and the stream restarted. A typical ioctl sequence
+> +is
+> +
+> + #. VIDIOC_STREAMOFF
+> + #. VIDIOC_REQBUFS(0)
+> + #. VIDIOC_S_FMT
+> + #. VIDIOC_S_EXT_CTRLS
+> + #. VIDIOC_REQBUFS(n)
+> + #. VIDIOC_QBUF
+> + #. VIDIOC_STREAMON
+> +
+> +The second :c:func:`VIDIOC_REQBUFS` call will take the new format and control
+> +value into account to compute the buffer size to allocate. Applications can
+> +also retrieve the size by calling the :c:func:`VIDIOC_G_FMT` ioctl if needed.
+> +
+> +When reallocation is required, any attempt to modify format or controls that
+> +influences the buffer size while buffers are allocated shall cause the format
+> +or control set ioctl to return the ``EBUSY`` error code.
+
+Ah, here you describe the 99% situation. This should come first. You've been working
+on the 1% that allows changing formats while buffers are allocated so that feels
+all-important to you, but in reality almost all drivers use the 'simplified'
+implementation. Describe that first, then go on describing what will happen for
+your driver. That will make much more sense to me (as you can tell from the preceding
+comments) and I'm sure to the end-user as well.
+
+What should be mentioned here as well is that S_SELECTION can also implicitly change
+the format, specifically if there is no scaler or if the scaler has limitations.
+
+Also there are a few ioctls that can reset selections and formats when called:
+S_INPUT/S_OUTPUT, S_STD and S_DV_TIMINGS.
+
+I think this should be mentioned here. It can be just in passing, no need to go
+in-depth on that. As long as people are aware of it.
+
+The documentation of S_STD and S_DV_TIMINGS should also be updated saying that if
+the new std or timings differ from the existing std or timings, then the format
+will also change and selection rectangles will be reset to the defaults. Setting
+the std/dv_timings with the current std or timings will not do anything: there
+are applications that do this even when streaming so this should be allowed.
+
+Unfortunately, this is not documented but it really should.
+
+If you don't have time to update the S_STD/DV_TIMINGS ioctls, then let me know and
+I will do that.
+
+> +
+> +
+>  .. c:type:: v4l2_buffer
+>
+>  struct v4l2_buffer
+>
+
+Regards,
+
+	Hans
