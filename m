@@ -1,204 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:35528 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752184AbdCVEdF (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33982 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751577AbdCDPkU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Mar 2017 00:33:05 -0400
-From: Arushi Singhal <arushisinghal19971997@gmail.com>
-To: outreachy-kernel@googlegroups.com
-Cc: linux-media@vger.kernel.org, gregkh@linuxfoundation.org,
-        mchehab@kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org,
-        Arushi Singhal <arushisinghal19971997@gmail.com>
-Subject: [PATCH 2/3] staging: media: davinci_vpfe: Replace a bit shift by a use of BIT.
-Date: Wed, 22 Mar 2017 09:56:08 +0530
-Message-Id: <20170322042609.23525-3-arushisinghal19971997@gmail.com>
-In-Reply-To: <20170322042609.23525-1-arushisinghal19971997@gmail.com>
-References: <20170322042609.23525-1-arushisinghal19971997@gmail.com>
+        Sat, 4 Mar 2017 10:40:20 -0500
+Date: Sat, 4 Mar 2017 17:39:46 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
+        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCHv2] omap3isp: add support for CSI1 bus
+Message-ID: <20170304153946.GA3220@valkosipuli.retiisi.org.uk>
+References: <20161228183036.GA13139@amd>
+ <10545906.Gxg3yScdu4@avalon>
+ <20170215094228.GA8586@amd>
+ <2414221.XNA4JCFMRx@avalon>
+ <20170302090143.GB27818@amd>
+ <20170302101603.GE27818@amd>
+ <20170302112401.GF3220@valkosipuli.retiisi.org.uk>
+ <20170302123848.GA28230@amd>
+ <20170304130318.GU3220@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170304130318.GU3220@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch replaces bit shifting on 1 with the BIT(x) macro.
-This was done with coccinelle:
-@@
-constant c;
-@@
+On Sat, Mar 04, 2017 at 03:03:18PM +0200, Sakari Ailus wrote:
+> Hi Pavel,
+> 
+> On Thu, Mar 02, 2017 at 01:38:48PM +0100, Pavel Machek wrote:
+> > Hi!
+> > 
+> > > > Ok, how about this one?
+> > > > omap3isp: add rest of CSI1 support
+> > > >     
+> > > > CSI1 needs one more bit to be set up. Do just that.
+> > > >     
+> > > > It is not as straightforward as I'd like, see the comments in the code
+> > > > for explanation.
+> > ...
+> > > > +	if (isp->phy_type == ISP_PHY_TYPE_3430) {
+> > > > +		struct media_pad *pad;
+> > > > +		struct v4l2_subdev *sensor;
+> > > > +		const struct isp_ccp2_cfg *buscfg;
+> > > > +
+> > > > +		pad = media_entity_remote_pad(&ccp2->pads[CCP2_PAD_SINK]);
+> > > > +		sensor = media_entity_to_v4l2_subdev(pad->entity);
+> > > > +		/* Struct isp_bus_cfg has union inside */
+> > > > +		buscfg = &((struct isp_bus_cfg *)sensor->host_priv)->bus.ccp2;
+> > > > +
+> > > > +		csiphy_routing_cfg_3430(&isp->isp_csiphy2,
+> > > > +					ISP_INTERFACE_CCP2B_PHY1,
+> > > > +					enable, !!buscfg->phy_layer,
+> > > > +					buscfg->strobe_clk_pol);
+> > > 
+> > > You should do this through omap3isp_csiphy_acquire(), and not call
+> > > csiphy_routing_cfg_3430() directly from here.
+> > 
+> > Well, unfortunately omap3isp_csiphy_acquire() does have csi2
+> > assumptions hard-coded :-(.
+> > 
+> > This will probably fail.
+> > 
+> > 	        rval = omap3isp_csi2_reset(phy->csi2);
+> > 	        if (rval < 0)
+> > 		                goto done;
+> 
+> Could you try to two patches I've applied on the ccp2 branch (I'll remove
+> them if there are issues).
+> 
+> That's compile tested for now only.
 
--1 << c
-+BIT(c)
+One more thing. What's needed for configuring the PHY for CCP2?
 
-Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
----
- drivers/staging/media/davinci_vpfe/dm365_ipipe.c   |  2 +-
- drivers/staging/media/davinci_vpfe/dm365_ipipeif.c |  2 +-
- drivers/staging/media/davinci_vpfe/dm365_isif.c    | 26 +++++++++++-----------
- drivers/staging/media/davinci_vpfe/dm365_resizer.c |  6 ++---
- 4 files changed, 18 insertions(+), 18 deletions(-)
+For instance, is the CSI-2 PHY regulator still needed in
+omap3isp_csiphy_acquire()? One way to do this might go to see the original
+driver for N900; I don't have the TRM at hand right now.
 
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-index 6a3434cebd79..7eeb53217168 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-@@ -1815,7 +1815,7 @@ vpfe_ipipe_init(struct vpfe_ipipe_device *ipipe, struct platform_device *pdev)
- 	v4l2_subdev_init(sd, &ipipe_v4l2_ops);
- 	sd->internal_ops = &ipipe_v4l2_internal_ops;
- 	strlcpy(sd->name, "DAVINCI IPIPE", sizeof(sd->name));
--	sd->grp_id = 1 << 16;	/* group ID for davinci subdevs */
-+	sd->grp_id = BIT(16);	/* group ID for davinci subdevs */
- 	v4l2_set_subdevdata(sd, ipipe);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c b/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
-index 46fd2c7f69c3..c07f028dd6be 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
-@@ -1021,7 +1021,7 @@ int vpfe_ipipeif_init(struct vpfe_ipipeif_device *ipipeif,
- 
- 	sd->internal_ops = &ipipeif_v4l2_internal_ops;
- 	strlcpy(sd->name, "DAVINCI IPIPEIF", sizeof(sd->name));
--	sd->grp_id = 1 << 16;	/* group ID for davinci subdevs */
-+	sd->grp_id = BIT(16);	/* group ID for davinci subdevs */
- 
- 	v4l2_set_subdevdata(sd, ipipeif);
- 
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_isif.c b/drivers/staging/media/davinci_vpfe/dm365_isif.c
-index 569bcdc9ce2f..0d160c1257d2 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_isif.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_isif.c
-@@ -821,7 +821,7 @@ isif_config_dfc(struct vpfe_isif_device *isif, struct vpfe_isif_dfc *vdfc)
- 
- 	/* Correct whole line or partial */
- 	if (vdfc->corr_whole_line)
--		val |= 1 << ISIF_VDFC_CORR_WHOLE_LN_SHIFT;
-+		val |= BIT(ISIF_VDFC_CORR_WHOLE_LN_SHIFT);
- 
- 	/* level shift value */
- 	val |= (vdfc->def_level_shift & ISIF_VDFC_LEVEL_SHFT_MASK) <<
-@@ -849,7 +849,7 @@ isif_config_dfc(struct vpfe_isif_device *isif, struct vpfe_isif_dfc *vdfc)
- 
- 	val = isif_read(isif->isif_cfg.base_addr, DFCMEMCTL);
- 	/* set DFCMARST and set DFCMWR */
--	val |= 1 << ISIF_DFCMEMCTL_DFCMARST_SHIFT;
-+	val |= BIT(ISIF_DFCMEMCTL_DFCMARST_SHIFT);
- 	val |= 1;
- 	isif_write(isif->isif_cfg.base_addr, val, DFCMEMCTL);
- 
-@@ -880,7 +880,7 @@ isif_config_dfc(struct vpfe_isif_device *isif, struct vpfe_isif_dfc *vdfc)
- 		}
- 		val = isif_read(isif->isif_cfg.base_addr, DFCMEMCTL);
- 		/* clear DFCMARST and set DFCMWR */
--		val &= ~(1 << ISIF_DFCMEMCTL_DFCMARST_SHIFT);
-+		val &= ~(BIT(ISIF_DFCMEMCTL_DFCMARST_SHIFT));
- 		val |= 1;
- 		isif_write(isif->isif_cfg.base_addr, val, DFCMEMCTL);
- 
-@@ -904,10 +904,10 @@ isif_config_dfc(struct vpfe_isif_device *isif, struct vpfe_isif_dfc *vdfc)
- 			   DM365_ISIF_DFCMWR_MEMORY_WRITE, DFCMEMCTL);
- 	}
- 	/* enable VDFC */
--	isif_merge(isif->isif_cfg.base_addr, (1 << ISIF_VDFC_EN_SHIFT),
--		   (1 << ISIF_VDFC_EN_SHIFT), DFCCTL);
-+	isif_merge(isif->isif_cfg.base_addr, (BIT(ISIF_VDFC_EN_SHIFT)),
-+		   (BIT(ISIF_VDFC_EN_SHIFT)), DFCCTL);
- 
--	isif_merge(isif->isif_cfg.base_addr, (1 << ISIF_VDFC_EN_SHIFT),
-+	isif_merge(isif->isif_cfg.base_addr, (BIT(ISIF_VDFC_EN_SHIFT)),
- 		   (0 << ISIF_VDFC_EN_SHIFT), DFCCTL);
- 
- 	isif_write(isif->isif_cfg.base_addr, 0x6, DFCMEMCTL);
-@@ -1140,7 +1140,7 @@ static int isif_config_raw(struct v4l2_subdev *sd, int mode)
- 	isif_write(isif->isif_cfg.base_addr, val, CGAMMAWD);
- 	/* Configure DPCM compression settings */
- 	if (params->v4l2_pix_fmt == V4L2_PIX_FMT_SGRBG10DPCM8) {
--		val =  1 << ISIF_DPCM_EN_SHIFT;
-+		val =  BIT(ISIF_DPCM_EN_SHIFT);
- 		val |= (params->dpcm_predictor &
- 			ISIF_DPCM_PREDICTOR_MASK) << ISIF_DPCM_PREDICTOR_SHIFT;
- 	}
-@@ -1893,7 +1893,7 @@ static const struct v4l2_ctrl_config vpfe_isif_crgain = {
- 	.name = "CRGAIN",
- 	.type = V4L2_CTRL_TYPE_INTEGER,
- 	.min = 0,
--	.max = (1 << 12) - 1,
-+	.max = (BIT(12)) - 1,
- 	.step = 1,
- 	.def = 0,
- };
-@@ -1904,7 +1904,7 @@ static const struct v4l2_ctrl_config vpfe_isif_cgrgain = {
- 	.name = "CGRGAIN",
- 	.type = V4L2_CTRL_TYPE_INTEGER,
- 	.min = 0,
--	.max = (1 << 12) - 1,
-+	.max = (BIT(12)) - 1,
- 	.step = 1,
- 	.def = 0,
- };
-@@ -1915,7 +1915,7 @@ static const struct v4l2_ctrl_config vpfe_isif_cgbgain = {
- 	.name = "CGBGAIN",
- 	.type = V4L2_CTRL_TYPE_INTEGER,
- 	.min = 0,
--	.max = (1 << 12) - 1,
-+	.max = (BIT(12)) - 1,
- 	.step = 1,
- 	.def = 0,
- };
-@@ -1926,7 +1926,7 @@ static const struct v4l2_ctrl_config vpfe_isif_cbgain = {
- 	.name = "CBGAIN",
- 	.type = V4L2_CTRL_TYPE_INTEGER,
- 	.min = 0,
--	.max = (1 << 12) - 1,
-+	.max = (BIT(12)) - 1,
- 	.step = 1,
- 	.def = 0,
- };
-@@ -1937,7 +1937,7 @@ static const struct v4l2_ctrl_config vpfe_isif_gain_offset = {
- 	.name = "Gain Offset",
- 	.type = V4L2_CTRL_TYPE_INTEGER,
- 	.min = 0,
--	.max = (1 << 12) - 1,
-+	.max = (BIT(12)) - 1,
- 	.step = 1,
- 	.def = 0,
- };
-@@ -2044,7 +2044,7 @@ int vpfe_isif_init(struct vpfe_isif_device *isif, struct platform_device *pdev)
- 	v4l2_subdev_init(sd, &isif_v4l2_ops);
- 	sd->internal_ops = &isif_v4l2_internal_ops;
- 	strlcpy(sd->name, "DAVINCI ISIF", sizeof(sd->name));
--	sd->grp_id = 1 << 16;	/* group ID for davinci subdevs */
-+	sd->grp_id = BIT(16);	/* group ID for davinci subdevs */
- 	v4l2_set_subdevdata(sd, isif);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_HAS_DEVNODE;
- 	pads[ISIF_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_resizer.c b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-index 857b0e847c5e..3b3469adaf91 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-@@ -1903,7 +1903,7 @@ int vpfe_resizer_init(struct vpfe_resizer_device *vpfe_rsz,
- 	v4l2_subdev_init(sd, &resizer_v4l2_ops);
- 	sd->internal_ops = &resizer_v4l2_internal_ops;
- 	strlcpy(sd->name, "DAVINCI RESIZER CROP", sizeof(sd->name));
--	sd->grp_id = 1 << 16;	/* group ID for davinci subdevs */
-+	sd->grp_id = BIT(16);	/* group ID for davinci subdevs */
- 	v4l2_set_subdevdata(sd, vpfe_rsz);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
-@@ -1927,7 +1927,7 @@ int vpfe_resizer_init(struct vpfe_resizer_device *vpfe_rsz,
- 	v4l2_subdev_init(sd, &resizer_v4l2_ops);
- 	sd->internal_ops = &resizer_v4l2_internal_ops;
- 	strlcpy(sd->name, "DAVINCI RESIZER A", sizeof(sd->name));
--	sd->grp_id = 1 << 16;	/* group ID for davinci subdevs */
-+	sd->grp_id = BIT(16);	/* group ID for davinci subdevs */
- 	v4l2_set_subdevdata(sd, vpfe_rsz);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
-@@ -1949,7 +1949,7 @@ int vpfe_resizer_init(struct vpfe_resizer_device *vpfe_rsz,
- 	v4l2_subdev_init(sd, &resizer_v4l2_ops);
- 	sd->internal_ops = &resizer_v4l2_internal_ops;
- 	strlcpy(sd->name, "DAVINCI RESIZER B", sizeof(sd->name));
--	sd->grp_id = 1 << 16;	/* group ID for davinci subdevs */
-+	sd->grp_id = BIT(16);	/* group ID for davinci subdevs */
- 	v4l2_set_subdevdata(sd, vpfe_rsz);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
 -- 
-2.11.0
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
