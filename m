@@ -1,124 +1,219 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:35967 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751490AbdCSRy2 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60422 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751814AbdCDMd3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 19 Mar 2017 13:54:28 -0400
-Subject: Re: [PATCH v5 00/39] i.MX Media Driver
-To: Russell King - ARM Linux <linux@armlinux.org.uk>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <20170318192258.GL21222@n2100.armlinux.org.uk>
- <aef6c412-5464-726b-42f6-a24b7323aa9c@mentor.com>
- <20170319103801.GQ21222@n2100.armlinux.org.uk>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <9b3311a8-34a7-2b5b-9bc7-836371e1e0a4@gmail.com>
-Date: Sun, 19 Mar 2017 10:54:22 -0700
+        Sat, 4 Mar 2017 07:33:29 -0500
+Date: Sat, 4 Mar 2017 14:30:11 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
+Subject: Re: camera subdevice support was Re: [PATCH 1/4] v4l2:
+ device_register_subdev_nodes: allow calling multiple times
+Message-ID: <20170304123010.GT3220@valkosipuli.retiisi.org.uk>
+References: <20170220103114.GA9800@amd>
+ <20170220130912.GT16975@valkosipuli.retiisi.org.uk>
+ <20170220135636.GU16975@valkosipuli.retiisi.org.uk>
+ <20170221110721.GD5021@amd>
+ <20170221111104.GD16975@valkosipuli.retiisi.org.uk>
+ <20170225000918.GB23662@amd>
+ <20170225134444.6qzumpvasaow5qoj@ihha.localdomain>
+ <20170225215321.GA29886@amd>
+ <20170225231754.GY16975@valkosipuli.retiisi.org.uk>
+ <20170304085551.GA19769@amd>
 MIME-Version: 1.0
-In-Reply-To: <20170319103801.GQ21222@n2100.armlinux.org.uk>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170304085551.GA19769@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Sat, Mar 04, 2017 at 09:55:51AM +0100, Pavel Machek wrote:
+> Dobry den! :-)
 
+Huomenta! :-)
 
-On 03/19/2017 03:38 AM, Russell King - ARM Linux wrote:
-> On Sat, Mar 18, 2017 at 12:58:27PM -0700, Steve Longerbeam wrote:
->> Right, imx-media-capture.c (the "standard" v4l2 user interface module)
->> is not implementing VIDIOC_ENUM_FRAMESIZES. It should, but it can only
->> return the single frame size that the pipeline has configured (the mbus
->> format of the attached source pad).
-> I now have a set of patches that enumerate the frame sizes and intervals
-> from the source pad of the first subdev (since you're setting the formats
-> etc there from the capture device, it seems sensible to return what it
-> can support.)  This means my patch set doesn't add to non-CSI subdevs.
->
->> Can you share your gstreamer pipeline? For now, until
->> VIDIOC_ENUM_FRAMESIZES is implemented, try a pipeline that
->> does not attempt to specify a frame rate. I use the attached
->> script for testing, which works for me.
-> Note that I'm not specifying a frame rate on gstreamer - I'm setting
-> the pipeline up for 60fps, but gstreamer in its wisdom is unable to
-> enumerate the frame sizes, and therefore is unable to enumerate the
-> frame intervals (frame intervals depend on frame sizes), so it
-> falls back to the "tvnorms" which are basically 25/1 and 30000/1001.
->
-> It sees 60fps via G_PARM, and then decides to set 30000/1001 via S_PARM.
-> So, we end up with most of the pipeline operating at 60fps, with CSI
-> doing frame skipping to reduce the frame rate to 30fps.
->
-> gstreamer doesn't complain, doesn't issue any warnings, the only way
-> you can spot this is to enable debugging and look through the copious
-> debug log, or use -v and check the pad capabilities.
->
-> Testing using gstreamer, and only using "does it produce video" is a
-> good simple test, but it's just that - it's a simple test.  It doesn't
-> tell you that what you're seeing is what you intended to see (such as
-> video at the frame rate you expected) without more work.
->
->> Thanks, I've fixed most of v4l2-compliance issues, but this is not
->> done yet. Is that something you can help with?
-> What did you do with:
->
-> ioctl(3, VIDIOC_REQBUFS, {count=0, type=0 /* V4L2_BUF_TYPE_??? */, memory=0 /* V4L2_MEMORY_??? */}) = -1 EINVAL (Invalid argument)
->                  test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-> ioctl(3, VIDIOC_EXPBUF, 0xbef405bc)     = -1 EINVAL (Invalid argument)
->                  fail: v4l2-test-buffers.cpp(571): q.has_expbuf(node)
->                  test VIDIOC_EXPBUF: FAIL
->
-> To me, this looks like a bug in v4l2-compliance (I'm using 1.10.0).
-> I'm not sure what buffer VIDIOC_EXPBUF is expected to export, since
-> afaics no buffers have been allocated, so of course it's going to fail.
-> Either that, or the v4l2 core vb2 code is non-compliant with v4l2's
-> interface requirements.
->
-> In any case, it doesn't look like the buffer management is being
-> tested at all by v4l2-compliance - we know that gstreamer works, so
-> buffers _can_ be allocated, and I've also used dmabufs with gstreamer,
-> so I also know that VIDIOC_EXPBUF works there.
->
+> 
+> > > > > Ok, I got the camera sensor to work. No subdevices support, so I don't
+> > > > > have focus (etc) working, but that's a start. I also had to remove
+> > > > > video-bus-switch support; but I guess it will be easier to use
+> > > > > video-multiplexer patches... 
+> > > > > 
+> > > > > I'll have patches over weekend.
+> > > > 
+> > > > I briefly looked at what's there --- you do miss the video nodes for the
+> > > > non-sensor sub-devices, and they also don't show up in the media graph,
+> > > > right?
+> > > 
+> > > Yes.
+> > > 
+> > > > I guess they don't end up matching in the async list.
+> > > 
+> > > How should they get to the async list?
+> > 
+> > The patch you referred to does that. The problem is, it does make the bus
+> > configuration a pointer as well. There should be two patches. That's not a
+> > lot of work to separate them though. But it should be done.
+> > 
+> > > 
+> > > > I think we need to make the non-sensor sub-device support more generic;
+> > > > it's not just the OMAP 3 ISP that needs it. I think we need to document
+> > > > the property for the flash phandle as well; I can write one, or refresh
+> > > > an existing one that I believe already exists.
+> > > > 
+> > > > How about calling it either simply "flash" or "camera-flash"? Similarly
+> > > > for lens: "lens" or "camera-lens". I have a vague feeling the "camera-"
+> > > > prefix is somewhat redundant, so I'd just go for "flash" or "lens".
+> > > 
+> > > Actually, I'd go for "flash" and "focus-coil". There may be other
+> > > lens properties, such as zoom, mirror movement, lens identification,
+> > > ...
+> > 
+> > Good point. Still there may be other ways to move the lens than the voice
+> > coil (which sure is cheap), so how about "flash" and "lens-focus"?
+> 
+> Ok, so something like this? (Yes, needs binding documentation and you
+> wanted it in the core.. can fix.)
+> 
+> BTW, fwnode_handle_put() seems to be missing in the success path of
+> isp_fwnodes_parse() -- can you check that?
 
-I wouldn't be surprised if you hit on a bug in v4l2-compliance. I 
-stopped with v4l2-compliance
-at a different test failure that also didn't make sense to me:
+Where exactly? I noticed that if notifier->num_subdevs hits the limit the
+last node isn't put properly. I'll fix that. Is that what you meant?
 
-Streaming ioctls:
-     test read/write: OK (Not Supported)
-         Video Capture:
-         Buffer: 0 Sequence: 0 Field: Any Timestamp: 41.664259s
-         fail: 
-.../v4l-utils-1.6.2/utils/v4l2-compliance/v4l2-test-buffers.cpp(281): 
-!(g_flags() & (V4L2_BUF_FLAG_DONE | V4L2_BUF_FLAG_ERROR))
-         fail: 
-.../v4l-utils-1.6.2/utils/v4l2-compliance/v4l2-test-buffers.cpp(610): 
-buf.check(q, last_seq)
-         fail: 
-.../v4l-utils-1.6.2/utils/v4l2-compliance/v4l2-test-buffers.cpp(883): 
-captureBufs(node, q, m2m_q, frame_count, false)
-     test MMAP: FAIL
-     test USERPTR: OK (Not Supported)
-     test DMABUF: Cannot test, specify --expbuf-device
+> 
+> Best regards,
+> 								Pavel
+> 
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+> index c80397a..6f6fbed 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -2114,7 +2114,7 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwn,
+>  			buscfg->bus.ccp2.lanecfg.data[0].pol =
+>  				vfwn.bus.mipi_csi1.lane_polarity[1];
+>  
+> -			dev_dbg(dev, "data lane %u polarity %u, pos %u\n", i,
+> +			dev_dbg(dev, "data lane %u polarity %u, pos %u\n", 0,
 
-Total: 42, Succeeded: 38, Failed: 4, Warnings: 0
+Why?
 
+>  				buscfg->bus.ccp2.lanecfg.data[0].pol,
+>  				buscfg->bus.ccp2.lanecfg.data[0].pos);
+>  
+> @@ -2162,10 +2162,64 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwn,
+>  	return 0;
+>  }
+>  
+> +static int camera_subdev_parse(struct device *dev, struct v4l2_async_notifier *notifier,
+> +			       const char *key)
+> +{
+> +	struct device_node *node;
+> +	struct isp_async_subdev *isd;
+> +
+> +	printk("Looking for %s\n", key);
+> +	
+> +	node = of_parse_phandle(dev->of_node, key, 0);
 
-In this case the driver completed and returned only one buffer, and it set
-VB2_BUF_STATE_DONE, so these test failures didn't make sense to me. I
-was using version 1.6.2 at the time.
+There may be more than one flash associated with a sensor. Speaking of which
+--- how is it associated to the sensors?
 
-Steve
+One way to do this could be to simply move the flash property to the sensor
+OF node. We could have it here, too, if the flash was not associated with
+any sensor, but I doubt that will ever be needed.
+
+This really calls fork moving this part to the framework away from drivers.
+
+> +	if (!node)
+> +		return 0;
+> +
+> +	printk("Having subdevice: %p\n", node);
+> +		
+> +	isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
+> +	if (!isd)
+> +		return -ENOMEM;
+> +
+> +	notifier->subdevs[notifier->num_subdevs] = &isd->asd;
+> +
+> +	isd->asd.match.of.node = node;
+> +	if (!isd->asd.match.of.node) {
+
+You should check node here first.
+
+> +		dev_warn(dev, "bad remote port parent\n");
+> +		return -EIO;
+> +	}
+> +
+
+And then assign it here.
+
+isd->asd.match.fwnode.fwn = of_fwnode_handle(node);
+
+> +	isd->asd.match_type = V4L2_ASYNC_MATCH_OF;
+
+V4L2_ASYNC_MATCH_FWNODE, please.
+
+> +	notifier->num_subdevs++;
+> +
+> +	return 0;
+> +}
+> +
+> +static int camera_subdevs_parse(struct device *dev, struct v4l2_async_notifier *notifier,
+> +				int max)
+> +{
+> +	int res = 0;
+
+No need to assign res here.
+
+> +
+> +	printk("Going through camera-flashes\n");
+> +	if (notifier->num_subdevs < max) {
+> +		res = camera_subdev_parse(dev, notifier, "flash");
+> +		if (res)
+> +			return res;
+> +	}
+> +
+> +	if (notifier->num_subdevs < max) {
+> +		res = camera_subdev_parse(dev, notifier, "lens-focus");
+> +		if (res)
+> +			return res;
+> +	}
+> +	
+> +	return 0;
+> +}
+> +
+>  static int isp_fwnodes_parse(struct device *dev,
+>  			     struct v4l2_async_notifier *notifier)
+>  {
+>  	struct fwnode_handle *fwn = NULL;
+> +	int res = 0;
+>  
+>  	notifier->subdevs = devm_kcalloc(
+>  		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
+> @@ -2199,6 +2253,15 @@ static int isp_fwnodes_parse(struct device *dev,
+>  		notifier->num_subdevs++;
+>  	}
+>  
+> +	/* FIXME: missing put in the success path? */
+> +
+> +	res = camera_subdevs_parse(dev, notifier, ISP_MAX_SUBDEVS);
+> +	if (res)
+> +		goto error;
+> +
+> +	if (notifier->num_subdevs == ISP_MAX_SUBDEVS) {
+> +		printk("isp: Maybe too many devices?\n");
+> +	}
+>  	return notifier->num_subdevs;
+>  
+>  error:
+> 
+> 
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
