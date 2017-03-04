@@ -1,125 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:38743 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752863AbdCFFNd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Mar 2017 00:13:33 -0500
-Message-ID: <937451d4ec5fa75001aca762323dd9c4@smtp-cloud2.xs4all.net>
-Date: Mon, 06 Mar 2017 06:08:05 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:58972 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752296AbdCDWxb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 4 Mar 2017 17:53:31 -0500
+Date: Sat, 4 Mar 2017 23:53:28 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
+        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCHv2] omap3isp: add support for CSI1 bus
+Message-ID: <20170304225328.GD31766@amd>
+References: <20161228183036.GA13139@amd>
+ <10545906.Gxg3yScdu4@avalon>
+ <20170215094228.GA8586@amd>
+ <2414221.XNA4JCFMRx@avalon>
+ <20170302090143.GB27818@amd>
+ <20170302101603.GE27818@amd>
+ <20170302112401.GF3220@valkosipuli.retiisi.org.uk>
+ <20170302123848.GA28230@amd>
+ <20170304130318.GU3220@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="EP0wieDxd4TSJjHq"
+Content-Disposition: inline
+In-Reply-To: <20170304130318.GU3220@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+--EP0wieDxd4TSJjHq
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-date:			Mon Mar  6 05:00:18 CET 2017
-media-tree git hash:	3dc2046ca78b3cac6c8c9098a4e3024cd91abdb4
-media_build git hash:	9d6cebc34b27fea784dec19085970d9b4df9783e
-v4l-utils git hash:	646bb9c368a8b65cdea6d934c9022067541d13a9
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+Hi!
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: ERRORS
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10-rc3-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-x86_64: OK
-linux-4.10-rc3-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+> > > > +	if (isp->phy_type =3D=3D ISP_PHY_TYPE_3430) {
+> > > > +		struct media_pad *pad;
+> > > > +		struct v4l2_subdev *sensor;
+> > > > +		const struct isp_ccp2_cfg *buscfg;
+> > > > +
+> > > > +		pad =3D media_entity_remote_pad(&ccp2->pads[CCP2_PAD_SINK]);
+> > > > +		sensor =3D media_entity_to_v4l2_subdev(pad->entity);
+> > > > +		/* Struct isp_bus_cfg has union inside */
+> > > > +		buscfg =3D &((struct isp_bus_cfg *)sensor->host_priv)->bus.ccp2;
+> > > > +
+> > > > +		csiphy_routing_cfg_3430(&isp->isp_csiphy2,
+> > > > +					ISP_INTERFACE_CCP2B_PHY1,
+> > > > +					enable, !!buscfg->phy_layer,
+> > > > +					buscfg->strobe_clk_pol);
+> > >=20
+> > > You should do this through omap3isp_csiphy_acquire(), and not call
+> > > csiphy_routing_cfg_3430() directly from here.
+> >=20
+> > Well, unfortunately omap3isp_csiphy_acquire() does have csi2
+> > assumptions hard-coded :-(.
+> >=20
+> > This will probably fail.
+> >=20
+> > 	        rval =3D omap3isp_csi2_reset(phy->csi2);
+> > 	        if (rval < 0)
+> > 		                goto done;
+>=20
+> Could you try to two patches I've applied on the ccp2 branch (I'll remove
+> them if there are issues).
+>=20
+> That's compile tested for now only.
 
-Detailed results are available here:
+Thanks! They seem to be step in right direction. I still need to call
+csiphy_routing_cfg_3430() directly for camera to work, but at least it
+does not crash if I set up the phy pointer. I'll debug it some more.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+Best regards,
 
-Full logs are available here:
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+--EP0wieDxd4TSJjHq
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-The Media Infrastructure API from this daily build is here:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+iEYEARECAAYFAli7RWgACgkQMOfwapXb+vKwLgCgjicwndjAVodrGd+q56KArsf5
+kSsAn01LvtOpOutAJYX7P3rjavQ52duG
+=lzEr
+-----END PGP SIGNATURE-----
+
+--EP0wieDxd4TSJjHq--
