@@ -1,284 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:34475 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S935524AbdCJK1V (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Mar 2017 05:27:21 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv4 10/15] ov2640: convert from soc-camera to a standard subdev sensor driver.
-Date: Fri, 10 Mar 2017 11:26:09 +0100
-Message-Id: <20170310102614.20922-11-hverkuil@xs4all.nl>
-In-Reply-To: <20170310102614.20922-1-hverkuil@xs4all.nl>
-References: <20170310102614.20922-1-hverkuil@xs4all.nl>
+Received: from mail.kernel.org ([198.145.29.136]:56940 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751560AbdCDCCP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 3 Mar 2017 21:02:15 -0500
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: laurent.pinchart@ideasonboard.com
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v2 1/3] v4l: vsp1: extend VSP1 module API to allow DRM callbacks
+Date: Sat,  4 Mar 2017 02:01:17 +0000
+Message-Id: <b23c4017e8f7346a1c15d7e192a8e0f626121dca.1488592678.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.4a217716bf5515d07dcb6d2b052f883eeecae9e8.1488592678.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.4a217716bf5515d07dcb6d2b052f883eeecae9e8.1488592678.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.4a217716bf5515d07dcb6d2b052f883eeecae9e8.1488592678.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.4a217716bf5515d07dcb6d2b052f883eeecae9e8.1488592678.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+To be able to perform page flips in DRM without flicker we need to be
+able to notify the rcar-du module when the VSP has completed its
+processing.
 
-Convert ov2640 to a standard subdev driver. The soc-camera driver no longer
-uses this driver, so it can safely be converted.
+We must not have bidirectional dependencies on the two components to
+maintain support for loadable modules, thus we extend the API to allow
+a callback to be registered within the VSP DRM interface.
 
-Note: the s_power op has been dropped: this never worked. When the last open()
-is closed, then the power is turned off, and when it is opened again the power
-is turned on again, but the old state isn't restored.
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-Someone else can figure out in the future how to get this working correctly,
-but I don't want to spend more time on this.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/Kconfig                   | 11 ++++
- drivers/media/i2c/Makefile                  |  1 +
- drivers/media/i2c/{soc_camera => }/ov2640.c | 89 +++++------------------------
- drivers/media/i2c/soc_camera/Kconfig        |  6 --
- drivers/media/i2c/soc_camera/Makefile       |  1 -
- 5 files changed, 27 insertions(+), 81 deletions(-)
- rename drivers/media/i2c/{soc_camera => }/ov2640.c (94%)
+v2:
+ - vsp1_du_setup_lif() uses config structure to set callbacks
+ - vsp1_du_pipeline_frame_end() moved to interrupt section
+ - vsp1_du_pipeline_frame_end registered in vsp1_drm_init()
+   meaning of any NULL values
+ - removed unnecessary 'private data' variables
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index cee1dae6e014..db2c63f592c5 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -520,6 +520,17 @@ config VIDEO_APTINA_PLL
- config VIDEO_SMIAPP_PLL
- 	tristate
- 
-+config VIDEO_OV2640
-+	tristate "OmniVision OV2640 sensor support"
-+	depends on VIDEO_V4L2 && I2C && GPIOLIB
-+	depends on MEDIA_CAMERA_SUPPORT
-+	help
-+	  This is a Video4Linux2 sensor-level driver for the OmniVision
-+	  OV2640 camera.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called ov2640.
-+
- config VIDEO_OV2659
- 	tristate "OmniVision OV2659 sensor support"
- 	depends on VIDEO_V4L2 && I2C
-diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-index 5bc7bbeb5499..50af1e11c85a 100644
---- a/drivers/media/i2c/Makefile
-+++ b/drivers/media/i2c/Makefile
-@@ -57,6 +57,7 @@ obj-$(CONFIG_VIDEO_VP27SMPX) += vp27smpx.o
- obj-$(CONFIG_VIDEO_SONY_BTF_MPX) += sony-btf-mpx.o
- obj-$(CONFIG_VIDEO_UPD64031A) += upd64031a.o
- obj-$(CONFIG_VIDEO_UPD64083) += upd64083.o
-+obj-$(CONFIG_VIDEO_OV2640) += ov2640.o
- obj-$(CONFIG_VIDEO_OV7640) += ov7640.o
- obj-$(CONFIG_VIDEO_OV7670) += ov7670.o
- obj-$(CONFIG_VIDEO_OV9650) += ov9650.o
-diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/ov2640.c
-similarity index 94%
-rename from drivers/media/i2c/soc_camera/ov2640.c
-rename to drivers/media/i2c/ov2640.c
-index b9a0069f5b33..83f88efbce69 100644
---- a/drivers/media/i2c/soc_camera/ov2640.c
-+++ b/drivers/media/i2c/ov2640.c
-@@ -24,8 +24,8 @@
- #include <linux/v4l2-mediabus.h>
- #include <linux/videodev2.h>
- 
--#include <media/soc_camera.h>
- #include <media/v4l2-clk.h>
-+#include <media/v4l2-device.h>
- #include <media/v4l2-subdev.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-image-sizes.h>
-@@ -287,7 +287,6 @@ struct ov2640_priv {
- 	struct v4l2_clk			*clk;
- 	const struct ov2640_win_size	*win;
- 
--	struct soc_camera_subdev_desc	ssdd_dt;
- 	struct gpio_desc *resetb_gpio;
- 	struct gpio_desc *pwdn_gpio;
- };
-@@ -677,13 +676,8 @@ static int ov2640_reset(struct i2c_client *client)
+ drivers/media/platform/vsp1/vsp1_drm.c | 20 ++++++++++++++++++++
+ drivers/media/platform/vsp1/vsp1_drm.h | 10 ++++++++++
+ include/media/vsp1.h                   |  3 +++
+ 3 files changed, 33 insertions(+)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index 7dce55043379..85e5ebca82a5 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -36,6 +36,16 @@ void vsp1_drm_display_start(struct vsp1_device *vsp1)
+ 	vsp1_dlm_irq_display_start(vsp1->drm->pipe.output->dlm);
  }
  
- /*
-- * soc_camera_ops functions
-+ * functions
-  */
--static int ov2640_s_stream(struct v4l2_subdev *sd, int enable)
--{
--	return 0;
--}
--
- static int ov2640_s_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	struct v4l2_subdev *sd =
-@@ -744,10 +738,16 @@ static int ov2640_s_register(struct v4l2_subdev *sd,
- static int ov2640_s_power(struct v4l2_subdev *sd, int on)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
- 	struct ov2640_priv *priv = to_ov2640(client);
- 
--	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
-+	gpiod_direction_output(priv->pwdn_gpio, !on);
-+	if (on && priv->resetb_gpio) {
-+		/* Active the resetb pin to perform a reset pulse */
-+		gpiod_direction_output(priv->resetb_gpio, 1);
-+		usleep_range(3000, 5000);
-+		gpiod_direction_output(priv->resetb_gpio, 0);
++static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe)
++{
++	struct vsp1_drm *drm = to_vsp1_drm(pipe);
++
++	if (drm->du_complete && drm->du_pending) {
++		drm->du_complete(drm->du_private);
++		drm->du_pending = false;
 +	}
-+	return 0;
- }
++}
++
+ /* -----------------------------------------------------------------------------
+  * DU Driver API
+  */
+@@ -95,6 +105,7 @@ int vsp1_du_setup_lif(struct device *dev, const struct vsp1_du_lif_config *cfg)
+ 		}
  
- /* Select the nearest higher resolution for capture */
-@@ -994,26 +994,6 @@ static struct v4l2_subdev_core_ops ov2640_subdev_core_ops = {
- 	.s_power	= ov2640_s_power,
- };
+ 		pipe->num_inputs = 0;
++		vsp1->drm->du_complete = NULL;
  
--static int ov2640_g_mbus_config(struct v4l2_subdev *sd,
--				struct v4l2_mbus_config *cfg)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
--
--	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_MASTER |
--		V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_HSYNC_ACTIVE_HIGH |
--		V4L2_MBUS_DATA_ACTIVE_HIGH;
--	cfg->type = V4L2_MBUS_PARALLEL;
--	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
--
--	return 0;
--}
--
--static struct v4l2_subdev_video_ops ov2640_subdev_video_ops = {
--	.s_stream	= ov2640_s_stream,
--	.g_mbus_config	= ov2640_g_mbus_config,
--};
--
- static const struct v4l2_subdev_pad_ops ov2640_subdev_pad_ops = {
- 	.enum_mbus_code = ov2640_enum_mbus_code,
- 	.get_selection	= ov2640_get_selection,
-@@ -1023,40 +1003,9 @@ static const struct v4l2_subdev_pad_ops ov2640_subdev_pad_ops = {
+ 		vsp1_dlm_reset(pipe->output->dlm);
+ 		vsp1_device_put(vsp1);
+@@ -196,6 +207,13 @@ int vsp1_du_setup_lif(struct device *dev, const struct vsp1_du_lif_config *cfg)
+ 	if (ret < 0)
+ 		return ret;
  
- static struct v4l2_subdev_ops ov2640_subdev_ops = {
- 	.core	= &ov2640_subdev_core_ops,
--	.video	= &ov2640_subdev_video_ops,
- 	.pad	= &ov2640_subdev_pad_ops,
- };
++	/*
++	 * Register a callback to allow us to notify the DRM framework of frame
++	 * completion events.
++	 */
++	vsp1->drm->du_complete = cfg->callback;
++	vsp1->drm->du_private = cfg->callback_data;
++
+ 	ret = media_pipeline_start(&pipe->output->entity.subdev.entity,
+ 					  &pipe->pipe);
+ 	if (ret < 0) {
+@@ -504,6 +522,7 @@ void vsp1_du_atomic_flush(struct device *dev)
  
--/* OF probe functions */
--static int ov2640_hw_power(struct device *dev, int on)
--{
--	struct i2c_client *client = to_i2c_client(dev);
--	struct ov2640_priv *priv = to_ov2640(client);
--
--	dev_dbg(&client->dev, "%s: %s the camera\n",
--			__func__, on ? "ENABLE" : "DISABLE");
--
--	if (priv->pwdn_gpio)
--		gpiod_direction_output(priv->pwdn_gpio, !on);
--
--	return 0;
--}
--
--static int ov2640_hw_reset(struct device *dev)
--{
--	struct i2c_client *client = to_i2c_client(dev);
--	struct ov2640_priv *priv = to_ov2640(client);
--
--	if (priv->resetb_gpio) {
--		/* Active the resetb pin to perform a reset pulse */
--		gpiod_direction_output(priv->resetb_gpio, 1);
--		usleep_range(3000, 5000);
--		gpiod_direction_output(priv->resetb_gpio, 0);
--	}
--
--	return 0;
--}
--
- static int ov2640_probe_dt(struct i2c_client *client,
- 		struct ov2640_priv *priv)
- {
-@@ -1076,11 +1025,6 @@ static int ov2640_probe_dt(struct i2c_client *client,
- 	else if (IS_ERR(priv->pwdn_gpio))
- 		return PTR_ERR(priv->pwdn_gpio);
+ 	vsp1_dl_list_commit(pipe->dl);
+ 	pipe->dl = NULL;
++	vsp1->drm->du_pending = true;
  
--	/* Initialize the soc_camera_subdev_desc */
--	priv->ssdd_dt.power = ov2640_hw_power;
--	priv->ssdd_dt.reset = ov2640_hw_reset;
--	client->dev.platform_data = &priv->ssdd_dt;
--
+ 	/* Start or stop the pipeline if needed. */
+ 	if (!vsp1->drm->num_inputs && pipe->num_inputs) {
+@@ -597,6 +616,7 @@ int vsp1_drm_init(struct vsp1_device *vsp1)
+ 	pipe->lif = &vsp1->lif->entity;
+ 	pipe->output = vsp1->wpf[0];
+ 	pipe->output->pipe = pipe;
++	pipe->frame_end = vsp1_du_pipeline_frame_end;
+ 
  	return 0;
  }
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.h b/drivers/media/platform/vsp1/vsp1_drm.h
+index 9e28ab9254ba..3a53e9a60c73 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.h
++++ b/drivers/media/platform/vsp1/vsp1_drm.h
+@@ -33,8 +33,18 @@ struct vsp1_drm {
+ 		struct v4l2_rect compose;
+ 		unsigned int zpos;
+ 	} inputs[VSP1_MAX_RPF];
++
++	/* Frame syncronisation */
++	void (*du_complete)(void *);
++	void *du_private;
++	bool du_pending;
+ };
  
-@@ -1091,7 +1035,6 @@ static int ov2640_probe(struct i2c_client *client,
- 			const struct i2c_device_id *did)
- {
- 	struct ov2640_priv	*priv;
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
- 	struct i2c_adapter	*adapter = to_i2c_adapter(client->dev.parent);
- 	int			ret;
++static inline struct vsp1_drm *to_vsp1_drm(struct vsp1_pipeline *pipe)
++{
++	return container_of(pipe, struct vsp1_drm, pipe);
++}
++
+ int vsp1_drm_init(struct vsp1_device *vsp1);
+ void vsp1_drm_cleanup(struct vsp1_device *vsp1);
+ int vsp1_drm_create_links(struct vsp1_device *vsp1);
+diff --git a/include/media/vsp1.h b/include/media/vsp1.h
+index bfc701f04f3f..f6629f19f209 100644
+--- a/include/media/vsp1.h
++++ b/include/media/vsp1.h
+@@ -23,6 +23,9 @@ int vsp1_du_init(struct device *dev);
+ struct vsp1_du_lif_config {
+ 	unsigned int width;
+ 	unsigned int height;
++
++	void (*callback)(void *);
++	void *callback_data;
+ };
  
-@@ -1112,17 +1055,15 @@ static int ov2640_probe(struct i2c_client *client,
- 	if (IS_ERR(priv->clk))
- 		return -EPROBE_DEFER;
- 
--	if (!ssdd && !client->dev.of_node) {
-+	if (!client->dev.of_node) {
- 		dev_err(&client->dev, "Missing platform_data for driver\n");
- 		ret = -EINVAL;
- 		goto err_clk;
- 	}
- 
--	if (!ssdd) {
--		ret = ov2640_probe_dt(client, priv);
--		if (ret)
--			goto err_clk;
--	}
-+	ret = ov2640_probe_dt(client, priv);
-+	if (ret)
-+		goto err_clk;
- 
- 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov2640_subdev_ops);
- 	v4l2_ctrl_handler_init(&priv->hdl, 2);
-@@ -1190,6 +1131,6 @@ static struct i2c_driver ov2640_i2c_driver = {
- 
- module_i2c_driver(ov2640_i2c_driver);
- 
--MODULE_DESCRIPTION("SoC Camera driver for Omni Vision 2640 sensor");
-+MODULE_DESCRIPTION("Driver for Omni Vision 2640 sensor");
- MODULE_AUTHOR("Alberto Panizzo");
- MODULE_LICENSE("GPL v2");
-diff --git a/drivers/media/i2c/soc_camera/Kconfig b/drivers/media/i2c/soc_camera/Kconfig
-index 7704bcf5cc25..96859f37cb1c 100644
---- a/drivers/media/i2c/soc_camera/Kconfig
-+++ b/drivers/media/i2c/soc_camera/Kconfig
-@@ -41,12 +41,6 @@ config SOC_CAMERA_MT9V022
- 	help
- 	  This driver supports MT9V022 cameras from Micron
- 
--config SOC_CAMERA_OV2640
--	tristate "ov2640 camera support"
--	depends on SOC_CAMERA && I2C
--	help
--	  This is a ov2640 camera driver
--
- config SOC_CAMERA_OV5642
- 	tristate "ov5642 camera support"
- 	depends on SOC_CAMERA && I2C
-diff --git a/drivers/media/i2c/soc_camera/Makefile b/drivers/media/i2c/soc_camera/Makefile
-index 6f994f9353a0..974bdb721dbe 100644
---- a/drivers/media/i2c/soc_camera/Makefile
-+++ b/drivers/media/i2c/soc_camera/Makefile
-@@ -3,7 +3,6 @@ obj-$(CONFIG_SOC_CAMERA_MT9M001)	+= mt9m001.o
- obj-$(CONFIG_SOC_CAMERA_MT9T031)	+= mt9t031.o
- obj-$(CONFIG_SOC_CAMERA_MT9T112)	+= mt9t112.o
- obj-$(CONFIG_SOC_CAMERA_MT9V022)	+= mt9v022.o
--obj-$(CONFIG_SOC_CAMERA_OV2640)		+= ov2640.o
- obj-$(CONFIG_SOC_CAMERA_OV5642)		+= ov5642.o
- obj-$(CONFIG_SOC_CAMERA_OV6650)		+= ov6650.o
- obj-$(CONFIG_SOC_CAMERA_OV772X)		+= ov772x.o
+ int vsp1_du_setup_lif(struct device *dev, const struct vsp1_du_lif_config *cfg);
 -- 
-2.11.0
+git-series 0.9.1
