@@ -1,261 +1,262 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:40539 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932757AbdCVHtu (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33358 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752245AbdCDOhk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Mar 2017 03:49:50 -0400
-Subject: Re: CEC button pass-through
-To: Eric Nelson <eric@nelint.com>
-References: <22e92133-6a64-ffaf-a41f-5ae9b19f24e5@nelint.com>
- <53fd17db-af5d-335b-0337-e5aeffd12305@xs4all.nl>
- <7ad3b464-1813-5535-fffc-36589d72d86d@nelint.com>
- <67b5e8a1-8a79-27e2-8e5f-1c58a4adc0d8@nelint.com>
- <4cacc06e-8573-53fc-39a9-551b426fdcfb@xs4all.nl>
- <033583b4-4d3e-85b8-88dc-9be366612fe0@nelint.com>
- <0d5fc7c9-f609-2a9c-12a1-780d6101be9a@xs4all.nl>
- <692e4fa4-097f-1a05-fe30-b98bd85c688a@nelint.com>
-Cc: linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <e340a7ce-4736-28af-0152-53a651e009bd@xs4all.nl>
-Date: Wed, 22 Mar 2017 08:49:43 +0100
+        Sat, 4 Mar 2017 09:37:40 -0500
+Date: Sat, 4 Mar 2017 16:37:04 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v2 2/3] v4l: Clearly document interactions between
+ formats, controls and buffers
+Message-ID: <20170304143704.GX3220@valkosipuli.retiisi.org.uk>
+References: <20170228150320.10104-1-laurent.pinchart+renesas@ideasonboard.com>
+ <20170228150320.10104-3-laurent.pinchart+renesas@ideasonboard.com>
+ <30dd7931-7c7c-70ed-1a62-00756406761c@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <692e4fa4-097f-1a05-fe30-b98bd85c688a@nelint.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <30dd7931-7c7c-70ed-1a62-00756406761c@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/22/2017 12:45 AM, Eric Nelson wrote:
-> Hi Hans,
-> 
-> On 03/21/2017 02:29 PM, Hans Verkuil wrote:
->> On 03/21/2017 09:03 PM, Eric Nelson wrote:
->>> On 03/21/2017 11:46 AM, Hans Verkuil wrote:
->>>> On 03/21/2017 07:23 PM, Eric Nelson wrote:
->>>>> On 03/21/2017 10:44 AM, Eric Nelson wrote:
->>>>>> On 03/21/2017 10:05 AM, Hans Verkuil wrote:
->>>>>>> On 03/21/2017 05:49 PM, Eric Nelson wrote:
->>>>>
-> 
-> <snip>
-> 
->>>>> I think this is the culprit:
->>>>> cec-uinput: L8: << 10:8e:00
->>>>>
->>>>> The 1.3 spec says this about the 8E message:
->>>>>
->>>>> "If Menu State indicates activated, TV enters ‘Device Menu Active’
->>>>> state and forwards those Remote control commands, shown in
->>>>> Table 26, to the initiator. If deactivated, TV enters ‘Device Menu Inactive’
->>>>> state and stops forwarding remote control commands".
->>>>>
->>>>> In section 13.12.2, it also says this:
->>>>>
->>>>> "The TV may initiate a device’s menu by sending a <Menu Request>
->>>>> [“Activate”] command. It may subsequently remove the menu by sending
->>>>> a <Menu Request> [“Deactivate”] message. The TV may also query a
->>>>> devices menu status by sending a <Menu Request> [“Query”]. The
->>>>> menu device shall always respond with a <Menu Status> command
->>>>> when it receives a <Menu Request>."
->>>>>
->>>>
->>>> That sounds plausible. When you tested with my CEC framework, did you also
->>>> run the cec-follower utility? That emulates a CEC follower.
->>>>
->>>
->>> Yes. I'm running it with no arguments.
->>>
->>>> Note: you really need to use the --cec-version-1.4 option when configuring
->>>> the i.MX6 CEC adapter since support for <Menu Request> is only enabled with
->>>> CEC version 1.4. It is no longer supported with 2.0.
->>>>
->>>
->>> I'm not sure what I did in my previous attempt, but I'm now seeing
->>> both the arrow and function key sets being received by cec-ctl and
->>> cec-follower with --cec-version-1.4.
->>>
->>> Or not. Removing the --cec-version-1.4 parameter still shows these
->>> events, but after a re-boot and re-selection of the proper source
->>> on my TV shows that they're no longer coming up with or without
->>> the parameter.
->>>
->>> Further testing showed that by running the older driver and libCEC
->>> code, then re-booting into the new kernel (with cec-ctl) shows the
->>> messages with or without the flag.
->>>
->>> In other words, the TV seems to retain some state from the
->>> execution of the Pulse8/libCEC code.
->>>
->>> Is there a way to send a raw message to the television using cec-ctl?
->>>
->>> Never mind, I found it and after a bunch of messing around,
->>> confirmed that I can get the menu keys to be passed from my
->>> TV by sending the 0x8e command with a payload of 0x00 to
->>> the television:
->>>
->>> ~/# cec-ctl --custom-command=cmd=0x8e,payload=0x00 --to=0
->>
->> Or more elegantly:
->>
->> cec-ctl --menu-status=menu-state=activated -t0
->>
->> See also: cec-ctl --help-device-menu-control
->>
-> 
-> My first RTFM for this subsystem!
-> 
->> But cec-follower should receive a menu-request message and reply with
->> menu-status(activated).
->>
->> If you run cec-ctl -M, do you see the menu-request message arriving and the
->> proper reply?
->>
-> 
-> After a re-boot with the CEC input clear on my television, I don't see it
-> during the initial startup of cec-ctl:
-> 
-> ~# cec-ctl --record --cec-version-1.4 -M
-> Driver Info:
-> Driver Name : dwhdmi-imx
-> Adapter Name : dw_hdmi
-> Capabilities : 0x00000016
-> Logical Addresses
-> Transmit
-> Remote Control Support
-> Driver version : 4.10.0
-> Available Logical Addresses: 4
-> Physical Address : 1.0.0.0
-> Logical Address Mask : 0x0002
-> CEC Version : 1.4
-> Vendor ID : 0x000c03 (HDMI)
-> OSD Name : 'Record'
-> Logical Addresses : 1 (Allow RC Passthrough)
-> Logical Address : 1 (Recording Device 1)
-> Primary Device Type : Record
-> Logical Address Type : Record
-> 
-> Monitor All mode is not supported, falling back to regular monitoring
-> 
-> Event: State Change: PA: 1.0.0.0, LA mask: 0x0002
-> Transmitted by Recording Device 1 to all (1 to 15):
-> CEC_MSG_REPORT_PHYSICAL_ADDR (0x84):
-> phys-addr: 1.0.0.0
-> prim-devtype: record (0x01)
-> Received from TV to Recording Device 1 (0 to 1):
-> CEC_MSG_GIVE_DEVICE_VENDOR_ID (0x8c)
-> Transmitted by Recording Device 1 to all (1 to 15):
-> CEC_MSG_DEVICE_VENDOR_ID (0x87):
-> vendor-id: 3075 (0x00000c03)
-> Received from TV to Recording Device 1 (0 to 1): CEC_MSG_GIVE_OSD_NAME
-> (0x46)
-> Transmitted by Recording Device 1 to TV (1 to 0): CEC_MSG_SET_OSD_NAME
-> (0x47):
-> name: Record
-> Received from TV to Recording Device 1 (0 to 1):
-> CEC_MSG_VENDOR_COMMAND_WITH_ID:
-> vendor-id: 240 (0x000000f0)
-> vendor-specific-data: 0x23
-> Transmitted by Recording Device 1 to TV (1 to 0): CEC_MSG_FEATURE_ABORT
-> (0x00):
-> abort-msg: 160 (0xa0)
-> reason: unrecognized-op (0x00)
-> Received from TV to Recording Device 1 (0 to 1): CEC_MSG_GET_CEC_VERSION
-> (0x9f)
-> Transmitted by Recording Device 1 to TV (1 to 0): CEC_MSG_CEC_VERSION
-> (0x9e):
-> cec-version: version-1-4 (0x05)
-> 
-> But when I switch to the CEC source, I do see a set of state queries,
-> including the MENU_REQUEST
-> message.
-> 
-> Received from TV to Recording Device 1 (0 to 1):
-> CEC_MSG_GIVE_DEVICE_POWER_STATUS (0x8f)
-> Transmitted by Recording Device 1 to TV (1 to 0):
-> CEC_MSG_REPORT_POWER_STATUS (0x90):
-> pwr-state: on (0x00)
-> Received from TV to Recording Device 1 (0 to 1):
-> CEC_MSG_GIVE_PHYSICAL_ADDR (0x83)
-> Transmitted by Recording Device 1 to all (1 to 15):
-> CEC_MSG_REPORT_PHYSICAL_ADDR (0x84):
-> phys-addr: 1.0.0.0
-> prim-devtype: record (0x01)
-> Received from TV to all (0 to 15): CEC_MSG_SET_STREAM_PATH (0x86):
-> phys-addr: 1.0.0.0
-> Transmitted by Recording Device 1 to all (1 to 15):
-> CEC_MSG_ACTIVE_SOURCE (0x82):
-> phys-addr: 1.0.0.0
-> Received from TV to Recording Device 1 (0 to 1): CEC_MSG_MENU_REQUEST
-> (0x8d):
-> menu-req: query (0x02)
-> Transmitted by Recording Device 1 to TV (1 to 0): CEC_MSG_MENU_STATUS
-> (0x8e):
-> menu-state: activated (0x00)
-> Received from TV to Recording Device 1 (0 to 1):
-> CEC_MSG_GIVE_DECK_STATUS (0x1a):
-> status-req: on (0x01)
-> Transmitted by Recording Device 1 to TV (1 to 0): CEC_MSG_FEATURE_ABORT
-> (0x00):
-> abort-msg: 26 (0x1a)
-> reason: unrecognized-op (0x00)
-> 
-> As shown, the menu state returned is activated and I am seeing
-> 
-> I suspect that this failed earlier because I already had the source set
-> to this input (logical address?) and the television didn't update things.
-> 
->> Again, you must configure the cec adapter with:
->>
->> cec-ctl --record --cec-version-1.4
->>
-> 
-> Right. The same sequence as above but without the --cec-version-1.4 flag
-> generates a FEATURE_ABORT message:
-> 
-> Received from TV to Recording Device 1 (0 to 1): CEC_MSG_MENU_REQUEST
-> (0x8d):
-> menu-req: query (0x02)
-> Transmitted by Recording Device 1 to TV (1 to 0): CEC_MSG_FEATURE_ABORT
-> (0x00):
-> abort-msg: 141 (0x8d)
-> reason: unrecognized-op (0x00)
-> 
-> And it doesn't allow the arrow or function keys through.
-> 
-> Re-running cec-ctl with the 1.4 flag and forcing a routing switch does
-> cause a repeat of the MENU_REQUEST query, but it's still rejected unless
-> I also restart cec-follower:
+Hi Hans (and Laurent).
 
-That's correct: cec-follower reads the adapter configuration when it is
-started and will not see later configuration changes.
+On Sat, Mar 04, 2017 at 11:53:45AM +0100, Hans Verkuil wrote:
+> Hi Laurent,
+> 
+> Here is my review:
+> 
+> On 28/02/17 16:03, Laurent Pinchart wrote:
+> >V4L2 exposes parameters that influence buffers sizes through the format
+> >ioctls (VIDIOC_G_FMT, VIDIOC_TRY_FMT and VIDIO_S_FMT). Other parameters
+> 
+> S_SELECTION should be mentioned here as well (more about that later).
+> 
+> >not part of the format structure may also influence buffer sizes or
+> >buffer layout in general. One existing such parameter is rotation, which
+> >is implemented by the VIDIOC_ROTATE control and thus exposed through the
+> >V4L2 control ioctls.
+> >
+> >The interaction between those parameters and buffers is currently only
+> >partially specified by the V4L2 API. In particular interactions between
+> >controls and buffers isn't specified at all. The behaviour of the
+> >VIDIOC_S_FMT ioctl when buffers are allocated is also not fully
+> >specified.
+> >
+> >This commit clearly defines and documents the interactions between
+> >formats, controls and buffers.
+> >
+> >The preparatory discussions for the documentation change considered
+> >completely disallowing controls that change the buffer size or layout,
+> >in favour of extending the format API with a new ioctl that would bundle
+> >those controls with format information. The idea has been rejected, as
+> >this would essentially be a restricted version of the upcoming request
+> >API that wouldn't bring any additional value.
+> >
+> >Another option we have considered was to mandate the use of the request
+> >API to modify controls that influence buffer size or layout. This has
+> >also been rejected on the grounds that requiring the request API to
+> >change rotation even when streaming is stopped would significantly
+> >complicate implementation of drivers and usage of the V4L2 API for
+> >applications.
+> >
+> >Applications will however be required to use the upcoming request API to
+> >change at runtime formats or controls that influence the buffer size or
+> >layout, because of the need to synchronize buffers with the formats and
+> >controls. Otherwise there would be no way to interpret the content of a
+> >buffer correctly.
+> >
+> >Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> >---
+> > Documentation/media/uapi/v4l/buffer.rst | 88 +++++++++++++++++++++++++++++++++
+> > 1 file changed, 88 insertions(+)
+> >
+> >diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+> >index ac58966ccb9b..5c58db98ab7a 100644
+> >--- a/Documentation/media/uapi/v4l/buffer.rst
+> >+++ b/Documentation/media/uapi/v4l/buffer.rst
+> >@@ -34,6 +34,94 @@ flags are copied from the OUTPUT video buffer to the CAPTURE video
+> > buffer.
+> >
+> >
+> >+Interactions between formats, controls and buffers
+> >+==================================================
+> >+
+> >+V4L2 exposes parameters that influence the buffer size, or the way data is
+> >+laid out in the buffer. Those parameters are exposed through both formats and
+> >+controls. One example of such a control is the ``V4L2_CID_ROTATE`` control
+> >+that modifies the direction in which pixels are stored in the buffer, as well
+> >+as the buffer size when the selected format includes padding at the end of
+> >+lines.
+> >+
+> >+The set of information needed to interpret the content of a buffer (e.g. the
+> >+pixel format, the line stride, the tiling orientation or the rotation) is
+> >+collectively referred to in the rest of this section as the buffer layout.
+> >+
+> >+Modifying formats or controls that influence the buffer size or layout require
+> >+the stream to be stopped. Any attempt at such a modification while the stream
+> >+is active shall cause the format or control set ioctl to return the ``EBUSY``
+> >+error code.
+> 
+> This is not what happens today: it's not the streaming part that causes EBUSY to
+> be returned but whether or not buffers are allocated.
+> 
+> Today we do not support changing buffer sizes on the fly, so any attempt to
+> call an ioctl that would change the buffer size is blocked and EBUSY is returned.
+> To be precise: drivers call vb2_is_busy() to determine this.
+
+It certainly shouldn't be like that. Not allowing S_FMT() while there are
+buffers allocated makes CREATE_BUFS entirely useless.
 
 > 
-> Received from TV to Recording Device 1 (0 to 1): CEC_MSG_MENU_REQUEST
-> (0x8d):
-> menu-req: query (0x02)
-> Transmitted by Recording Device 1 to TV (1 to 0): CEC_MSG_FEATURE_ABORT
-> (0x00):
-> abort-msg: 141 (0x8d)
-> reason: unrecognized-op (0x00)
-> 
->> otherwise it won't work (I'm not sure that's correct since the TV isn't
->> CEC 2.0, I'll have to read up on that).
+> To my knowledge all vb2-using drivers behave like this. There may be old drivers
+> that do not do this (and these have a high likelyhood of being wrong).
 
-I'll look into this. The follower code currently checks if the CEC adapter
-uses a CEC version < 2.0, but I think it should only fail if both the remote
-AND the local CEC devices have CEC version 2.0.
+What's really needed is that the driver verifies that the buffer is large
+enough to be used for a given format. vb2_is_busy() shouldn't be used to
+check whether setting format is allowed.
 
 > 
-> Thanks again for your help.
+> >+
+> >+Controls that only influence the buffer layout can be modified at any time
+> >+when the stream is stopped. As they don't influence the buffer size, no
+> >+special handling is needed to synchronize those controls with buffer
+> >+allocation.
+> >+
+> >+Formats and controls that influence the buffer size interact with buffer
+> >+allocation. As buffer allocation is an expensive operation, drivers should
+> >+allow format or controls that influence the buffer size to be changed with
+> >+buffers allocated. A typical ioctl sequence to modify format and controls is
+> >+
+> >+ #. VIDIOC_STREAMOFF
+> >+ #. VIDIOC_S_FMT
+> >+ #. VIDIOC_S_EXT_CTRLS
+> >+ #. VIDIOC_QBUF
+> >+ #. VIDIOC_STREAMON
+> >+
+> >+Queued buffers must be large enough for the new format or controls.
+> >+
+> >+Drivers shall return a ``ENOSPC`` error in response to format change
+> >+(:c:func:`VIDIOC_S_FMT`) or control changes (:c:func:`VIDIOC_S_CTRL` or
+> >+:c:func:`VIDIOC_S_EXT_CTRLS`) if buffers too small for the new format are
+> >+currently queued. As a simplification, drivers are allowed to return an error
+> >+from these ioctls if any buffer is currently queued, without checking the
+> >+queued buffers sizes. Drivers shall also return a ``ENOSPC`` error from the
+> >+:c:func:`VIDIOC_QBUF` ioctl if the buffer being queued is too small for the
+> >+current format or controls.
+> 
+> Actually, today qbuf will return -EINVAL (from __verify_length in videobuf2-v4l2.c)
+> in these cases. I am pretty sure you can't change that to ENOSPC since this has
+> always been -EINVAL, and so changing this would break the ABI.
 
-My pleasure. Let me know if you find more issues, Also take a look at cec-compliance:
-it is by no means a complete compliance test since we - Cisco - focused on the parts we
-need and made only very light coverage of the other parts. So patches improving it
-are welcome.
+*If* today drivers return -EBUSY on S_FMT if there are buffers allocated,
+you can't have this happening in the first place: it is a new condition so
+using a new error code is possible. I would not expect applications to try
+that either for the same reason.
 
-It's a very new little subsystem, so it is certainly possible that there are bugs
-or missing features, either in the kernel or in the utilities.
+It is rather that applications designed for a particular device are more
+likely to attempt this (e.g. capturing a still image after streaming
+viewfinder first).
 
-Regards,
+I realised -EBUSY is not even documented for S_FMT; I'll post a patch to fix
+that.
 
-	Hans
+> 
+> Trying to change the format while buffers are allocated will return EBUSY today.
+> 
+> If you are trying to document what will happen when drivers allow format changes
+> on the fly then this is not at all clear from what you write here.
+> 
+> So:
+> 
+> If the driver does not support changing the format while buffers are queued, then
+> it will return EBUSY (true for almost (?) all drivers today). If it does support
+> this, then it will behave as described above, except for the ENOSPC error in QBUF.
+> 
+> Note that the meaning of ENOSPC should also be explicitly documented in the ioctls
+> that can return this.
+> 
+> > Together, these requirements ensure that queued
+> >+buffers will always be large enough for the configured format and controls.
+> >+
+> >+Userspace applications can query the buffer size required for a given format
+> >+and controls by first setting the desired control values and then trying the
+> >+desired format. The :c:func:`VIDIOC_TRY_FMT` ioctl will return the required
+> >+buffer size.
+> >+
+> >+ #. VIDIOC_S_EXT_CTRLS(x)
+> >+ #. VIDIOC_TRY_FMT()
+> >+ #. VIDIOC_S_EXT_CTRLS(y)
+> >+ #. VIDIOC_TRY_FMT()
+> >+
+> >+The :c:func:`VIDIOC_CREATE_BUFS` ioctl can then be used to allocate buffers
+> >+based on the queried sizes (for instance by allocating a set of buffers large
+> >+enough for all the desired formats and controls, or by allocating separate set
+> >+of appropriately sized buffers for each use case).
+> >+
+> >+To simplify their implementation, drivers may also require buffers to be
+> >+reallocated in order to change formats or controls that influence the buffer
+> >+size. In that case, to perform such changes, userspace applications shall
+> >+first stop the video stream with the :c:func:`VIDIOC_STREAMOFF` ioctl if it
+> >+is running and free all buffers with the :c:func:`VIDIOC_REQBUFS` ioctl if
+> >+they are allocated. The format or controls can then be modified, and buffers
+> >+shall then be reallocated and the stream restarted. A typical ioctl sequence
+> >+is
+> >+
+> >+ #. VIDIOC_STREAMOFF
+> >+ #. VIDIOC_REQBUFS(0)
+> >+ #. VIDIOC_S_FMT
+> >+ #. VIDIOC_S_EXT_CTRLS
+> >+ #. VIDIOC_REQBUFS(n)
+> >+ #. VIDIOC_QBUF
+> >+ #. VIDIOC_STREAMON
+> >+
+> >+The second :c:func:`VIDIOC_REQBUFS` call will take the new format and control
+> >+value into account to compute the buffer size to allocate. Applications can
+> >+also retrieve the size by calling the :c:func:`VIDIOC_G_FMT` ioctl if needed.
+> >+
+> >+When reallocation is required, any attempt to modify format or controls that
+> >+influences the buffer size while buffers are allocated shall cause the format
+> >+or control set ioctl to return the ``EBUSY`` error code.
+> 
+> Ah, here you describe the 99% situation. This should come first. You've been working
+> on the 1% that allows changing formats while buffers are allocated so that feels
+> all-important to you, but in reality almost all drivers use the 'simplified'
+> implementation. Describe that first, then go on describing what will happen for
+> your driver. That will make much more sense to me (as you can tell from the preceding
+> comments) and I'm sure to the end-user as well.
+> 
+> What should be mentioned here as well is that S_SELECTION can also implicitly change
+> the format, specifically if there is no scaler or if the scaler has limitations.
+
+I think it'd be fine to mention that, but the effect is indeed implicit
+through the change in format.
+
+> 
+> Also there are a few ioctls that can reset selections and formats when called:
+> S_INPUT/S_OUTPUT, S_STD and S_DV_TIMINGS.
+> 
+> I think this should be mentioned here. It can be just in passing, no need to go
+> in-depth on that. As long as people are aware of it.
+> 
+> The documentation of S_STD and S_DV_TIMINGS should also be updated saying that if
+> the new std or timings differ from the existing std or timings, then the format
+> will also change and selection rectangles will be reset to the defaults. Setting
+> the std/dv_timings with the current std or timings will not do anything: there
+> are applications that do this even when streaming so this should be allowed.
+> 
+> Unfortunately, this is not documented but it really should.
+> 
+> If you don't have time to update the S_STD/DV_TIMINGS ioctls, then let me know and
+> I will do that.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
