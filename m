@@ -1,61 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.134]:49837 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752570AbdCBRLM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 12:11:12 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: kasan-dev@googlegroups.com
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        Alexander Potapenko <glider@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-wireless@vger.kernel.org,
-        kernel-build-reports@lists.linaro.org,
-        "David S . Miller" <davem@davemloft.net>,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 07/26] brcmsmac: reduce stack size with KASAN
-Date: Thu,  2 Mar 2017 17:38:15 +0100
-Message-Id: <20170302163834.2273519-8-arnd@arndb.de>
-In-Reply-To: <20170302163834.2273519-1-arnd@arndb.de>
-References: <20170302163834.2273519-1-arnd@arndb.de>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:55772 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752170AbdCDTpC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 4 Mar 2017 14:45:02 -0500
+Date: Sat, 4 Mar 2017 20:44:58 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
+        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org
+Subject: Re: [media] omap3isp: Correctly set IO_OUT_SEL and VP_CLK_POL for
+ CCP2 mode
+Message-ID: <20170304194458.GC31766@amd>
+References: <20161228183036.GA13139@amd>
+ <10545906.Gxg3yScdu4@avalon>
+ <20170215094228.GA8586@amd>
+ <2414221.XNA4JCFMRx@avalon>
+ <20170301114545.GA19201@amd>
+ <20170304151533.GY3220@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="FsscpQKzF/jJk6ya"
+Content-Disposition: inline
+In-Reply-To: <20170304151533.GY3220@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The wlc_phy_table_write_nphy/wlc_phy_table_read_nphy functions always put an object
-on the stack, which will each require a redzone with KASAN and lead to possible
-stack overflow:
 
-drivers/net/wireless/broadcom/brcm80211/brcmsmac/phy/phy_n.c: In function 'wlc_phy_workarounds_nphy':
-drivers/net/wireless/broadcom/brcm80211/brcmsmac/phy/phy_n.c:17135:1: warning: the frame size of 6312 bytes is larger than 1000 bytes [-Wframe-larger-than=]
+--FsscpQKzF/jJk6ya
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This marks the two functions as noinline_for_kasan, avoiding the problem entirely.
+On Sat 2017-03-04 17:15:34, Sakari Ailus wrote:
+> On Wed, Mar 01, 2017 at 12:45:46PM +0100, Pavel Machek wrote:
+> > ISP CSI1 module needs all the bits correctly set to work.
+> >=20
+> > Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> >=20
+>=20
+> How are you sending the patches?
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/net/wireless/broadcom/brcm80211/brcmsmac/phy/phy_n.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+manually using mutt, for series I do something with git. Hmm. And
+script I was using for that disappeared :-(.
 
-diff --git a/drivers/net/wireless/broadcom/brcm80211/brcmsmac/phy/phy_n.c b/drivers/net/wireless/broadcom/brcm80211/brcmsmac/phy/phy_n.c
-index b3aab2fe96eb..42dc8e1f483d 100644
---- a/drivers/net/wireless/broadcom/brcm80211/brcmsmac/phy/phy_n.c
-+++ b/drivers/net/wireless/broadcom/brcm80211/brcmsmac/phy/phy_n.c
-@@ -14157,7 +14157,7 @@ static void wlc_phy_bphy_init_nphy(struct brcms_phy *pi)
- 	write_phy_reg(pi, NPHY_TO_BPHY_OFF + BPHY_STEP, 0x668);
- }
- 
--void
-+noinline_for_kasan void
- wlc_phy_table_write_nphy(struct brcms_phy *pi, u32 id, u32 len, u32 offset,
- 			 u32 width, const void *data)
- {
-@@ -14171,7 +14171,7 @@ wlc_phy_table_write_nphy(struct brcms_phy *pi, u32 id, u32 len, u32 offset,
- 	wlc_phy_write_table_nphy(pi, &tbl);
- }
- 
--void
-+noinline_for_kasan void
- wlc_phy_table_read_nphy(struct brcms_phy *pi, u32 id, u32 len, u32 offset,
- 			u32 width, void *data)
- {
--- 
-2.9.0
+> I've applied this to the ccp2 branch.
+
+Thanks,
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--FsscpQKzF/jJk6ya
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAli7GToACgkQMOfwapXb+vITngCfZeiOMl4x3fVIEMKwQkF17plM
+wigAn1/5EwntuxM3pv3MA+1CF1jxU160
+=WkF5
+-----END PGP SIGNATURE-----
+
+--FsscpQKzF/jJk6ya--
