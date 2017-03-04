@@ -1,84 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:49556 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752674AbdCBRjM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 12:39:12 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: kasan-dev@googlegroups.com
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        Alexander Potapenko <glider@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-wireless@vger.kernel.org,
-        kernel-build-reports@lists.linaro.org,
-        "David S . Miller" <davem@davemloft.net>,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 22/26] drm/i915/gvt: don't overflow the kernel stack with KASAN
-Date: Thu,  2 Mar 2017 17:38:30 +0100
-Message-Id: <20170302163834.2273519-23-arnd@arndb.de>
-In-Reply-To: <20170302163834.2273519-1-arnd@arndb.de>
-References: <20170302163834.2273519-1-arnd@arndb.de>
+Received: from mail-qk0-f179.google.com ([209.85.220.179]:33551 "EHLO
+        mail-qk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752007AbdCDS5b (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 4 Mar 2017 13:57:31 -0500
+Received: by mail-qk0-f179.google.com with SMTP id n127so222481473qkf.0
+        for <linux-media@vger.kernel.org>; Sat, 04 Mar 2017 10:57:31 -0800 (PST)
+Subject: Re: Kaffeine commit b510bff2 won't compile
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <bafdb165-261c-0129-e0dc-29819a55ca43@gmail.com>
+ <20170227071122.3a319481@vento.lan>
+ <a2c23f62-215a-9066-45bc-0b8eebacc84b@gmail.com>
+ <20170301070024.3ca3150a@vento.lan>
+ <fdc10667-1ed9-7c84-bf7d-ec3a255c59b2@gmail.com>
+ <20170304110743.7635879c@vento.lan>
+Cc: linux-media@vger.kernel.org
+From: bill murphy <gc2majortom@gmail.com>
+Message-ID: <1c5c2aed-f7c6-a189-6dc5-fd44007eefaa@gmail.com>
+Date: Sat, 4 Mar 2017 13:57:28 -0500
+MIME-Version: 1.0
+In-Reply-To: <20170304110743.7635879c@vento.lan>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enabling CONFIG_KASAN can lead to an instant stack overflow:
 
-drivers/gpu/drm/i915/gvt/handlers.c: In function 'init_generic_mmio_info':
-drivers/gpu/drm/i915/gvt/handlers.c:2200:1: error: the frame size of 30464 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
-drivers/gpu/drm/i915/gvt/handlers.c: In function 'init_broadwell_mmio_info':
-drivers/gpu/drm/i915/gvt/handlers.c:2402:1: error: the frame size of 5376 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
-drivers/gpu/drm/i915/gvt/handlers.c: In function 'init_skl_mmio_info':
-drivers/gpu/drm/i915/gvt/handlers.c:2628:1: error: the frame size of 5296 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
+That sounds good, would you like me to submit a good Frequency List to 'dtv-scan-tables'?
+Maybe name it something like 'atsc/us-ATSC-center-frequencies-8VSB-06-2009', reflecting the
+date since the spectrum was allocated that way?
 
-The reason is the INTEL_GVT_MMIO_OFFSET() hack that attempts to convert any type
-(including i915_reg_t) into a u32 by reading the first four bytes, in combination
-with the stack sanitizer that adds a redzone around each instance.
+Another Kaffeine related issue, I noticed in libdbv5 of v4l-utils, that there is no
+"North American Standard" LNB configuration. I just modified the source to add
+add one and recompiled. Since in North America, the FSS Band is from 11700 to 12200, and our LNBs are
+designed with an LO Frequency of 10750 MHz. Kaffeine seems to work correctly now on my
+Ku Band antennas. Would you like me to submit the patch, or just create a new bug report?
 
-Originally, i915_reg_t was introduced to add a little extra type safety by
-disallowing simple type casts, and INTEL_GVT_MMIO_OFFSET() goes the opposite
-way by allowing any type as input, including those that are not safe in this
-context.
+Thanks again,
+Bill
 
-I'm replacing it with an implementation that specifically allows the three
-types that are actually used as input: 'i915_reg_t' (from _MMIO constants),
-'int' (from other constants), and 'unsigned int' (from function arguments),
-and any other type should now provoke a build error. This also solves the
-stack overflow as we no longer use a local variable for each instance.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/gpu/drm/i915/gvt/mmio.h | 17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/gpu/drm/i915/gvt/mmio.h b/drivers/gpu/drm/i915/gvt/mmio.h
-index 3bc620f56f35..bf40100fc626 100644
---- a/drivers/gpu/drm/i915/gvt/mmio.h
-+++ b/drivers/gpu/drm/i915/gvt/mmio.h
-@@ -78,13 +78,20 @@ bool intel_gvt_match_device(struct intel_gvt *gvt, unsigned long device);
- int intel_gvt_setup_mmio_info(struct intel_gvt *gvt);
- void intel_gvt_clean_mmio_info(struct intel_gvt *gvt);
- 
-+static inline u32 intel_gvt_mmio_offset(unsigned int offset)
-+{
-+	return offset;
-+}
-+
- struct intel_gvt_mmio_info *intel_gvt_find_mmio_info(struct intel_gvt *gvt,
- 						     unsigned int offset);
--#define INTEL_GVT_MMIO_OFFSET(reg) ({ \
--	typeof(reg) __reg = reg; \
--	u32 *offset = (u32 *)&__reg; \
--	*offset; \
--})
-+#define INTEL_GVT_MMIO_OFFSET(reg) \
-+__builtin_choose_expr(__builtin_types_compatible_p(typeof(reg), int), intel_gvt_mmio_offset, \
-+__builtin_choose_expr(__builtin_types_compatible_p(typeof(reg), unsigned int), intel_gvt_mmio_offset, \
-+__builtin_choose_expr(__builtin_types_compatible_p(typeof(reg), i915_reg_t), i915_mmio_reg_offset, \
-+	(void)(0) \
-+)))(reg)
-+
- 
- int intel_vgpu_init_mmio(struct intel_vgpu *vgpu);
- void intel_vgpu_reset_mmio(struct intel_vgpu *vgpu);
--- 
-2.9.0
+On 03/04/2017 09:07 AM, Mauro Carvalho Chehab wrote:
+> Em Sat, 4 Mar 2017 08:21:51 -0500
+> bill murphy <gc2majortom@gmail.com> escreveu:
+>
+>> Hi Mauro,
+>>
+>> yes I can appreciate that, but why not just make one file for each
+>> country that actually differs,
+>>
+>> rather than make the rest of us suffer?
+>>
+>> canada and the us are the same.
+>>
+>> atsc/us-ATSC-center-frequencies-8VSB
+>>
+>> So could add two files for mexico and korea.
+>>
+>> atsc/mx-ATSC-center-frequencies-8VSB
+>> atsc/kr-ATSC-center-frequencies-8VSB
+>>
+>> can't be any worse that the hundreds of files being maintained for DVB-T
+>> in various countries.
+> That could be done, but newer updates to dtv-scan-tables
+> (and projects that use it, like Kaffeine) would have regressions for
+> people outside US that use it.
+>
+> What could be done, instead, would be to have another file for
+> US new frequency set.
+>
+>>
+>> On 03/01/2017 05:00 AM, Mauro Carvalho Chehab wrote:
+>>> Hi Bill,
+>>>
+>>> Em Mon, 27 Feb 2017 23:46:09 -0500
+>>> bill murphy <gc2majortom@gmail.com> escreveu:
+>>>   
+>>>> Hi Mauro,
+>>>>
+>>>> Thanks for looking in to it. All is well now.
+>>> Good! Thanks for testing.
+>>>   
+>>>> On a sidenote, given 700 MHz is used for LTE, and not broadcasting
+>>>>
+>>>> anymore, would you folks consider removing ch 52 thru 69
+>>>>
+>>>> in the us-atsc-frequencies if I posted a simple patch to dtv-scan-tables?
+>>> The problem is that, despite its name, this table is used on other
+>>> Countries using atsc (like Mexico, Canada and South Korea):
+>>>
+>>> 	https://en.wikipedia.org/wiki/List_of_digital_television_deployments_by_country#/media/File:Digital_broadcast_standards.svg
+>>>
+>>> So, while the 700 MHz are still used on other ATSC Countries, we can't
+>>> remove, as otherwise, it will not discover the channels at the upper
+>>> frequency range there.
+>>>
+>>> Regards,
+>>> Mauro
+>
+>
+> Thanks,
+> Mauro
