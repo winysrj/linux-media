@@ -1,93 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:48219 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751563AbdCAPfA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Mar 2017 10:35:00 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] videodev2.h: map xvYCC601/709 to limited range quantization
-Message-ID: <3296d5e4-99b7-447b-f58e-223348669e84@xs4all.nl>
-Date: Wed, 1 Mar 2017 16:31:20 +0100
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56195 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752402AbdCEMvw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 5 Mar 2017 07:51:52 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v2 2/3] v4l: Clearly document interactions between formats, controls and buffers
+Date: Sun, 05 Mar 2017 14:52:25 +0200
+Message-ID: <1655091.gPI0LlWvRn@avalon>
+In-Reply-To: <20170304134854.GW3220@valkosipuli.retiisi.org.uk>
+References: <20170228150320.10104-1-laurent.pinchart+renesas@ideasonboard.com> <5f3e6c07-e07f-6ce2-0158-3f5ec750637f@xs4all.nl> <20170304134854.GW3220@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The xvYCC601/709 encodings were mapped by default to full range quantization.
-This is actually wrong since these encodings use limited range quantization,
-but accept values outside of the limited range.
+Hi Sakari,
 
-This makes sense since for values within the limited range it behaves exactly
-the same as BT.601 or Rec. 709. The only difference is that with the xvYCC
-encodings the values outside of the limited range also produce value colors.
+On Saturday 04 Mar 2017 15:48:54 Sakari Ailus wrote:
+> On Sat, Mar 04, 2017 at 11:57:32AM +0100, Hans Verkuil wrote:
+> ...
+> 
+> >>> +To simplify their implementation, drivers may also require buffers to
+> >>> be +reallocated in order to change formats or controls that influence
+> >>> the buffer +size. In that case, to perform such changes, userspace
+> >>> applications shall +first stop the video stream with the
+> >>> :c:func:`VIDIOC_STREAMOFF` ioctl if it +is running and free all buffers
+> >>> with the :c:func:`VIDIOC_REQBUFS` ioctl if +they are allocated. The
+> >>> format or controls can then be modified, and buffers +shall then be
+> >>> reallocated and the stream restarted. A typical ioctl sequence +is
+> >>> +
+> >>> + #. VIDIOC_STREAMOFF
+> >>> + #. VIDIOC_REQBUFS(0)
+> >>> + #. VIDIOC_S_FMT
+> >>> + #. VIDIOC_S_EXT_CTRLS
+> >>
+> >> Same here.
+> >>
+> >> Would it be safe to say that controls are changed first? I wonder if
+> >> there could be special cases where this wouldn't apply though. It could
+> >> ultimately come down to hardware features: rotation might be only
+> >> available for certain formats so you'd need to change the format first
+> >> to enable rotation.
+> >>
+> >> What you're documenting above is a typical sequence so it doesn't have to
+> >> be applicable to all potential hardware. I might mention there could be
+> >> such dependencies. I wonder if one exists at the moment. No?
+> > 
+> > The way V4L2 works is that the last ioctl called gets 'preference'. So the
+> > driver should attempt to satisfy the ioctl, even if that means undoing
+> > previous ioctls. In other words, V4L2 allows any order, but the
+> > end-result might be different depending on the hardware capabilities.
+> 
+> Indeed. But the above sequence suggests that formats are set before
+> controls. I suggested to clarify that part.
 
-Talking to people who know a lot more about this than I do made me realize
-that mapping xvYCC to full range quantization was wrong, so this patch corrects
-this and also improves the documentation.
+I agree with both of you. I'll clarify that this is just an example and that 
+formats and controls can be set in a different order (or even interleaved).
 
-These formats are very rare, and since the formula for decoding these Y'CbCr
-encodings is actually fixed and independent of the quantization field value
-it is safe to make this change.
+-- 
+Regards,
 
-The main advantage is that keeps the V4L2 specification in sync with the
-corresponding colorspace, HDMI and CEA861 standards when it comes to these
-xvYCC formats.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-diff --git a/Documentation/media/uapi/v4l/pixfmt-007.rst b/Documentation/media/uapi/v4l/pixfmt-007.rst
-index 95a23a28c595..4c322d9df314 100644
---- a/Documentation/media/uapi/v4l/pixfmt-007.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-007.rst
-@@ -174,7 +174,7 @@ this colorspace:
-  The xvYCC 709 encoding (``V4L2_YCBCR_ENC_XV709``, :ref:`xvycc`) is
-  similar to the Rec. 709 encoding, but it allows for R', G' and B' values
-  that are outside the range [0…1]. The resulting Y', Cb and Cr values are
--scaled and offset:
-+scaled and offset according to the limited range formula:
-
-  .. math::
-
-@@ -187,7 +187,7 @@ scaled and offset:
-  The xvYCC 601 encoding (``V4L2_YCBCR_ENC_XV601``, :ref:`xvycc`) is
-  similar to the BT.601 encoding, but it allows for R', G' and B' values
-  that are outside the range [0…1]. The resulting Y', Cb and Cr values are
--scaled and offset:
-+scaled and offset according to the limited range formula:
-
-  .. math::
-
-@@ -198,10 +198,14 @@ scaled and offset:
-      Cr = \frac{224}{256} * (0.5R' - 0.4187G' - 0.0813B')
-
-  Y' is clamped to the range [0…1] and Cb and Cr are clamped to the range
--[-0.5…0.5]. The non-standard xvYCC 709 or xvYCC 601 encodings can be
-+[-0.5…0.5] and quantized without further scaling or offsets.
-+The non-standard xvYCC 709 or xvYCC 601 encodings can be
-  used by selecting ``V4L2_YCBCR_ENC_XV709`` or ``V4L2_YCBCR_ENC_XV601``.
--The xvYCC encodings always use full range quantization.
--
-+As seen by the xvYCC formulas these encodings always use limited range quantization,
-+there is no full range variant. The whole point of these extended gamut encodings
-+is that values outside the limited range are still valid, although they
-+map to R', G' and B' values outside the [0…1] range and are therefore outside
-+the Rec. 709 colorspace gamut.
-
-  .. _col-srgb:
-
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 45184a2ef66c..316be62f3a45 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -378,8 +378,7 @@ enum v4l2_quantization {
-  #define V4L2_MAP_QUANTIZATION_DEFAULT(is_rgb_or_hsv, colsp, ycbcr_enc) \
-  	(((is_rgb_or_hsv) && (colsp) == V4L2_COLORSPACE_BT2020) ? \
-  	 V4L2_QUANTIZATION_LIM_RANGE : \
--	 (((is_rgb_or_hsv) || (ycbcr_enc) == V4L2_YCBCR_ENC_XV601 || \
--	  (ycbcr_enc) == V4L2_YCBCR_ENC_XV709 || (colsp) == V4L2_COLORSPACE_JPEG) ? \
-+	 (((is_rgb_or_hsv) || (colsp) == V4L2_COLORSPACE_JPEG) ? \
-  	 V4L2_QUANTIZATION_FULL_RANGE : V4L2_QUANTIZATION_LIM_RANGE))
-
-  enum v4l2_priority {
+Laurent Pinchart
