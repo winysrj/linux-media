@@ -1,45 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp6-v.fe.bosch.de ([139.15.237.11]:34253 "EHLO
-        smtp6-v.fe.bosch.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752837AbdC0Jza (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 05:55:30 -0400
-From: "Haeberle Heinz (PT-MT/ELF1)" <Heinz.Haeberle@de.bosch.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Todor Tomov <todor.tomov@linaro.org>
-Subject: Start development on dragonboard 410c with OV5645 camera
-Date: Mon, 27 Mar 2017 09:54:45 +0000
-Message-ID: <bb2ff610de9f45e680b5f3194eac9667@FE-MBX1007.de.bosch.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-MIME-Version: 1.0
+Received: from mail.kernel.org ([198.145.29.136]:41922 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752425AbdCEQAU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 5 Mar 2017 11:00:20 -0500
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: laurent.pinchart@ideasonboard.com
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v3 3/3] drm: rcar-du: Register a completion callback with VSP1
+Date: Sun,  5 Mar 2017 16:00:04 +0000
+Message-Id: <591c0ba30211d53613a456d51f2bb523e6ef5e06.1488729419.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.8e2f9686131cb2299b859f056e902b4208061a4e.1488729419.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.8e2f9686131cb2299b859f056e902b4208061a4e.1488729419.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.8e2f9686131cb2299b859f056e902b4208061a4e.1488729419.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.8e2f9686131cb2299b859f056e902b4208061a4e.1488729419.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Currently we process page flip events on every display interrupt,
+however this does not take into consideration the processing time needed
+by the VSP1 utilised in the pipeline.
 
-I want to get into the development of the v4l driver for OV5645 camera. I w=
-ant to work on features =A0like zoom and manual exposure time / gain contro=
-l.=20
-And get our own camera module connected later on as well (mostly a hardware=
- issue)=20
+Register a callback with the VSP driver to obtain completion events, and
+track them so that we only perform page flips when the full display
+pipeline has completed for the frame.
 
-The starting point for me is a dragonboard 410c (which I got already) and t=
-he Mezzanine MIPI Adapter board plus OV5645 Camera module (which I expect t=
-o get this week)
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.c |  8 ++++++--
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.h |  1 +
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.c  |  9 +++++++++
+ 3 files changed, 16 insertions(+), 2 deletions(-)
 
-I will first - as soon as I get the camera - follow the set up CSI procedur=
-e on https://builds.96boards.org/releases/dragonboard410c/linaro/debian/16.=
-09/ of course
-
-Could somebody give me some hints what would be the best steps to get into =
-a position to modify driver code.
-
-I am new to the v4l driver development, but have some experience with drive=
-r development in Linux (although it got somehow rusty ;-) )
-I usually like to start with modules, but I have seen the driver is statica=
-lly linked. Any hints on that?
-
-Is development usually done native or via cross compile?=20
-Heinz
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+index 2aceb84fc15d..caaaa1812e20 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+@@ -299,7 +299,7 @@ static void rcar_du_crtc_update_planes(struct rcar_du_crtc *rcrtc)
+  * Page Flip
+  */
+ 
+-static void rcar_du_crtc_finish_page_flip(struct rcar_du_crtc *rcrtc)
++void rcar_du_crtc_finish_page_flip(struct rcar_du_crtc *rcrtc)
+ {
+ 	struct drm_pending_vblank_event *event;
+ 	struct drm_device *dev = rcrtc->crtc.dev;
+@@ -571,6 +571,7 @@ static const struct drm_crtc_funcs crtc_funcs = {
+ static irqreturn_t rcar_du_crtc_irq(int irq, void *arg)
+ {
+ 	struct rcar_du_crtc *rcrtc = arg;
++	struct rcar_du_device *rcdu = rcrtc->group->dev;
+ 	irqreturn_t ret = IRQ_NONE;
+ 	u32 status;
+ 
+@@ -579,7 +580,10 @@ static irqreturn_t rcar_du_crtc_irq(int irq, void *arg)
+ 
+ 	if (status & DSSR_FRM) {
+ 		drm_crtc_handle_vblank(&rcrtc->crtc);
+-		rcar_du_crtc_finish_page_flip(rcrtc);
++
++		if (rcdu->info->gen < 3)
++			rcar_du_crtc_finish_page_flip(rcrtc);
++
+ 		ret = IRQ_HANDLED;
+ 	}
+ 
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.h b/drivers/gpu/drm/rcar-du/rcar_du_crtc.h
+index a7194812997e..ebdbff9d8e59 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.h
++++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.h
+@@ -71,5 +71,6 @@ void rcar_du_crtc_resume(struct rcar_du_crtc *rcrtc);
+ 
+ void rcar_du_crtc_route_output(struct drm_crtc *crtc,
+ 			       enum rcar_du_output output);
++void rcar_du_crtc_finish_page_flip(struct rcar_du_crtc *rcrtc);
+ 
+ #endif /* __RCAR_DU_CRTC_H__ */
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+index b0ff304ce3dc..cbb6f54c99ef 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+@@ -28,6 +28,13 @@
+ #include "rcar_du_kms.h"
+ #include "rcar_du_vsp.h"
+ 
++static void rcar_du_vsp_complete(void *private)
++{
++	struct rcar_du_crtc *crtc = (struct rcar_du_crtc *)private;
++
++	rcar_du_crtc_finish_page_flip(crtc);
++}
++
+ void rcar_du_vsp_enable(struct rcar_du_crtc *crtc)
+ {
+ 	const struct drm_display_mode *mode = &crtc->crtc.state->adjusted_mode;
+@@ -35,6 +42,8 @@ void rcar_du_vsp_enable(struct rcar_du_crtc *crtc)
+ 	struct vsp1_du_lif_config cfg = {
+ 		.width = mode->hdisplay,
+ 		.height = mode->vdisplay,
++		.callback = rcar_du_vsp_complete,
++		.callback_data = crtc,
+ 	};
+ 	struct rcar_du_plane_state state = {
+ 		.state = {
+-- 
+git-series 0.9.1
