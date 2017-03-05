@@ -1,206 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kozue.soulik.info ([108.61.200.231]:39162 "EHLO
-        kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752328AbdCEKAv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 5 Mar 2017 05:00:51 -0500
-From: Randy Li <ayaka@soulik.info>
-To: dri-devel@lists.freedesktop.org
-Cc: clinton.a.taylor@intel.com, daniel@fooishbar.org,
-        ville.syrjala@linux.intel.com, linux-media@vger.kernel.org,
-        mchehab@kernel.org, linux-kernel@vger.kernel.org,
-        Randy Li <ayaka@soulik.info>
-Subject: [PATCH v6 3/3] drm/rockchip: Support 10 bits yuv format in vop
-Date: Sun,  5 Mar 2017 18:00:33 +0800
-Message-Id: <1488708033-5691-4-git-send-email-ayaka@soulik.info>
-In-Reply-To: <1488708033-5691-1-git-send-email-ayaka@soulik.info>
-References: <1488708033-5691-1-git-send-email-ayaka@soulik.info>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59119 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752388AbdCEVhc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 5 Mar 2017 16:37:32 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v2.2] v4l: Clearly document interactions between formats, controls and buffers
+Date: Sun,  5 Mar 2017 23:36:10 +0200
+Message-Id: <20170305213610.3893-1-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20170305143936.11257-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20170305143936.11257-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The rockchip use a special pixel format for those yuv pixel
-format with 10 bits color depth.
+V4L2 exposes parameters that influence buffers sizes through the format
+ioctls (VIDIOC_G_FMT, VIDIOC_TRY_FMT, VIDIOC_S_FMT, and possibly
+VIDIOC_G_SELECTION and VIDIOC_S_SELECTION). Other parameters not part of
+the format structure may also influence buffer sizes or buffer layout in
+general. One existing such parameter is rotation, which is implemented
+by the V4L2_CID_ROTATE control and thus exposed through the V4L2 control
+ioctls.
 
-Signed-off-by: Randy Li <ayaka@soulik.info>
+The interaction between those parameters and buffers is currently only
+partially specified by the V4L2 API. In particular interactions between
+controls and buffers isn't specified at all. The behaviour of the
+VIDIOC_S_FMT and VIDIOC_S_SELECTION ioctls when buffers are allocated is
+also not fully specified.
+
+This patch clearly defines and documents the interactions between
+formats, selections, controls and buffers.
+
+The preparatory discussions for the documentation change considered
+completely disallowing controls that change the buffer size or layout,
+in favour of extending the format API with a new ioctl that would bundle
+those controls with format information. The idea has been rejected, as
+this would essentially be a restricted version of the upcoming request
+API that wouldn't bring any additional value.
+
+Another option we have considered was to mandate the use of the request
+API to modify controls that influence buffer size or layout. This has
+also been rejected on the grounds that requiring the request API to
+change rotation even when streaming is stopped would significantly
+complicate implementation of drivers and usage of the V4L2 API for
+applications.
+
+Applications will however be required to use the upcoming request API to
+change at runtime formats or controls that influence the buffer size or
+layout, because of the need to synchronize buffers with the formats and
+controls. Otherwise there would be no way to interpret the content of a
+buffer correctly.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/gpu/drm/rockchip/rockchip_drm_fb.c  |  1 +
- drivers/gpu/drm/rockchip/rockchip_drm_vop.c | 34 ++++++++++++++++++++++++++---
- drivers/gpu/drm/rockchip/rockchip_drm_vop.h |  1 +
- drivers/gpu/drm/rockchip/rockchip_vop_reg.c |  2 ++
- include/uapi/drm/drm_fourcc.h               | 11 ++++++++++
- 5 files changed, 46 insertions(+), 3 deletions(-)
+Changes since v2.1:
 
-diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_fb.c b/drivers/gpu/drm/rockchip/rockchip_drm_fb.c
-index c9ccdf8..250fd29 100644
---- a/drivers/gpu/drm/rockchip/rockchip_drm_fb.c
-+++ b/drivers/gpu/drm/rockchip/rockchip_drm_fb.c
-@@ -230,6 +230,7 @@ void rockchip_drm_mode_config_init(struct drm_device *dev)
- 	 */
- 	dev->mode_config.max_width = 4096;
- 	dev->mode_config.max_height = 4096;
-+	dev->mode_config.allow_fb_modifiers = true;
+- Fixed small issues in commit message
+- Simplified wording of one sentence in the documentation
+
+Changes since v2:
+
+- Document the interaction with ioctls that can affect formats
+  (VIDIOC_S_SELECTION, VIDIOC_S_INPUT, VIDIOC_S_OUTPUT, VIDIOC_S_STD and
+  VIDIOC_S_DV_TIMINGS)
+- Clarify the format/control change order
+---
+ Documentation/media/uapi/v4l/buffer.rst | 108 ++++++++++++++++++++++++++++++++
+ 1 file changed, 108 insertions(+)
+
+diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+index ac58966ccb9b..60d62a5824f8 100644
+--- a/Documentation/media/uapi/v4l/buffer.rst
++++ b/Documentation/media/uapi/v4l/buffer.rst
+@@ -34,6 +34,114 @@ flags are copied from the OUTPUT video buffer to the CAPTURE video
+ buffer.
  
- 	dev->mode_config.funcs = &rockchip_drm_mode_config_funcs;
- 	dev->mode_config.helper_private = &rockchip_mode_config_helpers;
-diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_vop.c b/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
-index 76c79ac..45da270 100644
---- a/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
-+++ b/drivers/gpu/drm/rockchip/rockchip_drm_vop.c
-@@ -232,6 +232,7 @@ static enum vop_data_format vop_convert_format(uint32_t format)
- 	case DRM_FORMAT_BGR565:
- 		return VOP_FMT_RGB565;
- 	case DRM_FORMAT_NV12:
-+	case DRM_FORMAT_P010:
- 		return VOP_FMT_YUV420SP;
- 	case DRM_FORMAT_NV16:
- 		return VOP_FMT_YUV422SP;
-@@ -249,12 +250,28 @@ static bool is_yuv_support(uint32_t format)
- 	case DRM_FORMAT_NV12:
- 	case DRM_FORMAT_NV16:
- 	case DRM_FORMAT_NV24:
-+	case DRM_FORMAT_P010:
- 		return true;
- 	default:
- 		return false;
- 	}
- }
  
-+static bool is_support_fb(struct drm_framebuffer *fb)
-+{
-+	switch (fb->format->format) {
-+	case DRM_FORMAT_NV12:
-+	case DRM_FORMAT_NV16:
-+	case DRM_FORMAT_NV24:
-+		return true;
-+	case DRM_FORMAT_P010:
-+		if (fb->modifier == DRM_FORMAT_MOD_ROCKCHIP_10BITS)
-+			return true;
-+	default:
-+		return false;
-+	}
++Interactions between formats, controls and buffers
++==================================================
 +
-+}
- static bool is_alpha_support(uint32_t format)
- {
- 	switch (format) {
-@@ -680,7 +697,7 @@ static int vop_plane_atomic_check(struct drm_plane *plane,
- 	 * Src.x1 can be odd when do clip, but yuv plane start point
- 	 * need align with 2 pixel.
- 	 */
--	if (is_yuv_support(fb->format->format) && ((state->src.x1 >> 16) % 2))
-+	if (is_support_fb(fb) && ((state->src.x1 >> 16) % 2))
- 		return -EINVAL;
- 
- 	return 0;
-@@ -723,6 +740,7 @@ static void vop_plane_atomic_update(struct drm_plane *plane,
- 	dma_addr_t dma_addr;
- 	uint32_t val;
- 	bool rb_swap;
-+	bool is_10_bits = false;
- 	int format;
- 
- 	/*
-@@ -739,6 +757,9 @@ static void vop_plane_atomic_update(struct drm_plane *plane,
- 		return;
- 	}
- 
-+	if (fb->modifier == DRM_FORMAT_MOD_ROCKCHIP_10BITS)
-+		is_10_bits = true;
++V4L2 exposes parameters that influence the buffer size, or the way data is
++laid out in the buffer. Those parameters are exposed through both formats and
++controls. One example of such a control is the ``V4L2_CID_ROTATE`` control
++that modifies the direction in which pixels are stored in the buffer, as well
++as the buffer size when the selected format includes padding at the end of
++lines.
 +
- 	obj = rockchip_fb_get_gem_obj(fb, 0);
- 	rk_obj = to_rockchip_obj(obj);
- 
-@@ -753,7 +774,10 @@ static void vop_plane_atomic_update(struct drm_plane *plane,
- 	dsp_sty = dest->y1 + crtc->mode.vtotal - crtc->mode.vsync_start;
- 	dsp_st = dsp_sty << 16 | (dsp_stx & 0xffff);
- 
--	offset = (src->x1 >> 16) * fb->format->cpp[0];
-+	if (is_10_bits)
-+		offset = (src->x1 >> 16) * 10 / 8;
-+	else
-+		offset = (src->x1 >> 16) * fb->format->cpp[0];
- 	offset += (src->y1 >> 16) * fb->pitches[0];
- 	dma_addr = rk_obj->dma_addr + offset + fb->offsets[0];
- 
-@@ -764,6 +788,7 @@ static void vop_plane_atomic_update(struct drm_plane *plane,
- 	VOP_WIN_SET(vop, win, format, format);
- 	VOP_WIN_SET(vop, win, yrgb_vir, fb->pitches[0] >> 2);
- 	VOP_WIN_SET(vop, win, yrgb_mst, dma_addr);
-+	VOP_WIN_SET(vop, win, fmt_10, is_10_bits);
- 	if (is_yuv_support(fb->format->format)) {
- 		int hsub = drm_format_horz_chroma_subsampling(fb->format->format);
- 		int vsub = drm_format_vert_chroma_subsampling(fb->format->format);
-@@ -772,7 +797,10 @@ static void vop_plane_atomic_update(struct drm_plane *plane,
- 		uv_obj = rockchip_fb_get_gem_obj(fb, 1);
- 		rk_uv_obj = to_rockchip_obj(uv_obj);
- 
--		offset = (src->x1 >> 16) * bpp / hsub;
-+		if (is_10_bits)
-+			offset = (src->x1 >> 16) * 10 / 8 / hsub;
-+		else
-+			offset = (src->x1 >> 16) * bpp / hsub;
- 		offset += (src->y1 >> 16) * fb->pitches[1] / vsub;
- 
- 		dma_addr = rk_uv_obj->dma_addr + offset + fb->offsets[1];
-diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_vop.h b/drivers/gpu/drm/rockchip/rockchip_drm_vop.h
-index 5a4faa85..1743797 100644
---- a/drivers/gpu/drm/rockchip/rockchip_drm_vop.h
-+++ b/drivers/gpu/drm/rockchip/rockchip_drm_vop.h
-@@ -116,6 +116,7 @@ struct vop_win_phy {
- 
- 	struct vop_reg enable;
- 	struct vop_reg format;
-+	struct vop_reg fmt_10;
- 	struct vop_reg rb_swap;
- 	struct vop_reg act_info;
- 	struct vop_reg dsp_info;
-diff --git a/drivers/gpu/drm/rockchip/rockchip_vop_reg.c b/drivers/gpu/drm/rockchip/rockchip_vop_reg.c
-index 91fbc7b..9bbdf3c 100644
---- a/drivers/gpu/drm/rockchip/rockchip_vop_reg.c
-+++ b/drivers/gpu/drm/rockchip/rockchip_vop_reg.c
-@@ -44,6 +44,7 @@ static const uint32_t formats_win_full[] = {
- 	DRM_FORMAT_NV12,
- 	DRM_FORMAT_NV16,
- 	DRM_FORMAT_NV24,
-+	DRM_FORMAT_P010,
- };
- 
- static const uint32_t formats_win_lite[] = {
-@@ -178,6 +179,7 @@ static const struct vop_win_phy rk3288_win01_data = {
- 	.nformats = ARRAY_SIZE(formats_win_full),
- 	.enable = VOP_REG(RK3288_WIN0_CTRL0, 0x1, 0),
- 	.format = VOP_REG(RK3288_WIN0_CTRL0, 0x7, 1),
-+	.fmt_10 = VOP_REG(RK3288_WIN0_CTRL0, 0x1, 4),
- 	.rb_swap = VOP_REG(RK3288_WIN0_CTRL0, 0x1, 12),
- 	.act_info = VOP_REG(RK3288_WIN0_ACT_INFO, 0x1fff1fff, 0),
- 	.dsp_info = VOP_REG(RK3288_WIN0_DSP_INFO, 0x0fff0fff, 0),
-diff --git a/include/uapi/drm/drm_fourcc.h b/include/uapi/drm/drm_fourcc.h
-index 306f979..209bdb6 100644
---- a/include/uapi/drm/drm_fourcc.h
-+++ b/include/uapi/drm/drm_fourcc.h
-@@ -189,6 +189,7 @@ extern "C" {
- #define DRM_FORMAT_MOD_VENDOR_SAMSUNG 0x04
- #define DRM_FORMAT_MOD_VENDOR_QCOM    0x05
- #define DRM_FORMAT_MOD_VENDOR_VIVANTE 0x06
-+#define DRM_FORMAT_MOD_VENDOR_ROCKCHIP 0x07
- /* add more to the end as needed */
- 
- #define fourcc_mod_code(vendor, val) \
-@@ -313,6 +314,16 @@ extern "C" {
-  */
- #define DRM_FORMAT_MOD_VIVANTE_SPLIT_SUPER_TILED fourcc_mod_code(VIVANTE, 4)
- 
-+/*
-+ * Rockchip 10bits color depth layout
-+ *
-+ * It could be regard as a compact variant of P010. The 6 bits set to zero
-+ * in P010 are used to store the next pixel in this format. The stride should
-+ * be aligned with 8 bit(a byte), so there would be zero bits at the last byte
-+ * if the pixel can't fill it. And this format is not a tiling layout.
-+ */
-+#define DRM_FORMAT_MOD_ROCKCHIP_10BITS fourcc_mod_code(ROCKCHIP, 1)
++The set of information needed to interpret the content of a buffer (e.g. the
++pixel format, the line stride, the tiling orientation or the rotation) is
++collectively referred to in the rest of this section as the buffer layout.
 +
- #if defined(__cplusplus)
- }
- #endif
++Modifying formats or controls that influence the buffer size or layout require
++the stream to be stopped. Any attempt at such a modification while the stream
++is active shall cause the ioctl setting the format or the control to return
++the ``EBUSY`` error code.
++
++Controls that only influence the buffer layout can be modified at any time
++when the stream is stopped. As they don't influence the buffer size, no
++special handling is needed to synchronize those controls with buffer
++allocation.
++
++Formats and controls that influence the buffer size interact with buffer
++allocation. As buffer allocation is an expensive operation, drivers should
++allow format or controls that influence the buffer size to be changed with
++buffers allocated. A typical ioctl sequence to modify format and controls is
++
++ #. VIDIOC_STREAMOFF
++ #. VIDIOC_S_EXT_CTRLS
++ #. VIDIOC_S_FMT
++ #. VIDIOC_QBUF
++ #. VIDIOC_STREAMON
++
++.. note::
++
++   The API doesn't mandate the above order for control (2.) and format (3.)
++   changes. Format and controls can be set in a different order, or even
++   interleaved, depending on the device and use case. For instance some
++   controls might behave differently for different pixel formats, in which
++   case the format might need to be set first.
++
++Queued buffers must be large enough for the new format or controls.
++
++Drivers shall return a ``ENOSPC`` error in response to format change
++(:c:func:`VIDIOC_S_FMT`) or control changes (:c:func:`VIDIOC_S_CTRL` or
++:c:func:`VIDIOC_S_EXT_CTRLS`) if buffers too small for the new format are
++currently queued. As a simplification, drivers are allowed to return an error
++from these ioctls if any buffer is currently queued, without checking the
++queued buffers sizes.
++
++.. note::
++
++   The :c:func:`VIDIOC_S_SELECTION` ioctl can, depending on the hardware (for
++   instance if the device doesn't include a scaler), modify the format in
++   addition to the selection rectangle. Similarly, the
++   :c:func:`VIDIOC_S_INPUT`, :c:func:`VIDIOC_S_OUTPUT`, :c:func:`VIDIOC_S_STD`
++   and :c:func:`VIDIOC_S_DV_TIMINGS` ioctls can also modify the format and
++   selection rectangles. Driver shall return the same ``ENOSPC`` error from
++   all ioctls that would result in formats too large for queued buffers.
++
++Drivers shall also return a ``ENOSPC`` error from the :c:func:`VIDIOC_QBUF`
++ioctl if the buffer being queued is too small for the current format or
++controls. Together, these requirements ensure that queued buffers will always
++be large enough for the configured format and controls.
++
++Userspace applications can query the buffer size required for a given format
++and controls by first setting the desired control values and then trying the
++desired format. The :c:func:`VIDIOC_TRY_FMT` ioctl will return the required
++buffer size.
++
++ #. VIDIOC_S_EXT_CTRLS(x)
++ #. VIDIOC_TRY_FMT()
++ #. VIDIOC_S_EXT_CTRLS(y)
++ #. VIDIOC_TRY_FMT()
++
++The :c:func:`VIDIOC_CREATE_BUFS` ioctl can then be used to allocate buffers
++based on the queried sizes (for instance by allocating a set of buffers large
++enough for all the desired formats and controls, or by allocating separate set
++of appropriately sized buffers for each use case).
++
++To simplify their implementation, drivers may also require buffers to be
++reallocated in order to change formats or controls that influence the buffer
++size. In that case, to perform such changes, userspace applications shall
++first stop the video stream with the :c:func:`VIDIOC_STREAMOFF` ioctl if it
++is running and free all buffers with the :c:func:`VIDIOC_REQBUFS` ioctl if
++they are allocated. The format or controls can then be modified, and buffers
++shall then be reallocated and the stream restarted. A typical ioctl sequence
++is
++
++ #. VIDIOC_STREAMOFF
++ #. VIDIOC_REQBUFS(0)
++ #. VIDIOC_S_EXT_CTRLS
++ #. VIDIOC_S_FMT
++ #. VIDIOC_REQBUFS(n)
++ #. VIDIOC_QBUF
++ #. VIDIOC_STREAMON
++
++The second :c:func:`VIDIOC_REQBUFS` call will take the new format and control
++value into account to compute the buffer size to allocate. Applications can
++also retrieve the size by calling the :c:func:`VIDIOC_G_FMT` ioctl if needed.
++
++When reallocation is required, any attempt to modify format or controls that
++influences the buffer size while buffers are allocated shall cause the format
++or control set ioctl to return the ``EBUSY`` error code.
++
++
+ .. c:type:: v4l2_buffer
+ 
+ struct v4l2_buffer
 -- 
-2.7.4
+Regards,
+
+Laurent Pinchart
