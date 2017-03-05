@@ -1,108 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:40146 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751972AbdCHJmj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 8 Mar 2017 04:42:39 -0500
-From: "Reshetova, Elena" <elena.reshetova@intel.com>
-To: Shaohua Li <shli@kernel.org>
-CC: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux1394-devel@lists.sourceforge.net"
-        <linux1394-devel@lists.sourceforge.net>,
-        "linux-bcache@vger.kernel.org" <linux-bcache@vger.kernel.org>,
-        "linux-raid@vger.kernel.org" <linux-raid@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "devel@linuxdriverproject.org" <devel@linuxdriverproject.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
-        "fcoe-devel@open-fcoe.org" <fcoe-devel@open-fcoe.org>,
-        "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>,
-        "open-iscsi@googlegroups.com" <open-iscsi@googlegroups.com>,
-        "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
-        "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>,
-        "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
-        "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
-        "peterz@infradead.org" <peterz@infradead.org>,
-        Hans Liljestrand <ishkamiel@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        David Windsor <dwindsor@gmail.com>
-Subject: RE: [PATCH 10/29] drivers, md: convert stripe_head.count from
- atomic_t to refcount_t
-Date: Wed, 8 Mar 2017 09:39:30 +0000
-Message-ID: <2236FBA76BA1254E88B949DDB74E612B41C56050@IRSMSX102.ger.corp.intel.com>
-References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
- <1488810076-3754-11-git-send-email-elena.reshetova@intel.com>
- <20170307190759.jnrq66kfpkr4m7zl@kernel.org>
-In-Reply-To: <20170307190759.jnrq66kfpkr4m7zl@kernel.org>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59233 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752392AbdCEWBM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 5 Mar 2017 17:01:12 -0500
+Subject: Re: [PATCH v3 2/3] v4l: vsp1: Extend VSP1 module API to allow DRM
+ callbacks
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+References: <cover.8e2f9686131cb2299b859f056e902b4208061a4e.1488729419.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <200127cf978c8d8904e43ab2b28a225e8a786f6e.1488729419.git-series.kieran.bingham+renesas@ideasonboard.com>
+ <16730350.NvnRv331tg@avalon>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <900f8a46-8e9c-aad6-30cb-f3e02f388aa2@ideasonboard.com>
+Date: Sun, 5 Mar 2017 22:01:07 +0000
 MIME-Version: 1.0
+In-Reply-To: <16730350.NvnRv331tg@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> On Mon, Mar 06, 2017 at 04:20:57PM +0200, Elena Reshetova wrote:
-> > refcount_t type and corresponding API should be
-> > used instead of atomic_t when the variable is used as
-> > a reference counter. This allows to avoid accidental
-> > refcounter overflows that might lead to use-after-free
-> > situations.
-> >
-> > Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
-> > Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
-> > Signed-off-by: Kees Cook <keescook@chromium.org>
-> > Signed-off-by: David Windsor <dwindsor@gmail.com>
-> > ---
-> >  drivers/md/raid5-cache.c |  8 +++---
-> >  drivers/md/raid5.c       | 66 ++++++++++++++++++++++++------------------------
-> >  drivers/md/raid5.h       |  3 ++-
-> >  3 files changed, 39 insertions(+), 38 deletions(-)
-> >
-> > diff --git a/drivers/md/raid5-cache.c b/drivers/md/raid5-cache.c
-> > index 3f307be..6c05e12 100644
-> > --- a/drivers/md/raid5-cache.c
-> > +++ b/drivers/md/raid5-cache.c
+Hi Laurent,
+
+On 05/03/17 21:58, Laurent Pinchart wrote:
+> Hi Kieran,
 > 
-> snip
-> >  	       sh->check_state, sh->reconstruct_state);
-> >
-> >  	analyse_stripe(sh, &s);
-> > @@ -4924,7 +4924,7 @@ static void activate_bit_delay(struct r5conf *conf,
-> >  		struct stripe_head *sh = list_entry(head.next, struct
-> stripe_head, lru);
-> >  		int hash;
-> >  		list_del_init(&sh->lru);
-> > -		atomic_inc(&sh->count);
-> > +		refcount_inc(&sh->count);
-> >  		hash = sh->hash_lock_index;
-> >  		__release_stripe(conf, sh,
-> &temp_inactive_list[hash]);
-> >  	}
-> > @@ -5240,7 +5240,7 @@ static struct stripe_head *__get_priority_stripe(struct
-> r5conf *conf, int group)
-> >  		sh->group = NULL;
-> >  	}
-> >  	list_del_init(&sh->lru);
-> > -	BUG_ON(atomic_inc_return(&sh->count) != 1);
-> > +	BUG_ON(refcount_inc_not_zero(&sh->count));
+> Thank you for the patch.
 > 
-> This changes the behavior. refcount_inc_not_zero doesn't inc if original value is 0
+> On Sunday 05 Mar 2017 16:00:03 Kieran Bingham wrote:
+>> To be able to perform page flips in DRM without flicker we need to be
+>> able to notify the rcar-du module when the VSP has completed its
+>> processing.
+>>
+>> We must not have bidirectional dependencies on the two components to
+>> maintain support for loadable modules, thus we extend the API to allow
+>> a callback to be registered within the VSP DRM interface.
+>>
+>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>> ---
+>>  drivers/media/platform/vsp1/vsp1_drm.c | 17 +++++++++++++++++
+>>  drivers/media/platform/vsp1/vsp1_drm.h | 11 +++++++++++
+>>  include/media/vsp1.h                   | 13 +++++++++++++
+>>  3 files changed, 41 insertions(+)
+>>
+>> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
+>> b/drivers/media/platform/vsp1/vsp1_drm.c index 4ee437c7ff0c..d93bf7d3a39e
+>> 100644
+>> --- a/drivers/media/platform/vsp1/vsp1_drm.c
+>> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
+>> @@ -37,6 +37,14 @@ void vsp1_drm_display_start(struct vsp1_device *vsp1)
+>>  	vsp1_dlm_irq_display_start(vsp1->drm->pipe.output->dlm);
+>>  }
+>>
+>> +static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe)
+>> +{
+>> +	struct vsp1_drm *drm = to_vsp1_drm(pipe);
+>> +
+>> +	if (drm->du_complete)
+>> +		drm->du_complete(drm->du_private);
+>> +}
+>> +
+>>  /* ------------------------------------------------------------------------
+>>   * DU Driver API
+>>   */
+>> @@ -96,6 +104,7 @@ int vsp1_du_setup_lif(struct device *dev, const struct
+>> vsp1_du_lif_config *cfg) }
+>>
+>>  		pipe->num_inputs = 0;
+>> +		vsp1->drm->du_complete = NULL;
+>>
+>>  		vsp1_dlm_reset(pipe->output->dlm);
+>>  		vsp1_device_put(vsp1);
+>> @@ -200,6 +209,13 @@ int vsp1_du_setup_lif(struct device *dev, const struct
+>> vsp1_du_lif_config *cfg) if (ret < 0)
+>>  		return ret;
+>>
+>> +	/*
+>> +	 * Register a callback to allow us to notify the DRM framework of 
+> frame
+> 
+> s/framework/driver/
+> 
+>> +	 * completion events.
+>> +	 */
+>> +	vsp1->drm->du_complete = cfg->callback;
+>> +	vsp1->drm->du_private = cfg->callback_data;
+>> +
+>>  	ret = media_pipeline_start(&pipe->output->entity.subdev.entity,
+>>  					  &pipe->pipe);
+>>  	if (ret < 0) {
+>> @@ -607,6 +623,7 @@ int vsp1_drm_init(struct vsp1_device *vsp1)
+>>  	pipe->lif = &vsp1->lif->entity;
+>>  	pipe->output = vsp1->wpf[0];
+>>  	pipe->output->pipe = pipe;
+>> +	pipe->frame_end = vsp1_du_pipeline_frame_end;
+>>
+>>  	return 0;
+>>  }
+>> diff --git a/drivers/media/platform/vsp1/vsp1_drm.h
+>> b/drivers/media/platform/vsp1/vsp1_drm.h index c8d2f88fc483..3de2095cb0ce
+>> 100644
+>> --- a/drivers/media/platform/vsp1/vsp1_drm.h
+>> +++ b/drivers/media/platform/vsp1/vsp1_drm.h
+>> @@ -23,6 +23,8 @@
+>>   * @num_inputs: number of active pipeline inputs at the beginning of an
+>> update
+>>   * @inputs: source crop rectangle, destination compose rectangle and
+>> z-order
+>>   *	position for every input
+>> + * @du_complete: frame completion callback for the DU driver (optional)
+>> + * @du_private: data to be passed to the du_complete callback
+>>   */
+>>  struct vsp1_drm {
+>>  	struct vsp1_pipeline pipe;
+>> @@ -33,8 +35,17 @@ struct vsp1_drm {
+>>  		struct v4l2_rect compose;
+>>  		unsigned int zpos;
+>>  	} inputs[VSP1_MAX_RPF];
+>> +
+>> +	/* Frame syncronisation */
+> 
+> s/syncronisation/synchronisation/
+> 
+>> +	void (*du_complete)(void *);
+>> +	void *du_private;
+>>  };
+>>
+>> +static inline struct vsp1_drm *to_vsp1_drm(struct vsp1_pipeline *pipe)
+>> +{
+>> +	return container_of(pipe, struct vsp1_drm, pipe);
+>> +}
+>> +
+>>  int vsp1_drm_init(struct vsp1_device *vsp1);
+>>  void vsp1_drm_cleanup(struct vsp1_device *vsp1);
+>>  int vsp1_drm_create_links(struct vsp1_device *vsp1);
+>> diff --git a/include/media/vsp1.h b/include/media/vsp1.h
+>> index bfc701f04f3f..d59d0adf560d 100644
+>> --- a/include/media/vsp1.h
+>> +++ b/include/media/vsp1.h
+>> @@ -20,9 +20,22 @@ struct device;
+>>
+>>  int vsp1_du_init(struct device *dev);
+>>
+>> +/**
+>> + * struct vsp1_du_lif_config - VSP LIF configuration
+>> + * @width: output frame width
+>> + * @height: output frame height
+>> + * @callback: frame completion callback function (optional)
+>> + * @callback_data: data to be passed to the frame completion callback
+>> + *
+>> + * When the optional callback is provided to the VSP1, the VSP1 must
+>> guarantee
+>> + * that one completion callback is performed after every
+>> vsp1_du_atomic_flush()
+> 
+> This paragraph should be part of the @callback documentation. I would phrase 
+> it as
+> 
+>  * @callback: frame completion callback function (optional). When a callback
+>  *	      is provided, the VSP driver guarantees that it will be called
+>  *	      once and only once for each vsp1_du_atomic_flush() call.
+> 
+> With this fixed,
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> If you're fine with the above changes there's no need to resubmit, I'll fix 
+> when applying the patch.
 
-Hm.. So, you want to inc here in any case and BUG if the end result differs from 1. 
-So essentially you want to only increment here from zero to one under normal conditions... This is a challenge for refcount_t and against the design.
-Is it ok just to maybe do this here:
-
--	BUG_ON(atomic_inc_return(&sh->count) != 1);
-+	BUG_ON(refcount_read(&sh->count) != 0);
-+	refcount_set((&sh->count, 1);
-
-Do we have an issue with locking in this case? Or maybe it is then better to leave this one to be atomic_t without protection since it isn't a real refcounter as it turns out. 
-
-Best Regards,
-Elena. 
+Thanks - that would be great.
+--
+Regards
+Kieran
 
 > 
-> Thanks,
-> Shaohua
+>> + */
+>>  struct vsp1_du_lif_config {
+>>  	unsigned int width;
+>>  	unsigned int height;
+>> +
+>> +	void (*callback)(void *);
+>> +	void *callback_data;
+>>  };
+>>
+>>  int vsp1_du_setup_lif(struct device *dev, const struct vsp1_du_lif_config
+>> *cfg);
+> 
