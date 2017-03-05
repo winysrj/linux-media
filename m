@@ -1,161 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:35002 "EHLO
-        epoutp01.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932582AbdCaJEb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Mar 2017 05:04:31 -0400
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>
-Subject: [Patch v3 01/11] [media] s5p-mfc: Rename IS_MFCV8 macro
-Date: Fri, 31 Mar 2017 14:36:30 +0530
-Message-id: <1490951200-32070-2-git-send-email-smitha.t@samsung.com>
-In-reply-to: <1490951200-32070-1-git-send-email-smitha.t@samsung.com>
-References: <1490951200-32070-1-git-send-email-smitha.t@samsung.com>
-        <CGME20170331090428epcas1p49cffcc6b654d0b401eebd953651f13dd@epcas1p4.samsung.com>
+Received: from mail.kernel.org ([198.145.29.136]:41816 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751359AbdCEQAM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 5 Mar 2017 11:00:12 -0500
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: laurent.pinchart@ideasonboard.com
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v3 0/3] RCAR-DU, VSP1: Prevent pre-emptive frame flips on VSP1-DRM pipelines
+Date: Sun,  5 Mar 2017 16:00:01 +0000
+Message-Id: <cover.8e2f9686131cb2299b859f056e902b4208061a4e.1488729419.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch renames macro IS_MFCV8 to IS_MFCV8_PLUS so that the MFCv8
-code can be resued for MFCv10.10 support. Since the MFCv8 specific code
-holds good for MFC v10.10 also.
+The RCAR-DU utilises a running VSPD pipeline to perform processing for the
+display pipeline. This presents the opportunity for some race conditions to
+affect the quality of the display output.
 
-Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-Acked-by: Andrzej Hajda <a.hajda@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   |  2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |  2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 18 +++++++++---------
- 4 files changed, 12 insertions(+), 12 deletions(-)
+To prevent reporting page flips early, we must track this timing through the
+VSP1, and only allow the rcar-du object to report the page-flip completion
+event after the VSP1 has processed.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index ab23236..b45d18c 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -722,7 +722,7 @@ void s5p_mfc_cleanup_queue(struct list_head *lh, struct vb2_queue *vq);
- #define IS_TWOPORT(dev)		(dev->variant->port_num == 2 ? 1 : 0)
- #define IS_MFCV6_PLUS(dev)	(dev->variant->version >= 0x60 ? 1 : 0)
- #define IS_MFCV7_PLUS(dev)	(dev->variant->version >= 0x70 ? 1 : 0)
--#define IS_MFCV8(dev)		(dev->variant->version >= 0x80 ? 1 : 0)
-+#define IS_MFCV8_PLUS(dev)	(dev->variant->version >= 0x80 ? 1 : 0)
- 
- #define MFC_V5_BIT	BIT(0)
- #define MFC_V6_BIT	BIT(1)
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-index cc88871..484af6b 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-@@ -427,7 +427,7 @@ int s5p_mfc_wakeup(struct s5p_mfc_dev *dev)
- 	s5p_mfc_clear_cmds(dev);
- 	s5p_mfc_clean_dev_int_flags(dev);
- 	/* 3. Send MFC wakeup command and wait for completion*/
--	if (IS_MFCV8(dev))
-+	if (IS_MFCV8_PLUS(dev))
- 		ret = s5p_mfc_v8_wait_wakeup(dev);
- 	else
- 		ret = s5p_mfc_wait_wakeup(dev);
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 367ef8e..0ec2928 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -1177,7 +1177,7 @@ void s5p_mfc_dec_init(struct s5p_mfc_ctx *ctx)
- 	struct v4l2_format f;
- 	f.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_H264;
- 	ctx->src_fmt = find_format(&f, MFC_FMT_DEC);
--	if (IS_MFCV8(ctx->dev))
-+	if (IS_MFCV8_PLUS(ctx->dev))
- 		f.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_NV12M;
- 	else if (IS_MFCV6_PLUS(ctx->dev))
- 		f.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_NV12MT_16X16;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index d6f207e..7682b0e 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -74,7 +74,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 			  ctx->luma_size, ctx->chroma_size, ctx->mv_size);
- 		mfc_debug(2, "Totals bufs: %d\n", ctx->total_dpb_count);
- 	} else if (ctx->type == MFCINST_ENCODER) {
--		if (IS_MFCV8(dev))
-+		if (IS_MFCV8_PLUS(dev))
- 			ctx->tmv_buffer_size = S5P_FIMV_NUM_TMV_BUFFERS_V6 *
- 			ALIGN(S5P_FIMV_TMV_BUFFER_SIZE_V8(mb_width, mb_height),
- 			S5P_FIMV_TMV_BUFFER_ALIGN_V6);
-@@ -89,7 +89,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 		ctx->chroma_dpb_size = ALIGN((mb_width * mb_height) *
- 				S5P_FIMV_CHROMA_MB_TO_PIXEL_V6,
- 				S5P_FIMV_CHROMA_DPB_BUFFER_ALIGN_V6);
--		if (IS_MFCV8(dev))
-+		if (IS_MFCV8_PLUS(dev))
- 			ctx->me_buffer_size = ALIGN(S5P_FIMV_ME_BUFFER_SIZE_V8(
- 						ctx->img_width, ctx->img_height,
- 						mb_width, mb_height),
-@@ -110,7 +110,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 	switch (ctx->codec_mode) {
- 	case S5P_MFC_CODEC_H264_DEC:
- 	case S5P_MFC_CODEC_H264_MVC_DEC:
--		if (IS_MFCV8(dev))
-+		if (IS_MFCV8_PLUS(dev))
- 			ctx->scratch_buf_size =
- 				S5P_FIMV_SCRATCH_BUF_SIZE_H264_DEC_V8(
- 					mb_width,
-@@ -167,7 +167,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 		ctx->bank1.size = ctx->scratch_buf_size;
- 		break;
- 	case S5P_MFC_CODEC_VP8_DEC:
--		if (IS_MFCV8(dev))
-+		if (IS_MFCV8_PLUS(dev))
- 			ctx->scratch_buf_size =
- 				S5P_FIMV_SCRATCH_BUF_SIZE_VP8_DEC_V8(
- 						mb_width,
-@@ -182,7 +182,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 		ctx->bank1.size = ctx->scratch_buf_size;
- 		break;
- 	case S5P_MFC_CODEC_H264_ENC:
--		if (IS_MFCV8(dev))
-+		if (IS_MFCV8_PLUS(dev))
- 			ctx->scratch_buf_size =
- 				S5P_FIMV_SCRATCH_BUF_SIZE_H264_ENC_V8(
- 					mb_width,
-@@ -215,7 +215,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 		ctx->bank2.size = 0;
- 		break;
- 	case S5P_MFC_CODEC_VP8_ENC:
--		if (IS_MFCV8(dev))
-+		if (IS_MFCV8_PLUS(dev))
- 			ctx->scratch_buf_size =
- 				S5P_FIMV_SCRATCH_BUF_SIZE_VP8_ENC_V8(
- 					mb_width,
-@@ -366,7 +366,7 @@ static void s5p_mfc_dec_calc_dpb_size_v6(struct s5p_mfc_ctx *ctx)
- 
- 	ctx->luma_size = calc_plane(ctx->img_width, ctx->img_height);
- 	ctx->chroma_size = calc_plane(ctx->img_width, (ctx->img_height >> 1));
--	if (IS_MFCV8(ctx->dev)) {
-+	if (IS_MFCV8_PLUS(ctx->dev)) {
- 		/* MFCv8 needs additional 64 bytes for luma,chroma dpb*/
- 		ctx->luma_size += S5P_FIMV_D_ALIGN_PLANE_SIZE_V8;
- 		ctx->chroma_size += S5P_FIMV_D_ALIGN_PLANE_SIZE_V8;
-@@ -447,7 +447,7 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
- 	writel(buf_addr1, mfc_regs->d_scratch_buffer_addr);
- 	writel(ctx->scratch_buf_size, mfc_regs->d_scratch_buffer_size);
- 
--	if (IS_MFCV8(dev)) {
-+	if (IS_MFCV8_PLUS(dev)) {
- 		writel(ctx->img_width,
- 			mfc_regs->d_first_plane_dpb_stride_size);
- 		writel(ctx->img_width,
-@@ -2111,7 +2111,7 @@ const struct s5p_mfc_regs *s5p_mfc_init_regs_v6_plus(struct s5p_mfc_dev *dev)
- 			S5P_FIMV_E_ENCODED_SOURCE_SECOND_ADDR_V7);
- 	R(e_vp8_options, S5P_FIMV_E_VP8_OPTIONS_V7);
- 
--	if (!IS_MFCV8(dev))
-+	if (!IS_MFCV8_PLUS(dev))
- 		goto done;
- 
- 	/* Initialize registers used in MFC v8 only.
+This series ensures that tearing and flicker is prevented, without introducing the
+performance impact mentioned in the previous series.
+
+[PATCH 1/3] handles potential race conditions in vsp1_dlm_irq_frame_end() and
+            prevents signalling the frame end in this event.
+[PATCH 2/3] extends the VSP1 to allow a callback to be registered giving the
+            VSP1 the ability to notify completion events.
+[PATCH 3/3] utilises the callback extension to send page flips at the end of
+            VSP processing for Gen3 platforms.
+
+These patches have been tested by introducing artificial delays in the commit
+code paths and verifying that no visual tearing or flickering occurs.
+
+Extensive testing around the race window has been performed by dynamically
+adapting the artificial delay between 10, and 17 seconds in 100uS increments
+for periods of 5 seconds on each delay test. These tests have successfully run
+for 3 hours.
+
+Manual start/stop testing has also been performed.
+
+Kieran Bingham (3):
+  v4l: vsp1: Postpone frame end handling in event of display list race
+  v4l: vsp1: Extend VSP1 module API to allow DRM callbacks
+  drm: rcar-du: Register a completion callback with VSP1
+
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.c  |  8 ++++++--
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.h  |  1 +
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.c   |  9 +++++++++
+ drivers/media/platform/vsp1/vsp1_dl.c   | 19 +++++++++++++++++--
+ drivers/media/platform/vsp1/vsp1_dl.h   |  2 +-
+ drivers/media/platform/vsp1/vsp1_drm.c  | 17 +++++++++++++++++
+ drivers/media/platform/vsp1/vsp1_drm.h  | 11 +++++++++++
+ drivers/media/platform/vsp1/vsp1_pipe.c | 13 ++++++++++++-
+ include/media/vsp1.h                    | 13 +++++++++++++
+ 9 files changed, 87 insertions(+), 6 deletions(-)
+
+base-commit: cdb5795cbc4ddbe5082c25c52ebc1d811ac3849e
 -- 
-2.7.4
+git-series 0.9.1
