@@ -1,37 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:35514 "EHLO
-        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753955AbdCFOS0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 09:18:26 -0500
-Subject: Re: [Patch v2 03/11] s5p-mfc: Use min scratch buffer size as provided
- by F/W
-To: Smitha T Murthy <smitha.t@samsung.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
-        m.szyprowski@samsung.com, s.nawrocki@samsung.com
-From: Andrzej Hajda <a.hajda@samsung.com>
-Message-id: <33a42a78-aaf8-5a57-c58c-62ebd37aa1ca@samsung.com>
-Date: Mon, 06 Mar 2017 15:18:14 +0100
-MIME-version: 1.0
-In-reply-to: <1488532036-13044-4-git-send-email-smitha.t@samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
-References: <1488532036-13044-1-git-send-email-smitha.t@samsung.com>
- <CGME20170303090440epcas5p33f1bea986f2f9c961c93af94df7ec565@epcas5p3.samsung.com>
- <1488532036-13044-4-git-send-email-smitha.t@samsung.com>
+Received: from mail-qk0-f196.google.com ([209.85.220.196]:34896 "EHLO
+        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752077AbdCENJD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 5 Mar 2017 08:09:03 -0500
+Received: by mail-qk0-f196.google.com with SMTP id n127so37964486qkf.2
+        for <linux-media@vger.kernel.org>; Sun, 05 Mar 2017 05:09:02 -0800 (PST)
+From: Bill Murphy <gc2majortom@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Bill Murphy <gc2majortom@gmail.com>
+Subject: [PATCH] [v4l-utils] dvb-sat: add support for North American Standard Ku LNB This is the standard LNB used in North America, it is designed with L.O. Freq of 10750 MHz. Intended for the North American FSS Ku Band, 11700 to 12200 MHz.
+Date: Sun,  5 Mar 2017 08:08:33 -0500
+Message-Id: <1488719313-23540-1-git-send-email-gc2majortom@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03.03.2017 10:07, Smitha T Murthy wrote:
-> After MFC v8.0, mfc f/w lets the driver know how much scratch buffer
-> size is required for decoder. If mfc f/w has the functionality,
-> E_MIN_SCRATCH_BUFFER_SIZE, driver can know how much scratch buffer size
-> is required for encoder too.
->
-> Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
---
-Regards
-Andrzej
+Signed-off-by: Bill Murphy <gc2majortom@gmail.com>
+---
+ lib/libdvbv5/dvb-sat.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/lib/libdvbv5/dvb-sat.c b/lib/libdvbv5/dvb-sat.c
+index 59cb7a6..22a45b1 100644
+--- a/lib/libdvbv5/dvb-sat.c
++++ b/lib/libdvbv5/dvb-sat.c
+@@ -126,6 +126,19 @@ static const struct dvb_sat_lnb_priv lnb[] = {
+ 		},
+ 	}, {
+ 		.desc = {
++			.name = N_("L10750"),
++			.alias = "L10750",
++			// Legacy fields - kept just to avoid API/ABI breakages
++			.lowfreq = 10750,
++			.freqrange = {
++				{ 11700, 12200 }
++			},
++		},
++		.freqrange = {
++		       { 11700, 12200, 10750, 0 }
++		},
++	}, {
++		.desc = {
+ 			.name = N_("L11300"),
+ 			.alias = "L11300",
+ 			// Legacy fields - kept just to avoid API/ABI breakages
+-- 
+2.7.4
