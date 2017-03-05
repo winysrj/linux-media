@@ -1,127 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:52179 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752203AbdCVFR5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Mar 2017 01:17:57 -0400
-Message-ID: <fbe3dd45cac6a291e5b2449c6a896588@smtp-cloud3.xs4all.net>
-Date: Wed, 22 Mar 2017 06:17:38 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mail.kernel.org ([198.145.29.136]:41842 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752425AbdCEQAO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 5 Mar 2017 11:00:14 -0500
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: laurent.pinchart@ideasonboard.com
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v3 1/3] v4l: vsp1: Postpone frame end handling in event of display list race
+Date: Sun,  5 Mar 2017 16:00:02 +0000
+Message-Id: <b3bc755c2c88ce4e81e16f47f6f34de1fca79e28.1488729419.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.8e2f9686131cb2299b859f056e902b4208061a4e.1488729419.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.8e2f9686131cb2299b859f056e902b4208061a4e.1488729419.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.8e2f9686131cb2299b859f056e902b4208061a4e.1488729419.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.8e2f9686131cb2299b859f056e902b4208061a4e.1488729419.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+If we try to commit the display list while an update is pending, we have
+missed our opportunity. The display list manager will hold the commit
+until the next interrupt.
 
-Results of the daily build of media_tree:
+In this event, we skip the pipeline completion callback handler so that
+the pipeline will not mistakenly report frame completion to the user.
 
-date:			Wed Mar 22 05:00:16 CET 2017
-media-tree git hash:	700ea5e0e0dd70420a04e703ff264cc133834cba
-media_build git hash:	bc4c2a205c087c8deff3cd14ed663c4767dd2016
-v4l-utils git hash:	5fe0692261996876dceedbd47f254691371d4c78
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_dl.c   | 19 +++++++++++++++++--
+ drivers/media/platform/vsp1/vsp1_dl.h   |  2 +-
+ drivers/media/platform/vsp1/vsp1_pipe.c | 13 ++++++++++++-
+ 3 files changed, 30 insertions(+), 4 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10.1-i686: OK
-linux-4.11-rc1-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-x86_64: WARNINGS
-linux-4.10.1-x86_64: WARNINGS
-linux-4.11-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index b9e5027778ff..f449ca689554 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -562,9 +562,19 @@ void vsp1_dlm_irq_display_start(struct vsp1_dl_manager *dlm)
+ 	spin_unlock(&dlm->lock);
+ }
+ 
+-void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
++/**
++ * vsp1_dlm_irq_frame_end - Display list handler for the frame end interrupt
++ * @dlm: the display list manager
++ *
++ * Return true if the previous display list has completed at frame end, or false
++ * if it has been delayed by one frame because the display list commit raced
++ * with the frame end interrupt. The function always returns true in header mode
++ * as display list processing is then not continuous and races never occur.
++ */
++bool vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
+ {
+ 	struct vsp1_device *vsp1 = dlm->vsp1;
++	bool completed = false;
+ 
+ 	spin_lock(&dlm->lock);
+ 
+@@ -576,8 +586,10 @@ void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
+ 	 * perform any operation as there can't be any new display list queued
+ 	 * in that case.
+ 	 */
+-	if (dlm->mode == VSP1_DL_MODE_HEADER)
++	if (dlm->mode == VSP1_DL_MODE_HEADER) {
++		completed = true;
+ 		goto done;
++	}
+ 
+ 	/*
+ 	 * The UPD bit set indicates that the commit operation raced with the
+@@ -597,6 +609,7 @@ void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
+ 	if (dlm->queued) {
+ 		dlm->active = dlm->queued;
+ 		dlm->queued = NULL;
++		completed = true;
+ 	}
+ 
+ 	/*
+@@ -619,6 +632,8 @@ void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
+ 
+ done:
+ 	spin_unlock(&dlm->lock);
++
++	return completed;
+ }
+ 
+ /* Hardware Setup */
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
+index 7131aa3c5978..6ec1380a10af 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.h
++++ b/drivers/media/platform/vsp1/vsp1_dl.h
+@@ -28,7 +28,7 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
+ void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm);
+ void vsp1_dlm_reset(struct vsp1_dl_manager *dlm);
+ void vsp1_dlm_irq_display_start(struct vsp1_dl_manager *dlm);
+-void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
++bool vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
+ 
+ struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm);
+ void vsp1_dl_list_put(struct vsp1_dl_list *dl);
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
+index 35364f594e19..d15327701ad8 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.c
++++ b/drivers/media/platform/vsp1/vsp1_pipe.c
+@@ -304,10 +304,21 @@ bool vsp1_pipeline_ready(struct vsp1_pipeline *pipe)
+ 
+ void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
+ {
++	bool completed;
++
+ 	if (pipe == NULL)
+ 		return;
+ 
+-	vsp1_dlm_irq_frame_end(pipe->output->dlm);
++	completed = vsp1_dlm_irq_frame_end(pipe->output->dlm);
++	if (!completed) {
++		/*
++		 * If the DL commit raced with the frame end interrupt, the
++		 * commit ends up being postponed by one frame. Return
++		 * immediately without calling the pipeline's frame end handler
++		 * or incrementing the sequence number.
++		 */
++		return;
++	}
+ 
+ 	if (pipe->frame_end)
+ 		pipe->frame_end(pipe);
+-- 
+git-series 0.9.1
