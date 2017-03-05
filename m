@@ -1,70 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56195 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752402AbdCEMvw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 5 Mar 2017 07:51:52 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v2 2/3] v4l: Clearly document interactions between formats, controls and buffers
-Date: Sun, 05 Mar 2017 14:52:25 +0200
-Message-ID: <1655091.gPI0LlWvRn@avalon>
-In-Reply-To: <20170304134854.GW3220@valkosipuli.retiisi.org.uk>
-References: <20170228150320.10104-1-laurent.pinchart+renesas@ideasonboard.com> <5f3e6c07-e07f-6ce2-0158-3f5ec750637f@xs4all.nl> <20170304134854.GW3220@valkosipuli.retiisi.org.uk>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47130 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752435AbdCEVmJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 5 Mar 2017 16:42:09 -0500
+Date: Sun, 5 Mar 2017 23:31:09 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v4 13/36] [media] v4l2: add a frame timeout event
+Message-ID: <20170305213108.GD3220@valkosipuli.retiisi.org.uk>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+ <1487211578-11360-14-git-send-email-steve_longerbeam@mentor.com>
+ <20170302155342.GJ3220@valkosipuli.retiisi.org.uk>
+ <4b2bcee1-8da0-776e-4455-8d8e7a7abf0a@gmail.com>
+ <20170303114506.GM3220@valkosipuli.retiisi.org.uk>
+ <59663ea1-b277-1543-e770-6a102ac733a4@gmail.com>
+ <20170304105600.GS3220@valkosipuli.retiisi.org.uk>
+ <03c9b05c-d3ba-c890-f9fa-ad5e1a49430c@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <03c9b05c-d3ba-c890-f9fa-ad5e1a49430c@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-On Saturday 04 Mar 2017 15:48:54 Sakari Ailus wrote:
-> On Sat, Mar 04, 2017 at 11:57:32AM +0100, Hans Verkuil wrote:
-> ...
+On Sat, Mar 04, 2017 at 04:37:43PM -0800, Steve Longerbeam wrote:
 > 
-> >>> +To simplify their implementation, drivers may also require buffers to
-> >>> be +reallocated in order to change formats or controls that influence
-> >>> the buffer +size. In that case, to perform such changes, userspace
-> >>> applications shall +first stop the video stream with the
-> >>> :c:func:`VIDIOC_STREAMOFF` ioctl if it +is running and free all buffers
-> >>> with the :c:func:`VIDIOC_REQBUFS` ioctl if +they are allocated. The
-> >>> format or controls can then be modified, and buffers +shall then be
-> >>> reallocated and the stream restarted. A typical ioctl sequence +is
-> >>> +
-> >>> + #. VIDIOC_STREAMOFF
-> >>> + #. VIDIOC_REQBUFS(0)
-> >>> + #. VIDIOC_S_FMT
-> >>> + #. VIDIOC_S_EXT_CTRLS
-> >>
-> >> Same here.
-> >>
-> >> Would it be safe to say that controls are changed first? I wonder if
-> >> there could be special cases where this wouldn't apply though. It could
-> >> ultimately come down to hardware features: rotation might be only
-> >> available for certain formats so you'd need to change the format first
-> >> to enable rotation.
-> >>
-> >> What you're documenting above is a typical sequence so it doesn't have to
-> >> be applicable to all potential hardware. I might mention there could be
-> >> such dependencies. I wonder if one exists at the moment. No?
-> > 
-> > The way V4L2 works is that the last ioctl called gets 'preference'. So the
-> > driver should attempt to satisfy the ioctl, even if that means undoing
-> > previous ioctls. In other words, V4L2 allows any order, but the
-> > end-result might be different depending on the hardware capabilities.
 > 
-> Indeed. But the above sequence suggests that formats are set before
-> controls. I suggested to clarify that part.
+> On 03/04/2017 02:56 AM, Sakari Ailus wrote:
+> >Hi Steve,
+> >
+> >On Fri, Mar 03, 2017 at 02:43:51PM -0800, Steve Longerbeam wrote:
+> >>
+> >>
+> >>On 03/03/2017 03:45 AM, Sakari Ailus wrote:
+> >>>On Thu, Mar 02, 2017 at 03:07:21PM -0800, Steve Longerbeam wrote:
+> >>>>
+> >>>>
+> >>>>On 03/02/2017 07:53 AM, Sakari Ailus wrote:
+> >>>>>Hi Steve,
+> >>>>>
+> >>>>>On Wed, Feb 15, 2017 at 06:19:15PM -0800, Steve Longerbeam wrote:
+> >>>>>>Add a new FRAME_TIMEOUT event to signal that a video capture or
+> >>>>>>output device has timed out waiting for reception or transmit
+> >>>>>>completion of a video frame.
+> >>>>>>
+> >>>>>>Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> >>>>>>---
+> >>>>>>Documentation/media/uapi/v4l/vidioc-dqevent.rst | 5 +++++
+> >>>>>>Documentation/media/videodev2.h.rst.exceptions  | 1 +
+> >>>>>>include/uapi/linux/videodev2.h                  | 1 +
+> >>>>>>3 files changed, 7 insertions(+)
+> >>>>>>
+> >>>>>>diff --git a/Documentation/media/uapi/v4l/vidioc-dqevent.rst b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
+> >>>>>>index 8d663a7..dd77d9b 100644
+> >>>>>>--- a/Documentation/media/uapi/v4l/vidioc-dqevent.rst
+> >>>>>>+++ b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
+> >>>>>>@@ -197,6 +197,11 @@ call.
+> >>>>>>	the regions changes. This event has a struct
+> >>>>>>	:c:type:`v4l2_event_motion_det`
+> >>>>>>	associated with it.
+> >>>>>>+    * - ``V4L2_EVENT_FRAME_TIMEOUT``
+> >>>>>>+      - 7
+> >>>>>>+      - This event is triggered when the video capture or output device
+> >>>>>>+	has timed out waiting for the reception or transmit completion of
+> >>>>>>+	a frame of video.
+> >>>>>
+> >>>>>As you're adding a new interface, I suppose you have an implementation
+> >>>>>around. How do you determine what that timeout should be?
+> >>>>
+> >>>>The imx-media driver sets the timeout to 1 second, or 30 frame
+> >>>>periods at 30 fps.
+> >>>
+> >>>The frame rate is not necessarily constant during streaming. It may well
+> >>>change as a result of lighting conditions.
+> >>
+> >>I think you mean that would be a _temporary_ change in frame rate, but
+> >>yes I agree the data rate can temporarily fluctuate. Although I doubt
+> >>lighting conditions would cause a sensor to pause data transmission
+> >>for a full 1 second.
+> >
+> >Likely not, at least not in typical conditions. The exposure time is still
+> >quite specific to applications: it could be minutes if you take photos e.g.
+> >of the night sky.
+> >
+> >What I'm saying here is that any static value is likely not both reasonable
+> >and workable in all potential situations all the time. Still there are cases
+> >(as yours below) that may happen in relatively common cases on some hardware
+> >(more common than taking long exposure photos of the night sky with the said
+> >hardware :)).
+> 
+> I doubt night photography will ever be a use-case for i.MX. The most
+> common use-case for this driver will be used in automotive applications
+> such as rear-view or 360 degree view cameras.
 
-I agree with both of you. I'll clarify that this is just an example and that 
-formats and controls can be set in a different order (or even interleaved).
+Ack.
+
+> 
+> 
+> >
+> >>
+> >>
+> >>>I wouldn't add an event for this:
+> >>>this is unreliable and 30 times the frame period is an arbitrary value
+> >>>anyway. No other drivers do this either.
+> >>
+> >>If no other drivers do this I don't mind removing it. It is really meant
+> >>to deal with the ADV718x CVBS decoder, which often simply stops sending
+> >>data on the BT.656 bus if there is an interruption in the input analog
+> >>signal. But I agree that user space could detect this timeout instead.
+> >>Unless I hear from someone else that they would like to keep this
+> >>feature I'll remove it in version 5.
+> >
+> >That's a bit of a special situation --- still there are alike conditions on
+> >existing hardware. You should return the buffers to the user with the ERROR
+> >flag set --- or return -EIO from VIDIOC_DQBUF, if the condition will
+> >persist:
+> 
+> On i.MX an EOF timeout is not recoverable without a stream restart, so
+> I decided to call vb2_queue_error() when the timeout occurs (instead
+> of sending an event). The user will then get -EIO when it attempts to
+> queue or dequeue further buffers.
+
+It believe that's the correct thing to do.
+
+> 
+> 
+> >
+> ><URL:https://www.linuxtv.org/downloads/v4l-dvb-apis/uapi/v4l/vidioc-qbuf.html>
+> >
+> >Do you already obtain the frame rate from the image source (e.g. tuner,
+> >sensor, decoder) and multiply the frame time by some number in the current
+> >implementation?
+> 
+> No the timeout is a constant value, regardless of the source frame
+> rate. Should the timeout be based on a constant time, or based on a
+> constant # of frames? I really don't think it matters much, what matters
+> is that it be long enough to be reasonably sure no data is forthcoming,
+> for most use-cases.
+
+That should be fine. If there is a use case that requires something else,
+then the implementation can be changed: it's not visible to the user space
+anyway.
 
 -- 
-Regards,
+Kind regards,
 
-Laurent Pinchart
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
