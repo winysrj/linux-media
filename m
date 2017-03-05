@@ -1,160 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:35464 "EHLO
-        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751467AbdCTK5N (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 06:57:13 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>
-Subject: [PATCH v3 07/16] media: s5p-mfc: Put firmware to private buffer
- structure
-Date: Mon, 20 Mar 2017 11:56:33 +0100
-Message-id: <1490007402-30265-8-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
-References: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20170320105651eucas1p2f4a367546f4f33c652b36415b8542e3b@eucas1p2.samsung.com>
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:43664 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752377AbdCEWm7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 5 Mar 2017 17:42:59 -0500
+Date: Sun, 5 Mar 2017 22:41:15 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, mark.rutland@arm.com,
+        andrew-ct.chen@mediatek.com, minghsiu.tsai@mediatek.com,
+        sakari.ailus@linux.intel.com, nick@shmanahar.org,
+        songjun.wu@microchip.com, hverkuil@xs4all.nl,
+        Steve Longerbeam <steve_longerbeam@mentor.com>, pavel@ucw.cz,
+        robert.jarzmik@free.fr, devel@driverdev.osuosl.org,
+        markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, shuah@kernel.org,
+        geert@linux-m68k.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, kernel@pengutronix.de, arnd@arndb.de,
+        mchehab@kernel.org, bparrot@ti.com, robh+dt@kernel.org,
+        horms+renesas@verge.net.au, tiffany.lin@mediatek.com,
+        linux-arm-kernel@lists.infradead.org,
+        niklas.soderlund+renesas@ragnatech.se, gregkh@linuxfoundation.org,
+        linux-kernel@vger.kernel.org, jean-christophe.trotin@st.com,
+        p.zabel@pengutronix.de, fabio.estevam@nxp.com, shawnguo@kernel.org,
+        sudipm.mukherjee@gmail.com
+Subject: Re: [PATCH v4 13/36] [media] v4l2: add a frame timeout event
+Message-ID: <20170305224114.GV21222@n2100.armlinux.org.uk>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+ <1487211578-11360-14-git-send-email-steve_longerbeam@mentor.com>
+ <20170302155342.GJ3220@valkosipuli.retiisi.org.uk>
+ <4b2bcee1-8da0-776e-4455-8d8e7a7abf0a@gmail.com>
+ <20170303114506.GM3220@valkosipuli.retiisi.org.uk>
+ <59663ea1-b277-1543-e770-6a102ac733a4@gmail.com>
+ <20170304105600.GS3220@valkosipuli.retiisi.org.uk>
+ <03c9b05c-d3ba-c890-f9fa-ad5e1a49430c@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <03c9b05c-d3ba-c890-f9fa-ad5e1a49430c@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use s5p_mfc_priv_buf structure for keeping the firmware image. This will
-help handling of firmware buffer allocation in the next patches.
+On Sat, Mar 04, 2017 at 04:37:43PM -0800, Steve Longerbeam wrote:
+> 
+> 
+> On 03/04/2017 02:56 AM, Sakari Ailus wrote:
+> >That's a bit of a special situation --- still there are alike conditions on
+> >existing hardware. You should return the buffers to the user with the ERROR
+> >flag set --- or return -EIO from VIDIOC_DQBUF, if the condition will
+> >persist:
+> 
+> On i.MX an EOF timeout is not recoverable without a stream restart, so
+> I decided to call vb2_queue_error() when the timeout occurs (instead
+> of sending an event). The user will then get -EIO when it attempts to
+> queue or dequeue further buffers.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Acked-by: Andrzej Hajda <a.hajda@samsung.com>
-Tested-by: Smitha T Murthy <smitha.t@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c |  2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  3 +--
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   | 36 ++++++++++++-------------
- 3 files changed, 20 insertions(+), 21 deletions(-)
+I'm not sure that statement is entirely accurate.  With the IMX219
+camera, I _could_ (with previous iterations of the iMX capture code)
+stop it streaming, wait a while, and restart it, and everything
+continues to work.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c
-index 8c4739ca16d6..4c80bb4243be 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c
-@@ -47,7 +47,7 @@ static int s5p_mfc_sys_init_cmd_v5(struct s5p_mfc_dev *dev)
- 	struct s5p_mfc_cmd_args h2r_args;
- 
- 	memset(&h2r_args, 0, sizeof(struct s5p_mfc_cmd_args));
--	h2r_args.arg[0] = dev->fw_size;
-+	h2r_args.arg[0] = dev->fw_buf.size;
- 	return s5p_mfc_cmd_host2risc_v5(dev, S5P_FIMV_H2R_CMD_SYS_INIT,
- 			&h2r_args);
- }
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index 9cf860f34c71..cea17a737ef7 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -314,8 +314,7 @@ struct s5p_mfc_dev {
- 	int int_type;
- 	unsigned int int_err;
- 	wait_queue_head_t queue;
--	size_t fw_size;
--	void *fw_virt_addr;
-+	struct s5p_mfc_priv_buf fw_buf;
- 	dma_addr_t dma_base[BANK_CTX_NUM];
- 	unsigned long hw_lock;
- 	struct s5p_mfc_ctx *ctx[MFC_NUM_CONTEXTS];
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-index c9bff3d0655f..50d698968049 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-@@ -29,21 +29,22 @@ int s5p_mfc_alloc_firmware(struct s5p_mfc_dev *dev)
- 	void *bank2_virt;
- 	dma_addr_t bank2_dma_addr;
- 	unsigned int align_size = 1 << MFC_BASE_ALIGN_ORDER;
-+	struct s5p_mfc_priv_buf *fw_buf = &dev->fw_buf;
- 
--	dev->fw_size = dev->variant->buf_size->fw;
-+	fw_buf->size = dev->variant->buf_size->fw;
- 
--	if (dev->fw_virt_addr) {
-+	if (fw_buf->virt) {
- 		mfc_err("Attempting to allocate firmware when it seems that it is already loaded\n");
- 		return -ENOMEM;
- 	}
- 
--	dev->fw_virt_addr = dma_alloc_coherent(dev->mem_dev[BANK1_CTX],
--					dev->fw_size, &dev->dma_base[BANK1_CTX],
--					GFP_KERNEL);
--	if (!dev->fw_virt_addr) {
-+	fw_buf->virt = dma_alloc_coherent(dev->mem_dev[BANK1_CTX], fw_buf->size,
-+					 &fw_buf->dma, GFP_KERNEL);
-+	if (!fw_buf->virt) {
- 		mfc_err("Allocating bitprocessor buffer failed\n");
- 		return -ENOMEM;
- 	}
-+	dev->dma_base[BANK1_CTX] = fw_buf->dma;
- 
- 	if (HAS_PORTNUM(dev) && IS_TWOPORT(dev)) {
- 		bank2_virt = dma_alloc_coherent(dev->mem_dev[BANK2_CTX],
-@@ -51,10 +52,9 @@ int s5p_mfc_alloc_firmware(struct s5p_mfc_dev *dev)
- 
- 		if (!bank2_virt) {
- 			mfc_err("Allocating bank2 base failed\n");
--			dma_free_coherent(dev->mem_dev[BANK1_CTX], dev->fw_size,
--					  dev->fw_virt_addr,
--					  dev->dma_base[BANK1_CTX]);
--			dev->fw_virt_addr = NULL;
-+			dma_free_coherent(dev->mem_dev[BANK1_CTX], fw_buf->size,
-+					  fw_buf->virt, fw_buf->dma);
-+			fw_buf->virt = NULL;
- 			return -ENOMEM;
- 		}
- 
-@@ -101,17 +101,17 @@ int s5p_mfc_load_firmware(struct s5p_mfc_dev *dev)
- 		mfc_err("Firmware is not present in the /lib/firmware directory nor compiled in kernel\n");
- 		return -EINVAL;
- 	}
--	if (fw_blob->size > dev->fw_size) {
-+	if (fw_blob->size > dev->fw_buf.size) {
- 		mfc_err("MFC firmware is too big to be loaded\n");
- 		release_firmware(fw_blob);
- 		return -ENOMEM;
- 	}
--	if (!dev->fw_virt_addr) {
-+	if (!dev->fw_buf.virt) {
- 		mfc_err("MFC firmware is not allocated\n");
- 		release_firmware(fw_blob);
- 		return -EINVAL;
- 	}
--	memcpy(dev->fw_virt_addr, fw_blob->data, fw_blob->size);
-+	memcpy(dev->fw_buf.virt, fw_blob->data, fw_blob->size);
- 	wmb();
- 	release_firmware(fw_blob);
- 	mfc_debug_leave();
-@@ -123,11 +123,11 @@ int s5p_mfc_release_firmware(struct s5p_mfc_dev *dev)
- {
- 	/* Before calling this function one has to make sure
- 	 * that MFC is no longer processing */
--	if (!dev->fw_virt_addr)
-+	if (!dev->fw_buf.virt)
- 		return -EINVAL;
--	dma_free_coherent(dev->mem_dev[BANK1_CTX], dev->fw_size,
--			  dev->fw_virt_addr, dev->dma_base[BANK1_CTX]);
--	dev->fw_virt_addr = NULL;
-+	dma_free_coherent(dev->mem_dev[BANK1_CTX], dev->fw_buf.size,
-+			  dev->fw_buf.virt, dev->fw_buf.dma);
-+	dev->fw_buf.virt = NULL;
- 	return 0;
- }
- 
-@@ -246,7 +246,7 @@ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
- 	int ret;
- 
- 	mfc_debug_enter();
--	if (!dev->fw_virt_addr) {
-+	if (!dev->fw_buf.virt) {
- 		mfc_err("Firmware memory is not allocated.\n");
- 		return -EINVAL;
- 	}
+Are you sure that the problem you have here is caused by the iMX6
+rather than the ADV718x CVBS decoder (your initial description said
+it was the decoder.)
+
+If it _is_ the decoder that's going wrong, that doesn't justify
+cripping the rest of the driver for one instance of broken hardware
+that _might_ be attached to it.
+
 -- 
-1.9.1
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
