@@ -1,55 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53774 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753640AbdC2HbL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Mar 2017 03:31:11 -0400
-Date: Wed, 29 Mar 2017 09:28:38 +0200
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Haim Daniel <haimdaniel@gmail.com>
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Subject: Re: [PATCH v2] [media] staging: css2400: fix checkpatch error
-Message-ID: <20170329072838.GA8008@kroah.com>
-References: <b0bf9753-54d7-5178-5339-37b24d7e8191@gmail.com>
- <1490771548-6134-1-git-send-email-haimdaniel@gmail.com>
+Received: from gofer.mess.org ([80.229.237.210]:35451 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753237AbdCFRtG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Mar 2017 12:49:06 -0500
+Date: Mon, 6 Mar 2017 17:38:43 +0000
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v4.12] media/rc: fixes and improvements
+Message-ID: <20170306173843.GA20265@gofer.mess.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1490771548-6134-1-git-send-email-haimdaniel@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 29, 2017 at 10:12:28AM +0300, Haim Daniel wrote:
-> isp_capture_defs.h:
+Hi Mauro,
 
-What is this line for?
+Some RC and lirc documentation fixes, a userspace lirc API for sending
+IR using the encoders, and lirc userspace API for reading decoded scancodes.
 
-> fix checkpatch ERROR: 
+Thanks,
 
-Trailing whitespace?
+Sean
 
-> Macros with complex values should be enclosed in parentheses
-> 
-> Signed-off-by: Haim Daniel <haimdaniel@gmail.com>
-> ---
->  .../pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h   | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h
-> index aa413df..78cbbf6 100644
-> --- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h
-> +++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/isp_capture_defs.h
-> @@ -19,7 +19,7 @@
->  #define _ISP_CAPTURE_BITS_PER_ELEM                32  /* only for data, not SOP */						           
->  #define _ISP_CAPTURE_BYTES_PER_ELEM               (_ISP_CAPTURE_BITS_PER_ELEM/8	)				           
->  #define _ISP_CAPTURE_BYTES_PER_WORD               32		/* 256/8 */	
-> -#define _ISP_CAPTURE_ELEM_PER_WORD                _ISP_CAPTURE_BYTES_PER_WORD / _ISP_CAPTURE_BYTES_PER_ELEM		           
-> +#define _ISP_CAPTURE_ELEM_PER_WORD                (_ISP_CAPTURE_BYTES_PER_WORD / _ISP_CAPTURE_BYTES_PER_ELEM)         
+The following changes since commit 700ea5e0e0dd70420a04e703ff264cc133834cba:
 
-Does this change really make sense?  Why keep the trailing whitespace if
-you touch the line?
+  Merge tag 'v4.11-rc1' into patchwork (2017-03-06 06:49:34 -0300)
 
-thanks,
+are available in the git repository at:
 
-greg k-h
+  git://linuxtv.org/syoung/media_tree.git for-v4.12a
+
+for you to fetch changes up to 3e7520f07ac0482ee37a8a71c88d011bf2de5cb6:
+
+  [media] lirc: introduce LIRC_SET_POLL_MODE (2017-03-06 17:23:53 +0000)
+
+----------------------------------------------------------------
+Derek Robson (1):
+      [media] staging: lirc: use octal instead of symbolic permission
+
+Sean Young (21):
+      [media] cxusb: dvico remotes are nec
+      [media] lirc: document lirc modes better
+      [media] lirc: return ENOTTY when ioctl is not supported
+      [media] lirc: return ENOTTY when device does support ioctl
+      [media] winbond: allow timeout to be set
+      [media] gpio-ir: do not allow a timeout of 0
+      [media] rc: lirc keymap no longer makes any sense
+      [media] lirc: advertise LIRC_CAN_GET_REC_RESOLUTION and improve
+      [media] mce_kbd: add encoder
+      [media] serial_ir: iommap is a memory address, not bool
+      [media] lirc: use refcounting for lirc devices
+      [media] lirc: lirc interface should not be a raw decoder
+      [media] lirc: exorcise struct irctl
+      [media] lirc: use plain kfifo rather than lirc_buffer
+      [media] lirc: implement scancode sending
+      [media] rc: use the correct carrier for scancode transmit
+      [media] rc: auto load encoder if necessary
+      [media] lirc: implement reading scancode
+      [media] lirc: scancode rc devices should have a lirc device too
+      [media] lirc: document LIRC_MODE_SCANCODE
+      [media] lirc: introduce LIRC_SET_POLL_MODE
+
+ Documentation/media/lirc.h.rst.exceptions          |  50 ++-
+ Documentation/media/uapi/rc/lirc-dev-intro.rst     |  78 +++-
+ Documentation/media/uapi/rc/lirc-func.rst          |   1 +
+ Documentation/media/uapi/rc/lirc-get-features.rst  |  28 +-
+ Documentation/media/uapi/rc/lirc-get-length.rst    |   3 +-
+ Documentation/media/uapi/rc/lirc-get-rec-mode.rst  |   8 +-
+ Documentation/media/uapi/rc/lirc-get-send-mode.rst |   8 +-
+ Documentation/media/uapi/rc/lirc-read.rst          |  22 +-
+ Documentation/media/uapi/rc/lirc-set-poll-mode.rst |  45 +++
+ .../media/uapi/rc/lirc-set-rec-carrier-range.rst   |   2 +-
+ .../media/uapi/rc/lirc-set-rec-timeout-reports.rst |   2 +
+ Documentation/media/uapi/rc/lirc-write.rst         |  25 +-
+ drivers/media/rc/Kconfig                           |  15 +-
+ drivers/media/rc/Makefile                          |   6 +-
+ drivers/media/rc/gpio-ir-recv.c                    |   2 +-
+ drivers/media/rc/igorplugusb.c                     |   2 +-
+ drivers/media/rc/ir-jvc-decoder.c                  |   1 +
+ drivers/media/rc/ir-lirc-codec.c                   | 388 +++++++++++++------
+ drivers/media/rc/ir-mce_kbd-decoder.c              |  56 ++-
+ drivers/media/rc/ir-nec-decoder.c                  |   1 +
+ drivers/media/rc/ir-rc5-decoder.c                  |   1 +
+ drivers/media/rc/ir-rc6-decoder.c                  |   1 +
+ drivers/media/rc/ir-sanyo-decoder.c                |   1 +
+ drivers/media/rc/ir-sharp-decoder.c                |   1 +
+ drivers/media/rc/ir-sony-decoder.c                 |   1 +
+ drivers/media/rc/keymaps/Makefile                  |   1 -
+ drivers/media/rc/keymaps/rc-dvico-mce.c            |  92 ++---
+ drivers/media/rc/keymaps/rc-dvico-portable.c       |  74 ++--
+ drivers/media/rc/keymaps/rc-lirc.c                 |  42 --
+ drivers/media/rc/lirc_dev.c                        | 431 +++++++++------------
+ drivers/media/rc/rc-core-priv.h                    |  62 ++-
+ drivers/media/rc/rc-ir-raw.c                       |  55 ++-
+ drivers/media/rc/rc-main.c                         |  73 ++--
+ drivers/media/rc/serial_ir.c                       |   4 +-
+ drivers/media/rc/st_rc.c                           |   2 +-
+ drivers/media/rc/winbond-cir.c                     |   4 +-
+ drivers/media/usb/dvb-usb/cxusb.c                  |  24 +-
+ drivers/staging/media/lirc/lirc_sasem.c            |   5 +-
+ drivers/staging/media/lirc/lirc_sir.c              |   8 +-
+ drivers/staging/media/lirc/lirc_zilog.c            | 167 ++++----
+ include/media/lirc_dev.h                           |  33 +-
+ include/media/rc-core.h                            |   3 +
+ include/media/rc-map.h                             | 109 ++----
+ include/uapi/linux/lirc.h                          |  85 ++++
+ 44 files changed, 1246 insertions(+), 776 deletions(-)
+ create mode 100644 Documentation/media/uapi/rc/lirc-set-poll-mode.rst
+ delete mode 100644 drivers/media/rc/keymaps/rc-lirc.c
