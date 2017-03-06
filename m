@@ -1,184 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from us01smtprelay-2.synopsys.com ([198.182.47.9]:37131 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754162AbdCMTEP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 15:04:15 -0400
-Subject: Re: [PATCH] [media] v4l2-dv-timings: Introduce v4l2_calc_fps()
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Jose Abreu <Jose.Abreu@synopsys.com>,
-        <linux-media@vger.kernel.org>
-References: <94397052765d1f6d84dc7edac65f906b09890871.1488905139.git.joabreu@synopsys.com>
- <4f598aba-3002-eeb5-1cad-d4dff4553644@xs4all.nl>
- <8bc4a61a-5b5d-2233-741a-bbf44fc5f009@synopsys.com>
- <908807fd-5b1c-4fb1-d24a-a8d7bd06a3b9@xs4all.nl>
-CC: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>,
-        <linux-kernel@vger.kernel.org>
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-Message-ID: <437c31d5-64cf-08d2-a3bb-b4fba7db30a9@synopsys.com>
-Date: Mon, 13 Mar 2017 19:03:14 +0000
+Received: from mga04.intel.com ([192.55.52.120]:2783 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932273AbdCFSrE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Mar 2017 13:47:04 -0500
+Date: Mon, 6 Mar 2017 20:34:34 +0200
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
+To: Ayaka <ayaka@soulik.info>
+Cc: dri-devel@lists.freedesktop.org, clinton.a.taylor@intel.com,
+        daniel@fooishbar.org, linux-media@vger.kernel.org,
+        mchehab@kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v6 1/3] drm_fourcc: Add new P010, P016 video format
+Message-ID: <20170306183434.GV31595@intel.com>
+References: <1488708033-5691-1-git-send-email-ayaka@soulik.info>
+ <1488708033-5691-2-git-send-email-ayaka@soulik.info>
+ <20170306130609.GT31595@intel.com>
+ <AEC0BE28-4C63-430B-9972-BDF0A323D742@soulik.info>
 MIME-Version: 1.0
-In-Reply-To: <908807fd-5b1c-4fb1-d24a-a8d7bd06a3b9@xs4all.nl>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <AEC0BE28-4C63-430B-9972-BDF0A323D742@soulik.info>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Tue, Mar 07, 2017 at 01:58:23AM +0800, Ayaka wrote:
+> 
+> 
+> 從我的 iPad 傳送
+> 
+> > Ville Syrjälä <ville.syrjala@linux.intel.com> 於 2017年3月6日 下午9:06 寫道：
+> > 
+> >> On Sun, Mar 05, 2017 at 06:00:31PM +0800, Randy Li wrote:
+> >> P010 is a planar 4:2:0 YUV with interleaved UV plane, 10 bits
+> >> per channel video format.
+> >> 
+> >> P016 is a planar 4:2:0 YUV with interleaved UV plane, 16 bits
+> >> per channel video format.
+> >> 
+> >> V3: Added P012 and fixed cpp for P010
+> >> V4: format definition refined per review
+> >> V5: Format comment block for each new pixel format
+> >> V6: reversed Cb/Cr order in comments
+> >> v7: reversed Cb/Cr order in comments of header files, remove
+> >> the wrong part of commit message.
+> > 
+> > What? Why? You just undid what Clint did in v6.
+> He missed a file also keeping the wrong description of rockchip.
 
+I don't follow. Who missed what exactly?
 
-On 09-03-2017 15:40, Hans Verkuil wrote:
-> On 09/03/17 16:15, Jose Abreu wrote:
->> Hi Hans,
->>
->>
->> Thanks for the review!
->>
->>
->> On 09-03-2017 12:29, Hans Verkuil wrote:
->>> On 07/03/17 17:48, Jose Abreu wrote:
->>>> HDMI Receivers receive video modes which, according to
->>>> CEA specification, can have different frames per second
->>>> (fps) values.
->>>>
->>>> This patch introduces a helper function in the media core
->>>> which can calculate the expected video mode fps given the
->>>> pixel clock value and the horizontal/vertical values. HDMI
->>>> video receiver drivers are expected to use this helper so
->>>> that they can correctly fill the v4l2_streamparm structure
->>>> which is requested by vidioc_g_parm callback.
->>>>
->>>> We could also use a lookup table for this but it wouldn't
->>>> correctly handle 60Hz vs 59.94Hz situations as this all
->>>> depends on the pixel clock value.
->>>>
->>>> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
->>>> Cc: Carlos Palminha <palminha@synopsys.com>
->>>> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
->>>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->>>> Cc: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
->>>> Cc: linux-media@vger.kernel.org
->>>> Cc: linux-kernel@vger.kernel.org
->>>> ---
->>>>  drivers/media/v4l2-core/v4l2-dv-timings.c | 29 +++++++++++++++++++++++++++++
->>>>  include/media/v4l2-dv-timings.h           |  8 ++++++++
->>>>  2 files changed, 37 insertions(+)
->>>>
->>>> diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
->>>> index 5c8c49d..19946c6 100644
->>>> --- a/drivers/media/v4l2-core/v4l2-dv-timings.c
->>>> +++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
->>>> @@ -814,3 +814,32 @@ struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait)
->>>>  	return aspect;
->>>>  }
->>>>  EXPORT_SYMBOL_GPL(v4l2_calc_aspect_ratio);
->>>> +
->>>> +struct v4l2_fract v4l2_calc_fps(const struct v4l2_dv_timings *t)
->>>> +{
->>>> +	const struct v4l2_bt_timings *bt = &t->bt;
->>>> +	struct v4l2_fract fps_fract = { 1, 1 };
->>>> +	unsigned long n, d;
->>>> +	unsigned long mask = GENMASK(BITS_PER_LONG - 1, 0);
->>> This is wrong since v4l2_fract uses u32, and LONG can be 64 bits.
->> Yes, its wrong. I will remove the variable and just use fps, 100
->> instead of mask, mask.
->>
->>>> +	u32 htot, vtot, fps;
->>>> +	u64 pclk;
->>>> +
->>>> +	if (t->type != V4L2_DV_BT_656_1120)
->>>> +		return fps_fract;
->>>> +
->>>> +	htot = V4L2_DV_BT_FRAME_WIDTH(bt);
->>>> +	vtot = V4L2_DV_BT_FRAME_HEIGHT(bt);
->>>> +	pclk = bt->pixelclock;
->>>> +	if (bt->interlaced)
->>>> +		htot /= 2;
->>> This can be dropped. This is the timeperframe, not timeperfield. So for interleaved
->>> formats the time is that of two fields (aka one frame).
->> Ok, but then there is something not correct in
->> v4l2_dv_timings_presets structure field values because I get
->> wrong results in double clocked modes. I checked the definition
->> and the modes that are double clocked are defined with half the
->> clock, i.e., V4L2_DV_BT_CEA_720X480I59_94 is defined with a pixel
->> clock of 13.5MHz but in CEA spec this mode is defined with pixel
->> clock of 27MHz.
-> It's defined in the CEA spec as 1440x480 which is the double clocked
-> version of 720x480.
->
-> The presets are defined without any pixel repeating. In fact, no driver
-> that is in the kernel today supports pixel repeating. Mostly because there was
-> never any need since almost nobody uses resolutions that require this.
->
-> If you decide to add support for this, then it would not surprise me if
-> some of the core dv-timings support needs to be adjusted.
->
-> To be honest, I never spent time digging into the pixel repeating details,
-> so I am not an expert on this at all.
->
->>>> +
->>>> +	fps = (htot * vtot) > 0 ? div_u64((100 * pclk), (htot * vtot)) : 0;
->>>> +
->>>> +	rational_best_approximation(fps, 100, mask, mask, &n, &d);
->>> I think you can just use fps, 100 instead of mask, mask.
->>>
->>> What is returned if fps == 0?
->> I will add a check for this.
->>
->>> I don't have a problem as such with this function, but just be aware that the
->>> pixelclock is never precise: there are HDMI receivers that are unable to report
->>> the pixelclock with enough precision to even detect if it is 60 vs 59.94 Hz.
->>>
->>> And even for those that can, it is often not reliable.
->> My initial intention for this function was that it should be used
->> with v4l2_find_dv_timings_cea861_vic, when possible. That is,
->> HDMI receivers have access to AVI infoframe contents. Then they
->> should get the vic, call v4l2_find_dv_timings_cea861_vic, get
->> timings and then call v4l2_calc_fps to get fps. If no AVI
->> infoframe is available then it should resort to pixel clock and
->> H/V measures as last resort.
-> Right, but there are no separate VIC codes for 60 vs 59.94 Hz. Any vertical
-> refresh rate that can be divided by 6 can also support these slightly lower
-> refresh rates. The timings returned by v4l2_find_dv_timings_cea861_vic just
-> report if that is possible, but the pixelclock is set for 24, 30 or 60 fps.
+> > 
+> >> 
+> >> Cc: Daniel Stone <daniel@fooishbar.org>
+> >> Cc: Ville Syrjälä <ville.syrjala@linux.intel.com>
+> >> 
+> >> Signed-off-by: Randy Li <ayaka@soulik.info>
+> >> Signed-off-by: Clint Taylor <clinton.a.taylor@intel.com>
+> >> ---
+> >> drivers/gpu/drm/drm_fourcc.c  |  3 +++
+> >> include/uapi/drm/drm_fourcc.h | 21 +++++++++++++++++++++
+> >> 2 files changed, 24 insertions(+)
+> >> 
+> >> diff --git a/drivers/gpu/drm/drm_fourcc.c b/drivers/gpu/drm/drm_fourcc.c
+> >> index 90d2cc8..3e0fd58 100644
+> >> --- a/drivers/gpu/drm/drm_fourcc.c
+> >> +++ b/drivers/gpu/drm/drm_fourcc.c
+> >> @@ -165,6 +165,9 @@ const struct drm_format_info *__drm_format_info(u32 format)
+> >>        { .format = DRM_FORMAT_UYVY,        .depth = 0,  .num_planes = 1, .cpp = { 2, 0, 0 }, .hsub = 2, .vsub = 1 },
+> >>        { .format = DRM_FORMAT_VYUY,        .depth = 0,  .num_planes = 1, .cpp = { 2, 0, 0 }, .hsub = 2, .vsub = 1 },
+> >>        { .format = DRM_FORMAT_AYUV,        .depth = 0,  .num_planes = 1, .cpp = { 4, 0, 0 }, .hsub = 1, .vsub = 1 },
+> >> +        { .format = DRM_FORMAT_P010,        .depth = 0,  .num_planes = 2, .cpp = { 2, 4, 0 }, .hsub = 2, .vsub = 2 },
+> >> +        { .format = DRM_FORMAT_P012,        .depth = 0,  .num_planes = 2, .cpp = { 2, 4, 0 }, .hsub = 2, .vsub = 2 },
+> >> +        { .format = DRM_FORMAT_P016,        .depth = 0,  .num_planes = 2, .cpp = { 2, 4, 0 }, .hsub = 2, .vsub = 2 },
+> >>    };
+> >> 
+> >>    unsigned int i;
+> >> diff --git a/include/uapi/drm/drm_fourcc.h b/include/uapi/drm/drm_fourcc.h
+> >> index ef20abb..306f979 100644
+> >> --- a/include/uapi/drm/drm_fourcc.h
+> >> +++ b/include/uapi/drm/drm_fourcc.h
+> >> @@ -128,6 +128,27 @@ extern "C" {
+> >> #define DRM_FORMAT_NV42        fourcc_code('N', 'V', '4', '2') /* non-subsampled Cb:Cr plane */
+> >> 
+> >> /*
+> >> + * 2 plane YCbCr MSB aligned
+> >> + * index 0 = Y plane, [15:0] Y:x [10:6] little endian
+> >> + * index 1 = Cb:Cr plane, [31:0] Cb:x:Cr:x [10:6:10:6] little endian
+> >> + */
+> >> +#define DRM_FORMAT_P010        fourcc_code('P', '0', '1', '0') /* 2x2 subsampled Cb:Cr plane 10 bits per channel */
+> >> +
+> >> +/*
+> >> + * 2 plane YCbCr MSB aligned
+> >> + * index 0 = Y plane, [15:0] Y:x [12:4] little endian
+> >> + * index 1 = Cb:Cr plane, [31:0] Cb:x:Cr:x [12:4:12:4] little endian
+> >> + */
+> >> +#define DRM_FORMAT_P012        fourcc_code('P', '0', '1', '2') /* 2x2 subsampled Cb:Cr plane 12 bits per channel */
+> >> +
+> >> +/*
+> >> + * 2 plane YCbCr MSB aligned
+> >> + * index 0 = Y plane, [15:0] Y little endian
+> >> + * index 1 = Cb:Cr plane, [31:0] Cb:Cr [16:16] little endian
+> >> + */
+> >> +#define DRM_FORMAT_P016        fourcc_code('P', '0', '1', '6') /* 2x2 subsampled Cb:Cr plane 16 bits per channel */
+> >> +
+> >> +/*
+> >>  * 3 plane YCbCr
+> >>  * index 0: Y plane, [7:0] Y
+> >>  * index 1: Cb plane, [7:0] Cb
+> >> -- 
+> >> 2.7.4
+> > 
+> > -- 
+> > Ville Syrjälä
+> > Intel OTC
 
-Right, I was forgetting about this ...
-
-So:
-1) Most of HDMI receivers do not have the expected precision in
-measuring pixel clock value;
-2) Most (I would guess all of them?) have access to AVI infoframe
-contents;
-3) The FPS value is generally used by applications to calculate
-expected frame rate and number of frames dropped (right?);
-4) The factor in FPS value can be adjusted by 1000/1001;
-
->From these points I would propose in just using the vic and drop
-the resolution in fps a little bit, do you agree?
-
->
-> Perhaps I should see the driver code...
-
-Can't publish it yet :/
-
-
-Best regards,
-Jose Miguel Abreu
-
->
->>> In order for me to merge this it also should be used in a driver. Actually the
->>> cobalt and vivid drivers would be suitable: you can test the vivid driver yourself,
->>> and if you have a patch for the cobalt driver, then I can test that for you.
->>>
->>> Would be nice for the cobalt driver, since g_parm always returns 60 fps :-)
->> Ok, I will check what I can do :)
->>
->> Best regards,
->> Jose Miguel Abreu
-> Regards,
->
-> 	Hans
->
+-- 
+Ville Syrjälä
+Intel OTC
