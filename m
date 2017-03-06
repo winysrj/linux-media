@@ -1,42 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out1-smtp.messagingengine.com ([66.111.4.25]:35234 "EHLO
-        out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753391AbdC2HDy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Mar 2017 03:03:54 -0400
-Date: Wed, 29 Mar 2017 09:03:38 +0200
-From: Greg KH <greg@kroah.com>
-To: vaibhavddit@gmail.com
-Cc: mchehab@kernel.org, devel@driverdev.osuosl.org,
-        rvarsha016@gmail.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH] staging: media: atomisp: i2c: removed unnecessary white
- space before comma in memset()
-Message-ID: <20170329070338.GA9327@kroah.com>
-References: <1490614949-30985-1-git-send-email-vaibhavddit@gmail.com>
- <1490679166-13479-1-git-send-email-vaibhavddit@gmail.com>
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:34724 "EHLO
+        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753415AbdCFKiC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 05:38:02 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1490679166-13479-1-git-send-email-vaibhavddit@gmail.com>
+In-Reply-To: <76733196-0948-8cbf-8b74-c1e3687a8c09@broadcom.com>
+References: <20170302163834.2273519-1-arnd@arndb.de> <20170302163834.2273519-8-arnd@arndb.de>
+ <76733196-0948-8cbf-8b74-c1e3687a8c09@broadcom.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Mon, 6 Mar 2017 11:38:00 +0100
+Message-ID: <CAK8P3a30Ge5gyKco4HKCdKWiJk9ee1PU3_P6THjOQgHm3EQcJw@mail.gmail.com>
+Subject: Re: [PATCH 07/26] brcmsmac: reduce stack size with KASAN
+To: Arend Van Spriel <arend.vanspriel@broadcom.com>
+Cc: kasan-dev <kasan-dev@googlegroups.com>,
+        Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Networking <netdev@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org,
+        linux-wireless <linux-wireless@vger.kernel.org>,
+        kernel-build-reports@lists.linaro.org,
+        "David S . Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 28, 2017 at 11:02:45AM +0530, vaibhavddit@gmail.com wrote:
-> From: Vaibhav Kothari <vaibhavddit@gmail.com>
-> 
-> Removed extra space before comma in memset() as a part of
-> checkpatch.pl fix-up.
-> 
-> Signed-off-by: Vaibhav Kothari <vaibhavddit@gmail.com>
-> ---
->  drivers/staging/media/atomisp/i2c/gc2235.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+On Mon, Mar 6, 2017 at 10:16 AM, Arend Van Spriel
+<arend.vanspriel@broadcom.com> wrote:
+> On 2-3-2017 17:38, Arnd Bergmann wrote:
+>> The wlc_phy_table_write_nphy/wlc_phy_table_read_nphy functions always put an object
+>> on the stack, which will each require a redzone with KASAN and lead to possible
+>> stack overflow:
+>>
+>> drivers/net/wireless/broadcom/brcm80211/brcmsmac/phy/phy_n.c: In function 'wlc_phy_workarounds_nphy':
+>> drivers/net/wireless/broadcom/brcm80211/brcmsmac/phy/phy_n.c:17135:1: warning: the frame size of 6312 bytes is larger than 1000 bytes [-Wframe-larger-than=]
+>
+> Looks like this warning text ended up in the wrong commit message. Got
+> me confused for a sec :-p
 
-What changed from your prior emails with the same subject?  Always
-version your patches, as SubmittingPatches describes how to do.
+What's wrong about the warning?
 
-Please fix up and resend.
+>> This marks the two functions as noinline_for_kasan, avoiding the problem entirely.
+>
+> Frankly I seriously dislike annotating code for the sake of some
+> (dynamic) memory analyzer. To me the whole thing seems rather
+> unnecessary. If the code passes the 2048 stack limit without KASAN it
+> would seem the limit with KASAN should be such that no warning is given.
+> I suspect that it is rather difficult to predict the additional size of
+> the instrumentation code and on some systems there might be a real issue
+> with increased stack usage.
 
-thanks,
+The frame sizes don't normally change that much. There are a couple of
+drivers like brcmsmac that repeatedly call an inline function which has
+a local variable that it passes by reference to an extern function.
 
-greg k-h
+While normally those variables share a stack location, KASAN forces
+each instance to its own location and adds (in this case) 80 bytes of
+redzone around it to detect out-of-bounds access.
+
+While most drivers are fine with a 1500 byte warning limit, increasing
+the limit to 7kb would silence brcmsmac (unless more registers
+are accessed from wlc_phy_workarounds_nphy) but also risk a
+stack overflow to go unnoticed.
+
+    Arnd
