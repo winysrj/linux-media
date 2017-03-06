@@ -1,101 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpout.microchip.com ([198.175.253.82]:37439 "EHLO
-        email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751068AbdCMJdz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 05:33:55 -0400
-Subject: Re: [PATCH] [media] atmel-isc: fix off-by-one comparison and out of
- bounds read issue
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Colin King <colin.king@canonical.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        <linux-media@vger.kernel.org>
-References: <20170307143047.30082-1-colin.king@canonical.com>
- <5dc9d025-31d5-b129-09df-5de19758e886@microchip.com>
- <b84a5576-7b29-728b-b7c2-9929069a2b35@xs4all.nl>
- <144915d3-b386-78c2-d4d8-3410c70348ff@microchip.com>
- <fbe3a644-8d2a-eabe-a042-6f0cef26d0fe@xs4all.nl>
-CC: <kernel-janitors@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-From: "Wu, Songjun" <Songjun.Wu@microchip.com>
-Message-ID: <2058665c-5ed6-5dfa-b96e-3c0579b8e6df@microchip.com>
-Date: Mon, 13 Mar 2017 17:32:36 +0800
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35171 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753257AbdCFPJl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 10:09:41 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: dri-devel@lists.freedesktop.org, Laura Abbott <labbott@redhat.com>,
+        devel@driverdev.osuosl.org, romlem@google.com,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        arve@android.com, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+        Riley Andrews <riandrews@android.com>,
+        Mark Brown <broonie@kernel.org>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of staging
+Date: Mon, 06 Mar 2017 17:02:05 +0200
+Message-ID: <9366352.DJUlrUijoL@avalon>
+In-Reply-To: <20170306103820.ixuvs7fd6s4tvfzy@phenom.ffwll.local>
+References: <1488491084-17252-1-git-send-email-labbott@redhat.com> <10344634.XsotFaGzfj@avalon> <20170306103820.ixuvs7fd6s4tvfzy@phenom.ffwll.local>
 MIME-Version: 1.0
-In-Reply-To: <fbe3a644-8d2a-eabe-a042-6f0cef26d0fe@xs4all.nl>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Daniel,
 
+On Monday 06 Mar 2017 11:38:20 Daniel Vetter wrote:
+> On Fri, Mar 03, 2017 at 06:45:40PM +0200, Laurent Pinchart wrote:
+> > - I haven't seen any proposal how a heap-based solution could be used in a
+> > generic distribution. This needs to be figured out before committing to
+> > any API/ABI.
+> 
+> Two replies from my side:
+> 
+> - Just because a patch doesn't solve world hunger isn't really a good
+>   reason to reject it.
 
-On 3/13/2017 17:25, Hans Verkuil wrote:
-> On 03/13/2017 06:53 AM, Wu, Songjun wrote:
->>
->>
->> On 3/9/2017 18:57, Hans Verkuil wrote:
->>> Hi Songjun,
->>>
->>> On 08/03/17 03:25, Wu, Songjun wrote:
->>>> Hi Colin,
->>>>
->>>> Thank you for your comment.
->>>> It is a bug, will be fixed in the next patch.
->>>
->>> Do you mean that you will provide a new patch for this? Is there anything
->>> wrong with this patch? It seems reasonable to me.
->>>
->> Hi Hans,
->>
->> I see this patch is merged in git://linuxtv.org/media_tree.git.
->> So I do not need submit isc-pipeline-v3 patch, just submit the patches,
->> based on the current master branch?
->
-> Huh? Where do you see that this patch is merged? I don't see it in the media_tree master
-> branch.
->
-Hi Hans,
+As long as it goes in the right direction, sure :-) The points I mentioned 
+were to be interpreted that way, I want to make sure we're not going in a 
+dead-end (or worse, driving full speed into a wall).
 
-I see this patch on the master branch in media_tree.
-https://git.linuxtv.org/media_tree.git/tree/drivers/media/platform/atmel/atmel-isc.c
+> - Heap doesn't mean its not resizeable (but I'm not sure that's really
+>   your concern).
 
-> Regards,
->
-> 	Hans
->
->>
->>> Regards,
->>>
->>> 	Hans
->>>
->>>>
->>>> On 3/7/2017 22:30, Colin King wrote:
->>>>> From: Colin Ian King <colin.king@canonical.com>
->>>>>
->>>>> The are only HIST_ENTRIES worth of entries in  hist_entry however the
->>>>> for-loop is iterating one too many times leasing to a read access off
->>>>> the end off the array ctrls->hist_entry.  Fix this by iterating by
->>>>> the correct number of times.
->>>>>
->>>>> Detected by CoverityScan, CID#1415279 ("Out-of-bounds read")
->>>>>
->>>>> Signed-off-by: Colin Ian King <colin.king@canonical.com>
->>>>> ---
->>>>>  drivers/media/platform/atmel/atmel-isc.c | 2 +-
->>>>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>>>>
->>>>> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
->>>>> index b380a7d..7dacf8c 100644
->>>>> --- a/drivers/media/platform/atmel/atmel-isc.c
->>>>> +++ b/drivers/media/platform/atmel/atmel-isc.c
->>>>> @@ -1298,7 +1298,7 @@ static void isc_hist_count(struct isc_device *isc)
->>>>>      regmap_bulk_read(regmap, ISC_HIS_ENTRY, hist_entry, HIST_ENTRIES);
->>>>>
->>>>>      *hist_count = 0;
->>>>> -    for (i = 0; i <= HIST_ENTRIES; i++)
->>>>> +    for (i = 0; i < HIST_ENTRIES; i++)
->>>>>          *hist_count += i * (*hist_entry++);
->>>>>  }
->>>>>
->>>>>
->>>
->
+Not really, no. Heap is another word to mean pool here. It might not be the 
+best term in this context as it has a precise meaning in the context of memory 
+allocation, but that's a detail.
+
+> - Imo ION is very much part of the picture here to solve this for real. We
+>   need to bits:
+> 
+>   * Be able to allocate memory from specific pools, not going through a
+>     specific driver. ION gives us that interface. This is e.g. also needed
+>     for "special" memory, like SMA tries to expose.
+> 
+>   * Some way to figure out how&where to allocate the buffer object. This
+>     is purely a userspace problem, and this is the part the unix memory
+>     allocator tries to solve. There's no plans in there for big kernel
+>     changes, instead userspace does a dance to reconcile all the
+>     constraints, and one of the constraints might be "you have to allocate
+>     this from this special ION heap". The only thing the kernel needs to
+>     expose is which devices use which ION heaps (we kinda do that
+>     already), and maybe some hints of how they can be generalized (but I
+>     guess stuff like "minimal pagesize of x KB" is also fulfilled by any
+>     CMA heap is knowledge userspace needs).
+
+The constraint solver could live in userspace, I'm open to a solution that 
+would go in that direction, but it will require help from the kernel to fetch 
+the constraints from the devices that need to be involved in buffer sharing.
+
+Given a userspace constraint resolver, the interface with the kernel allocator 
+will likely be based on pools. I'm not opposed to that, as long as pool are 
+identified by opaque handles. I don't want userspace to know about the meaning 
+of any particular ION heap. Application must not attempt to "allocate from 
+CMA" for instance, that would lock us to a crazy API that will grow completely 
+out of hands as vendors will start adding all kind of custom heaps, and 
+applications will have to follow (or will be patched out-of-tree by vendors).
+
+> Again I think waiting for this to be fully implemented before we merge any
+> part is going to just kill any upstreaming efforts. ION in itself, without
+> the full buffer negotiation dance seems clearly useful (also for stuff
+> like SMA), and having it merged will help with moving the buffer
+> allocation dance forward.
+
+Again I'm not opposed to a kernel allocator based on pools/heaps, as long as
+
+- pools/heaps stay internal to the kernel and are not directly exposed to 
+userspace
+
+- a reasonable way to size the different kinds of pools in a generic 
+distribution kernel can be found
+
+-- 
+Regards,
+
+Laurent Pinchart
