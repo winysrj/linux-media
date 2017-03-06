@@ -1,62 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from us01smtprelay-2.synopsys.com ([198.182.60.111]:45698 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966642AbdCXQst (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Mar 2017 12:48:49 -0400
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-To: linux-media@vger.kernel.org
-Cc: hans.verkuil@cisco.com, mchehab@kernel.org,
-        linux-kernel@vger.kernel.org, Jose Abreu <Jose.Abreu@synopsys.com>
-Subject: [PATCH 6/8] [media] i2c: adv7842: Use cec_get_drvdata()
-Date: Fri, 24 Mar 2017 16:47:57 +0000
-Message-Id: <943ae2eb7185a1ec2a2a9b063dcb88418e2b1fc0.1490373500.git.joabreu@synopsys.com>
-In-Reply-To: <cover.1490373499.git.joabreu@synopsys.com>
-References: <cover.1490373499.git.joabreu@synopsys.com>
-In-Reply-To: <cover.1490373499.git.joabreu@synopsys.com>
-References: <cover.1490373499.git.joabreu@synopsys.com>
+Received: from mga05.intel.com ([192.55.52.43]:51158 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753184AbdCFOY4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Mar 2017 09:24:56 -0500
+From: Elena Reshetova <elena.reshetova@intel.com>
+To: gregkh@linuxfoundation.org
+Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org,
+        netdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
+        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-usb@vger.kernel.org, peterz@infradead.org,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        Hans Liljestrand <ishkamiel@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        David Windsor <dwindsor@gmail.com>
+Subject: [PATCH 27/29] drivers, usb: convert ep_data.count from atomic_t to refcount_t
+Date: Mon,  6 Mar 2017 16:21:14 +0200
+Message-Id: <1488810076-3754-28-git-send-email-elena.reshetova@intel.com>
+In-Reply-To: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use helper function to get driver private data from CEC
-adapter.
+refcount_t type and corresponding API should be
+used instead of atomic_t when the variable is used as
+a reference counter. This allows to avoid accidental
+refcounter overflows that might lead to use-after-free
+situations.
 
-Signed-off-by: Jose Abreu <joabreu@synopsys.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
+Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: David Windsor <dwindsor@gmail.com>
 ---
- drivers/media/i2c/adv7842.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/usb/gadget/legacy/inode.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index 2d61f0c..303effd 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -2250,7 +2250,7 @@ static void adv7842_cec_isr(struct v4l2_subdev *sd, bool *handled)
+diff --git a/drivers/usb/gadget/legacy/inode.c b/drivers/usb/gadget/legacy/inode.c
+index 81d76f3..d21a5f8 100644
+--- a/drivers/usb/gadget/legacy/inode.c
++++ b/drivers/usb/gadget/legacy/inode.c
+@@ -191,7 +191,7 @@ enum ep_state {
+ struct ep_data {
+ 	struct mutex			lock;
+ 	enum ep_state			state;
+-	atomic_t			count;
++	refcount_t			count;
+ 	struct dev_data			*dev;
+ 	/* must hold dev->lock before accessing ep or req */
+ 	struct usb_ep			*ep;
+@@ -206,12 +206,12 @@ struct ep_data {
  
- static int adv7842_cec_adap_enable(struct cec_adapter *adap, bool enable)
+ static inline void get_ep (struct ep_data *data)
  {
--	struct adv7842_state *state = adap->priv;
-+	struct adv7842_state *state = cec_get_drvdata(adap);
- 	struct v4l2_subdev *sd = &state->sd;
+-	atomic_inc (&data->count);
++	refcount_inc (&data->count);
+ }
  
- 	if (!state->cec_enabled_adap && enable) {
-@@ -2279,7 +2279,7 @@ static int adv7842_cec_adap_enable(struct cec_adapter *adap, bool enable)
- 
- static int adv7842_cec_adap_log_addr(struct cec_adapter *adap, u8 addr)
+ static void put_ep (struct ep_data *data)
  {
--	struct adv7842_state *state = adap->priv;
-+	struct adv7842_state *state = cec_get_drvdata(adap);
- 	struct v4l2_subdev *sd = &state->sd;
- 	unsigned int i, free_idx = ADV7842_MAX_ADDRS;
+-	if (likely (!atomic_dec_and_test (&data->count)))
++	if (likely (!refcount_dec_and_test (&data->count)))
+ 		return;
+ 	put_dev (data->dev);
+ 	/* needs no more cleanup */
+@@ -1562,7 +1562,7 @@ static int activate_ep_files (struct dev_data *dev)
+ 		init_waitqueue_head (&data->wait);
  
-@@ -2334,7 +2334,7 @@ static int adv7842_cec_adap_log_addr(struct cec_adapter *adap, u8 addr)
- static int adv7842_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
- 				     u32 signal_free_time, struct cec_msg *msg)
- {
--	struct adv7842_state *state = adap->priv;
-+	struct adv7842_state *state = cec_get_drvdata(adap);
- 	struct v4l2_subdev *sd = &state->sd;
- 	u8 len = msg->len;
- 	unsigned int i;
+ 		strncpy (data->name, ep->name, sizeof (data->name) - 1);
+-		atomic_set (&data->count, 1);
++		refcount_set (&data->count, 1);
+ 		data->dev = dev;
+ 		get_dev (dev);
+ 
 -- 
-1.9.1
+2.7.4
