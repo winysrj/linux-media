@@ -1,108 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:41922 "EHLO mail.kernel.org"
+Received: from mga02.intel.com ([134.134.136.20]:6141 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752425AbdCEQAU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 5 Mar 2017 11:00:20 -0500
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v3 3/3] drm: rcar-du: Register a completion callback with VSP1
-Date: Sun,  5 Mar 2017 16:00:04 +0000
-Message-Id: <591c0ba30211d53613a456d51f2bb523e6ef5e06.1488729419.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.8e2f9686131cb2299b859f056e902b4208061a4e.1488729419.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.8e2f9686131cb2299b859f056e902b4208061a4e.1488729419.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.8e2f9686131cb2299b859f056e902b4208061a4e.1488729419.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.8e2f9686131cb2299b859f056e902b4208061a4e.1488729419.git-series.kieran.bingham+renesas@ideasonboard.com>
+        id S1752685AbdCFMED (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Mar 2017 07:04:03 -0500
+Subject: [PATCH] staging/atomisp:fix build issue verus 4.11-rc1
+From: Alan Cox <alan@linux.intel.com>
+To: greg@kroah.com, linux-media@vger.kernel.org
+Date: Mon, 06 Mar 2017 11:21:28 +0000
+Message-ID: <148879927534.10796.6582496815100213383.stgit@acox1-desk1.ger.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently we process page flip events on every display interrupt,
-however this does not take into consideration the processing time needed
-by the VSP1 utilised in the pipeline.
+From: xingzhen <zhengjun.xing@intel.com>
 
-Register a callback with the VSP driver to obtain completion events, and
-track them so that we only perform page flips when the full display
-pipeline has completed for the frame.
+commit:2a1f062a4acf move sigpending method fatal_signal_pending from
+<linux/sched.h> into <linux/sched/signal.h> cause the build issue,fix it.
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Signed-off-by: xingzhen <zhengjun.xing@intel.com>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
 ---
- drivers/gpu/drm/rcar-du/rcar_du_crtc.c |  8 ++++++--
- drivers/gpu/drm/rcar-du/rcar_du_crtc.h |  1 +
- drivers/gpu/drm/rcar-du/rcar_du_vsp.c  |  9 +++++++++
- 3 files changed, 16 insertions(+), 2 deletions(-)
+ .../media/atomisp/pci/atomisp2/hmm/hmm_bo.c        |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-index 2aceb84fc15d..caaaa1812e20 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
-@@ -299,7 +299,7 @@ static void rcar_du_crtc_update_planes(struct rcar_du_crtc *rcrtc)
-  * Page Flip
-  */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
+index 05ff912..e2aa949 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
+@@ -39,7 +39,7 @@
+ #include <asm/cacheflush.h>
+ #include <linux/io.h>
+ #include <asm/current.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/file.h>
  
--static void rcar_du_crtc_finish_page_flip(struct rcar_du_crtc *rcrtc)
-+void rcar_du_crtc_finish_page_flip(struct rcar_du_crtc *rcrtc)
- {
- 	struct drm_pending_vblank_event *event;
- 	struct drm_device *dev = rcrtc->crtc.dev;
-@@ -571,6 +571,7 @@ static const struct drm_crtc_funcs crtc_funcs = {
- static irqreturn_t rcar_du_crtc_irq(int irq, void *arg)
- {
- 	struct rcar_du_crtc *rcrtc = arg;
-+	struct rcar_du_device *rcdu = rcrtc->group->dev;
- 	irqreturn_t ret = IRQ_NONE;
- 	u32 status;
- 
-@@ -579,7 +580,10 @@ static irqreturn_t rcar_du_crtc_irq(int irq, void *arg)
- 
- 	if (status & DSSR_FRM) {
- 		drm_crtc_handle_vblank(&rcrtc->crtc);
--		rcar_du_crtc_finish_page_flip(rcrtc);
-+
-+		if (rcdu->info->gen < 3)
-+			rcar_du_crtc_finish_page_flip(rcrtc);
-+
- 		ret = IRQ_HANDLED;
- 	}
- 
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.h b/drivers/gpu/drm/rcar-du/rcar_du_crtc.h
-index a7194812997e..ebdbff9d8e59 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.h
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.h
-@@ -71,5 +71,6 @@ void rcar_du_crtc_resume(struct rcar_du_crtc *rcrtc);
- 
- void rcar_du_crtc_route_output(struct drm_crtc *crtc,
- 			       enum rcar_du_output output);
-+void rcar_du_crtc_finish_page_flip(struct rcar_du_crtc *rcrtc);
- 
- #endif /* __RCAR_DU_CRTC_H__ */
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-index b0ff304ce3dc..cbb6f54c99ef 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-@@ -28,6 +28,13 @@
- #include "rcar_du_kms.h"
- #include "rcar_du_vsp.h"
- 
-+static void rcar_du_vsp_complete(void *private)
-+{
-+	struct rcar_du_crtc *crtc = (struct rcar_du_crtc *)private;
-+
-+	rcar_du_crtc_finish_page_flip(crtc);
-+}
-+
- void rcar_du_vsp_enable(struct rcar_du_crtc *crtc)
- {
- 	const struct drm_display_mode *mode = &crtc->crtc.state->adjusted_mode;
-@@ -35,6 +42,8 @@ void rcar_du_vsp_enable(struct rcar_du_crtc *crtc)
- 	struct vsp1_du_lif_config cfg = {
- 		.width = mode->hdisplay,
- 		.height = mode->vdisplay,
-+		.callback = rcar_du_vsp_complete,
-+		.callback_data = crtc,
- 	};
- 	struct rcar_du_plane_state state = {
- 		.state = {
--- 
-git-series 0.9.1
+ #include "atomisp_internal.h"
