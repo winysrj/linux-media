@@ -1,191 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56452 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752624AbdCEOjS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 5 Mar 2017 09:39:18 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v2.1] v4l: Clearly document interactions between formats, controls and buffers
-Date: Sun,  5 Mar 2017 16:39:36 +0200
-Message-Id: <20170305143936.11257-1-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20170228150320.10104-3-laurent.pinchart+renesas@ideasonboard.com>
-References: <20170228150320.10104-3-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mga14.intel.com ([192.55.52.115]:24155 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932252AbdCFOZ5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Mar 2017 09:25:57 -0500
+From: Elena Reshetova <elena.reshetova@intel.com>
+To: gregkh@linuxfoundation.org
+Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org,
+        netdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
+        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-usb@vger.kernel.org, peterz@infradead.org,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        Hans Liljestrand <ishkamiel@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        David Windsor <dwindsor@gmail.com>
+Subject: [PATCH 11/29] drivers, media: convert cx88_core.refcount from atomic_t to refcount_t
+Date: Mon,  6 Mar 2017 16:20:58 +0200
+Message-Id: <1488810076-3754-12-git-send-email-elena.reshetova@intel.com>
+In-Reply-To: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-V4L2 exposes parameters that influence buffers sizes through the format
-ioctls (VIDIOC_G_FMT, VIDIOC_TRY_FMT, VIDIOC_S_FMT, and possibly
-VIDIOC_G_SELECTION and VIDIOC_S_SELECTION). Other parameters not part of
-the format structure may also influence buffer sizes or buffer layout in
-general. One existing such parameter is rotation, which is implemented
-by the VIDIOC_ROTATE control and thus exposed through the V4L2 control
-ioctls.
+refcount_t type and corresponding API should be
+used instead of atomic_t when the variable is used as
+a reference counter. This allows to avoid accidental
+refcounter overflows that might lead to use-after-free
+situations.
 
-The interaction between those parameters and buffers is currently only
-partially specified by the V4L2 API. In particular interactions between
-controls and buffers isn't specified at all. The behaviour of the
-VIDIOC_S_FMT and VIDIOC_S_SELECTION ioctls when buffers are allocated is
-also not fully specified.
-
-This commit clearly defines and documents the interactions between
-formats, selections, controls and buffers.
-
-The preparatory discussions for the documentation change considered
-completely disallowing controls that change the buffer size or layout,
-in favour of extending the format API with a new ioctl that would bundle
-those controls with format information. The idea has been rejected, as
-this would essentially be a restricted version of the upcoming request
-API that wouldn't bring any additional value.
-
-Another option we have considered was to mandate the use of the request
-API to modify controls that influence buffer size or layout. This has
-also been rejected on the grounds that requiring the request API to
-change rotation even when streaming is stopped would significantly
-complicate implementation of drivers and usage of the V4L2 API for
-applications.
-
-Applications will however be required to use the upcoming request API to
-change at runtime formats or controls that influence the buffer size or
-layout, because of the need to synchronize buffers with the formats and
-controls. Otherwise there would be no way to interpret the content of a
-buffer correctly.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
+Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: David Windsor <dwindsor@gmail.com>
 ---
-Changes since v2:
+ drivers/media/pci/cx88/cx88-cards.c | 2 +-
+ drivers/media/pci/cx88/cx88-core.c  | 4 ++--
+ drivers/media/pci/cx88/cx88.h       | 3 ++-
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
-- Document the interaction with ioctls that can affect formats
-  (VIDIOC_S_SELECTION, VIDIOC_S_INPUT, VIDIOC_S_OUTPUT, VIDIOC_S_STD and
-  VIDIOC_S_DV_TIMINGS)
-- Clarify the format/control change order
----
- Documentation/media/uapi/v4l/buffer.rst | 108 ++++++++++++++++++++++++++++++++
- 1 file changed, 108 insertions(+)
-
-diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
-index ac58966ccb9b..ce46908bedfb 100644
---- a/Documentation/media/uapi/v4l/buffer.rst
-+++ b/Documentation/media/uapi/v4l/buffer.rst
-@@ -34,6 +34,114 @@ flags are copied from the OUTPUT video buffer to the CAPTURE video
- buffer.
+diff --git a/drivers/media/pci/cx88/cx88-cards.c b/drivers/media/pci/cx88/cx88-cards.c
+index cdfbde2..7fc5f5f 100644
+--- a/drivers/media/pci/cx88/cx88-cards.c
++++ b/drivers/media/pci/cx88/cx88-cards.c
+@@ -3670,7 +3670,7 @@ struct cx88_core *cx88_core_create(struct pci_dev *pci, int nr)
+ 	if (!core)
+ 		return NULL;
  
+-	atomic_inc(&core->refcount);
++	refcount_set(&core->refcount, 1);
+ 	core->pci_bus  = pci->bus->number;
+ 	core->pci_slot = PCI_SLOT(pci->devfn);
+ 	core->pci_irqmask = PCI_INT_RISC_RD_BERRINT | PCI_INT_RISC_WR_BERRINT |
+diff --git a/drivers/media/pci/cx88/cx88-core.c b/drivers/media/pci/cx88/cx88-core.c
+index 973a9cd4..8bfa5b7 100644
+--- a/drivers/media/pci/cx88/cx88-core.c
++++ b/drivers/media/pci/cx88/cx88-core.c
+@@ -1052,7 +1052,7 @@ struct cx88_core *cx88_core_get(struct pci_dev *pci)
+ 			mutex_unlock(&devlist);
+ 			return NULL;
+ 		}
+-		atomic_inc(&core->refcount);
++		refcount_inc(&core->refcount);
+ 		mutex_unlock(&devlist);
+ 		return core;
+ 	}
+@@ -1073,7 +1073,7 @@ void cx88_core_put(struct cx88_core *core, struct pci_dev *pci)
+ 	release_mem_region(pci_resource_start(pci, 0),
+ 			   pci_resource_len(pci, 0));
  
-+Interactions between formats, controls and buffers
-+==================================================
-+
-+V4L2 exposes parameters that influence the buffer size, or the way data is
-+laid out in the buffer. Those parameters are exposed through both formats and
-+controls. One example of such a control is the ``V4L2_CID_ROTATE`` control
-+that modifies the direction in which pixels are stored in the buffer, as well
-+as the buffer size when the selected format includes padding at the end of
-+lines.
-+
-+The set of information needed to interpret the content of a buffer (e.g. the
-+pixel format, the line stride, the tiling orientation or the rotation) is
-+collectively referred to in the rest of this section as the buffer layout.
-+
-+Modifying formats or controls that influence the buffer size or layout require
-+the stream to be stopped. Any attempt at such a modification while the stream
-+is active shall cause the format or control set ioctl to return the ``EBUSY``
-+error code.
-+
-+Controls that only influence the buffer layout can be modified at any time
-+when the stream is stopped. As they don't influence the buffer size, no
-+special handling is needed to synchronize those controls with buffer
-+allocation.
-+
-+Formats and controls that influence the buffer size interact with buffer
-+allocation. As buffer allocation is an expensive operation, drivers should
-+allow format or controls that influence the buffer size to be changed with
-+buffers allocated. A typical ioctl sequence to modify format and controls is
-+
-+ #. VIDIOC_STREAMOFF
-+ #. VIDIOC_S_EXT_CTRLS
-+ #. VIDIOC_S_FMT
-+ #. VIDIOC_QBUF
-+ #. VIDIOC_STREAMON
-+
-+.. note::
-+
-+   The API doesn't mandate the above order for control (2.) and format (3.)
-+   changes. Format and controls can be set in a different order, or even
-+   interleaved, depending on the device and use case. For instance some
-+   controls might behave differently for different pixel formats, in which
-+   case the format might need to be set first.
-+
-+Queued buffers must be large enough for the new format or controls.
-+
-+Drivers shall return a ``ENOSPC`` error in response to format change
-+(:c:func:`VIDIOC_S_FMT`) or control changes (:c:func:`VIDIOC_S_CTRL` or
-+:c:func:`VIDIOC_S_EXT_CTRLS`) if buffers too small for the new format are
-+currently queued. As a simplification, drivers are allowed to return an error
-+from these ioctls if any buffer is currently queued, without checking the
-+queued buffers sizes.
-+
-+.. note::
-+
-+   The :c:func:`VIDIOC_S_SELECTION` ioctl can, depending on the hardware (for
-+   instance if the device doesn't include a scaler), modify the format in
-+   addition to the selection rectangle. Similarly, the
-+   :c:func:`VIDIOC_S_INPUT`, :c:func:`VIDIOC_S_OUTPUT`, :c:func:`VIDIOC_S_STD`
-+   and :c:func:`VIDIOC_S_DV_TIMINGS` ioctls can also modify the format and
-+   selection rectangles. Driver shall return the same ``ENOSPC`` error from
-+   all ioctls that would result in formats too large for queued buffers.
-+
-+Drivers shall also return a ``ENOSPC`` error from the :c:func:`VIDIOC_QBUF`
-+ioctl if the buffer being queued is too small for the current format or
-+controls. Together, these requirements ensure that queued buffers will always
-+be large enough for the configured format and controls.
-+
-+Userspace applications can query the buffer size required for a given format
-+and controls by first setting the desired control values and then trying the
-+desired format. The :c:func:`VIDIOC_TRY_FMT` ioctl will return the required
-+buffer size.
-+
-+ #. VIDIOC_S_EXT_CTRLS(x)
-+ #. VIDIOC_TRY_FMT()
-+ #. VIDIOC_S_EXT_CTRLS(y)
-+ #. VIDIOC_TRY_FMT()
-+
-+The :c:func:`VIDIOC_CREATE_BUFS` ioctl can then be used to allocate buffers
-+based on the queried sizes (for instance by allocating a set of buffers large
-+enough for all the desired formats and controls, or by allocating separate set
-+of appropriately sized buffers for each use case).
-+
-+To simplify their implementation, drivers may also require buffers to be
-+reallocated in order to change formats or controls that influence the buffer
-+size. In that case, to perform such changes, userspace applications shall
-+first stop the video stream with the :c:func:`VIDIOC_STREAMOFF` ioctl if it
-+is running and free all buffers with the :c:func:`VIDIOC_REQBUFS` ioctl if
-+they are allocated. The format or controls can then be modified, and buffers
-+shall then be reallocated and the stream restarted. A typical ioctl sequence
-+is
-+
-+ #. VIDIOC_STREAMOFF
-+ #. VIDIOC_REQBUFS(0)
-+ #. VIDIOC_S_EXT_CTRLS
-+ #. VIDIOC_S_FMT
-+ #. VIDIOC_REQBUFS(n)
-+ #. VIDIOC_QBUF
-+ #. VIDIOC_STREAMON
-+
-+The second :c:func:`VIDIOC_REQBUFS` call will take the new format and control
-+value into account to compute the buffer size to allocate. Applications can
-+also retrieve the size by calling the :c:func:`VIDIOC_G_FMT` ioctl if needed.
-+
-+When reallocation is required, any attempt to modify format or controls that
-+influences the buffer size while buffers are allocated shall cause the format
-+or control set ioctl to return the ``EBUSY`` error code.
-+
-+
- .. c:type:: v4l2_buffer
+-	if (!atomic_dec_and_test(&core->refcount))
++	if (!refcount_dec_and_test(&core->refcount))
+ 		return;
  
- struct v4l2_buffer
+ 	mutex_lock(&devlist);
+diff --git a/drivers/media/pci/cx88/cx88.h b/drivers/media/pci/cx88/cx88.h
+index 115414c..16c1313 100644
+--- a/drivers/media/pci/cx88/cx88.h
++++ b/drivers/media/pci/cx88/cx88.h
+@@ -24,6 +24,7 @@
+ #include <linux/i2c-algo-bit.h>
+ #include <linux/videodev2.h>
+ #include <linux/kdev_t.h>
++#include <linux/refcount.h>
+ 
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-fh.h>
+@@ -339,7 +340,7 @@ struct cx8802_dev;
+ 
+ struct cx88_core {
+ 	struct list_head           devlist;
+-	atomic_t                   refcount;
++	refcount_t                   refcount;
+ 
+ 	/* board name */
+ 	int                        nr;
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
