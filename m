@@ -1,128 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:36219 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751141AbdCMTUo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 15:20:44 -0400
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [RFC 00/10] V4L2 explicit synchronization support
-Date: Mon, 13 Mar 2017 16:20:25 -0300
-Message-Id: <20170313192035.29859-1-gustavo@padovan.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:34493 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752789AbdCFNnT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 08:43:19 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: Laura Abbott <labbott@redhat.com>, dri-devel@lists.freedesktop.org,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com,
+        devel@driverdev.osuosl.org, romlem@google.com,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-kernel@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+        linux-mm@kvack.org, Mark Brown <broonie@kernel.org>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 10/12] staging: android: ion: Use CMA APIs directly
+Date: Mon, 06 Mar 2017 15:43:53 +0200
+Message-ID: <6709093.jyTQHIiK7d@avalon>
+In-Reply-To: <20170306103204.d3yf6woxpsqvdakp@phenom.ffwll.local>
+References: <1488491084-17252-1-git-send-email-labbott@redhat.com> <0541f57b-4060-ea10-7173-26ae77777518@redhat.com> <20170306103204.d3yf6woxpsqvdakp@phenom.ffwll.local>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+Hi Daniel,
 
-Hi,
+On Monday 06 Mar 2017 11:32:04 Daniel Vetter wrote:
+> On Fri, Mar 03, 2017 at 10:50:20AM -0800, Laura Abbott wrote:
+> > On 03/03/2017 08:41 AM, Laurent Pinchart wrote:
+> >> On Thursday 02 Mar 2017 13:44:42 Laura Abbott wrote:
+> >>> When CMA was first introduced, its primary use was for DMA allocation
+> >>> and the only way to get CMA memory was to call dma_alloc_coherent. This
+> >>> put Ion in an awkward position since there was no device structure
+> >>> readily available and setting one up messed up the coherency model.
+> >>> These days, CMA can be allocated directly from the APIs. Switch to
+> >>> using this model to avoid needing a dummy device. This also avoids
+> >>> awkward caching questions.
+> >> 
+> >> If the DMA mapping API isn't suitable for today's requirements anymore,
+> >> I believe that's what needs to be fixed, instead of working around the
+> >> problem by introducing another use-case-specific API.
+> > 
+> > I don't think this is a usecase specific API. CMA has been decoupled from
+> > DMA already because it's used in other places. The trying to go through
+> > DMA was just another layer of abstraction, especially since there isn't
+> > a device available for allocation.
+> 
+> Also, we've had separation of allocation and dma-mapping since forever,
+> that's how it works almost everywhere. Not exactly sure why/how arm-soc
+> ecosystem ended up focused so much on dma_alloc_coherent.
 
-This RFC adds support for Explicit Synchronization of shared buffers in V4L2.
-It uses the Sync File Framework[1] as vector to communicate the fences
-between kernel and userspace.
+I believe because that was the easy way to specify memory constraints. The API 
+receives a device pointer and will allocate memory suitable for DMA for that 
+device. The fact that it maps it to the device is a side-effect in my opinion.
 
-I'm sending this to start the discussion on the best approach to implement
-Explicit Synchronization, please check the TODO/OPEN section below.
+> I think separating allocation from dma mapping/coherency is perfectly
+> fine, and the way to go.
 
-Explicit Synchronization allows us to control the synchronization of
-shared buffers from userspace by passing fences to the kernel and/or 
-receiving them from the the kernel.
+Especially given that in many cases we'll want to share buffers between 
+multiple devices, so we'll need to map them multiple times.
 
-Fences passed to the kernel are named in-fences and the kernel should wait
-them to signal before using the buffer. On the other side, the kernel creates
-out-fences for every buffer it receives from userspace. This fence is sent back
-to userspace and it will signal when the capture, for example, has finished.
-
-Signalling an out-fence in V4L2 would mean that the job on the buffer is done
-and the buffer can be used by other drivers.
-
-Current RFC implementation
---------------------------
-
-The current implementation is not intended to be more than a PoC to start
-the discussion on how Explicit Synchronization should be supported in V4L2.
-
-The first patch proposes an userspace API for fences, then on patch 2
-we prepare to the addition of in-fences in patch 3, by introducing the
-infrastructure on vb2 to wait on an in-fence signal before queueing the buffer
-in the driver.
-
-Patch 4 fix uvc v4l2 event handling and patch 5 configure q->dev for vivid
-drivers to enable to subscribe and dequeue events on it.
-
-Patches 6-7 enables support to notify BUF_QUEUED events, i.e., let userspace
-know that particular buffer was enqueued in the driver. This is needed,
-because we return the out-fence fd as an out argument in QBUF, but at the time
-it returns we don't know to which buffer the fence will be attached thus
-the BUF_QUEUED event tells which buffer is associated to the fence received in
-QBUF by userspace.
-
-Patches 8 and 9 add more fence infrastructure to support out-fences and finally
-patch 10 adds support to out-fences.
-
-TODO/OPEN:
-----------
-
-* For this first implementation we will keep the ordering of the buffers queued
-in videobuf2, that means we will only enqueue buffer whose fence was signalled
-if that buffer is the first one in the queue. Otherwise it has to wait until it
-is the first one. This is not implmented yet. Later we could create a flag to
-allow unordered queing in the drivers from vb2 if needed.
-
-* Should we have out-fences per-buffer or per-plane? or both? In this RFC, for
-simplicity they are per-buffer, but Mauro and Javier raised the option of
-doing per-plane fences. That could benefit mem2mem and V4L2 <-> GPU operation
-at least on cases when we have Capture hw that releases the Y frame before the
-other frames for example. When using V4L2 per-plane out-fences to communicate
-with KMS they would need to be merged together as currently the DRM Plane
-interface only supports one fence per DRM Plane.
-
-In-fences should be per-buffer as the DRM only has per-buffer fences, but
-in case of mem2mem operations per-plane fences might be useful?
-
-So should we have both ways, per-plane and per-buffer, or just one of them
-for now?
-
-* other open topics are how to deal with hw-fences and Request API.
-
-Comments are welcome!
-
-Regards,
-
-Gustavo
-
----
-Gustavo Padovan (9):
-  [media] vb2: add explicit fence user API
-  [media] vb2: split out queueing from vb_core_qbuf()
-  [media] vb2: add in-fence support to QBUF
-  [media] uvc: enable subscriptions to other events
-  [media] vivid: assign the specific device to the vb2_queue->dev
-  [media] v4l: add V4L2_EVENT_BUF_QUEUED event
-  [media] v4l: add support to BUF_QUEUED event
-  [media] vb2: add infrastructure to support out-fences
-  [media] vb2: add out-fence support to QBUF
-
-Javier Martinez Canillas (1):
-  [media] vb2: add videobuf2 dma-buf fence helpers
-
- drivers/media/Kconfig                         |   1 +
- drivers/media/platform/vivid/vivid-core.c     |  10 +-
- drivers/media/usb/uvc/uvc_v4l2.c              |   2 +-
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c |   4 +-
- drivers/media/v4l2-core/v4l2-ctrls.c          |   6 +-
- drivers/media/v4l2-core/videobuf2-core.c      | 139 ++++++++++++++++++++------
- drivers/media/v4l2-core/videobuf2-v4l2.c      |  29 +++++-
- include/media/videobuf2-core.h                |  12 ++-
- include/media/videobuf2-fence.h               |  49 +++++++++
- include/uapi/linux/videodev2.h                |  12 ++-
- 10 files changed, 218 insertions(+), 46 deletions(-)
- create mode 100644 include/media/videobuf2-fence.h
+My point still stands though, if we want to move towards a model where 
+allocation and mapping are decoupled, we need an allocation function that 
+takes constraints (possibly implemented with two layers, a constraint 
+resolution layer on top of a pool/heap/type/foo-based allocator), and a 
+mapping API. IOMMU handling being integrated in the DMA mapping API we're 
+currently stuck with it, which might call for brushing up that API.
 
 -- 
-2.9.3
+Regards,
+
+Laurent Pinchart
