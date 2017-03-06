@@ -1,152 +1,269 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52475 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:33651 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752461AbdC0Ivs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 04:51:48 -0400
+        with ESMTP id S1753189AbdCFKfO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 05:35:14 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] platform: Order the Makefile alphabetically
-Date: Mon, 27 Mar 2017 11:52:22 +0300
-Message-ID: <2129103.u6xb89SF4K@avalon>
-In-Reply-To: <20170307133928.24527-1-maxime.ripard@free-electrons.com>
-References: <20170307133928.24527-1-maxime.ripard@free-electrons.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v2.2] v4l: Clearly document interactions between formats, controls and buffers
+Date: Mon, 06 Mar 2017 12:35:48 +0200
+Message-ID: <2151087.6KcNijWoxt@avalon>
+In-Reply-To: <9367496e-2dfd-afd0-3baa-7decce0b93a5@xs4all.nl>
+References: <20170305143936.11257-1-laurent.pinchart+renesas@ideasonboard.com> <20170305213610.3893-1-laurent.pinchart+renesas@ideasonboard.com> <9367496e-2dfd-afd0-3baa-7decce0b93a5@xs4all.nl>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime,
+Hi Hans,
 
-Thank you for the patch.
-
-On Tuesday 07 Mar 2017 14:39:28 Maxime Ripard wrote:
-> The Makefile was a free for all without a clear order defined. Sort all the
-> options based on the Kconfig symbol.
-
-I've been annoyed in the past by not knowing where to put entries for new 
-drivers. I think this is a good improvement.
-
-> Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/media/platform/Makefile | 89 ++++++++++++-------------------------
->  1 file changed, 31 insertions(+), 58 deletions(-)
+On Monday 06 Mar 2017 11:04:50 Hans Verkuil wrote:
+> On 05/03/17 22:36, Laurent Pinchart wrote:
+> > V4L2 exposes parameters that influence buffers sizes through the format
+> > ioctls (VIDIOC_G_FMT, VIDIOC_TRY_FMT, VIDIOC_S_FMT, and possibly
+> > VIDIOC_G_SELECTION and VIDIOC_S_SELECTION). Other parameters not part of
+> > the format structure may also influence buffer sizes or buffer layout in
+> > general. One existing such parameter is rotation, which is implemented
+> > by the V4L2_CID_ROTATE control and thus exposed through the V4L2 control
+> > ioctls.
+> > 
+> > The interaction between those parameters and buffers is currently only
+> > partially specified by the V4L2 API. In particular interactions between
+> > controls and buffers isn't specified at all. The behaviour of the
+> > VIDIOC_S_FMT and VIDIOC_S_SELECTION ioctls when buffers are allocated is
+> > also not fully specified.
+> > 
+> > This patch clearly defines and documents the interactions between
+> > formats, selections, controls and buffers.
+> > 
+> > The preparatory discussions for the documentation change considered
+> > completely disallowing controls that change the buffer size or layout,
+> > in favour of extending the format API with a new ioctl that would bundle
+> > those controls with format information. The idea has been rejected, as
+> > this would essentially be a restricted version of the upcoming request
+> > API that wouldn't bring any additional value.
+> > 
+> > Another option we have considered was to mandate the use of the request
+> > API to modify controls that influence buffer size or layout. This has
+> > also been rejected on the grounds that requiring the request API to
+> > change rotation even when streaming is stopped would significantly
+> > complicate implementation of drivers and usage of the V4L2 API for
+> > applications.
+> > 
+> > Applications will however be required to use the upcoming request API to
+> > change at runtime formats or controls that influence the buffer size or
+> > layout, because of the need to synchronize buffers with the formats and
+> > controls. Otherwise there would be no way to interpret the content of a
+> > buffer correctly.
+> > 
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+> > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> > Changes since v2.1:
+> > 
+> > - Fixed small issues in commit message
+> > - Simplified wording of one sentence in the documentation
+> > 
+> > Changes since v2:
+> > 
+> > - Document the interaction with ioctls that can affect formats
+> >   (VIDIOC_S_SELECTION, VIDIOC_S_INPUT, VIDIOC_S_OUTPUT, VIDIOC_S_STD and
+> >   VIDIOC_S_DV_TIMINGS)
+> > - Clarify the format/control change order
+> > ---
+> > 
+> >  Documentation/media/uapi/v4l/buffer.rst | 108 +++++++++++++++++++++++++++
+> >  1 file changed, 108 insertions(+)
+> > 
+> > diff --git a/Documentation/media/uapi/v4l/buffer.rst
+> > b/Documentation/media/uapi/v4l/buffer.rst index
+> > ac58966ccb9b..60d62a5824f8 100644
+> > --- a/Documentation/media/uapi/v4l/buffer.rst
+> > +++ b/Documentation/media/uapi/v4l/buffer.rst
+> > @@ -34,6 +34,114 @@ flags are copied from the OUTPUT video buffer to the
+> > CAPTURE video> 
+> >  buffer.
+> > 
+> > +Interactions between formats, controls and buffers
+> > +==================================================
+> > +
+> > +V4L2 exposes parameters that influence the buffer size, or the way data
+> > is +laid out in the buffer. Those parameters are exposed through both
+> > formats and +controls. One example of such a control is the
+> > ``V4L2_CID_ROTATE`` control +that modifies the direction in which pixels
+> > are stored in the buffer, as well +as the buffer size when the selected
+> > format includes padding at the end of +lines.
+> > +
+> > +The set of information needed to interpret the content of a buffer (e.g.
+> > the +pixel format, the line stride, the tiling orientation or the
+> > rotation) is +collectively referred to in the rest of this section as the
+> > buffer layout.
+> > +
+> > +Modifying formats or controls that influence the buffer size or layout
+> > require +the stream to be stopped. Any attempt at such a modification
+> > while the stream +is active shall cause the ioctl setting the format or
+> > the control to return +the ``EBUSY`` error code.
 > 
-> diff --git a/drivers/media/platform/Makefile
-> b/drivers/media/platform/Makefile index 349ddf6a69da..bd5dc3068cbc 100644
-> --- a/drivers/media/platform/Makefile
-> +++ b/drivers/media/platform/Makefile
-> @@ -1,73 +1,46 @@
->  #
->  # Makefile for the video capture/playback device drivers.
->  #
-> +ccflags-y += -I$(srctree)/drivers/media/i2c
+> This is my problem with putting the more complex case first: if you are
+> reading this for the first time then the preceding paragraph is simply
+> *wrong*.
 > 
-> -obj-$(CONFIG_VIDEO_M32R_AR_M64278) += arv.o
-> -
-> -obj-$(CONFIG_VIDEO_VIA_CAMERA) += via-camera.o
-> -obj-$(CONFIG_VIDEO_CAFE_CCIC) += marvell-ccic/
-> -obj-$(CONFIG_VIDEO_MMP_CAMERA) += marvell-ccic/
-> -
-> -obj-$(CONFIG_VIDEO_OMAP3)	+= omap3isp/
-> -obj-$(CONFIG_VIDEO_PXA27x)	+= pxa_camera.o
-> -
-> -obj-$(CONFIG_VIDEO_VIU) += fsl-viu.o
-> -
-> -obj-$(CONFIG_VIDEO_VIVID)		+= vivid/
-> -obj-$(CONFIG_VIDEO_VIM2M)		+= vim2m.o
-> -
-> -obj-$(CONFIG_VIDEO_TI_VPE)		+= ti-vpe/
-> -
-> -obj-$(CONFIG_VIDEO_TI_CAL)		+= ti-vpe/
-> -
-> -obj-$(CONFIG_VIDEO_MX2_EMMAPRP)		+= mx2_emmaprp.o
-> +obj-y					+= omap/
-> +obj-$(CONFIG_ARCH_DAVINCI)		+= davinci/
-> +obj-$(CONFIG_BLACKFIN)                  += blackfin/
-> +obj-$(CONFIG_DVB_C8SECTPFE)		+= sti/c8sectpfe/
-> +obj-$(CONFIG_SOC_CAMERA)		+= soc_camera/
-> +obj-$(CONFIG_VIDEO_AM437X_VPFE)		+= am437x/
-> +obj-$(CONFIG_VIDEO_ATMEL_ISC)		+= atmel/
-> +obj-$(CONFIG_VIDEO_CAFE_CCIC)		+= marvell-ccic/
->  obj-$(CONFIG_VIDEO_CODA) 		+= coda/
-> -
-> -obj-$(CONFIG_VIDEO_SH_VEU)		+= sh_veu.o
-> -
-> +obj-$(CONFIG_VIDEO_M32R_AR_M64278)	+= arv.o
-> +obj-$(CONFIG_VIDEO_MEDIATEK_MDP)	+= mtk-mdp/
-> +obj-$(CONFIG_VIDEO_MEDIATEK_VCODEC)	+= mtk-vcodec/
-> +obj-$(CONFIG_VIDEO_MEDIATEK_VPU)	+= mtk-vpu/
->  obj-$(CONFIG_VIDEO_MEM2MEM_DEINTERLACE)	+= m2m-deinterlace.o
-> -
-> +obj-$(CONFIG_VIDEO_MMP_CAMERA)		+= marvell-ccic/
-> +obj-$(CONFIG_VIDEO_MX2_EMMAPRP)		+= mx2_emmaprp.o
-> +obj-$(CONFIG_VIDEO_OMAP3)		+= omap3isp/
-> +obj-$(CONFIG_VIDEO_PXA27x)		+= pxa_camera.o
-> +obj-$(CONFIG_VIDEO_RCAR_VIN)		+= rcar-vin/
-> +obj-$(CONFIG_VIDEO_RENESAS_FCP) 	+= rcar-fcp.o
-> +obj-$(CONFIG_VIDEO_RENESAS_FDP1)	+= rcar_fdp1.o
-> +obj-$(CONFIG_VIDEO_RENESAS_JPU) 	+= rcar_jpu.o
-> +obj-$(CONFIG_VIDEO_RENESAS_VSP1)	+= vsp1/
->  obj-$(CONFIG_VIDEO_S3C_CAMIF) 		+= s3c-camif/
->  obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS4_IS) 	+= exynos4-is/
->  obj-$(CONFIG_VIDEO_SAMSUNG_S5P_JPEG)	+= s5p-jpeg/
->  obj-$(CONFIG_VIDEO_SAMSUNG_S5P_MFC)	+= s5p-mfc/
-> -
->  obj-$(CONFIG_VIDEO_SAMSUNG_S5P_G2D)	+= s5p-g2d/
->  obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC)	+= exynos-gsc/
-> -
-> +obj-$(CONFIG_VIDEO_SH_VEU)		+= sh_veu.o
-> +obj-$(CONFIG_VIDEO_SH_VOU)		+= sh_vou.o
->  obj-$(CONFIG_VIDEO_STI_BDISP)		+= sti/bdisp/
-> -obj-$(CONFIG_VIDEO_STI_HVA)		+= sti/hva/
-> -obj-$(CONFIG_DVB_C8SECTPFE)		+= sti/c8sectpfe/
-> -
->  obj-$(CONFIG_VIDEO_STI_DELTA)		+= sti/delta/
-> -
-> -obj-$(CONFIG_BLACKFIN)                  += blackfin/
-> -
-> -obj-$(CONFIG_ARCH_DAVINCI)		+= davinci/
-> -
-> -obj-$(CONFIG_VIDEO_SH_VOU)		+= sh_vou.o
-> -
-> -obj-$(CONFIG_SOC_CAMERA)		+= soc_camera/
-> -
-> -obj-$(CONFIG_VIDEO_RENESAS_FCP) 	+= rcar-fcp.o
-> -obj-$(CONFIG_VIDEO_RENESAS_FDP1)	+= rcar_fdp1.o
-> -obj-$(CONFIG_VIDEO_RENESAS_JPU) 	+= rcar_jpu.o
-> -obj-$(CONFIG_VIDEO_RENESAS_VSP1)	+= vsp1/
-> -
-> -obj-y	+= omap/
-> -
-> -obj-$(CONFIG_VIDEO_AM437X_VPFE)		+= am437x/
-> -
-> +obj-$(CONFIG_VIDEO_STI_HVA)		+= sti/hva/
-> +obj-$(CONFIG_VIDEO_TI_CAL)		+= ti-vpe/
-> +obj-$(CONFIG_VIDEO_TI_VPE)		+= ti-vpe/
-> +obj-$(CONFIG_VIDEO_VIA_CAMERA)		+= via-camera.o
-> +obj-$(CONFIG_VIDEO_VIM2M)		+= vim2m.o
-> +obj-$(CONFIG_VIDEO_VIU)			+= fsl-viu.o
-> +obj-$(CONFIG_VIDEO_VIVID)		+= vivid/
->  obj-$(CONFIG_VIDEO_XILINX)		+= xilinx/
-> -
-> -obj-$(CONFIG_VIDEO_RCAR_VIN)		+= rcar-vin/
-> -
-> -obj-$(CONFIG_VIDEO_ATMEL_ISC)		+= atmel/
-> -
-> -ccflags-y += -I$(srctree)/drivers/media/i2c
-> -
-> -obj-$(CONFIG_VIDEO_MEDIATEK_VPU)	+= mtk-vpu/
-> -
-> -obj-$(CONFIG_VIDEO_MEDIATEK_VCODEC)	+= mtk-vcodec/
-> -
-> -obj-$(CONFIG_VIDEO_MEDIATEK_MDP)	+= mtk-mdp/
+> You cannot modify the buffer size when the stream is stopped. You need to
+> free all buffers first before you can do that.
+
+That's driver-dependent. If I reverse the order to start with the more 
+restricted case, it will also be wrong for drivers that implement the other 
+case. I'm running out of time so I'll change this though. We can always 
+reorder the paragraphs later when we will have more drivers implementing the 
+more powerful case.
+
+> Unless the driver has been especially written to allow that. And I am not
+> aware of any.
+> 
+> > +
+> > +Controls that only influence the buffer layout can be modified at any
+> > time
+> > +when the stream is stopped. As they don't influence the buffer size, no
+> > +special handling is needed to synchronize those controls with buffer
+> > +allocation.
+> > +
+> > +Formats and controls that influence the buffer size interact with buffer
+> > +allocation. As buffer allocation is an expensive operation, drivers
+> > should
+> > +allow format or controls that influence the buffer size to be changed
+> > with
+> > +buffers allocated. A typical ioctl sequence to modify format and controls
+> > is +
+> > + #. VIDIOC_STREAMOFF
+> > + #. VIDIOC_S_EXT_CTRLS
+> > + #. VIDIOC_S_FMT
+> > + #. VIDIOC_QBUF
+> > + #. VIDIOC_STREAMON
+> > +
+> > +.. note::
+> > +
+> > +   The API doesn't mandate the above order for control (2.) and format
+> > (3.) +   changes. Format and controls can be set in a different order, or
+> > even +   interleaved, depending on the device and use case. For instance
+> > some +   controls might behave differently for different pixel formats,
+> > in which +   case the format might need to be set first.
+> > +
+> > +Queued buffers must be large enough for the new format or controls.
+> > +
+> > +Drivers shall return a ``ENOSPC`` error in response to format change
+> > +(:c:func:`VIDIOC_S_FMT`) or control changes (:c:func:`VIDIOC_S_CTRL` or
+> > +:c:func:`VIDIOC_S_EXT_CTRLS`) if buffers too small for the new format are
+> > +currently queued. As a simplification, drivers are allowed to return an
+> > error
+> s/an error/``EBUSY``/
+> 
+> > +from these ioctls if any buffer is currently queued, without checking the
+> > +queued buffers sizes.
+> 
+> Again, swap the order: simple case first, more complex case next.
+> 
+> > +
+> > +.. note::
+> > +
+> > +   The :c:func:`VIDIOC_S_SELECTION` ioctl can, depending on the hardware
+> > (for +   instance if the device doesn't include a scaler), modify the
+> > format in +   addition to the selection rectangle. Similarly, the
+> > +   :c:func:`VIDIOC_S_INPUT`, :c:func:`VIDIOC_S_OUTPUT`,
+> > :c:func:`VIDIOC_S_STD` +   and :c:func:`VIDIOC_S_DV_TIMINGS` ioctls can
+> > also modify the format and +   selection rectangles. Driver shall return
+> > the same ``ENOSPC`` error from +   all ioctls that would result in
+> > formats too large for queued buffers.
+> This will return EBUSY for the 'simple' drivers, and ENOSPC for the complex
+> ones. Should be mentioned clearly to avoid confusion.
+> 
+> > +
+> > +Drivers shall also return a ``ENOSPC`` error from the
+> > :c:func:`VIDIOC_QBUF` +ioctl if the buffer being queued is too small for
+> > the current format or +controls. Together, these requirements ensure that
+> > queued buffers will always +be large enough for the configured format and
+> > controls.
+> 
+> NACK: it's EINVAL as returned by the buf_prepare() callbacks. Yes, I agree
+> that ENOSPC would have been more appropriate, but I do not believe we can
+> change this without breaking ABI. I also do not think this is all that
+> important. Feel free to blame this on lack for foresight :-)
+
+That's driver-dependent though, but I agree that due to cargo-cult programming 
+most probably return -EINVAL today. Most, because I'm pretty sure we have 
+drivers that don't check that condition, resulting in potential DMA buffer 
+overflows. It might make sense to move the check to videobuf2-v4l2.c (but 
+that's unrelated to this patch).
+
+We should have used -ENOSPC, and I believe that switching to -ENOSPC now 
+wouldn't result in any breakage. Can you think of any application that would 
+queue a too small buffer, match the error code against -EINVAL, and have a 
+strategy to recover ? Queuing a too small buffer is an application but in the 
+first place, I don't think application developers will have gone through the 
+trouble of implementing a way to recover from their own bug instead of fixing 
+them :-)
+
+Would it be OK with you to document that -ENOSPC is the recommended error 
+code, but that some drivers currently return -EINVAL ?
+
+> > +Userspace applications can query the buffer size required for a given
+> > format +and controls by first setting the desired control values and then
+> > trying the +desired format. The :c:func:`VIDIOC_TRY_FMT` ioctl will
+> > return the required +buffer size.
+> > +
+> > + #. VIDIOC_S_EXT_CTRLS(x)
+> > + #. VIDIOC_TRY_FMT()
+> > + #. VIDIOC_S_EXT_CTRLS(y)
+> > + #. VIDIOC_TRY_FMT()
+> > +
+> > +The :c:func:`VIDIOC_CREATE_BUFS` ioctl can then be used to allocate
+> > buffers +based on the queried sizes (for instance by allocating a set of
+> > buffers large +enough for all the desired formats and controls, or by
+> > allocating separate set +of appropriately sized buffers for each use
+> > case).
+> > +
+> > +To simplify their implementation, drivers may also require buffers to be
+> > +reallocated in order to change formats or controls that influence the
+> > buffer +size. In that case, to perform such changes, userspace
+> > applications shall +first stop the video stream with the
+> > :c:func:`VIDIOC_STREAMOFF` ioctl if it +is running and free all buffers
+> > with the :c:func:`VIDIOC_REQBUFS` ioctl if +they are allocated. The
+> > format or controls can then be modified, and buffers +shall then be
+> > reallocated and the stream restarted. A typical ioctl sequence +is
+> > +
+> > + #. VIDIOC_STREAMOFF
+> > + #. VIDIOC_REQBUFS(0)
+> > + #. VIDIOC_S_EXT_CTRLS
+> > + #. VIDIOC_S_FMT
+> > + #. VIDIOC_REQBUFS(n)
+> > + #. VIDIOC_QBUF
+> > + #. VIDIOC_STREAMON
+> > +
+> > +The second :c:func:`VIDIOC_REQBUFS` call will take the new format and
+> > control +value into account to compute the buffer size to allocate.
+> > Applications can +also retrieve the size by calling the
+> > :c:func:`VIDIOC_G_FMT` ioctl if needed. +
+> > +When reallocation is required, any attempt to modify format or controls
+> > that +influences the buffer size while buffers are allocated shall cause
+> > the format +or control set ioctl to return the ``EBUSY`` error code.
+> > +
+> > +
+> > 
+> >  .. c:type:: v4l2_buffer
+> >  
+> >  struct v4l2_buffer
+> 
+> The order really has to be changed: first explain the 99%, then continue
+> with the more complex case. It's not the text itself, it's the order in
+> which this is presented. I won't accept it in this order as it will be
+> terminally confusing for most readers. Sorry.
+
 
 -- 
 Regards,
