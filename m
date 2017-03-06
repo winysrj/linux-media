@@ -1,108 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:37404 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751412AbdCNTGg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Mar 2017 15:06:36 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v3 06/27] rcar-vin: move max width and height information to chip information
-Date: Tue, 14 Mar 2017 20:02:47 +0100
-Message-Id: <20170314190308.25790-7-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mga14.intel.com ([192.55.52.115]:37943 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752768AbdCFOZj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Mar 2017 09:25:39 -0500
+From: Elena Reshetova <elena.reshetova@intel.com>
+To: gregkh@linuxfoundation.org
+Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org,
+        netdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
+        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-usb@vger.kernel.org, peterz@infradead.org,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        Hans Liljestrand <ishkamiel@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        David Windsor <dwindsor@gmail.com>
+Subject: [PATCH 08/29] drivers, md: convert mddev.active from atomic_t to refcount_t
+Date: Mon,  6 Mar 2017 16:20:55 +0200
+Message-Id: <1488810076-3754-9-git-send-email-elena.reshetova@intel.com>
+In-Reply-To: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Gen3 the max supported width and height will be different from Gen2.
-Move the limits to the struct chip_info to prepare for Gen3 support.
+refcount_t type and corresponding API should be
+used instead of atomic_t when the variable is used as
+a reference counter. This allows to avoid accidental
+refcounter overflows that might lead to use-after-free
+situations.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
+Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: David Windsor <dwindsor@gmail.com>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 6 ++++++
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 6 ++----
- drivers/media/platform/rcar-vin/rcar-vin.h  | 6 ++++++
- 3 files changed, 14 insertions(+), 4 deletions(-)
+ drivers/md/md.c | 6 +++---
+ drivers/md/md.h | 3 ++-
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index ec1eb723d401fda2..998617711f1ad045 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -257,14 +257,20 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+diff --git a/drivers/md/md.c b/drivers/md/md.c
+index 985374f..94c8ebf 100644
+--- a/drivers/md/md.c
++++ b/drivers/md/md.c
+@@ -449,7 +449,7 @@ EXPORT_SYMBOL(md_unplug);
  
- static const struct rvin_info rcar_info_h1 = {
- 	.chip = RCAR_H1,
-+	.max_width = 2048,
-+	.max_height = 2048,
- };
+ static inline struct mddev *mddev_get(struct mddev *mddev)
+ {
+-	atomic_inc(&mddev->active);
++	refcount_inc(&mddev->active);
+ 	return mddev;
+ }
  
- static const struct rvin_info rcar_info_m1 = {
- 	.chip = RCAR_M1,
-+	.max_width = 2048,
-+	.max_height = 2048,
- };
+@@ -459,7 +459,7 @@ static void mddev_put(struct mddev *mddev)
+ {
+ 	struct bio_set *bs = NULL;
  
- static const struct rvin_info rcar_info_gen2 = {
- 	.chip = RCAR_GEN2,
-+	.max_width = 2048,
-+	.max_height = 2048,
- };
+-	if (!atomic_dec_and_lock(&mddev->active, &all_mddevs_lock))
++	if (!refcount_dec_and_lock(&mddev->active, &all_mddevs_lock))
+ 		return;
+ 	if (!mddev->raid_disks && list_empty(&mddev->disks) &&
+ 	    mddev->ctime == 0 && !mddev->hold_active) {
+@@ -495,7 +495,7 @@ void mddev_init(struct mddev *mddev)
+ 	INIT_LIST_HEAD(&mddev->all_mddevs);
+ 	setup_timer(&mddev->safemode_timer, md_safemode_timeout,
+ 		    (unsigned long) mddev);
+-	atomic_set(&mddev->active, 1);
++	refcount_set(&mddev->active, 1);
+ 	atomic_set(&mddev->openers, 0);
+ 	atomic_set(&mddev->active_io, 0);
+ 	spin_lock_init(&mddev->lock);
+diff --git a/drivers/md/md.h b/drivers/md/md.h
+index b8859cb..4811663 100644
+--- a/drivers/md/md.h
++++ b/drivers/md/md.h
+@@ -22,6 +22,7 @@
+ #include <linux/list.h>
+ #include <linux/mm.h>
+ #include <linux/mutex.h>
++#include <linux/refcount.h>
+ #include <linux/timer.h>
+ #include <linux/wait.h>
+ #include <linux/workqueue.h>
+@@ -360,7 +361,7 @@ struct mddev {
+ 	 */
+ 	struct mutex			open_mutex;
+ 	struct mutex			reconfig_mutex;
+-	atomic_t			active;		/* general refcount */
++	refcount_t			active;		/* general refcount */
+ 	atomic_t			openers;	/* number of active opens */
  
- static const struct of_device_id rvin_of_id_table[] = {
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 7deca15d22b4d6e3..1b364f359ff4b5ed 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -23,8 +23,6 @@
- #include "rcar-vin.h"
- 
- #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
--#define RVIN_MAX_WIDTH		2048
--#define RVIN_MAX_HEIGHT		2048
- 
- /* -----------------------------------------------------------------------------
-  * Format Conversions
-@@ -264,8 +262,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
- 
- 	/* Limit to VIN capabilities */
--	v4l_bound_align_image(&pix->width, 2, RVIN_MAX_WIDTH, walign,
--			      &pix->height, 4, RVIN_MAX_HEIGHT, 2, 0);
-+	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
-+			      &pix->height, 4, vin->info->max_height, 2, 0);
- 
- 	pix->bytesperline = max_t(u32, pix->bytesperline,
- 				  rvin_format_bytesperline(pix));
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index c07b4a6893440a6a..32d9d130dd6e2e44 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -91,9 +91,15 @@ struct rvin_graph_entity {
- /**
-  * struct rvin_info- Information about the particular VIN implementation
-  * @chip:		type of VIN chip
-+ *
-+ * max_width:		max input width the VIN supports
-+ * max_height:		max input height the VIN supports
-  */
- struct rvin_info {
- 	enum chip_id chip;
-+
-+	unsigned int max_width;
-+	unsigned int max_height;
- };
- 
- /**
+ 	int				changed;	/* True if we might need to
 -- 
-2.12.0
+2.7.4
