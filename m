@@ -1,126 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:41708 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751027AbdCBMlR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 07:41:17 -0500
-Date: Thu, 2 Mar 2017 13:38:48 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCHv2] omap3isp: add support for CSI1 bus
-Message-ID: <20170302123848.GA28230@amd>
-References: <20161228183036.GA13139@amd>
- <10545906.Gxg3yScdu4@avalon>
- <20170215094228.GA8586@amd>
- <2414221.XNA4JCFMRx@avalon>
- <20170302090143.GB27818@amd>
- <20170302101603.GE27818@amd>
- <20170302112401.GF3220@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="Q68bSM7Ycu6FN28Q"
-Content-Disposition: inline
-In-Reply-To: <20170302112401.GF3220@valkosipuli.retiisi.org.uk>
+Received: from mga09.intel.com ([134.134.136.24]:54160 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753162AbdCFOY4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Mar 2017 09:24:56 -0500
+From: Elena Reshetova <elena.reshetova@intel.com>
+To: gregkh@linuxfoundation.org
+Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org,
+        netdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
+        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-usb@vger.kernel.org, peterz@infradead.org,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        Hans Liljestrand <ishkamiel@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        David Windsor <dwindsor@gmail.com>
+Subject: [PATCH 29/29] drivers, xen: convert grant_map.users from atomic_t to refcount_t
+Date: Mon,  6 Mar 2017 16:21:16 +0200
+Message-Id: <1488810076-3754-30-git-send-email-elena.reshetova@intel.com>
+In-Reply-To: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+refcount_t type and corresponding API should be
+used instead of atomic_t when the variable is used as
+a reference counter. This allows to avoid accidental
+refcounter overflows that might lead to use-after-free
+situations.
 
---Q68bSM7Ycu6FN28Q
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
+Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: David Windsor <dwindsor@gmail.com>
+---
+ drivers/xen/gntdev.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-Hi!
-
-> > Ok, how about this one?
-> > omap3isp: add rest of CSI1 support
-> >    =20
-> > CSI1 needs one more bit to be set up. Do just that.
-> >    =20
-> > It is not as straightforward as I'd like, see the comments in the code
-> > for explanation.
-=2E..
-> > +	if (isp->phy_type =3D=3D ISP_PHY_TYPE_3430) {
-> > +		struct media_pad *pad;
-> > +		struct v4l2_subdev *sensor;
-> > +		const struct isp_ccp2_cfg *buscfg;
-> > +
-> > +		pad =3D media_entity_remote_pad(&ccp2->pads[CCP2_PAD_SINK]);
-> > +		sensor =3D media_entity_to_v4l2_subdev(pad->entity);
-> > +		/* Struct isp_bus_cfg has union inside */
-> > +		buscfg =3D &((struct isp_bus_cfg *)sensor->host_priv)->bus.ccp2;
-> > +
-> > +		csiphy_routing_cfg_3430(&isp->isp_csiphy2,
-> > +					ISP_INTERFACE_CCP2B_PHY1,
-> > +					enable, !!buscfg->phy_layer,
-> > +					buscfg->strobe_clk_pol);
->=20
-> You should do this through omap3isp_csiphy_acquire(), and not call
-> csiphy_routing_cfg_3430() directly from here.
-
-Well, unfortunately omap3isp_csiphy_acquire() does have csi2
-assumptions hard-coded :-(.
-
-This will probably fail.
-
-	        rval =3D omap3isp_csi2_reset(phy->csi2);
-	        if (rval < 0)
-		                goto done;
-			=09
-And this will oops:
-
-static int omap3isp_csiphy_config(struct isp_csiphy *phy)
-{
-	struct isp_csi2_device *csi2 =3D phy->csi2;
-        struct isp_pipeline *pipe =3D to_isp_pipeline(&csi2->subdev.entity);
- 	struct isp_bus_cfg *buscfg =3D pipe->external->host_priv;
-
-> > @@ -1137,10 +1159,19 @@ int omap3isp_ccp2_init(struct isp_device *isp)
-> >  	if (isp->revision =3D=3D ISP_REVISION_2_0) {
-> >  		ccp2->vdds_csib =3D devm_regulator_get(isp->dev, "vdds_csib");
-> >  		if (IS_ERR(ccp2->vdds_csib)) {
-> > +			if (PTR_ERR(ccp2->vdds_csib) =3D=3D -EPROBE_DEFER)
-> > +				return -EPROBE_DEFER;
->=20
-> This should go to a separate patch.
-
-Ok, easy enough.
-
-> >  			dev_dbg(isp->dev,
-> >  				"Could not get regulator vdds_csib\n");
-> >  			ccp2->vdds_csib =3D NULL;
-> >  		}
-> > +		/*
-> > +		 * If we set up ccp2->phy here,
-> > +		 * omap3isp_csiphy_acquire() will go ahead and assume
-> > +		 * csi2, dereferencing some null pointers.
-> > +		 *
-> > +		 * ccp2->phy =3D &isp->isp_csiphy2;
->=20
-> That needs to be fixed separately.
-
-See analysis above. Yes, it would be nice to fix it. Can you provide
-some hints how to do that? Maybe even patch to test? :-).
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---Q68bSM7Ycu6FN28Q
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAli4ElgACgkQMOfwapXb+vJtXgCgg1RVzK2DMFwN5q/8J97qgh3H
-elQAmwXsrg0fbnR3toq63FoD93ALKoD9
-=QWPs
------END PGP SIGNATURE-----
-
---Q68bSM7Ycu6FN28Q--
+diff --git a/drivers/xen/gntdev.c b/drivers/xen/gntdev.c
+index 2ef2b61..b183cb2 100644
+--- a/drivers/xen/gntdev.c
++++ b/drivers/xen/gntdev.c
+@@ -35,6 +35,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/slab.h>
+ #include <linux/highmem.h>
++#include <linux/refcount.h>
+ 
+ #include <xen/xen.h>
+ #include <xen/grant_table.h>
+@@ -85,7 +86,7 @@ struct grant_map {
+ 	int index;
+ 	int count;
+ 	int flags;
+-	atomic_t users;
++	refcount_t users;
+ 	struct unmap_notify notify;
+ 	struct ioctl_gntdev_grant_ref *grants;
+ 	struct gnttab_map_grant_ref   *map_ops;
+@@ -165,7 +166,7 @@ static struct grant_map *gntdev_alloc_map(struct gntdev_priv *priv, int count)
+ 
+ 	add->index = 0;
+ 	add->count = count;
+-	atomic_set(&add->users, 1);
++	refcount_set(&add->users, 1);
+ 
+ 	return add;
+ 
+@@ -211,7 +212,7 @@ static void gntdev_put_map(struct gntdev_priv *priv, struct grant_map *map)
+ 	if (!map)
+ 		return;
+ 
+-	if (!atomic_dec_and_test(&map->users))
++	if (!refcount_dec_and_test(&map->users))
+ 		return;
+ 
+ 	atomic_sub(map->count, &pages_mapped);
+@@ -399,7 +400,7 @@ static void gntdev_vma_open(struct vm_area_struct *vma)
+ 	struct grant_map *map = vma->vm_private_data;
+ 
+ 	pr_debug("gntdev_vma_open %p\n", vma);
+-	atomic_inc(&map->users);
++	refcount_inc(&map->users);
+ }
+ 
+ static void gntdev_vma_close(struct vm_area_struct *vma)
+@@ -1003,7 +1004,7 @@ static int gntdev_mmap(struct file *flip, struct vm_area_struct *vma)
+ 		goto unlock_out;
+ 	}
+ 
+-	atomic_inc(&map->users);
++	refcount_inc(&map->users);
+ 
+ 	vma->vm_ops = &gntdev_vmops;
+ 
+-- 
+2.7.4
