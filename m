@@ -1,73 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:36023 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750711AbdCEGsY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 5 Mar 2017 01:48:24 -0500
-Date: Sun, 5 Mar 2017 12:17:21 +0530
-From: simran singhal <singhalsimran0@gmail.com>
-To: mchehab@kernel.org
-Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        outreachy-kernel@googlegroups.com
-Subject: [PATCH] staging: media: Remove unnecessary function and its call
-Message-ID: <20170305064721.GA22548@singhal-Inspiron-5558>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:35481 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753348AbdCFO6v (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Mar 2017 09:58:51 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv3 02/15] ov7670: call v4l2_async_register_subdev
+Date: Mon,  6 Mar 2017 15:56:03 +0100
+Message-Id: <20170306145616.38485-3-hverkuil@xs4all.nl>
+In-Reply-To: <20170306145616.38485-1-hverkuil@xs4all.nl>
+References: <20170306145616.38485-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The function atomisp_set_stop_timeout on being called, simply returns
-back. The function hasn't been mentioned in the TODO and doesn't have
-FIXME code around. Hence, atomisp_set_stop_timeout and its calls have been
-removed.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: simran singhal <singhalsimran0@gmail.com>
+Add v4l2-async support for this driver.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c          | 1 -
- drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat.h       | 1 -
- drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c | 5 -----
- 3 files changed, 7 deletions(-)
+ drivers/media/i2c/ov7670.c | 13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-index e99f7b8..66299dd 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-@@ -1700,7 +1700,6 @@ void atomisp_wdt_work(struct work_struct *work)
- 		}
+diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+index 56cfb5ca9c95..9af8d3b8f848 100644
+--- a/drivers/media/i2c/ov7670.c
++++ b/drivers/media/i2c/ov7670.c
+@@ -1636,10 +1636,9 @@ static int ov7670_probe(struct i2c_client *client,
+ 			V4L2_EXPOSURE_AUTO);
+ 	sd->ctrl_handler = &info->hdl;
+ 	if (info->hdl.error) {
+-		int err = info->hdl.error;
++		ret = info->hdl.error;
+ 
+-		v4l2_ctrl_handler_free(&info->hdl);
+-		return err;
++		goto hdl_free;
  	}
- #endif
--	atomisp_set_stop_timeout(ATOMISP_CSS_STOP_TIMEOUT_US);
- 	dev_err(isp->dev, "timeout recovery handling done\n");
- 	atomic_set(&isp->wdt_work_queued, 0);
+ 	/*
+ 	 * We have checked empirically that hw allows to read back the gain
+@@ -1651,7 +1650,15 @@ static int ov7670_probe(struct i2c_client *client,
+ 	v4l2_ctrl_cluster(2, &info->saturation);
+ 	v4l2_ctrl_handler_setup(&info->hdl);
  
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat.h b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat.h
-index 5a404e4..0b9ced5 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat.h
-@@ -660,7 +660,6 @@ int atomisp_css_set_acc_parameters(struct atomisp_acc_fw *acc_fw);
- int atomisp_css_isr_thread(struct atomisp_device *isp,
- 			   bool *frame_done_found,
- 			   bool *css_pipe_done);
--void atomisp_set_stop_timeout(unsigned int timeout);
- 
- bool atomisp_css_valid_sof(struct atomisp_device *isp);
- 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c
-index 6697d72..cfa0ad4 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c
-@@ -4699,11 +4699,6 @@ int atomisp_css_isr_thread(struct atomisp_device *isp,
++	ret = v4l2_async_register_subdev(&info->sd);
++	if (ret < 0)
++		goto hdl_free;
++
  	return 0;
++
++hdl_free:
++	v4l2_ctrl_handler_free(&info->hdl);
++	return ret;
  }
  
--void atomisp_set_stop_timeout(unsigned int timeout)
--{
--	return;
--}
--
- bool atomisp_css_valid_sof(struct atomisp_device *isp)
- {
- 	unsigned int i, j;
+ 
 -- 
-2.7.4
+2.11.0
