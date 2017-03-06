@@ -1,68 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:51081 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755409AbdCKU03 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Mar 2017 15:26:29 -0500
-Date: Sat, 11 Mar 2017 21:26:23 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
- controls from a pipeline
-Message-ID: <20170311202621.GA15777@localhost>
-References: <1487211578-11360-15-git-send-email-steve_longerbeam@mentor.com>
- <20170302160257.GK3220@valkosipuli.retiisi.org.uk>
- <20170303230645.GR21222@n2100.armlinux.org.uk>
- <20170304131329.GV3220@valkosipuli.retiisi.org.uk>
- <a7b8e095-a95c-24bd-b1e9-e983f18061c4@xs4all.nl>
- <20170310120902.1daebc7b@vento.lan>
- <5e1183f4-774f-413a-628a-96e0df321faf@xs4all.nl>
- <20170311101408.272a9187@vento.lan>
- <20170311153229.yrdjmggb3p2suhdw@ihha.localdomain>
- <acfb5eca-ff00-6d57-339a-3322034cbdb3@gmail.com>
+Received: from mail-lf0-f52.google.com ([209.85.215.52]:36364 "EHLO
+        mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753649AbdCFUEQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 15:04:16 -0500
+Received: by mail-lf0-f52.google.com with SMTP id y193so77602749lfd.3
+        for <linux-media@vger.kernel.org>; Mon, 06 Mar 2017 12:03:24 -0800 (PST)
+Subject: Re: [PATCH] media: platform: Renesas IMR driver
+To: Magnus Damm <magnus.damm@gmail.com>
+References: <20170302210104.646782352@cogentembedded.com>
+ <CAMuHMdVg5N82bu8fxRS=3iqF2MQmqoR0idb_x0t2RNn8eoedQg@mail.gmail.com>
+ <f8702961-3561-977f-d6dc-16571a64181e@cogentembedded.com>
+ <CAMuHMdUa4n_Gw7bMiSvDzb8TYQMu3WgnR6kTXtsMu_=k1mQrsA@mail.gmail.com>
+ <abdfa250-8b13-7471-3e60-2b33b41aa1a5@cogentembedded.com>
+ <CANqRtoQ9kzUgBs2iLVh2WMTbZDzk5vrd0kxgep+Uz4AgPBLkDw@mail.gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Konstantin Kozhevnikov
+        <Konstantin.Kozhevnikov@cogentembedded.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <ede03ec6-7c56-1285-d81b-f24f62794629@cogentembedded.com>
+Date: Mon, 6 Mar 2017 20:11:25 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <acfb5eca-ff00-6d57-339a-3322034cbdb3@gmail.com>
+In-Reply-To: <CANqRtoQ9kzUgBs2iLVh2WMTbZDzk5vrd0kxgep+Uz4AgPBLkDw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+On 03/05/2017 01:43 PM, Magnus Damm wrote:
 
-> >>I tend to agree with that.
-> >
-> >I agree as well.
-> >
-> >This is in line with how existing drivers behave, too.
-> 
-> 
-> Well, sounds like there is consensus on this topic. I guess I'll
-> go ahead and remove the control inheritance support. I suppose
-> having a control appear in two places (subdev and video nodes) can
-> be confusing.
+> Thanks for your efforts with this driver. Nice to see that V2 is
+> getting in better shape.
+>
+> In the future, would it be possible for you to include the patch
+> version number in the [PATCH] tag somehow?
 
-I guess that's way to go. It is impossible to change userland APIs
-once the patch is merged...
-								Pavel
+    Sorry, I'm still getting used to 'quilt mail'...
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+> On Fri, Mar 3, 2017 at 9:03 PM, Sergei Shtylyov
+> <sergei.shtylyov@cogentembedded.com> wrote:
+>> On 03/03/2017 02:58 PM, Geert Uytterhoeven wrote:
+>>
+>>>>>> +  - "renesas,imr-lx4-v3m" for R-Car V3M.
+>>>>>
+>>>>>
+>>>>>
+>>>>> "renesas,-EPROBE_DEFER-imr-lx4"
+>>>>
+>>>>
+>>>>
+>>>>    Huh? :-)
+>>>
+>>>
+>>> Do you know the part number of V3M?
+>>
+>>
+>>    No, but using the names from the manual I don't need it.
+>
+> NAK, like Geert says, please follow the same style as other upstream
+> drivers. DT compat strings is not a place for random polices.
+
+    Note that I don't think we need the SoC specific strings (like was done 
+with the VSP1/2 driver). I'm not seeing any differences between the gen3 SoCs 
+looking at the most current manual...
+
+> Thanks,
+>
+> / magnus
+
+MBR, Sergei
