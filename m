@@ -1,163 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:52547 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S935605AbdCJK0Y (ORCPT
+Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:59631 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753575AbdCFRlH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Mar 2017 05:26:24 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv4 14/15] sama5d3 dts: enable atmel-isi
-Date: Fri, 10 Mar 2017 11:26:13 +0100
-Message-Id: <20170310102614.20922-15-hverkuil@xs4all.nl>
-In-Reply-To: <20170310102614.20922-1-hverkuil@xs4all.nl>
-References: <20170310102614.20922-1-hverkuil@xs4all.nl>
+        Mon, 6 Mar 2017 12:41:07 -0500
+Received: from pps.filterd (m0098409.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.20/8.16.0.20) with SMTP id v26Grq34091484
+        for <linux-media@vger.kernel.org>; Mon, 6 Mar 2017 11:54:51 -0500
+Received: from e06smtp09.uk.ibm.com (e06smtp09.uk.ibm.com [195.75.94.105])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 2917pm4jnd-1
+        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
+        for <linux-media@vger.kernel.org>; Mon, 06 Mar 2017 11:54:50 -0500
+Received: from localhost
+        by e06smtp09.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+        for <linux-media@vger.kernel.org> from <bblock@linux.vnet.ibm.com>;
+        Mon, 6 Mar 2017 16:54:48 -0000
+Received: from b06cxnps3075.portsmouth.uk.ibm.com (d06relay10.portsmouth.uk.ibm.com [9.149.109.195])
+        by d06dlp01.portsmouth.uk.ibm.com (Postfix) with ESMTP id 53B7517D8042
+        for <linux-media@vger.kernel.org>; Mon,  6 Mar 2017 16:58:01 +0000 (GMT)
+Received: from d06av26.portsmouth.uk.ibm.com (d06av26.portsmouth.uk.ibm.com [9.149.105.62])
+        by b06cxnps3075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id v26GsjCo19726626
+        for <linux-media@vger.kernel.org>; Mon, 6 Mar 2017 16:54:45 GMT
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id D4EC9AE05A
+        for <linux-media@vger.kernel.org>; Mon,  6 Mar 2017 16:54:38 +0000 (GMT)
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id BA874AE053
+        for <linux-media@vger.kernel.org>; Mon,  6 Mar 2017 16:54:38 +0000 (GMT)
+Received: from bblock-ThinkPad-W530 (unknown [9.152.212.209])
+        by d06av26.portsmouth.uk.ibm.com (Postfix) with ESMTP
+        for <linux-media@vger.kernel.org>; Mon,  6 Mar 2017 16:54:38 +0000 (GMT)
+Date: Mon, 6 Mar 2017 17:54:44 +0100
+From: Benjamin Block <bblock@linux.vnet.ibm.com>
+To: Johannes Thumshirn <jthumshirn@suse.de>
+Cc: Elena Reshetova <elena.reshetova@intel.com>,
+        gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org,
+        xen-devel@lists.xenproject.org, netdev@vger.kernel.org,
+        linux1394-devel@lists.sourceforge.net,
+        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
+        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-usb@vger.kernel.org, peterz@infradead.org,
+        Hans Liljestrand <ishkamiel@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        David Windsor <dwindsor@gmail.com>
+Subject: Re: [PATCH 21/29] drivers, s390: convert fc_fcp_pkt.ref_cnt from
+ atomic_t to refcount_t
+References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+ <1488810076-3754-22-git-send-email-elena.reshetova@intel.com>
+ <536a58ba-8896-5639-cab9-bd2f13bed325@suse.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <536a58ba-8896-5639-cab9-bd2f13bed325@suse.de>
+Message-Id: <20170306165444.GC7420@bblock-ThinkPad-W530>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Mon, Mar 06, 2017 at 04:27:11PM +0100, Johannes Thumshirn wrote:
+> On 03/06/2017 03:21 PM, Elena Reshetova wrote:
+> > refcount_t type and corresponding API should be
+> > used instead of atomic_t when the variable is used as
+> > a reference counter. This allows to avoid accidental
+> > refcounter overflows that might lead to use-after-free
+> > situations.
+> 
+> The subject is wrong, should be something like "scsi: libfc convert
+> fc_fcp_pkt.ref_cnt from atomic_t to refcount_t" but not s390.
+> 
 
-This illustrates the changes needed to the dts in order to hook up the
-ov7670. I don't plan on merging this.
+Yes please, I was extremely confused for a moment here.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- arch/arm/boot/dts/at91-sama5d3_xplained.dts | 59 ++++++++++++++++++++++++++---
- arch/arm/boot/dts/sama5d3.dtsi              |  4 +-
- 2 files changed, 56 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/boot/dts/at91-sama5d3_xplained.dts b/arch/arm/boot/dts/at91-sama5d3_xplained.dts
-index c51fc652f6c7..c6b07f83578b 100644
---- a/arch/arm/boot/dts/at91-sama5d3_xplained.dts
-+++ b/arch/arm/boot/dts/at91-sama5d3_xplained.dts
-@@ -65,18 +65,51 @@
- 				status = "okay";
- 			};
- 
-+			isi0: isi@f0034000 {
-+				status = "okay";
-+				port {
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					isi_0: endpoint {
-+						remote-endpoint = <&ov7670_0>;
-+						bus-width = <8>;
-+						vsync-active = <1>;
-+						hsync-active = <1>;
-+					};
-+				};
-+			};
-+
- 			i2c0: i2c@f0014000 {
- 				pinctrl-0 = <&pinctrl_i2c0_pu>;
--				status = "okay";
-+				status = "disabled";
- 			};
- 
- 			i2c1: i2c@f0018000 {
- 				status = "okay";
- 
-+				ov7670: camera@21 {
-+					compatible = "ovti,ov7670";
-+					reg = <0x21>;
-+					pinctrl-names = "default";
-+					pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
-+					reset-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
-+					powerdown-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
-+					clocks = <&pck0>;
-+					clock-names = "xclk";
-+					assigned-clocks = <&pck0>;
-+					assigned-clock-rates = <25000000>;
-+
-+					port {
-+						ov7670_0: endpoint {
-+							remote-endpoint = <&isi_0>;
-+						};
-+					};
-+				};
-+
- 				pmic: act8865@5b {
- 					compatible = "active-semi,act8865";
- 					reg = <0x5b>;
--					status = "disabled";
-+					status = "okay";
- 
- 					regulators {
- 						vcc_1v8_reg: DCDC_REG1 {
-@@ -130,7 +163,7 @@
- 			pwm0: pwm@f002c000 {
- 				pinctrl-names = "default";
- 				pinctrl-0 = <&pinctrl_pwm0_pwmh0_0 &pinctrl_pwm0_pwmh1_0>;
--				status = "okay";
-+				status = "disabled";
- 			};
- 
- 			usart0: serial@f001c000 {
-@@ -143,7 +176,7 @@
- 			};
- 
- 			uart0: serial@f0024000 {
--				status = "okay";
-+				status = "disabled";
- 			};
- 
- 			mmc1: mmc@f8000000 {
-@@ -181,7 +214,7 @@
- 			i2c2: i2c@f801c000 {
- 				dmas = <0>, <0>;	/* Do not use DMA for i2c2 */
- 				pinctrl-0 = <&pinctrl_i2c2_pu>;
--				status = "okay";
-+				status = "disabled";
- 			};
- 
- 			macb1: ethernet@f802c000 {
-@@ -200,6 +233,22 @@
- 			};
- 
- 			pinctrl@fffff200 {
-+				camera_sensor {
-+					pinctrl_pck0_as_isi_mck: pck0_as_isi_mck-0 {
-+						atmel,pins =
-+							<AT91_PIOD 30 AT91_PERIPH_B AT91_PINCTRL_NONE>;	/* ISI_MCK */
-+					};
-+
-+					pinctrl_sensor_power: sensor_power-0 {
-+						atmel,pins =
-+							<AT91_PIOE 13 AT91_PERIPH_GPIO AT91_PINCTRL_NONE>;
-+					};
-+
-+					pinctrl_sensor_reset: sensor_reset-0 {
-+						atmel,pins =
-+							<AT91_PIOE 11 AT91_PERIPH_GPIO AT91_PINCTRL_NONE>;
-+					};
-+				};
- 				board {
- 					pinctrl_i2c0_pu: i2c0_pu {
- 						atmel,pins =
-diff --git a/arch/arm/boot/dts/sama5d3.dtsi b/arch/arm/boot/dts/sama5d3.dtsi
-index b06448ba6649..099570e4b90a 100644
---- a/arch/arm/boot/dts/sama5d3.dtsi
-+++ b/arch/arm/boot/dts/sama5d3.dtsi
-@@ -176,7 +176,7 @@
- 				#address-cells = <1>;
- 				#size-cells = <0>;
- 				clocks = <&twi1_clk>;
--				status = "disabled";
-+				status = "ok";
- 			};
- 
- 			usart0: serial@f001c000 {
-@@ -235,7 +235,7 @@
- 				pinctrl-0 = <&pinctrl_isi_data_0_7>;
- 				clocks = <&isi_clk>;
- 				clock-names = "isi_clk";
--				status = "disabled";
-+				status = "ok";
- 				port {
- 					#address-cells = <1>;
- 					#size-cells = <0>;
+
+                                                    Beste Grüße / Best regards,
+                                                      - Benjamin Block
 -- 
-2.11.0
+Linux on z Systems Development         /         IBM Systems & Technology Group
+		  IBM Deutschland Research & Development GmbH 
+Vorsitz. AufsR.: Martina Koederitz     /        Geschäftsführung: Dirk Wittkopp
+Sitz der Gesellschaft: Böblingen / Registergericht: AmtsG Stuttgart, HRB 243294
