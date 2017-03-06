@@ -1,123 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:51129 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933142AbdCaMUw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Mar 2017 08:20:52 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Patrice.chotard@st.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv6 07/10] sti: hdmi: add CEC notifier support
-Date: Fri, 31 Mar 2017 14:20:33 +0200
-Message-Id: <20170331122036.55706-8-hverkuil@xs4all.nl>
-In-Reply-To: <20170331122036.55706-1-hverkuil@xs4all.nl>
-References: <20170331122036.55706-1-hverkuil@xs4all.nl>
+Received: from smtp.codeaurora.org ([198.145.29.96]:39428 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752973AbdCFQYc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 11:24:32 -0500
+From: Kalle Valo <kvalo@codeaurora.org>
+To: Arend Van Spriel <arend.vanspriel@broadcom.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, kasan-dev@googlegroups.com,
+        Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-wireless@vger.kernel.org,
+        kernel-build-reports@lists.linaro.org,
+        "David S . Miller" <davem@davemloft.net>
+Subject: Re: [PATCH 10/26] brcmsmac: reindent split functions
+References: <20170302163834.2273519-1-arnd@arndb.de>
+        <20170302163834.2273519-11-arnd@arndb.de>
+        <c18494f1-1a21-c1e5-31db-bef78abe172f@broadcom.com>
+Date: Mon, 06 Mar 2017 18:24:16 +0200
+In-Reply-To: <c18494f1-1a21-c1e5-31db-bef78abe172f@broadcom.com> (Arend Van
+        Spriel's message of "Mon, 6 Mar 2017 10:33:34 +0100")
+Message-ID: <87tw7674r3.fsf@purkki.adurom.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Arend Van Spriel <arend.vanspriel@broadcom.com> writes:
 
-Implement the CEC notifier support to allow CEC drivers to
-be informed when there is a new physical address.
+> On 2-3-2017 17:38, Arnd Bergmann wrote:
+>> In the previous commit I left the indentation alone to help reviewing
+>> the patch, this one now runs the three new functions through 'indent -kr -8'
+>> with some manual fixups to avoid silliness.
+>> 
+>> No changes other than whitespace are intended here.
+>
+> Acked-by: Arend van Spriel <arend.vanspriel@broadcom.com>
+>> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+>> ---
+>>  .../broadcom/brcm80211/brcmsmac/phy/phy_n.c        | 1507 +++++++++-----------
+>>  1 file changed, 697 insertions(+), 810 deletions(-)
+>> 
 
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
----
- drivers/gpu/drm/sti/sti_hdmi.c | 11 +++++++++++
- drivers/gpu/drm/sti/sti_hdmi.h |  3 +++
- 2 files changed, 14 insertions(+)
+Arend, please edit your quotes. Leaving 1000 lines of unnecessary quotes
+in your reply makes my use of patchwork horrible:
 
-diff --git a/drivers/gpu/drm/sti/sti_hdmi.c b/drivers/gpu/drm/sti/sti_hdmi.c
-index ce2dcba679d5..243905b6ae59 100644
---- a/drivers/gpu/drm/sti/sti_hdmi.c
-+++ b/drivers/gpu/drm/sti/sti_hdmi.c
-@@ -771,6 +771,8 @@ static void sti_hdmi_disable(struct drm_bridge *bridge)
- 	clk_disable_unprepare(hdmi->clk_pix);
- 
- 	hdmi->enabled = false;
-+
-+	cec_notifier_set_phys_addr(hdmi->notifier, CEC_PHYS_ADDR_INVALID);
- }
- 
- /**
-@@ -973,6 +975,7 @@ static int sti_hdmi_connector_get_modes(struct drm_connector *connector)
- 	DRM_DEBUG_KMS("%s : %dx%d cm\n",
- 		      (hdmi->hdmi_monitor ? "hdmi monitor" : "dvi monitor"),
- 		      edid->width_cm, edid->height_cm);
-+	cec_notifier_set_phys_addr_from_edid(hdmi->notifier, edid);
- 
- 	count = drm_add_edid_modes(connector, edid);
- 	drm_mode_connector_update_edid_property(connector, edid);
-@@ -1035,6 +1038,7 @@ sti_hdmi_connector_detect(struct drm_connector *connector, bool force)
- 	}
- 
- 	DRM_DEBUG_DRIVER("hdmi cable disconnected\n");
-+	cec_notifier_set_phys_addr(hdmi->notifier, CEC_PHYS_ADDR_INVALID);
- 	return connector_status_disconnected;
- }
- 
-@@ -1423,6 +1427,10 @@ static int sti_hdmi_probe(struct platform_device *pdev)
- 		goto release_adapter;
- 	}
- 
-+	hdmi->notifier = cec_notifier_get(&pdev->dev);
-+	if (!hdmi->notifier)
-+		goto release_adapter;
-+
- 	hdmi->reset = devm_reset_control_get(dev, "hdmi");
- 	/* Take hdmi out of reset */
- 	if (!IS_ERR(hdmi->reset))
-@@ -1442,11 +1450,14 @@ static int sti_hdmi_remove(struct platform_device *pdev)
- {
- 	struct sti_hdmi *hdmi = dev_get_drvdata(&pdev->dev);
- 
-+	cec_notifier_set_phys_addr(hdmi->notifier, CEC_PHYS_ADDR_INVALID);
-+
- 	i2c_put_adapter(hdmi->ddc_adapt);
- 	if (hdmi->audio_pdev)
- 		platform_device_unregister(hdmi->audio_pdev);
- 	component_del(&pdev->dev, &sti_hdmi_ops);
- 
-+	cec_notifier_put(hdmi->notifier);
- 	return 0;
- }
- 
-diff --git a/drivers/gpu/drm/sti/sti_hdmi.h b/drivers/gpu/drm/sti/sti_hdmi.h
-index 407012350f1a..c6469b56ce7e 100644
---- a/drivers/gpu/drm/sti/sti_hdmi.h
-+++ b/drivers/gpu/drm/sti/sti_hdmi.h
-@@ -11,6 +11,7 @@
- #include <linux/platform_device.h>
- 
- #include <drm/drmP.h>
-+#include <media/cec-notifier.h>
- 
- #define HDMI_STA           0x0010
- #define HDMI_STA_DLL_LCK   BIT(5)
-@@ -64,6 +65,7 @@ static const struct drm_prop_enum_list colorspace_mode_names[] = {
-  * @audio_pdev: ASoC hdmi-codec platform device
-  * @audio: hdmi audio parameters.
-  * @drm_connector: hdmi connector
-+ * @notifier: hotplug detect notifier
-  */
- struct sti_hdmi {
- 	struct device dev;
-@@ -89,6 +91,7 @@ struct sti_hdmi {
- 	struct platform_device *audio_pdev;
- 	struct hdmi_audio_params audio;
- 	struct drm_connector *drm_connector;
-+	struct cec_notifier *notifier;
- };
- 
- u32 hdmi_read(struct sti_hdmi *hdmi, int offset);
+https://patchwork.kernel.org/patch/9601155/
+
 -- 
-2.11.0
+Kalle Valo
