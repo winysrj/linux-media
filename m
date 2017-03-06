@@ -1,76 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:54989 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751203AbdCBV1v (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 16:27:51 -0500
-Date: Thu, 2 Mar 2017 22:03:52 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, sre@kernel.org,
-        pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, mchehab@kernel.org,
-        ivo.g.dimitrov.75@gmail.com
-Subject: Re: subdevice config into pointer (was Re: [PATCH 1/4] v4l2:
- device_register_subdev_nodes: allow calling multiple times)
-Message-ID: <20170302210352.GA15572@amd>
-References: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz>
- <20170302090727.GC27818@amd>
- <20170302141617.GG3220@valkosipuli.retiisi.org.uk>
- <2358884.6crJRnJuOY@avalon>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="T4sUOijqQbZv57TR"
-Content-Disposition: inline
-In-Reply-To: <2358884.6crJRnJuOY@avalon>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:38670 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754026AbdCFO6v (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Mar 2017 09:58:51 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv3 08/15] atmel-isi: move out of soc_camera to atmel
+Date: Mon,  6 Mar 2017 15:56:09 +0100
+Message-Id: <20170306145616.38485-9-hverkuil@xs4all.nl>
+In-Reply-To: <20170306145616.38485-1-hverkuil@xs4all.nl>
+References: <20170306145616.38485-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
---T4sUOijqQbZv57TR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Move this out of the soc_camera directory into the atmel directory
+where it belongs.
 
-Hi!
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/Makefile                          |  1 +
+ drivers/media/platform/atmel/Kconfig                     | 11 ++++++++++-
+ drivers/media/platform/atmel/Makefile                    |  1 +
+ drivers/media/platform/{soc_camera => atmel}/atmel-isi.c |  0
+ drivers/media/platform/{soc_camera => atmel}/atmel-isi.h |  0
+ drivers/media/platform/soc_camera/Kconfig                | 10 ----------
+ drivers/media/platform/soc_camera/Makefile               |  1 -
+ 7 files changed, 12 insertions(+), 12 deletions(-)
+ rename drivers/media/platform/{soc_camera => atmel}/atmel-isi.c (100%)
+ rename drivers/media/platform/{soc_camera => atmel}/atmel-isi.h (100%)
 
-> > >  static int isp_fwnode_parse(struct device *dev, struct fwnode_handle
-> > >  *fwn,
-> > > =20
-> > >  			    struct isp_async_subdev *isd)
-> > > =20
-> > >  {
-> > >=20
-> > > -	struct isp_bus_cfg *buscfg =3D &isd->bus;
-> > > +	struct isp_bus_cfg *buscfg;
-> > >=20
-> > >  	struct v4l2_fwnode_endpoint vfwn;
-> > >  	unsigned int i;
-> > >  	int ret;
-> > >  	bool csi1 =3D false;
-> > >=20
-> > > +	buscfg =3D devm_kzalloc(dev, sizeof(*isd->bus), GFP_KERNEL);
->=20
-> Given that you recently get rid of devm_kzalloc() in the driver, let's no=
-t=20
-> introduce a new one here.
-
-What is wrong with devm_kzalloc()?
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---T4sUOijqQbZv57TR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAli4iLgACgkQMOfwapXb+vLsxQCfaVTmXcNuxqHZV1zKHHvNo8nw
-kWoAoJUbA+6WT3Zxp7vmqSqUXEHxoFrp
-=8mpL
------END PGP SIGNATURE-----
-
---T4sUOijqQbZv57TR--
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 8959f6e6692a..c491731f5909 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -63,6 +63,7 @@ obj-$(CONFIG_VIDEO_XILINX)		+= xilinx/
+ obj-$(CONFIG_VIDEO_RCAR_VIN)		+= rcar-vin/
+ 
+ obj-$(CONFIG_VIDEO_ATMEL_ISC)		+= atmel/
++obj-$(CONFIG_VIDEO_ATMEL_ISI)		+= atmel/
+ 
+ ccflags-y += -I$(srctree)/drivers/media/i2c
+ 
+diff --git a/drivers/media/platform/atmel/Kconfig b/drivers/media/platform/atmel/Kconfig
+index 867dca22a473..9bd0f19b127f 100644
+--- a/drivers/media/platform/atmel/Kconfig
++++ b/drivers/media/platform/atmel/Kconfig
+@@ -6,4 +6,13 @@ config VIDEO_ATMEL_ISC
+ 	select REGMAP_MMIO
+ 	help
+ 	   This module makes the ATMEL Image Sensor Controller available
+-	   as a v4l2 device.
+\ No newline at end of file
++	   as a v4l2 device.
++
++config VIDEO_ATMEL_ISI
++	tristate "ATMEL Image Sensor Interface (ISI) support"
++	depends on VIDEO_V4L2 && OF && HAS_DMA
++	depends on ARCH_AT91 || COMPILE_TEST
++	select VIDEOBUF2_DMA_CONTIG
++	---help---
++	  This module makes the ATMEL Image Sensor Interface available
++	  as a v4l2 device.
+diff --git a/drivers/media/platform/atmel/Makefile b/drivers/media/platform/atmel/Makefile
+index 9d7c999d434d..27000d099a5e 100644
+--- a/drivers/media/platform/atmel/Makefile
++++ b/drivers/media/platform/atmel/Makefile
+@@ -1 +1,2 @@
+ obj-$(CONFIG_VIDEO_ATMEL_ISC) += atmel-isc.o
++obj-$(CONFIG_VIDEO_ATMEL_ISI) += atmel-isi.o
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/atmel/atmel-isi.c
+similarity index 100%
+rename from drivers/media/platform/soc_camera/atmel-isi.c
+rename to drivers/media/platform/atmel/atmel-isi.c
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.h b/drivers/media/platform/atmel/atmel-isi.h
+similarity index 100%
+rename from drivers/media/platform/soc_camera/atmel-isi.h
+rename to drivers/media/platform/atmel/atmel-isi.h
+diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
+index a37ec91b026e..0c581aa1b18a 100644
+--- a/drivers/media/platform/soc_camera/Kconfig
++++ b/drivers/media/platform/soc_camera/Kconfig
+@@ -26,13 +26,3 @@ config VIDEO_SH_MOBILE_CEU
+ 	select SOC_CAMERA_SCALE_CROP
+ 	---help---
+ 	  This is a v4l2 driver for the SuperH Mobile CEU Interface
+-
+-config VIDEO_ATMEL_ISI
+-	tristate "ATMEL Image Sensor Interface (ISI) support"
+-	depends on VIDEO_V4L2 && OF && HAS_DMA
+-	depends on ARCH_AT91 || COMPILE_TEST
+-	select VIDEOBUF2_DMA_CONTIG
+-	---help---
+-	  This module makes the ATMEL Image Sensor Interface available
+-	  as a v4l2 device.
+-
+diff --git a/drivers/media/platform/soc_camera/Makefile b/drivers/media/platform/soc_camera/Makefile
+index 7633a0f2f66f..07a451e8b228 100644
+--- a/drivers/media/platform/soc_camera/Makefile
++++ b/drivers/media/platform/soc_camera/Makefile
+@@ -6,5 +6,4 @@ obj-$(CONFIG_SOC_CAMERA_SCALE_CROP)	+= soc_scale_crop.o
+ obj-$(CONFIG_SOC_CAMERA_PLATFORM)	+= soc_camera_platform.o
+ 
+ # soc-camera host drivers have to be linked after camera drivers
+-obj-$(CONFIG_VIDEO_ATMEL_ISI)		+= atmel-isi.o
+ obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
+-- 
+2.11.0
