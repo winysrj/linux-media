@@ -1,52 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:41086 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752062AbdCHL5P (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:58039 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753862AbdCFO6v (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 8 Mar 2017 06:57:15 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Philipp Zabel <p.zabel@pengutronix.de>
+        Mon, 6 Mar 2017 09:58:51 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] coda: enable with COMPILE_TEST
-Message-ID: <cc407203-ce28-3678-915f-eaab8e52d4a2@xs4all.nl>
-Date: Wed, 8 Mar 2017 12:52:50 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv3 06/15] atmel-isi: document device tree bindings
+Date: Mon,  6 Mar 2017 15:56:07 +0100
+Message-Id: <20170306145616.38485-7-hverkuil@xs4all.nl>
+In-Reply-To: <20170306145616.38485-1-hverkuil@xs4all.nl>
+References: <20170306145616.38485-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Allow building of coda with COMPILE_TEST.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Fixed one v4l2_err format string that caused a compiler warning when compiling on a 64-bit
-platform.
+Document the device tree bindings for this hardware.
+
+Mostly copied from the atmel-isc bindings.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 53f6f12bff0d..9b9bee4b2323 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -151,7 +151,8 @@ if V4L_MEM2MEM_DRIVERS
+ .../devicetree/bindings/media/atmel-isi.txt        | 90 +++++++++++++---------
+ 1 file changed, 55 insertions(+), 35 deletions(-)
 
-  config VIDEO_CODA
-  	tristate "Chips&Media Coda multi-standard codec IP"
--	depends on VIDEO_DEV && VIDEO_V4L2 && ARCH_MXC
-+	depends on VIDEO_DEV && VIDEO_V4L2
-+	depends on ARCH_MXC || COMPILE_TEST
-  	depends on HAS_DMA
-  	select SRAM
-  	select VIDEOBUF2_DMA_CONTIG
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index bd9e5ca8a640..5ec27626539e 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1407,7 +1407,7 @@ int coda_alloc_aux_buf(struct coda_dev *dev, struct coda_aux_buf *buf,
-  					GFP_KERNEL);
-  	if (!buf->vaddr) {
-  		v4l2_err(&dev->v4l2_dev,
--			 "Failed to allocate %s buffer of size %u\n",
-+			 "Failed to allocate %s buffer of size %zu\n",
-  			 name, size);
-  		return -ENOMEM;
-  	}
+diff --git a/Documentation/devicetree/bindings/media/atmel-isi.txt b/Documentation/devicetree/bindings/media/atmel-isi.txt
+index 251f008f220c..d6e93e8216af 100644
+--- a/Documentation/devicetree/bindings/media/atmel-isi.txt
++++ b/Documentation/devicetree/bindings/media/atmel-isi.txt
+@@ -1,51 +1,71 @@
+-Atmel Image Sensor Interface (ISI) SoC Camera Subsystem
+-----------------------------------------------
++Atmel Image Sensor Interface (ISI)
++----------------------------------
+ 
+-Required properties:
+-- compatible: must be "atmel,at91sam9g45-isi"
+-- reg: physical base address and length of the registers set for the device;
+-- interrupts: should contain IRQ line for the ISI;
+-- clocks: list of clock specifiers, corresponding to entries in
+-          the clock-names property;
+-- clock-names: must contain "isi_clk", which is the isi peripherial clock.
++Required properties for ISI:
++- compatible: must be "atmel,at91sam9g45-isi".
++- reg: physical base address and length of the registers set for the device.
++- interrupts: should contain IRQ line for the ISI.
++- clocks: list of clock specifiers, corresponding to entries in the clock-names
++	property; please refer to clock-bindings.txt.
++- clock-names: required elements: "isi_clk".
++- pinctrl-names, pinctrl-0: please refer to pinctrl-bindings.txt.
+ 
+ ISI supports a single port node with parallel bus. It should contain one
+ 'port' child node with child 'endpoint' node. Please refer to the bindings
+ defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
+ 
+-Example:
+-	isi: isi@f0034000 {
+-		compatible = "atmel,at91sam9g45-isi";
+-		reg = <0xf0034000 0x4000>;
+-		interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
+-
+-		clocks = <&isi_clk>;
+-		clock-names = "isi_clk";
++Endpoint node properties
++------------------------
+ 
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&pinctrl_isi>;
++- bus-width: <8> or <10> (mandatory)
++- hsync-active
++- vsync-active
++- pclk-sample
++- remote-endpoint: A phandle to the bus receiver's endpoint node.
+ 
+-		port {
+-			#address-cells = <1>;
+-			#size-cells = <0>;
++Example:
+ 
+-			isi_0: endpoint {
+-				remote-endpoint = <&ov2640_0>;
+-				bus-width = <8>;
+-			};
++isi: isi@f0034000 {
++	compatible = "atmel,at91sam9g45-isi";
++	reg = <0xf0034000 0x4000>;
++	interrupts = <37 IRQ_TYPE_LEVEL_HIGH 5>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_isi_data_0_7>;
++	clocks = <&isi_clk>;
++	clock-names = "isi_clk";
++	status = "ok";
++	port {
++		#address-cells = <1>;
++		#size-cells = <0>;
++		isi_0: endpoint {
++			remote-endpoint = <&ov2640_0>;
++			bus-width = <8>;
++			vsync-active = <1>;
++			hsync-active = <1>;
+ 		};
+ 	};
++};
++
++i2c1: i2c@f0018000 {
++	status = "okay";
+ 
+-	i2c1: i2c@f0018000 {
+-		ov2640: camera@0x30 {
+-			compatible = "ovti,ov2640";
+-			reg = <0x30>;
++	ov2640: camera@30 {
++		compatible = "ovti,ov2640";
++		reg = <0x30>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
++		resetb-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
++		pwdn-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
++		clocks = <&pck0>;
++		clock-names = "xvclk";
++		assigned-clocks = <&pck0>;
++		assigned-clock-rates = <25000000>;
+ 
+-			port {
+-				ov2640_0: endpoint {
+-					remote-endpoint = <&isi_0>;
+-					bus-width = <8>;
+-				};
++		port {
++			ov2640_0: endpoint {
++				remote-endpoint = <&isi_0>;
++				bus-width = <8>;
+ 			};
+ 		};
+ 	};
++};
+-- 
+2.11.0
