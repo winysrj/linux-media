@@ -1,740 +1,294 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f171.google.com ([209.85.220.171]:32822 "EHLO
-        mail-qk0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751907AbdCBVp0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 16:45:26 -0500
-Received: by mail-qk0-f171.google.com with SMTP id n127so147107489qkf.0
-        for <linux-media@vger.kernel.org>; Thu, 02 Mar 2017 13:45:25 -0800 (PST)
-From: Laura Abbott <labbott@redhat.com>
-To: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com
-Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Brian Starkey <brian.starkey@arm.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Mark Brown <broonie@kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-mm@kvack.org
-Subject: [RFC PATCH 07/12] staging: android: ion: Remove old platform support
-Date: Thu,  2 Mar 2017 13:44:39 -0800
-Message-Id: <1488491084-17252-8-git-send-email-labbott@redhat.com>
-In-Reply-To: <1488491084-17252-1-git-send-email-labbott@redhat.com>
-References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:35274 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752935AbdCFKxA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Mar 2017 05:53:00 -0500
+Subject: Re: [PATCH v2.2] v4l: Clearly document interactions between formats,
+ controls and buffers
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <20170305143936.11257-1-laurent.pinchart+renesas@ideasonboard.com>
+ <20170305213610.3893-1-laurent.pinchart+renesas@ideasonboard.com>
+ <9367496e-2dfd-afd0-3baa-7decce0b93a5@xs4all.nl> <2151087.6KcNijWoxt@avalon>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <84bfd635-e58e-ba23-98c1-c2b957458bd7@xs4all.nl>
+Date: Mon, 6 Mar 2017 11:46:28 +0100
+MIME-Version: 1.0
+In-Reply-To: <2151087.6KcNijWoxt@avalon>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 06/03/17 11:35, Laurent Pinchart wrote:
+> Hi Hans,
+>
+> On Monday 06 Mar 2017 11:04:50 Hans Verkuil wrote:
+>> On 05/03/17 22:36, Laurent Pinchart wrote:
+>>> V4L2 exposes parameters that influence buffers sizes through the format
+>>> ioctls (VIDIOC_G_FMT, VIDIOC_TRY_FMT, VIDIOC_S_FMT, and possibly
+>>> VIDIOC_G_SELECTION and VIDIOC_S_SELECTION). Other parameters not part of
+>>> the format structure may also influence buffer sizes or buffer layout in
+>>> general. One existing such parameter is rotation, which is implemented
+>>> by the V4L2_CID_ROTATE control and thus exposed through the V4L2 control
+>>> ioctls.
+>>>
+>>> The interaction between those parameters and buffers is currently only
+>>> partially specified by the V4L2 API. In particular interactions between
+>>> controls and buffers isn't specified at all. The behaviour of the
+>>> VIDIOC_S_FMT and VIDIOC_S_SELECTION ioctls when buffers are allocated is
+>>> also not fully specified.
+>>>
+>>> This patch clearly defines and documents the interactions between
+>>> formats, selections, controls and buffers.
+>>>
+>>> The preparatory discussions for the documentation change considered
+>>> completely disallowing controls that change the buffer size or layout,
+>>> in favour of extending the format API with a new ioctl that would bundle
+>>> those controls with format information. The idea has been rejected, as
+>>> this would essentially be a restricted version of the upcoming request
+>>> API that wouldn't bring any additional value.
+>>>
+>>> Another option we have considered was to mandate the use of the request
+>>> API to modify controls that influence buffer size or layout. This has
+>>> also been rejected on the grounds that requiring the request API to
+>>> change rotation even when streaming is stopped would significantly
+>>> complicate implementation of drivers and usage of the V4L2 API for
+>>> applications.
+>>>
+>>> Applications will however be required to use the upcoming request API to
+>>> change at runtime formats or controls that influence the buffer size or
+>>> layout, because of the need to synchronize buffers with the formats and
+>>> controls. Otherwise there would be no way to interpret the content of a
+>>> buffer correctly.
+>>>
+>>> Signed-off-by: Laurent Pinchart
+>>> <laurent.pinchart+renesas@ideasonboard.com>
+>>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>>> ---
+>>> Changes since v2.1:
+>>>
+>>> - Fixed small issues in commit message
+>>> - Simplified wording of one sentence in the documentation
+>>>
+>>> Changes since v2:
+>>>
+>>> - Document the interaction with ioctls that can affect formats
+>>>   (VIDIOC_S_SELECTION, VIDIOC_S_INPUT, VIDIOC_S_OUTPUT, VIDIOC_S_STD and
+>>>   VIDIOC_S_DV_TIMINGS)
+>>> - Clarify the format/control change order
+>>> ---
+>>>
+>>>  Documentation/media/uapi/v4l/buffer.rst | 108 +++++++++++++++++++++++++++
+>>>  1 file changed, 108 insertions(+)
+>>>
+>>> diff --git a/Documentation/media/uapi/v4l/buffer.rst
+>>> b/Documentation/media/uapi/v4l/buffer.rst index
+>>> ac58966ccb9b..60d62a5824f8 100644
+>>> --- a/Documentation/media/uapi/v4l/buffer.rst
+>>> +++ b/Documentation/media/uapi/v4l/buffer.rst
+>>> @@ -34,6 +34,114 @@ flags are copied from the OUTPUT video buffer to the
+>>> CAPTURE video>
+>>>  buffer.
+>>>
+>>> +Interactions between formats, controls and buffers
+>>> +==================================================
+>>> +
+>>> +V4L2 exposes parameters that influence the buffer size, or the way data
+>>> is +laid out in the buffer. Those parameters are exposed through both
+>>> formats and +controls. One example of such a control is the
+>>> ``V4L2_CID_ROTATE`` control +that modifies the direction in which pixels
+>>> are stored in the buffer, as well +as the buffer size when the selected
+>>> format includes padding at the end of +lines.
+>>> +
+>>> +The set of information needed to interpret the content of a buffer (e.g.
+>>> the +pixel format, the line stride, the tiling orientation or the
+>>> rotation) is +collectively referred to in the rest of this section as the
+>>> buffer layout.
+>>> +
+>>> +Modifying formats or controls that influence the buffer size or layout
+>>> require +the stream to be stopped. Any attempt at such a modification
+>>> while the stream +is active shall cause the ioctl setting the format or
+>>> the control to return +the ``EBUSY`` error code.
+>>
+>> This is my problem with putting the more complex case first: if you are
+>> reading this for the first time then the preceding paragraph is simply
+>> *wrong*.
+>>
+>> You cannot modify the buffer size when the stream is stopped. You need to
+>> free all buffers first before you can do that.
+>
+> That's driver-dependent. If I reverse the order to start with the more
+> restricted case, it will also be wrong for drivers that implement the other
+> case.
 
-Device specific platform support has been haphazard for Ion. There have
-been several independent attempts and there are still objections to
-what bindings exist right now. Just remove everything for a fresh start.
+It's not about wrong or right, it's about which case is the most common.
 
-Signed-off-by: Laura Abbott <labbott@redhat.com>
----
- drivers/staging/android/ion/Kconfig                |  35 ----
- drivers/staging/android/ion/Makefile               |   6 -
- drivers/staging/android/ion/hisilicon/Kconfig      |   5 -
- drivers/staging/android/ion/hisilicon/Makefile     |   1 -
- drivers/staging/android/ion/hisilicon/hi6220_ion.c | 113 -------------
- drivers/staging/android/ion/ion_dummy_driver.c     | 156 -----------------
- drivers/staging/android/ion/ion_of.c               | 184 ---------------------
- drivers/staging/android/ion/ion_of.h               |  37 -----
- drivers/staging/android/ion/tegra/Makefile         |   1 -
- drivers/staging/android/ion/tegra/tegra_ion.c      |  80 ---------
- 10 files changed, 618 deletions(-)
- delete mode 100644 drivers/staging/android/ion/hisilicon/Kconfig
- delete mode 100644 drivers/staging/android/ion/hisilicon/Makefile
- delete mode 100644 drivers/staging/android/ion/hisilicon/hi6220_ion.c
- delete mode 100644 drivers/staging/android/ion/ion_dummy_driver.c
- delete mode 100644 drivers/staging/android/ion/ion_of.c
- delete mode 100644 drivers/staging/android/ion/ion_of.h
- delete mode 100644 drivers/staging/android/ion/tegra/Makefile
- delete mode 100644 drivers/staging/android/ion/tegra/tegra_ion.c
+ > I'm running out of time so I'll change this though. We can always
+> reorder the paragraphs later when we will have more drivers implementing the
+> more powerful case.
+>
+>> Unless the driver has been especially written to allow that. And I am not
+>> aware of any.
+>>
+>>> +
+>>> +Controls that only influence the buffer layout can be modified at any
+>>> time
+>>> +when the stream is stopped. As they don't influence the buffer size, no
+>>> +special handling is needed to synchronize those controls with buffer
+>>> +allocation.
+>>> +
+>>> +Formats and controls that influence the buffer size interact with buffer
+>>> +allocation. As buffer allocation is an expensive operation, drivers
+>>> should
+>>> +allow format or controls that influence the buffer size to be changed
+>>> with
+>>> +buffers allocated. A typical ioctl sequence to modify format and controls
+>>> is +
+>>> + #. VIDIOC_STREAMOFF
+>>> + #. VIDIOC_S_EXT_CTRLS
+>>> + #. VIDIOC_S_FMT
+>>> + #. VIDIOC_QBUF
+>>> + #. VIDIOC_STREAMON
+>>> +
+>>> +.. note::
+>>> +
+>>> +   The API doesn't mandate the above order for control (2.) and format
+>>> (3.) +   changes. Format and controls can be set in a different order, or
+>>> even +   interleaved, depending on the device and use case. For instance
+>>> some +   controls might behave differently for different pixel formats,
+>>> in which +   case the format might need to be set first.
+>>> +
+>>> +Queued buffers must be large enough for the new format or controls.
+>>> +
+>>> +Drivers shall return a ``ENOSPC`` error in response to format change
+>>> +(:c:func:`VIDIOC_S_FMT`) or control changes (:c:func:`VIDIOC_S_CTRL` or
+>>> +:c:func:`VIDIOC_S_EXT_CTRLS`) if buffers too small for the new format are
+>>> +currently queued. As a simplification, drivers are allowed to return an
+>>> error
+>> s/an error/``EBUSY``/
+>>
+>>> +from these ioctls if any buffer is currently queued, without checking the
+>>> +queued buffers sizes.
+>>
+>> Again, swap the order: simple case first, more complex case next.
+>>
+>>> +
+>>> +.. note::
+>>> +
+>>> +   The :c:func:`VIDIOC_S_SELECTION` ioctl can, depending on the hardware
+>>> (for +   instance if the device doesn't include a scaler), modify the
+>>> format in +   addition to the selection rectangle. Similarly, the
+>>> +   :c:func:`VIDIOC_S_INPUT`, :c:func:`VIDIOC_S_OUTPUT`,
+>>> :c:func:`VIDIOC_S_STD` +   and :c:func:`VIDIOC_S_DV_TIMINGS` ioctls can
+>>> also modify the format and +   selection rectangles. Driver shall return
+>>> the same ``ENOSPC`` error from +   all ioctls that would result in
+>>> formats too large for queued buffers.
+>> This will return EBUSY for the 'simple' drivers, and ENOSPC for the complex
+>> ones. Should be mentioned clearly to avoid confusion.
+>>
+>>> +
+>>> +Drivers shall also return a ``ENOSPC`` error from the
+>>> :c:func:`VIDIOC_QBUF` +ioctl if the buffer being queued is too small for
+>>> the current format or +controls. Together, these requirements ensure that
+>>> queued buffers will always +be large enough for the configured format and
+>>> controls.
+>>
+>> NACK: it's EINVAL as returned by the buf_prepare() callbacks. Yes, I agree
+>> that ENOSPC would have been more appropriate, but I do not believe we can
+>> change this without breaking ABI. I also do not think this is all that
+>> important. Feel free to blame this on lack for foresight :-)
+>
+> That's driver-dependent though, but I agree that due to cargo-cult programming
+> most probably return -EINVAL today. Most, because I'm pretty sure we have
+> drivers that don't check that condition, resulting in potential DMA buffer
+> overflows. It might make sense to move the check to videobuf2-v4l2.c (but
+> that's unrelated to this patch).
 
-diff --git a/drivers/staging/android/ion/Kconfig b/drivers/staging/android/ion/Kconfig
-index c8fb413..0c91b2b 100644
---- a/drivers/staging/android/ion/Kconfig
-+++ b/drivers/staging/android/ion/Kconfig
-@@ -17,38 +17,3 @@ config ION_TEST
- 	  Choose this option to create a device that can be used to test the
- 	  kernel and device side ION functions.
- 
--config ION_DUMMY
--	bool "Dummy Ion driver"
--	depends on ION
--	help
--	  Provides a dummy ION driver that registers the
--	  /dev/ion device and some basic heaps. This can
--	  be used for testing the ION infrastructure if
--	  one doesn't have access to hardware drivers that
--	  use ION.
--
--config ION_TEGRA
--	tristate "Ion for Tegra"
--	depends on ARCH_TEGRA && ION
--	help
--	  Choose this option if you wish to use ion on an nVidia Tegra.
--
--config ION_HISI
--	tristate "Ion for Hisilicon"
--	depends on ARCH_HISI && ION
--	select ION_OF
--	help
--	  Choose this option if you wish to use ion on Hisilicon Platform.
--
--source "drivers/staging/android/ion/hisilicon/Kconfig"
--
--config ION_OF
--	bool "Devicetree support for Ion"
--	depends on ION && OF_ADDRESS
--	help
--	  Provides base support for defining Ion heaps in devicetree
--	  and setting them up. Also includes functions for platforms
--	  to parse the devicetree and expand for their own custom
--	  extensions
--
--	  If using Ion and devicetree, you should say Y here
-diff --git a/drivers/staging/android/ion/Makefile b/drivers/staging/android/ion/Makefile
-index 5d630a0..9457090 100644
---- a/drivers/staging/android/ion/Makefile
-+++ b/drivers/staging/android/ion/Makefile
-@@ -5,9 +5,3 @@ obj-$(CONFIG_ION_TEST) += ion_test.o
- ifdef CONFIG_COMPAT
- obj-$(CONFIG_ION) += compat_ion.o
- endif
--
--obj-$(CONFIG_ION_DUMMY) += ion_dummy_driver.o
--obj-$(CONFIG_ION_TEGRA) += tegra/
--obj-$(CONFIG_ION_HISI) += hisilicon/
--obj-$(CONFIG_ION_OF) += ion_of.o
--
-diff --git a/drivers/staging/android/ion/hisilicon/Kconfig b/drivers/staging/android/ion/hisilicon/Kconfig
-deleted file mode 100644
-index 2b4bd07..0000000
---- a/drivers/staging/android/ion/hisilicon/Kconfig
-+++ /dev/null
-@@ -1,5 +0,0 @@
--config HI6220_ION
--        bool "Hi6220 ION Driver"
--        depends on ARCH_HISI && ION
--        help
--          Build the Hisilicon Hi6220 ion driver.
-diff --git a/drivers/staging/android/ion/hisilicon/Makefile b/drivers/staging/android/ion/hisilicon/Makefile
-deleted file mode 100644
-index 2a89414..0000000
---- a/drivers/staging/android/ion/hisilicon/Makefile
-+++ /dev/null
-@@ -1 +0,0 @@
--obj-$(CONFIG_HI6220_ION) += hi6220_ion.o
-diff --git a/drivers/staging/android/ion/hisilicon/hi6220_ion.c b/drivers/staging/android/ion/hisilicon/hi6220_ion.c
-deleted file mode 100644
-index 0de7897..0000000
---- a/drivers/staging/android/ion/hisilicon/hi6220_ion.c
-+++ /dev/null
-@@ -1,113 +0,0 @@
--/*
-- * Hisilicon Hi6220 ION Driver
-- *
-- * Copyright (c) 2015 Hisilicon Limited.
-- *
-- * Author: Chen Feng <puck.chen@hisilicon.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#define pr_fmt(fmt) "Ion: " fmt
--
--#include <linux/err.h>
--#include <linux/platform_device.h>
--#include <linux/slab.h>
--#include <linux/of.h>
--#include <linux/mm.h>
--#include "../ion_priv.h"
--#include "../ion.h"
--#include "../ion_of.h"
--
--struct hisi_ion_dev {
--	struct ion_heap	**heaps;
--	struct ion_device *idev;
--	struct ion_platform_data *data;
--};
--
--static struct ion_of_heap hisi_heaps[] = {
--	PLATFORM_HEAP("hisilicon,sys_user", 0,
--		      ION_HEAP_TYPE_SYSTEM, "sys_user"),
--	PLATFORM_HEAP("hisilicon,sys_contig", 1,
--		      ION_HEAP_TYPE_SYSTEM_CONTIG, "sys_contig"),
--	PLATFORM_HEAP("hisilicon,cma", ION_HEAP_TYPE_DMA, ION_HEAP_TYPE_DMA,
--		      "cma"),
--	{}
--};
--
--static int hi6220_ion_probe(struct platform_device *pdev)
--{
--	struct hisi_ion_dev *ipdev;
--	int i;
--
--	ipdev = devm_kzalloc(&pdev->dev, sizeof(*ipdev), GFP_KERNEL);
--	if (!ipdev)
--		return -ENOMEM;
--
--	platform_set_drvdata(pdev, ipdev);
--
--	ipdev->idev = ion_device_create(NULL);
--	if (IS_ERR(ipdev->idev))
--		return PTR_ERR(ipdev->idev);
--
--	ipdev->data = ion_parse_dt(pdev, hisi_heaps);
--	if (IS_ERR(ipdev->data))
--		return PTR_ERR(ipdev->data);
--
--	ipdev->heaps = devm_kzalloc(&pdev->dev,
--				sizeof(struct ion_heap) * ipdev->data->nr,
--				GFP_KERNEL);
--	if (!ipdev->heaps) {
--		ion_destroy_platform_data(ipdev->data);
--		return -ENOMEM;
--	}
--
--	for (i = 0; i < ipdev->data->nr; i++) {
--		ipdev->heaps[i] = ion_heap_create(&ipdev->data->heaps[i]);
--		if (!ipdev->heaps) {
--			ion_destroy_platform_data(ipdev->data);
--			return -ENOMEM;
--		}
--		ion_device_add_heap(ipdev->idev, ipdev->heaps[i]);
--	}
--	return 0;
--}
--
--static int hi6220_ion_remove(struct platform_device *pdev)
--{
--	struct hisi_ion_dev *ipdev;
--	int i;
--
--	ipdev = platform_get_drvdata(pdev);
--
--	for (i = 0; i < ipdev->data->nr; i++)
--		ion_heap_destroy(ipdev->heaps[i]);
--
--	ion_destroy_platform_data(ipdev->data);
--	ion_device_destroy(ipdev->idev);
--
--	return 0;
--}
--
--static const struct of_device_id hi6220_ion_match_table[] = {
--	{.compatible = "hisilicon,hi6220-ion"},
--	{},
--};
--
--static struct platform_driver hi6220_ion_driver = {
--	.probe = hi6220_ion_probe,
--	.remove = hi6220_ion_remove,
--	.driver = {
--		.name = "ion-hi6220",
--		.of_match_table = hi6220_ion_match_table,
--	},
--};
--
--static int __init hi6220_ion_init(void)
--{
--	return platform_driver_register(&hi6220_ion_driver);
--}
--
--subsys_initcall(hi6220_ion_init);
-diff --git a/drivers/staging/android/ion/ion_dummy_driver.c b/drivers/staging/android/ion/ion_dummy_driver.c
-deleted file mode 100644
-index cf5c010..0000000
---- a/drivers/staging/android/ion/ion_dummy_driver.c
-+++ /dev/null
-@@ -1,156 +0,0 @@
--/*
-- * drivers/gpu/ion/ion_dummy_driver.c
-- *
-- * Copyright (C) 2013 Linaro, Inc
-- *
-- * This software is licensed under the terms of the GNU General Public
-- * License version 2, as published by the Free Software Foundation, and
-- * may be copied, distributed, and modified under those terms.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- */
--
--#include <linux/err.h>
--#include <linux/platform_device.h>
--#include <linux/slab.h>
--#include <linux/init.h>
--#include <linux/bootmem.h>
--#include <linux/memblock.h>
--#include <linux/sizes.h>
--#include <linux/io.h>
--#include "ion.h"
--#include "ion_priv.h"
--
--static struct ion_device *idev;
--static struct ion_heap **heaps;
--
--static void *carveout_ptr;
--static void *chunk_ptr;
--
--static struct ion_platform_heap dummy_heaps[] = {
--		{
--			.id	= ION_HEAP_TYPE_SYSTEM,
--			.type	= ION_HEAP_TYPE_SYSTEM,
--			.name	= "system",
--		},
--		{
--			.id	= ION_HEAP_TYPE_SYSTEM_CONTIG,
--			.type	= ION_HEAP_TYPE_SYSTEM_CONTIG,
--			.name	= "system contig",
--		},
--		{
--			.id	= ION_HEAP_TYPE_CARVEOUT,
--			.type	= ION_HEAP_TYPE_CARVEOUT,
--			.name	= "carveout",
--			.size	= SZ_4M,
--		},
--		{
--			.id	= ION_HEAP_TYPE_CHUNK,
--			.type	= ION_HEAP_TYPE_CHUNK,
--			.name	= "chunk",
--			.size	= SZ_4M,
--			.align	= SZ_16K,
--			.priv	= (void *)(SZ_16K),
--		},
--};
--
--static const struct ion_platform_data dummy_ion_pdata = {
--	.nr = ARRAY_SIZE(dummy_heaps),
--	.heaps = dummy_heaps,
--};
--
--static int __init ion_dummy_init(void)
--{
--	int i, err;
--
--	idev = ion_device_create(NULL);
--	if (IS_ERR(idev))
--		return PTR_ERR(idev);
--	heaps = kcalloc(dummy_ion_pdata.nr, sizeof(struct ion_heap *),
--			GFP_KERNEL);
--	if (!heaps)
--		return -ENOMEM;
--
--
--	/* Allocate a dummy carveout heap */
--	carveout_ptr = alloc_pages_exact(
--				dummy_heaps[ION_HEAP_TYPE_CARVEOUT].size,
--				GFP_KERNEL);
--	if (carveout_ptr)
--		dummy_heaps[ION_HEAP_TYPE_CARVEOUT].base =
--						virt_to_phys(carveout_ptr);
--	else
--		pr_err("ion_dummy: Could not allocate carveout\n");
--
--	/* Allocate a dummy chunk heap */
--	chunk_ptr = alloc_pages_exact(
--				dummy_heaps[ION_HEAP_TYPE_CHUNK].size,
--				GFP_KERNEL);
--	if (chunk_ptr)
--		dummy_heaps[ION_HEAP_TYPE_CHUNK].base = virt_to_phys(chunk_ptr);
--	else
--		pr_err("ion_dummy: Could not allocate chunk\n");
--
--	for (i = 0; i < dummy_ion_pdata.nr; i++) {
--		struct ion_platform_heap *heap_data = &dummy_ion_pdata.heaps[i];
--
--		if (heap_data->type == ION_HEAP_TYPE_CARVEOUT &&
--		    !heap_data->base)
--			continue;
--
--		if (heap_data->type == ION_HEAP_TYPE_CHUNK && !heap_data->base)
--			continue;
--
--		heaps[i] = ion_heap_create(heap_data);
--		if (IS_ERR_OR_NULL(heaps[i])) {
--			err = PTR_ERR(heaps[i]);
--			goto err;
--		}
--		ion_device_add_heap(idev, heaps[i]);
--	}
--	return 0;
--err:
--	for (i = 0; i < dummy_ion_pdata.nr; ++i)
--		ion_heap_destroy(heaps[i]);
--	kfree(heaps);
--
--	if (carveout_ptr) {
--		free_pages_exact(carveout_ptr,
--				 dummy_heaps[ION_HEAP_TYPE_CARVEOUT].size);
--		carveout_ptr = NULL;
--	}
--	if (chunk_ptr) {
--		free_pages_exact(chunk_ptr,
--				 dummy_heaps[ION_HEAP_TYPE_CHUNK].size);
--		chunk_ptr = NULL;
--	}
--	return err;
--}
--device_initcall(ion_dummy_init);
--
--static void __exit ion_dummy_exit(void)
--{
--	int i;
--
--	ion_device_destroy(idev);
--
--	for (i = 0; i < dummy_ion_pdata.nr; i++)
--		ion_heap_destroy(heaps[i]);
--	kfree(heaps);
--
--	if (carveout_ptr) {
--		free_pages_exact(carveout_ptr,
--				 dummy_heaps[ION_HEAP_TYPE_CARVEOUT].size);
--		carveout_ptr = NULL;
--	}
--	if (chunk_ptr) {
--		free_pages_exact(chunk_ptr,
--				 dummy_heaps[ION_HEAP_TYPE_CHUNK].size);
--		chunk_ptr = NULL;
--	}
--}
--__exitcall(ion_dummy_exit);
-diff --git a/drivers/staging/android/ion/ion_of.c b/drivers/staging/android/ion/ion_of.c
-deleted file mode 100644
-index 7791c70..0000000
---- a/drivers/staging/android/ion/ion_of.c
-+++ /dev/null
-@@ -1,184 +0,0 @@
--/*
-- * Based on work from:
-- *   Andrew Andrianov <andrew@ncrmnt.org>
-- *   Google
-- *   The Linux Foundation
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#include <linux/init.h>
--#include <linux/platform_device.h>
--#include <linux/slab.h>
--#include <linux/of.h>
--#include <linux/of_platform.h>
--#include <linux/of_address.h>
--#include <linux/clk.h>
--#include <linux/dma-mapping.h>
--#include <linux/cma.h>
--#include <linux/dma-contiguous.h>
--#include <linux/io.h>
--#include <linux/of_reserved_mem.h>
--#include "ion.h"
--#include "ion_priv.h"
--#include "ion_of.h"
--
--static int ion_parse_dt_heap_common(struct device_node *heap_node,
--				    struct ion_platform_heap *heap,
--				    struct ion_of_heap *compatible)
--{
--	int i;
--
--	for (i = 0; compatible[i].name; i++) {
--		if (of_device_is_compatible(heap_node, compatible[i].compat))
--			break;
--	}
--
--	if (!compatible[i].name)
--		return -ENODEV;
--
--	heap->id = compatible[i].heap_id;
--	heap->type = compatible[i].type;
--	heap->name = compatible[i].name;
--	heap->align = compatible[i].align;
--
--	/* Some kind of callback function pointer? */
--
--	pr_info("%s: id %d type %d name %s align %lx\n", __func__,
--		heap->id, heap->type, heap->name, heap->align);
--	return 0;
--}
--
--static int ion_setup_heap_common(struct platform_device *parent,
--				 struct device_node *heap_node,
--				 struct ion_platform_heap *heap)
--{
--	int ret = 0;
--
--	switch (heap->type) {
--	case ION_HEAP_TYPE_CARVEOUT:
--	case ION_HEAP_TYPE_CHUNK:
--		if (heap->base && heap->size)
--			return 0;
--
--		ret = of_reserved_mem_device_init(heap->priv);
--		break;
--	default:
--		break;
--	}
--
--	return ret;
--}
--
--struct ion_platform_data *ion_parse_dt(struct platform_device *pdev,
--				       struct ion_of_heap *compatible)
--{
--	int num_heaps, ret;
--	const struct device_node *dt_node = pdev->dev.of_node;
--	struct device_node *node;
--	struct ion_platform_heap *heaps;
--	struct ion_platform_data *data;
--	int i = 0;
--
--	num_heaps = of_get_available_child_count(dt_node);
--
--	if (!num_heaps)
--		return ERR_PTR(-EINVAL);
--
--	heaps = devm_kzalloc(&pdev->dev,
--			     sizeof(struct ion_platform_heap) * num_heaps,
--			     GFP_KERNEL);
--	if (!heaps)
--		return ERR_PTR(-ENOMEM);
--
--	data = devm_kzalloc(&pdev->dev, sizeof(struct ion_platform_data),
--			    GFP_KERNEL);
--	if (!data)
--		return ERR_PTR(-ENOMEM);
--
--	for_each_available_child_of_node(dt_node, node) {
--		struct platform_device *heap_pdev;
--
--		ret = ion_parse_dt_heap_common(node, &heaps[i], compatible);
--		if (ret)
--			return ERR_PTR(ret);
--
--		heap_pdev = of_platform_device_create(node, heaps[i].name,
--						      &pdev->dev);
--		if (!heap_pdev)
--			return ERR_PTR(-ENOMEM);
--		heap_pdev->dev.platform_data = &heaps[i];
--
--		heaps[i].priv = &heap_pdev->dev;
--
--		ret = ion_setup_heap_common(pdev, node, &heaps[i]);
--		if (ret)
--			goto out_err;
--		i++;
--	}
--
--	data->heaps = heaps;
--	data->nr = num_heaps;
--	return data;
--
--out_err:
--	for ( ; i >= 0; i--)
--		if (heaps[i].priv)
--			of_device_unregister(to_platform_device(heaps[i].priv));
--
--	return ERR_PTR(ret);
--}
--
--void ion_destroy_platform_data(struct ion_platform_data *data)
--{
--	int i;
--
--	for (i = 0; i < data->nr; i++)
--		if (data->heaps[i].priv)
--			of_device_unregister(to_platform_device(
--				data->heaps[i].priv));
--}
--
--#ifdef CONFIG_OF_RESERVED_MEM
--#include <linux/of.h>
--#include <linux/of_fdt.h>
--#include <linux/of_reserved_mem.h>
--
--static int rmem_ion_device_init(struct reserved_mem *rmem, struct device *dev)
--{
--	struct platform_device *pdev = to_platform_device(dev);
--	struct ion_platform_heap *heap = pdev->dev.platform_data;
--
--	heap->base = rmem->base;
--	heap->base = rmem->size;
--	pr_debug("%s: heap %s base %pa size %pa dev %p\n", __func__,
--		 heap->name, &rmem->base, &rmem->size, dev);
--	return 0;
--}
--
--static void rmem_ion_device_release(struct reserved_mem *rmem,
--				    struct device *dev)
--{
--}
--
--static const struct reserved_mem_ops rmem_dma_ops = {
--	.device_init	= rmem_ion_device_init,
--	.device_release	= rmem_ion_device_release,
--};
--
--static int __init rmem_ion_setup(struct reserved_mem *rmem)
--{
--	phys_addr_t size = rmem->size;
--
--	size = size / 1024;
--
--	pr_info("Ion memory setup at %pa size %pa MiB\n",
--		&rmem->base, &size);
--	rmem->ops = &rmem_dma_ops;
--	return 0;
--}
--
--RESERVEDMEM_OF_DECLARE(ion, "ion-region", rmem_ion_setup);
--#endif
-diff --git a/drivers/staging/android/ion/ion_of.h b/drivers/staging/android/ion/ion_of.h
-deleted file mode 100644
-index 8241a17..0000000
---- a/drivers/staging/android/ion/ion_of.h
-+++ /dev/null
-@@ -1,37 +0,0 @@
--/*
-- * Based on work from:
-- *   Andrew Andrianov <andrew@ncrmnt.org>
-- *   Google
-- *   The Linux Foundation
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#ifndef _ION_OF_H
--#define _ION_OF_H
--
--struct ion_of_heap {
--	const char *compat;
--	int heap_id;
--	int type;
--	const char *name;
--	int align;
--};
--
--#define PLATFORM_HEAP(_compat, _id, _type, _name) \
--{ \
--	.compat = _compat, \
--	.heap_id = _id, \
--	.type = _type, \
--	.name = _name, \
--	.align = PAGE_SIZE, \
--}
--
--struct ion_platform_data *ion_parse_dt(struct platform_device *pdev,
--					struct ion_of_heap *compatible);
--
--void ion_destroy_platform_data(struct ion_platform_data *data);
--
--#endif
-diff --git a/drivers/staging/android/ion/tegra/Makefile b/drivers/staging/android/ion/tegra/Makefile
-deleted file mode 100644
-index 808f1f5..0000000
---- a/drivers/staging/android/ion/tegra/Makefile
-+++ /dev/null
-@@ -1 +0,0 @@
--obj-$(CONFIG_ION_TEGRA) += tegra_ion.o
-diff --git a/drivers/staging/android/ion/tegra/tegra_ion.c b/drivers/staging/android/ion/tegra/tegra_ion.c
-deleted file mode 100644
-index 49e55e5..0000000
---- a/drivers/staging/android/ion/tegra/tegra_ion.c
-+++ /dev/null
-@@ -1,80 +0,0 @@
--/*
-- * drivers/gpu/tegra/tegra_ion.c
-- *
-- * Copyright (C) 2011 Google, Inc.
-- *
-- * This software is licensed under the terms of the GNU General Public
-- * License version 2, as published by the Free Software Foundation, and
-- * may be copied, distributed, and modified under those terms.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- */
--
--#include <linux/err.h>
--#include <linux/module.h>
--#include <linux/platform_device.h>
--#include <linux/slab.h>
--#include "../ion.h"
--#include "../ion_priv.h"
--
--static struct ion_device *idev;
--static int num_heaps;
--static struct ion_heap **heaps;
--
--static int tegra_ion_probe(struct platform_device *pdev)
--{
--	struct ion_platform_data *pdata = pdev->dev.platform_data;
--	int err;
--	int i;
--
--	num_heaps = pdata->nr;
--
--	heaps = devm_kcalloc(&pdev->dev, pdata->nr,
--			     sizeof(struct ion_heap *), GFP_KERNEL);
--
--	idev = ion_device_create(NULL);
--	if (IS_ERR(idev))
--		return PTR_ERR(idev);
--
--	/* create the heaps as specified in the board file */
--	for (i = 0; i < num_heaps; i++) {
--		struct ion_platform_heap *heap_data = &pdata->heaps[i];
--
--		heaps[i] = ion_heap_create(heap_data);
--		if (IS_ERR_OR_NULL(heaps[i])) {
--			err = PTR_ERR(heaps[i]);
--			goto err;
--		}
--		ion_device_add_heap(idev, heaps[i]);
--	}
--	platform_set_drvdata(pdev, idev);
--	return 0;
--err:
--	for (i = 0; i < num_heaps; ++i)
--		ion_heap_destroy(heaps[i]);
--	return err;
--}
--
--static int tegra_ion_remove(struct platform_device *pdev)
--{
--	struct ion_device *idev = platform_get_drvdata(pdev);
--	int i;
--
--	ion_device_destroy(idev);
--	for (i = 0; i < num_heaps; i++)
--		ion_heap_destroy(heaps[i]);
--	return 0;
--}
--
--static struct platform_driver ion_driver = {
--	.probe = tegra_ion_probe,
--	.remove = tegra_ion_remove,
--	.driver = { .name = "ion-tegra" }
--};
--
--module_platform_driver(ion_driver);
--
--- 
-2.7.4
+videobuf2-v4l2.c doesn't have the format information, so it can't do that
+check. I agree that there are likely some drivers that do not check this,
+which is definitely a bug. I think v4l2-compliance tries to check for this,
+but I am not sure it is able to do so today for the DMABUF case, which is
+the most relevant one.
+
+>
+> We should have used -ENOSPC, and I believe that switching to -ENOSPC now
+> wouldn't result in any breakage. Can you think of any application that would
+> queue a too small buffer, match the error code against -EINVAL, and have a
+> strategy to recover ? Queuing a too small buffer is an application but in the
+> first place, I don't think application developers will have gone through the
+> trouble of implementing a way to recover from their own bug instead of fixing
+> them :-)
+>
+> Would it be OK with you to document that -ENOSPC is the recommended error
+> code, but that some drivers currently return -EINVAL ?
+
+I really don't think it is worth changing this. Changing it to ENOSPC would
+make drivers do inconsistent things. And the important thing is that it DOES
+return an error.
+
+Just stick to -EINVAL. The world won't end :-)
+
+>
+>>> +Userspace applications can query the buffer size required for a given
+>>> format +and controls by first setting the desired control values and then
+>>> trying the +desired format. The :c:func:`VIDIOC_TRY_FMT` ioctl will
+>>> return the required +buffer size.
+>>> +
+>>> + #. VIDIOC_S_EXT_CTRLS(x)
+>>> + #. VIDIOC_TRY_FMT()
+>>> + #. VIDIOC_S_EXT_CTRLS(y)
+>>> + #. VIDIOC_TRY_FMT()
+>>> +
+>>> +The :c:func:`VIDIOC_CREATE_BUFS` ioctl can then be used to allocate
+>>> buffers +based on the queried sizes (for instance by allocating a set of
+>>> buffers large +enough for all the desired formats and controls, or by
+>>> allocating separate set +of appropriately sized buffers for each use
+>>> case).
+>>> +
+>>> +To simplify their implementation, drivers may also require buffers to be
+>>> +reallocated in order to change formats or controls that influence the
+>>> buffer +size. In that case, to perform such changes, userspace
+>>> applications shall +first stop the video stream with the
+>>> :c:func:`VIDIOC_STREAMOFF` ioctl if it +is running and free all buffers
+>>> with the :c:func:`VIDIOC_REQBUFS` ioctl if +they are allocated. The
+>>> format or controls can then be modified, and buffers +shall then be
+>>> reallocated and the stream restarted. A typical ioctl sequence +is
+>>> +
+>>> + #. VIDIOC_STREAMOFF
+>>> + #. VIDIOC_REQBUFS(0)
+>>> + #. VIDIOC_S_EXT_CTRLS
+>>> + #. VIDIOC_S_FMT
+>>> + #. VIDIOC_REQBUFS(n)
+>>> + #. VIDIOC_QBUF
+>>> + #. VIDIOC_STREAMON
+>>> +
+>>> +The second :c:func:`VIDIOC_REQBUFS` call will take the new format and
+>>> control +value into account to compute the buffer size to allocate.
+>>> Applications can +also retrieve the size by calling the
+>>> :c:func:`VIDIOC_G_FMT` ioctl if needed. +
+>>> +When reallocation is required, any attempt to modify format or controls
+>>> that +influences the buffer size while buffers are allocated shall cause
+>>> the format +or control set ioctl to return the ``EBUSY`` error code.
+>>> +
+>>> +
+>>>
+>>>  .. c:type:: v4l2_buffer
+>>>
+>>>  struct v4l2_buffer
+>>
+>> The order really has to be changed: first explain the 99%, then continue
+>> with the more complex case. It's not the text itself, it's the order in
+>> which this is presented. I won't accept it in this order as it will be
+>> terminally confusing for most readers. Sorry.
+>
+>
+
+Regards,
+
+	Hans
