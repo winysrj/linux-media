@@ -1,62 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from Galois.linutronix.de ([146.0.238.70]:42148 "EHLO
-        Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933128AbdCaPpv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Mar 2017 11:45:51 -0400
-Date: Fri, 31 Mar 2017 17:45:43 +0200 (CEST)
-From: Thomas Gleixner <tglx@linutronix.de>
-To: Jonathan Corbet <corbet@lwn.net>
-cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Jani Nikula <jani.nikula@intel.com>,
-        Takashi Iwai <tiwai@suse.de>,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        Silvio Fricke <silvio.fricke@gmail.com>,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        Ingo Molnar <mingo@elte.hu>,
-        Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH 3/9] genericirq.tmpl: convert it to ReST
-In-Reply-To: <20170331085711.5ff4a550@lwn.net>
-Message-ID: <alpine.DEB.2.20.1703311742221.1780@nanos>
-References: <cover.1490904090.git.mchehab@s-opensource.com> <de437318af3e6384319aba8d9e199a4645108822.1490904090.git.mchehab@s-opensource.com> <20170331085711.5ff4a550@lwn.net>
+Received: from smtp.codeaurora.org ([198.145.29.96]:37492 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752926AbdCFQYc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 11:24:32 -0500
+From: Kalle Valo <kvalo@codeaurora.org>
+To: Arend Van Spriel <arend.vanspriel@broadcom.com>,
+        Arnd Bergmann <arnd@arndb.de>
+Cc: kasan-dev@googlegroups.com,
+        Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-wireless@vger.kernel.org,
+        kernel-build-reports@lists.linaro.org,
+        "David S . Miller" <davem@davemloft.net>
+Subject: Re: [PATCH 08/26] brcmsmac: make some local variables 'static const' to reduce stack size
+References: <20170302163834.2273519-1-arnd@arndb.de>
+        <20170302163834.2273519-9-arnd@arndb.de>
+        <227c8e5a-fa20-0300-1cb0-1d3ef17deb19@broadcom.com>
+Date: Mon, 06 Mar 2017 18:19:59 +0200
+In-Reply-To: <227c8e5a-fa20-0300-1cb0-1d3ef17deb19@broadcom.com> (Arend Van
+        Spriel's message of "Mon, 6 Mar 2017 10:30:58 +0100")
+Message-ID: <87y3wi74y8.fsf@purkki.adurom.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 31 Mar 2017, Jonathan Corbet wrote:
-> On Thu, 30 Mar 2017 17:11:30 -0300
-> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
-> 
-> [Reordering things a bit]
-> 
-> > +==========================
-> > +Linux generic IRQ handling
-> > +==========================
-> > +
-> > +:Copyright: |copy| 2005-2010: Thomas Gleixner
-> > +:Copyright: |copy| 2005-2006:  Ingo Molnar
-> 
-> It seems maybe they should have been CC'd on this one?  Adding them now
-> (and leaving the full patch for their amusement).
-> 
-> > Brainless conversion of genericirq.tmpl book to ReST, via
-> > 	Documentation/sphinx/tmplcvt
-> 
-> In general this seems good, but I have to wonder how current this material
-> is at this point?  The last substantive change was in 2013 (3.11), and I've
-> seen a certain amount of IRQ work going by since then.  I'm not opposed to
-> this move at all, but perhaps if it's outdated we should add a note to that
-> effect?
+Arend Van Spriel <arend.vanspriel@broadcom.com> writes:
 
-We should take the opportunity and rewrite it proper. I might have an
-intern available in the next couple of weeks, but I need to check with the
-folks who are tasked to entertain him :)
+> On 2-3-2017 17:38, Arnd Bergmann wrote:
+>> With KASAN and a couple of other patches applied, this driver is one
+>> of the few remaining ones that actually use more than 2048 bytes of
+>> kernel stack:
+>> 
+>> broadcom/brcm80211/brcmsmac/phy/phy_n.c: In function 'wlc_phy_workarounds_nphy_gainctrl':
+>> broadcom/brcm80211/brcmsmac/phy/phy_n.c:16065:1: warning: the frame size of 3264 bytes is larger than 2048 bytes [-Wframe-larger-than=]
+>> broadcom/brcm80211/brcmsmac/phy/phy_n.c: In function 'wlc_phy_workarounds_nphy':
+>> broadcom/brcm80211/brcmsmac/phy/phy_n.c:17138:1: warning: the frame size of 2864 bytes is larger than 2048 bytes [-Wframe-larger-than=]
+>> 
+>> Here, I'm reducing the stack size by marking as many local variables as
+>> 'static const' as I can without changing the actual code.
+>
+> Acked-by: Arend van Spriel <arend.vanspriel@broadcom.com>
 
-Thanks,
+Arnd, via which tree are you planning to submit these? I'm not sure
+what I should do with the wireless drivers patches from this series.
 
-	tglx
+-- 
+Kalle Valo
