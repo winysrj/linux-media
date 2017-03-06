@@ -1,51 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:57241 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754975AbdC2N0Z (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Mar 2017 09:26:25 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-CC: <devicetree@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH v1 7/8] ARM: configs: stm32: stmpe 1600 GPIO expandor
-Date: Wed, 29 Mar 2017 15:25:25 +0200
-Message-ID: <1490793926-6477-8-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1490793926-6477-1-git-send-email-hugues.fruchet@st.com>
-References: <1490793926-6477-1-git-send-email-hugues.fruchet@st.com>
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:33297 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753114AbdCFKi0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 05:38:26 -0500
+Received: by mail-wr0-f195.google.com with SMTP id g10so21130993wrg.0
+        for <linux-media@vger.kernel.org>; Mon, 06 Mar 2017 02:38:25 -0800 (PST)
+Date: Mon, 6 Mar 2017 11:38:20 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: dri-devel@lists.freedesktop.org, Daniel Vetter <daniel@ffwll.ch>,
+        Laura Abbott <labbott@redhat.com>, devel@driverdev.osuosl.org,
+        romlem@google.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        arve@android.com, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+        Riley Andrews <riandrews@android.com>,
+        Mark Brown <broonie@kernel.org>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of
+ staging
+Message-ID: <20170306103820.ixuvs7fd6s4tvfzy@phenom.ffwll.local>
+References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+ <20170303100433.lm5t4hqxj6friyp6@phenom.ffwll.local>
+ <10344634.XsotFaGzfj@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <10344634.XsotFaGzfj@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enable STMPE1600 GPIO expandor.
+On Fri, Mar 03, 2017 at 06:45:40PM +0200, Laurent Pinchart wrote:
+> - I haven't seen any proposal how a heap-based solution could be used in a 
+> generic distribution. This needs to be figured out before committing to any 
+> API/ABI.
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- arch/arm/configs/stm32_defconfig | 2 ++
- 1 file changed, 2 insertions(+)
+Two replies from my side:
 
-diff --git a/arch/arm/configs/stm32_defconfig b/arch/arm/configs/stm32_defconfig
-index a9d8e3c..84adc88 100644
---- a/arch/arm/configs/stm32_defconfig
-+++ b/arch/arm/configs/stm32_defconfig
-@@ -49,6 +49,8 @@ CONFIG_SERIAL_STM32_CONSOLE=y
- # CONFIG_HW_RANDOM is not set
- # CONFIG_HWMON is not set
- CONFIG_REGULATOR=y
-+CONFIG_GPIO_STMPE=y
-+CONFIG_MFD_STMPE=y
- CONFIG_REGULATOR_FIXED_VOLTAGE=y
- # CONFIG_USB_SUPPORT is not set
- CONFIG_NEW_LEDS=y
+- Just because a patch doesn't solve world hunger isn't really a good
+  reason to reject it.
+
+- Heap doesn't mean its not resizeable (but I'm not sure that's really
+  your concern).
+
+- Imo ION is very much part of the picture here to solve this for real. We
+  need to bits:
+
+  * Be able to allocate memory from specific pools, not going through a
+    specific driver. ION gives us that interface. This is e.g. also needed
+    for "special" memory, like SMA tries to expose.
+
+  * Some way to figure out how&where to allocate the buffer object. This
+    is purely a userspace problem, and this is the part the unix memory
+    allocator tries to solve. There's no plans in there for big kernel
+    changes, instead userspace does a dance to reconcile all the
+    constraints, and one of the constraints might be "you have to allocate
+    this from this special ION heap". The only thing the kernel needs to
+    expose is which devices use which ION heaps (we kinda do that
+    already), and maybe some hints of how they can be generalized (but I
+    guess stuff like "minimal pagesize of x KB" is also fulfilled by any
+    CMA heap is knowledge userspace needs).
+
+Again I think waiting for this to be fully implemented before we merge any
+part is going to just kill any upstreaming efforts. ION in itself, without
+the full buffer negotiation dance seems clearly useful (also for stuff
+like SMA), and having it merged will help with moving the buffer
+allocation dance forward.
+-Daniel
 -- 
-1.9.1
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
