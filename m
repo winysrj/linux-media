@@ -1,102 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:56541 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750736AbdCBJww (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Mar 2017 04:52:52 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH] [media] coda: implement encoder stop command
-Date: Thu,  2 Mar 2017 10:51:44 +0100
-Message-Id: <20170302095144.32090-1-p.zabel@pengutronix.de>
+Received: from mga05.intel.com ([192.55.52.43]:47164 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754668AbdCFOfz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Mar 2017 09:35:55 -0500
+From: Elena Reshetova <elena.reshetova@intel.com>
+To: gregkh@linuxfoundation.org
+Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org,
+        netdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
+        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-usb@vger.kernel.org, peterz@infradead.org,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        Hans Liljestrand <ishkamiel@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        David Windsor <dwindsor@gmail.com>
+Subject: [PATCH 20/29] drivers, s390: convert qeth_reply.refcnt from atomic_t to refcount_t
+Date: Mon,  6 Mar 2017 16:21:07 +0200
+Message-Id: <1488810076-3754-21-git-send-email-elena.reshetova@intel.com>
+In-Reply-To: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is no need to call v4l2_m2m_try_schedule to kick off draining the
-bitstream buffer for the encoder, but we have to wake up the destination
-queue in case there are no new OUTPUT buffers to be encoded and userspace
-is already polling for new CAPTURE buffers.
+refcount_t type and corresponding API should be
+used instead of atomic_t when the variable is used as
+a reference counter. This allows to avoid accidental
+refcounter overflows that might lead to use-after-free
+situations.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
+Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: David Windsor <dwindsor@gmail.com>
 ---
- drivers/media/platform/coda/coda-common.c | 47 +++++++++++++++++++++++++++++++
- 1 file changed, 47 insertions(+)
+ drivers/s390/net/qeth_core.h      | 3 ++-
+ drivers/s390/net/qeth_core_main.c | 8 +++-----
+ 2 files changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index e1a2e8c70db01..085bbdb0d361b 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -881,6 +881,47 @@ static int coda_g_selection(struct file *file, void *fh,
- 	return 0;
- }
+diff --git a/drivers/s390/net/qeth_core.h b/drivers/s390/net/qeth_core.h
+index e7addea..e2c81d21 100644
+--- a/drivers/s390/net/qeth_core.h
++++ b/drivers/s390/net/qeth_core.h
+@@ -20,6 +20,7 @@
+ #include <linux/ethtool.h>
+ #include <linux/hashtable.h>
+ #include <linux/ip.h>
++#include <linux/refcount.h>
  
-+static int coda_try_encoder_cmd(struct file *file, void *fh,
-+				struct v4l2_encoder_cmd *ec)
-+{
-+	if (ec->cmd != V4L2_ENC_CMD_STOP)
-+		return -EINVAL;
-+
-+	if (ec->flags & V4L2_ENC_CMD_STOP_AT_GOP_END)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static int coda_encoder_cmd(struct file *file, void *fh,
-+			    struct v4l2_encoder_cmd *ec)
-+{
-+	struct coda_ctx *ctx = fh_to_ctx(fh);
-+	struct vb2_queue *dst_vq;
-+	int ret;
-+
-+	ret = coda_try_encoder_cmd(file, fh, ec);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* Ignore encoder stop command silently in decoder context */
-+	if (ctx->inst_type != CODA_INST_ENCODER)
-+		return 0;
-+
-+	/* Set the stream-end flag on this context */
-+	ctx->bit_stream_param |= CODA_BIT_STREAM_END_FLAG;
-+
-+	/* If there is no buffer in flight, wake up */
-+	if (ctx->qsequence == ctx->osequence) {
-+		dst_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx,
-+					 V4L2_BUF_TYPE_VIDEO_CAPTURE);
-+		dst_vq->last_buffer_dequeued = true;
-+		wake_up(&dst_vq->done_wq);
-+	}
-+
-+	return 0;
-+}
-+
- static int coda_try_decoder_cmd(struct file *file, void *fh,
- 				struct v4l2_decoder_cmd *dc)
- {
-@@ -1054,6 +1095,8 @@ static const struct v4l2_ioctl_ops coda_ioctl_ops = {
+ #include <net/ipv6.h>
+ #include <net/if_inet6.h>
+@@ -641,7 +642,7 @@ struct qeth_reply {
+ 	int rc;
+ 	void *param;
+ 	struct qeth_card *card;
+-	atomic_t refcnt;
++	refcount_t refcnt;
+ };
  
- 	.vidioc_g_selection	= coda_g_selection,
  
-+	.vidioc_try_encoder_cmd	= coda_try_encoder_cmd,
-+	.vidioc_encoder_cmd	= coda_encoder_cmd,
- 	.vidioc_try_decoder_cmd	= coda_try_decoder_cmd,
- 	.vidioc_decoder_cmd	= coda_decoder_cmd,
+diff --git a/drivers/s390/net/qeth_core_main.c b/drivers/s390/net/qeth_core_main.c
+index 315d8a2..a2bf13f 100644
+--- a/drivers/s390/net/qeth_core_main.c
++++ b/drivers/s390/net/qeth_core_main.c
+@@ -555,7 +555,7 @@ static struct qeth_reply *qeth_alloc_reply(struct qeth_card *card)
  
-@@ -1330,9 +1373,13 @@ static void coda_buf_queue(struct vb2_buffer *vb)
- 		mutex_lock(&ctx->bitstream_mutex);
- 		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
- 		if (vb2_is_streaming(vb->vb2_queue))
-+			/* This set buf->sequence = ctx->qsequence++ */
- 			coda_fill_bitstream(ctx, true);
- 		mutex_unlock(&ctx->bitstream_mutex);
- 	} else {
-+		if (ctx->inst_type == CODA_INST_ENCODER &&
-+		    vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+			vbuf->sequence = ctx->qsequence++;
- 		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
+ 	reply = kzalloc(sizeof(struct qeth_reply), GFP_ATOMIC);
+ 	if (reply) {
+-		atomic_set(&reply->refcnt, 1);
++		refcount_set(&reply->refcnt, 1);
+ 		atomic_set(&reply->received, 0);
+ 		reply->card = card;
  	}
+@@ -564,14 +564,12 @@ static struct qeth_reply *qeth_alloc_reply(struct qeth_card *card)
+ 
+ static void qeth_get_reply(struct qeth_reply *reply)
+ {
+-	WARN_ON(atomic_read(&reply->refcnt) <= 0);
+-	atomic_inc(&reply->refcnt);
++	refcount_inc(&reply->refcnt);
  }
+ 
+ static void qeth_put_reply(struct qeth_reply *reply)
+ {
+-	WARN_ON(atomic_read(&reply->refcnt) <= 0);
+-	if (atomic_dec_and_test(&reply->refcnt))
++	if (refcount_dec_and_test(&reply->refcnt))
+ 		kfree(reply);
+ }
+ 
 -- 
-2.11.0
+2.7.4
