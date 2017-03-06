@@ -1,89 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46204 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750816AbdCIUi4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 9 Mar 2017 15:38:56 -0500
-Date: Thu, 9 Mar 2017 22:38:16 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        devicetree@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv3 04/15] ov7670: get xclk
-Message-ID: <20170309203816.GQ3220@valkosipuli.retiisi.org.uk>
-References: <20170306145616.38485-1-hverkuil@xs4all.nl>
- <20170306145616.38485-5-hverkuil@xs4all.nl>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35077 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753234AbdCFLNd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 06:13:33 -0500
+Received: by mail-wm0-f66.google.com with SMTP id z63so10936602wmg.2
+        for <linux-media@vger.kernel.org>; Mon, 06 Mar 2017 03:13:32 -0800 (PST)
+Date: Mon, 6 Mar 2017 11:40:41 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Michal Hocko <mhocko@kernel.org>
+Cc: Laura Abbott <labbott@redhat.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com,
+        romlem@google.com, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org
+Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of
+ staging
+Message-ID: <20170306104041.zghsicrnadoap7lp@phenom.ffwll.local>
+References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+ <20170303132949.GC31582@dhcp22.suse.cz>
+ <cf383b9b-3cbc-0092-a071-f120874c053c@redhat.com>
+ <20170306074258.GA27953@dhcp22.suse.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170306145616.38485-5-hverkuil@xs4all.nl>
+In-Reply-To: <20170306074258.GA27953@dhcp22.suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Mon, Mar 06, 2017 at 03:56:05PM +0100, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On Mon, Mar 06, 2017 at 08:42:59AM +0100, Michal Hocko wrote:
+> On Fri 03-03-17 09:37:55, Laura Abbott wrote:
+> > On 03/03/2017 05:29 AM, Michal Hocko wrote:
+> > > On Thu 02-03-17 13:44:32, Laura Abbott wrote:
+> > >> Hi,
+> > >>
+> > >> There's been some recent discussions[1] about Ion-like frameworks. There's
+> > >> apparently interest in just keeping Ion since it works reasonablly well.
+> > >> This series does what should be the final clean ups for it to possibly be
+> > >> moved out of staging.
+> > >>
+> > >> This includes the following:
+> > >> - Some general clean up and removal of features that never got a lot of use
+> > >>   as far as I can tell.
+> > >> - Fixing up the caching. This is the series I proposed back in December[2]
+> > >>   but never heard any feedback on. It will certainly break existing
+> > >>   applications that rely on the implicit caching. I'd rather make an effort
+> > >>   to move to a model that isn't going directly against the establishement
+> > >>   though.
+> > >> - Fixing up the platform support. The devicetree approach was never well
+> > >>   recieved by DT maintainers. The proposal here is to think of Ion less as
+> > >>   specifying requirements and more of a framework for exposing memory to
+> > >>   userspace.
+> > >> - CMA allocations now happen without the need of a dummy device structure.
+> > >>   This fixes a bunch of the reasons why I attempted to add devicetree
+> > >>   support before.
+> > >>
+> > >> I've had problems getting feedback in the past so if I don't hear any major
+> > >> objections I'm going to send out with the RFC dropped to be picked up.
+> > >> The only reason there isn't a patch to come out of staging is to discuss any
+> > >> other changes to the ABI people might want. Once this comes out of staging,
+> > >> I really don't want to mess with the ABI.
+> > > 
+> > > Could you recapitulate concerns preventing the code being merged
+> > > normally rather than through the staging tree and how they were
+> > > addressed?
+> > > 
+> > 
+> > Sorry, I'm really not understanding your question here, can you
+> > clarify?
 > 
-> Get the clock for this sensor.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/i2c/ov7670.c | 12 ++++++++++++
->  1 file changed, 12 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-> index 50e4466a2b37..da0843617a49 100644
-> --- a/drivers/media/i2c/ov7670.c
-> +++ b/drivers/media/i2c/ov7670.c
-> @@ -10,6 +10,7 @@
->   * This file may be distributed under the terms of the GNU General
->   * Public License, version 2.
->   */
-> +#include <linux/clk.h>
->  #include <linux/init.h>
->  #include <linux/module.h>
->  #include <linux/slab.h>
-> @@ -227,6 +228,7 @@ struct ov7670_info {
->  		struct v4l2_ctrl *hue;
->  	};
->  	struct ov7670_format_struct *fmt;  /* Current format */
-> +	struct clk *clk;
->  	int min_width;			/* Filter out smaller sizes */
->  	int min_height;			/* Filter out smaller sizes */
->  	int clock_speed;		/* External clock speed (MHz) */
-> @@ -1587,6 +1589,15 @@ static int ov7670_probe(struct i2c_client *client,
->  			info->pclk_hb_disable = true;
->  	}
->  
-> +	info->clk = devm_clk_get(&client->dev, "xclk");
-> +	if (IS_ERR(info->clk))
-> +		return -EPROBE_DEFER;
-> +	clk_prepare_enable(info->clk);
-> +
-> +	info->clock_speed = clk_get_rate(info->clk) / 1000000;
-> +	if (info->clock_speed < 10 || info->clock_speed > 48)
-> +		return -EINVAL;
+> There must have been a reason why this code ended up in the staging
+> tree, right? So my question is what those reasons were and how they were
+> handled in order to move the code from the staging subtree.
 
-clk_disable_unprepare() before return?
+No one gave a thing about android in upstream, so Greg KH just dumped it
+all into staging/android/. We've discussed ION a bunch of times, recorded
+anything we'd like to fix in staging/android/TODO, and Laura's patch
+series here addresses a big chunk of that.
 
-> +
->  	/* Make sure it's an ov7670 */
->  	ret = ov7670_detect(sd);
->  	if (ret) {
-> @@ -1667,6 +1678,7 @@ static int ov7670_remove(struct i2c_client *client)
->  
->  	v4l2_device_unregister_subdev(sd);
->  	v4l2_ctrl_handler_free(&info->hdl);
-> +	clk_disable_unprepare(info->clk);
->  	return 0;
->  }
->  
-
+This is pretty much the same approach we (gpu folks) used to de-stage the
+syncpt stuff.
+-Daniel
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
