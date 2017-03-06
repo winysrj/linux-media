@@ -1,163 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:52910 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755641AbdCKLXh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Mar 2017 06:23:37 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv5 15/16] sama5d3 dts: enable atmel-isi
-Date: Sat, 11 Mar 2017 12:23:27 +0100
-Message-Id: <20170311112328.11802-16-hverkuil@xs4all.nl>
-In-Reply-To: <20170311112328.11802-1-hverkuil@xs4all.nl>
-References: <20170311112328.11802-1-hverkuil@xs4all.nl>
+Received: from aserp1040.oracle.com ([141.146.126.69]:34853 "EHLO
+        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753830AbdCFPZD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 10:25:03 -0500
+Date: Mon, 6 Mar 2017 18:23:34 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Derek Robson <robsonde@gmail.com>
+Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        swarren@wwwdotorg.org, lee@kernel.org, eric@anholt.net,
+        f.fainelli@gmail.com, rjui@broadcom.com, sbranden@broadcom.com,
+        arnd@arndb.de, mzoran@crowfest.net, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org,
+        bcm-kernel-feedback-list@broadcom.com,
+        linux-rpi-kernel@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] Staging: media: platform: bcm2835 - Style fix
+Message-ID: <20170306152334.GA4335@mwanda>
+References: <20170304013120.24949-1-robsonde@gmail.com>
+ <20170304113548.GA4386@mwanda>
+ <20170304214319.GA15368@bigbird>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170304214319.GA15368@bigbird>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Sun, Mar 05, 2017 at 10:43:19AM +1300, Derek Robson wrote:
+> On Sat, Mar 04, 2017 at 02:57:22PM +0300, Dan Carpenter wrote:
+> > Copy a patch prefix that everyone else has been using:
+> > 
+> > git log --oneline drivers/staging/media/platform/bcm2835/
+> > 
+> > The subject is too vague as well.
+> 
+> Is this what you are looking for?
+> 
+> [patch] Staging: bcm2835: fixed style of block comments
+> 
+> And should I just re-send as a V2 with new subject?
 
-This illustrates the changes needed to the dts in order to hook up the
-ov7670. I don't plan on merging this.
+Yes.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- arch/arm/boot/dts/at91-sama5d3_xplained.dts | 59 ++++++++++++++++++++++++++---
- arch/arm/boot/dts/sama5d3.dtsi              |  4 +-
- 2 files changed, 56 insertions(+), 7 deletions(-)
-
-diff --git a/arch/arm/boot/dts/at91-sama5d3_xplained.dts b/arch/arm/boot/dts/at91-sama5d3_xplained.dts
-index c51fc652f6c7..c6b07f83578b 100644
---- a/arch/arm/boot/dts/at91-sama5d3_xplained.dts
-+++ b/arch/arm/boot/dts/at91-sama5d3_xplained.dts
-@@ -65,18 +65,51 @@
- 				status = "okay";
- 			};
- 
-+			isi0: isi@f0034000 {
-+				status = "okay";
-+				port {
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					isi_0: endpoint {
-+						remote-endpoint = <&ov7670_0>;
-+						bus-width = <8>;
-+						vsync-active = <1>;
-+						hsync-active = <1>;
-+					};
-+				};
-+			};
-+
- 			i2c0: i2c@f0014000 {
- 				pinctrl-0 = <&pinctrl_i2c0_pu>;
--				status = "okay";
-+				status = "disabled";
- 			};
- 
- 			i2c1: i2c@f0018000 {
- 				status = "okay";
- 
-+				ov7670: camera@21 {
-+					compatible = "ovti,ov7670";
-+					reg = <0x21>;
-+					pinctrl-names = "default";
-+					pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
-+					reset-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
-+					powerdown-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
-+					clocks = <&pck0>;
-+					clock-names = "xclk";
-+					assigned-clocks = <&pck0>;
-+					assigned-clock-rates = <25000000>;
-+
-+					port {
-+						ov7670_0: endpoint {
-+							remote-endpoint = <&isi_0>;
-+						};
-+					};
-+				};
-+
- 				pmic: act8865@5b {
- 					compatible = "active-semi,act8865";
- 					reg = <0x5b>;
--					status = "disabled";
-+					status = "okay";
- 
- 					regulators {
- 						vcc_1v8_reg: DCDC_REG1 {
-@@ -130,7 +163,7 @@
- 			pwm0: pwm@f002c000 {
- 				pinctrl-names = "default";
- 				pinctrl-0 = <&pinctrl_pwm0_pwmh0_0 &pinctrl_pwm0_pwmh1_0>;
--				status = "okay";
-+				status = "disabled";
- 			};
- 
- 			usart0: serial@f001c000 {
-@@ -143,7 +176,7 @@
- 			};
- 
- 			uart0: serial@f0024000 {
--				status = "okay";
-+				status = "disabled";
- 			};
- 
- 			mmc1: mmc@f8000000 {
-@@ -181,7 +214,7 @@
- 			i2c2: i2c@f801c000 {
- 				dmas = <0>, <0>;	/* Do not use DMA for i2c2 */
- 				pinctrl-0 = <&pinctrl_i2c2_pu>;
--				status = "okay";
-+				status = "disabled";
- 			};
- 
- 			macb1: ethernet@f802c000 {
-@@ -200,6 +233,22 @@
- 			};
- 
- 			pinctrl@fffff200 {
-+				camera_sensor {
-+					pinctrl_pck0_as_isi_mck: pck0_as_isi_mck-0 {
-+						atmel,pins =
-+							<AT91_PIOD 30 AT91_PERIPH_B AT91_PINCTRL_NONE>;	/* ISI_MCK */
-+					};
-+
-+					pinctrl_sensor_power: sensor_power-0 {
-+						atmel,pins =
-+							<AT91_PIOE 13 AT91_PERIPH_GPIO AT91_PINCTRL_NONE>;
-+					};
-+
-+					pinctrl_sensor_reset: sensor_reset-0 {
-+						atmel,pins =
-+							<AT91_PIOE 11 AT91_PERIPH_GPIO AT91_PINCTRL_NONE>;
-+					};
-+				};
- 				board {
- 					pinctrl_i2c0_pu: i2c0_pu {
- 						atmel,pins =
-diff --git a/arch/arm/boot/dts/sama5d3.dtsi b/arch/arm/boot/dts/sama5d3.dtsi
-index b06448ba6649..099570e4b90a 100644
---- a/arch/arm/boot/dts/sama5d3.dtsi
-+++ b/arch/arm/boot/dts/sama5d3.dtsi
-@@ -176,7 +176,7 @@
- 				#address-cells = <1>;
- 				#size-cells = <0>;
- 				clocks = <&twi1_clk>;
--				status = "disabled";
-+				status = "ok";
- 			};
- 
- 			usart0: serial@f001c000 {
-@@ -235,7 +235,7 @@
- 				pinctrl-0 = <&pinctrl_isi_data_0_7>;
- 				clocks = <&isi_clk>;
- 				clock-names = "isi_clk";
--				status = "disabled";
-+				status = "ok";
- 				port {
- 					#address-cells = <1>;
- 					#size-cells = <0>;
--- 
-2.11.0
+regards,
+dan carpenter
