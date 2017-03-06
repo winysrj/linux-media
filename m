@@ -1,120 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0076.hostedemail.com ([216.40.44.76]:33778 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753011AbdCBRuR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Mar 2017 12:50:17 -0500
-Message-ID: <1488476770.2179.6.camel@perches.com>
-Subject: Re: [PATCH 24/26] ocfs2: reduce stack size with KASAN
-From: Joe Perches <joe@perches.com>
-To: Arnd Bergmann <arnd@arndb.de>, kasan-dev@googlegroups.com
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        Alexander Potapenko <glider@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-wireless@vger.kernel.org,
-        kernel-build-reports@lists.linaro.org,
-        "David S . Miller" <davem@davemloft.net>
-Date: Thu, 02 Mar 2017 09:46:10 -0800
-In-Reply-To: <20170302163834.2273519-25-arnd@arndb.de>
-References: <20170302163834.2273519-1-arnd@arndb.de>
-         <20170302163834.2273519-25-arnd@arndb.de>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtprelay.synopsys.com ([198.182.60.111]:41337 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753511AbdCFLVZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 06:21:25 -0500
+From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org
+Cc: vladimir_zapolskiy@mentor.com, CARLOS.PALMINHA@synopsys.com,
+        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pavel Machek <pavel@ucw.cz>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Rob Herring <robh+dt@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+Subject: [PATCH v10 0/2] Add support for Omnivision OV5647
+Date: Mon,  6 Mar 2017 11:16:32 +0000
+Message-Id: <cover.1488798062.git.roliveir@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2017-03-02 at 17:38 +0100, Arnd Bergmann wrote:
-> The internal logging infrastructure in ocfs2 causes special warning code to be
-> used with KASAN, which produces rather large stack frames:
+Hello,
 
-> fs/ocfs2/super.c: In function 'ocfs2_fill_super':
-> fs/ocfs2/super.c:1219:1: error: the frame size of 3264 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
+This patchset adds support for the Omnivision OV5647 sensor.
 
-At least by default it doesn't seem to.
+At the moment it only supports 640x480 in RAW 8.
 
-gcc 6.2 allyesconfig, CONFIG_KASAN=y
-with either CONFIG_KASAN_INLINE or CONFIG_KASAN_OUTLINE
+This is the tenth version of the OV5647 camera driver patchset.
 
-gcc doesn't emit a stack warning
+v10:
+ - Add more error info to model check
+ - Remove empty callback
+Suggested-by: Sakari Ailus <sakari.ailus@iki.fi>
+ - Change error message in read function
+ - Change clock handling
+ - Add error checking where it was missing
+ - Remove debug messages
+ - Remove the need for clock name
+Suggested-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+ - Code refactoring
 
-> By simply passing the mask by value instead of reference, we can avoid the
-> problem completely.
+v9:
+ - Remove unused struct
+ - Remove comments
+ - Refactor error handling in i2c r/w functions
+ - Change declarations to single line.
+ - Remove value assignment in variable declarion
+ - Refactor configurion write loop 
+ - Change the variable type that received ov5647_read() read value
+ - Remove print from probe function
+ - Remove unused device struct
+ - Remove OF dependency from Kconfig
+Suggested-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
 
-Any idea why that's so?
- 
->  On 64-bit architectures, this is also more efficient,
+v8:
+ - Remove a part of the initialization procedure which wasn't doing 
+ anything
+ - Check for i2c read/writes return values
+ - Add stream_on/off functions
+Suggested-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-Efficient true, but the same overall stack no?
+v7:
+ - Remove "0x" and leading 0 from DT documentation examples
 
-> while on the less common (at least among ocfs2 users) 32-bit architectures,
-> I'm guessing that the resulting code is comparable to what it was before.
-> 
-> The current version was introduced by Joe Perches as an optimization, maybe
-> he can see if my change regresses compared to his.
+v6:
+ - Add example to DT documentation
+ - Remove data-lanes and clock-lane property from DT
+ - Add external clock property to DT
+ - Order includes
+ - Remove unused variables and functions
+ - Add external clock handling
+ - Add power on counter
+ - Change from g/s_parm to g/s_frame_interval
 
-I don't see it.
+v5:
+ - Refactor code 
+ - Change comments
+ - Add missing error handling in some functions
 
-> Cc: Joe Perches <joe@perches.com>
-> Fixes: 7c2bd2f930ae ("ocfs2: reduce object size of mlog uses")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
->  fs/ocfs2/cluster/masklog.c | 10 +++++-----
->  fs/o cfs2/cluster/masklog.h |  4 ++--
->  2 files changed, 7 insertions(+), 7 deletions(-)
-> 
-> diff --git a/fs/ocfs2/cluster/masklog.c b/fs/ocfs2/cluster/masklog.c
-> index d331c2386b94..9720c5443e4d 100644
-> --- a/fs/ocfs2/cluster/masklog.c
-> +++ b/fs/ocfs2/cluster/masklog.c
-> @@ -64,7 +64,7 @@ static ssize_t mlog_mask_store(u64 mask, const char *buf, size_t count)
->  	return count;
->  }
->  
-> -void __mlog_printk(const u64 *mask, const char *func, int line,
-> +void __mlog_printk(const u64 mask, const char *func, int line,
->  		   const char *fmt, ...)
->  {
->  	struct va_format vaf;
-> @@ -72,14 +72,14 @@ void __mlog_printk(const u64 *mask, const char *func, int line,
->  	const char *level;
->  	const char *prefix = "";
->  
-> -	if (!__mlog_test_u64(*mask, mlog_and_bits) ||
-> -	    __mlog_test_u64(*mask, mlog_not_bits))
-> +	if (!__mlog_test_u64(mask, mlog_and_bits) ||
-> +	    __mlog_test_u64(mask, mlog_not_bits))
->  		return;
->  
-> -	if (*mask & ML_ERROR) {
-> +	if (mask & ML_ERROR) {
->  		level = KERN_ERR;
->  		prefix = "ERROR: ";
-> -	} else if (*mask & ML_NOTICE) {
-> +	} else if (mask & ML_NOTICE) {
->  		level = KERN_NOTICE;
->  	} else {
->  		level = KERN_INFO;
-> diff --git a/fs/ocfs2/cluster/masklog.h b/fs/ocfs2/cluster/masklog.h
-> index 308ea0eb35fd..0d0f4bf2c3d8 100644
-> --- a/fs/ocfs2/cluster/masklog.h
-> +++ b/fs/ocfs2/cluster/masklog.h
-> @@ -163,7 +163,7 @@ extern struct mlog_bits mlog_and_bits, mlog_not_bits;
->  #endif
->  
->  __printf(4, 5)
-> -void __mlog_printk(const u64 *m, const char *func, int line,
-> +void __mlog_printk(const u64 m, const char *func, int line,
->  		   const char *fmt, ...);
->  
->  /*
-> @@ -174,7 +174,7 @@ void __mlog_printk(const u64 *m, const char *func, int line,
->  do {									\
->  	u64 _m = MLOG_MASK_PREFIX | (mask);				\
->  	if (_m & ML_ALLOWED_BITS)					\
-> -		__mlog_printk(&_m, __func__, __LINE__, fmt,		\
-> +		__mlog_printk(_m, __func__, __LINE__, fmt,		\
->  			      ##__VA_ARGS__);				\
->  } while (0)
->  
+v4: 
+ - Add correct license
+ - Revert debugging info to generic infrastructure
+ - Turn defines into enums
+ - Correct code style issues
+ - Remove unused defines
+ - Make sure all errors where being handled
+ - Rename some functions to make code more readable
+ - Add some debugging info
+
+v3: 
+ - No changes. Re-submitted due to lack of responses
+
+v2: 
+ - Corrections in DT documentation
+
+
+Ramiro Oliveira (2):
+  Documentation: DT: Add OV5647 bindings
+  media: i2c: Add support for OV5647 sensor.
+
+ .../devicetree/bindings/media/i2c/ov5647.txt       |  35 ++
+ MAINTAINERS                                        |   7 +
+ drivers/media/i2c/Kconfig                          |  11 +
+ drivers/media/i2c/Makefile                         |   1 +
+ drivers/media/i2c/ov5647.c                         | 636 +++++++++++++++++++++
+ 5 files changed, 690 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
+ create mode 100644 drivers/media/i2c/ov5647.c
+
+-- 
+2.11.0
