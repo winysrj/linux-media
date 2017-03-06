@@ -1,226 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:36440 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933236AbdC3HrF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 03:47:05 -0400
-Received: by mail-wr0-f193.google.com with SMTP id k6so8270652wre.3
-        for <linux-media@vger.kernel.org>; Thu, 30 Mar 2017 00:47:04 -0700 (PDT)
-Date: Thu, 30 Mar 2017 09:47:00 +0200
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:35796 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753194AbdCFQId (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 11:08:33 -0500
+Received: by mail-wr0-f194.google.com with SMTP id u108so18367311wrb.2
+        for <linux-media@vger.kernel.org>; Mon, 06 Mar 2017 08:08:31 -0800 (PST)
+Date: Mon, 6 Mar 2017 17:01:30 +0100
 From: Daniel Vetter <daniel@ffwll.ch>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Daniel Vetter <daniel@ffwll.ch>, linux-media@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org,
-        Russell King <linux@armlinux.org.uk>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        dri-devel@lists.freedesktop.org,
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>, dri-devel@lists.freedesktop.org,
+        Laura Abbott <labbott@redhat.com>, devel@driverdev.osuosl.org,
+        romlem@google.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        arve@android.com, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+        Riley Andrews <riandrews@android.com>,
+        Mark Brown <broonie@kernel.org>,
         Daniel Vetter <daniel.vetter@intel.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCHv5 00/11] video/exynos/sti/cec: add CEC notifier & use in
- drivers
-Message-ID: <20170330074700.57gudirdrcrvi6al@phenom.ffwll.local>
-References: <20170329141543.32935-1-hverkuil@xs4all.nl>
- <20170329174758.55vasy2gxqpg3yb5@phenom.ffwll.local>
- <41757527-6953-6095-a18b-e5c75d93c966@xs4all.nl>
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of
+ staging
+Message-ID: <20170306160130.bwp73tkkkxafbizg@phenom.ffwll.local>
+References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+ <10344634.XsotFaGzfj@avalon>
+ <20170306103820.ixuvs7fd6s4tvfzy@phenom.ffwll.local>
+ <9366352.DJUlrUijoL@avalon>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <41757527-6953-6095-a18b-e5c75d93c966@xs4all.nl>
+In-Reply-To: <9366352.DJUlrUijoL@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 29, 2017 at 09:59:34PM +0200, Hans Verkuil wrote:
+On Mon, Mar 06, 2017 at 05:02:05PM +0200, Laurent Pinchart wrote:
 > Hi Daniel,
 > 
-> On 29/03/17 19:47, Daniel Vetter wrote:
-> > On Wed, Mar 29, 2017 at 04:15:32PM +0200, Hans Verkuil wrote:
-> >> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>
-> >> This patch series adds the CEC physical address notifier code, based on
-> >> Russell's code:
-> >>
-> >> https://patchwork.kernel.org/patch/9277043/
-> >>
-> >> It adds support for it to the exynos_hdmi drm driver, adds support for
-> >> it to the CEC framework and finally adds support to the s5p-cec driver,
-> >> which now can be moved out of staging.
-> >>
-> >> Also included is similar code for the STI platform, contributed by
-> >> Benjamin Gaignard.
-> >>
-> >> Tested the exynos code with my Odroid U3 exynos4 devboard.
-> >>
-> >> After discussions with Daniel Vetter and Russell King I have removed
-> >> the EDID/ELD/HPD connect/disconnect events from the notifier and now
-> >> just use it to report the CEC physical address. This also means that
-> >> it is now renamed to CEC notifier instead of HPD notifier and that
-> >> it is now in drivers/media. The block_notifier was dropped as well
-> >> and instead a simple callback is registered. This means that the
-> >> relationship between HDMI and CEC is now 1:1 and no longer 1:n, but
-> >> should this be needed in the future, then that can easily be added
-> >> back.
-> >>
-> >> Daniel, regarding your suggestions here:
-> >>
-> >> http://www.spinics.net/lists/dri-devel/msg133907.html
-> >>
-> >> this patch series maps to your mail above as follows:
-> >>
-> >> struct cec_pin == struct cec_notifier
-> >> cec_(un)register_pin == cec_notifier_get/put
-> >> cec_set_address == cec_notifier_set_phys_addr
-> >> cec_(un)register_callbacks == cec_notifier_(un)register
-> >>
-> >> Comments are welcome. I'd like to get this in for the 4.12 kernel as
-> >> this is a missing piece needed to integrate CEC drivers.
-> >>
-> >> Regards,
-> >>
-> >> 	Hans
-> >>
-> >> Changes since v4:
-> >> - Dropped EDID/ELD/connect/disconnect support. Instead, just report the
-> >>   CEC physical address (and use INVALID when disconnecting).
-> >> - Since this is now completely CEC specific, move it to drivers/media
-> >>   and rename to cec-notifier.
-> >> - Drop block_notifier. Instead just set a callback for the notifier.
-> >> - Use 'hdmi-phandle' in the bindings for both exynos and sti. So no
-> >>   vendor prefix and 'hdmi-phandle' instead of 'hdmi-handle'.
-> >> - Make struct cec_notifier opaque. Add a helper function to get the
-> >>   physical address from a cec_notifier struct.
-> >> - Provide dummy functions in cec-notifier.h so it can be used when
-> >>   CONFIG_MEDIA_CEC_NOTIFIER is undefined.
-> >> - Don't select the CEC notifier in the HDMI drivers. It should only
-> >>   be enabled by actual CEC drivers.
+> On Monday 06 Mar 2017 11:38:20 Daniel Vetter wrote:
+> > On Fri, Mar 03, 2017 at 06:45:40PM +0200, Laurent Pinchart wrote:
+> > > - I haven't seen any proposal how a heap-based solution could be used in a
+> > > generic distribution. This needs to be figured out before committing to
+> > > any API/ABI.
 > > 
-> > I just quickly scaned through it, but this seems to address all my
-> > concerns fully. Thanks for respinning. On the entire pile (or just the
-> > core cec notifier bits):
+> > Two replies from my side:
 > > 
-> > Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+> > - Just because a patch doesn't solve world hunger isn't really a good
+> >   reason to reject it.
 > 
-> Fantastic! Thank you very much for your comments.
+> As long as it goes in the right direction, sure :-) The points I mentioned 
+> were to be interpreted that way, I want to make sure we're not going in a 
+> dead-end (or worse, driving full speed into a wall).
 > 
-> One last question: the patches for drivers/gpu/drm: can they go through
-> the media subsystem or do you want to take them? They do depend on the first
-> two patches of this series (cec-edid and cec-notifier), so it is a bit more
-> coordination if they have to go through the drm subsystem.
+> > - Heap doesn't mean its not resizeable (but I'm not sure that's really
+> >   your concern).
+> 
+> Not really, no. Heap is another word to mean pool here. It might not be the 
+> best term in this context as it has a precise meaning in the context of memory 
+> allocation, but that's a detail.
+> 
+> > - Imo ION is very much part of the picture here to solve this for real. We
+> >   need to bits:
+> > 
+> >   * Be able to allocate memory from specific pools, not going through a
+> >     specific driver. ION gives us that interface. This is e.g. also needed
+> >     for "special" memory, like SMA tries to expose.
+> > 
+> >   * Some way to figure out how&where to allocate the buffer object. This
+> >     is purely a userspace problem, and this is the part the unix memory
+> >     allocator tries to solve. There's no plans in there for big kernel
+> >     changes, instead userspace does a dance to reconcile all the
+> >     constraints, and one of the constraints might be "you have to allocate
+> >     this from this special ION heap". The only thing the kernel needs to
+> >     expose is which devices use which ION heaps (we kinda do that
+> >     already), and maybe some hints of how they can be generalized (but I
+> >     guess stuff like "minimal pagesize of x KB" is also fulfilled by any
+> >     CMA heap is knowledge userspace needs).
+> 
+> The constraint solver could live in userspace, I'm open to a solution that 
+> would go in that direction, but it will require help from the kernel to fetch 
+> the constraints from the devices that need to be involved in buffer sharing.
+> 
+> Given a userspace constraint resolver, the interface with the kernel allocator 
+> will likely be based on pools. I'm not opposed to that, as long as pool are 
+> identified by opaque handles. I don't want userspace to know about the meaning 
+> of any particular ION heap. Application must not attempt to "allocate from 
+> CMA" for instance, that would lock us to a crazy API that will grow completely 
+> out of hands as vendors will start adding all kind of custom heaps, and 
+> applications will have to follow (or will be patched out-of-tree by vendors).
+> 
+> > Again I think waiting for this to be fully implemented before we merge any
+> > part is going to just kill any upstreaming efforts. ION in itself, without
+> > the full buffer negotiation dance seems clearly useful (also for stuff
+> > like SMA), and having it merged will help with moving the buffer
+> > allocation dance forward.
+> 
+> Again I'm not opposed to a kernel allocator based on pools/heaps, as long as
+> 
+> - pools/heaps stay internal to the kernel and are not directly exposed to 
+> userspace
 
-Doesn't seem to touch anything where I expect conflicts, so as long as it
-shows up in linux-next timely I think that's good. Please poke driver
-maintainers for their ack though, but if they fail to respond within a few
-days you can take my ack for merging the entire pile through media.
+Agreed (and I think ION doesn't have fixed pools afaik, just kinda
+conventions, at least after Laura's patches). But on a fixed board with a
+fixed DT (for the cma regions) and fixed .config (for the generic heaps)
+you can hardcode your heaps. You'll make your code non-portable, but hey
+that's not our problem imo. E.g. board-specific code can also hard-code
+how to wire connectors and which one is which in kms (and I've seen this).
+I don't think the possibility of abusing the uabi should be a good reason
+to prevent it from merging. Anything that provides something with indirect
+connections can be abused by hardcoding the names or the indizes.
+
+We do have a TODO entry that talks about exposing the device -> cma heap
+link in sysfs or somewhere. I'm not versed enough to know whether Laura's
+patches fixed that, this here mostly seems to tackle the fundamentals of
+the dma api abuse first.
+
+> - a reasonable way to size the different kinds of pools in a generic 
+> distribution kernel can be found
+
+So for the CMA heaps, you can't resize them at runtime, for obvious
+reasons. For boot-time you can adjust them through DT, and I thought
+everyone agreed that for different use-cases you might need to adjust your
+reserved regions.
+
+For all other heaps, they just use the normal allocator functions
+(e.g. alloc_pages). There's not limit on those except OOM, so nothing to
+adjust really.
+
+I guess I'm still not entirely clear on your "memory pool" concern ... If
+it's just the word, we have lots of auto-resizing heaps/pools all around.
+And if it's just sizing, I think that's already solved as good as possible
+(assuming there's not a silly limit on the system heap that we should
+remove ...).
 
 Cheers, Daniel
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > 
-> >>
-> >> Changes since v3:
-> >> - Added the STI patches
-> >> - Split the exynos4 binding patches in one for documentation and one
-> >>   for the dts change itself, also use the correct subject and CC to
-> >>   the correct mailinglists (I hope  )
-> >>
-> >> Changes since v2:
-> >> - Split off the dts changes of the s5p-cec patch into a separate patch
-> >> - Renamed HPD_NOTIFIERS to HPD_NOTIFIER to be consistent with the name
-> >>   of the source.
-> >>
-> >> Changes since v1:
-> >>
-> >> Renamed HDMI notifier to HPD (hotplug detect) notifier since this code is
-> >> not HDMI specific, but is interesting for any video source that has to
-> >> deal with hotplug detect and EDID/ELD (HDMI, DVI, VGA, DP, ....).
-> >> Only the use with CEC adapters is HDMI specific, but the HPD notifier
-> >> is more generic.
-> >>
-> >>
-> >>
-> >>
-> >> Benjamin Gaignard (4):
-> >>   sti: hdmi: add CEC notifier support
-> >>   stih-cec.txt: document new hdmi phandle
-> >>   stih-cec: add CEC notifier support
-> >>   arm: sti: update sti-cec for CEC notifier support
-> >>
-> >> Hans Verkuil (7):
-> >>   cec-edid: rename cec_get_edid_phys_addr
-> >>   media: add CEC notifier support
-> >>   cec: integrate CEC notifier support
-> >>   exynos_hdmi: add CEC notifier support
-> >>   ARM: dts: exynos: add HDMI controller phandle to exynos4.dtsi
-> >>   s5p-cec.txt: document the HDMI controller phandle
-> >>   s5p-cec: add cec-notifier support, move out of staging
-> >>
-> >>  .../devicetree/bindings/media/s5p-cec.txt          |   2 +
-> >>  .../devicetree/bindings/media/stih-cec.txt         |   2 +
-> >>  MAINTAINERS                                        |   4 +-
-> >>  arch/arm/boot/dts/exynos4.dtsi                     |   1 +
-> >>  arch/arm/boot/dts/stih407-family.dtsi              |  12 ---
-> >>  arch/arm/boot/dts/stih410.dtsi                     |  13 +++
-> >>  drivers/gpu/drm/exynos/exynos_hdmi.c               |  20 +++-
-> >>  drivers/gpu/drm/sti/sti_hdmi.c                     |  11 ++
-> >>  drivers/gpu/drm/sti/sti_hdmi.h                     |   3 +
-> >>  drivers/media/Kconfig                              |   3 +
-> >>  drivers/media/Makefile                             |   4 +
-> >>  drivers/media/cec-edid.c                           |  15 ++-
-> >>  drivers/media/cec-notifier.c                       | 116 +++++++++++++++++++++
-> >>  drivers/media/cec/cec-core.c                       |  21 ++++
-> >>  drivers/media/i2c/adv7511.c                        |   5 +-
-> >>  drivers/media/i2c/adv7604.c                        |   3 +-
-> >>  drivers/media/i2c/adv7842.c                        |   2 +-
-> >>  drivers/media/platform/Kconfig                     |  28 +++++
-> >>  drivers/media/platform/Makefile                    |   2 +
-> >>  .../media => media/platform}/s5p-cec/Makefile      |   0
-> >>  .../platform}/s5p-cec/exynos_hdmi_cec.h            |   0
-> >>  .../platform}/s5p-cec/exynos_hdmi_cecctrl.c        |   0
-> >>  .../media => media/platform}/s5p-cec/regs-cec.h    |   0
-> >>  .../media => media/platform}/s5p-cec/s5p_cec.c     |  35 ++++++-
-> >>  .../media => media/platform}/s5p-cec/s5p_cec.h     |   3 +
-> >>  .../st-cec => media/platform/sti/cec}/Makefile     |   0
-> >>  .../st-cec => media/platform/sti/cec}/stih-cec.c   |  31 +++++-
-> >>  drivers/media/platform/vivid/vivid-vid-cap.c       |   3 +-
-> >>  drivers/staging/media/Kconfig                      |   4 -
-> >>  drivers/staging/media/Makefile                     |   2 -
-> >>  drivers/staging/media/s5p-cec/Kconfig              |   9 --
-> >>  drivers/staging/media/s5p-cec/TODO                 |   7 --
-> >>  drivers/staging/media/st-cec/Kconfig               |   8 --
-> >>  drivers/staging/media/st-cec/TODO                  |   7 --
-> >>  include/media/cec-edid.h                           |  17 ++-
-> >>  include/media/cec-notifier.h                       |  93 +++++++++++++++++
-> >>  include/media/cec.h                                |   6 ++
-> >>  37 files changed, 421 insertions(+), 71 deletions(-)
-> >>  create mode 100644 drivers/media/cec-notifier.c
-> >>  rename drivers/{staging/media => media/platform}/s5p-cec/Makefile (100%)
-> >>  rename drivers/{staging/media => media/platform}/s5p-cec/exynos_hdmi_cec.h (100%)
-> >>  rename drivers/{staging/media => media/platform}/s5p-cec/exynos_hdmi_cecctrl.c (100%)
-> >>  rename drivers/{staging/media => media/platform}/s5p-cec/regs-cec.h (100%)
-> >>  rename drivers/{staging/media => media/platform}/s5p-cec/s5p_cec.c (89%)
-> >>  rename drivers/{staging/media => media/platform}/s5p-cec/s5p_cec.h (97%)
-> >>  rename drivers/{staging/media/st-cec => media/platform/sti/cec}/Makefile (100%)
-> >>  rename drivers/{staging/media/st-cec => media/platform/sti/cec}/stih-cec.c (93%)
-> >>  delete mode 100644 drivers/staging/media/s5p-cec/Kconfig
-> >>  delete mode 100644 drivers/staging/media/s5p-cec/TODO
-> >>  delete mode 100644 drivers/staging/media/st-cec/Kconfig
-> >>  delete mode 100644 drivers/staging/media/st-cec/TODO
-> >>  create mode 100644 include/media/cec-notifier.h
-> >>
-> >> -- 
-> >> 2.11.0
-> >>
-> >> _______________________________________________
-> >> dri-devel mailing list
-> >> dri-devel@lists.freedesktop.org
-> >> https://lists.freedesktop.org/mailman/listinfo/dri-devel
-> > 
-> 
-
 -- 
 Daniel Vetter
 Software Engineer, Intel Corporation
