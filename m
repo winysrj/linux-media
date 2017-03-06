@@ -1,135 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:54077 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752739AbdCaJvH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Mar 2017 05:51:07 -0400
-Subject: Re: [PATCH RFC 1/2] [media] v4l2: add V4L2_INPUT_TYPE_DEFAULT
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Helen Koike <helen.koike@collabora.com>
-References: <1490889738-30009-1-git-send-email-helen.koike@collabora.com>
- <2926010.76lXoG2CJo@avalon>
- <34146d93-6651-69a2-0997-aa3ae91b4fd3@collabora.com>
- <1c25c87a-506a-d1b1-6d30-129128cd0205@collabora.com>
- <20170331064227.0ecc86e7@vento.lan>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        linux-media@vger.kernel.org, jgebben@codeaurora.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <76eff09e-a18d-ff80-9a20-01cfb389de50@xs4all.nl>
-Date: Fri, 31 Mar 2017 11:51:03 +0200
-MIME-Version: 1.0
-In-Reply-To: <20170331064227.0ecc86e7@vento.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mga04.intel.com ([192.55.52.120]:16772 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932516AbdCFOhB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Mar 2017 09:37:01 -0500
+From: Elena Reshetova <elena.reshetova@intel.com>
+To: gregkh@linuxfoundation.org
+Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org,
+        netdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
+        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-usb@vger.kernel.org, peterz@infradead.org,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        Hans Liljestrand <ishkamiel@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        David Windsor <dwindsor@gmail.com>
+Subject: [PATCH 19/29] drivers, s390: convert lcs_reply.refcnt from atomic_t to refcount_t
+Date: Mon,  6 Mar 2017 16:21:06 +0200
+Message-Id: <1488810076-3754-20-git-send-email-elena.reshetova@intel.com>
+In-Reply-To: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 31/03/17 11:42, Mauro Carvalho Chehab wrote:
-> Em Fri, 31 Mar 2017 00:55:12 -0300
-> Helen Koike <helen.koike@collabora.com> escreveu:
-> 
->> On 2017-03-30 11:39 PM, Helen Koike wrote:
->>> Hi Laurent,
->>>
->>> Thanks for reviewing
->>>
->>> On 2017-03-30 04:56 PM, Laurent Pinchart wrote:  
->>>> Hi Helen,
->>>>
->>>> Thank you for the patch.
->>>>
->>>> On Thursday 30 Mar 2017 13:02:17 Helen Koike wrote:  
->>>>> Add V4L2_INPUT_TYPE_DEFAULT and helpers functions for input ioctls to be
->>>>> used when no inputs are available in the device
->>>>>
->>>>> Signed-off-by: Helen Koike <helen.koike@collabora.com>
->>>>> ---
->>>>>  drivers/media/v4l2-core/v4l2-ioctl.c | 27 +++++++++++++++++++++++++++
->>>>>  include/media/v4l2-ioctl.h           | 26 ++++++++++++++++++++++++++
->>>>>  include/uapi/linux/videodev2.h       |  1 +
->>>>>  3 files changed, 54 insertions(+)
->>>>>
->>>>> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
->>>>> b/drivers/media/v4l2-core/v4l2-ioctl.c index 0c3f238..ccaf04b 100644
->>>>> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
->>>>> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
->>>>> @@ -2573,6 +2573,33 @@ struct mutex *v4l2_ioctl_get_lock(struct
->>>>> video_device
->>>>> *vdev, unsigned cmd) return vdev->lock;
->>>>>  }
->>>>>
->>>>> +int v4l2_ioctl_enum_input_default(struct file *file, void *priv,
->>>>> +                  struct v4l2_input *i)
->>>>> +{
->>>>> +    if (i->index > 0)
->>>>> +        return -EINVAL;
->>>>> +
->>>>> +    memset(i, 0, sizeof(*i));
->>>>> +    i->type = V4L2_INPUT_TYPE_DEFAULT;
->>>>> +    strlcpy(i->name, "Default", sizeof(i->name));
->>>>> +
->>>>> +    return 0;
->>>>> +}
->>>>> +EXPORT_SYMBOL(v4l2_ioctl_enum_input_default);  
->>>>
->>>> V4L2 tends to use EXPORT_SYMBOL_GPL.  
->>>
->>> The whole v4l2-ioctl.c file is using EXPORT_SYMBOL instead of
->>> EXPORT_SYMBOL_GPL, should we change it all to EXPORT_SYMBOL_GPL then (in
->>> another patch) ?
->>>  
->>>>
->>>> What would you think about calling those default functions directly
->>>> from the
->>>> core when the input ioctl handlers are not set ? You wouldn't need to
->>>> modify
->>>> drivers.  
->>>
->>> Sure, I'll add them in ops inside __video_register_device when it
->>> validates the ioctls  
->>
->> I just realize I can not simply override struct v4l2_ioctl_ops as it is 
->> declared as a const inside strut video_device. I'll call those default 
->> functions only when the ioctls are handled to not modify vdev->ops.
-> 
-> You should not override it, anyway. What you should do, instead, is
-> something like:
-> 
-> static int v4l_ginput(const struct v4l2_ioctl_ops *ops, ...)
-> {
-> 	if (ops->vidioc_ginput)
-> 		return ops->vidioc_ginput(...);
-> 
-> 	/* default code */
-> }
-> 
-> You should also make sure that the ioctls are alway valid, e. g. by
-> calling SET_VALID_IOCTL()
+refcount_t type and corresponding API should be
+used instead of atomic_t when the variable is used as
+a reference counter. This allows to avoid accidental
+refcounter overflows that might lead to use-after-free
+situations.
 
-Helen, FYI:
+Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
+Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: David Windsor <dwindsor@gmail.com>
+---
+ drivers/s390/net/lcs.c | 8 +++-----
+ drivers/s390/net/lcs.h | 3 ++-
+ 2 files changed, 5 insertions(+), 6 deletions(-)
 
-The input ioctls are compulsory for:
-
-V4L2_CAP_VIDEO_CAPTURE
-V4L2_CAP_VBI_CAPTURE
-V4L2_CAP_VIDEO_CAPTURE_MPLANE
-V4L2_CAP_SLICED_VBI_CAPTURE
-
-The output ioctls are compulsory for:
-
-V4L2_CAP_VIDEO_OUTPUT
-V4L2_CAP_VBI_OUTPUT
-V4L2_CAP_VIDEO_OUTPUT_MPLANE
-V4L2_CAP_SLICED_VBI_OUTPUT
-
-If none of these caps are set, then we shouldn't provide these stubs.
-
-Regards,
-
-	Hans
-
-> 
-> Thanks,
-> Mauro
-> 
+diff --git a/drivers/s390/net/lcs.c b/drivers/s390/net/lcs.c
+index 211b31d..18dc787 100644
+--- a/drivers/s390/net/lcs.c
++++ b/drivers/s390/net/lcs.c
+@@ -774,15 +774,13 @@ lcs_get_lancmd(struct lcs_card *card, int count)
+ static void
+ lcs_get_reply(struct lcs_reply *reply)
+ {
+-	WARN_ON(atomic_read(&reply->refcnt) <= 0);
+-	atomic_inc(&reply->refcnt);
++	refcount_inc(&reply->refcnt);
+ }
+ 
+ static void
+ lcs_put_reply(struct lcs_reply *reply)
+ {
+-        WARN_ON(atomic_read(&reply->refcnt) <= 0);
+-        if (atomic_dec_and_test(&reply->refcnt)) {
++        if (refcount_dec_and_test(&reply->refcnt)) {
+ 		kfree(reply);
+ 	}
+ 
+@@ -798,7 +796,7 @@ lcs_alloc_reply(struct lcs_cmd *cmd)
+ 	reply = kzalloc(sizeof(struct lcs_reply), GFP_ATOMIC);
+ 	if (!reply)
+ 		return NULL;
+-	atomic_set(&reply->refcnt,1);
++	refcount_set(&reply->refcnt,1);
+ 	reply->sequence_no = cmd->sequence_no;
+ 	reply->received = 0;
+ 	reply->rc = 0;
+diff --git a/drivers/s390/net/lcs.h b/drivers/s390/net/lcs.h
+index 150fcb4..3802f4f 100644
+--- a/drivers/s390/net/lcs.h
++++ b/drivers/s390/net/lcs.h
+@@ -4,6 +4,7 @@
+ #include <linux/netdevice.h>
+ #include <linux/skbuff.h>
+ #include <linux/workqueue.h>
++#include <linux/refcount.h>
+ #include <asm/ccwdev.h>
+ 
+ #define LCS_DBF_TEXT(level, name, text) \
+@@ -270,7 +271,7 @@ struct lcs_buffer {
+ struct lcs_reply {
+ 	struct list_head list;
+ 	__u16 sequence_no;
+-	atomic_t refcnt;
++	refcount_t refcnt;
+ 	/* Callback for completion notification. */
+ 	void (*callback)(struct lcs_card *, struct lcs_cmd *);
+ 	wait_queue_head_t wait_q;
+-- 
+2.7.4
