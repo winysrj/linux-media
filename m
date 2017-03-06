@@ -1,55 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:36398 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751191AbdCZWU3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 26 Mar 2017 18:20:29 -0400
-Received: by mail-wr0-f193.google.com with SMTP id u1so7953867wra.3
-        for <linux-media@vger.kernel.org>; Sun, 26 Mar 2017 15:20:28 -0700 (PDT)
-Date: Mon, 27 Mar 2017 00:20:25 +0200
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: kbuild test robot <lkp@intel.com>
-Cc: kbuild-all@01.org, mchehab@kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 12/12] [media] ddbridge: support STV0367-based cards
- and modules
-Message-ID: <20170327002025.0a5afdc3@macbox>
-In-Reply-To: <201703270045.qSpA8m3T%fengguang.wu@intel.com>
-References: <20170324182408.25996-13-d.scheller.oss@gmail.com>
-        <201703270045.qSpA8m3T%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mga11.intel.com ([192.55.52.93]:42872 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753216AbdCFOY4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Mar 2017 09:24:56 -0500
+From: Elena Reshetova <elena.reshetova@intel.com>
+To: gregkh@linuxfoundation.org
+Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org,
+        netdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
+        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-usb@vger.kernel.org, peterz@infradead.org,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        Hans Liljestrand <ishkamiel@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        David Windsor <dwindsor@gmail.com>
+Subject: [PATCH 01/29] drivers, block: convert xen_blkif.refcnt from atomic_t to refcount_t
+Date: Mon,  6 Mar 2017 16:20:48 +0200
+Message-Id: <1488810076-3754-2-git-send-email-elena.reshetova@intel.com>
+In-Reply-To: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Mon, 27 Mar 2017 00:46:45 +0800
-schrieb kbuild test robot <lkp@intel.com>:
+refcount_t type and corresponding API should be
+used instead of atomic_t when the variable is used as
+a reference counter. This allows to avoid accidental
+refcounter overflows that might lead to use-after-free
+situations.
 
-> [auto build test WARNING on linuxtv-media/master]
-> [also build test WARNING on v4.11-rc3 next-20170324]
-> [if your patch is applied to the wrong git tree, please drop us a
-> note to help improve the system]
-> 
-> url:
-> https://github.com/0day-ci/linux/commits/Daniel-Scheller/stv0367-ddbridge-support-CTv6-FlexCT-hardware/20170326-235957
-> base:   git://linuxtv.org/media_tree.git master config:
-> x86_64-rhel-7.2 (attached as .config) compiler: gcc-6 (Debian
-> 6.2.0-3) 6.2.0 20160901 reproduce:
->         # save the attached .config to linux build tree
->         make ARCH=x86_64 
-> 
-> All warnings (new ones prefixed by >>):
-> 
->    drivers/media/pci/ddbridge/ddbridge-core.c: In function
-> 'dvb_input_detach':
-> >> drivers/media/pci/ddbridge/ddbridge-core.c:891:3: warning: this
-> >> 'if' clause does not guard... [-Wmisleading-indentation]  
->       if (input->fe2)
->       ^~
->    drivers/media/pci/ddbridge/ddbridge-core.c:893:4: note: ...this
-> statement, but the latter is misleadingly indented as if it is
-> guarded by the 'if' input->fe2 = NULL; ^~~~~
+Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
+Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: David Windsor <dwindsor@gmail.com>
+---
+ drivers/block/xen-blkback/common.h | 7 ++++---
+ drivers/block/xen-blkback/xenbus.c | 2 +-
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-Fixed in what I'll post as V3 series (planned for mid-week).
-
-Daniel
+diff --git a/drivers/block/xen-blkback/common.h b/drivers/block/xen-blkback/common.h
+index dea61f6..2ccfd62 100644
+--- a/drivers/block/xen-blkback/common.h
++++ b/drivers/block/xen-blkback/common.h
+@@ -35,6 +35,7 @@
+ #include <linux/wait.h>
+ #include <linux/io.h>
+ #include <linux/rbtree.h>
++#include <linux/refcount.h>
+ #include <asm/setup.h>
+ #include <asm/pgalloc.h>
+ #include <asm/hypervisor.h>
+@@ -333,7 +334,7 @@ struct xen_blkif {
+ 	struct xen_vbd		vbd;
+ 	/* Back pointer to the backend_info. */
+ 	struct backend_info	*be;
+-	atomic_t		refcnt;
++	refcount_t		refcnt;
+ 	/* for barrier (drain) requests */
+ 	struct completion	drain_complete;
+ 	atomic_t		drain;
+@@ -386,10 +387,10 @@ struct pending_req {
+ 			 (_v)->bdev->bd_part->nr_sects : \
+ 			  get_capacity((_v)->bdev->bd_disk))
+ 
+-#define xen_blkif_get(_b) (atomic_inc(&(_b)->refcnt))
++#define xen_blkif_get(_b) (refcount_inc(&(_b)->refcnt))
+ #define xen_blkif_put(_b)				\
+ 	do {						\
+-		if (atomic_dec_and_test(&(_b)->refcnt))	\
++		if (refcount_dec_and_test(&(_b)->refcnt))	\
+ 			schedule_work(&(_b)->free_work);\
+ 	} while (0)
+ 
+diff --git a/drivers/block/xen-blkback/xenbus.c b/drivers/block/xen-blkback/xenbus.c
+index 8fe61b5..9f89be3 100644
+--- a/drivers/block/xen-blkback/xenbus.c
++++ b/drivers/block/xen-blkback/xenbus.c
+@@ -176,7 +176,7 @@ static struct xen_blkif *xen_blkif_alloc(domid_t domid)
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	blkif->domid = domid;
+-	atomic_set(&blkif->refcnt, 1);
++	refcount_set(&blkif->refcnt, 1);
+ 	init_completion(&blkif->drain_complete);
+ 	INIT_WORK(&blkif->free_work, xen_blkif_deferred_free);
+ 
+-- 
+2.7.4
