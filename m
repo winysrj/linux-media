@@ -1,121 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:35910 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753724AbdCTPpa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 11:45:30 -0400
-Date: Mon, 20 Mar 2017 15:43:39 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Subject: Re: [PATCH v5 00/39] i.MX Media Driver
-Message-ID: <20170320154339.GN21222@n2100.armlinux.org.uk>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <20170318192258.GL21222@n2100.armlinux.org.uk>
- <aef6c412-5464-726b-42f6-a24b7323aa9c@mentor.com>
- <20170319121402.GS21222@n2100.armlinux.org.uk>
- <1490016016.2917.68.camel@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1490016016.2917.68.camel@pengutronix.de>
+Received: from kozue.soulik.info ([108.61.200.231]:43092 "EHLO
+        kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753624AbdCFU1Z (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 15:27:25 -0500
+Content-Type: text/plain;
+        charset=utf-8
+Mime-Version: 1.0 (1.0)
+Subject: Re: [PATCH v6 1/3] drm_fourcc: Add new P010, P016 video format
+From: Ayaka <ayaka@soulik.info>
+In-Reply-To: <20170306183434.GV31595@intel.com>
+Date: Tue, 7 Mar 2017 04:27:15 +0800
+Cc: dri-devel@lists.freedesktop.org, clinton.a.taylor@intel.com,
+        daniel@fooishbar.org, linux-media@vger.kernel.org,
+        mchehab@kernel.org, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Message-Id: <A7CC5F68-361D-4682-8811-C835613B2059@soulik.info>
+References: <1488708033-5691-1-git-send-email-ayaka@soulik.info> <1488708033-5691-2-git-send-email-ayaka@soulik.info> <20170306130609.GT31595@intel.com> <AEC0BE28-4C63-430B-9972-BDF0A323D742@soulik.info> <20170306183434.GV31595@intel.com>
+To: =?utf-8?Q?Ville_Syrj=C3=A4l=C3=A4?= <ville.syrjala@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 20, 2017 at 02:20:16PM +0100, Philipp Zabel wrote:
-> To set and read colorimetry information:
-> https://patchwork.linuxtv.org/patch/39350/
-
-Thanks, I've applied all four of your patches, but there's a side effect
-from that.  Old media-ctl (modified by me):
-
-- entity 53: imx219 0-0010 (2 pads, 2 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev9
-        pad0: Source
-                [fmt:SRGGB8/816x616 field:none
-                 frame_interval:1/25]
-                -> "imx6-mipi-csi2":0 [ENABLED]
-        pad1: Sink
-                [fmt:SRGGB10/3280x2464 field:none
-                 crop.bounds:(0,0)/3280x2464
-                 crop:(0,0)/3264x2464
-                 compose.bounds:(0,0)/3264x2464
-                 compose:(0,0)/816x616]
-                <- "imx219 pixel 0-0010":0 [ENABLED,IMMUTABLE]
-
-New media-ctl:
-
-- entity 53: imx219 0-0010 (2 pads, 2 links)
-             type V4L2 subdev subtype Unknown flags 0
-             device node name /dev/v4l-subdev9
-        pad0: Source
-                [fmt:SRGGB8_1X8/816x616@1/25 field:none colorspace:srgb xfer:srgb]
-                -> "imx6-mipi-csi2":0 [ENABLED]
-        pad1: Sink
-                <- "imx219 pixel 0-0010":0 [ENABLED,IMMUTABLE]
-
-It looks like we successfully retrieve the frame interval for pad 0
-and print it, but when we try to retrieve the frame interval for pad 1,
-we get EINVAL (because that's what I'm returning, but I'm wondering if
-that's the correct thing to do...) and that prevents _all_ format
-information being output.
-
-Maybe something like the following would be a better idea?
-
- utils/media-ctl/media-ctl.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/utils/media-ctl/media-ctl.c b/utils/media-ctl/media-ctl.c
-index f61963a..a50a559 100644
---- a/utils/media-ctl/media-ctl.c
-+++ b/utils/media-ctl/media-ctl.c
-@@ -81,22 +81,22 @@ static void v4l2_subdev_print_format(struct media_entity *entity,
- 	struct v4l2_mbus_framefmt format;
- 	struct v4l2_fract interval = { 0, 0 };
- 	struct v4l2_rect rect;
--	int ret;
-+	int ret, err_fi;
- 
- 	ret = v4l2_subdev_get_format(entity, &format, pad, which);
- 	if (ret != 0)
- 		return;
- 
--	ret = v4l2_subdev_get_frame_interval(entity, &interval, pad);
--	if (ret != 0 && ret != -ENOTTY)
--		return;
-+	err_fi = v4l2_subdev_get_frame_interval(entity, &interval, pad);
- 
- 	printf("\t\t[fmt:%s/%ux%u",
- 	       v4l2_subdev_pixelcode_to_string(format.code),
- 	       format.width, format.height);
- 
--	if (interval.numerator || interval.denominator)
-+	if (err_fi == 0 && (interval.numerator || interval.denominator))
- 		printf("@%u/%u", interval.numerator, interval.denominator);
-+	else if (err_fi != -ENOTTY)
-+		printf("@<error: %s>", strerror(-err_fi));
- 
- 	if (format.field)
- 		printf(" field:%s", v4l2_subdev_field_to_string(format.field));
 
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+從我的 iPad 傳送
+
+> Ville Syrjälä <ville.syrjala@linux.intel.com> 於 2017年3月7日 上午2:34 寫道：
+> 
+>> On Tue, Mar 07, 2017 at 01:58:23AM +0800, Ayaka wrote:
+>> 
+>> 
+>> 從我的 iPad 傳送
+>> 
+>>>> Ville Syrjälä <ville.syrjala@linux.intel.com> 於 2017年3月6日 下午9:06 寫道：
+>>>> 
+>>>> On Sun, Mar 05, 2017 at 06:00:31PM +0800, Randy Li wrote:
+>>>> P010 is a planar 4:2:0 YUV with interleaved UV plane, 10 bits
+>>>> per channel video format.
+>>>> 
+>>>> P016 is a planar 4:2:0 YUV with interleaved UV plane, 16 bits
+>>>> per channel video format.
+>>>> 
+>>>> V3: Added P012 and fixed cpp for P010
+>>>> V4: format definition refined per review
+>>>> V5: Format comment block for each new pixel format
+>>>> V6: reversed Cb/Cr order in comments
+>>>> v7: reversed Cb/Cr order in comments of header files, remove
+>>>> the wrong part of commit message.
+>>> 
+>>> What? Why? You just undid what Clint did in v6.
+>> He missed a file also keeping the wrong description of rockchip.
+> 
+> I don't follow. Who missed what exactly?
+What he sent is v5, I increase the order number twice in the message, it confuse me as well. 
+I think Clint forgot the include/uapi/drm/drm_fourcc.h .
+> 
+> 
+>>> 
+>>>> 
+>>>> Cc: Daniel Stone <daniel@fooishbar.org>
+>>>> Cc: Ville Syrjälä <ville.syrjala@linux.intel.com>
+>>>> 
+>>>> Signed-off-by: Randy Li <ayaka@soulik.info>
+>>>> Signed-off-by: Clint Taylor <clinton.a.taylor@intel.com>
+>>>> ---
+>>>> drivers/gpu/drm/drm_fourcc.c  |  3 +++
+>>>> include/uapi/drm/drm_fourcc.h | 21 +++++++++++++++++++++
+>>>> 2 files changed, 24 insertions(+)
+>>>> 
+>>>> diff --git a/drivers/gpu/drm/drm_fourcc.c b/drivers/gpu/drm/drm_fourcc.c
+>>>> index 90d2cc8..3e0fd58 100644
+>>>> --- a/drivers/gpu/drm/drm_fourcc.c
+>>>> +++ b/drivers/gpu/drm/drm_fourcc.c
+>>>> @@ -165,6 +165,9 @@ const struct drm_format_info *__drm_format_info(u32 format)
+>>>>       { .format = DRM_FORMAT_UYVY,        .depth = 0,  .num_planes = 1, .cpp = { 2, 0, 0 }, .hsub = 2, .vsub = 1 },
+>>>>       { .format = DRM_FORMAT_VYUY,        .depth = 0,  .num_planes = 1, .cpp = { 2, 0, 0 }, .hsub = 2, .vsub = 1 },
+>>>>       { .format = DRM_FORMAT_AYUV,        .depth = 0,  .num_planes = 1, .cpp = { 4, 0, 0 }, .hsub = 1, .vsub = 1 },
+>>>> +        { .format = DRM_FORMAT_P010,        .depth = 0,  .num_planes = 2, .cpp = { 2, 4, 0 }, .hsub = 2, .vsub = 2 },
+>>>> +        { .format = DRM_FORMAT_P012,        .depth = 0,  .num_planes = 2, .cpp = { 2, 4, 0 }, .hsub = 2, .vsub = 2 },
+>>>> +        { .format = DRM_FORMAT_P016,        .depth = 0,  .num_planes = 2, .cpp = { 2, 4, 0 }, .hsub = 2, .vsub = 2 },
+>>>>   };
+>>>> 
+>>>>   unsigned int i;
+>>>> diff --git a/include/uapi/drm/drm_fourcc.h b/include/uapi/drm/drm_fourcc.h
+>>>> index ef20abb..306f979 100644
+>>>> --- a/include/uapi/drm/drm_fourcc.h
+>>>> +++ b/include/uapi/drm/drm_fourcc.h
+>>>> @@ -128,6 +128,27 @@ extern "C" {
+>>>> #define DRM_FORMAT_NV42        fourcc_code('N', 'V', '4', '2') /* non-subsampled Cb:Cr plane */
+>>>> 
+>>>> /*
+>>>> + * 2 plane YCbCr MSB aligned
+>>>> + * index 0 = Y plane, [15:0] Y:x [10:6] little endian
+>>>> + * index 1 = Cb:Cr plane, [31:0] Cb:x:Cr:x [10:6:10:6] little endian
+>>>> + */
+>>>> +#define DRM_FORMAT_P010        fourcc_code('P', '0', '1', '0') /* 2x2 subsampled Cb:Cr plane 10 bits per channel */
+>>>> +
+>>>> +/*
+>>>> + * 2 plane YCbCr MSB aligned
+>>>> + * index 0 = Y plane, [15:0] Y:x [12:4] little endian
+>>>> + * index 1 = Cb:Cr plane, [31:0] Cb:x:Cr:x [12:4:12:4] little endian
+>>>> + */
+>>>> +#define DRM_FORMAT_P012        fourcc_code('P', '0', '1', '2') /* 2x2 subsampled Cb:Cr plane 12 bits per channel */
+>>>> +
+>>>> +/*
+>>>> + * 2 plane YCbCr MSB aligned
+>>>> + * index 0 = Y plane, [15:0] Y little endian
+>>>> + * index 1 = Cb:Cr plane, [31:0] Cb:Cr [16:16] little endian
+>>>> + */
+>>>> +#define DRM_FORMAT_P016        fourcc_code('P', '0', '1', '6') /* 2x2 subsampled Cb:Cr plane 16 bits per channel */
+>>>> +
+>>>> +/*
+>>>> * 3 plane YCbCr
+>>>> * index 0: Y plane, [7:0] Y
+>>>> * index 1: Cb plane, [7:0] Cb
+>>>> -- 
+>>>> 2.7.4
+>>> 
+>>> -- 
+>>> Ville Syrjälä
+>>> Intel OTC
+> 
+> -- 
+> Ville Syrjälä
+> Intel OTC
