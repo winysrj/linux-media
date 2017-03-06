@@ -1,68 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:40805 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751788AbdCKJb5 (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:52656 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753777AbdCFO6v (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Mar 2017 04:31:57 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+        Mon, 6 Mar 2017 09:58:51 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v2 2/2] libv4lconvert: expose bayer formats
-Date: Sat, 11 Mar 2017 06:31:48 -0300
-Message-Id: <1c6979a9eb98d52c47ebe4989480f67b467a0720.1489224702.git.mchehab@s-opensource.com>
-In-Reply-To: <f389eeb8826caf429b0948469bb7ce48f5276851.1489224702.git.mchehab@s-opensource.com>
-References: <f389eeb8826caf429b0948469bb7ce48f5276851.1489224702.git.mchehab@s-opensource.com>
-In-Reply-To: <f389eeb8826caf429b0948469bb7ce48f5276851.1489224702.git.mchehab@s-opensource.com>
-References: <f389eeb8826caf429b0948469bb7ce48f5276851.1489224702.git.mchehab@s-opensource.com>
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv3 01/15] ov7670: document device tree bindings
+Date: Mon,  6 Mar 2017 15:56:02 +0100
+Message-Id: <20170306145616.38485-2-hverkuil@xs4all.nl>
+In-Reply-To: <20170306145616.38485-1-hverkuil@xs4all.nl>
+References: <20170306145616.38485-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The libv4lconvert part of libv4l was meant to provide a common
-place to handle weird proprietary formats. With time, we also
-added support to other standard formats, in order to help
-V4L2 applications that are not performance sensitive to support
-all V4L2 formats.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Yet, the hole idea is to let userspace to decide to implement
-their own format conversion code when it needs either more
-performance or more quality than what libv4lconvert provides.
+Add binding documentation and add that file to the MAINTAINERS entry.
 
-In other words, applications should have the right to decide
-between using a libv4lconvert emulated format or to implement
-the decoding themselves for non-proprietary formats,
-as this may have significative performance impact.
-
-At the application side, deciding between them is just a matter
-of looking at the V4L2_FMT_FLAG_EMULATED flag.
-
-Currently, the bayer formats, if present, are not shown to the
-applications, with prevents them to use more optimized code to
-handle it. Change them to be shown to userspace.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- lib/libv4lconvert/libv4lconvert.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ .../devicetree/bindings/media/i2c/ov7670.txt       | 44 ++++++++++++++++++++++
+ MAINTAINERS                                        |  1 +
+ 2 files changed, 45 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7670.txt
 
-diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
-index 2718446ff239..4965e38754e2 100644
---- a/lib/libv4lconvert/libv4lconvert.c
-+++ b/lib/libv4lconvert/libv4lconvert.c
-@@ -125,10 +125,10 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
- 	{ V4L2_PIX_FMT_OV511,		 0,	 7,	 7,	1 },
- 	{ V4L2_PIX_FMT_OV518,		 0,	 7,	 7,	1 },
- 	/* uncompressed bayer */
--	{ V4L2_PIX_FMT_SBGGR8,		 8,	 8,	 8,	1 },
--	{ V4L2_PIX_FMT_SGBRG8,		 8,	 8,	 8,	1 },
--	{ V4L2_PIX_FMT_SGRBG8,		 8,	 8,	 8,	1 },
--	{ V4L2_PIX_FMT_SRGGB8,		 8,	 8,	 8,	1 },
-+	{ V4L2_PIX_FMT_SBGGR8,		 8,	 8,	 8,	0 },
-+	{ V4L2_PIX_FMT_SGBRG8,		 8,	 8,	 8,	0 },
-+	{ V4L2_PIX_FMT_SGRBG8,		 8,	 8,	 8,	0 },
-+	{ V4L2_PIX_FMT_SRGGB8,		 8,	 8,	 8,	0 },
- 	{ V4L2_PIX_FMT_STV0680,		 8,	 8,	 8,	1 },
- 	/* compressed bayer */
- 	{ V4L2_PIX_FMT_SPCA561,		 0,	 9,	 9,	1 },
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov7670.txt b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
+new file mode 100644
+index 000000000000..6d9c90dff7a7
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
+@@ -0,0 +1,44 @@
++* Omnivision OV7670 CMOS sensor
++
++The Omnivision OV7670 sensor supports multiple resolutions output, such as
++CIF, SVGA, UXGA. It also can support the YUV422/420, RGB565/555 or raw RGB
++output formats.
++
++Required Properties:
++- compatible: should be "ovti,ov7670"
++- clocks: reference to the xclk input clock.
++- clock-names: should be "xclk".
++
++Optional Properties:
++- reset-gpios: reference to the GPIO connected to the resetb pin, if any.
++  Active is low.
++- powerdown-gpios: reference to the GPIO connected to the pwdn pin, if any.
++  Active is high.
++
++The device node must contain one 'port' child node for its digital output
++video port, in accordance with the video interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++
++	i2c1: i2c@f0018000 {
++		ov7670: camera@21 {
++			compatible = "ovti,ov7670";
++			reg = <0x21>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
++			reset-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
++			powerdown-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
++			clocks = <&pck0>;
++			clock-names = "xclk";
++			assigned-clocks = <&pck0>;
++			assigned-clock-rates = <25000000>;
++
++			port {
++				ov7670_0: endpoint {
++					remote-endpoint = <&isi_0>;
++					bus-width = <8>;
++				};
++			};
++		};
++	};
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 83a42ef1d1a7..93500928ca4f 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -9273,6 +9273,7 @@ L:	linux-media@vger.kernel.org
+ T:	git git://linuxtv.org/media_tree.git
+ S:	Maintained
+ F:	drivers/media/i2c/ov7670.c
++F:	Documentation/devicetree/bindings/media/i2c/ov7670.txt
+ 
+ ONENAND FLASH DRIVER
+ M:	Kyungmin Park <kyungmin.park@samsung.com>
 -- 
-2.9.3
+2.11.0
