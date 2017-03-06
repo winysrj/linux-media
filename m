@@ -1,37 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35948 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753959AbdCKNRh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Mar 2017 08:17:37 -0500
-Date: Sat, 11 Mar 2017 15:17:33 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCHv5 00/16] atmel-isi/ov7670/ov2640: convert to standalone
- drivers
-Message-ID: <20170311131733.GN3220@valkosipuli.retiisi.org.uk>
-References: <20170311112328.11802-1-hverkuil@xs4all.nl>
+Received: from mx2.suse.de ([195.135.220.15]:40665 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754086AbdCFP1R (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Mar 2017 10:27:17 -0500
+Subject: Re: [PATCH 21/29] drivers, s390: convert fc_fcp_pkt.ref_cnt from
+ atomic_t to refcount_t
+To: Elena Reshetova <elena.reshetova@intel.com>,
+        gregkh@linuxfoundation.org
+References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+ <1488810076-3754-22-git-send-email-elena.reshetova@intel.com>
+Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org,
+        netdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
+        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-usb@vger.kernel.org, peterz@infradead.org,
+        Hans Liljestrand <ishkamiel@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        David Windsor <dwindsor@gmail.com>
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Message-ID: <536a58ba-8896-5639-cab9-bd2f13bed325@suse.de>
+Date: Mon, 6 Mar 2017 16:27:11 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170311112328.11802-1-hverkuil@xs4all.nl>
+In-Reply-To: <1488810076-3754-22-git-send-email-elena.reshetova@intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Mar 11, 2017 at 12:23:12PM +0100, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This patch series converts the soc-camera atmel-isi to a standalone V4L2
-> driver.
+On 03/06/2017 03:21 PM, Elena Reshetova wrote:
+> refcount_t type and corresponding API should be
+> used instead of atomic_t when the variable is used as
+> a reference counter. This allows to avoid accidental
+> refcounter overflows that might lead to use-after-free
+> situations.
 
-Patches 5 and 13:
+The subject is wrong, should be something like "scsi: libfc convert
+fc_fcp_pkt.ref_cnt from atomic_t to refcount_t" but not s390.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Other than that
+Acked-by: Johannes Thumshirn <jth@kernel.org>
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Johannes Thumshirn                                          Storage
+jthumshirn@suse.de                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
+GF: Felix Imendörffer, Jane Smithard, Graham Norton
+HRB 21284 (AG Nürnberg)
+Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
