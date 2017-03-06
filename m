@@ -1,102 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:24155 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932252AbdCFOZ5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Mar 2017 09:25:57 -0500
-From: Elena Reshetova <elena.reshetova@intel.com>
-To: gregkh@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org,
-        netdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
-        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
-        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
-        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
-        linux-usb@vger.kernel.org, peterz@infradead.org,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        Hans Liljestrand <ishkamiel@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        David Windsor <dwindsor@gmail.com>
-Subject: [PATCH 11/29] drivers, media: convert cx88_core.refcount from atomic_t to refcount_t
-Date: Mon,  6 Mar 2017 16:20:58 +0200
-Message-Id: <1488810076-3754-12-git-send-email-elena.reshetova@intel.com>
-In-Reply-To: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
-References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:49573 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752969AbdCFPFK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Mar 2017 10:05:10 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv3 12/15] ov2640: add MC support
+Date: Mon,  6 Mar 2017 15:56:13 +0100
+Message-Id: <20170306145616.38485-13-hverkuil@xs4all.nl>
+In-Reply-To: <20170306145616.38485-1-hverkuil@xs4all.nl>
+References: <20170306145616.38485-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-refcount_t type and corresponding API should be
-used instead of atomic_t when the variable is used as
-a reference counter. This allows to avoid accidental
-refcounter overflows that might lead to use-after-free
-situations.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
-Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Signed-off-by: David Windsor <dwindsor@gmail.com>
+The MC support is needed by the em28xx driver.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/pci/cx88/cx88-cards.c | 2 +-
- drivers/media/pci/cx88/cx88-core.c  | 4 ++--
- drivers/media/pci/cx88/cx88.h       | 3 ++-
- 3 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/media/i2c/ov2640.c | 21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/pci/cx88/cx88-cards.c b/drivers/media/pci/cx88/cx88-cards.c
-index cdfbde2..7fc5f5f 100644
---- a/drivers/media/pci/cx88/cx88-cards.c
-+++ b/drivers/media/pci/cx88/cx88-cards.c
-@@ -3670,7 +3670,7 @@ struct cx88_core *cx88_core_create(struct pci_dev *pci, int nr)
- 	if (!core)
- 		return NULL;
+diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
+index 2f799ab4cc2b..3c187069ec26 100644
+--- a/drivers/media/i2c/ov2640.c
++++ b/drivers/media/i2c/ov2640.c
+@@ -282,6 +282,9 @@ struct ov2640_win_size {
  
--	atomic_inc(&core->refcount);
-+	refcount_set(&core->refcount, 1);
- 	core->pci_bus  = pci->bus->number;
- 	core->pci_slot = PCI_SLOT(pci->devfn);
- 	core->pci_irqmask = PCI_INT_RISC_RD_BERRINT | PCI_INT_RISC_WR_BERRINT |
-diff --git a/drivers/media/pci/cx88/cx88-core.c b/drivers/media/pci/cx88/cx88-core.c
-index 973a9cd4..8bfa5b7 100644
---- a/drivers/media/pci/cx88/cx88-core.c
-+++ b/drivers/media/pci/cx88/cx88-core.c
-@@ -1052,7 +1052,7 @@ struct cx88_core *cx88_core_get(struct pci_dev *pci)
- 			mutex_unlock(&devlist);
- 			return NULL;
- 		}
--		atomic_inc(&core->refcount);
-+		refcount_inc(&core->refcount);
- 		mutex_unlock(&devlist);
- 		return core;
+ struct ov2640_priv {
+ 	struct v4l2_subdev		subdev;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_pad pad;
++#endif
+ 	struct v4l2_ctrl_handler	hdl;
+ 	u32	cfmt_code;
+ 	struct clk			*clk;
+@@ -1073,19 +1076,30 @@ static int ov2640_probe(struct i2c_client *client,
+ 		ret = priv->hdl.error;
+ 		goto err_hdl;
  	}
-@@ -1073,7 +1073,7 @@ void cx88_core_put(struct cx88_core *core, struct pci_dev *pci)
- 	release_mem_region(pci_resource_start(pci, 0),
- 			   pci_resource_len(pci, 0));
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	priv->pad.flags = MEDIA_PAD_FL_SOURCE;
++	priv->subdev.entity.function = MEDIA_ENT_F_CAM_SENSOR;
++	ret = media_entity_pads_init(&priv->subdev.entity, 1, &priv->pad);
++	if (ret < 0)
++		goto err_hdl;
++#endif
  
--	if (!atomic_dec_and_test(&core->refcount))
-+	if (!refcount_dec_and_test(&core->refcount))
- 		return;
+ 	ret = ov2640_video_probe(client);
+ 	if (ret < 0)
+-		goto err_hdl;
++		goto err_videoprobe;
  
- 	mutex_lock(&devlist);
-diff --git a/drivers/media/pci/cx88/cx88.h b/drivers/media/pci/cx88/cx88.h
-index 115414c..16c1313 100644
---- a/drivers/media/pci/cx88/cx88.h
-+++ b/drivers/media/pci/cx88/cx88.h
-@@ -24,6 +24,7 @@
- #include <linux/i2c-algo-bit.h>
- #include <linux/videodev2.h>
- #include <linux/kdev_t.h>
-+#include <linux/refcount.h>
+ 	ret = v4l2_async_register_subdev(&priv->subdev);
+ 	if (ret < 0)
+-		goto err_hdl;
++		goto err_videoprobe;
  
- #include <media/v4l2-device.h>
- #include <media/v4l2-fh.h>
-@@ -339,7 +340,7 @@ struct cx8802_dev;
+ 	dev_info(&adapter->dev, "OV2640 Probed\n");
  
- struct cx88_core {
- 	struct list_head           devlist;
--	atomic_t                   refcount;
-+	refcount_t                   refcount;
+ 	return 0;
  
- 	/* board name */
- 	int                        nr;
++err_videoprobe:
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	media_entity_cleanup(&priv->subdev.entity);
++#endif
+ err_hdl:
+ 	v4l2_ctrl_handler_free(&priv->hdl);
+ 	return ret;
+@@ -1097,6 +1111,9 @@ static int ov2640_remove(struct i2c_client *client)
+ 
+ 	v4l2_async_unregister_subdev(&priv->subdev);
+ 	v4l2_ctrl_handler_free(&priv->hdl);
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	media_entity_cleanup(&priv->subdev.entity);
++#endif
+ 	v4l2_device_unregister_subdev(&priv->subdev);
+ 	return 0;
+ }
 -- 
-2.7.4
+2.11.0
