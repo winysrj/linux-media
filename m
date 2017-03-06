@@ -1,55 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:37386 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751192AbdCNTGf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Mar 2017 15:06:35 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v3 04/27] media: entity: Swap pads if route is checked from source to sink
-Date: Tue, 14 Mar 2017 20:02:45 +0100
-Message-Id: <20170314190308.25790-5-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mga03.intel.com ([134.134.136.65]:47292 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752935AbdCFOY4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Mar 2017 09:24:56 -0500
+From: Elena Reshetova <elena.reshetova@intel.com>
+To: gregkh@linuxfoundation.org
+Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org,
+        netdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
+        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-usb@vger.kernel.org, peterz@infradead.org,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        Hans Liljestrand <ishkamiel@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        David Windsor <dwindsor@gmail.com>
+Subject: [PATCH 25/29] drivers, usb: convert ffs_data.ref from atomic_t to refcount_t
+Date: Mon,  6 Mar 2017 16:21:12 +0200
+Message-Id: <1488810076-3754-26-git-send-email-elena.reshetova@intel.com>
+In-Reply-To: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+refcount_t type and corresponding API should be
+used instead of atomic_t when the variable is used as
+a reference counter. This allows to avoid accidental
+refcounter overflows that might lead to use-after-free
+situations.
 
-This way the pads are always passed to the has_route() op sink pad first.
-Makes sense.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
+Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: David Windsor <dwindsor@gmail.com>
 ---
- drivers/media/media-entity.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/usb/gadget/function/f_fs.c | 8 ++++----
+ drivers/usb/gadget/function/u_fs.h | 3 ++-
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index ccd991d2d3450ab3..f0386ddd7c92cc4e 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -256,6 +256,10 @@ bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
- 	if (!entity->ops || !entity->ops->has_route)
- 		return true;
+diff --git a/drivers/usb/gadget/function/f_fs.c b/drivers/usb/gadget/function/f_fs.c
+index 87fccf6..3cdeb91 100644
+--- a/drivers/usb/gadget/function/f_fs.c
++++ b/drivers/usb/gadget/function/f_fs.c
+@@ -1570,14 +1570,14 @@ static void ffs_data_get(struct ffs_data *ffs)
+ {
+ 	ENTER();
  
-+	if (entity->pads[pad0].flags & MEDIA_PAD_FL_SOURCE
-+	    && entity->pads[pad1].flags & MEDIA_PAD_FL_SINK)
-+		swap(pad0, pad1);
-+
- 	return entity->ops->has_route(entity, pad0, pad1);
+-	atomic_inc(&ffs->ref);
++	refcount_inc(&ffs->ref);
  }
- EXPORT_SYMBOL_GPL(media_entity_has_route);
+ 
+ static void ffs_data_opened(struct ffs_data *ffs)
+ {
+ 	ENTER();
+ 
+-	atomic_inc(&ffs->ref);
++	refcount_inc(&ffs->ref);
+ 	if (atomic_add_return(1, &ffs->opened) == 1 &&
+ 			ffs->state == FFS_DEACTIVATED) {
+ 		ffs->state = FFS_CLOSING;
+@@ -1589,7 +1589,7 @@ static void ffs_data_put(struct ffs_data *ffs)
+ {
+ 	ENTER();
+ 
+-	if (unlikely(atomic_dec_and_test(&ffs->ref))) {
++	if (unlikely(refcount_dec_and_test(&ffs->ref))) {
+ 		pr_info("%s(): freeing\n", __func__);
+ 		ffs_data_clear(ffs);
+ 		BUG_ON(waitqueue_active(&ffs->ev.waitq) ||
+@@ -1634,7 +1634,7 @@ static struct ffs_data *ffs_data_new(void)
+ 
+ 	ENTER();
+ 
+-	atomic_set(&ffs->ref, 1);
++	refcount_set(&ffs->ref, 1);
+ 	atomic_set(&ffs->opened, 0);
+ 	ffs->state = FFS_READ_DESCRIPTORS;
+ 	mutex_init(&ffs->mutex);
+diff --git a/drivers/usb/gadget/function/u_fs.h b/drivers/usb/gadget/function/u_fs.h
+index 4b69694..abfca48 100644
+--- a/drivers/usb/gadget/function/u_fs.h
++++ b/drivers/usb/gadget/function/u_fs.h
+@@ -20,6 +20,7 @@
+ #include <linux/list.h>
+ #include <linux/mutex.h>
+ #include <linux/workqueue.h>
++#include <linux/refcount.h>
+ 
+ #ifdef VERBOSE_DEBUG
+ #ifndef pr_vdebug
+@@ -177,7 +178,7 @@ struct ffs_data {
+ 	struct completion		ep0req_completion;	/* P: mutex */
+ 
+ 	/* reference counter */
+-	atomic_t			ref;
++	refcount_t			ref;
+ 	/* how many files are opened (EP0 and others) */
+ 	atomic_t			opened;
+ 
 -- 
-2.12.0
+2.7.4
