@@ -1,111 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:36699 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754075AbdCKSOy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Mar 2017 13:14:54 -0500
-Subject: Re: [PATCH v5 15/39] [media] v4l2: add a frame interval error event
-To: Hans Verkuil <hverkuil@xs4all.nl>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <1489121599-23206-16-git-send-email-steve_longerbeam@mentor.com>
- <5b0a0e76-2524-4140-5ccc-380a8f949cfa@xs4all.nl>
- <ec05e6e0-79f2-2db2-bde9-4aed00d76faa@gmail.com>
- <6b574476-77df-0e25-a4d1-32d4fe0aec12@xs4all.nl>
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <5d5cf4a4-a4d3-586e-cd16-54f543dfcce9@gmail.com>
-Date: Sat, 11 Mar 2017 10:14:49 -0800
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:33823 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754218AbdCFRLv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 12:11:51 -0500
 MIME-Version: 1.0
-In-Reply-To: <6b574476-77df-0e25-a4d1-32d4fe0aec12@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20170306102959.5iixtstrl7ktwxdp@phenom.ffwll.local>
+References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+ <1488491084-17252-7-git-send-email-labbott@redhat.com> <20170303095654.zbcqkcojo3vf6y4y@phenom.ffwll.local>
+ <2273106.Hjr80nPvcZ@avalon> <87fe5d0a-19d2-b6c7-391f-687aa5ff8571@redhat.com> <20170306102959.5iixtstrl7ktwxdp@phenom.ffwll.local>
+From: Emil Velikov <emil.l.velikov@gmail.com>
+Date: Mon, 6 Mar 2017 17:00:50 +0000
+Message-ID: <CACvgo52Q-HvChU7_q65GFqOaVY7Z7EaDoRfELup0D_N_ge9poQ@mail.gmail.com>
+Subject: Re: [RFC PATCH 06/12] staging: android: ion: Remove crufty cache support
+To: Laura Abbott <labbott@redhat.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        ML dri-devel <dri-devel@lists.freedesktop.org>,
+        devel@driverdev.osuosl.org, romlem@google.com,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        =?UTF-8?B?QXJ2ZSBIasO4bm5ldsOlZw==?= <arve@android.com>,
+        "Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>,
+        linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+        Riley Andrews <riandrews@android.com>,
+        Mark Brown <broonie@kernel.org>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        LAKML <linux-arm-kernel@lists.infradead.org>,
+        linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 03/11/2017 03:39 AM, Hans Verkuil wrote:
-> On 10/03/17 19:37, Steve Longerbeam wrote:
->> Hi Hans,
+On 6 March 2017 at 10:29, Daniel Vetter <daniel@ffwll.ch> wrote:
+> On Fri, Mar 03, 2017 at 10:46:03AM -0800, Laura Abbott wrote:
+>> On 03/03/2017 08:39 AM, Laurent Pinchart wrote:
+>> > Hi Daniel,
+>> >
+>> > On Friday 03 Mar 2017 10:56:54 Daniel Vetter wrote:
+>> >> On Thu, Mar 02, 2017 at 01:44:38PM -0800, Laura Abbott wrote:
+>> >>> Now that we call dma_map in the dma_buf API callbacks there is no need
+>> >>> to use the existing cache APIs. Remove the sync ioctl and the existing
+>> >>> bad dma_sync calls. Explicit caching can be handled with the dma_buf
+>> >>> sync API.
+>> >>>
+>> >>> Signed-off-by: Laura Abbott <labbott@redhat.com>
+>> >>> ---
+>> >>>
+>> >>>  drivers/staging/android/ion/ion-ioctl.c         |  5 ----
+>> >>>  drivers/staging/android/ion/ion.c               | 40 --------------------
+>> >>>  drivers/staging/android/ion/ion_carveout_heap.c |  6 ----
+>> >>>  drivers/staging/android/ion/ion_chunk_heap.c    |  6 ----
+>> >>>  drivers/staging/android/ion/ion_page_pool.c     |  3 --
+>> >>>  drivers/staging/android/ion/ion_system_heap.c   |  5 ----
+>> >>>  6 files changed, 65 deletions(-)
+>> >>>
+>> >>> diff --git a/drivers/staging/android/ion/ion-ioctl.c
+>> >>> b/drivers/staging/android/ion/ion-ioctl.c index 5b2e93f..f820d77 100644
+>> >>> --- a/drivers/staging/android/ion/ion-ioctl.c
+>> >>> +++ b/drivers/staging/android/ion/ion-ioctl.c
+>> >>> @@ -146,11 +146,6 @@ long ion_ioctl(struct file *filp, unsigned int cmd,
+>> >>> unsigned long arg)>
+>> >>>                   data.handle.handle = handle->id;
+>> >>>
+>> >>>           break;
+>> >>>
+>> >>>   }
+>> >>>
+>> >>> - case ION_IOC_SYNC:
+>> >>> - {
+>> >>> -         ret = ion_sync_for_device(client, data.fd.fd);
+>> >>> -         break;
+>> >>> - }
+>> >>
+>> >> You missed the case ION_IOC_SYNC: in compat_ion.c.
+>> >>
+>> >> While at it: Should we also remove the entire custom_ioctl infrastructure?
+>> >> It's entirely unused afaict, and for a pure buffer allocator I don't see
+>> >> any need to have custom ioctl.
+>> >
+>> > I second that, if you want to make ion a standard API, then we certainly don't
+>> > want any custom ioctl.
+>> >
+>> >> More code to remove potentially:
+>> >> - The entire compat ioctl stuff - would be an abi break, but I guess if we
+>> >>   pick the 32bit abi and clean up the uapi headers we'll be mostly fine.
+>> >>   would allow us to remove compat_ion.c entirely.
+>> >>
+>> >> - ION_IOC_IMPORT: With this ion is purely an allocator, so not sure we
+>> >>   still need to be able to import anything. All the cache flushing/mapping
+>> >>   is done through dma-buf ops/ioctls.
+>> >>
+>> >>
 >>
->> On 03/10/2017 04:03 AM, Hans Verkuil wrote:
->>> On 10/03/17 05:52, Steve Longerbeam wrote:
->>>> Add a new FRAME_INTERVAL_ERROR event to signal that a video capture or
->>>> output device has measured an interval between the reception or transmit
->>>> completion of two consecutive frames of video that is outside the nominal
->>>> frame interval by some tolerance value.
->>>
->>> Reading back what was said on this I agree with Sakari that this doesn't
->>> belong here.
->>>
->>> Userspace can detect this just as easily (if not easier) with a timeout.
->>>
->>
->>
->> Unfortunately measuring frame intervals from userland is not accurate
->> enough for i.MX6.
->>
->> The issue here is that the IPUv3, specifically the CSI unit, can
->> permanently lose vertical sync if there are truncated frames sent
->> on the bt.656 bus. We have seen a single missing line of video cause
->> loss of vertical sync. The only way to correct this is to shutdown
->> the IPU capture hardware and restart, which can be accomplished
->> simply by restarting streaming from userland.
->>
->> There are no other indicators from the sensor about these short
->> frame events (believe me, we've exhausted all avenues with the ADV718x).
->> And the IPUv3 DMA engine has no status indicators for short frames
->> either. So the only way to detect them is by measuring frame intervals.
->>
->> The intervals have to be able to resolve a single line of missing video.
->> With a PAL video source that requires better than 58 usec accuracy.
->>
->> There is too much uncertainty to resolve this at user level. The
->> driver is able to resolve this by measuring intervals between hardware
->> interrupts as long as interrupt latency is reasonably low, and we
->> have another method using the i.MX6 hardware input capture support
->> that can measure these intervals very accurately with no errors
->> introduced by interrupt latency.
->>
->> I made this event a private event to imx-media driver in a previous
->> iteration, so I can return it to a private event, but this can't be
->> done at user level.
+>> Good point to all of the above. I was considering keeping the import around
+>> for backwards compatibility reasons but given how much other stuff is being
+>> potentially broken, everything should just get ripped out.
 >
-> It's fine to use an internal event as long as the end-user doesn't
-> see it. But if you lose vsyncs, then you never capture another frame,
-> right?
+> If you're ok with breaking the world, then I strongly suggest we go
+> through the uapi header and replace all types with the standard
+> fixed-width ones (__s32, __s64 and __u32, __u64). Allows us to remove all
+> the compat ioctl code :-)
 
-No, that's not correct. By loss of vertical sync, I mean the IPU
-captures portions of two different frames, resulting in a permanent
-"split image", with one frame containing portions of two consecutive
-images. Or, the video rolls continuously, if you remember the old CRT
-television sets of yore, it's the same rolling effect.
+I think the other comments from your "botching-up ioctls" [1] also apply ;-)
+Namely - align structs to multiple of 64bit, add "flags" and properly
+verity user input returning -EINVAL.
 
+-Emil
 
-> So userspace can detect that (i.e. no new frames arrive) and
-> it can timeout on that. Or you detect it in the driver and restart there,
-> or call vb2_queue_error().
->
-
-There is no timeout, the frames keep coming, but they are split images
-or rolling.
-
-> Anything really as long as this event isn't user-visible :-)
-
-The event must be user visible, otherwise the user has no indication
-the error, and can't correct it by stream restart.
-
-Steve
+[1] https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/Documentation/ioctl/botching-up-ioctls.txt
