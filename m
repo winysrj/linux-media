@@ -1,109 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:36702 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755678AbdCTQgo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 12:36:44 -0400
-Date: Mon, 20 Mar 2017 16:35:47 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Subject: Re: [PATCH v5 00/39] i.MX Media Driver
-Message-ID: <20170320163547.GP21222@n2100.armlinux.org.uk>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <20170318192258.GL21222@n2100.armlinux.org.uk>
- <aef6c412-5464-726b-42f6-a24b7323aa9c@mentor.com>
- <20170319121402.GS21222@n2100.armlinux.org.uk>
- <1490016016.2917.68.camel@pengutronix.de>
- <20170320154339.GN21222@n2100.armlinux.org.uk>
- <1490027347.2917.97.camel@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1490027347.2917.97.camel@pengutronix.de>
+Received: from mga14.intel.com ([192.55.52.115]:37943 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752768AbdCFOY4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Mar 2017 09:24:56 -0500
+From: Elena Reshetova <elena.reshetova@intel.com>
+To: gregkh@linuxfoundation.org
+Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org,
+        netdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
+        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-usb@vger.kernel.org, peterz@infradead.org,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        Hans Liljestrand <ishkamiel@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        David Windsor <dwindsor@gmail.com>
+Subject: [PATCH 24/29] drivers: convert iblock_req.pending from atomic_t to refcount_t
+Date: Mon,  6 Mar 2017 16:21:11 +0200
+Message-Id: <1488810076-3754-25-git-send-email-elena.reshetova@intel.com>
+In-Reply-To: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 20, 2017 at 05:29:07PM +0100, Philipp Zabel wrote:
-> According to the documentation [1], you are doing the right thing:
-> 
->     The struct v4l2_subdev_frame_interval pad references a non-existing
->     pad, or the pad doesn’t support frame intervals.
-> 
-> But v4l2_subdev_call returns -ENOIOCTLCMD if the g_frame_interval op is
-> not implemented at all, which is turned into -ENOTTY by video_usercopy.
-> 
-> [1] https://linuxtv.org/downloads/v4l-dvb-apis/uapi/v4l/vidioc-subdev-g-frame-interval.html#return-value
+refcount_t type and corresponding API should be
+used instead of atomic_t when the variable is used as
+a reference counter. This allows to avoid accidental
+refcounter overflows that might lead to use-after-free
+situations.
 
-Thanks for confirming.
+Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
+Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: David Windsor <dwindsor@gmail.com>
+---
+ drivers/target/target_core_iblock.c | 12 ++++++------
+ drivers/target/target_core_iblock.h |  3 ++-
+ 2 files changed, 8 insertions(+), 7 deletions(-)
 
-> > Maybe something like the following would be a better idea?
-> > 
-> >  utils/media-ctl/media-ctl.c | 10 +++++-----
-> >  1 file changed, 5 insertions(+), 5 deletions(-)
-> > 
-> > diff --git a/utils/media-ctl/media-ctl.c b/utils/media-ctl/media-ctl.c
-> > index f61963a..a50a559 100644
-> > --- a/utils/media-ctl/media-ctl.c
-> > +++ b/utils/media-ctl/media-ctl.c
-> > @@ -81,22 +81,22 @@ static void v4l2_subdev_print_format(struct media_entity *entity,
-> >  	struct v4l2_mbus_framefmt format;
-> >  	struct v4l2_fract interval = { 0, 0 };
-> >  	struct v4l2_rect rect;
-> > -	int ret;
-> > +	int ret, err_fi;
-> >  
-> >  	ret = v4l2_subdev_get_format(entity, &format, pad, which);
-> >  	if (ret != 0)
-> >  		return;
-> >  
-> > -	ret = v4l2_subdev_get_frame_interval(entity, &interval, pad);
-> > -	if (ret != 0 && ret != -ENOTTY)
-> > -		return;
-> > +	err_fi = v4l2_subdev_get_frame_interval(entity, &interval, pad);
-> 
-> Not supporting frame intervals doesn't warrant a visible error message,
-> I think -EINVAL should also be ignored above, if the spec is to be
-> believed.
-> 
-> >  
-> >  	printf("\t\t[fmt:%s/%ux%u",
-> >  	       v4l2_subdev_pixelcode_to_string(format.code),
-> >  	       format.width, format.height);
-> >  
-> > -	if (interval.numerator || interval.denominator)
-> > +	if (err_fi == 0 && (interval.numerator || interval.denominator))
-> >  		printf("@%u/%u", interval.numerator, interval.denominator);
-> > +	else if (err_fi != -ENOTTY)
-> > +		printf("@<error: %s>", strerror(-err_fi));
-> 
-> Or here.
-
-I don't mind which - I could change this to:
-
-	else if (err_fi != -ENOTTY && err_fi != -EINVAL)
-
-Or an alternative would be to print an error (ignoring ENOTTY and EINVAL)
-to stderr at the "v4l2_subdev_get_frame_interval" callsite and continue
-on (ensuring that interval is zeroed).
-
+diff --git a/drivers/target/target_core_iblock.c b/drivers/target/target_core_iblock.c
+index d316ed5..bb069eb 100644
+--- a/drivers/target/target_core_iblock.c
++++ b/drivers/target/target_core_iblock.c
+@@ -279,7 +279,7 @@ static void iblock_complete_cmd(struct se_cmd *cmd)
+ 	struct iblock_req *ibr = cmd->priv;
+ 	u8 status;
+ 
+-	if (!atomic_dec_and_test(&ibr->pending))
++	if (!refcount_dec_and_test(&ibr->pending))
+ 		return;
+ 
+ 	if (atomic_read(&ibr->ib_bio_err_cnt))
+@@ -487,7 +487,7 @@ iblock_execute_write_same(struct se_cmd *cmd)
+ 	bio_list_init(&list);
+ 	bio_list_add(&list, bio);
+ 
+-	atomic_set(&ibr->pending, 1);
++	refcount_set(&ibr->pending, 1);
+ 
+ 	while (sectors) {
+ 		while (bio_add_page(bio, sg_page(sg), sg->length, sg->offset)
+@@ -498,7 +498,7 @@ iblock_execute_write_same(struct se_cmd *cmd)
+ 			if (!bio)
+ 				goto fail_put_bios;
+ 
+-			atomic_inc(&ibr->pending);
++			refcount_inc(&ibr->pending);
+ 			bio_list_add(&list, bio);
+ 		}
+ 
+@@ -706,7 +706,7 @@ iblock_execute_rw(struct se_cmd *cmd, struct scatterlist *sgl, u32 sgl_nents,
+ 	cmd->priv = ibr;
+ 
+ 	if (!sgl_nents) {
+-		atomic_set(&ibr->pending, 1);
++		refcount_set(&ibr->pending, 1);
+ 		iblock_complete_cmd(cmd);
+ 		return 0;
+ 	}
+@@ -719,7 +719,7 @@ iblock_execute_rw(struct se_cmd *cmd, struct scatterlist *sgl, u32 sgl_nents,
+ 	bio_list_init(&list);
+ 	bio_list_add(&list, bio);
+ 
+-	atomic_set(&ibr->pending, 2);
++	refcount_set(&ibr->pending, 2);
+ 	bio_cnt = 1;
+ 
+ 	for_each_sg(sgl, sg, sgl_nents, i) {
+@@ -740,7 +740,7 @@ iblock_execute_rw(struct se_cmd *cmd, struct scatterlist *sgl, u32 sgl_nents,
+ 			if (!bio)
+ 				goto fail_put_bios;
+ 
+-			atomic_inc(&ibr->pending);
++			refcount_inc(&ibr->pending);
+ 			bio_list_add(&list, bio);
+ 			bio_cnt++;
+ 		}
+diff --git a/drivers/target/target_core_iblock.h b/drivers/target/target_core_iblock.h
+index 718d3fc..f2a5797 100644
+--- a/drivers/target/target_core_iblock.h
++++ b/drivers/target/target_core_iblock.h
+@@ -2,6 +2,7 @@
+ #define TARGET_CORE_IBLOCK_H
+ 
+ #include <linux/atomic.h>
++#include <linux/refcount.h>
+ #include <target/target_core_base.h>
+ 
+ #define IBLOCK_VERSION		"4.0"
+@@ -10,7 +11,7 @@
+ #define IBLOCK_LBA_SHIFT	9
+ 
+ struct iblock_req {
+-	atomic_t pending;
++	refcount_t pending;
+ 	atomic_t ib_bio_err_cnt;
+ } ____cacheline_aligned;
+ 
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+2.7.4
