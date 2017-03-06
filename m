@@ -1,81 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpout.microchip.com ([198.175.253.82]:36166 "EHLO
-        email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751109AbdCMFy6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 01:54:58 -0400
-Subject: Re: [PATCH] [media] atmel-isc: fix off-by-one comparison and out of
- bounds read issue
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Colin King <colin.king@canonical.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        <linux-media@vger.kernel.org>
-References: <20170307143047.30082-1-colin.king@canonical.com>
- <5dc9d025-31d5-b129-09df-5de19758e886@microchip.com>
- <b84a5576-7b29-728b-b7c2-9929069a2b35@xs4all.nl>
-CC: <kernel-janitors@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-From: "Wu, Songjun" <Songjun.Wu@microchip.com>
-Message-ID: <144915d3-b386-78c2-d4d8-3410c70348ff@microchip.com>
-Date: Mon, 13 Mar 2017 13:53:34 +0800
-MIME-Version: 1.0
-In-Reply-To: <b84a5576-7b29-728b-b7c2-9929069a2b35@xs4all.nl>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mga04.intel.com ([192.55.52.120]:64295 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753210AbdCFOY4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Mar 2017 09:24:56 -0500
+From: Elena Reshetova <elena.reshetova@intel.com>
+To: gregkh@linuxfoundation.org
+Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org,
+        netdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
+        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-usb@vger.kernel.org, peterz@infradead.org,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        Hans Liljestrand <ishkamiel@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        David Windsor <dwindsor@gmail.com>
+Subject: [PATCH 23/29] drivers: convert vme_user_vma_priv.refcnt from atomic_t to refcount_t
+Date: Mon,  6 Mar 2017 16:21:10 +0200
+Message-Id: <1488810076-3754-24-git-send-email-elena.reshetova@intel.com>
+In-Reply-To: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+refcount_t type and corresponding API should be
+used instead of atomic_t when the variable is used as
+a reference counter. This allows to avoid accidental
+refcounter overflows that might lead to use-after-free
+situations.
 
+Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
+Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: David Windsor <dwindsor@gmail.com>
+---
+ drivers/staging/vme/devices/vme_user.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-On 3/9/2017 18:57, Hans Verkuil wrote:
-> Hi Songjun,
->
-> On 08/03/17 03:25, Wu, Songjun wrote:
->> Hi Colin,
->>
->> Thank you for your comment.
->> It is a bug, will be fixed in the next patch.
->
-> Do you mean that you will provide a new patch for this? Is there anything
-> wrong with this patch? It seems reasonable to me.
->
-Hi Hans,
-
-I see this patch is merged in git://linuxtv.org/media_tree.git.
-So I do not need submit isc-pipeline-v3 patch, just submit the patches, 
-based on the current master branch?
-
-> Regards,
->
-> 	Hans
->
->>
->> On 3/7/2017 22:30, Colin King wrote:
->>> From: Colin Ian King <colin.king@canonical.com>
->>>
->>> The are only HIST_ENTRIES worth of entries in  hist_entry however the
->>> for-loop is iterating one too many times leasing to a read access off
->>> the end off the array ctrls->hist_entry.  Fix this by iterating by
->>> the correct number of times.
->>>
->>> Detected by CoverityScan, CID#1415279 ("Out-of-bounds read")
->>>
->>> Signed-off-by: Colin Ian King <colin.king@canonical.com>
->>> ---
->>>  drivers/media/platform/atmel/atmel-isc.c | 2 +-
->>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
->>> index b380a7d..7dacf8c 100644
->>> --- a/drivers/media/platform/atmel/atmel-isc.c
->>> +++ b/drivers/media/platform/atmel/atmel-isc.c
->>> @@ -1298,7 +1298,7 @@ static void isc_hist_count(struct isc_device *isc)
->>>      regmap_bulk_read(regmap, ISC_HIS_ENTRY, hist_entry, HIST_ENTRIES);
->>>
->>>      *hist_count = 0;
->>> -    for (i = 0; i <= HIST_ENTRIES; i++)
->>> +    for (i = 0; i < HIST_ENTRIES; i++)
->>>          *hist_count += i * (*hist_entry++);
->>>  }
->>>
->>>
->
+diff --git a/drivers/staging/vme/devices/vme_user.c b/drivers/staging/vme/devices/vme_user.c
+index 69e9a770..a3d4610 100644
+--- a/drivers/staging/vme/devices/vme_user.c
++++ b/drivers/staging/vme/devices/vme_user.c
+@@ -17,7 +17,7 @@
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
+-#include <linux/atomic.h>
++#include <linux/refcount.h>
+ #include <linux/cdev.h>
+ #include <linux/delay.h>
+ #include <linux/device.h>
+@@ -118,7 +118,7 @@ static const int type[VME_DEVS] = {	MASTER_MINOR,	MASTER_MINOR,
+ 
+ struct vme_user_vma_priv {
+ 	unsigned int minor;
+-	atomic_t refcnt;
++	refcount_t refcnt;
+ };
+ 
+ static ssize_t resource_to_user(int minor, char __user *buf, size_t count,
+@@ -430,7 +430,7 @@ static void vme_user_vm_open(struct vm_area_struct *vma)
+ {
+ 	struct vme_user_vma_priv *vma_priv = vma->vm_private_data;
+ 
+-	atomic_inc(&vma_priv->refcnt);
++	refcount_inc(&vma_priv->refcnt);
+ }
+ 
+ static void vme_user_vm_close(struct vm_area_struct *vma)
+@@ -438,7 +438,7 @@ static void vme_user_vm_close(struct vm_area_struct *vma)
+ 	struct vme_user_vma_priv *vma_priv = vma->vm_private_data;
+ 	unsigned int minor = vma_priv->minor;
+ 
+-	if (!atomic_dec_and_test(&vma_priv->refcnt))
++	if (!refcount_dec_and_test(&vma_priv->refcnt))
+ 		return;
+ 
+ 	mutex_lock(&image[minor].mutex);
+@@ -473,7 +473,7 @@ static int vme_user_master_mmap(unsigned int minor, struct vm_area_struct *vma)
+ 	}
+ 
+ 	vma_priv->minor = minor;
+-	atomic_set(&vma_priv->refcnt, 1);
++	refcount_set(&vma_priv->refcnt, 1);
+ 	vma->vm_ops = &vme_user_vm_ops;
+ 	vma->vm_private_data = vma_priv;
+ 
+-- 
+2.7.4
