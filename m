@@ -1,120 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53718 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751065AbdCBVSz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Mar 2017 16:18:55 -0500
-Date: Thu, 2 Mar 2017 23:18:25 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Pavel Machek <pavel@ucw.cz>, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
-Subject: Re: subdevice config into pointer (was Re: [PATCH 1/4] v4l2:
- device_register_subdev_nodes: allow calling multiple times)
-Message-ID: <20170302211825.GL3220@valkosipuli.retiisi.org.uk>
-References: <d315073f004ce46e0198fd614398e046ffe649e7.1487111824.git.pavel@ucw.cz>
- <20170302090727.GC27818@amd>
- <20170302141617.GG3220@valkosipuli.retiisi.org.uk>
- <2358884.6crJRnJuOY@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2358884.6crJRnJuOY@avalon>
+Received: from mga14.intel.com ([192.55.52.115]:37943 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753359AbdCFOZL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Mar 2017 09:25:11 -0500
+From: Elena Reshetova <elena.reshetova@intel.com>
+To: gregkh@linuxfoundation.org
+Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org,
+        netdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
+        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-usb@vger.kernel.org, peterz@infradead.org,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        Hans Liljestrand <ishkamiel@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        David Windsor <dwindsor@gmail.com>
+Subject: [PATCH 06/29] drivers, md: convert dm_cache_metadata.ref_count from atomic_t to refcount_t
+Date: Mon,  6 Mar 2017 16:20:53 +0200
+Message-Id: <1488810076-3754-7-git-send-email-elena.reshetova@intel.com>
+In-Reply-To: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+refcount_t type and corresponding API should be
+used instead of atomic_t when the variable is used as
+a reference counter. This allows to avoid accidental
+refcounter overflows that might lead to use-after-free
+situations.
 
-On Thu, Mar 02, 2017 at 08:39:51PM +0200, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> On Thursday 02 Mar 2017 16:16:17 Sakari Ailus wrote:
-> > On Thu, Mar 02, 2017 at 10:07:27AM +0100, Pavel Machek wrote:
-> > > Hi!
-> > > 
-> > > > Making the sub-device bus configuration a pointer should be in a
-> > > > separate patch. It makes sense since the entire configuration is not
-> > > > valid for all sub-devices attached to the ISP anymore. I think it
-> > > > originally was a separate patch, but they probably have been merged at
-> > > > some point. I can'tfind it right now anyway.
-> > > 
-> > > Something like this?
-> > > 
-> > > 									Pavel
-> > > 
-> > > commit df9141c66678b549fac9d143bd55ed0b242cf36e
-> > > Author: Pavel <pavel@ucw.cz>
-> > > Date:   Wed Mar 1 13:27:56 2017 +0100
-> > > 
-> > >     Turn bus in struct isp_async_subdev into pointer; some of our subdevs
-> > >     (flash, focus) will not need bus configuration.
-> > > 
-> > > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> > 
-> > I applied this to the ccp2 branch with an improved patch description.
-> > 
-> > > diff --git a/drivers/media/platform/omap3isp/isp.c
-> > > b/drivers/media/platform/omap3isp/isp.c index 8a456d4..36bd359 100644
-> > > --- a/drivers/media/platform/omap3isp/isp.c
-> > > +++ b/drivers/media/platform/omap3isp/isp.c
-> > > @@ -2030,12 +2030,18 @@ enum isp_of_phy {
-> > > 
-> > >  static int isp_fwnode_parse(struct device *dev, struct fwnode_handle
-> > >  *fwn,
-> > >  
-> > >  			    struct isp_async_subdev *isd)
-> > >  
-> > >  {
-> > > 
-> > > -	struct isp_bus_cfg *buscfg = &isd->bus;
-> > > +	struct isp_bus_cfg *buscfg;
-> > > 
-> > >  	struct v4l2_fwnode_endpoint vfwn;
-> > >  	unsigned int i;
-> > >  	int ret;
-> > >  	bool csi1 = false;
-> > > 
-> > > +	buscfg = devm_kzalloc(dev, sizeof(*isd->bus), GFP_KERNEL);
-> 
-> Given that you recently get rid of devm_kzalloc() in the driver, let's not 
-> introduce a new one here.
+Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
+Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: David Windsor <dwindsor@gmail.com>
+---
+ drivers/md/dm-cache-metadata.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-That's certainly a valid point.
-
-Still, the entire async sub-devices array is allocated with devm_()
-allocation functions still; that part wasn't addressed by the patchset
-mostly removing devm_() memory allocation, so this patch does actually not
-change how the memory is allocated.
-
-Beyond that, I'm not entirely sure whether this is a problem to begin with:
-devm resources are released after remove() callback and access to this data
-structure should only happen as a direct result of user IOCTL. IOCTLs may
-only be in progress as long as there are open file handles on a device ---
-and such file handles must be closed until the remove() callback may finish.
-(Referring to the Oslo meeting notes.)
-
-Some of the above must be still verified; either way, but the options are
-clear: either devm must be removed here as well (with the rest) or that it's
-fine to use it here: from this point of view this patch makes no difference.
-
-> 
-> > > +	if (!buscfg)
-> > > +		return -ENOMEM;
-> > > +
-> > > +	isd->bus = buscfg;
-> > > +
-> > >  	ret = v4l2_fwnode_endpoint_parse(fwn, &vfwn);
-> > >  	if (ret)
-> > >  	
-> > >  		return ret;
-> > > 
-> 
-> [snip]
-> 
-
+diff --git a/drivers/md/dm-cache-metadata.c b/drivers/md/dm-cache-metadata.c
+index e4c2c1a..6d26e71 100644
+--- a/drivers/md/dm-cache-metadata.c
++++ b/drivers/md/dm-cache-metadata.c
+@@ -13,6 +13,7 @@
+ #include "persistent-data/dm-transaction-manager.h"
+ 
+ #include <linux/device-mapper.h>
++#include <linux/refcount.h>
+ 
+ /*----------------------------------------------------------------*/
+ 
+@@ -102,7 +103,7 @@ struct cache_disk_superblock {
+ } __packed;
+ 
+ struct dm_cache_metadata {
+-	atomic_t ref_count;
++	refcount_t ref_count;
+ 	struct list_head list;
+ 
+ 	unsigned version;
+@@ -756,7 +757,7 @@ static struct dm_cache_metadata *metadata_open(struct block_device *bdev,
+ 	}
+ 
+ 	cmd->version = metadata_version;
+-	atomic_set(&cmd->ref_count, 1);
++	refcount_set(&cmd->ref_count, 1);
+ 	init_rwsem(&cmd->root_lock);
+ 	cmd->bdev = bdev;
+ 	cmd->data_block_size = data_block_size;
+@@ -794,7 +795,7 @@ static struct dm_cache_metadata *lookup(struct block_device *bdev)
+ 
+ 	list_for_each_entry(cmd, &table, list)
+ 		if (cmd->bdev == bdev) {
+-			atomic_inc(&cmd->ref_count);
++			refcount_inc(&cmd->ref_count);
+ 			return cmd;
+ 		}
+ 
+@@ -865,7 +866,7 @@ struct dm_cache_metadata *dm_cache_metadata_open(struct block_device *bdev,
+ 
+ void dm_cache_metadata_close(struct dm_cache_metadata *cmd)
+ {
+-	if (atomic_dec_and_test(&cmd->ref_count)) {
++	if (refcount_dec_and_test(&cmd->ref_count)) {
+ 		mutex_lock(&table_lock);
+ 		list_del(&cmd->list);
+ 		mutex_unlock(&table_lock);
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.7.4
