@@ -1,121 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:60866 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755417AbdC2OPu (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:56591 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753046AbdCFPFK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Mar 2017 10:15:50 -0400
+        Mon, 6 Mar 2017 10:05:10 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
         Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv5 04/11] exynos_hdmi: add CEC notifier support
-Date: Wed, 29 Mar 2017 16:15:36 +0200
-Message-Id: <20170329141543.32935-5-hverkuil@xs4all.nl>
-In-Reply-To: <20170329141543.32935-1-hverkuil@xs4all.nl>
-References: <20170329141543.32935-1-hverkuil@xs4all.nl>
+Subject: [PATCHv3 14/15] sama5d3 dts: enable atmel-isi
+Date: Mon,  6 Mar 2017 15:56:15 +0100
+Message-Id: <20170306145616.38485-15-hverkuil@xs4all.nl>
+In-Reply-To: <20170306145616.38485-1-hverkuil@xs4all.nl>
+References: <20170306145616.38485-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Implement the CEC notifier support to allow CEC drivers to
-be informed when there is a new physical address.
+This illustrates the changes needed to the dts in order to hook up the
+ov7670. I don't plan on merging this.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/gpu/drm/exynos/exynos_hdmi.c | 20 ++++++++++++++++++--
- 1 file changed, 18 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/at91-sama5d3_xplained.dts | 60 ++++++++++++++++++++++++++---
+ arch/arm/boot/dts/sama5d3.dtsi              |  4 +-
+ 2 files changed, 57 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/gpu/drm/exynos/exynos_hdmi.c b/drivers/gpu/drm/exynos/exynos_hdmi.c
-index 88ccc0469316..2afc8b8052c2 100644
---- a/drivers/gpu/drm/exynos/exynos_hdmi.c
-+++ b/drivers/gpu/drm/exynos/exynos_hdmi.c
-@@ -43,6 +43,8 @@
+diff --git a/arch/arm/boot/dts/at91-sama5d3_xplained.dts b/arch/arm/boot/dts/at91-sama5d3_xplained.dts
+index c51fc652f6c7..b10f8b9e6375 100644
+--- a/arch/arm/boot/dts/at91-sama5d3_xplained.dts
++++ b/arch/arm/boot/dts/at91-sama5d3_xplained.dts
+@@ -65,18 +65,52 @@
+ 				status = "okay";
+ 			};
  
- #include <drm/exynos_drm.h>
- 
-+#include <media/cec-notifier.h>
++			isi0: isi@f0034000 {
++				status = "okay";
++				port {
++					#address-cells = <1>;
++					#size-cells = <0>;
++					isi_0: endpoint {
++						remote-endpoint = <&ov7670_0>;
++						bus-width = <8>;
++						vsync-active = <1>;
++						hsync-active = <1>;
++					};
++				};
++			};
 +
- #include "exynos_drm_drv.h"
- #include "exynos_drm_crtc.h"
+ 			i2c0: i2c@f0014000 {
+ 				pinctrl-0 = <&pinctrl_i2c0_pu>;
+-				status = "okay";
++				status = "disabled";
+ 			};
  
-@@ -119,6 +121,7 @@ struct hdmi_context {
- 	bool				dvi_mode;
- 	struct delayed_work		hotplug_work;
- 	struct drm_display_mode		current_mode;
-+	struct cec_notifier		*notifier;
- 	const struct hdmi_driver_data	*drv_data;
+ 			i2c1: i2c@f0018000 {
+ 				status = "okay";
  
- 	void __iomem			*regs;
-@@ -822,6 +825,7 @@ static enum drm_connector_status hdmi_detect(struct drm_connector *connector,
- 	if (gpiod_get_value(hdata->hpd_gpio))
- 		return connector_status_connected;
- 
-+	cec_notifier_set_phys_addr(hdata->notifier, CEC_PHYS_ADDR_INVALID);
- 	return connector_status_disconnected;
- }
- 
-@@ -860,6 +864,8 @@ static int hdmi_get_modes(struct drm_connector *connector)
- 		edid->width_cm, edid->height_cm);
- 
- 	drm_mode_connector_update_edid_property(connector, edid);
-+	cec_notifier_set_phys_addr(hdata->notifier,
-+				   cec_get_edid_phys_addr(edid));
- 
- 	ret = drm_add_edid_modes(connector, edid);
- 
-@@ -1503,6 +1509,7 @@ static void hdmi_disable(struct drm_encoder *encoder)
- 	if (funcs && funcs->disable)
- 		(*funcs->disable)(crtc);
- 
-+	cec_notifier_set_phys_addr(hdata->notifier, CEC_PHYS_ADDR_INVALID);
- 	cancel_delayed_work(&hdata->hotplug_work);
- 
- 	hdmiphy_disable(hdata);
-@@ -1878,15 +1885,22 @@ static int hdmi_probe(struct platform_device *pdev)
- 		}
- 	}
- 
-+	hdata->notifier = cec_notifier_get(&pdev->dev);
-+	if (hdata->notifier == NULL) {
-+		ret = -ENOMEM;
-+		goto err_hdmiphy;
-+	}
++				ov7670: camera@21 {
++					compatible = "ovti,ov7670";
++					reg = <0x21>;
++					pinctrl-names = "default";
++					pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
++					reset-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
++					powerdown-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
++					clocks = <&pck0>;
++					clock-names = "xclk";
++					assigned-clocks = <&pck0>;
++					assigned-clock-rates = <25000000>;
 +
- 	pm_runtime_enable(dev);
++					port {
++						ov7670_0: endpoint {
++							remote-endpoint = <&isi_0>;
++							bus-width = <8>;
++						};
++					};
++				};
++
+ 				pmic: act8865@5b {
+ 					compatible = "active-semi,act8865";
+ 					reg = <0x5b>;
+-					status = "disabled";
++					status = "okay";
  
- 	ret = component_add(&pdev->dev, &hdmi_component_ops);
- 	if (ret)
--		goto err_disable_pm_runtime;
-+		goto err_notifier_put;
+ 					regulators {
+ 						vcc_1v8_reg: DCDC_REG1 {
+@@ -130,7 +164,7 @@
+ 			pwm0: pwm@f002c000 {
+ 				pinctrl-names = "default";
+ 				pinctrl-0 = <&pinctrl_pwm0_pwmh0_0 &pinctrl_pwm0_pwmh1_0>;
+-				status = "okay";
++				status = "disabled";
+ 			};
  
- 	return ret;
+ 			usart0: serial@f001c000 {
+@@ -143,7 +177,7 @@
+ 			};
  
--err_disable_pm_runtime:
-+err_notifier_put:
-+	cec_notifier_put(hdata->notifier);
- 	pm_runtime_disable(dev);
+ 			uart0: serial@f0024000 {
+-				status = "okay";
++				status = "disabled";
+ 			};
  
- err_hdmiphy:
-@@ -1905,9 +1919,11 @@ static int hdmi_remove(struct platform_device *pdev)
- 	struct hdmi_context *hdata = platform_get_drvdata(pdev);
+ 			mmc1: mmc@f8000000 {
+@@ -181,7 +215,7 @@
+ 			i2c2: i2c@f801c000 {
+ 				dmas = <0>, <0>;	/* Do not use DMA for i2c2 */
+ 				pinctrl-0 = <&pinctrl_i2c2_pu>;
+-				status = "okay";
++				status = "disabled";
+ 			};
  
- 	cancel_delayed_work_sync(&hdata->hotplug_work);
-+	cec_notifier_set_phys_addr(hdata->notifier, CEC_PHYS_ADDR_INVALID);
+ 			macb1: ethernet@f802c000 {
+@@ -200,6 +234,22 @@
+ 			};
  
- 	component_del(&pdev->dev, &hdmi_component_ops);
+ 			pinctrl@fffff200 {
++				camera_sensor {
++					pinctrl_pck0_as_isi_mck: pck0_as_isi_mck-0 {
++						atmel,pins =
++							<AT91_PIOD 30 AT91_PERIPH_B AT91_PINCTRL_NONE>;	/* ISI_MCK */
++					};
++
++					pinctrl_sensor_power: sensor_power-0 {
++						atmel,pins =
++							<AT91_PIOE 13 AT91_PERIPH_GPIO AT91_PINCTRL_NONE>;
++					};
++
++					pinctrl_sensor_reset: sensor_reset-0 {
++						atmel,pins =
++							<AT91_PIOE 11 AT91_PERIPH_GPIO AT91_PINCTRL_NONE>;
++					};
++				};
+ 				board {
+ 					pinctrl_i2c0_pu: i2c0_pu {
+ 						atmel,pins =
+diff --git a/arch/arm/boot/dts/sama5d3.dtsi b/arch/arm/boot/dts/sama5d3.dtsi
+index b06448ba6649..099570e4b90a 100644
+--- a/arch/arm/boot/dts/sama5d3.dtsi
++++ b/arch/arm/boot/dts/sama5d3.dtsi
+@@ -176,7 +176,7 @@
+ 				#address-cells = <1>;
+ 				#size-cells = <0>;
+ 				clocks = <&twi1_clk>;
+-				status = "disabled";
++				status = "ok";
+ 			};
  
-+	cec_notifier_put(hdata->notifier);
- 	pm_runtime_disable(&pdev->dev);
- 
- 	if (!IS_ERR(hdata->reg_hdmi_en))
+ 			usart0: serial@f001c000 {
+@@ -235,7 +235,7 @@
+ 				pinctrl-0 = <&pinctrl_isi_data_0_7>;
+ 				clocks = <&isi_clk>;
+ 				clock-names = "isi_clk";
+-				status = "disabled";
++				status = "ok";
+ 				port {
+ 					#address-cells = <1>;
+ 					#size-cells = <0>;
 -- 
 2.11.0
