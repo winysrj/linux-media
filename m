@@ -1,163 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:35826 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751050AbdCCLHf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 06:07:35 -0500
-Received: by mail-wr0-f193.google.com with SMTP id u108so8911492wrb.2
-        for <linux-media@vger.kernel.org>; Fri, 03 Mar 2017 03:06:18 -0800 (PST)
-Date: Fri, 3 Mar 2017 11:39:10 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Laura Abbott <labbott@redhat.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com,
-        romlem@google.com, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Brian Starkey <brian.starkey@arm.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Mark Brown <broonie@kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-mm@kvack.org
-Subject: Re: [RFC PATCH 12/12] staging; android: ion: Enumerate all available
- heaps
-Message-ID: <20170303103910.cgudcpsp34uiy5pl@phenom.ffwll.local>
-References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
- <1488491084-17252-13-git-send-email-labbott@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1488491084-17252-13-git-send-email-labbott@redhat.com>
+Received: from mga03.intel.com ([134.134.136.65]:58571 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753256AbdCFOgK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Mar 2017 09:36:10 -0500
+From: Elena Reshetova <elena.reshetova@intel.com>
+To: gregkh@linuxfoundation.org
+Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org,
+        netdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
+        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-usb@vger.kernel.org, peterz@infradead.org,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        Hans Liljestrand <ishkamiel@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        David Windsor <dwindsor@gmail.com>
+Subject: [PATCH 21/29] drivers, s390: convert fc_fcp_pkt.ref_cnt from atomic_t to refcount_t
+Date: Mon,  6 Mar 2017 16:21:08 +0200
+Message-Id: <1488810076-3754-22-git-send-email-elena.reshetova@intel.com>
+In-Reply-To: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 02, 2017 at 01:44:44PM -0800, Laura Abbott wrote:
-> 
-> Practiaclly speaking, most Ion heaps are either going to be available
-> all the time (system heaps) or found based off of the reserved-memory
-> node. Parse the CMA and reserved-memory nodes to assign the heaps.
-> 
-> Signed-off-by: Laura Abbott <labbott@redhat.com>
-> ---
->  drivers/staging/android/ion/Makefile        |  2 +-
->  drivers/staging/android/ion/ion_enumerate.c | 89 +++++++++++++++++++++++++++++
->  2 files changed, 90 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/staging/android/ion/ion_enumerate.c
-> 
-> diff --git a/drivers/staging/android/ion/Makefile b/drivers/staging/android/ion/Makefile
-> index eef022b..4ebf655 100644
-> --- a/drivers/staging/android/ion/Makefile
-> +++ b/drivers/staging/android/ion/Makefile
-> @@ -1,4 +1,4 @@
-> -obj-$(CONFIG_ION) +=	ion.o ion-ioctl.o ion_heap.o
-> +obj-$(CONFIG_ION) +=	ion.o ion-ioctl.o ion_heap.o ion_enumerate.o
->  obj-$(CONFIG_ION_SYSTEM_HEAP) += ion_system_heap.o ion_page_pool.o
->  obj-$(CONFIG_ION_CARVEOUT_HEAP) += ion_carveout_heap.o
->  obj-$(CONFIG_ION_CHUNK_HEAP) += ion_chunk_heap.o
-> diff --git a/drivers/staging/android/ion/ion_enumerate.c b/drivers/staging/android/ion/ion_enumerate.c
-> new file mode 100644
-> index 0000000..21344c7
-> --- /dev/null
-> +++ b/drivers/staging/android/ion/ion_enumerate.c
-> @@ -0,0 +1,89 @@
-> +#include <linux/kernel.h>
-> +#include <linux/cma.h>
-> +
-> +#include "ion.h"
-> +#include "ion_priv.h"
-> +
-> +static struct ion_device *internal_dev;
-> +static int heap_id = 2;
-> +
-> +static int ion_add_system_heap(void)
-> +{
-> +#ifdef CONFIG_ION_SYSTEM_HEAP
-> +	struct ion_platform_heap pheap;
-> +	struct ion_heap *heap;
-> +
-> +	pheap.type = ION_HEAP_TYPE_SYSTEM;
-> +	pheap.id = heap_id++;
-> +	pheap.name = "ion_system_heap";
-> +
-> +	heap = ion_heap_create(&pheap);
-> +	if (!heap)
-> +		return -ENODEV;
-> +
-> +	ion_device_add_heap(internal_dev, heap);
-> +#endif
-> +	return 0;
-> +}
-> +
-> +static int ion_add_system_contig_heap(void)
-> +{
-> +#ifdef CONFIG_ION_SYSTEM_HEAP
-> +	struct ion_platform_heap pheap;
-> +	struct ion_heap *heap;
-> +
-> +	pheap.type = ION_HEAP_TYPE_SYSTEM_CONTIG;
-> +	pheap.id = heap_id++;
-> +	pheap.name = "ion_system_contig_heap";
-> +
-> +	heap = ion_heap_create(&pheap);
-> +	if (!heap)
-> +		return -ENODEV;
-> +
-> +	ion_device_add_heap(internal_dev, heap);
-> +#endif
-> +	return 0;
-> +}
-> +
-> +#ifdef CONFIG_ION_CMA_HEAP
-> +int __ion_add_cma_heaps(struct cma *cma, void *data)
-> +{
-> +	struct ion_heap *heap;
-> +	struct ion_platform_heap pheap;
-> +
-> +	pheap.type = ION_HEAP_TYPE_DMA;
-> +	pheap.id = heap_id++;
-> +	pheap.name = cma_get_name(cma);
-> +	pheap.priv = cma;
-> +
-> +	heap = ion_heap_create(&pheap);
-> +	if (!heap)
-> +		return -ENODEV;
-> +
-> +	ion_device_add_heap(internal_dev, heap);
-> +	return 0;
-> +}
-> +#endif
-> +
-> +
-> +static int ion_add_cma_heaps(void)
-> +{
-> +#ifdef CONFIG_ION_CMA_HEAP
-> +	cma_for_each_area(__ion_add_cma_heaps, NULL);
-> +#endif
-> +	return 0;
-> +}
-> +
-> +int ion_enumerate(void)
-> +{
-> +	internal_dev = ion_device_create(NULL);
-> +	if (IS_ERR(internal_dev))
-> +		return PTR_ERR(internal_dev);
-> +
-> +	ion_add_system_heap();
-> +	ion_add_system_contig_heap();
-> +
-> +	ion_add_cma_heaps();
-> +	return 0;
-> +}
-> +subsys_initcall(ion_enumerate);
+refcount_t type and corresponding API should be
+used instead of atomic_t when the variable is used as
+a reference counter. This allows to avoid accidental
+refcounter overflows that might lead to use-after-free
+situations.
 
-If we'd split each heap into its own file I think we could just put
-initcalls into each of them, avoiding the need for so much #ifdef all
-over.
+Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
+Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: David Windsor <dwindsor@gmail.com>
+---
+ drivers/scsi/libfc/fc_fcp.c | 6 +++---
+ include/scsi/libfc.h        | 3 ++-
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-That should also help when we add more specific heaps like the SMA one.
--Daniel
+diff --git a/drivers/scsi/libfc/fc_fcp.c b/drivers/scsi/libfc/fc_fcp.c
+index 0e67621..a808e8e 100644
+--- a/drivers/scsi/libfc/fc_fcp.c
++++ b/drivers/scsi/libfc/fc_fcp.c
+@@ -154,7 +154,7 @@ static struct fc_fcp_pkt *fc_fcp_pkt_alloc(struct fc_lport *lport, gfp_t gfp)
+ 		memset(fsp, 0, sizeof(*fsp));
+ 		fsp->lp = lport;
+ 		fsp->xfer_ddp = FC_XID_UNKNOWN;
+-		atomic_set(&fsp->ref_cnt, 1);
++		refcount_set(&fsp->ref_cnt, 1);
+ 		init_timer(&fsp->timer);
+ 		fsp->timer.data = (unsigned long)fsp;
+ 		INIT_LIST_HEAD(&fsp->list);
+@@ -175,7 +175,7 @@ static struct fc_fcp_pkt *fc_fcp_pkt_alloc(struct fc_lport *lport, gfp_t gfp)
+  */
+ static void fc_fcp_pkt_release(struct fc_fcp_pkt *fsp)
+ {
+-	if (atomic_dec_and_test(&fsp->ref_cnt)) {
++	if (refcount_dec_and_test(&fsp->ref_cnt)) {
+ 		struct fc_fcp_internal *si = fc_get_scsi_internal(fsp->lp);
+ 
+ 		mempool_free(fsp, si->scsi_pkt_pool);
+@@ -188,7 +188,7 @@ static void fc_fcp_pkt_release(struct fc_fcp_pkt *fsp)
+  */
+ static void fc_fcp_pkt_hold(struct fc_fcp_pkt *fsp)
+ {
+-	atomic_inc(&fsp->ref_cnt);
++	refcount_inc(&fsp->ref_cnt);
+ }
+ 
+ /**
+diff --git a/include/scsi/libfc.h b/include/scsi/libfc.h
+index da5033d..2109844 100644
+--- a/include/scsi/libfc.h
++++ b/include/scsi/libfc.h
+@@ -23,6 +23,7 @@
+ #include <linux/timer.h>
+ #include <linux/if.h>
+ #include <linux/percpu.h>
++#include <linux/refcount.h>
+ 
+ #include <scsi/scsi_transport.h>
+ #include <scsi/scsi_transport_fc.h>
+@@ -321,7 +322,7 @@ struct fc_seq_els_data {
+  */
+ struct fc_fcp_pkt {
+ 	spinlock_t	  scsi_pkt_lock;
+-	atomic_t	  ref_cnt;
++	refcount_t	  ref_cnt;
+ 
+ 	/* SCSI command and data transfer information */
+ 	u32		  data_len;
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+2.7.4
