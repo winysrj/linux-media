@@ -1,114 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:38086 "HELO
-        iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with SMTP id S933952AbdC3PzV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 11:55:21 -0400
-Date: Thu, 30 Mar 2017 11:55:18 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-cc: Oliver Neukum <oneukum@suse.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        David Mosberger <davidm@egauge.net>,
-        Jaejoong Kim <climbbb.kim@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        GregKroah-Hartman <gregkh@linuxfoundation.org>,
-        <linux-rpi-kernel@lists.infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>,
-        John Youn <johnyoun@synopsys.com>,
-        Roger Quadros <rogerq@ti.com>,
-        Linux Doc MailingList <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        USB list <linux-usb@vger.kernel.org>
-Subject: Re: [PATCH 22/22] usb: document that URB transfer_buffer should be
- aligned
-In-Reply-To: <20170330124501.6ba20ded@vento.lan>
-Message-ID: <Pine.LNX.4.44L0.1703301152300.1555-100000@iolanthe.rowland.org>
+Received: from mail-qk0-f171.google.com ([209.85.220.171]:33396 "EHLO
+        mail-qk0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753124AbdCFLKp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 06:10:45 -0500
+Received: by mail-qk0-f171.google.com with SMTP id y76so16091432qkb.0
+        for <linux-media@vger.kernel.org>; Mon, 06 Mar 2017 03:10:45 -0800 (PST)
+Subject: Re: [PATCH 07/26] brcmsmac: reduce stack size with KASAN
+To: Arnd Bergmann <arnd@arndb.de>
+References: <20170302163834.2273519-1-arnd@arndb.de>
+ <20170302163834.2273519-8-arnd@arndb.de>
+ <76733196-0948-8cbf-8b74-c1e3687a8c09@broadcom.com>
+ <CAK8P3a30Ge5gyKco4HKCdKWiJk9ee1PU3_P6THjOQgHm3EQcJw@mail.gmail.com>
+Cc: kasan-dev <kasan-dev@googlegroups.com>,
+        Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        Alexander Potapenko <glider@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Networking <netdev@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org,
+        linux-wireless <linux-wireless@vger.kernel.org>,
+        kernel-build-reports@lists.linaro.org,
+        "David S . Miller" <davem@davemloft.net>
+From: Arend Van Spriel <arend.vanspriel@broadcom.com>
+Message-ID: <2dd6ce84-0285-b4c1-97d4-bb41a6ffec04@broadcom.com>
+Date: Mon, 6 Mar 2017 12:02:19 +0100
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <CAK8P3a30Ge5gyKco4HKCdKWiJk9ee1PU3_P6THjOQgHm3EQcJw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 30 Mar 2017, Mauro Carvalho Chehab wrote:
+On 6-3-2017 11:38, Arnd Bergmann wrote:
+> On Mon, Mar 6, 2017 at 10:16 AM, Arend Van Spriel
+> <arend.vanspriel@broadcom.com> wrote:
+>> On 2-3-2017 17:38, Arnd Bergmann wrote:
+>>> The wlc_phy_table_write_nphy/wlc_phy_table_read_nphy functions always put an object
+>>> on the stack, which will each require a redzone with KASAN and lead to possible
+>>> stack overflow:
+>>>
+>>> drivers/net/wireless/broadcom/brcm80211/brcmsmac/phy/phy_n.c: In function 'wlc_phy_workarounds_nphy':
+>>> drivers/net/wireless/broadcom/brcm80211/brcmsmac/phy/phy_n.c:17135:1: warning: the frame size of 6312 bytes is larger than 1000 bytes [-Wframe-larger-than=]
+>>
+>> Looks like this warning text ended up in the wrong commit message. Got
+>> me confused for a sec :-p
+> 
+> What's wrong about the warning?
 
-> Em Thu, 30 Mar 2017 10:26:32 -0400 (EDT)
-> Alan Stern <stern@rowland.harvard.edu> escreveu:
-> 
-> > On Thu, 30 Mar 2017, Oliver Neukum wrote:
-> > 
-> > > > Btw, I'm a lot more concerned about USB storage drivers. When I was
-> > > > discussing about this issue at the #raspberrypi-devel IRC channel,
-> > > > someone complained that, after switching from the RPi downstream Kernel
-> > > > to upstream, his USB data storage got corrupted. Well, if the USB
-> > > > storage drivers also assume that the buffer can be continuous,
-> > > > that can corrupt data.  
-> > 
-> > > 
-> > > They do assume that.  
-> > 
-> > Wait a minute.  Where does that assumption occur?
-> > 
-> > And exactly what is the assumption?  Mauro wrote "the buffer can be 
-> > continuous", but that is certainly not what he meant.
-> 
-> What I meant to say is that drivers like the uvcdriver (and maybe network and
-> usb-storage drivers) may allocate a big buffer and get data there on some
-> random order, e. g.: 
-> 
-> int get_from_buf_pos(char *buf, int pos, int size)
-> {
-> 	/* or an equivalent call to usb_submit_urb() */
-> 	usb_control_msg(..., buf + pos, size, ...);
-> }
-> 
-> some_function ()
-> {
-> 	...
-> 
-> 	chr *buf = kzalloc(4, GFP_KERNEL);
-> 
-> 	/* 
-> 	 * Access the bytes at the array on a random order, with random size,
-> 	 * Like:
-> 	 */
-> 	get_from_buf_pos(buf, 2, 2);	/* should read 0x56, 0x78 */
-> 	get_from_buf_pos(buf, 0, 2);	/* should read 0x12, 0x34 */
-> 
-> 	/*
-> 	 * the expected value for the buffer would be:
-> 	 * 	{ 0x12, 0x34, 0x56, 0x78 }
-> 	 */
-> 
-> E. g. they assume that the transfer URB can work with any arbitrary
-> pointer and size, without needing of pre-align them.
-> 
-> This doesn't work with HCD drivers like dwc2, as each USB_IN operation will
-> actually write 4 bytes to the buffer.
-> 
-> So, what happens, instead, is that each data transfer will get four
-> bytes. Due to a hack inside dwc2, with checks if the transfer_buffer
-> is DWORD aligned. So, the first transfer will do what's expected: it will
-> read 4 bytes to a temporary buffer, allocated inside the driver,
-> copying just two bytes to buf. So, after the first read, the
-> buffer content will be:
-> 
-> 	buf = { 0x00, x00, 0x56, 0x78 }
-> 
-> But, on the second read, it won't be using any temporary
-> buffer. So, instead of reading a 16-bits word (0x5678),
-> it will actually read 32 bits, with 16-bits with some random value,
-> causing a buffer overflow. E. g. buffer content will now be:
-> 
-> 	buf = { 0x12, x34, 0xde, 0xad }
-> 
-> In other words, the second transfer corrupted the data from the
-> first transfer.
+The warning is about the function 'wlc_phy_workarounds_nphy' (see PATCH
+9/26) and not about wlc_phy_table_write_nphy/wlc_phy_table_read_nphy
+functions.
 
-I'm pretty sure that usb-storage does not do this, at least, not when 
-operating in its normal Bulk-Only-Transport mode.  It never tries to 
-read the results of an earlier transfer after carrying out a later 
-transfer to any part of the same buffer.
+>>> This marks the two functions as noinline_for_kasan, avoiding the problem entirely.
+>>
+>> Frankly I seriously dislike annotating code for the sake of some
+>> (dynamic) memory analyzer. To me the whole thing seems rather
+>> unnecessary. If the code passes the 2048 stack limit without KASAN it
+>> would seem the limit with KASAN should be such that no warning is given.
+>> I suspect that it is rather difficult to predict the additional size of
+>> the instrumentation code and on some systems there might be a real issue
+>> with increased stack usage.
+> 
+> The frame sizes don't normally change that much. There are a couple of
+> drivers like brcmsmac that repeatedly call an inline function which has
+> a local variable that it passes by reference to an extern function.
+> 
+> While normally those variables share a stack location, KASAN forces
+> each instance to its own location and adds (in this case) 80 bytes of
+> redzone around it to detect out-of-bounds access.
+> 
+> While most drivers are fine with a 1500 byte warning limit, increasing
+> the limit to 7kb would silence brcmsmac (unless more registers
+> are accessed from wlc_phy_workarounds_nphy) but also risk a
+> stack overflow to go unnoticed.
 
-Alan Stern
+Given the amount of local variables maybe just tag the functions with
+noinline instead.
+
+Regards,
+Arend
