@@ -1,116 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f178.google.com ([209.85.220.178]:35818 "EHLO
-        mail-qk0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751365AbdCBVov (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 16:44:51 -0500
-Received: by mail-qk0-f178.google.com with SMTP id m67so31702498qkf.2
-        for <linux-media@vger.kernel.org>; Thu, 02 Mar 2017 13:44:50 -0800 (PST)
-From: Laura Abbott <labbott@redhat.com>
-To: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com
-Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Brian Starkey <brian.starkey@arm.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Mark Brown <broonie@kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-mm@kvack.org
-Subject: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of staging
-Date: Thu,  2 Mar 2017 13:44:32 -0800
-Message-Id: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33460
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753037AbdCFSP2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 13:15:28 -0500
+Subject: Re: [PATCH] media: mfc: Fix race between interrupt routine and device
+ functions
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+References: <CGME20170223114347eucas1p21e5aed393511b41e51aac1df2762db83@eucas1p2.samsung.com>
+ <1487850219-6482-1-git-send-email-m.szyprowski@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Kamil Debski <kamil@wypas.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>, stable@vger.kernel.org
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <6918cc54-bf43-afe3-def7-9d5888bb837e@osg.samsung.com>
+Date: Mon, 6 Mar 2017 15:07:04 -0300
+MIME-Version: 1.0
+In-Reply-To: <1487850219-6482-1-git-send-email-m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hello Marek,
 
-There's been some recent discussions[1] about Ion-like frameworks. There's
-apparently interest in just keeping Ion since it works reasonablly well.
-This series does what should be the final clean ups for it to possibly be
-moved out of staging.
+On 02/23/2017 08:43 AM, Marek Szyprowski wrote:
+> Interrupt routine must wake process waiting for given interrupt AFTER
+> updating driver's internal structures and contexts. Doing it in-between
+> is a serious bug. This patch moves all calls to the wake() function to
+> the end of the interrupt processing block to avoid potential and real
+> races, especially on multi-core platforms. This also fixes following issue
+> reported from clock core (clocks were disabled in interrupt after being
+> unprepared from the other place in the driver, the stack trace however
+> points to the different place than s5p_mfc driver because of the race):
+> 
+> WARNING: CPU: 1 PID: 18 at drivers/clk/clk.c:544 clk_core_unprepare+0xc8/0x108
+> Modules linked in:
+> CPU: 1 PID: 18 Comm: kworker/1:0 Not tainted 4.10.0-next-20170223-00070-g04e18bc99ab9-dirty #2154
+> Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
+> Workqueue: pm pm_runtime_work
+> [<c010d8b0>] (unwind_backtrace) from [<c010a534>] (show_stack+0x10/0x14)
+> [<c010a534>] (show_stack) from [<c033292c>] (dump_stack+0x74/0x94)
+> [<c033292c>] (dump_stack) from [<c011cef4>] (__warn+0xd4/0x100)
+> [<c011cef4>] (__warn) from [<c011cf40>] (warn_slowpath_null+0x20/0x28)
+> [<c011cf40>] (warn_slowpath_null) from [<c0387a84>] (clk_core_unprepare+0xc8/0x108)
+> [<c0387a84>] (clk_core_unprepare) from [<c0389d84>] (clk_unprepare+0x24/0x2c)
+> [<c0389d84>] (clk_unprepare) from [<c03d4660>] (exynos_sysmmu_suspend+0x48/0x60)
+> [<c03d4660>] (exynos_sysmmu_suspend) from [<c042b9b0>] (pm_generic_runtime_suspend+0x2c/0x38)
+> [<c042b9b0>] (pm_generic_runtime_suspend) from [<c0437580>] (genpd_runtime_suspend+0x94/0x220)
+> [<c0437580>] (genpd_runtime_suspend) from [<c042e240>] (__rpm_callback+0x134/0x208)
+> [<c042e240>] (__rpm_callback) from [<c042e334>] (rpm_callback+0x20/0x80)
+> [<c042e334>] (rpm_callback) from [<c042d3b8>] (rpm_suspend+0xdc/0x458)
+> [<c042d3b8>] (rpm_suspend) from [<c042ea24>] (pm_runtime_work+0x80/0x90)
+> [<c042ea24>] (pm_runtime_work) from [<c01322c4>] (process_one_work+0x120/0x318)
+> [<c01322c4>] (process_one_work) from [<c0132520>] (worker_thread+0x2c/0x4ac)
+> [<c0132520>] (worker_thread) from [<c0137ab0>] (kthread+0xfc/0x134)
+> [<c0137ab0>] (kthread) from [<c0107978>] (ret_from_fork+0x14/0x3c)
+> ---[ end trace 1ead49a7bb83f0d8 ]---
+> 
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Fixes: af93574678108 ("[media] MFC: Add MFC 5.1 V4L2 driver")
+> CC: stable@vger.kernel.org # v4.5+
+> ---
 
-This includes the following:
-- Some general clean up and removal of features that never got a lot of use
-  as far as I can tell.
-- Fixing up the caching. This is the series I proposed back in December[2]
-  but never heard any feedback on. It will certainly break existing
-  applications that rely on the implicit caching. I'd rather make an effort
-  to move to a model that isn't going directly against the establishement
-  though.
-- Fixing up the platform support. The devicetree approach was never well
-  recieved by DT maintainers. The proposal here is to think of Ion less as
-  specifying requirements and more of a framework for exposing memory to
-  userspace.
-- CMA allocations now happen without the need of a dummy device structure.
-  This fixes a bunch of the reasons why I attempted to add devicetree
-  support before.
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-I've had problems getting feedback in the past so if I don't hear any major
-objections I'm going to send out with the RFC dropped to be picked up.
-The only reason there isn't a patch to come out of staging is to discuss any
-other changes to the ABI people might want. Once this comes out of staging,
-I really don't want to mess with the ABI.
-
-Feedback appreciated.
-
-Thanks,
-Laura
-
-[1] https://marc.info/?l=linux-kernel&m=148699712602105&w=2
-[2] https://marc.info/?l=linaro-mm-sig&m=148176050802908&w=2
-
-Laura Abbott (12):
-  staging: android: ion: Remove dmap_cnt
-  staging: android: ion: Remove alignment from allocation field
-  staging: android: ion: Duplicate sg_table
-  staging: android: ion: Call dma_map_sg for syncing and mapping
-  staging: android: ion: Remove page faulting support
-  staging: android: ion: Remove crufty cache support
-  staging: android: ion: Remove old platform support
-  cma: Store a name in the cma structure
-  cma: Introduce cma_for_each_area
-  staging: android: ion: Use CMA APIs directly
-  staging: android: ion: Make Ion heaps selectable
-  staging; android: ion: Enumerate all available heaps
-
- drivers/base/dma-contiguous.c                      |   5 +-
- drivers/staging/android/ion/Kconfig                |  51 ++--
- drivers/staging/android/ion/Makefile               |  14 +-
- drivers/staging/android/ion/hisilicon/Kconfig      |   5 -
- drivers/staging/android/ion/hisilicon/Makefile     |   1 -
- drivers/staging/android/ion/hisilicon/hi6220_ion.c | 113 ---------
- drivers/staging/android/ion/ion-ioctl.c            |   6 -
- drivers/staging/android/ion/ion.c                  | 282 ++++++---------------
- drivers/staging/android/ion/ion.h                  |   5 +-
- drivers/staging/android/ion/ion_carveout_heap.c    |  16 +-
- drivers/staging/android/ion/ion_chunk_heap.c       |  15 +-
- drivers/staging/android/ion/ion_cma_heap.c         | 102 ++------
- drivers/staging/android/ion/ion_dummy_driver.c     | 156 ------------
- drivers/staging/android/ion/ion_enumerate.c        |  89 +++++++
- drivers/staging/android/ion/ion_of.c               | 184 --------------
- drivers/staging/android/ion/ion_of.h               |  37 ---
- drivers/staging/android/ion/ion_page_pool.c        |   3 -
- drivers/staging/android/ion/ion_priv.h             |  57 ++++-
- drivers/staging/android/ion/ion_system_heap.c      |  14 +-
- drivers/staging/android/ion/tegra/Makefile         |   1 -
- drivers/staging/android/ion/tegra/tegra_ion.c      |  80 ------
- include/linux/cma.h                                |   6 +-
- mm/cma.c                                           |  25 +-
- mm/cma.h                                           |   1 +
- mm/cma_debug.c                                     |   2 +-
- 25 files changed, 312 insertions(+), 958 deletions(-)
- delete mode 100644 drivers/staging/android/ion/hisilicon/Kconfig
- delete mode 100644 drivers/staging/android/ion/hisilicon/Makefile
- delete mode 100644 drivers/staging/android/ion/hisilicon/hi6220_ion.c
- delete mode 100644 drivers/staging/android/ion/ion_dummy_driver.c
- create mode 100644 drivers/staging/android/ion/ion_enumerate.c
- delete mode 100644 drivers/staging/android/ion/ion_of.c
- delete mode 100644 drivers/staging/android/ion/ion_of.h
- delete mode 100644 drivers/staging/android/ion/tegra/Makefile
- delete mode 100644 drivers/staging/android/ion/tegra/tegra_ion.c
-
+Best regards,
 -- 
-2.7.4
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
