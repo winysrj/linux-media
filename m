@@ -1,73 +1,216 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:56231 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751870AbdCBLGm (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:57027 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753087AbdCFOY4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Mar 2017 06:06:42 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH] [media] coda: disable BWB for all codecs on CODA 960
-Date: Thu,  2 Mar 2017 11:19:52 +0100
-Message-Id: <20170302101952.16917-1-p.zabel@pengutronix.de>
+        Mon, 6 Mar 2017 09:24:56 -0500
+Subject: Re: [PATCH v2.3] v4l: Clearly document interactions between formats,
+ controls and buffers
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org
+References: <20170305213610.3893-1-laurent.pinchart+renesas@ideasonboard.com>
+ <20170306141441.13497-1-laurent.pinchart+renesas@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        linux-renesas-soc@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <bcac2811-3d1e-2875-2aff-605b16eb6dd7@xs4all.nl>
+Date: Mon, 6 Mar 2017 15:24:14 +0100
+MIME-Version: 1.0
+In-Reply-To: <20170306141441.13497-1-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I don't know what the BWB unit is, I guess W is for write and one of the
-Bs is for burst. All I know is that there repeatedly have been issues
-with it hanging on certain streams (ENGR00223231, ENGR00293425), with
-various firmware versions, sometimes blocking something related to the
-GDI bus or the GDI AXI adapter. There are some error cases that we don't
-know how to recover from without a reboot. Apparently this unit can be
-disabled by setting bit 12 in the FRAME_MEM_CTRL mailbox register to
-zero, so do that to avoid crashes.
+On 06/03/17 15:14, Laurent Pinchart wrote:
+> V4L2 exposes parameters that influence buffers sizes through the format
+> ioctls (VIDIOC_G_FMT, VIDIOC_TRY_FMT, VIDIOC_S_FMT, and possibly
+> VIDIOC_G_SELECTION and VIDIOC_S_SELECTION). Other parameters not part of
+> the format structure may also influence buffer sizes or buffer layout in
+> general. One existing such parameter is rotation, which is implemented
+> by the V4L2_CID_ROTATE control and thus exposed through the V4L2 control
+> ioctls.
+>
+> The interaction between those parameters and buffers is currently only
+> partially specified by the V4L2 API. In particular interactions between
+> controls and buffers isn't specified at all. The behaviour of the
+> VIDIOC_S_FMT and VIDIOC_S_SELECTION ioctls when buffers are allocated is
+> also not fully specified.
+>
+> This patch clearly defines and documents the interactions between
+> formats, selections, controls and buffers.
+>
+> The preparatory discussions for the documentation change considered
+> completely disallowing controls that change the buffer size or layout,
+> in favour of extending the format API with a new ioctl that would bundle
+> those controls with format information. The idea has been rejected, as
+> this would essentially be a restricted version of the upcoming request
+> API that wouldn't bring any additional value.
+>
+> Another option we have considered was to mandate the use of the request
+> API to modify controls that influence buffer size or layout. This has
+> also been rejected on the grounds that requiring the request API to
+> change rotation even when streaming is stopped would significantly
+> complicate implementation of drivers and usage of the V4L2 API for
+> applications.
+>
+> Applications will however be required to use the upcoming request API to
+> change at runtime formats or controls that influence the buffer size or
+> layout, because of the need to synchronize buffers with the formats and
+> controls. Otherwise there would be no way to interpret the content of a
+> buffer correctly.
+>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Side effects are reduced burst lengths when writing out decoded frames
-to memory, so there is an "enable_bwb" module parameter to turn it back
-on.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-common.c | 7 ++++++-
- drivers/media/platform/coda/coda_regs.h   | 1 +
- 2 files changed, 7 insertions(+), 1 deletion(-)
+Thanks!
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 4d25ca1981301..aeb2456830348 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -71,6 +71,10 @@ static int disable_vdoa;
- module_param(disable_vdoa, int, 0644);
- MODULE_PARM_DESC(disable_vdoa, "Disable Video Data Order Adapter tiled to raster-scan conversion");
- 
-+static int enable_bwb = 0;
-+module_param(enable_bwb, int, 0644);
-+MODULE_PARM_DESC(enable_bwb, "Enable BWB unit, may crash on certain streams");
-+
- void coda_write(struct coda_dev *dev, u32 data, u32 reg)
- {
- 	v4l2_dbg(2, coda_debug, &dev->v4l2_dev,
-@@ -1891,7 +1895,8 @@ static int coda_open(struct file *file)
- 	ctx->idx = idx;
- 	switch (dev->devtype->product) {
- 	case CODA_960:
--		ctx->frame_mem_ctrl = 1 << 12;
-+		if (enable_bwb)
-+			ctx->frame_mem_ctrl = CODA9_FRAME_ENABLE_BWB;
- 		/* fallthrough */
- 	case CODA_7541:
- 		ctx->reg_idx = 0;
-diff --git a/drivers/media/platform/coda/coda_regs.h b/drivers/media/platform/coda/coda_regs.h
-index 3490602fa6e1e..77ee46a934272 100644
---- a/drivers/media/platform/coda/coda_regs.h
-+++ b/drivers/media/platform/coda/coda_regs.h
-@@ -51,6 +51,7 @@
- #define		CODA7_STREAM_SEL_64BITS_ENDIAN	(1 << 1)
- #define		CODA_STREAM_ENDIAN_SELECT	(1 << 0)
- #define CODA_REG_BIT_FRAME_MEM_CTRL		0x110
-+#define		CODA9_FRAME_ENABLE_BWB		(1 << 12)
- #define		CODA9_FRAME_TILED2LINEAR	(1 << 11)
- #define		CODA_FRAME_CHROMA_INTERLEAVE	(1 << 2)
- #define		CODA_IMAGE_ENDIAN_SELECT	(1 << 0)
--- 
-2.11.0
+	Hans
+
+> ---
+> Changes since v2.2:
+>
+> - Describe the simple option first
+> - Fix error codes
+>
+> Changes since v2.1:
+>
+> - Fixed small issues in commit message
+> - Simplified wording of one sentence in the documentation
+>
+> Changes since v2:
+>
+> - Document the interaction with ioctls that can affect formats
+>   (VIDIOC_S_SELECTION, VIDIOC_S_INPUT, VIDIOC_S_OUTPUT, VIDIOC_S_STD and
+>   VIDIOC_S_DV_TIMINGS)
+> - Clarify the format/control change order
+> ---
+>  Documentation/media/uapi/v4l/buffer.rst | 110 ++++++++++++++++++++++++++++++++
+>  1 file changed, 110 insertions(+)
+>
+> diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+> index ac58966ccb9b..d1e0d55dc219 100644
+> --- a/Documentation/media/uapi/v4l/buffer.rst
+> +++ b/Documentation/media/uapi/v4l/buffer.rst
+> @@ -34,6 +34,116 @@ flags are copied from the OUTPUT video buffer to the CAPTURE video
+>  buffer.
+>
+>
+> +Interactions between formats, controls and buffers
+> +==================================================
+> +
+> +V4L2 exposes parameters that influence the buffer size, or the way data is
+> +laid out in the buffer. Those parameters are exposed through both formats and
+> +controls. One example of such a control is the ``V4L2_CID_ROTATE`` control
+> +that modifies the direction in which pixels are stored in the buffer, as well
+> +as the buffer size when the selected format includes padding at the end of
+> +lines.
+> +
+> +The set of information needed to interpret the content of a buffer (e.g. the
+> +pixel format, the line stride, the tiling orientation or the rotation) is
+> +collectively referred to in the rest of this section as the buffer layout.
+> +
+> +Modifying formats or controls that influence the buffer size or layout require
+> +the stream to be stopped. Any attempt at such a modification while the stream
+> +is active shall cause the ioctl setting the format or the control to return
+> +the ``EBUSY`` error code.
+> +
+> +.. note::
+> +
+> +   The :c:func:`VIDIOC_S_SELECTION` ioctl can, depending on the hardware (for
+> +   instance if the device doesn't include a scaler), modify the format in
+> +   addition to the selection rectangle. Similarly, the
+> +   :c:func:`VIDIOC_S_INPUT`, :c:func:`VIDIOC_S_OUTPUT`, :c:func:`VIDIOC_S_STD`
+> +   and :c:func:`VIDIOC_S_DV_TIMINGS` ioctls can also modify the format and
+> +   selection rectangles. When those ioctls result in a buffer size or layout
+> +   change, drivers shall handle that condition as they would handle it in the
+> +   :c:func:`VIDIOC_S_FMT` ioctl in all cases described in this section.
+> +
+> +Controls that only influence the buffer layout can be modified at any time
+> +when the stream is stopped. As they don't influence the buffer size, no
+> +special handling is needed to synchronize those controls with buffer
+> +allocation.
+> +
+> +Formats and controls that influence the buffer size interact with buffer
+> +allocation. The simplest way to handle this is for drivers to always require
+> +buffers to be reallocated in order to change those formats or controls. In
+> +that case, to perform such changes, userspace applications shall first stop
+> +the video stream with the :c:func:`VIDIOC_STREAMOFF` ioctl if it is running
+> +and free all buffers with the :c:func:`VIDIOC_REQBUFS` ioctl if they are
+> +allocated. The format or controls can then be modified, and buffers shall then
+> +be reallocated and the stream restarted. A typical ioctl sequence is
+> +
+> + #. VIDIOC_STREAMOFF
+> + #. VIDIOC_REQBUFS(0)
+> + #. VIDIOC_S_EXT_CTRLS
+> + #. VIDIOC_S_FMT
+> + #. VIDIOC_REQBUFS(n)
+> + #. VIDIOC_QBUF
+> + #. VIDIOC_STREAMON
+> +
+> +The second :c:func:`VIDIOC_REQBUFS` call will take the new format and control
+> +value into account to compute the buffer size to allocate. Applications can
+> +also retrieve the size by calling the :c:func:`VIDIOC_G_FMT` ioctl if needed.
+> +
+> +.. note::
+> +
+> +   The API doesn't mandate the above order for control (3.) and format (4.)
+> +   changes. Format and controls can be set in a different order, or even
+> +   interleaved, depending on the device and use case. For instance some
+> +   controls might behave differently for different pixel formats, in which
+> +   case the format might need to be set first.
+> +
+> +When reallocation is required, any attempt to modify format or controls that
+> +influences the buffer size while buffers are allocated shall cause the format
+> +or control set ioctl to return the ``EBUSY`` error. Any attempt to queue a
+> +buffer too small for the current format or controls shall cause the
+> +:c:func:`VIDIOC_QBUF` ioctl to return a ``EINVAL`` error.
+> +
+> +Buffer reallocation is an expensive operation. To avoid that cost, drivers can
+> +(and are encouraged to) allow format or controls that influence the buffer
+> +size to be changed with buffers allocated. In that case, a typical ioctl
+> +sequence to modify format and controls is
+> +
+> + #. VIDIOC_STREAMOFF
+> + #. VIDIOC_S_EXT_CTRLS
+> + #. VIDIOC_S_FMT
+> + #. VIDIOC_QBUF
+> + #. VIDIOC_STREAMON
+> +
+> +For this sequence to operate correctly, queued buffers need to be large enough
+> +for the new format or controls. Drivers shall return a ``ENOSPC`` error in
+> +response to format change (:c:func:`VIDIOC_S_FMT`) or control changes
+> +(:c:func:`VIDIOC_S_CTRL` or :c:func:`VIDIOC_S_EXT_CTRLS`) if buffers too small
+> +for the new format are currently queued. As a simplification, drivers are
+> +allowed to return a ``EBUSY`` error from these ioctls if any buffer is
+> +currently queued, without checking the queued buffers sizes.
+> +
+> +Additionally, drivers shall return a ``EINVAL`` error from the
+> +:c:func:`VIDIOC_QBUF` ioctl if the buffer being queued is too small for the
+> +current format or controls. Together, these requirements ensure that queued
+> +buffers will always be large enough for the configured format and controls.
+> +
+> +Userspace applications can query the buffer size required for a given format
+> +and controls by first setting the desired control values and then trying the
+> +desired format. The :c:func:`VIDIOC_TRY_FMT` ioctl will return the required
+> +buffer size.
+> +
+> + #. VIDIOC_S_EXT_CTRLS(x)
+> + #. VIDIOC_TRY_FMT()
+> + #. VIDIOC_S_EXT_CTRLS(y)
+> + #. VIDIOC_TRY_FMT()
+> +
+> +The :c:func:`VIDIOC_CREATE_BUFS` ioctl can then be used to allocate buffers
+> +based on the queried sizes (for instance by allocating a set of buffers large
+> +enough for all the desired formats and controls, or by allocating separate set
+> +of appropriately sized buffers for each use case).
+> +
+> +
+>  .. c:type:: v4l2_buffer
+>
+>  struct v4l2_buffer
+>
