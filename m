@@ -1,78 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:35184 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750984AbdCNQuU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Mar 2017 12:50:20 -0400
-Subject: Re: [PATCH v5 15/39] [media] v4l2: add a frame interval error event
-To: Russell King - ARM Linux <linux@armlinux.org.uk>,
-        Nicolas Dufresne <nicolas@ndufresne.ca>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <1489121599-23206-16-git-send-email-steve_longerbeam@mentor.com>
- <5b0a0e76-2524-4140-5ccc-380a8f949cfa@xs4all.nl>
- <ec05e6e0-79f2-2db2-bde9-4aed00d76faa@gmail.com>
- <6b574476-77df-0e25-a4d1-32d4fe0aec12@xs4all.nl>
- <5d5cf4a4-a4d3-586e-cd16-54f543dfcce9@gmail.com>
- <aa6a5a1d-18fd-8bed-a349-2654d2d1abe0@xs4all.nl>
- <20170313104538.GF21222@n2100.armlinux.org.uk>
- <1489508491.28116.8.camel@ndufresne.ca>
- <20170314164728.GQ21222@n2100.armlinux.org.uk>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <8461e333-6867-eecc-db7a-9bf44a2baf18@gmail.com>
-Date: Tue, 14 Mar 2017 09:50:14 -0700
-MIME-Version: 1.0
-In-Reply-To: <20170314164728.GQ21222@n2100.armlinux.org.uk>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mga05.intel.com ([192.55.52.43]:47276 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753150AbdCFOY4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 6 Mar 2017 09:24:56 -0500
+From: Elena Reshetova <elena.reshetova@intel.com>
+To: gregkh@linuxfoundation.org
+Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org,
+        netdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
+        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-usb@vger.kernel.org, peterz@infradead.org,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        Hans Liljestrand <ishkamiel@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        David Windsor <dwindsor@gmail.com>
+Subject: [PATCH 26/29] drivers, usb: convert dev_data.count from atomic_t to refcount_t
+Date: Mon,  6 Mar 2017 16:21:13 +0200
+Message-Id: <1488810076-3754-27-git-send-email-elena.reshetova@intel.com>
+In-Reply-To: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+refcount_t type and corresponding API should be
+used instead of atomic_t when the variable is used as
+a reference counter. This allows to avoid accidental
+refcounter overflows that might lead to use-after-free
+situations.
 
+Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
+Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: David Windsor <dwindsor@gmail.com>
+---
+ drivers/usb/gadget/legacy/inode.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-On 03/14/2017 09:47 AM, Russell King - ARM Linux wrote:
-> On Tue, Mar 14, 2017 at 12:21:31PM -0400, Nicolas Dufresne wrote:
->> My main concern here based on what I'm reading, is that this driver is
->> not even able to notice immediately that a produced frame was corrupted
->> (because it's out of sync). From usability perspective, this is really
->> bad. Can't the driver derive a clock from some irq and calculate for
->> each frame if the timing was correct ? And if not mark the buffer with
->> V4L2_BUF_FLAG_ERROR ?
-> One of the issues of measuring timing with IRQs is the fact that the
-> IRQ subsystem only allows one IRQ to run at a time.  If an IRQ takes
-> a relatively long time to process, then it throws the timing of other
-> IRQs out.
->
-> If you're going to decide that a buffer should be marked in error on
-> the basis of an interrupt arriving late, this can trigger spuriously.
->
-> It wasn't that long ago that USB HID was regularly eating something
-> like 20ms of interrupt time... that's been solved, but that doesn't
-> mean all cases are solved - there are still interrupt handlers in the
-> kernel that are on the order of milliseconds to complete.
->
-> Given the quality I observe of some USB serial devices (eg, running at
-> 115200 baud, but feeling like they deliver characters to userspace at
-> 9600 baud) I wouldn't be surprised if some USB serial drivers eat a lot
-> of IRQ time... and if so, all it'll take is to plug such a device in
-> to disrupt capture.
->
-> That sounds way too fragile to me.
-
-exactly, hence the imx6 timer input capture support.
-
-Steve
+diff --git a/drivers/usb/gadget/legacy/inode.c b/drivers/usb/gadget/legacy/inode.c
+index 79a2d8f..81d76f3 100644
+--- a/drivers/usb/gadget/legacy/inode.c
++++ b/drivers/usb/gadget/legacy/inode.c
+@@ -27,6 +27,7 @@
+ #include <linux/mmu_context.h>
+ #include <linux/aio.h>
+ #include <linux/uio.h>
++#include <linux/refcount.h>
+ 
+ #include <linux/device.h>
+ #include <linux/moduleparam.h>
+@@ -114,7 +115,7 @@ enum ep0_state {
+ 
+ struct dev_data {
+ 	spinlock_t			lock;
+-	atomic_t			count;
++	refcount_t			count;
+ 	enum ep0_state			state;		/* P: lock */
+ 	struct usb_gadgetfs_event	event [N_EVENT];
+ 	unsigned			ev_next;
+@@ -150,12 +151,12 @@ struct dev_data {
+ 
+ static inline void get_dev (struct dev_data *data)
+ {
+-	atomic_inc (&data->count);
++	refcount_inc (&data->count);
+ }
+ 
+ static void put_dev (struct dev_data *data)
+ {
+-	if (likely (!atomic_dec_and_test (&data->count)))
++	if (likely (!refcount_dec_and_test (&data->count)))
+ 		return;
+ 	/* needs no more cleanup */
+ 	BUG_ON (waitqueue_active (&data->wait));
+@@ -170,7 +171,7 @@ static struct dev_data *dev_new (void)
+ 	if (!dev)
+ 		return NULL;
+ 	dev->state = STATE_DEV_DISABLED;
+-	atomic_set (&dev->count, 1);
++	refcount_set (&dev->count, 1);
+ 	spin_lock_init (&dev->lock);
+ 	INIT_LIST_HEAD (&dev->epfiles);
+ 	init_waitqueue_head (&dev->wait);
+-- 
+2.7.4
