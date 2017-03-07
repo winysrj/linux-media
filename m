@@ -1,116 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:37436 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751706AbdCNTGl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Mar 2017 15:06:41 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v3 16/27] rcar-vin: add functions to manipulate Gen3 CHSEL value
-Date: Tue, 14 Mar 2017 20:02:57 +0100
-Message-Id: <20170314190308.25790-17-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mga14.intel.com ([192.55.52.115]:48258 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932705AbdCGOqv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 7 Mar 2017 09:46:51 -0500
+From: "Reshetova, Elena" <elena.reshetova@intel.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux1394-devel@lists.sourceforge.net"
+        <linux1394-devel@lists.sourceforge.net>,
+        "linux-bcache@vger.kernel.org" <linux-bcache@vger.kernel.org>,
+        "linux-raid@vger.kernel.org" <linux-raid@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devel@linuxdriverproject.org" <devel@linuxdriverproject.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
+        "fcoe-devel@open-fcoe.org" <fcoe-devel@open-fcoe.org>,
+        "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>,
+        "open-iscsi@googlegroups.com" <open-iscsi@googlegroups.com>,
+        "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
+        "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>,
+        "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
+        "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
+        "peterz@infradead.org" <peterz@infradead.org>,
+        Hans Liljestrand <ishkamiel@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        David Windsor <dwindsor@gmail.com>
+Subject: RE: [PATCH 12/29] drivers, media: convert s2255_dev.num_channels
+ from atomic_t to refcount_t
+Date: Tue, 7 Mar 2017 14:45:45 +0000
+Message-ID: <2236FBA76BA1254E88B949DDB74E612B41C558C5@IRSMSX102.ger.corp.intel.com>
+References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+ <1488810076-3754-13-git-send-email-elena.reshetova@intel.com>
+ <20170307083016.GG3220@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20170307083016.GG3220@valkosipuli.retiisi.org.uk>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Gen3 the CSI routing is controlled by the VnCSI_IFMD register. One
-feature of this register is that it's only present in the VIN0 and VIN4
-instances. The register in VIN0 controls the routing for VIN0-3 and the
-register in VIN4 controls routing for VIN4-7.
 
-To be able to control routing from a media device these functions need
-to control runtime PM for the subgroup master (VIN0 and VIN4). The
-subgroup master must be switched on before the register is manipulated,
-once the operation is complete it's safe to switch the master off and
-the new routing will still be in effect.
+> Hi Elena,
+> 
+> On Mon, Mar 06, 2017 at 04:20:59PM +0200, Elena Reshetova wrote:
+> > refcount_t type and corresponding API should be
+> > used instead of atomic_t when the variable is used as
+> > a reference counter. This allows to avoid accidental
+> > refcounter overflows that might lead to use-after-free
+> > situations.
+> >
+> > Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
+> > Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
+> > Signed-off-by: Kees Cook <keescook@chromium.org>
+> > Signed-off-by: David Windsor <dwindsor@gmail.com>
+> > ---
+> ...
+> > @@ -1688,7 +1689,7 @@ static int s2255_probe_v4l(struct s2255_dev *dev)
+> >  				"failed to register
+> video device!\n");
+> >  			break;
+> >  		}
+> > -		atomic_inc(&dev->num_channels);
+> > +		refcount_set(&dev->num_channels, 1);
+> 
+> That's not right. The loop runs four iterations and the value after the
+> loop should be indeed the number of channels.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-dma.c | 43 ++++++++++++++++++++++++++++++
- drivers/media/platform/rcar-vin/rcar-vin.h |  3 +++
- 2 files changed, 46 insertions(+)
+Oh, yes, I was blind here, sorry. The problem why it cannot be left as inc is because it would do increment from zero here, which is not allowed by refcount_t interface. 
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 7fecb616b6c45a32..fef31aac0ed40979 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -16,6 +16,7 @@
- 
- #include <linux/delay.h>
- #include <linux/interrupt.h>
-+#include <linux/pm_runtime.h>
- 
- #include <media/videobuf2-dma-contig.h>
- 
-@@ -1240,3 +1241,45 @@ int rvin_dma_probe(struct rvin_dev *vin, int irq)
- 
- 	return ret;
- }
-+
-+/* -----------------------------------------------------------------------------
-+ * Gen3 CHSEL manipulation
-+ */
-+
-+int rvin_set_chsel(struct rvin_dev *vin, u8 chsel)
-+{
-+	u32 ifmd;
-+
-+	pm_runtime_get_sync(vin->dev);
-+
-+	/*
-+	 * Undocumented feature: Writing to VNCSI_IFMD_REG will go
-+	 * through and on read back look correct but won't have
-+	 * any effect if VNMC_REG is not first set to 0.
-+	 */
-+	rvin_write(vin, 0, VNMC_REG);
-+
-+	ifmd = VNCSI_IFMD_DES2 | VNCSI_IFMD_DES1 | VNCSI_IFMD_DES0 |
-+		VNCSI_IFMD_CSI_CHSEL(chsel);
-+
-+	rvin_write(vin, ifmd, VNCSI_IFMD_REG);
-+
-+	vin_dbg(vin, "Set IFMD 0x%x\n", ifmd);
-+
-+	pm_runtime_put(vin->dev);
-+
-+	return 0;
-+}
-+
-+int rvin_get_chsel(struct rvin_dev *vin)
-+{
-+	int chsel;
-+
-+	pm_runtime_get_sync(vin->dev);
-+
-+	chsel = rvin_read(vin, VNCSI_IFMD_REG) & VNCSI_IFMD_CSI_CHSEL_MASK;
-+
-+	pm_runtime_put(vin->dev);
-+
-+	return chsel;
-+}
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 09fc70e192699f35..b1cd0abba9ca9c94 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -163,4 +163,7 @@ void rvin_v4l2_remove(struct rvin_dev *vin);
- 
- const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
- 
-+int rvin_set_chsel(struct rvin_dev *vin, u8 chsel);
-+int rvin_get_chsel(struct rvin_dev *vin);
-+
- #endif
--- 
-2.12.0
+> atomic_t isn't really used for reference counting here, but storing out how
+> many "channels" there are per hardware device, with maximum number of four
+> (4). I'd leave this driver using atomic_t.
+Yes, sounds like the best thing to do. I will drop this patch. 
+
+Thank you for reviews!
+
+Best Regards,
+Elena.
+> 
+> >  		v4l2_info(&dev->v4l2_dev, "V4L2 device registered
+> as %s\n",
+> >  			  video_device_node_name(&vc-
+> >vdev));
+> >
+> 
+> --
+> Kind regards,
+> 
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
