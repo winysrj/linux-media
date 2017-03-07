@@ -1,62 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:45622 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751369AbdCSO0W (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 19 Mar 2017 10:26:22 -0400
-Date: Sun, 19 Mar 2017 14:22:40 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Subject: Re: [PATCH v5 00/39] i.MX Media Driver
-Message-ID: <20170319142240.GA23922@n2100.armlinux.org.uk>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <20170318192258.GL21222@n2100.armlinux.org.uk>
- <aef6c412-5464-726b-42f6-a24b7323aa9c@mentor.com>
- <20170318204324.GM21222@n2100.armlinux.org.uk>
- <4e7f91fa-e1c4-1cbc-2542-2aaf19a35329@mentor.com>
- <20170319142110.GT21222@n2100.armlinux.org.uk>
+Received: from youngberry.canonical.com ([91.189.89.112]:55156 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932624AbdCGOtX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 09:49:23 -0500
+From: Colin King <colin.king@canonical.com>
+To: Songjun Wu <songjun.wu@microchip.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] atmel-isc: fix off-by-one comparison and out of bounds read issue
+Date: Tue,  7 Mar 2017 14:30:47 +0000
+Message-Id: <20170307143047.30082-1-colin.king@canonical.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170319142110.GT21222@n2100.armlinux.org.uk>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Mar 19, 2017 at 02:21:10PM +0000, Russell King - ARM Linux wrote:
-> There's a good reason why I dumped a full debug log using GST_DEBUG=*:9,
-> analysed it for the cause of the failure, and tried several different
-> pipelines, including the standard bayer2rgb plugin.
-> 
-> Please don't blame this on random stuff after analysis of the logs _and_
-> reading the appropriate plugin code has shown where the problem is.  I
-> know gstreamer can be very complex, but it's very possible to analyse
-> the cause of problems and pin them down with detailed logs in conjunction
-> with the source code.
+From: Colin Ian King <colin.king@canonical.com>
 
-Oh, and the proof of correct analysis is that fixing the kernel capture
-driver to enumerate the frame sizes and intervals fixes the issue, even
-with bayer2rgbneon being used.
+The are only HIST_ENTRIES worth of entries in  hist_entry however the
+for-loop is iterating one too many times leasing to a read access off
+the end off the array ctrls->hist_entry.  Fix this by iterating by
+the correct number of times.
 
-Therefore, there is _no way_ what so ever that it could be caused by that
-plugin.
+Detected by CoverityScan, CID#1415279 ("Out-of-bounds read")
 
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/media/platform/atmel/atmel-isc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+index b380a7d..7dacf8c 100644
+--- a/drivers/media/platform/atmel/atmel-isc.c
++++ b/drivers/media/platform/atmel/atmel-isc.c
+@@ -1298,7 +1298,7 @@ static void isc_hist_count(struct isc_device *isc)
+ 	regmap_bulk_read(regmap, ISC_HIS_ENTRY, hist_entry, HIST_ENTRIES);
+ 
+ 	*hist_count = 0;
+-	for (i = 0; i <= HIST_ENTRIES; i++)
++	for (i = 0; i < HIST_ENTRIES; i++)
+ 		*hist_count += i * (*hist_entry++);
+ }
+ 
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+2.10.2
