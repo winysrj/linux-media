@@ -1,72 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:51091 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753588AbdCOLbk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Mar 2017 07:31:40 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Patrice Chotard <patrice.chotard@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 04/14] [media] st_rc: simplify optional reset handling
-Date: Wed, 15 Mar 2017 12:31:36 +0100
-Message-Id: <20170315113136.15147-1-p.zabel@pengutronix.de>
+Received: from mail-wr0-f174.google.com ([209.85.128.174]:36446 "EHLO
+        mail-wr0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752207AbdCGRMK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 12:12:10 -0500
+Received: by mail-wr0-f174.google.com with SMTP id u108so6053523wrb.3
+        for <linux-media@vger.kernel.org>; Tue, 07 Mar 2017 09:11:33 -0800 (PST)
+From: Neil Armstrong <narmstrong@baylibre.com>
+To: dri-devel@lists.freedesktop.org,
+        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org
+Cc: Jose.Abreu@synopsys.com, kieran.bingham@ideasonboard.com,
+        linux-amlogic@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org,
+        Neil Armstrong <narmstrong@baylibre.com>
+Subject: [PATCH v3 1/6] drm: bridge: dw-hdmi: Extract PHY interrupt setup to a function
+Date: Tue,  7 Mar 2017 17:42:19 +0100
+Message-Id: <1488904944-14285-2-git-send-email-narmstrong@baylibre.com>
+In-Reply-To: <1488904944-14285-1-git-send-email-narmstrong@baylibre.com>
+References: <1488904944-14285-1-git-send-email-narmstrong@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As of commit bb475230b8e5 ("reset: make optional functions really
-optional"), the reset framework API calls use NULL pointers to describe
-optional, non-present reset controls.
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-This allows to return errors from reset_control_get_optional and to call
-reset_control_(de)assert unconditionally.
+In preparation for adding PHY operations to handle RX SENSE and HPD,
+group all the PHY interrupt setup code in a single location and extract
+it to a separate function.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Acked-by: Patrice Chotard <patrice.chotard@st.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
 ---
- drivers/media/rc/st_rc.c | 13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 50 ++++++++++++++-----------------
+ 1 file changed, 23 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/media/rc/st_rc.c b/drivers/media/rc/st_rc.c
-index f0d7190e39195..0ac1879f75069 100644
---- a/drivers/media/rc/st_rc.c
-+++ b/drivers/media/rc/st_rc.c
-@@ -165,8 +165,7 @@ static void st_rc_hardware_init(struct st_rc_device *dev)
- 	unsigned int rx_sampling_freq_div;
+diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+index 026a0dc..1ed8bc1 100644
+--- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
++++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+@@ -1496,7 +1496,7 @@ static int dw_hdmi_setup(struct dw_hdmi *hdmi, struct drm_display_mode *mode)
+ }
  
- 	/* Enable the IP */
--	if (dev->rstc)
--		reset_control_deassert(dev->rstc);
-+	reset_control_deassert(dev->rstc);
- 
- 	clk_prepare_enable(dev->sys_clock);
- 	baseclock = clk_get_rate(dev->sys_clock);
-@@ -281,10 +280,11 @@ static int st_rc_probe(struct platform_device *pdev)
- 	else
- 		rc_dev->rx_base = rc_dev->base;
- 
+ /* Wait until we are registered to enable interrupts */
+-static int dw_hdmi_fb_registered(struct dw_hdmi *hdmi)
++static void dw_hdmi_fb_registered(struct dw_hdmi *hdmi)
+ {
+ 	hdmi_writeb(hdmi, HDMI_PHY_I2CM_INT_ADDR_DONE_POL,
+ 		    HDMI_PHY_I2CM_INT_ADDR);
+@@ -1504,15 +1504,6 @@ static int dw_hdmi_fb_registered(struct dw_hdmi *hdmi)
+ 	hdmi_writeb(hdmi, HDMI_PHY_I2CM_CTLINT_ADDR_NAC_POL |
+ 		    HDMI_PHY_I2CM_CTLINT_ADDR_ARBITRATION_POL,
+ 		    HDMI_PHY_I2CM_CTLINT_ADDR);
 -
- 	rc_dev->rstc = reset_control_get_optional(dev, NULL);
--	if (IS_ERR(rc_dev->rstc))
--		rc_dev->rstc = NULL;
-+	if (IS_ERR(rc_dev->rstc)) {
-+		ret = PTR_ERR(rc_dev->rstc);
-+		goto err;
-+	}
+-	/* enable cable hot plug irq */
+-	hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
+-
+-	/* Clear Hotplug interrupts */
+-	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
+-		    HDMI_IH_PHY_STAT0);
+-
+-	return 0;
+ }
  
- 	rc_dev->dev = dev;
- 	platform_set_drvdata(pdev, rc_dev);
-@@ -352,8 +352,7 @@ static int st_rc_suspend(struct device *dev)
- 		writel(0x00, rc_dev->rx_base + IRB_RX_EN);
- 		writel(0x00, rc_dev->rx_base + IRB_RX_INT_EN);
- 		clk_disable_unprepare(rc_dev->sys_clock);
--		if (rc_dev->rstc)
--			reset_control_assert(rc_dev->rstc);
-+		reset_control_assert(rc_dev->rstc);
+ static void initialize_hdmi_ih_mutes(struct dw_hdmi *hdmi)
+@@ -1630,6 +1621,26 @@ static void dw_hdmi_update_phy_mask(struct dw_hdmi *hdmi)
+ 		hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
+ }
+ 
++static void dw_hdmi_phy_setup_hpd(struct dw_hdmi *hdmi)
++{
++	/*
++	 * Configure the PHY RX SENSE and HPD interrupts polarities and clear
++	 * any pending interrupt.
++	 */
++	hdmi_writeb(hdmi, HDMI_PHY_HPD | HDMI_PHY_RX_SENSE, HDMI_PHY_POL0);
++	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
++		    HDMI_IH_PHY_STAT0);
++
++	/* Enable cable hot plug irq. */
++	hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
++
++	/* Clear and unmute interrupts. */
++	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
++		    HDMI_IH_PHY_STAT0);
++	hdmi_writeb(hdmi, ~(HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE),
++		    HDMI_IH_MUTE_PHY_STAT0);
++}
++
+ static enum drm_connector_status
+ dw_hdmi_connector_detect(struct drm_connector *connector, bool force)
+ {
+@@ -2141,29 +2152,14 @@ static int dw_hdmi_detect_phy(struct dw_hdmi *hdmi)
+ 			hdmi->ddc = NULL;
  	}
  
- 	return 0;
+-	/*
+-	 * Configure registers related to HDMI interrupt
+-	 * generation before registering IRQ.
+-	 */
+-	hdmi_writeb(hdmi, HDMI_PHY_HPD | HDMI_PHY_RX_SENSE, HDMI_PHY_POL0);
+-
+-	/* Clear Hotplug interrupts */
+-	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
+-		    HDMI_IH_PHY_STAT0);
+-
+ 	hdmi->bridge.driver_private = hdmi;
+ 	hdmi->bridge.funcs = &dw_hdmi_bridge_funcs;
+ #ifdef CONFIG_OF
+ 	hdmi->bridge.of_node = pdev->dev.of_node;
+ #endif
+ 
+-	ret = dw_hdmi_fb_registered(hdmi);
+-	if (ret)
+-		goto err_iahb;
+-
+-	/* Unmute interrupts */
+-	hdmi_writeb(hdmi, ~(HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE),
+-		    HDMI_IH_MUTE_PHY_STAT0);
++	dw_hdmi_fb_registered(hdmi);
++	dw_hdmi_phy_setup_hpd(hdmi);
+ 
+ 	memset(&pdevinfo, 0, sizeof(pdevinfo));
+ 	pdevinfo.parent = dev;
 -- 
-2.11.0
+1.9.1
