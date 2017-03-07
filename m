@@ -1,175 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f182.google.com ([209.85.220.182]:33035 "EHLO
-        mail-qk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751988AbdCBVpe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 16:45:34 -0500
-Received: by mail-qk0-f182.google.com with SMTP id n127so147117009qkf.0
-        for <linux-media@vger.kernel.org>; Thu, 02 Mar 2017 13:45:33 -0800 (PST)
-From: Laura Abbott <labbott@redhat.com>
-To: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com
-Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Brian Starkey <brian.starkey@arm.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Mark Brown <broonie@kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-mm@kvack.org
-Subject: [RFC PATCH 11/12] staging: android: ion: Make Ion heaps selectable
-Date: Thu,  2 Mar 2017 13:44:43 -0800
-Message-Id: <1488491084-17252-12-git-send-email-labbott@redhat.com>
-In-Reply-To: <1488491084-17252-1-git-send-email-labbott@redhat.com>
-References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+Received: from smtprelay.synopsys.com ([198.182.47.9]:47229 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755402AbdCGQ6G (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 11:58:06 -0500
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+To: linux-media@vger.kernel.org
+Cc: Jose Abreu <Jose.Abreu@synopsys.com>,
+        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] v4l2-dv-timings: Introduce v4l2_calc_fps()
+Date: Tue,  7 Mar 2017 16:48:27 +0000
+Message-Id: <94397052765d1f6d84dc7edac65f906b09890871.1488905139.git.joabreu@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+HDMI Receivers receive video modes which, according to
+CEA specification, can have different frames per second
+(fps) values.
 
-Currently, all heaps are compiled in all the time. In switching to
-a better platform model, let's allow these to be compiled out for good
-measure.
+This patch introduces a helper function in the media core
+which can calculate the expected video mode fps given the
+pixel clock value and the horizontal/vertical values. HDMI
+video receiver drivers are expected to use this helper so
+that they can correctly fill the v4l2_streamparm structure
+which is requested by vidioc_g_parm callback.
 
-Signed-off-by: Laura Abbott <labbott@redhat.com>
+We could also use a lookup table for this but it wouldn't
+correctly handle 60Hz vs 59.94Hz situations as this all
+depends on the pixel clock value.
+
+Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+Cc: Carlos Palminha <palminha@synopsys.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+Cc: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 ---
- drivers/staging/android/ion/Kconfig    | 32 ++++++++++++++++++++
- drivers/staging/android/ion/Makefile   |  8 +++--
- drivers/staging/android/ion/ion_priv.h | 53 ++++++++++++++++++++++++++++++++--
- 3 files changed, 87 insertions(+), 6 deletions(-)
+ drivers/media/v4l2-core/v4l2-dv-timings.c | 29 +++++++++++++++++++++++++++++
+ include/media/v4l2-dv-timings.h           |  8 ++++++++
+ 2 files changed, 37 insertions(+)
 
-diff --git a/drivers/staging/android/ion/Kconfig b/drivers/staging/android/ion/Kconfig
-index 0c91b2b..2e97990 100644
---- a/drivers/staging/android/ion/Kconfig
-+++ b/drivers/staging/android/ion/Kconfig
-@@ -17,3 +17,35 @@ config ION_TEST
- 	  Choose this option to create a device that can be used to test the
- 	  kernel and device side ION functions.
- 
-+config ION_SYSTEM_HEAP
-+	bool "Ion system heap"
-+	depends on ION
-+	help
-+	  Choose this option to enable the Ion system heap. The system heap
-+	  is backed by pages from the buddy allocator. If in doubt, say Y.
+diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+index 5c8c49d..19946c6 100644
+--- a/drivers/media/v4l2-core/v4l2-dv-timings.c
++++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+@@ -814,3 +814,32 @@ struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait)
+ 	return aspect;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_calc_aspect_ratio);
 +
-+config ION_CARVEOUT_HEAP
-+	bool "Ion carveout heap support"
-+	depends on ION
-+	help
-+	  Choose this option to enable carveout heaps with Ion. Carveout heaps
-+	  are backed by memory reserved from the system. Allocation times are
-+	  typically faster at the cost of memory not being used. Unless you
-+	  know your system has these regions, you should say N here.
-+
-+config ION_CHUNK_HEAP
-+	bool "Ion chunk heap support"
-+	depends on ION
-+	help
-+          Choose this option to enable chunk heaps with Ion. This heap is
-+	  similar in function the carveout heap but memory is broken down
-+	  into smaller chunk sizes, typically corresponding to a TLB size.
-+	  Unless you know your system has these regions, you should say N here.
-+
-+config ION_CMA_HEAP
-+	bool "Ion CMA heap support"
-+	depends on ION && CMA
-+	help
-+	  Choose this option to enable CMA heaps with Ion. This heap is backed
-+	  by the Contiguous Memory Allocator (CMA). If your system has these
-+	  regions, you should say Y here.
-diff --git a/drivers/staging/android/ion/Makefile b/drivers/staging/android/ion/Makefile
-index 9457090..eef022b 100644
---- a/drivers/staging/android/ion/Makefile
-+++ b/drivers/staging/android/ion/Makefile
-@@ -1,6 +1,8 @@
--obj-$(CONFIG_ION) +=	ion.o ion-ioctl.o ion_heap.o \
--			ion_page_pool.o ion_system_heap.o \
--			ion_carveout_heap.o ion_chunk_heap.o ion_cma_heap.o
-+obj-$(CONFIG_ION) +=	ion.o ion-ioctl.o ion_heap.o
-+obj-$(CONFIG_ION_SYSTEM_HEAP) += ion_system_heap.o ion_page_pool.o
-+obj-$(CONFIG_ION_CARVEOUT_HEAP) += ion_carveout_heap.o
-+obj-$(CONFIG_ION_CHUNK_HEAP) += ion_chunk_heap.o
-+obj-$(CONFIG_ION_CMA_HEAP) += ion_cma_heap.o
- obj-$(CONFIG_ION_TEST) += ion_test.o
- ifdef CONFIG_COMPAT
- obj-$(CONFIG_ION) += compat_ion.o
-diff --git a/drivers/staging/android/ion/ion_priv.h b/drivers/staging/android/ion/ion_priv.h
-index b09bc7c..6eafe0d 100644
---- a/drivers/staging/android/ion/ion_priv.h
-+++ b/drivers/staging/android/ion/ion_priv.h
-@@ -369,21 +369,68 @@ size_t ion_heap_freelist_size(struct ion_heap *heap);
-  * heaps as appropriate.
-  */
- 
-+
- struct ion_heap *ion_heap_create(struct ion_platform_heap *heap_data);
- void ion_heap_destroy(struct ion_heap *heap);
-+
-+#ifdef CONFIG_ION_SYSTEM_HEAP
- struct ion_heap *ion_system_heap_create(struct ion_platform_heap *unused);
- void ion_system_heap_destroy(struct ion_heap *heap);
--
- struct ion_heap *ion_system_contig_heap_create(struct ion_platform_heap *heap);
- void ion_system_contig_heap_destroy(struct ion_heap *heap);
--
-+#else
-+static inline struct ion_heap * ion_system_heap_create(
-+	struct ion_platform_heap *unused)
++struct v4l2_fract v4l2_calc_fps(const struct v4l2_dv_timings *t)
 +{
-+	return ERR_PTR(-ENODEV);
++	const struct v4l2_bt_timings *bt = &t->bt;
++	struct v4l2_fract fps_fract = { 1, 1 };
++	unsigned long n, d;
++	unsigned long mask = GENMASK(BITS_PER_LONG - 1, 0);
++	u32 htot, vtot, fps;
++	u64 pclk;
++
++	if (t->type != V4L2_DV_BT_656_1120)
++		return fps_fract;
++
++	htot = V4L2_DV_BT_FRAME_WIDTH(bt);
++	vtot = V4L2_DV_BT_FRAME_HEIGHT(bt);
++	pclk = bt->pixelclock;
++	if (bt->interlaced)
++		htot /= 2;
++
++	fps = (htot * vtot) > 0 ? div_u64((100 * pclk), (htot * vtot)) : 0;
++
++	rational_best_approximation(fps, 100, mask, mask, &n, &d);
++
++	fps_fract.numerator = d;
++	fps_fract.denominator = n;
++	return fps_fract;
 +}
-+static inline void ion_system_heap_destroy(struct ion_heap *heap) { }
++EXPORT_SYMBOL_GPL(v4l2_calc_fps);
 +
-+static inline struct ion_heap *ion_system_contig_heap_create(
-+	struct ion_platform_heap *heap)
-+{
-+	return ERR_PTR(-ENODEV);
-+}
-+
-+static inline void ion_system_contig_heap_destroy(struct ion_heap *heap) { }
-+#endif
-+
-+#ifdef CONFIG_ION_CARVEOUT_HEAP
- struct ion_heap *ion_carveout_heap_create(struct ion_platform_heap *heap_data);
- void ion_carveout_heap_destroy(struct ion_heap *heap);
--
-+#else
-+static inline struct ion_heap *ion_carveout_heap_create(
-+	struct ion_platform_heap *heap_data)
-+{
-+	return ERR_PTR(-ENODEV);
-+}
-+static inline void ion_carveout_heap_destroy(struct ion_heap *heap) { }
-+#endif
-+
-+#ifdef CONFIG_ION_CHUNK_HEAP
- struct ion_heap *ion_chunk_heap_create(struct ion_platform_heap *heap_data);
- void ion_chunk_heap_destroy(struct ion_heap *heap);
-+#else
-+static inline struct ion_heap *ion_chunk_heap_create(
-+	struct ion_platform_heap *heap_data)
-+{
-+	return ERR_PTR(-ENODEV);
-+}
-+static inline void ion_chunk_heap_destroy(struct ion_heap *heap) { }
-+
-+#endif
-+
-+#ifdef CONFIG_ION_CMA_HEAP
- struct ion_heap *ion_cma_heap_create(struct ion_platform_heap *data);
- void ion_cma_heap_destroy(struct ion_heap *heap);
-+#else
-+static inline struct ion_heap *ion_cma_heap_create(
-+	struct ion_platform_heap *data)
-+{
-+	return ERR_PTR(-ENODEV);
-+}
-+static inline void ion_cma_heap_destroy(struct ion_heap *heap) { }
-+#endif
+diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
+index 61a1889..d23b168 100644
+--- a/include/media/v4l2-dv-timings.h
++++ b/include/media/v4l2-dv-timings.h
+@@ -196,6 +196,14 @@ bool v4l2_detect_gtf(unsigned frame_height, unsigned hfreq, unsigned vsync,
+ struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait);
  
  /**
-  * functions for creating and destroying a heap pool -- allows you
++ * v4l2_calc_fps - calculate the frames per seconds based on the
++ *	v4l2_dv_timings information.
++ *
++ * @t: the timings data.
++ */
++struct v4l2_fract v4l2_calc_fps(const struct v4l2_dv_timings *t);
++
++/**
+  * v4l2_dv_timings_aspect_ratio - calculate the aspect ratio based on the
+  *	v4l2_dv_timings information.
+  *
 -- 
-2.7.4
+1.9.1
