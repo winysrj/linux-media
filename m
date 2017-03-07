@@ -1,120 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:43038 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751605AbdCSKtM (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41910 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754309AbdCGQNR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 19 Mar 2017 06:49:12 -0400
-In-Reply-To: <20170319103801.GQ21222@n2100.armlinux.org.uk>
-References: <20170319103801.GQ21222@n2100.armlinux.org.uk>
-From: Russell King <rmk+kernel@armlinux.org.uk>
-To: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Tue, 7 Mar 2017 11:13:17 -0500
+Date: Tue, 7 Mar 2017 12:45:45 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, vladimir_zapolskiy@mentor.com,
+        CARLOS.PALMINHA@synopsys.com,
+        Andrew Morton <akpm@linux-foundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>,
+        Pavel Machek <pavel@ucw.cz>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Rob Herring <robh+dt@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
         Steve Longerbeam <slongerbeam@gmail.com>
-Cc: sakari.ailus@linux.intel.com, hverkuil@xs4all.nl,
-        linux-media@vger.kernel.org, kernel@pengutronix.de,
-        mchehab@kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, p.zabel@pengutronix.de
-Subject: [PATCH 2/4] media: imx: allow bayer pixel formats to be looked up
+Subject: Re: [PATCH v10 2/2] media: i2c: Add support for OV5647 sensor.
+Message-ID: <20170307104545.GI3220@valkosipuli.retiisi.org.uk>
+References: <cover.1488798062.git.roliveir@synopsys.com>
+ <67b5055a198316f74c5c1339e14a9f18a4106e69.1488798062.git.roliveir@synopsys.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <E1cpYOP-0006Eg-RQ@rmk-PC.armlinux.org.uk>
-Date: Sun, 19 Mar 2017 10:48:57 +0000
+In-Reply-To: <67b5055a198316f74c5c1339e14a9f18a4106e69.1488798062.git.roliveir@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Allow imx_media_find_format() to look up bayer formats, which is
-required to support frame size and interval enumeration.
+Hi Ramiro,
 
-Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
----
- drivers/staging/media/imx/imx-media-capture.c | 11 ++++++-----
- drivers/staging/media/imx/imx-media-utils.c   |  6 +++---
- drivers/staging/media/imx/imx-media.h         |  2 +-
- 3 files changed, 10 insertions(+), 9 deletions(-)
+On Mon, Mar 06, 2017 at 11:16:34AM +0000, Ramiro Oliveira wrote:
+...
+> +static int __sensor_init(struct v4l2_subdev *sd)
+> +{
+> +	int ret;
+> +	u8 resetval, rdval;
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +
+> +	dev_dbg(&client->dev, "sensor init\n");
 
-diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
-index ee914396080f..cdeb2cd8b1d7 100644
---- a/drivers/staging/media/imx/imx-media-capture.c
-+++ b/drivers/staging/media/imx/imx-media-capture.c
-@@ -164,10 +164,10 @@ static int capture_try_fmt_vid_cap(struct file *file, void *fh,
- 			CS_SEL_YUV : CS_SEL_RGB;
- 		fourcc = f->fmt.pix.pixelformat;
- 
--		cc = imx_media_find_format(fourcc, cs_sel);
-+		cc = imx_media_find_format(fourcc, cs_sel, false);
- 		if (!cc) {
- 			imx_media_enum_format(&fourcc, 0, cs_sel);
--			cc = imx_media_find_format(fourcc, cs_sel);
-+			cc = imx_media_find_format(fourcc, cs_sel, false);
- 		}
- 	}
- 
-@@ -193,7 +193,7 @@ static int capture_s_fmt_vid_cap(struct file *file, void *fh,
- 
- 	priv->vdev.fmt.fmt.pix = f->fmt.pix;
- 	priv->vdev.cc = imx_media_find_format(f->fmt.pix.pixelformat,
--					      CS_SEL_ANY);
-+					      CS_SEL_ANY, false);
- 
- 	return 0;
- }
-@@ -505,7 +505,8 @@ void imx_media_capture_device_set_format(struct imx_media_video_dev *vdev,
- 
- 	mutex_lock(&priv->mutex);
- 	priv->vdev.fmt.fmt.pix = *pix;
--	priv->vdev.cc = imx_media_find_format(pix->pixelformat, CS_SEL_ANY);
-+	priv->vdev.cc = imx_media_find_format(pix->pixelformat, CS_SEL_ANY,
-+					      false);
- 	mutex_unlock(&priv->mutex);
- }
- EXPORT_SYMBOL_GPL(imx_media_capture_device_set_format);
-@@ -614,7 +615,7 @@ int imx_media_capture_device_register(struct imx_media_video_dev *vdev)
- 	imx_media_mbus_fmt_to_pix_fmt(&vdev->fmt.fmt.pix,
- 				      &fmt_src.format, NULL);
- 	vdev->cc = imx_media_find_format(vdev->fmt.fmt.pix.pixelformat,
--					 CS_SEL_ANY);
-+					 CS_SEL_ANY, false);
- 
- 	v4l2_info(sd, "Registered %s as /dev/%s\n", vfd->name,
- 		  video_device_node_name(vfd));
-diff --git a/drivers/staging/media/imx/imx-media-utils.c b/drivers/staging/media/imx/imx-media-utils.c
-index 6eb7e3c5279e..d048e4a080d0 100644
---- a/drivers/staging/media/imx/imx-media-utils.c
-+++ b/drivers/staging/media/imx/imx-media-utils.c
-@@ -329,9 +329,9 @@ static int enum_format(u32 *fourcc, u32 *code, u32 index,
- }
- 
- const struct imx_media_pixfmt *
--imx_media_find_format(u32 fourcc, enum codespace_sel cs_sel)
-+imx_media_find_format(u32 fourcc, enum codespace_sel cs_sel, bool allow_bayer)
- {
--	return find_format(fourcc, 0, cs_sel, true, false);
-+	return find_format(fourcc, 0, cs_sel, true, allow_bayer);
- }
- EXPORT_SYMBOL_GPL(imx_media_find_format);
- 
-@@ -524,7 +524,7 @@ int imx_media_ipu_image_to_mbus_fmt(struct v4l2_mbus_framefmt *mbus,
- {
- 	const struct imx_media_pixfmt *fmt;
- 
--	fmt = imx_media_find_format(image->pix.pixelformat, CS_SEL_ANY);
-+	fmt = imx_media_find_format(image->pix.pixelformat, CS_SEL_ANY, false);
- 	if (!fmt)
- 		return -EINVAL;
- 
-diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
-index 234242271a13..d8c9536bf1f8 100644
---- a/drivers/staging/media/imx/imx-media.h
-+++ b/drivers/staging/media/imx/imx-media.h
-@@ -178,7 +178,7 @@ enum codespace_sel {
- };
- 
- const struct imx_media_pixfmt *
--imx_media_find_format(u32 fourcc, enum codespace_sel cs_sel);
-+imx_media_find_format(u32 fourcc, enum codespace_sel cs_sel, bool allow_bayer);
- int imx_media_enum_format(u32 *fourcc, u32 index, enum codespace_sel cs_sel);
- const struct imx_media_pixfmt *
- imx_media_find_mbus_format(u32 code, enum codespace_sel cs_sel,
+This looks like a debugging time leftover. Please remove.
+
+With that,
+
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+...
+
+> +static int ov5647_parse_dt(struct device_node *np)
+> +{
+> +	struct v4l2_of_endpoint bus_cfg;
+> +	struct device_node *ep;
+> +
+> +	int ret;
+> +
+> +	ep = of_graph_get_next_endpoint(np, NULL);
+> +	if (!ep)
+> +		return -EINVAL;
+> +
+> +	ret = v4l2_of_parse_endpoint(ep, &bus_cfg);
+> +
+> +	of_node_put(ep);
+> +	return ret;
+> +}
+
+This will conflict with my fwnode patchset. Let's see in which order the
+patches will be merged, one of the sets has to be changed. The work is
+trivial though.
+
 -- 
-2.7.4
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
