@@ -1,483 +1,1073 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:34842 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750837AbdCNUNI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Mar 2017 16:13:08 -0400
-Received: by mail-wr0-f193.google.com with SMTP id u108so25262617wrb.2
-        for <linux-media@vger.kernel.org>; Tue, 14 Mar 2017 13:13:07 -0700 (PDT)
-Date: Tue, 14 Mar 2017 21:13:03 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Laura Abbott <labbott@redhat.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-        linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Subject: Re: [RFC][PATCH] dma-buf: Introduce dma-buf test module
-Message-ID: <20170314201303.2o6bhyn5yudjx4m6@phenom.ffwll.local>
-References: <1489521859-20701-1-git-send-email-labbott@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1489521859-20701-1-git-send-email-labbott@redhat.com>
+Received: from smtprelay.synopsys.com ([198.182.47.9]:45046 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755574AbdCGOns (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 09:43:48 -0500
+From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org
+Cc: CARLOS.PALMINHA@synopsys.com,
+        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Arnd Bergmann <arnd@arndb.de>, Benoit Parrot <bparrot@ti.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Kieran Bingham <kieran+renesas@ksquared.org.uk>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Peter Griffin <peter.griffin@linaro.org>,
+        Rick Chang <rick.chang@mediatek.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Simon Horman <simon.horman@netronome.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Tiffany Lin <tiffany.lin@mediatek.com>
+Subject: [PATCH 2/4] media: platform: dwc: Support for DW CSI-2 Host
+Date: Tue,  7 Mar 2017 14:37:49 +0000
+Message-Id: <6a45f8d24993bc6ab02f8bd76ef1db421ab32d9c.1488885081.git.roliveir@synopsys.com>
+In-Reply-To: <cover.1488885081.git.roliveir@synopsys.com>
+References: <cover.1488885081.git.roliveir@synopsys.com>
+In-Reply-To: <cover.1488885081.git.roliveir@synopsys.com>
+References: <cover.1488885081.git.roliveir@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 14, 2017 at 01:04:19PM -0700, Laura Abbott wrote:
-> 
-> dma-buf is designed to share buffers. Sharing means that there needs to
-> be another subsystem to accept those buffers. Introduce a simple test
-> module to act as a dummy system to accept dma_bufs from elsewhere. The
-> goal is to provide a very simple interface to validate exported buffers
-> do something reasonable. This is based on ion_test.c that existed for
-> the Ion framework.
-> 
-> Signed-off-by: Laura Abbott <labbott@redhat.com>
-> ---
-> This is basically a drop in of what was available as
-> drivers/staging/android/ion/ion_test.c. Given it has no Ion specific
-> parts it might be useful as a more general test module. RFC mostly
-> to see if this is generally useful or not.
+Add support for the Synopsys DesignWare CSI-2 Host
 
-We already have a test dma-buf driver, which also handles reservation
-objects and can create fences to provoke signalling races an all kinds of
-other fun. It's drivers/gpu/drm/vgem.
+Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
+---
+ MAINTAINERS                              |   7 +
+ drivers/media/platform/Kconfig           |   1 +
+ drivers/media/platform/Makefile          |   2 +
+ drivers/media/platform/dwc/Kconfig       |   5 +
+ drivers/media/platform/dwc/Makefile      |   1 +
+ drivers/media/platform/dwc/dw_mipi_csi.c | 653 +++++++++++++++++++++++++++++++
+ drivers/media/platform/dwc/dw_mipi_csi.h | 181 +++++++++
+ include/media/dwc/csi_host_platform.h    |  97 +++++
+ 8 files changed, 947 insertions(+)
+ create mode 100644 drivers/media/platform/dwc/Kconfig
+ create mode 100644 drivers/media/platform/dwc/Makefile
+ create mode 100644 drivers/media/platform/dwc/dw_mipi_csi.c
+ create mode 100644 drivers/media/platform/dwc/dw_mipi_csi.h
+ create mode 100644 include/media/dwc/csi_host_platform.h
 
-If there's anything missing in there, patches very much welcome.
--Daniel
-
-> ---
->  drivers/dma-buf/Kconfig           |   9 ++
->  drivers/dma-buf/Makefile          |   1 +
->  drivers/dma-buf/dma-buf-test.c    | 309 ++++++++++++++++++++++++++++++++++++++
->  include/uapi/linux/dma_buf_test.h |  67 +++++++++
->  4 files changed, 386 insertions(+)
->  create mode 100644 drivers/dma-buf/dma-buf-test.c
->  create mode 100644 include/uapi/linux/dma_buf_test.h
-> 
-> diff --git a/drivers/dma-buf/Kconfig b/drivers/dma-buf/Kconfig
-> index ed3b785..8b3fdb1 100644
-> --- a/drivers/dma-buf/Kconfig
-> +++ b/drivers/dma-buf/Kconfig
-> @@ -30,4 +30,13 @@ config SW_SYNC
->  	  WARNING: improper use of this can result in deadlocking kernel
->  	  drivers from userspace. Intended for test and debug only.
->  
-> +config DMA_BUF_TEST
-> +	bool "Test module for dma-buf"
-> +	default n
-> +	---help---
-> +	  A test module to validate dma_buf APIs. This should not be
-> +	  enabled for general use.
-> +
-> +	  Say N here unless you know you want this.
-> +
->  endmenu
-> diff --git a/drivers/dma-buf/Makefile b/drivers/dma-buf/Makefile
-> index c33bf88..5029608 100644
-> --- a/drivers/dma-buf/Makefile
-> +++ b/drivers/dma-buf/Makefile
-> @@ -1,3 +1,4 @@
->  obj-y := dma-buf.o dma-fence.o dma-fence-array.o reservation.o seqno-fence.o
->  obj-$(CONFIG_SYNC_FILE)		+= sync_file.o
->  obj-$(CONFIG_SW_SYNC)		+= sw_sync.o sync_debug.o
-> +obj-$(CONFIG_DMA_BUF_TEST)	+= dma-buf-test.o
-> diff --git a/drivers/dma-buf/dma-buf-test.c b/drivers/dma-buf/dma-buf-test.c
-> new file mode 100644
-> index 0000000..3af131c
-> --- /dev/null
-> +++ b/drivers/dma-buf/dma-buf-test.c
-> @@ -0,0 +1,309 @@
-> +/*
-> + * Copyright (C) 2013 Google, Inc.
-> + *
-> + * This software is licensed under the terms of the GNU General Public
-> + * License versdma_buf 2, as published by the Free Software Foundatdma_buf, and
-> + * may be copied, distributed, and modified under those terms.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + */
-> +
-> +#define pr_fmt(fmt) "dma-buf-test: " fmt
-> +
-> +#include <linux/dma-buf.h>
-> +#include <linux/dma-direction.h>
-> +#include <linux/fs.h>
-> +#include <linux/miscdevice.h>
-> +#include <linux/mm.h>
-> +#include <linux/module.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/sched.h>
-> +#include <linux/slab.h>
-> +#include <linux/uaccess.h>
-> +#include <linux/vmalloc.h>
-> +
-> +#include <uapi/linux/dma_buf_test.h>
-> +
-> +struct dma_buf_test_device {
-> +	struct miscdevice misc;
-> +};
-> +
-> +struct dma_buf_test_data {
-> +	struct dma_buf *dma_buf;
-> +	struct device *dev;
-> +};
-> +
-> +static int dma_buf_handle_test_dma(struct device *dev, struct dma_buf *dma_buf,
-> +			       void __user *ptr, size_t offset, size_t size,
-> +			       bool write)
-> +{
-> +	int ret = 0;
-> +	struct dma_buf_attachment *attach;
-> +	struct sg_table *table;
-> +	pgprot_t pgprot = pgprot_writecombine(PAGE_KERNEL);
-> +	enum dma_data_direction dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-> +	struct sg_page_iter sg_iter;
-> +	unsigned long offset_page;
-> +
-> +	attach = dma_buf_attach(dma_buf, dev);
-> +	if (IS_ERR(attach))
-> +		return PTR_ERR(attach);
-> +
-> +	table = dma_buf_map_attachment(attach, dir);
-> +	if (IS_ERR(table))
-> +		return PTR_ERR(table);
-> +
-> +	offset_page = offset >> PAGE_SHIFT;
-> +	offset %= PAGE_SIZE;
-> +
-> +	for_each_sg_page(table->sgl, &sg_iter, table->nents, offset_page) {
-> +		struct page *page = sg_page_iter_page(&sg_iter);
-> +		void *vaddr = vmap(&page, 1, VM_MAP, pgprot);
-> +		size_t to_copy = PAGE_SIZE - offset;
-> +
-> +		to_copy = min(to_copy, size);
-> +		if (!vaddr) {
-> +			ret = -ENOMEM;
-> +			goto err;
-> +		}
-> +
-> +		if (write)
-> +			ret = copy_from_user(vaddr + offset, ptr, to_copy);
-> +		else
-> +			ret = copy_to_user(ptr, vaddr + offset, to_copy);
-> +
-> +		vunmap(vaddr);
-> +		if (ret) {
-> +			ret = -EFAULT;
-> +			goto err;
-> +		}
-> +		size -= to_copy;
-> +		if (!size)
-> +			break;
-> +		ptr += to_copy;
-> +		offset = 0;
-> +	}
-> +
-> +err:
-> +	dma_buf_unmap_attachment(attach, table, dir);
-> +	dma_buf_detach(dma_buf, attach);
-> +	return ret;
-> +}
-> +
-> +static int dma_buf_handle_test_kernel(struct dma_buf *dma_buf, void __user *ptr,
-> +				  size_t offset, size_t size, bool write)
-> +{
-> +	int ret;
-> +	unsigned long page_offset = offset >> PAGE_SHIFT;
-> +	size_t copy_offset = offset % PAGE_SIZE;
-> +	size_t copy_size = size;
-> +	enum dma_data_direction dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-> +
-> +	if (offset > dma_buf->size || size > dma_buf->size - offset)
-> +		return -EINVAL;
-> +
-> +	ret = dma_buf_begin_cpu_access(dma_buf, dir);
-> +	if (ret)
-> +		return ret;
-> +
-> +	while (copy_size > 0) {
-> +		size_t to_copy;
-> +		void *vaddr = dma_buf_kmap(dma_buf, page_offset);
-> +
-> +		if (!vaddr)
-> +			goto err;
-> +
-> +		to_copy = min_t(size_t, PAGE_SIZE - copy_offset, copy_size);
-> +
-> +		if (write)
-> +			ret = copy_from_user(vaddr + copy_offset, ptr, to_copy);
-> +		else
-> +			ret = copy_to_user(ptr, vaddr + copy_offset, to_copy);
-> +
-> +		dma_buf_kunmap(dma_buf, page_offset, vaddr);
-> +		if (ret) {
-> +			ret = -EFAULT;
-> +			goto err;
-> +		}
-> +
-> +		copy_size -= to_copy;
-> +		ptr += to_copy;
-> +		page_offset++;
-> +		copy_offset = 0;
-> +	}
-> +err:
-> +	dma_buf_end_cpu_access(dma_buf, dir);
-> +	return ret;
-> +}
-> +
-> +static long dma_buf_test_ioctl(struct file *filp, unsigned int cmd,
-> +			   unsigned long arg)
-> +{
-> +	struct dma_buf_test_data *test_data = filp->private_data;
-> +	int ret = 0;
-> +
-> +	union {
-> +		struct dma_buf_test_rw_data test_rw;
-> +	} data;
-> +
-> +	if (_IOC_SIZE(cmd) > sizeof(data))
-> +		return -EINVAL;
-> +
-> +	if (_IOC_DIR(cmd) & _IOC_WRITE)
-> +		if (copy_from_user(&data, (void __user *)arg, _IOC_SIZE(cmd)))
-> +			return -EFAULT;
-> +
-> +	switch (cmd) {
-> +	case DMA_BUF_IOC_TEST_SET_FD:
-> +	{
-> +		struct dma_buf *dma_buf = NULL;
-> +		int fd = arg;
-> +
-> +		if (fd >= 0) {
-> +			dma_buf = dma_buf_get((int)arg);
-> +			if (IS_ERR(dma_buf))
-> +				return PTR_ERR(dma_buf);
-> +		}
-> +		if (test_data->dma_buf)
-> +			dma_buf_put(test_data->dma_buf);
-> +		test_data->dma_buf = dma_buf;
-> +		break;
-> +	}
-> +	case DMA_BUF_IOC_TEST_DMA_MAPPING:
-> +	{
-> +		ret = dma_buf_handle_test_dma(test_data->dev,
-> +					  test_data->dma_buf,
-> +					  u64_to_user_ptr(data.test_rw.ptr),
-> +					  data.test_rw.offset,
-> +					  data.test_rw.size,
-> +					  data.test_rw.write);
-> +		break;
-> +	}
-> +	case DMA_BUF_IOC_TEST_KERNEL_MAPPING:
-> +	{
-> +		ret = dma_buf_handle_test_kernel(test_data->dma_buf,
-> +					     u64_to_user_ptr(data.test_rw.ptr),
-> +					     data.test_rw.offset,
-> +					     data.test_rw.size,
-> +					     data.test_rw.write);
-> +		break;
-> +	}
-> +	default:
-> +		return -ENOTTY;
-> +	}
-> +
-> +	if (_IOC_DIR(cmd) & _IOC_READ) {
-> +		if (copy_to_user((void __user *)arg, &data, sizeof(data)))
-> +			return -EFAULT;
-> +	}
-> +	return ret;
-> +}
-> +
-> +static int dma_buf_test_open(struct inode *inode, struct file *file)
-> +{
-> +	struct dma_buf_test_data *data;
-> +	struct miscdevice *miscdev = file->private_data;
-> +
-> +	data = kzalloc(sizeof(*data), GFP_KERNEL);
-> +	if (!data)
-> +		return -ENOMEM;
-> +
-> +	data->dev = miscdev->parent;
-> +
-> +	file->private_data = data;
-> +
-> +	return 0;
-> +}
-> +
-> +static int dma_buf_test_release(struct inode *inode, struct file *file)
-> +{
-> +	struct dma_buf_test_data *data = file->private_data;
-> +
-> +	kfree(data);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct file_operations dma_buf_test_fops = {
-> +	.owner = THIS_MODULE,
-> +	.unlocked_ioctl = dma_buf_test_ioctl,
-> +	.compat_ioctl = dma_buf_test_ioctl,
-> +	.open = dma_buf_test_open,
-> +	.release = dma_buf_test_release,
-> +};
-> +
-> +static int __init dma_buf_test_probe(struct platform_device *pdev)
-> +{
-> +	int ret;
-> +	struct dma_buf_test_device *testdev;
-> +
-> +	testdev = devm_kzalloc(&pdev->dev, sizeof(struct dma_buf_test_device),
-> +			       GFP_KERNEL);
-> +	if (!testdev)
-> +		return -ENOMEM;
-> +
-> +	testdev->misc.minor = MISC_DYNAMIC_MINOR;
-> +	testdev->misc.name = "dma_buf-test";
-> +	testdev->misc.fops = &dma_buf_test_fops;
-> +	testdev->misc.parent = &pdev->dev;
-> +	/*
-> +	 * We need to force 'something' for a DMA mask. This isn't an actual
-> +	 * device and won't be doing actual DMA so pick 'something' that
-> +	 * probably won't blow up. Probably.
-> +	 */
-> +	dma_coerce_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(64));
-> +	ret = misc_register(&testdev->misc);
-> +	if (ret) {
-> +		pr_err("failed to register misc device.\n");
-> +		return ret;
-> +	}
-> +
-> +	platform_set_drvdata(pdev, testdev);
-> +
-> +	return 0;
-> +}
-> +
-> +static int dma_buf_test_remove(struct platform_device *pdev)
-> +{
-> +	struct dma_buf_test_device *testdev;
-> +
-> +	testdev = platform_get_drvdata(pdev);
-> +	if (!testdev)
-> +		return -ENODATA;
-> +
-> +	misc_deregister(&testdev->misc);
-> +	return 0;
-> +}
-> +
-> +static struct platform_device *dma_buf_test_pdev;
-> +static struct platform_driver dma_buf_test_platform_driver = {
-> +	.remove = dma_buf_test_remove,
-> +	.driver = {
-> +		.name = "dma_buf-test",
-> +	},
-> +};
-> +
-> +static int __init dma_buf_test_init(void)
-> +{
-> +	dma_buf_test_pdev = platform_device_register_simple("dma-buf-test",
-> +							-1, NULL, 0);
-> +	if (IS_ERR(dma_buf_test_pdev))
-> +		return PTR_ERR(dma_buf_test_pdev);
-> +
-> +	return platform_driver_probe(&dma_buf_test_platform_driver,
-> +				     dma_buf_test_probe);
-> +}
-> +
-> +static void __exit dma_buf_test_exit(void)
-> +{
-> +	platform_driver_unregister(&dma_buf_test_platform_driver);
-> +	platform_device_unregister(dma_buf_test_pdev);
-> +}
-> +
-> +module_init(dma_buf_test_init);
-> +module_exit(dma_buf_test_exit);
-> +MODULE_LICENSE("GPL v2");
-> diff --git a/include/uapi/linux/dma_buf_test.h b/include/uapi/linux/dma_buf_test.h
-> new file mode 100644
-> index 0000000..af2d521
-> --- /dev/null
-> +++ b/include/uapi/linux/dma_buf_test.h
-> @@ -0,0 +1,67 @@
-> +/*
-> + * Copyright (C) 2011 Google, Inc.
-> + *
-> + * This software is licensed under the terms of the GNU General Public
-> + * License versdma_buf 2, as published by the Free Software Foundatdma_buf, and
-> + * may be copied, distributed, and modified under those terms.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + */
-> +
-> +#ifndef _UAPI_LINUX_DMA_BUF_TEST_H
-> +#define _UAPI_LINUX_DMA_BUF_TEST_H
-> +
-> +#include <linux/ioctl.h>
-> +#include <linux/types.h>
-> +
-> +/**
-> + * struct dma_buf_test_rw_data - metadata passed to the kernel to read handle
-> + * @ptr:	a pointer to an area at least as large as size
-> + * @offset:	offset into the dma_buf buffer to start reading
-> + * @size:	size to read or write
-> + * @write:	1 to write, 0 to read
-> + */
-> +struct dma_buf_test_rw_data {
-> +	__u64 ptr;
-> +	__u64 offset;
-> +	__u64 size;
-> +	int write;
-> +	int __padding;
-> +};
-> +
-> +#define DMA_BUF_IOC_MAGIC		'I'
-> +
-> +/**
-> + * DOC: DMA_BUF_IOC_TEST_SET_DMA_BUF - attach a dma buf to the test driver
-> + *
-> + * Attaches a dma buf fd to the test driver.  Passing a second fd or -1 will
-> + * release the first fd.
-> + */
-> +#define DMA_BUF_IOC_TEST_SET_FD \
-> +			_IO(DMA_BUF_IOC_MAGIC, 0xf0)
-> +
-> +/**
-> + * DOC: DMA_BUF_IOC_TEST_DMA_MAPPING - read or write memory from a handle as DMA
-> + *
-> + * Reads or writes the memory from a handle using an uncached mapping.  Can be
-> + * used by unit tests to emulate a DMA engine as close as possible.  Only
-> + * expected to be used for debugging and testing, may not always be available.
-> + */
-> +#define DMA_BUF_IOC_TEST_DMA_MAPPING \
-> +			_IOW(DMA_BUF_IOC_MAGIC, 0xf1, struct dma_buf_test_rw_data)
-> +
-> +/**
-> + * DOC: DMA_BUF_IOC_TEST_KERNEL_MAPPING - read or write memory from a handle
-> + *
-> + * Reads or writes the memory from a handle using a kernel mapping.  Can be
-> + * used by unit tests to test heap map_kernel functdma_bufs.  Only expected to be
-> + * used for debugging and testing, may not always be available.
-> + */
-> +#define DMA_BUF_IOC_TEST_KERNEL_MAPPING \
-> +			_IOW(DMA_BUF_IOC_MAGIC, 0xf2, struct dma_buf_test_rw_data)
-> +
-> +#endif /* _UAPI_LINUX_DMA_BUF_TEST_H */
-> -- 
-> 2.7.4
-> 
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
-
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 5badfd33e51f..19673dad43b4 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -11061,6 +11061,13 @@ S:	Maintained
+ F:	drivers/staging/media/st-cec/
+ F:	Documentation/devicetree/bindings/media/stih-cec.txt
+ 
++SYNOPSYS DESIGNWARE CSI-2 HOST VIDEO PLATFORM
++M:	Ramiro Oliveira <roliveir@synopsys.com>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/platform/dwc/
++
+ SHARED MEMORY COMMUNICATIONS (SMC) SOCKETS
+ M:	Ursula Braun <ubraun@linux.vnet.ibm.com>
+ L:	linux-s390@vger.kernel.org
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 53f6f12bff0d..4b6e00da763f 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -120,6 +120,7 @@ source "drivers/media/platform/am437x/Kconfig"
+ source "drivers/media/platform/xilinx/Kconfig"
+ source "drivers/media/platform/rcar-vin/Kconfig"
+ source "drivers/media/platform/atmel/Kconfig"
++source "drivers/media/platform/dwc/Kconfig"
+ 
+ config VIDEO_TI_CAL
+ 	tristate "TI CAL (Camera Adaptation Layer) driver"
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 8959f6e6692a..95eae2772c1f 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -64,6 +64,8 @@ obj-$(CONFIG_VIDEO_RCAR_VIN)		+= rcar-vin/
+ 
+ obj-$(CONFIG_VIDEO_ATMEL_ISC)		+= atmel/
+ 
++obj-$(CONFIG_CSI_VIDEO_PLATFORM)	+= dwc/
++
+ ccflags-y += -I$(srctree)/drivers/media/i2c
+ 
+ obj-$(CONFIG_VIDEO_MEDIATEK_VPU)	+= mtk-vpu/
+diff --git a/drivers/media/platform/dwc/Kconfig b/drivers/media/platform/dwc/Kconfig
+new file mode 100644
+index 000000000000..2cd13d23f897
+--- /dev/null
++++ b/drivers/media/platform/dwc/Kconfig
+@@ -0,0 +1,5 @@
++config DWC_MIPI_CSI2_HOST
++	tristate "SNPS DWC MIPI CSI2 Host"
++	select GENERIC_PHY
++	help
++	  This is a V4L2 driver for Synopsys Designware MIPI CSI-2 Host.
+diff --git a/drivers/media/platform/dwc/Makefile b/drivers/media/platform/dwc/Makefile
+new file mode 100644
+index 000000000000..5eb076a55123
+--- /dev/null
++++ b/drivers/media/platform/dwc/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_DWC_MIPI_CSI2_HOST)	+= dw_mipi_csi.o
+diff --git a/drivers/media/platform/dwc/dw_mipi_csi.c b/drivers/media/platform/dwc/dw_mipi_csi.c
+new file mode 100644
+index 000000000000..6905def40a07
+--- /dev/null
++++ b/drivers/media/platform/dwc/dw_mipi_csi.c
+@@ -0,0 +1,653 @@
++/*
++ * DWC MIPI CSI-2 Host device driver
++ *
++ * Copyright (C) 2016 Synopsys, Inc. All rights reserved.
++ * Author: Ramiro Oliveira <ramiro.oliveira@synopsys.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published
++ * by the Free Software Foundation, either version 2 of the License,
++ * or (at your option) any later version.
++ */
++
++#include "dw_mipi_csi.h"
++
++/**
++ * @short Video formats supported by the MIPI CSI-2
++ */
++static const struct mipi_fmt dw_mipi_csi_formats[] = {
++	{
++		/* RAW 8 */
++		.code = MEDIA_BUS_FMT_SBGGR8_1X8,
++		.depth = 8,
++	},
++	{
++		/* RAW 10 */
++		.code = MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE,
++		.depth = 10,
++	},
++	{
++		/* RGB 565 */
++		.code = MEDIA_BUS_FMT_RGB565_2X8_BE,
++		.depth = 16,
++	},
++	{
++		/* BGR 565 */
++		.code = MEDIA_BUS_FMT_RGB565_2X8_LE,
++		.depth = 16,
++	},
++	{
++		/* RGB 888 */
++		.code = MEDIA_BUS_FMT_RGB888_2X12_LE,
++		.depth = 24,
++	},
++	{
++		/* BGR 888 */
++		.code = MEDIA_BUS_FMT_RGB888_2X12_BE,
++		.depth = 24,
++	},
++};
++
++static struct mipi_csi_dev *sd_to_mipi_csi_dev(struct v4l2_subdev *sdev)
++{
++	return container_of(sdev, struct mipi_csi_dev, sd);
++}
++
++static void dw_mipi_csi_write(struct mipi_csi_dev *dev,
++		  unsigned int address, unsigned int data)
++{
++	iowrite32(data, dev->base_address + address);
++}
++
++static u32 dw_mipi_csi_read(struct mipi_csi_dev *dev, unsigned long address)
++{
++	return ioread32(dev->base_address + address);
++}
++
++static void dw_mipi_csi_write_part(struct mipi_csi_dev *dev,
++		       unsigned long address, unsigned long data,
++		       unsigned char shift, unsigned char width)
++{
++	u32 mask = (1 << width) - 1;
++	u32 temp = dw_mipi_csi_read(dev, address);
++
++	temp &= ~(mask << shift);
++	temp |= (data & mask) << shift;
++	dw_mipi_csi_write(dev, address, temp);
++}
++
++static const struct mipi_fmt *
++find_dw_mipi_csi_format(struct v4l2_mbus_framefmt *mf)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(dw_mipi_csi_formats); i++)
++		if (mf->code == dw_mipi_csi_formats[i].code)
++			return &dw_mipi_csi_formats[i];
++	return NULL;
++}
++
++static void dw_mipi_csi_reset(struct mipi_csi_dev *dev)
++{
++	dw_mipi_csi_write(dev, R_CSI2_CTRL_RESETN, 0);
++	dw_mipi_csi_write(dev, R_CSI2_CTRL_RESETN, 1);
++}
++
++static int dw_mipi_csi_mask_irq_power_off(struct mipi_csi_dev *dev)
++{
++	/* set only one lane (lane 0) as active (ON) */
++	dw_mipi_csi_write(dev, R_CSI2_N_LANES, 0);
++
++	dw_mipi_csi_write(dev, R_CSI2_MASK_INT_PHY_FATAL, 0);
++	dw_mipi_csi_write(dev, R_CSI2_MASK_INT_PKT_FATAL, 0);
++	dw_mipi_csi_write(dev, R_CSI2_MASK_INT_FRAME_FATAL, 0);
++	dw_mipi_csi_write(dev, R_CSI2_MASK_INT_PHY, 0);
++	dw_mipi_csi_write(dev, R_CSI2_MASK_INT_PKT, 0);
++	dw_mipi_csi_write(dev, R_CSI2_MASK_INT_LINE, 0);
++	dw_mipi_csi_write(dev, R_CSI2_MASK_INT_IPI, 0);
++
++	dw_mipi_csi_write(dev, R_CSI2_CTRL_RESETN, 0);
++
++	return 0;
++
++}
++
++static int dw_mipi_csi_hw_stdby(struct mipi_csi_dev *dev)
++{
++	/* set only one lane (lane 0) as active (ON) */
++	dw_mipi_csi_reset(dev);
++
++	dw_mipi_csi_write(dev, R_CSI2_N_LANES, 0);
++
++	phy_init(dev->phy);
++
++	dw_mipi_csi_write(dev, R_CSI2_MASK_INT_PHY_FATAL, 0xFFFFFFFF);
++	dw_mipi_csi_write(dev, R_CSI2_MASK_INT_PKT_FATAL, 0xFFFFFFFF);
++	dw_mipi_csi_write(dev, R_CSI2_MASK_INT_FRAME_FATAL, 0xFFFFFFFF);
++	dw_mipi_csi_write(dev, R_CSI2_MASK_INT_PHY, 0xFFFFFFFF);
++	dw_mipi_csi_write(dev, R_CSI2_MASK_INT_PKT, 0xFFFFFFFF);
++	dw_mipi_csi_write(dev, R_CSI2_MASK_INT_LINE, 0xFFFFFFFF);
++	dw_mipi_csi_write(dev, R_CSI2_MASK_INT_IPI, 0xFFFFFFFF);
++
++	return 0;
++
++}
++
++static void dw_mipi_csi_set_ipi_fmt(struct mipi_csi_dev *csi_dev)
++{
++	struct device *dev = &csi_dev->pdev->dev;
++
++	switch (csi_dev->fmt->code) {
++	case MEDIA_BUS_FMT_RGB565_2X8_BE:
++	case MEDIA_BUS_FMT_RGB565_2X8_LE:
++		dw_mipi_csi_write(csi_dev, R_CSI2_IPI_DATA_TYPE, CSI_2_RGB565);
++		dev_dbg(dev, "DT: RGB 565");
++		break;
++
++	case MEDIA_BUS_FMT_RGB888_2X12_LE:
++	case MEDIA_BUS_FMT_RGB888_2X12_BE:
++		dw_mipi_csi_write(csi_dev, R_CSI2_IPI_DATA_TYPE, CSI_2_RGB888);
++		dev_dbg(dev, "DT: RGB 888");
++		break;
++	case MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE:
++		dw_mipi_csi_write(csi_dev, R_CSI2_IPI_DATA_TYPE, CSI_2_RAW10);
++		dev_dbg(dev, "DT: RAW 10");
++		break;
++	case MEDIA_BUS_FMT_SBGGR8_1X8:
++		dw_mipi_csi_write(csi_dev, R_CSI2_IPI_DATA_TYPE, CSI_2_RAW8);
++		dev_dbg(dev, "DT: RAW 8");
++		break;
++	default:
++		dw_mipi_csi_write(csi_dev, R_CSI2_IPI_DATA_TYPE, CSI_2_RGB565);
++		dev_dbg(dev, "Error");
++		break;
++	}
++}
++
++static void __dw_mipi_csi_fill_timings(struct mipi_csi_dev *dev,
++			   const struct v4l2_bt_timings *bt)
++{
++
++	if (bt == NULL)
++		return;
++
++	dev->hw.hsa = bt->hsync;
++	dev->hw.hbp = bt->hbackporch;
++	dev->hw.hsd = bt->hsync;
++	dev->hw.htotal = bt->height + bt->vfrontporch +
++	    bt->vsync + bt->vbackporch;
++	dev->hw.vsa = bt->vsync;
++	dev->hw.vbp = bt->vbackporch;
++	dev->hw.vfp = bt->vfrontporch;
++	dev->hw.vactive = bt->height;
++}
++
++static void dw_mipi_csi_start(struct mipi_csi_dev *csi_dev)
++{
++	const struct v4l2_bt_timings *bt = &v4l2_dv_timings_presets[0].bt;
++	struct device *dev = &csi_dev->pdev->dev;
++
++	__dw_mipi_csi_fill_timings(csi_dev, bt);
++
++	dw_mipi_csi_write(csi_dev, R_CSI2_N_LANES, (csi_dev->hw.num_lanes - 1));
++	dev_dbg(dev, "N Lanes: %d\n", csi_dev->hw.num_lanes);
++
++	/*IPI Related Configuration */
++	if ((csi_dev->hw.output_type == IPI_OUT)
++	    || (csi_dev->hw.output_type == BOTH_OUT)) {
++
++		dw_mipi_csi_write_part(csi_dev, R_CSI2_IPI_MODE,
++					csi_dev->hw.ipi_mode, 0, 1);
++		dev_dbg(dev, "IPI MODE: %d\n", csi_dev->hw.ipi_mode);
++
++		dw_mipi_csi_write_part(csi_dev, R_CSI2_IPI_MODE,
++				       csi_dev->hw.ipi_color_mode, 8, 1);
++		dev_dbg(dev, "Color Mode: %d\n", csi_dev->hw.ipi_color_mode);
++
++		dw_mipi_csi_write(csi_dev, R_CSI2_IPI_VCID,
++					csi_dev->hw.virtual_ch);
++		dev_dbg(dev, "Virtual Channel: %d\n", csi_dev->hw.virtual_ch);
++
++		dw_mipi_csi_write_part(csi_dev, R_CSI2_IPI_MEM_FLUSH,
++				       csi_dev->hw.ipi_auto_flush, 8, 1);
++		dev_dbg(dev, "Auto-flush: %d\n", csi_dev->hw.ipi_auto_flush);
++
++		dw_mipi_csi_write(csi_dev, R_CSI2_IPI_HSA_TIME,
++					csi_dev->hw.hsa);
++		dev_dbg(dev, "HSA: %d\n", csi_dev->hw.hsa);
++
++		dw_mipi_csi_write(csi_dev, R_CSI2_IPI_HBP_TIME,
++					csi_dev->hw.hbp);
++		dev_dbg(dev, "HBP: %d\n", csi_dev->hw.hbp);
++
++		dw_mipi_csi_write(csi_dev, R_CSI2_IPI_HSD_TIME,
++					csi_dev->hw.hsd);
++		dev_dbg(dev, "HSD: %d\n", csi_dev->hw.hsd);
++
++		if (csi_dev->hw.ipi_mode == AUTO_TIMING) {
++			dw_mipi_csi_write(csi_dev, R_CSI2_IPI_HLINE_TIME,
++					  csi_dev->hw.htotal);
++			dev_dbg(dev, "H total: %d\n", csi_dev->hw.htotal);
++
++			dw_mipi_csi_write(csi_dev, R_CSI2_IPI_VSA_LINES,
++					  csi_dev->hw.vsa);
++			dev_dbg(dev, "VSA: %d\n", csi_dev->hw.vsa);
++
++			dw_mipi_csi_write(csi_dev, R_CSI2_IPI_VBP_LINES,
++					  csi_dev->hw.vbp);
++			dev_dbg(dev, "VBP: %d\n", csi_dev->hw.vbp);
++
++			dw_mipi_csi_write(csi_dev, R_CSI2_IPI_VFP_LINES,
++					  csi_dev->hw.vfp);
++			dev_dbg(dev, "VFP: %d\n", csi_dev->hw.vfp);
++
++			dw_mipi_csi_write(csi_dev, R_CSI2_IPI_VACTIVE_LINES,
++					  csi_dev->hw.vactive);
++			dev_dbg(dev, "V Active: %d\n", csi_dev->hw.vactive);
++		}
++	}
++
++	phy_power_on(csi_dev->phy);
++}
++
++static int dw_mipi_csi_enum_mbus_code(struct v4l2_subdev *sd,
++					struct v4l2_subdev_pad_config *cfg,
++					struct v4l2_subdev_mbus_code_enum *code)
++{
++	if (code->index >= ARRAY_SIZE(dw_mipi_csi_formats))
++		return -EINVAL;
++
++	code->code = dw_mipi_csi_formats[code->index].code;
++	return 0;
++}
++
++static struct mipi_fmt const *
++dw_mipi_csi_try_format(struct v4l2_mbus_framefmt *mf)
++{
++	struct mipi_fmt const *fmt;
++
++	fmt = find_dw_mipi_csi_format(mf);
++	if (fmt == NULL)
++		fmt = &dw_mipi_csi_formats[0];
++
++	mf->code = fmt->code;
++	return fmt;
++}
++
++static struct v4l2_mbus_framefmt *
++__dw_mipi_csi_get_format(struct mipi_csi_dev *dev,
++			 struct v4l2_subdev_pad_config *cfg,
++			 enum v4l2_subdev_format_whence which)
++{
++	if (which == V4L2_SUBDEV_FORMAT_TRY)
++		return cfg ? v4l2_subdev_get_try_format(&dev->sd, cfg,
++							0) : NULL;
++
++	return &dev->format;
++}
++
++static int
++dw_mipi_csi_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
++		    struct v4l2_subdev_format *fmt)
++{
++	struct mipi_csi_dev *dev = sd_to_mipi_csi_dev(sd);
++	struct mipi_fmt const *dev_fmt;
++	struct v4l2_mbus_framefmt *mf;
++	unsigned int i = 0;
++	const struct v4l2_bt_timings *bt_r = &v4l2_dv_timings_presets[0].bt;
++
++	mf = __dw_mipi_csi_get_format(dev, cfg, fmt->which);
++
++	dev_fmt = dw_mipi_csi_try_format(&fmt->format);
++	if (dev_fmt) {
++		*mf = fmt->format;
++		if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
++			dev->fmt = dev_fmt;
++		dw_mipi_csi_set_ipi_fmt(dev);
++	}
++	while (v4l2_dv_timings_presets[i].bt.width) {
++		const struct v4l2_bt_timings *bt =
++		    &v4l2_dv_timings_presets[i].bt;
++		if (mf->width == bt->width && mf->height == bt->width) {
++			__dw_mipi_csi_fill_timings(dev, bt);
++			return 0;
++		}
++		i++;
++	}
++
++	__dw_mipi_csi_fill_timings(dev, bt_r);
++	return 0;
++
++}
++
++static int
++dw_mipi_csi_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
++		    struct v4l2_subdev_format *fmt)
++{
++	struct mipi_csi_dev *dev = sd_to_mipi_csi_dev(sd);
++	struct v4l2_mbus_framefmt *mf;
++
++	mf = __dw_mipi_csi_get_format(dev, cfg, fmt->which);
++	if (!mf)
++		return -EINVAL;
++
++	mutex_lock(&dev->lock);
++	fmt->format = *mf;
++	mutex_unlock(&dev->lock);
++	return 0;
++}
++
++static int
++dw_mipi_csi_s_power(struct v4l2_subdev *sd, int on)
++{
++	struct mipi_csi_dev *dev = sd_to_mipi_csi_dev(sd);
++
++	if (on) {
++		dw_mipi_csi_hw_stdby(dev);
++		dw_mipi_csi_start(dev);
++	} else {
++		dw_mipi_csi_mask_irq_power_off(dev);
++	}
++
++	return 0;
++}
++
++static int
++dw_mipi_csi_init_cfg(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg)
++{
++	struct v4l2_mbus_framefmt *format =
++	    v4l2_subdev_get_try_format(sd, cfg, 0);
++
++	format->colorspace = V4L2_COLORSPACE_SRGB;
++	format->code = dw_mipi_csi_formats[0].code;
++	format->width = MIN_WIDTH;
++	format->height = MIN_HEIGHT;
++	format->field = V4L2_FIELD_NONE;
++
++	return 0;
++}
++
++static struct v4l2_subdev_core_ops dw_mipi_csi_core_ops = {
++	.s_power = dw_mipi_csi_s_power,
++};
++
++static struct v4l2_subdev_pad_ops dw_mipi_csi_pad_ops = {
++	.init_cfg = dw_mipi_csi_init_cfg,
++	.enum_mbus_code = dw_mipi_csi_enum_mbus_code,
++	.get_fmt = dw_mipi_csi_get_fmt,
++	.set_fmt = dw_mipi_csi_set_fmt,
++};
++
++static struct v4l2_subdev_ops dw_mipi_csi_subdev_ops = {
++	.core = &dw_mipi_csi_core_ops,
++	.pad = &dw_mipi_csi_pad_ops,
++};
++
++static irqreturn_t
++dw_mipi_csi_irq1(int irq, void *dev_id)
++{
++	struct mipi_csi_dev *csi_dev = dev_id;
++	u32 global_int_status, i_sts;
++	unsigned long flags;
++	struct device *dev = &csi_dev->pdev->dev;
++
++	global_int_status = dw_mipi_csi_read(csi_dev, R_CSI2_INTERRUPT);
++	spin_lock_irqsave(&csi_dev->slock, flags);
++
++	if (global_int_status & CSI2_INT_PHY_FATAL) {
++		i_sts = dw_mipi_csi_read(csi_dev, R_CSI2_INT_PHY_FATAL);
++		dev_dbg_ratelimited(dev, "CSI INT PHY FATAL: %08X\n", i_sts);
++	}
++
++	if (global_int_status & CSI2_INT_PKT_FATAL) {
++		i_sts = dw_mipi_csi_read(csi_dev, R_CSI2_INT_PKT_FATAL);
++		dev_dbg_ratelimited(dev, "CSI INT PKT FATAL: %08X\n", i_sts);
++	}
++
++	if (global_int_status & CSI2_INT_FRAME_FATAL) {
++		i_sts = dw_mipi_csi_read(csi_dev, R_CSI2_INT_FRAME_FATAL);
++		dev_dbg_ratelimited(dev, "CSI INT FRAME FATAL: %08X\n", i_sts);
++	}
++
++	if (global_int_status & CSI2_INT_PHY) {
++		i_sts = dw_mipi_csi_read(csi_dev, R_CSI2_INT_PHY);
++		dev_dbg_ratelimited(dev, "CSI INT PHY: %08X\n", i_sts);
++	}
++
++	if (global_int_status & CSI2_INT_PKT) {
++		i_sts = dw_mipi_csi_read(csi_dev, R_CSI2_INT_PKT);
++		dev_dbg_ratelimited(dev, "CSI INT PKT: %08X\n", i_sts);
++	}
++
++	if (global_int_status & CSI2_INT_LINE) {
++		i_sts = dw_mipi_csi_read(csi_dev, R_CSI2_INT_LINE);
++		dev_dbg_ratelimited(dev, "CSI INT LINE: %08X\n", i_sts);
++	}
++
++	if (global_int_status & CSI2_INT_IPI) {
++		i_sts = dw_mipi_csi_read(csi_dev, R_CSI2_INT_IPI);
++		dev_dbg_ratelimited(dev, "CSI INT IPI: %08X\n", i_sts);
++	}
++	spin_unlock_irqrestore(&csi_dev->slock, flags);
++	return IRQ_HANDLED;
++}
++
++static int
++dw_mipi_csi_parse_dt(struct platform_device *pdev, struct mipi_csi_dev *dev)
++{
++	struct device_node *node = pdev->dev.of_node;
++	struct v4l2_of_endpoint endpoint;
++	int ret = 0;
++
++	ret = of_property_read_u32(node, "output-type", &dev->hw.output_type);
++	if (ret) {
++		dev_err(&pdev->dev, "Couldn't read output-type\n");
++		return ret;
++	}
++
++	ret = of_property_read_u32(node, "ipi-mode", &dev->hw.ipi_mode);
++	if (ret) {
++		dev_err(&pdev->dev, "Couldn't read ipi-mode\n");
++		return ret;
++	}
++
++	ret = of_property_read_u32(node, "ipi-auto-flush",
++				 &dev->hw.ipi_auto_flush);
++	if (ret) {
++		dev_err(&pdev->dev, "Couldn't read ipi-auto-flush\n");
++		return ret;
++	}
++
++	ret = of_property_read_u32(node, "ipi-color-mode",
++				 &dev->hw.ipi_color_mode);
++	if (ret) {
++		dev_err(&pdev->dev, "Couldn't read ipi-color-mode\n");
++		return ret;
++	}
++
++	ret = of_property_read_u32(node, "virtual-channel",
++				&dev->hw.virtual_ch);
++	if (ret) {
++		dev_err(&pdev->dev, "Couldn't read virtual-channel\n");
++		return ret;
++	}
++
++	node = of_graph_get_next_endpoint(node, NULL);
++	if (!node) {
++		dev_err(&pdev->dev, "No port node at %s\n",
++				pdev->dev.of_node->full_name);
++		return -EINVAL;
++	}
++	/* Get port node and validate MIPI-CSI channel id. */
++	ret = v4l2_of_parse_endpoint(node, &endpoint);
++	if (ret)
++		goto err;
++
++	dev->index = endpoint.base.port - 1;
++	if (dev->index >= CSI_MAX_ENTITIES) {
++		ret = -ENXIO;
++		goto err;
++	}
++
++	dev->hw.num_lanes = endpoint.bus.mipi_csi2.num_data_lanes;
++
++err:
++	of_node_put(node);
++	return ret;
++}
++
++static const struct of_device_id dw_mipi_csi_of_match[];
++
++/**
++ * @short Initialization routine - Entry point of the driver
++ * @param[in] pdev pointer to the platform device structure
++ * @return 0 on success and a negative number on failure
++ * Refer to Linux errors.
++ */
++static int mipi_csi_probe(struct platform_device *pdev)
++{
++	const struct of_device_id *of_id;
++	struct device *dev = &pdev->dev;
++	struct resource *res = NULL;
++	struct mipi_csi_dev *mipi_csi;
++	int ret = -ENOMEM;
++
++	mipi_csi = devm_kzalloc(dev, sizeof(*mipi_csi), GFP_KERNEL);
++	if (!dev)
++		return -ENOMEM;
++
++	mutex_init(&mipi_csi->lock);
++	spin_lock_init(&mipi_csi->slock);
++	mipi_csi->pdev = pdev;
++
++	of_id = of_match_node(dw_mipi_csi_of_match, dev->of_node);
++	if (WARN_ON(of_id == NULL))
++		return -EINVAL;
++
++	ret = dw_mipi_csi_parse_dt(pdev, mipi_csi);
++	if (ret < 0)
++		return ret;
++
++	mipi_csi->phy = devm_of_phy_get(dev, dev->of_node, NULL);
++	if (IS_ERR(mipi_csi->phy)) {
++		dev_err(dev, "No DPHY available\n");
++		return PTR_ERR(mipi_csi->phy);
++	}
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	mipi_csi->base_address = devm_ioremap_resource(dev, res);
++
++	if (IS_ERR(mipi_csi->base_address)) {
++		dev_err(dev, "Base address not set.\n");
++		return PTR_ERR(mipi_csi->base_address);
++	}
++
++	mipi_csi->ctrl_irq_number = platform_get_irq(pdev, 0);
++	if (mipi_csi->ctrl_irq_number <= 0) {
++		dev_err(dev, "IRQ number not set.\n");
++		return mipi_csi->ctrl_irq_number;
++	}
++
++	ret = devm_request_irq(dev, mipi_csi->ctrl_irq_number,
++			       dw_mipi_csi_irq1, IRQF_SHARED,
++			       dev_name(dev), mipi_csi);
++	if (ret) {
++		dev_err(dev, "IRQ failed\n");
++		goto end;
++	}
++
++	mipi_csi->rst = devm_reset_control_get_optional_shared(dev, NULL);
++	if (IS_ERR(mipi_csi->rst))
++		mipi_csi->rst = NULL;
++
++	v4l2_subdev_init(&mipi_csi->sd, &dw_mipi_csi_subdev_ops);
++	mipi_csi->sd.owner = THIS_MODULE;
++	snprintf(mipi_csi->sd.name, sizeof(mipi_csi->sd.name), "%s.%d",
++		 CSI_DEVICE_NAME, mipi_csi->index);
++	mipi_csi->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	mipi_csi->fmt = &dw_mipi_csi_formats[0];
++
++	mipi_csi->format.code = dw_mipi_csi_formats[0].code;
++	mipi_csi->format.width = MIN_WIDTH;
++	mipi_csi->format.height = MIN_HEIGHT;
++
++	mipi_csi->sd.entity.function = MEDIA_ENT_F_IO_V4L;
++	mipi_csi->pads[CSI_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
++	mipi_csi->pads[CSI_PAD_SOURCE].flags = MEDIA_PAD_FL_SOURCE;
++	ret = media_entity_pads_init(&mipi_csi->sd.entity,
++				     CSI_PADS_NUM, mipi_csi->pads);
++
++	if (ret < 0) {
++		dev_err(dev, "Media Entity init failed\n");
++		goto entity_cleanup;
++	}
++
++	/* This allows to retrieve the platform device id by the host driver */
++	v4l2_set_subdevdata(&mipi_csi->sd, pdev);
++
++	/* .. and a pointer to the subdev. */
++	platform_set_drvdata(pdev, &mipi_csi->sd);
++
++	if (mipi_csi->rst)
++		reset_control_deassert(mipi_csi->rst);
++
++	dw_mipi_csi_mask_irq_power_off(mipi_csi);
++	dev_info(dev, "DW MIPI CSI-2 Host registered successfully\n");
++	return 0;
++
++entity_cleanup:
++	media_entity_cleanup(&mipi_csi->sd.entity);
++end:
++	return ret;
++}
++
++/**
++ * @short Exit routine - Exit point of the driver
++ * @param[in] pdev pointer to the platform device structure
++ * @return 0 on success and a negative number on failure
++ * Refer to Linux errors.
++ */
++static int mipi_csi_remove(struct platform_device *pdev)
++{
++	struct v4l2_subdev *sd = platform_get_drvdata(pdev);
++	struct mipi_csi_dev *mipi_csi = sd_to_mipi_csi_dev(sd);
++
++	dev_dbg(&pdev->dev, "Removing MIPI CSI-2 module\n");
++
++	if (mipi_csi->rst)
++		reset_control_assert(mipi_csi->rst);
++
++	media_entity_cleanup(&mipi_csi->sd.entity);
++
++	return 0;
++}
++
++/**
++ * @short of_device_id structure
++ */
++static const struct of_device_id dw_mipi_csi_of_match[] = {
++	{
++	 .compatible = "snps,dw-mipi-csi"},
++	{ /* sentinel */ },
++};
++
++MODULE_DEVICE_TABLE(of, dw_mipi_csi_of_match);
++
++/**
++ * @short Platform driver structure
++ */
++static struct platform_driver __refdata dw_mipi_csi_pdrv = {
++	.remove = mipi_csi_remove,
++	.probe = mipi_csi_probe,
++	.driver = {
++		   .name = CSI_DEVICE_NAME,
++		   .owner = THIS_MODULE,
++		   .of_match_table = dw_mipi_csi_of_match,
++		   },
++};
++
++module_platform_driver(dw_mipi_csi_pdrv);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Ramiro Oliveira <roliveir@synopsys.com>");
++MODULE_DESCRIPTION("Synopsys DW MIPI CSI-2 Host driver");
+diff --git a/drivers/media/platform/dwc/dw_mipi_csi.h b/drivers/media/platform/dwc/dw_mipi_csi.h
+new file mode 100644
+index 000000000000..6af51ee11284
+--- /dev/null
++++ b/drivers/media/platform/dwc/dw_mipi_csi.h
+@@ -0,0 +1,181 @@
++/*
++ * Copyright (C) 2016 Synopsys, Inc. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef DW_MIPI_CSI_H_
++#define DW_MIPI_CSI_H_
++
++#include <linux/delay.h>
++#include <linux/errno.h>
++#include <linux/io.h>
++#include <linux/interrupt.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/of_irq.h>
++#include <linux/of_graph.h>
++#include <linux/phy/phy.h>
++#include <linux/platform_device.h>
++#include <linux/ratelimit.h>
++#include <linux/reset.h>
++#include <linux/string.h>
++#include <linux/types.h>
++#include <linux/videodev2.h>
++#include <linux/wait.h>
++#include <media/dwc/csi_host_platform.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-dv-timings.h>
++#include <media/v4l2-of.h>
++
++#define CSI_DEVICE_NAME	"dw-mipi-csi"
++
++/** @short DWC MIPI CSI-2 register addresses*/
++enum register_addresses {
++	R_CSI2_VERSION = 0x00,
++	R_CSI2_N_LANES = 0x04,
++	R_CSI2_CTRL_RESETN = 0x08,
++	R_CSI2_INTERRUPT = 0x0C,
++	R_CSI2_DATA_IDS_1 = 0x10,
++	R_CSI2_DATA_IDS_2 = 0x14,
++	R_CSI2_IPI_MODE = 0x80,
++	R_CSI2_IPI_VCID = 0x84,
++	R_CSI2_IPI_DATA_TYPE = 0x88,
++	R_CSI2_IPI_MEM_FLUSH = 0x8C,
++	R_CSI2_IPI_HSA_TIME = 0x90,
++	R_CSI2_IPI_HBP_TIME = 0x94,
++	R_CSI2_IPI_HSD_TIME = 0x98,
++	R_CSI2_IPI_HLINE_TIME = 0x9C,
++	R_CSI2_IPI_VSA_LINES = 0xB0,
++	R_CSI2_IPI_VBP_LINES = 0xB4,
++	R_CSI2_IPI_VFP_LINES = 0xB8,
++	R_CSI2_IPI_VACTIVE_LINES = 0xBC,
++	R_CSI2_INT_PHY_FATAL = 0xe0,
++	R_CSI2_MASK_INT_PHY_FATAL = 0xe4,
++	R_CSI2_FORCE_INT_PHY_FATAL = 0xe8,
++	R_CSI2_INT_PKT_FATAL = 0xf0,
++	R_CSI2_MASK_INT_PKT_FATAL = 0xf4,
++	R_CSI2_FORCE_INT_PKT_FATAL = 0xf8,
++	R_CSI2_INT_FRAME_FATAL = 0x100,
++	R_CSI2_MASK_INT_FRAME_FATAL = 0x104,
++	R_CSI2_FORCE_INT_FRAME_FATAL = 0x108,
++	R_CSI2_INT_PHY = 0x110,
++	R_CSI2_MASK_INT_PHY = 0x114,
++	R_CSI2_FORCE_INT_PHY = 0x118,
++	R_CSI2_INT_PKT = 0x120,
++	R_CSI2_MASK_INT_PKT = 0x124,
++	R_CSI2_FORCE_INT_PKT = 0x128,
++	R_CSI2_INT_LINE = 0x130,
++	R_CSI2_MASK_INT_LINE = 0x134,
++	R_CSI2_FORCE_INT_LINE = 0x138,
++	R_CSI2_INT_IPI = 0x140,
++	R_CSI2_MASK_INT_IPI = 0x144,
++	R_CSI2_FORCE_INT_IPI = 0x148
++};
++
++/** @short IPI Data Types */
++enum data_type {
++	CSI_2_YUV420_8 = 0x18,
++	CSI_2_YUV420_10 = 0x19,
++	CSI_2_YUV420_8_LEG = 0x1A,
++	CSI_2_YUV420_8_SHIFT = 0x1C,
++	CSI_2_YUV420_10_SHIFT = 0x1D,
++	CSI_2_YUV422_8 = 0x1E,
++	CSI_2_YUV422_10 = 0x1F,
++	CSI_2_RGB444 = 0x20,
++	CSI_2_RGB555 = 0x21,
++	CSI_2_RGB565 = 0x22,
++	CSI_2_RGB666 = 0x23,
++	CSI_2_RGB888 = 0x24,
++	CSI_2_RAW6 = 0x28,
++	CSI_2_RAW7 = 0x29,
++	CSI_2_RAW8 = 0x2A,
++	CSI_2_RAW10 = 0x2B,
++	CSI_2_RAW12 = 0x2C,
++	CSI_2_RAW14 = 0x2D,
++};
++
++/** @short Interrupt Masks */
++enum interrupt_type {
++	CSI2_INT_PHY_FATAL = 1 << 0,
++	CSI2_INT_PKT_FATAL = 1 << 1,
++	CSI2_INT_FRAME_FATAL = 1 << 2,
++	CSI2_INT_PHY = 1 << 16,
++	CSI2_INT_PKT = 1 << 17,
++	CSI2_INT_LINE = 1 << 18,
++	CSI2_INT_IPI = 1 << 19,
++
++};
++
++/** @short DWC MIPI CSI-2 output types*/
++enum output_type {
++	IPI_OUT = 0,
++	IDI_OUT = 1,
++	BOTH_OUT = 2
++};
++
++/** @short IPI output types*/
++enum ipi_output_type {
++	CAMERA_TIMING = 0,
++	AUTO_TIMING = 1
++};
++
++/**
++ * @short Format template
++ */
++struct mipi_fmt {
++	u32 code;
++	u8 depth;
++};
++
++struct csi_hw {
++
++	uint32_t num_lanes;
++	uint32_t output_type;
++
++	/*IPI Info */
++	uint32_t ipi_mode;
++	uint32_t ipi_color_mode;
++	uint32_t ipi_auto_flush;
++	uint32_t virtual_ch;
++
++	uint32_t hsa;
++	uint32_t hbp;
++	uint32_t hsd;
++	uint32_t htotal;
++
++	uint32_t vsa;
++	uint32_t vbp;
++	uint32_t vfp;
++	uint32_t vactive;
++};
++
++/**
++ * @short Structure to embed device driver information
++ */
++struct mipi_csi_dev {
++	struct v4l2_subdev sd;
++	struct video_device vdev;
++
++	struct mutex lock;
++	spinlock_t slock;
++	struct media_pad pads[CSI_PADS_NUM];
++	struct platform_device *pdev;
++	u8 index;
++
++	/** Store current format */
++	const struct mipi_fmt *fmt;
++	struct v4l2_mbus_framefmt format;
++
++	/** Device Tree Information */
++	void __iomem *base_address;
++	uint32_t ctrl_irq_number;
++
++	struct csi_hw hw;
++	struct phy *phy;
++	struct reset_control *rst;
++};
++
++#endif				/* DW_MIPI_CSI */
+diff --git a/include/media/dwc/csi_host_platform.h b/include/media/dwc/csi_host_platform.h
+new file mode 100644
+index 000000000000..1d4d308a4b7c
+--- /dev/null
++++ b/include/media/dwc/csi_host_platform.h
+@@ -0,0 +1,97 @@
++/*
++ * Copyright (C) 2016 Synopsys, Inc. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef SNPS_CSI_VIDEO_PLAT_INCLUDES_H_
++#define SNPS_CSI_VIDEO_PLAT_INCLUDES_H_
++
++#include <media/media-entity.h>
++#include <media/v4l2-dev.h>
++#include <media/v4l2-mediabus.h>
++#include <media/v4l2-subdev.h>
++
++/*
++ * The subdevices' group IDs.
++ */
++
++#define MAX_WIDTH	3280
++#define MAX_HEIGHT	1852
++
++#define MIN_WIDTH	640
++#define MIN_HEIGHT	480
++
++#define GRP_ID_SENSOR		(10)
++#define GRP_ID_CSI		(20)
++#define GRP_ID_VIDEODEV		(30)
++
++#define CSI_MAX_ENTITIES	1
++#define PLAT_MAX_SENSORS	1
++
++enum video_dev_pads {
++	VIDEO_DEV_SD_PAD_SINK_CSI = 0,
++	VIDEO_DEV_SD_PAD_SOURCE_DMA = 1,
++	VIDEO_DEV_SD_PADS_NUM = 2,
++};
++
++enum mipi_csi_pads {
++	CSI_PAD_SINK = 0,
++	CSI_PAD_SOURCE = 1,
++	CSI_PADS_NUM = 2,
++};
++
++struct plat_csi_source_info {
++	u16 flags;
++	u16 mux_id;
++};
++
++struct plat_csi_fmt {
++	char *name;
++	u32 mbus_code;
++	u32 fourcc;
++	u8 depth;
++};
++
++struct plat_csi_media_pipeline;
++
++/*
++ * Media pipeline operations to be called from within a video node,  i.e. the
++ * last entity within the pipeline. Implemented by related media device driver.
++ */
++struct plat_csi_media_pipeline_ops {
++	int (*prepare)(struct plat_csi_media_pipeline *p,
++			struct media_entity *me);
++	int (*unprepare)(struct plat_csi_media_pipeline *p);
++	int (*open)(struct plat_csi_media_pipeline *p,
++			struct media_entity *me, bool resume);
++	int (*close)(struct plat_csi_media_pipeline *p);
++	int (*set_stream)(struct plat_csi_media_pipeline *p, bool state);
++	int (*set_format)(struct plat_csi_media_pipeline *p,
++			struct v4l2_subdev_format *fmt);
++};
++
++struct plat_csi_video_entity {
++	struct video_device vdev;
++	struct plat_csi_media_pipeline *pipe;
++};
++
++struct plat_csi_media_pipeline {
++	struct media_pipeline mp;
++	const struct plat_csi_media_pipeline_ops *ops;
++};
++
++static inline struct plat_csi_video_entity *
++vdev_to_plat_csi_video_entity(struct video_device *vdev)
++{
++	return container_of(vdev, struct plat_csi_video_entity, vdev);
++}
++
++#define plat_csi_pipeline_call(ent, op, args...)\
++	(!(ent) ? -ENOENT : (((ent)->pipe->ops && (ent)->pipe->ops->op) ? \
++	(ent)->pipe->ops->op(((ent)->pipe), ##args) : -ENOIOCTLCMD))	  \
++
++
++#endif				/* SNPS_CSI_VIDEO_PLAT_INCLUDES_H_ */
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+2.11.0
