@@ -1,104 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:45814 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752672AbdCILzp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 9 Mar 2017 06:55:45 -0500
-Subject: Re: [PATCH] [media] solo6x10: release vb2 buffers in
- solo_stop_streaming()
-To: Anton Sviridenko <anton@corp.bluecherry.net>,
-        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
-        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-        Ismael Luceno <ismael@iodev.co.uk>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <20170308174704.GA22020@magpie-gentoo>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <0124df98-baa4-5165-57e5-a7e95d2d43e4@xs4all.nl>
-Date: Thu, 9 Mar 2017 12:55:35 +0100
-MIME-Version: 1.0
-In-Reply-To: <20170308174704.GA22020@magpie-gentoo>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:36738 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750882AbdCGUI1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 15:08:27 -0500
+Received: by mail-wr0-f195.google.com with SMTP id l37so1590067wrc.3
+        for <linux-media@vger.kernel.org>; Tue, 07 Mar 2017 12:08:25 -0800 (PST)
+Received: from dvbdev.wuest.de (ip-178-201-73-185.hsi08.unitymediagroup.de. [178.201.73.185])
+        by smtp.gmail.com with ESMTPSA id m186sm13760369wmd.21.2017.03.07.10.58.31
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Tue, 07 Mar 2017 10:58:31 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 03/13] [media] dvb-frontends/stv0367: refactor defaults table handling
+Date: Tue,  7 Mar 2017 19:57:17 +0100
+Message-Id: <20170307185727.564-4-d.scheller.oss@gmail.com>
+In-Reply-To: <20170307185727.564-1-d.scheller.oss@gmail.com>
+References: <20170307185727.564-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/03/17 18:47, Anton Sviridenko wrote:
-> Fixes warning that appears in dmesg after closing V4L2 userspace
-> application that plays video from the display device
-> (first device from V4L2 device nodes provided by solo, usually /dev/video0
-> when no other V4L2 devices are present). Encoder device nodes are not
-> affected. Can be reproduced by starting and closing
-> 
-> ffplay -f video4linux2  /dev/video0
-> 
-> [ 8130.281251] ------------[ cut here ]------------
-> [ 8130.281256] WARNING: CPU: 1 PID: 20414 at drivers/media/v4l2-core/videobuf2-core.c:1651 __vb2_queue_cancel+0x14b/0x230
-> [ 8130.281257] Modules linked in: ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat solo6x10 x86_pkg_temp_thermal vboxpci(O) vboxnetadp(O) vboxnetflt(O) vboxdrv(O)
-> [ 8130.281264] CPU: 1 PID: 20414 Comm: ffplay Tainted: G           O    4.10.0-gentoo #1
-> [ 8130.281264] Hardware name: ASUS All Series/B85M-E, BIOS 2301 03/30/2015
-> [ 8130.281265] Call Trace:
-> [ 8130.281267]  dump_stack+0x4f/0x72
-> [ 8130.281270]  __warn+0xc7/0xf0
-> [ 8130.281271]  warn_slowpath_null+0x18/0x20
-> [ 8130.281272]  __vb2_queue_cancel+0x14b/0x230
-> [ 8130.281273]  vb2_core_streamoff+0x23/0x90
-> [ 8130.281275]  vb2_streamoff+0x24/0x50
-> [ 8130.281276]  vb2_ioctl_streamoff+0x3d/0x50
-> [ 8130.281278]  v4l_streamoff+0x15/0x20
-> [ 8130.281279]  __video_do_ioctl+0x25e/0x2f0
-> [ 8130.281280]  video_usercopy+0x279/0x520
-> [ 8130.281282]  ? v4l_enum_fmt+0x1330/0x1330
-> [ 8130.281285]  ? unmap_region+0xdf/0x110
-> [ 8130.281285]  video_ioctl2+0x10/0x20
-> [ 8130.281286]  v4l2_ioctl+0xce/0xe0
-> [ 8130.281289]  do_vfs_ioctl+0x8b/0x5b0
-> [ 8130.281290]  ? __fget+0x72/0xa0
-> [ 8130.281291]  SyS_ioctl+0x74/0x80
-> [ 8130.281294]  entry_SYSCALL_64_fastpath+0x13/0x94
-> [ 8130.281295] RIP: 0033:0x7ff86fee6b27
-> [ 8130.281296] RSP: 002b:00007ffe467f6a08 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
-> [ 8130.281297] RAX: ffffffffffffffda RBX: 00000000d1a4d788 RCX: 00007ff86fee6b27
-> [ 8130.281297] RDX: 00007ffe467f6a14 RSI: 0000000040045613 RDI: 0000000000000006
-> [ 8130.281298] RBP: 000000000373f8d0 R08: 00000000ffffffff R09: 00007ff860001140
-> [ 8130.281298] R10: 0000000000000243 R11: 0000000000000246 R12: 0000000000000000
-> [ 8130.281299] R13: 00000000000000a0 R14: 00007ffe467f6530 R15: 0000000001f32228
-> [ 8130.281300] ---[ end trace 00695dc96be646e7 ]---
-> 
-> Signed-off-by: Anton Sviridenko <anton@corp.bluecherry.net>
-> ---
->  drivers/media/pci/solo6x10/solo6x10-v4l2.c | 12 ++++++++++++
->  1 file changed, 12 insertions(+)
-> 
-> diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2.c b/drivers/media/pci/solo6x10/solo6x10-v4l2.c
-> index 896bec6..4163103 100644
-> --- a/drivers/media/pci/solo6x10/solo6x10-v4l2.c
-> +++ b/drivers/media/pci/solo6x10/solo6x10-v4l2.c
-> @@ -341,6 +341,18 @@ static void solo_stop_streaming(struct vb2_queue *q)
->  	struct solo_dev *solo_dev = vb2_get_drv_priv(q);
->  
->  	solo_stop_thread(solo_dev);
-> +
-> +	spin_lock(&solo_dev->slock);
-> +	while (!list_empty(&solo_dev->vidq_active)) {
-> +		struct solo_vb2_buf *buf = list_entry(
-> +				solo_dev->vidq_active.next,
-> +				struct solo_vb2_buf, list);
-> +
-> +		list_del(&buf->list);
-> +		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
-> +		dbg_buf_cnt++;
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Left-over from debugging? This variable doesn't exist in the mainline code, so
-this patch doesn't compile.
+Change defaults table writing so tables can be of dynamic length without
+having to keep track of their lengths by adding and evaluating an end
+marker (reg 0x0000), also move table writing to a dedicated function to
+remove code duplication. Additionally mark st_register tables const since
+they're used read-only.
 
-Regards,
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/dvb-frontends/stv0367.c      | 30 ++++++++++++++++++++----------
+ drivers/media/dvb-frontends/stv0367_regs.h |  4 ----
+ 2 files changed, 20 insertions(+), 14 deletions(-)
 
-	Hans
-
-> +	}
-> +	spin_unlock(&solo_dev->slock);
->  	INIT_LIST_HEAD(&solo_dev->vidq_active);
->  }
->  
-> 
+diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
+index 0064d9d..5ed52ec 100644
+--- a/drivers/media/dvb-frontends/stv0367.c
++++ b/drivers/media/dvb-frontends/stv0367.c
+@@ -99,7 +99,7 @@ struct st_register {
+ };
+ 
+ /* values for STV4100 XTAL=30M int clk=53.125M*/
+-static struct st_register def0367ter[STV0367TER_NBREGS] = {
++static const struct st_register def0367ter[] = {
+ 	{R367TER_ID,		0x60},
+ 	{R367TER_I2CRPT,	0xa0},
+ 	/* {R367TER_I2CRPT,	0x22},*/
+@@ -546,6 +546,7 @@ static struct st_register def0367ter[STV0367TER_NBREGS] = {
+ 	{R367TER_DEBUG_LT7,	0x00},
+ 	{R367TER_DEBUG_LT8,	0x00},
+ 	{R367TER_DEBUG_LT9,	0x00},
++	{0x0000,		0x00},
+ };
+ 
+ #define RF_LOOKUP_TABLE_SIZE  31
+@@ -573,7 +574,7 @@ static const s32 stv0367cab_RF_LookUp2[RF_LOOKUP_TABLE2_SIZE][RF_LOOKUP_TABLE2_S
+ 	}
+ };
+ 
+-static struct st_register def0367cab[STV0367CAB_NBREGS] = {
++static const struct st_register def0367cab[] = {
+ 	{R367CAB_ID,		0x60},
+ 	{R367CAB_I2CRPT,	0xa0},
+ 	/*{R367CAB_I2CRPT,	0x22},*/
+@@ -762,6 +763,7 @@ static struct st_register def0367cab[STV0367CAB_NBREGS] = {
+ 	{R367CAB_T_O_ID_1,	0x00},
+ 	{R367CAB_T_O_ID_2,	0x00},
+ 	{R367CAB_T_O_ID_3,	0x00},
++	{0x0000,		0x00},
+ };
+ 
+ static
+@@ -901,6 +903,20 @@ static u8 stv0367_getbits(u8 reg, u32 label)
+ 	return (reg & mask) >> pos;
+ }
+ #endif
++
++static void stv0367_write_table(struct stv0367_state *state,
++				const struct st_register *deftab)
++{
++	int i = 0;
++
++	while (1) {
++		if (!deftab[i].addr)
++			break;
++		stv0367_writereg(state, deftab[i].addr, deftab[i].value);
++		i++;
++	}
++}
++
+ static int stv0367ter_gate_ctrl(struct dvb_frontend *fe, int enable)
+ {
+ 	struct stv0367_state *state = fe->demodulator_priv;
+@@ -1540,15 +1556,12 @@ static int stv0367ter_init(struct dvb_frontend *fe)
+ {
+ 	struct stv0367_state *state = fe->demodulator_priv;
+ 	struct stv0367ter_state *ter_state = state->ter_state;
+-	int i;
+ 
+ 	dprintk("%s:\n", __func__);
+ 
+ 	ter_state->pBER = 0;
+ 
+-	for (i = 0; i < STV0367TER_NBREGS; i++)
+-		stv0367_writereg(state, def0367ter[i].addr,
+-					def0367ter[i].value);
++	stv0367_write_table(state, def0367ter);
+ 
+ 	switch (state->config->xtal) {
+ 		/*set internal freq to 53.125MHz */
+@@ -2782,13 +2795,10 @@ static int stv0367cab_init(struct dvb_frontend *fe)
+ {
+ 	struct stv0367_state *state = fe->demodulator_priv;
+ 	struct stv0367cab_state *cab_state = state->cab_state;
+-	int i;
+ 
+ 	dprintk("%s:\n", __func__);
+ 
+-	for (i = 0; i < STV0367CAB_NBREGS; i++)
+-		stv0367_writereg(state, def0367cab[i].addr,
+-						def0367cab[i].value);
++	stv0367_write_table(state, def0367cab);
+ 
+ 	switch (state->config->ts_mode) {
+ 	case STV0367_DVBCI_CLOCK:
+diff --git a/drivers/media/dvb-frontends/stv0367_regs.h b/drivers/media/dvb-frontends/stv0367_regs.h
+index 1d15862..cc66d93 100644
+--- a/drivers/media/dvb-frontends/stv0367_regs.h
++++ b/drivers/media/dvb-frontends/stv0367_regs.h
+@@ -2639,8 +2639,6 @@
+ #define	R367TER_DEBUG_LT9	0xf405
+ #define	F367TER_F_DEBUG_LT9	0xf40500ff
+ 
+-#define STV0367TER_NBREGS	445
+-
+ /* ID */
+ #define	R367CAB_ID	0xf000
+ #define	F367CAB_IDENTIFICATIONREGISTER	0xf00000ff
+@@ -3605,6 +3603,4 @@
+ #define	R367CAB_T_O_ID_3	0xf4d3
+ #define	F367CAB_TS_ID_I_H	0xf4d300ff
+ 
+-#define STV0367CAB_NBREGS	187
+-
+ #endif
+-- 
+2.10.2
