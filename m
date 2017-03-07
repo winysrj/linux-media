@@ -1,106 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:16636 "EHLO mga01.intel.com"
+Received: from mail.kernel.org ([198.145.29.136]:53686 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933595AbdCJLdx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Mar 2017 06:33:53 -0500
-Subject: [PATCH 2/8] atomisp: remove unused code and unify a header
-From: Alan Cox <alan@linux.intel.com>
-To: greg@kroah.com, linux-media@vger.kernel.org
-Date: Fri, 10 Mar 2017 11:33:45 +0000
-Message-ID: <148914562054.25309.14661265320713382193.stgit@acox1-desk1.ger.corp.intel.com>
-In-Reply-To: <148914560647.25309.2276061224604665212.stgit@acox1-desk1.ger.corp.intel.com>
-References: <148914560647.25309.2276061224604665212.stgit@acox1-desk1.ger.corp.intel.com>
+        id S1753777AbdCGTQt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 7 Mar 2017 14:16:49 -0500
+Date: Tue, 7 Mar 2017 11:07:59 -0800
+From: Shaohua Li <shli@kernel.org>
+To: Elena Reshetova <elena.reshetova@intel.com>
+Cc: gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org,
+        xen-devel@lists.xenproject.org, netdev@vger.kernel.org,
+        linux1394-devel@lists.sourceforge.net,
+        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
+        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-usb@vger.kernel.org, peterz@infradead.org,
+        Hans Liljestrand <ishkamiel@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        David Windsor <dwindsor@gmail.com>
+Subject: Re: [PATCH 10/29] drivers, md: convert stripe_head.count from
+ atomic_t to refcount_t
+Message-ID: <20170307190759.jnrq66kfpkr4m7zl@kernel.org>
+References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+ <1488810076-3754-11-git-send-email-elena.reshetova@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1488810076-3754-11-git-send-email-elena.reshetova@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-KLOCWORK is never defined so we can remove the workarounds for this in the
-code.
+On Mon, Mar 06, 2017 at 04:20:57PM +0200, Elena Reshetova wrote:
+> refcount_t type and corresponding API should be
+> used instead of atomic_t when the variable is used as
+> a reference counter. This allows to avoid accidental
+> refcounter overflows that might lead to use-after-free
+> situations.
+> 
+> Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
+> Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
+> Signed-off-by: Kees Cook <keescook@chromium.org>
+> Signed-off-by: David Windsor <dwindsor@gmail.com>
+> ---
+>  drivers/md/raid5-cache.c |  8 +++---
+>  drivers/md/raid5.c       | 66 ++++++++++++++++++++++++------------------------
+>  drivers/md/raid5.h       |  3 ++-
+>  3 files changed, 39 insertions(+), 38 deletions(-)
+> 
+> diff --git a/drivers/md/raid5-cache.c b/drivers/md/raid5-cache.c
+> index 3f307be..6c05e12 100644
+> --- a/drivers/md/raid5-cache.c
+> +++ b/drivers/md/raid5-cache.c
 
-Signed-off-by: Alan Cox <alan@linux.intel.com>
----
- .../css2400/hive_isp_css_include/assert_support.h  |   11 -------
- .../atomisp2/css2400/runtime/rmgr/src/rmgr_vbuf.c  |   32 +-------------------
- 2 files changed, 1 insertion(+), 42 deletions(-)
+snip
+>  	       sh->check_state, sh->reconstruct_state);
+>  
+>  	analyse_stripe(sh, &s);
+> @@ -4924,7 +4924,7 @@ static void activate_bit_delay(struct r5conf *conf,
+>  		struct stripe_head *sh = list_entry(head.next, struct stripe_head, lru);
+>  		int hash;
+>  		list_del_init(&sh->lru);
+> -		atomic_inc(&sh->count);
+> +		refcount_inc(&sh->count);
+>  		hash = sh->hash_lock_index;
+>  		__release_stripe(conf, sh, &temp_inactive_list[hash]);
+>  	}
+> @@ -5240,7 +5240,7 @@ static struct stripe_head *__get_priority_stripe(struct r5conf *conf, int group)
+>  		sh->group = NULL;
+>  	}
+>  	list_del_init(&sh->lru);
+> -	BUG_ON(atomic_inc_return(&sh->count) != 1);
+> +	BUG_ON(refcount_inc_not_zero(&sh->count));
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/assert_support.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/assert_support.h
-index 95f3892..4d68405 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/assert_support.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/assert_support.h
-@@ -17,17 +17,6 @@
- 
- #include "storage_class.h"
- 
--#ifdef __KLOCWORK__
--/* Klocwork does not see that assert will lead to abortion
-- * as there is no good way to tell this to KW and the code
-- * should not depend on assert to function (actually the assert
-- * could be disabled in a release build) it was decided to
-- * disable the assert for KW scans (by defining NDEBUG)
-- * see also: http://www.klocwork.com/products/documentation/current/Tuning_C/C%2B%2B_analysis#Assertions
-- */
--#define NDEBUG
--#endif /* __KLOCWORK__ */
--
- /**
-  * The following macro can help to test the size of a struct at compile
-  * time rather than at run-time. It does not work for all compilers; see
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/rmgr/src/rmgr_vbuf.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/rmgr/src/rmgr_vbuf.c
-index dc30e7c..3aafc0a 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/rmgr/src/rmgr_vbuf.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/rmgr/src/rmgr_vbuf.c
-@@ -1,7 +1,6 @@
--#ifndef ISP2401
- /*
-  * Support for Intel Camera Imaging ISP subsystem.
-- * Copyright (c) 2015, Intel Corporation.
-+ * Copyright (c) 2010-2015, Intel Corporation.
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms and conditions of the GNU General Public License,
-@@ -12,21 +11,6 @@
-  * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-  * more details.
-  */
--#else
--/**
--Support for Intel Camera Imaging ISP subsystem.
--Copyright (c) 2010 - 2015, Intel Corporation.
--
--This program is free software; you can redistribute it and/or modify it
--under the terms and conditions of the GNU General Public License,
--version 2, as published by the Free Software Foundation.
--
--This program is distributed in the hope it will be useful, but WITHOUT
--ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
--FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
--more details.
--*/
--#endif
- 
- #include "ia_css_rmgr.h"
- 
-@@ -279,21 +263,7 @@ void rmgr_pop_handle(struct ia_css_rmgr_vbuf_pool *pool,
- void ia_css_rmgr_acq_vbuf(struct ia_css_rmgr_vbuf_pool *pool,
- 			  struct ia_css_rmgr_vbuf_handle **handle)
- {
--#ifdef __KLOCWORK__
--	/* KW sees the *handle = h; assignment about 20 lines down
--	   and thinks that we are assigning a local to a global.
--	   What it does not see is that in ia_css_i_host_rmgr_pop_handle
--	   a new value is assigned to handle.
--	   So this is a false positive KW issue.
--	   To fix that we make the struct static for KW so it will
--	   think that h remains alive; we do not want this in our
--	   production code though as it breaks reentrancy of the code
--	 */
--
--	static struct ia_css_rmgr_vbuf_handle h;
--#else /* __KLOCWORK__ */
- 	struct ia_css_rmgr_vbuf_handle h;
--#endif /* __KLOCWORK__ */
- 
- 	if ((pool == NULL) || (handle == NULL) || (*handle == NULL)) {
- 		IA_CSS_LOG("Invalid inputs");
+This changes the behavior. refcount_inc_not_zero doesn't inc if original value is 0
+
+Thanks,
+Shaohua
