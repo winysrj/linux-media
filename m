@@ -1,78 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from us01smtprelay-2.synopsys.com ([198.182.47.9]:47615 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756517AbdCULtu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Mar 2017 07:49:50 -0400
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-To: linux-media@vger.kernel.org
-Cc: Jose Abreu <Jose.Abreu@synopsys.com>,
-        Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 0/3] Handling of reduced FPS in V4L2
-Date: Tue, 21 Mar 2017 11:49:15 +0000
-Message-Id: <cover.1490095965.git.joabreu@synopsys.com>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:64630 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752641AbdCGH7t (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 02:59:49 -0500
+Message-ID: <1488873582.20293.4.camel@mtksdaap41>
+Subject: Re: [PATCH 1/1] mtk-vcodec: check the vp9 decoder buffer index from
+ VPU.
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Wu-Cheng Li <wuchengli@chromium.org>
+CC: <pawel@osciak.com>, <andrew-ct.chen@mediatek.com>,
+        <mchehab@kernel.org>, <matthias.bgg@gmail.com>,
+        <hans.verkuil@cisco.com>, <wuchengli@google.com>,
+        <djkurtz@chromium.org>, <linux-media@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-mediatek@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>
+Date: Tue, 7 Mar 2017 15:59:42 +0800
+In-Reply-To: <20170307060328.114348-2-wuchengli@chromium.org>
+References: <20170307060328.114348-1-wuchengli@chromium.org>
+         <20170307060328.114348-2-wuchengli@chromium.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On Tue, 2017-03-07 at 14:03 +0800, Wu-Cheng Li wrote:
+> From: Wu-Cheng Li <wuchengli@google.com>
+> 
+> VPU firmware has a bug and may return invalid buffer index for
+> some vp9 videos. Check the buffer indexes before accessing the
+> buffer.
+> 
+> Signed-off-by: Wu-Cheng Li <wuchengli@chromium.org>
+> ---
+>  drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c |  6 +++++
+>  .../media/platform/mtk-vcodec/vdec/vdec_vp9_if.c   | 26 ++++++++++++++++++++++
+>  drivers/media/platform/mtk-vcodec/vdec_drv_if.h    |  2 ++
+>  3 files changed, 34 insertions(+)
+> 
+> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
+> index 502877a4b1df..7ebcf9e57ac7 100644
+> --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
+> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
+> @@ -1176,6 +1176,12 @@ static void vb2ops_vdec_buf_queue(struct vb2_buffer *vb)
+>  			       "[%d] vdec_if_decode() src_buf=%d, size=%zu, fail=%d, res_chg=%d",
+>  			       ctx->id, src_buf->index,
+>  			       src_mem.size, ret, res_chg);
+> +
+> +		if (ret == -EIO) {
+> +			mtk_v4l2_err("[%d] Unrecoverable error in vdec_if_decode.",
+> +					ctx->id);
+> +			ctx->state = MTK_STATE_ABORT;
+> +		}
+Could we use v4l2_m2m_buf_done(to_vb2_v4l2_buffer(src_buf),
+VB2_BUF_STATE_ERROR); instead ctx->state = MTK_STATE_ABORT;
+In this case, the behavior will be same as vdec_if_decode called in
+mtk_vdec_worker.
+And we could also get information about what output buffer make vpu
+crash.
 
-This is a follow up patch from this discussion [1]. It should be
-seen more as a starting point to introduce better handling of
-time per frame in v4l2. Quoting Hans Verkuil from [1]:
-
-1) "Add a flag V4L2_DV_FL_CAN_DETECT_REDUCED_FPS. If set,
-then the hw can detect the difference between regular fps
-and 1000/1001 fps. Note: this is only valid for timings of
-VIC codes with the V4L2_DV_FL_CAN_REDUCE_FPS flag set."
-
-2) "Allow V4L2_DV_FL_REDUCED_FPS to be used for receivers
-if V4L2_DV_FL_CAN_DETECT_REDUCED_FPS is set."
-
-3) "For standard VIC codes the pixelclock returned by
-query_dv_timings is that of the corresponding VIC timing,
-not what is measured. This will ensure fixed fps values"
-
-4) "g_parm should calculate the fps based on the v4l2_bt_timings
-struct, looking at the REDUCES_FPS flags. For those receivers that
-cannot detect the difference, the fps will be 24/30/60 Hz, for
-those that can detect the difference g_parm can check if both
-V4L2_DV_FL_CAN_DETECT_REDUCED_FPS and V4L2_DV_FL_REDUCED_FPS are
-set and reduce the fps by 1000/1001."
-
------------
-In terms of implementation:
-	- Point 1) is done in patch 1/3
-	- Point 2) and 3) should be done by a HDMI Receiver driver
-	(I think?).
-	- Point 4) is done in patch 2/3.
-	- The patch 3/3 is a simple implementation (which was not
-	tested) in the cobalt driver
------------
-	
-[1] https://patchwork.kernel.org/patch/9609441/
-
-Best regards,
-Jose Miguel Abreu
-
-Cc: Carlos Palminha <palminha@synopsys.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-
-Jose Abreu (3):
-  [media] videodev2.h: Add new DV flag CAN_DETECT_REDUCED_FPS
-  [media] v4l2-dv-timings: Introduce v4l2_calc_timeperframe helper
-  [media] cobalt: Use v4l2_calc_timeperframe helper
-
- drivers/media/pci/cobalt/cobalt-v4l2.c    |  9 +++++--
- drivers/media/v4l2-core/v4l2-dv-timings.c | 39 +++++++++++++++++++++++++++++++
- include/media/v4l2-dv-timings.h           | 11 +++++++++
- include/uapi/linux/videodev2.h            |  7 ++++++
- 4 files changed, 64 insertions(+), 2 deletions(-)
-
--- 
-1.9.1
+best regards,
+Tiffany
+>  		return;
+>  	}
+>  
+> diff --git a/drivers/media/platform/mtk-vcodec/vdec/vdec_vp9_if.c b/drivers/media/platform/mtk-vcodec/vdec/vdec_vp9_if.c
+> index e91a3b425b0c..5539b1853f16 100644
+> --- a/drivers/media/platform/mtk-vcodec/vdec/vdec_vp9_if.c
+> +++ b/drivers/media/platform/mtk-vcodec/vdec/vdec_vp9_if.c
+> @@ -718,6 +718,26 @@ static void get_free_fb(struct vdec_vp9_inst *inst, struct vdec_fb **out_fb)
+>  	*out_fb = fb;
+>  }
+>  
+> +static int validate_vsi_array_indexes(struct vdec_vp9_inst *inst,
+> +		struct vdec_vp9_vsi *vsi) {
+> +	if (vsi->sf_frm_idx >= VP9_MAX_FRM_BUF_NUM - 1) {
+> +		mtk_vcodec_err(inst, "Invalid vsi->sf_frm_idx=%u.",
+> +				vsi->sf_frm_idx);
+> +		return -EIO;
+> +	}
+> +	if (vsi->frm_to_show_idx >= VP9_MAX_FRM_BUF_NUM) {
+> +		mtk_vcodec_err(inst, "Invalid vsi->frm_to_show_idx=%u.",
+> +				vsi->frm_to_show_idx);
+> +		return -EIO;
+> +	}
+> +	if (vsi->new_fb_idx >= VP9_MAX_FRM_BUF_NUM) {
+> +		mtk_vcodec_err(inst, "Invalid vsi->new_fb_idx=%u.",
+> +				vsi->new_fb_idx);
+> +		return -EIO;
+> +	}
+> +	return 0;
+> +}
+> +
+>  static void vdec_vp9_deinit(unsigned long h_vdec)
+>  {
+>  	struct vdec_vp9_inst *inst = (struct vdec_vp9_inst *)h_vdec;
+> @@ -834,6 +854,12 @@ static int vdec_vp9_decode(unsigned long h_vdec, struct mtk_vcodec_mem *bs,
+>  			goto DECODE_ERROR;
+>  		}
+>  
+> +		ret = validate_vsi_array_indexes(inst, vsi);
+> +		if (ret) {
+> +			mtk_vcodec_err(inst, "Invalid values from VPU.");
+> +			goto DECODE_ERROR;
+> +		}
+> +
+>  		if (vsi->resolution_changed) {
+>  			if (!vp9_alloc_work_buf(inst)) {
+>  				ret = -EINVAL;
+> diff --git a/drivers/media/platform/mtk-vcodec/vdec_drv_if.h b/drivers/media/platform/mtk-vcodec/vdec_drv_if.h
+> index db6b5205ffb1..ded1154481cd 100644
+> --- a/drivers/media/platform/mtk-vcodec/vdec_drv_if.h
+> +++ b/drivers/media/platform/mtk-vcodec/vdec_drv_if.h
+> @@ -85,6 +85,8 @@ void vdec_if_deinit(struct mtk_vcodec_ctx *ctx);
+>   * @res_chg	: [out] resolution change happens if current bs have different
+>   *	picture width/height
+>   * Note: To flush the decoder when reaching EOF, set input bitstream as NULL.
+> + *
+> + * Return: 0 on success. -EIO on unrecoverable error.
+>   */
+>  int vdec_if_decode(struct mtk_vcodec_ctx *ctx, struct mtk_vcodec_mem *bs,
+>  		   struct vdec_fb *fb, bool *res_chg);
