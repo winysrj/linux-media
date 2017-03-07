@@ -1,78 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:42314 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753201AbdCTKXf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 06:23:35 -0400
-Subject: Re: [PATCH v2 03/14] [media] coda: simplify optional reset handling
-To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-References: <20170315113135.14519-1-p.zabel@pengutronix.de>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <263faf25-5aac-d68f-362e-0d5df25c6be6@xs4all.nl>
-Date: Mon, 20 Mar 2017 11:22:09 +0100
+Received: from smtprelay.synopsys.com ([198.182.47.9]:47572 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755560AbdCGRMw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 12:12:52 -0500
+Subject: Re: [PATCH v3 1/6] drm: bridge: dw-hdmi: Extract PHY interrupt setup
+ to a function
+To: Neil Armstrong <narmstrong@baylibre.com>,
+        <dri-devel@lists.freedesktop.org>,
+        <laurent.pinchart+renesas@ideasonboard.com>,
+        <architt@codeaurora.org>
+References: <1488904944-14285-1-git-send-email-narmstrong@baylibre.com>
+ <1488904944-14285-2-git-send-email-narmstrong@baylibre.com>
+CC: <Jose.Abreu@synopsys.com>, <kieran.bingham@ideasonboard.com>,
+        <linux-amlogic@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+Message-ID: <0df08831-ecac-e868-0f46-bb38ad0dfe3f@synopsys.com>
+Date: Tue, 7 Mar 2017 17:12:45 +0000
 MIME-Version: 1.0
-In-Reply-To: <20170315113135.14519-1-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=windows-1252
+In-Reply-To: <1488904944-14285-2-git-send-email-narmstrong@baylibre.com>
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+Hi Neil,
 
-I'm a bit confused: I only see patches 3, 4 and 5 of 14 and no cover letter,
-and I don't think I ever saw a v1 of this patch series on linux-media.
-I assume this is a patch series covering multiple subsystems?
 
-This patch looks good and I'm happy to take it for 4.12, I just want to make
-sure I didn't miss anything.
-
-Regards,
-
-	Hans
-
-On 03/15/2017 12:31 PM, Philipp Zabel wrote:
-> As of commit bb475230b8e5 ("reset: make optional functions really
-> optional"), the reset framework API calls use NULL pointers to
-> describe optional, non-present reset controls.
-> 
-> This allows to return errors from devm_reset_control_get_optional
-> without special cases and to call reset_control_reset unconditionally.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+On 07-03-2017 16:42, Neil Armstrong wrote:
+> From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+>
+> In preparation for adding PHY operations to handle RX SENSE and HPD,
+> group all the PHY interrupt setup code in a single location and extract
+> it to a separate function.
+>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
 > ---
->  drivers/media/platform/coda/coda-common.c | 12 +++---------
->  1 file changed, 3 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-> index eb6548f46cbac..0cf667ab44bfb 100644
-> --- a/drivers/media/platform/coda/coda-common.c
-> +++ b/drivers/media/platform/coda/coda-common.c
-> @@ -1982,8 +1982,7 @@ static int coda_hw_init(struct coda_dev *dev)
->  	if (ret)
->  		goto err_clk_ahb;
+>  drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 50 ++++++++++++++-----------------
+>  1 file changed, 23 insertions(+), 27 deletions(-)
+>
+> diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+> index 026a0dc..1ed8bc1 100644
+> --- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+> +++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+> @@ -1496,7 +1496,7 @@ static int dw_hdmi_setup(struct dw_hdmi *hdmi, struct drm_display_mode *mode)
+>  }
 >  
-> -	if (dev->rstc)
-> -		reset_control_reset(dev->rstc);
-> +	reset_control_reset(dev->rstc);
+>  /* Wait until we are registered to enable interrupts */
+> -static int dw_hdmi_fb_registered(struct dw_hdmi *hdmi)
+> +static void dw_hdmi_fb_registered(struct dw_hdmi *hdmi)
+>  {
+>  	hdmi_writeb(hdmi, HDMI_PHY_I2CM_INT_ADDR_DONE_POL,
+>  		    HDMI_PHY_I2CM_INT_ADDR);
+> @@ -1504,15 +1504,6 @@ static int dw_hdmi_fb_registered(struct dw_hdmi *hdmi)
+>  	hdmi_writeb(hdmi, HDMI_PHY_I2CM_CTLINT_ADDR_NAC_POL |
+>  		    HDMI_PHY_I2CM_CTLINT_ADDR_ARBITRATION_POL,
+>  		    HDMI_PHY_I2CM_CTLINT_ADDR);
+> -
+> -	/* enable cable hot plug irq */
+> -	hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
+> -
+> -	/* Clear Hotplug interrupts */
+> -	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
+> -		    HDMI_IH_PHY_STAT0);
+> -
+> -	return 0;
+>  }
 >  
->  	/*
->  	 * Copy the first CODA_ISRAM_SIZE in the internal SRAM.
-> @@ -2362,13 +2361,8 @@ static int coda_probe(struct platform_device *pdev)
->  	dev->rstc = devm_reset_control_get_optional(&pdev->dev, NULL);
->  	if (IS_ERR(dev->rstc)) {
->  		ret = PTR_ERR(dev->rstc);
-> -		if (ret == -ENOENT || ret == -ENOTSUPP) {
-> -			dev->rstc = NULL;
-> -		} else {
-> -			dev_err(&pdev->dev, "failed get reset control: %d\n",
-> -				ret);
-> -			return ret;
-> -		}
-> +		dev_err(&pdev->dev, "failed get reset control: %d\n", ret);
-> +		return ret;
+>  static void initialize_hdmi_ih_mutes(struct dw_hdmi *hdmi)
+> @@ -1630,6 +1621,26 @@ static void dw_hdmi_update_phy_mask(struct dw_hdmi *hdmi)
+>  		hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
+>  }
+>  
+> +static void dw_hdmi_phy_setup_hpd(struct dw_hdmi *hdmi)
+> +{
+> +	/*
+> +	 * Configure the PHY RX SENSE and HPD interrupts polarities and clear
+> +	 * any pending interrupt.
+> +	 */
+> +	hdmi_writeb(hdmi, HDMI_PHY_HPD | HDMI_PHY_RX_SENSE, HDMI_PHY_POL0);
+> +	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
+> +		    HDMI_IH_PHY_STAT0);
+> +
+> +	/* Enable cable hot plug irq. */
+> +	hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
+> +
+> +	/* Clear and unmute interrupts. */
+> +	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
+> +		    HDMI_IH_PHY_STAT0);
+> +	hdmi_writeb(hdmi, ~(HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE),
+> +		    HDMI_IH_MUTE_PHY_STAT0);
+> +}
+> +
+>  static enum drm_connector_status
+>  dw_hdmi_connector_detect(struct drm_connector *connector, bool force)
+>  {
+> @@ -2141,29 +2152,14 @@ static int dw_hdmi_detect_phy(struct dw_hdmi *hdmi)
+>  			hdmi->ddc = NULL;
 >  	}
 >  
->  	/* Get IRAM pool from device tree or platform data */
-> 
+> -	/*
+> -	 * Configure registers related to HDMI interrupt
+> -	 * generation before registering IRQ.
+> -	 */
+
+
+I've seen the databook and HPD interrupts are enabled per default
+(actually I think most of the interrupts are). I'm thinking
+whether we could get spurious interrupts because of not
+configuring HPD before registering IRQ (probably thats why the
+comment was there). How did you test this? I think that if you
+insert the cable before loading modules then you can try to
+emulate this condition. What do you think?
+
+Best regards,
+Jose Miguel Abreu
+
+> -	hdmi_writeb(hdmi, HDMI_PHY_HPD | HDMI_PHY_RX_SENSE, HDMI_PHY_POL0);
+> -
+> -	/* Clear Hotplug interrupts */
+> -	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
+> -		    HDMI_IH_PHY_STAT0);
+> -
+>  	hdmi->bridge.driver_private = hdmi;
+>  	hdmi->bridge.funcs = &dw_hdmi_bridge_funcs;
+>  #ifdef CONFIG_OF
+>  	hdmi->bridge.of_node = pdev->dev.of_node;
+>  #endif
+>  
+> -	ret = dw_hdmi_fb_registered(hdmi);
+> -	if (ret)
+> -		goto err_iahb;
+> -
+> -	/* Unmute interrupts */
+> -	hdmi_writeb(hdmi, ~(HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE),
+> -		    HDMI_IH_MUTE_PHY_STAT0);
+> +	dw_hdmi_fb_registered(hdmi);
+> +	dw_hdmi_phy_setup_hpd(hdmi);
+>  
+>  	memset(&pdevinfo, 0, sizeof(pdevinfo));
+>  	pdevinfo.parent = dev;
