@@ -1,90 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58106 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751091AbdCJJLY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Mar 2017 04:11:24 -0500
-Date: Fri, 10 Mar 2017 11:11:17 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        devicetree@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv3 04/15] ov7670: get xclk
-Message-ID: <20170310091117.GU3220@valkosipuli.retiisi.org.uk>
-References: <20170306145616.38485-1-hverkuil@xs4all.nl>
- <20170306145616.38485-5-hverkuil@xs4all.nl>
- <20170309203816.GQ3220@valkosipuli.retiisi.org.uk>
- <4ecb5aa4-40b6-5d78-03ba-239efbd0137e@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4ecb5aa4-40b6-5d78-03ba-239efbd0137e@xs4all.nl>
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:36029 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755841AbdCGTd5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 14:33:57 -0500
+Received: by mail-wr0-f193.google.com with SMTP id l37so1482567wrc.3
+        for <linux-media@vger.kernel.org>; Tue, 07 Mar 2017 11:33:35 -0800 (PST)
+Received: from dvbdev.wuest.de (ip-178-201-73-185.hsi08.unitymediagroup.de. [178.201.73.185])
+        by smtp.gmail.com with ESMTPSA id m186sm13760369wmd.21.2017.03.07.10.58.32
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Tue, 07 Mar 2017 10:58:33 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 05/13] [media] dvb-frontends/stv0367: make PLLSETUP a function, add 58MHz IC speed
+Date: Tue,  7 Mar 2017 19:57:19 +0100
+Message-Id: <20170307185727.564-6-d.scheller.oss@gmail.com>
+In-Reply-To: <20170307185727.564-1-d.scheller.oss@gmail.com>
+References: <20170307185727.564-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Daniel Scheller <d.scheller@gmx.net>
 
-On Fri, Mar 10, 2017 at 09:55:53AM +0100, Hans Verkuil wrote:
-> On 09/03/17 21:38, Sakari Ailus wrote:
-> > Hi Hans,
-> > 
-> > On Mon, Mar 06, 2017 at 03:56:05PM +0100, Hans Verkuil wrote:
-> >> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>
-> >> Get the clock for this sensor.
-> >>
-> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >> ---
-> >>  drivers/media/i2c/ov7670.c | 12 ++++++++++++
-> >>  1 file changed, 12 insertions(+)
-> >>
-> >> diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-> >> index 50e4466a2b37..da0843617a49 100644
-> >> --- a/drivers/media/i2c/ov7670.c
-> >> +++ b/drivers/media/i2c/ov7670.c
-> >> @@ -10,6 +10,7 @@
-> >>   * This file may be distributed under the terms of the GNU General
-> >>   * Public License, version 2.
-> >>   */
-> >> +#include <linux/clk.h>
-> >>  #include <linux/init.h>
-> >>  #include <linux/module.h>
-> >>  #include <linux/slab.h>
-> >> @@ -227,6 +228,7 @@ struct ov7670_info {
-> >>  		struct v4l2_ctrl *hue;
-> >>  	};
-> >>  	struct ov7670_format_struct *fmt;  /* Current format */
-> >> +	struct clk *clk;
-> >>  	int min_width;			/* Filter out smaller sizes */
-> >>  	int min_height;			/* Filter out smaller sizes */
-> >>  	int clock_speed;		/* External clock speed (MHz) */
-> >> @@ -1587,6 +1589,15 @@ static int ov7670_probe(struct i2c_client *client,
-> >>  			info->pclk_hb_disable = true;
-> >>  	}
-> >>  
-> >> +	info->clk = devm_clk_get(&client->dev, "xclk");
-> >> +	if (IS_ERR(info->clk))
-> >> +		return -EPROBE_DEFER;
-> >> +	clk_prepare_enable(info->clk);
-> >> +
-> >> +	info->clock_speed = clk_get_rate(info->clk) / 1000000;
-> >> +	if (info->clock_speed < 10 || info->clock_speed > 48)
-> >> +		return -EINVAL;
-> > 
-> > clk_disable_unprepare() before return?
-> 
-> It is my understanding that devm_clk_get will call that for you.
-> 
-> Correct me if I am wrong.
+This moves the PLL SETUP code from stv0367ter_init() into a dedicated
+function, and also make it possible to configure 58Mhz IC speed at
+27MHz Xtal (used on STV0367-based DDB cards/modules in QAM mode).
 
-devm_clk_get() obtained clock is released using devm_clk_release() which is
-just calling clk_put(). Which caller prepared or enabled the clock is not
-tracked. It's the responsibility of the caller.
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/dvb-frontends/stv0367.c | 73 +++++++++++++++++++++++------------
+ drivers/media/dvb-frontends/stv0367.h |  3 ++
+ 2 files changed, 51 insertions(+), 25 deletions(-)
 
+diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
+index 5b52673..da10d9a 100644
+--- a/drivers/media/dvb-frontends/stv0367.c
++++ b/drivers/media/dvb-frontends/stv0367.c
+@@ -271,6 +271,53 @@ static void stv0367_write_table(struct stv0367_state *state,
+ 	}
+ }
+ 
++static void stv0367_pll_setup(struct stv0367_state *state,
++				u32 icspeed, u32 xtal)
++{
++	/* note on regs: R367TER_* and R367CAB_* defines each point to
++	 * 0xf0d8, so just use R367TER_ for both cases
++	 */
++
++	switch (icspeed) {
++	case STV0367_ICSPEED_58000:
++		switch (xtal) {
++		default:
++		case 27000000:
++			dprintk("STV0367 SetCLKgen for 58MHz IC and 27Mhz crystal\n");
++			/* PLLMDIV: 27, PLLNDIV: 232 */
++			stv0367_writereg(state, R367TER_PLLMDIV, 0x1b);
++			stv0367_writereg(state, R367TER_PLLNDIV, 0xe8);
++			break;
++		}
++		break;
++	default:
++	case STV0367_ICSPEED_53125:
++		switch (xtal) {
++			/* set internal freq to 53.125MHz */
++		case 16000000:
++			stv0367_writereg(state, R367TER_PLLMDIV, 0x2);
++			stv0367_writereg(state, R367TER_PLLNDIV, 0x1b);
++			break;
++		case 25000000:
++			stv0367_writereg(state, R367TER_PLLMDIV, 0xa);
++			stv0367_writereg(state, R367TER_PLLNDIV, 0x55);
++			break;
++		default:
++		case 27000000:
++			dprintk("FE_STV0367TER_SetCLKgen for 27Mhz\n");
++			stv0367_writereg(state, R367TER_PLLMDIV, 0x1);
++			stv0367_writereg(state, R367TER_PLLNDIV, 0x8);
++			break;
++		case 30000000:
++			stv0367_writereg(state, R367TER_PLLMDIV, 0xc);
++			stv0367_writereg(state, R367TER_PLLNDIV, 0x55);
++			break;
++		}
++	}
++
++	stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
++}
++
+ static int stv0367ter_gate_ctrl(struct dvb_frontend *fe, int enable)
+ {
+ 	struct stv0367_state *state = fe->demodulator_priv;
+@@ -918,31 +965,7 @@ static int stv0367ter_init(struct dvb_frontend *fe)
+ 	stv0367_write_table(state,
+ 		stv0367_deftabs[state->deftabs][STV0367_TAB_TER]);
+ 
+-	switch (state->config->xtal) {
+-		/*set internal freq to 53.125MHz */
+-	case 16000000:
+-		stv0367_writereg(state, R367TER_PLLMDIV, 0x2);
+-		stv0367_writereg(state, R367TER_PLLNDIV, 0x1b);
+-		stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
+-		break;
+-	case 25000000:
+-		stv0367_writereg(state, R367TER_PLLMDIV, 0xa);
+-		stv0367_writereg(state, R367TER_PLLNDIV, 0x55);
+-		stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
+-		break;
+-	default:
+-	case 27000000:
+-		dprintk("FE_STV0367TER_SetCLKgen for 27Mhz\n");
+-		stv0367_writereg(state, R367TER_PLLMDIV, 0x1);
+-		stv0367_writereg(state, R367TER_PLLNDIV, 0x8);
+-		stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
+-		break;
+-	case 30000000:
+-		stv0367_writereg(state, R367TER_PLLMDIV, 0xc);
+-		stv0367_writereg(state, R367TER_PLLNDIV, 0x55);
+-		stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
+-		break;
+-	}
++	stv0367_pll_setup(state, STV0367_ICSPEED_53125, state->config->xtal);
+ 
+ 	stv0367_writereg(state, R367TER_I2CRPT, 0xa0);
+ 	stv0367_writereg(state, R367TER_ANACTRL, 0x00);
+diff --git a/drivers/media/dvb-frontends/stv0367.h b/drivers/media/dvb-frontends/stv0367.h
+index 26c38a0..aaa0236 100644
+--- a/drivers/media/dvb-frontends/stv0367.h
++++ b/drivers/media/dvb-frontends/stv0367.h
+@@ -25,6 +25,9 @@
+ #include <linux/dvb/frontend.h>
+ #include "dvb_frontend.h"
+ 
++#define STV0367_ICSPEED_53125	53125000
++#define STV0367_ICSPEED_58000	58000000
++
+ struct stv0367_config {
+ 	u8 demod_address;
+ 	u32 xtal;
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.10.2
