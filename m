@@ -1,126 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:45619 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753330AbdC1UZS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Mar 2017 16:25:18 -0400
-Date: Tue, 28 Mar 2017 21:25:16 +0100
-From: Sean Young <sean@mess.org>
-To: A Sun <as1033x@comcast.net>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH 1/3] [media] mceusb: RX -EPIPE (urb status = -32) lockup
- failure fix
-Message-ID: <20170328202516.GA27790@gofer.mess.org>
-References: <58D6A1DD.2030405@comcast.net>
- <20170326102748.GA1672@gofer.mess.org>
- <58D80838.8050809@comcast.net>
- <20170326203130.GA6070@gofer.mess.org>
- <58D8CAD9.80304@comcast.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <58D8CAD9.80304@comcast.net>
+Received: from smtprelay4.synopsys.com ([198.182.47.9]:45022 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755553AbdCGOns (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 09:43:48 -0500
+From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org
+Cc: CARLOS.PALMINHA@synopsys.com,
+        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>,
+        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Arnd Bergmann <arnd@arndb.de>, Benoit Parrot <bparrot@ti.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Peter Griffin <peter.griffin@linaro.org>,
+        Rick Chang <rick.chang@mediatek.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Simon Horman <simon.horman@netronome.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Tiffany Lin <tiffany.lin@mediatek.com>
+Subject: [PATCH 0/4] Support for Synopsys DW CSI-2 Host 
+Date: Tue,  7 Mar 2017 14:37:47 +0000
+Message-Id: <cover.1488885081.git.roliveir@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 27, 2017 at 04:18:33AM -0400, A Sun wrote:
-> On 3/26/2017 4:31 PM, Sean Young wrote:
-> > On Sun, Mar 26, 2017 at 02:28:08PM -0400, A Sun wrote:
-> >> commit https://github.com/asunxx/linux/commit/17fe3b51f4ad5202a876ea4c92b5d99d4e166823
-> >> Author: A Sun <as1033x@comcast.net>
-> >> Date:   Sun, 26 Mar 2017 13:24:18 -0400 
-> > 
-> > Please don't include this.
-> > 
-> >>
-> ...
-> >> mceusb 1-1.2:1.0: 2 tx ports (0x1 cabled) and 2 rx sensors (0x1 active)
-> > 
-> > It would be nice to have this tested against a mainline kernel. I thought
-> > that was entirely possible on raspberry pis nowadays.
-> ...
-> >> +	/* kevent support */
-> >> +	struct work_struct kevent;
-> > 
-> > kevent is not a descriptive name. How about something like clear_halt?
-> > 
-> >> +	unsigned long kevent_flags;
-> >> +#		define EVENT_TX_HALT	0
-> >> +#		define EVENT_RX_HALT	1
-> > 
-> > EVENT_TX_HALT is never used, so kevent_flags is only ever set to 1. The
-> > entire field can be dropped.
-> > 
-> ...
-> >> +	if (!schedule_work(&ir->kevent)) {
-> >> +		dev_err(ir->dev, "kevent %d may have been dropped", kevent);
-> >> +	} else {
-> >> +		dev_dbg(ir->dev, "kevent %d scheduled", kevent);
-> >> +	}
-> >> +}
-> > 
-> > Again name is not very descriptive.
-> > 
-> ...
-> >> +		dev_err(ir->dev, "Error: urb status = %d (RX HALT)",
-> >> +			urb->status);
-> >> +		mceusb_defer_kevent(ir, EVENT_RX_HALT);
-> > 
-> > Here you could simply call schedule_work(). Note that EPIPE might also
-> > be returned for device disconnect for some host controllers.
-> > 
-> >> +		return;
-> ...
-> >> +	int status;
-> >> +
-> >> +	if (test_bit(EVENT_RX_HALT, &ir->kevent_flags)) {
-> > 
-> > If condition can go.
-> > 
-> >> +		usb_unlink_urb(ir->urb_in);
-> >> +		status = usb_clear_halt(ir->usbdev, ir->pipe_in);
-> 
-> Hi Sean,
-> 
-> Thanks again for looking at this. This patch is based on similar error and recovery, with the USB ethernet driver usbnet (usbnet.c, usbnet.h).
-> 
-> In usbnet, they call "kevent" (kernel device event?) any kind of hardware state change or event in interrupt context that requires invoking non-interrupt code to handle. I'm not sure what else I should name it. Possible kevent-s are not limited to situations needing usb_clear_halt(). From usbnet:
->  69 #               define EVENT_TX_HALT    0
->  70 #               define EVENT_RX_HALT    1
->  71 #               define EVENT_RX_MEMORY  2
->  72 #               define EVENT_STS_SPLIT  3
->  73 #               define EVENT_LINK_RESET 4
->  74 #               define EVENT_RX_PAUSED  5
->  75 #               define EVENT_DEV_ASLEEP 6
->  76 #               define EVENT_DEV_OPEN   7
->  77 #               define EVENT_DEVICE_REPORT_IDLE 8
->  78 #               define EVENT_NO_RUNTIME_PM      9
->  79 #               define EVENT_RX_KILL    10
->  80 #               define EVENT_LINK_CHANGE        11
->  81 #               define EVENT_SET_RX_MODE        12
-> So far, the first two are appearing applicable for mceusb.
+This patchset adds support for the DW CSI-2 Host and also for a video
+device associated with it. 
 
-So far, only EVENT_RX_HALT is relevant for mceusb. It is likely that, this
-will the be only one we will ever need in which case all this kevent kind
-of business is completely unnecessary for a simple usb driver, rather
-than usb networking driver infrastructure.
- 
-> The unused EVENT_TX_HALT and the apparently extra _kevent functions and kevent_flags are necessary for a later:
->     [PATCH] [media] mceusb: TX -EPIPE lockup fix
-> ...not yet written, transmit side equivalent bug. I respectfully recommend keeping these hooks in place.
+The first 2 patches are only for the DW CSI-2 Host and the last 2 are for
+the video device.
 
-Have you observed this happening?
+Although this patchset is named as v1 there were already two patchsets
+previous to this one, but with a different name: "Add support for the DW
+IP Prototyping Kits for MIPI CSI-2 Host".
 
-Speaking of which, how do you reproduce the original -EPIPE issue? I've
-tried to reproduce on my raspberry pi 3 with a very similar mceusb
-device, but I haven't had any luck.
+v3:
+ - Correct description errors in Documentation
+ - Remove empty functions
+ - Change device caps and description setting
+ - Remove left-over code
+ - Add more VB2 io_modes
+ - Add support for dma_contig
+ - Correct spelling mistakes
 
-What's the lsusb -vv for this device?
+v2: 
+ - Add more detailed descriptions in the DT documentation
+ - Add binding examples to DT documentation
+ - Remove unnecessary debug structures
+ - Remove unused fields in structures
+ - Change variable types
+ - Remove unused functions
+ - Declare functions as static
+ - Remove some prints
+ - Add missing newlines.
 
-> For now, I think the transmit side EPIPE bug fix is less critical, since the TX bug avoids hanging the host/kernel, but would still cause lockup of the device.
-> 
-> In case of RX EPIPE on disconnect, the fix is still safe. Recovery attempt should fail (in usb_clear_halt() or usb_submit_urb()) and abort without further retry, and the recovery handler itself gets shutdown in mceusb_dev_disconnect().
+Ramiro Oliveira (4):
+  Documentation: dt: Add bindings documentation for DW MIPI CSI-2 Host
+  media: platform: dwc: Support for DW CSI-2 Host
+  Documentation: dt: Add bindings documentation for CSI-2 Host Video
+    Platform
+  media: platform: dwc: Support for CSI-2 Host video platform
 
+ .../devicetree/bindings/media/snps,dw-mipi-csi.txt |  37 +
+ .../devicetree/bindings/media/snps,plat-csi2.txt   |  77 ++
+ MAINTAINERS                                        |   7 +
+ drivers/media/platform/Kconfig                     |   1 +
+ drivers/media/platform/Makefile                    |   2 +
+ drivers/media/platform/dwc/Kconfig                 |  45 ++
+ drivers/media/platform/dwc/Makefile                |   3 +
+ drivers/media/platform/dwc/csi_video_device.c      | 721 ++++++++++++++++++
+ drivers/media/platform/dwc/csi_video_device.h      |  83 +++
+ drivers/media/platform/dwc/csi_video_plat.c        | 818 +++++++++++++++++++++
+ drivers/media/platform/dwc/csi_video_plat.h        | 101 +++
+ drivers/media/platform/dwc/dw_mipi_csi.c           | 653 ++++++++++++++++
+ drivers/media/platform/dwc/dw_mipi_csi.h           | 181 +++++
+ include/media/dwc/csi_host_platform.h              |  97 +++
+ 14 files changed, 2826 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/snps,dw-mipi-csi.txt
+ create mode 100644 Documentation/devicetree/bindings/media/snps,plat-csi2.txt
+ create mode 100644 drivers/media/platform/dwc/Kconfig
+ create mode 100644 drivers/media/platform/dwc/Makefile
+ create mode 100644 drivers/media/platform/dwc/csi_video_device.c
+ create mode 100644 drivers/media/platform/dwc/csi_video_device.h
+ create mode 100644 drivers/media/platform/dwc/csi_video_plat.c
+ create mode 100644 drivers/media/platform/dwc/csi_video_plat.h
+ create mode 100644 drivers/media/platform/dwc/dw_mipi_csi.c
+ create mode 100644 drivers/media/platform/dwc/dw_mipi_csi.h
+ create mode 100644 include/media/dwc/csi_host_platform.h
 
-Thanks
-Sean
+-- 
+2.11.0
