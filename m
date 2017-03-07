@@ -1,45 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:45450 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753100AbdC0JyA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 05:54:00 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Jose Abreu <Jose.Abreu@synopsys.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] cec-core.rst: document the new cec_get_drvdata() helper
-Message-ID: <119266d8-95c9-4bcf-114e-a5bfdb4144e3@xs4all.nl>
-Date: Mon, 27 Mar 2017 11:53:00 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:32806 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932683AbdCGST6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 13:19:58 -0500
+From: Johan Hovold <johan@kernel.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org,
+        linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org,
+        stable@vger.kernel.org, Johan Hovold <johan@kernel.org>
+Subject: [PATCH] [media] mceusb: fix NULL-deref at probe
+Date: Tue,  7 Mar 2017 19:14:13 +0100
+Message-Id: <20170307181413.7264-1-johan@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document the new cec_get_drvdata() helper function.
+Make sure to check for the required out endpoint to avoid dereferencing
+a NULL-pointer in mce_request_packet should a malicious device lack such
+an endpoint. Note that this path it hit during probe.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Fixes: 66e89522aff7 ("V4L/DVB: IR: add mceusb IR receiver driver")
+Cc: stable <stable@vger.kernel.org>	# 2.6.36
+Signed-off-by: Johan Hovold <johan@kernel.org>
 ---
-diff --git a/Documentation/media/kapi/cec-core.rst b/Documentation/media/kapi/cec-core.rst
-index 81c6d8e93774..8ea3a783f968 100644
---- a/Documentation/media/kapi/cec-core.rst
-+++ b/Documentation/media/kapi/cec-core.rst
-@@ -51,6 +51,7 @@ ops:
 
- priv:
- 	will be stored in adap->priv and can be used by the adapter ops.
-+	Use cec_get_drvdata(adap) to get the priv pointer.
+Found through inspection, compile tested only.
 
- name:
- 	the name of the CEC adapter. Note: this name will be copied.
-@@ -65,6 +66,10 @@ available_las:
- 	the number of simultaneous logical addresses that this
- 	adapter can handle. Must be 1 <= available_las <= CEC_MAX_LOG_ADDRS.
+Johan
 
-+To obtain the priv pointer use this helper function:
-+
-+.. c:function::
-+	void *cec_get_drvdata(const struct cec_adapter *adap);
 
- To register the /dev/cecX device node and the remote control device (if
- CEC_CAP_RC is set) you call:
+ drivers/media/rc/mceusb.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index 238d8eaf7d94..93b16fe3ab38 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -1288,8 +1288,8 @@ static int mceusb_dev_probe(struct usb_interface *intf,
+ 			}
+ 		}
+ 	}
+-	if (ep_in == NULL) {
+-		dev_dbg(&intf->dev, "inbound and/or endpoint not found");
++	if (!ep_in || !ep_out) {
++		dev_dbg(&intf->dev, "required endpoints not found\n");
+ 		return -ENODEV;
+ 	}
+ 
+-- 
+2.12.0
