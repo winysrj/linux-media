@@ -1,108 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:37984 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755703AbdCLHit (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 12 Mar 2017 03:38:49 -0400
-Date: Sun, 12 Mar 2017 07:37:45 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: mark.rutland@arm.com, andrew-ct.chen@mediatek.com,
-        minghsiu.tsai@mediatek.com, nick@shmanahar.org,
-        songjun.wu@microchip.com, Hans Verkuil <hverkuil@xs4all.nl>,
-        pavel@ucw.cz, shuah@kernel.org, devel@driverdev.osuosl.org,
-        markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, robert.jarzmik@free.fr,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        geert@linux-m68k.org, p.zabel@pengutronix.de,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        kernel@pengutronix.de, arnd@arndb.de, tiffany.lin@mediatek.com,
-        bparrot@ti.com, robh+dt@kernel.org, horms+renesas@verge.net.au,
-        mchehab@kernel.org, linux-arm-kernel@lists.infradead.org,
-        niklas.soderlund+renesas@ragnatech.se, gregkh@linuxfoundation.org,
-        linux-kernel@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
-        jean-christophe.trotin@st.com, sakari.ailus@linux.intel.com,
-        fabio.estevam@nxp.com, shawnguo@kernel.org,
-        sudipm.mukherjee@gmail.com
-Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
- controls from a pipeline
-Message-ID: <20170312073745.GI21222@n2100.armlinux.org.uk>
-References: <a7b8e095-a95c-24bd-b1e9-e983f18061c4@xs4all.nl>
- <20170310120902.1daebc7b@vento.lan>
- <5e1183f4-774f-413a-628a-96e0df321faf@xs4all.nl>
- <20170311101408.272a9187@vento.lan>
- <20170311153229.yrdjmggb3p2suhdw@ihha.localdomain>
- <acfb5eca-ff00-6d57-339a-3322034cbdb3@gmail.com>
- <20170311184551.GD21222@n2100.armlinux.org.uk>
- <1f1b350a-5523-34bc-07b7-f3cd2d1fd4c1@gmail.com>
- <20170311185959.GF21222@n2100.armlinux.org.uk>
- <4917d7fb-2f48-17cd-aa2f-d54b0f19ed6e@gmail.com>
+Received: from mail-it0-f52.google.com ([209.85.214.52]:33309 "EHLO
+        mail-it0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751178AbdCGM0r (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 07:26:47 -0500
+Received: by mail-it0-f52.google.com with SMTP id w124so6851735itb.0
+        for <linux-media@vger.kernel.org>; Tue, 07 Mar 2017 04:25:02 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4917d7fb-2f48-17cd-aa2f-d54b0f19ed6e@gmail.com>
+In-Reply-To: <1487268481-6127-1-git-send-email-bgolaszewski@baylibre.com>
+References: <1487268481-6127-1-git-send-email-bgolaszewski@baylibre.com>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Date: Tue, 7 Mar 2017 12:50:34 +0100
+Message-ID: <CAMpxmJXbJn8oEhB8g_6AsDxZPqDQf7eTnqkUwr_dMP=BNL+q+Q@mail.gmail.com>
+Subject: Re: [PATCH] media: vpif: use a configurable i2c_adapter_id for vpif display
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: arm-soc <linux-arm-kernel@lists.infradead.org>,
+        Russell King <linux@armlinux.org.uk>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Patrick Titiano <ptitiano@baylibre.com>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Kevin Hilman <khilman@baylibre.com>,
+        LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
+        Sekhar Nori <nsekhar@ti.com>,
+        Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Mar 11, 2017 at 07:31:18PM -0800, Steve Longerbeam wrote:
-> 
-> 
-> On 03/11/2017 10:59 AM, Russell King - ARM Linux wrote:
-> >On Sat, Mar 11, 2017 at 10:54:55AM -0800, Steve Longerbeam wrote:
-> >>
-> >>
-> >>On 03/11/2017 10:45 AM, Russell King - ARM Linux wrote:
-> >>>I really don't think expecting the user to understand and configure
-> >>>the pipeline is a sane way forward.  Think about it - should the
-> >>>user need to know that, because they have a bayer-only CSI data
-> >>>source, that there is only one path possible, and if they try to
-> >>>configure a different path, then things will just error out?
-> >>>
-> >>>For the case of imx219 connected to iMX6, it really is as simple as
-> >>>"there is only one possible path" and all the complexity of the media
-> >>>interfaces/subdevs is completely unnecessary.  Every other block in
-> >>>the graph is just noise.
-> >>>
-> >>>The fact is that these dot graphs show a complex picture, but reality
-> >>>is somewhat different - there's only relatively few paths available
-> >>>depending on the connected source and the rest of the paths are
-> >>>completely useless.
-> >>>
-> >>
-> >>I totally disagree there. Raw bayer requires passthrough yes, but for
-> >>all other media bus formats on a mipi csi-2 bus, and all other media
-> >>bus formats on 8-bit parallel buses, the conersion pipelines can be
-> >>used for scaling, CSC, rotation, and motion-compensated de-interlacing.
-> >
-> >... which only makes sense _if_ your source can produce those formats.
-> >We don't actually disagree on that.
-> 
-> ...and there are lots of those sources! You should try getting out of
-> your imx219 shell some time, and have a look around! :)
+2017-02-16 19:08 GMT+01:00 Bartosz Golaszewski <bgolaszewski@baylibre.com>:
+> The vpif display driver uses a static i2c adapter ID of 1 but on the
+> da850-evm board in DT boot mode the i2c adapter ID is actually 0.
+>
+> Make the adapter ID configurable like it already is for vpif capture.
+>
+> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+> Acked-by: Kevin Hilman <khilman@baylibre.com>
+> ---
 
-If you think that, you are insulting me.  I've been thinking about this
-from the "big picture" point of view.  If you think I'm only thinking
-about this from only the bayer point of view, you're wrong.
+Hi Mauro, Prabhakar,
 
-Given what Mauro has said, I'm convinced that the media controller stuff
-is a complete failure for usability, and adding further drivers using it
-is a mistake.
+can we get an ack on this? Sekhar already merged the rest of the
+patches that need this to make vpif display work on the da850-evm
+board. I think it's best if it goes through his tree.
 
-I counter your accusation by saying that you are actually so focused on
-the media controller way of doing things that you can't see the bigger
-picture here.
-
-So, tell me how the user can possibly use iMX6 video capture without
-resorting to opening up a terminal and using media-ctl to manually
-configure the pipeline.  How is the user going to control the source
-device without using media-ctl to find the subdev node, and then using
-v4l2-ctl on it.  How is the user supposed to know which /dev/video*
-node they should be opening with their capture application?
-
-If you can actually respond to the points that I've been raising about
-end user usability, then we can have a discussion.
-
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Thanks,
+Bartosz
