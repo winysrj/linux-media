@@ -1,122 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:49889 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754511AbdCaMUt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Mar 2017 08:20:49 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:36555 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756103AbdCGUI2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 15:08:28 -0500
+Received: by mail-wm0-f67.google.com with SMTP id v190so2797195wme.3
+        for <linux-media@vger.kernel.org>; Tue, 07 Mar 2017 12:08:26 -0800 (PST)
+Received: from dvbdev.wuest.de (ip-178-201-73-185.hsi08.unitymediagroup.de. [178.201.73.185])
+        by smtp.gmail.com with ESMTPSA id m186sm13760369wmd.21.2017.03.07.10.58.36
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Tue, 07 Mar 2017 10:58:36 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Patrice.chotard@st.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv6 03/10] exynos_hdmi: add CEC notifier support
-Date: Fri, 31 Mar 2017 14:20:29 +0200
-Message-Id: <20170331122036.55706-4-hverkuil@xs4all.nl>
-In-Reply-To: <20170331122036.55706-1-hverkuil@xs4all.nl>
-References: <20170331122036.55706-1-hverkuil@xs4all.nl>
+Subject: [PATCH 09/13] [media] dvb-frontends/stv0367: fix symbol rate conditions in cab_SetQamSize()
+Date: Tue,  7 Mar 2017 19:57:23 +0100
+Message-Id: <20170307185727.564-10-d.scheller.oss@gmail.com>
+In-Reply-To: <20170307185727.564-1-d.scheller.oss@gmail.com>
+References: <20170307185727.564-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Implement the CEC notifier support to allow CEC drivers to
-be informed when there is a new physical address.
+The values used for comparing symbol rates and the resulting conditional
+reg writes seem wrong (rates multiplied by ten), so fix those values.
+While this doesn't seem to influence operation, it should be fixed anyway.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-Acked-by: Krzysztof Kozlowski <krzk@kernel.org>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- drivers/gpu/drm/exynos/exynos_hdmi.c | 19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
+ drivers/media/dvb-frontends/stv0367.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/gpu/drm/exynos/exynos_hdmi.c b/drivers/gpu/drm/exynos/exynos_hdmi.c
-index 88ccc0469316..bc4c8d0a66f4 100644
---- a/drivers/gpu/drm/exynos/exynos_hdmi.c
-+++ b/drivers/gpu/drm/exynos/exynos_hdmi.c
-@@ -43,6 +43,8 @@
- 
- #include <drm/exynos_drm.h>
- 
-+#include <media/cec-notifier.h>
-+
- #include "exynos_drm_drv.h"
- #include "exynos_drm_crtc.h"
- 
-@@ -119,6 +121,7 @@ struct hdmi_context {
- 	bool				dvi_mode;
- 	struct delayed_work		hotplug_work;
- 	struct drm_display_mode		current_mode;
-+	struct cec_notifier		*notifier;
- 	const struct hdmi_driver_data	*drv_data;
- 
- 	void __iomem			*regs;
-@@ -822,6 +825,7 @@ static enum drm_connector_status hdmi_detect(struct drm_connector *connector,
- 	if (gpiod_get_value(hdata->hpd_gpio))
- 		return connector_status_connected;
- 
-+	cec_notifier_set_phys_addr(hdata->notifier, CEC_PHYS_ADDR_INVALID);
- 	return connector_status_disconnected;
- }
- 
-@@ -860,6 +864,7 @@ static int hdmi_get_modes(struct drm_connector *connector)
- 		edid->width_cm, edid->height_cm);
- 
- 	drm_mode_connector_update_edid_property(connector, edid);
-+	cec_notifier_set_phys_addr_from_edid(hdata->notifier, edid);
- 
- 	ret = drm_add_edid_modes(connector, edid);
- 
-@@ -1503,6 +1508,7 @@ static void hdmi_disable(struct drm_encoder *encoder)
- 	if (funcs && funcs->disable)
- 		(*funcs->disable)(crtc);
- 
-+	cec_notifier_set_phys_addr(hdata->notifier, CEC_PHYS_ADDR_INVALID);
- 	cancel_delayed_work(&hdata->hotplug_work);
- 
- 	hdmiphy_disable(hdata);
-@@ -1878,15 +1884,22 @@ static int hdmi_probe(struct platform_device *pdev)
- 		}
- 	}
- 
-+	hdata->notifier = cec_notifier_get(&pdev->dev);
-+	if (hdata->notifier == NULL) {
-+		ret = -ENOMEM;
-+		goto err_hdmiphy;
-+	}
-+
- 	pm_runtime_enable(dev);
- 
- 	ret = component_add(&pdev->dev, &hdmi_component_ops);
- 	if (ret)
--		goto err_disable_pm_runtime;
-+		goto err_notifier_put;
- 
- 	return ret;
- 
--err_disable_pm_runtime:
-+err_notifier_put:
-+	cec_notifier_put(hdata->notifier);
- 	pm_runtime_disable(dev);
- 
- err_hdmiphy:
-@@ -1905,9 +1918,11 @@ static int hdmi_remove(struct platform_device *pdev)
- 	struct hdmi_context *hdata = platform_get_drvdata(pdev);
- 
- 	cancel_delayed_work_sync(&hdata->hotplug_work);
-+	cec_notifier_set_phys_addr(hdata->notifier, CEC_PHYS_ADDR_INVALID);
- 
- 	component_del(&pdev->dev, &hdmi_component_ops);
- 
-+	cec_notifier_put(hdata->notifier);
- 	pm_runtime_disable(&pdev->dev);
- 
- 	if (!IS_ERR(hdata->reg_hdmi_en))
+diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
+index fb41c7b..ffc046a 100644
+--- a/drivers/media/dvb-frontends/stv0367.c
++++ b/drivers/media/dvb-frontends/stv0367.c
+@@ -1838,11 +1838,11 @@ static enum stv0367cab_mod stv0367cab_SetQamSize(struct stv0367_state *state,
+ 	case FE_CAB_MOD_QAM64:
+ 		stv0367_writereg(state, R367CAB_IQDEM_ADJ_AGC_REF, 0x82);
+ 		stv0367_writereg(state, R367CAB_AGC_PWR_REF_L, 0x5a);
+-		if (SymbolRate > 45000000) {
++		if (SymbolRate > 4500000) {
+ 			stv0367_writereg(state, R367CAB_FSM_STATE, 0xb0);
+ 			stv0367_writereg(state, R367CAB_EQU_CTR_LPF_GAIN, 0xc1);
+ 			stv0367_writereg(state, R367CAB_EQU_CRL_LPF_GAIN, 0xa5);
+-		} else if (SymbolRate > 25000000) {
++		} else if (SymbolRate > 2500000) {
+ 			stv0367_writereg(state, R367CAB_FSM_STATE, 0xa0);
+ 			stv0367_writereg(state, R367CAB_EQU_CTR_LPF_GAIN, 0xc1);
+ 			stv0367_writereg(state, R367CAB_EQU_CRL_LPF_GAIN, 0xa6);
+@@ -1860,9 +1860,9 @@ static enum stv0367cab_mod stv0367cab_SetQamSize(struct stv0367_state *state,
+ 		stv0367_writereg(state, R367CAB_AGC_PWR_REF_L, 0x76);
+ 		stv0367_writereg(state, R367CAB_FSM_STATE, 0x90);
+ 		stv0367_writereg(state, R367CAB_EQU_CTR_LPF_GAIN, 0xb1);
+-		if (SymbolRate > 45000000)
++		if (SymbolRate > 4500000)
+ 			stv0367_writereg(state, R367CAB_EQU_CRL_LPF_GAIN, 0xa7);
+-		else if (SymbolRate > 25000000)
++		else if (SymbolRate > 2500000)
+ 			stv0367_writereg(state, R367CAB_EQU_CRL_LPF_GAIN, 0xa6);
+ 		else
+ 			stv0367_writereg(state, R367CAB_EQU_CRL_LPF_GAIN, 0x97);
+@@ -1875,9 +1875,9 @@ static enum stv0367cab_mod stv0367cab_SetQamSize(struct stv0367_state *state,
+ 		stv0367_writereg(state, R367CAB_IQDEM_ADJ_AGC_REF, 0x94);
+ 		stv0367_writereg(state, R367CAB_AGC_PWR_REF_L, 0x5a);
+ 		stv0367_writereg(state, R367CAB_FSM_STATE, 0xa0);
+-		if (SymbolRate > 45000000)
++		if (SymbolRate > 4500000)
+ 			stv0367_writereg(state, R367CAB_EQU_CTR_LPF_GAIN, 0xc1);
+-		else if (SymbolRate > 25000000)
++		else if (SymbolRate > 2500000)
+ 			stv0367_writereg(state, R367CAB_EQU_CTR_LPF_GAIN, 0xc1);
+ 		else
+ 			stv0367_writereg(state, R367CAB_EQU_CTR_LPF_GAIN, 0xd1);
 -- 
-2.11.0
+2.10.2
