@@ -1,76 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f174.google.com ([209.85.220.174]:32768 "EHLO
-        mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752380AbdCCSlf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 13:41:35 -0500
-Received: by mail-qk0-f174.google.com with SMTP id n127so190428846qkf.0
-        for <linux-media@vger.kernel.org>; Fri, 03 Mar 2017 10:41:29 -0800 (PST)
-Subject: Re: [RFC PATCH 03/12] staging: android: ion: Duplicate sg_table
-To: Hillf Danton <hillf.zj@alibaba-inc.com>,
-        'Sumit Semwal' <sumit.semwal@linaro.org>,
-        'Riley Andrews' <riandrews@android.com>, arve@android.com
-References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
- <1488491084-17252-4-git-send-email-labbott@redhat.com>
- <07df01d293f6$bcfb4f30$36f1ed90$@alibaba-inc.com>
-Cc: romlem@google.com, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-        'Greg Kroah-Hartman' <gregkh@linuxfoundation.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        'Brian Starkey' <brian.starkey@arm.com>,
-        'Daniel Vetter' <daniel.vetter@intel.com>,
-        'Mark Brown' <broonie@kernel.org>,
-        'Benjamin Gaignard' <benjamin.gaignard@linaro.org>,
-        linux-mm@kvack.org
-From: Laura Abbott <labbott@redhat.com>
-Message-ID: <59f69b1b-0a10-01e9-3e64-387d8f123674@redhat.com>
-Date: Fri, 3 Mar 2017 10:41:25 -0800
+Received: from mga14.intel.com ([192.55.52.115]:6888 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755409AbdCGM64 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 7 Mar 2017 07:58:56 -0500
+Subject: Re: [PATCH 1/1] media: entity: Swap pads if route is checked from
+ source to sink
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
+Cc: linux-media@vger.kernel.org
+References: <1478599875-27700-1-git-send-email-sakari.ailus@linux.intel.com>
+ <20170307111551.GJ20587@bigcity.dyn.berto.se>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Message-ID: <0b05bd44-a97d-023a-274e-2f192f5f7f64@linux.intel.com>
+Date: Tue, 7 Mar 2017 13:17:11 +0200
 MIME-Version: 1.0
-In-Reply-To: <07df01d293f6$bcfb4f30$36f1ed90$@alibaba-inc.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20170307111551.GJ20587@bigcity.dyn.berto.se>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/03/2017 12:18 AM, Hillf Danton wrote:
+Hi Niklas,
+
+On 03/07/17 13:15, Niklas Söderlund wrote:
+> Hi Sakari,
 > 
-> On March 03, 2017 5:45 AM Laura Abbott wrote: 
+> Thanks for the patch.
+> 
+> On 2016-11-08 12:11:15 +0200, Sakari Ailus wrote:
+>> This way the pads are always passed to the has_route() op sink pad first.
+>> Makes sense.
 >>
->> +static struct sg_table *dup_sg_table(struct sg_table *table)
->> +{
->> +	struct sg_table *new_table;
->> +	int ret, i;
->> +	struct scatterlist *sg, *new_sg;
->> +
->> +	new_table = kzalloc(sizeof(*new_table), GFP_KERNEL);
->> +	if (!new_table)
->> +		return ERR_PTR(-ENOMEM);
->> +
->> +	ret = sg_alloc_table(new_table, table->nents, GFP_KERNEL);
->> +	if (ret) {
->> +		kfree(table);
+>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> ---
+>> Hi Niklas,
+>>
+>> This should make it easier to implement the has_route() op in drivers.
+>>
+>> Feel free to merge this to "[PATCH 02/32] media: entity: Add
+>> media_entity_has_route() function" if you like, or add separately after
+>> the second patch.
 > 
-> Free new table?
-> 
->> +		return ERR_PTR(-ENOMEM);
->> +	}
->> +
->> +	new_sg = new_table->sgl;
->> +	for_each_sg(table->sgl, sg, table->nents, i) {
->> +		memcpy(new_sg, sg, sizeof(*sg));
->> +		sg->dma_address = 0;
->> +		new_sg = sg_next(new_sg);
->> +	}
->> +
-> 
-> Do we need a helper, sg_copy_table(dst_table, src_table)?
-> 
->> +	return new_table;
->> +}
->> +
+> I choose to append this as a separated patch on top of Laurents patches 
+> and include all 3 in my next R-Car VIN series.
 
-Yes, that would probably be good since I've seen this
-code elsewhere.
 
-Thanks,
-Laura
+Ack. Thanks for the info.
+
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
