@@ -1,97 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f44.google.com ([74.125.83.44]:36520 "EHLO
-        mail-pg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756464AbdCURo7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Mar 2017 13:44:59 -0400
-Received: by mail-pg0-f44.google.com with SMTP id g2so96601453pge.3
-        for <linux-media@vger.kernel.org>; Tue, 21 Mar 2017 10:44:24 -0700 (PDT)
-Subject: Re: CEC button pass-through
-To: Hans Verkuil <hverkuil@xs4all.nl>
-References: <22e92133-6a64-ffaf-a41f-5ae9b19f24e5@nelint.com>
- <53fd17db-af5d-335b-0337-e5aeffd12305@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-From: Eric Nelson <eric@nelint.com>
-Message-ID: <7ad3b464-1813-5535-fffc-36589d72d86d@nelint.com>
-Date: Tue, 21 Mar 2017 10:44:22 -0700
-MIME-Version: 1.0
-In-Reply-To: <53fd17db-af5d-335b-0337-e5aeffd12305@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from smtprelay.synopsys.com ([198.182.60.111]:40596 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755572AbdCGOns (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 09:43:48 -0500
+From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org
+Cc: CARLOS.PALMINHA@synopsys.com,
+        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>,
+        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Arnd Bergmann <arnd@arndb.de>, Benoit Parrot <bparrot@ti.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Peter Griffin <peter.griffin@linaro.org>,
+        Rick Chang <rick.chang@mediatek.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Rob Herring <robh+dt@kernel.org>,
+        Simon Horman <simon.horman@netronome.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Tiffany Lin <tiffany.lin@mediatek.com>
+Subject: [PATCH 1/4] Documentation: dt: Add bindings documentation for DW MIPI CSI-2 Host
+Date: Tue,  7 Mar 2017 14:37:48 +0000
+Message-Id: <3478bf7c84fd8c8bdcff4f0170ee0344eca13f60.1488885081.git.roliveir@synopsys.com>
+In-Reply-To: <cover.1488885081.git.roliveir@synopsys.com>
+References: <cover.1488885081.git.roliveir@synopsys.com>
+In-Reply-To: <cover.1488885081.git.roliveir@synopsys.com>
+References: <cover.1488885081.git.roliveir@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Create device tree bindings documentation for the Synopsys DW MIPI CSI-2
+ Host.
 
-On 03/21/2017 10:05 AM, Hans Verkuil wrote:
-> On 03/21/2017 05:49 PM, Eric Nelson wrote:
->> Hi Hans,
->>
->> Thanks to your work and those of Russell King, I have an i.MX6
->> board up and running with the new CEC API, but I'm having
->> trouble with a couple of sets of remote control keys.
-> 
-> What is your exact setup? Your i.MX6 is hooked up to a TV? And you
-> use the TV's remote control?
-> 
+Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
+---
+ .../devicetree/bindings/media/snps,dw-mipi-csi.txt | 37 ++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/snps,dw-mipi-csi.txt
 
-Exactly. Custom i.MX6 board with a Samsung television and remote.
-
->> In particular, the directional keys 0x01-0x04 (Up..Right)
->> and the function keys 0x71-0x74 (F1-F4) don't appear
->> to be forwarded.
->>
->> Running cec-ctl with the "-m" or "-M" options shows that they're
->> simply not being received.
-> 
-> Other keys appear fine with cec-ctl -M?
-> 
-
-Yes. Most keys are working fine.
-
-> Try to select CEC version 1.4 (use option --cec-version-1.4).
-> 
-
-Same result. I'm seeing most keys, including number keys:
-
-Received from TV to Recording Device 1 (0 to 1):
-CEC_MSG_USER_CONTROL_PRESSED (0x44):
-ui-cmd: Number 1 (0x21)
-Raw: 01 44 21
-Received from TV to Recording Device 1 (0 to 1):
-CEC_MSG_USER_CONTROL_RELEASED (0x45)
-Raw: 01 45
-
-But nothing from either the arrow or function keys.
-
-> With CEC 2.0 you can set various RC profiles, and (very unlikely) perhaps
-> your TV actually understands that.
-> 
-> The default CEC version cec-ctl selects is 2.0.
-> 
-> Note that the CEC framework doesn't do anything with the RC profiles
-> at the moment.
-> 
-
-I don't have the 2.0 spec, so I'm not sure what messages to look for
-in the logs from libCEC.
-
-I have a complete log file here, and it shows messages to and from
-the television, though in a pretty verbose form.
-
-http://pastebin.com/qFrhkNZQ
-
->>
->> I'm not sure if I'm missing a flag somewhere to tell my television
->> that we support these keys, or if I'm missing something else.
->>
->> I'm using the --record option at the moment. Using --playback
->> seems to restrict the keys to an even smaller set (seems to
->> block numeric keys).
->>
->> Do you have any guidance about how to trace this?
-> 
-> cec-ctl -M monitors all messages, so it is weird you don't see them.
-> 
-
-Yep. Weird.
+diff --git a/Documentation/devicetree/bindings/media/snps,dw-mipi-csi.txt b/Documentation/devicetree/bindings/media/snps,dw-mipi-csi.txt
+new file mode 100644
+index 000000000000..5b24eb43d760
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/snps,dw-mipi-csi.txt
+@@ -0,0 +1,37 @@
++Synopsys DesignWare CSI-2 Host controller
++
++Description
++-----------
++
++This HW block is used to receive image coming from an MIPI CSI-2 compatible
++camera.
++
++Required properties:
++- compatible: shall be "snps,dw-mipi-csi"
++- reg		: physical base address and size of the device memory mapped
++  registers;
++- interrupts	: CSI-2 Host interrupt
++- output-type   : Core output to be used (IPI-> 0 or IDI->1 or BOTH->2) These
++  values choose which of the Core outputs will be used, it can be Image Data
++  Interface or Image Pixel Interface.
++- phys: List of one PHY specifier (as defined in
++  Documentation/devicetree/bindings/phy/phy-bindings.txt). This PHY is a MIPI
++  DPHY working in RX mode.
++- resets: Reference to a reset controller (optional)
++
++Optional properties(if in IPI mode):
++- ipi-mode 	: Mode to be used when in IPI(Camera -> 0 or Controller -> 1)
++  This property defines if the controller will use the video timings available
++  in the video stream or if it will use pre-defined ones.
++- ipi-color-mode: Bus depth to be used in IPI (48 bits -> 0 or 16 bits -> 1)
++  This property defines the width of the IPI bus.
++- ipi-auto-flush: Data auto-flush (1 -> Yes or 0 -> No). This property defines
++  if the data is automatically flushed in each vsync or if this process is done
++  manually
++- virtual-channel: Virtual channel where data is present when in IPI mode. This
++  property chooses the virtual channel which IPI will use to retrieve the video
++  stream.
++
++The per-board settings:
++ - port sub-node describing a single endpoint connected to the camera as
++   described in video-interfaces.txt[1].
+-- 
+2.11.0
