@@ -1,125 +1,437 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:58279 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750769AbdCDFOR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 4 Mar 2017 00:14:17 -0500
-Message-ID: <62527df3f66e9f7da2869ab26b890940@smtp-cloud2.xs4all.net>
-Date: Sat, 04 Mar 2017 06:09:48 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34883 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933499AbdCHAiV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 19:38:21 -0500
+Received: by mail-wm0-f66.google.com with SMTP id z63so3583451wmg.2
+        for <linux-media@vger.kernel.org>; Tue, 07 Mar 2017 16:38:19 -0800 (PST)
+Received: from dvbdev.wuest.de (ip-178-201-73-185.hsi08.unitymediagroup.de. [178.201.73.185])
+        by smtp.gmail.com with ESMTPSA id m186sm13760369wmd.21.2017.03.07.10.58.38
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Tue, 07 Mar 2017 10:58:38 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Subject: [PATCH 11/13] [media] dvb-frontends/stv0367: add Digital Devices compatibility
+Date: Tue,  7 Mar 2017 19:57:25 +0100
+Message-Id: <20170307185727.564-12-d.scheller.oss@gmail.com>
+In-Reply-To: <20170307185727.564-1-d.scheller.oss@gmail.com>
+References: <20170307185727.564-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Results of the daily build of media_tree:
+This - in conjunction with the previous changes - makes it possible to use
+the STV0367 DVB-C/T demodulator driver with Digital Devices hardware having
+this demodulator soldered on them (namely CineCTv6 bridges and some earlier
+DuoFlex CT addon modules).
 
-date:			Sat Mar  4 05:00:25 CET 2017
-media-tree git hash:	3dc2046ca78b3cac6c8c9098a4e3024cd91abdb4
-media_build git hash:	9d6cebc34b27fea784dec19085970d9b4df9783e
-v4l-utils git hash:	646bb9c368a8b65cdea6d934c9022067541d13a9
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+The changes do the following:
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: ERRORS
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10-rc3-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-x86_64: OK
-linux-4.10-rc3-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+- add a third *_attach function which will make use of a third frontend_ops
+  struct which announces both -C and -T support (the same as with DD's own
+  driver stv0367dd). This is necessary to support both delivery systems
+  on one FE without having to do large conversions to VB2 or the need to
+  select either -C or -T mode via modparams and the like. Additionally,
+  the frontend_ops point to new "glue" functions which will then call into
+  the existing functionality depending on the active delivery system/demod
+  state (all used functionality works almost OOTB).
+- Demod initialisation has been ported from stv0367dd. DD's driver always
+  does a full init of both OFDM and QAM cores, with some additional things.
+  The active delivery system is remembered and upon switch, the Demod will
+  be reconfigured to work in OFDM or QAM mode (that's what the ddb_setup_XX
+  functions are used for). Note that in QAM mode, the DD demods work with
+  an IC speed of 58Mhz. It's not very good to perform full reinits upon
+  Demod mode changes since in very rare occasions this can lead to the I2C
+  interface or the whole Demod to crash, requiring a powercycle, thus the
+  flag to perform full reinit is set to disabled.
+- A little enum is added for named identifiers of the current Demod state.
 
-Detailed results are available here:
+Initialisation code/register writes originate from stv0367dd. Permission
+to reuse was formally granted by Ralph Metzler <rjkm@metzlerbros.de>.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/dvb-frontends/stv0367.c | 323 ++++++++++++++++++++++++++++++++++
+ drivers/media/dvb-frontends/stv0367.h |  10 ++
+ 2 files changed, 333 insertions(+)
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
+index ffc046a..db55063 100644
+--- a/drivers/media/dvb-frontends/stv0367.c
++++ b/drivers/media/dvb-frontends/stv0367.c
+@@ -46,6 +46,8 @@ module_param_named(i2c_debug, i2cdebug, int, 0644);
+ 	} while (0)
+ 	/* DVB-C */
+ 
++enum active_demod_state { demod_none, demod_ter, demod_cab };
++
+ struct stv0367cab_state {
+ 	enum stv0367_cab_signal_type	state;
+ 	u32	mclk;
+@@ -96,6 +98,7 @@ struct stv0367_state {
+ 	u8 deftabs;
+ 	u8 reinit_on_setfrontend;
+ 	u8 auto_if_khz;
++	enum active_demod_state activedemod;
+ };
+ 
+ #define RF_LOOKUP_TABLE_SIZE  31
+@@ -2880,6 +2883,326 @@ struct dvb_frontend *stv0367cab_attach(const struct stv0367_config *config,
+ }
+ EXPORT_SYMBOL(stv0367cab_attach);
+ 
++/*
++ * Functions for operation on Digital Devices hardware
++ */
++
++static void stv0367ddb_setup_ter(struct stv0367_state *state)
++{
++	stv0367_writereg(state, R367TER_DEBUG_LT4, 0x00);
++	stv0367_writereg(state, R367TER_DEBUG_LT5, 0x00);
++	stv0367_writereg(state, R367TER_DEBUG_LT6, 0x00); /* R367CAB_CTRL_1 */
++	stv0367_writereg(state, R367TER_DEBUG_LT7, 0x00); /* R367CAB_CTRL_2 */
++	stv0367_writereg(state, R367TER_DEBUG_LT8, 0x00);
++	stv0367_writereg(state, R367TER_DEBUG_LT9, 0x00);
++
++	/* Tuner Setup */
++	/* Buffer Q disabled, I Enabled, unsigned ADC */
++	stv0367_writereg(state, R367TER_ANADIGCTRL, 0x89);
++	stv0367_writereg(state, R367TER_DUAL_AD12, 0x04); /* ADCQ disabled */
++
++	/* Clock setup */
++	/* PLL bypassed and disabled */
++	stv0367_writereg(state, R367TER_ANACTRL, 0x0D);
++	stv0367_writereg(state, R367TER_TOPCTRL, 0x00); /* Set OFDM */
++
++	/* IC runs at 54 MHz with a 27 MHz crystal */
++	stv0367_pll_setup(state, STV0367_ICSPEED_53125, state->config->xtal);
++
++	msleep(50);
++	/* PLL enabled and used */
++	stv0367_writereg(state, R367TER_ANACTRL, 0x00);
++
++	state->activedemod = demod_ter;
++}
++
++static void stv0367ddb_setup_cab(struct stv0367_state *state)
++{
++	stv0367_writereg(state, R367TER_DEBUG_LT4, 0x00);
++	stv0367_writereg(state, R367TER_DEBUG_LT5, 0x01);
++	stv0367_writereg(state, R367TER_DEBUG_LT6, 0x06); /* R367CAB_CTRL_1 */
++	stv0367_writereg(state, R367TER_DEBUG_LT7, 0x03); /* R367CAB_CTRL_2 */
++	stv0367_writereg(state, R367TER_DEBUG_LT8, 0x00);
++	stv0367_writereg(state, R367TER_DEBUG_LT9, 0x00);
++
++	/* Tuner Setup */
++	/* Buffer Q disabled, I Enabled, signed ADC */
++	stv0367_writereg(state, R367TER_ANADIGCTRL, 0x8B);
++	/* ADCQ disabled */
++	stv0367_writereg(state, R367TER_DUAL_AD12, 0x04);
++
++	/* Clock setup */
++	/* PLL bypassed and disabled */
++	stv0367_writereg(state, R367TER_ANACTRL, 0x0D);
++	/* Set QAM */
++	stv0367_writereg(state, R367TER_TOPCTRL, 0x10);
++
++	/* IC runs at 58 MHz with a 27 MHz crystal */
++	stv0367_pll_setup(state, STV0367_ICSPEED_58000, state->config->xtal);
++
++	msleep(50);
++	/* PLL enabled and used */
++	stv0367_writereg(state, R367TER_ANACTRL, 0x00);
++
++	state->cab_state->mclk = stv0367cab_get_mclk(&state->fe,
++		state->config->xtal);
++	state->cab_state->adc_clk = stv0367cab_get_adc_freq(&state->fe,
++		state->config->xtal);
++
++	state->activedemod = demod_cab;
++}
++
++static int stv0367ddb_set_frontend(struct dvb_frontend *fe)
++{
++	struct stv0367_state *state = fe->demodulator_priv;
++
++	switch (fe->dtv_property_cache.delivery_system) {
++	case SYS_DVBT:
++		if (state->activedemod != demod_ter)
++			stv0367ddb_setup_ter(state);
++
++		return stv0367ter_set_frontend(fe);
++	case SYS_DVBC_ANNEX_A:
++		if (state->activedemod != demod_cab)
++			stv0367ddb_setup_cab(state);
++
++		/* protect against division error oopses */
++		if (fe->dtv_property_cache.symbol_rate == 0) {
++			pr_err("Invalid symbol rate\n");
++			return -EINVAL;
++		}
++
++		return stv0367cab_set_frontend(fe);
++	default:
++		break;
++	}
++
++	return -EINVAL;
++}
++
++static int stv0367ddb_get_frontend(struct dvb_frontend *fe,
++				   struct dtv_frontend_properties *p)
++{
++	struct stv0367_state *state = fe->demodulator_priv;
++
++	switch (state->activedemod) {
++	case demod_ter:
++		return stv0367ter_get_frontend(fe, p);
++	case demod_cab:
++		return stv0367cab_get_frontend(fe, p);
++	default:
++		break;
++	}
++
++	return -EINVAL;
++}
++
++static int stv0367ddb_read_status(struct dvb_frontend *fe,
++				  enum fe_status *status)
++{
++	struct stv0367_state *state = fe->demodulator_priv;
++
++	switch (state->activedemod) {
++	case demod_ter:
++		return stv0367ter_read_status(fe, status);
++	case demod_cab:
++		return stv0367cab_read_status(fe, status);
++	default:
++		break;
++	}
++
++	return -EINVAL;
++}
++
++static int stv0367ddb_sleep(struct dvb_frontend *fe)
++{
++	struct stv0367_state *state = fe->demodulator_priv;
++
++	switch (state->activedemod) {
++	case demod_ter:
++		state->activedemod = demod_none;
++		return stv0367ter_sleep(fe);
++	case demod_cab:
++		state->activedemod = demod_none;
++		return stv0367cab_sleep(fe);
++	default:
++		break;
++	}
++
++	return -EINVAL;
++}
++
++static int stv0367ddb_init(struct stv0367_state *state)
++{
++	struct stv0367ter_state *ter_state = state->ter_state;
++
++	stv0367_writereg(state, R367TER_TOPCTRL, 0x10);
++
++	if (stv0367_deftabs[state->deftabs][STV0367_TAB_BASE])
++		stv0367_write_table(state,
++			stv0367_deftabs[state->deftabs][STV0367_TAB_BASE]);
++
++	stv0367_write_table(state,
++		stv0367_deftabs[state->deftabs][STV0367_TAB_CAB]);
++
++	stv0367_writereg(state, R367TER_TOPCTRL, 0x00);
++	stv0367_write_table(state,
++		stv0367_deftabs[state->deftabs][STV0367_TAB_TER]);
++
++	stv0367_writereg(state, R367TER_GAIN_SRC1, 0x2A);
++	stv0367_writereg(state, R367TER_GAIN_SRC2, 0xD6);
++	stv0367_writereg(state, R367TER_INC_DEROT1, 0x55);
++	stv0367_writereg(state, R367TER_INC_DEROT2, 0x55);
++	stv0367_writereg(state, R367TER_TRL_CTL, 0x14);
++	stv0367_writereg(state, R367TER_TRL_NOMRATE1, 0xAE);
++	stv0367_writereg(state, R367TER_TRL_NOMRATE2, 0x56);
++	stv0367_writereg(state, R367TER_FEPATH_CFG, 0x0);
++
++	/* OFDM TS Setup */
++
++	stv0367_writereg(state, R367TER_TSCFGH, 0x70);
++	stv0367_writereg(state, R367TER_TSCFGM, 0xC0);
++	stv0367_writereg(state, R367TER_TSCFGL, 0x20);
++	stv0367_writereg(state, R367TER_TSSPEED, 0x40); /* Fixed at 54 MHz */
++
++	stv0367_writereg(state, R367TER_TSCFGH, 0x71);
++	stv0367_writereg(state, R367TER_TSCFGH, 0x70);
++
++	stv0367_writereg(state, R367TER_TOPCTRL, 0x10);
++
++	/* Also needed for QAM */
++	stv0367_writereg(state, R367TER_AGC12C, 0x01); /* AGC Pin setup */
++
++	stv0367_writereg(state, R367TER_AGCCTRL1, 0x8A);
++
++	/* QAM TS setup, note exact format also depends on descrambler */
++	/* settings */
++	/* Inverted Clock, Swap, serial */
++	stv0367_writereg(state, R367CAB_OUTFORMAT_0, 0x85);
++
++	/* Clock setup (PLL bypassed and disabled) */
++	stv0367_writereg(state, R367TER_ANACTRL, 0x0D);
++
++	/* IC runs at 58 MHz with a 27 MHz crystal */
++	stv0367_pll_setup(state, STV0367_ICSPEED_58000, state->config->xtal);
++
++	/* Tuner setup */
++	/* Buffer Q disabled, I Enabled, signed ADC */
++	stv0367_writereg(state, R367TER_ANADIGCTRL, 0x8b);
++	stv0367_writereg(state, R367TER_DUAL_AD12, 0x04); /* ADCQ disabled */
++
++	/* Improves the C/N lock limit */
++	stv0367_writereg(state, R367CAB_FSM_SNR2_HTH, 0x23);
++	/* ZIF/IF Automatic mode */
++	stv0367_writereg(state, R367CAB_IQ_QAM, 0x01);
++	/* Improving burst noise performances */
++	stv0367_writereg(state, R367CAB_EQU_FFE_LEAKAGE, 0x83);
++	/* Improving ACI performances */
++	stv0367_writereg(state, R367CAB_IQDEM_ADJ_EN, 0x05);
++
++	/* PLL enabled and used */
++	stv0367_writereg(state, R367TER_ANACTRL, 0x00);
++
++	stv0367_writereg(state, R367TER_I2CRPT, (0x08 | ((5 & 0x07) << 4)));
++
++	ter_state->pBER = 0;
++	ter_state->first_lock = 0;
++	ter_state->unlock_counter = 2;
++
++	return 0;
++}
++
++static const struct dvb_frontend_ops stv0367ddb_ops = {
++	.delsys = { SYS_DVBC_ANNEX_A, SYS_DVBT },
++	.info = {
++		.name			= "ST STV0367 DDB DVB-C/T",
++		.frequency_min		= 47000000,
++		.frequency_max		= 865000000,
++		.frequency_stepsize	= 166667,
++		.frequency_tolerance	= 0,
++		.caps = /* DVB-C */
++			0x400 |/* FE_CAN_QAM_4 */
++			FE_CAN_QAM_16 | FE_CAN_QAM_32  |
++			FE_CAN_QAM_64 | FE_CAN_QAM_128 |
++			FE_CAN_QAM_256 | FE_CAN_FEC_AUTO |
++			/* DVB-T */
++			FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 |
++			FE_CAN_FEC_3_4 | FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 |
++			FE_CAN_FEC_AUTO |
++			FE_CAN_QPSK | FE_CAN_QAM_16 | FE_CAN_QAM_64 |
++			FE_CAN_QAM_128 | FE_CAN_QAM_256 | FE_CAN_QAM_AUTO |
++			FE_CAN_TRANSMISSION_MODE_AUTO | FE_CAN_RECOVER |
++			FE_CAN_INVERSION_AUTO |
++			FE_CAN_MUTE_TS
++	},
++	.release = stv0367_release,
++	.sleep = stv0367ddb_sleep,
++	.i2c_gate_ctrl = stv0367cab_gate_ctrl, /* valid for TER and CAB */
++	.set_frontend = stv0367ddb_set_frontend,
++	.get_frontend = stv0367ddb_get_frontend,
++	.get_tune_settings = stv0367_get_tune_settings,
++	.read_status = stv0367ddb_read_status,
++};
++
++struct dvb_frontend *stv0367ddb_attach(const struct stv0367_config *config,
++				   struct i2c_adapter *i2c)
++{
++	struct stv0367_state *state = NULL;
++	struct stv0367ter_state *ter_state = NULL;
++	struct stv0367cab_state *cab_state = NULL;
++
++	/* allocate memory for the internal state */
++	state = kzalloc(sizeof(struct stv0367_state), GFP_KERNEL);
++	if (state == NULL)
++		goto error;
++	ter_state = kzalloc(sizeof(struct stv0367ter_state), GFP_KERNEL);
++	if (ter_state == NULL)
++		goto error;
++	cab_state = kzalloc(sizeof(struct stv0367cab_state), GFP_KERNEL);
++	if (cab_state == NULL)
++		goto error;
++
++	/* setup the state */
++	state->i2c = i2c;
++	state->config = config;
++	state->ter_state = ter_state;
++	cab_state->search_range = 280000;
++	cab_state->qamfec_status_reg = F367CAB_DESCR_SYNCSTATE;
++	state->cab_state = cab_state;
++	state->fe.ops = stv0367ddb_ops;
++	state->fe.demodulator_priv = state;
++	state->chip_id = stv0367_readreg(state, 0xf000);
++
++	/* demod operation options */
++	state->use_i2c_gatectrl = 0;
++	state->deftabs = STV0367_DEFTAB_DDB;
++	state->reinit_on_setfrontend = 0;
++	state->auto_if_khz = 1;
++	state->activedemod = demod_none;
++
++	state->chip_id = stv0367_readreg(state, R367TER_ID);
++
++	dprintk("%s: chip_id = 0x%x\n", __func__, state->chip_id);
++
++	/* check if the demod is there */
++	if ((state->chip_id != 0x50) && (state->chip_id != 0x60))
++		goto error;
++
++	dev_info(&i2c->dev, "Found %s with ChipID %02X at adr %02X\n",
++		state->fe.ops.info.name, state->chip_id,
++		config->demod_address);
++
++	stv0367ddb_init(state);
++
++	return &state->fe;
++
++error:
++	kfree(ter_state);
++	kfree(state);
++	return NULL;
++}
++EXPORT_SYMBOL(stv0367ddb_attach);
++
+ MODULE_PARM_DESC(debug, "Set debug");
+ MODULE_PARM_DESC(i2c_debug, "Set i2c debug");
+ 
+diff --git a/drivers/media/dvb-frontends/stv0367.h b/drivers/media/dvb-frontends/stv0367.h
+index aaa0236..8f7a314 100644
+--- a/drivers/media/dvb-frontends/stv0367.h
++++ b/drivers/media/dvb-frontends/stv0367.h
+@@ -44,6 +44,9 @@ dvb_frontend *stv0367ter_attach(const struct stv0367_config *config,
+ extern struct
+ dvb_frontend *stv0367cab_attach(const struct stv0367_config *config,
+ 					struct i2c_adapter *i2c);
++extern struct
++dvb_frontend *stv0367ddb_attach(const struct stv0367_config *config,
++					struct i2c_adapter *i2c);
+ #else
+ static inline struct
+ dvb_frontend *stv0367ter_attach(const struct stv0367_config *config,
+@@ -59,6 +62,13 @@ dvb_frontend *stv0367cab_attach(const struct stv0367_config *config,
+ 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+ 	return NULL;
+ }
++static inline struct
++dvb_frontend *stv0367ddb_attach(const struct stv0367_config *config,
++					struct i2c_adapter *i2c)
++{
++	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
++	return NULL;
++}
+ #endif
+ 
+ #endif
+-- 
+2.10.2
