@@ -1,61 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f49.google.com ([209.85.214.49]:35642 "EHLO
-        mail-it0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753141AbdCHMtB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Mar 2017 07:49:01 -0500
-Received: by mail-it0-f49.google.com with SMTP id m27so39249780iti.0
-        for <linux-media@vger.kernel.org>; Wed, 08 Mar 2017 04:49:00 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CA+V-a8umdNxUAfnY97u+UVYYbi5h79ZXymeqcoW-ZKbXwJJPOQ@mail.gmail.com>
-References: <1487268481-6127-1-git-send-email-bgolaszewski@baylibre.com> <CA+V-a8umdNxUAfnY97u+UVYYbi5h79ZXymeqcoW-ZKbXwJJPOQ@mail.gmail.com>
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Date: Wed, 8 Mar 2017 13:41:07 +0100
-Message-ID: <CAMpxmJUpHND0X6VKj9cD+vD2G_jBt_EmHq3k8gz7t1RFoMeuXw@mail.gmail.com>
-Subject: Re: [PATCH] media: vpif: use a configurable i2c_adapter_id for vpif display
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@baylibre.com>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        LAK <linux-arm-kernel@lists.infradead.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mail.linux-iscsi.org ([67.23.28.174]:33542 "EHLO
+        linux-iscsi.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750782AbdCHHzv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Mar 2017 02:55:51 -0500
+Message-ID: <1488958624.10589.10.camel@haakon3.risingtidesystems.com>
+Subject: Re: [PATCH 24/29] drivers: convert iblock_req.pending from atomic_t
+ to refcount_t
+From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+To: Elena Reshetova <elena.reshetova@intel.com>
+Cc: gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org,
+        xen-devel@lists.xenproject.org, netdev@vger.kernel.org,
+        linux1394-devel@lists.sourceforge.net,
+        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
+        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
+        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
+        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-usb@vger.kernel.org, peterz@infradead.org,
+        Hans Liljestrand <ishkamiel@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        David Windsor <dwindsor@gmail.com>
+Date: Tue, 07 Mar 2017 23:37:04 -0800
+In-Reply-To: <1488810076-3754-25-git-send-email-elena.reshetova@intel.com>
+References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+         <1488810076-3754-25-git-send-email-elena.reshetova@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-03-07 18:12 GMT+01:00 Lad, Prabhakar <prabhakar.csengg@gmail.com>:
-> Hi Bartosz,
->
-> Thanks for the patch.
->
-> On Thu, Feb 16, 2017 at 6:08 PM, Bartosz Golaszewski
-> <bgolaszewski@baylibre.com> wrote:
->>
->> The vpif display driver uses a static i2c adapter ID of 1 but on the
->> da850-evm board in DT boot mode the i2c adapter ID is actually 0.
->>
->> Make the adapter ID configurable like it already is for vpif capture.
->>
->> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
->> Acked-by: Kevin Hilman <khilman@baylibre.com>
->> ---
->>  arch/arm/mach-davinci/board-da850-evm.c       | 1 +
->>  drivers/media/platform/davinci/vpif_display.c | 2 +-
->>  include/media/davinci/vpif_types.h            | 1 +
->>  3 files changed, 3 insertions(+), 1 deletion(-)
->>
->
-> Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->
+Hi Elena,
 
-Thanks!
+On Mon, 2017-03-06 at 16:21 +0200, Elena Reshetova wrote:
+> refcount_t type and corresponding API should be
+> used instead of atomic_t when the variable is used as
+> a reference counter. This allows to avoid accidental
+> refcounter overflows that might lead to use-after-free
+> situations.
+> 
+> Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
+> Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
+> Signed-off-by: Kees Cook <keescook@chromium.org>
+> Signed-off-by: David Windsor <dwindsor@gmail.com>
+> ---
+>  drivers/target/target_core_iblock.c | 12 ++++++------
+>  drivers/target/target_core_iblock.h |  3 ++-
+>  2 files changed, 8 insertions(+), 7 deletions(-)
 
-Sekhar let me know, that this should be picked up by media. Also:
-there are still two DT bindings patches for vpif that can be picked up
-- Rob Herring acked them.
+For the target_core_iblock part:
 
-Thanks,
-Bartosz
+Acked-by: Nicholas Bellinger <nab@linux-iscsi.org>
