@@ -1,73 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:36236 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754362AbdCXSZv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Mar 2017 14:25:51 -0400
-Received: by mail-wm0-f65.google.com with SMTP id x124so2177763wmf.3
-        for <linux-media@vger.kernel.org>; Fri, 24 Mar 2017 11:25:50 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: mchehab@kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH v2 08/12] [media] dvb-frontends/stv0367: selectable QAM FEC Lock status register
-Date: Fri, 24 Mar 2017 19:24:04 +0100
-Message-Id: <20170324182408.25996-9-d.scheller.oss@gmail.com>
-In-Reply-To: <20170324182408.25996-1-d.scheller.oss@gmail.com>
-References: <20170324182408.25996-1-d.scheller.oss@gmail.com>
+Received: from mx2.suse.de ([195.135.220.15]:48471 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751691AbdCHPXu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 8 Mar 2017 10:23:50 -0500
+Subject: Re: [PATCH 21/29] drivers, s390: convert fc_fcp_pkt.ref_cnt from
+ atomic_t to refcount_t
+To: "Reshetova, Elena" <elena.reshetova@intel.com>,
+        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
+References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+ <1488810076-3754-22-git-send-email-elena.reshetova@intel.com>
+ <536a58ba-8896-5639-cab9-bd2f13bed325@suse.de>
+ <2236FBA76BA1254E88B949DDB74E612B41C5615F@IRSMSX102.ger.corp.intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux1394-devel@lists.sourceforge.net"
+        <linux1394-devel@lists.sourceforge.net>,
+        "linux-bcache@vger.kernel.org" <linux-bcache@vger.kernel.org>,
+        "linux-raid@vger.kernel.org" <linux-raid@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devel@linuxdriverproject.org" <devel@linuxdriverproject.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
+        "fcoe-devel@open-fcoe.org" <fcoe-devel@open-fcoe.org>,
+        "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>,
+        "open-iscsi@googlegroups.com" <open-iscsi@googlegroups.com>,
+        "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
+        "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>,
+        "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
+        "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
+        "peterz@infradead.org" <peterz@infradead.org>,
+        Hans Liljestrand <ishkamiel@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        David Windsor <dwindsor@gmail.com>
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Message-ID: <36e6c54c-5e4b-fe16-86e2-fdef7a52d048@suse.de>
+Date: Wed, 8 Mar 2017 15:06:53 +0100
+MIME-Version: 1.0
+In-Reply-To: <2236FBA76BA1254E88B949DDB74E612B41C5615F@IRSMSX102.ger.corp.intel.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+On 03/08/2017 02:48 PM, Reshetova, Elena wrote:
+>> On 03/06/2017 03:21 PM, Elena Reshetova wrote:
+>>> refcount_t type and corresponding API should be
+>>> used instead of atomic_t when the variable is used as
+>>> a reference counter. This allows to avoid accidental
+>>> refcounter overflows that might lead to use-after-free
+>>> situations.
+>>
+>> The subject is wrong, should be something like "scsi: libfc convert
+>> fc_fcp_pkt.ref_cnt from atomic_t to refcount_t" but not s390.
+>>
+>> Other than that
+>> Acked-by: Johannes Thumshirn <jth@kernel.org>
+>
+> Turns out that it is better that all these patches go through the respective maintainer trees, if present.
+> If I send an updated patch (with subject fixed), could you merge it through your tree?
 
-In some configurations (due to different PIN config, wiring or so), the
-QAM FECLock might be signalled using a different register than
-F367CAB_QAMFEC_LOCK (e.g. F367CAB_DESCR_SYNCSTATE on Digital Devices hw),
-so make that register selectable.
+Yes, but this would be the normal scsi tree from Martin and James.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/dvb-frontends/stv0367.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+Please include my Ack in the re-sends.
 
-diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
-index 74fee3f..fb41c7b 100644
---- a/drivers/media/dvb-frontends/stv0367.c
-+++ b/drivers/media/dvb-frontends/stv0367.c
-@@ -57,6 +57,7 @@ struct stv0367cab_state {
- 	u32 freq_khz;			/* found frequency (in kHz)	*/
- 	u32 symbol_rate;		/* found symbol rate (in Bds)	*/
- 	enum fe_spectral_inversion spect_inv; /* Spectrum Inversion	*/
-+	u32 qamfec_status_reg;          /* status reg to poll for FEC Lock */
- };
- 
- struct stv0367ter_state {
-@@ -2145,7 +2146,8 @@ static int stv0367cab_read_status(struct dvb_frontend *fe,
- 
- 	*status = 0;
- 
--	if (stv0367_readbits(state, F367CAB_QAMFEC_LOCK)) {
-+	if (stv0367_readbits(state, (state->cab_state->qamfec_status_reg ?
-+		state->cab_state->qamfec_status_reg : F367CAB_QAMFEC_LOCK))) {
- 		*status |= FE_HAS_LOCK;
- 		dprintk("%s: stv0367 has locked\n", __func__);
- 	}
-@@ -2410,7 +2412,9 @@ enum stv0367_cab_signal_type stv0367cab_algo(struct stv0367_state *state,
- 			usleep_range(5000, 7000);
- 			LockTime += 5;
- 			QAMFEC_Lock = stv0367_readbits(state,
--							F367CAB_QAMFEC_LOCK);
-+				(state->cab_state->qamfec_status_reg ?
-+				state->cab_state->qamfec_status_reg :
-+				F367CAB_QAMFEC_LOCK));
- 		} while (!QAMFEC_Lock && (LockTime < FECTimeOut));
- 	} else
- 		QAMFEC_Lock = 0;
-@@ -2849,6 +2853,7 @@ struct dvb_frontend *stv0367cab_attach(const struct stv0367_config *config,
- 	state->i2c = i2c;
- 	state->config = config;
- 	cab_state->search_range = 280000;
-+	cab_state->qamfec_status_reg = F367CAB_QAMFEC_LOCK;
- 	state->cab_state = cab_state;
- 	state->fe.ops = stv0367cab_ops;
- 	state->fe.demodulator_priv = state;
+Thanks a lot,
+	Johannes
+
+
 -- 
-2.10.2
+Johannes Thumshirn                                          Storage
+jthumshirn@suse.de                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
+GF: Felix Imendörffer, Jane Smithard, Graham Norton
+HRB 21284 (AG Nürnberg)
+Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
