@@ -1,116 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:58750 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751151AbdCNS0n (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Mar 2017 14:26:43 -0400
-Date: Tue, 14 Mar 2017 19:26:35 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Russell King - ARM Linux <linux@armlinux.org.uk>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
- controls from a pipeline
-Message-ID: <20170314182635.GA3744@amd>
-References: <20170310130733.GU21222@n2100.armlinux.org.uk>
- <c679f755-52a6-3c6f-3d65-277db46676cc@xs4all.nl>
- <20170310140124.GV21222@n2100.armlinux.org.uk>
- <cc8900b0-c091-b14b-96f4-01f8fa72431c@xs4all.nl>
- <20170310125342.7f047acf@vento.lan>
- <20170310223714.GI3220@valkosipuli.retiisi.org.uk>
- <20170311082549.576531d0@vento.lan>
- <20170311231456.GH21222@n2100.armlinux.org.uk>
- <20170312212904.GA7995@amd>
- <20170312193745.636df0bf@vento.lan>
+Received: from mga11.intel.com ([192.55.52.93]:40146 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751972AbdCHJmj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 8 Mar 2017 04:42:39 -0500
+From: "Reshetova, Elena" <elena.reshetova@intel.com>
+To: Shaohua Li <shli@kernel.org>
+CC: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux1394-devel@lists.sourceforge.net"
+        <linux1394-devel@lists.sourceforge.net>,
+        "linux-bcache@vger.kernel.org" <linux-bcache@vger.kernel.org>,
+        "linux-raid@vger.kernel.org" <linux-raid@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devel@linuxdriverproject.org" <devel@linuxdriverproject.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
+        "fcoe-devel@open-fcoe.org" <fcoe-devel@open-fcoe.org>,
+        "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>,
+        "open-iscsi@googlegroups.com" <open-iscsi@googlegroups.com>,
+        "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
+        "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>,
+        "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
+        "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
+        "peterz@infradead.org" <peterz@infradead.org>,
+        Hans Liljestrand <ishkamiel@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        David Windsor <dwindsor@gmail.com>
+Subject: RE: [PATCH 10/29] drivers, md: convert stripe_head.count from
+ atomic_t to refcount_t
+Date: Wed, 8 Mar 2017 09:39:30 +0000
+Message-ID: <2236FBA76BA1254E88B949DDB74E612B41C56050@IRSMSX102.ger.corp.intel.com>
+References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+ <1488810076-3754-11-git-send-email-elena.reshetova@intel.com>
+ <20170307190759.jnrq66kfpkr4m7zl@kernel.org>
+In-Reply-To: <20170307190759.jnrq66kfpkr4m7zl@kernel.org>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="FL5UXtIhxfXey3p5"
-Content-Disposition: inline
-In-Reply-To: <20170312193745.636df0bf@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+> On Mon, Mar 06, 2017 at 04:20:57PM +0200, Elena Reshetova wrote:
+> > refcount_t type and corresponding API should be
+> > used instead of atomic_t when the variable is used as
+> > a reference counter. This allows to avoid accidental
+> > refcounter overflows that might lead to use-after-free
+> > situations.
+> >
+> > Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
+> > Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
+> > Signed-off-by: Kees Cook <keescook@chromium.org>
+> > Signed-off-by: David Windsor <dwindsor@gmail.com>
+> > ---
+> >  drivers/md/raid5-cache.c |  8 +++---
+> >  drivers/md/raid5.c       | 66 ++++++++++++++++++++++++------------------------
+> >  drivers/md/raid5.h       |  3 ++-
+> >  3 files changed, 39 insertions(+), 38 deletions(-)
+> >
+> > diff --git a/drivers/md/raid5-cache.c b/drivers/md/raid5-cache.c
+> > index 3f307be..6c05e12 100644
+> > --- a/drivers/md/raid5-cache.c
+> > +++ b/drivers/md/raid5-cache.c
+> 
+> snip
+> >  	       sh->check_state, sh->reconstruct_state);
+> >
+> >  	analyse_stripe(sh, &s);
+> > @@ -4924,7 +4924,7 @@ static void activate_bit_delay(struct r5conf *conf,
+> >  		struct stripe_head *sh = list_entry(head.next, struct
+> stripe_head, lru);
+> >  		int hash;
+> >  		list_del_init(&sh->lru);
+> > -		atomic_inc(&sh->count);
+> > +		refcount_inc(&sh->count);
+> >  		hash = sh->hash_lock_index;
+> >  		__release_stripe(conf, sh,
+> &temp_inactive_list[hash]);
+> >  	}
+> > @@ -5240,7 +5240,7 @@ static struct stripe_head *__get_priority_stripe(struct
+> r5conf *conf, int group)
+> >  		sh->group = NULL;
+> >  	}
+> >  	list_del_init(&sh->lru);
+> > -	BUG_ON(atomic_inc_return(&sh->count) != 1);
+> > +	BUG_ON(refcount_inc_not_zero(&sh->count));
+> 
+> This changes the behavior. refcount_inc_not_zero doesn't inc if original value is 0
 
---FL5UXtIhxfXey3p5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hm.. So, you want to inc here in any case and BUG if the end result differs from 1. 
+So essentially you want to only increment here from zero to one under normal conditions... This is a challenge for refcount_t and against the design.
+Is it ok just to maybe do this here:
 
-Hi!
+-	BUG_ON(atomic_inc_return(&sh->count) != 1);
++	BUG_ON(refcount_read(&sh->count) != 0);
++	refcount_set((&sh->count, 1);
 
-> > Mid-layer is difficult... there are _hundreds_ of possible
-> > pipeline setups. If it should live in kernel or in userspace is a
-> > question... but I don't think having it in kernel helps in any way.
->=20
-> Mid-layer is difficult, because we either need to feed some
-> library with knowledge for all kernel drivers or we need to improve
-> the MC API to provide more details.
->=20
-> For example, several drivers used to expose entities via the
-> generic MEDIA_ENT_T_DEVNODE to represent entities of different
-> types. See, for example, entities 1, 5 and 7 (and others) at:
->
-> > https://mchehab.fedorapeople.org/mc-next-gen/igepv2_omap3isp.png
+Do we have an issue with locking in this case? Or maybe it is then better to leave this one to be atomic_t without protection since it isn't a real refcounter as it turns out. 
 
-Well... we provide enough information, so that device-specific code
-does not have to be in kernel.
+Best Regards,
+Elena. 
 
-There are few types of ENT_T_DEVNODE there. "ISP CCP2" does not really
-provide any functionality to the user. It just has to be there,
-because the pipeline needs to be connected. "ISP Preview" provides
-format conversion. "ISP Resizer" provides rescaling.
-
-I'm not sure if it ever makes sense to use "ISP Preview
-output". Normally you take data for display from "ISP Resizer
-output". (Would there be some power advantage from that?)
-
-> A device-specific code could either be hardcoding the entity number
-> or checking for the entity strings to add some logic to setup
-> controls on those "unknown" entities, a generic app won't be able=20
-> to do anything with them, as it doesn't know what function(s) such
-> entity provide.
-
-Generic app should know if it wants RGGB10 data, then it can use "ISP
-CCDC output", or if it wants "cooked" data suitable for display, then
-it wants to use "ISP Resizer output". Once application knows what
-output it wants, there's just one path through the system. So being
-able to tell the ENT_T_DEVNODEs apart does not seem to be critical.
-
-OTOH, for useful camera application, different paths are needed at
-different phases.
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---FL5UXtIhxfXey3p5
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAljINdsACgkQMOfwapXb+vLsJgCfTHi3WWXopxgQDoVYKBFeNCsX
-1pIAoJCLkkQ1XeTTlDPgVbzaLaRyJWY5
-=pshM
------END PGP SIGNATURE-----
-
---FL5UXtIhxfXey3p5--
+> 
+> Thanks,
+> Shaohua
