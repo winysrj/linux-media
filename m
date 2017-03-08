@@ -1,83 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:34636 "EHLO
-        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750703AbdCAGOT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Mar 2017 01:14:19 -0500
-Received: by mail-oi0-f66.google.com with SMTP id m124so2432533oig.1
-        for <linux-media@vger.kernel.org>; Tue, 28 Feb 2017 22:14:19 -0800 (PST)
-Subject: Re: [PATCH v4 15/36] platform: add video-multiplexer subdevice driver
-To: Rob Herring <robh@kernel.org>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
- <1487211578-11360-16-git-send-email-steve_longerbeam@mentor.com>
- <20170227144153.g4jzzbrcb7oyddyj@rob-hp-laptop>
-Cc: mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, Sascha Hauer <s.hauer@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <6262f5bd-08e0-20b0-9e41-a01db75587dd@gmail.com>
-Date: Tue, 28 Feb 2017 16:20:07 -0800
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47328 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750783AbdCHKVm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Mar 2017 05:21:42 -0500
+Date: Wed, 8 Mar 2017 11:19:14 +0100
+From: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
+To: "Reshetova, Elena" <elena.reshetova@intel.com>
+Cc: Shaohua Li <shli@kernel.org>,
+        "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
+        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
+        "open-iscsi@googlegroups.com" <open-iscsi@googlegroups.com>,
+        Kees Cook <keescook@chromium.org>,
+        "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>,
+        David Windsor <dwindsor@gmail.com>,
+        "peterz@infradead.org" <peterz@infradead.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-raid@vger.kernel.org" <linux-raid@vger.kernel.org>,
+        "linux-bcache@vger.kernel.org" <linux-bcache@vger.kernel.org>,
+        "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>,
+        "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
+        "devel@linuxdriverproject.org" <devel@linuxdriverproject.org>,
+        "fcoe-devel@open-fcoe.org" <fcoe-devel@open-fcoe.org>,
+        "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>,
+        "linux1394-devel@lists.sourceforge.net"
+        <linux1394-devel@lists.sourceforge.net>,
+        Hans Liljestrand <ishkamiel@gmail.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 08/29] drivers, md: convert mddev.active from atomic_t to
+ refcount_t
+Message-ID: <20170308101914.GB15198@kroah.com>
+References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+ <1488810076-3754-9-git-send-email-elena.reshetova@intel.com>
+ <20170307190449.baceyzzngsz776x7@kernel.org>
+ <2236FBA76BA1254E88B949DDB74E612B41C5606B@IRSMSX102.ger.corp.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20170227144153.g4jzzbrcb7oyddyj@rob-hp-laptop>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2236FBA76BA1254E88B949DDB74E612B41C5606B@IRSMSX102.ger.corp.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Wed, Mar 08, 2017 at 09:42:09AM +0000, Reshetova, Elena wrote:
+> > On Mon, Mar 06, 2017 at 04:20:55PM +0200, Elena Reshetova wrote:
+> > > refcount_t type and corresponding API should be
+> > > used instead of atomic_t when the variable is used as
+> > > a reference counter. This allows to avoid accidental
+> > > refcounter overflows that might lead to use-after-free
+> > > situations.
+> > 
+> > Looks good. Let me know how do you want to route the patch to upstream.
+> 
+> Greg, you previously mentioned that driver's conversions can go via your tree. Does this still apply?
+> Or should I be asking maintainers to merge these patches via their trees? 
 
+You should ask them to take them through their trees, if they have them.
+I'll be glad to scoop up all of the remaining ones that get missed, or
+for subsystems that do not have trees.
 
-On 02/27/2017 06:41 AM, Rob Herring wrote:
-> On Wed, Feb 15, 2017 at 06:19:17PM -0800, Steve Longerbeam wrote:
->> From: Philipp Zabel <p.zabel@pengutronix.de>
->>
->> This driver can handle SoC internal and external video bus multiplexers,
->> controlled either by register bit fields or by a GPIO. The subdevice
->> passes through frame interval and mbus configuration of the active input
->> to the output side.
->>
->> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
->> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
->>
->> --
->>
->> - fixed a cut&paste error in vidsw_remove(): v4l2_async_register_subdev()
->>    should be unregister.
->>
->> - added media_entity_cleanup() and v4l2_device_unregister_subdev()
->>    to vidsw_remove().
->>
->> - added missing MODULE_DEVICE_TABLE().
->>    Suggested-by: Javier Martinez Canillas <javier@dowhile0.org>
->>
->> - there was a line left over from a previous iteration that negated
->>    the new way of determining the pad count just before it which
->>    has been removed (num_pads = of_get_child_count(np)).
->>
->> - Philipp Zabel has developed a set of patches that allow adding
->>    to the subdev async notifier waiting list using a chaining method
->>    from the async registered callbacks (v4l2_of_subdev_registered()
->>    and the prep patches for that). For now, I've removed the use of
->>    v4l2_of_subdev_registered() for the vidmux driver's registered
->>    callback. This doesn't affect the functionality of this driver,
->>    but allows for it to be merged now, before adding the chaining
->>    support.
->>
->> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
->> ---
->>   .../bindings/media/video-multiplexer.txt           |  59 +++
-> Please make this a separate commit.
+thanks,
 
-Done.
-
-Steve
+greg k-h
