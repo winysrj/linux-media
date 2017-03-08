@@ -1,85 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx02-sz.bfs.de ([194.94.69.103]:27485 "EHLO mx02-sz.bfs.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753075AbdCTMFt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 08:05:49 -0400
-Message-ID: <58CFC561.8090104@bfs.de>
-Date: Mon, 20 Mar 2017 13:04:49 +0100
-From: walter harms <wharms@bfs.de>
-Reply-To: wharms@bfs.de
-MIME-Version: 1.0
-To: Daeseok Youn <daeseok.youn@gmail.com>
-CC: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        alan@linux.intel.com, singhalsimran0@gmail.com,
-        dan.carpenter@oracle.com, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH 2/4] staging: atomisp: simplify if statement in atomisp_get_sensor_fps()
-References: <20170320105940.GA17472@SEL-JYOUN-D1>
-In-Reply-To: <20170320105940.GA17472@SEL-JYOUN-D1>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-pg0-f54.google.com ([74.125.83.54]:36204 "EHLO
+        mail-pg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756710AbdCHDlf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 22:41:35 -0500
+Received: by mail-pg0-f54.google.com with SMTP id 187so8021127pgb.3
+        for <linux-media@vger.kernel.org>; Tue, 07 Mar 2017 19:41:04 -0800 (PST)
+From: Wu-Cheng Li <wuchengli@chromium.org>
+To: pawel@osciak.com, tiffany.lin@mediatek.com,
+        andrew-ct.chen@mediatek.com, mchehab@kernel.org,
+        matthias.bgg@gmail.com, hans.verkuil@cisco.com,
+        wuchengli@google.com
+Cc: djkurtz@chromium.org, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-mediatek@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v3 0/1] mtk-vcodec: check the vp9 decoder buffer index from VPU
+Date: Wed,  8 Mar 2017 11:40:57 +0800
+Message-Id: <20170308034058.99886-1-wuchengli@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Wu-Cheng Li <wuchengli@google.com>
 
+v2: also check the result of vdec_if_decode in mtk_vdec_worker.
+v3: set buffer status to VB2_BUF_STATE_ERROR. Move printk out of lock.
 
-Am 20.03.2017 11:59, schrieb Daeseok Youn:
-> If v4l2_subdev_call() gets the global frame interval values,
-> it returned 0 and it could be checked whether numerator is zero or not.
-> 
-> If the numerator is not zero, the fps could be calculated in this function.
-> If not, it just returns 0.
-> 
-> Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
-> ---
->  .../media/atomisp/pci/atomisp2/atomisp_cmd.c       | 22 ++++++++++------------
->  1 file changed, 10 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-> index 8bdb224..6bdd19e 100644
-> --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-> +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-> @@ -153,20 +153,18 @@ struct atomisp_acc_pipe *atomisp_to_acc_pipe(struct video_device *dev)
->  
->  static unsigned short atomisp_get_sensor_fps(struct atomisp_sub_device *asd)
->  {
-> -	struct v4l2_subdev_frame_interval frame_interval;
-> +	struct v4l2_subdev_frame_interval fi;
->  	struct atomisp_device *isp = asd->isp;
-> -	unsigned short fps;
->  
-> -	if (v4l2_subdev_call(isp->inputs[asd->input_curr].camera,
-> -	    video, g_frame_interval, &frame_interval)) {
-> -		fps = 0;
-> -	} else {
-> -		if (frame_interval.interval.numerator)
-> -			fps = frame_interval.interval.denominator /
-> -			    frame_interval.interval.numerator;
-> -		else
-> -			fps = 0;
-> -	}
-> +	unsigned short fps = 0;
-> +	int ret;
-> +
-> +	ret = v4l2_subdev_call(isp->inputs[asd->input_curr].camera,
-> +			       video, g_frame_interval, &fi);
-> +
-> +	if (!ret && fi.interval.numerator)
-> +		fps = fi.interval.denominator / fi.interval.numerator;
-> +
->  	return fps;
->  }
+Wu-Cheng Li (1):
+  mtk-vcodec: check the vp9 decoder buffer index from VPU.
 
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c | 33 +++++++++++++++++-----
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.h |  2 ++
+ .../media/platform/mtk-vcodec/vdec/vdec_vp9_if.c   | 26 +++++++++++++++++
+ drivers/media/platform/mtk-vcodec/vdec_drv_if.h    |  2 ++
+ 4 files changed, 56 insertions(+), 7 deletions(-)
 
-
-do you need to check ret at all ? if an error occurs can fi.interval.numerator
-be something else than 0 ?
-
-if ret is an ERRNO it would be wise to return ret not fps, but this may require
-changes at other places also.
-
-re,
- wh
-
->  
+-- 
+2.12.0.246.ga2ecc84866-goog
