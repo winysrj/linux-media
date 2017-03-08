@@ -1,155 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:47700 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751566AbdCMKyn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 06:54:43 -0400
-Date: Mon, 13 Mar 2017 10:54:33 +0000
-From: Brian Starkey <brian.starkey@arm.com>
-To: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Cc: Laura Abbott <labbott@redhat.com>, Mark Brown <broonie@kernel.org>,
-        Michal Hocko <mhocko@kernel.org>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>,
-        Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>,
-        Rom Lemarchand <romlem@google.com>, devel@driverdev.osuosl.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-arm-kernel@lists.infradead.org,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        Daniel Vetter <daniel.vetter@intel.com>, linux-mm@kvack.org
-Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of
- staging
-Message-ID: <20170313105433.GA12980@e106950-lin.cambridge.arm.com>
-References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
- <20170303132949.GC31582@dhcp22.suse.cz>
- <cf383b9b-3cbc-0092-a071-f120874c053c@redhat.com>
- <20170306074258.GA27953@dhcp22.suse.cz>
- <20170306104041.zghsicrnadoap7lp@phenom.ffwll.local>
- <20170306105805.jsq44kfxhsvazkm6@sirena.org.uk>
- <20170306160437.sf7bksorlnw7u372@phenom.ffwll.local>
- <CA+M3ks77Am3Fx-ZNmgeM5tCqdM7SzV7rby4Es-p2F2aOhUco9g@mail.gmail.com>
- <26bc57ae-d88f-4ea0-d666-2c1a02bf866f@redhat.com>
- <CA+M3ks6R=n4n54wofK7pYcWoQKUhzyWQytBO90+pRDRrAhi3ww@mail.gmail.com>
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:36057 "EHLO
+        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753027AbdCHSUN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Mar 2017 13:20:13 -0500
+Received: by mail-wm0-f50.google.com with SMTP id n11so121728044wma.1
+        for <linux-media@vger.kernel.org>; Wed, 08 Mar 2017 10:18:35 -0800 (PST)
+Date: Wed, 8 Mar 2017 21:47:08 +0400
+From: Anton Sviridenko <anton@corp.bluecherry.net>
+To: Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
+        Ismael Luceno <ismael@iodev.co.uk>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] solo6x10: release vb2 buffers in
+ solo_stop_streaming()
+Message-ID: <20170308174704.GA22020@magpie-gentoo>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CA+M3ks6R=n4n54wofK7pYcWoQKUhzyWQytBO90+pRDRrAhi3ww@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Mar 12, 2017 at 02:34:14PM +0100, Benjamin Gaignard wrote:
->2017-03-09 18:38 GMT+01:00 Laura Abbott <labbott@redhat.com>:
->> On 03/09/2017 02:00 AM, Benjamin Gaignard wrote:
->>> 2017-03-06 17:04 GMT+01:00 Daniel Vetter <daniel@ffwll.ch>:
->>>> On Mon, Mar 06, 2017 at 11:58:05AM +0100, Mark Brown wrote:
->>>>> On Mon, Mar 06, 2017 at 11:40:41AM +0100, Daniel Vetter wrote:
->>>>>
->>>>>> No one gave a thing about android in upstream, so Greg KH just dumped it
->>>>>> all into staging/android/. We've discussed ION a bunch of times, recorded
->>>>>> anything we'd like to fix in staging/android/TODO, and Laura's patch
->>>>>> series here addresses a big chunk of that.
->>>>>
->>>>>> This is pretty much the same approach we (gpu folks) used to de-stage the
->>>>>> syncpt stuff.
->>>>>
->>>>> Well, there's also the fact that quite a few people have issues with the
->>>>> design (like Laurent).  It seems like a lot of them have either got more
->>>>> comfortable with it over time, or at least not managed to come up with
->>>>> any better ideas in the meantime.
->>>>
->>>> See the TODO, it has everything a really big group (look at the patch for
->>>> the full Cc: list) figured needs to be improved at LPC 2015. We don't just
->>>> merge stuff because merging stuff is fun :-)
->>>>
->>>> Laurent was even in that group ...
->>>> -Daniel
->>>
->>> For me those patches are going in the right direction.
->>>
->>> I still have few questions:
->>> - since alignment management has been remove from ion-core, should it
->>> be also removed from ioctl structure ?
->>
->> Yes, I think I'm going to go with the suggestion to fixup the ABI
->> so we don't need the compat layer and as part of that I'm also
->> dropping the align argument.
->>
->>> - can you we ride off ion_handle (at least in userland) and only
->>> export a dma-buf descriptor ?
->>
->> Yes, I think this is the right direction given we're breaking
->> everything anyway. I was debating trying to keep the two but
->> moving to only dma bufs is probably cleaner. The only reason
->> I could see for keeping the handles is running out of file
->> descriptors for dma-bufs but that seems unlikely.
->>>
->>> In the future how can we add new heaps ?
->>> Some platforms have very specific memory allocation
->>> requirements (just have a look in the number of gem custom allocator in drm)
->>> Do you plan to add heap type/mask for each ?
->>
->> Yes, that was my thinking.
->
->My concern is about the policy to adding heaps, will you accept
->"customs" heap per
->platforms ? per devices ? or only generic ones ?
->If you are too strict, we will have lot of out-of-tree heaps and if
->you accept of of them
->it will be a nightmare to maintain....
->
+Fixes warning that appears in dmesg after closing V4L2 userspace
+application that plays video from the display device
+(first device from V4L2 device nodes provided by solo, usually /dev/video0
+when no other V4L2 devices are present). Encoder device nodes are not
+affected. Can be reproduced by starting and closing
 
-Are you concerned about actual heaps (e.g. a carveout at 0x80000000 vs
-a carveout at 0x60000000) or heap types?
+ffplay -f video4linux2  /dev/video0
 
-For heap types, I think the policy can be strict - if it's generally
-useful then it should live in-tree in ion. Otherwise, it would be
-out-of-tree. I'd expect most "custom" heaps to be parameterisable to
-the point of being generally useful.
+[ 8130.281251] ------------[ cut here ]------------
+[ 8130.281256] WARNING: CPU: 1 PID: 20414 at drivers/media/v4l2-core/videobuf2-core.c:1651 __vb2_queue_cancel+0x14b/0x230
+[ 8130.281257] Modules linked in: ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat solo6x10 x86_pkg_temp_thermal vboxpci(O) vboxnetadp(O) vboxnetflt(O) vboxdrv(O)
+[ 8130.281264] CPU: 1 PID: 20414 Comm: ffplay Tainted: G           O    4.10.0-gentoo #1
+[ 8130.281264] Hardware name: ASUS All Series/B85M-E, BIOS 2301 03/30/2015
+[ 8130.281265] Call Trace:
+[ 8130.281267]  dump_stack+0x4f/0x72
+[ 8130.281270]  __warn+0xc7/0xf0
+[ 8130.281271]  warn_slowpath_null+0x18/0x20
+[ 8130.281272]  __vb2_queue_cancel+0x14b/0x230
+[ 8130.281273]  vb2_core_streamoff+0x23/0x90
+[ 8130.281275]  vb2_streamoff+0x24/0x50
+[ 8130.281276]  vb2_ioctl_streamoff+0x3d/0x50
+[ 8130.281278]  v4l_streamoff+0x15/0x20
+[ 8130.281279]  __video_do_ioctl+0x25e/0x2f0
+[ 8130.281280]  video_usercopy+0x279/0x520
+[ 8130.281282]  ? v4l_enum_fmt+0x1330/0x1330
+[ 8130.281285]  ? unmap_region+0xdf/0x110
+[ 8130.281285]  video_ioctl2+0x10/0x20
+[ 8130.281286]  v4l2_ioctl+0xce/0xe0
+[ 8130.281289]  do_vfs_ioctl+0x8b/0x5b0
+[ 8130.281290]  ? __fget+0x72/0xa0
+[ 8130.281291]  SyS_ioctl+0x74/0x80
+[ 8130.281294]  entry_SYSCALL_64_fastpath+0x13/0x94
+[ 8130.281295] RIP: 0033:0x7ff86fee6b27
+[ 8130.281296] RSP: 002b:00007ffe467f6a08 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+[ 8130.281297] RAX: ffffffffffffffda RBX: 00000000d1a4d788 RCX: 00007ff86fee6b27
+[ 8130.281297] RDX: 00007ffe467f6a14 RSI: 0000000040045613 RDI: 0000000000000006
+[ 8130.281298] RBP: 000000000373f8d0 R08: 00000000ffffffff R09: 00007ff860001140
+[ 8130.281298] R10: 0000000000000243 R11: 0000000000000246 R12: 0000000000000000
+[ 8130.281299] R13: 00000000000000a0 R14: 00007ffe467f6530 R15: 0000000001f32228
+[ 8130.281300] ---[ end trace 00695dc96be646e7 ]---
 
-For actual heap instances, I would expect them to be communicated via
-reserved-memory regions or something similar, and so the maintenance
-burden is pretty low.
+Signed-off-by: Anton Sviridenko <anton@corp.bluecherry.net>
+---
+ drivers/media/pci/solo6x10/solo6x10-v4l2.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-The existing query ioctl can allow heap IDs to get assigned
-dynamically at runtime, so there's no need to reserve "bit 6" for
-"CUSTOM_ACME_HEAP_1"
-
->Another point is how can we put secure rules (like selinux policy) on
->heaps since all the allocations
->go to the same device (/dev/ion) ? For example, until now, in Android
->we have to give the same
->access rights to all the process that use ION.
->It will become problem when we will add secure heaps because we won't
->be able to distinguish secure
->processes to standard ones or set specific policy per heaps.
->Maybe I'm wrong here but I have never see selinux policy checking an
->ioctl field but if that
->exist it could be a solution.
->
-
-I might be thinking of a different type of "secure", but...
-
-Should the security of secure heaps be enforced by OS-level
-permissions? I don't know about other architectures, but at least on
-arm/arm64 this is enforced in hardware; it doesn't matter who has
-access to the ion heap, because only secure devices (or the CPU
-running a secure process) is physically able to access the memory
-backing the buffer.
-
-In fact, in the use-cases I know of, the process asking for the ion
-allocation is not a secure process, and so we wouldn't *want* to
-restrict the secure heap to be allocated from only by secure
-processes.
-
--Brian
-
->>
->>>
->>> Benjamin
->>>
->>
->> Thanks,
->> Laura
->>
+diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2.c b/drivers/media/pci/solo6x10/solo6x10-v4l2.c
+index 896bec6..4163103 100644
+--- a/drivers/media/pci/solo6x10/solo6x10-v4l2.c
++++ b/drivers/media/pci/solo6x10/solo6x10-v4l2.c
+@@ -341,6 +341,18 @@ static void solo_stop_streaming(struct vb2_queue *q)
+ 	struct solo_dev *solo_dev = vb2_get_drv_priv(q);
+ 
+ 	solo_stop_thread(solo_dev);
++
++	spin_lock(&solo_dev->slock);
++	while (!list_empty(&solo_dev->vidq_active)) {
++		struct solo_vb2_buf *buf = list_entry(
++				solo_dev->vidq_active.next,
++				struct solo_vb2_buf, list);
++
++		list_del(&buf->list);
++		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
++		dbg_buf_cnt++;
++	}
++	spin_unlock(&solo_dev->slock);
+ 	INIT_LIST_HEAD(&solo_dev->vidq_active);
+ }
+ 
+-- 
+2.10.2
