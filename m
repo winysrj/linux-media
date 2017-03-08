@@ -1,166 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:55323 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752225AbdCDTU1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 4 Mar 2017 14:20:27 -0500
-Date: Sat, 4 Mar 2017 20:20:24 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
-Subject: Re: camera subdevice support was Re: [PATCH 1/4] v4l2:
- device_register_subdev_nodes: allow calling multiple times
-Message-ID: <20170304192023.GB31766@amd>
-References: <20170220130912.GT16975@valkosipuli.retiisi.org.uk>
- <20170220135636.GU16975@valkosipuli.retiisi.org.uk>
- <20170221110721.GD5021@amd>
- <20170221111104.GD16975@valkosipuli.retiisi.org.uk>
- <20170225000918.GB23662@amd>
- <20170225134444.6qzumpvasaow5qoj@ihha.localdomain>
- <20170225215321.GA29886@amd>
- <20170225231754.GY16975@valkosipuli.retiisi.org.uk>
- <20170304085551.GA19769@amd>
- <20170304123010.GT3220@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="tsOsTdHNUZQcU9Ye"
-Content-Disposition: inline
-In-Reply-To: <20170304123010.GT3220@valkosipuli.retiisi.org.uk>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:60585 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752745AbdCHEci (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 7 Mar 2017 23:32:38 -0500
+Message-ID: <907fed233a32c64c8489a7529f445dcf@smtp-cloud6.xs4all.net>
+Date: Wed, 08 Mar 2017 05:31:54 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
---tsOsTdHNUZQcU9Ye
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Results of the daily build of media_tree:
 
-=C4=8C=C3=A1go Belo =C5=A0=C3=ADlenci! :-)
+date:			Wed Mar  8 05:00:17 CET 2017
+media-tree git hash:	700ea5e0e0dd70420a04e703ff264cc133834cba
+media_build git hash:	9d6cebc34b27fea784dec19085970d9b4df9783e
+v4l-utils git hash:	098aa386ea6cf08cacb44e0982431c5e837e63d0
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
-> > +static int camera_subdev_parse(struct device *dev, struct v4l2_async_n=
-otifier *notifier,
-> > +			       const char *key)
-> > +{
-> > +	struct device_node *node;
-> > +	struct isp_async_subdev *isd;
-> > +
-> > +	printk("Looking for %s\n", key);
-> > +=09
-> > +	node =3D of_parse_phandle(dev->of_node, key, 0);
->=20
-> There may be more than one flash associated with a sensor. Speaking of wh=
-ich
-> --- how is it associated to the sensors?
->=20
-> One way to do this could be to simply move the flash property to the sens=
-or
-> OF node. We could have it here, too, if the flash was not associated with
-> any sensor, but I doubt that will ever be needed.
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-multi: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9-i686: ERRORS
+linux-4.10-rc3-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9-x86_64: ERRORS
+linux-4.10-rc3-x86_64: ERRORS
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-I don't know what you mean here. Anyway, here's updated version.
+Detailed results are available here:
 
-Best regards,
-								Pavel
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform=
-/omap3isp/isp.c
-index c80397a..22d0e4a 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2162,10 +2162,57 @@ static int isp_fwnode_parse(struct device *dev, str=
-uct fwnode_handle *fwn,
- 	return 0;
- }
-=20
-+static int camera_subdev_parse(struct device *dev, struct v4l2_async_notif=
-ier *notifier,
-+			       const char *key, int max)
-+{
-+	struct device_node *node;
-+	struct isp_async_subdev *isd;
-+	int num =3D 0;
-+
-+	printk("Looking for %s\n", key);
-+
-+	while (notifier->num_subdevs < max) {
-+		node =3D of_parse_phandle(dev->of_node, key, num++);
-+		if (!node)
-+			return 0;
-+
-+		printk("Having subdevice: %p\n", node);
-+	=09
-+		isd =3D devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
-+		if (!isd)
-+			return -ENOMEM;
-+
-+		notifier->subdevs[notifier->num_subdevs] =3D &isd->asd;
-+
-+		isd->asd.match.fwnode.fwn =3D of_fwnode_handle(node);
-+		isd->asd.match_type =3D V4L2_ASYNC_MATCH_FWNODE;
-+		notifier->num_subdevs++;
-+	}
-+
-+	return 0;
-+}
-+
-+static int camera_subdevs_parse(struct device *dev, struct v4l2_async_noti=
-fier *notifier,
-+				int max)
-+{
-+	int res;
-+
-+	res =3D camera_subdev_parse(dev, notifier, "flash", max);
-+	if (res)
-+		return res;
-+
-+	res =3D camera_subdev_parse(dev, notifier, "lens-focus", max);
-+	if (res)
-+		return res;
-+=09
-+	return 0;
-+}
-+
- static int isp_fwnodes_parse(struct device *dev,
- 			     struct v4l2_async_notifier *notifier)
- {
- 	struct fwnode_handle *fwn =3D NULL;
-+	int res;
-=20
- 	notifier->subdevs =3D devm_kcalloc(
- 		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
-@@ -2199,6 +2246,15 @@ static int isp_fwnodes_parse(struct device *dev,
- 		notifier->num_subdevs++;
- 	}
-=20
-+	/* FIXME: missing put in the success path? */
-+
-+	res =3D camera_subdevs_parse(dev, notifier, ISP_MAX_SUBDEVS);
-+	if (res)
-+		goto error;
-+
-+	if (notifier->num_subdevs =3D=3D ISP_MAX_SUBDEVS) {
-+		printk("isp: Maybe too many devices?\n");
-+	}
- 	return notifier->num_subdevs;
-=20
- error:
+Full logs are available here:
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
---tsOsTdHNUZQcU9Ye
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+The Media Infrastructure API from this daily build is here:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAli7E3cACgkQMOfwapXb+vJO5gCeN8VCvGMtuDQ6o4J2E9fu6449
-nk8An2G8fjNsCqqjzFSZfolvL3MuN515
-=UZ/I
------END PGP SIGNATURE-----
-
---tsOsTdHNUZQcU9Ye--
+http://www.xs4all.nl/~hverkuil/spec/index.html
