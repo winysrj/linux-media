@@ -1,166 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f182.google.com ([209.85.216.182]:35891 "EHLO
-        mail-qt0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751072AbdCRBYw (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:43139 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751527AbdCHKik (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Mar 2017 21:24:52 -0400
-Received: by mail-qt0-f182.google.com with SMTP id r45so75395392qte.3
-        for <linux-media@vger.kernel.org>; Fri, 17 Mar 2017 18:23:17 -0700 (PDT)
-From: Laura Abbott <labbott@redhat.com>
-To: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com
-Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Brian Starkey <brian.starkey@arm.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Mark Brown <broonie@kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-mm@kvack.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [RFC PATCHv2 01/21] cma: Store a name in the cma structure
-Date: Fri, 17 Mar 2017 17:54:33 -0700
-Message-Id: <1489798493-16600-2-git-send-email-labbott@redhat.com>
-In-Reply-To: <1489798493-16600-1-git-send-email-labbott@redhat.com>
-References: <1489798493-16600-1-git-send-email-labbott@redhat.com>
+        Wed, 8 Mar 2017 05:38:40 -0500
+Subject: Re: [PATCH] [media] coda: restore original firmware locations
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <20170301153625.16249-1-p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org, Fabio Estevam <festevam@gmail.com>,
+        Baruch Siach <baruch@tkos.co.il>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <39366381-61a4-ec56-e94d-e60173d3b5f9@xs4all.nl>
+Date: Wed, 8 Mar 2017 11:38:14 +0100
+MIME-Version: 1.0
+In-Reply-To: <20170301153625.16249-1-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 01/03/17 16:36, Philipp Zabel wrote:
+> Recently, an unfinished patch was merged that added a third entry to the
+> beginning of the array of firmware locations without changing the code
+> to also look at the third element, thus pushing an old firmware location
+> off the list.
+>
+> Fixes: 8af7779f3cbc ("[media] coda: add Freescale firmware compatibility location")
+> Cc: Baruch Siach <baruch@tkos.co.il>
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>  drivers/media/platform/coda/coda-common.c | 17 ++++++++++-------
+>  1 file changed, 10 insertions(+), 7 deletions(-)
+>
+> diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+> index eb6548f46cbac..e1a2e8c70db01 100644
+> --- a/drivers/media/platform/coda/coda-common.c
+> +++ b/drivers/media/platform/coda/coda-common.c
+> @@ -2128,6 +2128,9 @@ static int coda_firmware_request(struct coda_dev *dev)
+>  {
+>  	char *fw = dev->devtype->firmware[dev->firmware];
+>
+> +	if (dev->firmware >= ARRAY_SIZE(dev->devtype->firmware))
+> +		return -EINVAL;
+> +
 
-Frameworks that may want to enumerate CMA heaps (e.g. Ion) will find it
-useful to have an explicit name attached to each region. Store the name
-in each CMA structure.
+Move the fw assignment after this 'if'. Otherwise it's reading from undefined memory
+if dev->firmware >= ARRAY_SIZE(dev->devtype->firmware).
 
-Signed-off-by: Laura Abbott <labbott@redhat.com>
----
- drivers/base/dma-contiguous.c |  5 +++--
- include/linux/cma.h           |  4 +++-
- mm/cma.c                      | 11 +++++++++--
- mm/cma.h                      |  1 +
- mm/cma_debug.c                |  2 +-
- 5 files changed, 17 insertions(+), 6 deletions(-)
+Regards,
 
-diff --git a/drivers/base/dma-contiguous.c b/drivers/base/dma-contiguous.c
-index b55804c..ea9726e 100644
---- a/drivers/base/dma-contiguous.c
-+++ b/drivers/base/dma-contiguous.c
-@@ -165,7 +165,8 @@ int __init dma_contiguous_reserve_area(phys_addr_t size, phys_addr_t base,
- {
- 	int ret;
- 
--	ret = cma_declare_contiguous(base, size, limit, 0, 0, fixed, res_cma);
-+	ret = cma_declare_contiguous(base, size, limit, 0, 0, fixed,
-+					"reserved", res_cma);
- 	if (ret)
- 		return ret;
- 
-@@ -258,7 +259,7 @@ static int __init rmem_cma_setup(struct reserved_mem *rmem)
- 		return -EINVAL;
- 	}
- 
--	err = cma_init_reserved_mem(rmem->base, rmem->size, 0, &cma);
-+	err = cma_init_reserved_mem(rmem->base, rmem->size, 0, rmem->name, &cma);
- 	if (err) {
- 		pr_err("Reserved memory: unable to setup CMA region\n");
- 		return err;
-diff --git a/include/linux/cma.h b/include/linux/cma.h
-index 03f32d0..d41d1f8 100644
---- a/include/linux/cma.h
-+++ b/include/linux/cma.h
-@@ -21,13 +21,15 @@ struct cma;
- extern unsigned long totalcma_pages;
- extern phys_addr_t cma_get_base(const struct cma *cma);
- extern unsigned long cma_get_size(const struct cma *cma);
-+extern const char *cma_get_name(const struct cma *cma);
- 
- extern int __init cma_declare_contiguous(phys_addr_t base,
- 			phys_addr_t size, phys_addr_t limit,
- 			phys_addr_t alignment, unsigned int order_per_bit,
--			bool fixed, struct cma **res_cma);
-+			bool fixed, const char *name, struct cma **res_cma);
- extern int cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
- 					unsigned int order_per_bit,
-+					const char *name,
- 					struct cma **res_cma);
- extern struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align,
- 			      gfp_t gfp_mask);
-diff --git a/mm/cma.c b/mm/cma.c
-index a6033e3..0d187b1 100644
---- a/mm/cma.c
-+++ b/mm/cma.c
-@@ -53,6 +53,11 @@ unsigned long cma_get_size(const struct cma *cma)
- 	return cma->count << PAGE_SHIFT;
- }
- 
-+const char *cma_get_name(const struct cma *cma)
-+{
-+	return cma->name ? cma->name : "(undefined)";
-+}
-+
- static unsigned long cma_bitmap_aligned_mask(const struct cma *cma,
- 					     int align_order)
- {
-@@ -168,6 +173,7 @@ core_initcall(cma_init_reserved_areas);
-  */
- int __init cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
- 				 unsigned int order_per_bit,
-+				 const char *name,
- 				 struct cma **res_cma)
- {
- 	struct cma *cma;
-@@ -201,6 +207,7 @@ int __init cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
- 	cma->base_pfn = PFN_DOWN(base);
- 	cma->count = size >> PAGE_SHIFT;
- 	cma->order_per_bit = order_per_bit;
-+	cma->name = name;
- 	*res_cma = cma;
- 	cma_area_count++;
- 	totalcma_pages += (size / PAGE_SIZE);
-@@ -229,7 +236,7 @@ int __init cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
- int __init cma_declare_contiguous(phys_addr_t base,
- 			phys_addr_t size, phys_addr_t limit,
- 			phys_addr_t alignment, unsigned int order_per_bit,
--			bool fixed, struct cma **res_cma)
-+			bool fixed, const char *name, struct cma **res_cma)
- {
- 	phys_addr_t memblock_end = memblock_end_of_DRAM();
- 	phys_addr_t highmem_start;
-@@ -335,7 +342,7 @@ int __init cma_declare_contiguous(phys_addr_t base,
- 		base = addr;
- 	}
- 
--	ret = cma_init_reserved_mem(base, size, order_per_bit, res_cma);
-+	ret = cma_init_reserved_mem(base, size, order_per_bit, name, res_cma);
- 	if (ret)
- 		goto err;
- 
-diff --git a/mm/cma.h b/mm/cma.h
-index 17c75a4..4986128 100644
---- a/mm/cma.h
-+++ b/mm/cma.h
-@@ -11,6 +11,7 @@ struct cma {
- 	struct hlist_head mem_head;
- 	spinlock_t mem_head_lock;
- #endif
-+	const char *name;
- };
- 
- extern struct cma cma_areas[MAX_CMA_AREAS];
-diff --git a/mm/cma_debug.c b/mm/cma_debug.c
-index ffc0c3d..595b757 100644
---- a/mm/cma_debug.c
-+++ b/mm/cma_debug.c
-@@ -167,7 +167,7 @@ static void cma_debugfs_add_one(struct cma *cma, int idx)
- 	char name[16];
- 	int u32s;
- 
--	sprintf(name, "cma-%d", idx);
-+	sprintf(name, "cma-%s", cma->name);
- 
- 	tmp = debugfs_create_dir(name, cma_debugfs_root);
- 
--- 
-2.7.4
+	Hans
+
+>  	dev_dbg(&dev->plat_dev->dev, "requesting firmware '%s' for %s\n", fw,
+>  		coda_product_name(dev->devtype->product));
+>
+> @@ -2142,16 +2145,16 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
+>  	struct platform_device *pdev = dev->plat_dev;
+>  	int i, ret;
+>
+> -	if (!fw && dev->firmware == 1) {
+> -		v4l2_err(&dev->v4l2_dev, "firmware request failed\n");
+> -		goto put_pm;
+> -	}
+>  	if (!fw) {
+> -		dev->firmware = 1;
+> -		coda_firmware_request(dev);
+> +		dev->firmware++;
+> +		ret = coda_firmware_request(dev);
+> +		if (ret < 0) {
+> +			v4l2_err(&dev->v4l2_dev, "firmware request failed\n");
+> +			goto put_pm;
+> +		}
+>  		return;
+>  	}
+> -	if (dev->firmware == 1) {
+> +	if (dev->firmware > 0) {
+>  		/*
+>  		 * Since we can't suppress warnings for failed asynchronous
+>  		 * firmware requests, report that the fallback firmware was
+>
