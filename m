@@ -1,97 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:36773 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751491AbdCXQCr (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:59785 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752064AbdCHK1t (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Mar 2017 12:02:47 -0400
-Date: Fri, 24 Mar 2017 21:31:45 +0530
-From: Arushi Singhal <arushisinghal19971997@gmail.com>
-To: outreachy-kernel@googlegroups.com
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v2] staging: media: omap4iss: Replace a bit shift by a use of
- BIT.
-Message-ID: <20170324160145.GA13421@arushi-HP-Pavilion-Notebook>
+        Wed, 8 Mar 2017 05:27:49 -0500
+From: Vincent ABRIOU <vincent.abriou@st.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] vivid: fix try_fmt behavior
+Date: Wed, 8 Mar 2017 08:20:17 +0000
+Message-ID: <165011db-1fd3-5f81-585c-dac17cd62d8d@st.com>
+References: <31f776c6-bfd8-5c88-6a04-8e29cde9a53a@xs4all.nl>
+In-Reply-To: <31f776c6-bfd8-5c88-6a04-8e29cde9a53a@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <6EC08546AA0A7E4B80E0358A87095F86@st.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch replaces bit shifting on 1 with the BIT(x) macro.
-This was done with coccinelle:
-@@
-constant c;
-@@
-
--1 << c
-+BIT(c)
-
-Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
----
-changes in v2
- -Remove unnecessary parenthesis
-
- drivers/staging/media/omap4iss/iss_csi2.c    | 2 +-
- drivers/staging/media/omap4iss/iss_ipipe.c   | 2 +-
- drivers/staging/media/omap4iss/iss_ipipeif.c | 2 +-
- drivers/staging/media/omap4iss/iss_resizer.c | 2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/staging/media/omap4iss/iss_csi2.c b/drivers/staging/media/omap4iss/iss_csi2.c
-index f71d5f2f179f..f6acc541e8a2 100644
---- a/drivers/staging/media/omap4iss/iss_csi2.c
-+++ b/drivers/staging/media/omap4iss/iss_csi2.c
-@@ -1268,7 +1268,7 @@ static int csi2_init_entities(struct iss_csi2_device *csi2, const char *subname)
- 	snprintf(name, sizeof(name), "CSI2%s", subname);
- 	snprintf(sd->name, sizeof(sd->name), "OMAP4 ISS %s", name);
- 
--	sd->grp_id = 1 << 16;	/* group ID for iss subdevs */
-+	sd->grp_id = BIT(16);	/* group ID for iss subdevs */
- 	v4l2_set_subdevdata(sd, csi2);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
-diff --git a/drivers/staging/media/omap4iss/iss_ipipe.c b/drivers/staging/media/omap4iss/iss_ipipe.c
-index d38782e8e84c..d86ef8a031f2 100644
---- a/drivers/staging/media/omap4iss/iss_ipipe.c
-+++ b/drivers/staging/media/omap4iss/iss_ipipe.c
-@@ -508,7 +508,7 @@ static int ipipe_init_entities(struct iss_ipipe_device *ipipe)
- 	v4l2_subdev_init(sd, &ipipe_v4l2_ops);
- 	sd->internal_ops = &ipipe_v4l2_internal_ops;
- 	strlcpy(sd->name, "OMAP4 ISS ISP IPIPE", sizeof(sd->name));
--	sd->grp_id = 1 << 16;	/* group ID for iss subdevs */
-+	sd->grp_id = BIT(16);	/* group ID for iss subdevs */
- 	v4l2_set_subdevdata(sd, ipipe);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
-diff --git a/drivers/staging/media/omap4iss/iss_ipipeif.c b/drivers/staging/media/omap4iss/iss_ipipeif.c
-index 23de8330731d..cb88b2bd0d82 100644
---- a/drivers/staging/media/omap4iss/iss_ipipeif.c
-+++ b/drivers/staging/media/omap4iss/iss_ipipeif.c
-@@ -739,7 +739,7 @@ static int ipipeif_init_entities(struct iss_ipipeif_device *ipipeif)
- 	v4l2_subdev_init(sd, &ipipeif_v4l2_ops);
- 	sd->internal_ops = &ipipeif_v4l2_internal_ops;
- 	strlcpy(sd->name, "OMAP4 ISS ISP IPIPEIF", sizeof(sd->name));
--	sd->grp_id = 1 << 16;	/* group ID for iss subdevs */
-+	sd->grp_id = BIT(16);	/* group ID for iss subdevs */
- 	v4l2_set_subdevdata(sd, ipipeif);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
-diff --git a/drivers/staging/media/omap4iss/iss_resizer.c b/drivers/staging/media/omap4iss/iss_resizer.c
-index f1d352c711d5..4bbfa20b3c38 100644
---- a/drivers/staging/media/omap4iss/iss_resizer.c
-+++ b/drivers/staging/media/omap4iss/iss_resizer.c
-@@ -782,7 +782,7 @@ static int resizer_init_entities(struct iss_resizer_device *resizer)
- 	v4l2_subdev_init(sd, &resizer_v4l2_ops);
- 	sd->internal_ops = &resizer_v4l2_internal_ops;
- 	strlcpy(sd->name, "OMAP4 ISS ISP resizer", sizeof(sd->name));
--	sd->grp_id = 1 << 16;	/* group ID for iss subdevs */
-+	sd->grp_id = BIT(16);	/* group ID for iss subdevs */
- 	v4l2_set_subdevdata(sd, resizer);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
--- 
-2.11.0
+SGkgSGFucywNCg0KVGhhbmtzIGZvciB0aGUgcGF0Y2guDQpJdCBoYXMgYmVlbiBzdWNjZXNzZnVs
+bHkgdGVzdGVkLg0KDQpUZXN0ZWQtYnk6IFZpbmNlbnQgQWJyaW91IDx2aW5jZW50LmFicmlvdUBz
+dC5jb20+DQoNCk9uIDAzLzA2LzIwMTcgMDM6MjMgUE0sIEhhbnMgVmVya3VpbCB3cm90ZToNCj4g
+dml2aWRfdHJ5X2ZtdF92aWRfY2FwKCkgY2FsbGVkIHRwZ19jYWxjX2xpbmVfd2lkdGggdG8gY2Fs
+Y3VsYXRlIHRoZQ0KPiBzaXplaW1hZ2UNCj4gdmFsdWUsIGJ1dCB0aGF0IHRwZyBmdW5jdGlvbiB1
+c2VzIHRoZSBjdXJyZW50IGZvcm1hdCwgbm90IHRoZSBwcm9wb3NlZA0KPiAodHJpZWQpDQo+IGZv
+cm1hdC4NCj4NCj4gUmV3cm90ZSB0aGlzIGNvZGUgdG8gY2FsY3VsYXRlIHRoaXMgY29ycmVjdGx5
+Lg0KPg0KPiBUaGUgdml2aWRfdHJ5X2ZtdF92aWRfb3V0KCkgY29kZSB3YXMgY29tcGxldGVseSB3
+cm9uZyB3LnIudC4gc2l6ZWltYWdlLCBhbmQNCj4gbmVpdGhlciBkaWQgaXQgdGFrZSB0aGUgdmRv
+d25zYW1wbGluZ1tdIGZhY3RvcnMgaW50byBhY2NvdW50Lg0KPg0KPiBTaWduZWQtb2ZmLWJ5OiBI
+YW5zIFZlcmt1aWwgPGhhbnMudmVya3VpbEBjaXNjby5jb20NCj4gLS0tDQo+IGRpZmYgLS1naXQg
+YS9kcml2ZXJzL21lZGlhL3BsYXRmb3JtL3ZpdmlkL3ZpdmlkLXZpZC1jYXAuYw0KPiBiL2RyaXZl
+cnMvbWVkaWEvcGxhdGZvcm0vdml2aWQvdml2aWQtdmlkLWNhcC5jDQo+IGluZGV4IGExOGU2ZmVj
+MjE5Yi4uMDE0MTk0NTVlNTQ1IDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL21lZGlhL3BsYXRmb3Jt
+L3ZpdmlkL3ZpdmlkLXZpZC1jYXAuYw0KPiArKysgYi9kcml2ZXJzL21lZGlhL3BsYXRmb3JtL3Zp
+dmlkL3ZpdmlkLXZpZC1jYXAuYw0KPiBAQCAtNjE2LDcgKzYxNiw3IEBAIGludCB2aXZpZF90cnlf
+Zm10X3ZpZF9jYXAoc3RydWN0IGZpbGUgKmZpbGUsIHZvaWQNCj4gKnByaXYsDQo+ICAgICAgLyog
+VGhpcyBkcml2ZXIgc3VwcG9ydHMgY3VzdG9tIGJ5dGVzcGVybGluZSB2YWx1ZXMgKi8NCj4NCj4g
+ICAgICBtcC0+bnVtX3BsYW5lcyA9IGZtdC0+YnVmZmVyczsNCj4gLSAgICBmb3IgKHAgPSAwOyBw
+IDwgbXAtPm51bV9wbGFuZXM7IHArKykgew0KPiArICAgIGZvciAocCA9IDA7IHAgPCBmbXQtPmJ1
+ZmZlcnM7IHArKykgew0KPiAgICAgICAgICAvKiBDYWxjdWxhdGUgdGhlIG1pbmltdW0gc3VwcG9y
+dGVkIGJ5dGVzcGVybGluZSB2YWx1ZSAqLw0KPiAgICAgICAgICBieXRlc3BlcmxpbmUgPSAobXAt
+PndpZHRoICogZm10LT5iaXRfZGVwdGhbcF0pID4+IDM7DQo+ICAgICAgICAgIC8qIENhbGN1bGF0
+ZSB0aGUgbWF4aW11bSBzdXBwb3J0ZWQgYnl0ZXNwZXJsaW5lIHZhbHVlICovDQo+IEBAIC02MjYs
+MTAgKzYyNiwxNyBAQCBpbnQgdml2aWRfdHJ5X2ZtdF92aWRfY2FwKHN0cnVjdCBmaWxlICpmaWxl
+LCB2b2lkDQo+ICpwcml2LA0KPiAgICAgICAgICAgICAgcGZtdFtwXS5ieXRlc3BlcmxpbmUgPSBt
+YXhfYnBsOw0KPiAgICAgICAgICBpZiAocGZtdFtwXS5ieXRlc3BlcmxpbmUgPCBieXRlc3Blcmxp
+bmUpDQo+ICAgICAgICAgICAgICBwZm10W3BdLmJ5dGVzcGVybGluZSA9IGJ5dGVzcGVybGluZTsN
+Cj4gLSAgICAgICAgcGZtdFtwXS5zaXplaW1hZ2UgPSB0cGdfY2FsY19saW5lX3dpZHRoKCZkZXYt
+PnRwZywgcCwNCj4gcGZtdFtwXS5ieXRlc3BlcmxpbmUpICoNCj4gLSAgICAgICAgICAgIG1wLT5o
+ZWlnaHQgKyBmbXQtPmRhdGFfb2Zmc2V0W3BdOw0KPiArDQo+ICsgICAgICAgIHBmbXRbcF0uc2l6
+ZWltYWdlID0gKHBmbXRbcF0uYnl0ZXNwZXJsaW5lICogbXAtPmhlaWdodCkgLw0KPiArICAgICAg
+ICAgICAgICAgIGZtdC0+dmRvd25zYW1wbGluZ1twXSArIGZtdC0+ZGF0YV9vZmZzZXRbcF07DQo+
+ICsNCj4gICAgICAgICAgbWVtc2V0KHBmbXRbcF0ucmVzZXJ2ZWQsIDAsIHNpemVvZihwZm10W3Bd
+LnJlc2VydmVkKSk7DQo+ICAgICAgfQ0KPiArICAgIGZvciAocCA9IGZtdC0+YnVmZmVyczsgcCA8
+IGZtdC0+cGxhbmVzOyBwKyspDQo+ICsgICAgICAgIHBmbXRbMF0uc2l6ZWltYWdlICs9IChwZm10
+WzBdLmJ5dGVzcGVybGluZSAqIG1wLT5oZWlnaHQgKg0KPiArICAgICAgICAgICAgKGZtdC0+Yml0
+X2RlcHRoW3BdIC8gZm10LT52ZG93bnNhbXBsaW5nW3BdKSkgLw0KPiArICAgICAgICAgICAgKGZt
+dC0+Yml0X2RlcHRoWzBdIC8gZm10LT52ZG93bnNhbXBsaW5nWzBdKTsNCj4gKw0KPiAgICAgIG1w
+LT5jb2xvcnNwYWNlID0gdml2aWRfY29sb3JzcGFjZV9jYXAoZGV2KTsNCj4gICAgICBpZiAoZm10
+LT5jb2xvcl9lbmMgPT0gVEdQX0NPTE9SX0VOQ19IU1YpDQo+ICAgICAgICAgIG1wLT5oc3ZfZW5j
+ID0gdml2aWRfaHN2X2VuY19jYXAoZGV2KTsNCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEv
+cGxhdGZvcm0vdml2aWQvdml2aWQtdmlkLW91dC5jDQo+IGIvZHJpdmVycy9tZWRpYS9wbGF0Zm9y
+bS92aXZpZC92aXZpZC12aWQtb3V0LmMNCj4gaW5kZXggN2JhNTJlZTk4MzcxLi5iM2IzYjMxYzg3
+M2IgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvbWVkaWEvcGxhdGZvcm0vdml2aWQvdml2aWQtdmlk
+LW91dC5jDQo+ICsrKyBiL2RyaXZlcnMvbWVkaWEvcGxhdGZvcm0vdml2aWQvdml2aWQtdmlkLW91
+dC5jDQo+IEBAIC0zOTAsMjIgKzM5MCwyOCBAQCBpbnQgdml2aWRfdHJ5X2ZtdF92aWRfb3V0KHN0
+cnVjdCBmaWxlICpmaWxlLCB2b2lkDQo+ICpwcml2LA0KPg0KPiAgICAgIC8qIFRoaXMgZHJpdmVy
+IHN1cHBvcnRzIGN1c3RvbSBieXRlc3BlcmxpbmUgdmFsdWVzICovDQo+DQo+IC0gICAgLyogQ2Fs
+Y3VsYXRlIHRoZSBtaW5pbXVtIHN1cHBvcnRlZCBieXRlc3BlcmxpbmUgdmFsdWUgKi8NCj4gLSAg
+ICBieXRlc3BlcmxpbmUgPSAobXAtPndpZHRoICogZm10LT5iaXRfZGVwdGhbMF0pID4+IDM7DQo+
+IC0gICAgLyogQ2FsY3VsYXRlIHRoZSBtYXhpbXVtIHN1cHBvcnRlZCBieXRlc3BlcmxpbmUgdmFs
+dWUgKi8NCj4gLSAgICBtYXhfYnBsID0gKE1BWF9aT09NICogTUFYX1dJRFRIICogZm10LT5iaXRf
+ZGVwdGhbMF0pID4+IDM7DQo+ICAgICAgbXAtPm51bV9wbGFuZXMgPSBmbXQtPmJ1ZmZlcnM7DQo+
+IC0gICAgZm9yIChwID0gMDsgcCA8IG1wLT5udW1fcGxhbmVzOyBwKyspIHsNCj4gKyAgICBmb3Ig
+KHAgPSAwOyBwIDwgZm10LT5idWZmZXJzOyBwKyspIHsNCj4gKyAgICAgICAgLyogQ2FsY3VsYXRl
+IHRoZSBtaW5pbXVtIHN1cHBvcnRlZCBieXRlc3BlcmxpbmUgdmFsdWUgKi8NCj4gKyAgICAgICAg
+Ynl0ZXNwZXJsaW5lID0gKG1wLT53aWR0aCAqIGZtdC0+Yml0X2RlcHRoW3BdKSA+PiAzOw0KPiAr
+ICAgICAgICAvKiBDYWxjdWxhdGUgdGhlIG1heGltdW0gc3VwcG9ydGVkIGJ5dGVzcGVybGluZSB2
+YWx1ZSAqLw0KPiArICAgICAgICBtYXhfYnBsID0gKE1BWF9aT09NICogTUFYX1dJRFRIICogZm10
+LT5iaXRfZGVwdGhbcF0pID4+IDM7DQo+ICsNCj4gICAgICAgICAgaWYgKHBmbXRbcF0uYnl0ZXNw
+ZXJsaW5lID4gbWF4X2JwbCkNCj4gICAgICAgICAgICAgIHBmbXRbcF0uYnl0ZXNwZXJsaW5lID0g
+bWF4X2JwbDsNCj4gICAgICAgICAgaWYgKHBmbXRbcF0uYnl0ZXNwZXJsaW5lIDwgYnl0ZXNwZXJs
+aW5lKQ0KPiAgICAgICAgICAgICAgcGZtdFtwXS5ieXRlc3BlcmxpbmUgPSBieXRlc3BlcmxpbmU7
+DQo+IC0gICAgICAgIHBmbXRbcF0uc2l6ZWltYWdlID0gcGZtdFtwXS5ieXRlc3BlcmxpbmUgKiBt
+cC0+aGVpZ2h0Ow0KPiArDQo+ICsgICAgICAgIHBmbXRbcF0uc2l6ZWltYWdlID0gKHBmbXRbcF0u
+Ynl0ZXNwZXJsaW5lICogbXAtPmhlaWdodCkgLw0KPiArICAgICAgICAgICAgICAgICAgICBmbXQt
+PnZkb3duc2FtcGxpbmdbcF07DQo+ICsNCj4gICAgICAgICAgbWVtc2V0KHBmbXRbcF0ucmVzZXJ2
+ZWQsIDAsIHNpemVvZihwZm10W3BdLnJlc2VydmVkKSk7DQo+ICAgICAgfQ0KPiAgICAgIGZvciAo
+cCA9IGZtdC0+YnVmZmVyczsgcCA8IGZtdC0+cGxhbmVzOyBwKyspDQo+IC0gICAgICAgIHBmbXRb
+MF0uc2l6ZWltYWdlICs9IChwZm10WzBdLmJ5dGVzcGVybGluZSAqIGZtdC0+Yml0X2RlcHRoW3Bd
+KSAvDQo+IC0gICAgICAgICAgICAgICAgICAgICAoZm10LT5iaXRfZGVwdGhbMF0gKiBmbXQtPnZk
+b3duc2FtcGxpbmdbcF0pOw0KPiArICAgICAgICBwZm10WzBdLnNpemVpbWFnZSArPSAocGZtdFsw
+XS5ieXRlc3BlcmxpbmUgKiBtcC0+aGVpZ2h0ICoNCj4gKyAgICAgICAgICAgIChmbXQtPmJpdF9k
+ZXB0aFtwXSAvIGZtdC0+dmRvd25zYW1wbGluZ1twXSkpIC8NCj4gKyAgICAgICAgICAgIChmbXQt
+PmJpdF9kZXB0aFswXSAvIGZtdC0+dmRvd25zYW1wbGluZ1swXSk7DQo+ICsNCj4gICAgICBtcC0+
+eGZlcl9mdW5jID0gVjRMMl9YRkVSX0ZVTkNfREVGQVVMVDsNCj4gICAgICBtcC0+eWNiY3JfZW5j
+ID0gVjRMMl9ZQ0JDUl9FTkNfREVGQVVMVDsNCj4gICAgICBtcC0+cXVhbnRpemF0aW9uID0gVjRM
+Ml9RVUFOVElaQVRJT05fREVGQVVMVDsNCj4=
