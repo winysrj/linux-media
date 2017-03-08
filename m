@@ -1,42 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:46149 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751054AbdCYMC2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Mar 2017 08:02:28 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/8] Lirc staging cleanup
-Date: Sat, 25 Mar 2017 12:02:18 +0000
-Message-Id: <cover.1490443026.git.sean@mess.org>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:41086 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752062AbdCHL5P (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 8 Mar 2017 06:57:15 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] coda: enable with COMPILE_TEST
+Message-ID: <cc407203-ce28-3678-915f-eaab8e52d4a2@xs4all.nl>
+Date: Wed, 8 Mar 2017 12:52:50 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series promotes lirc_sir out of staging and removes
-lirc_sasem; this only leaves lirc_zilog in staging. I'm attempting to
-write a new driver for this, maybe we should keep that until that
-work completes.
+Allow building of coda with COMPILE_TEST.
 
-Sean Young (8):
-  [media] staging: sir: fill in missing fields and fix probe
-  [media] staging: sir: remove unselectable Tekram and Actisys
-  [media] staging: sir: fix checkpatch strict warnings
-  [media] staging: sir: use usleep_range() rather than busy looping
-  [media] staging: sir: remove unnecessary messages
-  [media] staging: sir: make sure we are ready to receive interrupts
-  [media] rc: promote lirc_sir out of staging
-  [media] staging: lirc_sasem: remove
+Fixed one v4l2_err format string that caused a compiler warning when compiling on a 64-bit
+platform.
 
- drivers/media/rc/Kconfig                |   9 +
- drivers/media/rc/Makefile               |   1 +
- drivers/media/rc/sir_ir.c               | 451 ++++++++++++++++
- drivers/staging/media/lirc/Kconfig      |  12 -
- drivers/staging/media/lirc/Makefile     |   2 -
- drivers/staging/media/lirc/lirc_sasem.c | 899 --------------------------------
- drivers/staging/media/lirc/lirc_sir.c   | 839 -----------------------------
- 7 files changed, 461 insertions(+), 1752 deletions(-)
- create mode 100644 drivers/media/rc/sir_ir.c
- delete mode 100644 drivers/staging/media/lirc/lirc_sasem.c
- delete mode 100644 drivers/staging/media/lirc/lirc_sir.c
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 53f6f12bff0d..9b9bee4b2323 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -151,7 +151,8 @@ if V4L_MEM2MEM_DRIVERS
 
--- 
-2.9.3
+  config VIDEO_CODA
+  	tristate "Chips&Media Coda multi-standard codec IP"
+-	depends on VIDEO_DEV && VIDEO_V4L2 && ARCH_MXC
++	depends on VIDEO_DEV && VIDEO_V4L2
++	depends on ARCH_MXC || COMPILE_TEST
+  	depends on HAS_DMA
+  	select SRAM
+  	select VIDEOBUF2_DMA_CONTIG
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index bd9e5ca8a640..5ec27626539e 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1407,7 +1407,7 @@ int coda_alloc_aux_buf(struct coda_dev *dev, struct coda_aux_buf *buf,
+  					GFP_KERNEL);
+  	if (!buf->vaddr) {
+  		v4l2_err(&dev->v4l2_dev,
+-			 "Failed to allocate %s buffer of size %u\n",
++			 "Failed to allocate %s buffer of size %zu\n",
+  			 name, size);
+  		return -ENOMEM;
+  	}
