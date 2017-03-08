@@ -1,48 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:50357 "EHLO gofer.mess.org"
+Received: from mga14.intel.com ([192.55.52.115]:49461 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751297AbdCYMC7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Mar 2017 08:02:59 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 6/8] [media] staging: sir: make sure we are ready to receive interrupts
-Date: Sat, 25 Mar 2017 12:02:24 +0000
-Message-Id: <6ce08ca0fb313e3998a6cd437c55eabbe22036ca.1490443026.git.sean@mess.org>
-In-Reply-To: <cover.1490443026.git.sean@mess.org>
-References: <cover.1490443026.git.sean@mess.org>
-In-Reply-To: <cover.1490443026.git.sean@mess.org>
-References: <cover.1490443026.git.sean@mess.org>
+        id S1754414AbdCHU71 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 8 Mar 2017 15:59:27 -0500
+Date: Thu, 9 Mar 2017 04:57:10 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Rick Chang <rick.chang@mediatek.com>
+Cc: kbuild-all@01.org, Mauro Carvalho Chehab <m.chehab@samsung.com>,
+        linux-media@vger.kernel.org,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Ricky Liang <jcliang@chromium.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [ragnatech:media-tree 1271/1281]
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c:1296:3-8: No need to set
+ .owner here. The core will do it.
+Message-ID: <201703090447.gKuj4400%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ensure that the timer is ready before we request interrupts.
+tree:   https://git.ragnatech.se/linux media-tree
+head:   700ea5e0e0dd70420a04e703ff264cc133834cba
+commit: b2f0d2724ba477d326e9d654d4db1c93e98f8b93 [1271/1281] [media] vcodec: mediatek: Add Mediatek JPEG Decoder Driver
 
-Signed-off-by: Sean Young <sean@mess.org>
+
+coccinelle warnings: (new ones prefixed by >>)
+
+>> drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c:1296:3-8: No need to set .owner here. The core will do it.
+
+Please review and possibly fold the followup patch.
+
 ---
- drivers/staging/media/lirc/lirc_sir.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/staging/media/lirc/lirc_sir.c b/drivers/staging/media/lirc/lirc_sir.c
-index c9ca86f..058f260 100644
---- a/drivers/staging/media/lirc/lirc_sir.c
-+++ b/drivers/staging/media/lirc/lirc_sir.c
-@@ -338,6 +338,8 @@ static int init_port(void)
- {
- 	int retval;
- 
-+	setup_timer(&timerlist, sir_timeout, 0);
-+
- 	/* get I/O port access and IRQ line */
- 	if (!request_region(io, 8, KBUILD_MODNAME)) {
- 		pr_err("i/o port 0x%.4x already in use.\n", io);
-@@ -352,8 +354,6 @@ static int init_port(void)
- 	}
- 	pr_info("I/O port 0x%.4x, IRQ %d.\n", io, irq);
- 
--	setup_timer(&timerlist, sir_timeout, 0);
--
- 	return 0;
- }
- 
--- 
-2.9.3
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
