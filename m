@@ -1,125 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:57993 "EHLO
-        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750940AbdCIEeF (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37044 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753138AbdCHN1W (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 8 Mar 2017 23:34:05 -0500
-Message-ID: <509284f254dabe8e8783169c4749e6fc@smtp-cloud6.xs4all.net>
-Date: Thu, 09 Mar 2017 05:32:12 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+        Wed, 8 Mar 2017 08:27:22 -0500
+Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 9DD3A6009F
+        for <linux-media@vger.kernel.org>; Wed,  8 Mar 2017 15:26:12 +0200 (EET)
+Date: Wed, 8 Mar 2017 15:26:12 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Subject: [GIT PULL FOR v4.12] Sub-device driver fixes
+Message-ID: <20170308132612.GL3220@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Mauro,
 
-Results of the daily build of media_tree:
+Here are a few minor fixes for sub-device drivers recently added and a
+documentation change.
 
-date:			Thu Mar  9 05:00:15 CET 2017
-media-tree git hash:	700ea5e0e0dd70420a04e703ff264cc133834cba
-media_build git hash:	9d6cebc34b27fea784dec19085970d9b4df9783e
-v4l-utils git hash:	4d65b0571ea0027b6de45a76cfcadca32ea4be4a
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+Please pull.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9-i686: ERRORS
-linux-4.10-rc3-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9-x86_64: ERRORS
-linux-4.10-rc3-x86_64: ERRORS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
 
-Detailed results are available here:
+The following changes since commit 700ea5e0e0dd70420a04e703ff264cc133834cba:
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+  Merge tag 'v4.11-rc1' into patchwork (2017-03-06 06:49:34 -0300)
 
-Full logs are available here:
+are available in the git repository at:
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+  ssh://linuxtv.org/git/sailus/media_tree.git for-v4.12
 
-The Media Infrastructure API from this daily build is here:
+for you to fetch changes up to b62e5d5c896052119975cc0b08de4728297a2f9d:
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+  ad5820: remove incorrect __exit markups (2017-03-08 09:42:02 +0200)
+
+----------------------------------------------------------------
+Dmitry Torokhov (1):
+      ad5820: remove incorrect __exit markups
+
+Javier Martinez Canillas (1):
+      et8ek8: Export OF device ID as module aliases
+
+Sakari Ailus (1):
+      docs-rst: media: Explicitly refer to sub-sampling in scaling documentation
+
+ Documentation/media/uapi/mediactl/media-types.rst | 3 ++-
+ drivers/media/i2c/ad5820.c                        | 4 ++--
+ drivers/media/i2c/et8ek8/et8ek8_driver.c          | 1 +
+ 3 files changed, 5 insertions(+), 3 deletions(-)
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
