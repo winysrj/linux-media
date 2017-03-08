@@ -1,54 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linux-iscsi.org ([67.23.28.174]:33542 "EHLO
-        linux-iscsi.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750782AbdCHHzv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Mar 2017 02:55:51 -0500
-Message-ID: <1488958624.10589.10.camel@haakon3.risingtidesystems.com>
-Subject: Re: [PATCH 24/29] drivers: convert iblock_req.pending from atomic_t
- to refcount_t
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-To: Elena Reshetova <elena.reshetova@intel.com>
-Cc: gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org,
-        xen-devel@lists.xenproject.org, netdev@vger.kernel.org,
-        linux1394-devel@lists.sourceforge.net,
-        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
-        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
-        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
-        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
-        linux-usb@vger.kernel.org, peterz@infradead.org,
-        Hans Liljestrand <ishkamiel@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        David Windsor <dwindsor@gmail.com>
-Date: Tue, 07 Mar 2017 23:37:04 -0800
-In-Reply-To: <1488810076-3754-25-git-send-email-elena.reshetova@intel.com>
-References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
-         <1488810076-3754-25-git-send-email-elena.reshetova@intel.com>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:42363 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752642AbdCHMVm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 8 Mar 2017 07:21:42 -0500
+Message-ID: <1488975663.2467.21.camel@pengutronix.de>
+Subject: Re: [PATCH] [media] coda: restore original firmware locations
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        linux-media@vger.kernel.org, Fabio Estevam <festevam@gmail.com>,
+        Baruch Siach <baruch@tkos.co.il>
+Date: Wed, 08 Mar 2017 13:21:03 +0100
+In-Reply-To: <39366381-61a4-ec56-e94d-e60173d3b5f9@xs4all.nl>
+References: <20170301153625.16249-1-p.zabel@pengutronix.de>
+         <39366381-61a4-ec56-e94d-e60173d3b5f9@xs4all.nl>
 Content-Type: text/plain; charset="UTF-8"
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Elena,
-
-On Mon, 2017-03-06 at 16:21 +0200, Elena Reshetova wrote:
-> refcount_t type and corresponding API should be
-> used instead of atomic_t when the variable is used as
-> a reference counter. This allows to avoid accidental
-> refcounter overflows that might lead to use-after-free
-> situations.
+On Wed, 2017-03-08 at 11:38 +0100, Hans Verkuil wrote:
+> On 01/03/17 16:36, Philipp Zabel wrote:
+> > Recently, an unfinished patch was merged that added a third entry to the
+> > beginning of the array of firmware locations without changing the code
+> > to also look at the third element, thus pushing an old firmware location
+> > off the list.
+> >
+> > Fixes: 8af7779f3cbc ("[media] coda: add Freescale firmware compatibility location")
+> > Cc: Baruch Siach <baruch@tkos.co.il>
+> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > ---
+> >  drivers/media/platform/coda/coda-common.c | 17 ++++++++++-------
+> >  1 file changed, 10 insertions(+), 7 deletions(-)
+> >
+> > diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+> > index eb6548f46cbac..e1a2e8c70db01 100644
+> > --- a/drivers/media/platform/coda/coda-common.c
+> > +++ b/drivers/media/platform/coda/coda-common.c
+> > @@ -2128,6 +2128,9 @@ static int coda_firmware_request(struct coda_dev *dev)
+> >  {
+> >  	char *fw = dev->devtype->firmware[dev->firmware];
+> >
+> > +	if (dev->firmware >= ARRAY_SIZE(dev->devtype->firmware))
+> > +		return -EINVAL;
+> > +
 > 
-> Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
-> Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
-> Signed-off-by: Kees Cook <keescook@chromium.org>
-> Signed-off-by: David Windsor <dwindsor@gmail.com>
-> ---
->  drivers/target/target_core_iblock.c | 12 ++++++------
->  drivers/target/target_core_iblock.h |  3 ++-
->  2 files changed, 8 insertions(+), 7 deletions(-)
+> Move the fw assignment after this 'if'. Otherwise it's reading from undefined memory
+> if dev->firmware >= ARRAY_SIZE(dev->devtype->firmware).
+> 
+> Regards,
+> 
+> 	Hans
 
-For the target_core_iblock part:
+Will do, thanks for the review.
 
-Acked-by: Nicholas Bellinger <nab@linux-iscsi.org>
+regards
+Philipp
