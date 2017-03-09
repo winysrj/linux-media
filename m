@@ -1,185 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:51207 "EHLO
-        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1756667AbdCHDxr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 22:53:47 -0500
-Message-ID: <1488945051.4522.4.camel@mtksdaap41>
-Subject: Re: [PATCH v3 1/1] mtk-vcodec: check the vp9 decoder buffer index
- from VPU.
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Wu-Cheng Li <wuchengli@chromium.org>
-CC: <pawel@osciak.com>, <andrew-ct.chen@mediatek.com>,
-        <mchehab@kernel.org>, <matthias.bgg@gmail.com>,
-        <hans.verkuil@cisco.com>, <wuchengli@google.com>,
-        <djkurtz@chromium.org>, <linux-media@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-mediatek@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>
-Date: Wed, 8 Mar 2017 11:50:51 +0800
-In-Reply-To: <20170308034058.99886-2-wuchengli@chromium.org>
-References: <20170308034058.99886-1-wuchengli@chromium.org>
-         <20170308034058.99886-2-wuchengli@chromium.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-MIME-Version: 1.0
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:34553 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753917AbdCIWvJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 17:51:09 -0500
+From: simran singhal <singhalsimran0@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        outreachy-kernel@googlegroups.com
+Subject: [PATCH v1 2/7] staging: gc2235: Add blank line after a declaration
+Date: Fri, 10 Mar 2017 04:20:24 +0530
+Message-Id: <1489099829-1264-3-git-send-email-singhalsimran0@gmail.com>
+In-Reply-To: <1489099829-1264-1-git-send-email-singhalsimran0@gmail.com>
+References: <1489099829-1264-1-git-send-email-singhalsimran0@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2017-03-08 at 11:40 +0800, Wu-Cheng Li wrote:
-> From: Wu-Cheng Li <wuchengli@google.com>
-> 
-> VPU firmware has a bug and may return invalid buffer index for
-> some vp9 videos. Check the buffer indexes before accessing the
-> buffer.
-> 
+Add blank line after a declaration. Problem found
+using checkpatch.
 
-Acked-by: Tiffany Lin <Tiffany.lin@mediatek.com>
+This patch fixes these warning messages found by checkpatch.pl:
+WARNING : Missing a blank line after declarations.
 
-> Signed-off-by: Wu-Cheng Li <wuchengli@chromium.org>
-> ---
->  drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c | 33 +++++++++++++++++-----
->  drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.h |  2 ++
->  .../media/platform/mtk-vcodec/vdec/vdec_vp9_if.c   | 26 +++++++++++++++++
->  drivers/media/platform/mtk-vcodec/vdec_drv_if.h    |  2 ++
->  4 files changed, 56 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-> index 502877a4b1df..a60b538686ea 100644
-> --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-> @@ -420,6 +420,11 @@ static void mtk_vdec_worker(struct work_struct *work)
->  			dst_buf->index,
->  			ret, res_chg);
->  		src_buf = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
-> +		if (ret == -EIO) {
-> +			mutex_lock(&ctx->lock);
-> +			src_buf_info->error = true;
-> +			mutex_unlock(&ctx->lock);
-> +		}
->  		v4l2_m2m_buf_done(&src_buf_info->vb, VB2_BUF_STATE_ERROR);
->  	} else if (res_chg == false) {
->  		/*
-> @@ -1170,8 +1175,16 @@ static void vb2ops_vdec_buf_queue(struct vb2_buffer *vb)
->  		 */
->  
->  		src_buf = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
-> -		v4l2_m2m_buf_done(to_vb2_v4l2_buffer(src_buf),
-> -					VB2_BUF_STATE_DONE);
-> +		if (ret == -EIO) {
-> +			mtk_v4l2_err("[%d] Unrecoverable error in vdec_if_decode.",
-> +					ctx->id);
-> +			ctx->state = MTK_STATE_ABORT;
-> +			v4l2_m2m_buf_done(to_vb2_v4l2_buffer(src_buf),
-> +						VB2_BUF_STATE_ERROR);
-> +		} else {
-> +			v4l2_m2m_buf_done(to_vb2_v4l2_buffer(src_buf),
-> +						VB2_BUF_STATE_DONE);
-> +		}
->  		mtk_v4l2_debug(ret ? 0 : 1,
->  			       "[%d] vdec_if_decode() src_buf=%d, size=%zu, fail=%d, res_chg=%d",
->  			       ctx->id, src_buf->index,
-> @@ -1216,16 +1229,22 @@ static void vb2ops_vdec_buf_finish(struct vb2_buffer *vb)
->  	struct mtk_vcodec_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
->  	struct vb2_v4l2_buffer *vb2_v4l2;
->  	struct mtk_video_dec_buf *buf;
-> -
-> -	if (vb->vb2_queue->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-> -		return;
-> +	bool buf_error;
->  
->  	vb2_v4l2 = container_of(vb, struct vb2_v4l2_buffer, vb2_buf);
->  	buf = container_of(vb2_v4l2, struct mtk_video_dec_buf, vb);
->  	mutex_lock(&ctx->lock);
-> -	buf->queued_in_v4l2 = false;
-> -	buf->queued_in_vb2 = false;
-> +	if (vb->vb2_queue->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-> +		buf->queued_in_v4l2 = false;
-> +		buf->queued_in_vb2 = false;
-> +	}
-> +	buf_error = buf->error;
->  	mutex_unlock(&ctx->lock);
-> +
-> +	if (buf_error) {
-> +		mtk_v4l2_err("Unrecoverable error on buffer.");
-> +		ctx->state = MTK_STATE_ABORT;
-> +	}
->  }
->  
->  static int vb2ops_vdec_buf_init(struct vb2_buffer *vb)
-> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.h b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.h
-> index 362f5a85762e..dc4fc1df63c5 100644
-> --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.h
-> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.h
-> @@ -50,6 +50,7 @@ struct vdec_fb {
->   * @queued_in_v4l2:	Capture buffer is in v4l2 driver, but not in vb2
->   *			queue yet
->   * @lastframe:		Intput buffer is last buffer - EOS
-> + * @error:		An unrecoverable error occurs on this buffer.
->   * @frame_buffer:	Decode status, and buffer information of Capture buffer
->   *
->   * Note : These status information help us track and debug buffer state
-> @@ -63,6 +64,7 @@ struct mtk_video_dec_buf {
->  	bool	queued_in_vb2;
->  	bool	queued_in_v4l2;
->  	bool	lastframe;
-> +	bool	error;
->  	struct vdec_fb	frame_buffer;
->  };
->  
-> diff --git a/drivers/media/platform/mtk-vcodec/vdec/vdec_vp9_if.c b/drivers/media/platform/mtk-vcodec/vdec/vdec_vp9_if.c
-> index e91a3b425b0c..5539b1853f16 100644
-> --- a/drivers/media/platform/mtk-vcodec/vdec/vdec_vp9_if.c
-> +++ b/drivers/media/platform/mtk-vcodec/vdec/vdec_vp9_if.c
-> @@ -718,6 +718,26 @@ static void get_free_fb(struct vdec_vp9_inst *inst, struct vdec_fb **out_fb)
->  	*out_fb = fb;
->  }
->  
-> +static int validate_vsi_array_indexes(struct vdec_vp9_inst *inst,
-> +		struct vdec_vp9_vsi *vsi) {
-> +	if (vsi->sf_frm_idx >= VP9_MAX_FRM_BUF_NUM - 1) {
-> +		mtk_vcodec_err(inst, "Invalid vsi->sf_frm_idx=%u.",
-> +				vsi->sf_frm_idx);
-> +		return -EIO;
-> +	}
-> +	if (vsi->frm_to_show_idx >= VP9_MAX_FRM_BUF_NUM) {
-> +		mtk_vcodec_err(inst, "Invalid vsi->frm_to_show_idx=%u.",
-> +				vsi->frm_to_show_idx);
-> +		return -EIO;
-> +	}
-> +	if (vsi->new_fb_idx >= VP9_MAX_FRM_BUF_NUM) {
-> +		mtk_vcodec_err(inst, "Invalid vsi->new_fb_idx=%u.",
-> +				vsi->new_fb_idx);
-> +		return -EIO;
-> +	}
-> +	return 0;
-> +}
-> +
->  static void vdec_vp9_deinit(unsigned long h_vdec)
->  {
->  	struct vdec_vp9_inst *inst = (struct vdec_vp9_inst *)h_vdec;
-> @@ -834,6 +854,12 @@ static int vdec_vp9_decode(unsigned long h_vdec, struct mtk_vcodec_mem *bs,
->  			goto DECODE_ERROR;
->  		}
->  
-> +		ret = validate_vsi_array_indexes(inst, vsi);
-> +		if (ret) {
-> +			mtk_vcodec_err(inst, "Invalid values from VPU.");
-> +			goto DECODE_ERROR;
-> +		}
-> +
->  		if (vsi->resolution_changed) {
->  			if (!vp9_alloc_work_buf(inst)) {
->  				ret = -EINVAL;
-> diff --git a/drivers/media/platform/mtk-vcodec/vdec_drv_if.h b/drivers/media/platform/mtk-vcodec/vdec_drv_if.h
-> index db6b5205ffb1..ded1154481cd 100644
-> --- a/drivers/media/platform/mtk-vcodec/vdec_drv_if.h
-> +++ b/drivers/media/platform/mtk-vcodec/vdec_drv_if.h
-> @@ -85,6 +85,8 @@ void vdec_if_deinit(struct mtk_vcodec_ctx *ctx);
->   * @res_chg	: [out] resolution change happens if current bs have different
->   *	picture width/height
->   * Note: To flush the decoder when reaching EOF, set input bitstream as NULL.
-> + *
-> + * Return: 0 on success. -EIO on unrecoverable error.
->   */
->  int vdec_if_decode(struct mtk_vcodec_ctx *ctx, struct mtk_vcodec_mem *bs,
->  		   struct vdec_fb *fb, bool *res_chg);
+Signed-off-by: simran singhal <singhalsimran0@gmail.com>
+---
+ drivers/staging/media/atomisp/i2c/gc2235.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/staging/media/atomisp/i2c/gc2235.c b/drivers/staging/media/atomisp/i2c/gc2235.c
+index 3f2b11ec..7de7e24 100644
+--- a/drivers/staging/media/atomisp/i2c/gc2235.c
++++ b/drivers/staging/media/atomisp/i2c/gc2235.c
+@@ -359,6 +359,7 @@ static long __gc2235_set_exposure(struct v4l2_subdev *sd, int coarse_itg,
+ 	u16 coarse_integration = (u16)coarse_itg;
+ 	int ret = 0;
+ 	u16 expo_coarse_h, expo_coarse_l, gain_val = 0xF0, gain_val2 = 0xF0;
++
+ 	expo_coarse_h = coarse_integration>>8;
+ 	expo_coarse_l = coarse_integration & 0xff;
+ 
+@@ -410,6 +411,7 @@ static long gc2235_s_exposure(struct v4l2_subdev *sd,
+ 	/* we should not accept the invalid value below. */
+ 	if (gain == 0) {
+ 		struct i2c_client *client = v4l2_get_subdevdata(sd);
++
+ 		v4l2_err(client, "%s: invalid value\n", __func__);
+ 		return -EINVAL;
+ 	}
+@@ -546,6 +548,7 @@ static int is_init;
+ static int gc2235_init(struct v4l2_subdev *sd)
+ {
+ 	int ret = 0;
++
+ 	ret = __gc2235_init(sd);
+ 
+ 	return ret;
+@@ -759,6 +762,7 @@ static int startup(struct v4l2_subdev *sd)
+ 	struct gc2235_device *dev = to_gc2235_sensor(sd);
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	int ret = 0;
++
+ 	if (is_init == 0) {
+ 		/* force gc2235 to do a reset in res change, otherwise it
+ 		* can not output normal after switching res. and it is not
+@@ -893,6 +897,7 @@ static int gc2235_s_stream(struct v4l2_subdev *sd, int enable)
+ 	struct gc2235_device *dev = to_gc2235_sensor(sd);
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	int ret;
++
+ 	mutex_lock(&dev->input_lock);
+ 
+ 	if (enable)
+@@ -1007,6 +1012,7 @@ static int gc2235_s_parm(struct v4l2_subdev *sd,
+ 			struct v4l2_streamparm *param)
+ {
+ 	struct gc2235_device *dev = to_gc2235_sensor(sd);
++
+ 	dev->run_mode = param->parm.capture.capturemode;
+ 
+ 	mutex_lock(&dev->input_lock);
+@@ -1112,6 +1118,7 @@ static int gc2235_remove(struct i2c_client *client)
+ {
+ 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+ 	struct gc2235_device *dev = to_gc2235_sensor(sd);
++
+ 	dev_dbg(&client->dev, "gc2235_remove...\n");
+ 
+ 	if (dev->platform_data->platform_deinit)
+-- 
+2.7.4
