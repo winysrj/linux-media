@@ -1,137 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:43304 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752157AbdCIM3n (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 9 Mar 2017 07:29:43 -0500
-Subject: Re: [PATCH] [media] v4l2-dv-timings: Introduce v4l2_calc_fps()
-To: Jose Abreu <Jose.Abreu@synopsys.com>, linux-media@vger.kernel.org
-References: <94397052765d1f6d84dc7edac65f906b09890871.1488905139.git.joabreu@synopsys.com>
-Cc: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>,
-        linux-kernel@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <4f598aba-3002-eeb5-1cad-d4dff4553644@xs4all.nl>
-Date: Thu, 9 Mar 2017 13:29:40 +0100
+Received: from mx2.suse.de ([195.135.220.15]:43129 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753474AbdCIIrT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 9 Mar 2017 03:47:19 -0500
+Subject: Re: [PATCH 22/29] drivers, scsi: convert iscsi_task.refcount from
+ atomic_t to refcount_t
+To: "Reshetova, Elena" <elena.reshetova@intel.com>,
+        Chris Leech <cleech@redhat.com>
+References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+ <1488810076-3754-23-git-send-email-elena.reshetova@intel.com>
+ <20170308184740.4gueok5csdkt7u62@straylight.hirudinean.org>
+ <2236FBA76BA1254E88B949DDB74E612B41C569DC@IRSMSX102.ger.corp.intel.com>
+Cc: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux1394-devel@lists.sourceforge.net"
+        <linux1394-devel@lists.sourceforge.net>,
+        "linux-bcache@vger.kernel.org" <linux-bcache@vger.kernel.org>,
+        "linux-raid@vger.kernel.org" <linux-raid@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devel@linuxdriverproject.org" <devel@linuxdriverproject.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
+        "fcoe-devel@open-fcoe.org" <fcoe-devel@open-fcoe.org>,
+        "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>,
+        "open-iscsi@googlegroups.com" <open-iscsi@googlegroups.com>,
+        "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
+        "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>,
+        "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
+        "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
+        "peterz@infradead.org" <peterz@infradead.org>,
+        Hans Liljestrand <ishkamiel@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        David Windsor <dwindsor@gmail.com>
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Message-ID: <5a1f7860-b650-9fe7-fafb-1f0c7cae00e7@suse.de>
+Date: Thu, 9 Mar 2017 09:43:12 +0100
 MIME-Version: 1.0
-In-Reply-To: <94397052765d1f6d84dc7edac65f906b09890871.1488905139.git.joabreu@synopsys.com>
+In-Reply-To: <2236FBA76BA1254E88B949DDB74E612B41C569DC@IRSMSX102.ger.corp.intel.com>
 Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/03/17 17:48, Jose Abreu wrote:
-> HDMI Receivers receive video modes which, according to
-> CEA specification, can have different frames per second
-> (fps) values.
+On 03/09/2017 08:18 AM, Reshetova, Elena wrote:
+>> On Mon, Mar 06, 2017 at 04:21:09PM +0200, Elena Reshetova wrote:
+>>> refcount_t type and corresponding API should be
+>>> used instead of atomic_t when the variable is used as
+>>> a reference counter. This allows to avoid accidental
+>>> refcounter overflows that might lead to use-after-free
+>>> situations.
+>>>
+>>> Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
+>>> Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
+>>> Signed-off-by: Kees Cook <keescook@chromium.org>
+>>> Signed-off-by: David Windsor <dwindsor@gmail.com>
+>>
+>> This looks OK to me.
+>>
+>> Acked-by: Chris Leech <cleech@redhat.com>
 > 
-> This patch introduces a helper function in the media core
-> which can calculate the expected video mode fps given the
-> pixel clock value and the horizontal/vertical values. HDMI
-> video receiver drivers are expected to use this helper so
-> that they can correctly fill the v4l2_streamparm structure
-> which is requested by vidioc_g_parm callback.
-> 
-> We could also use a lookup table for this but it wouldn't
-> correctly handle 60Hz vs 59.94Hz situations as this all
-> depends on the pixel clock value.
-> 
-> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
-> Cc: Carlos Palminha <palminha@synopsys.com>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
-> Cc: linux-media@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> ---
->  drivers/media/v4l2-core/v4l2-dv-timings.c | 29 +++++++++++++++++++++++++++++
->  include/media/v4l2-dv-timings.h           |  8 ++++++++
->  2 files changed, 37 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
-> index 5c8c49d..19946c6 100644
-> --- a/drivers/media/v4l2-core/v4l2-dv-timings.c
-> +++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
-> @@ -814,3 +814,32 @@ struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait)
->  	return aspect;
->  }
->  EXPORT_SYMBOL_GPL(v4l2_calc_aspect_ratio);
-> +
-> +struct v4l2_fract v4l2_calc_fps(const struct v4l2_dv_timings *t)
-> +{
-> +	const struct v4l2_bt_timings *bt = &t->bt;
-> +	struct v4l2_fract fps_fract = { 1, 1 };
-> +	unsigned long n, d;
-> +	unsigned long mask = GENMASK(BITS_PER_LONG - 1, 0);
+> Thank you for review! Do you have a tree that can take this change? 
 
-This is wrong since v4l2_fract uses u32, and LONG can be 64 bits.
+Hi Elena,
 
-> +	u32 htot, vtot, fps;
-> +	u64 pclk;
-> +
-> +	if (t->type != V4L2_DV_BT_656_1120)
-> +		return fps_fract;
-> +
-> +	htot = V4L2_DV_BT_FRAME_WIDTH(bt);
-> +	vtot = V4L2_DV_BT_FRAME_HEIGHT(bt);
-> +	pclk = bt->pixelclock;
-> +	if (bt->interlaced)
-> +		htot /= 2;
+iscsi like fcoe should go via the SCSI tree.
 
-This can be dropped. This is the timeperframe, not timeperfield. So for interleaved
-formats the time is that of two fields (aka one frame).
+Byte,
+	Johannes
 
-> +
-> +	fps = (htot * vtot) > 0 ? div_u64((100 * pclk), (htot * vtot)) : 0;
-> +
-> +	rational_best_approximation(fps, 100, mask, mask, &n, &d);
-
-I think you can just use fps, 100 instead of mask, mask.
-
-What is returned if fps == 0?
-
-I don't have a problem as such with this function, but just be aware that the
-pixelclock is never precise: there are HDMI receivers that are unable to report
-the pixelclock with enough precision to even detect if it is 60 vs 59.94 Hz.
-
-And even for those that can, it is often not reliable.
-
-In order for me to merge this it also should be used in a driver. Actually the
-cobalt and vivid drivers would be suitable: you can test the vivid driver yourself,
-and if you have a patch for the cobalt driver, then I can test that for you.
-
-Would be nice for the cobalt driver, since g_parm always returns 60 fps :-)
-
-Regards,
-
-	Hans
-
-> +
-> +	fps_fract.numerator = d;
-> +	fps_fract.denominator = n;
-> +	return fps_fract;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_calc_fps);
-> +
-> diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
-> index 61a1889..d23b168 100644
-> --- a/include/media/v4l2-dv-timings.h
-> +++ b/include/media/v4l2-dv-timings.h
-> @@ -196,6 +196,14 @@ bool v4l2_detect_gtf(unsigned frame_height, unsigned hfreq, unsigned vsync,
->  struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait);
->  
->  /**
-> + * v4l2_calc_fps - calculate the frames per seconds based on the
-> + *	v4l2_dv_timings information.
-> + *
-> + * @t: the timings data.
-> + */
-> +struct v4l2_fract v4l2_calc_fps(const struct v4l2_dv_timings *t);
-> +
-> +/**
->   * v4l2_dv_timings_aspect_ratio - calculate the aspect ratio based on the
->   *	v4l2_dv_timings information.
->   *
-> 
+-- 
+Johannes Thumshirn                                          Storage
+jthumshirn@suse.de                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
+GF: Felix Imendörffer, Jane Smithard, Graham Norton
+HRB 21284 (AG Nürnberg)
+Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
