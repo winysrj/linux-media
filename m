@@ -1,137 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:38061 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750794AbdCNHe7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Mar 2017 03:34:59 -0400
-Subject: Re: [PATCH v4 29/36] media: imx: mipi-csi2: enable setting and
- getting of frame rates
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-        Steve Longerbeam <slongerbeam@gmail.com>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
- <1487211578-11360-30-git-send-email-steve_longerbeam@mentor.com>
- <20170220220409.GX16975@valkosipuli.retiisi.org.uk>
- <20170221001332.GS21222@n2100.armlinux.org.uk>
- <25596b21-70de-5e46-f149-f9ce3a86ecb7@gmail.com>
- <1487667023.2331.8.camel@pengutronix.de>
- <20170313131647.GB10701@valkosipuli.retiisi.org.uk>
- <20170313132701.GJ21222@n2100.armlinux.org.uk>
- <1489413301.2288.53.camel@pengutronix.de>
- <27397114-7d77-2353-c526-bddd5f5297d9@gmail.com>
- <20170313210349.GD10701@valkosipuli.retiisi.org.uk>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <4ed15eae-b6c6-55f7-1c6c-9ea84466ed71@xs4all.nl>
-Date: Tue, 14 Mar 2017 08:34:46 +0100
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46659
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1754811AbdCIBud (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Mar 2017 20:50:33 -0500
+Date: Wed, 8 Mar 2017 22:50:25 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Dave Airlie <airlied@redhat.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [GIT PULL for v4.11-rc2] media fixes
+Message-ID: <20170308225025.561afac7@vento.lan>
 MIME-Version: 1.0
-In-Reply-To: <20170313210349.GD10701@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/13/2017 10:03 PM, Sakari Ailus wrote:
-> Hi Steve,
-> 
-> On Mon, Mar 13, 2017 at 11:06:22AM -0700, Steve Longerbeam wrote:
->>
->>
->> On 03/13/2017 06:55 AM, Philipp Zabel wrote:
->>> On Mon, 2017-03-13 at 13:27 +0000, Russell King - ARM Linux wrote:
->>>> On Mon, Mar 13, 2017 at 03:16:48PM +0200, Sakari Ailus wrote:
->>>>> The vast majority of existing drivers do not implement them nor the user
->>>>> space expects having to set them. Making that mandatory would break existing
->>>>> user space.
->>>>>
->>>>> In addition, that does not belong to link validation either: link validation
->>>>> should only include static properties of the link that are required for
->>>>> correct hardware operation. Frame rate is not such property: hardware that
->>>>> supports the MC interface generally does not recognise such concept (with
->>>>> the exception of some sensors). Additionally, it is dynamic: the frame rate
->>>>> can change during streaming, making its validation at streamon time useless.
->>>>
->>>> So how do we configure the CSI, which can do frame skipping?
->>>>
->>>> With what you're proposing, it means it's possible to configure the
->>>> camera sensor source pad to do 50fps.  Configure the CSI sink pad to
->>>> an arbitary value, such as 30fps, and configure the CSI source pad to
->>>> 15fps.
->>>>
->>>> What you actually get out of the CSI is 25fps, which bears very little
->>>> with the actual values used on the CSI source pad.
->>>>
->>>> You could say "CSI should ask the camera sensor" - well, that's fine
->>>> if it's immediately downstream, but otherwise we'd need to go walking
->>>> down the graph to find something that resembles its source - there may
->>>> be mux and CSI2 interface subdev blocks in that path.  Or we just accept
->>>> that frame rates are completely arbitary and bear no useful meaning what
->>>> so ever.
->>>
->>> Which would include the frame interval returned by VIDIOC_G_PARM on the
->>> connected video device, as that gets its information from the CSI output
->>> pad's frame interval.
->>>
->>
->> I'm kinda in the middle on this topic. I agree with Sakari that
->> frame rate can fluctuate, but that should only be temporary. If
->> the frame rate permanently shifts from what a subdev reports via
->> g_frame_interval, then that is a system problem. So I agree with
->> Phillip and Russell that a link validation of frame interval still
->> makes sense.
->>
->> But I also have to agree with Sakari that a subdev that has no
->> control over frame rate has no business implementing those ops.
->>
->> And then I agree with Russell that for subdevs that do have control
->> over frame rate, they would have to walk the graph to find the frame
->> rate source.
->>
->> So we're stuck in a broken situation: either the subdevs have to walk
->> the graph to find the source of frame rate, or s_frame_interval
->> would have to be mandatory and validated between pads, same as set_fmt.
-> 
-> It's not broken; what we are missing though is documentation on how to
-> control devices that can change the frame rate i.e. presumably drop frames
-> occasionally.
-> 
-> If you're doing something that hasn't been done before, it may be that new
-> documentation needs to be written to accomodate that use case. As we have an
-> existing interface (VIDIOC_SUBDEV_[GS]_FRAME_INTERVAL) it does make sense
-> to use that. What is not possible, though, is to mandate its use in link
-> validation everywhere.
-> 
-> If you had a hardware limitation that would require that the frame rate is
-> constant, then we'd need to handle that in link validation for that
-> particular piece of hardware. But there really is no case for doing that for
-> everything else.
-> 
+Hi Linus,
 
-General note: I would strongly recommend that g/s_parm support is removed in
-v4l2_subdev in favor of g/s_frame_interval.
+Please pull from:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.11-2
 
-g/s_parm is an abomination...
+For media regression fixes:
 
-There seem to be only a few i2c drivers that use g/s_parm, so this shouldn't
-be a lot of work.
+   - serial_ir: fix a Kernel crash during boot on Kernel 4.11-rc1, due
+	to an IRQ code called too early;
+   - other IR regression fixes at lirc and at the raw IR decoding;
+   - a deadlock fix at the RC nuvoton driver;
+   - Fix another issue with DMA on stack at dw2102 driver.
 
-Having two APIs for the same thing is always very bad.
+There's an extra patch there that change a driver interface for the
+SoC VSP1 driver, with is shared between the DRM and V4L2 driver.
+The patch itself is trivial, and was acked by David Arlie.
+As we're early at -rc, I hope that's ok.
 
-Regards,
+Thanks!
+Mauro
 
-	Hans
+The following changes since commit 9eeb0ed0f30938f31a3d9135a88b9502192c18dd:
+
+  [media] mtk-vcodec: fix build warnings without DEBUG (2017-02-08 12:08:20 -0200)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.11-2
+
+for you to fetch changes up to 8c71fff434e5ecf5ff27bd61db1bc9ac4c2b2a1b:
+
+  [media] v4l: vsp1: Adapt vsp1_du_setup_lif() interface to use a structure (2017-03-07 13:34:11 -0300)
+
+----------------------------------------------------------------
+media fixes for v4.11-rc2
+
+----------------------------------------------------------------
+Heiner Kallweit (1):
+      [media] rc: nuvoton: fix deadlock in nvt_write_wakeup_codes
+
+Jonathan McDowell (1):
+      [media] dw2102: don't do DMA on stack
+
+Kieran Bingham (1):
+      [media] v4l: vsp1: Adapt vsp1_du_setup_lif() interface to use a structure
+
+Sean Young (4):
+      [media] serial_ir: ensure we're ready to receive interrupts
+      [media] lirc: fix dead lock between open and wakeup_filter
+      [media] rc: raw decoder for keymap protocol is not loaded on register
+      [media] rc: protocol is not set on register for raw IR devices
+
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.c  |   8 +-
+ drivers/media/platform/vsp1/vsp1_drm.c |  33 +++--
+ drivers/media/rc/lirc_dev.c            |   4 +-
+ drivers/media/rc/nuvoton-cir.c         |   5 +-
+ drivers/media/rc/rc-main.c             |  26 ++--
+ drivers/media/rc/serial_ir.c           | 123 ++++++++---------
+ drivers/media/usb/dvb-usb/dw2102.c     | 244 ++++++++++++++++++++-------------
+ include/media/vsp1.h                   |  13 +-
+ 8 files changed, 260 insertions(+), 196 deletions(-)
