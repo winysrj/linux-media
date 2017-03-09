@@ -1,94 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35077 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753234AbdCFLNd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 06:13:33 -0500
-Received: by mail-wm0-f66.google.com with SMTP id z63so10936602wmg.2
-        for <linux-media@vger.kernel.org>; Mon, 06 Mar 2017 03:13:32 -0800 (PST)
-Date: Mon, 6 Mar 2017 11:40:41 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Michal Hocko <mhocko@kernel.org>
-Cc: Laura Abbott <labbott@redhat.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com,
-        romlem@google.com, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Brian Starkey <brian.starkey@arm.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Mark Brown <broonie@kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-mm@kvack.org
-Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of
- staging
-Message-ID: <20170306104041.zghsicrnadoap7lp@phenom.ffwll.local>
-References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
- <20170303132949.GC31582@dhcp22.suse.cz>
- <cf383b9b-3cbc-0092-a071-f120874c053c@redhat.com>
- <20170306074258.GA27953@dhcp22.suse.cz>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170306074258.GA27953@dhcp22.suse.cz>
+Received: from mga11.intel.com ([192.55.52.93]:4233 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754048AbdCILz0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 9 Mar 2017 06:55:26 -0500
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id B26472071E
+        for <linux-media@vger.kernel.org>; Thu,  9 Mar 2017 13:54:52 +0200 (EET)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 1/1] v4l: Document the practice of symmetrically calling s_power(dev, 0/1)
+Date: Thu,  9 Mar 2017 13:54:45 +0200
+Message-Id: <1489060485-15618-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 06, 2017 at 08:42:59AM +0100, Michal Hocko wrote:
-> On Fri 03-03-17 09:37:55, Laura Abbott wrote:
-> > On 03/03/2017 05:29 AM, Michal Hocko wrote:
-> > > On Thu 02-03-17 13:44:32, Laura Abbott wrote:
-> > >> Hi,
-> > >>
-> > >> There's been some recent discussions[1] about Ion-like frameworks. There's
-> > >> apparently interest in just keeping Ion since it works reasonablly well.
-> > >> This series does what should be the final clean ups for it to possibly be
-> > >> moved out of staging.
-> > >>
-> > >> This includes the following:
-> > >> - Some general clean up and removal of features that never got a lot of use
-> > >>   as far as I can tell.
-> > >> - Fixing up the caching. This is the series I proposed back in December[2]
-> > >>   but never heard any feedback on. It will certainly break existing
-> > >>   applications that rely on the implicit caching. I'd rather make an effort
-> > >>   to move to a model that isn't going directly against the establishement
-> > >>   though.
-> > >> - Fixing up the platform support. The devicetree approach was never well
-> > >>   recieved by DT maintainers. The proposal here is to think of Ion less as
-> > >>   specifying requirements and more of a framework for exposing memory to
-> > >>   userspace.
-> > >> - CMA allocations now happen without the need of a dummy device structure.
-> > >>   This fixes a bunch of the reasons why I attempted to add devicetree
-> > >>   support before.
-> > >>
-> > >> I've had problems getting feedback in the past so if I don't hear any major
-> > >> objections I'm going to send out with the RFC dropped to be picked up.
-> > >> The only reason there isn't a patch to come out of staging is to discuss any
-> > >> other changes to the ABI people might want. Once this comes out of staging,
-> > >> I really don't want to mess with the ABI.
-> > > 
-> > > Could you recapitulate concerns preventing the code being merged
-> > > normally rather than through the staging tree and how they were
-> > > addressed?
-> > > 
-> > 
-> > Sorry, I'm really not understanding your question here, can you
-> > clarify?
-> 
-> There must have been a reason why this code ended up in the staging
-> tree, right? So my question is what those reasons were and how they were
-> handled in order to move the code from the staging subtree.
+The caller must always call the s_power() op symmetrically powering the
+device on and off. This is the practice albeit it was not documented. A
+lot of sub-device drivers rely on it, so document it accordingly.
 
-No one gave a thing about android in upstream, so Greg KH just dumped it
-all into staging/android/. We've discussed ION a bunch of times, recorded
-anything we'd like to fix in staging/android/TODO, and Laura's patch
-series here addresses a big chunk of that.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ include/media/v4l2-subdev.h | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-This is pretty much the same approach we (gpu folks) used to de-stage the
-syncpt stuff.
--Daniel
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 0ab1c5d..b4e521d 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -172,8 +172,10 @@ struct v4l2_subdev_io_pin_config {
+  *
+  * @s_register: callback for %VIDIOC_G_REGISTER ioctl handler code.
+  *
+- * @s_power: puts subdevice in power saving mode (on == 0) or normal operation
+- *	mode (on == 1).
++ * @s_power: Puts subdevice in power saving mode (on == 0) or normal operation
++ *	mode (on == 1). The caller is responsible for calling the op
++ *	symmetrically, i.e. calling s_power(dev, 1) once requires later calling
++ *	s_power(dev, 0) once.
+  *
+  * @interrupt_service_routine: Called by the bridge chip's interrupt service
+  *	handler, when an interrupt status has be raised due to this subdev,
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+2.7.4
