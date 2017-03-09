@@ -1,153 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:54845 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754063AbdCTL6R (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 07:58:17 -0400
-Message-ID: <1490010926.2917.59.camel@pengutronix.de>
-Subject: Re: [PATCH v5 38/39] media: imx: csi: fix crop rectangle reset in
- sink set_fmt
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: Russell King - ARM Linux <linux@armlinux.org.uk>,
-        robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Date: Mon, 20 Mar 2017 12:55:26 +0100
-In-Reply-To: <327d67d9-68c1-7f74-0c0f-f6aee1c4b546@gmail.com>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
-         <1489121599-23206-39-git-send-email-steve_longerbeam@mentor.com>
-         <20170319152233.GW21222@n2100.armlinux.org.uk>
-         <327d67d9-68c1-7f74-0c0f-f6aee1c4b546@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-wr0-f180.google.com ([209.85.128.180]:33455 "EHLO
+        mail-wr0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754427AbdCINpi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 08:45:38 -0500
+Received: by mail-wr0-f180.google.com with SMTP id u48so45385303wrc.0
+        for <linux-media@vger.kernel.org>; Thu, 09 Mar 2017 05:45:37 -0800 (PST)
+Date: Thu, 9 Mar 2017 17:46:18 +0400
+From: Anton Sviridenko <anton@corp.bluecherry.net>
+To: Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
+        Ismael Luceno <ismael@iodev.co.uk>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v2] [media] solo6x10: release vb2 buffers in
+ solo_stop_streaming()
+Message-ID: <20170309134615.GA17229@magpie-gentoo>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2017-03-19 at 12:08 -0700, Steve Longerbeam wrote:
-> 
-> On 03/19/2017 08:22 AM, Russell King - ARM Linux wrote:
-> > On Thu, Mar 09, 2017 at 08:53:18PM -0800, Steve Longerbeam wrote:
-> >> From: Philipp Zabel <p.zabel@pengutronix.de>
-> >>
-> >> The csi_try_crop call in set_fmt should compare the cropping rectangle
-> >> to the currently set input format, not to the previous input format.
-> > Are we really sure that the cropping support is implemented correctly?
-> >
-> > I came across this while looking at what we're doing with the
-> > V4L2_SEL_FLAG_KEEP_CONFIG flag.
-> >
-> > Documentation/media/uapi/v4l/dev-subdev.rst defines the behaviour of
-> > the user API, and "Order of configuration and format propagation" says:
-> >
-> >    The coordinates to a step always refer to the actual size of the
-> >    previous step. The exception to this rule is the source compose
-> >    rectangle, which refers to the sink compose bounds rectangle --- if it
-> >    is supported by the hardware.
-> >    
-> >    1. Sink pad format. The user configures the sink pad format. This format
-> >       defines the parameters of the image the entity receives through the
-> >       pad for further processing.
-> >    
-> >    2. Sink pad actual crop selection. The sink pad crop defines the crop
-> >       performed to the sink pad format.
-> >    
-> >    3. Sink pad actual compose selection. The size of the sink pad compose
-> >       rectangle defines the scaling ratio compared to the size of the sink
-> >       pad crop rectangle. The location of the compose rectangle specifies
-> >       the location of the actual sink compose rectangle in the sink compose
-> >       bounds rectangle.
-> >    
-> >    4. Source pad actual crop selection. Crop on the source pad defines crop
-> >       performed to the image in the sink compose bounds rectangle.
-> >    
-> >    5. Source pad format. The source pad format defines the output pixel
-> >       format of the subdev, as well as the other parameters with the
-> >       exception of the image width and height. Width and height are defined
-> >       by the size of the source pad actual crop selection.
-> >    
-> >    Accessing any of the above rectangles not supported by the subdev will
-> >    return ``EINVAL``. Any rectangle referring to a previous unsupported
-> >    rectangle coordinates will instead refer to the previous supported
-> >    rectangle. For example, if sink crop is not supported, the compose
-> >    selection will refer to the sink pad format dimensions instead.
-> >
-> > Note step 3 above: scaling is defined by the ratio of the _sink_ crop
-> > rectangle to the _sink_ compose rectangle.
+v2: removed var dbg_buf_cnt, left-over from debugging
 
-The above paragraph suggests we skip any rectangles that are not
-supported. In our case that would be 3. and 4., since the CSI can't
-compose into a larger frame. I hadn't realised that the crop selection
-currently happens on the source pad.
-The hardware actually only supports cropping of the input (the crop
-rectangle we write into the window registers are before downscaling). So
-the crop rectangle should be moved to the sink pad.
+Fixes warning that appears in dmesg after closing V4L2 userspace
+application that plays video from the display device
+(first device from V4L2 device nodes provided by solo, usually /dev/video0
+when no other V4L2 devices are present). Encoder device nodes are not
+affected. Can be reproduced by starting and closing
 
-> > So, lets say that the camera produces a 1280x720 image, and the sink
-> > pad format is configured with 1280x720.  That's step 1.
-> >
-> > The sink crop operates within that rectangle, cropping it to an area.
-> > Let's say we're only interested in its centre, so we'd chose 640x360
-> > with the top-left as 320,180.  This is step 2.
->>
-> > Then, if we want to down-scale by a factor of two, we'd set the sink
-> > compose selection to 320x180.
+ffplay -f video4linux2  /dev/video0
 
-Except when composing is not supported. If the sink compose and source
-crop rectangles are not supported, the source pad format takes their
-place in determining the scaling output resolution. At least that's how
-I read the documentation.
+[ 8130.281251] ------------[ cut here ]------------
+[ 8130.281256] WARNING: CPU: 1 PID: 20414 at drivers/media/v4l2-core/videobuf2-core.c:1651 __vb2_queue_cancel+0x14b/0x230
+[ 8130.281257] Modules linked in: ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat solo6x10 x86_pkg_temp_thermal vboxpci(O) vboxnetadp(O) vboxnetflt(O) vboxdrv(O)
+[ 8130.281264] CPU: 1 PID: 20414 Comm: ffplay Tainted: G           O    4.10.0-gentoo #1
+[ 8130.281264] Hardware name: ASUS All Series/B85M-E, BIOS 2301 03/30/2015
+[ 8130.281265] Call Trace:
+[ 8130.281267]  dump_stack+0x4f/0x72
+[ 8130.281270]  __warn+0xc7/0xf0
+[ 8130.281271]  warn_slowpath_null+0x18/0x20
+[ 8130.281272]  __vb2_queue_cancel+0x14b/0x230
+[ 8130.281273]  vb2_core_streamoff+0x23/0x90
+[ 8130.281275]  vb2_streamoff+0x24/0x50
+[ 8130.281276]  vb2_ioctl_streamoff+0x3d/0x50
+[ 8130.281278]  v4l_streamoff+0x15/0x20
+[ 8130.281279]  __video_do_ioctl+0x25e/0x2f0
+[ 8130.281280]  video_usercopy+0x279/0x520
+[ 8130.281282]  ? v4l_enum_fmt+0x1330/0x1330
+[ 8130.281285]  ? unmap_region+0xdf/0x110
+[ 8130.281285]  video_ioctl2+0x10/0x20
+[ 8130.281286]  v4l2_ioctl+0xce/0xe0
+[ 8130.281289]  do_vfs_ioctl+0x8b/0x5b0
+[ 8130.281290]  ? __fget+0x72/0xa0
+[ 8130.281291]  SyS_ioctl+0x74/0x80
+[ 8130.281294]  entry_SYSCALL_64_fastpath+0x13/0x94
+[ 8130.281295] RIP: 0033:0x7ff86fee6b27
+[ 8130.281296] RSP: 002b:00007ffe467f6a08 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+[ 8130.281297] RAX: ffffffffffffffda RBX: 00000000d1a4d788 RCX: 00007ff86fee6b27
+[ 8130.281297] RDX: 00007ffe467f6a14 RSI: 0000000040045613 RDI: 0000000000000006
+[ 8130.281298] RBP: 000000000373f8d0 R08: 00000000ffffffff R09: 00007ff860001140
+[ 8130.281298] R10: 0000000000000243 R11: 0000000000000246 R12: 0000000000000000
+[ 8130.281299] R13: 00000000000000a0 R14: 00007ffe467f6530 R15: 0000000001f32228
+[ 8130.281300] ---[ end trace 00695dc96be646e7 ]---
 
-> > This seems to be at odds with how the scaling is done in CSI at
-> > present: the selection implementations all reject attempts to
-> > configure the sink pad, instead only supporting crop rectangles on
-> > the source,
-> 
-> Correct. Currently cropping is only supported at the source pad
-> (step 4).
-> 
-> Initially the CSI didn't support down-scaling, so step 3 is not supported,
-> so the sink pad format/crop selection rectangle/crop compose rectangle
-> are collapsed into the same sink pad format rectangle.
-> 
-> Philipp later added support for /2 downscaling, but we didn't put this in
-> the correct API, looks like this needs to move into the selection API at
-> step 3 (sink pad compose rectangle).
+Signed-off-by: Anton Sviridenko <anton@corp.bluecherry.net>
+---
+ drivers/media/pci/solo6x10/solo6x10-v4l2.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-I am not sure about this. Wouldn't moving the input crop to the sink pad
-be enough? If we added support for the sink pad compose rectangle, that
-wouldn't actually allow to compose the CSI output into a larger frame.
-Since the subdevice can't compose, I'd leave the sink compose rectangle
-disabled.
-
-> >   and we use the source crop rectangle to define the
-> > down-scaling.
-
-We use the source pad format to define the downscaling relative to the
-source crop rectangle (which is wrong, it should be relative to the sink
-crop rectangle).
-
-> Yes. And maybe there is nothing wrong with that, because scaling is also
-> defined by the source/sink _format_ ratios (if I'm not mistaken), so looking
-> at this another way, we're just defining scaling in the CSI via another
-> legal API.
-
-I didn't touch the crop rectangle at all, just setting the input
-resolution on the sink pad and the desired output resolution on the
-source pad should work.
-
-regards
-Philipp
+diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2.c b/drivers/media/pci/solo6x10/solo6x10-v4l2.c
+index 896bec6..3266fc2 100644
+--- a/drivers/media/pci/solo6x10/solo6x10-v4l2.c
++++ b/drivers/media/pci/solo6x10/solo6x10-v4l2.c
+@@ -341,6 +341,17 @@ static void solo_stop_streaming(struct vb2_queue *q)
+ 	struct solo_dev *solo_dev = vb2_get_drv_priv(q);
+ 
+ 	solo_stop_thread(solo_dev);
++
++	spin_lock(&solo_dev->slock);
++	while (!list_empty(&solo_dev->vidq_active)) {
++		struct solo_vb2_buf *buf = list_entry(
++				solo_dev->vidq_active.next,
++				struct solo_vb2_buf, list);
++
++		list_del(&buf->list);
++		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
++	}
++	spin_unlock(&solo_dev->slock);
+ 	INIT_LIST_HEAD(&solo_dev->vidq_active);
+ }
+ 
+-- 
+2.10.2
