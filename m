@@ -1,204 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:60688 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751100AbdCOSNA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Mar 2017 14:13:00 -0400
-Date: Wed, 15 Mar 2017 19:04:21 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: Re: media / v4l2-mc: wishlist for complex cameras (was Re: [PATCH v4
- 14/36] [media] v4l2-mc: add a function to inherit controls from a pipeline)
-Message-ID: <20170315180421.GA10206@amd>
-References: <cc8900b0-c091-b14b-96f4-01f8fa72431c@xs4all.nl>
- <20170310125342.7f047acf@vento.lan>
- <20170310223714.GI3220@valkosipuli.retiisi.org.uk>
- <20170311082549.576531d0@vento.lan>
- <20170313124621.GA10701@valkosipuli.retiisi.org.uk>
- <20170314004533.3b3cd44b@vento.lan>
- <e0a6c60b-1735-de0b-21f4-d8c3f4b3f10f@xs4all.nl>
- <20170314072143.498cde9b@vento.lan>
- <20170314223254.GA7141@amd>
- <20170314215420.6fc63c67@vento.lan>
+Received: from smtprelay2.synopsys.com ([198.182.60.111]:55967 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932641AbdCIPPO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 10:15:14 -0500
+Subject: Re: [PATCH] [media] v4l2-dv-timings: Introduce v4l2_calc_fps()
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Jose Abreu <Jose.Abreu@synopsys.com>,
+        <linux-media@vger.kernel.org>
+References: <94397052765d1f6d84dc7edac65f906b09890871.1488905139.git.joabreu@synopsys.com>
+ <4f598aba-3002-eeb5-1cad-d4dff4553644@xs4all.nl>
+CC: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>,
+        <linux-kernel@vger.kernel.org>
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+Message-ID: <8bc4a61a-5b5d-2233-741a-bbf44fc5f009@synopsys.com>
+Date: Thu, 9 Mar 2017 15:15:02 +0000
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="C7zPtVaVf+AK4Oqc"
-Content-Disposition: inline
-In-Reply-To: <20170314215420.6fc63c67@vento.lan>
+In-Reply-To: <4f598aba-3002-eeb5-1cad-d4dff4553644@xs4all.nl>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
---C7zPtVaVf+AK4Oqc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi!
+Thanks for the review!
 
-> > Well, I believe first question is: what applications would we want to
-> > run on complex devices? Will sending control from video to subdevs
-> > actually help?
->=20
-> I would say: camorama, xawtv3, zbar, google talk, skype. If it runs
-> with those, it will likely run with any other application.
 
-I'll take a look when I'm at better internet access.
+On 09-03-2017 12:29, Hans Verkuil wrote:
+> On 07/03/17 17:48, Jose Abreu wrote:
+>> HDMI Receivers receive video modes which, according to
+>> CEA specification, can have different frames per second
+>> (fps) values.
+>>
+>> This patch introduces a helper function in the media core
+>> which can calculate the expected video mode fps given the
+>> pixel clock value and the horizontal/vertical values. HDMI
+>> video receiver drivers are expected to use this helper so
+>> that they can correctly fill the v4l2_streamparm structure
+>> which is requested by vidioc_g_parm callback.
+>>
+>> We could also use a lookup table for this but it wouldn't
+>> correctly handle 60Hz vs 59.94Hz situations as this all
+>> depends on the pixel clock value.
+>>
+>> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+>> Cc: Carlos Palminha <palminha@synopsys.com>
+>> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+>> Cc: linux-media@vger.kernel.org
+>> Cc: linux-kernel@vger.kernel.org
+>> ---
+>>  drivers/media/v4l2-core/v4l2-dv-timings.c | 29 +++++++++++++++++++++++++++++
+>>  include/media/v4l2-dv-timings.h           |  8 ++++++++
+>>  2 files changed, 37 insertions(+)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+>> index 5c8c49d..19946c6 100644
+>> --- a/drivers/media/v4l2-core/v4l2-dv-timings.c
+>> +++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+>> @@ -814,3 +814,32 @@ struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait)
+>>  	return aspect;
+>>  }
+>>  EXPORT_SYMBOL_GPL(v4l2_calc_aspect_ratio);
+>> +
+>> +struct v4l2_fract v4l2_calc_fps(const struct v4l2_dv_timings *t)
+>> +{
+>> +	const struct v4l2_bt_timings *bt = &t->bt;
+>> +	struct v4l2_fract fps_fract = { 1, 1 };
+>> +	unsigned long n, d;
+>> +	unsigned long mask = GENMASK(BITS_PER_LONG - 1, 0);
+> This is wrong since v4l2_fract uses u32, and LONG can be 64 bits.
 
-> > mplayer is useful for testing... but that one already works (after you
-> > setup the pipeline, and configure exposure/gain).
-> >=20
-> > But thats useful for testing, not really for production. Image will be
-> > out of focus and with wrong white balance.
-> >=20
-> > What I would really like is an application to get still photos. For
-> > taking pictures with manual settings we need
-> >=20
-> > a) units for controls: user wants to focus on 1m, and take picture
-> > with ISO200, 1/125 sec. We should also tell him that lens is f/5.6 and
-> > focal length is 20mm with 5mm chip.
-> >=20
-> > But... autofocus/autogain would really be good to have. Thus we need:
-> >=20
-> > b) for each frame, we need exposure settings and focus position at
-> > time frame was taken. Otherwise autofocus/autogain will be too
-> > slow. At least focus position is going to be tricky -- either kernel
-> > would have to compute focus position for us (not trivial) or we'd need
-> > enough information to compute it in userspace.
-> >=20
-> > There are more problems: hardware-accelerated preview is not trivial
-> > to set up (and I'm unsure if it can be done in generic way). Still
-> > photos application needs to switch resolutions between preview and
-> > photo capture. Probably hardware-accelerated histograms are needed for
-> > white balance, auto gain and auto focus, ....
-> >=20
-> > It seems like there's a _lot_ of stuff to be done before we have
-> > useful support for complex cameras...
->=20
-> Taking still pictures using a hardware-accelerated preview is
-> a sophisticated use case. I don't know any userspace application
-> that does that. Ok, several allow taking snapshots, by simply
-> storing the image of the current frame.
+Yes, its wrong. I will remove the variable and just use fps, 100
+instead of mask, mask.
 
-Well, there are applications that take still pictures. Android has
-one. Maemo has another. Then there's fcam-dev. Its open source; with
-modified kernel it is fully usable. I have version that runs on recent
-nearly-mainline on N900.=20
+>
+>> +	u32 htot, vtot, fps;
+>> +	u64 pclk;
+>> +
+>> +	if (t->type != V4L2_DV_BT_656_1120)
+>> +		return fps_fract;
+>> +
+>> +	htot = V4L2_DV_BT_FRAME_WIDTH(bt);
+>> +	vtot = V4L2_DV_BT_FRAME_HEIGHT(bt);
+>> +	pclk = bt->pixelclock;
+>> +	if (bt->interlaced)
+>> +		htot /= 2;
+> This can be dropped. This is the timeperframe, not timeperfield. So for interleaved
+> formats the time is that of two fields (aka one frame).
 
-So yes, I'd like solution for problems a) and b).
+Ok, but then there is something not correct in
+v4l2_dv_timings_presets structure field values because I get
+wrong results in double clocked modes. I checked the definition
+and the modes that are double clocked are defined with half the
+clock, i.e., V4L2_DV_BT_CEA_720X480I59_94 is defined with a pixel
+clock of 13.5MHz but in CEA spec this mode is defined with pixel
+clock of 27MHz.
 
-> > (And I'm not sure... when application such as skype is running, is
-> > there some way to run autogain/autofocus/autowhitebalance? Is that
-> > something we want to support?)
->=20
-> Autofocus no. Autogain/Autowhite can be done via libv4l, provided that
-> it can access the device's controls via /dev/video devnode. Other
-> applications may be using some other similar algorithms.
->=20
-> Ok, they don't use histograms provided by the SoC. So, they do it in
-> software, with is slower. Still, it works fine when the light
-> conditions don't change too fast.
+>
+>> +
+>> +	fps = (htot * vtot) > 0 ? div_u64((100 * pclk), (htot * vtot)) : 0;
+>> +
+>> +	rational_best_approximation(fps, 100, mask, mask, &n, &d);
+> I think you can just use fps, 100 instead of mask, mask.
+>
+> What is returned if fps == 0?
 
-I guess it is going to work well enough with higher CPU
-usage. Question is if camera without autofocus is usable. I'd say "not
-really".
+I will add a check for this.
 
-> > I believe other question is: will not having same control on main
-> > video device and subdevs be confusing? Does it actually help userspace
-> > in any way? Yes, we can make controls accessible to old application,
-> > but does it make them more useful?=20
->=20
-> Yes. As I said, libv4l (and some apps) have logic inside to adjust
-> the image via bright, contrast and white balance controls, using the
-> video devnode. They don't talk subdev API. So, if those controls
-> aren't exported, they won't be able to provide a good quality image.
+>
+> I don't have a problem as such with this function, but just be aware that the
+> pixelclock is never precise: there are HDMI receivers that are unable to report
+> the pixelclock with enough precision to even detect if it is 60 vs 59.94 Hz.
+>
+> And even for those that can, it is often not reliable.
 
-Next question is if the libv4l will do the right thing if we just put
-all controls to one node. For example on N900 you have exposure/gain
-and brightness. But the brightness is applied at preview phase, so it
-is "basically useless". You really need to adjust the image using the
-exposure/gain.
+My initial intention for this function was that it should be used
+with v4l2_find_dv_timings_cea861_vic, when possible. That is,
+HDMI receivers have access to AVI infoframe contents. Then they
+should get the vic, call v4l2_find_dv_timings_cea861_vic, get
+timings and then call v4l2_calc_fps to get fps. If no AVI
+infoframe is available then it should resort to pixel clock and
+H/V measures as last resort.
 
-> > > > In addition, I suspect end-users of these complex devices don't rea=
-lly care
-> > > > about a plugin: they want full control and won't typically use gene=
-ric
-> > > > applications. If they would need support for that, we'd have seen m=
-uch more
-> > > > interest. The main reason for having a plugin is to simplify testin=
-g and
-> > > > if this is going to be used on cheap hobbyist devkits. =20
-> > >=20
-> > > What are the needs for a cheap hobbyist devkit owner? Do we currently
-> > > satisfy those needs? I'd say that having a functional driver when
-> > > compiled without the subdev API, that implements the ioctl's/controls=
- =20
-> >=20
-> > Having different interface based on config options... is just
-> > weird. What about poor people (like me) trying to develop complex
-> > applications?
->=20
-> Well, that could be done using other mechanisms, like a modprobe
-> parameter or by switching the behaviour if a subdev interface is
-> opened. I don't see much trouble on allowing accessing a control via
-> both interfaces.
+>
+> In order for me to merge this it also should be used in a driver. Actually the
+> cobalt and vivid drivers would be suitable: you can test the vivid driver yourself,
+> and if you have a patch for the cobalt driver, then I can test that for you.
+>
+> Would be nice for the cobalt driver, since g_parm always returns 60 fps :-)
 
-If we really want to go that way (is not modifying library to access
-the right files quite easy?), I believe non-confusing option would be
-to have '/dev/video0 -- omap3 camera for legacy applications' which
-would include all the controls.
-
-> > You can get Nokia N900 on aliexpress. If not, they are still available
-> > between people :-)
->=20
-> I have one. Unfortunately, I never had a chance to use it, as the display
-> stopped working one week after I get it.
-
-Well, I guess the easiest option is to just get another one :-).
-
-But otoh -- N900 is quite usable without the screen. 0xffff tool can
-be used to boot the kernel, then you can use nfsroot and usb
-networking. It also has serial port (over strange
-connector). Connected over ssh over usb network is actually how I do
-most of the v4l work.
+Ok, I will check what I can do :)
 
 Best regards,
+Jose Miguel Abreu
 
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---C7zPtVaVf+AK4Oqc
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAljJgiUACgkQMOfwapXb+vLTRQCgu9VfJ8AJHxCkc+5HU2zw0axk
-lhoAnjKtfqjUbafgmhVm/jE3vbRotrCg
-=Dyg1
------END PGP SIGNATURE-----
-
---C7zPtVaVf+AK4Oqc--
+>
+> Regards,
+>
+> 	Hans
+>
+>> +
+>> +	fps_fract.numerator = d;
+>> +	fps_fract.denominator = n;
+>> +	return fps_fract;
+>> +}
+>> +EXPORT_SYMBOL_GPL(v4l2_calc_fps);
+>> +
+>> diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
+>> index 61a1889..d23b168 100644
+>> --- a/include/media/v4l2-dv-timings.h
+>> +++ b/include/media/v4l2-dv-timings.h
+>> @@ -196,6 +196,14 @@ bool v4l2_detect_gtf(unsigned frame_height, unsigned hfreq, unsigned vsync,
+>>  struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait);
+>>  
+>>  /**
+>> + * v4l2_calc_fps - calculate the frames per seconds based on the
+>> + *	v4l2_dv_timings information.
+>> + *
+>> + * @t: the timings data.
+>> + */
+>> +struct v4l2_fract v4l2_calc_fps(const struct v4l2_dv_timings *t);
+>> +
+>> +/**
+>>   * v4l2_dv_timings_aspect_ratio - calculate the aspect ratio based on the
+>>   *	v4l2_dv_timings information.
+>>   *
+>>
