@@ -1,172 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40922
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753942AbdCTPnO (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:45814 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752672AbdCILzp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 11:43:14 -0400
-Date: Mon, 20 Mar 2017 12:33:45 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Michael Zoran <mzoran@crowfest.net>
-Cc: Eric Anholt <eric@anholt.net>, devel@driverdev.osuosl.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-kernel@vger.kernel.org, linux-rpi-kernel@lists.infradead.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/6] staging: BCM2835 MMAL V4L2 camera driver
-Message-ID: <20170320123345.5a7ac931@vento.lan>
-In-Reply-To: <1490022701.11105.3.camel@crowfest.net>
-References: <20170127215503.13208-1-eric@anholt.net>
-        <20170315110128.37e2bc5a@vento.lan>
-        <87a88m19om.fsf@eliezer.anholt.net>
-        <20170315220834.7019fd8b@vento.lan>
-        <1489628784.8127.1.camel@crowfest.net>
-        <20170316062900.0e835118@vento.lan>
-        <87shmbv2w3.fsf@eliezer.anholt.net>
-        <20170319135846.395feef8@vento.lan>
-        <1489943068.13607.5.camel@crowfest.net>
-        <20170319221107.05227532@vento.lan>
-        <20170320075831.65189ed7@vento.lan>
-        <1490008101.28090.5.camel@crowfest.net>
-        <20170320115821.736931ee@vento.lan>
-        <1490022701.11105.3.camel@crowfest.net>
+        Thu, 9 Mar 2017 06:55:45 -0500
+Subject: Re: [PATCH] [media] solo6x10: release vb2 buffers in
+ solo_stop_streaming()
+To: Anton Sviridenko <anton@corp.bluecherry.net>,
+        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
+        Ismael Luceno <ismael@iodev.co.uk>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <20170308174704.GA22020@magpie-gentoo>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <0124df98-baa4-5165-57e5-a7e95d2d43e4@xs4all.nl>
+Date: Thu, 9 Mar 2017 12:55:35 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <20170308174704.GA22020@magpie-gentoo>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 20 Mar 2017 08:11:41 -0700
-Michael Zoran <mzoran@crowfest.net> escreveu:
-
-> On Mon, 2017-03-20 at 11:58 -0300, Mauro Carvalho Chehab wrote:
-> > Em Mon, 20 Mar 2017 04:08:21 -0700
-> > Michael Zoran <mzoran@crowfest.net> escreveu:
-> >   
-> > > On Mon, 2017-03-20 at 07:58 -0300, Mauro Carvalho Chehab wrote:  
-> > > > Em Sun, 19 Mar 2017 22:11:07 -0300
-> > > > Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
-> > > >     
-> > > > > Em Sun, 19 Mar 2017 10:04:28 -0700
-> > > > > Michael Zoran <mzoran@crowfest.net> escreveu:
-> > > > >     
-> > > > > > A working DT that I tried this morning with the current
-> > > > > > firmware
-> > > > > > is
-> > > > > > posted here:
-> > > > > > http://lists.infradead.org/pipermail/linux-rpi-kernel/2017-Ma
-> > > > > > rch/
-> > > > > > 005924
-> > > > > > .html
-> > > > > > 
-> > > > > > It even works with minecraft_pi!      
-> > > > 
-> > > >     
-> > > 
-> > > Hi, can you e-mail out your config.txt?  Do you have audio enabled
-> > > in
-> > > config.txt?  
-> > 
-> > yes, I have this:
-> > 
-> > $ cat config.txt |grep -i audio
-> > # uncomment to force a HDMI mode rather than DVI. This can make audio
-> > work in
-> > # Enable audio (loads snd_bcm2835)
-> > dtparam=audio=on
-> > 
-> > Full config attached.
-> > 
-> > Thanks,
-> > Mauro
-> >   
+On 08/03/17 18:47, Anton Sviridenko wrote:
+> Fixes warning that appears in dmesg after closing V4L2 userspace
+> application that plays video from the display device
+> (first device from V4L2 device nodes provided by solo, usually /dev/video0
+> when no other V4L2 devices are present). Encoder device nodes are not
+> affected. Can be reproduced by starting and closing
 > 
-> Are you using Eric Anholt's HDMI Audio driver that's included in VC4? 
-> That could well be incompatible with the firmware driver. Or are you
-> using a half mode of VC4 for audio and VCHIQ for video?
+> ffplay -f video4linux2  /dev/video0
+> 
+> [ 8130.281251] ------------[ cut here ]------------
+> [ 8130.281256] WARNING: CPU: 1 PID: 20414 at drivers/media/v4l2-core/videobuf2-core.c:1651 __vb2_queue_cancel+0x14b/0x230
+> [ 8130.281257] Modules linked in: ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat solo6x10 x86_pkg_temp_thermal vboxpci(O) vboxnetadp(O) vboxnetflt(O) vboxdrv(O)
+> [ 8130.281264] CPU: 1 PID: 20414 Comm: ffplay Tainted: G           O    4.10.0-gentoo #1
+> [ 8130.281264] Hardware name: ASUS All Series/B85M-E, BIOS 2301 03/30/2015
+> [ 8130.281265] Call Trace:
+> [ 8130.281267]  dump_stack+0x4f/0x72
+> [ 8130.281270]  __warn+0xc7/0xf0
+> [ 8130.281271]  warn_slowpath_null+0x18/0x20
+> [ 8130.281272]  __vb2_queue_cancel+0x14b/0x230
+> [ 8130.281273]  vb2_core_streamoff+0x23/0x90
+> [ 8130.281275]  vb2_streamoff+0x24/0x50
+> [ 8130.281276]  vb2_ioctl_streamoff+0x3d/0x50
+> [ 8130.281278]  v4l_streamoff+0x15/0x20
+> [ 8130.281279]  __video_do_ioctl+0x25e/0x2f0
+> [ 8130.281280]  video_usercopy+0x279/0x520
+> [ 8130.281282]  ? v4l_enum_fmt+0x1330/0x1330
+> [ 8130.281285]  ? unmap_region+0xdf/0x110
+> [ 8130.281285]  video_ioctl2+0x10/0x20
+> [ 8130.281286]  v4l2_ioctl+0xce/0xe0
+> [ 8130.281289]  do_vfs_ioctl+0x8b/0x5b0
+> [ 8130.281290]  ? __fget+0x72/0xa0
+> [ 8130.281291]  SyS_ioctl+0x74/0x80
+> [ 8130.281294]  entry_SYSCALL_64_fastpath+0x13/0x94
+> [ 8130.281295] RIP: 0033:0x7ff86fee6b27
+> [ 8130.281296] RSP: 002b:00007ffe467f6a08 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+> [ 8130.281297] RAX: ffffffffffffffda RBX: 00000000d1a4d788 RCX: 00007ff86fee6b27
+> [ 8130.281297] RDX: 00007ffe467f6a14 RSI: 0000000040045613 RDI: 0000000000000006
+> [ 8130.281298] RBP: 000000000373f8d0 R08: 00000000ffffffff R09: 00007ff860001140
+> [ 8130.281298] R10: 0000000000000243 R11: 0000000000000246 R12: 0000000000000000
+> [ 8130.281299] R13: 00000000000000a0 R14: 00007ffe467f6530 R15: 0000000001f32228
+> [ 8130.281300] ---[ end trace 00695dc96be646e7 ]---
+> 
+> Signed-off-by: Anton Sviridenko <anton@corp.bluecherry.net>
+> ---
+>  drivers/media/pci/solo6x10/solo6x10-v4l2.c | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+> 
+> diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2.c b/drivers/media/pci/solo6x10/solo6x10-v4l2.c
+> index 896bec6..4163103 100644
+> --- a/drivers/media/pci/solo6x10/solo6x10-v4l2.c
+> +++ b/drivers/media/pci/solo6x10/solo6x10-v4l2.c
+> @@ -341,6 +341,18 @@ static void solo_stop_streaming(struct vb2_queue *q)
+>  	struct solo_dev *solo_dev = vb2_get_drv_priv(q);
+>  
+>  	solo_stop_thread(solo_dev);
+> +
+> +	spin_lock(&solo_dev->slock);
+> +	while (!list_empty(&solo_dev->vidq_active)) {
+> +		struct solo_vb2_buf *buf = list_entry(
+> +				solo_dev->vidq_active.next,
+> +				struct solo_vb2_buf, list);
+> +
+> +		list_del(&buf->list);
+> +		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
+> +		dbg_buf_cnt++;
 
-I'm using vanilla staging Kernel, from Greg's tree:
-	https://git.kernel.org/pub/scm/linux/kernel/git/gregkh/staging.git/commit/?h=staging-next&id=7bc49cb9b9b8bad32536c4b6d1aff1824c1adc6c
-
-Plus the DWC2 fixup I wrote and DT changes you pointed
-(see enclosed).
-
-I can disable the audio overlay here, as I don't have anything 
-connected to audio inputs/outputs.
+Left-over from debugging? This variable doesn't exist in the mainline code, so
+this patch doesn't compile.
 
 Regards,
-Mauro
 
----
+	Hans
 
-
-diff --git a/arch/arm/boot/dts/bcm2835-rpi.dtsi b/arch/arm/boot/dts/bcm2835-rpi.dtsi
-index 38e6050035bc..1f42190e8558 100644
---- a/arch/arm/boot/dts/bcm2835-rpi.dtsi
-+++ b/arch/arm/boot/dts/bcm2835-rpi.dtsi
-@@ -27,6 +27,14 @@
-                        firmware = <&firmware>;
-                        #power-domain-cells = <1>;
-                };
-+
-+               vchiq {
-+                       compatible = "brcm,bcm2835-vchiq";
-+                       reg = <0x7e00b840 0xf>;
-+                       interrupts = <0 2>;
-+                       cache-line-size = <32>;
-+                       firmware = <&firmware>;
-+               };
-        };
- };
-
-diff --git a/arch/arm64/boot/dts/broadcom/bcm2837-rpi-3-b.dts b/arch/arm64/boot/dts/broadcom/bcm2837-rpi-3-b.dts
-index c309633a1e87..7e8d42904022 100644
---- a/arch/arm64/boot/dts/broadcom/bcm2837-rpi-3-b.dts
-+++ b/arch/arm64/boot/dts/broadcom/bcm2837-rpi-3-b.dts
-@@ -17,6 +17,45 @@
-                        gpios = <&gpio 47 0>;
-                };
-        };
-+
-+
-+       soc {
-+
-+//             hvs at 7e400000 {
-+//                     status = "disabled";
-+//             };
-+
-+//             v3d: v3d at 7ec00000 {
-+//                     status = "disabled";
-+//             };
-+
-+               vc4: gpu {
-+                       status = "disabled";
-+               };
-+
-+               fb: fb {
-+                       status = "disabled";
-+               };
-+
-+               vchiq: vchiq {
-+                       compatible = "brcm,bcm2835-vchiq";
-+                       reg = <0x7e00b840 0xf>;
-+                       interrupts = <0 2>;
-+                       cache-line-size = <32>;
-+                       firmware = <&firmware>;
-+               };
-+
-+               audio: audio {
-+                       compatible = "brcm,bcm2835-audio";
-+                       brcm,pwm-channels = <8>;
-+               };
-+
-+       };
-+
-+       __overrides__ {
-+               cache_line_size = <&vchiq>, "cache-line-size:0";
-+       };
-+
- };
- 
-
-Thanks,
-Mauro
+> +	}
+> +	spin_unlock(&solo_dev->slock);
+>  	INIT_LIST_HEAD(&solo_dev->vidq_active);
+>  }
+>  
+> 
