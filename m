@@ -1,105 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f54.google.com ([209.85.215.54]:35963 "EHLO
-        mail-lf0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751023AbdCOJM0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Mar 2017 05:12:26 -0400
-Received: by mail-lf0-f54.google.com with SMTP id y193so4151997lfd.3
-        for <linux-media@vger.kernel.org>; Wed, 15 Mar 2017 02:12:25 -0700 (PDT)
-Subject: Re: [PATCH 03/16] rcar-vin: fix how pads are handled for v4l2
- subdevice operations
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-References: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se>
- <20170314185957.25253-4-niklas.soderlund+renesas@ragnatech.se>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <1fcdfc89-6c85-3863-6fd0-e6db4ec9072c@cogentembedded.com>
-Date: Wed, 15 Mar 2017 12:12:21 +0300
-MIME-Version: 1.0
-In-Reply-To: <20170314185957.25253-4-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from bombadil.infradead.org ([65.50.211.133]:44067 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751684AbdCIUI2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 15:08:28 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Russell King <linux@armlinux.org.uk>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Peter Griffin <peter.griffin@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Arnd Bergmann <arnd@arndb.de>, Benoit Parrot <bparrot@ti.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Tiffany Lin <tiffany.lin@mediatek.com>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Simon Horman <horms+renesas@verge.net.au>
+Subject: [PATCH 1/3] [media] platform: compile VIDEO_CODA with COMPILE_TEST
+Date: Thu,  9 Mar 2017 17:08:16 -0300
+Message-Id: <311737bbe02ab45e7b0c27e95a312b57fc31b21a.1489090091.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello!
+Currently, IMX_VDOA and VIDEO_CODA only builds on ARCH_MXC.
 
-On 3/14/2017 9:59 PM, Niklas Söderlund wrote:
+That prevented me to build-test the driver, causing a bad patch
+to be applied, and to see other warnings on this driver.
 
-> The rcar-vin driver only uses one pad, pad number 0.
->
-> - All v4l2 operations that did not check that the requested operation
->   was for pad 0 have been updated with a check to enforce this.
->
-> - All v4l2 operations that stored (and later restore) the requested pad
+Reported-by: Russell King <linux@armlinux.org.uk>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/platform/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-    Restored?
-
->   before substituting it for the subdevice pad number have been updated
->   to not store the incoming pad and simply restore it to 0 after the
->   subdevice operation is complete.
->
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 26 ++++++++++++++------------
->  1 file changed, 14 insertions(+), 12 deletions(-)
->
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> index 7ca27599b9982ffc..610f59e2a9142622 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -550,14 +550,16 @@ static int rvin_enum_dv_timings(struct file *file, void *priv_fh,
->  {
->  	struct rvin_dev *vin = video_drvdata(file);
->  	struct v4l2_subdev *sd = vin_to_source(vin);
-> -	int pad, ret;
-> +	int ret;
-> +
-> +	if (timings->pad)
-> +		return -EINVAL;
->
-> -	pad = timings->pad;
->  	timings->pad = vin->sink_pad_idx;
->
->  	ret = v4l2_subdev_call(sd, pad, enum_dv_timings, timings);
-
-    Does this still compile after you removed 'pad'?
-
->
-> -	timings->pad = pad;
-> +	timings->pad = 0;
->
->  	return ret;
->  }
-> @@ -600,14 +602,16 @@ static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
->  {
->  	struct rvin_dev *vin = video_drvdata(file);
->  	struct v4l2_subdev *sd = vin_to_source(vin);
-> -	int pad, ret;
-> +	int ret;
-> +
-> +	if (cap->pad)
-> +		return -EINVAL;
->
-> -	pad = cap->pad;
->  	cap->pad = vin->sink_pad_idx;
->
->  	ret = v4l2_subdev_call(sd, pad, dv_timings_cap, cap);
-
-    And this?
-
->
-> -	cap->pad = pad;
-> +	cap->pad = 0;
->
->  	return ret;
->  }
-[...]
-
-MBR, Sergei
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index c9106e105bab..6d0bba271a8d 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -151,7 +151,7 @@ if V4L_MEM2MEM_DRIVERS
+ 
+ config VIDEO_CODA
+ 	tristate "Chips&Media Coda multi-standard codec IP"
+-	depends on VIDEO_DEV && VIDEO_V4L2 && ARCH_MXC
++	depends on VIDEO_DEV && VIDEO_V4L2 && (ARCH_MXC || COMPILE_TEST)
+ 	depends on HAS_DMA
+ 	select SRAM
+ 	select VIDEOBUF2_DMA_CONTIG
+-- 
+2.9.3
