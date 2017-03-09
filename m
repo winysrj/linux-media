@@ -1,121 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:33420 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932607AbdCJEzC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 23:55:02 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v5 32/39] media: imx: csi: fix crop rectangle changes in set_fmt
-Date: Thu,  9 Mar 2017 20:53:12 -0800
-Message-Id: <1489121599-23206-33-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from smtprelay.synopsys.com ([198.182.47.9]:59088 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754646AbdCIO1w (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 09:27:52 -0500
+Subject: Re: [PATCH v3 4/6] drm: bridge: dw-hdmi: Switch to V4L bus format and
+ encodings
+To: Neil Armstrong <narmstrong@baylibre.com>,
+        Jose Abreu <Jose.Abreu@synopsys.com>,
+        <dri-devel@lists.freedesktop.org>,
+        <laurent.pinchart+renesas@ideasonboard.com>,
+        <architt@codeaurora.org>, <mchehab@kernel.org>
+References: <1488904944-14285-1-git-send-email-narmstrong@baylibre.com>
+ <1488904944-14285-5-git-send-email-narmstrong@baylibre.com>
+ <977cfb29-af7a-2e28-7a7f-396d9ccf3eb8@synopsys.com>
+ <28fe7ecf-cf4a-568a-b853-0506c088884d@baylibre.com>
+CC: <kieran.bingham@ideasonboard.com>,
+        <linux-amlogic@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+        <linux-media@vger.kernel.org>, <hans.verkuil@cisco.com>,
+        <sakari.ailus@linux.intel.com>
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+Message-ID: <f73a3cee-3336-2562-696d-dd4e0e7ac680@synopsys.com>
+Date: Thu, 9 Mar 2017 14:27:45 +0000
+MIME-Version: 1.0
+In-Reply-To: <28fe7ecf-cf4a-568a-b853-0506c088884d@baylibre.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+Hi Neil,
 
-The cropping rectangle was being modified by the output pad's
-set_fmt, which is the wrong pad to do this. The crop rectangle
-should not be modified by the output pad set_fmt. It instead
-should be reset to the full input frame when the input pad format
-is set.
 
-The output pad set_fmt should set width/height to the current
-crop dimensions, or 1/2 the crop width/height to enable
-downscaling.
+On 08-03-2017 12:12, Neil Armstrong wrote:
+>
+> Hi Jose,
+>
+> It seems here that we only have the RGB444<->YUV444 8bit tables, from the Amlogic
+> source I have the following for 10bit, 12bit and 16bit for itu601 :
+>
+> static const u16 csc_coeff_rgb_out_eitu601_10b[3][4] = {
+> 	{ 0x2000, 0x6926, 0x74fd, 0x043b },
+> 	{ 0x2000, 0x2cdd, 0x0000, 0x7a65 },
+> 	{ 0x2000, 0x0000, 0x38b4, 0x78ea }
+> };
+>
+> static const u16 csc_coeff_rgb_out_eitu601_12b_16b[3][4] = {
+> 	{ 0x2000, 0x6926, 0x74fd, 0x10ee },
+> 	{ 0x2000, 0x2cdd, 0x0000, 0x6992 },
+> 	{ 0x2000, 0x0000, 0x38b4, 0x63a6 }
+> };
 
-So the other part of this patch is to enable downscaling if
-the output pad dimension(s) are 1/2 the crop dimension(s) at
-csi_setup() time.
+These two do not match anything I have here.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/media/imx/imx-media-csi.c | 35 ++++++++++++++++++++-----------
- 1 file changed, 23 insertions(+), 12 deletions(-)
+>
+> static const u16 csc_coeff_rgb_in_eitu601_10b[3][4] = {
+> 	{ 0x2591, 0x1322, 0x074b, 0x0000 },
+> 	{ 0x6535, 0x2000, 0x7acc, 0x0800 },
+> 	{ 0x6acd, 0x7534, 0x2000, 0x0800 }
+> };
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index a7d04e4..577038e 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -536,6 +536,10 @@ static int csi_setup(struct csi_priv *priv)
- 
- 	ipu_csi_set_window(priv->csi, &priv->crop);
- 
-+	ipu_csi_set_downsize(priv->csi,
-+			     priv->crop.width == 2 * outfmt->width,
-+			     priv->crop.height == 2 * outfmt->height);
-+
- 	ipu_csi_init_interface(priv->csi, &sensor_mbus_cfg, &if_fmt);
- 
- 	ipu_csi_set_dest(priv->csi, priv->dest);
-@@ -932,15 +936,15 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
- 	switch (sdformat->pad) {
- 	case CSI_SRC_PAD_DIRECT:
- 	case CSI_SRC_PAD_IDMAC:
--		crop.left = priv->crop.left;
--		crop.top = priv->crop.top;
--		crop.width = sdformat->format.width;
--		crop.height = sdformat->format.height;
--		ret = csi_try_crop(priv, &crop, sensor);
--		if (ret)
--			goto out;
--		sdformat->format.width = crop.width;
--		sdformat->format.height = crop.height;
-+		if (sdformat->format.width < priv->crop.width * 3 / 4)
-+			sdformat->format.width = priv->crop.width / 2;
-+		else
-+			sdformat->format.width = priv->crop.width;
-+
-+		if (sdformat->format.height < priv->crop.height * 3 / 4)
-+			sdformat->format.height = priv->crop.height / 2;
-+		else
-+			sdformat->format.height = priv->crop.height;
- 
- 		if (sdformat->pad == CSI_SRC_PAD_IDMAC) {
- 			cc = imx_media_find_format(0, sdformat->format.code,
-@@ -986,6 +990,14 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
- 		}
- 		break;
- 	case CSI_SINK_PAD:
-+		crop.left = 0;
-+		crop.top = 0;
-+		crop.width = sdformat->format.width;
-+		crop.height = sdformat->format.height;
-+		ret = csi_try_crop(priv, &crop, sensor);
-+		if (ret)
-+			goto out;
-+
- 		cc = imx_media_find_format(0, sdformat->format.code,
- 					   true, false);
- 		if (!cc) {
-@@ -1004,9 +1016,8 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
- 	} else {
- 		priv->format_mbus[sdformat->pad] = sdformat->format;
- 		priv->cc[sdformat->pad] = cc;
--		/* Update the crop window if this is an output pad  */
--		if (sdformat->pad == CSI_SRC_PAD_DIRECT ||
--		    sdformat->pad == CSI_SRC_PAD_IDMAC)
-+		/* Reset the crop window if this is the input pad */
-+		if (sdformat->pad == CSI_SINK_PAD)
- 			priv->crop = crop;
- 	}
- 
--- 
-2.7.4
+This is more or less correct, I have small offsets. Note that I
+even have offsets with the values that are in dw-hdmi driver,
+which can be caused because I'm seeing the latest document that
+contain these values. I guess they were updated.
+
+>
+> static const u16 csc_coeff_rgb_in_eitu601_12b_16b[3][4] = {
+> 	{ 0x2591, 0x1322, 0x074b, 0x0000 },
+> 	{ 0x6535, 0x2000, 0x7acc, 0x2000 },
+> 	{ 0x6acd, 0x7534, 0x2000, 0x2000 }
+> };
+
+The same for this.
+
+>
+> But I miss the itu709 values.
+>
+> Could you confirm these values and maybe provide the itu709 values ?
+
+I will have to check if I can provide you the values. I will get
+back to you.
+
+Best regards,
+Jose Miguel Abreu
+
+>
+> Thanks !
+> Neil
+>
