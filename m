@@ -1,136 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:36765 "EHLO
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:36740 "EHLO
         mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753326AbdC1AnJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 20:43:09 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Russell King <rmk+kernel@armlinux.org.uk>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v6 39/39] media: imx-media-capture: add frame sizes/interval enumeration
-Date: Mon, 27 Mar 2017 17:40:56 -0700
-Message-Id: <1490661656-10318-40-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+        with ESMTP id S1754166AbdCIWvJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 17:51:09 -0500
+From: simran singhal <singhalsimran0@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        outreachy-kernel@googlegroups.com
+Subject: [PATCH v1 6/7] staging: gc2235: Use x instead of x != NULL
+Date: Fri, 10 Mar 2017 04:20:28 +0530
+Message-Id: <1489099829-1264-7-git-send-email-singhalsimran0@gmail.com>
+In-Reply-To: <1489099829-1264-1-git-send-email-singhalsimran0@gmail.com>
+References: <1489099829-1264-1-git-send-email-singhalsimran0@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Russell King <rmk+kernel@armlinux.org.uk>
+Use x instead of x != NULL .
+This patch removes the explicit NULL comparisons.This issue is found by
+checkpatch.pl script.
 
-Add support for enumerating frame sizes and frame intervals from the
-first subdev via the V4L2 interfaces.
-
-Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: simran singhal <singhalsimran0@gmail.com>
 ---
- drivers/staging/media/imx/imx-media-capture.c | 73 +++++++++++++++++++++++++++
- 1 file changed, 73 insertions(+)
+ drivers/staging/media/atomisp/i2c/gc2235.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
-index 7521ca9..11a8689 100644
---- a/drivers/staging/media/imx/imx-media-capture.c
-+++ b/drivers/staging/media/imx/imx-media-capture.c
-@@ -82,6 +82,76 @@ static int vidioc_querycap(struct file *file, void *fh,
- 	return 0;
- }
+diff --git a/drivers/staging/media/atomisp/i2c/gc2235.c b/drivers/staging/media/atomisp/i2c/gc2235.c
+index 165dcb3..40a5a2f 100644
+--- a/drivers/staging/media/atomisp/i2c/gc2235.c
++++ b/drivers/staging/media/atomisp/i2c/gc2235.c
+@@ -255,7 +255,7 @@ static int gc2235_get_intg_factor(struct i2c_client *client,
+ 	u16 reg_val, reg_val_h, dummy;
+ 	int ret;
  
-+static int capture_enum_framesizes(struct file *file, void *fh,
-+				   struct v4l2_frmsizeenum *fsize)
-+{
-+	struct capture_priv *priv = video_drvdata(file);
-+	const struct imx_media_pixfmt *cc;
-+	struct v4l2_subdev_frame_size_enum fse = {
-+		.index = fsize->index,
-+		.pad = priv->src_sd_pad,
-+		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-+	};
-+	int ret;
-+
-+	cc = imx_media_find_format(fsize->pixel_format, CS_SEL_ANY, true);
-+	if (!cc)
-+		return -EINVAL;
-+
-+	fse.code = cc->codes[0];
-+
-+	ret = v4l2_subdev_call(priv->src_sd, pad, enum_frame_size, NULL, &fse);
-+	if (ret)
-+		return ret;
-+
-+	if (fse.min_width == fse.max_width &&
-+	    fse.min_height == fse.max_height) {
-+		fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-+		fsize->discrete.width = fse.min_width;
-+		fsize->discrete.height = fse.min_height;
-+	} else {
-+		fsize->type = V4L2_FRMSIZE_TYPE_CONTINUOUS;
-+		fsize->stepwise.min_width = fse.min_width;
-+		fsize->stepwise.max_width = fse.max_width;
-+		fsize->stepwise.min_height = fse.min_height;
-+		fsize->stepwise.max_height = fse.max_height;
-+		fsize->stepwise.step_width = 1;
-+		fsize->stepwise.step_height = 1;
-+	}
-+
-+	return 0;
-+}
-+
-+static int capture_enum_frameintervals(struct file *file, void *fh,
-+				       struct v4l2_frmivalenum *fival)
-+{
-+	struct capture_priv *priv = video_drvdata(file);
-+	const struct imx_media_pixfmt *cc;
-+	struct v4l2_subdev_frame_interval_enum fie = {
-+		.index = fival->index,
-+		.pad = priv->src_sd_pad,
-+		.width = fival->width,
-+		.height = fival->height,
-+		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-+	};
-+	int ret;
-+
-+	cc = imx_media_find_format(fival->pixel_format, CS_SEL_ANY, true);
-+	if (!cc)
-+		return -EINVAL;
-+
-+	fie.code = cc->codes[0];
-+
-+	ret = v4l2_subdev_call(priv->src_sd, pad, enum_frame_interval, NULL, &fie);
-+	if (ret)
-+		return ret;
-+
-+	fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
-+	fival->discrete = fie.interval;
-+
-+	return 0;
-+}
-+
- static int capture_enum_fmt_vid_cap(struct file *file, void *fh,
- 				    struct v4l2_fmtdesc *f)
- {
-@@ -270,6 +340,9 @@ static int capture_s_parm(struct file *file, void *fh,
- static const struct v4l2_ioctl_ops capture_ioctl_ops = {
- 	.vidioc_querycap	= vidioc_querycap,
+-	if (info == NULL)
++	if (!info)
+ 		return -EINVAL;
  
-+	.vidioc_enum_framesizes = capture_enum_framesizes,
-+	.vidioc_enum_frameintervals = capture_enum_frameintervals,
-+
- 	.vidioc_enum_fmt_vid_cap        = capture_enum_fmt_vid_cap,
- 	.vidioc_g_fmt_vid_cap           = capture_g_fmt_vid_cap,
- 	.vidioc_try_fmt_vid_cap         = capture_try_fmt_vid_cap,
+ 	/* pixel clock calculattion */
+@@ -797,7 +797,7 @@ static int gc2235_set_fmt(struct v4l2_subdev *sd,
+ 	int idx;
+ 
+ 	gc2235_info = v4l2_get_subdev_hostdata(sd);
+-	if (gc2235_info == NULL)
++	if (!gc2235_info)
+ 		return -EINVAL;
+ 	if (format->pad)
+ 		return -EINVAL;
+@@ -917,7 +917,7 @@ static int gc2235_s_config(struct v4l2_subdev *sd,
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	int ret = 0;
+ 
+-	if (platform_data == NULL)
++	if (!platform_data)
+ 		return -ENODEV;
+ 
+ 	dev->platform_data =
 -- 
 2.7.4
