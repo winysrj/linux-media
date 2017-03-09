@@ -1,116 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:33367 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751588AbdCCA6X (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 19:58:23 -0500
-Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
- controls from a pipeline
-To: Sakari Ailus <sakari.ailus@iki.fi>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
- <1487211578-11360-15-git-send-email-steve_longerbeam@mentor.com>
- <20170302160257.GK3220@valkosipuli.retiisi.org.uk>
- <141eb012-eb24-7558-2bc5-1fe82f6b7b4b@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <b4221709-5965-ac9a-d73a-ffe61c9bed9f@gmail.com>
-Date: Thu, 2 Mar 2017 16:46:20 -0800
+Received: from mga06.intel.com ([134.134.136.31]:37328 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750793AbdCIHWm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 9 Mar 2017 02:22:42 -0500
+From: "Reshetova, Elena" <elena.reshetova@intel.com>
+To: Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
+CC: "peterz@infradead.org" <peterz@infradead.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>,
+        "linux1394-devel@lists.sourceforge.net"
+        <linux1394-devel@lists.sourceforge.net>,
+        "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
+        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
+        "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>,
+        "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
+        "fcoe-devel@open-fcoe.org" <fcoe-devel@open-fcoe.org>,
+        "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>,
+        "open-iscsi@googlegroups.com" <open-iscsi@googlegroups.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Kees Cook <keescook@chromium.org>,
+        "linux-raid@vger.kernel.org" <linux-raid@vger.kernel.org>,
+        "linux-bcache@vger.kernel.org" <linux-bcache@vger.kernel.org>,
+        "Hans Liljestrand" <ishkamiel@gmail.com>,
+        David Windsor <dwindsor@gmail.com>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "devel@linuxdriverproject.org" <devel@linuxdriverproject.org>,
+        Juergen Gross <jgross@suse.com>
+Subject: RE: [Xen-devel] [PATCH 29/29] drivers, xen: convert grant_map.users
+ from atomic_t to refcount_t
+Date: Thu, 9 Mar 2017 07:19:12 +0000
+Message-ID: <2236FBA76BA1254E88B949DDB74E612B41C569F1@IRSMSX102.ger.corp.intel.com>
+References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+ <1488810076-3754-30-git-send-email-elena.reshetova@intel.com>
+ <99270126-7751-eed0-5efa-fc695ff3be25@oracle.com>
+ <2236FBA76BA1254E88B949DDB74E612B41C56177@IRSMSX102.ger.corp.intel.com>
+ <c4ea3925-f505-3c5b-a9fc-c74ea5a7cbe9@oracle.com>
+In-Reply-To: <c4ea3925-f505-3c5b-a9fc-c74ea5a7cbe9@oracle.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-In-Reply-To: <141eb012-eb24-7558-2bc5-1fe82f6b7b4b@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 03/02/2017 03:48 PM, Steve Longerbeam wrote:
->
->
-> On 03/02/2017 08:02 AM, Sakari Ailus wrote:
->> Hi Steve,
->>
->> On Wed, Feb 15, 2017 at 06:19:16PM -0800, Steve Longerbeam wrote:
->>> v4l2_pipeline_inherit_controls() will add the v4l2 controls from
->>> all subdev entities in a pipeline to a given video device.
->>>
->>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
->>> ---
->>>  drivers/media/v4l2-core/v4l2-mc.c | 48
->>> +++++++++++++++++++++++++++++++++++++++
->>>  include/media/v4l2-mc.h           | 25 ++++++++++++++++++++
->>>  2 files changed, 73 insertions(+)
->>>
->>> diff --git a/drivers/media/v4l2-core/v4l2-mc.c
->>> b/drivers/media/v4l2-core/v4l2-mc.c
->>> index 303980b..09d4d97 100644
->>> --- a/drivers/media/v4l2-core/v4l2-mc.c
->>> +++ b/drivers/media/v4l2-core/v4l2-mc.c
->>> @@ -22,6 +22,7 @@
->>>  #include <linux/usb.h>
->>>  #include <media/media-device.h>
->>>  #include <media/media-entity.h>
->>> +#include <media/v4l2-ctrls.h>
->>>  #include <media/v4l2-fh.h>
->>>  #include <media/v4l2-mc.h>
->>>  #include <media/v4l2-subdev.h>
->>> @@ -238,6 +239,53 @@ int v4l_vb2q_enable_media_source(struct
->>> vb2_queue *q)
->>>  }
->>>  EXPORT_SYMBOL_GPL(v4l_vb2q_enable_media_source);
->>>
->>> +int __v4l2_pipeline_inherit_controls(struct video_device *vfd,
->>> +                     struct media_entity *start_entity)
->>
->> I have a few concerns / questions:
->>
->> - What's the purpose of this patch? Why not to access the sub-device node
->>   directly?
->
->
-> I don't really understand what you are trying to say. That's exactly
-> what this function is doing, accessing every subdevice in a pipeline
-> directly, in one convenient function call.
->
->
->>
->> - This implementation is only workable as long as you do not modify the
->>   pipeline. Once you disable a link along the pipeline, a device where
->> the
->>   control was inherited from may no longer be a part of the pipeline.
->
-> That's correct. It's up to the media driver to clear the video device's
-> inherited controls whenever the pipeline is modified, and then call this
-> function again if need be.
-
-And here is where I need to eat my words :). I'm not actually
-clearing the inherited controls if an upstream link from the
-device node link is modified after the whole pipeline has been
-configured. If the user does that the controls can become
-invalid. Need to fix that by clearing device node controls in
-the link_notify callback.
-
-Steve
-
-
->
-> In imx-media driver, the function is called in link_setup when the link
-> from a source pad that is attached to a capture video node is enabled.
-> This is the last link that must be made to define the pipeline, so it
-> is at this time that a complete list of subdevice controls can be
-> gathered by walking the pipeline.
->
+DQo+IE9uIDAzLzA4LzIwMTcgMDg6NDkgQU0sIFJlc2hldG92YSwgRWxlbmEgd3JvdGU6DQo+ID4+
+IE9uIDAzLzA2LzIwMTcgMDk6MjEgQU0sIEVsZW5hIFJlc2hldG92YSB3cm90ZToNCj4gPj4+IHJl
+ZmNvdW50X3QgdHlwZSBhbmQgY29ycmVzcG9uZGluZyBBUEkgc2hvdWxkIGJlDQo+ID4+PiB1c2Vk
+IGluc3RlYWQgb2YgYXRvbWljX3Qgd2hlbiB0aGUgdmFyaWFibGUgaXMgdXNlZCBhcw0KPiA+Pj4g
+YSByZWZlcmVuY2UgY291bnRlci4gVGhpcyBhbGxvd3MgdG8gYXZvaWQgYWNjaWRlbnRhbA0KPiA+
+Pj4gcmVmY291bnRlciBvdmVyZmxvd3MgdGhhdCBtaWdodCBsZWFkIHRvIHVzZS1hZnRlci1mcmVl
+DQo+ID4+PiBzaXR1YXRpb25zLg0KPiA+Pj4NCj4gPj4+IFNpZ25lZC1vZmYtYnk6IEVsZW5hIFJl
+c2hldG92YSA8ZWxlbmEucmVzaGV0b3ZhQGludGVsLmNvbT4NCj4gPj4+IFNpZ25lZC1vZmYtYnk6
+IEhhbnMgTGlsamVzdHJhbmQgPGlzaGthbWllbEBnbWFpbC5jb20+DQo+ID4+PiBTaWduZWQtb2Zm
+LWJ5OiBLZWVzIENvb2sgPGtlZXNjb29rQGNocm9taXVtLm9yZz4NCj4gPj4+IFNpZ25lZC1vZmYt
+Ynk6IERhdmlkIFdpbmRzb3IgPGR3aW5kc29yQGdtYWlsLmNvbT4NCj4gPj4+IC0tLQ0KPiA+Pj4g
+IGRyaXZlcnMveGVuL2dudGRldi5jIHwgMTEgKysrKysrLS0tLS0NCj4gPj4+ICAxIGZpbGUgY2hh
+bmdlZCwgNiBpbnNlcnRpb25zKCspLCA1IGRlbGV0aW9ucygtKQ0KPiA+PiBSZXZpZXdlZC1ieTog
+Qm9yaXMgT3N0cm92c2t5IDxib3Jpcy5vc3Ryb3Zza3lAb3JhY2xlLmNvbT4NCj4gPiBJcyB0aGVy
+ZSBhIHRyZWUgdGhhdCBjYW4gdGFrZSB0aGlzIGNoYW5nZT8gVHVybnMgb3V0IGl0IGlzIGJldHRl
+ciB0byBwcm9wYWdhdGUNCj4gY2hhbmdlcyB2aWEgc2VwYXJhdGUgdHJlZXMgYW5kIG9ubHkgbGVm
+dG92ZXJzIGNhbiBiZSB0YWtlbiB2aWEgR3JlZydzIHRyZWUuDQo+ID4NCj4gDQo+IFN1cmUsIHdl
+IGNhbiB0YWtlIGl0IHZpYSBYZW4gdHJlZSBmb3IgcmMzLg0KDQpUaGFuayB5b3UgdmVyeSBtdWNo
+IQ0KDQpCZXN0IFJlZ2FyZHMsDQpFbGVuYS4NCg0KPiANCj4gLWJvcmlzDQo=
