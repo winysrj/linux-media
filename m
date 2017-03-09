@@ -1,100 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:34098 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753326AbdC1AnC (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:43304 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752157AbdCIM3n (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 20:43:02 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v6 38/39] media: imx-ic-prpencvf: add frame size enumeration
-Date: Mon, 27 Mar 2017 17:40:55 -0700
-Message-Id: <1490661656-10318-39-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+        Thu, 9 Mar 2017 07:29:43 -0500
+Subject: Re: [PATCH] [media] v4l2-dv-timings: Introduce v4l2_calc_fps()
+To: Jose Abreu <Jose.Abreu@synopsys.com>, linux-media@vger.kernel.org
+References: <94397052765d1f6d84dc7edac65f906b09890871.1488905139.git.joabreu@synopsys.com>
+Cc: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>,
+        linux-kernel@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <4f598aba-3002-eeb5-1cad-d4dff4553644@xs4all.nl>
+Date: Thu, 9 Mar 2017 13:29:40 +0100
+MIME-Version: 1.0
+In-Reply-To: <94397052765d1f6d84dc7edac65f906b09890871.1488905139.git.joabreu@synopsys.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add frame size enumeration operation. The PRP ENC/VF subdevices
-are scalers, so they can output a continuous range of widths/
-heights on their source pads.
+On 07/03/17 17:48, Jose Abreu wrote:
+> HDMI Receivers receive video modes which, according to
+> CEA specification, can have different frames per second
+> (fps) values.
+> 
+> This patch introduces a helper function in the media core
+> which can calculate the expected video mode fps given the
+> pixel clock value and the horizontal/vertical values. HDMI
+> video receiver drivers are expected to use this helper so
+> that they can correctly fill the v4l2_streamparm structure
+> which is requested by vidioc_g_parm callback.
+> 
+> We could also use a lookup table for this but it wouldn't
+> correctly handle 60Hz vs 59.94Hz situations as this all
+> depends on the pixel clock value.
+> 
+> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+> Cc: Carlos Palminha <palminha@synopsys.com>
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+> Cc: linux-media@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
+> ---
+>  drivers/media/v4l2-core/v4l2-dv-timings.c | 29 +++++++++++++++++++++++++++++
+>  include/media/v4l2-dv-timings.h           |  8 ++++++++
+>  2 files changed, 37 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+> index 5c8c49d..19946c6 100644
+> --- a/drivers/media/v4l2-core/v4l2-dv-timings.c
+> +++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+> @@ -814,3 +814,32 @@ struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait)
+>  	return aspect;
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_calc_aspect_ratio);
+> +
+> +struct v4l2_fract v4l2_calc_fps(const struct v4l2_dv_timings *t)
+> +{
+> +	const struct v4l2_bt_timings *bt = &t->bt;
+> +	struct v4l2_fract fps_fract = { 1, 1 };
+> +	unsigned long n, d;
+> +	unsigned long mask = GENMASK(BITS_PER_LONG - 1, 0);
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/media/imx/imx-ic-prpencvf.c | 40 +++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+This is wrong since v4l2_fract uses u32, and LONG can be 64 bits.
 
-diff --git a/drivers/staging/media/imx/imx-ic-prpencvf.c b/drivers/staging/media/imx/imx-ic-prpencvf.c
-index 4123b03..860b406 100644
---- a/drivers/staging/media/imx/imx-ic-prpencvf.c
-+++ b/drivers/staging/media/imx/imx-ic-prpencvf.c
-@@ -875,6 +875,45 @@ static int prp_set_fmt(struct v4l2_subdev *sd,
- 	return ret;
- }
- 
-+static int prp_enum_frame_size(struct v4l2_subdev *sd,
-+			       struct v4l2_subdev_pad_config *cfg,
-+			       struct v4l2_subdev_frame_size_enum *fse)
-+{
-+	struct prp_priv *priv = sd_to_priv(sd);
-+	struct v4l2_subdev_format format = {0};
-+	const struct imx_media_pixfmt *cc;
-+	int ret = 0;
-+
-+	if (fse->pad >= PRPENCVF_NUM_PADS || fse->index != 0)
-+		return -EINVAL;
-+
-+	mutex_lock(&priv->lock);
-+
-+	format.pad = fse->pad;
-+	format.which = fse->which;
-+	format.format.code = fse->code;
-+	format.format.width = 1;
-+	format.format.height = 1;
-+	prp_try_fmt(priv, cfg, &format, &cc);
-+	fse->min_width = format.format.width;
-+	fse->min_height = format.format.height;
-+
-+	if (format.format.code != fse->code) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
-+	format.format.code = fse->code;
-+	format.format.width = -1;
-+	format.format.height = -1;
-+	prp_try_fmt(priv, cfg, &format, &cc);
-+	fse->max_width = format.format.width;
-+	fse->max_height = format.format.height;
-+out:
-+	mutex_unlock(&priv->lock);
-+	return ret;
-+}
-+
- static int prp_link_setup(struct media_entity *entity,
- 			  const struct media_pad *local,
- 			  const struct media_pad *remote, u32 flags)
-@@ -1125,6 +1164,7 @@ static void prp_unregistered(struct v4l2_subdev *sd)
- 
- static struct v4l2_subdev_pad_ops prp_pad_ops = {
- 	.enum_mbus_code = prp_enum_mbus_code,
-+	.enum_frame_size = prp_enum_frame_size,
- 	.get_fmt = prp_get_fmt,
- 	.set_fmt = prp_set_fmt,
- 	.link_validate = prp_link_validate,
--- 
-2.7.4
+> +	u32 htot, vtot, fps;
+> +	u64 pclk;
+> +
+> +	if (t->type != V4L2_DV_BT_656_1120)
+> +		return fps_fract;
+> +
+> +	htot = V4L2_DV_BT_FRAME_WIDTH(bt);
+> +	vtot = V4L2_DV_BT_FRAME_HEIGHT(bt);
+> +	pclk = bt->pixelclock;
+> +	if (bt->interlaced)
+> +		htot /= 2;
+
+This can be dropped. This is the timeperframe, not timeperfield. So for interleaved
+formats the time is that of two fields (aka one frame).
+
+> +
+> +	fps = (htot * vtot) > 0 ? div_u64((100 * pclk), (htot * vtot)) : 0;
+> +
+> +	rational_best_approximation(fps, 100, mask, mask, &n, &d);
+
+I think you can just use fps, 100 instead of mask, mask.
+
+What is returned if fps == 0?
+
+I don't have a problem as such with this function, but just be aware that the
+pixelclock is never precise: there are HDMI receivers that are unable to report
+the pixelclock with enough precision to even detect if it is 60 vs 59.94 Hz.
+
+And even for those that can, it is often not reliable.
+
+In order for me to merge this it also should be used in a driver. Actually the
+cobalt and vivid drivers would be suitable: you can test the vivid driver yourself,
+and if you have a patch for the cobalt driver, then I can test that for you.
+
+Would be nice for the cobalt driver, since g_parm always returns 60 fps :-)
+
+Regards,
+
+	Hans
+
+> +
+> +	fps_fract.numerator = d;
+> +	fps_fract.denominator = n;
+> +	return fps_fract;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_calc_fps);
+> +
+> diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
+> index 61a1889..d23b168 100644
+> --- a/include/media/v4l2-dv-timings.h
+> +++ b/include/media/v4l2-dv-timings.h
+> @@ -196,6 +196,14 @@ bool v4l2_detect_gtf(unsigned frame_height, unsigned hfreq, unsigned vsync,
+>  struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait);
+>  
+>  /**
+> + * v4l2_calc_fps - calculate the frames per seconds based on the
+> + *	v4l2_dv_timings information.
+> + *
+> + * @t: the timings data.
+> + */
+> +struct v4l2_fract v4l2_calc_fps(const struct v4l2_dv_timings *t);
+> +
+> +/**
+>   * v4l2_dv_timings_aspect_ratio - calculate the aspect ratio based on the
+>   *	v4l2_dv_timings information.
+>   *
+> 
