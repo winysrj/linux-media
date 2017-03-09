@@ -1,122 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:46058 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754666AbdC2OPv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Mar 2017 10:15:51 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv5 08/11] sti: hdmi: add CEC notifier support
-Date: Wed, 29 Mar 2017 16:15:40 +0200
-Message-Id: <20170329141543.32935-9-hverkuil@xs4all.nl>
-In-Reply-To: <20170329141543.32935-1-hverkuil@xs4all.nl>
-References: <20170329141543.32935-1-hverkuil@xs4all.nl>
+Received: from mail-qk0-f173.google.com ([209.85.220.173]:35428 "EHLO
+        mail-qk0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932193AbdCIRj6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 12:39:58 -0500
+Received: by mail-qk0-f173.google.com with SMTP id v125so127945152qkh.2
+        for <linux-media@vger.kernel.org>; Thu, 09 Mar 2017 09:38:59 -0800 (PST)
+Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of
+ staging
+To: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Mark Brown <broonie@kernel.org>,
+        Michal Hocko <mhocko@kernel.org>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>,
+        =?UTF-8?Q?Arve_Hj=c3=b8nnev=c3=a5g?= <arve@android.com>,
+        Rom Lemarchand <romlem@google.com>, devel@driverdev.osuosl.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-arm-kernel@lists.infradead.org,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>, linux-mm@kvack.org
+References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+ <20170303132949.GC31582@dhcp22.suse.cz>
+ <cf383b9b-3cbc-0092-a071-f120874c053c@redhat.com>
+ <20170306074258.GA27953@dhcp22.suse.cz>
+ <20170306104041.zghsicrnadoap7lp@phenom.ffwll.local>
+ <20170306105805.jsq44kfxhsvazkm6@sirena.org.uk>
+ <20170306160437.sf7bksorlnw7u372@phenom.ffwll.local>
+ <CA+M3ks77Am3Fx-ZNmgeM5tCqdM7SzV7rby4Es-p2F2aOhUco9g@mail.gmail.com>
+From: Laura Abbott <labbott@redhat.com>
+Message-ID: <26bc57ae-d88f-4ea0-d666-2c1a02bf866f@redhat.com>
+Date: Thu, 9 Mar 2017 09:38:49 -0800
+MIME-Version: 1.0
+In-Reply-To: <CA+M3ks77Am3Fx-ZNmgeM5tCqdM7SzV7rby4Es-p2F2aOhUco9g@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+On 03/09/2017 02:00 AM, Benjamin Gaignard wrote:
+> 2017-03-06 17:04 GMT+01:00 Daniel Vetter <daniel@ffwll.ch>:
+>> On Mon, Mar 06, 2017 at 11:58:05AM +0100, Mark Brown wrote:
+>>> On Mon, Mar 06, 2017 at 11:40:41AM +0100, Daniel Vetter wrote:
+>>>
+>>>> No one gave a thing about android in upstream, so Greg KH just dumped it
+>>>> all into staging/android/. We've discussed ION a bunch of times, recorded
+>>>> anything we'd like to fix in staging/android/TODO, and Laura's patch
+>>>> series here addresses a big chunk of that.
+>>>
+>>>> This is pretty much the same approach we (gpu folks) used to de-stage the
+>>>> syncpt stuff.
+>>>
+>>> Well, there's also the fact that quite a few people have issues with the
+>>> design (like Laurent).  It seems like a lot of them have either got more
+>>> comfortable with it over time, or at least not managed to come up with
+>>> any better ideas in the meantime.
+>>
+>> See the TODO, it has everything a really big group (look at the patch for
+>> the full Cc: list) figured needs to be improved at LPC 2015. We don't just
+>> merge stuff because merging stuff is fun :-)
+>>
+>> Laurent was even in that group ...
+>> -Daniel
+> 
+> For me those patches are going in the right direction.
+> 
+> I still have few questions:
+> - since alignment management has been remove from ion-core, should it
+> be also removed from ioctl structure ?
 
-Implement the CEC notifier support to allow CEC drivers to
-be informed when there is a new physical address.
+Yes, I think I'm going to go with the suggestion to fixup the ABI
+so we don't need the compat layer and as part of that I'm also
+dropping the align argument.
 
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/gpu/drm/sti/sti_hdmi.c | 11 +++++++++++
- drivers/gpu/drm/sti/sti_hdmi.h |  3 +++
- 2 files changed, 14 insertions(+)
+> - can you we ride off ion_handle (at least in userland) and only
+> export a dma-buf descriptor ?
 
-diff --git a/drivers/gpu/drm/sti/sti_hdmi.c b/drivers/gpu/drm/sti/sti_hdmi.c
-index ce2dcba679d5..345d3631cf50 100644
---- a/drivers/gpu/drm/sti/sti_hdmi.c
-+++ b/drivers/gpu/drm/sti/sti_hdmi.c
-@@ -771,6 +771,8 @@ static void sti_hdmi_disable(struct drm_bridge *bridge)
- 	clk_disable_unprepare(hdmi->clk_pix);
- 
- 	hdmi->enabled = false;
-+
-+	cec_notifier_set_phys_addr(hdmi->notifier, CEC_PHYS_ADDR_INVALID);
- }
- 
- /**
-@@ -973,6 +975,7 @@ static int sti_hdmi_connector_get_modes(struct drm_connector *connector)
- 	DRM_DEBUG_KMS("%s : %dx%d cm\n",
- 		      (hdmi->hdmi_monitor ? "hdmi monitor" : "dvi monitor"),
- 		      edid->width_cm, edid->height_cm);
-+	cec_notifier_set_phys_addr(hdmi->notifier, cec_get_edid_phys_addr(edid));
- 
- 	count = drm_add_edid_modes(connector, edid);
- 	drm_mode_connector_update_edid_property(connector, edid);
-@@ -1035,6 +1038,7 @@ sti_hdmi_connector_detect(struct drm_connector *connector, bool force)
- 	}
- 
- 	DRM_DEBUG_DRIVER("hdmi cable disconnected\n");
-+	cec_notifier_set_phys_addr(hdmi->notifier, CEC_PHYS_ADDR_INVALID);
- 	return connector_status_disconnected;
- }
- 
-@@ -1423,6 +1427,10 @@ static int sti_hdmi_probe(struct platform_device *pdev)
- 		goto release_adapter;
- 	}
- 
-+	hdmi->notifier = cec_notifier_get(&pdev->dev);
-+	if (!hdmi->notifier)
-+		goto release_adapter;
-+
- 	hdmi->reset = devm_reset_control_get(dev, "hdmi");
- 	/* Take hdmi out of reset */
- 	if (!IS_ERR(hdmi->reset))
-@@ -1442,11 +1450,14 @@ static int sti_hdmi_remove(struct platform_device *pdev)
- {
- 	struct sti_hdmi *hdmi = dev_get_drvdata(&pdev->dev);
- 
-+	cec_notifier_set_phys_addr(hdmi->notifier, CEC_PHYS_ADDR_INVALID);
-+
- 	i2c_put_adapter(hdmi->ddc_adapt);
- 	if (hdmi->audio_pdev)
- 		platform_device_unregister(hdmi->audio_pdev);
- 	component_del(&pdev->dev, &sti_hdmi_ops);
- 
-+	cec_notifier_put(hdmi->notifier);
- 	return 0;
- }
- 
-diff --git a/drivers/gpu/drm/sti/sti_hdmi.h b/drivers/gpu/drm/sti/sti_hdmi.h
-index 407012350f1a..c6469b56ce7e 100644
---- a/drivers/gpu/drm/sti/sti_hdmi.h
-+++ b/drivers/gpu/drm/sti/sti_hdmi.h
-@@ -11,6 +11,7 @@
- #include <linux/platform_device.h>
- 
- #include <drm/drmP.h>
-+#include <media/cec-notifier.h>
- 
- #define HDMI_STA           0x0010
- #define HDMI_STA_DLL_LCK   BIT(5)
-@@ -64,6 +65,7 @@ static const struct drm_prop_enum_list colorspace_mode_names[] = {
-  * @audio_pdev: ASoC hdmi-codec platform device
-  * @audio: hdmi audio parameters.
-  * @drm_connector: hdmi connector
-+ * @notifier: hotplug detect notifier
-  */
- struct sti_hdmi {
- 	struct device dev;
-@@ -89,6 +91,7 @@ struct sti_hdmi {
- 	struct platform_device *audio_pdev;
- 	struct hdmi_audio_params audio;
- 	struct drm_connector *drm_connector;
-+	struct cec_notifier *notifier;
- };
- 
- u32 hdmi_read(struct sti_hdmi *hdmi, int offset);
--- 
-2.11.0
+Yes, I think this is the right direction given we're breaking
+everything anyway. I was debating trying to keep the two but
+moving to only dma bufs is probably cleaner. The only reason
+I could see for keeping the handles is running out of file
+descriptors for dma-bufs but that seems unlikely.
+> 
+> In the future how can we add new heaps ?
+> Some platforms have very specific memory allocation
+> requirements (just have a look in the number of gem custom allocator in drm)
+> Do you plan to add heap type/mask for each ?
+
+Yes, that was my thinking. 
+
+> 
+> Benjamin
+> 
+
+Thanks,
+Laura
