@@ -1,101 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:36810 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753973AbdC1QIq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Mar 2017 12:08:46 -0400
-Date: Tue, 28 Mar 2017 21:38:15 +0530
-From: Arushi Singhal <arushisinghal19971997@gmail.com>
-To: mchehab@kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org, outreachy-kernel@googlegroups.com
-Subject: [PATCH v2] staging: media: atomisp: compress return logic
-Message-ID: <20170328160815.GA8320@arushi-HP-Pavilion-Notebook>
+Received: from mail-qk0-f174.google.com ([209.85.220.174]:36568 "EHLO
+        mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753194AbdCIKAq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 05:00:46 -0500
+Received: by mail-qk0-f174.google.com with SMTP id 1so110475029qkl.3
+        for <linux-media@vger.kernel.org>; Thu, 09 Mar 2017 02:00:45 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <20170306160437.sf7bksorlnw7u372@phenom.ffwll.local>
+References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+ <20170303132949.GC31582@dhcp22.suse.cz> <cf383b9b-3cbc-0092-a071-f120874c053c@redhat.com>
+ <20170306074258.GA27953@dhcp22.suse.cz> <20170306104041.zghsicrnadoap7lp@phenom.ffwll.local>
+ <20170306105805.jsq44kfxhsvazkm6@sirena.org.uk> <20170306160437.sf7bksorlnw7u372@phenom.ffwll.local>
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Date: Thu, 9 Mar 2017 11:00:39 +0100
+Message-ID: <CA+M3ks77Am3Fx-ZNmgeM5tCqdM7SzV7rby4Es-p2F2aOhUco9g@mail.gmail.com>
+Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of staging
+To: Mark Brown <broonie@kernel.org>, Michal Hocko <mhocko@kernel.org>,
+        Laura Abbott <labbott@redhat.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>,
+        =?UTF-8?B?QXJ2ZSBIasO4bm5ldsOlZw==?= <arve@android.com>,
+        Rom Lemarchand <romlem@google.com>, devel@driverdev.osuosl.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-arm-kernel@lists.infradead.org,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Simplify function returns by merging assignment and return.
+2017-03-06 17:04 GMT+01:00 Daniel Vetter <daniel@ffwll.ch>:
+> On Mon, Mar 06, 2017 at 11:58:05AM +0100, Mark Brown wrote:
+>> On Mon, Mar 06, 2017 at 11:40:41AM +0100, Daniel Vetter wrote:
+>>
+>> > No one gave a thing about android in upstream, so Greg KH just dumped it
+>> > all into staging/android/. We've discussed ION a bunch of times, recorded
+>> > anything we'd like to fix in staging/android/TODO, and Laura's patch
+>> > series here addresses a big chunk of that.
+>>
+>> > This is pretty much the same approach we (gpu folks) used to de-stage the
+>> > syncpt stuff.
+>>
+>> Well, there's also the fact that quite a few people have issues with the
+>> design (like Laurent).  It seems like a lot of them have either got more
+>> comfortable with it over time, or at least not managed to come up with
+>> any better ideas in the meantime.
+>
+> See the TODO, it has everything a really big group (look at the patch for
+> the full Cc: list) figured needs to be improved at LPC 2015. We don't just
+> merge stuff because merging stuff is fun :-)
+>
+> Laurent was even in that group ...
+> -Daniel
 
-Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
----
-changes in v2
- *correct the error.
+For me those patches are going in the right direction.
 
- drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c      |  8 ++------
- .../media/atomisp/pci/atomisp2/css2400/runtime/bufq/src/bufq.c | 10 ++++------
- 2 files changed, 6 insertions(+), 12 deletions(-)
+I still have few questions:
+- since alignment management has been remove from ion-core, should it
+be also removed from ioctl structure ?
+- can you we ride off ion_handle (at least in userland) and only
+export a dma-buf descriptor ?
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-index b1f685a841ba..a04cd3ba7e68 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-@@ -519,9 +519,7 @@ int atomisp_runtime_suspend(struct device *dev)
- 	if (ret)
- 		return ret;
- 	pm_qos_update_request(&isp->pm_qos, PM_QOS_DEFAULT_VALUE);
--	ret = atomisp_mrfld_power_down(isp);
--
--	return ret;
-+	return atomisp_mrfld_power_down(isp);
- }
- 
- int atomisp_runtime_resume(struct device *dev)
-@@ -587,9 +585,7 @@ static int atomisp_suspend(struct device *dev)
- 		return ret;
- 	}
- 	pm_qos_update_request(&isp->pm_qos, PM_QOS_DEFAULT_VALUE);
--	ret = atomisp_mrfld_power_down(isp);
--
--	return ret;
-+	return atomisp_mrfld_power_down(isp);
- }
- 
- static int atomisp_resume(struct device *dev)
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/bufq/src/bufq.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/bufq/src/bufq.c
-index 737ad66da900..ed33d4c4c84a 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/bufq/src/bufq.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/bufq/src/bufq.c
-@@ -440,7 +440,7 @@ enum ia_css_err ia_css_bufq_enqueue_psys_event(
- enum  ia_css_err ia_css_bufq_dequeue_psys_event(
- 	uint8_t item[BUFQ_EVENT_SIZE])
- {
--	enum ia_css_err return_err;
-+	enum ia_css_err;
- 	int error = 0;
- 	ia_css_queue_t *q;
- 
-@@ -457,8 +457,7 @@ enum  ia_css_err ia_css_bufq_dequeue_psys_event(
- 	}
- 	error = ia_css_eventq_recv(q, item);
- 
--	return_err = ia_css_convert_errno(error);
--	return return_err;
-+	return ia_css_convert_errno(error);
- 
- }
- 
-@@ -466,7 +465,7 @@ enum  ia_css_err ia_css_bufq_dequeue_isys_event(
- 	uint8_t item[BUFQ_EVENT_SIZE])
- {
- #if !defined(HAS_NO_INPUT_SYSTEM)
--	enum ia_css_err return_err;
-+	enum ia_css_err;
- 	int error = 0;
- 	ia_css_queue_t *q;
- 
-@@ -482,8 +481,7 @@ enum  ia_css_err ia_css_bufq_dequeue_isys_event(
- 		return IA_CSS_ERR_RESOURCE_NOT_AVAILABLE;
- 	}
- 	error = ia_css_eventq_recv(q, item);
--	return_err = ia_css_convert_errno(error);
--	return return_err;
-+	return ia_css_convert_errno(error);
- #else
- 	(void)item;
- 	return IA_CSS_ERR_RESOURCE_NOT_AVAILABLE;
--- 
-2.11.0
+In the future how can we add new heaps ?
+Some platforms have very specific memory allocation
+requirements (just have a look in the number of gem custom allocator in drm)
+Do you plan to add heap type/mask for each ?
+
+Benjamin
+
+> --
+> Daniel Vetter
+> Software Engineer, Intel Corporation
+> http://blog.ffwll.ch
+
+
+Follow Linaro: Facebook | Twitter | Blog
