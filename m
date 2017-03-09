@@ -1,163 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:56515 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751208AbdCQSuZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Mar 2017 14:50:25 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:52959 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932262AbdCIPkU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 9 Mar 2017 10:40:20 -0500
+Subject: Re: [PATCH] [media] v4l2-dv-timings: Introduce v4l2_calc_fps()
+To: Jose Abreu <Jose.Abreu@synopsys.com>, linux-media@vger.kernel.org
+References: <94397052765d1f6d84dc7edac65f906b09890871.1488905139.git.joabreu@synopsys.com>
+ <4f598aba-3002-eeb5-1cad-d4dff4553644@xs4all.nl>
+ <8bc4a61a-5b5d-2233-741a-bbf44fc5f009@synopsys.com>
+Cc: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
-        Johannes Thumshirn <jthumshirn@suse.de>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Cyrille Pitchen <cyrille.pitchen@atmel.com>
-Cc: linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org,
-        rtc-linux@googlegroups.com, linux-mtd@lists.infradead.org,
-        linux-media@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Logan Gunthorpe <logang@deltatee.com>
-Date: Fri, 17 Mar 2017 12:48:21 -0600
-Message-Id: <1489776503-3151-15-git-send-email-logang@deltatee.com>
-In-Reply-To: <1489776503-3151-1-git-send-email-logang@deltatee.com>
-References: <1489776503-3151-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v5 14/16] rtc: utilize new cdev_device_add helper function
+        Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>,
+        linux-kernel@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <908807fd-5b1c-4fb1-d24a-a8d7bd06a3b9@xs4all.nl>
+Date: Thu, 9 Mar 2017 16:40:14 +0100
+MIME-Version: 1.0
+In-Reply-To: <8bc4a61a-5b5d-2233-741a-bbf44fc5f009@synopsys.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mostly straightforward, but we had to remove the rtc_dev_add/del_device
-functions as they split up the cdev_add and the device_add.
+On 09/03/17 16:15, Jose Abreu wrote:
+> Hi Hans,
+> 
+> 
+> Thanks for the review!
+> 
+> 
+> On 09-03-2017 12:29, Hans Verkuil wrote:
+>> On 07/03/17 17:48, Jose Abreu wrote:
+>>> HDMI Receivers receive video modes which, according to
+>>> CEA specification, can have different frames per second
+>>> (fps) values.
+>>>
+>>> This patch introduces a helper function in the media core
+>>> which can calculate the expected video mode fps given the
+>>> pixel clock value and the horizontal/vertical values. HDMI
+>>> video receiver drivers are expected to use this helper so
+>>> that they can correctly fill the v4l2_streamparm structure
+>>> which is requested by vidioc_g_parm callback.
+>>>
+>>> We could also use a lookup table for this but it wouldn't
+>>> correctly handle 60Hz vs 59.94Hz situations as this all
+>>> depends on the pixel clock value.
+>>>
+>>> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+>>> Cc: Carlos Palminha <palminha@synopsys.com>
+>>> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+>>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>>> Cc: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+>>> Cc: linux-media@vger.kernel.org
+>>> Cc: linux-kernel@vger.kernel.org
+>>> ---
+>>>  drivers/media/v4l2-core/v4l2-dv-timings.c | 29 +++++++++++++++++++++++++++++
+>>>  include/media/v4l2-dv-timings.h           |  8 ++++++++
+>>>  2 files changed, 37 insertions(+)
+>>>
+>>> diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+>>> index 5c8c49d..19946c6 100644
+>>> --- a/drivers/media/v4l2-core/v4l2-dv-timings.c
+>>> +++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+>>> @@ -814,3 +814,32 @@ struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait)
+>>>  	return aspect;
+>>>  }
+>>>  EXPORT_SYMBOL_GPL(v4l2_calc_aspect_ratio);
+>>> +
+>>> +struct v4l2_fract v4l2_calc_fps(const struct v4l2_dv_timings *t)
+>>> +{
+>>> +	const struct v4l2_bt_timings *bt = &t->bt;
+>>> +	struct v4l2_fract fps_fract = { 1, 1 };
+>>> +	unsigned long n, d;
+>>> +	unsigned long mask = GENMASK(BITS_PER_LONG - 1, 0);
+>> This is wrong since v4l2_fract uses u32, and LONG can be 64 bits.
+> 
+> Yes, its wrong. I will remove the variable and just use fps, 100
+> instead of mask, mask.
+> 
+>>
+>>> +	u32 htot, vtot, fps;
+>>> +	u64 pclk;
+>>> +
+>>> +	if (t->type != V4L2_DV_BT_656_1120)
+>>> +		return fps_fract;
+>>> +
+>>> +	htot = V4L2_DV_BT_FRAME_WIDTH(bt);
+>>> +	vtot = V4L2_DV_BT_FRAME_HEIGHT(bt);
+>>> +	pclk = bt->pixelclock;
+>>> +	if (bt->interlaced)
+>>> +		htot /= 2;
+>> This can be dropped. This is the timeperframe, not timeperfield. So for interleaved
+>> formats the time is that of two fields (aka one frame).
+> 
+> Ok, but then there is something not correct in
+> v4l2_dv_timings_presets structure field values because I get
+> wrong results in double clocked modes. I checked the definition
+> and the modes that are double clocked are defined with half the
+> clock, i.e., V4L2_DV_BT_CEA_720X480I59_94 is defined with a pixel
+> clock of 13.5MHz but in CEA spec this mode is defined with pixel
+> clock of 27MHz.
 
-Doing this also revealed that there was likely another subtle bug:
-seeing cdev_add was done after device_register, the cdev probably
-was not ready before device_add when the uevent occurs. This would
-race with userspace, if it tried to use the device directly after
-the uevent. This is fixed just by using the new helper function.
+It's defined in the CEA spec as 1440x480 which is the double clocked
+version of 720x480.
 
-Another weird thing is this driver would, in some error cases, call
-cdev_add() without calling cdev_init. This patchset corrects this
-by avoiding calling cdev_add if the devt is not set.
+The presets are defined without any pixel repeating. In fact, no driver
+that is in the kernel today supports pixel repeating. Mostly because there was
+never any need since almost nobody uses resolutions that require this.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Acked-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
----
- drivers/rtc/class.c    | 14 ++++++++++----
- drivers/rtc/rtc-core.h | 10 ----------
- drivers/rtc/rtc-dev.c  | 17 -----------------
- 3 files changed, 10 insertions(+), 31 deletions(-)
+If you decide to add support for this, then it would not surprise me if
+some of the core dv-timings support needs to be adjusted.
 
-diff --git a/drivers/rtc/class.c b/drivers/rtc/class.c
-index 74fd974..5fb4398 100644
---- a/drivers/rtc/class.c
-+++ b/drivers/rtc/class.c
-@@ -195,6 +195,8 @@ struct rtc_device *rtc_device_register(const char *name, struct device *dev,
- 		goto exit_ida;
- 	}
- 
-+	device_initialize(&rtc->dev);
-+
- 	rtc->id = id;
- 	rtc->ops = ops;
- 	rtc->owner = owner;
-@@ -233,14 +235,19 @@ struct rtc_device *rtc_device_register(const char *name, struct device *dev,
- 
- 	rtc_dev_prepare(rtc);
- 
--	err = device_register(&rtc->dev);
-+	err = cdev_device_add(&rtc->char_dev, &rtc->dev);
- 	if (err) {
-+		dev_warn(&rtc->dev, "%s: failed to add char device %d:%d\n",
-+			 rtc->name, MAJOR(rtc->dev.devt), rtc->id);
-+
- 		/* This will free both memory and the ID */
- 		put_device(&rtc->dev);
- 		goto exit;
-+	} else {
-+		dev_dbg(&rtc->dev, "%s: dev (%d:%d)\n", rtc->name,
-+			MAJOR(rtc->dev.devt), rtc->id);
- 	}
- 
--	rtc_dev_add_device(rtc);
- 	rtc_proc_add_device(rtc);
- 
- 	dev_info(dev, "rtc core: registered %s as %s\n",
-@@ -271,9 +278,8 @@ void rtc_device_unregister(struct rtc_device *rtc)
- 	 * Remove innards of this RTC, then disable it, before
- 	 * letting any rtc_class_open() users access it again
- 	 */
--	rtc_dev_del_device(rtc);
- 	rtc_proc_del_device(rtc);
--	device_del(&rtc->dev);
-+	cdev_device_del(&rtc->char_dev, &rtc->dev);
- 	rtc->ops = NULL;
- 	mutex_unlock(&rtc->ops_lock);
- 	put_device(&rtc->dev);
-diff --git a/drivers/rtc/rtc-core.h b/drivers/rtc/rtc-core.h
-index a098aea..7a4ed2f 100644
---- a/drivers/rtc/rtc-core.h
-+++ b/drivers/rtc/rtc-core.h
-@@ -3,8 +3,6 @@
- extern void __init rtc_dev_init(void);
- extern void __exit rtc_dev_exit(void);
- extern void rtc_dev_prepare(struct rtc_device *rtc);
--extern void rtc_dev_add_device(struct rtc_device *rtc);
--extern void rtc_dev_del_device(struct rtc_device *rtc);
- 
- #else
- 
-@@ -20,14 +18,6 @@ static inline void rtc_dev_prepare(struct rtc_device *rtc)
- {
- }
- 
--static inline void rtc_dev_add_device(struct rtc_device *rtc)
--{
--}
--
--static inline void rtc_dev_del_device(struct rtc_device *rtc)
--{
--}
--
- #endif
- 
- #ifdef CONFIG_RTC_INTF_PROC
-diff --git a/drivers/rtc/rtc-dev.c b/drivers/rtc/rtc-dev.c
-index 6dc8f29..e81a871 100644
---- a/drivers/rtc/rtc-dev.c
-+++ b/drivers/rtc/rtc-dev.c
-@@ -477,23 +477,6 @@ void rtc_dev_prepare(struct rtc_device *rtc)
- 
- 	cdev_init(&rtc->char_dev, &rtc_dev_fops);
- 	rtc->char_dev.owner = rtc->owner;
--	rtc->char_dev.kobj.parent = &rtc->dev.kobj;
--}
--
--void rtc_dev_add_device(struct rtc_device *rtc)
--{
--	if (cdev_add(&rtc->char_dev, rtc->dev.devt, 1))
--		dev_warn(&rtc->dev, "%s: failed to add char device %d:%d\n",
--			rtc->name, MAJOR(rtc_devt), rtc->id);
--	else
--		dev_dbg(&rtc->dev, "%s: dev (%d:%d)\n", rtc->name,
--			MAJOR(rtc_devt), rtc->id);
--}
--
--void rtc_dev_del_device(struct rtc_device *rtc)
--{
--	if (rtc->dev.devt)
--		cdev_del(&rtc->char_dev);
- }
- 
- void __init rtc_dev_init(void)
--- 
-2.1.4
+To be honest, I never spent time digging into the pixel repeating details,
+so I am not an expert on this at all.
+
+> 
+>>
+>>> +
+>>> +	fps = (htot * vtot) > 0 ? div_u64((100 * pclk), (htot * vtot)) : 0;
+>>> +
+>>> +	rational_best_approximation(fps, 100, mask, mask, &n, &d);
+>> I think you can just use fps, 100 instead of mask, mask.
+>>
+>> What is returned if fps == 0?
+> 
+> I will add a check for this.
+> 
+>>
+>> I don't have a problem as such with this function, but just be aware that the
+>> pixelclock is never precise: there are HDMI receivers that are unable to report
+>> the pixelclock with enough precision to even detect if it is 60 vs 59.94 Hz.
+>>
+>> And even for those that can, it is often not reliable.
+> 
+> My initial intention for this function was that it should be used
+> with v4l2_find_dv_timings_cea861_vic, when possible. That is,
+> HDMI receivers have access to AVI infoframe contents. Then they
+> should get the vic, call v4l2_find_dv_timings_cea861_vic, get
+> timings and then call v4l2_calc_fps to get fps. If no AVI
+> infoframe is available then it should resort to pixel clock and
+> H/V measures as last resort.
+
+Right, but there are no separate VIC codes for 60 vs 59.94 Hz. Any vertical
+refresh rate that can be divided by 6 can also support these slightly lower
+refresh rates. The timings returned by v4l2_find_dv_timings_cea861_vic just
+report if that is possible, but the pixelclock is set for 24, 30 or 60 fps.
+
+Perhaps I should see the driver code...
+
+> 
+>>
+>> In order for me to merge this it also should be used in a driver. Actually the
+>> cobalt and vivid drivers would be suitable: you can test the vivid driver yourself,
+>> and if you have a patch for the cobalt driver, then I can test that for you.
+>>
+>> Would be nice for the cobalt driver, since g_parm always returns 60 fps :-)
+> 
+> Ok, I will check what I can do :)
+> 
+> Best regards,
+> Jose Miguel Abreu
+
+Regards,
+
+	Hans
