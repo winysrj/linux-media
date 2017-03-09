@@ -1,113 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:33180 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754322AbdCTLQf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 07:16:35 -0400
-Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
- controls from a pipeline
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>
-References: <20170310130733.GU21222@n2100.armlinux.org.uk>
- <c679f755-52a6-3c6f-3d65-277db46676cc@xs4all.nl>
- <20170310140124.GV21222@n2100.armlinux.org.uk>
- <cc8900b0-c091-b14b-96f4-01f8fa72431c@xs4all.nl>
- <20170310125342.7f047acf@vento.lan>
- <20170310223714.GI3220@valkosipuli.retiisi.org.uk>
- <20170311082549.576531d0@vento.lan>
- <20170313124621.GA10701@valkosipuli.retiisi.org.uk>
- <20170314004533.3b3cd44b@vento.lan>
- <e0a6c60b-1735-de0b-21f4-d8c3f4b3f10f@xs4all.nl>
- <20170317114203.GZ21222@n2100.armlinux.org.uk>
- <44161453-02f9-0019-3868-7501967a6a82@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Jacek Anaszewski <j.anaszewski@samsung.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <379d8320-f3dd-ea6e-867e-4522aac4216b@xs4all.nl>
-Date: Mon, 20 Mar 2017 12:16:20 +0100
+Received: from mx02-sz.bfs.de ([194.94.69.103]:25362 "EHLO mx02-sz.bfs.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932261AbdCILzy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 9 Mar 2017 06:55:54 -0500
+Message-ID: <58C14136.8060703@bfs.de>
+Date: Thu, 09 Mar 2017 12:49:10 +0100
+From: walter harms <wharms@bfs.de>
+Reply-To: wharms@bfs.de
 MIME-Version: 1.0
-In-Reply-To: <44161453-02f9-0019-3868-7501967a6a82@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: "Wu, Songjun" <Songjun.Wu@microchip.com>,
+        Colin King <colin.king@canonical.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] atmel-isc: fix off-by-one comparison and out
+ of bounds read issue
+References: <20170307143047.30082-1-colin.king@canonical.com> <5dc9d025-31d5-b129-09df-5de19758e886@microchip.com> <b84a5576-7b29-728b-b7c2-9929069a2b35@xs4all.nl>
+In-Reply-To: <b84a5576-7b29-728b-b7c2-9929069a2b35@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/17/2017 12:55 PM, Sakari Ailus wrote:
-> Hi Russell,
+
+
+Am 09.03.2017 11:57, schrieb Hans Verkuil:
+> Hi Songjun,
 > 
-> On 03/17/17 13:42, Russell King - ARM Linux wrote:
->> On Tue, Mar 14, 2017 at 08:55:36AM +0100, Hans Verkuil wrote:
->>> We're all very driver-development-driven, and userspace gets very little
->>> attention in general. So before just throwing in the towel we should take
->>> a good look at the reasons why there has been little or no development: is
->>> it because of fundamental design defects, or because nobody paid attention
->>> to it?
->>>
->>> I strongly suspect it is the latter.
->>>
->>> In addition, I suspect end-users of these complex devices don't really care
->>> about a plugin: they want full control and won't typically use generic
->>> applications. If they would need support for that, we'd have seen much more
->>> interest. The main reason for having a plugin is to simplify testing and
->>> if this is going to be used on cheap hobbyist devkits.
+> On 08/03/17 03:25, Wu, Songjun wrote:
+>> Hi Colin,
 >>
->> I think you're looking at it with a programmers hat on, not a users hat.
+>> Thank you for your comment.
+>> It is a bug, will be fixed in the next patch.
+> 
+> Do you mean that you will provide a new patch for this? Is there anything
+> wrong with this patch? It seems reasonable to me.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+
+
+
+perhaps he will make it a bit more readable, like:
+
+*hist_count += i * (*hist_entry++);
+
+*hist_count += hist_entry[i]*i;
+
+
+re,
+ wh
 >>
->> Are you really telling me that requiring users to 'su' to root, and then
->> use media-ctl to manually configure the capture device is what most
->> users "want" ?
+>> On 3/7/2017 22:30, Colin King wrote:
+>>> From: Colin Ian King <colin.king@canonical.com>
+>>>
+>>> The are only HIST_ENTRIES worth of entries in  hist_entry however the
+>>> for-loop is iterating one too many times leasing to a read access off
+>>> the end off the array ctrls->hist_entry.  Fix this by iterating by
+>>> the correct number of times.
+>>>
+>>> Detected by CoverityScan, CID#1415279 ("Out-of-bounds read")
+>>>
+>>> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+>>> ---
+>>>  drivers/media/platform/atmel/atmel-isc.c | 2 +-
+>>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+>>> index b380a7d..7dacf8c 100644
+>>> --- a/drivers/media/platform/atmel/atmel-isc.c
+>>> +++ b/drivers/media/platform/atmel/atmel-isc.c
+>>> @@ -1298,7 +1298,7 @@ static void isc_hist_count(struct isc_device *isc)
+>>>      regmap_bulk_read(regmap, ISC_HIS_ENTRY, hist_entry, HIST_ENTRIES);
+>>>
+>>>      *hist_count = 0;
+>>> -    for (i = 0; i <= HIST_ENTRIES; i++)
+>>> +    for (i = 0; i < HIST_ENTRIES; i++)
+>>>          *hist_count += i * (*hist_entry++);
+>>>  }
+>>>
+>>>
 > 
-> It depends on who the user is. I don't think anyone is suggesting a
-> regular end user is the user of all these APIs: it is either an
-> application tailored for that given device, a skilled user with his test
-> scripts or as suggested previously, a libv4l plugin knowing the device
-> or a generic library geared towards providing best effort service. The
-> last one of this list does not exist yet and the second last item
-> requires help.
+
+
+
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> Typically this class of devices is simply not up to provide the level of
-> service you're requesting without additional user space control library
-> which is responsible for automatic white balance, exposure and focus.
-> 
-> Making use of the full potential of the hardware requires using a more
-> expressive interface. That's what the kernel interface must provide. If
-> we decide to limit ourselves to a small sub-set of that potential on the
-> level of the kernel interface, we have made a wrong decision. It's as
-> simple as that. This is why the functionality (and which requires taking
-> a lot of policy decisions) belongs to the user space. We cannot have
-> multiple drivers providing multiple kernel interfaces for the same hardware.
-
-Right. With my Cisco hat on I can tell you that Cisco would want full low-level
-control. If the driver would limit us we would not be able to use it.
-
-Same with anyone who wants to put Android CameraHAL on top of a V4L2 driver:
-they would need full control. Some simplified interface would be unacceptable.
-
-> 
-> That said, I'm not trying to provide an excuse for not having libraries
-> available to help the user to configure and control the device more or
-> less automatically even in terms of best effort. It's something that
-> does require attention, a lot more of it than it has received in recent
-> few years.
-
-Right.
-
-Regards,
-
-	Hans
