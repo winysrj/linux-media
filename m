@@ -1,119 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:57062
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752296AbdCEByW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 4 Mar 2017 20:54:22 -0500
-Date: Sat, 4 Mar 2017 22:54:15 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: bill murphy <gc2majortom@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Kaffeine commit b510bff2 won't compile
-Message-ID: <20170304225415.62a80aac@vento.lan>
-In-Reply-To: <1c5c2aed-f7c6-a189-6dc5-fd44007eefaa@gmail.com>
-References: <bafdb165-261c-0129-e0dc-29819a55ca43@gmail.com>
-        <20170227071122.3a319481@vento.lan>
-        <a2c23f62-215a-9066-45bc-0b8eebacc84b@gmail.com>
-        <20170301070024.3ca3150a@vento.lan>
-        <fdc10667-1ed9-7c84-bf7d-ec3a255c59b2@gmail.com>
-        <20170304110743.7635879c@vento.lan>
-        <1c5c2aed-f7c6-a189-6dc5-fd44007eefaa@gmail.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:35538 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754394AbdCIKz2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 9 Mar 2017 05:55:28 -0500
+Subject: Re: [PATCH 00/10] ARM: davinci: add vpif display support
+To: Bartosz Golaszewski <bgolaszewski@baylibre.com>,
+        Kevin Hilman <khilman@kernel.org>,
+        Sekhar Nori <nsekhar@ti.com>,
+        Patrick Titiano <ptitiano@baylibre.com>,
+        Michael Turquette <mturquette@baylibre.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Lad Prabhakar <prabhakar.csengg@gmail.com>
+References: <1486485683-11427-1-git-send-email-bgolaszewski@baylibre.com>
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <77ced65d-e350-02ba-6dae-b20dcb3faa32@xs4all.nl>
+Date: Thu, 9 Mar 2017 11:53:49 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <1486485683-11427-1-git-send-email-bgolaszewski@baylibre.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 4 Mar 2017 13:57:28 -0500
-bill murphy <gc2majortom@gmail.com> escreveu:
+On 07/02/17 17:41, Bartosz Golaszewski wrote:
+> The following series adds support for v4l2 display on da850-evm with
+> a UI board in device tree boot mode.
 
-> That sounds good, would you like me to submit a good Frequency List to 'dtv-scan-tables'?
+As far as I could tell from the comments this patch series will see a
+second version, so I am marking it as 'Changes Requested' in patchwork.
 
-Yes, please.
+If I'm wrong, then please let me know.
 
-> Maybe name it something like 'atsc/us-ATSC-center-frequencies-8VSB-06-2009', reflecting the
-> date since the spectrum was allocated that way?
+Regards,
 
-Yeah, that would work.
-
-> Another Kaffeine related issue, I noticed in libdbv5 of v4l-utils, that there is no
-> "North American Standard" LNB configuration. I just modified the source to add
-> add one and recompiled. Since in North America, the FSS Band is from 11700 to 12200, and our LNBs are
-> designed with an LO Frequency of 10750 MHz. Kaffeine seems to work correctly now on my
-> Ku Band antennas. Would you like me to submit the patch, or just create a new bug report?
-
-Better to submit a patch. You should notice, however, that it may have
-more than one LNBf type in US. So, you need to take some care when
-assigning a name for the LNBf.
+	Hans
 
 > 
-> Thanks again,
-> Bill
+> Patches 1/10 - 5/10 deal with the device tree: we fix whitespace
+> errors in dts files and bindings, extend the example and the dts for
+> da850-evm with the output port and address the pinmuxing.
 > 
+> Patch 6/10 enables the relevant modules in the defconfig file.
 > 
-> On 03/04/2017 09:07 AM, Mauro Carvalho Chehab wrote:
-> > Em Sat, 4 Mar 2017 08:21:51 -0500
-> > bill murphy <gc2majortom@gmail.com> escreveu:
-> >  
-> >> Hi Mauro,
-> >>
-> >> yes I can appreciate that, but why not just make one file for each
-> >> country that actually differs,
-> >>
-> >> rather than make the rest of us suffer?
-> >>
-> >> canada and the us are the same.
-> >>
-> >> atsc/us-ATSC-center-frequencies-8VSB
-> >>
-> >> So could add two files for mexico and korea.
-> >>
-> >> atsc/mx-ATSC-center-frequencies-8VSB
-> >> atsc/kr-ATSC-center-frequencies-8VSB
-> >>
-> >> can't be any worse that the hundreds of files being maintained for DVB-T
-> >> in various countries.  
-> > That could be done, but newer updates to dtv-scan-tables
-> > (and projects that use it, like Kaffeine) would have regressions for
-> > people outside US that use it.
-> >
-> > What could be done, instead, would be to have another file for
-> > US new frequency set.
-> >  
-> >>
-> >> On 03/01/2017 05:00 AM, Mauro Carvalho Chehab wrote:  
-> >>> Hi Bill,
-> >>>
-> >>> Em Mon, 27 Feb 2017 23:46:09 -0500
-> >>> bill murphy <gc2majortom@gmail.com> escreveu:
-> >>>     
-> >>>> Hi Mauro,
-> >>>>
-> >>>> Thanks for looking in to it. All is well now.  
-> >>> Good! Thanks for testing.
-> >>>     
-> >>>> On a sidenote, given 700 MHz is used for LTE, and not broadcasting
-> >>>>
-> >>>> anymore, would you folks consider removing ch 52 thru 69
-> >>>>
-> >>>> in the us-atsc-frequencies if I posted a simple patch to dtv-scan-tables?  
-> >>> The problem is that, despite its name, this table is used on other
-> >>> Countries using atsc (like Mexico, Canada and South Korea):
-> >>>
-> >>> 	https://en.wikipedia.org/wiki/List_of_digital_television_deployments_by_country#/media/File:Digital_broadcast_standards.svg
-> >>>
-> >>> So, while the 700 MHz are still used on other ATSC Countries, we can't
-> >>> remove, as otherwise, it will not discover the channels at the upper
-> >>> frequency range there.
-> >>>
-> >>> Regards,
-> >>> Mauro  
-> >
-> >
-> > Thanks,
-> > Mauro  
+> Patches 7/10 and 8/10 fix two already existing bugs encountered
+> during development.
 > 
-
-
-
-Thanks,
-Mauro
+> Patch 9/10 make it possible to use a different i2c adapter in the
+> vpif display driver.
+> 
+> The last patch adds the pdata quirks necessary to enable v4l2 display.
+> 
+> Tested with a modified version of yavta[1] as gstreamer support for
+> v4l2 seems to be broken and results in picture artifacts.
+> 
+> [1] https://github.com/brgl/yavta davinci/vpif-display
+> 
+> Bartosz Golaszewski (10):
+>   media: dt-bindings: vpif: fix whitespace errors
+>   ARM: dts: da850-evm: fix whitespace errors
+>   media: dt-bindings: vpif: extend the example with an output port
+>   ARM: dts: da850-evm: add the output port to the vpif node
+>   ARM: dts: da850: add vpif video display pins
+>   ARM: davinci_all_defconfig: enable VPIF display modules
+>   ARM: davinci: fix a whitespace error
+>   ARM: davinci: fix the DT boot on da850-evm
+>   media: vpif: use a configurable i2c_adapter_id for vpif display
+>   ARM: davinci: add pdata-quirks for da850-evm vpif display
+> 
+>  .../devicetree/bindings/media/ti,da850-vpif.txt    | 45 ++++++++---
+>  arch/arm/boot/dts/da850-evm.dts                    | 26 +++---
+>  arch/arm/boot/dts/da850.dtsi                       | 25 +++++-
+>  arch/arm/configs/davinci_all_defconfig             |  2 +
+>  arch/arm/mach-davinci/board-da850-evm.c            |  1 +
+>  arch/arm/mach-davinci/pdata-quirks.c               | 92 ++++++++++++++++++++--
+>  drivers/media/platform/davinci/vpif_display.c      |  2 +-
+>  include/media/davinci/vpif_types.h                 |  1 +
+>  8 files changed, 164 insertions(+), 30 deletions(-)
+> 
