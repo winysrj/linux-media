@@ -1,62 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f193.google.com ([74.125.82.193]:33617 "EHLO
-        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751648AbdCCPhV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 10:37:21 -0500
-MIME-Version: 1.0
-In-Reply-To: <ecea124d-869d-2d62-ef49-34617391d6a2@virtuozzo.com>
-References: <20170302163834.2273519-1-arnd@arndb.de> <20170302163834.2273519-26-arnd@arndb.de>
- <6ada42bd-4cc7-4985-3e3b-705cba6e157d@virtuozzo.com> <CAK8P3a1AT+x9TiCyC56m6DoiZnxCYcMm6ZtLKXa7nfq=f8kWvw@mail.gmail.com>
- <ecea124d-869d-2d62-ef49-34617391d6a2@virtuozzo.com>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Fri, 3 Mar 2017 16:37:20 +0100
-Message-ID: <CAK8P3a3aMQ+q8o2rFEJ+qLQvauJsOi4kYRp41123qa5+hjY8sA@mail.gmail.com>
-Subject: Re: [PATCH 25/26] isdn: eicon: mark divascapi incompatible with kasan
-To: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: kasan-dev <kasan-dev@googlegroups.com>,
-        Alexander Potapenko <glider@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Networking <netdev@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org,
-        linux-wireless <linux-wireless@vger.kernel.org>,
-        kernel-build-reports@lists.linaro.org,
-        "David S . Miller" <davem@davemloft.net>
-Content-Type: text/plain; charset=UTF-8
+Received: from mail.andi.de1.cc ([85.214.239.24]:47808 "EHLO
+        h2641619.stratoserver.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932848AbdCIRpX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 12:45:23 -0500
+From: Andreas Kemnade <andreas@kemnade.info>
+To: linux-media@vger.kernel.org, mchehab@kernel.org
+Cc: Andreas Kemnade <andreas@kemnade.info>
+Subject: [PATCH RFC] dvb: af9035.c: Logilink vg0022a to device id table
+Date: Thu,  9 Mar 2017 17:51:14 +0100
+Message-Id: <1489078274-24227-1-git-send-email-andreas@kemnade.info>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 3, 2017 at 4:22 PM, Andrey Ryabinin <aryabinin@virtuozzo.com> wrote:
-> On 03/03/2017 05:54 PM, Arnd Bergmann wrote:
->> On Fri, Mar 3, 2017 at 3:20 PM, Andrey Ryabinin <aryabinin@virtuozzo.com> wrote:
->>> On 03/02/2017 07:38 PM, Arnd Bergmann wrote:
->>>
->>> This is kinda radical solution.
->>> Wouldn't be better to just increase -Wframe-larger-than for this driver through Makefile?
->>
->> I thought about it too, and decided for disabling the driver entirely
->> since I suspected that
->> not only the per-function stack frame is overly large here but also
->> depth of the call chain,
->> which would then lead us to hiding an actual stack overflow.
->>
->
-> No one complained so far ;)
-> Disabling the driver like you did will throw it out from allmodconfig so it will receive less compile-testing.
+Ths adds the logilink VG00022a dvb-t dongle to the device table.
+The dongle contains (checked by removing the case)
+IT9303
+SI2168
+  214730
 
-Good point, I'll add a driver specific flag then and leave it there.
+The result is in cold state:
 
->> Note that this driver is almost certainly broken, it hasn't seen any
->> updates other than
->> style and compile-warning fixes in 10 years and doesn't support any of
->> the hardware
->> introduced since 2002 (the company still makes PCIe ISDN adapters, but
->> the driver
->> only supports legacy PCI versions and older buses).
->
-> Which means that it's unlikely that someone will run this driver with KASAN
-and trigger stack overflow (if it's really possible).
+ usb 1-6: new high-speed USB device number 15 using xhci_hcd
+ usb 1-6: New USB device found, idVendor=1d19, idProduct=0100
+ usb 1-6: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+ usb 1-6: Product: TS Aggregator
+ usb 1-6: Manufacturer: ITE Tech., Inc.
+ usb 1-6: SerialNumber: XXXXXXXXXXXX
+ dvb_usb_af9035 1-6:1.0: prechip_version=83 chip_version=01 chip_type=9306
+ dvb_usb_af9035 1-6:1.0: ts mode=5 not supported, defaulting to single tuner mode!
+ usb 1-6: dvb_usb_v2: found a 'Logilink VG0022A' in cold state
+ usb 1-6: dvb_usb_v2: downloading firmware from file 'dvb-usb-it9303-01.fw'
+ dvb_usb_af9035 1-6:1.0: firmware version=1.4.0.0
+ usb 1-6: dvb_usb_v2: found a 'Logilink VG0022A' in warm state
+ usb 1-6: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
+ dvbdev: DVB: registering new adapter (Logilink VG0022A)
+ si2168: probe of 6-0067 failed with error -5
 
-True.
+when warmed up by connecing it via  a powered usb hub to win7 and
+then attaching the same usb hub to a linux machine:
 
-   Arnd
+ usb 1-6.2: New USB device found, idVendor=1d19, idProduct=0100
+ usb 1-6.2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+ usb 1-6.2: Product: TS Aggregator
+ usb 1-6.2: Manufacturer: ITE Tech., Inc.
+ usb 1-6.2: SerialNumber: XXXXXXXXXXXX
+ dvb_usb_af9035 1-6.2:1.0: prechip_version=83 chip_version=01 chip_type=9306
+ dvb_usb_af9035 1-6.2:1.0: ts mode=5 not supported, defaulting to single tuner mode!
+ usb 1-6.2: dvb_usb_v2: found a 'Logilink VG0022A' in warm state
+ usb 1-6.2: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
+ dvbdev: DVB: registering new adapter (Logilink VG0022A)
+ i2c i2c-6: Added multiplexed i2c bus 7
+ si2168 6-0067: Silicon Labs Si2168-B40 successfully identified
+ si2168 6-0067: firmware version: B 4.0.2
+ usb 1-6.2: DVB: registering adapter 0 frontend 0 (Silicon Labs Si2168)...
+ si2157 7-0063: Silicon Labs Si2147/2148/2157/2158 successfully attached
+ usb 1-6.2: dvb_usb_v2: 'Logilink VG0022A' successfully initialized and connected
+ si2168 6-0067: Direct firmware load for dvb-demod-si2168-b40-01.fw failed with error -2
+ si2168 6-0067: Direct firmware load for dvb-demod-si2168-02.fw failed with error -2
+ si2168 6-0067: firmware file 'dvb-demod-si2168-02.fw' not found
+ si2157 7-0063: found a 'Silicon Labs Si2147-A30'
+ si2157 7-0063: firmware version: 3.0.5
+
+same with the firmware for the si2168 available:
+ usb 1-6.2: new high-speed USB device number 12 using xhci_hcd
+ usb 1-6.2: New USB device found, idVendor=1d19, idProduct=0100
+ usb 1-6.2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+ usb 1-6.2: Product: TS Aggregator
+ usb 1-6.2: Manufacturer: ITE Tech., Inc.
+ usb 1-6.2: SerialNumber: XXXXXXXXXXXX
+ dvb_usb_af9035 1-6.2:1.0: prechip_version=83 chip_version=01 chip_type=9306
+ dvb_usb_af9035 1-6.2:1.0: ts mode=5 not supported, defaulting to single tuner mode!
+ usb 1-6.2: dvb_usb_v2: found a 'Logilink VG0022A' in warm state
+ usb 1-6.2: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
+ dvbdev: DVB: registering new adapter (Logilink VG0022A)
+ i2c i2c-6: Added multiplexed i2c bus 7
+ si2168 6-0067: Silicon Labs Si2168-B40 successfully identified
+ si2168 6-0067: firmware version: B 4.0.2
+ usb 1-6.2: DVB: registering adapter 0 frontend 0 (Silicon Labs Si2168)...
+ si2157 7-0063: Silicon Labs Si2147/2148/2157/2158 successfully attached
+ usb 1-6.2: dvb_usb_v2: 'Logilink VG0022A' successfully initialized and connected
+ si2168 6-0067: downloading firmware from file 'dvb-demod-si2168-b40-01.fw'
+ si2168 6-0067: firmware version: B 4.0.11
+ si2157 7-0063: unknown chip version Si21255-\xffffffff\xffffffff\xffffffff
+ si2157 7-0063: unknown chip version Si21255-\xffffffff\xffffffff\xffffffff
+
+so firmware uploading to the si2168 somehow messes things up
+
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+ drivers/media/usb/dvb-usb-v2/af9035.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index c673726..ed674b8 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -2141,6 +2141,8 @@ static const struct usb_device_id af9035_id_table[] = {
+ 	/* IT930x devices */
+ 	{ DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9303,
+ 		&it930x_props, "ITE 9303 Generic", NULL) },
++	{ DVB_USB_DEVICE(USB_VID_DEXATEK, 0x0100,
++		&it930x_props, "Logilink VG0022A", NULL) },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(usb, af9035_id_table);
+-- 
+2.1.4
