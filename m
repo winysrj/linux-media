@@ -1,134 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:33103 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936690AbdCXPsW (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:39428 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932800AbdCJP6R (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Mar 2017 11:48:22 -0400
-Date: Fri, 24 Mar 2017 21:18:09 +0530
-From: Arushi Singhal <arushisinghal19971997@gmail.com>
-To: mchehab@kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org, outreachy-kernel@googlegroups.com
-Subject: [PATCH v2] staging: media: atomisp:Replace a bit shift.
-Message-ID: <20170324154809.GA12158@arushi-HP-Pavilion-Notebook>
+        Fri, 10 Mar 2017 10:58:17 -0500
+Date: Fri, 10 Mar 2017 15:57:09 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
+        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
+ controls from a pipeline
+Message-ID: <20170310155708.GX21222@n2100.armlinux.org.uk>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+ <1487211578-11360-15-git-send-email-steve_longerbeam@mentor.com>
+ <20170302160257.GK3220@valkosipuli.retiisi.org.uk>
+ <20170303230645.GR21222@n2100.armlinux.org.uk>
+ <20170304131329.GV3220@valkosipuli.retiisi.org.uk>
+ <a7b8e095-a95c-24bd-b1e9-e983f18061c4@xs4all.nl>
+ <20170310130733.GU21222@n2100.armlinux.org.uk>
+ <20170310122634.0ffda7c6@vento.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <20170310122634.0ffda7c6@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch replaces bit shifting on 1 with the BIT(x) macro.
-This was done with coccinelle:
-@@
-constant c;
-@@
+On Fri, Mar 10, 2017 at 12:26:34PM -0300, Mauro Carvalho Chehab wrote:
+> Hi Russell,
+> 
+> Em Fri, 10 Mar 2017 13:07:33 +0000
+> Russell King - ARM Linux <linux@armlinux.org.uk> escreveu:
+> 
+> > The idea that the v4l libraries should intercept the format negotiation
+> > between the application and kernel is a particularly painful one - the
+> > default gstreamer build detects the v4l libraries, and links against it.
+> > That much is fine.
+> > 
+> > However, the problem comes when you're trying to use bayer formats. The
+> > v4l libraries "helpfully" (or rather unhelpfully) intercept the format
+> > negotiation, and decide that they'll invoke v4lconvert to convert the
+> > bayer to RGB for you, whether you want them to do that or not.
+> > 
+> > v4lconvert may not be the most efficient way to convert, or even what
+> > is desired (eg, you may want to receive the raw bayer image.)  However,
+> > since the v4l libraries/v4lconvert gives you no option but to have its
+> > conversion forced into the pipeline, other options (such as using the
+> > gstreamer neon accelerated de-bayer plugin) isn't an option 
+> 
+> That's not true. There is an special flag, used only by libv4l2
+> emulated formats, that indicates when a video format is handled
+> via v4lconvert:
 
--1 << c
-+BIT(c)
+I'm afraid that my statement comes from trying to use gstreamer with
+libv4l2 and _not_ being able to use the 8-bit bayer formats there at
+all - they are simply not passed across to the application through
+libv4l2/v4lconvert.
 
-Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
----
-changes in v2
- -remove the unnecessary parenthesis.
+Instead, the formats that are passed across are the emulated formats.
+As I said above, that forces applications to use only the v4lconvert
+formats, the raw formats are not available.
 
- drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c  | 12 ++++++------
- drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c | 10 +++++-----
- 2 files changed, 11 insertions(+), 11 deletions(-)
+So, the presence or absence of the V4L2_FMT_FLAG_EMULATED is quite
+meaningless if you can't even enumerate the non-converted formats.
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-index 94bc7938f533..8edcde282ec9 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-@@ -194,7 +194,7 @@ static int write_target_freq_to_hw(struct atomisp_device *isp,
- 	if (isp_sspm1 & ISP_FREQ_VALID_MASK) {
- 		dev_dbg(isp->dev, "clearing ISPSSPM1 valid bit.\n");
- 		intel_mid_msgbus_write32(PUNIT_PORT, ISPSSPM1,
--				    isp_sspm1 & ~(1 << ISP_FREQ_VALID_OFFSET));
-+				    isp_sspm1 & ~BIT(ISP_FREQ_VALID_OFFSET));
- 	}
- 
- 	ratio = (2 * isp->hpll_freq + new_freq / 2) / new_freq - 1;
-@@ -207,7 +207,7 @@ static int write_target_freq_to_hw(struct atomisp_device *isp,
- 		intel_mid_msgbus_write32(PUNIT_PORT, ISPSSPM1,
- 				   isp_sspm1
- 				   | ratio << ISP_REQ_FREQ_OFFSET
--				   | 1 << ISP_FREQ_VALID_OFFSET
-+				   | BIT(ISP_FREQ_VALID_OFFSET)
- 				   | guar_ratio << ISP_REQ_GUAR_FREQ_OFFSET);
- 
- 		isp_sspm1 = intel_mid_msgbus_read32(PUNIT_PORT, ISPSSPM1);
-@@ -417,10 +417,10 @@ void atomisp_msi_irq_init(struct atomisp_device *isp, struct pci_dev *dev)
- 	u16 msg16;
- 
- 	pci_read_config_dword(dev, PCI_MSI_CAPID, &msg32);
--	msg32 |= 1 << MSI_ENABLE_BIT;
-+	msg32 |= BIT(MSI_ENABLE_BIT);
- 	pci_write_config_dword(dev, PCI_MSI_CAPID, msg32);
- 
--	msg32 = (1 << INTR_IER) | (1 << INTR_IIR);
-+	msg32 = BIT(INTR_IER) | BIT(INTR_IIR);
- 	pci_write_config_dword(dev, PCI_INTERRUPT_CTRL, msg32);
- 
- 	pci_read_config_word(dev, PCI_COMMAND, &msg16);
-@@ -435,7 +435,7 @@ void atomisp_msi_irq_uninit(struct atomisp_device *isp, struct pci_dev *dev)
- 	u16 msg16;
- 
- 	pci_read_config_dword(dev, PCI_MSI_CAPID, &msg32);
--	msg32 &=  ~(1 << MSI_ENABLE_BIT);
-+	msg32 &=  ~BIT(MSI_ENABLE_BIT);
- 	pci_write_config_dword(dev, PCI_MSI_CAPID, msg32);
- 
- 	msg32 = 0x0;
-@@ -536,7 +536,7 @@ static void clear_irq_reg(struct atomisp_device *isp)
- {
- 	u32 msg_ret;
- 	pci_read_config_dword(isp->pdev, PCI_INTERRUPT_CTRL, &msg_ret);
--	msg_ret |= 1 << INTR_IIR;
-+	msg_ret |= BIT(INTR_IIR);
- 	pci_write_config_dword(isp->pdev, PCI_INTERRUPT_CTRL, msg_ret);
- }
- 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-index 626d2f114d8d..b1f685a841ba 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-@@ -330,11 +330,11 @@ static int atomisp_mrfld_pre_power_down(struct atomisp_device *isp)
- 	 * IRQ, if so, waiting for it to be served
- 	 */
- 	pci_read_config_dword(dev, PCI_INTERRUPT_CTRL, &irq);
--	irq = irq & 1 << INTR_IIR;
-+	irq = irq & BIT(INTR_IIR);
- 	pci_write_config_dword(dev, PCI_INTERRUPT_CTRL, irq);
- 
- 	pci_read_config_dword(dev, PCI_INTERRUPT_CTRL, &irq);
--	if (!(irq & (1 << INTR_IIR)))
-+	if (!(irq & BIT(INTR_IIR)))
- 		goto done;
- 
- 	atomisp_store_uint32(MRFLD_INTR_CLEAR_REG, 0xFFFFFFFF);
-@@ -347,11 +347,11 @@ static int atomisp_mrfld_pre_power_down(struct atomisp_device *isp)
- 		return -EAGAIN;
- 	} else {
- 		pci_read_config_dword(dev, PCI_INTERRUPT_CTRL, &irq);
--		irq = irq & 1 << INTR_IIR;
-+		irq = irq & BIT(INTR_IIR);
- 		pci_write_config_dword(dev, PCI_INTERRUPT_CTRL, irq);
- 
- 		pci_read_config_dword(dev, PCI_INTERRUPT_CTRL, &irq);
--		if (!(irq & (1 << INTR_IIR))) {
-+		if (!(irq & BIT(INTR_IIR))) {
- 			atomisp_store_uint32(MRFLD_INTR_ENABLE_REG, 0x0);
- 			goto done;
- 		}
-@@ -370,7 +370,7 @@ static int atomisp_mrfld_pre_power_down(struct atomisp_device *isp)
- 	* HW sighting:4568410.
- 	*/
- 	pci_read_config_dword(dev, PCI_INTERRUPT_CTRL, &irq);
--	irq &= ~(1 << INTR_IER);
-+	irq &= ~BIT(INTR_IER);
- 	pci_write_config_dword(dev, PCI_INTERRUPT_CTRL, irq);
- 
- 	atomisp_msi_irq_uninit(isp, dev);
+The problem comes from the "always needs conversion" stuff in
+v4lconvert coupled with the way this subdev stuff works - since it
+requires manual configuration of all the pads within the kernel
+media pipeline, the kernel ends up only advertising _one_ format
+to userspace - in my case, that's RGGB8.
+
+When v4lconvert_create_with_dev_ops() enumerates the formats from
+the kernel, it gets only RGGB8.  That causes always_needs_conversion
+in there to remain true, so the special v4l control which enables/
+disables conversion gets created with a default value of "true".
+The RGGB8 bit is also set in data->supported_src_formats.
+
+This causes v4lconvert_supported_dst_fmt_only() to return true.
+
+What this all means is that v4lconvert_enum_fmt() will _not_ return
+any of the kernel formats, only the faked formats.
+
+Ergo, the RGGB8 format from the kernel is completely hidden from the
+application, and only the emulated format is made available.  As I
+said above, this forces v4lconvert's debayering on the application,
+whether you want it or not.
+
+In the gstreamer case, it knows nothing about this special control,
+which means that trying to use this gstreamer pipeline:
+
+$ gst-launch-1.0 v4l2src device=/dev/video6 ! bayer2rgbneon ! xvimagesink
+
+is completely impossible without first rebuilding gstreamer _without_
+libv4l support.  Build gstreamer without libv4l support, and the above
+works.
+
+Enabling debug output in gstreamer's v4l2src plugin confirms that
+the kernel's bayer format are totally hidden from gstreamer when
+linked with libv4l2, but are present when it isn't linked with
+libv4l2.
+
 -- 
-2.11.0
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
