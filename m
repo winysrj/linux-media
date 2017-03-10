@@ -1,35 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from exsmtp03.microchip.com ([198.175.253.49]:19993 "EHLO
-        email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753093AbdCHFH6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Mar 2017 00:07:58 -0500
-Subject: Re: [bug report] [media] atmel-isc: add the isc pipeline function
-To: Dan Carpenter <dan.carpenter@oracle.com>
-References: <20170307001729.GA1588@mwanda>
- <dbe0c888-815d-b981-a9c9-9c7283e81ee0@microchip.com>
- <20170308043814.GD4120@mwanda>
-CC: <linux-media@vger.kernel.org>
-From: "Wu, Songjun" <Songjun.Wu@microchip.com>
-Message-ID: <6f20d036-a2bb-16aa-98e8-7603a4687847@microchip.com>
-Date: Wed, 8 Mar 2017 13:06:49 +0800
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37742 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S933947AbdCJLRv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 10 Mar 2017 06:17:51 -0500
+Date: Fri, 10 Mar 2017 13:17:47 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        devicetree@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv4 09/15] ov2640: update bindings
+Message-ID: <20170310111747.GF3220@valkosipuli.retiisi.org.uk>
+References: <20170310102614.20922-1-hverkuil@xs4all.nl>
+ <20170310102614.20922-10-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20170308043814.GD4120@mwanda>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170310102614.20922-10-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dan,
+On Fri, Mar 10, 2017 at 11:26:08AM +0100, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Update the bindings for this device based on a working DT example.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Rob Herring <robh@kernel.org>
 
-I understand now, thank you very much.
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-On 3/8/2017 12:38, Dan Carpenter wrote:
-> No.  Imagine the v4l2_subdev_call() loop exits with "fmt" set to NULL.
-> It will cause a crash.
->
-> Please re-read my original email because I think you may have meant to
-> reset fmt after that loop.
->
-> regards,
-> dan carpenter
->
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
