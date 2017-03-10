@@ -1,104 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3.goneo.de ([85.220.129.37]:54636 "EHLO smtp3.goneo.de"
+Received: from mga01.intel.com ([192.55.52.88]:16636 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932189AbdC3JVC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 05:21:02 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: [PATCH 02/22] docs-rst: convert usb docbooks to ReST
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <87y3vn2mzk.fsf@intel.com>
-Date: Thu, 30 Mar 2017 11:20:14 +0200
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
-        linux-rpi-kernel@lists.infradead.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Takashi Iwai <tiwai@suse.de>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Oliver Neukum <oneukum@suse.com>,
-        Martyn Welch <martyn.welch@collabora.co.uk>,
-        Alexander Dahl <post@lespocky.de>,
-        Jonathan Cameron <jic23@kernel.org>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <D5D8BF1C-755B-4D56-B744-6A155C5B2313@darmarit.de>
-References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com> <327dcce56a725c7f91f542f2ff97995504d26526.1490813422.git.mchehab@s-opensource.com> <7D76BCB2-53F5-4BD4-8205-5A4852164C91@darmarit.de> <87y3vn2mzk.fsf@intel.com>
-To: Jani Nikula <jani.nikula@intel.com>
+        id S933595AbdCJLdx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 10 Mar 2017 06:33:53 -0500
+Subject: [PATCH 2/8] atomisp: remove unused code and unify a header
+From: Alan Cox <alan@linux.intel.com>
+To: greg@kroah.com, linux-media@vger.kernel.org
+Date: Fri, 10 Mar 2017 11:33:45 +0000
+Message-ID: <148914562054.25309.14661265320713382193.stgit@acox1-desk1.ger.corp.intel.com>
+In-Reply-To: <148914560647.25309.2276061224604665212.stgit@acox1-desk1.ger.corp.intel.com>
+References: <148914560647.25309.2276061224604665212.stgit@acox1-desk1.ger.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+KLOCWORK is never defined so we can remove the workarounds for this in the
+code.
 
-Am 30.03.2017 um 10:21 schrieb Jani Nikula <jani.nikula@intel.com>:
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+---
+ .../css2400/hive_isp_css_include/assert_support.h  |   11 -------
+ .../atomisp2/css2400/runtime/rmgr/src/rmgr_vbuf.c  |   32 +-------------------
+ 2 files changed, 1 insertion(+), 42 deletions(-)
 
-> On Thu, 30 Mar 2017, Markus Heiser <markus.heiser@darmarit.de> wrote:
->> Hi Mauro,
->> 
->> Am 29.03.2017 um 20:54 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
->> 
->>> As we're moving out of DocBook, let's convert the remaining
->>> USB docbooks to ReST.
->>> 
->>> The transformation itself on this patch is a no-brainer
->>> conversion using pandoc.
->> 
->> right, its a no-brainer ;-) I'am not very happy with this
->> conversions, some examples see below.
->> 
->> I recommend to use a more elaborate conversion as starting point,
->> e.g. from my sphkerneldoc project:
->> 
->> * https://github.com/return42/sphkerneldoc/tree/master/Documentation/books_migrated/gadget
->> * https://github.com/return42/sphkerneldoc/tree/master/Documentation/books_migrated/writing_musb_glue_layer
->> * https://github.com/return42/sphkerneldoc/tree/master/Documentation/books_migrated/writing_usb_driver
->> 
->> Since these DocBooks hasn't been changed in the last month, the linked reST
->> should be up to date.
-> 
-> Markus, I know you've done a lot of work on your conversions, and you
-> like to advocate them, but AFAICT you have never posted the conversions
-> as patches to the list. Your project isn't a clone of the kernel
-> tree. It's a pile of .rst files that nobody knows how to produce from
-> current upstream DocBook .tmpl files. I'm sorry, but this just doesn't
-> work that way.
-
-The conversion is done with the dbxml2rst tool:
-
-  https://github.com/return42/dbxml2rst
-
-But you are right, the links I send are decoupled from kernel. It is
-a 5 month old snapshot of a DocBook to reST conversion (now updated,
-with no affect to the linked files, since they have not been patched
-in the meantime) ...
-
-> At this point I'd just go with what Mauro has. It's here now, as
-> patches. We've seen from the GPU documentation that polishing the
-> one-time initial conversion is, after a point, wasted effort. Having the
-> documentation in rst attracts more attention and contributions, and any
-> remaining issues will get ironed out in rst.
-
-I totally agree with you (I have never said something different)
-
-> This is also one reason I'm in favor of just bulk converting the rest of
-> the .tmpl files using Documentation/sphinx/tmplcvt, get rid of DocBook
-> and be done with it, and have the crowds focus on rst.
-
-I also agree with that. The tmplcvt script is good enough for this task,
-the dbxml2rst tool is more elaborate.
-
-If Jonathan also likes to have a bulk conversion of the rest DocBooks,
-we can use tmplcvt or even dbxml2rst for this task. Everything under
-
-  https://github.com/return42/sphkerneldoc/tree/master/Documentation/books_migrated
-
-is just a "make dbxm2rst", I can update every time and if a bulk conversion
-is the way ... I can send such patches or you send a tmplcvt conversion.
-
-@Jon: what do you think about a bulk conversion?
-
- -- Markus --
-  
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/assert_support.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/assert_support.h
+index 95f3892..4d68405 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/assert_support.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/assert_support.h
+@@ -17,17 +17,6 @@
+ 
+ #include "storage_class.h"
+ 
+-#ifdef __KLOCWORK__
+-/* Klocwork does not see that assert will lead to abortion
+- * as there is no good way to tell this to KW and the code
+- * should not depend on assert to function (actually the assert
+- * could be disabled in a release build) it was decided to
+- * disable the assert for KW scans (by defining NDEBUG)
+- * see also: http://www.klocwork.com/products/documentation/current/Tuning_C/C%2B%2B_analysis#Assertions
+- */
+-#define NDEBUG
+-#endif /* __KLOCWORK__ */
+-
+ /**
+  * The following macro can help to test the size of a struct at compile
+  * time rather than at run-time. It does not work for all compilers; see
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/rmgr/src/rmgr_vbuf.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/rmgr/src/rmgr_vbuf.c
+index dc30e7c..3aafc0a 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/rmgr/src/rmgr_vbuf.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/rmgr/src/rmgr_vbuf.c
+@@ -1,7 +1,6 @@
+-#ifndef ISP2401
+ /*
+  * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
++ * Copyright (c) 2010-2015, Intel Corporation.
+  *
+  * This program is free software; you can redistribute it and/or modify it
+  * under the terms and conditions of the GNU General Public License,
+@@ -12,21 +11,6 @@
+  * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+  * more details.
+  */
+-#else
+-/**
+-Support for Intel Camera Imaging ISP subsystem.
+-Copyright (c) 2010 - 2015, Intel Corporation.
+-
+-This program is free software; you can redistribute it and/or modify it
+-under the terms and conditions of the GNU General Public License,
+-version 2, as published by the Free Software Foundation.
+-
+-This program is distributed in the hope it will be useful, but WITHOUT
+-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+-more details.
+-*/
+-#endif
+ 
+ #include "ia_css_rmgr.h"
+ 
+@@ -279,21 +263,7 @@ void rmgr_pop_handle(struct ia_css_rmgr_vbuf_pool *pool,
+ void ia_css_rmgr_acq_vbuf(struct ia_css_rmgr_vbuf_pool *pool,
+ 			  struct ia_css_rmgr_vbuf_handle **handle)
+ {
+-#ifdef __KLOCWORK__
+-	/* KW sees the *handle = h; assignment about 20 lines down
+-	   and thinks that we are assigning a local to a global.
+-	   What it does not see is that in ia_css_i_host_rmgr_pop_handle
+-	   a new value is assigned to handle.
+-	   So this is a false positive KW issue.
+-	   To fix that we make the struct static for KW so it will
+-	   think that h remains alive; we do not want this in our
+-	   production code though as it breaks reentrancy of the code
+-	 */
+-
+-	static struct ia_css_rmgr_vbuf_handle h;
+-#else /* __KLOCWORK__ */
+ 	struct ia_css_rmgr_vbuf_handle h;
+-#endif /* __KLOCWORK__ */
+ 
+ 	if ((pool == NULL) || (handle == NULL) || (*handle == NULL)) {
+ 		IA_CSS_LOG("Invalid inputs");
