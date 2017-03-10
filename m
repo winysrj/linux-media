@@ -1,171 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-ch2-09v.sys.comcast.net ([69.252.207.41]:40930 "EHLO
-        resqmta-ch2-09v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932673AbdC2BkI (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:58230 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S935184AbdCJKpp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Mar 2017 21:40:08 -0400
-Subject: Re: [PATCH 1/3] [media] mceusb: RX -EPIPE (urb status = -32) lockup
- failure fix
-To: Sean Young <sean@mess.org>
-References: <58D6A1DD.2030405@comcast.net>
- <20170326102748.GA1672@gofer.mess.org> <58D80838.8050809@comcast.net>
- <20170326203130.GA6070@gofer.mess.org> <58D8CAD9.80304@comcast.net>
- <20170328202516.GA27790@gofer.mess.org>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-From: A Sun <as1033x@comcast.net>
-Message-ID: <58DB1075.60302@comcast.net>
-Date: Tue, 28 Mar 2017 21:40:05 -0400
+        Fri, 10 Mar 2017 05:45:45 -0500
+Subject: Re: [PATCH v6 2/2] [media] s5p-mfc: Handle 'v4l2_pix_format:field' in
+ try_fmt and g_fmt
+To: Thibault Saunier <thibault.saunier@osg.samsung.com>,
+        linux-kernel@vger.kernel.org
+References: <20170301115108.14187-1-thibault.saunier@osg.samsung.com>
+ <20170301115108.14187-3-thibault.saunier@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        linux-arm-kernel@lists.infradead.org,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Jeongtae Park <jtp.park@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Kamil Debski <kamil@wypas.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <6b5a86c8-e82f-8541-0029-3310b563677f@xs4all.nl>
+Date: Fri, 10 Mar 2017 11:45:36 +0100
 MIME-Version: 1.0
-In-Reply-To: <20170328202516.GA27790@gofer.mess.org>
+In-Reply-To: <20170301115108.14187-3-thibault.saunier@osg.samsung.com>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 3/28/2017 4:25 PM, Sean Young wrote:
-<snip>
+On 01/03/17 12:51, Thibault Saunier wrote:
+> It is required by the standard that the field order is set by the
+> driver, default to NONE in case any is provided, but we can basically
+> accept any value provided by the userspace as we will anyway not
+> be able to do any deinterlacing.
+> 
+> In this patch we also make sure to pass the interlacing mode provided
+> by userspace from the output to the capture side of the device so
+> that the information is given back to userspace. This way it can
+> handle it and potentially deinterlace afterward.
+> 
+> Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
+> 
+> ---
+> 
+> Changes in v6:
+> - Pass user output field value to the capture as the device is not
+>   doing any deinterlacing and thus decoded content will still be
+>   interlaced on the output.
+> 
+> Changes in v5:
+> - Just adapt the field and never error out.
+> 
+> Changes in v4: None
+> Changes in v3:
+> - Do not check values in the g_fmt functions as Andrzej explained in previous review
+> 
+> Changes in v2:
+> - Fix a silly build error that slipped in while rebasing the patches
+> 
+>  drivers/media/platform/s5p-mfc/s5p_mfc_common.h | 2 ++
+>  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    | 6 +++++-
+>  2 files changed, 7 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> index ab23236aa942..3816a37de4bc 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> @@ -652,6 +652,8 @@ struct s5p_mfc_ctx {
+>  	size_t me_buffer_size;
+>  	size_t tmv_buffer_size;
 >  
->> The unused EVENT_TX_HALT and the apparently extra _kevent functions and kevent_flags are necessary for a later:
->>     [PATCH] [media] mceusb: TX -EPIPE lockup fix
->> ...not yet written, transmit side equivalent bug. I respectfully recommend keeping these hooks in place.
+> +	enum v4l2_field field;
+> +
+>  	enum v4l2_mpeg_mfc51_video_force_frame_type force_frame_type;
+>  
+>  	struct list_head ref_queue;
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> index 367ef8e8dbf0..6e5ca86fb331 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> @@ -345,7 +345,7 @@ static int vidioc_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
+>  		   rectangle. */
+>  		pix_mp->width = ctx->buf_width;
+>  		pix_mp->height = ctx->buf_height;
+> -		pix_mp->field = V4L2_FIELD_NONE;
+> +		pix_mp->field = ctx->field;
+>  		pix_mp->num_planes = 2;
+>  		/* Set pixelformat to the format in which MFC
+>  		   outputs the decoded frame */
+> @@ -380,6 +380,9 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+>  	struct s5p_mfc_dev *dev = video_drvdata(file);
+>  	struct s5p_mfc_fmt *fmt;
+>  
+> +	if (f->fmt.pix.field == V4L2_FIELD_ANY)
+> +		f->fmt.pix.field = V4L2_FIELD_NONE;
+> +
+>  	mfc_debug(2, "Type is %d\n", f->type);
+>  	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+>  		fmt = find_format(f, MFC_FMT_DEC);
+> @@ -436,6 +439,7 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+>  		goto out;
+>  	} else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+>  		/* src_fmt is validated by call to vidioc_try_fmt */
+> +		ctx->field = f->fmt.pix.field;
+
+Doing this means that you also allow for V4L2_FIELD_ALTERNATE. If you do that, then there
+are additional requirements when you queue up buffers in that the 'field' has to be set to
+TOP or BOTTOM in struct v4l2_buffer. I am sure that is a requirement for the encoder, how
+this would work for a decoder I am not sure.
+
+Also, values like V4L2_FIELD_SEQ_TB/BT would not behave well if you pass them through a
+decoder.
+
+Frankly I think the only 'reasonable' values would be FIELD_NONE, FIELD_INTERLACED and
+possibly FIELD_ALTERNATE. I don't know enough about how codecs handle interlaced formats,
+so I can't tell how much sense FIELD_ALTERNATE would make.
+
+Properly supporting interlaced formats should only be done if you actually tested it and
+know how it works and what exactly is supported.
+
+Regards,
+
+	Hans
+
+>  		ctx->src_fmt = find_format(f, MFC_FMT_DEC);
+>  		ctx->codec_mode = ctx->src_fmt->codec_mode;
+>  		mfc_debug(2, "The codec number is: %d\n", ctx->codec_mode);
 > 
-> Have you observed this happening?
-> 
-
-Not yet for my Infrared Transceiver device only. USB halt/stall errors apparently are not USB device specific, and can occur with both TX and RX according to the Linux Urb errors documentation. Calling usb_clear_halt() is required for both cases to recover and restore operation of the stalled endpoint.
-
-The TX -EPIPE error is already separated out by code in the mceusb driver, but with no error recovery handling.
-In mce_async_callback()
-        case -EPIPE:
-        default:
-                dev_err(ir->dev, "Error: request urb status = %d", urb->status);
-                break;
-        }
-
-I believe I can trigger the condition by stress test flooding or otherwise misusing the device's TX end-point in the driver (like the RX case), but I haven't put much work into that yet.
-
-> Speaking of which, how do you reproduce the original -EPIPE issue? I've
-> tried to reproduce on my raspberry pi 3 with a very similar mceusb
-> device, but I haven't had any luck.
-> 
-
-Reproduction of the RX -EPIPE is "hard" to get. I haven't found a consistent way to reproduce, other than inconsistently by:
-   Bug trigger appears to be normal, but heavy, IR receiver use.
-In particular, punch up a bunch of buttons at random on a remote control (I used a Sony TV remote) and include some long button presses in the process. Do for say about 1 minute at the time. The bug won't trigger for idle or occasional IR receiver activity.
-Some mceusb devices may be more susceptible to the problem than others.
-
-> What's the lsusb -vv for this device?
-
-Here it is, on my raspberry pi 3:
-
-...
-Bus 001 Device 006: ID 2304:0225 Pinnacle Systems, Inc. Remote Kit Infrared Transceiver
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0         8
-  idVendor           0x2304 Pinnacle Systems, Inc.
-  idProduct          0x0225 Remote Kit Infrared Transceiver
-  bcdDevice            0.01
-  iManufacturer           1 Pinnacle Systems
-  iProduct                2 PCTV Remote USB
-  iSerial                 5 7FFFFFFFFFFFFFFF
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength           32
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration          3 StandardConfiguration
-    bmAttributes         0xa0
-      (Bus Powered)
-      Remote Wakeup
-    MaxPower              100mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           2
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              4 StandardInterface
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0040  1x 64 bytes
-        bInterval              10
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x02  EP 2 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0040  1x 64 bytes
-        bInterval              10
-Device Status:     0x0000
-  (Bus Powered)
-...
-
-The most recent bug replication I got was while testing the fix methodology for [patch 1/3]. The fault, when it occurs, is between IR data blocks during receive.
-
-...
-Mar 22 12:16:35 raspberrypi kernel: [ 4863.489177] mceusb 1-1.2:1.0: rx data: 90 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f 7f (length=17)
-Mar 22 12:16:35 raspberrypi kernel: [ 4863.489184] mceusb 1-1.2:1.0: Raw IR data, 16 pulse/space samples
-Mar 22 12:16:35 raspberrypi kernel: [ 4863.489189] mceusb 1-1.2:1.0: Storing space with duration 6350000
-Mar 22 12:16:35 raspberrypi kernel: [ 4863.489195] mceusb 1-1.2:1.0: Storing space with duration 6350000
-Mar 22 12:16:35 raspberrypi kernel: [ 4863.489199] mceusb 1-1.2:1.0: Storing space with duration 6350000
-Mar 22 12:16:35 raspberrypi kernel: [ 4863.489203] mceusb 1-1.2:1.0: Storing space with duration 6350000
-Mar 22 12:16:35 raspberrypi kernel: [ 4863.489207] mceusb 1-1.2:1.0: Storing space with duration 6350000
-Mar 22 12:16:35 raspberrypi kernel: [ 4863.489211] mceusb 1-1.2:1.0: Storing space with duration 6350000
-Mar 22 12:16:35 raspberrypi kernel: [ 4863.489216] mceusb 1-1.2:1.0: Storing space with duration 6350000
-Mar 22 12:16:35 raspberrypi kernel: [ 4863.489220] mceusb 1-1.2:1.0: Storing space with duration 6350000
-Mar 22 12:16:35 raspberrypi kernel: [ 4863.489224] mceusb 1-1.2:1.0: Storing space with duration 6350000
-Mar 22 12:16:35 raspberrypi kernel: [ 4863.489228] mceusb 1-1.2:1.0: Storing space with duration 6350000
-Mar 22 12:16:35 raspberrypi kernel: [ 4863.489232] mceusb 1-1.2:1.0: Storing space with duration 6350000
-Mar 22 12:16:35 raspberrypi kernel: [ 4863.489236] mceusb 1-1.2:1.0: Storing space with duration 6350000
-Mar 22 12:16:35 raspberrypi kernel: [ 4863.489240] mceusb 1-1.2:1.0: Storing space with duration 6350000
-Mar 22 12:16:35 raspberrypi kernel: [ 4863.489246] mceusb 1-1.2:1.0: Storing space with duration 6350000
-Mar 22 12:16:35 raspberrypi kernel: [ 4863.489250] mceusb 1-1.2:1.0: Storing space with duration 6350000
-Mar 22 12:16:35 raspberrypi kernel: [ 4863.489254] mceusb 1-1.2:1.0: Storing space with duration 6350000
-Mar 22 12:16:35 raspberrypi kernel: [ 4863.489257] mceusb 1-1.2:1.0: processed IR data
-Mar 22 12:16:35 raspberrypi kernel: [ 4863.589429] mceusb 1-1.2:1.0: Error: urb status = -32 (RX HALT)
-Mar 22 12:16:35 raspberrypi kernel: [ 4863.589452] mceusb 1-1.2:1.0: kevent 1 scheduled
-Mar 22 12:16:35 raspberrypi kernel: [ 4863.590203] mceusb 1-1.2:1.0: unhalt usb_submit_urb, status 0
-Mar 22 12:16:36 raspberrypi kernel: [ 4864.614325] mceusb 1-1.2:1.0: rx data: 90 0b 98 0c 8c 0c 8c 0c 98 0c 98 0c 98 0c 8c 0c 8c (length=17)
-Mar 22 12:16:36 raspberrypi kernel: [ 4864.614338] mceusb 1-1.2:1.0: Raw IR data, 16 pulse/space samples
-Mar 22 12:16:36 raspberrypi kernel: [ 4864.614346] mceusb 1-1.2:1.0: Storing space with duration 550000
-Mar 22 12:16:36 raspberrypi kernel: [ 4864.614355] mceusb 1-1.2:1.0: Storing pulse with duration 1200000
-Mar 22 12:16:36 raspberrypi kernel: [ 4864.614363] mceusb 1-1.2:1.0: Storing space with duration 600000
-Mar 22 12:16:36 raspberrypi kernel: [ 4864.614370] mceusb 1-1.2:1.0: Storing pulse with duration 600000
-Mar 22 12:16:36 raspberrypi kernel: [ 4864.614377] mceusb 1-1.2:1.0: Storing space with duration 600000
-Mar 22 12:16:36 raspberrypi kernel: [ 4864.614384] mceusb 1-1.2:1.0: Storing pulse with duration 600000
-Mar 22 12:16:36 raspberrypi kernel: [ 4864.614391] mceusb 1-1.2:1.0: Storing space with duration 600000
-Mar 22 12:16:36 raspberrypi kernel: [ 4864.614399] mceusb 1-1.2:1.0: Storing pulse with duration 1200000
-Mar 22 12:16:36 raspberrypi kernel: [ 4864.614405] mceusb 1-1.2:1.0: Storing space with duration 600000
-Mar 22 12:16:36 raspberrypi kernel: [ 4864.614414] mceusb 1-1.2:1.0: Storing pulse with duration 1200000
-Mar 22 12:16:36 raspberrypi kernel: [ 4864.614421] mceusb 1-1.2:1.0: Storing space with duration 600000
-Mar 22 12:16:36 raspberrypi kernel: [ 4864.614428] mceusb 1-1.2:1.0: Storing pulse with duration 1200000
-Mar 22 12:16:36 raspberrypi kernel: [ 4864.614435] mceusb 1-1.2:1.0: Storing space with duration 600000
-Mar 22 12:16:36 raspberrypi kernel: [ 4864.614443] mceusb 1-1.2:1.0: Storing pulse with duration 600000
-Mar 22 12:16:36 raspberrypi kernel: [ 4864.614450] mceusb 1-1.2:1.0: Storing space with duration 600000
-Mar 22 12:16:36 raspberrypi kernel: [ 4864.614458] mceusb 1-1.2:1.0: Storing pulse with duration 600000
-Mar 22 12:16:36 raspberrypi kernel: [ 4864.614463] mceusb 1-1.2:1.0: processed IR data
-Mar 22 12:16:36 raspberrypi kernel: [ 4864.648331] mceusb 1-1.2:1.0: rx data: 90 0b 8d 0b 8d 7f 7f 7f 72 b0 0c 98 0c 8c 0c 98 0c (length=17)
-...
-
-Thanks, ..A Sun
