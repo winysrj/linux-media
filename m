@@ -1,95 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay2.synopsys.com ([198.182.60.111]:43093 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934684AbdCVNyo (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:59739 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S935376AbdCJKbN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Mar 2017 09:54:44 -0400
-Subject: Re: [PATCH v4 2/6] media: uapi: Add RGB and YUV bus formats for
- Synopsys HDMI TX Controller
-To: Neil Armstrong <narmstrong@baylibre.com>,
-        <dri-devel@lists.freedesktop.org>,
-        <laurent.pinchart+renesas@ideasonboard.com>,
-        <architt@codeaurora.org>, <mchehab@kernel.org>
-References: <1490109161-20529-1-git-send-email-narmstrong@baylibre.com>
- <1490109161-20529-3-git-send-email-narmstrong@baylibre.com>
-CC: <Jose.Abreu@synopsys.com>, <kieran.bingham@ideasonboard.com>,
-        <linux-amlogic@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <hans.verkuil@cisco.com>, <sakari.ailus@linux.intel.com>
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-Message-ID: <d4928e0c-ee95-53d0-788f-22b948db19fa@synopsys.com>
-Date: Wed, 22 Mar 2017 13:54:33 +0000
+        Fri, 10 Mar 2017 05:31:13 -0500
+Subject: Re: [PATCH v6 1/2] [media] exynos-gsc: Use user configured colorspace
+ if provided
+To: Thibault Saunier <thibault.saunier@osg.samsung.com>,
+        linux-kernel@vger.kernel.org
+References: <20170301115108.14187-1-thibault.saunier@osg.samsung.com>
+ <20170301115108.14187-2-thibault.saunier@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        linux-samsung-soc@vger.kernel.org,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        linux-arm-kernel@lists.infradead.org,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <624d41f9-bdcb-3a9d-b462-109d1442bd7f@xs4all.nl>
+Date: Fri, 10 Mar 2017 11:31:08 +0100
 MIME-Version: 1.0
-In-Reply-To: <1490109161-20529-3-git-send-email-narmstrong@baylibre.com>
-Content-Type: text/plain; charset="windows-1252"
+In-Reply-To: <20170301115108.14187-2-thibault.saunier@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Neil,
-
-
-On 21-03-2017 15:12, Neil Armstrong wrote:
-> In order to describe the RGB and YUV bus formats used to feed the
-> Synopsys DesignWare HDMI TX Controller, add missing formats to the
-> list of Bus Formats.
->
-> Documentation for these formats is added in a separate patch.
->
-> Reviewed-by: Archit Taneja <architt@codeaurora.org>
-> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
-
-Reviewed-by: Jose Abreu <joabreu@synopsys.com>
-
-Best regards,
-Jose Miguel Abreu
-
+On 01/03/17 12:51, Thibault Saunier wrote:
+> Use colorspace provided by the user as we are only doing scaling and
+> color encoding conversion, we won't be able to transform the colorspace
+> itself and the colorspace won't mater in that operation.
+> 
+> Also always use output colorspace on the capture side.
+> 
+> If the user does not provide a colorspace do no make it up, we might
+> later while processing need to figure out the colorspace, which
+> is possible depending on the frame size but do not ever guess and
+> leak that guess to the userspace.
+> 
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
+> Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
+> 
 > ---
->  include/uapi/linux/media-bus-format.h | 13 +++++++++++--
->  1 file changed, 11 insertions(+), 2 deletions(-)
->
-> diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-> index 2168759..6c8f31c 100644
-> --- a/include/uapi/linux/media-bus-format.h
-> +++ b/include/uapi/linux/media-bus-format.h
-> @@ -33,7 +33,7 @@
+> 
+> Changes in v6:
+> - Do not ever guess colorspace
+> 
+> Changes in v5:
+> - Squash commit to always use output colorspace on the capture side
+>   inside this one
+> - Fix typo in commit message
+> 
+> Changes in v4:
+> - Reword commit message to better back our assumptions on specifications
+> 
+> Changes in v3:
+> - Do not check values in the g_fmt functions as Andrzej explained in previous review
+> - Added 'Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>'
+> 
+> Changes in v2: None
+> 
+>  drivers/media/platform/exynos-gsc/gsc-core.c | 9 ++++-----
+>  drivers/media/platform/exynos-gsc/gsc-core.h | 1 +
+>  2 files changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+> index 59a634201830..0241168c85af 100644
+> --- a/drivers/media/platform/exynos-gsc/gsc-core.c
+> +++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+> @@ -454,6 +454,7 @@ int gsc_try_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
+>  	} else {
+>  		min_w = variant->pix_min->target_rot_dis_w;
+>  		min_h = variant->pix_min->target_rot_dis_h;
+> +		pix_mp->colorspace = ctx->out_colorspace;
+>  	}
 >  
->  #define MEDIA_BUS_FMT_FIXED			0x0001
+>  	pr_debug("mod_x: %d, mod_y: %d, max_w: %d, max_h = %d",
+> @@ -472,10 +473,8 @@ int gsc_try_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
 >  
-> -/* RGB - next is	0x1018 */
-> +/* RGB - next is	0x101b */
->  #define MEDIA_BUS_FMT_RGB444_1X12		0x1016
->  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
->  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
-> @@ -57,8 +57,11 @@
->  #define MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA	0x1012
->  #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
->  #define MEDIA_BUS_FMT_RGB888_1X32_PADHI		0x100f
-> +#define MEDIA_BUS_FMT_RGB101010_1X30		0x1018
-> +#define MEDIA_BUS_FMT_RGB121212_1X36		0x1019
-> +#define MEDIA_BUS_FMT_RGB161616_1X48		0x101a
+>  	pix_mp->num_planes = fmt->num_planes;
 >  
-> -/* YUV (including grey) - next is	0x2026 */
-> +/* YUV (including grey) - next is	0x202c */
->  #define MEDIA_BUS_FMT_Y8_1X8			0x2001
->  #define MEDIA_BUS_FMT_UV8_1X8			0x2015
->  #define MEDIA_BUS_FMT_UYVY8_1_5X8		0x2002
-> @@ -90,12 +93,18 @@
->  #define MEDIA_BUS_FMT_YVYU10_1X20		0x200e
->  #define MEDIA_BUS_FMT_VUY8_1X24			0x2024
->  #define MEDIA_BUS_FMT_YUV8_1X24			0x2025
-> +#define MEDIA_BUS_FMT_UYYVYY8_1X24		0x2026
->  #define MEDIA_BUS_FMT_UYVY12_1X24		0x2020
->  #define MEDIA_BUS_FMT_VYUY12_1X24		0x2021
->  #define MEDIA_BUS_FMT_YUYV12_1X24		0x2022
->  #define MEDIA_BUS_FMT_YVYU12_1X24		0x2023
->  #define MEDIA_BUS_FMT_YUV10_1X30		0x2016
-> +#define MEDIA_BUS_FMT_UYYVYY10_1X30		0x2027
->  #define MEDIA_BUS_FMT_AYUV8_1X32		0x2017
-> +#define MEDIA_BUS_FMT_UYYVYY12_1X36		0x2028
-> +#define MEDIA_BUS_FMT_YUV12_1X36		0x2029
-> +#define MEDIA_BUS_FMT_YUV16_1X48		0x202a
-> +#define MEDIA_BUS_FMT_UYYVYY16_1X48		0x202b
+> -	if (pix_mp->width >= 1280) /* HD */
+> -		pix_mp->colorspace = V4L2_COLORSPACE_REC709;
+> -	else /* SD */
+> -		pix_mp->colorspace = V4L2_COLORSPACE_SMPTE170M;
+> +	if (V4L2_TYPE_IS_OUTPUT(f->type))
+> +		ctx->out_colorspace = pix_mp->colorspace;
 >  
->  /* Bayer - next is	0x3021 */
->  #define MEDIA_BUS_FMT_SBGGR8_1X8		0x3001
+>  	for (i = 0; i < pix_mp->num_planes; ++i) {
+>  		struct v4l2_plane_pix_format *plane_fmt = &pix_mp->plane_fmt[i];
+> @@ -519,8 +518,8 @@ int gsc_g_fmt_mplane(struct gsc_ctx *ctx, struct v4l2_format *f)
+>  	pix_mp->height		= frame->f_height;
+>  	pix_mp->field		= V4L2_FIELD_NONE;
+>  	pix_mp->pixelformat	= frame->fmt->pixelformat;
+> -	pix_mp->colorspace	= V4L2_COLORSPACE_REC709;
+>  	pix_mp->num_planes	= frame->fmt->num_planes;
+> +	pix_mp->colorspace = ctx->out_colorspace;
+
+You need to do the same for the ycbcr_enc, xfer_func and quantization fields.
+With that in place it is fully 'colorspace compliant' :-)
+
+Regards,
+
+	Hans
+
+>  
+>  	for (i = 0; i < pix_mp->num_planes; ++i) {
+>  		pix_mp->plane_fmt[i].bytesperline = (frame->f_width *
+> diff --git a/drivers/media/platform/exynos-gsc/gsc-core.h b/drivers/media/platform/exynos-gsc/gsc-core.h
+> index 696217e9af66..715d9c9d8d30 100644
+> --- a/drivers/media/platform/exynos-gsc/gsc-core.h
+> +++ b/drivers/media/platform/exynos-gsc/gsc-core.h
+> @@ -376,6 +376,7 @@ struct gsc_ctx {
+>  	struct v4l2_ctrl_handler ctrl_handler;
+>  	struct gsc_ctrls	gsc_ctrls;
+>  	bool			ctrls_rdy;
+> +	enum v4l2_colorspace out_colorspace;
+>  };
+>  
+>  void gsc_set_prefbuf(struct gsc_dev *gsc, struct gsc_frame *frm);
+> 
