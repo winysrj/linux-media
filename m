@@ -1,135 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:54725
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1755411AbdCJPJT (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57446 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932705AbdCJWyZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Mar 2017 10:09:19 -0500
-Date: Fri, 10 Mar 2017 12:09:02 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
- controls from a pipeline
-Message-ID: <20170310120902.1daebc7b@vento.lan>
-In-Reply-To: <a7b8e095-a95c-24bd-b1e9-e983f18061c4@xs4all.nl>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
-        <1487211578-11360-15-git-send-email-steve_longerbeam@mentor.com>
-        <20170302160257.GK3220@valkosipuli.retiisi.org.uk>
-        <20170303230645.GR21222@n2100.armlinux.org.uk>
-        <20170304131329.GV3220@valkosipuli.retiisi.org.uk>
-        <a7b8e095-a95c-24bd-b1e9-e983f18061c4@xs4all.nl>
+        Fri, 10 Mar 2017 17:54:25 -0500
+Date: Sat, 11 Mar 2017 00:54:18 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
+        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH] v4l2-fwnode: Fix clock lane parsing
+Message-ID: <20170310225418.GJ3220@valkosipuli.retiisi.org.uk>
+References: <20161228183036.GA13139@amd>
+ <10545906.Gxg3yScdu4@avalon>
+ <20170215094228.GA8586@amd>
+ <2414221.XNA4JCFMRx@avalon>
+ <20170302090143.GB27818@amd>
+ <20170302101603.GE27818@amd>
+ <20170302112401.GF3220@valkosipuli.retiisi.org.uk>
+ <20170302123848.GA28230@amd>
+ <20170304130318.GU3220@valkosipuli.retiisi.org.uk>
+ <20170306072323.GA23509@amd>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170306072323.GA23509@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 10 Mar 2017 13:54:28 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-
-> > Devices that have complex pipeline that do essentially require using the
-> > Media controller interface to configure them are out of that scope.
-> >   
+On Mon, Mar 06, 2017 at 08:23:24AM +0100, Pavel Machek wrote:
+> Fix clock lane parsing in v4l2-fwnode.
+>     
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
 > 
-> Way too much of how the MC devices should be used is in the minds of developers.
-> There is a major lack for good detailed documentation, utilities, compliance
-> test (really needed!) and libv4l plugins.
+> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+> index d6666d3..44036b8 100644
+> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+> @@ -167,7 +167,7 @@ void v4l2_fwnode_endpoint_parse_csi1_bus(struct fwnode_handle *fwn,
+>                 bus->data_lane = v;
+>  
+>         if (!fwnode_property_read_u32(fwn, "clock-lanes", &v))
+> -               bus->data_lane = v;
+> +               bus->clock_lane = v;
 
-Unfortunately, we merged an incomplete MC support at the Kernel. We knew
-all the problems with MC-based drivers and V4L2 applications by the time
-it was developed, and we requested Nokia developers (with was sponsoring MC
-develoment, on that time) to work on a solution to allow standard V4L2
-applications to work with MC based boards.
+Oh my. Did I really write it like that?
 
-Unfortunately, we took the decision to merge MC without that, because 
-Nokia was giving up on Linux development, and we didn't want to lose the
-2 years of discussions and work around it, as Nokia employers were leaving
-the company. Also, on that time, there was already some patches floating
-around adding backward support via libv4l. Unfortunately, those patches
-were never finished.
+I'll merge your fix next Monday. Thanks!
 
-The net result is that MC was merged with some huge gaps, including
-the lack of a proper solution for a generic V4L2 program to work
-with V4L2 devices that use the subdev API.
-
-That was not that bad by then, as MC was used only on cell phones
-that run custom-made applications. 
-
-The reallity changed, as now, we have lots of low cost SoC based
-boards, used for all sort of purposes. So, we need a quick solution
-for it.
-
-In other words, while that would be acceptable support special apps
-on really embedded systems, it is *not OK* for general purpose SoC
-harware[1].
-
-[1] I'm calling "general purpose SoC harware" those ARM boards
-like Raspberry Pi that are shipped to the mass and used by a wide
-range of hobbyists and other people that just wants to run Linux on
-ARM. It is possible to buy such boards for a very cheap price,
-making them to be used not only on special projects, where a custom
-made application could be interesting, but also for a lot of
-users that just want to run Linux on a low cost ARM board, while
-keeping using standard V4L2 apps, like "camorama".
-
-That's perhaps one of the reasons why it took a long time for us to
-start receiving drivers upstream for such hardware: it is quite 
-intimidating and not logical to require developers to implement
-on their drivers 2 complex APIs (MC, subdev) for those
-hardware that most users won't care. From user's perspective,
-being able to support generic applications like "camorama" and
-"zbar" is all they want.
-
-In summary, I'm pretty sure we need to support standard V4L2 
-applications on boards like Raspberry Pi and those low-cost 
-SoC-based boards that are shipped to end users.
-
-> Anyway, regarding this specific patch and for this MC-aware driver: no, you
-> shouldn't inherit controls from subdevs. It defeats the purpose.
-
-Sorry, but I don't agree with that. The subdev API is an optional API
-(and even the MC API can be optional).
-
-I see the rationale for using MC and subdev APIs on cell phones,
-ISV and other embedded hardware, as it will allow fine-tuning
-the driver's support to allow providing the required quality for
-certain custom-made applications. but on general SoC hardware,
-supporting standard V4L2 applications is a need.
-
-Ok, perhaps supporting both subdev API and V4L2 API at the same
-time doesn't make much sense. We could disable one in favor of the
-other, either at compilation time or at runtime.
-
-This way, if the subdev API is disabled, the driver will be
-functional for V4L2-based applications that don't support neither
-MC or subdev APIs.
-
-> As mentioned, I will attempt to try and get some time to work on this
-> later this year. Fingers crossed.
-
-That will be good, and, once we have a solution that works, we can
-work on cleanup the code, but, until then, drivers for arm-based boards
-sold to end consumers should work out of the box with standard V4L2 apps.
-
-While we don't have that, I'm OK to merge patches adding such support
-upstream.
-
-Thanks,
-Mauro
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
