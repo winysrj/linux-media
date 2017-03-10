@@ -1,82 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:9428 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755299AbdCTOyl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 10:54:41 -0400
-Subject: [PATCH 06/24] atomisp: kill another define
-From: Alan Cox <alan@linux.intel.com>
-To: greg@kroah.com, linux-media@vger.kernel.org
-Date: Mon, 20 Mar 2017 14:39:38 +0000
-Message-ID: <149002076867.17109.6183542354794542722.stgit@acox1-desk1.ger.corp.intel.com>
-In-Reply-To: <149002068431.17109.1216139691005241038.stgit@acox1-desk1.ger.corp.intel.com>
-References: <149002068431.17109.1216139691005241038.stgit@acox1-desk1.ger.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:34398 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932079AbdCJExq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 23:53:46 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v5 03/39] [media] dt/bindings: Add bindings for OV5640
+Date: Thu,  9 Mar 2017 20:52:43 -0800
+Message-Id: <1489121599-23206-4-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We don't need an ifdef for the sake of 8-12 bytes. This undoes the ifdef added by
-fde469701c7efabebf885e785edf367bfb1a8f3f. Instead turn it into a single const string
-array at a fixed location thereby saving even more memory.
+Add device tree binding documentation for the OV5640 camera sensor.
 
-Signed-off-by: Alan Cox <alan@linux.intel.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- .../staging/media/atomisp/pci/atomisp2/hmm/hmm.c   |   23 +++++++++-----------
- 1 file changed, 10 insertions(+), 13 deletions(-)
+ .../devicetree/bindings/media/i2c/ov5640.txt       | 45 ++++++++++++++++++++++
+ 1 file changed, 45 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5640.txt
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
-index e78f02f..1f07c7a 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
-@@ -1,7 +1,7 @@
- /*
-  * Support for Medifield PNW Camera Imaging ISP subsystem.
-  *
-- * Copyright (c) 2010 Intel Corporation. All Rights Reserved.
-+ * Copyright (c) 2010-2017 Intel Corporation. All Rights Reserved.
-  *
-  * Copyright (c) 2010 Silicon Hive www.siliconhive.com.
-  *
-@@ -45,14 +45,11 @@ struct hmm_pool	reserved_pool;
- static ia_css_ptr dummy_ptr;
- struct _hmm_mem_stat hmm_mem_stat;
- 
--const char *hmm_bo_type_strings[HMM_BO_LAST] = {
--	"p", /* private */
--	"s", /* shared */
--	"u", /* user */
--#ifdef CONFIG_ION
--	"i", /* ion */
--#endif
--};
-+/* p: private
-+   s: shared
-+   u: user
-+   i: ion */
-+static const char hmm_bo_type_string[] = "psui";
- 
- static ssize_t bo_show(struct device *dev, struct device_attribute *attr,
- 			char *buf, struct list_head *bo_list, bool active)
-@@ -77,8 +74,8 @@ static ssize_t bo_show(struct device *dev, struct device_attribute *attr,
- 		if ((active && (bo->status & HMM_BO_ALLOCED)) ||
- 			(!active && !(bo->status & HMM_BO_ALLOCED))) {
- 			ret = scnprintf(buf + index1, PAGE_SIZE - index1,
--				"%s %d\n",
--				hmm_bo_type_strings[bo->type], bo->pgnr);
-+				"%c %d\n",
-+				hmm_bo_type_string[bo->type], bo->pgnr);
- 
- 			total[bo->type] += bo->pgnr;
- 			count[bo->type]++;
-@@ -92,8 +89,8 @@ static ssize_t bo_show(struct device *dev, struct device_attribute *attr,
- 		if (count[i]) {
- 			ret = scnprintf(buf + index1 + index2,
- 				PAGE_SIZE - index1 - index2,
--				"%ld %s buffer objects: %ld KB\n",
--				count[i], hmm_bo_type_strings[i], total[i] * 4);
-+				"%ld %c buffer objects: %ld KB\n",
-+				count[i], hmm_bo_type_string[i], total[i] * 4);
- 			if (ret > 0)
- 				index2 += ret;
- 		}
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov5640.txt b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+new file mode 100644
+index 0000000..540b36c
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+@@ -0,0 +1,45 @@
++* Omnivision OV5640 MIPI CSI-2 sensor
++
++Required Properties:
++- compatible: should be "ovti,ov5640"
++- clocks: reference to the xclk input clock.
++- clock-names: should be "xclk".
++- DOVDD-supply: Digital I/O voltage supply, 1.8 volts
++- AVDD-supply: Analog voltage supply, 2.8 volts
++- DVDD-supply: Digital core voltage supply, 1.5 volts
++
++Optional Properties:
++- reset-gpios: reference to the GPIO connected to the reset pin, if any.
++	       This is an active low signal to the OV5640.
++- powerdown-gpios: reference to the GPIO connected to the powerdown pin,
++		   if any. This is an active high signal to the OV5640.
++
++The device node must contain one 'port' child node for its digital output
++video port, in accordance with the video interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++
++&i2c1 {
++	ov5640: camera@3c {
++		compatible = "ovti,ov5640";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_ov5640>;
++		reg = <0x3c>;
++		clocks = <&clks IMX6QDL_CLK_CKO>;
++		clock-names = "xclk";
++		DOVDD-supply = <&vgen4_reg>; /* 1.8v */
++		AVDD-supply = <&vgen3_reg>;  /* 2.8v */
++		DVDD-supply = <&vgen2_reg>;  /* 1.5v */
++		powerdown-gpios = <&gpio1 19 GPIO_ACTIVE_HIGH>;
++		reset-gpios = <&gpio1 20 GPIO_ACTIVE_LOW>;
++
++		port {
++			ov5640_to_mipi_csi2: endpoint {
++				remote-endpoint = <&mipi_csi2_from_ov5640>;
++				clock-lanes = <0>;
++				data-lanes = <1 2>;
++			};
++		};
++	};
++};
+-- 
+2.7.4
