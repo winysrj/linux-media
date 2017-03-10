@@ -1,115 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:36893 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752138AbdC2Syb (ORCPT
+Received: from mail-yw0-f194.google.com ([209.85.161.194]:36006 "EHLO
+        mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933326AbdCJN4j (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Mar 2017 14:54:31 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
-        linux-rpi-kernel@lists.infradead.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 14/22] usb/persist.txt: convert to ReST and add to driver-api book
-Date: Wed, 29 Mar 2017 15:54:13 -0300
-Message-Id: <d5050ec9dbba7743c2a0d19616346e3bba882b31.1490813422.git.mchehab@s-opensource.com>
-In-Reply-To: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
-References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
-In-Reply-To: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
-References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+        Fri, 10 Mar 2017 08:56:39 -0500
+MIME-Version: 1.0
+In-Reply-To: <20170310124043.45hdu64wd4acf4it@phenom.ffwll.local>
+References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+ <20170303132949.GC31582@dhcp22.suse.cz> <cf383b9b-3cbc-0092-a071-f120874c053c@redhat.com>
+ <20170306074258.GA27953@dhcp22.suse.cz> <20170306104041.zghsicrnadoap7lp@phenom.ffwll.local>
+ <20170306105805.jsq44kfxhsvazkm6@sirena.org.uk> <20170306160437.sf7bksorlnw7u372@phenom.ffwll.local>
+ <CA+M3ks77Am3Fx-ZNmgeM5tCqdM7SzV7rby4Es-p2F2aOhUco9g@mail.gmail.com>
+ <26bc57ae-d88f-4ea0-d666-2c1a02bf866f@redhat.com> <20170310103112.GA15945@e106950-lin.cambridge.arm.com>
+ <20170310124043.45hdu64wd4acf4it@phenom.ffwll.local>
+From: Rob Clark <robdclark@gmail.com>
+Date: Fri, 10 Mar 2017 08:56:32 -0500
+Message-ID: <CAF6AEGtTicaJnApMSrmdQnriQd_rwQBW4H8rH+Xe9evkwZy8eg@mail.gmail.com>
+Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of staging
+To: Brian Starkey <brian.starkey@arm.com>,
+        Laura Abbott <labbott@redhat.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Mark Brown <broonie@kernel.org>,
+        Michal Hocko <mhocko@kernel.org>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>,
+        =?UTF-8?B?QXJ2ZSBIasO4bm5ldsOlZw==?= <arve@android.com>,
+        Rom Lemarchand <romlem@google.com>, devel@driverdev.osuosl.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        linux-mm <linux-mm@kvack.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This document describe some USB core features. Add it to the
-driver-api book.
+On Fri, Mar 10, 2017 at 7:40 AM, Daniel Vetter <daniel@ffwll.ch> wrote:
+> On Fri, Mar 10, 2017 at 10:31:13AM +0000, Brian Starkey wrote:
+>> Hi,
+>>
+>> On Thu, Mar 09, 2017 at 09:38:49AM -0800, Laura Abbott wrote:
+>> > On 03/09/2017 02:00 AM, Benjamin Gaignard wrote:
+>>
+>> [snip]
+>>
+>> > >
+>> > > For me those patches are going in the right direction.
+>> > >
+>> > > I still have few questions:
+>> > > - since alignment management has been remove from ion-core, should it
+>> > > be also removed from ioctl structure ?
+>> >
+>> > Yes, I think I'm going to go with the suggestion to fixup the ABI
+>> > so we don't need the compat layer and as part of that I'm also
+>> > dropping the align argument.
+>> >
+>>
+>> Is the only motivation for removing the alignment parameter that
+>> no-one got around to using it for something useful yet?
+>> The original comment was true - different devices do have different
+>> alignment requirements.
+>>
+>> Better alignment can help SMMUs use larger blocks when mapping,
+>> reducing TLB pressure and the chance of a page table walk causing
+>> display underruns.
+>
+> Extending ioctl uapi is easy, trying to get rid of bad uapi is much
+> harder. Given that right now we don't have an ion allocator that does
+> alignment I think removing it makes sense. And if we go with lots of
+> heaps, we might as well have an ion heap per alignment that your hw needs,
+> so there's different ways to implement this in the future.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/driver-api/usb/index.rst             |  1 +
- .../persist.txt => driver-api/usb/persist.rst}     | 22 +++++++++++++---------
- 2 files changed, 14 insertions(+), 9 deletions(-)
- rename Documentation/{usb/persist.txt => driver-api/usb/persist.rst} (94%)
+slight correction:  if you plan ahead (and do things like zero init if
+userspace passes in a smaller ioctl struct like drm_ioctl does),
+extending ioctl uapi is easy.. might be something worth fixing from
+the get-go..
 
-diff --git a/Documentation/driver-api/usb/index.rst b/Documentation/driver-api/usb/index.rst
-index 43f0a8b72b11..3f08cb5d5feb 100644
---- a/Documentation/driver-api/usb/index.rst
-+++ b/Documentation/driver-api/usb/index.rst
-@@ -12,6 +12,7 @@ Linux USB API
-    dma
-    power-management
-    hotplug
-+   persist
-    error-codes
-    writing_usb_driver
-    writing_musb_glue_layer
-diff --git a/Documentation/usb/persist.txt b/Documentation/driver-api/usb/persist.rst
-similarity index 94%
-rename from Documentation/usb/persist.txt
-rename to Documentation/driver-api/usb/persist.rst
-index 35d70eda9ad6..af02baf61f57 100644
---- a/Documentation/usb/persist.txt
-+++ b/Documentation/driver-api/usb/persist.rst
-@@ -1,11 +1,12 @@
--		USB device persistence during system suspend
-+USB device persistence during system suspend
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- 
--		   Alan Stern <stern@rowland.harvard.edu>
-+Alan Stern <stern@rowland.harvard.edu>
-+September 2, 2006 (Updated February 25, 2008)
- 
--		September 2, 2006 (Updated February 25, 2008)
- 
--
--	What is the problem?
-+What is the problem?
-+====================
- 
- According to the USB specification, when a USB bus is suspended the
- bus must continue to supply suspend current (around 1-5 mA).  This
-@@ -63,7 +64,8 @@ suspended -- but it will crash as soon as it wakes up, which isn't
- much better.)
- 
- 
--	What is the solution?
-+What is the solution?
-+=====================
- 
- The kernel includes a feature called USB-persist.  It tries to work
- around these issues by allowing the core USB device data structures to
-@@ -99,7 +101,7 @@ now a good and happy place.
- 
- Note that the "USB-persist" feature will be applied only to those
- devices for which it is enabled.  You can enable the feature by doing
--(as root):
-+(as root)::
- 
- 	echo 1 >/sys/bus/usb/devices/.../power/persist
- 
-@@ -110,7 +112,8 @@ doesn't even exist, so you only have to worry about setting it for
- devices where it really matters.
- 
- 
--	Is this the best solution?
-+Is this the best solution?
-+==========================
- 
- Perhaps not.  Arguably, keeping track of mounted filesystems and
- memory mappings across device disconnects should be handled by a
-@@ -130,7 +133,8 @@ just mass-storage devices.  It might turn out to be equally useful for
- other device types, such as network interfaces.
- 
- 
--	WARNING: USB-persist can be dangerous!!
-+WARNING: USB-persist can be dangerous!!
-+=======================================
- 
- When recovering an interrupted power session the kernel does its best
- to make sure the USB device hasn't been changed; that is, the same
--- 
-2.9.3
+BR,
+-R
+
+> At least from the unix device memory allocator pov it's probably simpler
+> to encode stuff like this into the heap name, instead of having to pass
+> heap + list of additional properties/constraints.
+> -Daniel
+> --
+> Daniel Vetter
+> Software Engineer, Intel Corporation
+> http://blog.ffwll.ch
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/dri-devel
