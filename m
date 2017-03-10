@@ -1,63 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:48603 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933373AbdC3Qv0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 12:51:26 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Russell King <linux@armlinux.org.uk>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v4 3/4] media-ctl: propagate frame interval
-Date: Thu, 30 Mar 2017 18:51:15 +0200
-Message-Id: <1490892676-11634-3-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1490892676-11634-1-git-send-email-p.zabel@pengutronix.de>
-References: <1490892676-11634-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:32935 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755130AbdCJEyh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 23:54:37 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v5 17/39] [media] v4l2-mc: add a function to inherit controls from a pipeline
+Date: Thu,  9 Mar 2017 20:52:57 -0800
+Message-Id: <1489121599-23206-18-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Same as the media bus format, the frame interval should be propagated
-from output pads to connected entities' input pads.
+v4l2_pipeline_inherit_controls() will add the v4l2 controls from
+all subdev entities in a pipeline to a given video device.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
-Changes since v3:
- - Ignore frame interval propagation errors if the sink pad doesn't
-   support VIDIOC_SUBDEV_S_FRAME_INTERVAL.
----
- utils/media-ctl/libv4l2subdev.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/v4l2-mc.c | 48 +++++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-mc.h           | 25 ++++++++++++++++++++
+ 2 files changed, 73 insertions(+)
 
-diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-index 2f2ac8ee..51e7990d 100644
---- a/utils/media-ctl/libv4l2subdev.c
-+++ b/utils/media-ctl/libv4l2subdev.c
-@@ -694,8 +694,8 @@ static int v4l2_subdev_parse_setup_format(struct media_device *media,
- 		return ret;
+diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
+index 303980b..09d4d97 100644
+--- a/drivers/media/v4l2-core/v4l2-mc.c
++++ b/drivers/media/v4l2-core/v4l2-mc.c
+@@ -22,6 +22,7 @@
+ #include <linux/usb.h>
+ #include <media/media-device.h>
+ #include <media/media-entity.h>
++#include <media/v4l2-ctrls.h>
+ #include <media/v4l2-fh.h>
+ #include <media/v4l2-mc.h>
+ #include <media/v4l2-subdev.h>
+@@ -238,6 +239,53 @@ int v4l_vb2q_enable_media_source(struct vb2_queue *q)
+ }
+ EXPORT_SYMBOL_GPL(v4l_vb2q_enable_media_source);
  
- 
--	/* If the pad is an output pad, automatically set the same format on
--	 * the remote subdev input pads, if any.
-+	/* If the pad is an output pad, automatically set the same format and
-+	 * frame interval on the remote subdev input pads, if any.
- 	 */
- 	if (pad->flags & MEDIA_PAD_FL_SOURCE) {
- 		for (i = 0; i < pad->entity->num_links; ++i) {
-@@ -709,6 +709,10 @@ static int v4l2_subdev_parse_setup_format(struct media_device *media,
- 			    link->sink->entity->info.type == MEDIA_ENT_T_V4L2_SUBDEV) {
- 				remote_format = format;
- 				set_format(link->sink, &remote_format);
++int __v4l2_pipeline_inherit_controls(struct video_device *vfd,
++				     struct media_entity *start_entity)
++{
++	struct media_device *mdev = start_entity->graph_obj.mdev;
++	struct media_entity *entity;
++	struct media_graph graph;
++	struct v4l2_subdev *sd;
++	int ret;
 +
-+				ret = set_frame_interval(link->sink, &interval);
-+				if (ret < 0 && ret != -EINVAL && ret != -ENOTTY)
-+					return ret;
- 			}
- 		}
- 	}
++	ret = media_graph_walk_init(&graph, mdev);
++	if (ret)
++		return ret;
++
++	media_graph_walk_start(&graph, start_entity);
++
++	while ((entity = media_graph_walk_next(&graph))) {
++		if (!is_media_entity_v4l2_subdev(entity))
++			continue;
++
++		sd = media_entity_to_v4l2_subdev(entity);
++
++		ret = v4l2_ctrl_add_handler(vfd->ctrl_handler,
++					    sd->ctrl_handler,
++					    NULL);
++		if (ret)
++			break;
++	}
++
++	media_graph_walk_cleanup(&graph);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(__v4l2_pipeline_inherit_controls);
++
++int v4l2_pipeline_inherit_controls(struct video_device *vfd,
++				   struct media_entity *start_entity)
++{
++	struct media_device *mdev = start_entity->graph_obj.mdev;
++	int ret;
++
++	mutex_lock(&mdev->graph_mutex);
++	ret = __v4l2_pipeline_inherit_controls(vfd, start_entity);
++	mutex_unlock(&mdev->graph_mutex);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_pipeline_inherit_controls);
++
+ /* -----------------------------------------------------------------------------
+  * Pipeline power management
+  *
+diff --git a/include/media/v4l2-mc.h b/include/media/v4l2-mc.h
+index 2634d9d..9848e77 100644
+--- a/include/media/v4l2-mc.h
++++ b/include/media/v4l2-mc.h
+@@ -171,6 +171,17 @@ void v4l_disable_media_source(struct video_device *vdev);
+  */
+ int v4l_vb2q_enable_media_source(struct vb2_queue *q);
+ 
++/**
++ * v4l2_pipeline_inherit_controls - Add the v4l2 controls from all
++ *				    subdev entities in a pipeline to
++ *				    the given video device.
++ * @vfd: the video device
++ * @start_entity: Starting entity
++ */
++int __v4l2_pipeline_inherit_controls(struct video_device *vfd,
++				     struct media_entity *start_entity);
++int v4l2_pipeline_inherit_controls(struct video_device *vfd,
++				   struct media_entity *start_entity);
+ 
+ /**
+  * v4l2_pipeline_pm_use - Update the use count of an entity
+@@ -231,6 +242,20 @@ static inline int v4l_vb2q_enable_media_source(struct vb2_queue *q)
+ 	return 0;
+ }
+ 
++static inline int __v4l2_pipeline_inherit_controls(
++	struct video_device *vfd,
++	struct media_entity *start_entity)
++{
++	return 0;
++}
++
++static inline int v4l2_pipeline_inherit_controls(
++	struct video_device *vfd,
++	struct media_entity *start_entity)
++{
++	return 0;
++}
++
+ static inline int v4l2_pipeline_pm_use(struct media_entity *entity, int use)
+ {
+ 	return 0;
 -- 
-2.11.0
+2.7.4
