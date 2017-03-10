@@ -1,86 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:59631 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753575AbdCFRlH (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:43759 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S935577AbdCJJcu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Mar 2017 12:41:07 -0500
-Received: from pps.filterd (m0098409.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.16.0.20/8.16.0.20) with SMTP id v26Grq34091484
-        for <linux-media@vger.kernel.org>; Mon, 6 Mar 2017 11:54:51 -0500
-Received: from e06smtp09.uk.ibm.com (e06smtp09.uk.ibm.com [195.75.94.105])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 2917pm4jnd-1
-        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
-        for <linux-media@vger.kernel.org>; Mon, 06 Mar 2017 11:54:50 -0500
-Received: from localhost
-        by e06smtp09.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-        for <linux-media@vger.kernel.org> from <bblock@linux.vnet.ibm.com>;
-        Mon, 6 Mar 2017 16:54:48 -0000
-Received: from b06cxnps3075.portsmouth.uk.ibm.com (d06relay10.portsmouth.uk.ibm.com [9.149.109.195])
-        by d06dlp01.portsmouth.uk.ibm.com (Postfix) with ESMTP id 53B7517D8042
-        for <linux-media@vger.kernel.org>; Mon,  6 Mar 2017 16:58:01 +0000 (GMT)
-Received: from d06av26.portsmouth.uk.ibm.com (d06av26.portsmouth.uk.ibm.com [9.149.105.62])
-        by b06cxnps3075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id v26GsjCo19726626
-        for <linux-media@vger.kernel.org>; Mon, 6 Mar 2017 16:54:45 GMT
-Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id D4EC9AE05A
-        for <linux-media@vger.kernel.org>; Mon,  6 Mar 2017 16:54:38 +0000 (GMT)
-Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id BA874AE053
-        for <linux-media@vger.kernel.org>; Mon,  6 Mar 2017 16:54:38 +0000 (GMT)
-Received: from bblock-ThinkPad-W530 (unknown [9.152.212.209])
-        by d06av26.portsmouth.uk.ibm.com (Postfix) with ESMTP
-        for <linux-media@vger.kernel.org>; Mon,  6 Mar 2017 16:54:38 +0000 (GMT)
-Date: Mon, 6 Mar 2017 17:54:44 +0100
-From: Benjamin Block <bblock@linux.vnet.ibm.com>
-To: Johannes Thumshirn <jthumshirn@suse.de>
-Cc: Elena Reshetova <elena.reshetova@intel.com>,
-        gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org,
-        xen-devel@lists.xenproject.org, netdev@vger.kernel.org,
-        linux1394-devel@lists.sourceforge.net,
-        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
-        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
-        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
-        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
-        linux-usb@vger.kernel.org, peterz@infradead.org,
-        Hans Liljestrand <ishkamiel@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        David Windsor <dwindsor@gmail.com>
-Subject: Re: [PATCH 21/29] drivers, s390: convert fc_fcp_pkt.ref_cnt from
- atomic_t to refcount_t
-References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
- <1488810076-3754-22-git-send-email-elena.reshetova@intel.com>
- <536a58ba-8896-5639-cab9-bd2f13bed325@suse.de>
+        Fri, 10 Mar 2017 04:32:50 -0500
+Subject: Re: [PATCHv3 05/15] ov7670: add devicetree support
+To: Sakari Ailus <sakari.ailus@iki.fi>
+References: <20170306145616.38485-1-hverkuil@xs4all.nl>
+ <20170306145616.38485-6-hverkuil@xs4all.nl>
+ <20170309204516.GR3220@valkosipuli.retiisi.org.uk>
+Cc: linux-media@vger.kernel.org,
+        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        devicetree@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <90dee828-1f06-59f8-adb6-1b4442abaf2d@xs4all.nl>
+Date: Fri, 10 Mar 2017 10:32:41 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <536a58ba-8896-5639-cab9-bd2f13bed325@suse.de>
-Message-Id: <20170306165444.GC7420@bblock-ThinkPad-W530>
+In-Reply-To: <20170309204516.GR3220@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 06, 2017 at 04:27:11PM +0100, Johannes Thumshirn wrote:
-> On 03/06/2017 03:21 PM, Elena Reshetova wrote:
-> > refcount_t type and corresponding API should be
-> > used instead of atomic_t when the variable is used as
-> > a reference counter. This allows to avoid accidental
-> > refcounter overflows that might lead to use-after-free
-> > situations.
+On 09/03/17 21:45, Sakari Ailus wrote:
+> Hi Hans,
 > 
-> The subject is wrong, should be something like "scsi: libfc convert
-> fc_fcp_pkt.ref_cnt from atomic_t to refcount_t" but not s390.
+> On Mon, Mar 06, 2017 at 03:56:06PM +0100, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Add DT support. Use it to get the reset and pwdn pins (if there are any).
+>> Tested with one sensor requiring reset/pwdn and one sensor that doesn't
+>> have reset/pwdn pins.
 > 
+> If I read the datasheet right, lifting the reset signal up will reset the
+> sensor but the patch doesn't make use of that, it only ensures the reset
+> signal stays low. Should you lift it up for a while as well? The datasheet
+> doesn't say for how long that should be done, but that it should be usable
+> after 1 ms since pulling reset down.
 
-Yes please, I was extremely confused for a moment here.
+There does not seem to be any need for that. This sensor also comes in two
+models: one with separate pwdn and reset pins, and one where it is just hardwired.
 
+If the hardwired variant doesn't need a reset pulse, then neither does the
+variant with pins. It works, and I am not really willing to experiment with this.
 
+Regards,
 
-                                                    Beste Grüße / Best regards,
-                                                      - Benjamin Block
--- 
-Linux on z Systems Development         /         IBM Systems & Technology Group
-		  IBM Deutschland Research & Development GmbH 
-Vorsitz. AufsR.: Martina Koederitz     /        Geschäftsführung: Dirk Wittkopp
-Sitz der Gesellschaft: Böblingen / Registergericht: AmtsG Stuttgart, HRB 243294
+	Hans
+
+> 
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  drivers/media/i2c/ov7670.c | 40 ++++++++++++++++++++++++++++++++++++++--
+>>  1 file changed, 38 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+>> index da0843617a49..f9d977430dcf 100644
+>> --- a/drivers/media/i2c/ov7670.c
+>> +++ b/drivers/media/i2c/ov7670.c
+>> @@ -17,6 +17,8 @@
+>>  #include <linux/i2c.h>
+>>  #include <linux/delay.h>
+>>  #include <linux/videodev2.h>
+>> +#include <linux/gpio.h>
+>> +#include <linux/gpio/consumer.h>
+>>  #include <media/v4l2-device.h>
+>>  #include <media/v4l2-ctrls.h>
+>>  #include <media/v4l2-mediabus.h>
+>> @@ -229,6 +231,8 @@ struct ov7670_info {
+>>  	};
+>>  	struct ov7670_format_struct *fmt;  /* Current format */
+>>  	struct clk *clk;
+>> +	struct gpio_desc *resetb_gpio;
+>> +	struct gpio_desc *pwdn_gpio;
+>>  	int min_width;			/* Filter out smaller sizes */
+>>  	int min_height;			/* Filter out smaller sizes */
+>>  	int clock_speed;		/* External clock speed (MHz) */
+>> @@ -591,8 +595,6 @@ static int ov7670_init(struct v4l2_subdev *sd, u32 val)
+>>  	return ov7670_write_array(sd, ov7670_default_regs);
+>>  }
+>>  
+>> -
+>> -
+>>  static int ov7670_detect(struct v4l2_subdev *sd)
+>>  {
+>>  	unsigned char v;
+>> @@ -1549,6 +1551,27 @@ static const struct ov7670_devtype ov7670_devdata[] = {
+>>  	},
+>>  };
+>>  
+>> +static int ov7670_init_gpio(struct i2c_client *client, struct ov7670_info *info)
+>> +{
+>> +	info->pwdn_gpio = devm_gpiod_get_optional(&client->dev, "powerdown",
+>> +			GPIOD_OUT_LOW);
+>> +	if (IS_ERR(info->pwdn_gpio)) {
+>> +		dev_info(&client->dev, "can't get %s GPIO\n", "powerdown");
+>> +		return PTR_ERR(info->pwdn_gpio);
+>> +	}
+>> +
+>> +	info->resetb_gpio = devm_gpiod_get_optional(&client->dev, "reset",
+>> +			GPIOD_OUT_LOW);
+>> +	if (IS_ERR(info->resetb_gpio)) {
+>> +		dev_info(&client->dev, "can't get %s GPIO\n", "reset");
+>> +		return PTR_ERR(info->resetb_gpio);
+>> +	}
+>> +
+>> +	usleep_range(3000, 5000);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>>  static int ov7670_probe(struct i2c_client *client,
+>>  			const struct i2c_device_id *id)
+>>  {
+>> @@ -1594,6 +1617,10 @@ static int ov7670_probe(struct i2c_client *client,
+>>  		return -EPROBE_DEFER;
+>>  	clk_prepare_enable(info->clk);
+>>  
+>> +	ret = ov7670_init_gpio(client, info);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>>  	info->clock_speed = clk_get_rate(info->clk) / 1000000;
+>>  	if (info->clock_speed < 10 || info->clock_speed > 48)
+>>  		return -EINVAL;
+>> @@ -1689,9 +1716,18 @@ static const struct i2c_device_id ov7670_id[] = {
+>>  };
+>>  MODULE_DEVICE_TABLE(i2c, ov7670_id);
+>>  
+>> +#if IS_ENABLED(CONFIG_OF)
+>> +static const struct of_device_id ov7670_of_match[] = {
+>> +	{ .compatible = "ovti,ov7670", },
+>> +	{ /* sentinel */ },
+>> +};
+>> +MODULE_DEVICE_TABLE(of, ov7670_of_match);
+>> +#endif
+>> +
+>>  static struct i2c_driver ov7670_driver = {
+>>  	.driver = {
+>>  		.name	= "ov7670",
+>> +		.of_match_table = of_match_ptr(ov7670_of_match),
+>>  	},
+>>  	.probe		= ov7670_probe,
+>>  	.remove		= ov7670_remove,
+> 
