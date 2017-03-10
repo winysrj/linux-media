@@ -1,94 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:41975 "EHLO gofer.mess.org"
+Received: from mga06.intel.com ([134.134.136.31]:10745 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753766AbdCTPFA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 11:05:00 -0400
-Date: Mon, 20 Mar 2017 15:04:58 +0000
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL for v4.12] RC fixes
-Message-ID: <20170320150457.GA18384@gofer.mess.org>
+        id S1751067AbdCJCtf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 9 Mar 2017 21:49:35 -0500
+Date: Fri, 10 Mar 2017 10:49:29 +0800
+From: Fengguang Wu <lkp@intel.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: kbuild-all@01.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, mchehab@kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>,
+        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org, git@vger.kernel.org,
+        Ye Xiaolong <xiaolong.ye@intel.com>
+Subject: Re: [media] omap3isp: Correctly set IO_OUT_SEL and VP_CLK_POL for
+ CCP2 mode
+Message-ID: <20170310024929.la3uuzhtckdn5tm2@wfg-t540p.sh.intel.com>
+References: <20170301114545.GA19201@amd>
+ <201703031931.OeUvSOwD%fengguang.wu@intel.com>
+ <20170303214838.GA26826@amd>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Disposition: inline
+In-Reply-To: <20170303214838.GA26826@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Fri, Mar 03, 2017 at 10:48:38PM +0100, Pavel Machek wrote:
+>Hi!
+>
+>> [auto build test ERROR on linuxtv-media/master]
+>> [also build test ERROR on v4.10 next-20170303]
+>> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+>>
+>
+>Yes, the patch is against Sakari's ccp2 branch. It should work ok there.
+>
+>I don't think you can do much to fix the automated system....
 
-Various small RC fixes and documentation fixes. The most controversial is
-the changing of the return code of lirc ioctls. I've tested lirc. If you
-can think of anything else which needs testing, please let me know.
+We could, if "git format-patch" can be setup to auto append lines
+
+        parent-commit: X
+        parent-patch-id: Y
+
+With that information, as long as the parent commit/patch is public --
+either by "git push" or posting patch to mailing lists -- we'll have
+good chance to find and use it as the base for "git am".
+
+Currently "git format-patch" already has the option "--base=auto" to
+auto append the more accurate lines
+
+        base-commit: P
+        prerequisite-patch-id: X
+        prerequisite-patch-id: Y
+        prerequisite-patch-id: Z
+
+That's the best information git can offer. Unfortunately it cannot
+ALWAYS work without human aid. What's worse, when it cannot figure out
+the base-commit, the whole "git format-patch" command will abort like
+this
+
+        $ git format-patch -1
+        fatal: base commit shouldn't be in revision list
+
+That fatal error makes it not a viable option to always turn on
+"--base=auto" in .gitconfig.
+
+Without a fully-automated solution, I don't think many people will
+bother or remember to manually specify base-commit before sending
+patches out.
+
+To effectively save the robot from "base commit" guessing works, what
+we can do is to
+
+1) append "parent-commit"/"parent-patch-id" lines when git cannot
+   figure out and append the "base-commit"/"prerequisite-patch-id"
+   lines. So that the test robot always get the information to do
+   its job.
+
+2) advise kernel developers to run this once
+
+        git config format.useAutoBase yes
+
+   to configure "--base=auto" as the default behavior.
 
 Thanks,
-Sean
-
-The following changes since commit 700ea5e0e0dd70420a04e703ff264cc133834cba:
-
-  Merge tag 'v4.11-rc1' into patchwork (2017-03-06 06:49:34 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/syoung/media_tree.git for-v4.12b
-
-for you to fetch changes up to 3349540fb070a97d9cbd92a925235618490ec6d9:
-
-  [media] rc: sunxi-cir: simplify optional reset handling (2017-03-20 12:08:28 +0000)
-
-----------------------------------------------------------------
-Derek Robson (1):
-      [media] staging: lirc: use octal instead of symbolic permission
-
-Johan Hovold (1):
-      [media] mceusb: fix NULL-deref at probe
-
-Philipp Zabel (2):
-      [media] st_rc: simplify optional reset handling
-      [media] rc: sunxi-cir: simplify optional reset handling
-
-Sean Young (11):
-      [media] cxusb: dvico remotes are nec
-      [media] lirc: document lirc modes better
-      [media] lirc: return ENOTTY when ioctl is not supported
-      [media] lirc: return ENOTTY when device does support ioctl
-      [media] winbond: allow timeout to be set
-      [media] gpio-ir: do not allow a timeout of 0
-      [media] rc: lirc keymap no longer makes any sense
-      [media] lirc: advertise LIRC_CAN_GET_REC_RESOLUTION and improve
-      [media] mce_kbd: add encoder
-      [media] serial_ir: iommap is a memory address, not bool
-      [media] lirc: use refcounting for lirc devices
-
- Documentation/media/lirc.h.rst.exceptions          |   1 -
- Documentation/media/uapi/rc/lirc-dev-intro.rst     |  53 +++++++--
- Documentation/media/uapi/rc/lirc-get-features.rst  |  13 ++-
- Documentation/media/uapi/rc/lirc-get-length.rst    |   3 +-
- Documentation/media/uapi/rc/lirc-get-rec-mode.rst  |   4 +-
- Documentation/media/uapi/rc/lirc-get-send-mode.rst |   7 +-
- Documentation/media/uapi/rc/lirc-read.rst          |  16 +--
- .../media/uapi/rc/lirc-set-rec-carrier-range.rst   |   2 +-
- .../media/uapi/rc/lirc-set-rec-timeout-reports.rst |   2 +
- Documentation/media/uapi/rc/lirc-write.rst         |  17 +--
- drivers/media/rc/gpio-ir-recv.c                    |   2 +-
- drivers/media/rc/igorplugusb.c                     |   2 +-
- drivers/media/rc/ir-lirc-codec.c                   |  34 ++++--
- drivers/media/rc/ir-mce_kbd-decoder.c              |  49 ++++++++-
- drivers/media/rc/keymaps/Makefile                  |   1 -
- drivers/media/rc/keymaps/rc-dvico-mce.c            |  92 ++++++++--------
- drivers/media/rc/keymaps/rc-dvico-portable.c       |  74 ++++++-------
- drivers/media/rc/keymaps/rc-lirc.c                 |  42 -------
- drivers/media/rc/lirc_dev.c                        | 122 +++++++++------------
- drivers/media/rc/mceusb.c                          |   4 +-
- drivers/media/rc/rc-core-priv.h                    |   2 +-
- drivers/media/rc/rc-ir-raw.c                       |   6 +-
- drivers/media/rc/rc-main.c                         |   8 +-
- drivers/media/rc/serial_ir.c                       |   4 +-
- drivers/media/rc/st_rc.c                           |  15 ++-
- drivers/media/rc/sunxi-cir.c                       |  21 ++--
- drivers/media/rc/winbond-cir.c                     |   4 +-
- drivers/media/usb/dvb-usb/cxusb.c                  |  24 ++--
- drivers/staging/media/lirc/lirc_sasem.c            |   2 +-
- drivers/staging/media/lirc/lirc_sir.c              |   8 +-
- include/media/rc-map.h                             |  79 ++++++-------
- 31 files changed, 378 insertions(+), 335 deletions(-)
- delete mode 100644 drivers/media/rc/keymaps/rc-lirc.c
+Fengguang
