@@ -1,114 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:34683 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754502AbdCWSDP (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:56917 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934303AbdCJV5m (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Mar 2017 14:03:15 -0400
-Received: by mail-wr0-f196.google.com with SMTP id y90so8523402wrb.1
-        for <linux-media@vger.kernel.org>; Thu, 23 Mar 2017 11:03:13 -0700 (PDT)
-Subject: Re: [PATCH 2/2] em28xx: simplify ID-reading from Micron sensors
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <20170219182918.4978-1-fschaefer.oss@googlemail.com>
- <20170219182918.4978-2-fschaefer.oss@googlemail.com>
- <20170322114606.1feeb960@vento.lan>
- <5107179d-74fd-3b98-5fc6-ba7051927ae2@googlemail.com>
- <20170323095612.72216892@vento.lan>
-Cc: linux-media@vger.kernel.org, mchehab@kernel.org, arnd@arndb.de
-From: =?UTF-8?Q?Frank_Sch=c3=a4fer?= <fschaefer.oss@googlemail.com>
-Message-ID: <84459d79-eccc-1888-1dad-6935cf85b18a@googlemail.com>
-Date: Thu, 23 Mar 2017 19:03:20 +0100
+        Fri, 10 Mar 2017 16:57:42 -0500
+Date: Fri, 10 Mar 2017 22:57:32 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Fabio Estevam <festevam@gmail.com>
+Cc: Troy Kisky <troy.kisky@boundarydevices.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        "robh+dt@kernel.org" <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <kernel@pengutronix.de>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        mchehab@kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Nick Dyer <nick@shmanahar.org>, markus.heiser@darmarit.de,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        bparrot@ti.com, Geert Uytterhoeven <geert@linux-m68k.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+        minghsiu.tsai@mediatek.com, Tiffany Lin <tiffany.lin@mediatek.com>,
+        Jean-Christophe TROTIN <jean-christophe.trotin@st.com>,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        shuah@kernel.org, sakari.ailus@linux.intel.com,
+        devel@driverdev.osuosl.org,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v5 07/39] ARM: dts: imx6qdl-sabrelite: remove erratum
+ ERR006687 workaround
+Message-ID: <20170310215731.GB6540@amd>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <1489121599-23206-8-git-send-email-steve_longerbeam@mentor.com>
+ <9f5d0ac4-0602-c729-5c00-1d9ef49247c1@boundarydevices.com>
+ <CAOMZO5BNrSEyrbWbCBCbsy4yTrh4AHfk2Too0qHuffxqUCgADg@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20170323095612.72216892@vento.lan>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="MW5yreqqjyrRcusr"
+Content-Disposition: inline
+In-Reply-To: <CAOMZO5BNrSEyrbWbCBCbsy4yTrh4AHfk2Too0qHuffxqUCgADg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+--MW5yreqqjyrRcusr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Am 23.03.2017 um 13:56 schrieb Mauro Carvalho Chehab:
-> Em Thu, 23 Mar 2017 13:01:32 +0100
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->
->> Am 22.03.2017 um 15:46 schrieb Mauro Carvalho Chehab:
->>> Em Sun, 19 Feb 2017 19:29:18 +0100
->>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->>>   
->>>> Use i2c_smbus_read_word_data() instead of i2c_master_send() and
->>>> i2c_master_recv() for reading the ID of Micorn sensors.
->>>> Bytes need to be swapped afterwards, because i2c_smbus_read_word_data()
->>>> assumes that the received bytes are little-endian byte order (as specified
->>>> by smbus), while Micron sensors with 16 bit register width use big endian
->>>> byte order.
->>>>
->>>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
->>>> ---
->>>>    drivers/media/usb/em28xx/em28xx-camera.c | 28 ++++------------------------
->>>>    1 file changed, 4 insertions(+), 24 deletions(-)
->>>>
->>>> diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
->>>> index 7b4129ab1cf9..4839479624e7 100644
->>>> --- a/drivers/media/usb/em28xx/em28xx-camera.c
->>>> +++ b/drivers/media/usb/em28xx/em28xx-camera.c
->>>> @@ -106,8 +106,6 @@ static int em28xx_probe_sensor_micron(struct em28xx *dev)
->>>>    {
->>>>    	int ret, i;
->>>>    	char *name;
->>>> -	u8 reg;
->>>> -	__be16 id_be;
->>>>    	u16 id;
->>>>    
->>>>    	struct i2c_client *client = &dev->i2c_client[dev->def_i2c_bus];
->>>> @@ -115,10 +113,8 @@ static int em28xx_probe_sensor_micron(struct em28xx *dev)
->>>>    	dev->em28xx_sensor = EM28XX_NOSENSOR;
->>>>    	for (i = 0; micron_sensor_addrs[i] != I2C_CLIENT_END; i++) {
->>>>    		client->addr = micron_sensor_addrs[i];
->>>> -		/* NOTE: i2c_smbus_read_word_data() doesn't work with BE data */
->>>>    		/* Read chip ID from register 0x00 */
->>>> -		reg = 0x00;
->>>> -		ret = i2c_master_send(client, &reg, 1);
->>>> +		ret = i2c_smbus_read_word_data(client, 0x00); /* assumes LE */
->>>>    		if (ret < 0) {
->>>>    			if (ret != -ENXIO)
->>>>    				dev_err(&dev->intf->dev,
->>>> @@ -126,24 +122,9 @@ static int em28xx_probe_sensor_micron(struct em28xx *dev)
->>>>    				       client->addr << 1, ret);
->>>>    			continue;
->>>>    		}
->>>> -		ret = i2c_master_recv(client, (u8 *)&id_be, 2);
->>>> -		if (ret < 0) {
->>>> -			dev_err(&dev->intf->dev,
->>>> -				"couldn't read from i2c device 0x%02x: error %i\n",
->>>> -				client->addr << 1, ret);
->>>> -			continue;
->>>> -		}
->>>> -		id = be16_to_cpu(id_be);
->>>> +		id = swab16(ret); /* LE -> BE */
->>> That's wrong! You can't assume that CPU is BE, as some archs use LE.
->>>
->>> You should, instead, call le16_to_cpu(), to be sure that it will be
->>> doing the right thing.
->>>
->>> Something like:
->>>
->>> 	id = le16_to_cpu((__le16)ret);
->> SMBus read/write word transfers are always LE (see SMBus spec section
->> 6.5.5),
->> which is also what i2c_smbus_xfer_emulated() assumes:
->> http://lxr.free-electrons.com/source/drivers/i2c/i2c-core.c#L3485
-> I got that part, but, if the CPU is also LE, doing swab16() is
-> wrong. It should swap it *only* if the CPU is BE.
-No, it should always be swapped, because the bytes are always transfered 
-in the wrong order.
-The cpu endianess doesn't matter, (0x12 << 8) | 0x34 is always 0x1234.
+On Fri 2017-03-10 16:17:28, Fabio Estevam wrote:
+> On Fri, Mar 10, 2017 at 3:59 PM, Troy Kisky
+> <troy.kisky@boundarydevices.com> wrote:
+> > On 3/9/2017 8:52 PM, Steve Longerbeam wrote:
+> >> There is a pin conflict with GPIO_6. This pin functions as a power
+> >> input pin to the OV5642 camera sensor, but ENET uses it as the h/w
+> >> workaround for erratum ERR006687, to wake-up the ARM cores on normal
+> >> RX and TX packet done events. So we need to remove the h/w workaround
+> >> to support the OV5642. The result is that the CPUidle driver will no
+> >> longer allow entering the deep idle states on the sabrelite.
+> >>
+> >> This is a partial revert of
+> >>
+> >> commit 6261c4c8f13e ("ARM: dts: imx6qdl-sabrelite: use GPIO_6 for FEC
+> >>                       interrupt.")
+> >> commit a28eeb43ee57 ("ARM: dts: imx6: tag boards that have the HW work=
+around
+> >>                       for ERR006687")
+> >>
+> >> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> >> ---
+> >>  arch/arm/boot/dts/imx6qdl-sabrelite.dtsi | 4 ----
+> >>  1 file changed, 4 deletions(-)
+> >>
+> >> diff --git a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi b/arch/arm/boot/=
+dts/imx6qdl-sabrelite.dtsi
+> >> index 8413179..89dce27 100644
+> >> --- a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+> >> +++ b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+> >> @@ -270,9 +270,6 @@
+> >>       txd1-skew-ps =3D <0>;
+> >>       txd2-skew-ps =3D <0>;
+> >>       txd3-skew-ps =3D <0>;
+> >
+> > How about
+> >
+> > +#if !IS_ENABLED(CONFIG_VIDEO_OV5642)
 
-Regards,
-Frank
+dts is supposed to be hardware description.
 
+> Or maybe just create a new device tree for using the camera, like
+> imx6q-sabrelite-camera.dts.
 
+And it should not depend on configuration. Hardware vendor should be
+able to ship board with working device tree...
 
-> le16_to_cpu() should do the right thing, e. g. swap for BE
-> CPUs or not swap otherwise.
->
-> Thanks,
-> Mauro
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--MW5yreqqjyrRcusr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAljDIUsACgkQMOfwapXb+vK6eQCfalP+qOUXROn/DqpnUJ1m+F+K
+gesAnjzHVrD23JJklCM2vSrD4uDreyPU
+=Ttsd
+-----END PGP SIGNATURE-----
+
+--MW5yreqqjyrRcusr--
