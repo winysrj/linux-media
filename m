@@ -1,87 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f194.google.com ([74.125.82.194]:32864 "EHLO
-        mail-ot0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755337AbdCJTRa (ORCPT
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:36642 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933449AbdCJNfX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Mar 2017 14:17:30 -0500
+        Fri, 10 Mar 2017 08:35:23 -0500
+Date: Fri, 10 Mar 2017 19:05:05 +0530
+From: simran singhal <singhalsimran0@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        outreachy-kernel@googlegroups.com
+Subject: [PATCH v1] staging: media: Remove unused function
+ atomisp_set_stop_timeout()
+Message-ID: <20170310133504.GA18916@singhal-Inspiron-5558>
 MIME-Version: 1.0
-In-Reply-To: <9f5d0ac4-0602-c729-5c00-1d9ef49247c1@boundarydevices.com>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <1489121599-23206-8-git-send-email-steve_longerbeam@mentor.com> <9f5d0ac4-0602-c729-5c00-1d9ef49247c1@boundarydevices.com>
-From: Fabio Estevam <festevam@gmail.com>
-Date: Fri, 10 Mar 2017 16:17:28 -0300
-Message-ID: <CAOMZO5BNrSEyrbWbCBCbsy4yTrh4AHfk2Too0qHuffxqUCgADg@mail.gmail.com>
-Subject: Re: [PATCH v5 07/39] ARM: dts: imx6qdl-sabrelite: remove erratum
- ERR006687 workaround
-To: Troy Kisky <troy.kisky@boundarydevices.com>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        "robh+dt@kernel.org" <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <kernel@pengutronix.de>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        mchehab@kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Nick Dyer <nick@shmanahar.org>, markus.heiser@darmarit.de,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        bparrot@ti.com, Geert Uytterhoeven <geert@linux-m68k.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-        minghsiu.tsai@mediatek.com, Tiffany Lin <tiffany.lin@mediatek.com>,
-        Jean-Christophe TROTIN <jean-christophe.trotin@st.com>,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        shuah@kernel.org, sakari.ailus@linux.intel.com,
-        Pavel Machek <pavel@ucw.cz>, devel@driverdev.osuosl.org,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 10, 2017 at 3:59 PM, Troy Kisky
-<troy.kisky@boundarydevices.com> wrote:
-> On 3/9/2017 8:52 PM, Steve Longerbeam wrote:
->> There is a pin conflict with GPIO_6. This pin functions as a power
->> input pin to the OV5642 camera sensor, but ENET uses it as the h/w
->> workaround for erratum ERR006687, to wake-up the ARM cores on normal
->> RX and TX packet done events. So we need to remove the h/w workaround
->> to support the OV5642. The result is that the CPUidle driver will no
->> longer allow entering the deep idle states on the sabrelite.
->>
->> This is a partial revert of
->>
->> commit 6261c4c8f13e ("ARM: dts: imx6qdl-sabrelite: use GPIO_6 for FEC
->>                       interrupt.")
->> commit a28eeb43ee57 ("ARM: dts: imx6: tag boards that have the HW workaround
->>                       for ERR006687")
->>
->> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
->> ---
->>  arch/arm/boot/dts/imx6qdl-sabrelite.dtsi | 4 ----
->>  1 file changed, 4 deletions(-)
->>
->> diff --git a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
->> index 8413179..89dce27 100644
->> --- a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
->> +++ b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
->> @@ -270,9 +270,6 @@
->>       txd1-skew-ps = <0>;
->>       txd2-skew-ps = <0>;
->>       txd3-skew-ps = <0>;
->
-> How about
->
-> +#if !IS_ENABLED(CONFIG_VIDEO_OV5642)
+The function atomisp_set_stop_timeout on being called, simply returns
+back. The function hasn't been mentioned in the TODO and doesn't have
+FIXME code around. Hence, atomisp_set_stop_timeout and its calls have been
+removed.
 
-Or maybe just create a new device tree for using the camera, like
-imx6q-sabrelite-camera.dts.
+This was done using Coccinelle.
 
-This way we can keep the FEC erratum for the existing sabrelite dtb's.
+@@
+identifier f;
+@@
+
+void f(...) {
+
+-return;
+
+}
+
+Signed-off-by: simran singhal <singhalsimran0@gmail.com>
+---
+ v1:
+   -Change Subject to include name of function
+   -change commit message to include the coccinelle script
+   
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c          | 1 -
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat.h       | 1 -
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c | 5 -----
+ 3 files changed, 7 deletions(-)
+
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+index d9a5c24..9720756 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+@@ -1692,7 +1692,6 @@ void atomisp_wdt_work(struct work_struct *work)
+ 		}
+ 	}
+ #endif
+-	atomisp_set_stop_timeout(ATOMISP_CSS_STOP_TIMEOUT_US);
+ 	dev_err(isp->dev, "timeout recovery handling done\n");
+ 	atomic_set(&isp->wdt_work_queued, 0);
+ 
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat.h b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat.h
+index e6b0cce..fb8b8fa 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat.h
+@@ -660,7 +660,6 @@ int atomisp_css_set_acc_parameters(struct atomisp_acc_fw *acc_fw);
+ int atomisp_css_isr_thread(struct atomisp_device *isp,
+ 			   bool *frame_done_found,
+ 			   bool *css_pipe_done);
+-void atomisp_set_stop_timeout(unsigned int timeout);
+ 
+ bool atomisp_css_valid_sof(struct atomisp_device *isp);
+ 
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c
+index 6697d72..cfa0ad4 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c
+@@ -4699,11 +4699,6 @@ int atomisp_css_isr_thread(struct atomisp_device *isp,
+ 	return 0;
+ }
+ 
+-void atomisp_set_stop_timeout(unsigned int timeout)
+-{
+-	return;
+-}
+-
+ bool atomisp_css_valid_sof(struct atomisp_device *isp)
+ {
+ 	unsigned int i, j;
+-- 
+2.7.4
