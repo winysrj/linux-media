@@ -1,124 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:37943 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752768AbdCFOY4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Mar 2017 09:24:56 -0500
-From: Elena Reshetova <elena.reshetova@intel.com>
-To: gregkh@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org,
-        netdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
-        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
-        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
-        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
-        linux-usb@vger.kernel.org, peterz@infradead.org,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        Hans Liljestrand <ishkamiel@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        David Windsor <dwindsor@gmail.com>
-Subject: [PATCH 24/29] drivers: convert iblock_req.pending from atomic_t to refcount_t
-Date: Mon,  6 Mar 2017 16:21:11 +0200
-Message-Id: <1488810076-3754-25-git-send-email-elena.reshetova@intel.com>
-In-Reply-To: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
-References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:32980 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935410AbdCJNHd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 10 Mar 2017 08:07:33 -0500
+From: simran singhal <singhalsimran0@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        outreachy-kernel@googlegroups.com
+Subject: [PATCH 1/2] staging: css2400/sh_css: Remove parentheses from return arguments
+Date: Fri, 10 Mar 2017 18:37:23 +0530
+Message-Id: <1489151244-20714-2-git-send-email-singhalsimran0@gmail.com>
+In-Reply-To: <1489151244-20714-1-git-send-email-singhalsimran0@gmail.com>
+References: <1489151244-20714-1-git-send-email-singhalsimran0@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-refcount_t type and corresponding API should be
-used instead of atomic_t when the variable is used as
-a reference counter. This allows to avoid accidental
-refcounter overflows that might lead to use-after-free
-situations.
+The sematic patch used for this is:
+@@
+identifier i;
+constant c;
+@@
+return
+- (
+    \(i\|-i\|i(...)\|c\)
+- )
+  ;
 
-Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
-Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Signed-off-by: David Windsor <dwindsor@gmail.com>
+Signed-off-by: simran singhal <singhalsimran0@gmail.com>
+Acked-by: Julia Lawall <julia.lawall@lip6.fr>
 ---
- drivers/target/target_core_iblock.c | 12 ++++++------
- drivers/target/target_core_iblock.h |  3 ++-
- 2 files changed, 8 insertions(+), 7 deletions(-)
+ .../media/atomisp/pci/atomisp2/css2400/sh_css.c      | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/target/target_core_iblock.c b/drivers/target/target_core_iblock.c
-index d316ed5..bb069eb 100644
---- a/drivers/target/target_core_iblock.c
-+++ b/drivers/target/target_core_iblock.c
-@@ -279,7 +279,7 @@ static void iblock_complete_cmd(struct se_cmd *cmd)
- 	struct iblock_req *ibr = cmd->priv;
- 	u8 status;
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
+index 0a1544d..c442d22 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
+@@ -1989,7 +1989,7 @@ enum ia_css_err ia_css_suspend(void)
+ 	for(i=0;i<MAX_ACTIVE_STREAMS;i++)
+ 		ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE, "==*> after 1: seed %d (%p)\n", i, my_css_save.stream_seeds[i].stream);
+ 	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE, "ia_css_suspend() leave\n");
+-	return(IA_CSS_SUCCESS);
++	return IA_CSS_SUCCESS;
+ }
  
--	if (!atomic_dec_and_test(&ibr->pending))
-+	if (!refcount_dec_and_test(&ibr->pending))
- 		return;
+ enum ia_css_err
+@@ -2001,10 +2001,10 @@ ia_css_resume(void)
  
- 	if (atomic_read(&ibr->ib_bio_err_cnt))
-@@ -487,7 +487,7 @@ iblock_execute_write_same(struct se_cmd *cmd)
- 	bio_list_init(&list);
- 	bio_list_add(&list, bio);
- 
--	atomic_set(&ibr->pending, 1);
-+	refcount_set(&ibr->pending, 1);
- 
- 	while (sectors) {
- 		while (bio_add_page(bio, sg_page(sg), sg->length, sg->offset)
-@@ -498,7 +498,7 @@ iblock_execute_write_same(struct se_cmd *cmd)
- 			if (!bio)
- 				goto fail_put_bios;
- 
--			atomic_inc(&ibr->pending);
-+			refcount_inc(&ibr->pending);
- 			bio_list_add(&list, bio);
- 		}
- 
-@@ -706,7 +706,7 @@ iblock_execute_rw(struct se_cmd *cmd, struct scatterlist *sgl, u32 sgl_nents,
- 	cmd->priv = ibr;
- 
- 	if (!sgl_nents) {
--		atomic_set(&ibr->pending, 1);
-+		refcount_set(&ibr->pending, 1);
- 		iblock_complete_cmd(cmd);
- 		return 0;
+ 	err = ia_css_init(&(my_css_save.driver_env), my_css_save.loaded_fw, my_css_save.mmu_base, my_css_save.irq_type);
+ 	if (err != IA_CSS_SUCCESS)
+-		return(err);
++		return err;
+ 	err = ia_css_start_sp();
+ 	if (err != IA_CSS_SUCCESS)
+-		return(err);
++		return err;
+ 	my_css_save.mode = sh_css_mode_resume;
+ 	for(i=0;i<MAX_ACTIVE_STREAMS;i++)
+ 	{
+@@ -2018,7 +2018,7 @@ ia_css_resume(void)
+ 				if (i)
+ 					for(j=0;j<i;j++)
+ 						ia_css_stream_unload(my_css_save.stream_seeds[j].stream);
+-				return(err);
++				return err;
+ 			}
+ 			err = ia_css_stream_start(my_css_save.stream_seeds[i].stream);
+ 			if (err != IA_CSS_SUCCESS)
+@@ -2028,7 +2028,7 @@ ia_css_resume(void)
+ 					ia_css_stream_stop(my_css_save.stream_seeds[j].stream);
+ 					ia_css_stream_unload(my_css_save.stream_seeds[j].stream);
+ 				}
+-				return(err);
++				return err;
+ 			}
+ 			*my_css_save.stream_seeds[i].orig_stream = my_css_save.stream_seeds[i].stream;
+ 			for(j=0;j<my_css_save.stream_seeds[i].num_pipes;j++)
+@@ -2037,7 +2037,7 @@ ia_css_resume(void)
  	}
-@@ -719,7 +719,7 @@ iblock_execute_rw(struct se_cmd *cmd, struct scatterlist *sgl, u32 sgl_nents,
- 	bio_list_init(&list);
- 	bio_list_add(&list, bio);
+ 	my_css_save.mode = sh_css_mode_working;
+ 	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE, "ia_css_resume() leave: return_void\n");
+-	return(IA_CSS_SUCCESS);
++	return IA_CSS_SUCCESS;
+ }
  
--	atomic_set(&ibr->pending, 2);
-+	refcount_set(&ibr->pending, 2);
- 	bio_cnt = 1;
- 
- 	for_each_sg(sgl, sg, sgl_nents, i) {
-@@ -740,7 +740,7 @@ iblock_execute_rw(struct se_cmd *cmd, struct scatterlist *sgl, u32 sgl_nents,
- 			if (!bio)
- 				goto fail_put_bios;
- 
--			atomic_inc(&ibr->pending);
-+			refcount_inc(&ibr->pending);
- 			bio_list_add(&list, bio);
- 			bio_cnt++;
+ enum ia_css_err
+@@ -10226,7 +10226,7 @@ ia_css_stream_load(struct ia_css_stream *stream)
+ 						for(k=0;k<j;k++)
+ 							ia_css_pipe_destroy(my_css_save.stream_seeds[i].pipes[k]);
+ 					}
+-					return(err);
++					return err;
+ 				}
+ 			err = ia_css_stream_create(&(my_css_save.stream_seeds[i].stream_config), my_css_save.stream_seeds[i].num_pipes,
+ 						    my_css_save.stream_seeds[i].pipes, &(my_css_save.stream_seeds[i].stream));
+@@ -10235,12 +10235,12 @@ ia_css_stream_load(struct ia_css_stream *stream)
+ 				ia_css_stream_destroy(stream);
+ 				for(j=0;j<my_css_save.stream_seeds[i].num_pipes;j++)
+ 					ia_css_pipe_destroy(my_css_save.stream_seeds[i].pipes[j]);
+-				return(err);
++				return err;
+ 			}
+ 			break;
  		}
-diff --git a/drivers/target/target_core_iblock.h b/drivers/target/target_core_iblock.h
-index 718d3fc..f2a5797 100644
---- a/drivers/target/target_core_iblock.h
-+++ b/drivers/target/target_core_iblock.h
-@@ -2,6 +2,7 @@
- #define TARGET_CORE_IBLOCK_H
+ 	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE,	"ia_css_stream_load() exit, \n");
+-	return(IA_CSS_SUCCESS);
++	return IA_CSS_SUCCESS;
+ #else
+ 	/* TODO remove function - DEPRECATED */
+ 	(void)stream;
+@@ -10381,7 +10381,7 @@ ia_css_stream_unload(struct ia_css_stream *stream)
+ 			break;
+ 		}
+ 	ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE,	"ia_css_stream_unload() exit, \n");
+-	return(IA_CSS_SUCCESS);
++	return IA_CSS_SUCCESS;
+ }
  
- #include <linux/atomic.h>
-+#include <linux/refcount.h>
- #include <target/target_core_base.h>
- 
- #define IBLOCK_VERSION		"4.0"
-@@ -10,7 +11,7 @@
- #define IBLOCK_LBA_SHIFT	9
- 
- struct iblock_req {
--	atomic_t pending;
-+	refcount_t pending;
- 	atomic_t ib_bio_err_cnt;
- } ____cacheline_aligned;
- 
+ #endif
 -- 
 2.7.4
