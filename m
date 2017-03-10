@@ -1,196 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f169.google.com ([209.85.220.169]:33824 "EHLO
-        mail-qk0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751421AbdCRBEz (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56540 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S934275AbdCJV5e (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Mar 2017 21:04:55 -0400
-Received: by mail-qk0-f169.google.com with SMTP id p64so77404609qke.1
-        for <linux-media@vger.kernel.org>; Fri, 17 Mar 2017 18:03:40 -0700 (PDT)
-From: Laura Abbott <labbott@redhat.com>
-To: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com
-Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Brian Starkey <brian.starkey@arm.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Mark Brown <broonie@kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-mm@kvack.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [RFC PATCHv2 07/21] staging: android: ion: Remove page faulting support
-Date: Fri, 17 Mar 2017 17:54:39 -0700
-Message-Id: <1489798493-16600-8-git-send-email-labbott@redhat.com>
-In-Reply-To: <1489798493-16600-1-git-send-email-labbott@redhat.com>
-References: <1489798493-16600-1-git-send-email-labbott@redhat.com>
+        Fri, 10 Mar 2017 16:57:34 -0500
+Date: Fri, 10 Mar 2017 23:57:25 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] libv4lconvert: by default, offer the original format to
+ the client
+Message-ID: <20170310215725.GH3220@valkosipuli.retiisi.org.uk>
+References: <bfae3cb4407b1de1a29ca450e20bbc16d8262884.1489179204.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <bfae3cb4407b1de1a29ca450e20bbc16d8262884.1489179204.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
 
-The new method of syncing with dma_map means that the page faulting sync
-implementation is no longer applicable. Remove it.
+On Fri, Mar 10, 2017 at 05:53:26PM -0300, Mauro Carvalho Chehab wrote:
+> The libv4lconvert part of libv4l was meant to provide a common
+> place to handle weird proprietary formats. With time, we also
+> added support to other standard formats, in order to help
+> V4L2 applications that are not performance sensitive to support
+> all V4L2 formats.
+> 
+> Yet, the hole idea is to let userspace to decide to implement
+> their own format conversion code when it needs either more
+> performance or more quality than what libv4lconvert provides.
+> 
+> In other words, applications should have the right to decide
+> between using a libv4lconvert emulated format or to implement
+> the decoding themselves for non-proprietary formats,
+> as this may have significative performance impact.
+> 
+> At the application side, deciding between them is just a matter
+> of looking at the V4L2_FMT_FLAG_EMULATED flag.
+> 
+> Yet, we don't want to have a miriad of format converters
 
-Signed-off-by: Laura Abbott <labbott@redhat.com>
----
- drivers/staging/android/ion/ion.c | 117 --------------------------------------
- 1 file changed, 117 deletions(-)
+                               ^ myriad
 
-diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-index 6aac935..226ea1f 100644
---- a/drivers/staging/android/ion/ion.c
-+++ b/drivers/staging/android/ion/ion.c
-@@ -42,37 +42,11 @@
- #include "ion_priv.h"
- #include "compat_ion.h"
- 
--bool ion_buffer_fault_user_mappings(struct ion_buffer *buffer)
--{
--	return (buffer->flags & ION_FLAG_CACHED) &&
--		!(buffer->flags & ION_FLAG_CACHED_NEEDS_SYNC);
--}
--
- bool ion_buffer_cached(struct ion_buffer *buffer)
- {
- 	return !!(buffer->flags & ION_FLAG_CACHED);
- }
- 
--static inline struct page *ion_buffer_page(struct page *page)
--{
--	return (struct page *)((unsigned long)page & ~(1UL));
--}
--
--static inline bool ion_buffer_page_is_dirty(struct page *page)
--{
--	return !!((unsigned long)page & 1UL);
--}
--
--static inline void ion_buffer_page_dirty(struct page **page)
--{
--	*page = (struct page *)((unsigned long)(*page) | 1UL);
--}
--
--static inline void ion_buffer_page_clean(struct page **page)
--{
--	*page = (struct page *)((unsigned long)(*page) & ~(1UL));
--}
--
- /* this function should only be called while dev->lock is held */
- static void ion_buffer_add(struct ion_device *dev,
- 			   struct ion_buffer *buffer)
-@@ -140,25 +114,6 @@ static struct ion_buffer *ion_buffer_create(struct ion_heap *heap,
- 	buffer->dev = dev;
- 	buffer->size = len;
- 
--	if (ion_buffer_fault_user_mappings(buffer)) {
--		int num_pages = PAGE_ALIGN(buffer->size) / PAGE_SIZE;
--		struct scatterlist *sg;
--		int i, j, k = 0;
--
--		buffer->pages = vmalloc(sizeof(struct page *) * num_pages);
--		if (!buffer->pages) {
--			ret = -ENOMEM;
--			goto err1;
--		}
--
--		for_each_sg(table->sgl, sg, table->nents, i) {
--			struct page *page = sg_page(sg);
--
--			for (j = 0; j < sg->length / PAGE_SIZE; j++)
--				buffer->pages[k++] = page++;
--		}
--	}
--
- 	buffer->dev = dev;
- 	buffer->size = len;
- 	INIT_LIST_HEAD(&buffer->vmas);
-@@ -924,69 +879,6 @@ void ion_pages_sync_for_device(struct device *dev, struct page *page,
- 	dma_sync_sg_for_device(dev, &sg, 1, dir);
- }
- 
--struct ion_vma_list {
--	struct list_head list;
--	struct vm_area_struct *vma;
--};
--
--static int ion_vm_fault(struct vm_fault *vmf)
--{
--	struct ion_buffer *buffer = vmf->vma->vm_private_data;
--	unsigned long pfn;
--	int ret;
--
--	mutex_lock(&buffer->lock);
--	ion_buffer_page_dirty(buffer->pages + vmf->pgoff);
--	BUG_ON(!buffer->pages || !buffer->pages[vmf->pgoff]);
--
--	pfn = page_to_pfn(ion_buffer_page(buffer->pages[vmf->pgoff]));
--	ret = vm_insert_pfn(vmf->vma, vmf->address, pfn);
--	mutex_unlock(&buffer->lock);
--	if (ret)
--		return VM_FAULT_ERROR;
--
--	return VM_FAULT_NOPAGE;
--}
--
--static void ion_vm_open(struct vm_area_struct *vma)
--{
--	struct ion_buffer *buffer = vma->vm_private_data;
--	struct ion_vma_list *vma_list;
--
--	vma_list = kmalloc(sizeof(*vma_list), GFP_KERNEL);
--	if (!vma_list)
--		return;
--	vma_list->vma = vma;
--	mutex_lock(&buffer->lock);
--	list_add(&vma_list->list, &buffer->vmas);
--	mutex_unlock(&buffer->lock);
--	pr_debug("%s: adding %p\n", __func__, vma);
--}
--
--static void ion_vm_close(struct vm_area_struct *vma)
--{
--	struct ion_buffer *buffer = vma->vm_private_data;
--	struct ion_vma_list *vma_list, *tmp;
--
--	pr_debug("%s\n", __func__);
--	mutex_lock(&buffer->lock);
--	list_for_each_entry_safe(vma_list, tmp, &buffer->vmas, list) {
--		if (vma_list->vma != vma)
--			continue;
--		list_del(&vma_list->list);
--		kfree(vma_list);
--		pr_debug("%s: deleting %p\n", __func__, vma);
--		break;
--	}
--	mutex_unlock(&buffer->lock);
--}
--
--static const struct vm_operations_struct ion_vma_ops = {
--	.open = ion_vm_open,
--	.close = ion_vm_close,
--	.fault = ion_vm_fault,
--};
--
- static int ion_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
- {
- 	struct ion_buffer *buffer = dmabuf->priv;
-@@ -998,15 +890,6 @@ static int ion_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
- 		return -EINVAL;
- 	}
- 
--	if (ion_buffer_fault_user_mappings(buffer)) {
--		vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND |
--							VM_DONTDUMP;
--		vma->vm_private_data = buffer;
--		vma->vm_ops = &ion_vma_ops;
--		ion_vm_open(vma);
--		return 0;
--	}
--
- 	if (!(buffer->flags & ION_FLAG_CACHED))
- 		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
- 
+> everywhere for the proprietary formats, like V4L2_PIX_FMT_KONICA420,
+> V4L2_PIX_FMT_SPCA501, etc. So, let's offer only the emulated
+> variant for those weird stuff.
+> 
+> So, this patch changes the libv4lconvert behavior, for
+> all non-proprietary formats, including Bayer, to offer both
+> the original format and the emulated ones.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  lib/libv4lconvert/libv4lconvert.c | 17 ++++++++---------
+>  1 file changed, 8 insertions(+), 9 deletions(-)
+> 
+> diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
+> index da718918b030..d87d6b91a838 100644
+> --- a/lib/libv4lconvert/libv4lconvert.c
+> +++ b/lib/libv4lconvert/libv4lconvert.c
+> @@ -118,10 +118,10 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
+>  	{ V4L2_PIX_FMT_OV511,		 0,	 7,	 7,	1 },
+>  	{ V4L2_PIX_FMT_OV518,		 0,	 7,	 7,	1 },
+>  	/* uncompressed bayer */
+> -	{ V4L2_PIX_FMT_SBGGR8,		 8,	 8,	 8,	1 },
+> -	{ V4L2_PIX_FMT_SGBRG8,		 8,	 8,	 8,	1 },
+> -	{ V4L2_PIX_FMT_SGRBG8,		 8,	 8,	 8,	1 },
+> -	{ V4L2_PIX_FMT_SRGGB8,		 8,	 8,	 8,	1 },
+> +	{ V4L2_PIX_FMT_SBGGR8,		 8,	 8,	 8,	0 },
+> +	{ V4L2_PIX_FMT_SGBRG8,		 8,	 8,	 8,	0 },
+> +	{ V4L2_PIX_FMT_SGRBG8,		 8,	 8,	 8,	0 },
+> +	{ V4L2_PIX_FMT_SRGGB8,		 8,	 8,	 8,	0 },
+>  	{ V4L2_PIX_FMT_STV0680,		 8,	 8,	 8,	1 },
+>  	/* compressed bayer */
+>  	{ V4L2_PIX_FMT_SPCA561,		 0,	 9,	 9,	1 },
+> @@ -178,7 +178,7 @@ struct v4lconvert_data *v4lconvert_create_with_dev_ops(int fd, void *dev_ops_pri
+>  	/* This keeps tracks of devices which have only formats for which apps
+>  	   most likely will need conversion and we can thus safely add software
+>  	   processing controls without a performance impact. */
+
+Does the comment require updating?
+
+With these,
+
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+> -	int always_needs_conversion = 1;
+> +	int always_needs_conversion = 0;
+>  
+>  	if (!data) {
+>  		fprintf(stderr, "libv4lconvert: error: out of memory!\n");
+> @@ -208,10 +208,9 @@ struct v4lconvert_data *v4lconvert_create_with_dev_ops(int fd, void *dev_ops_pri
+>  		if (j < ARRAY_SIZE(supported_src_pixfmts)) {
+>  			data->supported_src_formats |= 1ULL << j;
+>  			v4lconvert_get_framesizes(data, fmt.pixelformat, j);
+> -			if (!supported_src_pixfmts[j].needs_conversion)
+> -				always_needs_conversion = 0;
+> -		} else
+> -			always_needs_conversion = 0;
+> +			if (supported_src_pixfmts[j].needs_conversion)
+> +				always_needs_conversion = 1;
+> +		}
+>  	}
+>  
+>  	data->no_formats = i;
+
 -- 
-2.7.4
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
