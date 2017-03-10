@@ -1,127 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:60709 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751235AbdCZD7V (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:37970 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933126AbdCJOCU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Mar 2017 23:59:21 -0400
-Message-ID: <d3dc1068087d6e0ec3a2215729fb7725@smtp-cloud2.xs4all.net>
-Date: Sun, 26 Mar 2017 05:59:17 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Fri, 10 Mar 2017 09:02:20 -0500
+Date: Fri, 10 Mar 2017 14:01:24 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
+        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
+ controls from a pipeline
+Message-ID: <20170310140124.GV21222@n2100.armlinux.org.uk>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+ <1487211578-11360-15-git-send-email-steve_longerbeam@mentor.com>
+ <20170302160257.GK3220@valkosipuli.retiisi.org.uk>
+ <20170303230645.GR21222@n2100.armlinux.org.uk>
+ <20170304131329.GV3220@valkosipuli.retiisi.org.uk>
+ <a7b8e095-a95c-24bd-b1e9-e983f18061c4@xs4all.nl>
+ <20170310130733.GU21222@n2100.armlinux.org.uk>
+ <c679f755-52a6-3c6f-3d65-277db46676cc@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <c679f755-52a6-3c6f-3d65-277db46676cc@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Fri, Mar 10, 2017 at 02:22:29PM +0100, Hans Verkuil wrote:
+> And nobody of the media core developers has the time to work on the docs,
+> utilities and libraries you need to make this all work cleanly and reliably.
 
-Results of the daily build of media_tree:
+Well, talking about docs, and in connection to control inheritence,
+this is already documented in at least three separate places:
 
-date:			Sun Mar 26 05:00:15 CEST 2017
-media-tree git hash:	c3d4fb0fb41f4b5eafeee51173c14e50be12f839
-media_build git hash:	bc4c2a205c087c8deff3cd14ed663c4767dd2016
-v4l-utils git hash:	8fc88615b49843acb82cd8316d0bc4ab8474cba2
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+Documentation/media/uapi/v4l/dev-subdev.rst:
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10.1-i686: OK
-linux-4.11-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-x86_64: WARNINGS
-linux-4.10.1-x86_64: WARNINGS
-linux-4.11-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+  Controls
+  ========
+  ...
+  Depending on the driver, those controls might also be exposed through
+  one (or several) V4L2 device nodes.
 
-Detailed results are available here:
+Documentation/media/kapi/v4l2-subdev.rst:
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+  ``VIDIOC_QUERYCTRL``,
+  ``VIDIOC_QUERYMENU``,
+  ``VIDIOC_G_CTRL``,
+  ``VIDIOC_S_CTRL``,
+  ``VIDIOC_G_EXT_CTRLS``,
+  ``VIDIOC_S_EXT_CTRLS`` and
+  ``VIDIOC_TRY_EXT_CTRLS``:
+  
+          The controls ioctls are identical to the ones defined in V4L2. They
+          behave identically, with the only exception that they deal only with
+          controls implemented in the sub-device. Depending on the driver, those
+          controls can be also be accessed through one (or several) V4L2 device
+          nodes.
 
-Full logs are available here:
+Then there's Documentation/media/kapi/v4l2-controls.rst, which gives a
+step by step approach to the main video device inheriting controls from
+its subdevices, and it says:
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+  Inheriting Controls
+  -------------------
+  
+  When a sub-device is registered with a V4L2 driver by calling
+  v4l2_device_register_subdev() and the ctrl_handler fields of both v4l2_subdev
+  and v4l2_device are set, then the controls of the subdev will become
+  automatically available in the V4L2 driver as well. If the subdev driver
+  contains controls that already exist in the V4L2 driver, then those will be
+  skipped (so a V4L2 driver can always override a subdev control).
+  
+  What happens here is that v4l2_device_register_subdev() calls
+  v4l2_ctrl_add_handler() adding the controls of the subdev to the controls
+  of v4l2_device.
 
-The Media Infrastructure API from this daily build is here:
+So, either the docs are wrong, or the advice being mentioned in emails
+about subdev control inheritence is misleading.  Whatever, the two are
+currently inconsistent.
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+As I've already mentioned, from talking about this with Mauro, it seems
+Mauro is in agreement with permitting the control inheritence... I wish
+Mauro would comment for himself, as I can't quote our private discussion
+on the subject.
+
+Right now, my view is that v4l2 is currently being screwed up by people
+with different opinions - there is no unified concensus on how any of
+this stuff is supposed to work, everyone is pulling in different
+directions.  That needs solving _really_ quickly, so I suggest that
+v4l2 people urgently talk to each other and thrash out some of the
+issues that Steve's patch set has brought up, and settle on a way
+forward, rather than what is seemingly happening today - which is
+everyone working in isolation of everyone else with their own bias on
+how things should be done.
+
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
