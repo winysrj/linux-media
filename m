@@ -1,92 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:42872 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753216AbdCFOY4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Mar 2017 09:24:56 -0500
-From: Elena Reshetova <elena.reshetova@intel.com>
-To: gregkh@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org,
-        netdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
-        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
-        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
-        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
-        linux-usb@vger.kernel.org, peterz@infradead.org,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        Hans Liljestrand <ishkamiel@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        David Windsor <dwindsor@gmail.com>
-Subject: [PATCH 01/29] drivers, block: convert xen_blkif.refcnt from atomic_t to refcount_t
-Date: Mon,  6 Mar 2017 16:20:48 +0200
-Message-Id: <1488810076-3754-2-git-send-email-elena.reshetova@intel.com>
-In-Reply-To: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
-References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57162 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932800AbdCJWhx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 10 Mar 2017 17:37:53 -0500
+Date: Sat, 11 Mar 2017 00:37:14 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
+        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
+ controls from a pipeline
+Message-ID: <20170310223714.GI3220@valkosipuli.retiisi.org.uk>
+References: <1487211578-11360-15-git-send-email-steve_longerbeam@mentor.com>
+ <20170302160257.GK3220@valkosipuli.retiisi.org.uk>
+ <20170303230645.GR21222@n2100.armlinux.org.uk>
+ <20170304131329.GV3220@valkosipuli.retiisi.org.uk>
+ <a7b8e095-a95c-24bd-b1e9-e983f18061c4@xs4all.nl>
+ <20170310130733.GU21222@n2100.armlinux.org.uk>
+ <c679f755-52a6-3c6f-3d65-277db46676cc@xs4all.nl>
+ <20170310140124.GV21222@n2100.armlinux.org.uk>
+ <cc8900b0-c091-b14b-96f4-01f8fa72431c@xs4all.nl>
+ <20170310125342.7f047acf@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170310125342.7f047acf@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-refcount_t type and corresponding API should be
-used instead of atomic_t when the variable is used as
-a reference counter. This allows to avoid accidental
-refcounter overflows that might lead to use-after-free
-situations.
+Hi Mauro (and others),
 
-Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
-Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Signed-off-by: David Windsor <dwindsor@gmail.com>
----
- drivers/block/xen-blkback/common.h | 7 ++++---
- drivers/block/xen-blkback/xenbus.c | 2 +-
- 2 files changed, 5 insertions(+), 4 deletions(-)
+On Fri, Mar 10, 2017 at 12:53:42PM -0300, Mauro Carvalho Chehab wrote:
+> Em Fri, 10 Mar 2017 15:20:48 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > 
+> > > As I've already mentioned, from talking about this with Mauro, it seems
+> > > Mauro is in agreement with permitting the control inheritence... I wish
+> > > Mauro would comment for himself, as I can't quote our private discussion
+> > > on the subject.  
+> > 
+> > I can't comment either, not having seen his mail and reasoning.
+> 
+> The rationale is that we should support the simplest use cases first.
+> 
+> In the case of the first MC-based driver (and several subsequent
+> ones), the simplest use case required MC, as it was meant to suport
+> a custom-made sophisticated application that required fine control
+> on each component of the pipeline and to allow their advanced
+> proprietary AAA userspace-based algorithms to work.
 
-diff --git a/drivers/block/xen-blkback/common.h b/drivers/block/xen-blkback/common.h
-index dea61f6..2ccfd62 100644
---- a/drivers/block/xen-blkback/common.h
-+++ b/drivers/block/xen-blkback/common.h
-@@ -35,6 +35,7 @@
- #include <linux/wait.h>
- #include <linux/io.h>
- #include <linux/rbtree.h>
-+#include <linux/refcount.h>
- #include <asm/setup.h>
- #include <asm/pgalloc.h>
- #include <asm/hypervisor.h>
-@@ -333,7 +334,7 @@ struct xen_blkif {
- 	struct xen_vbd		vbd;
- 	/* Back pointer to the backend_info. */
- 	struct backend_info	*be;
--	atomic_t		refcnt;
-+	refcount_t		refcnt;
- 	/* for barrier (drain) requests */
- 	struct completion	drain_complete;
- 	atomic_t		drain;
-@@ -386,10 +387,10 @@ struct pending_req {
- 			 (_v)->bdev->bd_part->nr_sects : \
- 			  get_capacity((_v)->bdev->bd_disk))
- 
--#define xen_blkif_get(_b) (atomic_inc(&(_b)->refcnt))
-+#define xen_blkif_get(_b) (refcount_inc(&(_b)->refcnt))
- #define xen_blkif_put(_b)				\
- 	do {						\
--		if (atomic_dec_and_test(&(_b)->refcnt))	\
-+		if (refcount_dec_and_test(&(_b)->refcnt))	\
- 			schedule_work(&(_b)->free_work);\
- 	} while (0)
- 
-diff --git a/drivers/block/xen-blkback/xenbus.c b/drivers/block/xen-blkback/xenbus.c
-index 8fe61b5..9f89be3 100644
---- a/drivers/block/xen-blkback/xenbus.c
-+++ b/drivers/block/xen-blkback/xenbus.c
-@@ -176,7 +176,7 @@ static struct xen_blkif *xen_blkif_alloc(domid_t domid)
- 		return ERR_PTR(-ENOMEM);
- 
- 	blkif->domid = domid;
--	atomic_set(&blkif->refcnt, 1);
-+	refcount_set(&blkif->refcnt, 1);
- 	init_completion(&blkif->drain_complete);
- 	INIT_WORK(&blkif->free_work, xen_blkif_deferred_free);
- 
+The first MC based driver (omap3isp) supports what the hardware can do, it
+does not support applications as such.
+
+Adding support to drivers for different "operation modes" --- this is
+essentially what is being asked for --- is not an approach which could serve
+either purpose (some functionality with simple interface vs. fully support
+what the hardware can do, with interfaces allowing that) adequately in the
+short or the long run.
+
+If we are missing pieces in the puzzle --- in this case the missing pieces
+in the puzzle are a generic pipeline configuration library and another
+library that, with the help of pipeline autoconfiguration would implement
+"best effort" service for regular V4L2 on top of the MC + V4L2 subdev + V4L2
+--- then these pieces need to be impelemented. The solution is
+*not* to attempt to support different types of applications in each driver
+separately. That will make writing drivers painful, error prone and is
+unlikely ever deliver what either purpose requires.
+
+So let's continue to implement the functionality that the hardware supports.
+Making a different choice here is bound to create a lasting conflict between
+having to change kernel interface behaviour and the requirement of
+supporting new functionality that hasn't been previously thought of, pushing
+away SoC vendors from V4L2 ecosystem. This is what we all do want to avoid.
+
+As far as i.MX6 driver goes, it is always possible to implement i.MX6 plugin
+for libv4l to perform this. This should be much easier than getting the
+automatic pipe configuration library and the rest working, and as it is
+custom for i.MX6, the resulting plugin may make informed technical choices
+for better functionality. Jacek has been working on such a plugin for
+Samsung Exynos hardware, but I don't think he has quite finished it yey.
+
+The original plan was and continues to be sound, it's just that there have
+always been too few hands to implement it. :-(
+
+> 
+> That's not true, for example, for the UVC driver. There, MC
+> is optional, as it should be.
+
+UVC is different. The device simply provides additional information through
+MC to the user but MC (or V4L2 sub-device interface) is not used for
+controlling the device.
+
 -- 
-2.7.4
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
