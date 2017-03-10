@@ -1,61 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:54671 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751499AbdCTF0g (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 01:26:36 -0400
-Received: from epcas5p3.samsung.com (unknown [182.195.41.41])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0ON300CEDLSA6T80@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Mon, 20 Mar 2017 14:26:34 +0900 (KST)
-Subject: Re: [Patch v2 02/11] s5p-mfc: Adding initial support for MFC v10.10
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: Rob Herring <robh@kernel.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com,
-        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
-        m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        devicetree@vger.kernel.org
-In-reply-to: <20170315195250.kq4tywgzmvnzuy4j@rob-hp-laptop>
-Date: Mon, 20 Mar 2017 10:57:57 +0530
-Message-id: <1489987677.27807.145.camel@smitha-fedora>
-MIME-version: 1.0
-Content-transfer-encoding: 7bit
-Content-type: text/plain; charset=utf-8
-References: <1488532036-13044-1-git-send-email-smitha.t@samsung.com>
- <CGME20170303090436epcas1p2097d589d9c5e6f7ee634ab9917cc987e@epcas1p2.samsung.com>
- <1488532036-13044-3-git-send-email-smitha.t@samsung.com>
- <20170315195250.kq4tywgzmvnzuy4j@rob-hp-laptop>
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:35974 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755146AbdCJEyy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 23:54:54 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v5 29/39] ARM: imx_v6_v7_defconfig: Enable staging video4linux drivers
+Date: Thu,  9 Mar 2017 20:53:09 -0800
+Message-Id: <1489121599-23206-30-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2017-03-15 at 14:52 -0500, Rob Herring wrote:
-> On Fri, Mar 03, 2017 at 02:37:07PM +0530, Smitha T Murthy wrote:
-> > Adding the support for MFC v10.10, with new register file and
-> > necessary hw control, decoder, encoder and structural changes.
-> > 
-> > Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-> > CC: Rob Herring <robh+dt@kernel.org>
-> > CC: devicetree@vger.kernel.org
-> > ---
-> >  .../devicetree/bindings/media/s5p-mfc.txt          |    1 +
-> 
-> Acked-by: Rob Herring <robh@kernel.org>
-> 
-Thank you for the Acked-by.
-Regards,
-Smitha T Murthy
-> >  drivers/media/platform/s5p-mfc/regs-mfc-v10.h      |   36 ++++++++++++++++
-> >  drivers/media/platform/s5p-mfc/s5p_mfc.c           |   30 +++++++++++++
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |    4 +-
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c      |    4 ++
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |   44 +++++++++++---------
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |   21 +++++----
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |    9 +++-
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h    |    2 +
-> >  9 files changed, 118 insertions(+), 33 deletions(-)
-> >  create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-> 
-> 
+Enable i.MX v4l2 media staging driver. For video capture on i.MX, the
+video multiplexer subdev is required. On the SabreAuto, the ADV7180
+video decoder is required along with i2c-mux-gpio. The Sabrelite
+and SabreSD require the OV5640 and the SabreLite requires PWM clocks
+for the OV5640.
+
+Increase max zoneorder to allow larger video buffer allocations.
+
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ arch/arm/configs/imx_v6_v7_defconfig | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/arch/arm/configs/imx_v6_v7_defconfig b/arch/arm/configs/imx_v6_v7_defconfig
+index eaba3b1..5d8c94a 100644
+--- a/arch/arm/configs/imx_v6_v7_defconfig
++++ b/arch/arm/configs/imx_v6_v7_defconfig
+@@ -51,6 +51,7 @@ CONFIG_PREEMPT_VOLUNTARY=y
+ CONFIG_AEABI=y
+ CONFIG_HIGHMEM=y
+ CONFIG_CMA=y
++CONFIG_FORCE_MAX_ZONEORDER=14
+ CONFIG_CMDLINE="noinitrd console=ttymxc0,115200"
+ CONFIG_KEXEC=y
+ CONFIG_CPU_FREQ=y
+@@ -181,6 +182,7 @@ CONFIG_SERIAL_FSL_LPUART=y
+ CONFIG_SERIAL_FSL_LPUART_CONSOLE=y
+ # CONFIG_I2C_COMPAT is not set
+ CONFIG_I2C_CHARDEV=y
++CONFIG_I2C_MUX=y
+ CONFIG_I2C_MUX_GPIO=y
+ # CONFIG_I2C_HELPER_AUTO is not set
+ CONFIG_I2C_ALGOPCF=m
+@@ -221,14 +223,20 @@ CONFIG_REGULATOR_PFUZE100=y
+ CONFIG_MEDIA_SUPPORT=y
+ CONFIG_MEDIA_CAMERA_SUPPORT=y
+ CONFIG_MEDIA_RC_SUPPORT=y
++CONFIG_MEDIA_CONTROLLER=y
++CONFIG_VIDEO_V4L2_SUBDEV_API=y
+ CONFIG_RC_DEVICES=y
+ CONFIG_IR_GPIO_CIR=y
+ CONFIG_MEDIA_USB_SUPPORT=y
+ CONFIG_USB_VIDEO_CLASS=m
+ CONFIG_V4L_PLATFORM_DRIVERS=y
++CONFIG_VIDEO_MULTIPLEXER=y
+ CONFIG_SOC_CAMERA=y
+ CONFIG_V4L_MEM2MEM_DRIVERS=y
+ CONFIG_VIDEO_CODA=y
++# CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
++CONFIG_VIDEO_ADV7180=m
++CONFIG_VIDEO_OV5640=m
+ CONFIG_SOC_CAMERA_OV2640=y
+ CONFIG_IMX_IPUV3_CORE=y
+ CONFIG_DRM=y
+@@ -338,6 +346,9 @@ CONFIG_FSL_EDMA=y
+ CONFIG_IMX_SDMA=y
+ CONFIG_MXS_DMA=y
+ CONFIG_STAGING=y
++CONFIG_STAGING_MEDIA=y
++CONFIG_VIDEO_IMX_MEDIA=y
++CONFIG_COMMON_CLK_PWM=y
+ CONFIG_IIO=y
+ CONFIG_VF610_ADC=y
+ CONFIG_MPL3115=y
+-- 
+2.7.4
