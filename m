@@ -1,77 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58648 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752027AbdCOWMv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Mar 2017 18:12:51 -0400
-Date: Thu, 16 Mar 2017 00:03:03 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, vladimir_zapolskiy@mentor.com,
-        CARLOS.PALMINHA@synopsys.com,
-        Andrew Morton <akpm@linux-foundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>,
-        Pavel Machek <pavel@ucw.cz>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Rob Herring <robh+dt@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>
-Subject: Re: [PATCH v10 2/2] media: i2c: Add support for OV5647 sensor.
-Message-ID: <20170315220303.GG10701@valkosipuli.retiisi.org.uk>
-References: <cover.1488798062.git.roliveir@synopsys.com>
- <67b5055a198316f74c5c1339e14a9f18a4106e69.1488798062.git.roliveir@synopsys.com>
- <20170307104545.GI3220@valkosipuli.retiisi.org.uk>
- <350cf398-81a9-7174-fd47-1dc5c0daa990@synopsys.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <350cf398-81a9-7174-fd47-1dc5c0daa990@synopsys.com>
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:33066 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932430AbdCJEyO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 23:54:14 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v5 12/39] ARM: dts: imx6-sabreauto: add pinctrl for gpt input capture
+Date: Thu,  9 Mar 2017 20:52:52 -0800
+Message-Id: <1489121599-23206-13-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ramiro,
+Add pinctrl groups for both GPT input capture channels.
 
-On Wed, Mar 15, 2017 at 04:45:16PM +0000, Ramiro Oliveira wrote:
-> Hi Sakari
-> 
-> On 3/7/2017 10:45 AM, Sakari Ailus wrote:
-> > Hi Ramiro,
-> > 
-> > On Mon, Mar 06, 2017 at 11:16:34AM +0000, Ramiro Oliveira wrote:
-> > ...
-> >> +static int __sensor_init(struct v4l2_subdev *sd)
-> >> +{
-> >> +	int ret;
-> >> +	u8 resetval, rdval;
-> >> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> >> +
-> >> +	dev_dbg(&client->dev, "sensor init\n");
-> > 
-> > This looks like a debugging time leftover. Please remove.
-> > 
-> 
-> Should I send a v11 with this change?
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-Please do; you can add my ack on that one.
-
-> 
-> > With that,
-> > 
-> > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > 
-> > ...
-> > 
-
+diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+index 21dea5f..1212f82 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+@@ -456,6 +456,18 @@
+ 			>;
+ 		};
+ 
++		pinctrl_gpt_input_capture0: gptinputcapture0grp {
++			fsl,pins = <
++				MX6QDL_PAD_SD1_DAT0__GPT_CAPTURE1	0x1b0b0
++			>;
++		};
++
++		pinctrl_gpt_input_capture1: gptinputcapture1grp {
++			fsl,pins = <
++				MX6QDL_PAD_SD1_DAT1__GPT_CAPTURE2	0x1b0b0
++			>;
++		};
++
+ 		pinctrl_spdif: spdifgrp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_KEY_COL3__SPDIF_IN 0x1b0b0
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.7.4
