@@ -1,65 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:36711 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752358AbdCOKIL (ORCPT
+Received: from mail-ot0-f194.google.com ([74.125.82.194]:32864 "EHLO
+        mail-ot0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755337AbdCJTRa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Mar 2017 06:08:11 -0400
-Received: by mail-wr0-f195.google.com with SMTP id l37so1406250wrc.3
-        for <linux-media@vger.kernel.org>; Wed, 15 Mar 2017 03:08:10 -0700 (PDT)
-Date: Wed, 15 Mar 2017 11:08:06 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Laura Abbott <labbott@redhat.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-        linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Subject: Re: [RFC][PATCH] dma-buf: Introduce dma-buf test module
-Message-ID: <20170315100806.xibewpizce7iky6d@phenom.ffwll.local>
-References: <1489521859-20701-1-git-send-email-labbott@redhat.com>
- <20170314201303.2o6bhyn5yudjx4m6@phenom.ffwll.local>
- <93fc4722-bffc-e96b-0191-bd3bf875aaf8@redhat.com>
+        Fri, 10 Mar 2017 14:17:30 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <93fc4722-bffc-e96b-0191-bd3bf875aaf8@redhat.com>
+In-Reply-To: <9f5d0ac4-0602-c729-5c00-1d9ef49247c1@boundarydevices.com>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <1489121599-23206-8-git-send-email-steve_longerbeam@mentor.com> <9f5d0ac4-0602-c729-5c00-1d9ef49247c1@boundarydevices.com>
+From: Fabio Estevam <festevam@gmail.com>
+Date: Fri, 10 Mar 2017 16:17:28 -0300
+Message-ID: <CAOMZO5BNrSEyrbWbCBCbsy4yTrh4AHfk2Too0qHuffxqUCgADg@mail.gmail.com>
+Subject: Re: [PATCH v5 07/39] ARM: dts: imx6qdl-sabrelite: remove erratum
+ ERR006687 workaround
+To: Troy Kisky <troy.kisky@boundarydevices.com>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        "robh+dt@kernel.org" <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <kernel@pengutronix.de>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        mchehab@kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Nick Dyer <nick@shmanahar.org>, markus.heiser@darmarit.de,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        bparrot@ti.com, Geert Uytterhoeven <geert@linux-m68k.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+        minghsiu.tsai@mediatek.com, Tiffany Lin <tiffany.lin@mediatek.com>,
+        Jean-Christophe TROTIN <jean-christophe.trotin@st.com>,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        shuah@kernel.org, sakari.ailus@linux.intel.com,
+        Pavel Machek <pavel@ucw.cz>, devel@driverdev.osuosl.org,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 14, 2017 at 01:30:30PM -0700, Laura Abbott wrote:
-> On 03/14/2017 01:13 PM, Daniel Vetter wrote:
-> > On Tue, Mar 14, 2017 at 01:04:19PM -0700, Laura Abbott wrote:
-> >>
-> >> dma-buf is designed to share buffers. Sharing means that there needs to
-> >> be another subsystem to accept those buffers. Introduce a simple test
-> >> module to act as a dummy system to accept dma_bufs from elsewhere. The
-> >> goal is to provide a very simple interface to validate exported buffers
-> >> do something reasonable. This is based on ion_test.c that existed for
-> >> the Ion framework.
-> >>
-> >> Signed-off-by: Laura Abbott <labbott@redhat.com>
-> >> ---
-> >> This is basically a drop in of what was available as
-> >> drivers/staging/android/ion/ion_test.c. Given it has no Ion specific
-> >> parts it might be useful as a more general test module. RFC mostly
-> >> to see if this is generally useful or not.
-> > 
-> > We already have a test dma-buf driver, which also handles reservation
-> > objects and can create fences to provoke signalling races an all kinds of
-> > other fun. It's drivers/gpu/drm/vgem.
-> > 
-> > If there's anything missing in there, patches very much welcome.
-> > -Daniel
-> > 
-> 
-> Thanks for that pointer. It certainly looks more complete vs. allocating
-> a platform_device. I'll look and see if there's anything that needs
-> extension. Plus this means I can probably delete more code from Ion (woo)
+On Fri, Mar 10, 2017 at 3:59 PM, Troy Kisky
+<troy.kisky@boundarydevices.com> wrote:
+> On 3/9/2017 8:52 PM, Steve Longerbeam wrote:
+>> There is a pin conflict with GPIO_6. This pin functions as a power
+>> input pin to the OV5642 camera sensor, but ENET uses it as the h/w
+>> workaround for erratum ERR006687, to wake-up the ARM cores on normal
+>> RX and TX packet done events. So we need to remove the h/w workaround
+>> to support the OV5642. The result is that the CPUidle driver will no
+>> longer allow entering the deep idle states on the sabrelite.
+>>
+>> This is a partial revert of
+>>
+>> commit 6261c4c8f13e ("ARM: dts: imx6qdl-sabrelite: use GPIO_6 for FEC
+>>                       interrupt.")
+>> commit a28eeb43ee57 ("ARM: dts: imx6: tag boards that have the HW workaround
+>>                       for ERR006687")
+>>
+>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+>> ---
+>>  arch/arm/boot/dts/imx6qdl-sabrelite.dtsi | 4 ----
+>>  1 file changed, 4 deletions(-)
+>>
+>> diff --git a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+>> index 8413179..89dce27 100644
+>> --- a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+>> +++ b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
+>> @@ -270,9 +270,6 @@
+>>       txd1-skew-ps = <0>;
+>>       txd2-skew-ps = <0>;
+>>       txd3-skew-ps = <0>;
+>
+> How about
+>
+> +#if !IS_ENABLED(CONFIG_VIDEO_OV5642)
 
-\o/ for less code!
+Or maybe just create a new device tree for using the camera, like
+imx6q-sabrelite-camera.dts.
 
-btw for the tests, I think we should really hard to either get them into
-kselftests or igt.
--Daniel
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+This way we can keep the FEC erratum for the existing sabrelite dtb's.
