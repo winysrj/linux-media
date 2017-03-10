@@ -1,98 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:47142 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750991AbdCNTKH (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:34914 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750776AbdCJFNY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Mar 2017 15:10:07 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 06/16] rcar-vin: refactor pad lookup code
-Date: Tue, 14 Mar 2017 19:59:47 +0100
-Message-Id: <20170314185957.25253-7-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Fri, 10 Mar 2017 00:13:24 -0500
+Received: by mail-pg0-f67.google.com with SMTP id g2so4557912pge.2
+        for <linux-media@vger.kernel.org>; Thu, 09 Mar 2017 21:13:23 -0800 (PST)
+From: simran singhal <singhalsimran0@gmail.com>
+To: gregkh@linuxfoundation.org
+Cc: devel@driverdev.osuosl.org, jarod@wilsonet.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org
+Subject: [PATCH 2/3] staging: vpfe_mc_capture: Clean up tests if NULL returned on failure
+Date: Fri, 10 Mar 2017 10:43:11 +0530
+Message-Id: <1489122792-8081-3-git-send-email-singhalsimran0@gmail.com>
+In-Reply-To: <1489122792-8081-1-git-send-email-singhalsimran0@gmail.com>
+References: <1489122792-8081-1-git-send-email-singhalsimran0@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The pad lookup code can be broken out to increase readability and to
-reduce code duplication.
+Some functions like kmalloc/kzalloc return NULL on failure.
+When NULL represents failure, !x is commonly used.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+This was done using Coccinelle:
+@@
+expression *e;
+identifier l1;
+@@
+
+e = \(kmalloc\|kzalloc\|kcalloc\|devm_kzalloc\)(...);
+...
+- e == NULL
++ !e
+
+Signed-off-by: simran singhal <singhalsimran0@gmail.com>
 ---
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 38 +++++++++++++++++------------
- 1 file changed, 23 insertions(+), 15 deletions(-)
+ drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 1a75191539b0e7d7..ce29a21888da48d5 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -870,11 +870,25 @@ static void rvin_notify(struct v4l2_subdev *sd,
- 	}
- }
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
+index 32109cd..bffe215 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
++++ b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
+@@ -228,7 +228,7 @@ static int vpfe_enable_clock(struct vpfe_device *vpfe_dev)
  
-+static int rvin_find_pad(struct v4l2_subdev *sd, int direction)
-+{
-+	unsigned int pad;
-+
-+	if (sd->entity.num_pads <= 1)
-+		return 0;
-+
-+	for (pad = 0; pad < sd->entity.num_pads; pad++)
-+		if (sd->entity.pads[pad].flags & direction)
-+			return pad;
-+
-+	return -EINVAL;
-+}
-+
- int rvin_v4l2_probe(struct rvin_dev *vin)
- {
- 	struct video_device *vdev = &vin->vdev;
- 	struct v4l2_subdev *sd = vin_to_source(vin);
--	int pad_idx, ret;
-+	int ret;
+ 	vpfe_dev->clks = kcalloc(vpfe_cfg->num_clocks,
+ 				 sizeof(*vpfe_dev->clks), GFP_KERNEL);
+-	if (vpfe_dev->clks == NULL)
++	if (!vpfe_dev->clks)
+ 		return -ENOMEM;
  
- 	v4l2_set_subdev_hostdata(sd, vin);
+ 	for (i = 0; i < vpfe_cfg->num_clocks; i++) {
+@@ -348,7 +348,7 @@ static int register_i2c_devices(struct vpfe_device *vpfe_dev)
+ 	vpfe_dev->sd =
+ 		  kcalloc(num_subdevs, sizeof(struct v4l2_subdev *),
+ 			  GFP_KERNEL);
+-	if (vpfe_dev->sd == NULL)
++	if (!vpfe_dev->sd)
+ 		return -ENOMEM;
  
-@@ -920,21 +934,15 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
- 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
- 		V4L2_CAP_READWRITE;
- 
--	vin->digital.source_pad = 0;
--	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
--		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SOURCE)
--			break;
--	if (pad_idx >= sd->entity.num_pads)
--		return -EINVAL;
--
--	vin->digital.source_pad = pad_idx;
-+	ret = rvin_find_pad(sd, MEDIA_PAD_FL_SOURCE);
-+	if (ret < 0)
-+		return ret;
-+	vin->digital.source_pad = ret;
- 
--	vin->digital.sink_pad = 0;
--	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
--		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SINK) {
--			vin->digital.sink_pad = pad_idx;
--			break;
--		}
-+	ret = rvin_find_pad(sd, MEDIA_PAD_FL_SINK);
-+	if (ret < 0)
-+		return ret;
-+	vin->digital.sink_pad = ret;
- 
- 	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
- 	rvin_reset_format(vin);
+ 	for (i = 0, k = 0; i < num_subdevs; i++) {
 -- 
-2.12.0
+2.7.4
