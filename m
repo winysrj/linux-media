@@ -1,59 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f68.google.com ([209.85.214.68]:35367 "EHLO
-        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934193AbdC3PkA (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:58898 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751024AbdCJXc1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 11:40:00 -0400
+        Fri, 10 Mar 2017 18:32:27 -0500
+Date: Sat, 11 Mar 2017 00:32:23 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v5 22/39] media: Add userspace header file for i.MX
+Message-ID: <20170310233223.GD6540@amd>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <1489121599-23206-23-git-send-email-steve_longerbeam@mentor.com>
 MIME-Version: 1.0
-In-Reply-To: <1490871164.4738.0.camel@linux.intel.com>
-References: <20170330062449.GA25214@SEL-JYOUN-D1> <1490871164.4738.0.camel@linux.intel.com>
-From: DaeSeok Youn <daeseok.youn@gmail.com>
-Date: Fri, 31 Mar 2017 00:39:43 +0900
-Message-ID: <CAHb8M2A6oEeY5JXKEw6U5LCt1hBYaOQztLphnen7QjE3zuSjyg@mail.gmail.com>
-Subject: Re: [PATCH 1/2] staging: atomisp: simplify the if condition in atomisp_freq_scaling()
-To: Alan Cox <alan@linux.intel.com>
-Cc: mchehab@kernel.org, Greg KH <gregkh@linuxfoundation.org>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        SIMRAN SINGHAL <singhalsimran0@gmail.com>,
-        linux-media@vger.kernel.org, devel <devel@driverdev.osuosl.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        kernel-janitors <kernel-janitors@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="k4f25fnPtRuIRUb3"
+Content-Disposition: inline
+In-Reply-To: <1489121599-23206-23-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-03-30 19:52 GMT+09:00 Alan Cox <alan@linux.intel.com>:
-> On Thu, 2017-03-30 at 15:24 +0900, Daeseok Youn wrote:
->> The condition line in if-statement is needed to be shorthen to
->> improve readability.
->>
->> Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
->> ---
->
-> How about a define for ATOMISP_IS_CHT(isp) instead - as we will need
-hmm.. I think there is another way to get a *device*(unsigned short or
-__u32) to mask with "ATOMISP_PCI_DEVICE_SOC_MASK".
-In the atomisp_freq_scaling() function, the "device" value is getting
-started from "isp" structure.
-(isp->pdev->device)
 
-if the function has only "pci_dev" struction as a parameter and it
-need to check the CHT. Then we cannot use the definition like
-ATOMISP_IS_CHT(isp). it means we have another definition to check the
-CHT.
+--k4f25fnPtRuIRUb3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Am I right?
+Hi!
 
-> these tests in other places where there are ISP2400/ISP2401 ifdefs ?
-I am not sure whether these tests are needed in other place or not.
-(Actually, I didn't find good H/W reference for Atom ISP device - Can
-you please share the link to refer document like H/W manual to
-develop?) I have tried to clean up the code first. in the meantime, I
-will have a look at the document if I have good reference manual.
+> diff --git a/include/uapi/media/Kbuild b/include/uapi/media/Kbuild
+> index aafaa5a..fa78958 100644
+> --- a/include/uapi/media/Kbuild
+> +++ b/include/uapi/media/Kbuild
+> @@ -1 +1,2 @@
+>  # UAPI Header export list
+> +header-y +=3D imx.h
+> diff --git a/include/uapi/media/imx.h b/include/uapi/media/imx.h
+> new file mode 100644
+> index 0000000..f573de4
+> --- /dev/null
+> +++ b/include/uapi/media/imx.h
+> @@ -0,0 +1,21 @@
+> +/*
+> + * Copyright (c) 2014-2015 Mentor Graphics Inc.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by =
+the
+> + * Free Software Foundation; either version 2 of the
+> + * License, or (at your option) any later version
+> + */
+> +
+> +#ifndef __UAPI_MEDIA_IMX_H__
+> +#define __UAPI_MEDIA_IMX_H__
+> +
+> +enum imx_ctrl_id {
+> +	V4L2_CID_IMX_FIM_ENABLE =3D (V4L2_CID_USER_IMX_BASE + 0),
+> +	V4L2_CID_IMX_FIM_NUM,
+> +	V4L2_CID_IMX_FIM_TOLERANCE_MIN,
+> +	V4L2_CID_IMX_FIM_TOLERANCE_MAX,
+> +	V4L2_CID_IMX_FIM_NUM_SKIP,
+> +};
+> +
 
-Thanks.
-Regards,
-Daeseok.
->
-> Alan
->
+Should this #include something so that if userland includes it, it
+will not get compile error?
+
+Should there be some documentation of userland API?
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--k4f25fnPtRuIRUb3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAljDN4cACgkQMOfwapXb+vJ/xQCgjTZD9Q1WUd1lCNyLHB1cw5G/
+M/0AoJ8HYtrzVS2KkBgWcN12g/SFLAdq
+=8WnM
+-----END PGP SIGNATURE-----
+
+--k4f25fnPtRuIRUb3--
