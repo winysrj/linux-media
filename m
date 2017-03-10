@@ -1,120 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay.synopsys.com ([198.182.60.111]:41337 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753511AbdCFLVZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 06:21:25 -0500
-From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org
-Cc: vladimir_zapolskiy@mentor.com, CARLOS.PALMINHA@synopsys.com,
-        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pavel Machek <pavel@ucw.cz>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Rob Herring <robh+dt@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>
-Subject: [PATCH v10 0/2] Add support for Omnivision OV5647
-Date: Mon,  6 Mar 2017 11:16:32 +0000
-Message-Id: <cover.1488798062.git.roliveir@synopsys.com>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:36522 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936709AbdCJNHh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 10 Mar 2017 08:07:37 -0500
+From: simran singhal <singhalsimran0@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        outreachy-kernel@googlegroups.com
+Subject: [PATCH 2/2] staging: sh_css_firmware: Remove parentheses from return arguments
+Date: Fri, 10 Mar 2017 18:37:24 +0530
+Message-Id: <1489151244-20714-3-git-send-email-singhalsimran0@gmail.com>
+In-Reply-To: <1489151244-20714-1-git-send-email-singhalsimran0@gmail.com>
+References: <1489151244-20714-1-git-send-email-singhalsimran0@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+The sematic patch used for this is:
+@@
+identifier i;
+constant c;
+@@
+return
+- (
+    \(i\|-i\|i(...)\|c\)
+- )
+  ;
 
-This patchset adds support for the Omnivision OV5647 sensor.
+Signed-off-by: simran singhal <singhalsimran0@gmail.com>
+Acked-by: Julia Lawall <julia.lawall@lip6.fr>
+---
+ drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-At the moment it only supports 640x480 in RAW 8.
-
-This is the tenth version of the OV5647 camera driver patchset.
-
-v10:
- - Add more error info to model check
- - Remove empty callback
-Suggested-by: Sakari Ailus <sakari.ailus@iki.fi>
- - Change error message in read function
- - Change clock handling
- - Add error checking where it was missing
- - Remove debug messages
- - Remove the need for clock name
-Suggested-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
- - Code refactoring
-
-v9:
- - Remove unused struct
- - Remove comments
- - Refactor error handling in i2c r/w functions
- - Change declarations to single line.
- - Remove value assignment in variable declarion
- - Refactor configurion write loop 
- - Change the variable type that received ov5647_read() read value
- - Remove print from probe function
- - Remove unused device struct
- - Remove OF dependency from Kconfig
-Suggested-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-
-v8:
- - Remove a part of the initialization procedure which wasn't doing 
- anything
- - Check for i2c read/writes return values
- - Add stream_on/off functions
-Suggested-by: Sakari Ailus <sakari.ailus@iki.fi>
-
-v7:
- - Remove "0x" and leading 0 from DT documentation examples
-
-v6:
- - Add example to DT documentation
- - Remove data-lanes and clock-lane property from DT
- - Add external clock property to DT
- - Order includes
- - Remove unused variables and functions
- - Add external clock handling
- - Add power on counter
- - Change from g/s_parm to g/s_frame_interval
-
-v5:
- - Refactor code 
- - Change comments
- - Add missing error handling in some functions
-
-v4: 
- - Add correct license
- - Revert debugging info to generic infrastructure
- - Turn defines into enums
- - Correct code style issues
- - Remove unused defines
- - Make sure all errors where being handled
- - Rename some functions to make code more readable
- - Add some debugging info
-
-v3: 
- - No changes. Re-submitted due to lack of responses
-
-v2: 
- - Corrections in DT documentation
-
-
-Ramiro Oliveira (2):
-  Documentation: DT: Add OV5647 bindings
-  media: i2c: Add support for OV5647 sensor.
-
- .../devicetree/bindings/media/i2c/ov5647.txt       |  35 ++
- MAINTAINERS                                        |   7 +
- drivers/media/i2c/Kconfig                          |  11 +
- drivers/media/i2c/Makefile                         |   1 +
- drivers/media/i2c/ov5647.c                         | 636 +++++++++++++++++++++
- 5 files changed, 690 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
- create mode 100644 drivers/media/i2c/ov5647.c
-
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+index b294e6d..0d7e8cd 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
+@@ -74,7 +74,7 @@ static struct fw_param *fw_minibuffer;
+ 
+ char *sh_css_get_fw_version(void)
+ {
+-	return(FW_rel_ver_name);
++	return FW_rel_ver_name;
+ }
+ 
+ 
 -- 
-2.11.0
+2.7.4
