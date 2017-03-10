@@ -1,242 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f170.google.com ([209.85.128.170]:35832 "EHLO
-        mail-wr0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933044AbdCUPUj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Mar 2017 11:20:39 -0400
-Received: by mail-wr0-f170.google.com with SMTP id g10so114138776wrg.2
-        for <linux-media@vger.kernel.org>; Tue, 21 Mar 2017 08:20:38 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: dri-devel@lists.freedesktop.org,
-        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org
-Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
-        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-media@vger.kernel.org
-Subject: [PATCH v4 6/6] drm: bridge: dw-hdmi: Move HPD handling to PHY operations
-Date: Tue, 21 Mar 2017 16:12:41 +0100
-Message-Id: <1490109161-20529-7-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1490109161-20529-1-git-send-email-narmstrong@baylibre.com>
-References: <1490109161-20529-1-git-send-email-narmstrong@baylibre.com>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:35970 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754964AbdCJEyE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 23:54:04 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v5 10/39] ARM: dts: imx6-sabreauto: create i2cmux for i2c3
+Date: Thu,  9 Mar 2017 20:52:50 -0800
+Message-Id: <1489121599-23206-11-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The HDMI TX controller support HPD and RXSENSE signaling from the PHY
-via it's STAT0 PHY interface, but some vendor PHYs can manage these
-signals independently from the controller, thus these STAT0 handling
-should be moved to PHY specific operations and become optional.
+The sabreauto uses a steering pin to select between the SDA signal on
+i2c3 bus, and a data-in pin for an SPI NOR chip. Use i2cmux to control
+this steering pin. Idle state of the i2cmux selects SPI NOR. This is not
+a classic way to use i2cmux, since one side of the mux selects something
+other than an i2c bus, but it works and is probably the cleanest
+solution. Note that if one thread is attempting to access SPI NOR while
+another thread is accessing i2c3, the SPI NOR access will fail since the
+i2cmux has selected the SDA pin rather than SPI NOR data-in. This couldn't
+be avoided in any case, the board is not designed to allow concurrent
+i2c3 and SPI NOR functions (and the default device-tree does not enable
+SPI NOR anyway).
 
-The existing STAT0 HPD and RXSENSE handling code is refactored into
-a supplementaty set of default PHY operations that are used automatically
-when the platform glue doesn't provide its own operations.
+Devices hanging off i2c3 should now be defined under i2cmux, so
+that the steering pin can be properly controlled to access those
+devices. The port expanders (MAX7310) are thus moved into i2cmux.
 
-Reviewed-by: Jose Abreu <joabreu@synopsys.com>
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 135 ++++++++++++++++++------------
- include/drm/bridge/dw_hdmi.h              |   5 ++
- 2 files changed, 86 insertions(+), 54 deletions(-)
+ arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 65 +++++++++++++++++++++-----------
+ 1 file changed, 44 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-index fcb0a27..910d579 100644
---- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-+++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-@@ -1229,10 +1229,46 @@ static enum drm_connector_status dw_hdmi_phy_read_hpd(struct dw_hdmi *hdmi,
- 		connector_status_connected : connector_status_disconnected;
- }
- 
-+static void dw_hdmi_phy_update_hpd(struct dw_hdmi *hdmi, void *data,
-+				   bool force, bool disabled, bool rxsense)
-+{
-+	u8 old_mask = hdmi->phy_mask;
+diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+index a2a714d..c8e35c4 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
+@@ -108,6 +108,44 @@
+ 		default-brightness-level = <7>;
+ 		status = "okay";
+ 	};
 +
-+	if (force || disabled || !rxsense)
-+		hdmi->phy_mask |= HDMI_PHY_RX_SENSE;
-+	else
-+		hdmi->phy_mask &= ~HDMI_PHY_RX_SENSE;
++	i2cmux {
++		compatible = "i2c-mux-gpio";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_i2c3mux>;
++		mux-gpios = <&gpio5 4 0>;
++		i2c-parent = <&i2c3>;
++		idle-state = <0>;
 +
-+	if (old_mask != hdmi->phy_mask)
-+		hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
-+}
++		i2c@1 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <1>;
 +
-+static void dw_hdmi_phy_setup_hpd(struct dw_hdmi *hdmi, void *data)
-+{
-+	/*
-+	 * Configure the PHY RX SENSE and HPD interrupts polarities and clear
-+	 * any pending interrupt.
-+	 */
-+	hdmi_writeb(hdmi, HDMI_PHY_HPD | HDMI_PHY_RX_SENSE, HDMI_PHY_POL0);
-+	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
-+		    HDMI_IH_PHY_STAT0);
++			max7310_a: gpio@30 {
++				compatible = "maxim,max7310";
++				reg = <0x30>;
++				gpio-controller;
++				#gpio-cells = <2>;
++			};
 +
-+	/* Enable cable hot plug irq. */
-+	hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
++			max7310_b: gpio@32 {
++				compatible = "maxim,max7310";
++				reg = <0x32>;
++				gpio-controller;
++				#gpio-cells = <2>;
++			};
 +
-+	/* Clear and unmute interrupts. */
-+	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
-+		    HDMI_IH_PHY_STAT0);
-+	hdmi_writeb(hdmi, ~(HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE),
-+		    HDMI_IH_MUTE_PHY_STAT0);
-+}
-+
- static const struct dw_hdmi_phy_ops dw_hdmi_synopsys_phy_ops = {
- 	.init = dw_hdmi_phy_init,
- 	.disable = dw_hdmi_phy_disable,
- 	.read_hpd = dw_hdmi_phy_read_hpd,
-+	.update_hpd = dw_hdmi_phy_update_hpd,
-+	.setup_hpd = dw_hdmi_phy_setup_hpd,
++			max7310_c: gpio@34 {
++				compatible = "maxim,max7310";
++				reg = <0x34>;
++				gpio-controller;
++				#gpio-cells = <2>;
++			};
++		};
++	};
  };
  
- /* -----------------------------------------------------------------------------
-@@ -1809,35 +1845,10 @@ static void dw_hdmi_update_power(struct dw_hdmi *hdmi)
-  */
- static void dw_hdmi_update_phy_mask(struct dw_hdmi *hdmi)
- {
--	u8 old_mask = hdmi->phy_mask;
+ &clks {
+@@ -290,27 +328,6 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_i2c3>;
+ 	status = "okay";
 -
--	if (hdmi->force || hdmi->disabled || !hdmi->rxsense)
--		hdmi->phy_mask |= HDMI_PHY_RX_SENSE;
--	else
--		hdmi->phy_mask &= ~HDMI_PHY_RX_SENSE;
+-	max7310_a: gpio@30 {
+-		compatible = "maxim,max7310";
+-		reg = <0x30>;
+-		gpio-controller;
+-		#gpio-cells = <2>;
+-	};
 -
--	if (old_mask != hdmi->phy_mask)
--		hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
--}
+-	max7310_b: gpio@32 {
+-		compatible = "maxim,max7310";
+-		reg = <0x32>;
+-		gpio-controller;
+-		#gpio-cells = <2>;
+-	};
 -
--static void dw_hdmi_phy_setup_hpd(struct dw_hdmi *hdmi)
--{
--	/*
--	 * Configure the PHY RX SENSE and HPD interrupts polarities and clear
--	 * any pending interrupt.
--	 */
--	hdmi_writeb(hdmi, HDMI_PHY_HPD | HDMI_PHY_RX_SENSE, HDMI_PHY_POL0);
--	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
--		    HDMI_IH_PHY_STAT0);
--
--	/* Enable cable hot plug irq. */
--	hdmi_writeb(hdmi, hdmi->phy_mask, HDMI_PHY_MASK0);
--
--	/* Clear and unmute interrupts. */
--	hdmi_writeb(hdmi, HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE,
--		    HDMI_IH_PHY_STAT0);
--	hdmi_writeb(hdmi, ~(HDMI_IH_PHY_STAT0_HPD | HDMI_IH_PHY_STAT0_RX_SENSE),
--		    HDMI_IH_MUTE_PHY_STAT0);
-+	if (hdmi->phy.ops->update_hpd)
-+		hdmi->phy.ops->update_hpd(hdmi, hdmi->phy.data,
-+					  hdmi->force, hdmi->disabled,
-+					  hdmi->rxsense);
- }
- 
- static enum drm_connector_status
-@@ -2029,6 +2040,41 @@ static irqreturn_t dw_hdmi_hardirq(int irq, void *dev_id)
- 	return ret;
- }
- 
-+void __dw_hdmi_setup_rx_sense(struct dw_hdmi *hdmi, bool hpd, bool rx_sense)
-+{
-+	mutex_lock(&hdmi->mutex);
-+
-+	if (!hdmi->disabled && !hdmi->force) {
-+		/*
-+		 * If the RX sense status indicates we're disconnected,
-+		 * clear the software rxsense status.
-+		 */
-+		if (!rx_sense)
-+			hdmi->rxsense = false;
-+
-+		/*
-+		 * Only set the software rxsense status when both
-+		 * rxsense and hpd indicates we're connected.
-+		 * This avoids what seems to be bad behaviour in
-+		 * at least iMX6S versions of the phy.
-+		 */
-+		if (hpd)
-+			hdmi->rxsense = true;
-+
-+		dw_hdmi_update_power(hdmi);
-+		dw_hdmi_update_phy_mask(hdmi);
-+	}
-+	mutex_unlock(&hdmi->mutex);
-+}
-+
-+void dw_hdmi_setup_rx_sense(struct device *dev, bool hpd, bool rx_sense)
-+{
-+	struct dw_hdmi *hdmi = dev_get_drvdata(dev);
-+
-+	__dw_hdmi_setup_rx_sense(hdmi, hpd, rx_sense);
-+}
-+EXPORT_SYMBOL_GPL(dw_hdmi_setup_rx_sense);
-+
- static irqreturn_t dw_hdmi_irq(int irq, void *dev_id)
- {
- 	struct dw_hdmi *hdmi = dev_id;
-@@ -2061,30 +2107,10 @@ static irqreturn_t dw_hdmi_irq(int irq, void *dev_id)
- 	 * ask the source to re-read the EDID.
- 	 */
- 	if (intr_stat &
--	    (HDMI_IH_PHY_STAT0_RX_SENSE | HDMI_IH_PHY_STAT0_HPD)) {
--		mutex_lock(&hdmi->mutex);
--		if (!hdmi->disabled && !hdmi->force) {
--			/*
--			 * If the RX sense status indicates we're disconnected,
--			 * clear the software rxsense status.
--			 */
--			if (!(phy_stat & HDMI_PHY_RX_SENSE))
--				hdmi->rxsense = false;
--
--			/*
--			 * Only set the software rxsense status when both
--			 * rxsense and hpd indicates we're connected.
--			 * This avoids what seems to be bad behaviour in
--			 * at least iMX6S versions of the phy.
--			 */
--			if (phy_stat & HDMI_PHY_HPD)
--				hdmi->rxsense = true;
--
--			dw_hdmi_update_power(hdmi);
--			dw_hdmi_update_phy_mask(hdmi);
--		}
--		mutex_unlock(&hdmi->mutex);
--	}
-+	    (HDMI_IH_PHY_STAT0_RX_SENSE | HDMI_IH_PHY_STAT0_HPD))
-+		__dw_hdmi_setup_rx_sense(hdmi,
-+					 phy_stat & HDMI_PHY_HPD,
-+					 phy_stat & HDMI_PHY_RX_SENSE);
- 
- 	if (intr_stat & HDMI_IH_PHY_STAT0_HPD) {
- 		dev_dbg(hdmi->dev, "EVENT=%s\n",
-@@ -2358,7 +2384,8 @@ static int dw_hdmi_detect_phy(struct dw_hdmi *hdmi)
- #endif
- 
- 	dw_hdmi_fb_registered(hdmi);
--	dw_hdmi_phy_setup_hpd(hdmi);
-+	if (hdmi->phy.ops->setup_hpd)
-+		hdmi->phy.ops->setup_hpd(hdmi, hdmi->phy.data);
- 
- 	memset(&pdevinfo, 0, sizeof(pdevinfo));
- 	pdevinfo.parent = dev;
-diff --git a/include/drm/bridge/dw_hdmi.h b/include/drm/bridge/dw_hdmi.h
-index 0da74fb..0668ae1 100644
---- a/include/drm/bridge/dw_hdmi.h
-+++ b/include/drm/bridge/dw_hdmi.h
-@@ -117,6 +117,9 @@ struct dw_hdmi_phy_ops {
- 		    struct drm_display_mode *mode);
- 	void (*disable)(struct dw_hdmi *hdmi, void *data);
- 	enum drm_connector_status (*read_hpd)(struct dw_hdmi *hdmi, void *data);
-+	void (*update_hpd)(struct dw_hdmi *hdmi, void *data,
-+			   bool force, bool disabled, bool rxsense);
-+	void (*setup_hpd)(struct dw_hdmi *hdmi, void *data);
+-	max7310_c: gpio@34 {
+-		compatible = "maxim,max7310";
+-		reg = <0x34>;
+-		gpio-controller;
+-		#gpio-cells = <2>;
+-	};
  };
  
- struct dw_hdmi_plat_data {
-@@ -147,6 +150,8 @@ int dw_hdmi_probe(struct platform_device *pdev,
- int dw_hdmi_bind(struct platform_device *pdev, struct drm_encoder *encoder,
- 		 const struct dw_hdmi_plat_data *plat_data);
+ &iomuxc {
+@@ -418,6 +435,12 @@
+ 			>;
+ 		};
  
-+void dw_hdmi_setup_rx_sense(struct device *dev, bool hpd, bool rx_sense);
++		pinctrl_i2c3mux: i2c3muxgrp {
++			fsl,pins = <
++				MX6QDL_PAD_EIM_A24__GPIO5_IO04 0x0b0b1
++			>;
++		};
 +
- void dw_hdmi_set_sample_rate(struct dw_hdmi *hdmi, unsigned int rate);
- void dw_hdmi_audio_enable(struct dw_hdmi *hdmi);
- void dw_hdmi_audio_disable(struct dw_hdmi *hdmi);
+ 		pinctrl_pwm3: pwm1grp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_SD4_DAT1__PWM3_OUT		0x1b0b1
 -- 
-1.9.1
+2.7.4
