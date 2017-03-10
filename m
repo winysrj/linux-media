@@ -1,112 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f177.google.com ([209.85.220.177]:33478 "EHLO
-        mail-qk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752122AbdCCOfO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 09:35:14 -0500
-Received: by mail-qk0-f177.google.com with SMTP id n127so178235242qkf.0
-        for <linux-media@vger.kernel.org>; Fri, 03 Mar 2017 06:33:17 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAK8P3a3+8wxsUntUnOteOv8_p=yBZLk-4Uu-HGM17o9n9OqteQ@mail.gmail.com>
-References: <20170302163834.2273519-1-arnd@arndb.de> <20170302163834.2273519-2-arnd@arndb.de>
- <7e7a62de-3b79-6044-72fa-4ade418953d1@virtuozzo.com> <CAG_fn=WayMEnBO4pzuxQ5jgn-ii6vrALuOex5Ei1ZhzMR7_tjg@mail.gmail.com>
- <CAK8P3a3+8wxsUntUnOteOv8_p=yBZLk-4Uu-HGM17o9n9OqteQ@mail.gmail.com>
-From: Alexander Potapenko <glider@google.com>
-Date: Fri, 3 Mar 2017 15:33:16 +0100
-Message-ID: <CAG_fn=X3PDDpX_K8Dhk-yCviC87ycRaX4X1d+rJENPZJK_rFmw@mail.gmail.com>
-Subject: Re: [PATCH 01/26] compiler: introduce noinline_for_kasan annotation
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        kasan-dev <kasan-dev@googlegroups.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Networking <netdev@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
-        linux-wireless <linux-wireless@vger.kernel.org>,
-        kernel-build-reports@lists.linaro.org,
-        "David S . Miller" <davem@davemloft.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:49674 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S934984AbdCJK1U (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 10 Mar 2017 05:27:20 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv4 09/15] ov2640: update bindings
+Date: Fri, 10 Mar 2017 11:26:08 +0100
+Message-Id: <20170310102614.20922-10-hverkuil@xs4all.nl>
+In-Reply-To: <20170310102614.20922-1-hverkuil@xs4all.nl>
+References: <20170310102614.20922-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 3, 2017 at 3:30 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Fri, Mar 3, 2017 at 2:55 PM, Alexander Potapenko <glider@google.com> w=
-rote:
->> On Fri, Mar 3, 2017 at 2:50 PM, Andrey Ryabinin <aryabinin@virtuozzo.com=
-> wrote:
->
->>>> @@ -416,6 +416,17 @@ static __always_inline void __write_once_size(vol=
-atile void *p, void *res, int s
->>>>   */
->>>>  #define noinline_for_stack noinline
->>>>
->>>> +/*
->>>> + * CONFIG_KASAN can lead to extreme stack usage with certain patterns=
- when
->>>> + * one function gets inlined many times and each instance requires a =
-stack
->>>> + * ckeck.
->>>> + */
->>>> +#ifdef CONFIG_KASAN
->>>> +#define noinline_for_kasan noinline __maybe_unused
->>>
->>>
->>> noinline_iff_kasan might be a better name.  noinline_for_kasan gives th=
-e impression
->>> that we always noinline function for the sake of kasan, while noinline_=
-iff_kasan
->>> clearly indicates that function is noinline only if kasan is used.
->
-> Fine with me. I actually tried to come up with a name that implies that t=
-he
-> symbol is actually "inline" (or even __always_inline_ without KASAN, but
-> couldn't think of any good name for it.
->
->> FWIW we may be facing the same problem with other compiler-based
->> tools, e.g. KMSAN (which isn't there yet).
->> So it might be better to choose a macro name that doesn't use the name "=
-KASAN".
->> E.g. noinline_iff_memtool (or noinline_iff_memory_tool if that's not too=
- long).
->> WDYT?
->
-> Would KMSAN also force local variables to be non-overlapping the way that
-> asan-stack=3D1 and -fsanitize-address-use-after-scope do? As I understood=
- it,
-> KMSAN would add extra code for maintaining the uninit bits, but in an exa=
-mple
-> like this
-The thing is that KMSAN (and other tools that insert heavyweight
-instrumentation) may cause heavy register spilling which will also
-blow up the stack frames.
-> int f(int *);
-> static inline __attribute__((always_inline)) int g(void)
-> {
->     int i;
->     f(&i);
->     return i;
-> }
-> int f(void)
-> {
->      return g()+g()+g()+g();
-> }
->
-> each of the four copies of 'i' could have the same location on the stack
-> and get marked uninitialized again before calling f(). We only need
-> noinline_for_kasan (whatever we end up calling that) for compiler
-> features that force each instance of 'i' to have its own stack redzone.
->
->      Arnd
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
+Update the bindings for this device based on a working DT example.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Rob Herring <robh@kernel.org>
+---
+ .../devicetree/bindings/media/i2c/ov2640.txt       | 23 +++++++++-------------
+ 1 file changed, 9 insertions(+), 14 deletions(-)
 
---=20
-Alexander Potapenko
-Software Engineer
-
-Google Germany GmbH
-Erika-Mann-Stra=C3=9Fe, 33
-80636 M=C3=BCnchen
-
-Gesch=C3=A4ftsf=C3=BChrer: Matthew Scott Sucherman, Paul Terence Manicle
-Registergericht und -nummer: Hamburg, HRB 86891
-Sitz der Gesellschaft: Hamburg
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov2640.txt b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
+index c429b5bdcaa0..989ce6cb6ac3 100644
+--- a/Documentation/devicetree/bindings/media/i2c/ov2640.txt
++++ b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
+@@ -1,8 +1,8 @@
+ * Omnivision OV2640 CMOS sensor
+ 
+-The Omnivision OV2640 sensor support multiple resolutions output, such as
+-CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or raw RGB
+-output format.
++The Omnivision OV2640 sensor supports multiple resolutions output, such as
++CIF, SVGA, UXGA. It also can support the YUV422/420, RGB565/555 or raw RGB
++output formats.
+ 
+ Required Properties:
+ - compatible: should be "ovti,ov2640"
+@@ -20,26 +20,21 @@ Documentation/devicetree/bindings/media/video-interfaces.txt.
+ Example:
+ 
+ 	i2c1: i2c@f0018000 {
+-		ov2640: camera@0x30 {
++		ov2640: camera@30 {
+ 			compatible = "ovti,ov2640";
+ 			reg = <0x30>;
+-
+ 			pinctrl-names = "default";
+-			pinctrl-0 = <&pinctrl_pck1 &pinctrl_ov2640_pwdn &pinctrl_ov2640_resetb>;
+-
+-			resetb-gpios = <&pioE 24 GPIO_ACTIVE_LOW>;
+-			pwdn-gpios = <&pioE 29 GPIO_ACTIVE_HIGH>;
+-
+-			clocks = <&pck1>;
++			pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
++			resetb-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
++			pwdn-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
++			clocks = <&pck0>;
+ 			clock-names = "xvclk";
+-
+-			assigned-clocks = <&pck1>;
++			assigned-clocks = <&pck0>;
+ 			assigned-clock-rates = <25000000>;
+ 
+ 			port {
+ 				ov2640_0: endpoint {
+ 					remote-endpoint = <&isi_0>;
+-					bus-width = <8>;
+ 				};
+ 			};
+ 		};
+-- 
+2.11.0
