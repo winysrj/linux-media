@@ -1,91 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:36852 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750972AbdCBUYp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 15:24:45 -0500
-From: simran singhal <singhalsimran0@gmail.com>
-To: mchehab@kernel.org
-Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        outreachy-kernel@googlegroups.com
-Subject: [PATCH 2/7] staging: media: Add blank line after a declaration
-Date: Fri,  3 Mar 2017 01:21:57 +0530
-Message-Id: <1488484322-5928-2-git-send-email-singhalsimran0@gmail.com>
-In-Reply-To: <1488484322-5928-1-git-send-email-singhalsimran0@gmail.com>
-References: <1488484322-5928-1-git-send-email-singhalsimran0@gmail.com>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:33109 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755098AbdCJEy0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 23:54:26 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v5 15/39] [media] v4l2: add a frame interval error event
+Date: Thu,  9 Mar 2017 20:52:55 -0800
+Message-Id: <1489121599-23206-16-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add blank line after a declaration. Problem found
-using checkpatch.
+Add a new FRAME_INTERVAL_ERROR event to signal that a video capture or
+output device has measured an interval between the reception or transmit
+completion of two consecutive frames of video that is outside the nominal
+frame interval by some tolerance value.
 
-This patch fixes these warning messages found by checkpatch.pl:
-WARNING : Missing a blank line after declarations.
-
-Signed-off-by: simran singhal <singhalsimran0@gmail.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/staging/media/atomisp/i2c/gc2235.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ Documentation/media/uapi/v4l/vidioc-dqevent.rst | 6 ++++++
+ Documentation/media/videodev2.h.rst.exceptions  | 1 +
+ include/uapi/linux/videodev2.h                  | 1 +
+ 3 files changed, 8 insertions(+)
 
-diff --git a/drivers/staging/media/atomisp/i2c/gc2235.c b/drivers/staging/media/atomisp/i2c/gc2235.c
-index 3f2b11ec..7de7e24 100644
---- a/drivers/staging/media/atomisp/i2c/gc2235.c
-+++ b/drivers/staging/media/atomisp/i2c/gc2235.c
-@@ -359,6 +359,7 @@ static long __gc2235_set_exposure(struct v4l2_subdev *sd, int coarse_itg,
- 	u16 coarse_integration = (u16)coarse_itg;
- 	int ret = 0;
- 	u16 expo_coarse_h, expo_coarse_l, gain_val = 0xF0, gain_val2 = 0xF0;
-+
- 	expo_coarse_h = coarse_integration>>8;
- 	expo_coarse_l = coarse_integration & 0xff;
+diff --git a/Documentation/media/uapi/v4l/vidioc-dqevent.rst b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
+index 8d663a7..dc77363 100644
+--- a/Documentation/media/uapi/v4l/vidioc-dqevent.rst
++++ b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
+@@ -197,6 +197,12 @@ call.
+ 	the regions changes. This event has a struct
+ 	:c:type:`v4l2_event_motion_det`
+ 	associated with it.
++    * - ``V4L2_EVENT_FRAME_INTERVAL_ERROR``
++      - 7
++      - This event is triggered when the video capture or output device
++	has measured an interval between the reception or transmit
++	completion of two consecutive frames of video that is outside
++	the nominal frame interval by some tolerance value.
+     * - ``V4L2_EVENT_PRIVATE_START``
+       - 0x08000000
+       - Base event number for driver-private events.
+diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
+index e11a0d0..c7d8fad 100644
+--- a/Documentation/media/videodev2.h.rst.exceptions
++++ b/Documentation/media/videodev2.h.rst.exceptions
+@@ -459,6 +459,7 @@ replace define V4L2_EVENT_CTRL event-type
+ replace define V4L2_EVENT_FRAME_SYNC event-type
+ replace define V4L2_EVENT_SOURCE_CHANGE event-type
+ replace define V4L2_EVENT_MOTION_DET event-type
++replace define V4L2_EVENT_FRAME_INTERVAL_ERROR event-type
+ replace define V4L2_EVENT_PRIVATE_START event-type
  
-@@ -410,6 +411,7 @@ static long gc2235_s_exposure(struct v4l2_subdev *sd,
- 	/* we should not accept the invalid value below. */
- 	if (gain == 0) {
- 		struct i2c_client *client = v4l2_get_subdevdata(sd);
-+
- 		v4l2_err(client, "%s: invalid value\n", __func__);
- 		return -EINVAL;
- 	}
-@@ -546,6 +548,7 @@ static int is_init;
- static int gc2235_init(struct v4l2_subdev *sd)
- {
- 	int ret = 0;
-+
- 	ret = __gc2235_init(sd);
+ replace define V4L2_EVENT_CTRL_CH_VALUE ctrl-changes-flags
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 45184a2..cf5a0d0 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -2131,6 +2131,7 @@ struct v4l2_streamparm {
+ #define V4L2_EVENT_FRAME_SYNC			4
+ #define V4L2_EVENT_SOURCE_CHANGE		5
+ #define V4L2_EVENT_MOTION_DET			6
++#define V4L2_EVENT_FRAME_INTERVAL_ERROR		7
+ #define V4L2_EVENT_PRIVATE_START		0x08000000
  
- 	return ret;
-@@ -759,6 +762,7 @@ static int startup(struct v4l2_subdev *sd)
- 	struct gc2235_device *dev = to_gc2235_sensor(sd);
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	int ret = 0;
-+
- 	if (is_init == 0) {
- 		/* force gc2235 to do a reset in res change, otherwise it
- 		* can not output normal after switching res. and it is not
-@@ -893,6 +897,7 @@ static int gc2235_s_stream(struct v4l2_subdev *sd, int enable)
- 	struct gc2235_device *dev = to_gc2235_sensor(sd);
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	int ret;
-+
- 	mutex_lock(&dev->input_lock);
- 
- 	if (enable)
-@@ -1007,6 +1012,7 @@ static int gc2235_s_parm(struct v4l2_subdev *sd,
- 			struct v4l2_streamparm *param)
- {
- 	struct gc2235_device *dev = to_gc2235_sensor(sd);
-+
- 	dev->run_mode = param->parm.capture.capturemode;
- 
- 	mutex_lock(&dev->input_lock);
-@@ -1112,6 +1118,7 @@ static int gc2235_remove(struct i2c_client *client)
- {
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
- 	struct gc2235_device *dev = to_gc2235_sensor(sd);
-+
- 	dev_dbg(&client->dev, "gc2235_remove...\n");
- 
- 	if (dev->platform_data->platform_deinit)
+ /* Payload for V4L2_EVENT_VSYNC */
 -- 
 2.7.4
