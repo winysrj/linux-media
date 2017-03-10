@@ -1,140 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:57479
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S966427AbdCXTQY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Mar 2017 15:16:24 -0400
-Date: Fri, 24 Mar 2017 16:16:16 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: linux-media@vger.kernel.org, mchehab@kernel.org, arnd@arndb.de
-Subject: Re: [PATCH 2/2] em28xx: simplify ID-reading from Micron sensors
-Message-ID: <20170324161616.74e5dbc7@vento.lan>
-In-Reply-To: <84459d79-eccc-1888-1dad-6935cf85b18a@googlemail.com>
-References: <20170219182918.4978-1-fschaefer.oss@googlemail.com>
-        <20170219182918.4978-2-fschaefer.oss@googlemail.com>
-        <20170322114606.1feeb960@vento.lan>
-        <5107179d-74fd-3b98-5fc6-ba7051927ae2@googlemail.com>
-        <20170323095612.72216892@vento.lan>
-        <84459d79-eccc-1888-1dad-6935cf85b18a@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:34921 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754797AbdCJEyZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 23:54:25 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v5 18/39] [media] v4l: subdev: Add function to validate frame interval
+Date: Thu,  9 Mar 2017 20:52:58 -0800
+Message-Id: <1489121599-23206-19-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 23 Mar 2017 19:03:20 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+If the pads on both sides of a link specify a frame interval, then
+those frame intervals should match. Create the exported function
+v4l2_subdev_link_validate_frame_interval() to verify this. This
+function can be called in a subdevice's media_entity_operations
+or v4l2_subdev_pad_ops link_validate callbacks.
 
-> Am 23.03.2017 um 13:56 schrieb Mauro Carvalho Chehab:
-> > Em Thu, 23 Mar 2017 13:01:32 +0100
-> > Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> >  
-> >> Am 22.03.2017 um 15:46 schrieb Mauro Carvalho Chehab:  
-> >>> Em Sun, 19 Feb 2017 19:29:18 +0100
-> >>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> >>>     
-> >>>> Use i2c_smbus_read_word_data() instead of i2c_master_send() and
-> >>>> i2c_master_recv() for reading the ID of Micorn sensors.
-> >>>> Bytes need to be swapped afterwards, because i2c_smbus_read_word_data()
-> >>>> assumes that the received bytes are little-endian byte order (as specified
-> >>>> by smbus), while Micron sensors with 16 bit register width use big endian
-> >>>> byte order.
-> >>>>
-> >>>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> >>>> ---
-> >>>>    drivers/media/usb/em28xx/em28xx-camera.c | 28 ++++------------------------
-> >>>>    1 file changed, 4 insertions(+), 24 deletions(-)
-> >>>>
-> >>>> diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
-> >>>> index 7b4129ab1cf9..4839479624e7 100644
-> >>>> --- a/drivers/media/usb/em28xx/em28xx-camera.c
-> >>>> +++ b/drivers/media/usb/em28xx/em28xx-camera.c
-> >>>> @@ -106,8 +106,6 @@ static int em28xx_probe_sensor_micron(struct em28xx *dev)
-> >>>>    {
-> >>>>    	int ret, i;
-> >>>>    	char *name;
-> >>>> -	u8 reg;
-> >>>> -	__be16 id_be;
-> >>>>    	u16 id;
-> >>>>    
-> >>>>    	struct i2c_client *client = &dev->i2c_client[dev->def_i2c_bus];
-> >>>> @@ -115,10 +113,8 @@ static int em28xx_probe_sensor_micron(struct em28xx *dev)
-> >>>>    	dev->em28xx_sensor = EM28XX_NOSENSOR;
-> >>>>    	for (i = 0; micron_sensor_addrs[i] != I2C_CLIENT_END; i++) {
-> >>>>    		client->addr = micron_sensor_addrs[i];
-> >>>> -		/* NOTE: i2c_smbus_read_word_data() doesn't work with BE data */
-> >>>>    		/* Read chip ID from register 0x00 */
-> >>>> -		reg = 0x00;
-> >>>> -		ret = i2c_master_send(client, &reg, 1);
-> >>>> +		ret = i2c_smbus_read_word_data(client, 0x00); /* assumes LE */
-> >>>>    		if (ret < 0) {
-> >>>>    			if (ret != -ENXIO)
-> >>>>    				dev_err(&dev->intf->dev,
-> >>>> @@ -126,24 +122,9 @@ static int em28xx_probe_sensor_micron(struct em28xx *dev)
-> >>>>    				       client->addr << 1, ret);
-> >>>>    			continue;
-> >>>>    		}
-> >>>> -		ret = i2c_master_recv(client, (u8 *)&id_be, 2);
-> >>>> -		if (ret < 0) {
-> >>>> -			dev_err(&dev->intf->dev,
-> >>>> -				"couldn't read from i2c device 0x%02x: error %i\n",
-> >>>> -				client->addr << 1, ret);
-> >>>> -			continue;
-> >>>> -		}
-> >>>> -		id = be16_to_cpu(id_be);
-> >>>> +		id = swab16(ret); /* LE -> BE */  
-> >>> That's wrong! You can't assume that CPU is BE, as some archs use LE.
-> >>>
-> >>> You should, instead, call le16_to_cpu(), to be sure that it will be
-> >>> doing the right thing.
-> >>>
-> >>> Something like:
-> >>>
-> >>> 	id = le16_to_cpu((__le16)ret);  
-> >> SMBus read/write word transfers are always LE (see SMBus spec section
-> >> 6.5.5),
-> >> which is also what i2c_smbus_xfer_emulated() assumes:
-> >> http://lxr.free-electrons.com/source/drivers/i2c/i2c-core.c#L3485  
-> > I got that part, but, if the CPU is also LE, doing swab16() is
-> > wrong. It should swap it *only* if the CPU is BE.  
-> No, it should always be swapped, because the bytes are always transfered 
-> in the wrong order.
-> The cpu endianess doesn't matter, (0x12 << 8) | 0x34 is always 0x1234.
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/media/v4l2-core/v4l2-subdev.c | 50 +++++++++++++++++++++++++++++++++++
+ include/media/v4l2-subdev.h           | 10 +++++++
+ 2 files changed, 60 insertions(+)
 
-You still didn't get it.
-
-Let's assume that the ID is 0x148c (MT9M112).
-
-This value, represented in low endian, is stored in memory as:
-
-	unsigned char __id[2] = { 0x8c, 0x14 };
-
-If we do:
-	u16 ret = *(u16 *)__id;
-
-What's stored at "ret" will depend if the sistem is LE or BE:
-
-	on LE, ret == 0x148c
-	on BE, ret == 0x8c14
-
-If you do:
-	u16 id = swapb16(val)
-
-you'll get:
-
-	on LE, id == 0x8c14
-	on BE, id == 0x148c
-
-So, the value will be *wrong* at LE.
-
-However, if you do:
-	id = le16_to_cpu((__le16)ret); 
-
-On LE, this will evaluate to id = ret, and on BE, to id = swab16(ret).
-So, on both, you'll have:
-	id = 0x148c.
-
-
-Thanks,
-Mauro
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index da78497..7a0f387 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -521,6 +521,25 @@ int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
+ EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate_default);
+ 
+ static int
++v4l2_subdev_link_validate_get_fi(struct media_pad *pad,
++				 struct v4l2_subdev_frame_interval *fi)
++{
++	if (is_media_entity_v4l2_subdev(pad->entity)) {
++		struct v4l2_subdev *sd =
++			media_entity_to_v4l2_subdev(pad->entity);
++
++		fi->pad = pad->index;
++		return v4l2_subdev_call(sd, video, g_frame_interval, fi);
++	}
++
++	WARN(pad->entity->function != MEDIA_ENT_F_IO_V4L,
++	     "Driver bug! Wrong media entity type 0x%08x, entity %s\n",
++	     pad->entity->function, pad->entity->name);
++
++	return -EINVAL;
++}
++
++static int
+ v4l2_subdev_link_validate_get_format(struct media_pad *pad,
+ 				     struct v4l2_subdev_format *fmt)
+ {
+@@ -540,6 +559,37 @@ v4l2_subdev_link_validate_get_format(struct media_pad *pad,
+ 	return -EINVAL;
+ }
+ 
++int v4l2_subdev_link_validate_frame_interval(struct media_link *link)
++{
++	struct v4l2_subdev_frame_interval src_fi, sink_fi;
++	unsigned long src_usec, sink_usec;
++	int rval;
++
++	rval = v4l2_subdev_link_validate_get_fi(link->source, &src_fi);
++	if (rval < 0)
++		return 0;
++
++	rval = v4l2_subdev_link_validate_get_fi(link->sink, &sink_fi);
++	if (rval < 0)
++		return 0;
++
++	if (src_fi.interval.numerator == 0   ||
++	    src_fi.interval.denominator == 0 ||
++	    sink_fi.interval.numerator == 0  ||
++	    sink_fi.interval.denominator == 0)
++		return -EPIPE;
++
++	src_usec = DIV_ROUND_CLOSEST_ULL(
++		(u64)src_fi.interval.numerator * USEC_PER_SEC,
++		src_fi.interval.denominator);
++	sink_usec = DIV_ROUND_CLOSEST_ULL(
++		(u64)sink_fi.interval.numerator * USEC_PER_SEC,
++		sink_fi.interval.denominator);
++
++	return (src_usec != sink_usec) ? -EPIPE : 0;
++}
++EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate_frame_interval);
++
+ int v4l2_subdev_link_validate(struct media_link *link)
+ {
+ 	struct v4l2_subdev *sink;
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 0ab1c5d..60c941d 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -929,6 +929,16 @@ int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
+ 				      struct v4l2_subdev_format *sink_fmt);
+ 
+ /**
++ * v4l2_subdev_link_validate_frame_interval - validates a media link
++ *
++ * @link: pointer to &struct media_link
++ *
++ * This function ensures that the frame intervals, if specified by
++ * both the source and sink subdevs of the link, are equal.
++ */
++int v4l2_subdev_link_validate_frame_interval(struct media_link *link);
++
++/**
+  * v4l2_subdev_link_validate - validates a media link
+  *
+  * @link: pointer to &struct media_link
+-- 
+2.7.4
