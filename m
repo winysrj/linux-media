@@ -1,84 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f193.google.com ([209.85.220.193]:35505 "EHLO
-        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752986AbdCMTU5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 15:20:57 -0400
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [RFC 05/10] [media] vivid: assign the specific device to the vb2_queue->dev
-Date: Mon, 13 Mar 2017 16:20:30 -0300
-Message-Id: <20170313192035.29859-6-gustavo@padovan.org>
-In-Reply-To: <20170313192035.29859-1-gustavo@padovan.org>
-References: <20170313192035.29859-1-gustavo@padovan.org>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:34003 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753725AbdCJEzF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 23:55:05 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Russell King <rmk+kernel@armlinux.org.uk>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v5 33/39] media: imx: mipi-csi2: enable setting and getting of frame rates
+Date: Thu,  9 Mar 2017 20:53:13 -0800
+Message-Id: <1489121599-23206-34-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+From: Russell King <rmk+kernel@armlinux.org.uk>
 
-Instead of assign the global v4l2 device assigned the specific device,
-this was causing trouble when using using V4L2 events with vivid
-devices. The queue device should be the same one we opened in userspace.
+Setting and getting frame rates is part of the negotiation mechanism
+between subdevs.  The lack of support means that a frame rate at the
+sensor can't be negotiated through the subdev path.
 
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Add support at MIPI CSI2 level for handling this part of the
+negotiation.
+
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/platform/vivid/vivid-core.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/staging/media/imx/imx6-mipi-csi2.c | 36 ++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
 
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index ef344b9..8843170 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -1070,7 +1070,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 2;
- 		q->lock = &dev->mutex;
--		q->dev = dev->v4l2_dev.dev;
-+		q->dev = &dev->vid_cap_dev.dev;
+diff --git a/drivers/staging/media/imx/imx6-mipi-csi2.c b/drivers/staging/media/imx/imx6-mipi-csi2.c
+index 1a71b40..d8f931e 100644
+--- a/drivers/staging/media/imx/imx6-mipi-csi2.c
++++ b/drivers/staging/media/imx/imx6-mipi-csi2.c
+@@ -49,6 +49,7 @@ struct csi2_dev {
+ 	struct mutex lock;
  
- 		ret = vb2_queue_init(q);
- 		if (ret)
-@@ -1090,7 +1090,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 2;
- 		q->lock = &dev->mutex;
--		q->dev = dev->v4l2_dev.dev;
-+		q->dev = &dev->vid_out_dev.dev;
+ 	struct v4l2_mbus_framefmt format_mbus;
++	struct v4l2_fract frame_interval;
  
- 		ret = vb2_queue_init(q);
- 		if (ret)
-@@ -1110,7 +1110,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 2;
- 		q->lock = &dev->mutex;
--		q->dev = dev->v4l2_dev.dev;
-+		q->dev = &dev->vbi_cap_dev.dev;
+ 	int                     power_count;
+ 	bool                    stream_on;
+@@ -487,6 +488,35 @@ static int csi2_set_fmt(struct v4l2_subdev *sd,
+ 	return ret;
+ }
  
- 		ret = vb2_queue_init(q);
- 		if (ret)
-@@ -1130,7 +1130,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 2;
- 		q->lock = &dev->mutex;
--		q->dev = dev->v4l2_dev.dev;
-+		q->dev = &dev->vbi_out_dev.dev;
++static int csi2_g_frame_interval(struct v4l2_subdev *sd,
++				 struct v4l2_subdev_frame_interval *fi)
++{
++	struct csi2_dev *csi2 = sd_to_dev(sd);
++
++	mutex_lock(&csi2->lock);
++	fi->interval = csi2->frame_interval;
++	mutex_unlock(&csi2->lock);
++
++	return 0;
++}
++
++static int csi2_s_frame_interval(struct v4l2_subdev *sd,
++				 struct v4l2_subdev_frame_interval *fi)
++{
++	struct csi2_dev *csi2 = sd_to_dev(sd);
++
++	mutex_lock(&csi2->lock);
++
++	/* Output pads mirror active input pad, no limits on input pads */
++	if (fi->pad != CSI2_SINK_PAD)
++		fi->interval = csi2->frame_interval;
++
++	csi2->frame_interval = fi->interval;
++
++	mutex_unlock(&csi2->lock);
++	return 0;
++}
++
+ static int csi2_link_validate(struct v4l2_subdev *sd,
+ 			      struct media_link *link,
+ 			      struct v4l2_subdev_format *source_fmt,
+@@ -535,6 +565,8 @@ static struct v4l2_subdev_core_ops csi2_core_ops = {
  
- 		ret = vb2_queue_init(q);
- 		if (ret)
-@@ -1149,7 +1149,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 8;
- 		q->lock = &dev->mutex;
--		q->dev = dev->v4l2_dev.dev;
-+		q->dev = &dev->sdr_cap_dev.dev;
+ static struct v4l2_subdev_video_ops csi2_video_ops = {
+ 	.s_stream = csi2_s_stream,
++	.g_frame_interval = csi2_g_frame_interval,
++	.s_frame_interval = csi2_s_frame_interval,
+ };
  
- 		ret = vb2_queue_init(q);
- 		if (ret)
+ static struct v4l2_subdev_pad_ops csi2_pad_ops = {
+@@ -603,6 +635,10 @@ static int csi2_probe(struct platform_device *pdev)
+ 	csi2->sd.entity.function = MEDIA_ENT_F_VID_IF_BRIDGE;
+ 	csi2->sd.grp_id = IMX_MEDIA_GRP_ID_CSI2;
+ 
++	/* init default frame interval */
++	csi2->frame_interval.numerator = 1;
++	csi2->frame_interval.denominator = 30;
++
+ 	ret = csi2_parse_endpoints(csi2);
+ 	if (ret)
+ 		return ret;
 -- 
-2.9.3
+2.7.4
