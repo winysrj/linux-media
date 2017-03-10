@@ -1,97 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from icp-osb-irony-out2.external.iinet.net.au ([203.59.1.155]:42529
-        "EHLO icp-osb-irony-out2.external.iinet.net.au" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751574AbdC0GSq (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:52547 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S935605AbdCJK0Y (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 02:18:46 -0400
-Date: Mon, 27 Mar 2017 17:20:29 +1100
-From: Eddie Youseph <psyclone@iinet.net.au>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v3] Revert
- "staging: radio-bcm2048: fixed bare use of unsigned int"
-Message-Id: <20170327172029.5d0c1c13b5c656b768ecbe10@iinet.net.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Fri, 10 Mar 2017 05:26:24 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv4 14/15] sama5d3 dts: enable atmel-isi
+Date: Fri, 10 Mar 2017 11:26:13 +0100
+Message-Id: <20170310102614.20922-15-hverkuil@xs4all.nl>
+In-Reply-To: <20170310102614.20922-1-hverkuil@xs4all.nl>
+References: <20170310102614.20922-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This reverts previous changes to checkpatch warning:
-WARNING: Prefer 'unsigned int' to bare use of 'unsigned'
+From: Hans Verkuil <hans.verkuil@cisco.com>
+
+This illustrates the changes needed to the dts in order to hook up the
+ov7670. I don't plan on merging this.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-Changes in v2:
-	- Added changelog
+ arch/arm/boot/dts/at91-sama5d3_xplained.dts | 59 ++++++++++++++++++++++++++---
+ arch/arm/boot/dts/sama5d3.dtsi              |  4 +-
+ 2 files changed, 56 insertions(+), 7 deletions(-)
 
-Changes in v3:
-	- Revert changes to using bare unsigned
-
- drivers/staging/media/bcm2048/radio-bcm2048.c | 44 +++++++++++++--------------
- 1 file changed, 22 insertions(+), 22 deletions(-)
-
-diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-index 7d33bce..d605c41 100644
---- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-+++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-@@ -2020,27 +2020,27 @@ static irqreturn_t bcm2048_handler(int irq, void *dev)
- 	return count;							\
- }
+diff --git a/arch/arm/boot/dts/at91-sama5d3_xplained.dts b/arch/arm/boot/dts/at91-sama5d3_xplained.dts
+index c51fc652f6c7..c6b07f83578b 100644
+--- a/arch/arm/boot/dts/at91-sama5d3_xplained.dts
++++ b/arch/arm/boot/dts/at91-sama5d3_xplained.dts
+@@ -65,18 +65,51 @@
+ 				status = "okay";
+ 			};
  
--DEFINE_SYSFS_PROPERTY(power_state, unsigned int, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(mute, unsigned int, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(audio_route, unsigned int, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(dac_output, unsigned int, int, "%u", 0)
--
--DEFINE_SYSFS_PROPERTY(fm_hi_lo_injection, unsigned int, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_frequency, unsigned int, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_af_frequency, unsigned int, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_deemphasis, unsigned int, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_rds_mask, unsigned int, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_best_tune_mode, unsigned int, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_search_rssi_threshold, unsigned int, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_search_mode_direction, unsigned int, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(fm_search_tune_mode, unsigned int, int, "%u", value > 3)
--
--DEFINE_SYSFS_PROPERTY(rds, unsigned int, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(rds_b_block_mask, unsigned int, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(rds_b_block_match, unsigned int, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(rds_pi_mask, unsigned int, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(rds_pi_match, unsigned int, int, "%u", 0)
--DEFINE_SYSFS_PROPERTY(rds_wline, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(power_state, unsigned, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(mute, unsigned, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(audio_route, unsigned, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(dac_output, unsigned, int, "%u", 0)
++			isi0: isi@f0034000 {
++				status = "okay";
++				port {
++					#address-cells = <1>;
++					#size-cells = <0>;
++					isi_0: endpoint {
++						remote-endpoint = <&ov7670_0>;
++						bus-width = <8>;
++						vsync-active = <1>;
++						hsync-active = <1>;
++					};
++				};
++			};
 +
-+DEFINE_SYSFS_PROPERTY(fm_hi_lo_injection, unsigned, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_frequency, unsigned, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_af_frequency, unsigned, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_deemphasis, unsigned, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_rds_mask, unsigned, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_best_tune_mode, unsigned, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_search_rssi_threshold, unsigned, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_search_mode_direction, unsigned, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(fm_search_tune_mode, unsigned, int, "%u", value > 3)
-+
-+DEFINE_SYSFS_PROPERTY(rds, unsigned, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(rds_b_block_mask, unsigned, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(rds_b_block_match, unsigned, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(rds_pi_mask, unsigned, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(rds_pi_match, unsigned, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(rds_wline, unsigned, int, "%u", 0)
- property_read(rds_pi, unsigned int, "%x")
- property_str_read(rds_rt, (BCM2048_MAX_RDS_RT + 1))
- property_str_read(rds_ps, (BCM2048_MAX_RDS_PS + 1))
-@@ -2052,7 +2052,7 @@ static irqreturn_t bcm2048_handler(int irq, void *dev)
- property_read(region_top_frequency, unsigned int, "%u")
- property_signed_read(fm_carrier_error, int, "%d")
- property_signed_read(fm_rssi, int, "%d")
--DEFINE_SYSFS_PROPERTY(region, unsigned int, int, "%u", 0)
-+DEFINE_SYSFS_PROPERTY(region, unsigned, int, "%u", 0)
+ 			i2c0: i2c@f0014000 {
+ 				pinctrl-0 = <&pinctrl_i2c0_pu>;
+-				status = "okay";
++				status = "disabled";
+ 			};
  
- static struct device_attribute attrs[] = {
- 	__ATTR(power_state, 0644, bcm2048_power_state_read,
+ 			i2c1: i2c@f0018000 {
+ 				status = "okay";
+ 
++				ov7670: camera@21 {
++					compatible = "ovti,ov7670";
++					reg = <0x21>;
++					pinctrl-names = "default";
++					pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
++					reset-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
++					powerdown-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
++					clocks = <&pck0>;
++					clock-names = "xclk";
++					assigned-clocks = <&pck0>;
++					assigned-clock-rates = <25000000>;
++
++					port {
++						ov7670_0: endpoint {
++							remote-endpoint = <&isi_0>;
++						};
++					};
++				};
++
+ 				pmic: act8865@5b {
+ 					compatible = "active-semi,act8865";
+ 					reg = <0x5b>;
+-					status = "disabled";
++					status = "okay";
+ 
+ 					regulators {
+ 						vcc_1v8_reg: DCDC_REG1 {
+@@ -130,7 +163,7 @@
+ 			pwm0: pwm@f002c000 {
+ 				pinctrl-names = "default";
+ 				pinctrl-0 = <&pinctrl_pwm0_pwmh0_0 &pinctrl_pwm0_pwmh1_0>;
+-				status = "okay";
++				status = "disabled";
+ 			};
+ 
+ 			usart0: serial@f001c000 {
+@@ -143,7 +176,7 @@
+ 			};
+ 
+ 			uart0: serial@f0024000 {
+-				status = "okay";
++				status = "disabled";
+ 			};
+ 
+ 			mmc1: mmc@f8000000 {
+@@ -181,7 +214,7 @@
+ 			i2c2: i2c@f801c000 {
+ 				dmas = <0>, <0>;	/* Do not use DMA for i2c2 */
+ 				pinctrl-0 = <&pinctrl_i2c2_pu>;
+-				status = "okay";
++				status = "disabled";
+ 			};
+ 
+ 			macb1: ethernet@f802c000 {
+@@ -200,6 +233,22 @@
+ 			};
+ 
+ 			pinctrl@fffff200 {
++				camera_sensor {
++					pinctrl_pck0_as_isi_mck: pck0_as_isi_mck-0 {
++						atmel,pins =
++							<AT91_PIOD 30 AT91_PERIPH_B AT91_PINCTRL_NONE>;	/* ISI_MCK */
++					};
++
++					pinctrl_sensor_power: sensor_power-0 {
++						atmel,pins =
++							<AT91_PIOE 13 AT91_PERIPH_GPIO AT91_PINCTRL_NONE>;
++					};
++
++					pinctrl_sensor_reset: sensor_reset-0 {
++						atmel,pins =
++							<AT91_PIOE 11 AT91_PERIPH_GPIO AT91_PINCTRL_NONE>;
++					};
++				};
+ 				board {
+ 					pinctrl_i2c0_pu: i2c0_pu {
+ 						atmel,pins =
+diff --git a/arch/arm/boot/dts/sama5d3.dtsi b/arch/arm/boot/dts/sama5d3.dtsi
+index b06448ba6649..099570e4b90a 100644
+--- a/arch/arm/boot/dts/sama5d3.dtsi
++++ b/arch/arm/boot/dts/sama5d3.dtsi
+@@ -176,7 +176,7 @@
+ 				#address-cells = <1>;
+ 				#size-cells = <0>;
+ 				clocks = <&twi1_clk>;
+-				status = "disabled";
++				status = "ok";
+ 			};
+ 
+ 			usart0: serial@f001c000 {
+@@ -235,7 +235,7 @@
+ 				pinctrl-0 = <&pinctrl_isi_data_0_7>;
+ 				clocks = <&isi_clk>;
+ 				clock-names = "isi_clk";
+-				status = "disabled";
++				status = "ok";
+ 				port {
+ 					#address-cells = <1>;
+ 					#size-cells = <0>;
 -- 
-1.8.3.1
+2.11.0
