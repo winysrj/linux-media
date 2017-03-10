@@ -1,140 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:40144 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753210AbdCTUzS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 16:55:18 -0400
-Date: Mon, 20 Mar 2017 20:47:06 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:35999 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932581AbdCJEzA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 23:55:00 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
         nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
         devel@driverdev.osuosl.org,
+        Russell King <rmk+kernel@armlinux.org.uk>,
         Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v5 38/39] media: imx: csi: fix crop rectangle reset in
- sink set_fmt
-Message-ID: <20170320204705.GT21222@n2100.armlinux.org.uk>
+Subject: [PATCH v5 31/39] media: imx: csi: add support for bayer formats
+Date: Thu,  9 Mar 2017 20:53:11 -0800
+Message-Id: <1489121599-23206-32-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
 References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <1489121599-23206-39-git-send-email-steve_longerbeam@mentor.com>
- <20170319152233.GW21222@n2100.armlinux.org.uk>
- <327d67d9-68c1-7f74-0c0f-f6aee1c4b546@gmail.com>
- <1490010926.2917.59.camel@pengutronix.de>
- <20170320120855.GH21222@n2100.armlinux.org.uk>
- <1490018451.2917.86.camel@pengutronix.de>
- <20170320141705.GL21222@n2100.armlinux.org.uk>
- <1490030604.2917.103.camel@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1490030604.2917.103.camel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 20, 2017 at 06:23:24PM +0100, Philipp Zabel wrote:
-> ----------8<----------
-> >From 2830aebc404bdfc9d7fc1ec94e5282d0b668e8f6 Mon Sep 17 00:00:00 2001
-> From: Philipp Zabel <p.zabel@pengutronix.de>
-> Date: Mon, 20 Mar 2017 17:10:21 +0100
-> Subject: [PATCH] media: imx: csi: add sink selection rectangles
-> 
-> Move the crop rectangle to the sink pad and add a sink compose rectangle
-> to configure scaling. Also propagate rectangles from sink pad to crop
-> rectangle, to compose rectangle, and to the source pads both in ACTIVE
-> and TRY variants of set_fmt/selection, and initialize the default crop
-> and compose rectangles.
+From: Russell King <rmk+kernel@armlinux.org.uk>
 
-Looks fine for the most part.
+Bayer formats must be treated as generic data and passthrough mode must
+be used.  Add the correct setup for these formats.
 
-> -	/*
-> -	 * Modifying the crop rectangle always changes the format on the source
-> -	 * pad. If the KEEP_CONFIG flag is set, just return the current crop
-> -	 * rectangle.
-> -	 */
-> -	if (sel->flags & V4L2_SEL_FLAG_KEEP_CONFIG) {
-> -		sel->r = priv->crop;
-> -		if (sel->which == V4L2_SUBDEV_FORMAT_TRY)
-> -			cfg->try_crop = sel->r;
-> +	infmt = __csi_get_fmt(priv, cfg, CSI_SINK_PAD, sel->which);
-> +	crop = __csi_get_crop(priv, cfg, sel->which);
-> +	compose = __csi_get_compose(priv, cfg, sel->which);
-> +
-> +	switch (sel->target) {
-> +	case V4L2_SEL_TGT_CROP:
-> +		/*
-> +		 * Modifying the crop rectangle always changes the format on
-> +		 * the source pads. If the KEEP_CONFIG flag is set, just return
-> +		 * the current crop rectangle.
-> +		 */
-> +		if (sel->flags & V4L2_SEL_FLAG_KEEP_CONFIG) {
-> +			sel->r = priv->crop;
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
 
-My understanding of KEEP_CONFIG is that the only thing we're not
-allowed to do is to propagate the change downstream.
+- added check to csi_link_validate() to verify that destination is
+  IDMAC output pad when passthrough conditions exist: bayer formats
+  and 16-bit parallel buses.
 
-Since downstream of the crop is the compose, that means the only
-restriction here is that the width and height of the crop window must
-be either equal to the compose width/height, or double the compose
-width/height.  (Anything else would necessitate the compose window
-changing.)
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/media/imx/imx-media-csi.c | 52 +++++++++++++++++++++++++------
+ 1 file changed, 43 insertions(+), 9 deletions(-)
 
-However, the crop window can move position within the crop bounds,
-provided it's entirely contained within those crop bounds.
-
-The problem is that this becomes rather more complex it deal with
-(as I'm finding out in my imx219 camera driver) and I'm thinking
-that some of this complexity should probably be in a helper in
-generic v4l2 code.
-
-I don't know whether this applies (I hope it doesn't) but there's a
-pile of guidelines in Documentation/media/uapi/v4l/vidioc-g-selection.rst
-which describe how a crop/compose rectangle should be adjusted.  As
-I say, I hope they don't apply, because if they do, we would _really_
-need helpers for this stuff, as I don't think having each driver
-implement all these rules would be too successful!
-
-> +			if (sel->which == V4L2_SUBDEV_FORMAT_TRY)
-> +				*crop = sel->r;
-> +			goto out;
-> +		}
-> +
-> +		csi_try_crop(priv, &sel->r, cfg, infmt, sensor);
-> +
-> +		*crop = sel->r;
-> +
-> +		/* Reset scaling to 1:1 */
-> +		compose->width = crop->width;
-> +		compose->height = crop->height;
-> +		break;
-> +	case V4L2_SEL_TGT_COMPOSE:
-> +		/*
-> +		 * Modifying the compose rectangle always changes the format on
-> +		 * the source pads. If the KEEP_CONFIG flag is set, just return
-> +		 * the current compose rectangle.
-> +		 */
-> +		if (sel->flags & V4L2_SEL_FLAG_KEEP_CONFIG) {
-> +			sel->r = priv->compose;
-
-I think, with my understanding of how the KEEP_CONFIG flag works, this
-should be:
-			sel->r = *compose;
-
-because if we change the compose rectangle width/height, we would need
-to propagate this to the source pad, and the KEEP_CONFIG description
-says we're not allowed to do that.
-
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index ab78ff7..a7d04e4 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -276,10 +276,11 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 	struct imx_media_video_dev *vdev = priv->vdev;
+ 	struct v4l2_of_endpoint *sensor_ep;
+ 	struct v4l2_mbus_framefmt *infmt;
+-	unsigned int burst_size;
+ 	struct ipu_image image;
++	u32 passthrough_bits;
+ 	dma_addr_t phys[2];
+ 	bool passthrough;
++	u32 burst_size;
+ 	int ret;
+ 
+ 	infmt = &priv->format_mbus[CSI_SINK_PAD];
+@@ -306,15 +307,38 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 	ipu_cpmem_set_burstsize(priv->idmac_ch, burst_size);
+ 
+ 	/*
+-	 * If the sensor uses 16-bit parallel CSI bus, we must handle
+-	 * the data internally in the IPU as 16-bit generic, aka
+-	 * passthrough mode.
++	 * Check for conditions that require the IPU to handle the
++	 * data internally as generic data, aka passthrough mode:
++	 * - raw bayer formats
++	 * - the sensor bus is 16-bit parallel
+ 	 */
+-	passthrough = (sensor_ep->bus_type != V4L2_MBUS_CSI2 &&
+-		       sensor_ep->bus.parallel.bus_width >= 16);
++	switch (image.pix.pixelformat) {
++	case V4L2_PIX_FMT_SBGGR8:
++	case V4L2_PIX_FMT_SGBRG8:
++	case V4L2_PIX_FMT_SGRBG8:
++	case V4L2_PIX_FMT_SRGGB8:
++		burst_size = 8;
++		passthrough = true;
++		passthrough_bits = 8;
++		break;
++	case V4L2_PIX_FMT_SBGGR16:
++	case V4L2_PIX_FMT_SGBRG16:
++	case V4L2_PIX_FMT_SGRBG16:
++	case V4L2_PIX_FMT_SRGGB16:
++		burst_size = 4;
++		passthrough = true;
++		passthrough_bits = 16;
++		break;
++	default:
++		passthrough = (sensor_ep->bus_type != V4L2_MBUS_CSI2 &&
++			       sensor_ep->bus.parallel.bus_width >= 16);
++		passthrough_bits = 16;
++		break;
++	}
+ 
+ 	if (passthrough)
+-		ipu_cpmem_set_format_passthrough(priv->idmac_ch, 16);
++		ipu_cpmem_set_format_passthrough(priv->idmac_ch,
++						 passthrough_bits);
+ 
+ 	/*
+ 	 * Set the channel for the direct CSI-->memory via SMFC
+@@ -725,6 +749,7 @@ static int csi_link_validate(struct v4l2_subdev *sd,
+ 			     struct v4l2_subdev_format *sink_fmt)
+ {
+ 	struct csi_priv *priv = v4l2_get_subdevdata(sd);
++	const struct imx_media_pixfmt *incc;
+ 	struct v4l2_of_endpoint *sensor_ep;
+ 	struct imx_media_subdev *sensor;
+ 	bool is_csi2;
+@@ -749,8 +774,17 @@ static int csi_link_validate(struct v4l2_subdev *sd,
+ 
+ 	priv->sensor = sensor;
+ 	sensor_ep = &priv->sensor->sensor_ep;
+-
+ 	is_csi2 = (sensor_ep->bus_type == V4L2_MBUS_CSI2);
++	incc = priv->cc[CSI_SINK_PAD];
++
++	if (priv->dest != IPU_CSI_DEST_IDMAC &&
++	    (incc->bayer || (!is_csi2 &&
++			     sensor_ep->bus.parallel.bus_width >= 16))) {
++		v4l2_err(&priv->sd,
++			 "bayer/16-bit parallel buses must go to IDMAC pad\n");
++		ret = -EINVAL;
++		goto out;
++	}
+ 
+ 	if (is_csi2) {
+ 		int vc_num = 0;
+@@ -775,7 +809,7 @@ static int csi_link_validate(struct v4l2_subdev *sd,
+ 
+ 	/* select either parallel or MIPI-CSI2 as input to CSI */
+ 	ipu_set_csi_src_mux(priv->ipu, priv->csi_id, is_csi2);
+-
++out:
+ 	mutex_unlock(&priv->lock);
+ 	return ret;
+ }
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+2.7.4
