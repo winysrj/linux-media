@@ -1,73 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:62338 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753100AbdCBRLM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 12:11:12 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: kasan-dev@googlegroups.com
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        Alexander Potapenko <glider@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-wireless@vger.kernel.org,
-        kernel-build-reports@lists.linaro.org,
-        "David S . Miller" <davem@davemloft.net>,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 12/26] wl3501_cs: reduce stack size for KASAN
-Date: Thu,  2 Mar 2017 17:38:20 +0100
-Message-Id: <20170302163834.2273519-13-arnd@arndb.de>
-In-Reply-To: <20170302163834.2273519-1-arnd@arndb.de>
-References: <20170302163834.2273519-1-arnd@arndb.de>
+Received: from mga04.intel.com ([192.55.52.120]:39737 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750734AbdCJBZY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 9 Mar 2017 20:25:24 -0500
+Date: Fri, 10 Mar 2017 09:24:15 +0800
+From: Ye Xiaolong <xiaolong.ye@intel.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: kbuild test robot <lkp@intel.com>, ivo.g.dimitrov.75@gmail.com,
+        linux-media@vger.kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>, sre@kernel.org,
+        Sakari Ailus <sakari.ailus@iki.fi>, kbuild-all@01.org,
+        pali.rohar@gmail.com, mchehab@kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [kbuild-all] [media] omap3isp: Correctly set IO_OUT_SEL and
+ VP_CLK_POL for CCP2 mode
+Message-ID: <20170310012415.GE17010@yexl-desktop>
+References: <20170301114545.GA19201@amd>
+ <201703031931.OeUvSOwD%fengguang.wu@intel.com>
+ <20170303214838.GA26826@amd>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170303214838.GA26826@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Inlining functions with local variables can lead to excessive stack usage
-with KASAN:
+On 03/03, Pavel Machek wrote:
+>Hi!
+>
+>> [auto build test ERROR on linuxtv-media/master]
+>> [also build test ERROR on v4.10 next-20170303]
+>> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+>> 
+>
+>Yes, the patch is against Sakari's ccp2 branch. It should work ok there.
 
-drivers/net/wireless/wl3501_cs.c: In function 'wl3501_rx_interrupt':
-drivers/net/wireless/wl3501_cs.c:1103:1: error: the frame size of 2232 bytes is larger than 1536 bytes [-Werror=frame-larger-than=]
+Could you tell us the url of Sakari's tree? thus we can add it to 0day's
+monitoring list.
 
-Marking a few functions as noinline_for_kasan avoids the problem
+Thanks,
+Xiaolong
+>
+>I don't think you can do much to fix the automated system....
+>
+>										Pavel
+>
+>-- 
+>(english) http://www.livejournal.com/~pavelmachek
+>(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/net/wireless/wl3501_cs.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/net/wireless/wl3501_cs.c b/drivers/net/wireless/wl3501_cs.c
-index acec0d9ec422..15dd8e31d373 100644
---- a/drivers/net/wireless/wl3501_cs.c
-+++ b/drivers/net/wireless/wl3501_cs.c
-@@ -242,8 +242,8 @@ static int wl3501_get_flash_mac_addr(struct wl3501_card *this)
-  *
-  * Move 'size' bytes from PC to card. (Shouldn't be interrupted)
-  */
--static void wl3501_set_to_wla(struct wl3501_card *this, u16 dest, void *src,
--			      int size)
-+static noinline_for_kasan void wl3501_set_to_wla(struct wl3501_card *this,
-+						 u16 dest, void *src, int size)
- {
- 	/* switch to SRAM Page 0 */
- 	wl3501_switch_page(this, (dest & 0x8000) ? WL3501_BSS_SPAGE1 :
-@@ -264,8 +264,8 @@ static void wl3501_set_to_wla(struct wl3501_card *this, u16 dest, void *src,
-  *
-  * Move 'size' bytes from card to PC. (Shouldn't be interrupted)
-  */
--static void wl3501_get_from_wla(struct wl3501_card *this, u16 src, void *dest,
--				int size)
-+static noinline_for_kasan void wl3501_get_from_wla(struct wl3501_card *this,
-+						u16 src, void *dest, int size)
- {
- 	/* switch to SRAM Page 0 */
- 	wl3501_switch_page(this, (src & 0x8000) ? WL3501_BSS_SPAGE1 :
-@@ -1037,7 +1037,7 @@ static inline void wl3501_auth_confirm_interrupt(struct wl3501_card *this,
- 		wl3501_mgmt_resync(this);
- }
- 
--static inline void wl3501_rx_interrupt(struct net_device *dev)
-+static noinline_for_kasan void wl3501_rx_interrupt(struct net_device *dev)
- {
- 	int morepkts;
- 	u16 addr;
--- 
-2.9.0
+
+>_______________________________________________
+>kbuild-all mailing list
+>kbuild-all@lists.01.org
+>https://lists.01.org/mailman/listinfo/kbuild-all
