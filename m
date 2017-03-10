@@ -1,92 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:40636 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932826AbdCKLYg (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:37029 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S934227AbdCJMHa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Mar 2017 06:24:36 -0500
+        Fri, 10 Mar 2017 07:07:30 -0500
+Subject: Re: [PATCH v5 16/39] [media] v4l2: add a new-frame before
+ end-of-frame event
+To: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <1489121599-23206-17-git-send-email-steve_longerbeam@mentor.com>
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv5 13/16] ov2640: add MC support
-Date: Sat, 11 Mar 2017 12:23:25 +0100
-Message-Id: <20170311112328.11802-14-hverkuil@xs4all.nl>
-In-Reply-To: <20170311112328.11802-1-hverkuil@xs4all.nl>
-References: <20170311112328.11802-1-hverkuil@xs4all.nl>
+Message-ID: <72a06329-7f65-fef9-3153-573d9abb2689@xs4all.nl>
+Date: Fri, 10 Mar 2017 13:07:26 +0100
+MIME-Version: 1.0
+In-Reply-To: <1489121599-23206-17-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 10/03/17 05:52, Steve Longerbeam wrote:
+> Add a NEW_FRAME_BEFORE_EOF event to signal that a video capture or
+> output device has signaled a new frame is ready before a previous
+> frame has completed reception or transmission. This usually indicates
+> a DMA read/write channel is having trouble gaining bus access.
 
-The MC support is needed by the em28xx driver.
+This too is a weird event. Based on what you describe this basically means
+that the previous frame is incomplete, in which case you would typically
+return the buffer with the V4L2_BUF_FLAG_ERROR bit set.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/ov2640.c | 18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+Using an event for this is not a good idea.
 
-diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
-index 0445963c5fae..d1f04a4ca2ac 100644
---- a/drivers/media/i2c/ov2640.c
-+++ b/drivers/media/i2c/ov2640.c
-@@ -282,6 +282,9 @@ struct ov2640_win_size {
- 
- struct ov2640_priv {
- 	struct v4l2_subdev		subdev;
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	struct media_pad pad;
-+#endif
- 	struct v4l2_ctrl_handler	hdl;
- 	u32	cfmt_code;
- 	struct clk			*clk;
-@@ -1063,6 +1066,7 @@ static int ov2640_probe(struct i2c_client *client,
- 		goto err_clk;
- 
- 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov2640_subdev_ops);
-+	priv->subdev.flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
- 	v4l2_ctrl_handler_init(&priv->hdl, 2);
- 	v4l2_ctrl_new_std(&priv->hdl, &ov2640_ctrl_ops,
- 			V4L2_CID_VFLIP, 0, 1, 1, 0);
-@@ -1073,19 +1077,28 @@ static int ov2640_probe(struct i2c_client *client,
- 		ret = priv->hdl.error;
- 		goto err_hdl;
- 	}
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	priv->pad.flags = MEDIA_PAD_FL_SOURCE;
-+	priv->subdev.entity.function = MEDIA_ENT_F_CAM_SENSOR;
-+	ret = media_entity_pads_init(&priv->subdev.entity, 1, &priv->pad);
-+	if (ret < 0)
-+		goto err_hdl;
-+#endif
- 
- 	ret = ov2640_video_probe(client);
- 	if (ret < 0)
--		goto err_hdl;
-+		goto err_videoprobe;
- 
- 	ret = v4l2_async_register_subdev(&priv->subdev);
- 	if (ret < 0)
--		goto err_hdl;
-+		goto err_videoprobe;
- 
- 	dev_info(&adapter->dev, "OV2640 Probed\n");
- 
- 	return 0;
- 
-+err_videoprobe:
-+	media_entity_cleanup(&priv->subdev.entity);
- err_hdl:
- 	v4l2_ctrl_handler_free(&priv->hdl);
- err_clk:
-@@ -1099,6 +1112,7 @@ static int ov2640_remove(struct i2c_client *client)
- 
- 	v4l2_async_unregister_subdev(&priv->subdev);
- 	v4l2_ctrl_handler_free(&priv->hdl);
-+	media_entity_cleanup(&priv->subdev.entity);
- 	v4l2_device_unregister_subdev(&priv->subdev);
- 	clk_disable_unprepare(priv->clk);
- 	return 0;
--- 
-2.11.0
+Regards,
+
+	Hans
+
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> ---
+>  Documentation/media/uapi/v4l/vidioc-dqevent.rst | 6 ++++++
+>  Documentation/media/videodev2.h.rst.exceptions  | 1 +
+>  include/uapi/linux/videodev2.h                  | 1 +
+>  3 files changed, 8 insertions(+)
+> 
+> diff --git a/Documentation/media/uapi/v4l/vidioc-dqevent.rst b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
+> index dc77363..54bc7ae 100644
+> --- a/Documentation/media/uapi/v4l/vidioc-dqevent.rst
+> +++ b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
+> @@ -203,6 +203,12 @@ call.
+>  	has measured an interval between the reception or transmit
+>  	completion of two consecutive frames of video that is outside
+>  	the nominal frame interval by some tolerance value.
+> +    * - ``V4L2_EVENT_NEW_FRAME_BEFORE_EOF``
+> +      - 8
+> +      - This event is triggered when the video capture or output device
+> +	has signaled a new frame is ready before a previous frame has
+> +	completed reception or transmission. This usually indicates a
+> +	DMA read/write channel is having trouble gaining bus access.
+>      * - ``V4L2_EVENT_PRIVATE_START``
+>        - 0x08000000
+>        - Base event number for driver-private events.
+> diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
+> index c7d8fad..be6f332 100644
+> --- a/Documentation/media/videodev2.h.rst.exceptions
+> +++ b/Documentation/media/videodev2.h.rst.exceptions
+> @@ -460,6 +460,7 @@ replace define V4L2_EVENT_FRAME_SYNC event-type
+>  replace define V4L2_EVENT_SOURCE_CHANGE event-type
+>  replace define V4L2_EVENT_MOTION_DET event-type
+>  replace define V4L2_EVENT_FRAME_INTERVAL_ERROR event-type
+> +replace define V4L2_EVENT_NEW_FRAME_BEFORE_EOF event-type
+>  replace define V4L2_EVENT_PRIVATE_START event-type
+>  
+>  replace define V4L2_EVENT_CTRL_CH_VALUE ctrl-changes-flags
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index cf5a0d0..f54a82a 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -2132,6 +2132,7 @@ struct v4l2_streamparm {
+>  #define V4L2_EVENT_SOURCE_CHANGE		5
+>  #define V4L2_EVENT_MOTION_DET			6
+>  #define V4L2_EVENT_FRAME_INTERVAL_ERROR		7
+> +#define V4L2_EVENT_NEW_FRAME_BEFORE_EOF		8
+>  #define V4L2_EVENT_PRIVATE_START		0x08000000
+>  
+>  /* Payload for V4L2_EVENT_VSYNC */
+> 
