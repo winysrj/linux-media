@@ -1,40 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:28689 "EHLO
-        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750868AbdCNHz2 (ORCPT
+Received: from mail-qk0-f177.google.com ([209.85.220.177]:34225 "EHLO
+        mail-qk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932743AbdCJQqT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Mar 2017 03:55:28 -0400
-Date: Tue, 14 Mar 2017 10:55:01 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@linux.intel.com>, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        kernel-janitors@vger.kernel.org
-Subject: [PATCH] staging: atomisp: silence an array overflow warning
-Message-ID: <20170314075501.GB6022@mwanda>
+        Fri, 10 Mar 2017 11:46:19 -0500
+Received: by mail-qk0-f177.google.com with SMTP id p64so176213742qke.1
+        for <linux-media@vger.kernel.org>; Fri, 10 Mar 2017 08:46:18 -0800 (PST)
+Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of
+ staging
+To: Brian Starkey <brian.starkey@arm.com>,
+        Robin Murphy <robin.murphy@arm.com>
+References: <20170303132949.GC31582@dhcp22.suse.cz>
+ <cf383b9b-3cbc-0092-a071-f120874c053c@redhat.com>
+ <20170306074258.GA27953@dhcp22.suse.cz>
+ <20170306104041.zghsicrnadoap7lp@phenom.ffwll.local>
+ <20170306105805.jsq44kfxhsvazkm6@sirena.org.uk>
+ <20170306160437.sf7bksorlnw7u372@phenom.ffwll.local>
+ <CA+M3ks77Am3Fx-ZNmgeM5tCqdM7SzV7rby4Es-p2F2aOhUco9g@mail.gmail.com>
+ <26bc57ae-d88f-4ea0-d666-2c1a02bf866f@redhat.com>
+ <20170310103112.GA15945@e106950-lin.cambridge.arm.com>
+ <2e295c28-04d6-a071-cf16-164d02d679c5@arm.com>
+ <20170310142709.GB15945@e106950-lin.cambridge.arm.com>
+Cc: devel@driverdev.osuosl.org, Rom Lemarchand <romlem@google.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Riley Andrews <riandrews@android.com>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        Michal Hocko <mhocko@kernel.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        linux-mm@kvack.org,
+        =?UTF-8?Q?Arve_Hj=c3=b8nnev=c3=a5g?= <arve@android.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        linux-arm-kernel@lists.infradead.org,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+From: Laura Abbott <labbott@redhat.com>
+Message-ID: <24938e5e-db2b-f06a-2006-ae9b96e8cc9e@redhat.com>
+Date: Fri, 10 Mar 2017 08:46:12 -0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <20170310142709.GB15945@e106950-lin.cambridge.arm.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Static checkers complain that we should check if "i" is in bounds
-before we check if "var8[i]" is a NUL char.  This bug is harmless but
-also easy to fix.
+On 03/10/2017 06:27 AM, Brian Starkey wrote:
+> On Fri, Mar 10, 2017 at 11:46:42AM +0000, Robin Murphy wrote:
+>> On 10/03/17 10:31, Brian Starkey wrote:
+>>> Hi,
+>>>
+>>> On Thu, Mar 09, 2017 at 09:38:49AM -0800, Laura Abbott wrote:
+>>>> On 03/09/2017 02:00 AM, Benjamin Gaignard wrote:
+>>>
+>>> [snip]
+>>>
+>>>>>
+>>>>> For me those patches are going in the right direction.
+>>>>>
+>>>>> I still have few questions:
+>>>>> - since alignment management has been remove from ion-core, should it
+>>>>> be also removed from ioctl structure ?
+>>>>
+>>>> Yes, I think I'm going to go with the suggestion to fixup the ABI
+>>>> so we don't need the compat layer and as part of that I'm also
+>>>> dropping the align argument.
+>>>>
+>>>
+>>> Is the only motivation for removing the alignment parameter that
+>>> no-one got around to using it for something useful yet?
+>>> The original comment was true - different devices do have different
+>>> alignment requirements.
+>>>
+>>> Better alignment can help SMMUs use larger blocks when mapping,
+>>> reducing TLB pressure and the chance of a page table walk causing
+>>> display underruns.
+>>
+>> For that use-case, though, alignment alone doesn't necessarily help -
+>> you need the whole allocation granularity to match your block size (i.e.
+>> given a 1MB block size, asking for 17KB and getting back 17KB starting
+>> at a 1MB boundary doesn't help much - that whole 1MB needs to be
+>> allocated and everyone needs to know it to ensure that the whole lot can
+>> be mapped safely). Now, whether it's down to the callers or the heap
+>> implementations to decide and enforce that granularity is another
+>> question, but provided allocations are at least naturally aligned to
+>> whatever the granularity is (which is a reasonable assumption to bake
+>> in) then it's all good.
+>>
+>> Robin.
+> 
+> Agreed, alignment alone isn't enough. But lets assume that an app
+> knows what a "good" granularity is, and always asks for allocation
+> sizes which are suitably rounded to allow blocks to be used. Currently
+> it looks like a "standard" ION_HEAP_TYPE_CARVEOUT heap would give me
+> back just a PAGE_SIZE aligned buffer. So even *if* the caller knows
+> its desired block size, there's no way for it to get guaranteed better
+> alignment, which wouldn't be a bad feature to have.
+> 
+> Anyway as Daniel and Rob say, if the interface is designed properly
+> this kind of extension would be possible later, or you can have a
+> special heap with a larger granule.
+> 
+> I suppose it makes sense to remove it while there's no-one actually
+> implementing it, in case an alternate method proves more usable.
+> 
+> -Brian
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Part of the reason I want to remove it is to avoid confusion over
+callers thinking it will do anything on most heaps. I agree being
+able to specify a larger granularity would be beneficial but I
+don't think a dedicated field in the ABI is the right approach.
 
-diff --git a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
-index 65513cae93ce..1dd061f00cd9 100644
---- a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
-+++ b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
-@@ -669,7 +669,7 @@ int gmin_get_config_var(struct device *dev, const char *var, char *out, size_t *
- 	/* Our variable names are ASCII by construction, but EFI names
- 	 * are wide chars.  Convert and zero-pad. */
- 	memset(var16, 0, sizeof(var16));
--	for (i=0; var8[i] && i < sizeof(var8); i++)
-+	for (i = 0; i < sizeof(var8) && var8[i]; i++)
- 		var16[i] = var8[i];
- 
- 	/* To avoid owerflows when calling the efivar API */
+Thanks,
+Laura
