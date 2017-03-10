@@ -1,106 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f68.google.com ([209.85.214.68]:34640 "EHLO
-        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751204AbdCPIgE (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:40246 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932965AbdCJLt1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Mar 2017 04:36:04 -0400
+        Fri, 10 Mar 2017 06:49:27 -0500
+Subject: Re: [PATCH v5 22/39] media: Add userspace header file for i.MX
+To: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <1489121599-23206-23-git-send-email-steve_longerbeam@mentor.com>
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <11cd06ca-1ce1-3fd0-36d5-926b7c336649@xs4all.nl>
+Date: Fri, 10 Mar 2017 12:49:23 +0100
 MIME-Version: 1.0
-In-Reply-To: <20170314190308.25790-28-niklas.soderlund+renesas@ragnatech.se>
-References: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se> <20170314190308.25790-28-niklas.soderlund+renesas@ragnatech.se>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Thu, 16 Mar 2017 09:36:01 +0100
-Message-ID: <CAMuHMdUWeWoDHSqH5i_KT_LHhH2dhq29tQeranPNjG=UORdajA@mail.gmail.com>
-Subject: Re: [PATCH v3 27/27] rcar-vin: enable support for r8a7796
-To: =?UTF-8?Q?Niklas_S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Fukawa <tomoharu.fukawa.eb@renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <1489121599-23206-23-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+On 10/03/17 05:53, Steve Longerbeam wrote:
+> This adds a header file for use by userspace programs wanting to interact
+> with the i.MX media driver. It defines custom v4l2 controls for the
+> i.MX v4l2 subdevices.
+> 
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 
-On Tue, Mar 14, 2017 at 8:03 PM, Niklas S=C3=B6derlund
-<niklas.soderlund+renesas@ragnatech.se> wrote:
-> Add the SoC specific information for Renesas r8a7796.
->
-> Signed-off-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.=
-se>
+I would not export this while the imx driver is in staging.
+
+Also, traditionally exported media headers are in linux, not media.
+
+I would like to have a discussion about that before deciding where to
+place this header.
+
+For the record: I am not opposed to placing this in media.
+
+Regards,
+
+	Hans
+
 > ---
->  .../devicetree/bindings/media/rcar_vin.txt         |  1 +
->  drivers/media/platform/rcar-vin/rcar-core.c        | 64 ++++++++++++++++=
-++++++
->  2 files changed, 65 insertions(+)
->
-> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Docum=
-entation/devicetree/bindings/media/rcar_vin.txt
-> index ffdfa97ac37753f9..7e36ebe5c89b7dfd 100644
-> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> @@ -10,6 +10,7 @@ always slaves and support multiple input channels which=
- can be either RGB,
->  YUVU, BT656 or CSI-2.
->
->   - compatible: Must be one or more of the following
-> +   - "renesas,vin-r8a7796" for the R8A7796 device
->     - "renesas,vin-r8a7795" for the R8A7795 device
->     - "renesas,vin-r8a7794" for the R8A7794 device
->     - "renesas,vin-r8a7793" for the R8A7793 device
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/=
-platform/rcar-vin/rcar-core.c
-> index c30040c42ce588a9..8930189638473f37 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -1119,6 +1119,66 @@ static const struct rvin_info rcar_info_r8a7795 =
-=3D {
->         },
->  };
->
-> +static const struct rvin_info rcar_info_r8a7796 =3D {
-> +       .chip =3D RCAR_GEN3,
-
-[...]
-
-The R-Car Gen3 entries are inserted in between Gen1 and Gen2?
-
+>  include/uapi/media/Kbuild |  1 +
+>  include/uapi/media/imx.h  | 21 +++++++++++++++++++++
+>  2 files changed, 22 insertions(+)
+>  create mode 100644 include/uapi/media/imx.h
+> 
+> diff --git a/include/uapi/media/Kbuild b/include/uapi/media/Kbuild
+> index aafaa5a..fa78958 100644
+> --- a/include/uapi/media/Kbuild
+> +++ b/include/uapi/media/Kbuild
+> @@ -1 +1,2 @@
+>  # UAPI Header export list
+> +header-y += imx.h
+> diff --git a/include/uapi/media/imx.h b/include/uapi/media/imx.h
+> new file mode 100644
+> index 0000000..f573de4
+> --- /dev/null
+> +++ b/include/uapi/media/imx.h
+> @@ -0,0 +1,21 @@
+> +/*
+> + * Copyright (c) 2014-2015 Mentor Graphics Inc.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by the
+> + * Free Software Foundation; either version 2 of the
+> + * License, or (at your option) any later version
+> + */
+> +
+> +#ifndef __UAPI_MEDIA_IMX_H__
+> +#define __UAPI_MEDIA_IMX_H__
+> +
+> +enum imx_ctrl_id {
+> +	V4L2_CID_IMX_FIM_ENABLE = (V4L2_CID_USER_IMX_BASE + 0),
+> +	V4L2_CID_IMX_FIM_NUM,
+> +	V4L2_CID_IMX_FIM_TOLERANCE_MIN,
+> +	V4L2_CID_IMX_FIM_TOLERANCE_MAX,
+> +	V4L2_CID_IMX_FIM_NUM_SKIP,
 > +};
 > +
->  static const struct rvin_info rcar_info_gen2 =3D {
->         .chip =3D RCAR_GEN2,
->         .use_mc =3D false,
-> @@ -1132,6 +1192,10 @@ static const struct of_device_id rvin_of_id_table[=
-] =3D {
->                 .data =3D &rcar_info_r8a7795,
->         },
->         {
-> +               .compatible =3D "renesas,vin-r8a7796",
-> +               .data =3D &rcar_info_r8a7796,
-> +       },
-> +       {
-
-Shouldn't this be inserted above the r8a7795 entry?
-All other entries in this table are sorted in reverse alphabetical order.
-
->                 .compatible =3D "renesas,vin-r8a7794",
->                 .data =3D &rcar_info_gen2,
->         },
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
-.org
-
-In personal conversations with technical people, I call myself a hacker. Bu=
-t
-when I'm talking to journalists I just say "programmer" or something like t=
-hat.
-                                -- Linus Torvalds
+> +#endif
+> 
