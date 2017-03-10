@@ -1,137 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:35776 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935937AbdCXSZt (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:36946 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S935371AbdCJK0T (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Mar 2017 14:25:49 -0400
-Received: by mail-wr0-f194.google.com with SMTP id u108so1593998wrb.2
-        for <linux-media@vger.kernel.org>; Fri, 24 Mar 2017 11:25:47 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: mchehab@kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH v2 05/12] [media] dvb-frontends/stv0367: make PLLSETUP a function, add 58MHz IC speed
-Date: Fri, 24 Mar 2017 19:24:01 +0100
-Message-Id: <20170324182408.25996-6-d.scheller.oss@gmail.com>
-In-Reply-To: <20170324182408.25996-1-d.scheller.oss@gmail.com>
-References: <20170324182408.25996-1-d.scheller.oss@gmail.com>
+        Fri, 10 Mar 2017 05:26:19 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org
+Subject: [PATCHv4 00/15] atmel-isi/ov7670/ov2640: convert to standalone drivers
+Date: Fri, 10 Mar 2017 11:25:59 +0100
+Message-Id: <20170310102614.20922-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This moves the PLL SETUP code from stv0367ter_init() into a dedicated
-function, and also make it possible to configure 58Mhz IC speed at
-27MHz Xtal (used on STV0367-based DDB cards/modules in QAM mode).
+This patch series converts the soc-camera atmel-isi to a standalone V4L2
+driver.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/dvb-frontends/stv0367.c | 73 +++++++++++++++++++++++------------
- drivers/media/dvb-frontends/stv0367.h |  3 ++
- 2 files changed, 51 insertions(+), 25 deletions(-)
+The same is done for the ov7670 and ov2640 sensor drivers: the ov7670 was
+used to test the atmel-isi driver. The ov2640 is needed because the em28xx
+driver has a soc_camera include dependency. Both ov7670 and ov2640 sensors
+have been tested with the atmel-isi driver.
 
-diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
-index 5b52673..da10d9a 100644
---- a/drivers/media/dvb-frontends/stv0367.c
-+++ b/drivers/media/dvb-frontends/stv0367.c
-@@ -271,6 +271,53 @@ static void stv0367_write_table(struct stv0367_state *state,
- 	}
- }
- 
-+static void stv0367_pll_setup(struct stv0367_state *state,
-+				u32 icspeed, u32 xtal)
-+{
-+	/* note on regs: R367TER_* and R367CAB_* defines each point to
-+	 * 0xf0d8, so just use R367TER_ for both cases
-+	 */
-+
-+	switch (icspeed) {
-+	case STV0367_ICSPEED_58000:
-+		switch (xtal) {
-+		default:
-+		case 27000000:
-+			dprintk("STV0367 SetCLKgen for 58MHz IC and 27Mhz crystal\n");
-+			/* PLLMDIV: 27, PLLNDIV: 232 */
-+			stv0367_writereg(state, R367TER_PLLMDIV, 0x1b);
-+			stv0367_writereg(state, R367TER_PLLNDIV, 0xe8);
-+			break;
-+		}
-+		break;
-+	default:
-+	case STV0367_ICSPEED_53125:
-+		switch (xtal) {
-+			/* set internal freq to 53.125MHz */
-+		case 16000000:
-+			stv0367_writereg(state, R367TER_PLLMDIV, 0x2);
-+			stv0367_writereg(state, R367TER_PLLNDIV, 0x1b);
-+			break;
-+		case 25000000:
-+			stv0367_writereg(state, R367TER_PLLMDIV, 0xa);
-+			stv0367_writereg(state, R367TER_PLLNDIV, 0x55);
-+			break;
-+		default:
-+		case 27000000:
-+			dprintk("FE_STV0367TER_SetCLKgen for 27Mhz\n");
-+			stv0367_writereg(state, R367TER_PLLMDIV, 0x1);
-+			stv0367_writereg(state, R367TER_PLLNDIV, 0x8);
-+			break;
-+		case 30000000:
-+			stv0367_writereg(state, R367TER_PLLMDIV, 0xc);
-+			stv0367_writereg(state, R367TER_PLLNDIV, 0x55);
-+			break;
-+		}
-+	}
-+
-+	stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
-+}
-+
- static int stv0367ter_gate_ctrl(struct dvb_frontend *fe, int enable)
- {
- 	struct stv0367_state *state = fe->demodulator_priv;
-@@ -918,31 +965,7 @@ static int stv0367ter_init(struct dvb_frontend *fe)
- 	stv0367_write_table(state,
- 		stv0367_deftabs[state->deftabs][STV0367_TAB_TER]);
- 
--	switch (state->config->xtal) {
--		/*set internal freq to 53.125MHz */
--	case 16000000:
--		stv0367_writereg(state, R367TER_PLLMDIV, 0x2);
--		stv0367_writereg(state, R367TER_PLLNDIV, 0x1b);
--		stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
--		break;
--	case 25000000:
--		stv0367_writereg(state, R367TER_PLLMDIV, 0xa);
--		stv0367_writereg(state, R367TER_PLLNDIV, 0x55);
--		stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
--		break;
--	default:
--	case 27000000:
--		dprintk("FE_STV0367TER_SetCLKgen for 27Mhz\n");
--		stv0367_writereg(state, R367TER_PLLMDIV, 0x1);
--		stv0367_writereg(state, R367TER_PLLNDIV, 0x8);
--		stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
--		break;
--	case 30000000:
--		stv0367_writereg(state, R367TER_PLLMDIV, 0xc);
--		stv0367_writereg(state, R367TER_PLLNDIV, 0x55);
--		stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
--		break;
--	}
-+	stv0367_pll_setup(state, STV0367_ICSPEED_53125, state->config->xtal);
- 
- 	stv0367_writereg(state, R367TER_I2CRPT, 0xa0);
- 	stv0367_writereg(state, R367TER_ANACTRL, 0x00);
-diff --git a/drivers/media/dvb-frontends/stv0367.h b/drivers/media/dvb-frontends/stv0367.h
-index 26c38a0..aaa0236 100644
---- a/drivers/media/dvb-frontends/stv0367.h
-+++ b/drivers/media/dvb-frontends/stv0367.h
-@@ -25,6 +25,9 @@
- #include <linux/dvb/frontend.h>
- #include "dvb_frontend.h"
- 
-+#define STV0367_ICSPEED_53125	53125000
-+#define STV0367_ICSPEED_58000	58000000
-+
- struct stv0367_config {
- 	u8 demod_address;
- 	u32 xtal;
+The first 5 patches improve the ov7670 sensor driver, mostly adding modern
+features such as DT support.
+
+The next three convert the atmel-isi and move it out of soc_camera.
+
+The following 5 patches convert ov2640 and drop the soc_camera dependency
+in em28xx. I have tested that this works with my 'SpeedLink Vicious And
+Divine Laplace webcam'.
+
+The last two patches add isi support to the DT: the first for the ov7670
+sensor, the second modifies it for the ov2640 sensor.
+
+These two final patches are for demonstration purposes only, I do not plan
+on merging them.
+
+Tested with my sama5d3-Xplained board, the ov2640 sensor and two ov7670
+sensors: one with and one without reset/pwdn pins. Also tested with my
+em28xx-based webcam.
+
+I'd like to get this in for 4.12. Fingers crossed.
+
+Regards,
+
+	Hans
+
+Changes since v3:
+- ov2640/ov7670: call clk_disable_unprepare where needed. I assumed this was
+  done by the devm_clk_get cleanup, but that wasn't the case.
+- bindings: be even more explicit about which properties are mandatory.
+- ov2640/ov7670: drop unused bus-width from the dts binding examples and from
+  the actual dts patches.
+
+Changes since v2:
+- Incorporated Sakari's and Rob's device tree bindings comments.
+- ov2640: dropped the reset/power changes. These actually broke the em28xx
+  and there was really nothing wrong with it.
+- merged the "ov2640: allow use inside em28xx" into patches 10 and 11.
+  It really shouldn't have been a separate patch in the first place.
+- rebased on top of 4.11-rc1.
+
+Changes since v1:
+
+- Dropped MC support from atmel-isi and ov7670: not needed to make this
+  work. Only for the ov2640 was it kept since the em28xx driver requires it.
+- Use devm_clk_get instead of clk_get.
+- The ov7670 lower limit of the clock speed is 10 MHz instead of 12. Adjust
+  accordingly.
+
+Hans Verkuil (15):
+  ov7670: document device tree bindings
+  ov7670: call v4l2_async_register_subdev
+  ov7670: fix g/s_parm
+  ov7670: get xclk
+  ov7670: add devicetree support
+  atmel-isi: document device tree bindings
+  atmel-isi: remove dependency of the soc-camera framework
+  atmel-isi: move out of soc_camera to atmel
+  ov2640: update bindings
+  ov2640: convert from soc-camera to a standard subdev sensor driver.
+  ov2640: use standard clk and enable it.
+  ov2640: add MC support
+  em28xx: drop last soc_camera link
+  sama5d3 dts: enable atmel-isi
+  at91-sama5d3_xplained.dts: select ov2640
+
+ .../devicetree/bindings/media/atmel-isi.txt        |   96 +-
+ .../devicetree/bindings/media/i2c/ov2640.txt       |   23 +-
+ .../devicetree/bindings/media/i2c/ov7670.txt       |   43 +
+ MAINTAINERS                                        |    1 +
+ arch/arm/boot/dts/at91-sama5d3_xplained.dts        |   59 +-
+ arch/arm/boot/dts/sama5d3.dtsi                     |    4 +-
+ drivers/media/i2c/Kconfig                          |   11 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/{soc_camera => }/ov2640.c        |  152 +--
+ drivers/media/i2c/ov7670.c                         |   75 +-
+ drivers/media/i2c/soc_camera/Kconfig               |    6 -
+ drivers/media/i2c/soc_camera/Makefile              |    1 -
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/atmel/Kconfig               |   11 +-
+ drivers/media/platform/atmel/Makefile              |    1 +
+ drivers/media/platform/atmel/atmel-isi.c           | 1398 ++++++++++++++++++++
+ .../platform/{soc_camera => atmel}/atmel-isi.h     |    0
+ drivers/media/platform/soc_camera/Kconfig          |   11 -
+ drivers/media/platform/soc_camera/Makefile         |    1 -
+ drivers/media/platform/soc_camera/atmel-isi.c      | 1167 ----------------
+ drivers/media/usb/em28xx/em28xx-camera.c           |    9 -
+ 21 files changed, 1704 insertions(+), 1367 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7670.txt
+ rename drivers/media/i2c/{soc_camera => }/ov2640.c (92%)
+ create mode 100644 drivers/media/platform/atmel/atmel-isi.c
+ rename drivers/media/platform/{soc_camera => atmel}/atmel-isi.h (100%)
+ delete mode 100644 drivers/media/platform/soc_camera/atmel-isi.c
+
 -- 
-2.10.2
+2.11.0
