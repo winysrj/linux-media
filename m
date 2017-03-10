@@ -1,98 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:57244 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1755045AbdC2N0Z (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Mar 2017 09:26:25 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-CC: <devicetree@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH v1 6/8] ARM: dts: stm32: Enable ov2640 camera support of STM32F429-EVAL board
-Date: Wed, 29 Mar 2017 15:25:24 +0200
-Message-ID: <1490793926-6477-7-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1490793926-6477-1-git-send-email-hugues.fruchet@st.com>
-References: <1490793926-6477-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:34803 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755143AbdCJEyr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 23:54:47 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v5 21/39] UAPI: Add media UAPI Kbuild file
+Date: Thu,  9 Mar 2017 20:53:01 -0800
+Message-Id: <1489121599-23206-22-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- arch/arm/boot/dts/stm32429i-eval.dts | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+Add an empty UAPI Kbuild file for media UAPI headers.
 
-diff --git a/arch/arm/boot/dts/stm32429i-eval.dts b/arch/arm/boot/dts/stm32429i-eval.dts
-index 7ffcf07..b7d127c 100644
---- a/arch/arm/boot/dts/stm32429i-eval.dts
-+++ b/arch/arm/boot/dts/stm32429i-eval.dts
-@@ -48,6 +48,7 @@
- /dts-v1/;
- #include "stm32f429.dtsi"
- #include <dt-bindings/input/input.h>
-+#include <dt-bindings/gpio/gpio.h>
- 
- / {
- 	model = "STMicroelectronics STM32429i-EVAL board";
-@@ -66,6 +67,14 @@
- 		serial0 = &usart1;
- 	};
- 
-+	clocks {
-+		clk_ext_camera: clk-ext-camera {
-+			#clock-cells = <0>;
-+			compatible = "fixed-clock";
-+			clock-frequency = <24000000>;
-+		};
-+	};
-+
- 	soc {
- 		dma-ranges = <0xc0000000 0x0 0x10000000>;
- 	};
-@@ -146,6 +155,11 @@
- 
- 	port {
- 		dcmi_0: endpoint@0 {
-+			remote-endpoint = <&ov2640_0>;
-+			bus-width = <8>;
-+			hsync-active = <0>;
-+			vsync-active = <0>;
-+			pclk-sample = <1>;
- 		};
- 	};
- };
-@@ -155,6 +169,22 @@
- 	pinctrl-names = "default";
- 	status = "okay";
- 
-+	ov2640: camera@30 {
-+		compatible = "ovti,ov2640";
-+		reg = <0x30>;
-+		resetb-gpios = <&stmpegpio 2 GPIO_ACTIVE_HIGH>;
-+		pwdn-gpios = <&stmpegpio 0 GPIO_ACTIVE_LOW>;
-+		clocks = <&clk_ext_camera>;
-+		clock-names = "xvclk";
-+		status = "okay";
-+
-+		port {
-+			ov2640_0: endpoint {
-+				remote-endpoint = <&dcmi_0>;
-+			};
-+		};
-+	};
-+
- 	stmpe1600: stmpe1600@42 {
- 		compatible = "st,stmpe1600";
- 		reg = <0x42>;
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ include/uapi/Kbuild       | 1 +
+ include/uapi/media/Kbuild | 1 +
+ 2 files changed, 2 insertions(+)
+ create mode 100644 include/uapi/media/Kbuild
+
+diff --git a/include/uapi/Kbuild b/include/uapi/Kbuild
+index 245aa6e..9a51957 100644
+--- a/include/uapi/Kbuild
++++ b/include/uapi/Kbuild
+@@ -6,6 +6,7 @@
+ header-y += asm-generic/
+ header-y += linux/
+ header-y += sound/
++header-y += media/
+ header-y += mtd/
+ header-y += rdma/
+ header-y += video/
+diff --git a/include/uapi/media/Kbuild b/include/uapi/media/Kbuild
+new file mode 100644
+index 0000000..aafaa5a
+--- /dev/null
++++ b/include/uapi/media/Kbuild
+@@ -0,0 +1 @@
++# UAPI Header export list
 -- 
-1.9.1
+2.7.4
