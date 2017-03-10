@@ -1,98 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f195.google.com ([74.125.82.195]:33138 "EHLO
-        mail-ot0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751617AbdCCOg7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 09:36:59 -0500
-MIME-Version: 1.0
-In-Reply-To: <CAG_fn=UVcLhP8mH6tvzqZUn4u9T4pnQw8bMf=qccNro59VcABw@mail.gmail.com>
-References: <20170302163834.2273519-1-arnd@arndb.de> <CAG_fn=UVcLhP8mH6tvzqZUn4u9T4pnQw8bMf=qccNro59VcABw@mail.gmail.com>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Fri, 3 Mar 2017 13:54:00 +0100
-Message-ID: <CAK8P3a1tek+4zWwHJtXO=r7Zqe7atwrPk70hWcM_Qp_Ekv9KHw@mail.gmail.com>
-Subject: Re: [PATCH 00/26] bring back stack frame warning with KASAN
-To: Alexander Potapenko <glider@google.com>
-Cc: kasan-dev <kasan-dev@googlegroups.com>,
-        Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Networking <netdev@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
-        linux-wireless <linux-wireless@vger.kernel.org>,
-        kernel-build-reports@lists.linaro.org,
-        "David S . Miller" <davem@davemloft.net>
-Content-Type: text/plain; charset=UTF-8
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:33964 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932604AbdCJEzC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 23:55:02 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Russell King <rmk+kernel@armlinux.org.uk>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v5 30/39] media: imx: add support for bayer formats
+Date: Thu,  9 Mar 2017 20:53:10 -0800
+Message-Id: <1489121599-23206-31-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 3, 2017 at 1:25 PM, Alexander Potapenko <glider@google.com> wrote:
-> On Thu, Mar 2, 2017 at 5:38 PM, Arnd Bergmann <arnd@arndb.de> wrote:
->> It took a long while to get this done, but I'm finally ready
->> to send the first half of the KASAN stack size patches that
->> I did in response to the kernelci.org warnings.
->>
->> As before, it's worth mentioning that things are generally worse
->> with gcc-7.0.1 because of the addition of -fsanitize-address-use-after-scope
->> that are not present on kernelci, so my randconfig testing found
->> a lot more than kernelci did.
->>
->> The main areas are:
->>
->> - READ_ONCE/WRITE_ONCE cause problems in lots of code
->> - typecheck() causes huge problems in a few places
->> - I'm introducing "noinline_for_kasan" and use it in a lot
->>   of places that suffer from inline functions with local variables
->>   - netlink, as used in various parts of the kernel
->>   - a number of drivers/media drivers
->>   - a handful of wireless network drivers
->> - kmemcheck conflicts with -fsanitize-address-use-after-scope
->>
->> This series lets us add back a stack frame warning for 3072 bytes
->> with -fsanitize-address-use-after-scope, or 2048 bytes without it.
->>
->> I have a follow-up series that further reduces the stack frame
->> warning limit to 1280 bytes for all 64-bit architectures, and
->> 1536 bytes with basic KASAN support (no -fsanitize-address-use-after-scope).
->> For now, I'm only posting the first half, in order to keep
->> it (barely) reviewable.
->
-> Can you please elaborate on why do you need this? Are you trying to
-> squeeze KASAN into some embedded device?
-> Noinlines sprayed over the codebase are hard to maintain, and certain
-> compiler changes may cause bloated stack frames in other places.
-> Maybe it should be enough to just increase the stack frame limit in
-> KASAN builds, as Dmitry suggested previously?
+From: Russell King <rmk+kernel@armlinux.org.uk>
 
-The current state of mainline has doubled the kernel stack size with
-KASAN, and completely turned off the warning for per-function
-stack frames. In some cases, this is completely broken as we have
-functions that exceed even the 32kb per-thread stacks by themselves,
-so I want to turn on the warning again and fix all the outliers.
+Add the bayer formats to imx-media's list of supported pixel and bus
+formats.
 
-The hard part is deciding what size is reasonable for a given function,
-as smaller limits cause more harmless warnings while larger limits
-can hide more actual problems. Before running into the KASAN
-problem, I had already determined that we can lower the warning
-limit for 64-bit architectures from 2048 bytes to 1280 with just
-a handful of patches that are generally a good cleanup anyway.
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
 
-This led me to picking three separate warning limits, based on
-what I found reasonable to work around in the code:
+- added a bayer boolean to struct imx_media_pixfmt.
 
-3072 bytes with -fsanitize-address-use-after-scope
-1536 bytes with KASAN but without -fsanitize-address-use-after-scope
-1280 bytes on 64-bit without KASAN
-1024 bytes on 32-bit architectures
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/media/imx/imx-media-utils.c | 68 +++++++++++++++++++++++++++++
+ drivers/staging/media/imx/imx-media.h       |  1 +
+ 2 files changed, 69 insertions(+)
 
-If we use higher limits, the patch series will get a bit shorter. For
-the limits above, I needed a total of 51 patches, while this shorter
-series of 26 patches has slightly laxer limits:
-
-3072 bytes with -fsanitize-address-use-after-scope
-2048 bytes on 64-bit architectures with or without KASAN, but
-          without  -fsanitize-address-use-after-scope
-1024 bytes on 32-bit architectures
-
-The individual patches should list the highest frame size I ran
-into, so I can try to reduce the number of patches if you have
-a suggestion for a different set of limits.
-
-       Arnd
+diff --git a/drivers/staging/media/imx/imx-media-utils.c b/drivers/staging/media/imx/imx-media-utils.c
+index ee50b6a..24e3795 100644
+--- a/drivers/staging/media/imx/imx-media-utils.c
++++ b/drivers/staging/media/imx/imx-media-utils.c
+@@ -61,6 +61,74 @@ static const struct imx_media_pixfmt imx_media_formats[] = {
+ 		.cs     = IPUV3_COLORSPACE_RGB,
+ 		.bpp    = 32,
+ 		.ipufmt = true,
++	}, {
++		.fourcc = V4L2_PIX_FMT_SBGGR8,
++		.codes  = {MEDIA_BUS_FMT_SBGGR8_1X8},
++		.cs     = IPUV3_COLORSPACE_RGB,
++		.bpp    = 8,
++		.bayer  = true,
++	}, {
++		.fourcc = V4L2_PIX_FMT_SGBRG8,
++		.codes  = {MEDIA_BUS_FMT_SGBRG8_1X8},
++		.cs     = IPUV3_COLORSPACE_RGB,
++		.bpp    = 8,
++		.bayer  = true,
++	}, {
++		.fourcc = V4L2_PIX_FMT_SGRBG8,
++		.codes  = {MEDIA_BUS_FMT_SGRBG8_1X8},
++		.cs     = IPUV3_COLORSPACE_RGB,
++		.bpp    = 8,
++		.bayer  = true,
++	}, {
++		.fourcc = V4L2_PIX_FMT_SRGGB8,
++		.codes  = {MEDIA_BUS_FMT_SRGGB8_1X8},
++		.cs     = IPUV3_COLORSPACE_RGB,
++		.bpp    = 8,
++		.bayer  = true,
++	}, {
++		.fourcc = V4L2_PIX_FMT_SBGGR16,
++		.codes  = {
++			MEDIA_BUS_FMT_SBGGR10_1X10,
++			MEDIA_BUS_FMT_SBGGR12_1X12,
++			MEDIA_BUS_FMT_SBGGR14_1X14,
++			MEDIA_BUS_FMT_SBGGR16_1X16
++		},
++		.cs     = IPUV3_COLORSPACE_RGB,
++		.bpp    = 16,
++		.bayer  = true,
++	}, {
++		.fourcc = V4L2_PIX_FMT_SGBRG16,
++		.codes  = {
++			MEDIA_BUS_FMT_SGBRG10_1X10,
++			MEDIA_BUS_FMT_SGBRG12_1X12,
++			MEDIA_BUS_FMT_SGBRG14_1X14,
++			MEDIA_BUS_FMT_SGBRG16_1X16,
++		},
++		.cs     = IPUV3_COLORSPACE_RGB,
++		.bpp    = 16,
++		.bayer  = true,
++	}, {
++		.fourcc = V4L2_PIX_FMT_SGRBG16,
++		.codes  = {
++			MEDIA_BUS_FMT_SGRBG10_1X10,
++			MEDIA_BUS_FMT_SGRBG12_1X12,
++			MEDIA_BUS_FMT_SGRBG14_1X14,
++			MEDIA_BUS_FMT_SGRBG16_1X16,
++		},
++		.cs     = IPUV3_COLORSPACE_RGB,
++		.bpp    = 16,
++		.bayer  = true,
++	}, {
++		.fourcc = V4L2_PIX_FMT_SRGGB16,
++		.codes  = {
++			MEDIA_BUS_FMT_SRGGB10_1X10,
++			MEDIA_BUS_FMT_SRGGB12_1X12,
++			MEDIA_BUS_FMT_SRGGB14_1X14,
++			MEDIA_BUS_FMT_SRGGB16_1X16,
++		},
++		.cs     = IPUV3_COLORSPACE_RGB,
++		.bpp    = 16,
++		.bayer  = true,
+ 	},
+ 	/*** non-mbus formats start here ***/
+ 	{
+diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
+index 2dd48ea..9e865fa 100644
+--- a/drivers/staging/media/imx/imx-media.h
++++ b/drivers/staging/media/imx/imx-media.h
+@@ -91,6 +91,7 @@ struct imx_media_pixfmt {
+ 	int     bpp;     /* total bpp */
+ 	enum ipu_color_space cs;
+ 	bool    planar;  /* is a planar format */
++	bool    bayer;   /* is a raw bayer format */
+ 	bool    ipufmt;  /* is one of the IPU internal formats */
+ };
+ 
+-- 
+2.7.4
