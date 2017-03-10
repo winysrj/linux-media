@@ -1,179 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:58106 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753359AbdC2Syd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Mar 2017 14:54:33 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
-        linux-rpi-kernel@lists.infradead.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 04/22] gadget.rst: Enrich its ReST representation and add kernel-doc tag
-Date: Wed, 29 Mar 2017 15:54:03 -0300
-Message-Id: <61bf3d87b32a57f5d223dc3fd0228c342ba1b4a0.1490813422.git.mchehab@s-opensource.com>
-In-Reply-To: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
-References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
-In-Reply-To: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
-References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+Received: from mga02.intel.com ([134.134.136.20]:26385 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933204AbdCJLft (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 10 Mar 2017 06:35:49 -0500
+Subject: [PATCH 8/8] atomisp: remove FPGA defines
+From: Alan Cox <alan@linux.intel.com>
+To: greg@kroah.com, linux-media@vger.kernel.org
+Date: Fri, 10 Mar 2017 11:35:17 +0000
+Message-ID: <148914571319.25309.6693184637114214680.stgit@acox1-desk1.ger.corp.intel.com>
+In-Reply-To: <148914560647.25309.2276061224604665212.stgit@acox1-desk1.ger.corp.intel.com>
+References: <148914560647.25309.2276061224604665212.stgit@acox1-desk1.ger.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The pandoc conversion is not perfect. Do handwork in order to:
+These are not relevant to an upstream kernel driver.
 
-- add a title to this chapter;
-- use the proper warning and note markups;
-- use kernel-doc to include Kernel header and c files;
-- remove legacy notes with regards to DocBook;
-- some other minor adjustments to make it better to read in
-  text mode and in html.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
 ---
- Documentation/driver-api/usb/gadget.rst | 69 +++++++++++++++++++++------------
- 1 file changed, 45 insertions(+), 24 deletions(-)
+ .../host/hive_isp_css_hrt_modified.h               |   16 ----------------
+ 1 file changed, 16 deletions(-)
 
-diff --git a/Documentation/driver-api/usb/gadget.rst b/Documentation/driver-api/usb/gadget.rst
-index 4fd9862f3f21..c4c76ebb51d3 100644
---- a/Documentation/driver-api/usb/gadget.rst
-+++ b/Documentation/driver-api/usb/gadget.rst
-@@ -1,3 +1,7 @@
-+Linux-USB "Gadget" kernel mode API
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+
- Introduction
- ============
- 
-@@ -175,16 +179,12 @@ the gadget, and submitting one or more *struct usb\_request* buffers to
- transfer data. Understand those four data types, and their operations,
- and you will understand how this API works.
- 
--    **Note**
-+.. Note::
- 
--    This documentation was prepared using the standard Linux kernel
--    ``docproc`` tool, which turns text and in-code comments into SGML
--    DocBook and then into usable formats such as HTML or PDF. Other than
--    the "Chapter 9" data types, most of the significant data types and
--    functions are described here.
-+    Other than the "Chapter 9" data types, most of the significant data
-+    types and functions are described here.
- 
--    However, docproc does not understand all the C constructs that are
--    used, so some relevant information is likely omitted from what you
-+    However, some relevant information is likely omitted from what you
-     are reading. One example of such information is endpoint
-     autoconfiguration. You'll have to read the header file, and use
-     example source code (such as that for "Gadget Zero"), to fully
-@@ -192,10 +192,10 @@ and you will understand how this API works.
- 
-     The part of the API implementing some basic driver capabilities is
-     specific to the version of the Linux kernel that's in use. The 2.6
--    kernel includes a *driver model* framework that has no analogue on
--    earlier kernels; so those parts of the gadget API are not fully
--    portable. (They are implemented on 2.4 kernels, but in a different
--    way.) The driver model state is another part of this API that is
-+    and upper kernel versions include a *driver model* framework that has
-+    no analogue on earlier kernels; so those parts of the gadget API are
-+    not fully portable. (They are implemented on 2.4 kernels, but in a
-+    different way.) The driver model state is another part of this API that is
-     ignored by the kerneldoc tools.
- 
- The core API does not expose every possible hardware feature, only the
-@@ -301,18 +301,19 @@ USB 2.0 Chapter 9 Types and Constants
- -------------------------------------
- 
- Gadget drivers rely on common USB structures and constants defined in
--the ``<linux/usb/ch9.h>`` header file, which is standard in Linux 2.6
--kernels. These are the same types and constants used by host side
-+the :ref:`linux/usb/ch9.h <usb_chapter9>` header file, which is standard in
-+Linux 2.6+ kernels. These are the same types and constants used by host side
- drivers (and usbcore).
- 
--!Iinclude/linux/usb/ch9.h
- Core Objects and Methods
- ------------------------
- 
- These are declared in ``<linux/usb/gadget.h>``, and are used by gadget
- drivers to interact with USB peripheral controller drivers.
- 
--!Iinclude/linux/usb/gadget.h
-+.. kernel-doc:: include/linux/usb/gadget.h
-+   :internal:
-+
- Optional Utilities
- ------------------
- 
-@@ -320,7 +321,12 @@ The core API is sufficient for writing a USB Gadget Driver, but some
- optional utilities are provided to simplify common tasks. These
- utilities include endpoint autoconfiguration.
- 
--!Edrivers/usb/gadget/usbstring.c !Edrivers/usb/gadget/config.c
-+.. kernel-doc:: drivers/usb/gadget/usbstring.c
-+   :export:
-+
-+.. kernel-doc:: drivers/usb/gadget/config.c
-+   :export:
-+
- Composite Device Framework
- --------------------------
- 
-@@ -337,7 +343,12 @@ usb\_function*, which packages a user visible role such as "network
- link" or "mass storage device". Management functions may also exist,
- such as "Device Firmware Upgrade".
- 
--!Iinclude/linux/usb/composite.h !Edrivers/usb/gadget/composite.c
-+.. kernel-doc:: include/linux/usb/composite.h
-+   :internal:
-+
-+.. kernel-doc:: drivers/usb/gadget/composite.c
-+   :export:
-+
- Composite Device Functions
- --------------------------
- 
-@@ -345,11 +356,21 @@ At this writing, a few of the current gadget drivers have been converted
- to this framework. Near-term plans include converting all of them,
- except for "gadgetfs".
- 
--!Edrivers/usb/gadget/function/f\_acm.c
--!Edrivers/usb/gadget/function/f\_ecm.c
--!Edrivers/usb/gadget/function/f\_subset.c
--!Edrivers/usb/gadget/function/f\_obex.c
--!Edrivers/usb/gadget/function/f\_serial.c
-+.. kernel-doc:: drivers/usb/gadget/function/f_acm.c
-+   :export:
-+
-+.. kernel-doc:: drivers/usb/gadget/function/f_ecm.c
-+   :export:
-+
-+.. kernel-doc:: drivers/usb/gadget/function/f_subset.c
-+   :export:
-+
-+.. kernel-doc:: drivers/usb/gadget/function/f_obex.c
-+   :export:
-+
-+.. kernel-doc:: drivers/usb/gadget/function/f_serial.c
-+   :export:
-+
- Peripheral Controller Drivers
- =============================
- 
-@@ -475,7 +496,7 @@ can also benefit non-OTG products.
- -  Also on the host side, a driver must support the OTG "Targeted
-    Peripheral List". That's just a whitelist, used to reject peripherals
-    not supported with a given Linux OTG host. *This whitelist is
--   product-specific; each product must modify ``otg_whitelist.h`` to
-+   product-specific; each product must modify* ``otg_whitelist.h`` *to
-    match its interoperability specification.*
- 
-    Non-OTG Linux hosts, like PCs and workstations, normally have some
--- 
-2.9.3
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/hive_isp_css_hrt_modified.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/hive_isp_css_hrt_modified.h
+index 603ef1d..342553d 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/hive_isp_css_hrt_modified.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/hive_isp_css_hrt_modified.h
+@@ -30,21 +30,6 @@
+ #include <gpio_block.h>
+ #include <gp_regs.h>
+ #include <gp_timer_hrt.h>
+-#ifdef _HIVE_ISP_CSS_FPGA_SYSTEM
+-  #include <i2c_api.h>
+-  #include <dis_sensor.h>
+-  #include <display_driver.h>
+-  #include <display.h>
+-  #include <display_driver.h>
+-  #include <shi_sensor_api.h>
+-#define hrt_gdc_slave_port(gdc_id)    HRTCAT(gdc_id,_sl_in)
+-  #include <isp2400_mamoiada_demo_params.h>
+-  #include <isp2400_support.h>
+-  #include "isp_css_dev_flash_hrt.h"
+-  #include "isp_css_dev_display_hrt.h"
+-  #include "isp_css_dev_i2c_hrt.h"
+-  #include "isp_css_dev_tb.h"
+-#else /* CSS ASIC system */
+   #include <css_receiver_2400_hrt.h>
+ //  #include <isp2400_mamoiada_params.h>
+ //  #include <isp2400_support.h>
+@@ -63,7 +48,6 @@
+ #error "hive_isp_css_hrt_modified.h: SYSTEM must be one of {2400_MAMOIADA_SYSTEM, 2401_MAMOIADA_SYSTEM}"
+ #endif
+   #endif
+-#endif /* _HIVE_ISP_CSS_FPGA_SYSTEM */
+ #include <sp_hrt.h>
+ #include <input_system_hrt.h>
+ #include <input_selector_hrt.h>
