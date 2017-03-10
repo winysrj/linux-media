@@ -1,81 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:37270 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935402AbdCJNIm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Mar 2017 08:08:42 -0500
-Date: Fri, 10 Mar 2017 13:07:33 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
- controls from a pipeline
-Message-ID: <20170310130733.GU21222@n2100.armlinux.org.uk>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
- <1487211578-11360-15-git-send-email-steve_longerbeam@mentor.com>
- <20170302160257.GK3220@valkosipuli.retiisi.org.uk>
- <20170303230645.GR21222@n2100.armlinux.org.uk>
- <20170304131329.GV3220@valkosipuli.retiisi.org.uk>
- <a7b8e095-a95c-24bd-b1e9-e983f18061c4@xs4all.nl>
+Received: from foss.arm.com ([217.140.101.70]:54736 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S935036AbdCJKbc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 10 Mar 2017 05:31:32 -0500
+Date: Fri, 10 Mar 2017 10:31:13 +0000
+From: Brian Starkey <brian.starkey@arm.com>
+To: Laura Abbott <labbott@redhat.com>
+Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Mark Brown <broonie@kernel.org>,
+        Michal Hocko <mhocko@kernel.org>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>,
+        Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>,
+        Rom Lemarchand <romlem@google.com>, devel@driverdev.osuosl.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-arm-kernel@lists.infradead.org,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        Daniel Vetter <daniel.vetter@intel.com>, linux-mm@kvack.org
+Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of
+ staging
+Message-ID: <20170310103112.GA15945@e106950-lin.cambridge.arm.com>
+References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+ <20170303132949.GC31582@dhcp22.suse.cz>
+ <cf383b9b-3cbc-0092-a071-f120874c053c@redhat.com>
+ <20170306074258.GA27953@dhcp22.suse.cz>
+ <20170306104041.zghsicrnadoap7lp@phenom.ffwll.local>
+ <20170306105805.jsq44kfxhsvazkm6@sirena.org.uk>
+ <20170306160437.sf7bksorlnw7u372@phenom.ffwll.local>
+ <CA+M3ks77Am3Fx-ZNmgeM5tCqdM7SzV7rby4Es-p2F2aOhUco9g@mail.gmail.com>
+ <26bc57ae-d88f-4ea0-d666-2c1a02bf866f@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Disposition: inline
-In-Reply-To: <a7b8e095-a95c-24bd-b1e9-e983f18061c4@xs4all.nl>
+In-Reply-To: <26bc57ae-d88f-4ea0-d666-2c1a02bf866f@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 10, 2017 at 01:54:28PM +0100, Hans Verkuil wrote:
-> But there was always meant to be a layer (libv4l plugin) that could be
-> used to setup a 'default scenario' that existing applications could use,
-> but that was never enforced, sadly.
+Hi,
 
-However, there's other painful issues lurking in userspace, particularly
-to do with the v4l libraries.
+On Thu, Mar 09, 2017 at 09:38:49AM -0800, Laura Abbott wrote:
+>On 03/09/2017 02:00 AM, Benjamin Gaignard wrote:
 
-The idea that the v4l libraries should intercept the format negotiation
-between the application and kernel is a particularly painful one - the
-default gstreamer build detects the v4l libraries, and links against it.
-That much is fine.
+[snip]
 
-However, the problem comes when you're trying to use bayer formats. The
-v4l libraries "helpfully" (or rather unhelpfully) intercept the format
-negotiation, and decide that they'll invoke v4lconvert to convert the
-bayer to RGB for you, whether you want them to do that or not.
+>>
+>> For me those patches are going in the right direction.
+>>
+>> I still have few questions:
+>> - since alignment management has been remove from ion-core, should it
+>> be also removed from ioctl structure ?
+>
+>Yes, I think I'm going to go with the suggestion to fixup the ABI
+>so we don't need the compat layer and as part of that I'm also
+>dropping the align argument.
+>
 
-v4lconvert may not be the most efficient way to convert, or even what
-is desired (eg, you may want to receive the raw bayer image.)  However,
-since the v4l libraries/v4lconvert gives you no option but to have its
-conversion forced into the pipeline, other options (such as using the
-gstreamer neon accelerated de-bayer plugin) isn't an option without
-rebuilding gstreamer _without_ linking against the v4l libraries.
+Is the only motivation for removing the alignment parameter that
+no-one got around to using it for something useful yet?
+The original comment was true - different devices do have different
+alignment requirements.
 
-At that point, saying "this should be done in a libv4l plugin" becomes
-a total nonsense, because if you need to avoid libv4l due to its
-stupidities, you don't get the benefit of subdevs, and it yet again
-_forces_ people down the route of custom applications.
+Better alignment can help SMMUs use larger blocks when mapping,
+reducing TLB pressure and the chance of a page table walk causing
+display underruns.
 
-So, I really don't agree with pushing this into a userspace library
-plugin - at least not with the current state there.
-
-_At least_ the debayering in the v4l libraries needs to become optional.
-
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+-Brian
