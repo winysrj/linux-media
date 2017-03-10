@@ -1,119 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53630 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752037AbdCCWSj (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:34809 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935082AbdCJMkt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Mar 2017 17:18:39 -0500
-Date: Sat, 4 Mar 2017 00:17:48 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCHv2] omap3isp: add support for CSI1 bus
-Message-ID: <20170303221748.GR3220@valkosipuli.retiisi.org.uk>
-References: <20161228183036.GA13139@amd>
- <10545906.Gxg3yScdu4@avalon>
- <20170215094228.GA8586@amd>
- <2414221.XNA4JCFMRx@avalon>
- <20170302090143.GB27818@amd>
- <20170302101603.GE27818@amd>
- <20170302112401.GF3220@valkosipuli.retiisi.org.uk>
- <20170302123848.GA28230@amd>
+        Fri, 10 Mar 2017 07:40:49 -0500
+Received: by mail-wr0-f193.google.com with SMTP id u48so11496271wrc.1
+        for <linux-media@vger.kernel.org>; Fri, 10 Mar 2017 04:40:48 -0800 (PST)
+Date: Fri, 10 Mar 2017 13:40:43 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Brian Starkey <brian.starkey@arm.com>
+Cc: Laura Abbott <labbott@redhat.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Mark Brown <broonie@kernel.org>,
+        Michal Hocko <mhocko@kernel.org>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>,
+        Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>,
+        Rom Lemarchand <romlem@google.com>, devel@driverdev.osuosl.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-arm-kernel@lists.infradead.org,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        Daniel Vetter <daniel.vetter@intel.com>, linux-mm@kvack.org
+Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of
+ staging
+Message-ID: <20170310124043.45hdu64wd4acf4it@phenom.ffwll.local>
+References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+ <20170303132949.GC31582@dhcp22.suse.cz>
+ <cf383b9b-3cbc-0092-a071-f120874c053c@redhat.com>
+ <20170306074258.GA27953@dhcp22.suse.cz>
+ <20170306104041.zghsicrnadoap7lp@phenom.ffwll.local>
+ <20170306105805.jsq44kfxhsvazkm6@sirena.org.uk>
+ <20170306160437.sf7bksorlnw7u372@phenom.ffwll.local>
+ <CA+M3ks77Am3Fx-ZNmgeM5tCqdM7SzV7rby4Es-p2F2aOhUco9g@mail.gmail.com>
+ <26bc57ae-d88f-4ea0-d666-2c1a02bf866f@redhat.com>
+ <20170310103112.GA15945@e106950-lin.cambridge.arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170302123848.GA28230@amd>
+In-Reply-To: <20170310103112.GA15945@e106950-lin.cambridge.arm.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
-
-On Thu, Mar 02, 2017 at 01:38:48PM +0100, Pavel Machek wrote:
-> Hi!
+On Fri, Mar 10, 2017 at 10:31:13AM +0000, Brian Starkey wrote:
+> Hi,
 > 
-> > > Ok, how about this one?
-> > > omap3isp: add rest of CSI1 support
-> > >     
-> > > CSI1 needs one more bit to be set up. Do just that.
-> > >     
-> > > It is not as straightforward as I'd like, see the comments in the code
-> > > for explanation.
-> ...
-> > > +	if (isp->phy_type == ISP_PHY_TYPE_3430) {
-> > > +		struct media_pad *pad;
-> > > +		struct v4l2_subdev *sensor;
-> > > +		const struct isp_ccp2_cfg *buscfg;
-> > > +
-> > > +		pad = media_entity_remote_pad(&ccp2->pads[CCP2_PAD_SINK]);
-> > > +		sensor = media_entity_to_v4l2_subdev(pad->entity);
-> > > +		/* Struct isp_bus_cfg has union inside */
-> > > +		buscfg = &((struct isp_bus_cfg *)sensor->host_priv)->bus.ccp2;
-> > > +
-> > > +		csiphy_routing_cfg_3430(&isp->isp_csiphy2,
-> > > +					ISP_INTERFACE_CCP2B_PHY1,
-> > > +					enable, !!buscfg->phy_layer,
-> > > +					buscfg->strobe_clk_pol);
+> On Thu, Mar 09, 2017 at 09:38:49AM -0800, Laura Abbott wrote:
+> > On 03/09/2017 02:00 AM, Benjamin Gaignard wrote:
+> 
+> [snip]
+> 
+> > > 
+> > > For me those patches are going in the right direction.
+> > > 
+> > > I still have few questions:
+> > > - since alignment management has been remove from ion-core, should it
+> > > be also removed from ioctl structure ?
 > > 
-> > You should do this through omap3isp_csiphy_acquire(), and not call
-> > csiphy_routing_cfg_3430() directly from here.
-> 
-> Well, unfortunately omap3isp_csiphy_acquire() does have csi2
-> assumptions hard-coded :-(.
-> 
-> This will probably fail.
-> 
-> 	        rval = omap3isp_csi2_reset(phy->csi2);
-> 	        if (rval < 0)
-> 		                goto done;
-
-Yes. It needs to be fixed. :-)
-
-> 				
-> And this will oops:
-> 
-> static int omap3isp_csiphy_config(struct isp_csiphy *phy)
-> {
-> 	struct isp_csi2_device *csi2 = phy->csi2;
->         struct isp_pipeline *pipe = to_isp_pipeline(&csi2->subdev.entity);
->  	struct isp_bus_cfg *buscfg = pipe->external->host_priv;
-
-There seems to be some more work left, yes. :-I
-
-> 
-> > > @@ -1137,10 +1159,19 @@ int omap3isp_ccp2_init(struct isp_device *isp)
-> > >  	if (isp->revision == ISP_REVISION_2_0) {
-> > >  		ccp2->vdds_csib = devm_regulator_get(isp->dev, "vdds_csib");
-> > >  		if (IS_ERR(ccp2->vdds_csib)) {
-> > > +			if (PTR_ERR(ccp2->vdds_csib) == -EPROBE_DEFER)
-> > > +				return -EPROBE_DEFER;
+> > Yes, I think I'm going to go with the suggestion to fixup the ABI
+> > so we don't need the compat layer and as part of that I'm also
+> > dropping the align argument.
 > > 
-> > This should go to a separate patch.
 > 
-> Ok, easy enough.
+> Is the only motivation for removing the alignment parameter that
+> no-one got around to using it for something useful yet?
+> The original comment was true - different devices do have different
+> alignment requirements.
 > 
-> > >  			dev_dbg(isp->dev,
-> > >  				"Could not get regulator vdds_csib\n");
-> > >  			ccp2->vdds_csib = NULL;
-> > >  		}
-> > > +		/*
-> > > +		 * If we set up ccp2->phy here,
-> > > +		 * omap3isp_csiphy_acquire() will go ahead and assume
-> > > +		 * csi2, dereferencing some null pointers.
-> > > +		 *
-> > > +		 * ccp2->phy = &isp->isp_csiphy2;
-> > 
-> > That needs to be fixed separately.
-> 
-> See analysis above. Yes, it would be nice to fix it. Can you provide
-> some hints how to do that? Maybe even patch to test? :-).
+> Better alignment can help SMMUs use larger blocks when mapping,
+> reducing TLB pressure and the chance of a page table walk causing
+> display underruns.
 
-If I only will have the time. Let's see if I can find some time this
-week-end.
+Extending ioctl uapi is easy, trying to get rid of bad uapi is much
+harder. Given that right now we don't have an ion allocator that does
+alignment I think removing it makes sense. And if we go with lots of
+heaps, we might as well have an ion heap per alignment that your hw needs,
+so there's different ways to implement this in the future.
 
+At least from the unix device memory allocator pov it's probably simpler
+to encode stuff like this into the heap name, instead of having to pass
+heap + list of additional properties/constraints.
+-Daniel
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
