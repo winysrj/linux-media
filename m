@@ -1,124 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:56539 "EHLO ale.deltatee.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751306AbdCQSu3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Mar 2017 14:50:29 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
-        Johannes Thumshirn <jthumshirn@suse.de>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Cyrille Pitchen <cyrille.pitchen@atmel.com>
-Cc: linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org,
-        rtc-linux@googlegroups.com, linux-mtd@lists.infradead.org,
-        linux-media@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Logan Gunthorpe <logang@deltatee.com>
-Date: Fri, 17 Mar 2017 12:48:14 -0600
-Message-Id: <1489776503-3151-8-git-send-email-logang@deltatee.com>
-In-Reply-To: <1489776503-3151-1-git-send-email-logang@deltatee.com>
-References: <1489776503-3151-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v5 07/16] platform/chrome: cros_ec_dev - utilize new cdev_device_add helper function
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:33126 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754056AbdCJEyY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 23:54:24 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v5 16/39] [media] v4l2: add a new-frame before end-of-frame event
+Date: Thu,  9 Mar 2017 20:52:56 -0800
+Message-Id: <1489121599-23206-17-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the open coded registration of the cdev and dev with the
-new device_add_cdev() helper. The helper replaces a common pattern by
-taking the proper reference against the parent device and adding both
-the cdev and the device.
+Add a NEW_FRAME_BEFORE_EOF event to signal that a video capture or
+output device has signaled a new frame is ready before a previous
+frame has completed reception or transmission. This usually indicates
+a DMA read/write channel is having trouble gaining bus access.
 
-At the same time we cleanup the error path through device_probe
-function: we use put_device instead of kfree directly as recommended
-by the device_initialize documentation.
-
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/platform/chrome/cros_ec_dev.c | 31 +++++++------------------------
- 1 file changed, 7 insertions(+), 24 deletions(-)
+ Documentation/media/uapi/v4l/vidioc-dqevent.rst | 6 ++++++
+ Documentation/media/videodev2.h.rst.exceptions  | 1 +
+ include/uapi/linux/videodev2.h                  | 1 +
+ 3 files changed, 8 insertions(+)
 
-diff --git a/drivers/platform/chrome/cros_ec_dev.c b/drivers/platform/chrome/cros_ec_dev.c
-index 6f09da4..6aa120c 100644
---- a/drivers/platform/chrome/cros_ec_dev.c
-+++ b/drivers/platform/chrome/cros_ec_dev.c
-@@ -391,7 +391,6 @@ static int ec_device_probe(struct platform_device *pdev)
- 	int retval = -ENOMEM;
- 	struct device *dev = &pdev->dev;
- 	struct cros_ec_platform *ec_platform = dev_get_platdata(dev);
--	dev_t devno = MKDEV(ec_major, pdev->id);
- 	struct cros_ec_dev *ec = kzalloc(sizeof(*ec), GFP_KERNEL);
+diff --git a/Documentation/media/uapi/v4l/vidioc-dqevent.rst b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
+index dc77363..54bc7ae 100644
+--- a/Documentation/media/uapi/v4l/vidioc-dqevent.rst
++++ b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
+@@ -203,6 +203,12 @@ call.
+ 	has measured an interval between the reception or transmit
+ 	completion of two consecutive frames of video that is outside
+ 	the nominal frame interval by some tolerance value.
++    * - ``V4L2_EVENT_NEW_FRAME_BEFORE_EOF``
++      - 8
++      - This event is triggered when the video capture or output device
++	has signaled a new frame is ready before a previous frame has
++	completed reception or transmission. This usually indicates a
++	DMA read/write channel is having trouble gaining bus access.
+     * - ``V4L2_EVENT_PRIVATE_START``
+       - 0x08000000
+       - Base event number for driver-private events.
+diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
+index c7d8fad..be6f332 100644
+--- a/Documentation/media/videodev2.h.rst.exceptions
++++ b/Documentation/media/videodev2.h.rst.exceptions
+@@ -460,6 +460,7 @@ replace define V4L2_EVENT_FRAME_SYNC event-type
+ replace define V4L2_EVENT_SOURCE_CHANGE event-type
+ replace define V4L2_EVENT_MOTION_DET event-type
+ replace define V4L2_EVENT_FRAME_INTERVAL_ERROR event-type
++replace define V4L2_EVENT_NEW_FRAME_BEFORE_EOF event-type
+ replace define V4L2_EVENT_PRIVATE_START event-type
  
- 	if (!ec)
-@@ -407,23 +406,11 @@ static int ec_device_probe(struct platform_device *pdev)
- 	cdev_init(&ec->cdev, &fops);
+ replace define V4L2_EVENT_CTRL_CH_VALUE ctrl-changes-flags
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index cf5a0d0..f54a82a 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -2132,6 +2132,7 @@ struct v4l2_streamparm {
+ #define V4L2_EVENT_SOURCE_CHANGE		5
+ #define V4L2_EVENT_MOTION_DET			6
+ #define V4L2_EVENT_FRAME_INTERVAL_ERROR		7
++#define V4L2_EVENT_NEW_FRAME_BEFORE_EOF		8
+ #define V4L2_EVENT_PRIVATE_START		0x08000000
  
- 	/*
--	 * Add the character device
--	 * Link cdev to the class device to be sure device is not used
--	 * before unbinding it.
--	 */
--	ec->cdev.kobj.parent = &ec->class_dev.kobj;
--	retval = cdev_add(&ec->cdev, devno, 1);
--	if (retval) {
--		dev_err(dev, ": failed to add character device\n");
--		goto cdev_add_failed;
--	}
--
--	/*
- 	 * Add the class device
- 	 * Link to the character device for creating the /dev entry
- 	 * in devtmpfs.
- 	 */
--	ec->class_dev.devt = ec->cdev.dev;
-+	ec->class_dev.devt = MKDEV(ec_major, pdev->id);
- 	ec->class_dev.class = &cros_class;
- 	ec->class_dev.parent = dev;
- 	ec->class_dev.release = __remove;
-@@ -431,13 +418,13 @@ static int ec_device_probe(struct platform_device *pdev)
- 	retval = dev_set_name(&ec->class_dev, "%s", ec_platform->ec_name);
- 	if (retval) {
- 		dev_err(dev, "dev_set_name failed => %d\n", retval);
--		goto set_named_failed;
-+		goto failed;
- 	}
- 
--	retval = device_add(&ec->class_dev);
-+	retval = cdev_device_add(&ec->cdev, &ec->class_dev);
- 	if (retval) {
--		dev_err(dev, "device_register failed => %d\n", retval);
--		goto dev_reg_failed;
-+		dev_err(dev, "cdev_device_add failed => %d\n", retval);
-+		goto failed;
- 	}
- 
- 	/* check whether this EC is a sensor hub. */
-@@ -446,12 +433,8 @@ static int ec_device_probe(struct platform_device *pdev)
- 
- 	return 0;
- 
--dev_reg_failed:
--set_named_failed:
--	dev_set_drvdata(dev, NULL);
--	cdev_del(&ec->cdev);
--cdev_add_failed:
--	kfree(ec);
-+failed:
-+	put_device(&ec->class_dev);
- 	return retval;
- }
- 
+ /* Payload for V4L2_EVENT_VSYNC */
 -- 
-2.1.4
+2.7.4
