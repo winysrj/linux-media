@@ -1,199 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f49.google.com ([74.125.82.49]:38033 "EHLO
-        mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754061AbdCMQh6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 12:37:58 -0400
-Received: by mail-wm0-f49.google.com with SMTP id t189so44542962wmt.1
-        for <linux-media@vger.kernel.org>; Mon, 13 Mar 2017 09:37:57 -0700 (PDT)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v7 1/9] media: v4l2-mem2mem: extend m2m APIs for more accurate buffer management
-Date: Mon, 13 Mar 2017 18:37:30 +0200
-Message-Id: <1489423058-12492-2-git-send-email-stanimir.varbanov@linaro.org>
-In-Reply-To: <1489423058-12492-1-git-send-email-stanimir.varbanov@linaro.org>
-References: <1489423058-12492-1-git-send-email-stanimir.varbanov@linaro.org>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:33092 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755035AbdCJEyT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 23:54:19 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v5 14/39] add mux and video interface bridge entity functions
+Date: Thu,  9 Mar 2017 20:52:54 -0800
+Message-Id: <1489121599-23206-15-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this add functions for:
-  - remove buffers from src/dst queue by index
-  - remove exact buffer from src/dst queue
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-also extends m2m API to iterate over a list of src/dst buffers
-in safely and non-safely manner.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+- renamed MEDIA_ENT_F_MUX to MEDIA_ENT_F_VID_MUX
+
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/v4l2-core/v4l2-mem2mem.c | 37 ++++++++++++++
- include/media/v4l2-mem2mem.h           | 92 ++++++++++++++++++++++++++++++++++
- 2 files changed, 129 insertions(+)
+ Documentation/media/uapi/mediactl/media-types.rst | 22 ++++++++++++++++++++++
+ include/uapi/linux/media.h                        |  6 ++++++
+ 2 files changed, 28 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-index 6bc27e7b2a33..f62e68aa04c4 100644
---- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-+++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-@@ -126,6 +126,43 @@ void *v4l2_m2m_buf_remove(struct v4l2_m2m_queue_ctx *q_ctx)
- }
- EXPORT_SYMBOL_GPL(v4l2_m2m_buf_remove);
+diff --git a/Documentation/media/uapi/mediactl/media-types.rst b/Documentation/media/uapi/mediactl/media-types.rst
+index 3e03dc2..9d908fe 100644
+--- a/Documentation/media/uapi/mediactl/media-types.rst
++++ b/Documentation/media/uapi/mediactl/media-types.rst
+@@ -298,6 +298,28 @@ Types and flags used to represent the media graph elements
+ 	  received on its sink pad and outputs the statistics data on
+ 	  its source pad.
  
-+void v4l2_m2m_buf_remove_by_buf(struct v4l2_m2m_queue_ctx *q_ctx,
-+				struct vb2_v4l2_buffer *vbuf)
-+{
-+	struct v4l2_m2m_buffer *b;
-+	unsigned long flags;
++    -  ..  row 29
 +
-+	spin_lock_irqsave(&q_ctx->rdy_spinlock, flags);
-+	b = container_of(vbuf, struct v4l2_m2m_buffer, vb);
-+	list_del(&b->list);
-+	q_ctx->num_rdy--;
-+	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_m2m_buf_remove_by_buf);
++       ..  _MEDIA-ENT-F-VID-MUX:
 +
-+struct vb2_v4l2_buffer *
-+v4l2_m2m_buf_remove_by_idx(struct v4l2_m2m_queue_ctx *q_ctx, unsigned int idx)
++       -  ``MEDIA_ENT_F_VID_MUX``
 +
-+{
-+	struct v4l2_m2m_buffer *b, *tmp;
-+	struct vb2_v4l2_buffer *ret = NULL;
-+	unsigned long flags;
++       - Video multiplexer. An entity capable of multiplexing must have at
++         least two sink pads and one source pad, and must pass the video
++         frame(s) received from the active sink pad to the source pad. Video
++         frame(s) from the inactive sink pads are discarded.
 +
-+	spin_lock_irqsave(&q_ctx->rdy_spinlock, flags);
-+	list_for_each_entry_safe(b, tmp, &q_ctx->rdy_queue, list) {
-+		if (b->vb.vb2_buf.index == idx) {
-+			list_del(&b->list);
-+			q_ctx->num_rdy--;
-+			ret = &b->vb;
-+			break;
-+		}
-+	}
-+	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
++    -  ..  row 30
 +
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_m2m_buf_remove_by_idx);
++       ..  _MEDIA-ENT-F-VID-IF-BRIDGE:
 +
++       -  ``MEDIA_ENT_F_VID_IF_BRIDGE``
++
++       - Video interface bridge. A video interface bridge entity must have at
++         least one sink pad and one source pad. It receives video frame(s) on
++         its sink pad in one bus format (HDMI, eDP, MIPI CSI-2, ...) and
++         converts them and outputs them on its source pad in another bus format
++         (eDP, MIPI CSI-2, parallel, ...).
+ 
+ ..  tabularcolumns:: |p{5.5cm}|p{12.0cm}|
+ 
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 4890787..fac96c6 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -105,6 +105,12 @@ struct media_device_info {
+ #define MEDIA_ENT_F_PROC_VIDEO_STATISTICS	(MEDIA_ENT_F_BASE + 0x4006)
+ 
  /*
-  * Scheduling handlers
++ * Switch and bridge entitites
++ */
++#define MEDIA_ENT_F_VID_MUX			(MEDIA_ENT_F_BASE + 0x5001)
++#define MEDIA_ENT_F_VID_IF_BRIDGE		(MEDIA_ENT_F_BASE + 0x5002)
++
++/*
+  * Connectors
   */
-diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
-index 3ccd01bd245e..e157d5c9b224 100644
---- a/include/media/v4l2-mem2mem.h
-+++ b/include/media/v4l2-mem2mem.h
-@@ -437,6 +437,47 @@ static inline void *v4l2_m2m_next_dst_buf(struct v4l2_m2m_ctx *m2m_ctx)
- }
- 
- /**
-+ * v4l2_m2m_for_each_dst_buf() - iterate over a list of destination ready
-+ * buffers
-+ *
-+ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-+ * @b: current buffer of type struct v4l2_m2m_buffer
-+ */
-+#define v4l2_m2m_for_each_dst_buf(m2m_ctx, b)	\
-+	list_for_each_entry(b, &m2m_ctx->cap_q_ctx.rdy_queue, list)
-+
-+/**
-+ * v4l2_m2m_for_each_src_buf() - iterate over a list of source ready buffers
-+ *
-+ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-+ * @b: current buffer of type struct v4l2_m2m_buffer
-+ */
-+#define v4l2_m2m_for_each_src_buf(m2m_ctx, b)	\
-+	list_for_each_entry(b, &m2m_ctx->out_q_ctx.rdy_queue, list)
-+
-+/**
-+ * v4l2_m2m_for_each_dst_buf_safe() - iterate over a list of destination ready
-+ * buffers safely
-+ *
-+ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-+ * @b: current buffer of type struct v4l2_m2m_buffer
-+ * @n: used as temporary storage
-+ */
-+#define v4l2_m2m_for_each_dst_buf_safe(m2m_ctx, b, n)	\
-+	list_for_each_entry_safe(b, n, &m2m_ctx->cap_q_ctx.rdy_queue, list)
-+
-+/**
-+ * v4l2_m2m_for_each_src_buf_safe() - iterate over a list of source ready
-+ * buffers safely
-+ *
-+ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-+ * @b: current buffer of type struct v4l2_m2m_buffer
-+ * @n: used as temporary storage
-+ */
-+#define v4l2_m2m_for_each_src_buf_safe(m2m_ctx, b, n)	\
-+	list_for_each_entry_safe(b, n, &m2m_ctx->out_q_ctx.rdy_queue, list)
-+
-+/**
-  * v4l2_m2m_get_src_vq() - return vb2_queue for source buffers
-  *
-  * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-@@ -488,6 +529,57 @@ static inline void *v4l2_m2m_dst_buf_remove(struct v4l2_m2m_ctx *m2m_ctx)
- 	return v4l2_m2m_buf_remove(&m2m_ctx->cap_q_ctx);
- }
- 
-+/**
-+ * v4l2_m2m_buf_remove_by_buf() - take off exact buffer from the list of ready
-+ * buffers
-+ *
-+ * @q_ctx: pointer to struct @v4l2_m2m_queue_ctx
-+ * @vbuf: the buffer to be removed
-+ */
-+void v4l2_m2m_buf_remove_by_buf(struct v4l2_m2m_queue_ctx *q_ctx,
-+				struct vb2_v4l2_buffer *vbuf);
-+
-+/**
-+ * v4l2_m2m_src_buf_remove_by_buf() - take off exact source buffer from the list
-+ * of ready buffers
-+ *
-+ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-+ * @vbuf: the buffer to be removed
-+ */
-+static inline void v4l2_m2m_src_buf_remove_by_buf(struct v4l2_m2m_ctx *m2m_ctx,
-+						  struct vb2_v4l2_buffer *vbuf)
-+{
-+	v4l2_m2m_buf_remove_by_buf(&m2m_ctx->out_q_ctx, vbuf);
-+}
-+
-+/**
-+ * v4l2_m2m_dst_buf_remove_by_buf() - take off exact destination buffer from the
-+ * list of ready buffers
-+ *
-+ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-+ * @vbuf: the buffer to be removed
-+ */
-+static inline void v4l2_m2m_dst_buf_remove_by_buf(struct v4l2_m2m_ctx *m2m_ctx,
-+						  struct vb2_v4l2_buffer *vbuf)
-+{
-+	v4l2_m2m_buf_remove_by_buf(&m2m_ctx->cap_q_ctx, vbuf);
-+}
-+
-+struct vb2_v4l2_buffer *
-+v4l2_m2m_buf_remove_by_idx(struct v4l2_m2m_queue_ctx *q_ctx, unsigned int idx);
-+
-+static inline struct vb2_v4l2_buffer *
-+v4l2_m2m_src_buf_remove_by_idx(struct v4l2_m2m_ctx *m2m_ctx, unsigned int idx)
-+{
-+	return v4l2_m2m_buf_remove_by_idx(&m2m_ctx->out_q_ctx, idx);
-+}
-+
-+static inline struct vb2_v4l2_buffer *
-+v4l2_m2m_dst_buf_remove_by_idx(struct v4l2_m2m_ctx *m2m_ctx, unsigned int idx)
-+{
-+	return v4l2_m2m_buf_remove_by_idx(&m2m_ctx->cap_q_ctx, idx);
-+}
-+
- /* v4l2 ioctl helpers */
- 
- int v4l2_m2m_ioctl_reqbufs(struct file *file, void *priv,
+ /* It is a responsibility of the entity drivers to add connectors and links */
 -- 
 2.7.4
