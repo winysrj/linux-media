@@ -1,92 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:37436 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751706AbdCNTGn (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:44142 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934312AbdCJNlg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Mar 2017 15:06:43 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v3 22/27] rcar-vin: add chsel information to rvin_info
-Date: Tue, 14 Mar 2017 20:03:03 +0100
-Message-Id: <20170314190308.25790-23-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
+        Fri, 10 Mar 2017 08:41:36 -0500
+Date: Fri, 10 Mar 2017 14:41:31 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
+        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org
+Subject: Re: [RFC] omap3isp: add support for CSI1 bus
+Message-ID: <20170310134131.GD11875@amd>
+References: <20161228183036.GA13139@amd>
+ <10545906.Gxg3yScdu4@avalon>
+ <20170215094228.GA8586@amd>
+ <2414221.XNA4JCFMRx@avalon>
+ <20170302090143.GB27818@amd>
+ <20170302101603.GE27818@amd>
+ <20170302112401.GF3220@valkosipuli.retiisi.org.uk>
+ <20170302123848.GA28230@amd>
+ <20170304130318.GU3220@valkosipuli.retiisi.org.uk>
+ <20170306075659.GB23509@amd>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="3Pql8miugIZX0722"
+Content-Disposition: inline
+In-Reply-To: <20170306075659.GB23509@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Each Gen3 SoC has a limited set of predefined routing possibilities for
-which CSI-2 device and virtual channel can be routed to which VIN
-instance. Prepare to store this information in the struct rvin_info.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-vin.h | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+--3Pql8miugIZX0722
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 94258bf7cd58d097..386ede9c95d9aedb 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -35,6 +35,9 @@
- /* Max number on VIN instances that can be in a system */
- #define RCAR_VIN_NUM 8
- 
-+/* Max number of CHSEL values for any Gen3 SoC */
-+#define RCAR_CHSEL_MAX 6
-+
- enum chip_id {
- 	RCAR_H1,
- 	RCAR_M1,
-@@ -91,6 +94,19 @@ struct rvin_graph_entity {
- 
- struct rvin_group;
- 
-+
-+/** struct rvin_group_chsel - Map a CSI2 device and channel for a CHSEL value
-+ * @csi:		VIN internal number for CSI2 device
-+ * @chan:		CSI-2 channel number on remote. Note that channel
-+ *			is not the same as VC. The CSI-2 hardware have 4
-+ *			channels it can output on but which VC is outputted
-+ *			on which channel is configurable inside the CSI-2.
-+ */
-+struct rvin_group_chsel {
-+	enum rvin_csi_id csi;
-+	unsigned int chan;
-+};
-+
- /**
-  * struct rvin_info- Information about the particular VIN implementation
-  * @chip:		type of VIN chip
-@@ -98,6 +114,9 @@ struct rvin_group;
-  *
-  * max_width:		max input width the VIN supports
-  * max_height:		max input height the VIN supports
-+ *
-+ * num_chsels:		number of possible chsel values for this VIN
-+ * chsels:		routing table VIN <-> CSI-2 for the chsel values
-  */
- struct rvin_info {
- 	enum chip_id chip;
-@@ -105,6 +124,9 @@ struct rvin_info {
- 
- 	unsigned int max_width;
- 	unsigned int max_height;
-+
-+	unsigned int num_chsels;
-+	struct rvin_group_chsel chsels[RCAR_VIN_NUM][RCAR_CHSEL_MAX];
- };
- 
- /**
--- 
-2.12.0
+On Mon 2017-03-06 08:56:59, Pavel Machek wrote:
+> omap3isp: add rest of CSI1 support
+>=20
+> CSI1 needs one more bit to be set up. Do just that.
+>=20
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+>=20
+> ---
+>=20
+> Hmm. Looking at that... num_data_lanes probably should be modified in
+> local variable, not globally like this. Should I do that?
+>=20
+> Anything else that needs fixing?
+
+Ping? Feedback here would be nice. This is last "interesting" piece of
+the hardware support...
+
+Best regards,
+								Pavel
+
+> index 24a9fc5..6feba36 100644
+> --- a/drivers/media/platform/omap3isp/ispccp2.c
+> +++ b/drivers/media/platform/omap3isp/ispccp2.c
+> @@ -21,6 +23,7 @@
+>  #include <linux/mutex.h>
+>  #include <linux/uaccess.h>
+>  #include <linux/regulator/consumer.h>
+> +#include <linux/regmap.h>
+> =20
+>  #include "isp.h"
+>  #include "ispreg.h"
+> @@ -1149,6 +1152,7 @@ int omap3isp_ccp2_init(struct isp_device *isp)
+>  				"Could not get regulator vdds_csib\n");
+>  			ccp2->vdds_csib =3D NULL;
+>  		}
+> +		ccp2->phy =3D &isp->isp_csiphy2;
+>  	} else if (isp->revision =3D=3D ISP_REVISION_15_0) {
+>  		ccp2->phy =3D &isp->isp_csiphy1;
+>  	}
+> diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/=
+platform/omap3isp/ispcsiphy.c
+> index 50c0f64..cd6351b 100644
+> --- a/drivers/media/platform/omap3isp/ispcsiphy.c
+> +++ b/drivers/media/platform/omap3isp/ispcsiphy.c
+> @@ -197,9 +200,10 @@ static int omap3isp_csiphy_config(struct isp_csiphy =
+*phy)
+>  	}
+> =20
+>  	if (buscfg->interface =3D=3D ISP_INTERFACE_CCP2B_PHY1
+> -	    || buscfg->interface =3D=3D ISP_INTERFACE_CCP2B_PHY2)
+> +	    || buscfg->interface =3D=3D ISP_INTERFACE_CCP2B_PHY2) {
+>  		lanes =3D &buscfg->bus.ccp2.lanecfg;
+> -	else
+> +		phy->num_data_lanes =3D 1;
+> +	} else
+>  		lanes =3D &buscfg->bus.csi2.lanecfg;
+> =20
+>  	/* Clock and data lanes verification */
+> @@ -302,13 +306,16 @@ int omap3isp_csiphy_acquire(struct isp_csiphy *phy)
+>  	if (rval < 0)
+>  		goto done;
+> =20
+> -	rval =3D csiphy_set_power(phy, ISPCSI2_PHY_CFG_PWR_CMD_ON);
+> -	if (rval) {
+> -		regulator_disable(phy->vdd);
+> -		goto done;
+> +	if (phy->isp->revision =3D=3D ISP_REVISION_15_0) {
+> +		rval =3D csiphy_set_power(phy, ISPCSI2_PHY_CFG_PWR_CMD_ON);
+> +		if (rval) {
+> +			regulator_disable(phy->vdd);
+> +			goto done;
+> +		}
+> +	=09
+> +		csiphy_power_autoswitch_enable(phy, true);	=09
+>  	}
+> =20
+> -	csiphy_power_autoswitch_enable(phy, true);
+>  	phy->phy_in_use =3D 1;
+> =20
+>  done:
+>=20
+
+
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--3Pql8miugIZX0722
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAljCrQsACgkQMOfwapXb+vLSNgCdETmKgyTz5vu2g25Kl4ZEvkzb
+5I8AmgOspB2wChxqE/+4SPmggI1DhhB7
+=j2Ss
+-----END PGP SIGNATURE-----
+
+--3Pql8miugIZX0722--
