@@ -1,42 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:7617 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753367AbdC0POe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 11:14:34 -0400
-Subject: [PATCH 4/5] drivers/staging/media: atomisp: Removing redundant
- information from dev_err
-From: Alan Cox <alan@linux.intel.com>
-To: greg@kroah.com, linux-media@vger.kernel.org
-Date: Mon, 27 Mar 2017 16:14:15 +0100
-Message-ID: <149062765460.15399.17254406598757100342.stgit@rszulisx-mobl.ger.corp.intel.com>
-In-Reply-To: <149062762280.15399.12714375439154128065.stgit@rszulisx-mobl.ger.corp.intel.com>
-References: <149062762280.15399.12714375439154128065.stgit@rszulisx-mobl.ger.corp.intel.com>
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:35261 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933657AbdCJSh0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 10 Mar 2017 13:37:26 -0500
+Subject: Re: [PATCH v5 15/39] [media] v4l2: add a frame interval error event
+To: Hans Verkuil <hverkuil@xs4all.nl>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, linux@armlinux.org.uk, mchehab@kernel.org,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <1489121599-23206-16-git-send-email-steve_longerbeam@mentor.com>
+ <5b0a0e76-2524-4140-5ccc-380a8f949cfa@xs4all.nl>
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <ec05e6e0-79f2-2db2-bde9-4aed00d76faa@gmail.com>
+Date: Fri, 10 Mar 2017 10:37:21 -0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+In-Reply-To: <5b0a0e76-2524-4140-5ccc-380a8f949cfa@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pushkar Jambhlekar <pushkar.iit@gmail.com>
+Hi Hans,
 
-Removing hardcoded function name as code is already using __func__
+On 03/10/2017 04:03 AM, Hans Verkuil wrote:
+> On 10/03/17 05:52, Steve Longerbeam wrote:
+>> Add a new FRAME_INTERVAL_ERROR event to signal that a video capture or
+>> output device has measured an interval between the reception or transmit
+>> completion of two consecutive frames of video that is outside the nominal
+>> frame interval by some tolerance value.
+>
+> Reading back what was said on this I agree with Sakari that this doesn't
+> belong here.
+>
+> Userspace can detect this just as easily (if not easier) with a timeout.
+>
 
-Signed-off-by: Pushkar Jambhlekar <pushkar.iit@gmail.com>
-Signed-off-by: Alan Cox <alan@linux.intel.com>
----
- .../media/atomisp/pci/atomisp2/hmm/hmm_bo.c        |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
-index d1a609d2..a51a27b 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
-@@ -64,7 +64,7 @@ struct hmm_buffer_object *__bo_alloc(struct kmem_cache *bo_cache)
- 
- 	bo = kmem_cache_alloc(bo_cache, GFP_KERNEL);
- 	if (!bo)
--		dev_err(atomisp_dev, "%s: __bo_alloc failed!\n", __func__);
-+		dev_err(atomisp_dev, "%s: failed!\n", __func__);
- 
- 	return bo;
- }
+Unfortunately measuring frame intervals from userland is not accurate
+enough for i.MX6.
+
+The issue here is that the IPUv3, specifically the CSI unit, can
+permanently lose vertical sync if there are truncated frames sent
+on the bt.656 bus. We have seen a single missing line of video cause
+loss of vertical sync. The only way to correct this is to shutdown
+the IPU capture hardware and restart, which can be accomplished
+simply by restarting streaming from userland.
+
+There are no other indicators from the sensor about these short
+frame events (believe me, we've exhausted all avenues with the ADV718x).
+And the IPUv3 DMA engine has no status indicators for short frames
+either. So the only way to detect them is by measuring frame intervals.
+
+The intervals have to be able to resolve a single line of missing video.
+With a PAL video source that requires better than 58 usec accuracy.
+
+There is too much uncertainty to resolve this at user level. The
+driver is able to resolve this by measuring intervals between hardware
+interrupts as long as interrupt latency is reasonably low, and we
+have another method using the i.MX6 hardware input capture support
+that can measure these intervals very accurately with no errors
+introduced by interrupt latency.
+
+I made this event a private event to imx-media driver in a previous
+iteration, so I can return it to a private event, but this can't be
+done at user level.
+
+Steve
+
+
+>
+>>
+>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+>> ---
+>>  Documentation/media/uapi/v4l/vidioc-dqevent.rst | 6 ++++++
+>>  Documentation/media/videodev2.h.rst.exceptions  | 1 +
+>>  include/uapi/linux/videodev2.h                  | 1 +
+>>  3 files changed, 8 insertions(+)
+>>
+>> diff --git a/Documentation/media/uapi/v4l/vidioc-dqevent.rst b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
+>> index 8d663a7..dc77363 100644
+>> --- a/Documentation/media/uapi/v4l/vidioc-dqevent.rst
+>> +++ b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
+>> @@ -197,6 +197,12 @@ call.
+>>  	the regions changes. This event has a struct
+>>  	:c:type:`v4l2_event_motion_det`
+>>  	associated with it.
+>> +    * - ``V4L2_EVENT_FRAME_INTERVAL_ERROR``
+>> +      - 7
+>> +      - This event is triggered when the video capture or output device
+>> +	has measured an interval between the reception or transmit
+>> +	completion of two consecutive frames of video that is outside
+>> +	the nominal frame interval by some tolerance value.
+>>      * - ``V4L2_EVENT_PRIVATE_START``
+>>        - 0x08000000
+>>        - Base event number for driver-private events.
+>> diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
+>> index e11a0d0..c7d8fad 100644
+>> --- a/Documentation/media/videodev2.h.rst.exceptions
+>> +++ b/Documentation/media/videodev2.h.rst.exceptions
+>> @@ -459,6 +459,7 @@ replace define V4L2_EVENT_CTRL event-type
+>>  replace define V4L2_EVENT_FRAME_SYNC event-type
+>>  replace define V4L2_EVENT_SOURCE_CHANGE event-type
+>>  replace define V4L2_EVENT_MOTION_DET event-type
+>> +replace define V4L2_EVENT_FRAME_INTERVAL_ERROR event-type
+>>  replace define V4L2_EVENT_PRIVATE_START event-type
+>>
+>>  replace define V4L2_EVENT_CTRL_CH_VALUE ctrl-changes-flags
+>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+>> index 45184a2..cf5a0d0 100644
+>> --- a/include/uapi/linux/videodev2.h
+>> +++ b/include/uapi/linux/videodev2.h
+>> @@ -2131,6 +2131,7 @@ struct v4l2_streamparm {
+>>  #define V4L2_EVENT_FRAME_SYNC			4
+>>  #define V4L2_EVENT_SOURCE_CHANGE		5
+>>  #define V4L2_EVENT_MOTION_DET			6
+>> +#define V4L2_EVENT_FRAME_INTERVAL_ERROR		7
+>>  #define V4L2_EVENT_PRIVATE_START		0x08000000
+>>
+>>  /* Payload for V4L2_EVENT_VSYNC */
+>>
+>
