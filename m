@@ -1,58 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f42.google.com ([209.85.214.42]:38671 "EHLO
-        mail-it0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751612AbdCMPkD (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36880 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S934082AbdCJLFk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 11:40:03 -0400
+        Fri, 10 Mar 2017 06:05:40 -0500
+Date: Fri, 10 Mar 2017 13:05:34 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCHv4 00/15] atmel-isi/ov7670/ov2640: convert to standalone
+ drivers
+Message-ID: <20170310110533.GB3220@valkosipuli.retiisi.org.uk>
+References: <20170310102614.20922-1-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <CAHb8M2BOcuW8ToYTT3EUm-GieOMz6+xUhmzwW+3hbygti11k0A@mail.gmail.com>
-References: <20170313105421.GA32342@SEL-JYOUN-D1> <20170313115129.GC4136@mwanda>
- <CAHb8M2BOcuW8ToYTT3EUm-GieOMz6+xUhmzwW+3hbygti11k0A@mail.gmail.com>
-From: DaeSeok Youn <daeseok.youn@gmail.com>
-Date: Tue, 14 Mar 2017 00:40:01 +0900
-Message-ID: <CAHb8M2CwfTN-dx4ojUJCvF_jr0E1bo4KLWpZE74y45WkV_6C+A@mail.gmail.com>
-Subject: Re: [PATCH] staging: atomisp: use k{v}zalloc instead of k{v}alloc and memset
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: mchehab@kernel.org, devel <devel@driverdev.osuosl.org>,
-        Greg KH <gregkh@linuxfoundation.org>,
-        kernel-janitors <kernel-janitors@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        alan@linux.intel.com, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170310102614.20922-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-03-13 23:07 GMT+09:00 DaeSeok Youn <daeseok.youn@gmail.com>:
-> 2017-03-13 20:51 GMT+09:00 Dan Carpenter <dan.carpenter@oracle.com>:
->> On Mon, Mar 13, 2017 at 07:54:21PM +0900, Daeseok Youn wrote:
->>> If the atomisp_kernel_zalloc() has "true" as a second parameter, it
->>> tries to allocate zeroing memory from kmalloc(vmalloc) and memset.
->>> But using kzalloc is rather than kmalloc followed by memset with 0.
->>> (vzalloc is for same reason with kzalloc)
->>>
->>> And also atomisp_kernel_malloc() can be used with
->>> atomisp_kernel_zalloc(<size>, false);
->>>
->>
->> We should just change all the callers to kvmalloc() and kvzmalloc().
-> ok. I will try to change all the callers to kvmalloc() and kvzalloc().
+Hi Hans,
 
-The kvmalloc() and kvzalloc() are not ready to use in staging-testing
-branch on staging tree.
-If the kvmalloc and kvzalloc are available to use, I will replace
-atomisp_kernel_malloc() and atomisp_kernel_zalloc() with kvmalloc()
-and kvzalloc().
+On Fri, Mar 10, 2017 at 11:25:59AM +0100, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> This patch series converts the soc-camera atmel-isi to a standalone V4L2
+> driver.
+> 
+> The same is done for the ov7670 and ov2640 sensor drivers: the ov7670 was
+> used to test the atmel-isi driver. The ov2640 is needed because the em28xx
+> driver has a soc_camera include dependency. Both ov7670 and ov2640 sensors
+> have been tested with the atmel-isi driver.
+> 
+> The first 5 patches improve the ov7670 sensor driver, mostly adding modern
+> features such as DT support.
+> 
+> The next three convert the atmel-isi and move it out of soc_camera.
+> 
+> The following 5 patches convert ov2640 and drop the soc_camera dependency
+> in em28xx. I have tested that this works with my 'SpeedLink Vicious And
+> Divine Laplace webcam'.
+> 
+> The last two patches add isi support to the DT: the first for the ov7670
+> sensor, the second modifies it for the ov2640 sensor.
+> 
+> These two final patches are for demonstration purposes only, I do not plan
+> on merging them.
+> 
+> Tested with my sama5d3-Xplained board, the ov2640 sensor and two ov7670
+> sensors: one with and one without reset/pwdn pins. Also tested with my
+> em28xx-based webcam.
+> 
+> I'd like to get this in for 4.12. Fingers crossed.
 
-Thanks.
-Regards,
-Daeseok Youn.
+Patches 1, 4, 5, 6 and 8: 
 
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
->
-> Thanks.
-> Regards,
-> Daeseok Youn
->>
->> regards,
->> dan carpenter
->>
+I'll try to check the rest pretty soon.
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
