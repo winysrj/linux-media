@@ -1,166 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:47100 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751014AbdCNTKG (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:32992 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755518AbdCKTBD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Mar 2017 15:10:06 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 05/16] rcar-vin: move subdev source and sink pad index to rvin_graph_entity
-Date: Tue, 14 Mar 2017 19:59:46 +0100
-Message-Id: <20170314185957.25253-6-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se>
+        Sat, 11 Mar 2017 14:01:03 -0500
+Subject: Re: [PATCH v5 15/39] [media] v4l2: add a frame interval error event
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <1489121599-23206-16-git-send-email-steve_longerbeam@mentor.com>
+ <5b0a0e76-2524-4140-5ccc-380a8f949cfa@xs4all.nl>
+ <ec05e6e0-79f2-2db2-bde9-4aed00d76faa@gmail.com>
+ <6b574476-77df-0e25-a4d1-32d4fe0aec12@xs4all.nl>
+ <5d5cf4a4-a4d3-586e-cd16-54f543dfcce9@gmail.com>
+ <20170311185137.GE21222@n2100.armlinux.org.uk>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
+        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <1d3b4d81-587f-38c1-753f-4e7775dd4bca@gmail.com>
+Date: Sat, 11 Mar 2017 11:00:53 -0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170311185137.GE21222@n2100.armlinux.org.uk>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It makes more sens to store the sink and source pads in struct
-rvin_graph_entity since that contains other subdevice related
-information.
 
-The data type to store pad information in is unsigned int and not int,
-change this. While we are at it drop the _idx suffix from the names,
-this never made sens.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 20 ++++++++++----------
- drivers/media/platform/rcar-vin/rcar-vin.h  |  9 +++++----
- 2 files changed, 15 insertions(+), 14 deletions(-)
+On 03/11/2017 10:51 AM, Russell King - ARM Linux wrote:
+> On Sat, Mar 11, 2017 at 10:14:49AM -0800, Steve Longerbeam wrote:
+>> On 03/11/2017 03:39 AM, Hans Verkuil wrote:
+>>> It's fine to use an internal event as long as the end-user doesn't
+>>> see it. But if you lose vsyncs, then you never capture another frame,
+>>> right?
+>>
+>> No, that's not correct. By loss of vertical sync, I mean the IPU
+>> captures portions of two different frames, resulting in a permanent
+>> "split image", with one frame containing portions of two consecutive
+>> images. Or, the video rolls continuously, if you remember the old CRT
+>> television sets of yore, it's the same rolling effect.
+>
+> I have seen that rolling effect, but the iMX6 regains correct sync
+> within one complete "roll" just fine here with IMX219.  However, it
+> has always recovered.
+>
+> So, I don't think there's a problem with the iMX6 part of the
+> processing, and so I don't think we should cripple the iMX6 capture
+> drivers for this problem.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 7be52c2036bb35fc..1a75191539b0e7d7 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -111,7 +111,7 @@ static int rvin_reset_format(struct rvin_dev *vin)
- 	struct v4l2_mbus_framefmt *mf = &fmt.format;
- 	int ret;
- 
--	fmt.pad = vin->src_pad_idx;
-+	fmt.pad = vin->digital.source_pad;
- 
- 	ret = v4l2_subdev_call(vin_to_source(vin), pad, get_fmt, NULL, &fmt);
- 	if (ret)
-@@ -178,7 +178,7 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
- 	if (pad_cfg == NULL)
- 		return -ENOMEM;
- 
--	format.pad = vin->src_pad_idx;
-+	format.pad = vin->digital.source_pad;
- 
- 	field = pix->field;
- 
-@@ -559,7 +559,7 @@ static int rvin_enum_dv_timings(struct file *file, void *priv_fh,
- 	if (timings->pad)
- 		return -EINVAL;
- 
--	timings->pad = vin->sink_pad_idx;
-+	timings->pad = vin->digital.sink_pad;
- 
- 	ret = v4l2_subdev_call(sd, pad, enum_dv_timings, timings);
- 
-@@ -611,7 +611,7 @@ static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
- 	if (cap->pad)
- 		return -EINVAL;
- 
--	cap->pad = vin->sink_pad_idx;
-+	cap->pad = vin->digital.sink_pad;
- 
- 	ret = v4l2_subdev_call(sd, pad, dv_timings_cap, cap);
- 
-@@ -629,7 +629,7 @@ static int rvin_g_edid(struct file *file, void *fh, struct v4l2_edid *edid)
- 	if (edid->pad)
- 		return -EINVAL;
- 
--	edid->pad = vin->sink_pad_idx;
-+	edid->pad = vin->digital.sink_pad;
- 
- 	ret = v4l2_subdev_call(sd, pad, get_edid, edid);
- 
-@@ -647,7 +647,7 @@ static int rvin_s_edid(struct file *file, void *fh, struct v4l2_edid *edid)
- 	if (edid->pad)
- 		return -EINVAL;
- 
--	edid->pad = vin->sink_pad_idx;
-+	edid->pad = vin->digital.sink_pad;
- 
- 	ret = v4l2_subdev_call(sd, pad, set_edid, edid);
- 
-@@ -920,19 +920,19 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
- 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
- 		V4L2_CAP_READWRITE;
- 
--	vin->src_pad_idx = 0;
-+	vin->digital.source_pad = 0;
- 	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
- 		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SOURCE)
- 			break;
- 	if (pad_idx >= sd->entity.num_pads)
- 		return -EINVAL;
- 
--	vin->src_pad_idx = pad_idx;
-+	vin->digital.source_pad = pad_idx;
- 
--	vin->sink_pad_idx = 0;
-+	vin->digital.sink_pad = 0;
- 	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
- 		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SINK) {
--			vin->sink_pad_idx = pad_idx;
-+			vin->digital.sink_pad = pad_idx;
- 			break;
- 		}
- 
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 727e215c08718eb9..9bfb5a7c4dc4f215 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -74,6 +74,8 @@ struct rvin_video_format {
-  * @subdev:	subdevice matched using async framework
-  * @code:	Media bus format from source
-  * @mbus_cfg:	Media bus format from DT
-+ * @source_pad:	source pad of remote subdevice
-+ * @sink_pad:	sink pad of remote subdevice
-  */
- struct rvin_graph_entity {
- 	struct v4l2_async_subdev asd;
-@@ -81,6 +83,9 @@ struct rvin_graph_entity {
- 
- 	u32 code;
- 	struct v4l2_mbus_config mbus_cfg;
-+
-+	unsigned int source_pad;
-+	unsigned int sink_pad;
- };
- 
- /**
-@@ -91,8 +96,6 @@ struct rvin_graph_entity {
-  *
-  * @vdev:		V4L2 video device associated with VIN
-  * @v4l2_dev:		V4L2 device
-- * @src_pad_idx:	source pad index for media controller drivers
-- * @sink_pad_idx:	sink pad index for media controller drivers
-  * @ctrl_handler:	V4L2 control handler
-  * @notifier:		V4L2 asynchronous subdevs notifier
-  * @digital:		entity in the DT for local digital subdevice
-@@ -121,8 +124,6 @@ struct rvin_dev {
- 
- 	struct video_device vdev;
- 	struct v4l2_device v4l2_dev;
--	int src_pad_idx;
--	int sink_pad_idx;
- 	struct v4l2_ctrl_handler ctrl_handler;
- 	struct v4l2_async_notifier notifier;
- 	struct rvin_graph_entity digital;
--- 
-2.12.0
+And there is no crippling going on. Measuring the frame intervals
+adds very little overhead.
+
+Steve
