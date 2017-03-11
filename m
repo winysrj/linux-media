@@ -1,47 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:56890 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932630AbdCaUqt (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:36539 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755626AbdCKLXf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Mar 2017 16:46:49 -0400
-Date: Fri, 31 Mar 2017 21:46:29 +0100
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Patrice.chotard@st.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv6 01/10] media: add CEC notifier support
-Message-ID: <20170331204629.GV7909@n2100.armlinux.org.uk>
-References: <20170331122036.55706-1-hverkuil@xs4all.nl>
- <20170331122036.55706-2-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170331122036.55706-2-hverkuil@xs4all.nl>
+        Sat, 11 Mar 2017 06:23:35 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv5 09/16] ov2640: fix colorspace handling
+Date: Sat, 11 Mar 2017 12:23:21 +0100
+Message-Id: <20170311112328.11802-10-hverkuil@xs4all.nl>
+In-Reply-To: <20170311112328.11802-1-hverkuil@xs4all.nl>
+References: <20170311112328.11802-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 31, 2017 at 02:20:27PM +0200, Hans Verkuil wrote:
-> +struct cec_notifier *cec_notifier_get(struct device *dev)
-> +{
-> +	struct cec_notifier *n;
-> +
-> +	mutex_lock(&cec_notifiers_lock);
-> +	list_for_each_entry(n, &cec_notifiers, head) {
-> +		if (n->dev == dev) {
-> +			mutex_unlock(&cec_notifiers_lock);
-> +			kref_get(&n->kref);
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Isn't this racy?  What stops one thread trying to get the notifier
-while another thread puts the notifier?
+The colorspace is independent of whether YUV or RGB is sent to the SoC.
+Fix this.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/soc_camera/ov2640.c | 23 +++++++----------------
+ 1 file changed, 7 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
+index 56de18263359..b9a0069f5b33 100644
+--- a/drivers/media/i2c/soc_camera/ov2640.c
++++ b/drivers/media/i2c/soc_camera/ov2640.c
+@@ -794,10 +794,11 @@ static int ov2640_set_params(struct i2c_client *client, u32 *width, u32 *height,
+ 		dev_dbg(&client->dev, "%s: Selected cfmt YUYV (YUV422)", __func__);
+ 		selected_cfmt_regs = ov2640_yuyv_regs;
+ 		break;
+-	default:
+ 	case MEDIA_BUS_FMT_UYVY8_2X8:
++	default:
+ 		dev_dbg(&client->dev, "%s: Selected cfmt UYVY", __func__);
+ 		selected_cfmt_regs = ov2640_uyvy_regs;
++		break;
+ 	}
+ 
+ 	/* reset hardware */
+@@ -865,17 +866,7 @@ static int ov2640_get_fmt(struct v4l2_subdev *sd,
+ 	mf->width	= priv->win->width;
+ 	mf->height	= priv->win->height;
+ 	mf->code	= priv->cfmt_code;
+-
+-	switch (mf->code) {
+-	case MEDIA_BUS_FMT_RGB565_2X8_BE:
+-	case MEDIA_BUS_FMT_RGB565_2X8_LE:
+-		mf->colorspace = V4L2_COLORSPACE_SRGB;
+-		break;
+-	default:
+-	case MEDIA_BUS_FMT_YUYV8_2X8:
+-	case MEDIA_BUS_FMT_UYVY8_2X8:
+-		mf->colorspace = V4L2_COLORSPACE_JPEG;
+-	}
++	mf->colorspace	= V4L2_COLORSPACE_SRGB;
+ 	mf->field	= V4L2_FIELD_NONE;
+ 
+ 	return 0;
+@@ -897,17 +888,17 @@ static int ov2640_set_fmt(struct v4l2_subdev *sd,
+ 	ov2640_select_win(&mf->width, &mf->height);
+ 
+ 	mf->field	= V4L2_FIELD_NONE;
++	mf->colorspace	= V4L2_COLORSPACE_SRGB;
+ 
+ 	switch (mf->code) {
+ 	case MEDIA_BUS_FMT_RGB565_2X8_BE:
+ 	case MEDIA_BUS_FMT_RGB565_2X8_LE:
+-		mf->colorspace = V4L2_COLORSPACE_SRGB;
++	case MEDIA_BUS_FMT_YUYV8_2X8:
++	case MEDIA_BUS_FMT_UYVY8_2X8:
+ 		break;
+ 	default:
+ 		mf->code = MEDIA_BUS_FMT_UYVY8_2X8;
+-	case MEDIA_BUS_FMT_YUYV8_2X8:
+-	case MEDIA_BUS_FMT_UYVY8_2X8:
+-		mf->colorspace = V4L2_COLORSPACE_JPEG;
++		break;
+ 	}
+ 
+ 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+2.11.0
