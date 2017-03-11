@@ -1,127 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:41016 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753684AbdCWHhX (ORCPT
+Received: from mail-pf0-f176.google.com ([209.85.192.176]:36704 "EHLO
+        mail-pf0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754075AbdCKRz7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Mar 2017 03:37:23 -0400
-Message-ID: <6fb4f9fae42117adbaa91c2a74803043@smtp-cloud2.xs4all.net>
-Date: Thu, 23 Mar 2017 06:17:37 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+        Sat, 11 Mar 2017 12:55:59 -0500
+Received: by mail-pf0-f176.google.com with SMTP id o126so53552299pfb.3
+        for <linux-media@vger.kernel.org>; Sat, 11 Mar 2017 09:55:59 -0800 (PST)
+MIME-Version: 1.0
+From: Dmitrii Shcherbakov <fw.dmitrii@gmail.com>
+Date: Sat, 11 Mar 2017 20:55:57 +0300
+Message-ID: <CAC1b7XEJ9nQQ5cFxjMaHgTPf+0OTjFjhaQO76oO1H8_vfCbVbA@mail.gmail.com>
+Subject: usb_video.c: 0bda:579f Realtek - corrupted frames and low FPS of
+ captured mjpeg video frames
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi everybody,
 
-Results of the daily build of media_tree:
+I have a usb camera built into my laptop (hardware details here
+https://paste.ubuntu.com/24126969/) and I am looking for some guidance
+on how to debug it further - any feedback is highly appreciated.
 
-date:			Thu Mar 23 05:00:15 CET 2017
-media-tree git hash:	db0f4691d9749d5dd758b8636290cec8fd88aa26
-media_build git hash:	bc4c2a205c087c8deff3cd14ed663c4767dd2016
-v4l-utils git hash:	5fe0692261996876dceedbd47f254691371d4c78
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+I am aware that this hardware is probably buggy/does not follow the
+UVC spec/vendor only cared about Windows etc.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10.1-i686: OK
-linux-4.11-rc1-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-x86_64: WARNINGS
-linux-4.10.1-x86_64: WARNINGS
-linux-4.11-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+I am trying to capture mjpeg-encoded video at various resolutions and
+frame rates via ffmpeg using v4l2 and the uvc kernel driver.
 
-Detailed results are available here:
+Test results (kernel logs with uvc driver in verbose mode and ffmpeg
+output are included):
+https://paste.ubuntu.com/24126930/
+https://paste.ubuntu.com/24126960/
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+uname -r
+4.11.0-041100rc1-generic
 
-Full logs are available here:
+Conclusions:
+- using any resolution higher than 640x480 results in corrupted bottom
+half of the image (grey and green artifacts)
+- frame rate is low on any resolution, even when I specify 640x480
+with 30 or 15 fps via v4l2 it is nowhere near that point
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+frame=3D  179 fps=3D7.7 q=3D-1.0 Lsize=3D    3882kB time=3D00:00:23.06
+bitrate=3D1378.6kbits/s speed=3D0.994x
 
-The Media Infrastructure API from this daily build is here:
+- the kernel log is filled with the following messages
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+=D0=BC=D0=B0=D1=80 07 00:15:31 blade kernel: uvcvideo: uvc_v4l2_mmap
+=D0=BC=D0=B0=D1=80 07 00:15:31 blade kernel: uvcvideo: Allocated 5 URB buff=
+ers of
+32x512 bytes each.
+=D0=BC=D0=B0=D1=80 07 00:15:31 blade kernel: uvcvideo: frame 1 stats: 0/0/1=
+ packets,
+0/0/1 pts (!early initial), 0/1 scr, last pts/stc/sof
+6446951/6832111/975
+=D0=BC=D0=B0=D1=80 07 00:15:31 blade kernel: uvcvideo: Marking buffer as ba=
+d (error bit set).
+=D0=BC=D0=B0=D1=80 07 00:15:31 blade kernel: uvcvideo: Frame complete (FID =
+bit toggled).
+=D0=BC=D0=B0=D1=80 07 00:15:31 blade kernel: uvcvideo: frame 2 stats: 0/0/1=
+ packets,
+0/0/1 pts (!early initial), 0/0 scr, last pts/stc/sof 3617775107/0/0
+=D0=BC=D0=B0=D1=80 07 00:15:31 blade kernel: uvcvideo: Marking buffer as ba=
+d (error bit set).
+=D0=BC=D0=B0=D1=80 07 00:15:31 blade kernel: uvcvideo: Frame complete (EOF =
+found).
+=D0=BC=D0=B0=D1=80 07 00:15:31 blade kernel: uvcvideo: Dropping payload (ou=
+t of sync).
+=D0=BC=D0=B0=D1=80 07 00:15:31 blade kernel: uvcvideo: frame 3 stats: 0/0/2=
+ packets,
+1/1/2 pts (!early initial), 0/1 scr, last pts/stc/sof
+8413602/8799007/1106
+=D0=BC=D0=B0=D1=80 07 00:15:31 blade kernel: uvcvideo: Frame complete (EOF =
+found).
+=D0=BC=D0=B0=D1=80 07 00:15:32 blade kernel: uvcvideo: Dropping payload (ou=
+t of sync).
+=D0=BC=D0=B0=D1=80 07 00:15:32 blade kernel: uvcvideo: Marking buffer as ba=
+d (error bit set).
+=D0=BC=D0=B0=D1=80 07 00:15:32 blade kernel: uvcvideo: Dropping payload (ou=
+t of sync).
+
+- some entity types were not initialized at module loading time
+
+=D0=BC=D0=B0=D1=80 06 20:47:35 blade kernel: uvcvideo: Found UVC 1.00 devic=
+e USB
+Camera (0bda:579f)
+=D0=BC=D0=B0=D1=80 06 20:47:35 blade kernel: uvcvideo: Forcing device quirk=
+s to 0x80
+by module parameter for testing purpose.
+=D0=BC=D0=B0=D1=80 06 20:47:35 blade kernel: uvcvideo: Please report requir=
+ed quirks
+to the linux-uvc-devel mailing list.
+=D0=BC=D0=B0=D1=80 06 20:47:35 blade kernel: uvcvideo 1-7:1.0: Entity type =
+for entity
+Extension 4 was not initialized!
+=D0=BC=D0=B0=D1=80 06 20:47:35 blade kernel: uvcvideo 1-7:1.0: Entity type =
+for entity
+Processing 2 was not initialized!
+=D0=BC=D0=B0=D1=80 06 20:47:35 blade kernel: uvcvideo 1-7:1.0: Entity type =
+for entity
+Camera 1 was not initialized!
+=D0=BC=D0=B0=D1=80 06 20:47:35 blade kernel: usbcore: registered new interf=
+ace driver uvcvideo
+
+- tried different quirks non of which made any difference (I can try a
+specific one or a combination if there are any ideas). I cannot
+diagnose what it is so this was just random poking.
+
+- a similar thread for XPS 12 with a Realtek webcam
+https://www.spinics.net/lists/linux-media/msg73476.html
+
+- the buffer is marked as bad in uvc_video_decode_start based upon a
+UVC_STREAM_ERR flag:
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/dri=
+vers/media/usb/uvc/uvc_video.c#n1004
+
+If anybody has any pointers/suggestions, please let me know.
+
+Thanks in advance!
