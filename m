@@ -1,209 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f174.google.com ([209.85.220.174]:32826 "EHLO
-        mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751276AbdCCNjY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 08:39:24 -0500
-Received: by mail-qk0-f174.google.com with SMTP id n127so175616247qkf.0
-        for <linux-media@vger.kernel.org>; Fri, 03 Mar 2017 05:38:40 -0800 (PST)
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:57447
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1755432AbdCKJdk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 11 Mar 2017 04:33:40 -0500
+Date: Sat, 11 Mar 2017 06:33:33 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Troy Kisky <troy.kisky@boundarydevices.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] libv4lconvert: by default, offer the original format to
+ the client
+Message-ID: <20170311063333.0c4d0844@vento.lan>
+In-Reply-To: <f250a005-b69d-cf22-725b-4a1853a703b9@boundarydevices.com>
+References: <bfae3cb4407b1de1a29ca450e20bbc16d8262884.1489179204.git.mchehab@s-opensource.com>
+        <f250a005-b69d-cf22-725b-4a1853a703b9@boundarydevices.com>
 MIME-Version: 1.0
-In-Reply-To: <20170302163834.2273519-1-arnd@arndb.de>
-References: <20170302163834.2273519-1-arnd@arndb.de>
-From: Alexander Potapenko <glider@google.com>
-Date: Fri, 3 Mar 2017 13:25:29 +0100
-Message-ID: <CAG_fn=UVcLhP8mH6tvzqZUn4u9T4pnQw8bMf=qccNro59VcABw@mail.gmail.com>
-Subject: Re: [PATCH 00/26] bring back stack frame warning with KASAN
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: kasan-dev <kasan-dev@googlegroups.com>,
-        Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        Dmitry Vyukov <dvyukov@google.com>, netdev@vger.kernel.org,
-        LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
-        linux-wireless@vger.kernel.org,
-        kernel-build-reports@lists.linaro.org,
-        "David S . Miller" <davem@davemloft.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 2, 2017 at 5:38 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> It took a long while to get this done, but I'm finally ready
-> to send the first half of the KASAN stack size patches that
-> I did in response to the kernelci.org warnings.
->
-> As before, it's worth mentioning that things are generally worse
-> with gcc-7.0.1 because of the addition of -fsanitize-address-use-after-sc=
-ope
-> that are not present on kernelci, so my randconfig testing found
-> a lot more than kernelci did.
->
-> The main areas are:
->
-> - READ_ONCE/WRITE_ONCE cause problems in lots of code
-> - typecheck() causes huge problems in a few places
-> - I'm introducing "noinline_for_kasan" and use it in a lot
->   of places that suffer from inline functions with local variables
->   - netlink, as used in various parts of the kernel
->   - a number of drivers/media drivers
->   - a handful of wireless network drivers
-> - kmemcheck conflicts with -fsanitize-address-use-after-scope
->
-> This series lets us add back a stack frame warning for 3072 bytes
-> with -fsanitize-address-use-after-scope, or 2048 bytes without it.
->
-> I have a follow-up series that further reduces the stack frame
-> warning limit to 1280 bytes for all 64-bit architectures, and
-> 1536 bytes with basic KASAN support (no -fsanitize-address-use-after-scop=
-e).
-> For now, I'm only posting the first half, in order to keep
-> it (barely) reviewable.
-Can you please elaborate on why do you need this? Are you trying to
-squeeze KASAN into some embedded device?
-Noinlines sprayed over the codebase are hard to maintain, and certain
-compiler changes may cause bloated stack frames in other places.
-Maybe it should be enough to just increase the stack frame limit in
-KASAN builds, as Dmitry suggested previously?
-> Both series are tested with many hundred randconfig builds on both
-> x86 and arm64, which are the only architectures supporting KASAN.
->
->         Arnd
->
->  [PATCH 01/26] compiler: introduce noinline_for_kasan annotation
->  [PATCH 02/26] rewrite READ_ONCE/WRITE_ONCE
->  [PATCH 03/26] typecheck.h: avoid local variables in typecheck() macro
->  [PATCH 04/26] tty: kbd: reduce stack size with KASAN
->  [PATCH 05/26] netlink: mark nla_put_{u8,u16,u32} noinline_for_kasan
->  [PATCH 06/26] rocker: mark rocker_tlv_put_* functions as
->  [PATCH 07/26] brcmsmac: reduce stack size with KASAN
->  [PATCH 08/26] brcmsmac: make some local variables 'static const' to
->  [PATCH 09/26] brcmsmac: split up wlc_phy_workarounds_nphy
->  [PATCH 10/26] brcmsmac: reindent split functions
->  [PATCH 11/26] rtlwifi: reduce stack usage for KASAN
->  [PATCH 12/26] wl3501_cs: reduce stack size for KASAN
->  [PATCH 13/26] rtl8180: reduce stack size for KASAN
->  [PATCH 14/26] [media] dvb-frontends: reduce stack size in i2c access
->  [PATCH 15/26] [media] tuners: i2c: reduce stack usage for
->  [PATCH 16/26] [media] i2c: adv7604: mark register access as
->  [PATCH 17/26] [media] i2c: ks0127: reduce stack frame size for KASAN
->  [PATCH 18/26] [media] i2c: cx25840: avoid stack overflow with KASAN
->  [PATCH 19/26] [media] r820t: mark register functions as
->  [PATCH 20/26] [media] em28xx: split up em28xx_dvb_init to reduce
->  [PATCH 21/26] drm/bridge: ps8622: reduce stack size for KASAN
->  [PATCH 22/26] drm/i915/gvt: don't overflow the kernel stack with
->  [PATCH 23/26] mtd: cfi: reduce stack size with KASAN
->  [PATCH 24/26] ocfs2: reduce stack size with KASAN
->  [PATCH 25/26] isdn: eicon: mark divascapi incompatible with kasan
->  [PATCH 26/26] kasan: rework Kconfig settings
->
->  arch/x86/include/asm/switch_to.h                                 |    2 =
-+-
->  drivers/gpu/drm/bridge/parade-ps8622.c                           |    2 =
-+-
->  drivers/gpu/drm/i915/gvt/mmio.h                                  |   17 =
-+-
->  drivers/isdn/hardware/eicon/Kconfig                              |    1 =
-+
->  drivers/media/dvb-frontends/ascot2e.c                            |    3 =
-+-
->  drivers/media/dvb-frontends/cxd2841er.c                          |    4 =
-+-
->  drivers/media/dvb-frontends/drx39xyj/drxj.c                      |   14 =
-+-
->  drivers/media/dvb-frontends/helene.c                             |    4 =
-+-
->  drivers/media/dvb-frontends/horus3a.c                            |    2 =
-+-
->  drivers/media/dvb-frontends/itd1000.c                            |    2 =
-+-
->  drivers/media/dvb-frontends/mt312.c                              |    2 =
-+-
->  drivers/media/dvb-frontends/si2165.c                             |   14 =
-+-
->  drivers/media/dvb-frontends/stb0899_drv.c                        |    2 =
-+-
->  drivers/media/dvb-frontends/stb6100.c                            |    2 =
-+-
->  drivers/media/dvb-frontends/stv0367.c                            |    2 =
-+-
->  drivers/media/dvb-frontends/stv090x.c                            |    2 =
-+-
->  drivers/media/dvb-frontends/stv6110.c                            |    2 =
-+-
->  drivers/media/dvb-frontends/stv6110x.c                           |    2 =
-+-
->  drivers/media/dvb-frontends/tda8083.c                            |    2 =
-+-
->  drivers/media/dvb-frontends/zl10039.c                            |    2 =
-+-
->  drivers/media/i2c/adv7604.c                                      |    4 =
-+-
->  drivers/media/i2c/cx25840/cx25840-core.c                         |    4 =
-+-
->  drivers/media/i2c/ks0127.c                                       |    2 =
-+-
->  drivers/media/tuners/r820t.c                                     |    4 =
-+-
->  drivers/media/tuners/tuner-i2c.h                                 |   15 =
-+-
->  drivers/media/usb/em28xx/em28xx-dvb.c                            |  947 =
-+++++++++++++++++++++------------------
->  drivers/mtd/chips/cfi_cmdset_0020.c                              |    8 =
-+-
->  drivers/net/ethernet/rocker/rocker_tlv.h                         |   24 =
-+-
->  drivers/net/wireless/broadcom/brcm80211/brcmsmac/phy/phy_n.c     | 1860 =
-+++++++++++++++++++++++++++++++++++++--------------------------------------=
---
->  drivers/net/wireless/realtek/rtl818x/rtl8180/rtl8225se.c         |    4 =
-+-
->  drivers/net/wireless/realtek/rtlwifi/btcoexist/halbtc8192e2ant.c |   41 =
-+-
->  drivers/net/wireless/realtek/rtlwifi/btcoexist/halbtc8723b1ant.c |   26 =
-+-
->  drivers/net/wireless/realtek/rtlwifi/btcoexist/halbtc8723b2ant.c |   34 =
-+-
->  drivers/net/wireless/realtek/rtlwifi/btcoexist/halbtc8821a1ant.c |   36 =
-+-
->  drivers/net/wireless/realtek/rtlwifi/btcoexist/halbtc8821a2ant.c |   38 =
-+-
->  drivers/net/wireless/wl3501_cs.c                                 |   10 =
-+-
->  drivers/tty/vt/keyboard.c                                        |    6 =
-+-
->  fs/ocfs2/cluster/masklog.c                                       |   10 =
-+-
->  fs/ocfs2/cluster/masklog.h                                       |    4 =
-+-
->  fs/overlayfs/util.c                                              |    6 =
-+-
->  include/linux/compiler.h                                         |   58 =
-++-
->  include/linux/mtd/map.h                                          |    8 =
-+-
->  include/linux/typecheck.h                                        |    7 =
-+-
->  include/net/netlink.h                                            |   36 =
-+-
->  lib/Kconfig.debug                                                |    9 =
-+-
->  lib/Kconfig.kasan                                                |   11 =
-+-
->  lib/Kconfig.kmemcheck                                            |    1 =
-+
->  scripts/Makefile.kasan                                           |    3 =
-+
->  48 files changed, 1670 insertions(+), 1629 deletions(-)
->
+Em Fri, 10 Mar 2017 17:00:59 -0800
+Troy Kisky <troy.kisky@boundarydevices.com> escreveu:
 
+> On 3/10/2017 12:53 PM, Mauro Carvalho Chehab wrote:
+> > The libv4lconvert part of libv4l was meant to provide a common
+> > place to handle weird proprietary formats. With time, we also
+> > added support to other standard formats, in order to help
+> > V4L2 applications that are not performance sensitive to support
+> > all V4L2 formats.
+> > 
+> > Yet, the hole idea is to let userspace to decide to implement
+> > their own format conversion code when it needs either more
+> > performance or more quality than what libv4lconvert provides.
+> > 
+> > In other words, applications should have the right to decide
+> > between using a libv4lconvert emulated format or to implement
+> > the decoding themselves for non-proprietary formats,
+> > as this may have significative performance impact.
+> > 
+> > At the application side, deciding between them is just a matter
+> > of looking at the V4L2_FMT_FLAG_EMULATED flag.
+> > 
+> > Yet, we don't want to have a miriad of format converters
+> > everywhere for the proprietary formats, like V4L2_PIX_FMT_KONICA420,
+> > V4L2_PIX_FMT_SPCA501, etc. So, let's offer only the emulated
+> > variant for those weird stuff.
+> > 
+> > So, this patch changes the libv4lconvert behavior, for
+> > all non-proprietary formats, including Bayer, to offer both
+> > the original format and the emulated ones.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > ---
+> >  lib/libv4lconvert/libv4lconvert.c | 17 ++++++++---------
+> >  1 file changed, 8 insertions(+), 9 deletions(-)
+> > 
+> > diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
+> > index da718918b030..d87d6b91a838 100644
+> > --- a/lib/libv4lconvert/libv4lconvert.c
+> > +++ b/lib/libv4lconvert/libv4lconvert.c
+> > @@ -118,10 +118,10 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
+> >  	{ V4L2_PIX_FMT_OV511,		 0,	 7,	 7,	1 },
+> >  	{ V4L2_PIX_FMT_OV518,		 0,	 7,	 7,	1 },
+> >  	/* uncompressed bayer */
+> > -	{ V4L2_PIX_FMT_SBGGR8,		 8,	 8,	 8,	1 },
+> > -	{ V4L2_PIX_FMT_SGBRG8,		 8,	 8,	 8,	1 },
+> > -	{ V4L2_PIX_FMT_SGRBG8,		 8,	 8,	 8,	1 },
+> > -	{ V4L2_PIX_FMT_SRGGB8,		 8,	 8,	 8,	1 },
+> > +	{ V4L2_PIX_FMT_SBGGR8,		 8,	 8,	 8,	0 },
+> > +	{ V4L2_PIX_FMT_SGBRG8,		 8,	 8,	 8,	0 },
+> > +	{ V4L2_PIX_FMT_SGRBG8,		 8,	 8,	 8,	0 },
+> > +	{ V4L2_PIX_FMT_SRGGB8,		 8,	 8,	 8,	0 },
+> >  	{ V4L2_PIX_FMT_STV0680,		 8,	 8,	 8,	1 },
+> >  	/* compressed bayer */
+> >  	{ V4L2_PIX_FMT_SPCA561,		 0,	 9,	 9,	1 },
+> > @@ -178,7 +178,7 @@ struct v4lconvert_data *v4lconvert_create_with_dev_ops(int fd, void *dev_ops_pri
+> >  	/* This keeps tracks of devices which have only formats for which apps
+> >  	   most likely will need conversion and we can thus safely add software
+> >  	   processing controls without a performance impact. */  
+> 
+> 
+> The bottom part seems unwanted.
+> Before, if any source format did not need conversion then always_needs_conversion = 0
+> else always_needs_conversion = 1
+> 
+> Now
+> if any source format needs conversion then always_needs_conversion = 1
+> else always_needs_conversion = 0
 
+Hmm... you're right. I dropped that part at "PATH v2".
 
---=20
-Alexander Potapenko
-Software Engineer
+I also added a patch improving the documentation about this logic,
+with is not too clear, IMHO.
 
-Google Germany GmbH
-Erika-Mann-Stra=C3=9Fe, 33
-80636 M=C3=BCnchen
-
-Gesch=C3=A4ftsf=C3=BChrer: Matthew Scott Sucherman, Paul Terence Manicle
-Registergericht und -nummer: Hamburg, HRB 86891
-Sitz der Gesellschaft: Hamburg
+Thanks,
+Mauro
