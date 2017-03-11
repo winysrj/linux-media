@@ -1,47 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:49429 "EHLO
-        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758514AbdCVHyK (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36454 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755616AbdCKNti (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Mar 2017 03:54:10 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>, stable@vger.kernel.org
-Subject: [PATCH] media: s5p-mfc: Fix unbalanced call to clock management
-Date: Wed, 22 Mar 2017 08:53:57 +0100
-Message-id: <1490169240-25957-1-git-send-email-m.szyprowski@samsung.com>
-References: <CGME20170322075405eucas1p1896d5fdc8729295cc775350e8e85ab62@eucas1p1.samsung.com>
+        Sat, 11 Mar 2017 08:49:38 -0500
+Date: Sat, 11 Mar 2017 15:49:32 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v5 21/39] UAPI: Add media UAPI Kbuild file
+Message-ID: <20170311134931.GP3220@valkosipuli.retiisi.org.uk>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <1489121599-23206-22-git-send-email-steve_longerbeam@mentor.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1489121599-23206-22-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Clock should be turned off after calling s5p_mfc_init_hw() from the
-watchdog worker, like it is already done in the s5p_mfc_open() which also
-calls this function.
+Hi Steve,
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Fixes: af93574678108 ("[media] MFC: Add MFC 5.1 V4L2 driver")
-CC: stable@vger.kernel.org # v3.7+
----
-This issue was there from the beggining of the driver, but this patch applies
-cleanly only to v3.7+ kernels.
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c | 1 +
- 1 file changed, 1 insertion(+)
+On Thu, Mar 09, 2017 at 08:53:01PM -0800, Steve Longerbeam wrote:
+> Add an empty UAPI Kbuild file for media UAPI headers.
+> 
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 0c7ef6251252..76d4681a1c79 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -211,6 +211,7 @@ static void s5p_mfc_watchdog_worker(struct work_struct *work)
- 		}
- 		s5p_mfc_clock_on();
- 		ret = s5p_mfc_init_hw(dev);
-+		s5p_mfc_clock_off();
- 		if (ret)
- 			mfc_err("Failed to reinit FW\n");
- 	}
+The existing V4L2 UAPI headers are under include/uapi/linux. Could you use
+that directory instead?
+
+I actually wouldn't really object doing this but it should have been done in
+2002 or so when the first V4L2 header was added. Now the benefit is
+questionable.
+
 -- 
-1.9.1
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
