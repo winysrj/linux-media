@@ -1,61 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:33319 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753775AbdCBAWs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Mar 2017 19:22:48 -0500
-Date: Wed, 1 Mar 2017 15:50:03 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jean-Baptiste Abbadie <jb@abbadie.fr>,
-        Claudiu Beznea <claudiu.beznea@gmail.com>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] Staging: media: radio-bcm2048: remove incorrect
- __exit markups
-Message-ID: <20170301235003.GA18340@dtor-ws>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:34982 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754943AbdCKSUo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 11 Mar 2017 13:20:44 -0500
+Subject: Re: [PATCH v5 21/39] UAPI: Add media UAPI Kbuild file
+To: Sakari Ailus <sakari.ailus@iki.fi>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <1489121599-23206-22-git-send-email-steve_longerbeam@mentor.com>
+ <20170311134931.GP3220@valkosipuli.retiisi.org.uk>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <184c02bf-782d-6dbe-e603-a82ac8dcc8b6@gmail.com>
+Date: Sat, 11 Mar 2017 10:20:39 -0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <20170311134931.GP3220@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Even if bus is not hot-pluggable, devices can be unbound from the
-driver via sysfs, so we should not be using __exit annotations on
-remove() methods. The only exception is drivers registered with
-platform_driver_probe() which specifically disables sysfs bind/unbind
-attributes.
-
-Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
----
- drivers/staging/media/bcm2048/radio-bcm2048.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-index 37bd439ee08b..1fba377f816b 100644
---- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-+++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-@@ -2634,7 +2634,7 @@ static int bcm2048_i2c_driver_probe(struct i2c_client *client,
- 	return err;
- }
- 
--static int __exit bcm2048_i2c_driver_remove(struct i2c_client *client)
-+static int bcm2048_i2c_driver_remove(struct i2c_client *client)
- {
- 	struct bcm2048_device *bdev = i2c_get_clientdata(client);
- 
-@@ -2673,7 +2673,7 @@ static struct i2c_driver bcm2048_i2c_driver = {
- 		.name	= BCM2048_DRIVER_NAME,
- 	},
- 	.probe		= bcm2048_i2c_driver_probe,
--	.remove		= __exit_p(bcm2048_i2c_driver_remove),
-+	.remove		= bcm2048_i2c_driver_remove,
- 	.id_table	= bcm2048_id,
- };
- 
--- 
-2.12.0.rc1.440.g5b76565f74-goog
 
 
--- 
-Dmitry
+On 03/11/2017 05:49 AM, Sakari Ailus wrote:
+> Hi Steve,
+>
+> On Thu, Mar 09, 2017 at 08:53:01PM -0800, Steve Longerbeam wrote:
+>> Add an empty UAPI Kbuild file for media UAPI headers.
+>>
+>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+>
+> The existing V4L2 UAPI headers are under include/uapi/linux. Could you use
+> that directory instead?
+>
+> I actually wouldn't really object doing this but it should have been done in
+> 2002 or so when the first V4L2 header was added. Now the benefit is
+> questionable.
+>
+
+Agreed, I think the current headers should be moved to uapi/media
+eventually, but for now I'll go ahead and put under uapi/linux.
+
+Steve
