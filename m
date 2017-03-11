@@ -1,124 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:65513 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753019AbdCTOjo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 10:39:44 -0400
-Subject: [PATCH 05/24] atomisp: ia_css_bh_hmem_encode is a no-op so remove it
-From: Alan Cox <alan@linux.intel.com>
-To: greg@kroah.com, linux-media@vger.kernel.org
-Date: Mon, 20 Mar 2017 14:39:21 +0000
-Message-ID: <149002074699.17109.16054163338277573885.stgit@acox1-desk1.ger.corp.intel.com>
-In-Reply-To: <149002068431.17109.1216139691005241038.stgit@acox1-desk1.ger.corp.intel.com>
-References: <149002068431.17109.1216139691005241038.stgit@acox1-desk1.ger.corp.intel.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35912 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932907AbdCKNQo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 11 Mar 2017 08:16:44 -0500
+Date: Sat, 11 Mar 2017 15:16:07 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        devicetree@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv5 07/16] atmel-isi: remove dependency of the soc-camera
+ framework
+Message-ID: <20170311131607.GM3220@valkosipuli.retiisi.org.uk>
+References: <20170311112328.11802-1-hverkuil@xs4all.nl>
+ <20170311112328.11802-8-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170311112328.11802-8-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a do nothing function so we can replace it with nothing and eliminate it entirely.
+Hi Hans,
 
-Signed-off-by: Alan Cox <alan@linux.intel.com>
----
- .../ia_css_isp_params.c                            |    6 ------
- .../ia_css_isp_params.c                            |    6 ------
- .../ia_css_isp_params.c                            |    6 ------
- .../css2400/isp/kernels/bh/bh_2/ia_css_bh.host.c   |   11 -----------
- .../css2400/isp/kernels/bh/bh_2/ia_css_bh.host.h   |    6 ------
- 5 files changed, 35 deletions(-)
+On Sat, Mar 11, 2017 at 12:23:19PM +0100, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> This patch converts the atmel-isi driver from a soc-camera driver to a driver
+> that is stand-alone.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/platform/soc_camera/Kconfig     |    3 +-
+>  drivers/media/platform/soc_camera/atmel-isi.c | 1209 +++++++++++++++----------
+>  2 files changed, 714 insertions(+), 498 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
+> index 86d74788544f..a37ec91b026e 100644
+> --- a/drivers/media/platform/soc_camera/Kconfig
+> +++ b/drivers/media/platform/soc_camera/Kconfig
+> @@ -29,9 +29,8 @@ config VIDEO_SH_MOBILE_CEU
+>  
+>  config VIDEO_ATMEL_ISI
+>  	tristate "ATMEL Image Sensor Interface (ISI) support"
+> -	depends on VIDEO_DEV && SOC_CAMERA
+> +	depends on VIDEO_V4L2 && OF && HAS_DMA
+>  	depends on ARCH_AT91 || COMPILE_TEST
+> -	depends on HAS_DMA
+>  	select VIDEOBUF2_DMA_CONTIG
+>  	---help---
+>  	  This module makes the ATMEL Image Sensor Interface available
+> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+> index 46de657c3e6d..a6d60c2e207d 100644
+> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2400_system/hive_isp_css_2400_system_generated/ia_css_isp_params.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2400_system/hive_isp_css_2400_system_generated/ia_css_isp_params.c
-index 9620bc3..3246d99 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2400_system/hive_isp_css_2400_system_generated/ia_css_isp_params.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2400_system/hive_isp_css_2400_system_generated/ia_css_isp_params.c
-@@ -176,15 +176,9 @@ size);
- 	{
- 		unsigned size   = stage->binary->info->mem_offsets.offsets.param->hmem0.bh.size;
- 
--		unsigned offset = stage->binary->info->mem_offsets.offsets.param->hmem0.bh.offset;
--
- 		if (size) {
- 			ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE_PRIVATE, "ia_css_process_bh() enter:\n");
- 
--			ia_css_bh_hmem_encode((struct sh_css_isp_bh_hmem_params *)
--					&stage->binary->mem_params.params[IA_CSS_PARAM_CLASS_PARAM][IA_CSS_ISP_HMEM0].address[offset],
--					&params->s3a_config,
--size);
- 			params->isp_params_changed = true;
- 			params->isp_mem_params_changed[pipe_id][stage->stage_num][IA_CSS_ISP_HMEM0] = true;
- 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hive_isp_css_2401_system_csi2p_generated/ia_css_isp_params.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hive_isp_css_2401_system_csi2p_generated/ia_css_isp_params.c
-index 87a3308..4c79a31 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hive_isp_css_2401_system_csi2p_generated/ia_css_isp_params.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hive_isp_css_2401_system_csi2p_generated/ia_css_isp_params.c
-@@ -175,15 +175,9 @@ size);
- 	{
- 		unsigned size   = stage->binary->info->mem_offsets.offsets.param->hmem0.bh.size;
- 
--		unsigned offset = stage->binary->info->mem_offsets.offsets.param->hmem0.bh.offset;
--
- 		if (size) {
- 			ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE_PRIVATE, "ia_css_process_bh() enter:\n");
- 
--			ia_css_bh_hmem_encode((struct sh_css_isp_bh_hmem_params *)
--					&stage->binary->mem_params.params[IA_CSS_PARAM_CLASS_PARAM][IA_CSS_ISP_HMEM0].address[offset],
--					&params->s3a_config,
--size);
- 			params->isp_params_changed = true;
- 			params->isp_mem_params_changed[pipe_id][stage->stage_num][IA_CSS_ISP_HMEM0] = true;
- 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_system/hive_isp_css_2401_system_generated/ia_css_isp_params.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_system/hive_isp_css_2401_system_generated/ia_css_isp_params.c
-index 87a3308..4c79a31 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_system/hive_isp_css_2401_system_generated/ia_css_isp_params.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_system/hive_isp_css_2401_system_generated/ia_css_isp_params.c
-@@ -175,15 +175,9 @@ size);
- 	{
- 		unsigned size   = stage->binary->info->mem_offsets.offsets.param->hmem0.bh.size;
- 
--		unsigned offset = stage->binary->info->mem_offsets.offsets.param->hmem0.bh.offset;
--
- 		if (size) {
- 			ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE_PRIVATE, "ia_css_process_bh() enter:\n");
- 
--			ia_css_bh_hmem_encode((struct sh_css_isp_bh_hmem_params *)
--					&stage->binary->mem_params.params[IA_CSS_PARAM_CLASS_PARAM][IA_CSS_ISP_HMEM0].address[offset],
--					&params->s3a_config,
--size);
- 			params->isp_params_changed = true;
- 			params->isp_mem_params_changed[pipe_id][stage->stage_num][IA_CSS_ISP_HMEM0] = true;
- 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bh/bh_2/ia_css_bh.host.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bh/bh_2/ia_css_bh.host.c
-index 0dcafad..99c80d2 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bh/bh_2/ia_css_bh.host.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bh/bh_2/ia_css_bh.host.c
-@@ -63,15 +63,4 @@ ia_css_bh_encode(
- 	    uDIGIT_FITTING(from->ae_y_coef_b, 16, SH_CSS_AE_YCOEF_SHIFT);
- }
- 
--void
--ia_css_bh_hmem_encode(
--	struct sh_css_isp_bh_hmem_params *to,
--	const struct ia_css_3a_config *from,
--	unsigned size)
--{
--	(void)size;
--	(void)from;
--	(void)to;
--}
--
- #endif
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bh/bh_2/ia_css_bh.host.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bh/bh_2/ia_css_bh.host.h
-index 339e954..cbb0929 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bh/bh_2/ia_css_bh.host.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bh/bh_2/ia_css_bh.host.h
-@@ -29,10 +29,4 @@ ia_css_bh_encode(
- 	const struct ia_css_3a_config *from,
- 	unsigned size);
- 
--void
--ia_css_bh_hmem_encode(
--	struct sh_css_isp_bh_hmem_params *to,
--	const struct ia_css_3a_config *from,
--	unsigned size);
--
- #endif /* __IA_CSS_BH_HOST_H */
+...
+
+> +static int isi_graph_init(struct atmel_isi *isi)
+> +{
+> +	struct v4l2_async_subdev **subdevs = NULL;
+> +	int ret;
+> +
+> +	/* Parse the graph to extract a list of subdevice DT nodes. */
+> +	ret = isi_graph_parse(isi, isi->dev->of_node);
+> +	if (ret < 0) {
+> +		dev_err(isi->dev, "Graph parsing failed\n");
+> +		goto done;
+> +	}
+> +
+> +	if (!ret) {
+> +		dev_err(isi->dev, "No subdev found in graph\n");
+> +		goto done;
+> +	}
+> +
+> +	/* Register the subdevices notifier. */
+> +	subdevs = devm_kzalloc(isi->dev, sizeof(*subdevs), GFP_KERNEL);
+> +	if (subdevs == NULL) {
+> +		ret = -ENOMEM;
+> +		goto done;
+> +	}
+> +
+> +	subdevs[0] = &isi->entity.asd;
+> +
+> +	isi->notifier.subdevs = subdevs;
+> +	isi->notifier.num_subdevs = 1;
+> +	isi->notifier.bound = isi_graph_notify_bound;
+> +	isi->notifier.unbind = isi_graph_notify_unbind;
+> +	isi->notifier.complete = isi_graph_notify_complete;
+> +
+> +	ret = v4l2_async_notifier_register(&isi->v4l2_dev, &isi->notifier);
+> +	if (ret < 0) {
+> +		dev_err(isi->dev, "Notifier registration failed\n");
+> +		goto done;
+> +	}
+> +
+> +	ret = 0;
+
+You can replace this by
+
+	return 0;
+
+And remove the if () below.
+
+> +
+> +done:
+> +	if (ret < 0) {
+> +		v4l2_async_notifier_unregister(&isi->notifier);
+> +		of_node_put(isi->entity.node);
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+-- 
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
