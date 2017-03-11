@@ -1,130 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:53997 "EHLO
-        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751064AbdCANYj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Mar 2017 08:24:39 -0500
-Subject: Re: [PATCH v6 2/2] [media] s5p-mfc: Handle 'v4l2_pix_format:field' in
- try_fmt and g_fmt
-To: Thibault Saunier <thibault.saunier@osg.samsung.com>,
-        linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        linux-arm-kernel@lists.infradead.org,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Kamil Debski <kamil@wypas.org>
-From: Andrzej Hajda <a.hajda@samsung.com>
-Message-id: <33dbd3fa-04b2-3d94-5163-0a10589ff1c7@samsung.com>
-Date: Wed, 01 Mar 2017 14:12:50 +0100
-MIME-version: 1.0
-In-reply-to: <20170301115108.14187-3-thibault.saunier@osg.samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
-References: <20170301115108.14187-1-thibault.saunier@osg.samsung.com>
- <CGME20170301115141epcas2p37801b1fbe0951cc37a4e01bf2bcae3da@epcas2p3.samsung.com>
- <20170301115108.14187-3-thibault.saunier@osg.samsung.com>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:46829 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755616AbdCKLXe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 11 Mar 2017 06:23:34 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv5 01/16] ov7670: document device tree bindings
+Date: Sat, 11 Mar 2017 12:23:13 +0100
+Message-Id: <20170311112328.11802-2-hverkuil@xs4all.nl>
+In-Reply-To: <20170311112328.11802-1-hverkuil@xs4all.nl>
+References: <20170311112328.11802-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01.03.2017 12:51, Thibault Saunier wrote:
-> It is required by the standard that the field order is set by the
-> driver, default to NONE in case any is provided, but we can basically
-> accept any value provided by the userspace as we will anyway not
-> be able to do any deinterlacing.
->
-> In this patch we also make sure to pass the interlacing mode provided
-> by userspace from the output to the capture side of the device so
-> that the information is given back to userspace. This way it can
-> handle it and potentially deinterlace afterward.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-As I wrote previously:
-- on output side you have encoded bytestream - you cannot say about
-interlacing in such case, so the only valid value is NONE,
-- on capture side you have decoded frames, and in this case it depends
-on the device and driver capabilities, if the driver/device does not
-support (de-)interlacing (I suppose this is MFC case), interlace type
-field should be filled according to decoded bytestream header (on output
-side), but no direct copying from output side!!!
+Add binding documentation and add that file to the MAINTAINERS entry.
 
-Regards
-Andrzej
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ .../devicetree/bindings/media/i2c/ov7670.txt       | 43 ++++++++++++++++++++++
+ MAINTAINERS                                        |  1 +
+ 2 files changed, 44 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7670.txt
 
->
-> Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
->
-> ---
->
-> Changes in v6:
-> - Pass user output field value to the capture as the device is not
->   doing any deinterlacing and thus decoded content will still be
->   interlaced on the output.
->
-> Changes in v5:
-> - Just adapt the field and never error out.
->
-> Changes in v4: None
-> Changes in v3:
-> - Do not check values in the g_fmt functions as Andrzej explained in previous review
->
-> Changes in v2:
-> - Fix a silly build error that slipped in while rebasing the patches
->
->  drivers/media/platform/s5p-mfc/s5p_mfc_common.h | 2 ++
->  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    | 6 +++++-
->  2 files changed, 7 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> index ab23236aa942..3816a37de4bc 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> @@ -652,6 +652,8 @@ struct s5p_mfc_ctx {
->  	size_t me_buffer_size;
->  	size_t tmv_buffer_size;
->  
-> +	enum v4l2_field field;
-> +
->  	enum v4l2_mpeg_mfc51_video_force_frame_type force_frame_type;
->  
->  	struct list_head ref_queue;
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> index 367ef8e8dbf0..6e5ca86fb331 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> @@ -345,7 +345,7 @@ static int vidioc_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
->  		   rectangle. */
->  		pix_mp->width = ctx->buf_width;
->  		pix_mp->height = ctx->buf_height;
-> -		pix_mp->field = V4L2_FIELD_NONE;
-> +		pix_mp->field = ctx->field;
->  		pix_mp->num_planes = 2;
->  		/* Set pixelformat to the format in which MFC
->  		   outputs the decoded frame */
-> @@ -380,6 +380,9 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
->  	struct s5p_mfc_dev *dev = video_drvdata(file);
->  	struct s5p_mfc_fmt *fmt;
->  
-> +	if (f->fmt.pix.field == V4L2_FIELD_ANY)
-> +		f->fmt.pix.field = V4L2_FIELD_NONE;
-> +
->  	mfc_debug(2, "Type is %d\n", f->type);
->  	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
->  		fmt = find_format(f, MFC_FMT_DEC);
-> @@ -436,6 +439,7 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
->  		goto out;
->  	} else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
->  		/* src_fmt is validated by call to vidioc_try_fmt */
-> +		ctx->field = f->fmt.pix.field;
->  		ctx->src_fmt = find_format(f, MFC_FMT_DEC);
->  		ctx->codec_mode = ctx->src_fmt->codec_mode;
->  		mfc_debug(2, "The codec number is: %d\n", ctx->codec_mode);
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov7670.txt b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
+new file mode 100644
+index 000000000000..826b6563b009
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
+@@ -0,0 +1,43 @@
++* Omnivision OV7670 CMOS sensor
++
++The Omnivision OV7670 sensor supports multiple resolutions output, such as
++CIF, SVGA, UXGA. It also can support the YUV422/420, RGB565/555 or raw RGB
++output formats.
++
++Required Properties:
++- compatible: should be "ovti,ov7670"
++- clocks: reference to the xclk input clock.
++- clock-names: should be "xclk".
++
++Optional Properties:
++- reset-gpios: reference to the GPIO connected to the resetb pin, if any.
++  Active is low.
++- powerdown-gpios: reference to the GPIO connected to the pwdn pin, if any.
++  Active is high.
++
++The device node must contain one 'port' child node for its digital output
++video port, in accordance with the video interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++
++	i2c1: i2c@f0018000 {
++		ov7670: camera@21 {
++			compatible = "ovti,ov7670";
++			reg = <0x21>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
++			reset-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
++			powerdown-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
++			clocks = <&pck0>;
++			clock-names = "xclk";
++			assigned-clocks = <&pck0>;
++			assigned-clock-rates = <25000000>;
++
++			port {
++				ov7670_0: endpoint {
++					remote-endpoint = <&isi_0>;
++				};
++			};
++		};
++	};
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 83a42ef1d1a7..93500928ca4f 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -9273,6 +9273,7 @@ L:	linux-media@vger.kernel.org
+ T:	git git://linuxtv.org/media_tree.git
+ S:	Maintained
+ F:	drivers/media/i2c/ov7670.c
++F:	Documentation/devicetree/bindings/media/i2c/ov7670.txt
+ 
+ ONENAND FLASH DRIVER
+ M:	Kyungmin Park <kyungmin.park@samsung.com>
+-- 
+2.11.0
