@@ -1,52 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:34317 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755314AbdCUCOQ (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:57908 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754218AbdCKTAp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 22:14:16 -0400
-Date: Tue, 21 Mar 2017 11:10:02 +0900
-From: Daeseok Youn <daeseok.youn@gmail.com>
-To: mchehab@kernel.org
-Cc: gregkh@linuxfoundation.org, daeseok.youn@gmail.com,
-        alan@linux.intel.com, singhalsimran0@gmail.com,
-        dan.carpenter@oracle.com, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        kernel-janitors@vger.kernel.org
-Subject: [PATCH 1/4 V2] staging: atomisp: remove else statement after return
-Message-ID: <20170321021002.GA1115@SEL-JYOUN-D1>
+        Sat, 11 Mar 2017 14:00:45 -0500
+Date: Sat, 11 Mar 2017 18:59:59 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: mark.rutland@arm.com, andrew-ct.chen@mediatek.com,
+        minghsiu.tsai@mediatek.com, nick@shmanahar.org,
+        songjun.wu@microchip.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        pavel@ucw.cz, shuah@kernel.org, devel@driverdev.osuosl.org,
+        markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, robert.jarzmik@free.fr,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        geert@linux-m68k.org, p.zabel@pengutronix.de,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        kernel@pengutronix.de, arnd@arndb.de, tiffany.lin@mediatek.com,
+        bparrot@ti.com, robh+dt@kernel.org, horms+renesas@verge.net.au,
+        mchehab@kernel.org, linux-arm-kernel@lists.infradead.org,
+        niklas.soderlund+renesas@ragnatech.se, gregkh@linuxfoundation.org,
+        linux-kernel@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
+        jean-christophe.trotin@st.com, sakari.ailus@linux.intel.com,
+        fabio.estevam@nxp.com, shawnguo@kernel.org,
+        sudipm.mukherjee@gmail.com
+Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
+ controls from a pipeline
+Message-ID: <20170311185959.GF21222@n2100.armlinux.org.uk>
+References: <20170303230645.GR21222@n2100.armlinux.org.uk>
+ <20170304131329.GV3220@valkosipuli.retiisi.org.uk>
+ <a7b8e095-a95c-24bd-b1e9-e983f18061c4@xs4all.nl>
+ <20170310120902.1daebc7b@vento.lan>
+ <5e1183f4-774f-413a-628a-96e0df321faf@xs4all.nl>
+ <20170311101408.272a9187@vento.lan>
+ <20170311153229.yrdjmggb3p2suhdw@ihha.localdomain>
+ <acfb5eca-ff00-6d57-339a-3322034cbdb3@gmail.com>
+ <20170311184551.GD21222@n2100.armlinux.org.uk>
+ <1f1b350a-5523-34bc-07b7-f3cd2d1fd4c1@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <1f1b350a-5523-34bc-07b7-f3cd2d1fd4c1@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It doesn't need to have else statement after return.
+On Sat, Mar 11, 2017 at 10:54:55AM -0800, Steve Longerbeam wrote:
+> 
+> 
+> On 03/11/2017 10:45 AM, Russell King - ARM Linux wrote:
+> >I really don't think expecting the user to understand and configure
+> >the pipeline is a sane way forward.  Think about it - should the
+> >user need to know that, because they have a bayer-only CSI data
+> >source, that there is only one path possible, and if they try to
+> >configure a different path, then things will just error out?
+> >
+> >For the case of imx219 connected to iMX6, it really is as simple as
+> >"there is only one possible path" and all the complexity of the media
+> >interfaces/subdevs is completely unnecessary.  Every other block in
+> >the graph is just noise.
+> >
+> >The fact is that these dot graphs show a complex picture, but reality
+> >is somewhat different - there's only relatively few paths available
+> >depending on the connected source and the rest of the paths are
+> >completely useless.
+> >
+> 
+> I totally disagree there. Raw bayer requires passthrough yes, but for
+> all other media bus formats on a mipi csi-2 bus, and all other media
+> bus formats on 8-bit parallel buses, the conersion pipelines can be
+> used for scaling, CSC, rotation, and motion-compensated de-interlacing.
 
-Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
----
-V2: one(2/4) of this series was updated so I tried to send them again.
+... which only makes sense _if_ your source can produce those formats.
+We don't actually disagree on that.
 
- drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Let me re-state.  If the source can _only_ produce bayer, then there is
+_only_ _one_ possible path, and all the overhead of the media controller
+stuff is totally unnecessary.
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-index d97a8df..8bdb224 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-@@ -2958,11 +2958,11 @@ int atomisp_get_metadata(struct atomisp_sub_device *asd, int flag,
- 		dev_err(isp->dev, "copy to user failed: copied %d bytes\n",
- 			ret);
- 		return -EFAULT;
--	} else {
--		list_del_init(&md_buf->list);
--		list_add_tail(&md_buf->list, &asd->metadata[md_type]);
- 	}
- 
-+	list_del_init(&md_buf->list);
-+	list_add_tail(&md_buf->list, &asd->metadata[md_type]);
-+
- 	dev_dbg(isp->dev, "%s: HAL de-queued metadata type %d with exp_id %d\n",
- 		__func__, md_type, md->exp_id);
- 	return 0;
+Or, are you going to tell me that the user should have the right to
+configure paths through the iMX6 hardware that are not permitted by the
+iMX6 manuals for the data format being produced by the sensor?
+
 -- 
-1.9.1
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
