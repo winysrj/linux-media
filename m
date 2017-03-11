@@ -1,149 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:33434 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750835AbdCNV3n (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:56688 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932817AbdCKReG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Mar 2017 17:29:43 -0400
-Received: by mail-wr0-f195.google.com with SMTP id g10so25470004wrg.0
-        for <linux-media@vger.kernel.org>; Tue, 14 Mar 2017 14:29:42 -0700 (PDT)
-Date: Tue, 14 Mar 2017 22:29:37 +0100
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 12/13] [media] tuners/tda18212: add flag for retrying
- tuner init on failure
-Message-ID: <20170314222937.55b4dbee@macbox>
-In-Reply-To: <23db3ab6-b35d-350b-bb8e-2885ac03b5c7@iki.fi>
-References: <20170307185727.564-1-d.scheller.oss@gmail.com>
-        <20170307185727.564-13-d.scheller.oss@gmail.com>
-        <23db3ab6-b35d-350b-bb8e-2885ac03b5c7@iki.fi>
+        Sat, 11 Mar 2017 12:34:06 -0500
+Date: Sat, 11 Mar 2017 17:32:54 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
+        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
+ controls from a pipeline
+Message-ID: <20170311173254.GC21222@n2100.armlinux.org.uk>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+ <1487211578-11360-15-git-send-email-steve_longerbeam@mentor.com>
+ <20170302160257.GK3220@valkosipuli.retiisi.org.uk>
+ <20170303230645.GR21222@n2100.armlinux.org.uk>
+ <20170304131329.GV3220@valkosipuli.retiisi.org.uk>
+ <a7b8e095-a95c-24bd-b1e9-e983f18061c4@xs4all.nl>
+ <20170310120902.1daebc7b@vento.lan>
+ <5e1183f4-774f-413a-628a-96e0df321faf@xs4all.nl>
+ <20170311101408.272a9187@vento.lan>
+ <20170311153229.yrdjmggb3p2suhdw@ihha.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="FCuugMFkClbJLl1L"
+Content-Disposition: inline
+In-Reply-To: <20170311153229.yrdjmggb3p2suhdw@ihha.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Mon, 13 Mar 2017 16:16:29 +0200
-schrieb Antti Palosaari <crope@iki.fi>:
 
-> On 03/07/2017 08:57 PM, Daniel Scheller wrote:
-> > From: Daniel Scheller <d.scheller@gmx.net>
-> >
-> > Taken from tda18212dd, first read after cold reset sometimes fails
-> > on some cards, trying twice shall do the trick. This is the case
-> > with the STV0367 demods soldered on the CineCTv6 bridge boards and
-> > older DuoFlex CT modules.
-> >
-> > All other users (configs) of the tda18212 are updated as well to be
-> > sure they won't be affected at all by this change.  
-> 
-> That sounds like a i2c adapter problem and fix should be there, no
-> hack on a tuner driver.
-> 
-> Antti
+--FCuugMFkClbJLl1L
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This indeed is due to some HW issue. Patch has been removed though and
-the retry logic put into ddbridge-core.c:tuner_attach_tda18212() for
-the STV demod type with explaining comments, will be in a V2 of the
-patch series.
+On Sat, Mar 11, 2017 at 05:32:29PM +0200, Sakari Ailus wrote:
+> My understanding of the i.MX6 case is the hardware is configurable enough
+> to warrant the use of the Media controller API. Some patches indicate
+> there are choices to be made in data routing.
 
-Thanks,
-Daniel
+The iMX6 does have configurable data routing, but in some scenarios
+(eg, when receiving bayer data) there's only one possible routing.
 
-> >
-> > Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-> > ---
-> >  drivers/media/platform/sti/c8sectpfe/c8sectpfe-dvb.c | 1 +
-> >  drivers/media/tuners/tda18212.c                      | 5 +++++
-> >  drivers/media/tuners/tda18212.h                      | 7 +++++++
-> >  drivers/media/usb/dvb-usb-v2/anysee.c                | 2 ++
-> >  drivers/media/usb/em28xx/em28xx-dvb.c                | 1 +
-> >  5 files changed, 16 insertions(+)
-> >
-> > diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-dvb.c
-> > b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-dvb.c index
-> > 2c0015b..03688ee 100644 ---
-> > a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-dvb.c +++
-> > b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-dvb.c @@ -111,6
-> > +111,7 @@ static struct tda18212_config tda18212_conf =
-> > { .if_dvbt_7 = 4150, .if_dvbt_8 = 4500,
-> >  	.if_dvbc = 5000,
-> > +	.init_flags = 0,
-> >  };
-> >
-> >  int c8sectpfe_frontend_attach(struct dvb_frontend **fe,
-> > diff --git a/drivers/media/tuners/tda18212.c
-> > b/drivers/media/tuners/tda18212.c index 7b80683..2488537 100644
-> > --- a/drivers/media/tuners/tda18212.c
-> > +++ b/drivers/media/tuners/tda18212.c
-> > @@ -220,6 +220,11 @@ static int tda18212_probe(struct i2c_client
-> > *client, fe->ops.i2c_gate_ctrl(fe, 1); /* open I2C-gate */
-> >
-> >  	ret = regmap_read(dev->regmap, 0x00, &chip_id);
-> > +
-> > +	/* retry probe if desired */
-> > +	if (ret && (cfg->init_flags & TDA18212_INIT_RETRY))
-> > +		ret = regmap_read(dev->regmap, 0x00, &chip_id);
-> > +
-> >  	dev_dbg(&dev->client->dev, "chip_id=%02x\n", chip_id);
-> >
-> >  	if (fe->ops.i2c_gate_ctrl)
-> > diff --git a/drivers/media/tuners/tda18212.h
-> > b/drivers/media/tuners/tda18212.h index 6391daf..717aa2c 100644
-> > --- a/drivers/media/tuners/tda18212.h
-> > +++ b/drivers/media/tuners/tda18212.h
-> > @@ -23,6 +23,8 @@
-> >
-> >  #include "dvb_frontend.h"
-> >
-> > +#define TDA18212_INIT_RETRY	(1 << 0)
-> > +
-> >  struct tda18212_config {
-> >  	u16 if_dvbt_6;
-> >  	u16 if_dvbt_7;
-> > @@ -36,6 +38,11 @@ struct tda18212_config {
-> >  	u16 if_atsc_qam;
-> >
-> >  	/*
-> > +	 * flags for tuner init control
-> > +	 */
-> > +	u32 init_flags;
-> > +
-> > +	/*
-> >  	 * pointer to DVB frontend
-> >  	 */
-> >  	struct dvb_frontend *fe;
-> > diff --git a/drivers/media/usb/dvb-usb-v2/anysee.c
-> > b/drivers/media/usb/dvb-usb-v2/anysee.c index 6795c0c..c35b66e
-> > 100644 --- a/drivers/media/usb/dvb-usb-v2/anysee.c
-> > +++ b/drivers/media/usb/dvb-usb-v2/anysee.c
-> > @@ -332,6 +332,7 @@ static struct tda18212_config
-> > anysee_tda18212_config = { .if_dvbt_7 = 4150,
-> >  	.if_dvbt_8 = 4150,
-> >  	.if_dvbc = 5000,
-> > +	.init_flags = 0,
-> >  };
-> >
-> >  static struct tda18212_config anysee_tda18212_config2 = {
-> > @@ -342,6 +343,7 @@ static struct tda18212_config
-> > anysee_tda18212_config2 = { .if_dvbt2_7 = 4000,
-> >  	.if_dvbt2_8 = 4000,
-> >  	.if_dvbc = 5000,
-> > +	.init_flags = 0,
-> >  };
-> >
-> >  static struct cx24116_config anysee_cx24116_config = {
-> > diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c
-> > b/drivers/media/usb/em28xx/em28xx-dvb.c index 82edd37..143efb0
-> > 100644 --- a/drivers/media/usb/em28xx/em28xx-dvb.c
-> > +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-> > @@ -380,6 +380,7 @@ static struct tda18271_config
-> > kworld_ub435q_v2_config = { static struct tda18212_config
-> > kworld_ub435q_v3_config = { .if_atsc_vsb	= 3600,
-> >  	.if_atsc_qam	= 3600,
-> > +	.init_flags	= 0,
-> >  };
-> >
-> >  static struct zl10353_config em28xx_zl10353_xc3028_no_i2c_gate = {
-> >  
-> 
+> Steve: could you enlighten us on the topic, by e.g. doing media-ctl
+> --print-dot and sending the results to the list? What kind of different IP
+> blocks are there and what do they do? A pointer to hardware documentation
+> wouldn't hurt either (if it's available).
+
+Attached for the imx219 camera.  Note that although the CSI2 block has
+four outputs, each output is dedicated to a CSI virtual channel, so
+they can not be arbitarily assigned without configuring the sensor.
+
+Since the imx219 only produces bayer, the graph is also showing the
+_only_ possible routing for the imx219 configured for CSI virtual
+channel 0.
+
+The iMX6 manuals are available on the 'net.
+
+	https://community.nxp.com/docs/DOC-101840
+
+There are several chapters that cover the capture side:
+
+* MIPI CSI2
+* IPU CSI2 gasket
+* IPU
+
+The IPU not only performs capture, but also display as well.
+
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
+
+--FCuugMFkClbJLl1L
+Content-Type: text/vnd.graphviz; charset=us-ascii
+Content-Disposition: attachment; filename="imx219.dot"
+
+digraph board {
+	rankdir=TB
+	n00000001 [label="{{<port0> 0 | <port1> 1} | ipu1_csi0_mux\n/dev/v4l-subdev0 | {<port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
+	n00000001:port2 -> n00000044:port0
+	n00000005 [label="{{<port0> 0 | <port1> 1} | ipu2_csi1_mux\n/dev/v4l-subdev1 | {<port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
+	n00000005:port2 -> n00000068:port0 [style=dashed]
+	n00000009 [label="{{<port0> 0 | <port1> 1} | ipu1_vdic\n/dev/v4l-subdev2 | {<port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
+	n00000009:port2 -> n00000011:port0 [style=dashed]
+	n0000000d [label="{{<port0> 0 | <port1> 1} | ipu2_vdic\n/dev/v4l-subdev3 | {<port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
+	n0000000d:port2 -> n00000027:port0 [style=dashed]
+	n00000011 [label="{{<port0> 0} | ipu1_ic_prp\n/dev/v4l-subdev4 | {<port1> 1 | <port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
+	n00000011:port1 -> n00000015:port0 [style=dashed]
+	n00000011:port2 -> n0000001e:port0 [style=dashed]
+	n00000015 [label="{{<port0> 0} | ipu1_ic_prpenc\n/dev/v4l-subdev5 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
+	n00000015:port1 -> n00000018 [style=dashed]
+	n00000018 [label="ipu1_ic_prpenc capture\n/dev/video0", shape=box, style=filled, fillcolor=yellow]
+	n0000001e [label="{{<port0> 0} | ipu1_ic_prpvf\n/dev/v4l-subdev6 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
+	n0000001e:port1 -> n00000021 [style=dashed]
+	n00000021 [label="ipu1_ic_prpvf capture\n/dev/video1", shape=box, style=filled, fillcolor=yellow]
+	n00000027 [label="{{<port0> 0} | ipu2_ic_prp\n/dev/v4l-subdev7 | {<port1> 1 | <port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
+	n00000027:port1 -> n0000002b:port0 [style=dashed]
+	n00000027:port2 -> n00000034:port0 [style=dashed]
+	n0000002b [label="{{<port0> 0} | ipu2_ic_prpenc\n/dev/v4l-subdev8 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
+	n0000002b:port1 -> n0000002e [style=dashed]
+	n0000002e [label="ipu2_ic_prpenc capture\n/dev/video2", shape=box, style=filled, fillcolor=yellow]
+	n00000034 [label="{{<port0> 0} | ipu2_ic_prpvf\n/dev/v4l-subdev9 | {<port1> 1}}", shape=Mrecord, style=filled, fillcolor=green]
+	n00000034:port1 -> n00000037 [style=dashed]
+	n00000037 [label="ipu2_ic_prpvf capture\n/dev/video3", shape=box, style=filled, fillcolor=yellow]
+	n0000003d [label="{{<port1> 1} | imx219 0-0010\n/dev/v4l-subdev11 | {<port0> 0}}", shape=Mrecord, style=filled, fillcolor=green]
+	n0000003d:port0 -> n00000058:port0
+	n00000040 [label="{{} | imx219 pixel 0-0010\n/dev/v4l-subdev10 | {<port0> 0}}", shape=Mrecord, style=filled, fillcolor=green]
+	n00000040:port0 -> n0000003d:port1 [style=bold]
+	n00000044 [label="{{<port0> 0} | ipu1_csi0\n/dev/v4l-subdev12 | {<port1> 1 | <port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
+	n00000044:port2 -> n00000048
+	n00000044:port1 -> n00000011:port0 [style=dashed]
+	n00000044:port1 -> n00000009:port0 [style=dashed]
+	n00000048 [label="ipu1_csi0 capture\n/dev/video4", shape=box, style=filled, fillcolor=yellow]
+	n0000004e [label="{{<port0> 0} | ipu1_csi1\n/dev/v4l-subdev13 | {<port1> 1 | <port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
+	n0000004e:port2 -> n00000052 [style=dashed]
+	n0000004e:port1 -> n00000011:port0 [style=dashed]
+	n0000004e:port1 -> n00000009:port0 [style=dashed]
+	n00000052 [label="ipu1_csi1 capture\n/dev/video5", shape=box, style=filled, fillcolor=yellow]
+	n00000058 [label="{{<port0> 0} | imx6-mipi-csi2\n/dev/v4l-subdev14 | {<port1> 1 | <port2> 2 | <port3> 3 | <port4> 4}}", shape=Mrecord, style=filled, fillcolor=green]
+	n00000058:port1 -> n00000001:port0
+	n00000058:port2 -> n0000004e:port0 [style=dashed]
+	n00000058:port3 -> n0000005e:port0 [style=dashed]
+	n00000058:port4 -> n00000005:port0 [style=dashed]
+	n0000005e [label="{{<port0> 0} | ipu2_csi0\n/dev/v4l-subdev15 | {<port1> 1 | <port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
+	n0000005e:port2 -> n00000062 [style=dashed]
+	n0000005e:port1 -> n00000027:port0 [style=dashed]
+	n0000005e:port1 -> n0000000d:port0 [style=dashed]
+	n00000062 [label="ipu2_csi0 capture\n/dev/video6", shape=box, style=filled, fillcolor=yellow]
+	n00000068 [label="{{<port0> 0} | ipu2_csi1\n/dev/v4l-subdev16 | {<port1> 1 | <port2> 2}}", shape=Mrecord, style=filled, fillcolor=green]
+	n00000068:port2 -> n0000006c [style=dashed]
+	n00000068:port1 -> n00000027:port0 [style=dashed]
+	n00000068:port1 -> n0000000d:port0 [style=dashed]
+	n0000006c [label="ipu2_csi1 capture\n/dev/video7", shape=box, style=filled, fillcolor=yellow]
+}
+
+
+--FCuugMFkClbJLl1L--
