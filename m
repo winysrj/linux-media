@@ -1,159 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:53832 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750953AbdCOHzk (ORCPT
+Received: from bombadil.infradead.org ([65.50.211.133]:53273 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754980AbdCKJb6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Mar 2017 03:55:40 -0400
-Subject: Re: [PATCH] [media] v4l2-dv-timings: Introduce v4l2_calc_fps()
-To: Jose Abreu <Jose.Abreu@synopsys.com>, linux-media@vger.kernel.org
-References: <94397052765d1f6d84dc7edac65f906b09890871.1488905139.git.joabreu@synopsys.com>
- <4f598aba-3002-eeb5-1cad-d4dff4553644@xs4all.nl>
- <8bc4a61a-5b5d-2233-741a-bbf44fc5f009@synopsys.com>
- <908807fd-5b1c-4fb1-d24a-a8d7bd06a3b9@xs4all.nl>
- <437c31d5-64cf-08d2-a3bb-b4fba7db30a9@synopsys.com>
- <bb580666-e137-0940-ea48-f0901b0926e9@xs4all.nl>
- <ea1118e7-4bcb-29fc-29dc-341db5d0974e@synopsys.com>
-Cc: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>,
-        linux-kernel@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <c5662223-6ab9-f819-4ba9-1b9b6a1cfb64@xs4all.nl>
-Date: Wed, 15 Mar 2017 08:55:32 +0100
-MIME-Version: 1.0
-In-Reply-To: <ea1118e7-4bcb-29fc-29dc-341db5d0974e@synopsys.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Sat, 11 Mar 2017 04:31:58 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v2 1/2] libv4lconvert: make it clear about the criteria for needs_conversion
+Date: Sat, 11 Mar 2017 06:31:47 -0300
+Message-Id: <f389eeb8826caf429b0948469bb7ce48f5276851.1489224702.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/14/2017 08:14 PM, Jose Abreu wrote:
-> Hi Hans,
-> 
-> 
-> On 14-03-2017 07:24, Hans Verkuil wrote:
->>> Right, I was forgetting about this ...
->>>
->>> So:
->>> 1) Most of HDMI receivers do not have the expected precision in
->>> measuring pixel clock value;
->> s/Most/Some/
->>
->> Newer HDMI receivers tend to have better precision.
->>
->> However, the 1000/1001 factor is within the error of margin that the HDMI
->> spec has for the pixelclock, so even if it is 59.94 you still (theoretically)
->> do not know if that is because it really has that fps or if the source just has
->> a bad clock.
-> 
-> Hmm. But if source has a bad clock then it won't send at the
-> expected frame rate, so if we are able to measure pixel clock
-> value we will get the approximated frame rate for that source,
-> right? Unless the source also doesn't have standard h/v timings,
-> but as long as receiver detects this correctly then we can calculate.
+While there is already a comment about the always_needs_conversion
+logic at libv4lconvert, the comment is not clear enough. Also,
+the decision of needing a conversion or not is actually at the
+supported_src_pixfmts[] table.
 
-s/bad clock/slightly different clock/
+Improve the comments to make it clearer about what criteria should be
+used with regards to exposing formats to userspace.
 
-The problem is that the HDMI spec has an error of margin for the pixelclock of
-(I think) 0.25%. The difference in pixelclock between 60 and 59.94 Hz is about
-0.1%. In addition the source clock and the sink clock will run at slightly different
-speeds. So all this makes it hard to reliably measure.
+Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ lib/libv4lconvert/libv4lconvert.c | 21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
-Now, we never tested this and in reality the difference between 60 an 59.94 might
-be as clear as day and night (for receivers with sufficient timer resolution).
-
-So that's why more information is needed.
-
-> 
->>
->> It's a bit theoretical, in practice you can assume the source really is sending
->> at 59.94 AFAIK.
->>
->>> 2) Most (I would guess all of them?) have access to AVI infoframe
->>> contents;
->> All will have that.
->>
->>> 3) The FPS value is generally used by applications to calculate
->>> expected frame rate and number of frames dropped (right?);
->> Not really. Most HDMI drivers do not implement g_parm, instead they fill in
->> the detected pixelclock in QUERY_DV_TIMINGS, leaving it up to the application
->> to calculate the fps from that.
->>
->>> 4) The factor in FPS value can be adjusted by 1000/1001;
->>>
->>> From these points I would propose in just using the vic and drop
->>> the resolution in fps a little bit, do you agree?
->> The reality is that how to detect the 1000/1001 reduced fps is fuzzy. Part of
->> the reason for that is that most of the HDMI receivers we have in the kernel
->> were developed by Cisco/Tandberg (i.e. mostly me) for our video conferencing
->> systems, and those all run at 60 Hz. So we never had the need to detect 59.94 vs
->> 60 Hz. In addition, some of the older Analog Devices devices didn't have the
->> resolution to detect the difference.
->>
->> So I always held off a bit with defining exactly how to do this since I had
->> no experience with it.
->>
->> My question to you is: can you reliably detect the difference between 60 and 59.94
->> Hz and between 24 and 23.976 Hz by just the measured pixelclock?
->>
->> You need to test this with different sources, not just signal generators. You
->> probably get a range of pixelclock values for the same framerate for different
->> sources, since each source has their own clock.
-> 
-> I will have to conduct more tests to confirm but the expected
-> resolution is more than enough to detect 1000/1001 changes.
-> 
->>
->> My preference would be to extend query_dv_timings a bit for this:
->>
->> <brainstorm mode on>
->> Add a flag V4L2_DV_FL_CAN_DETECT_REDUCED_FPS. If set, then the hw can detect the
->> difference between regular fps and 1000/1001 fps. Note: this is only valid for
->> timings of VIC codes with the V4L2_DV_FL_CAN_REDUCE_FPS flag set.
-> 
-> Where should we set the flag? In v4l2_dv_timings_cap?
-
-I was thinking v4l2_bt_timings, but a capability in v4l2_bt_timings_cap is not
-a bad idea. Although that's global while having it in v4l2_bt_timings makes it
-specific to the detected timings. Just in case the hardware can detect it for
-some pixelclock frequencies, but not for others. But I'm not sure if that can
-happen.
-
-> 
->>
->> Allow V4L2_DV_FL_REDUCED_FPS to be used for receivers if V4L2_DV_FL_CAN_DETECT_REDUCED_FPS
->> is set.
->>
->> For standard VIC codes the pixelclock returned by query_dv_timings is that of the
->> corresponding VIC timing, not what is measured. This will ensure fixed fps values
->>
->> g_parm should calculate the fps based on the v4l2_bt_timings struct, looking at the
->> REDUCES_FPS flags.
->>
->> For those receivers that cannot detect the difference, the fps will be 24/30/60 Hz,
->> for those that can detect the difference g_parm can check if both V4L2_DV_FL_CAN_DETECT_REDUCED_FPS
->> and V4L2_DV_FL_REDUCED_FPS are set and reduce the fps by 1000/1001.
->> <brainstorm mode off>
->>
->> If your hw can reliably detect the difference, then now is a good time to close
->> this gap in the DV_TIMINGS API.
-> 
-> Sounds nice :) Let me conduct more tests first and I will try to
-> make the patch.
-
-Nice!
-
-Regards,
-
-	Hans
-
-> 
-> Best regards,
-> Jose Miguel Abreu
-> 
->>
->> Regards,
->>
->> 	Hans
-> 
+diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
+index da718918b030..2718446ff239 100644
+--- a/lib/libv4lconvert/libv4lconvert.c
++++ b/lib/libv4lconvert/libv4lconvert.c
+@@ -74,8 +74,15 @@ const struct libv4l_dev_ops *v4lconvert_get_default_dev_ops()
+ static void v4lconvert_get_framesizes(struct v4lconvert_data *data,
+ 		unsigned int pixelformat, int index);
+ 
+-/* Note for proper functioning of v4lconvert_enum_fmt the first entries in
+-   supported_src_pixfmts must match with the entries in supported_dst_pixfmts */
++/*
++ * Notes:
++ * 1) for proper functioning of v4lconvert_enum_fmt the first entries in
++ *    supported_src_pixfmts must match with the entries in
++ *    supported_dst_pixfmts.
++ * 2) The field needs_conversion should be zero, *except* for device-specific
++ *    formats, where it doesn't make sense for applications to have their
++ *    own decoders.
++ */
+ #define SUPPORTED_DST_PIXFMTS \
+ 	/* fourcc			bpp	rgb	yuv	needs      */ \
+ 	/*					rank	rank	conversion */ \
+@@ -175,9 +182,13 @@ struct v4lconvert_data *v4lconvert_create_with_dev_ops(int fd, void *dev_ops_pri
+ 	int i, j;
+ 	struct v4lconvert_data *data = calloc(1, sizeof(struct v4lconvert_data));
+ 	struct v4l2_capability cap;
+-	/* This keeps tracks of devices which have only formats for which apps
+-	   most likely will need conversion and we can thus safely add software
+-	   processing controls without a performance impact. */
++	/*
++	 * This keeps tracks of device-specific formats for which apps most
++	 * likely don't know. If all a driver can offer are proprietary
++	 * formats, a conversion is needed anyway. We can thus safely
++	 * add software processing controls without much concern about a
++	 * performance impact.
++	 */
+ 	int always_needs_conversion = 1;
+ 
+ 	if (!data) {
+-- 
+2.9.3
