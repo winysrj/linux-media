@@ -1,63 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:35874 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753922AbdC1AmD (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:43379 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755457AbdCKLXe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 20:42:03 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v6 12/39] ARM: dts: imx6-sabreauto: add pinctrl for gpt input capture
-Date: Mon, 27 Mar 2017 17:40:29 -0700
-Message-Id: <1490661656-10318-13-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+        Sat, 11 Mar 2017 06:23:34 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv5 03/16] ov7670: fix g/s_parm
+Date: Sat, 11 Mar 2017 12:23:15 +0100
+Message-Id: <20170311112328.11802-4-hverkuil@xs4all.nl>
+In-Reply-To: <20170311112328.11802-1-hverkuil@xs4all.nl>
+References: <20170311112328.11802-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add pinctrl groups for both GPT input capture channels.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Drop unnecesary memset. Drop the unnecessary extendedmode check and
+set the V4L2_CAP_TIMEPERFRAME capability.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/media/i2c/ov7670.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-index 21dea5f..1212f82 100644
---- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-@@ -456,6 +456,18 @@
- 			>;
- 		};
+diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+index 9af8d3b8f848..50e4466a2b37 100644
+--- a/drivers/media/i2c/ov7670.c
++++ b/drivers/media/i2c/ov7670.c
+@@ -1046,7 +1046,6 @@ static int ov7670_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
+ 	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
  
-+		pinctrl_gpt_input_capture0: gptinputcapture0grp {
-+			fsl,pins = <
-+				MX6QDL_PAD_SD1_DAT0__GPT_CAPTURE1	0x1b0b0
-+			>;
-+		};
-+
-+		pinctrl_gpt_input_capture1: gptinputcapture1grp {
-+			fsl,pins = <
-+				MX6QDL_PAD_SD1_DAT1__GPT_CAPTURE2	0x1b0b0
-+			>;
-+		};
-+
- 		pinctrl_spdif: spdifgrp {
- 			fsl,pins = <
- 				MX6QDL_PAD_KEY_COL3__SPDIF_IN 0x1b0b0
+-	memset(cp, 0, sizeof(struct v4l2_captureparm));
+ 	cp->capability = V4L2_CAP_TIMEPERFRAME;
+ 	info->devtype->get_framerate(sd, &cp->timeperframe);
+ 
+@@ -1061,9 +1060,8 @@ static int ov7670_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
+ 
+ 	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+-	if (cp->extendedmode != 0)
+-		return -EINVAL;
+ 
++	cp->capability = V4L2_CAP_TIMEPERFRAME;
+ 	return info->devtype->set_framerate(sd, tpf);
+ }
+ 
 -- 
-2.7.4
+2.11.0
