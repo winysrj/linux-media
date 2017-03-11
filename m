@@ -1,168 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:32748 "EHLO
-        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753339AbdCTK5J (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:52910 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755641AbdCKLXh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 06:57:09 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>
-Subject: [PATCH v3 01/16] media: s5p-mfc: Remove unused structures and dead code
-Date: Mon, 20 Mar 2017 11:56:27 +0100
-Message-id: <1490007402-30265-2-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
-References: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20170320105649eucas1p111bb7137d958831701debe9704844017@eucas1p1.samsung.com>
+        Sat, 11 Mar 2017 06:23:37 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv5 15/16] sama5d3 dts: enable atmel-isi
+Date: Sat, 11 Mar 2017 12:23:27 +0100
+Message-Id: <20170311112328.11802-16-hverkuil@xs4all.nl>
+In-Reply-To: <20170311112328.11802-1-hverkuil@xs4all.nl>
+References: <20170311112328.11802-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove unused structures, definitions and functions that are no longer
-called from the driver code.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Acked-by: Andrzej Hajda <a.hajda@samsung.com>
-Tested-by: Smitha T Murthy <smitha.t@samsung.com>
-Reviewed-by: Smitha T Murthy <smitha.t@samsung.com>
+This illustrates the changes needed to the dts in order to hook up the
+ov7670. I don't plan on merging this.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc.c        | 21 ---------------------
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h | 13 -------------
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h   |  1 -
- 3 files changed, 35 deletions(-)
+ arch/arm/boot/dts/at91-sama5d3_xplained.dts | 59 ++++++++++++++++++++++++++---
+ arch/arm/boot/dts/sama5d3.dtsi              |  4 +-
+ 2 files changed, 56 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index b99a7d0466a8..4e9f349c1be3 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1417,16 +1417,11 @@ static int s5p_mfc_resume(struct device *dev)
- 	.priv	= &mfc_buf_size_v5,
- };
+diff --git a/arch/arm/boot/dts/at91-sama5d3_xplained.dts b/arch/arm/boot/dts/at91-sama5d3_xplained.dts
+index c51fc652f6c7..c6b07f83578b 100644
+--- a/arch/arm/boot/dts/at91-sama5d3_xplained.dts
++++ b/arch/arm/boot/dts/at91-sama5d3_xplained.dts
+@@ -65,18 +65,51 @@
+ 				status = "okay";
+ 			};
  
--static struct s5p_mfc_buf_align mfc_buf_align_v5 = {
--	.base = MFC_BASE_ALIGN_ORDER,
--};
--
- static struct s5p_mfc_variant mfc_drvdata_v5 = {
- 	.version	= MFC_VERSION,
- 	.version_bit	= MFC_V5_BIT,
- 	.port_num	= MFC_NUM_PORTS,
- 	.buf_size	= &buf_size_v5,
--	.buf_align	= &mfc_buf_align_v5,
- 	.fw_name[0]	= "s5p-mfc.fw",
- 	.clk_names	= {"mfc", "sclk_mfc"},
- 	.num_clocks	= 2,
-@@ -1447,16 +1442,11 @@ static int s5p_mfc_resume(struct device *dev)
- 	.priv	= &mfc_buf_size_v6,
- };
++			isi0: isi@f0034000 {
++				status = "okay";
++				port {
++					#address-cells = <1>;
++					#size-cells = <0>;
++					isi_0: endpoint {
++						remote-endpoint = <&ov7670_0>;
++						bus-width = <8>;
++						vsync-active = <1>;
++						hsync-active = <1>;
++					};
++				};
++			};
++
+ 			i2c0: i2c@f0014000 {
+ 				pinctrl-0 = <&pinctrl_i2c0_pu>;
+-				status = "okay";
++				status = "disabled";
+ 			};
  
--static struct s5p_mfc_buf_align mfc_buf_align_v6 = {
--	.base = 0,
--};
--
- static struct s5p_mfc_variant mfc_drvdata_v6 = {
- 	.version	= MFC_VERSION_V6,
- 	.version_bit	= MFC_V6_BIT,
- 	.port_num	= MFC_NUM_PORTS_V6,
- 	.buf_size	= &buf_size_v6,
--	.buf_align	= &mfc_buf_align_v6,
- 	.fw_name[0]     = "s5p-mfc-v6.fw",
- 	/*
- 	 * v6-v2 firmware contains bug fixes and interface change
-@@ -1481,16 +1471,11 @@ static int s5p_mfc_resume(struct device *dev)
- 	.priv	= &mfc_buf_size_v7,
- };
+ 			i2c1: i2c@f0018000 {
+ 				status = "okay";
  
--static struct s5p_mfc_buf_align mfc_buf_align_v7 = {
--	.base = 0,
--};
--
- static struct s5p_mfc_variant mfc_drvdata_v7 = {
- 	.version	= MFC_VERSION_V7,
- 	.version_bit	= MFC_V7_BIT,
- 	.port_num	= MFC_NUM_PORTS_V7,
- 	.buf_size	= &buf_size_v7,
--	.buf_align	= &mfc_buf_align_v7,
- 	.fw_name[0]     = "s5p-mfc-v7.fw",
- 	.clk_names	= {"mfc", "sclk_mfc"},
- 	.num_clocks	= 2,
-@@ -1510,16 +1495,11 @@ static int s5p_mfc_resume(struct device *dev)
- 	.priv	= &mfc_buf_size_v8,
- };
++				ov7670: camera@21 {
++					compatible = "ovti,ov7670";
++					reg = <0x21>;
++					pinctrl-names = "default";
++					pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
++					reset-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
++					powerdown-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
++					clocks = <&pck0>;
++					clock-names = "xclk";
++					assigned-clocks = <&pck0>;
++					assigned-clock-rates = <25000000>;
++
++					port {
++						ov7670_0: endpoint {
++							remote-endpoint = <&isi_0>;
++						};
++					};
++				};
++
+ 				pmic: act8865@5b {
+ 					compatible = "active-semi,act8865";
+ 					reg = <0x5b>;
+-					status = "disabled";
++					status = "okay";
  
--static struct s5p_mfc_buf_align mfc_buf_align_v8 = {
--	.base = 0,
--};
--
- static struct s5p_mfc_variant mfc_drvdata_v8 = {
- 	.version	= MFC_VERSION_V8,
- 	.version_bit	= MFC_V8_BIT,
- 	.port_num	= MFC_NUM_PORTS_V8,
- 	.buf_size	= &buf_size_v8,
--	.buf_align	= &mfc_buf_align_v8,
- 	.fw_name[0]     = "s5p-mfc-v8.fw",
- 	.clk_names	= {"mfc"},
- 	.num_clocks	= 1,
-@@ -1530,7 +1510,6 @@ static int s5p_mfc_resume(struct device *dev)
- 	.version_bit	= MFC_V8_BIT,
- 	.port_num	= MFC_NUM_PORTS_V8,
- 	.buf_size	= &buf_size_v8,
--	.buf_align	= &mfc_buf_align_v8,
- 	.fw_name[0]     = "s5p-mfc-v8.fw",
- 	.clk_names	= {"pclk", "aclk", "aclk_xiu"},
- 	.num_clocks	= 3,
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index ab23236aa942..3e0e8eaf8bfe 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -44,14 +44,6 @@
+ 					regulators {
+ 						vcc_1v8_reg: DCDC_REG1 {
+@@ -130,7 +163,7 @@
+ 			pwm0: pwm@f002c000 {
+ 				pinctrl-names = "default";
+ 				pinctrl-0 = <&pinctrl_pwm0_pwmh0_0 &pinctrl_pwm0_pwmh1_0>;
+-				status = "okay";
++				status = "disabled";
+ 			};
  
- #include <media/videobuf2-dma-contig.h>
+ 			usart0: serial@f001c000 {
+@@ -143,7 +176,7 @@
+ 			};
  
--static inline dma_addr_t s5p_mfc_mem_cookie(void *a, void *b)
--{
--	/* Same functionality as the vb2_dma_contig_plane_paddr */
--	dma_addr_t *paddr = vb2_dma_contig_memops.cookie(b);
--
--	return *paddr;
--}
--
- /* MFC definitions */
- #define MFC_MAX_EXTRA_DPB       5
- #define MFC_MAX_BUFFERS		32
-@@ -229,16 +221,11 @@ struct s5p_mfc_buf_size {
- 	void *priv;
- };
+ 			uart0: serial@f0024000 {
+-				status = "okay";
++				status = "disabled";
+ 			};
  
--struct s5p_mfc_buf_align {
--	unsigned int base;
--};
--
- struct s5p_mfc_variant {
- 	unsigned int version;
- 	unsigned int port_num;
- 	u32 version_bit;
- 	struct s5p_mfc_buf_size *buf_size;
--	struct s5p_mfc_buf_align *buf_align;
- 	char	*fw_name[MFC_FW_MAX_VERSIONS];
- 	const char	*clk_names[MFC_MAX_CLOCKS];
- 	int		num_clocks;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h
-index 8e5df041edf7..45c807bf19cc 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h
-@@ -18,7 +18,6 @@
- int s5p_mfc_release_firmware(struct s5p_mfc_dev *dev);
- int s5p_mfc_alloc_firmware(struct s5p_mfc_dev *dev);
- int s5p_mfc_load_firmware(struct s5p_mfc_dev *dev);
--int s5p_mfc_reload_firmware(struct s5p_mfc_dev *dev);
+ 			mmc1: mmc@f8000000 {
+@@ -181,7 +214,7 @@
+ 			i2c2: i2c@f801c000 {
+ 				dmas = <0>, <0>;	/* Do not use DMA for i2c2 */
+ 				pinctrl-0 = <&pinctrl_i2c2_pu>;
+-				status = "okay";
++				status = "disabled";
+ 			};
  
- int s5p_mfc_init_hw(struct s5p_mfc_dev *dev);
- void s5p_mfc_deinit_hw(struct s5p_mfc_dev *dev);
+ 			macb1: ethernet@f802c000 {
+@@ -200,6 +233,22 @@
+ 			};
+ 
+ 			pinctrl@fffff200 {
++				camera_sensor {
++					pinctrl_pck0_as_isi_mck: pck0_as_isi_mck-0 {
++						atmel,pins =
++							<AT91_PIOD 30 AT91_PERIPH_B AT91_PINCTRL_NONE>;	/* ISI_MCK */
++					};
++
++					pinctrl_sensor_power: sensor_power-0 {
++						atmel,pins =
++							<AT91_PIOE 13 AT91_PERIPH_GPIO AT91_PINCTRL_NONE>;
++					};
++
++					pinctrl_sensor_reset: sensor_reset-0 {
++						atmel,pins =
++							<AT91_PIOE 11 AT91_PERIPH_GPIO AT91_PINCTRL_NONE>;
++					};
++				};
+ 				board {
+ 					pinctrl_i2c0_pu: i2c0_pu {
+ 						atmel,pins =
+diff --git a/arch/arm/boot/dts/sama5d3.dtsi b/arch/arm/boot/dts/sama5d3.dtsi
+index b06448ba6649..099570e4b90a 100644
+--- a/arch/arm/boot/dts/sama5d3.dtsi
++++ b/arch/arm/boot/dts/sama5d3.dtsi
+@@ -176,7 +176,7 @@
+ 				#address-cells = <1>;
+ 				#size-cells = <0>;
+ 				clocks = <&twi1_clk>;
+-				status = "disabled";
++				status = "ok";
+ 			};
+ 
+ 			usart0: serial@f001c000 {
+@@ -235,7 +235,7 @@
+ 				pinctrl-0 = <&pinctrl_isi_data_0_7>;
+ 				clocks = <&isi_clk>;
+ 				clock-names = "isi_clk";
+-				status = "disabled";
++				status = "ok";
+ 				port {
+ 					#address-cells = <1>;
+ 					#size-cells = <0>;
 -- 
-1.9.1
+2.11.0
