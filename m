@@ -1,97 +1,285 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:29441 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751248AbdCFOY4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Mar 2017 09:24:56 -0500
-From: Elena Reshetova <elena.reshetova@intel.com>
-To: gregkh@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org,
-        netdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
-        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
-        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
-        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
-        linux-usb@vger.kernel.org, peterz@infradead.org,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        Hans Liljestrand <ishkamiel@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        David Windsor <dwindsor@gmail.com>
-Subject: [PATCH 07/29] drivers, md: convert dm_dev_internal.count from atomic_t to refcount_t
-Date: Mon,  6 Mar 2017 16:20:54 +0200
-Message-Id: <1488810076-3754-8-git-send-email-elena.reshetova@intel.com>
-In-Reply-To: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
-References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:46252 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755108AbdCKLYf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 11 Mar 2017 06:24:35 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv5 11/16] ov2640: convert from soc-camera to a standard subdev sensor driver.
+Date: Sat, 11 Mar 2017 12:23:23 +0100
+Message-Id: <20170311112328.11802-12-hverkuil@xs4all.nl>
+In-Reply-To: <20170311112328.11802-1-hverkuil@xs4all.nl>
+References: <20170311112328.11802-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-refcount_t type and corresponding API should be
-used instead of atomic_t when the variable is used as
-a reference counter. This allows to avoid accidental
-refcounter overflows that might lead to use-after-free
-situations.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
-Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Signed-off-by: David Windsor <dwindsor@gmail.com>
+Convert ov2640 to a standard subdev driver. The soc-camera driver no longer
+uses this driver, so it can safely be converted.
+
+Note: the s_power op has been dropped: this never worked. When the last open()
+is closed, then the power is turned off, and when it is opened again the power
+is turned on again, but the old state isn't restored.
+
+Someone else can figure out in the future how to get this working correctly,
+but I don't want to spend more time on this.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/md/dm-table.c | 6 +++---
- drivers/md/dm.h       | 3 ++-
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/media/i2c/Kconfig                   | 11 ++++
+ drivers/media/i2c/Makefile                  |  1 +
+ drivers/media/i2c/{soc_camera => }/ov2640.c | 89 +++++------------------------
+ drivers/media/i2c/soc_camera/Kconfig        |  6 --
+ drivers/media/i2c/soc_camera/Makefile       |  1 -
+ 5 files changed, 27 insertions(+), 81 deletions(-)
+ rename drivers/media/i2c/{soc_camera => }/ov2640.c (94%)
 
-diff --git a/drivers/md/dm-table.c b/drivers/md/dm-table.c
-index 3ad16d9..d2e2741 100644
---- a/drivers/md/dm-table.c
-+++ b/drivers/md/dm-table.c
-@@ -416,15 +416,15 @@ int dm_get_device(struct dm_target *ti, const char *path, fmode_t mode,
- 			return r;
- 		}
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index cee1dae6e014..db2c63f592c5 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -520,6 +520,17 @@ config VIDEO_APTINA_PLL
+ config VIDEO_SMIAPP_PLL
+ 	tristate
  
--		atomic_set(&dd->count, 0);
-+		refcount_set(&dd->count, 1);
- 		list_add(&dd->list, &t->devices);
++config VIDEO_OV2640
++	tristate "OmniVision OV2640 sensor support"
++	depends on VIDEO_V4L2 && I2C && GPIOLIB
++	depends on MEDIA_CAMERA_SUPPORT
++	help
++	  This is a Video4Linux2 sensor-level driver for the OmniVision
++	  OV2640 camera.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called ov2640.
++
+ config VIDEO_OV2659
+ 	tristate "OmniVision OV2659 sensor support"
+ 	depends on VIDEO_V4L2 && I2C
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index 5bc7bbeb5499..50af1e11c85a 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -57,6 +57,7 @@ obj-$(CONFIG_VIDEO_VP27SMPX) += vp27smpx.o
+ obj-$(CONFIG_VIDEO_SONY_BTF_MPX) += sony-btf-mpx.o
+ obj-$(CONFIG_VIDEO_UPD64031A) += upd64031a.o
+ obj-$(CONFIG_VIDEO_UPD64083) += upd64083.o
++obj-$(CONFIG_VIDEO_OV2640) += ov2640.o
+ obj-$(CONFIG_VIDEO_OV7640) += ov7640.o
+ obj-$(CONFIG_VIDEO_OV7670) += ov7670.o
+ obj-$(CONFIG_VIDEO_OV9650) += ov9650.o
+diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/ov2640.c
+similarity index 94%
+rename from drivers/media/i2c/soc_camera/ov2640.c
+rename to drivers/media/i2c/ov2640.c
+index b9a0069f5b33..83f88efbce69 100644
+--- a/drivers/media/i2c/soc_camera/ov2640.c
++++ b/drivers/media/i2c/ov2640.c
+@@ -24,8 +24,8 @@
+ #include <linux/v4l2-mediabus.h>
+ #include <linux/videodev2.h>
  
- 	} else if (dd->dm_dev->mode != (mode | dd->dm_dev->mode)) {
- 		r = upgrade_mode(dd, mode, t->md);
- 		if (r)
- 			return r;
-+		refcount_inc(&dd->count);
- 	}
--	atomic_inc(&dd->count);
+-#include <media/soc_camera.h>
+ #include <media/v4l2-clk.h>
++#include <media/v4l2-device.h>
+ #include <media/v4l2-subdev.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-image-sizes.h>
+@@ -287,7 +287,6 @@ struct ov2640_priv {
+ 	struct v4l2_clk			*clk;
+ 	const struct ov2640_win_size	*win;
  
- 	*result = dd->dm_dev;
- 	return 0;
-@@ -478,7 +478,7 @@ void dm_put_device(struct dm_target *ti, struct dm_dev *d)
- 		       dm_device_name(ti->table->md), d->name);
- 		return;
- 	}
--	if (atomic_dec_and_test(&dd->count)) {
-+	if (refcount_dec_and_test(&dd->count)) {
- 		dm_put_table_device(ti->table->md, d);
- 		list_del(&dd->list);
- 		kfree(dd);
-diff --git a/drivers/md/dm.h b/drivers/md/dm.h
-index f298b01..63b8142 100644
---- a/drivers/md/dm.h
-+++ b/drivers/md/dm.h
-@@ -19,6 +19,7 @@
- #include <linux/hdreg.h>
- #include <linux/completion.h>
- #include <linux/kobject.h>
-+#include <linux/refcount.h>
+-	struct soc_camera_subdev_desc	ssdd_dt;
+ 	struct gpio_desc *resetb_gpio;
+ 	struct gpio_desc *pwdn_gpio;
+ };
+@@ -677,13 +676,8 @@ static int ov2640_reset(struct i2c_client *client)
+ }
  
- #include "dm-stats.h"
- 
-@@ -38,7 +39,7 @@
+ /*
+- * soc_camera_ops functions
++ * functions
   */
- struct dm_dev_internal {
- 	struct list_head list;
--	atomic_t count;
-+	refcount_t count;
- 	struct dm_dev *dm_dev;
+-static int ov2640_s_stream(struct v4l2_subdev *sd, int enable)
+-{
+-	return 0;
+-}
+-
+ static int ov2640_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+ 	struct v4l2_subdev *sd =
+@@ -744,10 +738,16 @@ static int ov2640_s_register(struct v4l2_subdev *sd,
+ static int ov2640_s_power(struct v4l2_subdev *sd, int on)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+ 	struct ov2640_priv *priv = to_ov2640(client);
+ 
+-	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
++	gpiod_direction_output(priv->pwdn_gpio, !on);
++	if (on && priv->resetb_gpio) {
++		/* Active the resetb pin to perform a reset pulse */
++		gpiod_direction_output(priv->resetb_gpio, 1);
++		usleep_range(3000, 5000);
++		gpiod_direction_output(priv->resetb_gpio, 0);
++	}
++	return 0;
+ }
+ 
+ /* Select the nearest higher resolution for capture */
+@@ -994,26 +994,6 @@ static struct v4l2_subdev_core_ops ov2640_subdev_core_ops = {
+ 	.s_power	= ov2640_s_power,
  };
  
+-static int ov2640_g_mbus_config(struct v4l2_subdev *sd,
+-				struct v4l2_mbus_config *cfg)
+-{
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+-
+-	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_MASTER |
+-		V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_HSYNC_ACTIVE_HIGH |
+-		V4L2_MBUS_DATA_ACTIVE_HIGH;
+-	cfg->type = V4L2_MBUS_PARALLEL;
+-	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
+-
+-	return 0;
+-}
+-
+-static struct v4l2_subdev_video_ops ov2640_subdev_video_ops = {
+-	.s_stream	= ov2640_s_stream,
+-	.g_mbus_config	= ov2640_g_mbus_config,
+-};
+-
+ static const struct v4l2_subdev_pad_ops ov2640_subdev_pad_ops = {
+ 	.enum_mbus_code = ov2640_enum_mbus_code,
+ 	.get_selection	= ov2640_get_selection,
+@@ -1023,40 +1003,9 @@ static const struct v4l2_subdev_pad_ops ov2640_subdev_pad_ops = {
+ 
+ static struct v4l2_subdev_ops ov2640_subdev_ops = {
+ 	.core	= &ov2640_subdev_core_ops,
+-	.video	= &ov2640_subdev_video_ops,
+ 	.pad	= &ov2640_subdev_pad_ops,
+ };
+ 
+-/* OF probe functions */
+-static int ov2640_hw_power(struct device *dev, int on)
+-{
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct ov2640_priv *priv = to_ov2640(client);
+-
+-	dev_dbg(&client->dev, "%s: %s the camera\n",
+-			__func__, on ? "ENABLE" : "DISABLE");
+-
+-	if (priv->pwdn_gpio)
+-		gpiod_direction_output(priv->pwdn_gpio, !on);
+-
+-	return 0;
+-}
+-
+-static int ov2640_hw_reset(struct device *dev)
+-{
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct ov2640_priv *priv = to_ov2640(client);
+-
+-	if (priv->resetb_gpio) {
+-		/* Active the resetb pin to perform a reset pulse */
+-		gpiod_direction_output(priv->resetb_gpio, 1);
+-		usleep_range(3000, 5000);
+-		gpiod_direction_output(priv->resetb_gpio, 0);
+-	}
+-
+-	return 0;
+-}
+-
+ static int ov2640_probe_dt(struct i2c_client *client,
+ 		struct ov2640_priv *priv)
+ {
+@@ -1076,11 +1025,6 @@ static int ov2640_probe_dt(struct i2c_client *client,
+ 	else if (IS_ERR(priv->pwdn_gpio))
+ 		return PTR_ERR(priv->pwdn_gpio);
+ 
+-	/* Initialize the soc_camera_subdev_desc */
+-	priv->ssdd_dt.power = ov2640_hw_power;
+-	priv->ssdd_dt.reset = ov2640_hw_reset;
+-	client->dev.platform_data = &priv->ssdd_dt;
+-
+ 	return 0;
+ }
+ 
+@@ -1091,7 +1035,6 @@ static int ov2640_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *did)
+ {
+ 	struct ov2640_priv	*priv;
+-	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+ 	struct i2c_adapter	*adapter = to_i2c_adapter(client->dev.parent);
+ 	int			ret;
+ 
+@@ -1112,17 +1055,15 @@ static int ov2640_probe(struct i2c_client *client,
+ 	if (IS_ERR(priv->clk))
+ 		return -EPROBE_DEFER;
+ 
+-	if (!ssdd && !client->dev.of_node) {
++	if (!client->dev.of_node) {
+ 		dev_err(&client->dev, "Missing platform_data for driver\n");
+ 		ret = -EINVAL;
+ 		goto err_clk;
+ 	}
+ 
+-	if (!ssdd) {
+-		ret = ov2640_probe_dt(client, priv);
+-		if (ret)
+-			goto err_clk;
+-	}
++	ret = ov2640_probe_dt(client, priv);
++	if (ret)
++		goto err_clk;
+ 
+ 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov2640_subdev_ops);
+ 	v4l2_ctrl_handler_init(&priv->hdl, 2);
+@@ -1190,6 +1131,6 @@ static struct i2c_driver ov2640_i2c_driver = {
+ 
+ module_i2c_driver(ov2640_i2c_driver);
+ 
+-MODULE_DESCRIPTION("SoC Camera driver for Omni Vision 2640 sensor");
++MODULE_DESCRIPTION("Driver for Omni Vision 2640 sensor");
+ MODULE_AUTHOR("Alberto Panizzo");
+ MODULE_LICENSE("GPL v2");
+diff --git a/drivers/media/i2c/soc_camera/Kconfig b/drivers/media/i2c/soc_camera/Kconfig
+index 7704bcf5cc25..96859f37cb1c 100644
+--- a/drivers/media/i2c/soc_camera/Kconfig
++++ b/drivers/media/i2c/soc_camera/Kconfig
+@@ -41,12 +41,6 @@ config SOC_CAMERA_MT9V022
+ 	help
+ 	  This driver supports MT9V022 cameras from Micron
+ 
+-config SOC_CAMERA_OV2640
+-	tristate "ov2640 camera support"
+-	depends on SOC_CAMERA && I2C
+-	help
+-	  This is a ov2640 camera driver
+-
+ config SOC_CAMERA_OV5642
+ 	tristate "ov5642 camera support"
+ 	depends on SOC_CAMERA && I2C
+diff --git a/drivers/media/i2c/soc_camera/Makefile b/drivers/media/i2c/soc_camera/Makefile
+index 6f994f9353a0..974bdb721dbe 100644
+--- a/drivers/media/i2c/soc_camera/Makefile
++++ b/drivers/media/i2c/soc_camera/Makefile
+@@ -3,7 +3,6 @@ obj-$(CONFIG_SOC_CAMERA_MT9M001)	+= mt9m001.o
+ obj-$(CONFIG_SOC_CAMERA_MT9T031)	+= mt9t031.o
+ obj-$(CONFIG_SOC_CAMERA_MT9T112)	+= mt9t112.o
+ obj-$(CONFIG_SOC_CAMERA_MT9V022)	+= mt9v022.o
+-obj-$(CONFIG_SOC_CAMERA_OV2640)		+= ov2640.o
+ obj-$(CONFIG_SOC_CAMERA_OV5642)		+= ov5642.o
+ obj-$(CONFIG_SOC_CAMERA_OV6650)		+= ov6650.o
+ obj-$(CONFIG_SOC_CAMERA_OV772X)		+= ov772x.o
 -- 
-2.7.4
+2.11.0
