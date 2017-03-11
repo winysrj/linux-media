@@ -1,92 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:37943 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753359AbdCFOZL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Mar 2017 09:25:11 -0500
-From: Elena Reshetova <elena.reshetova@intel.com>
-To: gregkh@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org,
-        netdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
-        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
-        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
-        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
-        linux-usb@vger.kernel.org, peterz@infradead.org,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        Hans Liljestrand <ishkamiel@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        David Windsor <dwindsor@gmail.com>
-Subject: [PATCH 06/29] drivers, md: convert dm_cache_metadata.ref_count from atomic_t to refcount_t
-Date: Mon,  6 Mar 2017 16:20:53 +0200
-Message-Id: <1488810076-3754-7-git-send-email-elena.reshetova@intel.com>
-In-Reply-To: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
-References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:57949 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755341AbdCKLXh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 11 Mar 2017 06:23:37 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv5 10/16] ov2640: update bindings
+Date: Sat, 11 Mar 2017 12:23:22 +0100
+Message-Id: <20170311112328.11802-11-hverkuil@xs4all.nl>
+In-Reply-To: <20170311112328.11802-1-hverkuil@xs4all.nl>
+References: <20170311112328.11802-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-refcount_t type and corresponding API should be
-used instead of atomic_t when the variable is used as
-a reference counter. This allows to avoid accidental
-refcounter overflows that might lead to use-after-free
-situations.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
-Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Signed-off-by: David Windsor <dwindsor@gmail.com>
+Update the bindings for this device based on a working DT example.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Rob Herring <robh@kernel.org>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/md/dm-cache-metadata.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ .../devicetree/bindings/media/i2c/ov2640.txt       | 23 +++++++++-------------
+ 1 file changed, 9 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/md/dm-cache-metadata.c b/drivers/md/dm-cache-metadata.c
-index e4c2c1a..6d26e71 100644
---- a/drivers/md/dm-cache-metadata.c
-+++ b/drivers/md/dm-cache-metadata.c
-@@ -13,6 +13,7 @@
- #include "persistent-data/dm-transaction-manager.h"
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov2640.txt b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
+index c429b5bdcaa0..989ce6cb6ac3 100644
+--- a/Documentation/devicetree/bindings/media/i2c/ov2640.txt
++++ b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
+@@ -1,8 +1,8 @@
+ * Omnivision OV2640 CMOS sensor
  
- #include <linux/device-mapper.h>
-+#include <linux/refcount.h>
+-The Omnivision OV2640 sensor support multiple resolutions output, such as
+-CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or raw RGB
+-output format.
++The Omnivision OV2640 sensor supports multiple resolutions output, such as
++CIF, SVGA, UXGA. It also can support the YUV422/420, RGB565/555 or raw RGB
++output formats.
  
- /*----------------------------------------------------------------*/
+ Required Properties:
+ - compatible: should be "ovti,ov2640"
+@@ -20,26 +20,21 @@ Documentation/devicetree/bindings/media/video-interfaces.txt.
+ Example:
  
-@@ -102,7 +103,7 @@ struct cache_disk_superblock {
- } __packed;
+ 	i2c1: i2c@f0018000 {
+-		ov2640: camera@0x30 {
++		ov2640: camera@30 {
+ 			compatible = "ovti,ov2640";
+ 			reg = <0x30>;
+-
+ 			pinctrl-names = "default";
+-			pinctrl-0 = <&pinctrl_pck1 &pinctrl_ov2640_pwdn &pinctrl_ov2640_resetb>;
+-
+-			resetb-gpios = <&pioE 24 GPIO_ACTIVE_LOW>;
+-			pwdn-gpios = <&pioE 29 GPIO_ACTIVE_HIGH>;
+-
+-			clocks = <&pck1>;
++			pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
++			resetb-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
++			pwdn-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
++			clocks = <&pck0>;
+ 			clock-names = "xvclk";
+-
+-			assigned-clocks = <&pck1>;
++			assigned-clocks = <&pck0>;
+ 			assigned-clock-rates = <25000000>;
  
- struct dm_cache_metadata {
--	atomic_t ref_count;
-+	refcount_t ref_count;
- 	struct list_head list;
- 
- 	unsigned version;
-@@ -756,7 +757,7 @@ static struct dm_cache_metadata *metadata_open(struct block_device *bdev,
- 	}
- 
- 	cmd->version = metadata_version;
--	atomic_set(&cmd->ref_count, 1);
-+	refcount_set(&cmd->ref_count, 1);
- 	init_rwsem(&cmd->root_lock);
- 	cmd->bdev = bdev;
- 	cmd->data_block_size = data_block_size;
-@@ -794,7 +795,7 @@ static struct dm_cache_metadata *lookup(struct block_device *bdev)
- 
- 	list_for_each_entry(cmd, &table, list)
- 		if (cmd->bdev == bdev) {
--			atomic_inc(&cmd->ref_count);
-+			refcount_inc(&cmd->ref_count);
- 			return cmd;
- 		}
- 
-@@ -865,7 +866,7 @@ struct dm_cache_metadata *dm_cache_metadata_open(struct block_device *bdev,
- 
- void dm_cache_metadata_close(struct dm_cache_metadata *cmd)
- {
--	if (atomic_dec_and_test(&cmd->ref_count)) {
-+	if (refcount_dec_and_test(&cmd->ref_count)) {
- 		mutex_lock(&table_lock);
- 		list_del(&cmd->list);
- 		mutex_unlock(&table_lock);
+ 			port {
+ 				ov2640_0: endpoint {
+ 					remote-endpoint = <&isi_0>;
+-					bus-width = <8>;
+ 				};
+ 			};
+ 		};
 -- 
-2.7.4
+2.11.0
