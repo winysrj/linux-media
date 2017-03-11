@@ -1,104 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:35915 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752493AbdCOStG (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:52540 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755623AbdCKLXf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Mar 2017 14:49:06 -0400
-Subject: Re: [PATCH v5 07/39] ARM: dts: imx6qdl-sabrelite: remove erratum
- ERR006687 workaround
-To: Fabio Estevam <festevam@gmail.com>,
-        Troy Kisky <troy.kisky@boundarydevices.com>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <1489121599-23206-8-git-send-email-steve_longerbeam@mentor.com>
- <9f5d0ac4-0602-c729-5c00-1d9ef49247c1@boundarydevices.com>
- <CAOMZO5BNrSEyrbWbCBCbsy4yTrh4AHfk2Too0qHuffxqUCgADg@mail.gmail.com>
-Cc: "robh+dt@kernel.org" <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <kernel@pengutronix.de>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        mchehab@kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Nick Dyer <nick@shmanahar.org>, markus.heiser@darmarit.de,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        bparrot@ti.com, Geert Uytterhoeven <geert@linux-m68k.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-        minghsiu.tsai@mediatek.com, Tiffany Lin <tiffany.lin@mediatek.com>,
-        Jean-Christophe TROTIN <jean-christophe.trotin@st.com>,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        shuah@kernel.org, sakari.ailus@linux.intel.com,
-        Pavel Machek <pavel@ucw.cz>, devel@driverdev.osuosl.org,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        linux-media <linux-media@vger.kernel.org>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <16767ed6-bc06-790c-1830-18439c977a37@gmail.com>
-Date: Wed, 15 Mar 2017 11:49:00 -0700
-MIME-Version: 1.0
-In-Reply-To: <CAOMZO5BNrSEyrbWbCBCbsy4yTrh4AHfk2Too0qHuffxqUCgADg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+        Sat, 11 Mar 2017 06:23:35 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv5 08/16] atmel-isi: move out of soc_camera to atmel
+Date: Sat, 11 Mar 2017 12:23:20 +0100
+Message-Id: <20170311112328.11802-9-hverkuil@xs4all.nl>
+In-Reply-To: <20170311112328.11802-1-hverkuil@xs4all.nl>
+References: <20170311112328.11802-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
+Move this out of the soc_camera directory into the atmel directory
+where it belongs.
 
-On 03/10/2017 11:17 AM, Fabio Estevam wrote:
-> On Fri, Mar 10, 2017 at 3:59 PM, Troy Kisky
-> <troy.kisky@boundarydevices.com> wrote:
->> On 3/9/2017 8:52 PM, Steve Longerbeam wrote:
->>> There is a pin conflict with GPIO_6. This pin functions as a power
->>> input pin to the OV5642 camera sensor, but ENET uses it as the h/w
->>> workaround for erratum ERR006687, to wake-up the ARM cores on normal
->>> RX and TX packet done events. So we need to remove the h/w workaround
->>> to support the OV5642. The result is that the CPUidle driver will no
->>> longer allow entering the deep idle states on the sabrelite.
->>>
->>> This is a partial revert of
->>>
->>> commit 6261c4c8f13e ("ARM: dts: imx6qdl-sabrelite: use GPIO_6 for FEC
->>>                       interrupt.")
->>> commit a28eeb43ee57 ("ARM: dts: imx6: tag boards that have the HW workaround
->>>                       for ERR006687")
->>>
->>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
->>> ---
->>>  arch/arm/boot/dts/imx6qdl-sabrelite.dtsi | 4 ----
->>>  1 file changed, 4 deletions(-)
->>>
->>> diff --git a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
->>> index 8413179..89dce27 100644
->>> --- a/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
->>> +++ b/arch/arm/boot/dts/imx6qdl-sabrelite.dtsi
->>> @@ -270,9 +270,6 @@
->>>       txd1-skew-ps = <0>;
->>>       txd2-skew-ps = <0>;
->>>       txd3-skew-ps = <0>;
->>
->> How about
->>
->> +#if !IS_ENABLED(CONFIG_VIDEO_OV5642)
->
-> Or maybe just create a new device tree for using the camera, like
-> imx6q-sabrelite-camera.dts.
->
-> This way we can keep the FEC erratum for the existing sabrelite dtb's.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/platform/Makefile                          |  1 +
+ drivers/media/platform/atmel/Kconfig                     | 11 ++++++++++-
+ drivers/media/platform/atmel/Makefile                    |  1 +
+ drivers/media/platform/{soc_camera => atmel}/atmel-isi.c |  0
+ drivers/media/platform/{soc_camera => atmel}/atmel-isi.h |  0
+ drivers/media/platform/soc_camera/Kconfig                | 10 ----------
+ drivers/media/platform/soc_camera/Makefile               |  1 -
+ 7 files changed, 12 insertions(+), 12 deletions(-)
+ rename drivers/media/platform/{soc_camera => atmel}/atmel-isi.c (100%)
+ rename drivers/media/platform/{soc_camera => atmel}/atmel-isi.h (100%)
 
-Is it really necessary to keep the erratum in sabrelite dts? Because the
-sabrelite is a _reference_ platform, vendors use this dts as a working
-example of how to configure their imx6-based hardware. So as a working
-example, it should contain as much example hardware config as possible
-as a guide. If a vendor does not require OV5642 support and requires
-the lower power consumption that the erratum workaround provides, they
-can refer to other example imx6 dts files which still implement the
-erratum, or look at the git log of this file.
-
-Steve
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 8959f6e6692a..c491731f5909 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -63,6 +63,7 @@ obj-$(CONFIG_VIDEO_XILINX)		+= xilinx/
+ obj-$(CONFIG_VIDEO_RCAR_VIN)		+= rcar-vin/
+ 
+ obj-$(CONFIG_VIDEO_ATMEL_ISC)		+= atmel/
++obj-$(CONFIG_VIDEO_ATMEL_ISI)		+= atmel/
+ 
+ ccflags-y += -I$(srctree)/drivers/media/i2c
+ 
+diff --git a/drivers/media/platform/atmel/Kconfig b/drivers/media/platform/atmel/Kconfig
+index 867dca22a473..9bd0f19b127f 100644
+--- a/drivers/media/platform/atmel/Kconfig
++++ b/drivers/media/platform/atmel/Kconfig
+@@ -6,4 +6,13 @@ config VIDEO_ATMEL_ISC
+ 	select REGMAP_MMIO
+ 	help
+ 	   This module makes the ATMEL Image Sensor Controller available
+-	   as a v4l2 device.
+\ No newline at end of file
++	   as a v4l2 device.
++
++config VIDEO_ATMEL_ISI
++	tristate "ATMEL Image Sensor Interface (ISI) support"
++	depends on VIDEO_V4L2 && OF && HAS_DMA
++	depends on ARCH_AT91 || COMPILE_TEST
++	select VIDEOBUF2_DMA_CONTIG
++	---help---
++	  This module makes the ATMEL Image Sensor Interface available
++	  as a v4l2 device.
+diff --git a/drivers/media/platform/atmel/Makefile b/drivers/media/platform/atmel/Makefile
+index 9d7c999d434d..27000d099a5e 100644
+--- a/drivers/media/platform/atmel/Makefile
++++ b/drivers/media/platform/atmel/Makefile
+@@ -1 +1,2 @@
+ obj-$(CONFIG_VIDEO_ATMEL_ISC) += atmel-isc.o
++obj-$(CONFIG_VIDEO_ATMEL_ISI) += atmel-isi.o
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/atmel/atmel-isi.c
+similarity index 100%
+rename from drivers/media/platform/soc_camera/atmel-isi.c
+rename to drivers/media/platform/atmel/atmel-isi.c
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.h b/drivers/media/platform/atmel/atmel-isi.h
+similarity index 100%
+rename from drivers/media/platform/soc_camera/atmel-isi.h
+rename to drivers/media/platform/atmel/atmel-isi.h
+diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
+index a37ec91b026e..0c581aa1b18a 100644
+--- a/drivers/media/platform/soc_camera/Kconfig
++++ b/drivers/media/platform/soc_camera/Kconfig
+@@ -26,13 +26,3 @@ config VIDEO_SH_MOBILE_CEU
+ 	select SOC_CAMERA_SCALE_CROP
+ 	---help---
+ 	  This is a v4l2 driver for the SuperH Mobile CEU Interface
+-
+-config VIDEO_ATMEL_ISI
+-	tristate "ATMEL Image Sensor Interface (ISI) support"
+-	depends on VIDEO_V4L2 && OF && HAS_DMA
+-	depends on ARCH_AT91 || COMPILE_TEST
+-	select VIDEOBUF2_DMA_CONTIG
+-	---help---
+-	  This module makes the ATMEL Image Sensor Interface available
+-	  as a v4l2 device.
+-
+diff --git a/drivers/media/platform/soc_camera/Makefile b/drivers/media/platform/soc_camera/Makefile
+index 7633a0f2f66f..07a451e8b228 100644
+--- a/drivers/media/platform/soc_camera/Makefile
++++ b/drivers/media/platform/soc_camera/Makefile
+@@ -6,5 +6,4 @@ obj-$(CONFIG_SOC_CAMERA_SCALE_CROP)	+= soc_scale_crop.o
+ obj-$(CONFIG_SOC_CAMERA_PLATFORM)	+= soc_camera_platform.o
+ 
+ # soc-camera host drivers have to be linked after camera drivers
+-obj-$(CONFIG_VIDEO_ATMEL_ISI)		+= atmel-isi.o
+ obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
+-- 
+2.11.0
