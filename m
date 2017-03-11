@@ -1,67 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f42.google.com ([74.125.82.42]:38681 "EHLO
-        mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754307AbdCGRku (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 12:40:50 -0500
-Received: by mail-wm0-f42.google.com with SMTP id t189so11343915wmt.1
-        for <linux-media@vger.kernel.org>; Tue, 07 Mar 2017 09:40:37 -0800 (PST)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: dri-devel@lists.freedesktop.org,
-        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org
-Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
-        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-media@vger.kernel.org
-Subject: [PATCH v3 5/6] drm: bridge: dw-hdmi: Add Documentation on supported input formats
-Date: Tue,  7 Mar 2017 17:42:23 +0100
-Message-Id: <1488904944-14285-6-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1488904944-14285-1-git-send-email-narmstrong@baylibre.com>
-References: <1488904944-14285-1-git-send-email-narmstrong@baylibre.com>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:48167 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755424AbdCKLXe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 11 Mar 2017 06:23:34 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv5 02/16] ov7670: call v4l2_async_register_subdev
+Date: Sat, 11 Mar 2017 12:23:14 +0100
+Message-Id: <20170311112328.11802-3-hverkuil@xs4all.nl>
+In-Reply-To: <20170311112328.11802-1-hverkuil@xs4all.nl>
+References: <20170311112328.11802-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a new DRM documentation entry and links to the input
-format table added in the dw_hdmi header.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+Add v4l2-async support for this driver.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- Documentation/gpu/dw-hdmi.rst | 15 +++++++++++++++
- Documentation/gpu/index.rst   |  1 +
- 2 files changed, 16 insertions(+)
- create mode 100644 Documentation/gpu/dw-hdmi.rst
+ drivers/media/i2c/ov7670.c | 13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/gpu/dw-hdmi.rst b/Documentation/gpu/dw-hdmi.rst
-new file mode 100644
-index 0000000..486faad
---- /dev/null
-+++ b/Documentation/gpu/dw-hdmi.rst
-@@ -0,0 +1,15 @@
-+=======================================================
-+ drm/bridge/dw-hdmi Synopsys DesignWare HDMI Controller
-+=======================================================
+diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+index 56cfb5ca9c95..9af8d3b8f848 100644
+--- a/drivers/media/i2c/ov7670.c
++++ b/drivers/media/i2c/ov7670.c
+@@ -1636,10 +1636,9 @@ static int ov7670_probe(struct i2c_client *client,
+ 			V4L2_EXPOSURE_AUTO);
+ 	sd->ctrl_handler = &info->hdl;
+ 	if (info->hdl.error) {
+-		int err = info->hdl.error;
++		ret = info->hdl.error;
+ 
+-		v4l2_ctrl_handler_free(&info->hdl);
+-		return err;
++		goto hdl_free;
+ 	}
+ 	/*
+ 	 * We have checked empirically that hw allows to read back the gain
+@@ -1651,7 +1650,15 @@ static int ov7670_probe(struct i2c_client *client,
+ 	v4l2_ctrl_cluster(2, &info->saturation);
+ 	v4l2_ctrl_handler_setup(&info->hdl);
+ 
++	ret = v4l2_async_register_subdev(&info->sd);
++	if (ret < 0)
++		goto hdl_free;
 +
-+Synopsys DesignWare HDMI Controller
-+===================================
+ 	return 0;
 +
-+This section covers everything related to the Synopsys DesignWare HDMI
-+Controller implemented as a DRM bridge.
-+
-+Supported Input Formats and Encodings
-+-------------------------------------
-+
-+.. kernel-doc:: include/drm/bridge/dw_hdmi.h
-+   :doc: Supported input formats and encodings
-diff --git a/Documentation/gpu/index.rst b/Documentation/gpu/index.rst
-index e998ee0..0725449 100644
---- a/Documentation/gpu/index.rst
-+++ b/Documentation/gpu/index.rst
-@@ -10,6 +10,7 @@ Linux GPU Driver Developer's Guide
-    drm-kms
-    drm-kms-helpers
-    drm-uapi
-+   dw-hdmi
-    i915
-    tinydrm
-    vc4
++hdl_free:
++	v4l2_ctrl_handler_free(&info->hdl);
++	return ret;
+ }
+ 
+ 
 -- 
-1.9.1
+2.11.0
