@@ -1,121 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:36194 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934787AbdC3ULp (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:51707 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755554AbdCKLc4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 16:11:45 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH 1/9] scripts/kernel-doc: fix parser for apostrophes
-Date: Thu, 30 Mar 2017 17:11:28 -0300
-Message-Id: <8a132848c3a6d0ddbb50d79f4cdfc2b3f0afc942.1490904090.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1490904090.git.mchehab@s-opensource.com>
-References: <cover.1490904090.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1490904090.git.mchehab@s-opensource.com>
-References: <cover.1490904090.git.mchehab@s-opensource.com>
+        Sat, 11 Mar 2017 06:32:56 -0500
+Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
+ controls from a pipeline
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
+ <1487211578-11360-15-git-send-email-steve_longerbeam@mentor.com>
+ <20170302160257.GK3220@valkosipuli.retiisi.org.uk>
+ <20170303230645.GR21222@n2100.armlinux.org.uk>
+ <20170304131329.GV3220@valkosipuli.retiisi.org.uk>
+ <a7b8e095-a95c-24bd-b1e9-e983f18061c4@xs4all.nl>
+ <20170310120902.1daebc7b@vento.lan>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
+        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5e1183f4-774f-413a-628a-96e0df321faf@xs4all.nl>
+Date: Sat, 11 Mar 2017 12:32:43 +0100
+MIME-Version: 1.0
+In-Reply-To: <20170310120902.1daebc7b@vento.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On ReST, adding a text like ``literal`` is valid. However,
-the kernel-doc script won't handle it fine.
+On 10/03/17 16:09, Mauro Carvalho Chehab wrote:
+> Em Fri, 10 Mar 2017 13:54:28 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>>> Devices that have complex pipeline that do essentially require using the
+>>> Media controller interface to configure them are out of that scope.
+>>>   
+>>
+>> Way too much of how the MC devices should be used is in the minds of developers.
+>> There is a major lack for good detailed documentation, utilities, compliance
+>> test (really needed!) and libv4l plugins.
+> 
+> Unfortunately, we merged an incomplete MC support at the Kernel. We knew
+> all the problems with MC-based drivers and V4L2 applications by the time
+> it was developed, and we requested Nokia developers (with was sponsoring MC
+> develoment, on that time) to work on a solution to allow standard V4L2
+> applications to work with MC based boards.
+> 
+> Unfortunately, we took the decision to merge MC without that, because 
+> Nokia was giving up on Linux development, and we didn't want to lose the
+> 2 years of discussions and work around it, as Nokia employers were leaving
+> the company. Also, on that time, there was already some patches floating
+> around adding backward support via libv4l. Unfortunately, those patches
+> were never finished.
+> 
+> The net result is that MC was merged with some huge gaps, including
+> the lack of a proper solution for a generic V4L2 program to work
+> with V4L2 devices that use the subdev API.
+> 
+> That was not that bad by then, as MC was used only on cell phones
+> that run custom-made applications. 
+> 
+> The reallity changed, as now, we have lots of low cost SoC based
+> boards, used for all sort of purposes. So, we need a quick solution
+> for it.
+> 
+> In other words, while that would be acceptable support special apps
+> on really embedded systems, it is *not OK* for general purpose SoC
+> harware[1].
+> 
+> [1] I'm calling "general purpose SoC harware" those ARM boards
+> like Raspberry Pi that are shipped to the mass and used by a wide
+> range of hobbyists and other people that just wants to run Linux on
+> ARM. It is possible to buy such boards for a very cheap price,
+> making them to be used not only on special projects, where a custom
+> made application could be interesting, but also for a lot of
+> users that just want to run Linux on a low cost ARM board, while
+> keeping using standard V4L2 apps, like "camorama".
+> 
+> That's perhaps one of the reasons why it took a long time for us to
+> start receiving drivers upstream for such hardware: it is quite 
+> intimidating and not logical to require developers to implement
+> on their drivers 2 complex APIs (MC, subdev) for those
+> hardware that most users won't care. From user's perspective,
+> being able to support generic applications like "camorama" and
+> "zbar" is all they want.
+> 
+> In summary, I'm pretty sure we need to support standard V4L2 
+> applications on boards like Raspberry Pi and those low-cost 
+> SoC-based boards that are shipped to end users.
+> 
+>> Anyway, regarding this specific patch and for this MC-aware driver: no, you
+>> shouldn't inherit controls from subdevs. It defeats the purpose.
+> 
+> Sorry, but I don't agree with that. The subdev API is an optional API
+> (and even the MC API can be optional).
+> 
+> I see the rationale for using MC and subdev APIs on cell phones,
+> ISV and other embedded hardware, as it will allow fine-tuning
+> the driver's support to allow providing the required quality for
+> certain custom-made applications. but on general SoC hardware,
+> supporting standard V4L2 applications is a need.
+> 
+> Ok, perhaps supporting both subdev API and V4L2 API at the same
+> time doesn't make much sense. We could disable one in favor of the
+> other, either at compilation time or at runtime.
 
-We really need this feature, in order to escape things like
-%ph, with is found on some C files.
+Right. If the subdev API is disabled, then you have to inherit the subdev
+controls in the bridge driver (how else would you be able to access them?).
+And that's the usual case.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- scripts/kernel-doc | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+If you do have the subdev API enabled, AND you use the MC, then the
+intention clearly is to give userspace full control and inheriting controls
+no longer makes any sense (and is highly confusing IMHO).
 
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index 33c85dfdfce9..a4e5cc3b38e8 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -202,6 +202,7 @@ EOF
- # '&struct_name.member' - name of a structure member
- # '@parameter' - name of a parameter
- # '%CONST' - name of a constant.
-+# '``LITERAL``' - literal string without any spaces on it.
- 
- ## init lots of data
- 
-@@ -210,7 +211,8 @@ my $warnings = 0;
- my $anon_struct_union = 0;
- 
- # match expressions used to find embedded type information
--my $type_constant = '\%([-_\w]+)';
-+my $type_constant = '\b``([^\`]+)``\b';
-+my $type_constant2 = '\%([-_\w]+)';
- my $type_func = '(\w+)\(\)';
- my $type_param = '\@(\w+(\.\.\.)?)';
- my $type_fp_param = '\@(\w+)\(\)';  # Special RST handling for func ptr params
-@@ -235,6 +237,7 @@ my $type_member_func = $type_member . '\(\)';
- # these work fairly well
- my @highlights_html = (
-                        [$type_constant, "<i>\$1</i>"],
-+                       [$type_constant2, "<i>\$1</i>"],
-                        [$type_func, "<b>\$1</b>"],
-                        [$type_enum_xml, "<i>\$1</i>"],
-                        [$type_struct_xml, "<i>\$1</i>"],
-@@ -252,6 +255,7 @@ my $blankline_html = $local_lt . "p" . $local_gt;	# was "<p>"
- # html version 5
- my @highlights_html5 = (
-                         [$type_constant, "<span class=\"const\">\$1</span>"],
-+                        [$type_constant2, "<span class=\"const\">\$1</span>"],
-                         [$type_func, "<span class=\"func\">\$1</span>"],
-                         [$type_enum_xml, "<span class=\"enum\">\$1</span>"],
-                         [$type_struct_xml, "<span class=\"struct\">\$1</span>"],
-@@ -268,6 +272,7 @@ my $blankline_html5 = $local_lt . "br /" . $local_gt;
- my @highlights_xml = (
-                       ["([^=])\\\"([^\\\"<]+)\\\"", "\$1<quote>\$2</quote>"],
-                       [$type_constant, "<constant>\$1</constant>"],
-+                      [$type_constant2, "<constant>\$1</constant>"],
-                       [$type_enum_xml, "<type>\$1</type>"],
-                       [$type_struct_xml, "<structname>\$1</structname>"],
-                       [$type_typedef_xml, "<type>\$1</type>"],
-@@ -283,6 +288,7 @@ my $blankline_xml = $local_lt . "/para" . $local_gt . $local_lt . "para" . $loca
- # gnome, docbook format
- my @highlights_gnome = (
-                         [$type_constant, "<replaceable class=\"option\">\$1</replaceable>"],
-+                        [$type_constant2, "<replaceable class=\"option\">\$1</replaceable>"],
-                         [$type_func, "<function>\$1</function>"],
-                         [$type_enum, "<type>\$1</type>"],
-                         [$type_struct, "<structname>\$1</structname>"],
-@@ -298,6 +304,7 @@ my $blankline_gnome = "</para><para>\n";
- # these are pretty rough
- my @highlights_man = (
-                       [$type_constant, "\$1"],
-+                      [$type_constant2, "\$1"],
-                       [$type_func, "\\\\fB\$1\\\\fP"],
-                       [$type_enum, "\\\\fI\$1\\\\fP"],
-                       [$type_struct, "\\\\fI\$1\\\\fP"],
-@@ -312,6 +319,7 @@ my $blankline_man = "";
- # text-mode
- my @highlights_text = (
-                        [$type_constant, "\$1"],
-+                       [$type_constant2, "\$1"],
-                        [$type_func, "\$1"],
-                        [$type_enum, "\$1"],
-                        [$type_struct, "\$1"],
-@@ -326,6 +334,7 @@ my $blankline_text = "";
- # rst-mode
- my @highlights_rst = (
-                        [$type_constant, "``\$1``"],
-+                       [$type_constant2, "``\$1``"],
-                        # Note: need to escape () to avoid func matching later
-                        [$type_member_func, "\\:c\\:type\\:`\$1\$2\$3\\\\(\\\\) <\$1>`"],
-                        [$type_member, "\\:c\\:type\\:`\$1\$2\$3 <\$1>`"],
-@@ -344,6 +353,7 @@ my $blankline_rst = "\n";
- # list mode
- my @highlights_list = (
-                        [$type_constant, "\$1"],
-+                       [$type_constant2, "\$1"],
-                        [$type_func, "\$1"],
-                        [$type_enum, "\$1"],
-                        [$type_struct, "\$1"],
--- 
-2.9.3
+> 
+> This way, if the subdev API is disabled, the driver will be
+> functional for V4L2-based applications that don't support neither
+> MC or subdev APIs.
+
+I'm not sure if it makes sense for the i.MX driver to behave differently
+depending on whether the subdev API is enabled or disabled. I don't know
+enough of the hardware to tell if it would ever make sense to disable the
+subdev API.
+
+Regards,
+
+	Hans
+
+> 
+>> As mentioned, I will attempt to try and get some time to work on this
+>> later this year. Fingers crossed.
+> 
+> That will be good, and, once we have a solution that works, we can
+> work on cleanup the code, but, until then, drivers for arm-based boards
+> sold to end consumers should work out of the box with standard V4L2 apps.
+> 
+> While we don't have that, I'm OK to merge patches adding such support
+> upstream.
+> 
+> Thanks,
+> Mauro
+> 
