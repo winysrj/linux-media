@@ -1,133 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:44561 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753558AbdC2Syg (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:60836 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751325AbdCKXQL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Mar 2017 14:54:36 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
-        linux-rpi-kernel@lists.infradead.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        David Mosberger <davidm@egauge.net>,
-        Oliver Neukum <oneukum@suse.com>,
-        Roger Quadros <rogerq@ti.com>,
-        Jaejoong Kim <climbbb.kim@gmail.com>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>
-Subject: [PATCH 22/22] usb: document that URB transfer_buffer should be aligned
-Date: Wed, 29 Mar 2017 15:54:21 -0300
-Message-Id: <ee3ea6944e095fa3b2383697a967f4bc9e2d9631.1490813422.git.mchehab@s-opensource.com>
-In-Reply-To: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
-References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
-In-Reply-To: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
-References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+        Sat, 11 Mar 2017 18:16:11 -0500
+Date: Sat, 11 Mar 2017 23:14:56 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
+        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
+ controls from a pipeline
+Message-ID: <20170311231456.GH21222@n2100.armlinux.org.uk>
+References: <20170303230645.GR21222@n2100.armlinux.org.uk>
+ <20170304131329.GV3220@valkosipuli.retiisi.org.uk>
+ <a7b8e095-a95c-24bd-b1e9-e983f18061c4@xs4all.nl>
+ <20170310130733.GU21222@n2100.armlinux.org.uk>
+ <c679f755-52a6-3c6f-3d65-277db46676cc@xs4all.nl>
+ <20170310140124.GV21222@n2100.armlinux.org.uk>
+ <cc8900b0-c091-b14b-96f4-01f8fa72431c@xs4all.nl>
+ <20170310125342.7f047acf@vento.lan>
+ <20170310223714.GI3220@valkosipuli.retiisi.org.uk>
+ <20170311082549.576531d0@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170311082549.576531d0@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Several host controllers, commonly found on ARM, like dwc2,
-require buffers that are CPU-word aligned for they to work.
+On Sat, Mar 11, 2017 at 08:25:49AM -0300, Mauro Carvalho Chehab wrote:
+> This situation is there since 2009. If I remember well, you tried to write
+> such generic plugin in the past, but never finished it, apparently because
+> it is too complex. Others tried too over the years. 
+> 
+> The last trial was done by Jacek, trying to cover just the exynos4 driver. 
+> Yet, even such limited scope plugin was not good enough, as it was never
+> merged upstream. Currently, there's no such plugins upstream.
+> 
+> If we can't even merge a plugin that solves it for just *one* driver,
+> I have no hope that we'll be able to do it for the generic case.
 
-Failing to do that will cause random troubles at the caller
-drivers, causing them to fail.
+This is what really worries me right now about the current proposal for
+iMX6.  What's being proposed is to make the driver exclusively MC-based.
 
-Document it.
+What that means is that existing applications are _not_ going to work
+until we have some answer for libv4l2, and from what you've said above,
+it seems that this has been attempted multiple times over the last _8_
+years, and each time it's failed.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/driver-api/usb/URB.rst | 18 ++++++++++++++++++
- drivers/usb/core/message.c           | 15 +++++++++++++++
- include/linux/usb.h                  | 18 ++++++++++++++++++
- 3 files changed, 51 insertions(+)
+When thinking about it, it's quite obvious why merely trying to push
+the problem into userspace fails:
 
-diff --git a/Documentation/driver-api/usb/URB.rst b/Documentation/driver-api/usb/URB.rst
-index d9ea6a3996e7..b83b557e9891 100644
---- a/Documentation/driver-api/usb/URB.rst
-+++ b/Documentation/driver-api/usb/URB.rst
-@@ -274,6 +274,24 @@ If you specify your own start frame, make sure it's several frames in advance
- of the current frame.  You might want this model if you're synchronizing
- ISO data with some other event stream.
- 
-+.. note::
-+
-+   Several host drivers require that the ``transfer_buffer`` to be aligned
-+   with the CPU word size (e. g. DWORD for 32 bits, QDWORD for 64 bits).
-+   It is up to USB drivers should ensure that they'll only pass buffers
-+   with such alignments.
-+
-+   Please also notice that, due to such restriction, the host driver
-+   may also override PAD bytes at the end of the ``transfer_buffer``, up to the
-+   size of the CPU word.
-+
-+   Please notice that ancillary routines that transfer URBs, like
-+   usb_control_msg() also have such restriction.
-+
-+   Such word alignment condition is normally ensured if the buffer is
-+   allocated with kmalloc(), but this may not be the case if the driver
-+   allocates a bigger buffer and point to a random place inside it.
-+
- 
- How to start interrupt (INT) transfers?
- =======================================
-diff --git a/drivers/usb/core/message.c b/drivers/usb/core/message.c
-index 4c38ea41ae96..1662a4446475 100644
---- a/drivers/usb/core/message.c
-+++ b/drivers/usb/core/message.c
-@@ -128,6 +128,21 @@ static int usb_internal_control_msg(struct usb_device *usb_dev,
-  * make sure your disconnect() method can wait for it to complete. Since you
-  * don't have a handle on the URB used, you can't cancel the request.
-  *
-+ * .. note::
-+ *
-+ *   Several host drivers require that the @data buffer to be aligned
-+ *   with the CPU word size (e. g. DWORD for 32 bits, QDWORD for 64 bits).
-+ *   It is up to USB drivers should ensure that they'll only pass buffers
-+ *   with such alignments.
-+ *
-+ *   Please also notice that, due to such restriction, the host driver
-+ *   may also override PAD bytes at the end of the @data buffer, up to the
-+ *   size of the CPU word.
-+ *
-+ *   Such word alignment condition is normally ensured if the buffer is
-+ *   allocated with kmalloc(), but this may not be the case if the driver
-+ *   allocates a bigger buffer and point to a random place inside it.
-+ *
-  * Return: If successful, the number of bytes transferred. Otherwise, a negative
-  * error number.
-  */
-diff --git a/include/linux/usb.h b/include/linux/usb.h
-index 7e68259360de..8b5ad6624708 100644
---- a/include/linux/usb.h
-+++ b/include/linux/usb.h
-@@ -1373,6 +1373,24 @@ typedef void (*usb_complete_t)(struct urb *);
-  * capable, assign NULL to it, so that usbmon knows not to use the value.
-  * The setup_packet must always be set, so it cannot be located in highmem.
-  *
-+ * .. note::
-+ *
-+ *   Several host drivers require that the @transfer_buffer to be aligned
-+ *   with the CPU word size (e. g. DWORD for 32 bits, QDWORD for 64 bits).
-+ *   It is up to USB drivers should ensure that they'll only pass buffers
-+ *   with such alignments.
-+ *
-+ *   Please also notice that, due to such restriction, the host driver
-+ *   may also override PAD bytes at the end of the @transfer_buffer, up to the
-+ *   size of the CPU word.
-+ *
-+ *   Please notice that ancillary routines that start URB transfers, like
-+ *   usb_control_msg() also have such restriction.
-+ *
-+ *   Such word alignment condition is normally ensured if the buffer is
-+ *   allocated with kmalloc(), but this may not be the case if the driver
-+ *   allocates a bigger buffer and point to a random place inside it.
-+ *
-  * Initialization:
-  *
-  * All URBs submitted must initialize the dev, pipe, transfer_flags (may be
+  If we assert that the kernel does not have sufficient information to
+  make decisions about how to route and control the hardware, then under
+  what scenario does a userspace library have sufficient information to
+  make those decisions?
+
+So, merely moving the problem into userspace doesn't solve anything.
+
+Loading the problem onto the user in the hope that the user knows
+enough to properly configure it also doesn't work - who is going to
+educate the user about the various quirks of the hardware they're
+dealing with?
+
+I don't think pushing it into platform specific libv4l2 plugins works
+either - as you say above, even just trying to develop a plugin for
+exynos4 seems to have failed, so what makes us think that developing
+a plugin for iMX6 is going to succeed?  Actually, that's exactly where
+the problem lies.
+
+Is "iMX6 plugin" even right?  That only deals with the complexity of
+one part of the system - what about the source device, which as we
+have already seen can be a tuner or a camera with its own multiple
+sub-devices.  What if there's a video improvement chip in the chain
+as well - how is a "generic" iMX6 plugin supposed to know how to deal
+with that?
+
+It seems to me that what's required is not an "iMX6 plugin" but a
+separate plugin for each platform - or worse.  Consider boards like
+the Raspberry Pi, where users can attach a variety of cameras.  I
+don't think this approach scales.  (This is relevant: the iMX6 board
+I have here has a RPi compatible connector for a MIPI CSI2 camera.
+In fact, the IMX219 module I'm using _is_ a RPi camera, it's the RPi
+NoIR Camera V2.)
+
+The iMX6 problem is way larger than just "which subdev do I need to
+configure for control X" - if you look at the dot graphs both Steve
+and myself have supplied, you'll notice that there are eight (yes,
+8) video capture devices.  Let's say that we can solve the subdev
+problem in libv4l2.  There's another problem lurking here - libv4l2
+is /dev/video* based.  How does it know which /dev/video* device to
+open?
+
+We don't open by sensor, we open by /dev/video*.  In my case, there
+is only one correct /dev/video* node for the attached sensor, the
+other seven are totally irrelevant.  For other situations, there may
+be the choice of three functional /dev/video* nodes.
+
+Right now, for my case, there isn't the information exported from the
+kernel to know which is the correct one, since that requires knowing
+which virtual channel the data is going to be sent over the CSI2
+interface.  That information is not present in DT, or anywhere.  It
+only comes from system knowledge - in my case, I know that the IMX219
+is currently being configured to use virtual channel 0.  SMIA cameras
+are also configurable.  Then there's CSI2 cameras that can produce
+different formats via different virtual channels (eg, JPEG compressed
+image on one channel while streaming a RGB image via the other channel.)
+
+Whether you can use one or three in _this_ scenario depends on the
+source format - again, another bit of implementation specific
+information that userspace would need to know.  Kernel space should
+know that, and it's discoverable by testing which paths accept the
+source format - but that doesn't tell you ahead of time which
+/dev/video* node to open.
+
+So, the problem space we have here is absolutely huge, and merely
+having a plugin that activates when you open a /dev/video* node
+really doesn't solve it.
+
+All in all, I really don't think "lets hope someone writes a v4l2
+plugin to solve it" is ever going to be successful.  I don't even
+see that there will ever be a userspace application that is anything
+more than a representation of the dot graphs that users can use to
+manually configure the capture system with system knowledge.
+
+I think everyone needs to take a step back and think long and hard
+about this from the system usability perspective - I seriously
+doubt that we will ever see any kind of solution to this if we
+continue to progress with "we'll sort it in userspace some day."
+
 -- 
-2.9.3
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
