@@ -1,65 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34806 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753594AbdCFQNm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 11:13:42 -0500
-Received: by mail-wm0-f67.google.com with SMTP id u132so6519831wmg.1
-        for <linux-media@vger.kernel.org>; Mon, 06 Mar 2017 08:13:41 -0800 (PST)
-Date: Mon, 6 Mar 2017 17:04:37 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Mark Brown <broonie@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>,
-        Laura Abbott <labbott@redhat.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com,
-        romlem@google.com, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Brian Starkey <brian.starkey@arm.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-mm@kvack.org
-Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of
- staging
-Message-ID: <20170306160437.sf7bksorlnw7u372@phenom.ffwll.local>
-References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
- <20170303132949.GC31582@dhcp22.suse.cz>
- <cf383b9b-3cbc-0092-a071-f120874c053c@redhat.com>
- <20170306074258.GA27953@dhcp22.suse.cz>
- <20170306104041.zghsicrnadoap7lp@phenom.ffwll.local>
- <20170306105805.jsq44kfxhsvazkm6@sirena.org.uk>
+Received: from mout.gmx.net ([212.227.17.20]:60370 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933837AbdCLQww (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 12 Mar 2017 12:52:52 -0400
+Received: from axis700.grange ([81.173.166.100]) by mail.gmx.com (mrgmx103
+ [212.227.17.168]) with ESMTPSA (Nemesis) id 0MSdRI-1cd6Iy2RCW-00RWd2 for
+ <linux-media@vger.kernel.org>; Sun, 12 Mar 2017 17:52:44 +0100
+Received: from localhost (localhost [127.0.0.1])
+        by axis700.grange (Postfix) with ESMTP id 72DD28B110
+        for <linux-media@vger.kernel.org>; Sun, 12 Mar 2017 17:52:43 +0100 (CET)
+Date: Sun, 12 Mar 2017 17:52:43 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL] soc-camera for 4.12
+Message-ID: <Pine.LNX.4.64.1703121751340.22698@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170306105805.jsq44kfxhsvazkm6@sirena.org.uk>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 06, 2017 at 11:58:05AM +0100, Mark Brown wrote:
-> On Mon, Mar 06, 2017 at 11:40:41AM +0100, Daniel Vetter wrote:
-> 
-> > No one gave a thing about android in upstream, so Greg KH just dumped it
-> > all into staging/android/. We've discussed ION a bunch of times, recorded
-> > anything we'd like to fix in staging/android/TODO, and Laura's patch
-> > series here addresses a big chunk of that.
-> 
-> > This is pretty much the same approach we (gpu folks) used to de-stage the
-> > syncpt stuff.
-> 
-> Well, there's also the fact that quite a few people have issues with the
-> design (like Laurent).  It seems like a lot of them have either got more
-> comfortable with it over time, or at least not managed to come up with
-> any better ideas in the meantime.
+Hi Mauro,
 
-See the TODO, it has everything a really big group (look at the patch for
-the full Cc: list) figured needs to be improved at LPC 2015. We don't just
-merge stuff because merging stuff is fun :-)
+The following changes since commit 700ea5e0e0dd70420a04e703ff264cc133834cba:
 
-Laurent was even in that group ...
--Daniel
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+  Merge tag 'v4.11-rc1' into patchwork (2017-03-06 06:49:34 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-4.12-1
+
+for you to fetch changes up to c259da29a447dbb5737c5c85e99c039263df94cc:
+
+  soc-camera: fix rectangle adjustment in cropping (2017-03-12 12:53:25 +0100)
+
+----------------------------------------------------------------
+Bhumika Goyal (1):
+      media: i2c: soc_camera: constify v4l2_subdev_* structures
+
+Geliang Tang (1):
+      sh_mobile_ceu_camera: use module_platform_driver
+
+Janusz Krzysztofik (1):
+      media: i2c/soc_camera: fix ov6650 sensor getting wrong clock
+
+Koji Matsuoka (1):
+      soc-camera: fix rectangle adjustment in cropping
+
+ drivers/media/i2c/soc_camera/imx074.c                    |  6 +++---
+ drivers/media/i2c/soc_camera/mt9m001.c                   |  6 +++---
+ drivers/media/i2c/soc_camera/mt9t031.c                   |  6 +++---
+ drivers/media/i2c/soc_camera/mt9t112.c                   |  6 +++---
+ drivers/media/i2c/soc_camera/mt9v022.c                   |  6 +++---
+ drivers/media/i2c/soc_camera/ov2640.c                    |  6 +++---
+ drivers/media/i2c/soc_camera/ov5642.c                    |  6 +++---
+ drivers/media/i2c/soc_camera/ov6650.c                    |  8 ++++----
+ drivers/media/i2c/soc_camera/ov772x.c                    |  6 +++---
+ drivers/media/i2c/soc_camera/ov9640.c                    |  6 +++---
+ drivers/media/i2c/soc_camera/ov9740.c                    |  6 +++---
+ drivers/media/i2c/soc_camera/rj54n1cb0c.c                |  6 +++---
+ drivers/media/i2c/soc_camera/tw9910.c                    |  6 +++---
+ drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c | 13 +------------
+ drivers/media/platform/soc_camera/soc_scale_crop.c       | 11 ++++++-----
+ 15 files changed, 47 insertions(+), 57 deletions(-)
+
+Thanks
+Guennadi
