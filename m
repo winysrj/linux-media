@@ -1,120 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from us01smtprelay-2.synopsys.com ([198.182.47.9]:42908 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751655AbdCNBg1 (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:47022 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935356AbdCLUlX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 21:36:27 -0400
-Subject: Re: [RFC PATCH 10/13] mm: Introduce first class virtual address
- spaces
-To: Till Smejkal <till.smejkal@googlemail.com>,
-        Richard Henderson <rth@twiddle.net>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Matt Turner <mattst88@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will.deacon@arm.com>,
-        Steven Miao <realmz6@gmail.com>,
-        Richard Kuo <rkuo@codeaurora.org>,
-        Tony Luck <tony.luck@intel.com>,
-        Fenghua Yu <fenghua.yu@intel.com>,
-        James Hogan <james.hogan@imgtec.com>,
-        Ralf Baechle <ralf@linux-mips.org>,
-        "James E.J. Bottomley" <jejb@parisc-linux.org>,
-        Helge Deller <deller@gmx.de>,
-        "Benjamin Herrenschmidt" <benh@kernel.crashing.org>,
-        Paul Mackerras <paulus@samba.org>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Martin Schwidefsky <schwidefsky@de.ibm.com>,
-        Heiko Carstens <heiko.carstens@de.ibm.com>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        "David S. Miller" <davem@synopsys.COM>
-References: <20170313221415.9375-1-till.smejkal@gmail.com>
- <20170313221415.9375-11-till.smejkal@gmail.com>
-CC: <linux-kernel@vger.kernel.org>, <linux-alpha@vger.kernel.org>,
-        <linux-snps-arc@lists.infradead.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <adi-buildroot-devel@lists.sourceforge.net>,
-        <linux-hexagon@vger.kernel.org>, <linux-ia64@vger.kernel.org>,
-        <linux-metag@vger.kernel.org>, <linux-mips@linux-mips.org>,
-        <linux-parisc@vger.kernel.org>, <linuxppc-dev@lists.ozlabs.org>,
-        <linux-s390@vger.kernel.org>, <linux-sh@vger.kernel.org>,
-        <sparclinux@vger.kernel.org>, <linux-xtensa@linux-xtensa.org>,
-        <linux-media@vger.kernel.org>, <linux-mtd@lists.infradead.org>,
-        <linux-usb@vger.kernel.org>, <linux-fsdevel@vger.kernel.org>,
-        <linux-aio@kvack.org>, <linux-mm@kvack.org>,
-        <linux-api@vger.kernel.org>, <linux-arch@vger.kernel.org>,
-        <alsa-devel@alsa-project.org>, Ingo Molnar <mingo@kernel.org>,
-        "Thomas Gleixner" <tglx@linutronix.de>,
-        Andy Lutomirski <luto@amacapital.net>
-From: Vineet Gupta <Vineet.Gupta1@synopsys.com>
-Message-ID: <cd1adda8-bf6a-47ad-bff3-5bc6626ac100@synopsys.com>
-Date: Mon, 13 Mar 2017 18:35:27 -0700
+        Sun, 12 Mar 2017 16:41:23 -0400
+Date: Sun, 12 Mar 2017 20:40:37 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: mark.rutland@arm.com, andrew-ct.chen@mediatek.com,
+        minghsiu.tsai@mediatek.com, sakari.ailus@linux.intel.com,
+        nick@shmanahar.org, songjun.wu@microchip.com, hverkuil@xs4all.nl,
+        Steve Longerbeam <steve_longerbeam@mentor.com>, pavel@ucw.cz,
+        robert.jarzmik@free.fr, devel@driverdev.osuosl.org,
+        markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, shuah@kernel.org,
+        geert@linux-m68k.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, kernel@pengutronix.de, arnd@arndb.de,
+        mchehab@kernel.org, bparrot@ti.com, robh+dt@kernel.org,
+        horms+renesas@verge.net.au, tiffany.lin@mediatek.com,
+        linux-arm-kernel@lists.infradead.org,
+        niklas.soderlund+renesas@ragnatech.se, gregkh@linuxfoundation.org,
+        linux-kernel@vger.kernel.org, jean-christophe.trotin@st.com,
+        p.zabel@pengutronix.de, fabio.estevam@nxp.com, shawnguo@kernel.org,
+        sudipm.mukherjee@gmail.com
+Subject: Re: [PATCH v5 00/39] i.MX Media Driver
+Message-ID: <20170312204037.GU21222@n2100.armlinux.org.uk>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <20170312175118.GP21222@n2100.armlinux.org.uk>
+ <191ef88d-2925-2264-6c77-46647394fc72@gmail.com>
+ <20170312192932.GQ21222@n2100.armlinux.org.uk>
+ <58b30bca-20ca-d4bd-7b86-04a4b8e71935@gmail.com>
+ <c6eda3b3-52b8-8560-8f46-a6e2d6303bbd@gmail.com>
+ <fa07c8d2-0943-b7d1-8d37-76e03bd527c0@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20170313221415.9375-11-till.smejkal@gmail.com>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <fa07c8d2-0943-b7d1-8d37-76e03bd527c0@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-+CC Ingo, tglx
+On Sun, Mar 12, 2017 at 01:36:32PM -0700, Steve Longerbeam wrote:
+> But hold on, if my logic is correct, then why did the CSI power-off
+> get reached in your case, multiple times? Yes I think there is a bug,
+> link_notify() is not checking if the link has already been disabled.
+> I will fix this. But I'm surprised media core's link_notify handling
+> doesn't do this.
 
-Hi Till,
+Well, I think there's something incredibly fishy going on here.  I
+turned that dev_dbg() at the top of the function into a dev_info(),
+and I get:
 
-On 03/13/2017 03:14 PM, Till Smejkal wrote:
-> Introduce a different type of address spaces which are first class citizens
-> in the OS. That means that the kernel now handles two types of AS, those
-> which are closely coupled with a process and those which aren't. While the
-> former ones are created and destroyed together with the process by the
-> kernel and are the default type of AS in the Linux kernel, the latter ones
-> have to be managed explicitly by the user and are the newly introduced
-> type.
-> 
-> Accordingly, a first class AS (also called VAS == virtual address space)
-> can exist in the OS independently from any process. A user has to
-> explicitly create and destroy them in the system. Processes and VAS can be
-> combined by attaching a previously created VAS to a process which basically
-> adds an additional AS to the process that the process' threads are able to
-> execute in. Hence, VAS allow a process to have different views onto the
-> main memory of the system (its original AS and the attached VAS) between
-> which its threads can switch arbitrarily during their lifetime.
-> 
-> The functionality made available through first class virtual address spaces
-> can be used in various different ways. One possible way to utilize VAS is
-> to compartmentalize a process for security reasons. Another possible usage
-> is to improve the performance of data-centric applications by being able to
-> manage different sets of data in memory without the need to map or unmap
-> them.
-> 
-> Furthermore, first class virtual address spaces can be attached to
-> different processes at the same time if the underlying memory is only
-> readable. This mechanism allows sharing of whole address spaces between
-> multiple processes that can both execute in them using the contained
-> memory.
+root@hbi2ex:~# dmesg |grep -A2 imx-ipuv3-csi
+[   53.370949] imx-ipuv3-csi imx-ipuv3-csi.0: power OFF
+[   53.371015] ------------[ cut here ]------------
+[   53.371075] WARNING: CPU: 0 PID: 1515 at drivers/staging/media/imx/imx-media-csi.c:806 csi_s_power+0xb8/0xd0 [imx_media_csi]
+--
+[   53.372624] imx-ipuv3-csi imx-ipuv3-csi.0: power OFF
+[   53.372637] ------------[ cut here ]------------
+[   53.372663] WARNING: CPU: 0 PID: 1515 at drivers/staging/media/imx/imx-media-csi.c:806 csi_s_power+0xb8/0xd0 [imx_media_csi]
 
-I've not looked at the patches closely (or read the references paper fully yet),
-but at first glance it seems on ARC architecture, we can can potentially
-use/leverage this mechanism to implement the shared TLB entries. Before anyone
-shouts these are not same as the IA64/x86 protection keys which allow TLB entries
-with different protection bits across processes etc. These TLB entries are
-actually *shared* by processes.
+There isn't a power on event being generated before these two power
+off events.  I don't see a power on event even when I attempt to
+start streaming either (which fails due to the lack of bayer
+support.)
 
-Conceptually there's shared address spaces, independent of processes. e.g. ldso
-code is shared address space #1, libc (code) #2 .... System can support a limited
-number of shared addr spaces (say 64, enough for typical embedded sys).
-
-While Normal TLB entries are tagged with ASID (Addr space ID) to keep them unique
-across processes, Shared TLB entries are tagged with Shared address space ID.
-
-A process MMU context consists of ASID (a single number) and a SASID bitmap (to
-allow "subscription" to multiple Shared spaces. The subscriptions are set up bu
-userspace ld.so which knows about the libs process wants to map.
-
-The restriction ofcourse is that the spaces are mapped at *same* vaddr is all
-participating processes. I know this goes against whole security, address space
-randomization - but it gives much better real time performance. Why does each
-process need to take a MMU exception for libc code...
-
-So long story short - it seems there can be multiple uses of this infrastructure !
-
--Vineet
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
