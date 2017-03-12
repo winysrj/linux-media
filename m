@@ -1,127 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:33427 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750962AbdCQFSM (ORCPT
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:34259 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755449AbdCLDbX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Mar 2017 01:18:12 -0400
-Message-ID: <4c22df1c7a6ce984776b22836ae6bb20@smtp-cloud2.xs4all.net>
-Date: Fri, 17 Mar 2017 06:17:05 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Sat, 11 Mar 2017 22:31:23 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
+ controls from a pipeline
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+References: <20170303230645.GR21222@n2100.armlinux.org.uk>
+ <20170304131329.GV3220@valkosipuli.retiisi.org.uk>
+ <a7b8e095-a95c-24bd-b1e9-e983f18061c4@xs4all.nl>
+ <20170310120902.1daebc7b@vento.lan>
+ <5e1183f4-774f-413a-628a-96e0df321faf@xs4all.nl>
+ <20170311101408.272a9187@vento.lan>
+ <20170311153229.yrdjmggb3p2suhdw@ihha.localdomain>
+ <acfb5eca-ff00-6d57-339a-3322034cbdb3@gmail.com>
+ <20170311184551.GD21222@n2100.armlinux.org.uk>
+ <1f1b350a-5523-34bc-07b7-f3cd2d1fd4c1@gmail.com>
+ <20170311185959.GF21222@n2100.armlinux.org.uk>
+Cc: mark.rutland@arm.com, andrew-ct.chen@mediatek.com,
+        minghsiu.tsai@mediatek.com, nick@shmanahar.org,
+        songjun.wu@microchip.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        pavel@ucw.cz, shuah@kernel.org, devel@driverdev.osuosl.org,
+        markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, robert.jarzmik@free.fr,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        geert@linux-m68k.org, p.zabel@pengutronix.de,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        kernel@pengutronix.de, arnd@arndb.de, tiffany.lin@mediatek.com,
+        bparrot@ti.com, robh+dt@kernel.org, horms+renesas@verge.net.au,
+        mchehab@kernel.org, linux-arm-kernel@lists.infradead.org,
+        niklas.soderlund+renesas@ragnatech.se, gregkh@linuxfoundation.org,
+        linux-kernel@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
+        jean-christophe.trotin@st.com, sakari.ailus@linux.intel.com,
+        fabio.estevam@nxp.com, shawnguo@kernel.org,
+        sudipm.mukherjee@gmail.com
+Message-ID: <4917d7fb-2f48-17cd-aa2f-d54b0f19ed6e@gmail.com>
+Date: Sat, 11 Mar 2017 19:31:18 -0800
+MIME-Version: 1.0
+In-Reply-To: <20170311185959.GF21222@n2100.armlinux.org.uk>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
 
-date:			Fri Mar 17 05:00:15 CET 2017
-media-tree git hash:	700ea5e0e0dd70420a04e703ff264cc133834cba
-media_build git hash:	bc4c2a205c087c8deff3cd14ed663c4767dd2016
-v4l-utils git hash:	5fe0692261996876dceedbd47f254691371d4c78
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+On 03/11/2017 10:59 AM, Russell King - ARM Linux wrote:
+> On Sat, Mar 11, 2017 at 10:54:55AM -0800, Steve Longerbeam wrote:
+>>
+>>
+>> On 03/11/2017 10:45 AM, Russell King - ARM Linux wrote:
+>>> I really don't think expecting the user to understand and configure
+>>> the pipeline is a sane way forward.  Think about it - should the
+>>> user need to know that, because they have a bayer-only CSI data
+>>> source, that there is only one path possible, and if they try to
+>>> configure a different path, then things will just error out?
+>>>
+>>> For the case of imx219 connected to iMX6, it really is as simple as
+>>> "there is only one possible path" and all the complexity of the media
+>>> interfaces/subdevs is completely unnecessary.  Every other block in
+>>> the graph is just noise.
+>>>
+>>> The fact is that these dot graphs show a complex picture, but reality
+>>> is somewhat different - there's only relatively few paths available
+>>> depending on the connected source and the rest of the paths are
+>>> completely useless.
+>>>
+>>
+>> I totally disagree there. Raw bayer requires passthrough yes, but for
+>> all other media bus formats on a mipi csi-2 bus, and all other media
+>> bus formats on 8-bit parallel buses, the conersion pipelines can be
+>> used for scaling, CSC, rotation, and motion-compensated de-interlacing.
+>
+> ... which only makes sense _if_ your source can produce those formats.
+> We don't actually disagree on that.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10.1-i686: OK
-linux-4.11-rc1-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-x86_64: WARNINGS
-linux-4.10.1-x86_64: WARNINGS
-linux-4.11-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+...and there are lots of those sources! You should try getting out of
+your imx219 shell some time, and have a look around! :)
 
-Detailed results are available here:
+>
+> Let me re-state.  If the source can _only_ produce bayer, then there is
+> _only_ _one_ possible path, and all the overhead of the media controller
+> stuff is totally unnecessary.
+>
+> Or, are you going to tell me that the user should have the right to
+> configure paths through the iMX6 hardware that are not permitted by the
+> iMX6 manuals for the data format being produced by the sensor?
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+Anyway, no the user is not allowed to configure a path that is not
+allowed by the hardware, such as attempting to pass raw bayer through
+an Image Converter path.
 
-Full logs are available here:
+I guess you are simply commenting that for users of bayer sensors, the
+other pipelines can be "confusing". But I trust you're not saying those
+other pipelines should therefore not be present, which would be a
+completely nutty argument.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Steve
