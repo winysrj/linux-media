@@ -1,97 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34913 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754351AbdCXSZu (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:34258 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755761AbdCLUQH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Mar 2017 14:25:50 -0400
-Received: by mail-wm0-f67.google.com with SMTP id z133so2223163wmb.2
-        for <linux-media@vger.kernel.org>; Fri, 24 Mar 2017 11:25:44 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: mchehab@kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH v2 01/12] [media] dvb-frontends/stv0367: add flag to make i2c_gatectrl optional
-Date: Fri, 24 Mar 2017 19:23:57 +0100
-Message-Id: <20170324182408.25996-2-d.scheller.oss@gmail.com>
-In-Reply-To: <20170324182408.25996-1-d.scheller.oss@gmail.com>
-References: <20170324182408.25996-1-d.scheller.oss@gmail.com>
+        Sun, 12 Mar 2017 16:16:07 -0400
+Subject: Re: [PATCH v5 00/39] i.MX Media Driver
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <20170312175118.GP21222@n2100.armlinux.org.uk>
+ <191ef88d-2925-2264-6c77-46647394fc72@gmail.com>
+ <20170312192932.GQ21222@n2100.armlinux.org.uk>
+ <58b30bca-20ca-d4bd-7b86-04a4b8e71935@gmail.com>
+Cc: mark.rutland@arm.com, andrew-ct.chen@mediatek.com,
+        minghsiu.tsai@mediatek.com, sakari.ailus@linux.intel.com,
+        nick@shmanahar.org, songjun.wu@microchip.com, hverkuil@xs4all.nl,
+        Steve Longerbeam <steve_longerbeam@mentor.com>, pavel@ucw.cz,
+        robert.jarzmik@free.fr, devel@driverdev.osuosl.org,
+        markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, shuah@kernel.org,
+        geert@linux-m68k.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, kernel@pengutronix.de, arnd@arndb.de,
+        mchehab@kernel.org, bparrot@ti.com, robh+dt@kernel.org,
+        horms+renesas@verge.net.au, tiffany.lin@mediatek.com,
+        linux-arm-kernel@lists.infradead.org,
+        niklas.soderlund+renesas@ragnatech.se, gregkh@linuxfoundation.org,
+        linux-kernel@vger.kernel.org, jean-christophe.trotin@st.com,
+        p.zabel@pengutronix.de, fabio.estevam@nxp.com, shawnguo@kernel.org,
+        sudipm.mukherjee@gmail.com
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <c6eda3b3-52b8-8560-8f46-a6e2d6303bbd@gmail.com>
+Date: Sun, 12 Mar 2017 13:16:02 -0700
+MIME-Version: 1.0
+In-Reply-To: <58b30bca-20ca-d4bd-7b86-04a4b8e71935@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
 
-Some hardware and bridges (namely ddbridge) require that tuner access is
-limited to one concurrent access and wrap i2c gate control with a
-mutex_lock when attaching frontends. According to vendor information, this
-is required as concurrent tuner reconfiguration can interfere each other
-and at worst cause tuning fails or bad reception quality.
 
-If the demod driver does gate_ctrl before setting up tuner parameters, and
-the tuner does another I2C enable, it will deadlock forever when gate_ctrl
-is wrapped into the mutex_lock. This adds a flag and a conditional before
-triggering gate_ctrl in the demodulator driver.
+On 03/12/2017 12:44 PM, Steve Longerbeam wrote:
+>
+>
+> On 03/12/2017 12:29 PM, Russell King - ARM Linux wrote:
+>> On Sun, Mar 12, 2017 at 12:21:45PM -0700, Steve Longerbeam wrote:
+>>> There's actually nothing preventing userland from disabling a link
+>>> multiple times, and imx_media_link_notify() complies, and so
+>>> csi_s_power(OFF) gets called multiple times, and so that WARN_ON()
+>>> in there is silly, I borrowed this from other MC driver examples,
+>>> but it makes no sense to me, I'll remove it and prevent the power
+>>> count from going negative.
+>>
+>> Hmm.  So what happens if one of the CSI's links is enabled, and we
+>> disable a different link from the CSI several times?  Doesn't that
+>> mean the power count will go to zero despite there being an enabled
+>> link?
+>
+> Yes, the CSI will be powered off even if it still has an enabled link.
+> But one of its other links has been disabled, meaning the pipeline as
+> a whole is disabled. So I think it makes sense to power down the CSI,
+> the pipeline isn't usable at that point.
+>
+> And remember that the CSI does not allow both output pads to be enabled
+> at the same time. If that were so then indeed there would be a problem,
+> because it would mean there is another active pipeline that requires the
+> CSI being powered on, but that's not the case.
+>
+> I think this is consistent with the other entities as well, but I will
+> double check.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/dvb-frontends/stv0367.c | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
-index fd49c43..fc80934 100644
---- a/drivers/media/dvb-frontends/stv0367.c
-+++ b/drivers/media/dvb-frontends/stv0367.c
-@@ -89,6 +89,8 @@ struct stv0367_state {
- 	struct stv0367cab_state *cab_state;
- 	/* DVB-T */
- 	struct stv0367ter_state *ter_state;
-+	/* flags for operation control */
-+	u8 use_i2c_gatectrl;
- };
- 
- struct st_register {
-@@ -1827,10 +1829,10 @@ static int stv0367ter_set_frontend(struct dvb_frontend *fe)
- 	stv0367ter_init(fe);
- 
- 	if (fe->ops.tuner_ops.set_params) {
--		if (fe->ops.i2c_gate_ctrl)
-+		if (state->use_i2c_gatectrl && fe->ops.i2c_gate_ctrl)
- 			fe->ops.i2c_gate_ctrl(fe, 1);
- 		fe->ops.tuner_ops.set_params(fe);
--		if (fe->ops.i2c_gate_ctrl)
-+		if (state->use_i2c_gatectrl && fe->ops.i2c_gate_ctrl)
- 			fe->ops.i2c_gate_ctrl(fe, 0);
- 	}
- 
-@@ -2321,6 +2323,9 @@ struct dvb_frontend *stv0367ter_attach(const struct stv0367_config *config,
- 	state->fe.demodulator_priv = state;
- 	state->chip_id = stv0367_readreg(state, 0xf000);
- 
-+	/* demod operation options */
-+	state->use_i2c_gatectrl = 1;
-+
- 	dprintk("%s: chip_id = 0x%x\n", __func__, state->chip_id);
- 
- 	/* check if the demod is there */
-@@ -3120,10 +3125,10 @@ static int stv0367cab_set_frontend(struct dvb_frontend *fe)
- 
- 	/* Tuner Frequency Setting */
- 	if (fe->ops.tuner_ops.set_params) {
--		if (fe->ops.i2c_gate_ctrl)
-+		if (state->use_i2c_gatectrl && fe->ops.i2c_gate_ctrl)
- 			fe->ops.i2c_gate_ctrl(fe, 1);
- 		fe->ops.tuner_ops.set_params(fe);
--		if (fe->ops.i2c_gate_ctrl)
-+		if (state->use_i2c_gatectrl && fe->ops.i2c_gate_ctrl)
- 			fe->ops.i2c_gate_ctrl(fe, 0);
- 	}
- 
-@@ -3437,6 +3442,9 @@ struct dvb_frontend *stv0367cab_attach(const struct stv0367_config *config,
- 	state->fe.demodulator_priv = state;
- 	state->chip_id = stv0367_readreg(state, 0xf000);
- 
-+	/* demod operation options */
-+	state->use_i2c_gatectrl = 1;
-+
- 	dprintk("%s: chip_id = 0x%x\n", __func__, state->chip_id);
- 
- 	/* check if the demod is there */
--- 
-2.10.2
+At first I thought this could be a problem for one entity, the csi-2
+receiver.
+
+It can enable all four of its output pads at once (if the input stream
+contains all 4 virtual channels, the csi-2 receiver must support
+demuxing all of them onto all 4 of its output pads).
+
+But after more review, this should not be an issue. If a csi-2 sink
+(a CSI or a CSI mux) link is disabled, the csi-2 receiver is no longer
+reachable from that sink, so attempts to disable the csi-2 via that
+path again is not possible. The other potential problem is disabling
+from the csi-2's own sink pad, but in that case the csi-2 no longer
+has a source, so again it makes sense to power off the csi-2 even
+if it has enabled output pads.
+
+
+Steve
