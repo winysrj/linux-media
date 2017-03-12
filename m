@@ -1,79 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:34699 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752371AbdCCOay (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 09:30:54 -0500
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:46400 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935308AbdCLT6o (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 12 Mar 2017 15:58:44 -0400
+Date: Sun, 12 Mar 2017 19:57:41 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v5 00/39] i.MX Media Driver
+Message-ID: <20170312195741.GS21222@n2100.armlinux.org.uk>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <20170310201356.GA21222@n2100.armlinux.org.uk>
+ <47542ef8-3e91-b4cd-cc65-95000105f172@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAG_fn=WayMEnBO4pzuxQ5jgn-ii6vrALuOex5Ei1ZhzMR7_tjg@mail.gmail.com>
-References: <20170302163834.2273519-1-arnd@arndb.de> <20170302163834.2273519-2-arnd@arndb.de>
- <7e7a62de-3b79-6044-72fa-4ade418953d1@virtuozzo.com> <CAG_fn=WayMEnBO4pzuxQ5jgn-ii6vrALuOex5Ei1ZhzMR7_tjg@mail.gmail.com>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Fri, 3 Mar 2017 15:30:37 +0100
-Message-ID: <CAK8P3a3+8wxsUntUnOteOv8_p=yBZLk-4Uu-HGM17o9n9OqteQ@mail.gmail.com>
-Subject: Re: [PATCH 01/26] compiler: introduce noinline_for_kasan annotation
-To: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        kasan-dev <kasan-dev@googlegroups.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Networking <netdev@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
-        linux-wireless <linux-wireless@vger.kernel.org>,
-        kernel-build-reports@lists.linaro.org,
-        "David S . Miller" <davem@davemloft.net>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <47542ef8-3e91-b4cd-cc65-95000105f172@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 3, 2017 at 2:55 PM, Alexander Potapenko <glider@google.com> wrote:
-> On Fri, Mar 3, 2017 at 2:50 PM, Andrey Ryabinin <aryabinin@virtuozzo.com> wrote:
+On Sat, Mar 11, 2017 at 04:30:53PM -0800, Steve Longerbeam wrote:
+> If it's too difficult to get the imx219 csi-2 transmitter into the
+> LP-11 state on power on, perhaps the csi-2 receiver can be a little
+> more lenient on the transmitter and make the LP-11 timeout a warning
+> instead of error-out.
+> 
+> Can you try the attached change on top of the version 5 patchset?
+> 
+> If that doesn't work then you're just going to have to fix the bug
+> in imx219.
 
->>> @@ -416,6 +416,17 @@ static __always_inline void __write_once_size(volatile void *p, void *res, int s
->>>   */
->>>  #define noinline_for_stack noinline
->>>
->>> +/*
->>> + * CONFIG_KASAN can lead to extreme stack usage with certain patterns when
->>> + * one function gets inlined many times and each instance requires a stack
->>> + * ckeck.
->>> + */
->>> +#ifdef CONFIG_KASAN
->>> +#define noinline_for_kasan noinline __maybe_unused
->>
->>
->> noinline_iff_kasan might be a better name.  noinline_for_kasan gives the impression
->> that we always noinline function for the sake of kasan, while noinline_iff_kasan
->> clearly indicates that function is noinline only if kasan is used.
+That patch gets me past that hurdle, only to reveal that there's another
+issue:
 
-Fine with me. I actually tried to come up with a name that implies that the
-symbol is actually "inline" (or even __always_inline_ without KASAN, but
-couldn't think of any good name for it.
+imx6-mipi-csi2: LP-11 timeout, phy_state = 0x00000200
+imx219 0-0010: VT: pixclk 139200000Hz line 80742Hz frame 30.0Hz
+imx219 0-0010: VT: line period 12385ns
+imx219 0-0010: OP: pixclk 38500000Hz, 2 lanes, 308Mbps peak each
+imx219 0-0010: OP: 3288 bits/line/lane act=10675ns lp/idle=1710ns
+ipu1_csi0: csi_idmac_setup failed: -22
+ipu1_csi0: pipeline start failed with -22
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 1860 at /home/rmk/git/linux-rmk/drivers/media/v4l2-core/videobuf2-core.c:1340 vb2_start_streaming+0x124/0x1b4 [videobuf2_core]
 
-> FWIW we may be facing the same problem with other compiler-based
-> tools, e.g. KMSAN (which isn't there yet).
-> So it might be better to choose a macro name that doesn't use the name "KASAN".
-> E.g. noinline_iff_memtool (or noinline_iff_memory_tool if that's not too long).
-> WDYT?
-
-Would KMSAN also force local variables to be non-overlapping the way that
-asan-stack=1 and -fsanitize-address-use-after-scope do? As I understood it,
-KMSAN would add extra code for maintaining the uninit bits, but in an example
-like this
-
-int f(int *);
-static inline __attribute__((always_inline)) int g(void)
-{
-    int i;
-    f(&i);
-    return i;
-}
-int f(void)
-{
-     return g()+g()+g()+g();
-}
-
-each of the four copies of 'i' could have the same location on the stack
-and get marked uninitialized again before calling f(). We only need
-noinline_for_kasan (whatever we end up calling that) for compiler
-features that force each instance of 'i' to have its own stack redzone.
-
-     Arnd
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
