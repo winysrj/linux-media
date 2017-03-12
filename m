@@ -1,91 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:8225 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933850AbdC3P2q (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:35686 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751469AbdCLAa6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 11:28:46 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-CC: <devicetree@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH v2 3/8] ARM: dts: stm32: Enable DCMI support on STM32F429 MCU
-Date: Thu, 30 Mar 2017 17:27:42 +0200
-Message-ID: <1490887667-8880-4-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1490887667-8880-1-git-send-email-hugues.fruchet@st.com>
-References: <1490887667-8880-1-git-send-email-hugues.fruchet@st.com>
+        Sat, 11 Mar 2017 19:30:58 -0500
+Subject: Re: [PATCH v5 00/39] i.MX Media Driver
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <20170310201356.GA21222@n2100.armlinux.org.uk>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <47542ef8-3e91-b4cd-cc65-95000105f172@gmail.com>
+Date: Sat, 11 Mar 2017 16:30:53 -0800
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20170310201356.GA21222@n2100.armlinux.org.uk>
+Content-Type: multipart/mixed;
+ boundary="------------B0044A2B02560C3AD74EC7A5"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- arch/arm/boot/dts/stm32f429.dtsi | 37 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
+This is a multi-part message in MIME format.
+--------------B0044A2B02560C3AD74EC7A5
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 
-diff --git a/arch/arm/boot/dts/stm32f429.dtsi b/arch/arm/boot/dts/stm32f429.dtsi
-index ee0da97..e1ff978 100644
---- a/arch/arm/boot/dts/stm32f429.dtsi
-+++ b/arch/arm/boot/dts/stm32f429.dtsi
-@@ -736,6 +736,29 @@
- 					slew-rate = <3>;
- 				};
- 			};
-+
-+			dcmi_pins: dcmi_pins@0 {
-+				pins {
-+					pinmux = <STM32F429_PA4_FUNC_DCMI_HSYNC>,
-+						 <STM32F429_PB7_FUNC_DCMI_VSYNC>,
-+						 <STM32F429_PA6_FUNC_DCMI_PIXCLK>,
-+						 <STM32F429_PC6_FUNC_DCMI_D0>,
-+						 <STM32F429_PC7_FUNC_DCMI_D1>,
-+						 <STM32F429_PC8_FUNC_DCMI_D2>,
-+						 <STM32F429_PC9_FUNC_DCMI_D3>,
-+						 <STM32F429_PC11_FUNC_DCMI_D4>,
-+						 <STM32F429_PD3_FUNC_DCMI_D5>,
-+						 <STM32F429_PB8_FUNC_DCMI_D6>,
-+						 <STM32F429_PE6_FUNC_DCMI_D7>,
-+						 <STM32F429_PC10_FUNC_DCMI_D8>,
-+						 <STM32F429_PC12_FUNC_DCMI_D9>,
-+						 <STM32F429_PD6_FUNC_DCMI_D10>,
-+						 <STM32F429_PD2_FUNC_DCMI_D11>;
-+					bias-disable;
-+					drive-push-pull;
-+					slew-rate = <3>;
-+				};
-+			};
- 		};
+
+
+On 03/10/2017 12:13 PM, Russell King - ARM Linux wrote:
+> Version 5 gives me no v4l2 controls exposed through the video device
+> interface.
+>
+> Just like with version 4, version 5 is completely useless with IMX219:
+>
+> imx6-mipi-csi2: LP-11 timeout, phy_state = 0x00000200
+> ipu1_csi0: pipeline start failed with -110
+> imx6-mipi-csi2: LP-11 timeout, phy_state = 0x00000200
+> ipu1_csi0: pipeline start failed with -110
+> imx6-mipi-csi2: LP-11 timeout, phy_state = 0x00000200
+> ipu1_csi0: pipeline start failed with -110
+>
+
+If it's too difficult to get the imx219 csi-2 transmitter into the
+LP-11 state on power on, perhaps the csi-2 receiver can be a little
+more lenient on the transmitter and make the LP-11 timeout a warning
+instead of error-out.
+
+Can you try the attached change on top of the version 5 patchset?
+
+If that doesn't work then you're just going to have to fix the bug
+in imx219.
+
+Steve
+
+--------------B0044A2B02560C3AD74EC7A5
+Content-Type: text/x-patch;
+ name="warn-on-lp-11-timeout.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="warn-on-lp-11-timeout.diff"
+
+diff --git a/drivers/staging/media/imx/imx6-mipi-csi2.c b/drivers/staging/media/imx/imx6-mipi-csi2.c
+index d8f931e..720bf4d 100644
+--- a/drivers/staging/media/imx/imx6-mipi-csi2.c
++++ b/drivers/staging/media/imx/imx6-mipi-csi2.c
+@@ -224,11 +224,8 @@ static int csi2_dphy_wait_stopstate(struct csi2_dev *csi2)
  
- 		rcc: rcc@40023810 {
-@@ -805,6 +828,20 @@
- 			status = "disabled";
- 		};
+ 	ret = readl_poll_timeout(csi2->base + CSI2_PHY_STATE, reg,
+ 				 (reg & mask) == mask, 0, 500000);
+-	if (ret) {
+-		v4l2_err(&csi2->sd, "LP-11 timeout, phy_state = 0x%08x\n", reg);
+-		return ret;
+-	}
+-
++	if (ret)
++		v4l2_warn(&csi2->sd, "LP-11 timeout, phy_state = 0x%08x\n", reg);
+ 	return 0;
+ }
  
-+		dcmi: dcmi@50050000 {
-+			compatible = "st,stm32-dcmi";
-+			reg = <0x50050000 0x400>;
-+			interrupts = <78>;
-+			resets = <&rcc STM32F4_AHB2_RESET(DCMI)>;
-+			clocks = <&rcc 0 STM32F4_AHB2_CLOCK(DCMI)>;
-+			clock-names = "mclk";
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&dcmi_pins>;
-+			dmas = <&dma2 1 1 0x414 0x3>;
-+			dma-names = "tx";
-+			status = "disabled";
-+		};
-+
- 		rng: rng@50060800 {
- 			compatible = "st,stm32-rng";
- 			reg = <0x50060800 0x400>;
--- 
-1.9.1
+
+--------------B0044A2B02560C3AD74EC7A5--
