@@ -1,119 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f194.google.com ([209.85.223.194]:36662 "EHLO
-        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754594AbdCUBn3 (ORCPT
+Received: from michel.telenet-ops.be ([195.130.137.88]:53512 "EHLO
+        michel.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755786AbdCLNRP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 21:43:29 -0400
-MIME-Version: 1.0
-In-Reply-To: <58CFD505.60201@bfs.de>
-References: <20170320105940.GA17472@SEL-JYOUN-D1> <58CFC561.8090104@bfs.de>
- <CAHb8M2DELnWoo8UAEni-dc8fnVmpp8d-XeOObeB37deT5+8_gQ@mail.gmail.com> <58CFD505.60201@bfs.de>
-From: DaeSeok Youn <daeseok.youn@gmail.com>
-Date: Tue, 21 Mar 2017 10:43:27 +0900
-Message-ID: <CAHb8M2AgV0J4YWc52-yzSsUWUCWfNP-ffmjOFkt6Y-mzsF8zUg@mail.gmail.com>
-Subject: Re: [PATCH 2/4] staging: atomisp: simplify if statement in atomisp_get_sensor_fps()
-To: wharms@bfs.de
-Cc: mchehab@kernel.org, Greg KH <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@linux.intel.com>,
-        SIMRAN SINGHAL <singhalsimran0@gmail.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        linux-media@vger.kernel.org, devel <devel@driverdev.osuosl.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        kernel-janitors <kernel-janitors@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+        Sun, 12 Mar 2017 09:17:15 -0400
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: devicetree@vger.kernel.org
+Cc: Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        linux-kernel@vger.kernel.org,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        linux-media@vger.kernel.org
+Subject: [PATCH v2 12/23] MAINTAINERS: Add file patterns for media device tree bindings
+Date: Sun, 12 Mar 2017 14:16:56 +0100
+Message-Id: <1489324627-19126-13-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1489324627-19126-1-git-send-email-geert@linux-m68k.org>
+References: <1489324627-19126-1-git-send-email-geert@linux-m68k.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-03-20 22:11 GMT+09:00 walter harms <wharms@bfs.de>:
->
->
-> Am 20.03.2017 13:51, schrieb DaeSeok Youn:
->> 2017-03-20 21:04 GMT+09:00 walter harms <wharms@bfs.de>:
->>>
->>>
->>> Am 20.03.2017 11:59, schrieb Daeseok Youn:
->>>> If v4l2_subdev_call() gets the global frame interval values,
->>>> it returned 0 and it could be checked whether numerator is zero or not.
->>>>
->>>> If the numerator is not zero, the fps could be calculated in this function.
->>>> If not, it just returns 0.
->>>>
->>>> Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
->>>> ---
->>>>  .../media/atomisp/pci/atomisp2/atomisp_cmd.c       | 22 ++++++++++------------
->>>>  1 file changed, 10 insertions(+), 12 deletions(-)
->>>>
->>>> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
->>>> index 8bdb224..6bdd19e 100644
->>>> --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
->>>> +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
->>>> @@ -153,20 +153,18 @@ struct atomisp_acc_pipe *atomisp_to_acc_pipe(struct video_device *dev)
->>>>
->>>>  static unsigned short atomisp_get_sensor_fps(struct atomisp_sub_device *asd)
->>>>  {
->>>> -     struct v4l2_subdev_frame_interval frame_interval;
->>>> +     struct v4l2_subdev_frame_interval fi;
->>>>       struct atomisp_device *isp = asd->isp;
->>>> -     unsigned short fps;
->>>>
->>>> -     if (v4l2_subdev_call(isp->inputs[asd->input_curr].camera,
->>>> -         video, g_frame_interval, &frame_interval)) {
->>>> -             fps = 0;
->>>> -     } else {
->>>> -             if (frame_interval.interval.numerator)
->>>> -                     fps = frame_interval.interval.denominator /
->>>> -                         frame_interval.interval.numerator;
->>>> -             else
->>>> -                     fps = 0;
->>>> -     }
->>>> +     unsigned short fps = 0;
->>>> +     int ret;
->>>> +
->>>> +     ret = v4l2_subdev_call(isp->inputs[asd->input_curr].camera,
->>>> +                            video, g_frame_interval, &fi);
->>>> +
->>>> +     if (!ret && fi.interval.numerator)
->>>> +             fps = fi.interval.denominator / fi.interval.numerator;
->>>> +
->>>>       return fps;
->>>>  }
->>>
->>>
->>>
->>> do you need to check ret at all ? if an error occurs can fi.interval.numerator
->>> be something else than 0 ?
->> the return value from the v4l2_subdev_call() function is zero when it
->> is done without any error. and also I checked
->> the ret value whether is 0 or not. if the ret is 0 then the value of
->> numerator should be checked to avoid for dividing by 0.
->>>
->>> if ret is an ERRNO it would be wise to return ret not fps, but this may require
->>> changes at other places also.
->> hmm.., yes, you are right. but I think it is ok because the
->> atomisp_get_sensor_fps() function is needed to get fps value.
->> (originally, zero or calculated fps value was returned.)
->
-> maybe its better to divide this in:
->         if (ret)
->            return 0; // error case
->
->         return (fi.interval.numerator>0)?fi.interval.denominator / fi.interval.numerator:0;
->
-> So there is a chance that someone will a) understand and b) fix the error return.
-yes, it looks better than mine. I will update it and resend it.
+Submitters of device tree binding documentation may forget to CC
+the subsystem maintainer if this is missing.
 
-Thanks walter,
-Regards,
-Daeseok Youn.
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+---
+Please apply this patch directly if you want to be involved in device
+tree binding documentation for your subsystem.
 
->
-> re,
->  wh
->
->>
->>>
->>> re,
->>>  wh
->>>
->>>>
->>
+v2:
+  - Add Reviewed-by.
+
+Impact on next-20170310:
+
+-Rob Herring <robh+dt@kernel.org> (maintainer:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS,commit_signer:24/39=62%)
++Mauro Carvalho Chehab <mchehab@kernel.org> (maintainer:MEDIA INPUT INFRASTRUCTURE (V4L/DVB))
++Rob Herring <robh+dt@kernel.org> (maintainer:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS)
+ Mark Rutland <mark.rutland@arm.com> (maintainer:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS)
+-Mauro Carvalho Chehab <mchehab@kernel.org> (commit_signer:34/39=87%)
+-Hans Verkuil <hans.verkuil@cisco.com> (commit_signer:13/39=33%)
+-Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com> (commit_signer:11/39=28%,authored:3/39=8%)
+-Marek Szyprowski <m.szyprowski@samsung.com> (commit_signer:4/39=10%,authored:4/39=10%)
+-Kieran Bingham <kieran+renesas@bingham.xyz> (authored:3/39=8%)
+-Martin Blumenstingl <martin.blumenstingl@googlemail.com> (authored:2/39=5%)
+-Eric Engestrom <eric@engestrom.ch> (authored:2/39=5%)
++linux-media@vger.kernel.org (open list:MEDIA INPUT INFRASTRUCTURE (V4L/DVB))
+ devicetree@vger.kernel.org (open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS)
+ linux-kernel@vger.kernel.org (open list)
+---
+ MAINTAINERS | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 2692055d221e2bb2..3e108e31636d4db2 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8085,6 +8085,7 @@ W:	https://linuxtv.org
+ Q:	http://patchwork.kernel.org/project/linux-media/list/
+ T:	git git://linuxtv.org/media_tree.git
+ S:	Maintained
++F:	Documentation/devicetree/bindings/media/
+ F:	Documentation/media/
+ F:	drivers/media/
+ F:	drivers/staging/media/
+-- 
+2.7.4
