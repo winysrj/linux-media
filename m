@@ -1,253 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f177.google.com ([209.85.161.177]:33340 "EHLO
-        mail-yw0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751487AbdCPOMi (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:37984 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755703AbdCLHit (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Mar 2017 10:12:38 -0400
+        Sun, 12 Mar 2017 03:38:49 -0400
+Date: Sun, 12 Mar 2017 07:37:45 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: mark.rutland@arm.com, andrew-ct.chen@mediatek.com,
+        minghsiu.tsai@mediatek.com, nick@shmanahar.org,
+        songjun.wu@microchip.com, Hans Verkuil <hverkuil@xs4all.nl>,
+        pavel@ucw.cz, shuah@kernel.org, devel@driverdev.osuosl.org,
+        markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, robert.jarzmik@free.fr,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        geert@linux-m68k.org, p.zabel@pengutronix.de,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        kernel@pengutronix.de, arnd@arndb.de, tiffany.lin@mediatek.com,
+        bparrot@ti.com, robh+dt@kernel.org, horms+renesas@verge.net.au,
+        mchehab@kernel.org, linux-arm-kernel@lists.infradead.org,
+        niklas.soderlund+renesas@ragnatech.se, gregkh@linuxfoundation.org,
+        linux-kernel@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
+        jean-christophe.trotin@st.com, sakari.ailus@linux.intel.com,
+        fabio.estevam@nxp.com, shawnguo@kernel.org,
+        sudipm.mukherjee@gmail.com
+Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
+ controls from a pipeline
+Message-ID: <20170312073745.GI21222@n2100.armlinux.org.uk>
+References: <a7b8e095-a95c-24bd-b1e9-e983f18061c4@xs4all.nl>
+ <20170310120902.1daebc7b@vento.lan>
+ <5e1183f4-774f-413a-628a-96e0df321faf@xs4all.nl>
+ <20170311101408.272a9187@vento.lan>
+ <20170311153229.yrdjmggb3p2suhdw@ihha.localdomain>
+ <acfb5eca-ff00-6d57-339a-3322034cbdb3@gmail.com>
+ <20170311184551.GD21222@n2100.armlinux.org.uk>
+ <1f1b350a-5523-34bc-07b7-f3cd2d1fd4c1@gmail.com>
+ <20170311185959.GF21222@n2100.armlinux.org.uk>
+ <4917d7fb-2f48-17cd-aa2f-d54b0f19ed6e@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20170316140725.GF31595@intel.com>
-References: <20170127172324.GB12018@e106950-lin.cambridge.arm.com>
- <20170130133513.GO31595@intel.com> <20170131123329.GB24500@e106950-lin.cambridge.arm.com>
- <20170131151546.GT31595@intel.com> <20170131155541.GF11506@e106950-lin.cambridge.arm.com>
- <20170316140725.GF31595@intel.com>
-From: Alex Deucher <alexdeucher@gmail.com>
-Date: Thu, 16 Mar 2017 10:12:35 -0400
-Message-ID: <CADnq5_P1d6qMAUwY7W+SKXQVik99yvaQp6tJ-i+4ki8ZP5f5TQ@mail.gmail.com>
-Subject: Re: DRM Atomic property for color-space conversion
-To: =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>,
-        "Cyr, Aric" <Aric.Cyr@amd.com>,
-        "Wentland, Harry" <Harry.Wentland@amd.com>
-Cc: Brian Starkey <brian.starkey@arm.com>,
-        linux-media <linux-media@vger.kernel.org>,
-        Liviu Dudau <liviu.dudau@arm.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Maling list - DRI developers
-        <dri-devel@lists.freedesktop.org>, mihail.atanassov@arm.com
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4917d7fb-2f48-17cd-aa2f-d54b0f19ed6e@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 16, 2017 at 10:07 AM, Ville Syrj=C3=A4l=C3=A4
-<ville.syrjala@linux.intel.com> wrote:
-> On Tue, Jan 31, 2017 at 03:55:41PM +0000, Brian Starkey wrote:
->> On Tue, Jan 31, 2017 at 05:15:46PM +0200, Ville Syrj=C3=A4l=C3=A4 wrote:
->> >On Tue, Jan 31, 2017 at 12:33:29PM +0000, Brian Starkey wrote:
->> >> Hi,
->> >>
->> >> On Mon, Jan 30, 2017 at 03:35:13PM +0200, Ville Syrj=C3=A4l=C3=A4 wro=
-te:
->> >> >On Fri, Jan 27, 2017 at 05:23:24PM +0000, Brian Starkey wrote:
->> >> >> Hi,
->> >> >>
->> >> >> We're looking to enable the per-plane color management hardware in
->> >> >> Mali-DP with atomic properties, which has sparked some conversatio=
-n
->> >> >> around how to handle YCbCr formats.
->> >> >>
->> >> >> As it stands today, it's assumed that a driver will implicitly "do=
- the
->> >> >> right thing" to display a YCbCr buffer.
->> >> >>
->> >> >> YCbCr data often uses different gamma curves and signal ranges (e.=
-g.
->> >> >> BT.609, BT.701, BT.2020, studio range, full-range), so its desirab=
-le
->> >> >> to be able to explicitly control the YCbCr to RGB conversion proce=
-ss
->> >> >> from userspace.
->> >> >>
->> >> >> We're proposing adding a "CSC" (color-space conversion) property t=
-o
->> >> >> control this - primarily per-plane for framebuffer->pipeline CSC, =
-but
->> >> >> perhaps one per CRTC too for devices which have an RGB pipeline an=
-d
->> >> >> want to output in YUV to the display:
->> >> >>
->> >> >> Name: "CSC"
->> >> >> Type: ENUM | ATOMIC;
->> >> >> Enum values (representative):
->> >> >> "default":
->> >> >>         Same behaviour as now. "Some kind" of YCbCr->RGB conversio=
-n
->> >> >>         for YCbCr buffers, bypass for RGB buffers
->> >> >> "disable":
->> >> >>         Explicitly disable all colorspace conversion (i.e. use an
->> >> >>         identity matrix).
->> >> >> "YCbCr to RGB: BT.709":
->> >> >>         Only valid for YCbCr formats. CSC in accordance with BT.70=
-9
->> >> >>         using [16..235] for (8-bit) luma values, and [16..240] for
->> >> >>         8-bit chroma values. For 10-bit formats, the range limits =
-are
->> >> >>         multiplied by 4.
->> >> >> "YCbCr to RGB: BT.709 full-swing":
->> >> >>         Only valid for YCbCr formats. CSC in accordance with BT.70=
-9,
->> >> >>         but using the full range of each channel.
->> >> >> "YCbCr to RGB: Use CTM":*
->> >> >>         Only valid for YCbCr formats. Use the matrix applied via t=
-he
->> >> >>         plane's CTM property
->> >> >> "RGB to RGB: Use CTM":*
->> >> >>         Only valid for RGB formats. Use the matrix applied via the
->> >> >>         plane's CTM property
->> >> >> "Use CTM":*
->> >> >>         Valid for any format. Use the matrix applied via the plane=
-'s
->> >> >>         CTM property
->> >> >> ... any other values for BT.601, BT.2020, RGB to YCbCr etc. etc. a=
-s
->> >> >> they are required.
->> >> >
->> >> >Having some RGB2RGB and YCBCR2RGB things in the same property seems
->> >> >weird. I would just go with something very simple like:
->> >> >
->> >> >YCBCR_TO_RGB_CSC:
->> >> >* BT.601
->> >> >* BT.709
->> >> >* custom matrix
->> >> >
->> >>
->> >> I think we've agreed in #dri-devel that this CSC property
->> >> can't/shouldn't be mapped on-to the existing (hardware implementing
->> >> the) CTM property - even in the case of per-plane color management -
->> >> because CSC needs to be done before DEGAMMA.
->> >>
->> >> So, I'm in favour of going with what you suggested in the first place=
-:
->> >>
->> >> A new YCBCR_TO_RGB_CSC property, enum type, with a list of fixed
->> >> conversions. I'd drop the custom matrix for now, as we'd need to add
->> >> another property to attach the custom matrix blob too.
->> >>
->> >> I still think we need a way to specify whether the source data range
->> >> is broadcast/full-range, so perhaps the enum list should be expanded
->> >> to all combinations of BT.601/BT.709 + broadcast/full-range.
->> >
->> >Sounds reasonable. Not that much full range YCbCr stuff out there
->> >perhaps. Well, apart from jpegs I suppose. But no harm in being able
->> >to deal with it.
->> >
->> >>
->> >> (I'm not sure what the canonical naming for broadcast/full-range is,
->> >> we call them narrow and wide)
->> >
->> >We tend to call them full vs. limited range. That's how our
->> >"Broadcast RGB" property is defined as well.
->> >
->>
->> OK, using the same ones sounds sensible.
->>
->> >>
->> >> >And trying to use the same thing for the crtc stuff is probably not
->> >> >going to end well. Like Daniel said we already have the
->> >> >'Broadcast RGB' property muddying the waters there, and that stuff
->> >> >also ties in with what colorspace we signal to the sink via
->> >> >infoframes/whatever the DP thing was called. So my gut feeling is
->> >> >that trying to use the same property everywhere will just end up
->> >> >messy.
->> >>
->> >> Yeah, agreed. If/when someone wants to add CSC on the output of a CRT=
-C
->> >> (after GAMMA), we can add a new property.
->> >>
->> >> That makes me wonder about calling this one SOURCE_YCBCR_TO_RGB_CSC t=
-o
->> >> be explicit that it describes the source data. Then we can later add
->> >> SINK_RGB_TO_YCBCR_CSC, and it will be reasonably obvious that its
->> >> value describes the output data rather than the input data.
->> >
->> >Source and sink have a slight connotation in my mind wrt. the box that
->> >produces the display signal and the box that eats the signal. So trying
->> >to use the same terms to describe the internals of the pipeline inside
->> >the "source box" migth lead to some confusion. But we do probably need
->> >some decent names for these to make the layout of the pipeline clear.
->> >Input/output are the other names that popped to my mind but those aren'=
-t
->> >necessarily any better. But in the end I think I could live with whatev=
-er
->> >names we happen to pick, as long as we document the pipeline clearly.
->> >
->> >Long ago I did wonder if we should just start indexing these things
->> >somehow, and then just looking at the index should tell you the order
->> >of the operations. But we already have the ctm/gamma w/o any indexes so
->> >that idea probably isn't so great anymore.
->> >
->> >>
->> >> I want to avoid confusion caused by ending up with two
->> >> {CS}_TO_{CS}_CSC properties, where one is describing the data to the
->> >> left of it, and the other describing the data to the right of it, wit=
-h
->> >> no real way of telling which way around it is.
->> >
->> >Not really sure what you mean. It should always be
->> ><left>_to_<right>_csc.
->>
->> Agreed, left-to-right. But for instance on a CSC property representing
->> a CRTC output CSC (just before hitting the connector), which happens
->> to be converting RGB to YCbCr:
->>
->> CRTC -> GAMMA -> RGB_TO_YCBCR_CSC
->>
->> ...the enum value "BT.601 Limited" means that the data on the *right*
->> of RGB_TO_YCBCR_CSC is "BT.601 Limited"
->>
->> On the other hand for a CSC on the input of a plane, which happens to
->> be converting YCbCr to RGB:
->>
->> RAM -> YCBCR_TO_RGB_CSC -> DEGAMMA
->>
->> ...the enum value "BT.601 Limited" means that the data on the *left*
->> of YCBCR_TO_RGB_CSC is "BT.601 Limited".
->>
->> Indicating in the property name whether its value is describing the
->> data on the left or the right is needed (and I don't think inferring
->> that "it's always the YCBCR one" is the correct approach).
->>
->> In my example above, "SOURCE_xxx" would mean the enum value is
->> describing the "source" data (i.e. the data on the left) and
->> "SINK_xxx" would mean the enum value is describing the "sink" data
->> (i.e. the data on the right). This doesn't necessarily need to infer a
->> particular point in the pipeline.
->
-> Right, so I guess you want the values to be named "<a> to <b>" as well?
-> Yes, I think we'll be wanting that as well.
->
-> So what we might need is something like:
-> enum YCBCR_TO_RGB_CSC
->  * YCbCr BT.601 limited to RGB BT.709 full
->  * YCbCr BT.709 limited to RGB BT.709 full <this would be the likely defa=
-ult value IMO>
->  * YCbCr BT.601 limited to RGB BT.2020 full
->  * YCbCr BT.709 limited to RGB BT.2020 full
->  * YCbCr BT.2020 limited to RGB BT.2020 full
->
-> And thanks to BT.2020 we'll need a RGB->RGB CSC property as well. Eg:
-> enum RGB_TO_RGB_CSC
->  * bypass (or separate 709->709, 2020->2020?) <this would be the default>
->  * RGB BT.709 full to RGB BT.2020 full
->
-> Alternatives would involve two properties to define the input and output
-> from the CSC separately, but then you lose the capability to see which
-> combinations are actually supoorted.
->
-> We may want to add the "curstom matrix" enum value + the blob property
-> for the actual matrix for hw capable of doing that.
->
-> Adding Shashank to cc since he's the one who has been
-> looking at this colorspacey stuff on our side.
+On Sat, Mar 11, 2017 at 07:31:18PM -0800, Steve Longerbeam wrote:
+> 
+> 
+> On 03/11/2017 10:59 AM, Russell King - ARM Linux wrote:
+> >On Sat, Mar 11, 2017 at 10:54:55AM -0800, Steve Longerbeam wrote:
+> >>
+> >>
+> >>On 03/11/2017 10:45 AM, Russell King - ARM Linux wrote:
+> >>>I really don't think expecting the user to understand and configure
+> >>>the pipeline is a sane way forward.  Think about it - should the
+> >>>user need to know that, because they have a bayer-only CSI data
+> >>>source, that there is only one path possible, and if they try to
+> >>>configure a different path, then things will just error out?
+> >>>
+> >>>For the case of imx219 connected to iMX6, it really is as simple as
+> >>>"there is only one possible path" and all the complexity of the media
+> >>>interfaces/subdevs is completely unnecessary.  Every other block in
+> >>>the graph is just noise.
+> >>>
+> >>>The fact is that these dot graphs show a complex picture, but reality
+> >>>is somewhat different - there's only relatively few paths available
+> >>>depending on the connected source and the rest of the paths are
+> >>>completely useless.
+> >>>
+> >>
+> >>I totally disagree there. Raw bayer requires passthrough yes, but for
+> >>all other media bus formats on a mipi csi-2 bus, and all other media
+> >>bus formats on 8-bit parallel buses, the conersion pipelines can be
+> >>used for scaling, CSC, rotation, and motion-compensated de-interlacing.
+> >
+> >... which only makes sense _if_ your source can produce those formats.
+> >We don't actually disagree on that.
+> 
+> ...and there are lots of those sources! You should try getting out of
+> your imx219 shell some time, and have a look around! :)
 
-Adding Aric and Harry for awareness.
+If you think that, you are insulting me.  I've been thinking about this
+from the "big picture" point of view.  If you think I'm only thinking
+about this from only the bayer point of view, you're wrong.
 
-Alex
+Given what Mauro has said, I'm convinced that the media controller stuff
+is a complete failure for usability, and adding further drivers using it
+is a mistake.
 
->
-> --
-> Ville Syrj=C3=A4l=C3=A4
-> Intel OTC
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+I counter your accusation by saying that you are actually so focused on
+the media controller way of doing things that you can't see the bigger
+picture here.
+
+So, tell me how the user can possibly use iMX6 video capture without
+resorting to opening up a terminal and using media-ctl to manually
+configure the pipeline.  How is the user going to control the source
+device without using media-ctl to find the subdev node, and then using
+v4l2-ctl on it.  How is the user supposed to know which /dev/video*
+node they should be opening with their capture application?
+
+If you can actually respond to the points that I've been raising about
+end user usability, then we can have a discussion.
+
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
