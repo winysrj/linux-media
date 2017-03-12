@@ -1,35 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:34382 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752044AbdCSTuF (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:35221 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753423AbdCLATe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 19 Mar 2017 15:50:05 -0400
-Subject: Re: [PATCH v5 00/39] i.MX Media Driver
+        Sat, 11 Mar 2017 19:19:34 -0500
+Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
+ controls from a pipeline
 To: Russell King - ARM Linux <linux@armlinux.org.uk>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <20170318192258.GL21222@n2100.armlinux.org.uk>
- <aef6c412-5464-726b-42f6-a24b7323aa9c@mentor.com>
- <20170319121402.GS21222@n2100.armlinux.org.uk>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <20170303230645.GR21222@n2100.armlinux.org.uk>
+ <20170304131329.GV3220@valkosipuli.retiisi.org.uk>
+ <a7b8e095-a95c-24bd-b1e9-e983f18061c4@xs4all.nl>
+ <20170310130733.GU21222@n2100.armlinux.org.uk>
+ <c679f755-52a6-3c6f-3d65-277db46676cc@xs4all.nl>
+ <20170310140124.GV21222@n2100.armlinux.org.uk>
+ <cc8900b0-c091-b14b-96f4-01f8fa72431c@xs4all.nl>
+ <20170310125342.7f047acf@vento.lan>
+ <20170310223714.GI3220@valkosipuli.retiisi.org.uk>
+ <20170311082549.576531d0@vento.lan>
+ <20170311231456.GH21222@n2100.armlinux.org.uk>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
+        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
         devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Jacek Anaszewski <j.anaszewski@samsung.com>
 From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <6e2879a0-1f2e-9da7-b7e1-d134a0301ca2@gmail.com>
-Date: Sun, 19 Mar 2017 11:37:15 -0700
+Message-ID: <f4acf2d0-5d19-9f4e-55d5-18b7bcc4937f@gmail.com>
+Date: Sat, 11 Mar 2017 16:19:28 -0800
 MIME-Version: 1.0
-In-Reply-To: <20170319121402.GS21222@n2100.armlinux.org.uk>
+In-Reply-To: <20170311231456.GH21222@n2100.armlinux.org.uk>
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
@@ -37,129 +49,145 @@ List-ID: <linux-media.vger.kernel.org>
 
 
 
-On 03/19/2017 05:14 AM, Russell King - ARM Linux wrote:
-> On Sat, Mar 18, 2017 at 12:58:27PM -0700, Steve Longerbeam wrote:
->> On 03/18/2017 12:22 PM, Russell King - ARM Linux wrote:
->>> 0:00:01.955927879 20954  0x15ffe90 INFO                    v4l2 gstv4l2object.c:3811:gst_v4l2_object_get_caps:<v4l2src0> probed caps: video/x-bayer, format=(string)rggb, framerate=(fraction)30000/1001, width=(int)816, height=(int)616, pixel-aspect-ratio=(fraction)1/1; video/x-raw, format=(string)I420, framerate=(fraction)30000/1001, width=(int)816, height=(int)616, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1; video/x-raw, format=(string)YV12, framerate=(fraction)30000/1001, width=(int)816, height=(int)616, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1; video/x-raw, format=(string)BGR, framerate=(fraction)30000/1001, width=(int)816, height=(int)616, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1; video/x-raw, format=(string)RGB, framerate=(fraction)30000/1001, width=(int)816, height=(int)616, interlace-mode=(string)progressive, pixel-aspect-ratio=(fraction)1/1
->>>
->>>     despite the media pipeline actually being configured for 60fps.
->>>
->>>     Forcing it by adjusting the pipeline only results in gstreamer
->>>     failing, because it believes that v4l2 is unable to operate at
->>>     60fps.
->>>
->>>     Also note the complaints from v4l2src about the non-compliance...
->> Thanks, I've fixed most of v4l2-compliance issues, but this is not
->> done yet. Is that something you can help with?
-> I've looked at this, and IMHO it's yet another media control API mess.
+On 03/11/2017 03:14 PM, Russell King - ARM Linux wrote:
+> On Sat, Mar 11, 2017 at 08:25:49AM -0300, Mauro Carvalho Chehab wrote:
+>> This situation is there since 2009. If I remember well, you tried to write
+>> such generic plugin in the past, but never finished it, apparently because
+>> it is too complex. Others tried too over the years.
+>>
+>> The last trial was done by Jacek, trying to cover just the exynos4 driver.
+>> Yet, even such limited scope plugin was not good enough, as it was never
+>> merged upstream. Currently, there's no such plugins upstream.
+>>
+>> If we can't even merge a plugin that solves it for just *one* driver,
+>> I have no hope that we'll be able to do it for the generic case.
 >
-> - media-ctl itself allows setting the format on subdev pads via
->    struct v4l2_subdev_format.
+> This is what really worries me right now about the current proposal for
+> iMX6.  What's being proposed is to make the driver exclusively MC-based.
 >
-> - struct v4l2_subdev_format contains a struct v4l2_mbus_framefmt.
->
-> - struct v4l2_mbus_framefmt contains:
->    * @width:      frame width
->    * @height:     frame height
->    * @code:       data format code (from enum v4l2_mbus_pixelcode)
->    * @field:      used interlacing type (from enum v4l2_field)
->    * @colorspace: colorspace of the data (from enum v4l2_colorspace)
->    * @ycbcr_enc:  YCbCr encoding of the data (from enum v4l2_ycbcr_encoding)
->    * @quantization: quantization of the data (from enum v4l2_quantization)
->    * @xfer_func:  transfer function of the data (from enum v4l2_xfer_func)
->
-> - media-ctl sets width, height, code and field, but nothing else.
->
-> We're already agreed that the fields that media-ctl are part of the
-> format negotiation between the ultimate source, flowing down to the
-> capture device.  However, there's no support in media-ctl to deal
-> with these other fields - so media-ctl in itself is only half-
-> implemented.
->
->  From what I can tell, _we_ are doing the right thing in imx-media-capture.
->
-> However, I think part of the problem is the set_fmt implementation.
-> When a source pad is configured via set_fmt(), any fields that can
-> not be altered (eg, because the subdev doesn't support colorspace
-> conversion) need to be preserved from the subdev's sink pad.
->
-> Right now, CSI doesn't do that - it only looks at the width, height,
-> code, and field.
 
-Correct, there is currently no propagation of the colorimetry
-parameters (colorspace, ycbcr_enc, quantization, and xfer_func).
-For the most part, those are just ignored ATM. Philipp Zabel did
-do some work earlier to start propagating those, but that's still
-TODO.
+I don't see anything wrong with that.
+
+
+> What that means is that existing applications are _not_ going to work
+> until we have some answer for libv4l2, and from what you've said above,
+> it seems that this has been attempted multiple times over the last _8_
+> years, and each time it's failed.
+>
+> When thinking about it, it's quite obvious why merely trying to push
+> the problem into userspace fails:
+>
+>   If we assert that the kernel does not have sufficient information to
+>   make decisions about how to route and control the hardware, then under
+>   what scenario does a userspace library have sufficient information to
+>   make those decisions?
+>
+> So, merely moving the problem into userspace doesn't solve anything.
+>
+> Loading the problem onto the user in the hope that the user knows
+> enough to properly configure it also doesn't work - who is going to
+> educate the user about the various quirks of the hardware they're
+> dealing with?
+
+Documentation?
 
 >
-> I think we've got other bugs though that haven't been picked up by any
-> review - csi_try_fmt() adjusts the format using the _current_
-> configuration of the sink pad, even when using V4L2_SUBDEV_FORMAT_TRY.
-> This seems wrong according to the docs: the purpose of the try
-> mechanism is to be able to setup the _entire_ pipeline using the TRY
-> mechanism to work out whether the configuration works, before then
-> setting for real.  If we're validating the TRY formats against the
-> live configuration, then we're not doing that.
-
-I don't believe that is correct. csi_try_fmt() for the source pads calls
-__csi_get_fmt(priv, cfg, CSI_SINK_PAD, sdformat->which) to get
-the sink format, and for the TRY trial-run from csi_set_fmt(),
-sdformat->which will be set to TRY, so the returned sink format
-is the TRY format.
-
-But I haven't tested a complete pipeline configuration under the
-TRY case, there still could be issues there. But I've checked the
-CSI, VDIC, and PRPENCVF subdevs, and for set_fmt() trial-runs,
-those should be working correctly using the TRY mechanism.
-
-
-> There's calls for:
+> I don't think pushing it into platform specific libv4l2 plugins works
+> either - as you say above, even just trying to develop a plugin for
+> exynos4 seems to have failed, so what makes us think that developing
+> a plugin for iMX6 is going to succeed?  Actually, that's exactly where
+> the problem lies.
 >
-> v4l2_subdev_get_try_format
-> v4l2_subdev_get_try_crop
-> v4l2_subdev_get_try_compose
+> Is "iMX6 plugin" even right?  That only deals with the complexity of
+> one part of the system - what about the source device, which as we
+> have already seen can be a tuner or a camera with its own multiple
+> sub-devices.  What if there's a video improvement chip in the chain
+> as well - how is a "generic" iMX6 plugin supposed to know how to deal
+> with that?
 >
-> to get the try configuration - we hardly make use of all of these.
-
-Not sure what you mean, the first two are currently
-being used for TRY setup. And I don't think
-v4l2_subdev_get_try_compose() is needed.
-
->   I
-> would suggest that we change the approach to implementing the various
-> subdevs such that:
+> It seems to me that what's required is not an "iMX6 plugin" but a
+> separate plugin for each platform - or worse.  Consider boards like
+> the Raspberry Pi, where users can attach a variety of cameras.  I
+> don't think this approach scales.  (This is relevant: the iMX6 board
+> I have here has a RPi compatible connector for a MIPI CSI2 camera.
+> In fact, the IMX219 module I'm using _is_ a RPi camera, it's the RPi
+> NoIR Camera V2.)
 >
-> 1) like __csi_get_fmt(), we have accessors that gets a pointer to the
->     correct state for the TRY/live settings.
+> The iMX6 problem is way larger than just "which subdev do I need to
+> configure for control X" - if you look at the dot graphs both Steve
+> and myself have supplied, you'll notice that there are eight (yes,
+> 8) video capture devices.
 
-I've verified that CSI, VDIC, and PRPENCVF subdevs do that.
+There are 4 video nodes (per IPU):
 
+- unconverted capture from CSI0
+- unconverted capture from CSI1
+- scaled, CSC, and/or rotated capture from PRP ENC
+- scaled, CSC, rotated, and/or de-interlaced capture from PRP VF
+
+
+Configuring the imx6 pipelines are not that difficult. I've put quite
+a bit of detail in the media doc, so it should become clear to any
+user with MC knowledge (even those with absolutely no knowledge of
+imx) to quickly start getting working pipelines.
+
+
+
+   Let's say that we can solve the subdev
+> problem in libv4l2.  There's another problem lurking here - libv4l2
+> is /dev/video* based.  How does it know which /dev/video* device to
+> open?
 >
-> 2) everywhere we're asked to get or set parameters that can be TRY/live,
->     we use these accessors to retrieve a pointer to the correct state to
->     not only read, but also modify.
-
-Yes, that is currently being done in CSI, VDIC, and PRPENCVF subdevs.
-
+> We don't open by sensor, we open by /dev/video*.  In my case, there
+> is only one correct /dev/video* node for the attached sensor, the
+> other seven are totally irrelevant.  For other situations, there may
+> be the choice of three functional /dev/video* nodes.
 >
-> 3) when we're evaluating parameters against another pad, we use these
->     accessors to obtain the other pad's configuration, rather than poking
->     about in the state saved in the subdev's priv-> (which is irrelevant
->     for the TRY variant.)
+> Right now, for my case, there isn't the information exported from the
+> kernel to know which is the correct one, since that requires knowing
+> which virtual channel the data is going to be sent over the CSI2
+> interface.  That information is not present in DT, or anywhere.
 
-Again, that is being done already:
+It is described in the media doc:
 
-__vdic_get_fmt()
-__prp_get_fmt() (in both prp and prpencvf subdevs)
-__csi_get_fmt()
+"This is the MIPI CSI-2 receiver entity. It has one sink pad to receive
+the MIPI CSI-2 stream (usually from a MIPI CSI-2 camera sensor). It has
+four source pads, corresponding to the four MIPI CSI-2 demuxed virtual
+channel outputs."
 
 
+> It only comes from system knowledge - in my case, I know that the IMX219
+> is currently being configured to use virtual channel 0.  SMIA cameras
+> are also configurable.  Then there's CSI2 cameras that can produce
+> different formats via different virtual channels (eg, JPEG compressed
+> image on one channel while streaming a RGB image via the other channel.)
 >
-> 4) ensure that all parameters which the subdev itself does not support
->     modification of are correctly propagated from the sink pad to all
->     source pads, and are unable to be modified via the source pad.
+> Whether you can use one or three in _this_ scenario depends on the
+> source format - again, another bit of implementation specific
+> information that userspace would need to know.  Kernel space should
+> know that, and it's discoverable by testing which paths accept the
+> source format - but that doesn't tell you ahead of time which
+> /dev/video* node to open.
+>
+> So, the problem space we have here is absolutely huge, and merely
+> having a plugin that activates when you open a /dev/video* node
+> really doesn't solve it.
+>
+> All in all, I really don't think "lets hope someone writes a v4l2
+> plugin to solve it" is ever going to be successful.  I don't even
+> see that there will ever be a userspace application that is anything
+> more than a representation of the dot graphs that users can use to
+> manually configure the capture system with system knowledge.
+>
+> I think everyone needs to take a step back and think long and hard
+> about this from the system usability perspective - I seriously
+> doubt that we will ever see any kind of solution to this if we
+> continue to progress with "we'll sort it in userspace some day."
 
-That is currently true except for the colorimetry params as I mentioned.
+While I admit when I first came across the MC idea a couple years ago,
+my first impression was it was putting a lot of burden on the user to
+have a detailed knowledge of the system in question. But I don't think
+that is a problem with good documentation, and most people who have a
+need to use a specific MC driver will already have that knowledge.
 
 Steve
