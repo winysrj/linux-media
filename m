@@ -1,83 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f51.google.com ([74.125.82.51]:35501 "EHLO
-        mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757850AbdCUPU2 (ORCPT
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47228 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755742AbdCLOUw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Mar 2017 11:20:28 -0400
-Received: by mail-wm0-f51.google.com with SMTP id u132so14655563wmg.0
-        for <linux-media@vger.kernel.org>; Tue, 21 Mar 2017 08:20:27 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: dri-devel@lists.freedesktop.org,
-        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org,
-        mchehab@kernel.org
-Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
-        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com
-Subject: [PATCH v4 2/6] media: uapi: Add RGB and YUV bus formats for Synopsys HDMI TX Controller
-Date: Tue, 21 Mar 2017 16:12:37 +0100
-Message-Id: <1490109161-20529-3-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1490109161-20529-1-git-send-email-narmstrong@baylibre.com>
-References: <1490109161-20529-1-git-send-email-narmstrong@baylibre.com>
+        Sun, 12 Mar 2017 10:20:52 -0400
+Date: Sun, 12 Mar 2017 15:20:24 +0100
+From: Greg KH <gregkh@linuxfoundation.org>
+To: simran singhal <singhalsimran0@gmail.com>
+Cc: mchehab@kernel.org, devel@driverdev.osuosl.org,
+        outreachy-kernel@googlegroups.com, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH v1 1/7] staging: gc2235: Remove unnecessary typecast of
+ c90 int constant
+Message-ID: <20170312142024.GA5964@kroah.com>
+References: <1489099829-1264-1-git-send-email-singhalsimran0@gmail.com>
+ <1489099829-1264-2-git-send-email-singhalsimran0@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1489099829-1264-2-git-send-email-singhalsimran0@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order to describe the RGB and YUV bus formats used to feed the
-Synopsys DesignWare HDMI TX Controller, add missing formats to the
-list of Bus Formats.
+On Fri, Mar 10, 2017 at 04:20:23AM +0530, simran singhal wrote:
+> This patch removes unnecessary typecast of c90 int constant.
+> 
+> WARNING: Unnecessary typecast of c90 int constant
+> 
+> Signed-off-by: simran singhal <singhalsimran0@gmail.com>
+> ---
+>  drivers/staging/media/atomisp/i2c/gc2235.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
 
-Documentation for these formats is added in a separate patch.
+This series doesn't apply to my tree at all, please rebase and resend.
 
-Reviewed-by: Archit Taneja <architt@codeaurora.org>
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
----
- include/uapi/linux/media-bus-format.h | 13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+thanks,
 
-diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-index 2168759..6c8f31c 100644
---- a/include/uapi/linux/media-bus-format.h
-+++ b/include/uapi/linux/media-bus-format.h
-@@ -33,7 +33,7 @@
- 
- #define MEDIA_BUS_FMT_FIXED			0x0001
- 
--/* RGB - next is	0x1018 */
-+/* RGB - next is	0x101b */
- #define MEDIA_BUS_FMT_RGB444_1X12		0x1016
- #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
- #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
-@@ -57,8 +57,11 @@
- #define MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA	0x1012
- #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
- #define MEDIA_BUS_FMT_RGB888_1X32_PADHI		0x100f
-+#define MEDIA_BUS_FMT_RGB101010_1X30		0x1018
-+#define MEDIA_BUS_FMT_RGB121212_1X36		0x1019
-+#define MEDIA_BUS_FMT_RGB161616_1X48		0x101a
- 
--/* YUV (including grey) - next is	0x2026 */
-+/* YUV (including grey) - next is	0x202c */
- #define MEDIA_BUS_FMT_Y8_1X8			0x2001
- #define MEDIA_BUS_FMT_UV8_1X8			0x2015
- #define MEDIA_BUS_FMT_UYVY8_1_5X8		0x2002
-@@ -90,12 +93,18 @@
- #define MEDIA_BUS_FMT_YVYU10_1X20		0x200e
- #define MEDIA_BUS_FMT_VUY8_1X24			0x2024
- #define MEDIA_BUS_FMT_YUV8_1X24			0x2025
-+#define MEDIA_BUS_FMT_UYYVYY8_1X24		0x2026
- #define MEDIA_BUS_FMT_UYVY12_1X24		0x2020
- #define MEDIA_BUS_FMT_VYUY12_1X24		0x2021
- #define MEDIA_BUS_FMT_YUYV12_1X24		0x2022
- #define MEDIA_BUS_FMT_YVYU12_1X24		0x2023
- #define MEDIA_BUS_FMT_YUV10_1X30		0x2016
-+#define MEDIA_BUS_FMT_UYYVYY10_1X30		0x2027
- #define MEDIA_BUS_FMT_AYUV8_1X32		0x2017
-+#define MEDIA_BUS_FMT_UYYVYY12_1X36		0x2028
-+#define MEDIA_BUS_FMT_YUV12_1X36		0x2029
-+#define MEDIA_BUS_FMT_YUV16_1X48		0x202a
-+#define MEDIA_BUS_FMT_UYYVYY16_1X48		0x202b
- 
- /* Bayer - next is	0x3021 */
- #define MEDIA_BUS_FMT_SBGGR8_1X8		0x3001
--- 
-1.9.1
+greg k-h
