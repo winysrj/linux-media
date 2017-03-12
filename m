@@ -1,213 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f181.google.com ([209.85.220.181]:36806 "EHLO
-        mail-qk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752283AbdC2Pzn (ORCPT
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:34681 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933935AbdCLRKl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Mar 2017 11:55:43 -0400
-Received: by mail-qk0-f181.google.com with SMTP id p22so16706087qka.3
-        for <linux-media@vger.kernel.org>; Wed, 29 Mar 2017 08:55:42 -0700 (PDT)
+        Sun, 12 Mar 2017 13:10:41 -0400
+Date: Sun, 12 Mar 2017 22:40:23 +0530
+From: simran singhal <singhalsimran0@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        outreachy-kernel@googlegroups.com, alan@linux.intel.com
+Subject: [PATCH v2] staging: media: Remove unused function
+ atomisp_set_stop_timeout()
+Message-ID: <20170312171023.GA5377@singhal-Inspiron-5558>
 MIME-Version: 1.0
-In-Reply-To: <20170329141543.32935-1-hverkuil@xs4all.nl>
-References: <20170329141543.32935-1-hverkuil@xs4all.nl>
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Date: Wed, 29 Mar 2017 17:55:41 +0200
-Message-ID: <CA+M3ks5HzZWHuttQ=XU8eHZYh+T9LOyJHuivwdK9i4m2OPxxEA@mail.gmail.com>
-Subject: Re: [PATCHv5 00/11] video/exynos/sti/cec: add CEC notifier & use in drivers
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "moderated list:ARM/S5P EXYNOS AR..."
-        <linux-samsung-soc@vger.kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-03-29 16:15 GMT+02:00 Hans Verkuil <hverkuil@xs4all.nl>:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> This patch series adds the CEC physical address notifier code, based on
-> Russell's code:
->
-> https://patchwork.kernel.org/patch/9277043/
->
-> It adds support for it to the exynos_hdmi drm driver, adds support for
-> it to the CEC framework and finally adds support to the s5p-cec driver,
-> which now can be moved out of staging.
->
-> Also included is similar code for the STI platform, contributed by
-> Benjamin Gaignard.
->
-> Tested the exynos code with my Odroid U3 exynos4 devboard.
->
-> After discussions with Daniel Vetter and Russell King I have removed
-> the EDID/ELD/HPD connect/disconnect events from the notifier and now
-> just use it to report the CEC physical address. This also means that
-> it is now renamed to CEC notifier instead of HPD notifier and that
-> it is now in drivers/media. The block_notifier was dropped as well
-> and instead a simple callback is registered. This means that the
-> relationship between HDMI and CEC is now 1:1 and no longer 1:n, but
-> should this be needed in the future, then that can easily be added
-> back.
->
-> Daniel, regarding your suggestions here:
->
-> http://www.spinics.net/lists/dri-devel/msg133907.html
->
-> this patch series maps to your mail above as follows:
->
-> struct cec_pin =3D=3D struct cec_notifier
-> cec_(un)register_pin =3D=3D cec_notifier_get/put
-> cec_set_address =3D=3D cec_notifier_set_phys_addr
-> cec_(un)register_callbacks =3D=3D cec_notifier_(un)register
->
-> Comments are welcome. I'd like to get this in for the 4.12 kernel as
-> this is a missing piece needed to integrate CEC drivers.
+The function atomisp_set_stop_timeout on being called, simply returns
+back. The function hasn't been mentioned in the TODO and doesn't have
+FIXME code around. Hence, atomisp_set_stop_timeout and its calls have been
+removed.
 
-I have been able to compile and test sti cec driver so you can add
-my tested-by on this serie.
+This was done using Coccinelle.
 
-Thanks,
+@@
+identifier f;
+@@
 
-Benjamin
+void f(...) {
 
->
-> Regards,
->
->         Hans
->
-> Changes since v4:
-> - Dropped EDID/ELD/connect/disconnect support. Instead, just report the
->   CEC physical address (and use INVALID when disconnecting).
-> - Since this is now completely CEC specific, move it to drivers/media
->   and rename to cec-notifier.
-> - Drop block_notifier. Instead just set a callback for the notifier.
-> - Use 'hdmi-phandle' in the bindings for both exynos and sti. So no
->   vendor prefix and 'hdmi-phandle' instead of 'hdmi-handle'.
-> - Make struct cec_notifier opaque. Add a helper function to get the
->   physical address from a cec_notifier struct.
-> - Provide dummy functions in cec-notifier.h so it can be used when
->   CONFIG_MEDIA_CEC_NOTIFIER is undefined.
-> - Don't select the CEC notifier in the HDMI drivers. It should only
->   be enabled by actual CEC drivers.
->
-> Changes since v3:
-> - Added the STI patches
-> - Split the exynos4 binding patches in one for documentation and one
->   for the dts change itself, also use the correct subject and CC to
->   the correct mailinglists (I hope  )
->
-> Changes since v2:
-> - Split off the dts changes of the s5p-cec patch into a separate patch
-> - Renamed HPD_NOTIFIERS to HPD_NOTIFIER to be consistent with the name
->   of the source.
->
-> Changes since v1:
->
-> Renamed HDMI notifier to HPD (hotplug detect) notifier since this code is
-> not HDMI specific, but is interesting for any video source that has to
-> deal with hotplug detect and EDID/ELD (HDMI, DVI, VGA, DP, ....).
-> Only the use with CEC adapters is HDMI specific, but the HPD notifier
-> is more generic.
->
->
->
->
-> Benjamin Gaignard (4):
->   sti: hdmi: add CEC notifier support
->   stih-cec.txt: document new hdmi phandle
->   stih-cec: add CEC notifier support
->   arm: sti: update sti-cec for CEC notifier support
->
-> Hans Verkuil (7):
->   cec-edid: rename cec_get_edid_phys_addr
->   media: add CEC notifier support
->   cec: integrate CEC notifier support
->   exynos_hdmi: add CEC notifier support
->   ARM: dts: exynos: add HDMI controller phandle to exynos4.dtsi
->   s5p-cec.txt: document the HDMI controller phandle
->   s5p-cec: add cec-notifier support, move out of staging
->
->  .../devicetree/bindings/media/s5p-cec.txt          |   2 +
->  .../devicetree/bindings/media/stih-cec.txt         |   2 +
->  MAINTAINERS                                        |   4 +-
->  arch/arm/boot/dts/exynos4.dtsi                     |   1 +
->  arch/arm/boot/dts/stih407-family.dtsi              |  12 ---
->  arch/arm/boot/dts/stih410.dtsi                     |  13 +++
->  drivers/gpu/drm/exynos/exynos_hdmi.c               |  20 +++-
->  drivers/gpu/drm/sti/sti_hdmi.c                     |  11 ++
->  drivers/gpu/drm/sti/sti_hdmi.h                     |   3 +
->  drivers/media/Kconfig                              |   3 +
->  drivers/media/Makefile                             |   4 +
->  drivers/media/cec-edid.c                           |  15 ++-
->  drivers/media/cec-notifier.c                       | 116 +++++++++++++++=
-++++++
->  drivers/media/cec/cec-core.c                       |  21 ++++
->  drivers/media/i2c/adv7511.c                        |   5 +-
->  drivers/media/i2c/adv7604.c                        |   3 +-
->  drivers/media/i2c/adv7842.c                        |   2 +-
->  drivers/media/platform/Kconfig                     |  28 +++++
->  drivers/media/platform/Makefile                    |   2 +
->  .../media =3D> media/platform}/s5p-cec/Makefile      |   0
->  .../platform}/s5p-cec/exynos_hdmi_cec.h            |   0
->  .../platform}/s5p-cec/exynos_hdmi_cecctrl.c        |   0
->  .../media =3D> media/platform}/s5p-cec/regs-cec.h    |   0
->  .../media =3D> media/platform}/s5p-cec/s5p_cec.c     |  35 ++++++-
->  .../media =3D> media/platform}/s5p-cec/s5p_cec.h     |   3 +
->  .../st-cec =3D> media/platform/sti/cec}/Makefile     |   0
->  .../st-cec =3D> media/platform/sti/cec}/stih-cec.c   |  31 +++++-
->  drivers/media/platform/vivid/vivid-vid-cap.c       |   3 +-
->  drivers/staging/media/Kconfig                      |   4 -
->  drivers/staging/media/Makefile                     |   2 -
->  drivers/staging/media/s5p-cec/Kconfig              |   9 --
->  drivers/staging/media/s5p-cec/TODO                 |   7 --
->  drivers/staging/media/st-cec/Kconfig               |   8 --
->  drivers/staging/media/st-cec/TODO                  |   7 --
->  include/media/cec-edid.h                           |  17 ++-
->  include/media/cec-notifier.h                       |  93 +++++++++++++++=
-++
->  include/media/cec.h                                |   6 ++
->  37 files changed, 421 insertions(+), 71 deletions(-)
->  create mode 100644 drivers/media/cec-notifier.c
->  rename drivers/{staging/media =3D> media/platform}/s5p-cec/Makefile (100=
-%)
->  rename drivers/{staging/media =3D> media/platform}/s5p-cec/exynos_hdmi_c=
-ec.h (100%)
->  rename drivers/{staging/media =3D> media/platform}/s5p-cec/exynos_hdmi_c=
-ecctrl.c (100%)
->  rename drivers/{staging/media =3D> media/platform}/s5p-cec/regs-cec.h (1=
-00%)
->  rename drivers/{staging/media =3D> media/platform}/s5p-cec/s5p_cec.c (89=
-%)
->  rename drivers/{staging/media =3D> media/platform}/s5p-cec/s5p_cec.h (97=
-%)
->  rename drivers/{staging/media/st-cec =3D> media/platform/sti/cec}/Makefi=
-le (100%)
->  rename drivers/{staging/media/st-cec =3D> media/platform/sti/cec}/stih-c=
-ec.c (93%)
->  delete mode 100644 drivers/staging/media/s5p-cec/Kconfig
->  delete mode 100644 drivers/staging/media/s5p-cec/TODO
->  delete mode 100644 drivers/staging/media/st-cec/Kconfig
->  delete mode 100644 drivers/staging/media/st-cec/TODO
->  create mode 100644 include/media/cec-notifier.h
->
-> --
-> 2.11.0
->
+-return;
 
+}
 
+Signed-off-by: simran singhal <singhalsimran0@gmail.com>
+---
+ v2:
+   -cc the patch to more developers 
 
---=20
-Benjamin Gaignard
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c          | 1 -
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat.h       | 1 -
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c | 5 -----
+ 3 files changed, 7 deletions(-)
 
-Graphic Study Group
-
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-
-Follow Linaro: Facebook | Twitter | Blog
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+index d9a5c24..9720756 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+@@ -1692,7 +1692,6 @@ void atomisp_wdt_work(struct work_struct *work)
+ 		}
+ 	}
+ #endif
+-	atomisp_set_stop_timeout(ATOMISP_CSS_STOP_TIMEOUT_US);
+ 	dev_err(isp->dev, "timeout recovery handling done\n");
+ 	atomic_set(&isp->wdt_work_queued, 0);
+ 
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat.h b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat.h
+index e6b0cce..fb8b8fa 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat.h
+@@ -660,7 +660,6 @@ int atomisp_css_set_acc_parameters(struct atomisp_acc_fw *acc_fw);
+ int atomisp_css_isr_thread(struct atomisp_device *isp,
+ 			   bool *frame_done_found,
+ 			   bool *css_pipe_done);
+-void atomisp_set_stop_timeout(unsigned int timeout);
+ 
+ bool atomisp_css_valid_sof(struct atomisp_device *isp);
+ 
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c
+index 6697d72..cfa0ad4 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c
+@@ -4699,11 +4699,6 @@ int atomisp_css_isr_thread(struct atomisp_device *isp,
+ 	return 0;
+ }
+ 
+-void atomisp_set_stop_timeout(unsigned int timeout)
+-{
+-	return;
+-}
+-
+ bool atomisp_css_valid_sof(struct atomisp_device *isp)
+ {
+ 	unsigned int i, j;
+-- 
+2.7.4
