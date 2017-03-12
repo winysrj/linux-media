@@ -1,95 +1,370 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:46829 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755616AbdCKLXe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Mar 2017 06:23:34 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv5 01/16] ov7670: document device tree bindings
-Date: Sat, 11 Mar 2017 12:23:13 +0100
-Message-Id: <20170311112328.11802-2-hverkuil@xs4all.nl>
-In-Reply-To: <20170311112328.11802-1-hverkuil@xs4all.nl>
-References: <20170311112328.11802-1-hverkuil@xs4all.nl>
+Received: from mout.gmx.net ([212.227.17.20]:54151 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755710AbdCLMGR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 12 Mar 2017 08:06:17 -0400
+Date: Sun, 12 Mar 2017 13:06:06 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH] v4l: soc-camera: Remove videobuf1 support
+In-Reply-To: <20170308153327.23954-1-laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1703121300040.22698@axis700.grange>
+References: <20170308153327.23954-1-laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Laurent,
 
-Add binding documentation and add that file to the MAINTAINERS entry.
+Thanks for the patch. I just checked in the current media/master, there 
+are still 2 users of vb1: sh_mobile_ceu_camera.c and atmel-isi.c. I 
+understand, that they are about to be removed either completely or out of 
+soc-camera, maybe patches for that have already beed submitted, but they 
+haven't been committed yet. Shall we wait until then with this patch? 
+Would be easier to handle dependencies, there isn't any hurry with it, 
+right?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- .../devicetree/bindings/media/i2c/ov7670.txt       | 43 ++++++++++++++++++++++
- MAINTAINERS                                        |  1 +
- 2 files changed, 44 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7670.txt
+Thanks
+Guennaddi
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov7670.txt b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
-new file mode 100644
-index 000000000000..826b6563b009
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
-@@ -0,0 +1,43 @@
-+* Omnivision OV7670 CMOS sensor
-+
-+The Omnivision OV7670 sensor supports multiple resolutions output, such as
-+CIF, SVGA, UXGA. It also can support the YUV422/420, RGB565/555 or raw RGB
-+output formats.
-+
-+Required Properties:
-+- compatible: should be "ovti,ov7670"
-+- clocks: reference to the xclk input clock.
-+- clock-names: should be "xclk".
-+
-+Optional Properties:
-+- reset-gpios: reference to the GPIO connected to the resetb pin, if any.
-+  Active is low.
-+- powerdown-gpios: reference to the GPIO connected to the pwdn pin, if any.
-+  Active is high.
-+
-+The device node must contain one 'port' child node for its digital output
-+video port, in accordance with the video interface bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Example:
-+
-+	i2c1: i2c@f0018000 {
-+		ov7670: camera@21 {
-+			compatible = "ovti,ov7670";
-+			reg = <0x21>;
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
-+			reset-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
-+			powerdown-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
-+			clocks = <&pck0>;
-+			clock-names = "xclk";
-+			assigned-clocks = <&pck0>;
-+			assigned-clock-rates = <25000000>;
-+
-+			port {
-+				ov7670_0: endpoint {
-+					remote-endpoint = <&isi_0>;
-+				};
-+			};
-+		};
-+	};
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 83a42ef1d1a7..93500928ca4f 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -9273,6 +9273,7 @@ L:	linux-media@vger.kernel.org
- T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	drivers/media/i2c/ov7670.c
-+F:	Documentation/devicetree/bindings/media/i2c/ov7670.txt
- 
- ONENAND FLASH DRIVER
- M:	Kyungmin Park <kyungmin.park@samsung.com>
--- 
-2.11.0
+On Wed, 8 Mar 2017, Laurent Pinchart wrote:
+
+> All remaining soc-camera drivers use videobuf2, drop support for
+> videobuf1.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/platform/soc_camera/soc_camera.c | 103 +++++--------------------
+>  include/media/soc_camera.h                     |  14 +---
+>  2 files changed, 20 insertions(+), 97 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+> index edd1c1de4e33..3c9421f4d8e3 100644
+> --- a/drivers/media/platform/soc_camera/soc_camera.c
+> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+> @@ -37,18 +37,12 @@
+>  #include <media/v4l2-ioctl.h>
+>  #include <media/v4l2-dev.h>
+>  #include <media/v4l2-of.h>
+> -#include <media/videobuf-core.h>
+>  #include <media/videobuf2-v4l2.h>
+>  
+>  /* Default to VGA resolution */
+>  #define DEFAULT_WIDTH	640
+>  #define DEFAULT_HEIGHT	480
+>  
+> -#define is_streaming(ici, icd)				\
+> -	(((ici)->ops->init_videobuf) ?			\
+> -	 (icd)->vb_vidq.streaming :			\
+> -	 vb2_is_streaming(&(icd)->vb2_vidq))
+> -
+>  #define MAP_MAX_NUM 32
+>  static DECLARE_BITMAP(device_map, MAP_MAX_NUM);
+>  static LIST_HEAD(hosts);
+> @@ -367,23 +361,13 @@ static int soc_camera_reqbufs(struct file *file, void *priv,
+>  {
+>  	int ret;
+>  	struct soc_camera_device *icd = file->private_data;
+> -	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+>  
+>  	WARN_ON(priv != file->private_data);
+>  
+>  	if (icd->streamer && icd->streamer != file)
+>  		return -EBUSY;
+>  
+> -	if (ici->ops->init_videobuf) {
+> -		ret = videobuf_reqbufs(&icd->vb_vidq, p);
+> -		if (ret < 0)
+> -			return ret;
+> -
+> -		ret = ici->ops->reqbufs(icd, p);
+> -	} else {
+> -		ret = vb2_reqbufs(&icd->vb2_vidq, p);
+> -	}
+> -
+> +	ret = vb2_reqbufs(&icd->vb2_vidq, p);
+>  	if (!ret)
+>  		icd->streamer = p->count ? file : NULL;
+>  	return ret;
+> @@ -393,61 +377,44 @@ static int soc_camera_querybuf(struct file *file, void *priv,
+>  			       struct v4l2_buffer *p)
+>  {
+>  	struct soc_camera_device *icd = file->private_data;
+> -	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+>  
+>  	WARN_ON(priv != file->private_data);
+>  
+> -	if (ici->ops->init_videobuf)
+> -		return videobuf_querybuf(&icd->vb_vidq, p);
+> -	else
+> -		return vb2_querybuf(&icd->vb2_vidq, p);
+> +	return vb2_querybuf(&icd->vb2_vidq, p);
+>  }
+>  
+>  static int soc_camera_qbuf(struct file *file, void *priv,
+>  			   struct v4l2_buffer *p)
+>  {
+>  	struct soc_camera_device *icd = file->private_data;
+> -	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+>  
+>  	WARN_ON(priv != file->private_data);
+>  
+>  	if (icd->streamer != file)
+>  		return -EBUSY;
+>  
+> -	if (ici->ops->init_videobuf)
+> -		return videobuf_qbuf(&icd->vb_vidq, p);
+> -	else
+> -		return vb2_qbuf(&icd->vb2_vidq, p);
+> +	return vb2_qbuf(&icd->vb2_vidq, p);
+>  }
+>  
+>  static int soc_camera_dqbuf(struct file *file, void *priv,
+>  			    struct v4l2_buffer *p)
+>  {
+>  	struct soc_camera_device *icd = file->private_data;
+> -	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+>  
+>  	WARN_ON(priv != file->private_data);
+>  
+>  	if (icd->streamer != file)
+>  		return -EBUSY;
+>  
+> -	if (ici->ops->init_videobuf)
+> -		return videobuf_dqbuf(&icd->vb_vidq, p, file->f_flags & O_NONBLOCK);
+> -	else
+> -		return vb2_dqbuf(&icd->vb2_vidq, p, file->f_flags & O_NONBLOCK);
+> +	return vb2_dqbuf(&icd->vb2_vidq, p, file->f_flags & O_NONBLOCK);
+>  }
+>  
+>  static int soc_camera_create_bufs(struct file *file, void *priv,
+>  			    struct v4l2_create_buffers *create)
+>  {
+>  	struct soc_camera_device *icd = file->private_data;
+> -	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+>  	int ret;
+>  
+> -	/* videobuf2 only */
+> -	if (ici->ops->init_videobuf)
+> -		return -ENOTTY;
+> -
+>  	if (icd->streamer && icd->streamer != file)
+>  		return -EBUSY;
+>  
+> @@ -461,24 +428,14 @@ static int soc_camera_prepare_buf(struct file *file, void *priv,
+>  				  struct v4l2_buffer *b)
+>  {
+>  	struct soc_camera_device *icd = file->private_data;
+> -	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+>  
+> -	/* videobuf2 only */
+> -	if (ici->ops->init_videobuf)
+> -		return -EINVAL;
+> -	else
+> -		return vb2_prepare_buf(&icd->vb2_vidq, b);
+> +	return vb2_prepare_buf(&icd->vb2_vidq, b);
+>  }
+>  
+>  static int soc_camera_expbuf(struct file *file, void *priv,
+>  			     struct v4l2_exportbuffer *p)
+>  {
+>  	struct soc_camera_device *icd = file->private_data;
+> -	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+> -
+> -	/* videobuf2 only */
+> -	if (ici->ops->init_videobuf)
+> -		return -ENOTTY;
+>  
+>  	if (icd->streamer && icd->streamer != file)
+>  		return -EBUSY;
+> @@ -602,8 +559,6 @@ static int soc_camera_set_fmt(struct soc_camera_device *icd,
+>  	icd->sizeimage		= pix->sizeimage;
+>  	icd->colorspace		= pix->colorspace;
+>  	icd->field		= pix->field;
+> -	if (ici->ops->init_videobuf)
+> -		icd->vb_vidq.field = pix->field;
+>  
+>  	dev_dbg(icd->pdev, "set width: %d height: %d\n",
+>  		icd->user_width, icd->user_height);
+> @@ -745,13 +700,9 @@ static int soc_camera_open(struct file *file)
+>  		if (ret < 0)
+>  			goto esfmt;
+>  
+> -		if (ici->ops->init_videobuf) {
+> -			ici->ops->init_videobuf(&icd->vb_vidq, icd);
+> -		} else {
+> -			ret = ici->ops->init_videobuf2(&icd->vb2_vidq, icd);
+> -			if (ret < 0)
+> -				goto einitvb;
+> -		}
+> +		ret = ici->ops->init_videobuf2(&icd->vb2_vidq, icd);
+> +		if (ret < 0)
+> +			goto einitvb;
+>  		v4l2_ctrl_handler_setup(&icd->ctrl_handler);
+>  	}
+>  	mutex_unlock(&ici->host_lock);
+> @@ -842,10 +793,7 @@ static int soc_camera_mmap(struct file *file, struct vm_area_struct *vma)
+>  
+>  	if (mutex_lock_interruptible(&ici->host_lock))
+>  		return -ERESTARTSYS;
+> -	if (ici->ops->init_videobuf)
+> -		err = videobuf_mmap_mapper(&icd->vb_vidq, vma);
+> -	else
+> -		err = vb2_mmap(&icd->vb2_vidq, vma);
+> +	err = vb2_mmap(&icd->vb2_vidq, vma);
+>  	mutex_unlock(&ici->host_lock);
+>  
+>  	dev_dbg(icd->pdev, "vma start=0x%08lx, size=%ld, ret=%d\n",
+> @@ -866,10 +814,7 @@ static unsigned int soc_camera_poll(struct file *file, poll_table *pt)
+>  		return POLLERR;
+>  
+>  	mutex_lock(&ici->host_lock);
+> -	if (ici->ops->init_videobuf && list_empty(&icd->vb_vidq.stream))
+> -		dev_err(icd->pdev, "Trying to poll with no queued buffers!\n");
+> -	else
+> -		res = ici->ops->poll(file, pt);
+> +	res = ici->ops->poll(file, pt);
+>  	mutex_unlock(&ici->host_lock);
+>  	return res;
+>  }
+> @@ -900,7 +845,7 @@ static int soc_camera_s_fmt_vid_cap(struct file *file, void *priv,
+>  	if (icd->streamer && icd->streamer != file)
+>  		return -EBUSY;
+>  
+> -	if (is_streaming(to_soc_camera_host(icd->parent), icd)) {
+> +	if (vb2_is_streaming(&icd->vb2_vidq)) {
+>  		dev_err(icd->pdev, "S_FMT denied: queue initialised\n");
+>  		return -EBUSY;
+>  	}
+> @@ -971,7 +916,6 @@ static int soc_camera_streamon(struct file *file, void *priv,
+>  			       enum v4l2_buf_type i)
+>  {
+>  	struct soc_camera_device *icd = file->private_data;
+> -	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+>  	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+>  	int ret;
+>  
+> @@ -983,12 +927,8 @@ static int soc_camera_streamon(struct file *file, void *priv,
+>  	if (icd->streamer != file)
+>  		return -EBUSY;
+>  
+> -	/* This calls buf_queue from host driver's videobuf_queue_ops */
+> -	if (ici->ops->init_videobuf)
+> -		ret = videobuf_streamon(&icd->vb_vidq);
+> -	else
+> -		ret = vb2_streamon(&icd->vb2_vidq, i);
+> -
+> +	/* This calls buf_queue from host driver's videobuf2_queue_ops */
+> +	ret = vb2_streamon(&icd->vb2_vidq, i);
+>  	if (!ret)
+>  		v4l2_subdev_call(sd, video, s_stream, 1);
+>  
+> @@ -1000,7 +940,6 @@ static int soc_camera_streamoff(struct file *file, void *priv,
+>  {
+>  	struct soc_camera_device *icd = file->private_data;
+>  	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+> -	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+>  	int ret;
+>  
+>  	WARN_ON(priv != file->private_data);
+> @@ -1012,13 +951,10 @@ static int soc_camera_streamoff(struct file *file, void *priv,
+>  		return -EBUSY;
+>  
+>  	/*
+> -	 * This calls buf_release from host driver's videobuf_queue_ops for all
+> +	 * This calls buf_release from host driver's videobuf2_queue_ops for all
+>  	 * remaining buffers. When the last buffer is freed, stop capture
+>  	 */
+> -	if (ici->ops->init_videobuf)
+> -		ret = videobuf_streamoff(&icd->vb_vidq);
+> -	else
+> -		ret = vb2_streamoff(&icd->vb2_vidq, i);
+> +	ret = vb2_streamoff(&icd->vb2_vidq, i);
+>  
+>  	v4l2_subdev_call(sd, video, s_stream, 0);
+>  
+> @@ -1053,7 +989,7 @@ static int soc_camera_s_selection(struct file *file, void *fh,
+>  
+>  	if (s->target == V4L2_SEL_TGT_COMPOSE) {
+>  		/* No output size change during a running capture! */
+> -		if (is_streaming(ici, icd) &&
+> +		if (vb2_is_streaming(&icd->vb2_vidq) &&
+>  		    (icd->user_width != s->r.width ||
+>  		     icd->user_height != s->r.height))
+>  			return -EBUSY;
+> @@ -1066,7 +1002,8 @@ static int soc_camera_s_selection(struct file *file, void *fh,
+>  			return -EBUSY;
+>  	}
+>  
+> -	if (s->target == V4L2_SEL_TGT_CROP && is_streaming(ici, icd) &&
+> +	if (s->target == V4L2_SEL_TGT_CROP &&
+> +	    vb2_is_streaming(&icd->vb2_vidq) &&
+>  	    ici->ops->set_liveselection)
+>  		ret = ici->ops->set_liveselection(icd, s);
+>  	else
+> @@ -1910,9 +1847,7 @@ int soc_camera_host_register(struct soc_camera_host *ici)
+>  	    !ici->ops->set_fmt ||
+>  	    !ici->ops->set_bus_param ||
+>  	    !ici->ops->querycap ||
+> -	    ((!ici->ops->init_videobuf ||
+> -	      !ici->ops->reqbufs) &&
+> -	     !ici->ops->init_videobuf2) ||
+> +	    !ici->ops->init_videobuf2 ||
+>  	    !ici->ops->poll ||
+>  	    !ici->v4l2_dev.dev)
+>  		return -EINVAL;
+> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+> index 1a15c3e4efd3..4d8cb0796bc6 100644
+> --- a/include/media/soc_camera.h
+> +++ b/include/media/soc_camera.h
+> @@ -17,7 +17,6 @@
+>  #include <linux/mutex.h>
+>  #include <linux/pm.h>
+>  #include <linux/videodev2.h>
+> -#include <media/videobuf-core.h>
+>  #include <media/videobuf2-v4l2.h>
+>  #include <media/v4l2-async.h>
+>  #include <media/v4l2-ctrls.h>
+> @@ -55,10 +54,7 @@ struct soc_camera_device {
+>  	/* Asynchronous subdevice management */
+>  	struct soc_camera_async_client *sasc;
+>  	/* video buffer queue */
+> -	union {
+> -		struct videobuf_queue vb_vidq;
+> -		struct vb2_queue vb2_vidq;
+> -	};
+> +	struct vb2_queue vb2_vidq;
+>  };
+>  
+>  /* Host supports programmable stride */
+> @@ -114,11 +110,8 @@ struct soc_camera_host_ops {
+>  	int (*set_liveselection)(struct soc_camera_device *, struct v4l2_selection *);
+>  	int (*set_fmt)(struct soc_camera_device *, struct v4l2_format *);
+>  	int (*try_fmt)(struct soc_camera_device *, struct v4l2_format *);
+> -	void (*init_videobuf)(struct videobuf_queue *,
+> -			      struct soc_camera_device *);
+>  	int (*init_videobuf2)(struct vb2_queue *,
+>  			      struct soc_camera_device *);
+> -	int (*reqbufs)(struct soc_camera_device *, struct v4l2_requestbuffers *);
+>  	int (*querycap)(struct soc_camera_host *, struct v4l2_capability *);
+>  	int (*set_bus_param)(struct soc_camera_device *);
+>  	int (*get_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
+> @@ -396,11 +389,6 @@ static inline struct soc_camera_device *soc_camera_from_vb2q(const struct vb2_qu
+>  	return container_of(vq, struct soc_camera_device, vb2_vidq);
+>  }
+>  
+> -static inline struct soc_camera_device *soc_camera_from_vbq(const struct videobuf_queue *vq)
+> -{
+> -	return container_of(vq, struct soc_camera_device, vb_vidq);
+> -}
+> -
+>  static inline u32 soc_camera_grp_id(const struct soc_camera_device *icd)
+>  {
+>  	return (icd->iface << 8) | (icd->devnum + 1);
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
