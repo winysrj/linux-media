@@ -1,63 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-1.cisco.com ([173.38.203.51]:35157 "EHLO
-        aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753614AbdCTOmF (ORCPT
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:35816 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750814AbdCMMye (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 10:42:05 -0400
-Subject: Re: [PATCHv2 1/4] video: add hotplug detect notifier support
-To: Russell King - ARM Linux <linux@armlinux.org.uk>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-References: <1483366747-34288-1-git-send-email-hverkuil@xs4all.nl>
- <1483366747-34288-2-git-send-email-hverkuil@xs4all.nl>
- <20170320142616.GM21222@n2100.armlinux.org.uk>
- <20170320142727.GA11521@n2100.armlinux.org.uk>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-From: Hans Verkuil <hansverk@cisco.com>
-Message-ID: <12f23e88-dec6-c2f8-5d17-8f283d09a541@cisco.com>
-Date: Mon, 20 Mar 2017 15:41:17 +0100
-MIME-Version: 1.0
-In-Reply-To: <20170320142727.GA11521@n2100.armlinux.org.uk>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+        Mon, 13 Mar 2017 08:54:34 -0400
+From: Johan Hovold <johan@kernel.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>,
+        stable <stable@vger.kernel.org>,
+        Thierry MERLE <thierry.merle@free.fr>
+Subject: [PATCH 2/6] [media] usbvision: fix NULL-deref at probe
+Date: Mon, 13 Mar 2017 13:53:55 +0100
+Message-Id: <20170313125359.29394-3-johan@kernel.org>
+In-Reply-To: <20170313125359.29394-1-johan@kernel.org>
+References: <20170313125359.29394-1-johan@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/20/2017 03:27 PM, Russell King - ARM Linux wrote:
-> On Mon, Mar 20, 2017 at 02:26:16PM +0000, Russell King - ARM Linux wrote:
->> On Mon, Jan 02, 2017 at 03:19:04PM +0100, Hans Verkuil wrote:
->>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>
->>> Add support for video hotplug detect and EDID/ELD notifiers, which is used
->>> to convey information from video drivers to their CEC and audio counterparts.
->>>
->>> Based on an earlier version from Russell King:
->>>
->>> https://patchwork.kernel.org/patch/9277043/
->>>
->>> The hpd_notifier is a reference counted object containing the HPD/EDID/ELD state
->>> of a video device.
->>
->> I thought we had decided to drop the ELD bits?
->
-> Ignore that - mailer wrapped around to the first message in my mailbox!
->
+Make sure to check the number of endpoints to avoid dereferencing a
+NULL-pointer or accessing memory beyond the endpoint array should a
+malicious device lack the expected endpoints.
 
-Just FYI: I've removed anything not needed for CEC in this git repo:
+Fixes: 2a9f8b5d25be ("V4L/DVB (5206): Usbvision: set alternate interface
+modification")
+Cc: stable <stable@vger.kernel.org>     # 2.6.21
+Cc: Thierry MERLE <thierry.merle@free.fr>
+Signed-off-by: Johan Hovold <johan@kernel.org>
+---
+ drivers/media/usb/usbvision/usbvision-video.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=exynos4-cec2
-
-It compiles, but it's otherwise untested.
-
-And I still need to think more about Daniel's comments. I hope to work on this
-a bit more next week.
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
+index f5c635a67d74..f9c3325aa4d4 100644
+--- a/drivers/media/usb/usbvision/usbvision-video.c
++++ b/drivers/media/usb/usbvision/usbvision-video.c
+@@ -1501,7 +1501,14 @@ static int usbvision_probe(struct usb_interface *intf,
+ 	}
+ 
+ 	for (i = 0; i < usbvision->num_alt; i++) {
+-		u16 tmp = le16_to_cpu(uif->altsetting[i].endpoint[1].desc.
++		u16 tmp;
++
++		if (uif->altsetting[i].desc.bNumEndpoints < 2) {
++			ret = -ENODEV;
++			goto err_pkt;
++		}
++
++		tmp = le16_to_cpu(uif->altsetting[i].endpoint[1].desc.
+ 				      wMaxPacketSize);
+ 		usbvision->alt_max_pkt_size[i] =
+ 			(tmp & 0x07ff) * (((tmp & 0x1800) >> 11) + 1);
+-- 
+2.12.0
