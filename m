@@ -1,142 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46511
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932663AbdC3MKz (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:40824 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750917AbdCMKXm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 08:10:55 -0400
-Date: Thu, 30 Mar 2017 09:10:44 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Markus Heiser <markus.heiser@darmarit.de>
-Cc: Jani Nikula <jani.nikula@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
-        linux-rpi-kernel@lists.infradead.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Jonathan Corbet <corbet@lwn.net>,
+        Mon, 13 Mar 2017 06:23:42 -0400
+Subject: Re: [PATCH] [media] atmel-isc: fix off-by-one comparison and out of
+ bounds read issue
+To: "Wu, Songjun" <Songjun.Wu@microchip.com>,
+        Colin King <colin.king@canonical.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Takashi Iwai <tiwai@suse.de>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Oliver Neukum <oneukum@suse.com>,
-        Martyn Welch <martyn.welch@collabora.co.uk>,
-        Alexander Dahl <post@lespocky.de>,
-        Jonathan Cameron <jic23@kernel.org>
-Subject: Re: [PATCH 02/22] docs-rst: convert usb docbooks to ReST
-Message-ID: <20170330091044.74d60342@vento.lan>
-In-Reply-To: <318BAC09-137D-4EA6-B2E9-C5BF0E01A769@darmarit.de>
-References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
-        <327dcce56a725c7f91f542f2ff97995504d26526.1490813422.git.mchehab@s-opensource.com>
-        <7D76BCB2-53F5-4BD4-8205-5A4852164C91@darmarit.de>
-        <87y3vn2mzk.fsf@intel.com>
-        <D5D8BF1C-755B-4D56-B744-6A155C5B2313@darmarit.de>
-        <20170330071258.0ca47e4c@vento.lan>
-        <318BAC09-137D-4EA6-B2E9-C5BF0E01A769@darmarit.de>
+        linux-media@vger.kernel.org
+References: <20170307143047.30082-1-colin.king@canonical.com>
+ <5dc9d025-31d5-b129-09df-5de19758e886@microchip.com>
+ <b84a5576-7b29-728b-b7c2-9929069a2b35@xs4all.nl>
+ <144915d3-b386-78c2-d4d8-3410c70348ff@microchip.com>
+ <fbe3a644-8d2a-eabe-a042-6f0cef26d0fe@xs4all.nl>
+ <2058665c-5ed6-5dfa-b96e-3c0579b8e6df@microchip.com>
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <35de6fac-71ae-b8b2-126a-b4e702cf52f1@xs4all.nl>
+Date: Mon, 13 Mar 2017 11:23:35 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <2058665c-5ed6-5dfa-b96e-3c0579b8e6df@microchip.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 30 Mar 2017 13:17:16 +0200
-Markus Heiser <markus.heiser@darmarit.de> escreveu:
-
-> Am 30.03.2017 um 12:12 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
-> >>> At this point I'd just go with what Mauro has. It's here now, as
-> >>> patches. We've seen from the GPU documentation that polishing the
-> >>> one-time initial conversion is, after a point, wasted effort. Having the
-> >>> documentation in rst attracts more attention and contributions, and any
-> >>> remaining issues will get ironed out in rst.    
-> >> 
-> >> I totally agree with you (I have never said something different)
-> >>   
-> >>> This is also one reason I'm in favor of just bulk converting the rest of
-> >>> the .tmpl files using Documentation/sphinx/tmplcvt, get rid of DocBook
-> >>> and be done with it, and have the crowds focus on rst.    
-> >> 
-> >> I also agree with that. The tmplcvt script is good enough for this task,
-> >> the dbxml2rst tool is more elaborate.  
-> > 
-> > I like the idea of a bulk conversion. My personal preference here is to
-> > use the tmplcvt for such task, at least for simple books like the ones
-> > I converted from USB.
-> > 
-> > The advantage is that it places everything on a single rst file, with,
-> > IMHO, works best for books that aren't too complex.
-> > Of course, it doesn't hurt to compare the end result with dbxml2rst
-> > and see if something could be improved.  
+On 03/13/2017 10:32 AM, Wu, Songjun wrote:
 > 
-> If it helps ... dbxml2rst also supports single file conversion  ... I updated:
 > 
->   https://github.com/return42/sphkerneldoc/tree/master/Documentation/books_migrated
+> On 3/13/2017 17:25, Hans Verkuil wrote:
+>> On 03/13/2017 06:53 AM, Wu, Songjun wrote:
+>>>
+>>>
+>>> On 3/9/2017 18:57, Hans Verkuil wrote:
+>>>> Hi Songjun,
+>>>>
+>>>> On 08/03/17 03:25, Wu, Songjun wrote:
+>>>>> Hi Colin,
+>>>>>
+>>>>> Thank you for your comment.
+>>>>> It is a bug, will be fixed in the next patch.
+>>>>
+>>>> Do you mean that you will provide a new patch for this? Is there anything
+>>>> wrong with this patch? It seems reasonable to me.
+>>>>
+>>> Hi Hans,
+>>>
+>>> I see this patch is merged in git://linuxtv.org/media_tree.git.
+>>> So I do not need submit isc-pipeline-v3 patch, just submit the patches,
+>>> based on the current master branch?
+>>
+>> Huh? Where do you see that this patch is merged? I don't see it in the media_tree master
+>> branch.
+>>
+> Hi Hans,
+> 
+> I see this patch on the master branch in media_tree.
+> https://git.linuxtv.org/media_tree.git/tree/drivers/media/platform/atmel/atmel-isc.c
 
-Ok, I double-checked the results from dbxml2rst with pandoc (via
-the script). Those are the differences after running the following commands:
+???
 
-	$ wget https://raw.githubusercontent.com/return42/sphkerneldoc/master/Documentation/books_migrated/writing_usb_driver/index.rst
-	$ Documentation/sphinx/tmplcvt Documentation/DocBook/writing_usb_driver.tmpl writing_usb_driver.rst
-	$ diff -uprBw writing_usb_driver.rst index.rst 
+That's a link to the source, not a patch.
 
-1) Author data:
+And that source still does <= HIST_ENTRIES.
 
--:Author: Greg Kroah-Hartman
-+:author:    Kroah-Hartman Greg
-+:address:   greg@kroah.com
+Still confused,
 
-dbxml2rst inverted the author's name.  It also added author's e-mail.
+	Hans
 
-IMHO, it is better to not have email address there, as it could be
-outdated, but this is just my personal preference.
-
-2) dbxml2rst added a copyright information:
-
-+**Copyright** 2001-2002 : Greg Kroah-Hartman
-
-This is a good thing.
-
-3) dbxml2rst added a GPL information.
-
-IMHO, we should add just one GPL information, per hole book
-(and not per converted file).
-
-4) dbxml2rst created some references that won't be unique:
-
-+.. _intro:
-
-That's a bad thing, as I bet most converted documents will have "intro"
-sections.
-
-5) dbxml2rst use ".. code-block:: c" instead of "::"
-
-I prefer using "::"
-
-6) dbxml2rst appends a commentary at the end:
-
-+.. ------------------------------------------------------------------------------
-+.. This file was automatically converted from DocBook-XML with the dbxml
-+.. library (https://github.com/return42/dbxml2rst). The origin XML comes
-+.. from the linux kernel:
-+..
-+..   http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git
-+.. ------------------------------------------------------------------------------
-
-7) dbxml2rst did a worse job with URB conversions:
-
--USB Home Page: http://www.usb.org
-+USB Home Page: `http://www.usb.org <http://www.usb.org>`__
-
-So, in summary, at least for this document, the only thing good with
-dbxml2rst was that it filled the copyright info.
-
-Maybe for more complex documents, it would do a better job.
-
-Yet, in order to standardize it everywhere, I guess the best would be to
-produce copyright data like:
-
-	.. include:: <isonum.txt>
-
-	:Copyright: |copy| 2001-2002 : Greg Kroah-Hartman
-
-Regards,
-Mauro
+> 
+>> Regards,
+>>
+>> 	Hans
+>>
+>>>
+>>>> Regards,
+>>>>
+>>>> 	Hans
+>>>>
+>>>>>
+>>>>> On 3/7/2017 22:30, Colin King wrote:
+>>>>>> From: Colin Ian King <colin.king@canonical.com>
+>>>>>>
+>>>>>> The are only HIST_ENTRIES worth of entries in  hist_entry however the
+>>>>>> for-loop is iterating one too many times leasing to a read access off
+>>>>>> the end off the array ctrls->hist_entry.  Fix this by iterating by
+>>>>>> the correct number of times.
+>>>>>>
+>>>>>> Detected by CoverityScan, CID#1415279 ("Out-of-bounds read")
+>>>>>>
+>>>>>> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+>>>>>> ---
+>>>>>>  drivers/media/platform/atmel/atmel-isc.c | 2 +-
+>>>>>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>>>>>
+>>>>>> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+>>>>>> index b380a7d..7dacf8c 100644
+>>>>>> --- a/drivers/media/platform/atmel/atmel-isc.c
+>>>>>> +++ b/drivers/media/platform/atmel/atmel-isc.c
+>>>>>> @@ -1298,7 +1298,7 @@ static void isc_hist_count(struct isc_device *isc)
+>>>>>>      regmap_bulk_read(regmap, ISC_HIS_ENTRY, hist_entry, HIST_ENTRIES);
+>>>>>>
+>>>>>>      *hist_count = 0;
+>>>>>> -    for (i = 0; i <= HIST_ENTRIES; i++)
+>>>>>> +    for (i = 0; i < HIST_ENTRIES; i++)
+>>>>>>          *hist_count += i * (*hist_entry++);
+>>>>>>  }
+>>>>>>
+>>>>>>
+>>>>
+>>
