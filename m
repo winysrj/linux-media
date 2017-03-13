@@ -1,109 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gw.crowfest.net ([52.42.241.221]:57792 "EHLO gw.crowfest.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753242AbdCTQGn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 12:06:43 -0400
-Message-ID: <1490024411.11105.5.camel@crowfest.net>
-Subject: Re: [PATCH 0/6] staging: BCM2835 MMAL V4L2 camera driver
-From: Michael Zoran <mzoran@crowfest.net>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Eric Anholt <eric@anholt.net>, devel@driverdev.osuosl.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-kernel@vger.kernel.org, linux-rpi-kernel@lists.infradead.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Date: Mon, 20 Mar 2017 08:40:11 -0700
-In-Reply-To: <20170320123345.5a7ac931@vento.lan>
-References: <20170127215503.13208-1-eric@anholt.net>
-         <20170315110128.37e2bc5a@vento.lan> <87a88m19om.fsf@eliezer.anholt.net>
-         <20170315220834.7019fd8b@vento.lan> <1489628784.8127.1.camel@crowfest.net>
-         <20170316062900.0e835118@vento.lan> <87shmbv2w3.fsf@eliezer.anholt.net>
-         <20170319135846.395feef8@vento.lan> <1489943068.13607.5.camel@crowfest.net>
-         <20170319221107.05227532@vento.lan> <20170320075831.65189ed7@vento.lan>
-         <1490008101.28090.5.camel@crowfest.net> <20170320115821.736931ee@vento.lan>
-         <1490022701.11105.3.camel@crowfest.net> <20170320123345.5a7ac931@vento.lan>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mail-qt0-f196.google.com ([209.85.216.196]:34397 "EHLO
+        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752577AbdCMTUw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Mar 2017 15:20:52 -0400
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [RFC 03/10] [media] vb2: add in-fence support to QBUF
+Date: Mon, 13 Mar 2017 16:20:28 -0300
+Message-Id: <20170313192035.29859-4-gustavo@padovan.org>
+In-Reply-To: <20170313192035.29859-1-gustavo@padovan.org>
+References: <20170313192035.29859-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2017-03-20 at 12:33 -0300, Mauro Carvalho Chehab wrote:
-> Em Mon, 20 Mar 2017 08:11:41 -0700
-> Michael Zoran <mzoran@crowfest.net> escreveu:
-> 
-> > On Mon, 2017-03-20 at 11:58 -0300, Mauro Carvalho Chehab wrote:
-> > > Em Mon, 20 Mar 2017 04:08:21 -0700
-> > > Michael Zoran <mzoran@crowfest.net> escreveu:
-> > >   
-> > > > On Mon, 2017-03-20 at 07:58 -0300, Mauro Carvalho Chehab
-> > > > wrote:  
-> > > > > Em Sun, 19 Mar 2017 22:11:07 -0300
-> > > > > Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
-> > > > >     
-> > > > > > Em Sun, 19 Mar 2017 10:04:28 -0700
-> > > > > > Michael Zoran <mzoran@crowfest.net> escreveu:
-> > > > > >     
-> > > > > > > A working DT that I tried this morning with the current
-> > > > > > > firmware
-> > > > > > > is
-> > > > > > > posted here:
-> > > > > > > http://lists.infradead.org/pipermail/linux-rpi-kernel/201
-> > > > > > > 7-Ma
-> > > > > > > rch/
-> > > > > > > 005924
-> > > > > > > .html
-> > > > > > > 
-> > > > > > > It even works with minecraft_pi!      
-> > > > > 
-> > > > >     
-> > > > 
-> > > > Hi, can you e-mail out your config.txt?  Do you have audio
-> > > > enabled
-> > > > in
-> > > > config.txt?  
-> > > 
-> > > yes, I have this:
-> > > 
-> > > $ cat config.txt |grep -i audio
-> > > # uncomment to force a HDMI mode rather than DVI. This can make
-> > > audio
-> > > work in
-> > > # Enable audio (loads snd_bcm2835)
-> > > dtparam=audio=on
-> > > 
-> > > Full config attached.
-> > > 
-> > > Thanks,
-> > > Mauro
-> > >   
-> > 
-> > Are you using Eric Anholt's HDMI Audio driver that's included in
-> > VC4? 
-> > That could well be incompatible with the firmware driver. Or are
-> > you
-> > using a half mode of VC4 for audio and VCHIQ for video?
-> 
-> I'm using vanilla staging Kernel, from Greg's tree:
-> 	https://git.kernel.org/pub/scm/linux/kernel/git/gregkh/staging.
-> git/commit/?h=staging-
-> next&id=7bc49cb9b9b8bad32536c4b6d1aff1824c1adc6c
-> 
-> Plus the DWC2 fixup I wrote and DT changes you pointed
-> (see enclosed).
-> 
-> I can disable the audio overlay here, as I don't have anything 
-> connected to audio inputs/outputs.
-> 
-> Regards,
-> Mauro
-> 
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Why is the vchiq node in the tree twice? For me to even respond anymore
-you you going to have to include your entire dtb(whatever you are
-using) run through dtc -I dtb -O dts.  You are also going to have to
-include your exact .config file you used for building, and exactly what
-these DWC2 fixeups are.
+Receive in-fence from userspace and support for waiting on them
+before queueing the buffer for the driver.
 
-You don't even state exactly what platform you are using, Is it even an
-RPI of some kind.
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+---
+ drivers/media/Kconfig                    |  1 +
+ drivers/media/v4l2-core/videobuf2-core.c | 24 ++++++++++++++++++++----
+ drivers/media/v4l2-core/videobuf2-v4l2.c | 14 +++++++++++++-
+ include/media/videobuf2-core.h           |  7 ++++++-
+ 4 files changed, 40 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index 3512316..7c5a0e0 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -5,6 +5,7 @@
+ menuconfig MEDIA_SUPPORT
+ 	tristate "Multimedia support"
+ 	depends on HAS_IOMEM
++	select SYNC_FILE
+ 	help
+ 	  If you want to use Webcams, Video grabber devices and/or TV devices
+ 	  enable this option and other options below.
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 0e30fcd..e0e7109 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1400,7 +1400,18 @@ static int __vb2_core_qbuf(struct vb2_buffer *vb, struct vb2_queue *q)
+ 	return 0;
+ }
+ 
+-int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
++static void vb2_qbuf_fence_cb(struct dma_fence *f, struct dma_fence_cb *cb)
++{
++	struct vb2_buffer *vb = container_of(cb, struct vb2_buffer, fence_cb);
++
++	dma_fence_put(vb->in_fence);
++	vb->in_fence = NULL;
++
++	__vb2_core_qbuf(vb, vb->vb2_queue);
++}
++
++int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
++		  struct dma_fence *fence)
+ {
+ 	struct vb2_buffer *vb;
+ 	int ret;
+@@ -1432,6 +1443,11 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+ 	if (pb)
+ 		call_void_bufop(q, fill_user_buffer, vb, pb);
+ 
++	vb->in_fence = fence;
++	if (fence && !dma_fence_add_callback(fence, &vb->fence_cb,
++					     vb2_qbuf_fence_cb))
++			return 0;
++
+ 	return __vb2_core_qbuf(vb, q);
+ }
+ EXPORT_SYMBOL_GPL(vb2_core_qbuf);
+@@ -2246,7 +2262,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 		 * Queue all buffers.
+ 		 */
+ 		for (i = 0; i < q->num_buffers; i++) {
+-			ret = vb2_core_qbuf(q, i, NULL);
++			ret = vb2_core_qbuf(q, i, NULL, NULL);
+ 			if (ret)
+ 				goto err_reqbufs;
+ 			fileio->bufs[i].queued = 1;
+@@ -2425,7 +2441,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 
+ 		if (copy_timestamp)
+ 			b->timestamp = ktime_get_ns();
+-		ret = vb2_core_qbuf(q, index, NULL);
++		ret = vb2_core_qbuf(q, index, NULL, NULL);
+ 		dprintk(5, "vb2_dbuf result: %d\n", ret);
+ 		if (ret)
+ 			return ret;
+@@ -2528,7 +2544,7 @@ static int vb2_thread(void *data)
+ 		if (copy_timestamp)
+ 			vb->timestamp = ktime_get_ns();;
+ 		if (!threadio->stop)
+-			ret = vb2_core_qbuf(q, vb->index, NULL);
++			ret = vb2_core_qbuf(q, vb->index, NULL, NULL);
+ 		call_void_qop(q, wait_prepare, q);
+ 		if (ret || threadio->stop)
+ 			break;
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index d23c1bf..c164aa0 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -23,6 +23,7 @@
+ #include <linux/sched.h>
+ #include <linux/freezer.h>
+ #include <linux/kthread.h>
++#include <linux/sync_file.h>
+ 
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-fh.h>
+@@ -557,6 +558,7 @@ EXPORT_SYMBOL_GPL(vb2_create_bufs);
+ 
+ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ {
++	struct dma_fence *fence = NULL;
+ 	int ret;
+ 
+ 	if (vb2_fileio_is_active(q)) {
+@@ -565,7 +567,17 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 	}
+ 
+ 	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
+-	return ret ? ret : vb2_core_qbuf(q, b->index, b);
++
++	if (b->flags & V4L2_BUF_FLAG_IN_FENCE) {
++		if (b->memory != VB2_MEMORY_DMABUF)
++			return -EINVAL;
++
++		fence = sync_file_get_fence(b->fence_fd);
++		if (!fence)
++			return -EINVAL;
++	}
++
++	return ret ? ret : vb2_core_qbuf(q, b->index, b, fence);
+ }
+ EXPORT_SYMBOL_GPL(vb2_qbuf);
+ 
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index ac5898a..fe2de99 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -16,6 +16,7 @@
+ #include <linux/mutex.h>
+ #include <linux/poll.h>
+ #include <linux/dma-buf.h>
++#include <linux/dma-fence.h>
+ 
+ #define VB2_MAX_FRAME	(32)
+ #define VB2_MAX_PLANES	(8)
+@@ -259,6 +260,9 @@ struct vb2_buffer {
+ 
+ 	struct list_head	queued_entry;
+ 	struct list_head	done_entry;
++
++	struct dma_fence	*in_fence;
++	struct dma_fence_cb	fence_cb;
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	/*
+ 	 * Counters for how often these buffer-related ops are
+@@ -727,7 +731,8 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
+  * The return values from this function are intended to be directly returned
+  * from vidioc_qbuf handler in driver.
+  */
+-int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb);
++int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
++		  struct dma_fence *fence);
+ 
+ /**
+  * vb2_core_dqbuf() - Dequeue a buffer to the userspace
+-- 
+2.9.3
