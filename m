@@ -1,73 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:47160 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754852AbdCGJoa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 04:44:30 -0500
-From: Kalle Valo <kvalo@codeaurora.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Arend Van Spriel <arend.vanspriel@broadcom.com>,
-        kasan-dev <kasan-dev@googlegroups.com>,
-        Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        Alexander Potapenko <glider@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Networking <netdev@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org,
-        linux-wireless <linux-wireless@vger.kernel.org>,
-        kernel-build-reports@lists.linaro.org,
-        "David S . Miller" <davem@davemloft.net>
-Subject: Re: [PATCH 08/26] brcmsmac: make some local variables 'static const' to reduce stack size
-References: <20170302163834.2273519-1-arnd@arndb.de>
-        <20170302163834.2273519-9-arnd@arndb.de>
-        <227c8e5a-fa20-0300-1cb0-1d3ef17deb19@broadcom.com>
-        <87y3wi74y8.fsf@purkki.adurom.net>
-        <CAK8P3a0cemG0=6jZOQEpGN+RG2Be1LM_DE7aJVX18en_i6G7=Q@mail.gmail.com>
-Date: Tue, 07 Mar 2017 11:44:04 +0200
-In-Reply-To: <CAK8P3a0cemG0=6jZOQEpGN+RG2Be1LM_DE7aJVX18en_i6G7=Q@mail.gmail.com>
-        (Arnd Bergmann's message of "Mon, 6 Mar 2017 22:34:12 +0100")
-Message-ID: <877f414e1n.fsf@codeaurora.org>
+Received: from exsmtp03.microchip.com ([198.175.253.49]:41150 "EHLO
+        email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752878AbdCMCP0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 12 Mar 2017 22:15:26 -0400
+Subject: Re: [PATCH] [media] atmel-isc: fix off-by-one comparison and out of
+ bounds read issue
+To: Colin Ian King <colin.king@canonical.com>, <wharms@bfs.de>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+References: <20170307143047.30082-1-colin.king@canonical.com>
+ <5dc9d025-31d5-b129-09df-5de19758e886@microchip.com>
+ <b84a5576-7b29-728b-b7c2-9929069a2b35@xs4all.nl> <58C14136.8060703@bfs.de>
+ <c19ce380-2355-3a1f-1896-3eab4c75dca6@canonical.com>
+CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        <linux-media@vger.kernel.org>, <kernel-janitors@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>
+From: "Wu, Songjun" <Songjun.Wu@microchip.com>
+Message-ID: <69c8d3b5-5edd-7adc-a764-42a67e98067b@microchip.com>
+Date: Mon, 13 Mar 2017 10:14:07 +0800
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <c19ce380-2355-3a1f-1896-3eab4c75dca6@canonical.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Arnd Bergmann <arnd@arndb.de> writes:
 
-> On Mon, Mar 6, 2017 at 5:19 PM, Kalle Valo <kvalo@codeaurora.org> wrote:
->> Arend Van Spriel <arend.vanspriel@broadcom.com> writes:
+
+On 3/9/2017 19:50, Colin Ian King wrote:
+> On 09/03/17 11:49, walter harms wrote:
 >>
->>> On 2-3-2017 17:38, Arnd Bergmann wrote:
->>>> With KASAN and a couple of other patches applied, this driver is one
->>>> of the few remaining ones that actually use more than 2048 bytes of
->>>> kernel stack:
->>>>
->>>> broadcom/brcm80211/brcmsmac/phy/phy_n.c: In function
->>>> 'wlc_phy_workarounds_nphy_gainctrl':
->>>> broadcom/brcm80211/brcmsmac/phy/phy_n.c:16065:1: warning: the
->>>> frame size of 3264 bytes is larger than 2048 bytes
->>>> [-Wframe-larger-than=]
->>>> broadcom/brcm80211/brcmsmac/phy/phy_n.c: In function 'wlc_phy_workarounds_nphy':
->>>> broadcom/brcm80211/brcmsmac/phy/phy_n.c:17138:1: warning: the
->>>> frame size of 2864 bytes is larger than 2048 bytes
->>>> [-Wframe-larger-than=]
->>>>
->>>> Here, I'm reducing the stack size by marking as many local variables as
->>>> 'static const' as I can without changing the actual code.
+>>
+>> Am 09.03.2017 11:57, schrieb Hans Verkuil:
+>>> Hi Songjun,
 >>>
->>> Acked-by: Arend van Spriel <arend.vanspriel@broadcom.com>
+>>> On 08/03/17 03:25, Wu, Songjun wrote:
+>>>> Hi Colin,
+>>>>
+>>>> Thank you for your comment.
+>>>> It is a bug, will be fixed in the next patch.
+>>>
+>>> Do you mean that you will provide a new patch for this? Is there anything
+>>> wrong with this patch? It seems reasonable to me.
+>>>
+>>> Regards,
+>>>
+>>> 	Hans
+>>>
 >>
->> Arnd, via which tree are you planning to submit these? I'm not sure
->> what I should do with the wireless drivers patches from this series.
+>>
+>>
+>> perhaps he will make it a bit more readable, like:
+>>
+>> *hist_count += i * (*hist_entry++);
+>>
+>> *hist_count += hist_entry[i]*i;
 >
-> I'm not quite sure myself yet. I'd probably want the first few patches that
-> do most of the work get merged through Andrew's linux-mm tree once
-> we have come to agreement on them. The driver specific patches like
-> the brcmsmac ones depend on the introduction of noinline_for_kasan
-> or noinline_if_stackbloat and could either go in along with the first
-> set, or as a follow-up through the normal maintainer trees.
+> As long as it gets fixed somehow, then I'm happy.
+>
+You suggestion is very good, I will modify it like this.
+Thank you.
 
-Either way is fine for me. Just mark clearly if you want the wireless
-drivers patches to go through via my tree, otherwise I'll ignore them.
-
--- 
-Kalle Valo
+> Colin
+>>
+>>
+>> re,
+>>  wh
+>>>>
+>>>> On 3/7/2017 22:30, Colin King wrote:
+>>>>> From: Colin Ian King <colin.king@canonical.com>
+>>>>>
+>>>>> The are only HIST_ENTRIES worth of entries in  hist_entry however the
+>>>>> for-loop is iterating one too many times leasing to a read access off
+>>>>> the end off the array ctrls->hist_entry.  Fix this by iterating by
+>>>>> the correct number of times.
+>>>>>
+>>>>> Detected by CoverityScan, CID#1415279 ("Out-of-bounds read")
+>>>>>
+>>>>> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+>>>>> ---
+>>>>>  drivers/media/platform/atmel/atmel-isc.c | 2 +-
+>>>>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>>>>
+>>>>> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+>>>>> index b380a7d..7dacf8c 100644
+>>>>> --- a/drivers/media/platform/atmel/atmel-isc.c
+>>>>> +++ b/drivers/media/platform/atmel/atmel-isc.c
+>>>>> @@ -1298,7 +1298,7 @@ static void isc_hist_count(struct isc_device *isc)
+>>>>>      regmap_bulk_read(regmap, ISC_HIS_ENTRY, hist_entry, HIST_ENTRIES);
+>>>>>
+>>>>>      *hist_count = 0;
+>>>>> -    for (i = 0; i <= HIST_ENTRIES; i++)
+>>>>> +    for (i = 0; i < HIST_ENTRIES; i++)
+>>>>>          *hist_count += i * (*hist_entry++);
+>>>>>  }
+>>>>>
+>>>>>
+>>>
+>>
+>>
+>>
+>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>
