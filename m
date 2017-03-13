@@ -1,63 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53758 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753414AbdC0OZv (ORCPT
+Received: from mail-qk0-f193.google.com ([209.85.220.193]:35505 "EHLO
+        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752986AbdCMTU5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 10:25:51 -0400
-Subject: Re: [PATCH v7] [media] vimc: Virtual Media Controller core, capture
- and sensor
-To: Helen Koike <helen.koike@collabora.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, jgebben@codeaurora.org,
-        mchehab@osg.samsung.com,
-        Helen Fornazier <helen.fornazier@gmail.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <6c85eaf4-1f91-7964-1cf9-602005b62a94@collabora.co.uk>
- <1490461896-19221-1-git-send-email-helen.koike@collabora.com>
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Message-ID: <f8466f7a-0f33-a610-10fc-2515d5f6b499@iki.fi>
-Date: Sun, 26 Mar 2017 16:31:42 +0300
-MIME-Version: 1.0
-In-Reply-To: <1490461896-19221-1-git-send-email-helen.koike@collabora.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+        Mon, 13 Mar 2017 15:20:57 -0400
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [RFC 05/10] [media] vivid: assign the specific device to the vb2_queue->dev
+Date: Mon, 13 Mar 2017 16:20:30 -0300
+Message-Id: <20170313192035.29859-6-gustavo@padovan.org>
+In-Reply-To: <20170313192035.29859-1-gustavo@padovan.org>
+References: <20170313192035.29859-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Helen,
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-...
-> +static int vimc_cap_enum_input(struct file *file, void *priv,
-> +			       struct v4l2_input *i)
-> +{
-> +	/* We only have one input */
-> +	if (i->index > 0)
-> +		return -EINVAL;
-> +
-> +	i->type = V4L2_INPUT_TYPE_CAMERA;
-> +	strlcpy(i->name, "VIMC capture", sizeof(i->name));
-> +
-> +	return 0;
-> +}
-> +
-> +static int vimc_cap_g_input(struct file *file, void *priv, unsigned int *i)
-> +{
-> +	/* We only have one input */
-> +	*i = 0;
-> +	return 0;
-> +}
-> +
-> +static int vimc_cap_s_input(struct file *file, void *priv, unsigned int i)
-> +{
-> +	/* We only have one input */
-> +	return i ? -EINVAL : 0;
-> +}
+Instead of assign the global v4l2 device assigned the specific device,
+this was causing trouble when using using V4L2 events with vivid
+devices. The queue device should be the same one we opened in userspace.
 
-You can drop the input IOCTLs altogether here. If you had e.g. a TV
-tuner, it'd be the TV tuner driver's responsibility to implement them.
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+---
+ drivers/media/platform/vivid/vivid-core.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index ef344b9..8843170 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -1070,7 +1070,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 2;
+ 		q->lock = &dev->mutex;
+-		q->dev = dev->v4l2_dev.dev;
++		q->dev = &dev->vid_cap_dev.dev;
+ 
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1090,7 +1090,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 2;
+ 		q->lock = &dev->mutex;
+-		q->dev = dev->v4l2_dev.dev;
++		q->dev = &dev->vid_out_dev.dev;
+ 
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1110,7 +1110,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 2;
+ 		q->lock = &dev->mutex;
+-		q->dev = dev->v4l2_dev.dev;
++		q->dev = &dev->vbi_cap_dev.dev;
+ 
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1130,7 +1130,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 2;
+ 		q->lock = &dev->mutex;
+-		q->dev = dev->v4l2_dev.dev;
++		q->dev = &dev->vbi_out_dev.dev;
+ 
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1149,7 +1149,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 8;
+ 		q->lock = &dev->mutex;
+-		q->dev = dev->v4l2_dev.dev;
++		q->dev = &dev->sdr_cap_dev.dev;
+ 
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
 -- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@iki.fi
+2.9.3
