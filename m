@@ -1,92 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay4.synopsys.com ([198.182.47.9]:34702 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751195AbdCOQp3 (ORCPT
+Received: from mailgw01.mediatek.com ([210.61.82.183]:5467 "EHLO
+        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1755789AbdCMDFC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Mar 2017 12:45:29 -0400
-Subject: Re: [PATCH v10 2/2] media: i2c: Add support for OV5647 sensor.
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-References: <cover.1488798062.git.roliveir@synopsys.com>
- <67b5055a198316f74c5c1339e14a9f18a4106e69.1488798062.git.roliveir@synopsys.com>
- <20170307104545.GI3220@valkosipuli.retiisi.org.uk>
-CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <devicetree@vger.kernel.org>, <vladimir_zapolskiy@mentor.com>,
-        <CARLOS.PALMINHA@synopsys.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mark Rutland <mark.rutland@arm.com>,
+        Sun, 12 Mar 2017 23:05:02 -0400
+Message-ID: <1489374294.19716.1.camel@mtksdaap41>
+Subject: Re: [PATCH] [media] vcodev: mediatek: add missing include in JPEG
+ decoder driver
+From: Rick Chang <rick.chang@mediatek.com>
+To: =?ISO-8859-1?Q?J=E9r=E9my?= Lefaure <jeremy.lefaure@lse.epita.fr>
+CC: Bin Liu <bin.liu@mediatek.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>,
-        Pavel Machek <pavel@ucw.cz>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        "Rob Herring" <robh+dt@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>
-From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-Message-ID: <350cf398-81a9-7174-fd47-1dc5c0daa990@synopsys.com>
-Date: Wed, 15 Mar 2017 16:45:16 +0000
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        <linux-media@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-mediatek@lists.infradead.org>
+Date: Mon, 13 Mar 2017 11:04:54 +0800
+In-Reply-To: <20170312201329.28357-1-jeremy.lefaure@lse.epita.fr>
+References: <20170312201329.28357-1-jeremy.lefaure@lse.epita.fr>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 MIME-Version: 1.0
-In-Reply-To: <20170307104545.GI3220@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari
+On Sun, 2017-03-12 at 16:13 -0400, Jérémy Lefaure wrote:
+> The driver uses kzalloc and kfree functions. So it should include
+> linux/slab.h. This header file is implicitly included by v4l2-common.h
+> if CONFIG_SPI is enabled. But when it is disabled, slab.h is not
+> included. In this case, the driver does not compile:
+> 
+> drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c: In function ‘mtk_jpeg_open’:
+> drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c:1017:8: error: implicit
+> declaration of function ‘kzalloc’
+> [-Werror=implicit-function-declaration]
+>   ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+>         ^~~~~~~
+> drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c:1017:6: warning:
+> assignment makes pointer from integer without a cast [-Wint-conversion]
+>   ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+>       ^
+> drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c:1047:2: error: implicit
+> declaration of function ‘kfree’ [-Werror=implicit-function-declaration]
+>   kfree(ctx);
+>   ^~~~~
+> 
+> This patch adds the missing include to fix this issue.
+> 
+> Signed-off-by: Jérémy Lefaure <jeremy.lefaure@lse.epita.fr>
+> ---
+>  drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c | 1 +
+>  1 file changed, 1 insertion(+)
 
-On 3/7/2017 10:45 AM, Sakari Ailus wrote:
-> Hi Ramiro,
-> 
-> On Mon, Mar 06, 2017 at 11:16:34AM +0000, Ramiro Oliveira wrote:
-> ...
->> +static int __sensor_init(struct v4l2_subdev *sd)
->> +{
->> +	int ret;
->> +	u8 resetval, rdval;
->> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
->> +
->> +	dev_dbg(&client->dev, "sensor init\n");
-> 
-> This looks like a debugging time leftover. Please remove.
-> 
-
-Should I send a v11 with this change?
-
-> With that,
-> 
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-> ...
-> 
->> +static int ov5647_parse_dt(struct device_node *np)
->> +{
->> +	struct v4l2_of_endpoint bus_cfg;
->> +	struct device_node *ep;
->> +
->> +	int ret;
->> +
->> +	ep = of_graph_get_next_endpoint(np, NULL);
->> +	if (!ep)
->> +		return -EINVAL;
->> +
->> +	ret = v4l2_of_parse_endpoint(ep, &bus_cfg);
->> +
->> +	of_node_put(ep);
->> +	return ret;
->> +}
-> 
-> This will conflict with my fwnode patchset. Let's see in which order the
-> patches will be merged, one of the sets has to be changed. The work is
-> trivial though.
-> 
-
--- 
-Best Regards
-
-Ramiro Oliveira
-Ramiro.Oliveira@synopsys.com
+Acked-by: Rick Chang <rick.chang@mediatek.com>
