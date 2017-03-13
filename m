@@ -1,53 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:64680 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753715AbdCTOmE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 10:42:04 -0400
-Subject: [PATCH 19/24] staging/atomisp: add PCI dependency
-From: Alan Cox <alan@linux.intel.com>
-To: greg@kroah.com, linux-media@vger.kernel.org
-Date: Mon, 20 Mar 2017 14:41:55 +0000
-Message-ID: <149002091472.17109.9357026088604954399.stgit@acox1-desk1.ger.corp.intel.com>
-In-Reply-To: <149002068431.17109.1216139691005241038.stgit@acox1-desk1.ger.corp.intel.com>
-References: <149002068431.17109.1216139691005241038.stgit@acox1-desk1.ger.corp.intel.com>
+Received: from us01smtprelay-2.synopsys.com ([198.182.47.9]:58110 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751486AbdCMLoO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Mar 2017 07:44:14 -0400
+Subject: Re: [PATCH v3 4/6] drm: bridge: dw-hdmi: Switch to V4L bus format and
+ encodings
+To: Neil Armstrong <narmstrong@baylibre.com>,
+        Jose Abreu <Jose.Abreu@synopsys.com>,
+        <dri-devel@lists.freedesktop.org>,
+        <laurent.pinchart+renesas@ideasonboard.com>,
+        <architt@codeaurora.org>, <mchehab@kernel.org>
+References: <1488904944-14285-1-git-send-email-narmstrong@baylibre.com>
+ <1488904944-14285-5-git-send-email-narmstrong@baylibre.com>
+ <977cfb29-af7a-2e28-7a7f-396d9ccf3eb8@synopsys.com>
+ <28fe7ecf-cf4a-568a-b853-0506c088884d@baylibre.com>
+ <f73a3cee-3336-2562-696d-dd4e0e7ac680@synopsys.com>
+CC: <kieran.bingham@ideasonboard.com>,
+        <linux-amlogic@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+        <linux-media@vger.kernel.org>, <hans.verkuil@cisco.com>,
+        <sakari.ailus@linux.intel.com>
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+Message-ID: <dfc1e19f-8b83-fc1a-3653-7e95bcc3c7f0@synopsys.com>
+Date: Mon, 13 Mar 2017 11:43:44 +0000
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+In-Reply-To: <f73a3cee-3336-2562-696d-dd4e0e7ac680@synopsys.com>
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Arnd Bergmann <arnd@arndb.de>
+Hi Neil,
 
-Without CONFIG_PCI, config space reads never return any data,
-leading to undefined behavior that gcc warns about:
 
-platform/intel-mid/intel_mid_pcihelpers.c: In function 'intel_mid_msgbus_read32_raw':
-platform/intel-mid/intel_mid_pcihelpers.c:66:9: error: 'data' is used uninitialized in this function [-Werror=uninitialized]
-platform/intel-mid/intel_mid_pcihelpers.c: In function 'intel_mid_msgbus_read32_raw_ext':
-platform/intel-mid/intel_mid_pcihelpers.c:84:9: error: 'data' is used uninitialized in this function [-Werror=uninitialized]
-platform/intel-mid/intel_mid_pcihelpers.c: In function 'intel_mid_msgbus_read32':
-platform/intel-mid/intel_mid_pcihelpers.c:137:9: error: 'data' is used uninitialized in this function [-Werror=uninitialized]
+On 09-03-2017 14:27, Jose Abreu wrote:
+> Hi Neil,
+>
+>
+> On 08-03-2017 12:12, Neil Armstrong wrote:
+>> Hi Jose,
+>>
+>> It seems here that we only have the RGB444<->YUV444 8bit tables, from the Amlogic
+>> source I have the following for 10bit, 12bit and 16bit for itu601 :
+>>
+>> static const u16 csc_coeff_rgb_out_eitu601_10b[3][4] = {
+>> 	{ 0x2000, 0x6926, 0x74fd, 0x043b },
+>> 	{ 0x2000, 0x2cdd, 0x0000, 0x7a65 },
+>> 	{ 0x2000, 0x0000, 0x38b4, 0x78ea }
+>> };
+>>
+>> static const u16 csc_coeff_rgb_out_eitu601_12b_16b[3][4] = {
+>> 	{ 0x2000, 0x6926, 0x74fd, 0x10ee },
+>> 	{ 0x2000, 0x2cdd, 0x0000, 0x6992 },
+>> 	{ 0x2000, 0x0000, 0x38b4, 0x63a6 }
+>> };
+> These two do not match anything I have here.
+>
+>> static const u16 csc_coeff_rgb_in_eitu601_10b[3][4] = {
+>> 	{ 0x2591, 0x1322, 0x074b, 0x0000 },
+>> 	{ 0x6535, 0x2000, 0x7acc, 0x0800 },
+>> 	{ 0x6acd, 0x7534, 0x2000, 0x0800 }
+>> };
+> This is more or less correct, I have small offsets. Note that I
+> even have offsets with the values that are in dw-hdmi driver,
+> which can be caused because I'm seeing the latest document that
+> contain these values. I guess they were updated.
+>
+>> static const u16 csc_coeff_rgb_in_eitu601_12b_16b[3][4] = {
+>> 	{ 0x2591, 0x1322, 0x074b, 0x0000 },
+>> 	{ 0x6535, 0x2000, 0x7acc, 0x2000 },
+>> 	{ 0x6acd, 0x7534, 0x2000, 0x2000 }
+>> };
+> The same for this.
+>
+>> But I miss the itu709 values.
+>>
+>> Could you confirm these values and maybe provide the itu709 values ?
+> I will have to check if I can provide you the values. I will get
+> back to you.
 
-With a dependency on CONFIG_PCI, we don't get this warning. This seems
-safe as PCI config space accessors should always return something
-when PCI is enabled.
+Sorry but looks like I won't be able to provide you the correct
+values :/ If you are working for a Synopsys customer you can
+contact our CAE (If so I can guide you to the correct CAE).
 
-Fixes: a49d25364dfb ("staging/atomisp: Add support for the Intel IPU v2")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Alan Cox <alan@linux.intel.com>
----
- drivers/staging/media/atomisp/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Anyway, unless you can test the values you have I suggest you
+don't use them, they do not match what I have here and I can't
+test them because right now I don't have a setup (I'm assuming
+that your CSC block within the controller was not modified).
 
-diff --git a/drivers/staging/media/atomisp/Kconfig b/drivers/staging/media/atomisp/Kconfig
-index 28615aa..8b172ed 100644
---- a/drivers/staging/media/atomisp/Kconfig
-+++ b/drivers/staging/media/atomisp/Kconfig
-@@ -1,6 +1,6 @@
- menuconfig INTEL_ATOMISP
-         bool "Enable support to Intel MIPI camera drivers"
--        depends on X86 && EFI && MEDIA_CONTROLLER
-+        depends on X86 && EFI && MEDIA_CONTROLLER && PCI
-         help
-           Enable support for the Intel ISP2 camera interfaces and MIPI
-           sensor drivers.
+Best regards,
+Jose Miguel Abreu
