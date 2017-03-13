@@ -1,88 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:37445 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751820AbdCNTGl (ORCPT
+Received: from exsmtp03.microchip.com ([198.175.253.49]:35100 "EHLO
+        email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751150AbdCMNeD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Mar 2017 15:06:41 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v3 18/27] rcar-vin: add flag to switch to media controller mode
-Date: Tue, 14 Mar 2017 20:02:59 +0100
-Message-Id: <20170314190308.25790-19-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
+        Mon, 13 Mar 2017 09:34:03 -0400
+Subject: Re: [PATCHv5 07/16] atmel-isi: remove dependency of the soc-camera
+ framework
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <20170311112328.11802-1-hverkuil@xs4all.nl>
+ <20170311112328.11802-8-hverkuil@xs4all.nl>
+ <Pine.LNX.4.64.1703121334370.22698@axis700.grange>
+ <4010987b-52a3-d3b9-0e3f-c5ea35455fa2@xs4all.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        <devicetree@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Josh Wu <josh.wu@atmel.com>,
+        Ludovic Desroches <ludovic.desroches@microchip.com>,
+        "Wu, Songjun" <Songjun.Wu@microchip.com>
+From: Nicolas Ferre <nicolas.ferre@atmel.com>
+Message-ID: <1b77d36c-856c-0bee-a832-3d4e74c0e9dd@atmel.com>
+Date: Mon, 13 Mar 2017 14:34:23 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <4010987b-52a3-d3b9-0e3f-c5ea35455fa2@xs4all.nl>
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Gen3 a media controller API needs to be used to allow userspace to
-configure the subdevices in the pipeline instead of directly controlling
-a single source subdevice, which is and will continue to be the mode of
-operation on Gen2.
+Le 13/03/2017 à 12:43, Hans Verkuil a écrit :
+> On 03/12/2017 05:44 PM, Guennadi Liakhovetski wrote:
+>> Hi Hans,
+>>
+>> Thanks for the patch. Why hasn't this patch been CCed to Josh Wu? Is he 
+>> still at Atmel? Adding to CC to check.
+> 
+> To the best of my knowledge Josh no longer works for Atmel/Microchip, and Songjun
+> took over.
 
-Prepare for these two modes of operation by adding a flag to struct
-rvin_graph_entity which will control which mode to use.
+Yes absolutely, Josh Wu is no longer with us and Songjun and Ludovic
+took over the maintenance.
+But we have full confidence in experts like you guys and we thank you so
+much Hans for having handled this move for atmel-isi.
 
-Signed-off-by: Niklas SÃ¶derlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 3 +++
- drivers/media/platform/rcar-vin/rcar-vin.h  | 2 ++
- 2 files changed, 5 insertions(+)
+>> A general comment: this patch doesn't only remove soc-camera dependencies, 
+>> it also changes the code and the behaviour. I would prefer to break that 
+>> down in multiple patches, or remove this driver completely and add a new 
+>> one. I'll provide some comments, but of course I cannot make an extensive 
+>> review of a 1200-line of change patch without knowing the hardware and the 
+>> set ups well enough.
+>>
+>> On Sat, 11 Mar 2017, Hans Verkuil wrote:
+>>
+>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>
+>>> This patch converts the atmel-isi driver from a soc-camera driver to a driver
+>>> that is stand-alone.
+>>>
+>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>> ---
+>>>  drivers/media/platform/soc_camera/Kconfig     |    3 +-
+>>>  drivers/media/platform/soc_camera/atmel-isi.c | 1209 +++++++++++++++----------
+>>>  2 files changed, 714 insertions(+), 498 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index adc38696a0ba70b9..8b30d8d3ec7d9c04 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -261,18 +261,21 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
- 
- static const struct rvin_info rcar_info_h1 = {
- 	.chip = RCAR_H1,
-+	.use_mc = false,
- 	.max_width = 2048,
- 	.max_height = 2048,
- };
- 
- static const struct rvin_info rcar_info_m1 = {
- 	.chip = RCAR_M1,
-+	.use_mc = false,
- 	.max_width = 2048,
- 	.max_height = 2048,
- };
- 
- static const struct rvin_info rcar_info_gen2 = {
- 	.chip = RCAR_GEN2,
-+	.use_mc = false,
- 	.max_width = 2048,
- 	.max_height = 2048,
- };
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index b1cd0abba9ca9c94..512e67fdefd15015 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -77,12 +77,14 @@ struct rvin_graph_entity {
- /**
-  * struct rvin_info- Information about the particular VIN implementation
-  * @chip:		type of VIN chip
-+ * @use_mc:		use media controller instead of controlling subdevice
-  *
-  * max_width:		max input width the VIN supports
-  * max_height:		max input height the VIN supports
-  */
- struct rvin_info {
- 	enum chip_id chip;
-+	bool use_mc;
- 
- 	unsigned int max_width;
- 	unsigned int max_height;
+[..]
+
+>>> +static struct isi_format isi_formats[] = {
+>>
+>> This isn't a const array, you're modifying it during initialisation. Are 
+>> we sure there aren't going to be any SoCs with more than one ISI?
+> 
+> When that happens, this should be changed at that time. I think it is unlikely
+> since as I understand it ISI has been replaced by ISC (atmel-isc).
+
+Yes, ISC has replaced ISI for all Atmel/Microchip MPUs onwards. We may
+have several of them, but very likely never more than one ISI.
+
+Regards,
 -- 
-2.12.0
+Nicolas Ferre
