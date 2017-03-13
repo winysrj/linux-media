@@ -1,180 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:42410 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751665AbdCCJHO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 04:07:14 -0500
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>
-Subject: [Patch v2 08/11] s5p-mfc: Add VP9 decoder support
-Date: Fri, 03 Mar 2017 14:37:13 +0530
-Message-id: <1488532036-13044-9-git-send-email-smitha.t@samsung.com>
-In-reply-to: <1488532036-13044-1-git-send-email-smitha.t@samsung.com>
-References: <1488532036-13044-1-git-send-email-smitha.t@samsung.com>
- <CGME20170303090504epcas5p4f218e2ff6dbdc13728e140ec474d4d3d@epcas5p4.samsung.com>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:44080 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751566AbdCMKxX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Mar 2017 06:53:23 -0400
+Subject: Re: [PATCH v5 15/39] [media] v4l2: add a frame interval error event
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <1489121599-23206-16-git-send-email-steve_longerbeam@mentor.com>
+ <5b0a0e76-2524-4140-5ccc-380a8f949cfa@xs4all.nl>
+ <ec05e6e0-79f2-2db2-bde9-4aed00d76faa@gmail.com>
+ <6b574476-77df-0e25-a4d1-32d4fe0aec12@xs4all.nl>
+ <5d5cf4a4-a4d3-586e-cd16-54f543dfcce9@gmail.com>
+ <aa6a5a1d-18fd-8bed-a349-2654d2d1abe0@xs4all.nl>
+ <20170313104538.GF21222@n2100.armlinux.org.uk>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
+        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <b36875e0-683a-fcc3-343d-9ddd1a39cac0@xs4all.nl>
+Date: Mon, 13 Mar 2017 11:53:14 +0100
+MIME-Version: 1.0
+In-Reply-To: <20170313104538.GF21222@n2100.armlinux.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for codec definition and corresponding buffer
-requirements for VP9 decoder.
+On 03/13/2017 11:45 AM, Russell King - ARM Linux wrote:
+> On Mon, Mar 13, 2017 at 11:02:34AM +0100, Hans Verkuil wrote:
+>> On 03/11/2017 07:14 PM, Steve Longerbeam wrote:
+>>> The event must be user visible, otherwise the user has no indication
+>>> the error, and can't correct it by stream restart.
+>>
+>> In that case the driver can detect this and call vb2_queue_error. It's
+>> what it is there for.
+>>
+>> The event doesn't help you since only this driver has this issue. So nobody
+>> will watch this event, unless it is sw specifically written for this SoC.
+>>
+>> Much better to call vb2_queue_error to signal a fatal error (which this
+>> apparently is) since there are more drivers that do this, and vivid supports
+>> triggering this condition as well.
+> 
+> So today, I can fiddle around with the IMX219 registers to help gain
+> an understanding of how this sensor works.  Several of the registers
+> (such as the PLL setup [*]) require me to disable streaming on the
+> sensor while changing them.
+> 
+> This is something I've done many times while testing various ideas,
+> and is my primary way of figuring out and testing such things.
+> 
+> Whenever I resume streaming (provided I've let the sensor stop
+> streaming at a frame boundary) it resumes as if nothing happened.  If I
+> stop the sensor mid-frame, then I get the rolling issue that Steve
+> reports, but once the top of the frame becomes aligned with the top of
+> the capture, everything then becomes stable again as if nothing happened.
+> 
+> The side effect of what you're proposing is that when I disable streaming
+> at the sensor by poking at its registers, rather than the capture just
+> stopping, an error is going to be delivered to gstreamer, and gstreamer
+> is going to exit, taking the entire capture process down.
+> 
+> This severely restricts the ability to be able to develop and test
+> sensor drivers.
+> 
+> So, I strongly disagree with you.
+> 
+> Loss of capture frames is not necessarily a fatal error - as I have been
+> saying repeatedly.  In Steve's case, there's some unknown interaction
+> between the source and iMX6 hardware that is causing the instability,
+> but that is simply not true of other sources, and I oppose any idea that
+> we should cripple the iMX6 side of the capture based upon just one
+> hardware combination where this is a problem.
+> 
+> Steve suggested that the problem could be in the iMX6 CSI block - and I
+> note comparing Steve's code with the code in FSL's repository that there
+> are some changes that are missing in Steve's code to do with the CCIR656
+> sync code setup, particularly for >8 bit.  The progressive CCIR656 8-bit
+> setup looks pretty similar though - but I think what needs to be asked
+> is whether the same problem is visible using the FSL/NXP vendor kernel.
+> 
+> 
+> * - the PLL setup is something that requires research at the moment.
+> Sony's official position (even to their customers) is that they do not
+> supply the necessary information, instead they expect customers to tell
+> them the capture settings they want, and Sony will throw the values into
+> a spreadsheet, and they'll supply the register settings back to the
+> customer.  Hence, the only way to proceed with a generic driver for
+> this sensor is to experiment, and experimenting requires the ability to
+> pause the stream at the sensor while making changes.  Take this away,
+> and we're stuck with the tables-of-register-settings-for-set-of-fixed-
+> capture-settings approach.  I've made a lot of progress away from this
+> which is all down to the flexibility afforded by _not_ killing the
+> capture process.
+> 
 
-Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
----
- drivers/media/platform/s5p-mfc/regs-mfc-v10.h   |    6 +++++
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c |    3 ++
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |    8 ++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |    2 +
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   27 +++++++++++++++++++++++
- 6 files changed, 47 insertions(+), 0 deletions(-)
+In other words: Steve should either find a proper fix for this, or only
+call vb2_queue_error in this specific case. Sending an event that nobody
+will know how to handle or what to do with is pretty pointless IMHO.
 
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-index bb79932..846dcf5 100644
---- a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-@@ -18,6 +18,8 @@
- /* MFCv10 register definitions*/
- #define S5P_FIMV_MFC_CLOCK_OFF_V10			0x7120
- #define S5P_FIMV_MFC_STATE_V10				0x7124
-+#define S5P_FIMV_D_STATIC_BUFFER_ADDR_V10		0xF570
-+#define S5P_FIMV_D_STATIC_BUFFER_SIZE_V10		0xF574
- 
- /* MFCv10 Context buffer sizes */
- #define MFC_CTX_BUF_SIZE_V10		(30 * SZ_1K)	/* 30KB */
-@@ -34,8 +36,12 @@
- 
- /* MFCv10 codec defines*/
- #define S5P_FIMV_CODEC_HEVC_DEC		17
-+#define S5P_FIMV_CODEC_VP9_DEC		18
- #define S5P_FIMV_CODEC_HEVC_ENC         26
- 
-+/* Decoder buffer size for MFC v10 */
-+#define DEC_VP9_STATIC_BUFFER_SIZE	20480
-+
- /* Encoder buffer size for MFC v10.0 */
- #define ENC_V100_BASE_SIZE(x, y) \
- 	(((x + 3) * (y + 3) * 8) \
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-index 76eca67..102b47e 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-@@ -104,6 +104,9 @@ static int s5p_mfc_open_inst_cmd_v6(struct s5p_mfc_ctx *ctx)
- 	case S5P_MFC_CODEC_HEVC_DEC:
- 		codec_type = S5P_FIMV_CODEC_HEVC_DEC;
- 		break;
-+	case S5P_MFC_CODEC_VP9_DEC:
-+		codec_type = S5P_FIMV_CODEC_VP9_DEC;
-+		break;
- 	case S5P_MFC_CODEC_H264_ENC:
- 		codec_type = S5P_FIMV_CODEC_H264_ENC_V6;
- 		break;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index 5c46060..e720ce6 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -80,6 +80,7 @@ static inline dma_addr_t s5p_mfc_mem_cookie(void *a, void *b)
- #define S5P_MFC_CODEC_VC1RCV_DEC	6
- #define S5P_MFC_CODEC_VP8_DEC		7
- #define S5P_MFC_CODEC_HEVC_DEC		17
-+#define S5P_MFC_CODEC_VP9_DEC		18
- 
- #define S5P_MFC_CODEC_H264_ENC		20
- #define S5P_MFC_CODEC_H264_MVC_ENC	21
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 9f459b3..93626ed 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -164,6 +164,14 @@
- 		.num_planes	= 1,
- 		.versions	= MFC_V10_BIT,
- 	},
-+	{
-+		.name		= "VP9 Encoded Stream",
-+		.fourcc		= V4L2_PIX_FMT_VP9,
-+		.codec_mode	= S5P_FIMV_CODEC_VP9_DEC,
-+		.type		= MFC_FMT_DEC,
-+		.num_planes	= 1,
-+		.versions	= MFC_V10_BIT,
-+	},
- };
- 
- #define NUM_FORMATS ARRAY_SIZE(formats)
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
-index 6478f70..565decf 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
-@@ -170,6 +170,8 @@ struct s5p_mfc_regs {
- 	void __iomem *d_used_dpb_flag_upper;/* v7 and v8 */
- 	void __iomem *d_used_dpb_flag_lower;/* v7 and v8 */
- 	void __iomem *d_min_scratch_buffer_size; /* v10 */
-+	void __iomem *d_static_buffer_addr; /* v10 */
-+	void __iomem *d_static_buffer_size; /* v10 */
- 
- 	/* encoder registers */
- 	void __iomem *e_frame_width;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index cda0403..7dcc671 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -228,6 +228,12 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 			ctx->scratch_buf_size +
- 			(ctx->mv_count * ctx->mv_size);
- 		break;
-+	case S5P_MFC_CODEC_VP9_DEC:
-+		mfc_debug(2, "Use min scratch buffer size\n");
-+		ctx->bank1.size =
-+			ctx->scratch_buf_size +
-+			DEC_VP9_STATIC_BUFFER_SIZE;
-+		break;
- 	case S5P_MFC_CODEC_H264_ENC:
- 		if (IS_MFCV10(dev)) {
- 			mfc_debug(2, "Use min scratch buffer size\n");
-@@ -339,6 +345,7 @@ static int s5p_mfc_alloc_instance_buffer_v6(struct s5p_mfc_ctx *ctx)
- 	case S5P_MFC_CODEC_VC1_DEC:
- 	case S5P_MFC_CODEC_MPEG2_DEC:
- 	case S5P_MFC_CODEC_VP8_DEC:
-+	case S5P_MFC_CODEC_VP9_DEC:
- 		ctx->ctx.size = buf_size->other_dec_ctx;
- 		break;
- 	case S5P_MFC_CODEC_H264_ENC:
-@@ -573,6 +580,14 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
- 		}
- 	}
- 
-+	if (ctx->codec_mode == S5P_FIMV_CODEC_VP9_DEC) {
-+		writel(buf_addr1, mfc_regs->d_static_buffer_addr);
-+		writel(DEC_VP9_STATIC_BUFFER_SIZE,
-+				mfc_regs->d_static_buffer_size);
-+		buf_addr1 += DEC_VP9_STATIC_BUFFER_SIZE;
-+		buf_size1 -= DEC_VP9_STATIC_BUFFER_SIZE;
-+	}
-+
- 	mfc_debug(2, "Buf1: %zu, buf_size1: %d (frames %d)\n",
- 			buf_addr1, buf_size1, ctx->total_dpb_count);
- 	if (buf_size1 < 0) {
-@@ -2278,6 +2293,18 @@ static unsigned int s5p_mfc_get_crop_info_v_v6(struct s5p_mfc_ctx *ctx)
- 	R(e_h264_options, S5P_FIMV_E_H264_OPTIONS_V8);
- 	R(e_min_scratch_buffer_size, S5P_FIMV_E_MIN_SCRATCH_BUFFER_SIZE_V8);
- 
-+	if (!IS_MFCV10(dev))
-+		goto done;
-+
-+	/* Initialize registers used in MFC v10 only.
-+	 * Also, over-write the registers which have
-+	 * a different offset for MFC v10.
-+	 */
-+
-+	/* decoder registers */
-+	R(d_static_buffer_addr, S5P_FIMV_D_STATIC_BUFFER_ADDR_V10);
-+	R(d_static_buffer_size, S5P_FIMV_D_STATIC_BUFFER_SIZE_V10);
-+
- done:
- 	return &mfc_regs;
- #undef S5P_MFC_REG_ADDR
--- 
-1.7.2.3
+Let's just give him time to try and figure out the real issue here.
+
+Regards,
+
+	Hans
