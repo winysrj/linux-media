@@ -1,109 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-ch2-11v.sys.comcast.net ([69.252.207.43]:59096 "EHLO
-        resqmta-ch2-11v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751465AbdC0IUJ (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:35847 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750714AbdCMEc6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 04:20:09 -0400
-From: A Sun <as1033x@comcast.net>
-Subject: Re: [PATCH 1/3] [media] mceusb: RX -EPIPE (urb status = -32) lockup
- failure fix
-To: Sean Young <sean@mess.org>
-References: <58D6A1DD.2030405@comcast.net>
- <20170326102748.GA1672@gofer.mess.org> <58D80838.8050809@comcast.net>
- <20170326203130.GA6070@gofer.mess.org>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Message-ID: <58D8CAD9.80304@comcast.net>
-Date: Mon, 27 Mar 2017 04:18:33 -0400
+        Mon, 13 Mar 2017 00:32:58 -0400
+Subject: Re: [PATCH v5 00/39] i.MX Media Driver
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <20170310201356.GA21222@n2100.armlinux.org.uk>
+ <47542ef8-3e91-b4cd-cc65-95000105f172@gmail.com>
+ <20170312195741.GS21222@n2100.armlinux.org.uk>
+ <ea3ccdb8-903f-93ab-6875-90da440fc52a@gmail.com>
+ <20170312202240.GT21222@n2100.armlinux.org.uk>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <f1807742-012f-249e-1ad8-22d8434695cb@gmail.com>
+Date: Sun, 12 Mar 2017 21:26:41 -0700
 MIME-Version: 1.0
-In-Reply-To: <20170326203130.GA6070@gofer.mess.org>
-Content-Type: text/plain; charset=windows-1252
+In-Reply-To: <20170312202240.GT21222@n2100.armlinux.org.uk>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 3/26/2017 4:31 PM, Sean Young wrote:
-> On Sun, Mar 26, 2017 at 02:28:08PM -0400, A Sun wrote:
->> commit https://github.com/asunxx/linux/commit/17fe3b51f4ad5202a876ea4c92b5d99d4e166823
->> Author: A Sun <as1033x@comcast.net>
->> Date:   Sun, 26 Mar 2017 13:24:18 -0400 
-> 
-> Please don't include this.
-> 
+
+
+On 03/12/2017 01:22 PM, Russell King - ARM Linux wrote:
+> On Sun, Mar 12, 2017 at 01:05:06PM -0700, Steve Longerbeam wrote:
 >>
-...
->> mceusb 1-1.2:1.0: 2 tx ports (0x1 cabled) and 2 rx sensors (0x1 active)
-> 
-> It would be nice to have this tested against a mainline kernel. I thought
-> that was entirely possible on raspberry pis nowadays.
-...
->> +	/* kevent support */
->> +	struct work_struct kevent;
-> 
-> kevent is not a descriptive name. How about something like clear_halt?
-> 
->> +	unsigned long kevent_flags;
->> +#		define EVENT_TX_HALT	0
->> +#		define EVENT_RX_HALT	1
-> 
-> EVENT_TX_HALT is never used, so kevent_flags is only ever set to 1. The
-> entire field can be dropped.
-> 
-...
->> +	if (!schedule_work(&ir->kevent)) {
->> +		dev_err(ir->dev, "kevent %d may have been dropped", kevent);
->> +	} else {
->> +		dev_dbg(ir->dev, "kevent %d scheduled", kevent);
->> +	}
->> +}
-> 
-> Again name is not very descriptive.
-> 
-...
->> +		dev_err(ir->dev, "Error: urb status = %d (RX HALT)",
->> +			urb->status);
->> +		mceusb_defer_kevent(ir, EVENT_RX_HALT);
-> 
-> Here you could simply call schedule_work(). Note that EPIPE might also
-> be returned for device disconnect for some host controllers.
-> 
->> +		return;
-...
->> +	int status;
->> +
->> +	if (test_bit(EVENT_RX_HALT, &ir->kevent_flags)) {
-> 
-> If condition can go.
-> 
->> +		usb_unlink_urb(ir->urb_in);
->> +		status = usb_clear_halt(ir->usbdev, ir->pipe_in);
+>>
+>> On 03/12/2017 12:57 PM, Russell King - ARM Linux wrote:
+>>> On Sat, Mar 11, 2017 at 04:30:53PM -0800, Steve Longerbeam wrote:
+>>>> If it's too difficult to get the imx219 csi-2 transmitter into the
+>>>> LP-11 state on power on, perhaps the csi-2 receiver can be a little
+>>>> more lenient on the transmitter and make the LP-11 timeout a warning
+>>>> instead of error-out.
+>>>>
+>>>> Can you try the attached change on top of the version 5 patchset?
+>>>>
+>>>> If that doesn't work then you're just going to have to fix the bug
+>>>> in imx219.
+>>>
+>>> That patch gets me past that hurdle, only to reveal that there's another
+>>> issue:
+>>
+>> Yeah, ipu_cpmem_set_image() failed because it doesn't recognize the
+>> bayer formats. Wait, didn't we fix this already? I've lost track.
+>> Ah, right, we were going to move this support into the IPUv3 driver,
+>> but in the meantime I think you had some patches to get around this.
+>
+> What I had was this patch for your v3.  I never got to testing your
+> v4 because of the LP-11 problem.
+>
+> In v5, you've changed to propagate the ipu_cpmem_set_image() error
+> code to avoid the resulting corruption, but that leaves the other bits
+> of this patch unaddressed, along my "media: imx: smfc: add support
+> for bayer formats" patch.
+>
+> Your driver basically has no support for bayer formats.
 
-Hi Sean,
+You added the patches to this driver that adds the bayer support,
+I don't think there is anything more required of the driver at this
+point to support bayer, the remaining work needs to happen in the IPUv3
+driver.
 
-Thanks again for looking at this. This patch is based on similar error and recovery, with the USB ethernet driver usbnet (usbnet.c, usbnet.h).
+I'll see if I have time to write that patch to IPUv3, but it's simple,
+in fact what you wrote below can be translate directly into
+ipu_cpmem_set_image(). There's a few other places bayer needs to be
+treated in IPUv3, but it should be obvious by grepping for the
+reference to pixel formats.
 
-In usbnet, they call "kevent" (kernel device event?) any kind of hardware state change or event in interrupt context that requires invoking non-interrupt code to handle. I'm not sure what else I should name it. Possible kevent-s are not limited to situations needing usb_clear_halt(). From usbnet:
- 69 #               define EVENT_TX_HALT    0
- 70 #               define EVENT_RX_HALT    1
- 71 #               define EVENT_RX_MEMORY  2
- 72 #               define EVENT_STS_SPLIT  3
- 73 #               define EVENT_LINK_RESET 4
- 74 #               define EVENT_RX_PAUSED  5
- 75 #               define EVENT_DEV_ASLEEP 6
- 76 #               define EVENT_DEV_OPEN   7
- 77 #               define EVENT_DEVICE_REPORT_IDLE 8
- 78 #               define EVENT_NO_RUNTIME_PM      9
- 79 #               define EVENT_RX_KILL    10
- 80 #               define EVENT_LINK_CHANGE        11
- 81 #               define EVENT_SET_RX_MODE        12
-So far, the first two are appearing applicable for mceusb.
+Steve
 
-The unused EVENT_TX_HALT and the apparently extra _kevent functions and kevent_flags are necessary for a later:
-    [PATCH] [media] mceusb: TX -EPIPE lockup fix
-...not yet written, transmit side equivalent bug. I respectfully recommend keeping these hooks in place.
 
-For now, I think the transmit side EPIPE bug fix is less critical, since the TX bug avoids hanging the host/kernel, but would still cause lockup of the device.
-
-In case of RX EPIPE on disconnect, the fix is still safe. Recovery attempt should fail (in usb_clear_halt() or usb_submit_urb()) and abort without further retry, and the recovery handler itself gets shutdown in mceusb_dev_disconnect().
-
-Please let me know how to proceed. Thanks. ..A Sun
+>
+> diff --git a/drivers/staging/media/imx/imx-smfc.c b/drivers/staging/media/imx/imx-smfc.c
+> index 313732201a52..4351c0365cf4 100644
+> --- a/drivers/staging/media/imx/imx-smfc.c
+> +++ b/drivers/staging/media/imx/imx-smfc.c
+> @@ -234,11 +234,6 @@ static void imx_smfc_setup_channel(struct imx_smfc_priv *priv)
+>  	buf1 = imx_media_dma_buf_get_next_queued(priv->out_ring);
+>  	priv->next = buf1;
+>
+> -	image.phys0 = buf0->phys;
+> -	image.phys1 = buf1->phys;
+> -	ipu_cpmem_set_image(priv->smfc_ch, &image);
+> -
+> -
+>  	switch (image.pix.pixelformat) {
+>  	case V4L2_PIX_FMT_SBGGR8:
+>  	case V4L2_PIX_FMT_SGBRG8:
+> @@ -247,6 +242,10 @@ static void imx_smfc_setup_channel(struct imx_smfc_priv *priv)
+>  		burst_size = 8;
+>  		passthrough = true;
+>  		passthrough_bits = 8;
+> +		ipu_cpmem_set_resolution(priv->smfc_ch, image.rect.width, image.rect.height);
+> +		ipu_cpmem_set_stride(priv->smfc_ch, image.pix.bytesperline);
+> +		ipu_cpmem_set_buffer(priv->smfc_ch, 0, buf0->phys);
+> +		ipu_cpmem_set_buffer(priv->smfc_ch, 1, buf1->phys);
+>  		break;
+>
+>  	case V4L2_PIX_FMT_SBGGR16:
+> @@ -256,9 +255,17 @@ static void imx_smfc_setup_channel(struct imx_smfc_priv *priv)
+>  		burst_size = 4;
+>  		passthrough = true;
+>  		passthrough_bits = 16;
+> +		ipu_cpmem_set_resolution(priv->smfc_ch, image.rect.width, image.rect.height);
+> +		ipu_cpmem_set_stride(priv->smfc_ch, image.pix.bytesperline);
+> +		ipu_cpmem_set_buffer(priv->smfc_ch, 0, buf0->phys);
+> +		ipu_cpmem_set_buffer(priv->smfc_ch, 1, buf1->phys);
+>  		break;
+>
+>  	default:
+> +		image.phys0 = buf0->phys;
+> +		image.phys1 = buf1->phys;
+> +		ipu_cpmem_set_image(priv->smfc_ch, &image);
+> +
+>  		burst_size = (outfmt->width & 0xf) ? 8 : 16;
+>
+>  		/*
+>
