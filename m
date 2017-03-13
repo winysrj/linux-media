@@ -1,167 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:33677 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752033AbdCCKfM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 05:35:12 -0500
-Received: by mail-wr0-f195.google.com with SMTP id g10so12760639wrg.0
-        for <linux-media@vger.kernel.org>; Fri, 03 Mar 2017 02:35:11 -0800 (PST)
-Date: Fri, 3 Mar 2017 11:27:24 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Laura Abbott <labbott@redhat.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com,
-        romlem@google.com, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Brian Starkey <brian.starkey@arm.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Mark Brown <broonie@kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-mm@kvack.org
-Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of
- staging
-Message-ID: <20170303102724.kun2gr6w2hq7hknq@phenom.ffwll.local>
-References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
- <20170303100433.lm5t4hqxj6friyp6@phenom.ffwll.local>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170303100433.lm5t4hqxj6friyp6@phenom.ffwll.local>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:48150 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750756AbdCMFRy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Mar 2017 01:17:54 -0400
+Message-ID: <11caa737df6656f7ad5040810327d313@smtp-cloud3.xs4all.net>
+Date: Mon, 13 Mar 2017 06:17:06 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 03, 2017 at 11:04:33AM +0100, Daniel Vetter wrote:
-> On Thu, Mar 02, 2017 at 01:44:32PM -0800, Laura Abbott wrote:
-> > Hi,
-> > 
-> > There's been some recent discussions[1] about Ion-like frameworks. There's
-> > apparently interest in just keeping Ion since it works reasonablly well.
-> > This series does what should be the final clean ups for it to possibly be
-> > moved out of staging.
-> > 
-> > This includes the following:
-> > - Some general clean up and removal of features that never got a lot of use
-> >   as far as I can tell.
-> > - Fixing up the caching. This is the series I proposed back in December[2]
-> >   but never heard any feedback on. It will certainly break existing
-> >   applications that rely on the implicit caching. I'd rather make an effort
-> >   to move to a model that isn't going directly against the establishement
-> >   though.
-> > - Fixing up the platform support. The devicetree approach was never well
-> >   recieved by DT maintainers. The proposal here is to think of Ion less as
-> >   specifying requirements and more of a framework for exposing memory to
-> >   userspace.
-> > - CMA allocations now happen without the need of a dummy device structure.
-> >   This fixes a bunch of the reasons why I attempted to add devicetree
-> >   support before.
-> > 
-> > I've had problems getting feedback in the past so if I don't hear any major
-> > objections I'm going to send out with the RFC dropped to be picked up.
-> > The only reason there isn't a patch to come out of staging is to discuss any
-> > other changes to the ABI people might want. Once this comes out of staging,
-> > I really don't want to mess with the ABI.
-> > 
-> > Feedback appreciated.
-> 
-> Imo looks all good. And I just realized that cross-checking with the TODO,
-> the 2 items about _CUSTOM and _IMPORT ioctls I noted are already there.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-One more for the todo: Add rst/sphinx documentation for ION. That's also
-always a good excuse to review the internal interfaces and exported
-symbols. But we can do that after destaging ...
--Daniel
+Results of the daily build of media_tree:
 
-> 
-> Otherwise I looked through the patches, looks all really reasonable.
-> 
-> Wrt merging, my experience from destaging the android syncpt stuff was
-> that merging the patches through the staging tree lead to lots of
-> cross-tree issues with the gpu folks wanting to use that. Ion will
-> probably run into similar things, so I'd propose we pull these cleanup
-> patches and the eventual de-staging in throught drm. Yes that defacto
-> means I'm also volunteering myself a bit :-)
-> 
-> In the end we could put it all into drivers/gpu/ion or something like
-> that.
-> 
-> Thoughts? Greg?
-> -Daniel
-> 
-> 
-> > 
-> > Thanks,
-> > Laura
-> > 
-> > [1] https://marc.info/?l=linux-kernel&m=148699712602105&w=2
-> > [2] https://marc.info/?l=linaro-mm-sig&m=148176050802908&w=2
-> > 
-> > Laura Abbott (12):
-> >   staging: android: ion: Remove dmap_cnt
-> >   staging: android: ion: Remove alignment from allocation field
-> >   staging: android: ion: Duplicate sg_table
-> >   staging: android: ion: Call dma_map_sg for syncing and mapping
-> >   staging: android: ion: Remove page faulting support
-> >   staging: android: ion: Remove crufty cache support
-> >   staging: android: ion: Remove old platform support
-> >   cma: Store a name in the cma structure
-> >   cma: Introduce cma_for_each_area
-> >   staging: android: ion: Use CMA APIs directly
-> >   staging: android: ion: Make Ion heaps selectable
-> >   staging; android: ion: Enumerate all available heaps
-> > 
-> >  drivers/base/dma-contiguous.c                      |   5 +-
-> >  drivers/staging/android/ion/Kconfig                |  51 ++--
-> >  drivers/staging/android/ion/Makefile               |  14 +-
-> >  drivers/staging/android/ion/hisilicon/Kconfig      |   5 -
-> >  drivers/staging/android/ion/hisilicon/Makefile     |   1 -
-> >  drivers/staging/android/ion/hisilicon/hi6220_ion.c | 113 ---------
-> >  drivers/staging/android/ion/ion-ioctl.c            |   6 -
-> >  drivers/staging/android/ion/ion.c                  | 282 ++++++---------------
-> >  drivers/staging/android/ion/ion.h                  |   5 +-
-> >  drivers/staging/android/ion/ion_carveout_heap.c    |  16 +-
-> >  drivers/staging/android/ion/ion_chunk_heap.c       |  15 +-
-> >  drivers/staging/android/ion/ion_cma_heap.c         | 102 ++------
-> >  drivers/staging/android/ion/ion_dummy_driver.c     | 156 ------------
-> >  drivers/staging/android/ion/ion_enumerate.c        |  89 +++++++
-> >  drivers/staging/android/ion/ion_of.c               | 184 --------------
-> >  drivers/staging/android/ion/ion_of.h               |  37 ---
-> >  drivers/staging/android/ion/ion_page_pool.c        |   3 -
-> >  drivers/staging/android/ion/ion_priv.h             |  57 ++++-
-> >  drivers/staging/android/ion/ion_system_heap.c      |  14 +-
-> >  drivers/staging/android/ion/tegra/Makefile         |   1 -
-> >  drivers/staging/android/ion/tegra/tegra_ion.c      |  80 ------
-> >  include/linux/cma.h                                |   6 +-
-> >  mm/cma.c                                           |  25 +-
-> >  mm/cma.h                                           |   1 +
-> >  mm/cma_debug.c                                     |   2 +-
-> >  25 files changed, 312 insertions(+), 958 deletions(-)
-> >  delete mode 100644 drivers/staging/android/ion/hisilicon/Kconfig
-> >  delete mode 100644 drivers/staging/android/ion/hisilicon/Makefile
-> >  delete mode 100644 drivers/staging/android/ion/hisilicon/hi6220_ion.c
-> >  delete mode 100644 drivers/staging/android/ion/ion_dummy_driver.c
-> >  create mode 100644 drivers/staging/android/ion/ion_enumerate.c
-> >  delete mode 100644 drivers/staging/android/ion/ion_of.c
-> >  delete mode 100644 drivers/staging/android/ion/ion_of.h
-> >  delete mode 100644 drivers/staging/android/ion/tegra/Makefile
-> >  delete mode 100644 drivers/staging/android/ion/tegra/tegra_ion.c
-> > 
-> > -- 
-> > 2.7.4
-> > 
-> > --
-> > To unsubscribe, send a message with 'unsubscribe linux-mm' in
-> > the body to majordomo@kvack.org.  For more info on Linux MM,
-> > see: http://www.linux-mm.org/ .
-> > Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
-> 
-> -- 
-> Daniel Vetter
-> Software Engineer, Intel Corporation
-> http://blog.ffwll.ch
+date:			Mon Mar 13 05:00:14 CET 2017
+media-tree git hash:	700ea5e0e0dd70420a04e703ff264cc133834cba
+media_build git hash:	bc4c2a205c087c8deff3cd14ed663c4767dd2016
+v4l-utils git hash:	ca6a0c099399cc51ecfacff7ef938be6ef73b8b3
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.9.0-164
 
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-4.10.1-i686: OK
+linux-4.11-rc1-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9-x86_64: WARNINGS
+linux-4.10.1-x86_64: WARNINGS
+linux-4.11-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
