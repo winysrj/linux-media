@@ -1,143 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:38606 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752667AbdC2Syc (ORCPT
+Received: from mail-qt0-f177.google.com ([209.85.216.177]:35570 "EHLO
+        mail-qt0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751921AbdCMV73 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Mar 2017 14:54:32 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
-        linux-rpi-kernel@lists.infradead.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 07/22] usb/anchors.txt: convert to ReST and add to driver-api book
-Date: Wed, 29 Mar 2017 15:54:06 -0300
-Message-Id: <067de4865e1ea6d7790fd98aa6c757f7d8a7e8c6.1490813422.git.mchehab@s-opensource.com>
-In-Reply-To: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
-References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
-In-Reply-To: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
-References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
+        Mon, 13 Mar 2017 17:59:29 -0400
+Received: by mail-qt0-f177.google.com with SMTP id x35so42976955qtc.2
+        for <linux-media@vger.kernel.org>; Mon, 13 Mar 2017 14:59:28 -0700 (PDT)
+Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of
+ staging
+To: Rob Clark <robdclark@gmail.com>
+References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+ <20170303132949.GC31582@dhcp22.suse.cz>
+ <cf383b9b-3cbc-0092-a071-f120874c053c@redhat.com>
+ <20170306074258.GA27953@dhcp22.suse.cz>
+ <20170306104041.zghsicrnadoap7lp@phenom.ffwll.local>
+ <20170306105805.jsq44kfxhsvazkm6@sirena.org.uk>
+ <20170306160437.sf7bksorlnw7u372@phenom.ffwll.local>
+ <CA+M3ks77Am3Fx-ZNmgeM5tCqdM7SzV7rby4Es-p2F2aOhUco9g@mail.gmail.com>
+ <26bc57ae-d88f-4ea0-d666-2c1a02bf866f@redhat.com>
+ <CA+M3ks6R=n4n54wofK7pYcWoQKUhzyWQytBO90+pRDRrAhi3ww@mail.gmail.com>
+ <CAKMK7uH9NemeM2z-tQvge_B=kABop6O7UQFK3PirpJminMCPqw@mail.gmail.com>
+ <6d3d52ba-29a9-701f-2948-00ce28282975@redhat.com>
+ <CAF6AEGvs0qVr_=pSp5FYoxM4XNaKLtYB-uhBmDheYcgxgv1_2g@mail.gmail.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        devel@driverdev.osuosl.org, Rom Lemarchand <romlem@google.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Riley Andrews <riandrews@android.com>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        Michal Hocko <mhocko@kernel.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        Linux MM <linux-mm@kvack.org>,
+        =?UTF-8?Q?Arve_Hj=c3=b8nnev=c3=a5g?= <arve@android.com>,
+        Mark Brown <broonie@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+From: Laura Abbott <labbott@redhat.com>
+Message-ID: <ef8ae526-d0e8-83dd-c2d8-656d356ebd91@redhat.com>
+Date: Mon, 13 Mar 2017 14:59:23 -0700
+MIME-Version: 1.0
+In-Reply-To: <CAF6AEGvs0qVr_=pSp5FYoxM4XNaKLtYB-uhBmDheYcgxgv1_2g@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This document describe some USB core functions. Add it to the
-driver-api book.
+On 03/13/2017 02:29 PM, Rob Clark wrote:
+> On Mon, Mar 13, 2017 at 5:09 PM, Laura Abbott <labbott@redhat.com> wrote:
+>>> Hm, we might want to expose all the heaps as individual
+>>> /dev/ion_$heapname nodes? Should we do this from the start, since
+>>> we're massively revamping the uapi anyway (imo not needed, current
+>>> state seems to work too)?
+>>> -Daniel
+>>>
+>>
+>> I thought about that. One advantage with separate /dev/ion_$heap
+>> is that we don't have to worry about a limit of 32 possible
+>> heaps per system (32-bit heap id allocation field). But dealing
+>> with an ioctl seems easier than names. Userspace might be less
+>> likely to hardcode random id numbers vs. names as well.
+> 
+> 
+> other advantage, I think, is selinux (brought up elsewhere on this
+> thread).. heaps at known fixed PAs are useful for certain sorts of
+> attacks so being able to restrict access more easily seems like a good
+> thing
+> 
+> BR,
+> -R
+> 
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- .../anchors.txt => driver-api/usb/anchors.rst}     | 36 ++++++++++++----------
- Documentation/driver-api/usb/index.rst             |  1 +
- 2 files changed, 21 insertions(+), 16 deletions(-)
- rename Documentation/{usb/anchors.txt => driver-api/usb/anchors.rst} (75%)
+Some other kind of filtering (BPF/LSM/???) might work as well
+(http://kernsec.org/files/lss2015/vanderstoep.pdf ?)
 
-diff --git a/Documentation/usb/anchors.txt b/Documentation/driver-api/usb/anchors.rst
-similarity index 75%
-rename from Documentation/usb/anchors.txt
-rename to Documentation/driver-api/usb/anchors.rst
-index fe6a99a32bbd..4b248e691bd6 100644
---- a/Documentation/usb/anchors.txt
-+++ b/Documentation/driver-api/usb/anchors.rst
-@@ -1,3 +1,6 @@
-+USB Anchors
-+~~~~~~~~~~~
-+
- What is anchor?
- ===============
- 
-@@ -13,7 +16,7 @@ Allocation and Initialisation
- =============================
- 
- There's no API to allocate an anchor. It is simply declared
--as struct usb_anchor. init_usb_anchor() must be called to
-+as struct usb_anchor. :c:func:`init_usb_anchor` must be called to
- initialise the data structure.
- 
- Deallocation
-@@ -26,52 +29,53 @@ Association and disassociation of URBs with anchors
- ===================================================
- 
- An association of URBs to an anchor is made by an explicit
--call to usb_anchor_urb(). The association is maintained until
-+call to :c:func:`usb_anchor_urb`. The association is maintained until
- an URB is finished by (successful) completion. Thus disassociation
- is automatic. A function is provided to forcibly finish (kill)
- all URBs associated with an anchor.
--Furthermore, disassociation can be made with usb_unanchor_urb()
-+Furthermore, disassociation can be made with :c:func:`usb_unanchor_urb`
- 
- Operations on multitudes of URBs
- ================================
- 
--usb_kill_anchored_urbs()
--------------------------
-+:c:func:`usb_kill_anchored_urbs`
-+--------------------------------
- 
- This function kills all URBs associated with an anchor. The URBs
- are called in the reverse temporal order they were submitted.
- This way no data can be reordered.
- 
--usb_unlink_anchored_urbs()
----------------------------
-+:c:func:`usb_unlink_anchored_urbs`
-+----------------------------------
-+
- 
- This function unlinks all URBs associated with an anchor. The URBs
- are processed in the reverse temporal order they were submitted.
--This is similar to usb_kill_anchored_urbs(), but it will not sleep.
-+This is similar to :c:func:`usb_kill_anchored_urbs`, but it will not sleep.
- Therefore no guarantee is made that the URBs have been unlinked when
- the call returns. They may be unlinked later but will be unlinked in
- finite time.
- 
--usb_scuttle_anchored_urbs()
-----------------------------
-+:c:func:`usb_scuttle_anchored_urbs`
-+-----------------------------------
- 
- All URBs of an anchor are unanchored en masse.
- 
--usb_wait_anchor_empty_timeout()
---------------------------------
-+:c:func:`usb_wait_anchor_empty_timeout`
-+---------------------------------------
- 
- This function waits for all URBs associated with an anchor to finish
- or a timeout, whichever comes first. Its return value will tell you
- whether the timeout was reached.
- 
--usb_anchor_empty()
--------------------
-+:c:func:`usb_anchor_empty`
-+--------------------------
- 
- Returns true if no URBs are associated with an anchor. Locking
- is the caller's responsibility.
- 
--usb_get_from_anchor()
-----------------------
-+:c:func:`usb_get_from_anchor`
-+-----------------------------
- 
- Returns the oldest anchored URB of an anchor. The URB is unanchored
- and returned with a reference. As you may mix URBs to several
-diff --git a/Documentation/driver-api/usb/index.rst b/Documentation/driver-api/usb/index.rst
-index cf2fa2e8d236..5dfb04b2d730 100644
---- a/Documentation/driver-api/usb/index.rst
-+++ b/Documentation/driver-api/usb/index.rst
-@@ -6,6 +6,7 @@ Linux USB API
- 
-    usb
-    gadget
-+   anchors
-    writing_usb_driver
-    writing_musb_glue_layer
- 
--- 
-2.9.3
+The fixed PA issue is a larger problem. We're never going to
+be able to get away from "this heap must exist at address X"
+problems but the location of CMA in general should be
+randomized. I haven't actually come up with a good proposal
+to this though.
+
+I'd like for Ion to be a framework for memory allocation and
+not security exploits. Hopefully this isn't a pipe dream.
+
+Thanks,
+Laura
