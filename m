@@ -1,212 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:46356 "EHLO extserv.mm-sol.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751258AbdCYWrM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Mar 2017 18:47:12 -0400
+Received: from mail-wm0-f49.google.com ([74.125.82.49]:38033 "EHLO
+        mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754061AbdCMQh6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Mar 2017 12:37:58 -0400
+Received: by mail-wm0-f49.google.com with SMTP id t189so44542962wmt.1
+        for <linux-media@vger.kernel.org>; Mon, 13 Mar 2017 09:37:57 -0700 (PDT)
 From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: Re: [PATCH v7 5/9] media: venus: vdec: add video decoder files
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1489423058-12492-1-git-send-email-stanimir.varbanov@linaro.org>
- <1489423058-12492-6-git-send-email-stanimir.varbanov@linaro.org>
- <52b39f43-6f70-0cf6-abaf-4bb5bd2b3d86@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
 Cc: Andy Gross <andy.gross@linaro.org>,
         Bjorn Andersson <bjorn.andersson@linaro.org>,
         Stephen Boyd <sboyd@codeaurora.org>,
         Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
         linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-Message-ID: <be41ccbd-3ff1-bcae-c423-1acc68f35694@mm-sol.com>
-Date: Sun, 26 Mar 2017 00:30:35 +0200
-MIME-Version: 1.0
-In-Reply-To: <52b39f43-6f70-0cf6-abaf-4bb5bd2b3d86@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v7 1/9] media: v4l2-mem2mem: extend m2m APIs for more accurate buffer management
+Date: Mon, 13 Mar 2017 18:37:30 +0200
+Message-Id: <1489423058-12492-2-git-send-email-stanimir.varbanov@linaro.org>
+In-Reply-To: <1489423058-12492-1-git-send-email-stanimir.varbanov@linaro.org>
+References: <1489423058-12492-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks for the comments!
+this add functions for:
+  - remove buffers from src/dst queue by index
+  - remove exact buffer from src/dst queue
 
-On 03/24/2017 04:41 PM, Hans Verkuil wrote:
-> Some comments and questions below:
->
-> On 03/13/17 17:37, Stanimir Varbanov wrote:
->> This consists of video decoder implementation plus decoder
->> controls.
->>
->> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
->> ---
->>  drivers/media/platform/qcom/venus/vdec.c       | 1091 ++++++++++++++++++++++++
->>  drivers/media/platform/qcom/venus/vdec.h       |   23 +
->>  drivers/media/platform/qcom/venus/vdec_ctrls.c |  149 ++++
->>  3 files changed, 1263 insertions(+)
->>  create mode 100644 drivers/media/platform/qcom/venus/vdec.c
->>  create mode 100644 drivers/media/platform/qcom/venus/vdec.h
->>  create mode 100644 drivers/media/platform/qcom/venus/vdec_ctrls.c
->>
->> diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
->> new file mode 100644
->> index 000000000000..ec5203f2ba81
->> --- /dev/null
->> +++ b/drivers/media/platform/qcom/venus/vdec.c
->> @@ -0,0 +1,1091 @@
->> +/*
->> + * Copyright (c) 2012-2016, The Linux Foundation. All rights reserved.
->> + * Copyright (C) 2017 Linaro Ltd.
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 and
->> + * only version 2 as published by the Free Software Foundation.
->> + *
->> + * This program is distributed in the hope that it will be useful,
->> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> + * GNU General Public License for more details.
->> + *
->> + */
->> +#include <linux/clk.h>
->> +#include <linux/module.h>
->> +#include <linux/platform_device.h>
->> +#include <linux/pm_runtime.h>
->> +#include <linux/slab.h>
->> +#include <media/v4l2-ioctl.h>
->> +#include <media/v4l2-event.h>
->> +#include <media/v4l2-ctrls.h>
->> +#include <media/v4l2-mem2mem.h>
->> +#include <media/videobuf2-dma-sg.h>
->> +
->> +#include "hfi_venus_io.h"
->> +#include "core.h"
->> +#include "helpers.h"
->> +#include "vdec.h"
->> +
->> +static u32 get_framesize_uncompressed(unsigned int plane, u32 width, u32 height)
->> +{
->> +	u32 y_stride, uv_stride, y_plane;
->> +	u32 y_sclines, uv_sclines, uv_plane;
->> +	u32 size;
->> +
->> +	y_stride = ALIGN(width, 128);
->> +	uv_stride = ALIGN(width, 128);
->> +	y_sclines = ALIGN(height, 32);
->> +	uv_sclines = ALIGN(((height + 1) >> 1), 16);
->> +
->> +	y_plane = y_stride * y_sclines;
->> +	uv_plane = uv_stride * uv_sclines + SZ_4K;
->> +	size = y_plane + uv_plane + SZ_8K;
->> +
->> +	return ALIGN(size, SZ_4K);
->> +}
->> +
->> +static u32 get_framesize_compressed(unsigned int width, unsigned int height)
->> +{
->> +	return ((width * height * 3 / 2) / 2) + 128;
->> +}
->> +
->> +static const struct venus_format vdec_formats[] = {
->> +	{
->> +		.pixfmt = V4L2_PIX_FMT_NV12,
->> +		.num_planes = 1,
->> +		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
->
-> Just curious: is NV12 the only uncompressed format supported by the hardware?
-> Or just the only one that is implemented here?
->
->> +	}, {
->> +		.pixfmt = V4L2_PIX_FMT_MPEG4,
->> +		.num_planes = 1,
->> +		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
->> +	}, {
->> +		.pixfmt = V4L2_PIX_FMT_MPEG2,
->> +		.num_planes = 1,
->> +		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
->> +	}, {
->> +		.pixfmt = V4L2_PIX_FMT_H263,
->> +		.num_planes = 1,
->> +		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
->> +	}, {
->> +		.pixfmt = V4L2_PIX_FMT_VC1_ANNEX_G,
->> +		.num_planes = 1,
->> +		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
->> +	}, {
->> +		.pixfmt = V4L2_PIX_FMT_VC1_ANNEX_L,
->> +		.num_planes = 1,
->> +		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
->> +	}, {
->> +		.pixfmt = V4L2_PIX_FMT_H264,
->> +		.num_planes = 1,
->> +		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
->> +	}, {
->> +		.pixfmt = V4L2_PIX_FMT_VP8,
->> +		.num_planes = 1,
->> +		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
->> +	}, {
->> +		.pixfmt = V4L2_PIX_FMT_XVID,
->> +		.num_planes = 1,
->> +		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
->> +	},
->
-> num_planes is always 1, do you need it at all? And if it is always one,
-> why use _MPLANE at all? Is this for future additions?
->
->> +};
->> +
+also extends m2m API to iterate over a list of src/dst buffers
+in safely and non-safely manner.
 
-<snip> three reasons:
-- _MPLAIN allows one plane only
-- downstream qualcomm driver use _MPLAIN (the second plain is used for 
-extaradata, I ignored the extaradata support for now until v4l2 metadata 
-api is merged)
-- I still believe that qualcomm firmware guys will add support the 
-second or even third plain at some point.
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ drivers/media/v4l2-core/v4l2-mem2mem.c | 37 ++++++++++++++
+ include/media/v4l2-mem2mem.h           | 92 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 129 insertions(+)
 
->> +
->> +static void vdec_buf_done(struct venus_inst *inst, unsigned int buf_type,
->> +			  u32 tag, u32 bytesused, u32 data_offset, u32 flags,
->> +			  u64 timestamp_us)
->> +{
->> +	struct vb2_v4l2_buffer *vbuf;
->> +	struct vb2_buffer *vb;
->> +	unsigned int type;
->> +
->> +	if (buf_type == HFI_BUFFER_INPUT)
->> +		type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
->> +	else
->> +		type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
->> +
->> +	vbuf = helper_find_buf(inst, type, tag);
->> +	if (!vbuf)
->> +		return;
->> +
->> +	vbuf->flags = flags;
->> +
->> +	if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
->> +		vb = &vbuf->vb2_buf;
->> +		vb->planes[0].bytesused =
->> +			max_t(unsigned int, inst->output_buf_size, bytesused);
->> +		vb->planes[0].data_offset = data_offset;
->> +		vb->timestamp = timestamp_us * NSEC_PER_USEC;
->> +		vbuf->sequence = inst->sequence++;
->
-> timestamp and sequence are only set for CAPTURE, not OUTPUT. Is that correct?
-
-Correct. I can add sequence for the OUTPUT queue too, but I have no idea 
-how that sequence is used by userspace.
-
->
->> +
->> +		if (vbuf->flags & V4L2_BUF_FLAG_LAST) {
->> +			const struct v4l2_event ev = { .type = V4L2_EVENT_EOS };
->> +
->> +			v4l2_event_queue_fh(&inst->fh, &ev);
->> +		}
->> +	}
->> +
->> +	v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_DONE);
->> +}
-
-<snip>
-
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index 6bc27e7b2a33..f62e68aa04c4 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -126,6 +126,43 @@ void *v4l2_m2m_buf_remove(struct v4l2_m2m_queue_ctx *q_ctx)
+ }
+ EXPORT_SYMBOL_GPL(v4l2_m2m_buf_remove);
+ 
++void v4l2_m2m_buf_remove_by_buf(struct v4l2_m2m_queue_ctx *q_ctx,
++				struct vb2_v4l2_buffer *vbuf)
++{
++	struct v4l2_m2m_buffer *b;
++	unsigned long flags;
++
++	spin_lock_irqsave(&q_ctx->rdy_spinlock, flags);
++	b = container_of(vbuf, struct v4l2_m2m_buffer, vb);
++	list_del(&b->list);
++	q_ctx->num_rdy--;
++	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_buf_remove_by_buf);
++
++struct vb2_v4l2_buffer *
++v4l2_m2m_buf_remove_by_idx(struct v4l2_m2m_queue_ctx *q_ctx, unsigned int idx)
++
++{
++	struct v4l2_m2m_buffer *b, *tmp;
++	struct vb2_v4l2_buffer *ret = NULL;
++	unsigned long flags;
++
++	spin_lock_irqsave(&q_ctx->rdy_spinlock, flags);
++	list_for_each_entry_safe(b, tmp, &q_ctx->rdy_queue, list) {
++		if (b->vb.vb2_buf.index == idx) {
++			list_del(&b->list);
++			q_ctx->num_rdy--;
++			ret = &b->vb;
++			break;
++		}
++	}
++	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_buf_remove_by_idx);
++
+ /*
+  * Scheduling handlers
+  */
+diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
+index 3ccd01bd245e..e157d5c9b224 100644
+--- a/include/media/v4l2-mem2mem.h
++++ b/include/media/v4l2-mem2mem.h
+@@ -437,6 +437,47 @@ static inline void *v4l2_m2m_next_dst_buf(struct v4l2_m2m_ctx *m2m_ctx)
+ }
+ 
+ /**
++ * v4l2_m2m_for_each_dst_buf() - iterate over a list of destination ready
++ * buffers
++ *
++ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
++ * @b: current buffer of type struct v4l2_m2m_buffer
++ */
++#define v4l2_m2m_for_each_dst_buf(m2m_ctx, b)	\
++	list_for_each_entry(b, &m2m_ctx->cap_q_ctx.rdy_queue, list)
++
++/**
++ * v4l2_m2m_for_each_src_buf() - iterate over a list of source ready buffers
++ *
++ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
++ * @b: current buffer of type struct v4l2_m2m_buffer
++ */
++#define v4l2_m2m_for_each_src_buf(m2m_ctx, b)	\
++	list_for_each_entry(b, &m2m_ctx->out_q_ctx.rdy_queue, list)
++
++/**
++ * v4l2_m2m_for_each_dst_buf_safe() - iterate over a list of destination ready
++ * buffers safely
++ *
++ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
++ * @b: current buffer of type struct v4l2_m2m_buffer
++ * @n: used as temporary storage
++ */
++#define v4l2_m2m_for_each_dst_buf_safe(m2m_ctx, b, n)	\
++	list_for_each_entry_safe(b, n, &m2m_ctx->cap_q_ctx.rdy_queue, list)
++
++/**
++ * v4l2_m2m_for_each_src_buf_safe() - iterate over a list of source ready
++ * buffers safely
++ *
++ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
++ * @b: current buffer of type struct v4l2_m2m_buffer
++ * @n: used as temporary storage
++ */
++#define v4l2_m2m_for_each_src_buf_safe(m2m_ctx, b, n)	\
++	list_for_each_entry_safe(b, n, &m2m_ctx->out_q_ctx.rdy_queue, list)
++
++/**
+  * v4l2_m2m_get_src_vq() - return vb2_queue for source buffers
+  *
+  * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
+@@ -488,6 +529,57 @@ static inline void *v4l2_m2m_dst_buf_remove(struct v4l2_m2m_ctx *m2m_ctx)
+ 	return v4l2_m2m_buf_remove(&m2m_ctx->cap_q_ctx);
+ }
+ 
++/**
++ * v4l2_m2m_buf_remove_by_buf() - take off exact buffer from the list of ready
++ * buffers
++ *
++ * @q_ctx: pointer to struct @v4l2_m2m_queue_ctx
++ * @vbuf: the buffer to be removed
++ */
++void v4l2_m2m_buf_remove_by_buf(struct v4l2_m2m_queue_ctx *q_ctx,
++				struct vb2_v4l2_buffer *vbuf);
++
++/**
++ * v4l2_m2m_src_buf_remove_by_buf() - take off exact source buffer from the list
++ * of ready buffers
++ *
++ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
++ * @vbuf: the buffer to be removed
++ */
++static inline void v4l2_m2m_src_buf_remove_by_buf(struct v4l2_m2m_ctx *m2m_ctx,
++						  struct vb2_v4l2_buffer *vbuf)
++{
++	v4l2_m2m_buf_remove_by_buf(&m2m_ctx->out_q_ctx, vbuf);
++}
++
++/**
++ * v4l2_m2m_dst_buf_remove_by_buf() - take off exact destination buffer from the
++ * list of ready buffers
++ *
++ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
++ * @vbuf: the buffer to be removed
++ */
++static inline void v4l2_m2m_dst_buf_remove_by_buf(struct v4l2_m2m_ctx *m2m_ctx,
++						  struct vb2_v4l2_buffer *vbuf)
++{
++	v4l2_m2m_buf_remove_by_buf(&m2m_ctx->cap_q_ctx, vbuf);
++}
++
++struct vb2_v4l2_buffer *
++v4l2_m2m_buf_remove_by_idx(struct v4l2_m2m_queue_ctx *q_ctx, unsigned int idx);
++
++static inline struct vb2_v4l2_buffer *
++v4l2_m2m_src_buf_remove_by_idx(struct v4l2_m2m_ctx *m2m_ctx, unsigned int idx)
++{
++	return v4l2_m2m_buf_remove_by_idx(&m2m_ctx->out_q_ctx, idx);
++}
++
++static inline struct vb2_v4l2_buffer *
++v4l2_m2m_dst_buf_remove_by_idx(struct v4l2_m2m_ctx *m2m_ctx, unsigned int idx)
++{
++	return v4l2_m2m_buf_remove_by_idx(&m2m_ctx->cap_q_ctx, idx);
++}
++
+ /* v4l2 ioctl helpers */
+ 
+ int v4l2_m2m_ioctl_reqbufs(struct file *file, void *priv,
 -- 
-regards,
-Stan
+2.7.4
