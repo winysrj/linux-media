@@ -1,63 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.130]:62370 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752009AbdCBSNW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 13:13:22 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: kasan-dev@googlegroups.com
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        Alexander Potapenko <glider@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-wireless@vger.kernel.org,
-        kernel-build-reports@lists.linaro.org,
-        "David S . Miller" <davem@davemloft.net>,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 18/26] [media] i2c: cx25840: avoid stack overflow with KASAN
-Date: Thu,  2 Mar 2017 17:38:26 +0100
-Message-Id: <20170302163834.2273519-19-arnd@arndb.de>
-In-Reply-To: <20170302163834.2273519-1-arnd@arndb.de>
-References: <20170302163834.2273519-1-arnd@arndb.de>
+Received: from jake.logic.tuwien.ac.at ([128.130.175.117]:59310 "EHLO
+        jake.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751950AbdCMMEM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Mar 2017 08:04:12 -0400
+Received: from t450.itgeo.fhwn.ac.at (morty.logic.tuwien.ac.at [128.130.175.112])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by jake.logic.tuwien.ac.at (Postfix) with ESMTPSA id AF8E5C04DC
+        for <linux-media@vger.kernel.org>; Mon, 13 Mar 2017 12:58:40 +0100 (CET)
+Received: from localhost (t450.itgeo.fhwn.ac.at [local])
+        by t450.itgeo.fhwn.ac.at (OpenSMTPD) with ESMTPA id a497cea4
+        for <linux-media@vger.kernel.org>;
+        Mon, 13 Mar 2017 12:58:38 +0100 (CET)
+Date: Mon, 13 Mar 2017 12:58:38 +0100
+From: Ingo Feinerer <feinerer@logic.at>
+To: linux-media@vger.kernel.org
+Subject: Conditional sys/sysmacros.h inclusion
+Message-ID: <20170313115838.GA28761@t450.itgeo.fhwn.ac.at>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With CONFIG_KASAN, this driver has shown a ridiculously large stack frame
-in one configuration:
+Hi,
 
-drivers/media/i2c/cx25840/cx25840-core.c:4960:1: error: the frame size of 94000 bytes is larger than 2048 bytes [-Werror=frame-larger-than=]
+please find attached a diff that makes the inclusion of the sys/sysmacros.h
+header file conditional. I noticed it on OpenBSD which has no sys/sysmacros.h,
+so compilation fails there.
 
-In most builds, it's only about 3300 bytes, but that's still large anough to
-risk a kernel stack overflow.
+Best regards,
+Ingo
 
-Marking the two register access functions as noinline_for_kasan avoids
-the problem and brings the largest stack frame size down to 232 bytes.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/i2c/cx25840/cx25840-core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
-index b8d3c070bfc1..fd72e5a11cb9 100644
---- a/drivers/media/i2c/cx25840/cx25840-core.c
-+++ b/drivers/media/i2c/cx25840/cx25840-core.c
-@@ -81,7 +81,7 @@ MODULE_PARM_DESC(debug, "Debugging messages [0=Off (default) 1=On]");
- /* ----------------------------------------------------------------------- */
- static void cx23888_std_setup(struct i2c_client *client);
+diff --git a/configure.ac b/configure.ac
+index f3269728a..ae58da377 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -146,6 +146,7 @@ if test "x$gl_cv_func_ioctl_posix_signature" = xyes; then
+ fi
  
--int cx25840_write(struct i2c_client *client, u16 addr, u8 value)
-+noinline_for_kasan int cx25840_write(struct i2c_client *client, u16 addr, u8 value)
- {
- 	u8 buffer[3];
- 	buffer[0] = addr >> 8;
-@@ -90,7 +90,7 @@ int cx25840_write(struct i2c_client *client, u16 addr, u8 value)
- 	return i2c_master_send(client, buffer, 3);
- }
+ AC_CHECK_FUNCS([__secure_getenv secure_getenv])
++AC_HEADER_MAJOR
  
--int cx25840_write4(struct i2c_client *client, u16 addr, u32 value)
-+noinline_for_kasan int cx25840_write4(struct i2c_client *client, u16 addr, u32 value)
- {
- 	u8 buffer[6];
- 	buffer[0] = addr >> 8;
--- 
-2.9.0
+ # Check host os
+ case "$host_os" in
+diff --git a/lib/libv4lconvert/control/libv4lcontrol.c b/lib/libv4lconvert/control/libv4lcontrol.c
+index 59f28b137..1e784eda8 100644
+--- a/lib/libv4lconvert/control/libv4lcontrol.c
++++ b/lib/libv4lconvert/control/libv4lcontrol.c
+@@ -20,7 +20,9 @@
+  */
+ 
+ #include <sys/types.h>
++#if defined(MAJOR_IN_SYSMACROS)
+ #include <sys/sysmacros.h>
++#endif
+ #include <sys/mman.h>
+ #include <fcntl.h>
+ #include <sys/stat.h>
