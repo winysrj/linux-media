@@ -1,84 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f182.google.com ([209.85.128.182]:34031 "EHLO
-        mail-wr0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754167AbdC3JEr (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:55680 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751130AbdCMJbO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 05:04:47 -0400
-Received: by mail-wr0-f182.google.com with SMTP id l43so51881880wre.1
-        for <linux-media@vger.kernel.org>; Thu, 30 Mar 2017 02:04:46 -0700 (PDT)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: dri-devel@lists.freedesktop.org,
-        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org,
-        mchehab@kernel.org
-Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
-        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        hans.verkuil@cisco.com, sakari.ailus@linux.intel.com
-Subject: [PATCH v5 2/6] media: uapi: Add RGB and YUV bus formats for Synopsys HDMI TX Controller
-Date: Thu, 30 Mar 2017 11:04:31 +0200
-Message-Id: <1490864675-17336-3-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1490864675-17336-1-git-send-email-narmstrong@baylibre.com>
-References: <1490864675-17336-1-git-send-email-narmstrong@baylibre.com>
+        Mon, 13 Mar 2017 05:31:14 -0400
+Date: Mon, 13 Mar 2017 09:30:07 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: mark.rutland@arm.com, andrew-ct.chen@mediatek.com,
+        minghsiu.tsai@mediatek.com, sakari.ailus@linux.intel.com,
+        nick@shmanahar.org, songjun.wu@microchip.com, hverkuil@xs4all.nl,
+        Steve Longerbeam <steve_longerbeam@mentor.com>, pavel@ucw.cz,
+        robert.jarzmik@free.fr, devel@driverdev.osuosl.org,
+        markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, shuah@kernel.org,
+        geert@linux-m68k.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, kernel@pengutronix.de, arnd@arndb.de,
+        mchehab@kernel.org, bparrot@ti.com, robh+dt@kernel.org,
+        horms+renesas@verge.net.au, tiffany.lin@mediatek.com,
+        linux-arm-kernel@lists.infradead.org,
+        niklas.soderlund+renesas@ragnatech.se, gregkh@linuxfoundation.org,
+        linux-kernel@vger.kernel.org, jean-christophe.trotin@st.com,
+        p.zabel@pengutronix.de, fabio.estevam@nxp.com, shawnguo@kernel.org,
+        sudipm.mukherjee@gmail.com
+Subject: Re: [PATCH v5 00/39] i.MX Media Driver
+Message-ID: <20170313093007.GD21222@n2100.armlinux.org.uk>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <20170310201356.GA21222@n2100.armlinux.org.uk>
+ <47542ef8-3e91-b4cd-cc65-95000105f172@gmail.com>
+ <20170312195741.GS21222@n2100.armlinux.org.uk>
+ <ea3ccdb8-903f-93ab-6875-90da440fc52a@gmail.com>
+ <20170312202240.GT21222@n2100.armlinux.org.uk>
+ <f1807742-012f-249e-1ad8-22d8434695cb@gmail.com>
+ <20170313081625.GX21222@n2100.armlinux.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170313081625.GX21222@n2100.armlinux.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order to describe the RGB and YUV bus formats used to feed the
-Synopsys DesignWare HDMI TX Controller, add missing formats to the
-list of Bus Formats.
+On Mon, Mar 13, 2017 at 08:16:25AM +0000, Russell King - ARM Linux wrote:
+> On Sun, Mar 12, 2017 at 09:26:41PM -0700, Steve Longerbeam wrote:
+> > On 03/12/2017 01:22 PM, Russell King - ARM Linux wrote:
+> > >What I had was this patch for your v3.  I never got to testing your
+> > >v4 because of the LP-11 problem.
+> > >
+> > >In v5, you've changed to propagate the ipu_cpmem_set_image() error
+> > >code to avoid the resulting corruption, but that leaves the other bits
+> > >of this patch unaddressed, along my "media: imx: smfc: add support
+> > >for bayer formats" patch.
+> > >
+> > >Your driver basically has no support for bayer formats.
+> > 
+> > You added the patches to this driver that adds the bayer support,
+> > I don't think there is anything more required of the driver at this
+> > point to support bayer, the remaining work needs to happen in the IPUv3
+> > driver.
+> 
+> There is more work, because the way you've merged my changes to
+> imx_smfc_setup_channel() into csi_idmac_setup_channel() is wrong with
+> respect to the burst size.
+> 
+> You always set it to 8 or 16 depending on the width:
+> 
+> 	burst_size = (image.pix.width & 0xf) ? 8 : 16;
+> 
+> 	ipu_cpmem_set_burstsize(priv->idmac_ch, burst_size);
+> 
+> and then you have my switch() statement which assigns burst_size.
+> My _tested_ code removed the above, added the switch, which had
+> a default case which reflected the above setting:
+> 
+> 	default:
+> 		burst_size = (outfmt->width & 0xf) ? 8 : 16;
+> 
+> and then went on to set the burst size _after_ the switch statement:
+> 
+> 	ipu_cpmem_set_burstsize(priv->smfc_ch, burst_size);
+> 
+> The effect is unchanged for non-bayer formats.  For bayer formats, the
+> burst size is determined by the bayer data size.
+> 
+> So, even if it's appropriate to fix ipu_cpmem_set_image(), fixing the
+> above is still required.
+> 
+> I'm not convinced that fixing ipu_cpmem_set_image() is even the best
+> solution - it's not as trivial as it looks on the surface:
+> 
+>         ipu_cpmem_set_resolution(ch, image->rect.width, image->rect.height);
+>         ipu_cpmem_set_stride(ch, pix->bytesperline);
+> 
+> this is fine, it doesn't depend on the format.  However, the next line:
+> 
+>         ipu_cpmem_set_fmt(ch, v4l2_pix_fmt_to_drm_fourcc(pix->pixelformat));
+> 
+> does - v4l2_pix_fmt_to_drm_fourcc() is a locally defined function (it
+> isn't v4l2 code) that converts a v4l2 pixel format to a DRM fourcc.
+> DRM knows nothing about bayer formats, there aren't fourcc codes in
+> DRM for it.  The result is that v4l2_pix_fmt_to_drm_fourcc() returns
+> -EINVAL cast to a u32, which gets passed unchecked into ipu_cpmem_set_fmt().
+> 
+> ipu_cpmem_set_fmt() won't recognise that, and also returns -EINVAL - and
+> it's a bug that this is not checked and propagated.  If it is checked and
+> propagated, then we need this to support bayer formats, and I don't see
+> DRM people wanting bayer format fourcc codes added without there being
+> a real DRM driver wanting to use them.
+> 
+> Then there's the business of calculating the top-left offset of the image,
+> which for bayer always needs to be an even number of pixels - as this
+> function takes the top-left offset, it ought to respect it, but if it
+> doesn't meet this criteria, what should it do?  csi_idmac_setup_channel()
+> always sets them to zero, but that's not really something that
+> ipu_cpmem_set_image() should assume.
 
-Documentation for these formats is added in a separate patch.
+For the time being, I've restored the functionality along the same lines
+as I originally had.  This seems to get me working capture, but might
+break non-bayer passthrough mode:
 
-Reviewed-by: Archit Taneja <architt@codeaurora.org>
-Reviewed-by: Jose Abreu <joabreu@synopsys.com>
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
----
- include/uapi/linux/media-bus-format.h | 13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+index fc0036aa84d0..df336971a009 100644
+--- a/drivers/staging/media/imx/imx-media-csi.c
++++ b/drivers/staging/media/imx/imx-media-csi.c
+@@ -314,14 +314,6 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 	image.phys0 = phys[0];
+ 	image.phys1 = phys[1];
+ 
+-	ret = ipu_cpmem_set_image(priv->idmac_ch, &image);
+-	if (ret)
+-		return ret;
+-
+-	burst_size = (image.pix.width & 0xf) ? 8 : 16;
+-
+-	ipu_cpmem_set_burstsize(priv->idmac_ch, burst_size);
+-
+ 	/*
+ 	 * Check for conditions that require the IPU to handle the
+ 	 * data internally as generic data, aka passthrough mode:
+@@ -346,15 +338,29 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+ 		passthrough_bits = 16;
+ 		break;
+ 	default:
++		burst_size = (image.pix.width & 0xf) ? 8 : 16;
+ 		passthrough = (sensor_ep->bus_type != V4L2_MBUS_CSI2 &&
+ 			       sensor_ep->bus.parallel.bus_width >= 16);
+ 		passthrough_bits = 16;
+ 		break;
+ 	}
+ 
+-	if (passthrough)
++	if (passthrough) {
++		ipu_cpmem_set_resolution(priv->idmac_ch, image.rect.width,
++					 image.rect.height);
++		ipu_cpmem_set_stride(priv->idmac_ch, image.pix.bytesperline);
++		ipu_cpmem_set_buffer(priv->idmac_ch, 0, image.phys0);
++		ipu_cpmem_set_buffer(priv->idmac_ch, 1, image.phys1);
++		ipu_cpmem_set_burstsize(priv->idmac_ch, burst_size);
+ 		ipu_cpmem_set_format_passthrough(priv->idmac_ch,
+ 						 passthrough_bits);
++	} else {
++		ret = ipu_cpmem_set_image(priv->idmac_ch, &image);
++		if (ret)
++			return ret;
++
++		ipu_cpmem_set_burstsize(priv->idmac_ch, burst_size);
++	}
+ 
+ 	/*
+ 	 * Set the channel for the direct CSI-->memory via SMFC
 
-diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-index 2168759..ef6fb30 100644
---- a/include/uapi/linux/media-bus-format.h
-+++ b/include/uapi/linux/media-bus-format.h
-@@ -33,7 +33,7 @@
- 
- #define MEDIA_BUS_FMT_FIXED			0x0001
- 
--/* RGB - next is	0x1018 */
-+/* RGB - next is	0x101b */
- #define MEDIA_BUS_FMT_RGB444_1X12		0x1016
- #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
- #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
-@@ -57,8 +57,11 @@
- #define MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA	0x1012
- #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
- #define MEDIA_BUS_FMT_RGB888_1X32_PADHI		0x100f
-+#define MEDIA_BUS_FMT_RGB101010_1X30		0x1018
-+#define MEDIA_BUS_FMT_RGB121212_1X36		0x1019
-+#define MEDIA_BUS_FMT_RGB161616_1X48		0x101a
- 
--/* YUV (including grey) - next is	0x2026 */
-+/* YUV (including grey) - next is	0x202c */
- #define MEDIA_BUS_FMT_Y8_1X8			0x2001
- #define MEDIA_BUS_FMT_UV8_1X8			0x2015
- #define MEDIA_BUS_FMT_UYVY8_1_5X8		0x2002
-@@ -90,12 +93,18 @@
- #define MEDIA_BUS_FMT_YVYU10_1X20		0x200e
- #define MEDIA_BUS_FMT_VUY8_1X24			0x2024
- #define MEDIA_BUS_FMT_YUV8_1X24			0x2025
-+#define MEDIA_BUS_FMT_UYYVYY8_0_5X24		0x2026
- #define MEDIA_BUS_FMT_UYVY12_1X24		0x2020
- #define MEDIA_BUS_FMT_VYUY12_1X24		0x2021
- #define MEDIA_BUS_FMT_YUYV12_1X24		0x2022
- #define MEDIA_BUS_FMT_YVYU12_1X24		0x2023
- #define MEDIA_BUS_FMT_YUV10_1X30		0x2016
-+#define MEDIA_BUS_FMT_UYYVYY10_0_5X30		0x2027
- #define MEDIA_BUS_FMT_AYUV8_1X32		0x2017
-+#define MEDIA_BUS_FMT_UYYVYY12_0_5X36		0x2028
-+#define MEDIA_BUS_FMT_YUV12_1X36		0x2029
-+#define MEDIA_BUS_FMT_YUV16_1X48		0x202a
-+#define MEDIA_BUS_FMT_UYYVYY16_0_5X48		0x202b
- 
- /* Bayer - next is	0x3021 */
- #define MEDIA_BUS_FMT_SBGGR8_1X8		0x3001
+
 -- 
-1.9.1
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
