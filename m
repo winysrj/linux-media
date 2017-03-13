@@ -1,96 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:35299 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750941AbdCBKoN (ORCPT
+Received: from aserp1040.oracle.com ([141.146.126.69]:22029 "EHLO
+        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750808AbdCMMfY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Mar 2017 05:44:13 -0500
-Message-ID: <1488449782.2301.6.camel@pengutronix.de>
-Subject: Re: [PATCH] [media] coda: implement encoder stop command
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sascha Hauer <kernel@pengutronix.de>
-Date: Thu, 02 Mar 2017 11:16:22 +0100
-In-Reply-To: <CAH-u=833MgX4ZD07db4Reg+N6ch7Q35_7qt0Prn-6THYO0wFTQ@mail.gmail.com>
-References: <20170302095144.32090-1-p.zabel@pengutronix.de>
-         <CAH-u=833MgX4ZD07db4Reg+N6ch7Q35_7qt0Prn-6THYO0wFTQ@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Mon, 13 Mar 2017 08:35:24 -0400
+Date: Mon, 13 Mar 2017 15:34:45 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: alan@linux.intel.com
+Cc: linux-media@vger.kernel.org
+Subject: [bug report] staging/atomisp: Add support for the Intel IPU v2
+Message-ID: <20170313123445.GA9464@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jean-Michel,
+Hello Alan Cox,
 
-On Thu, 2017-03-02 at 11:02 +0100, Jean-Michel Hautbois wrote:
-> Hi Philipp,
-> 
-> 2017-03-02 10:51 GMT+01:00 Philipp Zabel <p.zabel@pengutronix.de>:
-> > There is no need to call v4l2_m2m_try_schedule to kick off draining the
-> > bitstream buffer for the encoder, but we have to wake up the destination
-> > queue in case there are no new OUTPUT buffers to be encoded and userspace
-> > is already polling for new CAPTURE buffers.
-> >
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > ---
-> >  drivers/media/platform/coda/coda-common.c | 47 +++++++++++++++++++++++++++++++
-> >  1 file changed, 47 insertions(+)
-> >
-> > diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-> > index e1a2e8c70db01..085bbdb0d361b 100644
-> > --- a/drivers/media/platform/coda/coda-common.c
-> > +++ b/drivers/media/platform/coda/coda-common.c
-> > @@ -881,6 +881,47 @@ static int coda_g_selection(struct file *file, void *fh,
-> >         return 0;
-> >  }
-> >
-> > +static int coda_try_encoder_cmd(struct file *file, void *fh,
-> > +                               struct v4l2_encoder_cmd *ec)
-> > +{
-> > +       if (ec->cmd != V4L2_ENC_CMD_STOP)
-> > +               return -EINVAL;
-> > +
-> > +       if (ec->flags & V4L2_ENC_CMD_STOP_AT_GOP_END)
-> > +               return -EINVAL;
-> > +
-> > +       return 0;
-> > +}
-> > +
-> > +static int coda_encoder_cmd(struct file *file, void *fh,
-> > +                           struct v4l2_encoder_cmd *ec)
-> > +{
-> > +       struct coda_ctx *ctx = fh_to_ctx(fh);
-> > +       struct vb2_queue *dst_vq;
-> > +       int ret;
-> > +
-> > +       ret = coda_try_encoder_cmd(file, fh, ec);
-> > +       if (ret < 0)
-> > +               return ret;
-> > +
-> > +       /* Ignore encoder stop command silently in decoder context */
-> > +       if (ctx->inst_type != CODA_INST_ENCODER)
-> > +               return 0;
-> > +
-> > +       /* Set the stream-end flag on this context */
-> > +       ctx->bit_stream_param |= CODA_BIT_STREAM_END_FLAG;
-> 
-> Why aren't you calling coda_bit_stream_end_flag() ?
+The patch a49d25364dfb: "staging/atomisp: Add support for the Intel
+IPU v2" from Feb 17, 2017, leads to the following static checker
+warning:
 
-Because that additionally does:
+	drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c:676 gmin_get_config_var()
+	warn: impossible condition '(*out_len > (~0)) => (0-u64max > u64max)'
 
-        /* If this context is currently running, update the hardware flag */
-        if ((dev->devtype->product == CODA_960) &&
-            coda_isbusy(dev) &&
-            (ctx->idx == coda_read(dev, CODA_REG_BIT_RUN_INDEX))) {
-                coda_write(dev, ctx->bit_stream_param,
-                           CODA_REG_BIT_BIT_STREAM_PARAM);
-        }
+drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+   620  /* Retrieves a device-specific configuration variable.  The dev
+   621   * argument should be a device with an ACPI companion, as all
+   622   * configuration is based on firmware ID. */
+   623  int gmin_get_config_var(struct device *dev, const char *var, char *out, size_t *out_len)
 
-to kick a potentially hanging decode picture run. This is unnecessary in the
-encoder case.
-We only need the flag set to make coda_buf_is_end_of_stream return true
-and thereby make coda_m2m_buf_done set the V4L2_BUF_FLAG_LAST on the
-buffer and emit the EOS event.
+out_len is a size_t which is always a ulong.
 
-regards
-Philipp
+   624  {
+   625          char var8[CFG_VAR_NAME_MAX];
+   626          efi_char16_t var16[CFG_VAR_NAME_MAX];
+   627          struct efivar_entry *ev;
+   628          u32 efiattr_dummy;
+   629          int i, j, ret;
+   630          unsigned long efilen;
+   631  
+   632          if (dev && ACPI_COMPANION(dev))
+   633                  dev = &ACPI_COMPANION(dev)->dev;
+   634  
+   635          if (dev)
+   636                  ret = snprintf(var8, sizeof(var8), "%s_%s", dev_name(dev), var);
+   637          else
+   638                  ret = snprintf(var8, sizeof(var8), "gmin_%s", var);
+   639  
+   640          if (ret < 0 || ret >= sizeof(var8)-1)
+   641                  return -EINVAL;
+   642  
+   643          /* First check a hard-coded list of board-specific variables.
+   644           * Some device firmwares lack the ability to set EFI variables at
+   645           * runtime. */
+   646          for (i = 0; i < ARRAY_SIZE(hard_vars); i++) {
+   647                  if (dmi_match(DMI_BOARD_NAME, hard_vars[i].dmi_board_name)) {
+   648                          for (j = 0; hard_vars[i].vars[j].name; j++) {
+   649                                  size_t vl;
+   650                                  const struct gmin_cfg_var *gv;
+   651  
+   652                                  gv = &hard_vars[i].vars[j];
+   653                                  vl = strlen(gv->val);
+   654  
+   655                                  if (strcmp(var8, gv->name))
+   656                                          continue;
+   657                                  if (vl > *out_len-1)
+   658                                          return -ENOSPC;
+   659  
+   660                                  memcpy(out, gv->val, min(*out_len, vl+1));
+   661                                  out[*out_len-1] = 0;
+   662                                  *out_len = vl;
+   663  
+   664                                  return 0;
+   665                          }
+   666                  }
+   667          }
+   668  
+   669          /* Our variable names are ASCII by construction, but EFI names
+   670           * are wide chars.  Convert and zero-pad. */
+   671          memset(var16, 0, sizeof(var16));
+   672          for (i=0; var8[i] && i < sizeof(var8); i++)
+   673                  var16[i] = var8[i];
+   674  
+   675          /* To avoid owerflows when calling the efivar API */
+   676          if (*out_len > ULONG_MAX)
+                    ^^^^^^^^^^^^^^^^^^^^
+This is impossible.  Was UINT_MAX intended?
+
+   677                  return -EINVAL;
+   678  
+
+regards,
+dan carpenter
