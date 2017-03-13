@@ -1,104 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:35968 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751652AbdC0LmW (ORCPT
+Received: from mail-yw0-f193.google.com ([209.85.161.193]:36113 "EHLO
+        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751374AbdCMV3j (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 07:42:22 -0400
-Received: by mail-pg0-f65.google.com with SMTP id 81so12199491pgh.3
-        for <linux-media@vger.kernel.org>; Mon, 27 Mar 2017 04:42:21 -0700 (PDT)
-From: vaibhavddit@gmail.com
-To: mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        rvarsha016@gmail.com, Vaibhav Kothari <vaibhavddit@gmail.com>
-Subject: [PATCH] staging:media:atomisp:i2c removed unnecessary white space before comma in memset()
-Date: Mon, 27 Mar 2017 17:12:29 +0530
-Message-Id: <1490614949-30985-1-git-send-email-vaibhavddit@gmail.com>
-In-Reply-To: <1490610746-28579-1-git-send-email-vaibhavddit@gmail.com>
-References: <1490610746-28579-1-git-send-email-vaibhavddit@gmail.com>
+        Mon, 13 Mar 2017 17:29:39 -0400
+MIME-Version: 1.0
+In-Reply-To: <6d3d52ba-29a9-701f-2948-00ce28282975@redhat.com>
+References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+ <20170303132949.GC31582@dhcp22.suse.cz> <cf383b9b-3cbc-0092-a071-f120874c053c@redhat.com>
+ <20170306074258.GA27953@dhcp22.suse.cz> <20170306104041.zghsicrnadoap7lp@phenom.ffwll.local>
+ <20170306105805.jsq44kfxhsvazkm6@sirena.org.uk> <20170306160437.sf7bksorlnw7u372@phenom.ffwll.local>
+ <CA+M3ks77Am3Fx-ZNmgeM5tCqdM7SzV7rby4Es-p2F2aOhUco9g@mail.gmail.com>
+ <26bc57ae-d88f-4ea0-d666-2c1a02bf866f@redhat.com> <CA+M3ks6R=n4n54wofK7pYcWoQKUhzyWQytBO90+pRDRrAhi3ww@mail.gmail.com>
+ <CAKMK7uH9NemeM2z-tQvge_B=kABop6O7UQFK3PirpJminMCPqw@mail.gmail.com> <6d3d52ba-29a9-701f-2948-00ce28282975@redhat.com>
+From: Rob Clark <robdclark@gmail.com>
+Date: Mon, 13 Mar 2017 17:29:31 -0400
+Message-ID: <CAF6AEGvs0qVr_=pSp5FYoxM4XNaKLtYB-uhBmDheYcgxgv1_2g@mail.gmail.com>
+Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of staging
+To: Laura Abbott <labbott@redhat.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        devel@driverdev.osuosl.org, Rom Lemarchand <romlem@google.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Riley Andrews <riandrews@android.com>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        Michal Hocko <mhocko@kernel.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        Linux MM <linux-mm@kvack.org>,
+        =?UTF-8?B?QXJ2ZSBIasO4bm5ldsOlZw==?= <arve@android.com>,
+        Mark Brown <broonie@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vaibhav Kothari <vaibhavddit@gmail.com>
+On Mon, Mar 13, 2017 at 5:09 PM, Laura Abbott <labbott@redhat.com> wrote:
+>> Hm, we might want to expose all the heaps as individual
+>> /dev/ion_$heapname nodes? Should we do this from the start, since
+>> we're massively revamping the uapi anyway (imo not needed, current
+>> state seems to work too)?
+>> -Daniel
+>>
+>
+> I thought about that. One advantage with separate /dev/ion_$heap
+> is that we don't have to worry about a limit of 32 possible
+> heaps per system (32-bit heap id allocation field). But dealing
+> with an ioctl seems easier than names. Userspace might be less
+> likely to hardcode random id numbers vs. names as well.
 
-- Fixing up check-patch error & Warnings
-- Added blank line between declaration and defination
-  at various places
 
-Signed-off-by: Vaibhav Kothari <vaibhavddit@gmail.com>
----
- drivers/staging/media/atomisp/i2c/gc2235.c | 16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+other advantage, I think, is selinux (brought up elsewhere on this
+thread).. heaps at known fixed PAs are useful for certain sorts of
+attacks so being able to restrict access more easily seems like a good
+thing
 
-diff --git a/drivers/staging/media/atomisp/i2c/gc2235.c b/drivers/staging/media/atomisp/i2c/gc2235.c
-index 9b41023..0df20ba 100644
---- a/drivers/staging/media/atomisp/i2c/gc2235.c
-+++ b/drivers/staging/media/atomisp/i2c/gc2235.c
-@@ -55,7 +55,7 @@ static int gc2235_read_reg(struct i2c_client *client,
- 		return -EINVAL;
- 	}
- 
--	memset(msg, 0 , sizeof(msg));
-+	memset(msg, 0, sizeof(msg));
- 
- 	msg[0].addr = client->addr;
- 	msg[0].flags = 0;
-@@ -354,6 +354,7 @@ static long __gc2235_set_exposure(struct v4l2_subdev *sd, int coarse_itg,
- 	u16 coarse_integration = (u16)coarse_itg;
- 	int ret = 0;
- 	u16 expo_coarse_h, expo_coarse_l, gain_val = 0xF0, gain_val2 = 0xF0;
-+
- 	expo_coarse_h = coarse_integration >> 8;
- 	expo_coarse_l = coarse_integration & 0xff;
- 
-@@ -405,6 +406,7 @@ static long gc2235_s_exposure(struct v4l2_subdev *sd,
- 	/* we should not accept the invalid value below. */
- 	if (gain == 0) {
- 		struct i2c_client *client = v4l2_get_subdevdata(sd);
-+
- 		v4l2_err(client, "%s: invalid value\n", __func__);
- 		return -EINVAL;
- 	}
-@@ -746,12 +748,13 @@ static int startup(struct v4l2_subdev *sd)
- 	struct gc2235_device *dev = to_gc2235_sensor(sd);
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	int ret = 0;
-+
- 	if (is_init == 0) {
- 		/* force gc2235 to do a reset in res change, otherwise it
--		* can not output normal after switching res. and it is not
--		* necessary for first time run up after power on, for the sack
--		* of performance
--		*/
-+		 * can not output normal after switching res. and it is not
-+		 * necessary for first time run up after power on, for the sack
-+		 * of performance
-+		 */
- 		power_down(sd);
- 		power_up(sd);
- 		gc2235_write_reg_array(client, gc2235_init_settings);
-@@ -880,6 +883,7 @@ static int gc2235_s_stream(struct v4l2_subdev *sd, int enable)
- 	struct gc2235_device *dev = to_gc2235_sensor(sd);
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	int ret;
-+
- 	mutex_lock(&dev->input_lock);
- 
- 	if (enable)
-@@ -994,6 +998,7 @@ static int gc2235_s_parm(struct v4l2_subdev *sd,
- 			struct v4l2_streamparm *param)
- {
- 	struct gc2235_device *dev = to_gc2235_sensor(sd);
-+
- 	dev->run_mode = param->parm.capture.capturemode;
- 
- 	mutex_lock(&dev->input_lock);
-@@ -1099,6 +1104,7 @@ static int gc2235_remove(struct i2c_client *client)
- {
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
- 	struct gc2235_device *dev = to_gc2235_sensor(sd);
-+
- 	dev_dbg(&client->dev, "gc2235_remove...\n");
- 
- 	if (dev->platform_data->platform_deinit)
--- 
-1.9.1
+BR,
+-R
