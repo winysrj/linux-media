@@ -1,198 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.75]:55898 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753445AbdCTJcz (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:56638 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751846AbdCMKqn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 05:32:55 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@linux.intel.com>, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 2/9] staging/atomisp: fix empty-body warning
-Date: Mon, 20 Mar 2017 10:32:18 +0100
-Message-Id: <20170320093225.1180723-2-arnd@arndb.de>
-In-Reply-To: <20170320093225.1180723-1-arnd@arndb.de>
-References: <20170320093225.1180723-1-arnd@arndb.de>
+        Mon, 13 Mar 2017 06:46:43 -0400
+Date: Mon, 13 Mar 2017 10:45:38 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
+        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Subject: Re: [PATCH v5 15/39] [media] v4l2: add a frame interval error event
+Message-ID: <20170313104538.GF21222@n2100.armlinux.org.uk>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <1489121599-23206-16-git-send-email-steve_longerbeam@mentor.com>
+ <5b0a0e76-2524-4140-5ccc-380a8f949cfa@xs4all.nl>
+ <ec05e6e0-79f2-2db2-bde9-4aed00d76faa@gmail.com>
+ <6b574476-77df-0e25-a4d1-32d4fe0aec12@xs4all.nl>
+ <5d5cf4a4-a4d3-586e-cd16-54f543dfcce9@gmail.com>
+ <aa6a5a1d-18fd-8bed-a349-2654d2d1abe0@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aa6a5a1d-18fd-8bed-a349-2654d2d1abe0@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Defining a debug function to nothing causes a warning with an empty block
-after if()/else():
+On Mon, Mar 13, 2017 at 11:02:34AM +0100, Hans Verkuil wrote:
+> On 03/11/2017 07:14 PM, Steve Longerbeam wrote:
+> > The event must be user visible, otherwise the user has no indication
+> > the error, and can't correct it by stream restart.
+> 
+> In that case the driver can detect this and call vb2_queue_error. It's
+> what it is there for.
+> 
+> The event doesn't help you since only this driver has this issue. So nobody
+> will watch this event, unless it is sw specifically written for this SoC.
+> 
+> Much better to call vb2_queue_error to signal a fatal error (which this
+> apparently is) since there are more drivers that do this, and vivid supports
+> triggering this condition as well.
 
-drivers/staging/media/atomisp/i2c/ov2680.c: In function 'ov2680_s_stream':
-drivers/staging/media/atomisp/i2c/ov2680.c:1208:55: error: suggest braces around empty body in an 'else' statement [-Werror=empty-body]
+So today, I can fiddle around with the IMX219 registers to help gain
+an understanding of how this sensor works.  Several of the registers
+(such as the PLL setup [*]) require me to disable streaming on the
+sensor while changing them.
 
-This changes the empty debug statement to dev_dbg(), which by default also
-does nothing, but avoids this warning and also checks the format string.
-As a side-effect, we can now use dynamic debugging to turn on the
-output at runtime.
+This is something I've done many times while testing various ideas,
+and is my primary way of figuring out and testing such things.
 
-Fixes: a49d25364dfb ("staging/atomisp: Add support for the Intel IPU v2")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/staging/media/atomisp/i2c/ov2680.c | 37 +++++++++++++++---------------
- 1 file changed, 19 insertions(+), 18 deletions(-)
+Whenever I resume streaming (provided I've let the sensor stop
+streaming at a frame boundary) it resumes as if nothing happened.  If I
+stop the sensor mid-frame, then I get the rolling issue that Steve
+reports, but once the top of the frame becomes aligned with the top of
+the capture, everything then becomes stable again as if nothing happened.
 
-diff --git a/drivers/staging/media/atomisp/i2c/ov2680.c b/drivers/staging/media/atomisp/i2c/ov2680.c
-index 58d2a075d436..c08dd0b18fbb 100644
---- a/drivers/staging/media/atomisp/i2c/ov2680.c
-+++ b/drivers/staging/media/atomisp/i2c/ov2680.c
-@@ -35,7 +35,6 @@
- 
- #include "ov2680.h"
- 
--#define ov2680_debug(...) //dev_err(__VA_ARGS__)
- static int h_flag = 0;
- static int v_flag = 0;
- static enum atomisp_bayer_order ov2680_bayer_order_mapping[] = {
-@@ -99,7 +98,7 @@ static int ov2680_read_reg(struct i2c_client *client,
- 		*val = be16_to_cpu(*(u16 *)&data[0]);
- 	else
- 		*val = be32_to_cpu(*(u32 *)&data[0]);
--	//ov2680_debug(&client->dev,  "++++i2c read adr%x = %x\n", reg,*val);
-+	//dev_dbg(&client->dev,  "++++i2c read adr%x = %x\n", reg,*val);
- 	return 0;
- }
- 
-@@ -114,7 +113,7 @@ static int ov2680_i2c_write(struct i2c_client *client, u16 len, u8 *data)
- 	msg.len = len;
- 	msg.buf = data;
- 	ret = i2c_transfer(client->adapter, &msg, 1);
--	//ov2680_debug(&client->dev,  "+++i2c write reg=%x->%x\n", data[0]*256 +data[1],data[2]);
-+	//dev_dbg(&client->dev,  "+++i2c write reg=%x->%x\n", data[0]*256 +data[1],data[2]);
- 	return ret == num_msg ? 0 : -EIO;
- }
- 
-@@ -235,7 +234,7 @@ static int ov2680_write_reg_array(struct i2c_client *client,
- 	const struct ov2680_reg *next = reglist;
- 	struct ov2680_write_ctrl ctrl;
- 	int err;
--	ov2680_debug(&client->dev,  "++++write reg array\n");
-+	dev_dbg(&client->dev,  "++++write reg array\n");
- 	ctrl.index = 0;
- 	for (; next->type != OV2680_TOK_TERM; next++) {
- 		switch (next->type & OV2680_TOK_MASK) {
-@@ -250,7 +249,7 @@ static int ov2680_write_reg_array(struct i2c_client *client,
- 			 * If next address is not consecutive, data needs to be
- 			 * flushed before proceed.
- 			 */
--			 ov2680_debug(&client->dev,  "+++ov2680_write_reg_array reg=%x->%x\n", next->reg,next->val);
-+			 dev_dbg(&client->dev,  "+++ov2680_write_reg_array reg=%x->%x\n", next->reg,next->val);
- 			if (!__ov2680_write_reg_is_consecutive(client, &ctrl,
- 								next)) {
- 				err = __ov2680_flush_reg_array(client, &ctrl);
-@@ -296,7 +295,8 @@ static int ov2680_g_fnumber_range(struct v4l2_subdev *sd, s32 *val)
- static int ov2680_g_bin_factor_x(struct v4l2_subdev *sd, s32 *val)
- {
- 	struct ov2680_device *dev = to_ov2680_sensor(sd);
--	ov2680_debug(dev,  "++++ov2680_g_bin_factor_x\n");
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	dev_dbg(&client->dev,  "++++ov2680_g_bin_factor_x\n");
- 	*val = ov2680_res[dev->fmt_idx].bin_factor_x;
- 
- 	return 0;
-@@ -305,9 +305,10 @@ static int ov2680_g_bin_factor_x(struct v4l2_subdev *sd, s32 *val)
- static int ov2680_g_bin_factor_y(struct v4l2_subdev *sd, s32 *val)
- {
- 	struct ov2680_device *dev = to_ov2680_sensor(sd);
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	
- 	*val = ov2680_res[dev->fmt_idx].bin_factor_y;
--	ov2680_debug(dev,  "++++ov2680_g_bin_factor_y\n");
-+	dev_dbg(&client->dev,  "++++ov2680_g_bin_factor_y\n");
- 	return 0;
- }
- 
-@@ -322,7 +323,7 @@ static int ov2680_get_intg_factor(struct i2c_client *client,
- 	unsigned int pix_clk_freq_hz;
- 	u16 reg_val;
- 	int ret;
--	ov2680_debug(dev,  "++++ov2680_get_intg_factor\n");
-+	dev_dbg(&client->dev,  "++++ov2680_get_intg_factor\n");
- 	if (!info)
- 		return -EINVAL;
- 
-@@ -399,7 +400,7 @@ static long __ov2680_set_exposure(struct v4l2_subdev *sd, int coarse_itg,
- 	u16 vts,hts;
- 	int ret,exp_val;
- 	
--       ov2680_debug(dev, "+++++++__ov2680_set_exposure coarse_itg %d, gain %d, digitgain %d++\n",coarse_itg, gain, digitgain);
-+       dev_dbg(&client->dev, "+++++++__ov2680_set_exposure coarse_itg %d, gain %d, digitgain %d++\n",coarse_itg, gain, digitgain);
- 
- 	hts = ov2680_res[dev->fmt_idx].pixels_per_line;
- 	vts = ov2680_res[dev->fmt_idx].lines_per_frame;
-@@ -605,7 +606,7 @@ static int ov2680_v_flip(struct v4l2_subdev *sd, s32 value)
- 	int ret;
- 	u16 val;
- 	u8 index;
--	ov2680_debug(&client->dev, "@%s: value:%d\n", __func__, value);
-+	dev_dbg(&client->dev, "@%s: value:%d\n", __func__, value);
- 	ret = ov2680_read_reg(client, OV2680_8BIT, OV2680_FLIP_REG, &val);
- 	if (ret)
- 		return ret;
-@@ -636,7 +637,7 @@ static int ov2680_h_flip(struct v4l2_subdev *sd, s32 value)
- 	int ret;
- 	u16 val;
- 	u8 index;
--	ov2680_debug(&client->dev, "@%s: value:%d\n", __func__, value);
-+	dev_dbg(&client->dev, "@%s: value:%d\n", __func__, value);
- 
- 	ret = ov2680_read_reg(client, OV2680_8BIT, OV2680_MIRROR_REG, &val);
- 	if (ret)
-@@ -1069,7 +1070,7 @@ static int ov2680_set_fmt(struct v4l2_subdev *sd,
- 	struct camera_mipi_info *ov2680_info = NULL;
- 	int ret = 0;
- 	int idx = 0;
--	ov2680_debug(&client->dev, "+++++ov2680_s_mbus_fmt+++++l\n");
-+	dev_dbg(&client->dev, "+++++ov2680_s_mbus_fmt+++++l\n");
- 	if (format->pad)
- 		return -EINVAL;
- 
-@@ -1097,7 +1098,7 @@ static int ov2680_set_fmt(struct v4l2_subdev *sd,
- 		return 0;
- 		}
- 	dev->fmt_idx = get_resolution_index(fmt->width, fmt->height);
--	ov2680_debug(&client->dev, "+++++get_resolution_index=%d+++++l\n",
-+	dev_dbg(&client->dev, "+++++get_resolution_index=%d+++++l\n",
- 		     dev->fmt_idx);
- 	if (dev->fmt_idx == -1) {
- 		dev_err(&client->dev, "get resolution fail\n");
-@@ -1106,7 +1107,7 @@ static int ov2680_set_fmt(struct v4l2_subdev *sd,
- 	}
- 	v4l2_info(client, "__s_mbus_fmt i=%d, w=%d, h=%d\n", dev->fmt_idx,
- 		  fmt->width, fmt->height);
--	ov2680_debug(&client->dev, "__s_mbus_fmt i=%d, w=%d, h=%d\n",
-+	dev_dbg(&client->dev, "__s_mbus_fmt i=%d, w=%d, h=%d\n",
- 		     dev->fmt_idx, fmt->width, fmt->height);
- 
- 	ret = ov2680_write_reg_array(client, ov2680_res[dev->fmt_idx].regs);
-@@ -1203,9 +1204,9 @@ static int ov2680_s_stream(struct v4l2_subdev *sd, int enable)
- 
- 	mutex_lock(&dev->input_lock);
- 	if(enable )
--		ov2680_debug(&client->dev, "ov2680_s_stream one \n");
-+		dev_dbg(&client->dev, "ov2680_s_stream one \n");
- 	else
--		ov2680_debug(&client->dev, "ov2680_s_stream off \n");
-+		dev_dbg(&client->dev, "ov2680_s_stream off \n");
- 	
- 	ret = ov2680_write_reg(client, OV2680_8BIT, OV2680_SW_STREAM,
- 				enable ? OV2680_START_STREAMING :
-@@ -1508,11 +1509,11 @@ static int ov2680_probe(struct i2c_client *client,
- 	if (ret)
- 	{
- 		ov2680_remove(client);
--		ov2680_debug(&client->dev, "+++ remove ov2680 \n");
-+		dev_dbg(&client->dev, "+++ remove ov2680 \n");
- 	}
- 	return ret;
- out_free:
--	ov2680_debug(&client->dev, "+++ out free \n");
-+	dev_dbg(&client->dev, "+++ out free \n");
- 	v4l2_device_unregister_subdev(&dev->sd);
- 	kfree(dev);
- 	return ret;
+The side effect of what you're proposing is that when I disable streaming
+at the sensor by poking at its registers, rather than the capture just
+stopping, an error is going to be delivered to gstreamer, and gstreamer
+is going to exit, taking the entire capture process down.
+
+This severely restricts the ability to be able to develop and test
+sensor drivers.
+
+So, I strongly disagree with you.
+
+Loss of capture frames is not necessarily a fatal error - as I have been
+saying repeatedly.  In Steve's case, there's some unknown interaction
+between the source and iMX6 hardware that is causing the instability,
+but that is simply not true of other sources, and I oppose any idea that
+we should cripple the iMX6 side of the capture based upon just one
+hardware combination where this is a problem.
+
+Steve suggested that the problem could be in the iMX6 CSI block - and I
+note comparing Steve's code with the code in FSL's repository that there
+are some changes that are missing in Steve's code to do with the CCIR656
+sync code setup, particularly for >8 bit.  The progressive CCIR656 8-bit
+setup looks pretty similar though - but I think what needs to be asked
+is whether the same problem is visible using the FSL/NXP vendor kernel.
+
+
+* - the PLL setup is something that requires research at the moment.
+Sony's official position (even to their customers) is that they do not
+supply the necessary information, instead they expect customers to tell
+them the capture settings they want, and Sony will throw the values into
+a spreadsheet, and they'll supply the register settings back to the
+customer.  Hence, the only way to proceed with a generic driver for
+this sensor is to experiment, and experimenting requires the ability to
+pause the stream at the sensor while making changes.  Take this away,
+and we're stuck with the tables-of-register-settings-for-set-of-fixed-
+capture-settings approach.  I've made a lot of progress away from this
+which is all down to the flexibility afforded by _not_ killing the
+capture process.
+
 -- 
-2.9.0
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
