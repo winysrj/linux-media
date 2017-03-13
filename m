@@ -1,219 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60422 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751814AbdCDMd3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 4 Mar 2017 07:33:29 -0500
-Date: Sat, 4 Mar 2017 14:30:11 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        mchehab@kernel.org, ivo.g.dimitrov.75@gmail.com
-Subject: Re: camera subdevice support was Re: [PATCH 1/4] v4l2:
- device_register_subdev_nodes: allow calling multiple times
-Message-ID: <20170304123010.GT3220@valkosipuli.retiisi.org.uk>
-References: <20170220103114.GA9800@amd>
- <20170220130912.GT16975@valkosipuli.retiisi.org.uk>
- <20170220135636.GU16975@valkosipuli.retiisi.org.uk>
- <20170221110721.GD5021@amd>
- <20170221111104.GD16975@valkosipuli.retiisi.org.uk>
- <20170225000918.GB23662@amd>
- <20170225134444.6qzumpvasaow5qoj@ihha.localdomain>
- <20170225215321.GA29886@amd>
- <20170225231754.GY16975@valkosipuli.retiisi.org.uk>
- <20170304085551.GA19769@amd>
+Received: from homeuser231-232.ccl.perm.ru ([89.148.231.232]:33433 "HELO
+        perm.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+        id S1750846AbdCMWEF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Mar 2017 18:04:05 -0400
+To: "linux-media" <linux-media@vger.kernel.org>
+Date: Mon, 13 Mar 2017 22:03:47 -0000
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170304085551.GA19769@amd>
+Content-Type: application/zip; name="270673920812865.zip"
+Subject: 26416 linux-media
+Content-Disposition: attachment
+Content-Transfer-Encoding: base64
+Reply-To: <registrator@bth.se>
+Message-ID: <148944262700.30105.13421591005846941863@perm.ru>
+From: <registrator@bth.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Mar 04, 2017 at 09:55:51AM +0100, Pavel Machek wrote:
-> Dobry den! :-)
-
-Huomenta! :-)
-
-> 
-> > > > > Ok, I got the camera sensor to work. No subdevices support, so I don't
-> > > > > have focus (etc) working, but that's a start. I also had to remove
-> > > > > video-bus-switch support; but I guess it will be easier to use
-> > > > > video-multiplexer patches... 
-> > > > > 
-> > > > > I'll have patches over weekend.
-> > > > 
-> > > > I briefly looked at what's there --- you do miss the video nodes for the
-> > > > non-sensor sub-devices, and they also don't show up in the media graph,
-> > > > right?
-> > > 
-> > > Yes.
-> > > 
-> > > > I guess they don't end up matching in the async list.
-> > > 
-> > > How should they get to the async list?
-> > 
-> > The patch you referred to does that. The problem is, it does make the bus
-> > configuration a pointer as well. There should be two patches. That's not a
-> > lot of work to separate them though. But it should be done.
-> > 
-> > > 
-> > > > I think we need to make the non-sensor sub-device support more generic;
-> > > > it's not just the OMAP 3 ISP that needs it. I think we need to document
-> > > > the property for the flash phandle as well; I can write one, or refresh
-> > > > an existing one that I believe already exists.
-> > > > 
-> > > > How about calling it either simply "flash" or "camera-flash"? Similarly
-> > > > for lens: "lens" or "camera-lens". I have a vague feeling the "camera-"
-> > > > prefix is somewhat redundant, so I'd just go for "flash" or "lens".
-> > > 
-> > > Actually, I'd go for "flash" and "focus-coil". There may be other
-> > > lens properties, such as zoom, mirror movement, lens identification,
-> > > ...
-> > 
-> > Good point. Still there may be other ways to move the lens than the voice
-> > coil (which sure is cheap), so how about "flash" and "lens-focus"?
-> 
-> Ok, so something like this? (Yes, needs binding documentation and you
-> wanted it in the core.. can fix.)
-> 
-> BTW, fwnode_handle_put() seems to be missing in the success path of
-> isp_fwnodes_parse() -- can you check that?
-
-Where exactly? I noticed that if notifier->num_subdevs hits the limit the
-last node isn't put properly. I'll fix that. Is that what you meant?
-
-> 
-> Best regards,
-> 								Pavel
-> 
-> 
-> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-> index c80397a..6f6fbed 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -2114,7 +2114,7 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwn,
->  			buscfg->bus.ccp2.lanecfg.data[0].pol =
->  				vfwn.bus.mipi_csi1.lane_polarity[1];
->  
-> -			dev_dbg(dev, "data lane %u polarity %u, pos %u\n", i,
-> +			dev_dbg(dev, "data lane %u polarity %u, pos %u\n", 0,
-
-Why?
-
->  				buscfg->bus.ccp2.lanecfg.data[0].pol,
->  				buscfg->bus.ccp2.lanecfg.data[0].pos);
->  
-> @@ -2162,10 +2162,64 @@ static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fwn,
->  	return 0;
->  }
->  
-> +static int camera_subdev_parse(struct device *dev, struct v4l2_async_notifier *notifier,
-> +			       const char *key)
-> +{
-> +	struct device_node *node;
-> +	struct isp_async_subdev *isd;
-> +
-> +	printk("Looking for %s\n", key);
-> +	
-> +	node = of_parse_phandle(dev->of_node, key, 0);
-
-There may be more than one flash associated with a sensor. Speaking of which
---- how is it associated to the sensors?
-
-One way to do this could be to simply move the flash property to the sensor
-OF node. We could have it here, too, if the flash was not associated with
-any sensor, but I doubt that will ever be needed.
-
-This really calls fork moving this part to the framework away from drivers.
-
-> +	if (!node)
-> +		return 0;
-> +
-> +	printk("Having subdevice: %p\n", node);
-> +		
-> +	isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
-> +	if (!isd)
-> +		return -ENOMEM;
-> +
-> +	notifier->subdevs[notifier->num_subdevs] = &isd->asd;
-> +
-> +	isd->asd.match.of.node = node;
-> +	if (!isd->asd.match.of.node) {
-
-You should check node here first.
-
-> +		dev_warn(dev, "bad remote port parent\n");
-> +		return -EIO;
-> +	}
-> +
-
-And then assign it here.
-
-isd->asd.match.fwnode.fwn = of_fwnode_handle(node);
-
-> +	isd->asd.match_type = V4L2_ASYNC_MATCH_OF;
-
-V4L2_ASYNC_MATCH_FWNODE, please.
-
-> +	notifier->num_subdevs++;
-> +
-> +	return 0;
-> +}
-> +
-> +static int camera_subdevs_parse(struct device *dev, struct v4l2_async_notifier *notifier,
-> +				int max)
-> +{
-> +	int res = 0;
-
-No need to assign res here.
-
-> +
-> +	printk("Going through camera-flashes\n");
-> +	if (notifier->num_subdevs < max) {
-> +		res = camera_subdev_parse(dev, notifier, "flash");
-> +		if (res)
-> +			return res;
-> +	}
-> +
-> +	if (notifier->num_subdevs < max) {
-> +		res = camera_subdev_parse(dev, notifier, "lens-focus");
-> +		if (res)
-> +			return res;
-> +	}
-> +	
-> +	return 0;
-> +}
-> +
->  static int isp_fwnodes_parse(struct device *dev,
->  			     struct v4l2_async_notifier *notifier)
->  {
->  	struct fwnode_handle *fwn = NULL;
-> +	int res = 0;
->  
->  	notifier->subdevs = devm_kcalloc(
->  		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
-> @@ -2199,6 +2253,15 @@ static int isp_fwnodes_parse(struct device *dev,
->  		notifier->num_subdevs++;
->  	}
->  
-> +	/* FIXME: missing put in the success path? */
-> +
-> +	res = camera_subdevs_parse(dev, notifier, ISP_MAX_SUBDEVS);
-> +	if (res)
-> +		goto error;
-> +
-> +	if (notifier->num_subdevs == ISP_MAX_SUBDEVS) {
-> +		printk("isp: Maybe too many devices?\n");
-> +	}
->  	return notifier->num_subdevs;
->  
->  error:
-> 
-> 
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+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
+AFBLBQYAAAAAAQABAFIAAACBFQAAAAA=
