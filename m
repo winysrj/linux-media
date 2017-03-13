@@ -1,74 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:36208 "EHLO
-        epoutp02.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932638AbdCaJE2 (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:33363 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751144AbdCMJzh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Mar 2017 05:04:28 -0400
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>
-Subject: [Patch v3 00/11] Add MFC v10.10 support
-Date: Fri, 31 Mar 2017 14:36:29 +0530
-Message-id: <1490951200-32070-1-git-send-email-smitha.t@samsung.com>
-References: <CGME20170331090425epcas1p4de8762ee73be91312a76a73638bac253@epcas1p4.samsung.com>
+        Mon, 13 Mar 2017 05:55:37 -0400
+Subject: Re: [PATCH v5 21/39] UAPI: Add media UAPI Kbuild file
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <1489121599-23206-22-git-send-email-steve_longerbeam@mentor.com>
+ <20170311134931.GP3220@valkosipuli.retiisi.org.uk>
+ <184c02bf-782d-6dbe-e603-a82ac8dcc8b6@gmail.com>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com,
+        linux@armlinux.org.uk, mchehab@kernel.org, nick@shmanahar.org,
+        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <a1e9f0b2-0dff-db5e-a2a3-5b34230fb1c3@xs4all.nl>
+Date: Mon, 13 Mar 2017 10:55:19 +0100
+MIME-Version: 1.0
+In-Reply-To: <184c02bf-782d-6dbe-e603-a82ac8dcc8b6@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds MFC v10.10 support. MFC v10.10 is used in some
-of Exynos7 variants.
+On 03/11/2017 07:20 PM, Steve Longerbeam wrote:
+> 
+> 
+> On 03/11/2017 05:49 AM, Sakari Ailus wrote:
+>> Hi Steve,
+>>
+>> On Thu, Mar 09, 2017 at 08:53:01PM -0800, Steve Longerbeam wrote:
+>>> Add an empty UAPI Kbuild file for media UAPI headers.
+>>>
+>>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+>>
+>> The existing V4L2 UAPI headers are under include/uapi/linux. Could you use
+>> that directory instead?
+>>
+>> I actually wouldn't really object doing this but it should have been done in
+>> 2002 or so when the first V4L2 header was added. Now the benefit is
+>> questionable.
+>>
+> 
+> Agreed, I think the current headers should be moved to uapi/media
+> eventually, but for now I'll go ahead and put under uapi/linux.
 
-This adds support for following:
+No, while in staging it shouldn't be exported.
 
-* Add support for HEVC encoder and decoder
-* Add support for VP9 decoder
-* Update Documentation for control id definitions
-* Update computation of min scratch buffer size requirement for V8 onwards
+Put it in include/linux and move it to uapi when this driver is mainlined.
 
-Changes since v2:
- - Addressed review comments by Andrzej Hajda.
- - Rebased on latest krzk/for-next tree.
- - This patches are tested on top of Marek's patch v2 [1]
- - Applied acked-by and r-o-b from Andrzej on respective patches.
- - Applied acked-by from Rob Herring on respective patch.
+I don't think we can move headers from uapi/linux to uapi/media, I'm sure it's
+too late for that.
 
-[1]: http://www.mail-archive.com/linux-media@vger.kernel.org/msg108520.html
+Regards,
 
-Smitha T Murthy (11):
-  [media] s5p-mfc: Rename IS_MFCV8 macro
-  [media] s5p-mfc: Adding initial support for MFC v10.10
-  [media] s5p-mfc: Use min scratch buffer size as provided by F/W
-  [media] s5p-mfc: Support MFCv10.10 buffer requirements
-  [media] videodev2.h: Add v4l2 definition for HEVC
-  [media] s5p-mfc: Add support for HEVC decoder
-  Documentation: v4l: Documentation for HEVC v4l2 definition
-  [media] s5p-mfc: Add VP9 decoder support
-  [media] v4l2: Add v4l2 control IDs for HEVC encoder
-  [media] s5p-mfc: Add support for HEVC encoder
-  Documention: v4l: Documentation for HEVC CIDs
-
- .../devicetree/bindings/media/s5p-mfc.txt          |   1 +
- Documentation/media/uapi/v4l/extended-controls.rst | 355 ++++++++++++
- Documentation/media/uapi/v4l/pixfmt-013.rst        |   5 +
- drivers/media/platform/s5p-mfc/regs-mfc-v10.h      |  88 +++
- drivers/media/platform/s5p-mfc/regs-mfc-v8.h       |   2 +
- drivers/media/platform/s5p-mfc/s5p_mfc.c           |  33 ++
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c    |   9 +
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |  71 ++-
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c      |   6 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |  50 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       | 616 ++++++++++++++++++++-
- drivers/media/platform/s5p-mfc/s5p_mfc_opr.h       |  14 +
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    | 410 ++++++++++++--
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h    |  15 +
- drivers/media/v4l2-core/v4l2-ctrls.c               | 103 ++++
- include/uapi/linux/v4l2-controls.h                 | 133 +++++
- include/uapi/linux/videodev2.h                     |   1 +
- 17 files changed, 1835 insertions(+), 77 deletions(-)
- create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-
--- 
-2.7.4
+	Hans
