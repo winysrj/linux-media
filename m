@@ -1,88 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:10745 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751067AbdCJCtf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 9 Mar 2017 21:49:35 -0500
-Date: Fri, 10 Mar 2017 10:49:29 +0800
-From: Fengguang Wu <lkp@intel.com>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: kbuild-all@01.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, mchehab@kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org, git@vger.kernel.org,
-        Ye Xiaolong <xiaolong.ye@intel.com>
-Subject: Re: [media] omap3isp: Correctly set IO_OUT_SEL and VP_CLK_POL for
- CCP2 mode
-Message-ID: <20170310024929.la3uuzhtckdn5tm2@wfg-t540p.sh.intel.com>
-References: <20170301114545.GA19201@amd>
- <201703031931.OeUvSOwD%fengguang.wu@intel.com>
- <20170303214838.GA26826@amd>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:33206 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751409AbdCMK61 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Mar 2017 06:58:27 -0400
+Date: Mon, 13 Mar 2017 19:54:21 +0900
+From: Daeseok Youn <daeseok.youn@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, alan@linux.intel.com,
+        daeseok.youn@gmail.com, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        kernel-janitors@vger.kernel.org
+Subject: [PATCH] staging: atomisp: use k{v}zalloc instead of k{v}alloc and
+ memset
+Message-ID: <20170313105421.GA32342@SEL-JYOUN-D1>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20170303214838.GA26826@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 03, 2017 at 10:48:38PM +0100, Pavel Machek wrote:
->Hi!
->
->> [auto build test ERROR on linuxtv-media/master]
->> [also build test ERROR on v4.10 next-20170303]
->> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
->>
->
->Yes, the patch is against Sakari's ccp2 branch. It should work ok there.
->
->I don't think you can do much to fix the automated system....
+If the atomisp_kernel_zalloc() has "true" as a second parameter, it
+tries to allocate zeroing memory from kmalloc(vmalloc) and memset.
+But using kzalloc is rather than kmalloc followed by memset with 0.
+(vzalloc is for same reason with kzalloc)
 
-We could, if "git format-patch" can be setup to auto append lines
+And also atomisp_kernel_malloc() can be used with
+atomisp_kernel_zalloc(<size>, false);
 
-        parent-commit: X
-        parent-patch-id: Y
+Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
+---
+I think kvmalloc() or kvzalloc() can be used to allocate memory if there is
+no reason to use vmalloc() when the requested bytes is over PAGE_SIZE.
 
-With that information, as long as the parent commit/patch is public --
-either by "git push" or posting patch to mailing lists -- we'll have
-good chance to find and use it as the base for "git am".
+ .../media/atomisp/pci/atomisp2/atomisp_cmd.c       | 25 ++++++++++++----------
+ 1 file changed, 14 insertions(+), 11 deletions(-)
 
-Currently "git format-patch" already has the option "--base=auto" to
-auto append the more accurate lines
-
-        base-commit: P
-        prerequisite-patch-id: X
-        prerequisite-patch-id: Y
-        prerequisite-patch-id: Z
-
-That's the best information git can offer. Unfortunately it cannot
-ALWAYS work without human aid. What's worse, when it cannot figure out
-the base-commit, the whole "git format-patch" command will abort like
-this
-
-        $ git format-patch -1
-        fatal: base commit shouldn't be in revision list
-
-That fatal error makes it not a viable option to always turn on
-"--base=auto" in .gitconfig.
-
-Without a fully-automated solution, I don't think many people will
-bother or remember to manually specify base-commit before sending
-patches out.
-
-To effectively save the robot from "base commit" guessing works, what
-we can do is to
-
-1) append "parent-commit"/"parent-patch-id" lines when git cannot
-   figure out and append the "base-commit"/"prerequisite-patch-id"
-   lines. So that the test robot always get the information to do
-   its job.
-
-2) advise kernel developers to run this once
-
-        git config format.useAutoBase yes
-
-   to configure "--base=auto" as the default behavior.
-
-Thanks,
-Fengguang
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+index d9a5c24..44b2244 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+@@ -86,32 +86,35 @@
+ };
+ 
+ /*
+- * atomisp_kernel_malloc: chooses whether kmalloc() or vmalloc() is preferable.
++ * atomisp_kernel_malloc:
++ * allocating memory from atomisp_kernel_zalloc() without zeroing memory.
+  *
+  * It is also a wrap functions to pass into css framework.
+  */
+ void *atomisp_kernel_malloc(size_t bytes)
+ {
+-	/* vmalloc() is preferable if allocating more than 1 page */
+-	if (bytes > PAGE_SIZE)
+-		return vmalloc(bytes);
+-
+-	return kmalloc(bytes, GFP_KERNEL);
++	return atomisp_kernel_zalloc(bytes, false);
+ }
+ 
+ /*
+- * atomisp_kernel_zalloc: chooses whether set 0 to the allocated memory.
++ * atomisp_kernel_zalloc: chooses whether set 0 to the allocated memory
++ * with k{z,m}alloc or v{z,m}alloc
+  *
+  * It is also a wrap functions to pass into css framework.
+  */
+ void *atomisp_kernel_zalloc(size_t bytes, bool zero_mem)
+ {
+-	void *ptr = atomisp_kernel_malloc(bytes);
++	/* vmalloc() is preferable if allocating more than 1 page */
++	if (bytes > PAGE_SIZE) {
++		if (zero_mem)
++			return vzalloc(bytes);
++		return vmalloc(bytes);
++	}
+ 
+-	if (ptr && zero_mem)
+-		memset(ptr, 0, bytes);
++	if (zero_mem)
++		return kzalloc(bytes, GFP_KERNEL);
+ 
+-	return ptr;
++	return kmalloc(bytes, GFP_KERNEL);
+ }
+ 
+ /*
+-- 
+1.9.1
