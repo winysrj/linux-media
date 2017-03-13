@@ -1,144 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:34170 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753215AbdC1Alt (ORCPT
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:36219 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751141AbdCMTUo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 20:41:49 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v6 10/39] ARM: dts: imx6-sabreauto: create i2cmux for i2c3
-Date: Mon, 27 Mar 2017 17:40:27 -0700
-Message-Id: <1490661656-10318-11-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+        Mon, 13 Mar 2017 15:20:44 -0400
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [RFC 00/10] V4L2 explicit synchronization support
+Date: Mon, 13 Mar 2017 16:20:25 -0300
+Message-Id: <20170313192035.29859-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The sabreauto uses a steering pin to select between the SDA signal on
-i2c3 bus, and a data-in pin for an SPI NOR chip. Use i2cmux to control
-this steering pin. Idle state of the i2cmux selects SPI NOR. This is not
-a classic way to use i2cmux, since one side of the mux selects something
-other than an i2c bus, but it works and is probably the cleanest
-solution. Note that if one thread is attempting to access SPI NOR while
-another thread is accessing i2c3, the SPI NOR access will fail since the
-i2cmux has selected the SDA pin rather than SPI NOR data-in. This couldn't
-be avoided in any case, the board is not designed to allow concurrent
-i2c3 and SPI NOR functions (and the default device-tree does not enable
-SPI NOR anyway).
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Devices hanging off i2c3 should now be defined under i2cmux, so
-that the steering pin can be properly controlled to access those
-devices. The port expanders (MAX7310) are thus moved into i2cmux.
+Hi,
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+This RFC adds support for Explicit Synchronization of shared buffers in V4L2.
+It uses the Sync File Framework[1] as vector to communicate the fences
+between kernel and userspace.
+
+I'm sending this to start the discussion on the best approach to implement
+Explicit Synchronization, please check the TODO/OPEN section below.
+
+Explicit Synchronization allows us to control the synchronization of
+shared buffers from userspace by passing fences to the kernel and/or 
+receiving them from the the kernel.
+
+Fences passed to the kernel are named in-fences and the kernel should wait
+them to signal before using the buffer. On the other side, the kernel creates
+out-fences for every buffer it receives from userspace. This fence is sent back
+to userspace and it will signal when the capture, for example, has finished.
+
+Signalling an out-fence in V4L2 would mean that the job on the buffer is done
+and the buffer can be used by other drivers.
+
+Current RFC implementation
+--------------------------
+
+The current implementation is not intended to be more than a PoC to start
+the discussion on how Explicit Synchronization should be supported in V4L2.
+
+The first patch proposes an userspace API for fences, then on patch 2
+we prepare to the addition of in-fences in patch 3, by introducing the
+infrastructure on vb2 to wait on an in-fence signal before queueing the buffer
+in the driver.
+
+Patch 4 fix uvc v4l2 event handling and patch 5 configure q->dev for vivid
+drivers to enable to subscribe and dequeue events on it.
+
+Patches 6-7 enables support to notify BUF_QUEUED events, i.e., let userspace
+know that particular buffer was enqueued in the driver. This is needed,
+because we return the out-fence fd as an out argument in QBUF, but at the time
+it returns we don't know to which buffer the fence will be attached thus
+the BUF_QUEUED event tells which buffer is associated to the fence received in
+QBUF by userspace.
+
+Patches 8 and 9 add more fence infrastructure to support out-fences and finally
+patch 10 adds support to out-fences.
+
+TODO/OPEN:
+----------
+
+* For this first implementation we will keep the ordering of the buffers queued
+in videobuf2, that means we will only enqueue buffer whose fence was signalled
+if that buffer is the first one in the queue. Otherwise it has to wait until it
+is the first one. This is not implmented yet. Later we could create a flag to
+allow unordered queing in the drivers from vb2 if needed.
+
+* Should we have out-fences per-buffer or per-plane? or both? In this RFC, for
+simplicity they are per-buffer, but Mauro and Javier raised the option of
+doing per-plane fences. That could benefit mem2mem and V4L2 <-> GPU operation
+at least on cases when we have Capture hw that releases the Y frame before the
+other frames for example. When using V4L2 per-plane out-fences to communicate
+with KMS they would need to be merged together as currently the DRM Plane
+interface only supports one fence per DRM Plane.
+
+In-fences should be per-buffer as the DRM only has per-buffer fences, but
+in case of mem2mem operations per-plane fences might be useful?
+
+So should we have both ways, per-plane and per-buffer, or just one of them
+for now?
+
+* other open topics are how to deal with hw-fences and Request API.
+
+Comments are welcome!
+
+Regards,
+
+Gustavo
+
 ---
- arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 65 +++++++++++++++++++++-----------
- 1 file changed, 44 insertions(+), 21 deletions(-)
+Gustavo Padovan (9):
+  [media] vb2: add explicit fence user API
+  [media] vb2: split out queueing from vb_core_qbuf()
+  [media] vb2: add in-fence support to QBUF
+  [media] uvc: enable subscriptions to other events
+  [media] vivid: assign the specific device to the vb2_queue->dev
+  [media] v4l: add V4L2_EVENT_BUF_QUEUED event
+  [media] v4l: add support to BUF_QUEUED event
+  [media] vb2: add infrastructure to support out-fences
+  [media] vb2: add out-fence support to QBUF
 
-diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-index a2a714d..c8e35c4 100644
---- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-@@ -108,6 +108,44 @@
- 		default-brightness-level = <7>;
- 		status = "okay";
- 	};
-+
-+	i2cmux {
-+		compatible = "i2c-mux-gpio";
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_i2c3mux>;
-+		mux-gpios = <&gpio5 4 0>;
-+		i2c-parent = <&i2c3>;
-+		idle-state = <0>;
-+
-+		i2c@1 {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			reg = <1>;
-+
-+			max7310_a: gpio@30 {
-+				compatible = "maxim,max7310";
-+				reg = <0x30>;
-+				gpio-controller;
-+				#gpio-cells = <2>;
-+			};
-+
-+			max7310_b: gpio@32 {
-+				compatible = "maxim,max7310";
-+				reg = <0x32>;
-+				gpio-controller;
-+				#gpio-cells = <2>;
-+			};
-+
-+			max7310_c: gpio@34 {
-+				compatible = "maxim,max7310";
-+				reg = <0x34>;
-+				gpio-controller;
-+				#gpio-cells = <2>;
-+			};
-+		};
-+	};
- };
- 
- &clks {
-@@ -290,27 +328,6 @@
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&pinctrl_i2c3>;
- 	status = "okay";
--
--	max7310_a: gpio@30 {
--		compatible = "maxim,max7310";
--		reg = <0x30>;
--		gpio-controller;
--		#gpio-cells = <2>;
--	};
--
--	max7310_b: gpio@32 {
--		compatible = "maxim,max7310";
--		reg = <0x32>;
--		gpio-controller;
--		#gpio-cells = <2>;
--	};
--
--	max7310_c: gpio@34 {
--		compatible = "maxim,max7310";
--		reg = <0x34>;
--		gpio-controller;
--		#gpio-cells = <2>;
--	};
- };
- 
- &iomuxc {
-@@ -418,6 +435,12 @@
- 			>;
- 		};
- 
-+		pinctrl_i2c3mux: i2c3muxgrp {
-+			fsl,pins = <
-+				MX6QDL_PAD_EIM_A24__GPIO5_IO04 0x0b0b1
-+			>;
-+		};
-+
- 		pinctrl_pwm3: pwm1grp {
- 			fsl,pins = <
- 				MX6QDL_PAD_SD4_DAT1__PWM3_OUT		0x1b0b1
+Javier Martinez Canillas (1):
+  [media] vb2: add videobuf2 dma-buf fence helpers
+
+ drivers/media/Kconfig                         |   1 +
+ drivers/media/platform/vivid/vivid-core.c     |  10 +-
+ drivers/media/usb/uvc/uvc_v4l2.c              |   2 +-
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c |   4 +-
+ drivers/media/v4l2-core/v4l2-ctrls.c          |   6 +-
+ drivers/media/v4l2-core/videobuf2-core.c      | 139 ++++++++++++++++++++------
+ drivers/media/v4l2-core/videobuf2-v4l2.c      |  29 +++++-
+ include/media/videobuf2-core.h                |  12 ++-
+ include/media/videobuf2-fence.h               |  49 +++++++++
+ include/uapi/linux/videodev2.h                |  12 ++-
+ 10 files changed, 218 insertions(+), 46 deletions(-)
+ create mode 100644 include/media/videobuf2-fence.h
+
 -- 
-2.7.4
+2.9.3
