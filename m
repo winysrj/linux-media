@@ -1,1392 +1,1322 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:33287 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932507AbdCJEyo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 23:54:44 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v5 25/39] media: imx: Add CSI subdev driver
-Date: Thu,  9 Mar 2017 20:53:05 -0800
-Message-Id: <1489121599-23206-26-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:37436 "EHLO
+        mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754134AbdCMQiV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Mar 2017 12:38:21 -0400
+Received: by mail-wm0-f43.google.com with SMTP id n11so44554719wma.0
+        for <linux-media@vger.kernel.org>; Mon, 13 Mar 2017 09:38:19 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v7 5/9] media: venus: vdec: add video decoder files
+Date: Mon, 13 Mar 2017 18:37:34 +0200
+Message-Id: <1489423058-12492-6-git-send-email-stanimir.varbanov@linaro.org>
+In-Reply-To: <1489423058-12492-1-git-send-email-stanimir.varbanov@linaro.org>
+References: <1489423058-12492-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a media entity subdevice for the i.MX Camera
-Sensor Interface module.
+This consists of video decoder implementation plus decoder
+controls.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 ---
- drivers/staging/media/imx/Kconfig         |   14 +
- drivers/staging/media/imx/Makefile        |    2 +
- drivers/staging/media/imx/imx-media-csi.c | 1311 +++++++++++++++++++++++++++++
- 3 files changed, 1327 insertions(+)
- create mode 100644 drivers/staging/media/imx/imx-media-csi.c
+ drivers/media/platform/qcom/venus/vdec.c       | 1091 ++++++++++++++++++++++++
+ drivers/media/platform/qcom/venus/vdec.h       |   23 +
+ drivers/media/platform/qcom/venus/vdec_ctrls.c |  149 ++++
+ 3 files changed, 1263 insertions(+)
+ create mode 100644 drivers/media/platform/qcom/venus/vdec.c
+ create mode 100644 drivers/media/platform/qcom/venus/vdec.h
+ create mode 100644 drivers/media/platform/qcom/venus/vdec_ctrls.c
 
-diff --git a/drivers/staging/media/imx/Kconfig b/drivers/staging/media/imx/Kconfig
-index 62a3c34..e27ad6d 100644
---- a/drivers/staging/media/imx/Kconfig
-+++ b/drivers/staging/media/imx/Kconfig
-@@ -4,3 +4,17 @@ config VIDEO_IMX_MEDIA
- 	---help---
- 	  Say yes here to enable support for video4linux media controller
- 	  driver for the i.MX5/6 SOC.
-+
-+if VIDEO_IMX_MEDIA
-+menu "i.MX5/6 Media Sub devices"
-+
-+config VIDEO_IMX_CSI
-+	tristate "i.MX5/6 Camera Sensor Interface driver"
-+	depends on VIDEO_IMX_MEDIA && VIDEO_DEV && I2C
-+	select VIDEOBUF2_DMA_CONTIG
-+	default y
-+	---help---
-+	  A video4linux camera sensor interface driver for i.MX5/6.
-+
-+endmenu
-+endif
-diff --git a/drivers/staging/media/imx/Makefile b/drivers/staging/media/imx/Makefile
-index 4606a3a..c054490 100644
---- a/drivers/staging/media/imx/Makefile
-+++ b/drivers/staging/media/imx/Makefile
-@@ -4,3 +4,5 @@ imx-media-common-objs := imx-media-utils.o imx-media-fim.o
- obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-media.o
- obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-media-common.o
- obj-$(CONFIG_VIDEO_IMX_MEDIA) += imx-media-capture.o
-+
-+obj-$(CONFIG_VIDEO_IMX_CSI) += imx-media-csi.o
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
 new file mode 100644
-index 0000000..ab78ff7
+index 000000000000..ec5203f2ba81
 --- /dev/null
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -0,0 +1,1311 @@
++++ b/drivers/media/platform/qcom/venus/vdec.c
+@@ -0,0 +1,1091 @@
 +/*
-+ * V4L2 Capture CSI Subdev for Freescale i.MX5/6 SOC
-+ *
-+ * Copyright (c) 2014-2016 Mentor Graphics Inc.
++ * Copyright (c) 2012-2016, The Linux Foundation. All rights reserved.
++ * Copyright (C) 2017 Linaro Ltd.
 + *
 + * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
++ * it under the terms of the GNU General Public License version 2 and
++ * only version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
 + */
-+#include <linux/interrupt.h>
++#include <linux/clk.h>
 +#include <linux/module.h>
 +#include <linux/platform_device.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
++#include <linux/pm_runtime.h>
++#include <linux/slab.h>
++#include <media/v4l2-ioctl.h>
 +#include <media/v4l2-event.h>
-+#include <media/v4l2-mc.h>
-+#include <media/v4l2-of.h>
-+#include <media/v4l2-subdev.h>
-+#include <media/videobuf2-dma-contig.h>
-+#include <video/imx-ipu-v3.h>
-+#include <media/imx.h>
-+#include "imx-media.h"
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-mem2mem.h>
++#include <media/videobuf2-dma-sg.h>
 +
-+/*
-+ * Min/Max supported width and heights.
-+ *
-+ * We allow planar output, so we have to align width by 16 pixels
-+ * to meet IDMAC alignment requirements.
-+ *
-+ * TODO: move this into pad format negotiation, if capture device
-+ * has not requested planar formats, we should allow 8 pixel
-+ * alignment.
-+ */
-+#define MIN_W       176
-+#define MIN_H       144
-+#define MAX_W      4096
-+#define MAX_H      4096
-+#define W_ALIGN    4 /* multiple of 16 pixels */
-+#define H_ALIGN    1 /* multiple of 2 lines */
-+#define S_ALIGN    1 /* multiple of 2 */
++#include "hfi_venus_io.h"
++#include "core.h"
++#include "helpers.h"
++#include "vdec.h"
 +
-+struct csi_priv {
-+	struct device *dev;
-+	struct ipu_soc *ipu;
-+	struct imx_media_dev *md;
-+	struct v4l2_subdev sd;
-+	struct media_pad pad[CSI_NUM_PADS];
-+	/* the video device at IDMAC output pad */
-+	struct imx_media_video_dev *vdev;
-+	struct imx_media_fim *fim;
-+	int csi_id;
-+	int smfc_id;
++static u32 get_framesize_uncompressed(unsigned int plane, u32 width, u32 height)
++{
++	u32 y_stride, uv_stride, y_plane;
++	u32 y_sclines, uv_sclines, uv_plane;
++	u32 size;
 +
-+	/* lock to protect all members below */
-+	struct mutex lock;
++	y_stride = ALIGN(width, 128);
++	uv_stride = ALIGN(width, 128);
++	y_sclines = ALIGN(height, 32);
++	uv_sclines = ALIGN(((height + 1) >> 1), 16);
 +
-+	int active_output_pad;
++	y_plane = y_stride * y_sclines;
++	uv_plane = uv_stride * uv_sclines + SZ_4K;
++	size = y_plane + uv_plane + SZ_8K;
 +
-+	struct ipuv3_channel *idmac_ch;
-+	struct ipu_smfc *smfc;
-+	struct ipu_csi *csi;
++	return ALIGN(size, SZ_4K);
++}
 +
-+	struct v4l2_mbus_framefmt format_mbus[CSI_NUM_PADS];
-+	const struct imx_media_pixfmt *cc[CSI_NUM_PADS];
-+	struct v4l2_rect crop;
++static u32 get_framesize_compressed(unsigned int width, unsigned int height)
++{
++	return ((width * height * 3 / 2) / 2) + 128;
++}
 +
-+	/* active vb2 buffers to send to video dev sink */
-+	struct imx_media_buffer *active_vb2_buf[2];
-+	struct imx_media_dma_buf underrun_buf;
-+
-+	int ipu_buf_num;  /* ipu double buffer index: 0-1 */
-+
-+	/* the sink for the captured frames */
-+	struct media_entity *sink;
-+	enum ipu_csi_dest dest;
-+	/* the source subdev */
-+	struct v4l2_subdev *src_sd;
-+
-+	/* the mipi virtual channel number at link validate */
-+	int vc_num;
-+
-+	/* the attached sensor at stream on */
-+	struct imx_media_subdev *sensor;
-+
-+	spinlock_t irqlock; /* protect eof_irq handler */
-+	struct timer_list eof_timeout_timer;
-+	int eof_irq;
-+	int nfb4eof_irq;
-+
-+	struct v4l2_ctrl_handler ctrl_hdlr;
-+
-+	int power_count; /* power counter */
-+	bool stream_on;  /* streaming is on */
-+	bool last_eof;   /* waiting for last EOF at stream off */
-+	struct completion last_eof_comp;
++static const struct venus_format vdec_formats[] = {
++	{
++		.pixfmt = V4L2_PIX_FMT_NV12,
++		.num_planes = 1,
++		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
++	}, {
++		.pixfmt = V4L2_PIX_FMT_MPEG4,
++		.num_planes = 1,
++		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
++	}, {
++		.pixfmt = V4L2_PIX_FMT_MPEG2,
++		.num_planes = 1,
++		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
++	}, {
++		.pixfmt = V4L2_PIX_FMT_H263,
++		.num_planes = 1,
++		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
++	}, {
++		.pixfmt = V4L2_PIX_FMT_VC1_ANNEX_G,
++		.num_planes = 1,
++		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
++	}, {
++		.pixfmt = V4L2_PIX_FMT_VC1_ANNEX_L,
++		.num_planes = 1,
++		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
++	}, {
++		.pixfmt = V4L2_PIX_FMT_H264,
++		.num_planes = 1,
++		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
++	}, {
++		.pixfmt = V4L2_PIX_FMT_VP8,
++		.num_planes = 1,
++		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
++	}, {
++		.pixfmt = V4L2_PIX_FMT_XVID,
++		.num_planes = 1,
++		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
++	},
 +};
 +
-+static inline struct csi_priv *sd_to_dev(struct v4l2_subdev *sdev)
++static const struct venus_format *find_format(u32 pixfmt, u32 type)
 +{
-+	return container_of(sdev, struct csi_priv, sd);
-+}
++	const struct venus_format *fmt = vdec_formats;
++	unsigned int size = ARRAY_SIZE(vdec_formats);
++	unsigned int i;
 +
-+static void csi_idmac_put_ipu_resources(struct csi_priv *priv)
-+{
-+	if (!IS_ERR_OR_NULL(priv->idmac_ch))
-+		ipu_idmac_put(priv->idmac_ch);
-+	priv->idmac_ch = NULL;
-+
-+	if (!IS_ERR_OR_NULL(priv->smfc))
-+		ipu_smfc_put(priv->smfc);
-+	priv->smfc = NULL;
-+}
-+
-+static int csi_idmac_get_ipu_resources(struct csi_priv *priv)
-+{
-+	int ch_num, ret;
-+
-+	ch_num = IPUV3_CHANNEL_CSI0 + priv->smfc_id;
-+
-+	priv->smfc = ipu_smfc_get(priv->ipu, ch_num);
-+	if (IS_ERR(priv->smfc)) {
-+		v4l2_err(&priv->sd, "failed to get SMFC\n");
-+		ret = PTR_ERR(priv->smfc);
-+		goto out;
++	for (i = 0; i < size; i++) {
++		if (fmt[i].pixfmt == pixfmt)
++			break;
 +	}
 +
-+	priv->idmac_ch = ipu_idmac_get(priv->ipu, ch_num);
-+	if (IS_ERR(priv->idmac_ch)) {
-+		v4l2_err(&priv->sd, "could not get IDMAC channel %u\n",
-+			 ch_num);
-+		ret = PTR_ERR(priv->idmac_ch);
-+		goto out;
++	if (i == size || fmt[i].type != type)
++		return NULL;
++
++	return &fmt[i];
++}
++
++static const struct venus_format *find_format_by_index(int index, u32 type)
++{
++	const struct venus_format *fmt = vdec_formats;
++	unsigned int size = ARRAY_SIZE(vdec_formats);
++	int i, k = 0;
++
++	if (index < 0 || index > size)
++		return NULL;
++
++	for (i = 0; i < size; i++) {
++		if (fmt[i].type != type)
++			continue;
++		if (k == index)
++			break;
++		k++;
 +	}
 +
-+	return 0;
-+out:
-+	csi_idmac_put_ipu_resources(priv);
-+	return ret;
++	if (i == size)
++		return NULL;
++
++	return &fmt[i];
 +}
 +
-+static void csi_vb2_buf_done(struct csi_priv *priv)
++static const struct venus_format *
++vdec_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
 +{
-+	struct imx_media_video_dev *vdev = priv->vdev;
-+	struct imx_media_buffer *done, *next;
-+	struct vb2_buffer *vb;
-+	dma_addr_t phys;
++	struct v4l2_pix_format_mplane *pixmp = &f->fmt.pix_mp;
++	struct v4l2_plane_pix_format *pfmt = pixmp->plane_fmt;
++	const struct venus_format *fmt;
++	unsigned int p;
 +
-+	done = priv->active_vb2_buf[priv->ipu_buf_num];
-+	if (done) {
-+		vb = &done->vbuf.vb2_buf;
-+		vb->timestamp = ktime_get_ns();
-+		vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
++	memset(pfmt[0].reserved, 0, sizeof(pfmt[0].reserved));
++	memset(pixmp->reserved, 0, sizeof(pixmp->reserved));
++
++	fmt = find_format(pixmp->pixelformat, f->type);
++	if (!fmt) {
++		if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
++			pixmp->pixelformat = V4L2_PIX_FMT_NV12;
++		else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
++			pixmp->pixelformat = V4L2_PIX_FMT_H264;
++		else
++			return NULL;
++		fmt = find_format(pixmp->pixelformat, f->type);
++		pixmp->width = 1280;
++		pixmp->height = 720;
 +	}
 +
-+	/* get next queued buffer */
-+	next = imx_media_capture_device_next_buf(vdev);
-+	if (next) {
-+		phys = vb2_dma_contig_plane_dma_addr(&next->vbuf.vb2_buf, 0);
-+		priv->active_vb2_buf[priv->ipu_buf_num] = next;
-+	} else {
-+		phys = priv->underrun_buf.phys;
-+		priv->active_vb2_buf[priv->ipu_buf_num] = NULL;
-+	}
++	pixmp->width = clamp(pixmp->width, inst->cap_width.min,
++			     inst->cap_width.max);
++	pixmp->height = clamp(pixmp->height, inst->cap_height.min,
++			      inst->cap_height.max);
 +
-+	if (ipu_idmac_buffer_is_ready(priv->idmac_ch, priv->ipu_buf_num))
-+		ipu_idmac_clear_buffer(priv->idmac_ch, priv->ipu_buf_num);
++	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
++		pixmp->height = ALIGN(pixmp->height, 32);
 +
-+	ipu_cpmem_set_buffer(priv->idmac_ch, priv->ipu_buf_num, phys);
-+}
++	if (pixmp->field == V4L2_FIELD_ANY)
++		pixmp->field = V4L2_FIELD_NONE;
++	pixmp->num_planes = fmt->num_planes;
++	pixmp->flags = 0;
 +
-+static void csi_call_fim(struct csi_priv *priv)
-+{
-+	if (priv->fim) {
-+		struct timespec cur_ts;
-+
-+		ktime_get_ts(&cur_ts);
-+		/* call frame interval monitor */
-+		imx_media_fim_eof_monitor(priv->fim, &cur_ts);
-+	}
-+}
-+
-+static irqreturn_t csi_idmac_eof_interrupt(int irq, void *dev_id)
-+{
-+	struct csi_priv *priv = dev_id;
-+
-+	spin_lock(&priv->irqlock);
-+
-+	if (priv->last_eof) {
-+		complete(&priv->last_eof_comp);
-+		priv->last_eof = false;
-+		goto unlock;
-+	}
-+
-+	csi_call_fim(priv);
-+
-+	csi_vb2_buf_done(priv);
-+
-+	/* select new IPU buf */
-+	ipu_idmac_select_buffer(priv->idmac_ch, priv->ipu_buf_num);
-+	/* toggle IPU double-buffer index */
-+	priv->ipu_buf_num ^= 1;
-+
-+	/* bump the EOF timeout timer */
-+	mod_timer(&priv->eof_timeout_timer,
-+		  jiffies + msecs_to_jiffies(IMX_MEDIA_EOF_TIMEOUT));
-+
-+unlock:
-+	spin_unlock(&priv->irqlock);
-+	return IRQ_HANDLED;
-+}
-+
-+static irqreturn_t csi_idmac_nfb4eof_interrupt(int irq, void *dev_id)
-+{
-+	struct csi_priv *priv = dev_id;
-+	static const struct v4l2_event ev = {
-+		.type = V4L2_EVENT_NEW_FRAME_BEFORE_EOF,
-+	};
-+
-+	v4l2_err(&priv->sd, "NFB4EOF\n");
-+
-+	v4l2_subdev_notify_event(&priv->sd, &ev);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+/*
-+ * EOF timeout timer function. This is an unrecoverable condition
-+ * without a stream restart.
-+ */
-+static void csi_idmac_eof_timeout(unsigned long data)
-+{
-+	struct csi_priv *priv = (struct csi_priv *)data;
-+	struct imx_media_video_dev *vdev = priv->vdev;
-+
-+	v4l2_err(&priv->sd, "EOF timeout\n");
-+
-+	/* signal a fatal error to capture device */
-+	imx_media_capture_device_error(vdev);
-+}
-+
-+static void csi_idmac_setup_vb2_buf(struct csi_priv *priv, dma_addr_t *phys)
-+{
-+	struct imx_media_video_dev *vdev = priv->vdev;
-+	struct imx_media_buffer *buf;
-+	int i;
-+
-+	for (i = 0; i < 2; i++) {
-+		buf = imx_media_capture_device_next_buf(vdev);
-+		priv->active_vb2_buf[i] = buf;
-+		phys[i] = vb2_dma_contig_plane_dma_addr(&buf->vbuf.vb2_buf, 0);
-+	}
-+}
-+
-+static void csi_idmac_unsetup_vb2_buf(struct csi_priv *priv,
-+				      enum vb2_buffer_state return_state)
-+{
-+	struct imx_media_buffer *buf;
-+	int i;
-+
-+	/* return any remaining active frames with error */
-+	for (i = 0; i < 2; i++) {
-+		buf = priv->active_vb2_buf[i];
-+		if (buf) {
-+			struct vb2_buffer *vb = &buf->vbuf.vb2_buf;
-+
-+			vb->timestamp = ktime_get_ns();
-+			vb2_buffer_done(vb, return_state);
++	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
++		for (p = 0; p < pixmp->num_planes; p++) {
++			pfmt[p].sizeimage =
++				get_framesize_uncompressed(p, pixmp->width,
++							   pixmp->height);
++			pfmt[p].bytesperline = ALIGN(pixmp->width, 128);
 +		}
++	} else {
++		pfmt[0].sizeimage = get_framesize_compressed(pixmp->width,
++							     pixmp->height);
++		pfmt[0].bytesperline = 0;
 +	}
++
++	return fmt;
 +}
 +
-+/* init the SMFC IDMAC channel */
-+static int csi_idmac_setup_channel(struct csi_priv *priv)
++static int vdec_try_fmt(struct file *file, void *fh, struct v4l2_format *f)
 +{
-+	struct imx_media_video_dev *vdev = priv->vdev;
-+	struct v4l2_of_endpoint *sensor_ep;
-+	struct v4l2_mbus_framefmt *infmt;
-+	unsigned int burst_size;
-+	struct ipu_image image;
-+	dma_addr_t phys[2];
-+	bool passthrough;
-+	int ret;
++	struct venus_inst *inst = to_inst(file);
 +
-+	infmt = &priv->format_mbus[CSI_SINK_PAD];
-+	sensor_ep = &priv->sensor->sensor_ep;
-+
-+	ipu_cpmem_zero(priv->idmac_ch);
-+
-+	memset(&image, 0, sizeof(image));
-+	image.pix = vdev->fmt.fmt.pix;
-+	image.rect.width = image.pix.width;
-+	image.rect.height = image.pix.height;
-+
-+	csi_idmac_setup_vb2_buf(priv, phys);
-+
-+	image.phys0 = phys[0];
-+	image.phys1 = phys[1];
-+
-+	ret = ipu_cpmem_set_image(priv->idmac_ch, &image);
-+	if (ret)
-+		return ret;
-+
-+	burst_size = (image.pix.width & 0xf) ? 8 : 16;
-+
-+	ipu_cpmem_set_burstsize(priv->idmac_ch, burst_size);
-+
-+	/*
-+	 * If the sensor uses 16-bit parallel CSI bus, we must handle
-+	 * the data internally in the IPU as 16-bit generic, aka
-+	 * passthrough mode.
-+	 */
-+	passthrough = (sensor_ep->bus_type != V4L2_MBUS_CSI2 &&
-+		       sensor_ep->bus.parallel.bus_width >= 16);
-+
-+	if (passthrough)
-+		ipu_cpmem_set_format_passthrough(priv->idmac_ch, 16);
-+
-+	/*
-+	 * Set the channel for the direct CSI-->memory via SMFC
-+	 * use-case to very high priority, by enabling the watermark
-+	 * signal in the SMFC, enabling WM in the channel, and setting
-+	 * the channel priority to high.
-+	 *
-+	 * Refer to the i.mx6 rev. D TRM Table 36-8: Calculated priority
-+	 * value.
-+	 *
-+	 * The WM's are set very low by intention here to ensure that
-+	 * the SMFC FIFOs do not overflow.
-+	 */
-+	ipu_smfc_set_watermark(priv->smfc, 0x02, 0x01);
-+	ipu_cpmem_set_high_priority(priv->idmac_ch);
-+	ipu_idmac_enable_watermark(priv->idmac_ch, true);
-+	ipu_cpmem_set_axi_id(priv->idmac_ch, 0);
-+	ipu_idmac_lock_enable(priv->idmac_ch, 8);
-+
-+	burst_size = ipu_cpmem_get_burstsize(priv->idmac_ch);
-+	burst_size = passthrough ?
-+		(burst_size >> 3) - 1 : (burst_size >> 2) - 1;
-+
-+	ipu_smfc_set_burstsize(priv->smfc, burst_size);
-+
-+	if (image.pix.field == V4L2_FIELD_NONE &&
-+	    V4L2_FIELD_HAS_BOTH(infmt->field))
-+		ipu_cpmem_interlaced_scan(priv->idmac_ch,
-+					  image.pix.bytesperline);
-+
-+	ipu_idmac_set_double_buffer(priv->idmac_ch, true);
++	vdec_try_fmt_common(inst, f);
 +
 +	return 0;
 +}
 +
-+static void csi_idmac_unsetup(struct csi_priv *priv,
-+			      enum vb2_buffer_state state)
++static int vdec_g_fmt(struct file *file, void *fh, struct v4l2_format *f)
 +{
-+	ipu_idmac_disable_channel(priv->idmac_ch);
-+	ipu_smfc_disable(priv->smfc);
++	struct venus_inst *inst = to_inst(file);
++	const struct venus_format *fmt = NULL;
++	struct v4l2_pix_format_mplane *pixmp = &f->fmt.pix_mp;
 +
-+	csi_idmac_unsetup_vb2_buf(priv, state);
-+}
++	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
++		fmt = inst->fmt_cap;
++	else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
++		fmt = inst->fmt_out;
 +
-+static int csi_idmac_setup(struct csi_priv *priv)
-+{
-+	int ret;
++	if (inst->reconfig) {
++		struct v4l2_format format = {};
 +
-+	ret = csi_idmac_setup_channel(priv);
-+	if (ret)
-+		return ret;
++		inst->out_width = inst->reconfig_width;
++		inst->out_height = inst->reconfig_height;
++		inst->reconfig = false;
 +
-+	ipu_cpmem_dump(priv->idmac_ch);
-+	ipu_dump(priv->ipu);
++		format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
++		format.fmt.pix_mp.pixelformat = inst->fmt_cap->pixfmt;
++		format.fmt.pix_mp.width = inst->out_width;
++		format.fmt.pix_mp.height = inst->out_height;
 +
-+	ipu_smfc_enable(priv->smfc);
++		vdec_try_fmt_common(inst, &format);
 +
-+	/* set buffers ready */
-+	ipu_idmac_select_buffer(priv->idmac_ch, 0);
-+	ipu_idmac_select_buffer(priv->idmac_ch, 1);
++		inst->width = format.fmt.pix_mp.width;
++		inst->height = format.fmt.pix_mp.height;
++	}
 +
-+	/* enable the channels */
-+	ipu_idmac_enable_channel(priv->idmac_ch);
++	pixmp->pixelformat = fmt->pixfmt;
++
++	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
++		pixmp->width = inst->width;
++		pixmp->height = inst->height;
++		pixmp->colorspace = inst->colorspace;
++		pixmp->ycbcr_enc = inst->ycbcr_enc;
++		pixmp->quantization = inst->quantization;
++		pixmp->xfer_func = inst->xfer_func;
++	} else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
++		pixmp->width = inst->out_width;
++		pixmp->height = inst->out_height;
++	}
++
++	vdec_try_fmt_common(inst, f);
 +
 +	return 0;
 +}
 +
-+static int csi_idmac_start(struct csi_priv *priv)
++static int vdec_s_fmt(struct file *file, void *fh, struct v4l2_format *f)
 +{
-+	struct imx_media_video_dev *vdev = priv->vdev;
-+	struct v4l2_pix_format *outfmt;
-+	int ret;
++	struct venus_inst *inst = to_inst(file);
++	struct v4l2_pix_format_mplane *pixmp = &f->fmt.pix_mp;
++	struct v4l2_pix_format_mplane orig_pixmp;
++	const struct venus_format *fmt;
++	struct v4l2_format format;
++	u32 pixfmt_out = 0, pixfmt_cap = 0;
 +
-+	ret = csi_idmac_get_ipu_resources(priv);
-+	if (ret)
-+		return ret;
++	orig_pixmp = *pixmp;
 +
-+	ipu_smfc_map_channel(priv->smfc, priv->csi_id, priv->vc_num);
++	fmt = vdec_try_fmt_common(inst, f);
 +
-+	outfmt = &vdev->fmt.fmt.pix;
-+
-+	ret = imx_media_alloc_dma_buf(priv->md, &priv->underrun_buf,
-+				      outfmt->sizeimage);
-+	if (ret)
-+		goto out_put_ipu;
-+
-+	priv->ipu_buf_num = 0;
-+
-+	/* init EOF completion waitq */
-+	init_completion(&priv->last_eof_comp);
-+	priv->last_eof = false;
-+
-+	ret = csi_idmac_setup(priv);
-+	if (ret) {
-+		v4l2_err(&priv->sd, "csi_idmac_setup failed: %d\n", ret);
-+		goto out_free_dma_buf;
++	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
++		pixfmt_out = pixmp->pixelformat;
++		pixfmt_cap = inst->fmt_cap->pixfmt;
++	} else if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
++		pixfmt_cap = pixmp->pixelformat;
++		pixfmt_out = inst->fmt_out->pixfmt;
 +	}
 +
-+	priv->nfb4eof_irq = ipu_idmac_channel_irq(priv->ipu,
-+						 priv->idmac_ch,
-+						 IPU_IRQ_NFB4EOF);
-+	ret = devm_request_irq(priv->dev, priv->nfb4eof_irq,
-+			       csi_idmac_nfb4eof_interrupt, 0,
-+			       "imx-smfc-nfb4eof", priv);
-+	if (ret) {
-+		v4l2_err(&priv->sd,
-+			 "Error registering NFB4EOF irq: %d\n", ret);
-+		goto out_unsetup;
++	memset(&format, 0, sizeof(format));
++
++	format.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
++	format.fmt.pix_mp.pixelformat = pixfmt_out;
++	format.fmt.pix_mp.width = orig_pixmp.width;
++	format.fmt.pix_mp.height = orig_pixmp.height;
++	vdec_try_fmt_common(inst, &format);
++
++	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
++		inst->out_width = format.fmt.pix_mp.width;
++		inst->out_height = format.fmt.pix_mp.height;
++		inst->colorspace = pixmp->colorspace;
++		inst->ycbcr_enc = pixmp->ycbcr_enc;
++		inst->quantization = pixmp->quantization;
++		inst->xfer_func = pixmp->xfer_func;
 +	}
 +
-+	priv->eof_irq = ipu_idmac_channel_irq(priv->ipu, priv->idmac_ch,
-+					      IPU_IRQ_EOF);
++	memset(&format, 0, sizeof(format));
 +
-+	ret = devm_request_irq(priv->dev, priv->eof_irq,
-+			       csi_idmac_eof_interrupt, 0,
-+			       "imx-smfc-eof", priv);
-+	if (ret) {
-+		v4l2_err(&priv->sd,
-+			 "Error registering eof irq: %d\n", ret);
-+		goto out_free_nfb4eof_irq;
-+	}
++	format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
++	format.fmt.pix_mp.pixelformat = pixfmt_cap;
++	format.fmt.pix_mp.width = orig_pixmp.width;
++	format.fmt.pix_mp.height = orig_pixmp.height;
++	vdec_try_fmt_common(inst, &format);
 +
-+	/* start the EOF timeout timer */
-+	mod_timer(&priv->eof_timeout_timer,
-+		  jiffies + msecs_to_jiffies(IMX_MEDIA_EOF_TIMEOUT));
++	inst->width = format.fmt.pix_mp.width;
++	inst->height = format.fmt.pix_mp.height;
 +
-+	return 0;
-+
-+out_free_nfb4eof_irq:
-+	devm_free_irq(priv->dev, priv->nfb4eof_irq, priv);
-+out_unsetup:
-+	csi_idmac_unsetup(priv, VB2_BUF_STATE_QUEUED);
-+out_free_dma_buf:
-+	imx_media_free_dma_buf(priv->md, &priv->underrun_buf);
-+out_put_ipu:
-+	csi_idmac_put_ipu_resources(priv);
-+	return ret;
-+}
-+
-+static void csi_idmac_stop(struct csi_priv *priv)
-+{
-+	unsigned long flags;
-+	int ret;
-+
-+	/* mark next EOF interrupt as the last before stream off */
-+	spin_lock_irqsave(&priv->irqlock, flags);
-+	priv->last_eof = true;
-+	spin_unlock_irqrestore(&priv->irqlock, flags);
-+
-+	/*
-+	 * and then wait for interrupt handler to mark completion.
-+	 */
-+	ret = wait_for_completion_timeout(
-+		&priv->last_eof_comp, msecs_to_jiffies(IMX_MEDIA_EOF_TIMEOUT));
-+	if (ret == 0)
-+		v4l2_warn(&priv->sd, "wait last EOF timeout\n");
-+
-+	devm_free_irq(priv->dev, priv->eof_irq, priv);
-+	devm_free_irq(priv->dev, priv->nfb4eof_irq, priv);
-+
-+	csi_idmac_unsetup(priv, VB2_BUF_STATE_ERROR);
-+
-+	imx_media_free_dma_buf(priv->md, &priv->underrun_buf);
-+
-+	/* cancel the EOF timeout timer */
-+	del_timer_sync(&priv->eof_timeout_timer);
-+
-+	csi_idmac_put_ipu_resources(priv);
-+}
-+
-+/* Update the CSI whole sensor and active windows */
-+static int csi_setup(struct csi_priv *priv)
-+{
-+	struct v4l2_mbus_framefmt *infmt, *outfmt;
-+	struct v4l2_mbus_config sensor_mbus_cfg;
-+	struct v4l2_of_endpoint *sensor_ep;
-+	struct v4l2_mbus_framefmt if_fmt;
-+
-+	infmt = &priv->format_mbus[CSI_SINK_PAD];
-+	outfmt = &priv->format_mbus[priv->active_output_pad];
-+	sensor_ep = &priv->sensor->sensor_ep;
-+
-+	/* compose mbus_config from sensor endpoint */
-+	sensor_mbus_cfg.type = sensor_ep->bus_type;
-+	sensor_mbus_cfg.flags = (sensor_ep->bus_type == V4L2_MBUS_CSI2) ?
-+		sensor_ep->bus.mipi_csi2.flags :
-+		sensor_ep->bus.parallel.flags;
-+
-+	/*
-+	 * we need to pass input sensor frame to CSI interface, but
-+	 * with translated field type from output format
-+	 */
-+	if_fmt = *infmt;
-+	if_fmt.field = outfmt->field;
-+
-+	ipu_csi_set_window(priv->csi, &priv->crop);
-+
-+	ipu_csi_init_interface(priv->csi, &sensor_mbus_cfg, &if_fmt);
-+
-+	ipu_csi_set_dest(priv->csi, priv->dest);
-+
-+	ipu_csi_dump(priv->csi);
++	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
++		inst->fmt_out = fmt;
++	else if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
++		inst->fmt_cap = fmt;
 +
 +	return 0;
 +}
 +
-+static int csi_start(struct csi_priv *priv)
++static int
++vdec_g_selection(struct file *file, void *fh, struct v4l2_selection *s)
 +{
-+	int ret;
++	struct venus_inst *inst = to_inst(file);
 +
-+	if (!priv->sensor) {
-+		v4l2_err(&priv->sd, "no sensor attached\n");
++	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
++	    s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
++		return -EINVAL;
++
++	switch (s->target) {
++	case V4L2_SEL_TGT_CROP_BOUNDS:
++	case V4L2_SEL_TGT_CROP_DEFAULT:
++	case V4L2_SEL_TGT_CROP:
++		if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
++			return -EINVAL;
++		s->r.width = inst->out_width;
++		s->r.height = inst->out_height;
++		break;
++	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
++	case V4L2_SEL_TGT_COMPOSE_PADDED:
++		if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++			return -EINVAL;
++		s->r.width = inst->width;
++		s->r.height = inst->height;
++		break;
++	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
++	case V4L2_SEL_TGT_COMPOSE:
++		if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++			return -EINVAL;
++		s->r.width = inst->out_width;
++		s->r.height = inst->out_height;
++		break;
++	default:
 +		return -EINVAL;
 +	}
 +
-+	if (priv->dest == IPU_CSI_DEST_IDMAC) {
-+		ret = csi_idmac_start(priv);
++	s->r.top = 0;
++	s->r.left = 0;
++
++	return 0;
++}
++
++static int
++vdec_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
++{
++	strlcpy(cap->driver, "qcom-venus", sizeof(cap->driver));
++	strlcpy(cap->card, "Qualcomm Venus video decoder", sizeof(cap->card));
++	strlcpy(cap->bus_info, "platform:qcom-venus", sizeof(cap->bus_info));
++
++	return 0;
++}
++
++static int vdec_enum_fmt(struct file *file, void *fh, struct v4l2_fmtdesc *f)
++{
++	const struct venus_format *fmt;
++
++	memset(f->reserved, 0, sizeof(f->reserved));
++
++	fmt = find_format_by_index(f->index, f->type);
++	if (!fmt)
++		return -EINVAL;
++
++	f->pixelformat = fmt->pixfmt;
++
++	return 0;
++}
++
++static int vdec_s_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
++{
++	struct venus_inst *inst = to_inst(file);
++	struct v4l2_captureparm *cap = &a->parm.capture;
++	struct v4l2_fract *timeperframe = &cap->timeperframe;
++	u64 us_per_frame, fps;
++
++	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE &&
++	    a->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
++		return -EINVAL;
++
++	memset(cap->reserved, 0, sizeof(cap->reserved));
++	if (!timeperframe->denominator)
++		timeperframe->denominator = inst->timeperframe.denominator;
++	if (!timeperframe->numerator)
++		timeperframe->numerator = inst->timeperframe.numerator;
++	cap->readbuffers = 0;
++	cap->extendedmode = 0;
++	cap->capability = V4L2_CAP_TIMEPERFRAME;
++	us_per_frame = timeperframe->numerator * (u64)USEC_PER_SEC;
++	do_div(us_per_frame, timeperframe->denominator);
++
++	if (!us_per_frame)
++		return -EINVAL;
++
++	fps = (u64)USEC_PER_SEC;
++	do_div(fps, us_per_frame);
++
++	inst->fps = fps;
++	inst->timeperframe = *timeperframe;
++
++	return 0;
++}
++
++static int vdec_enum_framesizes(struct file *file, void *fh,
++				struct v4l2_frmsizeenum *fsize)
++{
++	struct venus_inst *inst = to_inst(file);
++	const struct venus_format *fmt;
++
++	fmt = find_format(fsize->pixel_format,
++			  V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE);
++	if (!fmt) {
++		fmt = find_format(fsize->pixel_format,
++				  V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
++		if (!fmt)
++			return -EINVAL;
++	}
++
++	if (fsize->index)
++		return -EINVAL;
++
++	fsize->type = V4L2_FRMSIZE_TYPE_STEPWISE;
++
++	fsize->stepwise.min_width = inst->cap_width.min;
++	fsize->stepwise.max_width = inst->cap_width.max;
++	fsize->stepwise.step_width = inst->cap_width.step_size;
++	fsize->stepwise.min_height = inst->cap_height.min;
++	fsize->stepwise.max_height = inst->cap_height.max;
++	fsize->stepwise.step_height = inst->cap_height.step_size;
++
++	return 0;
++}
++
++static int vdec_subscribe_event(struct v4l2_fh *fh,
++				const struct v4l2_event_subscription *sub)
++{
++	switch (sub->type) {
++	case V4L2_EVENT_EOS:
++		return v4l2_event_subscribe(fh, sub, 2, NULL);
++	case V4L2_EVENT_SOURCE_CHANGE:
++		return v4l2_src_change_event_subscribe(fh, sub);
++	case V4L2_EVENT_CTRL:
++		return v4l2_ctrl_subscribe_event(fh, sub);
++	default:
++		return -EINVAL;
++	}
++}
++
++static const struct v4l2_ioctl_ops vdec_ioctl_ops = {
++	.vidioc_querycap = vdec_querycap,
++	.vidioc_enum_fmt_vid_cap_mplane = vdec_enum_fmt,
++	.vidioc_enum_fmt_vid_out_mplane = vdec_enum_fmt,
++	.vidioc_s_fmt_vid_cap_mplane = vdec_s_fmt,
++	.vidioc_s_fmt_vid_out_mplane = vdec_s_fmt,
++	.vidioc_g_fmt_vid_cap_mplane = vdec_g_fmt,
++	.vidioc_g_fmt_vid_out_mplane = vdec_g_fmt,
++	.vidioc_try_fmt_vid_cap_mplane = vdec_try_fmt,
++	.vidioc_try_fmt_vid_out_mplane = vdec_try_fmt,
++	.vidioc_g_selection = vdec_g_selection,
++	.vidioc_reqbufs = v4l2_m2m_ioctl_reqbufs,
++	.vidioc_querybuf = v4l2_m2m_ioctl_querybuf,
++	.vidioc_create_bufs = v4l2_m2m_ioctl_create_bufs,
++	.vidioc_prepare_buf = v4l2_m2m_ioctl_prepare_buf,
++	.vidioc_qbuf = v4l2_m2m_ioctl_qbuf,
++	.vidioc_expbuf = v4l2_m2m_ioctl_expbuf,
++	.vidioc_dqbuf = v4l2_m2m_ioctl_dqbuf,
++	.vidioc_streamon = v4l2_m2m_ioctl_streamon,
++	.vidioc_streamoff = v4l2_m2m_ioctl_streamoff,
++	.vidioc_s_parm = vdec_s_parm,
++	.vidioc_enum_framesizes = vdec_enum_framesizes,
++	.vidioc_subscribe_event = vdec_subscribe_event,
++	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
++};
++
++static int vdec_set_properties(struct venus_inst *inst)
++{
++	struct vdec_controls *ctr = &inst->controls.dec;
++	struct venus_core *core = inst->core;
++	struct hfi_enable en = { .enable = 1 };
++	u32 ptype;
++	int ret;
++
++	ptype = HFI_PROPERTY_PARAM_VDEC_CONTINUE_DATA_TRANSFER;
++	ret = hfi_session_set_property(inst, ptype, &en);
++	if (ret)
++		return ret;
++
++	if (core->res->hfi_version == HFI_VERSION_3XX) {
++		struct hfi_buffer_alloc_mode mode;
++
++		ptype = HFI_PROPERTY_PARAM_BUFFER_ALLOC_MODE;
++		mode.type = HFI_BUFFER_OUTPUT;
++		mode.mode = HFI_BUFFER_MODE_DYNAMIC;
++
++		ret = hfi_session_set_property(inst, ptype, &mode);
 +		if (ret)
 +			return ret;
 +	}
 +
-+	ret = csi_setup(priv);
-+	if (ret)
-+		goto idmac_stop;
-+
-+	/* start the frame interval monitor */
-+	if (priv->fim) {
-+		ret = imx_media_fim_set_stream(priv->fim, priv->sensor, true);
++	if (ctr->post_loop_deb_mode) {
++		ptype = HFI_PROPERTY_CONFIG_VDEC_POST_LOOP_DEBLOCKER;
++		en.enable = 1;
++		ret = hfi_session_set_property(inst, ptype, &en);
 +		if (ret)
-+			goto idmac_stop;
-+	}
-+
-+	ret = ipu_csi_enable(priv->csi);
-+	if (ret) {
-+		v4l2_err(&priv->sd, "CSI enable error: %d\n", ret);
-+		goto fim_off;
++			return ret;
 +	}
 +
 +	return 0;
++}
 +
-+fim_off:
-+	if (priv->fim)
-+		imx_media_fim_set_stream(priv->fim, priv->sensor, false);
-+idmac_stop:
-+	if (priv->dest == IPU_CSI_DEST_IDMAC)
-+		csi_idmac_stop(priv);
++static int vdec_init_session(struct venus_inst *inst)
++{
++	int ret;
++
++	ret = hfi_session_init(inst, inst->fmt_out->pixfmt);
++	if (ret)
++		return ret;
++
++	ret = helper_set_input_resolution(inst, inst->out_width,
++					  inst->out_height);
++	if (ret)
++		goto deinit;
++
++	ret = helper_set_color_format(inst, inst->fmt_cap->pixfmt);
++	if (ret)
++		goto deinit;
++
++	return 0;
++deinit:
++	hfi_session_deinit(inst);
 +	return ret;
 +}
 +
-+static void csi_stop(struct csi_priv *priv)
++static int vdec_cap_num_buffers(struct venus_inst *inst, unsigned int *num)
 +{
-+	if (priv->dest == IPU_CSI_DEST_IDMAC)
-+		csi_idmac_stop(priv);
++	struct hfi_buffer_requirements bufreq;
++	int ret;
 +
-+	/* stop the frame interval monitor */
-+	if (priv->fim)
-+		imx_media_fim_set_stream(priv->fim, priv->sensor, false);
++	ret = vdec_init_session(inst);
++	if (ret)
++		return ret;
 +
-+	ipu_csi_disable(priv->csi);
-+}
++	ret = helper_get_bufreq(inst, HFI_BUFFER_OUTPUT, &bufreq);
 +
-+/*
-+ * V4L2 subdev operations.
-+ */
++	*num = bufreq.count_actual;
 +
-+static int csi_s_stream(struct v4l2_subdev *sd, int enable)
-+{
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	int ret = 0;
++	hfi_session_deinit(inst);
 +
-+	mutex_lock(&priv->lock);
-+
-+	if (!priv->src_sd || !priv->sink) {
-+		ret = -EPIPE;
-+		goto out;
-+	}
-+
-+	dev_dbg(priv->dev, "stream %s\n", enable ? "ON" : "OFF");
-+
-+	if (enable && !priv->stream_on)
-+		ret = csi_start(priv);
-+	else if (!enable && priv->stream_on)
-+		csi_stop(priv);
-+
-+	if (!ret)
-+		priv->stream_on = enable;
-+out:
-+	mutex_unlock(&priv->lock);
 +	return ret;
 +}
 +
-+static int csi_s_power(struct v4l2_subdev *sd, int on)
++static int vdec_queue_setup(struct vb2_queue *q,
++			    unsigned int *num_buffers, unsigned int *num_planes,
++			    unsigned int sizes[], struct device *alloc_devs[])
 +{
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
++	struct venus_inst *inst = vb2_get_drv_priv(q);
++	unsigned int p, num;
 +	int ret = 0;
 +
-+	dev_dbg(priv->dev, "power %s\n", on ? "ON" : "OFF");
++	if (*num_planes) {
++		if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE &&
++		    *num_planes != inst->fmt_out->num_planes)
++			return -EINVAL;
 +
-+	mutex_lock(&priv->lock);
++		if (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE &&
++		    *num_planes != inst->fmt_cap->num_planes)
++			return -EINVAL;
 +
-+	/*
-+	 * If the power count is modified from 0 to != 0 or from != 0 to 0,
-+	 * update the power state.
-+	 */
-+	if (priv->power_count == !on) {
-+		if (priv->fim) {
-+			ret = imx_media_fim_set_power(priv->fim, on);
-+			if (ret)
-+				goto out;
-+		}
++		if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE &&
++		    sizes[0] < inst->input_buf_size)
++			return -EINVAL;
++
++		if (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE &&
++		    sizes[0] < inst->output_buf_size)
++			return -EINVAL;
++
++		if (inst->core->res->hfi_version == HFI_VERSION_LEGACY)
++			return -EINVAL;
++
++		return 0;
 +	}
 +
-+	/* Update the power count. */
-+	priv->power_count += on ? 1 : -1;
-+	WARN_ON(priv->power_count < 0);
-+out:
-+	mutex_unlock(&priv->lock);
-+	return ret;
-+}
++	switch (q->type) {
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
++		*num_planes = inst->fmt_out->num_planes;
++		sizes[0] = get_framesize_compressed(inst->out_width,
++						    inst->out_height);
++		inst->input_buf_size = sizes[0];
++		inst->num_input_bufs = *num_buffers;
++		break;
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
++		*num_planes = inst->fmt_cap->num_planes;
 +
-+static int csi_link_setup(struct media_entity *entity,
-+			  const struct media_pad *local,
-+			  const struct media_pad *remote, u32 flags)
-+{
-+	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	struct v4l2_subdev *remote_sd;
-+	int ret = 0;
-+
-+	dev_dbg(priv->dev, "link setup %s -> %s\n", remote->entity->name,
-+		local->entity->name);
-+
-+	mutex_lock(&priv->lock);
-+
-+	if (local->flags & MEDIA_PAD_FL_SINK) {
-+		if (!is_media_entity_v4l2_subdev(remote->entity)) {
-+			ret = -EINVAL;
-+			goto out;
-+		}
-+
-+		remote_sd = media_entity_to_v4l2_subdev(remote->entity);
-+
-+		if (flags & MEDIA_LNK_FL_ENABLED) {
-+			if (priv->src_sd) {
-+				ret = -EBUSY;
-+				goto out;
-+			}
-+			priv->src_sd = remote_sd;
-+		} else {
-+			priv->src_sd = NULL;
-+		}
-+
-+		goto out;
-+	}
-+
-+	/* this is a source pad */
-+
-+	if (flags & MEDIA_LNK_FL_ENABLED) {
-+		if (priv->sink) {
-+			ret = -EBUSY;
-+			goto out;
-+		}
-+	} else {
-+		priv->sink = NULL;
-+		goto out;
-+	}
-+
-+	/* record which output pad is now active */
-+	priv->active_output_pad = local->index;
-+
-+	/* set CSI destination */
-+	if (local->index == CSI_SRC_PAD_IDMAC) {
-+		if (!is_media_entity_v4l2_video_device(remote->entity)) {
-+			ret = -EINVAL;
-+			goto out;
-+		}
-+
-+		priv->dest = IPU_CSI_DEST_IDMAC;
-+	} else {
-+		if (!is_media_entity_v4l2_subdev(remote->entity)) {
-+			ret = -EINVAL;
-+			goto out;
-+		}
-+
-+		remote_sd = media_entity_to_v4l2_subdev(remote->entity);
-+		switch (remote_sd->grp_id) {
-+		case IMX_MEDIA_GRP_ID_VDIC:
-+			priv->dest = IPU_CSI_DEST_VDIC;
++		ret = vdec_cap_num_buffers(inst, &num);
++		if (ret)
 +			break;
-+		case IMX_MEDIA_GRP_ID_IC_PRP:
-+			priv->dest = IPU_CSI_DEST_IC;
++
++		*num_buffers = max(*num_buffers, num);
++
++		for (p = 0; p < *num_planes; p++)
++			sizes[p] = get_framesize_uncompressed(p, inst->width,
++							      inst->height);
++
++		inst->num_output_bufs = *num_buffers;
++		inst->output_buf_size = sizes[0];
++		break;
++	default:
++		ret = -EINVAL;
++		break;
++	}
++
++	return ret;
++}
++
++static int vdec_verify_conf(struct venus_inst *inst)
++{
++	struct hfi_buffer_requirements bufreq;
++	int ret;
++
++	if (!inst->num_input_bufs || !inst->num_output_bufs)
++		return -EINVAL;
++
++	ret = helper_get_bufreq(inst, HFI_BUFFER_OUTPUT, &bufreq);
++	if (ret)
++		return ret;
++
++	if (inst->num_output_bufs < bufreq.count_actual ||
++	    inst->num_output_bufs < bufreq.count_min)
++		return -EINVAL;
++
++	ret = helper_get_bufreq(inst, HFI_BUFFER_INPUT, &bufreq);
++	if (ret)
++		return ret;
++
++	if (inst->num_input_bufs < bufreq.count_min)
++		return -EINVAL;
++
++	return 0;
++}
++
++static int vdec_start_streaming(struct vb2_queue *q, unsigned int count)
++{
++	struct venus_inst *inst = vb2_get_drv_priv(q);
++	struct venus_core *core = inst->core;
++	u32 ptype;
++	int ret;
++
++	mutex_lock(&inst->lock);
++
++	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
++		inst->streamon_out = 1;
++	else
++		inst->streamon_cap = 1;
++
++	if (!(inst->streamon_out & inst->streamon_cap)) {
++		mutex_unlock(&inst->lock);
++		return 0;
++	}
++
++	inst->reconfig = false;
++	inst->sequence = 0;
++	inst->codec_cfg = false;
++
++	ret = vdec_init_session(inst);
++	if (ret)
++		goto bufs_done;
++
++	ret = vdec_set_properties(inst);
++	if (ret)
++		goto deinit_sess;
++
++	if (core->res->hfi_version == HFI_VERSION_3XX) {
++		struct hfi_buffer_size_actual buf_sz;
++
++		ptype = HFI_PROPERTY_PARAM_BUFFER_SIZE_ACTUAL;
++		buf_sz.type = HFI_BUFFER_OUTPUT;
++		buf_sz.size = inst->output_buf_size;
++
++		ret = hfi_session_set_property(inst, ptype, &buf_sz);
++		if (ret)
++			goto deinit_sess;
++	}
++
++	ret = vdec_verify_conf(inst);
++	if (ret)
++		goto deinit_sess;
++
++	ret = helper_set_num_bufs(inst, inst->num_input_bufs,
++				  inst->num_output_bufs);
++	if (ret)
++		goto deinit_sess;
++
++	ret = helper_vb2_start_streaming(inst);
++	if (ret)
++		goto deinit_sess;
++
++	mutex_unlock(&inst->lock);
++
++	return 0;
++
++deinit_sess:
++	hfi_session_deinit(inst);
++bufs_done:
++	helper_buffers_done(inst, VB2_BUF_STATE_QUEUED);
++	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
++		inst->streamon_out = 0;
++	else
++		inst->streamon_cap = 0;
++	mutex_unlock(&inst->lock);
++	return ret;
++}
++
++static const struct vb2_ops vdec_vb2_ops = {
++	.queue_setup = vdec_queue_setup,
++	.buf_init = helper_vb2_buf_init,
++	.buf_prepare = helper_vb2_buf_prepare,
++	.start_streaming = vdec_start_streaming,
++	.stop_streaming = helper_vb2_stop_streaming,
++	.buf_queue = helper_vb2_buf_queue,
++};
++
++static void vdec_buf_done(struct venus_inst *inst, unsigned int buf_type,
++			  u32 tag, u32 bytesused, u32 data_offset, u32 flags,
++			  u64 timestamp_us)
++{
++	struct vb2_v4l2_buffer *vbuf;
++	struct vb2_buffer *vb;
++	unsigned int type;
++
++	if (buf_type == HFI_BUFFER_INPUT)
++		type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
++	else
++		type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
++
++	vbuf = helper_find_buf(inst, type, tag);
++	if (!vbuf)
++		return;
++
++	vbuf->flags = flags;
++
++	if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
++		vb = &vbuf->vb2_buf;
++		vb->planes[0].bytesused =
++			max_t(unsigned int, inst->output_buf_size, bytesused);
++		vb->planes[0].data_offset = data_offset;
++		vb->timestamp = timestamp_us * NSEC_PER_USEC;
++		vbuf->sequence = inst->sequence++;
++
++		if (vbuf->flags & V4L2_BUF_FLAG_LAST) {
++			const struct v4l2_event ev = { .type = V4L2_EVENT_EOS };
++
++			v4l2_event_queue_fh(&inst->fh, &ev);
++		}
++	}
++
++	v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_DONE);
++}
++
++static void vdec_event_notify(struct venus_inst *inst, u32 event,
++			      struct hfi_event_data *data)
++{
++	struct venus_core *core = inst->core;
++	struct device *dev = core->dev_dec;
++	static const struct v4l2_event ev = {
++		.type = V4L2_EVENT_SOURCE_CHANGE,
++		.u.src_change.changes = V4L2_EVENT_SRC_CH_RESOLUTION };
++
++	switch (event) {
++	case EVT_SESSION_ERROR:
++		inst->session_error = true;
++		dev_err(dev, "dec: event session error %x\n", inst->error);
++		break;
++	case EVT_SYS_EVENT_CHANGE:
++		switch (data->event_type) {
++		case HFI_EVENT_DATA_SEQUENCE_CHANGED_SUFFICIENT_BUF_RESOURCES:
++			hfi_session_continue(inst);
++			dev_dbg(dev, "event sufficient resources\n");
++			break;
++		case HFI_EVENT_DATA_SEQUENCE_CHANGED_INSUFFICIENT_BUF_RESOURCES:
++			inst->reconfig_height = data->height;
++			inst->reconfig_width = data->width;
++			inst->reconfig = true;
++
++			v4l2_event_queue_fh(&inst->fh, &ev);
++
++			dev_dbg(dev, "event not sufficient resources (%ux%u)\n",
++				data->width, data->height);
 +			break;
 +		default:
-+			ret = -EINVAL;
-+			goto out;
-+		}
-+	}
-+
-+	priv->sink = remote->entity;
-+out:
-+	mutex_unlock(&priv->lock);
-+	return ret;
-+}
-+
-+static int csi_link_validate(struct v4l2_subdev *sd,
-+			     struct media_link *link,
-+			     struct v4l2_subdev_format *source_fmt,
-+			     struct v4l2_subdev_format *sink_fmt)
-+{
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	struct v4l2_of_endpoint *sensor_ep;
-+	struct imx_media_subdev *sensor;
-+	bool is_csi2;
-+	int ret;
-+
-+	ret = v4l2_subdev_link_validate_default(sd, link,
-+						source_fmt, sink_fmt);
-+	if (ret)
-+		return ret;
-+
-+	ret = v4l2_subdev_link_validate_frame_interval(link);
-+	if (ret)
-+		return ret;
-+
-+	sensor = __imx_media_find_sensor(priv->md, &priv->sd.entity);
-+	if (IS_ERR(sensor)) {
-+		v4l2_err(&priv->sd, "no sensor attached\n");
-+		return PTR_ERR(priv->sensor);
-+	}
-+
-+	mutex_lock(&priv->lock);
-+
-+	priv->sensor = sensor;
-+	sensor_ep = &priv->sensor->sensor_ep;
-+
-+	is_csi2 = (sensor_ep->bus_type == V4L2_MBUS_CSI2);
-+
-+	if (is_csi2) {
-+		int vc_num = 0;
-+		/*
-+		 * NOTE! It seems the virtual channels from the mipi csi-2
-+		 * receiver are used only for routing by the video mux's,
-+		 * or for hard-wired routing to the CSI's. Once the stream
-+		 * enters the CSI's however, they are treated internally
-+		 * in the IPU as virtual channel 0.
-+		 */
-+#if 0
-+		mutex_unlock(&priv->lock);
-+		vc_num = imx_media_find_mipi_csi2_channel(priv->md,
-+							  &priv->sd.entity);
-+		if (vc_num < 0)
-+			return vc_num;
-+		mutex_lock(&priv->lock);
-+#endif
-+		ipu_csi_set_mipi_datatype(priv->csi, vc_num,
-+					  &priv->format_mbus[CSI_SINK_PAD]);
-+	}
-+
-+	/* select either parallel or MIPI-CSI2 as input to CSI */
-+	ipu_set_csi_src_mux(priv->ipu, priv->csi_id, is_csi2);
-+
-+	mutex_unlock(&priv->lock);
-+	return ret;
-+}
-+
-+static int csi_eof_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
-+{
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&priv->irqlock, flags);
-+	csi_call_fim(priv);
-+	spin_unlock_irqrestore(&priv->irqlock, flags);
-+
-+	return 0;
-+}
-+
-+static int csi_try_crop(struct csi_priv *priv, struct v4l2_rect *crop,
-+			struct imx_media_subdev *sensor)
-+{
-+	struct v4l2_of_endpoint *sensor_ep;
-+	struct v4l2_mbus_framefmt *infmt;
-+
-+	infmt = &priv->format_mbus[CSI_SINK_PAD];
-+	sensor_ep = &sensor->sensor_ep;
-+
-+	crop->width = min_t(__u32, infmt->width, crop->width);
-+	if (crop->left + crop->width > infmt->width)
-+		crop->left = infmt->width - crop->width;
-+	/* adjust crop left/width to h/w alignment restrictions */
-+	crop->left &= ~0x3;
-+	crop->width &= ~0x7;
-+
-+	/*
-+	 * FIXME: not sure why yet, but on interlaced bt.656,
-+	 * changing the vertical cropping causes loss of vertical
-+	 * sync, so fix it to NTSC/PAL active lines. NTSC contains
-+	 * 2 extra lines of active video that need to be cropped.
-+	 */
-+	if (sensor_ep->bus_type == V4L2_MBUS_BT656 &&
-+	    (V4L2_FIELD_HAS_BOTH(infmt->field) ||
-+	     infmt->field == V4L2_FIELD_ALTERNATE)) {
-+		crop->height = infmt->height;
-+		crop->top = (infmt->height == 480) ? 2 : 0;
-+	} else {
-+		crop->height = min_t(__u32, infmt->height, crop->height);
-+		if (crop->top + crop->height > infmt->height)
-+			crop->top = infmt->height - crop->height;
-+	}
-+
-+	return 0;
-+}
-+
-+static int csi_enum_mbus_code(struct v4l2_subdev *sd,
-+			      struct v4l2_subdev_pad_config *cfg,
-+			      struct v4l2_subdev_mbus_code_enum *code)
-+{
-+	if (code->pad >= CSI_NUM_PADS)
-+		return -EINVAL;
-+
-+	if (code->pad == CSI_SRC_PAD_DIRECT)
-+		return imx_media_enum_ipu_format(NULL, &code->code,
-+						 code->index, true);
-+
-+	return imx_media_enum_format(NULL, &code->code, code->index,
-+				     true, false);
-+}
-+
-+static int csi_get_fmt(struct v4l2_subdev *sd,
-+		       struct v4l2_subdev_pad_config *cfg,
-+		       struct v4l2_subdev_format *sdformat)
-+{
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+
-+	if (sdformat->pad >= CSI_NUM_PADS)
-+		return -EINVAL;
-+
-+	mutex_lock(&priv->lock);
-+
-+	sdformat->format = priv->format_mbus[sdformat->pad];
-+
-+	mutex_unlock(&priv->lock);
-+
-+	return 0;
-+}
-+
-+static int csi_set_fmt(struct v4l2_subdev *sd,
-+		       struct v4l2_subdev_pad_config *cfg,
-+		       struct v4l2_subdev_format *sdformat)
-+{
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	const struct imx_media_pixfmt *cc, *incc;
-+	struct v4l2_mbus_framefmt *infmt;
-+	struct imx_media_subdev *sensor;
-+	struct v4l2_rect crop;
-+	int ret = 0;
-+	u32 code;
-+
-+	if (sdformat->pad >= CSI_NUM_PADS)
-+		return -EINVAL;
-+
-+	sensor = imx_media_find_sensor(priv->md, &priv->sd.entity);
-+	if (IS_ERR(sensor)) {
-+		v4l2_err(&priv->sd, "no sensor attached\n");
-+		return PTR_ERR(sensor);
-+	}
-+
-+	mutex_lock(&priv->lock);
-+
-+	if (priv->stream_on) {
-+		ret = -EBUSY;
-+		goto out;
-+	}
-+
-+	infmt = &priv->format_mbus[CSI_SINK_PAD];
-+
-+	v4l_bound_align_image(&sdformat->format.width, MIN_W, MAX_W,
-+			      W_ALIGN, &sdformat->format.height,
-+			      MIN_H, MAX_H, H_ALIGN, S_ALIGN);
-+
-+	switch (sdformat->pad) {
-+	case CSI_SRC_PAD_DIRECT:
-+	case CSI_SRC_PAD_IDMAC:
-+		crop.left = priv->crop.left;
-+		crop.top = priv->crop.top;
-+		crop.width = sdformat->format.width;
-+		crop.height = sdformat->format.height;
-+		ret = csi_try_crop(priv, &crop, sensor);
-+		if (ret)
-+			goto out;
-+		sdformat->format.width = crop.width;
-+		sdformat->format.height = crop.height;
-+
-+		if (sdformat->pad == CSI_SRC_PAD_IDMAC) {
-+			cc = imx_media_find_format(0, sdformat->format.code,
-+						   true, false);
-+			if (!cc) {
-+				imx_media_enum_format(NULL, &code, 0,
-+						      true, false);
-+				cc = imx_media_find_format(0, code,
-+							   true, false);
-+				sdformat->format.code = cc->codes[0];
-+			}
-+
-+			incc = priv->cc[CSI_SINK_PAD];
-+			if (cc->cs != incc->cs) {
-+				sdformat->format.code = infmt->code;
-+				cc = imx_media_find_format(
-+					0, sdformat->format.code,
-+					true, false);
-+			}
-+
-+			if (sdformat->format.field != V4L2_FIELD_NONE)
-+				sdformat->format.field = infmt->field;
-+		} else {
-+			cc = imx_media_find_ipu_format(0, sdformat->format.code,
-+						       true);
-+			if (!cc) {
-+				imx_media_enum_ipu_format(NULL, &code, 0, true);
-+				cc = imx_media_find_ipu_format(0, code, true);
-+				sdformat->format.code = cc->codes[0];
-+			}
-+
-+			sdformat->format.field = infmt->field;
-+		}
-+
-+		/*
-+		 * translate V4L2_FIELD_ALTERNATE to SEQ_TB or SEQ_BT
-+		 * depending on input height (assume NTSC top-bottom
-+		 * order if 480 lines, otherwise PAL bottom-top order).
-+		 */
-+		if (sdformat->format.field == V4L2_FIELD_ALTERNATE) {
-+			sdformat->format.field =  (infmt->height == 480) ?
-+				V4L2_FIELD_SEQ_TB : V4L2_FIELD_SEQ_BT;
-+		}
-+		break;
-+	case CSI_SINK_PAD:
-+		cc = imx_media_find_format(0, sdformat->format.code,
-+					   true, false);
-+		if (!cc) {
-+			imx_media_enum_format(NULL, &code, 0, true, false);
-+			cc = imx_media_find_format(0, code, true, false);
-+			sdformat->format.code = cc->codes[0];
++			break;
 +		}
 +		break;
 +	default:
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
-+	if (sdformat->which == V4L2_SUBDEV_FORMAT_TRY) {
-+		cfg->try_fmt = sdformat->format;
-+	} else {
-+		priv->format_mbus[sdformat->pad] = sdformat->format;
-+		priv->cc[sdformat->pad] = cc;
-+		/* Update the crop window if this is an output pad  */
-+		if (sdformat->pad == CSI_SRC_PAD_DIRECT ||
-+		    sdformat->pad == CSI_SRC_PAD_IDMAC)
-+			priv->crop = crop;
-+	}
-+
-+out:
-+	mutex_unlock(&priv->lock);
-+	return ret;
-+}
-+
-+static int csi_get_selection(struct v4l2_subdev *sd,
-+			     struct v4l2_subdev_pad_config *cfg,
-+			     struct v4l2_subdev_selection *sel)
-+{
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	struct v4l2_mbus_framefmt *infmt;
-+	int ret = 0;
-+
-+	if (sel->pad >= CSI_NUM_PADS || sel->pad == CSI_SINK_PAD)
-+		return -EINVAL;
-+
-+	mutex_lock(&priv->lock);
-+
-+	infmt = &priv->format_mbus[CSI_SINK_PAD];
-+
-+	switch (sel->target) {
-+	case V4L2_SEL_TGT_CROP_BOUNDS:
-+		sel->r.left = 0;
-+		sel->r.top = 0;
-+		sel->r.width = infmt->width;
-+		sel->r.height = infmt->height;
 +		break;
-+	case V4L2_SEL_TGT_CROP:
-+		sel->r = priv->crop;
-+		break;
-+	default:
-+		ret = -EINVAL;
 +	}
-+
-+	mutex_unlock(&priv->lock);
-+	return ret;
 +}
 +
-+static int csi_set_selection(struct v4l2_subdev *sd,
-+			     struct v4l2_subdev_pad_config *cfg,
-+			     struct v4l2_subdev_selection *sel)
++static const struct hfi_inst_ops vdec_hfi_ops = {
++	.buf_done = vdec_buf_done,
++	.event_notify = vdec_event_notify,
++};
++
++static void vdec_inst_init(struct venus_inst *inst)
 +{
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	struct v4l2_mbus_framefmt *outfmt;
-+	struct imx_media_subdev *sensor;
-+	int ret = 0;
++	inst->fmt_out = &vdec_formats[6];
++	inst->fmt_cap = &vdec_formats[0];
++	inst->width = 1280;
++	inst->height = ALIGN(720, 32);
++	inst->out_width = 1280;
++	inst->out_height = 720;
++	inst->fps = 30;
++	inst->timeperframe.numerator = 1;
++	inst->timeperframe.denominator = 30;
 +
-+	if (sel->pad >= CSI_NUM_PADS ||
-+	    sel->pad == CSI_SINK_PAD ||
-+	    sel->target != V4L2_SEL_TGT_CROP)
-+		return -EINVAL;
-+
-+	sensor = imx_media_find_sensor(priv->md, &priv->sd.entity);
-+	if (IS_ERR(sensor)) {
-+		v4l2_err(&priv->sd, "no sensor attached\n");
-+		return PTR_ERR(sensor);
-+	}
-+
-+	mutex_lock(&priv->lock);
-+
-+	if (priv->stream_on) {
-+		ret = -EBUSY;
-+		goto out;
-+	}
-+
-+	/*
-+	 * Modifying the crop rectangle always changes the format on the source
-+	 * pad. If the KEEP_CONFIG flag is set, just return the current crop
-+	 * rectangle.
-+	 */
-+	if (sel->flags & V4L2_SEL_FLAG_KEEP_CONFIG) {
-+		sel->r = priv->crop;
-+		if (sel->which == V4L2_SUBDEV_FORMAT_TRY)
-+			cfg->try_crop = sel->r;
-+		goto out;
-+	}
-+
-+	outfmt = &priv->format_mbus[sel->pad];
-+
-+	ret = csi_try_crop(priv, &sel->r, sensor);
-+	if (ret)
-+		goto out;
-+
-+	if (sel->which == V4L2_SUBDEV_FORMAT_TRY) {
-+		cfg->try_crop = sel->r;
-+	} else {
-+		priv->crop = sel->r;
-+		/* Update the source format */
-+		outfmt->width = sel->r.width;
-+		outfmt->height = sel->r.height;
-+	}
-+
-+out:
-+	mutex_unlock(&priv->lock);
-+	return ret;
++	inst->cap_width.min = 64;
++	if (inst->core->res->hfi_version == HFI_VERSION_LEGACY)
++		inst->cap_width.max = 1920;
++	else
++		inst->cap_width.max = 3840;
++	inst->cap_width.step_size = 1;
++	inst->cap_height.min = 64;
++	if (inst->core->res->hfi_version == HFI_VERSION_LEGACY)
++		inst->cap_height.max = ALIGN(1080, 32);
++	else
++		inst->cap_height.max = ALIGN(2160, 32);
++	inst->cap_height.step_size = 1;
++	inst->cap_framerate.min = 1;
++	inst->cap_framerate.max = 30;
++	inst->cap_framerate.step_size = 1;
++	inst->cap_mbs_per_frame.min = 16;
++	inst->cap_mbs_per_frame.max = 8160;
 +}
 +
-+static int csi_subscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
-+			       struct v4l2_event_subscription *sub)
++static const struct v4l2_m2m_ops vdec_m2m_ops = {
++	.device_run = helper_m2m_device_run,
++	.job_abort = helper_m2m_job_abort,
++};
++
++static int m2m_queue_init(void *priv, struct vb2_queue *src_vq,
++			  struct vb2_queue *dst_vq)
 +{
-+	if (sub->type != V4L2_EVENT_NEW_FRAME_BEFORE_EOF &&
-+	    sub->type != V4L2_EVENT_FRAME_INTERVAL_ERROR)
-+		return -EINVAL;
-+	if (sub->id != 0)
-+		return -EINVAL;
-+
-+	return v4l2_event_subscribe(fh, sub, 0, NULL);
-+}
-+
-+static int csi_unsubscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
-+				 struct v4l2_event_subscription *sub)
-+{
-+	return v4l2_event_unsubscribe(fh, sub);
-+}
-+
-+/*
-+ * retrieve our pads parsed from the OF graph by the media device
-+ */
-+static int csi_registered(struct v4l2_subdev *sd)
-+{
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	int i, ret;
-+	u32 code;
-+
-+	/* get media device */
-+	priv->md = dev_get_drvdata(sd->v4l2_dev->dev);
-+
-+	/* get handle to IPU CSI */
-+	priv->csi = ipu_csi_get(priv->ipu, priv->csi_id);
-+	if (IS_ERR(priv->csi)) {
-+		v4l2_err(&priv->sd, "failed to get CSI%d\n", priv->csi_id);
-+		return PTR_ERR(priv->csi);
-+	}
-+
-+	for (i = 0; i < CSI_NUM_PADS; i++) {
-+		priv->pad[i].flags = (i == CSI_SINK_PAD) ?
-+			MEDIA_PAD_FL_SINK : MEDIA_PAD_FL_SOURCE;
-+
-+		code = 0;
-+		if (i == CSI_SRC_PAD_DIRECT)
-+			imx_media_enum_ipu_format(NULL, &code, 0, true);
-+
-+		/* set a default mbus format  */
-+		ret = imx_media_init_mbus_fmt(&priv->format_mbus[i],
-+					      640, 480, code, V4L2_FIELD_NONE,
-+					      &priv->cc[i]);
-+		if (ret)
-+			goto put_csi;
-+	}
-+
-+	priv->fim = imx_media_fim_init(&priv->sd);
-+	if (IS_ERR(priv->fim)) {
-+		ret = PTR_ERR(priv->fim);
-+		goto put_csi;
-+	}
-+
-+	ret = media_entity_pads_init(&sd->entity, CSI_NUM_PADS, priv->pad);
-+	if (ret)
-+		goto free_fim;
-+
-+	ret = imx_media_capture_device_register(priv->vdev);
-+	if (ret)
-+		goto free_fim;
-+
-+	return 0;
-+
-+free_fim:
-+	if (priv->fim)
-+		imx_media_fim_free(priv->fim);
-+put_csi:
-+	ipu_csi_put(priv->csi);
-+	return ret;
-+}
-+
-+static void csi_unregistered(struct v4l2_subdev *sd)
-+{
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+
-+	imx_media_capture_device_unregister(priv->vdev);
-+
-+	if (priv->fim)
-+		imx_media_fim_free(priv->fim);
-+
-+	if (!IS_ERR_OR_NULL(priv->csi))
-+		ipu_csi_put(priv->csi);
-+}
-+
-+static struct media_entity_operations csi_entity_ops = {
-+	.link_setup = csi_link_setup,
-+	.link_validate = v4l2_subdev_link_validate,
-+};
-+
-+static struct v4l2_subdev_core_ops csi_core_ops = {
-+	.s_power = csi_s_power,
-+	.interrupt_service_routine = csi_eof_isr,
-+	.subscribe_event = csi_subscribe_event,
-+	.unsubscribe_event = csi_unsubscribe_event,
-+};
-+
-+static struct v4l2_subdev_video_ops csi_video_ops = {
-+	.s_stream = csi_s_stream,
-+};
-+
-+static struct v4l2_subdev_pad_ops csi_pad_ops = {
-+	.enum_mbus_code = csi_enum_mbus_code,
-+	.get_fmt = csi_get_fmt,
-+	.set_fmt = csi_set_fmt,
-+	.get_selection = csi_get_selection,
-+	.set_selection = csi_set_selection,
-+	.link_validate = csi_link_validate,
-+};
-+
-+static struct v4l2_subdev_ops csi_subdev_ops = {
-+	.core = &csi_core_ops,
-+	.video = &csi_video_ops,
-+	.pad = &csi_pad_ops,
-+};
-+
-+static struct v4l2_subdev_internal_ops csi_internal_ops = {
-+	.registered = csi_registered,
-+	.unregistered = csi_unregistered,
-+};
-+
-+static int imx_csi_probe(struct platform_device *pdev)
-+{
-+	struct ipu_client_platformdata *pdata;
-+	struct pinctrl *pinctrl;
-+	struct csi_priv *priv;
++	struct venus_inst *inst = priv;
 +	int ret;
 +
-+	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
-+	if (!priv)
++	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
++	src_vq->io_modes = VB2_MMAP | VB2_DMABUF;
++	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	src_vq->ops = &vdec_vb2_ops;
++	src_vq->mem_ops = &vb2_dma_sg_memops;
++	src_vq->drv_priv = inst;
++	src_vq->buf_struct_size = sizeof(struct venus_buffer);
++	src_vq->allow_zero_bytesused = 1;
++	src_vq->min_buffers_needed = 1;
++	src_vq->dev = inst->core->dev;
++	ret = vb2_queue_init(src_vq);
++	if (ret)
++		return ret;
++
++	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
++	dst_vq->io_modes = VB2_MMAP | VB2_DMABUF;
++	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	dst_vq->ops = &vdec_vb2_ops;
++	dst_vq->mem_ops = &vb2_dma_sg_memops;
++	dst_vq->drv_priv = inst;
++	dst_vq->buf_struct_size = sizeof(struct venus_buffer);
++	dst_vq->allow_zero_bytesused = 1;
++	dst_vq->min_buffers_needed = 1;
++	dst_vq->dev = inst->core->dev;
++	ret = vb2_queue_init(dst_vq);
++	if (ret) {
++		vb2_queue_release(src_vq);
++		return ret;
++	}
++
++	return 0;
++}
++
++static int vdec_open(struct file *file)
++{
++	struct venus_core *core = video_drvdata(file);
++	struct venus_inst *inst;
++	int ret;
++
++	inst = kzalloc(sizeof(*inst), GFP_KERNEL);
++	if (!inst)
 +		return -ENOMEM;
 +
-+	platform_set_drvdata(pdev, &priv->sd);
-+	priv->dev = &pdev->dev;
++	INIT_LIST_HEAD(&inst->registeredbufs);
++	INIT_LIST_HEAD(&inst->internalbufs);
++	INIT_LIST_HEAD(&inst->list);
++	mutex_init(&inst->lock);
 +
-+	ret = dma_set_coherent_mask(priv->dev, DMA_BIT_MASK(32));
++	inst->core = core;
++	inst->session_type = VIDC_SESSION_TYPE_DEC;
++
++	ret = pm_runtime_get_sync(core->dev_dec);
++	if (ret < 0)
++		goto err_free_inst;
++
++	ret = vdec_ctrl_init(inst);
 +	if (ret)
-+		return ret;
++		goto err_put_sync;
 +
-+	/* get parent IPU */
-+	priv->ipu = dev_get_drvdata(priv->dev->parent);
++	ret = hfi_session_create(inst, &vdec_hfi_ops);
++	if (ret)
++		goto err_ctrl_deinit;
 +
-+	/* get our CSI id */
-+	pdata = priv->dev->platform_data;
-+	priv->csi_id = pdata->csi;
-+	priv->smfc_id = (priv->csi_id == 0) ? 0 : 2;
-+
-+	init_timer(&priv->eof_timeout_timer);
-+	priv->eof_timeout_timer.data = (unsigned long)priv;
-+	priv->eof_timeout_timer.function = csi_idmac_eof_timeout;
-+	spin_lock_init(&priv->irqlock);
-+
-+	v4l2_subdev_init(&priv->sd, &csi_subdev_ops);
-+	v4l2_set_subdevdata(&priv->sd, priv);
-+	priv->sd.internal_ops = &csi_internal_ops;
-+	priv->sd.entity.ops = &csi_entity_ops;
-+	priv->sd.entity.function = MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER;
-+	priv->sd.dev = &pdev->dev;
-+	priv->sd.of_node = pdata->of_node;
-+	priv->sd.owner = THIS_MODULE;
-+	priv->sd.flags = V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
-+	priv->sd.grp_id = priv->csi_id ?
-+		IMX_MEDIA_GRP_ID_CSI1 : IMX_MEDIA_GRP_ID_CSI0;
-+	imx_media_grp_id_to_sd_name(priv->sd.name, sizeof(priv->sd.name),
-+				    priv->sd.grp_id, ipu_get_num(priv->ipu));
-+
-+	priv->vdev = imx_media_capture_device_init(&priv->sd,
-+						   CSI_SRC_PAD_IDMAC);
-+	if (IS_ERR(priv->vdev))
-+		return PTR_ERR(priv->vdev);
-+
-+	v4l2_ctrl_handler_init(&priv->ctrl_hdlr, 0);
-+	priv->sd.ctrl_handler = &priv->ctrl_hdlr;
++	vdec_inst_init(inst);
 +
 +	/*
-+	 * The IPUv3 driver did not assign an of_node to this
-+	 * device. As a result, pinctrl does not automatically
-+	 * configure our pin groups, so we need to do that manually
-+	 * here, after setting this device's of_node.
++	 * create m2m device for every instance, the m2m context scheduling
++	 * is made by firmware side so we do not need to care about.
 +	 */
-+	priv->dev->of_node = pdata->of_node;
-+	pinctrl = devm_pinctrl_get_select_default(priv->dev);
++	inst->m2m_dev = v4l2_m2m_init(&vdec_m2m_ops);
++	if (IS_ERR(inst->m2m_dev)) {
++		ret = PTR_ERR(inst->m2m_dev);
++		goto err_session_destroy;
++	}
 +
-+	mutex_init(&priv->lock);
++	inst->m2m_ctx = v4l2_m2m_ctx_init(inst->m2m_dev, inst, m2m_queue_init);
++	if (IS_ERR(inst->m2m_ctx)) {
++		ret = PTR_ERR(inst->m2m_ctx);
++		goto err_m2m_release;
++	}
 +
-+	ret = v4l2_async_register_subdev(&priv->sd);
-+	if (ret)
-+		goto free;
++	v4l2_fh_init(&inst->fh, core->vdev_dec);
++
++	inst->fh.ctrl_handler = &inst->ctrl_handler;
++	v4l2_fh_add(&inst->fh);
++	inst->fh.m2m_ctx = inst->m2m_ctx;
++	file->private_data = &inst->fh;
 +
 +	return 0;
-+free:
-+	v4l2_ctrl_handler_free(&priv->ctrl_hdlr);
-+	mutex_destroy(&priv->lock);
-+	imx_media_capture_device_remove(priv->vdev);
++
++err_m2m_release:
++	v4l2_m2m_release(inst->m2m_dev);
++err_session_destroy:
++	hfi_session_destroy(inst);
++err_ctrl_deinit:
++	vdec_ctrl_deinit(inst);
++err_put_sync:
++	pm_runtime_put_sync(core->dev_dec);
++err_free_inst:
++	kfree(inst);
 +	return ret;
 +}
 +
-+static int imx_csi_remove(struct platform_device *pdev)
++static int vdec_close(struct file *file)
 +{
-+	struct v4l2_subdev *sd = platform_get_drvdata(pdev);
-+	struct csi_priv *priv = sd_to_dev(sd);
++	struct venus_inst *inst = to_inst(file);
 +
-+	v4l2_ctrl_handler_free(&priv->ctrl_hdlr);
-+	mutex_destroy(&priv->lock);
-+	imx_media_capture_device_remove(priv->vdev);
-+	v4l2_async_unregister_subdev(sd);
-+	media_entity_cleanup(&sd->entity);
++	v4l2_m2m_ctx_release(inst->m2m_ctx);
++	v4l2_m2m_release(inst->m2m_dev);
++	vdec_ctrl_deinit(inst);
++	hfi_session_destroy(inst);
++	mutex_destroy(&inst->lock);
++	v4l2_fh_del(&inst->fh);
++	v4l2_fh_exit(&inst->fh);
++	kfree(inst);
++
++	pm_runtime_put_sync(inst->core->dev_dec);
++	return 0;
++}
++
++static const struct v4l2_file_operations vdec_fops = {
++	.owner = THIS_MODULE,
++	.open = vdec_open,
++	.release = vdec_close,
++	.unlocked_ioctl = video_ioctl2,
++	.poll = v4l2_m2m_fop_poll,
++	.mmap = v4l2_m2m_fop_mmap,
++#ifdef CONFIG_COMPAT
++	.compat_ioctl32 = v4l2_compat_ioctl32,
++#endif
++};
++
++static int vdec_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct video_device *vdev;
++	struct venus_core *core;
++	int ret;
++
++	if (!dev->parent)
++		return -EPROBE_DEFER;
++
++	core = dev_get_drvdata(dev->parent);
++	if (!core)
++		return -EPROBE_DEFER;
++
++	if (core->res->hfi_version == HFI_VERSION_3XX) {
++		core->core0_clk = devm_clk_get(dev, "core");
++		if (IS_ERR(core->core0_clk))
++			return PTR_ERR(core->core0_clk);
++	}
++
++	platform_set_drvdata(pdev, core);
++
++	vdev = video_device_alloc();
++	if (!vdev)
++		return -ENOMEM;
++
++	vdev->release = video_device_release;
++	vdev->fops = &vdec_fops;
++	vdev->ioctl_ops = &vdec_ioctl_ops;
++	vdev->vfl_dir = VFL_DIR_M2M;
++	vdev->v4l2_dev = &core->v4l2_dev;
++	vdev->device_caps = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
++
++	ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
++	if (ret)
++		goto err_vdev_release;
++
++	core->vdev_dec = vdev;
++	core->dev_dec = dev;
++
++	video_set_drvdata(vdev, core);
++	pm_runtime_enable(dev);
++
++	return 0;
++
++err_vdev_release:
++	video_device_release(vdev);
++	return ret;
++}
++
++static int vdec_remove(struct platform_device *pdev)
++{
++	struct venus_core *core = dev_get_drvdata(pdev->dev.parent);
++
++	video_unregister_device(core->vdev_dec);
++	pm_runtime_disable(core->dev_dec);
 +
 +	return 0;
 +}
 +
-+static const struct platform_device_id imx_csi_ids[] = {
-+	{ .name = "imx-ipuv3-csi" },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(platform, imx_csi_ids);
++#ifdef CONFIG_PM
++static int vdec_runtime_suspend(struct device *dev)
++{
++	struct venus_core *core = dev_get_drvdata(dev);
 +
-+static struct platform_driver imx_csi_driver = {
-+	.probe = imx_csi_probe,
-+	.remove = imx_csi_remove,
-+	.id_table = imx_csi_ids,
++	if (core->res->hfi_version == HFI_VERSION_LEGACY)
++		return 0;
++
++	writel(0, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
++	clk_disable_unprepare(core->core0_clk);
++	writel(1, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
++
++	return 0;
++}
++
++static int vdec_runtime_resume(struct device *dev)
++{
++	struct venus_core *core = dev_get_drvdata(dev);
++	int ret;
++
++	if (core->res->hfi_version == HFI_VERSION_LEGACY)
++		return 0;
++
++	writel(0, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
++	ret = clk_prepare_enable(core->core0_clk);
++	writel(1, core->base + WRAPPER_VDEC_VCODEC_POWER_CONTROL);
++
++	return ret;
++}
++#endif
++
++static const struct dev_pm_ops vdec_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(pm_runtime_force_suspend,
++				pm_runtime_force_resume)
++	SET_RUNTIME_PM_OPS(vdec_runtime_suspend, vdec_runtime_resume, NULL)
++};
++
++static const struct of_device_id vdec_dt_match[] = {
++	{ .compatible = "venus-decoder" },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, vdec_dt_match);
++
++static struct platform_driver qcom_venus_dec_driver = {
++	.probe = vdec_probe,
++	.remove = vdec_remove,
 +	.driver = {
-+		.name = "imx-ipuv3-csi",
++		.name = "qcom-venus-decoder",
++		.of_match_table = vdec_dt_match,
++		.pm = &vdec_pm_ops,
 +	},
 +};
-+module_platform_driver(imx_csi_driver);
++module_platform_driver(qcom_venus_dec_driver);
 +
-+MODULE_DESCRIPTION("i.MX CSI subdev driver");
-+MODULE_AUTHOR("Steve Longerbeam <steve_longerbeam@mentor.com>");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:imx-ipuv3-csi");
++MODULE_ALIAS("platform:qcom-venus-decoder");
++MODULE_DESCRIPTION("Qualcomm Venus video decoder driver");
++MODULE_LICENSE("GPL v2");
+diff --git a/drivers/media/platform/qcom/venus/vdec.h b/drivers/media/platform/qcom/venus/vdec.h
+new file mode 100644
+index 000000000000..84b672c54d02
+--- /dev/null
++++ b/drivers/media/platform/qcom/venus/vdec.h
+@@ -0,0 +1,23 @@
++/*
++ * Copyright (c) 2012-2016, The Linux Foundation. All rights reserved.
++ * Copyright (C) 2017 Linaro Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 and
++ * only version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++#ifndef __VENUS_VDEC_H__
++#define __VENUS_VDEC_H__
++
++struct venus_inst;
++
++int vdec_ctrl_init(struct venus_inst *inst);
++void vdec_ctrl_deinit(struct venus_inst *inst);
++
++#endif
+diff --git a/drivers/media/platform/qcom/venus/vdec_ctrls.c b/drivers/media/platform/qcom/venus/vdec_ctrls.c
+new file mode 100644
+index 000000000000..c91e2ec37ea4
+--- /dev/null
++++ b/drivers/media/platform/qcom/venus/vdec_ctrls.c
+@@ -0,0 +1,149 @@
++/*
++ * Copyright (c) 2012-2016, The Linux Foundation. All rights reserved.
++ * Copyright (C) 2017 Linaro Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 and
++ * only version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++#include <linux/types.h>
++#include <media/v4l2-ctrls.h>
++
++#include "core.h"
++
++static int vdec_op_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct venus_inst *inst = ctrl_to_inst(ctrl);
++	struct vdec_controls *ctr = &inst->controls.dec;
++
++	switch (ctrl->id) {
++	case V4L2_CID_MPEG_VIDEO_DECODER_MPEG4_DEBLOCK_FILTER:
++		ctr->post_loop_deb_mode = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
++	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
++	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:
++		ctr->profile = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_H264_LEVEL:
++	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
++		ctr->level = ctrl->val;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static int vdec_op_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct venus_inst *inst = ctrl_to_inst(ctrl);
++	struct vdec_controls *ctr = &inst->controls.dec;
++	union hfi_get_property hprop;
++	u32 ptype = HFI_PROPERTY_PARAM_PROFILE_LEVEL_CURRENT;
++	int ret;
++
++	switch (ctrl->id) {
++	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
++	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
++	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:
++		ret = hfi_session_get_property(inst, ptype, &hprop);
++		if (!ret)
++			ctr->profile = hprop.profile_level.profile;
++		ctrl->val = ctr->profile;
++		break;
++	case V4L2_CID_MPEG_VIDEO_H264_LEVEL:
++	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
++		ret = hfi_session_get_property(inst, ptype, &hprop);
++		if (!ret)
++			ctr->level = hprop.profile_level.level;
++		ctrl->val = ctr->level;
++		break;
++	case V4L2_CID_MPEG_VIDEO_DECODER_MPEG4_DEBLOCK_FILTER:
++		ctrl->val = ctr->post_loop_deb_mode;
++		break;
++	default:
++		return -EINVAL;
++	};
++
++	return 0;
++}
++
++static const struct v4l2_ctrl_ops vdec_ctrl_ops = {
++	.s_ctrl = vdec_op_s_ctrl,
++	.g_volatile_ctrl = vdec_op_g_volatile_ctrl,
++};
++
++int vdec_ctrl_init(struct venus_inst *inst)
++{
++	struct v4l2_ctrl *ctrl;
++	int ret;
++
++	ret = v4l2_ctrl_handler_init(&inst->ctrl_handler, 6);
++	if (ret)
++		return ret;
++
++	ctrl = v4l2_ctrl_new_std_menu(&inst->ctrl_handler, &vdec_ctrl_ops,
++		V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE,
++		V4L2_MPEG_VIDEO_MPEG4_PROFILE_ADVANCED_CODING_EFFICIENCY,
++		~((1 << V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE) |
++		  (1 << V4L2_MPEG_VIDEO_MPEG4_PROFILE_ADVANCED_SIMPLE)),
++		V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE);
++	if (ctrl)
++		ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
++
++	ctrl = v4l2_ctrl_new_std_menu(&inst->ctrl_handler, &vdec_ctrl_ops,
++				      V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL,
++				      V4L2_MPEG_VIDEO_MPEG4_LEVEL_5,
++				      0, V4L2_MPEG_VIDEO_MPEG4_LEVEL_0);
++	if (ctrl)
++		ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
++
++	ctrl = v4l2_ctrl_new_std_menu(&inst->ctrl_handler, &vdec_ctrl_ops,
++		V4L2_CID_MPEG_VIDEO_H264_PROFILE,
++		V4L2_MPEG_VIDEO_H264_PROFILE_MULTIVIEW_HIGH,
++		~((1 << V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE) |
++		  (1 << V4L2_MPEG_VIDEO_H264_PROFILE_CONSTRAINED_BASELINE) |
++		  (1 << V4L2_MPEG_VIDEO_H264_PROFILE_MAIN) |
++		  (1 << V4L2_MPEG_VIDEO_H264_PROFILE_HIGH) |
++		  (1 << V4L2_MPEG_VIDEO_H264_PROFILE_STEREO_HIGH) |
++		  (1 << V4L2_MPEG_VIDEO_H264_PROFILE_MULTIVIEW_HIGH)),
++		V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE);
++	if (ctrl)
++		ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
++
++	ctrl = v4l2_ctrl_new_std_menu(&inst->ctrl_handler, &vdec_ctrl_ops,
++				      V4L2_CID_MPEG_VIDEO_H264_LEVEL,
++				      V4L2_MPEG_VIDEO_H264_LEVEL_5_1,
++				      0, V4L2_MPEG_VIDEO_H264_LEVEL_1_0);
++	if (ctrl)
++		ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
++
++	ctrl = v4l2_ctrl_new_std(&inst->ctrl_handler, &vdec_ctrl_ops,
++				 V4L2_CID_MPEG_VIDEO_VPX_PROFILE, 0, 3, 1, 0);
++	if (ctrl)
++		ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
++
++	v4l2_ctrl_new_std(&inst->ctrl_handler, &vdec_ctrl_ops,
++		V4L2_CID_MPEG_VIDEO_DECODER_MPEG4_DEBLOCK_FILTER, 0, 1, 1, 0);
++
++	ret = inst->ctrl_handler.error;
++	if (ret) {
++		v4l2_ctrl_handler_free(&inst->ctrl_handler);
++		return ret;
++	}
++
++	return 0;
++}
++
++void vdec_ctrl_deinit(struct venus_inst *inst)
++{
++	v4l2_ctrl_handler_free(&inst->ctrl_handler);
++}
 -- 
 2.7.4
