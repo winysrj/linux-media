@@ -1,130 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:33446 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752087AbdCDAgq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 19:36:46 -0500
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:56826 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750914AbdCMK7Y (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Mar 2017 06:59:24 -0400
+Date: Mon, 13 Mar 2017 10:58:42 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, mark.rutland@arm.com,
+        andrew-ct.chen@mediatek.com, minghsiu.tsai@mediatek.com,
+        nick@shmanahar.org, songjun.wu@microchip.com, pavel@ucw.cz,
+        shuah@kernel.org, devel@driverdev.osuosl.org,
+        markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, robert.jarzmik@free.fr,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        geert@linux-m68k.org, p.zabel@pengutronix.de,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        kernel@pengutronix.de, arnd@arndb.de, tiffany.lin@mediatek.com,
+        bparrot@ti.com, robh+dt@kernel.org, horms+renesas@verge.net.au,
+        mchehab@kernel.org, linux-arm-kernel@lists.infradead.org,
+        niklas.soderlund+renesas@ragnatech.se, gregkh@linuxfoundation.org,
+        linux-kernel@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
+        jean-christophe.trotin@st.com, sakari.ailus@linux.intel.com,
+        fabio.estevam@nxp.com, shawnguo@kernel.org,
+        sudipm.mukherjee@gmail.com
 Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
  controls from a pipeline
-To: Russell King - ARM Linux <linux@armlinux.org.uk>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
- <1487211578-11360-15-git-send-email-steve_longerbeam@mentor.com>
- <20170302160257.GK3220@valkosipuli.retiisi.org.uk>
- <20170303230645.GR21222@n2100.armlinux.org.uk>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <c4108ed3-5ad7-900d-1a9b-cded4f763db6@gmail.com>
-Date: Fri, 3 Mar 2017 16:36:40 -0800
+Message-ID: <20170313105842.GG21222@n2100.armlinux.org.uk>
+References: <20170311101408.272a9187@vento.lan>
+ <20170311153229.yrdjmggb3p2suhdw@ihha.localdomain>
+ <acfb5eca-ff00-6d57-339a-3322034cbdb3@gmail.com>
+ <20170311184551.GD21222@n2100.armlinux.org.uk>
+ <1f1b350a-5523-34bc-07b7-f3cd2d1fd4c1@gmail.com>
+ <20170311185959.GF21222@n2100.armlinux.org.uk>
+ <4917d7fb-2f48-17cd-aa2f-d54b0f19ed6e@gmail.com>
+ <20170312073745.GI21222@n2100.armlinux.org.uk>
+ <fba73c10-4b95-f0d2-e681-0b14ef1fbc1c@gmail.com>
+ <734a1731-3fb6-b8cd-6806-5405bd21bf83@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20170303230645.GR21222@n2100.armlinux.org.uk>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <734a1731-3fb6-b8cd-6806-5405bd21bf83@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, Mar 13, 2017 at 11:44:50AM +0100, Hans Verkuil wrote:
+> On 03/12/2017 06:56 PM, Steve Longerbeam wrote:
+> > In summary, I do like the media framework, it's a good abstraction of
+> > hardware pipelines. It does require a lot of system level knowledge to
+> > configure, but as I said that is a matter of good documentation.
+> 
+> And the reason we went into this direction is that the end-users that use
+> these SoCs with complex pipelines actually *need* this functionality. Which
+> is also part of the reason why work on improved userspace support gets
+> little attention: they don't need to have a plugin that allows generic V4L2
+> applications to work (at least with simple scenarios).
 
+If you stop inheriting controls from the capture sensor to the v4l2
+capture device, then this breaks - generic v4l2 applications are not
+going to be able to show the controls, because they're not visible at
+the v4l2 capture device anymore.  They're only visible through the
+subdev interfaces, which these generic applications know nothing about.
 
-On 03/03/2017 03:06 PM, Russell King - ARM Linux wrote:
-> On Thu, Mar 02, 2017 at 06:02:57PM +0200, Sakari Ailus wrote:
->> Hi Steve,
->>
->> On Wed, Feb 15, 2017 at 06:19:16PM -0800, Steve Longerbeam wrote:
->>> v4l2_pipeline_inherit_controls() will add the v4l2 controls from
->>> all subdev entities in a pipeline to a given video device.
->>>
->>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
->>> ---
->>>  drivers/media/v4l2-core/v4l2-mc.c | 48 +++++++++++++++++++++++++++++++++++++++
->>>  include/media/v4l2-mc.h           | 25 ++++++++++++++++++++
->>>  2 files changed, 73 insertions(+)
->>>
->>> diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
->>> index 303980b..09d4d97 100644
->>> --- a/drivers/media/v4l2-core/v4l2-mc.c
->>> +++ b/drivers/media/v4l2-core/v4l2-mc.c
->>> @@ -22,6 +22,7 @@
->>>  #include <linux/usb.h>
->>>  #include <media/media-device.h>
->>>  #include <media/media-entity.h>
->>> +#include <media/v4l2-ctrls.h>
->>>  #include <media/v4l2-fh.h>
->>>  #include <media/v4l2-mc.h>
->>>  #include <media/v4l2-subdev.h>
->>> @@ -238,6 +239,53 @@ int v4l_vb2q_enable_media_source(struct vb2_queue *q)
->>>  }
->>>  EXPORT_SYMBOL_GPL(v4l_vb2q_enable_media_source);
->>>
->>> +int __v4l2_pipeline_inherit_controls(struct video_device *vfd,
->>> +				     struct media_entity *start_entity)
->>
->> I have a few concerns / questions:
->>
->> - What's the purpose of this patch? Why not to access the sub-device node
->>   directly?
->
-> What tools are in existance _today_ to provide access to these controls
-> via the sub-device nodes?
->
-> v4l-tools doesn't last time I looked - in fact, the only tool in v4l-tools
-> which is capable of accessing the subdevices is media-ctl, and that only
-> provides functionality for configuring the pipeline.
->
-> So, pointing people at vapourware userspace is really quite rediculous.
+> If you want to blame anyone for this, blame Nokia who set fire to
+> their linux-based phones and thus to the funding for this work.
 
+No, I think that's completely unfair to Nokia.  If the MC approach is
+the way you want to go, you should be thanking Nokia for the amount of
+effort that they have put in to it, and recognising that it was rather
+unfortunate that the market had changed, which meant that they weren't
+able to continue.
 
-Hi Russell,
+No one has any right to require any of us to finish what we start
+coding up in open source, unless there is a contractual obligation in
+place.  That goes for Nokia too.
 
-Yes, that's a big reason why I added this capability. The v4l2-ctl
-tool won't accept subdev nodes, although Philipp Zabel has a quick hack
-to get around this (ignore return code from VIDIOC_QUERYCAP).
+Nokia's decision had ramifications far and wide (resulting in knock on
+effects in TI and further afield), so don't think for a moment I wasn't
+affected by what happened in Nokia.  Even so, it was a decision for
+Nokia to make, they had the right to make it, and we have no right to
+attribute "blame" to Nokia for having made that decision.
 
+To even suggest that Nokia should be blamed is absurd.
 
->
-> The established way to control video capture is through the main video
-> capture device, not through the sub-devices.  Yes, the controls are
-> exposed through sub-devices too, but that does not mean that is the
-> correct way to access them.
->
-> The v4l2 documentation (Documentation/media/kapi/v4l2-controls.rst)
-> even disagrees with your statements.  That talks about control
-> inheritence from sub-devices to the main video device, and the core
-> v4l2 code provides _automatic_ support for this - see
-> v4l2_device_register_subdev():
->
->         /* This just returns 0 if either of the two args is NULL */
->         err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler, NULL);
->
-> which merges the subdev's controls into the main device's control
-> handler.
+Open source gives rights to everyone.  It gives rights to contribute
+and use, but it also gives rights to walk away without notice (remember
+the "as is" and "no warranty" clauses?)
 
-Actually v4l2_dev->ctrl_handler is not of much use to me. This will
-compose a list of controls from all registered subdevs, i.e. _all
-possible controls_.
-
-What v4l2_pipeline_inherit_controls() does is compose a list of
-controls that are reachable and available in the currently configured
-pipeline.
-
-Steve
-
->
-> So, (a) I don't think Steve needs to add this code, and (b) I think
-> your statements about not inheriting controls goes against the
-> documentation and API compatibility with _existing_ applications,
-> and ultimately hurts the user experience, since there's nothing
-> existing today to support what you're suggesting in userspace.
->
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
