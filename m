@@ -1,185 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52368 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752323AbdCDXyc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 4 Mar 2017 18:54:32 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        dri-devel@lists.freedesktop.org
-Subject: Re: [PATCH v2 2/3] v4l: vsp1: Postpone page flip in event of display list race
-Date: Sun, 05 Mar 2017 01:46:57 +0200
-Message-ID: <2000889.heoPCI45nc@avalon>
-In-Reply-To: <7b4ce1b20550d8651feceacf638ffc46be7400f7.1488592678.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.4a217716bf5515d07dcb6d2b052f883eeecae9e8.1488592678.git-series.kieran.bingham+renesas@ideasonboard.com> <7b4ce1b20550d8651feceacf638ffc46be7400f7.1488592678.git-series.kieran.bingham+renesas@ideasonboard.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-qk0-f196.google.com ([209.85.220.196]:36393 "EHLO
+        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751700AbdCMTUt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Mar 2017 15:20:49 -0400
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [RFC 02/10] [media] vb2: split out queueing from vb_core_qbuf()
+Date: Mon, 13 Mar 2017 16:20:27 -0300
+Message-Id: <20170313192035.29859-3-gustavo@padovan.org>
+In-Reply-To: <20170313192035.29859-1-gustavo@padovan.org>
+References: <20170313192035.29859-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Thank you for the patch.
+In order to support explicit synchronization we need to divide
+vb2_core_qbuf() in two parts one, to be executed before the fence
+signals and another one after that, to do the actual queueing of
+the buffer.
 
-On Saturday 04 Mar 2017 02:01:18 Kieran Bingham wrote:
-> If we try to commit the display list while an update is pending, we have
-> missed our opportunity. The display list manager will hold the commit
-> until the next interrupt.
-> 
-> In this event, we inform the vsp1 completion callback handler so that
-> the du will not perform a page flip out of turn.
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> ---
->  drivers/media/platform/vsp1/vsp1_dl.c   |  9 +++++++--
->  drivers/media/platform/vsp1/vsp1_dl.h   |  2 +-
->  drivers/media/platform/vsp1/vsp1_drm.c  |  4 +++-
->  drivers/media/platform/vsp1/vsp1_pipe.c |  6 +++++-
->  drivers/media/platform/vsp1/vsp1_pipe.h |  2 ++
->  5 files changed, 18 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c
-> b/drivers/media/platform/vsp1/vsp1_dl.c index ad545aff4e35..f8e8c90f22bc
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_dl.c
-> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
-> @@ -557,9 +557,10 @@ void vsp1_dlm_irq_display_start(struct vsp1_dl_manager
-> *dlm)
->  	spin_unlock(&dlm->lock);
->  }
-> 
-> -void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
-> +int vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
->  {
->  	struct vsp1_device *vsp1 = dlm->vsp1;
-> +	int ret = 0;
-> 
->  	spin_lock(&dlm->lock);
-> 
-> @@ -578,8 +579,10 @@ void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager
-> *dlm) * before interrupt processing. The hardware hasn't taken the update *
-> into account yet, we'll thus skip one frame and retry.
->  	 */
-> -	if (vsp1_read(vsp1, VI6_DL_BODY_SIZE) & VI6_DL_BODY_SIZE_UPD)
-> +	if (vsp1_read(vsp1, VI6_DL_BODY_SIZE) & VI6_DL_BODY_SIZE_UPD) {
-> +		ret = -EBUSY;
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 65 ++++++++++++++++++--------------
+ 1 file changed, 36 insertions(+), 29 deletions(-)
 
-Getting there, but not quite :-)
-
-What we need to protect against is the display list not being committed early 
-enough, resulting in one frame skip in the hardware. The good news is that the 
-driver already detects the opposite condition just below. 
-
->  		goto done;
-> +	}
-> 
->  	/* The device starts processing the queued display list right after 
-the
->  	 * frame end interrupt. The display list thus becomes active.
-
-This is what we want to report. You can simply return a bool that will tell 
-whether the previous display list has completed at frame end. You should 
-return true when the condition right below this comment is true, as well as 
-when using header mode (to avoid breaking mem-to-mem pipelines), and false in 
-all other cases.
-
-> @@ -606,6 +609,8 @@ void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
-> 
->  done:
->  	spin_unlock(&dlm->lock);
-> +
-> +	return ret;
->  }
-> 
->  /* Hardware Setup */
-> diff --git a/drivers/media/platform/vsp1/vsp1_dl.h
-> b/drivers/media/platform/vsp1/vsp1_dl.h index 7131aa3c5978..c772a1d92513
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_dl.h
-> +++ b/drivers/media/platform/vsp1/vsp1_dl.h
-> @@ -28,7 +28,7 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device
-> *vsp1, void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm);
->  void vsp1_dlm_reset(struct vsp1_dl_manager *dlm);
->  void vsp1_dlm_irq_display_start(struct vsp1_dl_manager *dlm);
-> -void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
-> +int vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
-> 
->  struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm);
->  void vsp1_dl_list_put(struct vsp1_dl_list *dl);
-> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c
-> b/drivers/media/platform/vsp1/vsp1_drm.c index 85e5ebca82a5..6f2dd42ca01b
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> @@ -40,10 +40,12 @@ static void vsp1_du_pipeline_frame_end(struct
-> vsp1_pipeline *pipe) {
->  	struct vsp1_drm *drm = to_vsp1_drm(pipe);
-> 
-> -	if (drm->du_complete && drm->du_pending) {
-> +	if (drm->du_complete && drm->du_pending && !pipe->dl_postponed) {
->  		drm->du_complete(drm->du_private);
->  		drm->du_pending = false;
->  	}
-> +
-> +	pipe->dl_postponed = false;
->  }
-> 
->  /* ------------------------------------------------------------------------
-> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c
-> b/drivers/media/platform/vsp1/vsp1_pipe.c index 280ba0804699..3c5aae8767dd
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_pipe.c
-> +++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-> @@ -297,10 +297,14 @@ bool vsp1_pipeline_ready(struct vsp1_pipeline *pipe)
-> 
->  void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
->  {
-> +	int ret;
-> +
->  	if (pipe == NULL)
->  		return;
-> 
-> -	vsp1_dlm_irq_frame_end(pipe->output->dlm);
-> +	ret = vsp1_dlm_irq_frame_end(pipe->output->dlm);
-> +	if (ret)
-> +		pipe->dl_postponed = true;
-
-This can be simplified greatly. If vsp1_dlm_irq_frame_end() returns false, 
-return immediately without calling the pipe->frame_end() handler or 
-incrementing the sequence number, as the frame has not completed. You can then 
-remove the dl_postponed field from the vsp1_pipeline structure and call the 
-.du_complete() handler unconditionally in vsp1_du_pipeline_frame_end() 
-(provided it's not NULL of course). As the vsp1_dlm_irq_frame_end() function 
-can't return true if a commit hasn't been queued in the first place, there's 
-no need for a dl_pending flag either.
-
-> 
->  	if (pipe->frame_end)
->  		pipe->frame_end(pipe);
-> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h
-> b/drivers/media/platform/vsp1/vsp1_pipe.h index ac4ad2655551..65cc8fb76662
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_pipe.h
-> +++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-> @@ -77,6 +77,7 @@ enum vsp1_pipeline_state {
->   * @uds_input: entity at the input of the UDS, if the UDS is present
->   * @entities: list of entities in the pipeline
->   * @dl: display list associated with the pipeline
-> + * @dl_postponed: identifies if the dl commit was caught by a race
-> condition * @div_size: The maximum allowed partition size for the pipeline
-> * @partitions: The number of partitions used to process one frame *
-> @current_partition: The partition number currently being configured @@
-> -107,6 +108,7 @@ struct vsp1_pipeline {
->  	struct list_head entities;
-> 
->  	struct vsp1_dl_list *dl;
-> +	bool dl_postponed;
-> 
->  	unsigned int div_size;
->  	unsigned int partitions;
-
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 94afbbf9..0e30fcd 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1363,29 +1363,10 @@ static int vb2_start_streaming(struct vb2_queue *q)
+ 	return ret;
+ }
+ 
+-int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
++static int __vb2_core_qbuf(struct vb2_buffer *vb, struct vb2_queue *q)
+ {
+-	struct vb2_buffer *vb;
+ 	int ret;
+ 
+-	vb = q->bufs[index];
+-
+-	switch (vb->state) {
+-	case VB2_BUF_STATE_DEQUEUED:
+-		ret = __buf_prepare(vb, pb);
+-		if (ret)
+-			return ret;
+-		break;
+-	case VB2_BUF_STATE_PREPARED:
+-		break;
+-	case VB2_BUF_STATE_PREPARING:
+-		dprintk(1, "buffer still being prepared\n");
+-		return -EINVAL;
+-	default:
+-		dprintk(1, "invalid buffer state %d\n", vb->state);
+-		return -EINVAL;
+-	}
+-
+ 	/*
+ 	 * Add to the queued buffers list, a buffer will stay on it until
+ 	 * dequeued in dqbuf.
+@@ -1395,11 +1376,6 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+ 	q->waiting_for_buffers = false;
+ 	vb->state = VB2_BUF_STATE_QUEUED;
+ 
+-	if (pb)
+-		call_void_bufop(q, copy_timestamp, vb, pb);
+-
+-	trace_vb2_qbuf(q, vb);
+-
+ 	/*
+ 	 * If already streaming, give the buffer to driver for processing.
+ 	 * If not, the buffer will be given to driver on next streamon.
+@@ -1407,10 +1383,6 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+ 	if (q->start_streaming_called)
+ 		__enqueue_in_driver(vb);
+ 
+-	/* Fill buffer information for the userspace */
+-	if (pb)
+-		call_void_bufop(q, fill_user_buffer, vb, pb);
+-
+ 	/*
+ 	 * If streamon has been called, and we haven't yet called
+ 	 * start_streaming() since not enough buffers were queued, and
+@@ -1427,6 +1399,41 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+ 	dprintk(1, "qbuf of buffer %d succeeded\n", vb->index);
+ 	return 0;
+ }
++
++int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
++{
++	struct vb2_buffer *vb;
++	int ret;
++
++	vb = q->bufs[index];
++
++	switch (vb->state) {
++	case VB2_BUF_STATE_DEQUEUED:
++		ret = __buf_prepare(vb, pb);
++		if (ret)
++			return ret;
++		break;
++	case VB2_BUF_STATE_PREPARED:
++		break;
++	case VB2_BUF_STATE_PREPARING:
++		dprintk(1, "buffer still being prepared\n");
++		return -EINVAL;
++	default:
++		dprintk(1, "invalid buffer state %d\n", vb->state);
++		return -EINVAL;
++	}
++
++	if (pb)
++		call_void_bufop(q, copy_timestamp, vb, pb);
++
++	trace_vb2_qbuf(q, vb);
++
++	/* Fill buffer information for the userspace */
++	if (pb)
++		call_void_bufop(q, fill_user_buffer, vb, pb);
++
++	return __vb2_core_qbuf(vb, q);
++}
+ EXPORT_SYMBOL_GPL(vb2_core_qbuf);
+ 
+ /**
 -- 
-Regards,
-
-Laurent Pinchart
+2.9.3
