@@ -1,15 +1,25 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:42974 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751181AbdCSKqY (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:36428 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752397AbdCMVrl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 19 Mar 2017 06:46:24 -0400
-Date: Sun, 19 Mar 2017 10:38:01 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Steve Longerbeam <steve_longerbeam@mentor.com>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
+        Mon, 13 Mar 2017 17:47:41 -0400
+Subject: Re: [PATCH v5 15/39] [media] v4l2: add a frame interval error event
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <1489121599-23206-16-git-send-email-steve_longerbeam@mentor.com>
+ <5b0a0e76-2524-4140-5ccc-380a8f949cfa@xs4all.nl>
+ <ec05e6e0-79f2-2db2-bde9-4aed00d76faa@gmail.com>
+ <6b574476-77df-0e25-a4d1-32d4fe0aec12@xs4all.nl>
+ <5d5cf4a4-a4d3-586e-cd16-54f543dfcce9@gmail.com>
+ <aa6a5a1d-18fd-8bed-a349-2654d2d1abe0@xs4all.nl>
+ <20170313104538.GF21222@n2100.armlinux.org.uk>
+ <b36875e0-683a-fcc3-343d-9ddd1a39cac0@xs4all.nl>
+ <bb2d078d-1c2f-ad67-d98f-bde3894601d6@gmail.com>
+ <25963c4e-e326-fd60-32a3-918eea7d9bdc@xs4all.nl>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
         nick@shmanahar.org, markus.heiser@darmarIT.de,
         p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
         bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
@@ -22,76 +32,156 @@ Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
         devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
         devel@driverdev.osuosl.org
-Subject: Re: [PATCH v5 00/39] i.MX Media Driver
-Message-ID: <20170319103801.GQ21222@n2100.armlinux.org.uk>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <20170318192258.GL21222@n2100.armlinux.org.uk>
- <aef6c412-5464-726b-42f6-a24b7323aa9c@mentor.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <7151d5dc-9bf8-7aa2-dc58-75d09aa9fa96@gmail.com>
+Date: Mon, 13 Mar 2017 14:47:36 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aef6c412-5464-726b-42f6-a24b7323aa9c@mentor.com>
+In-Reply-To: <25963c4e-e326-fd60-32a3-918eea7d9bdc@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Mar 18, 2017 at 12:58:27PM -0700, Steve Longerbeam wrote:
-> Right, imx-media-capture.c (the "standard" v4l2 user interface module)
-> is not implementing VIDIOC_ENUM_FRAMESIZES. It should, but it can only
-> return the single frame size that the pipeline has configured (the mbus
-> format of the attached source pad).
 
-I now have a set of patches that enumerate the frame sizes and intervals
-from the source pad of the first subdev (since you're setting the formats
-etc there from the capture device, it seems sensible to return what it
-can support.)  This means my patch set doesn't add to non-CSI subdevs.
 
-> Can you share your gstreamer pipeline? For now, until
-> VIDIOC_ENUM_FRAMESIZES is implemented, try a pipeline that
-> does not attempt to specify a frame rate. I use the attached
-> script for testing, which works for me.
+On 03/13/2017 10:10 AM, Hans Verkuil wrote:
+> On 03/13/2017 06:06 PM, Steve Longerbeam wrote:
+>>
+>>
+>> On 03/13/2017 03:53 AM, Hans Verkuil wrote:
+>>> On 03/13/2017 11:45 AM, Russell King - ARM Linux wrote:
+>>>> On Mon, Mar 13, 2017 at 11:02:34AM +0100, Hans Verkuil wrote:
+>>>>> On 03/11/2017 07:14 PM, Steve Longerbeam wrote:
+>>>>>> The event must be user visible, otherwise the user has no indication
+>>>>>> the error, and can't correct it by stream restart.
+>>>>>
+>>>>> In that case the driver can detect this and call vb2_queue_error. It's
+>>>>> what it is there for.
+>>>>>
+>>>>> The event doesn't help you since only this driver has this issue. So nobody
+>>>>> will watch this event, unless it is sw specifically written for this SoC.
+>>>>>
+>>>>> Much better to call vb2_queue_error to signal a fatal error (which this
+>>>>> apparently is) since there are more drivers that do this, and vivid supports
+>>>>> triggering this condition as well.
+>>>>
+>>>> So today, I can fiddle around with the IMX219 registers to help gain
+>>>> an understanding of how this sensor works.  Several of the registers
+>>>> (such as the PLL setup [*]) require me to disable streaming on the
+>>>> sensor while changing them.
+>>>>
+>>>> This is something I've done many times while testing various ideas,
+>>>> and is my primary way of figuring out and testing such things.
+>>>>
+>>>> Whenever I resume streaming (provided I've let the sensor stop
+>>>> streaming at a frame boundary) it resumes as if nothing happened.  If I
+>>>> stop the sensor mid-frame, then I get the rolling issue that Steve
+>>>> reports, but once the top of the frame becomes aligned with the top of
+>>>> the capture, everything then becomes stable again as if nothing happened.
+>>>>
+>>>> The side effect of what you're proposing is that when I disable streaming
+>>>> at the sensor by poking at its registers, rather than the capture just
+>>>> stopping, an error is going to be delivered to gstreamer, and gstreamer
+>>>> is going to exit, taking the entire capture process down.
+>>>>
+>>>> This severely restricts the ability to be able to develop and test
+>>>> sensor drivers.
+>>>>
+>>>> So, I strongly disagree with you.
+>>>>
+>>>> Loss of capture frames is not necessarily a fatal error - as I have been
+>>>> saying repeatedly.  In Steve's case, there's some unknown interaction
+>>>> between the source and iMX6 hardware that is causing the instability,
+>>>> but that is simply not true of other sources, and I oppose any idea that
+>>>> we should cripple the iMX6 side of the capture based upon just one
+>>>> hardware combination where this is a problem.
+>>>>
+>>>> Steve suggested that the problem could be in the iMX6 CSI block - and I
+>>>> note comparing Steve's code with the code in FSL's repository that there
+>>>> are some changes that are missing in Steve's code to do with the CCIR656
+>>>> sync code setup, particularly for >8 bit.  The progressive CCIR656 8-bit
+>>>> setup looks pretty similar though - but I think what needs to be asked
+>>>> is whether the same problem is visible using the FSL/NXP vendor kernel.
+>>>>
+>>>>
+>>>> * - the PLL setup is something that requires research at the moment.
+>>>> Sony's official position (even to their customers) is that they do not
+>>>> supply the necessary information, instead they expect customers to tell
+>>>> them the capture settings they want, and Sony will throw the values into
+>>>> a spreadsheet, and they'll supply the register settings back to the
+>>>> customer.  Hence, the only way to proceed with a generic driver for
+>>>> this sensor is to experiment, and experimenting requires the ability to
+>>>> pause the stream at the sensor while making changes.  Take this away,
+>>>> and we're stuck with the tables-of-register-settings-for-set-of-fixed-
+>>>> capture-settings approach.  I've made a lot of progress away from this
+>>>> which is all down to the flexibility afforded by _not_ killing the
+>>>> capture process.
+>>>>
+>>>
+>>> In other words: Steve should either find a proper fix for this, or only
+>>> call vb2_queue_error in this specific case. Sending an event that nobody
+>>> will know how to handle or what to do with is pretty pointless IMHO.
+>>>
+>>> Let's just give him time to try and figure out the real issue here.
+>>
+>>
+>> This is a long-standing issue, I've traveled to Hildesheim working with
+>> our customer to try and get to the bottom of it. I can go into a lot of
+>> details from those trips, we probed the bt.656 bus with a logic analyzer
+>> and I can share those results with anyone who asks. But the results of
+>> those investigations indicate the CSI is not handling the SAV/EAV sync
+>> codes correctly - if there is a shift in the line position at which
+>> those codes occur, the CSI/IPU does not abort the frame capture DMA
+>> and start from the new sync code position, it just continues to capture
+>> lines until the programmed number of lines are transferred, hence you
+>> get these split images. Freescale also informed us of a mechanism in the
+>> IPU that will add lines if it detects these short frames, until the
+>> programmed number of lines are reached. Apparently that is what creates
+>> the rolling effect, but this rolling can last for up to a full minute,
+>> which is completely unacceptable, it must be corrected as soon as
+>> possible.
+>>
+>> So the only thing we could come up with was to monitor frame intervals,
+>> this is purely empirical, but we observed that frame intervals drop
+>> by approx. one line time (~60 usec) when these short frames are
+>> received. I don't really have any explanation for that but we take
+>> advantage of that observation by sending this event to userspace so
+>> the problem can be corrected immediately with a stream restart.
+>>
+>> As I've said, the ADV718x does not provide _any_ indication via status
+>> when the shift in the sync code position occurs. And the IPU is also
+>> severely lacking in DMA completion status as well (no short packet
+>> status like in USB for example). So the only way to detect this event
+>> is by monitoring the frame intervals.
+>>
+>> I will review differences in the CCIR code register setup from FSL's
+>> repo that Russell pointed out, but I'm fairly sure those code registers
+>> are setup correctly, there's not much room for variability in those
+>> values. They only define the values of the sync codes, so the CSI can
+>> detect them, those values are defined by the bt.656 spec.
+>>
+>> Anyway, perhaps for now I can remove the event, but keep the FI
+>> monitoring, and for now just report a kernel error message on
+>> a detected bad FI.
+>
+> Is it possible to detect this specific situation? Apparently this issue
+> is not present (or at least resolves itself very quickly) on the imx219.
 
-Note that I'm not specifying a frame rate on gstreamer - I'm setting
-the pipeline up for 60fps, but gstreamer in its wisdom is unable to
-enumerate the frame sizes, and therefore is unable to enumerate the
-frame intervals (frame intervals depend on frame sizes), so it
-falls back to the "tvnorms" which are basically 25/1 and 30000/1001.
+The imx219 is not a BT.656 interface, it is MIPI CSI-2, so this is
+not an issue for imx219. It is an issue for any sensor with a
+parallel BT.656 interface.
 
-It sees 60fps via G_PARM, and then decides to set 30000/1001 via S_PARM.
-So, we end up with most of the pipeline operating at 60fps, with CSI
-doing frame skipping to reduce the frame rate to 30fps.
+>
+> If it is not possible, then a private event would be acceptable, but
+> needs to be carefully documented. After all, it is a workaround for a bug,
+> since otherwise there would be no need for this event.
 
-gstreamer doesn't complain, doesn't issue any warnings, the only way
-you can spot this is to enable debugging and look through the copious
-debug log, or use -v and check the pad capabilities.
+Ok, sounds like a plan, I'll keep the event as a private event and make
+sure it is documented well. Yes it is a workaround, for a silicon bug,
+although Freescale/NXP has not issued an errata for it yet AFAIK. THat
+might be because they claim to handle it via this adding lines
+mechanism, but that mechanism doesn't work well (long duration rolling),
+or not at all (permanent split images).
 
-Testing using gstreamer, and only using "does it produce video" is a
-good simple test, but it's just that - it's a simple test.  It doesn't
-tell you that what you're seeing is what you intended to see (such as
-video at the frame rate you expected) without more work.
 
-> Thanks, I've fixed most of v4l2-compliance issues, but this is not
-> done yet. Is that something you can help with?
-
-What did you do with:
-
-ioctl(3, VIDIOC_REQBUFS, {count=0, type=0 /* V4L2_BUF_TYPE_??? */, memory=0 /* V4L2_MEMORY_??? */}) = -1 EINVAL (Invalid argument)
-                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-ioctl(3, VIDIOC_EXPBUF, 0xbef405bc)     = -1 EINVAL (Invalid argument)
-                fail: v4l2-test-buffers.cpp(571): q.has_expbuf(node)
-                test VIDIOC_EXPBUF: FAIL
-
-To me, this looks like a bug in v4l2-compliance (I'm using 1.10.0).
-I'm not sure what buffer VIDIOC_EXPBUF is expected to export, since
-afaics no buffers have been allocated, so of course it's going to fail.
-Either that, or the v4l2 core vb2 code is non-compliant with v4l2's
-interface requirements.
-
-In any case, it doesn't look like the buffer management is being
-tested at all by v4l2-compliance - we know that gstreamer works, so
-buffers _can_ be allocated, and I've also used dmabufs with gstreamer,
-so I also know that VIDIOC_EXPBUF works there.
-
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Steve
