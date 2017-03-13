@@ -1,125 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:60585 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752745AbdCHEci (ORCPT
+Received: from mail-it0-f42.google.com ([209.85.214.42]:38671 "EHLO
+        mail-it0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751612AbdCMPkD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Mar 2017 23:32:38 -0500
-Message-ID: <907fed233a32c64c8489a7529f445dcf@smtp-cloud6.xs4all.net>
-Date: Wed, 08 Mar 2017 05:31:54 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Mon, 13 Mar 2017 11:40:03 -0400
+MIME-Version: 1.0
+In-Reply-To: <CAHb8M2BOcuW8ToYTT3EUm-GieOMz6+xUhmzwW+3hbygti11k0A@mail.gmail.com>
+References: <20170313105421.GA32342@SEL-JYOUN-D1> <20170313115129.GC4136@mwanda>
+ <CAHb8M2BOcuW8ToYTT3EUm-GieOMz6+xUhmzwW+3hbygti11k0A@mail.gmail.com>
+From: DaeSeok Youn <daeseok.youn@gmail.com>
+Date: Tue, 14 Mar 2017 00:40:01 +0900
+Message-ID: <CAHb8M2CwfTN-dx4ojUJCvF_jr0E1bo4KLWpZE74y45WkV_6C+A@mail.gmail.com>
+Subject: Re: [PATCH] staging: atomisp: use k{v}zalloc instead of k{v}alloc and memset
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: mchehab@kernel.org, devel <devel@driverdev.osuosl.org>,
+        Greg KH <gregkh@linuxfoundation.org>,
+        kernel-janitors <kernel-janitors@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        alan@linux.intel.com, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+2017-03-13 23:07 GMT+09:00 DaeSeok Youn <daeseok.youn@gmail.com>:
+> 2017-03-13 20:51 GMT+09:00 Dan Carpenter <dan.carpenter@oracle.com>:
+>> On Mon, Mar 13, 2017 at 07:54:21PM +0900, Daeseok Youn wrote:
+>>> If the atomisp_kernel_zalloc() has "true" as a second parameter, it
+>>> tries to allocate zeroing memory from kmalloc(vmalloc) and memset.
+>>> But using kzalloc is rather than kmalloc followed by memset with 0.
+>>> (vzalloc is for same reason with kzalloc)
+>>>
+>>> And also atomisp_kernel_malloc() can be used with
+>>> atomisp_kernel_zalloc(<size>, false);
+>>>
+>>
+>> We should just change all the callers to kvmalloc() and kvzmalloc().
+> ok. I will try to change all the callers to kvmalloc() and kvzalloc().
 
-Results of the daily build of media_tree:
+The kvmalloc() and kvzalloc() are not ready to use in staging-testing
+branch on staging tree.
+If the kvmalloc and kvzalloc are available to use, I will replace
+atomisp_kernel_malloc() and atomisp_kernel_zalloc() with kvmalloc()
+and kvzalloc().
 
-date:			Wed Mar  8 05:00:17 CET 2017
-media-tree git hash:	700ea5e0e0dd70420a04e703ff264cc133834cba
-media_build git hash:	9d6cebc34b27fea784dec19085970d9b4df9783e
-v4l-utils git hash:	098aa386ea6cf08cacb44e0982431c5e837e63d0
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+Thanks.
+Regards,
+Daeseok Youn.
 
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: ERRORS
-linux-git-arm-multi: ERRORS
-linux-git-arm-pxa: ERRORS
-linux-git-blackfin-bf561: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: ERRORS
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9-i686: ERRORS
-linux-4.10-rc3-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9-x86_64: ERRORS
-linux-4.10-rc3-x86_64: ERRORS
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+>
+> Thanks.
+> Regards,
+> Daeseok Youn
+>>
+>> regards,
+>> dan carpenter
+>>
