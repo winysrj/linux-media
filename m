@@ -1,100 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:33532 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754630AbdCILvx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 06:51:53 -0500
-Subject: Re: [PATCH] [media] atmel-isc: fix off-by-one comparison and out of
- bounds read issue
-To: wharms@bfs.de, Hans Verkuil <hverkuil@xs4all.nl>
-References: <20170307143047.30082-1-colin.king@canonical.com>
- <5dc9d025-31d5-b129-09df-5de19758e886@microchip.com>
- <b84a5576-7b29-728b-b7c2-9929069a2b35@xs4all.nl> <58C14136.8060703@bfs.de>
-Cc: "Wu, Songjun" <Songjun.Wu@microchip.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-From: Colin Ian King <colin.king@canonical.com>
-Message-ID: <c19ce380-2355-3a1f-1896-3eab4c75dca6@canonical.com>
-Date: Thu, 9 Mar 2017 11:50:34 +0000
-MIME-Version: 1.0
-In-Reply-To: <58C14136.8060703@bfs.de>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f49.google.com ([74.125.82.49]:36015 "EHLO
+        mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754176AbdCMQia (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Mar 2017 12:38:30 -0400
+Received: by mail-wm0-f49.google.com with SMTP id n11so44891255wma.1
+        for <linux-media@vger.kernel.org>; Mon, 13 Mar 2017 09:38:29 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v7 9/9] media: venus: enable building of Venus video driver
+Date: Mon, 13 Mar 2017 18:37:38 +0200
+Message-Id: <1489423058-12492-10-git-send-email-stanimir.varbanov@linaro.org>
+In-Reply-To: <1489423058-12492-1-git-send-email-stanimir.varbanov@linaro.org>
+References: <1489423058-12492-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/03/17 11:49, walter harms wrote:
-> 
-> 
-> Am 09.03.2017 11:57, schrieb Hans Verkuil:
->> Hi Songjun,
->>
->> On 08/03/17 03:25, Wu, Songjun wrote:
->>> Hi Colin,
->>>
->>> Thank you for your comment.
->>> It is a bug, will be fixed in the next patch.
->>
->> Do you mean that you will provide a new patch for this? Is there anything
->> wrong with this patch? It seems reasonable to me.
->>
->> Regards,
->>
->> 	Hans
->>
-> 
-> 
-> 
-> perhaps he will make it a bit more readable, like:
-> 
-> *hist_count += i * (*hist_entry++);
-> 
-> *hist_count += hist_entry[i]*i;
+This adds Venus driver Makefile and changes v4l2 platform
+Makefile/Kconfig in order to enable building of the driver.
 
-As long as it gets fixed somehow, then I'm happy.
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ drivers/media/platform/Kconfig             | 14 ++++++++++++++
+ drivers/media/platform/Makefile            |  2 ++
+ drivers/media/platform/qcom/venus/Makefile | 11 +++++++++++
+ 3 files changed, 27 insertions(+)
+ create mode 100644 drivers/media/platform/qcom/venus/Makefile
 
-Colin
-> 
-> 
-> re,
->  wh
->>>
->>> On 3/7/2017 22:30, Colin King wrote:
->>>> From: Colin Ian King <colin.king@canonical.com>
->>>>
->>>> The are only HIST_ENTRIES worth of entries in  hist_entry however the
->>>> for-loop is iterating one too many times leasing to a read access off
->>>> the end off the array ctrls->hist_entry.  Fix this by iterating by
->>>> the correct number of times.
->>>>
->>>> Detected by CoverityScan, CID#1415279 ("Out-of-bounds read")
->>>>
->>>> Signed-off-by: Colin Ian King <colin.king@canonical.com>
->>>> ---
->>>>  drivers/media/platform/atmel/atmel-isc.c | 2 +-
->>>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>>>
->>>> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
->>>> index b380a7d..7dacf8c 100644
->>>> --- a/drivers/media/platform/atmel/atmel-isc.c
->>>> +++ b/drivers/media/platform/atmel/atmel-isc.c
->>>> @@ -1298,7 +1298,7 @@ static void isc_hist_count(struct isc_device *isc)
->>>>      regmap_bulk_read(regmap, ISC_HIS_ENTRY, hist_entry, HIST_ENTRIES);
->>>>
->>>>      *hist_count = 0;
->>>> -    for (i = 0; i <= HIST_ENTRIES; i++)
->>>> +    for (i = 0; i < HIST_ENTRIES; i++)
->>>>          *hist_count += i * (*hist_entry++);
->>>>  }
->>>>
->>>>
->>
-> 
-> 
-> 
-> 
->> --
->> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 53f6f12bff0d..8a6c3d664307 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -447,6 +447,20 @@ config VIDEO_TI_VPE_DEBUG
+ 	---help---
+ 	  Enable debug messages on VPE driver.
+ 
++config VIDEO_QCOM_VENUS
++	tristate "Qualcomm Venus V4L2 encoder/decoder driver"
++	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
++	depends on ARCH_QCOM && OF
++	depends on IOMMU_DMA
++	select QCOM_MDT_LOADER
++	select VIDEOBUF2_DMA_SG
++	select V4L2_MEM2MEM_DEV
++	---help---
++	  This is a V4L2 driver for Qualcomm Venus video accelerator
++	  hardware. It accelerates encoding and decoding operations
++	  on various Qualcomm SoCs.
++	  To compile this driver as a module choose m here.
++
+ endif # V4L_MEM2MEM_DRIVERS
+ 
+ # TI VIDEO PORT Helper Modules
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 8959f6e6692a..bd5cae68db8a 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -73,3 +73,5 @@ obj-$(CONFIG_VIDEO_MEDIATEK_VCODEC)	+= mtk-vcodec/
+ obj-$(CONFIG_VIDEO_MEDIATEK_MDP)	+= mtk-mdp/
+ 
+ obj-$(CONFIG_VIDEO_MEDIATEK_JPEG)	+= mtk-jpeg/
++
++obj-$(CONFIG_VIDEO_QCOM_VENUS)		+= qcom/venus/
+diff --git a/drivers/media/platform/qcom/venus/Makefile b/drivers/media/platform/qcom/venus/Makefile
+new file mode 100644
+index 000000000000..0fe9afb83697
+--- /dev/null
++++ b/drivers/media/platform/qcom/venus/Makefile
+@@ -0,0 +1,11 @@
++# Makefile for Qualcomm Venus driver
++
++venus-core-objs += core.o helpers.o firmware.o \
++		   hfi_venus.o hfi_msgs.o hfi_cmds.o hfi.o
++
++venus-dec-objs += vdec.o vdec_ctrls.o
++venus-enc-objs += venc.o venc_ctrls.o
++
++obj-$(CONFIG_VIDEO_QCOM_VENUS) += venus-core.o
++obj-$(CONFIG_VIDEO_QCOM_VENUS) += venus-dec.o
++obj-$(CONFIG_VIDEO_QCOM_VENUS) += venus-enc.o
+-- 
+2.7.4
