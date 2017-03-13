@@ -1,149 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:36738 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750882AbdCGUI1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 15:08:27 -0500
-Received: by mail-wr0-f195.google.com with SMTP id l37so1590067wrc.3
-        for <linux-media@vger.kernel.org>; Tue, 07 Mar 2017 12:08:25 -0800 (PST)
-Received: from dvbdev.wuest.de (ip-178-201-73-185.hsi08.unitymediagroup.de. [178.201.73.185])
-        by smtp.gmail.com with ESMTPSA id m186sm13760369wmd.21.2017.03.07.10.58.31
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Tue, 07 Mar 2017 10:58:31 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 03/13] [media] dvb-frontends/stv0367: refactor defaults table handling
-Date: Tue,  7 Mar 2017 19:57:17 +0100
-Message-Id: <20170307185727.564-4-d.scheller.oss@gmail.com>
-In-Reply-To: <20170307185727.564-1-d.scheller.oss@gmail.com>
-References: <20170307185727.564-1-d.scheller.oss@gmail.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:53231 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750917AbdCMSUe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Mar 2017 14:20:34 -0400
+From: Colin King <colin.king@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Alan Cox <alan@linux.intel.com>,
+        Varsha Rao <rvarsha016@gmail.com>, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] staging: atomisp: fix missing break in switch statement
+Date: Mon, 13 Mar 2017 18:20:28 +0000
+Message-Id: <20170313182028.19318-1-colin.king@canonical.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+From: Colin Ian King <colin.king@canonical.com>
 
-Change defaults table writing so tables can be of dynamic length without
-having to keep track of their lengths by adding and evaluating an end
-marker (reg 0x0000), also move table writing to a dedicated function to
-remove code duplication. Additionally mark st_register tables const since
-they're used read-only.
+I believe there is a missing break in the switch statement for
+case V4L2_CID_FOCUS_STATUS as the current fall-through looks
+suspect to me.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Detected by CoverityScan, CID#1416580 ("Missing break in switch")
+
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 ---
- drivers/media/dvb-frontends/stv0367.c      | 30 ++++++++++++++++++++----------
- drivers/media/dvb-frontends/stv0367_regs.h |  4 ----
- 2 files changed, 20 insertions(+), 14 deletions(-)
+ drivers/staging/media/atomisp/i2c/ov5693/ov5693.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
-index 0064d9d..5ed52ec 100644
---- a/drivers/media/dvb-frontends/stv0367.c
-+++ b/drivers/media/dvb-frontends/stv0367.c
-@@ -99,7 +99,7 @@ struct st_register {
- };
- 
- /* values for STV4100 XTAL=30M int clk=53.125M*/
--static struct st_register def0367ter[STV0367TER_NBREGS] = {
-+static const struct st_register def0367ter[] = {
- 	{R367TER_ID,		0x60},
- 	{R367TER_I2CRPT,	0xa0},
- 	/* {R367TER_I2CRPT,	0x22},*/
-@@ -546,6 +546,7 @@ static struct st_register def0367ter[STV0367TER_NBREGS] = {
- 	{R367TER_DEBUG_LT7,	0x00},
- 	{R367TER_DEBUG_LT8,	0x00},
- 	{R367TER_DEBUG_LT9,	0x00},
-+	{0x0000,		0x00},
- };
- 
- #define RF_LOOKUP_TABLE_SIZE  31
-@@ -573,7 +574,7 @@ static const s32 stv0367cab_RF_LookUp2[RF_LOOKUP_TABLE2_SIZE][RF_LOOKUP_TABLE2_S
- 	}
- };
- 
--static struct st_register def0367cab[STV0367CAB_NBREGS] = {
-+static const struct st_register def0367cab[] = {
- 	{R367CAB_ID,		0x60},
- 	{R367CAB_I2CRPT,	0xa0},
- 	/*{R367CAB_I2CRPT,	0x22},*/
-@@ -762,6 +763,7 @@ static struct st_register def0367cab[STV0367CAB_NBREGS] = {
- 	{R367CAB_T_O_ID_1,	0x00},
- 	{R367CAB_T_O_ID_2,	0x00},
- 	{R367CAB_T_O_ID_3,	0x00},
-+	{0x0000,		0x00},
- };
- 
- static
-@@ -901,6 +903,20 @@ static u8 stv0367_getbits(u8 reg, u32 label)
- 	return (reg & mask) >> pos;
- }
- #endif
-+
-+static void stv0367_write_table(struct stv0367_state *state,
-+				const struct st_register *deftab)
-+{
-+	int i = 0;
-+
-+	while (1) {
-+		if (!deftab[i].addr)
-+			break;
-+		stv0367_writereg(state, deftab[i].addr, deftab[i].value);
-+		i++;
-+	}
-+}
-+
- static int stv0367ter_gate_ctrl(struct dvb_frontend *fe, int enable)
- {
- 	struct stv0367_state *state = fe->demodulator_priv;
-@@ -1540,15 +1556,12 @@ static int stv0367ter_init(struct dvb_frontend *fe)
- {
- 	struct stv0367_state *state = fe->demodulator_priv;
- 	struct stv0367ter_state *ter_state = state->ter_state;
--	int i;
- 
- 	dprintk("%s:\n", __func__);
- 
- 	ter_state->pBER = 0;
- 
--	for (i = 0; i < STV0367TER_NBREGS; i++)
--		stv0367_writereg(state, def0367ter[i].addr,
--					def0367ter[i].value);
-+	stv0367_write_table(state, def0367ter);
- 
- 	switch (state->config->xtal) {
- 		/*set internal freq to 53.125MHz */
-@@ -2782,13 +2795,10 @@ static int stv0367cab_init(struct dvb_frontend *fe)
- {
- 	struct stv0367_state *state = fe->demodulator_priv;
- 	struct stv0367cab_state *cab_state = state->cab_state;
--	int i;
- 
- 	dprintk("%s:\n", __func__);
- 
--	for (i = 0; i < STV0367CAB_NBREGS; i++)
--		stv0367_writereg(state, def0367cab[i].addr,
--						def0367cab[i].value);
-+	stv0367_write_table(state, def0367cab);
- 
- 	switch (state->config->ts_mode) {
- 	case STV0367_DVBCI_CLOCK:
-diff --git a/drivers/media/dvb-frontends/stv0367_regs.h b/drivers/media/dvb-frontends/stv0367_regs.h
-index 1d15862..cc66d93 100644
---- a/drivers/media/dvb-frontends/stv0367_regs.h
-+++ b/drivers/media/dvb-frontends/stv0367_regs.h
-@@ -2639,8 +2639,6 @@
- #define	R367TER_DEBUG_LT9	0xf405
- #define	F367TER_F_DEBUG_LT9	0xf40500ff
- 
--#define STV0367TER_NBREGS	445
+diff --git a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
+index e3d4d0e..ac75982 100644
+--- a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
++++ b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.c
+@@ -1132,7 +1132,7 @@ static int ov5693_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
+ 		break;
+ 	case V4L2_CID_FOCUS_STATUS:
+ 		ret = ov5693_q_focus_status(&dev->sd, &ctrl->val);
 -
- /* ID */
- #define	R367CAB_ID	0xf000
- #define	F367CAB_IDENTIFICATIONREGISTER	0xf00000ff
-@@ -3605,6 +3603,4 @@
- #define	R367CAB_T_O_ID_3	0xf4d3
- #define	F367CAB_TS_ID_I_H	0xf4d300ff
- 
--#define STV0367CAB_NBREGS	187
--
- #endif
++		break;
+ 	case V4L2_CID_BIN_FACTOR_HORZ:
+ 		ret = ov5693_g_bin_factor_x(&dev->sd, &ctrl->val);
+ 		break;
 -- 
 2.10.2
