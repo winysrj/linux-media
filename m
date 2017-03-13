@@ -1,183 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:44056 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750734AbdCAOpg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Mar 2017 09:45:36 -0500
-Message-ID: <1488378936.14858.1.camel@collabora.com>
-Subject: Re: [PATCH v6 2/2] [media] s5p-mfc: Handle 'v4l2_pix_format:field'
- in try_fmt and g_fmt
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-To: Andrzej Hajda <a.hajda@samsung.com>,
-        Thibault Saunier <thibault.saunier@osg.samsung.com>,
-        linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+Received: from mail-qk0-f180.google.com ([209.85.220.180]:36068 "EHLO
+        mail-qk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752758AbdCMVpG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Mar 2017 17:45:06 -0400
+Received: by mail-qk0-f180.google.com with SMTP id 1so233537872qkl.3
+        for <linux-media@vger.kernel.org>; Mon, 13 Mar 2017 14:45:05 -0700 (PDT)
+Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of
+ staging
+To: Mark Brown <broonie@kernel.org>,
+        Brian Starkey <brian.starkey@arm.com>
+References: <20170303132949.GC31582@dhcp22.suse.cz>
+ <cf383b9b-3cbc-0092-a071-f120874c053c@redhat.com>
+ <20170306074258.GA27953@dhcp22.suse.cz>
+ <20170306104041.zghsicrnadoap7lp@phenom.ffwll.local>
+ <20170306105805.jsq44kfxhsvazkm6@sirena.org.uk>
+ <20170306160437.sf7bksorlnw7u372@phenom.ffwll.local>
+ <CA+M3ks77Am3Fx-ZNmgeM5tCqdM7SzV7rby4Es-p2F2aOhUco9g@mail.gmail.com>
+ <26bc57ae-d88f-4ea0-d666-2c1a02bf866f@redhat.com>
+ <CA+M3ks6R=n4n54wofK7pYcWoQKUhzyWQytBO90+pRDRrAhi3ww@mail.gmail.com>
+ <20170313105433.GA12980@e106950-lin.cambridge.arm.com>
+ <20170313132150.324h7em7c3iowmwj@sirena.org.uk>
+Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Michal Hocko <mhocko@kernel.org>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>,
+        =?UTF-8?Q?Arve_Hj=c3=b8nnev=c3=a5g?= <arve@android.com>,
+        Rom Lemarchand <romlem@google.com>, devel@driverdev.osuosl.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-arm-kernel@lists.infradead.org,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Kamil Debski <kamil@wypas.org>
-Date: Wed, 01 Mar 2017 09:35:36 -0500
-In-Reply-To: <33dbd3fa-04b2-3d94-5163-0a10589ff1c7@samsung.com>
-References: <20170301115108.14187-1-thibault.saunier@osg.samsung.com>
-         <CGME20170301115141epcas2p37801b1fbe0951cc37a4e01bf2bcae3da@epcas2p3.samsung.com>
-         <20170301115108.14187-3-thibault.saunier@osg.samsung.com>
-         <33dbd3fa-04b2-3d94-5163-0a10589ff1c7@samsung.com>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-        boundary="=-0t0Xmz0xd65eafScJp8w"
-Mime-Version: 1.0
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        Daniel Vetter <daniel.vetter@intel.com>, linux-mm@kvack.org
+From: Laura Abbott <labbott@redhat.com>
+Message-ID: <8ff814f9-3351-b164-e1e2-42f0dce456b6@redhat.com>
+Date: Mon, 13 Mar 2017 14:45:00 -0700
+MIME-Version: 1.0
+In-Reply-To: <20170313132150.324h7em7c3iowmwj@sirena.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 03/13/2017 06:21 AM, Mark Brown wrote:
+> On Mon, Mar 13, 2017 at 10:54:33AM +0000, Brian Starkey wrote:
+>> On Sun, Mar 12, 2017 at 02:34:14PM +0100, Benjamin Gaignard wrote:
+> 
+>>> Another point is how can we put secure rules (like selinux policy) on
+>>> heaps since all the allocations
+>>> go to the same device (/dev/ion) ? For example, until now, in Android
+>>> we have to give the same
+>>> access rights to all the process that use ION.
+>>> It will become problem when we will add secure heaps because we won't
+>>> be able to distinguish secure
+>>> processes to standard ones or set specific policy per heaps.
+>>> Maybe I'm wrong here but I have never see selinux policy checking an
+>>> ioctl field but if that
+>>> exist it could be a solution.
+> 
+>> I might be thinking of a different type of "secure", but...
+> 
+>> Should the security of secure heaps be enforced by OS-level
+>> permissions? I don't know about other architectures, but at least on
+>> arm/arm64 this is enforced in hardware; it doesn't matter who has
+>> access to the ion heap, because only secure devices (or the CPU
+>> running a secure process) is physically able to access the memory
+>> backing the buffer.
+> 3
+>> In fact, in the use-cases I know of, the process asking for the ion
+>> allocation is not a secure process, and so we wouldn't *want* to
+>> restrict the secure heap to be allocated from only by secure
+>> processes.
+> 
+> I think there's an orthogonal level of OS level security that can be
+> applied here - it's reasonable for it to want to say things like "only
+> processes that are supposed to be implementing functionality X should be
+> able to try to allocate memory set aside for that functionality".  This
+> mitigates against escallation attacks and so on, it's not really
+> directly related to secure memory as such though.
+> 
 
---=-0t0Xmz0xd65eafScJp8w
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Ion also makes it pretty trivial to allocate large amounts of kernel
+memory and possibly DoS the system. I'd like to have as little
+policy in Ion as possible but more important would be a general
+security review and people shouting "bad idea ahead".
 
-Le mercredi 01 mars 2017 =C3=A0 14:12 +0100, Andrzej Hajda a =C3=A9crit=C2=
-=A0:
-> On 01.03.2017 12:51, Thibault Saunier wrote:
-> > It is required by the standard that the field order is set by the
-> > driver, default to NONE in case any is provided, but we can
-> > basically
-> > accept any value provided by the userspace as we will anyway not
-> > be able to do any deinterlacing.
-> >=20
-> > In this patch we also make sure to pass the interlacing mode
-> > provided
-> > by userspace from the output to the capture side of the device so
-> > that the information is given back to userspace. This way it can
-> > handle it and potentially deinterlace afterward.
->=20
-> As I wrote previously:
-> - on output side you have encoded bytestream - you cannot say about
-> interlacing in such case, so the only valid value is NONE,
-
-Userspace may know. It's important for the driver not to reset it back
-to NONE, it would tell the userspace that this encoded format is not
-supported when interlaced.
-
-Obviously, when userspace don't know (ANY), it does not matter, it will
-fail when we try to set the CAPTURE format. Though, it's quite late in
-the process for the userspace, which makes implementing software
-fallback difficult.
-
-> - on capture side you have decoded frames, and in this case it
-> depends
-> on the device and driver capabilities, if the driver/device does not
-> support (de-)interlacing (I suppose this is MFC case), interlace type
-> field should be filled according to decoded bytestream header (on
-> output
-> side), but no direct copying from output side!!!
-
-That is exact.
-
->=20
-> Regards
-> Andrzej
->=20
-> >=20
-> > Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
-> >=20
-> > ---
-> >=20
-> > Changes in v6:
-> > - Pass user output field value to the capture as the device is not
-> > =C2=A0 doing any deinterlacing and thus decoded content will still be
-> > =C2=A0 interlaced on the output.
-> >=20
-> > Changes in v5:
-> > - Just adapt the field and never error out.
-> >=20
-> > Changes in v4: None
-> > Changes in v3:
-> > - Do not check values in the g_fmt functions as Andrzej explained
-> > in previous review
-> >=20
-> > Changes in v2:
-> > - Fix a silly build error that slipped in while rebasing the
-> > patches
-> >=20
-> > =C2=A0drivers/media/platform/s5p-mfc/s5p_mfc_common.h | 2 ++
-> > =C2=A0drivers/media/platform/s5p-mfc/s5p_mfc_dec.c=C2=A0=C2=A0=C2=A0=C2=
-=A0| 6 +++++-
-> > =C2=A02 files changed, 7 insertions(+), 1 deletion(-)
-> >=20
-> > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> > b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> > index ab23236aa942..3816a37de4bc 100644
-> > --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> > +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> > @@ -652,6 +652,8 @@ struct s5p_mfc_ctx {
-> > =C2=A0	size_t me_buffer_size;
-> > =C2=A0	size_t tmv_buffer_size;
-> > =C2=A0
-> > +	enum v4l2_field field;
-> > +
-> > =C2=A0	enum v4l2_mpeg_mfc51_video_force_frame_type
-> > force_frame_type;
-> > =C2=A0
-> > =C2=A0	struct list_head ref_queue;
-> > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> > b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> > index 367ef8e8dbf0..6e5ca86fb331 100644
-> > --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> > +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> > @@ -345,7 +345,7 @@ static int vidioc_g_fmt(struct file *file, void
-> > *priv, struct v4l2_format *f)
-> > =C2=A0		=C2=A0=C2=A0=C2=A0rectangle. */
-> > =C2=A0		pix_mp->width =3D ctx->buf_width;
-> > =C2=A0		pix_mp->height =3D ctx->buf_height;
-> > -		pix_mp->field =3D V4L2_FIELD_NONE;
-> > +		pix_mp->field =3D ctx->field;
-> > =C2=A0		pix_mp->num_planes =3D 2;
-> > =C2=A0		/* Set pixelformat to the format in which MFC
-> > =C2=A0		=C2=A0=C2=A0=C2=A0outputs the decoded frame */
-> > @@ -380,6 +380,9 @@ static int vidioc_try_fmt(struct file *file,
-> > void *priv, struct v4l2_format *f)
-> > =C2=A0	struct s5p_mfc_dev *dev =3D video_drvdata(file);
-> > =C2=A0	struct s5p_mfc_fmt *fmt;
-> > =C2=A0
-> > +	if (f->fmt.pix.field =3D=3D V4L2_FIELD_ANY)
-> > +		f->fmt.pix.field =3D V4L2_FIELD_NONE;
-> > +
-> > =C2=A0	mfc_debug(2, "Type is %d\n", f->type);
-> > =C2=A0	if (f->type =3D=3D V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-> > =C2=A0		fmt =3D find_format(f, MFC_FMT_DEC);
-> > @@ -436,6 +439,7 @@ static int vidioc_s_fmt(struct file *file, void
-> > *priv, struct v4l2_format *f)
-> > =C2=A0		goto out;
-> > =C2=A0	} else if (f->type =3D=3D V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-> > =C2=A0		/* src_fmt is validated by call to vidioc_try_fmt
-> > */
-> > +		ctx->field =3D f->fmt.pix.field;
-> > =C2=A0		ctx->src_fmt =3D find_format(f, MFC_FMT_DEC);
-> > =C2=A0		ctx->codec_mode =3D ctx->src_fmt->codec_mode;
-> > =C2=A0		mfc_debug(2, "The codec number is: %d\n", ctx-
-> > >codec_mode);
->=20
->=20
---=-0t0Xmz0xd65eafScJp8w
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iEYEABECAAYFAli23DgACgkQcVMCLawGqBxDjQCdGQYKG+5PC1phQPy6DGLX4H6O
-kQ4AnR7HeXAhb4oppq2PnIh/7UwLR36v
-=GzeV
------END PGP SIGNATURE-----
-
---=-0t0Xmz0xd65eafScJp8w--
+Thanks,
+Laura
