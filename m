@@ -1,141 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:44142 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934312AbdCJNlg (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:33110 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750846AbdCMXjH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Mar 2017 08:41:36 -0500
-Date: Fri, 10 Mar 2017 14:41:31 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org
-Subject: Re: [RFC] omap3isp: add support for CSI1 bus
-Message-ID: <20170310134131.GD11875@amd>
-References: <20161228183036.GA13139@amd>
- <10545906.Gxg3yScdu4@avalon>
- <20170215094228.GA8586@amd>
- <2414221.XNA4JCFMRx@avalon>
- <20170302090143.GB27818@amd>
- <20170302101603.GE27818@amd>
- <20170302112401.GF3220@valkosipuli.retiisi.org.uk>
- <20170302123848.GA28230@amd>
- <20170304130318.GU3220@valkosipuli.retiisi.org.uk>
- <20170306075659.GB23509@amd>
+        Mon, 13 Mar 2017 19:39:07 -0400
+Subject: Re: [PATCH v5 00/39] i.MX Media Driver
+To: Russell King - ARM Linux <linux@armlinux.org.uk>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <20170310201356.GA21222@n2100.armlinux.org.uk>
+ <47542ef8-3e91-b4cd-cc65-95000105f172@gmail.com>
+ <20170312195741.GS21222@n2100.armlinux.org.uk>
+ <ea3ccdb8-903f-93ab-6875-90da440fc52a@gmail.com>
+ <20170312202240.GT21222@n2100.armlinux.org.uk>
+ <f1807742-012f-249e-1ad8-22d8434695cb@gmail.com>
+ <20170313081625.GX21222@n2100.armlinux.org.uk>
+ <20170313093007.GD21222@n2100.armlinux.org.uk>
+Cc: mark.rutland@arm.com, andrew-ct.chen@mediatek.com,
+        minghsiu.tsai@mediatek.com, sakari.ailus@linux.intel.com,
+        nick@shmanahar.org, songjun.wu@microchip.com, hverkuil@xs4all.nl,
+        pavel@ucw.cz, robert.jarzmik@free.fr, devel@driverdev.osuosl.org,
+        markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, shuah@kernel.org,
+        geert@linux-m68k.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, kernel@pengutronix.de, arnd@arndb.de,
+        mchehab@kernel.org, bparrot@ti.com, robh+dt@kernel.org,
+        horms+renesas@verge.net.au, tiffany.lin@mediatek.com,
+        linux-arm-kernel@lists.infradead.org,
+        niklas.soderlund+renesas@ragnatech.se, gregkh@linuxfoundation.org,
+        linux-kernel@vger.kernel.org, jean-christophe.trotin@st.com,
+        p.zabel@pengutronix.de, fabio.estevam@nxp.com, shawnguo@kernel.org,
+        sudipm.mukherjee@gmail.com
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <57ebeab6-0e98-cd12-9fe3-6a33c5ec0cad@gmail.com>
+Date: Mon, 13 Mar 2017 16:39:01 -0700
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="3Pql8miugIZX0722"
-Content-Disposition: inline
-In-Reply-To: <20170306075659.GB23509@amd>
+In-Reply-To: <20170313093007.GD21222@n2100.armlinux.org.uk>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+er, I meant I will integrate this patch. And verify/fix
+possible breakage for non-bayer passthrough.
 
---3Pql8miugIZX0722
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Mon 2017-03-06 08:56:59, Pavel Machek wrote:
-> omap3isp: add rest of CSI1 support
->=20
-> CSI1 needs one more bit to be set up. Do just that.
->=20
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
->=20
-> ---
->=20
-> Hmm. Looking at that... num_data_lanes probably should be modified in
-> local variable, not globally like this. Should I do that?
->=20
-> Anything else that needs fixing?
-
-Ping? Feedback here would be nice. This is last "interesting" piece of
-the hardware support...
-
-Best regards,
-								Pavel
-
-> index 24a9fc5..6feba36 100644
-> --- a/drivers/media/platform/omap3isp/ispccp2.c
-> +++ b/drivers/media/platform/omap3isp/ispccp2.c
-> @@ -21,6 +23,7 @@
->  #include <linux/mutex.h>
->  #include <linux/uaccess.h>
->  #include <linux/regulator/consumer.h>
-> +#include <linux/regmap.h>
-> =20
->  #include "isp.h"
->  #include "ispreg.h"
-> @@ -1149,6 +1152,7 @@ int omap3isp_ccp2_init(struct isp_device *isp)
->  				"Could not get regulator vdds_csib\n");
->  			ccp2->vdds_csib =3D NULL;
->  		}
-> +		ccp2->phy =3D &isp->isp_csiphy2;
->  	} else if (isp->revision =3D=3D ISP_REVISION_15_0) {
->  		ccp2->phy =3D &isp->isp_csiphy1;
->  	}
-> diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/=
-platform/omap3isp/ispcsiphy.c
-> index 50c0f64..cd6351b 100644
-> --- a/drivers/media/platform/omap3isp/ispcsiphy.c
-> +++ b/drivers/media/platform/omap3isp/ispcsiphy.c
-> @@ -197,9 +200,10 @@ static int omap3isp_csiphy_config(struct isp_csiphy =
-*phy)
->  	}
-> =20
->  	if (buscfg->interface =3D=3D ISP_INTERFACE_CCP2B_PHY1
-> -	    || buscfg->interface =3D=3D ISP_INTERFACE_CCP2B_PHY2)
-> +	    || buscfg->interface =3D=3D ISP_INTERFACE_CCP2B_PHY2) {
->  		lanes =3D &buscfg->bus.ccp2.lanecfg;
-> -	else
-> +		phy->num_data_lanes =3D 1;
-> +	} else
->  		lanes =3D &buscfg->bus.csi2.lanecfg;
-> =20
->  	/* Clock and data lanes verification */
-> @@ -302,13 +306,16 @@ int omap3isp_csiphy_acquire(struct isp_csiphy *phy)
->  	if (rval < 0)
->  		goto done;
-> =20
-> -	rval =3D csiphy_set_power(phy, ISPCSI2_PHY_CFG_PWR_CMD_ON);
-> -	if (rval) {
-> -		regulator_disable(phy->vdd);
-> -		goto done;
-> +	if (phy->isp->revision =3D=3D ISP_REVISION_15_0) {
-> +		rval =3D csiphy_set_power(phy, ISPCSI2_PHY_CFG_PWR_CMD_ON);
-> +		if (rval) {
-> +			regulator_disable(phy->vdd);
-> +			goto done;
-> +		}
-> +	=09
-> +		csiphy_power_autoswitch_enable(phy, true);	=09
->  	}
-> =20
-> -	csiphy_power_autoswitch_enable(phy, true);
->  	phy->phy_in_use =3D 1;
-> =20
->  done:
->=20
+Steve
 
 
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---3Pql8miugIZX0722
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAljCrQsACgkQMOfwapXb+vLSNgCdETmKgyTz5vu2g25Kl4ZEvkzb
-5I8AmgOspB2wChxqE/+4SPmggI1DhhB7
-=j2Ss
------END PGP SIGNATURE-----
-
---3Pql8miugIZX0722--
+On 03/13/2017 02:30 AM, Russell King - ARM Linux wrote:
+> On Mon, Mar 13, 2017 at 08:16:25AM +0000, Russell King - ARM Linux wrote:
+>> On Sun, Mar 12, 2017 at 09:26:41PM -0700, Steve Longerbeam wrote:
+>>> On 03/12/2017 01:22 PM, Russell King - ARM Linux wrote:
+>>>> What I had was this patch for your v3.  I never got to testing your
+>>>> v4 because of the LP-11 problem.
+>>>>
+>>>> In v5, you've changed to propagate the ipu_cpmem_set_image() error
+>>>> code to avoid the resulting corruption, but that leaves the other bits
+>>>> of this patch unaddressed, along my "media: imx: smfc: add support
+>>>> for bayer formats" patch.
+>>>>
+>>>> Your driver basically has no support for bayer formats.
+>>> You added the patches to this driver that adds the bayer support,
+>>> I don't think there is anything more required of the driver at this
+>>> point to support bayer, the remaining work needs to happen in the IPUv3
+>>> driver.
+>> There is more work, because the way you've merged my changes to
+>> imx_smfc_setup_channel() into csi_idmac_setup_channel() is wrong with
+>> respect to the burst size.
+>>
+>> You always set it to 8 or 16 depending on the width:
+>>
+>> 	burst_size = (image.pix.width & 0xf) ? 8 : 16;
+>>
+>> 	ipu_cpmem_set_burstsize(priv->idmac_ch, burst_size);
+>>
+>> and then you have my switch() statement which assigns burst_size.
+>> My _tested_ code removed the above, added the switch, which had
+>> a default case which reflected the above setting:
+>>
+>> 	default:
+>> 		burst_size = (outfmt->width & 0xf) ? 8 : 16;
+>>
+>> and then went on to set the burst size _after_ the switch statement:
+>>
+>> 	ipu_cpmem_set_burstsize(priv->smfc_ch, burst_size);
+>>
+>> The effect is unchanged for non-bayer formats.  For bayer formats, the
+>> burst size is determined by the bayer data size.
+>>
+>> So, even if it's appropriate to fix ipu_cpmem_set_image(), fixing the
+>> above is still required.
+>>
+>> I'm not convinced that fixing ipu_cpmem_set_image() is even the best
+>> solution - it's not as trivial as it looks on the surface:
+>>
+>>          ipu_cpmem_set_resolution(ch, image->rect.width, image->rect.height);
+>>          ipu_cpmem_set_stride(ch, pix->bytesperline);
+>>
+>> this is fine, it doesn't depend on the format.  However, the next line:
+>>
+>>          ipu_cpmem_set_fmt(ch, v4l2_pix_fmt_to_drm_fourcc(pix->pixelformat));
+>>
+>> does - v4l2_pix_fmt_to_drm_fourcc() is a locally defined function (it
+>> isn't v4l2 code) that converts a v4l2 pixel format to a DRM fourcc.
+>> DRM knows nothing about bayer formats, there aren't fourcc codes in
+>> DRM for it.  The result is that v4l2_pix_fmt_to_drm_fourcc() returns
+>> -EINVAL cast to a u32, which gets passed unchecked into ipu_cpmem_set_fmt().
+>>
+>> ipu_cpmem_set_fmt() won't recognise that, and also returns -EINVAL - and
+>> it's a bug that this is not checked and propagated.  If it is checked and
+>> propagated, then we need this to support bayer formats, and I don't see
+>> DRM people wanting bayer format fourcc codes added without there being
+>> a real DRM driver wanting to use them.
+>>
+>> Then there's the business of calculating the top-left offset of the image,
+>> which for bayer always needs to be an even number of pixels - as this
+>> function takes the top-left offset, it ought to respect it, but if it
+>> doesn't meet this criteria, what should it do?  csi_idmac_setup_channel()
+>> always sets them to zero, but that's not really something that
+>> ipu_cpmem_set_image() should assume.
+> For the time being, I've restored the functionality along the same lines
+> as I originally had.  This seems to get me working capture, but might
+> break non-bayer passthrough mode:
+>
+> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+> index fc0036aa84d0..df336971a009 100644
+> --- a/drivers/staging/media/imx/imx-media-csi.c
+> +++ b/drivers/staging/media/imx/imx-media-csi.c
+> @@ -314,14 +314,6 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+>   	image.phys0 = phys[0];
+>   	image.phys1 = phys[1];
+>   
+> -	ret = ipu_cpmem_set_image(priv->idmac_ch, &image);
+> -	if (ret)
+> -		return ret;
+> -
+> -	burst_size = (image.pix.width & 0xf) ? 8 : 16;
+> -
+> -	ipu_cpmem_set_burstsize(priv->idmac_ch, burst_size);
+> -
+>   	/*
+>   	 * Check for conditions that require the IPU to handle the
+>   	 * data internally as generic data, aka passthrough mode:
+> @@ -346,15 +338,29 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
+>   		passthrough_bits = 16;
+>   		break;
+>   	default:
+> +		burst_size = (image.pix.width & 0xf) ? 8 : 16;
+>   		passthrough = (sensor_ep->bus_type != V4L2_MBUS_CSI2 &&
+>   			       sensor_ep->bus.parallel.bus_width >= 16);
+>   		passthrough_bits = 16;
+>   		break;
+>   	}
+>   
+> -	if (passthrough)
+> +	if (passthrough) {
+> +		ipu_cpmem_set_resolution(priv->idmac_ch, image.rect.width,
+> +					 image.rect.height);
+> +		ipu_cpmem_set_stride(priv->idmac_ch, image.pix.bytesperline);
+> +		ipu_cpmem_set_buffer(priv->idmac_ch, 0, image.phys0);
+> +		ipu_cpmem_set_buffer(priv->idmac_ch, 1, image.phys1);
+> +		ipu_cpmem_set_burstsize(priv->idmac_ch, burst_size);
+>   		ipu_cpmem_set_format_passthrough(priv->idmac_ch,
+>   						 passthrough_bits);
+> +	} else {
+> +		ret = ipu_cpmem_set_image(priv->idmac_ch, &image);
+> +		if (ret)
+> +			return ret;
+> +
+> +		ipu_cpmem_set_burstsize(priv->idmac_ch, burst_size);
+> +	}
+>   
+>   	/*
+>   	 * Set the channel for the direct CSI-->memory via SMFC
+>
+>
