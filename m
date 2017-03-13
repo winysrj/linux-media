@@ -1,107 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:10814 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932434AbdCFOfc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Mar 2017 09:35:32 -0500
-From: Elena Reshetova <elena.reshetova@intel.com>
-To: gregkh@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org,
-        netdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
-        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
-        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
-        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
-        linux-usb@vger.kernel.org, peterz@infradead.org,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        Hans Liljestrand <ishkamiel@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        David Windsor <dwindsor@gmail.com>
-Subject: [PATCH 18/29] drivers, s390: convert urdev.ref_count from atomic_t to refcount_t
-Date: Mon,  6 Mar 2017 16:21:05 +0200
-Message-Id: <1488810076-3754-19-git-send-email-elena.reshetova@intel.com>
-In-Reply-To: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
-References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+Received: from mail-wm0-f46.google.com ([74.125.82.46]:33477 "EHLO
+        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754100AbdCMQhw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Mar 2017 12:37:52 -0400
+Received: by mail-wm0-f46.google.com with SMTP id v203so9227719wmg.0
+        for <linux-media@vger.kernel.org>; Mon, 13 Mar 2017 09:37:51 -0700 (PDT)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v7 0/9] Qualcomm video decoder/encoder driver
+Date: Mon, 13 Mar 2017 18:37:29 +0200
+Message-Id: <1489423058-12492-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-refcount_t type and corresponding API should be
-used instead of atomic_t when the variable is used as
-a reference counter. This allows to avoid accidental
-refcounter overflows that might lead to use-after-free
-situations.
+Hi all,
 
-Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
-Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Signed-off-by: David Windsor <dwindsor@gmail.com>
----
- drivers/s390/char/vmur.c | 8 ++++----
- drivers/s390/char/vmur.h | 4 +++-
- 2 files changed, 7 insertions(+), 5 deletions(-)
+Here is seventh version of the patch-set - no functional changes in
+v4l2 APIs.
 
-diff --git a/drivers/s390/char/vmur.c b/drivers/s390/char/vmur.c
-index 04aceb6..ced8151 100644
---- a/drivers/s390/char/vmur.c
-+++ b/drivers/s390/char/vmur.c
-@@ -110,7 +110,7 @@ static struct urdev *urdev_alloc(struct ccw_device *cdev)
- 	mutex_init(&urd->io_mutex);
- 	init_waitqueue_head(&urd->wait);
- 	spin_lock_init(&urd->open_lock);
--	atomic_set(&urd->ref_count,  1);
-+	refcount_set(&urd->ref_count,  1);
- 	urd->cdev = cdev;
- 	get_device(&cdev->dev);
- 	return urd;
-@@ -126,7 +126,7 @@ static void urdev_free(struct urdev *urd)
- 
- static void urdev_get(struct urdev *urd)
- {
--	atomic_inc(&urd->ref_count);
-+	refcount_inc(&urd->ref_count);
- }
- 
- static struct urdev *urdev_get_from_cdev(struct ccw_device *cdev)
-@@ -159,7 +159,7 @@ static struct urdev *urdev_get_from_devno(u16 devno)
- 
- static void urdev_put(struct urdev *urd)
- {
--	if (atomic_dec_and_test(&urd->ref_count))
-+	if (refcount_dec_and_test(&urd->ref_count))
- 		urdev_free(urd);
- }
- 
-@@ -946,7 +946,7 @@ static int ur_set_offline_force(struct ccw_device *cdev, int force)
- 		rc = -EBUSY;
- 		goto fail_urdev_put;
- 	}
--	if (!force && (atomic_read(&urd->ref_count) > 2)) {
-+	if (!force && (refcount_read(&urd->ref_count) > 2)) {
- 		/* There is still a user of urd (e.g. ur_open) */
- 		TRACE("ur_set_offline: BUSY\n");
- 		rc = -EBUSY;
-diff --git a/drivers/s390/char/vmur.h b/drivers/s390/char/vmur.h
-index fa320ad..35ea9d1 100644
---- a/drivers/s390/char/vmur.h
-+++ b/drivers/s390/char/vmur.h
-@@ -11,6 +11,8 @@
- #ifndef _VMUR_H_
- #define _VMUR_H_
- 
-+#include <linux/refcount.h>
-+
- #define DEV_CLASS_UR_I 0x20 /* diag210 unit record input device class */
- #define DEV_CLASS_UR_O 0x10 /* diag210 unit record output device class */
- /*
-@@ -69,7 +71,7 @@ struct urdev {
- 	size_t reclen;			/* Record length for *write* CCWs */
- 	int class;			/* VM device class */
- 	int io_request_rc;		/* return code from I/O request */
--	atomic_t ref_count;		/* reference counter */
-+	refcount_t ref_count;		/* reference counter */
- 	wait_queue_head_t wait;		/* wait queue to serialize open */
- 	int open_flag;			/* "urdev is open" flag */
- 	spinlock_t open_lock;		/* serialize critical sections */
+The changes since v6 are.
+  * changes in DT binding document - moved memory-region DT property
+    in video-codec node - see 2/9.
+  * improved recovery mechanism. 
+  * fixed various issues found during testing.
+
+Build dependencies:
+  - qcom_scm_set_remote_state is merged in Linux 4.11-rc1
+  - qcom mdt_loader is merged in Linux 4.11-rc1
+
+regards,
+Stan
+  
+Stanimir Varbanov (9):
+  media: v4l2-mem2mem: extend m2m APIs for more accurate buffer
+    management
+  doc: DT: venus: binding document for Qualcomm video driver
+  MAINTAINERS: Add Qualcomm Venus video accelerator driver
+  media: venus: adding core part and helper functions
+  media: venus: vdec: add video decoder files
+  media: venus: venc: add video encoder files
+  media: venus: hfi: add Host Firmware Interface (HFI)
+  media: venus: hfi: add Venus HFI files
+  media: venus: enable building of Venus video driver
+
+ .../devicetree/bindings/media/qcom,venus.txt       |  107 ++
+ MAINTAINERS                                        |    8 +
+ drivers/media/platform/Kconfig                     |   14 +
+ drivers/media/platform/Makefile                    |    2 +
+ drivers/media/platform/qcom/venus/Makefile         |   11 +
+ drivers/media/platform/qcom/venus/core.c           |  386 +++++
+ drivers/media/platform/qcom/venus/core.h           |  306 ++++
+ drivers/media/platform/qcom/venus/firmware.c       |  107 ++
+ drivers/media/platform/qcom/venus/firmware.h       |   22 +
+ drivers/media/platform/qcom/venus/helpers.c        |  632 ++++++++
+ drivers/media/platform/qcom/venus/helpers.h        |   41 +
+ drivers/media/platform/qcom/venus/hfi.c            |  520 +++++++
+ drivers/media/platform/qcom/venus/hfi.h            |  174 +++
+ drivers/media/platform/qcom/venus/hfi_cmds.c       | 1256 ++++++++++++++++
+ drivers/media/platform/qcom/venus/hfi_cmds.h       |  304 ++++
+ drivers/media/platform/qcom/venus/hfi_helper.h     | 1050 +++++++++++++
+ drivers/media/platform/qcom/venus/hfi_msgs.c       | 1058 +++++++++++++
+ drivers/media/platform/qcom/venus/hfi_msgs.h       |  283 ++++
+ drivers/media/platform/qcom/venus/hfi_venus.c      | 1570 ++++++++++++++++++++
+ drivers/media/platform/qcom/venus/hfi_venus.h      |   23 +
+ drivers/media/platform/qcom/venus/hfi_venus_io.h   |  113 ++
+ drivers/media/platform/qcom/venus/vdec.c           | 1091 ++++++++++++++
+ drivers/media/platform/qcom/venus/vdec.h           |   23 +
+ drivers/media/platform/qcom/venus/vdec_ctrls.c     |  149 ++
+ drivers/media/platform/qcom/venus/venc.c           | 1231 +++++++++++++++
+ drivers/media/platform/qcom/venus/venc.h           |   23 +
+ drivers/media/platform/qcom/venus/venc_ctrls.c     |  258 ++++
+ drivers/media/v4l2-core/v4l2-mem2mem.c             |   37 +
+ include/media/v4l2-mem2mem.h                       |   92 ++
+ 29 files changed, 10891 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
+ create mode 100644 drivers/media/platform/qcom/venus/Makefile
+ create mode 100644 drivers/media/platform/qcom/venus/core.c
+ create mode 100644 drivers/media/platform/qcom/venus/core.h
+ create mode 100644 drivers/media/platform/qcom/venus/firmware.c
+ create mode 100644 drivers/media/platform/qcom/venus/firmware.h
+ create mode 100644 drivers/media/platform/qcom/venus/helpers.c
+ create mode 100644 drivers/media/platform/qcom/venus/helpers.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_helper.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_venus_io.h
+ create mode 100644 drivers/media/platform/qcom/venus/vdec.c
+ create mode 100644 drivers/media/platform/qcom/venus/vdec.h
+ create mode 100644 drivers/media/platform/qcom/venus/vdec_ctrls.c
+ create mode 100644 drivers/media/platform/qcom/venus/venc.c
+ create mode 100644 drivers/media/platform/qcom/venus/venc.h
+ create mode 100644 drivers/media/platform/qcom/venus/venc_ctrls.c
+
 -- 
 2.7.4
