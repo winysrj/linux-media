@@ -1,52 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:32813 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751672AbdCGTJO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 14:09:14 -0500
-Received: by mail-wr0-f196.google.com with SMTP id g10so1427788wrg.0
-        for <linux-media@vger.kernel.org>; Tue, 07 Mar 2017 11:07:24 -0800 (PST)
-Received: from dvbdev.wuest.de (ip-178-201-73-185.hsi08.unitymediagroup.de. [178.201.73.185])
-        by smtp.gmail.com with ESMTPSA id m186sm13760369wmd.21.2017.03.07.10.58.30
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Tue, 07 Mar 2017 10:58:30 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 02/13] [media] dvb-frontends/stv0367: print CPAMP status only if stv_debug is enabled
-Date: Tue,  7 Mar 2017 19:57:16 +0100
-Message-Id: <20170307185727.564-3-d.scheller.oss@gmail.com>
-In-Reply-To: <20170307185727.564-1-d.scheller.oss@gmail.com>
-References: <20170307185727.564-1-d.scheller.oss@gmail.com>
+Received: from aserp1040.oracle.com ([141.146.126.69]:21553 "EHLO
+        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752170AbdCMMec (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Mar 2017 08:34:32 -0400
+Date: Mon, 13 Mar 2017 15:34:14 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Alan Cox <alan@linux.intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        kernel-janitors@vger.kernel.org
+Subject: [PATCH] staging: atomisp: potential underflow in
+ atomisp_get_metadata_by_type()
+Message-ID: <20170313123414.GB9287@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+md_type is an enum.  On my tests, GCC treats it as unsigned but
+according to the C standard it's an implementation dependant thing so we
+should check for negatives.
 
-The CPAMP log lines generated in stv0367_ter_check_cpamp() are printed
-everytime tuning succeeds or fails, quite cluttering the normal kernel log.
-Use dprintk() instead of printk(KERN_ERR...) so that if the information is
-needed, it'll be printed when the stv_debug modparam is enabled.
+Fixes: a49d25364dfb ("staging/atomisp: Add support for the Intel IPU v2")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/dvb-frontends/stv0367.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
-index fc80934..0064d9d 100644
---- a/drivers/media/dvb-frontends/stv0367.c
-+++ b/drivers/media/dvb-frontends/stv0367.c
-@@ -1262,9 +1262,9 @@ stv0367_ter_signal_type stv0367ter_check_cpamp(struct stv0367_state *state,
- 	dprintk("******last CPAMPvalue= %d at wd=%d\n", CPAMPvalue, wd);
- 	if (CPAMPvalue < CPAMPMin) {
- 		CPAMPStatus = FE_TER_NOCPAMP;
--		printk(KERN_ERR "CPAMP failed\n");
-+		dprintk("%s: CPAMP failed\n", __func__);
- 	} else {
--		printk(KERN_ERR "CPAMP OK !\n");
-+		dprintk("%s: CPAMP OK !\n", __func__);
- 		CPAMPStatus = FE_TER_CPAMPOK;
- 	}
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+index d9a5c24633cb..0d77ebc5c865 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+@@ -3005,7 +3005,7 @@ int atomisp_get_metadata_by_type(struct atomisp_sub_device *asd, int flag,
+ 		return 0;
  
--- 
-2.10.2
+ 	md_type = md->type;
+-	if (md_type >= ATOMISP_METADATA_TYPE_NUM)
++	if (md_type < 0 || md_type >= ATOMISP_METADATA_TYPE_NUM)
+ 		return -EINVAL;
+ 
+ 	/* This is done in the atomisp_buf_done() */
