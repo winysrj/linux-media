@@ -1,82 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:51432 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754698AbdC1I24 (ORCPT
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:34126 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751142AbdCNNxt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Mar 2017 04:28:56 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv6 10/14] ov2640: update bindings
-Date: Tue, 28 Mar 2017 10:23:43 +0200
-Message-Id: <20170328082347.11159-11-hverkuil@xs4all.nl>
-In-Reply-To: <20170328082347.11159-1-hverkuil@xs4all.nl>
-References: <20170328082347.11159-1-hverkuil@xs4all.nl>
+        Tue, 14 Mar 2017 09:53:49 -0400
+Message-ID: <1489499621.2338.6.camel@gmail.com>
+Subject: Re: [PATCH v6 1/3] drm_fourcc: Add new P010, P016 video format
+From: Ander Conselvan De Oliveira <conselvan2@gmail.com>
+To: Ayaka <ayaka@soulik.info>,
+        Ville =?ISO-8859-1?Q?Syrj=E4l=E4?=
+        <ville.syrjala@linux.intel.com>,
+        "Taylor, Clinton A" <clinton.a.taylor@intel.com>
+Cc: linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org
+Date: Tue, 14 Mar 2017 15:53:41 +0200
+In-Reply-To: <A7CC5F68-361D-4682-8811-C835613B2059@soulik.info>
+References: <1488708033-5691-1-git-send-email-ayaka@soulik.info>
+         <1488708033-5691-2-git-send-email-ayaka@soulik.info>
+         <20170306130609.GT31595@intel.com>
+         <AEC0BE28-4C63-430B-9972-BDF0A323D742@soulik.info>
+         <20170306183434.GV31595@intel.com>
+         <A7CC5F68-361D-4682-8811-C835613B2059@soulik.info>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Tue, 2017-03-07 at 04:27 +0800, Ayaka wrote:
+> 
+> 從我的 iPad 傳送
+> 
+> > Ville Syrjälä <ville.syrjala@linux.intel.com> 於 2017年3月7日 上午2:34 寫道：
+> > 
+> > > On Tue, Mar 07, 2017 at 01:58:23AM +0800, Ayaka wrote:
+> > > 
+> > > 
+> > > 從我的 iPad 傳送
+> > > 
+> > > > > Ville Syrjälä <ville.syrjala@linux.intel.com> 於 2017年3月6日 下午9:06 寫道：
+> > > > > 
+> > > > > On Sun, Mar 05, 2017 at 06:00:31PM +0800, Randy Li wrote:
+> > > > > P010 is a planar 4:2:0 YUV with interleaved UV plane, 10 bits
+> > > > > per channel video format.
+> > > > > 
+> > > > > P016 is a planar 4:2:0 YUV with interleaved UV plane, 16 bits
+> > > > > per channel video format.
+> > > > > 
+> > > > > V3: Added P012 and fixed cpp for P010
+> > > > > V4: format definition refined per review
+> > > > > V5: Format comment block for each new pixel format
+> > > > > V6: reversed Cb/Cr order in comments
+> > > > > v7: reversed Cb/Cr order in comments of header files, remove
+> > > > > the wrong part of commit message.
+> > > > 
+> > > > What? Why? You just undid what Clint did in v6.
+> > > 
+> > > He missed a file also keeping the wrong description of rockchip.
+> > 
+> > I don't follow. Who missed what exactly?
+> 
+> What he sent is v5, I increase the order number twice in the message, it confuse me as well. 
+> I think Clint forgot the include/uapi/drm/drm_fourcc.h .
 
-Update the bindings for this device based on a working DT example.
+Clint did send a v6, and that updates "include/uapi/drm/drm_fourcc.h":
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Rob Herring <robh@kernel.org>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- .../devicetree/bindings/media/i2c/ov2640.txt       | 23 +++++++++-------------
- 1 file changed, 9 insertions(+), 14 deletions(-)
+https://patchwork.freedesktop.org/patch/141342/
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov2640.txt b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
-index c429b5bdcaa0..989ce6cb6ac3 100644
---- a/Documentation/devicetree/bindings/media/i2c/ov2640.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/ov2640.txt
-@@ -1,8 +1,8 @@
- * Omnivision OV2640 CMOS sensor
- 
--The Omnivision OV2640 sensor support multiple resolutions output, such as
--CIF, SVGA, UXGA. It also can support YUV422/420, RGB565/555 or raw RGB
--output format.
-+The Omnivision OV2640 sensor supports multiple resolutions output, such as
-+CIF, SVGA, UXGA. It also can support the YUV422/420, RGB565/555 or raw RGB
-+output formats.
- 
- Required Properties:
- - compatible: should be "ovti,ov2640"
-@@ -20,26 +20,21 @@ Documentation/devicetree/bindings/media/video-interfaces.txt.
- Example:
- 
- 	i2c1: i2c@f0018000 {
--		ov2640: camera@0x30 {
-+		ov2640: camera@30 {
- 			compatible = "ovti,ov2640";
- 			reg = <0x30>;
--
- 			pinctrl-names = "default";
--			pinctrl-0 = <&pinctrl_pck1 &pinctrl_ov2640_pwdn &pinctrl_ov2640_resetb>;
--
--			resetb-gpios = <&pioE 24 GPIO_ACTIVE_LOW>;
--			pwdn-gpios = <&pioE 29 GPIO_ACTIVE_HIGH>;
--
--			clocks = <&pck1>;
-+			pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
-+			resetb-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
-+			pwdn-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
-+			clocks = <&pck0>;
- 			clock-names = "xvclk";
--
--			assigned-clocks = <&pck1>;
-+			assigned-clocks = <&pck0>;
- 			assigned-clock-rates = <25000000>;
- 
- 			port {
- 				ov2640_0: endpoint {
- 					remote-endpoint = <&isi_0>;
--					bus-width = <8>;
- 				};
- 			};
- 		};
--- 
-2.11.0
+
+Ander
+
+> > 
+> > 
+> > > > 
+> > > > > 
+> > > > > Cc: Daniel Stone <daniel@fooishbar.org>
+> > > > > Cc: Ville Syrjälä <ville.syrjala@linux.intel.com>
+> > > > > 
+> > > > > Signed-off-by: Randy Li <ayaka@soulik.info>
+> > > > > Signed-off-by: Clint Taylor <clinton.a.taylor@intel.com>
+> > > > > ---
+> > > > > drivers/gpu/drm/drm_fourcc.c  |  3 +++
+> > > > > include/uapi/drm/drm_fourcc.h | 21 +++++++++++++++++++++
+> > > > > 2 files changed, 24 insertions(+)
+> > > > > 
+> > > > > diff --git a/drivers/gpu/drm/drm_fourcc.c b/drivers/gpu/drm/drm_fourcc.c
+> > > > > index 90d2cc8..3e0fd58 100644
+> > > > > --- a/drivers/gpu/drm/drm_fourcc.c
+> > > > > +++ b/drivers/gpu/drm/drm_fourcc.c
+> > > > > @@ -165,6 +165,9 @@ const struct drm_format_info *__drm_format_info(u32 format)
+> > > > >       { .format = DRM_FORMAT_UYVY,        .depth = 0,  .num_planes = 1, .cpp = { 2, 0, 0 }, .hsub = 2, .vsub = 1 },
+> > > > >       { .format = DRM_FORMAT_VYUY,        .depth = 0,  .num_planes = 1, .cpp = { 2, 0, 0 }, .hsub = 2, .vsub = 1 },
+> > > > >       { .format = DRM_FORMAT_AYUV,        .depth = 0,  .num_planes = 1, .cpp = { 4, 0, 0 }, .hsub = 1, .vsub = 1 },
+> > > > > +        { .format = DRM_FORMAT_P010,        .depth = 0,  .num_planes = 2, .cpp = { 2, 4, 0 }, .hsub = 2, .vsub = 2 },
+> > > > > +        { .format = DRM_FORMAT_P012,        .depth = 0,  .num_planes = 2, .cpp = { 2, 4, 0 }, .hsub = 2, .vsub = 2 },
+> > > > > +        { .format = DRM_FORMAT_P016,        .depth = 0,  .num_planes = 2, .cpp = { 2, 4, 0 }, .hsub = 2, .vsub = 2 },
+> > > > >   };
+> > > > > 
+> > > > >   unsigned int i;
+> > > > > diff --git a/include/uapi/drm/drm_fourcc.h b/include/uapi/drm/drm_fourcc.h
+> > > > > index ef20abb..306f979 100644
+> > > > > --- a/include/uapi/drm/drm_fourcc.h
+> > > > > +++ b/include/uapi/drm/drm_fourcc.h
+> > > > > @@ -128,6 +128,27 @@ extern "C" {
+> > > > > #define DRM_FORMAT_NV42        fourcc_code('N', 'V', '4', '2') /* non-subsampled Cb:Cr plane */
+> > > > > 
+> > > > > /*
+> > > > > + * 2 plane YCbCr MSB aligned
+> > > > > + * index 0 = Y plane, [15:0] Y:x [10:6] little endian
+> > > > > + * index 1 = Cb:Cr plane, [31:0] Cb:x:Cr:x [10:6:10:6] little endian
+> > > > > + */
+> > > > > +#define DRM_FORMAT_P010        fourcc_code('P', '0', '1', '0') /* 2x2 subsampled Cb:Cr plane 10 bits per channel */
+> > > > > +
+> > > > > +/*
+> > > > > + * 2 plane YCbCr MSB aligned
+> > > > > + * index 0 = Y plane, [15:0] Y:x [12:4] little endian
+> > > > > + * index 1 = Cb:Cr plane, [31:0] Cb:x:Cr:x [12:4:12:4] little endian
+> > > > > + */
+> > > > > +#define DRM_FORMAT_P012        fourcc_code('P', '0', '1', '2') /* 2x2 subsampled Cb:Cr plane 12 bits per channel */
+> > > > > +
+> > > > > +/*
+> > > > > + * 2 plane YCbCr MSB aligned
+> > > > > + * index 0 = Y plane, [15:0] Y little endian
+> > > > > + * index 1 = Cb:Cr plane, [31:0] Cb:Cr [16:16] little endian
+> > > > > + */
+> > > > > +#define DRM_FORMAT_P016        fourcc_code('P', '0', '1', '6') /* 2x2 subsampled Cb:Cr plane 16 bits per channel */
+> > > > > +
+> > > > > +/*
+> > > > > * 3 plane YCbCr
+> > > > > * index 0: Y plane, [7:0] Y
+> > > > > * index 1: Cb plane, [7:0] Cb
+> > > > > -- 
+> > > > > 2.7.4
+> > > > 
+> > > > -- 
+> > > > Ville Syrjälä
+> > > > Intel OTC
+> > 
+> > -- 
+> > Ville Syrjälä
+> > Intel OTC
+> 
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/dri-devel
