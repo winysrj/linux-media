@@ -1,146 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:37423 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750943AbdCNTGi (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:36465 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750850AbdCNWdC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Mar 2017 15:06:38 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v3 09/27] rcar-vin: all Gen2 boards can scale simplify logic
-Date: Tue, 14 Mar 2017 20:02:50 +0100
-Message-Id: <20170314190308.25790-10-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
+        Tue, 14 Mar 2017 18:33:02 -0400
+Date: Tue, 14 Mar 2017 23:32:54 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
+        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: media / v4l2-mc: wishlist for complex cameras (was Re: [PATCH v4
+ 14/36] [media] v4l2-mc: add a function to inherit controls from a pipeline)
+Message-ID: <20170314223254.GA7141@amd>
+References: <c679f755-52a6-3c6f-3d65-277db46676cc@xs4all.nl>
+ <20170310140124.GV21222@n2100.armlinux.org.uk>
+ <cc8900b0-c091-b14b-96f4-01f8fa72431c@xs4all.nl>
+ <20170310125342.7f047acf@vento.lan>
+ <20170310223714.GI3220@valkosipuli.retiisi.org.uk>
+ <20170311082549.576531d0@vento.lan>
+ <20170313124621.GA10701@valkosipuli.retiisi.org.uk>
+ <20170314004533.3b3cd44b@vento.lan>
+ <e0a6c60b-1735-de0b-21f4-d8c3f4b3f10f@xs4all.nl>
+ <20170314072143.498cde9b@vento.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="Dxnq1zWXvFF0Q93v"
+Content-Disposition: inline
+In-Reply-To: <20170314072143.498cde9b@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The logic to preserve the requested format width and height are too
-complex and come from a premature optimization for Gen3. All Gen2 SoC
-can scale and the Gen3 implementation will not use these functions at
-all so simply preserve the width and hight when interacting with the
-subdevice much like the field is preserved simplifies the logic quiet a
-bit.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-dma.c  |  8 --------
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 22 ++++++++++------------
- drivers/media/platform/rcar-vin/rcar-vin.h  |  2 --
- 3 files changed, 10 insertions(+), 22 deletions(-)
+--Dxnq1zWXvFF0Q93v
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index eff5d8f719e4ab26..286aafab533cda9d 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -585,14 +585,6 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
- 		0, 0);
- }
- 
--void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
--		    u32 width, u32 height)
--{
--	/* All VIN channels on Gen2 have scalers */
--	pix->width = width;
--	pix->height = height;
--}
--
- /* -----------------------------------------------------------------------------
-  * Hardware setup
-  */
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 709ee828f2ac2173..40bb3d7e73131d3b 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -166,6 +166,7 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
- 		.which = which,
- 	};
- 	enum v4l2_field field;
-+	u32 width, height;
- 	int ret;
- 
- 	sd = vin_to_source(vin);
-@@ -178,7 +179,10 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
- 
- 	format.pad = vin->digital.source_pad;
- 
-+	/* Allow the video device to override field and to scale */
- 	field = pix->field;
-+	width = pix->width;
-+	height = pix->height;
- 
- 	ret = v4l2_subdev_call(sd, pad, set_fmt, pad_cfg, &format);
- 	if (ret < 0 && ret != -ENOIOCTLCMD)
-@@ -191,6 +195,9 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
- 	source->width = pix->width;
- 	source->height = pix->height;
- 
-+	pix->width = width;
-+	pix->height = height;
-+
- 	vin_dbg(vin, "Source resolution: %ux%u\n", source->width,
- 		source->height);
- 
-@@ -205,13 +212,9 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 			     struct rvin_source_fmt *source)
- {
- 	const struct rvin_video_format *info;
--	u32 rwidth, rheight, walign;
-+	u32 walign;
- 	int ret;
- 
--	/* Requested */
--	rwidth = pix->width;
--	rheight = pix->height;
--
- 	/* Keep current field if no specific one is asked for */
- 	if (pix->field == V4L2_FIELD_ANY)
- 		pix->field = vin->format.field;
-@@ -254,10 +257,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 		break;
- 	}
- 
--	/* If source can't match format try if VIN can scale */
--	if (source->width != rwidth || source->height != rheight)
--		rvin_scale_try(vin, pix, rwidth, rheight);
--
- 	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
- 	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
- 
-@@ -276,9 +275,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 		return -EINVAL;
- 	}
- 
--	vin_dbg(vin, "Requested %ux%u Got %ux%u bpl: %d size: %d\n",
--		rwidth, rheight, pix->width, pix->height,
--		pix->bytesperline, pix->sizeimage);
-+	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
-+		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
- 
- 	return 0;
- }
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 32d9d130dd6e2e44..6bf2e4ff8f6076c7 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -176,8 +176,6 @@ void rvin_v4l2_remove(struct rvin_dev *vin);
- const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
- 
- /* Cropping, composing and scaling */
--void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
--		    u32 width, u32 height);
- void rvin_crop_scale_comp(struct rvin_dev *vin);
- 
- #endif
--- 
-2.12.0
+Hi!
+
+> > > Even if they were merged, if we keep the same mean time to develop a
+> > > libv4l plugin, that would mean that a plugin for i.MX6 could take 2-3
+> > > years to be developed.
+> > >=20
+> > > There's a clear message on it:
+> > > 	- we shouldn't keep pushing for a solution via libv4l. =20
+> >=20
+> > Or:
+> >=20
+> > 	- userspace plugin development had a very a low priority and
+> > 	  never got the attention it needed.
+>=20
+> The end result is the same: we can't count on it.
+>=20
+> >=20
+> > I know that's *my* reason. I rarely if ever looked at it. I always assu=
+med
+> > Sakari and/or Laurent would look at it. If this reason is also valid for
+> > Sakari and Laurent, then it is no wonder nothing has happened in all th=
+at
+> > time.
+> >=20
+> > We're all very driver-development-driven, and userspace gets very little
+> > attention in general. So before just throwing in the towel we should ta=
+ke
+> > a good look at the reasons why there has been little or no development:=
+ is
+> > it because of fundamental design defects, or because nobody paid attent=
+ion
+> > to it?
+>=20
+> No. We should look it the other way: basically, there are patches
+> for i.MX6 driver that sends control from videonode to subdevs.=20
+>=20
+> If we nack apply it, who will write the userspace plugin? When
+> such change will be merged upstream?
+
+Well, I believe first question is: what applications would we want to
+run on complex devices? Will sending control from video to subdevs
+actually help?
+
+mplayer is useful for testing... but that one already works (after you
+setup the pipeline, and configure exposure/gain).
+
+But thats useful for testing, not really for production. Image will be
+out of focus and with wrong white balance.
+
+What I would really like is an application to get still photos. For
+taking pictures with manual settings we need
+
+a) units for controls: user wants to focus on 1m, and take picture
+with ISO200, 1/125 sec. We should also tell him that lens is f/5.6 and
+focal length is 20mm with 5mm chip.
+
+But... autofocus/autogain would really be good to have. Thus we need:
+
+b) for each frame, we need exposure settings and focus position at
+time frame was taken. Otherwise autofocus/autogain will be too
+slow. At least focus position is going to be tricky -- either kernel
+would have to compute focus position for us (not trivial) or we'd need
+enough information to compute it in userspace.
+
+There are more problems: hardware-accelerated preview is not trivial
+to set up (and I'm unsure if it can be done in generic way). Still
+photos application needs to switch resolutions between preview and
+photo capture. Probably hardware-accelerated histograms are needed for
+white balance, auto gain and auto focus, ....
+
+It seems like there's a _lot_ of stuff to be done before we have
+useful support for complex cameras...
+
+(And I'm not sure... when application such as skype is running, is
+there some way to run autogain/autofocus/autowhitebalance? Is that
+something we want to support?)
+
+> If we don't have answers to any of the above questions, we should not
+> nack it.
+>=20
+> That's said, that doesn't prevent merging a libv4l plugin if/when
+> someone can find time/interest to develop it.
+
+I believe other question is: will not having same control on main
+video device and subdevs be confusing? Does it actually help userspace
+in any way? Yes, we can make controls accessible to old application,
+but does it make them more useful?=20
+
+> > In addition, I suspect end-users of these complex devices don't really =
+care
+> > about a plugin: they want full control and won't typically use generic
+> > applications. If they would need support for that, we'd have seen much =
+more
+> > interest. The main reason for having a plugin is to simplify testing and
+> > if this is going to be used on cheap hobbyist devkits.
+>=20
+> What are the needs for a cheap hobbyist devkit owner? Do we currently
+> satisfy those needs? I'd say that having a functional driver when
+> compiled without the subdev API, that implements the ioctl's/controls
+
+Having different interface based on config options... is just
+weird. What about poor people (like me) trying to develop complex
+applications?
+
+> [1] Yet, I might eventually do that for fun, an OMAP3 board with tvp5150
+> just arrived here last week. It would be nice to have xawtv3 running on i=
+t :-)
+> So, if I have a lot of spare time (with is very unlikely), I might eventu=
+ally=20
+> do something for it to work.
+>=20
+> > I know it took me a very long time before I had a working omap3.
+>=20
+> My first OMAP3 board with working V4L2 source just arrived last week
+> :-)
+
+You can get Nokia N900 on aliexpress. If not, they are still available
+between people :-).
+
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--Dxnq1zWXvFF0Q93v
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAljIb5YACgkQMOfwapXb+vJ6PACfWWMPQNEi86/Zs3oSCQ/l3O/p
+Fm4An1xqGfjLFGw2oOaiujkd1uC9Xd32
+=7vGp
+-----END PGP SIGNATURE-----
+
+--Dxnq1zWXvFF0Q93v--
