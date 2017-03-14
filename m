@@ -1,347 +1,252 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:50079 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751037AbdCCFOi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 00:14:38 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Markus Heiser <markus.heiser@darmarIT.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:47099 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750861AbdCNTKG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Mar 2017 15:10:06 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Daniel Vetter <daniel@ffwll.ch>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Daniel Vetter <daniel.vetter@intel.com>
-Subject: [PATCH RFC v2] docs-rst: Don't use explicit Makefile rules to build SVG and DOT files
-Date: Thu,  2 Mar 2017 18:40:04 -0300
-Message-Id: <123ba241cbc9b168298f29def96ae12ebe8e9ef4.1488490586.git.mchehab@s-opensource.com>
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 10/16] rcar-vin: move functions which acts on hardware
+Date: Tue, 14 Mar 2017 19:59:51 +0100
+Message-Id: <20170314185957.25253-11-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that we have an extension to handle images, use it.
+This only moves whole structs, defines and functions around, no code is
+changed inside any function. The reason for moving this code around is
+to prepare for refactoring and fixing of a start/stop stream bug without
+having to use forward declarations.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
+ drivers/media/platform/rcar-vin/rcar-dma.c | 181 ++++++++++++++---------------
+ 1 file changed, 90 insertions(+), 91 deletions(-)
 
-This patch is based on Daniel Vetter & Markus Heiser's work to support
-PNG and SVG via kpicture Sphinx extension:
-
-     [PATCH] docs-rst: automatically convert Graphviz and SVG images
-
-v2: Don't use :caption:, as it doesn't exist on kernel-figure.
-
-Unfortunately, this patch showed severl issues at the original patch.
-I'm still sending it, as it could help testing the issues there.
-
- Documentation/media/Makefile                       | 47 +---------------------
- Documentation/media/intro.rst                      |  6 +--
- Documentation/media/uapi/dvb/intro.rst             |  6 +--
- Documentation/media/uapi/v4l/crop.rst              |  4 +-
- Documentation/media/uapi/v4l/dev-raw-vbi.rst       | 20 +++++----
- Documentation/media/uapi/v4l/dev-subdev.rst        | 22 +++++-----
- Documentation/media/uapi/v4l/field-order.rst       | 12 ++++--
- Documentation/media/uapi/v4l/pixfmt-nv12mt.rst     |  8 ++--
- Documentation/media/uapi/v4l/selection-api-003.rst |  6 +--
- Documentation/media/uapi/v4l/subdev-formats.rst    |  4 +-
- 10 files changed, 46 insertions(+), 89 deletions(-)
-
-diff --git a/Documentation/media/Makefile b/Documentation/media/Makefile
-index 32663602ff25..5bd52ea1eff0 100644
---- a/Documentation/media/Makefile
-+++ b/Documentation/media/Makefile
-@@ -1,51 +1,6 @@
--# Rules to convert DOT and SVG to Sphinx images
--
--SRC_DIR=$(srctree)/Documentation/media
--
--DOTS = \
--	uapi/v4l/pipeline.dot \
--
--IMAGES = \
--	typical_media_device.svg \
--	uapi/dvb/dvbstb.svg \
--	uapi/v4l/bayer.svg \
--	uapi/v4l/constraints.svg \
--	uapi/v4l/crop.svg \
--	uapi/v4l/fieldseq_bt.svg \
--	uapi/v4l/fieldseq_tb.svg \
--	uapi/v4l/nv12mt.svg \
--	uapi/v4l/nv12mt_example.svg \
--	uapi/v4l/pipeline.svg \
--	uapi/v4l/selection.svg \
--	uapi/v4l/subdev-image-processing-full.svg \
--	uapi/v4l/subdev-image-processing-scaling-multi-source.svg \
--	uapi/v4l/subdev-image-processing-crop.svg \
--	uapi/v4l/vbi_525.svg \
--	uapi/v4l/vbi_625.svg \
--	uapi/v4l/vbi_hsync.svg \
--
--DOTTGT := $(patsubst %.dot,%.svg,$(DOTS))
--IMGDOT := $(patsubst %,$(SRC_DIR)/%,$(DOTTGT))
--
--IMGTGT := $(patsubst %.svg,%.pdf,$(IMAGES))
--IMGPDF := $(patsubst %,$(SRC_DIR)/%,$(IMGTGT))
--
--cmd = $(echo-cmd) $(cmd_$(1))
--
--quiet_cmd_genpdf = GENPDF  $2
--      cmd_genpdf = convert $2 $3
--
--quiet_cmd_gendot = DOT     $2
--      cmd_gendot = dot -Tsvg $2 > $3
--
--%.pdf: %.svg
--	@$(call cmd,genpdf,$<,$@)
--
--%.svg: %.dot
--	@$(call cmd,gendot,$<,$@)
--
- # Rules to convert a .h file to inline RST documentation
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index c37f7a2993fb5565..c10d75aa7e71d665 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -119,6 +119,15 @@
+ #define VNDMR2_FTEV		(1 << 17)
+ #define VNDMR2_VLV(n)		((n & 0xf) << 12)
  
-+SRC_DIR=$(srctree)/Documentation/media
- PARSER = $(srctree)/Documentation/sphinx/parse-headers.pl
- UAPI = $(srctree)/include/uapi/linux
- KAPI = $(srctree)/include/linux
-diff --git a/Documentation/media/intro.rst b/Documentation/media/intro.rst
-index 8f7490c9a8ef..9ce2e23a0236 100644
---- a/Documentation/media/intro.rst
-+++ b/Documentation/media/intro.rst
-@@ -13,9 +13,9 @@ A typical media device hardware is shown at :ref:`typical_media_device`.
- 
- .. _typical_media_device:
- 
--.. figure::  typical_media_device.*
--    :alt:    typical_media_device.pdf / typical_media_device.svg
--    :align:  center
-+.. kernel-figure:: typical_media_device.svg
-+    :alt:   typical_media_device.svg
-+    :align: center
- 
-     Typical Media Device
- 
-diff --git a/Documentation/media/uapi/dvb/intro.rst b/Documentation/media/uapi/dvb/intro.rst
-index 2ed5c23102b4..652c4aacd2c6 100644
---- a/Documentation/media/uapi/dvb/intro.rst
-+++ b/Documentation/media/uapi/dvb/intro.rst
-@@ -55,9 +55,9 @@ Overview
- 
- .. _stb_components:
- 
--.. figure::  dvbstb.*
--    :alt:    dvbstb.pdf / dvbstb.svg
--    :align:  center
-+.. kernel-figure:: dvbstb.svg
-+    :alt:   dvbstb.svg
-+    :align: center
- 
-     Components of a DVB card/STB
- 
-diff --git a/Documentation/media/uapi/v4l/crop.rst b/Documentation/media/uapi/v4l/crop.rst
-index be58894c9c89..182565b9ace4 100644
---- a/Documentation/media/uapi/v4l/crop.rst
-+++ b/Documentation/media/uapi/v4l/crop.rst
-@@ -53,8 +53,8 @@ Cropping Structures
- 
- .. _crop-scale:
- 
--.. figure::  crop.*
--    :alt:    crop.pdf / crop.svg
-+.. kernel-figure:: crop.svg
-+    :alt:    crop.svg
-     :align:  center
- 
-     Image Cropping, Insertion and Scaling
-diff --git a/Documentation/media/uapi/v4l/dev-raw-vbi.rst b/Documentation/media/uapi/v4l/dev-raw-vbi.rst
-index baf5f2483927..9fcc18dfe3d1 100644
---- a/Documentation/media/uapi/v4l/dev-raw-vbi.rst
-+++ b/Documentation/media/uapi/v4l/dev-raw-vbi.rst
-@@ -221,33 +221,31 @@ and always returns default parameters as :ref:`VIDIOC_G_FMT <VIDIOC_G_FMT>` does
- 
- .. _vbi-hsync:
- 
--.. figure::  vbi_hsync.*
--    :alt:    vbi_hsync.pdf / vbi_hsync.svg
--    :align:  center
-+.. kernel-figure:: vbi_hsync.svg
-+    :alt:   vbi_hsync.svg
-+    :align: center
- 
-     **Figure 4.1. Line synchronization**
- 
- 
- .. _vbi-525:
- 
--.. figure::  vbi_525.*
--    :alt:    vbi_525.pdf / vbi_525.svg
--    :align:  center
-+.. kernel-figure:: vbi_525.svg
-+    :alt:   vbi_525.svg
-+    :align: center
- 
-     **Figure 4.2. ITU-R 525 line numbering (M/NTSC and M/PAL)**
- 
- 
--
- .. _vbi-625:
- 
--.. figure::  vbi_625.*
--    :alt:    vbi_625.pdf / vbi_625.svg
--    :align:  center
-+.. kernel-figure:: vbi_625.svg
-+    :alt:   vbi_625.svg
-+    :align: center
- 
-     **Figure 4.3. ITU-R 625 line numbering**
- 
- 
--
- Remember the VBI image format depends on the selected video standard,
- therefore the application must choose a new standard or query the
- current standard first. Attempts to read or write data ahead of format
-diff --git a/Documentation/media/uapi/v4l/dev-subdev.rst b/Documentation/media/uapi/v4l/dev-subdev.rst
-index cd2870180208..f0e762167730 100644
---- a/Documentation/media/uapi/v4l/dev-subdev.rst
-+++ b/Documentation/media/uapi/v4l/dev-subdev.rst
-@@ -99,9 +99,9 @@ the video sensor and the host image processing hardware.
- 
- .. _pipeline-scaling:
- 
--.. figure::  pipeline.*
--    :alt:    pipeline.pdf / pipeline.svg
--    :align:  center
-+.. kernel-figure:: pipeline.dot
-+    :alt:   pipeline.dot
-+    :align: center
- 
-     Image Format Negotiation on Pipelines
- 
-@@ -404,9 +404,9 @@ selection will refer to the sink pad format dimensions instead.
- 
- .. _subdev-image-processing-crop:
- 
--.. figure::  subdev-image-processing-crop.*
--    :alt:    subdev-image-processing-crop.pdf / subdev-image-processing-crop.svg
--    :align:  center
-+.. kernel-figure:: subdev-image-processing-crop.svg
-+    :alt:   subdev-image-processing-crop.svg
-+    :align: center
- 
-     **Figure 4.5. Image processing in subdevs: simple crop example**
- 
-@@ -421,9 +421,9 @@ pad.
- 
- .. _subdev-image-processing-scaling-multi-source:
- 
--.. figure::  subdev-image-processing-scaling-multi-source.*
--    :alt:    subdev-image-processing-scaling-multi-source.pdf / subdev-image-processing-scaling-multi-source.svg
--    :align:  center
-+.. kernel-figure:: subdev-image-processing-scaling-multi-source.svg
-+    :alt:   subdev-image-processing-scaling-multi-source.svg
-+    :align: center
- 
-     **Figure 4.6. Image processing in subdevs: scaling with multiple sources**
- 
-@@ -437,8 +437,8 @@ an area at location specified by the source crop rectangle from it.
- 
- .. _subdev-image-processing-full:
- 
--.. figure::  subdev-image-processing-full.*
--    :alt:    subdev-image-processing-full.pdf / subdev-image-processing-full.svg
-+.. kernel-figure:: subdev-image-processing-full.svg
-+    :alt:    subdev-image-processing-full.svg
-     :align:  center
- 
-     **Figure 4.7. Image processing in subdevs: scaling and composition with multiple sinks and sources**
-diff --git a/Documentation/media/uapi/v4l/field-order.rst b/Documentation/media/uapi/v4l/field-order.rst
-index e05fb1041363..f924776ef9ee 100644
---- a/Documentation/media/uapi/v4l/field-order.rst
-+++ b/Documentation/media/uapi/v4l/field-order.rst
-@@ -141,17 +141,21 @@ enum v4l2_field
- Field Order, Top Field First Transmitted
- ========================================
- 
--.. figure::  fieldseq_tb.*
--    :alt:    fieldseq_tb.pdf / fieldseq_tb.svg
-+.. kernel-figure:: fieldseq_tb.svg
-+    :alt:    fieldseq_tb.svg
-     :align:  center
- 
-+    Field Order, Top Field First Transmitted
++struct rvin_buffer {
++	struct vb2_v4l2_buffer vb;
++	struct list_head list;
++};
 +
- 
- .. _fieldseq-bt:
- 
- Field Order, Bottom Field First Transmitted
- ===========================================
- 
--.. figure::  fieldseq_bt.*
--    :alt:    fieldseq_bt.pdf / fieldseq_bt.svg
-+.. kernel-figure:: fieldseq_bt.svg
-+    :alt:    fieldseq_bt.svg
-     :align:  center
- 
-+    Field Order, Bottom Field First Transmitted
++#define to_buf_list(vb2_buffer) (&container_of(vb2_buffer, \
++					       struct rvin_buffer, \
++					       vb)->list)
 +
-diff --git a/Documentation/media/uapi/v4l/pixfmt-nv12mt.rst b/Documentation/media/uapi/v4l/pixfmt-nv12mt.rst
-index 32d0c8743460..172a3825604e 100644
---- a/Documentation/media/uapi/v4l/pixfmt-nv12mt.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-nv12mt.rst
-@@ -33,8 +33,8 @@ Layout of macroblocks in memory is presented in the following figure.
+ static void rvin_write(struct rvin_dev *vin, u32 value, u32 offset)
+ {
+ 	iowrite32(value, vin->base + offset);
+@@ -269,48 +278,6 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	return 0;
+ }
  
- .. _nv12mt:
+-static void rvin_capture_on(struct rvin_dev *vin)
+-{
+-	vin_dbg(vin, "Capture on in %s mode\n",
+-		vin->continuous ? "continuous" : "single");
+-
+-	if (vin->continuous)
+-		/* Continuous Frame Capture Mode */
+-		rvin_write(vin, VNFC_C_FRAME, VNFC_REG);
+-	else
+-		/* Single Frame Capture Mode */
+-		rvin_write(vin, VNFC_S_FRAME, VNFC_REG);
+-}
+-
+-static void rvin_capture_off(struct rvin_dev *vin)
+-{
+-	/* Set continuous & single transfer off */
+-	rvin_write(vin, 0, VNFC_REG);
+-}
+-
+-static int rvin_capture_start(struct rvin_dev *vin)
+-{
+-	int ret;
+-
+-	rvin_crop_scale_comp(vin);
+-
+-	ret = rvin_setup(vin);
+-	if (ret)
+-		return ret;
+-
+-	rvin_capture_on(vin);
+-
+-	return 0;
+-}
+-
+-static void rvin_capture_stop(struct rvin_dev *vin)
+-{
+-	rvin_capture_off(vin);
+-
+-	/* Disable module */
+-	rvin_write(vin, rvin_read(vin, VNMC_REG) & ~VNMC_ME, VNMC_REG);
+-}
+-
+ static void rvin_disable_interrupts(struct rvin_dev *vin)
+ {
+ 	rvin_write(vin, 0, VNIE_REG);
+@@ -377,6 +344,87 @@ static void rvin_set_slot_addr(struct rvin_dev *vin, int slot, dma_addr_t addr)
+ 	rvin_write(vin, offset, VNMB_REG(slot));
+ }
  
--.. figure::  nv12mt.*
--    :alt:    nv12mt.pdf / nv12mt.svg
-+.. kernel-figure:: nv12mt.svg
-+    :alt:    nv12mt.svg
-     :align:  center
++static bool rvin_fill_hw_slot(struct rvin_dev *vin, int slot)
++{
++	struct rvin_buffer *buf;
++	struct vb2_v4l2_buffer *vbuf;
++	dma_addr_t phys_addr_top;
++
++	if (vin->queue_buf[slot] != NULL)
++		return true;
++
++	if (list_empty(&vin->buf_list))
++		return false;
++
++	vin_dbg(vin, "Filling HW slot: %d\n", slot);
++
++	/* Keep track of buffer we give to HW */
++	buf = list_entry(vin->buf_list.next, struct rvin_buffer, list);
++	vbuf = &buf->vb;
++	list_del_init(to_buf_list(vbuf));
++	vin->queue_buf[slot] = vbuf;
++
++	/* Setup DMA */
++	phys_addr_top = vb2_dma_contig_plane_dma_addr(&vbuf->vb2_buf, 0);
++	rvin_set_slot_addr(vin, slot, phys_addr_top);
++
++	return true;
++}
++
++static bool rvin_fill_hw(struct rvin_dev *vin)
++{
++	int slot, limit;
++
++	limit = vin->continuous ? HW_BUFFER_NUM : 1;
++
++	for (slot = 0; slot < limit; slot++)
++		if (!rvin_fill_hw_slot(vin, slot))
++			return false;
++	return true;
++}
++
++static void rvin_capture_on(struct rvin_dev *vin)
++{
++	vin_dbg(vin, "Capture on in %s mode\n",
++		vin->continuous ? "continuous" : "single");
++
++	if (vin->continuous)
++		/* Continuous Frame Capture Mode */
++		rvin_write(vin, VNFC_C_FRAME, VNFC_REG);
++	else
++		/* Single Frame Capture Mode */
++		rvin_write(vin, VNFC_S_FRAME, VNFC_REG);
++}
++
++static void rvin_capture_off(struct rvin_dev *vin)
++{
++	/* Set continuous & single transfer off */
++	rvin_write(vin, 0, VNFC_REG);
++}
++
++static int rvin_capture_start(struct rvin_dev *vin)
++{
++	int ret;
++
++	rvin_crop_scale_comp(vin);
++
++	ret = rvin_setup(vin);
++	if (ret)
++		return ret;
++
++	rvin_capture_on(vin);
++
++	return 0;
++}
++
++static void rvin_capture_stop(struct rvin_dev *vin)
++{
++	rvin_capture_off(vin);
++
++	/* Disable module */
++	rvin_write(vin, rvin_read(vin, VNMC_REG) & ~VNMC_ME, VNMC_REG);
++}
++
+ /* -----------------------------------------------------------------------------
+  * Crop and Scaling Gen2
+  */
+@@ -839,55 +887,6 @@ void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
+ #define RVIN_TIMEOUT_MS 100
+ #define RVIN_RETRIES 10
  
-     V4L2_PIX_FMT_NV12MT macroblock Z shape memory layout
-@@ -50,8 +50,8 @@ interleaved. Height of the buffer is aligned to 32.
- 
- .. _nv12mt_ex:
- 
--.. figure::  nv12mt_example.*
--    :alt:    nv12mt_example.pdf / nv12mt_example.svg
-+.. kernel-figure:: nv12mt_example.svg
-+    :alt:    nv12mt_example.svg
-     :align:  center
- 
-     Example V4L2_PIX_FMT_NV12MT memory layout of macroblocks
-diff --git a/Documentation/media/uapi/v4l/selection-api-003.rst b/Documentation/media/uapi/v4l/selection-api-003.rst
-index 21686f93c38f..bf7e76dfbdf9 100644
---- a/Documentation/media/uapi/v4l/selection-api-003.rst
-+++ b/Documentation/media/uapi/v4l/selection-api-003.rst
-@@ -7,9 +7,9 @@ Selection targets
- 
- .. _sel-targets-capture:
- 
--.. figure::  selection.*
--    :alt:    selection.pdf / selection.svg
--    :align:  center
-+.. kernel-figure:: selection.svg
-+    :alt:   selection.svg
-+    :align: center
- 
-     Cropping and composing targets
- 
-diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
-index d6152c907b8b..89a1fb959314 100644
---- a/Documentation/media/uapi/v4l/subdev-formats.rst
-+++ b/Documentation/media/uapi/v4l/subdev-formats.rst
-@@ -1514,8 +1514,8 @@ be named ``MEDIA_BUS_FMT_SRGGB10_2X8_PADHI_LE``.
- 
- .. _bayer-patterns:
- 
--.. figure::  bayer.*
--    :alt:    bayer.pdf / bayer.svg
-+.. kernel-figure:: bayer.svg
-+    :alt:    bayer.svg
-     :align:  center
- 
-     **Figure 4.8 Bayer Patterns**
+-struct rvin_buffer {
+-	struct vb2_v4l2_buffer vb;
+-	struct list_head list;
+-};
+-
+-#define to_buf_list(vb2_buffer) (&container_of(vb2_buffer, \
+-					       struct rvin_buffer, \
+-					       vb)->list)
+-
+-/* Moves a buffer from the queue to the HW slots */
+-static bool rvin_fill_hw_slot(struct rvin_dev *vin, int slot)
+-{
+-	struct rvin_buffer *buf;
+-	struct vb2_v4l2_buffer *vbuf;
+-	dma_addr_t phys_addr_top;
+-
+-	if (vin->queue_buf[slot] != NULL)
+-		return true;
+-
+-	if (list_empty(&vin->buf_list))
+-		return false;
+-
+-	vin_dbg(vin, "Filling HW slot: %d\n", slot);
+-
+-	/* Keep track of buffer we give to HW */
+-	buf = list_entry(vin->buf_list.next, struct rvin_buffer, list);
+-	vbuf = &buf->vb;
+-	list_del_init(to_buf_list(vbuf));
+-	vin->queue_buf[slot] = vbuf;
+-
+-	/* Setup DMA */
+-	phys_addr_top = vb2_dma_contig_plane_dma_addr(&vbuf->vb2_buf, 0);
+-	rvin_set_slot_addr(vin, slot, phys_addr_top);
+-
+-	return true;
+-}
+-
+-static bool rvin_fill_hw(struct rvin_dev *vin)
+-{
+-	int slot, limit;
+-
+-	limit = vin->continuous ? HW_BUFFER_NUM : 1;
+-
+-	for (slot = 0; slot < limit; slot++)
+-		if (!rvin_fill_hw_slot(vin, slot))
+-			return false;
+-	return true;
+-}
+-
+ static irqreturn_t rvin_irq(int irq, void *data)
+ {
+ 	struct rvin_dev *vin = data;
 -- 
-2.9.3
+2.12.0
