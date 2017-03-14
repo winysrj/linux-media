@@ -1,120 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:34376 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932219AbdCJExn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 23:53:43 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v5 02/39] [media] dt-bindings: Add bindings for i.MX media driver
-Date: Thu,  9 Mar 2017 20:52:42 -0800
-Message-Id: <1489121599-23206-3-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:37423 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750943AbdCNTGi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Mar 2017 15:06:38 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v3 09/27] rcar-vin: all Gen2 boards can scale simplify logic
+Date: Tue, 14 Mar 2017 20:02:50 +0100
+Message-Id: <20170314190308.25790-10-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add bindings documentation for the i.MX media driver.
+The logic to preserve the requested format width and height are too
+complex and come from a premature optimization for Gen3. All Gen2 SoC
+can scale and the Gen3 implementation will not use these functions at
+all so simply preserve the width and hight when interacting with the
+subdevice much like the field is preserved simplifies the logic quiet a
+bit.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- Documentation/devicetree/bindings/media/imx.txt | 74 +++++++++++++++++++++++++
- 1 file changed, 74 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/imx.txt
+ drivers/media/platform/rcar-vin/rcar-dma.c  |  8 --------
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 22 ++++++++++------------
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  2 --
+ 3 files changed, 10 insertions(+), 22 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/imx.txt b/Documentation/devicetree/bindings/media/imx.txt
-new file mode 100644
-index 0000000..3059c06
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/imx.txt
-@@ -0,0 +1,74 @@
-+Freescale i.MX Media Video Device
-+=================================
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index eff5d8f719e4ab26..286aafab533cda9d 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -585,14 +585,6 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
+ 		0, 0);
+ }
+ 
+-void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
+-		    u32 width, u32 height)
+-{
+-	/* All VIN channels on Gen2 have scalers */
+-	pix->width = width;
+-	pix->height = height;
+-}
+-
+ /* -----------------------------------------------------------------------------
+  * Hardware setup
+  */
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 709ee828f2ac2173..40bb3d7e73131d3b 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -166,6 +166,7 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 		.which = which,
+ 	};
+ 	enum v4l2_field field;
++	u32 width, height;
+ 	int ret;
+ 
+ 	sd = vin_to_source(vin);
+@@ -178,7 +179,10 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 
+ 	format.pad = vin->digital.source_pad;
+ 
++	/* Allow the video device to override field and to scale */
+ 	field = pix->field;
++	width = pix->width;
++	height = pix->height;
+ 
+ 	ret = v4l2_subdev_call(sd, pad, set_fmt, pad_cfg, &format);
+ 	if (ret < 0 && ret != -ENOIOCTLCMD)
+@@ -191,6 +195,9 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 	source->width = pix->width;
+ 	source->height = pix->height;
+ 
++	pix->width = width;
++	pix->height = height;
 +
-+Video Media Controller node
-+---------------------------
-+
-+This is the media controller node for video capture support. It is a
-+virtual device that lists the camera serial interface nodes that the
-+media device will control.
-+
-+Required properties:
-+- compatible : "fsl,imx-capture-subsystem";
-+- ports      : Should contain a list of phandles pointing to camera
-+		sensor interface ports of IPU devices
-+
-+example:
-+
-+capture-subsystem {
-+	compatible = "fsl,imx-capture-subsystem";
-+	ports = <&ipu1_csi0>, <&ipu1_csi1>;
-+};
-+
-+fim child node
-+--------------
-+
-+This is an optional child node of the ipu_csi port nodes. If present and
-+available, it enables the Frame Interval Monitor. Its properties can be
-+used to modify the method in which the FIM measures frame intervals.
-+Refer to Documentation/media/v4l-drivers/imx.rst for more info on the
-+Frame Interval Monitor.
-+
-+Optional properties:
-+- fsl,input-capture-channel: an input capture channel and channel flags,
-+			     specified as <chan flags>. The channel number
-+			     must be 0 or 1. The flags can be
-+			     IRQ_TYPE_EDGE_RISING, IRQ_TYPE_EDGE_FALLING, or
-+			     IRQ_TYPE_EDGE_BOTH, and specify which input
-+			     capture signal edge will trigger the input
-+			     capture event. If an input capture channel is
-+			     specified, the FIM will use this method to
-+			     measure frame intervals instead of via the EOF
-+			     interrupt. The input capture method is much
-+			     preferred over EOF as it is not subject to
-+			     interrupt latency errors. However it requires
-+			     routing the VSYNC or FIELD output signals of
-+			     the camera sensor to one of the i.MX input
-+			     capture pads (SD1_DAT0, SD1_DAT1), which also
-+			     gives up support for SD1.
-+
-+
-+mipi_csi2 node
-+--------------
-+
-+This is the device node for the MIPI CSI-2 Receiver, required for MIPI
-+CSI-2 sensors.
-+
-+Required properties:
-+- compatible	: "fsl,imx6-mipi-csi2", "snps,dw-mipi-csi2";
-+- reg           : physical base address and length of the register set;
-+- clocks	: the MIPI CSI-2 receiver requires three clocks: hsi_tx
-+		  (the D-PHY clock), video_27m (D-PHY PLL reference
-+		  clock), and eim_podf;
-+- clock-names	: must contain "dphy", "ref", "pix";
-+- port@*        : five port nodes must exist, containing endpoints
-+		  connecting to the source and sink devices according to
-+		  of_graph bindings. The first port is an input port,
-+		  connecting with a MIPI CSI-2 source, and ports 1
-+		  through 4 are output ports connecting with parallel
-+		  bus sink endpoint nodes and correspond to the four
-+		  MIPI CSI-2 virtual channel outputs.
-+
-+Optional properties:
-+- interrupts	: must contain two level-triggered interrupts,
-+		  in order: 100 and 101;
+ 	vin_dbg(vin, "Source resolution: %ux%u\n", source->width,
+ 		source->height);
+ 
+@@ -205,13 +212,9 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 			     struct rvin_source_fmt *source)
+ {
+ 	const struct rvin_video_format *info;
+-	u32 rwidth, rheight, walign;
++	u32 walign;
+ 	int ret;
+ 
+-	/* Requested */
+-	rwidth = pix->width;
+-	rheight = pix->height;
+-
+ 	/* Keep current field if no specific one is asked for */
+ 	if (pix->field == V4L2_FIELD_ANY)
+ 		pix->field = vin->format.field;
+@@ -254,10 +257,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 		break;
+ 	}
+ 
+-	/* If source can't match format try if VIN can scale */
+-	if (source->width != rwidth || source->height != rheight)
+-		rvin_scale_try(vin, pix, rwidth, rheight);
+-
+ 	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
+ 	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
+ 
+@@ -276,9 +275,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 		return -EINVAL;
+ 	}
+ 
+-	vin_dbg(vin, "Requested %ux%u Got %ux%u bpl: %d size: %d\n",
+-		rwidth, rheight, pix->width, pix->height,
+-		pix->bytesperline, pix->sizeimage);
++	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
++		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 32d9d130dd6e2e44..6bf2e4ff8f6076c7 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -176,8 +176,6 @@ void rvin_v4l2_remove(struct rvin_dev *vin);
+ const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
+ 
+ /* Cropping, composing and scaling */
+-void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
+-		    u32 width, u32 height);
+ void rvin_crop_scale_comp(struct rvin_dev *vin);
+ 
+ #endif
 -- 
-2.7.4
+2.12.0
