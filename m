@@ -1,49 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.75]:54881 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753395AbdCTJc7 (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:37413 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751653AbdCNTGj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 05:32:59 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@linux.intel.com>, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 7/9] staging/atomisp: add ACPI dependency
-Date: Mon, 20 Mar 2017 10:32:23 +0100
-Message-Id: <20170320093225.1180723-7-arnd@arndb.de>
-In-Reply-To: <20170320093225.1180723-1-arnd@arndb.de>
-References: <20170320093225.1180723-1-arnd@arndb.de>
+        Tue, 14 Mar 2017 15:06:39 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v3 13/27] rcar-vin: do not cut height in two for top, bottom or alternate fields
+Date: Tue, 14 Mar 2017 20:02:54 +0100
+Message-Id: <20170314190308.25790-14-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Without ACPI, some of the code fails to build:
+The height should not be cut in half for the format for top, bottom or
+alternate fields settings. This was a mistake and it was made
+visible by the scaling refactoring.
 
-media/atomisp/platform/intel-mid/atomisp_gmin_platform.c: In function 'atomisp_register_i2c_module':
-media/atomisp/platform/intel-mid/atomisp_gmin_platform.c:174:7: error: dereferencing pointer to incomplete type 'struct acpi_device'
+Correct behavior is that the user should request a frame size that fits
+the half height frame reflected in the field setting. If not the VIN
+will do it's best to scale the top or bottom to the requested format and
+cropping and scaling do not work as expected.
 
-We could work around that in the code, but since we already have a hard
-dependency on x86, adding the ACPI dependency seems to be the easiest
-solution.
-
-Fixes: a49d25364dfb ("staging/atomisp: Add support for the Intel IPU v2")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/staging/media/atomisp/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/drivers/staging/media/atomisp/Kconfig b/drivers/staging/media/atomisp/Kconfig
-index 3af2acdc7e96..97ffa2fc5384 100644
---- a/drivers/staging/media/atomisp/Kconfig
-+++ b/drivers/staging/media/atomisp/Kconfig
-@@ -1,6 +1,6 @@
- menuconfig INTEL_ATOMISP
-         bool "Enable support to Intel MIPI camera drivers"
--        depends on X86 && PCI
-+        depends on X86 && PCI && ACPI
-         help
-           Enable support for the Intel ISP2 camera interfaces and MIPI
-           sensor drivers.
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 80421421625e6f6f..28b62a514bbb93a9 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -142,8 +142,6 @@ static int rvin_reset_format(struct rvin_dev *vin)
+ 	case V4L2_FIELD_TOP:
+ 	case V4L2_FIELD_BOTTOM:
+ 	case V4L2_FIELD_ALTERNATE:
+-		vin->format.height /= 2;
+-		break;
+ 	case V4L2_FIELD_NONE:
+ 	case V4L2_FIELD_INTERLACED_TB:
+ 	case V4L2_FIELD_INTERLACED_BT:
+@@ -245,8 +243,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 	case V4L2_FIELD_TOP:
+ 	case V4L2_FIELD_BOTTOM:
+ 	case V4L2_FIELD_ALTERNATE:
+-		pix->height /= 2;
+-		break;
+ 	case V4L2_FIELD_NONE:
+ 	case V4L2_FIELD_INTERLACED_TB:
+ 	case V4L2_FIELD_INTERLACED_BT:
 -- 
-2.9.0
+2.12.0
