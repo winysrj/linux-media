@@ -1,281 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:37278 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750948AbdCNLga (ORCPT
+Received: from mail.andi.de1.cc ([85.214.239.24]:50633 "EHLO
+        h2641619.stratoserver.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750918AbdCNG0g (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Mar 2017 07:36:30 -0400
-Received: from epcas5p2.samsung.com (unknown [182.195.41.40])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0OMS02HHTYWNOA70@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 14 Mar 2017 20:36:23 +0900 (KST)
-Subject: Re: [Patch v2 04/11] s5p-mfc: Support MFCv10.10 buffer requirements
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-        kamil@wypas.org, jtp.park@samsung.com, mchehab@kernel.org,
-        pankaj.dubey@samsung.com, krzk@kernel.org,
-        m.szyprowski@samsung.com, s.nawrocki@samsung.com
-In-reply-to: <b63d5b24-afeb-0571-1815-804233da9f41@samsung.com>
-Date: Tue, 14 Mar 2017 17:08:24 +0530
-Message-id: <1489491504.27807.137.camel@smitha-fedora>
-MIME-version: 1.0
-Content-transfer-encoding: 7bit
-Content-type: text/plain; charset=utf-8
-References: <1488532036-13044-1-git-send-email-smitha.t@samsung.com>
- <CGME20170303090444epcas5p338f4cd2b1746da117f69907ca09e0ea9@epcas5p3.samsung.com>
- <1488532036-13044-5-git-send-email-smitha.t@samsung.com>
- <b63d5b24-afeb-0571-1815-804233da9f41@samsung.com>
+        Tue, 14 Mar 2017 02:26:36 -0400
+Date: Tue, 14 Mar 2017 07:26:21 +0100
+From: Andreas Kemnade <andreas@kemnade.info>
+To: Andreas Kemnade <andreas@kemnade.info>,
+        linux-media@vger.kernel.org, mchehab@kernel.org
+Subject: Re: [PATCH RFC] dvb: af9035.c: Logilink vg0022a to device id table
+Message-ID: <20170314072621.2b81c73f@aktux>
+In-Reply-To: <1489078274-24227-1-git-send-email-andreas@kemnade.info>
+References: <1489078274-24227-1-git-send-email-andreas@kemnade.info>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/qasgztqo0F5eR/I4ElM4bo6"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2017-03-06 at 15:48 +0100, Andrzej Hajda wrote: 
-> On 03.03.2017 10:07, Smitha T Murthy wrote:
-> > Aligning the luma_dpb_size, chroma_dpb_size, mv_size and me_buffer_size
-> > for MFCv10.10.
-> >
-> > Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-> > ---
-> >  drivers/media/platform/s5p-mfc/regs-mfc-v10.h   |   19 +++++
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   99 ++++++++++++++++++-----
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h |    2 +
-> >  3 files changed, 99 insertions(+), 21 deletions(-)
-> >
-> > diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-> > index bd671a5..dafcf9d 100644
-> > --- a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-> > +++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-> > @@ -32,5 +32,24 @@
-> >  #define MFC_VERSION_V10		0xA0
-> >  #define MFC_NUM_PORTS_V10	1
-> >  
-> > +/* MFCv10 codec defines*/
-> > +#define S5P_FIMV_CODEC_HEVC_ENC         26
-> > +
-> > +/* Encoder buffer size for MFC v10.0 */
-> > +#define ENC_V100_BASE_SIZE(x, y) \
-> > +	(((x + 3) * (y + 3) * 8) \
-> > +	+  ((y * 64) + 1280) * DIV_ROUND_UP(x, 8))
-> > +
-> > +#define ENC_V100_H264_ME_SIZE(x, y) \
-> > +	(ENC_V100_BASE_SIZE(x, y) \
-> > +	+ (DIV_ROUND_UP(x * y, 64) * 32))
-> > +
-> > +#define ENC_V100_MPEG4_ME_SIZE(x, y) \
-> > +	(ENC_V100_BASE_SIZE(x, y) \
-> > +	+ (DIV_ROUND_UP(x * y, 128) * 16))
-> > +
-> > +#define ENC_V100_VP8_ME_SIZE(x, y) \
-> > +	ENC_V100_BASE_SIZE(x, y)
-> > +
-> >  #endif /*_REGS_MFC_V10_H*/
-> >  
-> > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> > index 5f0da0b..d4c75eb 100644
-> > --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> > +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> > @@ -45,6 +45,8 @@
-> >  
-> >  #define IS_MFCV6_V2(dev) (!IS_MFCV7_PLUS(dev) && dev->fw_ver == MFC_FW_V2)
-> >  
-> > +#define calc_param(value, align) (DIV_ROUND_UP(value, align) * align)
-> 
-> I think it is functionally the same as ALIGN, please drop it and use
-> ALIGN instead.
-> 
-Ok I will use ALIGN. 
-> > +
-> >  /* Allocate temporary buffers for decoding */
-> >  static int s5p_mfc_alloc_dec_temp_buffers_v6(struct s5p_mfc_ctx *ctx)
-> >  {
-> > @@ -64,6 +66,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
-> >  {
-> >  	struct s5p_mfc_dev *dev = ctx->dev;
-> >  	unsigned int mb_width, mb_height;
-> > +	unsigned int lcu_width = 0, lcu_height = 0;
-> >  	int ret;
-> >  
-> >  	mb_width = MB_WIDTH(ctx->img_width);
-> > @@ -74,7 +77,9 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
-> >  			  ctx->luma_size, ctx->chroma_size, ctx->mv_size);
-> >  		mfc_debug(2, "Totals bufs: %d\n", ctx->total_dpb_count);
-> >  	} else if (ctx->type == MFCINST_ENCODER) {
-> > -		if (IS_MFCV8_PLUS(dev))
-> > +		if (IS_MFCV10(dev)) {
-> > +			ctx->tmv_buffer_size = 0;
-> > +		} else if (IS_MFCV8_PLUS(dev))
-> >  			ctx->tmv_buffer_size = S5P_FIMV_NUM_TMV_BUFFERS_V6 *
-> >  			ALIGN(S5P_FIMV_TMV_BUFFER_SIZE_V8(mb_width, mb_height),
-> >  			S5P_FIMV_TMV_BUFFER_ALIGN_V6);
-> > @@ -82,13 +87,36 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
-> >  			ctx->tmv_buffer_size = S5P_FIMV_NUM_TMV_BUFFERS_V6 *
-> >  			ALIGN(S5P_FIMV_TMV_BUFFER_SIZE_V6(mb_width, mb_height),
-> >  			S5P_FIMV_TMV_BUFFER_ALIGN_V6);
-> > -
-> > -		ctx->luma_dpb_size = ALIGN((mb_width * mb_height) *
-> > -				S5P_FIMV_LUMA_MB_TO_PIXEL_V6,
-> > -				S5P_FIMV_LUMA_DPB_BUFFER_ALIGN_V6);
-> > -		ctx->chroma_dpb_size = ALIGN((mb_width * mb_height) *
-> > -				S5P_FIMV_CHROMA_MB_TO_PIXEL_V6,
-> > -				S5P_FIMV_CHROMA_DPB_BUFFER_ALIGN_V6);
-> > +		if (IS_MFCV10(dev)) {
-> > +			lcu_width = enc_lcu_width(ctx->img_width);
-> > +			lcu_height = enc_lcu_height(ctx->img_height);
-> > +			if (ctx->codec_mode != S5P_FIMV_CODEC_HEVC_ENC) {
-> > +				ctx->luma_dpb_size =
-> > +					ALIGN(calc_param((mb_width * 16), 64)
-> > +					* calc_param((mb_height * 16), 32)
-> > +						+ 64, 64);
-> ALIGN is not necessary here, as argument is already aligned.
-I will remove ALIGN and take care of the same for below. 
-> > +				ctx->chroma_dpb_size =
-> > +					ALIGN(calc_param((mb_width * 16), 64)
-> > +							* (mb_height * 8)
-> > +							+ 64, 64);
-> 
-> ditto
-> > +			} else {
-> > +				ctx->luma_dpb_size =
-> > +					ALIGN(calc_param((lcu_width * 32), 64)
-> > +					* calc_param((lcu_height * 32), 32)
-> > +						+ 64, 64);
-> ditto
-> > +				ctx->chroma_dpb_size =
-> > +					ALIGN(calc_param((lcu_width * 32), 64)
-> > +							* (lcu_height * 16)
-> > +							+ 64, 64);
-> 
-> ditto
-> 
-> > +			}
-> > +		} else {
-> > +			ctx->luma_dpb_size = ALIGN((mb_width * mb_height) *
-> > +					S5P_FIMV_LUMA_MB_TO_PIXEL_V6,
-> > +					S5P_FIMV_LUMA_DPB_BUFFER_ALIGN_V6);
-> > +			ctx->chroma_dpb_size = ALIGN((mb_width * mb_height) *
-> > +					S5P_FIMV_CHROMA_MB_TO_PIXEL_V6,
-> > +					S5P_FIMV_CHROMA_DPB_BUFFER_ALIGN_V6);
-> > +		}
-> >  		if (IS_MFCV8_PLUS(dev))
-> >  			ctx->me_buffer_size = ALIGN(S5P_FIMV_ME_BUFFER_SIZE_V8(
-> >  						ctx->img_width, ctx->img_height,
-> > @@ -197,6 +225,8 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
-> >  	case S5P_MFC_CODEC_H264_ENC:
-> >  		if (IS_MFCV10(dev)) {
-> >  			mfc_debug(2, "Use min scratch buffer size\n");
-> > +			ctx->me_buffer_size =
-> > +			ALIGN(ENC_V100_H264_ME_SIZE(mb_width, mb_height), 16);
-> >  		} else if (IS_MFCV8_PLUS(dev))
-> >  			ctx->scratch_buf_size =
-> >  				S5P_FIMV_SCRATCH_BUF_SIZE_H264_ENC_V8(
-> > @@ -219,6 +249,9 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
-> >  	case S5P_MFC_CODEC_H263_ENC:
-> >  		if (IS_MFCV10(dev)) {
-> >  			mfc_debug(2, "Use min scratch buffer size\n");
-> > +			ctx->me_buffer_size =
-> > +				ALIGN(ENC_V100_MPEG4_ME_SIZE(mb_width,
-> > +							mb_height), 16);
-> >  		} else
-> >  			ctx->scratch_buf_size =
-> >  				S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_ENC_V6(
-> > @@ -235,7 +268,10 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
-> >  	case S5P_MFC_CODEC_VP8_ENC:
-> >  		if (IS_MFCV10(dev)) {
-> >  			mfc_debug(2, "Use min scratch buffer size\n");
-> > -			} else if (IS_MFCV8_PLUS(dev))
-> > +			ctx->me_buffer_size =
-> > +				ALIGN(ENC_V100_VP8_ME_SIZE(mb_width, mb_height),
-> > +						16);
-> > +		} else if (IS_MFCV8_PLUS(dev))
-> >  			ctx->scratch_buf_size =
-> >  				S5P_FIMV_SCRATCH_BUF_SIZE_VP8_ENC_V8(
-> >  					mb_width,
-> > @@ -395,13 +431,15 @@ static void s5p_mfc_dec_calc_dpb_size_v6(struct s5p_mfc_ctx *ctx)
-> >  
-> >  	if (ctx->codec_mode == S5P_MFC_CODEC_H264_DEC ||
-> >  			ctx->codec_mode == S5P_MFC_CODEC_H264_MVC_DEC) {
-> > -		if (IS_MFCV10(dev))
-> > +		if (IS_MFCV10(dev)) {
-> >  			ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V10(ctx->img_width,
-> >  					ctx->img_height);
-> > -		else
-> > +			ctx->mv_size = ALIGN(ctx->mv_size, 32);
-> > +		} else {
-> >  			ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V6(ctx->img_width,
-> >  					ctx->img_height);
-> > -		ctx->mv_size = ALIGN(ctx->mv_size, 16);
-> > +			ctx->mv_size = ALIGN(ctx->mv_size, 16);
-> 
-> Already aligned
+--Sig_/qasgztqo0F5eR/I4ElM4bo6
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-I will remove the alignment.
-Thank you for the review.
+On Thu,  9 Mar 2017 17:51:14 +0100
+Andreas Kemnade <andreas@kemnade.info> wrote:
+
+> Ths adds the logilink VG00022a dvb-t dongle to the device table.
+> The dongle contains (checked by removing the case)
+> IT9303
+> SI2168
+>   214730
+>=20
+> The result is in cold state:
+>=20
+>  usb 1-6: new high-speed USB device number 15 using xhci_hcd
+>  usb 1-6: New USB device found, idVendor=3D1d19, idProduct=3D0100
+>  usb 1-6: New USB device strings: Mfr=3D1, Product=3D2, SerialNumber=3D3
+>  usb 1-6: Product: TS Aggregator
+>  usb 1-6: Manufacturer: ITE Tech., Inc.
+>  usb 1-6: SerialNumber: XXXXXXXXXXXX
+>  dvb_usb_af9035 1-6:1.0: prechip_version=3D83 chip_version=3D01 chip_type=
+=3D9306
+>  dvb_usb_af9035 1-6:1.0: ts mode=3D5 not supported, defaulting to single =
+tuner mode!
+>  usb 1-6: dvb_usb_v2: found a 'Logilink VG0022A' in cold state
+>  usb 1-6: dvb_usb_v2: downloading firmware from file 'dvb-usb-it9303-01.f=
+w'
+>  dvb_usb_af9035 1-6:1.0: firmware version=3D1.4.0.0
+>  usb 1-6: dvb_usb_v2: found a 'Logilink VG0022A' in warm state
+>  usb 1-6: dvb_usb_v2: will pass the complete MPEG2 transport stream to th=
+e software demuxer
+>  dvbdev: DVB: registering new adapter (Logilink VG0022A)
+>  si2168: probe of 6-0067 failed with error -5
+>=20
+> when warmed up by connecing it via  a powered usb hub to win7 and
+> then attaching the same usb hub to a linux machine:
+>=20
+with some fixes in af9035.c I already get the same state as with warm
+up by win7. I just need to find out which changes are really necessary
+and convert it into a clean patch.
+
+> so firmware uploading to the si2168 somehow messes things up
+>=20
+I experimented a lot here and I found this:
+If 0101 is not sent to the si2168 you can get answers from the
+Si2147-A30.=20
+After the 0101 is sent to the si2147-A30 it will still execute
+commands but you will not get the answer back through the si2168.
+You just get ff.
+
+After moving the chip id readout from si2157_init to si2157_probe,
+scanning for stations works. So the si2147-A30 seems to react on
+commands.=20
 
 Regards,
-Smitha T Murthy 
-> 
-> > +		}
-> >  	} else {
-> >  		ctx->mv_size = 0;
-> >  	}
-> > @@ -598,15 +636,34 @@ static int s5p_mfc_set_enc_ref_buffer_v6(struct s5p_mfc_ctx *ctx)
-> >  
-> >  	mfc_debug(2, "Buf1: %p (%d)\n", (void *)buf_addr1, buf_size1);
-> >  
-> > -	for (i = 0; i < ctx->pb_count; i++) {
-> > -		writel(buf_addr1, mfc_regs->e_luma_dpb + (4 * i));
-> > -		buf_addr1 += ctx->luma_dpb_size;
-> > -		writel(buf_addr1, mfc_regs->e_chroma_dpb + (4 * i));
-> > -		buf_addr1 += ctx->chroma_dpb_size;
-> > -		writel(buf_addr1, mfc_regs->e_me_buffer + (4 * i));
-> > -		buf_addr1 += ctx->me_buffer_size;
-> > -		buf_size1 -= (ctx->luma_dpb_size + ctx->chroma_dpb_size +
-> > -			ctx->me_buffer_size);
-> > +	if (IS_MFCV10(dev)) {
-> > +		/* start address of per buffer is aligned */
-> > +		for (i = 0; i < ctx->pb_count; i++) {
-> > +			writel(buf_addr1, mfc_regs->e_luma_dpb + (4 * i));
-> > +			buf_addr1 += ctx->luma_dpb_size;
-> > +			buf_size1 -= ctx->luma_dpb_size;
-> > +		}
-> > +		for (i = 0; i < ctx->pb_count; i++) {
-> > +			writel(buf_addr1, mfc_regs->e_chroma_dpb + (4 * i));
-> > +			buf_addr1 += ctx->chroma_dpb_size;
-> > +			buf_size1 -= ctx->chroma_dpb_size;
-> > +		}
-> > +		for (i = 0; i < ctx->pb_count; i++) {
-> > +			writel(buf_addr1, mfc_regs->e_me_buffer + (4 * i));
-> > +			buf_addr1 += ctx->me_buffer_size;
-> > +			buf_size1 -= ctx->me_buffer_size;
-> > +		}
-> > +	} else {
-> > +		for (i = 0; i < ctx->pb_count; i++) {
-> > +			writel(buf_addr1, mfc_regs->e_luma_dpb + (4 * i));
-> > +			buf_addr1 += ctx->luma_dpb_size;
-> > +			writel(buf_addr1, mfc_regs->e_chroma_dpb + (4 * i));
-> > +			buf_addr1 += ctx->chroma_dpb_size;
-> > +			writel(buf_addr1, mfc_regs->e_me_buffer + (4 * i));
-> > +			buf_addr1 += ctx->me_buffer_size;
-> > +			buf_size1 -= (ctx->luma_dpb_size + ctx->chroma_dpb_size
-> > +					+ ctx->me_buffer_size);
-> > +		}
-> >  	}
-> >  
-> >  	writel(buf_addr1, mfc_regs->e_scratch_buffer_addr);
-> > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-> > index 021b8db..975bbc5 100644
-> > --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-> > +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-> > @@ -26,6 +26,8 @@
-> >  					(((MB_HEIGHT(y)+1)/2)*2) * 64 + 128)
-> >  #define S5P_MFC_DEC_MV_SIZE_V10(x, y)	(MB_WIDTH(x) * \
-> >  					(((MB_HEIGHT(y)+1)/2)*2) * 64 + 512)
-> > +#define enc_lcu_width(x_size)		DIV_ROUND_UP(x_size, 32)
-> > +#define enc_lcu_height(y_size)		DIV_ROUND_UP(y_size, 32)
-> >  
-> >  /* Definition */
-> >  #define ENC_MULTI_SLICE_MB_MAX		((1 << 30) - 1)
-> 
-> 
-> 
+Andreas Kemnade
+
+--Sig_/qasgztqo0F5eR/I4ElM4bo6
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJYx40QAAoJEInxNTv1CwY0m58P/jLd+XaVKNf0C0bUiWY8NWFH
+keTyRwdb/ZBAH5xwRqgDftrLIuxjMGwYjMg8FpAfM0MEU3+jSjE+d9wpBeBo+3Kk
+Y1CPjFfmv0+loVZ5iAPuvGADIccqfZjvEsXOEefxqSWwoh+X/JGFBlziPcOa9ypW
+Vqv3kT+UIg6q5u0TDup/hlA6Td9HJ3dgfKhXRhmINjt3o8LBKAxlm9yqqxpmXAzR
+cU4iyu0TqLTVVkzbQO/6bTeOaZmvs6/DTt/kr3UF78JO0FbhII1X/rnKDfXb951z
+GWbVWPnE2qS+KBi+vB8Fx/z+IFN+nAH6q4KN00R13XGvKxzRtsI54a7iSOGvFegx
+k3lB4Hj8SmIJPud4LO2YXzJZ7RSonQGqNiyJNTkO4UexH7F7dWLTN8IPrfZBKW2T
+loliXF5SC5T/XsOPUVArUm858boapMrkrYiq7MuyCmSdmo3ed4fIOfMFZJsoptxh
+8pVC93II6mkqq72aqPi21y+EIeO/h1oFfCj0LcPtgryZJLKEGMTBNWMb26+Gtu7+
+ncVLLJOb7aVTLrZTQpF8S0JF0sa9O2zdhJVFm4fJauBE+9IP0gM193ZR+YEmORGs
+FEHgVvLdogQTD/jPqq387E0PLAEd0BVmArSjkfTLAQdCIEr6nuizHrPGpl25+3Vi
+TZFuzAOxiDaTpbnoit//
+=PVnR
+-----END PGP SIGNATURE-----
+
+--Sig_/qasgztqo0F5eR/I4ElM4bo6--
