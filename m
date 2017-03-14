@@ -1,462 +1,892 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:44172 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750885AbdCQKbZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Mar 2017 06:31:25 -0400
-Date: Fri, 17 Mar 2017 10:19:23 +0000
-From: Local user for Liviu Dudau <liviu.dudau@arm.com>
-To: Ville =?utf-8?B?U3lyasOkbMOk?= <ville.syrjala@linux.intel.com>
-Cc: "Sharma, Shashank" <shashank.sharma@intel.com>,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        mihail.atanassov@arm.com, linux-media@vger.kernel.org
-Subject: Re: DRM Atomic property for color-space conversion
-Message-ID: <20170317101923.GA9524@e110455-lin.cambridge.arm.com>
-References: <20170131151546.GT31595@intel.com>
- <20170131155541.GF11506@e106950-lin.cambridge.arm.com>
- <20170316140725.GF31595@intel.com>
- <0cff6bab-7593-d3d2-f3b5-71dc21669dab@intel.com>
- <20170316143059.GG31595@intel.com>
- <20170316143721.GN6268@e110455-lin.cambridge.arm.com>
- <f806a38d-f52c-0cf2-bee6-582f1a35d312@intel.com>
- <20170316155501.GA25006@e106950-lin.cambridge.arm.com>
- <fc590903-a88e-d2c2-968f-26d59963caba@intel.com>
- <20170316173656.GI31595@intel.com>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:37445 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751509AbdCNTGi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Mar 2017 15:06:38 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v3 08/27] rcar-vin: move functions regarding scaling
+Date: Tue, 14 Mar 2017 20:02:49 +0100
+Message-Id: <20170314190308.25790-9-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20170316173656.GI31595@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 16, 2017 at 07:36:56PM +0200, Ville Syrjälä wrote:
-> On Thu, Mar 16, 2017 at 07:05:12PM +0200, Sharma, Shashank wrote:
-> > Regards
-> > 
-> > Shashank
-> > 
-> > 
-> > On 3/16/2017 5:55 PM, Brian Starkey wrote:
-> > > Hi,
-> > >
-> > > On Thu, Mar 16, 2017 at 05:14:07PM +0200, Sharma Shashank wrote:
-> > >> Regards
-> > >>
-> > >> Shashank
-> > >>
-> > >>
-> > >> On 3/16/2017 4:37 PM, Local user for Liviu Dudau wrote:
-> > >>> On Thu, Mar 16, 2017 at 04:30:59PM +0200, Ville Syrjälä wrote:
-> > >>>> On Thu, Mar 16, 2017 at 04:20:29PM +0200, Sharma, Shashank wrote:
-> > >>>>> Regards
-> > >>>>>
-> > >>>>> Shashank
-> > >>>>>
-> > >>>>>
-> > >>>>> On 3/16/2017 4:07 PM, Ville Syrjälä wrote:
-> > >>>>>> On Tue, Jan 31, 2017 at 03:55:41PM +0000, Brian Starkey wrote:
-> > >>>>>>> On Tue, Jan 31, 2017 at 05:15:46PM +0200, Ville Syrjälä wrote:
-> > >>>>>>>> On Tue, Jan 31, 2017 at 12:33:29PM +0000, Brian Starkey wrote:
-> > >>>>>>>>> Hi,
-> > >>>>>>>>>
-> > >>>>>>>>> On Mon, Jan 30, 2017 at 03:35:13PM +0200, Ville Syrjälä wrote:
-> > >>>>>>>>>> On Fri, Jan 27, 2017 at 05:23:24PM +0000, Brian Starkey wrote:
-> > >>>>>>>>>>> Hi,
-> > >>>>>>>>>>>
-> > >>>>>>>>>>> We're looking to enable the per-plane color management 
-> > >>>>>>>>>>> hardware in
-> > >>>>>>>>>>> Mali-DP with atomic properties, which has sparked some 
-> > >>>>>>>>>>> conversation
-> > >>>>>>>>>>> around how to handle YCbCr formats.
-> > >>>>>>>>>>>
-> > >>>>>>>>>>> As it stands today, it's assumed that a driver will 
-> > >>>>>>>>>>> implicitly "do the
-> > >>>>>>>>>>> right thing" to display a YCbCr buffer.
-> > >>>>>>>>>>>
-> > >>>>>>>>>>> YCbCr data often uses different gamma curves and signal 
-> > >>>>>>>>>>> ranges (e.g.
-> > >>>>>>>>>>> BT.609, BT.701, BT.2020, studio range, full-range), so its 
-> > >>>>>>>>>>> desirable
-> > >>>>>>>>>>> to be able to explicitly control the YCbCr to RGB conversion 
-> > >>>>>>>>>>> process
-> > >>>>>>>>>>> from userspace.
-> > >>>>>>>>>>>
-> > >>>>>>>>>>> We're proposing adding a "CSC" (color-space conversion) 
-> > >>>>>>>>>>> property to
-> > >>>>>>>>>>> control this - primarily per-plane for framebuffer->pipeline 
-> > >>>>>>>>>>> CSC, but
-> > >>>>>>>>>>> perhaps one per CRTC too for devices which have an RGB 
-> > >>>>>>>>>>> pipeline and
-> > >>>>>>>>>>> want to output in YUV to the display:
-> > >>>>>>>>>>>
-> > >>>>>>>>>>> Name: "CSC"
-> > >>>>>>>>>>> Type: ENUM | ATOMIC;
-> > >>>>>>>>>>> Enum values (representative):
-> > >>>>>>>>>>> "default":
-> > >>>>>>>>>>>     Same behaviour as now. "Some kind" of YCbCr->RGB conversion
-> > >>>>>>>>>>>     for YCbCr buffers, bypass for RGB buffers
-> > >>>>>>>>>>> "disable":
-> > >>>>>>>>>>>     Explicitly disable all colorspace conversion (i.e. use an
-> > >>>>>>>>>>>     identity matrix).
-> > >>>>>>>>>>> "YCbCr to RGB: BT.709":
-> > >>>>>>>>>>>     Only valid for YCbCr formats. CSC in accordance with BT.709
-> > >>>>>>>>>>>     using [16..235] for (8-bit) luma values, and [16..240] for
-> > >>>>>>>>>>>     8-bit chroma values. For 10-bit formats, the range 
-> > >>>>>>>>>>> limits are
-> > >>>>>>>>>>>     multiplied by 4.
-> > >>>>>>>>>>> "YCbCr to RGB: BT.709 full-swing":
-> > >>>>>>>>>>>     Only valid for YCbCr formats. CSC in accordance with 
-> > >>>>>>>>>>> BT.709,
-> > >>>>>>>>>>>     but using the full range of each channel.
-> > >>>>>>>>>>> "YCbCr to RGB: Use CTM":*
-> > >>>>>>>>>>>     Only valid for YCbCr formats. Use the matrix applied via 
-> > >>>>>>>>>>> the
-> > >>>>>>>>>>>     plane's CTM property
-> > >>>>>>>>>>> "RGB to RGB: Use CTM":*
-> > >>>>>>>>>>>     Only valid for RGB formats. Use the matrix applied via the
-> > >>>>>>>>>>>     plane's CTM property
-> > >>>>>>>>>>> "Use CTM":*
-> > >>>>>>>>>>>     Valid for any format. Use the matrix applied via the 
-> > >>>>>>>>>>> plane's
-> > >>>>>>>>>>>     CTM property
-> > >>>>>>>>>>> ... any other values for BT.601, BT.2020, RGB to YCbCr etc. 
-> > >>>>>>>>>>> etc. as
-> > >>>>>>>>>>> they are required.
-> > >>>>>>>>>> Having some RGB2RGB and YCBCR2RGB things in the same property 
-> > >>>>>>>>>> seems
-> > >>>>>>>>>> weird. I would just go with something very simple like:
-> > >>>>>>>>>>
-> > >>>>>>>>>> YCBCR_TO_RGB_CSC:
-> > >>>>>>>>>> * BT.601
-> > >>>>>>>>>> * BT.709
-> > >>>>>>>>>> * custom matrix
-> > >>>>>>>>>>
-> > >>>>>>>>> I think we've agreed in #dri-devel that this CSC property
-> > >>>>>>>>> can't/shouldn't be mapped on-to the existing (hardware 
-> > >>>>>>>>> implementing
-> > >>>>>>>>> the) CTM property - even in the case of per-plane color 
-> > >>>>>>>>> management -
-> > >>>>>>>>> because CSC needs to be done before DEGAMMA.
-> > >>>>>>>>>
-> > >>>>>>>>> So, I'm in favour of going with what you suggested in the 
-> > >>>>>>>>> first place:
-> > >>>>>>>>>
-> > >>>>>>>>> A new YCBCR_TO_RGB_CSC property, enum type, with a list of fixed
-> > >>>>>>>>> conversions. I'd drop the custom matrix for now, as we'd need 
-> > >>>>>>>>> to add
-> > >>>>>>>>> another property to attach the custom matrix blob too.
-> > >>>>>>>>>
-> > >>>>>>>>> I still think we need a way to specify whether the source data 
-> > >>>>>>>>> range
-> > >>>>>>>>> is broadcast/full-range, so perhaps the enum list should be 
-> > >>>>>>>>> expanded
-> > >>>>>>>>> to all combinations of BT.601/BT.709 + broadcast/full-range.
-> > >>>>>>>> Sounds reasonable. Not that much full range YCbCr stuff out there
-> > >>>>>>>> perhaps. Well, apart from jpegs I suppose. But no harm in being 
-> > >>>>>>>> able
-> > >>>>>>>> to deal with it.
-> > >>>>>>>>
-> > >>>>>>>>> (I'm not sure what the canonical naming for 
-> > >>>>>>>>> broadcast/full-range is,
-> > >>>>>>>>> we call them narrow and wide)
-> > >>>>>>>> We tend to call them full vs. limited range. That's how our
-> > >>>>>>>> "Broadcast RGB" property is defined as well.
-> > >>>>>>>>
-> > >>>>>>> OK, using the same ones sounds sensible.
-> > >>>>>>>
-> > >>>>>>>>>> And trying to use the same thing for the crtc stuff is 
-> > >>>>>>>>>> probably not
-> > >>>>>>>>>> going to end well. Like Daniel said we already have the
-> > >>>>>>>>>> 'Broadcast RGB' property muddying the waters there, and that 
-> > >>>>>>>>>> stuff
-> > >>>>>>>>>> also ties in with what colorspace we signal to the sink via
-> > >>>>>>>>>> infoframes/whatever the DP thing was called. So my gut 
-> > >>>>>>>>>> feeling is
-> > >>>>>>>>>> that trying to use the same property everywhere will just end up
-> > >>>>>>>>>> messy.
-> > >>>>>>>>> Yeah, agreed. If/when someone wants to add CSC on the output 
-> > >>>>>>>>> of a CRTC
-> > >>>>>>>>> (after GAMMA), we can add a new property.
-> > >>>>>>>>>
-> > >>>>>>>>> That makes me wonder about calling this one 
-> > >>>>>>>>> SOURCE_YCBCR_TO_RGB_CSC to
-> > >>>>>>>>> be explicit that it describes the source data. Then we can 
-> > >>>>>>>>> later add
-> > >>>>>>>>> SINK_RGB_TO_YCBCR_CSC, and it will be reasonably obvious that its
-> > >>>>>>>>> value describes the output data rather than the input data.
-> > >>>>>>>> Source and sink have a slight connotation in my mind wrt. the 
-> > >>>>>>>> box that
-> > >>>>>>>> produces the display signal and the box that eats the signal. 
-> > >>>>>>>> So trying
-> > >>>>>>>> to use the same terms to describe the internals of the pipeline 
-> > >>>>>>>> inside
-> > >>>>>>>> the "source box" migth lead to some confusion. But we do 
-> > >>>>>>>> probably need
-> > >>>>>>>> some decent names for these to make the layout of the pipeline 
-> > >>>>>>>> clear.
-> > >>>>>>>> Input/output are the other names that popped to my mind but 
-> > >>>>>>>> those aren't
-> > >>>>>>>> necessarily any better. But in the end I think I could live 
-> > >>>>>>>> with whatever
-> > >>>>>>>> names we happen to pick, as long as we document the pipeline 
-> > >>>>>>>> clearly.
-> > >>>>>>>>
-> > >>>>>>>> Long ago I did wonder if we should just start indexing these 
-> > >>>>>>>> things
-> > >>>>>>>> somehow, and then just looking at the index should tell you the 
-> > >>>>>>>> order
-> > >>>>>>>> of the operations. But we already have the ctm/gamma w/o any 
-> > >>>>>>>> indexes so
-> > >>>>>>>> that idea probably isn't so great anymore.
-> > >>>>>>>>
-> > >>>>>>>>> I want to avoid confusion caused by ending up with two
-> > >>>>>>>>> {CS}_TO_{CS}_CSC properties, where one is describing the data 
-> > >>>>>>>>> to the
-> > >>>>>>>>> left of it, and the other describing the data to the right of 
-> > >>>>>>>>> it, with
-> > >>>>>>>>> no real way of telling which way around it is.
-> > >>>>>>>> Not really sure what you mean. It should always be
-> > >>>>>>>> <left>_to_<right>_csc.
-> > >>>>>>> Agreed, left-to-right. But for instance on a CSC property 
-> > >>>>>>> representing
-> > >>>>>>> a CRTC output CSC (just before hitting the connector), which 
-> > >>>>>>> happens
-> > >>>>>>> to be converting RGB to YCbCr:
-> > >>>>>>>
-> > >>>>>>> CRTC -> GAMMA -> RGB_TO_YCBCR_CSC
-> > >>>>>>>
-> > >>>>>>> ...the enum value "BT.601 Limited" means that the data on the 
-> > >>>>>>> *right*
-> > >>>>>>> of RGB_TO_YCBCR_CSC is "BT.601 Limited"
-> > >>>>>>>
-> > >>>>>>> On the other hand for a CSC on the input of a plane, which 
-> > >>>>>>> happens to
-> > >>>>>>> be converting YCbCr to RGB:
-> > >>>>>>>
-> > >>>>>>> RAM -> YCBCR_TO_RGB_CSC -> DEGAMMA
-> > >>>>>>>
-> > >>>>>>> ...the enum value "BT.601 Limited" means that the data on the 
-> > >>>>>>> *left*
-> > >>>>>>> of YCBCR_TO_RGB_CSC is "BT.601 Limited".
-> > >>>>>>>
-> > >>>>>>> Indicating in the property name whether its value is describing the
-> > >>>>>>> data on the left or the right is needed (and I don't think 
-> > >>>>>>> inferring
-> > >>>>>>> that "it's always the YCBCR one" is the correct approach).
-> > >>>>>>>
-> > >>>>>>> In my example above, "SOURCE_xxx" would mean the enum value is
-> > >>>>>>> describing the "source" data (i.e. the data on the left) and
-> > >>>>>>> "SINK_xxx" would mean the enum value is describing the "sink" data
-> > >>>>>>> (i.e. the data on the right). This doesn't necessarily need to 
-> > >>>>>>> infer a
-> > >>>>>>> particular point in the pipeline.
-> > >>>>>> Right, so I guess you want the values to be named "<a> to <b>" as 
-> > >>>>>> well?
-> > >>>>>> Yes, I think we'll be wanting that as well.
-> > >>>>>>
-> > >>>>>> So what we might need is something like:
-> > >>>>>> enum YCBCR_TO_RGB_CSC
-> > >>>>>>   * YCbCr BT.601 limited to RGB BT.709 full
-> > >>>>>>   * YCbCr BT.709 limited to RGB BT.709 full <this would be the 
-> > >>>>>> likely default value IMO>
-> > >>>>>>   * YCbCr BT.601 limited to RGB BT.2020 full
-> > >>>>>>   * YCbCr BT.709 limited to RGB BT.2020 full
-> > >>>>>>   * YCbCr BT.2020 limited to RGB BT.2020 full
-> > >>>>>>
-> > >>>>>> And thanks to BT.2020 we'll need a RGB->RGB CSC property as well. 
-> > >>>>>> Eg:
-> > >>>>>> enum RGB_TO_RGB_CSC
-> > >>>>>>   * bypass (or separate 709->709, 2020->2020?) <this would be the 
-> > >>>>>> default>
-> > >>>>>>   * RGB BT.709 full to RGB BT.2020 full
-> > >
-> > > I like this approach, from a point of view of being explicit and
-> > > discoverable by userspace. It also happens to map quite nicely to our
-> > > hardware... we have a matrix before degamma, so we could do a
-> > > CSC + Gamut conversion there in one go, which is apparently not 100%
-> > > mathematically correct, but in general is good enough.
-> > >
-> > > ... however having talked this over a bit with someone who understands
-> > > the detail a lot better than me, it sounds like the "correct" thing to
-> > > do as per the spec is:
-> > >
-> > > CSC -> DEGAMMA -> GAMUT
-> > >
-> > > e.g.
-> > >
-> > > YCbCr bt.601 limited to RGB bt.601 full -> degamma ->
-> > >     RGB bt.601 full to RGB bt.709 full
-> > >
-> > > So that sounds like what we need to support in the API, and also
-> > > sounds more like the "separate properties" approach.
-> > I agree.
-> > >
-> > >>>>>>
-> > >>>>>> Alternatives would involve two properties to define the input and 
-> > >>>>>> output
-> > >>>>>> from the CSC separately, but then you lose the capability to see 
-> > >>>>>> which
-> > >>>>>> combinations are actually supoorted.
-> > >>>>> I was thinking about this too, or would it make more sense to 
-> > >>>>> create two
-> > >>>>> properties:
-> > >>>>> - one for gamut mapping (cases like RGB709->RGB2020)
-> > >>>>> - other one for Color space conversion (cases lile YUV 709 -> RGB 
-> > >>>>> 709)
-> > >>>>>
-> > >>>>> Gamut mapping can represent any of the fix function mapping, 
-> > >>>>> wereas CSC
-> > >>>>> can bring up any programmable matrix
-> > >>>>>
-> > >>>>> Internally these properties can use the same HW unit or even same 
-> > >>>>> function.
-> > >>>>> Does it sound any good ?
-> > >
-> > > It seems to me that actually the two approaches can be combined into
-> > > the same thing:
-> > >  * We definitely need a YCbCr-to-RGB conversion before degamma
-> > >    (for converting YUV data to RGB, in some flavour)
-> > >  * We definitely need an RGB-to-RGB conversion after gamma to handle
-> > >    709 layers blended with Rec.2020.
-> > > The exact conversion each of those properties represents (CSC + gamut,
-> > > CSC only, gamut only) can be implicit in the enum name.
-> > >
-> > > For hardware which has a fixed-function CSC before DEGAMMA with a
-> > > matrix after DEGAMMA, I'd expect to see something like below. None of
-> > > the YCBCR_TO_RGB_CSC values include a gamut conversion, because that
-> > > is instead exposed with the RGB_TO_RGB_CSC property (which represents
-> > > the hardware matrix)
-> > >
-> > > YCBCR_TO_RGB_CSC (before DEGAMMA):
-> > >     YCbCr BT.601 limited to RGB BT.601 full
-> > >     YCbCr BT.709 limited to RGB BT.709 full
-> > >     YCbCr BT.2020 limited to RGB BT.2020 full
-> > >
-> > > RGB_TO_RGB_CSC (after DEGAMMA):
-> > >     RGB BT.601 full to RGB BT.709 full
-> > >     RGB BT.709 full to RGB BT.2020 full
-> > >
-> > >
-> > > On the other hand, on hardware which does a CSC + Gamut conversion in
-> > > one go, before DEGAMMA (like ours), you might have:
-> > >
-> > > YCBCR_TO_RGB_CSC (before DEGAMMA):
-> > >     YCbCr BT.601 limited to RGB BT.601 full
-> > >     YCbCr BT.601 limited to RGB BT.709 full
-> > >     YCbCr BT.709 limited to RGB BT.709 full
-> > >     YCbCr BT.2020 limited to RGB BT.2020 full
-> > >
-> > > RGB_TO_RGB_CSC (after DEGAMMA):
-> > >     Not supported
-> > >
-> > > Userspace can parse the two properties to figure out its options to
-> > > get from desired input -> desired output. It is perhaps a little
-> > > verbose, but it's descriptive and flexible.
-> > >
-> > Seems to be a good idea, Ville ?
-> 
-> Looks pretty sane to me.
-> 
-> Though how we'll do the degamma/gamma is rather unclear still.
-> 
-> I think we might be looking at two variants of hardware:
-> - A fully programmable one with separate stages:
->   csc -> degamma -> gamut -> gamma
-> - A totally fixed one with just a few different variants
->   of the pipeline baked into the hardware 
-> 
-> If we want to expose the gamma/degamma to the user, how exactly are we
-> going to do that with the latter form or hardware. I guess we could
-> specify that if the degamma property is not exposed, there will be an
-> implicit degamma stage between the two csc and gamut. And if it is
-> exposed the output from the first csc is non-linear and thus needs
-> the degamma programmed to make it so before the gamut mapping.
+In preparation of refactoring the scaling code move the code regarding
+scaling to to the top of the file to avoid the need to add forward
+declarations. No code is changed in this commit only whole functions
+moved inside the same file.
 
-How about mandating that drivers expose all the properties, except that
-for HW that doesn't allow the property to be updated from userspace it will
-be marked read-only. And the driver can export in the blob whatever coefficients
-match the fixed pipeline stage. If such information is not available, maybe
-we can provide in the DRM core some example or "standard" coefficients?
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-dma.c | 804 +++++++++++++++--------------
+ 1 file changed, 404 insertions(+), 400 deletions(-)
 
-Best regards,
-Liviu
-
-> 
-> And perhaps a similar rule could work for the gamma; If it's present
-> the output from the gamut mapping is expected to be linear, and
-> otherwise non-linear. Not quite sure about this. In fact I don't yet
-> know what our hardware would output from the end of the fixed pipeline.
-> 
-> > 
-> > - Shashank
-> > >>>> It's certainly possible. One problem is that we can't inform userspace
-> > >>>> upfront which combinations are supported. Whether that's a real 
-> > >>>> problem
-> > >>>> I'm not sure. With atomic userspace can of course check upfront if
-> > >>>> something can be done or not, but the main problem is then coming up
-> > >>>> with a fallback strategy that doesn't suck too badly.
-> > >>>>
-> > >
-> > > The approach above helps limit the set exposed to userspace to be only
-> > > those which are supported - because devices which don't have separate
-> > > hardware for the two stages won't expose values for both.
-> > >
-> > >>>> Anyways, I don't think I have any strong favorites here. Would be nice
-> > >>>> to hear what everyone else thinks.
-> > >>> I confess to a lack of experience in the subject here, but what is 
-> > >>> the more common
-> > >>> request coming from userspace: converting YUV <-> RGB but keeping 
-> > >>> the gammut mapping
-> > >>> separate, or YUV (gammut x) <-> RGB (gammut y) ? In other words: I 
-> > >>> can see the usefulness
-> > >>> of having an explicit way of decomposing the color mapping process 
-> > >>> and control the
-> > >>> parameters, but how often do apps or compositors go through the 
-> > >>> whole chain?
-> > >> Right now, more or less the interest is on the RGB->YUV conversion 
-> > >> side, coz till now BT 2020 gamut was not in
-> > >> picture. REC 601 and 709 have very close gamuts, so it was ok to 
-> > >> blend frames mostly without bothering about
-> > >> gamut, but going fwd, ones REC 2020 comes into picture, we need to 
-> > >> bother about mapping gamuts too, else
-> > >> blending Rec709 buffers and Rec2020 buffers together would cause very 
-> > >> visible gamut mismatch.
-> > >>
-> > >> So considering futuristic developments, it might be ok to consider 
-> > >> both. Still, as Ville mentioned, it would be good
-> > >> to hear from other too.
-> > >>
-> > >
-> > > Yeah I agree that we definitely need to consider both for anything we
-> > > come up with now.
-> > >
-> > > Cheers,
-> > > Brian
-> > >
-> > >> - Shashank
-> > >>>
-> > >>> Best regards,
-> > >>> Liviu
-> > >>>
-> > >>>> -- 
-> > >>>> Ville Syrjälä
-> > >>>> Intel OTC
-> > >>
-> 
-> -- 
-> Ville Syrjälä
-> Intel OTC
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
-
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index c5fa176ac9d8cc4a..eff5d8f719e4ab26 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -138,304 +138,6 @@ static u32 rvin_read(struct rvin_dev *vin, u32 offset)
+ 	return ioread32(vin->base + offset);
+ }
+ 
+-static int rvin_setup(struct rvin_dev *vin)
+-{
+-	u32 vnmc, dmr, dmr2, interrupts;
+-	v4l2_std_id std;
+-	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
+-
+-	switch (vin->format.field) {
+-	case V4L2_FIELD_TOP:
+-		vnmc = VNMC_IM_ODD;
+-		break;
+-	case V4L2_FIELD_BOTTOM:
+-		vnmc = VNMC_IM_EVEN;
+-		break;
+-	case V4L2_FIELD_INTERLACED:
+-		/* Default to TB */
+-		vnmc = VNMC_IM_FULL;
+-		/* Use BT if video standard can be read and is 60 Hz format */
+-		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
+-			if (std & V4L2_STD_525_60)
+-				vnmc = VNMC_IM_FULL | VNMC_FOC;
+-		}
+-		break;
+-	case V4L2_FIELD_INTERLACED_TB:
+-		vnmc = VNMC_IM_FULL;
+-		break;
+-	case V4L2_FIELD_INTERLACED_BT:
+-		vnmc = VNMC_IM_FULL | VNMC_FOC;
+-		break;
+-	case V4L2_FIELD_ALTERNATE:
+-	case V4L2_FIELD_NONE:
+-		if (vin->continuous) {
+-			vnmc = VNMC_IM_ODD_EVEN;
+-			progressive = true;
+-		} else {
+-			vnmc = VNMC_IM_ODD;
+-		}
+-		break;
+-	default:
+-		vnmc = VNMC_IM_ODD;
+-		break;
+-	}
+-
+-	/*
+-	 * Input interface
+-	 */
+-	switch (vin->digital.code) {
+-	case MEDIA_BUS_FMT_YUYV8_1X16:
+-		/* BT.601/BT.1358 16bit YCbCr422 */
+-		vnmc |= VNMC_INF_YUV16;
+-		input_is_yuv = true;
+-		break;
+-	case MEDIA_BUS_FMT_UYVY8_2X8:
+-		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+-		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
+-			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+-		input_is_yuv = true;
+-		break;
+-	case MEDIA_BUS_FMT_RGB888_1X24:
+-		vnmc |= VNMC_INF_RGB888;
+-		break;
+-	case MEDIA_BUS_FMT_UYVY10_2X10:
+-		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+-		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
+-			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
+-		input_is_yuv = true;
+-		break;
+-	default:
+-		break;
+-	}
+-
+-	/* Enable VSYNC Field Toogle mode after one VSYNC input */
+-	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
+-
+-	/* Hsync Signal Polarity Select */
+-	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+-		dmr2 |= VNDMR2_HPS;
+-
+-	/* Vsync Signal Polarity Select */
+-	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
+-		dmr2 |= VNDMR2_VPS;
+-
+-	/*
+-	 * Output format
+-	 */
+-	switch (vin->format.pixelformat) {
+-	case V4L2_PIX_FMT_NV16:
+-		rvin_write(vin,
+-			   ALIGN(vin->format.width * vin->format.height, 0x80),
+-			   VNUVAOF_REG);
+-		dmr = VNDMR_DTMD_YCSEP;
+-		output_is_yuv = true;
+-		break;
+-	case V4L2_PIX_FMT_YUYV:
+-		dmr = VNDMR_BPSM;
+-		output_is_yuv = true;
+-		break;
+-	case V4L2_PIX_FMT_UYVY:
+-		dmr = 0;
+-		output_is_yuv = true;
+-		break;
+-	case V4L2_PIX_FMT_XRGB555:
+-		dmr = VNDMR_DTMD_ARGB1555;
+-		break;
+-	case V4L2_PIX_FMT_RGB565:
+-		dmr = 0;
+-		break;
+-	case V4L2_PIX_FMT_XBGR32:
+-		/* Note: not supported on M1 */
+-		dmr = VNDMR_EXRGB;
+-		break;
+-	default:
+-		vin_err(vin, "Invalid pixelformat (0x%x)\n",
+-			vin->format.pixelformat);
+-		return -EINVAL;
+-	}
+-
+-	/* Always update on field change */
+-	vnmc |= VNMC_VUP;
+-
+-	/* If input and output use the same colorspace, use bypass mode */
+-	if (input_is_yuv == output_is_yuv)
+-		vnmc |= VNMC_BPS;
+-
+-	/* Progressive or interlaced mode */
+-	interrupts = progressive ? VNIE_FIE : VNIE_EFE;
+-
+-	/* Ack interrupts */
+-	rvin_write(vin, interrupts, VNINTS_REG);
+-	/* Enable interrupts */
+-	rvin_write(vin, interrupts, VNIE_REG);
+-	/* Start capturing */
+-	rvin_write(vin, dmr, VNDMR_REG);
+-	rvin_write(vin, dmr2, VNDMR2_REG);
+-
+-	/* Enable module */
+-	rvin_write(vin, vnmc | VNMC_ME, VNMC_REG);
+-
+-	return 0;
+-}
+-
+-static void rvin_disable_interrupts(struct rvin_dev *vin)
+-{
+-	rvin_write(vin, 0, VNIE_REG);
+-}
+-
+-static u32 rvin_get_interrupt_status(struct rvin_dev *vin)
+-{
+-	return rvin_read(vin, VNINTS_REG);
+-}
+-
+-static void rvin_ack_interrupt(struct rvin_dev *vin)
+-{
+-	rvin_write(vin, rvin_read(vin, VNINTS_REG), VNINTS_REG);
+-}
+-
+-static bool rvin_capture_active(struct rvin_dev *vin)
+-{
+-	return rvin_read(vin, VNMS_REG) & VNMS_CA;
+-}
+-
+-static int rvin_get_active_slot(struct rvin_dev *vin, u32 vnms)
+-{
+-	if (vin->continuous)
+-		return (vnms & VNMS_FBS_MASK) >> VNMS_FBS_SHIFT;
+-
+-	return 0;
+-}
+-
+-static enum v4l2_field rvin_get_active_field(struct rvin_dev *vin, u32 vnms)
+-{
+-	if (vin->format.field == V4L2_FIELD_ALTERNATE) {
+-		/* If FS is set it's a Even field */
+-		if (vnms & VNMS_FS)
+-			return V4L2_FIELD_BOTTOM;
+-		return V4L2_FIELD_TOP;
+-	}
+-
+-	return vin->format.field;
+-}
+-
+-static void rvin_set_slot_addr(struct rvin_dev *vin, int slot, dma_addr_t addr)
+-{
+-	const struct rvin_video_format *fmt;
+-	int offsetx, offsety;
+-	dma_addr_t offset;
+-
+-	fmt = rvin_format_from_pixel(vin->format.pixelformat);
+-
+-	/*
+-	 * There is no HW support for composition do the beast we can
+-	 * by modifying the buffer offset
+-	 */
+-	offsetx = vin->compose.left * fmt->bpp;
+-	offsety = vin->compose.top * vin->format.bytesperline;
+-	offset = addr + offsetx + offsety;
+-
+-	/*
+-	 * The address needs to be 128 bytes aligned. Driver should never accept
+-	 * settings that do not satisfy this in the first place...
+-	 */
+-	if (WARN_ON((offsetx | offsety | offset) & HW_BUFFER_MASK))
+-		return;
+-
+-	rvin_write(vin, offset, VNMB_REG(slot));
+-}
+-
+-static bool rvin_fill_hw_slot(struct rvin_dev *vin, int slot)
+-{
+-	struct rvin_buffer *buf;
+-	struct vb2_v4l2_buffer *vbuf;
+-	dma_addr_t phys_addr_top;
+-
+-	if (vin->queue_buf[slot] != NULL)
+-		return true;
+-
+-	if (list_empty(&vin->buf_list))
+-		return false;
+-
+-	vin_dbg(vin, "Filling HW slot: %d\n", slot);
+-
+-	/* Keep track of buffer we give to HW */
+-	buf = list_entry(vin->buf_list.next, struct rvin_buffer, list);
+-	vbuf = &buf->vb;
+-	list_del_init(to_buf_list(vbuf));
+-	vin->queue_buf[slot] = vbuf;
+-
+-	/* Setup DMA */
+-	phys_addr_top = vb2_dma_contig_plane_dma_addr(&vbuf->vb2_buf, 0);
+-	rvin_set_slot_addr(vin, slot, phys_addr_top);
+-
+-	return true;
+-}
+-
+-static bool rvin_fill_hw(struct rvin_dev *vin)
+-{
+-	int slot, limit;
+-
+-	limit = vin->continuous ? HW_BUFFER_NUM : 1;
+-
+-	for (slot = 0; slot < limit; slot++)
+-		if (!rvin_fill_hw_slot(vin, slot))
+-			return false;
+-	return true;
+-}
+-
+-static void rvin_capture_on(struct rvin_dev *vin)
+-{
+-	vin_dbg(vin, "Capture on in %s mode\n",
+-		vin->continuous ? "continuous" : "single");
+-
+-	if (vin->continuous)
+-		/* Continuous Frame Capture Mode */
+-		rvin_write(vin, VNFC_C_FRAME, VNFC_REG);
+-	else
+-		/* Single Frame Capture Mode */
+-		rvin_write(vin, VNFC_S_FRAME, VNFC_REG);
+-}
+-
+-static int rvin_capture_start(struct rvin_dev *vin)
+-{
+-	struct rvin_buffer *buf, *node;
+-	int bufs, ret;
+-
+-	/* Count number of free buffers */
+-	bufs = 0;
+-	list_for_each_entry_safe(buf, node, &vin->buf_list, list)
+-		bufs++;
+-
+-	/* Continuous capture requires more buffers then there are HW slots */
+-	vin->continuous = bufs > HW_BUFFER_NUM;
+-
+-	if (!rvin_fill_hw(vin)) {
+-		vin_err(vin, "HW not ready to start, not enough buffers available\n");
+-		return -EINVAL;
+-	}
+-
+-	rvin_crop_scale_comp(vin);
+-
+-	ret = rvin_setup(vin);
+-	if (ret)
+-		return ret;
+-
+-	rvin_capture_on(vin);
+-
+-	vin->state = RUNNING;
+-
+-	return 0;
+-}
+-
+-static void rvin_capture_stop(struct rvin_dev *vin)
+-{
+-	/* Set continuous & single transfer off */
+-	rvin_write(vin, 0, VNFC_REG);
+-
+-	/* Disable module */
+-	rvin_write(vin, rvin_read(vin, VNMC_REG) & ~VNMC_ME, VNMC_REG);
+-}
+-
+ /* -----------------------------------------------------------------------------
+  * Crop and Scaling Gen2
+  */
+@@ -756,139 +458,441 @@ static const struct vin_coeff vin_coeff_set[] = {
+ 			  0x0370e83b, 0x0310d439, 0x03a0f83d,
+ 			  0x0370e83c, 0x0300d438, 0x03b0fc3c },
+ 	}
+-};
++};
++
++static void rvin_set_coeff(struct rvin_dev *vin, unsigned short xs)
++{
++	int i;
++	const struct vin_coeff *p_prev_set = NULL;
++	const struct vin_coeff *p_set = NULL;
++
++	/* Look for suitable coefficient values */
++	for (i = 0; i < ARRAY_SIZE(vin_coeff_set); i++) {
++		p_prev_set = p_set;
++		p_set = &vin_coeff_set[i];
++
++		if (xs < p_set->xs_value)
++			break;
++	}
++
++	/* Use previous value if its XS value is closer */
++	if (p_prev_set && p_set &&
++	    xs - p_prev_set->xs_value < p_set->xs_value - xs)
++		p_set = p_prev_set;
++
++	/* Set coefficient registers */
++	rvin_write(vin, p_set->coeff_set[0], VNC1A_REG);
++	rvin_write(vin, p_set->coeff_set[1], VNC1B_REG);
++	rvin_write(vin, p_set->coeff_set[2], VNC1C_REG);
++
++	rvin_write(vin, p_set->coeff_set[3], VNC2A_REG);
++	rvin_write(vin, p_set->coeff_set[4], VNC2B_REG);
++	rvin_write(vin, p_set->coeff_set[5], VNC2C_REG);
++
++	rvin_write(vin, p_set->coeff_set[6], VNC3A_REG);
++	rvin_write(vin, p_set->coeff_set[7], VNC3B_REG);
++	rvin_write(vin, p_set->coeff_set[8], VNC3C_REG);
++
++	rvin_write(vin, p_set->coeff_set[9], VNC4A_REG);
++	rvin_write(vin, p_set->coeff_set[10], VNC4B_REG);
++	rvin_write(vin, p_set->coeff_set[11], VNC4C_REG);
++
++	rvin_write(vin, p_set->coeff_set[12], VNC5A_REG);
++	rvin_write(vin, p_set->coeff_set[13], VNC5B_REG);
++	rvin_write(vin, p_set->coeff_set[14], VNC5C_REG);
++
++	rvin_write(vin, p_set->coeff_set[15], VNC6A_REG);
++	rvin_write(vin, p_set->coeff_set[16], VNC6B_REG);
++	rvin_write(vin, p_set->coeff_set[17], VNC6C_REG);
++
++	rvin_write(vin, p_set->coeff_set[18], VNC7A_REG);
++	rvin_write(vin, p_set->coeff_set[19], VNC7B_REG);
++	rvin_write(vin, p_set->coeff_set[20], VNC7C_REG);
++
++	rvin_write(vin, p_set->coeff_set[21], VNC8A_REG);
++	rvin_write(vin, p_set->coeff_set[22], VNC8B_REG);
++	rvin_write(vin, p_set->coeff_set[23], VNC8C_REG);
++}
++
++void rvin_crop_scale_comp(struct rvin_dev *vin)
++{
++	u32 xs, ys;
++
++	/* Set Start/End Pixel/Line Pre-Clip */
++	rvin_write(vin, vin->crop.left, VNSPPRC_REG);
++	rvin_write(vin, vin->crop.left + vin->crop.width - 1, VNEPPRC_REG);
++	switch (vin->format.field) {
++	case V4L2_FIELD_INTERLACED:
++	case V4L2_FIELD_INTERLACED_TB:
++	case V4L2_FIELD_INTERLACED_BT:
++		rvin_write(vin, vin->crop.top / 2, VNSLPRC_REG);
++		rvin_write(vin, (vin->crop.top + vin->crop.height) / 2 - 1,
++			   VNELPRC_REG);
++		break;
++	default:
++		rvin_write(vin, vin->crop.top, VNSLPRC_REG);
++		rvin_write(vin, vin->crop.top + vin->crop.height - 1,
++			   VNELPRC_REG);
++		break;
++	}
++
++	/* Set scaling coefficient */
++	ys = 0;
++	if (vin->crop.height != vin->compose.height)
++		ys = (4096 * vin->crop.height) / vin->compose.height;
++	rvin_write(vin, ys, VNYS_REG);
++
++	xs = 0;
++	if (vin->crop.width != vin->compose.width)
++		xs = (4096 * vin->crop.width) / vin->compose.width;
++
++	/* Horizontal upscaling is up to double size */
++	if (xs > 0 && xs < 2048)
++		xs = 2048;
++
++	rvin_write(vin, xs, VNXS_REG);
++
++	/* Horizontal upscaling is done out by scaling down from double size */
++	if (xs < 4096)
++		xs *= 2;
++
++	rvin_set_coeff(vin, xs);
++
++	/* Set Start/End Pixel/Line Post-Clip */
++	rvin_write(vin, 0, VNSPPOC_REG);
++	rvin_write(vin, 0, VNSLPOC_REG);
++	rvin_write(vin, vin->format.width - 1, VNEPPOC_REG);
++	switch (vin->format.field) {
++	case V4L2_FIELD_INTERLACED:
++	case V4L2_FIELD_INTERLACED_TB:
++	case V4L2_FIELD_INTERLACED_BT:
++		rvin_write(vin, vin->format.height / 2 - 1, VNELPOC_REG);
++		break;
++	default:
++		rvin_write(vin, vin->format.height - 1, VNELPOC_REG);
++		break;
++	}
++
++	if (vin->format.pixelformat == V4L2_PIX_FMT_NV16)
++		rvin_write(vin, ALIGN(vin->format.width, 0x20), VNIS_REG);
++	else
++		rvin_write(vin, ALIGN(vin->format.width, 0x10), VNIS_REG);
++
++	vin_dbg(vin,
++		"Pre-Clip: %ux%u@%u:%u YS: %d XS: %d Post-Clip: %ux%u@%u:%u\n",
++		vin->crop.width, vin->crop.height, vin->crop.left,
++		vin->crop.top, ys, xs, vin->format.width, vin->format.height,
++		0, 0);
++}
++
++void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
++		    u32 width, u32 height)
++{
++	/* All VIN channels on Gen2 have scalers */
++	pix->width = width;
++	pix->height = height;
++}
++
++/* -----------------------------------------------------------------------------
++ * Hardware setup
++ */
++
++static int rvin_setup(struct rvin_dev *vin)
++{
++	u32 vnmc, dmr, dmr2, interrupts;
++	v4l2_std_id std;
++	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
++
++	switch (vin->format.field) {
++	case V4L2_FIELD_TOP:
++		vnmc = VNMC_IM_ODD;
++		break;
++	case V4L2_FIELD_BOTTOM:
++		vnmc = VNMC_IM_EVEN;
++		break;
++	case V4L2_FIELD_INTERLACED:
++		/* Default to TB */
++		vnmc = VNMC_IM_FULL;
++		/* Use BT if video standard can be read and is 60 Hz format */
++		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
++			if (std & V4L2_STD_525_60)
++				vnmc = VNMC_IM_FULL | VNMC_FOC;
++		}
++		break;
++	case V4L2_FIELD_INTERLACED_TB:
++		vnmc = VNMC_IM_FULL;
++		break;
++	case V4L2_FIELD_INTERLACED_BT:
++		vnmc = VNMC_IM_FULL | VNMC_FOC;
++		break;
++	case V4L2_FIELD_ALTERNATE:
++	case V4L2_FIELD_NONE:
++		if (vin->continuous) {
++			vnmc = VNMC_IM_ODD_EVEN;
++			progressive = true;
++		} else {
++			vnmc = VNMC_IM_ODD;
++		}
++		break;
++	default:
++		vnmc = VNMC_IM_ODD;
++		break;
++	}
++
++	/*
++	 * Input interface
++	 */
++	switch (vin->digital.code) {
++	case MEDIA_BUS_FMT_YUYV8_1X16:
++		/* BT.601/BT.1358 16bit YCbCr422 */
++		vnmc |= VNMC_INF_YUV16;
++		input_is_yuv = true;
++		break;
++	case MEDIA_BUS_FMT_UYVY8_2X8:
++		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
++		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
++			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
++		input_is_yuv = true;
++		break;
++	case MEDIA_BUS_FMT_RGB888_1X24:
++		vnmc |= VNMC_INF_RGB888;
++		break;
++	case MEDIA_BUS_FMT_UYVY10_2X10:
++		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
++		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
++			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
++		input_is_yuv = true;
++		break;
++	default:
++		break;
++	}
++
++	/* Enable VSYNC Field Toogle mode after one VSYNC input */
++	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
++
++	/* Hsync Signal Polarity Select */
++	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
++		dmr2 |= VNDMR2_HPS;
++
++	/* Vsync Signal Polarity Select */
++	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
++		dmr2 |= VNDMR2_VPS;
++
++	/*
++	 * Output format
++	 */
++	switch (vin->format.pixelformat) {
++	case V4L2_PIX_FMT_NV16:
++		rvin_write(vin,
++			   ALIGN(vin->format.width * vin->format.height, 0x80),
++			   VNUVAOF_REG);
++		dmr = VNDMR_DTMD_YCSEP;
++		output_is_yuv = true;
++		break;
++	case V4L2_PIX_FMT_YUYV:
++		dmr = VNDMR_BPSM;
++		output_is_yuv = true;
++		break;
++	case V4L2_PIX_FMT_UYVY:
++		dmr = 0;
++		output_is_yuv = true;
++		break;
++	case V4L2_PIX_FMT_XRGB555:
++		dmr = VNDMR_DTMD_ARGB1555;
++		break;
++	case V4L2_PIX_FMT_RGB565:
++		dmr = 0;
++		break;
++	case V4L2_PIX_FMT_XBGR32:
++		/* Note: not supported on M1 */
++		dmr = VNDMR_EXRGB;
++		break;
++	default:
++		vin_err(vin, "Invalid pixelformat (0x%x)\n",
++			vin->format.pixelformat);
++		return -EINVAL;
++	}
+ 
+-static void rvin_set_coeff(struct rvin_dev *vin, unsigned short xs)
++	/* Always update on field change */
++	vnmc |= VNMC_VUP;
++
++	/* If input and output use the same colorspace, use bypass mode */
++	if (input_is_yuv == output_is_yuv)
++		vnmc |= VNMC_BPS;
++
++	/* Progressive or interlaced mode */
++	interrupts = progressive ? VNIE_FIE : VNIE_EFE;
++
++	/* Ack interrupts */
++	rvin_write(vin, interrupts, VNINTS_REG);
++	/* Enable interrupts */
++	rvin_write(vin, interrupts, VNIE_REG);
++	/* Start capturing */
++	rvin_write(vin, dmr, VNDMR_REG);
++	rvin_write(vin, dmr2, VNDMR2_REG);
++
++	/* Enable module */
++	rvin_write(vin, vnmc | VNMC_ME, VNMC_REG);
++
++	return 0;
++}
++
++static void rvin_disable_interrupts(struct rvin_dev *vin)
+ {
+-	int i;
+-	const struct vin_coeff *p_prev_set = NULL;
+-	const struct vin_coeff *p_set = NULL;
++	rvin_write(vin, 0, VNIE_REG);
++}
+ 
+-	/* Look for suitable coefficient values */
+-	for (i = 0; i < ARRAY_SIZE(vin_coeff_set); i++) {
+-		p_prev_set = p_set;
+-		p_set = &vin_coeff_set[i];
++static u32 rvin_get_interrupt_status(struct rvin_dev *vin)
++{
++	return rvin_read(vin, VNINTS_REG);
++}
+ 
+-		if (xs < p_set->xs_value)
+-			break;
++static void rvin_ack_interrupt(struct rvin_dev *vin)
++{
++	rvin_write(vin, rvin_read(vin, VNINTS_REG), VNINTS_REG);
++}
++
++static bool rvin_capture_active(struct rvin_dev *vin)
++{
++	return rvin_read(vin, VNMS_REG) & VNMS_CA;
++}
++
++static int rvin_get_active_slot(struct rvin_dev *vin, u32 vnms)
++{
++	if (vin->continuous)
++		return (vnms & VNMS_FBS_MASK) >> VNMS_FBS_SHIFT;
++
++	return 0;
++}
++
++static enum v4l2_field rvin_get_active_field(struct rvin_dev *vin, u32 vnms)
++{
++	if (vin->format.field == V4L2_FIELD_ALTERNATE) {
++		/* If FS is set it's a Even field */
++		if (vnms & VNMS_FS)
++			return V4L2_FIELD_BOTTOM;
++		return V4L2_FIELD_TOP;
+ 	}
+ 
+-	/* Use previous value if its XS value is closer */
+-	if (p_prev_set && p_set &&
+-	    xs - p_prev_set->xs_value < p_set->xs_value - xs)
+-		p_set = p_prev_set;
++	return vin->format.field;
++}
+ 
+-	/* Set coefficient registers */
+-	rvin_write(vin, p_set->coeff_set[0], VNC1A_REG);
+-	rvin_write(vin, p_set->coeff_set[1], VNC1B_REG);
+-	rvin_write(vin, p_set->coeff_set[2], VNC1C_REG);
++static void rvin_set_slot_addr(struct rvin_dev *vin, int slot, dma_addr_t addr)
++{
++	const struct rvin_video_format *fmt;
++	int offsetx, offsety;
++	dma_addr_t offset;
+ 
+-	rvin_write(vin, p_set->coeff_set[3], VNC2A_REG);
+-	rvin_write(vin, p_set->coeff_set[4], VNC2B_REG);
+-	rvin_write(vin, p_set->coeff_set[5], VNC2C_REG);
++	fmt = rvin_format_from_pixel(vin->format.pixelformat);
+ 
+-	rvin_write(vin, p_set->coeff_set[6], VNC3A_REG);
+-	rvin_write(vin, p_set->coeff_set[7], VNC3B_REG);
+-	rvin_write(vin, p_set->coeff_set[8], VNC3C_REG);
++	/*
++	 * There is no HW support for composition do the beast we can
++	 * by modifying the buffer offset
++	 */
++	offsetx = vin->compose.left * fmt->bpp;
++	offsety = vin->compose.top * vin->format.bytesperline;
++	offset = addr + offsetx + offsety;
+ 
+-	rvin_write(vin, p_set->coeff_set[9], VNC4A_REG);
+-	rvin_write(vin, p_set->coeff_set[10], VNC4B_REG);
+-	rvin_write(vin, p_set->coeff_set[11], VNC4C_REG);
++	/*
++	 * The address needs to be 128 bytes aligned. Driver should never accept
++	 * settings that do not satisfy this in the first place...
++	 */
++	if (WARN_ON((offsetx | offsety | offset) & HW_BUFFER_MASK))
++		return;
+ 
+-	rvin_write(vin, p_set->coeff_set[12], VNC5A_REG);
+-	rvin_write(vin, p_set->coeff_set[13], VNC5B_REG);
+-	rvin_write(vin, p_set->coeff_set[14], VNC5C_REG);
++	rvin_write(vin, offset, VNMB_REG(slot));
++}
+ 
+-	rvin_write(vin, p_set->coeff_set[15], VNC6A_REG);
+-	rvin_write(vin, p_set->coeff_set[16], VNC6B_REG);
+-	rvin_write(vin, p_set->coeff_set[17], VNC6C_REG);
++static bool rvin_fill_hw_slot(struct rvin_dev *vin, int slot)
++{
++	struct rvin_buffer *buf;
++	struct vb2_v4l2_buffer *vbuf;
++	dma_addr_t phys_addr_top;
+ 
+-	rvin_write(vin, p_set->coeff_set[18], VNC7A_REG);
+-	rvin_write(vin, p_set->coeff_set[19], VNC7B_REG);
+-	rvin_write(vin, p_set->coeff_set[20], VNC7C_REG);
++	if (vin->queue_buf[slot] != NULL)
++		return true;
+ 
+-	rvin_write(vin, p_set->coeff_set[21], VNC8A_REG);
+-	rvin_write(vin, p_set->coeff_set[22], VNC8B_REG);
+-	rvin_write(vin, p_set->coeff_set[23], VNC8C_REG);
++	if (list_empty(&vin->buf_list))
++		return false;
++
++	vin_dbg(vin, "Filling HW slot: %d\n", slot);
++
++	/* Keep track of buffer we give to HW */
++	buf = list_entry(vin->buf_list.next, struct rvin_buffer, list);
++	vbuf = &buf->vb;
++	list_del_init(to_buf_list(vbuf));
++	vin->queue_buf[slot] = vbuf;
++
++	/* Setup DMA */
++	phys_addr_top = vb2_dma_contig_plane_dma_addr(&vbuf->vb2_buf, 0);
++	rvin_set_slot_addr(vin, slot, phys_addr_top);
++
++	return true;
+ }
+ 
+-void rvin_crop_scale_comp(struct rvin_dev *vin)
++static bool rvin_fill_hw(struct rvin_dev *vin)
+ {
+-	u32 xs, ys;
++	int slot, limit;
+ 
+-	/* Set Start/End Pixel/Line Pre-Clip */
+-	rvin_write(vin, vin->crop.left, VNSPPRC_REG);
+-	rvin_write(vin, vin->crop.left + vin->crop.width - 1, VNEPPRC_REG);
+-	switch (vin->format.field) {
+-	case V4L2_FIELD_INTERLACED:
+-	case V4L2_FIELD_INTERLACED_TB:
+-	case V4L2_FIELD_INTERLACED_BT:
+-		rvin_write(vin, vin->crop.top / 2, VNSLPRC_REG);
+-		rvin_write(vin, (vin->crop.top + vin->crop.height) / 2 - 1,
+-			   VNELPRC_REG);
+-		break;
+-	default:
+-		rvin_write(vin, vin->crop.top, VNSLPRC_REG);
+-		rvin_write(vin, vin->crop.top + vin->crop.height - 1,
+-			   VNELPRC_REG);
+-		break;
+-	}
++	limit = vin->continuous ? HW_BUFFER_NUM : 1;
+ 
+-	/* Set scaling coefficient */
+-	ys = 0;
+-	if (vin->crop.height != vin->compose.height)
+-		ys = (4096 * vin->crop.height) / vin->compose.height;
+-	rvin_write(vin, ys, VNYS_REG);
++	for (slot = 0; slot < limit; slot++)
++		if (!rvin_fill_hw_slot(vin, slot))
++			return false;
++	return true;
++}
+ 
+-	xs = 0;
+-	if (vin->crop.width != vin->compose.width)
+-		xs = (4096 * vin->crop.width) / vin->compose.width;
++static void rvin_capture_on(struct rvin_dev *vin)
++{
++	vin_dbg(vin, "Capture on in %s mode\n",
++		vin->continuous ? "continuous" : "single");
+ 
+-	/* Horizontal upscaling is up to double size */
+-	if (xs > 0 && xs < 2048)
+-		xs = 2048;
++	if (vin->continuous)
++		/* Continuous Frame Capture Mode */
++		rvin_write(vin, VNFC_C_FRAME, VNFC_REG);
++	else
++		/* Single Frame Capture Mode */
++		rvin_write(vin, VNFC_S_FRAME, VNFC_REG);
++}
+ 
+-	rvin_write(vin, xs, VNXS_REG);
++static int rvin_capture_start(struct rvin_dev *vin)
++{
++	struct rvin_buffer *buf, *node;
++	int bufs, ret;
+ 
+-	/* Horizontal upscaling is done out by scaling down from double size */
+-	if (xs < 4096)
+-		xs *= 2;
++	/* Count number of free buffers */
++	bufs = 0;
++	list_for_each_entry_safe(buf, node, &vin->buf_list, list)
++		bufs++;
+ 
+-	rvin_set_coeff(vin, xs);
++	/* Continuous capture requires more buffers then there are HW slots */
++	vin->continuous = bufs > HW_BUFFER_NUM;
+ 
+-	/* Set Start/End Pixel/Line Post-Clip */
+-	rvin_write(vin, 0, VNSPPOC_REG);
+-	rvin_write(vin, 0, VNSLPOC_REG);
+-	rvin_write(vin, vin->format.width - 1, VNEPPOC_REG);
+-	switch (vin->format.field) {
+-	case V4L2_FIELD_INTERLACED:
+-	case V4L2_FIELD_INTERLACED_TB:
+-	case V4L2_FIELD_INTERLACED_BT:
+-		rvin_write(vin, vin->format.height / 2 - 1, VNELPOC_REG);
+-		break;
+-	default:
+-		rvin_write(vin, vin->format.height - 1, VNELPOC_REG);
+-		break;
++	if (!rvin_fill_hw(vin)) {
++		vin_err(vin, "HW not ready to start, not enough buffers available\n");
++		return -EINVAL;
+ 	}
+ 
+-	if (vin->format.pixelformat == V4L2_PIX_FMT_NV16)
+-		rvin_write(vin, ALIGN(vin->format.width, 0x20), VNIS_REG);
+-	else
+-		rvin_write(vin, ALIGN(vin->format.width, 0x10), VNIS_REG);
++	rvin_crop_scale_comp(vin);
+ 
+-	vin_dbg(vin,
+-		"Pre-Clip: %ux%u@%u:%u YS: %d XS: %d Post-Clip: %ux%u@%u:%u\n",
+-		vin->crop.width, vin->crop.height, vin->crop.left,
+-		vin->crop.top, ys, xs, vin->format.width, vin->format.height,
+-		0, 0);
++	ret = rvin_setup(vin);
++	if (ret)
++		return ret;
++
++	rvin_capture_on(vin);
++
++	vin->state = RUNNING;
++
++	return 0;
+ }
+ 
+-void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
+-		    u32 width, u32 height)
++static void rvin_capture_stop(struct rvin_dev *vin)
+ {
+-	/* All VIN channels on Gen2 have scalers */
+-	pix->width = width;
+-	pix->height = height;
++	/* Set continuous & single transfer off */
++	rvin_write(vin, 0, VNFC_REG);
++
++	/* Disable module */
++	rvin_write(vin, rvin_read(vin, VNMC_REG) & ~VNMC_ME, VNMC_REG);
+ }
+ 
+ /* -----------------------------------------------------------------------------
 -- 
-====================
-| I would like to |
-| fix the world,  |
-| but they're not |
-| giving me the   |
- \ source code!  /
-  ---------------
-    ¯\_(ツ)_/¯
+2.12.0
