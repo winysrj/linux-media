@@ -1,331 +1,460 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:36689 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753706AbdC1AnV (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:59558 "EHLO
+        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750818AbdCNLfg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 20:43:21 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Subject: [PATCH v6 36/39] media: imx: csi: add sink selection rectangles
-Date: Mon, 27 Mar 2017 17:40:53 -0700
-Message-Id: <1490661656-10318-37-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+        Tue, 14 Mar 2017 07:35:36 -0400
+Received: from epcas5p1.samsung.com (unknown [182.195.41.39])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0OMS02X49YVAWD80@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 14 Mar 2017 20:35:34 +0900 (KST)
+Subject: Re: [Patch v2 02/11] s5p-mfc: Adding initial support for MFC v10.10
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: Andrzej Hajda <a.hajda@samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
+        kamil@wypas.org, jtp.park@samsung.com, mchehab@kernel.org,
+        pankaj.dubey@samsung.com, krzk@kernel.org,
+        m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+In-reply-to: <f1399128-a4ae-6cfc-ae99-b6eafe849853@samsung.com>
+Date: Tue, 14 Mar 2017 17:07:34 +0530
+Message-id: <1489491454.27807.135.camel@smitha-fedora>
+MIME-version: 1.0
+Content-transfer-encoding: 7bit
+Content-type: text/plain; charset=utf-8
+References: <1488532036-13044-1-git-send-email-smitha.t@samsung.com>
+ <CGME20170303090436epcas1p2097d589d9c5e6f7ee634ab9917cc987e@epcas1p2.samsung.com>
+ <1488532036-13044-3-git-send-email-smitha.t@samsung.com>
+ <f1399128-a4ae-6cfc-ae99-b6eafe849853@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+On Mon, 2017-03-06 at 14:58 +0100, Andrzej Hajda wrote: 
+> On 03.03.2017 10:07, Smitha T Murthy wrote:
+> > Adding the support for MFC v10.10, with new register file and
+> > necessary hw control, decoder, encoder and structural changes.
+> >
+> > Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+> Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
+> 
+> Few nitpicks below.
+> 
+Thank you for the review. I will take care of these in the next version.
 
-Move the crop rectangle to the sink pad and add a sink compose rectangle
-to configure scaling. Also propagate rectangles from sink pad to crop
-rectangle, to compose rectangle, and to the source pads both in ACTIVE
-and TRY variants of set_fmt/selection, and initialize the default crop
-and compose rectangles.
+> > CC: Rob Herring <robh+dt@kernel.org>
+> > CC: devicetree@vger.kernel.org
+> > ---
+> >  .../devicetree/bindings/media/s5p-mfc.txt          |    1 +
+> >  drivers/media/platform/s5p-mfc/regs-mfc-v10.h      |   36 ++++++++++++++++
+> >  drivers/media/platform/s5p-mfc/s5p_mfc.c           |   30 +++++++++++++
+> >  drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |    4 +-
+> >  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c      |    4 ++
+> >  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |   44 +++++++++++---------
+> >  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |   21 +++++----
+> >  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |    9 +++-
+> >  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h    |    2 +
+> >  9 files changed, 118 insertions(+), 33 deletions(-)
+> >  create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+> >
+> > diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+> > index 2c90128..b83727b 100644
+> > --- a/Documentation/devicetree/bindings/media/s5p-mfc.txt
+> > +++ b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+> > @@ -13,6 +13,7 @@ Required properties:
+> >  	(c) "samsung,mfc-v7" for MFC v7 present in Exynos5420 SoC
+> >  	(d) "samsung,mfc-v8" for MFC v8 present in Exynos5800 SoC
+> >  	(e) "samsung,exynos5433-mfc" for MFC v8 present in Exynos5433 SoC
+> > +	(f) "samsung,mfc-v10" for MFC v10 present in Exynos7880 SoC
+> >  
+> >    - reg : Physical base address of the IP registers and length of memory
+> >  	  mapped region.
+> > diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+> > new file mode 100644
+> > index 0000000..bd671a5
+> > --- /dev/null
+> > +++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+> > @@ -0,0 +1,36 @@
+> > +/*
+> > + * Register definition file for Samsung MFC V10.x Interface (FIMV) driver
+> > + *
+> > + * Copyright (c) 2017 Samsung Electronics Co., Ltd.
+> > + *     http://www.samsung.com/
+> > + *
+> > + * This program is free software; you can redistribute it and/or modify
+> > + * it under the terms of the GNU General Public License version 2 as
+> > + * published by the Free Software Foundation.
+> > + */
+> > +
+> > +#ifndef _REGS_MFC_V10_H
+> > +#define _REGS_MFC_V10_H
+> > +
+> > +#include <linux/sizes.h>
+> > +#include "regs-mfc-v8.h"
+> > +
+> > +/* MFCv10 register definitions*/
+> > +#define S5P_FIMV_MFC_CLOCK_OFF_V10			0x7120
+> > +#define S5P_FIMV_MFC_STATE_V10				0x7124
+> > +
+> > +/* MFCv10 Context buffer sizes */
+> > +#define MFC_CTX_BUF_SIZE_V10		(30 * SZ_1K)	/* 30KB */
+> > +#define MFC_H264_DEC_CTX_BUF_SIZE_V10	(2 * SZ_1M)	/* 2MB */
+> > +#define MFC_OTHER_DEC_CTX_BUF_SIZE_V10	(20 * SZ_1K)	/* 20KB */
+> > +#define MFC_H264_ENC_CTX_BUF_SIZE_V10	(100 * SZ_1K)	/* 100KB */
+> > +#define MFC_OTHER_ENC_CTX_BUF_SIZE_V10	(15 * SZ_1K)	/* 15KB */
+> > +
+> > +/* MFCv10 variant defines */
+> > +#define MAX_FW_SIZE_V10		(SZ_1M)		/* 1MB */
+> > +#define MAX_CPB_SIZE_V10	(3 * SZ_1M)	/* 3MB */
+> 
+> These comments seems redundant, definition is clear enough, you could
+> remove them if there will be next iteration.
+> 
+Yes true, I will remove them in the next version.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/staging/media/imx/imx-media-csi.c | 153 +++++++++++++++++++++++-------
- 1 file changed, 117 insertions(+), 36 deletions(-)
+> > +#define MFC_VERSION_V10		0xA0
+> > +#define MFC_NUM_PORTS_V10	1
+> > +
+> > +#endif /*_REGS_MFC_V10_H*/
+> > +
+> > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> > index bb0a588..a043cce 100644
+> > --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> > +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> > @@ -1542,6 +1542,33 @@ static int s5p_mfc_resume(struct device *dev)
+> >  	.num_clocks	= 3,
+> >  };
+> >  
+> > +static struct s5p_mfc_buf_size_v6 mfc_buf_size_v10 = {
+> > +	.dev_ctx        = MFC_CTX_BUF_SIZE_V10,
+> > +	.h264_dec_ctx   = MFC_H264_DEC_CTX_BUF_SIZE_V10,
+> > +	.other_dec_ctx  = MFC_OTHER_DEC_CTX_BUF_SIZE_V10,
+> > +	.h264_enc_ctx   = MFC_H264_ENC_CTX_BUF_SIZE_V10,
+> > +	.other_enc_ctx  = MFC_OTHER_ENC_CTX_BUF_SIZE_V10,
+> > +};
+> > +
+> > +static struct s5p_mfc_buf_size buf_size_v10 = {
+> > +	.fw     = MAX_FW_SIZE_V10,
+> > +	.cpb    = MAX_CPB_SIZE_V10,
+> > +	.priv   = &mfc_buf_size_v10,
+> > +};
+> > +
+> > +static struct s5p_mfc_buf_align mfc_buf_align_v10 = {
+> > +	.base = 0,
+> > +};
+> > +
+> > +static struct s5p_mfc_variant mfc_drvdata_v10 = {
+> > +	.version        = MFC_VERSION_V10,
+> > +	.version_bit    = MFC_V10_BIT,
+> > +	.port_num       = MFC_NUM_PORTS_V10,
+> > +	.buf_size       = &buf_size_v10,
+> > +	.buf_align      = &mfc_buf_align_v10,
+> > +	.fw_name[0]     = "s5p-mfc-v10.fw",
+> > +};
+> > +
+> >  static const struct of_device_id exynos_mfc_match[] = {
+> >  	{
+> >  		.compatible = "samsung,mfc-v5",
+> > @@ -1558,6 +1585,9 @@ static int s5p_mfc_resume(struct device *dev)
+> >  	}, {
+> >  		.compatible = "samsung,exynos5433-mfc",
+> >  		.data = &mfc_drvdata_v8_5433,
+> > +	}, {
+> > +		.compatible = "samsung,mfc-v10",
+> > +		.data = &mfc_drvdata_v10,
+> >  	},
+> >  	{},
+> >  };
+> > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> > index b45d18c..1941c63 100644
+> > --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> > +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+> > @@ -23,7 +23,7 @@
+> >  #include <media/v4l2-ioctl.h>
+> >  #include <media/videobuf2-v4l2.h>
+> >  #include "regs-mfc.h"
+> > -#include "regs-mfc-v8.h"
+> > +#include "regs-mfc-v10.h"
+> >  
+> >  #define S5P_MFC_NAME		"s5p-mfc"
+> >  
+> > @@ -723,11 +723,13 @@ struct mfc_control {
+> >  #define IS_MFCV6_PLUS(dev)	(dev->variant->version >= 0x60 ? 1 : 0)
+> >  #define IS_MFCV7_PLUS(dev)	(dev->variant->version >= 0x70 ? 1 : 0)
+> >  #define IS_MFCV8_PLUS(dev)	(dev->variant->version >= 0x80 ? 1 : 0)
+> > +#define IS_MFCV10(dev)		(dev->variant->version >= 0xA0 ? 1 : 0)
+> >  
+> >  #define MFC_V5_BIT	BIT(0)
+> >  #define MFC_V6_BIT	BIT(1)
+> >  #define MFC_V7_BIT	BIT(2)
+> >  #define MFC_V8_BIT	BIT(3)
+> > +#define MFC_V10_BIT	BIT(5)
+> >  
+> >  
+> >  #endif /* S5P_MFC_COMMON_H_ */
+> > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> > index 484af6b..0ded23c 100644
+> > --- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> > +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+> > @@ -267,6 +267,10 @@ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
+> >  	}
+> >  	else
+> >  		mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
+> > +
+> > +	if (IS_MFCV10(dev))
+> > +		mfc_write(dev, 0x0, S5P_FIMV_MFC_CLOCK_OFF_V10);
+> > +
+> >  	mfc_debug(2, "Will now wait for completion of firmware transfer\n");
+> >  	if (s5p_mfc_wait_for_done_dev(dev, S5P_MFC_R2H_CMD_FW_STATUS_RET)) {
+> >  		mfc_err("Failed to load firmware\n");
+> > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> > index 0ec2928..784b28e 100644
+> > --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> > +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> > @@ -54,7 +54,8 @@
+> >  		.codec_mode	= S5P_MFC_CODEC_NONE,
+> >  		.type		= MFC_FMT_RAW,
+> >  		.num_planes	= 2,
+> > -		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
+> > +		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT |
+> > +								MFC_V10_BIT,
+> 
+> I think these lengthy alternatives could be replaced by alias
+> MFC_V6PLUS_BITS or MFC_V5PLUS_BITS.
+> 
+I will replace these by aliases in the next version.
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index 6b8f875..19609a7 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -80,6 +80,7 @@ struct csi_priv {
- 	const struct imx_media_pixfmt *cc[CSI_NUM_PADS];
- 	struct v4l2_fract frame_interval;
- 	struct v4l2_rect crop;
-+	struct v4l2_rect compose;
- 	const struct csi_skip_desc *skip[CSI_NUM_PADS - 1];
- 
- 	/* active vb2 buffers to send to video dev sink */
-@@ -575,8 +576,8 @@ static int csi_setup(struct csi_priv *priv)
- 	ipu_csi_set_window(priv->csi, &priv->crop);
- 
- 	ipu_csi_set_downsize(priv->csi,
--			     priv->crop.width == 2 * outfmt->width,
--			     priv->crop.height == 2 * outfmt->height);
-+			     priv->crop.width == 2 * priv->compose.width,
-+			     priv->crop.height == 2 * priv->compose.height);
- 
- 	ipu_csi_init_interface(priv->csi, &sensor_mbus_cfg, &if_fmt);
- 
-@@ -1032,6 +1033,17 @@ __csi_get_crop(struct csi_priv *priv, struct v4l2_subdev_pad_config *cfg,
- 		return &priv->crop;
- }
- 
-+static struct v4l2_rect *
-+__csi_get_compose(struct csi_priv *priv, struct v4l2_subdev_pad_config *cfg,
-+		  enum v4l2_subdev_format_whence which)
-+{
-+	if (which == V4L2_SUBDEV_FORMAT_TRY)
-+		return v4l2_subdev_get_try_compose(&priv->sd, cfg,
-+						   CSI_SINK_PAD);
-+	else
-+		return &priv->compose;
-+}
-+
- static void csi_try_crop(struct csi_priv *priv,
- 			 struct v4l2_rect *crop,
- 			 struct v4l2_subdev_pad_config *cfg,
-@@ -1141,6 +1153,7 @@ static void csi_try_fmt(struct csi_priv *priv,
- 			struct v4l2_subdev_pad_config *cfg,
- 			struct v4l2_subdev_format *sdformat,
- 			struct v4l2_rect *crop,
-+			struct v4l2_rect *compose,
- 			const struct imx_media_pixfmt **cc)
- {
- 	const struct imx_media_pixfmt *incc;
-@@ -1155,15 +1168,8 @@ static void csi_try_fmt(struct csi_priv *priv,
- 		incc = imx_media_find_mbus_format(infmt->code,
- 						  CS_SEL_ANY, true);
- 
--		if (sdformat->format.width < crop->width * 3 / 4)
--			sdformat->format.width = crop->width / 2;
--		else
--			sdformat->format.width = crop->width;
--
--		if (sdformat->format.height < crop->height * 3 / 4)
--			sdformat->format.height = crop->height / 2;
--		else
--			sdformat->format.height = crop->height;
-+		sdformat->format.width = compose->width;
-+		sdformat->format.height = compose->height;
- 
- 		if (incc->bayer) {
- 			sdformat->format.code = infmt->code;
-@@ -1199,11 +1205,17 @@ static void csi_try_fmt(struct csi_priv *priv,
- 		v4l_bound_align_image(&sdformat->format.width, MIN_W, MAX_W,
- 				      W_ALIGN, &sdformat->format.height,
- 				      MIN_H, MAX_H, H_ALIGN, S_ALIGN);
-+
-+		/* Reset crop and compose rectangles */
- 		crop->left = 0;
- 		crop->top = 0;
- 		crop->width = sdformat->format.width;
- 		crop->height = sdformat->format.height;
- 		csi_try_crop(priv, crop, cfg, &sdformat->format, sensor);
-+		compose->left = 0;
-+		compose->top = 0;
-+		compose->width = crop->width;
-+		compose->height = crop->height;
- 
- 		*cc = imx_media_find_mbus_format(sdformat->format.code,
- 						 CS_SEL_ANY, true);
-@@ -1228,7 +1240,7 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
- 	struct imx_media_subdev *sensor;
- 	struct v4l2_pix_format vdev_fmt;
- 	struct v4l2_mbus_framefmt *fmt;
--	struct v4l2_rect *crop;
-+	struct v4l2_rect *crop, *compose;
- 	int ret = 0;
- 
- 	if (sdformat->pad >= CSI_NUM_PADS)
-@@ -1248,8 +1260,9 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
- 	}
- 
- 	crop = __csi_get_crop(priv, cfg, sdformat->which);
-+	compose = __csi_get_compose(priv, cfg, sdformat->which);
- 
--	csi_try_fmt(priv, sensor, cfg, sdformat, crop, &cc);
-+	csi_try_fmt(priv, sensor, cfg, sdformat, crop, compose, &cc);
- 
- 	fmt = __csi_get_fmt(priv, cfg, sdformat->pad, sdformat->which);
- 	*fmt = sdformat->format;
-@@ -1266,7 +1279,8 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
- 			format.pad = pad;
- 			format.which = sdformat->which;
- 			format.format = sdformat->format;
--			csi_try_fmt(priv, sensor, cfg, &format, crop, &outcc);
-+			csi_try_fmt(priv, sensor, cfg, &format, NULL, compose,
-+				    &outcc);
- 
- 			outfmt = __csi_get_fmt(priv, cfg, pad, sdformat->which);
- 			*outfmt = format.format;
-@@ -1300,16 +1314,17 @@ static int csi_get_selection(struct v4l2_subdev *sd,
- {
- 	struct csi_priv *priv = v4l2_get_subdevdata(sd);
- 	struct v4l2_mbus_framefmt *infmt;
--	struct v4l2_rect *crop;
-+	struct v4l2_rect *crop, *compose;
- 	int ret = 0;
- 
--	if (sel->pad >= CSI_NUM_PADS || sel->pad == CSI_SINK_PAD)
-+	if (sel->pad != CSI_SINK_PAD)
- 		return -EINVAL;
- 
- 	mutex_lock(&priv->lock);
- 
- 	infmt = __csi_get_fmt(priv, cfg, CSI_SINK_PAD, sel->which);
- 	crop = __csi_get_crop(priv, cfg, sel->which);
-+	compose = __csi_get_compose(priv, cfg, sel->which);
- 
- 	switch (sel->target) {
- 	case V4L2_SEL_TGT_CROP_BOUNDS:
-@@ -1321,6 +1336,15 @@ static int csi_get_selection(struct v4l2_subdev *sd,
- 	case V4L2_SEL_TGT_CROP:
- 		sel->r = *crop;
- 		break;
-+	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-+		sel->r.left = 0;
-+		sel->r.top = 0;
-+		sel->r.width = crop->width;
-+		sel->r.height = crop->height;
-+		break;
-+	case V4L2_SEL_TGT_COMPOSE:
-+		sel->r = *compose;
-+		break;
- 	default:
- 		ret = -EINVAL;
- 	}
-@@ -1329,19 +1353,34 @@ static int csi_get_selection(struct v4l2_subdev *sd,
- 	return ret;
- }
- 
-+static int csi_set_scale(u32 *compose, u32 crop, u32 flags)
-+{
-+	if ((flags & (V4L2_SEL_FLAG_LE | V4L2_SEL_FLAG_GE)) ==
-+		     (V4L2_SEL_FLAG_LE | V4L2_SEL_FLAG_GE) &&
-+	    *compose != crop && *compose != crop / 2)
-+		return -ERANGE;
-+
-+	if (*compose <= crop / 2 ||
-+	    (*compose < crop * 3 / 4 && !(flags & V4L2_SEL_FLAG_GE)) ||
-+	    (*compose < crop && (flags & V4L2_SEL_FLAG_LE)))
-+		*compose = crop / 2;
-+	else
-+		*compose = crop;
-+
-+	return 0;
-+}
-+
- static int csi_set_selection(struct v4l2_subdev *sd,
- 			     struct v4l2_subdev_pad_config *cfg,
- 			     struct v4l2_subdev_selection *sel)
- {
- 	struct csi_priv *priv = v4l2_get_subdevdata(sd);
- 	struct v4l2_mbus_framefmt *infmt;
-+	struct v4l2_rect *crop, *compose;
- 	struct imx_media_subdev *sensor;
--	struct v4l2_rect *crop;
- 	int pad, ret = 0;
- 
--	if (sel->pad >= CSI_NUM_PADS ||
--	    sel->pad == CSI_SINK_PAD ||
--	    sel->target != V4L2_SEL_TGT_CROP)
-+	if (sel->pad != CSI_SINK_PAD)
- 		return -EINVAL;
- 
- 	sensor = imx_media_find_sensor(priv->md, &priv->sd.entity);
-@@ -1359,30 +1398,66 @@ static int csi_set_selection(struct v4l2_subdev *sd,
- 
- 	infmt = __csi_get_fmt(priv, cfg, CSI_SINK_PAD, sel->which);
- 	crop = __csi_get_crop(priv, cfg, sel->which);
-+	compose = __csi_get_compose(priv, cfg, sel->which);
- 
--	/*
--	 * Modifying the crop rectangle always changes the format on the source
--	 * pad. If the KEEP_CONFIG flag is set, just return the current crop
--	 * rectangle.
--	 */
--	if (sel->flags & V4L2_SEL_FLAG_KEEP_CONFIG) {
--		sel->r = priv->crop;
--		if (sel->which == V4L2_SUBDEV_FORMAT_TRY)
--			*crop = sel->r;
--		goto out;
--	}
-+	switch (sel->target) {
-+	case V4L2_SEL_TGT_CROP:
-+		/*
-+		 * Modifying the crop rectangle always changes the format on
-+		 * the source pads. If the KEEP_CONFIG flag is set, just return
-+		 * the current crop rectangle.
-+		 */
-+		if (sel->flags & V4L2_SEL_FLAG_KEEP_CONFIG) {
-+			sel->r = priv->crop;
-+			if (sel->which == V4L2_SUBDEV_FORMAT_TRY)
-+				*crop = sel->r;
-+			goto out;
-+		}
-+
-+		csi_try_crop(priv, &sel->r, cfg, infmt, sensor);
-+
-+		*crop = sel->r;
-+
-+		/* Reset scaling to 1:1 */
-+		compose->width = crop->width;
-+		compose->height = crop->height;
-+		break;
-+	case V4L2_SEL_TGT_COMPOSE:
-+		/*
-+		 * Modifying the compose rectangle always changes the format on
-+		 * the source pads. If the KEEP_CONFIG flag is set, just return
-+		 * the current compose rectangle.
-+		 */
-+		if (sel->flags & V4L2_SEL_FLAG_KEEP_CONFIG) {
-+			sel->r = priv->compose;
-+			if (sel->which == V4L2_SUBDEV_FORMAT_TRY)
-+				*compose = sel->r;
-+			goto out;
-+		}
- 
--	csi_try_crop(priv, &sel->r, cfg, infmt, sensor);
-+		sel->r.left = 0;
-+		sel->r.top = 0;
-+		ret = csi_set_scale(&sel->r.width, crop->width, sel->flags);
-+		if (ret)
-+			goto out;
-+		ret = csi_set_scale(&sel->r.height, crop->height, sel->flags);
-+		if (ret)
-+			goto out;
- 
--	*crop = sel->r;
-+		*compose = sel->r;
-+		break;
-+	default:
-+		ret = -EINVAL;
-+		goto out;
-+	}
- 
--	/* Update the source pad formats */
-+	/* Reset source pads to sink compose rectangle */
- 	for (pad = CSI_SINK_PAD + 1; pad < CSI_NUM_PADS; pad++) {
- 		struct v4l2_mbus_framefmt *outfmt;
- 
- 		outfmt = __csi_get_fmt(priv, cfg, pad, sel->which);
--		outfmt->width = crop->width;
--		outfmt->height = crop->height;
-+		outfmt->width = compose->width;
-+		outfmt->height = compose->height;
- 	}
- 
- out:
-@@ -1445,6 +1520,12 @@ static int csi_registered(struct v4l2_subdev *sd)
- 			priv->skip[i - 1] = &csi_skip[0];
- 	}
- 
-+	/* init default crop and compose rectangle sizes */
-+	priv->crop.width = 640;
-+	priv->crop.height = 480;
-+	priv->compose.width = 640;
-+	priv->compose.height = 480;
-+
- 	/* init default frame interval */
- 	priv->frame_interval.numerator = 1;
- 	priv->frame_interval.denominator = 30;
--- 
-2.7.4
+Regards,
+Smitha T Murthy 
+> >  	},
+> >  	{
+> >  		.name		= "4:2:0 2 Planes Y/CrCb",
+> > @@ -62,7 +63,8 @@
+> >  		.codec_mode	= S5P_MFC_CODEC_NONE,
+> >  		.type		= MFC_FMT_RAW,
+> >  		.num_planes	= 2,
+> > -		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
+> > +		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT |
+> > +								MFC_V10_BIT,
+> >  	},
+> >  	{
+> >  		.name		= "H264 Encoded Stream",
+> > @@ -70,8 +72,8 @@
+> >  		.codec_mode	= S5P_MFC_CODEC_H264_DEC,
+> >  		.type		= MFC_FMT_DEC,
+> >  		.num_planes	= 1,
+> > -		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+> > -								MFC_V8_BIT,
+> > +		.versions	= MFC_V5_BIT | MFC_V6_BIT |
+> > +					MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+> >  	},
+> >  	{
+> >  		.name		= "H264/MVC Encoded Stream",
+> > @@ -79,7 +81,8 @@
+> >  		.codec_mode	= S5P_MFC_CODEC_H264_MVC_DEC,
+> >  		.type		= MFC_FMT_DEC,
+> >  		.num_planes	= 1,
+> > -		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
+> > +		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT |
+> > +								MFC_V10_BIT,
+> >  	},
+> >  	{
+> >  		.name		= "H263 Encoded Stream",
+> > @@ -87,8 +90,8 @@
+> >  		.codec_mode	= S5P_MFC_CODEC_H263_DEC,
+> >  		.type		= MFC_FMT_DEC,
+> >  		.num_planes	= 1,
+> > -		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+> > -								MFC_V8_BIT,
+> > +		.versions	= MFC_V5_BIT | MFC_V6_BIT |
+> > +					MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+> >  	},
+> >  	{
+> >  		.name		= "MPEG1 Encoded Stream",
+> > @@ -96,8 +99,8 @@
+> >  		.codec_mode	= S5P_MFC_CODEC_MPEG2_DEC,
+> >  		.type		= MFC_FMT_DEC,
+> >  		.num_planes	= 1,
+> > -		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+> > -								MFC_V8_BIT,
+> > +		.versions	= MFC_V5_BIT | MFC_V6_BIT |
+> > +					MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+> >  	},
+> >  	{
+> >  		.name		= "MPEG2 Encoded Stream",
+> > @@ -105,8 +108,8 @@
+> >  		.codec_mode	= S5P_MFC_CODEC_MPEG2_DEC,
+> >  		.type		= MFC_FMT_DEC,
+> >  		.num_planes	= 1,
+> > -		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+> > -								MFC_V8_BIT,
+> > +		.versions	= MFC_V5_BIT | MFC_V6_BIT |
+> > +					MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+> >  	},
+> >  	{
+> >  		.name		= "MPEG4 Encoded Stream",
+> > @@ -114,8 +117,8 @@
+> >  		.codec_mode	= S5P_MFC_CODEC_MPEG4_DEC,
+> >  		.type		= MFC_FMT_DEC,
+> >  		.num_planes	= 1,
+> > -		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+> > -								MFC_V8_BIT,
+> > +		.versions	= MFC_V5_BIT | MFC_V6_BIT |
+> > +					MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+> >  	},
+> >  	{
+> >  		.name		= "XviD Encoded Stream",
+> > @@ -123,8 +126,8 @@
+> >  		.codec_mode	= S5P_MFC_CODEC_MPEG4_DEC,
+> >  		.type		= MFC_FMT_DEC,
+> >  		.num_planes	= 1,
+> > -		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+> > -								MFC_V8_BIT,
+> > +		.versions	= MFC_V5_BIT | MFC_V6_BIT |
+> > +					MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+> >  	},
+> >  	{
+> >  		.name		= "VC1 Encoded Stream",
+> > @@ -132,8 +135,8 @@
+> >  		.codec_mode	= S5P_MFC_CODEC_VC1_DEC,
+> >  		.type		= MFC_FMT_DEC,
+> >  		.num_planes	= 1,
+> > -		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+> > -								MFC_V8_BIT,
+> > +		.versions	= MFC_V5_BIT | MFC_V6_BIT |
+> > +					MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+> >  	},
+> >  	{
+> >  		.name		= "VC1 RCV Encoded Stream",
+> > @@ -141,8 +144,8 @@
+> >  		.codec_mode	= S5P_MFC_CODEC_VC1RCV_DEC,
+> >  		.type		= MFC_FMT_DEC,
+> >  		.num_planes	= 1,
+> > -		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+> > -								MFC_V8_BIT,
+> > +		.versions	= MFC_V5_BIT | MFC_V6_BIT |
+> > +					MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+> >  	},
+> >  	{
+> >  		.name		= "VP8 Encoded Stream",
+> > @@ -150,7 +153,8 @@
+> >  		.codec_mode	= S5P_MFC_CODEC_VP8_DEC,
+> >  		.type		= MFC_FMT_DEC,
+> >  		.num_planes	= 1,
+> > -		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
+> > +		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT |
+> > +								MFC_V10_BIT,
+> >  	},
+> >  };
+> >  
+> > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> > index e39d9e0..9042378 100644
+> > --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> > +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> > @@ -57,8 +57,8 @@
+> >  		.codec_mode	= S5P_MFC_CODEC_NONE,
+> >  		.type		= MFC_FMT_RAW,
+> >  		.num_planes	= 2,
+> > -		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+> > -								MFC_V8_BIT,
+> > +		.versions	= MFC_V5_BIT | MFC_V6_BIT |
+> > +					MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+> >  	},
+> >  	{
+> >  		.name		= "4:2:0 2 Planes Y/CrCb",
+> > @@ -66,7 +66,8 @@
+> >  		.codec_mode	= S5P_MFC_CODEC_NONE,
+> >  		.type		= MFC_FMT_RAW,
+> >  		.num_planes	= 2,
+> > -		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
+> > +		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT |
+> > +								MFC_V10_BIT,
+> >  	},
+> >  	{
+> >  		.name		= "H264 Encoded Stream",
+> > @@ -74,8 +75,8 @@
+> >  		.codec_mode	= S5P_MFC_CODEC_H264_ENC,
+> >  		.type		= MFC_FMT_ENC,
+> >  		.num_planes	= 1,
+> > -		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+> > -								MFC_V8_BIT,
+> > +		.versions	= MFC_V5_BIT | MFC_V6_BIT |
+> > +					MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+> >  	},
+> >  	{
+> >  		.name		= "MPEG4 Encoded Stream",
+> > @@ -83,8 +84,8 @@
+> >  		.codec_mode	= S5P_MFC_CODEC_MPEG4_ENC,
+> >  		.type		= MFC_FMT_ENC,
+> >  		.num_planes	= 1,
+> > -		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+> > -								MFC_V8_BIT,
+> > +		.versions	= MFC_V5_BIT | MFC_V6_BIT |
+> > +					MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+> >  	},
+> >  	{
+> >  		.name		= "H263 Encoded Stream",
+> > @@ -92,8 +93,8 @@
+> >  		.codec_mode	= S5P_MFC_CODEC_H263_ENC,
+> >  		.type		= MFC_FMT_ENC,
+> >  		.num_planes	= 1,
+> > -		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+> > -								MFC_V8_BIT,
+> > +		.versions	= MFC_V5_BIT | MFC_V6_BIT |
+> > +					MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+> >  	},
+> >  	{
+> >  		.name		= "VP8 Encoded Stream",
+> > @@ -101,7 +102,7 @@
+> >  		.codec_mode	= S5P_MFC_CODEC_VP8_ENC,
+> >  		.type		= MFC_FMT_ENC,
+> >  		.num_planes	= 1,
+> > -		.versions	= MFC_V7_BIT | MFC_V8_BIT,
+> > +		.versions	= MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT,
+> >  	},
+> >  };
+> >  
+> > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> > index 7682b0e..9dc106e 100644
+> > --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> > +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+> > @@ -358,6 +358,7 @@ static int calc_plane(int width, int height)
+> >  
+> >  static void s5p_mfc_dec_calc_dpb_size_v6(struct s5p_mfc_ctx *ctx)
+> >  {
+> > +	struct s5p_mfc_dev *dev = ctx->dev;
+> >  	ctx->buf_width = ALIGN(ctx->img_width, S5P_FIMV_NV12MT_HALIGN_V6);
+> >  	ctx->buf_height = ALIGN(ctx->img_height, S5P_FIMV_NV12MT_VALIGN_V6);
+> >  	mfc_debug(2, "SEQ Done: Movie dimensions %dx%d,\n"
+> > @@ -374,8 +375,12 @@ static void s5p_mfc_dec_calc_dpb_size_v6(struct s5p_mfc_ctx *ctx)
+> >  
+> >  	if (ctx->codec_mode == S5P_MFC_CODEC_H264_DEC ||
+> >  			ctx->codec_mode == S5P_MFC_CODEC_H264_MVC_DEC) {
+> > -		ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V6(ctx->img_width,
+> > -				ctx->img_height);
+> > +		if (IS_MFCV10(dev))
+> > +			ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V10(ctx->img_width,
+> > +					ctx->img_height);
+> > +		else
+> > +			ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V6(ctx->img_width,
+> > +					ctx->img_height);
+> >  		ctx->mv_size = ALIGN(ctx->mv_size, 16);
+> >  	} else {
+> >  		ctx->mv_size = 0;
+> > diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
+> > index 8055848..021b8db 100644
+> > --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
+> > +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
+> > @@ -24,6 +24,8 @@
+> >  #define MB_HEIGHT(y_size)		DIV_ROUND_UP(y_size, 16)
+> >  #define S5P_MFC_DEC_MV_SIZE_V6(x, y)	(MB_WIDTH(x) * \
+> >  					(((MB_HEIGHT(y)+1)/2)*2) * 64 + 128)
+> > +#define S5P_MFC_DEC_MV_SIZE_V10(x, y)	(MB_WIDTH(x) * \
+> > +					(((MB_HEIGHT(y)+1)/2)*2) * 64 + 512)
+> >  
+> >  /* Definition */
+> >  #define ENC_MULTI_SLICE_MB_MAX		((1 << 30) - 1)
+> 
+> 
+> 
