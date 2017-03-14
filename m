@@ -1,123 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:49410 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S935482AbdCJK1V (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:37583 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752008AbdCNTGw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Mar 2017 05:27:21 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv4 11/15] ov2640: use standard clk and enable it.
-Date: Fri, 10 Mar 2017 11:26:10 +0100
-Message-Id: <20170310102614.20922-12-hverkuil@xs4all.nl>
-In-Reply-To: <20170310102614.20922-1-hverkuil@xs4all.nl>
-References: <20170310102614.20922-1-hverkuil@xs4all.nl>
+        Tue, 14 Mar 2017 15:06:52 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v3 27/27] rcar-vin: enable support for r8a7796
+Date: Tue, 14 Mar 2017 20:03:08 +0100
+Message-Id: <20170314190308.25790-28-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add the SoC specific information for Renesas r8a7796.
 
-Convert v4l2_clk to normal clk and enable the clock.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/i2c/ov2640.c | 31 ++++++++++++++-----------------
- 1 file changed, 14 insertions(+), 17 deletions(-)
+ .../devicetree/bindings/media/rcar_vin.txt         |  1 +
+ drivers/media/platform/rcar-vin/rcar-core.c        | 64 ++++++++++++++++++++++
+ 2 files changed, 65 insertions(+)
 
-diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
-index 83f88efbce69..0445963c5fae 100644
---- a/drivers/media/i2c/ov2640.c
-+++ b/drivers/media/i2c/ov2640.c
-@@ -16,6 +16,7 @@
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/i2c.h>
-+#include <linux/clk.h>
- #include <linux/slab.h>
- #include <linux/delay.h>
- #include <linux/gpio.h>
-@@ -24,7 +25,6 @@
- #include <linux/v4l2-mediabus.h>
- #include <linux/videodev2.h>
+diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+index ffdfa97ac37753f9..7e36ebe5c89b7dfd 100644
+--- a/Documentation/devicetree/bindings/media/rcar_vin.txt
++++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+@@ -10,6 +10,7 @@ always slaves and support multiple input channels which can be either RGB,
+ YUVU, BT656 or CSI-2.
  
--#include <media/v4l2-clk.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-subdev.h>
- #include <media/v4l2-ctrls.h>
-@@ -284,7 +284,7 @@ struct ov2640_priv {
- 	struct v4l2_subdev		subdev;
- 	struct v4l2_ctrl_handler	hdl;
- 	u32	cfmt_code;
--	struct v4l2_clk			*clk;
-+	struct clk			*clk;
- 	const struct ov2640_win_size	*win;
+  - compatible: Must be one or more of the following
++   - "renesas,vin-r8a7796" for the R8A7796 device
+    - "renesas,vin-r8a7795" for the R8A7795 device
+    - "renesas,vin-r8a7794" for the R8A7794 device
+    - "renesas,vin-r8a7793" for the R8A7793 device
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index c30040c42ce588a9..8930189638473f37 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -1119,6 +1119,66 @@ static const struct rvin_info rcar_info_r8a7795 = {
+ 	},
+ };
  
- 	struct gpio_desc *resetb_gpio;
-@@ -1051,14 +1051,11 @@ static int ov2640_probe(struct i2c_client *client,
- 		return -ENOMEM;
- 	}
- 
--	priv->clk = v4l2_clk_get(&client->dev, "xvclk");
--	if (IS_ERR(priv->clk))
--		return -EPROBE_DEFER;
--
--	if (!client->dev.of_node) {
--		dev_err(&client->dev, "Missing platform_data for driver\n");
--		ret = -EINVAL;
--		goto err_clk;
-+	if (client->dev.of_node) {
-+		priv->clk = devm_clk_get(&client->dev, "xvclk");
-+		if (IS_ERR(priv->clk))
-+			return -EPROBE_DEFER;
-+		clk_prepare_enable(priv->clk);
- 	}
- 
- 	ret = ov2640_probe_dt(client, priv);
-@@ -1074,25 +1071,25 @@ static int ov2640_probe(struct i2c_client *client,
- 	priv->subdev.ctrl_handler = &priv->hdl;
- 	if (priv->hdl.error) {
- 		ret = priv->hdl.error;
--		goto err_clk;
-+		goto err_hdl;
- 	}
- 
- 	ret = ov2640_video_probe(client);
- 	if (ret < 0)
--		goto err_videoprobe;
-+		goto err_hdl;
- 
- 	ret = v4l2_async_register_subdev(&priv->subdev);
- 	if (ret < 0)
--		goto err_videoprobe;
-+		goto err_hdl;
- 
- 	dev_info(&adapter->dev, "OV2640 Probed\n");
- 
- 	return 0;
- 
--err_videoprobe:
-+err_hdl:
- 	v4l2_ctrl_handler_free(&priv->hdl);
- err_clk:
--	v4l2_clk_put(priv->clk);
-+	clk_disable_unprepare(priv->clk);
- 	return ret;
- }
- 
-@@ -1101,9 +1098,9 @@ static int ov2640_remove(struct i2c_client *client)
- 	struct ov2640_priv       *priv = to_ov2640(client);
- 
- 	v4l2_async_unregister_subdev(&priv->subdev);
--	v4l2_clk_put(priv->clk);
--	v4l2_device_unregister_subdev(&priv->subdev);
- 	v4l2_ctrl_handler_free(&priv->hdl);
-+	v4l2_device_unregister_subdev(&priv->subdev);
-+	clk_disable_unprepare(priv->clk);
- 	return 0;
- }
- 
++static const struct rvin_info rcar_info_r8a7796 = {
++	.chip = RCAR_GEN3,
++	.use_mc = true,
++	.max_width = 4096,
++	.max_height = 4096,
++
++	.num_chsels = 5,
++	.chsels = {
++		{
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_NC, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++		}, {
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_NC, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 1 },
++			{ .csi = RVIN_CSI20, .chan = 1 },
++		}, {
++			{ .csi = RVIN_NC, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 2 },
++			{ .csi = RVIN_CSI20, .chan = 2 },
++		}, {
++			{ .csi = RVIN_CSI40, .chan = 1 },
++			{ .csi = RVIN_CSI20, .chan = 1 },
++			{ .csi = RVIN_NC, .chan = 1 },
++			{ .csi = RVIN_CSI40, .chan = 3 },
++			{ .csi = RVIN_CSI20, .chan = 3 },
++		}, {
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_NC, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++		}, {
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_NC, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 1 },
++			{ .csi = RVIN_CSI20, .chan = 1 },
++		}, {
++			{ .csi = RVIN_NC, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_CSI20, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 2 },
++			{ .csi = RVIN_CSI20, .chan = 2 },
++		}, {
++			{ .csi = RVIN_CSI40, .chan = 1 },
++			{ .csi = RVIN_CSI20, .chan = 1 },
++			{ .csi = RVIN_NC, .chan = 1 },
++			{ .csi = RVIN_CSI40, .chan = 3 },
++			{ .csi = RVIN_CSI20, .chan = 3 },
++		},
++	},
++};
++
+ static const struct rvin_info rcar_info_gen2 = {
+ 	.chip = RCAR_GEN2,
+ 	.use_mc = false,
+@@ -1132,6 +1192,10 @@ static const struct of_device_id rvin_of_id_table[] = {
+ 		.data = &rcar_info_r8a7795,
+ 	},
+ 	{
++		.compatible = "renesas,vin-r8a7796",
++		.data = &rcar_info_r8a7796,
++	},
++	{
+ 		.compatible = "renesas,vin-r8a7794",
+ 		.data = &rcar_info_gen2,
+ 	},
 -- 
-2.11.0
+2.12.0
