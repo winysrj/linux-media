@@ -1,96 +1,220 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:60833 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S936235AbdCJJlz (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:37396 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751483AbdCNTGk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Mar 2017 04:41:55 -0500
-Subject: Re: [PATCHv3 04/15] ov7670: get xclk
-To: Sakari Ailus <sakari.ailus@iki.fi>
-References: <20170306145616.38485-1-hverkuil@xs4all.nl>
- <20170306145616.38485-5-hverkuil@xs4all.nl>
- <20170309203816.GQ3220@valkosipuli.retiisi.org.uk>
- <4ecb5aa4-40b6-5d78-03ba-239efbd0137e@xs4all.nl>
- <20170310091117.GU3220@valkosipuli.retiisi.org.uk>
-Cc: linux-media@vger.kernel.org,
-        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        devicetree@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b5e0eeb7-2d2f-3f95-6ee3-363877642880@xs4all.nl>
-Date: Fri, 10 Mar 2017 10:41:51 +0100
+        Tue, 14 Mar 2017 15:06:40 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v3 15/27] rcar-vin: enable Gen3 hardware configuration
+Date: Tue, 14 Mar 2017 20:02:56 +0100
+Message-Id: <20170314190308.25790-16-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <20170310091117.GU3220@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/03/17 10:11, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> On Fri, Mar 10, 2017 at 09:55:53AM +0100, Hans Verkuil wrote:
->> On 09/03/17 21:38, Sakari Ailus wrote:
->>> Hi Hans,
->>>
->>> On Mon, Mar 06, 2017 at 03:56:05PM +0100, Hans Verkuil wrote:
->>>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>>
->>>> Get the clock for this sensor.
->>>>
->>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>>> ---
->>>>  drivers/media/i2c/ov7670.c | 12 ++++++++++++
->>>>  1 file changed, 12 insertions(+)
->>>>
->>>> diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
->>>> index 50e4466a2b37..da0843617a49 100644
->>>> --- a/drivers/media/i2c/ov7670.c
->>>> +++ b/drivers/media/i2c/ov7670.c
->>>> @@ -10,6 +10,7 @@
->>>>   * This file may be distributed under the terms of the GNU General
->>>>   * Public License, version 2.
->>>>   */
->>>> +#include <linux/clk.h>
->>>>  #include <linux/init.h>
->>>>  #include <linux/module.h>
->>>>  #include <linux/slab.h>
->>>> @@ -227,6 +228,7 @@ struct ov7670_info {
->>>>  		struct v4l2_ctrl *hue;
->>>>  	};
->>>>  	struct ov7670_format_struct *fmt;  /* Current format */
->>>> +	struct clk *clk;
->>>>  	int min_width;			/* Filter out smaller sizes */
->>>>  	int min_height;			/* Filter out smaller sizes */
->>>>  	int clock_speed;		/* External clock speed (MHz) */
->>>> @@ -1587,6 +1589,15 @@ static int ov7670_probe(struct i2c_client *client,
->>>>  			info->pclk_hb_disable = true;
->>>>  	}
->>>>  
->>>> +	info->clk = devm_clk_get(&client->dev, "xclk");
->>>> +	if (IS_ERR(info->clk))
->>>> +		return -EPROBE_DEFER;
->>>> +	clk_prepare_enable(info->clk);
->>>> +
->>>> +	info->clock_speed = clk_get_rate(info->clk) / 1000000;
->>>> +	if (info->clock_speed < 10 || info->clock_speed > 48)
->>>> +		return -EINVAL;
->>>
->>> clk_disable_unprepare() before return?
->>
->> It is my understanding that devm_clk_get will call that for you.
->>
->> Correct me if I am wrong.
-> 
-> devm_clk_get() obtained clock is released using devm_clk_release() which is
-> just calling clk_put(). Which caller prepared or enabled the clock is not
-> tracked. It's the responsibility of the caller.
-> 
+Add the register needed to work with Gen3 hardware. This patch adds
+the logic for how to work with the Gen3 hardware. More work is required
+to enable the subdevice structure needed to configure capturing.
 
-You're right. Then I need to check for this.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-dma.c | 94 ++++++++++++++++++++----------
+ drivers/media/platform/rcar-vin/rcar-vin.h |  1 +
+ 2 files changed, 64 insertions(+), 31 deletions(-)
 
-Hmm, I'm pretty sure I looked at what other drivers do. I think I'm not the
-only one who forgets to call clk_disable_unprepare.
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 2931ba7998709307..7fecb616b6c45a32 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -33,21 +33,23 @@
+ #define VNELPRC_REG	0x10	/* Video n End Line Pre-Clip Register */
+ #define VNSPPRC_REG	0x14	/* Video n Start Pixel Pre-Clip Register */
+ #define VNEPPRC_REG	0x18	/* Video n End Pixel Pre-Clip Register */
+-#define VNSLPOC_REG	0x1C	/* Video n Start Line Post-Clip Register */
+-#define VNELPOC_REG	0x20	/* Video n End Line Post-Clip Register */
+-#define VNSPPOC_REG	0x24	/* Video n Start Pixel Post-Clip Register */
+-#define VNEPPOC_REG	0x28	/* Video n End Pixel Post-Clip Register */
+ #define VNIS_REG	0x2C	/* Video n Image Stride Register */
+ #define VNMB_REG(m)	(0x30 + ((m) << 2)) /* Video n Memory Base m Register */
+ #define VNIE_REG	0x40	/* Video n Interrupt Enable Register */
+ #define VNINTS_REG	0x44	/* Video n Interrupt Status Register */
+ #define VNSI_REG	0x48	/* Video n Scanline Interrupt Register */
+ #define VNMTC_REG	0x4C	/* Video n Memory Transfer Control Register */
+-#define VNYS_REG	0x50	/* Video n Y Scale Register */
+-#define VNXS_REG	0x54	/* Video n X Scale Register */
+ #define VNDMR_REG	0x58	/* Video n Data Mode Register */
+ #define VNDMR2_REG	0x5C	/* Video n Data Mode Register 2 */
+ #define VNUVAOF_REG	0x60	/* Video n UV Address Offset Register */
++
++/* Register offsets specific for Gen2 */
++#define VNSLPOC_REG	0x1C	/* Video n Start Line Post-Clip Register */
++#define VNELPOC_REG	0x20	/* Video n End Line Post-Clip Register */
++#define VNSPPOC_REG	0x24	/* Video n Start Pixel Post-Clip Register */
++#define VNEPPOC_REG	0x28	/* Video n End Pixel Post-Clip Register */
++#define VNYS_REG	0x50	/* Video n Y Scale Register */
++#define VNXS_REG	0x54	/* Video n X Scale Register */
+ #define VNC1A_REG	0x80	/* Video n Coefficient Set C1A Register */
+ #define VNC1B_REG	0x84	/* Video n Coefficient Set C1B Register */
+ #define VNC1C_REG	0x88	/* Video n Coefficient Set C1C Register */
+@@ -73,9 +75,13 @@
+ #define VNC8B_REG	0xF4	/* Video n Coefficient Set C8B Register */
+ #define VNC8C_REG	0xF8	/* Video n Coefficient Set C8C Register */
+ 
++/* Register offsets specific for Gen3 */
++#define VNCSI_IFMD_REG		0x20 /* Video n CSI2 Interface Mode Register */
+ 
+ /* Register bit fields for R-Car VIN */
+ /* Video n Main Control Register bits */
++#define VNMC_DPINE		(1 << 27) /* Gen3 specific */
++#define VNMC_SCLE		(1 << 26) /* Gen3 specific */
+ #define VNMC_FOC		(1 << 21)
+ #define VNMC_YCAL		(1 << 19)
+ #define VNMC_INF_YUV8_BT656	(0 << 16)
+@@ -119,6 +125,13 @@
+ #define VNDMR2_FTEV		(1 << 17)
+ #define VNDMR2_VLV(n)		((n & 0xf) << 12)
+ 
++/* Video n CSI2 Interface Mode Register (Gen3) */
++#define VNCSI_IFMD_DES2		(1 << 27)
++#define VNCSI_IFMD_DES1		(1 << 26)
++#define VNCSI_IFMD_DES0		(1 << 25)
++#define VNCSI_IFMD_CSI_CHSEL(n) ((n & 0xf) << 0)
++#define VNCSI_IFMD_CSI_CHSEL_MASK 0xf
++
+ struct rvin_buffer {
+ 	struct vb2_v4l2_buffer vb;
+ 	struct list_head list;
+@@ -514,28 +527,10 @@ static void rvin_set_coeff(struct rvin_dev *vin, unsigned short xs)
+ 	rvin_write(vin, p_set->coeff_set[23], VNC8C_REG);
+ }
+ 
+-static void rvin_crop_scale_comp(struct rvin_dev *vin)
++static void rvin_crop_scale_comp_gen2(struct rvin_dev *vin)
+ {
+ 	u32 xs, ys;
+ 
+-	/* Set Start/End Pixel/Line Pre-Clip */
+-	rvin_write(vin, vin->crop.left, VNSPPRC_REG);
+-	rvin_write(vin, vin->crop.left + vin->crop.width - 1, VNEPPRC_REG);
+-	switch (vin->format.field) {
+-	case V4L2_FIELD_INTERLACED:
+-	case V4L2_FIELD_INTERLACED_TB:
+-	case V4L2_FIELD_INTERLACED_BT:
+-		rvin_write(vin, vin->crop.top / 2, VNSLPRC_REG);
+-		rvin_write(vin, (vin->crop.top + vin->crop.height) / 2 - 1,
+-			   VNELPRC_REG);
+-		break;
+-	default:
+-		rvin_write(vin, vin->crop.top, VNSLPRC_REG);
+-		rvin_write(vin, vin->crop.top + vin->crop.height - 1,
+-			   VNELPRC_REG);
+-		break;
+-	}
+-
+ 	/* Set scaling coefficient */
+ 	ys = 0;
+ 	if (vin->crop.height != vin->compose.height)
+@@ -573,11 +568,6 @@ static void rvin_crop_scale_comp(struct rvin_dev *vin)
+ 		break;
+ 	}
+ 
+-	if (vin->format.pixelformat == V4L2_PIX_FMT_NV16)
+-		rvin_write(vin, ALIGN(vin->format.width, 0x20), VNIS_REG);
+-	else
+-		rvin_write(vin, ALIGN(vin->format.width, 0x10), VNIS_REG);
+-
+ 	vin_dbg(vin,
+ 		"Pre-Clip: %ux%u@%u:%u YS: %d XS: %d Post-Clip: %ux%u@%u:%u\n",
+ 		vin->crop.width, vin->crop.height, vin->crop.left,
+@@ -585,6 +575,37 @@ static void rvin_crop_scale_comp(struct rvin_dev *vin)
+ 		0, 0);
+ }
+ 
++static void rvin_crop_scale_comp(struct rvin_dev *vin)
++{
++	/* Set Start/End Pixel/Line Pre-Clip */
++	rvin_write(vin, vin->crop.left, VNSPPRC_REG);
++	rvin_write(vin, vin->crop.left + vin->crop.width - 1, VNEPPRC_REG);
++
++	switch (vin->format.field) {
++	case V4L2_FIELD_INTERLACED:
++	case V4L2_FIELD_INTERLACED_TB:
++	case V4L2_FIELD_INTERLACED_BT:
++		rvin_write(vin, vin->crop.top / 2, VNSLPRC_REG);
++		rvin_write(vin, (vin->crop.top + vin->crop.height) / 2 - 1,
++			   VNELPRC_REG);
++		break;
++	default:
++		rvin_write(vin, vin->crop.top, VNSLPRC_REG);
++		rvin_write(vin, vin->crop.top + vin->crop.height - 1,
++			   VNELPRC_REG);
++		break;
++	}
++
++	/* TODO: Add support for the UDS scaler. */
++	if (vin->info->chip != RCAR_GEN3)
++		rvin_crop_scale_comp_gen2(vin);
++
++	if (vin->format.pixelformat == V4L2_PIX_FMT_NV16)
++		rvin_write(vin, ALIGN(vin->format.width, 0x20), VNIS_REG);
++	else
++		rvin_write(vin, ALIGN(vin->format.width, 0x10), VNIS_REG);
++}
++
+ /* -----------------------------------------------------------------------------
+  * Hardware setup
+  */
+@@ -660,7 +681,10 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	}
+ 
+ 	/* Enable VSYNC Field Toogle mode after one VSYNC input */
+-	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
++	if (vin->info->chip == RCAR_GEN3)
++		dmr2 = VNDMR2_FTEV;
++	else
++		dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
+ 
+ 	/* Hsync Signal Polarity Select */
+ 	if (!(vin->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+@@ -712,6 +736,14 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	if (input_is_yuv == output_is_yuv)
+ 		vnmc |= VNMC_BPS;
+ 
++	if (vin->info->chip == RCAR_GEN3) {
++		/* Select between CSI-2 and Digital input */
++		if (vin->mbus_cfg.type == V4L2_MBUS_CSI2)
++			vnmc &= ~VNMC_DPINE;
++		else
++			vnmc |= VNMC_DPINE;
++	}
++
+ 	/* Progressive or interlaced mode */
+ 	interrupts = progressive ? VNIE_FIE : VNIE_EFE;
+ 
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 43206e85bbaadb5b..09fc70e192699f35 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -33,6 +33,7 @@ enum chip_id {
+ 	RCAR_H1,
+ 	RCAR_M1,
+ 	RCAR_GEN2,
++	RCAR_GEN3,
+ };
+ 
+ /**
+-- 
+2.12.0
