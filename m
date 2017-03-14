@@ -1,141 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:36029 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755841AbdCGTd5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 14:33:57 -0500
-Received: by mail-wr0-f193.google.com with SMTP id l37so1482567wrc.3
-        for <linux-media@vger.kernel.org>; Tue, 07 Mar 2017 11:33:35 -0800 (PST)
-Received: from dvbdev.wuest.de (ip-178-201-73-185.hsi08.unitymediagroup.de. [178.201.73.185])
-        by smtp.gmail.com with ESMTPSA id m186sm13760369wmd.21.2017.03.07.10.58.32
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Tue, 07 Mar 2017 10:58:33 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 05/13] [media] dvb-frontends/stv0367: make PLLSETUP a function, add 58MHz IC speed
-Date: Tue,  7 Mar 2017 19:57:19 +0100
-Message-Id: <20170307185727.564-6-d.scheller.oss@gmail.com>
-In-Reply-To: <20170307185727.564-1-d.scheller.oss@gmail.com>
-References: <20170307185727.564-1-d.scheller.oss@gmail.com>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:37404 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751412AbdCNTGg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Mar 2017 15:06:36 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v3 06/27] rcar-vin: move max width and height information to chip information
+Date: Tue, 14 Mar 2017 20:02:47 +0100
+Message-Id: <20170314190308.25790-7-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+On Gen3 the max supported width and height will be different from Gen2.
+Move the limits to the struct chip_info to prepare for Gen3 support.
 
-This moves the PLL SETUP code from stv0367ter_init() into a dedicated
-function, and also make it possible to configure 58Mhz IC speed at
-27MHz Xtal (used on STV0367-based DDB cards/modules in QAM mode).
-
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/dvb-frontends/stv0367.c | 73 +++++++++++++++++++++++------------
- drivers/media/dvb-frontends/stv0367.h |  3 ++
- 2 files changed, 51 insertions(+), 25 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-core.c | 6 ++++++
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 6 ++----
+ drivers/media/platform/rcar-vin/rcar-vin.h  | 6 ++++++
+ 3 files changed, 14 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
-index 5b52673..da10d9a 100644
---- a/drivers/media/dvb-frontends/stv0367.c
-+++ b/drivers/media/dvb-frontends/stv0367.c
-@@ -271,6 +271,53 @@ static void stv0367_write_table(struct stv0367_state *state,
- 	}
- }
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index ec1eb723d401fda2..998617711f1ad045 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -257,14 +257,20 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
  
-+static void stv0367_pll_setup(struct stv0367_state *state,
-+				u32 icspeed, u32 xtal)
-+{
-+	/* note on regs: R367TER_* and R367CAB_* defines each point to
-+	 * 0xf0d8, so just use R367TER_ for both cases
-+	 */
-+
-+	switch (icspeed) {
-+	case STV0367_ICSPEED_58000:
-+		switch (xtal) {
-+		default:
-+		case 27000000:
-+			dprintk("STV0367 SetCLKgen for 58MHz IC and 27Mhz crystal\n");
-+			/* PLLMDIV: 27, PLLNDIV: 232 */
-+			stv0367_writereg(state, R367TER_PLLMDIV, 0x1b);
-+			stv0367_writereg(state, R367TER_PLLNDIV, 0xe8);
-+			break;
-+		}
-+		break;
-+	default:
-+	case STV0367_ICSPEED_53125:
-+		switch (xtal) {
-+			/* set internal freq to 53.125MHz */
-+		case 16000000:
-+			stv0367_writereg(state, R367TER_PLLMDIV, 0x2);
-+			stv0367_writereg(state, R367TER_PLLNDIV, 0x1b);
-+			break;
-+		case 25000000:
-+			stv0367_writereg(state, R367TER_PLLMDIV, 0xa);
-+			stv0367_writereg(state, R367TER_PLLNDIV, 0x55);
-+			break;
-+		default:
-+		case 27000000:
-+			dprintk("FE_STV0367TER_SetCLKgen for 27Mhz\n");
-+			stv0367_writereg(state, R367TER_PLLMDIV, 0x1);
-+			stv0367_writereg(state, R367TER_PLLNDIV, 0x8);
-+			break;
-+		case 30000000:
-+			stv0367_writereg(state, R367TER_PLLMDIV, 0xc);
-+			stv0367_writereg(state, R367TER_PLLNDIV, 0x55);
-+			break;
-+		}
-+	}
-+
-+	stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
-+}
-+
- static int stv0367ter_gate_ctrl(struct dvb_frontend *fe, int enable)
- {
- 	struct stv0367_state *state = fe->demodulator_priv;
-@@ -918,31 +965,7 @@ static int stv0367ter_init(struct dvb_frontend *fe)
- 	stv0367_write_table(state,
- 		stv0367_deftabs[state->deftabs][STV0367_TAB_TER]);
+ static const struct rvin_info rcar_info_h1 = {
+ 	.chip = RCAR_H1,
++	.max_width = 2048,
++	.max_height = 2048,
+ };
  
--	switch (state->config->xtal) {
--		/*set internal freq to 53.125MHz */
--	case 16000000:
--		stv0367_writereg(state, R367TER_PLLMDIV, 0x2);
--		stv0367_writereg(state, R367TER_PLLNDIV, 0x1b);
--		stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
--		break;
--	case 25000000:
--		stv0367_writereg(state, R367TER_PLLMDIV, 0xa);
--		stv0367_writereg(state, R367TER_PLLNDIV, 0x55);
--		stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
--		break;
--	default:
--	case 27000000:
--		dprintk("FE_STV0367TER_SetCLKgen for 27Mhz\n");
--		stv0367_writereg(state, R367TER_PLLMDIV, 0x1);
--		stv0367_writereg(state, R367TER_PLLNDIV, 0x8);
--		stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
--		break;
--	case 30000000:
--		stv0367_writereg(state, R367TER_PLLMDIV, 0xc);
--		stv0367_writereg(state, R367TER_PLLNDIV, 0x55);
--		stv0367_writereg(state, R367TER_PLLSETUP, 0x18);
--		break;
--	}
-+	stv0367_pll_setup(state, STV0367_ICSPEED_53125, state->config->xtal);
+ static const struct rvin_info rcar_info_m1 = {
+ 	.chip = RCAR_M1,
++	.max_width = 2048,
++	.max_height = 2048,
+ };
  
- 	stv0367_writereg(state, R367TER_I2CRPT, 0xa0);
- 	stv0367_writereg(state, R367TER_ANACTRL, 0x00);
-diff --git a/drivers/media/dvb-frontends/stv0367.h b/drivers/media/dvb-frontends/stv0367.h
-index 26c38a0..aaa0236 100644
---- a/drivers/media/dvb-frontends/stv0367.h
-+++ b/drivers/media/dvb-frontends/stv0367.h
-@@ -25,6 +25,9 @@
- #include <linux/dvb/frontend.h>
- #include "dvb_frontend.h"
+ static const struct rvin_info rcar_info_gen2 = {
+ 	.chip = RCAR_GEN2,
++	.max_width = 2048,
++	.max_height = 2048,
+ };
  
-+#define STV0367_ICSPEED_53125	53125000
-+#define STV0367_ICSPEED_58000	58000000
+ static const struct of_device_id rvin_of_id_table[] = {
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 7deca15d22b4d6e3..1b364f359ff4b5ed 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -23,8 +23,6 @@
+ #include "rcar-vin.h"
+ 
+ #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
+-#define RVIN_MAX_WIDTH		2048
+-#define RVIN_MAX_HEIGHT		2048
+ 
+ /* -----------------------------------------------------------------------------
+  * Format Conversions
+@@ -264,8 +262,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
+ 
+ 	/* Limit to VIN capabilities */
+-	v4l_bound_align_image(&pix->width, 2, RVIN_MAX_WIDTH, walign,
+-			      &pix->height, 4, RVIN_MAX_HEIGHT, 2, 0);
++	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
++			      &pix->height, 4, vin->info->max_height, 2, 0);
+ 
+ 	pix->bytesperline = max_t(u32, pix->bytesperline,
+ 				  rvin_format_bytesperline(pix));
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index c07b4a6893440a6a..32d9d130dd6e2e44 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -91,9 +91,15 @@ struct rvin_graph_entity {
+ /**
+  * struct rvin_info- Information about the particular VIN implementation
+  * @chip:		type of VIN chip
++ *
++ * max_width:		max input width the VIN supports
++ * max_height:		max input height the VIN supports
+  */
+ struct rvin_info {
+ 	enum chip_id chip;
 +
- struct stv0367_config {
- 	u8 demod_address;
- 	u32 xtal;
++	unsigned int max_width;
++	unsigned int max_height;
+ };
+ 
+ /**
 -- 
-2.10.2
+2.12.0
