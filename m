@@ -1,150 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:32935 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755130AbdCJEyh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 23:54:37 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v5 17/39] [media] v4l2-mc: add a function to inherit controls from a pipeline
-Date: Thu,  9 Mar 2017 20:52:57 -0800
-Message-Id: <1489121599-23206-18-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:45903 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752673AbdCNOVi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Mar 2017 10:21:38 -0400
+From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>
+CC: <srv_heupstream@mediatek.com>,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        Wu-Cheng Li <wuchengli@google.com>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>,
+        Bin Liu <bin.liu@mediatek.com>,
+        Rick Chang <rick.chang@mediatek.com>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Subject: [PATCH] media: mtk-jpeg: fix continuous log "Context is NULL"
+Date: Tue, 14 Mar 2017 22:21:22 +0800
+Message-ID: <1489501282-52137-1-git-send-email-minghsiu.tsai@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2_pipeline_inherit_controls() will add the v4l2 controls from
-all subdev entities in a pipeline to a given video device.
+The symptom is continuous log "mtk-jpeg 18004000.jpegdec: Context is NULL"
+in kernel log. It is becauese the error handling in irq doesn't clear
+interrupt.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+The calling flow like as below when issue happen
+mtk_jpeg_device_run()
+mtk_jpeg_job_abort()
+  v4l2_m2m_job_finish() -> m2m_dev->curr_ctx = NULL;
+mtk_jpeg_dec_irq()
+  v4l2_m2m_get_curr_priv()
+     -> m2m_dev->curr_ctx == NULL
+     -> return NULL
+log "Context is NULL"
+
+There is race condition between job_abort() and irq. In order to simplify
+code, don't want to add extra flag to maintain state, empty job_abort() and
+clear interrupt before v4l2_m2m_get_curr_priv() in irq.
+
+Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
 ---
- drivers/media/v4l2-core/v4l2-mc.c | 48 +++++++++++++++++++++++++++++++++++++++
- include/media/v4l2-mc.h           | 25 ++++++++++++++++++++
- 2 files changed, 73 insertions(+)
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c | 14 ++------------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
-index 303980b..09d4d97 100644
---- a/drivers/media/v4l2-core/v4l2-mc.c
-+++ b/drivers/media/v4l2-core/v4l2-mc.c
-@@ -22,6 +22,7 @@
- #include <linux/usb.h>
- #include <media/media-device.h>
- #include <media/media-entity.h>
-+#include <media/v4l2-ctrls.h>
- #include <media/v4l2-fh.h>
- #include <media/v4l2-mc.h>
- #include <media/v4l2-subdev.h>
-@@ -238,6 +239,53 @@ int v4l_vb2q_enable_media_source(struct vb2_queue *q)
- }
- EXPORT_SYMBOL_GPL(v4l_vb2q_enable_media_source);
+diff --git a/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c b/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+index b10183f..c02bc7f 100644
+--- a/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
++++ b/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+@@ -862,15 +862,6 @@ static int mtk_jpeg_job_ready(void *priv)
  
-+int __v4l2_pipeline_inherit_controls(struct video_device *vfd,
-+				     struct media_entity *start_entity)
-+{
-+	struct media_device *mdev = start_entity->graph_obj.mdev;
-+	struct media_entity *entity;
-+	struct media_graph graph;
-+	struct v4l2_subdev *sd;
-+	int ret;
-+
-+	ret = media_graph_walk_init(&graph, mdev);
-+	if (ret)
-+		return ret;
-+
-+	media_graph_walk_start(&graph, start_entity);
-+
-+	while ((entity = media_graph_walk_next(&graph))) {
-+		if (!is_media_entity_v4l2_subdev(entity))
-+			continue;
-+
-+		sd = media_entity_to_v4l2_subdev(entity);
-+
-+		ret = v4l2_ctrl_add_handler(vfd->ctrl_handler,
-+					    sd->ctrl_handler,
-+					    NULL);
-+		if (ret)
-+			break;
-+	}
-+
-+	media_graph_walk_cleanup(&graph);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(__v4l2_pipeline_inherit_controls);
-+
-+int v4l2_pipeline_inherit_controls(struct video_device *vfd,
-+				   struct media_entity *start_entity)
-+{
-+	struct media_device *mdev = start_entity->graph_obj.mdev;
-+	int ret;
-+
-+	mutex_lock(&mdev->graph_mutex);
-+	ret = __v4l2_pipeline_inherit_controls(vfd, start_entity);
-+	mutex_unlock(&mdev->graph_mutex);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_pipeline_inherit_controls);
-+
- /* -----------------------------------------------------------------------------
-  * Pipeline power management
-  *
-diff --git a/include/media/v4l2-mc.h b/include/media/v4l2-mc.h
-index 2634d9d..9848e77 100644
---- a/include/media/v4l2-mc.h
-+++ b/include/media/v4l2-mc.h
-@@ -171,6 +171,17 @@ void v4l_disable_media_source(struct video_device *vdev);
-  */
- int v4l_vb2q_enable_media_source(struct vb2_queue *q);
- 
-+/**
-+ * v4l2_pipeline_inherit_controls - Add the v4l2 controls from all
-+ *				    subdev entities in a pipeline to
-+ *				    the given video device.
-+ * @vfd: the video device
-+ * @start_entity: Starting entity
-+ */
-+int __v4l2_pipeline_inherit_controls(struct video_device *vfd,
-+				     struct media_entity *start_entity);
-+int v4l2_pipeline_inherit_controls(struct video_device *vfd,
-+				   struct media_entity *start_entity);
- 
- /**
-  * v4l2_pipeline_pm_use - Update the use count of an entity
-@@ -231,6 +242,20 @@ static inline int v4l_vb2q_enable_media_source(struct vb2_queue *q)
- 	return 0;
- }
- 
-+static inline int __v4l2_pipeline_inherit_controls(
-+	struct video_device *vfd,
-+	struct media_entity *start_entity)
-+{
-+	return 0;
-+}
-+
-+static inline int v4l2_pipeline_inherit_controls(
-+	struct video_device *vfd,
-+	struct media_entity *start_entity)
-+{
-+	return 0;
-+}
-+
- static inline int v4l2_pipeline_pm_use(struct media_entity *entity, int use)
+ static void mtk_jpeg_job_abort(void *priv)
  {
- 	return 0;
+-	struct mtk_jpeg_ctx *ctx = priv;
+-	struct mtk_jpeg_dev *jpeg = ctx->jpeg;
+-	struct vb2_buffer *src_buf, *dst_buf;
+-
+-	src_buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+-	dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+-	v4l2_m2m_buf_done(to_vb2_v4l2_buffer(src_buf), VB2_BUF_STATE_ERROR);
+-	v4l2_m2m_buf_done(to_vb2_v4l2_buffer(dst_buf), VB2_BUF_STATE_ERROR);
+-	v4l2_m2m_job_finish(jpeg->m2m_dev, ctx->fh.m2m_ctx);
+ }
+ 
+ static struct v4l2_m2m_ops mtk_jpeg_m2m_ops = {
+@@ -941,6 +932,8 @@ static irqreturn_t mtk_jpeg_dec_irq(int irq, void *priv)
+ 	u32 dec_ret;
+ 	int i;
+ 
++	dec_ret = mtk_jpeg_dec_get_int_status(jpeg->dec_reg_base);
++	dec_irq_ret = mtk_jpeg_dec_enum_result(dec_ret);
+ 	ctx = v4l2_m2m_get_curr_priv(jpeg->m2m_dev);
+ 	if (!ctx) {
+ 		v4l2_err(&jpeg->v4l2_dev, "Context is NULL\n");
+@@ -951,9 +944,6 @@ static irqreturn_t mtk_jpeg_dec_irq(int irq, void *priv)
+ 	dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+ 	jpeg_src_buf = mtk_jpeg_vb2_to_srcbuf(src_buf);
+ 
+-	dec_ret = mtk_jpeg_dec_get_int_status(jpeg->dec_reg_base);
+-	dec_irq_ret = mtk_jpeg_dec_enum_result(dec_ret);
+-
+ 	if (dec_irq_ret >= MTK_JPEG_DEC_RESULT_UNDERFLOW)
+ 		mtk_jpeg_dec_reset(jpeg->dec_reg_base);
+ 
 -- 
-2.7.4
+1.9.1
