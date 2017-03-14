@@ -1,98 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:57447
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1755432AbdCKJdk (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:27378 "EHLO
+        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750891AbdCNHwT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Mar 2017 04:33:40 -0500
-Date: Sat, 11 Mar 2017 06:33:33 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Troy Kisky <troy.kisky@boundarydevices.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] libv4lconvert: by default, offer the original format to
- the client
-Message-ID: <20170311063333.0c4d0844@vento.lan>
-In-Reply-To: <f250a005-b69d-cf22-725b-4a1853a703b9@boundarydevices.com>
-References: <bfae3cb4407b1de1a29ca450e20bbc16d8262884.1489179204.git.mchehab@s-opensource.com>
-        <f250a005-b69d-cf22-725b-4a1853a703b9@boundarydevices.com>
+        Tue, 14 Mar 2017 03:52:19 -0400
+Date: Tue, 14 Mar 2017 10:51:50 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Alan Cox <alan@linux.intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        kernel-janitors@vger.kernel.org
+Subject: [patch] staging/atomisp: silence uninitialized variable warnings
+Message-ID: <20170314075150.GA6111@mwanda>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 10 Mar 2017 17:00:59 -0800
-Troy Kisky <troy.kisky@boundarydevices.com> escreveu:
+These print an uninitialized value for "opt".  Let's just remove the
+printk.
 
-> On 3/10/2017 12:53 PM, Mauro Carvalho Chehab wrote:
-> > The libv4lconvert part of libv4l was meant to provide a common
-> > place to handle weird proprietary formats. With time, we also
-> > added support to other standard formats, in order to help
-> > V4L2 applications that are not performance sensitive to support
-> > all V4L2 formats.
-> > 
-> > Yet, the hole idea is to let userspace to decide to implement
-> > their own format conversion code when it needs either more
-> > performance or more quality than what libv4lconvert provides.
-> > 
-> > In other words, applications should have the right to decide
-> > between using a libv4lconvert emulated format or to implement
-> > the decoding themselves for non-proprietary formats,
-> > as this may have significative performance impact.
-> > 
-> > At the application side, deciding between them is just a matter
-> > of looking at the V4L2_FMT_FLAG_EMULATED flag.
-> > 
-> > Yet, we don't want to have a miriad of format converters
-> > everywhere for the proprietary formats, like V4L2_PIX_FMT_KONICA420,
-> > V4L2_PIX_FMT_SPCA501, etc. So, let's offer only the emulated
-> > variant for those weird stuff.
-> > 
-> > So, this patch changes the libv4lconvert behavior, for
-> > all non-proprietary formats, including Bayer, to offer both
-> > the original format and the emulated ones.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > ---
-> >  lib/libv4lconvert/libv4lconvert.c | 17 ++++++++---------
-> >  1 file changed, 8 insertions(+), 9 deletions(-)
-> > 
-> > diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
-> > index da718918b030..d87d6b91a838 100644
-> > --- a/lib/libv4lconvert/libv4lconvert.c
-> > +++ b/lib/libv4lconvert/libv4lconvert.c
-> > @@ -118,10 +118,10 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
-> >  	{ V4L2_PIX_FMT_OV511,		 0,	 7,	 7,	1 },
-> >  	{ V4L2_PIX_FMT_OV518,		 0,	 7,	 7,	1 },
-> >  	/* uncompressed bayer */
-> > -	{ V4L2_PIX_FMT_SBGGR8,		 8,	 8,	 8,	1 },
-> > -	{ V4L2_PIX_FMT_SGBRG8,		 8,	 8,	 8,	1 },
-> > -	{ V4L2_PIX_FMT_SGRBG8,		 8,	 8,	 8,	1 },
-> > -	{ V4L2_PIX_FMT_SRGGB8,		 8,	 8,	 8,	1 },
-> > +	{ V4L2_PIX_FMT_SBGGR8,		 8,	 8,	 8,	0 },
-> > +	{ V4L2_PIX_FMT_SGBRG8,		 8,	 8,	 8,	0 },
-> > +	{ V4L2_PIX_FMT_SGRBG8,		 8,	 8,	 8,	0 },
-> > +	{ V4L2_PIX_FMT_SRGGB8,		 8,	 8,	 8,	0 },
-> >  	{ V4L2_PIX_FMT_STV0680,		 8,	 8,	 8,	1 },
-> >  	/* compressed bayer */
-> >  	{ V4L2_PIX_FMT_SPCA561,		 0,	 9,	 9,	1 },
-> > @@ -178,7 +178,7 @@ struct v4lconvert_data *v4lconvert_create_with_dev_ops(int fd, void *dev_ops_pri
-> >  	/* This keeps tracks of devices which have only formats for which apps
-> >  	   most likely will need conversion and we can thus safely add software
-> >  	   processing controls without a performance impact. */  
-> 
-> 
-> The bottom part seems unwanted.
-> Before, if any source format did not need conversion then always_needs_conversion = 0
-> else always_needs_conversion = 1
-> 
-> Now
-> if any source format needs conversion then always_needs_conversion = 1
-> else always_needs_conversion = 0
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Hmm... you're right. I dropped that part at "PATH v2".
-
-I also added a patch improving the documentation about this logic,
-with is not too clear, IMHO.
-
-Thanks,
-Mauro
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.c
+index 327a5c535fab..7f7c6d5133d2 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.c
+@@ -128,11 +128,9 @@ static ssize_t iunit_dbgfun_store(struct device_driver *drv, const char *buf,
+ 	unsigned int opt;
+ 	int ret;
+ 
+-	if (kstrtouint(buf, 10, &opt)) {
+-		dev_err(atomisp_dev, "%s setting %d value invalid\n",
+-			__func__, opt);
+-		return -EINVAL;
+-	}
++	ret = kstrtouint(buf, 10, &opt);
++	if (ret)
++		return ret;
+ 
+ 	ret = atomisp_set_css_dbgfunc(iunit_debug.isp, opt);
+ 	if (ret)
+@@ -154,11 +152,9 @@ static ssize_t iunit_dbgopt_store(struct device_driver *drv, const char *buf,
+ 	unsigned int opt;
+ 	int ret;
+ 
+-	if (kstrtouint(buf, 10, &opt)) {
+-		dev_err(atomisp_dev, "%s setting %d value invalid\n",
+-			__func__, opt);
+-		return -EINVAL;
+-	}
++	ret = kstrtouint(buf, 10, &opt);
++	if (ret)
++		return ret;
+ 
+ 	iunit_debug.dbgopt = opt;
+ 	ret = iunit_dump_dbgopt(iunit_debug.isp, iunit_debug.dbgopt);
