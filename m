@@ -1,127 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:56703 "EHLO
-        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754218AbdCFO64 (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:37413 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751922AbdCNTGp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Mar 2017 09:58:56 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 11/15] ov2640: use standard clk and enable it.
-Date: Mon,  6 Mar 2017 15:56:12 +0100
-Message-Id: <20170306145616.38485-12-hverkuil@xs4all.nl>
-In-Reply-To: <20170306145616.38485-1-hverkuil@xs4all.nl>
-References: <20170306145616.38485-1-hverkuil@xs4all.nl>
+        Tue, 14 Mar 2017 15:06:45 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v3 25/27] rcar-vin: extend {start,stop}_streaming to work with media controller
+Date: Tue, 14 Mar 2017 20:03:06 +0100
+Message-Id: <20170314190308.25790-26-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The procedure to start or stop streaming using the none MC single
+subdevice and the MC graph and multiple subdevices are quiet different.
+Create a new function to abstract which method is used based on which
+mode the driver is running in and add logic to start the MC graph.
 
-Convert v4l2_clk to normal clk and enable the clock.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/i2c/ov2640.c | 32 +++++++++++++-------------------
- 1 file changed, 13 insertions(+), 19 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-dma.c | 82 +++++++++++++++++++++++++++---
+ 1 file changed, 75 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
-index 83f88efbce69..2f799ab4cc2b 100644
---- a/drivers/media/i2c/ov2640.c
-+++ b/drivers/media/i2c/ov2640.c
-@@ -16,6 +16,7 @@
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/i2c.h>
-+#include <linux/clk.h>
- #include <linux/slab.h>
- #include <linux/delay.h>
- #include <linux/gpio.h>
-@@ -24,7 +25,6 @@
- #include <linux/v4l2-mediabus.h>
- #include <linux/videodev2.h>
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 34f01f32bab7bd32..2a525bb3506c2e37 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -1099,15 +1099,85 @@ static void rvin_buffer_queue(struct vb2_buffer *vb)
+ 	spin_unlock_irqrestore(&vin->qlock, flags);
+ }
  
--#include <media/v4l2-clk.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-subdev.h>
- #include <media/v4l2-ctrls.h>
-@@ -284,7 +284,7 @@ struct ov2640_priv {
- 	struct v4l2_subdev		subdev;
- 	struct v4l2_ctrl_handler	hdl;
- 	u32	cfmt_code;
--	struct v4l2_clk			*clk;
-+	struct clk			*clk;
- 	const struct ov2640_win_size	*win;
++static int rvin_set_stream(struct rvin_dev *vin, int on)
++{
++	struct v4l2_subdev_format fmt = {
++		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
++	};
++	struct media_pipeline *pipe;
++	struct  v4l2_subdev *sd;
++	struct media_pad *pad;
++	int ret = -EPIPE;
++
++	/* Not media controller used, simply pass operation to subdevice */
++	if (!vin->info->use_mc) {
++		ret = v4l2_subdev_call(vin->digital.subdev, video, s_stream,
++				       on);
++
++		return ret == -ENOIOCTLCMD ? 0 : ret;
++	}
++	mutex_lock(&vin->group->lock);
++
++	pad = media_entity_remote_pad(&vin->pad);
++	if (!pad)
++		goto out;
++
++	sd = media_entity_to_v4l2_subdev(pad->entity);
++	if (!sd)
++		goto out;
++
++	if (on) {
++		fmt.pad = pad->index;
++		if (v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt))
++			goto out;
++
++		switch (fmt.format.code) {
++		case MEDIA_BUS_FMT_YUYV8_1X16:
++		case MEDIA_BUS_FMT_UYVY8_2X8:
++		case MEDIA_BUS_FMT_UYVY10_2X10:
++		case MEDIA_BUS_FMT_RGB888_1X24:
++			vin->code = fmt.format.code;
++			break;
++		default:
++			goto out;
++		}
++
++		if (fmt.format.width != vin->format.width ||
++		    fmt.format.height != vin->format.height)
++			goto out;
++
++		pipe = sd->entity.pipe ? sd->entity.pipe : &vin->vdev->pipe;
++		if (media_pipeline_start(&vin->vdev->entity, pipe))
++			goto out;
++
++		ret = v4l2_subdev_call(sd, video, s_stream, 1);
++		if (ret == -ENOIOCTLCMD)
++			ret = 0;
++		if (ret)
++			media_pipeline_stop(&vin->vdev->entity);
++	} else {
++		media_pipeline_stop(&vin->vdev->entity);
++		ret = v4l2_subdev_call(sd, video, s_stream, 0);
++	}
++out:
++	mutex_unlock(&vin->group->lock);
++
++	return ret;
++}
++
+ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct rvin_dev *vin = vb2_get_drv_priv(vq);
+-	struct v4l2_subdev *sd;
+ 	unsigned long flags;
+ 	int ret;
  
- 	struct gpio_desc *resetb_gpio;
-@@ -1051,19 +1051,16 @@ static int ov2640_probe(struct i2c_client *client,
- 		return -ENOMEM;
- 	}
- 
--	priv->clk = v4l2_clk_get(&client->dev, "xvclk");
--	if (IS_ERR(priv->clk))
--		return -EPROBE_DEFER;
--
--	if (!client->dev.of_node) {
--		dev_err(&client->dev, "Missing platform_data for driver\n");
--		ret = -EINVAL;
--		goto err_clk;
-+	if (client->dev.of_node) {
-+		priv->clk = devm_clk_get(&client->dev, "xvclk");
-+		if (IS_ERR(priv->clk))
-+			return -EPROBE_DEFER;
-+		clk_prepare_enable(priv->clk);
- 	}
- 
- 	ret = ov2640_probe_dt(client, priv);
- 	if (ret)
--		goto err_clk;
+-	sd = vin_to_source(vin);
+-	v4l2_subdev_call(sd, video, s_stream, 1);
++	ret = rvin_set_stream(vin, 1);
++	if (ret) {
++		spin_lock_irqsave(&vin->qlock, flags);
++		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
++		spin_unlock_irqrestore(&vin->qlock, flags);
 +		return ret;
++	}
  
- 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov2640_subdev_ops);
- 	v4l2_ctrl_handler_init(&priv->hdl, 2);
-@@ -1074,25 +1071,23 @@ static int ov2640_probe(struct i2c_client *client,
- 	priv->subdev.ctrl_handler = &priv->hdl;
- 	if (priv->hdl.error) {
- 		ret = priv->hdl.error;
--		goto err_clk;
-+		goto err_hdl;
+ 	spin_lock_irqsave(&vin->qlock, flags);
+ 
+@@ -1116,7 +1186,7 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	ret = rvin_capture_start(vin);
+ 	if (ret) {
+ 		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
+-		v4l2_subdev_call(sd, video, s_stream, 0);
++		rvin_set_stream(vin, 0);
  	}
  
- 	ret = ov2640_video_probe(client);
- 	if (ret < 0)
--		goto err_videoprobe;
-+		goto err_hdl;
+ 	spin_unlock_irqrestore(&vin->qlock, flags);
+@@ -1127,7 +1197,6 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
+ static void rvin_stop_streaming(struct vb2_queue *vq)
+ {
+ 	struct rvin_dev *vin = vb2_get_drv_priv(vq);
+-	struct v4l2_subdev *sd;
+ 	unsigned long flags;
+ 	int retries = 0;
  
- 	ret = v4l2_async_register_subdev(&priv->subdev);
- 	if (ret < 0)
--		goto err_videoprobe;
-+		goto err_hdl;
+@@ -1166,8 +1235,7 @@ static void rvin_stop_streaming(struct vb2_queue *vq)
  
- 	dev_info(&adapter->dev, "OV2640 Probed\n");
+ 	spin_unlock_irqrestore(&vin->qlock, flags);
  
- 	return 0;
+-	sd = vin_to_source(vin);
+-	v4l2_subdev_call(sd, video, s_stream, 0);
++	rvin_set_stream(vin, 0);
  
--err_videoprobe:
-+err_hdl:
- 	v4l2_ctrl_handler_free(&priv->hdl);
--err_clk:
--	v4l2_clk_put(priv->clk);
- 	return ret;
- }
- 
-@@ -1101,9 +1096,8 @@ static int ov2640_remove(struct i2c_client *client)
- 	struct ov2640_priv       *priv = to_ov2640(client);
- 
- 	v4l2_async_unregister_subdev(&priv->subdev);
--	v4l2_clk_put(priv->clk);
--	v4l2_device_unregister_subdev(&priv->subdev);
- 	v4l2_ctrl_handler_free(&priv->hdl);
-+	v4l2_device_unregister_subdev(&priv->subdev);
- 	return 0;
- }
- 
+ 	/* disable interrupts */
+ 	rvin_disable_interrupts(vin);
 -- 
-2.11.0
+2.12.0
