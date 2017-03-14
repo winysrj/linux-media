@@ -1,89 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:34258 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755761AbdCLUQH (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:47147 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751683AbdCNTKI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 12 Mar 2017 16:16:07 -0400
-Subject: Re: [PATCH v5 00/39] i.MX Media Driver
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <20170312175118.GP21222@n2100.armlinux.org.uk>
- <191ef88d-2925-2264-6c77-46647394fc72@gmail.com>
- <20170312192932.GQ21222@n2100.armlinux.org.uk>
- <58b30bca-20ca-d4bd-7b86-04a4b8e71935@gmail.com>
-Cc: mark.rutland@arm.com, andrew-ct.chen@mediatek.com,
-        minghsiu.tsai@mediatek.com, sakari.ailus@linux.intel.com,
-        nick@shmanahar.org, songjun.wu@microchip.com, hverkuil@xs4all.nl,
-        Steve Longerbeam <steve_longerbeam@mentor.com>, pavel@ucw.cz,
-        robert.jarzmik@free.fr, devel@driverdev.osuosl.org,
-        markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, shuah@kernel.org,
-        geert@linux-m68k.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, kernel@pengutronix.de, arnd@arndb.de,
-        mchehab@kernel.org, bparrot@ti.com, robh+dt@kernel.org,
-        horms+renesas@verge.net.au, tiffany.lin@mediatek.com,
-        linux-arm-kernel@lists.infradead.org,
-        niklas.soderlund+renesas@ragnatech.se, gregkh@linuxfoundation.org,
-        linux-kernel@vger.kernel.org, jean-christophe.trotin@st.com,
-        p.zabel@pengutronix.de, fabio.estevam@nxp.com, shawnguo@kernel.org,
-        sudipm.mukherjee@gmail.com
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <c6eda3b3-52b8-8560-8f46-a6e2d6303bbd@gmail.com>
-Date: Sun, 12 Mar 2017 13:16:02 -0700
+        Tue, 14 Mar 2017 15:10:08 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 14/16] rcar-vin: make use of video_device_alloc() and video_device_release()
+Date: Tue, 14 Mar 2017 19:59:55 +0100
+Message-Id: <20170314185957.25253-15-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <58b30bca-20ca-d4bd-7b86-04a4b8e71935@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Make use of the helper functions video_device_alloc() and
+video_device_release() to control the lifetime of the struct
+video_device.
 
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 44 ++++++++++++++++-------------
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  2 +-
+ 2 files changed, 25 insertions(+), 21 deletions(-)
 
-On 03/12/2017 12:44 PM, Steve Longerbeam wrote:
->
->
-> On 03/12/2017 12:29 PM, Russell King - ARM Linux wrote:
->> On Sun, Mar 12, 2017 at 12:21:45PM -0700, Steve Longerbeam wrote:
->>> There's actually nothing preventing userland from disabling a link
->>> multiple times, and imx_media_link_notify() complies, and so
->>> csi_s_power(OFF) gets called multiple times, and so that WARN_ON()
->>> in there is silly, I borrowed this from other MC driver examples,
->>> but it makes no sense to me, I'll remove it and prevent the power
->>> count from going negative.
->>
->> Hmm.  So what happens if one of the CSI's links is enabled, and we
->> disable a different link from the CSI several times?  Doesn't that
->> mean the power count will go to zero despite there being an enabled
->> link?
->
-> Yes, the CSI will be powered off even if it still has an enabled link.
-> But one of its other links has been disabled, meaning the pipeline as
-> a whole is disabled. So I think it makes sense to power down the CSI,
-> the pipeline isn't usable at that point.
->
-> And remember that the CSI does not allow both output pads to be enabled
-> at the same time. If that were so then indeed there would be a problem,
-> because it would mean there is another active pipeline that requires the
-> CSI being powered on, but that's not the case.
->
-> I think this is consistent with the other entities as well, but I will
-> double check.
-
-
-At first I thought this could be a problem for one entity, the csi-2
-receiver.
-
-It can enable all four of its output pads at once (if the input stream
-contains all 4 virtual channels, the csi-2 receiver must support
-demuxing all of them onto all 4 of its output pads).
-
-But after more review, this should not be an issue. If a csi-2 sink
-(a CSI or a CSI mux) link is disabled, the csi-2 receiver is no longer
-reachable from that sink, so attempts to disable the csi-2 via that
-path again is not possible. The other potential problem is disabling
-from the csi-2's own sink pad, but in that case the csi-2 no longer
-has a source, so again it makes sense to power off the csi-2 even
-if it has enabled output pads.
-
-
-Steve
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index be6f41bf82ac3bc5..c40f5bc3e3d26472 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -489,7 +489,7 @@ static int rvin_enum_input(struct file *file, void *priv,
+ 		i->std = 0;
+ 	} else {
+ 		i->capabilities = V4L2_IN_CAP_STD;
+-		i->std = vin->vdev.tvnorms;
++		i->std = vin->vdev->tvnorms;
+ 	}
+ 
+ 	strlcpy(i->name, "Camera", sizeof(i->name));
+@@ -752,8 +752,8 @@ static int rvin_initialize_device(struct file *file)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	pm_runtime_enable(&vin->vdev.dev);
+-	ret = pm_runtime_resume(&vin->vdev.dev);
++	pm_runtime_enable(&vin->vdev->dev);
++	ret = pm_runtime_resume(&vin->vdev->dev);
+ 	if (ret < 0 && ret != -ENOSYS)
+ 		goto eresume;
+ 
+@@ -771,7 +771,7 @@ static int rvin_initialize_device(struct file *file)
+ 
+ 	return 0;
+ esfmt:
+-	pm_runtime_disable(&vin->vdev.dev);
++	pm_runtime_disable(&vin->vdev->dev);
+ eresume:
+ 	rvin_power_off(vin);
+ 
+@@ -823,8 +823,8 @@ static int rvin_release(struct file *file)
+ 	 * Then de-initialize hw module.
+ 	 */
+ 	if (fh_singular) {
+-		pm_runtime_suspend(&vin->vdev.dev);
+-		pm_runtime_disable(&vin->vdev.dev);
++		pm_runtime_suspend(&vin->vdev->dev);
++		pm_runtime_disable(&vin->vdev->dev);
+ 		rvin_power_off(vin);
+ 	}
+ 
+@@ -846,13 +846,13 @@ static const struct v4l2_file_operations rvin_fops = {
+ void rvin_v4l2_remove(struct rvin_dev *vin)
+ {
+ 	v4l2_info(&vin->v4l2_dev, "Removing %s\n",
+-		  video_device_node_name(&vin->vdev));
++		  video_device_node_name(vin->vdev));
+ 
+ 	/* Checks internaly if handlers have been init or not */
+ 	v4l2_ctrl_handler_free(&vin->ctrl_handler);
+ 
+ 	/* Checks internaly if vdev have been init or not */
+-	video_unregister_device(&vin->vdev);
++	video_unregister_device(vin->vdev);
+ }
+ 
+ static void rvin_notify(struct v4l2_subdev *sd,
+@@ -863,7 +863,7 @@ static void rvin_notify(struct v4l2_subdev *sd,
+ 
+ 	switch (notification) {
+ 	case V4L2_DEVICE_NOTIFY_EVENT:
+-		v4l2_event_queue(&vin->vdev, arg);
++		v4l2_event_queue(vin->vdev, arg);
+ 		break;
+ 	default:
+ 		break;
+@@ -872,7 +872,7 @@ static void rvin_notify(struct v4l2_subdev *sd,
+ 
+ int rvin_v4l2_probe(struct rvin_dev *vin)
+ {
+-	struct video_device *vdev = &vin->vdev;
++	struct video_device *vdev;
+ 	struct v4l2_subdev *sd = vin_to_source(vin);
+ 	int ret;
+ 
+@@ -880,16 +880,18 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+ 
+ 	vin->v4l2_dev.notify = rvin_notify;
+ 
+-	ret = v4l2_subdev_call(sd, video, g_tvnorms, &vin->vdev.tvnorms);
++	vdev = video_device_alloc();
++
++	ret = v4l2_subdev_call(sd, video, g_tvnorms, &vdev->tvnorms);
+ 	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
+ 		return ret;
+ 
+-	if (vin->vdev.tvnorms == 0) {
++	if (vdev->tvnorms == 0) {
+ 		/* Disable the STD API if there are no tvnorms defined */
+-		v4l2_disable_ioctl(&vin->vdev, VIDIOC_G_STD);
+-		v4l2_disable_ioctl(&vin->vdev, VIDIOC_S_STD);
+-		v4l2_disable_ioctl(&vin->vdev, VIDIOC_QUERYSTD);
+-		v4l2_disable_ioctl(&vin->vdev, VIDIOC_ENUMSTD);
++		v4l2_disable_ioctl(vdev, VIDIOC_G_STD);
++		v4l2_disable_ioctl(vdev, VIDIOC_S_STD);
++		v4l2_disable_ioctl(vdev, VIDIOC_QUERYSTD);
++		v4l2_disable_ioctl(vdev, VIDIOC_ENUMSTD);
+ 	}
+ 
+ 	/* Add the controls */
+@@ -913,7 +915,7 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+ 	vdev->v4l2_dev = &vin->v4l2_dev;
+ 	vdev->queue = &vin->queue;
+ 	strlcpy(vdev->name, KBUILD_MODNAME, sizeof(vdev->name));
+-	vdev->release = video_device_release_empty;
++	vdev->release = video_device_release;
+ 	vdev->ioctl_ops = &rvin_ioctl_ops;
+ 	vdev->lock = &vin->lock;
+ 	vdev->ctrl_handler = &vin->ctrl_handler;
+@@ -923,16 +925,18 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+ 	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
+ 	rvin_reset_format(vin);
+ 
+-	ret = video_register_device(&vin->vdev, VFL_TYPE_GRABBER, -1);
++	ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
+ 	if (ret) {
+ 		vin_err(vin, "Failed to register video device\n");
+ 		return ret;
+ 	}
+ 
+-	video_set_drvdata(&vin->vdev, vin);
++	video_set_drvdata(vdev, vin);
+ 
+ 	v4l2_info(&vin->v4l2_dev, "Device registered as %s\n",
+-		  video_device_node_name(&vin->vdev));
++		  video_device_node_name(vdev));
++
++	vin->vdev = vdev;
+ 
+ 	return ret;
+ }
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 9bfb5a7c4dc4f215..9454ef80bc2b3961 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -122,7 +122,7 @@ struct rvin_dev {
+ 	void __iomem *base;
+ 	enum chip_id chip;
+ 
+-	struct video_device vdev;
++	struct video_device *vdev;
+ 	struct v4l2_device v4l2_dev;
+ 	struct v4l2_ctrl_handler ctrl_handler;
+ 	struct v4l2_async_notifier notifier;
+-- 
+2.12.0
