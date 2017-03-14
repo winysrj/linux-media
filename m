@@ -1,138 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:41971 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932913AbdC3QvW (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:47142 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750991AbdCNTKH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 12:51:22 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Russell King <linux@armlinux.org.uk>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v4 1/4] media-ctl: add pad support to set/get_frame_interval
-Date: Thu, 30 Mar 2017 18:51:13 +0200
-Message-Id: <1490892676-11634-1-git-send-email-p.zabel@pengutronix.de>
+        Tue, 14 Mar 2017 15:10:07 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 06/16] rcar-vin: refactor pad lookup code
+Date: Tue, 14 Mar 2017 19:59:47 +0100
+Message-Id: <20170314185957.25253-7-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This allows to set and get the frame interval on pads other than pad 0.
+The pad lookup code can be broken out to increase readability and to
+reduce code duplication.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- utils/media-ctl/libv4l2subdev.c | 24 ++++++++++++++----------
- utils/media-ctl/v4l2subdev.h    |  4 ++--
- 2 files changed, 16 insertions(+), 12 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 38 +++++++++++++++++------------
+ 1 file changed, 23 insertions(+), 15 deletions(-)
 
-diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-index 3dcf943c..2f2ac8ee 100644
---- a/utils/media-ctl/libv4l2subdev.c
-+++ b/utils/media-ctl/libv4l2subdev.c
-@@ -262,7 +262,8 @@ int v4l2_subdev_set_dv_timings(struct media_entity *entity,
- }
- 
- int v4l2_subdev_get_frame_interval(struct media_entity *entity,
--				   struct v4l2_fract *interval)
-+				   struct v4l2_fract *interval,
-+				   unsigned int pad)
- {
- 	struct v4l2_subdev_frame_interval ival;
- 	int ret;
-@@ -272,6 +273,7 @@ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
- 		return ret;
- 
- 	memset(&ival, 0, sizeof(ival));
-+	ival.pad = pad;
- 
- 	ret = ioctl(entity->fd, VIDIOC_SUBDEV_G_FRAME_INTERVAL, &ival);
- 	if (ret < 0)
-@@ -282,7 +284,8 @@ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
- }
- 
- int v4l2_subdev_set_frame_interval(struct media_entity *entity,
--				   struct v4l2_fract *interval)
-+				   struct v4l2_fract *interval,
-+				   unsigned int pad)
- {
- 	struct v4l2_subdev_frame_interval ival;
- 	int ret;
-@@ -292,6 +295,7 @@ int v4l2_subdev_set_frame_interval(struct media_entity *entity,
- 		return ret;
- 
- 	memset(&ival, 0, sizeof(ival));
-+	ival.pad = pad;
- 	ival.interval = *interval;
- 
- 	ret = ioctl(entity->fd, VIDIOC_SUBDEV_S_FRAME_INTERVAL, &ival);
-@@ -617,7 +621,7 @@ static int set_selection(struct media_pad *pad, unsigned int target,
- 	return 0;
- }
- 
--static int set_frame_interval(struct media_entity *entity,
-+static int set_frame_interval(struct media_pad *pad,
- 			      struct v4l2_fract *interval)
- {
- 	int ret;
-@@ -625,20 +629,20 @@ static int set_frame_interval(struct media_entity *entity,
- 	if (interval->numerator == 0)
- 		return 0;
- 
--	media_dbg(entity->media,
--		  "Setting up frame interval %u/%u on entity %s\n",
-+	media_dbg(pad->entity->media,
-+		  "Setting up frame interval %u/%u on pad %s/%u\n",
- 		  interval->numerator, interval->denominator,
--		  entity->info.name);
-+		  pad->entity->info.name, pad->index);
- 
--	ret = v4l2_subdev_set_frame_interval(entity, interval);
-+	ret = v4l2_subdev_set_frame_interval(pad->entity, interval, pad->index);
- 	if (ret < 0) {
--		media_dbg(entity->media,
-+		media_dbg(pad->entity->media,
- 			  "Unable to set frame interval: %s (%d)",
- 			  strerror(-ret), ret);
- 		return ret;
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 1a75191539b0e7d7..ce29a21888da48d5 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -870,11 +870,25 @@ static void rvin_notify(struct v4l2_subdev *sd,
  	}
+ }
  
--	media_dbg(entity->media, "Frame interval set: %u/%u\n",
-+	media_dbg(pad->entity->media, "Frame interval set: %u/%u\n",
- 		  interval->numerator, interval->denominator);
++static int rvin_find_pad(struct v4l2_subdev *sd, int direction)
++{
++	unsigned int pad;
++
++	if (sd->entity.num_pads <= 1)
++		return 0;
++
++	for (pad = 0; pad < sd->entity.num_pads; pad++)
++		if (sd->entity.pads[pad].flags & direction)
++			return pad;
++
++	return -EINVAL;
++}
++
+ int rvin_v4l2_probe(struct rvin_dev *vin)
+ {
+ 	struct video_device *vdev = &vin->vdev;
+ 	struct v4l2_subdev *sd = vin_to_source(vin);
+-	int pad_idx, ret;
++	int ret;
  
- 	return 0;
-@@ -685,7 +689,7 @@ static int v4l2_subdev_parse_setup_format(struct media_device *media,
- 			return ret;
- 	}
+ 	v4l2_set_subdev_hostdata(sd, vin);
  
--	ret = set_frame_interval(pad->entity, &interval);
-+	ret = set_frame_interval(pad, &interval);
- 	if (ret < 0)
- 		return ret;
+@@ -920,21 +934,15 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+ 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+ 		V4L2_CAP_READWRITE;
  
-diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
-index 9c8fee89..413094d5 100644
---- a/utils/media-ctl/v4l2subdev.h
-+++ b/utils/media-ctl/v4l2subdev.h
-@@ -200,7 +200,7 @@ int v4l2_subdev_set_dv_timings(struct media_entity *entity,
-  */
+-	vin->digital.source_pad = 0;
+-	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
+-		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SOURCE)
+-			break;
+-	if (pad_idx >= sd->entity.num_pads)
+-		return -EINVAL;
+-
+-	vin->digital.source_pad = pad_idx;
++	ret = rvin_find_pad(sd, MEDIA_PAD_FL_SOURCE);
++	if (ret < 0)
++		return ret;
++	vin->digital.source_pad = ret;
  
- int v4l2_subdev_get_frame_interval(struct media_entity *entity,
--	struct v4l2_fract *interval);
-+	struct v4l2_fract *interval, unsigned int pad);
+-	vin->digital.sink_pad = 0;
+-	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
+-		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SINK) {
+-			vin->digital.sink_pad = pad_idx;
+-			break;
+-		}
++	ret = rvin_find_pad(sd, MEDIA_PAD_FL_SINK);
++	if (ret < 0)
++		return ret;
++	vin->digital.sink_pad = ret;
  
- /**
-  * @brief Set the frame interval on a sub-device.
-@@ -217,7 +217,7 @@ int v4l2_subdev_get_frame_interval(struct media_entity *entity,
-  * @return 0 on success, or a negative error code on failure.
-  */
- int v4l2_subdev_set_frame_interval(struct media_entity *entity,
--	struct v4l2_fract *interval);
-+	struct v4l2_fract *interval, unsigned int pad);
- 
- /**
-  * @brief Parse a string and apply format, crop and frame interval settings.
+ 	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
+ 	rvin_reset_format(vin);
 -- 
-2.11.0
+2.12.0
