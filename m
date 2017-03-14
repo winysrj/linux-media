@@ -1,115 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43746 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753753AbdCIS1X (ORCPT
+Received: from mail-qk0-f182.google.com ([209.85.220.182]:33583 "EHLO
+        mail-qk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750785AbdCNOr4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 9 Mar 2017 13:27:23 -0500
-Date: Thu, 9 Mar 2017 20:01:42 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        devicetree@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv3 01/15] ov7670: document device tree bindings
-Message-ID: <20170309180142.GO3220@valkosipuli.retiisi.org.uk>
-References: <20170306145616.38485-1-hverkuil@xs4all.nl>
- <20170306145616.38485-2-hverkuil@xs4all.nl>
+        Tue, 14 Mar 2017 10:47:56 -0400
+Received: by mail-qk0-f182.google.com with SMTP id y76so249541507qkb.0
+        for <linux-media@vger.kernel.org>; Tue, 14 Mar 2017 07:47:55 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170306145616.38485-2-hverkuil@xs4all.nl>
+In-Reply-To: <6d3d52ba-29a9-701f-2948-00ce28282975@redhat.com>
+References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+ <20170303132949.GC31582@dhcp22.suse.cz> <cf383b9b-3cbc-0092-a071-f120874c053c@redhat.com>
+ <20170306074258.GA27953@dhcp22.suse.cz> <20170306104041.zghsicrnadoap7lp@phenom.ffwll.local>
+ <20170306105805.jsq44kfxhsvazkm6@sirena.org.uk> <20170306160437.sf7bksorlnw7u372@phenom.ffwll.local>
+ <CA+M3ks77Am3Fx-ZNmgeM5tCqdM7SzV7rby4Es-p2F2aOhUco9g@mail.gmail.com>
+ <26bc57ae-d88f-4ea0-d666-2c1a02bf866f@redhat.com> <CA+M3ks6R=n4n54wofK7pYcWoQKUhzyWQytBO90+pRDRrAhi3ww@mail.gmail.com>
+ <CAKMK7uH9NemeM2z-tQvge_B=kABop6O7UQFK3PirpJminMCPqw@mail.gmail.com> <6d3d52ba-29a9-701f-2948-00ce28282975@redhat.com>
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Date: Tue, 14 Mar 2017 15:47:54 +0100
+Message-ID: <CA+M3ks5AyVN1hn=FCRx7sy-3B=VujEBL4G4tWy6opifkKTD8=w@mail.gmail.com>
+Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of staging
+To: Laura Abbott <labbott@redhat.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Mark Brown <broonie@kernel.org>,
+        Michal Hocko <mhocko@kernel.org>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>,
+        =?UTF-8?B?QXJ2ZSBIasO4bm5ldsOlZw==?= <arve@android.com>,
+        Rom Lemarchand <romlem@google.com>, devel@driverdev.osuosl.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Linux MM <linux-mm@kvack.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+2017-03-13 22:09 GMT+01:00 Laura Abbott <labbott@redhat.com>:
+> On 03/12/2017 12:05 PM, Daniel Vetter wrote:
+>> On Sun, Mar 12, 2017 at 2:34 PM, Benjamin Gaignard
+>> <benjamin.gaignard@linaro.org> wrote:
+>>> 2017-03-09 18:38 GMT+01:00 Laura Abbott <labbott@redhat.com>:
+>>>> On 03/09/2017 02:00 AM, Benjamin Gaignard wrote:
+>>>>> 2017-03-06 17:04 GMT+01:00 Daniel Vetter <daniel@ffwll.ch>:
+>>>>>> On Mon, Mar 06, 2017 at 11:58:05AM +0100, Mark Brown wrote:
+>>>>>>> On Mon, Mar 06, 2017 at 11:40:41AM +0100, Daniel Vetter wrote:
+>>>>>>>
+>>>>>>>> No one gave a thing about android in upstream, so Greg KH just dumped it
+>>>>>>>> all into staging/android/. We've discussed ION a bunch of times, recorded
+>>>>>>>> anything we'd like to fix in staging/android/TODO, and Laura's patch
+>>>>>>>> series here addresses a big chunk of that.
+>>>>>>>
+>>>>>>>> This is pretty much the same approach we (gpu folks) used to de-stage the
+>>>>>>>> syncpt stuff.
+>>>>>>>
+>>>>>>> Well, there's also the fact that quite a few people have issues with the
+>>>>>>> design (like Laurent).  It seems like a lot of them have either got more
+>>>>>>> comfortable with it over time, or at least not managed to come up with
+>>>>>>> any better ideas in the meantime.
+>>>>>>
+>>>>>> See the TODO, it has everything a really big group (look at the patch for
+>>>>>> the full Cc: list) figured needs to be improved at LPC 2015. We don't just
+>>>>>> merge stuff because merging stuff is fun :-)
+>>>>>>
+>>>>>> Laurent was even in that group ...
+>>>>>> -Daniel
+>>>>>
+>>>>> For me those patches are going in the right direction.
+>>>>>
+>>>>> I still have few questions:
+>>>>> - since alignment management has been remove from ion-core, should it
+>>>>> be also removed from ioctl structure ?
+>>>>
+>>>> Yes, I think I'm going to go with the suggestion to fixup the ABI
+>>>> so we don't need the compat layer and as part of that I'm also
+>>>> dropping the align argument.
+>>>>
+>>>>> - can you we ride off ion_handle (at least in userland) and only
+>>>>> export a dma-buf descriptor ?
+>>>>
+>>>> Yes, I think this is the right direction given we're breaking
+>>>> everything anyway. I was debating trying to keep the two but
+>>>> moving to only dma bufs is probably cleaner. The only reason
+>>>> I could see for keeping the handles is running out of file
+>>>> descriptors for dma-bufs but that seems unlikely.
+>>>>>
+>>>>> In the future how can we add new heaps ?
+>>>>> Some platforms have very specific memory allocation
+>>>>> requirements (just have a look in the number of gem custom allocator in drm)
+>>>>> Do you plan to add heap type/mask for each ?
+>>>>
+>>>> Yes, that was my thinking.
+>>>
+>>> My concern is about the policy to adding heaps, will you accept
+>>> "customs" heap per
+>>> platforms ? per devices ? or only generic ones ?
+>>> If you are too strict, we will have lot of out-of-tree heaps and if
+>>> you accept of of them
+>>> it will be a nightmare to maintain....
+>>
+>> I think ion should expose any heap that's also directly accessible to
+>> devices using dma_alloc(_coherent). That should leave very few things
+>> left, like your SMA heap.
+>>
+>>> Another point is how can we put secure rules (like selinux policy) on
+>>> heaps since all the allocations
+>>> go to the same device (/dev/ion) ? For example, until now, in Android
+>>> we have to give the same
+>>> access rights to all the process that use ION.
+>>> It will become problem when we will add secure heaps because we won't
+>>> be able to distinguish secure
+>>> processes to standard ones or set specific policy per heaps.
+>>> Maybe I'm wrong here but I have never see selinux policy checking an
+>>> ioctl field but if that
+>>> exist it could be a solution.
+>>
+>> Hm, we might want to expose all the heaps as individual
+>> /dev/ion_$heapname nodes? Should we do this from the start, since
+>> we're massively revamping the uapi anyway (imo not needed, current
+>> state seems to work too)?
+>> -Daniel
+>>
+>
+> I thought about that. One advantage with separate /dev/ion_$heap
 
-On Mon, Mar 06, 2017 at 03:56:02PM +0100, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Add binding documentation and add that file to the MAINTAINERS entry.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  .../devicetree/bindings/media/i2c/ov7670.txt       | 44 ++++++++++++++++++++++
->  MAINTAINERS                                        |  1 +
->  2 files changed, 45 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7670.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/ov7670.txt b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
-> new file mode 100644
-> index 000000000000..6d9c90dff7a7
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
-> @@ -0,0 +1,44 @@
-> +* Omnivision OV7670 CMOS sensor
-> +
-> +The Omnivision OV7670 sensor supports multiple resolutions output, such as
-> +CIF, SVGA, UXGA. It also can support the YUV422/420, RGB565/555 or raw RGB
-> +output formats.
-> +
-> +Required Properties:
-> +- compatible: should be "ovti,ov7670"
-> +- clocks: reference to the xclk input clock.
-> +- clock-names: should be "xclk".
-> +
-> +Optional Properties:
-> +- reset-gpios: reference to the GPIO connected to the resetb pin, if any.
-> +  Active is low.
-> +- powerdown-gpios: reference to the GPIO connected to the pwdn pin, if any.
-> +  Active is high.
-> +
-> +The device node must contain one 'port' child node for its digital output
-> +video port, in accordance with the video interface bindings defined in
-> +Documentation/devicetree/bindings/media/video-interfaces.txt.
-> +
-> +Example:
-> +
-> +	i2c1: i2c@f0018000 {
-> +		ov7670: camera@21 {
-> +			compatible = "ovti,ov7670";
-> +			reg = <0x21>;
-> +			pinctrl-names = "default";
-> +			pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
-> +			reset-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
-> +			powerdown-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
-> +			clocks = <&pck0>;
-> +			clock-names = "xclk";
-> +			assigned-clocks = <&pck0>;
-> +			assigned-clock-rates = <25000000>;
-> +
-> +			port {
-> +				ov7670_0: endpoint {
-> +					remote-endpoint = <&isi_0>;
-> +					bus-width = <8>;
+Should we use /devi/ion/$heap instead of /dev/ion_$heap ?
+I think it would be easier for user to look into one directory rather
+then in whole /dev to find the heaps
 
-Didn't I previously request to specify which of the standardised properties
-are relevant for the device (and which ones are required and which are
-optional)? If I didn't, I'm doing that now. :-)
+> is that we don't have to worry about a limit of 32 possible
+> heaps per system (32-bit heap id allocation field). But dealing
+> with an ioctl seems easier than names. Userspace might be less
+> likely to hardcode random id numbers vs. names as well.
 
-E.g. the omap3isp driver documentation looks like this:
+In the futur I think that heap type will be replaced by a "get caps"
+ioctl which will
+describe heap capabilities. At least that is my understanding of kernel part
+of "unix memory allocator" project
 
-Documentation/devicetree/bindings/media/ti,omap3isp.txt
-
-> +				};
-> +			};
-> +		};
-> +	};
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 83a42ef1d1a7..93500928ca4f 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -9273,6 +9273,7 @@ L:	linux-media@vger.kernel.org
->  T:	git git://linuxtv.org/media_tree.git
->  S:	Maintained
->  F:	drivers/media/i2c/ov7670.c
-> +F:	Documentation/devicetree/bindings/media/i2c/ov7670.txt
->  
->  ONENAND FLASH DRIVER
->  M:	Kyungmin Park <kyungmin.park@samsung.com>
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+>
+> Thanks,
+> Laura
