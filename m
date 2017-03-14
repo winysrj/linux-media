@@ -1,60 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ms.lwn.net ([45.79.88.28]:48754 "EHLO ms.lwn.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933000AbdCaOq6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Mar 2017 10:46:58 -0400
-Date: Fri, 31 Mar 2017 08:46:55 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Markus Heiser <markus.heiser@darmarit.de>
-Cc: Jani Nikula <jani.nikula@intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
-        linux-rpi-kernel@lists.infradead.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Takashi Iwai <tiwai@suse.de>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Oliver Neukum <oneukum@suse.com>,
-        Martyn Welch <martyn.welch@collabora.co.uk>,
-        Alexander Dahl <post@lespocky.de>,
-        Jonathan Cameron <jic23@kernel.org>
-Subject: Re: [PATCH 02/22] docs-rst: convert usb docbooks to ReST
-Message-ID: <20170331084655.0e7c53e5@lwn.net>
-In-Reply-To: <D5D8BF1C-755B-4D56-B744-6A155C5B2313@darmarit.de>
-References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
-        <327dcce56a725c7f91f542f2ff97995504d26526.1490813422.git.mchehab@s-opensource.com>
-        <7D76BCB2-53F5-4BD4-8205-5A4852164C91@darmarit.de>
-        <87y3vn2mzk.fsf@intel.com>
-        <D5D8BF1C-755B-4D56-B744-6A155C5B2313@darmarit.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from mailout2.samsung.com ([203.254.224.25]:37681 "EHLO
+        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750898AbdCNLgk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Mar 2017 07:36:40 -0400
+Received: from epcas5p3.samsung.com (unknown [182.195.41.41])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0OMS02FP8YX2XR70@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 14 Mar 2017 20:36:38 +0900 (KST)
+Subject: Re: [Patch v2 07/11] Documentation: v4l: Documentation for HEVC v4l2
+ definition
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: Andrzej Hajda <a.hajda@samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, pankaj.dubey@samsung.com,
+        kamil@wypas.org, krzk@kernel.org, jtp.park@samsung.com,
+        kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+        mchehab@kernel.org, m.szyprowski@samsung.com
+In-reply-to: <bcc5e437-917a-3593-3047-67fc06dfde9c@samsung.com>
+Date: Tue, 14 Mar 2017 17:08:39 +0530
+Message-id: <1489491519.27807.139.camel@smitha-fedora>
+MIME-version: 1.0
+Content-transfer-encoding: 7bit
+Content-type: text/plain; charset=utf-8
+References: <1488532036-13044-1-git-send-email-smitha.t@samsung.com>
+ <CGME20170303090459epcas5p4498e5a633739ef3829ba1fccd79f6821@epcas5p4.samsung.com>
+ <1488532036-13044-8-git-send-email-smitha.t@samsung.com>
+ <bcc5e437-917a-3593-3047-67fc06dfde9c@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 30 Mar 2017 11:20:14 +0200
-Markus Heiser <markus.heiser@darmarit.de> wrote:
-
-> @Jon: what do you think about a bulk conversion?
-
-I'm a bit leery of it, to tell the truth.  We're trying to create a
-better set of kernel docs, and I'm far from convinced that dumping a
-bunch of unloved stuff there in a mechanical way will get us there.
-
-Each of those docs needs to be looked at, and, first of all, we need to
-decide whether it's worth keeping or not.  Nobody wants to delete docs,
-but old and unmaintained stuff doesn't help our users, IMO.  For the
-stuff we want to keep, we need to look at how it fits into the new
-scheme, probably split it up, etc.
-
-It's a lot slower, but we've been getting rid of 3-6 template files in
-each of the last few cycles, so we are getting there.  I don't think we
-need to just give up on the rest.
-
-Thanks,
-
-jon
+On Tue, 2017-03-07 at 09:39 +0100, Andrzej Hajda wrote: 
+> On 03.03.2017 10:07, Smitha T Murthy wrote:
+> > Add V4L2 definition for HEVC compressed format
+> > 
+> > Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+> 
+> Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
+> 
+> 
+Thank you for the review.
+Regards,
+Smitha T Murthy 
+> 
+> > ---
+> >  Documentation/media/uapi/v4l/pixfmt-013.rst |    5 +++++
+> >  1 files changed, 5 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/Documentation/media/uapi/v4l/pixfmt-013.rst b/Documentation/media/uapi/v4l/pixfmt-013.rst
+> > index 728d7ed..ff4cac2 100644
+> > --- a/Documentation/media/uapi/v4l/pixfmt-013.rst
+> > +++ b/Documentation/media/uapi/v4l/pixfmt-013.rst
+> > @@ -90,3 +90,8 @@ Compressed Formats
+> >        - ``V4L2_PIX_FMT_VP9``
+> >        - 'VP90'
+> >        - VP9 video elementary stream.
+> > +    * .. _V4L2-PIX-FMT-HEVC:
+> > +
+> > +      - ``V4L2_PIX_FMT_HEVC``
+> > +      - 'HEVC'
+> > +      - HEVC video elementary stream.
+> > 
+> 
+> 
