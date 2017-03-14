@@ -1,104 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:34940 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752291AbdC0Kcx (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:47141 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751052AbdCNTKJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 06:32:53 -0400
-Received: by mail-pg0-f65.google.com with SMTP id g2so11725236pge.2
-        for <linux-media@vger.kernel.org>; Mon, 27 Mar 2017 03:32:38 -0700 (PDT)
-From: vaibhavddit@gmail.com
-To: mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        rvarsha016@gmail.com, Vaibhav Kothari <vaibhavddit@gmail.com>
-Subject: [PATCH] Fixing Coding Style Errors & Warning
-Date: Mon, 27 Mar 2017 16:02:26 +0530
-Message-Id: <1490610746-28579-1-git-send-email-vaibhavddit@gmail.com>
-In-Reply-To: <[PATCH 1/1] Correcting coding style errors & warnings>
-References: <[PATCH 1/1] Correcting coding style errors & warnings>
+        Tue, 14 Mar 2017 15:10:09 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 04/16] rcar-vin: fix standard in input enumeration
+Date: Tue, 14 Mar 2017 19:59:45 +0100
+Message-Id: <20170314185957.25253-5-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vaibhav Kothari <vaibhavddit@gmail.com>
+If the subdevice supports dv_timings_cap the driver should not fill in
+the standard.
 
-- Removed white-space before comma in memset()
-- Added blanck line between declaration and defination
-  at various places
-
-Signed-off-by: Vaibhav Kothari <vaibhavddit@gmail.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/staging/media/atomisp/i2c/gc2235.c | 16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/media/atomisp/i2c/gc2235.c b/drivers/staging/media/atomisp/i2c/gc2235.c
-index 9b41023..0df20ba 100644
---- a/drivers/staging/media/atomisp/i2c/gc2235.c
-+++ b/drivers/staging/media/atomisp/i2c/gc2235.c
-@@ -55,7 +55,7 @@ static int gc2235_read_reg(struct i2c_client *client,
- 		return -EINVAL;
- 	}
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 610f59e2a9142622..7be52c2036bb35fc 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -483,10 +483,14 @@ static int rvin_enum_input(struct file *file, void *priv,
+ 		return ret;
  
--	memset(msg, 0 , sizeof(msg));
-+	memset(msg, 0, sizeof(msg));
+ 	i->type = V4L2_INPUT_TYPE_CAMERA;
+-	i->std = vin->vdev.tvnorms;
  
- 	msg[0].addr = client->addr;
- 	msg[0].flags = 0;
-@@ -354,6 +354,7 @@ static long __gc2235_set_exposure(struct v4l2_subdev *sd, int coarse_itg,
- 	u16 coarse_integration = (u16)coarse_itg;
- 	int ret = 0;
- 	u16 expo_coarse_h, expo_coarse_l, gain_val = 0xF0, gain_val2 = 0xF0;
-+
- 	expo_coarse_h = coarse_integration >> 8;
- 	expo_coarse_l = coarse_integration & 0xff;
+-	if (v4l2_subdev_has_op(sd, pad, dv_timings_cap))
++	if (v4l2_subdev_has_op(sd, pad, dv_timings_cap)) {
+ 		i->capabilities = V4L2_IN_CAP_DV_TIMINGS;
++		i->std = 0;
++	} else {
++		i->capabilities = V4L2_IN_CAP_STD;
++		i->std = vin->vdev.tvnorms;
++	}
  
-@@ -405,6 +406,7 @@ static long gc2235_s_exposure(struct v4l2_subdev *sd,
- 	/* we should not accept the invalid value below. */
- 	if (gain == 0) {
- 		struct i2c_client *client = v4l2_get_subdevdata(sd);
-+
- 		v4l2_err(client, "%s: invalid value\n", __func__);
- 		return -EINVAL;
- 	}
-@@ -746,12 +748,13 @@ static int startup(struct v4l2_subdev *sd)
- 	struct gc2235_device *dev = to_gc2235_sensor(sd);
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	int ret = 0;
-+
- 	if (is_init == 0) {
- 		/* force gc2235 to do a reset in res change, otherwise it
--		* can not output normal after switching res. and it is not
--		* necessary for first time run up after power on, for the sack
--		* of performance
--		*/
-+		 * can not output normal after switching res. and it is not
-+		 * necessary for first time run up after power on, for the sack
-+		 * of performance
-+		 */
- 		power_down(sd);
- 		power_up(sd);
- 		gc2235_write_reg_array(client, gc2235_init_settings);
-@@ -880,6 +883,7 @@ static int gc2235_s_stream(struct v4l2_subdev *sd, int enable)
- 	struct gc2235_device *dev = to_gc2235_sensor(sd);
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	int ret;
-+
- 	mutex_lock(&dev->input_lock);
+ 	strlcpy(i->name, "Camera", sizeof(i->name));
  
- 	if (enable)
-@@ -994,6 +998,7 @@ static int gc2235_s_parm(struct v4l2_subdev *sd,
- 			struct v4l2_streamparm *param)
- {
- 	struct gc2235_device *dev = to_gc2235_sensor(sd);
-+
- 	dev->run_mode = param->parm.capture.capturemode;
- 
- 	mutex_lock(&dev->input_lock);
-@@ -1099,6 +1104,7 @@ static int gc2235_remove(struct i2c_client *client)
- {
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
- 	struct gc2235_device *dev = to_gc2235_sensor(sd);
-+
- 	dev_dbg(&client->dev, "gc2235_remove...\n");
- 
- 	if (dev->platform_data->platform_deinit)
 -- 
-1.9.1
+2.12.0
