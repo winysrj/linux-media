@@ -1,100 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:59330 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S934476AbdC3P24 (ORCPT
+Received: from mail-yw0-f171.google.com ([209.85.161.171]:34300 "EHLO
+        mail-yw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750977AbdCNPY1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 11:28:56 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-CC: <devicetree@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-Subject: [PATCH v2 6/8] ARM: dts: stm32: Enable OV2640 camera support of STM32F429-EVAL board
-Date: Thu, 30 Mar 2017 17:27:45 +0200
-Message-ID: <1490887667-8880-7-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1490887667-8880-1-git-send-email-hugues.fruchet@st.com>
-References: <1490887667-8880-1-git-send-email-hugues.fruchet@st.com>
+        Tue, 14 Mar 2017 11:24:27 -0400
+Received: by mail-yw0-f171.google.com with SMTP id p77so81232286ywg.1
+        for <linux-media@vger.kernel.org>; Tue, 14 Mar 2017 08:24:26 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <1489501282-52137-1-git-send-email-minghsiu.tsai@mediatek.com>
+References: <1489501282-52137-1-git-send-email-minghsiu.tsai@mediatek.com>
+From: =?UTF-8?B?V3UtQ2hlbmcgTGkgKOadjuWLmeiqoCk=?= <wuchengli@google.com>
+Date: Tue, 14 Mar 2017 23:24:05 +0800
+Message-ID: <CAOMLVLiQRiVgNr+UB=DiSuhjFtgphBgLSp4Q72Y_L9Gs8BqDww@mail.gmail.com>
+Subject: Re: [PATCH] media: mtk-jpeg: fix continuous log "Context is NULL"
+To: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Daniel Thompson <daniel.thompson@linaro.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        srv_heupstream@mediatek.com,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-mediatek@lists.infradead.org, Bin Liu <bin.liu@mediatek.com>,
+        Rick Chang <rick.chang@mediatek.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enable OV2640 camera support of STM32F429-EVAL board.
-
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- arch/arm/boot/dts/stm32429i-eval.dts | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
-
-diff --git a/arch/arm/boot/dts/stm32429i-eval.dts b/arch/arm/boot/dts/stm32429i-eval.dts
-index 7ffcf07..b7d127c 100644
---- a/arch/arm/boot/dts/stm32429i-eval.dts
-+++ b/arch/arm/boot/dts/stm32429i-eval.dts
-@@ -48,6 +48,7 @@
- /dts-v1/;
- #include "stm32f429.dtsi"
- #include <dt-bindings/input/input.h>
-+#include <dt-bindings/gpio/gpio.h>
- 
- / {
- 	model = "STMicroelectronics STM32429i-EVAL board";
-@@ -66,6 +67,14 @@
- 		serial0 = &usart1;
- 	};
- 
-+	clocks {
-+		clk_ext_camera: clk-ext-camera {
-+			#clock-cells = <0>;
-+			compatible = "fixed-clock";
-+			clock-frequency = <24000000>;
-+		};
-+	};
-+
- 	soc {
- 		dma-ranges = <0xc0000000 0x0 0x10000000>;
- 	};
-@@ -146,6 +155,11 @@
- 
- 	port {
- 		dcmi_0: endpoint@0 {
-+			remote-endpoint = <&ov2640_0>;
-+			bus-width = <8>;
-+			hsync-active = <0>;
-+			vsync-active = <0>;
-+			pclk-sample = <1>;
- 		};
- 	};
- };
-@@ -155,6 +169,22 @@
- 	pinctrl-names = "default";
- 	status = "okay";
- 
-+	ov2640: camera@30 {
-+		compatible = "ovti,ov2640";
-+		reg = <0x30>;
-+		resetb-gpios = <&stmpegpio 2 GPIO_ACTIVE_HIGH>;
-+		pwdn-gpios = <&stmpegpio 0 GPIO_ACTIVE_LOW>;
-+		clocks = <&clk_ext_camera>;
-+		clock-names = "xvclk";
-+		status = "okay";
-+
-+		port {
-+			ov2640_0: endpoint {
-+				remote-endpoint = <&dcmi_0>;
-+			};
-+		};
-+	};
-+
- 	stmpe1600: stmpe1600@42 {
- 		compatible = "st,stmpe1600";
- 		reg = <0x42>;
--- 
-1.9.1
+On Tue, Mar 14, 2017 at 10:21 PM, Minghsiu Tsai
+<minghsiu.tsai@mediatek.com> wrote:
+> The symptom is continuous log "mtk-jpeg 18004000.jpegdec: Context is NULL"
+> in kernel log. It is becauese the error handling in irq doesn't clear
+> interrupt.
+>
+> The calling flow like as below when issue happen
+> mtk_jpeg_device_run()
+> mtk_jpeg_job_abort()
+>   v4l2_m2m_job_finish() -> m2m_dev->curr_ctx = NULL;
+> mtk_jpeg_dec_irq()
+>   v4l2_m2m_get_curr_priv()
+>      -> m2m_dev->curr_ctx == NULL
+>      -> return NULL
+> log "Context is NULL"
+>
+> There is race condition between job_abort() and irq. In order to simplify
+> code, don't want to add extra flag to maintain state, empty job_abort() and
+> clear interrupt before v4l2_m2m_get_curr_priv() in irq.
+>
+> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Reviewed-by: Wu-Cheng Li <wuchengli@chromium.org>
+Tested-by: Wu-Cheng Li <wuchengli@chromium.org>
+> ---
+>  drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c | 14 ++------------
+>  1 file changed, 2 insertions(+), 12 deletions(-)
+>
+> diff --git a/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c b/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+> index b10183f..c02bc7f 100644
+> --- a/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+> +++ b/drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+> @@ -862,15 +862,6 @@ static int mtk_jpeg_job_ready(void *priv)
+>
+>  static void mtk_jpeg_job_abort(void *priv)
+>  {
+> -       struct mtk_jpeg_ctx *ctx = priv;
+> -       struct mtk_jpeg_dev *jpeg = ctx->jpeg;
+> -       struct vb2_buffer *src_buf, *dst_buf;
+> -
+> -       src_buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+> -       dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+> -       v4l2_m2m_buf_done(to_vb2_v4l2_buffer(src_buf), VB2_BUF_STATE_ERROR);
+> -       v4l2_m2m_buf_done(to_vb2_v4l2_buffer(dst_buf), VB2_BUF_STATE_ERROR);
+> -       v4l2_m2m_job_finish(jpeg->m2m_dev, ctx->fh.m2m_ctx);
+>  }
+>
+>  static struct v4l2_m2m_ops mtk_jpeg_m2m_ops = {
+> @@ -941,6 +932,8 @@ static irqreturn_t mtk_jpeg_dec_irq(int irq, void *priv)
+>         u32 dec_ret;
+>         int i;
+>
+> +       dec_ret = mtk_jpeg_dec_get_int_status(jpeg->dec_reg_base);
+> +       dec_irq_ret = mtk_jpeg_dec_enum_result(dec_ret);
+>         ctx = v4l2_m2m_get_curr_priv(jpeg->m2m_dev);
+>         if (!ctx) {
+>                 v4l2_err(&jpeg->v4l2_dev, "Context is NULL\n");
+> @@ -951,9 +944,6 @@ static irqreturn_t mtk_jpeg_dec_irq(int irq, void *priv)
+>         dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+>         jpeg_src_buf = mtk_jpeg_vb2_to_srcbuf(src_buf);
+>
+> -       dec_ret = mtk_jpeg_dec_get_int_status(jpeg->dec_reg_base);
+> -       dec_irq_ret = mtk_jpeg_dec_enum_result(dec_ret);
+> -
+>         if (dec_irq_ret >= MTK_JPEG_DEC_RESULT_UNDERFLOW)
+>                 mtk_jpeg_dec_reset(jpeg->dec_reg_base);
+>
+> --
+> 1.9.1
+>
