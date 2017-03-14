@@ -1,105 +1,488 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:33024 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751035AbdCBXC0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 18:02:26 -0500
+Received: from mail-qt0-f169.google.com ([209.85.216.169]:36383 "EHLO
+        mail-qt0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751102AbdCNUag (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Mar 2017 16:30:36 -0400
+Received: by mail-qt0-f169.google.com with SMTP id r45so65127414qte.3
+        for <linux-media@vger.kernel.org>; Tue, 14 Mar 2017 13:30:35 -0700 (PDT)
+Subject: Re: [RFC][PATCH] dma-buf: Introduce dma-buf test module
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+References: <1489521859-20701-1-git-send-email-labbott@redhat.com>
+ <20170314201303.2o6bhyn5yudjx4m6@phenom.ffwll.local>
+From: Laura Abbott <labbott@redhat.com>
+Message-ID: <93fc4722-bffc-e96b-0191-bd3bf875aaf8@redhat.com>
+Date: Tue, 14 Mar 2017 13:30:30 -0700
 MIME-Version: 1.0
-In-Reply-To: <1488494428.2179.23.camel@perches.com>
-References: <20170302163834.2273519-1-arnd@arndb.de> <20170302163834.2273519-25-arnd@arndb.de>
- <1488476770.2179.6.camel@perches.com> <CAK8P3a1gW9UqMKD2ijzxMH4rv1zAji0GUoz+bLY_oi0yvLU1cw@mail.gmail.com>
- <1488494428.2179.23.camel@perches.com>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 2 Mar 2017 23:59:22 +0100
-Message-ID: <CAK8P3a2ZQR8ukt6Aky7onD2Y=b+Cz+pp+C0+Svb2EyK2474j-g@mail.gmail.com>
-Subject: Re: [PATCH 24/26] ocfs2: reduce stack size with KASAN
-To: Joe Perches <joe@perches.com>
-Cc: kasan-dev <kasan-dev@googlegroups.com>,
-        Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        Alexander Potapenko <glider@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Networking <netdev@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org,
-        linux-wireless <linux-wireless@vger.kernel.org>,
-        kernel-build-reports@lists.linaro.org,
-        "David S . Miller" <davem@davemloft.net>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <20170314201303.2o6bhyn5yudjx4m6@phenom.ffwll.local>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 2, 2017 at 11:40 PM, Joe Perches <joe@perches.com> wrote:
-> On Thu, 2017-03-02 at 23:22 +0100, Arnd Bergmann wrote:
->> On Thu, Mar 2, 2017 at 6:46 PM, Joe Perches <joe@perches.com> wrote:
->> > On Thu, 2017-03-02 at 17:38 +0100, Arnd Bergmann wrote:
->> > > The internal logging infrastructure in ocfs2 causes special warning code to be
->> > > used with KASAN, which produces rather large stack frames:
->> > > fs/ocfs2/super.c: In function 'ocfs2_fill_super':
->> > > fs/ocfs2/super.c:1219:1: error: the frame size of 3264 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
->> >
->> > At least by default it doesn't seem to.
->> >
->> > gcc 6.2 allyesconfig, CONFIG_KASAN=y
->> > with either CONFIG_KASAN_INLINE or CONFIG_KASAN_OUTLINE
->> >
->> > gcc doesn't emit a stack warning
+On 03/14/2017 01:13 PM, Daniel Vetter wrote:
+> On Tue, Mar 14, 2017 at 01:04:19PM -0700, Laura Abbott wrote:
 >>
->> The warning is disabled until patch 26/26. which picks the 3072 default.
->> The 3264 number was with gcc-7, which is worse than gcc-6 since it enables
->> an extra check.
+>> dma-buf is designed to share buffers. Sharing means that there needs to
+>> be another subsystem to accept those buffers. Introduce a simple test
+>> module to act as a dummy system to accept dma_bufs from elsewhere. The
+>> goal is to provide a very simple interface to validate exported buffers
+>> do something reasonable. This is based on ion_test.c that existed for
+>> the Ion framework.
 >>
->> > > By simply passing the mask by value instead of reference, we can avoid the
->> > > problem completely.
->> >
->> > Any idea why that's so?
+>> Signed-off-by: Laura Abbott <labbott@redhat.com>
+>> ---
+>> This is basically a drop in of what was available as
+>> drivers/staging/android/ion/ion_test.c. Given it has no Ion specific
+>> parts it might be useful as a more general test module. RFC mostly
+>> to see if this is generally useful or not.
+> 
+> We already have a test dma-buf driver, which also handles reservation
+> objects and can create fences to provoke signalling races an all kinds of
+> other fun. It's drivers/gpu/drm/vgem.
+> 
+> If there's anything missing in there, patches very much welcome.
+> -Daniel
+> 
+
+Thanks for that pointer. It certainly looks more complete vs. allocating
+a platform_device. I'll look and see if there's anything that needs
+extension. Plus this means I can probably delete more code from Ion (woo)
+
+Thanks,
+Laura
+
+>> ---
+>>  drivers/dma-buf/Kconfig           |   9 ++
+>>  drivers/dma-buf/Makefile          |   1 +
+>>  drivers/dma-buf/dma-buf-test.c    | 309 ++++++++++++++++++++++++++++++++++++++
+>>  include/uapi/linux/dma_buf_test.h |  67 +++++++++
+>>  4 files changed, 386 insertions(+)
+>>  create mode 100644 drivers/dma-buf/dma-buf-test.c
+>>  create mode 100644 include/uapi/linux/dma_buf_test.h
 >>
->> With KASAN, every time we inline the function, the compiler has to allocate
->> space for another copy of the variable plus a redzone to detect whether
->> passing it by reference into another function causes an overflow at runtime.
->
-> These logging functions aren't inlined.
-
-Sorry, my mistake. In this case mlog() is a macro, not an inline functions.
-The effect is the same though.
-
-> You're referring to the stack frame?
-
-The stack frame of the function that calls mlog(), yes.
->
-> Still doesn't make sense to me.
->
-> None of the logging functions are inlined as they are all
-> EXPORT_SYMBOL.
-
-mlog() is placed in the calling function.
-
-> This just changes a pointer to a u64, which is the same
-> size on x86-64 (and is of course larger on x86-32).
-
-KASAN decides that passing a pointer to _m into an extern function
-(_mlog_printk) is potentially dangerous, as that function might
-keep a reference to that pointer after it goes out of scope,
-or it might not know the correct length of the stack object pointed to.
-
-We can see from looking at the __mlog_printk() function definition
-that it's actually safe, but the compiler cannot see that when looking
-at another source file.
-
-> Perhaps KASAN has the odd behavior and working around
-> KASAN's behavior may not be the proper thing to do.
-
-Turning off KASAN fixes the problem, but the entire purpose of
-KASAN is to identify code that is potentially dangerous.
-
-> Maybe if CONFIG_KASAN is set, the minimum stack should
-> be increased via THREAD_SIZE_ORDER or some such.
-
-This is what happened in 3f181b4d8652 ("lib/Kconfig.debug:
-disable -Wframe-larger-than warnings with KASAN=y").
-
-I'm trying to revert that patch so we actually get warnings
-again about functions that are still dangerous. I picked 3072
-as an arbitrary limit, as there are only a handful of files
-that use larger stack frames in the worst case, but we can
-only use that limit after fixing up all the warnings it shows.
-
-       Arnd
+>> diff --git a/drivers/dma-buf/Kconfig b/drivers/dma-buf/Kconfig
+>> index ed3b785..8b3fdb1 100644
+>> --- a/drivers/dma-buf/Kconfig
+>> +++ b/drivers/dma-buf/Kconfig
+>> @@ -30,4 +30,13 @@ config SW_SYNC
+>>  	  WARNING: improper use of this can result in deadlocking kernel
+>>  	  drivers from userspace. Intended for test and debug only.
+>>  
+>> +config DMA_BUF_TEST
+>> +	bool "Test module for dma-buf"
+>> +	default n
+>> +	---help---
+>> +	  A test module to validate dma_buf APIs. This should not be
+>> +	  enabled for general use.
+>> +
+>> +	  Say N here unless you know you want this.
+>> +
+>>  endmenu
+>> diff --git a/drivers/dma-buf/Makefile b/drivers/dma-buf/Makefile
+>> index c33bf88..5029608 100644
+>> --- a/drivers/dma-buf/Makefile
+>> +++ b/drivers/dma-buf/Makefile
+>> @@ -1,3 +1,4 @@
+>>  obj-y := dma-buf.o dma-fence.o dma-fence-array.o reservation.o seqno-fence.o
+>>  obj-$(CONFIG_SYNC_FILE)		+= sync_file.o
+>>  obj-$(CONFIG_SW_SYNC)		+= sw_sync.o sync_debug.o
+>> +obj-$(CONFIG_DMA_BUF_TEST)	+= dma-buf-test.o
+>> diff --git a/drivers/dma-buf/dma-buf-test.c b/drivers/dma-buf/dma-buf-test.c
+>> new file mode 100644
+>> index 0000000..3af131c
+>> --- /dev/null
+>> +++ b/drivers/dma-buf/dma-buf-test.c
+>> @@ -0,0 +1,309 @@
+>> +/*
+>> + * Copyright (C) 2013 Google, Inc.
+>> + *
+>> + * This software is licensed under the terms of the GNU General Public
+>> + * License versdma_buf 2, as published by the Free Software Foundatdma_buf, and
+>> + * may be copied, distributed, and modified under those terms.
+>> + *
+>> + * This program is distributed in the hope that it will be useful,
+>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> + * GNU General Public License for more details.
+>> + *
+>> + */
+>> +
+>> +#define pr_fmt(fmt) "dma-buf-test: " fmt
+>> +
+>> +#include <linux/dma-buf.h>
+>> +#include <linux/dma-direction.h>
+>> +#include <linux/fs.h>
+>> +#include <linux/miscdevice.h>
+>> +#include <linux/mm.h>
+>> +#include <linux/module.h>
+>> +#include <linux/platform_device.h>
+>> +#include <linux/sched.h>
+>> +#include <linux/slab.h>
+>> +#include <linux/uaccess.h>
+>> +#include <linux/vmalloc.h>
+>> +
+>> +#include <uapi/linux/dma_buf_test.h>
+>> +
+>> +struct dma_buf_test_device {
+>> +	struct miscdevice misc;
+>> +};
+>> +
+>> +struct dma_buf_test_data {
+>> +	struct dma_buf *dma_buf;
+>> +	struct device *dev;
+>> +};
+>> +
+>> +static int dma_buf_handle_test_dma(struct device *dev, struct dma_buf *dma_buf,
+>> +			       void __user *ptr, size_t offset, size_t size,
+>> +			       bool write)
+>> +{
+>> +	int ret = 0;
+>> +	struct dma_buf_attachment *attach;
+>> +	struct sg_table *table;
+>> +	pgprot_t pgprot = pgprot_writecombine(PAGE_KERNEL);
+>> +	enum dma_data_direction dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
+>> +	struct sg_page_iter sg_iter;
+>> +	unsigned long offset_page;
+>> +
+>> +	attach = dma_buf_attach(dma_buf, dev);
+>> +	if (IS_ERR(attach))
+>> +		return PTR_ERR(attach);
+>> +
+>> +	table = dma_buf_map_attachment(attach, dir);
+>> +	if (IS_ERR(table))
+>> +		return PTR_ERR(table);
+>> +
+>> +	offset_page = offset >> PAGE_SHIFT;
+>> +	offset %= PAGE_SIZE;
+>> +
+>> +	for_each_sg_page(table->sgl, &sg_iter, table->nents, offset_page) {
+>> +		struct page *page = sg_page_iter_page(&sg_iter);
+>> +		void *vaddr = vmap(&page, 1, VM_MAP, pgprot);
+>> +		size_t to_copy = PAGE_SIZE - offset;
+>> +
+>> +		to_copy = min(to_copy, size);
+>> +		if (!vaddr) {
+>> +			ret = -ENOMEM;
+>> +			goto err;
+>> +		}
+>> +
+>> +		if (write)
+>> +			ret = copy_from_user(vaddr + offset, ptr, to_copy);
+>> +		else
+>> +			ret = copy_to_user(ptr, vaddr + offset, to_copy);
+>> +
+>> +		vunmap(vaddr);
+>> +		if (ret) {
+>> +			ret = -EFAULT;
+>> +			goto err;
+>> +		}
+>> +		size -= to_copy;
+>> +		if (!size)
+>> +			break;
+>> +		ptr += to_copy;
+>> +		offset = 0;
+>> +	}
+>> +
+>> +err:
+>> +	dma_buf_unmap_attachment(attach, table, dir);
+>> +	dma_buf_detach(dma_buf, attach);
+>> +	return ret;
+>> +}
+>> +
+>> +static int dma_buf_handle_test_kernel(struct dma_buf *dma_buf, void __user *ptr,
+>> +				  size_t offset, size_t size, bool write)
+>> +{
+>> +	int ret;
+>> +	unsigned long page_offset = offset >> PAGE_SHIFT;
+>> +	size_t copy_offset = offset % PAGE_SIZE;
+>> +	size_t copy_size = size;
+>> +	enum dma_data_direction dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
+>> +
+>> +	if (offset > dma_buf->size || size > dma_buf->size - offset)
+>> +		return -EINVAL;
+>> +
+>> +	ret = dma_buf_begin_cpu_access(dma_buf, dir);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	while (copy_size > 0) {
+>> +		size_t to_copy;
+>> +		void *vaddr = dma_buf_kmap(dma_buf, page_offset);
+>> +
+>> +		if (!vaddr)
+>> +			goto err;
+>> +
+>> +		to_copy = min_t(size_t, PAGE_SIZE - copy_offset, copy_size);
+>> +
+>> +		if (write)
+>> +			ret = copy_from_user(vaddr + copy_offset, ptr, to_copy);
+>> +		else
+>> +			ret = copy_to_user(ptr, vaddr + copy_offset, to_copy);
+>> +
+>> +		dma_buf_kunmap(dma_buf, page_offset, vaddr);
+>> +		if (ret) {
+>> +			ret = -EFAULT;
+>> +			goto err;
+>> +		}
+>> +
+>> +		copy_size -= to_copy;
+>> +		ptr += to_copy;
+>> +		page_offset++;
+>> +		copy_offset = 0;
+>> +	}
+>> +err:
+>> +	dma_buf_end_cpu_access(dma_buf, dir);
+>> +	return ret;
+>> +}
+>> +
+>> +static long dma_buf_test_ioctl(struct file *filp, unsigned int cmd,
+>> +			   unsigned long arg)
+>> +{
+>> +	struct dma_buf_test_data *test_data = filp->private_data;
+>> +	int ret = 0;
+>> +
+>> +	union {
+>> +		struct dma_buf_test_rw_data test_rw;
+>> +	} data;
+>> +
+>> +	if (_IOC_SIZE(cmd) > sizeof(data))
+>> +		return -EINVAL;
+>> +
+>> +	if (_IOC_DIR(cmd) & _IOC_WRITE)
+>> +		if (copy_from_user(&data, (void __user *)arg, _IOC_SIZE(cmd)))
+>> +			return -EFAULT;
+>> +
+>> +	switch (cmd) {
+>> +	case DMA_BUF_IOC_TEST_SET_FD:
+>> +	{
+>> +		struct dma_buf *dma_buf = NULL;
+>> +		int fd = arg;
+>> +
+>> +		if (fd >= 0) {
+>> +			dma_buf = dma_buf_get((int)arg);
+>> +			if (IS_ERR(dma_buf))
+>> +				return PTR_ERR(dma_buf);
+>> +		}
+>> +		if (test_data->dma_buf)
+>> +			dma_buf_put(test_data->dma_buf);
+>> +		test_data->dma_buf = dma_buf;
+>> +		break;
+>> +	}
+>> +	case DMA_BUF_IOC_TEST_DMA_MAPPING:
+>> +	{
+>> +		ret = dma_buf_handle_test_dma(test_data->dev,
+>> +					  test_data->dma_buf,
+>> +					  u64_to_user_ptr(data.test_rw.ptr),
+>> +					  data.test_rw.offset,
+>> +					  data.test_rw.size,
+>> +					  data.test_rw.write);
+>> +		break;
+>> +	}
+>> +	case DMA_BUF_IOC_TEST_KERNEL_MAPPING:
+>> +	{
+>> +		ret = dma_buf_handle_test_kernel(test_data->dma_buf,
+>> +					     u64_to_user_ptr(data.test_rw.ptr),
+>> +					     data.test_rw.offset,
+>> +					     data.test_rw.size,
+>> +					     data.test_rw.write);
+>> +		break;
+>> +	}
+>> +	default:
+>> +		return -ENOTTY;
+>> +	}
+>> +
+>> +	if (_IOC_DIR(cmd) & _IOC_READ) {
+>> +		if (copy_to_user((void __user *)arg, &data, sizeof(data)))
+>> +			return -EFAULT;
+>> +	}
+>> +	return ret;
+>> +}
+>> +
+>> +static int dma_buf_test_open(struct inode *inode, struct file *file)
+>> +{
+>> +	struct dma_buf_test_data *data;
+>> +	struct miscdevice *miscdev = file->private_data;
+>> +
+>> +	data = kzalloc(sizeof(*data), GFP_KERNEL);
+>> +	if (!data)
+>> +		return -ENOMEM;
+>> +
+>> +	data->dev = miscdev->parent;
+>> +
+>> +	file->private_data = data;
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int dma_buf_test_release(struct inode *inode, struct file *file)
+>> +{
+>> +	struct dma_buf_test_data *data = file->private_data;
+>> +
+>> +	kfree(data);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static const struct file_operations dma_buf_test_fops = {
+>> +	.owner = THIS_MODULE,
+>> +	.unlocked_ioctl = dma_buf_test_ioctl,
+>> +	.compat_ioctl = dma_buf_test_ioctl,
+>> +	.open = dma_buf_test_open,
+>> +	.release = dma_buf_test_release,
+>> +};
+>> +
+>> +static int __init dma_buf_test_probe(struct platform_device *pdev)
+>> +{
+>> +	int ret;
+>> +	struct dma_buf_test_device *testdev;
+>> +
+>> +	testdev = devm_kzalloc(&pdev->dev, sizeof(struct dma_buf_test_device),
+>> +			       GFP_KERNEL);
+>> +	if (!testdev)
+>> +		return -ENOMEM;
+>> +
+>> +	testdev->misc.minor = MISC_DYNAMIC_MINOR;
+>> +	testdev->misc.name = "dma_buf-test";
+>> +	testdev->misc.fops = &dma_buf_test_fops;
+>> +	testdev->misc.parent = &pdev->dev;
+>> +	/*
+>> +	 * We need to force 'something' for a DMA mask. This isn't an actual
+>> +	 * device and won't be doing actual DMA so pick 'something' that
+>> +	 * probably won't blow up. Probably.
+>> +	 */
+>> +	dma_coerce_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(64));
+>> +	ret = misc_register(&testdev->misc);
+>> +	if (ret) {
+>> +		pr_err("failed to register misc device.\n");
+>> +		return ret;
+>> +	}
+>> +
+>> +	platform_set_drvdata(pdev, testdev);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int dma_buf_test_remove(struct platform_device *pdev)
+>> +{
+>> +	struct dma_buf_test_device *testdev;
+>> +
+>> +	testdev = platform_get_drvdata(pdev);
+>> +	if (!testdev)
+>> +		return -ENODATA;
+>> +
+>> +	misc_deregister(&testdev->misc);
+>> +	return 0;
+>> +}
+>> +
+>> +static struct platform_device *dma_buf_test_pdev;
+>> +static struct platform_driver dma_buf_test_platform_driver = {
+>> +	.remove = dma_buf_test_remove,
+>> +	.driver = {
+>> +		.name = "dma_buf-test",
+>> +	},
+>> +};
+>> +
+>> +static int __init dma_buf_test_init(void)
+>> +{
+>> +	dma_buf_test_pdev = platform_device_register_simple("dma-buf-test",
+>> +							-1, NULL, 0);
+>> +	if (IS_ERR(dma_buf_test_pdev))
+>> +		return PTR_ERR(dma_buf_test_pdev);
+>> +
+>> +	return platform_driver_probe(&dma_buf_test_platform_driver,
+>> +				     dma_buf_test_probe);
+>> +}
+>> +
+>> +static void __exit dma_buf_test_exit(void)
+>> +{
+>> +	platform_driver_unregister(&dma_buf_test_platform_driver);
+>> +	platform_device_unregister(dma_buf_test_pdev);
+>> +}
+>> +
+>> +module_init(dma_buf_test_init);
+>> +module_exit(dma_buf_test_exit);
+>> +MODULE_LICENSE("GPL v2");
+>> diff --git a/include/uapi/linux/dma_buf_test.h b/include/uapi/linux/dma_buf_test.h
+>> new file mode 100644
+>> index 0000000..af2d521
+>> --- /dev/null
+>> +++ b/include/uapi/linux/dma_buf_test.h
+>> @@ -0,0 +1,67 @@
+>> +/*
+>> + * Copyright (C) 2011 Google, Inc.
+>> + *
+>> + * This software is licensed under the terms of the GNU General Public
+>> + * License versdma_buf 2, as published by the Free Software Foundatdma_buf, and
+>> + * may be copied, distributed, and modified under those terms.
+>> + *
+>> + * This program is distributed in the hope that it will be useful,
+>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> + * GNU General Public License for more details.
+>> + *
+>> + */
+>> +
+>> +#ifndef _UAPI_LINUX_DMA_BUF_TEST_H
+>> +#define _UAPI_LINUX_DMA_BUF_TEST_H
+>> +
+>> +#include <linux/ioctl.h>
+>> +#include <linux/types.h>
+>> +
+>> +/**
+>> + * struct dma_buf_test_rw_data - metadata passed to the kernel to read handle
+>> + * @ptr:	a pointer to an area at least as large as size
+>> + * @offset:	offset into the dma_buf buffer to start reading
+>> + * @size:	size to read or write
+>> + * @write:	1 to write, 0 to read
+>> + */
+>> +struct dma_buf_test_rw_data {
+>> +	__u64 ptr;
+>> +	__u64 offset;
+>> +	__u64 size;
+>> +	int write;
+>> +	int __padding;
+>> +};
+>> +
+>> +#define DMA_BUF_IOC_MAGIC		'I'
+>> +
+>> +/**
+>> + * DOC: DMA_BUF_IOC_TEST_SET_DMA_BUF - attach a dma buf to the test driver
+>> + *
+>> + * Attaches a dma buf fd to the test driver.  Passing a second fd or -1 will
+>> + * release the first fd.
+>> + */
+>> +#define DMA_BUF_IOC_TEST_SET_FD \
+>> +			_IO(DMA_BUF_IOC_MAGIC, 0xf0)
+>> +
+>> +/**
+>> + * DOC: DMA_BUF_IOC_TEST_DMA_MAPPING - read or write memory from a handle as DMA
+>> + *
+>> + * Reads or writes the memory from a handle using an uncached mapping.  Can be
+>> + * used by unit tests to emulate a DMA engine as close as possible.  Only
+>> + * expected to be used for debugging and testing, may not always be available.
+>> + */
+>> +#define DMA_BUF_IOC_TEST_DMA_MAPPING \
+>> +			_IOW(DMA_BUF_IOC_MAGIC, 0xf1, struct dma_buf_test_rw_data)
+>> +
+>> +/**
+>> + * DOC: DMA_BUF_IOC_TEST_KERNEL_MAPPING - read or write memory from a handle
+>> + *
+>> + * Reads or writes the memory from a handle using a kernel mapping.  Can be
+>> + * used by unit tests to test heap map_kernel functdma_bufs.  Only expected to be
+>> + * used for debugging and testing, may not always be available.
+>> + */
+>> +#define DMA_BUF_IOC_TEST_KERNEL_MAPPING \
+>> +			_IOW(DMA_BUF_IOC_MAGIC, 0xf2, struct dma_buf_test_rw_data)
+>> +
+>> +#endif /* _UAPI_LINUX_DMA_BUF_TEST_H */
+>> -- 
+>> 2.7.4
+>>
+>> _______________________________________________
+>> dri-devel mailing list
+>> dri-devel@lists.freedesktop.org
+>> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+> 
