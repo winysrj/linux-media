@@ -1,76 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:58704 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753045AbdCMN2J (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:47102 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751052AbdCNTKG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 09:28:09 -0400
-Date: Mon, 13 Mar 2017 13:27:02 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v4 29/36] media: imx: mipi-csi2: enable setting and
- getting of frame rates
-Message-ID: <20170313132701.GJ21222@n2100.armlinux.org.uk>
-References: <1487211578-11360-1-git-send-email-steve_longerbeam@mentor.com>
- <1487211578-11360-30-git-send-email-steve_longerbeam@mentor.com>
- <20170220220409.GX16975@valkosipuli.retiisi.org.uk>
- <20170221001332.GS21222@n2100.armlinux.org.uk>
- <25596b21-70de-5e46-f149-f9ce3a86ecb7@gmail.com>
- <1487667023.2331.8.camel@pengutronix.de>
- <20170313131647.GB10701@valkosipuli.retiisi.org.uk>
+        Tue, 14 Mar 2017 15:10:06 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 01/16] rcar-vin: reset bytesperline and sizeimage when resetting format
+Date: Tue, 14 Mar 2017 19:59:42 +0100
+Message-Id: <20170314185957.25253-2-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170314185957.25253-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170313131647.GB10701@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 13, 2017 at 03:16:48PM +0200, Sakari Ailus wrote:
-> The vast majority of existing drivers do not implement them nor the user
-> space expects having to set them. Making that mandatory would break existing
-> user space.
-> 
-> In addition, that does not belong to link validation either: link validation
-> should only include static properties of the link that are required for
-> correct hardware operation. Frame rate is not such property: hardware that
-> supports the MC interface generally does not recognise such concept (with
-> the exception of some sensors). Additionally, it is dynamic: the frame rate
-> can change during streaming, making its validation at streamon time useless.
+These two where forgotten when refactoring the format reset code. If
+they are not also reset at the same time as width and height the format
+returned from G_FMT will not match reality.
 
-So how do we configure the CSI, which can do frame skipping?
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-With what you're proposing, it means it's possible to configure the
-camera sensor source pad to do 50fps.  Configure the CSI sink pad to
-an arbitary value, such as 30fps, and configure the CSI source pad to
-15fps.
-
-What you actually get out of the CSI is 25fps, which bears very little
-with the actual values used on the CSI source pad.
-
-You could say "CSI should ask the camera sensor" - well, that's fine
-if it's immediately downstream, but otherwise we'd need to go walking
-down the graph to find something that resembles its source - there may
-be mux and CSI2 interface subdev blocks in that path.  Or we just accept
-that frame rates are completely arbitary and bear no useful meaning what
-so ever.
-
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 2bbe6d495fa634da..69bc4cfea6a8aeb5 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -151,6 +151,9 @@ static int rvin_reset_format(struct rvin_dev *vin)
+ 
+ 	rvin_reset_crop_compose(vin);
+ 
++	vin->format.bytesperline = rvin_format_bytesperline(&vin->format);
++	vin->format.sizeimage = rvin_format_sizeimage(&vin->format);
++
+ 	return 0;
+ }
+ 
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+2.12.0
