@@ -1,152 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:42746
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750841AbdCANpU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Mar 2017 08:45:20 -0500
-Subject: Re: [PATCH v6 2/2] [media] s5p-mfc: Handle 'v4l2_pix_format:field' in
- try_fmt and g_fmt
-To: Andrzej Hajda <a.hajda@samsung.com>, linux-kernel@vger.kernel.org
-References: <20170301115108.14187-1-thibault.saunier@osg.samsung.com>
- <CGME20170301115141epcas2p37801b1fbe0951cc37a4e01bf2bcae3da@epcas2p3.samsung.com>
- <20170301115108.14187-3-thibault.saunier@osg.samsung.com>
- <33dbd3fa-04b2-3d94-5163-0a10589ff1c7@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        linux-arm-kernel@lists.infradead.org,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Kamil Debski <kamil@wypas.org>
-From: Thibault Saunier <thibault.saunier@osg.samsung.com>
-Message-ID: <770085b3-8411-a000-7d68-3cb2c88d560b@osg.samsung.com>
-Date: Wed, 1 Mar 2017 10:20:27 -0300
-MIME-Version: 1.0
-In-Reply-To: <33dbd3fa-04b2-3d94-5163-0a10589ff1c7@samsung.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-io0-f174.google.com ([209.85.223.174]:34216 "EHLO
+        mail-io0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752473AbdCNU2G (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Mar 2017 16:28:06 -0400
+Received: by mail-io0-f174.google.com with SMTP id b140so7503561iof.1
+        for <linux-media@vger.kernel.org>; Tue, 14 Mar 2017 13:28:05 -0700 (PDT)
+Message-ID: <1489523282.28116.10.camel@ndufresne.ca>
+Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of
+ staging
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Laura Abbott <labbott@redhat.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Mark Brown <broonie@kernel.org>,
+        Michal Hocko <mhocko@kernel.org>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>,
+        Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>,
+        Rom Lemarchand <romlem@google.com>, devel@driverdev.osuosl.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Linux MM <linux-mm@kvack.org>
+Date: Tue, 14 Mar 2017 16:28:02 -0400
+In-Reply-To: <CA+M3ks5AyVN1hn=FCRx7sy-3B=VujEBL4G4tWy6opifkKTD8=w@mail.gmail.com>
+References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
+         <20170303132949.GC31582@dhcp22.suse.cz>
+         <cf383b9b-3cbc-0092-a071-f120874c053c@redhat.com>
+         <20170306074258.GA27953@dhcp22.suse.cz>
+         <20170306104041.zghsicrnadoap7lp@phenom.ffwll.local>
+         <20170306105805.jsq44kfxhsvazkm6@sirena.org.uk>
+         <20170306160437.sf7bksorlnw7u372@phenom.ffwll.local>
+         <CA+M3ks77Am3Fx-ZNmgeM5tCqdM7SzV7rby4Es-p2F2aOhUco9g@mail.gmail.com>
+         <26bc57ae-d88f-4ea0-d666-2c1a02bf866f@redhat.com>
+         <CA+M3ks6R=n4n54wofK7pYcWoQKUhzyWQytBO90+pRDRrAhi3ww@mail.gmail.com>
+         <CAKMK7uH9NemeM2z-tQvge_B=kABop6O7UQFK3PirpJminMCPqw@mail.gmail.com>
+         <6d3d52ba-29a9-701f-2948-00ce28282975@redhat.com>
+         <CA+M3ks5AyVN1hn=FCRx7sy-3B=VujEBL4G4tWy6opifkKTD8=w@mail.gmail.com>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+        boundary="=-4yF7GXm+/h6FVvfyggOu"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
 
+--=-4yF7GXm+/h6FVvfyggOu
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 03/01/2017 10:12 AM, Andrzej Hajda wrote:
-> On 01.03.2017 12:51, Thibault Saunier wrote:
->> It is required by the standard that the field order is set by the
->> driver, default to NONE in case any is provided, but we can basically
->> accept any value provided by the userspace as we will anyway not
->> be able to do any deinterlacing.
->>
->> In this patch we also make sure to pass the interlacing mode provided
->> by userspace from the output to the capture side of the device so
->> that the information is given back to userspace. This way it can
->> handle it and potentially deinterlace afterward.
-> As I wrote previously:
-> - on output side you have encoded bytestream - you cannot say about
-> interlacing in such case, so the only valid value is NONE,
-Well, the encoded stream contains the info about interlacing and
-the most logical thing to do from my point of view is to keep that info
-passe it along to the capture side, which is what I am doing.
-What makes you think this is not the right way of handling that?
-> - on capture side you have decoded frames, and in this case it depends
-> on the device and driver capabilities, if the driver/device does not
-> support (de-)interlacing (I suppose this is MFC case), interlace type
-> field should be filled according to decoded bytestream header (on output
-> side), but no direct copying from output side!!!
-Well, why? If the userspace has already parsed the headers and passed the
-info to the decoder, there is no reason we should pass along that info 
-to the
-capture side.
+Le mardi 14 mars 2017 =C3=A0 15:47 +0100, Benjamin Gaignard a =C3=A9crit=C2=
+=A0:
+> Should we use /devi/ion/$heap instead of /dev/ion_$heap ?
+> I think it would be easier for user to look into one directory rather
+> then in whole /dev to find the heaps
+>=20
+> > is that we don't have to worry about a limit of 32 possible
+> > heaps per system (32-bit heap id allocation field). But dealing
+> > with an ioctl seems easier than names. Userspace might be less
+> > likely to hardcode random id numbers vs. names as well.
+>=20
+> In the futur I think that heap type will be replaced by a "get caps"
+> ioctl which will
+> describe heap capabilities. At least that is my understanding of
+> kernel part
+> of "unix memory allocator" project
 
-Currently the bitstream parser in the decoder does not seem to take of
-the interlacing properly so if userspace specified it because it already 
-parsed the
-stream or the info was in the container not in the codec bitstream, then 
-using
-it is very sensible I think!!!
+I think what we really need from userspace point of view, is the
+ability to find a compatible heap for a set of drivers. And this
+without specific knowledge of the drivers.
 
-Regards,
+Nicolas
+--=-4yF7GXm+/h6FVvfyggOu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-Thibault
->
-> Regards
-> Andrzej
->
->> Signed-off-by: Thibault Saunier <thibault.saunier@osg.samsung.com>
->>
->> ---
->>
->> Changes in v6:
->> - Pass user output field value to the capture as the device is not
->>    doing any deinterlacing and thus decoded content will still be
->>    interlaced on the output.
->>
->> Changes in v5:
->> - Just adapt the field and never error out.
->>
->> Changes in v4: None
->> Changes in v3:
->> - Do not check values in the g_fmt functions as Andrzej explained in previous review
->>
->> Changes in v2:
->> - Fix a silly build error that slipped in while rebasing the patches
->>
->>   drivers/media/platform/s5p-mfc/s5p_mfc_common.h | 2 ++
->>   drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    | 6 +++++-
->>   2 files changed, 7 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
->> index ab23236aa942..3816a37de4bc 100644
->> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
->> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
->> @@ -652,6 +652,8 @@ struct s5p_mfc_ctx {
->>   	size_t me_buffer_size;
->>   	size_t tmv_buffer_size;
->>   
->> +	enum v4l2_field field;
->> +
->>   	enum v4l2_mpeg_mfc51_video_force_frame_type force_frame_type;
->>   
->>   	struct list_head ref_queue;
->> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
->> index 367ef8e8dbf0..6e5ca86fb331 100644
->> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
->> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
->> @@ -345,7 +345,7 @@ static int vidioc_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
->>   		   rectangle. */
->>   		pix_mp->width = ctx->buf_width;
->>   		pix_mp->height = ctx->buf_height;
->> -		pix_mp->field = V4L2_FIELD_NONE;
->> +		pix_mp->field = ctx->field;
->>   		pix_mp->num_planes = 2;
->>   		/* Set pixelformat to the format in which MFC
->>   		   outputs the decoded frame */
->> @@ -380,6 +380,9 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
->>   	struct s5p_mfc_dev *dev = video_drvdata(file);
->>   	struct s5p_mfc_fmt *fmt;
->>   
->> +	if (f->fmt.pix.field == V4L2_FIELD_ANY)
->> +		f->fmt.pix.field = V4L2_FIELD_NONE;
->> +
->>   	mfc_debug(2, "Type is %d\n", f->type);
->>   	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
->>   		fmt = find_format(f, MFC_FMT_DEC);
->> @@ -436,6 +439,7 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
->>   		goto out;
->>   	} else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
->>   		/* src_fmt is validated by call to vidioc_try_fmt */
->> +		ctx->field = f->fmt.pix.field;
->>   		ctx->src_fmt = find_format(f, MFC_FMT_DEC);
->>   		ctx->codec_mode = ctx->src_fmt->codec_mode;
->>   		mfc_debug(2, "The codec number is: %d\n", ctx->codec_mode);
->
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iEYEABECAAYFAljIUlIACgkQcVMCLawGqBw6ogCgysy19SbY1BaDre6iIXHMkz5R
+SPkAoJIx3dzdLVwHCLbVpFbqLZQL+M+K
+=tmAm
+-----END PGP SIGNATURE-----
+
+--=-4yF7GXm+/h6FVvfyggOu--
