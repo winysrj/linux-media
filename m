@@ -1,47 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ozlabs.org ([103.22.144.67]:49219 "EHLO ozlabs.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750858AbdCPEjD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Mar 2017 00:39:03 -0400
-From: Michael Ellerman <mpe@ellerman.id.au>
-To: "Andrew F. Davis" <afd@ti.com>,
-        Miguel Ojeda Sandonis <miguel.ojeda.sandonis@gmail.com>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Richard Purdie <rpurdie@rpsys.net>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Lauro Ramos Venancio <lauro.venancio@openbossa.org>,
-        Aloisio Almeida Jr <aloisio.almeida@openbossa.org>,
-        Samuel Ortiz <sameo@linux.intel.com>,
-        kernel-janitors@vger.kernel.org
-Cc: linux-pwm@vger.kernel.org, linux-wireless@vger.kernel.org,
-        linux-kernel@vger.kernel.org, "Andrew F . Davis" <afd@ti.com>,
-        linuxppc-dev@lists.ozlabs.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v3 4/7] macintosh: Only descend into directory when CONFIG_MACINTOSH_DRIVERS is set
-In-Reply-To: <20170315163730.17055-5-afd@ti.com>
-References: <20170315163730.17055-1-afd@ti.com> <20170315163730.17055-5-afd@ti.com>
-Date: Thu, 16 Mar 2017 15:28:36 +1100
-Message-ID: <87var9u9or.fsf@concordia.ellerman.id.au>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:37445 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751820AbdCNTGl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Mar 2017 15:06:41 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v3 18/27] rcar-vin: add flag to switch to media controller mode
+Date: Tue, 14 Mar 2017 20:02:59 +0100
+Message-Id: <20170314190308.25790-19-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-"Andrew F. Davis" <afd@ti.com> writes:
+On Gen3 a media controller API needs to be used to allow userspace to
+configure the subdevices in the pipeline instead of directly controlling
+a single source subdevice, which is and will continue to be the mode of
+operation on Gen2.
 
-> When CONFIG_MACINTOSH_DRIVERS is not set make will still descend into the
-> macintosh directory but nothing will be built. This produces unneeded
-> build artifacts and messages in addition to slowing the build.
-> Fix this here.
->
-> Signed-off-by: Andrew F. Davis <afd@ti.com>
-> ---
->  drivers/Makefile | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+Prepare for these two modes of operation by adding a flag to struct
+rvin_graph_entity which will control which mode to use.
 
-LGTM.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 3 +++
+ drivers/media/platform/rcar-vin/rcar-vin.h  | 2 ++
+ 2 files changed, 5 insertions(+)
 
-Acked-by: Michael Ellerman <mpe@ellerman.id.au>
-
-cheersj
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index adc38696a0ba70b9..8b30d8d3ec7d9c04 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -261,18 +261,21 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+ 
+ static const struct rvin_info rcar_info_h1 = {
+ 	.chip = RCAR_H1,
++	.use_mc = false,
+ 	.max_width = 2048,
+ 	.max_height = 2048,
+ };
+ 
+ static const struct rvin_info rcar_info_m1 = {
+ 	.chip = RCAR_M1,
++	.use_mc = false,
+ 	.max_width = 2048,
+ 	.max_height = 2048,
+ };
+ 
+ static const struct rvin_info rcar_info_gen2 = {
+ 	.chip = RCAR_GEN2,
++	.use_mc = false,
+ 	.max_width = 2048,
+ 	.max_height = 2048,
+ };
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index b1cd0abba9ca9c94..512e67fdefd15015 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -77,12 +77,14 @@ struct rvin_graph_entity {
+ /**
+  * struct rvin_info- Information about the particular VIN implementation
+  * @chip:		type of VIN chip
++ * @use_mc:		use media controller instead of controlling subdevice
+  *
+  * max_width:		max input width the VIN supports
+  * max_height:		max input height the VIN supports
+  */
+ struct rvin_info {
+ 	enum chip_id chip;
++	bool use_mc;
+ 
+ 	unsigned int max_width;
+ 	unsigned int max_height;
+-- 
+2.12.0
