@@ -1,61 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59617 "EHLO mail.kapsi.fi"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751862AbdCDBYL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Mar 2017 20:24:11 -0500
-Subject: Re: [PATCH v3 0/3] Add support for MyGica T230C DVB-T2 stick
-To: =?UTF-8?Q?Br=c3=bcns=2c_Stefan?= <Stefan.Bruens@rwth-aachen.de>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <20170217005533.22424-1-stefan.bruens@rwth-aachen.de>
- <1488566145.30993.5.camel@rwth-aachen.de>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "mchehab@kernel.org" <mchehab@kernel.org>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <2b3bb92a-4024-7a82-c86d-2e5893786daf@iki.fi>
-Date: Sat, 4 Mar 2017 03:23:42 +0200
+Received: from mail-io0-f169.google.com ([209.85.223.169]:33184 "EHLO
+        mail-io0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752595AbdCNBP5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 13 Mar 2017 21:15:57 -0400
 MIME-Version: 1.0
-In-Reply-To: <1488566145.30993.5.camel@rwth-aachen.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1489427686.24765.9.camel@linux.intel.com>
+References: <20170313105421.GA32342@SEL-JYOUN-D1> <1489427686.24765.9.camel@linux.intel.com>
+From: DaeSeok Youn <daeseok.youn@gmail.com>
+Date: Tue, 14 Mar 2017 10:15:55 +0900
+Message-ID: <CAHb8M2BFkzAsZ=sK+ARybtbR1E4w=ApzHo-BxEr0TEoDWK=gqA@mail.gmail.com>
+Subject: Re: [PATCH] staging: atomisp: use k{v}zalloc instead of k{v}alloc and memset
+To: Alan Cox <alan@linux.intel.com>
+Cc: mchehab@kernel.org, Greg KH <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel <devel@driverdev.osuosl.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        kernel-janitors <kernel-janitors@vger.kernel.org>,
+        Dan Carpenter <dan.carpenter@oracle.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/03/2017 08:35 PM, Brüns, Stefan wrote:
-> On Fr, 2017-02-17 at 01:55 +0100, Stefan Brüns wrote:
->> The required command sequence for the new tuner (Si2141) was traced
->> from the
->> current Windows driver and verified with a small python
->> script/libusb.
->> The changes to the Si2168 and dvbsky driver are mostly additions of
->> the
->> required IDs and some glue code.
->>
->> Stefan Brüns (3):
->>   [media] si2157: Add support for Si2141-A10
->>   [media] si2168: add support for Si2168-D60
->>   [media] dvbsky: MyGica T230C support
->>
->>  drivers/media/dvb-core/dvb-usb-ids.h      |  1 +
->>  drivers/media/dvb-frontends/si2168.c      |  4 ++
->>  drivers/media/dvb-frontends/si2168_priv.h |  2 +
->>  drivers/media/tuners/si2157.c             | 23 +++++++-
->>  drivers/media/tuners/si2157_priv.h        |  2 +
->>  drivers/media/usb/dvb-usb-v2/dvbsky.c     | 88
->> +++++++++++++++++++++++++++++++
->>  6 files changed, 118 insertions(+), 2 deletions(-)
+2017-03-14 2:54 GMT+09:00 Alan Cox <alan@linux.intel.com>:
 >
-> Instead of this series, a different patchset was accepted, although
-> Antti raised concerns about at least 2 of the 3 patches accpeted, more
-> specifically the si2157 patch contains some bogus initialization code,
-> and the T230C support were better added to the dvbsky driver instead of
->  cxusb.
+> On Mon, 2017-03-13 at 19:54 +0900, Daeseok Youn wrote:
+> > If the atomisp_kernel_zalloc() has "true" as a second parameter, it
+> > tries to allocate zeroing memory from kmalloc(vmalloc) and memset.
+> > But using kzalloc is rather than kmalloc followed by memset with 0.
+> > (vzalloc is for same reason with kzalloc)
+>
+> This is true but please don't apply this. There are about five other
+> layers of indirection for memory allocators that want removing first so
+> that the driver just uses the correct kmalloc/kzalloc/kv* functions in
+> the right places.
+right. kvmalloc/kvzalloc would be used after preparing those
+interfaces in staging tree.
+I will try to change all the atomisp_kernel_m{z}alloc() callers to
+correct functions to allocate memory.
 
-Patch set looks good. I ordered that device and it arrived yesterday. I 
-will handle that during 2 weeks - it is now skiing holiday and I am at 
-France alps whole next week. So just wait :)
+Thanks.
+Regards,
+Jake.
 
-regards
-Antti
-
--- 
-http://palosaari.fi/
+>
+> Alan
+>
