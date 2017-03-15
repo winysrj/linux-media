@@ -1,131 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:33453 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754198AbdC1An3 (ORCPT
+Received: from mail-qt0-f175.google.com ([209.85.216.175]:34935 "EHLO
+        mail-qt0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751765AbdCOS4U (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 20:43:29 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Russell King <rmk+kernel@armlinux.org.uk>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v6 37/39] media: imx-csi: add frame size/interval enumeration
-Date: Mon, 27 Mar 2017 17:40:54 -0700
-Message-Id: <1490661656-10318-38-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+        Wed, 15 Mar 2017 14:56:20 -0400
+Received: by mail-qt0-f175.google.com with SMTP id x35so20098935qtc.2
+        for <linux-media@vger.kernel.org>; Wed, 15 Mar 2017 11:55:14 -0700 (PDT)
+Message-ID: <1489604109.4593.4.camel@ndufresne.ca>
+Subject: Re: media / v4l2-mc: wishlist for complex cameras (was Re: [PATCH
+ v4 14/36] [media] v4l2-mc: add a function to inherit controls from a
+ pipeline)
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Philippe De Muyter <phdm@macq.eu>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
+        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Jacek Anaszewski <j.anaszewski@samsung.com>
+Date: Wed, 15 Mar 2017 14:55:09 -0400
+In-Reply-To: <20170315105049.GA12099@frolo.macqel>
+References: <cc8900b0-c091-b14b-96f4-01f8fa72431c@xs4all.nl>
+         <20170310125342.7f047acf@vento.lan>
+         <20170310223714.GI3220@valkosipuli.retiisi.org.uk>
+         <20170311082549.576531d0@vento.lan>
+         <20170313124621.GA10701@valkosipuli.retiisi.org.uk>
+         <20170314004533.3b3cd44b@vento.lan>
+         <e0a6c60b-1735-de0b-21f4-d8c3f4b3f10f@xs4all.nl>
+         <20170314072143.498cde9b@vento.lan> <20170314223254.GA7141@amd>
+         <20170314215420.6fc63c67@vento.lan> <20170315105049.GA12099@frolo.macqel>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+        boundary="=-7fq51Td7eGbeBp/kWBM3"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Russell King <rmk+kernel@armlinux.org.uk>
 
-Add frame size and frame interval enumeration to CSI.
+--=-7fq51Td7eGbeBp/kWBM3
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-CSI can downscale the image independently horizontally and vertically by a
-factor of two, which enumerates to four different frame sizes at the
-output pads. The input pad supports a range of frame sizes.
+Le mercredi 15 mars 2017 =C3=A0 11:50 +0100, Philippe De Muyter a =C3=A9cri=
+t=C2=A0:
+> > I would say: camorama, xawtv3, zbar, google talk, skype. If it runs
+> > with those, it will likely run with any other application.
+> >=20
+>=20
+> I would like to add the 'v4l2src' plugin of gstreamer, and on the
+> imx6 its
 
-CSI can also drop frames, resulting in frame rate reduction, so
-enumerate the resulting possible output frame rates.
+While it would be nice if somehow you would get v4l2src to work (in
+some legacy/emulation mode through libv4l2), the longer plan is to
+implement smart bin that handle several v4l2src, that can do the
+required interactions so we can expose similar level of controls as
+found in Android Camera HAL3, and maybe even further assuming userspace
+can change the media tree at run-time. We might be a long way from
+there, specially that some of the features depends on how much the
+hardware can do. Just being able to figure-out how to build the MC tree
+dynamically seems really hard when thinking of generic mechanism. Also,
+Request API will be needed.
 
-Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/media/imx/imx-media-csi.c | 62 +++++++++++++++++++++++++++++++
- 1 file changed, 62 insertions(+)
+I think for this one, we'll need some userspace driver that enable the
+features (not hide them), and that's what I'd be looking for from
+libv4l2 in this regard.
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index 19609a7..b11e80f 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -1123,6 +1123,66 @@ static int csi_enum_mbus_code(struct v4l2_subdev *sd,
- 	return ret;
- }
- 
-+static int csi_enum_frame_size(struct v4l2_subdev *sd,
-+			       struct v4l2_subdev_pad_config *cfg,
-+			       struct v4l2_subdev_frame_size_enum *fse)
-+{
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	struct v4l2_rect *crop;
-+	int ret = 0;
-+
-+	if (fse->pad >= CSI_NUM_PADS ||
-+	    fse->index > (fse->pad == CSI_SINK_PAD ? 0 : 3))
-+		return -EINVAL;
-+
-+	mutex_lock(&priv->lock);
-+
-+	if (fse->pad == CSI_SINK_PAD) {
-+		fse->min_width = MIN_W;
-+		fse->max_width = MAX_W;
-+		fse->min_height = MIN_H;
-+		fse->max_height = MAX_H;
-+	} else {
-+		crop = __csi_get_crop(priv, cfg, fse->which);
-+
-+		fse->min_width = fse->max_width = fse->index & 1 ?
-+			crop->width / 2 : crop->width;
-+		fse->min_height = fse->max_height = fse->index & 2 ?
-+			crop->height / 2 : crop->height;
-+	}
-+
-+	mutex_unlock(&priv->lock);
-+	return ret;
-+}
-+
-+static int csi_enum_frame_interval(struct v4l2_subdev *sd,
-+				   struct v4l2_subdev_pad_config *cfg,
-+				   struct v4l2_subdev_frame_interval_enum *fie)
-+{
-+	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	struct v4l2_rect *crop;
-+	int ret = 0;
-+
-+	if (fie->pad >= CSI_NUM_PADS ||
-+	    fie->index >= (fie->pad == CSI_SINK_PAD ? 1 : ARRAY_SIZE(csi_skip)))
-+		return -EINVAL;
-+
-+	mutex_lock(&priv->lock);
-+
-+	crop = __csi_get_crop(priv, cfg, fie->which);
-+
-+	if ((fie->width == crop->width || fie->width == crop->width / 2) &&
-+	    (fie->height == crop->height || fie->height == crop->height / 2)) {
-+		fie->interval = priv->frame_interval;
-+		csi_apply_skip_interval(&csi_skip[fie->index], &fie->interval);
-+	} else {
-+		ret = -EINVAL;
-+	}
-+	mutex_unlock(&priv->lock);
-+
-+	return ret;
-+}
-+
- static int csi_get_fmt(struct v4l2_subdev *sd,
- 		       struct v4l2_subdev_pad_config *cfg,
- 		       struct v4l2_subdev_format *sdformat)
-@@ -1587,6 +1647,8 @@ static struct v4l2_subdev_video_ops csi_video_ops = {
- 
- static struct v4l2_subdev_pad_ops csi_pad_ops = {
- 	.enum_mbus_code = csi_enum_mbus_code,
-+	.enum_frame_size = csi_enum_frame_size,
-+	.enum_frame_interval = csi_enum_frame_interval,
- 	.get_fmt = csi_get_fmt,
- 	.set_fmt = csi_set_fmt,
- 	.get_selection = csi_get_selection,
--- 
-2.7.4
+> imx-specific counterpart 'imxv4l2videosrc' from the gstreamer-imx
+> package
+> at https://github.com/Freescale/gstreamer-imx, and 'v4l2-ctl'.
+
+This one is specific to IMX hardware using vendor driver. You can
+probably ignore that.
+
+Nicolas
+--=-7fq51Td7eGbeBp/kWBM3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iEYEABECAAYFAljJjg0ACgkQcVMCLawGqBzWHACfQymBOSCSce0cthYH9b7XZ0jx
+87wAnR09ioCl/7XxAg/iQxU6O3boR99I
+=mn5/
+-----END PGP SIGNATURE-----
+
+--=-7fq51Td7eGbeBp/kWBM3--
