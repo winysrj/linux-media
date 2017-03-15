@@ -1,77 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx02-sz.bfs.de ([194.94.69.103]:53906 "EHLO mx02-sz.bfs.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752464AbdC0LF2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 07:05:28 -0400
-Message-ID: <58D8F1C8.1010503@bfs.de>
-Date: Mon, 27 Mar 2017 13:04:40 +0200
-From: walter harms <wharms@bfs.de>
-Reply-To: wharms@bfs.de
+Received: from mout.kundenserver.de ([212.227.126.187]:64273 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751495AbdCOVvO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 15 Mar 2017 17:51:14 -0400
+Date: Wed, 15 Mar 2017 22:50:35 +0100 (CET)
+From: Stefan Wahren <stefan.wahren@i2se.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Eric Anholt <eric@anholt.net>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-rpi-kernel@lists.infradead.org
+Message-ID: <624207385.207503.1489614635601@email.1und1.de>
+In-Reply-To: <20170315110128.37e2bc5a@vento.lan>
+References: <20170127215503.13208-1-eric@anholt.net>
+ <20170315110128.37e2bc5a@vento.lan>
+Subject: Re: [PATCH 0/6] staging: BCM2835 MMAL V4L2 camera driver
 MIME-Version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-        Colin King <colin.king@canonical.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] coda: remove redundant call to v4l2_m2m_get_vq
-References: <20170323115746.18474-1-colin.king@canonical.com>         <45a3ba2e-634c-156b-71b4-75aa8d89827b@xs4all.nl> <1490609415.2409.5.camel@pengutronix.de>
-In-Reply-To: <1490609415.2409.5.camel@pengutronix.de>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
 
-
-Am 27.03.2017 12:10, schrieb Philipp Zabel:
-> On Mon, 2017-03-27 at 11:46 +0200, Hans Verkuil wrote:
->> On 23/03/17 12:57, Colin King wrote:
->>> From: Colin Ian King <colin.king@canonical.com>
->>>
->>> The call to v4ls_m2m_get_vq is only used to get the return value
->>> which is not being used, so it appears to be redundant and can
->>> be removed.
->>>
->>> Detected with CoverityScan, CID#1420674 ("Useless call")
->>>
->>> Signed-off-by: Colin Ian King <colin.king@canonical.com>
->>> ---
->>>  drivers/media/platform/coda/coda-common.c | 2 --
->>>  1 file changed, 2 deletions(-)
->>>
->>> diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
->>> index 800d2477f1a0..95e4648f18e6 100644
->>> --- a/drivers/media/platform/coda/coda-common.c
->>> +++ b/drivers/media/platform/coda/coda-common.c
->>> @@ -817,8 +817,6 @@ static int coda_qbuf(struct file *file, void *priv,
->>>  static bool coda_buf_is_end_of_stream(struct coda_ctx *ctx,
->>>  				      struct vb2_v4l2_buffer *buf)
->>>  {
->>> -	v4l2_m2m_get_vq(ctx->fh.m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
->>> -
->>>  	return ((ctx->bit_stream_param & CODA_BIT_STREAM_END_FLAG) &&
->>>  		(buf->sequence == (ctx->qsequence - 1)));
->>>  }
->>>
->>
->> Philipp, is this correct, or should this actually check whether the queue is an
->> output queue?
+> Mauro Carvalho Chehab <mchehab@s-opensource.com> hat am 15. März 2017 um 15:01 geschrieben:
 > 
-> Yes, this was previously assigned to an unused local variable src_vq,
-> since initial commit 918c66fd4126 ("[media] coda: add CODA7541 decoding
-> support").
 > 
-> coda_buf_is_end_of_stream is called from coda_m2m_buf_done, which is
-> exclusively used on destination buffers on the capture queue.
+> Em Fri, 27 Jan 2017 13:54:57 -0800
+> Eric Anholt <eric@anholt.net> escreveu:
 > 
-> Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > Here's my first pass at importing the camera driver.  There's a bunch
+> > of TODO left to it, most of which is documented, and the rest being
+> > standard checkpatch fare.
+> > 
+> > Unfortunately, when I try modprobing it on my pi3, the USB network
+> > device dies, consistently.  I'm not sure what's going on here yet, but
+> > I'm going to keep working on some debug of it.  I've unfortunately
+> > changed a lot of variables (pi3 vs pi2, upstream vs downstream, vchi's
+> > updates while in staging, 4.9 vs 4.4), so I probably won't figure it
+> > out today.
+> > 
+> > Note that the "Update the driver to the current VCHI API" patch will
+> > conflict with the outstanding "Add vchi_queue_kernel_message and
+> > vchi_queue_user_message" series, but the fix should be pretty obvious
+> > when that lands.
+> > 
+> > I built this against 4.10-rc1, but a merge with staging-next was clean
+> > and still built fine.
 > 
-> regards
-> Philipp
+> I'm trying it, building from the linux-next branch of the staging
+> tree. No joy.
+> 
+> That's what happens when I modprobe it:
+> 
+> [  991.841549] bcm2835_v4l2: module is from the staging directory, the quality is unknown, you have been warned.
+> [  991.842931] vchiq_get_state: g_state.remote == NULL
+> [  991.843437] vchiq_get_state: g_state.remote == NULL
+> [  991.843940] vchiq_get_state: g_state.remote == NULL
+> [  991.844444] vchiq_get_state: g_state.remote == NULL
+> [  991.844947] vchiq_get_state: g_state.remote == NULL
+> [  991.845451] vchiq_get_state: g_state.remote == NULL
+> [  991.845954] vchiq_get_state: g_state.remote == NULL
+> [  991.846457] vchiq_get_state: g_state.remote == NULL
+> [  991.846961] vchiq_get_state: g_state.remote == NULL
+> [  991.847464] vchiq_get_state: g_state.remote == NULL
+> [  991.847969] vchiq: vchiq_initialise: videocore not initialized
+> 
+> [  991.847973] mmal_vchiq: Failed to initialise VCHI instance (status=-1)
 > 
 
-Is that function needed at all ?
+only a guess, but did you add the vchiq node to the device tree?
 
-re,
- wh
+vchiq: vchiq@7e00b840 {
+    compatible = "brcm,bcm2835-vchiq";
+    reg = <0x7e00b840 0xf>;
+    interrupts = <0 2>;
+    cache-line-size = <32>;
+    firmware = <&firmware>;
+};
+
+For a Raspberry Pi 3 you will need cache-line-size to be 64.
+
+Regards
+Stefan
+
+> 
+> Thanks,
+> Mauro
+> 
+> _______________________________________________
+> linux-rpi-kernel mailing list
+> linux-rpi-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-rpi-kernel
