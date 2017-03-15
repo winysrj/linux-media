@@ -1,125 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:36250 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751830AbdCSTRW (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:34387 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750984AbdCOSfT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 19 Mar 2017 15:17:22 -0400
-Subject: Re: [PATCH v5 38/39] media: imx: csi: fix crop rectangle reset in
- sink set_fmt
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <1489121599-23206-39-git-send-email-steve_longerbeam@mentor.com>
- <20170319152233.GW21222@n2100.armlinux.org.uk>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <327d67d9-68c1-7f74-0c0f-f6aee1c4b546@gmail.com>
-Date: Sun, 19 Mar 2017 12:08:02 -0700
+        Wed, 15 Mar 2017 14:35:19 -0400
+Date: Wed, 15 Mar 2017 13:35:15 -0500
+From: Rob Herring <robh@kernel.org>
+To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, CARLOS.PALMINHA@synopsys.com,
+        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Arnd Bergmann <arnd@arndb.de>, Benoit Parrot <bparrot@ti.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Kamil Debski <k.debski@samsung.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Peter Griffin <peter.griffin@linaro.org>,
+        Rick Chang <rick.chang@mediatek.com>,
+        Simon Horman <simon.horman@netronome.com>,
+        Tiffany Lin <tiffany.lin@mediatek.com>
+Subject: Re: [PATCH 3/4] Documentation: dt: Add bindings documentation for
+ CSI-2 Host Video Platform
+Message-ID: <20170315183515.qnai3fwrdqobn6ky@rob-hp-laptop>
+References: <cover.1488885081.git.roliveir@synopsys.com>
+ <95825021f5eae29a118ce0a2570c5c1886023110.1488885081.git.roliveir@synopsys.com>
 MIME-Version: 1.0
-In-Reply-To: <20170319152233.GW21222@n2100.armlinux.org.uk>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <95825021f5eae29a118ce0a2570c5c1886023110.1488885081.git.roliveir@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue, Mar 07, 2017 at 02:37:50PM +0000, Ramiro Oliveira wrote:
+> Create device tree bindings documentation for the CSI-2 Host Video
+>  platform.
+> 
+> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
+> ---
+>  .../devicetree/bindings/media/snps,plat-csi2.txt   | 77 ++++++++++++++++++++++
+>  1 file changed, 77 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/snps,plat-csi2.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/snps,plat-csi2.txt b/Documentation/devicetree/bindings/media/snps,plat-csi2.txt
+> new file mode 100644
+> index 000000000000..f559257a0a44
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/snps,plat-csi2.txt
+> @@ -0,0 +1,77 @@
+> +Synopsys DesignWare CSI-2 Host Video Platform
+> +
+> +The Synopsys DesignWare CSI-2 Host Video Device subsystem comprises of multiple
+> +sub-devices represented by separate device tree nodes. Currently this includes:
+> +plat-csi2, video-device, and dw-mipi-csi.
+> +
+> +The sub-subdevices are defined as child nodes of the common 'camera'.
+> +
+> +Common 'camera' node
+> +--------------------
+> +
+> +Required properties:
+> +
+> +- compatible: must be "snps,plat-csi2", "simple-bus"
+> +
+> +The 'camera' node must include at least one 'video-device' and one 'dw-mipi-csi'
+> +child node.
+> +
+> +'video-device' device nodes
+> +-------------------
+> +
+> +Required properties:
+> +
+> +- compatible: "snps,video-device"
+> +- dmas, dma-names: List of one DMA specifier and identifier string (as defined
+> +  in Documentation/devicetree/bindings/dma/dma.txt) per port. Each port
+> +  requires a DMA channel with the identifier string set to "vdma" followed by
+> +  the port index.
+> +
+> +Image sensor nodes
+> +------------------
+> +
+> +The sensor device nodes should be added to their control bus controller (e.g.
+> +I2C0) nodes and linked to a port node in the dw-mipi-csi,using the common video
+> +interfaces bindings, defined in video-interfaces.txt.
+> +
+> +Example:
+> +
+> +
+> +	camera {
+> +		compatible = "snps,plat-csi2", "simple-bus";
+> +		#address-cells = <1>;
+> +		#size-cells = <1>;
+> +		ranges;
+> +			video_device: video-device@0x10000 {
 
+Drop the '0x' and any leading 0s on unit addresses.
 
-On 03/19/2017 08:22 AM, Russell King - ARM Linux wrote:
-> On Thu, Mar 09, 2017 at 08:53:18PM -0800, Steve Longerbeam wrote:
->> From: Philipp Zabel <p.zabel@pengutronix.de>
->>
->> The csi_try_crop call in set_fmt should compare the cropping rectangle
->> to the currently set input format, not to the previous input format.
-> Are we really sure that the cropping support is implemented correctly?
->
-> I came across this while looking at what we're doing with the
-> V4L2_SEL_FLAG_KEEP_CONFIG flag.
->
-> Documentation/media/uapi/v4l/dev-subdev.rst defines the behaviour of
-> the user API, and "Order of configuration and format propagation" says:
->
->    The coordinates to a step always refer to the actual size of the
->    previous step. The exception to this rule is the source compose
->    rectangle, which refers to the sink compose bounds rectangle --- if it
->    is supported by the hardware.
->    
->    1. Sink pad format. The user configures the sink pad format. This format
->       defines the parameters of the image the entity receives through the
->       pad for further processing.
->    
->    2. Sink pad actual crop selection. The sink pad crop defines the crop
->       performed to the sink pad format.
->    
->    3. Sink pad actual compose selection. The size of the sink pad compose
->       rectangle defines the scaling ratio compared to the size of the sink
->       pad crop rectangle. The location of the compose rectangle specifies
->       the location of the actual sink compose rectangle in the sink compose
->       bounds rectangle.
->    
->    4. Source pad actual crop selection. Crop on the source pad defines crop
->       performed to the image in the sink compose bounds rectangle.
->    
->    5. Source pad format. The source pad format defines the output pixel
->       format of the subdev, as well as the other parameters with the
->       exception of the image width and height. Width and height are defined
->       by the size of the source pad actual crop selection.
->    
->    Accessing any of the above rectangles not supported by the subdev will
->    return ``EINVAL``. Any rectangle referring to a previous unsupported
->    rectangle coordinates will instead refer to the previous supported
->    rectangle. For example, if sink crop is not supported, the compose
->    selection will refer to the sink pad format dimensions instead.
->
-> Note step 3 above: scaling is defined by the ratio of the _sink_ crop
-> rectangle to the _sink_ compose rectangle.
->
-> So, lets say that the camera produces a 1280x720 image, and the sink
-> pad format is configured with 1280x720.  That's step 1.
->
-> The sink crop operates within that rectangle, cropping it to an area.
-> Let's say we're only interested in its centre, so we'd chose 640x360
-> with the top-left as 320,180.  This is step 2.
->
-> Then, if we want to down-scale by a factor of two, we'd set the sink
-> compose selection to 320x180.
->
-> This seems to be at odds with how the scaling is done in CSI at
-> present: the selection implementations all reject attempts to
-> configure the sink pad, instead only supporting crop rectangles on
-> the source,
+> +				compatible = "snps,video-device";
+> +				dmas = <&axi_vdma_0 0>;
+> +				dma-names = "vdma0";
+> +			};
 
-Correct. Currently cropping is only supported at the source pad
-(step 4).
+If video-device is not a real device, then you shouldn't need a DT node. 
+I need a better explanation or diagram of what the h/w blocks and 
+connections look like here.
 
-Initially the CSI didn't support down-scaling, so step 3 is not supported,
-so the sink pad format/crop selection rectangle/crop compose rectangle
-are collapsed into the same sink pad format rectangle.
+>From the looks of this, you can just move dmas to the csi2 node. But I 
+don't think that is right, because you can't generally just use an 
+external DMA controller with camera data (maybe for validation, but it's 
+not something you see in SoCs).
 
-Philipp later added support for /2 downscaling, but we didn't put this in
-the correct API, looks like this needs to move into the selection API at
-step 3 (sink pad compose rectangle).
-
-
->   and we use the source crop rectangle to define the
-> down-scaling.
-
-Yes. And maybe there is nothing wrong with that, because scaling is also
-defined by the source/sink _format_ ratios (if I'm not mistaken), so looking
-at this another way, we're just defining scaling in the CSI via another
-legal API.
-
-
-Steve
+> +
+> +			csi2:	csi2@0x03000 {
+> +				compatible = "snps,dw-mipi-csi";
+> +				#address-cells = <1>;
+> +				#size-cells = <0>;
+> +				reg = < 0x03000 0x7FF>;
+> +				interrupts = <2>;
+> +				phys = <&mipi_phy_ctrl1 0>;
+> +				resets = <&csi2_rst 1>;
+> +
+> +				output-type = <2>;
+> +				ipi-mode = <0>;
+> +				ipi-color-mode = <0>;
+> +				ipi-auto-flush = <1>;
+> +				virtual-channel = <0>;
+> +
+> +				port@1 {
+> +					reg = <1>;
+> +					csi1_ep1: endpoint {
+> +						remote-endpoint = <&camera>;
+> +						data-lanes = <1 2>;
+> +					};
+> +				};
+> +			};
+> +		};
+> +	};
+> +
+> +The dw-mipi-csi device binding is defined in snps,dw-mipi-csi.txt.
+> -- 
+> 2.11.0
+> 
+> 
