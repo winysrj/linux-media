@@ -1,88 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-2.goneo.de ([85.220.129.31]:49423 "EHLO smtp1.goneo.de"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S932650AbdC3H6Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 03:58:16 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: [PATCH 02/22] docs-rst: convert usb docbooks to ReST
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <327dcce56a725c7f91f542f2ff97995504d26526.1490813422.git.mchehab@s-opensource.com>
-Date: Thu, 30 Mar 2017 09:48:40 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
-        linux-rpi-kernel@lists.infradead.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Jani Nikula <jani.nikula@intel.com>,
-        Takashi Iwai <tiwai@suse.de>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Oliver Neukum <oneukum@suse.com>,
-        Martyn Welch <martyn.welch@collabora.co.uk>,
-        Alexander Dahl <post@lespocky.de>,
-        Jonathan Cameron <jic23@kernel.org>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <7D76BCB2-53F5-4BD4-8205-5A4852164C91@darmarit.de>
-References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com> <327dcce56a725c7f91f542f2ff97995504d26526.1490813422.git.mchehab@s-opensource.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:39313 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750774AbdCOCRs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 14 Mar 2017 22:17:48 -0400
+Message-ID: <1489544252.27174.1.camel@mtksdaap41>
+Subject: Re: [PATCH] media: mtk-jpeg: fix continuous log "Context is NULL"
+From: Rick Chang <rick.chang@mediatek.com>
+To: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+        <daniel.thompson@linaro.org>, "Rob Herring" <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        <srv_heupstream@mediatek.com>,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        Wu-Cheng Li <wuchengli@google.com>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>,
+        Bin Liu <bin.liu@mediatek.com>
+Date: Wed, 15 Mar 2017 10:17:32 +0800
+In-Reply-To: <1489501282-52137-1-git-send-email-minghsiu.tsai@mediatek.com>
+References: <1489501282-52137-1-git-send-email-minghsiu.tsai@mediatek.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-Am 29.03.2017 um 20:54 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
-
-> As we're moving out of DocBook, let's convert the remaining
-> USB docbooks to ReST.
+On Tue, 2017-03-14 at 22:21 +0800, Minghsiu Tsai wrote:
+> The symptom is continuous log "mtk-jpeg 18004000.jpegdec: Context is NULL"
+> in kernel log. It is becauese the error handling in irq doesn't clear
+> interrupt.
 > 
-> The transformation itself on this patch is a no-brainer
-> conversion using pandoc.
-
-right, its a no-brainer ;-) I'am not very happy with this
-conversions, some examples see below.
-
-I recommend to use a more elaborate conversion as starting point,
-e.g. from my sphkerneldoc project:
-
-* https://github.com/return42/sphkerneldoc/tree/master/Documentation/books_migrated/gadget
-* https://github.com/return42/sphkerneldoc/tree/master/Documentation/books_migrated/writing_musb_glue_layer
-* https://github.com/return42/sphkerneldoc/tree/master/Documentation/books_migrated/writing_usb_driver
-
-Since these DocBooks hasn't been changed in the last month, the linked reST
-should be up to date.
-
-	
-> +Kernel Mode Gadget API
-> +======================
-> +
-> +Gadget drivers declare themselves through a *struct
-> +usb\_gadget\_driver*, which is responsible for most parts of enumeration
-> +for a *struct usb\_gadget*. The response to a set\_configuration usually
-> +involves enabling one or more of the *struct usb\_ep* objects exposed by
-> +the gadget, and submitting one or more *struct usb\_request* buffers to
-
-quoting of all underlines is not needed.
-
-> +!Iinclude/linux/usb/composite.h !Edrivers/usb/gadget/composite.c
-> +Composite Device Functions
-> +--------------------------
-> +
-> +At this writing, a few of the current gadget drivers have been converted
-> +to this framework. Near-term plans include converting all of them,
-> +except for "gadgetfs".
-> +
-> +!Edrivers/usb/gadget/function/f\_acm.c
-> +!Edrivers/usb/gadget/function/f\_ecm.c
-> +!Edrivers/usb/gadget/function/f\_subset.c
-> +!Edrivers/usb/gadget/function/f\_obex.c
-> +!Edrivers/usb/gadget/function/f\_serial.c
-> +Peripheral Controller Drivers
-> +=============================
-
-I guess we miss some documentation here.
-
--- Markus --
+> The calling flow like as below when issue happen
+> mtk_jpeg_device_run()
+> mtk_jpeg_job_abort()
+>   v4l2_m2m_job_finish() -> m2m_dev->curr_ctx = NULL;
+> mtk_jpeg_dec_irq()
+>   v4l2_m2m_get_curr_priv()
+>      -> m2m_dev->curr_ctx == NULL
+>      -> return NULL
+> log "Context is NULL"
+> 
+> There is race condition between job_abort() and irq. In order to simplify
+> code, don't want to add extra flag to maintain state, empty job_abort() and
+> clear interrupt before v4l2_m2m_get_curr_priv() in irq.
+> 
+> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+> ---
+>  drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c | 14 ++------------
+>  1 file changed, 2 insertions(+), 12 deletions(-)
+Acked-by: Rick Chang <rick.chang@mediatek.com>
