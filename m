@@ -1,102 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:35213 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751422AbdCNCee (ORCPT
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:32872 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751100AbdCOQmM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 22:34:34 -0400
-From: Till Smejkal <till.smejkal@googlemail.com>
-Date: Mon, 13 Mar 2017 19:34:27 -0700
-To: Vineet Gupta <Vineet.Gupta1@synopsys.com>
-Cc: Till Smejkal <till.smejkal@googlemail.com>,
-        Richard Henderson <rth@twiddle.net>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Matt Turner <mattst88@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will.deacon@arm.com>,
-        Steven Miao <realmz6@gmail.com>,
-        Richard Kuo <rkuo@codeaurora.org>,
-        Tony Luck <tony.luck@intel.com>,
-        Fenghua Yu <fenghua.yu@intel.com>,
-        James Hogan <james.hogan@imgtec.com>,
-        Ralf Baechle <ralf@linux-mips.org>,
-        "James E.J. Bottomley" <jejb@parisc-linux.org>,
-        Helge Deller <deller@gmx.de>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Paul Mackerras <paulus@samba.org>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Martin Schwidefsky <schwidefsky@de.ibm.com>,
-        Heiko Carstens <heiko.carstens@de.ibm.com>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        "David S. Miller" <davem@synopsys.COM>,
-        linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
-        linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org,
-        adi-buildroot-devel@lists.sourceforge.net,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-metag@vger.kernel.org, linux-mips@linux-mips.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-        linux-media@vger.kernel.org, linux-mtd@lists.infradead.org,
-        linux-usb@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-aio@kvack.org, linux-mm@kvack.org, linux-api@vger.kernel.org,
-        linux-arch@vger.kernel.org, alsa-devel@alsa-project.org,
-        Ingo Molnar <mingo@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Andy Lutomirski <luto@amacapital.net>
-Subject: Re: [RFC PATCH 10/13] mm: Introduce first class virtual address
- spaces
-Message-ID: <20170314023427.3p4a5qxtl5eh5epi@arch-dev>
+        Wed, 15 Mar 2017 12:42:12 -0400
+Date: Wed, 15 Mar 2017 11:42:09 -0500
+From: Rob Herring <robh@kernel.org>
+To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, vladimir_zapolskiy@mentor.com,
+        CARLOS.PALMINHA@synopsys.com,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pavel Machek <pavel@ucw.cz>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+Subject: Re: [PATCH v10 1/2] Documentation: DT: Add OV5647 bindings
+Message-ID: <20170315164209.p24r7mpyijbxleja@rob-hp-laptop>
+References: <cover.1488798062.git.roliveir@synopsys.com>
+ <e89902c0c99d0daf9ef821dd7a9c67e866b18a94.1488798062.git.roliveir@synopsys.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <cd1adda8-bf6a-47ad-bff3-5bc6626ac100@synopsys.com>
+In-Reply-To: <e89902c0c99d0daf9ef821dd7a9c67e866b18a94.1488798062.git.roliveir@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vineet,
+On Mon, Mar 06, 2017 at 11:16:33AM +0000, Ramiro Oliveira wrote:
+> Create device tree bindings documentation.
+> 
+> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
+> ---
+>  .../devicetree/bindings/media/i2c/ov5647.txt       | 35 ++++++++++++++++++++++
+>  1 file changed, 35 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
 
-On Mon, 13 Mar 2017, Vineet Gupta wrote:
-> I've not looked at the patches closely (or read the references paper fully yet),
-> but at first glance it seems on ARC architecture, we can can potentially
-> use/leverage this mechanism to implement the shared TLB entries. Before anyone
-> shouts these are not same as the IA64/x86 protection keys which allow TLB entries
-> with different protection bits across processes etc. These TLB entries are
-> actually *shared* by processes.
-> 
-> Conceptually there's shared address spaces, independent of processes. e.g. ldso
-> code is shared address space #1, libc (code) #2 .... System can support a limited
-> number of shared addr spaces (say 64, enough for typical embedded sys).
-> 
-> While Normal TLB entries are tagged with ASID (Addr space ID) to keep them unique
-> across processes, Shared TLB entries are tagged with Shared address space ID.
-> 
-> A process MMU context consists of ASID (a single number) and a SASID bitmap (to
-> allow "subscription" to multiple Shared spaces. The subscriptions are set up bu
-> userspace ld.so which knows about the libs process wants to map.
-> 
-> The restriction ofcourse is that the spaces are mapped at *same* vaddr is all
-> participating processes. I know this goes against whole security, address space
-> randomization - but it gives much better real time performance. Why does each
-> process need to take a MMU exception for libc code...
-> 
-> So long story short - it seems there can be multiple uses of this infrastructure !
-
-During the development of this code, we also looked at shared TLB entries, but
-the other way around. We wanted to use them to prevent flushing of TLB entries of
-shared memory regions when switching between multiple ASes. Unfortunately, we never
-finished this part of the code.
-
-However, we also investigated into a different use-case for first class virtual
-address spaces that is related to what you propose if I didn't understand something
-wrong. The idea is to move shared libraries into their own first class virtual
-address space and only load some small trampoline code in the application AS. This
-trampoline code performs the VAS switch in the libraries AS and execute the requested
-function there. If we combine this architecture with tagged TLB entries to prevent
-TLB flushes during the switch operation, it can also reach an acceptable performance.
-A side effect of moving the shared library into its own AS is that it can not be used
-by ROP-attacks because it is not accessible in the application's AS.
-
-Till
+There's no changelog here, so I can't tell if anything is changed, but I 
+acked v7. Please add acks when sending new versions.
