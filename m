@@ -1,116 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:49761 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753805AbdCFO6v (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Mar 2017 09:58:51 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, devicetree@vger.kernel.org
-Subject: [PATCHv3 00/15] atmel-isi/ov7670/ov2640: convert to standalone drivers
-Date: Mon,  6 Mar 2017 15:56:01 +0100
-Message-Id: <20170306145616.38485-1-hverkuil@xs4all.nl>
+Received: from mail.kernel.org ([198.145.29.136]:47434 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751495AbdCOQ6w (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 15 Mar 2017 12:58:52 -0400
+MIME-Version: 1.0
+In-Reply-To: <0e89fb01-ce6f-5d61-4da9-fc93c1805c34@synopsys.com>
+References: <cover.1488798062.git.roliveir@synopsys.com> <e89902c0c99d0daf9ef821dd7a9c67e866b18a94.1488798062.git.roliveir@synopsys.com>
+ <20170315164209.p24r7mpyijbxleja@rob-hp-laptop> <0e89fb01-ce6f-5d61-4da9-fc93c1805c34@synopsys.com>
+From: Rob Herring <robh@kernel.org>
+Date: Wed, 15 Mar 2017 11:58:25 -0500
+Message-ID: <CAL_Jsq+jYk+12UApckEeytzms3Rzdrq9DE35Jh6gaK8OY7AgrA@mail.gmail.com>
+Subject: Re: [PATCH v10 1/2] Documentation: DT: Add OV5647 bindings
+To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
+        CARLOS.PALMINHA@synopsys.com,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pavel Machek <pavel@ucw.cz>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Mar 15, 2017 at 11:51 AM, Ramiro Oliveira
+<Ramiro.Oliveira@synopsys.com> wrote:
+> Hi Rob
+>
+> On 3/15/2017 4:42 PM, Rob Herring wrote:
+>> On Mon, Mar 06, 2017 at 11:16:33AM +0000, Ramiro Oliveira wrote:
+>>> Create device tree bindings documentation.
+>>>
+>>> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
+>>> ---
+>>>  .../devicetree/bindings/media/i2c/ov5647.txt       | 35 ++++++++++++++++++++++
+>>>  1 file changed, 35 insertions(+)
+>>>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
+>>
+>> There's no changelog here, so I can't tell if anything is changed, but I
+>> acked v7. Please add acks when sending new versions.
+>>
+>
+> The changelog is in the cover letter, although I didn't specify which changes
+> where made in the driver and which were made in the Documentation.
+>
+> The only change was removing the clock name since there was only one clock used.
+>
+> Should I keep your ack?
 
-This patch series converts the soc-camera atmel-isi to a standalone V4L2
-driver.
+Yes.
 
-The same is done for the ov7670 and ov2640 sensor drivers: the ov7670 was
-used to test the atmel-isi driver. The ov2640 is needed because the em28xx
-driver has a soc_camera include dependency. Both ov7670 and ov2640 sensors
-have been tested with the atmel-isi driver.
-
-The first 5 patches improve the ov7670 sensor driver, mostly adding modern
-features such as DT support.
-
-The next three convert the atmel-isi and move it out of soc_camera.
-
-The following 5 patches convert ov2640 and drop the soc_camera dependency
-in em28xx. I have tested that this works with my 'SpeedLink Vicious And
-Divine Laplace webcam'.
-
-The last two patches add isi support to the DT: the first for the ov7670
-sensor, the second modifies it for the ov2640 sensor.
-
-These two final patches are for demonstration purposes only, I do not plan
-on merging them.
-
-Tested with my sama5d3-Xplained board, the ov2640 sensor and two ov7670
-sensors: one with and one without reset/pwdn pins. Also tested with my
-em28xx-based webcam.
-
-I'd like to get this in for 4.12. Fingers crossed.
-
-Regards,
-
-	Hans
-
-Changes since v2:
-- Incorporated Sakari's and Rob's device tree bindings comments.
-- ov2640: dropped the reset/power changes. These actually broke the em28xx
-  and there was really nothing wrong with it.
-- merged the "ov2640: allow use inside em28xx" into patches 10 and 11.
-  It really shouldn't have been a separate patch in the first place.
-- rebased on top of 4.11-rc1.
-
-Changes since v1:
-
-- Dropped MC support from atmel-isi and ov7670: not needed to make this
-  work. Only for the ov2640 was it kept since the em28xx driver requires it.
-- Use devm_clk_get instead of clk_get.
-- The ov7670 lower limit of the clock speed is 10 MHz instead of 12. Adjust
-  accordingly.
-
-
-Hans Verkuil (15):
-  ov7670: document device tree bindings
-  ov7670: call v4l2_async_register_subdev
-  ov7670: fix g/s_parm
-  ov7670: get xclk
-  ov7670: add devicetree support
-  atmel-isi: document device tree bindings
-  atmel-isi: remove dependency of the soc-camera framework
-  atmel-isi: move out of soc_camera to atmel
-  ov2640: update bindings
-  ov2640: convert from soc-camera to a standard subdev sensor driver.
-  ov2640: use standard clk and enable it.
-  ov2640: add MC support
-  em28xx: drop last soc_camera link
-  sama5d3 dts: enable atmel-isi
-  at91-sama5d3_xplained.dts: select ov2640
-
- .../devicetree/bindings/media/atmel-isi.txt        |   90 +-
- .../devicetree/bindings/media/i2c/ov2640.txt       |   22 +-
- .../devicetree/bindings/media/i2c/ov7670.txt       |   44 +
- MAINTAINERS                                        |    1 +
- arch/arm/boot/dts/at91-sama5d3_xplained.dts        |   60 +-
- arch/arm/boot/dts/sama5d3.dtsi                     |    4 +-
- drivers/media/i2c/Kconfig                          |   11 +
- drivers/media/i2c/Makefile                         |    1 +
- drivers/media/i2c/{soc_camera => }/ov2640.c        |  151 +--
- drivers/media/i2c/ov7670.c                         |   69 +-
- drivers/media/i2c/soc_camera/Kconfig               |    6 -
- drivers/media/i2c/soc_camera/Makefile              |    1 -
- drivers/media/platform/Makefile                    |    1 +
- drivers/media/platform/atmel/Kconfig               |   11 +-
- drivers/media/platform/atmel/Makefile              |    1 +
- drivers/media/platform/atmel/atmel-isi.c           | 1398 ++++++++++++++++++++
- .../platform/{soc_camera => atmel}/atmel-isi.h     |    0
- drivers/media/platform/soc_camera/Kconfig          |   11 -
- drivers/media/platform/soc_camera/Makefile         |    1 -
- drivers/media/platform/soc_camera/atmel-isi.c      | 1167 ----------------
- drivers/media/usb/em28xx/em28xx-camera.c           |    9 -
- 21 files changed, 1696 insertions(+), 1363 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7670.txt
- rename drivers/media/i2c/{soc_camera => }/ov2640.c (92%)
- create mode 100644 drivers/media/platform/atmel/atmel-isi.c
- rename drivers/media/platform/{soc_camera => atmel}/atmel-isi.h (100%)
- delete mode 100644 drivers/media/platform/soc_camera/atmel-isi.c
-
--- 
-2.11.0
+Rob
