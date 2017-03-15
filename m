@@ -1,97 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:50994 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751483AbdCPRHi (ORCPT
+Received: from smtprelay4.synopsys.com ([198.182.47.9]:34816 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753091AbdCOQvO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Mar 2017 13:07:38 -0400
-Subject: Re: [PATCH v3 2/6] media: uapi: Add RGB and YUV bus formats for
- Synopsys HDMI TX Controller
-To: Neil Armstrong <narmstrong@baylibre.com>
-References: <1488904944-14285-1-git-send-email-narmstrong@baylibre.com>
- <1488904944-14285-3-git-send-email-narmstrong@baylibre.com>
-Cc: dri-devel@lists.freedesktop.org,
-        laurent.pinchart+renesas@ideasonboard.com, mchehab@kernel.org,
-        Jose.Abreu@synopsys.com, kieran.bingham@ideasonboard.com,
-        linux-amlogic@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, hans.verkuil@cisco.com,
-        sakari.ailus@linux.intel.com
-From: Archit Taneja <architt@codeaurora.org>
-Message-ID: <f57eefc2-8c37-ee0c-7b6e-06334d9d059d@codeaurora.org>
-Date: Thu, 16 Mar 2017 22:36:45 +0530
+        Wed, 15 Mar 2017 12:51:14 -0400
+Subject: Re: [PATCH v10 1/2] Documentation: DT: Add OV5647 bindings
+To: Rob Herring <robh@kernel.org>,
+        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+References: <cover.1488798062.git.roliveir@synopsys.com>
+ <e89902c0c99d0daf9ef821dd7a9c67e866b18a94.1488798062.git.roliveir@synopsys.com>
+ <20170315164209.p24r7mpyijbxleja@rob-hp-laptop>
+CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <devicetree@vger.kernel.org>, <vladimir_zapolskiy@mentor.com>,
+        <CARLOS.PALMINHA@synopsys.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        "Hans Verkuil" <hans.verkuil@cisco.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pavel Machek <pavel@ucw.cz>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+Message-ID: <0e89fb01-ce6f-5d61-4da9-fc93c1805c34@synopsys.com>
+Date: Wed, 15 Mar 2017 16:51:02 +0000
 MIME-Version: 1.0
-In-Reply-To: <1488904944-14285-3-git-send-email-narmstrong@baylibre.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+In-Reply-To: <20170315164209.p24r7mpyijbxleja@rob-hp-laptop>
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Rob
 
+On 3/15/2017 4:42 PM, Rob Herring wrote:
+> On Mon, Mar 06, 2017 at 11:16:33AM +0000, Ramiro Oliveira wrote:
+>> Create device tree bindings documentation.
+>>
+>> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
+>> ---
+>>  .../devicetree/bindings/media/i2c/ov5647.txt       | 35 ++++++++++++++++++++++
+>>  1 file changed, 35 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
+> 
+> There's no changelog here, so I can't tell if anything is changed, but I 
+> acked v7. Please add acks when sending new versions.
+> 
 
-On 3/7/2017 10:12 PM, Neil Armstrong wrote:
-> In order to describe the RGB and YUB bus formats used to feed the
+The changelog is in the cover letter, although I didn't specify which changes
+where made in the driver and which were made in the Documentation.
 
-s/YUB/YUV
+The only change was removing the clock name since there was only one clock used.
 
-> Synopsys DesignWare HDMI TX Controller, add missing formats to the
-> list of Bus Formats.
->
-> Documentation for these formats is added in a separate patch.
->
-
-Reviewed-by: Archit Taneja <architt@codeaurora.org>
-
-> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
-> ---
->  include/uapi/linux/media-bus-format.h | 13 +++++++++++--
->  1 file changed, 11 insertions(+), 2 deletions(-)
->
-> diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-> index 2168759..7cc820b 100644
-> --- a/include/uapi/linux/media-bus-format.h
-> +++ b/include/uapi/linux/media-bus-format.h
-> @@ -33,7 +33,7 @@
->
->  #define MEDIA_BUS_FMT_FIXED			0x0001
->
-> -/* RGB - next is	0x1018 */
-> +/* RGB - next is	0x101b */
->  #define MEDIA_BUS_FMT_RGB444_1X12		0x1016
->  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
->  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
-> @@ -57,8 +57,11 @@
->  #define MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA	0x1012
->  #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
->  #define MEDIA_BUS_FMT_RGB888_1X32_PADHI		0x100f
-> +#define MEDIA_BUS_FMT_RGB101010_1X30		0x1018
-> +#define MEDIA_BUS_FMT_RGB121212_1X36		0x1019
-> +#define MEDIA_BUS_FMT_RGB161616_1X48		0x101a
->
-> -/* YUV (including grey) - next is	0x2026 */
-> +/* YUV (including grey) - next is	0x202c */
->  #define MEDIA_BUS_FMT_Y8_1X8			0x2001
->  #define MEDIA_BUS_FMT_UV8_1X8			0x2015
->  #define MEDIA_BUS_FMT_UYVY8_1_5X8		0x2002
-> @@ -90,12 +93,18 @@
->  #define MEDIA_BUS_FMT_YVYU10_1X20		0x200e
->  #define MEDIA_BUS_FMT_VUY8_1X24			0x2024
->  #define MEDIA_BUS_FMT_YUV8_1X24			0x2025
-> +#define MEDIA_BUS_FMT_UYVY8_1_1X24		0x2026
->  #define MEDIA_BUS_FMT_UYVY12_1X24		0x2020
->  #define MEDIA_BUS_FMT_VYUY12_1X24		0x2021
->  #define MEDIA_BUS_FMT_YUYV12_1X24		0x2022
->  #define MEDIA_BUS_FMT_YVYU12_1X24		0x2023
->  #define MEDIA_BUS_FMT_YUV10_1X30		0x2016
-> +#define MEDIA_BUS_FMT_UYVY10_1_1X30		0x2027
->  #define MEDIA_BUS_FMT_AYUV8_1X32		0x2017
-> +#define MEDIA_BUS_FMT_UYVY12_1_1X36		0x2028
-> +#define MEDIA_BUS_FMT_YUV12_1X36		0x2029
-> +#define MEDIA_BUS_FMT_YUV16_1X48		0x202a
-> +#define MEDIA_BUS_FMT_UYVY16_1_1X48		0x202b
->
->  /* Bayer - next is	0x3021 */
->  #define MEDIA_BUS_FMT_SBGGR8_1X8		0x3001
->
+Should I keep your ack?
 
 -- 
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora 
-Forum, hosted by The Linux Foundation
+Best Regards
+
+Ramiro Oliveira
+Ramiro.Oliveira@synopsys.com
