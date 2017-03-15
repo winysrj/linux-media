@@ -1,145 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:30564 "EHLO
-        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753678AbdCTK5T (ORCPT
+Received: from mail.andi.de1.cc ([85.214.239.24]:51688 "EHLO
+        h2641619.stratoserver.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752493AbdCOWWw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 06:57:19 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>
-Subject: [PATCH v3 16/16] ARM: dts: exynos: Remove MFC reserved buffers
-Date: Mon, 20 Mar 2017 11:56:42 +0100
-Message-id: <1490007402-30265-17-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
-References: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20170320105655eucas1p21706c33b5c1b413126fbfd1e23a34058@eucas1p2.samsung.com>
+        Wed, 15 Mar 2017 18:22:52 -0400
+From: Andreas Kemnade <andreas@kemnade.info>
+To: crope@iki.fi, mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: Andreas Kemnade <andreas@kemnade.info>
+Subject: [PATCH 0/3] support for Logilink VG0022a DVB-T2 stick
+Date: Wed, 15 Mar 2017 23:22:07 +0100
+Message-Id: <1489616530-4025-1-git-send-email-andreas@kemnade.info>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-During my research I found that some of the requirements for the memory
-buffers for MFC v6+ devices were blindly copied from the previous (v5)
-version and simply turned out to be excessive. The relaxed requirements
-are applied by the recent patches to the MFC driver and the driver is
-now fully functional even without the reserved memory blocks for all
-v6+ variants. This patch removes those reserved memory nodes from all
-boards having MFC v6+ hardware block.
+Hi all,
+here are some patches needed for supporting the
+Logilink VG0022A DVB-T2 stick.
+As the combination of chips in that stick is not
+uncommon, the first two patches might also fix problems
+for similar hardware.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Acked-by: Andrzej Hajda <a.hajda@samsung.com>
-Tested-by: Smitha T Murthy <smitha.t@samsung.com>
----
- arch/arm/boot/dts/exynos5250-arndale.dts           | 1 -
- arch/arm/boot/dts/exynos5250-smdk5250.dts          | 1 -
- arch/arm/boot/dts/exynos5250-spring.dts            | 1 -
- arch/arm/boot/dts/exynos5420-arndale-octa.dts      | 1 -
- arch/arm/boot/dts/exynos5420-peach-pit.dts         | 1 -
- arch/arm/boot/dts/exynos5420-smdk5420.dts          | 1 -
- arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi | 1 -
- arch/arm/boot/dts/exynos5800-peach-pi.dts          | 1 -
- 8 files changed, 8 deletions(-)
+Andreas Kemnade (3):
+  [media] si2157: get chip id during probing
+  [media] af9035: init i2c already in it930x_frontend_attach
+  [media] af9035: add Logilink vg0022a to device id table
 
-diff --git a/arch/arm/boot/dts/exynos5250-arndale.dts b/arch/arm/boot/dts/exynos5250-arndale.dts
-index 6098dacd09f1..6a432460eb77 100644
---- a/arch/arm/boot/dts/exynos5250-arndale.dts
-+++ b/arch/arm/boot/dts/exynos5250-arndale.dts
-@@ -14,7 +14,6 @@
- #include <dt-bindings/interrupt-controller/irq.h>
- #include <dt-bindings/input/input.h>
- #include "exynos5250.dtsi"
--#include "exynos-mfc-reserved-memory.dtsi"
- 
- / {
- 	model = "Insignal Arndale evaluation board based on EXYNOS5250";
-diff --git a/arch/arm/boot/dts/exynos5250-smdk5250.dts b/arch/arm/boot/dts/exynos5250-smdk5250.dts
-index a97a785ccc6b..6632f657394e 100644
---- a/arch/arm/boot/dts/exynos5250-smdk5250.dts
-+++ b/arch/arm/boot/dts/exynos5250-smdk5250.dts
-@@ -13,7 +13,6 @@
- #include <dt-bindings/gpio/gpio.h>
- #include <dt-bindings/interrupt-controller/irq.h>
- #include "exynos5250.dtsi"
--#include "exynos-mfc-reserved-memory.dtsi"
- 
- / {
- 	model = "SAMSUNG SMDK5250 board based on EXYNOS5250";
-diff --git a/arch/arm/boot/dts/exynos5250-spring.dts b/arch/arm/boot/dts/exynos5250-spring.dts
-index 4d7bdb735ed3..95c3bcace9dc 100644
---- a/arch/arm/boot/dts/exynos5250-spring.dts
-+++ b/arch/arm/boot/dts/exynos5250-spring.dts
-@@ -14,7 +14,6 @@
- #include <dt-bindings/interrupt-controller/irq.h>
- #include <dt-bindings/input/input.h>
- #include "exynos5250.dtsi"
--#include "exynos-mfc-reserved-memory.dtsi"
- 
- / {
- 	model = "Google Spring";
-diff --git a/arch/arm/boot/dts/exynos5420-arndale-octa.dts b/arch/arm/boot/dts/exynos5420-arndale-octa.dts
-index 9cc83c51c925..ee1bb9b8b366 100644
---- a/arch/arm/boot/dts/exynos5420-arndale-octa.dts
-+++ b/arch/arm/boot/dts/exynos5420-arndale-octa.dts
-@@ -16,7 +16,6 @@
- #include <dt-bindings/interrupt-controller/irq.h>
- #include <dt-bindings/input/input.h>
- #include <dt-bindings/clock/samsung,s2mps11.h>
--#include "exynos-mfc-reserved-memory.dtsi"
- 
- / {
- 	model = "Insignal Arndale Octa evaluation board based on EXYNOS5420";
-diff --git a/arch/arm/boot/dts/exynos5420-peach-pit.dts b/arch/arm/boot/dts/exynos5420-peach-pit.dts
-index 1f964ec35c5e..2cd65699a29c 100644
---- a/arch/arm/boot/dts/exynos5420-peach-pit.dts
-+++ b/arch/arm/boot/dts/exynos5420-peach-pit.dts
-@@ -16,7 +16,6 @@
- #include <dt-bindings/regulator/maxim,max77802.h>
- #include "exynos5420.dtsi"
- #include "exynos5420-cpus.dtsi"
--#include "exynos-mfc-reserved-memory.dtsi"
- 
- / {
- 	model = "Google Peach Pit Rev 6+";
-diff --git a/arch/arm/boot/dts/exynos5420-smdk5420.dts b/arch/arm/boot/dts/exynos5420-smdk5420.dts
-index aaccd0da41e5..08c8ab173e87 100644
---- a/arch/arm/boot/dts/exynos5420-smdk5420.dts
-+++ b/arch/arm/boot/dts/exynos5420-smdk5420.dts
-@@ -13,7 +13,6 @@
- #include "exynos5420.dtsi"
- #include "exynos5420-cpus.dtsi"
- #include <dt-bindings/gpio/gpio.h>
--#include "exynos-mfc-reserved-memory.dtsi"
- 
- / {
- 	model = "Samsung SMDK5420 board based on EXYNOS5420";
-diff --git a/arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi b/arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi
-index 05b9afdd6757..657535e2e3cc 100644
---- a/arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi
-+++ b/arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi
-@@ -18,7 +18,6 @@
- #include <dt-bindings/sound/samsung-i2s.h>
- #include "exynos5800.dtsi"
- #include "exynos5422-cpus.dtsi"
--#include "exynos-mfc-reserved-memory.dtsi"
- 
- / {
- 	memory@40000000 {
-diff --git a/arch/arm/boot/dts/exynos5800-peach-pi.dts b/arch/arm/boot/dts/exynos5800-peach-pi.dts
-index f9ff7f07ae0c..ecf1c916e8fc 100644
---- a/arch/arm/boot/dts/exynos5800-peach-pi.dts
-+++ b/arch/arm/boot/dts/exynos5800-peach-pi.dts
-@@ -16,7 +16,6 @@
- #include <dt-bindings/regulator/maxim,max77802.h>
- #include "exynos5800.dtsi"
- #include "exynos5420-cpus.dtsi"
--#include "exynos-mfc-reserved-memory.dtsi"
- 
- / {
- 	model = "Google Peach Pi Rev 10+";
+ drivers/media/tuners/si2157.c         | 54 +++++++++++++++++++++--------------
+ drivers/media/tuners/si2157_priv.h    |  7 +++++
+ drivers/media/usb/dvb-usb-v2/af9035.c | 45 ++++++++++++++++++++++++++++-
+ 3 files changed, 83 insertions(+), 23 deletions(-)
+
 -- 
-1.9.1
+2.1.4
