@@ -1,75 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.macqel.be ([109.135.2.61]:55656 "EHLO smtp2.macqel.be"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753404AbdCTIzX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 04:55:23 -0400
-Date: Mon, 20 Mar 2017 09:55:12 +0100
-From: Philippe De Muyter <phdm@macq.eu>
-To: Russell King <rmk+kernel@armlinux.org.uk>
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        sakari.ailus@linux.intel.com, hverkuil@xs4all.nl,
-        linux-media@vger.kernel.org, kernel@pengutronix.de,
-        mchehab@kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, p.zabel@pengutronix.de
-Subject: Re: [PATCH 4/4] media: imx-media-capture: add frame sizes/interval
-        enumeration
-Message-ID: <20170320085512.GA20923@frolo.macqel>
-References: <20170319103801.GQ21222@n2100.armlinux.org.uk> <E1cpYOa-0006Eu-CL@rmk-PC.armlinux.org.uk>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58648 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752027AbdCOWMv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 15 Mar 2017 18:12:51 -0400
+Date: Thu, 16 Mar 2017 00:03:03 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, vladimir_zapolskiy@mentor.com,
+        CARLOS.PALMINHA@synopsys.com,
+        Andrew Morton <akpm@linux-foundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>,
+        Pavel Machek <pavel@ucw.cz>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Rob Herring <robh+dt@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+Subject: Re: [PATCH v10 2/2] media: i2c: Add support for OV5647 sensor.
+Message-ID: <20170315220303.GG10701@valkosipuli.retiisi.org.uk>
+References: <cover.1488798062.git.roliveir@synopsys.com>
+ <67b5055a198316f74c5c1339e14a9f18a4106e69.1488798062.git.roliveir@synopsys.com>
+ <20170307104545.GI3220@valkosipuli.retiisi.org.uk>
+ <350cf398-81a9-7174-fd47-1dc5c0daa990@synopsys.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <E1cpYOa-0006Eu-CL@rmk-PC.armlinux.org.uk>
+In-Reply-To: <350cf398-81a9-7174-fd47-1dc5c0daa990@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Russel,
+Hi Ramiro,
 
-On Sun, Mar 19, 2017 at 10:49:08AM +0000, Russell King wrote:
-> Add support for enumerating frame sizes and frame intervals from the
-> first subdev via the V4L2 interfaces.
+On Wed, Mar 15, 2017 at 04:45:16PM +0000, Ramiro Oliveira wrote:
+> Hi Sakari
 > 
-> Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-> ---
->  drivers/staging/media/imx/imx-media-capture.c | 62 +++++++++++++++++++++++++++
->  1 file changed, 62 insertions(+)
+> On 3/7/2017 10:45 AM, Sakari Ailus wrote:
+> > Hi Ramiro,
+> > 
+> > On Mon, Mar 06, 2017 at 11:16:34AM +0000, Ramiro Oliveira wrote:
+> > ...
+> >> +static int __sensor_init(struct v4l2_subdev *sd)
+> >> +{
+> >> +	int ret;
+> >> +	u8 resetval, rdval;
+> >> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> >> +
+> >> +	dev_dbg(&client->dev, "sensor init\n");
+> > 
+> > This looks like a debugging time leftover. Please remove.
+> > 
 > 
-...
-> +static int capture_enum_frameintervals(struct file *file, void *fh,
-> +				       struct v4l2_frmivalenum *fival)
-> +{
-> +	struct capture_priv *priv = video_drvdata(file);
-> +	const struct imx_media_pixfmt *cc;
-> +	struct v4l2_subdev_frame_interval_enum fie = {
-> +		.index = fival->index,
-> +		.pad = priv->src_sd_pad,
-> +		.width = fival->width,
-> +		.height = fival->height,
-> +		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-> +	};
-> +	int ret;
-> +
-> +	cc = imx_media_find_format(fival->pixel_format, CS_SEL_ANY, true);
-> +	if (!cc)
-> +		return -EINVAL;
-> +
-> +	fie.code = cc->codes[0];
-> +
-> +	ret = v4l2_subdev_call(priv->src_sd, pad, enum_frame_interval, NULL, &fie);
-> +	if (ret)
-> +		return ret;
-> +
-> +	fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
-> +	fival->discrete = fie.interval;
+> Should I send a v11 with this change?
 
-For some parallel sensors (mine is a E2V ev76c560) "any" frame interval is possible,
-and hence type should be V4L2_FRMIVAL_TYPE_CONTINUOUS.
+Please do; you can add my ack on that one.
 
-see also https://www.spinics.net/lists/linux-media/msg98622.html,
-https://patchwork.kernel.org/patch/9171201/ and
-https://patchwork.kernel.org/patch/9171199/
-
-Philippe
+> 
+> > With that,
+> > 
+> > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > 
+> > ...
+> > 
 
 -- 
-Philippe De Muyter +32 2 6101532 Macq SA rue de l'Aeronef 2 B-1140 Bruxelles
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
