@@ -1,125 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35912 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932907AbdCKNQo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Mar 2017 08:16:44 -0500
-Date: Sat, 11 Mar 2017 15:16:07 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        devicetree@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv5 07/16] atmel-isi: remove dependency of the soc-camera
- framework
-Message-ID: <20170311131607.GM3220@valkosipuli.retiisi.org.uk>
-References: <20170311112328.11802-1-hverkuil@xs4all.nl>
- <20170311112328.11802-8-hverkuil@xs4all.nl>
+Received: from mga14.intel.com ([192.55.52.115]:9003 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751478AbdCPOH6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 16 Mar 2017 10:07:58 -0400
+Date: Thu, 16 Mar 2017 16:07:25 +0200
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
+To: Brian Starkey <brian.starkey@arm.com>
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, mihail.atanassov@arm.com,
+        liviu.dudau@arm.com, Shashank Sharma <shashank.sharma@intel.com>
+Subject: Re: DRM Atomic property for color-space conversion
+Message-ID: <20170316140725.GF31595@intel.com>
+References: <20170127172324.GB12018@e106950-lin.cambridge.arm.com>
+ <20170130133513.GO31595@intel.com>
+ <20170131123329.GB24500@e106950-lin.cambridge.arm.com>
+ <20170131151546.GT31595@intel.com>
+ <20170131155541.GF11506@e106950-lin.cambridge.arm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20170311112328.11802-8-hverkuil@xs4all.nl>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170131155541.GF11506@e106950-lin.cambridge.arm.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Sat, Mar 11, 2017 at 12:23:19PM +0100, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On Tue, Jan 31, 2017 at 03:55:41PM +0000, Brian Starkey wrote:
+> On Tue, Jan 31, 2017 at 05:15:46PM +0200, Ville Syrjälä wrote:
+> >On Tue, Jan 31, 2017 at 12:33:29PM +0000, Brian Starkey wrote:
+> >> Hi,
+> >>
+> >> On Mon, Jan 30, 2017 at 03:35:13PM +0200, Ville Syrjälä wrote:
+> >> >On Fri, Jan 27, 2017 at 05:23:24PM +0000, Brian Starkey wrote:
+> >> >> Hi,
+> >> >>
+> >> >> We're looking to enable the per-plane color management hardware in
+> >> >> Mali-DP with atomic properties, which has sparked some conversation
+> >> >> around how to handle YCbCr formats.
+> >> >>
+> >> >> As it stands today, it's assumed that a driver will implicitly "do the
+> >> >> right thing" to display a YCbCr buffer.
+> >> >>
+> >> >> YCbCr data often uses different gamma curves and signal ranges (e.g.
+> >> >> BT.609, BT.701, BT.2020, studio range, full-range), so its desirable
+> >> >> to be able to explicitly control the YCbCr to RGB conversion process
+> >> >> from userspace.
+> >> >>
+> >> >> We're proposing adding a "CSC" (color-space conversion) property to
+> >> >> control this - primarily per-plane for framebuffer->pipeline CSC, but
+> >> >> perhaps one per CRTC too for devices which have an RGB pipeline and
+> >> >> want to output in YUV to the display:
+> >> >>
+> >> >> Name: "CSC"
+> >> >> Type: ENUM | ATOMIC;
+> >> >> Enum values (representative):
+> >> >> "default":
+> >> >> 	Same behaviour as now. "Some kind" of YCbCr->RGB conversion
+> >> >> 	for YCbCr buffers, bypass for RGB buffers
+> >> >> "disable":
+> >> >> 	Explicitly disable all colorspace conversion (i.e. use an
+> >> >> 	identity matrix).
+> >> >> "YCbCr to RGB: BT.709":
+> >> >> 	Only valid for YCbCr formats. CSC in accordance with BT.709
+> >> >> 	using [16..235] for (8-bit) luma values, and [16..240] for
+> >> >> 	8-bit chroma values. For 10-bit formats, the range limits are
+> >> >> 	multiplied by 4.
+> >> >> "YCbCr to RGB: BT.709 full-swing":
+> >> >> 	Only valid for YCbCr formats. CSC in accordance with BT.709,
+> >> >> 	but using the full range of each channel.
+> >> >> "YCbCr to RGB: Use CTM":*
+> >> >> 	Only valid for YCbCr formats. Use the matrix applied via the
+> >> >> 	plane's CTM property
+> >> >> "RGB to RGB: Use CTM":*
+> >> >> 	Only valid for RGB formats. Use the matrix applied via the
+> >> >> 	plane's CTM property
+> >> >> "Use CTM":*
+> >> >> 	Valid for any format. Use the matrix applied via the plane's
+> >> >> 	CTM property
+> >> >> ... any other values for BT.601, BT.2020, RGB to YCbCr etc. etc. as
+> >> >> they are required.
+> >> >
+> >> >Having some RGB2RGB and YCBCR2RGB things in the same property seems
+> >> >weird. I would just go with something very simple like:
+> >> >
+> >> >YCBCR_TO_RGB_CSC:
+> >> >* BT.601
+> >> >* BT.709
+> >> >* custom matrix
+> >> >
+> >>
+> >> I think we've agreed in #dri-devel that this CSC property
+> >> can't/shouldn't be mapped on-to the existing (hardware implementing
+> >> the) CTM property - even in the case of per-plane color management -
+> >> because CSC needs to be done before DEGAMMA.
+> >>
+> >> So, I'm in favour of going with what you suggested in the first place:
+> >>
+> >> A new YCBCR_TO_RGB_CSC property, enum type, with a list of fixed
+> >> conversions. I'd drop the custom matrix for now, as we'd need to add
+> >> another property to attach the custom matrix blob too.
+> >>
+> >> I still think we need a way to specify whether the source data range
+> >> is broadcast/full-range, so perhaps the enum list should be expanded
+> >> to all combinations of BT.601/BT.709 + broadcast/full-range.
+> >
+> >Sounds reasonable. Not that much full range YCbCr stuff out there
+> >perhaps. Well, apart from jpegs I suppose. But no harm in being able
+> >to deal with it.
+> >
+> >>
+> >> (I'm not sure what the canonical naming for broadcast/full-range is,
+> >> we call them narrow and wide)
+> >
+> >We tend to call them full vs. limited range. That's how our
+> >"Broadcast RGB" property is defined as well.
+> >
 > 
-> This patch converts the atmel-isi driver from a soc-camera driver to a driver
-> that is stand-alone.
+> OK, using the same ones sounds sensible.
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/platform/soc_camera/Kconfig     |    3 +-
->  drivers/media/platform/soc_camera/atmel-isi.c | 1209 +++++++++++++++----------
->  2 files changed, 714 insertions(+), 498 deletions(-)
+> >>
+> >> >And trying to use the same thing for the crtc stuff is probably not
+> >> >going to end well. Like Daniel said we already have the
+> >> >'Broadcast RGB' property muddying the waters there, and that stuff
+> >> >also ties in with what colorspace we signal to the sink via
+> >> >infoframes/whatever the DP thing was called. So my gut feeling is
+> >> >that trying to use the same property everywhere will just end up
+> >> >messy.
+> >>
+> >> Yeah, agreed. If/when someone wants to add CSC on the output of a CRTC
+> >> (after GAMMA), we can add a new property.
+> >>
+> >> That makes me wonder about calling this one SOURCE_YCBCR_TO_RGB_CSC to
+> >> be explicit that it describes the source data. Then we can later add
+> >> SINK_RGB_TO_YCBCR_CSC, and it will be reasonably obvious that its
+> >> value describes the output data rather than the input data.
+> >
+> >Source and sink have a slight connotation in my mind wrt. the box that
+> >produces the display signal and the box that eats the signal. So trying
+> >to use the same terms to describe the internals of the pipeline inside
+> >the "source box" migth lead to some confusion. But we do probably need
+> >some decent names for these to make the layout of the pipeline clear.
+> >Input/output are the other names that popped to my mind but those aren't
+> >necessarily any better. But in the end I think I could live with whatever
+> >names we happen to pick, as long as we document the pipeline clearly.
+> >
+> >Long ago I did wonder if we should just start indexing these things
+> >somehow, and then just looking at the index should tell you the order
+> >of the operations. But we already have the ctm/gamma w/o any indexes so
+> >that idea probably isn't so great anymore.
+> >
+> >>
+> >> I want to avoid confusion caused by ending up with two
+> >> {CS}_TO_{CS}_CSC properties, where one is describing the data to the
+> >> left of it, and the other describing the data to the right of it, with
+> >> no real way of telling which way around it is.
+> >
+> >Not really sure what you mean. It should always be
+> ><left>_to_<right>_csc.
 > 
-> diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
-> index 86d74788544f..a37ec91b026e 100644
-> --- a/drivers/media/platform/soc_camera/Kconfig
-> +++ b/drivers/media/platform/soc_camera/Kconfig
-> @@ -29,9 +29,8 @@ config VIDEO_SH_MOBILE_CEU
->  
->  config VIDEO_ATMEL_ISI
->  	tristate "ATMEL Image Sensor Interface (ISI) support"
-> -	depends on VIDEO_DEV && SOC_CAMERA
-> +	depends on VIDEO_V4L2 && OF && HAS_DMA
->  	depends on ARCH_AT91 || COMPILE_TEST
-> -	depends on HAS_DMA
->  	select VIDEOBUF2_DMA_CONTIG
->  	---help---
->  	  This module makes the ATMEL Image Sensor Interface available
-> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-> index 46de657c3e6d..a6d60c2e207d 100644
-> --- a/drivers/media/platform/soc_camera/atmel-isi.c
-> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+> Agreed, left-to-right. But for instance on a CSC property representing
+> a CRTC output CSC (just before hitting the connector), which happens
+> to be converting RGB to YCbCr:
+> 
+> CRTC -> GAMMA -> RGB_TO_YCBCR_CSC
+> 
+> ...the enum value "BT.601 Limited" means that the data on the *right*
+> of RGB_TO_YCBCR_CSC is "BT.601 Limited"
+> 
+> On the other hand for a CSC on the input of a plane, which happens to
+> be converting YCbCr to RGB:
+> 
+> RAM -> YCBCR_TO_RGB_CSC -> DEGAMMA
+> 
+> ...the enum value "BT.601 Limited" means that the data on the *left*
+> of YCBCR_TO_RGB_CSC is "BT.601 Limited".
+> 
+> Indicating in the property name whether its value is describing the
+> data on the left or the right is needed (and I don't think inferring
+> that "it's always the YCBCR one" is the correct approach).
+> 
+> In my example above, "SOURCE_xxx" would mean the enum value is
+> describing the "source" data (i.e. the data on the left) and
+> "SINK_xxx" would mean the enum value is describing the "sink" data
+> (i.e. the data on the right). This doesn't necessarily need to infer a
+> particular point in the pipeline.
 
-...
+Right, so I guess you want the values to be named "<a> to <b>" as well?
+Yes, I think we'll be wanting that as well.
 
-> +static int isi_graph_init(struct atmel_isi *isi)
-> +{
-> +	struct v4l2_async_subdev **subdevs = NULL;
-> +	int ret;
-> +
-> +	/* Parse the graph to extract a list of subdevice DT nodes. */
-> +	ret = isi_graph_parse(isi, isi->dev->of_node);
-> +	if (ret < 0) {
-> +		dev_err(isi->dev, "Graph parsing failed\n");
-> +		goto done;
-> +	}
-> +
-> +	if (!ret) {
-> +		dev_err(isi->dev, "No subdev found in graph\n");
-> +		goto done;
-> +	}
-> +
-> +	/* Register the subdevices notifier. */
-> +	subdevs = devm_kzalloc(isi->dev, sizeof(*subdevs), GFP_KERNEL);
-> +	if (subdevs == NULL) {
-> +		ret = -ENOMEM;
-> +		goto done;
-> +	}
-> +
-> +	subdevs[0] = &isi->entity.asd;
-> +
-> +	isi->notifier.subdevs = subdevs;
-> +	isi->notifier.num_subdevs = 1;
-> +	isi->notifier.bound = isi_graph_notify_bound;
-> +	isi->notifier.unbind = isi_graph_notify_unbind;
-> +	isi->notifier.complete = isi_graph_notify_complete;
-> +
-> +	ret = v4l2_async_notifier_register(&isi->v4l2_dev, &isi->notifier);
-> +	if (ret < 0) {
-> +		dev_err(isi->dev, "Notifier registration failed\n");
-> +		goto done;
-> +	}
-> +
-> +	ret = 0;
+So what we might need is something like:
+enum YCBCR_TO_RGB_CSC
+ * YCbCr BT.601 limited to RGB BT.709 full
+ * YCbCr BT.709 limited to RGB BT.709 full <this would be the likely default value IMO>
+ * YCbCr BT.601 limited to RGB BT.2020 full
+ * YCbCr BT.709 limited to RGB BT.2020 full
+ * YCbCr BT.2020 limited to RGB BT.2020 full
 
-You can replace this by
+And thanks to BT.2020 we'll need a RGB->RGB CSC property as well. Eg:
+enum RGB_TO_RGB_CSC
+ * bypass (or separate 709->709, 2020->2020?) <this would be the default>
+ * RGB BT.709 full to RGB BT.2020 full
 
-	return 0;
+Alternatives would involve two properties to define the input and output
+from the CSC separately, but then you lose the capability to see which
+combinations are actually supoorted.
 
-And remove the if () below.
+We may want to add the "curstom matrix" enum value + the blob property
+for the actual matrix for hw capable of doing that.
 
-> +
-> +done:
-> +	if (ret < 0) {
-> +		v4l2_async_notifier_unregister(&isi->notifier);
-> +		of_node_put(isi->entity.node);
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Adding Shashank to cc since he's the one who has been
+looking at this colorspacey stuff on our side.
 
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Ville Syrjälä
+Intel OTC
