@@ -1,92 +1,253 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:47937 "EHLO
-        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932918AbdCaN3l (ORCPT
+Received: from mail-yw0-f177.google.com ([209.85.161.177]:33340 "EHLO
+        mail-yw0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751487AbdCPOMi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Mar 2017 09:29:41 -0400
-Subject: Re: [Patch v3 00/11] Add MFC v10.10 support
-To: Smitha T Murthy <smitha.t@samsung.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
-        m.szyprowski@samsung.com, s.nawrocki@samsung.com
-From: Andrzej Hajda <a.hajda@samsung.com>
-Message-id: <6a5fa537-0977-b18b-70be-56ad771a0c03@samsung.com>
-Date: Fri, 31 Mar 2017 15:29:35 +0200
-MIME-version: 1.0
-In-reply-to: <1490951200-32070-1-git-send-email-smitha.t@samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
-References: <CGME20170331090425epcas1p4de8762ee73be91312a76a73638bac253@epcas1p4.samsung.com>
- <1490951200-32070-1-git-send-email-smitha.t@samsung.com>
+        Thu, 16 Mar 2017 10:12:38 -0400
+MIME-Version: 1.0
+In-Reply-To: <20170316140725.GF31595@intel.com>
+References: <20170127172324.GB12018@e106950-lin.cambridge.arm.com>
+ <20170130133513.GO31595@intel.com> <20170131123329.GB24500@e106950-lin.cambridge.arm.com>
+ <20170131151546.GT31595@intel.com> <20170131155541.GF11506@e106950-lin.cambridge.arm.com>
+ <20170316140725.GF31595@intel.com>
+From: Alex Deucher <alexdeucher@gmail.com>
+Date: Thu, 16 Mar 2017 10:12:35 -0400
+Message-ID: <CADnq5_P1d6qMAUwY7W+SKXQVik99yvaQp6tJ-i+4ki8ZP5f5TQ@mail.gmail.com>
+Subject: Re: DRM Atomic property for color-space conversion
+To: =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>,
+        "Cyr, Aric" <Aric.Cyr@amd.com>,
+        "Wentland, Harry" <Harry.Wentland@amd.com>
+Cc: Brian Starkey <brian.starkey@arm.com>,
+        linux-media <linux-media@vger.kernel.org>,
+        Liviu Dudau <liviu.dudau@arm.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Maling list - DRI developers
+        <dri-devel@lists.freedesktop.org>, mihail.atanassov@arm.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Smitha,
+On Thu, Mar 16, 2017 at 10:07 AM, Ville Syrj=C3=A4l=C3=A4
+<ville.syrjala@linux.intel.com> wrote:
+> On Tue, Jan 31, 2017 at 03:55:41PM +0000, Brian Starkey wrote:
+>> On Tue, Jan 31, 2017 at 05:15:46PM +0200, Ville Syrj=C3=A4l=C3=A4 wrote:
+>> >On Tue, Jan 31, 2017 at 12:33:29PM +0000, Brian Starkey wrote:
+>> >> Hi,
+>> >>
+>> >> On Mon, Jan 30, 2017 at 03:35:13PM +0200, Ville Syrj=C3=A4l=C3=A4 wro=
+te:
+>> >> >On Fri, Jan 27, 2017 at 05:23:24PM +0000, Brian Starkey wrote:
+>> >> >> Hi,
+>> >> >>
+>> >> >> We're looking to enable the per-plane color management hardware in
+>> >> >> Mali-DP with atomic properties, which has sparked some conversatio=
+n
+>> >> >> around how to handle YCbCr formats.
+>> >> >>
+>> >> >> As it stands today, it's assumed that a driver will implicitly "do=
+ the
+>> >> >> right thing" to display a YCbCr buffer.
+>> >> >>
+>> >> >> YCbCr data often uses different gamma curves and signal ranges (e.=
+g.
+>> >> >> BT.609, BT.701, BT.2020, studio range, full-range), so its desirab=
+le
+>> >> >> to be able to explicitly control the YCbCr to RGB conversion proce=
+ss
+>> >> >> from userspace.
+>> >> >>
+>> >> >> We're proposing adding a "CSC" (color-space conversion) property t=
+o
+>> >> >> control this - primarily per-plane for framebuffer->pipeline CSC, =
+but
+>> >> >> perhaps one per CRTC too for devices which have an RGB pipeline an=
+d
+>> >> >> want to output in YUV to the display:
+>> >> >>
+>> >> >> Name: "CSC"
+>> >> >> Type: ENUM | ATOMIC;
+>> >> >> Enum values (representative):
+>> >> >> "default":
+>> >> >>         Same behaviour as now. "Some kind" of YCbCr->RGB conversio=
+n
+>> >> >>         for YCbCr buffers, bypass for RGB buffers
+>> >> >> "disable":
+>> >> >>         Explicitly disable all colorspace conversion (i.e. use an
+>> >> >>         identity matrix).
+>> >> >> "YCbCr to RGB: BT.709":
+>> >> >>         Only valid for YCbCr formats. CSC in accordance with BT.70=
+9
+>> >> >>         using [16..235] for (8-bit) luma values, and [16..240] for
+>> >> >>         8-bit chroma values. For 10-bit formats, the range limits =
+are
+>> >> >>         multiplied by 4.
+>> >> >> "YCbCr to RGB: BT.709 full-swing":
+>> >> >>         Only valid for YCbCr formats. CSC in accordance with BT.70=
+9,
+>> >> >>         but using the full range of each channel.
+>> >> >> "YCbCr to RGB: Use CTM":*
+>> >> >>         Only valid for YCbCr formats. Use the matrix applied via t=
+he
+>> >> >>         plane's CTM property
+>> >> >> "RGB to RGB: Use CTM":*
+>> >> >>         Only valid for RGB formats. Use the matrix applied via the
+>> >> >>         plane's CTM property
+>> >> >> "Use CTM":*
+>> >> >>         Valid for any format. Use the matrix applied via the plane=
+'s
+>> >> >>         CTM property
+>> >> >> ... any other values for BT.601, BT.2020, RGB to YCbCr etc. etc. a=
+s
+>> >> >> they are required.
+>> >> >
+>> >> >Having some RGB2RGB and YCBCR2RGB things in the same property seems
+>> >> >weird. I would just go with something very simple like:
+>> >> >
+>> >> >YCBCR_TO_RGB_CSC:
+>> >> >* BT.601
+>> >> >* BT.709
+>> >> >* custom matrix
+>> >> >
+>> >>
+>> >> I think we've agreed in #dri-devel that this CSC property
+>> >> can't/shouldn't be mapped on-to the existing (hardware implementing
+>> >> the) CTM property - even in the case of per-plane color management -
+>> >> because CSC needs to be done before DEGAMMA.
+>> >>
+>> >> So, I'm in favour of going with what you suggested in the first place=
+:
+>> >>
+>> >> A new YCBCR_TO_RGB_CSC property, enum type, with a list of fixed
+>> >> conversions. I'd drop the custom matrix for now, as we'd need to add
+>> >> another property to attach the custom matrix blob too.
+>> >>
+>> >> I still think we need a way to specify whether the source data range
+>> >> is broadcast/full-range, so perhaps the enum list should be expanded
+>> >> to all combinations of BT.601/BT.709 + broadcast/full-range.
+>> >
+>> >Sounds reasonable. Not that much full range YCbCr stuff out there
+>> >perhaps. Well, apart from jpegs I suppose. But no harm in being able
+>> >to deal with it.
+>> >
+>> >>
+>> >> (I'm not sure what the canonical naming for broadcast/full-range is,
+>> >> we call them narrow and wide)
+>> >
+>> >We tend to call them full vs. limited range. That's how our
+>> >"Broadcast RGB" property is defined as well.
+>> >
+>>
+>> OK, using the same ones sounds sensible.
+>>
+>> >>
+>> >> >And trying to use the same thing for the crtc stuff is probably not
+>> >> >going to end well. Like Daniel said we already have the
+>> >> >'Broadcast RGB' property muddying the waters there, and that stuff
+>> >> >also ties in with what colorspace we signal to the sink via
+>> >> >infoframes/whatever the DP thing was called. So my gut feeling is
+>> >> >that trying to use the same property everywhere will just end up
+>> >> >messy.
+>> >>
+>> >> Yeah, agreed. If/when someone wants to add CSC on the output of a CRT=
+C
+>> >> (after GAMMA), we can add a new property.
+>> >>
+>> >> That makes me wonder about calling this one SOURCE_YCBCR_TO_RGB_CSC t=
+o
+>> >> be explicit that it describes the source data. Then we can later add
+>> >> SINK_RGB_TO_YCBCR_CSC, and it will be reasonably obvious that its
+>> >> value describes the output data rather than the input data.
+>> >
+>> >Source and sink have a slight connotation in my mind wrt. the box that
+>> >produces the display signal and the box that eats the signal. So trying
+>> >to use the same terms to describe the internals of the pipeline inside
+>> >the "source box" migth lead to some confusion. But we do probably need
+>> >some decent names for these to make the layout of the pipeline clear.
+>> >Input/output are the other names that popped to my mind but those aren'=
+t
+>> >necessarily any better. But in the end I think I could live with whatev=
+er
+>> >names we happen to pick, as long as we document the pipeline clearly.
+>> >
+>> >Long ago I did wonder if we should just start indexing these things
+>> >somehow, and then just looking at the index should tell you the order
+>> >of the operations. But we already have the ctm/gamma w/o any indexes so
+>> >that idea probably isn't so great anymore.
+>> >
+>> >>
+>> >> I want to avoid confusion caused by ending up with two
+>> >> {CS}_TO_{CS}_CSC properties, where one is describing the data to the
+>> >> left of it, and the other describing the data to the right of it, wit=
+h
+>> >> no real way of telling which way around it is.
+>> >
+>> >Not really sure what you mean. It should always be
+>> ><left>_to_<right>_csc.
+>>
+>> Agreed, left-to-right. But for instance on a CSC property representing
+>> a CRTC output CSC (just before hitting the connector), which happens
+>> to be converting RGB to YCbCr:
+>>
+>> CRTC -> GAMMA -> RGB_TO_YCBCR_CSC
+>>
+>> ...the enum value "BT.601 Limited" means that the data on the *right*
+>> of RGB_TO_YCBCR_CSC is "BT.601 Limited"
+>>
+>> On the other hand for a CSC on the input of a plane, which happens to
+>> be converting YCbCr to RGB:
+>>
+>> RAM -> YCBCR_TO_RGB_CSC -> DEGAMMA
+>>
+>> ...the enum value "BT.601 Limited" means that the data on the *left*
+>> of YCBCR_TO_RGB_CSC is "BT.601 Limited".
+>>
+>> Indicating in the property name whether its value is describing the
+>> data on the left or the right is needed (and I don't think inferring
+>> that "it's always the YCBCR one" is the correct approach).
+>>
+>> In my example above, "SOURCE_xxx" would mean the enum value is
+>> describing the "source" data (i.e. the data on the left) and
+>> "SINK_xxx" would mean the enum value is describing the "sink" data
+>> (i.e. the data on the right). This doesn't necessarily need to infer a
+>> particular point in the pipeline.
+>
+> Right, so I guess you want the values to be named "<a> to <b>" as well?
+> Yes, I think we'll be wanting that as well.
+>
+> So what we might need is something like:
+> enum YCBCR_TO_RGB_CSC
+>  * YCbCr BT.601 limited to RGB BT.709 full
+>  * YCbCr BT.709 limited to RGB BT.709 full <this would be the likely defa=
+ult value IMO>
+>  * YCbCr BT.601 limited to RGB BT.2020 full
+>  * YCbCr BT.709 limited to RGB BT.2020 full
+>  * YCbCr BT.2020 limited to RGB BT.2020 full
+>
+> And thanks to BT.2020 we'll need a RGB->RGB CSC property as well. Eg:
+> enum RGB_TO_RGB_CSC
+>  * bypass (or separate 709->709, 2020->2020?) <this would be the default>
+>  * RGB BT.709 full to RGB BT.2020 full
+>
+> Alternatives would involve two properties to define the input and output
+> from the CSC separately, but then you lose the capability to see which
+> combinations are actually supoorted.
+>
+> We may want to add the "curstom matrix" enum value + the blob property
+> for the actual matrix for hw capable of doing that.
+>
+> Adding Shashank to cc since he's the one who has been
+> looking at this colorspacey stuff on our side.
 
-On 31.03.2017 11:06, Smitha T Murthy wrote:
-> This patch series adds MFC v10.10 support. MFC v10.10 is used in some
-> of Exynos7 variants.
+Adding Aric and Harry for awareness.
 
-Patch does not apply, please rebase on top of:
-   
-
-git://linuxtv.org/snawrocki/samsung.git for-v4.12/media/next
-
-
-Additionally quick test shows you do not handle V4L2_CID_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_LAYER_CH in s5p_mfc_enc_s_ctrl.
-
-Regards
-Andrzej
+Alex
 
 >
-> This adds support for following:
->
-> * Add support for HEVC encoder and decoder
-> * Add support for VP9 decoder
-> * Update Documentation for control id definitions
-> * Update computation of min scratch buffer size requirement for V8 onwards
->
-> Changes since v2:
->  - Addressed review comments by Andrzej Hajda.
->  - Rebased on latest krzk/for-next tree.
->  - This patches are tested on top of Marek's patch v2 [1]
->  - Applied acked-by and r-o-b from Andrzej on respective patches.
->  - Applied acked-by from Rob Herring on respective patch.
->
-> [1]: http://www.mail-archive.com/linux-media@vger.kernel.org/msg108520.html
->
-> Smitha T Murthy (11):
->   [media] s5p-mfc: Rename IS_MFCV8 macro
->   [media] s5p-mfc: Adding initial support for MFC v10.10
->   [media] s5p-mfc: Use min scratch buffer size as provided by F/W
->   [media] s5p-mfc: Support MFCv10.10 buffer requirements
->   [media] videodev2.h: Add v4l2 definition for HEVC
->   [media] s5p-mfc: Add support for HEVC decoder
->   Documentation: v4l: Documentation for HEVC v4l2 definition
->   [media] s5p-mfc: Add VP9 decoder support
->   [media] v4l2: Add v4l2 control IDs for HEVC encoder
->   [media] s5p-mfc: Add support for HEVC encoder
->   Documention: v4l: Documentation for HEVC CIDs
->
->  .../devicetree/bindings/media/s5p-mfc.txt          |   1 +
->  Documentation/media/uapi/v4l/extended-controls.rst | 355 ++++++++++++
->  Documentation/media/uapi/v4l/pixfmt-013.rst        |   5 +
->  drivers/media/platform/s5p-mfc/regs-mfc-v10.h      |  88 +++
->  drivers/media/platform/s5p-mfc/regs-mfc-v8.h       |   2 +
->  drivers/media/platform/s5p-mfc/s5p_mfc.c           |  33 ++
->  drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c    |   9 +
->  drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |  71 ++-
->  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c      |   6 +-
->  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |  50 +-
->  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       | 616 ++++++++++++++++++++-
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr.h       |  14 +
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    | 410 ++++++++++++--
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h    |  15 +
->  drivers/media/v4l2-core/v4l2-ctrls.c               | 103 ++++
->  include/uapi/linux/v4l2-controls.h                 | 133 +++++
->  include/uapi/linux/videodev2.h                     |   1 +
->  17 files changed, 1835 insertions(+), 77 deletions(-)
->  create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v10.h
->
+> --
+> Ville Syrj=C3=A4l=C3=A4
+> Intel OTC
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/dri-devel
