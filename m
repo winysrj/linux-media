@@ -1,67 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:35476 "EHLO
-        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935684AbdCXPaw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Mar 2017 11:30:52 -0400
-Received: by mail-wm0-f46.google.com with SMTP id u132so15954807wmg.0
-        for <linux-media@vger.kernel.org>; Fri, 24 Mar 2017 08:30:51 -0700 (PDT)
-Subject: Re: [PATCH v7 9/9] media: venus: enable building of Venus video
- driver
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1489423058-12492-1-git-send-email-stanimir.varbanov@linaro.org>
- <1489423058-12492-10-git-send-email-stanimir.varbanov@linaro.org>
- <e45a12c6-ec90-383b-e499-d16907244132@xs4all.nl>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <acf5cd40-ed07-349e-543f-fbc10d1917aa@linaro.org>
-Date: Fri, 24 Mar 2017 17:30:43 +0200
+Received: from smtp2.macqel.be ([109.135.2.61]:56224 "EHLO smtp2.macqel.be"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751279AbdCPKUw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 16 Mar 2017 06:20:52 -0400
+Date: Thu, 16 Mar 2017 11:19:06 +0100
+From: Philippe De Muyter <phdm@macq.eu>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Pavel Machek <pavel@ucw.cz>, Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
+        markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: media / v4l2-mc: wishlist for complex cameras (was Re: [PATCH
+        v4 14/36] [media] v4l2-mc: add a function to inherit controls from
+        a pipeline)
+Message-ID: <20170316101906.GA13126@frolo.macqel>
+References: <20170314004533.3b3cd44b@vento.lan> <e0a6c60b-1735-de0b-21f4-d8c3f4b3f10f@xs4all.nl> <20170314072143.498cde9b@vento.lan> <20170314223254.GA7141@amd> <20170314215420.6fc63c67@vento.lan> <20170315105049.GA12099@frolo.macqel> <1489604109.4593.4.camel@ndufresne.ca> <1489656360.2303.2.camel@pengutronix.de> <20170316094729.GA5595@frolo.macqel> <1489658516.2303.11.camel@pengutronix.de>
 MIME-Version: 1.0
-In-Reply-To: <e45a12c6-ec90-383b-e499-d16907244132@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1489658516.2303.11.camel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks for the comments!
-
-On 03/24/2017 04:49 PM, Hans Verkuil wrote:
-> On 03/13/17 17:37, Stanimir Varbanov wrote:
->> This adds Venus driver Makefile and changes v4l2 platform
->> Makefile/Kconfig in order to enable building of the driver.
->>
->> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
->> ---
->>  drivers/media/platform/Kconfig             | 14 ++++++++++++++
->>  drivers/media/platform/Makefile            |  2 ++
->>  drivers/media/platform/qcom/venus/Makefile | 11 +++++++++++
->>  3 files changed, 27 insertions(+)
->>  create mode 100644 drivers/media/platform/qcom/venus/Makefile
->>
->> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
->> index 53f6f12bff0d..8a6c3d664307 100644
->> --- a/drivers/media/platform/Kconfig
->> +++ b/drivers/media/platform/Kconfig
->> @@ -447,6 +447,20 @@ config VIDEO_TI_VPE_DEBUG
->>  	---help---
->>  	  Enable debug messages on VPE driver.
->>  
->> +config VIDEO_QCOM_VENUS
->> +	tristate "Qualcomm Venus V4L2 encoder/decoder driver"
->> +	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
+On Thu, Mar 16, 2017 at 11:01:56AM +0100, Philipp Zabel wrote:
+> On Thu, 2017-03-16 at 10:47 +0100, Philippe De Muyter wrote:
+> > On Thu, Mar 16, 2017 at 10:26:00AM +0100, Philipp Zabel wrote:
+> > > On Wed, 2017-03-15 at 14:55 -0400, Nicolas Dufresne wrote:
+> > > > Le mercredi 15 mars 2017 à 11:50 +0100, Philippe De Muyter a écrit :
+> > > > > > I would say: camorama, xawtv3, zbar, google talk, skype. If it runs
+> > > > > > with those, it will likely run with any other application.
+> > > > > > 
+> > > > > 
+> > > > > I would like to add the 'v4l2src' plugin of gstreamer, and on the
+> > > > > imx6 its
+> > > > 
+> > > > While it would be nice if somehow you would get v4l2src to work (in
+> > > > some legacy/emulation mode through libv4l2),
+> > > 
+> > > v4l2src works just fine, provided the pipeline is configured manually in
+> > > advance via media-ctl.
+> > 
+> > Including choosing the framerate ?  Sorry, I have no time these days
+> > to test it myself.
 > 
-> Can this also depend on COMPILE_TEST? And if so, please make sure it compile on both
-> a 32 and 64 bit environment to shake out any compiler warnings.
+> No, the framerate is set with media-ctl on the CSI output pad. To really
+> choose the framerate, the element would indeed need a deeper
+> understanding of the pipeline, as the resulting framerate depends on at
+> least the source v4l2_subdevice (sensor) framerate and the CSI frame
+> skipping.
+
+Count me in than as a supporter of Steve's "v4l2-mc: add a function to
+inherit controls from a pipeline" patch
+
+> > of the image buffers for further processing by other (not necessarily next
+> > in gstreamer pipeline, or for all frames) hardware-accelerated plugins likes
+> > the h.264 video encoder.  As I am stuck with fsl/nxp kernel and driver on that
+> > matter, I don't know how the interfaces have evolved in current linux kernels.
 > 
+> The physical address of the image buffers is hidden from userspace by
+> dma-buf objects, but those can be passed around to the next driver
+> without copying the image data.
 
-yes I can add COMPILE_TEST, at least on -next it should be fine.
+OK
 
--- 
-regards,
-Stan
+thanks
+
+Philippe
