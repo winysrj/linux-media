@@ -1,137 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:63147 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932848AbdCGOsw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 7 Mar 2017 09:48:52 -0500
-From: "Reshetova, Elena" <elena.reshetova@intel.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux1394-devel@lists.sourceforge.net"
-        <linux1394-devel@lists.sourceforge.net>,
-        "linux-bcache@vger.kernel.org" <linux-bcache@vger.kernel.org>,
-        "linux-raid@vger.kernel.org" <linux-raid@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "devel@linuxdriverproject.org" <devel@linuxdriverproject.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
-        "fcoe-devel@open-fcoe.org" <fcoe-devel@open-fcoe.org>,
-        "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>,
-        "open-iscsi@googlegroups.com" <open-iscsi@googlegroups.com>,
-        "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
-        "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>,
-        "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
-        "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
-        "peterz@infradead.org" <peterz@infradead.org>,
-        Hans Liljestrand <ishkamiel@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        David Windsor <dwindsor@gmail.com>
-Subject: RE: [PATCH 13/29] drivers, media: convert
- vb2_vmarea_handler.refcount from atomic_t to refcount_t
-Date: Tue, 7 Mar 2017 14:48:43 +0000
-Message-ID: <2236FBA76BA1254E88B949DDB74E612B41C558E6@IRSMSX102.ger.corp.intel.com>
-References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
- <1488810076-3754-14-git-send-email-elena.reshetova@intel.com>
- <20170307085005.GH3220@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20170307085005.GH3220@valkosipuli.retiisi.org.uk>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from smtp.codeaurora.org ([198.145.29.96]:50994 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751483AbdCPRHi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 16 Mar 2017 13:07:38 -0400
+Subject: Re: [PATCH v3 2/6] media: uapi: Add RGB and YUV bus formats for
+ Synopsys HDMI TX Controller
+To: Neil Armstrong <narmstrong@baylibre.com>
+References: <1488904944-14285-1-git-send-email-narmstrong@baylibre.com>
+ <1488904944-14285-3-git-send-email-narmstrong@baylibre.com>
+Cc: dri-devel@lists.freedesktop.org,
+        laurent.pinchart+renesas@ideasonboard.com, mchehab@kernel.org,
+        Jose.Abreu@synopsys.com, kieran.bingham@ideasonboard.com,
+        linux-amlogic@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, hans.verkuil@cisco.com,
+        sakari.ailus@linux.intel.com
+From: Archit Taneja <architt@codeaurora.org>
+Message-ID: <f57eefc2-8c37-ee0c-7b6e-06334d9d059d@codeaurora.org>
+Date: Thu, 16 Mar 2017 22:36:45 +0530
 MIME-Version: 1.0
+In-Reply-To: <1488904944-14285-3-git-send-email-narmstrong@baylibre.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Hi Elena,
-> 
-> On Mon, Mar 06, 2017 at 04:21:00PM +0200, Elena Reshetova wrote:
-> > refcount_t type and corresponding API should be
-> > used instead of atomic_t when the variable is used as
-> > a reference counter. This allows to avoid accidental
-> > refcounter overflows that might lead to use-after-free
-> > situations.
-> >
-> > Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
-> > Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
-> > Signed-off-by: Kees Cook <keescook@chromium.org>
-> > Signed-off-by: David Windsor <dwindsor@gmail.com>
-> > ---
-> >  drivers/media/v4l2-core/videobuf2-memops.c | 6 +++---
-> >  include/media/videobuf2-memops.h           | 3 ++-
-> >  2 files changed, 5 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/drivers/media/v4l2-core/videobuf2-memops.c b/drivers/media/v4l2-
-> core/videobuf2-memops.c
-> > index 1cd322e..4bb8424 100644
-> > --- a/drivers/media/v4l2-core/videobuf2-memops.c
-> > +++ b/drivers/media/v4l2-core/videobuf2-memops.c
-> > @@ -96,10 +96,10 @@ static void vb2_common_vm_open(struct
-> vm_area_struct *vma)
-> >  	struct vb2_vmarea_handler *h = vma->vm_private_data;
-> >
-> >  	pr_debug("%s: %p, refcount: %d, vma: %08lx-%08lx\n",
-> > -	       __func__, h, atomic_read(h->refcount), vma->vm_start,
-> > +	       __func__, h, refcount_read(h->refcount), vma->vm_start,
-> >  	       vma->vm_end);
-> >
-> > -	atomic_inc(h->refcount);
-> > +	refcount_inc(h->refcount);
-> >  }
-> >
-> >  /**
-> > @@ -114,7 +114,7 @@ static void vb2_common_vm_close(struct
-> vm_area_struct *vma)
-> >  	struct vb2_vmarea_handler *h = vma->vm_private_data;
-> >
-> >  	pr_debug("%s: %p, refcount: %d, vma: %08lx-%08lx\n",
-> > -	       __func__, h, atomic_read(h->refcount), vma->vm_start,
-> > +	       __func__, h, refcount_read(h->refcount), vma->vm_start,
-> >  	       vma->vm_end);
-> >
-> >  	h->put(h->arg);
-> > diff --git a/include/media/videobuf2-memops.h b/include/media/videobuf2-
-> memops.h
-> > index 36565c7a..a6ed091 100644
-> > --- a/include/media/videobuf2-memops.h
-> > +++ b/include/media/videobuf2-memops.h
-> > @@ -16,6 +16,7 @@
-> >
-> >  #include <media/videobuf2-v4l2.h>
-> >  #include <linux/mm.h>
-> > +#include <linux/refcount.h>
-> >
-> >  /**
-> >   * struct vb2_vmarea_handler - common vma refcount tracking handler
-> > @@ -25,7 +26,7 @@
-> >   * @arg:	argument for @put callback
-> >   */
-> >  struct vb2_vmarea_handler {
-> > -	atomic_t		*refcount;
-> > +	refcount_t		*refcount;
-> 
-> This is a pointer to refcount, not refcount itself. The refcount is part of
-> a memory type specific struct, the types that you change in the following
-> three patches. I guess it would still compile and work as separate patches
-> but you'd sure get warnings at least.
 
-Actually it doesn't compile without this patch if I remember it correctly back in past when I was initially splitting the patches per variable. 
 
-> 
-> How about merging this and the three following patches that change the memop
-> refcount types?
+On 3/7/2017 10:12 PM, Neil Armstrong wrote:
+> In order to describe the RGB and YUB bus formats used to feed the
 
-Sounds good!
+s/YUB/YUV
 
-Best Regards,
-Elena.
-> 
-> >  	void			(*put)(void *arg);
-> >  	void			*arg;
-> >  };
-> 
-> --
-> Kind regards,
-> 
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+> Synopsys DesignWare HDMI TX Controller, add missing formats to the
+> list of Bus Formats.
+>
+> Documentation for these formats is added in a separate patch.
+>
+
+Reviewed-by: Archit Taneja <architt@codeaurora.org>
+
+> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+> ---
+>  include/uapi/linux/media-bus-format.h | 13 +++++++++++--
+>  1 file changed, 11 insertions(+), 2 deletions(-)
+>
+> diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+> index 2168759..7cc820b 100644
+> --- a/include/uapi/linux/media-bus-format.h
+> +++ b/include/uapi/linux/media-bus-format.h
+> @@ -33,7 +33,7 @@
+>
+>  #define MEDIA_BUS_FMT_FIXED			0x0001
+>
+> -/* RGB - next is	0x1018 */
+> +/* RGB - next is	0x101b */
+>  #define MEDIA_BUS_FMT_RGB444_1X12		0x1016
+>  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
+>  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
+> @@ -57,8 +57,11 @@
+>  #define MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA	0x1012
+>  #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
+>  #define MEDIA_BUS_FMT_RGB888_1X32_PADHI		0x100f
+> +#define MEDIA_BUS_FMT_RGB101010_1X30		0x1018
+> +#define MEDIA_BUS_FMT_RGB121212_1X36		0x1019
+> +#define MEDIA_BUS_FMT_RGB161616_1X48		0x101a
+>
+> -/* YUV (including grey) - next is	0x2026 */
+> +/* YUV (including grey) - next is	0x202c */
+>  #define MEDIA_BUS_FMT_Y8_1X8			0x2001
+>  #define MEDIA_BUS_FMT_UV8_1X8			0x2015
+>  #define MEDIA_BUS_FMT_UYVY8_1_5X8		0x2002
+> @@ -90,12 +93,18 @@
+>  #define MEDIA_BUS_FMT_YVYU10_1X20		0x200e
+>  #define MEDIA_BUS_FMT_VUY8_1X24			0x2024
+>  #define MEDIA_BUS_FMT_YUV8_1X24			0x2025
+> +#define MEDIA_BUS_FMT_UYVY8_1_1X24		0x2026
+>  #define MEDIA_BUS_FMT_UYVY12_1X24		0x2020
+>  #define MEDIA_BUS_FMT_VYUY12_1X24		0x2021
+>  #define MEDIA_BUS_FMT_YUYV12_1X24		0x2022
+>  #define MEDIA_BUS_FMT_YVYU12_1X24		0x2023
+>  #define MEDIA_BUS_FMT_YUV10_1X30		0x2016
+> +#define MEDIA_BUS_FMT_UYVY10_1_1X30		0x2027
+>  #define MEDIA_BUS_FMT_AYUV8_1X32		0x2017
+> +#define MEDIA_BUS_FMT_UYVY12_1_1X36		0x2028
+> +#define MEDIA_BUS_FMT_YUV12_1X36		0x2029
+> +#define MEDIA_BUS_FMT_YUV16_1X48		0x202a
+> +#define MEDIA_BUS_FMT_UYVY16_1_1X48		0x202b
+>
+>  /* Bayer - next is	0x3021 */
+>  #define MEDIA_BUS_FMT_SBGGR8_1X8		0x3001
+>
+
+-- 
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora 
+Forum, hosted by The Linux Foundation
