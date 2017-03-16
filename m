@@ -1,105 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:46462 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751490AbdCSPX1 (ORCPT
+Received: from mail-it0-f68.google.com ([209.85.214.68]:34640 "EHLO
+        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751204AbdCPIgE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 19 Mar 2017 11:23:27 -0400
-Date: Sun, 19 Mar 2017 15:22:33 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v5 38/39] media: imx: csi: fix crop rectangle reset in
- sink set_fmt
-Message-ID: <20170319152233.GW21222@n2100.armlinux.org.uk>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <1489121599-23206-39-git-send-email-steve_longerbeam@mentor.com>
+        Thu, 16 Mar 2017 04:36:04 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1489121599-23206-39-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <20170314190308.25790-28-niklas.soderlund+renesas@ragnatech.se>
+References: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se> <20170314190308.25790-28-niklas.soderlund+renesas@ragnatech.se>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Thu, 16 Mar 2017 09:36:01 +0100
+Message-ID: <CAMuHMdUWeWoDHSqH5i_KT_LHhH2dhq29tQeranPNjG=UORdajA@mail.gmail.com>
+Subject: Re: [PATCH v3 27/27] rcar-vin: enable support for r8a7796
+To: =?UTF-8?Q?Niklas_S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Fukawa <tomoharu.fukawa.eb@renesas.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 09, 2017 at 08:53:18PM -0800, Steve Longerbeam wrote:
-> From: Philipp Zabel <p.zabel@pengutronix.de>
-> 
-> The csi_try_crop call in set_fmt should compare the cropping rectangle
-> to the currently set input format, not to the previous input format.
+Hi Niklas,
 
-Are we really sure that the cropping support is implemented correctly?
+On Tue, Mar 14, 2017 at 8:03 PM, Niklas S=C3=B6derlund
+<niklas.soderlund+renesas@ragnatech.se> wrote:
+> Add the SoC specific information for Renesas r8a7796.
+>
+> Signed-off-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.=
+se>
+> ---
+>  .../devicetree/bindings/media/rcar_vin.txt         |  1 +
+>  drivers/media/platform/rcar-vin/rcar-core.c        | 64 ++++++++++++++++=
+++++++
+>  2 files changed, 65 insertions(+)
+>
+> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Docum=
+entation/devicetree/bindings/media/rcar_vin.txt
+> index ffdfa97ac37753f9..7e36ebe5c89b7dfd 100644
+> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> @@ -10,6 +10,7 @@ always slaves and support multiple input channels which=
+ can be either RGB,
+>  YUVU, BT656 or CSI-2.
+>
+>   - compatible: Must be one or more of the following
+> +   - "renesas,vin-r8a7796" for the R8A7796 device
+>     - "renesas,vin-r8a7795" for the R8A7795 device
+>     - "renesas,vin-r8a7794" for the R8A7794 device
+>     - "renesas,vin-r8a7793" for the R8A7793 device
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/=
+platform/rcar-vin/rcar-core.c
+> index c30040c42ce588a9..8930189638473f37 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -1119,6 +1119,66 @@ static const struct rvin_info rcar_info_r8a7795 =
+=3D {
+>         },
+>  };
+>
+> +static const struct rvin_info rcar_info_r8a7796 =3D {
+> +       .chip =3D RCAR_GEN3,
 
-I came across this while looking at what we're doing with the
-V4L2_SEL_FLAG_KEEP_CONFIG flag.
+[...]
 
-Documentation/media/uapi/v4l/dev-subdev.rst defines the behaviour of
-the user API, and "Order of configuration and format propagation" says:
+The R-Car Gen3 entries are inserted in between Gen1 and Gen2?
 
-  The coordinates to a step always refer to the actual size of the
-  previous step. The exception to this rule is the source compose
-  rectangle, which refers to the sink compose bounds rectangle --- if it
-  is supported by the hardware.
-  
-  1. Sink pad format. The user configures the sink pad format. This format
-     defines the parameters of the image the entity receives through the
-     pad for further processing.
-  
-  2. Sink pad actual crop selection. The sink pad crop defines the crop
-     performed to the sink pad format.
-  
-  3. Sink pad actual compose selection. The size of the sink pad compose
-     rectangle defines the scaling ratio compared to the size of the sink
-     pad crop rectangle. The location of the compose rectangle specifies
-     the location of the actual sink compose rectangle in the sink compose
-     bounds rectangle.
-  
-  4. Source pad actual crop selection. Crop on the source pad defines crop
-     performed to the image in the sink compose bounds rectangle.
-  
-  5. Source pad format. The source pad format defines the output pixel
-     format of the subdev, as well as the other parameters with the
-     exception of the image width and height. Width and height are defined
-     by the size of the source pad actual crop selection.
-  
-  Accessing any of the above rectangles not supported by the subdev will
-  return ``EINVAL``. Any rectangle referring to a previous unsupported
-  rectangle coordinates will instead refer to the previous supported
-  rectangle. For example, if sink crop is not supported, the compose
-  selection will refer to the sink pad format dimensions instead.
+> +};
+> +
+>  static const struct rvin_info rcar_info_gen2 =3D {
+>         .chip =3D RCAR_GEN2,
+>         .use_mc =3D false,
+> @@ -1132,6 +1192,10 @@ static const struct of_device_id rvin_of_id_table[=
+] =3D {
+>                 .data =3D &rcar_info_r8a7795,
+>         },
+>         {
+> +               .compatible =3D "renesas,vin-r8a7796",
+> +               .data =3D &rcar_info_r8a7796,
+> +       },
+> +       {
 
-Note step 3 above: scaling is defined by the ratio of the _sink_ crop
-rectangle to the _sink_ compose rectangle.
+Shouldn't this be inserted above the r8a7795 entry?
+All other entries in this table are sorted in reverse alphabetical order.
 
-So, lets say that the camera produces a 1280x720 image, and the sink
-pad format is configured with 1280x720.  That's step 1.
+>                 .compatible =3D "renesas,vin-r8a7794",
+>                 .data =3D &rcar_info_gen2,
+>         },
 
-The sink crop operates within that rectangle, cropping it to an area.
-Let's say we're only interested in its centre, so we'd chose 640x360
-with the top-left as 320,180.  This is step 2.
+Gr{oetje,eeting}s,
 
-Then, if we want to down-scale by a factor of two, we'd set the sink
-compose selection to 320x180.
+                        Geert
 
-This seems to be at odds with how the scaling is done in CSI at
-present: the selection implementations all reject attempts to
-configure the sink pad, instead only supporting crop rectangles on
-the source, and we use the source crop rectangle to define the
-down-scaling.
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
+.org
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+In personal conversations with technical people, I call myself a hacker. Bu=
+t
+when I'm talking to journalists I just say "programmer" or something like t=
+hat.
+                                -- Linus Torvalds
