@@ -1,167 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kozue.soulik.info ([108.61.200.231]:48582 "EHLO
-        kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753778AbdC1CeV (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58890 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754131AbdCPWXD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 22:34:21 -0400
-Content-Type: text/plain;
-        charset=utf-8
-Mime-Version: 1.0 (1.0)
-Subject: Re: [PATCH v6 1/3] drm_fourcc: Add new P010, P016 video format
-From: Ayaka <ayaka@soulik.info>
-In-Reply-To: <08d62dbf-7520-1e9e-fc48-fe983e6c7737@intel.com>
-Date: Tue, 28 Mar 2017 10:23:10 +0800
-Cc: Ander Conselvan De Oliveira <conselvan2@gmail.com>,
-        =?utf-8?Q?Ville_Syrj=C3=A4l=C3=A4?= <ville.syrjala@linux.intel.com>,
-        linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <D9B5D0E1-A0F8-4B7A-8406-50EF87B73949@soulik.info>
-References: <1488708033-5691-1-git-send-email-ayaka@soulik.info> <1488708033-5691-2-git-send-email-ayaka@soulik.info> <20170306130609.GT31595@intel.com> <AEC0BE28-4C63-430B-9972-BDF0A323D742@soulik.info> <20170306183434.GV31595@intel.com> <A7CC5F68-361D-4682-8811-C835613B2059@soulik.info> <1489499621.2338.6.camel@gmail.com> <AA8A1608-4875-481D-8313-D06C944F9922@soulik.info> <08d62dbf-7520-1e9e-fc48-fe983e6c7737@intel.com>
-To: Clint Taylor <clinton.a.taylor@intel.com>
+        Thu, 16 Mar 2017 18:23:03 -0400
+Date: Fri, 17 Mar 2017 00:15:35 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Nicolas Dufresne <nicolas@ndufresne.ca>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        Hans Verkuil <hverkuil@xs4all.nl>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
+        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Subject: Re: [PATCH v5 15/39] [media] v4l2: add a frame interval error event
+Message-ID: <20170316221535.GI10701@valkosipuli.retiisi.org.uk>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <1489121599-23206-16-git-send-email-steve_longerbeam@mentor.com>
+ <5b0a0e76-2524-4140-5ccc-380a8f949cfa@xs4all.nl>
+ <ec05e6e0-79f2-2db2-bde9-4aed00d76faa@gmail.com>
+ <6b574476-77df-0e25-a4d1-32d4fe0aec12@xs4all.nl>
+ <5d5cf4a4-a4d3-586e-cd16-54f543dfcce9@gmail.com>
+ <aa6a5a1d-18fd-8bed-a349-2654d2d1abe0@xs4all.nl>
+ <20170313104538.GF21222@n2100.armlinux.org.uk>
+ <1489508491.28116.8.camel@ndufresne.ca>
+ <429b04e6-3922-6568-fc3f-036dc632a55b@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <429b04e6-3922-6568-fc3f-036dc632a55b@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Steve,
 
+On Tue, Mar 14, 2017 at 09:43:09AM -0700, Steve Longerbeam wrote:
+> 
+> 
+> On 03/14/2017 09:21 AM, Nicolas Dufresne wrote:
+> >Le lundi 13 mars 2017 � 10:45 +0000, Russell King - ARM Linux a �crit :
+> >>On Mon, Mar 13, 2017 at 11:02:34AM +0100, Hans Verkuil wrote:
+> >>>On 03/11/2017 07:14 PM, Steve Longerbeam wrote:
+> >>>>The event must be user visible, otherwise the user has no indication
+> >>>>the error, and can't correct it by stream restart.
+> >>>In that case the driver can detect this and call vb2_queue_error. It's
+> >>>what it is there for.
+> >>>
+> >>>The event doesn't help you since only this driver has this issue. So nobody
+> >>>will watch this event, unless it is sw specifically written for this SoC.
+> >>>
+> >>>Much better to call vb2_queue_error to signal a fatal error (which this
+> >>>apparently is) since there are more drivers that do this, and vivid supports
+> >>>triggering this condition as well.
+> >>So today, I can fiddle around with the IMX219 registers to help gain
+> >>an understanding of how this sensor works.  Several of the registers
+> >>(such as the PLL setup [*]) require me to disable streaming on the
+> >>sensor while changing them.
+> >>
+> >>This is something I've done many times while testing various ideas,
+> >>and is my primary way of figuring out and testing such things.
+> >>
+> >>Whenever I resume streaming (provided I've let the sensor stop
+> >>streaming at a frame boundary) it resumes as if nothing happened.  If I
+> >>stop the sensor mid-frame, then I get the rolling issue that Steve
+> >>reports, but once the top of the frame becomes aligned with the top of
+> >>the capture, everything then becomes stable again as if nothing happened.
+> >>
+> >>The side effect of what you're proposing is that when I disable streaming
+> >>at the sensor by poking at its registers, rather than the capture just
+> >>stopping, an error is going to be delivered to gstreamer, and gstreamer
+> >>is going to exit, taking the entire capture process down.
+> >Indeed, there is no recovery attempt in GStreamer code, and it's hard
+> >for an higher level programs to handle this. Nothing prevents from
+> >adding something of course, but the errors are really un-specific, so
+> >it would be something pretty blind. For what it has been tested, this
+> >case was never met, usually the error is triggered by a USB camera
+> >being un-plugged, a driver failure or even a firmware crash. Most of
+> >the time, this is not recoverable.
+> >
+> >My main concern here based on what I'm reading, is that this driver is
+> >not even able to notice immediately that a produced frame was corrupted
+> >(because it's out of sync). From usability perspective, this is really
+> >bad.
+> 
+> First, this is an isolated problem, specific to bt.656 and it only
+> occurs when disrupting the analog video source signal in some
+> way (by unplugging the RCA cable from the ADV718x connector
+> for example).
+> 
+> Second, there is no DMA status support in i.MX6 to catch these
+> shifted bt.656 codes, and the ADV718x does not provide any
+> status indicators of this event either. So monitoring frame intervals
+> is the only solution available, until FSL/NXP issues a new silicon rev.
+> 
+> 
+> >  Can't the driver derive a clock from some irq and calculate for
+> >each frame if the timing was correct ?
+> 
+> That's what is being done, essentially.
+> 
+> >  And if not mark the buffer with
+> >V4L2_BUF_FLAG_ERROR ?
+> 
+> I prefer to keep the private event, V4L2_BUF_FLAG_ERROR is too
+> unspecific.
 
-從我的 iPad 傳送
+Is the reason you prefer an event that you have multiple drivers involved,
+or that the error flag is, well, only telling there was an error with a
+particular frame?
 
-> Clint Taylor <clinton.a.taylor@intel.com> 於 2017年3月28日 上午6:49 寫道：
-> 
->> On 03/26/2017 09:05 PM, Ayaka wrote:
->> 
->> 
->> 從我的 iPad 傳送
->> 
->>>> Ander Conselvan De Oliveira <conselvan2@gmail.com> 於 2017年3月14日 下午9:53 寫道：
->>>> 
->>>> On Tue, 2017-03-07 at 04:27 +0800, Ayaka wrote:
->>>> 
->>>> 從我的 iPad 傳送
->>>> 
->>>>>> Ville Syrjälä <ville.syrjala@linux.intel.com> 於 2017年3月7日 上午2:34 寫道：
->>>>>> 
->>>>>> On Tue, Mar 07, 2017 at 01:58:23AM +0800, Ayaka wrote:
->>>>>> 
->>>>>> 
->>>>>> 從我的 iPad 傳送
->>>>>> 
->>>>>>>> Ville Syrjälä <ville.syrjala@linux.intel.com> 於 2017年3月6日 下午9:06 寫道：
->>>>>>>> 
->>>>>>>> On Sun, Mar 05, 2017 at 06:00:31PM +0800, Randy Li wrote:
->>>>>>>> P010 is a planar 4:2:0 YUV with interleaved UV plane, 10 bits
->>>>>>>> per channel video format.
->>>>>>>> 
->>>>>>>> P016 is a planar 4:2:0 YUV with interleaved UV plane, 16 bits
->>>>>>>> per channel video format.
->>>>>>>> 
->>>>>>>> V3: Added P012 and fixed cpp for P010
->>>>>>>> V4: format definition refined per review
->>>>>>>> V5: Format comment block for each new pixel format
->>>>>>>> V6: reversed Cb/Cr order in comments
->>>>>>>> v7: reversed Cb/Cr order in comments of header files, remove
->>>>>>>> the wrong part of commit message.
->>>>>>> 
->>>>>>> What? Why? You just undid what Clint did in v6.
->>>>>> 
->>>>>> He missed a file also keeping the wrong description of rockchip.
->>>>> 
->>>>> I don't follow. Who missed what exactly?
->>>> 
->>>> What he sent is v5, I increase the order number twice in the message, it confuse me as well.
->>>> I think Clint forgot the include/uapi/drm/drm_fourcc.h .
->>> 
->>> Clint did send a v6, and that updates "include/uapi/drm/drm_fourcc.h":
->>> 
->>> https://patchwork.freedesktop.org/patch/141342/
->> Oh, yes but he still used Cr:Cb, but I think it should be Cb:Cr
->> since I think the V is after the U.
-> 
-> From the MSDN fourcc website:
-> "If the combined U-V array is addressed as an array of DWORDs, the least significant word (LSW) contains the U value and the most significant word (MSW) contains the V value. The stride of the combined U-V plane is equal to the stride of the Y plane. The U-V plane has half as many lines as the Y plane."
-> 
-> The LSW contains U and the MSW contains V, hence the Cr:Cb in the comments of the V6 patch.
-> 
-> -Clint
-ok it is correct. I think I mistake it that is why my converter for gstreamer doesn't work
-> 
->>> 
->>> 
->>> Ander
->>> 
->>>>> 
->>>>> 
->>>>>>> 
->>>>>>>> 
->>>>>>>> Cc: Daniel Stone <daniel@fooishbar.org>
->>>>>>>> Cc: Ville Syrjälä <ville.syrjala@linux.intel.com>
->>>>>>>> 
->>>>>>>> Signed-off-by: Randy Li <ayaka@soulik.info>
->>>>>>>> Signed-off-by: Clint Taylor <clinton.a.taylor@intel.com>
->>>>>>>> ---
->>>>>>>> drivers/gpu/drm/drm_fourcc.c  |  3 +++
->>>>>>>> include/uapi/drm/drm_fourcc.h | 21 +++++++++++++++++++++
->>>>>>>> 2 files changed, 24 insertions(+)
->>>>>>>> 
->>>>>>>> diff --git a/drivers/gpu/drm/drm_fourcc.c b/drivers/gpu/drm/drm_fourcc.c
->>>>>>>> index 90d2cc8..3e0fd58 100644
->>>>>>>> --- a/drivers/gpu/drm/drm_fourcc.c
->>>>>>>> +++ b/drivers/gpu/drm/drm_fourcc.c
->>>>>>>> @@ -165,6 +165,9 @@ const struct drm_format_info *__drm_format_info(u32 format)
->>>>>>>>     { .format = DRM_FORMAT_UYVY,        .depth = 0,  .num_planes = 1, .cpp = { 2, 0, 0 }, .hsub = 2, .vsub = 1 },
->>>>>>>>     { .format = DRM_FORMAT_VYUY,        .depth = 0,  .num_planes = 1, .cpp = { 2, 0, 0 }, .hsub = 2, .vsub = 1 },
->>>>>>>>     { .format = DRM_FORMAT_AYUV,        .depth = 0,  .num_planes = 1, .cpp = { 4, 0, 0 }, .hsub = 1, .vsub = 1 },
->>>>>>>> +        { .format = DRM_FORMAT_P010,        .depth = 0,  .num_planes = 2, .cpp = { 2, 4, 0 }, .hsub = 2, .vsub = 2 },
->>>>>>>> +        { .format = DRM_FORMAT_P012,        .depth = 0,  .num_planes = 2, .cpp = { 2, 4, 0 }, .hsub = 2, .vsub = 2 },
->>>>>>>> +        { .format = DRM_FORMAT_P016,        .depth = 0,  .num_planes = 2, .cpp = { 2, 4, 0 }, .hsub = 2, .vsub = 2 },
->>>>>>>> };
->>>>>>>> 
->>>>>>>> unsigned int i;
->>>>>>>> diff --git a/include/uapi/drm/drm_fourcc.h b/include/uapi/drm/drm_fourcc.h
->>>>>>>> index ef20abb..306f979 100644
->>>>>>>> --- a/include/uapi/drm/drm_fourcc.h
->>>>>>>> +++ b/include/uapi/drm/drm_fourcc.h
->>>>>>>> @@ -128,6 +128,27 @@ extern "C" {
->>>>>>>> #define DRM_FORMAT_NV42        fourcc_code('N', 'V', '4', '2') /* non-subsampled Cb:Cr plane */
->>>>>>>> 
->>>>>>>> /*
->>>>>>>> + * 2 plane YCbCr MSB aligned
->>>>>>>> + * index 0 = Y plane, [15:0] Y:x [10:6] little endian
->>>>>>>> + * index 1 = Cb:Cr plane, [31:0] Cb:x:Cr:x [10:6:10:6] little endian
->>>>>>>> + */
->>>>>>>> +#define DRM_FORMAT_P010        fourcc_code('P', '0', '1', '0') /* 2x2 subsampled Cb:Cr plane 10 bits per channel */
->>>>>>>> +
->>>>>>>> +/*
->>>>>>>> + * 2 plane YCbCr MSB aligned
->>>>>>>> + * index 0 = Y plane, [15:0] Y:x [12:4] little endian
->>>>>>>> + * index 1 = Cb:Cr plane, [31:0] Cb:x:Cr:x [12:4:12:4] little endian
->>>>>>>> + */
->>>>>>>> +#define DRM_FORMAT_P012        fourcc_code('P', '0', '1', '2') /* 2x2 subsampled Cb:Cr plane 12 bits per channel */
->>>>>>>> +
->>>>>>>> +/*
->>>>>>>> + * 2 plane YCbCr MSB aligned
->>>>>>>> + * index 0 = Y plane, [15:0] Y little endian
->>>>>>>> + * index 1 = Cb:Cr plane, [31:0] Cb:Cr [16:16] little endian
->>>>>>>> + */
->>>>>>>> +#define DRM_FORMAT_P016        fourcc_code('P', '0', '1', '6') /* 2x2 subsampled Cb:Cr plane 16 bits per channel */
->>>>>>>> +
->>>>>>>> +/*
->>>>>>>> * 3 plane YCbCr
->>>>>>>> * index 0: Y plane, [7:0] Y
->>>>>>>> * index 1: Cb plane, [7:0] Cb
->>>>>>>> --
->>>>>>>> 2.7.4
->>>>>>> 
->>>>>>> --
->>>>>>> Ville Syrjälä
->>>>>>> Intel OTC
->>>>> 
->>>>> --
->>>>> Ville Syrjälä
->>>>> Intel OTC
->>>> 
->>>> _______________________________________________
->>>> dri-devel mailing list
->>>> dri-devel@lists.freedesktop.org
->>>> https://lists.freedesktop.org/mailman/listinfo/dri-devel
->> 
+Returning -EIO (by calling vb2_queue_error()) would be a better choice as it
+is documented behaviour.
+
+-- 
+Regard,s
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
