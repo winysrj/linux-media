@@ -1,73 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailapp01.imgtec.com ([195.59.15.196]:13800 "EHLO
-        mailapp01.imgtec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751269AbdCCL6p (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 06:58:45 -0500
-Date: Fri, 3 Mar 2017 11:58:42 +0000
-From: Eric Engestrom <eric.engestrom@imgtec.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-CC: Laura Abbott <labbott@redhat.com>, <devel@driverdev.osuosl.org>,
-        <romlem@google.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        <arve@android.com>, <dri-devel@lists.freedesktop.org>,
-        <linux-kernel@vger.kernel.org>, <linaro-mm-sig@lists.linaro.org>,
-        <linux-mm@kvack.org>, Riley Andrews <riandrews@android.com>,
-        Mark Brown <broonie@kernel.org>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>
-Subject: Re: [RFC PATCH 04/12] staging: android: ion: Call dma_map_sg for
- syncing and mapping
-Message-ID: <20170303115841.2fxuhkzo5yazgvrd@imgtec.com>
-References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
- <1488491084-17252-5-git-send-email-labbott@redhat.com>
- <20170303110329.GA4132@mwanda>
+Received: from mail-ot0-f195.google.com ([74.125.82.195]:33559 "EHLO
+        mail-ot0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751137AbdCPJ75 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 16 Mar 2017 05:59:57 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Disposition: inline
-In-Reply-To: <20170303110329.GA4132@mwanda>
+In-Reply-To: <CAK8P3a1jHhM=80Zo59JoDNd2RKwTfdR_i61_=ASqqUeJ1oecxg@mail.gmail.com>
+References: <58c97f8f.c4b5190a.8c4e4.300d@mx.google.com> <CAK8P3a1jHhM=80Zo59JoDNd2RKwTfdR_i61_=ASqqUeJ1oecxg@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Thu, 16 Mar 2017 10:59:55 +0100
+Message-ID: <CAK8P3a145sL=DHiyP39c2FrH9Vh9aZBd7GUs96pWd-93NngQDg@mail.gmail.com>
+Subject: Re: mainline build: 208 builds: 0 failed, 208 passed, 422 warnings (v4.11-rc2-164-gdefc7d752265)
+To: "kernelci.org bot" <bot@kernelci.org>
+Cc: kernel-build-reports@lists.linaro.org,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will.deacon@arm.com>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        linux-mips@linux-mips.org, Ralf Baechle <ralf@linux-mips.org>,
+        James Hogan <james.hogan@imgtec.com>,
+        linux-media@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday, 2017-03-03 14:04:26 +0300, Dan Carpenter wrote:
-> On Thu, Mar 02, 2017 at 01:44:36PM -0800, Laura Abbott wrote:
-> >  static struct sg_table *ion_map_dma_buf(struct dma_buf_attachment *attachment,
-> >  					enum dma_data_direction direction)
-> >  {
-> >  	struct dma_buf *dmabuf = attachment->dmabuf;
-> >  	struct ion_buffer *buffer = dmabuf->priv;
-> > +	struct sg_table *table;
-> > +	int ret;
-> > +
-> > +	/*
-> > +	 * TODO: Need to sync wrt CPU or device completely owning?
-> > +	 */
-> > +
-> > +	table = dup_sg_table(buffer->sg_table);
-> >  
-> > -	ion_buffer_sync_for_device(buffer, attachment->dev, direction);
-> > -	return dup_sg_table(buffer->sg_table);
-> > +	if (!dma_map_sg(attachment->dev, table->sgl, table->nents,
-> > +			direction)){
-> > +		ret = -ENOMEM;
-> > +		goto err;
-> > +	}
+On Wed, Mar 15, 2017 at 9:02 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Wed, Mar 15, 2017 at 6:53 PM, kernelci.org bot <bot@kernelci.org> wrote:
+>>
+>> mainline build: 208 builds: 0 failed, 208 passed, 422 warnings (v4.11-rc2-164-gdefc7d752265)
+>
+> The last build failure in mainline is gone now, though I don't know
+> what fixed it.
+> Let's hope this doesn't come back as the cause was apparently a race condition
+> in Kbuild that might have stopped triggering.
 
-Actually, I think `ret` should be left uninitialised on success,
-what's really missing is this return before the `err:` label:
+Now the failure in x86_64 allmodconfig+CONFIG_OF=n is back, which makes it
+particularly hard to bisect as the problem only shows up sometimes.
 
-+	return table;
-
-
-> > +
-> > +err:
-> > +	free_duped_table(table);
-> > +	return ERR_PTR(ret);
-> 
-> ret isn't initialized on success.
-> 
-> >  }
-> >  
-> 
-> regards,
-> dan carpenter
+     Arnd
