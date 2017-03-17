@@ -1,98 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f171.google.com ([209.85.220.171]:33856 "EHLO
-        mail-qk0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751917AbdCCSrO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 13:47:14 -0500
-Received: by mail-qk0-f171.google.com with SMTP id g129so6952224qkd.1
-        for <linux-media@vger.kernel.org>; Fri, 03 Mar 2017 10:46:08 -0800 (PST)
-Subject: Re: [RFC PATCH 06/12] staging: android: ion: Remove crufty cache
- support
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        dri-devel@lists.freedesktop.org
-References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
- <1488491084-17252-7-git-send-email-labbott@redhat.com>
- <20170303095654.zbcqkcojo3vf6y4y@phenom.ffwll.local>
- <2273106.Hjr80nPvcZ@avalon>
-Cc: Daniel Vetter <daniel@ffwll.ch>, devel@driverdev.osuosl.org,
-        romlem@google.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        arve@android.com, linux-kernel@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
-        Riley Andrews <riandrews@android.com>,
-        Mark Brown <broonie@kernel.org>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-From: Laura Abbott <labbott@redhat.com>
-Message-ID: <87fe5d0a-19d2-b6c7-391f-687aa5ff8571@redhat.com>
-Date: Fri, 3 Mar 2017 10:46:03 -0800
-MIME-Version: 1.0
-In-Reply-To: <2273106.Hjr80nPvcZ@avalon>
-Content-Type: text/plain; charset=windows-1252
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:53665 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751018AbdCQNwP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Mar 2017 09:52:15 -0400
+Message-ID: <1489758670.2905.52.camel@pengutronix.de>
+Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
+ controls from a pipeline
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Russell King - ARM Linux <linux@armlinux.org.uk>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
+        markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Jacek Anaszewski <j.anaszewski@samsung.com>
+Date: Fri, 17 Mar 2017 14:51:10 +0100
+In-Reply-To: <20170317102410.18c966ae@vento.lan>
+References: <20170310130733.GU21222@n2100.armlinux.org.uk>
+         <c679f755-52a6-3c6f-3d65-277db46676cc@xs4all.nl>
+         <20170310140124.GV21222@n2100.armlinux.org.uk>
+         <cc8900b0-c091-b14b-96f4-01f8fa72431c@xs4all.nl>
+         <20170310125342.7f047acf@vento.lan>
+         <20170310223714.GI3220@valkosipuli.retiisi.org.uk>
+         <20170311082549.576531d0@vento.lan>
+         <20170313124621.GA10701@valkosipuli.retiisi.org.uk>
+         <20170314004533.3b3cd44b@vento.lan>
+         <e0a6c60b-1735-de0b-21f4-d8c3f4b3f10f@xs4all.nl>
+         <20170317114203.GZ21222@n2100.armlinux.org.uk>
+         <44161453-02f9-0019-3868-7501967a6a82@linux.intel.com>
+         <20170317102410.18c966ae@vento.lan>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/03/2017 08:39 AM, Laurent Pinchart wrote:
-> Hi Daniel,
+On Fri, 2017-03-17 at 10:24 -0300, Mauro Carvalho Chehab wrote:
+[...]
+> The big question, waiting for an answer on the last 8 years is
+> who would do that? Such person would need to have several different
+> hardware from different vendors, in order to ensure that it has
+> a generic solution.
 > 
-> On Friday 03 Mar 2017 10:56:54 Daniel Vetter wrote:
->> On Thu, Mar 02, 2017 at 01:44:38PM -0800, Laura Abbott wrote:
->>> Now that we call dma_map in the dma_buf API callbacks there is no need
->>> to use the existing cache APIs. Remove the sync ioctl and the existing
->>> bad dma_sync calls. Explicit caching can be handled with the dma_buf
->>> sync API.
->>>
->>> Signed-off-by: Laura Abbott <labbott@redhat.com>
->>> ---
->>>
->>>  drivers/staging/android/ion/ion-ioctl.c         |  5 ----
->>>  drivers/staging/android/ion/ion.c               | 40 --------------------
->>>  drivers/staging/android/ion/ion_carveout_heap.c |  6 ----
->>>  drivers/staging/android/ion/ion_chunk_heap.c    |  6 ----
->>>  drivers/staging/android/ion/ion_page_pool.c     |  3 --
->>>  drivers/staging/android/ion/ion_system_heap.c   |  5 ----
->>>  6 files changed, 65 deletions(-)
->>>
->>> diff --git a/drivers/staging/android/ion/ion-ioctl.c
->>> b/drivers/staging/android/ion/ion-ioctl.c index 5b2e93f..f820d77 100644
->>> --- a/drivers/staging/android/ion/ion-ioctl.c
->>> +++ b/drivers/staging/android/ion/ion-ioctl.c
->>> @@ -146,11 +146,6 @@ long ion_ioctl(struct file *filp, unsigned int cmd,
->>> unsigned long arg)> 
->>>  			data.handle.handle = handle->id;
->>>  		
->>>  		break;
->>>  	
->>>  	}
->>>
->>> -	case ION_IOC_SYNC:
->>> -	{
->>> -		ret = ion_sync_for_device(client, data.fd.fd);
->>> -		break;
->>> -	}
->>
->> You missed the case ION_IOC_SYNC: in compat_ion.c.
->>
->> While at it: Should we also remove the entire custom_ioctl infrastructure?
->> It's entirely unused afaict, and for a pure buffer allocator I don't see
->> any need to have custom ioctl.
-> 
-> I second that, if you want to make ion a standard API, then we certainly don't 
-> want any custom ioctl.
-> 
->> More code to remove potentially:
->> - The entire compat ioctl stuff - would be an abi break, but I guess if we
->>   pick the 32bit abi and clean up the uapi headers we'll be mostly fine.
->>   would allow us to remove compat_ion.c entirely.
->>
->> - ION_IOC_IMPORT: With this ion is purely an allocator, so not sure we
->>   still need to be able to import anything. All the cache flushing/mapping
->>   is done through dma-buf ops/ioctls.
->>
->>
+> It is a way more feasible that the Kernel developers that already 
+> have a certain hardware on their hands to add support inside the
+> driver to forward the controls through the pipeline and to setup
+> a "default" pipeline that would cover the common use cases at
+> driver's probe.
 
-Good point to all of the above. I was considering keeping the import around
-for backwards compatibility reasons but given how much other stuff is being
-potentially broken, everything should just get ripped out.
+Actually, would setting pipeline via libv4l2 plugin and letting drivers
+provide a sane enabled default pipeline configuration be mutually
+exclusive? Not sure about the control forwarding, but at least a simple
+link setup and format forwarding would also be possible in the kernel
+without hindering userspace from doing it themselves later.
 
-Thanks,
-Laura
+regards
+Philipp
