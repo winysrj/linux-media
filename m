@@ -1,126 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:45966
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932275AbdC3KNP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 06:13:15 -0400
-Date: Thu, 30 Mar 2017 07:12:58 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Markus Heiser <markus.heiser@darmarit.de>
-Cc: Jani Nikula <jani.nikula@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        John Youn <johnyoun@synopsys.com>, linux-usb@vger.kernel.org,
-        linux-rpi-kernel@lists.infradead.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Takashi Iwai <tiwai@suse.de>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Oliver Neukum <oneukum@suse.com>,
-        Martyn Welch <martyn.welch@collabora.co.uk>,
-        Alexander Dahl <post@lespocky.de>,
-        Jonathan Cameron <jic23@kernel.org>
-Subject: Re: [PATCH 02/22] docs-rst: convert usb docbooks to ReST
-Message-ID: <20170330071258.0ca47e4c@vento.lan>
-In-Reply-To: <D5D8BF1C-755B-4D56-B744-6A155C5B2313@darmarit.de>
-References: <4f2a7480ba9a3c89e726869fddf17e31cf82b3c7.1490813422.git.mchehab@s-opensource.com>
-        <327dcce56a725c7f91f542f2ff97995504d26526.1490813422.git.mchehab@s-opensource.com>
-        <7D76BCB2-53F5-4BD4-8205-5A4852164C91@darmarit.de>
-        <87y3vn2mzk.fsf@intel.com>
-        <D5D8BF1C-755B-4D56-B744-6A155C5B2313@darmarit.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from ale.deltatee.com ([207.54.116.67]:56515 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751208AbdCQSuZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Mar 2017 14:50:25 -0400
+From: Logan Gunthorpe <logang@deltatee.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+        Johannes Thumshirn <jthumshirn@suse.de>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Cyrille Pitchen <cyrille.pitchen@atmel.com>
+Cc: linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org,
+        rtc-linux@googlegroups.com, linux-mtd@lists.infradead.org,
+        linux-media@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-input@vger.kernel.org, linux-nvdimm@lists.01.org,
+        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Logan Gunthorpe <logang@deltatee.com>
+Date: Fri, 17 Mar 2017 12:48:21 -0600
+Message-Id: <1489776503-3151-15-git-send-email-logang@deltatee.com>
+In-Reply-To: <1489776503-3151-1-git-send-email-logang@deltatee.com>
+References: <1489776503-3151-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v5 14/16] rtc: utilize new cdev_device_add helper function
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 30 Mar 2017 11:20:14 +0200
-Markus Heiser <markus.heiser@darmarit.de> escreveu:
+Mostly straightforward, but we had to remove the rtc_dev_add/del_device
+functions as they split up the cdev_add and the device_add.
 
-> Am 30.03.2017 um 10:21 schrieb Jani Nikula <jani.nikula@intel.com>:
-> 
-> > On Thu, 30 Mar 2017, Markus Heiser <markus.heiser@darmarit.de> wrote:  
-> >> Hi Mauro,
-> >> 
-> >> Am 29.03.2017 um 20:54 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
-> >>   
-> >>> As we're moving out of DocBook, let's convert the remaining
-> >>> USB docbooks to ReST.
-> >>> 
-> >>> The transformation itself on this patch is a no-brainer
-> >>> conversion using pandoc.  
-> >> 
-> >> right, its a no-brainer ;-) I'am not very happy with this
-> >> conversions, some examples see below.
-> >> 
-> >> I recommend to use a more elaborate conversion as starting point,
-> >> e.g. from my sphkerneldoc project:
-> >> 
-> >> * https://github.com/return42/sphkerneldoc/tree/master/Documentation/books_migrated/gadget
-> >> * https://github.com/return42/sphkerneldoc/tree/master/Documentation/books_migrated/writing_musb_glue_layer
-> >> * https://github.com/return42/sphkerneldoc/tree/master/Documentation/books_migrated/writing_usb_driver
-> >> 
-> >> Since these DocBooks hasn't been changed in the last month, the linked reST
-> >> should be up to date.  
-> > 
-> > Markus, I know you've done a lot of work on your conversions, and you
-> > like to advocate them, but AFAICT you have never posted the conversions
-> > as patches to the list. Your project isn't a clone of the kernel
-> > tree. It's a pile of .rst files that nobody knows how to produce from
-> > current upstream DocBook .tmpl files. I'm sorry, but this just doesn't
-> > work that way.  
-> 
-> The conversion is done with the dbxml2rst tool:
-> 
->   https://github.com/return42/dbxml2rst
-> 
-> But you are right, the links I send are decoupled from kernel. It is
-> a 5 month old snapshot of a DocBook to reST conversion (now updated,
-> with no affect to the linked files, since they have not been patched
-> in the meantime) ...
-> 
-> > At this point I'd just go with what Mauro has. It's here now, as
-> > patches. We've seen from the GPU documentation that polishing the
-> > one-time initial conversion is, after a point, wasted effort. Having the
-> > documentation in rst attracts more attention and contributions, and any
-> > remaining issues will get ironed out in rst.  
-> 
-> I totally agree with you (I have never said something different)
-> 
-> > This is also one reason I'm in favor of just bulk converting the rest of
-> > the .tmpl files using Documentation/sphinx/tmplcvt, get rid of DocBook
-> > and be done with it, and have the crowds focus on rst.  
-> 
-> I also agree with that. The tmplcvt script is good enough for this task,
-> the dbxml2rst tool is more elaborate.
+Doing this also revealed that there was likely another subtle bug:
+seeing cdev_add was done after device_register, the cdev probably
+was not ready before device_add when the uevent occurs. This would
+race with userspace, if it tried to use the device directly after
+the uevent. This is fixed just by using the new helper function.
 
-I like the idea of a bulk conversion. My personal preference here is to
-use the tmplcvt for such task, at least for simple books like the ones
-I converted from USB.
+Another weird thing is this driver would, in some error cases, call
+cdev_add() without calling cdev_init. This patchset corrects this
+by avoiding calling cdev_add if the devt is not set.
 
-The advantage is that it places everything on a single rst file, with,
-IMHO, works best for books that aren't too complex.
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Acked-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+---
+ drivers/rtc/class.c    | 14 ++++++++++----
+ drivers/rtc/rtc-core.h | 10 ----------
+ drivers/rtc/rtc-dev.c  | 17 -----------------
+ 3 files changed, 10 insertions(+), 31 deletions(-)
 
-Of course, it doesn't hurt to compare the end result with dbxml2rst
-and see if something could be improved.
-
-> 
-> If Jonathan also likes to have a bulk conversion of the rest DocBooks,
-> we can use tmplcvt or even dbxml2rst for this task. Everything under
-> 
->   https://github.com/return42/sphkerneldoc/tree/master/Documentation/books_migrated
-> 
-> is just a "make dbxm2rst", I can update every time and if a bulk conversion
-> is the way ... I can send such patches or you send a tmplcvt conversion.
-> 
-> @Jon: what do you think about a bulk conversion?
-> 
->  -- Markus --
->   
-
-
-Thanks,
-Mauro
+diff --git a/drivers/rtc/class.c b/drivers/rtc/class.c
+index 74fd974..5fb4398 100644
+--- a/drivers/rtc/class.c
++++ b/drivers/rtc/class.c
+@@ -195,6 +195,8 @@ struct rtc_device *rtc_device_register(const char *name, struct device *dev,
+ 		goto exit_ida;
+ 	}
+ 
++	device_initialize(&rtc->dev);
++
+ 	rtc->id = id;
+ 	rtc->ops = ops;
+ 	rtc->owner = owner;
+@@ -233,14 +235,19 @@ struct rtc_device *rtc_device_register(const char *name, struct device *dev,
+ 
+ 	rtc_dev_prepare(rtc);
+ 
+-	err = device_register(&rtc->dev);
++	err = cdev_device_add(&rtc->char_dev, &rtc->dev);
+ 	if (err) {
++		dev_warn(&rtc->dev, "%s: failed to add char device %d:%d\n",
++			 rtc->name, MAJOR(rtc->dev.devt), rtc->id);
++
+ 		/* This will free both memory and the ID */
+ 		put_device(&rtc->dev);
+ 		goto exit;
++	} else {
++		dev_dbg(&rtc->dev, "%s: dev (%d:%d)\n", rtc->name,
++			MAJOR(rtc->dev.devt), rtc->id);
+ 	}
+ 
+-	rtc_dev_add_device(rtc);
+ 	rtc_proc_add_device(rtc);
+ 
+ 	dev_info(dev, "rtc core: registered %s as %s\n",
+@@ -271,9 +278,8 @@ void rtc_device_unregister(struct rtc_device *rtc)
+ 	 * Remove innards of this RTC, then disable it, before
+ 	 * letting any rtc_class_open() users access it again
+ 	 */
+-	rtc_dev_del_device(rtc);
+ 	rtc_proc_del_device(rtc);
+-	device_del(&rtc->dev);
++	cdev_device_del(&rtc->char_dev, &rtc->dev);
+ 	rtc->ops = NULL;
+ 	mutex_unlock(&rtc->ops_lock);
+ 	put_device(&rtc->dev);
+diff --git a/drivers/rtc/rtc-core.h b/drivers/rtc/rtc-core.h
+index a098aea..7a4ed2f 100644
+--- a/drivers/rtc/rtc-core.h
++++ b/drivers/rtc/rtc-core.h
+@@ -3,8 +3,6 @@
+ extern void __init rtc_dev_init(void);
+ extern void __exit rtc_dev_exit(void);
+ extern void rtc_dev_prepare(struct rtc_device *rtc);
+-extern void rtc_dev_add_device(struct rtc_device *rtc);
+-extern void rtc_dev_del_device(struct rtc_device *rtc);
+ 
+ #else
+ 
+@@ -20,14 +18,6 @@ static inline void rtc_dev_prepare(struct rtc_device *rtc)
+ {
+ }
+ 
+-static inline void rtc_dev_add_device(struct rtc_device *rtc)
+-{
+-}
+-
+-static inline void rtc_dev_del_device(struct rtc_device *rtc)
+-{
+-}
+-
+ #endif
+ 
+ #ifdef CONFIG_RTC_INTF_PROC
+diff --git a/drivers/rtc/rtc-dev.c b/drivers/rtc/rtc-dev.c
+index 6dc8f29..e81a871 100644
+--- a/drivers/rtc/rtc-dev.c
++++ b/drivers/rtc/rtc-dev.c
+@@ -477,23 +477,6 @@ void rtc_dev_prepare(struct rtc_device *rtc)
+ 
+ 	cdev_init(&rtc->char_dev, &rtc_dev_fops);
+ 	rtc->char_dev.owner = rtc->owner;
+-	rtc->char_dev.kobj.parent = &rtc->dev.kobj;
+-}
+-
+-void rtc_dev_add_device(struct rtc_device *rtc)
+-{
+-	if (cdev_add(&rtc->char_dev, rtc->dev.devt, 1))
+-		dev_warn(&rtc->dev, "%s: failed to add char device %d:%d\n",
+-			rtc->name, MAJOR(rtc_devt), rtc->id);
+-	else
+-		dev_dbg(&rtc->dev, "%s: dev (%d:%d)\n", rtc->name,
+-			MAJOR(rtc_devt), rtc->id);
+-}
+-
+-void rtc_dev_del_device(struct rtc_device *rtc)
+-{
+-	if (rtc->dev.devt)
+-		cdev_del(&rtc->char_dev);
+ }
+ 
+ void __init rtc_dev_init(void)
+-- 
+2.1.4
