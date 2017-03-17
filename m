@@ -1,110 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:52034 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751498AbdCSNZG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 19 Mar 2017 09:25:06 -0400
-Date: Sun, 19 Mar 2017 14:25:01 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
- controls from a pipeline
-Message-ID: <20170319132501.GA25673@amd>
-References: <c679f755-52a6-3c6f-3d65-277db46676cc@xs4all.nl>
- <20170310140124.GV21222@n2100.armlinux.org.uk>
- <cc8900b0-c091-b14b-96f4-01f8fa72431c@xs4all.nl>
- <20170310125342.7f047acf@vento.lan>
- <20170310223714.GI3220@valkosipuli.retiisi.org.uk>
- <20170311082549.576531d0@vento.lan>
- <20170313124621.GA10701@valkosipuli.retiisi.org.uk>
- <20170314004533.3b3cd44b@vento.lan>
- <e0a6c60b-1735-de0b-21f4-d8c3f4b3f10f@xs4all.nl>
- <20170317114203.GZ21222@n2100.armlinux.org.uk>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="u3/rZRmxL6MmkK24"
-Content-Disposition: inline
-In-Reply-To: <20170317114203.GZ21222@n2100.armlinux.org.uk>
+Received: from ale.deltatee.com ([207.54.116.67]:56506 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751180AbdCQSuZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Mar 2017 14:50:25 -0400
+From: Logan Gunthorpe <logang@deltatee.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+        Johannes Thumshirn <jthumshirn@suse.de>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Cyrille Pitchen <cyrille.pitchen@atmel.com>
+Cc: linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org,
+        rtc-linux@googlegroups.com, linux-mtd@lists.infradead.org,
+        linux-media@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-input@vger.kernel.org, linux-nvdimm@lists.01.org,
+        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Logan Gunthorpe <logang@deltatee.com>
+Date: Fri, 17 Mar 2017 12:48:17 -0600
+Message-Id: <1489776503-3151-11-git-send-email-logang@deltatee.com>
+In-Reply-To: <1489776503-3151-1-git-send-email-logang@deltatee.com>
+References: <1489776503-3151-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v5 10/16] iio:core: utilize new cdev_device_add helper function
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Replace the open coded registration of the cdev and dev with the
+new device_add_cdev() helper. The helper replaces a common pattern by
+taking the proper reference against the parent device and adding both
+the cdev and the device.
 
---u3/rZRmxL6MmkK24
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In doing so we have to remove a guard statement from cdev_del,
+but this doesn't appear to be required in any way.
 
-On Fri 2017-03-17 11:42:03, Russell King - ARM Linux wrote:
-> On Tue, Mar 14, 2017 at 08:55:36AM +0100, Hans Verkuil wrote:
-> > We're all very driver-development-driven, and userspace gets very little
-> > attention in general. So before just throwing in the towel we should ta=
-ke
-> > a good look at the reasons why there has been little or no development:=
- is
-> > it because of fundamental design defects, or because nobody paid attent=
-ion
-> > to it?
-> >=20
-> > I strongly suspect it is the latter.
-> >=20
-> > In addition, I suspect end-users of these complex devices don't really =
-care
-> > about a plugin: they want full control and won't typically use generic
-> > applications. If they would need support for that, we'd have seen much =
-more
-> > interest. The main reason for having a plugin is to simplify testing and
-> > if this is going to be used on cheap hobbyist devkits.
->=20
-> I think you're looking at it with a programmers hat on, not a users hat.
->=20
-> Are you really telling me that requiring users to 'su' to root, and then
-> use media-ctl to manually configure the capture device is what most
-> users "want" ?
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+---
+ drivers/iio/industrialio-core.c | 15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-If you want to help users, right way is to improve userland support.=20
-
-> Hasn't the way technology has moved towards graphical interfaces,
-> particularly smart phones, taught us that the vast majority of users
-> want is intuitive, easy to use interfaces, and not the command line
-> with reams of documentation?
-
-How is it relevant to _kernel_ interfaces?
-									Pavel
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---u3/rZRmxL6MmkK24
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAljOhq0ACgkQMOfwapXb+vJ9ywCgiLbs4zD6qCIbTw4hAUuhMtfs
-Y58An3yuL1bl63dFNji5vJn59vsTQqvq
-=+jHQ
------END PGP SIGNATURE-----
-
---u3/rZRmxL6MmkK24--
+diff --git a/drivers/iio/industrialio-core.c b/drivers/iio/industrialio-core.c
+index d18ded4..26a03c6 100644
+--- a/drivers/iio/industrialio-core.c
++++ b/drivers/iio/industrialio-core.c
+@@ -1720,18 +1720,13 @@ int iio_device_register(struct iio_dev *indio_dev)
+ 
+ 	cdev_init(&indio_dev->chrdev, &iio_buffer_fileops);
+ 	indio_dev->chrdev.owner = indio_dev->info->driver_module;
+-	indio_dev->chrdev.kobj.parent = &indio_dev->dev.kobj;
+-	ret = cdev_add(&indio_dev->chrdev, indio_dev->dev.devt, 1);
+-	if (ret < 0)
+-		goto error_unreg_eventset;
+ 
+-	ret = device_add(&indio_dev->dev);
++	ret = cdev_device_add(&indio_dev->chrdev, &indio_dev->dev);
+ 	if (ret < 0)
+-		goto error_cdev_del;
++		goto error_unreg_eventset;
+ 
+ 	return 0;
+-error_cdev_del:
+-	cdev_del(&indio_dev->chrdev);
++
+ error_unreg_eventset:
+ 	iio_device_unregister_eventset(indio_dev);
+ error_free_sysfs:
+@@ -1752,10 +1747,8 @@ void iio_device_unregister(struct iio_dev *indio_dev)
+ {
+ 	mutex_lock(&indio_dev->info_exist_lock);
+ 
+-	device_del(&indio_dev->dev);
++	cdev_device_del(&indio_dev->chrdev, &indio_dev->dev);
+ 
+-	if (indio_dev->chrdev.dev)
+-		cdev_del(&indio_dev->chrdev);
+ 	iio_device_unregister_debugfs(indio_dev);
+ 
+ 	iio_disable_all_buffers(indio_dev);
+-- 
+2.1.4
