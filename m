@@ -1,201 +1,332 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:39226 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752681AbdCPWLe (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:52117 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751084AbdCQOeg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Mar 2017 18:11:34 -0400
-Date: Thu, 16 Mar 2017 23:11:22 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
-        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org,
-        sakari.ailus@linux.intel.com, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: Re: media / v4l2-mc: wishlist for complex cameras (was Re: [PATCH v4
- 14/36] [media] v4l2-mc: add a function to inherit controls from a pipeline)
-Message-ID: <20170316221122.GA31588@amd>
-References: <20170310223714.GI3220@valkosipuli.retiisi.org.uk>
- <20170311082549.576531d0@vento.lan>
- <20170313124621.GA10701@valkosipuli.retiisi.org.uk>
- <20170314004533.3b3cd44b@vento.lan>
- <e0a6c60b-1735-de0b-21f4-d8c3f4b3f10f@xs4all.nl>
- <20170314072143.498cde9b@vento.lan>
- <20170314223254.GA7141@amd>
- <20170314215420.6fc63c67@vento.lan>
- <20170315180421.GA10206@amd>
- <20170315172627.6b7cc955@vento.lan>
+        Fri, 17 Mar 2017 10:34:36 -0400
+Subject: Re: [PATCH v2] media: platform: rcar_imr: add IMR-LSX3 support
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        devicetree@vger.kernel.org, linux-media@vger.kernel.org
+References: <20170316190000.216761731@cogentembedded.com>
+Cc: linux-renesas-soc@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <b12254ac-ed2f-dec5-8cbd-4ce22c5f3c55@xs4all.nl>
+Date: Fri, 17 Mar 2017 15:33:49 +0100
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="bg08WKrSYDhXBjb5"
-Content-Disposition: inline
-In-Reply-To: <20170315172627.6b7cc955@vento.lan>
+In-Reply-To: <20170316190000.216761731@cogentembedded.com>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 03/16/17 19:59, Sergei Shtylyov wrote:
+> Add support for the image renderer light SRAM extended 3 (IMR-LSX3) found
+> only in the R-Car V2H (R8A7792) SoC.  It differs  from IMR-LX4 in that it
+> supports only planar video formats but can use the video capture data for
+> the textures.
+> 
+> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> 
+> ---
+> This patch  is against the 'media_tree.git' repo's 'master' branch plus the
+> latest version of  the Renesas IMR driver...
+> 
+> Changes in version 2:
+> - renamed *enum* 'imr_gen' to 'imr_type' and the *struct* field of this type
+>   from 'gen' to 'type';
+> - rename *struct* 'imr_type' to 'imr_info' and the fields/variables of this type
+>   from 'type' to 'info';
+> - added comments to IMR-LX4 only CMRCR2 bits;
+> - added IMR type check to the WTS instruction writing to CMRCCR2.
+> 
+>  Documentation/devicetree/bindings/media/rcar_imr.txt |   11 +
+>  drivers/media/platform/rcar_imr.c                    |  106 +++++++++++++++----
+>  2 files changed, 97 insertions(+), 20 deletions(-)
+> 
+> Index: media_tree/Documentation/devicetree/bindings/media/rcar_imr.txt
+> ===================================================================
+> --- media_tree.orig/Documentation/devicetree/bindings/media/rcar_imr.txt
+> +++ media_tree/Documentation/devicetree/bindings/media/rcar_imr.txt
+> @@ -8,9 +8,14 @@ and drawing with respect to any shape th
+>  
+>  Required properties:
+>  
+> -- compatible: "renesas,<soctype>-imr-lx4", "renesas,imr-lx4" as a fallback for
+> -  the image renderer light extended 4 (IMR-LX4) found in the R-Car gen3 SoCs,
+> -  where the examples with <soctype> are:
+> +- compatible:
+> +  "renesas,<soctype>-imr-lsx3", "renesas,imr-lsx3" as a fallback for the image
+> +  renderer light SRAM extended 3 (IMR-LSX3) found in the R-Car gen2 SoCs, where
+> +  the examples with <soctype> are:
+> +  - "renesas,r8a7792-imr-lsx3" for R-Car V2H;
+> +  "renesas,<soctype>-imr-lx4", "renesas,imr-lx4" as a fallback for the image
+> +  renderer light extended 4 (IMR-LX4) found in the R-Car gen3 SoCs, where the
+> +  examples with <soctype> are:
+>    - "renesas,r8a7795-imr-lx4" for R-Car H3,
+>    - "renesas,r8a7796-imr-lx4" for R-Car M3-W.
+>  - reg: offset and length of the register block;
+> Index: media_tree/drivers/media/platform/rcar_imr.c
+> ===================================================================
+> --- media_tree.orig/drivers/media/platform/rcar_imr.c
+> +++ media_tree/drivers/media/platform/rcar_imr.c
+> @@ -1,5 +1,5 @@
+>  /*
+> - * rcar_imr.c -- R-Car IMR-LX4 Driver
+> + * rcar_imr.c -- R-Car IMR-LSX3/LX4 Driver
+>   *
+>   * Copyright (C) 2015-2017 Cogent Embedded, Inc. <source@cogentembedded.com>
+>   *
+> @@ -14,7 +14,7 @@
+>  #include <linux/interrupt.h>
+>  #include <linux/kernel.h>
+>  #include <linux/module.h>
+> -#include <linux/platform_device.h>
+> +#include <linux/of_device.h>
+>  #include <linux/rcar_imr.h>
+>  #include <media/v4l2-ctrls.h>
+>  #include <media/v4l2-device.h>
+> @@ -81,8 +81,21 @@ struct imr_format_info {
+>  	u32			flags;
+>  };
+>  
+> +enum imr_type {
+> +	IMR_LSX3,
+> +	IMR_LX4,
+> +};
+> +
+> +/* IMR type specific data */
+> +struct imr_info {
+> +	enum imr_type		type;
+> +	const struct imr_format_info *formats;
+> +	unsigned int		num_formats;
+> +};
+> +
+>  /* per-device data */
+>  struct imr_device {
+> +	const struct imr_info	*info;
+>  	struct device		*dev;
+>  	struct clk		*clock;
+>  	void __iomem		*mmio;
+> @@ -180,6 +193,7 @@ struct imr_ctx {
+>  #define IMR_IMR_IEM		BIT(1)
+>  #define IMR_IMR_INM		BIT(2)
+>  
+> +#define IMR_CMRCR_TXTM		BIT(0)		/* IMR-LSX3 only */
+>  #define IMR_CMRCR_LUCE		BIT(1)
+>  #define IMR_CMRCR_CLCE		BIT(2)
+>  #define IMR_CMRCR_DUV_SHIFT	3
+> @@ -219,11 +233,11 @@ struct imr_ctx {
+>  #define IMR_CPDPOR_YLDPO	GENMASK(10, 8)
+>  
+>  #define IMR_CMRCR2_LUTE		BIT(0)
+> -#define IMR_CMRCR2_YUV422E	BIT(2)
+> -#define IMR_CMRCR2_YUV422FORM	BIT(5)
+> -#define IMR_CMRCR2_UVFORM	BIT(6)
+> -#define IMR_CMRCR2_TCTE		BIT(12)
+> -#define IMR_CMRCR2_DCTE		BIT(15)
+> +#define IMR_CMRCR2_YUV422E	BIT(2)		/* IMR-LX4 only */
+> +#define IMR_CMRCR2_YUV422FORM	BIT(5)		/* IMR-LX4 only */
+> +#define IMR_CMRCR2_UVFORM	BIT(6)		/* IMR-LX4 only */
+> +#define IMR_CMRCR2_TCTE		BIT(12)		/* IMR-LX4 only */
+> +#define IMR_CMRCR2_DCTE		BIT(15)		/* IMR-LX4 only */
+>  
+>  /*******************************************************************************
+>   * Display list commands
+> @@ -282,6 +296,34 @@ static u32 __imr_flags_common(u32 iflags
+>  	return iflags & oflags & IMR_F_PLANES_MASK;
+>  }
+>  
+> +static const struct imr_format_info imr_lsx3_formats[] = {
+> +	{
+> +		.name	= "YUV 4:2:2 semiplanar (NV16)",
+> +		.fourcc	= V4L2_PIX_FMT_NV16,
+> +		.flags	= IMR_F_Y8 | IMR_F_UV8 | IMR_F_PLANAR,
+> +	},
+> +	{
+> +		.name	= "Greyscale 8-bit",
+> +		.fourcc	= V4L2_PIX_FMT_GREY,
+> +		.flags	= IMR_F_Y8 | IMR_F_PLANAR,
+> +	},
+> +	{
+> +		.name	= "Greyscale 10-bit",
+> +		.fourcc	= V4L2_PIX_FMT_Y10,
+> +		.flags	= IMR_F_Y8 | IMR_F_Y10 | IMR_F_PLANAR,
+> +	},
+> +	{
+> +		.name	= "Greyscale 12-bit",
+> +		.fourcc	= V4L2_PIX_FMT_Y12,
+> +		.flags	= IMR_F_Y8 | IMR_F_Y10 | IMR_F_Y12 | IMR_F_PLANAR,
+> +	},
+> +	{
+> +		.name	= "Chrominance UV 8-bit",
+> +		.fourcc	= V4L2_PIX_FMT_UV8,
+> +		.flags	= IMR_F_UV8 | IMR_F_PLANAR,
+> +	},
+> +};
+> +
+>  static const struct imr_format_info imr_lx4_formats[] = {
+>  	{
+>  		.name	= "YUV 4:2:2 semiplanar (NV16)",
+> @@ -335,6 +377,18 @@ static const struct imr_format_info imr_
+>  	},
+>  };
+>  
+> +static const struct imr_info imr_lsx3 = {
+> +	.type		= IMR_LSX3,
+> +	.formats	= imr_lsx3_formats,
+> +	.num_formats	= ARRAY_SIZE(imr_lsx3_formats),
+> +};
+> +
+> +static const struct imr_info imr_lx4 = {
+> +	.type		= IMR_LX4,
+> +	.formats	= imr_lx4_formats,
+> +	.num_formats	= ARRAY_SIZE(imr_lx4_formats),
+> +};
+> +
+>  /* mesh configuration constructor */
+>  static struct imr_cfg *imr_cfg_create(struct imr_ctx *ctx,
+>  				      u32 dl_size, u32 dl_start)
+> @@ -767,7 +821,8 @@ static void imr_dl_program_setup(struct
+>  		 "setup %ux%u -> %ux%u mapping (type=%x)\n", w, h, W, H, type);
+>  
+>  	/* set triangle mode register from user-supplied descriptor */
+> -	*dl++ = IMR_OP_WTS(IMR_TRIMCR, 0x004F);
+> +	*dl++ = IMR_OP_WTS(IMR_TRIMCR,
+> +			   ctx->imr->info->type == IMR_LX4 ? 0x004F : 0x007F);
+>  
+>  	/* set automatic source/destination coordinates generation flags */
+>  	*dl++ = IMR_OP_WTS(IMR_TRIMSR, __imr_auto_sg_dg_tcm(type) |
+> @@ -781,7 +836,8 @@ static void imr_dl_program_setup(struct
+>  
+>  	/* reset rendering mode registers */
+>  	*dl++ = IMR_OP_WTS(IMR_CMRCCR,  0xDBFE);
+> -	*dl++ = IMR_OP_WTS(IMR_CMRCCR2, 0x9065);
+> +	*dl++ = IMR_OP_WTS(IMR_CMRCCR2, ctx->imr->info->type == IMR_LX4 ?
+> +			   0x9065 : IMR_CMRCR2_LUTE);
+>  
+>  	/* set source/destination addresses of Y/UV plane */
+>  	*dl++ = IMR_OP_WTL(IMR_DSAR, 2);
+> @@ -823,7 +879,7 @@ static void imr_dl_program_setup(struct
+>  			*dl++ = IMR_OP_WTS(IMR_SSTR,
+>  					   w << (iflags & IMR_F_UV10 ? 1 : 0));
+>  		}
+> -	} else {
+> +	} else if (ctx->imr->info->type == IMR_LX4) {
+>  		u16 src_fmt = (iflags & IMR_F_UV_SWAP ? IMR_CMRCR2_UVFORM : 0) |
+>  			      (iflags & IMR_F_YUV_SWAP ?
+>  			       IMR_CMRCR2_YUV422FORM : 0);
+> @@ -864,6 +920,9 @@ static void imr_dl_program_setup(struct
+>  			*dl++ = IMR_OP_WTS(IMR_DSTR,
+>  					   W << (cflags & IMR_F_Y10 ? 2 : 1));
+>  		}
+> +	} else	{
+> +		/* this shouldn't happen! */
+> +		BUG();
 
---bg08WKrSYDhXBjb5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Can you find a better way? The use of 'BUG' is frowned upon. It's better
+to return an error here. Also, are you sure this can't happen? At least for
+me it is not obvious from the code.
 
-Hi!
+>  	}
+>  
+>  	/*
+> @@ -1114,6 +1173,7 @@ out:
+>  /* test if a format is supported */
+>  static int __imr_try_fmt(struct imr_ctx *ctx, struct v4l2_format *f)
+>  {
+> +	const struct imr_info	*info = ctx->imr->info;
+>  	struct v4l2_pix_format	*pix = &f->fmt.pix;
+>  	u32			fourcc = pix->pixelformat;
+>  	int			i;
+> @@ -1122,8 +1182,8 @@ static int __imr_try_fmt(struct imr_ctx
+>  	 * both output and capture interface have the same set of
+>  	 * supported formats
+>  	 */
+> -	for (i = 0; i < ARRAY_SIZE(imr_lx4_formats); i++) {
+> -		if (fourcc == imr_lx4_formats[i].fourcc) {
+> +	for (i = 0; i < info->num_formats; i++) {
+> +		if (fourcc == info->formats[i].fourcc) {
+>  			/* fix up format specification as needed */
+>  			pix->field = V4L2_FIELD_NONE;
+>  
+> @@ -1174,9 +1234,12 @@ static int imr_querycap(struct file *fil
+>  /* enumerate supported formats */
+>  static int imr_enum_fmt(struct file *file, void *priv, struct v4l2_fmtdesc *f)
+>  {
+> +	struct imr_ctx		*ctx = fh_to_ctx(priv);
+> +	const struct imr_info	*info = ctx->imr->info;
+> +
+>  	/* no distinction between output/capture formats */
+> -	if (f->index < ARRAY_SIZE(imr_lx4_formats)) {
+> -		const struct imr_format_info *fmt = &imr_lx4_formats[f->index];
+> +	if (f->index < info->num_formats) {
+> +		const struct imr_format_info *fmt = &info->formats[f->index];
+>  
+>  		strlcpy(f->description, fmt->name, sizeof(f->description));
+>  		f->pixelformat = fmt->fourcc;
+> @@ -1246,7 +1309,7 @@ static int imr_s_fmt(struct file *file,
+>  
+>  	/* processing is locked? TBD */
+>  	q_data->fmt = f->fmt.pix;
+> -	q_data->flags = imr_lx4_formats[i].flags;
+> +	q_data->flags = ctx->imr->info->formats[i].flags;
+>  
+>  	/* set default crop factors */
+>  	if (!V4L2_TYPE_IS_OUTPUT(f->type)) {
+> @@ -1622,6 +1685,8 @@ static void imr_device_run(void *priv)
+>  	wmb();
+>  
+>  	/* start rendering operation */
+> +	if (imr->info->type != IMR_LX4)
+> +		iowrite32(IMR_CMRCR_TXTM, imr->mmio + IMR_CMRCSR);
+>  	iowrite32(IMR_CR_RS, imr->mmio + IMR_CR);
+>  
+>  	/* timestamp input buffer */
+> @@ -1776,16 +1841,22 @@ handled:
+>  
+>  static int imr_probe(struct platform_device *pdev)
+>  {
+> +	const struct imr_info	*info;
+>  	struct imr_device	*imr;
+>  	struct resource		*res;
+>  	int			ret;
+>  
+> +	info = of_device_get_match_data(&pdev->dev);
+> +	if (!info)
+> +		return -ENODEV;
+> +
+>  	imr = devm_kzalloc(&pdev->dev, sizeof(*imr), GFP_KERNEL);
+>  	if (!imr)
+>  		return -ENOMEM;
+>  
+>  	mutex_init(&imr->mutex);
+>  	spin_lock_init(&imr->lock);
+> +	imr->info = info;
+>  	imr->dev = &pdev->dev;
+>  
+>  	/* memory-mapped registers */
+> @@ -1919,7 +1990,8 @@ static const struct dev_pm_ops imr_pm_op
+>  
+>  /* device table */
+>  static const struct of_device_id imr_of_match[] = {
+> -	{ .compatible = "renesas,imr-lx4" },
+> +	{ .compatible = "renesas,imr-lsx3", .data = &imr_lsx3, },
+> +	{ .compatible = "renesas,imr-lx4",  .data = &imr_lx4,  },
+>  	{ },
+>  };
+>  
+> @@ -1939,5 +2011,5 @@ module_platform_driver(imr_platform_driv
+>  
+>  MODULE_ALIAS("imr");
+>  MODULE_AUTHOR("Cogent Embedded Inc. <sources@cogentembedded.com>");
+> -MODULE_DESCRIPTION("Renesas IMR-LX4 Driver");
+> +MODULE_DESCRIPTION("Renesas IMR-LSX3/LX4 Driver");
+>  MODULE_LICENSE("GPL");
+> 
 
-> > > > mplayer is useful for testing... but that one already works (after =
-you
-> > > > setup the pipeline, and configure exposure/gain).
-> > > >=20
-> > > > But thats useful for testing, not really for production. Image will=
- be
-> > > > out of focus and with wrong white balance.
-> > > >=20
-> > > > What I would really like is an application to get still photos. For
-> > > > taking pictures with manual settings we need
-> > > >=20
-> > > > a) units for controls: user wants to focus on 1m, and take picture
-> > > > with ISO200, 1/125 sec. We should also tell him that lens is f/5.6 =
-and
-> > > > focal length is 20mm with 5mm chip.
-> > > >=20
-> > > > But... autofocus/autogain would really be good to have. Thus we nee=
-d:
-> > > >=20
-> > > > b) for each frame, we need exposure settings and focus position at
-> > > > time frame was taken. Otherwise autofocus/autogain will be too
-> > > > slow. At least focus position is going to be tricky -- either kernel
-> > > > would have to compute focus position for us (not trivial) or we'd n=
-eed
-> > > > enough information to compute it in userspace.
-> > > >=20
-> > > > There are more problems: hardware-accelerated preview is not trivial
-> > > > to set up (and I'm unsure if it can be done in generic way). Still
-> > > > photos application needs to switch resolutions between preview and
-> > > > photo capture. Probably hardware-accelerated histograms are needed =
-for
-> > > > white balance, auto gain and auto focus, ....
-> > > >=20
-> > > > It seems like there's a _lot_ of stuff to be done before we have
-> > > > useful support for complex cameras... =20
-> > >=20
-> > > Taking still pictures using a hardware-accelerated preview is
-> > > a sophisticated use case. I don't know any userspace application
-> > > that does that. Ok, several allow taking snapshots, by simply
-> > > storing the image of the current frame. =20
-> >=20
-> > Well, there are applications that take still pictures. Android has
-> > one. Maemo has another. Then there's fcam-dev. Its open source; with
-> > modified kernel it is fully usable. I have version that runs on recent
-> > nearly-mainline on N900.=20
->=20
-> Hmm... it seems that FCam is specific for N900:
-> 	http://fcam.garage.maemo.org/
->=20
-> If so, then we have here just the opposite problem, if want it to be
-> used as a generic application, as very likely it requires OMAP3-specific
-> graph/subdevs.
+Regards,
 
-Well... there's quick and great version on maemo.org. I do have local
-version (still somehow N900-specific), but it no longer uses hardware
-histogram/sharpness support. Should be almost generic.
-
-> > So yes, I'd like solution for problems a) and b).
-
-=2E..but it has camera parameters hardcoded (problem a) and slow
-(problem b).=20
-
-> > Question is if camera without autofocus is usable. I'd say "not
-> > really".qv4l2
->=20
-> That actually depends on the sensor and how focus is adjusted.
->=20
-> I'm testing right now this camera module for RPi:
->    https://www.raspberrypi.org/products/camera-module-v2/
->=20
-> I might be wrong, but this sensor doesn't seem to have auto-focus.
-> Instead, it seems to use a wide-angle lens. So, except when the
-> object is too close, the focus look OK.
-
-Well, cameras without autofocus are somehow usable without
-autofocus. But cameras with autofocus don't work too well without one.
-
-> > If we really want to go that way (is not modifying library to access
-> > the right files quite easy?), I believe non-confusing option would be
-> > to have '/dev/video0 -- omap3 camera for legacy applications' which
-> > would include all the controls.
->=20
-> Yeah, keeping /dev/video0 reserved for generic applications is something
-> that could work. Not sure how easy would be to implement it.
-
-Plus advanced applications would just ignore /dev/video0.. and not be confu=
-sed.
-
-> > > > > > You can get Nokia N900 on aliexpress. If not, they are still av=
-ailable
-> > > > between people :-) =20
-> > >=20
-> > > I have one. Unfortunately, I never had a chance to use it, as the dis=
-play
-> > > stopped working one week after I get it. =20
-> >=20
-> > Well, I guess the easiest option is to just get another one :-).
->=20
-> :-)  Well, I guess very few units of N900 was sold in Brazil. Importing
-> one is too expensive, due to taxes.
-
-Try to ask at local mailing list. Those machines were quite common.
-
-> > But otoh -- N900 is quite usable without the screen. 0xffff tool can
-> > be used to boot the kernel, then you can use nfsroot and usb
-> > networking. It also has serial port (over strange
-> > connector). Connected over ssh over usb network is actually how I do
-> > most of the v4l work.
->=20
-> If you pass me the pointers, I can try it when I have some time.
-
-Ok, I guess I'll do that in private email.
-
-> Anyway, I got myself an ISEE IGEPv2, with the expansion board:
-> 	https://www.isee.biz/products/igep-processor-boards/igepv2-dm3730
-> 	https://www.isee.biz/products/igep-expansion-boards/igepv2-expansion
->=20
-> The expansion board comes with a tvp5150 analog TV demod. So, with
-> this device, I can simply connect it to a composite input signal.
-> I have some sources here that I can use to test it.
-
-Well... it looks like TV capture is a "solved" problem. Taking useful
-photos is what is hard...
-
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---bg08WKrSYDhXBjb5
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAljLDYoACgkQMOfwapXb+vLuxgCgioDKBFPW0CY5+q+9qy7KLVu+
-YXsAnA1T4q6VZAJcB0AR0khbSR5/eSKo
-=A/Nh
------END PGP SIGNATURE-----
-
---bg08WKrSYDhXBjb5--
+	Hans
