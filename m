@@ -1,99 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f196.google.com ([74.125.82.196]:35056 "EHLO
-        mail-ot0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751962AbdC0V1i (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 17:27:38 -0400
-Received: by mail-ot0-f196.google.com with SMTP id s100so5355098ota.2
-        for <linux-media@vger.kernel.org>; Mon, 27 Mar 2017 14:27:37 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20161216012425.11179-4-laurent.pinchart+renesas@ideasonboard.com>
-References: <20161216012425.11179-1-laurent.pinchart+renesas@ideasonboard.com> <20161216012425.11179-4-laurent.pinchart+renesas@ideasonboard.com>
-From: Shuah Khan <shuahkhan@gmail.com>
-Date: Mon, 27 Mar 2017 15:27:36 -0600
-Message-ID: <CAKocOOP1quatsWr4O7fwxXVhuPisaST-xkJoPRCO41RHSPhhNw@mail.gmail.com>
-Subject: Re: [RFC v2 03/11] vb2: Move cache synchronisation from buffer done
- to dqbuf handler
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Rob Clark <robdclark@gmail.com>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Laura Abbott <labbott@redhat.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Shuah Khan <shuahkhan@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from ale.deltatee.com ([207.54.116.67]:56495 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751116AbdCQSuZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Mar 2017 14:50:25 -0400
+From: Logan Gunthorpe <logang@deltatee.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+        Johannes Thumshirn <jthumshirn@suse.de>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Cyrille Pitchen <cyrille.pitchen@atmel.com>
+Cc: linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org,
+        rtc-linux@googlegroups.com, linux-mtd@lists.infradead.org,
+        linux-media@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-input@vger.kernel.org, linux-nvdimm@lists.01.org,
+        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Logan Gunthorpe <logang@deltatee.com>
+Date: Fri, 17 Mar 2017 12:48:18 -0600
+Message-Id: <1489776503-3151-12-git-send-email-logang@deltatee.com>
+In-Reply-To: <1489776503-3151-1-git-send-email-logang@deltatee.com>
+References: <1489776503-3151-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v5 11/16] media: utilize new cdev_device_add helper function
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 15, 2016 at 6:24 PM, Laurent Pinchart
-<laurent.pinchart+renesas@ideasonboard.com> wrote:
-> From: Sakari Ailus <sakari.ailus@linux.intel.com>
->
-> The cache synchronisation may be a time consuming operation and thus not
-> best performed in an interrupt which is a typical context for
-> vb2_buffer_done() calls. This may consume up to tens of ms on some
-> machines, depending on the buffer size.
->
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
-> Changes since v1:
->
-> - Don't rename the 'i' loop counter to 'plane'
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 9 ++++-----
->  1 file changed, 4 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 8ba48703b189..15a83f338072 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -889,7 +889,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
->  {
->         struct vb2_queue *q = vb->vb2_queue;
->         unsigned long flags;
-> -       unsigned int plane;
->
->         if (WARN_ON(vb->state != VB2_BUF_STATE_ACTIVE))
->                 return;
-> @@ -910,10 +909,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
->         dprintk(4, "done processing on buffer %d, state: %d\n",
->                         vb->index, state);
->
-> -       /* sync buffers */
-> -       for (plane = 0; plane < vb->num_planes; ++plane)
-> -               call_void_memop(vb, finish, vb->planes[plane].mem_priv);
-> -
->         spin_lock_irqsave(&q->done_lock, flags);
->         if (state == VB2_BUF_STATE_QUEUED ||
->             state == VB2_BUF_STATE_REQUEUEING) {
-> @@ -1571,6 +1566,10 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
->
->         vb->state = VB2_BUF_STATE_DEQUEUED;
->
-> +       /* sync buffers */
-> +       for (i = 0; i < vb->num_planes; ++i)
-> +               call_void_memop(vb, finish, vb->planes[i].mem_priv);
-> +
+Replace the open coded registration of the cdev and dev with the
+new device_add_cdev() helper. The helper replaces a common pattern by
+taking the proper reference against the parent device and adding both
+the cdev and the device.
 
-Does this compile?? Where is "i" defined? Looks like it needs to be added
-back in.
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/cec/cec-core.c  | 16 ++++------------
+ drivers/media/media-devnode.c | 20 +++++---------------
+ 2 files changed, 9 insertions(+), 27 deletions(-)
 
--- Shuah
-
->         /* unmap DMABUF buffer */
->         if (q->memory == VB2_MEMORY_DMABUF)
->                 for (i = 0; i < vb->num_planes; ++i) {
-> --
-> Regards,
->
-> Laurent Pinchart
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
+index 37217e2..3163e03 100644
+--- a/drivers/media/cec/cec-core.c
++++ b/drivers/media/cec/cec-core.c
+@@ -137,24 +137,17 @@ static int __must_check cec_devnode_register(struct cec_devnode *devnode,
+ 
+ 	/* Part 2: Initialize and register the character device */
+ 	cdev_init(&devnode->cdev, &cec_devnode_fops);
+-	devnode->cdev.kobj.parent = &devnode->dev.kobj;
+ 	devnode->cdev.owner = owner;
+ 
+-	ret = cdev_add(&devnode->cdev, devnode->dev.devt, 1);
+-	if (ret < 0) {
+-		pr_err("%s: cdev_add failed\n", __func__);
++	ret = cdev_device_add(&devnode->cdev, &devnode->dev);
++	if (ret) {
++		pr_err("%s: cdev_device_add failed\n", __func__);
+ 		goto clr_bit;
+ 	}
+ 
+-	ret = device_add(&devnode->dev);
+-	if (ret)
+-		goto cdev_del;
+-
+ 	devnode->registered = true;
+ 	return 0;
+ 
+-cdev_del:
+-	cdev_del(&devnode->cdev);
+ clr_bit:
+ 	mutex_lock(&cec_devnode_lock);
+ 	clear_bit(devnode->minor, cec_devnode_nums);
+@@ -190,8 +183,7 @@ static void cec_devnode_unregister(struct cec_devnode *devnode)
+ 	devnode->unregistered = true;
+ 	mutex_unlock(&devnode->lock);
+ 
+-	device_del(&devnode->dev);
+-	cdev_del(&devnode->cdev);
++	cdev_device_del(&devnode->cdev, &devnode->dev);
+ 	put_device(&devnode->dev);
+ }
+ 
+diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+index ae46753..423248f 100644
+--- a/drivers/media/media-devnode.c
++++ b/drivers/media/media-devnode.c
+@@ -248,31 +248,22 @@ int __must_check media_devnode_register(struct media_device *mdev,
+ 	dev_set_name(&devnode->dev, "media%d", devnode->minor);
+ 	device_initialize(&devnode->dev);
+ 
+-	/* Part 2: Initialize and register the character device */
++	/* Part 2: Initialize the character device */
+ 	cdev_init(&devnode->cdev, &media_devnode_fops);
+ 	devnode->cdev.owner = owner;
+-	devnode->cdev.kobj.parent = &devnode->dev.kobj;
+ 
+-	ret = cdev_add(&devnode->cdev, MKDEV(MAJOR(media_dev_t), devnode->minor), 1);
++	/* Part 3: Add the media and char device */
++	ret = cdev_device_add(&devnode->cdev, &devnode->dev);
+ 	if (ret < 0) {
+-		pr_err("%s: cdev_add failed\n", __func__);
++		pr_err("%s: cdev_device_add failed\n", __func__);
+ 		goto cdev_add_error;
+ 	}
+ 
+-	/* Part 3: Add the media device */
+-	ret = device_add(&devnode->dev);
+-	if (ret < 0) {
+-		pr_err("%s: device_add failed\n", __func__);
+-		goto device_add_error;
+-	}
+-
+ 	/* Part 4: Activate this minor. The char device can now be used. */
+ 	set_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
+ 
+ 	return 0;
+ 
+-device_add_error:
+-	cdev_del(&devnode->cdev);
+ cdev_add_error:
+ 	mutex_lock(&media_devnode_lock);
+ 	clear_bit(devnode->minor, media_devnode_nums);
+@@ -298,9 +289,8 @@ void media_devnode_unregister(struct media_devnode *devnode)
+ {
+ 	mutex_lock(&media_devnode_lock);
+ 	/* Delete the cdev on this minor as well */
+-	cdev_del(&devnode->cdev);
++	cdev_device_del(&devnode->cdev, &devnode->dev);
+ 	mutex_unlock(&media_devnode_lock);
+-	device_del(&devnode->dev);
+ 	devnode->media_dev = NULL;
+ 	put_device(&devnode->dev);
+ }
+-- 
+2.1.4
