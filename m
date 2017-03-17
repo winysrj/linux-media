@@ -1,116 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:36445 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753063AbdCOS0r (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Mar 2017 14:26:47 -0400
-Date: Wed, 15 Mar 2017 13:26:44 -0500
-From: Rob Herring <robh@kernel.org>
-To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, CARLOS.PALMINHA@synopsys.com,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>, Benoit Parrot <bparrot@ti.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Guenter Roeck <linux@roeck-us.net>,
+Received: from ale.deltatee.com ([207.54.116.67]:56551 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751651AbdCQSvD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Mar 2017 14:51:03 -0400
+From: Logan Gunthorpe <logang@deltatee.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Peter Griffin <peter.griffin@linaro.org>,
-        Rick Chang <rick.chang@mediatek.com>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Simon Horman <simon.horman@netronome.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: Re: [PATCH 1/4] Documentation: dt: Add bindings documentation for DW
- MIPI CSI-2 Host
-Message-ID: <20170315182644.silefj6xq47dzfmg@rob-hp-laptop>
-References: <cover.1488885081.git.roliveir@synopsys.com>
- <3478bf7c84fd8c8bdcff4f0170ee0344eca13f60.1488885081.git.roliveir@synopsys.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3478bf7c84fd8c8bdcff4f0170ee0344eca13f60.1488885081.git.roliveir@synopsys.com>
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+        Johannes Thumshirn <jthumshirn@suse.de>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Cyrille Pitchen <cyrille.pitchen@atmel.com>
+Cc: linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org,
+        rtc-linux@googlegroups.com, linux-mtd@lists.infradead.org,
+        linux-media@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-input@vger.kernel.org, linux-nvdimm@lists.01.org,
+        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Logan Gunthorpe <logang@deltatee.com>
+Date: Fri, 17 Mar 2017 12:48:08 -0600
+Message-Id: <1489776503-3151-2-git-send-email-logang@deltatee.com>
+In-Reply-To: <1489776503-3151-1-git-send-email-logang@deltatee.com>
+References: <1489776503-3151-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v5 01/16] chardev: add helper function to register char devs with a struct device
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 07, 2017 at 02:37:48PM +0000, Ramiro Oliveira wrote:
-> Create device tree bindings documentation for the Synopsys DW MIPI CSI-2
->  Host.
-> 
-> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
-> ---
->  .../devicetree/bindings/media/snps,dw-mipi-csi.txt | 37 ++++++++++++++++++++++
->  1 file changed, 37 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/snps,dw-mipi-csi.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/snps,dw-mipi-csi.txt b/Documentation/devicetree/bindings/media/snps,dw-mipi-csi.txt
-> new file mode 100644
-> index 000000000000..5b24eb43d760
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/snps,dw-mipi-csi.txt
-> @@ -0,0 +1,37 @@
-> +Synopsys DesignWare CSI-2 Host controller
-> +
-> +Description
-> +-----------
-> +
-> +This HW block is used to receive image coming from an MIPI CSI-2 compatible
-> +camera.
-> +
-> +Required properties:
-> +- compatible: shall be "snps,dw-mipi-csi"
+Credit for this patch goes is shared with Dan Williams [1]. I've
+taken things one step further to make the helper function more
+useful and clean up calling code.
 
-... "and an SoC specific compatible string"
+There's a common pattern in the kernel whereby a struct cdev is placed
+in a structure along side a struct device which manages the life-cycle
+of both. In the naive approach, the reference counting is broken and
+the struct device can free everything before the chardev code
+is entirely released.
 
-> +- reg		: physical base address and size of the device memory mapped
-> +  registers;
-> +- interrupts	: CSI-2 Host interrupt
-> +- output-type   : Core output to be used (IPI-> 0 or IDI->1 or BOTH->2) These
-> +  values choose which of the Core outputs will be used, it can be Image Data
-> +  Interface or Image Pixel Interface.
-> +- phys: List of one PHY specifier (as defined in
-> +  Documentation/devicetree/bindings/phy/phy-bindings.txt). This PHY is a MIPI
-> +  DPHY working in RX mode.
-> +- resets: Reference to a reset controller (optional)
-> +
-> +Optional properties(if in IPI mode):
-> +- ipi-mode 	: Mode to be used when in IPI(Camera -> 0 or Controller -> 1)
-> +  This property defines if the controller will use the video timings available
-> +  in the video stream or if it will use pre-defined ones.
+Many developers have solved this problem by linking the internal kobjs
+in this fashion:
 
-This could be boolean instead. I'd expect the former to be the typical 
-mode, so name the property for the latter.
+cdev.kobj.parent = &parent_dev.kobj;
 
-> +- ipi-color-mode: Bus depth to be used in IPI (48 bits -> 0 or 16 bits -> 1)
-> +  This property defines the width of the IPI bus.
+The cdev code explicitly gets and puts a reference to it's kobj parent.
+So this seems like it was intended to be used this way. Dmitrty Torokhov
+first put this in place in 2012 with this commit:
 
-Are these the only 2 modes that any h/w would ever have (not just your 
-controller)? Perhaps using the actual bits for the value would be 
-better. Also, if this is the bus width, then the property should be 
-named that as bus widths and pixel formats or color modes are not 
-necessarily the same.
+2f0157f char_dev: pin parent kobject
 
-> +- ipi-auto-flush: Data auto-flush (1 -> Yes or 0 -> No). This property defines
-> +  if the data is automatically flushed in each vsync or if this process is done
-> +  manually
+and the first instance of the fix was then done in the input subsystem
+in the following commit:
 
-This could be boolean.
+4a215aa Input: fix use-after-free introduced with dynamic minor changes
 
-> +- virtual-channel: Virtual channel where data is present when in IPI mode. This
-> +  property chooses the virtual channel which IPI will use to retrieve the video
-> +  stream.
+Subsequently over the years, however, this issue seems to have tripped
+up multiple developers independently. For example, see these commits:
 
-Again, some of these should probably be common properties (and therefore 
-documented in a common location). I'm looking for some feedback from 
-video/camera maintainers on this. I know I've seen some other similar 
-bindings for camera interfaces recently.
+0d5b7da iio: Prevent race between IIO chardev opening and IIO device
+(by Lars-Peter Clausen in 2013)
 
-Rob
+ba0ef85 tpm: Fix initialization of the cdev
+(by Jason Gunthorpe in 2015)
+
+5b28dde [media] media: fix use-after-free in cdev_put() when app exits
+after driver unbind
+(by Shauh Khan in 2016)
+
+This technique is similarly done in at least 15 places within the kernel
+and probably should have been done so in another, at least, 5 places.
+The kobj line also looks very suspect in that one would not expect
+drivers to have to mess with kobject internals in this way.
+Even highly experienced kernel developers can be surprised by this
+code, as seen in [2].
+
+To help alleviate this situation, and hopefully prevent future
+wasted effort on this problem, this patch introduces a helper function
+to register a char device along with its parent struct device.
+This creates a more regular API for tying a char device to its parent
+without the developer having to set members in the underlying kobject.
+
+This patch introduce cdev_device_add and cdev_device_del which
+replaces a common pattern including setting the kobj parent, calling
+cdev_add and then calling device_add. It also introduces cdev_set_parent
+for the few cases that set the kobject parent without using device_add.
+
+[1] https://lkml.org/lkml/2017/2/13/700
+[2] https://lkml.org/lkml/2017/2/10/370
+
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+---
+ fs/char_dev.c        | 86 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/cdev.h |  5 +++
+ 2 files changed, 91 insertions(+)
+
+diff --git a/fs/char_dev.c b/fs/char_dev.c
+index 44a240c..fb8507f 100644
+--- a/fs/char_dev.c
++++ b/fs/char_dev.c
+@@ -471,6 +471,85 @@ int cdev_add(struct cdev *p, dev_t dev, unsigned count)
+ 	return 0;
+ }
+ 
++/**
++ * cdev_set_parent() - set the parent kobject for a char device
++ * @p: the cdev structure
++ * @kobj: the kobject to take a reference to
++ *
++ * cdev_set_parent() sets a parent kobject which will be referenced
++ * appropriately so the parent is not freed before the cdev. This
++ * should be called before cdev_add.
++ */
++void cdev_set_parent(struct cdev *p, struct kobject *kobj)
++{
++	WARN_ON(!kobj->state_initialized);
++	p->kobj.parent = kobj;
++}
++
++/**
++ * cdev_device_add() - add a char device and it's corresponding
++ *	struct device, linkink
++ * @dev: the device structure
++ * @cdev: the cdev structure
++ *
++ * cdev_device_add() adds the char device represented by @cdev to the system,
++ * just as cdev_add does. It then adds @dev to the system using device_add
++ * The dev_t for the char device will be taken from the struct device which
++ * needs to be initialized first. This helper function correctly takes a
++ * reference to the parent device so the parent will not get released until
++ * all references to the cdev are released.
++ *
++ * This helper uses dev->devt for the device number. If it is not set
++ * it will not add the cdev and it will be equivalent to device_add.
++ *
++ * This function should be used whenever the struct cdev and the
++ * struct device are members of the same structure whose lifetime is
++ * managed by the struct device.
++ *
++ * NOTE: Callers must assume that userspace was able to open the cdev and
++ * can call cdev fops callbacks at any time, even if this function fails.
++ */
++int cdev_device_add(struct cdev *cdev, struct device *dev)
++{
++	int rc = 0;
++
++	if (dev->devt) {
++		cdev_set_parent(cdev, &dev->kobj);
++
++		rc = cdev_add(cdev, dev->devt, 1);
++		if (rc)
++			return rc;
++	}
++
++	rc = device_add(dev);
++	if (rc)
++		cdev_del(cdev);
++
++	return rc;
++}
++
++/**
++ * cdev_device_del() - inverse of cdev_device_add
++ * @dev: the device structure
++ * @cdev: the cdev structure
++ *
++ * cdev_device_del() is a helper function to call cdev_del and device_del.
++ * It should be used whenever cdev_device_add is used.
++ *
++ * If dev->devt is not set it will not remove the cdev and will be equivalent
++ * to device_del.
++ *
++ * NOTE: This guarantees that associated sysfs callbacks are not running
++ * or runnable, however any cdevs already open will remain and their fops
++ * will still be callable even after this function returns.
++ */
++void cdev_device_del(struct cdev *cdev, struct device *dev)
++{
++	device_del(dev);
++	if (dev->devt)
++		cdev_del(cdev);
++}
++
+ static void cdev_unmap(dev_t dev, unsigned count)
+ {
+ 	kobj_unmap(cdev_map, dev, count);
+@@ -482,6 +561,10 @@ static void cdev_unmap(dev_t dev, unsigned count)
+  *
+  * cdev_del() removes @p from the system, possibly freeing the structure
+  * itself.
++ *
++ * NOTE: This guarantees that cdev device will no longer be able to be
++ * opened, however any cdevs already open will remain and their fops will
++ * still be callable even after cdev_del returns.
+  */
+ void cdev_del(struct cdev *p)
+ {
+@@ -570,5 +653,8 @@ EXPORT_SYMBOL(cdev_init);
+ EXPORT_SYMBOL(cdev_alloc);
+ EXPORT_SYMBOL(cdev_del);
+ EXPORT_SYMBOL(cdev_add);
++EXPORT_SYMBOL(cdev_set_parent);
++EXPORT_SYMBOL(cdev_device_add);
++EXPORT_SYMBOL(cdev_device_del);
+ EXPORT_SYMBOL(__register_chrdev);
+ EXPORT_SYMBOL(__unregister_chrdev);
+diff --git a/include/linux/cdev.h b/include/linux/cdev.h
+index f876361..408bc09 100644
+--- a/include/linux/cdev.h
++++ b/include/linux/cdev.h
+@@ -4,6 +4,7 @@
+ #include <linux/kobject.h>
+ #include <linux/kdev_t.h>
+ #include <linux/list.h>
++#include <linux/device.h>
+ 
+ struct file_operations;
+ struct inode;
+@@ -26,6 +27,10 @@ void cdev_put(struct cdev *p);
+ 
+ int cdev_add(struct cdev *, dev_t, unsigned);
+ 
++void cdev_set_parent(struct cdev *p, struct kobject *kobj);
++int cdev_device_add(struct cdev *cdev, struct device *dev);
++void cdev_device_del(struct cdev *cdev, struct device *dev);
++
+ void cdev_del(struct cdev *);
+ 
+ void cd_forget(struct inode *);
+-- 
+2.1.4
