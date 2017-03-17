@@ -1,97 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:16772 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932516AbdCFOhB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Mar 2017 09:37:01 -0500
-From: Elena Reshetova <elena.reshetova@intel.com>
-To: gregkh@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org,
-        netdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
-        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
-        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
-        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
-        linux-usb@vger.kernel.org, peterz@infradead.org,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        Hans Liljestrand <ishkamiel@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        David Windsor <dwindsor@gmail.com>
-Subject: [PATCH 19/29] drivers, s390: convert lcs_reply.refcnt from atomic_t to refcount_t
-Date: Mon,  6 Mar 2017 16:21:06 +0200
-Message-Id: <1488810076-3754-20-git-send-email-elena.reshetova@intel.com>
-In-Reply-To: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
-References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+Received: from mail-wr0-f181.google.com ([209.85.128.181]:32839 "EHLO
+        mail-wr0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751082AbdCQQmb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Mar 2017 12:42:31 -0400
+Received: by mail-wr0-f181.google.com with SMTP id u48so55592475wrc.0
+        for <linux-media@vger.kernel.org>; Fri, 17 Mar 2017 09:41:55 -0700 (PDT)
+Subject: Re: [PATCH v3 3/6] documentation: media: Add documentation for new
+ RGB and YUV bus formats
+To: Archit Taneja <architt@codeaurora.org>, mchehab@kernel.org
+References: <1488904944-14285-1-git-send-email-narmstrong@baylibre.com>
+ <1488904944-14285-4-git-send-email-narmstrong@baylibre.com>
+ <8963c4cc-daf2-1d4f-0c3e-3b963e118379@codeaurora.org>
+Cc: dri-devel@lists.freedesktop.org,
+        laurent.pinchart+renesas@ideasonboard.com, Jose.Abreu@synopsys.com,
+        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+        linux-media@vger.kernel.org, hans.verkuil@cisco.com,
+        sakari.ailus@linux.intel.com
+From: Neil Armstrong <narmstrong@baylibre.com>
+Message-ID: <97b0c618-a3f4-11d7-d117-c83e8949633a@baylibre.com>
+Date: Fri, 17 Mar 2017 17:11:22 +0100
+MIME-Version: 1.0
+In-Reply-To: <8963c4cc-daf2-1d4f-0c3e-3b963e118379@codeaurora.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-refcount_t type and corresponding API should be
-used instead of atomic_t when the variable is used as
-a reference counter. This allows to avoid accidental
-refcounter overflows that might lead to use-after-free
-situations.
+On 03/16/2017 06:01 PM, Archit Taneja wrote:
+> 
+> 
+> On 3/7/2017 10:12 PM, Neil Armstrong wrote:
+>> Add documentation for added Bus Formats to describe RGB and YUS formats used
+> 
+> s/YUS/YUV
 
-Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
-Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Signed-off-by: David Windsor <dwindsor@gmail.com>
----
- drivers/s390/net/lcs.c | 8 +++-----
- drivers/s390/net/lcs.h | 3 ++-
- 2 files changed, 5 insertions(+), 6 deletions(-)
+Thanks again....
 
-diff --git a/drivers/s390/net/lcs.c b/drivers/s390/net/lcs.c
-index 211b31d..18dc787 100644
---- a/drivers/s390/net/lcs.c
-+++ b/drivers/s390/net/lcs.c
-@@ -774,15 +774,13 @@ lcs_get_lancmd(struct lcs_card *card, int count)
- static void
- lcs_get_reply(struct lcs_reply *reply)
- {
--	WARN_ON(atomic_read(&reply->refcnt) <= 0);
--	atomic_inc(&reply->refcnt);
-+	refcount_inc(&reply->refcnt);
- }
- 
- static void
- lcs_put_reply(struct lcs_reply *reply)
- {
--        WARN_ON(atomic_read(&reply->refcnt) <= 0);
--        if (atomic_dec_and_test(&reply->refcnt)) {
-+        if (refcount_dec_and_test(&reply->refcnt)) {
- 		kfree(reply);
- 	}
- 
-@@ -798,7 +796,7 @@ lcs_alloc_reply(struct lcs_cmd *cmd)
- 	reply = kzalloc(sizeof(struct lcs_reply), GFP_ATOMIC);
- 	if (!reply)
- 		return NULL;
--	atomic_set(&reply->refcnt,1);
-+	refcount_set(&reply->refcnt,1);
- 	reply->sequence_no = cmd->sequence_no;
- 	reply->received = 0;
- 	reply->rc = 0;
-diff --git a/drivers/s390/net/lcs.h b/drivers/s390/net/lcs.h
-index 150fcb4..3802f4f 100644
---- a/drivers/s390/net/lcs.h
-+++ b/drivers/s390/net/lcs.h
-@@ -4,6 +4,7 @@
- #include <linux/netdevice.h>
- #include <linux/skbuff.h>
- #include <linux/workqueue.h>
-+#include <linux/refcount.h>
- #include <asm/ccwdev.h>
- 
- #define LCS_DBF_TEXT(level, name, text) \
-@@ -270,7 +271,7 @@ struct lcs_buffer {
- struct lcs_reply {
- 	struct list_head list;
- 	__u16 sequence_no;
--	atomic_t refcnt;
-+	refcount_t refcnt;
- 	/* Callback for completion notification. */
- 	void (*callback)(struct lcs_card *, struct lcs_cmd *);
- 	wait_queue_head_t wait_q;
--- 
-2.7.4
+> 
+>> as input to the Synopsys DesignWare HDMI TX Controller.
+>>
+>> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+>> ---
+>>  Documentation/media/uapi/v4l/subdev-formats.rst | 4992 ++++++++++++++++++-----
+>>  1 file changed, 3963 insertions(+), 1029 deletions(-)
+> 
+> Do we know if there is a better way to add more columns without
+> adding so many lines?
+
+It seems not, the reason is written in the commands.
+
+> If not, one option could be to create a separate tables for
+> 48 bit RGB formats, 48 bit YUV formats etc.
+
+It would be simple indeed, any V4L guys for an advice here ?
+
+Thanks,
+Neil
+
+> 
+> <snip>
+> 
+> Thanks,
+> Archit
+> 
