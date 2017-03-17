@@ -1,80 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60664 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751945AbdCDNDz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 4 Mar 2017 08:03:55 -0500
-Date: Sat, 4 Mar 2017 15:03:18 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        mchehab@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCHv2] omap3isp: add support for CSI1 bus
-Message-ID: <20170304130318.GU3220@valkosipuli.retiisi.org.uk>
-References: <20161228183036.GA13139@amd>
- <10545906.Gxg3yScdu4@avalon>
- <20170215094228.GA8586@amd>
- <2414221.XNA4JCFMRx@avalon>
- <20170302090143.GB27818@amd>
- <20170302101603.GE27818@amd>
- <20170302112401.GF3220@valkosipuli.retiisi.org.uk>
- <20170302123848.GA28230@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170302123848.GA28230@amd>
+Received: from ale.deltatee.com ([207.54.116.67]:56517 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751242AbdCQSuZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Mar 2017 14:50:25 -0400
+From: Logan Gunthorpe <logang@deltatee.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+        Johannes Thumshirn <jthumshirn@suse.de>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Cyrille Pitchen <cyrille.pitchen@atmel.com>
+Cc: linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org,
+        rtc-linux@googlegroups.com, linux-mtd@lists.infradead.org,
+        linux-media@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-input@vger.kernel.org, linux-nvdimm@lists.01.org,
+        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Logan Gunthorpe <logang@deltatee.com>
+Date: Fri, 17 Mar 2017 12:48:12 -0600
+Message-Id: <1489776503-3151-6-git-send-email-logang@deltatee.com>
+In-Reply-To: <1489776503-3151-1-git-send-email-logang@deltatee.com>
+References: <1489776503-3151-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v5 05/16] gpiolib: utilize new cdev_device_add helper function
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+Replace the open coded registration of the cdev and dev with the
+new device_add_cdev() helper. The helper replaces a common pattern by
+taking the proper reference against the parent device and adding both
+the cdev and the device.
 
-On Thu, Mar 02, 2017 at 01:38:48PM +0100, Pavel Machek wrote:
-> Hi!
-> 
-> > > Ok, how about this one?
-> > > omap3isp: add rest of CSI1 support
-> > >     
-> > > CSI1 needs one more bit to be set up. Do just that.
-> > >     
-> > > It is not as straightforward as I'd like, see the comments in the code
-> > > for explanation.
-> ...
-> > > +	if (isp->phy_type == ISP_PHY_TYPE_3430) {
-> > > +		struct media_pad *pad;
-> > > +		struct v4l2_subdev *sensor;
-> > > +		const struct isp_ccp2_cfg *buscfg;
-> > > +
-> > > +		pad = media_entity_remote_pad(&ccp2->pads[CCP2_PAD_SINK]);
-> > > +		sensor = media_entity_to_v4l2_subdev(pad->entity);
-> > > +		/* Struct isp_bus_cfg has union inside */
-> > > +		buscfg = &((struct isp_bus_cfg *)sensor->host_priv)->bus.ccp2;
-> > > +
-> > > +		csiphy_routing_cfg_3430(&isp->isp_csiphy2,
-> > > +					ISP_INTERFACE_CCP2B_PHY1,
-> > > +					enable, !!buscfg->phy_layer,
-> > > +					buscfg->strobe_clk_pol);
-> > 
-> > You should do this through omap3isp_csiphy_acquire(), and not call
-> > csiphy_routing_cfg_3430() directly from here.
-> 
-> Well, unfortunately omap3isp_csiphy_acquire() does have csi2
-> assumptions hard-coded :-(.
-> 
-> This will probably fail.
-> 
-> 	        rval = omap3isp_csi2_reset(phy->csi2);
-> 	        if (rval < 0)
-> 		                goto done;
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+---
+ drivers/gpio/gpiolib.c | 23 ++++++++---------------
+ 1 file changed, 8 insertions(+), 15 deletions(-)
 
-Could you try to two patches I've applied on the ccp2 branch (I'll remove
-them if there are issues).
-
-That's compile tested for now only.
-
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index 8b4d721..3ce2a27 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -1035,18 +1035,14 @@ static int gpiochip_setup_dev(struct gpio_device *gdev)
+ 
+ 	cdev_init(&gdev->chrdev, &gpio_fileops);
+ 	gdev->chrdev.owner = THIS_MODULE;
+-	gdev->chrdev.kobj.parent = &gdev->dev.kobj;
+ 	gdev->dev.devt = MKDEV(MAJOR(gpio_devt), gdev->id);
+-	status = cdev_add(&gdev->chrdev, gdev->dev.devt, 1);
+-	if (status < 0)
+-		chip_warn(gdev->chip, "failed to add char device %d:%d\n",
+-			  MAJOR(gpio_devt), gdev->id);
+-	else
+-		chip_dbg(gdev->chip, "added GPIO chardev (%d:%d)\n",
+-			 MAJOR(gpio_devt), gdev->id);
+-	status = device_add(&gdev->dev);
++
++	status = cdev_device_add(&gdev->chrdev, &gdev->dev);
+ 	if (status)
+-		goto err_remove_chardev;
++		return status;
++
++	chip_dbg(gdev->chip, "added GPIO chardev (%d:%d)\n",
++		 MAJOR(gpio_devt), gdev->id);
+ 
+ 	status = gpiochip_sysfs_register(gdev);
+ 	if (status)
+@@ -1061,9 +1057,7 @@ static int gpiochip_setup_dev(struct gpio_device *gdev)
+ 	return 0;
+ 
+ err_remove_device:
+-	device_del(&gdev->dev);
+-err_remove_chardev:
+-	cdev_del(&gdev->chrdev);
++	cdev_device_del(&gdev->chrdev, &gdev->dev);
+ 	return status;
+ }
+ 
+@@ -1347,8 +1341,7 @@ void gpiochip_remove(struct gpio_chip *chip)
+ 	 * be removed, else it will be dangling until the last user is
+ 	 * gone.
+ 	 */
+-	cdev_del(&gdev->chrdev);
+-	device_del(&gdev->dev);
++	cdev_device_del(&gdev->chrdev, &gdev->dev);
+ 	put_device(&gdev->dev);
+ }
+ EXPORT_SYMBOL_GPL(gpiochip_remove);
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.1.4
