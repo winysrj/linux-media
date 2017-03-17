@@ -1,434 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:33978 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753746AbdC1Al1 (ORCPT
+Received: from mail-lf0-f47.google.com ([209.85.215.47]:36239 "EHLO
+        mail-lf0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751112AbdCQTdD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 20:41:27 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v6 05/39] ARM: dts: imx6qdl: Add mipi_ipu1/2 multiplexers, mipi_csi, and their connections
-Date: Mon, 27 Mar 2017 17:40:22 -0700
-Message-Id: <1490661656-10318-6-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+        Fri, 17 Mar 2017 15:33:03 -0400
+Received: by mail-lf0-f47.google.com with SMTP id y193so37051514lfd.3
+        for <linux-media@vger.kernel.org>; Fri, 17 Mar 2017 12:33:01 -0700 (PDT)
+Subject: Re: [PATCH v2] media: platform: rcar_imr: add IMR-LSX3 support
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        devicetree@vger.kernel.org, linux-media@vger.kernel.org
+References: <20170316190000.216761731@cogentembedded.com>
+ <b12254ac-ed2f-dec5-8cbd-4ce22c5f3c55@xs4all.nl>
+Cc: linux-renesas-soc@vger.kernel.org
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <35e744da-4ae6-5a7c-2651-656012c961aa@cogentembedded.com>
+Date: Fri, 17 Mar 2017 22:26:12 +0300
+MIME-Version: 1.0
+In-Reply-To: <b12254ac-ed2f-dec5-8cbd-4ce22c5f3c55@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+On 03/17/2017 05:33 PM, Hans Verkuil wrote:
 
-This patch adds the device tree graph connecting the input multiplexers
-to the IPU CSIs and the MIPI-CSI2 gasket on i.MX6. The MIPI_IPU
-multiplexers are added as children of the iomuxc-gpr syscon device node.
-On i.MX6Q/D two two-input multiplexers in front of IPU1 CSI0 and IPU2
-CSI1 allow to select between CSI0/1 parallel input pads and the MIPI
-CSI-2 virtual channels 0/3.
-On i.MX6DL/S two five-input multiplexers in front of IPU1 CSI0 and IPU1
-CSI1 allow to select between CSI0/1 parallel input pads and any of the
-four MIPI CSI-2 virtual channels.
+>> Add support for the image renderer light SRAM extended 3 (IMR-LSX3) found
+>> only in the R-Car V2H (R8A7792) SoC.  It differs  from IMR-LX4 in that it
+>> supports only planar video formats but can use the video capture data for
+>> the textures.
+>>
+>> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+[...]
+>> Index: media_tree/drivers/media/platform/rcar_imr.c
+>> ===================================================================
+>> --- media_tree.orig/drivers/media/platform/rcar_imr.c
+>> +++ media_tree/drivers/media/platform/rcar_imr.c
+[...]
+>> @@ -282,6 +296,34 @@ static u32 __imr_flags_common(u32 iflags
+>>  	return iflags & oflags & IMR_F_PLANES_MASK;
+>>  }
+>>
+>> +static const struct imr_format_info imr_lsx3_formats[] = {
+>> +	{
+>> +		.name	= "YUV 4:2:2 semiplanar (NV16)",
+>> +		.fourcc	= V4L2_PIX_FMT_NV16,
+>> +		.flags	= IMR_F_Y8 | IMR_F_UV8 | IMR_F_PLANAR,
+>> +	},
+>> +	{
+>> +		.name	= "Greyscale 8-bit",
+>> +		.fourcc	= V4L2_PIX_FMT_GREY,
+>> +		.flags	= IMR_F_Y8 | IMR_F_PLANAR,
+>> +	},
+>> +	{
+>> +		.name	= "Greyscale 10-bit",
+>> +		.fourcc	= V4L2_PIX_FMT_Y10,
+>> +		.flags	= IMR_F_Y8 | IMR_F_Y10 | IMR_F_PLANAR,
+>> +	},
+>> +	{
+>> +		.name	= "Greyscale 12-bit",
+>> +		.fourcc	= V4L2_PIX_FMT_Y12,
+>> +		.flags	= IMR_F_Y8 | IMR_F_Y10 | IMR_F_Y12 | IMR_F_PLANAR,
+>> +	},
+>> +	{
+>> +		.name	= "Chrominance UV 8-bit",
+>> +		.fourcc	= V4L2_PIX_FMT_UV8,
+>> +		.flags	= IMR_F_UV8 | IMR_F_PLANAR,
+>> +	},
+>> +};
+>> +
+>>  static const struct imr_format_info imr_lx4_formats[] = {
+>>  	{
+>>  		.name	= "YUV 4:2:2 semiplanar (NV16)",
+>> @@ -335,6 +377,18 @@ static const struct imr_format_info imr_
+>>  	},
+>>  };
+>>
+>> +static const struct imr_info imr_lsx3 = {
+>> +	.type		= IMR_LSX3,
+>> +	.formats	= imr_lsx3_formats,
+>> +	.num_formats	= ARRAY_SIZE(imr_lsx3_formats),
+>> +};
+>> +
+>> +static const struct imr_info imr_lx4 = {
+>> +	.type		= IMR_LX4,
+>> +	.formats	= imr_lx4_formats,
+>> +	.num_formats	= ARRAY_SIZE(imr_lx4_formats),
+>> +};
+>> +
+>>  /* mesh configuration constructor */
+>>  static struct imr_cfg *imr_cfg_create(struct imr_ctx *ctx,
+>>  				      u32 dl_size, u32 dl_start)
+[...]
+>> @@ -823,7 +879,7 @@ static void imr_dl_program_setup(struct
+>>  			*dl++ = IMR_OP_WTS(IMR_SSTR,
+>>  					   w << (iflags & IMR_F_UV10 ? 1 : 0));
+>>  		}
+>> -	} else {
+>> +	} else if (ctx->imr->info->type == IMR_LX4) {
+>>  		u16 src_fmt = (iflags & IMR_F_UV_SWAP ? IMR_CMRCR2_UVFORM : 0) |
+>>  			      (iflags & IMR_F_YUV_SWAP ?
+>>  			       IMR_CMRCR2_YUV422FORM : 0);
+>> @@ -864,6 +920,9 @@ static void imr_dl_program_setup(struct
+>>  			*dl++ = IMR_OP_WTS(IMR_DSTR,
+>>  					   W << (cflags & IMR_F_Y10 ? 2 : 1));
+>>  		}
+>> +	} else	{
+>> +		/* this shouldn't happen! */
+>> +		BUG();
+>
+> Can you find a better way? The use of 'BUG' is frowned upon. It's better
+> to return an error here.
 
---
+    OK, I'll try to return -EINVAL here...
+    BTW, the main driver patch also has BUG_ON()...
 
-- Removed some dangling/unused endpoints (ipu2_csi0_from_csi2ipu)
-- Renamed the mipi virtual channel endpoint labels, from "mipi_csiX_..."
-  to "mipi_vcX...".
-- Added input endpoint anchors to the video muxes for the connections
-  from parallel sensors.
+> Also, are you sure this can't happen?  At least for
+ > me it is not obvious from the code.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- arch/arm/boot/dts/imx6dl.dtsi  | 180 +++++++++++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/imx6q.dtsi   | 116 ++++++++++++++++++++++++++
- arch/arm/boot/dts/imx6qdl.dtsi |  10 ++-
- 3 files changed, 305 insertions(+), 1 deletion(-)
+    Absolutely. Interleaved formats are not supported by IMR-L[S]X3, so the 
+format array has IMR_F_PLANAR set for all formats supported by these cores. 
+Interleaved formats are onlt supported by IMR-LX4 (for which we check above).
 
-diff --git a/arch/arm/boot/dts/imx6dl.dtsi b/arch/arm/boot/dts/imx6dl.dtsi
-index 7aa120f..8958c4a 100644
---- a/arch/arm/boot/dts/imx6dl.dtsi
-+++ b/arch/arm/boot/dts/imx6dl.dtsi
-@@ -181,6 +181,186 @@
- 		      "di0", "di1";
- };
- 
-+&gpr {
-+	ipu1_csi0_mux: ipu1_csi0_mux@34 {
-+		compatible = "video-multiplexer";
-+		reg = <0x34>;
-+		bit-mask = <0x7>;
-+		bit-shift = <0>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		status = "okay";
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			ipu1_csi0_mux_from_mipi_vc0: endpoint {
-+				remote-endpoint = <&mipi_vc0_to_ipu1_csi0_mux>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			ipu1_csi0_mux_from_mipi_vc1: endpoint {
-+				remote-endpoint = <&mipi_vc1_to_ipu1_csi0_mux>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			ipu1_csi0_mux_from_mipi_vc2: endpoint {
-+				remote-endpoint = <&mipi_vc2_to_ipu1_csi0_mux>;
-+			};
-+		};
-+
-+		port@3 {
-+			reg = <3>;
-+
-+			ipu1_csi0_mux_from_mipi_vc3: endpoint {
-+				remote-endpoint = <&mipi_vc3_to_ipu1_csi0_mux>;
-+			};
-+		};
-+
-+		port@4 {
-+			reg = <4>;
-+
-+			ipu1_csi0_mux_from_parallel_sensor: endpoint {
-+			};
-+		};
-+
-+		port@5 {
-+			reg = <5>;
-+
-+			ipu1_csi0_mux_to_ipu1_csi0: endpoint {
-+				remote-endpoint = <&ipu1_csi0_from_ipu1_csi0_mux>;
-+			};
-+		};
-+	};
-+
-+	ipu1_csi1_mux: ipu1_csi1_mux@34 {
-+		compatible = "video-multiplexer";
-+		reg = <0x34>;
-+		bit-mask = <0x7>;
-+		bit-shift = <3>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		status = "okay";
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			ipu1_csi1_mux_from_mipi_vc0: endpoint {
-+				remote-endpoint = <&mipi_vc0_to_ipu1_csi1_mux>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			ipu1_csi1_mux_from_mipi_vc1: endpoint {
-+				remote-endpoint = <&mipi_vc1_to_ipu1_csi1_mux>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			ipu1_csi1_mux_from_mipi_vc2: endpoint {
-+				remote-endpoint = <&mipi_vc2_to_ipu1_csi1_mux>;
-+			};
-+		};
-+
-+		port@3 {
-+			reg = <3>;
-+
-+			ipu1_csi1_mux_from_mipi_vc3: endpoint {
-+				remote-endpoint = <&mipi_vc3_to_ipu1_csi1_mux>;
-+			};
-+		};
-+
-+		port@4 {
-+			reg = <4>;
-+
-+			ipu1_csi1_mux_from_parallel_sensor: endpoint {
-+			};
-+		};
-+
-+		port@5 {
-+			reg = <5>;
-+
-+			ipu1_csi1_mux_to_ipu1_csi1: endpoint {
-+				remote-endpoint = <&ipu1_csi1_from_ipu1_csi1_mux>;
-+			};
-+		};
-+	};
-+};
-+
-+&ipu1_csi1 {
-+	ipu1_csi1_from_ipu1_csi1_mux: endpoint {
-+		remote-endpoint = <&ipu1_csi1_mux_to_ipu1_csi1>;
-+	};
-+};
-+
-+&mipi_csi {
-+	port@1 {
-+		reg = <1>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		mipi_vc0_to_ipu1_csi0_mux: endpoint@0 {
-+			remote-endpoint = <&ipu1_csi0_mux_from_mipi_vc0>;
-+		};
-+
-+		mipi_vc0_to_ipu1_csi1_mux: endpoint@1 {
-+			remote-endpoint = <&ipu1_csi1_mux_from_mipi_vc0>;
-+		};
-+	};
-+
-+	port@2 {
-+		reg = <2>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		mipi_vc1_to_ipu1_csi0_mux: endpoint@0 {
-+			remote-endpoint = <&ipu1_csi0_mux_from_mipi_vc1>;
-+		};
-+
-+		mipi_vc1_to_ipu1_csi1_mux: endpoint@1 {
-+			remote-endpoint = <&ipu1_csi1_mux_from_mipi_vc1>;
-+		};
-+	};
-+
-+	port@3 {
-+		reg = <3>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		mipi_vc2_to_ipu1_csi0_mux: endpoint@0 {
-+			remote-endpoint = <&ipu1_csi0_mux_from_mipi_vc2>;
-+		};
-+
-+		mipi_vc2_to_ipu1_csi1_mux: endpoint@1 {
-+			remote-endpoint = <&ipu1_csi1_mux_from_mipi_vc2>;
-+		};
-+	};
-+
-+	port@4 {
-+		reg = <4>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		mipi_vc3_to_ipu1_csi0_mux: endpoint@0 {
-+			remote-endpoint = <&ipu1_csi0_mux_from_mipi_vc3>;
-+		};
-+
-+		mipi_vc3_to_ipu1_csi1_mux: endpoint@1 {
-+			remote-endpoint = <&ipu1_csi1_mux_from_mipi_vc3>;
-+		};
-+	};
-+};
-+
- &vpu {
- 	compatible = "fsl,imx6dl-vpu", "cnm,coda960";
- };
-diff --git a/arch/arm/boot/dts/imx6q.dtsi b/arch/arm/boot/dts/imx6q.dtsi
-index e9a5d0b..b833b0d 100644
---- a/arch/arm/boot/dts/imx6q.dtsi
-+++ b/arch/arm/boot/dts/imx6q.dtsi
-@@ -143,10 +143,18 @@
- 
- 			ipu2_csi0: port@0 {
- 				reg = <0>;
-+
-+				ipu2_csi0_from_mipi_vc2: endpoint {
-+					remote-endpoint = <&mipi_vc2_to_ipu2_csi0>;
-+				};
- 			};
- 
- 			ipu2_csi1: port@1 {
- 				reg = <1>;
-+
-+				ipu2_csi1_from_ipu2_csi1_mux: endpoint {
-+					remote-endpoint = <&ipu2_csi1_mux_to_ipu2_csi1>;
-+				};
- 			};
- 
- 			ipu2_di0: port@2 {
-@@ -266,6 +274,80 @@
- 	};
- };
- 
-+&gpr {
-+	ipu1_csi0_mux: ipu1_csi0_mux@4 {
-+		compatible = "video-multiplexer";
-+		reg = <0x04>;
-+		bit-mask = <1>;
-+		bit-shift = <19>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		status = "okay";
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			ipu1_csi0_mux_from_mipi_vc0: endpoint {
-+				remote-endpoint = <&mipi_vc0_to_ipu1_csi0_mux>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			ipu1_csi0_mux_from_parallel_sensor: endpoint {
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			ipu1_csi0_mux_to_ipu1_csi0: endpoint {
-+				remote-endpoint = <&ipu1_csi0_from_ipu1_csi0_mux>;
-+			};
-+		};
-+	};
-+
-+	ipu2_csi1_mux: ipu2_csi1_mux@4 {
-+		compatible = "video-multiplexer";
-+		reg = <0x04>;
-+		bit-mask = <1>;
-+		bit-shift = <20>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		status = "okay";
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			ipu2_csi1_mux_from_mipi_vc3: endpoint {
-+				remote-endpoint = <&mipi_vc3_to_ipu2_csi1_mux>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			ipu2_csi1_mux_from_parallel_sensor: endpoint {
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			ipu2_csi1_mux_to_ipu2_csi1: endpoint {
-+				remote-endpoint = <&ipu2_csi1_from_ipu2_csi1_mux>;
-+			};
-+		};
-+	};
-+};
-+
-+&ipu1_csi1 {
-+	ipu1_csi1_from_mipi_vc1: endpoint {
-+		remote-endpoint = <&mipi_vc1_to_ipu1_csi1>;
-+	};
-+};
-+
- &ldb {
- 	clocks = <&clks IMX6QDL_CLK_LDB_DI0_SEL>, <&clks IMX6QDL_CLK_LDB_DI1_SEL>,
- 		 <&clks IMX6QDL_CLK_IPU1_DI0_SEL>, <&clks IMX6QDL_CLK_IPU1_DI1_SEL>,
-@@ -312,6 +394,40 @@
- 	};
- };
- 
-+&mipi_csi {
-+	port@1 {
-+		reg = <1>;
-+
-+		mipi_vc0_to_ipu1_csi0_mux: endpoint {
-+			remote-endpoint = <&ipu1_csi0_mux_from_mipi_vc0>;
-+		};
-+	};
-+
-+	port@2 {
-+		reg = <2>;
-+
-+		mipi_vc1_to_ipu1_csi1: endpoint {
-+			remote-endpoint = <&ipu1_csi1_from_mipi_vc1>;
-+		};
-+	};
-+
-+	port@3 {
-+		reg = <3>;
-+
-+		mipi_vc2_to_ipu2_csi0: endpoint {
-+			remote-endpoint = <&ipu2_csi0_from_mipi_vc2>;
-+		};
-+	};
-+
-+	port@4 {
-+		reg = <4>;
-+
-+		mipi_vc3_to_ipu2_csi1_mux: endpoint {
-+			remote-endpoint = <&ipu2_csi1_mux_from_mipi_vc3>;
-+		};
-+	};
-+};
-+
- &mipi_dsi {
- 	ports {
- 		port@2 {
-diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
-index d28a413..194badd 100644
---- a/arch/arm/boot/dts/imx6qdl.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl.dtsi
-@@ -807,8 +807,10 @@
- 			};
- 
- 			gpr: iomuxc-gpr@020e0000 {
--				compatible = "fsl,imx6q-iomuxc-gpr", "syscon";
-+				compatible = "fsl,imx6q-iomuxc-gpr", "syscon", "simple-mfd";
- 				reg = <0x020e0000 0x38>;
-+				#address-cells = <1>;
-+				#size-cells = <0>;
- 			};
- 
- 			iomuxc: iomuxc@020e0000 {
-@@ -1136,6 +1138,8 @@
- 			mipi_csi: mipi@021dc000 {
- 				compatible = "fsl,imx6-mipi-csi2", "snps,dw-mipi-csi2";
- 				reg = <0x021dc000 0x4000>;
-+				#address-cells = <1>;
-+				#size-cells = <0>;
- 				interrupts = <0 100 0x04>, <0 101 0x04>;
- 				clocks = <&clks IMX6QDL_CLK_HSI_TX>,
- 					 <&clks IMX6QDL_CLK_VIDEO_27M>,
-@@ -1243,6 +1247,10 @@
- 
- 			ipu1_csi0: port@0 {
- 				reg = <0>;
-+
-+				ipu1_csi0_from_ipu1_csi0_mux: endpoint {
-+					remote-endpoint = <&ipu1_csi0_mux_to_ipu1_csi0>;
-+				};
- 			};
- 
- 			ipu1_csi1: port@1 {
--- 
-2.7.4
+[...]
+
+> Regards,
+>
+> 	Hans
+
+MBR, Sergei
