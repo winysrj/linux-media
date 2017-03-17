@@ -1,183 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:34397 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752577AbdCMTUw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 15:20:52 -0400
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [RFC 03/10] [media] vb2: add in-fence support to QBUF
-Date: Mon, 13 Mar 2017 16:20:28 -0300
-Message-Id: <20170313192035.29859-4-gustavo@padovan.org>
-In-Reply-To: <20170313192035.29859-1-gustavo@padovan.org>
-References: <20170313192035.29859-1-gustavo@padovan.org>
+Received: from ale.deltatee.com ([207.54.116.67]:56507 "EHLO ale.deltatee.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751179AbdCQSuZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Mar 2017 14:50:25 -0400
+From: Logan Gunthorpe <logang@deltatee.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+        Johannes Thumshirn <jthumshirn@suse.de>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Brian Norris <computersforpeace@gmail.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Marek Vasut <marek.vasut@gmail.com>,
+        Cyrille Pitchen <cyrille.pitchen@atmel.com>
+Cc: linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org,
+        rtc-linux@googlegroups.com, linux-mtd@lists.infradead.org,
+        linux-media@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-gpio@vger.kernel.org,
+        linux-input@vger.kernel.org, linux-nvdimm@lists.01.org,
+        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Logan Gunthorpe <logang@deltatee.com>
+Date: Fri, 17 Mar 2017 12:48:07 -0600
+Message-Id: <1489776503-3151-1-git-send-email-logang@deltatee.com>
+Subject: [PATCH v5 00/16] Cleanup chardev instances with helper function
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+Hey,
 
-Receive in-fence from userspace and support for waiting on them
-before queueing the buffer for the driver.
+This version of the series fixes the issue found by the kbuild test
+robot with the rtc driver. I managed to reproduce the issue and this
+series fixes the problem.
 
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
----
- drivers/media/Kconfig                    |  1 +
- drivers/media/v4l2-core/videobuf2-core.c | 24 ++++++++++++++++++++----
- drivers/media/v4l2-core/videobuf2-v4l2.c | 14 +++++++++++++-
- include/media/videobuf2-core.h           |  7 ++++++-
- 4 files changed, 40 insertions(+), 6 deletions(-)
+Logan
 
-diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-index 3512316..7c5a0e0 100644
---- a/drivers/media/Kconfig
-+++ b/drivers/media/Kconfig
-@@ -5,6 +5,7 @@
- menuconfig MEDIA_SUPPORT
- 	tristate "Multimedia support"
- 	depends on HAS_IOMEM
-+	select SYNC_FILE
- 	help
- 	  If you want to use Webcams, Video grabber devices and/or TV devices
- 	  enable this option and other options below.
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 0e30fcd..e0e7109 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1400,7 +1400,18 @@ static int __vb2_core_qbuf(struct vb2_buffer *vb, struct vb2_queue *q)
- 	return 0;
- }
- 
--int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
-+static void vb2_qbuf_fence_cb(struct dma_fence *f, struct dma_fence_cb *cb)
-+{
-+	struct vb2_buffer *vb = container_of(cb, struct vb2_buffer, fence_cb);
-+
-+	dma_fence_put(vb->in_fence);
-+	vb->in_fence = NULL;
-+
-+	__vb2_core_qbuf(vb, vb->vb2_queue);
-+}
-+
-+int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
-+		  struct dma_fence *fence)
- {
- 	struct vb2_buffer *vb;
- 	int ret;
-@@ -1432,6 +1443,11 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
- 	if (pb)
- 		call_void_bufop(q, fill_user_buffer, vb, pb);
- 
-+	vb->in_fence = fence;
-+	if (fence && !dma_fence_add_callback(fence, &vb->fence_cb,
-+					     vb2_qbuf_fence_cb))
-+			return 0;
-+
- 	return __vb2_core_qbuf(vb, q);
- }
- EXPORT_SYMBOL_GPL(vb2_core_qbuf);
-@@ -2246,7 +2262,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 		 * Queue all buffers.
- 		 */
- 		for (i = 0; i < q->num_buffers; i++) {
--			ret = vb2_core_qbuf(q, i, NULL);
-+			ret = vb2_core_qbuf(q, i, NULL, NULL);
- 			if (ret)
- 				goto err_reqbufs;
- 			fileio->bufs[i].queued = 1;
-@@ -2425,7 +2441,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 
- 		if (copy_timestamp)
- 			b->timestamp = ktime_get_ns();
--		ret = vb2_core_qbuf(q, index, NULL);
-+		ret = vb2_core_qbuf(q, index, NULL, NULL);
- 		dprintk(5, "vb2_dbuf result: %d\n", ret);
- 		if (ret)
- 			return ret;
-@@ -2528,7 +2544,7 @@ static int vb2_thread(void *data)
- 		if (copy_timestamp)
- 			vb->timestamp = ktime_get_ns();;
- 		if (!threadio->stop)
--			ret = vb2_core_qbuf(q, vb->index, NULL);
-+			ret = vb2_core_qbuf(q, vb->index, NULL, NULL);
- 		call_void_qop(q, wait_prepare, q);
- 		if (ret || threadio->stop)
- 			break;
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index d23c1bf..c164aa0 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -23,6 +23,7 @@
- #include <linux/sched.h>
- #include <linux/freezer.h>
- #include <linux/kthread.h>
-+#include <linux/sync_file.h>
- 
- #include <media/v4l2-dev.h>
- #include <media/v4l2-fh.h>
-@@ -557,6 +558,7 @@ EXPORT_SYMBOL_GPL(vb2_create_bufs);
- 
- int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- {
-+	struct dma_fence *fence = NULL;
- 	int ret;
- 
- 	if (vb2_fileio_is_active(q)) {
-@@ -565,7 +567,17 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 	}
- 
- 	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
--	return ret ? ret : vb2_core_qbuf(q, b->index, b);
-+
-+	if (b->flags & V4L2_BUF_FLAG_IN_FENCE) {
-+		if (b->memory != VB2_MEMORY_DMABUF)
-+			return -EINVAL;
-+
-+		fence = sync_file_get_fence(b->fence_fd);
-+		if (!fence)
-+			return -EINVAL;
-+	}
-+
-+	return ret ? ret : vb2_core_qbuf(q, b->index, b, fence);
- }
- EXPORT_SYMBOL_GPL(vb2_qbuf);
- 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index ac5898a..fe2de99 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -16,6 +16,7 @@
- #include <linux/mutex.h>
- #include <linux/poll.h>
- #include <linux/dma-buf.h>
-+#include <linux/dma-fence.h>
- 
- #define VB2_MAX_FRAME	(32)
- #define VB2_MAX_PLANES	(8)
-@@ -259,6 +260,9 @@ struct vb2_buffer {
- 
- 	struct list_head	queued_entry;
- 	struct list_head	done_entry;
-+
-+	struct dma_fence	*in_fence;
-+	struct dma_fence_cb	fence_cb;
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	/*
- 	 * Counters for how often these buffer-related ops are
-@@ -727,7 +731,8 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
-  * The return values from this function are intended to be directly returned
-  * from vidioc_qbuf handler in driver.
-  */
--int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb);
-+int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
-+		  struct dma_fence *fence);
- 
- /**
-  * vb2_core_dqbuf() - Dequeue a buffer to the userspace
--- 
-2.9.3
+
+Changes since v4:
+
+* Fix a kbuild robot issue with the rtc driver: the rtc driver sometimes
+  does not want to add the cdev. In order to accommodate this, the new
+  cdev_device helper functions check dev->devt and if it's zero they
+  don't add or delete the cdev.
+
+* Remove prototypes for functions that were removed in the rtc driver
+
+Changes since v3:
+
+* Added a missing "device.h" include which caused warnings with some
+  build configurations
+
+Changes since v2:
+
+* Expanded comments as per Jason's suggestions
+* Collected tags
+* Updated the switchtec patch seeing it's underlying patch set changed
+
+Changes since v1:
+
+* Expanded the idea to take care of adding the cdev and the device
+
+Logan
+
+
+Dan Williams (1):
+  device-dax: fix cdev leak
+
+Jason Gunthorpe (1):
+  IB/ucm: utilize new cdev_device_add helper function
+
+Logan Gunthorpe (14):
+  chardev: add helper function to register char devs with a struct
+    device
+  device-dax: utilize new cdev_device_add helper function
+  input: utilize new cdev_device_add helper function
+  gpiolib: utilize new cdev_device_add helper function
+  tpm-chip: utilize new cdev_device_add helper function
+  platform/chrome: cros_ec_dev - utilize new cdev_device_add helper
+    function
+  infiniband: utilize the new cdev_set_parent function
+  iio:core: utilize new cdev_device_add helper function
+  media: utilize new cdev_device_add helper function
+  mtd: utilize new cdev_device_add helper function
+  rapidio: utilize new cdev_device_add helper function
+  rtc: utilize new cdev_device_add helper function
+  scsi: utilize new cdev_device_add helper function
+  switchtec: utilize new device_add_cdev helper function
+
+ drivers/char/tpm/tpm-chip.c              | 19 ++-----
+ drivers/dax/dax.c                        | 33 ++++++------
+ drivers/gpio/gpiolib.c                   | 23 +++-----
+ drivers/iio/industrialio-core.c          | 15 ++----
+ drivers/infiniband/core/ucm.c            | 35 ++++++------
+ drivers/infiniband/core/user_mad.c       |  4 +-
+ drivers/infiniband/core/uverbs_main.c    |  2 +-
+ drivers/infiniband/hw/hfi1/device.c      |  2 +-
+ drivers/input/evdev.c                    | 11 +---
+ drivers/input/joydev.c                   | 11 +---
+ drivers/input/mousedev.c                 | 11 +---
+ drivers/media/cec/cec-core.c             | 16 ++----
+ drivers/media/media-devnode.c            | 20 ++-----
+ drivers/mtd/ubi/build.c                  | 91 ++++++--------------------------
+ drivers/mtd/ubi/vmt.c                    | 49 ++++++-----------
+ drivers/pci/switch/switchtec.c           | 11 +---
+ drivers/platform/chrome/cros_ec_dev.c    | 31 +++--------
+ drivers/rapidio/devices/rio_mport_cdev.c | 24 +++------
+ drivers/rtc/class.c                      | 14 +++--
+ drivers/rtc/rtc-core.h                   | 10 ----
+ drivers/rtc/rtc-dev.c                    | 17 ------
+ drivers/scsi/osd/osd_uld.c               | 56 +++++++-------------
+ fs/char_dev.c                            | 86 ++++++++++++++++++++++++++++++
+ include/linux/cdev.h                     |  5 ++
+ 24 files changed, 239 insertions(+), 357 deletions(-)
+
+--
+2.1.4
