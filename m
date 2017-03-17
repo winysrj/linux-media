@@ -1,147 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:35999 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932581AbdCJEzA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 23:55:00 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:40640 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751402AbdCQMUL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Mar 2017 08:20:11 -0400
+Date: Fri, 17 Mar 2017 12:16:08 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
+        markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
         devel@driverdev.osuosl.org,
-        Russell King <rmk+kernel@armlinux.org.uk>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v5 31/39] media: imx: csi: add support for bayer formats
-Date: Thu,  9 Mar 2017 20:53:11 -0800
-Message-Id: <1489121599-23206-32-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
+ controls from a pipeline
+Message-ID: <20170317121608.GE21222@n2100.armlinux.org.uk>
+References: <20170310140124.GV21222@n2100.armlinux.org.uk>
+ <cc8900b0-c091-b14b-96f4-01f8fa72431c@xs4all.nl>
+ <20170310125342.7f047acf@vento.lan>
+ <20170310223714.GI3220@valkosipuli.retiisi.org.uk>
+ <20170311082549.576531d0@vento.lan>
+ <20170313124621.GA10701@valkosipuli.retiisi.org.uk>
+ <20170314004533.3b3cd44b@vento.lan>
+ <e0a6c60b-1735-de0b-21f4-d8c3f4b3f10f@xs4all.nl>
+ <20170317114203.GZ21222@n2100.armlinux.org.uk>
+ <1489752127.2905.49.camel@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1489752127.2905.49.camel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Russell King <rmk+kernel@armlinux.org.uk>
+On Fri, Mar 17, 2017 at 01:02:07PM +0100, Philipp Zabel wrote:
+> I think most of the simple, fixed pipeline use cases could be handled by
+> libv4l2, by allowing to pass a v4l2 subdevice path to v4l2_open. If that
+> function internally would set up the media links to the
+> nearest /dev/video interface, propagate format, resolution and frame
+> intervals if necessary, and return an fd to the video device, there'd be
+> no additional complexity for the users beyond selecting the v4l2_subdev
+> instead of the video device.
 
-Bayer formats must be treated as generic data and passthrough mode must
-be used.  Add the correct setup for these formats.
+... which would then require gstreamer to be modified too. The gstreamer
+v4l2 plugin looks for /dev/video* or /dev/v4l2/video* devices and monitors
+these for changes, so gstreamer applications know which capture devices
+are available:
 
-Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+  const gchar *paths[] = { "/dev", "/dev/v4l2", NULL };
+  const gchar *names[] = { "video", NULL };
 
-- added check to csi_link_validate() to verify that destination is
-  IDMAC output pad when passthrough conditions exist: bayer formats
-  and 16-bit parallel buses.
+  /* Add some depedency, so the dynamic features get updated upon changes in
+   * /dev/video* */
+  gst_plugin_add_dependency (plugin,
+      NULL, paths, names, GST_PLUGIN_DEPENDENCY_FLAG_FILE_NAME_IS_PREFIX);
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- drivers/staging/media/imx/imx-media-csi.c | 52 +++++++++++++++++++++++++------
- 1 file changed, 43 insertions(+), 9 deletions(-)
+I haven't checked yet whether sys/v4l2/gstv4l2deviceprovider.c knows
+anything about the v4l2 subdevs.
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index ab78ff7..a7d04e4 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -276,10 +276,11 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
- 	struct imx_media_video_dev *vdev = priv->vdev;
- 	struct v4l2_of_endpoint *sensor_ep;
- 	struct v4l2_mbus_framefmt *infmt;
--	unsigned int burst_size;
- 	struct ipu_image image;
-+	u32 passthrough_bits;
- 	dma_addr_t phys[2];
- 	bool passthrough;
-+	u32 burst_size;
- 	int ret;
- 
- 	infmt = &priv->format_mbus[CSI_SINK_PAD];
-@@ -306,15 +307,38 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
- 	ipu_cpmem_set_burstsize(priv->idmac_ch, burst_size);
- 
- 	/*
--	 * If the sensor uses 16-bit parallel CSI bus, we must handle
--	 * the data internally in the IPU as 16-bit generic, aka
--	 * passthrough mode.
-+	 * Check for conditions that require the IPU to handle the
-+	 * data internally as generic data, aka passthrough mode:
-+	 * - raw bayer formats
-+	 * - the sensor bus is 16-bit parallel
- 	 */
--	passthrough = (sensor_ep->bus_type != V4L2_MBUS_CSI2 &&
--		       sensor_ep->bus.parallel.bus_width >= 16);
-+	switch (image.pix.pixelformat) {
-+	case V4L2_PIX_FMT_SBGGR8:
-+	case V4L2_PIX_FMT_SGBRG8:
-+	case V4L2_PIX_FMT_SGRBG8:
-+	case V4L2_PIX_FMT_SRGGB8:
-+		burst_size = 8;
-+		passthrough = true;
-+		passthrough_bits = 8;
-+		break;
-+	case V4L2_PIX_FMT_SBGGR16:
-+	case V4L2_PIX_FMT_SGBRG16:
-+	case V4L2_PIX_FMT_SGRBG16:
-+	case V4L2_PIX_FMT_SRGGB16:
-+		burst_size = 4;
-+		passthrough = true;
-+		passthrough_bits = 16;
-+		break;
-+	default:
-+		passthrough = (sensor_ep->bus_type != V4L2_MBUS_CSI2 &&
-+			       sensor_ep->bus.parallel.bus_width >= 16);
-+		passthrough_bits = 16;
-+		break;
-+	}
- 
- 	if (passthrough)
--		ipu_cpmem_set_format_passthrough(priv->idmac_ch, 16);
-+		ipu_cpmem_set_format_passthrough(priv->idmac_ch,
-+						 passthrough_bits);
- 
- 	/*
- 	 * Set the channel for the direct CSI-->memory via SMFC
-@@ -725,6 +749,7 @@ static int csi_link_validate(struct v4l2_subdev *sd,
- 			     struct v4l2_subdev_format *sink_fmt)
- {
- 	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	const struct imx_media_pixfmt *incc;
- 	struct v4l2_of_endpoint *sensor_ep;
- 	struct imx_media_subdev *sensor;
- 	bool is_csi2;
-@@ -749,8 +774,17 @@ static int csi_link_validate(struct v4l2_subdev *sd,
- 
- 	priv->sensor = sensor;
- 	sensor_ep = &priv->sensor->sensor_ep;
--
- 	is_csi2 = (sensor_ep->bus_type == V4L2_MBUS_CSI2);
-+	incc = priv->cc[CSI_SINK_PAD];
-+
-+	if (priv->dest != IPU_CSI_DEST_IDMAC &&
-+	    (incc->bayer || (!is_csi2 &&
-+			     sensor_ep->bus.parallel.bus_width >= 16))) {
-+		v4l2_err(&priv->sd,
-+			 "bayer/16-bit parallel buses must go to IDMAC pad\n");
-+		ret = -EINVAL;
-+		goto out;
-+	}
- 
- 	if (is_csi2) {
- 		int vc_num = 0;
-@@ -775,7 +809,7 @@ static int csi_link_validate(struct v4l2_subdev *sd,
- 
- 	/* select either parallel or MIPI-CSI2 as input to CSI */
- 	ipu_set_csi_src_mux(priv->ipu, priv->csi_id, is_csi2);
--
-+out:
- 	mutex_unlock(&priv->lock);
- 	return ret;
- }
 -- 
-2.7.4
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
