@@ -1,80 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.135]:58845 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752664AbdCBRLQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 12:11:16 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: kasan-dev@googlegroups.com
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        Alexander Potapenko <glider@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-wireless@vger.kernel.org,
-        kernel-build-reports@lists.linaro.org,
-        "David S . Miller" <davem@davemloft.net>,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 15/26] [media] tuners: i2c: reduce stack usage for tuner_i2c_xfer_*
-Date: Thu,  2 Mar 2017 17:38:23 +0100
-Message-Id: <20170302163834.2273519-16-arnd@arndb.de>
-In-Reply-To: <20170302163834.2273519-1-arnd@arndb.de>
-References: <20170302163834.2273519-1-arnd@arndb.de>
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:33934 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751170AbdCRUqH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 18 Mar 2017 16:46:07 -0400
+Date: Sat, 18 Mar 2017 20:43:24 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Steve Longerbeam <steve_longerbeam@mentor.com>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Subject: Re: [PATCH v5 00/39] i.MX Media Driver
+Message-ID: <20170318204324.GM21222@n2100.armlinux.org.uk>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <20170318192258.GL21222@n2100.armlinux.org.uk>
+ <aef6c412-5464-726b-42f6-a24b7323aa9c@mentor.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aef6c412-5464-726b-42f6-a24b7323aa9c@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When CONFIG_KASAN is enabled, we see very large stack usage in some
-functions, e.g.:
+On Sat, Mar 18, 2017 at 12:58:27PM -0700, Steve Longerbeam wrote:
+> Can you share your gstreamer pipeline? For now, until
+> VIDIOC_ENUM_FRAMESIZES is implemented, try a pipeline that
+> does not attempt to specify a frame rate. I use the attached
+> script for testing, which works for me.
 
-drivers/media/tuners/tda8290.c: In function 'tda8290_set_params':
-drivers/media/tuners/tda8290.c:310:1: warning: the frame size of 3184 bytes is larger than 1024 bytes [-Wframe-larger-than=]
-drivers/media/tuners/tda8290.c: In function 'tda829x_probe':
-drivers/media/tuners/tda8290.c:878:1: warning: the frame size of 1088 bytes is larger than 1024 bytes [-Wframe-larger-than=]
+It's nothing more than
 
-By annotating the helpers as noinline_for_kasan, we can easily avoid this.
+  gst-launch-1.0 -v v4l2src ! <any needed conversions> ! xvimagesink
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/tuners/tuner-i2c.h | 15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+in my case, the conversions are bayer2rgbneon.  However, this only shows
+you the frame rate negotiated on the pads (which is actually good enough
+to show the issue.)
 
-diff --git a/drivers/media/tuners/tuner-i2c.h b/drivers/media/tuners/tuner-i2c.h
-index bda67a5a76f2..c8970299799c 100644
---- a/drivers/media/tuners/tuner-i2c.h
-+++ b/drivers/media/tuners/tuner-i2c.h
-@@ -33,8 +33,8 @@ struct tuner_i2c_props {
- 	char *name;
- };
- 
--static inline int tuner_i2c_xfer_send(struct tuner_i2c_props *props,
--				      unsigned char *buf, int len)
-+static noinline_for_kasan int
-+tuner_i2c_xfer_send(struct tuner_i2c_props *props, unsigned char *buf, int len)
- {
- 	struct i2c_msg msg = { .addr = props->addr, .flags = 0,
- 			       .buf = buf, .len = len };
-@@ -43,8 +43,8 @@ static inline int tuner_i2c_xfer_send(struct tuner_i2c_props *props,
- 	return (ret == 1) ? len : ret;
- }
- 
--static inline int tuner_i2c_xfer_recv(struct tuner_i2c_props *props,
--				      unsigned char *buf, int len)
-+static noinline_for_kasan int
-+tuner_i2c_xfer_recv(struct tuner_i2c_props *props, unsigned char *buf, int len)
- {
- 	struct i2c_msg msg = { .addr = props->addr, .flags = I2C_M_RD,
- 			       .buf = buf, .len = len };
-@@ -53,9 +53,10 @@ static inline int tuner_i2c_xfer_recv(struct tuner_i2c_props *props,
- 	return (ret == 1) ? len : ret;
- }
- 
--static inline int tuner_i2c_xfer_send_recv(struct tuner_i2c_props *props,
--					   unsigned char *obuf, int olen,
--					   unsigned char *ibuf, int ilen)
-+static noinline_for_kasan int
-+tuner_i2c_xfer_send_recv(struct tuner_i2c_props *props,
-+			 unsigned char *obuf, int olen,
-+			 unsigned char *ibuf, int ilen)
- {
- 	struct i2c_msg msg[2] = { { .addr = props->addr, .flags = 0,
- 				    .buf = obuf, .len = olen },
+How I stumbled across though this was when I was trying to encode:
+
+ gst-launch-1.0 v4l2src device=/dev/video9 ! bayer2rgbneon ! \
+	videoconvert ! x264enc speed-preset=1 ! avimux ! \
+	filesink location=test.avi
+
+I noticed that vlc would always say it was playing the resulting AVI
+at 30fps.
+
 -- 
-2.9.0
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
