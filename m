@@ -1,88 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f180.google.com ([209.85.128.180]:34799 "EHLO
-        mail-wr0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752536AbdC0Ltb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 07:49:31 -0400
-Received: by mail-wr0-f180.google.com with SMTP id l43so52730627wre.1
-        for <linux-media@vger.kernel.org>; Mon, 27 Mar 2017 04:49:30 -0700 (PDT)
-Subject: Re: [PATCH v7 5/9] media: venus: vdec: add video decoder files
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1489423058-12492-1-git-send-email-stanimir.varbanov@linaro.org>
- <1489423058-12492-6-git-send-email-stanimir.varbanov@linaro.org>
- <52b39f43-6f70-0cf6-abaf-4bb5bd2b3d86@xs4all.nl>
- <be41ccbd-3ff1-bcae-c423-1acc68f35694@mm-sol.com>
- <6ea4524d-9794-a9b5-8327-367152c92493@xs4all.nl>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <7ae41d9d-d5fb-367c-ea08-c9a1bc818ffe@linaro.org>
-Date: Mon, 27 Mar 2017 14:49:21 +0300
+Received: from mail.anw.at ([195.234.101.228]:51677 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751087AbdCRDSg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Mar 2017 23:18:36 -0400
+Received: from [192.168.23.40] (anwhome.anw.at [195.234.103.23])
+        by mail.anw.at (8.14.4/8.14.4/Debian-4.1ubuntu1) with ESMTP id v2I24NI4002371
+        for <linux-media@vger.kernel.org>; Sat, 18 Mar 2017 03:04:23 +0100
+To: linux-media@vger.kernel.org
+From: "Jasmin J." <jasmin@anw.at>
+Subject: [PATCH] media/dvb-core: Race condition when writing to CAM.
+Message-ID: <ea8ab902-d50c-2e6d-52b0-0181188ef0e6@anw.at>
+Date: Sat, 18 Mar 2017 03:04:20 +0100
 MIME-Version: 1.0
-In-Reply-To: <6ea4524d-9794-a9b5-8327-367152c92493@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+It started with a sporadic message in syslog:
+"CAM tried to send a buffer larger than the ecount size"
+This message is not the fault itself, but a consecutive fault, after a read
+error from the CAM. This happens only on several CAMs, several hardware, and
+of course sporadic.
 
-On 03/27/2017 11:45 AM, Hans Verkuil wrote:
-> On 25/03/17 23:30, Stanimir Varbanov wrote:
->> Thanks for the comments!
+It is a consecutive fault, if the last read from the CAM did fail. I guess
+this will not happen on all CAMs, but at least it did on mine. There was a
+write error to the CAM and during the re-initialization procedure, the CAM
+finished the last read, although it got a RS.
 
-<snip>
+The write error to the CAM happened because a race condition between HC write,
+checking DA and FR.
+This patch added an additional check for DA(RE), just after checking FR. It is
+important to read the CAMs status register again, to give the CAM the
+necessary time for a proper reaction to HC.
+Please note the description within the source code (patch below).
 
->>>> +static void vdec_buf_done(struct venus_inst *inst, unsigned int buf_type,
->>>> +              u32 tag, u32 bytesused, u32 data_offset, u32 flags,
->>>> +              u64 timestamp_us)
->>>> +{
->>>> +    struct vb2_v4l2_buffer *vbuf;
->>>> +    struct vb2_buffer *vb;
->>>> +    unsigned int type;
->>>> +
->>>> +    if (buf_type == HFI_BUFFER_INPUT)
->>>> +        type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
->>>> +    else
->>>> +        type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
->>>> +
->>>> +    vbuf = helper_find_buf(inst, type, tag);
->>>> +    if (!vbuf)
->>>> +        return;
->>>> +
->>>> +    vbuf->flags = flags;
->>>> +
->>>> +    if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
->>>> +        vb = &vbuf->vb2_buf;
->>>> +        vb->planes[0].bytesused =
->>>> +            max_t(unsigned int, inst->output_buf_size, bytesused);
->>>> +        vb->planes[0].data_offset = data_offset;
->>>> +        vb->timestamp = timestamp_us * NSEC_PER_USEC;
->>>> +        vbuf->sequence = inst->sequence++;
->>>
->>> timestamp and sequence are only set for CAPTURE, not OUTPUT. Is that correct?
->>
->> Correct. I can add sequence for the OUTPUT queue too, but I have no idea how that sequence is used by userspace.
-> 
-> You set V4L2_BUF_FLAG_TIMESTAMP_COPY, so you have to copy the timestamp from the output buffer
-> to the capture buffer, if that makes sense for this codec. If not, then you shouldn't use that
+Signed-off-by: Jasmin jessich <jasmin@anw.at>
+Acked-by: rjkm@metzlerbros.de
+Tested-by: rjkm@metzlerbros.de
+---
+ drivers/media/dvb-core/dvb_ca_en50221.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-The timestamp_us is filled by firmware and it is the timestamp of the
-output buffer which is used to produce the uncompressed capture buffer.
-So I think V4L2_BUF_FLAG_TIMESTAMP_COPY is correctly used here.
-
-> V4L2_BUF_FLAG and just generate new timestamps whenever a capture buffer is ready.
-> 
-> For sequence numbering just give the output queue its own sequence counter.
-
-OK will do.
-
+diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
+index 8d65028..0007839 100644
+--- a/drivers/media/dvb-core/dvb_ca_en50221.c
++++ b/drivers/media/dvb-core/dvb_ca_en50221.c
+@@ -785,6 +785,24 @@ static int dvb_ca_en50221_write_data(struct dvb_ca_private *ca, int slot, u8 * b
+                goto exit;
+        }
+ 
++       /* It may need some time for the CAM to settle down, or there might be a
++          race condition between the CAM, writing HC and our last check for DA.
++          This happens, if the CAM asserts DA, just after checking DA before we
++          are setting HC. In this case it might be a bug in the CAM to keep the
++          FR bit, the lower layer/HW communication requires a longer timeout or
++          the CAM needs more time internally. But this happens in reality!
++          We need to read the status from the HW again and do the same we did
++          for the previous check for DA */
++       if ((status = ca->pub->read_cam_control(ca->pub, slot, CTRLIF_STATUS)) < 0)
++               goto exit;
++       if (status & (STATUSREG_DA | STATUSREG_RE)) {
++               if (status & STATUSREG_DA)
++                       dvb_ca_en50221_thread_wakeup(ca);
++
++               status = -EAGAIN;
++               goto exit;
++       }
++
+        /* send the amount of data */
+        if ((status = ca->pub->write_cam_control(ca->pub, slot, CTRLIF_SIZE_HIGH, bytes_write >> 8)) != 0)
+                goto exit;
 -- 
-regards,
-Stan
+2.7.4
