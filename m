@@ -1,141 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:60157 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751611AbdCCMcO (ORCPT
+Received: from mail-qk0-f173.google.com ([209.85.220.173]:34600 "EHLO
+        mail-qk0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751160AbdCRDeW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Mar 2017 07:32:14 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 3/4] [media] coda: pad first h.264 buffer to 512 bytes
-Date: Fri,  3 Mar 2017 13:12:49 +0100
-Message-Id: <20170303121250.13693-3-p.zabel@pengutronix.de>
-In-Reply-To: <20170303121250.13693-1-p.zabel@pengutronix.de>
-References: <20170303121250.13693-1-p.zabel@pengutronix.de>
+        Fri, 17 Mar 2017 23:34:22 -0400
+Received: by mail-qk0-f173.google.com with SMTP id p64so78565083qke.1
+        for <linux-media@vger.kernel.org>; Fri, 17 Mar 2017 20:34:03 -0700 (PDT)
+From: Laura Abbott <labbott@redhat.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com
+Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC PATCHv2 10/21] staging: android: ion: Remove import interface
+Date: Fri, 17 Mar 2017 17:54:42 -0700
+Message-Id: <1489798493-16600-11-git-send-email-labbott@redhat.com>
+In-Reply-To: <1489798493-16600-1-git-send-email-labbott@redhat.com>
+References: <1489798493-16600-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The bitstream reader needs 512 bytes ready to read to examine the
-headers in the first frame. If that frame is too small, prepend it
-with a filler NAL.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+With the expansion of dma-buf and the move for Ion to be come just an
+allocator, the import mechanism is mostly useless. There isn't a kernel
+component to Ion anymore and handles are private to Ion. Remove this
+interface.
+
+Signed-off-by: Laura Abbott <labbott@redhat.com>
 ---
- drivers/media/platform/coda/coda-bit.c  | 28 ++++++++++++++++++++++++++--
- drivers/media/platform/coda/coda-h264.c | 24 ++++++++++++++++++------
- drivers/media/platform/coda/coda.h      |  1 +
- 3 files changed, 45 insertions(+), 8 deletions(-)
+ drivers/staging/android/ion/compat_ion.c |  1 -
+ drivers/staging/android/ion/ion-ioctl.c  | 11 -----
+ drivers/staging/android/ion/ion.c        | 76 --------------------------------
+ drivers/staging/android/uapi/ion.h       |  9 ----
+ 4 files changed, 97 deletions(-)
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index e3e3225607836..89965ca5bd250 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -179,6 +179,25 @@ static void coda_kfifo_sync_to_device_write(struct coda_ctx *ctx)
- 	coda_write(dev, wr_ptr, CODA_REG_BIT_WR_PTR(ctx->reg_idx));
- }
- 
-+static int coda_bitstream_pad(struct coda_ctx *ctx, u32 size)
-+{
-+	unsigned char *buf;
-+	u32 n;
-+
-+	if (size < 6)
-+		size = 6;
-+
-+	buf = kmalloc(size, GFP_KERNEL);
-+	if (!buf)
-+		return -ENOMEM;
-+
-+	coda_h264_filler_nal(size, buf);
-+	n = kfifo_in(&ctx->bitstream_fifo, buf, size);
-+	kfree(buf);
-+
-+	return (n < size) ? -ENOSPC : 0;
-+}
-+
- static int coda_bitstream_queue(struct coda_ctx *ctx,
- 				struct vb2_v4l2_buffer *src_buf)
- {
-@@ -198,10 +217,10 @@ static int coda_bitstream_queue(struct coda_ctx *ctx,
- static bool coda_bitstream_try_queue(struct coda_ctx *ctx,
- 				     struct vb2_v4l2_buffer *src_buf)
- {
-+	unsigned long payload = vb2_get_plane_payload(&src_buf->vb2_buf, 0);
- 	int ret;
- 
--	if (coda_get_bitstream_payload(ctx) +
--	    vb2_get_plane_payload(&src_buf->vb2_buf, 0) + 512 >=
-+	if (coda_get_bitstream_payload(ctx) + payload + 512 >=
- 	    ctx->bitstream.size)
- 		return false;
- 
-@@ -210,6 +229,11 @@ static bool coda_bitstream_try_queue(struct coda_ctx *ctx,
- 		return true;
+diff --git a/drivers/staging/android/ion/compat_ion.c b/drivers/staging/android/ion/compat_ion.c
+index 5b192ea..ae1ffc3 100644
+--- a/drivers/staging/android/ion/compat_ion.c
++++ b/drivers/staging/android/ion/compat_ion.c
+@@ -145,7 +145,6 @@ long compat_ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
  	}
- 
-+	/* Add zero padding before the first H.264 buffer, if it is too small */
-+	if (ctx->qsequence == 0 && payload < 512 &&
-+	    ctx->codec->src_fourcc == V4L2_PIX_FMT_H264)
-+		coda_bitstream_pad(ctx, 512 - payload);
-+
- 	ret = coda_bitstream_queue(ctx, src_buf);
- 	if (ret < 0) {
- 		v4l2_err(&ctx->dev->v4l2_dev, "bitstream buffer overflow\n");
-diff --git a/drivers/media/platform/coda/coda-h264.c b/drivers/media/platform/coda/coda-h264.c
-index 09dfcca7cc500..dc137c3fd510b 100644
---- a/drivers/media/platform/coda/coda-h264.c
-+++ b/drivers/media/platform/coda/coda-h264.c
-@@ -15,10 +15,25 @@
- #include <linux/string.h>
- #include <coda.h>
- 
--static const u8 coda_filler_nal[14] = { 0x00, 0x00, 0x00, 0x01, 0x0c, 0xff,
--			0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x80 };
- static const u8 coda_filler_size[8] = { 0, 7, 14, 13, 12, 11, 10, 9 };
- 
-+int coda_h264_filler_nal(int size, char *p)
-+{
-+	if (size < 6)
-+		return -EINVAL;
-+
-+	p[0] = 0x00;
-+	p[1] = 0x00;
-+	p[2] = 0x00;
-+	p[3] = 0x01;
-+	p[4] = 0x0c;
-+	memset(p + 5, 0xff, size - 6);
-+	/* Add rbsp stop bit and trailing at the end */
-+	p[size - 1] = 0x80;
-+
-+	return 0;
-+}
-+
- int coda_h264_padding(int size, char *p)
- {
- 	int nal_size;
-@@ -29,10 +44,7 @@ int coda_h264_padding(int size, char *p)
- 		return 0;
- 
- 	nal_size = coda_filler_size[diff];
--	memcpy(p, coda_filler_nal, nal_size);
+ 	case ION_IOC_SHARE:
+ 	case ION_IOC_MAP:
+-	case ION_IOC_IMPORT:
+ 		return filp->f_op->unlocked_ioctl(filp, cmd,
+ 						(unsigned long)compat_ptr(arg));
+ 	default:
+diff --git a/drivers/staging/android/ion/ion-ioctl.c b/drivers/staging/android/ion/ion-ioctl.c
+index 2b475bf..7b54eea 100644
+--- a/drivers/staging/android/ion/ion-ioctl.c
++++ b/drivers/staging/android/ion/ion-ioctl.c
+@@ -131,17 +131,6 @@ long ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 			ret = data.fd.fd;
+ 		break;
+ 	}
+-	case ION_IOC_IMPORT:
+-	{
+-		struct ion_handle *handle;
 -
--	/* Add rbsp stop bit and trailing at the end */
--	*(p + nal_size - 1) = 0x80;
-+	coda_h264_filler_nal(nal_size, p);
- 
- 	return nal_size;
+-		handle = ion_import_dma_buf_fd(client, data.fd.fd);
+-		if (IS_ERR(handle))
+-			ret = PTR_ERR(handle);
+-		else
+-			data.handle.handle = handle->id;
+-		break;
+-	}
+ 	case ION_IOC_HEAP_QUERY:
+ 		ret = ion_query_heaps(client, &data.query);
+ 		break;
+diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
+index 125c537..3d979ef5 100644
+--- a/drivers/staging/android/ion/ion.c
++++ b/drivers/staging/android/ion/ion.c
+@@ -274,24 +274,6 @@ int ion_handle_put(struct ion_handle *handle)
+ 	return ret;
  }
-diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
-index 6aa9c19c4a896..a730bc2a2ff99 100644
---- a/drivers/media/platform/coda/coda.h
-+++ b/drivers/media/platform/coda/coda.h
-@@ -290,6 +290,7 @@ void coda_bit_stream_end_flag(struct coda_ctx *ctx);
- void coda_m2m_buf_done(struct coda_ctx *ctx, struct vb2_v4l2_buffer *buf,
- 		       enum vb2_buffer_state state);
  
-+int coda_h264_filler_nal(int size, char *p);
- int coda_h264_padding(int size, char *p);
+-static struct ion_handle *ion_handle_lookup(struct ion_client *client,
+-					    struct ion_buffer *buffer)
+-{
+-	struct rb_node *n = client->handles.rb_node;
+-
+-	while (n) {
+-		struct ion_handle *entry = rb_entry(n, struct ion_handle, node);
+-
+-		if (buffer < entry->buffer)
+-			n = n->rb_left;
+-		else if (buffer > entry->buffer)
+-			n = n->rb_right;
+-		else
+-			return entry;
+-	}
+-	return ERR_PTR(-EINVAL);
+-}
+-
+ struct ion_handle *ion_handle_get_by_id_nolock(struct ion_client *client,
+ 					       int id)
+ {
+@@ -1023,64 +1005,6 @@ int ion_share_dma_buf_fd(struct ion_client *client, struct ion_handle *handle)
+ }
+ EXPORT_SYMBOL(ion_share_dma_buf_fd);
  
- bool coda_jpeg_check_buffer(struct coda_ctx *ctx, struct vb2_buffer *vb);
+-struct ion_handle *ion_import_dma_buf(struct ion_client *client,
+-				      struct dma_buf *dmabuf)
+-{
+-	struct ion_buffer *buffer;
+-	struct ion_handle *handle;
+-	int ret;
+-
+-	/* if this memory came from ion */
+-
+-	if (dmabuf->ops != &dma_buf_ops) {
+-		pr_err("%s: can not import dmabuf from another exporter\n",
+-		       __func__);
+-		return ERR_PTR(-EINVAL);
+-	}
+-	buffer = dmabuf->priv;
+-
+-	mutex_lock(&client->lock);
+-	/* if a handle exists for this buffer just take a reference to it */
+-	handle = ion_handle_lookup(client, buffer);
+-	if (!IS_ERR(handle)) {
+-		ion_handle_get(handle);
+-		mutex_unlock(&client->lock);
+-		goto end;
+-	}
+-
+-	handle = ion_handle_create(client, buffer);
+-	if (IS_ERR(handle)) {
+-		mutex_unlock(&client->lock);
+-		goto end;
+-	}
+-
+-	ret = ion_handle_add(client, handle);
+-	mutex_unlock(&client->lock);
+-	if (ret) {
+-		ion_handle_put(handle);
+-		handle = ERR_PTR(ret);
+-	}
+-
+-end:
+-	return handle;
+-}
+-EXPORT_SYMBOL(ion_import_dma_buf);
+-
+-struct ion_handle *ion_import_dma_buf_fd(struct ion_client *client, int fd)
+-{
+-	struct dma_buf *dmabuf;
+-	struct ion_handle *handle;
+-
+-	dmabuf = dma_buf_get(fd);
+-	if (IS_ERR(dmabuf))
+-		return ERR_CAST(dmabuf);
+-
+-	handle = ion_import_dma_buf(client, dmabuf);
+-	dma_buf_put(dmabuf);
+-	return handle;
+-}
+-EXPORT_SYMBOL(ion_import_dma_buf_fd);
+-
+ int ion_query_heaps(struct ion_client *client, struct ion_heap_query *query)
+ {
+ 	struct ion_device *dev = client->dev;
+diff --git a/drivers/staging/android/uapi/ion.h b/drivers/staging/android/uapi/ion.h
+index 8ff471d..3a59044 100644
+--- a/drivers/staging/android/uapi/ion.h
++++ b/drivers/staging/android/uapi/ion.h
+@@ -185,15 +185,6 @@ struct ion_heap_query {
+ #define ION_IOC_SHARE		_IOWR(ION_IOC_MAGIC, 4, struct ion_fd_data)
+ 
+ /**
+- * DOC: ION_IOC_IMPORT - imports a shared file descriptor
+- *
+- * Takes an ion_fd_data struct with the fd field populated with a valid file
+- * descriptor obtained from ION_IOC_SHARE and returns the struct with the handle
+- * filed set to the corresponding opaque handle.
+- */
+-#define ION_IOC_IMPORT		_IOWR(ION_IOC_MAGIC, 5, struct ion_fd_data)
+-
+-/**
+  * DOC: ION_IOC_HEAP_QUERY - information about available heaps
+  *
+  * Takes an ion_heap_query structure and populates information about
 -- 
-2.11.0
+2.7.4
