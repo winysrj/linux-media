@@ -1,119 +1,368 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:42030 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751519AbdCCPD5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 10:03:57 -0500
-Received: from epcas5p1.samsung.com (unknown [182.195.41.39])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0OM801AWQRP9RGB0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Fri, 03 Mar 2017 22:48:45 +0900 (KST)
-Subject: Re: [v2, 02/15] media: s5p-mfc: Use generic of_device_get_match_data
- helper
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>
-In-reply-to: <1487597944-2000-3-git-send-email-m.szyprowski@samsung.com>
-Date: Fri, 03 Mar 2017 19:21:46 +0530
-Message-id: <1488549106.3182.17.camel@smitha-fedora>
-MIME-version: 1.0
-Content-transfer-encoding: 7bit
-Content-type: text/plain; charset=utf-8
-References: <1487597944-2000-3-git-send-email-m.szyprowski@samsung.com>
- <CGME20170303134843epcas5p1c1c714d0b1c240ffdc4ec38173296bbf@epcas5p1.samsung.com>
+Received: from mail-qt0-f179.google.com ([209.85.216.179]:35239 "EHLO
+        mail-qt0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750957AbdCREHE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 18 Mar 2017 00:07:04 -0400
+Received: by mail-qt0-f179.google.com with SMTP id x35so76515496qtc.2
+        for <linux-media@vger.kernel.org>; Fri, 17 Mar 2017 21:05:23 -0700 (PDT)
+From: Laura Abbott <labbott@redhat.com>
+Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC PATCHv2 15/21] staging: android: ion: Break the ABI in the name of forward progress
+Date: Fri, 17 Mar 2017 17:54:47 -0700
+Message-Id: <1489798493-16600-16-git-send-email-labbott@redhat.com>
+In-Reply-To: <1489798493-16600-1-git-send-email-labbott@redhat.com>
+References: <1489798493-16600-1-git-send-email-labbott@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2017-02-20 at 14:38 +0100, Marek Szyprowski wrote: 
-> Replace custom code with generic helper to retrieve driver data.
-> 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>
+To: Riley Andrews <riandrews@android.com>
+Cc: romlem@google.com
+To: arve@android.com
+To: Riley Andrews <riandrews@android.com>
+Cc: devel@driverdev.osuosl.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linaro-mm-sig@lists.linaro.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org
+Cc: Brian Starkey <brian.starkey@arm.com>
+Cc: Daniel Vetter <daniel.vetter@intel.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Cc: linux-mm@kvack.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Reviewed-by: Smitha T Murthy <smitha.t@samsung.com>
 
-Regards,
-Smitha T Murthy
+Several of the Ion ioctls were designed in such a way that they
+necessitate compat ioctls. We're breaking a bunch of other ABIs and
+cleaning stuff up anyway so let's follow the ioctl guidelines and clean
+things up while everyone is busy converting things over anyway. As part
+of this, also remove the useless alignment field from the allocation
+structure.
 
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc.c        | 17 ++---------------
->  drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  4 ++--
->  2 files changed, 4 insertions(+), 17 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> index 3e1f22eb4339..ad3d7377f40d 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> @@ -22,6 +22,7 @@
->  #include <media/v4l2-event.h>
->  #include <linux/workqueue.h>
->  #include <linux/of.h>
-> +#include <linux/of_device.h>
->  #include <linux/of_reserved_mem.h>
->  #include <media/videobuf2-v4l2.h>
->  #include "s5p_mfc_common.h"
-> @@ -1157,8 +1158,6 @@ static void s5p_mfc_unconfigure_dma_memory(struct s5p_mfc_dev *mfc_dev)
->  	device_unregister(mfc_dev->mem_dev_r);
->  }
->  
-> -static void *mfc_get_drv_data(struct platform_device *pdev);
-> -
->  /* MFC probe function */
->  static int s5p_mfc_probe(struct platform_device *pdev)
->  {
-> @@ -1182,7 +1181,7 @@ static int s5p_mfc_probe(struct platform_device *pdev)
->  		return -ENODEV;
->  	}
->  
-> -	dev->variant = mfc_get_drv_data(pdev);
-> +	dev->variant = of_device_get_match_data(&pdev->dev);
->  
->  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->  	dev->regs_base = devm_ioremap_resource(&pdev->dev, res);
-> @@ -1541,18 +1540,6 @@ static int s5p_mfc_resume(struct device *dev)
->  };
->  MODULE_DEVICE_TABLE(of, exynos_mfc_match);
->  
-> -static void *mfc_get_drv_data(struct platform_device *pdev)
-> -{
-> -	struct s5p_mfc_variant *driver_data = NULL;
-> -	const struct of_device_id *match;
-> -
-> -	match = of_match_node(exynos_mfc_match, pdev->dev.of_node);
-> -	if (match)
-> -		driver_data = (struct s5p_mfc_variant *)match->data;
-> -
-> -	return driver_data;
-> -}
-> -
->  static struct platform_driver s5p_mfc_driver = {
->  	.probe		= s5p_mfc_probe,
->  	.remove		= s5p_mfc_remove,
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> index 3e0e8eaf8bfe..2f1387a4c386 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> @@ -192,7 +192,7 @@ struct s5p_mfc_buf {
->   */
->  struct s5p_mfc_pm {
->  	struct clk	*clock_gate;
-> -	const char	**clk_names;
-> +	const char * const *clk_names;
->  	struct clk	*clocks[MFC_MAX_CLOCKS];
->  	int		num_clocks;
->  	bool		use_clock_gating;
-> @@ -304,7 +304,7 @@ struct s5p_mfc_dev {
->  	struct v4l2_ctrl_handler dec_ctrl_handler;
->  	struct v4l2_ctrl_handler enc_ctrl_handler;
->  	struct s5p_mfc_pm	pm;
-> -	struct s5p_mfc_variant	*variant;
-> +	const struct s5p_mfc_variant	*variant;
->  	int num_inst;
->  	spinlock_t irqlock;	/* lock when operating on context */
->  	spinlock_t condlock;	/* lock when changing/checking if a context is
+Signed-off-by: Laura Abbott <labbott@redhat.com>
+---
+ drivers/staging/android/ion/Makefile     |   3 -
+ drivers/staging/android/ion/compat_ion.c | 152 -------------------------------
+ drivers/staging/android/ion/compat_ion.h |  29 ------
+ drivers/staging/android/ion/ion-ioctl.c  |   1 -
+ drivers/staging/android/ion/ion.c        |   5 +-
+ drivers/staging/android/uapi/ion.h       |  19 ++--
+ 6 files changed, 11 insertions(+), 198 deletions(-)
+ delete mode 100644 drivers/staging/android/ion/compat_ion.c
+ delete mode 100644 drivers/staging/android/ion/compat_ion.h
+
+diff --git a/drivers/staging/android/ion/Makefile b/drivers/staging/android/ion/Makefile
+index 66d0c4a..a892afa 100644
+--- a/drivers/staging/android/ion/Makefile
++++ b/drivers/staging/android/ion/Makefile
+@@ -2,6 +2,3 @@ obj-$(CONFIG_ION) +=	ion.o ion-ioctl.o ion_heap.o \
+ 			ion_page_pool.o ion_system_heap.o \
+ 			ion_carveout_heap.o ion_chunk_heap.o
+ obj-$(CONFIG_ION_CMA_HEAP) += ion_cma_heap.o
+-ifdef CONFIG_COMPAT
+-obj-$(CONFIG_ION) += compat_ion.o
+-endif
+diff --git a/drivers/staging/android/ion/compat_ion.c b/drivers/staging/android/ion/compat_ion.c
+deleted file mode 100644
+index 5037ddd..0000000
+--- a/drivers/staging/android/ion/compat_ion.c
++++ /dev/null
+@@ -1,152 +0,0 @@
+-/*
+- * drivers/staging/android/ion/compat_ion.c
+- *
+- * Copyright (C) 2013 Google, Inc.
+- *
+- * This software is licensed under the terms of the GNU General Public
+- * License version 2, as published by the Free Software Foundation, and
+- * may be copied, distributed, and modified under those terms.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- */
+-
+-#include <linux/compat.h>
+-#include <linux/fs.h>
+-#include <linux/uaccess.h>
+-
+-#include "ion.h"
+-#include "compat_ion.h"
+-
+-/* See drivers/staging/android/uapi/ion.h for the definition of these structs */
+-struct compat_ion_allocation_data {
+-	compat_size_t len;
+-	compat_size_t align;
+-	compat_uint_t heap_id_mask;
+-	compat_uint_t flags;
+-	compat_int_t handle;
+-};
+-
+-struct compat_ion_handle_data {
+-	compat_int_t handle;
+-};
+-
+-#define COMPAT_ION_IOC_ALLOC	_IOWR(ION_IOC_MAGIC, 0, \
+-				      struct compat_ion_allocation_data)
+-#define COMPAT_ION_IOC_FREE	_IOWR(ION_IOC_MAGIC, 1, \
+-				      struct compat_ion_handle_data)
+-
+-static int compat_get_ion_allocation_data(
+-			struct compat_ion_allocation_data __user *data32,
+-			struct ion_allocation_data __user *data)
+-{
+-	compat_size_t s;
+-	compat_uint_t u;
+-	compat_int_t i;
+-	int err;
+-
+-	err = get_user(s, &data32->len);
+-	err |= put_user(s, &data->len);
+-	err |= get_user(s, &data32->align);
+-	err |= put_user(s, &data->align);
+-	err |= get_user(u, &data32->heap_id_mask);
+-	err |= put_user(u, &data->heap_id_mask);
+-	err |= get_user(u, &data32->flags);
+-	err |= put_user(u, &data->flags);
+-	err |= get_user(i, &data32->handle);
+-	err |= put_user(i, &data->handle);
+-
+-	return err;
+-}
+-
+-static int compat_get_ion_handle_data(
+-			struct compat_ion_handle_data __user *data32,
+-			struct ion_handle_data __user *data)
+-{
+-	compat_int_t i;
+-	int err;
+-
+-	err = get_user(i, &data32->handle);
+-	err |= put_user(i, &data->handle);
+-
+-	return err;
+-}
+-
+-static int compat_put_ion_allocation_data(
+-			struct compat_ion_allocation_data __user *data32,
+-			struct ion_allocation_data __user *data)
+-{
+-	compat_size_t s;
+-	compat_uint_t u;
+-	compat_int_t i;
+-	int err;
+-
+-	err = get_user(s, &data->len);
+-	err |= put_user(s, &data32->len);
+-	err |= get_user(s, &data->align);
+-	err |= put_user(s, &data32->align);
+-	err |= get_user(u, &data->heap_id_mask);
+-	err |= put_user(u, &data32->heap_id_mask);
+-	err |= get_user(u, &data->flags);
+-	err |= put_user(u, &data32->flags);
+-	err |= get_user(i, &data->handle);
+-	err |= put_user(i, &data32->handle);
+-
+-	return err;
+-}
+-
+-long compat_ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+-{
+-	long ret;
+-
+-	if (!filp->f_op->unlocked_ioctl)
+-		return -ENOTTY;
+-
+-	switch (cmd) {
+-	case COMPAT_ION_IOC_ALLOC:
+-	{
+-		struct compat_ion_allocation_data __user *data32;
+-		struct ion_allocation_data __user *data;
+-		int err;
+-
+-		data32 = compat_ptr(arg);
+-		data = compat_alloc_user_space(sizeof(*data));
+-		if (!data)
+-			return -EFAULT;
+-
+-		err = compat_get_ion_allocation_data(data32, data);
+-		if (err)
+-			return err;
+-		ret = filp->f_op->unlocked_ioctl(filp, ION_IOC_ALLOC,
+-							(unsigned long)data);
+-		err = compat_put_ion_allocation_data(data32, data);
+-		return ret ? ret : err;
+-	}
+-	case COMPAT_ION_IOC_FREE:
+-	{
+-		struct compat_ion_handle_data __user *data32;
+-		struct ion_handle_data __user *data;
+-		int err;
+-
+-		data32 = compat_ptr(arg);
+-		data = compat_alloc_user_space(sizeof(*data));
+-		if (!data)
+-			return -EFAULT;
+-
+-		err = compat_get_ion_handle_data(data32, data);
+-		if (err)
+-			return err;
+-
+-		return filp->f_op->unlocked_ioctl(filp, ION_IOC_FREE,
+-							(unsigned long)data);
+-	}
+-	case ION_IOC_SHARE:
+-		return filp->f_op->unlocked_ioctl(filp, cmd,
+-						(unsigned long)compat_ptr(arg));
+-	default:
+-		return -ENOIOCTLCMD;
+-	}
+-}
+diff --git a/drivers/staging/android/ion/compat_ion.h b/drivers/staging/android/ion/compat_ion.h
+deleted file mode 100644
+index 9da8f91..0000000
+--- a/drivers/staging/android/ion/compat_ion.h
++++ /dev/null
+@@ -1,29 +0,0 @@
+-/*
+- * drivers/staging/android/ion/compat_ion.h
+- *
+- * Copyright (C) 2013 Google, Inc.
+- *
+- * This software is licensed under the terms of the GNU General Public
+- * License version 2, as published by the Free Software Foundation, and
+- * may be copied, distributed, and modified under those terms.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- */
+-
+-#ifndef _LINUX_COMPAT_ION_H
+-#define _LINUX_COMPAT_ION_H
+-
+-#if IS_ENABLED(CONFIG_COMPAT)
+-
+-long compat_ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
+-
+-#else
+-
+-#define compat_ion_ioctl  NULL
+-
+-#endif /* CONFIG_COMPAT */
+-#endif /* _LINUX_COMPAT_ION_H */
+diff --git a/drivers/staging/android/ion/ion-ioctl.c b/drivers/staging/android/ion/ion-ioctl.c
+index a361724..91b5c2b 100644
+--- a/drivers/staging/android/ion/ion-ioctl.c
++++ b/drivers/staging/android/ion/ion-ioctl.c
+@@ -20,7 +20,6 @@
+ 
+ #include "ion.h"
+ #include "ion_priv.h"
+-#include "compat_ion.h"
+ 
+ union ion_ioctl_arg {
+ 	struct ion_fd_data fd;
+diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
+index 65638f5..fbab1e3 100644
+--- a/drivers/staging/android/ion/ion.c
++++ b/drivers/staging/android/ion/ion.c
+@@ -40,7 +40,6 @@
+ 
+ #include "ion.h"
+ #include "ion_priv.h"
+-#include "compat_ion.h"
+ 
+ bool ion_buffer_cached(struct ion_buffer *buffer)
+ {
+@@ -1065,7 +1064,9 @@ static const struct file_operations ion_fops = {
+ 	.open           = ion_open,
+ 	.release        = ion_release,
+ 	.unlocked_ioctl = ion_ioctl,
+-	.compat_ioctl   = compat_ion_ioctl,
++#ifdef CONFIG_COMPAT
++	.compat_ioctl	= ion_ioctl,
++#endif
+ };
+ 
+ static size_t ion_debug_heap_total(struct ion_client *client,
+diff --git a/drivers/staging/android/uapi/ion.h b/drivers/staging/android/uapi/ion.h
+index abd72fd..bba1c47 100644
+--- a/drivers/staging/android/uapi/ion.h
++++ b/drivers/staging/android/uapi/ion.h
+@@ -20,8 +20,6 @@
+ #include <linux/ioctl.h>
+ #include <linux/types.h>
+ 
+-typedef int ion_user_handle_t;
+-
+ /**
+  * enum ion_heap_types - list of all possible types of heaps
+  * @ION_HEAP_TYPE_SYSTEM:	 memory allocated via vmalloc
+@@ -76,7 +74,6 @@ enum ion_heap_type {
+ /**
+  * struct ion_allocation_data - metadata passed from userspace for allocations
+  * @len:		size of the allocation
+- * @align:		required alignment of the allocation
+  * @heap_id_mask:	mask of heap ids to allocate from
+  * @flags:		flags passed to heap
+  * @handle:		pointer that will be populated with a cookie to use to
+@@ -85,11 +82,11 @@ enum ion_heap_type {
+  * Provided by userspace as an argument to the ioctl
+  */
+ struct ion_allocation_data {
+-	size_t len;
+-	size_t align;
+-	unsigned int heap_id_mask;
+-	unsigned int flags;
+-	ion_user_handle_t handle;
++	__u64 len;
++	__u32 heap_id_mask;
++	__u32 flags;
++	__u32 handle;
++	__u32 unused;
+ };
+ 
+ /**
+@@ -103,8 +100,8 @@ struct ion_allocation_data {
+  * provides the file descriptor and the kernel returns the handle.
+  */
+ struct ion_fd_data {
+-	ion_user_handle_t handle;
+-	int fd;
++	__u32 handle;
++	__u32 fd;
+ };
+ 
+ /**
+@@ -112,7 +109,7 @@ struct ion_fd_data {
+  * @handle:	a handle
+  */
+ struct ion_handle_data {
+-	ion_user_handle_t handle;
++	__u32 handle;
+ };
+ 
+ #define MAX_HEAP_NAME			32
+-- 
+2.7.4
