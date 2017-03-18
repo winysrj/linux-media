@@ -1,223 +1,304 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40402 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751571AbdCCQht (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 11:37:49 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org
-Cc: Laura Abbott <labbott@redhat.com>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com,
-        devel@driverdev.osuosl.org, romlem@google.com,
+Received: from mail-qk0-f172.google.com ([209.85.220.172]:34519 "EHLO
+        mail-qk0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751096AbdCRB1W (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Mar 2017 21:27:22 -0400
+Received: by mail-qk0-f172.google.com with SMTP id p64so77607685qke.1
+        for <linux-media@vger.kernel.org>; Fri, 17 Mar 2017 18:27:21 -0700 (PDT)
+From: Laura Abbott <labbott@redhat.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com
+Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-kernel@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-        linux-mm@kvack.org, Mark Brown <broonie@kernel.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
         Daniel Vetter <daniel.vetter@intel.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 04/12] staging: android: ion: Call dma_map_sg for syncing and mapping
-Date: Fri, 03 Mar 2017 18:37:47 +0200
-Message-ID: <1842876.9VofhAIJSQ@avalon>
-In-Reply-To: <1488491084-17252-5-git-send-email-labbott@redhat.com>
-References: <1488491084-17252-1-git-send-email-labbott@redhat.com> <1488491084-17252-5-git-send-email-labbott@redhat.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC PATCHv2 04/21] staging: android: ion: Remove alignment from allocation field
+Date: Fri, 17 Mar 2017 17:54:36 -0700
+Message-Id: <1489798493-16600-5-git-send-email-labbott@redhat.com>
+In-Reply-To: <1489798493-16600-1-git-send-email-labbott@redhat.com>
+References: <1489798493-16600-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laura,
 
-Thank you for the patch.
+The align field was supposed to be used to specify the alignment of
+the allocation. Nobody actually does anything with it except to check
+if the alignment specified is out of bounds. Since this has no effect
+on the actual allocation, just remove it.
 
-On Thursday 02 Mar 2017 13:44:36 Laura Abbott wrote:
-> Technically, calling dma_buf_map_attachment should return a buffer
-> properly dma_mapped. Add calls to dma_map_sg to begin_cpu_access to
-> ensure this happens. As a side effect, this lets Ion buffers take
-> advantage of the dma_buf sync ioctls.
-> 
-> Signed-off-by: Laura Abbott <labbott@redhat.com>
-> ---
->  drivers/staging/android/ion/ion.c | 101 +++++++++++++++++------------------
->  1 file changed, 50 insertions(+), 51 deletions(-)
-> 
-> diff --git a/drivers/staging/android/ion/ion.c
-> b/drivers/staging/android/ion/ion.c index ce4adac..a931b30 100644
-> --- a/drivers/staging/android/ion/ion.c
-> +++ b/drivers/staging/android/ion/ion.c
-> @@ -795,10 +795,6 @@ void ion_client_destroy(struct ion_client *client)
->  }
->  EXPORT_SYMBOL(ion_client_destroy);
-> 
-> -static void ion_buffer_sync_for_device(struct ion_buffer *buffer,
-> -				       struct device *dev,
-> -				       enum dma_data_direction direction);
-> -
->  static struct sg_table *dup_sg_table(struct sg_table *table)
->  {
->  	struct sg_table *new_table;
-> @@ -825,22 +821,43 @@ static struct sg_table *dup_sg_table(struct sg_table
-> *table) return new_table;
->  }
-> 
-> +static void free_duped_table(struct sg_table *table)
-> +{
-> +	sg_free_table(table);
-> +	kfree(table);
-> +}
-> +
->  static struct sg_table *ion_map_dma_buf(struct dma_buf_attachment
-> *attachment, enum dma_data_direction direction)
->  {
->  	struct dma_buf *dmabuf = attachment->dmabuf;
->  	struct ion_buffer *buffer = dmabuf->priv;
-> +	struct sg_table *table;
-> +	int ret;
-> +
-> +	/*
-> +	 * TODO: Need to sync wrt CPU or device completely owning?
-> +	 */
-> +
-> +	table = dup_sg_table(buffer->sg_table);
-> 
-> -	ion_buffer_sync_for_device(buffer, attachment->dev, direction);
-> -	return dup_sg_table(buffer->sg_table);
-> +	if (!dma_map_sg(attachment->dev, table->sgl, table->nents,
-> +			direction)){
-> +		ret = -ENOMEM;
-> +		goto err;
-> +	}
-> +
-> +err:
-> +	free_duped_table(table);
-> +	return ERR_PTR(ret);
->  }
-> 
->  static void ion_unmap_dma_buf(struct dma_buf_attachment *attachment,
->  			      struct sg_table *table,
->  			      enum dma_data_direction direction)
->  {
-> -	sg_free_table(table);
-> -	kfree(table);
-> +	dma_unmap_sg(attachment->dev, table->sgl, table->nents, direction);
-> +	free_duped_table(table);
->  }
-> 
->  void ion_pages_sync_for_device(struct device *dev, struct page *page,
-> @@ -864,38 +881,6 @@ struct ion_vma_list {
->  	struct vm_area_struct *vma;
->  };
-> 
-> -static void ion_buffer_sync_for_device(struct ion_buffer *buffer,
-> -				       struct device *dev,
-> -				       enum dma_data_direction dir)
-> -{
-> -	struct ion_vma_list *vma_list;
-> -	int pages = PAGE_ALIGN(buffer->size) / PAGE_SIZE;
-> -	int i;
-> -
-> -	pr_debug("%s: syncing for device %s\n", __func__,
-> -		 dev ? dev_name(dev) : "null");
-> -
-> -	if (!ion_buffer_fault_user_mappings(buffer))
-> -		return;
-> -
-> -	mutex_lock(&buffer->lock);
-> -	for (i = 0; i < pages; i++) {
-> -		struct page *page = buffer->pages[i];
-> -
-> -		if (ion_buffer_page_is_dirty(page))
-> -			ion_pages_sync_for_device(dev, ion_buffer_page(page),
-> -						  PAGE_SIZE, dir);
-> -
-> -		ion_buffer_page_clean(buffer->pages + i);
-> -	}
-> -	list_for_each_entry(vma_list, &buffer->vmas, list) {
-> -		struct vm_area_struct *vma = vma_list->vma;
-> -
-> -		zap_page_range(vma, vma->vm_start, vma->vm_end - vma-
->vm_start);
-> -	}
-> -	mutex_unlock(&buffer->lock);
-> -}
-> -
->  static int ion_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
->  {
->  	struct ion_buffer *buffer = vma->vm_private_data;
-> @@ -1014,16 +999,24 @@ static int ion_dma_buf_begin_cpu_access(struct
-> dma_buf *dmabuf, struct ion_buffer *buffer = dmabuf->priv;
->  	void *vaddr;
-> 
-> -	if (!buffer->heap->ops->map_kernel) {
-> -		pr_err("%s: map kernel is not implemented by this heap.\n",
-> -		       __func__);
-> -		return -ENODEV;
-> +	/*
-> +	 * TODO: Move this elsewhere because we don't always need a vaddr
-> +	 */
-> +	if (buffer->heap->ops->map_kernel) {
-> +		mutex_lock(&buffer->lock);
-> +		vaddr = ion_buffer_kmap_get(buffer);
-> +		mutex_unlock(&buffer->lock);
->  	}
-> 
-> -	mutex_lock(&buffer->lock);
-> -	vaddr = ion_buffer_kmap_get(buffer);
-> -	mutex_unlock(&buffer->lock);
-> -	return PTR_ERR_OR_ZERO(vaddr);
-> +	/*
-> +	 * Close enough right now? Flag to skip sync?
-> +	 */
-> +	if (!dma_map_sg(buffer->dev->dev.this_device, buffer->sg_table->sgl,
-> +			buffer->sg_table->nents,
-> +                        DMA_BIDIRECTIONAL))
+Signed-off-by: Laura Abbott <labbott@redhat.com>
+---
+ drivers/staging/android/ion/ion-ioctl.c         |  1 -
+ drivers/staging/android/ion/ion.c               | 14 ++++++--------
+ drivers/staging/android/ion/ion.h               |  5 +----
+ drivers/staging/android/ion/ion_carveout_heap.c | 10 +++-------
+ drivers/staging/android/ion/ion_chunk_heap.c    |  9 +++------
+ drivers/staging/android/ion/ion_cma_heap.c      |  5 +----
+ drivers/staging/android/ion/ion_priv.h          |  2 +-
+ drivers/staging/android/ion/ion_system_heap.c   |  9 +--------
+ 8 files changed, 16 insertions(+), 39 deletions(-)
 
-Aren't the dma_(un)map_* calls supposed to take a real, physical device as 
-their first argument ? Beside, this doesn't seem to be the right place to 
-create the mapping, as you mentioned in the commit message the buffer should 
-be mapped in the dma_buf map handler. This is something that needs to be 
-fixed, especially in the light of the comment in ion_buffer_create():
-
-        /*
-         * this will set up dma addresses for the sglist -- it is not
-         * technically correct as per the dma api -- a specific
-         * device isn't really taking ownership here.  However, in practice on
-         * our systems the only dma_address space is physical addresses.
-         * Additionally, we can't afford the overhead of invalidating every
-         * allocation via dma_map_sg. The implicit contract here is that
-         * memory coming from the heaps is ready for dma, ie if it has a
-         * cached mapping that mapping has been invalidated
-         */
-
-That's a showstopper in my opinion, the DMA address space can't be restricted 
-to physical addresses, IOMMU have to be supported.
-
-> +		return -ENOMEM;
-> +
-> +	return 0;
->  }
-> 
->  static int ion_dma_buf_end_cpu_access(struct dma_buf *dmabuf,
-> @@ -1031,9 +1024,15 @@ static int ion_dma_buf_end_cpu_access(struct dma_buf
-> *dmabuf, {
->  	struct ion_buffer *buffer = dmabuf->priv;
-> 
-> -	mutex_lock(&buffer->lock);
-> -	ion_buffer_kmap_put(buffer);
-> -	mutex_unlock(&buffer->lock);
-> +	if (buffer->heap->ops->map_kernel) {
-> +		mutex_lock(&buffer->lock);
-> +		ion_buffer_kmap_put(buffer);
-> +		mutex_unlock(&buffer->lock);
-> +	}
-> +
-> +	dma_unmap_sg(buffer->dev->dev.this_device, buffer->sg_table->sgl,
-> +			buffer->sg_table->nents,
-> +			DMA_BIDIRECTIONAL);
-> 
->  	return 0;
->  }
-
+diff --git a/drivers/staging/android/ion/ion-ioctl.c b/drivers/staging/android/ion/ion-ioctl.c
+index 9ff815a..5b2e93f 100644
+--- a/drivers/staging/android/ion/ion-ioctl.c
++++ b/drivers/staging/android/ion/ion-ioctl.c
+@@ -95,7 +95,6 @@ long ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		struct ion_handle *handle;
+ 
+ 		handle = ion_alloc(client, data.allocation.len,
+-						data.allocation.align,
+ 						data.allocation.heap_id_mask,
+ 						data.allocation.flags);
+ 		if (IS_ERR(handle))
+diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
+index f45115f..c2adfe1 100644
+--- a/drivers/staging/android/ion/ion.c
++++ b/drivers/staging/android/ion/ion.c
+@@ -103,7 +103,6 @@ static void ion_buffer_add(struct ion_device *dev,
+ static struct ion_buffer *ion_buffer_create(struct ion_heap *heap,
+ 					    struct ion_device *dev,
+ 					    unsigned long len,
+-					    unsigned long align,
+ 					    unsigned long flags)
+ {
+ 	struct ion_buffer *buffer;
+@@ -119,15 +118,14 @@ static struct ion_buffer *ion_buffer_create(struct ion_heap *heap,
+ 	buffer->flags = flags;
+ 	kref_init(&buffer->ref);
+ 
+-	ret = heap->ops->allocate(heap, buffer, len, align, flags);
++	ret = heap->ops->allocate(heap, buffer, len, flags);
+ 
+ 	if (ret) {
+ 		if (!(heap->flags & ION_HEAP_FLAG_DEFER_FREE))
+ 			goto err2;
+ 
+ 		ion_heap_freelist_drain(heap, 0);
+-		ret = heap->ops->allocate(heap, buffer, len, align,
+-					  flags);
++		ret = heap->ops->allocate(heap, buffer, len, flags);
+ 		if (ret)
+ 			goto err2;
+ 	}
+@@ -401,7 +399,7 @@ static int ion_handle_add(struct ion_client *client, struct ion_handle *handle)
+ }
+ 
+ struct ion_handle *ion_alloc(struct ion_client *client, size_t len,
+-			     size_t align, unsigned int heap_id_mask,
++			     unsigned int heap_id_mask,
+ 			     unsigned int flags)
+ {
+ 	struct ion_handle *handle;
+@@ -410,8 +408,8 @@ struct ion_handle *ion_alloc(struct ion_client *client, size_t len,
+ 	struct ion_heap *heap;
+ 	int ret;
+ 
+-	pr_debug("%s: len %zu align %zu heap_id_mask %u flags %x\n", __func__,
+-		 len, align, heap_id_mask, flags);
++	pr_debug("%s: len %zu heap_id_mask %u flags %x\n", __func__,
++		 len, heap_id_mask, flags);
+ 	/*
+ 	 * traverse the list of heaps available in this system in priority
+ 	 * order.  If the heap type is supported by the client, and matches the
+@@ -428,7 +426,7 @@ struct ion_handle *ion_alloc(struct ion_client *client, size_t len,
+ 		/* if the caller didn't specify this heap id */
+ 		if (!((1 << heap->id) & heap_id_mask))
+ 			continue;
+-		buffer = ion_buffer_create(heap, dev, len, align, flags);
++		buffer = ion_buffer_create(heap, dev, len, flags);
+ 		if (!IS_ERR(buffer))
+ 			break;
+ 	}
+diff --git a/drivers/staging/android/ion/ion.h b/drivers/staging/android/ion/ion.h
+index 93dafb4..3b4bff5 100644
+--- a/drivers/staging/android/ion/ion.h
++++ b/drivers/staging/android/ion/ion.h
+@@ -45,7 +45,6 @@ struct ion_buffer;
+  * @name:	used for debug purposes
+  * @base:	base address of heap in physical memory if applicable
+  * @size:	size of the heap in bytes if applicable
+- * @align:	required alignment in physical memory if applicable
+  * @priv:	private info passed from the board file
+  *
+  * Provided by the board file.
+@@ -93,8 +92,6 @@ void ion_client_destroy(struct ion_client *client);
+  * ion_alloc - allocate ion memory
+  * @client:		the client
+  * @len:		size of the allocation
+- * @align:		requested allocation alignment, lots of hardware blocks
+- *			have alignment requirements of some kind
+  * @heap_id_mask:	mask of heaps to allocate from, if multiple bits are set
+  *			heaps will be tried in order from highest to lowest
+  *			id
+@@ -106,7 +103,7 @@ void ion_client_destroy(struct ion_client *client);
+  * an opaque handle to it.
+  */
+ struct ion_handle *ion_alloc(struct ion_client *client, size_t len,
+-			     size_t align, unsigned int heap_id_mask,
++			     unsigned int heap_id_mask,
+ 			     unsigned int flags);
+ 
+ /**
+diff --git a/drivers/staging/android/ion/ion_carveout_heap.c b/drivers/staging/android/ion/ion_carveout_heap.c
+index a8ea973..9bf8e98 100644
+--- a/drivers/staging/android/ion/ion_carveout_heap.c
++++ b/drivers/staging/android/ion/ion_carveout_heap.c
+@@ -34,8 +34,7 @@ struct ion_carveout_heap {
+ };
+ 
+ static ion_phys_addr_t ion_carveout_allocate(struct ion_heap *heap,
+-					     unsigned long size,
+-					     unsigned long align)
++					     unsigned long size)
+ {
+ 	struct ion_carveout_heap *carveout_heap =
+ 		container_of(heap, struct ion_carveout_heap, heap);
+@@ -60,16 +59,13 @@ static void ion_carveout_free(struct ion_heap *heap, ion_phys_addr_t addr,
+ 
+ static int ion_carveout_heap_allocate(struct ion_heap *heap,
+ 				      struct ion_buffer *buffer,
+-				      unsigned long size, unsigned long align,
++				      unsigned long size,
+ 				      unsigned long flags)
+ {
+ 	struct sg_table *table;
+ 	ion_phys_addr_t paddr;
+ 	int ret;
+ 
+-	if (align > PAGE_SIZE)
+-		return -EINVAL;
+-
+ 	table = kmalloc(sizeof(*table), GFP_KERNEL);
+ 	if (!table)
+ 		return -ENOMEM;
+@@ -77,7 +73,7 @@ static int ion_carveout_heap_allocate(struct ion_heap *heap,
+ 	if (ret)
+ 		goto err_free;
+ 
+-	paddr = ion_carveout_allocate(heap, size, align);
++	paddr = ion_carveout_allocate(heap, size);
+ 	if (paddr == ION_CARVEOUT_ALLOCATE_FAIL) {
+ 		ret = -ENOMEM;
+ 		goto err_free_table;
+diff --git a/drivers/staging/android/ion/ion_chunk_heap.c b/drivers/staging/android/ion/ion_chunk_heap.c
+index 70495dc..8c41889 100644
+--- a/drivers/staging/android/ion/ion_chunk_heap.c
++++ b/drivers/staging/android/ion/ion_chunk_heap.c
+@@ -35,7 +35,7 @@ struct ion_chunk_heap {
+ 
+ static int ion_chunk_heap_allocate(struct ion_heap *heap,
+ 				   struct ion_buffer *buffer,
+-				   unsigned long size, unsigned long align,
++				   unsigned long size,
+ 				   unsigned long flags)
+ {
+ 	struct ion_chunk_heap *chunk_heap =
+@@ -46,9 +46,6 @@ static int ion_chunk_heap_allocate(struct ion_heap *heap,
+ 	unsigned long num_chunks;
+ 	unsigned long allocated_size;
+ 
+-	if (align > chunk_heap->chunk_size)
+-		return -EINVAL;
+-
+ 	allocated_size = ALIGN(size, chunk_heap->chunk_size);
+ 	num_chunks = allocated_size / chunk_heap->chunk_size;
+ 
+@@ -160,8 +157,8 @@ struct ion_heap *ion_chunk_heap_create(struct ion_platform_heap *heap_data)
+ 	chunk_heap->heap.ops = &chunk_heap_ops;
+ 	chunk_heap->heap.type = ION_HEAP_TYPE_CHUNK;
+ 	chunk_heap->heap.flags = ION_HEAP_FLAG_DEFER_FREE;
+-	pr_debug("%s: base %lu size %zu align %ld\n", __func__,
+-		 chunk_heap->base, heap_data->size, heap_data->align);
++	pr_debug("%s: base %lu size %zu \n", __func__,
++		 chunk_heap->base, heap_data->size);
+ 
+ 	return &chunk_heap->heap;
+ 
+diff --git a/drivers/staging/android/ion/ion_cma_heap.c b/drivers/staging/android/ion/ion_cma_heap.c
+index 6c40685..d562fd7 100644
+--- a/drivers/staging/android/ion/ion_cma_heap.c
++++ b/drivers/staging/android/ion/ion_cma_heap.c
+@@ -40,7 +40,7 @@ struct ion_cma_buffer_info {
+ 
+ /* ION CMA heap operations functions */
+ static int ion_cma_allocate(struct ion_heap *heap, struct ion_buffer *buffer,
+-			    unsigned long len, unsigned long align,
++			    unsigned long len,
+ 			    unsigned long flags)
+ {
+ 	struct ion_cma_heap *cma_heap = to_cma_heap(heap);
+@@ -52,9 +52,6 @@ static int ion_cma_allocate(struct ion_heap *heap, struct ion_buffer *buffer,
+ 	if (buffer->flags & ION_FLAG_CACHED)
+ 		return -EINVAL;
+ 
+-	if (align > PAGE_SIZE)
+-		return -EINVAL;
+-
+ 	info = kzalloc(sizeof(*info), GFP_KERNEL);
+ 	if (!info)
+ 		return -ENOMEM;
+diff --git a/drivers/staging/android/ion/ion_priv.h b/drivers/staging/android/ion/ion_priv.h
+index 46d3ff5..b09bc7c 100644
+--- a/drivers/staging/android/ion/ion_priv.h
++++ b/drivers/staging/android/ion/ion_priv.h
+@@ -172,7 +172,7 @@ struct ion_handle {
+ struct ion_heap_ops {
+ 	int (*allocate)(struct ion_heap *heap,
+ 			struct ion_buffer *buffer, unsigned long len,
+-			unsigned long align, unsigned long flags);
++			unsigned long flags);
+ 	void (*free)(struct ion_buffer *buffer);
+ 	void * (*map_kernel)(struct ion_heap *heap, struct ion_buffer *buffer);
+ 	void (*unmap_kernel)(struct ion_heap *heap, struct ion_buffer *buffer);
+diff --git a/drivers/staging/android/ion/ion_system_heap.c b/drivers/staging/android/ion/ion_system_heap.c
+index 3ebbb75..6cb2fe7 100644
+--- a/drivers/staging/android/ion/ion_system_heap.c
++++ b/drivers/staging/android/ion/ion_system_heap.c
+@@ -129,7 +129,7 @@ static struct page *alloc_largest_available(struct ion_system_heap *heap,
+ 
+ static int ion_system_heap_allocate(struct ion_heap *heap,
+ 				    struct ion_buffer *buffer,
+-				    unsigned long size, unsigned long align,
++				    unsigned long size,
+ 				    unsigned long flags)
+ {
+ 	struct ion_system_heap *sys_heap = container_of(heap,
+@@ -143,9 +143,6 @@ static int ion_system_heap_allocate(struct ion_heap *heap,
+ 	unsigned long size_remaining = PAGE_ALIGN(size);
+ 	unsigned int max_order = orders[0];
+ 
+-	if (align > PAGE_SIZE)
+-		return -EINVAL;
+-
+ 	if (size / PAGE_SIZE > totalram_pages / 2)
+ 		return -ENOMEM;
+ 
+@@ -372,7 +369,6 @@ void ion_system_heap_destroy(struct ion_heap *heap)
+ static int ion_system_contig_heap_allocate(struct ion_heap *heap,
+ 					   struct ion_buffer *buffer,
+ 					   unsigned long len,
+-					   unsigned long align,
+ 					   unsigned long flags)
+ {
+ 	int order = get_order(len);
+@@ -381,9 +377,6 @@ static int ion_system_contig_heap_allocate(struct ion_heap *heap,
+ 	unsigned long i;
+ 	int ret;
+ 
+-	if (align > (PAGE_SIZE << order))
+-		return -EINVAL;
+-
+ 	page = alloc_pages(low_order_gfp_flags, order);
+ 	if (!page)
+ 		return -ENOMEM;
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
