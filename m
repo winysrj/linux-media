@@ -1,110 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:33133 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753614AbdC1AlM (ORCPT
+Received: from mail-qt0-f180.google.com ([209.85.216.180]:34877 "EHLO
+        mail-qt0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751037AbdCRBEz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 20:41:12 -0400
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Fri, 17 Mar 2017 21:04:55 -0400
+Received: by mail-qt0-f180.google.com with SMTP id x35so75178423qtc.2
+        for <linux-media@vger.kernel.org>; Fri, 17 Mar 2017 18:03:08 -0700 (PDT)
+From: Laura Abbott <labbott@redhat.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com
+Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, Sascha Hauer <s.hauer@pengutronix.de>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v6 01/39] [media] dt-bindings: Add bindings for video-multiplexer device
-Date: Mon, 27 Mar 2017 17:40:18 -0700
-Message-Id: <1490661656-10318-2-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1490661656-10318-1-git-send-email-steve_longerbeam@mentor.com>
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC PATCHv2 02/21] cma: Introduce cma_for_each_area
+Date: Fri, 17 Mar 2017 17:54:34 -0700
+Message-Id: <1489798493-16600-3-git-send-email-labbott@redhat.com>
+In-Reply-To: <1489798493-16600-1-git-send-email-labbott@redhat.com>
+References: <1489798493-16600-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
 
-Add bindings documentation for the video multiplexer device.
+Frameworks (e.g. Ion) may want to iterate over each possible CMA area to
+allow for enumeration. Introduce a function to allow a callback.
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Laura Abbott <labbott@redhat.com>
 ---
- .../bindings/media/video-multiplexer.txt           | 59 ++++++++++++++++++++++
- 1 file changed, 59 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/video-multiplexer.txt
+ include/linux/cma.h |  2 ++
+ mm/cma.c            | 14 ++++++++++++++
+ 2 files changed, 16 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/media/video-multiplexer.txt b/Documentation/devicetree/bindings/media/video-multiplexer.txt
-new file mode 100644
-index 0000000..9d133d9
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/video-multiplexer.txt
-@@ -0,0 +1,59 @@
-+Video Multiplexer
-+=================
+diff --git a/include/linux/cma.h b/include/linux/cma.h
+index d41d1f8..3e8fbf5 100644
+--- a/include/linux/cma.h
++++ b/include/linux/cma.h
+@@ -34,4 +34,6 @@ extern int cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
+ extern struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align,
+ 			      gfp_t gfp_mask);
+ extern bool cma_release(struct cma *cma, const struct page *pages, unsigned int count);
 +
-+Video multiplexers allow to select between multiple input ports. Video received
-+on the active input port is passed through to the output port. Muxes described
-+by this binding may be controlled by a syscon register bitfield or by a GPIO.
++extern int cma_for_each_area(int (*it)(struct cma *cma, void *data), void *data);
+ #endif
+diff --git a/mm/cma.c b/mm/cma.c
+index 0d187b1..9a040e1 100644
+--- a/mm/cma.c
++++ b/mm/cma.c
+@@ -498,3 +498,17 @@ bool cma_release(struct cma *cma, const struct page *pages, unsigned int count)
+ 
+ 	return true;
+ }
 +
-+Required properties:
-+- compatible : should be "video-multiplexer"
-+- reg: should be register base of the register containing the control bitfield
-+- bit-mask: bitmask of the control bitfield in the control register
-+- bit-shift: bit offset of the control bitfield in the control register
-+- gpios: alternatively to reg, bit-mask, and bit-shift, a single GPIO phandle
-+  may be given to switch between two inputs
-+- #address-cells: should be <1>
-+- #size-cells: should be <0>
-+- port@*: at least three port nodes containing endpoints connecting to the
-+  source and sink devices according to of_graph bindings. The last port is
-+  the output port, all others are inputs.
++int cma_for_each_area(int (*it)(struct cma *cma, void *data), void *data)
++{
++	int i;
 +
-+Example:
++	for (i = 0; i < cma_area_count; i++) {
++		int ret = it(&cma_areas[i], data);
 +
-+syscon {
-+	compatible = "syscon", "simple-mfd";
++		if (ret)
++			return ret;
++	}
 +
-+	mux {
-+		compatible = "video-multiplexer";
-+		/* Single bit (1 << 19) in syscon register 0x04: */
-+		reg = <0x04>;
-+		bit-mask = <1>;
-+		bit-shift = <19>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			mux_in0: endpoint {
-+				remote-endpoint = <&video_source0_out>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			mux_in1: endpoint {
-+				remote-endpoint = <&video_source1_out>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			mux_out: endpoint {
-+				remote-endpoint = <&capture_interface_in>;
-+			};
-+		};
-+	};
-+};
++	return 0;
++}
 -- 
 2.7.4
