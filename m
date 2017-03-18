@@ -1,133 +1,485 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:59245 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1756925AbdCUV3m (ORCPT
+Received: from mail-qt0-f182.google.com ([209.85.216.182]:33304 "EHLO
+        mail-qt0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751072AbdCRCsk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Mar 2017 17:29:42 -0400
-Subject: Re: CEC button pass-through
-To: Eric Nelson <eric@nelint.com>
-References: <22e92133-6a64-ffaf-a41f-5ae9b19f24e5@nelint.com>
- <53fd17db-af5d-335b-0337-e5aeffd12305@xs4all.nl>
- <7ad3b464-1813-5535-fffc-36589d72d86d@nelint.com>
- <67b5e8a1-8a79-27e2-8e5f-1c58a4adc0d8@nelint.com>
- <4cacc06e-8573-53fc-39a9-551b426fdcfb@xs4all.nl>
- <033583b4-4d3e-85b8-88dc-9be366612fe0@nelint.com>
-Cc: linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <0d5fc7c9-f609-2a9c-12a1-780d6101be9a@xs4all.nl>
-Date: Tue, 21 Mar 2017 22:29:36 +0100
-MIME-Version: 1.0
-In-Reply-To: <033583b4-4d3e-85b8-88dc-9be366612fe0@nelint.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+        Fri, 17 Mar 2017 22:48:40 -0400
+Received: by mail-qt0-f182.google.com with SMTP id i34so76283829qtc.0
+        for <linux-media@vger.kernel.org>; Fri, 17 Mar 2017 19:48:39 -0700 (PDT)
+From: Laura Abbott <labbott@redhat.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com
+Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC PATCHv2 18/21] staging: android: ion: Rework heap registration/enumeration
+Date: Fri, 17 Mar 2017 17:54:50 -0700
+Message-Id: <1489798493-16600-19-git-send-email-labbott@redhat.com>
+In-Reply-To: <1489798493-16600-1-git-send-email-labbott@redhat.com>
+References: <1489798493-16600-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/21/2017 09:03 PM, Eric Nelson wrote:
-> Hi Hans,
-> 
-> On 03/21/2017 11:46 AM, Hans Verkuil wrote:
->> On 03/21/2017 07:23 PM, Eric Nelson wrote:
->>> On 03/21/2017 10:44 AM, Eric Nelson wrote:
->>>> On 03/21/2017 10:05 AM, Hans Verkuil wrote:
->>>>> On 03/21/2017 05:49 PM, Eric Nelson wrote:
->>>
->>> <snip>
->>>
->>>>> With CEC 2.0 you can set various RC profiles, and (very unlikely) perhaps
->>>>> your TV actually understands that.
->>>>>
->>>>> The default CEC version cec-ctl selects is 2.0.
->>>>>
->>>>> Note that the CEC framework doesn't do anything with the RC profiles
->>>>> at the moment.
->>>>>
->>>>
->>>> I don't have the 2.0 spec, so I'm not sure what messages to look for
->>>> in the logs from libCEC.
->>>>
->>>> I have a complete log file here, and it shows messages to and from
->>>> the television, though in a pretty verbose form.
->>>>
->>>> http://pastebin.com/qFrhkNZQ
->>>>
->>>
->>> I think this is the culprit:
->>> cec-uinput: L8: << 10:8e:00
->>>
->>>
->>> The 1.3 spec says this about the 8E message:
->>>
->>> "If Menu State indicates activated, TV enters ‘Device Menu Active’
->>> state and forwards those Remote control commands, shown in
->>> Table 26, to the initiator. If deactivated, TV enters ‘Device Menu Inactive’
->>> state and stops forwarding remote control commands".
->>>
->>> In section 13.12.2, it also says this:
->>>
->>> "The TV may initiate a device’s menu by sending a <Menu Request>
->>> [“Activate”] command. It may subsequently remove the menu by sending
->>> a <Menu Request> [“Deactivate”] message. The TV may also query a
->>> devices menu status by sending a <Menu Request> [“Query”]. The
->>> menu device shall always respond with a <Menu Status> command
->>> when it receives a <Menu Request>."
->>>
->>
->> That sounds plausible. When you tested with my CEC framework, did you also
->> run the cec-follower utility? That emulates a CEC follower.
->>
-> 
-> Yes. I'm running it with no arguments.
-> 
->> Note: you really need to use the --cec-version-1.4 option when configuring
->> the i.MX6 CEC adapter since support for <Menu Request> is only enabled with
->> CEC version 1.4. It is no longer supported with 2.0.
->>
-> 
-> I'm not sure what I did in my previous attempt, but I'm now seeing
-> both the arrow and function key sets being received by cec-ctl and
-> cec-follower with --cec-version-1.4.
-> 
-> Or not. Removing the --cec-version-1.4 parameter still shows these
-> events, but after a re-boot and re-selection of the proper source
-> on my TV shows that they're no longer coming up with or without
-> the parameter.
-> 
-> Further testing showed that by running the older driver and libCEC
-> code, then re-booting into the new kernel (with cec-ctl) shows the
-> messages with or without the flag.
-> 
-> In other words, the TV seems to retain some state from the
-> execution of the Pulse8/libCEC code.
-> 
-> Is there a way to send a raw message to the television using cec-ctl?
-> 
-> Never mind, I found it and after a bunch of messing around,
-> confirmed that I can get the menu keys to be passed from my
-> TV by sending the 0x8e command with a payload of 0x00 to
-> the television:
-> 
-> ~/# cec-ctl --custom-command=cmd=0x8e,payload=0x00 --to=0
 
-Or more elegantly:
+The current model of Ion heap registration  is based on the outdated
+model of board files. The replacement for board files (devicetree)
+isn't a good replacement for what Ion wants to do. In actuality, Ion
+wants to show what memory is available in the system for something else
+to figure out what to use. Switch to a model where Ion creates its
+device unconditionally and heaps are registed as available regions.
+Currently, only system and CMA heaps are converted over to the new
+model. Carveout and chunk heaps can be converted over when someone wants
+to figure out how.
 
-cec-ctl --menu-status=menu-state=activated -t0
+Signed-off-by: Laura Abbott <labbott@redhat.com>
+---
+ drivers/staging/android/ion/Kconfig             | 25 +++++++++
+ drivers/staging/android/ion/Makefile            |  7 +--
+ drivers/staging/android/ion/ion.c               | 28 +++++------
+ drivers/staging/android/ion/ion.h               | 40 +--------------
+ drivers/staging/android/ion/ion_carveout_heap.c | 10 ----
+ drivers/staging/android/ion/ion_chunk_heap.c    |  9 ----
+ drivers/staging/android/ion/ion_cma_heap.c      | 24 +++++++--
+ drivers/staging/android/ion/ion_heap.c          | 67 -------------------------
+ drivers/staging/android/ion/ion_system_heap.c   | 38 ++++++++------
+ 9 files changed, 85 insertions(+), 163 deletions(-)
 
-See also: cec-ctl --help-device-menu-control
-
-But cec-follower should receive a menu-request message and reply with
-menu-status(activated).
-
-If you run cec-ctl -M, do you see the menu-request message arriving and the
-proper reply?
-
-Again, you must configure the cec adapter with:
-
-cec-ctl --record --cec-version-1.4
-
-otherwise it won't work (I'm not sure that's correct since the TV isn't
-CEC 2.0, I'll have to read up on that).
-
-Regards,
-
-	Hans
+diff --git a/drivers/staging/android/ion/Kconfig b/drivers/staging/android/ion/Kconfig
+index 15108c4..a517b2d 100644
+--- a/drivers/staging/android/ion/Kconfig
++++ b/drivers/staging/android/ion/Kconfig
+@@ -10,6 +10,31 @@ menuconfig ION
+ 	  If you're not using Android its probably safe to
+ 	  say N here.
+ 
++config ION_SYSTEM_HEAP
++	bool "Ion system heap"
++	depends on ION
++	help
++	  Choose this option to enable the Ion system heap. The system heap
++	  is backed by pages from the buddy allocator. If in doubt, say Y.
++
++config ION_CARVEOUT_HEAP
++	bool "Ion carveout heap support"
++	depends on ION
++	help
++	  Choose this option to enable carveout heaps with Ion. Carveout heaps
++	  are backed by memory reserved from the system. Allocation times are
++	  typically faster at the cost of memory not being used. Unless you
++	  know your system has these regions, you should say N here.
++
++config ION_CHUNK_HEAP
++	bool "Ion chunk heap support"
++	depends on ION
++	help
++          Choose this option to enable chunk heaps with Ion. This heap is
++	  similar in function the carveout heap but memory is broken down
++	  into smaller chunk sizes, typically corresponding to a TLB size.
++	  Unless you know your system has these regions, you should say N here.
++
+ config ION_CMA_HEAP
+ 	bool "Ion CMA heap support"
+ 	depends on ION && CMA
+diff --git a/drivers/staging/android/ion/Makefile b/drivers/staging/android/ion/Makefile
+index a892afa..eb7eeed 100644
+--- a/drivers/staging/android/ion/Makefile
++++ b/drivers/staging/android/ion/Makefile
+@@ -1,4 +1,5 @@
+-obj-$(CONFIG_ION) +=	ion.o ion-ioctl.o ion_heap.o \
+-			ion_page_pool.o ion_system_heap.o \
+-			ion_carveout_heap.o ion_chunk_heap.o
++obj-$(CONFIG_ION) +=	ion.o ion-ioctl.o ion_heap.o
++obj-$(CONFIG_ION_SYSTEM_HEAP) += ion_system_heap.o ion_page_pool.o
++obj-$(CONFIG_ION_CARVEOUT_HEAP) += ion_carveout_heap.o
++obj-$(CONFIG_ION_CHUNK_HEAP) += ion_chunk_heap.o
+ obj-$(CONFIG_ION_CMA_HEAP) += ion_cma_heap.o
+diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
+index e1fb865..7d40233 100644
+--- a/drivers/staging/android/ion/ion.c
++++ b/drivers/staging/android/ion/ion.c
+@@ -40,6 +40,9 @@
+ 
+ #include "ion.h"
+ 
++static struct ion_device *internal_dev;
++static int heap_id = 0;
++
+ bool ion_buffer_cached(struct ion_buffer *buffer)
+ {
+ 	return !!(buffer->flags & ION_FLAG_CACHED);
+@@ -1198,9 +1201,10 @@ static int debug_shrink_get(void *data, u64 *val)
+ DEFINE_SIMPLE_ATTRIBUTE(debug_shrink_fops, debug_shrink_get,
+ 			debug_shrink_set, "%llu\n");
+ 
+-void ion_device_add_heap(struct ion_device *dev, struct ion_heap *heap)
++void ion_device_add_heap(struct ion_heap *heap)
+ {
+ 	struct dentry *debug_file;
++	struct ion_device *dev = internal_dev;
+ 
+ 	if (!heap->ops->allocate || !heap->ops->free)
+ 		pr_err("%s: can not add heap with invalid ops struct.\n",
+@@ -1217,6 +1221,7 @@ void ion_device_add_heap(struct ion_device *dev, struct ion_heap *heap)
+ 
+ 	heap->dev = dev;
+ 	down_write(&dev->lock);
++	heap->id = heap_id++;
+ 	/*
+ 	 * use negative heap->id to reverse the priority -- when traversing
+ 	 * the list later attempt higher id numbers first
+@@ -1256,14 +1261,14 @@ void ion_device_add_heap(struct ion_device *dev, struct ion_heap *heap)
+ }
+ EXPORT_SYMBOL(ion_device_add_heap);
+ 
+-struct ion_device *ion_device_create(void)
++int ion_device_create(void)
+ {
+ 	struct ion_device *idev;
+ 	int ret;
+ 
+ 	idev = kzalloc(sizeof(*idev), GFP_KERNEL);
+ 	if (!idev)
+-		return ERR_PTR(-ENOMEM);
++		return -ENOMEM;
+ 
+ 	idev->dev.minor = MISC_DYNAMIC_MINOR;
+ 	idev->dev.name = "ion";
+@@ -1273,7 +1278,7 @@ struct ion_device *ion_device_create(void)
+ 	if (ret) {
+ 		pr_err("ion: failed to register misc device.\n");
+ 		kfree(idev);
+-		return ERR_PTR(ret);
++		return ret;
+ 	}
+ 
+ 	idev->debug_root = debugfs_create_dir("ion", NULL);
+@@ -1292,7 +1297,6 @@ struct ion_device *ion_device_create(void)
+ 		pr_err("ion: failed to create debugfs clients directory.\n");
+ 
+ debugfs_done:
+-
+ 	idev->buffers = RB_ROOT;
+ 	mutex_init(&idev->buffer_lock);
+ 	init_rwsem(&idev->lock);
+@@ -1300,15 +1304,7 @@ struct ion_device *ion_device_create(void)
+ 	idev->clients = RB_ROOT;
+ 	ion_root_client = &idev->clients;
+ 	mutex_init(&debugfs_mutex);
+-	return idev;
+-}
+-EXPORT_SYMBOL(ion_device_create);
+-
+-void ion_device_destroy(struct ion_device *dev)
+-{
+-	misc_deregister(&dev->dev);
+-	debugfs_remove_recursive(dev->debug_root);
+-	/* XXX need to free the heaps and clients ? */
+-	kfree(dev);
++	internal_dev = idev;
++	return 0;
+ }
+-EXPORT_SYMBOL(ion_device_destroy);
++subsys_initcall(ion_device_create);
+diff --git a/drivers/staging/android/ion/ion.h b/drivers/staging/android/ion/ion.h
+index 67fcb73..27b08c8 100644
+--- a/drivers/staging/android/ion/ion.h
++++ b/drivers/staging/android/ion/ion.h
+@@ -280,24 +280,10 @@ bool ion_buffer_cached(struct ion_buffer *buffer);
+ bool ion_buffer_fault_user_mappings(struct ion_buffer *buffer);
+ 
+ /**
+- * ion_device_create - allocates and returns an ion device
+- *
+- * returns a valid device or -PTR_ERR
+- */
+-struct ion_device *ion_device_create(void);
+-
+-/**
+- * ion_device_destroy - free and device and it's resource
+- * @dev:		the device
+- */
+-void ion_device_destroy(struct ion_device *dev);
+-
+-/**
+  * ion_device_add_heap - adds a heap to the ion device
+- * @dev:		the device
+  * @heap:		the heap to add
+  */
+-void ion_device_add_heap(struct ion_device *dev, struct ion_heap *heap);
++void ion_device_add_heap(struct ion_heap *heap);
+ 
+ /**
+  * some helpers for common operations on buffers using the sg_table
+@@ -390,30 +376,6 @@ size_t ion_heap_freelist_size(struct ion_heap *heap);
+ 
+ 
+ /**
+- * functions for creating and destroying the built in ion heaps.
+- * architectures can add their own custom architecture specific
+- * heaps as appropriate.
+- */
+-
+-
+-struct ion_heap *ion_heap_create(struct ion_platform_heap *heap_data);
+-void ion_heap_destroy(struct ion_heap *heap);
+-
+-struct ion_heap *ion_system_heap_create(struct ion_platform_heap *unused);
+-void ion_system_heap_destroy(struct ion_heap *heap);
+-struct ion_heap *ion_system_contig_heap_create(struct ion_platform_heap *heap);
+-void ion_system_contig_heap_destroy(struct ion_heap *heap);
+-
+-struct ion_heap *ion_carveout_heap_create(struct ion_platform_heap *heap_data);
+-void ion_carveout_heap_destroy(struct ion_heap *heap);
+-
+-struct ion_heap *ion_chunk_heap_create(struct ion_platform_heap *heap_data);
+-void ion_chunk_heap_destroy(struct ion_heap *heap);
+-
+-struct ion_heap *ion_cma_heap_create(struct ion_platform_heap *data);
+-void ion_cma_heap_destroy(struct ion_heap *heap);
+-
+-/**
+  * functions for creating and destroying a heap pool -- allows you
+  * to keep a pool of pre allocated memory to use from your heap.  Keeping
+  * a pool of memory that is ready for dma, ie any cached mapping have been
+diff --git a/drivers/staging/android/ion/ion_carveout_heap.c b/drivers/staging/android/ion/ion_carveout_heap.c
+index 7287279..5fdc1f3 100644
+--- a/drivers/staging/android/ion/ion_carveout_heap.c
++++ b/drivers/staging/android/ion/ion_carveout_heap.c
+@@ -145,13 +145,3 @@ struct ion_heap *ion_carveout_heap_create(struct ion_platform_heap *heap_data)
+ 
+ 	return &carveout_heap->heap;
+ }
+-
+-void ion_carveout_heap_destroy(struct ion_heap *heap)
+-{
+-	struct ion_carveout_heap *carveout_heap =
+-	     container_of(heap, struct  ion_carveout_heap, heap);
+-
+-	gen_pool_destroy(carveout_heap->pool);
+-	kfree(carveout_heap);
+-	carveout_heap = NULL;
+-}
+diff --git a/drivers/staging/android/ion/ion_chunk_heap.c b/drivers/staging/android/ion/ion_chunk_heap.c
+index 9210bfe..9c257c7 100644
+--- a/drivers/staging/android/ion/ion_chunk_heap.c
++++ b/drivers/staging/android/ion/ion_chunk_heap.c
+@@ -160,12 +160,3 @@ struct ion_heap *ion_chunk_heap_create(struct ion_platform_heap *heap_data)
+ 	return ERR_PTR(ret);
+ }
+ 
+-void ion_chunk_heap_destroy(struct ion_heap *heap)
+-{
+-	struct ion_chunk_heap *chunk_heap =
+-	     container_of(heap, struct  ion_chunk_heap, heap);
+-
+-	gen_pool_destroy(chunk_heap->pool);
+-	kfree(chunk_heap);
+-	chunk_heap = NULL;
+-}
+diff --git a/drivers/staging/android/ion/ion_cma_heap.c b/drivers/staging/android/ion/ion_cma_heap.c
+index e67e78d..dc2a913 100644
+--- a/drivers/staging/android/ion/ion_cma_heap.c
++++ b/drivers/staging/android/ion/ion_cma_heap.c
+@@ -87,7 +87,7 @@ static struct ion_heap_ops ion_cma_ops = {
+ 	.unmap_kernel = ion_heap_unmap_kernel,
+ };
+ 
+-struct ion_heap *ion_cma_heap_create(struct ion_platform_heap *data)
++static struct ion_heap *__ion_cma_heap_create(struct cma *cma)
+ {
+ 	struct ion_cma_heap *cma_heap;
+ 
+@@ -101,14 +101,28 @@ struct ion_heap *ion_cma_heap_create(struct ion_platform_heap *data)
+ 	 * get device from private heaps data, later it will be
+ 	 * used to make the link with reserved CMA memory
+ 	 */
+-	cma_heap->cma = data->priv;
++	cma_heap->cma = cma;
+ 	cma_heap->heap.type = ION_HEAP_TYPE_DMA;
+ 	return &cma_heap->heap;
+ }
+ 
+-void ion_cma_heap_destroy(struct ion_heap *heap)
++int __ion_add_cma_heaps(struct cma *cma, void *data)
+ {
+-	struct ion_cma_heap *cma_heap = to_cma_heap(heap);
++        struct ion_heap *heap;
++
++	heap = __ion_cma_heap_create(cma);
++	if (IS_ERR(heap))
++		return PTR_ERR(heap);
+ 
+-	kfree(cma_heap);
++	heap->name = cma_get_name(cma);
++
++        ion_device_add_heap(heap);
++        return 0;
++}
++
++static int ion_add_cma_heaps(void)
++{
++	cma_for_each_area(__ion_add_cma_heaps, NULL);
++	return 0;
+ }
++device_initcall(ion_add_cma_heaps);
+diff --git a/drivers/staging/android/ion/ion_heap.c b/drivers/staging/android/ion/ion_heap.c
+index acb292c..91faa7f 100644
+--- a/drivers/staging/android/ion/ion_heap.c
++++ b/drivers/staging/android/ion/ion_heap.c
+@@ -314,70 +314,3 @@ void ion_heap_init_shrinker(struct ion_heap *heap)
+ 	heap->shrinker.batch = 0;
+ 	register_shrinker(&heap->shrinker);
+ }
+-
+-struct ion_heap *ion_heap_create(struct ion_platform_heap *heap_data)
+-{
+-	struct ion_heap *heap = NULL;
+-
+-	switch (heap_data->type) {
+-	case ION_HEAP_TYPE_SYSTEM_CONTIG:
+-		heap = ion_system_contig_heap_create(heap_data);
+-		break;
+-	case ION_HEAP_TYPE_SYSTEM:
+-		heap = ion_system_heap_create(heap_data);
+-		break;
+-	case ION_HEAP_TYPE_CARVEOUT:
+-		heap = ion_carveout_heap_create(heap_data);
+-		break;
+-	case ION_HEAP_TYPE_CHUNK:
+-		heap = ion_chunk_heap_create(heap_data);
+-		break;
+-	case ION_HEAP_TYPE_DMA:
+-		heap = ion_cma_heap_create(heap_data);
+-		break;
+-	default:
+-		pr_err("%s: Invalid heap type %d\n", __func__,
+-		       heap_data->type);
+-		return ERR_PTR(-EINVAL);
+-	}
+-
+-	if (IS_ERR_OR_NULL(heap)) {
+-		pr_err("%s: error creating heap %s type %d base %pa size %zu\n",
+-		       __func__, heap_data->name, heap_data->type,
+-		       &heap_data->base, heap_data->size);
+-		return ERR_PTR(-EINVAL);
+-	}
+-
+-	heap->name = heap_data->name;
+-	heap->id = heap_data->id;
+-	return heap;
+-}
+-EXPORT_SYMBOL(ion_heap_create);
+-
+-void ion_heap_destroy(struct ion_heap *heap)
+-{
+-	if (!heap)
+-		return;
+-
+-	switch (heap->type) {
+-	case ION_HEAP_TYPE_SYSTEM_CONTIG:
+-		ion_system_contig_heap_destroy(heap);
+-		break;
+-	case ION_HEAP_TYPE_SYSTEM:
+-		ion_system_heap_destroy(heap);
+-		break;
+-	case ION_HEAP_TYPE_CARVEOUT:
+-		ion_carveout_heap_destroy(heap);
+-		break;
+-	case ION_HEAP_TYPE_CHUNK:
+-		ion_chunk_heap_destroy(heap);
+-		break;
+-	case ION_HEAP_TYPE_DMA:
+-		ion_cma_heap_destroy(heap);
+-		break;
+-	default:
+-		pr_err("%s: Invalid heap type %d\n", __func__,
+-		       heap->type);
+-	}
+-}
+-EXPORT_SYMBOL(ion_heap_destroy);
+diff --git a/drivers/staging/android/ion/ion_system_heap.c b/drivers/staging/android/ion/ion_system_heap.c
+index 4e6fe37..c50f2d9 100644
+--- a/drivers/staging/android/ion/ion_system_heap.c
++++ b/drivers/staging/android/ion/ion_system_heap.c
+@@ -320,7 +320,7 @@ static int ion_system_heap_create_pools(struct ion_page_pool **pools,
+ 	return -ENOMEM;
+ }
+ 
+-struct ion_heap *ion_system_heap_create(struct ion_platform_heap *unused)
++static struct ion_heap *__ion_system_heap_create(void)
+ {
+ 	struct ion_system_heap *heap;
+ 
+@@ -348,19 +348,19 @@ struct ion_heap *ion_system_heap_create(struct ion_platform_heap *unused)
+ 	return ERR_PTR(-ENOMEM);
+ }
+ 
+-void ion_system_heap_destroy(struct ion_heap *heap)
++static int ion_system_heap_create(void)
+ {
+-	struct ion_system_heap *sys_heap = container_of(heap,
+-							struct ion_system_heap,
+-							heap);
+-	int i;
++	struct ion_heap *heap;
+ 
+-	for (i = 0; i < NUM_ORDERS; i++) {
+-		ion_page_pool_destroy(sys_heap->uncached_pools[i]);
+-		ion_page_pool_destroy(sys_heap->cached_pools[i]);
+-	}
+-	kfree(sys_heap);
++	heap = __ion_system_heap_create();
++	if (IS_ERR(heap))
++		return PTR_ERR(heap);
++	heap->name = "ion_system_heap";
++
++	ion_device_add_heap(heap);
++	return 0;
+ }
++device_initcall(ion_system_heap_create);
+ 
+ static int ion_system_contig_heap_allocate(struct ion_heap *heap,
+ 					   struct ion_buffer *buffer,
+@@ -429,7 +429,7 @@ static struct ion_heap_ops kmalloc_ops = {
+ 	.map_user = ion_heap_map_user,
+ };
+ 
+-struct ion_heap *ion_system_contig_heap_create(struct ion_platform_heap *unused)
++static struct ion_heap *__ion_system_contig_heap_create(void)
+ {
+ 	struct ion_heap *heap;
+ 
+@@ -438,10 +438,20 @@ struct ion_heap *ion_system_contig_heap_create(struct ion_platform_heap *unused)
+ 		return ERR_PTR(-ENOMEM);
+ 	heap->ops = &kmalloc_ops;
+ 	heap->type = ION_HEAP_TYPE_SYSTEM_CONTIG;
++	heap->name = "ion_system_contig_heap";
+ 	return heap;
+ }
+ 
+-void ion_system_contig_heap_destroy(struct ion_heap *heap)
++static int ion_system_contig_heap_create(void)
+ {
+-	kfree(heap);
++	struct ion_heap *heap;
++
++	heap = __ion_system_contig_heap_create();
++	if (IS_ERR(heap))
++		return PTR_ERR(heap);
++
++	ion_device_add_heap(heap);
++	return 0;
+ }
++device_initcall(ion_system_contig_heap_create);
++
+-- 
+2.7.4
