@@ -1,24 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.banavih.gob.ve ([190.202.88.35]:33184 "EHLO
-        mail.banavih.gob.ve" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750729AbdCRFJg (ORCPT
+Received: from mail-qk0-f174.google.com ([209.85.220.174]:36402 "EHLO
+        mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751210AbdCRBEF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 18 Mar 2017 01:09:36 -0400
-Content-Type: text/plain; charset="iso-8859-1"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Description: Mail message body
-Subject: Re: Passionate Partner
-To: Recipients <divineprove17@activist.com>
-From: "Castano Giovanni" <divineprove17@activist.com>
-Date: Sat, 18 Mar 2017 06:03:28 -0700
-Reply-To: divineprove12@adexec.com
-Message-Id: <20170318050548.04F53201F6AD17@mail.banavih.gob.ve>
+        Fri, 17 Mar 2017 21:04:05 -0400
+Received: by mail-qk0-f174.google.com with SMTP id 1so77337096qkl.3
+        for <linux-media@vger.kernel.org>; Fri, 17 Mar 2017 18:02:29 -0700 (PDT)
+From: Laura Abbott <labbott@redhat.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com
+Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC PATCHv2 21/21] staging: android: ion: Set query return value
+Date: Fri, 17 Mar 2017 17:54:53 -0700
+Message-Id: <1489798493-16600-22-git-send-email-labbott@redhat.com>
+In-Reply-To: <1489798493-16600-1-git-send-email-labbott@redhat.com>
+References: <1489798493-16600-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Sir,
-Did you recieved my mail? 
-I have sent it twice without a response.
 
-Castano Giovanni
+This never got set in the ioctl. Properly set a return value of 0 on
+success.
+
+Signed-off-by: Laura Abbott <labbott@redhat.com>
+---
+ drivers/staging/android/ion/ion.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
+index 64c652b..8bd90ce 100644
+--- a/drivers/staging/android/ion/ion.c
++++ b/drivers/staging/android/ion/ion.c
+@@ -498,6 +498,7 @@ int ion_query_heaps(struct ion_heap_query *query)
+ 	}
+ 
+ 	query->cnt = cnt;
++	ret = 0;
+ out:
+ 	up_read(&dev->lock);
+ 	return ret;
+-- 
+2.7.4
