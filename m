@@ -1,127 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:52310 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751740AbdC0D7V (ORCPT
+Received: from mail-qk0-f169.google.com ([209.85.220.169]:33824 "EHLO
+        mail-qk0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751421AbdCRBEz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 26 Mar 2017 23:59:21 -0400
-Message-ID: <ad8084a2d445a18b785c8addcf132040@smtp-cloud3.xs4all.net>
-Date: Mon, 27 Mar 2017 05:59:18 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Fri, 17 Mar 2017 21:04:55 -0400
+Received: by mail-qk0-f169.google.com with SMTP id p64so77404609qke.1
+        for <linux-media@vger.kernel.org>; Fri, 17 Mar 2017 18:03:40 -0700 (PDT)
+From: Laura Abbott <labbott@redhat.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com
+Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC PATCHv2 07/21] staging: android: ion: Remove page faulting support
+Date: Fri, 17 Mar 2017 17:54:39 -0700
+Message-Id: <1489798493-16600-8-git-send-email-labbott@redhat.com>
+In-Reply-To: <1489798493-16600-1-git-send-email-labbott@redhat.com>
+References: <1489798493-16600-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+The new method of syncing with dma_map means that the page faulting sync
+implementation is no longer applicable. Remove it.
 
-date:			Mon Mar 27 05:00:14 CEST 2017
-media-tree git hash:	c3d4fb0fb41f4b5eafeee51173c14e50be12f839
-media_build git hash:	bc4c2a205c087c8deff3cd14ed663c4767dd2016
-v4l-utils git hash:	8fc88615b49843acb82cd8316d0bc4ab8474cba2
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.9.0-164
+Signed-off-by: Laura Abbott <labbott@redhat.com>
+---
+ drivers/staging/android/ion/ion.c | 117 --------------------------------------
+ 1 file changed, 117 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-4.10.1-i686: OK
-linux-4.11-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-x86_64: WARNINGS
-linux-4.10.1-x86_64: WARNINGS
-linux-4.11-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
+index 6aac935..226ea1f 100644
+--- a/drivers/staging/android/ion/ion.c
++++ b/drivers/staging/android/ion/ion.c
+@@ -42,37 +42,11 @@
+ #include "ion_priv.h"
+ #include "compat_ion.h"
+ 
+-bool ion_buffer_fault_user_mappings(struct ion_buffer *buffer)
+-{
+-	return (buffer->flags & ION_FLAG_CACHED) &&
+-		!(buffer->flags & ION_FLAG_CACHED_NEEDS_SYNC);
+-}
+-
+ bool ion_buffer_cached(struct ion_buffer *buffer)
+ {
+ 	return !!(buffer->flags & ION_FLAG_CACHED);
+ }
+ 
+-static inline struct page *ion_buffer_page(struct page *page)
+-{
+-	return (struct page *)((unsigned long)page & ~(1UL));
+-}
+-
+-static inline bool ion_buffer_page_is_dirty(struct page *page)
+-{
+-	return !!((unsigned long)page & 1UL);
+-}
+-
+-static inline void ion_buffer_page_dirty(struct page **page)
+-{
+-	*page = (struct page *)((unsigned long)(*page) | 1UL);
+-}
+-
+-static inline void ion_buffer_page_clean(struct page **page)
+-{
+-	*page = (struct page *)((unsigned long)(*page) & ~(1UL));
+-}
+-
+ /* this function should only be called while dev->lock is held */
+ static void ion_buffer_add(struct ion_device *dev,
+ 			   struct ion_buffer *buffer)
+@@ -140,25 +114,6 @@ static struct ion_buffer *ion_buffer_create(struct ion_heap *heap,
+ 	buffer->dev = dev;
+ 	buffer->size = len;
+ 
+-	if (ion_buffer_fault_user_mappings(buffer)) {
+-		int num_pages = PAGE_ALIGN(buffer->size) / PAGE_SIZE;
+-		struct scatterlist *sg;
+-		int i, j, k = 0;
+-
+-		buffer->pages = vmalloc(sizeof(struct page *) * num_pages);
+-		if (!buffer->pages) {
+-			ret = -ENOMEM;
+-			goto err1;
+-		}
+-
+-		for_each_sg(table->sgl, sg, table->nents, i) {
+-			struct page *page = sg_page(sg);
+-
+-			for (j = 0; j < sg->length / PAGE_SIZE; j++)
+-				buffer->pages[k++] = page++;
+-		}
+-	}
+-
+ 	buffer->dev = dev;
+ 	buffer->size = len;
+ 	INIT_LIST_HEAD(&buffer->vmas);
+@@ -924,69 +879,6 @@ void ion_pages_sync_for_device(struct device *dev, struct page *page,
+ 	dma_sync_sg_for_device(dev, &sg, 1, dir);
+ }
+ 
+-struct ion_vma_list {
+-	struct list_head list;
+-	struct vm_area_struct *vma;
+-};
+-
+-static int ion_vm_fault(struct vm_fault *vmf)
+-{
+-	struct ion_buffer *buffer = vmf->vma->vm_private_data;
+-	unsigned long pfn;
+-	int ret;
+-
+-	mutex_lock(&buffer->lock);
+-	ion_buffer_page_dirty(buffer->pages + vmf->pgoff);
+-	BUG_ON(!buffer->pages || !buffer->pages[vmf->pgoff]);
+-
+-	pfn = page_to_pfn(ion_buffer_page(buffer->pages[vmf->pgoff]));
+-	ret = vm_insert_pfn(vmf->vma, vmf->address, pfn);
+-	mutex_unlock(&buffer->lock);
+-	if (ret)
+-		return VM_FAULT_ERROR;
+-
+-	return VM_FAULT_NOPAGE;
+-}
+-
+-static void ion_vm_open(struct vm_area_struct *vma)
+-{
+-	struct ion_buffer *buffer = vma->vm_private_data;
+-	struct ion_vma_list *vma_list;
+-
+-	vma_list = kmalloc(sizeof(*vma_list), GFP_KERNEL);
+-	if (!vma_list)
+-		return;
+-	vma_list->vma = vma;
+-	mutex_lock(&buffer->lock);
+-	list_add(&vma_list->list, &buffer->vmas);
+-	mutex_unlock(&buffer->lock);
+-	pr_debug("%s: adding %p\n", __func__, vma);
+-}
+-
+-static void ion_vm_close(struct vm_area_struct *vma)
+-{
+-	struct ion_buffer *buffer = vma->vm_private_data;
+-	struct ion_vma_list *vma_list, *tmp;
+-
+-	pr_debug("%s\n", __func__);
+-	mutex_lock(&buffer->lock);
+-	list_for_each_entry_safe(vma_list, tmp, &buffer->vmas, list) {
+-		if (vma_list->vma != vma)
+-			continue;
+-		list_del(&vma_list->list);
+-		kfree(vma_list);
+-		pr_debug("%s: deleting %p\n", __func__, vma);
+-		break;
+-	}
+-	mutex_unlock(&buffer->lock);
+-}
+-
+-static const struct vm_operations_struct ion_vma_ops = {
+-	.open = ion_vm_open,
+-	.close = ion_vm_close,
+-	.fault = ion_vm_fault,
+-};
+-
+ static int ion_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
+ {
+ 	struct ion_buffer *buffer = dmabuf->priv;
+@@ -998,15 +890,6 @@ static int ion_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
+ 		return -EINVAL;
+ 	}
+ 
+-	if (ion_buffer_fault_user_mappings(buffer)) {
+-		vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND |
+-							VM_DONTDUMP;
+-		vma->vm_private_data = buffer;
+-		vma->vm_ops = &ion_vma_ops;
+-		ion_vm_open(vma);
+-		return 0;
+-	}
+-
+ 	if (!(buffer->flags & ION_FLAG_CACHED))
+ 		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
+ 
+-- 
+2.7.4
