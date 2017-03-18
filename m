@@ -1,254 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:59320 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754627AbdCaVRJ (ORCPT
+Received: from mail-qt0-f176.google.com ([209.85.216.176]:36509 "EHLO
+        mail-qt0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751105AbdCRB1I (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Mar 2017 17:17:09 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Fri, 17 Mar 2017 21:27:08 -0400
+Received: by mail-qt0-f176.google.com with SMTP id r45so75421206qte.3
+        for <linux-media@vger.kernel.org>; Fri, 17 Mar 2017 18:26:33 -0700 (PDT)
+From: Laura Abbott <labbott@redhat.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com
+Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Luis R. Rodriguez" <mcgrof@kernel.org>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Oliver Neukum <oneukum@suse.com>,
-        Alexander Dahl <post@lespocky.de>,
-        Markus Heiser <markus.heiser@darmarit.de>
-Subject: [PATCH] docs-rst: core_api: move driver-specific stuff to drivers_api
-Date: Fri, 31 Mar 2017 18:17:00 -0300
-Message-Id: <1c2d5b55b259a233594a61d7c6294a0b626a8fa6.1490994994.git.mchehab@s-opensource.com>
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC PATCHv2 05/21] staging: android: ion: Duplicate sg_table
+Date: Fri, 17 Mar 2017 17:54:37 -0700
+Message-Id: <1489798493-16600-6-git-send-email-labbott@redhat.com>
+In-Reply-To: <1489798493-16600-1-git-send-email-labbott@redhat.com>
+References: <1489798493-16600-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are several stuff there that are actually driver-specific.
 
-Move those to the driver_api book.
+Ion currently returns a single sg_table on each dma_map call. This is
+incorrect for later usage.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Laura Abbott <labbott@redhat.com>
 ---
- Documentation/core-api/kernel-api.rst              | 72 ----------------------
- Documentation/driver-api/firmware/index.rst        |  1 +
- .../driver-api/firmware/other_interfaces.rst       | 15 +++++
- Documentation/driver-api/index.rst                 |  2 +
- Documentation/driver-api/misc_devices.rst          |  5 ++
- Documentation/driver-api/pci.rst                   | 50 +++++++++++++++
- 6 files changed, 73 insertions(+), 72 deletions(-)
- create mode 100644 Documentation/driver-api/firmware/other_interfaces.rst
- create mode 100644 Documentation/driver-api/misc_devices.rst
- create mode 100644 Documentation/driver-api/pci.rst
+ drivers/staging/android/ion/ion.c | 30 +++++++++++++++++++++++++++++-
+ 1 file changed, 29 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/core-api/kernel-api.rst b/Documentation/core-api/kernel-api.rst
-index 9a3d3597a6b7..9ec8488319dc 100644
---- a/Documentation/core-api/kernel-api.rst
-+++ b/Documentation/core-api/kernel-api.rst
-@@ -228,72 +228,6 @@ MTRR Handling
- .. kernel-doc:: arch/x86/kernel/cpu/mtrr/main.c
-    :export:
+diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
+index c2adfe1..7dcb8a9 100644
+--- a/drivers/staging/android/ion/ion.c
++++ b/drivers/staging/android/ion/ion.c
+@@ -800,6 +800,32 @@ static void ion_buffer_sync_for_device(struct ion_buffer *buffer,
+ 				       struct device *dev,
+ 				       enum dma_data_direction direction);
  
--PCI Support Library
---------------------
--
--.. kernel-doc:: drivers/pci/pci.c
--   :export:
--
--.. kernel-doc:: drivers/pci/pci-driver.c
--   :export:
--
--.. kernel-doc:: drivers/pci/remove.c
--   :export:
--
--.. kernel-doc:: drivers/pci/search.c
--   :export:
--
--.. kernel-doc:: drivers/pci/msi.c
--   :export:
--
--.. kernel-doc:: drivers/pci/bus.c
--   :export:
--
--.. kernel-doc:: drivers/pci/access.c
--   :export:
--
--.. kernel-doc:: drivers/pci/irq.c
--   :export:
--
--.. kernel-doc:: drivers/pci/htirq.c
--   :export:
--
--.. kernel-doc:: drivers/pci/probe.c
--   :export:
--
--.. kernel-doc:: drivers/pci/slot.c
--   :export:
--
--.. kernel-doc:: drivers/pci/rom.c
--   :export:
--
--.. kernel-doc:: drivers/pci/iov.c
--   :export:
--
--.. kernel-doc:: drivers/pci/pci-sysfs.c
--   :internal:
--
--PCI Hotplug Support Library
-----------------------------
--
--.. kernel-doc:: drivers/pci/hotplug/pci_hotplug_core.c
--   :export:
--
--Firmware Interfaces
--===================
--
--DMI Interfaces
----------------
--
--.. kernel-doc:: drivers/firmware/dmi_scan.c
--   :export:
--
--EDD Interfaces
----------------
--
--.. kernel-doc:: drivers/firmware/edd.c
--   :internal:
--
- Security Framework
- ==================
++static struct sg_table *dup_sg_table(struct sg_table *table)
++{
++	struct sg_table *new_table;
++	int ret, i;
++	struct scatterlist *sg, *new_sg;
++
++	new_table = kzalloc(sizeof(*new_table), GFP_KERNEL);
++	if (!new_table)
++		return ERR_PTR(-ENOMEM);
++
++	ret = sg_alloc_table(new_table, table->nents, GFP_KERNEL);
++	if (ret) {
++		kfree(new_table);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	new_sg = new_table->sgl;
++	for_each_sg(table->sgl, sg, table->nents, i) {
++		memcpy(new_sg, sg, sizeof(*sg));
++		sg->dma_address = 0;
++		new_sg = sg_next(new_sg);
++	}
++
++	return new_table;
++}
++
+ static struct sg_table *ion_map_dma_buf(struct dma_buf_attachment *attachment,
+ 					enum dma_data_direction direction)
+ {
+@@ -807,13 +833,15 @@ static struct sg_table *ion_map_dma_buf(struct dma_buf_attachment *attachment,
+ 	struct ion_buffer *buffer = dmabuf->priv;
  
-@@ -372,12 +306,6 @@ Char devices
- .. kernel-doc:: fs/char_dev.c
-    :export:
+ 	ion_buffer_sync_for_device(buffer, attachment->dev, direction);
+-	return buffer->sg_table;
++	return dup_sg_table(buffer->sg_table);
+ }
  
--Miscellaneous Devices
--=====================
--
--.. kernel-doc:: drivers/char/misc.c
--   :export:
--
- Clock Framework
- ===============
+ static void ion_unmap_dma_buf(struct dma_buf_attachment *attachment,
+ 			      struct sg_table *table,
+ 			      enum dma_data_direction direction)
+ {
++	sg_free_table(table);
++	kfree(table);
+ }
  
-diff --git a/Documentation/driver-api/firmware/index.rst b/Documentation/driver-api/firmware/index.rst
-index 1abe01793031..29da39ec4b8a 100644
---- a/Documentation/driver-api/firmware/index.rst
-+++ b/Documentation/driver-api/firmware/index.rst
-@@ -7,6 +7,7 @@ Linux Firmware API
-    introduction
-    core
-    request_firmware
-+   other_interfaces
- 
- .. only::  subproject and html
- 
-diff --git a/Documentation/driver-api/firmware/other_interfaces.rst b/Documentation/driver-api/firmware/other_interfaces.rst
-new file mode 100644
-index 000000000000..36c47b1e9824
---- /dev/null
-+++ b/Documentation/driver-api/firmware/other_interfaces.rst
-@@ -0,0 +1,15 @@
-+Other Firmware Interfaces
-+=========================
-+
-+DMI Interfaces
-+--------------
-+
-+.. kernel-doc:: drivers/firmware/dmi_scan.c
-+   :export:
-+
-+EDD Interfaces
-+--------------
-+
-+.. kernel-doc:: drivers/firmware/edd.c
-+   :internal:
-+
-diff --git a/Documentation/driver-api/index.rst b/Documentation/driver-api/index.rst
-index 90e742577dfc..8058a87c1c74 100644
---- a/Documentation/driver-api/index.rst
-+++ b/Documentation/driver-api/index.rst
-@@ -27,6 +27,7 @@ available subsections can be seen below.
-    iio/index
-    input
-    usb/index
-+   pci
-    spi
-    i2c
-    hsi
-@@ -36,6 +37,7 @@ available subsections can be seen below.
-    80211/index
-    uio-howto
-    firmware/index
-+   misc_devices
- 
- .. only::  subproject and html
- 
-diff --git a/Documentation/driver-api/misc_devices.rst b/Documentation/driver-api/misc_devices.rst
-new file mode 100644
-index 000000000000..c7ee7b02ba88
---- /dev/null
-+++ b/Documentation/driver-api/misc_devices.rst
-@@ -0,0 +1,5 @@
-+Miscellaneous Devices
-+=====================
-+
-+.. kernel-doc:: drivers/char/misc.c
-+   :export:
-diff --git a/Documentation/driver-api/pci.rst b/Documentation/driver-api/pci.rst
-new file mode 100644
-index 000000000000..01a6c8b7d3a7
---- /dev/null
-+++ b/Documentation/driver-api/pci.rst
-@@ -0,0 +1,50 @@
-+PCI Support Library
-+-------------------
-+
-+.. kernel-doc:: drivers/pci/pci.c
-+   :export:
-+
-+.. kernel-doc:: drivers/pci/pci-driver.c
-+   :export:
-+
-+.. kernel-doc:: drivers/pci/remove.c
-+   :export:
-+
-+.. kernel-doc:: drivers/pci/search.c
-+   :export:
-+
-+.. kernel-doc:: drivers/pci/msi.c
-+   :export:
-+
-+.. kernel-doc:: drivers/pci/bus.c
-+   :export:
-+
-+.. kernel-doc:: drivers/pci/access.c
-+   :export:
-+
-+.. kernel-doc:: drivers/pci/irq.c
-+   :export:
-+
-+.. kernel-doc:: drivers/pci/htirq.c
-+   :export:
-+
-+.. kernel-doc:: drivers/pci/probe.c
-+   :export:
-+
-+.. kernel-doc:: drivers/pci/slot.c
-+   :export:
-+
-+.. kernel-doc:: drivers/pci/rom.c
-+   :export:
-+
-+.. kernel-doc:: drivers/pci/iov.c
-+   :export:
-+
-+.. kernel-doc:: drivers/pci/pci-sysfs.c
-+   :internal:
-+
-+PCI Hotplug Support Library
-+---------------------------
-+
-+.. kernel-doc:: drivers/pci/hotplug/pci_hotplug_core.c
-+   :export:
+ void ion_pages_sync_for_device(struct device *dev, struct page *page,
 -- 
-2.9.3
+2.7.4
