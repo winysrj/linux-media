@@ -1,165 +1,278 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f178.google.com ([209.85.216.178]:35562 "EHLO
-        mail-qt0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751683AbdCNTpI (ORCPT
+Received: from mail-qt0-f169.google.com ([209.85.216.169]:34579 "EHLO
+        mail-qt0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751282AbdCRBEz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Mar 2017 15:45:08 -0400
-Received: by mail-qt0-f178.google.com with SMTP id x35so64068583qtc.2
-        for <linux-media@vger.kernel.org>; Tue, 14 Mar 2017 12:45:07 -0700 (PDT)
-Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of
- staging
-To: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
- <20170303132949.GC31582@dhcp22.suse.cz>
- <cf383b9b-3cbc-0092-a071-f120874c053c@redhat.com>
- <20170306074258.GA27953@dhcp22.suse.cz>
- <20170306104041.zghsicrnadoap7lp@phenom.ffwll.local>
- <20170306105805.jsq44kfxhsvazkm6@sirena.org.uk>
- <20170306160437.sf7bksorlnw7u372@phenom.ffwll.local>
- <CA+M3ks77Am3Fx-ZNmgeM5tCqdM7SzV7rby4Es-p2F2aOhUco9g@mail.gmail.com>
- <26bc57ae-d88f-4ea0-d666-2c1a02bf866f@redhat.com>
- <CA+M3ks6R=n4n54wofK7pYcWoQKUhzyWQytBO90+pRDRrAhi3ww@mail.gmail.com>
- <CAKMK7uH9NemeM2z-tQvge_B=kABop6O7UQFK3PirpJminMCPqw@mail.gmail.com>
- <6d3d52ba-29a9-701f-2948-00ce28282975@redhat.com>
- <CA+M3ks5AyVN1hn=FCRx7sy-3B=VujEBL4G4tWy6opifkKTD8=w@mail.gmail.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Mark Brown <broonie@kernel.org>,
-        Michal Hocko <mhocko@kernel.org>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>,
-        =?UTF-8?Q?Arve_Hj=c3=b8nnev=c3=a5g?= <arve@android.com>,
-        Rom Lemarchand <romlem@google.com>, devel@driverdev.osuosl.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        Fri, 17 Mar 2017 21:04:55 -0400
+Received: by mail-qt0-f169.google.com with SMTP id n21so75312427qta.1
+        for <linux-media@vger.kernel.org>; Fri, 17 Mar 2017 18:03:29 -0700 (PDT)
+From: Laura Abbott <labbott@redhat.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com
+Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
         Brian Starkey <brian.starkey@arm.com>,
         Daniel Vetter <daniel.vetter@intel.com>,
-        Linux MM <linux-mm@kvack.org>
-From: Laura Abbott <labbott@redhat.com>
-Message-ID: <38d38ae5-d897-1c98-4d36-c3b16a92bfee@redhat.com>
-Date: Tue, 14 Mar 2017 12:45:02 -0700
-MIME-Version: 1.0
-In-Reply-To: <CA+M3ks5AyVN1hn=FCRx7sy-3B=VujEBL4G4tWy6opifkKTD8=w@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC PATCHv2 08/21] staging: android: ion: Remove crufty cache support
+Date: Fri, 17 Mar 2017 17:54:40 -0700
+Message-Id: <1489798493-16600-9-git-send-email-labbott@redhat.com>
+In-Reply-To: <1489798493-16600-1-git-send-email-labbott@redhat.com>
+References: <1489798493-16600-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/14/2017 07:47 AM, Benjamin Gaignard wrote:
-> 2017-03-13 22:09 GMT+01:00 Laura Abbott <labbott@redhat.com>:
->> On 03/12/2017 12:05 PM, Daniel Vetter wrote:
->>> On Sun, Mar 12, 2017 at 2:34 PM, Benjamin Gaignard
->>> <benjamin.gaignard@linaro.org> wrote:
->>>> 2017-03-09 18:38 GMT+01:00 Laura Abbott <labbott@redhat.com>:
->>>>> On 03/09/2017 02:00 AM, Benjamin Gaignard wrote:
->>>>>> 2017-03-06 17:04 GMT+01:00 Daniel Vetter <daniel@ffwll.ch>:
->>>>>>> On Mon, Mar 06, 2017 at 11:58:05AM +0100, Mark Brown wrote:
->>>>>>>> On Mon, Mar 06, 2017 at 11:40:41AM +0100, Daniel Vetter wrote:
->>>>>>>>
->>>>>>>>> No one gave a thing about android in upstream, so Greg KH just dumped it
->>>>>>>>> all into staging/android/. We've discussed ION a bunch of times, recorded
->>>>>>>>> anything we'd like to fix in staging/android/TODO, and Laura's patch
->>>>>>>>> series here addresses a big chunk of that.
->>>>>>>>
->>>>>>>>> This is pretty much the same approach we (gpu folks) used to de-stage the
->>>>>>>>> syncpt stuff.
->>>>>>>>
->>>>>>>> Well, there's also the fact that quite a few people have issues with the
->>>>>>>> design (like Laurent).  It seems like a lot of them have either got more
->>>>>>>> comfortable with it over time, or at least not managed to come up with
->>>>>>>> any better ideas in the meantime.
->>>>>>>
->>>>>>> See the TODO, it has everything a really big group (look at the patch for
->>>>>>> the full Cc: list) figured needs to be improved at LPC 2015. We don't just
->>>>>>> merge stuff because merging stuff is fun :-)
->>>>>>>
->>>>>>> Laurent was even in that group ...
->>>>>>> -Daniel
->>>>>>
->>>>>> For me those patches are going in the right direction.
->>>>>>
->>>>>> I still have few questions:
->>>>>> - since alignment management has been remove from ion-core, should it
->>>>>> be also removed from ioctl structure ?
->>>>>
->>>>> Yes, I think I'm going to go with the suggestion to fixup the ABI
->>>>> so we don't need the compat layer and as part of that I'm also
->>>>> dropping the align argument.
->>>>>
->>>>>> - can you we ride off ion_handle (at least in userland) and only
->>>>>> export a dma-buf descriptor ?
->>>>>
->>>>> Yes, I think this is the right direction given we're breaking
->>>>> everything anyway. I was debating trying to keep the two but
->>>>> moving to only dma bufs is probably cleaner. The only reason
->>>>> I could see for keeping the handles is running out of file
->>>>> descriptors for dma-bufs but that seems unlikely.
->>>>>>
->>>>>> In the future how can we add new heaps ?
->>>>>> Some platforms have very specific memory allocation
->>>>>> requirements (just have a look in the number of gem custom allocator in drm)
->>>>>> Do you plan to add heap type/mask for each ?
->>>>>
->>>>> Yes, that was my thinking.
->>>>
->>>> My concern is about the policy to adding heaps, will you accept
->>>> "customs" heap per
->>>> platforms ? per devices ? or only generic ones ?
->>>> If you are too strict, we will have lot of out-of-tree heaps and if
->>>> you accept of of them
->>>> it will be a nightmare to maintain....
->>>
->>> I think ion should expose any heap that's also directly accessible to
->>> devices using dma_alloc(_coherent). That should leave very few things
->>> left, like your SMA heap.
->>>
->>>> Another point is how can we put secure rules (like selinux policy) on
->>>> heaps since all the allocations
->>>> go to the same device (/dev/ion) ? For example, until now, in Android
->>>> we have to give the same
->>>> access rights to all the process that use ION.
->>>> It will become problem when we will add secure heaps because we won't
->>>> be able to distinguish secure
->>>> processes to standard ones or set specific policy per heaps.
->>>> Maybe I'm wrong here but I have never see selinux policy checking an
->>>> ioctl field but if that
->>>> exist it could be a solution.
->>>
->>> Hm, we might want to expose all the heaps as individual
->>> /dev/ion_$heapname nodes? Should we do this from the start, since
->>> we're massively revamping the uapi anyway (imo not needed, current
->>> state seems to work too)?
->>> -Daniel
->>>
->>
->> I thought about that. One advantage with separate /dev/ion_$heap
-> 
-> Should we use /devi/ion/$heap instead of /dev/ion_$heap ?
-> I think it would be easier for user to look into one directory rather
-> then in whole /dev to find the heaps
-> 
 
-If we decide to move away from /dev/ion we can consider it.
+Now that we call dma_map in the dma_buf API callbacks there is no need
+to use the existing cache APIs. Remove the sync ioctl and the existing
+bad dma_sync calls. Explicit caching can be handled with the dma_buf
+sync API.
 
->> is that we don't have to worry about a limit of 32 possible
->> heaps per system (32-bit heap id allocation field). But dealing
->> with an ioctl seems easier than names. Userspace might be less
->> likely to hardcode random id numbers vs. names as well.
-> 
-> In the futur I think that heap type will be replaced by a "get caps"
-> ioctl which will
-> describe heap capabilities. At least that is my understanding of kernel part
-> of "unix memory allocator" project
-> 
+Signed-off-by: Laura Abbott <labbott@redhat.com>
+---
+ drivers/staging/android/ion/compat_ion.c        |  1 -
+ drivers/staging/android/ion/ion-ioctl.c         |  6 ----
+ drivers/staging/android/ion/ion.c               | 40 -------------------------
+ drivers/staging/android/ion/ion_carveout_heap.c |  6 ----
+ drivers/staging/android/ion/ion_chunk_heap.c    |  6 ----
+ drivers/staging/android/ion/ion_page_pool.c     |  3 --
+ drivers/staging/android/ion/ion_priv.h          | 13 --------
+ drivers/staging/android/ion/ion_system_heap.c   |  5 ----
+ drivers/staging/android/uapi/ion.h              | 10 -------
+ 9 files changed, 90 deletions(-)
 
-I don't think it will be completely replaced. A heap can have multiple
-capabilities so I suspect there will need to be some cap -> allocation
-instance translation. Of course all this is wild speculation since
-much of the unix memory allocator isn't well defined yet.
-
-Thanks,
-Laura
+diff --git a/drivers/staging/android/ion/compat_ion.c b/drivers/staging/android/ion/compat_ion.c
+index 9a978d2..b892d3a 100644
+--- a/drivers/staging/android/ion/compat_ion.c
++++ b/drivers/staging/android/ion/compat_ion.c
+@@ -186,7 +186,6 @@ long compat_ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 	case ION_IOC_SHARE:
+ 	case ION_IOC_MAP:
+ 	case ION_IOC_IMPORT:
+-	case ION_IOC_SYNC:
+ 		return filp->f_op->unlocked_ioctl(filp, cmd,
+ 						(unsigned long)compat_ptr(arg));
+ 	default:
+diff --git a/drivers/staging/android/ion/ion-ioctl.c b/drivers/staging/android/ion/ion-ioctl.c
+index 5b2e93f..e096bcd 100644
+--- a/drivers/staging/android/ion/ion-ioctl.c
++++ b/drivers/staging/android/ion/ion-ioctl.c
+@@ -51,7 +51,6 @@ static int validate_ioctl_arg(unsigned int cmd, union ion_ioctl_arg *arg)
+ static unsigned int ion_ioctl_dir(unsigned int cmd)
+ {
+ 	switch (cmd) {
+-	case ION_IOC_SYNC:
+ 	case ION_IOC_FREE:
+ 	case ION_IOC_CUSTOM:
+ 		return _IOC_WRITE;
+@@ -146,11 +145,6 @@ long ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 			data.handle.handle = handle->id;
+ 		break;
+ 	}
+-	case ION_IOC_SYNC:
+-	{
+-		ret = ion_sync_for_device(client, data.fd.fd);
+-		break;
+-	}
+ 	case ION_IOC_CUSTOM:
+ 	{
+ 		if (!dev->custom_ioctl)
+diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
+index 226ea1f..8757164 100644
+--- a/drivers/staging/android/ion/ion.c
++++ b/drivers/staging/android/ion/ion.c
+@@ -863,22 +863,6 @@ static void ion_unmap_dma_buf(struct dma_buf_attachment *attachment,
+ 	dma_unmap_sg(attachment->dev, table->sgl, table->nents, direction);
+ }
+ 
+-void ion_pages_sync_for_device(struct device *dev, struct page *page,
+-			       size_t size, enum dma_data_direction dir)
+-{
+-	struct scatterlist sg;
+-
+-	sg_init_table(&sg, 1);
+-	sg_set_page(&sg, page, size, 0);
+-	/*
+-	 * This is not correct - sg_dma_address needs a dma_addr_t that is valid
+-	 * for the targeted device, but this works on the currently targeted
+-	 * hardware.
+-	 */
+-	sg_dma_address(&sg) = page_to_phys(page);
+-	dma_sync_sg_for_device(dev, &sg, 1, dir);
+-}
+-
+ static int ion_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
+ {
+ 	struct ion_buffer *buffer = dmabuf->priv;
+@@ -1097,30 +1081,6 @@ struct ion_handle *ion_import_dma_buf_fd(struct ion_client *client, int fd)
+ }
+ EXPORT_SYMBOL(ion_import_dma_buf_fd);
+ 
+-int ion_sync_for_device(struct ion_client *client, int fd)
+-{
+-	struct dma_buf *dmabuf;
+-	struct ion_buffer *buffer;
+-
+-	dmabuf = dma_buf_get(fd);
+-	if (IS_ERR(dmabuf))
+-		return PTR_ERR(dmabuf);
+-
+-	/* if this memory came from ion */
+-	if (dmabuf->ops != &dma_buf_ops) {
+-		pr_err("%s: can not sync dmabuf from another exporter\n",
+-		       __func__);
+-		dma_buf_put(dmabuf);
+-		return -EINVAL;
+-	}
+-	buffer = dmabuf->priv;
+-
+-	dma_sync_sg_for_device(NULL, buffer->sg_table->sgl,
+-			       buffer->sg_table->nents, DMA_BIDIRECTIONAL);
+-	dma_buf_put(dmabuf);
+-	return 0;
+-}
+-
+ int ion_query_heaps(struct ion_client *client, struct ion_heap_query *query)
+ {
+ 	struct ion_device *dev = client->dev;
+diff --git a/drivers/staging/android/ion/ion_carveout_heap.c b/drivers/staging/android/ion/ion_carveout_heap.c
+index 9bf8e98..e0e360f 100644
+--- a/drivers/staging/android/ion/ion_carveout_heap.c
++++ b/drivers/staging/android/ion/ion_carveout_heap.c
+@@ -100,10 +100,6 @@ static void ion_carveout_heap_free(struct ion_buffer *buffer)
+ 
+ 	ion_heap_buffer_zero(buffer);
+ 
+-	if (ion_buffer_cached(buffer))
+-		dma_sync_sg_for_device(NULL, table->sgl, table->nents,
+-				       DMA_BIDIRECTIONAL);
+-
+ 	ion_carveout_free(heap, paddr, buffer->size);
+ 	sg_free_table(table);
+ 	kfree(table);
+@@ -128,8 +124,6 @@ struct ion_heap *ion_carveout_heap_create(struct ion_platform_heap *heap_data)
+ 	page = pfn_to_page(PFN_DOWN(heap_data->base));
+ 	size = heap_data->size;
+ 
+-	ion_pages_sync_for_device(NULL, page, size, DMA_BIDIRECTIONAL);
+-
+ 	ret = ion_heap_pages_zero(page, size, pgprot_writecombine(PAGE_KERNEL));
+ 	if (ret)
+ 		return ERR_PTR(ret);
+diff --git a/drivers/staging/android/ion/ion_chunk_heap.c b/drivers/staging/android/ion/ion_chunk_heap.c
+index 8c41889..46e13f6 100644
+--- a/drivers/staging/android/ion/ion_chunk_heap.c
++++ b/drivers/staging/android/ion/ion_chunk_heap.c
+@@ -101,10 +101,6 @@ static void ion_chunk_heap_free(struct ion_buffer *buffer)
+ 
+ 	ion_heap_buffer_zero(buffer);
+ 
+-	if (ion_buffer_cached(buffer))
+-		dma_sync_sg_for_device(NULL, table->sgl, table->nents,
+-				       DMA_BIDIRECTIONAL);
+-
+ 	for_each_sg(table->sgl, sg, table->nents, i) {
+ 		gen_pool_free(chunk_heap->pool, page_to_phys(sg_page(sg)),
+ 			      sg->length);
+@@ -132,8 +128,6 @@ struct ion_heap *ion_chunk_heap_create(struct ion_platform_heap *heap_data)
+ 	page = pfn_to_page(PFN_DOWN(heap_data->base));
+ 	size = heap_data->size;
+ 
+-	ion_pages_sync_for_device(NULL, page, size, DMA_BIDIRECTIONAL);
+-
+ 	ret = ion_heap_pages_zero(page, size, pgprot_writecombine(PAGE_KERNEL));
+ 	if (ret)
+ 		return ERR_PTR(ret);
+diff --git a/drivers/staging/android/ion/ion_page_pool.c b/drivers/staging/android/ion/ion_page_pool.c
+index aea89c1..532eda7 100644
+--- a/drivers/staging/android/ion/ion_page_pool.c
++++ b/drivers/staging/android/ion/ion_page_pool.c
+@@ -30,9 +30,6 @@ static void *ion_page_pool_alloc_pages(struct ion_page_pool *pool)
+ 
+ 	if (!page)
+ 		return NULL;
+-	if (!pool->cached)
+-		ion_pages_sync_for_device(NULL, page, PAGE_SIZE << pool->order,
+-					  DMA_BIDIRECTIONAL);
+ 	return page;
+ }
+ 
+diff --git a/drivers/staging/android/ion/ion_priv.h b/drivers/staging/android/ion/ion_priv.h
+index 297d99d..4fc7026 100644
+--- a/drivers/staging/android/ion/ion_priv.h
++++ b/drivers/staging/android/ion/ion_priv.h
+@@ -440,21 +440,8 @@ void ion_page_pool_free(struct ion_page_pool *pool, struct page *page);
+ int ion_page_pool_shrink(struct ion_page_pool *pool, gfp_t gfp_mask,
+ 			  int nr_to_scan);
+ 
+-/**
+- * ion_pages_sync_for_device - cache flush pages for use with the specified
+- *                             device
+- * @dev:		the device the pages will be used with
+- * @page:		the first page to be flushed
+- * @size:		size in bytes of region to be flushed
+- * @dir:		direction of dma transfer
+- */
+-void ion_pages_sync_for_device(struct device *dev, struct page *page,
+-		size_t size, enum dma_data_direction dir);
+-
+ long ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
+ 
+-int ion_sync_for_device(struct ion_client *client, int fd);
+-
+ struct ion_handle *ion_handle_get_by_id_nolock(struct ion_client *client,
+ 						int id);
+ 
+diff --git a/drivers/staging/android/ion/ion_system_heap.c b/drivers/staging/android/ion/ion_system_heap.c
+index 6cb2fe7..a33331b 100644
+--- a/drivers/staging/android/ion/ion_system_heap.c
++++ b/drivers/staging/android/ion/ion_system_heap.c
+@@ -75,9 +75,6 @@ static struct page *alloc_buffer_page(struct ion_system_heap *heap,
+ 
+ 	page = ion_page_pool_alloc(pool);
+ 
+-	if (cached)
+-		ion_pages_sync_for_device(NULL, page, PAGE_SIZE << order,
+-					  DMA_BIDIRECTIONAL);
+ 	return page;
+ }
+ 
+@@ -401,8 +398,6 @@ static int ion_system_contig_heap_allocate(struct ion_heap *heap,
+ 
+ 	buffer->sg_table = table;
+ 
+-	ion_pages_sync_for_device(NULL, page, len, DMA_BIDIRECTIONAL);
+-
+ 	return 0;
+ 
+ free_table:
+diff --git a/drivers/staging/android/uapi/ion.h b/drivers/staging/android/uapi/ion.h
+index 14cd873..c3a87a5 100644
+--- a/drivers/staging/android/uapi/ion.h
++++ b/drivers/staging/android/uapi/ion.h
+@@ -207,16 +207,6 @@ struct ion_heap_query {
+ #define ION_IOC_IMPORT		_IOWR(ION_IOC_MAGIC, 5, struct ion_fd_data)
+ 
+ /**
+- * DOC: ION_IOC_SYNC - syncs a shared file descriptors to memory
+- *
+- * Deprecated in favor of using the dma_buf api's correctly (syncing
+- * will happen automatically when the buffer is mapped to a device).
+- * If necessary should be used after touching a cached buffer from the cpu,
+- * this will make the buffer in memory coherent.
+- */
+-#define ION_IOC_SYNC		_IOWR(ION_IOC_MAGIC, 7, struct ion_fd_data)
+-
+-/**
+  * DOC: ION_IOC_CUSTOM - call architecture specific ion ioctl
+  *
+  * Takes the argument of the architecture specific ioctl to call and
+-- 
+2.7.4
