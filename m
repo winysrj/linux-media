@@ -1,109 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34028 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753105AbdCFP76 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 10:59:58 -0500
-Received: by mail-wm0-f65.google.com with SMTP id u132so6452650wmg.1
-        for <linux-media@vger.kernel.org>; Mon, 06 Mar 2017 07:59:56 -0800 (PST)
-Date: Mon, 6 Mar 2017 16:52:57 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>, Laura Abbott <labbott@redhat.com>,
-        dri-devel@lists.freedesktop.org,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com,
-        devel@driverdev.osuosl.org, romlem@google.com,
+Received: from mail-qk0-f175.google.com ([209.85.220.175]:34434 "EHLO
+        mail-qk0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751132AbdCRBDT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Mar 2017 21:03:19 -0400
+Received: by mail-qk0-f175.google.com with SMTP id p64so77386155qke.1
+        for <linux-media@vger.kernel.org>; Fri, 17 Mar 2017 18:01:37 -0700 (PDT)
+From: Laura Abbott <labbott@redhat.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com
+Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-kernel@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-        linux-mm@kvack.org, Mark Brown <broonie@kernel.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
         Daniel Vetter <daniel.vetter@intel.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 10/12] staging: android: ion: Use CMA APIs directly
-Message-ID: <20170306155257.y5tnlq4orv2xkjbd@phenom.ffwll.local>
-References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
- <0541f57b-4060-ea10-7173-26ae77777518@redhat.com>
- <20170306103204.d3yf6woxpsqvdakp@phenom.ffwll.local>
- <6709093.jyTQHIiK7d@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6709093.jyTQHIiK7d@avalon>
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC PATCHv2 00/21] Ion clean in preparation for moving out of staging
+Date: Fri, 17 Mar 2017 17:54:32 -0700
+Message-Id: <1489798493-16600-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 06, 2017 at 03:43:53PM +0200, Laurent Pinchart wrote:
-> Hi Daniel,
-> 
-> On Monday 06 Mar 2017 11:32:04 Daniel Vetter wrote:
-> > On Fri, Mar 03, 2017 at 10:50:20AM -0800, Laura Abbott wrote:
-> > > On 03/03/2017 08:41 AM, Laurent Pinchart wrote:
-> > >> On Thursday 02 Mar 2017 13:44:42 Laura Abbott wrote:
-> > >>> When CMA was first introduced, its primary use was for DMA allocation
-> > >>> and the only way to get CMA memory was to call dma_alloc_coherent. This
-> > >>> put Ion in an awkward position since there was no device structure
-> > >>> readily available and setting one up messed up the coherency model.
-> > >>> These days, CMA can be allocated directly from the APIs. Switch to
-> > >>> using this model to avoid needing a dummy device. This also avoids
-> > >>> awkward caching questions.
-> > >> 
-> > >> If the DMA mapping API isn't suitable for today's requirements anymore,
-> > >> I believe that's what needs to be fixed, instead of working around the
-> > >> problem by introducing another use-case-specific API.
-> > > 
-> > > I don't think this is a usecase specific API. CMA has been decoupled from
-> > > DMA already because it's used in other places. The trying to go through
-> > > DMA was just another layer of abstraction, especially since there isn't
-> > > a device available for allocation.
-> > 
-> > Also, we've had separation of allocation and dma-mapping since forever,
-> > that's how it works almost everywhere. Not exactly sure why/how arm-soc
-> > ecosystem ended up focused so much on dma_alloc_coherent.
-> 
-> I believe because that was the easy way to specify memory constraints. The API 
-> receives a device pointer and will allocate memory suitable for DMA for that 
-> device. The fact that it maps it to the device is a side-effect in my opinion.
-> 
-> > I think separating allocation from dma mapping/coherency is perfectly
-> > fine, and the way to go.
-> 
-> Especially given that in many cases we'll want to share buffers between 
-> multiple devices, so we'll need to map them multiple times.
-> 
-> My point still stands though, if we want to move towards a model where 
-> allocation and mapping are decoupled, we need an allocation function that 
-> takes constraints (possibly implemented with two layers, a constraint 
-> resolution layer on top of a pool/heap/type/foo-based allocator), and a 
-> mapping API. IOMMU handling being integrated in the DMA mapping API we're 
-> currently stuck with it, which might call for brushing up that API.
 
-Hm, maybe I wasn't clear, but that's exactly what I assume will happen:
+Hi,
 
-The constraint resolver is the unix device memory allocation thing, which
-happens entirely in userspace. There's a lot more than just "where to
-allocate" to negotiate, e.g. pixel format, stride/size
-limits/requirements, tiling formats. A lot of it the kernel doesn't even
-know.
+This is v2 of the series to do some serious Ion clean up in preparation for
+moving out of staging. I got good feedback last time so this series mostly
+attempts to address that feedback and do more still more cleanup. Highlights:
 
-Allocation then needs to happen through the kernel ofc, but that doesn't
-mean we need to have all the constraint resolving in the kernel. As long
-as the kernel exposes the device /dev node -> ion heap stuff, userspace
-can figure this out. Or an alternative way would be to have a cascade of
-ion heaps to keep things a notch more opaque. Either way, no actaul
-constraint resolving in the kernel itself, and except for a bunch more
-stuff in sysfs maybe, also no other uapi changes. Once we have a place to
-allocate stuff which isn't the device driver at least, aka ION.
+- All calls to DMA APIs should now be with a real actual proper device
+  structure
+- Patch to stop setting sg_dma_address manually now included
+- Fix for a bug in the query interface
+- Removal of custom ioctl interface
+- Removal of import interface
+- Removal of any notion of using Ion as an in kernel interface.
+- Cleanup of ABI so compat interface is no longer needed
+- Deletion of a bit more platform code
+- Combined heap enumeration and heap registration code up so there are fewer
+  layers of abstraction
+- Some general cleanup and header reduction.
+- Removal of both the ion_client and ion_handle structures since these mostly
+  become redundant. As a result, Ion only returns a dma_buf fd. The overall
+  result is that the only Ion interfaces are the query ioctl and the alloc
+  ioctl.
 
-And then once allocated you use the dma apis to instantiate the iommus
-mappings.
+The following are still TODOs/open problems:
+- Sumit's comments about the CMA naming.
+- Bindings/platform for chunk and carveout heap
+- There was some discussion about making the sg_table duplication generic. I
+  got bogged down in handling some of the edge cases for generic handling
+  so I put this aside. Making it generic is still something that should happen.
+- More fine-grained support for restricting heap access. There are good
+  arguments to be made for having a way for having good integration with
+  selinux and other policy mechanisms.
+- While not on the original list, there is still no good good test standalone
+  test framework. I noticed that the existing ion_test was fairly generic so I
+  proposed moving it to dma_buf. Daniel Vetter suggested just using the VGEM
+  module instead. Ideally, the tests can live as part of some other existing
+  test set (drm tests maybe?)
 
-Anyway, at least from my understanding I think there's 0 risk with merging
-ION wrt the constraint resolving side (at least as discussed around XDC
-last year), and for setups that need cma, it might finally enable to get
-things moving forward.
+Feedback appreciated as always.
 
-Or do I miss something big here?
--Daniel
+Thanks,
+Laura
+
+Laura Abbott (21):
+  cma: Store a name in the cma structure
+  cma: Introduce cma_for_each_area
+  staging: android: ion: Remove dmap_cnt
+  staging: android: ion: Remove alignment from allocation field
+  staging: android: ion: Duplicate sg_table
+  staging: android: ion: Call dma_map_sg for syncing and mapping
+  staging: android: ion: Remove page faulting support
+  staging: android: ion: Remove crufty cache support
+  staging: android: ion: Remove custom ioctl interface
+  staging: android: ion: Remove import interface
+  staging: android: ion: Remove duplicate ION_IOC_MAP
+  staging: android: ion: Remove old platform support
+  staging: android: ion: Use CMA APIs directly
+  staging: android: ion: Stop butchering the DMA address
+  staging: android: ion: Break the ABI in the name of forward progress
+  staging: android: ion: Get rid of ion_phys_addr_t
+  staging: android: ion: Collapse internal header files
+  staging: android: ion: Rework heap registration/enumeration
+  staging: android: ion: Drop ion_map_kernel interface
+  staging: android: ion: Remove ion_handle and ion_client
+  staging: android: ion: Set query return value
+
+ drivers/base/dma-contiguous.c                      |    5 +-
+ drivers/staging/android/ion/Kconfig                |   56 +-
+ drivers/staging/android/ion/Makefile               |   18 +-
+ drivers/staging/android/ion/compat_ion.c           |  195 ----
+ drivers/staging/android/ion/compat_ion.h           |   29 -
+ drivers/staging/android/ion/hisilicon/Kconfig      |    5 -
+ drivers/staging/android/ion/hisilicon/Makefile     |    1 -
+ drivers/staging/android/ion/hisilicon/hi6220_ion.c |  113 --
+ drivers/staging/android/ion/ion-ioctl.c            |   85 +-
+ drivers/staging/android/ion/ion.c                  | 1164 +++-----------------
+ drivers/staging/android/ion/ion.h                  |  393 +++++--
+ drivers/staging/android/ion/ion_carveout_heap.c    |   37 +-
+ drivers/staging/android/ion/ion_chunk_heap.c       |   27 +-
+ drivers/staging/android/ion/ion_cma_heap.c         |  125 +--
+ drivers/staging/android/ion/ion_dummy_driver.c     |  156 ---
+ drivers/staging/android/ion/ion_heap.c             |   68 --
+ drivers/staging/android/ion/ion_of.c               |  184 ----
+ drivers/staging/android/ion/ion_of.h               |   37 -
+ drivers/staging/android/ion/ion_page_pool.c        |    6 +-
+ drivers/staging/android/ion/ion_priv.h             |  473 --------
+ drivers/staging/android/ion/ion_system_heap.c      |   53 +-
+ drivers/staging/android/ion/ion_test.c             |  305 -----
+ drivers/staging/android/ion/tegra/Makefile         |    1 -
+ drivers/staging/android/ion/tegra/tegra_ion.c      |   80 --
+ drivers/staging/android/uapi/ion.h                 |   86 +-
+ drivers/staging/android/uapi/ion_test.h            |   69 --
+ include/linux/cma.h                                |    6 +-
+ mm/cma.c                                           |   25 +-
+ mm/cma.h                                           |    1 +
+ mm/cma_debug.c                                     |    2 +-
+ 30 files changed, 610 insertions(+), 3195 deletions(-)
+ delete mode 100644 drivers/staging/android/ion/compat_ion.c
+ delete mode 100644 drivers/staging/android/ion/compat_ion.h
+ delete mode 100644 drivers/staging/android/ion/hisilicon/Kconfig
+ delete mode 100644 drivers/staging/android/ion/hisilicon/Makefile
+ delete mode 100644 drivers/staging/android/ion/hisilicon/hi6220_ion.c
+ delete mode 100644 drivers/staging/android/ion/ion_dummy_driver.c
+ delete mode 100644 drivers/staging/android/ion/ion_of.c
+ delete mode 100644 drivers/staging/android/ion/ion_of.h
+ delete mode 100644 drivers/staging/android/ion/ion_priv.h
+ delete mode 100644 drivers/staging/android/ion/ion_test.c
+ delete mode 100644 drivers/staging/android/ion/tegra/Makefile
+ delete mode 100644 drivers/staging/android/ion/tegra/tegra_ion.c
+ delete mode 100644 drivers/staging/android/uapi/ion_test.h
+
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+2.7.4
