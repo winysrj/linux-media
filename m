@@ -1,108 +1,253 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kozue.soulik.info ([108.61.200.231]:42940 "EHLO
-        kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932250AbdCFR6k (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 12:58:40 -0500
-Content-Type: text/plain;
-        charset=utf-8
-Mime-Version: 1.0 (1.0)
-Subject: Re: [PATCH v6 1/3] drm_fourcc: Add new P010, P016 video format
-From: Ayaka <ayaka@soulik.info>
-In-Reply-To: <20170306130609.GT31595@intel.com>
-Date: Tue, 7 Mar 2017 01:58:23 +0800
-Cc: dri-devel@lists.freedesktop.org, clinton.a.taylor@intel.com,
-        daniel@fooishbar.org, linux-media@vger.kernel.org,
-        mchehab@kernel.org, linux-kernel@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <AEC0BE28-4C63-430B-9972-BDF0A323D742@soulik.info>
-References: <1488708033-5691-1-git-send-email-ayaka@soulik.info> <1488708033-5691-2-git-send-email-ayaka@soulik.info> <20170306130609.GT31595@intel.com>
-To: =?utf-8?Q?Ville_Syrj=C3=A4l=C3=A4?= <ville.syrjala@linux.intel.com>
+Received: from mail-qt0-f177.google.com ([209.85.216.177]:34587 "EHLO
+        mail-qt0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751298AbdCRBEz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Mar 2017 21:04:55 -0400
+Received: by mail-qt0-f177.google.com with SMTP id n21so75312764qta.1
+        for <linux-media@vger.kernel.org>; Fri, 17 Mar 2017 18:03:31 -0700 (PDT)
+From: Laura Abbott <labbott@redhat.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com
+Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC PATCHv2 09/21] staging: android: ion: Remove custom ioctl interface
+Date: Fri, 17 Mar 2017 17:54:41 -0700
+Message-Id: <1489798493-16600-10-git-send-email-labbott@redhat.com>
+In-Reply-To: <1489798493-16600-1-git-send-email-labbott@redhat.com>
+References: <1489798493-16600-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+Ion is now moving towards a unified interfact. This makes the custom
+ioctl interface unneeded. Remove it.
 
-從我的 iPad 傳送
+Signed-off-by: Laura Abbott <labbott@redhat.com>
+---
+ drivers/staging/android/ion/compat_ion.c | 40 --------------------------------
+ drivers/staging/android/ion/ion-ioctl.c  | 11 ---------
+ drivers/staging/android/ion/ion.c        |  6 +----
+ drivers/staging/android/ion/ion_priv.h   |  8 +------
+ drivers/staging/android/uapi/ion.h       | 21 -----------------
+ 5 files changed, 2 insertions(+), 84 deletions(-)
 
-> Ville Syrjälä <ville.syrjala@linux.intel.com> 於 2017年3月6日 下午9:06 寫道：
-> 
->> On Sun, Mar 05, 2017 at 06:00:31PM +0800, Randy Li wrote:
->> P010 is a planar 4:2:0 YUV with interleaved UV plane, 10 bits
->> per channel video format.
->> 
->> P016 is a planar 4:2:0 YUV with interleaved UV plane, 16 bits
->> per channel video format.
->> 
->> V3: Added P012 and fixed cpp for P010
->> V4: format definition refined per review
->> V5: Format comment block for each new pixel format
->> V6: reversed Cb/Cr order in comments
->> v7: reversed Cb/Cr order in comments of header files, remove
->> the wrong part of commit message.
-> 
-> What? Why? You just undid what Clint did in v6.
-He missed a file also keeping the wrong description of rockchip.
-> 
->> 
->> Cc: Daniel Stone <daniel@fooishbar.org>
->> Cc: Ville Syrjälä <ville.syrjala@linux.intel.com>
->> 
->> Signed-off-by: Randy Li <ayaka@soulik.info>
->> Signed-off-by: Clint Taylor <clinton.a.taylor@intel.com>
->> ---
->> drivers/gpu/drm/drm_fourcc.c  |  3 +++
->> include/uapi/drm/drm_fourcc.h | 21 +++++++++++++++++++++
->> 2 files changed, 24 insertions(+)
->> 
->> diff --git a/drivers/gpu/drm/drm_fourcc.c b/drivers/gpu/drm/drm_fourcc.c
->> index 90d2cc8..3e0fd58 100644
->> --- a/drivers/gpu/drm/drm_fourcc.c
->> +++ b/drivers/gpu/drm/drm_fourcc.c
->> @@ -165,6 +165,9 @@ const struct drm_format_info *__drm_format_info(u32 format)
->>        { .format = DRM_FORMAT_UYVY,        .depth = 0,  .num_planes = 1, .cpp = { 2, 0, 0 }, .hsub = 2, .vsub = 1 },
->>        { .format = DRM_FORMAT_VYUY,        .depth = 0,  .num_planes = 1, .cpp = { 2, 0, 0 }, .hsub = 2, .vsub = 1 },
->>        { .format = DRM_FORMAT_AYUV,        .depth = 0,  .num_planes = 1, .cpp = { 4, 0, 0 }, .hsub = 1, .vsub = 1 },
->> +        { .format = DRM_FORMAT_P010,        .depth = 0,  .num_planes = 2, .cpp = { 2, 4, 0 }, .hsub = 2, .vsub = 2 },
->> +        { .format = DRM_FORMAT_P012,        .depth = 0,  .num_planes = 2, .cpp = { 2, 4, 0 }, .hsub = 2, .vsub = 2 },
->> +        { .format = DRM_FORMAT_P016,        .depth = 0,  .num_planes = 2, .cpp = { 2, 4, 0 }, .hsub = 2, .vsub = 2 },
->>    };
->> 
->>    unsigned int i;
->> diff --git a/include/uapi/drm/drm_fourcc.h b/include/uapi/drm/drm_fourcc.h
->> index ef20abb..306f979 100644
->> --- a/include/uapi/drm/drm_fourcc.h
->> +++ b/include/uapi/drm/drm_fourcc.h
->> @@ -128,6 +128,27 @@ extern "C" {
->> #define DRM_FORMAT_NV42        fourcc_code('N', 'V', '4', '2') /* non-subsampled Cb:Cr plane */
->> 
->> /*
->> + * 2 plane YCbCr MSB aligned
->> + * index 0 = Y plane, [15:0] Y:x [10:6] little endian
->> + * index 1 = Cb:Cr plane, [31:0] Cb:x:Cr:x [10:6:10:6] little endian
->> + */
->> +#define DRM_FORMAT_P010        fourcc_code('P', '0', '1', '0') /* 2x2 subsampled Cb:Cr plane 10 bits per channel */
->> +
->> +/*
->> + * 2 plane YCbCr MSB aligned
->> + * index 0 = Y plane, [15:0] Y:x [12:4] little endian
->> + * index 1 = Cb:Cr plane, [31:0] Cb:x:Cr:x [12:4:12:4] little endian
->> + */
->> +#define DRM_FORMAT_P012        fourcc_code('P', '0', '1', '2') /* 2x2 subsampled Cb:Cr plane 12 bits per channel */
->> +
->> +/*
->> + * 2 plane YCbCr MSB aligned
->> + * index 0 = Y plane, [15:0] Y little endian
->> + * index 1 = Cb:Cr plane, [31:0] Cb:Cr [16:16] little endian
->> + */
->> +#define DRM_FORMAT_P016        fourcc_code('P', '0', '1', '6') /* 2x2 subsampled Cb:Cr plane 16 bits per channel */
->> +
->> +/*
->>  * 3 plane YCbCr
->>  * index 0: Y plane, [7:0] Y
->>  * index 1: Cb plane, [7:0] Cb
->> -- 
->> 2.7.4
-> 
-> -- 
-> Ville Syrjälä
-> Intel OTC
+diff --git a/drivers/staging/android/ion/compat_ion.c b/drivers/staging/android/ion/compat_ion.c
+index b892d3a..5b192ea 100644
+--- a/drivers/staging/android/ion/compat_ion.c
++++ b/drivers/staging/android/ion/compat_ion.c
+@@ -30,11 +30,6 @@ struct compat_ion_allocation_data {
+ 	compat_int_t handle;
+ };
+ 
+-struct compat_ion_custom_data {
+-	compat_uint_t cmd;
+-	compat_ulong_t arg;
+-};
+-
+ struct compat_ion_handle_data {
+ 	compat_int_t handle;
+ };
+@@ -43,8 +38,6 @@ struct compat_ion_handle_data {
+ 				      struct compat_ion_allocation_data)
+ #define COMPAT_ION_IOC_FREE	_IOWR(ION_IOC_MAGIC, 1, \
+ 				      struct compat_ion_handle_data)
+-#define COMPAT_ION_IOC_CUSTOM	_IOWR(ION_IOC_MAGIC, 6, \
+-				      struct compat_ion_custom_data)
+ 
+ static int compat_get_ion_allocation_data(
+ 			struct compat_ion_allocation_data __user *data32,
+@@ -105,22 +98,6 @@ static int compat_put_ion_allocation_data(
+ 	return err;
+ }
+ 
+-static int compat_get_ion_custom_data(
+-			struct compat_ion_custom_data __user *data32,
+-			struct ion_custom_data __user *data)
+-{
+-	compat_uint_t cmd;
+-	compat_ulong_t arg;
+-	int err;
+-
+-	err = get_user(cmd, &data32->cmd);
+-	err |= put_user(cmd, &data->cmd);
+-	err |= get_user(arg, &data32->arg);
+-	err |= put_user(arg, &data->arg);
+-
+-	return err;
+-};
+-
+ long compat_ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ {
+ 	long ret;
+@@ -166,23 +143,6 @@ long compat_ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		return filp->f_op->unlocked_ioctl(filp, ION_IOC_FREE,
+ 							(unsigned long)data);
+ 	}
+-	case COMPAT_ION_IOC_CUSTOM: {
+-		struct compat_ion_custom_data __user *data32;
+-		struct ion_custom_data __user *data;
+-		int err;
+-
+-		data32 = compat_ptr(arg);
+-		data = compat_alloc_user_space(sizeof(*data));
+-		if (!data)
+-			return -EFAULT;
+-
+-		err = compat_get_ion_custom_data(data32, data);
+-		if (err)
+-			return err;
+-
+-		return filp->f_op->unlocked_ioctl(filp, ION_IOC_CUSTOM,
+-							(unsigned long)data);
+-	}
+ 	case ION_IOC_SHARE:
+ 	case ION_IOC_MAP:
+ 	case ION_IOC_IMPORT:
+diff --git a/drivers/staging/android/ion/ion-ioctl.c b/drivers/staging/android/ion/ion-ioctl.c
+index e096bcd..2b475bf 100644
+--- a/drivers/staging/android/ion/ion-ioctl.c
++++ b/drivers/staging/android/ion/ion-ioctl.c
+@@ -26,7 +26,6 @@ union ion_ioctl_arg {
+ 	struct ion_fd_data fd;
+ 	struct ion_allocation_data allocation;
+ 	struct ion_handle_data handle;
+-	struct ion_custom_data custom;
+ 	struct ion_heap_query query;
+ };
+ 
+@@ -52,7 +51,6 @@ static unsigned int ion_ioctl_dir(unsigned int cmd)
+ {
+ 	switch (cmd) {
+ 	case ION_IOC_FREE:
+-	case ION_IOC_CUSTOM:
+ 		return _IOC_WRITE;
+ 	default:
+ 		return _IOC_DIR(cmd);
+@@ -62,7 +60,6 @@ static unsigned int ion_ioctl_dir(unsigned int cmd)
+ long ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ {
+ 	struct ion_client *client = filp->private_data;
+-	struct ion_device *dev = client->dev;
+ 	struct ion_handle *cleanup_handle = NULL;
+ 	int ret = 0;
+ 	unsigned int dir;
+@@ -145,14 +142,6 @@ long ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 			data.handle.handle = handle->id;
+ 		break;
+ 	}
+-	case ION_IOC_CUSTOM:
+-	{
+-		if (!dev->custom_ioctl)
+-			return -ENOTTY;
+-		ret = dev->custom_ioctl(client, data.custom.cmd,
+-						data.custom.arg);
+-		break;
+-	}
+ 	case ION_IOC_HEAP_QUERY:
+ 		ret = ion_query_heaps(client, &data.query);
+ 		break;
+diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
+index 8757164..125c537 100644
+--- a/drivers/staging/android/ion/ion.c
++++ b/drivers/staging/android/ion/ion.c
+@@ -1347,10 +1347,7 @@ void ion_device_add_heap(struct ion_device *dev, struct ion_heap *heap)
+ }
+ EXPORT_SYMBOL(ion_device_add_heap);
+ 
+-struct ion_device *ion_device_create(long (*custom_ioctl)
+-				     (struct ion_client *client,
+-				      unsigned int cmd,
+-				      unsigned long arg))
++struct ion_device *ion_device_create(void)
+ {
+ 	struct ion_device *idev;
+ 	int ret;
+@@ -1387,7 +1384,6 @@ struct ion_device *ion_device_create(long (*custom_ioctl)
+ 
+ debugfs_done:
+ 
+-	idev->custom_ioctl = custom_ioctl;
+ 	idev->buffers = RB_ROOT;
+ 	mutex_init(&idev->buffer_lock);
+ 	init_rwsem(&idev->lock);
+diff --git a/drivers/staging/android/ion/ion_priv.h b/drivers/staging/android/ion/ion_priv.h
+index 4fc7026..a86866a 100644
+--- a/drivers/staging/android/ion/ion_priv.h
++++ b/drivers/staging/android/ion/ion_priv.h
+@@ -95,8 +95,6 @@ struct ion_device {
+ 	struct mutex buffer_lock;
+ 	struct rw_semaphore lock;
+ 	struct plist_head heaps;
+-	long (*custom_ioctl)(struct ion_client *client, unsigned int cmd,
+-			     unsigned long arg);
+ 	struct rb_root clients;
+ 	struct dentry *debug_root;
+ 	struct dentry *heaps_debug_root;
+@@ -260,14 +258,10 @@ bool ion_buffer_fault_user_mappings(struct ion_buffer *buffer);
+ 
+ /**
+  * ion_device_create - allocates and returns an ion device
+- * @custom_ioctl:	arch specific ioctl function if applicable
+  *
+  * returns a valid device or -PTR_ERR
+  */
+-struct ion_device *ion_device_create(long (*custom_ioctl)
+-				     (struct ion_client *client,
+-				      unsigned int cmd,
+-				      unsigned long arg));
++struct ion_device *ion_device_create(void);
+ 
+ /**
+  * ion_device_destroy - free and device and it's resource
+diff --git a/drivers/staging/android/uapi/ion.h b/drivers/staging/android/uapi/ion.h
+index c3a87a5..8ff471d 100644
+--- a/drivers/staging/android/uapi/ion.h
++++ b/drivers/staging/android/uapi/ion.h
+@@ -115,19 +115,6 @@ struct ion_handle_data {
+ 	ion_user_handle_t handle;
+ };
+ 
+-/**
+- * struct ion_custom_data - metadata passed to/from userspace for a custom ioctl
+- * @cmd:	the custom ioctl function to call
+- * @arg:	additional data to pass to the custom ioctl, typically a user
+- *		pointer to a predefined structure
+- *
+- * This works just like the regular cmd and arg fields of an ioctl.
+- */
+-struct ion_custom_data {
+-	unsigned int cmd;
+-	unsigned long arg;
+-};
+-
+ #define MAX_HEAP_NAME			32
+ 
+ /**
+@@ -207,14 +194,6 @@ struct ion_heap_query {
+ #define ION_IOC_IMPORT		_IOWR(ION_IOC_MAGIC, 5, struct ion_fd_data)
+ 
+ /**
+- * DOC: ION_IOC_CUSTOM - call architecture specific ion ioctl
+- *
+- * Takes the argument of the architecture specific ioctl to call and
+- * passes appropriate userdata for that ioctl
+- */
+-#define ION_IOC_CUSTOM		_IOWR(ION_IOC_MAGIC, 6, struct ion_custom_data)
+-
+-/**
+  * DOC: ION_IOC_HEAP_QUERY - information about available heaps
+  *
+  * Takes an ion_heap_query structure and populates information about
+-- 
+2.7.4
