@@ -1,563 +1,235 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f169.google.com ([209.85.128.169]:35921 "EHLO
-        mail-wr0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754950AbdCGSer (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 13:34:47 -0500
-Received: by mail-wr0-f169.google.com with SMTP id u108so7650423wrb.3
-        for <linux-media@vger.kernel.org>; Tue, 07 Mar 2017 10:34:25 -0800 (PST)
-From: Neil Armstrong <narmstrong@baylibre.com>
-To: dri-devel@lists.freedesktop.org,
-        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org,
-        mchehab@kernel.org
-Cc: Neil Armstrong <narmstrong@baylibre.com>, Jose.Abreu@synopsys.com,
-        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-media@vger.kernel.org, hans.verkuil@cisco.com,
-        sakari.ailus@linux.intel.com
-Subject: [PATCH v3 4/6] drm: bridge: dw-hdmi: Switch to V4L bus format and encodings
-Date: Tue,  7 Mar 2017 17:42:22 +0100
-Message-Id: <1488904944-14285-5-git-send-email-narmstrong@baylibre.com>
-In-Reply-To: <1488904944-14285-1-git-send-email-narmstrong@baylibre.com>
-References: <1488904944-14285-1-git-send-email-narmstrong@baylibre.com>
+Received: from mail-qt0-f172.google.com ([209.85.216.172]:34269 "EHLO
+        mail-qt0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751047AbdCRBYw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Mar 2017 21:24:52 -0400
+Received: by mail-qt0-f172.google.com with SMTP id n21so75473912qta.1
+        for <linux-media@vger.kernel.org>; Fri, 17 Mar 2017 18:23:00 -0700 (PDT)
+From: Laura Abbott <labbott@redhat.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com
+Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC PATCHv2 13/21] staging: android: ion: Use CMA APIs directly
+Date: Fri, 17 Mar 2017 17:54:45 -0700
+Message-Id: <1489798493-16600-14-git-send-email-labbott@redhat.com>
+In-Reply-To: <1489798493-16600-1-git-send-email-labbott@redhat.com>
+References: <1489798493-16600-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some display pipelines can only provide non-RBG input pixels to the HDMI TX
-Controller, this patch takes the pixel format from the plat_data if provided.
 
-Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
+When CMA was first introduced, its primary use was for DMA allocation
+and the only way to get CMA memory was to call dma_alloc_coherent. This
+put Ion in an awkward position since there was no device structure
+readily available and setting one up messed up the coherency model.
+These days, CMA can be allocated directly from the APIs. Switch to using
+this model to avoid needing a dummy device. This also mitigates some of
+the caching problems (e.g. dma_alloc_coherent only returning uncached
+memory).
+
+Signed-off-by: Laura Abbott <labbott@redhat.com>
 ---
- drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 322 +++++++++++++++++++++---------
- include/drm/bridge/dw_hdmi.h              |  63 ++++++
- 2 files changed, 290 insertions(+), 95 deletions(-)
+ drivers/staging/android/ion/Kconfig        |  7 +++
+ drivers/staging/android/ion/Makefile       |  3 +-
+ drivers/staging/android/ion/ion_cma_heap.c | 97 ++++++++----------------------
+ 3 files changed, 35 insertions(+), 72 deletions(-)
 
-diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-index 1ed8bc1..348311c 100644
---- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-+++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-@@ -30,17 +30,14 @@
- #include <drm/drm_encoder_slave.h>
- #include <drm/bridge/dw_hdmi.h>
+diff --git a/drivers/staging/android/ion/Kconfig b/drivers/staging/android/ion/Kconfig
+index 206c4de..15108c4 100644
+--- a/drivers/staging/android/ion/Kconfig
++++ b/drivers/staging/android/ion/Kconfig
+@@ -10,3 +10,10 @@ menuconfig ION
+ 	  If you're not using Android its probably safe to
+ 	  say N here.
  
-+#include <uapi/linux/media-bus-format.h>
-+#include <uapi/linux/videodev2.h>
-+
- #include "dw-hdmi.h"
- #include "dw-hdmi-audio.h"
++config ION_CMA_HEAP
++	bool "Ion CMA heap support"
++	depends on ION && CMA
++	help
++	  Choose this option to enable CMA heaps with Ion. This heap is backed
++	  by the Contiguous Memory Allocator (CMA). If your system has these
++	  regions, you should say Y here.
+diff --git a/drivers/staging/android/ion/Makefile b/drivers/staging/android/ion/Makefile
+index 26672a0..66d0c4a 100644
+--- a/drivers/staging/android/ion/Makefile
++++ b/drivers/staging/android/ion/Makefile
+@@ -1,6 +1,7 @@
+ obj-$(CONFIG_ION) +=	ion.o ion-ioctl.o ion_heap.o \
+ 			ion_page_pool.o ion_system_heap.o \
+-			ion_carveout_heap.o ion_chunk_heap.o ion_cma_heap.o
++			ion_carveout_heap.o ion_chunk_heap.o
++obj-$(CONFIG_ION_CMA_HEAP) += ion_cma_heap.o
+ ifdef CONFIG_COMPAT
+ obj-$(CONFIG_ION) += compat_ion.o
+ endif
+diff --git a/drivers/staging/android/ion/ion_cma_heap.c b/drivers/staging/android/ion/ion_cma_heap.c
+index d562fd7..f3e0f59 100644
+--- a/drivers/staging/android/ion/ion_cma_heap.c
++++ b/drivers/staging/android/ion/ion_cma_heap.c
+@@ -19,24 +19,19 @@
+ #include <linux/slab.h>
+ #include <linux/errno.h>
+ #include <linux/err.h>
+-#include <linux/dma-mapping.h>
++#include <linux/cma.h>
++#include <linux/scatterlist.h>
  
- #define HDMI_EDID_LEN		512
+ #include "ion.h"
+ #include "ion_priv.h"
  
--#define RGB			0
--#define YCBCR444		1
--#define YCBCR422_16BITS		2
--#define YCBCR422_8BITS		3
--#define XVYCC444		4
--
- enum hdmi_datamap {
- 	RGB444_8B = 0x01,
- 	RGB444_10B = 0x03,
-@@ -94,10 +91,10 @@ struct hdmi_vmode {
+ struct ion_cma_heap {
+ 	struct ion_heap heap;
+-	struct device *dev;
++	struct cma *cma;
  };
  
- struct hdmi_data_info {
--	unsigned int enc_in_format;
--	unsigned int enc_out_format;
--	unsigned int enc_color_depth;
--	unsigned int colorimetry;
-+	unsigned int enc_in_bus_format;
-+	unsigned int enc_out_bus_format;
-+	unsigned int enc_in_encoding;
-+	unsigned int enc_out_encoding;
- 	unsigned int pix_repet_factor;
- 	unsigned int hdcp_enable;
- 	struct hdmi_vmode video_mode;
-@@ -557,6 +554,92 @@ void dw_hdmi_audio_disable(struct dw_hdmi *hdmi)
- }
- EXPORT_SYMBOL_GPL(dw_hdmi_audio_disable);
+ #define to_cma_heap(x) container_of(x, struct ion_cma_heap, heap)
  
-+static bool hdmi_bus_fmt_is_rgb(unsigned int bus_format)
-+{
-+	switch (bus_format) {
-+	case MEDIA_BUS_FMT_RGB888_1X24:
-+	case MEDIA_BUS_FMT_RGB101010_1X30:
-+	case MEDIA_BUS_FMT_RGB121212_1X36:
-+	case MEDIA_BUS_FMT_RGB161616_1X48:
-+		return true;
-+
-+	default:
-+		return false;
-+	}
-+}
-+
-+static bool hdmi_bus_fmt_is_yuv444(unsigned int bus_format)
-+{
-+	switch (bus_format) {
-+	case MEDIA_BUS_FMT_YUV8_1X24:
-+	case MEDIA_BUS_FMT_YUV10_1X30:
-+	case MEDIA_BUS_FMT_YUV12_1X36:
-+	case MEDIA_BUS_FMT_YUV16_1X48:
-+		return true;
-+
-+	default:
-+		return false;
-+	}
-+}
-+
-+static bool hdmi_bus_fmt_is_yuv422(unsigned int bus_format)
-+{
-+	switch (bus_format) {
-+	case MEDIA_BUS_FMT_UYVY8_1X16:
-+	case MEDIA_BUS_FMT_UYVY10_1X20:
-+	case MEDIA_BUS_FMT_UYVY12_1X24:
-+		return true;
-+
-+	default:
-+		return false;
-+	}
-+}
-+
-+static bool hdmi_bus_fmt_is_yuv420(unsigned int bus_format)
-+{
-+	switch (bus_format) {
-+	case MEDIA_BUS_FMT_UYVY8_1_1X24:
-+	case MEDIA_BUS_FMT_UYVY10_1_1X30:
-+	case MEDIA_BUS_FMT_UYVY12_1_1X36:
-+	case MEDIA_BUS_FMT_UYVY16_1_1X48:
-+		return true;
-+
-+	default:
-+		return false;
-+	}
-+}
-+
-+static int hdmi_bus_fmt_color_depth(unsigned int bus_format)
-+{
-+	switch (bus_format) {
-+	case MEDIA_BUS_FMT_RGB888_1X24:
-+	case MEDIA_BUS_FMT_YUV8_1X24:
-+	case MEDIA_BUS_FMT_UYVY8_1X16:
-+	case MEDIA_BUS_FMT_UYVY8_1_1X24:
-+		return 8;
-+
-+	case MEDIA_BUS_FMT_RGB101010_1X30:
-+	case MEDIA_BUS_FMT_YUV10_1X30:
-+	case MEDIA_BUS_FMT_UYVY10_1X20:
-+	case MEDIA_BUS_FMT_UYVY10_1_1X30:
-+		return 10;
-+
-+	case MEDIA_BUS_FMT_RGB121212_1X36:
-+	case MEDIA_BUS_FMT_YUV12_1X36:
-+	case MEDIA_BUS_FMT_UYVY12_1X24:
-+	case MEDIA_BUS_FMT_UYVY12_1_1X36:
-+		return 12;
-+
-+	case MEDIA_BUS_FMT_RGB161616_1X48:
-+	case MEDIA_BUS_FMT_YUV16_1X48:
-+	case MEDIA_BUS_FMT_UYVY16_1_1X48:
-+		return 16;
-+
-+	default:
-+		return 0;
-+	}
-+}
-+
- /*
-  * this submodule is responsible for the video data synchronization.
-  * for example, for RGB 4:4:4 input, the data map is defined as
-@@ -569,37 +652,45 @@ static void hdmi_video_sample(struct dw_hdmi *hdmi)
- 	int color_format = 0;
- 	u8 val;
+-struct ion_cma_buffer_info {
+-	void *cpu_addr;
+-	dma_addr_t handle;
+-	struct sg_table *table;
+-};
+-
  
--	if (hdmi->hdmi_data.enc_in_format == RGB) {
--		if (hdmi->hdmi_data.enc_color_depth == 8)
--			color_format = 0x01;
--		else if (hdmi->hdmi_data.enc_color_depth == 10)
--			color_format = 0x03;
--		else if (hdmi->hdmi_data.enc_color_depth == 12)
--			color_format = 0x05;
--		else if (hdmi->hdmi_data.enc_color_depth == 16)
--			color_format = 0x07;
--		else
--			return;
--	} else if (hdmi->hdmi_data.enc_in_format == YCBCR444) {
--		if (hdmi->hdmi_data.enc_color_depth == 8)
--			color_format = 0x09;
--		else if (hdmi->hdmi_data.enc_color_depth == 10)
--			color_format = 0x0B;
--		else if (hdmi->hdmi_data.enc_color_depth == 12)
--			color_format = 0x0D;
--		else if (hdmi->hdmi_data.enc_color_depth == 16)
--			color_format = 0x0F;
--		else
--			return;
--	} else if (hdmi->hdmi_data.enc_in_format == YCBCR422_8BITS) {
--		if (hdmi->hdmi_data.enc_color_depth == 8)
--			color_format = 0x16;
--		else if (hdmi->hdmi_data.enc_color_depth == 10)
--			color_format = 0x14;
--		else if (hdmi->hdmi_data.enc_color_depth == 12)
--			color_format = 0x12;
--		else
--			return;
-+	switch (hdmi->hdmi_data.enc_in_bus_format) {
-+	case MEDIA_BUS_FMT_RGB888_1X24:
-+		color_format = 0x01;
-+		break;
-+	case MEDIA_BUS_FMT_RGB101010_1X30:
-+		color_format = 0x03;
-+		break;
-+	case MEDIA_BUS_FMT_RGB121212_1X36:
-+		color_format = 0x05;
-+		break;
-+	case MEDIA_BUS_FMT_RGB161616_1X48:
-+		color_format = 0x07;
-+		break;
-+
-+	case MEDIA_BUS_FMT_YUV8_1X24:
-+		color_format = 0x09;
-+		break;
-+	case MEDIA_BUS_FMT_YUV10_1X30:
-+		color_format = 0x0B;
-+		break;
-+	case MEDIA_BUS_FMT_YUV12_1X36:
-+		color_format = 0x0D;
-+		break;
-+	case MEDIA_BUS_FMT_YUV16_1X48:
-+		color_format = 0x0F;
-+		break;
-+
-+	case MEDIA_BUS_FMT_UYVY8_1X16:
-+		color_format = 0x16;
-+		break;
-+	case MEDIA_BUS_FMT_UYVY10_1X20:
-+		color_format = 0x14;
-+		break;
-+	case MEDIA_BUS_FMT_UYVY12_1X24:
-+		color_format = 0x12;
-+		break;
-+
-+	default:
-+		return;
- 	}
- 
- 	val = HDMI_TX_INVID0_INTERNAL_DE_GENERATOR_DISABLE |
-@@ -622,26 +713,30 @@ static void hdmi_video_sample(struct dw_hdmi *hdmi)
- 
- static int is_color_space_conversion(struct dw_hdmi *hdmi)
+ /* ION CMA heap operations functions */
+ static int ion_cma_allocate(struct ion_heap *heap, struct ion_buffer *buffer,
+@@ -44,93 +39,53 @@ static int ion_cma_allocate(struct ion_heap *heap, struct ion_buffer *buffer,
+ 			    unsigned long flags)
  {
--	return hdmi->hdmi_data.enc_in_format != hdmi->hdmi_data.enc_out_format;
-+	return hdmi->hdmi_data.enc_in_bus_format != hdmi->hdmi_data.enc_out_bus_format;
- }
+ 	struct ion_cma_heap *cma_heap = to_cma_heap(heap);
+-	struct device *dev = cma_heap->dev;
+-	struct ion_cma_buffer_info *info;
+-
+-	dev_dbg(dev, "Request buffer allocation len %ld\n", len);
+-
+-	if (buffer->flags & ION_FLAG_CACHED)
+-		return -EINVAL;
++	struct sg_table *table;
++	struct page *pages;
++	int ret;
  
- static int is_color_space_decimation(struct dw_hdmi *hdmi)
- {
--	if (hdmi->hdmi_data.enc_out_format != YCBCR422_8BITS)
-+	if (!hdmi_bus_fmt_is_yuv422(hdmi->hdmi_data.enc_out_bus_format))
- 		return 0;
--	if (hdmi->hdmi_data.enc_in_format == RGB ||
--	    hdmi->hdmi_data.enc_in_format == YCBCR444)
+-	info = kzalloc(sizeof(*info), GFP_KERNEL);
+-	if (!info)
++	pages = cma_alloc(cma_heap->cma, len, 0, GFP_KERNEL);
++	if (!pages)
+ 		return -ENOMEM;
+ 
+-	info->cpu_addr = dma_alloc_coherent(dev, len, &(info->handle),
+-						GFP_HIGHUSER | __GFP_ZERO);
+-
+-	if (!info->cpu_addr) {
+-		dev_err(dev, "Fail to allocate buffer\n");
++	table = kmalloc(sizeof(struct sg_table), GFP_KERNEL);
++	if (!table)
+ 		goto err;
+-	}
+ 
+-	info->table = kmalloc(sizeof(*info->table), GFP_KERNEL);
+-	if (!info->table)
++	ret = sg_alloc_table(table, 1, GFP_KERNEL);
++	if (ret)
+ 		goto free_mem;
+ 
+-	if (dma_get_sgtable(dev, info->table, info->cpu_addr, info->handle,
+-			    len))
+-		goto free_table;
+-	/* keep this for memory release */
+-	buffer->priv_virt = info;
+-	buffer->sg_table = info->table;
+-	dev_dbg(dev, "Allocate buffer %p\n", buffer);
++	sg_set_page(table->sgl, pages, len, 0);
 +
-+	if (hdmi_bus_fmt_is_rgb(hdmi->hdmi_data.enc_in_bus_format) ||
-+	    hdmi_bus_fmt_is_yuv444(hdmi->hdmi_data.enc_in_bus_format))
- 		return 1;
-+
++	buffer->priv_virt = pages;
++	buffer->sg_table = table;
  	return 0;
+ 
+-free_table:
+-	kfree(info->table);
+ free_mem:
+-	dma_free_coherent(dev, len, info->cpu_addr, info->handle);
++	kfree(table);
+ err:
+-	kfree(info);
++	cma_release(cma_heap->cma, pages, buffer->size);
+ 	return -ENOMEM;
  }
  
- static int is_color_space_interpolation(struct dw_hdmi *hdmi)
+ static void ion_cma_free(struct ion_buffer *buffer)
  {
--	if (hdmi->hdmi_data.enc_in_format != YCBCR422_8BITS)
-+	if (!hdmi_bus_fmt_is_yuv422(hdmi->hdmi_data.enc_in_bus_format))
- 		return 0;
--	if (hdmi->hdmi_data.enc_out_format == RGB ||
--	    hdmi->hdmi_data.enc_out_format == YCBCR444)
-+
-+	if (hdmi_bus_fmt_is_rgb(hdmi->hdmi_data.enc_out_bus_format) ||
-+	    hdmi_bus_fmt_is_yuv444(hdmi->hdmi_data.enc_out_bus_format))
- 		return 1;
-+
- 	return 0;
+ 	struct ion_cma_heap *cma_heap = to_cma_heap(buffer->heap);
+-	struct device *dev = cma_heap->dev;
+-	struct ion_cma_buffer_info *info = buffer->priv_virt;
++	struct page *pages = buffer->priv_virt;
+ 
+-	dev_dbg(dev, "Release buffer %p\n", buffer);
+ 	/* release memory */
+-	dma_free_coherent(dev, buffer->size, info->cpu_addr, info->handle);
++	cma_release(cma_heap->cma, pages, buffer->size);
+ 	/* release sg table */
+-	sg_free_table(info->table);
+-	kfree(info->table);
+-	kfree(info);
+-}
+-
+-static int ion_cma_mmap(struct ion_heap *mapper, struct ion_buffer *buffer,
+-			struct vm_area_struct *vma)
+-{
+-	struct ion_cma_heap *cma_heap = to_cma_heap(buffer->heap);
+-	struct device *dev = cma_heap->dev;
+-	struct ion_cma_buffer_info *info = buffer->priv_virt;
+-
+-	return dma_mmap_coherent(dev, vma, info->cpu_addr, info->handle,
+-				 buffer->size);
+-}
+-
+-static void *ion_cma_map_kernel(struct ion_heap *heap,
+-				struct ion_buffer *buffer)
+-{
+-	struct ion_cma_buffer_info *info = buffer->priv_virt;
+-	/* kernel memory mapping has been done at allocation time */
+-	return info->cpu_addr;
+-}
+-
+-static void ion_cma_unmap_kernel(struct ion_heap *heap,
+-				 struct ion_buffer *buffer)
+-{
++	sg_free_table(buffer->sg_table);
++	kfree(buffer->sg_table);
  }
  
-@@ -652,15 +747,16 @@ static void dw_hdmi_update_csc_coeffs(struct dw_hdmi *hdmi)
- 	u32 csc_scale = 1;
+ static struct ion_heap_ops ion_cma_ops = {
+ 	.allocate = ion_cma_allocate,
+ 	.free = ion_cma_free,
+-	.map_user = ion_cma_mmap,
+-	.map_kernel = ion_cma_map_kernel,
+-	.unmap_kernel = ion_cma_unmap_kernel,
++	.map_user = ion_heap_map_user,
++	.map_kernel = ion_heap_map_kernel,
++	.unmap_kernel = ion_heap_unmap_kernel,
+ };
  
- 	if (is_color_space_conversion(hdmi)) {
--		if (hdmi->hdmi_data.enc_out_format == RGB) {
--			if (hdmi->hdmi_data.colorimetry ==
--					HDMI_COLORIMETRY_ITU_601)
-+		if (hdmi_bus_fmt_is_rgb(hdmi->hdmi_data.enc_out_bus_format)) {
-+			if (hdmi->hdmi_data.enc_out_encoding ==
-+						V4L2_YCBCR_ENC_601)
- 				csc_coeff = &csc_coeff_rgb_out_eitu601;
- 			else
- 				csc_coeff = &csc_coeff_rgb_out_eitu709;
--		} else if (hdmi->hdmi_data.enc_in_format == RGB) {
--			if (hdmi->hdmi_data.colorimetry ==
--					HDMI_COLORIMETRY_ITU_601)
-+		} else if (hdmi_bus_fmt_is_rgb(
-+					hdmi->hdmi_data.enc_in_bus_format)) {
-+			if (hdmi->hdmi_data.enc_out_encoding ==
-+						V4L2_YCBCR_ENC_601)
- 				csc_coeff = &csc_coeff_rgb_in_eitu601;
- 			else
- 				csc_coeff = &csc_coeff_rgb_in_eitu709;
-@@ -698,16 +794,23 @@ static void hdmi_video_csc(struct dw_hdmi *hdmi)
- 	else if (is_color_space_decimation(hdmi))
- 		decimation = HDMI_CSC_CFG_DECMODE_CHROMA_INT_FORMULA3;
- 
--	if (hdmi->hdmi_data.enc_color_depth == 8)
-+	switch (hdmi_bus_fmt_color_depth(hdmi->hdmi_data.enc_out_bus_format)) {
-+	case 8:
- 		color_depth = HDMI_CSC_SCALE_CSC_COLORDE_PTH_24BPP;
--	else if (hdmi->hdmi_data.enc_color_depth == 10)
-+		break;
-+	case 10:
- 		color_depth = HDMI_CSC_SCALE_CSC_COLORDE_PTH_30BPP;
--	else if (hdmi->hdmi_data.enc_color_depth == 12)
-+		break;
-+	case 12:
- 		color_depth = HDMI_CSC_SCALE_CSC_COLORDE_PTH_36BPP;
--	else if (hdmi->hdmi_data.enc_color_depth == 16)
-+		break;
-+	case 16:
- 		color_depth = HDMI_CSC_SCALE_CSC_COLORDE_PTH_48BPP;
--	else
-+		break;
-+
-+	default:
- 		return;
-+	}
- 
- 	/* Configure the CSC registers */
- 	hdmi_writeb(hdmi, interpolation | decimation, HDMI_CSC_CFG);
-@@ -730,32 +833,43 @@ static void hdmi_video_packetize(struct dw_hdmi *hdmi)
- 	struct hdmi_data_info *hdmi_data = &hdmi->hdmi_data;
- 	u8 val, vp_conf;
- 
--	if (hdmi_data->enc_out_format == RGB ||
--	    hdmi_data->enc_out_format == YCBCR444) {
--		if (!hdmi_data->enc_color_depth) {
--			output_select = HDMI_VP_CONF_OUTPUT_SELECTOR_BYPASS;
--		} else if (hdmi_data->enc_color_depth == 8) {
-+	if (hdmi_bus_fmt_is_rgb(hdmi->hdmi_data.enc_out_bus_format) ||
-+	    hdmi_bus_fmt_is_yuv444(hdmi->hdmi_data.enc_out_bus_format)) {
-+		switch (hdmi_bus_fmt_color_depth(
-+					hdmi->hdmi_data.enc_out_bus_format)) {
-+		case 8:
- 			color_depth = 4;
- 			output_select = HDMI_VP_CONF_OUTPUT_SELECTOR_BYPASS;
--		} else if (hdmi_data->enc_color_depth == 10) {
-+			break;
-+		case 10:
- 			color_depth = 5;
--		} else if (hdmi_data->enc_color_depth == 12) {
-+			break;
-+		case 12:
- 			color_depth = 6;
--		} else if (hdmi_data->enc_color_depth == 16) {
-+			break;
-+		case 16:
- 			color_depth = 7;
--		} else {
--			return;
-+			break;
-+		default:
-+			output_select = HDMI_VP_CONF_OUTPUT_SELECTOR_BYPASS;
- 		}
--	} else if (hdmi_data->enc_out_format == YCBCR422_8BITS) {
--		if (!hdmi_data->enc_color_depth ||
--		    hdmi_data->enc_color_depth == 8)
-+	} else if (hdmi_bus_fmt_is_yuv422(hdmi->hdmi_data.enc_out_bus_format)) {
-+		switch (hdmi_bus_fmt_color_depth(
-+					hdmi->hdmi_data.enc_out_bus_format)) {
-+		case 0:
-+		case 8:
- 			remap_size = HDMI_VP_REMAP_YCC422_16bit;
--		else if (hdmi_data->enc_color_depth == 10)
-+			break;
-+		case 10:
- 			remap_size = HDMI_VP_REMAP_YCC422_20bit;
--		else if (hdmi_data->enc_color_depth == 12)
-+			break;
-+		case 12:
- 			remap_size = HDMI_VP_REMAP_YCC422_24bit;
--		else
-+			break;
-+
-+		default:
- 			return;
-+		}
- 		output_select = HDMI_VP_CONF_OUTPUT_SELECTOR_YCC422;
- 	} else {
- 		return;
-@@ -1138,28 +1252,35 @@ static void hdmi_config_AVI(struct dw_hdmi *hdmi, struct drm_display_mode *mode)
- 	/* Initialise info frame from DRM mode */
- 	drm_hdmi_avi_infoframe_from_display_mode(&frame, mode);
- 
--	if (hdmi->hdmi_data.enc_out_format == YCBCR444)
-+	if (hdmi_bus_fmt_is_yuv444(hdmi->hdmi_data.enc_out_bus_format))
- 		frame.colorspace = HDMI_COLORSPACE_YUV444;
--	else if (hdmi->hdmi_data.enc_out_format == YCBCR422_8BITS)
-+	else if (hdmi_bus_fmt_is_yuv422(hdmi->hdmi_data.enc_out_bus_format))
- 		frame.colorspace = HDMI_COLORSPACE_YUV422;
- 	else
- 		frame.colorspace = HDMI_COLORSPACE_RGB;
- 
- 	/* Set up colorimetry */
--	if (hdmi->hdmi_data.enc_out_format == XVYCC444) {
--		frame.colorimetry = HDMI_COLORIMETRY_EXTENDED;
--		if (hdmi->hdmi_data.colorimetry == HDMI_COLORIMETRY_ITU_601)
--			frame.extended_colorimetry =
-+	switch (hdmi->hdmi_data.enc_out_encoding) {
-+	case V4L2_YCBCR_ENC_601:
-+		if (hdmi->hdmi_data.enc_in_encoding == V4L2_YCBCR_ENC_XV601)
-+			frame.colorimetry = HDMI_COLORIMETRY_EXTENDED;
-+		else
-+			frame.colorimetry = HDMI_COLORIMETRY_ITU_601;
-+		frame.extended_colorimetry =
- 				HDMI_EXTENDED_COLORIMETRY_XV_YCC_601;
--		else /*hdmi->hdmi_data.colorimetry == HDMI_COLORIMETRY_ITU_709*/
--			frame.extended_colorimetry =
-+	case V4L2_YCBCR_ENC_709:
-+		if (hdmi->hdmi_data.enc_in_encoding == V4L2_YCBCR_ENC_XV709)
-+			frame.colorimetry = HDMI_COLORIMETRY_EXTENDED;
-+		else
-+			frame.colorimetry = HDMI_COLORIMETRY_ITU_709;
-+		frame.extended_colorimetry =
- 				HDMI_EXTENDED_COLORIMETRY_XV_YCC_709;
--	} else if (hdmi->hdmi_data.enc_out_format != RGB) {
--		frame.colorimetry = hdmi->hdmi_data.colorimetry;
--		frame.extended_colorimetry = HDMI_EXTENDED_COLORIMETRY_XV_YCC_601;
--	} else { /* Carries no data */
--		frame.colorimetry = HDMI_COLORIMETRY_NONE;
--		frame.extended_colorimetry = HDMI_EXTENDED_COLORIMETRY_XV_YCC_601;
-+		break;
-+	default: /* Carries no data */
-+		frame.colorimetry = HDMI_COLORIMETRY_ITU_601;
-+		frame.extended_colorimetry =
-+				HDMI_EXTENDED_COLORIMETRY_XV_YCC_601;
-+		break;
- 	}
- 
- 	frame.scan_mode = HDMI_SCAN_MODE_NONE;
-@@ -1436,19 +1557,30 @@ static int dw_hdmi_setup(struct dw_hdmi *hdmi, struct drm_display_mode *mode)
- 	    (hdmi->vic == 21) || (hdmi->vic == 22) ||
- 	    (hdmi->vic == 2) || (hdmi->vic == 3) ||
- 	    (hdmi->vic == 17) || (hdmi->vic == 18))
--		hdmi->hdmi_data.colorimetry = HDMI_COLORIMETRY_ITU_601;
-+		hdmi->hdmi_data.enc_out_encoding = V4L2_YCBCR_ENC_601;
- 	else
--		hdmi->hdmi_data.colorimetry = HDMI_COLORIMETRY_ITU_709;
-+		hdmi->hdmi_data.enc_out_encoding = V4L2_YCBCR_ENC_709;
- 
- 	hdmi->hdmi_data.video_mode.mpixelrepetitionoutput = 0;
- 	hdmi->hdmi_data.video_mode.mpixelrepetitioninput = 0;
- 
--	/* TODO: Get input format from IPU (via FB driver interface) */
--	hdmi->hdmi_data.enc_in_format = RGB;
-+	/* TOFIX: Get input format from plat data or fallback to RGB888 */
-+	if (hdmi->plat_data->input_bus_format >= 0)
-+		hdmi->hdmi_data.enc_in_bus_format =
-+			hdmi->plat_data->input_bus_format;
-+	else
-+		hdmi->hdmi_data.enc_in_bus_format = MEDIA_BUS_FMT_RGB888_1X24;
-+
-+	/* TOFIX: Get input encoding from plat data or fallback to none */
-+	if (hdmi->plat_data->input_bus_encoding >= 0)
-+		hdmi->hdmi_data.enc_in_encoding =
-+			hdmi->plat_data->input_bus_encoding;
-+	else
-+		hdmi->hdmi_data.enc_in_encoding = V4L2_YCBCR_ENC_DEFAULT;
- 
--	hdmi->hdmi_data.enc_out_format = RGB;
-+	/* TOFIX: Default to RGB888 output format */
-+	hdmi->hdmi_data.enc_out_bus_format = MEDIA_BUS_FMT_RGB888_1X24;
- 
--	hdmi->hdmi_data.enc_color_depth = 8;
- 	hdmi->hdmi_data.pix_repet_factor = 0;
- 	hdmi->hdmi_data.hdcp_enable = 0;
- 	hdmi->hdmi_data.video_mode.mdataenablepolarity = true;
-diff --git a/include/drm/bridge/dw_hdmi.h b/include/drm/bridge/dw_hdmi.h
-index bcceee8..c3b8da9 100644
---- a/include/drm/bridge/dw_hdmi.h
-+++ b/include/drm/bridge/dw_hdmi.h
-@@ -14,6 +14,67 @@
- 
- struct dw_hdmi;
- 
-+/**
-+ * DOC: Supported input formats and encodings
-+ *
-+ * Depending on the Hardware configuration of the Controller IP, it supports
-+ * a subset of the following input formats and encodings on it's internal
-+ * 48bit bus.
-+ *
-+ * +----------------------+---------------------------------+------------------------------+ 
-+ * + Format Name          + Format Code                     + Encodings                    +
-+ * +----------------------+---------------------------------+------------------------------+
-+ * + RGB 4:4:4 8bit       + ``MEDIA_BUS_FMT_RGB888_1X24``   + ``V4L2_YCBCR_ENC_DEFAULT``   +
-+ * +----------------------+---------------------------------+------------------------------+
-+ * + RGB 4:4:4 10bits     + ``MEDIA_BUS_FMT_RGB101010_1X30``+ ``V4L2_YCBCR_ENC_DEFAULT``   +
-+ * +----------------------+---------------------------------+------------------------------+
-+ * + RGB 4:4:4 12bits     + ``MEDIA_BUS_FMT_RGB121212_1X36``+ ``V4L2_YCBCR_ENC_DEFAULT``   +
-+ * +----------------------+---------------------------------+------------------------------+
-+ * + RGB 4:4:4 16bits     + ``MEDIA_BUS_FMT_RGB161616_1X48``+ ``V4L2_YCBCR_ENC_DEFAULT``   +
-+ * +----------------------+---------------------------------+------------------------------+
-+ * + YCbCr 4:4:4 8bit     + ``MEDIA_BUS_FMT_YUV8_1X24``     + ``V4L2_YCBCR_ENC_601``       +
-+ * +                      +                                 + or ``V4L2_YCBCR_ENC_709``    +
-+ * +                      +                                 + or ``V4L2_YCBCR_ENC_XV601``  +
-+ * +                      +                                 + or ``V4L2_YCBCR_ENC_XV709``  +
-+ * +----------------------+---------------------------------+------------------------------+
-+ * + YCbCr 4:4:4 10bits   + ``MEDIA_BUS_FMT_YUV10_1X30``    + ``V4L2_YCBCR_ENC_601``       +
-+ * +                      +                                 + or ``V4L2_YCBCR_ENC_709``    +
-+ * +                      +                                 + or ``V4L2_YCBCR_ENC_XV601``  +
-+ * +                      +                                 + or ``V4L2_YCBCR_ENC_XV709``  +
-+ * +----------------------+---------------------------------+------------------------------+
-+ * + YCbCr 4:4:4 12bits   + ``MEDIA_BUS_FMT_YUV12_1X36``    + ``V4L2_YCBCR_ENC_601``       +
-+ * +                      +                                 + or ``V4L2_YCBCR_ENC_709``    +
-+ * +                      +                                 + or ``V4L2_YCBCR_ENC_XV601``  +
-+ * +                      +                                 + or ``V4L2_YCBCR_ENC_XV709``  +
-+ * +----------------------+---------------------------------+------------------------------+
-+ * + YCbCr 4:4:4 16bits   + ``MEDIA_BUS_FMT_YUV16_1X48``    + ``V4L2_YCBCR_ENC_601``       +
-+ * +                      +                                 + or ``V4L2_YCBCR_ENC_709``    +
-+ * +                      +                                 + or ``V4L2_YCBCR_ENC_XV601``  +
-+ * +                      +                                 + or ``V4L2_YCBCR_ENC_XV709``  +
-+ * +----------------------+---------------------------------+------------------------------+
-+ * + YCbCr 4:2:2 8bit     + ``MEDIA_BUS_FMT_UYVY8_1X16``    + ``V4L2_YCBCR_ENC_601``       +
-+ * +                      +                                 + or ``V4L2_YCBCR_ENC_709``    +
-+ * +----------------------+---------------------------------+------------------------------+
-+ * + YCbCr 4:2:2 10bits   + ``MEDIA_BUS_FMT_UYVY10_1X20``   + ``V4L2_YCBCR_ENC_601``       +
-+ * +                      +                                 + or ``V4L2_YCBCR_ENC_709``    +
-+ * +----------------------+---------------------------------+------------------------------+
-+ * + YCbCr 4:2:2 12bits   + ``MEDIA_BUS_FMT_UYVY12_1X24``   + ``V4L2_YCBCR_ENC_601``       +
-+ * +                      +                                 + or ``V4L2_YCBCR_ENC_709``    +
-+ * +----------------------+---------------------------------+------------------------------+
-+ * + YCbCr 4:2:0 8bit     + ``MEDIA_BUS_FMT_UYVY8_1_1X24``  + ``V4L2_YCBCR_ENC_601``       +
-+ * +                      +                                 + or ``V4L2_YCBCR_ENC_709``    +
-+ * +----------------------+---------------------------------+------------------------------+
-+ * + YCbCr 4:2:0 10bits   + ``MEDIA_BUS_FMT_UYVY10_1_1X30`` + ``V4L2_YCBCR_ENC_601``       +
-+ * +                      +                                 + or ``V4L2_YCBCR_ENC_709``    +
-+ * +----------------------+---------------------------------+------------------------------+
-+ * + YCbCr 4:2:0 12bits   + ``MEDIA_BUS_FMT_UYVY12_1_1X36`` + ``V4L2_YCBCR_ENC_601``       +
-+ * +                      +                                 + or ``V4L2_YCBCR_ENC_709``    +
-+ * +----------------------+---------------------------------+------------------------------+
-+ * + YCbCr 4:2:0 16bits   + ``MEDIA_BUS_FMT_UYVY16_1_1X48`` + ``V4L2_YCBCR_ENC_601``       +
-+ * +                      +                                 + or ``V4L2_YCBCR_ENC_709``    +
-+ * +----------------------+---------------------------------+------------------------------+
-+ */
-+
- enum {
- 	DW_HDMI_RES_8,
- 	DW_HDMI_RES_10,
-@@ -62,6 +123,8 @@ struct dw_hdmi_plat_data {
- 	struct regmap *regm;
- 	enum drm_mode_status (*mode_valid)(struct drm_connector *connector,
- 					   struct drm_display_mode *mode);
-+	unsigned long input_bus_format;
-+	unsigned long input_bus_encoding;
- 
- 	/* Vendor PHY support */
- 	const struct dw_hdmi_phy_ops *phy_ops;
+ struct ion_heap *ion_cma_heap_create(struct ion_platform_heap *data)
+@@ -147,7 +102,7 @@ struct ion_heap *ion_cma_heap_create(struct ion_platform_heap *data)
+ 	 * get device from private heaps data, later it will be
+ 	 * used to make the link with reserved CMA memory
+ 	 */
+-	cma_heap->dev = data->priv;
++	cma_heap->cma = data->priv;
+ 	cma_heap->heap.type = ION_HEAP_TYPE_DMA;
+ 	return &cma_heap->heap;
+ }
 -- 
-1.9.1
+2.7.4
