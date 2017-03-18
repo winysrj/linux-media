@@ -1,70 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:53273 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754980AbdCKJb6 (ORCPT
+Received: from mail-qt0-f180.google.com ([209.85.216.180]:32992 "EHLO
+        mail-qt0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751037AbdCRB5F (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Mar 2017 04:31:58 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v2 1/2] libv4lconvert: make it clear about the criteria for needs_conversion
-Date: Sat, 11 Mar 2017 06:31:47 -0300
-Message-Id: <f389eeb8826caf429b0948469bb7ce48f5276851.1489224702.git.mchehab@s-opensource.com>
+        Fri, 17 Mar 2017 21:57:05 -0400
+Received: by mail-qt0-f180.google.com with SMTP id i34so75896416qtc.0
+        for <linux-media@vger.kernel.org>; Fri, 17 Mar 2017 18:56:46 -0700 (PDT)
+From: Laura Abbott <labbott@redhat.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com
+Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC PATCHv2 19/21] staging: android: ion: Drop ion_map_kernel interface
+Date: Fri, 17 Mar 2017 17:54:51 -0700
+Message-Id: <1489798493-16600-20-git-send-email-labbott@redhat.com>
+In-Reply-To: <1489798493-16600-1-git-send-email-labbott@redhat.com>
+References: <1489798493-16600-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While there is already a comment about the always_needs_conversion
-logic at libv4lconvert, the comment is not clear enough. Also,
-the decision of needing a conversion or not is actually at the
-supported_src_pixfmts[] table.
 
-Improve the comments to make it clearer about what criteria should be
-used with regards to exposing formats to userspace.
+Nobody uses this interface externally. Drop it.
 
-Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Laura Abbott <labbott@redhat.com>
 ---
- lib/libv4lconvert/libv4lconvert.c | 21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ drivers/staging/android/ion/ion.c | 59 ---------------------------------------
+ 1 file changed, 59 deletions(-)
 
-diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
-index da718918b030..2718446ff239 100644
---- a/lib/libv4lconvert/libv4lconvert.c
-+++ b/lib/libv4lconvert/libv4lconvert.c
-@@ -74,8 +74,15 @@ const struct libv4l_dev_ops *v4lconvert_get_default_dev_ops()
- static void v4lconvert_get_framesizes(struct v4lconvert_data *data,
- 		unsigned int pixelformat, int index);
+diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
+index 7d40233..5a82bea 100644
+--- a/drivers/staging/android/ion/ion.c
++++ b/drivers/staging/android/ion/ion.c
+@@ -424,22 +424,6 @@ static void *ion_buffer_kmap_get(struct ion_buffer *buffer)
+ 	return vaddr;
+ }
  
--/* Note for proper functioning of v4lconvert_enum_fmt the first entries in
--   supported_src_pixfmts must match with the entries in supported_dst_pixfmts */
-+/*
-+ * Notes:
-+ * 1) for proper functioning of v4lconvert_enum_fmt the first entries in
-+ *    supported_src_pixfmts must match with the entries in
-+ *    supported_dst_pixfmts.
-+ * 2) The field needs_conversion should be zero, *except* for device-specific
-+ *    formats, where it doesn't make sense for applications to have their
-+ *    own decoders.
-+ */
- #define SUPPORTED_DST_PIXFMTS \
- 	/* fourcc			bpp	rgb	yuv	needs      */ \
- 	/*					rank	rank	conversion */ \
-@@ -175,9 +182,13 @@ struct v4lconvert_data *v4lconvert_create_with_dev_ops(int fd, void *dev_ops_pri
- 	int i, j;
- 	struct v4lconvert_data *data = calloc(1, sizeof(struct v4lconvert_data));
- 	struct v4l2_capability cap;
--	/* This keeps tracks of devices which have only formats for which apps
--	   most likely will need conversion and we can thus safely add software
--	   processing controls without a performance impact. */
-+	/*
-+	 * This keeps tracks of device-specific formats for which apps most
-+	 * likely don't know. If all a driver can offer are proprietary
-+	 * formats, a conversion is needed anyway. We can thus safely
-+	 * add software processing controls without much concern about a
-+	 * performance impact.
-+	 */
- 	int always_needs_conversion = 1;
+-static void *ion_handle_kmap_get(struct ion_handle *handle)
+-{
+-	struct ion_buffer *buffer = handle->buffer;
+-	void *vaddr;
+-
+-	if (handle->kmap_cnt) {
+-		handle->kmap_cnt++;
+-		return buffer->vaddr;
+-	}
+-	vaddr = ion_buffer_kmap_get(buffer);
+-	if (IS_ERR(vaddr))
+-		return vaddr;
+-	handle->kmap_cnt++;
+-	return vaddr;
+-}
+-
+ static void ion_buffer_kmap_put(struct ion_buffer *buffer)
+ {
+ 	buffer->kmap_cnt--;
+@@ -462,49 +446,6 @@ static void ion_handle_kmap_put(struct ion_handle *handle)
+ 		ion_buffer_kmap_put(buffer);
+ }
  
- 	if (!data) {
+-void *ion_map_kernel(struct ion_client *client, struct ion_handle *handle)
+-{
+-	struct ion_buffer *buffer;
+-	void *vaddr;
+-
+-	mutex_lock(&client->lock);
+-	if (!ion_handle_validate(client, handle)) {
+-		pr_err("%s: invalid handle passed to map_kernel.\n",
+-		       __func__);
+-		mutex_unlock(&client->lock);
+-		return ERR_PTR(-EINVAL);
+-	}
+-
+-	buffer = handle->buffer;
+-
+-	if (!handle->buffer->heap->ops->map_kernel) {
+-		pr_err("%s: map_kernel is not implemented by this heap.\n",
+-		       __func__);
+-		mutex_unlock(&client->lock);
+-		return ERR_PTR(-ENODEV);
+-	}
+-
+-	mutex_lock(&buffer->lock);
+-	vaddr = ion_handle_kmap_get(handle);
+-	mutex_unlock(&buffer->lock);
+-	mutex_unlock(&client->lock);
+-	return vaddr;
+-}
+-EXPORT_SYMBOL(ion_map_kernel);
+-
+-void ion_unmap_kernel(struct ion_client *client, struct ion_handle *handle)
+-{
+-	struct ion_buffer *buffer;
+-
+-	mutex_lock(&client->lock);
+-	buffer = handle->buffer;
+-	mutex_lock(&buffer->lock);
+-	ion_handle_kmap_put(handle);
+-	mutex_unlock(&buffer->lock);
+-	mutex_unlock(&client->lock);
+-}
+-EXPORT_SYMBOL(ion_unmap_kernel);
+-
+ static struct mutex debugfs_mutex;
+ static struct rb_root *ion_root_client;
+ static int is_client_alive(struct ion_client *client)
 -- 
-2.9.3
+2.7.4
