@@ -1,193 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:35146 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932632AbdCJEzM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 23:55:12 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+Received: from mail-qt0-f182.google.com ([209.85.216.182]:35891 "EHLO
+        mail-qt0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751072AbdCRBYw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 17 Mar 2017 21:24:52 -0400
+Received: by mail-qt0-f182.google.com with SMTP id r45so75395392qte.3
+        for <linux-media@vger.kernel.org>; Fri, 17 Mar 2017 18:23:17 -0700 (PDT)
+From: Laura Abbott <labbott@redhat.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com
+Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v5 34/39] media: imx: csi: add __csi_get_fmt
-Date: Thu,  9 Mar 2017 20:53:14 -0800
-Message-Id: <1489121599-23206-35-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+        dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>,
+        Daniel Vetter <daniel.vetter@intel.com>,
+        Mark Brown <broonie@kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        linux-mm@kvack.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC PATCHv2 01/21] cma: Store a name in the cma structure
+Date: Fri, 17 Mar 2017 17:54:33 -0700
+Message-Id: <1489798493-16600-2-git-send-email-labbott@redhat.com>
+In-Reply-To: <1489798493-16600-1-git-send-email-labbott@redhat.com>
+References: <1489798493-16600-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add __csi_get_fmt() and use it to return the correct mbus format
-(active or try) in get_fmt. Use it in other places as well.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-Suggested-by: Russell King <linux@armlinux.org.uk>
+Frameworks that may want to enumerate CMA heaps (e.g. Ion) will find it
+useful to have an explicit name attached to each region. Store the name
+in each CMA structure.
+
+Signed-off-by: Laura Abbott <labbott@redhat.com>
 ---
- drivers/staging/media/imx/imx-media-csi.c | 61 ++++++++++++++++++++++++-------
- 1 file changed, 47 insertions(+), 14 deletions(-)
+ drivers/base/dma-contiguous.c |  5 +++--
+ include/linux/cma.h           |  4 +++-
+ mm/cma.c                      | 11 +++++++++--
+ mm/cma.h                      |  1 +
+ mm/cma_debug.c                |  2 +-
+ 5 files changed, 17 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index 577038e..6640869 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -830,13 +830,26 @@ static int csi_eof_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 	return 0;
+diff --git a/drivers/base/dma-contiguous.c b/drivers/base/dma-contiguous.c
+index b55804c..ea9726e 100644
+--- a/drivers/base/dma-contiguous.c
++++ b/drivers/base/dma-contiguous.c
+@@ -165,7 +165,8 @@ int __init dma_contiguous_reserve_area(phys_addr_t size, phys_addr_t base,
+ {
+ 	int ret;
+ 
+-	ret = cma_declare_contiguous(base, size, limit, 0, 0, fixed, res_cma);
++	ret = cma_declare_contiguous(base, size, limit, 0, 0, fixed,
++					"reserved", res_cma);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -258,7 +259,7 @@ static int __init rmem_cma_setup(struct reserved_mem *rmem)
+ 		return -EINVAL;
+ 	}
+ 
+-	err = cma_init_reserved_mem(rmem->base, rmem->size, 0, &cma);
++	err = cma_init_reserved_mem(rmem->base, rmem->size, 0, rmem->name, &cma);
+ 	if (err) {
+ 		pr_err("Reserved memory: unable to setup CMA region\n");
+ 		return err;
+diff --git a/include/linux/cma.h b/include/linux/cma.h
+index 03f32d0..d41d1f8 100644
+--- a/include/linux/cma.h
++++ b/include/linux/cma.h
+@@ -21,13 +21,15 @@ struct cma;
+ extern unsigned long totalcma_pages;
+ extern phys_addr_t cma_get_base(const struct cma *cma);
+ extern unsigned long cma_get_size(const struct cma *cma);
++extern const char *cma_get_name(const struct cma *cma);
+ 
+ extern int __init cma_declare_contiguous(phys_addr_t base,
+ 			phys_addr_t size, phys_addr_t limit,
+ 			phys_addr_t alignment, unsigned int order_per_bit,
+-			bool fixed, struct cma **res_cma);
++			bool fixed, const char *name, struct cma **res_cma);
+ extern int cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
+ 					unsigned int order_per_bit,
++					const char *name,
+ 					struct cma **res_cma);
+ extern struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align,
+ 			      gfp_t gfp_mask);
+diff --git a/mm/cma.c b/mm/cma.c
+index a6033e3..0d187b1 100644
+--- a/mm/cma.c
++++ b/mm/cma.c
+@@ -53,6 +53,11 @@ unsigned long cma_get_size(const struct cma *cma)
+ 	return cma->count << PAGE_SHIFT;
  }
  
--static int csi_try_crop(struct csi_priv *priv, struct v4l2_rect *crop,
-+static struct v4l2_mbus_framefmt *
-+__csi_get_fmt(struct csi_priv *priv, struct v4l2_subdev_pad_config *cfg,
-+	      unsigned int pad, enum v4l2_subdev_format_whence which)
++const char *cma_get_name(const struct cma *cma)
 +{
-+	if (which == V4L2_SUBDEV_FORMAT_TRY)
-+		return v4l2_subdev_get_try_format(&priv->sd, cfg, pad);
-+	else
-+		return &priv->format_mbus[pad];
++	return cma->name ? cma->name : "(undefined)";
 +}
 +
-+static int csi_try_crop(struct csi_priv *priv,
-+			struct v4l2_rect *crop,
-+			struct v4l2_subdev_pad_config *cfg,
-+			enum v4l2_subdev_format_whence which,
- 			struct imx_media_subdev *sensor)
+ static unsigned long cma_bitmap_aligned_mask(const struct cma *cma,
+ 					     int align_order)
  {
- 	struct v4l2_of_endpoint *sensor_ep;
- 	struct v4l2_mbus_framefmt *infmt;
- 
--	infmt = &priv->format_mbus[CSI_SINK_PAD];
-+	infmt = __csi_get_fmt(priv, cfg, CSI_SINK_PAD, which);
- 	sensor_ep = &sensor->sensor_ep;
- 
- 	crop->width = min_t(__u32, infmt->width, crop->width);
-@@ -886,17 +899,24 @@ static int csi_get_fmt(struct v4l2_subdev *sd,
- 		       struct v4l2_subdev_format *sdformat)
+@@ -168,6 +173,7 @@ core_initcall(cma_init_reserved_areas);
+  */
+ int __init cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
+ 				 unsigned int order_per_bit,
++				 const char *name,
+ 				 struct cma **res_cma)
  {
- 	struct csi_priv *priv = v4l2_get_subdevdata(sd);
-+	struct v4l2_mbus_framefmt *fmt;
-+	int ret = 0;
- 
- 	if (sdformat->pad >= CSI_NUM_PADS)
- 		return -EINVAL;
- 
- 	mutex_lock(&priv->lock);
- 
--	sdformat->format = priv->format_mbus[sdformat->pad];
-+	fmt = __csi_get_fmt(priv, cfg, sdformat->pad, sdformat->which);
-+	if (!fmt) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
- 
-+	sdformat->format = *fmt;
-+out:
- 	mutex_unlock(&priv->lock);
--
--	return 0;
-+	return ret;
- }
- 
- static int csi_set_fmt(struct v4l2_subdev *sd,
-@@ -927,8 +947,6 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
- 		goto out;
+ 	struct cma *cma;
+@@ -201,6 +207,7 @@ int __init cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
+ 	cma->base_pfn = PFN_DOWN(base);
+ 	cma->count = size >> PAGE_SHIFT;
+ 	cma->order_per_bit = order_per_bit;
++	cma->name = name;
+ 	*res_cma = cma;
+ 	cma_area_count++;
+ 	totalcma_pages += (size / PAGE_SIZE);
+@@ -229,7 +236,7 @@ int __init cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
+ int __init cma_declare_contiguous(phys_addr_t base,
+ 			phys_addr_t size, phys_addr_t limit,
+ 			phys_addr_t alignment, unsigned int order_per_bit,
+-			bool fixed, struct cma **res_cma)
++			bool fixed, const char *name, struct cma **res_cma)
+ {
+ 	phys_addr_t memblock_end = memblock_end_of_DRAM();
+ 	phys_addr_t highmem_start;
+@@ -335,7 +342,7 @@ int __init cma_declare_contiguous(phys_addr_t base,
+ 		base = addr;
  	}
  
--	infmt = &priv->format_mbus[CSI_SINK_PAD];
--
- 	v4l_bound_align_image(&sdformat->format.width, MIN_W, MAX_W,
- 			      W_ALIGN, &sdformat->format.height,
- 			      MIN_H, MAX_H, H_ALIGN, S_ALIGN);
-@@ -936,6 +954,8 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
- 	switch (sdformat->pad) {
- 	case CSI_SRC_PAD_DIRECT:
- 	case CSI_SRC_PAD_IDMAC:
-+		infmt = __csi_get_fmt(priv, cfg, CSI_SINK_PAD, sdformat->which);
-+
- 		if (sdformat->format.width < priv->crop.width * 3 / 4)
- 			sdformat->format.width = priv->crop.width / 2;
- 		else
-@@ -994,7 +1014,8 @@ static int csi_set_fmt(struct v4l2_subdev *sd,
- 		crop.top = 0;
- 		crop.width = sdformat->format.width;
- 		crop.height = sdformat->format.height;
--		ret = csi_try_crop(priv, &crop, sensor);
-+		ret = csi_try_crop(priv, &crop, cfg,
-+				   sdformat->which, sensor);
- 		if (ret)
- 			goto out;
- 
-@@ -1039,7 +1060,11 @@ static int csi_get_selection(struct v4l2_subdev *sd,
- 
- 	mutex_lock(&priv->lock);
- 
--	infmt = &priv->format_mbus[CSI_SINK_PAD];
-+	infmt = __csi_get_fmt(priv, cfg, CSI_SINK_PAD, sel->which);
-+	if (!infmt) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
- 
- 	switch (sel->target) {
- 	case V4L2_SEL_TGT_CROP_BOUNDS:
-@@ -1049,12 +1074,20 @@ static int csi_get_selection(struct v4l2_subdev *sd,
- 		sel->r.height = infmt->height;
- 		break;
- 	case V4L2_SEL_TGT_CROP:
--		sel->r = priv->crop;
-+		if (sel->which == V4L2_SUBDEV_FORMAT_TRY) {
-+			struct v4l2_rect *try_crop =
-+				v4l2_subdev_get_try_crop(&priv->sd,
-+							 cfg, sel->pad);
-+			sel->r = *try_crop;
-+		} else {
-+			sel->r = priv->crop;
-+		}
- 		break;
- 	default:
- 		ret = -EINVAL;
- 	}
- 
-+out:
- 	mutex_unlock(&priv->lock);
- 	return ret;
- }
-@@ -1064,7 +1097,6 @@ static int csi_set_selection(struct v4l2_subdev *sd,
- 			     struct v4l2_subdev_selection *sel)
- {
- 	struct csi_priv *priv = v4l2_get_subdevdata(sd);
--	struct v4l2_mbus_framefmt *outfmt;
- 	struct imx_media_subdev *sensor;
- 	int ret = 0;
- 
-@@ -1098,15 +1130,16 @@ static int csi_set_selection(struct v4l2_subdev *sd,
- 		goto out;
- 	}
- 
--	outfmt = &priv->format_mbus[sel->pad];
--
--	ret = csi_try_crop(priv, &sel->r, sensor);
-+	ret = csi_try_crop(priv, &sel->r, cfg, sel->which, sensor);
+-	ret = cma_init_reserved_mem(base, size, order_per_bit, res_cma);
++	ret = cma_init_reserved_mem(base, size, order_per_bit, name, res_cma);
  	if (ret)
- 		goto out;
+ 		goto err;
  
- 	if (sel->which == V4L2_SUBDEV_FORMAT_TRY) {
- 		cfg->try_crop = sel->r;
- 	} else {
-+		struct v4l2_mbus_framefmt *outfmt =
-+			&priv->format_mbus[sel->pad];
-+
- 		priv->crop = sel->r;
- 		/* Update the source format */
- 		outfmt->width = sel->r.width;
+diff --git a/mm/cma.h b/mm/cma.h
+index 17c75a4..4986128 100644
+--- a/mm/cma.h
++++ b/mm/cma.h
+@@ -11,6 +11,7 @@ struct cma {
+ 	struct hlist_head mem_head;
+ 	spinlock_t mem_head_lock;
+ #endif
++	const char *name;
+ };
+ 
+ extern struct cma cma_areas[MAX_CMA_AREAS];
+diff --git a/mm/cma_debug.c b/mm/cma_debug.c
+index ffc0c3d..595b757 100644
+--- a/mm/cma_debug.c
++++ b/mm/cma_debug.c
+@@ -167,7 +167,7 @@ static void cma_debugfs_add_one(struct cma *cma, int idx)
+ 	char name[16];
+ 	int u32s;
+ 
+-	sprintf(name, "cma-%d", idx);
++	sprintf(name, "cma-%s", cma->name);
+ 
+ 	tmp = debugfs_create_dir(name, cma_debugfs_root);
+ 
 -- 
 2.7.4
