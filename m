@@ -1,115 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:33799 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934785AbdCaBaY (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:52034 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751498AbdCSNZG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 21:30:24 -0400
-Date: Fri, 31 Mar 2017 10:30:12 +0900
-From: Daeseok Youn <daeseok.youn@gmail.com>
-To: mchehab@kernel.org
-Cc: gregkh@linuxfoundation.org, daeseok.youn@gmail.com,
-        alan@linux.intel.com, dan.carpenter@oracle.com,
-        singhalsimran0@gmail.com, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        kernel-janitors@vger.kernel.org
-Subject: [PATCH 2/2 V2] staging: atomisp: use local variable to reduce the
- number of reference
-Message-ID: <20170331013012.GA15884@jyoun-Latitude-E6530>
+        Sun, 19 Mar 2017 09:25:06 -0400
+Date: Sun, 19 Mar 2017 14:25:01 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
+        markus.heiser@darmarIT.de, p.zabel@pengutronix.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
+ controls from a pipeline
+Message-ID: <20170319132501.GA25673@amd>
+References: <c679f755-52a6-3c6f-3d65-277db46676cc@xs4all.nl>
+ <20170310140124.GV21222@n2100.armlinux.org.uk>
+ <cc8900b0-c091-b14b-96f4-01f8fa72431c@xs4all.nl>
+ <20170310125342.7f047acf@vento.lan>
+ <20170310223714.GI3220@valkosipuli.retiisi.org.uk>
+ <20170311082549.576531d0@vento.lan>
+ <20170313124621.GA10701@valkosipuli.retiisi.org.uk>
+ <20170314004533.3b3cd44b@vento.lan>
+ <e0a6c60b-1735-de0b-21f4-d8c3f4b3f10f@xs4all.nl>
+ <20170317114203.GZ21222@n2100.armlinux.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="u3/rZRmxL6MmkK24"
 Content-Disposition: inline
+In-Reply-To: <20170317114203.GZ21222@n2100.armlinux.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Define new local variable to reduce the number of reference.
-The new local variable is added to save the addess of dfs
-and used in atomisp_freq_scaling() function.
 
-Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
----
-V2: this patch was rebased since the patch 1/2 was improved.
+--u3/rZRmxL6MmkK24
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
- .../media/atomisp/pci/atomisp2/atomisp_cmd.c       | 37 ++++++++++++----------
- 1 file changed, 20 insertions(+), 17 deletions(-)
+On Fri 2017-03-17 11:42:03, Russell King - ARM Linux wrote:
+> On Tue, Mar 14, 2017 at 08:55:36AM +0100, Hans Verkuil wrote:
+> > We're all very driver-development-driven, and userspace gets very little
+> > attention in general. So before just throwing in the towel we should ta=
+ke
+> > a good look at the reasons why there has been little or no development:=
+ is
+> > it because of fundamental design defects, or because nobody paid attent=
+ion
+> > to it?
+> >=20
+> > I strongly suspect it is the latter.
+> >=20
+> > In addition, I suspect end-users of these complex devices don't really =
+care
+> > about a plugin: they want full control and won't typically use generic
+> > applications. If they would need support for that, we'd have seen much =
+more
+> > interest. The main reason for having a plugin is to simplify testing and
+> > if this is going to be used on cheap hobbyist devkits.
+>=20
+> I think you're looking at it with a programmers hat on, not a users hat.
+>=20
+> Are you really telling me that requiring users to 'su' to root, and then
+> use media-ctl to manually configure the capture device is what most
+> users "want" ?
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-index 87224d6..9f4041a 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-@@ -251,6 +251,7 @@ int atomisp_freq_scaling(struct atomisp_device *isp,
- {
- 	/* FIXME! Only use subdev[0] status yet */
- 	struct atomisp_sub_device *asd = &isp->asd[0];
-+	const struct atomisp_dfs_config *dfs;
- 	unsigned int new_freq;
- 	struct atomisp_freq_scaling_rule curr_rules;
- 	int i, ret;
-@@ -264,20 +265,22 @@ int atomisp_freq_scaling(struct atomisp_device *isp,
- 	if (ATOMISP_IS_CHT(isp) && ATOMISP_USE_YUVPP(asd))
- 		isp->dfs = &dfs_config_cht_soc;
- 
--	if (isp->dfs->lowest_freq == 0 || isp->dfs->max_freq_at_vmin == 0 ||
--	    isp->dfs->highest_freq == 0 || isp->dfs->dfs_table_size == 0 ||
--	    !isp->dfs->dfs_table) {
-+	dfs = isp->dfs;
-+
-+	if (dfs->lowest_freq == 0 || dfs->max_freq_at_vmin == 0 ||
-+	    dfs->highest_freq == 0 || dfs->dfs_table_size == 0 ||
-+	    !dfs->dfs_table) {
- 		dev_err(isp->dev, "DFS configuration is invalid.\n");
- 		return -EINVAL;
- 	}
- 
- 	if (mode == ATOMISP_DFS_MODE_LOW) {
--		new_freq = isp->dfs->lowest_freq;
-+		new_freq = dfs->lowest_freq;
- 		goto done;
- 	}
- 
- 	if (mode == ATOMISP_DFS_MODE_MAX) {
--		new_freq = isp->dfs->highest_freq;
-+		new_freq = dfs->highest_freq;
- 		goto done;
- 	}
- 
-@@ -303,26 +306,26 @@ int atomisp_freq_scaling(struct atomisp_device *isp,
- 	}
- 
- 	/* search for the target frequency by looping freq rules*/
--	for (i = 0; i < isp->dfs->dfs_table_size; i++) {
--		if (curr_rules.width != isp->dfs->dfs_table[i].width &&
--		    isp->dfs->dfs_table[i].width != ISP_FREQ_RULE_ANY)
-+	for (i = 0; i < dfs->dfs_table_size; i++) {
-+		if (curr_rules.width != dfs->dfs_table[i].width &&
-+		    dfs->dfs_table[i].width != ISP_FREQ_RULE_ANY)
- 			continue;
--		if (curr_rules.height != isp->dfs->dfs_table[i].height &&
--		    isp->dfs->dfs_table[i].height != ISP_FREQ_RULE_ANY)
-+		if (curr_rules.height != dfs->dfs_table[i].height &&
-+		    dfs->dfs_table[i].height != ISP_FREQ_RULE_ANY)
- 			continue;
--		if (curr_rules.fps != isp->dfs->dfs_table[i].fps &&
--		    isp->dfs->dfs_table[i].fps != ISP_FREQ_RULE_ANY)
-+		if (curr_rules.fps != dfs->dfs_table[i].fps &&
-+		    dfs->dfs_table[i].fps != ISP_FREQ_RULE_ANY)
- 			continue;
--		if (curr_rules.run_mode != isp->dfs->dfs_table[i].run_mode &&
--		    isp->dfs->dfs_table[i].run_mode != ISP_FREQ_RULE_ANY)
-+		if (curr_rules.run_mode != dfs->dfs_table[i].run_mode &&
-+		    dfs->dfs_table[i].run_mode != ISP_FREQ_RULE_ANY)
- 			continue;
- 		break;
- 	}
- 
--	if (i == isp->dfs->dfs_table_size)
--		new_freq = isp->dfs->max_freq_at_vmin;
-+	if (i == dfs->dfs_table_size)
-+		new_freq = dfs->max_freq_at_vmin;
- 	else
--		new_freq = isp->dfs->dfs_table[i].isp_freq;
-+		new_freq = dfs->dfs_table[i].isp_freq;
- 
- done:
- 	dev_dbg(isp->dev, "DFS target frequency=%d.\n", new_freq);
--- 
-2.7.4
+If you want to help users, right way is to improve userland support.=20
+
+> Hasn't the way technology has moved towards graphical interfaces,
+> particularly smart phones, taught us that the vast majority of users
+> want is intuitive, easy to use interfaces, and not the command line
+> with reams of documentation?
+
+How is it relevant to _kernel_ interfaces?
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--u3/rZRmxL6MmkK24
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAljOhq0ACgkQMOfwapXb+vJ9ywCgiLbs4zD6qCIbTw4hAUuhMtfs
+Y58An3yuL1bl63dFNji5vJn59vsTQqvq
+=+jHQ
+-----END PGP SIGNATURE-----
+
+--u3/rZRmxL6MmkK24--
