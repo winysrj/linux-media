@@ -1,82 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:37396 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751489AbdCNTGi (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:64515 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751490AbdCSPAV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 14 Mar 2017 15:06:38 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v3 11/27] rcar-vin: do not allow changing scaling and composing while streaming
-Date: Tue, 14 Mar 2017 20:02:52 +0100
-Message-Id: <20170314190308.25790-12-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20170314190308.25790-1-niklas.soderlund+renesas@ragnatech.se>
+        Sun, 19 Mar 2017 11:00:21 -0400
+Subject: Re: [PATCH v5 00/39] i.MX Media Driver
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <20170318192258.GL21222@n2100.armlinux.org.uk>
+ <aef6c412-5464-726b-42f6-a24b7323aa9c@mentor.com>
+ <20170318204324.GM21222@n2100.armlinux.org.uk>
+ <4e7f91fa-e1c4-1cbc-2542-2aaf19a35329@mentor.com>
+ <20170319142110.GT21222@n2100.armlinux.org.uk>
+ <20170319142240.GA23922@n2100.armlinux.org.uk>
+CC: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>, <robh+dt@kernel.org>,
+        <mark.rutland@arm.com>, <shawnguo@kernel.org>,
+        <kernel@pengutronix.de>, <fabio.estevam@nxp.com>,
+        <mchehab@kernel.org>, <hverkuil@xs4all.nl>, <nick@shmanahar.org>,
+        <markus.heiser@darmarIT.de>, <p.zabel@pengutronix.de>,
+        <laurent.pinchart+renesas@ideasonboard.com>, <bparrot@ti.com>,
+        <geert@linux-m68k.org>, <arnd@arndb.de>,
+        <sudipm.mukherjee@gmail.com>, <minghsiu.tsai@mediatek.com>,
+        <tiffany.lin@mediatek.com>, <jean-christophe.trotin@st.com>,
+        <horms+renesas@verge.net.au>,
+        <niklas.soderlund+renesas@ragnatech.se>, <robert.jarzmik@free.fr>,
+        <songjun.wu@microchip.com>, <andrew-ct.chen@mediatek.com>,
+        <gregkh@linuxfoundation.org>, <shuah@kernel.org>,
+        <sakari.ailus@linux.intel.com>, <pavel@ucw.cz>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>, <devel@driverdev.osuosl.org>
+From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Message-ID: <51e2be34-6fa2-9d91-5111-adcd697b3e3f@mentor.com>
+Date: Sun, 19 Mar 2017 17:00:08 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20170319142240.GA23922@n2100.armlinux.org.uk>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is possible on Gen2 to change the registers controlling composing and
-scaling while the stream is running. Is however not a good idea to do so
-and could result in trouble. There are also no good reason to allow
-this, remove immediate reflection in hardware registers from
-vidioc_s_selection and only configure scaling and composing when the
-stream starts.
+On 03/19/2017 04:22 PM, Russell King - ARM Linux wrote:
+> On Sun, Mar 19, 2017 at 02:21:10PM +0000, Russell King - ARM Linux wrote:
+>> There's a good reason why I dumped a full debug log using GST_DEBUG=*:9,
+>> analysed it for the cause of the failure, and tried several different
+>> pipelines, including the standard bayer2rgb plugin.
+>>
+>> Please don't blame this on random stuff after analysis of the logs _and_
+>> reading the appropriate plugin code has shown where the problem is.  I
+>> know gstreamer can be very complex, but it's very possible to analyse
+>> the cause of problems and pin them down with detailed logs in conjunction
+>> with the source code.
+> 
+> Oh, and the proof of correct analysis is that fixing the kernel capture
+> driver to enumerate the frame sizes and intervals fixes the issue, even
+> with bayer2rgbneon being used.
+> 
+> Therefore, there is _no way_ what so ever that it could be caused by that
+> plugin.
+> 
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-dma.c  | 2 +-
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 3 ---
- drivers/media/platform/rcar-vin/rcar-vin.h  | 3 ---
- 3 files changed, 1 insertion(+), 7 deletions(-)
+Hey, no blaming of the unknown to me bayer2rgbneon element from my side,
+I've just asked an innocent question, thanks for reply. I failed to find
+the source code of the plugin, I was interested to compare its performance
+and features with mine in-house NEON powered RGGB/BGGR to RGB24 GStreamer
+conversion element, which is written years ago. My question was offtopic.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 286aafab533cda9d..ef029e4c7882322e 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -514,7 +514,7 @@ static void rvin_set_coeff(struct rvin_dev *vin, unsigned short xs)
- 	rvin_write(vin, p_set->coeff_set[23], VNC8C_REG);
- }
- 
--void rvin_crop_scale_comp(struct rvin_dev *vin)
-+static void rvin_crop_scale_comp(struct rvin_dev *vin)
- {
- 	u32 xs, ys;
- 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index e14f0aff8ceecc68..919040e40aec60f6 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -442,9 +442,6 @@ static int rvin_s_selection(struct file *file, void *fh,
- 		return -EINVAL;
- 	}
- 
--	/* HW supports modifying configuration while running */
--	rvin_crop_scale_comp(vin);
--
- 	return 0;
- }
- 
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 6bf2e4ff8f6076c7..f1251c013d1d2d80 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -175,7 +175,4 @@ void rvin_v4l2_remove(struct rvin_dev *vin);
- 
- const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
- 
--/* Cropping, composing and scaling */
--void rvin_crop_scale_comp(struct rvin_dev *vin);
--
- #endif
--- 
-2.12.0
+--
+With best wishes,
+Vladimir
