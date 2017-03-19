@@ -1,87 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:57908 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754218AbdCKTAp (ORCPT
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:33733 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752446AbdCSWKa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Mar 2017 14:00:45 -0500
-Date: Sat, 11 Mar 2017 18:59:59 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: mark.rutland@arm.com, andrew-ct.chen@mediatek.com,
-        minghsiu.tsai@mediatek.com, nick@shmanahar.org,
-        songjun.wu@microchip.com, Hans Verkuil <hverkuil@xs4all.nl>,
-        pavel@ucw.cz, shuah@kernel.org, devel@driverdev.osuosl.org,
-        markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, robert.jarzmik@free.fr,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        geert@linux-m68k.org, p.zabel@pengutronix.de,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        kernel@pengutronix.de, arnd@arndb.de, tiffany.lin@mediatek.com,
-        bparrot@ti.com, robh+dt@kernel.org, horms+renesas@verge.net.au,
+        Sun, 19 Mar 2017 18:10:30 -0400
+Subject: Re: [PATCH 2/4] media: imx: allow bayer pixel formats to be looked up
+To: Russell King <rmk+kernel@armlinux.org.uk>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+References: <20170319103801.GQ21222@n2100.armlinux.org.uk>
+ <E1cpYOP-0006Eg-RQ@rmk-PC.armlinux.org.uk>
+Cc: sakari.ailus@linux.intel.com, hverkuil@xs4all.nl,
+        linux-media@vger.kernel.org, kernel@pengutronix.de,
         mchehab@kernel.org, linux-arm-kernel@lists.infradead.org,
-        niklas.soderlund+renesas@ragnatech.se, gregkh@linuxfoundation.org,
-        linux-kernel@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
-        jean-christophe.trotin@st.com, sakari.ailus@linux.intel.com,
-        fabio.estevam@nxp.com, shawnguo@kernel.org,
-        sudipm.mukherjee@gmail.com
-Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
- controls from a pipeline
-Message-ID: <20170311185959.GF21222@n2100.armlinux.org.uk>
-References: <20170303230645.GR21222@n2100.armlinux.org.uk>
- <20170304131329.GV3220@valkosipuli.retiisi.org.uk>
- <a7b8e095-a95c-24bd-b1e9-e983f18061c4@xs4all.nl>
- <20170310120902.1daebc7b@vento.lan>
- <5e1183f4-774f-413a-628a-96e0df321faf@xs4all.nl>
- <20170311101408.272a9187@vento.lan>
- <20170311153229.yrdjmggb3p2suhdw@ihha.localdomain>
- <acfb5eca-ff00-6d57-339a-3322034cbdb3@gmail.com>
- <20170311184551.GD21222@n2100.armlinux.org.uk>
- <1f1b350a-5523-34bc-07b7-f3cd2d1fd4c1@gmail.com>
+        linux-kernel@vger.kernel.org, p.zabel@pengutronix.de
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <c747d3d8-7730-d537-4432-47fa431addab@gmail.com>
+Date: Sun, 19 Mar 2017 15:02:08 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1f1b350a-5523-34bc-07b7-f3cd2d1fd4c1@gmail.com>
+In-Reply-To: <E1cpYOP-0006Eg-RQ@rmk-PC.armlinux.org.uk>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Mar 11, 2017 at 10:54:55AM -0800, Steve Longerbeam wrote:
-> 
-> 
-> On 03/11/2017 10:45 AM, Russell King - ARM Linux wrote:
-> >I really don't think expecting the user to understand and configure
-> >the pipeline is a sane way forward.  Think about it - should the
-> >user need to know that, because they have a bayer-only CSI data
-> >source, that there is only one path possible, and if they try to
-> >configure a different path, then things will just error out?
-> >
-> >For the case of imx219 connected to iMX6, it really is as simple as
-> >"there is only one possible path" and all the complexity of the media
-> >interfaces/subdevs is completely unnecessary.  Every other block in
-> >the graph is just noise.
-> >
-> >The fact is that these dot graphs show a complex picture, but reality
-> >is somewhat different - there's only relatively few paths available
-> >depending on the connected source and the rest of the paths are
-> >completely useless.
-> >
-> 
-> I totally disagree there. Raw bayer requires passthrough yes, but for
-> all other media bus formats on a mipi csi-2 bus, and all other media
-> bus formats on 8-bit parallel buses, the conersion pipelines can be
-> used for scaling, CSC, rotation, and motion-compensated de-interlacing.
+This is good too, but if it's all right with you I would prefer to
+squash this with the "redo  pixel format enumeration and
+negotiation" patch, to keep the patch count down.
 
-... which only makes sense _if_ your source can produce those formats.
-We don't actually disagree on that.
+Steve
 
-Let me re-state.  If the source can _only_ produce bayer, then there is
-_only_ _one_ possible path, and all the overhead of the media controller
-stuff is totally unnecessary.
 
-Or, are you going to tell me that the user should have the right to
-configure paths through the iMX6 hardware that are not permitted by the
-iMX6 manuals for the data format being produced by the sensor?
-
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+On 03/19/2017 03:48 AM, Russell King wrote:
+> Allow imx_media_find_format() to look up bayer formats, which is
+> required to support frame size and interval enumeration.
+>
+> Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+> ---
+>   drivers/staging/media/imx/imx-media-capture.c | 11 ++++++-----
+>   drivers/staging/media/imx/imx-media-utils.c   |  6 +++---
+>   drivers/staging/media/imx/imx-media.h         |  2 +-
+>   3 files changed, 10 insertions(+), 9 deletions(-)
+>
+> diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
+> index ee914396080f..cdeb2cd8b1d7 100644
+> --- a/drivers/staging/media/imx/imx-media-capture.c
+> +++ b/drivers/staging/media/imx/imx-media-capture.c
+> @@ -164,10 +164,10 @@ static int capture_try_fmt_vid_cap(struct file *file, void *fh,
+>   			CS_SEL_YUV : CS_SEL_RGB;
+>   		fourcc = f->fmt.pix.pixelformat;
+>   
+> -		cc = imx_media_find_format(fourcc, cs_sel);
+> +		cc = imx_media_find_format(fourcc, cs_sel, false);
+>   		if (!cc) {
+>   			imx_media_enum_format(&fourcc, 0, cs_sel);
+> -			cc = imx_media_find_format(fourcc, cs_sel);
+> +			cc = imx_media_find_format(fourcc, cs_sel, false);
+>   		}
+>   	}
+>   
+> @@ -193,7 +193,7 @@ static int capture_s_fmt_vid_cap(struct file *file, void *fh,
+>   
+>   	priv->vdev.fmt.fmt.pix = f->fmt.pix;
+>   	priv->vdev.cc = imx_media_find_format(f->fmt.pix.pixelformat,
+> -					      CS_SEL_ANY);
+> +					      CS_SEL_ANY, false);
+>   
+>   	return 0;
+>   }
+> @@ -505,7 +505,8 @@ void imx_media_capture_device_set_format(struct imx_media_video_dev *vdev,
+>   
+>   	mutex_lock(&priv->mutex);
+>   	priv->vdev.fmt.fmt.pix = *pix;
+> -	priv->vdev.cc = imx_media_find_format(pix->pixelformat, CS_SEL_ANY);
+> +	priv->vdev.cc = imx_media_find_format(pix->pixelformat, CS_SEL_ANY,
+> +					      false);
+>   	mutex_unlock(&priv->mutex);
+>   }
+>   EXPORT_SYMBOL_GPL(imx_media_capture_device_set_format);
+> @@ -614,7 +615,7 @@ int imx_media_capture_device_register(struct imx_media_video_dev *vdev)
+>   	imx_media_mbus_fmt_to_pix_fmt(&vdev->fmt.fmt.pix,
+>   				      &fmt_src.format, NULL);
+>   	vdev->cc = imx_media_find_format(vdev->fmt.fmt.pix.pixelformat,
+> -					 CS_SEL_ANY);
+> +					 CS_SEL_ANY, false);
+>   
+>   	v4l2_info(sd, "Registered %s as /dev/%s\n", vfd->name,
+>   		  video_device_node_name(vfd));
+> diff --git a/drivers/staging/media/imx/imx-media-utils.c b/drivers/staging/media/imx/imx-media-utils.c
+> index 6eb7e3c5279e..d048e4a080d0 100644
+> --- a/drivers/staging/media/imx/imx-media-utils.c
+> +++ b/drivers/staging/media/imx/imx-media-utils.c
+> @@ -329,9 +329,9 @@ static int enum_format(u32 *fourcc, u32 *code, u32 index,
+>   }
+>   
+>   const struct imx_media_pixfmt *
+> -imx_media_find_format(u32 fourcc, enum codespace_sel cs_sel)
+> +imx_media_find_format(u32 fourcc, enum codespace_sel cs_sel, bool allow_bayer)
+>   {
+> -	return find_format(fourcc, 0, cs_sel, true, false);
+> +	return find_format(fourcc, 0, cs_sel, true, allow_bayer);
+>   }
+>   EXPORT_SYMBOL_GPL(imx_media_find_format);
+>   
+> @@ -524,7 +524,7 @@ int imx_media_ipu_image_to_mbus_fmt(struct v4l2_mbus_framefmt *mbus,
+>   {
+>   	const struct imx_media_pixfmt *fmt;
+>   
+> -	fmt = imx_media_find_format(image->pix.pixelformat, CS_SEL_ANY);
+> +	fmt = imx_media_find_format(image->pix.pixelformat, CS_SEL_ANY, false);
+>   	if (!fmt)
+>   		return -EINVAL;
+>   
+> diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
+> index 234242271a13..d8c9536bf1f8 100644
+> --- a/drivers/staging/media/imx/imx-media.h
+> +++ b/drivers/staging/media/imx/imx-media.h
+> @@ -178,7 +178,7 @@ enum codespace_sel {
+>   };
+>   
+>   const struct imx_media_pixfmt *
+> -imx_media_find_format(u32 fourcc, enum codespace_sel cs_sel);
+> +imx_media_find_format(u32 fourcc, enum codespace_sel cs_sel, bool allow_bayer);
+>   int imx_media_enum_format(u32 *fourcc, u32 index, enum codespace_sel cs_sel);
+>   const struct imx_media_pixfmt *
+>   imx_media_find_mbus_format(u32 code, enum codespace_sel cs_sel,
