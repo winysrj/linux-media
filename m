@@ -1,105 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:33356 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750770AbdCESOs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 5 Mar 2017 13:14:48 -0500
-Date: Sun, 5 Mar 2017 10:14:45 -0800
-From: Alison Schofield <amsfield22@gmail.com>
-To: simran singhal <singhalsimran0@gmail.com>
-Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org, outreachy-kernel@googlegroups.com
-Subject: Re: [Outreachy kernel] [PATCH] staging: media: Remove unnecessary
- function and its call
-Message-ID: <20170305181444.GA2094@d830.WORKGROUP>
-References: <20170305064721.GA22548@singhal-Inspiron-5558>
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:42366 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751181AbdCSJ5J (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 19 Mar 2017 05:57:09 -0400
+Date: Sun, 19 Mar 2017 09:55:58 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Nicolas Dufresne <nicolas@ndufresne.ca>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Subject: Re: [PATCH v5 00/39] i.MX Media Driver
+Message-ID: <20170319095558.GP21222@n2100.armlinux.org.uk>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <20170318192258.GL21222@n2100.armlinux.org.uk>
+ <aef6c412-5464-726b-42f6-a24b7323aa9c@mentor.com>
+ <20170318204324.GM21222@n2100.armlinux.org.uk>
+ <1489884074.21659.7.camel@ndufresne.ca>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20170305064721.GA22548@singhal-Inspiron-5558>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1489884074.21659.7.camel@ndufresne.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Mar 05, 2017 at 12:17:21PM +0530, simran singhal wrote:
-> The function atomisp_set_stop_timeout on being called, simply returns
-> back. The function hasn't been mentioned in the TODO and doesn't have
-> FIXME code around. Hence, atomisp_set_stop_timeout and its calls have been
-> removed.
-> 
-> Signed-off-by: simran singhal <singhalsimran0@gmail.com>
-> ---
+On Sat, Mar 18, 2017 at 08:41:14PM -0400, Nicolas Dufresne wrote:
+> Along with the norm fallback, GStreamer could could also consider the
+> currently set framerate as returned by VIDIOC_G_PARM. At the same time,
+> implementing that enumeration shall be straightforward, and will make a
+> large amount of existing userspace work.
 
-Hi Simran,
+Since, according to v4l2-compliance, providing the enumeration ioctls
+appears to be optional:
 
-It's helpful to state right in the subject line what you removed.
-ie.  remove unused function atomisp_set_stop_timeout()
+1) should v4l2-compliance be checking whether other frame sizes/frame
+   intervals are possible, and failing if the enumeration ioctls are
+   not supported?
 
-If you do that, scan's or grep'ing the git log pretty oneline's can 
-easily see this without having to dig into the log.
+2) would it also make sense to allow gstreamer's v4l2src to try setting
+   a these parameters, and only fail if it's unable to set it?  IOW, if
+   I use:
 
-(gitpretty='git log --pretty=oneline --abbrev-commit')
+gst-launch-1.0 v4l2src device=/dev/video10 ! \
+	video/x-bayer,format=RGGB,framerate=20/1 ! ...
 
-Can you share to Outreachy group how you found this?  By inspection
-or otherwise??
+   where G_PARM says its currently configured for 25fps, but a S_PARM
+   with 20fps would actually succeed.
 
-Thanks,
-alisons
-
-
-alisons
-
-
->  drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c          | 1 -
->  drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat.h       | 1 -
->  drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c | 5 -----
->  3 files changed, 7 deletions(-)
-> 
-> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-> index e99f7b8..66299dd 100644
-> --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-> +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
-> @@ -1700,7 +1700,6 @@ void atomisp_wdt_work(struct work_struct *work)
->  		}
->  	}
->  #endif
-> -	atomisp_set_stop_timeout(ATOMISP_CSS_STOP_TIMEOUT_US);
->  	dev_err(isp->dev, "timeout recovery handling done\n");
->  	atomic_set(&isp->wdt_work_queued, 0);
->  
-> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat.h b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat.h
-> index 5a404e4..0b9ced5 100644
-> --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat.h
-> +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat.h
-> @@ -660,7 +660,6 @@ int atomisp_css_set_acc_parameters(struct atomisp_acc_fw *acc_fw);
->  int atomisp_css_isr_thread(struct atomisp_device *isp,
->  			   bool *frame_done_found,
->  			   bool *css_pipe_done);
-> -void atomisp_set_stop_timeout(unsigned int timeout);
->  
->  bool atomisp_css_valid_sof(struct atomisp_device *isp);
->  
-> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c
-> index 6697d72..cfa0ad4 100644
-> --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c
-> +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_compat_css20.c
-> @@ -4699,11 +4699,6 @@ int atomisp_css_isr_thread(struct atomisp_device *isp,
->  	return 0;
->  }
->  
-> -void atomisp_set_stop_timeout(unsigned int timeout)
-> -{
-> -	return;
-> -}
-> -
->  bool atomisp_css_valid_sof(struct atomisp_device *isp)
->  {
->  	unsigned int i, j;
-> -- 
-> 2.7.4
-> 
-> -- 
-> You received this message because you are subscribed to the Google Groups "outreachy-kernel" group.
-> To unsubscribe from this group and stop receiving emails from it, send an email to outreachy-kernel+unsubscribe@googlegroups.com.
-> To post to this group, send email to outreachy-kernel@googlegroups.com.
-> To view this discussion on the web visit https://groups.google.com/d/msgid/outreachy-kernel/20170305064721.GA22548%40singhal-Inspiron-5558.
-> For more options, visit https://groups.google.com/d/optout.
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
