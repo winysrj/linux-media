@@ -1,110 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:37203 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753235AbdCTPhN (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:37436
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752053AbdCSQ7O (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 11:37:13 -0400
-Subject: Re: [PATCH v3 2/6] media: uapi: Add RGB and YUV bus formats for
- Synopsys HDMI TX Controller
-To: Neil Armstrong <narmstrong@baylibre.com>,
-        dri-devel@lists.freedesktop.org,
-        laurent.pinchart+renesas@ideasonboard.com, architt@codeaurora.org,
-        mchehab@kernel.org, sakari.ailus@linux.intel.com
-References: <1488904944-14285-1-git-send-email-narmstrong@baylibre.com>
- <1488904944-14285-3-git-send-email-narmstrong@baylibre.com>
-Cc: Jose.Abreu@synopsys.com, kieran.bingham@ideasonboard.com,
-        linux-amlogic@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, hans.verkuil@cisco.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <eac1864d-98e6-3915-04fe-cf81d8bc1db5@xs4all.nl>
-Date: Mon, 20 Mar 2017 16:35:49 +0100
+        Sun, 19 Mar 2017 12:59:14 -0400
+Date: Sun, 19 Mar 2017 13:58:54 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Eric Anholt <eric@anholt.net>
+Cc: Michael Zoran <mzoran@crowfest.net>, devel@driverdev.osuosl.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-kernel@vger.kernel.org, linux-rpi-kernel@lists.infradead.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/6] staging: BCM2835 MMAL V4L2 camera driver
+Message-ID: <20170319135846.395feef8@vento.lan>
+In-Reply-To: <87shmbv2w3.fsf@eliezer.anholt.net>
+References: <20170127215503.13208-1-eric@anholt.net>
+        <20170315110128.37e2bc5a@vento.lan>
+        <87a88m19om.fsf@eliezer.anholt.net>
+        <20170315220834.7019fd8b@vento.lan>
+        <1489628784.8127.1.camel@crowfest.net>
+        <20170316062900.0e835118@vento.lan>
+        <87shmbv2w3.fsf@eliezer.anholt.net>
 MIME-Version: 1.0
-In-Reply-To: <1488904944-14285-3-git-send-email-narmstrong@baylibre.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/07/2017 05:42 PM, Neil Armstrong wrote:
-> In order to describe the RGB and YUB bus formats used to feed the
-> Synopsys DesignWare HDMI TX Controller, add missing formats to the
-> list of Bus Formats.
+Em Fri, 17 Mar 2017 17:34:36 -0700
+Eric Anholt <eric@anholt.net> escreveu:
+
+> Mauro Carvalho Chehab <mchehab@s-opensource.com> writes:
 > 
-> Documentation for these formats is added in a separate patch.
+> > Em Wed, 15 Mar 2017 18:46:24 -0700
+> > Michael Zoran <mzoran@crowfest.net> escreveu:
+> >
+> >> On Wed, 2017-03-15 at 22:08 -0300, Mauro Carvalho Chehab wrote:
+> >> 
+> >> > No, I didn't. Thanks! Applied it but, unfortunately, didn't work.
+> >> > Perhaps I'm missing some other patch. I'm compiling it from
+> >> > the Greg's staging tree (branch staging-next):
+> >> > 	https://git.kernel.org/pub/scm/linux/kernel/git/gregkh/staging.
+> >> > git/log/?h=staging-next
+> >> > 
+> >> > Btw, as I'm running Raspbian, and didn't want to use compat32 bits, 
+> >> > I'm compiling the Kernel as an arm32 bits Kernel.
+> >> > 
+> >> > I did a small trick to build the DTB on arm32:
+> >> > 
+> >> > 	ln -sf ../../../arm64/boot/dts/broadcom/bcm2837-rpi-3-b.dts
+> >> > arch/arm/boot/dts/bcm2837-rpi-3-b.dts
+> >> > 	ln -sf ../../../arm64/boot/dts/broadcom/bcm2837.dtsi
+> >> > arch/arm/boot/dts/bcm2837.dtsi
+> >> > 	git checkout arch/arm/boot/dts/Makefile
+> >> > 	sed "s,bcm2835-rpi-zero.dtb,bcm2835-rpi-zero.dtb bcm2837-rpi-3-
+> >> > b.dtb," a && mv a arch/arm/boot/dts/Makefile
+> >> >   
+> >> 
+> >> Two other hacks are currently needed to get the camera to work:
+> >> 
+> >> 1. Add this to config.txt(This required to get the firmware to detect
+> >> the camera)
+> >> 
+> >> start_x=1
+> >> gpu_mem=128
+> >
+> > I had this already.
+> >
+> >> 
+> >> 2. VC4 is incompatible with the firmware at this time, so you need 
+> >> to presently munge the build configuration. What you do is leave
+> >> simplefb in the build config(I'm assuming you already have that), but
+> >> you will need to remove VC4 from the config.
+> >> 
+> >> The firmware currently adds a node for a simplefb for debugging
+> >> purposes to show the boot log.  Surprisingly, this is still good enough
+> >> for basic usage and testing.  
+> >
+> > That solved the issue. Thanks! It would be good to add a notice
+> > about that at the TODO, not let it build if DRM_VC4.
+> >
+> > Please consider applying the enclosed path.
 > 
-> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
-> ---
->  include/uapi/linux/media-bus-format.h | 13 +++++++++++--
->  1 file changed, 11 insertions(+), 2 deletions(-)
-> 
-> diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
-> index 2168759..7cc820b 100644
-> --- a/include/uapi/linux/media-bus-format.h
-> +++ b/include/uapi/linux/media-bus-format.h
-> @@ -33,7 +33,7 @@
->  
->  #define MEDIA_BUS_FMT_FIXED			0x0001
->  
-> -/* RGB - next is	0x1018 */
-> +/* RGB - next is	0x101b */
->  #define MEDIA_BUS_FMT_RGB444_1X12		0x1016
->  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE	0x1001
->  #define MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE	0x1002
-> @@ -57,8 +57,11 @@
->  #define MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA	0x1012
->  #define MEDIA_BUS_FMT_ARGB8888_1X32		0x100d
->  #define MEDIA_BUS_FMT_RGB888_1X32_PADHI		0x100f
-> +#define MEDIA_BUS_FMT_RGB101010_1X30		0x1018
-> +#define MEDIA_BUS_FMT_RGB121212_1X36		0x1019
-> +#define MEDIA_BUS_FMT_RGB161616_1X48		0x101a
->  
-> -/* YUV (including grey) - next is	0x2026 */
-> +/* YUV (including grey) - next is	0x202c */
->  #define MEDIA_BUS_FMT_Y8_1X8			0x2001
->  #define MEDIA_BUS_FMT_UV8_1X8			0x2015
->  #define MEDIA_BUS_FMT_UYVY8_1_5X8		0x2002
-> @@ -90,12 +93,18 @@
->  #define MEDIA_BUS_FMT_YVYU10_1X20		0x200e
->  #define MEDIA_BUS_FMT_VUY8_1X24			0x2024
->  #define MEDIA_BUS_FMT_YUV8_1X24			0x2025
-> +#define MEDIA_BUS_FMT_UYVY8_1_1X24		0x2026
->  #define MEDIA_BUS_FMT_UYVY12_1X24		0x2020
->  #define MEDIA_BUS_FMT_VYUY12_1X24		0x2021
->  #define MEDIA_BUS_FMT_YUYV12_1X24		0x2022
->  #define MEDIA_BUS_FMT_YVYU12_1X24		0x2023
->  #define MEDIA_BUS_FMT_YUV10_1X30		0x2016
-> +#define MEDIA_BUS_FMT_UYVY10_1_1X30		0x2027
->  #define MEDIA_BUS_FMT_AYUV8_1X32		0x2017
-> +#define MEDIA_BUS_FMT_UYVY12_1_1X36		0x2028
-> +#define MEDIA_BUS_FMT_YUV12_1X36		0x2029
-> +#define MEDIA_BUS_FMT_YUV16_1X48		0x202a
-> +#define MEDIA_BUS_FMT_UYVY16_1_1X48		0x202b
->  
->  /* Bayer - next is	0x3021 */
->  #define MEDIA_BUS_FMT_SBGGR8_1X8		0x3001
-> 
+> The VC4 incompatibility (camera firmware's AWB ends up briefly using the
+> GPU, without coordinating with the Linux driver) is supposed to be fixed
+> in current firmware
+> (https://github.com/raspberrypi/firmware/issues/760#issuecomment-287391025)
 
-These new bus formats:
+With the current firmware, when X starts, the screen becomes blank,
+with upstream Kernel (it works with the downstream Kernel shipped with 
+the firmware).
 
-#define MEDIA_BUS_FMT_UYVY8_1_1X24		0x2026
-#define MEDIA_BUS_FMT_UYVY10_1_1X30		0x2027
-#define MEDIA_BUS_FMT_UYVY12_1_1X36		0x2028
-#define MEDIA_BUS_FMT_UYVY16_1_1X48		0x202b
+Maybe something changed at DT?
 
-are all 4:2:0, right?
-
-I think these should all be renamed to:
-
-#define MEDIA_BUS_FMT_UYYVYY8_1X24		0x2026
-#define MEDIA_BUS_FMT_UYYVYY10_1X30		0x2027
-#define MEDIA_BUS_FMT_UYYVYY12_1X36		0x2028
-#define MEDIA_BUS_FMT_UYYVYY16_1X48		0x202b
-
-Conform the other 4:2:0 format MEDIA_BUS_FMT_YDYUYDYV8_1X16 (except without the 'D'!).
-
-I am slightly unsure about the _1. Strictly speaking we're transferring two pixels per
-bus-sample, so _0_5 might be more accurate. Sakari, what's your opinion about that?
-
-Regards,
-
-	Hans
+Thanks,
+Mauro
