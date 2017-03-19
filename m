@@ -1,47 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f169.google.com ([209.85.223.169]:33184 "EHLO
-        mail-io0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752595AbdCNBP5 (ORCPT
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:35294 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752172AbdCSWKX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 21:15:57 -0400
+        Sun, 19 Mar 2017 18:10:23 -0400
+Subject: Re: [PATCH 1/4] media: imx-media-csi: fix v4l2-compliance check
+To: Russell King <rmk+kernel@armlinux.org.uk>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+References: <20170319103801.GQ21222@n2100.armlinux.org.uk>
+ <E1cpYOK-0006EZ-No@rmk-PC.armlinux.org.uk>
+Cc: sakari.ailus@linux.intel.com, hverkuil@xs4all.nl,
+        linux-media@vger.kernel.org, kernel@pengutronix.de,
+        mchehab@kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, p.zabel@pengutronix.de
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <0bdcf910-d566-e46f-92e3-4a7380564736@gmail.com>
+Date: Sun, 19 Mar 2017 15:00:26 -0700
 MIME-Version: 1.0
-In-Reply-To: <1489427686.24765.9.camel@linux.intel.com>
-References: <20170313105421.GA32342@SEL-JYOUN-D1> <1489427686.24765.9.camel@linux.intel.com>
-From: DaeSeok Youn <daeseok.youn@gmail.com>
-Date: Tue, 14 Mar 2017 10:15:55 +0900
-Message-ID: <CAHb8M2BFkzAsZ=sK+ARybtbR1E4w=ApzHo-BxEr0TEoDWK=gqA@mail.gmail.com>
-Subject: Re: [PATCH] staging: atomisp: use k{v}zalloc instead of k{v}alloc and memset
-To: Alan Cox <alan@linux.intel.com>
-Cc: mchehab@kernel.org, Greg KH <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel <devel@driverdev.osuosl.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        kernel-janitors <kernel-janitors@vger.kernel.org>,
-        Dan Carpenter <dan.carpenter@oracle.com>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <E1cpYOK-0006EZ-No@rmk-PC.armlinux.org.uk>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-03-14 2:54 GMT+09:00 Alan Cox <alan@linux.intel.com>:
->
-> On Mon, 2017-03-13 at 19:54 +0900, Daeseok Youn wrote:
-> > If the atomisp_kernel_zalloc() has "true" as a second parameter, it
-> > tries to allocate zeroing memory from kmalloc(vmalloc) and memset.
-> > But using kzalloc is rather than kmalloc followed by memset with 0.
-> > (vzalloc is for same reason with kzalloc)
->
-> This is true but please don't apply this. There are about five other
-> layers of indirection for memory allocators that want removing first so
-> that the driver just uses the correct kmalloc/kzalloc/kv* functions in
-> the right places.
-right. kvmalloc/kvzalloc would be used after preparing those
-interfaces in staging tree.
-I will try to change all the atomisp_kernel_m{z}alloc() callers to
-correct functions to allocate memory.
+Looks good to me.
 
-Thanks.
-Regards,
-Jake.
+Steve
 
+
+On 03/19/2017 03:48 AM, Russell King wrote:
+> v4l2-compliance was failing with:
 >
-> Alan
+>                  fail: v4l2-test-formats.cpp(1076): cap->timeperframe.numerator == 0 || cap->timeperframe.denominator == 0
+>                  test VIDIOC_G/S_PARM: FAIL
 >
+> Fix this.
+>
+> Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+> ---
+>   drivers/staging/media/imx/imx-media-csi.c | 4 +++-
+>   1 file changed, 3 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
+> index 0336891069dc..65346e789dd6 100644
+> --- a/drivers/staging/media/imx/imx-media-csi.c
+> +++ b/drivers/staging/media/imx/imx-media-csi.c
+> @@ -680,8 +680,10 @@ static const struct csi_skip_desc *csi_find_best_skip(struct v4l2_fract *in,
+>   
+>   	/* Default to 1:1 ratio */
+>   	if (out->numerator == 0 || out->denominator == 0 ||
+> -	    in->numerator == 0 || in->denominator == 0)
+> +	    in->numerator == 0 || in->denominator == 0) {
+> +		*out = *in;
+>   		return best_skip;
+> +	}
+>   
+>   	want_us = div_u64((u64)USEC_PER_SEC * out->numerator, out->denominator);
+>   
