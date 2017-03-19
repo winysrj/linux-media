@@ -1,159 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40716
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753534AbdCTPJa (ORCPT
+Received: from mail-it0-f51.google.com ([209.85.214.51]:35206 "EHLO
+        mail-it0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751327AbdCSAlU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 11:09:30 -0400
-Date: Mon, 20 Mar 2017 12:06:38 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Russell King - ARM Linux <linux@armlinux.org.uk>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        Sat, 18 Mar 2017 20:41:20 -0400
+Received: by mail-it0-f51.google.com with SMTP id y18so799500itc.0
+        for <linux-media@vger.kernel.org>; Sat, 18 Mar 2017 17:41:19 -0700 (PDT)
+Message-ID: <1489884074.21659.7.camel@ndufresne.ca>
+Subject: Re: [PATCH v5 00/39] i.MX Media Driver
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Russell King - ARM Linux <linux@armlinux.org.uk>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
         mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
-        fabio.estevam@nxp.com, mchehab@kernel.org, nick@shmanahar.org,
-        markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
-        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
-        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
-        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
-        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
-        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
-        gregkh@linuxfoundation.org, shuah@kernel.org, pavel@ucw.cz,
+        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
         devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: Re: [PATCH v4 14/36] [media] v4l2-mc: add a function to inherit
- controls from a pipeline
-Message-ID: <20170320120638.09ba5621@vento.lan>
-In-Reply-To: <5b57773a-a747-285b-eb3e-3b3f0acd8079@xs4all.nl>
-References: <20170310125342.7f047acf@vento.lan>
-        <20170310223714.GI3220@valkosipuli.retiisi.org.uk>
-        <20170311082549.576531d0@vento.lan>
-        <20170313124621.GA10701@valkosipuli.retiisi.org.uk>
-        <20170314004533.3b3cd44b@vento.lan>
-        <e0a6c60b-1735-de0b-21f4-d8c3f4b3f10f@xs4all.nl>
-        <20170317114203.GZ21222@n2100.armlinux.org.uk>
-        <44161453-02f9-0019-3868-7501967a6a82@linux.intel.com>
-        <20170317102410.18c966ae@vento.lan>
-        <1489758670.2905.52.camel@pengutronix.de>
-        <20170317143743.GG21222@n2100.armlinux.org.uk>
-        <5b57773a-a747-285b-eb3e-3b3f0acd8079@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        devel@driverdev.osuosl.org
+Date: Sat, 18 Mar 2017 20:41:14 -0400
+In-Reply-To: <20170318204324.GM21222@n2100.armlinux.org.uk>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+         <20170318192258.GL21222@n2100.armlinux.org.uk>
+         <aef6c412-5464-726b-42f6-a24b7323aa9c@mentor.com>
+         <20170318204324.GM21222@n2100.armlinux.org.uk>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+        boundary="=-xaD73S9VP/RR5tcyQzYG"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 20 Mar 2017 14:10:30 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-> On 03/17/2017 03:37 PM, Russell King - ARM Linux wrote:
-> > On Fri, Mar 17, 2017 at 02:51:10PM +0100, Philipp Zabel wrote:  
-> >> On Fri, 2017-03-17 at 10:24 -0300, Mauro Carvalho Chehab wrote:
-> >> [...]  
-> >>> The big question, waiting for an answer on the last 8 years is
-> >>> who would do that? Such person would need to have several different
-> >>> hardware from different vendors, in order to ensure that it has
-> >>> a generic solution.
-> >>>
-> >>> It is a way more feasible that the Kernel developers that already 
-> >>> have a certain hardware on their hands to add support inside the
-> >>> driver to forward the controls through the pipeline and to setup
-> >>> a "default" pipeline that would cover the common use cases at
-> >>> driver's probe.  
-> >>
-> >> Actually, would setting pipeline via libv4l2 plugin and letting drivers
-> >> provide a sane enabled default pipeline configuration be mutually
-> >> exclusive? Not sure about the control forwarding, but at least a simple
-> >> link setup and format forwarding would also be possible in the kernel
-> >> without hindering userspace from doing it themselves later.  
-> > 
-> > I think this is the exact same problem as controls in ALSA.
-> > 
-> > When ALSA started off in life, the requirement was that all controls
-> > shall default to minimum, and the user is expected to adjust controls
-> > after the system is running.
-> > 
-> > After OSS, this gave quite a marked change in system behaviour, and
-> > led to a lot of "why doesn't my sound work anymore" problems, because
-> > people then had to figure out which combination of controls had to be
-> > set to get sound out of their systems.
-> > 
-> > Now it seems to be much better, where install Linux on a platform, and
-> > you have a working sound system (assuming that the drivers are all there
-> > which is generally the case for x86.)
-> > 
-> > However, it's still possible to adjust all the controls from userspace.
-> > All that's changed is the defaults.
-> > 
-> > Why am I mentioning this - because from what I understand Mauro saying,
-> > it's no different from this situation.  Userspace will still have the
-> > power to disable all links and setup its own.  The difference is that
-> > there will be a default configuration that the kernel sets up at boot
-> > time that will be functional, rather than the current default
-> > configuration where the system is completely non-functional until
-> > manually configured.
-> > 
-> > However, at the end of the day, I don't care _where_ the usability
-> > problems are solved, only that there is some kind of solution.  It's not
-> > the _where_ that's the real issue here, but the _how_, and discussion of
-> > the _how_ is completely missing.
-> > 
-> > So, let's try kicking off a discussion about _how_ to do things.
-> > 
-> > _How_ do we setup a media controller system so that we end up with a
-> > usable configuration - let's start with the obvious bit... which links
-> > should be enabled.
-> > 
-> > I think the first pre-requisit is that we stop exposing capture devices
-> > that can never be functional for the hardware that's present on the board,
-> > so that there isn't this plentora of useless /dev/video* nodes and useless
-> > subdevices.
-> > 
-> > One possible solution to finding a default path may be "find the shortest
-> > path between the capture device and the sensor and enable intervening
-> > links".
-> > 
-> > Then we need to try configuring that path with format/resolution
-> > information.
-> > 
-> > However, what if something in the shortest path can't handle the format
-> > that the sensor produces?  I think at that point, we'd need to drop that
-> > subdev out of the path resolution, re-run the "find the shortest path"
-> > algorithm, and try again.
-> > 
-> > Repeat until success or no path between the capture and sensor exists.
-> > 
-> > This works fine if you have just one sensor visible from a capture device,
-> > but not if there's more than one (which I suspect is the case with the
-> > Sabrelite board with its two cameras and video receiver.)  That breaks
-> > the "find the shortest path" algorithm.
-> > 
-> > So, maybe it's a lot better to just let the board people provide via DT
-> > a default setup for the connectivity of the modules somehow - certainly
-> > one big step forward would be to disable in DT parts of the capture
-> > system that can never be used (remembering that boards like the RPi /
-> > Hummingboard may end up using DT overlays to describe this for different
-> > cameras, so the capture setup may change after initial boot.)  
-> 
-> The MC was developed before the device tree came along. But now that the DT
-> is here, I think this could be a sensible idea to let the DT provide an
-> initial path.
-> 
-> Sakari, Laurent, Mauro: any opinions?
+--=-xaD73S9VP/RR5tcyQzYG
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-It makes perfect sense to me.
+Le samedi 18 mars 2017 =C3=A0 20:43 +0000, Russell King - ARM Linux a
+=C3=A9crit=C2=A0:
+> On Sat, Mar 18, 2017 at 12:58:27PM -0700, Steve Longerbeam wrote:
+> > Can you share your gstreamer pipeline? For now, until
+> > VIDIOC_ENUM_FRAMESIZES is implemented, try a pipeline that
+> > does not attempt to specify a frame rate. I use the attached
+> > script for testing, which works for me.
+>=20
+> It's nothing more than
+>=20
+> =C2=A0 gst-launch-1.0 -v v4l2src ! <any needed conversions> ! xvimagesink
+>=20
+> in my case, the conversions are bayer2rgbneon.=C2=A0 However, this only
+> shows
+> you the frame rate negotiated on the pads (which is actually good
+> enough
+> to show the issue.)
+>=20
+> How I stumbled across though this was when I was trying to encode:
+>=20
+> =C2=A0gst-launch-1.0 v4l2src device=3D/dev/video9 ! bayer2rgbneon ! \
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0videoconvert ! x264enc sp=
+eed-preset=3D1 ! avimux ! \
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0filesink location=3Dtest.=
+avi
+>=20
+> I noticed that vlc would always say it was playing the resulting AVI
+> at 30fps.
 
-By setting the pipeline via DT on boards with simple configurations,
-e. g. just one CSI physical interface, it can create just one
-devnode (e. g. /dev/video0) with would fully control the device,
-without enabling subdev API for such hardware, making the hardware
-usable with all V4L2 applications.
+In practice, I have the impression there is a fair reason why framerate
+enumeration isn't implemented (considering there is only 1 valid rate).
+Along with the norm fallback, GStreamer could could also consider the
+currently set framerate as returned by=C2=A0VIDIOC_G_PARM. At the same time=
+,
+implementing that enumeration shall be straightforward, and will make a
+large amount of existing userspace work.
 
-Regards,
-Mauro
+regards,
+Nicolas
+--=-xaD73S9VP/RR5tcyQzYG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iEYEABECAAYFAljN06oACgkQcVMCLawGqByUagCeI3lU4c6DuhMZIT8TI7IeyLyw
+AtgAoKvEUMki8JM51W1VwpEGTKYWTSI9
+=pz27
+-----END PGP SIGNATURE-----
+
+--=-xaD73S9VP/RR5tcyQzYG--
