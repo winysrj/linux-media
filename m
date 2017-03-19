@@ -1,73 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:50434 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751799AbdCCKSN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 05:18:13 -0500
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>
-Subject: [Patch v2 00/11] Add MFC v10.10 support
-Date: Fri, 03 Mar 2017 14:37:05 +0530
-Message-id: <1488532036-13044-1-git-send-email-smitha.t@samsung.com>
-References: <CGME20170303090429epcas5p3c057f653b6a6b6299ad2392490925fd9@epcas5p3.samsung.com>
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:45622 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751369AbdCSO0W (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 19 Mar 2017 10:26:22 -0400
+Date: Sun, 19 Mar 2017 14:22:40 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Subject: Re: [PATCH v5 00/39] i.MX Media Driver
+Message-ID: <20170319142240.GA23922@n2100.armlinux.org.uk>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <20170318192258.GL21222@n2100.armlinux.org.uk>
+ <aef6c412-5464-726b-42f6-a24b7323aa9c@mentor.com>
+ <20170318204324.GM21222@n2100.armlinux.org.uk>
+ <4e7f91fa-e1c4-1cbc-2542-2aaf19a35329@mentor.com>
+ <20170319142110.GT21222@n2100.armlinux.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170319142110.GT21222@n2100.armlinux.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds MFC v10.10 support. MFC v10.10 is used in some
-of Exynos7 variants.
+On Sun, Mar 19, 2017 at 02:21:10PM +0000, Russell King - ARM Linux wrote:
+> There's a good reason why I dumped a full debug log using GST_DEBUG=*:9,
+> analysed it for the cause of the failure, and tried several different
+> pipelines, including the standard bayer2rgb plugin.
+> 
+> Please don't blame this on random stuff after analysis of the logs _and_
+> reading the appropriate plugin code has shown where the problem is.  I
+> know gstreamer can be very complex, but it's very possible to analyse
+> the cause of problems and pin them down with detailed logs in conjunction
+> with the source code.
 
-This adds support for following:
+Oh, and the proof of correct analysis is that fixing the kernel capture
+driver to enumerate the frame sizes and intervals fixes the issue, even
+with bayer2rgbneon being used.
 
-* Add support for HEVC encoder and decoder
-* Add support for VP9 decoder
-* Update Documentation for control id definitions
-* Update computation of min scratch buffer size requirement for V8 onwards
-
-Changes since v1:
- - Addressed review comments by Andrzej Hajda.
- - Addressed review comment by Rob Herring.
- - Rebased on latest krzk/for-next tree.
- - This patches are tested on top of Marek's patch v2 [1]
- - Applied acked-by and r-o-b from Andrzej on respective patches. 
-
-[1]: http://www.mail-archive.com/linux-media@vger.kernel.org/msg108520.html
-
-Smitha T Murthy (11):
-  s5p-mfc: Rename IS_MFCV8 macro
-  s5p-mfc: Adding initial support for MFC v10.10
-  s5p-mfc: Use min scratch buffer size as provided by F/W
-  s5p-mfc: Support MFCv10.10 buffer requirements
-  videodev2.h: Add v4l2 definition for HEVC
-  s5p-mfc: Add support for HEVC decoder
-  Documentation: v4l: Documentation for HEVC v4l2 definition
-  s5p-mfc: Add VP9 decoder support
-  v4l2: Add v4l2 control IDs for HEVC encoder
-  s5p-mfc: Add support for HEVC encoder
-  Documention: v4l: Documentation for HEVC CIDs
-
- .../devicetree/bindings/media/s5p-mfc.txt          |    1 +
- Documentation/media/uapi/v4l/extended-controls.rst |  314 ++++++++++
- Documentation/media/uapi/v4l/pixfmt-013.rst        |    5 +
- drivers/media/platform/s5p-mfc/regs-mfc-v10.h      |   88 +++
- drivers/media/platform/s5p-mfc/regs-mfc-v8.h       |    2 +
- drivers/media/platform/s5p-mfc/s5p_mfc.c           |   33 +
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c    |    9 +
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |   64 ++-
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c      |    6 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |   62 ++-
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |  621 +++++++++++++++++++-
- drivers/media/platform/s5p-mfc/s5p_mfc_opr.h       |   14 +
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |  420 ++++++++++++--
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h    |   15 +
- drivers/media/v4l2-core/v4l2-ctrls.c               |   51 ++
- include/uapi/linux/v4l2-controls.h                 |  129 ++++
- include/uapi/linux/videodev2.h                     |    1 +
- 17 files changed, 1758 insertions(+), 77 deletions(-)
- create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+Therefore, there is _no way_ what so ever that it could be caused by that
+plugin.
 
 -- 
-1.7.2.3
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
