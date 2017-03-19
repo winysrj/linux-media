@@ -1,83 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:44190 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751076AbdCAPWr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 1 Mar 2017 10:22:47 -0500
-Message-ID: <1488381666.14858.5.camel@collabora.com>
-Subject: Re: [PATCH v6 2/2] [media] s5p-mfc: Handle 'v4l2_pix_format:field'
- in try_fmt and g_fmt
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-To: Andrzej Hajda <a.hajda@samsung.com>,
-        Thibault Saunier <thibault.saunier@osg.samsung.com>,
-        linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kukjin Kim <kgene@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-samsung-soc@vger.kernel.org,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        linux-arm-kernel@lists.infradead.org,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Kamil Debski <kamil@wypas.org>
-Date: Wed, 01 Mar 2017 10:21:06 -0500
-In-Reply-To: <33dbd3fa-04b2-3d94-5163-0a10589ff1c7@samsung.com>
-References: <20170301115108.14187-1-thibault.saunier@osg.samsung.com>
-         <CGME20170301115141epcas2p37801b1fbe0951cc37a4e01bf2bcae3da@epcas2p3.samsung.com>
-         <20170301115108.14187-3-thibault.saunier@osg.samsung.com>
-         <33dbd3fa-04b2-3d94-5163-0a10589ff1c7@samsung.com>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-        boundary="=-5KLx2Z2sFaHo8dfK52QR"
-Mime-Version: 1.0
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:42974 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751181AbdCSKqY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 19 Mar 2017 06:46:24 -0400
+Date: Sun, 19 Mar 2017 10:38:01 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Steve Longerbeam <steve_longerbeam@mentor.com>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Subject: Re: [PATCH v5 00/39] i.MX Media Driver
+Message-ID: <20170319103801.GQ21222@n2100.armlinux.org.uk>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <20170318192258.GL21222@n2100.armlinux.org.uk>
+ <aef6c412-5464-726b-42f6-a24b7323aa9c@mentor.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aef6c412-5464-726b-42f6-a24b7323aa9c@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Sat, Mar 18, 2017 at 12:58:27PM -0700, Steve Longerbeam wrote:
+> Right, imx-media-capture.c (the "standard" v4l2 user interface module)
+> is not implementing VIDIOC_ENUM_FRAMESIZES. It should, but it can only
+> return the single frame size that the pipeline has configured (the mbus
+> format of the attached source pad).
 
---=-5KLx2Z2sFaHo8dfK52QR
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+I now have a set of patches that enumerate the frame sizes and intervals
+from the source pad of the first subdev (since you're setting the formats
+etc there from the capture device, it seems sensible to return what it
+can support.)  This means my patch set doesn't add to non-CSI subdevs.
 
-Le mercredi 01 mars 2017 =C3=A0 14:12 +0100, Andrzej Hajda a =C3=A9crit=C2=
-=A0:
-> - on output side you have encoded bytestream - you cannot say about
-> interlacing in such case, so the only valid value is NONE,
-> - on capture side you have decoded frames, and in this case it
-> depends
-> on the device and driver capabilities, if the driver/device does not
-> support (de-)interlacing (I suppose this is MFC case), interlace type
-> field should be filled according to decoded bytestream header (on
-> output
-> side), but no direct copying from output side!!!
+> Can you share your gstreamer pipeline? For now, until
+> VIDIOC_ENUM_FRAMESIZES is implemented, try a pipeline that
+> does not attempt to specify a frame rate. I use the attached
+> script for testing, which works for me.
 
-I think we need some nuance here for this to actually be usable. If the
-information is not provided by the driver (yes, hardware is limiting
-sometimes), it would make sense to copy over the information that
-userspace provided. Setting NONE is just the worst approximation in my
-opinion.
+Note that I'm not specifying a frame rate on gstreamer - I'm setting
+the pipeline up for 60fps, but gstreamer in its wisdom is unable to
+enumerate the frame sizes, and therefore is unable to enumerate the
+frame intervals (frame intervals depend on frame sizes), so it
+falls back to the "tvnorms" which are basically 25/1 and 30000/1001.
 
-About MFC, it will be worth trying to read the DISPLAY_STATUS after the
-headers has been processed. It's not clearly stated in the spec if this
-will be set or not.
+It sees 60fps via G_PARM, and then decides to set 30000/1001 via S_PARM.
+So, we end up with most of the pipeline operating at 60fps, with CSI
+doing frame skipping to reduce the frame rate to 30fps.
 
-Nicolas
---=-5KLx2Z2sFaHo8dfK52QR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+gstreamer doesn't complain, doesn't issue any warnings, the only way
+you can spot this is to enable debugging and look through the copious
+debug log, or use -v and check the pad capabilities.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Testing using gstreamer, and only using "does it produce video" is a
+good simple test, but it's just that - it's a simple test.  It doesn't
+tell you that what you're seeing is what you intended to see (such as
+video at the frame rate you expected) without more work.
 
-iEYEABECAAYFAli25uIACgkQcVMCLawGqBx/NACfdRcqUkYfV6LuBaShllkq7XMd
-ntAAn0UbeFhdrIQCyUame0/p+0d2UwnI
-=Vexr
------END PGP SIGNATURE-----
+> Thanks, I've fixed most of v4l2-compliance issues, but this is not
+> done yet. Is that something you can help with?
 
---=-5KLx2Z2sFaHo8dfK52QR--
+What did you do with:
+
+ioctl(3, VIDIOC_REQBUFS, {count=0, type=0 /* V4L2_BUF_TYPE_??? */, memory=0 /* V4L2_MEMORY_??? */}) = -1 EINVAL (Invalid argument)
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+ioctl(3, VIDIOC_EXPBUF, 0xbef405bc)     = -1 EINVAL (Invalid argument)
+                fail: v4l2-test-buffers.cpp(571): q.has_expbuf(node)
+                test VIDIOC_EXPBUF: FAIL
+
+To me, this looks like a bug in v4l2-compliance (I'm using 1.10.0).
+I'm not sure what buffer VIDIOC_EXPBUF is expected to export, since
+afaics no buffers have been allocated, so of course it's going to fail.
+Either that, or the v4l2 core vb2 code is non-compliant with v4l2's
+interface requirements.
+
+In any case, it doesn't look like the buffer management is being
+tested at all by v4l2-compliance - we know that gstreamer works, so
+buffers _can_ be allocated, and I've also used dmabufs with gstreamer,
+so I also know that VIDIOC_EXPBUF works there.
+
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
