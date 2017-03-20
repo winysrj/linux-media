@@ -1,49 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:32842 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752869AbdC2QnT (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:59810 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754120AbdCTKmF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Mar 2017 12:43:19 -0400
-Received: by mail-wr0-f193.google.com with SMTP id u18so4575628wrc.0
-        for <linux-media@vger.kernel.org>; Wed, 29 Mar 2017 09:43:18 -0700 (PDT)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org
-Cc: liplianin@netup.ru, rjkm@metzlerbros.de, crope@iki.fi
-Subject: [PATCH v3 02/13] [media] dvb-frontends/stv0367: print CPAMP status only if stv_debug is enabled
-Date: Wed, 29 Mar 2017 18:43:02 +0200
-Message-Id: <20170329164313.14636-3-d.scheller.oss@gmail.com>
-In-Reply-To: <20170329164313.14636-1-d.scheller.oss@gmail.com>
-References: <20170329164313.14636-1-d.scheller.oss@gmail.com>
+        Mon, 20 Mar 2017 06:42:05 -0400
+Date: Mon, 20 Mar 2017 10:41:46 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Philippe De Muyter <phdm@macq.eu>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        sakari.ailus@linux.intel.com, hverkuil@xs4all.nl,
+        linux-media@vger.kernel.org, kernel@pengutronix.de,
+        mchehab@kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, p.zabel@pengutronix.de
+Subject: Re: [PATCH 4/4] media: imx-media-capture: add frame sizes/interval
+ enumeration
+Message-ID: <20170320104146.GF21222@n2100.armlinux.org.uk>
+References: <20170319103801.GQ21222@n2100.armlinux.org.uk>
+ <E1cpYOa-0006Eu-CL@rmk-PC.armlinux.org.uk>
+ <20170320085512.GA20923@frolo.macqel>
+ <20170320090524.GC21222@n2100.armlinux.org.uk>
+ <20170320092330.GA28094@frolo.macqel>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170320092330.GA28094@frolo.macqel>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+On Mon, Mar 20, 2017 at 10:23:30AM +0100, Philippe De Muyter wrote:
+> So existing gstreamer applications using /dev/video* to control framerate,
+> and even gain and exposure won't work anymore :( ?
+> 
+> I had hoped to keep compatibility, with added robustness and functionality.
+> 
+> I seems like I'll stay with my NXP/Freescale old and imperfect kernel.
 
-The CPAMP log lines generated in stv0367_ter_check_cpamp() are printed
-everytime tuning succeeds or fails, quite cluttering the normal kernel log.
-Use dprintk() instead of printk(KERN_ERR...) so that if the information is
-needed, it'll be printed when the stv_debug modparam is enabled.
+Thank you for saying this, this supports my views which I've already
+stated about what influences which kernel people will use.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/dvb-frontends/stv0367.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/dvb-frontends/stv0367.c b/drivers/media/dvb-frontends/stv0367.c
-index fc80934..0064d9d 100644
---- a/drivers/media/dvb-frontends/stv0367.c
-+++ b/drivers/media/dvb-frontends/stv0367.c
-@@ -1262,9 +1262,9 @@ stv0367_ter_signal_type stv0367ter_check_cpamp(struct stv0367_state *state,
- 	dprintk("******last CPAMPvalue= %d at wd=%d\n", CPAMPvalue, wd);
- 	if (CPAMPvalue < CPAMPMin) {
- 		CPAMPStatus = FE_TER_NOCPAMP;
--		printk(KERN_ERR "CPAMP failed\n");
-+		dprintk("%s: CPAMP failed\n", __func__);
- 	} else {
--		printk(KERN_ERR "CPAMP OK !\n");
-+		dprintk("%s: CPAMP OK !\n", __func__);
- 		CPAMPStatus = FE_TER_CPAMPOK;
- 	}
- 
 -- 
-2.10.2
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
