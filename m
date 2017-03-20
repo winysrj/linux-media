@@ -1,32 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1050.oracle.com ([141.146.126.70]:38793 "EHLO
-        aserp1050.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756721AbdCHEkv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 7 Mar 2017 23:40:51 -0500
-Received: from aserp1040.oracle.com (aserp1040.oracle.com [141.146.126.69])
-        by aserp1050.oracle.com (Sentrion-MTA-4.3.2/Sentrion-MTA-4.3.2) with ESMTP id v284dQSH008126
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK)
-        for <linux-media@vger.kernel.org>; Wed, 8 Mar 2017 04:39:26 GMT
-Date: Wed, 8 Mar 2017 07:38:14 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: "Wu, Songjun" <Songjun.Wu@microchip.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [bug report] [media] atmel-isc: add the isc pipeline function
-Message-ID: <20170308043814.GD4120@mwanda>
-References: <20170307001729.GA1588@mwanda>
- <dbe0c888-815d-b981-a9c9-9c7283e81ee0@microchip.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <dbe0c888-815d-b981-a9c9-9c7283e81ee0@microchip.com>
+Received: from mout.kundenserver.de ([217.72.192.74]:50448 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753393AbdCTJdE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Mar 2017 05:33:04 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Alan Cox <alan@linux.intel.com>, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 5/9] staging/atomisp: add VIDEO_V4L2_SUBDEV_API dependency
+Date: Mon, 20 Mar 2017 10:32:21 +0100
+Message-Id: <20170320093225.1180723-5-arnd@arndb.de>
+In-Reply-To: <20170320093225.1180723-1-arnd@arndb.de>
+References: <20170320093225.1180723-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No.  Imagine the v4l2_subdev_call() loop exits with "fmt" set to NULL.
-It will cause a crash.
+The driver fails to build if this is disabled, so we need an explicit
+Kconfig dependency:
 
-Please re-read my original email because I think you may have meant to
-reset fmt after that loop.
+drivers/staging/media/atomisp/pci/atomisp2/./atomisp_cmd.c:6085:48: error: 'struct v4l2_subdev_fh' has no member named 'pad'
 
-regards,
-dan carpenter
+Fixes: a49d25364dfb ("staging/atomisp: Add support for the Intel IPU v2")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/staging/media/atomisp/pci/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/staging/media/atomisp/pci/Kconfig b/drivers/staging/media/atomisp/pci/Kconfig
+index e8f67835d03d..a72421431c7a 100644
+--- a/drivers/staging/media/atomisp/pci/Kconfig
++++ b/drivers/staging/media/atomisp/pci/Kconfig
+@@ -4,7 +4,7 @@
+ 
+ config VIDEO_ATOMISP
+        tristate "Intel Atom Image Signal Processor Driver"
+-       depends on VIDEO_V4L2
++       depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+        select VIDEOBUF_VMALLOC
+         ---help---
+           Say Y here if your platform supports Intel Atom SoC
+-- 
+2.9.0
