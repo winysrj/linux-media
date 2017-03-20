@@ -1,67 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f47.google.com ([209.85.218.47]:33949 "EHLO
-        mail-oi0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752111AbdCBQcO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 11:32:14 -0500
-Received: by mail-oi0-f47.google.com with SMTP id m124so42039028oig.1
-        for <linux-media@vger.kernel.org>; Thu, 02 Mar 2017 08:30:44 -0800 (PST)
+Received: from mail-it0-f68.google.com ([209.85.214.68]:35524 "EHLO
+        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753197AbdCTMvw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Mar 2017 08:51:52 -0400
 MIME-Version: 1.0
-In-Reply-To: <20170302095144.32090-1-p.zabel@pengutronix.de>
-References: <20170302095144.32090-1-p.zabel@pengutronix.de>
-From: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
-Date: Thu, 2 Mar 2017 17:30:23 +0100
-Message-ID: <CAH-u=83Jib=vFPXQTsfojssrR3h8eXzm_1imufZ9NKJ=0DPdgw@mail.gmail.com>
-Subject: Re: [PATCH] [media] coda: implement encoder stop command
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sascha Hauer <kernel@pengutronix.de>
+In-Reply-To: <58CFC561.8090104@bfs.de>
+References: <20170320105940.GA17472@SEL-JYOUN-D1> <58CFC561.8090104@bfs.de>
+From: DaeSeok Youn <daeseok.youn@gmail.com>
+Date: Mon, 20 Mar 2017 21:51:50 +0900
+Message-ID: <CAHb8M2DELnWoo8UAEni-dc8fnVmpp8d-XeOObeB37deT5+8_gQ@mail.gmail.com>
+Subject: Re: [PATCH 2/4] staging: atomisp: simplify if statement in atomisp_get_sensor_fps()
+To: wharms@bfs.de
+Cc: mchehab@kernel.org, Greg KH <gregkh@linuxfoundation.org>,
+        Alan Cox <alan@linux.intel.com>,
+        SIMRAN SINGHAL <singhalsimran0@gmail.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        linux-media@vger.kernel.org, devel <devel@driverdev.osuosl.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        kernel-janitors <kernel-janitors@vger.kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-<snip>
+2017-03-20 21:04 GMT+09:00 walter harms <wharms@bfs.de>:
+>
+>
+> Am 20.03.2017 11:59, schrieb Daeseok Youn:
+>> If v4l2_subdev_call() gets the global frame interval values,
+>> it returned 0 and it could be checked whether numerator is zero or not.
+>>
+>> If the numerator is not zero, the fps could be calculated in this function.
+>> If not, it just returns 0.
+>>
+>> Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
+>> ---
+>>  .../media/atomisp/pci/atomisp2/atomisp_cmd.c       | 22 ++++++++++------------
+>>  1 file changed, 10 insertions(+), 12 deletions(-)
+>>
+>> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+>> index 8bdb224..6bdd19e 100644
+>> --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+>> +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+>> @@ -153,20 +153,18 @@ struct atomisp_acc_pipe *atomisp_to_acc_pipe(struct video_device *dev)
+>>
+>>  static unsigned short atomisp_get_sensor_fps(struct atomisp_sub_device *asd)
+>>  {
+>> -     struct v4l2_subdev_frame_interval frame_interval;
+>> +     struct v4l2_subdev_frame_interval fi;
+>>       struct atomisp_device *isp = asd->isp;
+>> -     unsigned short fps;
+>>
+>> -     if (v4l2_subdev_call(isp->inputs[asd->input_curr].camera,
+>> -         video, g_frame_interval, &frame_interval)) {
+>> -             fps = 0;
+>> -     } else {
+>> -             if (frame_interval.interval.numerator)
+>> -                     fps = frame_interval.interval.denominator /
+>> -                         frame_interval.interval.numerator;
+>> -             else
+>> -                     fps = 0;
+>> -     }
+>> +     unsigned short fps = 0;
+>> +     int ret;
+>> +
+>> +     ret = v4l2_subdev_call(isp->inputs[asd->input_curr].camera,
+>> +                            video, g_frame_interval, &fi);
+>> +
+>> +     if (!ret && fi.interval.numerator)
+>> +             fps = fi.interval.denominator / fi.interval.numerator;
+>> +
+>>       return fps;
+>>  }
+>
+>
+>
+> do you need to check ret at all ? if an error occurs can fi.interval.numerator
+> be something else than 0 ?
+the return value from the v4l2_subdev_call() function is zero when it
+is done without any error. and also I checked
+the ret value whether is 0 or not. if the ret is 0 then the value of
+numerator should be checked to avoid for dividing by 0.
+>
+> if ret is an ERRNO it would be wise to return ret not fps, but this may require
+> changes at other places also.
+hmm.., yes, you are right. but I think it is ok because the
+atomisp_get_sensor_fps() function is needed to get fps value.
+(originally, zero or calculated fps value was returned.)
 
-> +       /* If there is no buffer in flight, wake up */
-> +       if (ctx->qsequence == ctx->osequence) {
-
-Not sure about this one, I would have done something like :
-if (!(ctx->fh.m2m_ctx->job_flags)) {
-
-> +               dst_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx,
-> +                                        V4L2_BUF_TYPE_VIDEO_CAPTURE);
-> +               dst_vq->last_buffer_dequeued = true;
-> +               wake_up(&dst_vq->done_wq);
-> +       }
-> +
-> +       return 0;
-> +}
-> +
->  static int coda_try_decoder_cmd(struct file *file, void *fh,
->                                 struct v4l2_decoder_cmd *dc)
->  {
-> @@ -1054,6 +1095,8 @@ static const struct v4l2_ioctl_ops coda_ioctl_ops = {
 >
->         .vidioc_g_selection     = coda_g_selection,
+> re,
+>  wh
 >
-> +       .vidioc_try_encoder_cmd = coda_try_encoder_cmd,
-> +       .vidioc_encoder_cmd     = coda_encoder_cmd,
->         .vidioc_try_decoder_cmd = coda_try_decoder_cmd,
->         .vidioc_decoder_cmd     = coda_decoder_cmd,
->
-> @@ -1330,9 +1373,13 @@ static void coda_buf_queue(struct vb2_buffer *vb)
->                 mutex_lock(&ctx->bitstream_mutex);
->                 v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
->                 if (vb2_is_streaming(vb->vb2_queue))
-> +                       /* This set buf->sequence = ctx->qsequence++ */
->                         coda_fill_bitstream(ctx, true);
->                 mutex_unlock(&ctx->bitstream_mutex);
->         } else {
-> +               if (ctx->inst_type == CODA_INST_ENCODER &&
-> +                   vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-> +                       vbuf->sequence = ctx->qsequence++;
->                 v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
->         }
->  }
-> --
-> 2.11.0
->
+>>
