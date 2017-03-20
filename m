@@ -1,69 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:57452
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752048AbdCKJe5 (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:33286 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753602AbdCTLiD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Mar 2017 04:34:57 -0500
-Received: from localhost (localhost [127.0.0.1])
-        by osg.samsung.com (Postfix) with ESMTP id 81DF0A0DE2
-        for <linux-media@vger.kernel.org>; Sat, 11 Mar 2017 09:35:18 +0000 (UTC)
-Received: from osg.samsung.com ([127.0.0.1])
-        by localhost (s-opensource.com [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id aE7nsX550_YY for <linux-media@vger.kernel.org>;
-        Sat, 11 Mar 2017 09:35:17 +0000 (UTC)
-Received: from vento.lan (177.96.206.203.dynamic.adsl.gvt.net.br [177.96.206.203])
-        by osg.samsung.com (Postfix) with ESMTPSA id 3BA7CA0C15
-        for <linux-media@vger.kernel.org>; Sat, 11 Mar 2017 09:35:17 +0000 (UTC)
-Date: Sat, 11 Mar 2017 06:34:51 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/3] libv4lconvert: by default, offer the original
- format to the client
-Message-ID: <20170311063451.5147f2c1@vento.lan>
-In-Reply-To: <3b5962deff0fb5675399f1d9b09a98eb46ac0bd3.1489224099.git.mchehab@s-opensource.com>
-References: <db1d17c0eed07c89fae03275bda0fe4d3d5c1776.1489224099.git.mchehab@s-opensource.com>
-        <3b5962deff0fb5675399f1d9b09a98eb46ac0bd3.1489224099.git.mchehab@s-opensource.com>
+        Mon, 20 Mar 2017 07:38:03 -0400
+Received: by mail-pg0-f65.google.com with SMTP id 79so10783429pgf.0
+        for <linux-media@vger.kernel.org>; Mon, 20 Mar 2017 04:36:36 -0700 (PDT)
+Date: Mon, 20 Mar 2017 20:00:29 +0900
+From: Daeseok Youn <daeseok.youn@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, daeseok.youn@gmail.com,
+        alan@linux.intel.com, dan.carpenter@oracle.com,
+        singhalsimran0@gmail.com, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        kernel-janitors@vger.kernel.org
+Subject: [PATCH 4/4] staging: atomisp: remove redudant condition in
+ if-statement
+Message-ID: <20170320110029.GA18111@SEL-JYOUN-D1>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 11 Mar 2017 06:21:40 -0300
-Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+The V4L2_FIELD_ANY is zero, so the (!field) is same meaning
+with (field == V4L2_FIELD_ANY) in if-statement.
 
-> The libv4lconvert part of libv4l was meant to provide a common
-> place to handle weird proprietary formats. With time, we also
-> added support to other standard formats, in order to help
-> V4L2 applications that are not performance sensitive to support
-> all V4L2 formats.
-> 
-> Yet, the hole idea is to let userspace to decide to implement
-> their own format conversion code when it needs either more
-> performance or more quality than what libv4lconvert provides.
-> 
-> In other words, applications should have the right to decide
-> between using a libv4lconvert emulated format or to implement
-> the decoding themselves for non-proprietary formats,
-> as this may have significative performance impact.
-> 
-> At the application side, deciding between them is just a matter
-> of looking at the V4L2_FMT_FLAG_EMULATED flag.
-> 
-> Yet, we don't want to have a myriad of format converters
-> everywhere for the proprietary formats, like V4L2_PIX_FMT_KONICA420,
-> V4L2_PIX_FMT_SPCA501, etc. So, let's offer only the emulated
-> variant for those weird stuff.
-> 
-> So, this patch changes the libv4lconvert default behavior to
-> show emulated formats, except for the explicit ones marked as
-> such.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
+---
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Please ignore this patch. It is wrong. I sent a version 2 of this
-series without it.
-
-Regards,
-Mauro
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+index 929ed80..2437162 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+@@ -5084,7 +5084,7 @@ int atomisp_try_fmt(struct video_device *vdev, struct v4l2_format *f,
+ 
+ 	depth = get_pixel_depth(pixelformat);
+ 
+-	if (!field || field == V4L2_FIELD_ANY)
++	if (field == V4L2_FIELD_ANY)
+ 		field = V4L2_FIELD_NONE;
+ 	else if (field != V4L2_FIELD_NONE) {
+ 		dev_err(isp->dev, "Wrong output field\n");
+-- 
+1.9.1
