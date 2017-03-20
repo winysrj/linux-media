@@ -1,123 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f176.google.com ([209.85.192.176]:36704 "EHLO
-        mail-pf0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754075AbdCKRz7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Mar 2017 12:55:59 -0500
-Received: by mail-pf0-f176.google.com with SMTP id o126so53552299pfb.3
-        for <linux-media@vger.kernel.org>; Sat, 11 Mar 2017 09:55:59 -0800 (PST)
+Received: from mga02.intel.com ([134.134.136.20]:9423 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753629AbdCTOmE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Mar 2017 10:42:04 -0400
+Subject: [PATCH 16/24] stating/atomisp: fix -Wold-style-definition warning
+From: Alan Cox <alan@linux.intel.com>
+To: greg@kroah.com, linux-media@vger.kernel.org
+Date: Mon, 20 Mar 2017 14:41:29 +0000
+Message-ID: <149002088805.17109.15017761805145004727.stgit@acox1-desk1.ger.corp.intel.com>
+In-Reply-To: <149002068431.17109.1216139691005241038.stgit@acox1-desk1.ger.corp.intel.com>
+References: <149002068431.17109.1216139691005241038.stgit@acox1-desk1.ger.corp.intel.com>
 MIME-Version: 1.0
-From: Dmitrii Shcherbakov <fw.dmitrii@gmail.com>
-Date: Sat, 11 Mar 2017 20:55:57 +0300
-Message-ID: <CAC1b7XEJ9nQQ5cFxjMaHgTPf+0OTjFjhaQO76oO1H8_vfCbVbA@mail.gmail.com>
-Subject: usb_video.c: 0bda:579f Realtek - corrupted frames and low FPS of
- captured mjpeg video frames
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everybody,
+From: Arnd Bergmann <arnd@arndb.de>
 
-I have a usb camera built into my laptop (hardware details here
-https://paste.ubuntu.com/24126969/) and I am looking for some guidance
-on how to debug it further - any feedback is highly appreciated.
+ia_css_dequeue_param_buffers does not have an arguement type, causing a warning:
 
-I am aware that this hardware is probably buggy/does not follow the
-UVC spec/vendor only cared about Windows etc.
+drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_params.c: In function 'ia_css_dequeue_param_buffers':
+drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_params.c:3728:6: error: old-style function definition [-Werror=old-style-definition]
 
-I am trying to capture mjpeg-encoded video at various resolutions and
-frame rates via ffmpeg using v4l2 and the uvc kernel driver.
+This adds a 'void' keywork to silence the warning.
 
-Test results (kernel logs with uvc driver in verbose mode and ffmpeg
-output are included):
-https://paste.ubuntu.com/24126930/
-https://paste.ubuntu.com/24126960/
+Fixes: a49d25364dfb ("staging/atomisp: Add support for the Intel IPU v2")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+---
+ .../atomisp/pci/atomisp2/css2400/sh_css_params.c   |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-uname -r
-4.11.0-041100rc1-generic
-
-Conclusions:
-- using any resolution higher than 640x480 results in corrupted bottom
-half of the image (grey and green artifacts)
-- frame rate is low on any resolution, even when I specify 640x480
-with 30 or 15 fps via v4l2 it is nowhere near that point
-
-frame=3D  179 fps=3D7.7 q=3D-1.0 Lsize=3D    3882kB time=3D00:00:23.06
-bitrate=3D1378.6kbits/s speed=3D0.994x
-
-- the kernel log is filled with the following messages
-
-=D0=BC=D0=B0=D1=80 07 00:15:31 blade kernel: uvcvideo: uvc_v4l2_mmap
-=D0=BC=D0=B0=D1=80 07 00:15:31 blade kernel: uvcvideo: Allocated 5 URB buff=
-ers of
-32x512 bytes each.
-=D0=BC=D0=B0=D1=80 07 00:15:31 blade kernel: uvcvideo: frame 1 stats: 0/0/1=
- packets,
-0/0/1 pts (!early initial), 0/1 scr, last pts/stc/sof
-6446951/6832111/975
-=D0=BC=D0=B0=D1=80 07 00:15:31 blade kernel: uvcvideo: Marking buffer as ba=
-d (error bit set).
-=D0=BC=D0=B0=D1=80 07 00:15:31 blade kernel: uvcvideo: Frame complete (FID =
-bit toggled).
-=D0=BC=D0=B0=D1=80 07 00:15:31 blade kernel: uvcvideo: frame 2 stats: 0/0/1=
- packets,
-0/0/1 pts (!early initial), 0/0 scr, last pts/stc/sof 3617775107/0/0
-=D0=BC=D0=B0=D1=80 07 00:15:31 blade kernel: uvcvideo: Marking buffer as ba=
-d (error bit set).
-=D0=BC=D0=B0=D1=80 07 00:15:31 blade kernel: uvcvideo: Frame complete (EOF =
-found).
-=D0=BC=D0=B0=D1=80 07 00:15:31 blade kernel: uvcvideo: Dropping payload (ou=
-t of sync).
-=D0=BC=D0=B0=D1=80 07 00:15:31 blade kernel: uvcvideo: frame 3 stats: 0/0/2=
- packets,
-1/1/2 pts (!early initial), 0/1 scr, last pts/stc/sof
-8413602/8799007/1106
-=D0=BC=D0=B0=D1=80 07 00:15:31 blade kernel: uvcvideo: Frame complete (EOF =
-found).
-=D0=BC=D0=B0=D1=80 07 00:15:32 blade kernel: uvcvideo: Dropping payload (ou=
-t of sync).
-=D0=BC=D0=B0=D1=80 07 00:15:32 blade kernel: uvcvideo: Marking buffer as ba=
-d (error bit set).
-=D0=BC=D0=B0=D1=80 07 00:15:32 blade kernel: uvcvideo: Dropping payload (ou=
-t of sync).
-
-- some entity types were not initialized at module loading time
-
-=D0=BC=D0=B0=D1=80 06 20:47:35 blade kernel: uvcvideo: Found UVC 1.00 devic=
-e USB
-Camera (0bda:579f)
-=D0=BC=D0=B0=D1=80 06 20:47:35 blade kernel: uvcvideo: Forcing device quirk=
-s to 0x80
-by module parameter for testing purpose.
-=D0=BC=D0=B0=D1=80 06 20:47:35 blade kernel: uvcvideo: Please report requir=
-ed quirks
-to the linux-uvc-devel mailing list.
-=D0=BC=D0=B0=D1=80 06 20:47:35 blade kernel: uvcvideo 1-7:1.0: Entity type =
-for entity
-Extension 4 was not initialized!
-=D0=BC=D0=B0=D1=80 06 20:47:35 blade kernel: uvcvideo 1-7:1.0: Entity type =
-for entity
-Processing 2 was not initialized!
-=D0=BC=D0=B0=D1=80 06 20:47:35 blade kernel: uvcvideo 1-7:1.0: Entity type =
-for entity
-Camera 1 was not initialized!
-=D0=BC=D0=B0=D1=80 06 20:47:35 blade kernel: usbcore: registered new interf=
-ace driver uvcvideo
-
-- tried different quirks non of which made any difference (I can try a
-specific one or a combination if there are any ideas). I cannot
-diagnose what it is so this was just random poking.
-
-- a similar thread for XPS 12 with a Realtek webcam
-https://www.spinics.net/lists/linux-media/msg73476.html
-
-- the buffer is marked as bad in uvc_video_decode_start based upon a
-UVC_STREAM_ERR flag:
-https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/dri=
-vers/media/usb/uvc/uvc_video.c#n1004
-
-If anybody has any pointers/suggestions, please let me know.
-
-Thanks in advance!
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_params.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_params.c
+index e4599f7..36a0c6b 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_params.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_params.c
+@@ -3723,7 +3723,7 @@ static void sh_css_update_isp_mem_params_to_ddr(
+ 	IA_CSS_LEAVE_PRIVATE("void");
+ }
+ 
+-void ia_css_dequeue_param_buffers(/*unsigned int pipe_num*/)
++void ia_css_dequeue_param_buffers(/*unsigned int pipe_num*/ void)
+ {
+ 	unsigned int i;
+ 	hrt_vaddress cpy;
