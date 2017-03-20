@@ -1,167 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50937
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750788AbdCPBJo (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:54845 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754063AbdCTL6R (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Mar 2017 21:09:44 -0400
-Date: Wed, 15 Mar 2017 22:08:34 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Eric Anholt <eric@anholt.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org, linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-rpi-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 0/6] staging: BCM2835 MMAL V4L2 camera driver
-Message-ID: <20170315220834.7019fd8b@vento.lan>
-In-Reply-To: <87a88m19om.fsf@eliezer.anholt.net>
-References: <20170127215503.13208-1-eric@anholt.net>
-        <20170315110128.37e2bc5a@vento.lan>
-        <87a88m19om.fsf@eliezer.anholt.net>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/eAGDnqE+IqO415lJvX.gacv"; protocol="application/pgp-signature"
+        Mon, 20 Mar 2017 07:58:17 -0400
+Message-ID: <1490010926.2917.59.camel@pengutronix.de>
+Subject: Re: [PATCH v5 38/39] media: imx: csi: fix crop rectangle reset in
+ sink set_fmt
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Steve Longerbeam <slongerbeam@gmail.com>
+Cc: Russell King - ARM Linux <linux@armlinux.org.uk>,
+        robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Date: Mon, 20 Mar 2017 12:55:26 +0100
+In-Reply-To: <327d67d9-68c1-7f74-0c0f-f6aee1c4b546@gmail.com>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+         <1489121599-23206-39-git-send-email-steve_longerbeam@mentor.com>
+         <20170319152233.GW21222@n2100.armlinux.org.uk>
+         <327d67d9-68c1-7f74-0c0f-f6aee1c4b546@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/eAGDnqE+IqO415lJvX.gacv
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
-
-Em Wed, 15 Mar 2017 15:01:29 -0700
-Eric Anholt <eric@anholt.net> escreveu:
-
-> Mauro Carvalho Chehab <mchehab@s-opensource.com> writes:
->=20
-> > Em Fri, 27 Jan 2017 13:54:57 -0800
-> > Eric Anholt <eric@anholt.net> escreveu:
-> > =20
-> >> Here's my first pass at importing the camera driver.  There's a bunch
-> >> of TODO left to it, most of which is documented, and the rest being
-> >> standard checkpatch fare.
-> >>=20
-> >> Unfortunately, when I try modprobing it on my pi3, the USB network
-> >> device dies, consistently.  I'm not sure what's going on here yet, but
-> >> I'm going to keep working on some debug of it.  I've unfortunately
-> >> changed a lot of variables (pi3 vs pi2, upstream vs downstream, vchi's
-> >> updates while in staging, 4.9 vs 4.4), so I probably won't figure it
-> >> out today.
-> >>=20
-> >> Note that the "Update the driver to the current VCHI API" patch will
-> >> conflict with the outstanding "Add vchi_queue_kernel_message and
-> >> vchi_queue_user_message" series, but the fix should be pretty obvious
-> >> when that lands.
-> >>=20
-> >> I built this against 4.10-rc1, but a merge with staging-next was clean
-> >> and still built fine. =20
+On Sun, 2017-03-19 at 12:08 -0700, Steve Longerbeam wrote:
+> 
+> On 03/19/2017 08:22 AM, Russell King - ARM Linux wrote:
+> > On Thu, Mar 09, 2017 at 08:53:18PM -0800, Steve Longerbeam wrote:
+> >> From: Philipp Zabel <p.zabel@pengutronix.de>
+> >>
+> >> The csi_try_crop call in set_fmt should compare the cropping rectangle
+> >> to the currently set input format, not to the previous input format.
+> > Are we really sure that the cropping support is implemented correctly?
 > >
-> > I'm trying it, building from the linux-next branch of the staging
-> > tree. No joy.
+> > I came across this while looking at what we're doing with the
+> > V4L2_SEL_FLAG_KEEP_CONFIG flag.
 > >
-> > That's what happens when I modprobe it:
+> > Documentation/media/uapi/v4l/dev-subdev.rst defines the behaviour of
+> > the user API, and "Order of configuration and format propagation" says:
 > >
-> > [  991.841549] bcm2835_v4l2: module is from the staging directory, the =
-quality is unknown, you have been warned.
-> > [  991.842931] vchiq_get_state: g_state.remote =3D=3D NULL
-> > [  991.843437] vchiq_get_state: g_state.remote =3D=3D NULL
-> > [  991.843940] vchiq_get_state: g_state.remote =3D=3D NULL
-> > [  991.844444] vchiq_get_state: g_state.remote =3D=3D NULL
-> > [  991.844947] vchiq_get_state: g_state.remote =3D=3D NULL
-> > [  991.845451] vchiq_get_state: g_state.remote =3D=3D NULL
-> > [  991.845954] vchiq_get_state: g_state.remote =3D=3D NULL
-> > [  991.846457] vchiq_get_state: g_state.remote =3D=3D NULL
-> > [  991.846961] vchiq_get_state: g_state.remote =3D=3D NULL
-> > [  991.847464] vchiq_get_state: g_state.remote =3D=3D NULL
-> > [  991.847969] vchiq: vchiq_initialise: videocore not initialized
+> >    The coordinates to a step always refer to the actual size of the
+> >    previous step. The exception to this rule is the source compose
+> >    rectangle, which refers to the sink compose bounds rectangle --- if it
+> >    is supported by the hardware.
+> >    
+> >    1. Sink pad format. The user configures the sink pad format. This format
+> >       defines the parameters of the image the entity receives through the
+> >       pad for further processing.
+> >    
+> >    2. Sink pad actual crop selection. The sink pad crop defines the crop
+> >       performed to the sink pad format.
+> >    
+> >    3. Sink pad actual compose selection. The size of the sink pad compose
+> >       rectangle defines the scaling ratio compared to the size of the sink
+> >       pad crop rectangle. The location of the compose rectangle specifies
+> >       the location of the actual sink compose rectangle in the sink compose
+> >       bounds rectangle.
+> >    
+> >    4. Source pad actual crop selection. Crop on the source pad defines crop
+> >       performed to the image in the sink compose bounds rectangle.
+> >    
+> >    5. Source pad format. The source pad format defines the output pixel
+> >       format of the subdev, as well as the other parameters with the
+> >       exception of the image width and height. Width and height are defined
+> >       by the size of the source pad actual crop selection.
+> >    
+> >    Accessing any of the above rectangles not supported by the subdev will
+> >    return ``EINVAL``. Any rectangle referring to a previous unsupported
+> >    rectangle coordinates will instead refer to the previous supported
+> >    rectangle. For example, if sink crop is not supported, the compose
+> >    selection will refer to the sink pad format dimensions instead.
 > >
-> > [  991.847973] mmal_vchiq: Failed to initialise VCHI instance (status=
-=3D-1) =20
->=20
-> Yeah, this failure mode sucks.  I'm guessing you don't have a VCHI node
-> in the DT?  Patch attached.
+> > Note step 3 above: scaling is defined by the ratio of the _sink_ crop
+> > rectangle to the _sink_ compose rectangle.
 
-No, I didn't. Thanks! Applied it but, unfortunately, didn't work.
-Perhaps I'm missing some other patch. I'm compiling it from
-the Greg's staging tree (branch staging-next):
-	https://git.kernel.org/pub/scm/linux/kernel/git/gregkh/staging.git/log/?h=
-=3Dstaging-next
+The above paragraph suggests we skip any rectangles that are not
+supported. In our case that would be 3. and 4., since the CSI can't
+compose into a larger frame. I hadn't realised that the crop selection
+currently happens on the source pad.
+The hardware actually only supports cropping of the input (the crop
+rectangle we write into the window registers are before downscaling). So
+the crop rectangle should be moved to the sink pad.
 
-Btw, as I'm running Raspbian, and didn't want to use compat32 bits,=20
-I'm compiling the Kernel as an arm32 bits Kernel.
+> > So, lets say that the camera produces a 1280x720 image, and the sink
+> > pad format is configured with 1280x720.  That's step 1.
+> >
+> > The sink crop operates within that rectangle, cropping it to an area.
+> > Let's say we're only interested in its centre, so we'd chose 640x360
+> > with the top-left as 320,180.  This is step 2.
+>>
+> > Then, if we want to down-scale by a factor of two, we'd set the sink
+> > compose selection to 320x180.
 
-I did a small trick to build the DTB on arm32:
+Except when composing is not supported. If the sink compose and source
+crop rectangles are not supported, the source pad format takes their
+place in determining the scaling output resolution. At least that's how
+I read the documentation.
 
-	ln -sf ../../../arm64/boot/dts/broadcom/bcm2837-rpi-3-b.dts arch/arm/boot/=
-dts/bcm2837-rpi-3-b.dts
-	ln -sf ../../../arm64/boot/dts/broadcom/bcm2837.dtsi arch/arm/boot/dts/bcm=
-2837.dtsi
-	git checkout arch/arm/boot/dts/Makefile
-	sed "s,bcm2835-rpi-zero.dtb,bcm2835-rpi-zero.dtb bcm2837-rpi-3-b.dtb," a &=
-& mv a arch/arm/boot/dts/Makefile
+> > This seems to be at odds with how the scaling is done in CSI at
+> > present: the selection implementations all reject attempts to
+> > configure the sink pad, instead only supporting crop rectangles on
+> > the source,
+> 
+> Correct. Currently cropping is only supported at the source pad
+> (step 4).
+> 
+> Initially the CSI didn't support down-scaling, so step 3 is not supported,
+> so the sink pad format/crop selection rectangle/crop compose rectangle
+> are collapsed into the same sink pad format rectangle.
+> 
+> Philipp later added support for /2 downscaling, but we didn't put this in
+> the correct API, looks like this needs to move into the selection API at
+> step 3 (sink pad compose rectangle).
 
-> I haven't followed up on getting the DT documented so that it can be
-> merged, and it sounds like Michael has some plans for changing how VCHI
-> and VCHI's consumers get attached to each other so that it's not
-> DT-based anyway.
+I am not sure about this. Wouldn't moving the input crop to the sink pad
+be enough? If we added support for the sink pad compose rectangle, that
+wouldn't actually allow to compose the CSI output into a larger frame.
+Since the subdevice can't compose, I'd leave the sink compose rectangle
+disabled.
 
-I see.
+> >   and we use the source crop rectangle to define the
+> > down-scaling.
 
->=20
-> From 9488974b836b1fba7d32af34d612151872f9ce0d Mon Sep 17 00:00:00 2001
-> From: Eric Anholt <eric@anholt.net>
-> Date: Mon, 3 Oct 2016 11:23:34 -0700
-> Subject: [PATCH] ARM: bcm2835: Add VCHIQ to the DT.
->=20
-> Signed-off-by: Eric Anholt <eric@anholt.net>
-> ---
->  arch/arm/boot/dts/bcm2835-rpi.dtsi | 8 ++++++++
->  1 file changed, 8 insertions(+)
->=20
-> diff --git a/arch/arm/boot/dts/bcm2835-rpi.dtsi b/arch/arm/boot/dts/bcm28=
-35-rpi.dtsi
-> index caf2707680c1..f5fb5c5aa07a 100644
-> --- a/arch/arm/boot/dts/bcm2835-rpi.dtsi
-> +++ b/arch/arm/boot/dts/bcm2835-rpi.dtsi
-> @@ -26,6 +26,14 @@
->  			firmware =3D <&firmware>;
->  			#power-domain-cells =3D <1>;
->  		};
-> +
-> +		vchiq {
-> +			compatible =3D "brcm,bcm2835-vchiq";
-> +			reg =3D <0x7e00b840 0xf>;
-> +			interrupts =3D <0 2>;
-> +			cache-line-size =3D <32>;
-> +			firmware =3D <&firmware>;
-> +		};
->  	};
->  };
-> =20
+We use the source pad format to define the downscaling relative to the
+source crop rectangle (which is wrong, it should be relative to the sink
+crop rectangle).
 
+> Yes. And maybe there is nothing wrong with that, because scaling is also
+> defined by the source/sink _format_ ratios (if I'm not mistaken), so looking
+> at this another way, we're just defining scaling in the CSI via another
+> legal API.
 
+I didn't touch the crop rectangle at all, just setting the input
+resolution on the sink pad and the desired output resolution on the
+source pad should work.
 
-Thanks,
-Mauro
-
---Sig_/eAGDnqE+IqO415lJvX.gacv
-Content-Type: application/pgp-signature
-Content-Description: Assinatura digital OpenPGP
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJYyeWSAAoJEAhfPr2O5OEVcdUP/Runk2t9pg7Mg5j2fEknsEFU
-SqhdVogzZTmQbDuIqjfHsvG26rQ5joV2ExlXh4gnSQJ5j8CpandYxuVMFfa9Ll3b
-eWg6PFuW65dklikB0xt0Z6ghzuwA24Lf1LCzzvxRmlYHGJJMQ9otL3s69ui9pP6y
-NXX15E20O4UNUPwgaVvMO7m3/5Q2oftpD85iWT7Yi4S+/bh9Liq7fK43QElT4JFz
-ZQRYpY2s/KnX4qq4ySjDUfkRMfQw7Ii3yLOoT9BOuz6qOcuSJOVw2juDQZY04n1x
-w9tRTofM08QdwCvLbncnFfh5g83RVnLjnUgLGPjbhKiM9r/kaYtkz1Uq2dwMHu1A
-x0lbBM+QFhzAndz931aLshk+Z4RufAXNfgZ1TxwDuLvExxuj18xLQzOBp58ATzNH
-8xmIbhwJTQvEYAhfpOisNJOJUQTcuxk9ourS/aHXOdk0+QqO0fcPY3f5D1U9kq4R
-otDcH/612ugBM6oIPLMGM9kFzVQBNlm6Dz0l3B17m3eAnyGok74hmrmoGLis+aYs
-ak0DxmP72MinnFb/A6o+gvg21KY1Ij2WLqjlhmkw8ItYcqAXNVWDm6/Vs7VUvQwP
-7DhZ9NGctaleFEvmPRYE0YKc/TIQ0Rat/N0bcex8fGwwOSMrLYMYL6P352tA5LrH
-cD4y8/XaSKv6yP2DeN1A
-=jVA2
------END PGP SIGNATURE-----
-
---Sig_/eAGDnqE+IqO415lJvX.gacv--
+regards
+Philipp
