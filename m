@@ -1,79 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:35464 "EHLO
-        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753667AbdCTK5Q (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 06:57:16 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>
-Subject: [PATCH v3 10/16] media: s5p-mfc: Reduce firmware buffer size for MFC
- v6+ variants
-Date: Mon, 20 Mar 2017 11:56:36 +0100
-Message-id: <1490007402-30265-11-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
-References: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20170320105652eucas1p1dfa223654e55908446103109d97aa2c2@eucas1p1.samsung.com>
+Received: from smtp2.macqel.be ([109.135.2.61]:57212 "EHLO smtp2.macqel.be"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753403AbdCTJYb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Mar 2017 05:24:31 -0400
+Date: Mon, 20 Mar 2017 10:23:30 +0100
+From: Philippe De Muyter <phdm@macq.eu>
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        sakari.ailus@linux.intel.com, hverkuil@xs4all.nl,
+        linux-media@vger.kernel.org, kernel@pengutronix.de,
+        mchehab@kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, p.zabel@pengutronix.de
+Subject: Re: [PATCH 4/4] media: imx-media-capture: add frame sizes/interval
+        enumeration
+Message-ID: <20170320092330.GA28094@frolo.macqel>
+References: <20170319103801.GQ21222@n2100.armlinux.org.uk> <E1cpYOa-0006Eu-CL@rmk-PC.armlinux.org.uk> <20170320085512.GA20923@frolo.macqel> <20170320090524.GC21222@n2100.armlinux.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170320090524.GC21222@n2100.armlinux.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Firmware for MFC v6+ variants is not larger than 400 KiB, so there is no
-need to allocate a full 1 MiB buffer for it. Reduce it to 512 KiB to keep
-proper alignment of allocated buffer.
+On Mon, Mar 20, 2017 at 09:05:25AM +0000, Russell King - ARM Linux wrote:
+> On Mon, Mar 20, 2017 at 09:55:12AM +0100, Philippe De Muyter wrote:
+> > Hi Russel,
+> > 
+> > On Sun, Mar 19, 2017 at 10:49:08AM +0000, Russell King wrote:
+> > > Add support for enumerating frame sizes and frame intervals from the
+> > > first subdev via the V4L2 interfaces.
+> > > 
+> > > Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+> > > ---
+> > >  drivers/staging/media/imx/imx-media-capture.c | 62 +++++++++++++++++++++++++++
+> > >  1 file changed, 62 insertions(+)
+> > > 
+> > ...
+> > > +static int capture_enum_frameintervals(struct file *file, void *fh,
+> > > +				       struct v4l2_frmivalenum *fival)
+> > > +{
+> > > +	struct capture_priv *priv = video_drvdata(file);
+> > > +	const struct imx_media_pixfmt *cc;
+> > > +	struct v4l2_subdev_frame_interval_enum fie = {
+> > > +		.index = fival->index,
+> > > +		.pad = priv->src_sd_pad,
+> > > +		.width = fival->width,
+> > > +		.height = fival->height,
+> > > +		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+> > > +	};
+> > > +	int ret;
+> > > +
+> > > +	cc = imx_media_find_format(fival->pixel_format, CS_SEL_ANY, true);
+> > > +	if (!cc)
+> > > +		return -EINVAL;
+> > > +
+> > > +	fie.code = cc->codes[0];
+> > > +
+> > > +	ret = v4l2_subdev_call(priv->src_sd, pad, enum_frame_interval, NULL, &fie);
+> > > +	if (ret)
+> > > +		return ret;
+> > > +
+> > > +	fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
+> > > +	fival->discrete = fie.interval;
+> > 
+> > For some parallel sensors (mine is a E2V ev76c560) "any" frame interval is possible,
+> > and hence type should be V4L2_FRMIVAL_TYPE_CONTINUOUS.
+> 
+> For my sensor, any frame interval is also possible, but that isn't the
+> point here.
+> 
+> /dev/video* only talks to the CSI source pad, not it's sink pad.  The
+> sink pad gets configured with the sensor frame rate via the media
+> controller API.  /dev/video* itself has no control over the sensor
+> frame rate.
+> 
+> The media controller stuff completely changes the way the established
+> /dev/video* functionality works - the ability to select arbitary frame
+> sizes and frame rates supported by the ultimate sensor is gone.  All
+> that needs to be setup through the media controller pipeline, one
+> subdev at a time.
+> 
+So existing gstreamer applications using /dev/video* to control framerate,
+and even gain and exposure won't work anymore :( ?
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Acked-by: Andrzej Hajda <a.hajda@samsung.com>
-Tested-by: Smitha T Murthy <smitha.t@samsung.com>
----
- drivers/media/platform/s5p-mfc/regs-mfc-v6.h | 2 +-
- drivers/media/platform/s5p-mfc/regs-mfc-v7.h | 2 +-
- drivers/media/platform/s5p-mfc/regs-mfc-v8.h | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+I had hoped to keep compatibility, with added robustness and functionality.
 
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
-index d2cd35916dc5..c0166ee9a455 100644
---- a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
-@@ -403,7 +403,7 @@
- #define MFC_OTHER_ENC_CTX_BUF_SIZE_V6	(12 * SZ_1K)	/*  12KB */
- 
- /* MFCv6 variant defines */
--#define MAX_FW_SIZE_V6			(SZ_1M)		/* 1MB */
-+#define MAX_FW_SIZE_V6			(SZ_512K)	/* 512KB */
- #define MAX_CPB_SIZE_V6			(3 * SZ_1M)	/* 3MB */
- #define MFC_VERSION_V6			0x61
- #define MFC_NUM_PORTS_V6		1
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
-index 1a5c6fdf7846..9f220769d970 100644
---- a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
-@@ -34,7 +34,7 @@
- #define S5P_FIMV_E_VP8_NUM_T_LAYER_V7			0xfdc4
- 
- /* MFCv7 variant defines */
--#define MAX_FW_SIZE_V7			(SZ_1M)		/* 1MB */
-+#define MAX_FW_SIZE_V7			(SZ_512K)	/* 512KB */
- #define MAX_CPB_SIZE_V7			(3 * SZ_1M)	/* 3MB */
- #define MFC_VERSION_V7			0x72
- #define MFC_NUM_PORTS_V7		1
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v8.h b/drivers/media/platform/s5p-mfc/regs-mfc-v8.h
-index 4d1c3750eb5e..75f5f7511d72 100644
---- a/drivers/media/platform/s5p-mfc/regs-mfc-v8.h
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v8.h
-@@ -116,7 +116,7 @@
- #define S5P_FIMV_D_ALIGN_PLANE_SIZE_V8	64
- 
- /* MFCv8 variant defines */
--#define MAX_FW_SIZE_V8			(SZ_1M)		/* 1MB */
-+#define MAX_FW_SIZE_V8			(SZ_512K)	/* 512KB */
- #define MAX_CPB_SIZE_V8			(3 * SZ_1M)	/* 3MB */
- #define MFC_VERSION_V8			0x80
- #define MFC_NUM_PORTS_V8		1
+I seems like I'll stay with my NXP/Freescale old and imperfect kernel.
+
+Best regards
+
+Philippe
+
 -- 
-1.9.1
+Philippe De Muyter +32 2 6101532 Macq SA rue de l'Aeronef 2 B-1140 Bruxelles
