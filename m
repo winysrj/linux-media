@@ -1,50 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f43.google.com ([209.85.215.43]:33065 "EHLO
-        mail-lf0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751494AbdCCMNe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Mar 2017 07:13:34 -0500
-Received: by mail-lf0-f43.google.com with SMTP id a6so46551859lfa.0
-        for <linux-media@vger.kernel.org>; Fri, 03 Mar 2017 04:12:13 -0800 (PST)
-Subject: Re: [PATCH] media: platform: Renesas IMR driver
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-References: <20170302210104.646782352@cogentembedded.com>
- <CAMuHMdVg5N82bu8fxRS=3iqF2MQmqoR0idb_x0t2RNn8eoedQg@mail.gmail.com>
- <f8702961-3561-977f-d6dc-16571a64181e@cogentembedded.com>
- <CAMuHMdUa4n_Gw7bMiSvDzb8TYQMu3WgnR6kTXtsMu_=k1mQrsA@mail.gmail.com>
-Cc: Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Konstantin Kozhevnikov
-        <Konstantin.Kozhevnikov@cogentembedded.com>
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <abdfa250-8b13-7471-3e60-2b33b41aa1a5@cogentembedded.com>
-Date: Fri, 3 Mar 2017 15:03:38 +0300
+Received: from mail-pg0-f44.google.com ([74.125.83.44]:35579 "EHLO
+        mail-pg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755616AbdCTPFh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Mar 2017 11:05:37 -0400
+Received: by mail-pg0-f44.google.com with SMTP id t143so12910301pgb.2
+        for <linux-media@vger.kernel.org>; Mon, 20 Mar 2017 08:05:31 -0700 (PDT)
+Date: Mon, 20 Mar 2017 08:05:17 -0700
+From: Stephen Hemminger <stephen@networkplumber.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        devel@driverdev.osuosl.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-kernel@vger.kernel.org, Alan Cox <alan@linux.intel.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/9] stating/atomisp: fix -Wold-style-definition warning
+Message-ID: <20170320080517.5b748830@xeon-e3>
+In-Reply-To: <20170320093225.1180723-3-arnd@arndb.de>
+References: <20170320093225.1180723-1-arnd@arndb.de>
+        <20170320093225.1180723-3-arnd@arndb.de>
 MIME-Version: 1.0
-In-Reply-To: <CAMuHMdUa4n_Gw7bMiSvDzb8TYQMu3WgnR6kTXtsMu_=k1mQrsA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/03/2017 02:58 PM, Geert Uytterhoeven wrote:
+On Mon, 20 Mar 2017 10:32:19 +0100
+Arnd Bergmann <arnd@arndb.de> wrote:
 
->>>> +  - "renesas,imr-lx4-v3m" for R-Car V3M.
->>>
->>>
->>> "renesas,-EPROBE_DEFER-imr-lx4"
->>
->>
->>    Huh? :-)
->
-> Do you know the part number of V3M?
-
-    No, but using the names from the manual I don't need it.
-
-> Gr{oetje,eeting}s,
->
->                         Geert
-
-MBR, Sergei
+> -void ia_css_dequeue_param_buffers(/*unsigned int pipe_num*/)
+> +void ia_css_dequeue_param_buffers(/*unsigned int pipe_num*/ void)
+>  {
+Why keep the comment?
