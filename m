@@ -1,54 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.24]:59852 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753441AbdCTJcz (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:56460 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754077AbdCTOS4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Mar 2017 05:32:55 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alan Cox <alan@linux.intel.com>, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 6/9] staging/atomisp: add PCI dependency
-Date: Mon, 20 Mar 2017 10:32:22 +0100
-Message-Id: <20170320093225.1180723-6-arnd@arndb.de>
-In-Reply-To: <20170320093225.1180723-1-arnd@arndb.de>
-References: <20170320093225.1180723-1-arnd@arndb.de>
+        Mon, 20 Mar 2017 10:18:56 -0400
+Subject: Re: [PATCH v10 2/2] media: i2c: Add support for OV5647 sensor.
+To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <devicetree@vger.kernel.org>
+References: <cover.1488798062.git.roliveir@synopsys.com>
+ <67b5055a198316f74c5c1339e14a9f18a4106e69.1488798062.git.roliveir@synopsys.com>
+CC: <CARLOS.PALMINHA@synopsys.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>,
+        Pavel Machek <pavel@ucw.cz>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Rob Herring <robh+dt@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Message-ID: <c6cb6827-e52d-0e6f-4e73-0b0c51522043@mentor.com>
+Date: Mon, 20 Mar 2017 16:16:12 +0200
+MIME-Version: 1.0
+In-Reply-To: <67b5055a198316f74c5c1339e14a9f18a4106e69.1488798062.git.roliveir@synopsys.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Without CONFIG_PCI, config space reads never return any data,
-leading to undefined behavior that gcc warns about:
+Hi Ramiro,
 
-platform/intel-mid/intel_mid_pcihelpers.c: In function 'intel_mid_msgbus_read32_raw':
-platform/intel-mid/intel_mid_pcihelpers.c:66:9: error: 'data' is used uninitialized in this function [-Werror=uninitialized]
-platform/intel-mid/intel_mid_pcihelpers.c: In function 'intel_mid_msgbus_read32_raw_ext':
-platform/intel-mid/intel_mid_pcihelpers.c:84:9: error: 'data' is used uninitialized in this function [-Werror=uninitialized]
-platform/intel-mid/intel_mid_pcihelpers.c: In function 'intel_mid_msgbus_read32':
-platform/intel-mid/intel_mid_pcihelpers.c:137:9: error: 'data' is used uninitialized in this function [-Werror=uninitialized]
+On 03/06/2017 01:16 PM, Ramiro Oliveira wrote:
+> The OV5647 sensor from Omnivision supports up to 2592x1944 @ 15 fps, RAW 8
+> and RAW 10 output formats, and MIPI CSI-2 interface.
+> 
+> The driver adds support for 640x480 RAW 8.
+> 
+> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
 
-With a dependency on CONFIG_PCI, we don't get this warning. This seems
-safe as PCI config space accessors should always return something
-when PCI is enabled.
+All updates are fine, thank you. Feel free to add my
 
-Fixes: a49d25364dfb ("staging/atomisp: Add support for the Intel IPU v2")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/staging/media/atomisp/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Reviewed-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
 
-diff --git a/drivers/staging/media/atomisp/Kconfig b/drivers/staging/media/atomisp/Kconfig
-index f7d8a841c629..3af2acdc7e96 100644
---- a/drivers/staging/media/atomisp/Kconfig
-+++ b/drivers/staging/media/atomisp/Kconfig
-@@ -1,6 +1,6 @@
- menuconfig INTEL_ATOMISP
-         bool "Enable support to Intel MIPI camera drivers"
--        depends on X86
-+        depends on X86 && PCI
-         help
-           Enable support for the Intel ISP2 camera interfaces and MIPI
-           sensor drivers.
--- 
-2.9.0
+> ---
+>  MAINTAINERS                |   7 +
+>  drivers/media/i2c/Kconfig  |  11 +
+>  drivers/media/i2c/Makefile |   1 +
+>  drivers/media/i2c/ov5647.c | 636 +++++++++++++++++++++++++++++++++++++++++++++
+
+I see this version has 100 LoC less in comparison to v8, good result.
+
+[snip]
+
+> +
+> +static const struct v4l2_subdev_pad_ops ov5647_subdev_pad_ops = {
+> +	.enum_mbus_code =	ov5647_enum_mbus_code,
+
+Nitpicking, above it's better to swap tab and space symbols around '='.
+
+> +};
+> +
+> +static const struct v4l2_subdev_ops ov5647_subdev_ops = {
+> +	.core		= &ov5647_subdev_core_ops,
+> +	.video		= &ov5647_subdev_video_ops,
+> +	.pad		= &ov5647_subdev_pad_ops,
+> +};
+> +
+
+--
+With best wishes,
+Vladimir
