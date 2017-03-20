@@ -1,101 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:19238 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754391AbdCFO3s (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Mar 2017 09:29:48 -0500
-From: Elena Reshetova <elena.reshetova@intel.com>
-To: gregkh@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org,
-        netdev@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-        linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
-        linux-media@vger.kernel.org, devel@linuxdriverproject.org,
-        linux-pci@vger.kernel.org, linux-s390@vger.kernel.org,
-        fcoe-devel@open-fcoe.org, linux-scsi@vger.kernel.org,
-        open-iscsi@googlegroups.com, devel@driverdev.osuosl.org,
-        target-devel@vger.kernel.org, linux-serial@vger.kernel.org,
-        linux-usb@vger.kernel.org, peterz@infradead.org,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        Hans Liljestrand <ishkamiel@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        David Windsor <dwindsor@gmail.com>
-Subject: [PATCH 16/29] drivers, media: convert vb2_vmalloc_buf.refcount from atomic_t to refcount_t
-Date: Mon,  6 Mar 2017 16:21:03 +0200
-Message-Id: <1488810076-3754-17-git-send-email-elena.reshetova@intel.com>
-In-Reply-To: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
-References: <1488810076-3754-1-git-send-email-elena.reshetova@intel.com>
+Received: from mout.kundenserver.de ([212.227.17.10]:53361 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753437AbdCTJcz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Mar 2017 05:32:55 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Alan Cox <alan@linux.intel.com>, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 1/9] staging/atomisp: include linux/io.h where needed
+Date: Mon, 20 Mar 2017 10:32:17 +0100
+Message-Id: <20170320093225.1180723-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-refcount_t type and corresponding API should be
-used instead of atomic_t when the variable is used as
-a reference counter. This allows to avoid accidental
-refcounter overflows that might lead to use-after-free
-situations.
+The plat_clock implementation fails ot build in some configurations:
 
-Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
-Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Signed-off-by: David Windsor <dwindsor@gmail.com>
+platform/clock/vlv2_plat_clock.c: In function 'vlv2_plat_set_clock_freq':
+platform/clock/vlv2_plat_clock.c:88:2: error: implicit declaration of function 'writel';did you mean 'wrmsrl'? [-Werror=implicit-function-declaration]
+platform/clock/vlv2_plat_clock.c:88:12: error: implicit declaration of function 'readl' [-Werror=implicit-function-declaration]
+platform/clock/vlv2_plat_clock.c: In function 'vlv2_plat_clk_probe':
+platform/clock/vlv2_plat_clock.c:193:13: error: implicit declaration of function 'ioremap_nocache' [-Werror=implicit-function-declaration]
+platform/clock/vlv2_plat_clock.c:193:11: error: assignment makes pointer from integer without a cast [-Werror=int-conversion]
+platform/clock/vlv2_plat_clock.c: In function 'vlv2_plat_clk_remove':
+platform/clock/vlv2_plat_clock.c:209:2: error: implicit declaration of function 'iounmap' [-Werror=implicit-function-declaration]
+
+This includes the required header file.
+
+Fixes: a49d25364dfb ("staging/atomisp: Add support for the Intel IPU v2")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/media/v4l2-core/videobuf2-vmalloc.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/staging/media/atomisp/platform/clock/vlv2_plat_clock.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-index 3f77814..f83253a 100644
---- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-+++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-@@ -13,6 +13,7 @@
- #include <linux/io.h>
+diff --git a/drivers/staging/media/atomisp/platform/clock/vlv2_plat_clock.c b/drivers/staging/media/atomisp/platform/clock/vlv2_plat_clock.c
+index a8ca93dbfbb5..25e939c50aef 100644
+--- a/drivers/staging/media/atomisp/platform/clock/vlv2_plat_clock.c
++++ b/drivers/staging/media/atomisp/platform/clock/vlv2_plat_clock.c
+@@ -20,6 +20,7 @@
+  */
+ 
+ #include <linux/err.h>
++#include <linux/io.h>
  #include <linux/module.h>
- #include <linux/mm.h>
-+#include <linux/refcount.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/vmalloc.h>
-@@ -26,7 +27,7 @@ struct vb2_vmalloc_buf {
- 	struct frame_vector		*vec;
- 	enum dma_data_direction		dma_dir;
- 	unsigned long			size;
--	atomic_t			refcount;
-+	refcount_t			refcount;
- 	struct vb2_vmarea_handler	handler;
- 	struct dma_buf			*dbuf;
- };
-@@ -56,7 +57,7 @@ static void *vb2_vmalloc_alloc(struct device *dev, unsigned long attrs,
- 		return ERR_PTR(-ENOMEM);
- 	}
- 
--	atomic_inc(&buf->refcount);
-+	refcount_set(&buf->refcount, 1);
- 	return buf;
- }
- 
-@@ -64,7 +65,7 @@ static void vb2_vmalloc_put(void *buf_priv)
- {
- 	struct vb2_vmalloc_buf *buf = buf_priv;
- 
--	if (atomic_dec_and_test(&buf->refcount)) {
-+	if (refcount_dec_and_test(&buf->refcount)) {
- 		vfree(buf->vaddr);
- 		kfree(buf);
- 	}
-@@ -161,7 +162,7 @@ static void *vb2_vmalloc_vaddr(void *buf_priv)
- static unsigned int vb2_vmalloc_num_users(void *buf_priv)
- {
- 	struct vb2_vmalloc_buf *buf = buf_priv;
--	return atomic_read(&buf->refcount);
-+	return refcount_read(&buf->refcount);
- }
- 
- static int vb2_vmalloc_mmap(void *buf_priv, struct vm_area_struct *vma)
-@@ -368,7 +369,7 @@ static struct dma_buf *vb2_vmalloc_get_dmabuf(void *buf_priv, unsigned long flag
- 		return NULL;
- 
- 	/* dmabuf keeps reference to vb2 buffer */
--	atomic_inc(&buf->refcount);
-+	refcount_inc(&buf->refcount);
- 
- 	return dbuf;
- }
+ #include <linux/platform_device.h>
+ #include "../../include/linux/vlv2_plat_clock.h"
 -- 
-2.7.4
+2.9.0
