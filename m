@@ -1,112 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:56865 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934773AbdC3ULp (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:32748 "EHLO
+        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753653AbdCTK5P (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Mar 2017 16:11:45 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Noam Camus <noamca@mellanox.com>,
-        Ingo Molnar <mingo@kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>
-Subject: [PATCH 8/9] kernel-api.rst: fix some complex tags at lib/bitmap.c
-Date: Thu, 30 Mar 2017 17:11:35 -0300
-Message-Id: <60c8e341c2a1840d059c4d655974ccb2f3d19f4b.1490904090.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1490904090.git.mchehab@s-opensource.com>
-References: <cover.1490904090.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1490904090.git.mchehab@s-opensource.com>
-References: <cover.1490904090.git.mchehab@s-opensource.com>
+        Mon, 20 Mar 2017 06:57:15 -0400
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Subject: [PATCH v3 11/16] media: s5p-mfc: Split variant DMA memory
+ configuration into separate functions
+Date: Mon, 20 Mar 2017 11:56:37 +0100
+Message-id: <1490007402-30265-12-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
+References: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170320105653eucas1p27e61ab46b1804c710d4767d94aab27cd@eucas1p2.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix the following issues:
+Move code for DMA memory configuration with IOMMU into separate function
+to make it easier to compare what is being done in each case.
 
-./lib/bitmap.c:869: WARNING: Definition list ends without a blank line; unexpected unindent.
-./lib/bitmap.c:876: WARNING: Inline emphasis start-string without end-string.
-./lib/bitmap.c:508: ERROR: Unexpected indentation.
-
-And make sure that a table and a footnote will use the right tags.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Acked-by: Andrzej Hajda <a.hajda@samsung.com>
+Tested-by: Smitha T Murthy <smitha.t@samsung.com>
 ---
- lib/bitmap.c | 28 +++++++++++++++++-----------
- 1 file changed, 17 insertions(+), 11 deletions(-)
+ drivers/media/platform/s5p-mfc/s5p_mfc.c | 102 ++++++++++++++++++-------------
+ 1 file changed, 61 insertions(+), 41 deletions(-)
 
-diff --git a/lib/bitmap.c b/lib/bitmap.c
-index 0b66f0e5eb6b..08c6ef3a2b6f 100644
---- a/lib/bitmap.c
-+++ b/lib/bitmap.c
-@@ -502,11 +502,11 @@ EXPORT_SYMBOL(bitmap_print_to_pagebuf);
-  * Syntax: range:used_size/group_size
-  * Example: 0-1023:2/256 ==> 0,1,256,257,512,513,768,769
-  *
-- * Returns 0 on success, -errno on invalid input strings.
-- * Error values:
-- *    %-EINVAL: second number in range smaller than first
-- *    %-EINVAL: invalid character in string
-- *    %-ERANGE: bit number specified too large for mask
-+ * Returns: 0 on success, -errno on invalid input strings. Error values:
-+ *
-+ *   - ``-EINVAL``: second number in range smaller than first
-+ *   - ``-EINVAL``: invalid character in string
-+ *   - ``-ERANGE``: bit number specified too large for mask
-  */
- static int __bitmap_parselist(const char *buf, unsigned int buflen,
- 		int is_user, unsigned long *maskp,
-@@ -864,14 +864,16 @@ EXPORT_SYMBOL(bitmap_bitremap);
-  *  11 was set in @orig had no affect on @dst.
-  *
-  * Example [2] for bitmap_fold() + bitmap_onto():
-- *  Let's say @relmap has these ten bits set:
-+ *  Let's say @relmap has these ten bits set::
-+ *
-  *		40 41 42 43 45 48 53 61 74 95
-+ *
-  *  (for the curious, that's 40 plus the first ten terms of the
-  *  Fibonacci sequence.)
-  *
-  *  Further lets say we use the following code, invoking
-  *  bitmap_fold() then bitmap_onto, as suggested above to
-- *  avoid the possibility of an empty @dst result:
-+ *  avoid the possibility of an empty @dst result::
-  *
-  *	unsigned long *tmp;	// a temporary bitmap's bits
-  *
-@@ -882,22 +884,26 @@ EXPORT_SYMBOL(bitmap_bitremap);
-  *  various @orig's.  I list the zero-based positions of each set bit.
-  *  The tmp column shows the intermediate result, as computed by
-  *  using bitmap_fold() to fold the @orig bitmap modulo ten
-- *  (the weight of @relmap).
-+ *  (the weight of @relmap):
-  *
-+ *      =============== ============== =================
-  *      @orig           tmp            @dst
-  *      0                0             40
-  *      1                1             41
-  *      9                9             95
-- *      10               0             40 (*)
-+ *      10               0             40 [#f1]_
-  *      1 3 5 7          1 3 5 7       41 43 48 61
-  *      0 1 2 3 4        0 1 2 3 4     40 41 42 43 45
-  *      0 9 18 27        0 9 8 7       40 61 74 95
-  *      0 10 20 30       0             40
-  *      0 11 22 33       0 1 2 3       40 41 42 43
-  *      0 12 24 36       0 2 4 6       40 42 45 53
-- *      78 102 211       1 2 8         41 42 74 (*)
-+ *      78 102 211       1 2 8         41 42 74 [#f1]_
-+ *      =============== ============== =================
-  *
-- * (*) For these marked lines, if we hadn't first done bitmap_fold()
-+ * .. [#f1]
-+ *
-+ *     For these marked lines, if we hadn't first done bitmap_fold()
-  *     into tmp, then the @dst result would have been empty.
-  *
-  * If either of @orig or @relmap is empty (no set bits), then @dst
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 16f4ba4f25ee..ff3bb8af2423 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1102,44 +1102,15 @@ static struct device *s5p_mfc_alloc_memdev(struct device *dev,
+ 	return NULL;
+ }
+ 
+-static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
++static int s5p_mfc_configure_2port_memory(struct s5p_mfc_dev *mfc_dev)
+ {
+ 	struct device *dev = &mfc_dev->plat_dev->dev;
+ 	void *bank2_virt;
+ 	dma_addr_t bank2_dma_addr;
+ 	unsigned long align_size = 1 << MFC_BASE_ALIGN_ORDER;
+-	struct s5p_mfc_priv_buf *fw_buf = &mfc_dev->fw_buf;
+ 	int ret;
+ 
+ 	/*
+-	 * When IOMMU is available, we cannot use the default configuration,
+-	 * because of MFC firmware requirements: address space limited to
+-	 * 256M and non-zero default start address.
+-	 * This is still simplified, not optimal configuration, but for now
+-	 * IOMMU core doesn't allow to configure device's IOMMUs channel
+-	 * separately.
+-	 */
+-	if (exynos_is_iommu_available(dev)) {
+-		int ret = exynos_configure_iommu(dev, S5P_MFC_IOMMU_DMA_BASE,
+-						 S5P_MFC_IOMMU_DMA_SIZE);
+-		if (ret)
+-			return ret;
+-
+-		mfc_dev->mem_dev[BANK1_CTX] = mfc_dev->mem_dev[BANK2_CTX] = dev;
+-		ret = s5p_mfc_alloc_firmware(mfc_dev);
+-		if (ret) {
+-			exynos_unconfigure_iommu(dev);
+-			return ret;
+-		}
+-
+-		mfc_dev->dma_base[BANK1_CTX] = fw_buf->dma;
+-		mfc_dev->dma_base[BANK2_CTX] = fw_buf->dma;
+-		vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
+-
+-		return 0;
+-	}
+-
+-	/*
+ 	 * Create and initialize virtual devices for accessing
+ 	 * reserved memory regions.
+ 	 */
+@@ -1162,7 +1133,7 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+ 		return ret;
+ 	}
+ 
+-	mfc_dev->dma_base[BANK1_CTX] = fw_buf->dma;
++	mfc_dev->dma_base[BANK1_CTX] = mfc_dev->fw_buf.dma;
+ 
+ 	bank2_virt = dma_alloc_coherent(mfc_dev->mem_dev[BANK2_CTX], align_size,
+ 					&bank2_dma_addr, GFP_KERNEL);
+@@ -1191,22 +1162,71 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+ 	return 0;
+ }
+ 
+-static void s5p_mfc_unconfigure_dma_memory(struct s5p_mfc_dev *mfc_dev)
++static void s5p_mfc_unconfigure_2port_memory(struct s5p_mfc_dev *mfc_dev)
+ {
+-	struct device *dev = &mfc_dev->plat_dev->dev;
++	device_unregister(mfc_dev->mem_dev[BANK1_CTX]);
++	device_unregister(mfc_dev->mem_dev[BANK2_CTX]);
++	vb2_dma_contig_clear_max_seg_size(mfc_dev->mem_dev[BANK1_CTX]);
++	vb2_dma_contig_clear_max_seg_size(mfc_dev->mem_dev[BANK2_CTX]);
++}
+ 
+-	s5p_mfc_release_firmware(mfc_dev);
++static int s5p_mfc_configure_common_memory(struct s5p_mfc_dev *mfc_dev)
++{
++	struct device *dev = &mfc_dev->plat_dev->dev;
++	/*
++	 * When IOMMU is available, we cannot use the default configuration,
++	 * because of MFC firmware requirements: address space limited to
++	 * 256M and non-zero default start address.
++	 * This is still simplified, not optimal configuration, but for now
++	 * IOMMU core doesn't allow to configure device's IOMMUs channel
++	 * separately.
++	 */
++	int ret = exynos_configure_iommu(dev, S5P_MFC_IOMMU_DMA_BASE,
++					 S5P_MFC_IOMMU_DMA_SIZE);
++	if (ret)
++		return ret;
+ 
+-	if (exynos_is_iommu_available(dev)) {
++	mfc_dev->mem_dev[BANK1_CTX] = mfc_dev->mem_dev[BANK2_CTX] = dev;
++	ret = s5p_mfc_alloc_firmware(mfc_dev);
++	if (ret) {
+ 		exynos_unconfigure_iommu(dev);
+-		vb2_dma_contig_clear_max_seg_size(dev);
+-		return;
++		return ret;
+ 	}
+ 
+-	device_unregister(mfc_dev->mem_dev[BANK1_CTX]);
+-	device_unregister(mfc_dev->mem_dev[BANK2_CTX]);
+-	vb2_dma_contig_clear_max_seg_size(mfc_dev->mem_dev[BANK1_CTX]);
+-	vb2_dma_contig_clear_max_seg_size(mfc_dev->mem_dev[BANK2_CTX]);
++	mfc_dev->dma_base[BANK1_CTX] = mfc_dev->fw_buf.dma;
++	mfc_dev->dma_base[BANK2_CTX] = mfc_dev->fw_buf.dma;
++	vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
++
++	return 0;
++}
++
++static void s5p_mfc_unconfigure_common_memory(struct s5p_mfc_dev *mfc_dev)
++{
++	struct device *dev = &mfc_dev->plat_dev->dev;
++
++	exynos_unconfigure_iommu(dev);
++	vb2_dma_contig_clear_max_seg_size(dev);
++}
++
++static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
++{
++	struct device *dev = &mfc_dev->plat_dev->dev;
++
++	if (exynos_is_iommu_available(dev))
++		return s5p_mfc_configure_common_memory(mfc_dev);
++	else
++		return s5p_mfc_configure_2port_memory(mfc_dev);
++}
++
++static void s5p_mfc_unconfigure_dma_memory(struct s5p_mfc_dev *mfc_dev)
++{
++	struct device *dev = &mfc_dev->plat_dev->dev;
++
++	s5p_mfc_release_firmware(mfc_dev);
++	if (exynos_is_iommu_available(dev))
++		s5p_mfc_unconfigure_common_memory(mfc_dev);
++	else
++		s5p_mfc_unconfigure_2port_memory(mfc_dev);
+ }
+ 
+ /* MFC probe function */
 -- 
-2.9.3
+1.9.1
