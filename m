@@ -1,100 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:34887 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753643AbdCMTVL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 15:21:11 -0400
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [RFC 10/10] [media] vb2: add out-fence support to QBUF
-Date: Mon, 13 Mar 2017 16:20:35 -0300
-Message-Id: <20170313192035.29859-11-gustavo@padovan.org>
-In-Reply-To: <20170313192035.29859-1-gustavo@padovan.org>
-References: <20170313192035.29859-1-gustavo@padovan.org>
+Received: from mga09.intel.com ([134.134.136.24]:44493 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753814AbdCTOmp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Mar 2017 10:42:45 -0400
+Subject: [PATCH 23/24] atomisp: remove a sysfs error message that can be
+ used to log spam
+From: Alan Cox <alan@linux.intel.com>
+To: greg@kroah.com, linux-media@vger.kernel.org
+Date: Mon, 20 Mar 2017 14:42:41 +0000
+Message-ID: <149002095116.17109.15579549438168736336.stgit@acox1-desk1.ger.corp.intel.com>
+In-Reply-To: <149002068431.17109.1216139691005241038.stgit@acox1-desk1.ger.corp.intel.com>
+References: <149002068431.17109.1216139691005241038.stgit@acox1-desk1.ger.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+Instead of logging this just report ERANGE as an error, which will give something close to the
+right user space report.
 
-If V4L2_BUF_FLAG_OUT_FENCE flag is present on the QBUF call we create
-an out_fence for the buffer and return it to userspace on the fence_fd
-field.
+The others of these were already removed by Dan Carpenter's patch.
 
-The fence is signaled on buffer_done(), when the job on the buffer is
-finished.
-
-TODO: clean up on __vb2_queue_cancel()
-
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c |  6 ++++++
- drivers/media/v4l2-core/videobuf2-v4l2.c | 15 ++++++++++++++-
- 2 files changed, 20 insertions(+), 1 deletion(-)
+ .../media/atomisp/pci/atomisp2/atomisp_drvfs.c     |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 54b1404..ca8abcc 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -356,6 +356,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
- 			vb->planes[plane].length = plane_sizes[plane];
- 			vb->planes[plane].min_length = plane_sizes[plane];
- 		}
-+		vb->out_fence_fd = -1;
- 		q->bufs[vb->index] = vb;
- 
- 		/* Allocate video buffer memory for the MMAP type */
-@@ -940,6 +941,11 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 			__enqueue_in_driver(vb);
- 		return;
- 	default:
-+		dma_fence_signal(vb->out_fence);
-+		dma_fence_put(vb->out_fence);
-+		vb->out_fence = NULL;
-+		vb->out_fence_fd = -1;
-+
- 		/* Inform any processes that may be waiting for buffers */
- 		wake_up(&q->done_wq);
- 		break;
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index c164aa0..1b43d9f 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -204,9 +204,14 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
- 	b->timestamp = ns_to_timeval(vb->timestamp);
- 	b->timecode = vbuf->timecode;
- 	b->sequence = vbuf->sequence;
--	b->fence_fd = -1;
-+	b->fence_fd = vb->out_fence_fd;
- 	b->reserved = 0;
- 
-+	if (vb->sync_file) {
-+		fd_install(vb->out_fence_fd, vb->sync_file->file);
-+		vb->sync_file = NULL;
-+	}
-+
- 	if (q->is_multiplanar) {
- 		/*
- 		 * Fill in plane-related data if userspace provided an array
-@@ -577,6 +582,14 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 			return -EINVAL;
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.c
+index 7f7c6d5..fcfe8d7 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.c
+@@ -107,9 +107,7 @@ static ssize_t iunit_dbglvl_store(struct device_driver *drv, const char *buf,
+ 	if (kstrtouint(buf, 10, &iunit_debug.dbglvl)
+ 		|| iunit_debug.dbglvl < 1
+ 		|| iunit_debug.dbglvl > 9) {
+-		dev_err(atomisp_dev, "%s setting %d value invalid, should be [1,9]\n",
+-			__func__, iunit_debug.dbglvl);
+-		return -EINVAL;
++		return -ERANGE;
  	}
+ 	atomisp_css_debug_set_dtrace_level(iunit_debug.dbglvl);
  
-+	if (b->flags & V4L2_BUF_FLAG_OUT_FENCE) {
-+		ret = vb2_setup_out_fence(q, b->index);
-+		if (ret) {
-+			dma_fence_put(fence);
-+			return ret;
-+		}
-+	}
-+
- 	return ret ? ret : vb2_core_qbuf(q, b->index, b, fence);
- }
- EXPORT_SYMBOL_GPL(vb2_qbuf);
--- 
-2.9.3
