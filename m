@@ -1,33 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:33867 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750776AbdCJFNQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Mar 2017 00:13:16 -0500
-Received: by mail-pf0-f194.google.com with SMTP id o126so9536954pfb.1
-        for <linux-media@vger.kernel.org>; Thu, 09 Mar 2017 21:13:16 -0800 (PST)
-From: simran singhal <singhalsimran0@gmail.com>
-To: gregkh@linuxfoundation.org
-Cc: devel@driverdev.osuosl.org, jarod@wilsonet.com, mchehab@kernel.org,
-        linux-media@vger.kernel.org
-Subject: [PATCH 0/3] staging: media: Clean up tests if NULL returned on failure
-Date: Fri, 10 Mar 2017 10:43:09 +0530
-Message-Id: <1489122792-8081-1-git-send-email-singhalsimran0@gmail.com>
+Received: from mga06.intel.com ([134.134.136.31]:24064 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753744AbdCTOm1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Mar 2017 10:42:27 -0400
+Subject: [PATCH 22/24] staging: atomisp: remove redudant condition in
+ if-statement
+From: Alan Cox <alan@linux.intel.com>
+To: greg@kroah.com, linux-media@vger.kernel.org
+Date: Mon, 20 Mar 2017 14:42:23 +0000
+Message-ID: <149002094250.17109.4699082985014190627.stgit@acox1-desk1.ger.corp.intel.com>
+In-Reply-To: <149002068431.17109.1216139691005241038.stgit@acox1-desk1.ger.corp.intel.com>
+References: <149002068431.17109.1216139691005241038.stgit@acox1-desk1.ger.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series tests if functions like kmalloc/kzalloc return NULL
-on failure. When NULL represents failure, !x is commonly used.
+From: Daeseok Youn <daeseok.youn@gmail.com>
 
-simran singhal (3):
-  staging: atomisp_fops: Clean up tests if NULL returned on failure
-  staging: vpfe_mc_capture: Clean up tests if NULL returned on failure
-  staging: lirc_zilog: Clean up tests if NULL returned on failure
+The V4L2_FIELD_ANY is zero, so the (!field) is same meaning
+with (field == V4L2_FIELD_ANY) in if-statement.
 
- drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c | 2 +-
- drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c      | 4 ++--
- drivers/staging/media/lirc/lirc_zilog.c                   | 6 +++---
- 3 files changed, 6 insertions(+), 6 deletions(-)
+Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+---
+ .../media/atomisp/pci/atomisp2/atomisp_cmd.c       |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
--- 
-2.7.4
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+index 036413b..0a2df3d 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+@@ -5081,7 +5081,7 @@ atomisp_try_fmt_file(struct atomisp_device *isp, struct v4l2_format *f)
+ 
+ 	depth = get_pixel_depth(pixelformat);
+ 
+-	if (!field || field == V4L2_FIELD_ANY)
++	if (field == V4L2_FIELD_ANY)
+ 		field = V4L2_FIELD_NONE;
+ 	else if (field != V4L2_FIELD_NONE) {
+ 		dev_err(isp->dev, "Wrong output field\n");
