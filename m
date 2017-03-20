@@ -1,144 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:56541 "EHLO ale.deltatee.com"
+Received: from mga05.intel.com ([192.55.52.43]:15060 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751309AbdCQSua (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Mar 2017 14:50:30 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
-        Johannes Thumshirn <jthumshirn@suse.de>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Cyrille Pitchen <cyrille.pitchen@atmel.com>
-Cc: linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org,
-        rtc-linux@googlegroups.com, linux-mtd@lists.infradead.org,
-        linux-media@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Logan Gunthorpe <logang@deltatee.com>
-Date: Fri, 17 Mar 2017 12:48:15 -0600
-Message-Id: <1489776503-3151-9-git-send-email-logang@deltatee.com>
-In-Reply-To: <1489776503-3151-1-git-send-email-logang@deltatee.com>
-References: <1489776503-3151-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v5 08/16] IB/ucm: utilize new cdev_device_add helper function
+        id S1753623AbdCTOmE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Mar 2017 10:42:04 -0400
+Subject: [PATCH 15/24] staging/atomisp: fix empty-body warning
+From: Alan Cox <alan@linux.intel.com>
+To: greg@kroah.com, linux-media@vger.kernel.org
+Date: Mon, 20 Mar 2017 14:41:20 +0000
+Message-ID: <149002087846.17109.1315819106851426964.stgit@acox1-desk1.ger.corp.intel.com>
+In-Reply-To: <149002068431.17109.1216139691005241038.stgit@acox1-desk1.ger.corp.intel.com>
+References: <149002068431.17109.1216139691005241038.stgit@acox1-desk1.ger.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+From: Arnd Bergmann <arnd@arndb.de>
 
-The use after free is not triggerable here because the cdev holds
-the module lock and the only device_unregister is only triggered by
-module unload, however make the change for consistency.
+Defining a debug function to nothing causes a warning with an empty block
+after if()/else():
 
-To make this work the cdev_del needs to move out of the struct device
-release function.
+drivers/staging/media/atomisp/i2c/ov2680.c: In function 'ov2680_s_stream':
+drivers/staging/media/atomisp/i2c/ov2680.c:1208:55: error: suggest braces around empty body in an 'else' statement [-Werror=empty-body]
 
-This cleans up the error path significantly and thus also fixes a minor
-bug where the devnum would not be released if cdev_add failed.
+This changes the empty debug statement to dev_dbg(), which by default also
+does nothing, but avoids this warning and also checks the format string.
+As a side-effect, we can now use dynamic debugging to turn on the
+output at runtime.
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+Fixes: a49d25364dfb ("staging/atomisp: Add support for the Intel IPU v2")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
 ---
- drivers/infiniband/core/ucm.c | 35 ++++++++++++++++++-----------------
- 1 file changed, 18 insertions(+), 17 deletions(-)
+ drivers/staging/media/atomisp/i2c/ov2680.c |   37 ++++++++++++++--------------
+ 1 file changed, 19 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
-index cc0d51f..d15efa4 100644
---- a/drivers/infiniband/core/ucm.c
-+++ b/drivers/infiniband/core/ucm.c
-@@ -1205,12 +1205,15 @@ static void ib_ucm_release_dev(struct device *dev)
- 	struct ib_ucm_device *ucm_dev;
+diff --git a/drivers/staging/media/atomisp/i2c/ov2680.c b/drivers/staging/media/atomisp/i2c/ov2680.c
+index 58d2a07..c08dd0b 100644
+--- a/drivers/staging/media/atomisp/i2c/ov2680.c
++++ b/drivers/staging/media/atomisp/i2c/ov2680.c
+@@ -35,7 +35,6 @@
  
- 	ucm_dev = container_of(dev, struct ib_ucm_device, dev);
--	cdev_del(&ucm_dev->cdev);
-+	kfree(ucm_dev);
-+}
-+
-+static void ib_ucm_free_dev(struct ib_ucm_device *ucm_dev)
-+{
- 	if (ucm_dev->devnum < IB_UCM_MAX_DEVICES)
- 		clear_bit(ucm_dev->devnum, dev_map);
+ #include "ov2680.h"
+ 
+-#define ov2680_debug(...) //dev_err(__VA_ARGS__)
+ static int h_flag = 0;
+ static int v_flag = 0;
+ static enum atomisp_bayer_order ov2680_bayer_order_mapping[] = {
+@@ -99,7 +98,7 @@ static int ov2680_read_reg(struct i2c_client *client,
+ 		*val = be16_to_cpu(*(u16 *)&data[0]);
  	else
- 		clear_bit(ucm_dev->devnum - IB_UCM_MAX_DEVICES, overflow_map);
--	kfree(ucm_dev);
+ 		*val = be32_to_cpu(*(u32 *)&data[0]);
+-	//ov2680_debug(&client->dev,  "++++i2c read adr%x = %x\n", reg,*val);
++	//dev_dbg(&client->dev,  "++++i2c read adr%x = %x\n", reg,*val);
+ 	return 0;
  }
  
- static const struct file_operations ucm_fops = {
-@@ -1266,7 +1269,9 @@ static void ib_ucm_add_one(struct ib_device *device)
- 	if (!ucm_dev)
- 		return;
- 
-+	device_initialize(&ucm_dev->dev);
- 	ucm_dev->ib_dev = device;
-+	ucm_dev->dev.release = ib_ucm_release_dev;
- 
- 	devnum = find_first_zero_bit(dev_map, IB_UCM_MAX_DEVICES);
- 	if (devnum >= IB_UCM_MAX_DEVICES) {
-@@ -1286,16 +1291,14 @@ static void ib_ucm_add_one(struct ib_device *device)
- 	cdev_init(&ucm_dev->cdev, &ucm_fops);
- 	ucm_dev->cdev.owner = THIS_MODULE;
- 	kobject_set_name(&ucm_dev->cdev.kobj, "ucm%d", ucm_dev->devnum);
--	if (cdev_add(&ucm_dev->cdev, base, 1))
--		goto err;
- 
- 	ucm_dev->dev.class = &cm_class;
- 	ucm_dev->dev.parent = device->dev.parent;
--	ucm_dev->dev.devt = ucm_dev->cdev.dev;
--	ucm_dev->dev.release = ib_ucm_release_dev;
-+	ucm_dev->dev.devt = base;
-+
- 	dev_set_name(&ucm_dev->dev, "ucm%d", ucm_dev->devnum);
--	if (device_register(&ucm_dev->dev))
--		goto err_cdev;
-+	if (cdev_device_add(&ucm_dev->cdev, &ucm_dev->dev))
-+		goto err_devnum;
- 
- 	if (device_create_file(&ucm_dev->dev, &dev_attr_ibdev))
- 		goto err_dev;
-@@ -1304,15 +1307,11 @@ static void ib_ucm_add_one(struct ib_device *device)
- 	return;
- 
- err_dev:
--	device_unregister(&ucm_dev->dev);
--err_cdev:
--	cdev_del(&ucm_dev->cdev);
--	if (ucm_dev->devnum < IB_UCM_MAX_DEVICES)
--		clear_bit(devnum, dev_map);
--	else
--		clear_bit(devnum, overflow_map);
-+	cdev_device_del(&ucm_dev->cdev, &ucm_dev->dev);
-+err_devnum:
-+	ib_ucm_free_dev(ucm_dev);
- err:
--	kfree(ucm_dev);
-+	put_device(&ucm_dev->dev);
- 	return;
+@@ -114,7 +113,7 @@ static int ov2680_i2c_write(struct i2c_client *client, u16 len, u8 *data)
+ 	msg.len = len;
+ 	msg.buf = data;
+ 	ret = i2c_transfer(client->adapter, &msg, 1);
+-	//ov2680_debug(&client->dev,  "+++i2c write reg=%x->%x\n", data[0]*256 +data[1],data[2]);
++	//dev_dbg(&client->dev,  "+++i2c write reg=%x->%x\n", data[0]*256 +data[1],data[2]);
+ 	return ret == num_msg ? 0 : -EIO;
  }
  
-@@ -1323,7 +1322,9 @@ static void ib_ucm_remove_one(struct ib_device *device, void *client_data)
- 	if (!ucm_dev)
- 		return;
+@@ -235,7 +234,7 @@ static int ov2680_write_reg_array(struct i2c_client *client,
+ 	const struct ov2680_reg *next = reglist;
+ 	struct ov2680_write_ctrl ctrl;
+ 	int err;
+-	ov2680_debug(&client->dev,  "++++write reg array\n");
++	dev_dbg(&client->dev,  "++++write reg array\n");
+ 	ctrl.index = 0;
+ 	for (; next->type != OV2680_TOK_TERM; next++) {
+ 		switch (next->type & OV2680_TOK_MASK) {
+@@ -250,7 +249,7 @@ static int ov2680_write_reg_array(struct i2c_client *client,
+ 			 * If next address is not consecutive, data needs to be
+ 			 * flushed before proceed.
+ 			 */
+-			 ov2680_debug(&client->dev,  "+++ov2680_write_reg_array reg=%x->%x\n", next->reg,next->val);
++			 dev_dbg(&client->dev,  "+++ov2680_write_reg_array reg=%x->%x\n", next->reg,next->val);
+ 			if (!__ov2680_write_reg_is_consecutive(client, &ctrl,
+ 								next)) {
+ 				err = __ov2680_flush_reg_array(client, &ctrl);
+@@ -296,7 +295,8 @@ static int ov2680_g_fnumber_range(struct v4l2_subdev *sd, s32 *val)
+ static int ov2680_g_bin_factor_x(struct v4l2_subdev *sd, s32 *val)
+ {
+ 	struct ov2680_device *dev = to_ov2680_sensor(sd);
+-	ov2680_debug(dev,  "++++ov2680_g_bin_factor_x\n");
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	dev_dbg(&client->dev,  "++++ov2680_g_bin_factor_x\n");
+ 	*val = ov2680_res[dev->fmt_idx].bin_factor_x;
  
--	device_unregister(&ucm_dev->dev);
-+	cdev_device_del(&ucm_dev->cdev, &ucm_dev->dev);
-+	ib_ucm_free_dev(ucm_dev);
-+	put_device(&ucm_dev->dev);
+ 	return 0;
+@@ -305,9 +305,10 @@ static int ov2680_g_bin_factor_x(struct v4l2_subdev *sd, s32 *val)
+ static int ov2680_g_bin_factor_y(struct v4l2_subdev *sd, s32 *val)
+ {
+ 	struct ov2680_device *dev = to_ov2680_sensor(sd);
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	
+ 	*val = ov2680_res[dev->fmt_idx].bin_factor_y;
+-	ov2680_debug(dev,  "++++ov2680_g_bin_factor_y\n");
++	dev_dbg(&client->dev,  "++++ov2680_g_bin_factor_y\n");
+ 	return 0;
  }
  
- static CLASS_ATTR_STRING(abi_version, S_IRUGO,
--- 
-2.1.4
+@@ -322,7 +323,7 @@ static int ov2680_get_intg_factor(struct i2c_client *client,
+ 	unsigned int pix_clk_freq_hz;
+ 	u16 reg_val;
+ 	int ret;
+-	ov2680_debug(dev,  "++++ov2680_get_intg_factor\n");
++	dev_dbg(&client->dev,  "++++ov2680_get_intg_factor\n");
+ 	if (!info)
+ 		return -EINVAL;
+ 
+@@ -399,7 +400,7 @@ static long __ov2680_set_exposure(struct v4l2_subdev *sd, int coarse_itg,
+ 	u16 vts,hts;
+ 	int ret,exp_val;
+ 	
+-       ov2680_debug(dev, "+++++++__ov2680_set_exposure coarse_itg %d, gain %d, digitgain %d++\n",coarse_itg, gain, digitgain);
++       dev_dbg(&client->dev, "+++++++__ov2680_set_exposure coarse_itg %d, gain %d, digitgain %d++\n",coarse_itg, gain, digitgain);
+ 
+ 	hts = ov2680_res[dev->fmt_idx].pixels_per_line;
+ 	vts = ov2680_res[dev->fmt_idx].lines_per_frame;
+@@ -605,7 +606,7 @@ static int ov2680_v_flip(struct v4l2_subdev *sd, s32 value)
+ 	int ret;
+ 	u16 val;
+ 	u8 index;
+-	ov2680_debug(&client->dev, "@%s: value:%d\n", __func__, value);
++	dev_dbg(&client->dev, "@%s: value:%d\n", __func__, value);
+ 	ret = ov2680_read_reg(client, OV2680_8BIT, OV2680_FLIP_REG, &val);
+ 	if (ret)
+ 		return ret;
+@@ -636,7 +637,7 @@ static int ov2680_h_flip(struct v4l2_subdev *sd, s32 value)
+ 	int ret;
+ 	u16 val;
+ 	u8 index;
+-	ov2680_debug(&client->dev, "@%s: value:%d\n", __func__, value);
++	dev_dbg(&client->dev, "@%s: value:%d\n", __func__, value);
+ 
+ 	ret = ov2680_read_reg(client, OV2680_8BIT, OV2680_MIRROR_REG, &val);
+ 	if (ret)
+@@ -1069,7 +1070,7 @@ static int ov2680_set_fmt(struct v4l2_subdev *sd,
+ 	struct camera_mipi_info *ov2680_info = NULL;
+ 	int ret = 0;
+ 	int idx = 0;
+-	ov2680_debug(&client->dev, "+++++ov2680_s_mbus_fmt+++++l\n");
++	dev_dbg(&client->dev, "+++++ov2680_s_mbus_fmt+++++l\n");
+ 	if (format->pad)
+ 		return -EINVAL;
+ 
+@@ -1097,7 +1098,7 @@ static int ov2680_set_fmt(struct v4l2_subdev *sd,
+ 		return 0;
+ 		}
+ 	dev->fmt_idx = get_resolution_index(fmt->width, fmt->height);
+-	ov2680_debug(&client->dev, "+++++get_resolution_index=%d+++++l\n",
++	dev_dbg(&client->dev, "+++++get_resolution_index=%d+++++l\n",
+ 		     dev->fmt_idx);
+ 	if (dev->fmt_idx == -1) {
+ 		dev_err(&client->dev, "get resolution fail\n");
+@@ -1106,7 +1107,7 @@ static int ov2680_set_fmt(struct v4l2_subdev *sd,
+ 	}
+ 	v4l2_info(client, "__s_mbus_fmt i=%d, w=%d, h=%d\n", dev->fmt_idx,
+ 		  fmt->width, fmt->height);
+-	ov2680_debug(&client->dev, "__s_mbus_fmt i=%d, w=%d, h=%d\n",
++	dev_dbg(&client->dev, "__s_mbus_fmt i=%d, w=%d, h=%d\n",
+ 		     dev->fmt_idx, fmt->width, fmt->height);
+ 
+ 	ret = ov2680_write_reg_array(client, ov2680_res[dev->fmt_idx].regs);
+@@ -1203,9 +1204,9 @@ static int ov2680_s_stream(struct v4l2_subdev *sd, int enable)
+ 
+ 	mutex_lock(&dev->input_lock);
+ 	if(enable )
+-		ov2680_debug(&client->dev, "ov2680_s_stream one \n");
++		dev_dbg(&client->dev, "ov2680_s_stream one \n");
+ 	else
+-		ov2680_debug(&client->dev, "ov2680_s_stream off \n");
++		dev_dbg(&client->dev, "ov2680_s_stream off \n");
+ 	
+ 	ret = ov2680_write_reg(client, OV2680_8BIT, OV2680_SW_STREAM,
+ 				enable ? OV2680_START_STREAMING :
+@@ -1508,11 +1509,11 @@ static int ov2680_probe(struct i2c_client *client,
+ 	if (ret)
+ 	{
+ 		ov2680_remove(client);
+-		ov2680_debug(&client->dev, "+++ remove ov2680 \n");
++		dev_dbg(&client->dev, "+++ remove ov2680 \n");
+ 	}
+ 	return ret;
+ out_free:
+-	ov2680_debug(&client->dev, "+++ out free \n");
++	dev_dbg(&client->dev, "+++ out free \n");
+ 	v4l2_device_unregister_subdev(&dev->sd);
+ 	kfree(dev);
+ 	return ret;
