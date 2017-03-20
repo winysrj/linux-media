@@ -1,62 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f193.google.com ([209.85.161.193]:36113 "EHLO
-        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751374AbdCMV3j (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:35464 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753667AbdCTK5Q (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 17:29:39 -0400
-MIME-Version: 1.0
-In-Reply-To: <6d3d52ba-29a9-701f-2948-00ce28282975@redhat.com>
-References: <1488491084-17252-1-git-send-email-labbott@redhat.com>
- <20170303132949.GC31582@dhcp22.suse.cz> <cf383b9b-3cbc-0092-a071-f120874c053c@redhat.com>
- <20170306074258.GA27953@dhcp22.suse.cz> <20170306104041.zghsicrnadoap7lp@phenom.ffwll.local>
- <20170306105805.jsq44kfxhsvazkm6@sirena.org.uk> <20170306160437.sf7bksorlnw7u372@phenom.ffwll.local>
- <CA+M3ks77Am3Fx-ZNmgeM5tCqdM7SzV7rby4Es-p2F2aOhUco9g@mail.gmail.com>
- <26bc57ae-d88f-4ea0-d666-2c1a02bf866f@redhat.com> <CA+M3ks6R=n4n54wofK7pYcWoQKUhzyWQytBO90+pRDRrAhi3ww@mail.gmail.com>
- <CAKMK7uH9NemeM2z-tQvge_B=kABop6O7UQFK3PirpJminMCPqw@mail.gmail.com> <6d3d52ba-29a9-701f-2948-00ce28282975@redhat.com>
-From: Rob Clark <robdclark@gmail.com>
-Date: Mon, 13 Mar 2017 17:29:31 -0400
-Message-ID: <CAF6AEGvs0qVr_=pSp5FYoxM4XNaKLtYB-uhBmDheYcgxgv1_2g@mail.gmail.com>
-Subject: Re: [RFC PATCH 00/12] Ion cleanup in preparation for moving out of staging
-To: Laura Abbott <labbott@redhat.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        devel@driverdev.osuosl.org, Rom Lemarchand <romlem@google.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Riley Andrews <riandrews@android.com>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        Michal Hocko <mhocko@kernel.org>,
-        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-        Linux MM <linux-mm@kvack.org>,
-        =?UTF-8?B?QXJ2ZSBIasO4bm5ldsOlZw==?= <arve@android.com>,
-        Mark Brown <broonie@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+        Mon, 20 Mar 2017 06:57:16 -0400
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Subject: [PATCH v3 10/16] media: s5p-mfc: Reduce firmware buffer size for MFC
+ v6+ variants
+Date: Mon, 20 Mar 2017 11:56:36 +0100
+Message-id: <1490007402-30265-11-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
+References: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170320105652eucas1p1dfa223654e55908446103109d97aa2c2@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 13, 2017 at 5:09 PM, Laura Abbott <labbott@redhat.com> wrote:
->> Hm, we might want to expose all the heaps as individual
->> /dev/ion_$heapname nodes? Should we do this from the start, since
->> we're massively revamping the uapi anyway (imo not needed, current
->> state seems to work too)?
->> -Daniel
->>
->
-> I thought about that. One advantage with separate /dev/ion_$heap
-> is that we don't have to worry about a limit of 32 possible
-> heaps per system (32-bit heap id allocation field). But dealing
-> with an ioctl seems easier than names. Userspace might be less
-> likely to hardcode random id numbers vs. names as well.
+Firmware for MFC v6+ variants is not larger than 400 KiB, so there is no
+need to allocate a full 1 MiB buffer for it. Reduce it to 512 KiB to keep
+proper alignment of allocated buffer.
 
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Acked-by: Andrzej Hajda <a.hajda@samsung.com>
+Tested-by: Smitha T Murthy <smitha.t@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/regs-mfc-v6.h | 2 +-
+ drivers/media/platform/s5p-mfc/regs-mfc-v7.h | 2 +-
+ drivers/media/platform/s5p-mfc/regs-mfc-v8.h | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-other advantage, I think, is selinux (brought up elsewhere on this
-thread).. heaps at known fixed PAs are useful for certain sorts of
-attacks so being able to restrict access more easily seems like a good
-thing
-
-BR,
--R
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+index d2cd35916dc5..c0166ee9a455 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+@@ -403,7 +403,7 @@
+ #define MFC_OTHER_ENC_CTX_BUF_SIZE_V6	(12 * SZ_1K)	/*  12KB */
+ 
+ /* MFCv6 variant defines */
+-#define MAX_FW_SIZE_V6			(SZ_1M)		/* 1MB */
++#define MAX_FW_SIZE_V6			(SZ_512K)	/* 512KB */
+ #define MAX_CPB_SIZE_V6			(3 * SZ_1M)	/* 3MB */
+ #define MFC_VERSION_V6			0x61
+ #define MFC_NUM_PORTS_V6		1
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+index 1a5c6fdf7846..9f220769d970 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+@@ -34,7 +34,7 @@
+ #define S5P_FIMV_E_VP8_NUM_T_LAYER_V7			0xfdc4
+ 
+ /* MFCv7 variant defines */
+-#define MAX_FW_SIZE_V7			(SZ_1M)		/* 1MB */
++#define MAX_FW_SIZE_V7			(SZ_512K)	/* 512KB */
+ #define MAX_CPB_SIZE_V7			(3 * SZ_1M)	/* 3MB */
+ #define MFC_VERSION_V7			0x72
+ #define MFC_NUM_PORTS_V7		1
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v8.h b/drivers/media/platform/s5p-mfc/regs-mfc-v8.h
+index 4d1c3750eb5e..75f5f7511d72 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v8.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v8.h
+@@ -116,7 +116,7 @@
+ #define S5P_FIMV_D_ALIGN_PLANE_SIZE_V8	64
+ 
+ /* MFCv8 variant defines */
+-#define MAX_FW_SIZE_V8			(SZ_1M)		/* 1MB */
++#define MAX_FW_SIZE_V8			(SZ_512K)	/* 512KB */
+ #define MAX_CPB_SIZE_V8			(3 * SZ_1M)	/* 3MB */
+ #define MFC_VERSION_V8			0x80
+ #define MFC_NUM_PORTS_V8		1
+-- 
+1.9.1
