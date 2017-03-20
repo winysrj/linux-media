@@ -1,73 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-eopbgr20125.outbound.protection.outlook.com ([40.107.2.125]:20224
-        "EHLO EUR02-VE1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751647AbdCCPIY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Mar 2017 10:08:24 -0500
-Subject: Re: [PATCH 26/26] kasan: rework Kconfig settings
-To: Arnd Bergmann <arnd@arndb.de>, <kasan-dev@googlegroups.com>
-References: <20170302163834.2273519-1-arnd@arndb.de>
- <20170302163834.2273519-27-arnd@arndb.de>
-CC: Alexander Potapenko <glider@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>, <netdev@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <linux-wireless@vger.kernel.org>,
-        <kernel-build-reports@lists.linaro.org>,
-        "David S . Miller" <davem@davemloft.net>
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Message-ID: <125a8ea6-35d7-9d37-3841-eebb37fce515@virtuozzo.com>
-Date: Fri, 3 Mar 2017 17:51:37 +0300
-MIME-Version: 1.0
-In-Reply-To: <20170302163834.2273519-27-arnd@arndb.de>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Received: from gw.crowfest.net ([52.42.241.221]:57792 "EHLO gw.crowfest.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753242AbdCTQGn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Mar 2017 12:06:43 -0400
+Message-ID: <1490024411.11105.5.camel@crowfest.net>
+Subject: Re: [PATCH 0/6] staging: BCM2835 MMAL V4L2 camera driver
+From: Michael Zoran <mzoran@crowfest.net>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Eric Anholt <eric@anholt.net>, devel@driverdev.osuosl.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-kernel@vger.kernel.org, linux-rpi-kernel@lists.infradead.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Date: Mon, 20 Mar 2017 08:40:11 -0700
+In-Reply-To: <20170320123345.5a7ac931@vento.lan>
+References: <20170127215503.13208-1-eric@anholt.net>
+         <20170315110128.37e2bc5a@vento.lan> <87a88m19om.fsf@eliezer.anholt.net>
+         <20170315220834.7019fd8b@vento.lan> <1489628784.8127.1.camel@crowfest.net>
+         <20170316062900.0e835118@vento.lan> <87shmbv2w3.fsf@eliezer.anholt.net>
+         <20170319135846.395feef8@vento.lan> <1489943068.13607.5.camel@crowfest.net>
+         <20170319221107.05227532@vento.lan> <20170320075831.65189ed7@vento.lan>
+         <1490008101.28090.5.camel@crowfest.net> <20170320115821.736931ee@vento.lan>
+         <1490022701.11105.3.camel@crowfest.net> <20170320123345.5a7ac931@vento.lan>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 03/02/2017 07:38 PM, Arnd Bergmann wrote:
-
+On Mon, 2017-03-20 at 12:33 -0300, Mauro Carvalho Chehab wrote:
+> Em Mon, 20 Mar 2017 08:11:41 -0700
+> Michael Zoran <mzoran@crowfest.net> escreveu:
 > 
-> diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
-> index 97d62c2da6c2..27c838c40a36 100644
-> --- a/lib/Kconfig.debug
-> +++ b/lib/Kconfig.debug
-> @@ -216,10 +216,9 @@ config ENABLE_MUST_CHECK
->  config FRAME_WARN
->  	int "Warn for stack frames larger than (needs gcc 4.4)"
->  	range 0 8192
-> -	default 0 if KASAN
-> -	default 2048 if GCC_PLUGIN_LATENT_ENTROPY
-> +	default 3072 if KASAN_EXTRA
->  	default 1024 if !64BIT
-> -	default 2048 if 64BIT
-> +	default 1280 if 64BIT
+> > On Mon, 2017-03-20 at 11:58 -0300, Mauro Carvalho Chehab wrote:
+> > > Em Mon, 20 Mar 2017 04:08:21 -0700
+> > > Michael Zoran <mzoran@crowfest.net> escreveu:
+> > >   
+> > > > On Mon, 2017-03-20 at 07:58 -0300, Mauro Carvalho Chehab
+> > > > wrote:  
+> > > > > Em Sun, 19 Mar 2017 22:11:07 -0300
+> > > > > Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+> > > > >     
+> > > > > > Em Sun, 19 Mar 2017 10:04:28 -0700
+> > > > > > Michael Zoran <mzoran@crowfest.net> escreveu:
+> > > > > >     
+> > > > > > > A working DT that I tried this morning with the current
+> > > > > > > firmware
+> > > > > > > is
+> > > > > > > posted here:
+> > > > > > > http://lists.infradead.org/pipermail/linux-rpi-kernel/201
+> > > > > > > 7-Ma
+> > > > > > > rch/
+> > > > > > > 005924
+> > > > > > > .html
+> > > > > > > 
+> > > > > > > It even works with minecraft_pi!      
+> > > > > 
+> > > > >     
+> > > > 
+> > > > Hi, can you e-mail out your config.txt?  Do you have audio
+> > > > enabled
+> > > > in
+> > > > config.txt?  
+> > > 
+> > > yes, I have this:
+> > > 
+> > > $ cat config.txt |grep -i audio
+> > > # uncomment to force a HDMI mode rather than DVI. This can make
+> > > audio
+> > > work in
+> > > # Enable audio (loads snd_bcm2835)
+> > > dtparam=audio=on
+> > > 
+> > > Full config attached.
+> > > 
+> > > Thanks,
+> > > Mauro
+> > >   
+> > 
+> > Are you using Eric Anholt's HDMI Audio driver that's included in
+> > VC4? 
+> > That could well be incompatible with the firmware driver. Or are
+> > you
+> > using a half mode of VC4 for audio and VCHIQ for video?
+> 
+> I'm using vanilla staging Kernel, from Greg's tree:
+> 	https://git.kernel.org/pub/scm/linux/kernel/git/gregkh/staging.
+> git/commit/?h=staging-
+> next&id=7bc49cb9b9b8bad32536c4b6d1aff1824c1adc6c
+> 
+> Plus the DWC2 fixup I wrote and DT changes you pointed
+> (see enclosed).
+> 
+> I can disable the audio overlay here, as I don't have anything 
+> connected to audio inputs/outputs.
+> 
+> Regards,
+> Mauro
+> 
 
-This looks unrelated. Also, it means that now we have 1280 with KASAN=y && KASAN_EXTRA=n.
-Judging from changelog I assume that this hunk slipped here from the follow up series.
+Why is the vchiq node in the tree twice? For me to even respond anymore
+you you going to have to include your entire dtb(whatever you are
+using) run through dtc -I dtb -O dts.  You are also going to have to
+include your exact .config file you used for building, and exactly what
+these DWC2 fixeups are.
 
->  	help
->  	  Tell gcc to warn at build time for stack frames larger than this.
->  	  Setting this too low will cause a lot of warnings.
-> @@ -499,7 +498,7 @@ config DEBUG_OBJECTS_ENABLE_DEFAULT
->  
->  config DEBUG_SLAB
->  	bool "Debug slab memory allocations"
-> -	depends on DEBUG_KERNEL && SLAB && !KMEMCHECK
-> +	depends on DEBUG_KERNEL && SLAB && !KMEMCHECK && !KASAN
->  	help
->  	  Say Y here to have the kernel do limited verification on memory
->  	  allocation as well as poisoning memory on free to catch use of freed
-> @@ -511,7 +510,7 @@ config DEBUG_SLAB_LEAK
->  
->  config SLUB_DEBUG_ON
->  	bool "SLUB debugging on by default"
-> -	depends on SLUB && SLUB_DEBUG && !KMEMCHECK
-> +	depends on SLUB && SLUB_DEBUG && !KMEMCHECK && !KASAN
-
-Why? SLUB_DEBUG_ON works with KASAN.
-
->  	default n
->  	help
->  	  Boot with debugging on by default. SLUB boots by default with
+You don't even state exactly what platform you are using, Is it even an
+RPI of some kind.
