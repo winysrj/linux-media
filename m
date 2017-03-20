@@ -1,95 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:36760 "EHLO
-        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933140AbdC2WXJ (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:34714 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753124AbdCTOS5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Mar 2017 18:23:09 -0400
-Received: by mail-qt0-f194.google.com with SMTP id n37so3943682qtb.3
-        for <linux-media@vger.kernel.org>; Wed, 29 Mar 2017 15:23:08 -0700 (PDT)
+        Mon, 20 Mar 2017 10:18:57 -0400
+Date: Mon, 20 Mar 2017 14:17:05 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>, robh+dt@kernel.org,
+        mark.rutland@arm.com, shawnguo@kernel.org, kernel@pengutronix.de,
+        fabio.estevam@nxp.com, mchehab@kernel.org, hverkuil@xs4all.nl,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        laurent.pinchart+renesas@ideasonboard.com, bparrot@ti.com,
+        geert@linux-m68k.org, arnd@arndb.de, sudipm.mukherjee@gmail.com,
+        minghsiu.tsai@mediatek.com, tiffany.lin@mediatek.com,
+        jean-christophe.trotin@st.com, horms+renesas@verge.net.au,
+        niklas.soderlund+renesas@ragnatech.se, robert.jarzmik@free.fr,
+        songjun.wu@microchip.com, andrew-ct.chen@mediatek.com,
+        gregkh@linuxfoundation.org, shuah@kernel.org,
+        sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: Re: [PATCH v5 38/39] media: imx: csi: fix crop rectangle reset in
+ sink set_fmt
+Message-ID: <20170320141705.GL21222@n2100.armlinux.org.uk>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <1489121599-23206-39-git-send-email-steve_longerbeam@mentor.com>
+ <20170319152233.GW21222@n2100.armlinux.org.uk>
+ <327d67d9-68c1-7f74-0c0f-f6aee1c4b546@gmail.com>
+ <1490010926.2917.59.camel@pengutronix.de>
+ <20170320120855.GH21222@n2100.armlinux.org.uk>
+ <1490018451.2917.86.camel@pengutronix.de>
 MIME-Version: 1.0
-From: Nigel Terry <nigel@nigelterry.net>
-Date: Wed, 29 Mar 2017 18:23:07 -0400
-Message-ID: <CAHBUmZMCxEGsVZEY2NWpcDtWqne8BfWH5-s5V79Hys56MBeZog@mail.gmail.com>
-Subject: build_media compilation issues
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1490018451.2917.86.camel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'm trying to use build_media to build the media drivers, specifically
-usb/em28xx, for Centos7. I'm getting compile errors, see below. Can
-anyone help me?
+On Mon, Mar 20, 2017 at 03:00:51PM +0100, Philipp Zabel wrote:
+> On Mon, 2017-03-20 at 12:08 +0000, Russell King - ARM Linux wrote:
+> > The same document says:
+> > 
+> >   Scaling support is optional. When supported by a subdev, the crop
+> >   rectangle on the subdev's sink pad is scaled to the size configured
+> >   using the
+> >   :ref:`VIDIOC_SUBDEV_S_SELECTION <VIDIOC_SUBDEV_G_SELECTION>` IOCTL
+> >   using ``V4L2_SEL_TGT_COMPOSE`` selection target on the same pad. If the
+> >   subdev supports scaling but not composing, the top and left values are
+> >   not used and must always be set to zero.
+> 
+> Right, this sentence does imply that when scaling is supported, there
+> must be a sink compose rectangle, even when composing is not.
+> 
+> I have previously set up scaling like this:
+> 
+> media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY2X8/1920x1080@1/60]"
+> media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/960x540@1/30]"
+> 
+> Does this mean, it should work like this instead?
+> 
+> media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY2X8/1920x1080@1/60]"
+> media-ctl --set-v4l2 "'ipu1_csi0':0[fmt:UYVY2X8/1920x1080@1/60,compose:(0,0)/960x540]"
+> media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/960x540@1/30]"
+> 
+> I suppose setting the source pad format should not be allowed to modify
+> the sink compose rectangle.
 
-Kernel:
-$ uname -a
-Linux mythpbx.lan 3.10.0-514.10.2.el7.x86_64 #1 SMP Fri Mar 3 00:04:05
-UTC 2017 x86_64 x86_64 x86_64 GNU/Linux
+That is what I believe having read these documents several times, but
+we need v4l2 people to confirm.
 
-Errors:
-...
-  CC [M]  /home/mythtv/buildmedia/media_build/v4l/dvb_usb_core.o
-/home/mythtv/buildmedia/media_build/v4l/dvb_usb_core.c: In function
-'dvb_usb_start_feed':
-/home/mythtv/buildmedia/media_build/v4l/dvb_usb_core.c:274:2: warning:
-passing argument 3 of 'wait_on_bit' makes integer from pointer without
-a cast [enabled by default]
-  wait_on_bit(&adap->state_bits, ADAP_INIT, wait_schedule,
-TASK_UNINTERRUPTIBLE);
-  ^
-In file included from include/linux/kobject.h:27:0,
-                 from include/linux/device.h:17,
-                 from include/linux/input.h:22,
-                 from /home/mythtv/buildmedia/media_build/v4l/compat.h:10,
-                 from <command-line>:0:
-include/linux/wait.h:1044:1: note: expected 'unsigned int' but
-argument is of type 'int (*)(void *)'
- wait_on_bit(void *word, int bit, unsigned mode)
- ^
-/home/mythtv/buildmedia/media_build/v4l/dvb_usb_core.c:274:2: error:
-too many arguments to function 'wait_on_bit'
-  wait_on_bit(&adap->state_bits, ADAP_INIT, wait_schedule,
-TASK_UNINTERRUPTIBLE);
-  ^
-In file included from include/linux/kobject.h:27:0,
-                 from include/linux/device.h:17,
-                 from include/linux/input.h:22,
-                 from /home/mythtv/buildmedia/media_build/v4l/compat.h:10,
-                 from <command-line>:0:
-include/linux/wait.h:1044:1: note: declared here
- wait_on_bit(void *word, int bit, unsigned mode)
- ^
-/home/mythtv/buildmedia/media_build/v4l/dvb_usb_core.c: In function
-'dvb_usb_fe_sleep':
-/home/mythtv/buildmedia/media_build/v4l/dvb_usb_core.c:623:5: warning:
-passing argument 3 of 'wait_on_bit' makes integer from pointer without
-a cast [enabled by default]
-     wait_schedule, TASK_UNINTERRUPTIBLE);
-     ^
-In file included from include/linux/kobject.h:27:0,
-                 from include/linux/device.h:17,
-                 from include/linux/input.h:22,
-                 from /home/mythtv/buildmedia/media_build/v4l/compat.h:10,
-                 from <command-line>:0:
-include/linux/wait.h:1044:1: note: expected 'unsigned int' but
-argument is of type 'int (*)(void *)'
- wait_on_bit(void *word, int bit, unsigned mode)
- ^
-/home/mythtv/buildmedia/media_build/v4l/dvb_usb_core.c:623:5: error:
-too many arguments to function 'wait_on_bit'
-     wait_schedule, TASK_UNINTERRUPTIBLE);
-     ^
-In file included from include/linux/kobject.h:27:0,
-                 from include/linux/device.h:17,
-                 from include/linux/input.h:22,
-                 from /home/mythtv/buildmedia/media_build/v4l/compat.h:10,
-                 from <command-line>:0:
-include/linux/wait.h:1044:1: note: declared here
- wait_on_bit(void *word, int bit, unsigned mode)
- ^
-make[3]: *** [/home/mythtv/buildmedia/media_build/v4l/dvb_usb_core.o] Error 1
-make[2]: *** [_module_/home/mythtv/buildmedia/media_build/v4l] Error 2
-make[2]: Leaving directory `/usr/src/kernels/3.10.0-514.10.2.el7.x86_64'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/home/mythtv/buildmedia/media_build/v4l'
-make: *** [all] Error 2
-build failed at ./build line 491.
+Note that setting the format on 'ipu1_csi0':0 should already be done by
+the previous media-ctl command, so it should be possible to simplify
+that to:
+
+media-ctl --set-v4l2 "'ipu1_csi0_mux':2[fmt:UYVY2X8/1920x1080@1/60]"
+media-ctl --set-v4l2 "'ipu1_csi0':0[compose:(0,0)/960x540]"
+media-ctl --set-v4l2 "'ipu1_csi0':2[fmt:AYUV32/960x540@1/30]"
+
+I have tripped over a bug in media-ctl when specifying both a crop and
+compose rectangle - the --help output suggests that "," should be used
+to separate them.  media-ctl rejects that, telling me the character at
+the "," should be "]".  Replacing the "," with " " allows media-ctl to
+accept it and set both rectangles, so it sounds like a parser bug - I've
+not looked into this any further yet.
+
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
