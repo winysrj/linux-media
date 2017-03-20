@@ -1,176 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:55680 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751130AbdCMJbO (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:35464 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753651AbdCTK5O (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Mar 2017 05:31:14 -0400
-Date: Mon, 13 Mar 2017 09:30:07 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: mark.rutland@arm.com, andrew-ct.chen@mediatek.com,
-        minghsiu.tsai@mediatek.com, sakari.ailus@linux.intel.com,
-        nick@shmanahar.org, songjun.wu@microchip.com, hverkuil@xs4all.nl,
-        Steve Longerbeam <steve_longerbeam@mentor.com>, pavel@ucw.cz,
-        robert.jarzmik@free.fr, devel@driverdev.osuosl.org,
-        markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, shuah@kernel.org,
-        geert@linux-m68k.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, kernel@pengutronix.de, arnd@arndb.de,
-        mchehab@kernel.org, bparrot@ti.com, robh+dt@kernel.org,
-        horms+renesas@verge.net.au, tiffany.lin@mediatek.com,
-        linux-arm-kernel@lists.infradead.org,
-        niklas.soderlund+renesas@ragnatech.se, gregkh@linuxfoundation.org,
-        linux-kernel@vger.kernel.org, jean-christophe.trotin@st.com,
-        p.zabel@pengutronix.de, fabio.estevam@nxp.com, shawnguo@kernel.org,
-        sudipm.mukherjee@gmail.com
-Subject: Re: [PATCH v5 00/39] i.MX Media Driver
-Message-ID: <20170313093007.GD21222@n2100.armlinux.org.uk>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <20170310201356.GA21222@n2100.armlinux.org.uk>
- <47542ef8-3e91-b4cd-cc65-95000105f172@gmail.com>
- <20170312195741.GS21222@n2100.armlinux.org.uk>
- <ea3ccdb8-903f-93ab-6875-90da440fc52a@gmail.com>
- <20170312202240.GT21222@n2100.armlinux.org.uk>
- <f1807742-012f-249e-1ad8-22d8434695cb@gmail.com>
- <20170313081625.GX21222@n2100.armlinux.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170313081625.GX21222@n2100.armlinux.org.uk>
+        Mon, 20 Mar 2017 06:57:14 -0400
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Subject: [PATCH v3 09/16] media: s5p-mfc: Allocate firmware with internal
+ private buffer alloc function
+Date: Mon, 20 Mar 2017 11:56:35 +0100
+Message-id: <1490007402-30265-10-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
+References: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170320105652eucas1p1176471116a8764dd0b0c70e58a2806b3@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 13, 2017 at 08:16:25AM +0000, Russell King - ARM Linux wrote:
-> On Sun, Mar 12, 2017 at 09:26:41PM -0700, Steve Longerbeam wrote:
-> > On 03/12/2017 01:22 PM, Russell King - ARM Linux wrote:
-> > >What I had was this patch for your v3.  I never got to testing your
-> > >v4 because of the LP-11 problem.
-> > >
-> > >In v5, you've changed to propagate the ipu_cpmem_set_image() error
-> > >code to avoid the resulting corruption, but that leaves the other bits
-> > >of this patch unaddressed, along my "media: imx: smfc: add support
-> > >for bayer formats" patch.
-> > >
-> > >Your driver basically has no support for bayer formats.
-> > 
-> > You added the patches to this driver that adds the bayer support,
-> > I don't think there is anything more required of the driver at this
-> > point to support bayer, the remaining work needs to happen in the IPUv3
-> > driver.
-> 
-> There is more work, because the way you've merged my changes to
-> imx_smfc_setup_channel() into csi_idmac_setup_channel() is wrong with
-> respect to the burst size.
-> 
-> You always set it to 8 or 16 depending on the width:
-> 
-> 	burst_size = (image.pix.width & 0xf) ? 8 : 16;
-> 
-> 	ipu_cpmem_set_burstsize(priv->idmac_ch, burst_size);
-> 
-> and then you have my switch() statement which assigns burst_size.
-> My _tested_ code removed the above, added the switch, which had
-> a default case which reflected the above setting:
-> 
-> 	default:
-> 		burst_size = (outfmt->width & 0xf) ? 8 : 16;
-> 
-> and then went on to set the burst size _after_ the switch statement:
-> 
-> 	ipu_cpmem_set_burstsize(priv->smfc_ch, burst_size);
-> 
-> The effect is unchanged for non-bayer formats.  For bayer formats, the
-> burst size is determined by the bayer data size.
-> 
-> So, even if it's appropriate to fix ipu_cpmem_set_image(), fixing the
-> above is still required.
-> 
-> I'm not convinced that fixing ipu_cpmem_set_image() is even the best
-> solution - it's not as trivial as it looks on the surface:
-> 
->         ipu_cpmem_set_resolution(ch, image->rect.width, image->rect.height);
->         ipu_cpmem_set_stride(ch, pix->bytesperline);
-> 
-> this is fine, it doesn't depend on the format.  However, the next line:
-> 
->         ipu_cpmem_set_fmt(ch, v4l2_pix_fmt_to_drm_fourcc(pix->pixelformat));
-> 
-> does - v4l2_pix_fmt_to_drm_fourcc() is a locally defined function (it
-> isn't v4l2 code) that converts a v4l2 pixel format to a DRM fourcc.
-> DRM knows nothing about bayer formats, there aren't fourcc codes in
-> DRM for it.  The result is that v4l2_pix_fmt_to_drm_fourcc() returns
-> -EINVAL cast to a u32, which gets passed unchecked into ipu_cpmem_set_fmt().
-> 
-> ipu_cpmem_set_fmt() won't recognise that, and also returns -EINVAL - and
-> it's a bug that this is not checked and propagated.  If it is checked and
-> propagated, then we need this to support bayer formats, and I don't see
-> DRM people wanting bayer format fourcc codes added without there being
-> a real DRM driver wanting to use them.
-> 
-> Then there's the business of calculating the top-left offset of the image,
-> which for bayer always needs to be an even number of pixels - as this
-> function takes the top-left offset, it ought to respect it, but if it
-> doesn't meet this criteria, what should it do?  csi_idmac_setup_channel()
-> always sets them to zero, but that's not really something that
-> ipu_cpmem_set_image() should assume.
+Once firmware buffer has been converted to use s5p_mfc_priv_buf structure,
+it is possible to allocate it with existing s5p_mfc_alloc_priv_buf()
+function. This change will help to reduce code variants in the next
+patches.
 
-For the time being, I've restored the functionality along the same lines
-as I originally had.  This seems to get me working capture, but might
-break non-bayer passthrough mode:
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Acked-by: Andrzej Hajda <a.hajda@samsung.com>
+Tested-by: Smitha T Murthy <smitha.t@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index fc0036aa84d0..df336971a009 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -314,14 +314,6 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
- 	image.phys0 = phys[0];
- 	image.phys1 = phys[1];
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+index b0cf3970117a..a1811ee538bd 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+@@ -27,6 +27,7 @@
+ int s5p_mfc_alloc_firmware(struct s5p_mfc_dev *dev)
+ {
+ 	struct s5p_mfc_priv_buf *fw_buf = &dev->fw_buf;
++	int err;
  
--	ret = ipu_cpmem_set_image(priv->idmac_ch, &image);
--	if (ret)
--		return ret;
--
--	burst_size = (image.pix.width & 0xf) ? 8 : 16;
--
--	ipu_cpmem_set_burstsize(priv->idmac_ch, burst_size);
--
- 	/*
- 	 * Check for conditions that require the IPU to handle the
- 	 * data internally as generic data, aka passthrough mode:
-@@ -346,15 +338,29 @@ static int csi_idmac_setup_channel(struct csi_priv *priv)
- 		passthrough_bits = 16;
- 		break;
- 	default:
-+		burst_size = (image.pix.width & 0xf) ? 8 : 16;
- 		passthrough = (sensor_ep->bus_type != V4L2_MBUS_CSI2 &&
- 			       sensor_ep->bus.parallel.bus_width >= 16);
- 		passthrough_bits = 16;
- 		break;
+ 	fw_buf->size = dev->variant->buf_size->fw;
+ 
+@@ -35,11 +36,10 @@ int s5p_mfc_alloc_firmware(struct s5p_mfc_dev *dev)
+ 		return -ENOMEM;
  	}
  
--	if (passthrough)
-+	if (passthrough) {
-+		ipu_cpmem_set_resolution(priv->idmac_ch, image.rect.width,
-+					 image.rect.height);
-+		ipu_cpmem_set_stride(priv->idmac_ch, image.pix.bytesperline);
-+		ipu_cpmem_set_buffer(priv->idmac_ch, 0, image.phys0);
-+		ipu_cpmem_set_buffer(priv->idmac_ch, 1, image.phys1);
-+		ipu_cpmem_set_burstsize(priv->idmac_ch, burst_size);
- 		ipu_cpmem_set_format_passthrough(priv->idmac_ch,
- 						 passthrough_bits);
-+	} else {
-+		ret = ipu_cpmem_set_image(priv->idmac_ch, &image);
-+		if (ret)
-+			return ret;
-+
-+		ipu_cpmem_set_burstsize(priv->idmac_ch, burst_size);
-+	}
+-	fw_buf->virt = dma_alloc_coherent(dev->mem_dev[BANK1_CTX], fw_buf->size,
+-					 &fw_buf->dma, GFP_KERNEL);
+-	if (!fw_buf->virt) {
++	err = s5p_mfc_alloc_priv_buf(dev, BANK1_CTX, &dev->fw_buf);
++	if (err) {
+ 		mfc_err("Allocating bitprocessor buffer failed\n");
+-		return -ENOMEM;
++		return err;
+ 	}
  
- 	/*
- 	 * Set the channel for the direct CSI-->memory via SMFC
-
-
+ 	return 0;
+@@ -92,11 +92,7 @@ int s5p_mfc_release_firmware(struct s5p_mfc_dev *dev)
+ {
+ 	/* Before calling this function one has to make sure
+ 	 * that MFC is no longer processing */
+-	if (!dev->fw_buf.virt)
+-		return -EINVAL;
+-	dma_free_coherent(dev->mem_dev[BANK1_CTX], dev->fw_buf.size,
+-			  dev->fw_buf.virt, dev->fw_buf.dma);
+-	dev->fw_buf.virt = NULL;
++	s5p_mfc_release_priv_buf(dev, &dev->fw_buf);
+ 	return 0;
+ }
+ 
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+1.9.1
