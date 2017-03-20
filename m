@@ -1,119 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:35962 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934692AbdCLUjm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 12 Mar 2017 16:39:42 -0400
-Subject: Re: [PATCH v5 00/39] i.MX Media Driver
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
- <20170312175118.GP21222@n2100.armlinux.org.uk>
- <191ef88d-2925-2264-6c77-46647394fc72@gmail.com>
- <20170312192932.GQ21222@n2100.armlinux.org.uk>
- <58b30bca-20ca-d4bd-7b86-04a4b8e71935@gmail.com>
- <c6eda3b3-52b8-8560-8f46-a6e2d6303bbd@gmail.com>
- <fa07c8d2-0943-b7d1-8d37-76e03bd527c0@gmail.com>
-Cc: mark.rutland@arm.com, andrew-ct.chen@mediatek.com,
-        minghsiu.tsai@mediatek.com, sakari.ailus@linux.intel.com,
-        nick@shmanahar.org, songjun.wu@microchip.com, hverkuil@xs4all.nl,
-        Steve Longerbeam <steve_longerbeam@mentor.com>, pavel@ucw.cz,
-        robert.jarzmik@free.fr, devel@driverdev.osuosl.org,
-        markus.heiser@darmarIT.de,
-        laurent.pinchart+renesas@ideasonboard.com, shuah@kernel.org,
-        geert@linux-m68k.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, kernel@pengutronix.de, arnd@arndb.de,
-        mchehab@kernel.org, bparrot@ti.com, robh+dt@kernel.org,
-        horms+renesas@verge.net.au, tiffany.lin@mediatek.com,
-        linux-arm-kernel@lists.infradead.org,
-        niklas.soderlund+renesas@ragnatech.se, gregkh@linuxfoundation.org,
-        linux-kernel@vger.kernel.org, jean-christophe.trotin@st.com,
-        p.zabel@pengutronix.de, fabio.estevam@nxp.com, shawnguo@kernel.org,
-        sudipm.mukherjee@gmail.com
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <146d8ac4-bf7d-59d3-a71b-9833cfdd6639@gmail.com>
-Date: Sun, 12 Mar 2017 13:39:37 -0700
+Received: from mga03.intel.com ([134.134.136.65]:65513 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753019AbdCTOjo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Mar 2017 10:39:44 -0400
+Subject: [PATCH 05/24] atomisp: ia_css_bh_hmem_encode is a no-op so remove it
+From: Alan Cox <alan@linux.intel.com>
+To: greg@kroah.com, linux-media@vger.kernel.org
+Date: Mon, 20 Mar 2017 14:39:21 +0000
+Message-ID: <149002074699.17109.16054163338277573885.stgit@acox1-desk1.ger.corp.intel.com>
+In-Reply-To: <149002068431.17109.1216139691005241038.stgit@acox1-desk1.ger.corp.intel.com>
+References: <149002068431.17109.1216139691005241038.stgit@acox1-desk1.ger.corp.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <fa07c8d2-0943-b7d1-8d37-76e03bd527c0@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This is a do nothing function so we can replace it with nothing and eliminate it entirely.
 
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+---
+ .../ia_css_isp_params.c                            |    6 ------
+ .../ia_css_isp_params.c                            |    6 ------
+ .../ia_css_isp_params.c                            |    6 ------
+ .../css2400/isp/kernels/bh/bh_2/ia_css_bh.host.c   |   11 -----------
+ .../css2400/isp/kernels/bh/bh_2/ia_css_bh.host.h   |    6 ------
+ 5 files changed, 35 deletions(-)
 
-On 03/12/2017 01:36 PM, Steve Longerbeam wrote:
->
->
-> On 03/12/2017 01:16 PM, Steve Longerbeam wrote:
->>
->>
->> On 03/12/2017 12:44 PM, Steve Longerbeam wrote:
->>>
->>>
->>> On 03/12/2017 12:29 PM, Russell King - ARM Linux wrote:
->>>> On Sun, Mar 12, 2017 at 12:21:45PM -0700, Steve Longerbeam wrote:
->>>>> There's actually nothing preventing userland from disabling a link
->>>>> multiple times, and imx_media_link_notify() complies, and so
->>>>> csi_s_power(OFF) gets called multiple times, and so that WARN_ON()
->>>>> in there is silly, I borrowed this from other MC driver examples,
->>>>> but it makes no sense to me, I'll remove it and prevent the power
->>>>> count from going negative.
->>>>
->>>> Hmm.  So what happens if one of the CSI's links is enabled, and we
->>>> disable a different link from the CSI several times?  Doesn't that
->>>> mean the power count will go to zero despite there being an enabled
->>>> link?
->>>
->>> Yes, the CSI will be powered off even if it still has an enabled link.
->>> But one of its other links has been disabled, meaning the pipeline as
->>> a whole is disabled. So I think it makes sense to power down the CSI,
->>> the pipeline isn't usable at that point.
->>>
->>> And remember that the CSI does not allow both output pads to be enabled
->>> at the same time. If that were so then indeed there would be a problem,
->>> because it would mean there is another active pipeline that requires the
->>> CSI being powered on, but that's not the case.
->>>
->>> I think this is consistent with the other entities as well, but I will
->>> double check.
->>
->>
->> At first I thought this could be a problem for one entity, the csi-2
->> receiver.
->>
->> It can enable all four of its output pads at once (if the input stream
->> contains all 4 virtual channels, the csi-2 receiver must support
->> demuxing all of them onto all 4 of its output pads).
->>
->> But after more review, this should not be an issue. If a csi-2 sink
->> (a CSI or a CSI mux) link is disabled, the csi-2 receiver is no longer
->> reachable from that sink, so attempts to disable the csi-2 via that
->> path again is not possible. The other potential problem is disabling
->> from the csi-2's own sink pad, but in that case the csi-2 no longer
->> has a source, so again it makes sense to power off the csi-2 even
->> if it has enabled output pads.
->>
->
-> But hold on, if my logic is correct, then why did the CSI power-off
-> get reached in your case, multiple times? Yes I think there is a bug,
-> link_notify() is not checking if the link has already been disabled.
-> I will fix this. But I'm surprised media core's link_notify handling
-> doesn't do this.
-
-but it does:
-
-int __media_entity_setup_link(struct media_link *link, u32 flags)
-{
-...
-     if (link->flags == flags)
-         return 0;
-...
-}
-
-What the heck. Anyway, I'll track this down.
-
-Steve
-
->
-> Steve
->
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2400_system/hive_isp_css_2400_system_generated/ia_css_isp_params.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2400_system/hive_isp_css_2400_system_generated/ia_css_isp_params.c
+index 9620bc3..3246d99 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2400_system/hive_isp_css_2400_system_generated/ia_css_isp_params.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2400_system/hive_isp_css_2400_system_generated/ia_css_isp_params.c
+@@ -176,15 +176,9 @@ size);
+ 	{
+ 		unsigned size   = stage->binary->info->mem_offsets.offsets.param->hmem0.bh.size;
+ 
+-		unsigned offset = stage->binary->info->mem_offsets.offsets.param->hmem0.bh.offset;
+-
+ 		if (size) {
+ 			ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE_PRIVATE, "ia_css_process_bh() enter:\n");
+ 
+-			ia_css_bh_hmem_encode((struct sh_css_isp_bh_hmem_params *)
+-					&stage->binary->mem_params.params[IA_CSS_PARAM_CLASS_PARAM][IA_CSS_ISP_HMEM0].address[offset],
+-					&params->s3a_config,
+-size);
+ 			params->isp_params_changed = true;
+ 			params->isp_mem_params_changed[pipe_id][stage->stage_num][IA_CSS_ISP_HMEM0] = true;
+ 
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hive_isp_css_2401_system_csi2p_generated/ia_css_isp_params.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hive_isp_css_2401_system_csi2p_generated/ia_css_isp_params.c
+index 87a3308..4c79a31 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hive_isp_css_2401_system_csi2p_generated/ia_css_isp_params.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hive_isp_css_2401_system_csi2p_generated/ia_css_isp_params.c
+@@ -175,15 +175,9 @@ size);
+ 	{
+ 		unsigned size   = stage->binary->info->mem_offsets.offsets.param->hmem0.bh.size;
+ 
+-		unsigned offset = stage->binary->info->mem_offsets.offsets.param->hmem0.bh.offset;
+-
+ 		if (size) {
+ 			ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE_PRIVATE, "ia_css_process_bh() enter:\n");
+ 
+-			ia_css_bh_hmem_encode((struct sh_css_isp_bh_hmem_params *)
+-					&stage->binary->mem_params.params[IA_CSS_PARAM_CLASS_PARAM][IA_CSS_ISP_HMEM0].address[offset],
+-					&params->s3a_config,
+-size);
+ 			params->isp_params_changed = true;
+ 			params->isp_mem_params_changed[pipe_id][stage->stage_num][IA_CSS_ISP_HMEM0] = true;
+ 
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_system/hive_isp_css_2401_system_generated/ia_css_isp_params.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_system/hive_isp_css_2401_system_generated/ia_css_isp_params.c
+index 87a3308..4c79a31 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_system/hive_isp_css_2401_system_generated/ia_css_isp_params.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_system/hive_isp_css_2401_system_generated/ia_css_isp_params.c
+@@ -175,15 +175,9 @@ size);
+ 	{
+ 		unsigned size   = stage->binary->info->mem_offsets.offsets.param->hmem0.bh.size;
+ 
+-		unsigned offset = stage->binary->info->mem_offsets.offsets.param->hmem0.bh.offset;
+-
+ 		if (size) {
+ 			ia_css_debug_dtrace(IA_CSS_DEBUG_TRACE_PRIVATE, "ia_css_process_bh() enter:\n");
+ 
+-			ia_css_bh_hmem_encode((struct sh_css_isp_bh_hmem_params *)
+-					&stage->binary->mem_params.params[IA_CSS_PARAM_CLASS_PARAM][IA_CSS_ISP_HMEM0].address[offset],
+-					&params->s3a_config,
+-size);
+ 			params->isp_params_changed = true;
+ 			params->isp_mem_params_changed[pipe_id][stage->stage_num][IA_CSS_ISP_HMEM0] = true;
+ 
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bh/bh_2/ia_css_bh.host.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bh/bh_2/ia_css_bh.host.c
+index 0dcafad..99c80d2 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bh/bh_2/ia_css_bh.host.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bh/bh_2/ia_css_bh.host.c
+@@ -63,15 +63,4 @@ ia_css_bh_encode(
+ 	    uDIGIT_FITTING(from->ae_y_coef_b, 16, SH_CSS_AE_YCOEF_SHIFT);
+ }
+ 
+-void
+-ia_css_bh_hmem_encode(
+-	struct sh_css_isp_bh_hmem_params *to,
+-	const struct ia_css_3a_config *from,
+-	unsigned size)
+-{
+-	(void)size;
+-	(void)from;
+-	(void)to;
+-}
+-
+ #endif
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bh/bh_2/ia_css_bh.host.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bh/bh_2/ia_css_bh.host.h
+index 339e954..cbb0929 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bh/bh_2/ia_css_bh.host.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bh/bh_2/ia_css_bh.host.h
+@@ -29,10 +29,4 @@ ia_css_bh_encode(
+ 	const struct ia_css_3a_config *from,
+ 	unsigned size);
+ 
+-void
+-ia_css_bh_hmem_encode(
+-	struct sh_css_isp_bh_hmem_params *to,
+-	const struct ia_css_3a_config *from,
+-	unsigned size);
+-
+ #endif /* __IA_CSS_BH_HOST_H */
