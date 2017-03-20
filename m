@@ -1,96 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:35974 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755146AbdCJEyy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Mar 2017 23:54:54 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
-        kernel@pengutronix.de, fabio.estevam@nxp.com,
-        linux@armlinux.org.uk, mchehab@kernel.org, hverkuil@xs4all.nl,
-        nick@shmanahar.org, markus.heiser@darmarIT.de,
-        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
-        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
-        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
-        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
-        robert.jarzmik@free.fr, songjun.wu@microchip.com,
-        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
-        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v5 29/39] ARM: imx_v6_v7_defconfig: Enable staging video4linux drivers
-Date: Thu,  9 Mar 2017 20:53:09 -0800
-Message-Id: <1489121599-23206-30-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:35464 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751467AbdCTK5N (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Mar 2017 06:57:13 -0400
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Subject: [PATCH v3 07/16] media: s5p-mfc: Put firmware to private buffer
+ structure
+Date: Mon, 20 Mar 2017 11:56:33 +0100
+Message-id: <1490007402-30265-8-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
+References: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170320105651eucas1p2f4a367546f4f33c652b36415b8542e3b@eucas1p2.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enable i.MX v4l2 media staging driver. For video capture on i.MX, the
-video multiplexer subdev is required. On the SabreAuto, the ADV7180
-video decoder is required along with i2c-mux-gpio. The Sabrelite
-and SabreSD require the OV5640 and the SabreLite requires PWM clocks
-for the OV5640.
+Use s5p_mfc_priv_buf structure for keeping the firmware image. This will
+help handling of firmware buffer allocation in the next patches.
 
-Increase max zoneorder to allow larger video buffer allocations.
-
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Acked-by: Andrzej Hajda <a.hajda@samsung.com>
+Tested-by: Smitha T Murthy <smitha.t@samsung.com>
 ---
- arch/arm/configs/imx_v6_v7_defconfig | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c |  2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  3 +--
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   | 36 ++++++++++++-------------
+ 3 files changed, 20 insertions(+), 21 deletions(-)
 
-diff --git a/arch/arm/configs/imx_v6_v7_defconfig b/arch/arm/configs/imx_v6_v7_defconfig
-index eaba3b1..5d8c94a 100644
---- a/arch/arm/configs/imx_v6_v7_defconfig
-+++ b/arch/arm/configs/imx_v6_v7_defconfig
-@@ -51,6 +51,7 @@ CONFIG_PREEMPT_VOLUNTARY=y
- CONFIG_AEABI=y
- CONFIG_HIGHMEM=y
- CONFIG_CMA=y
-+CONFIG_FORCE_MAX_ZONEORDER=14
- CONFIG_CMDLINE="noinitrd console=ttymxc0,115200"
- CONFIG_KEXEC=y
- CONFIG_CPU_FREQ=y
-@@ -181,6 +182,7 @@ CONFIG_SERIAL_FSL_LPUART=y
- CONFIG_SERIAL_FSL_LPUART_CONSOLE=y
- # CONFIG_I2C_COMPAT is not set
- CONFIG_I2C_CHARDEV=y
-+CONFIG_I2C_MUX=y
- CONFIG_I2C_MUX_GPIO=y
- # CONFIG_I2C_HELPER_AUTO is not set
- CONFIG_I2C_ALGOPCF=m
-@@ -221,14 +223,20 @@ CONFIG_REGULATOR_PFUZE100=y
- CONFIG_MEDIA_SUPPORT=y
- CONFIG_MEDIA_CAMERA_SUPPORT=y
- CONFIG_MEDIA_RC_SUPPORT=y
-+CONFIG_MEDIA_CONTROLLER=y
-+CONFIG_VIDEO_V4L2_SUBDEV_API=y
- CONFIG_RC_DEVICES=y
- CONFIG_IR_GPIO_CIR=y
- CONFIG_MEDIA_USB_SUPPORT=y
- CONFIG_USB_VIDEO_CLASS=m
- CONFIG_V4L_PLATFORM_DRIVERS=y
-+CONFIG_VIDEO_MULTIPLEXER=y
- CONFIG_SOC_CAMERA=y
- CONFIG_V4L_MEM2MEM_DRIVERS=y
- CONFIG_VIDEO_CODA=y
-+# CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
-+CONFIG_VIDEO_ADV7180=m
-+CONFIG_VIDEO_OV5640=m
- CONFIG_SOC_CAMERA_OV2640=y
- CONFIG_IMX_IPUV3_CORE=y
- CONFIG_DRM=y
-@@ -338,6 +346,9 @@ CONFIG_FSL_EDMA=y
- CONFIG_IMX_SDMA=y
- CONFIG_MXS_DMA=y
- CONFIG_STAGING=y
-+CONFIG_STAGING_MEDIA=y
-+CONFIG_VIDEO_IMX_MEDIA=y
-+CONFIG_COMMON_CLK_PWM=y
- CONFIG_IIO=y
- CONFIG_VF610_ADC=y
- CONFIG_MPL3115=y
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c
+index 8c4739ca16d6..4c80bb4243be 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c
+@@ -47,7 +47,7 @@ static int s5p_mfc_sys_init_cmd_v5(struct s5p_mfc_dev *dev)
+ 	struct s5p_mfc_cmd_args h2r_args;
+ 
+ 	memset(&h2r_args, 0, sizeof(struct s5p_mfc_cmd_args));
+-	h2r_args.arg[0] = dev->fw_size;
++	h2r_args.arg[0] = dev->fw_buf.size;
+ 	return s5p_mfc_cmd_host2risc_v5(dev, S5P_FIMV_H2R_CMD_SYS_INIT,
+ 			&h2r_args);
+ }
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 9cf860f34c71..cea17a737ef7 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -314,8 +314,7 @@ struct s5p_mfc_dev {
+ 	int int_type;
+ 	unsigned int int_err;
+ 	wait_queue_head_t queue;
+-	size_t fw_size;
+-	void *fw_virt_addr;
++	struct s5p_mfc_priv_buf fw_buf;
+ 	dma_addr_t dma_base[BANK_CTX_NUM];
+ 	unsigned long hw_lock;
+ 	struct s5p_mfc_ctx *ctx[MFC_NUM_CONTEXTS];
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+index c9bff3d0655f..50d698968049 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+@@ -29,21 +29,22 @@ int s5p_mfc_alloc_firmware(struct s5p_mfc_dev *dev)
+ 	void *bank2_virt;
+ 	dma_addr_t bank2_dma_addr;
+ 	unsigned int align_size = 1 << MFC_BASE_ALIGN_ORDER;
++	struct s5p_mfc_priv_buf *fw_buf = &dev->fw_buf;
+ 
+-	dev->fw_size = dev->variant->buf_size->fw;
++	fw_buf->size = dev->variant->buf_size->fw;
+ 
+-	if (dev->fw_virt_addr) {
++	if (fw_buf->virt) {
+ 		mfc_err("Attempting to allocate firmware when it seems that it is already loaded\n");
+ 		return -ENOMEM;
+ 	}
+ 
+-	dev->fw_virt_addr = dma_alloc_coherent(dev->mem_dev[BANK1_CTX],
+-					dev->fw_size, &dev->dma_base[BANK1_CTX],
+-					GFP_KERNEL);
+-	if (!dev->fw_virt_addr) {
++	fw_buf->virt = dma_alloc_coherent(dev->mem_dev[BANK1_CTX], fw_buf->size,
++					 &fw_buf->dma, GFP_KERNEL);
++	if (!fw_buf->virt) {
+ 		mfc_err("Allocating bitprocessor buffer failed\n");
+ 		return -ENOMEM;
+ 	}
++	dev->dma_base[BANK1_CTX] = fw_buf->dma;
+ 
+ 	if (HAS_PORTNUM(dev) && IS_TWOPORT(dev)) {
+ 		bank2_virt = dma_alloc_coherent(dev->mem_dev[BANK2_CTX],
+@@ -51,10 +52,9 @@ int s5p_mfc_alloc_firmware(struct s5p_mfc_dev *dev)
+ 
+ 		if (!bank2_virt) {
+ 			mfc_err("Allocating bank2 base failed\n");
+-			dma_free_coherent(dev->mem_dev[BANK1_CTX], dev->fw_size,
+-					  dev->fw_virt_addr,
+-					  dev->dma_base[BANK1_CTX]);
+-			dev->fw_virt_addr = NULL;
++			dma_free_coherent(dev->mem_dev[BANK1_CTX], fw_buf->size,
++					  fw_buf->virt, fw_buf->dma);
++			fw_buf->virt = NULL;
+ 			return -ENOMEM;
+ 		}
+ 
+@@ -101,17 +101,17 @@ int s5p_mfc_load_firmware(struct s5p_mfc_dev *dev)
+ 		mfc_err("Firmware is not present in the /lib/firmware directory nor compiled in kernel\n");
+ 		return -EINVAL;
+ 	}
+-	if (fw_blob->size > dev->fw_size) {
++	if (fw_blob->size > dev->fw_buf.size) {
+ 		mfc_err("MFC firmware is too big to be loaded\n");
+ 		release_firmware(fw_blob);
+ 		return -ENOMEM;
+ 	}
+-	if (!dev->fw_virt_addr) {
++	if (!dev->fw_buf.virt) {
+ 		mfc_err("MFC firmware is not allocated\n");
+ 		release_firmware(fw_blob);
+ 		return -EINVAL;
+ 	}
+-	memcpy(dev->fw_virt_addr, fw_blob->data, fw_blob->size);
++	memcpy(dev->fw_buf.virt, fw_blob->data, fw_blob->size);
+ 	wmb();
+ 	release_firmware(fw_blob);
+ 	mfc_debug_leave();
+@@ -123,11 +123,11 @@ int s5p_mfc_release_firmware(struct s5p_mfc_dev *dev)
+ {
+ 	/* Before calling this function one has to make sure
+ 	 * that MFC is no longer processing */
+-	if (!dev->fw_virt_addr)
++	if (!dev->fw_buf.virt)
+ 		return -EINVAL;
+-	dma_free_coherent(dev->mem_dev[BANK1_CTX], dev->fw_size,
+-			  dev->fw_virt_addr, dev->dma_base[BANK1_CTX]);
+-	dev->fw_virt_addr = NULL;
++	dma_free_coherent(dev->mem_dev[BANK1_CTX], dev->fw_buf.size,
++			  dev->fw_buf.virt, dev->fw_buf.dma);
++	dev->fw_buf.virt = NULL;
+ 	return 0;
+ }
+ 
+@@ -246,7 +246,7 @@ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
+ 	int ret;
+ 
+ 	mfc_debug_enter();
+-	if (!dev->fw_virt_addr) {
++	if (!dev->fw_buf.virt) {
+ 		mfc_err("Firmware memory is not allocated.\n");
+ 		return -EINVAL;
+ 	}
 -- 
-2.7.4
+1.9.1
