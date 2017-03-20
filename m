@@ -1,104 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ale.deltatee.com ([207.54.116.67]:56516 "EHLO ale.deltatee.com"
+Received: from smtp2.macqel.be ([109.135.2.61]:55656 "EHLO smtp2.macqel.be"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751248AbdCQSuZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Mar 2017 14:50:25 -0400
-From: Logan Gunthorpe <logang@deltatee.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
-        Johannes Thumshirn <jthumshirn@suse.de>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Brian Norris <computersforpeace@gmail.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Marek Vasut <marek.vasut@gmail.com>,
-        Cyrille Pitchen <cyrille.pitchen@atmel.com>
-Cc: linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org,
-        rtc-linux@googlegroups.com, linux-mtd@lists.infradead.org,
-        linux-media@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-input@vger.kernel.org, linux-nvdimm@lists.01.org,
-        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Logan Gunthorpe <logang@deltatee.com>
-Date: Fri, 17 Mar 2017 12:48:13 -0600
-Message-Id: <1489776503-3151-7-git-send-email-logang@deltatee.com>
-In-Reply-To: <1489776503-3151-1-git-send-email-logang@deltatee.com>
-References: <1489776503-3151-1-git-send-email-logang@deltatee.com>
-Subject: [PATCH v5 06/16] tpm-chip: utilize new cdev_device_add helper function
+        id S1753404AbdCTIzX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Mar 2017 04:55:23 -0400
+Date: Mon, 20 Mar 2017 09:55:12 +0100
+From: Philippe De Muyter <phdm@macq.eu>
+To: Russell King <rmk+kernel@armlinux.org.uk>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        sakari.ailus@linux.intel.com, hverkuil@xs4all.nl,
+        linux-media@vger.kernel.org, kernel@pengutronix.de,
+        mchehab@kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, p.zabel@pengutronix.de
+Subject: Re: [PATCH 4/4] media: imx-media-capture: add frame sizes/interval
+        enumeration
+Message-ID: <20170320085512.GA20923@frolo.macqel>
+References: <20170319103801.GQ21222@n2100.armlinux.org.uk> <E1cpYOa-0006Eu-CL@rmk-PC.armlinux.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <E1cpYOa-0006Eu-CL@rmk-PC.armlinux.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the open coded registration of the cdev and dev with the
-new device_add_cdev() helper. The helper replaces a common pattern by
-taking the proper reference against the parent device and adding both
-the cdev and the device.
+Hi Russel,
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Reviewed-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Reviewed-by: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
----
- drivers/char/tpm/tpm-chip.c | 19 +++----------------
- 1 file changed, 3 insertions(+), 16 deletions(-)
+On Sun, Mar 19, 2017 at 10:49:08AM +0000, Russell King wrote:
+> Add support for enumerating frame sizes and frame intervals from the
+> first subdev via the V4L2 interfaces.
+> 
+> Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+> ---
+>  drivers/staging/media/imx/imx-media-capture.c | 62 +++++++++++++++++++++++++++
+>  1 file changed, 62 insertions(+)
+> 
+...
+> +static int capture_enum_frameintervals(struct file *file, void *fh,
+> +				       struct v4l2_frmivalenum *fival)
+> +{
+> +	struct capture_priv *priv = video_drvdata(file);
+> +	const struct imx_media_pixfmt *cc;
+> +	struct v4l2_subdev_frame_interval_enum fie = {
+> +		.index = fival->index,
+> +		.pad = priv->src_sd_pad,
+> +		.width = fival->width,
+> +		.height = fival->height,
+> +		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+> +	};
+> +	int ret;
+> +
+> +	cc = imx_media_find_format(fival->pixel_format, CS_SEL_ANY, true);
+> +	if (!cc)
+> +		return -EINVAL;
+> +
+> +	fie.code = cc->codes[0];
+> +
+> +	ret = v4l2_subdev_call(priv->src_sd, pad, enum_frame_interval, NULL, &fie);
+> +	if (ret)
+> +		return ret;
+> +
+> +	fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
+> +	fival->discrete = fie.interval;
 
-diff --git a/drivers/char/tpm/tpm-chip.c b/drivers/char/tpm/tpm-chip.c
-index c406343..935f0e9 100644
---- a/drivers/char/tpm/tpm-chip.c
-+++ b/drivers/char/tpm/tpm-chip.c
-@@ -187,7 +187,6 @@ struct tpm_chip *tpm_chip_alloc(struct device *pdev,
- 
- 	cdev_init(&chip->cdev, &tpm_fops);
- 	chip->cdev.owner = THIS_MODULE;
--	chip->cdev.kobj.parent = &chip->dev.kobj;
- 
- 	return chip;
- 
-@@ -230,27 +229,16 @@ static int tpm_add_char_device(struct tpm_chip *chip)
- {
- 	int rc;
- 
--	rc = cdev_add(&chip->cdev, chip->dev.devt, 1);
-+	rc = cdev_device_add(&chip->cdev, &chip->dev);
- 	if (rc) {
- 		dev_err(&chip->dev,
--			"unable to cdev_add() %s, major %d, minor %d, err=%d\n",
-+			"unable to cdev_device_add() %s, major %d, minor %d, err=%d\n",
- 			dev_name(&chip->dev), MAJOR(chip->dev.devt),
- 			MINOR(chip->dev.devt), rc);
- 
- 		return rc;
- 	}
- 
--	rc = device_add(&chip->dev);
--	if (rc) {
--		dev_err(&chip->dev,
--			"unable to device_register() %s, major %d, minor %d, err=%d\n",
--			dev_name(&chip->dev), MAJOR(chip->dev.devt),
--			MINOR(chip->dev.devt), rc);
--
--		cdev_del(&chip->cdev);
--		return rc;
--	}
--
- 	/* Make the chip available. */
- 	mutex_lock(&idr_lock);
- 	idr_replace(&dev_nums_idr, chip, chip->dev_num);
-@@ -261,8 +249,7 @@ static int tpm_add_char_device(struct tpm_chip *chip)
- 
- static void tpm_del_char_device(struct tpm_chip *chip)
- {
--	cdev_del(&chip->cdev);
--	device_del(&chip->dev);
-+	cdev_device_del(&chip->cdev, &chip->dev);
- 
- 	/* Make the chip unavailable. */
- 	mutex_lock(&idr_lock);
+For some parallel sensors (mine is a E2V ev76c560) "any" frame interval is possible,
+and hence type should be V4L2_FRMIVAL_TYPE_CONTINUOUS.
+
+see also https://www.spinics.net/lists/linux-media/msg98622.html,
+https://patchwork.kernel.org/patch/9171201/ and
+https://patchwork.kernel.org/patch/9171199/
+
+Philippe
+
 -- 
-2.1.4
+Philippe De Muyter +32 2 6101532 Macq SA rue de l'Aeronef 2 B-1140 Bruxelles
