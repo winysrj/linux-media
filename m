@@ -1,136 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:43543 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751284AbdCYMC6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Mar 2017 08:02:58 -0400
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 3/8] [media] staging: sir: fix checkpatch strict warnings
-Date: Sat, 25 Mar 2017 12:02:21 +0000
-Message-Id: <265367ff24ffa9280cceff67e216962470c8405b.1490443026.git.sean@mess.org>
-In-Reply-To: <cover.1490443026.git.sean@mess.org>
-References: <cover.1490443026.git.sean@mess.org>
-In-Reply-To: <cover.1490443026.git.sean@mess.org>
-References: <cover.1490443026.git.sean@mess.org>
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:36197 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753644AbdCTLN3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Mar 2017 07:13:29 -0400
+Date: Mon, 20 Mar 2017 20:00:06 +0900
+From: Daeseok Youn <daeseok.youn@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, daeseok.youn@gmail.com,
+        alan@linux.intel.com, singhalsimran0@gmail.com,
+        dan.carpenter@oracle.com, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        kernel-janitors@vger.kernel.org
+Subject: [PATCH 3/4] staging: atomisp: remove useless condition in
+ if-statements
+Message-ID: <20170320110006.GA17811@SEL-JYOUN-D1>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make the code more readable and clean up the includes list.
+The css_pipe_id was checked with 'CSS_PIPE_ID_COPY' in previous if-
+statement. In this case, if the css_pipe_id equals to 'CSS_PIPE_ID_COPY',
+it could not enter the next if-statement. But the "next" if-statement
+has the condition to check whether the css_pipe_id equals to
+'CSS_PIPE_ID_COPY' or not. It should be removed.
 
-Signed-off-by: Sean Young <sean@mess.org>
+Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
 ---
- drivers/staging/media/lirc/lirc_sir.c | 46 ++++++-----------------------------
- 1 file changed, 8 insertions(+), 38 deletions(-)
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/staging/media/lirc/lirc_sir.c b/drivers/staging/media/lirc/lirc_sir.c
-index ec5a3c7..3a2bac9 100644
---- a/drivers/staging/media/lirc/lirc_sir.c
-+++ b/drivers/staging/media/lirc/lirc_sir.c
-@@ -9,15 +9,6 @@
-  *  the Free Software Foundation; either version 2 of the License, or
-  *  (at your option) any later version.
-  *
-- *  This program is distributed in the hope that it will be useful,
-- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- *  GNU General Public License for more details.
-- *
-- *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-- *
-  *
-  * 2000/09/16 Frank Przybylski <mail@frankprzybylski.de> :
-  *  added timeout and relaxed pulse detection, removed gap bug
-@@ -36,38 +27,23 @@
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- 
- #include <linux/module.h>
--#include <linux/sched/signal.h>
--#include <linux/errno.h>
--#include <linux/signal.h>
--#include <linux/fs.h>
- #include <linux/interrupt.h>
--#include <linux/ioport.h>
- #include <linux/kernel.h>
- #include <linux/serial_reg.h>
- #include <linux/ktime.h>
--#include <linux/string.h>
--#include <linux/types.h>
--#include <linux/wait.h>
--#include <linux/mm.h>
- #include <linux/delay.h>
--#include <linux/poll.h>
--#include <linux/io.h>
--#include <asm/irq.h>
--#include <linux/fcntl.h>
- #include <linux/platform_device.h>
- 
--#include <linux/timer.h>
--
- #include <media/rc-core.h>
- 
- /* SECTION: Definitions */
- #define PULSE '['
- 
- /* 9bit * 1s/115200bit in milli seconds = 78.125ms*/
--#define TIME_CONST (9000000ul/115200ul)
-+#define TIME_CONST (9000000ul / 115200ul)
- 
- /* timeout for sequences in jiffies (=5/100s), must be longer than TIME_CONST */
--#define SIR_TIMEOUT	(HZ*5/100)
-+#define SIR_TIMEOUT	(HZ * 5 / 100)
- 
- /* onboard sir ports are typically com3 */
- static int io = 0x3e8;
-@@ -117,7 +93,7 @@ static inline void soutp(int offset, int value)
- #ifndef MAX_UDELAY_MS
- #define MAX_UDELAY_US 5000
- #else
--#define MAX_UDELAY_US (MAX_UDELAY_MS*1000)
-+#define MAX_UDELAY_US (MAX_UDELAY_MS * 1000)
- #endif
- 
- static void safe_udelay(unsigned long usecs)
-@@ -241,18 +217,12 @@ static irqreturn_t sir_interrupt(int irq, void *dev_id)
- 	int iir, lsr;
- 
- 	while ((iir = inb(io + UART_IIR) & UART_IIR_ID)) {
--		switch (iir&UART_IIR_ID) { /* FIXME toto treba preriedit */
-+		switch (iir & UART_IIR_ID) { /* FIXME toto treba preriedit */
- 		case UART_IIR_MSI:
--			(void) inb(io + UART_MSR);
-+			(void)inb(io + UART_MSR);
- 			break;
- 		case UART_IIR_RLSI:
--			(void) inb(io + UART_LSR);
--			break;
--		case UART_IIR_THRI:
--#if 0
--			if (lsr & UART_LSR_THRE) /* FIFO is empty */
--				outb(data, io + UART_TX)
--#endif
-+			(void)inb(io + UART_LSR);
- 			break;
- 		case UART_IIR_RDI:
- 			/* avoid interference with timer */
-@@ -293,7 +263,7 @@ static irqreturn_t sir_interrupt(int irq, void *dev_id)
- 					 * the other case is timeout
- 					 */
- 					add_read_queue(last_value,
--						       delt-TIME_CONST);
-+						       delt - TIME_CONST);
- 					last_value = data;
- 					last = curr_time;
- 					last = ktime_sub_us(last,
-@@ -362,7 +332,7 @@ static int init_hardware(void)
- 	/* outb(UART_IER_RLSI|UART_IER_RDI|UART_IER_THRI, io + UART_IER); */
- 	outb(UART_IER_RDI, io + UART_IER);
- 	/* turn on UART */
--	outb(UART_MCR_DTR|UART_MCR_RTS|UART_MCR_OUT2, io + UART_MCR);
-+	outb(UART_MCR_DTR | UART_MCR_RTS | UART_MCR_OUT2, io + UART_MCR);
- 	spin_unlock_irqrestore(&hardware_lock, flags);
- 	return 0;
- }
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+index 6bdd19e..929ed80 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+@@ -910,8 +910,7 @@ static struct atomisp_video_pipe *__atomisp_get_pipe(
+ 	} else if (asd->run_mode->val == ATOMISP_RUN_MODE_VIDEO) {
+ 		/* For online video or SDV video pipe. */
+ 		if (css_pipe_id == CSS_PIPE_ID_VIDEO ||
+-		    css_pipe_id == CSS_PIPE_ID_COPY ||
+-		    css_pipe_id == CSS_PIPE_ID_YUVPP) {
++		    css_pipe_id == CSS_PIPE_ID_COPY) {
+ 			if (buf_type == CSS_BUFFER_TYPE_OUTPUT_FRAME)
+ 				return &asd->video_out_video_capture;
+ 			return &asd->video_out_preview;
+@@ -919,8 +918,7 @@ static struct atomisp_video_pipe *__atomisp_get_pipe(
+ 	} else if (asd->run_mode->val == ATOMISP_RUN_MODE_PREVIEW) {
+ 		/* For online preview or ZSL preview pipe. */
+ 		if (css_pipe_id == CSS_PIPE_ID_PREVIEW ||
+-		    css_pipe_id == CSS_PIPE_ID_COPY ||
+-		    css_pipe_id == CSS_PIPE_ID_YUVPP)
++		    css_pipe_id == CSS_PIPE_ID_COPY)
+ 			return &asd->video_out_preview;
+ 	}
+ 	/* For capture pipe. */
 -- 
-2.9.3
+1.9.1
