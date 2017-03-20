@@ -1,58 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:39243 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751945AbdC0Jq5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Mar 2017 05:46:57 -0400
-Subject: Re: [PATCH] [media] coda: remove redundant call to v4l2_m2m_get_vq
-To: Colin King <colin.king@canonical.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-References: <20170323115746.18474-1-colin.king@canonical.com>
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <45a3ba2e-634c-156b-71b4-75aa8d89827b@xs4all.nl>
-Date: Mon, 27 Mar 2017 11:46:27 +0200
+Received: from mga05.intel.com ([192.55.52.43]:8964 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753269AbdCTOmE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Mar 2017 10:42:04 -0400
+Subject: [PATCH 10/24] Staging: atomisp: fix locking in alloc_user_pages()
+From: Alan Cox <alan@linux.intel.com>
+To: greg@kroah.com, linux-media@vger.kernel.org
+Date: Mon, 20 Mar 2017 14:40:32 +0000
+Message-ID: <149002082825.17109.10471955862860977004.stgit@acox1-desk1.ger.corp.intel.com>
+In-Reply-To: <149002068431.17109.1216139691005241038.stgit@acox1-desk1.ger.corp.intel.com>
+References: <149002068431.17109.1216139691005241038.stgit@acox1-desk1.ger.corp.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20170323115746.18474-1-colin.king@canonical.com>
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23/03/17 12:57, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
-> 
-> The call to v4ls_m2m_get_vq is only used to get the return value
-> which is not being used, so it appears to be redundant and can
-> be removed.
-> 
-> Detected with CoverityScan, CID#1420674 ("Useless call")
-> 
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
-> ---
->  drivers/media/platform/coda/coda-common.c | 2 --
->  1 file changed, 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-> index 800d2477f1a0..95e4648f18e6 100644
-> --- a/drivers/media/platform/coda/coda-common.c
-> +++ b/drivers/media/platform/coda/coda-common.c
-> @@ -817,8 +817,6 @@ static int coda_qbuf(struct file *file, void *priv,
->  static bool coda_buf_is_end_of_stream(struct coda_ctx *ctx,
->  				      struct vb2_v4l2_buffer *buf)
->  {
-> -	v4l2_m2m_get_vq(ctx->fh.m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
-> -
->  	return ((ctx->bit_stream_param & CODA_BIT_STREAM_END_FLAG) &&
->  		(buf->sequence == (ctx->qsequence - 1)));
->  }
-> 
+From: Dan Carpenter <dan.carpenter@oracle.com>
 
-Philipp, is this correct, or should this actually check whether the queue is an
-output queue?
+We call this function with the lock held and should also return with the
+lock held as well.  This one error path is not-consistent because we
+should return without the lock held.
 
-Regards,
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+---
+ .../media/atomisp/pci/atomisp2/hmm/hmm_bo.c        |    1 +
+ 1 file changed, 1 insertion(+)
 
-	Hans
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
+index fd3bd5c..d1a609d2 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm_bo.c
+@@ -1012,6 +1012,7 @@ static int alloc_user_pages(struct hmm_buffer_object *bo,
+ 		dev_err(atomisp_dev, "find_vma failed\n");
+ 		atomisp_kernel_free(bo->page_obj);
+ 		atomisp_kernel_free(pages);
++		mutex_lock(&bo->mutex);
+ 		return -EFAULT;
+ 	}
+ 	mutex_lock(&bo->mutex);
