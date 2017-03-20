@@ -1,77 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f177.google.com ([209.85.128.177]:33210 "EHLO
-        mail-wr0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755131AbdCJIyP (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:57776 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753508AbdCTOYQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Mar 2017 03:54:15 -0500
-Received: by mail-wr0-f177.google.com with SMTP id u48so60593574wrc.0
-        for <linux-media@vger.kernel.org>; Fri, 10 Mar 2017 00:54:14 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1488491084-17252-9-git-send-email-labbott@redhat.com>
-References: <1488491084-17252-1-git-send-email-labbott@redhat.com> <1488491084-17252-9-git-send-email-labbott@redhat.com>
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Fri, 10 Mar 2017 14:23:53 +0530
-Message-ID: <CAO_48GEHxuMMwZO71ytaVhRkapMYaAWBWd1gW+ktspnQg=b8Sw@mail.gmail.com>
-Subject: Re: [RFC PATCH 08/12] cma: Store a name in the cma structure
-To: Laura Abbott <labbott@redhat.com>
-Cc: Riley Andrews <riandrews@android.com>,
-        =?UTF-8?B?QXJ2ZSBIau+/vW5uZXbvv71n?= <arve@android.com>,
-        Rom Lemarchand <romlem@google.com>, devel@driverdev.osuosl.org,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
+        Mon, 20 Mar 2017 10:24:16 -0400
+Subject: Re: [PATCH v10 1/2] Documentation: DT: Add OV5647 bindings
+To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <devicetree@vger.kernel.org>
+References: <cover.1488798062.git.roliveir@synopsys.com>
+ <e89902c0c99d0daf9ef821dd7a9c67e866b18a94.1488798062.git.roliveir@synopsys.com>
+CC: <CARLOS.PALMINHA@synopsys.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        DRI mailing list <dri-devel@lists.freedesktop.org>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Mark Brown <broonie@kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        "linux-mm@kvack.org" <linux-mm@kvack.org>
-Content-Type: text/plain; charset=UTF-8
+        Guenter Roeck <linux@roeck-us.net>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Pavel Machek <pavel@ucw.cz>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Rob Herring <robh+dt@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>
+From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Message-ID: <d0b09c02-e5c8-175d-f776-575684feef0f@mentor.com>
+Date: Mon, 20 Mar 2017 16:09:22 +0200
+MIME-Version: 1.0
+In-Reply-To: <e89902c0c99d0daf9ef821dd7a9c67e866b18a94.1488798062.git.roliveir@synopsys.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laura,
+Hi Ramiro,
 
-Thanks for the patch.
+On 03/06/2017 01:16 PM, Ramiro Oliveira wrote:
+> Create device tree bindings documentation.
+> 
+> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
 
-On 3 March 2017 at 03:14, Laura Abbott <labbott@redhat.com> wrote:
->
-> Frameworks that may want to enumerate CMA heaps (e.g. Ion) will find it
-> useful to have an explicit name attached to each region. Store the name
-> in each CMA structure.
->
-> Signed-off-by: Laura Abbott <labbott@redhat.com>
-> ---
->  drivers/base/dma-contiguous.c |  5 +++--
->  include/linux/cma.h           |  4 +++-
->  mm/cma.c                      | 11 +++++++++--
->  mm/cma.h                      |  1 +
->  mm/cma_debug.c                |  2 +-
->  5 files changed, 17 insertions(+), 6 deletions(-)
->
-<snip>
-> +const char *cma_get_name(const struct cma *cma)
-> +{
-> +       return cma->name ? cma->name : "(undefined)";
-> +}
-> +
-Would it make sense to perhaps have the idx stored as the name,
-instead of 'undefined'? That would make sure that the various cma
-names are still unique.
+The device tree binding description looks perfect from my perspective.
 
->  static unsigned long cma_bitmap_aligned_mask(const struct cma *cma,
->                                              int align_order)
->  {
-> @@ -168,6 +173,7 @@ core_initcall(cma_init_reserved_areas);
->   */
->  int __init cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
->                                  unsigned int order_per_bit,
-> +                                const char *name,
->                                  struct cma **res_cma)
->  {
+Reviewed-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
 
-Best regards,
-Sumit.
+--
+With best wishes,
+Vladimir
