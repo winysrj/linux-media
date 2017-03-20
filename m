@@ -1,109 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50781
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932677AbdCaJmf (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:32748 "EHLO
+        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753339AbdCTK5J (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 31 Mar 2017 05:42:35 -0400
-Date: Fri, 31 Mar 2017 06:42:27 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Helen Koike <helen.koike@collabora.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        jgebben@codeaurora.org
-Subject: Re: [PATCH RFC 1/2] [media] v4l2: add V4L2_INPUT_TYPE_DEFAULT
-Message-ID: <20170331064227.0ecc86e7@vento.lan>
-In-Reply-To: <1c25c87a-506a-d1b1-6d30-129128cd0205@collabora.com>
-References: <1490889738-30009-1-git-send-email-helen.koike@collabora.com>
-        <2926010.76lXoG2CJo@avalon>
-        <34146d93-6651-69a2-0997-aa3ae91b4fd3@collabora.com>
-        <1c25c87a-506a-d1b1-6d30-129128cd0205@collabora.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Mon, 20 Mar 2017 06:57:09 -0400
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Subject: [PATCH v3 01/16] media: s5p-mfc: Remove unused structures and dead code
+Date: Mon, 20 Mar 2017 11:56:27 +0100
+Message-id: <1490007402-30265-2-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
+References: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170320105649eucas1p111bb7137d958831701debe9704844017@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 31 Mar 2017 00:55:12 -0300
-Helen Koike <helen.koike@collabora.com> escreveu:
+Remove unused structures, definitions and functions that are no longer
+called from the driver code.
 
-> On 2017-03-30 11:39 PM, Helen Koike wrote:
-> > Hi Laurent,
-> >
-> > Thanks for reviewing
-> >
-> > On 2017-03-30 04:56 PM, Laurent Pinchart wrote:  
-> >> Hi Helen,
-> >>
-> >> Thank you for the patch.
-> >>
-> >> On Thursday 30 Mar 2017 13:02:17 Helen Koike wrote:  
-> >>> Add V4L2_INPUT_TYPE_DEFAULT and helpers functions for input ioctls to be
-> >>> used when no inputs are available in the device
-> >>>
-> >>> Signed-off-by: Helen Koike <helen.koike@collabora.com>
-> >>> ---
-> >>>  drivers/media/v4l2-core/v4l2-ioctl.c | 27 +++++++++++++++++++++++++++
-> >>>  include/media/v4l2-ioctl.h           | 26 ++++++++++++++++++++++++++
-> >>>  include/uapi/linux/videodev2.h       |  1 +
-> >>>  3 files changed, 54 insertions(+)
-> >>>
-> >>> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
-> >>> b/drivers/media/v4l2-core/v4l2-ioctl.c index 0c3f238..ccaf04b 100644
-> >>> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> >>> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> >>> @@ -2573,6 +2573,33 @@ struct mutex *v4l2_ioctl_get_lock(struct
-> >>> video_device
-> >>> *vdev, unsigned cmd) return vdev->lock;
-> >>>  }
-> >>>
-> >>> +int v4l2_ioctl_enum_input_default(struct file *file, void *priv,
-> >>> +                  struct v4l2_input *i)
-> >>> +{
-> >>> +    if (i->index > 0)
-> >>> +        return -EINVAL;
-> >>> +
-> >>> +    memset(i, 0, sizeof(*i));
-> >>> +    i->type = V4L2_INPUT_TYPE_DEFAULT;
-> >>> +    strlcpy(i->name, "Default", sizeof(i->name));
-> >>> +
-> >>> +    return 0;
-> >>> +}
-> >>> +EXPORT_SYMBOL(v4l2_ioctl_enum_input_default);  
-> >>
-> >> V4L2 tends to use EXPORT_SYMBOL_GPL.  
-> >
-> > The whole v4l2-ioctl.c file is using EXPORT_SYMBOL instead of
-> > EXPORT_SYMBOL_GPL, should we change it all to EXPORT_SYMBOL_GPL then (in
-> > another patch) ?
-> >  
-> >>
-> >> What would you think about calling those default functions directly
-> >> from the
-> >> core when the input ioctl handlers are not set ? You wouldn't need to
-> >> modify
-> >> drivers.  
-> >
-> > Sure, I'll add them in ops inside __video_register_device when it
-> > validates the ioctls  
-> 
-> I just realize I can not simply override struct v4l2_ioctl_ops as it is 
-> declared as a const inside strut video_device. I'll call those default 
-> functions only when the ioctls are handled to not modify vdev->ops.
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Acked-by: Andrzej Hajda <a.hajda@samsung.com>
+Tested-by: Smitha T Murthy <smitha.t@samsung.com>
+Reviewed-by: Smitha T Murthy <smitha.t@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        | 21 ---------------------
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h | 13 -------------
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h   |  1 -
+ 3 files changed, 35 deletions(-)
 
-You should not override it, anyway. What you should do, instead, is
-something like:
-
-static int v4l_ginput(const struct v4l2_ioctl_ops *ops, ...)
-{
-	if (ops->vidioc_ginput)
-		return ops->vidioc_ginput(...);
-
-	/* default code */
-}
-
-You should also make sure that the ioctls are alway valid, e. g. by
-calling SET_VALID_IOCTL()
-
-Thanks,
-Mauro
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index b99a7d0466a8..4e9f349c1be3 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1417,16 +1417,11 @@ static int s5p_mfc_resume(struct device *dev)
+ 	.priv	= &mfc_buf_size_v5,
+ };
+ 
+-static struct s5p_mfc_buf_align mfc_buf_align_v5 = {
+-	.base = MFC_BASE_ALIGN_ORDER,
+-};
+-
+ static struct s5p_mfc_variant mfc_drvdata_v5 = {
+ 	.version	= MFC_VERSION,
+ 	.version_bit	= MFC_V5_BIT,
+ 	.port_num	= MFC_NUM_PORTS,
+ 	.buf_size	= &buf_size_v5,
+-	.buf_align	= &mfc_buf_align_v5,
+ 	.fw_name[0]	= "s5p-mfc.fw",
+ 	.clk_names	= {"mfc", "sclk_mfc"},
+ 	.num_clocks	= 2,
+@@ -1447,16 +1442,11 @@ static int s5p_mfc_resume(struct device *dev)
+ 	.priv	= &mfc_buf_size_v6,
+ };
+ 
+-static struct s5p_mfc_buf_align mfc_buf_align_v6 = {
+-	.base = 0,
+-};
+-
+ static struct s5p_mfc_variant mfc_drvdata_v6 = {
+ 	.version	= MFC_VERSION_V6,
+ 	.version_bit	= MFC_V6_BIT,
+ 	.port_num	= MFC_NUM_PORTS_V6,
+ 	.buf_size	= &buf_size_v6,
+-	.buf_align	= &mfc_buf_align_v6,
+ 	.fw_name[0]     = "s5p-mfc-v6.fw",
+ 	/*
+ 	 * v6-v2 firmware contains bug fixes and interface change
+@@ -1481,16 +1471,11 @@ static int s5p_mfc_resume(struct device *dev)
+ 	.priv	= &mfc_buf_size_v7,
+ };
+ 
+-static struct s5p_mfc_buf_align mfc_buf_align_v7 = {
+-	.base = 0,
+-};
+-
+ static struct s5p_mfc_variant mfc_drvdata_v7 = {
+ 	.version	= MFC_VERSION_V7,
+ 	.version_bit	= MFC_V7_BIT,
+ 	.port_num	= MFC_NUM_PORTS_V7,
+ 	.buf_size	= &buf_size_v7,
+-	.buf_align	= &mfc_buf_align_v7,
+ 	.fw_name[0]     = "s5p-mfc-v7.fw",
+ 	.clk_names	= {"mfc", "sclk_mfc"},
+ 	.num_clocks	= 2,
+@@ -1510,16 +1495,11 @@ static int s5p_mfc_resume(struct device *dev)
+ 	.priv	= &mfc_buf_size_v8,
+ };
+ 
+-static struct s5p_mfc_buf_align mfc_buf_align_v8 = {
+-	.base = 0,
+-};
+-
+ static struct s5p_mfc_variant mfc_drvdata_v8 = {
+ 	.version	= MFC_VERSION_V8,
+ 	.version_bit	= MFC_V8_BIT,
+ 	.port_num	= MFC_NUM_PORTS_V8,
+ 	.buf_size	= &buf_size_v8,
+-	.buf_align	= &mfc_buf_align_v8,
+ 	.fw_name[0]     = "s5p-mfc-v8.fw",
+ 	.clk_names	= {"mfc"},
+ 	.num_clocks	= 1,
+@@ -1530,7 +1510,6 @@ static int s5p_mfc_resume(struct device *dev)
+ 	.version_bit	= MFC_V8_BIT,
+ 	.port_num	= MFC_NUM_PORTS_V8,
+ 	.buf_size	= &buf_size_v8,
+-	.buf_align	= &mfc_buf_align_v8,
+ 	.fw_name[0]     = "s5p-mfc-v8.fw",
+ 	.clk_names	= {"pclk", "aclk", "aclk_xiu"},
+ 	.num_clocks	= 3,
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index ab23236aa942..3e0e8eaf8bfe 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -44,14 +44,6 @@
+ 
+ #include <media/videobuf2-dma-contig.h>
+ 
+-static inline dma_addr_t s5p_mfc_mem_cookie(void *a, void *b)
+-{
+-	/* Same functionality as the vb2_dma_contig_plane_paddr */
+-	dma_addr_t *paddr = vb2_dma_contig_memops.cookie(b);
+-
+-	return *paddr;
+-}
+-
+ /* MFC definitions */
+ #define MFC_MAX_EXTRA_DPB       5
+ #define MFC_MAX_BUFFERS		32
+@@ -229,16 +221,11 @@ struct s5p_mfc_buf_size {
+ 	void *priv;
+ };
+ 
+-struct s5p_mfc_buf_align {
+-	unsigned int base;
+-};
+-
+ struct s5p_mfc_variant {
+ 	unsigned int version;
+ 	unsigned int port_num;
+ 	u32 version_bit;
+ 	struct s5p_mfc_buf_size *buf_size;
+-	struct s5p_mfc_buf_align *buf_align;
+ 	char	*fw_name[MFC_FW_MAX_VERSIONS];
+ 	const char	*clk_names[MFC_MAX_CLOCKS];
+ 	int		num_clocks;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h
+index 8e5df041edf7..45c807bf19cc 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h
+@@ -18,7 +18,6 @@
+ int s5p_mfc_release_firmware(struct s5p_mfc_dev *dev);
+ int s5p_mfc_alloc_firmware(struct s5p_mfc_dev *dev);
+ int s5p_mfc_load_firmware(struct s5p_mfc_dev *dev);
+-int s5p_mfc_reload_firmware(struct s5p_mfc_dev *dev);
+ 
+ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev);
+ void s5p_mfc_deinit_hw(struct s5p_mfc_dev *dev);
+-- 
+1.9.1
