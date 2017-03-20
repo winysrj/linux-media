@@ -1,62 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:32996 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754477AbdCBJH4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Mar 2017 04:07:56 -0500
-Subject: Re: [PATCH] v4l: vsp1: Disable HSV formats on Gen3 hardware
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org
-References: <20170228230813.21848-1-laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-From: Kieran Bingham <kieranbingham@gmail.com>
-Message-ID: <9f66d574-6aa8-d58b-2dc1-1c3f2dbfafbb@gmail.com>
-Date: Thu, 2 Mar 2017 09:06:10 +0000
-MIME-Version: 1.0
-In-Reply-To: <20170228230813.21848-1-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:32748 "EHLO
+        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753668AbdCTK5Q (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Mar 2017 06:57:16 -0400
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Subject: [PATCH v3 14/16] media: s5p-mfc: Use preallocated block allocator
+ always for MFC v6+
+Date: Mon, 20 Mar 2017 11:56:40 +0100
+Message-id: <1490007402-30265-15-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
+References: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170320105654eucas1p13c5d9a82f7410c53e427340b8a572f96@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+It turned out that all versions of MFC v6+ hardware doesn't have a strict
+requirement for ALL buffers to be allocated on higher addresses than the
+firmware base like it was documented for MFC v5. This requirement is true
+only for the device and per-context buffers. All video data buffers can be
+allocated anywhere for all MFC v6+ versions. Basing on this fact, the
+special DMA configuration based on two reserved memory regions is not
+really needed for MFC v6+ devices, because the memory requirements for the
+firmware, device and per-context buffers can be fulfilled by the simple
+probe-time pre-allocated block allocator instroduced in previous patch.
 
-LGTM! :-)
+This patch enables support for such pre-allocated block based allocator
+always for MFC v6+ devices. Due to the limitations of the memory management
+subsystem the largest supported size of the pre-allocated buffer when no
+CMA (Contiguous Memory Allocator) is enabled is 4MiB.
 
-On 28/02/17 23:08, Laurent Pinchart wrote:
-> While all VSP instances can process HSV internally, on Gen3 hardware
-> reading or writing HSV24 or HSV32 from/to memory causes the device to
-> hang. Disable those pixel formats on Gen3 hardware.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+This patch also removes the requirement to provide two reserved memory
+regions for MFC v6+ devices in device tree. Now the driver is fully
+functional without them.
 
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Acked-by: Andrzej Hajda <a.hajda@samsung.com>
+Tested-by: Smitha T Murthy <smitha.t@samsung.com>
+---
+ Documentation/devicetree/bindings/media/s5p-mfc.txt | 2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc.c            | 9 ++++++---
+ 2 files changed, 7 insertions(+), 4 deletions(-)
 
-> ---
->  drivers/media/platform/vsp1/vsp1_pipe.c | 12 +++++++++---
->  1 file changed, 9 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
-> index 3f1acf68dc6e..35364f594e19 100644
-> --- a/drivers/media/platform/vsp1/vsp1_pipe.c
-> +++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-> @@ -157,9 +157,15 @@ const struct vsp1_format_info *vsp1_get_format_info(struct vsp1_device *vsp1,
->  {
->  	unsigned int i;
->  
-> -	/* Special case, the VYUY format is supported on Gen2 only. */
-> -	if (vsp1->info->gen != 2 && fourcc == V4L2_PIX_FMT_VYUY)
-> -		return NULL;
-> +	/* Special case, the VYUY and HSV formats are supported on Gen2 only. */
-> +	if (vsp1->info->gen != 2) {
-> +		switch (fourcc) {
-> +		case V4L2_PIX_FMT_VYUY:
-> +		case V4L2_PIX_FMT_HSV24:
-> +		case V4L2_PIX_FMT_HSV32:
-> +			return NULL;
-> +		}
-> +	}
->  
->  	for (i = 0; i < ARRAY_SIZE(vsp1_video_formats); ++i) {
->  		const struct vsp1_format_info *info = &vsp1_video_formats[i];
-> 
+diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+index 2c901286d818..d3404b5d4d17 100644
+--- a/Documentation/devicetree/bindings/media/s5p-mfc.txt
++++ b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+@@ -28,7 +28,7 @@ Optional properties:
+   - memory-region : from reserved memory binding: phandles to two reserved
+ 	memory regions, first is for "left" mfc memory bus interfaces,
+ 	second if for the "right" mfc memory bus, used when no SYSMMU
+-	support is available
++	support is available; used only by MFC v5 present in Exynos4 SoCs
+ 
+ Obsolete properties:
+   - samsung,mfc-r, samsung,mfc-l : support removed, please use memory-region
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index f1528054a713..a56031c3263e 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1177,9 +1177,12 @@ static void s5p_mfc_unconfigure_2port_memory(struct s5p_mfc_dev *mfc_dev)
+ static int s5p_mfc_configure_common_memory(struct s5p_mfc_dev *mfc_dev)
+ {
+ 	struct device *dev = &mfc_dev->plat_dev->dev;
+-	unsigned long mem_size = SZ_8M;
++	unsigned long mem_size = SZ_4M;
+ 	unsigned int bitmap_size;
+ 
++	if (IS_ENABLED(CONFIG_DMA_CMA) || exynos_is_iommu_available(dev))
++		mem_size = SZ_8M;
++
+ 	if (mfc_mem_size)
+ 		mem_size = memparse(mfc_mem_size, NULL);
+ 
+@@ -1239,7 +1242,7 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+ {
+ 	struct device *dev = &mfc_dev->plat_dev->dev;
+ 
+-	if (exynos_is_iommu_available(dev))
++	if (exynos_is_iommu_available(dev) || !IS_TWOPORT(mfc_dev))
+ 		return s5p_mfc_configure_common_memory(mfc_dev);
+ 	else
+ 		return s5p_mfc_configure_2port_memory(mfc_dev);
+@@ -1250,7 +1253,7 @@ static void s5p_mfc_unconfigure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+ 	struct device *dev = &mfc_dev->plat_dev->dev;
+ 
+ 	s5p_mfc_release_firmware(mfc_dev);
+-	if (exynos_is_iommu_available(dev))
++	if (exynos_is_iommu_available(dev) || !IS_TWOPORT(mfc_dev))
+ 		s5p_mfc_unconfigure_common_memory(mfc_dev);
+ 	else
+ 		s5p_mfc_unconfigure_2port_memory(mfc_dev);
+-- 
+1.9.1
