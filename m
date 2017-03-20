@@ -1,76 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f180.google.com ([209.85.216.180]:34877 "EHLO
-        mail-qt0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751037AbdCRBEz (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:33096 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754192AbdCTLFw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Mar 2017 21:04:55 -0400
-Received: by mail-qt0-f180.google.com with SMTP id x35so75178423qtc.2
-        for <linux-media@vger.kernel.org>; Fri, 17 Mar 2017 18:03:08 -0700 (PDT)
-From: Laura Abbott <labbott@redhat.com>
-To: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com
-Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        Mon, 20 Mar 2017 07:05:52 -0400
+Date: Mon, 20 Mar 2017 19:59:15 +0900
+From: Daeseok Youn <daeseok.youn@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, daeseok.youn@gmail.com,
+        alan@linux.intel.com, dan.carpenter@oracle.com,
+        singhalsimran0@gmail.com, linux-media@vger.kernel.org,
         devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Brian Starkey <brian.starkey@arm.com>,
-        Daniel Vetter <daniel.vetter@intel.com>,
-        Mark Brown <broonie@kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-mm@kvack.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [RFC PATCHv2 02/21] cma: Introduce cma_for_each_area
-Date: Fri, 17 Mar 2017 17:54:34 -0700
-Message-Id: <1489798493-16600-3-git-send-email-labbott@redhat.com>
-In-Reply-To: <1489798493-16600-1-git-send-email-labbott@redhat.com>
-References: <1489798493-16600-1-git-send-email-labbott@redhat.com>
+        kernel-janitors@vger.kernel.org
+Subject: [PATCH 1/4] staging: atomisp: remove else statement after return
+Message-ID: <20170320105915.GA17117@SEL-JYOUN-D1>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+It doesn't need to have else statement after return.
 
-Frameworks (e.g. Ion) may want to iterate over each possible CMA area to
-allow for enumeration. Introduce a function to allow a callback.
-
-Signed-off-by: Laura Abbott <labbott@redhat.com>
+Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
 ---
- include/linux/cma.h |  2 ++
- mm/cma.c            | 14 ++++++++++++++
- 2 files changed, 16 insertions(+)
+ drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/cma.h b/include/linux/cma.h
-index d41d1f8..3e8fbf5 100644
---- a/include/linux/cma.h
-+++ b/include/linux/cma.h
-@@ -34,4 +34,6 @@ extern int cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
- extern struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align,
- 			      gfp_t gfp_mask);
- extern bool cma_release(struct cma *cma, const struct page *pages, unsigned int count);
-+
-+extern int cma_for_each_area(int (*it)(struct cma *cma, void *data), void *data);
- #endif
-diff --git a/mm/cma.c b/mm/cma.c
-index 0d187b1..9a040e1 100644
---- a/mm/cma.c
-+++ b/mm/cma.c
-@@ -498,3 +498,17 @@ bool cma_release(struct cma *cma, const struct page *pages, unsigned int count)
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+index d97a8df..8bdb224 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+@@ -2958,11 +2958,11 @@ int atomisp_get_metadata(struct atomisp_sub_device *asd, int flag,
+ 		dev_err(isp->dev, "copy to user failed: copied %d bytes\n",
+ 			ret);
+ 		return -EFAULT;
+-	} else {
+-		list_del_init(&md_buf->list);
+-		list_add_tail(&md_buf->list, &asd->metadata[md_type]);
+ 	}
  
- 	return true;
- }
++	list_del_init(&md_buf->list);
++	list_add_tail(&md_buf->list, &asd->metadata[md_type]);
 +
-+int cma_for_each_area(int (*it)(struct cma *cma, void *data), void *data)
-+{
-+	int i;
-+
-+	for (i = 0; i < cma_area_count; i++) {
-+		int ret = it(&cma_areas[i], data);
-+
-+		if (ret)
-+			return ret;
-+	}
-+
-+	return 0;
-+}
+ 	dev_dbg(isp->dev, "%s: HAL de-queued metadata type %d with exp_id %d\n",
+ 		__func__, md_type, md->exp_id);
+ 	return 0;
 -- 
-2.7.4
+1.9.1
