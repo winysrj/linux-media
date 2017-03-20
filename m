@@ -1,85 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:60726 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752928AbdCPQnP (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:32769 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753732AbdCTLab (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Mar 2017 12:43:15 -0400
-Subject: Re: [PATCH v3 5/6] drm: bridge: dw-hdmi: Add Documentation on
- supported input formats
-To: Neil Armstrong <narmstrong@baylibre.com>
-References: <1488904944-14285-1-git-send-email-narmstrong@baylibre.com>
- <1488904944-14285-6-git-send-email-narmstrong@baylibre.com>
-Cc: dri-devel@lists.freedesktop.org,
-        laurent.pinchart+renesas@ideasonboard.com, Jose.Abreu@synopsys.com,
-        kieran.bingham@ideasonboard.com, linux-amlogic@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-media@vger.kernel.org
-From: Archit Taneja <architt@codeaurora.org>
-Message-ID: <b17af5d6-bf7b-f5f5-e96b-11a6c569b117@codeaurora.org>
-Date: Thu, 16 Mar 2017 22:13:04 +0530
+        Mon, 20 Mar 2017 07:30:31 -0400
+Received: by mail-pf0-f195.google.com with SMTP id p189so11350386pfp.0
+        for <linux-media@vger.kernel.org>; Mon, 20 Mar 2017 04:30:06 -0700 (PDT)
+Date: Mon, 20 Mar 2017 19:59:40 +0900
+From: Daeseok Youn <daeseok.youn@gmail.com>
+To: mchehab@kernel.org
+Cc: gregkh@linuxfoundation.org, daeseok.youn@gmail.com,
+        alan@linux.intel.com, singhalsimran0@gmail.com,
+        dan.carpenter@oracle.com, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        kernel-janitors@vger.kernel.org
+Subject: [PATCH 2/4] staging: atomisp: simplify if statement in
+ atomisp_get_sensor_fps()
+Message-ID: <20170320105940.GA17472@SEL-JYOUN-D1>
 MIME-Version: 1.0
-In-Reply-To: <1488904944-14285-6-git-send-email-narmstrong@baylibre.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+If v4l2_subdev_call() gets the global frame interval values,
+it returned 0 and it could be checked whether numerator is zero or not.
 
+If the numerator is not zero, the fps could be calculated in this function.
+If not, it just returns 0.
 
-On 3/7/2017 10:12 PM, Neil Armstrong wrote:
-> This patch adds a new DRM documentation entry and links to the input
-> format table added in the dw_hdmi header.
->
-> Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
-> ---
->  Documentation/gpu/dw-hdmi.rst | 15 +++++++++++++++
->  Documentation/gpu/index.rst   |  1 +
+Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
+---
+ .../media/atomisp/pci/atomisp2/atomisp_cmd.c       | 22 ++++++++++------------
+ 1 file changed, 10 insertions(+), 12 deletions(-)
 
-Maybe we create a sub-directory for bridges here? Maybe
-a hierarchy similar to tinydrm's?
-
-Looks good otherwise.
-
-Archit
-
->  2 files changed, 16 insertions(+)
->  create mode 100644 Documentation/gpu/dw-hdmi.rst
->
-> diff --git a/Documentation/gpu/dw-hdmi.rst b/Documentation/gpu/dw-hdmi.rst
-> new file mode 100644
-> index 0000000..486faad
-> --- /dev/null
-> +++ b/Documentation/gpu/dw-hdmi.rst
-> @@ -0,0 +1,15 @@
-> +=======================================================
-> + drm/bridge/dw-hdmi Synopsys DesignWare HDMI Controller
-> +=======================================================
-> +
-> +Synopsys DesignWare HDMI Controller
-> +===================================
-> +
-> +This section covers everything related to the Synopsys DesignWare HDMI
-> +Controller implemented as a DRM bridge.
-> +
-> +Supported Input Formats and Encodings
-> +-------------------------------------
-> +
-> +.. kernel-doc:: include/drm/bridge/dw_hdmi.h
-> +   :doc: Supported input formats and encodings
-> diff --git a/Documentation/gpu/index.rst b/Documentation/gpu/index.rst
-> index e998ee0..0725449 100644
-> --- a/Documentation/gpu/index.rst
-> +++ b/Documentation/gpu/index.rst
-> @@ -10,6 +10,7 @@ Linux GPU Driver Developer's Guide
->     drm-kms
->     drm-kms-helpers
->     drm-uapi
-> +   dw-hdmi
->     i915
->     tinydrm
->     vc4
->
-
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+index 8bdb224..6bdd19e 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_cmd.c
+@@ -153,20 +153,18 @@ struct atomisp_acc_pipe *atomisp_to_acc_pipe(struct video_device *dev)
+ 
+ static unsigned short atomisp_get_sensor_fps(struct atomisp_sub_device *asd)
+ {
+-	struct v4l2_subdev_frame_interval frame_interval;
++	struct v4l2_subdev_frame_interval fi;
+ 	struct atomisp_device *isp = asd->isp;
+-	unsigned short fps;
+ 
+-	if (v4l2_subdev_call(isp->inputs[asd->input_curr].camera,
+-	    video, g_frame_interval, &frame_interval)) {
+-		fps = 0;
+-	} else {
+-		if (frame_interval.interval.numerator)
+-			fps = frame_interval.interval.denominator /
+-			    frame_interval.interval.numerator;
+-		else
+-			fps = 0;
+-	}
++	unsigned short fps = 0;
++	int ret;
++
++	ret = v4l2_subdev_call(isp->inputs[asd->input_curr].camera,
++			       video, g_frame_interval, &fi);
++
++	if (!ret && fi.interval.numerator)
++		fps = fi.interval.denominator / fi.interval.numerator;
++
+ 	return fps;
+ }
+ 
 -- 
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-hosted by The Linux Foundation
+1.9.1
