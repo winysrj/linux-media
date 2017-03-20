@@ -1,75 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33460
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753037AbdCFSP2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 6 Mar 2017 13:15:28 -0500
-Subject: Re: [PATCH] media: mfc: Fix race between interrupt routine and device
- functions
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-References: <CGME20170223114347eucas1p21e5aed393511b41e51aac1df2762db83@eucas1p2.samsung.com>
- <1487850219-6482-1-git-send-email-m.szyprowski@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Kamil Debski <kamil@wypas.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>, stable@vger.kernel.org
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <6918cc54-bf43-afe3-def7-9d5888bb837e@osg.samsung.com>
-Date: Mon, 6 Mar 2017 15:07:04 -0300
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:33886 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753252AbdCTNbG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Mar 2017 09:31:06 -0400
+Date: Mon, 20 Mar 2017 13:29:30 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        robh+dt@kernel.org, mark.rutland@arm.com, shawnguo@kernel.org,
+        kernel@pengutronix.de, fabio.estevam@nxp.com, mchehab@kernel.org,
+        nick@shmanahar.org, markus.heiser@darmarIT.de,
+        p.zabel@pengutronix.de, laurent.pinchart+renesas@ideasonboard.com,
+        bparrot@ti.com, geert@linux-m68k.org, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, minghsiu.tsai@mediatek.com,
+        tiffany.lin@mediatek.com, jean-christophe.trotin@st.com,
+        horms+renesas@verge.net.au, niklas.soderlund+renesas@ragnatech.se,
+        robert.jarzmik@free.fr, songjun.wu@microchip.com,
+        andrew-ct.chen@mediatek.com, gregkh@linuxfoundation.org,
+        shuah@kernel.org, sakari.ailus@linux.intel.com, pavel@ucw.cz,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Subject: Re: [PATCH v5 00/39] i.MX Media Driver
+Message-ID: <20170320132930.GJ21222@n2100.armlinux.org.uk>
+References: <1489121599-23206-1-git-send-email-steve_longerbeam@mentor.com>
+ <20170318192258.GL21222@n2100.armlinux.org.uk>
+ <aef6c412-5464-726b-42f6-a24b7323aa9c@mentor.com>
+ <20170319103801.GQ21222@n2100.armlinux.org.uk>
+ <9b3311a8-34a7-2b5b-9bc7-836371e1e0a4@gmail.com>
+ <179aca0a-deb5-7937-f955-26cc6d93afba@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <1487850219-6482-1-git-send-email-m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <179aca0a-deb5-7937-f955-26cc6d93afba@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Marek,
-
-On 02/23/2017 08:43 AM, Marek Szyprowski wrote:
-> Interrupt routine must wake process waiting for given interrupt AFTER
-> updating driver's internal structures and contexts. Doing it in-between
-> is a serious bug. This patch moves all calls to the wake() function to
-> the end of the interrupt processing block to avoid potential and real
-> races, especially on multi-core platforms. This also fixes following issue
-> reported from clock core (clocks were disabled in interrupt after being
-> unprepared from the other place in the driver, the stack trace however
-> points to the different place than s5p_mfc driver because of the race):
+On Mon, Mar 20, 2017 at 02:01:58PM +0100, Hans Verkuil wrote:
+> On 03/19/2017 06:54 PM, Steve Longerbeam wrote:
+> > 
+> > 
+> > On 03/19/2017 03:38 AM, Russell King - ARM Linux wrote:
+> >> What did you do with:
+> >>
+> >> ioctl(3, VIDIOC_REQBUFS, {count=0, type=0 /* V4L2_BUF_TYPE_??? */, memory=0 /* V4L2_MEMORY_??? */}) = -1 EINVAL (Invalid argument)
+> >>                  test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+> >> ioctl(3, VIDIOC_EXPBUF, 0xbef405bc)     = -1 EINVAL (Invalid argument)
+> >>                  fail: v4l2-test-buffers.cpp(571): q.has_expbuf(node)
 > 
-> WARNING: CPU: 1 PID: 18 at drivers/clk/clk.c:544 clk_core_unprepare+0xc8/0x108
-> Modules linked in:
-> CPU: 1 PID: 18 Comm: kworker/1:0 Not tainted 4.10.0-next-20170223-00070-g04e18bc99ab9-dirty #2154
-> Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
-> Workqueue: pm pm_runtime_work
-> [<c010d8b0>] (unwind_backtrace) from [<c010a534>] (show_stack+0x10/0x14)
-> [<c010a534>] (show_stack) from [<c033292c>] (dump_stack+0x74/0x94)
-> [<c033292c>] (dump_stack) from [<c011cef4>] (__warn+0xd4/0x100)
-> [<c011cef4>] (__warn) from [<c011cf40>] (warn_slowpath_null+0x20/0x28)
-> [<c011cf40>] (warn_slowpath_null) from [<c0387a84>] (clk_core_unprepare+0xc8/0x108)
-> [<c0387a84>] (clk_core_unprepare) from [<c0389d84>] (clk_unprepare+0x24/0x2c)
-> [<c0389d84>] (clk_unprepare) from [<c03d4660>] (exynos_sysmmu_suspend+0x48/0x60)
-> [<c03d4660>] (exynos_sysmmu_suspend) from [<c042b9b0>] (pm_generic_runtime_suspend+0x2c/0x38)
-> [<c042b9b0>] (pm_generic_runtime_suspend) from [<c0437580>] (genpd_runtime_suspend+0x94/0x220)
-> [<c0437580>] (genpd_runtime_suspend) from [<c042e240>] (__rpm_callback+0x134/0x208)
-> [<c042e240>] (__rpm_callback) from [<c042e334>] (rpm_callback+0x20/0x80)
-> [<c042e334>] (rpm_callback) from [<c042d3b8>] (rpm_suspend+0xdc/0x458)
-> [<c042d3b8>] (rpm_suspend) from [<c042ea24>] (pm_runtime_work+0x80/0x90)
-> [<c042ea24>] (pm_runtime_work) from [<c01322c4>] (process_one_work+0x120/0x318)
-> [<c01322c4>] (process_one_work) from [<c0132520>] (worker_thread+0x2c/0x4ac)
-> [<c0132520>] (worker_thread) from [<c0137ab0>] (kthread+0xfc/0x134)
-> [<c0137ab0>] (kthread) from [<c0107978>] (ret_from_fork+0x14/0x3c)
-> ---[ end trace 1ead49a7bb83f0d8 ]---
+> This is really a knock-on effect from an earlier issue where the compliance test
+> didn't detect support for MEMORY_MMAP.
+
+So why does it succeed when I fix the compliance errors with VIDIOC_G_FMT?
+With that fixed, I now get:
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                test VIDIOC_TRY_FMT: OK
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK (Not Supported)
+                test Composing: OK (Not Supported)
+                test Scaling: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK
+
+The reason is, if you look at the code, VIDIOC_G_FMT populates a list
+of possible buffer formats "node->valid_buftypes".  If the VIDIOC_G_FMT
+test fails, then node->valid_buftypes is zero.
+
+This causes testReqBufs() to only check for the all-zeroed VIDIOC_REQBUFS
+and declare it conformant, without creating any buffers (it can't, it
+doesn't know which formats are supported.)
+
+This causes node->valid_memorytype to be zero.
+
+We then go on to testExpBuf(), and valid_memorytype zero, claiming (falsely)
+that MMAP is not supported.  The reality is that it _is_ supported, but
+it's just the non-compliant VICIOC_G_FMT call (due to the colorspace
+issue) causes the sequence of tests to fail.
+
+> Always build from the master repo. 1.10 is pretty old.
+
+It's what I have - remember, not everyone is happy to constantly replace
+their distro packages with random new stuff.
+
+> >> In any case, it doesn't look like the buffer management is being
+> >> tested at all by v4l2-compliance - we know that gstreamer works, so
+> >> buffers _can_ be allocated, and I've also used dmabufs with gstreamer,
+> >> so I also know that VIDIOC_EXPBUF works there.
 > 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> Fixes: af93574678108 ("[media] MFC: Add MFC 5.1 V4L2 driver")
-> CC: stable@vger.kernel.org # v4.5+
-> ---
+> To test actual streaming you need to provide the -s option.
+> 
+> Note: v4l2-compliance has been developed for 'regular' video devices,
+> not MC devices. It may or may not work with the -s option.
 
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Right, and it exists to verify that the establised v4l2 API is correctly
+implemented.  If the v4l2 API is being offered to user applications,
+then it must be conformant, otherwise it's not offering the v4l2 API.
+(That's very much a definition statement in itself.)
 
-Best regards,
+So, are we really going to say MC devices do not offer the v4l2 API to
+userspace, but something that might work?  We've already seen today
+one user say that they're not going to use mainline because of the
+crud surrounding MC.
+
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
