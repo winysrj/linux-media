@@ -1,141 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:56940 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751560AbdCDCCP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Mar 2017 21:02:15 -0500
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v2 1/3] v4l: vsp1: extend VSP1 module API to allow DRM callbacks
-Date: Sat,  4 Mar 2017 02:01:17 +0000
-Message-Id: <b23c4017e8f7346a1c15d7e192a8e0f626121dca.1488592678.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.4a217716bf5515d07dcb6d2b052f883eeecae9e8.1488592678.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.4a217716bf5515d07dcb6d2b052f883eeecae9e8.1488592678.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.4a217716bf5515d07dcb6d2b052f883eeecae9e8.1488592678.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.4a217716bf5515d07dcb6d2b052f883eeecae9e8.1488592678.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:30564 "EHLO
+        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753662AbdCTK5P (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 20 Mar 2017 06:57:15 -0400
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Subject: [PATCH v3 06/16] media: s5p-mfc: Move setting DMA max segment size to
+ DMA configure function
+Date: Mon, 20 Mar 2017 11:56:32 +0100
+Message-id: <1490007402-30265-7-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
+References: <1490007402-30265-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20170320105651eucas1p1c80766207bf60d211200f2f5daa2c799@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To be able to perform page flips in DRM without flicker we need to be
-able to notify the rcar-du module when the VSP has completed its
-processing.
+Setting DMA max segment size to 32 bit mask is a part of DMA memory
+configuration, so move those calls to s5p_mfc_configure_dma_memory()
+function.
 
-We must not have bidirectional dependencies on the two components to
-maintain support for loadable modules, thus we extend the API to allow
-a callback to be registered within the VSP DRM interface.
-
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Acked-by: Andrzej Hajda <a.hajda@samsung.com>
+Tested-by: Smitha T Murthy <smitha.t@samsung.com>
 ---
-v2:
- - vsp1_du_setup_lif() uses config structure to set callbacks
- - vsp1_du_pipeline_frame_end() moved to interrupt section
- - vsp1_du_pipeline_frame_end registered in vsp1_drm_init()
-   meaning of any NULL values
- - removed unnecessary 'private data' variables
+ drivers/media/platform/s5p-mfc/s5p_mfc.c | 21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
- drivers/media/platform/vsp1/vsp1_drm.c | 20 ++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_drm.h | 10 ++++++++++
- include/media/vsp1.h                   |  3 +++
- 3 files changed, 33 insertions(+)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index 7dce55043379..85e5ebca82a5 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -36,6 +36,16 @@ void vsp1_drm_display_start(struct vsp1_device *vsp1)
- 	vsp1_dlm_irq_display_start(vsp1->drm->pipe.output->dlm);
- }
- 
-+static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe)
-+{
-+	struct vsp1_drm *drm = to_vsp1_drm(pipe);
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index c03ed1a737b7..1fe790d88e70 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1117,9 +1117,13 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+ 	if (exynos_is_iommu_available(dev)) {
+ 		int ret = exynos_configure_iommu(dev, S5P_MFC_IOMMU_DMA_BASE,
+ 						 S5P_MFC_IOMMU_DMA_SIZE);
+-		if (ret == 0)
++		if (ret == 0) {
+ 			mfc_dev->mem_dev[BANK1_CTX] =
+ 				mfc_dev->mem_dev[BANK2_CTX] = dev;
++			vb2_dma_contig_set_max_seg_size(dev,
++							DMA_BIT_MASK(32));
++		}
 +
-+	if (drm->du_complete && drm->du_pending) {
-+		drm->du_complete(drm->du_private);
-+		drm->du_pending = false;
-+	}
-+}
-+
- /* -----------------------------------------------------------------------------
-  * DU Driver API
-  */
-@@ -95,6 +105,7 @@ int vsp1_du_setup_lif(struct device *dev, const struct vsp1_du_lif_config *cfg)
- 		}
- 
- 		pipe->num_inputs = 0;
-+		vsp1->drm->du_complete = NULL;
- 
- 		vsp1_dlm_reset(pipe->output->dlm);
- 		vsp1_device_put(vsp1);
-@@ -196,6 +207,13 @@ int vsp1_du_setup_lif(struct device *dev, const struct vsp1_du_lif_config *cfg)
- 	if (ret < 0)
  		return ret;
+ 	}
  
-+	/*
-+	 * Register a callback to allow us to notify the DRM framework of frame
-+	 * completion events.
-+	 */
-+	vsp1->drm->du_complete = cfg->callback;
-+	vsp1->drm->du_private = cfg->callback_data;
+@@ -1138,6 +1142,11 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+ 		return -ENODEV;
+ 	}
+ 
++	vb2_dma_contig_set_max_seg_size(mfc_dev->mem_dev[BANK1_CTX],
++					DMA_BIT_MASK(32));
++	vb2_dma_contig_set_max_seg_size(mfc_dev->mem_dev[BANK2_CTX],
++					DMA_BIT_MASK(32));
 +
- 	ret = media_pipeline_start(&pipe->output->entity.subdev.entity,
- 					  &pipe->pipe);
- 	if (ret < 0) {
-@@ -504,6 +522,7 @@ void vsp1_du_atomic_flush(struct device *dev)
- 
- 	vsp1_dl_list_commit(pipe->dl);
- 	pipe->dl = NULL;
-+	vsp1->drm->du_pending = true;
- 
- 	/* Start or stop the pipeline if needed. */
- 	if (!vsp1->drm->num_inputs && pipe->num_inputs) {
-@@ -597,6 +616,7 @@ int vsp1_drm_init(struct vsp1_device *vsp1)
- 	pipe->lif = &vsp1->lif->entity;
- 	pipe->output = vsp1->wpf[0];
- 	pipe->output->pipe = pipe;
-+	pipe->frame_end = vsp1_du_pipeline_frame_end;
- 
  	return 0;
  }
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.h b/drivers/media/platform/vsp1/vsp1_drm.h
-index 9e28ab9254ba..3a53e9a60c73 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.h
-+++ b/drivers/media/platform/vsp1/vsp1_drm.h
-@@ -33,8 +33,18 @@ struct vsp1_drm {
- 		struct v4l2_rect compose;
- 		unsigned int zpos;
- 	} inputs[VSP1_MAX_RPF];
-+
-+	/* Frame syncronisation */
-+	void (*du_complete)(void *);
-+	void *du_private;
-+	bool du_pending;
- };
  
-+static inline struct vsp1_drm *to_vsp1_drm(struct vsp1_pipeline *pipe)
-+{
-+	return container_of(pipe, struct vsp1_drm, pipe);
-+}
-+
- int vsp1_drm_init(struct vsp1_device *vsp1);
- void vsp1_drm_cleanup(struct vsp1_device *vsp1);
- int vsp1_drm_create_links(struct vsp1_device *vsp1);
-diff --git a/include/media/vsp1.h b/include/media/vsp1.h
-index bfc701f04f3f..f6629f19f209 100644
---- a/include/media/vsp1.h
-+++ b/include/media/vsp1.h
-@@ -23,6 +23,9 @@ int vsp1_du_init(struct device *dev);
- struct vsp1_du_lif_config {
- 	unsigned int width;
- 	unsigned int height;
-+
-+	void (*callback)(void *);
-+	void *callback_data;
- };
+@@ -1147,11 +1156,14 @@ static void s5p_mfc_unconfigure_dma_memory(struct s5p_mfc_dev *mfc_dev)
  
- int vsp1_du_setup_lif(struct device *dev, const struct vsp1_du_lif_config *cfg);
+ 	if (exynos_is_iommu_available(dev)) {
+ 		exynos_unconfigure_iommu(dev);
++		vb2_dma_contig_clear_max_seg_size(dev);
+ 		return;
+ 	}
+ 
+ 	device_unregister(mfc_dev->mem_dev[BANK1_CTX]);
+ 	device_unregister(mfc_dev->mem_dev[BANK2_CTX]);
++	vb2_dma_contig_clear_max_seg_size(mfc_dev->mem_dev[BANK1_CTX]);
++	vb2_dma_contig_clear_max_seg_size(mfc_dev->mem_dev[BANK2_CTX]);
+ }
+ 
+ /* MFC probe function */
+@@ -1209,11 +1221,6 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+ 		goto err_dma;
+ 	}
+ 
+-	vb2_dma_contig_set_max_seg_size(dev->mem_dev[BANK1_CTX],
+-					DMA_BIT_MASK(32));
+-	vb2_dma_contig_set_max_seg_size(dev->mem_dev[BANK2_CTX],
+-					DMA_BIT_MASK(32));
+-
+ 	mutex_init(&dev->mfc_mutex);
+ 	init_waitqueue_head(&dev->queue);
+ 	dev->hw_lock = 0;
+@@ -1346,8 +1353,6 @@ static int s5p_mfc_remove(struct platform_device *pdev)
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+ 	s5p_mfc_release_firmware(dev);
+ 	s5p_mfc_unconfigure_dma_memory(dev);
+-	vb2_dma_contig_clear_max_seg_size(dev->mem_dev[BANK1_CTX]);
+-	vb2_dma_contig_clear_max_seg_size(dev->mem_dev[BANK2_CTX]);
+ 
+ 	s5p_mfc_final_pm(dev);
+ 	return 0;
 -- 
-git-series 0.9.1
+1.9.1
